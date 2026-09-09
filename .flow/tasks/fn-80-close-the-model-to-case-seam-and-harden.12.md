@@ -22,9 +22,34 @@ Each diagnostic must point at the offending source coordinates, not at the macro
 - [ ] No fixture bytes move; `make lint-model` adds nothing to the 169 baseline.
 
 ## Done summary
-TBD
+Added the five located model-declaration diagnostics, each thrown at the author's own coordinates
+and pinned by `#guard_msgs`:
 
+- a constructor that takes arguments, reported at the type the model names;
+- an identifier that resolves to no constructor, reported at that identifier and naming every
+  declared spelling of the domain, which is the actionable message a newcomer renaming an Action
+  needs;
+- a duplicate `before + action` pair, reported at the second row's key and naming the row that
+  already declared it;
+- a terminal state unreachable from every initial state over the declared rows, reported at that
+  terminal;
+- a table over the 256-row elaboration bound, reported at the first excess row.
+
+Each transition row is resolved once into a record; the duplicate scan, the reachability walk and
+the table all read that record, so a row is never resolved twice and diagnostics are reported in
+declaration order. Spellings are compared with macro scopes erased, so a model declared through
+another macro resolves and reports its authored spelling — which is what lets the over-bound test
+generate its 257 rows from a local test macro rather than writing them out.
+
+No fixture bytes moved; `make umpire-check-case-runtime-conformance` is green and `make lint-model`
+holds at the 169 generated-API baseline with `Umpire.Lint` and `Shared` clean.
+
+stage: impl-review - ran | round 1 NEEDS_WORK, round 2 SHIP (model: claude-fable-5-1 at high). Round
+1's P1 was correct: the bound had been pinned on its message builder rather than through the
+elaborator, justified by a comment that a test-side macro disproved. All findings from both rounds
+are addressed.
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: db18ebb59, b1158935a, HEAD
+- Tests: cd model && lake build Temporal TemporalModelTests UmpireTests TestpilotTests, make umpire-check-case-runtime-conformance (green, no fixture bytes moved), make lint-model (169 errors, all generated Temporal/API; Umpire.Lint and Shared clean; unchanged from baseline), CGO_ENABLED=0 go test -tags test_dep ./common/testing/testpilot/... ./tests/testcore/testpilot/..., GATE_SKIPPED:live-integration:go test -tags 'test_dep integration' ./tests -run TestTestpilot needs a live cluster; the conformance gate proves the generated Case bytes are unmoved
 - PRs:
