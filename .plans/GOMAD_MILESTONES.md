@@ -22,11 +22,28 @@ The assessment that produced this document verified the following on the working
 - The root module declares `go 1.27` and `toolchain go1.27.0` since 2026-08-23. Gomad v3 pins
   `go1.26.4` in `tools/gomad3/toolchain/version/version.json` and builds targets with
   `GOTOOLCHAIN=local`. No Temporal package builds under the patched toolchain today.
-- `tools/gomad3/.toolchain` and `tools/gomad3/.bin` do not exist in the checkout. The
-  toolchain has to be rebuilt from source before any milestone below can be measured.
+- `tools/gomad3/.toolchain` and `tools/gomad3/.bin` do not exist in a fresh checkout. The F1
+  spike on 2026-09-08 rebuilt them: the go1.26.4 build takes 75 seconds of wall time and 770 MB
+  on disk, and `gomad doctor` reports the host, toolchain, runner, all four adapters, and the
+  artifact store available.
+- Building the probe with the patched toolchain fails with
+  `go: go.mod requires go >= 1.27 (running go 1.26.4; GOTOOLCHAIN=local)`. Without
+  `GOTOOLCHAIN=local` the patched `go` binary silently switches to the stock go1.27.0 toolchain
+  from the module cache and reports `go1.27.0`, so any wrapper that drops that variable builds an
+  unpatched binary. The runner sets it; the root Makefile's `gomad3-run` and `gomad3-test`
+  targets rely on the nested Makefile doing the same.
 - The conformance fixture corpus under `tools/gomad3/internal/gomadtool/conformance/testdata`
   was never committed because the root `.gitignore` ignores every `testdata/` directory. The
-  runtime tier, the interception tier, and every `io_*_toolchain_test.go` cannot run.
+  runtime tier, the interception tier, and every `io_*_toolchain_test.go` cannot run. The F1
+  spike confirmed `make -C tools/gomad3 test-runtime` fails on the first fixture. The missing set
+  is 25 runtime fixtures (`activation`, `activation_io`, `automatic_gc`, `channels`,
+  `choice_replay`, `clock`, `clock_bench`, `clock_cgo`, `clock_deadlock`, `clock_gotest`,
+  `clock_io`, `clock_race`, `clock_spin`, `clock_synctest`, `gotest`, `intercept`, `maps`,
+  `preemption`, `random`, `runqueue`, `scheduler`, `scheduler_min`, `select`, `sync`,
+  `toolchain`), the `interceptfail` set, the boundary canaries `io_filesystem`,
+  `io_filesystem.host-escape`, and `io_net`, and the compatibility-pack fixture `v041`. No
+  generator or embedded copy exists in the tree, so they have to be re-authored from the
+  expectations in the `runtime_*.go` conformance files.
 - The root `Makefile` targets `gomad3-run` and `gomad3-test` point at `tools/gomad3/exec.sh`,
   which does not exist. The script lives under `internal/gomadtool/conformance/scripts`.
 - `tools/gomad3/simulation/parity/manifest.go` pins `gomad3.simulation-spec/v6` while
@@ -50,8 +67,21 @@ The assessment that produced this document verified the following on the working
 - The I/O transcript is a fixed 64 MiB mapping of 128-byte records
   (`toolchain/runtime/overlay/src/internal/gomadtrace/trace.go`), about 524k modeled
   operations per execution. Overflow is a failed run with no exact replay.
-- Spec [fn-81](../.flow/specs/fn-81-delete-the-pre-testpilot-go-generations.md), reviewed
-  as ready to ship, deletes every gomad tree, the functional probe, and its pack.
+- `make -C tools/gomad3 toolchain` fails before building anything because `validate-toolchain`
+  finds `choice/internal/wire/wire_generated.go` stale. Running `make -C tools/gomad3 generate`
+  rewrites six generated files (532 lines): the choice wire codec's implementation digest, every
+  boundary probe ID in `deterministicio/boundary_generated.go`, the livecap and gomadcap
+  protocol tables, and `spec_go126.go`. The diff is identical under a go1.26.4 and a go1.27.0
+  host, so the committed outputs are stale against their committed inputs, not host-dependent.
+  Any retained artifact from before the regeneration carries the old identities. The chain also
+  needs two passes to converge: `protocol-generate` embeds `ProducerImplementationSHA256` and
+  `GuardImplementationSHA256` in `target/internal/livecap/protocol_generated.go`, digests of the
+  gomadcap overlay file that the same pass rewrites, so `validate-toolchain` fails again after
+  one `make generate` and passes after a second.
+- Spec [fn-81](../.flow/specs/fn-81-delete-the-pre-testpilot-go-generations.md) in its first
+  revision deleted every gomad tree, the functional probe, and its pack. Its 2026-09-08
+  amendment retains Gomad v3 and the probe, and deletes gomad, gomad1, and gomad2 together with
+  the Gomad v3 parity manifest that read gomad2 source paths.
 
 ## Constraints that apply to every milestone
 
@@ -69,7 +99,7 @@ The assessment that produced this document verified the following on the working
 - **Evidence over narration.** A milestone is done when its command produces the stated
   report on a clean checkout. A passing local run that depends on untracked state does not
   count.
-- **Platform.** milestones F0 through F6 are qualified on `darwin/arm64` only. Linux is
+- **Platform.** Milestones F0 through F6 are qualified on `darwin/arm64` only. Linux is
   milestone F7 and gates CI, never the determinism claim.
 - **Server source changes are allowed but bounded.** A change under `common`, `service`,
   `temporal`, or `tests/testcore` is acceptable when it isolates an optional provider behind a
@@ -81,6 +111,9 @@ The assessment that produced this document verified the following on the working
 **Outcome.** The repository either keeps Gomad v3 with a carve-out from fn-81 or drops the goal
 this document serves. Nothing below starts until this is settled, because fn-81 removes the
 toolchain, the probe, and the pack in its first two commits.
+
+**Status.** Applied on 2026-09-08. fn-81 and its five tasks now retain Gomad v3, the probe, and
+the pack, and delete gomad, gomad1, gomad2, and the parity manifest.
 
 **Details.**
 
@@ -107,11 +140,20 @@ every Gomad v3 gate that exists today, and the two integration contract tests pa
 
 **Details.**
 
-- Commit the conformance fixture corpus. Add `!/tools/gomad3/internal/gomadtool/conformance/testdata/`
-  and `!/tools/gomad3/internal/compatibilitypack/testdata/` to the root `.gitignore` next to the
-  existing umpire allowances, then regenerate the fixtures from the driver if the originals are
-  gone. The boundary manifest's `conformance_fixtures` field names `io_filesystem` and `io_net`
-  as the semantic canary, so those two are mandatory.
+- Commit the regenerated files from `make -C tools/gomad3 generate` and verify
+  `make -C tools/gomad3 validate-toolchain` passes on a clean checkout. Make the generator chain
+  converge in one pass by ordering the gomadcap overlay generation before the livecap protocol
+  digest, or by having `generate` loop until `-check` passes. Add that gate to the
+  gomad3 workflow's `core` job so generated outputs cannot drift again without a red check.
+- Re-author and commit the conformance fixture corpus. Add
+  `!/tools/gomad3/internal/gomadtool/conformance/testdata/` and
+  `!/tools/gomad3/internal/compatibilitypack/testdata/` to the root `.gitignore` next to the
+  existing umpire allowances. Each fixture is a small Go program whose expected output, exit
+  status, and timing are pinned by the `runtime_*.go` conformance files, so those files are the
+  specification. Author `io_filesystem`, `io_net`, and `io_filesystem.host-escape` first, since
+  the boundary manifest names them as the semantic canary, then `activation`, `clock`, `maps`,
+  `select`, `runqueue`, and `choice_replay`, which the core qualification set and the CI
+  assertion depend on. The rest follow in the order `make -C tools/gomad3 test-runtime` fails.
 - Point the root Makefile at the real `exec.sh` or move the script to the path the Makefile
   expects. Pick one; the compatibility-pack request records the path.
 - Bump `HarnessSpecSchema` in `tools/gomad3/simulation/parity/manifest.go` and the JSON manifest
@@ -378,7 +420,7 @@ gate run in CI.
 - **Spin loops** anywhere in the cluster stall virtual time. The matching and history services
   contain pollers with backoff, which are fine, but a single `for {}` with a non-blocking
   select is fatal under this runtime.
-- **Upstream Go releases** invalidate the patch and the boundary manifest each time. Milestone 2
+- **Upstream Go releases** invalidate the patch and the boundary manifest each time. Milestone F2
   is the first port; every later Go bump repeats it.
 - **Compatibility packs pin exact module versions.** Every dependency bump in the root go.mod
   that touches a packed module invalidates the pack and reopens milestone F4.

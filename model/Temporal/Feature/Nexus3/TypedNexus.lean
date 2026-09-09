@@ -1,0 +1,764 @@
+import Temporal.API
+import Temporal.Shared
+import Temporal.Testpilot.CaseSupport
+import Umpire.Case.Compiler
+import Umpire.Case.Observed
+import Umpire.Property
+import Umpire.Property.Scoped
+import Umpire.Target.FiniteMachine
+
+/-!
+# Two workflow-owned Nexus operations qualified by captured field relations
+
+The workflow schedules two Nexus operations on one endpoint and awaits both. Each is a separate
+modeled operation identity, and this module keeps that identity typed on both sides of the
+boundary a Nexus operation actually has.
+
+The submission is an SDK command, not an RPC: `Umpire.Operation.sdkCommand` declares one identity
+per scheduled operation, and `Umpire.Operation.event` declares the two semantic events (scheduled
+and completed) the operation later records. None of the three pretends to be a unary RPC. The only
+RPC here is `GetWorkflowExecutionHistory`, which is observation work: it supplies the generated
+response schema through which every event field below is read, and fetching it causes nothing.
+
+Two independent requirements sit on that evidence, and they fail in different ways:
+
+* The **Link** is the scoped clause's correlation. An operation retains the operation identity its
+  own scheduled evidence recorded, keyed by the operation, and a later step belongs to that
+  operation only when the retained identity is one of the two the model declares. A step carrying
+  an identity the model never declared is not one of this operation's semantic steps at all, so it
+  fails admission rather than reporting a product violation.
+* The **authored field requirement** is the same-step clause. A completion must reference the
+  scheduled event its own operation was scheduled at: the `scheduled_event_id` the completed event
+  records equals the `event_id` the operation's prior state carries. The Target owns both the
+  correlated and the crossed completion, so selecting the await Action never selects which one
+  arrives, and the crossed one is a violation of this clause rather than a rejection.
+
+The bounded response is the scoped clause itself: a scheduled operation must complete within its
+declared window of semantic transitions. A run that has only been scheduled is unresolved, and a
+completion that arrives after the window closes is violated -- neither answer is manufactured from
+a synthetic deadline.
+
+The Contract the Case carries is derived, not restated: every field a monitor rule reads is
+`Umpire.Case.Observed.pathOf` applied to the same `PropertyFieldPath` the model Property compares,
+and the two operation literals it matches are the declared SDK command identities.
+-/
+
+namespace Temporal.Feature.Nexus3.TypedNexus
+
+open Umpire
+open Umpire.Operation
+open Umpire.Value
+open Temporal.Testpilot.CaseSupport
+open Testpilot.Authoring
+open temporal.server.api.testpilot.v1
+
+/-! ### The one generated reference: history observation -/
+
+/-- The generated unary method whose response supplies every observed event field below. Fetching
+history is observation work; it does not schedule, start or complete an operation. -/
+abbrev historyMethod := Temporal.Api.Workflowservice.V1.WorkflowService.getWorkflowExecutionHistory
+
+def historyReference : Temporal.API.MethodReference historyMethod := by constructor
+
+def historyWitness : Temporal.API.rpcOwner.Witness
+    Temporal.Api.Workflowservice.V1.GetWorkflowExecutionHistoryRequest
+    Temporal.Api.Workflowservice.V1.GetWorkflowExecutionHistoryResponse :=
+  ⟨historyMethod, historyReference⟩
+
+/-- Admit the generated history declaration against the generator's own structural selection. -/
+def historyBinding : Except Operation.Error
+    (CheckedRpc Temporal.API.rpcOwner historyWitness) :=
+  Temporal.API.bindUnary historyMethod historyReference
+
+def historySchema : RpcSchema := Temporal.API.rpcOwner.schema historyWitness
+
+def source : SourceLocation :=
+  Temporal.Shared.sourceLocation "Temporal/Feature/Nexus3/TypedNexus.lean"
+
+/-- Semantic value bounds for the admitted history payloads. -/
+def valueLimits : Limits := ⟨16, 20000000, 262144, 512⟩
+
+/-! ### Structural coordinates, taken from the generated descriptors -/
+
+def historyResponseRoot := "temporal.api.workflowservice.v1.GetWorkflowExecutionHistoryResponse"
+def historyNode := "temporal.api.history.v1.History"
+def historyEventNode := "temporal.api.history.v1.HistoryEvent"
+def scheduledAttributesNode := "temporal.api.history.v1.NexusOperationScheduledEventAttributes"
+def completedAttributesNode := "temporal.api.history.v1.NexusOperationCompletedEventAttributes"
+
+/-- The oneof group every history event's attributes belong to. -/
+def attributesGroup := "attributes"
+
+/-! ### The two modeled operation identities -/
+
+/-- The Nexus service both operations are addressed to. -/
+def nexusService := "umpire.case.service"
+
+/-- The two Nexus operations the workflow schedules, in declaration order. -/
+def firstOperation := "complete"
+def secondOperation := "confirm"
+
+def firstCommandId : DefinitionId := .of "temporal.nexus3.typed-nexus.command.schedule-complete"
+def secondCommandId : DefinitionId := .of "temporal.nexus3.typed-nexus.command.schedule-confirm"
+def scheduledEventDeclarationId : DefinitionId :=
+  .of "temporal.nexus3.typed-nexus.event.operation-scheduled"
+def completedEventDeclarationId : DefinitionId :=
+  .of "temporal.nexus3.typed-nexus.event.operation-completed"
+
+/-- One scheduled operation's declared SDK command. Its submission, return and error signature is
+declared separately from any RPC, and its identity is what the Link correlation retains. -/
+def scheduleCommand (identity : DefinitionId) :
+    Except Operation.Error (Declaration .sdkCommand String String Empty) :=
+  Operation.sdkCommand String String Empty identity
+
+/-- The two semantic events this operation records. An event has no service response and no
+transport failure signature, so it is declared as an event rather than as a command or an RPC. -/
+def scheduledEventDeclaration : Except Operation.Error (Declaration .event String Unit Empty) :=
+  Operation.event String scheduledEventDeclarationId
+def completedEventDeclaration : Except Operation.Error (Declaration .event String Unit Empty) :=
+  Operation.event String completedEventDeclarationId
+
+/-! ### Model identities -/
+
+def pendingStateId : DefinitionId := .of "temporal.nexus3.typed-nexus.state.pending"
+def scheduledStateId : DefinitionId := .of "temporal.nexus3.typed-nexus.state.scheduled"
+def completedStateId : DefinitionId := .of "temporal.nexus3.typed-nexus.state.completed"
+def scheduleActionId : DefinitionId := .of "temporal.nexus3.typed-nexus.action.schedule"
+def awaitActionId : DefinitionId := .of "temporal.nexus3.typed-nexus.action.await-completion"
+def pollActionId : DefinitionId := .of "temporal.nexus3.typed-nexus.action.poll-history"
+def scheduledOutcomeId : DefinitionId := .of "temporal.nexus3.typed-nexus.outcome.scheduled"
+def completedOutcomeId : DefinitionId := .of "temporal.nexus3.typed-nexus.outcome.completed"
+def noProgressOutcomeId : DefinitionId := .of "temporal.nexus3.typed-nexus.outcome.no-progress"
+def operationRoleId : DefinitionId := .of "temporal.nexus3.typed-nexus.role.operation"
+def targetId : DefinitionId := .of "temporal.nexus3.typed-nexus.target"
+def kernelId : DefinitionId := .of "temporal.nexus3.typed-nexus.kernel"
+def capabilityId : DefinitionId := .of "temporal.nexus3.typed-nexus.capability"
+def providerId : DefinitionId := .of "temporal.nexus3.typed-nexus.provider"
+def runFieldId : DefinitionId := .of "temporal.nexus3.typed-nexus.scope.run"
+def operationFieldId : DefinitionId := .of "temporal.nexus3.typed-nexus.scope.operation"
+def linkPropertyId : DefinitionId := .of "temporal.nexus3.typed-nexus.property.bounded-completion"
+def linkClauseId : DefinitionId := .of "temporal.nexus3.typed-nexus.clause.bounded-completion"
+def captureId : DefinitionId := .of "temporal.nexus3.typed-nexus.capture.scheduled-operation"
+def fieldPropertyId : DefinitionId := .of "temporal.nexus3.typed-nexus.property.correlated-completion"
+def groupId : DefinitionId := .of "temporal.nexus3.typed-nexus.property.group"
+def caseId : DefinitionId := .of "temporal.nexus3.typed-nexus.property.case"
+def clauseId : DefinitionId := .of "temporal.nexus3.typed-nexus.clause.correlated-completion"
+
+def pendingState : ModelValue := .named pendingStateId "pending"
+def completedState : ModelValue := .named completedStateId "completed"
+def noProgressOutcome : ModelValue := .named noProgressOutcomeId "no-progress"
+def awaitAction : ModelValue := .named awaitActionId "await-completion"
+def pollAction : ModelValue := .named pollActionId "poll-history"
+
+/-- One scheduled operation's Action payload: the same modeled Action definition carrying the exact
+SDK command identity it submitted, so one trigger pattern covers both operations while their
+declared command identities stay distinct. -/
+def scheduleAction (command : Declaration .sdkCommand String String Empty) : ModelValue :=
+  ⟨scheduleActionId, command.identity.value⟩
+
+/-! ### Exact evidence payloads -/
+
+/-- The scheduled evidence of one operation, read through the generated history response: the
+event's own id and the endpoint/service/operation/request the scheduling command addressed. -/
+def scheduledPayload (operation : String) (eventId : Int) (requestId : String) : Raw :=
+  Value.message historyResponseRoot [
+    (1, Value.message historyNode [
+      (1, Value.repeated [
+        Value.message historyEventNode [
+          (1, Value.literal (.integer .int64 eventId)),
+          (53, Value.message scheduledAttributesNode [
+            (2, Value.literal (.text nexusService)),
+            (3, Value.literal (.text operation)),
+            (8, Value.literal (.text requestId))])]])])]
+
+/-- The completed evidence of one operation: the scheduled event it references and its request. -/
+def completedPayload (scheduledEventId : Int) (requestId : String) : Raw :=
+  Value.message historyResponseRoot [
+    (1, Value.message historyNode [
+      (1, Value.repeated [
+        Value.message historyEventNode [
+          (1, Value.literal (.integer .int64 (scheduledEventId + 1))),
+          (55, Value.message completedAttributesNode [
+            (1, Value.literal (.integer .int64 scheduledEventId)),
+            (3, Value.literal (.text requestId))])]])])]
+
+/-! ### Checked cursors over the admitted payloads
+
+Every operand below is built by a real cursor walk over a real admitted payload, so the declared
+coordinates and the admitted ones are the same coordinates. -/
+
+private def fieldError (reason : String) : Field.Error := ⟨source, "typed-nexus", reason⟩
+
+private abbrev HistoryProjection :=
+  PropertyFieldProjection Temporal.API.rpcOwner historyWitness
+
+private abbrev HistoryCursor (type : Singular) :=
+  Field.Cursor Temporal.API.rpcOwner historyWitness .response valueLimits type .singular .available
+
+/-- Walk one admitted history payload to its single event, returning the optional `history`
+presence the walk established and the event cursor itself. -/
+private def eventCursor (payload : Raw) :
+    Except Field.Error (HistoryCursor .boolean × HistoryCursor (.message historyEventNode)) := do
+  let value ← (Value.check Temporal.API.rpcOwner historyWitness .response valueLimits payload).mapError
+    fun error => Field.Error.mk source error.path error.reason
+  let historyReference ← Field.reference Temporal.API.rpcOwner historyWitness .response
+    historyResponseRoot 1 source
+  let eventsReference ← Field.reference Temporal.API.rpcOwner historyWitness .response
+    historyNode 1 source
+  let root ← (Field.root value).refine (.message historyResponseRoot) .singular .available source
+  let history ← root.field historyReference source
+  let history ← history.refine (.message historyNode) .singular .optional source
+  let presence ← history.present source
+  let established ← history.establish source
+  let events ← established.field eventsReference source
+  let events ← events.refine (.message historyEventNode) .repeated .available source
+  let event ← events.index 0 source
+  pure (presence, event)
+
+/-- Select one event's attributes oneof member, returning the member presence and the member. -/
+private def attributeCursor (event : HistoryCursor (.message historyEventNode))
+    (number : Nat) (node : String) :
+    Except Field.Error (HistoryCursor .boolean × HistoryCursor (.message node)) := do
+  let reference ← Field.reference Temporal.API.rpcOwner historyWitness .response
+    historyEventNode number source
+  let attributes ← event.field reference source
+  let attributes ← attributes.refine (.message node) .singular (.oneof attributesGroup) source
+  let presence ← attributes.present source
+  let selected ← attributes.select attributesGroup source
+  pure (presence, selected)
+
+/-- Read one scalar leaf of an available message cursor. -/
+private def scalarCursor (node : String) (parent : HistoryCursor (.message node))
+    (number : Nat) (type : Singular) : Except Field.Error (HistoryCursor type) := do
+  let reference ← Field.reference Temporal.API.rpcOwner historyWitness .response node number source
+  let field ← parent.field reference source
+  field.refine type .singular .available source
+
+/-! ### Structural paths
+
+Each path is the coordinates of one admitted cursor above; the tests require the two to agree. -/
+
+private def scheduledSteps (number : Nat) : List Field.Step :=
+  [.field historyResponseRoot 1, .establish, .field historyNode 1, .index 0,
+    .field historyEventNode 53, .select attributesGroup, .field scheduledAttributesNode number]
+
+private def completedSteps (number : Nat) : List Field.Step :=
+  [.field historyResponseRoot 1, .establish, .field historyNode 1, .index 0,
+    .field historyEventNode 55, .select attributesGroup, .field completedAttributesNode number]
+
+private def eventIdSteps : List Field.Step :=
+  [.field historyResponseRoot 1, .establish, .field historyNode 1, .index 0,
+    .field historyEventNode 1]
+
+private def historyPresenceSteps : List Field.Step := [.field historyResponseRoot 1, .present]
+
+private def basePath (root : PropertyFieldRoot) (reference : DefinitionId) : PropertyFieldPath :=
+  { root, reference, schema := historySchema, side := .response, steps := [], type := .text }
+
+/-- The operation identity the scheduled evidence recorded. This is the value each operation
+retains under its own key, and the Link correlation reads it back. -/
+def scheduledOperationPath : PropertyFieldPath :=
+  { basePath .outcome scheduledOutcomeId with steps := scheduledSteps 3 }
+
+def scheduledHistoryPresencePath : PropertyFieldPath :=
+  { basePath .outcome scheduledOutcomeId with
+    steps := historyPresenceSteps, type := .boolean }
+
+def scheduledAttributesPresencePath : PropertyFieldPath :=
+  { basePath .outcome scheduledOutcomeId with
+    steps := (scheduledSteps 3).take 5 ++ [.present], type := .boolean }
+
+/-- The scheduled event's own id, carried by the model state a scheduled operation is in. -/
+def scheduledEventIdPath : PropertyFieldPath :=
+  { basePath .priorState scheduledStateId with
+    steps := eventIdSteps, type := .integer .int64 }
+
+def scheduledStatePresencePath : PropertyFieldPath :=
+  { basePath .priorState scheduledStateId with
+    steps := historyPresenceSteps, type := .boolean }
+
+/-- The scheduled event a completion references. -/
+def completedScheduledEventIdPath : PropertyFieldPath :=
+  { basePath .outcome completedOutcomeId with
+    steps := completedSteps 1, type := .integer .int64 }
+
+def completedHistoryPresencePath : PropertyFieldPath :=
+  { basePath .outcome completedOutcomeId with
+    steps := historyPresenceSteps, type := .boolean }
+
+def completedAttributesPresencePath : PropertyFieldPath :=
+  { basePath .outcome completedOutcomeId with
+    steps := (completedSteps 1).take 5 ++ [.present], type := .boolean }
+
+/-! ### Admitted projections -/
+
+/-- The scheduled evidence one operation records, as admitted projections: the two presence facts
+the read traverses and the operation identity itself. -/
+def scheduledProjections (operation : String) (eventId : Int) (requestId : String) :
+    Except Field.Error (List HistoryProjection) := do
+  let (historyPresence, event) ← eventCursor (scheduledPayload operation eventId requestId)
+  let (attributesPresence, attributes) ← attributeCursor event 53 scheduledAttributesNode
+  let name ← scalarCursor scheduledAttributesNode attributes 3 .text
+  pure [
+    ← PropertyFieldProjection.ofCursor .outcome scheduledOutcomeId historyPresence (by decide) source,
+    ← PropertyFieldProjection.ofCursor .outcome scheduledOutcomeId attributesPresence (by decide)
+      source,
+    ← PropertyFieldProjection.ofCursor .outcome scheduledOutcomeId name (by decide) source]
+
+/-- The scheduled event id an operation's model state carries, as admitted projections. -/
+def scheduledStateProjections (operation : String) (eventId : Int) (requestId : String) :
+    Except Field.Error (List HistoryProjection) := do
+  let (historyPresence, event) ← eventCursor (scheduledPayload operation eventId requestId)
+  let identity ← scalarCursor historyEventNode event 1 (.integer .int64)
+  pure [
+    ← PropertyFieldProjection.ofCursor .priorState scheduledStateId historyPresence (by decide) source,
+    ← PropertyFieldProjection.ofCursor .priorState scheduledStateId identity (by decide) source]
+
+/-- The completion evidence, as admitted projections: the two presence facts and the scheduled
+event the completion references. -/
+def completedProjections (scheduledEventId : Int) (requestId : String) :
+    Except Field.Error (List HistoryProjection) := do
+  let (historyPresence, event) ← eventCursor (completedPayload scheduledEventId requestId)
+  let (attributesPresence, attributes) ← attributeCursor event 55 completedAttributesNode
+  let referenced ← scalarCursor completedAttributesNode attributes 1 (.integer .int64)
+  pure [
+    ← PropertyFieldProjection.ofCursor .outcome completedOutcomeId historyPresence (by decide) source,
+    ← PropertyFieldProjection.ofCursor .outcome completedOutcomeId attributesPresence (by decide)
+      source,
+    ← PropertyFieldProjection.ofCursor .outcome completedOutcomeId referenced (by decide) source]
+
+private def lastModelValue (projections : Except Field.Error (List HistoryProjection)) :
+    Except Field.Error ModelValue := do
+  let some last := (← projections).getLast? | throw (fieldError "missing projection")
+  pure last.modelValue
+
+/-! ### The two operations this Case runs -/
+
+/-- One modeled operation: its declared SDK command, the operation name it addresses, and the exact
+scheduled event id and request id its own evidence records. -/
+structure OperationCase where
+  command : DefinitionId
+  operation : String
+  eventId : Int
+  requestId : String
+  deriving BEq, DecidableEq, Repr
+
+def firstCase : OperationCase := ⟨firstCommandId, firstOperation, 5, "umpire-typed-nexus-a"⟩
+def secondCase : OperationCase := ⟨secondCommandId, secondOperation, 9, "umpire-typed-nexus-b"⟩
+
+def operationCases : List OperationCase := [firstCase, secondCase]
+
+def OperationCase.scheduledOutcome (entry : OperationCase) : Except Field.Error ModelValue :=
+  lastModelValue (scheduledProjections entry.operation entry.eventId entry.requestId)
+
+def OperationCase.scheduledState (entry : OperationCase) : Except Field.Error ModelValue :=
+  lastModelValue (scheduledStateProjections entry.operation entry.eventId entry.requestId)
+
+def OperationCase.completedOutcome (entry : OperationCase) : Except Field.Error ModelValue :=
+  lastModelValue (completedProjections entry.eventId entry.requestId)
+
+/-! ### The Target -/
+
+private def structuralKinds : List (DefinitionId × DefinitionKind) := [
+  (targetId, .target), (kernelId, .kernel), (providerId, .provider), (capabilityId, .capability)]
+
+/-- The modeled vocabulary a Property clause may name. -/
+private def vocabularyKinds : List (DefinitionId × DefinitionKind) := [
+  (pendingStateId, .state), (scheduledStateId, .state), (completedStateId, .state),
+  (scheduleActionId, .action), (awaitActionId, .action), (pollActionId, .action),
+  (scheduledOutcomeId, .outcome), (completedOutcomeId, .outcome), (noProgressOutcomeId, .outcome)]
+
+private def definitions : List DefinitionMetadata :=
+  (structuralKinds ++ vocabularyKinds).map fun (id, kind) =>
+    Temporal.Shared.definitionMetadata id kind source id.value
+
+private def provider : CapabilityProvider (fun _ => True) := {
+  id := providerId
+  source
+  contract := { id := capabilityId, canonicalBehavior := "temporal-nexus3-typed-nexus/v1"
+                requiredLaws := [] }
+  meanings := vocabularyKinds.map fun (id, kind) =>
+    { definitionId := id, kind, canonicalBehavior := id.value ++ "/meaning-v1" }
+  lawWitnesses := []
+}
+
+private def targetDefinition : FiniteTargetDefinition := {
+  id := targetId
+  source
+  definitions
+  requiredCapabilities := [capabilityId]
+  metadata := { id := kernelId, source }
+}
+
+/-- Every way this authored example can fail admission, named by its owner. -/
+inductive AdmissionError where
+  | operation (error : Operation.Error)
+  | field (error : Field.Error)
+  | target (error : FiniteTargetAdmissionError)
+  | property (error : PropertyError)
+  | scoped (error : Property.Scoped.Error)
+  | inconsistent (reason : String)
+
+private abbrev TypedTarget :=
+  CheckedTarget (fun _ => True) Unit ModelValue ModelValue ModelValue ModelValue
+
+/-! ### The independent field requirement -/
+
+private def presenceHolds (path : PropertyFieldPath) : PropertyPredicate :=
+  PropertyPredicate.compareFields .equal (.field path source) (.literal (.boolean true) source)
+    source
+
+private def selects (reference : DefinitionId) : PropertyPredicate :=
+  .atom { field := .selectedAction, reference }
+
+/-- A completion references the scheduled event its own operation was scheduled at. The three
+presence atoms establish exactly the optional and oneof steps the two reads traverse. -/
+def completionReferencesSchedule : PropertyPredicate := .all [
+  presenceHolds scheduledStatePresencePath,
+  presenceHolds completedHistoryPresencePath,
+  presenceHolds completedAttributesPresencePath,
+  PropertyPredicate.compareFields .equal (.field scheduledEventIdPath source)
+    (.field completedScheduledEventIdPath source) source]
+
+/-- The authored same-step Property. Its one clause applies exactly to the await step. -/
+def fieldDeclaration : PropertyDeclaration := {
+  id := fieldPropertyId
+  source
+  version := 2
+  requires := [capabilityId]
+  clauses := [.sameStepCases {
+    id := groupId, source, guard := selects awaitActionId
+    cases := [{
+      id := caseId, source, guard := selects awaitActionId
+      clauses := [⟨clauseId, source, completionReferencesSchedule⟩] }] }]
+}
+
+/-! ### The bounded-response Property and its Link correlation -/
+
+/-- The typed earlier command field each operation retains under its own key: the operation
+identity its scheduled evidence recorded. -/
+def scheduledOperationCapture : PropertyScopedCapture :=
+  { name := captureId, key := operationFieldId, path := scheduledOperationPath, lifetime := 2 }
+
+private def capturedOperationIs (operation : String) : PropertyPredicate :=
+  PropertyPredicate.compareFields .equal
+    (.field { scheduledOperationPath with capture := some ⟨captureId, 0⟩ } source)
+    (.literal (.text operation) source) source
+
+/-- The Link. A step belongs to this operation only when the identity the operation retained at its
+own scheduling is one of the two identities the model declares. The scheduling disjunct decides the
+step that creates occurrence zero, which therefore never has to read it. -/
+def declaredOperationIdentity : PropertyPredicate :=
+  .any (selects scheduleActionId :: operationCases.map fun entry => capturedOperationIs entry.operation)
+
+/-- The bounded response: a scheduled operation completes within its declared window of semantic
+transitions. Closing an unfinished prefix leaves it unresolved rather than inventing a deadline. -/
+def boundedCompletion : PropertyScopedClause := {
+  id := linkClauseId
+  source
+  trigger := selects scheduleActionId
+  response := .atom { field := .modelOutcome, reference := completedOutcomeId }
+  scope := [runFieldId]
+  key := operationFieldId
+  clock := .operationTransitions
+  bound := 2
+  endpoint := .runtimePrefix
+  captures := [scheduledOperationCapture]
+  correlation := some declaredOperationIdentity
+}
+
+def linkDeclaration : PropertyDeclaration := {
+  id := linkPropertyId
+  source
+  requires := [capabilityId]
+  clauses := []
+  scopedClauses := [boundedCompletion]
+}
+
+/-! ### Admission -/
+
+/-- The complete checked model: the Target that owns both completions, the same-step field
+requirement, and the compiled bounded-response consumer carrying the Link. -/
+structure Model where
+  target : TypedTarget
+  fieldProperty : CheckedFieldProperty
+  link : CheckedProperty
+  compiled : Property.Scoped.Compiled target
+
+private def fieldBindings : List PropertyFieldBinding :=
+  [scheduledOutcomeId, completedOutcomeId, scheduledStateId].map
+    (PropertyFieldBinding.ofWitness Temporal.API.rpcOwner historyWitness)
+
+/-- Evaluation ceilings for the scoped consumer, separate from the semantic bound above. -/
+def runLimits : Property.Scoped.Limits :=
+  { transitions := 32, obligations := 16, work := 100000000, captures := 16 }
+
+/-- Admit the whole authored example: the SDK command and event declarations, the Target whose
+completions are its own alternatives, the authored field requirement, and the Link. -/
+def checked : Except AdmissionError Model := do
+  let _ ← (scheduleCommand firstCommandId).mapError AdmissionError.operation
+  let _ ← (scheduleCommand secondCommandId).mapError AdmissionError.operation
+  let _ ← scheduledEventDeclaration.mapError AdmissionError.operation
+  let _ ← completedEventDeclaration.mapError AdmissionError.operation
+  let _ ← historyBinding.mapError AdmissionError.operation
+  let commands ← operationCases.mapM fun entry =>
+    (scheduleCommand entry.command).mapError AdmissionError.operation
+  let scheduledStates ← operationCases.mapM fun entry =>
+    entry.scheduledState.mapError AdmissionError.field
+  let scheduledOutcomes ← operationCases.mapM fun entry =>
+    entry.scheduledOutcome.mapError AdmissionError.field
+  let completedOutcomes ← operationCases.mapM fun entry =>
+    entry.completedOutcome.mapError AdmissionError.field
+  unless scheduledStates.length == 2 && completedOutcomes.length == 2 do
+    throw (.inconsistent "this example declares exactly two operations")
+  let scheduleRows := (((commands.zip scheduledStates).zip scheduledOutcomes)).zipIdx.map
+    fun (((command, state), outcome), index) =>
+      ({ key := "schedule-" ++ toString index, source := pendingState
+         action := scheduleAction command
+         results := [{ resultingState := state, modelOutcome := outcome, observations := [] }] } :
+        FiniteTransitionRow ModelValue ModelValue ModelValue ModelValue)
+  let pollRows := scheduledStates.zipIdx.map fun (state, index) =>
+    ({ key := "poll-" ++ toString index, source := state, action := pollAction
+       results := [{ resultingState := state, modelOutcome := noProgressOutcome
+                     observations := [] }] } :
+      FiniteTransitionRow ModelValue ModelValue ModelValue ModelValue)
+  -- The Target owns both completions: selecting the await Action never selects which scheduled
+  -- event the completion that arrives references, so the crossed one is a clause violation.
+  let awaitRows := scheduledStates.zipIdx.map fun (state, index) =>
+    ({ key := "await-" ++ toString index, source := state, action := awaitAction
+       results := (completedOutcomes.drop index ++ completedOutcomes.take index).map fun outcome =>
+         { resultingState := completedState, modelOutcome := outcome, observations := [] } } :
+      FiniteTransitionRow ModelValue ModelValue ModelValue ModelValue)
+  let table : FiniteTable Unit ModelValue ModelValue ModelValue ModelValue := {
+    setups := [⟨(), "operation"⟩]
+    states := ⟨pendingState, pendingState.value⟩ ::
+      (scheduledStates.zipIdx.map fun (state, index) => ⟨state, "scheduled-" ++ toString index⟩) ++
+      [⟨completedState, completedState.value⟩]
+    actions := (commands.zipIdx.map fun (command, index) =>
+        ⟨scheduleAction command, "schedule-" ++ toString index⟩) ++
+      [⟨awaitAction, awaitAction.value⟩, ⟨pollAction, pollAction.value⟩]
+    outcomes := (scheduledOutcomes.zipIdx.map fun (outcome, index) =>
+        ⟨outcome, "scheduled-" ++ toString index⟩) ++
+      (completedOutcomes.zipIdx.map fun (outcome, index) =>
+        ⟨outcome, "completed-" ++ toString index⟩) ++
+      [⟨noProgressOutcome, noProgressOutcome.value⟩]
+    facts := []
+    initial := [⟨(), [pendingState]⟩]
+    transitions := scheduleRows ++ pollRows ++ awaitRows
+    terminalConditions := [[completedState]]
+  }
+  let target ← (table.checkTarget targetDefinition
+    (TargetComposition.empty.provide provider)).mapError AdmissionError.target
+  let context := { PropertyCheckContext.ofTarget target with fieldBindings }
+  let fieldProperty ← (CheckedFieldProperty.check context fieldDeclaration).mapError
+    AdmissionError.property
+  let link ← (checkProperty context (.portable linkDeclaration)).mapError AdmissionError.property
+  let compiled ← (Property.Scoped.compile target link [runFieldId] operationFieldId
+    runLimits).mapError AdmissionError.scoped
+  pure ⟨target, fieldProperty, link, compiled⟩
+
+
+/-! ### The Testpilot Case
+
+The workflow schedules both Nexus operations on one endpoint and awaits both. Each operation has
+its own asynchronous handler, so the controller holds one completion authority per operation and
+completes them independently; the history the controller then reads is the evidence both the Link
+and the authored requirement are established from.
+-/
+
+/-- The second generated reference the Program needs: the workflow the two operations run in is
+started through `StartWorkflowExecution`, whose transport path is derived from its own admitted
+full name rather than copied beside it. -/
+abbrev startMethod := Temporal.Api.Workflowservice.V1.WorkflowService.startWorkflowExecution
+
+def startReference : Temporal.API.MethodReference startMethod := by constructor
+
+def startWitness : Temporal.API.rpcOwner.Witness
+    Temporal.Api.Workflowservice.V1.StartWorkflowExecutionRequest
+    Temporal.Api.Workflowservice.V1.StartWorkflowExecutionResponse := ⟨startMethod, startReference⟩
+
+def startBinding : Except Operation.Error (CheckedRpc Temporal.API.rpcOwner startWitness) :=
+  Temporal.API.bindUnary startMethod startReference
+
+def workflowServiceRole := "temporal.workflow-service"
+def workerRole := "temporal.worker"
+def taskQueueRole := "temporal.task-queue"
+def nexusEndpointRole := "temporal.nexus-endpoint"
+def namespaceBindingId := "temporal.typed-nexus.namespace"
+def taskQueueBindingId := "temporal.typed-nexus.task-queue"
+def nexusEndpointBindingId := "temporal.typed-nexus.nexus-endpoint"
+def controllerId := "controller"
+def workflowEntrypointId := "workflow"
+def observationId := "history-event"
+def workflowType := "umpire-typed-nexus-workflow"
+
+/-- Per-operation Program identities, so the two operations never share an instruction, a Slot or
+a handler entrypoint. -/
+def OperationCase.slotId (entry : OperationCase) : String :=
+  "completion-authority-" ++ entry.operation
+def OperationCase.handlerId (entry : OperationCase) : String := "handler-" ++ entry.operation
+def OperationCase.startInstructionId (entry : OperationCase) : String :=
+  "start-nexus-" ++ entry.operation
+def OperationCase.awaitInstructionId (entry : OperationCase) : String :=
+  "await-nexus-" ++ entry.operation
+def OperationCase.authorityInstructionId (entry : OperationCase) : String :=
+  "await-authority-" ++ entry.operation
+def OperationCase.completeInstructionId (entry : OperationCase) : String :=
+  "complete-nexus-" ++ entry.operation
+
+private def textOutcome : InstructionOutcomeDefinition :=
+  Program.outcome #[
+    Program.outcomeField .INSTRUCTION_OUTCOME_FIELD_STATUS statusType,
+    Program.outcomeField .INSTRUCTION_OUTCOME_FIELD_VALUE textType]
+
+private def controllerInstructions (entry : OperationCase) : Array InstructionDefinition := #[
+  Program.node entry.authorityInstructionId (Program.awaitSlot entry.slotId)
+    (bounds 10000) #[Ref.instruction controllerId "start-workflow"]
+    (some (succeeded controllerId "start-workflow")) (some statusOutcome),
+  Program.node entry.completeInstructionId
+    (Program.completeNexusOperation entry.slotId (text "completed"))
+    (bounds 10000) #[Ref.instruction controllerId entry.authorityInstructionId]
+    (some (succeeded controllerId entry.authorityInstructionId)) (some statusOutcome)]
+
+private def workflowInstructions (entry : OperationCase) : Array InstructionDefinition := #[
+  Program.node entry.startInstructionId
+    (Program.startNexusOperation nexusEndpointRole nexusService entry.operation (text "request"))
+    (bounds 10000) #[] none (some statusOutcome),
+  Program.node entry.awaitInstructionId
+    (Program.awaitOutcome (Ref.instruction workflowEntrypointId entry.startInstructionId))
+    (bounds 10000) #[Ref.instruction workflowEntrypointId entry.startInstructionId]
+    none (some textOutcome)]
+
+private def program (startPath historyPath : String) : Program :=
+  Program.make "temporal.case.typed-nexus.program"
+    #[Program.role workflowServiceRole .ROLE_KIND_ENDPOINT,
+      Program.role workerRole .ROLE_KIND_WORKER (namespaceBindingId := namespaceBindingId),
+      Program.role taskQueueRole .ROLE_KIND_TASK_QUEUE
+        (namespaceBindingId := namespaceBindingId) (resourceBindingId := taskQueueBindingId),
+      Program.role nexusEndpointRole .ROLE_KIND_ENDPOINT
+        (resourceBindingId := nexusEndpointBindingId)]
+    (operationCases.map (fun entry => Program.capabilitySlot entry.slotId)).toArray
+    #[Program.observation observationId (Types.singular (Types.messageType historyEventNode))]
+    (#[Program.controller controllerId (
+        #[Program.node "start-workflow"
+            (Program.invokeRPC workflowServiceRole startPath #[
+              Program.environmentAssignment (field "namespace") namespaceBindingId,
+              assign (field "workflow_id") runId,
+              assign (nested ["workflow_type", "name"]) (text workflowType),
+              Program.environmentAssignment (nested ["task_queue", "name"]) taskQueueBindingId,
+              assign (field "request_id") runId])
+            (bounds 10000) #[] none (some statusOutcome)
+            ((Program.reservation workflowEntrypointId 1) ::
+              operationCases.map fun entry => Program.reservation entry.handlerId 1).toArray] ++
+          (operationCases.flatMap fun entry => (controllerInstructions entry).toList).toArray ++
+          #[Program.node "history"
+            (Program.invokeRPC workflowServiceRole historyPath #[
+              Program.environmentAssignment (field "namespace") namespaceBindingId,
+              assign (nested ["execution", "workflow_id"]) runId,
+              assign (field "maximum_page_size") (signedInteger 64),
+              assign (field "wait_new_event") (boolean true)]
+              #[project historyEvents observationId .PROJECTION_KIND_EMIT_EACH])
+            (bounds 10000 128)
+            (operationCases.map fun entry =>
+              Ref.instruction controllerId entry.completeInstructionId).toArray
+            (some (ProgramExpr.all (operationCases.map fun entry =>
+              succeeded controllerId entry.completeInstructionId).toArray))
+            (some statusOutcome)]),
+      Program.workflow workflowEntrypointId workflowType workerRole taskQueueRole (
+        (operationCases.flatMap fun entry => (workflowInstructions entry).toList).toArray ++
+          #[Program.node "finish-workflow" (Program.finish (text "completed"))
+            bounds (operationCases.map fun entry =>
+              Ref.instruction workflowEntrypointId entry.awaitInstructionId).toArray
+            (some (ProgramExpr.all (operationCases.map fun entry =>
+              succeeded workflowEntrypointId entry.awaitInstructionId).toArray))
+            (some statusOutcome)])] ++
+      (operationCases.map fun entry =>
+        Program.nexusHandler entry.handlerId nexusService entry.operation workerRole taskQueueRole
+          #[Program.node ("respond-async-" ++ entry.operation)
+            (Program.respondNexus .NEXUS_RESPONSE_KIND_ASYNCHRONOUS (text "accepted") entry.slotId)
+            bounds #[] none (some statusOutcome)]).toArray)
+    (Program.cleanup "cleanup" #[])
+    programLimits
+    (environment := #[Program.environment namespaceBindingId,
+      Program.environment taskQueueBindingId, Program.environment nexusEndpointBindingId])
+
+/-! ### The derived Contract
+
+Every field the runtime reads is `Umpire.Case.Observed.pathOf` applied to the same
+`PropertyFieldPath` the model Property compares, so a Property edit that moves a field moves the
+Contract's read with it and a field the Property stops naming stops being read. -/
+
+/-- The runtime read path of one modeled operand, from the declared Observation's own message. -/
+def readPathOf (path : PropertyFieldPath) : Except String FieldPath :=
+  Umpire.Case.Observed.pathOf path historyEventNode
+
+/-- The Contract rule for one operation. Its first transition is the Link: an event belongs to this
+operation only when the operation identity it records is this operation's declared one, and the
+event it retains is the scheduled event the model captures. Its second transition is the authored
+product requirement: the completion references exactly that scheduled event. -/
+def operationRule (entry : OperationCase) (property : CheckedProperty) :
+    Except String ContractRuleDefinition := do
+  let operationPath ← readPathOf scheduledOperationPath
+  let eventIdPath ← readPathOf scheduledEventIdPath
+  let referencedPath ← readPathOf completedScheduledEventIdPath
+  let capture := "scheduled-" ++ entry.operation
+  pure (Monitor.rule (property.id.value ++ "." ++ entry.operation)
+    .CONTRACT_RULE_KIND_SAFETY "pending"
+    #[Monitor.state "pending" .CONTRACT_STATE_STATUS_NONTERMINAL,
+      Monitor.state "scheduled" .CONTRACT_STATE_STATUS_NONTERMINAL,
+      Monitor.state "satisfied" .CONTRACT_STATE_STATUS_SATISFIED]
+    #[Monitor.transition ("capture-scheduled-" ++ entry.operation) "pending" "scheduled"
+        #[.RUN_EVENT_KIND_INSTRUCTION_COMPLETED]
+        (ContractExpr.all #[
+          ContractExpr.present (observed observationId),
+          ContractExpr.present (projected (observed observationId) operationPath),
+          ContractExpr.equals (projected (observed observationId) operationPath)
+            (ContractExpr.literal (Value.text entry.operation)),
+          ContractExpr.present (projected (observed observationId) eventIdPath)])
+        .CONTRACT_SUPPORT_KIND_MATCHING_EVENT
+        #[Monitor.captureAssignment capture observationId],
+      Monitor.transition ("match-completion-" ++ entry.operation) "scheduled" "satisfied"
+        #[.RUN_EVENT_KIND_INSTRUCTION_COMPLETED]
+        (ContractExpr.all #[
+          ContractExpr.present (captured capture),
+          ContractExpr.present (projected (captured capture) eventIdPath),
+          ContractExpr.present (projected (observed observationId) referencedPath),
+          ContractExpr.equals (projected (captured capture) eventIdPath)
+            (projected (observed observationId) referencedPath)])
+        .CONTRACT_SUPPORT_KIND_MATCHING_EVENT]
+    (captures := #[Monitor.capture capture (Monitor.messageCapture historyEventNode)]))
+
+private def loweringError (definitionId construct : String) : Umpire.Case.Compiler.LoweringError :=
+  { sourceDefinitionId := definitionId, source, construct }
+
+/-- The checked two-operation declaration lowered to the closed Case format. -/
+def typedNexusCase : Except Umpire.Case.Compiler.LoweringError
+    temporal.server.api.testpilot.v1.Case := do
+  let model ← checked.mapError fun _ => loweringError fieldPropertyId.value "checked-typed-nexus"
+  let history ← historyBinding.mapError fun _ =>
+    loweringError historyMethod.fullName "checked-history-binding"
+  let start ← startBinding.mapError fun _ =>
+    loweringError startMethod.fullName "checked-start-binding"
+  let requirement := model.fieldProperty.property
+  let requirementBinding := binding requirement.id.value
+    requirement.behaviorFingerprint.render .«property»
+  let rules ← operationCases.mapM fun entry =>
+    (operationRule entry requirement).mapError fun reason => loweringError clauseId.value reason
+  Umpire.Case.Compiler.compile {
+    version := { major := 1 }
+    caseId := "temporal.case.typed-nexus"
+    producerId := "temporal.nexus3.typed-nexus"
+    producerVersion := "1"
+    definitions := [
+      binding model.target.id.value model.target.behaviorFingerprint.render .target,
+      requirementBinding,
+      binding model.link.id.value model.link.behaviorFingerprint.render .«property»]
+    sources := [source]
+    knownGaps := []
+    program := program (methodPath start.schema) (methodPath history.schema)
+    contractId := "temporal.case.typed-nexus.contract"
+    properties := rules.map (.monitor requirementBinding)
+    contractLimits
+  }
+
+end Temporal.Feature.Nexus3.TypedNexus

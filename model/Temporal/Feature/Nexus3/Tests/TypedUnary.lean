@@ -33,9 +33,9 @@ private def historySchema : RpcSchema := Temporal.API.rpcOwner.schema historyWit
 #guard !startSchema.clientStreaming && !startSchema.serverStreaming
 
 -- The Program's transport path is derived from that admitted full name.
-#guard methodPath startSchema ==
+#guard Temporal.Testpilot.CaseSupport.methodPath startSchema ==
   "/temporal.api.workflowservice.v1.WorkflowService/StartWorkflowExecution"
-#guard methodPath historySchema ==
+#guard Temporal.Testpilot.CaseSupport.methodPath historySchema ==
   "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory"
 
 private def rejects (candidate : RpcSchema) (expected : Operation.Error) : Bool :=

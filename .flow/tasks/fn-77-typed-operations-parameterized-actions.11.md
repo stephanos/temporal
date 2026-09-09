@@ -37,9 +37,21 @@ Verify complete typed-operation compatibility and bounded qualification for the 
 ### Execution constraints
 Read the full parent spec. Preserve existing comments and unrelated dirty source. New paths listed here are proposed owners; reuse an established equivalent before creating one. Run Lean jobs serially; fn76 lint recovery is complete. Preserve fn75 semantic import isolation and fn78 obligation/evidence authority. No operation cancellation, new dependency/toolchain, or implicit fixture promotion. Do not stage, commit, or push; the user owns commits. Capture task-local before/after trust for changed load-bearing declarations; task11 additionally compares to the original task1 substrate.
 
+### Environment note
+`go test` in this checkout needs `CC=/usr/bin/cc`: mise's lean4 clang shadows the toolchain and cgo
+fails with `stddef.h not found`. Every Go gate on this branch needs it.
+
+### Follow-up inherited from task .9
+The runtime rule carries only `pending` and `satisfied`, so a started event recording a different
+workflow type leaves the rule inconclusive where the model Property distinguishes violated from
+inconclusive. Adding a `violated` state plus a tampered-fixture live assertion is a real R6
+improvement; task .9's review raised it as a non-blocking P3 and assigned it here or to .10.
+
 ### Known findings introduced by this spec
-`make lint-model` is red on two findings this spec introduced, so neither may be recorded as an
-inherited baseline failure:
+`make lint-model` is red at 171 findings: 169 in the generated `Temporal/API/{Types,Proto}.lean`,
+which are pre-existing and not this spec's, plus the two below. An earlier version of this note said
+"exactly 2" and undercounted by omitting the generated-API findings; treat 171 as the baseline. Only
+the two below were introduced by this spec, so only they may not be recorded as inherited:
 - `unusedArguments` on `Umpire.instReprPropertyFieldProjection` (`model/Umpire/Property/Evaluation.lean:470`)
   — from task .5's `deriving Repr`; no consumer of that instance exists.
 - `simpNF` on `Umpire.Operation.CheckedRpc.mk.injEq` (`model/Umpire/Operation.lean:58`) — from task .1;

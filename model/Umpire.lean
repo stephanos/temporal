@@ -13,4 +13,5 @@ import Umpire.Observation
 import Umpire.ImplementationLink
 import Umpire.Case
 import Umpire.Case.Compiler
+import Umpire.Case.Observed
 import Umpire.Case.ProtoJSON

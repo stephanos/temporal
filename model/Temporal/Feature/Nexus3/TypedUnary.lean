@@ -417,12 +417,6 @@ existing Nexus3 Case runs under. The workflow itself does nothing but finish; th
 requirement reads is the started event, which the server writes when the execution begins.
 -/
 
-/-- The gRPC transport path of a checked generated method, derived from its own admitted full name
-rather than copied beside it. -/
-def methodPath (schema : RpcSchema) : String :=
-  let segments := schema.fullName.splitOn "."
-  "/" ++ ".".intercalate segments.dropLast ++ "/" ++ (segments.getLast?.getD "")
-
 def workflowServiceRole := "temporal.workflow-service"
 def workerRole := "temporal.worker"
 def taskQueueRole := "temporal.task-queue"

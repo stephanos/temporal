@@ -90,14 +90,63 @@ since live modules import them and fn-22, fn-33, fn-79, and fn-80 reserve them; 
 decision rather than a sweep. `tools/fairsim`, `cmd/tools/fairsim`, and fn-66's `tools/planindex`
 also stay. Task .5 owns the roadmap reconciliation under R7, so it will edit this document.
 
+### 4. Unify the Umpire and Testpilot vocabulary — fn-82
+
+[fn-82 — Unify the Umpire and Testpilot vocabulary](../.flow/specs/fn-82-unify-the-umpire-and-testpilot.md),
+from the 2026-09-08 vocabulary investigation of `model/`, the Testpilot protocol, and the Go facade.
+The model works; its vocabulary does not. A reader who moves from a Nexus3 model to the Umpire types
+behind it to the Case that comes out meets the same idea under several names and the same name for
+several ideas. Measured on the current tree:
+
+| Word | Distinct meanings | Word | Distinct meanings |
+| ---- | ----------------- | ---- | ----------------- |
+| Projection | 9 | Target | 6 types |
+| Evidence | 8 | Outcome | 5 |
+| Observation | 6 | Capability | 5 |
+
+The reverse is as common: the transition relation is a `TransitionKernel`, a `FiniteMachine`, a
+`FiniteTable`, or a `ValidatedFiniteModel` depending on the file; something that must hold is a
+Property, Clause, Obligation, Requirement, Claim, Law, or Rule; a budget is a Limit, Bound, Ceiling,
+Horizon, or `bounds`. `Scoped` prefixes 24 proto names and 40 Lean files with nothing stating that it
+means "tracked per operation, correlated by a key". Some vocabulary is simply dead — a 142-structure
+duplicate Testpilot mirror inside `Temporal.API` with zero consumers, five `DefinitionKind`
+constructors that exist only to be rejected, and alias families whose own files say "remove this
+alias".
+
+Ten tasks are defined with a SHIP plan review. Breaking changes are accepted throughout: nothing is
+versioned, aliased, or deprecated, old names are retired, and a hardened retired-vocabulary gate
+rejects them. The spec rewrites `UMPIRE4_SPEC.md` under GOV-02, and its task .10 owns the roadmap
+reconciliation, so it will edit this document.
+
+**This spec starts only after fn-77, fn-80, fn-81, and fn-67 close.** The dependency is byte
+conflict, not semantics: fn-80 tasks .4 to .8 edit `Umpire/Target`, `Umpire/Property`,
+`Umpire/Query`, `Umpire/Space`, and `Umpire/Case`, fn-81 deletes the legacy Go trees and their
+Makefile blocks, and fn-67 has an open documentation task on the same Nexus3 files — so no area of
+this spec can land while those are open. It deliberately does not touch fn-77's five in-flight terms
+(typed operation, parameterized Action, field-level Property, occurrence, capture); the
+`Umpire.Operation` and `Umpire.Value` renames wait for fn-77 .11 and are limited to `ValueShape` to
+`Shape` plus moving `Parameterized.lean`.
+
+Task .2, the first rename, is the declared early proof point: it renames `DefinitionKind.kernel` to
+`machine` and `.observation` to `.fact`, adds the `umpire-goldens` writer, and regenerates every
+fingerprint, golden, and Case fixture through the owning targets. If that loop cannot converge
+without hand-editing a golden, stop and re-evaluate the "regenerate, never edit" rule before any
+other rename starts.
+
+Boundaries: no deletion of the offline `Umpire.Evidence` evaluator, `Umpire.Artifact.RunRecord`,
+`Umpire.Variations`, `Umpire.Exploration`, or `Umpire.Promotion` — they are renamed and moved, and
+fn-22, fn-33, fn-79, and fn-80 reserve the decision to retire them. No proto field-number changes, no
+new command syntax beyond respelling what fn-80 R2 generalizes, and no Go changes outside
+`common/testing/testpilot`, `tests/testcore/testpilot`, `tests` fixture helpers, and `tools/umpire`.
+
 ### Additional open specs
 
-These remain open in Flow and are outside the first-canary critical path.
+These remain open in Flow and are outside the first-canary critical path. fn-67 is not outside fn-82's path, however: fn-82 cannot start until it closes.
 
 | Spec                                                                                              | Dependencies | Next action                                                                                                                                                                                                                  |
 | ------------------------------------------------------------------------------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [fn-46 — Lean module impact index](../.flow/specs/fn-46-export-lean-model-module-impact-index.md) | fn-45        | Refreshed three-task plan is SHIP against current model owners. Deliver the shared loader, pure dependency/facade/test index, and opt-in export/check commands. |
-| [fn-67 — Nexus3 authoring draft](../.flow/specs/fn-67-refine-simple-nexus3-authoring-draft.md)    | None         | Reviewed follow-up plan is SHIP: one documentation task reconciles optional draft compatibility overrides with the success demonstration and clarifies generic versus cancellation support. Preserve the historical draft iteration; no cancellation implementation is required. |
+| [fn-67 — Nexus3 authoring draft](../.flow/specs/fn-67-refine-simple-nexus3-authoring-draft.md)    | None         | Reviewed follow-up plan is SHIP: one documentation task reconciles optional draft compatibility overrides with the success demonstration and clarifies generic versus cancellation support. Preserve the historical draft iteration; no cancellation implementation is required. **fn-82 blocks on this closing** — it edits the same Nexus3 files. |
 
 ## Downstream delivery
 
