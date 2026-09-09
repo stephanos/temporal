@@ -149,6 +149,7 @@ RED :=   "\e[1;31m%s\e[0m\n"
 
 define NEWLINE
 
+
 endef
 
 PROTO_ROOT := proto
@@ -220,9 +221,8 @@ print-go-version:
 
 .PHONY: common-formal-test
 
-# tools/common/formal is a nested Go module with no importer since fn-81 removed
-# tools/gomad, its only one. This target is the invocation the deleted
-# gomad-prototype block used to carry.
+# tools/common/formal is a nested Go module, so the root go test selectors do
+# not reach it and it needs its own invocation.
 common-formal-test:
 	@cd tools/common/formal && GOWORK=off go test -count=1 -tags test_dep ./...
 
