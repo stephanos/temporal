@@ -3,11 +3,12 @@ import Temporal.Feature.Nexus3.TypedUnary
 /-!
 Executable checks for the generated unary example.
 
-Four things are inspected here, none of them through the live call: the generated binding admits
+Five things are inspected here, none of them through the live call: the generated binding admits
 only its own method and schema; the finite domain and the separately declared runtime scope report
 exactly what they explored; the independent field requirement separates a correlated pairing from a
-crossed one; and the whole-Case coverage rejects a Program that does not construct the modeled
-input field, before any Driver I/O could happen.
+crossed one; the Contract's read path is derived from the Property's own coordinates rather than
+written out beside them; and the whole-Case coverage rejects a Program that does not construct the
+modeled input field, before any Driver I/O could happen.
 -/
 
 namespace Temporal.Feature.Nexus3.Tests.TypedUnary
@@ -332,6 +333,41 @@ private def presence (raw : Raw) (number : Nat) : Option Bool := do
 
 -- Presence follows the descriptor: an implicit-presence scalar has none to read.
 #guard presence (payloadRequest "encoding" [1] [0]) 2 == none
+
+/-! ### The derived Contract
+
+The field the runtime reads is derived from the same `PropertyFieldPath` the model compares. The
+expected path here is written out rather than read back from the derivation. -/
+
+/-- One derived read path as its segments: each field name, with the oneof member a selector names
+or the empty string when the segment selects no oneof. -/
+private def segmentsOf (path : Except String FieldPath) : Option (List (String × String)) :=
+  path.toOption.map fun value => value.segments.toList.map fun segment =>
+    (segment.field, match segment.selector with
+      | some (.oneof selection) => selection.selected_field
+      | _ => "")
+
+#guard segmentsOf (readPathOf startedTypePath) ==
+  some [("attributes", "workflow_execution_started_event_attributes"), ("workflow_type", ""),
+    ("name", "")]
+
+-- Editing the Property's coordinates moves the Contract's read with them: nothing about the
+-- recorded workflow type is written down beside the rule. Dropping the nested read leaves the
+-- derived path one segment shorter, and a sibling attribute derives its own field name.
+#guard segmentsOf (readPathOf { startedTypePath with
+    steps := startedTypePresencePath.steps.dropLast }) ==
+  some [("attributes", "workflow_execution_started_event_attributes"), ("workflow_type", "")]
+#guard segmentsOf (readPathOf { startedTypePath with
+    steps := attributesPresencePath.steps.dropLast ++
+      [.select "attributes", .field startedAttributesNode 2] }) ==
+  some [("attributes", "workflow_execution_started_event_attributes"),
+    ("parent_workflow_namespace", "")]
+
+-- The presence facts that describe the response wrapper rather than the observed event have no
+-- read path, which is why the derived rule carries exactly the presence checks it declares.
+#guard (readPathOf historyPresencePath).isOk == false
+#guard (readPathOf attributesPresencePath).isOk == false
+#guard (readPathOf startedTypePresencePath).isOk == false
 
 /-! ### The Case, and the coverage admitted before any Driver I/O -/
 
