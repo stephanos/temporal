@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-67-refine-simple-nexus3-authoring-draft",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-09-09T20:21:38.906313Z",
   "created_at": "2026-09-06T15:49:01.215293Z",
   "default_impl": null,
   "default_review": null,
@@ -184,16 +184,46 @@
       "task": "fn-67-refine-simple-nexus3-authoring-draft.2",
       "timestamp": "2026-09-09T20:18:16.010800Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "8a70a112367c6199412103a9ce957642f33eacf057997b26432e70168bc16644",
+      "backend": "claude",
+      "base_sha": "73b63e0588eb57b0e478847eeb14b211806f9583",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "cd7960511934e6e76ccd31642a9e656afb2370eb",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 5261,
+      "output_sha256": "e62bc890d8032245956566e043cbee14eb8676eff038ca15786440ca78cc4725",
+      "reservation_id": "a745b0db31414d1ba979b55055fc6949",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-09T20:21:38.903910Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-67-refine-simple-nexus3-authoring-draft.2": 2,
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-67-refine-simple-nexus3-authoring-draft.2": 0,
     "plan": 0
   },
@@ -211,5 +241,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-09T20:18:16.011644Z"
+  "updated_at": "2026-09-09T20:21:38.906313Z"
 }
