@@ -166,20 +166,18 @@ func (s *Session) InjectFault(ctx context.Context, at testpilot.Coordinate, role
 	if workers == nil {
 		return nil, ErrInvalid
 	}
-	group, err := workers.group(queue)
-	if err != nil {
-		return nil, err
-	}
-	if group == nil {
-		return nil, ErrClosed
-	}
+	var err error
 	switch kind {
 	case testpilotspb.FAULT_KIND_WORKER_STOP:
-		err = workers.stopWorker(ctx)
+		err = workers.stopWorker(ctx, queue)
 	case testpilotspb.FAULT_KIND_WORKER_RESUME:
-		err = workers.resumeWorker(ctx)
+		err = workers.resumeWorker(ctx, queue)
 	default:
 		return nil, ErrInvalid
+	}
+	// A queue this lease does not hold is a rejected dispatch, not a recorded outage.
+	if errors.Is(err, ErrInvalid) || errors.Is(err, ErrUnsupportedOperation) {
+		return nil, err
 	}
 	if err == nil {
 		return faultEffect{result: testpilot.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}}}, nil
@@ -240,6 +238,8 @@ func (s *Session) Close(ctx context.Context) error {
 	// A release that could not resume a stopped worker is still a completed release: the session
 	// is removed either way and the failure is returned, so cleanup is reported failed rather than
 	// leaving the session registered behind an error.
+	// release always reaches the registry, so the hold is gone even when the resume it attempted
+	// first could not finish; the failure is returned and cleanup records it.
 	var releaseErr error
 	if !s.released && workers != nil {
 		releaseErr = workers.release(ctx)

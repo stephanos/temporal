@@ -3,6 +3,7 @@ package worker
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -37,7 +38,7 @@ func TestFaultRunHoldsItsOwnWorkerGroup(t *testing.T) {
 	require.NotNil(t, registry.groups[groupKey("fault", "queue", true)])
 
 	pooled := registry.groups["queue"].worker.(*fakeManagedWorker)
-	require.NoError(t, fault.stopWorker(t.Context()))
+	require.NoError(t, fault.stopWorker(t.Context(), "queue"))
 	// The stop reached only the fault Run's own worker.
 	require.Equal(t, 1, registry.groups[groupKey("fault", "queue", true)].worker.(*fakeManagedWorker).stops)
 	require.Zero(t, pooled.stops)
@@ -62,17 +63,17 @@ func TestFaultStopAndResumeKeepTheSameRegistration(t *testing.T) {
 	group := registry.groups[groupKey("fault", "queue", true)]
 	first := group.worker
 
-	require.NoError(t, lease.stopWorker(t.Context()))
-	require.NoError(t, lease.resumeWorker(t.Context()))
+	require.NoError(t, lease.stopWorker(t.Context(), "queue"))
+	require.NoError(t, lease.resumeWorker(t.Context(), "queue"))
 	require.False(t, group.stopped)
 	require.NotSame(t, first, group.worker)
 	require.Len(t, registrations, 2)
 	require.True(t, registrations[0].compatible(registrations[1]))
 
 	// Both transitions are invariants, not idempotent requests.
-	require.ErrorIs(t, lease.resumeWorker(t.Context()), ErrRegistrationConflict)
-	require.NoError(t, lease.stopWorker(t.Context()))
-	require.ErrorIs(t, lease.stopWorker(t.Context()), ErrRegistrationConflict)
+	require.ErrorIs(t, lease.resumeWorker(t.Context(), "queue"), ErrRegistrationConflict)
+	require.NoError(t, lease.stopWorker(t.Context(), "queue"))
+	require.ErrorIs(t, lease.stopWorker(t.Context(), "queue"), ErrRegistrationConflict)
 	require.NoError(t, lease.release(t.Context()))
 }
 
@@ -87,12 +88,12 @@ func TestFaultStopSuppressesTheFatalPath(t *testing.T) {
 	require.NoError(t, err)
 	key := groupKey("fault", "queue", true)
 
-	require.NoError(t, lease.stopWorker(t.Context()))
+	require.NoError(t, lease.stopWorker(t.Context(), "queue"))
 	registry.fail(key, errors.New("worker stopped"))
 	require.Empty(t, failures)
 	require.Nil(t, registry.groups[key].failure)
 
-	require.NoError(t, lease.resumeWorker(t.Context()))
+	require.NoError(t, lease.resumeWorker(t.Context(), "queue"))
 	registry.fail(key, errors.New("real failure"))
 	require.Equal(t, "queue", <-failures)
 	require.NoError(t, lease.release(t.Context()))
@@ -108,7 +109,7 @@ func TestFaultStopHonorsTheInstructionDeadline(t *testing.T) {
 	require.NoError(t, err)
 	ctx, cancel := context.WithTimeout(t.Context(), 20*time.Millisecond)
 	defer cancel()
-	require.ErrorIs(t, lease.stopWorker(ctx), context.DeadlineExceeded)
+	require.ErrorIs(t, lease.stopWorker(ctx, "queue"), context.DeadlineExceeded)
 }
 
 // Release is the cleanup boundary: a stopped worker is resumed before the group goes away, and a
@@ -135,7 +136,7 @@ func TestFaultReleaseResumesBeforeReleasing(t *testing.T) {
 			})
 			lease, err := registry.acquire(t.Context(), "fault", faultRequirements(), true, nil)
 			require.NoError(t, err)
-			require.NoError(t, lease.stopWorker(t.Context()))
+			require.NoError(t, lease.stopWorker(t.Context(), "queue"))
 
 			err = lease.release(t.Context())
 			if tc.wantError {
@@ -156,8 +157,8 @@ func TestFaultTransitionsRequireADedicatedGroup(t *testing.T) {
 	})
 	lease, err := registry.acquire(t.Context(), "plain", faultRequirements(), false, nil)
 	require.NoError(t, err)
-	require.ErrorIs(t, lease.stopWorker(t.Context()), ErrUnsupportedOperation)
-	require.ErrorIs(t, lease.resumeWorker(t.Context()), ErrUnsupportedOperation)
+	require.ErrorIs(t, lease.stopWorker(t.Context(), "queue"), ErrUnsupportedOperation)
+	require.ErrorIs(t, lease.resumeWorker(t.Context(), "queue"), ErrUnsupportedOperation)
 	require.NoError(t, lease.release(t.Context()))
 }
 
@@ -260,4 +261,140 @@ func TestSessionInjectFaultReportsUnrealizedTransitions(t *testing.T) {
 	_, err = session.InjectFault(t.Context(), at, "queue", testpilotspb.FAULT_KIND_UNSPECIFIED)
 	require.ErrorIs(t, err, ErrInvalid)
 	require.NoError(t, lease.release(t.Context()))
+}
+
+// The instruction names the queue, so a Run holding several dedicated groups transitions the one
+// it asked for and leaves the others running.
+func TestFaultTransitionsTheNamedQueue(t *testing.T) {
+	registry := newWorkerRegistry(4, func(string, string, queueRegistration) (managedWorker, error) {
+		return &fakeManagedWorker{start: func() error { return nil }}, nil
+	})
+	requirements := []queueRegistration{
+		{queue: "queue", workflows: []string{"workflow"}},
+		{queue: "other", nexus: []nexusRegistration{{service: "service", operation: "operation"}}},
+	}
+	lease, err := registry.acquire(t.Context(), "fault", requirements, true, nil)
+	require.NoError(t, err)
+	require.NoError(t, lease.stopWorker(t.Context(), "other"))
+	require.False(t, registry.groups[groupKey("fault", "queue", true)].stopped)
+	require.True(t, registry.groups[groupKey("fault", "other", true)].stopped)
+	require.ErrorIs(t, lease.stopWorker(t.Context(), "absent"), ErrInvalid)
+
+	// Release resumes every queue it left stopped before the groups go away.
+	require.NoError(t, lease.release(t.Context()))
+	require.Empty(t, registry.groups)
+}
+
+// A resume whose deadline expires after the SDK worker already started must still record the
+// worker it started: a group whose recorded state disagrees with its worker would silently lose
+// fatal suppression and skip the resume-before-release step for the rest of the Run.
+func TestFaultResumeRecordsTheStartedWorkerEvenWhenTheDeadlinePasses(t *testing.T) {
+	starts := 0
+	registry := newWorkerRegistry(2, func(string, string, queueRegistration) (managedWorker, error) {
+		return &fakeManagedWorker{start: func() error {
+			starts++
+			if starts > 1 {
+				time.Sleep(30 * time.Millisecond)
+			}
+			return nil
+		}}, nil
+	})
+	lease, err := registry.acquire(t.Context(), "fault", faultRequirements(), true, nil)
+	require.NoError(t, err)
+	require.NoError(t, lease.stopWorker(t.Context(), "queue"))
+	group := registry.groups[groupKey("fault", "queue", true)]
+	stoppedWorker := group.worker
+
+	ctx, cancel := context.WithTimeout(t.Context(), 10*time.Millisecond)
+	defer cancel()
+	require.ErrorIs(t, lease.resumeWorker(ctx, "queue"), context.DeadlineExceeded)
+	require.False(t, group.stopped)
+	require.NotSame(t, stoppedWorker, group.worker)
+	require.NoError(t, lease.release(t.Context()))
+}
+
+// The registry is shared by every Session of a Driver, so a fault instruction runs concurrently
+// with peer Runs opening and closing. Under -race this is the guard on unlocked map access.
+func TestFaultTransitionsAreSafeBesidePeerAcquisitions(t *testing.T) {
+	registry := newWorkerRegistry(64, func(string, string, queueRegistration) (managedWorker, error) {
+		return &fakeManagedWorker{start: func() error { return nil }}, nil
+	})
+	lease, err := registry.acquire(t.Context(), "fault", faultRequirements(), true, nil)
+	require.NoError(t, err)
+	peers := make(chan error, 8)
+	for peer := range 8 {
+		go func() {
+			held, err := registry.acquire(context.Background(), fmt.Sprintf("peer-%d", peer), faultRequirements(), false, nil)
+			if err != nil {
+				peers <- err
+				return
+			}
+			peers <- held.release(context.Background())
+		}()
+	}
+	for range 4 {
+		require.NoError(t, lease.stopWorker(t.Context(), "queue"))
+		require.NoError(t, lease.resumeWorker(t.Context(), "queue"))
+	}
+	for range 8 {
+		require.NoError(t, <-peers)
+	}
+	require.NoError(t, lease.release(t.Context()))
+}
+
+// Closing the Session is the cleanup boundary the runtime turns into a cleanup status. It resumes
+// the stopped worker and always reaches the registry, so a failed resume is reported without
+// leaving the Run's hold behind.
+func TestSessionCloseResumesAndAlwaysReleasesTheHold(t *testing.T) {
+	for _, tc := range []struct {
+		name     string
+		startErr error
+	}{
+		{"resumed", nil},
+		{"resume failed", errors.New("cannot re-register")},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			prepared := preparedSymbolicRuntimeFixture(t)
+			host := symbolicRuntimeDriver(t, prepared.Snapshot().GetLimits())
+			starts := 0
+			host.registry = newWorkerRegistry(4, func(string, string, queueRegistration) (managedWorker, error) {
+				return &fakeManagedWorker{start: func() error {
+					starts++
+					if starts > 1 {
+						return tc.startErr
+					}
+					return nil
+				}}, nil
+			})
+			definition, err := host.prepareDefinition(prepared)
+			require.NoError(t, err)
+			definition.faultQueues = map[string]string{"queue": "task-queue"}
+			definition.hasFault = true
+			session, err := newSession(host, "run", "session-run", definition, SessionOptions{Bridge: newTestBridge()})
+			require.NoError(t, err)
+			require.NoError(t, host.mu.lock(t.Context()))
+			host.sessions["run"] = session
+			host.mu.unlock()
+			lease, err := host.registry.acquire(t.Context(), "run", definition.registrations, true, nil)
+			require.NoError(t, err)
+			session.workers = lease
+
+			at := testpilot.Coordinate{RunID: "run", EntrypointID: "controller", ActivationID: "controller-1", InstructionID: "stop", Attempt: 1}
+			handle, err := session.InjectFault(t.Context(), at, "queue", testpilotspb.FAULT_KIND_WORKER_STOP)
+			require.NoError(t, err)
+			result, err := handle.Wait(t.Context())
+			require.NoError(t, err)
+			require.Equal(t, testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, result.Outcome.GetStatus())
+
+			err = session.Close(t.Context())
+			if tc.startErr != nil {
+				require.ErrorIs(t, err, tc.startErr)
+			} else {
+				require.NoError(t, err)
+			}
+			// The hold is gone either way; a retained hold could never be retried.
+			require.Empty(t, host.registry.runIDs)
+			require.Empty(t, host.registry.groups)
+		})
+	}
 }

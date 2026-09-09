@@ -322,6 +322,9 @@ func (r *workerRegistry) newLease(runID string, requirements []queueRegistration
 	return &workerLease{registry: r, runID: runID, requirements: requirements, dedicated: dedicated, mu: newContextMutex()}
 }
 
+// group resolves one of this lease's dedicated groups. The registry lock must already be held:
+// r.groups is shared by every Session of the Driver, so an unlocked read races a peer Run's
+// acquire or release.
 func (l *workerLease) group(queue string) (*workerGroup, error) {
 	if l == nil || !l.dedicated {
 		return nil, ErrUnsupportedOperation
@@ -339,27 +342,28 @@ func (l *workerLease) group(queue string) (*workerGroup, error) {
 	return group, nil
 }
 
-// stopWorker realizes one deliberate outage. The group is marked stopped under the registry lock,
-// before the SDK worker is asked to stop, so the fatal path is already suppressed when the stop
-// takes effect. The blocking Stop runs outside the lock and is bounded by the caller's context.
-func (l *workerLease) stopWorker(ctx context.Context) error {
-	return l.transition(ctx, true)
+// stopWorker realizes one deliberate outage on the queue the instruction named. The group is
+// marked stopped under the registry lock, before the SDK worker is asked to stop, so the fatal
+// path is already suppressed when the stop takes effect. The blocking Stop runs outside the lock
+// and is bounded by the caller's context.
+func (l *workerLease) stopWorker(ctx context.Context, queue string) error {
+	return l.transition(ctx, queue, true)
 }
 
-// resumeWorker re-registers the group's worker with the same structural signature it had before
+// resumeWorker re-registers the queue's worker with the same structural signature it had before
 // the outage; nothing about the registration changes across a stop and resume.
-func (l *workerLease) resumeWorker(ctx context.Context) error {
-	return l.transition(ctx, false)
+func (l *workerLease) resumeWorker(ctx context.Context, queue string) error {
+	return l.transition(ctx, queue, false)
 }
 
-func (l *workerLease) transition(ctx context.Context, stop bool) error {
+func (l *workerLease) transition(ctx context.Context, queue string, stop bool) error {
 	if ctx == nil {
 		return ErrInvalid
 	}
 	if err := l.registry.mu.lock(ctx); err != nil {
 		return err
 	}
-	group, err := l.faultGroup()
+	group, err := l.group(queue)
 	if err != nil {
 		l.registry.mu.unlock()
 		return err
@@ -369,7 +373,7 @@ func (l *workerLease) transition(ctx context.Context, stop bool) error {
 		return ErrRegistrationConflict
 	}
 	group.stopped = stop
-	worker, registration, key, queue := group.worker, group.registration, group.key, group.registration.queue
+	worker, registration, key := group.worker, group.registration, group.key
 	l.registry.mu.unlock()
 
 	if stop {
@@ -382,29 +386,25 @@ func (l *workerLease) transition(ctx context.Context, stop bool) error {
 	if err == nil {
 		err = resumed.Start()
 	}
-	if err != nil {
-		if lockErr := l.registry.mu.lock(context.Background()); lockErr == nil {
-			group.stopped = true
-			l.registry.mu.unlock()
+	// The state write lands whatever happened to the caller's deadline: a group whose recorded
+	// state disagrees with its worker would silently drop fatal suppression and skip the
+	// resume-before-release step for the rest of the Run.
+	settle, cancel := context.WithTimeout(context.WithoutCancel(ctx), defaultCleanupTimeout)
+	defer cancel()
+	if lockErr := l.registry.mu.lock(settle); lockErr != nil {
+		if resumed != nil && err == nil {
+			resumed.Stop()
 		}
-		return err
+		return errors.Join(err, lockErr)
 	}
-	if err := l.registry.mu.lock(ctx); err != nil {
-		resumed.Stop()
+	if err != nil {
+		group.stopped = true
+		l.registry.mu.unlock()
 		return err
 	}
 	group.worker = resumed
 	l.registry.mu.unlock()
-	return nil
-}
-
-// faultGroup resolves the single dedicated group a fault applies to. A Run that declares a fault
-// declares exactly one task-queue role, so there is never a choice to make here.
-func (l *workerLease) faultGroup() (*workerGroup, error) {
-	if l == nil || !l.dedicated || len(l.requirements) != 1 {
-		return nil, ErrUnsupportedOperation
-	}
-	return l.group(l.requirements[0].queue)
+	return ctx.Err()
 }
 
 // stopBounded honors the caller's deadline. The SDK's own Stop has no context, so an expired
@@ -426,8 +426,27 @@ func stopBounded(ctx context.Context, worker managedWorker) error {
 	}
 }
 
+// stoppedQueues names the queues this lease left stopped, read under the registry lock.
+func (l *workerLease) stoppedQueues(ctx context.Context) ([]string, error) {
+	if err := l.registry.mu.lock(ctx); err != nil {
+		return nil, err
+	}
+	defer l.registry.mu.unlock()
+	var stopped []string
+	for _, requirement := range l.requirements {
+		if group := l.registry.groups[groupKey(l.runID, requirement.queue, true)]; group != nil && group.stopped {
+			stopped = append(stopped, requirement.queue)
+		}
+	}
+	return stopped, nil
+}
+
+// release ends the Run's hold. A stopped worker is resumed first so cleanup never hands the group
+// back mid-outage, and the registry removal then runs on a cleanup-bounded context of its own: a
+// resume that ran out of time must still leave the registry clean, or the group would count
+// against the ceiling forever with no way to retry.
 func (l *workerLease) release(ctx context.Context) error {
-	if l == nil {
+	if l == nil || ctx == nil {
 		return ErrInvalid
 	}
 	if err := l.mu.lock(ctx); err != nil {
@@ -437,15 +456,17 @@ func (l *workerLease) release(ctx context.Context) error {
 	if l.released {
 		return nil
 	}
-	// A stopped worker is resumed before the group is released, so the next Run to acquire this
-	// queue never inherits an outage a previous Run asked for.
 	var resumeErr error
 	if l.dedicated {
-		if group, err := l.faultGroup(); err == nil && group.stopped {
-			resumeErr = l.resumeWorker(ctx)
+		stopped, err := l.stoppedQueues(ctx)
+		resumeErr = err
+		for _, queue := range stopped {
+			resumeErr = errors.Join(resumeErr, l.resumeWorker(ctx, queue))
 		}
 	}
-	if err := l.registry.release(ctx, l.runID, l.requirements, l.dedicated); err != nil {
+	settle, cancel := context.WithTimeout(context.WithoutCancel(ctx), defaultCleanupTimeout)
+	defer cancel()
+	if err := l.registry.release(settle, l.runID, l.requirements, l.dedicated); err != nil {
 		return errors.Join(resumeErr, err)
 	}
 	l.released = true
@@ -483,7 +504,7 @@ func (r *workerRegistry) release(ctx context.Context, runID string, requirements
 	if err := r.mu.lock(ctx); err != nil {
 		return err
 	}
-	defer r.mu.unlock()
+	var retired []managedWorker
 	delete(r.runIDs, runID)
 	for _, requirement := range requirements {
 		key := groupKey(runID, requirement.queue, dedicated)
@@ -494,13 +515,15 @@ func (r *workerRegistry) release(ctx context.Context, runID string, requirements
 			if dedicated && len(group.runs) == 0 {
 				delete(r.groups, key)
 				if group.worker != nil && !group.stopped {
-					worker := group.worker
+					retired = append(retired, group.worker)
 					group.worker = nil
-					defer worker.Stop()
 				}
 			}
 		}
 	}
+	r.mu.unlock()
+	// Stopping blocks, so it happens outside the lock every other Session of this Driver needs.
+	stopWorkers(retired)
 	return nil
 }
 
