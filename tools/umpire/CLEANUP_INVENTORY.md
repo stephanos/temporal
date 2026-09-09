@@ -385,6 +385,40 @@ are Go; the remainder is Lean under `tools/umpire3/model`, testdata, and fixture
 | Lean previous generations (Nexus v1, Nexus2, Umpire Artifact, Space, Exploration under `model/`) | out of scope | Imported by live modules or reserved by open specs fn-22, fn-33, fn-79, and fn-80. Their removal needs a roadmap decision, not this sweep. |
 | `.flow/tmp/fn20.4-base-*` duplicate tree | untracked scratch | `git ls-files .flow/tmp` returns zero paths. Not tracked, not built, not classified further. |
 
+### Tidy verification (task .3)
+
+`go mod tidy` after the gomad deletions dropped twelve modules from `go.mod` and `go.sum`. R2's
+check is that tidy drops **only modules absent from the retained dependency closure**, so the
+comparison basis is `.flow/tmp/fn81/deps-after.txt` (2,569 packages), the closure of the retained
+tree, captured with the same `go list -deps -test -tags 'test_dep integration' ./...` command as the
+before baseline. `deps-before.txt` (2,889) was taken over the whole pre-deletion tree and therefore
+still contains the deleted roots' own dependencies; a nonzero count there is the evidence that the
+module belonged to a deleted root, not a violation. Every dropped module has zero hits in the
+retained closure and zero import sites in any retained `.go` file:
+
+| Dropped module | `deps-before` | `deps-after` | Owner in the deleted set |
+| --- | --- | --- | --- |
+| `github.com/go-cmd/cmd` | 1 | 0 | `tools/gomad1/ctrl` |
+| `github.com/looplab/fsm` | 1 | 0 | `common/testing/umpire/lifecycle.go` (deleted in .2) |
+| `github.com/petermattis/goid` | 1 | 0 | `tools/gomad1/runtime` |
+| `github.com/pingcap/failpoint` | 1 | 0 | `tools/gomad1/ctrl` |
+| `github.com/rivo/uniseg` | 1 | 0 | `tools/gomad1/runtime`, `tools/gomad1/transformer` |
+| `github.com/spf13/afero` | 3 | 0 | `tools/gomad1/api/lib`, `tools/gomad1/transformer` |
+| `gitlab.com/stone.code/assert` | 1 | 0 | `tools/gomad1/transformer` |
+| `github.com/dave/dst` | 0 | 0 | `tools/gomad2/internal/translate`, `.../internal/tests/script` — reached through the root `replace`, never through a root import |
+| `github.com/dave/jennifer` | 0 | 0 | indirect requirement of the above |
+| `github.com/go-test/deep` | 0 | 0 | indirect requirement of the above |
+| `github.com/sergi/go-diff` | 0 | 0 | indirect requirement of `tools/gomad2` |
+| `gopkg.in/check.v1` | 0 | 0 | indirect requirement of `github.com/spf13/afero` |
+
+The research prediction recorded in the task ("zero third-party removals beyond the gomad module
+itself") was wrong by twelve modules; the four that carried gomad1's transformer and runtime were
+compiled inside the root module, so they were real root-module requirements until gomad1 went.
+
+Package-set subset: `comm -13 pkgs-before.txt pkgs-after.txt` is empty — 546 packages before, 422
+after, and the 124 removed are exactly the deleted roots. `go mod tidy` run a second time is a no-op
+on both `go.mod` and `go.sum`.
+
 ### Retired live-test failure identities
 
 R4 retires the pinned expected-failure list. It is pinned **twice**, and .4 retires both copies
