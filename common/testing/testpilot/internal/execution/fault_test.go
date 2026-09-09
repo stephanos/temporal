@@ -37,29 +37,24 @@ func faultFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Policy) {
 // hand-maintained lists. Pinning them to each other is what stops a new instruction from landing
 // in only one of them; Capability alignment is asserted from the facade package, which owns it.
 func TestInstructionOpcodesCoverTheInstructionTable(t *testing.T) {
-	table := []*testpilotspb.Instruction{
-		{Instruction: &testpilotspb.Instruction_InvokeRpc{}},
-		{Instruction: &testpilotspb.Instruction_AwaitSlot{}},
-		{Instruction: &testpilotspb.Instruction_CompleteNexusOperation{}},
-		{Instruction: &testpilotspb.Instruction_StartNexusOperation{}},
-		{Instruction: &testpilotspb.Instruction_AwaitOutcome{}},
-		{Instruction: &testpilotspb.Instruction_Finish{}},
-		{Instruction: &testpilotspb.Instruction_RespondNexus{}},
-		{Instruction: &testpilotspb.Instruction_InjectFault{}},
-	}
 	oneof := (&testpilotspb.Instruction{}).ProtoReflect().Descriptor().Oneofs().ByName("instruction")
 	require.NotNil(t, oneof)
-	require.Equal(t, oneof.Fields().Len(), len(table))
+	require.Equal(t, int(MaxOpcode), oneof.Fields().Len())
 
 	seen := map[Opcode]bool{}
-	for i, instruction := range table {
-		opcode := instructionOpcode(instruction)
-		require.Equal(t, Opcode(i+1), opcode)
-		require.False(t, seen[opcode])
-		seen[opcode] = true
-		require.NotEqual(t, testpilotspb.ENTRYPOINT_KIND_UNSPECIFIED, opcodeContext(opcode))
+	for i := range oneof.Fields().Len() {
+		field := oneof.Fields().Get(i)
+		t.Run(string(field.Name()), func(t *testing.T) {
+			instruction := &testpilotspb.Instruction{}
+			instruction.ProtoReflect().Mutable(field)
+			opcode := instructionOpcode(instruction)
+			// The oneof field number is the opcode: the two lists cannot be reordered apart.
+			require.Equal(t, Opcode(field.Number()), opcode)
+			require.False(t, seen[opcode])
+			seen[opcode] = true
+			require.NotEqual(t, testpilotspb.ENTRYPOINT_KIND_UNSPECIFIED, opcodeContext(opcode))
+		})
 	}
-	require.Equal(t, InjectFault, Opcode(len(table)))
 }
 
 func TestPrepareAdmitsFaultInjection(t *testing.T) {
