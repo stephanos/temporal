@@ -151,9 +151,13 @@ This project uses Flow-Next for ALL task tracking. `flowctl` comes from the flow
      strongest tier available rather than a different-but-weaker sibling. It is
      read by in-host dispatches (quality-auditor, host backend). Note the
      consequence: with an all-Claude block the `host` review backend is
-     same-family and fails closed by design, so cross-family impl-review
-     verdicts come from the CLI bridge instead (`review.backend: copilot`;
-     `codex` once its credits reset). -->
+     same-family and fails closed by design, so a cross-family impl-review
+     verdict has to come from a CLI bridge. As of 2026-09-09 BOTH bridges are
+     exhausted - codex until Sep 14, copilot at zero monthly credits - so
+     `review.backend` is `claude`, which is same-family and says so in its
+     receipt (`mode: "claude"`). Reviews are pinned to a model OTHER than the
+     implementer's for what decorrelation remains. Restore `codex` (preferred)
+     or `copilot` as soon as either has budget again. -->
 
 reviewer: opus at high
 

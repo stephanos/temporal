@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-09T05:33:46.567712Z",
+  "depends_on": [
+    "fn-82-unify-the-umpire-and-testpilot.3"
+  ],
+  "id": "fn-82-unify-the-umpire-and-testpilot.4",
+  "priority": null,
+  "spec": "fn-82-unify-the-umpire-and-testpilot",
+  "spec_path": ".flow/tasks/fn-82-unify-the-umpire-and-testpilot.4.md",
+  "status": "todo",
+  "title": "Property and Scenario records, clauses, and module layout",
+  "updated_at": "2026-09-09T05:33:46.567712Z"
+}
