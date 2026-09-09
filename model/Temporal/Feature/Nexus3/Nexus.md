@@ -29,17 +29,32 @@ Properties do not repair or filter the model's transitions to make requirements 
 ## Lean syntax versus proposed syntax
 
 `namespace`, `inductive`, `where`, and the constructor bars `|` are ordinary Lean syntax.
-The success-only forms of the `model`, `property`, `behavior`, `limits`, and `query` blocks compile
-in `Nexus.lean`; the broader forms below remain proposed. In particular, `+` and `→` in a
-transition row are visual separators, not Lean addition or a function type. `/-- ... -/` introduces
-documentation; `/- ... -/` is a block comment.
+The `model`, `property`, `behavior`, `limits`, and `query` blocks compile in `Nexus.lean`. In
+particular, `+` and `→` in a transition row are visual separators, not Lean addition or a function
+type. `/-- ... -/` introduces documentation; `/- ... -/` is a block comment.
+
+The compiling grammar is general over the declaring inductives. `states`, `actions`, `outcomes`,
+and `facts` name enum-like types, and their constructors — in constructor order — are the model's
+ordered domains, so renaming a member or adding a transition changes no file but the model's own.
+It accepts any number of initial states, terminal states, transition rows up to an elaboration
+bound of 256, Facts per row, and Behavior occurrences, and any positive limits.
+`RaceSyntaxTests.lean` declares a second lifecycle through the same five blocks with four states,
+three Actions, three transitions, a three-occurrence Behavior, and a different role name.
+
+A constructor that takes arguments, an identifier naming no constructor, a duplicate
+`before + action` pair, a terminal state unreachable from every initial state, and a table over the
+bound are each reported at the offending source coordinates.
+
+What remains proposed below is the shape of the declarations, not the spelling of their members: a
+transition row with more than one result, the `eventually ... within` and `finalState` Property
+forms, the `all` Query form, and the per-declaration compatibility ID.
 
 IDs derive from the feature namespace, declaration kind, and name. `Integration.md` specifies
 the convention and Case boundary, including the optional per-declaration compatibility ID this
 broader draft keeps for renames; neither derivation nor that override needs a parallel identity
-registry to maintain. The success-only slice is delivered and produces a checked Case. The
-proposed forms below, broader cancellation model admission, and cancellation Case integration
-remain design work.
+registry to maintain. The success slice is delivered and produces a checked Case. The proposed
+forms above, broader cancellation model admission, and cancellation Case integration remain design
+work.
 -/
 
 -- A namespace groups related names; the full type name is `Temporal.Feature.Nexus3.State`.
@@ -98,8 +113,8 @@ IDs of its owned members; affected generated fixtures must be regenerated. A dec
 keep its old ID across a rename may instead carry an explicit compatibility ID. That override is
 declaration-local — it does not cascade to owned members, which keep deriving from the owner's new
 name — and it preserves identity only: the Behavior Fingerprint still follows the checked meaning,
-and admission judges the override like any other ID. The success-only syntax that compiles in
-`Nexus.lean` accepts no such input; `Integration.md` holds the convention.
+and admission judges the override like any other ID. The syntax that compiles in `Nexus.lean`
+accepts no such input; `Integration.md` holds the convention.
 
 The state and Action declarations supply the complete vocabulary, including terminal states
 with no outgoing rows. `initial` requires every scenario to begin at `scheduled`.
