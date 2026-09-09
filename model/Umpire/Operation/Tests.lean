@@ -59,10 +59,25 @@ private def identityKey (s : RpcSchema) : String := Canonical.key (Canonical.rpc
   identityKey { schema with response := { schema.response with root := "example.Other" } }
 #guard identityKey schema != identityKey { schema with clientStreaming := true }
 #guard identityKey schema != identityKey { schema with serverStreaming := true }
--- The descriptor closure those roots select is not re-encoded, so the key stays bounded however
--- large the closure grows; a binding admitted by `checkRpc` already proves which schema is meant.
-#guard identityKey schema == identityKey wideSchema
+-- Every descriptor-closure component still reaches identity, through the closure digest.
+#guard identityKey schema != identityKey wideSchema
+#guard identityKey schema != identityKey { schema with
+  request := { schema.request with
+    nodes := schema.request.nodes.map fun n => { n with descriptor := "field-1-bytes" } } }
+#guard identityKey schema != identityKey { schema with
+  request := { schema.request with
+    nodes := schema.request.nodes.map fun n => { n with fileContext := "other-file" } } }
+#guard identityKey schema != identityKey { schema with
+  request := { schema.request with
+    nodes := schema.request.nodes.map fun n => { n with references := ["example.Other"] } } }
+#guard identityKey schema != identityKey { schema with
+  request := { schema.request with nodes := schema.request.nodes.map fun n => { n with
+    valueShape := some (.message [⟨1, "payload", .text, .singular, .optional, none⟩] none) } } }
+#guard identityKey schema != identityKey { schema with schemaInputs := schema.response.nodes }
+-- The closure reaches identity only through that fixed-width digest, so the key stays bounded
+-- however large the closure grows.
 #guard (identityKey wideSchema).length < 4096
+#guard (identityKey schema).length < 4096
 
 example {owner : RpcOwner} {Request Response : Type}
     {reference : owner.Witness Request Response} (binding : CheckedRpc owner reference) :
