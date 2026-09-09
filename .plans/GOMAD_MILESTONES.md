@@ -267,8 +267,8 @@ that turns "one probe" into "any test".
     option that skips signal installation and the password command, and `fx` needs its
     shutdowner wired without `os/signal`. These are small server-side changes with a stock-Go
     default.
-- Remove `tools/umpire3` from the `./tests` closure. It imports `os/exec` and arrives through
-  the monitor seam that fn-81 deletes anyway.
+- ~~Remove `tools/umpire3` from the `./tests` closure.~~ Done by fn-81, which deleted both the
+  tree and the monitor seam it arrived through.
 - Re-run the analysis with the cloud archiver, Elasticsearch, Cassandra, and SDK worker
   providers excluded by tag to measure how much of the closure is optional. Do not make that
   separation a prerequisite if linked mode already closes the set.
