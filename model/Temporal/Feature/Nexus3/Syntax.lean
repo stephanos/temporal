@@ -62,6 +62,10 @@ private def unsortedActionsMessage (earlier later : String) : String :=
   "Nexus3 action constructors must be declared in sorted order, because the planner admits " ++
     s!"only a canonically ordered Action catalog; '{later}' precedes '{earlier}'"
 
+private def unsortedInitialMessage (earlier later : String) : String :=
+  "Nexus3 initial states must be declared in sorted order, because the planner admits " ++
+    s!"only a canonically ordered initial-state list; '{later}' precedes '{earlier}'"
+
 private def transitionBoundMessage (declared : Nat) : String :=
   s!"Nexus3 model declares {declared} transitions; the elaboration bound is {transitionBound}"
 
@@ -126,6 +130,12 @@ elab "model" name:ident "role" role:ident
     | _ => throwErrorAt name "a Nexus3 model needs exactly one Setup constructor"
   let initialStates ← initialRefs.getElems.toList.mapM (resolveMember "state" stateCtors)
   let terminalStates ← terminalRefs.getElems.toList.mapM (resolveMember "state" stateCtors)
+  let initialPairs := initialStates.zip initialRefs.getElems.toList
+  for pair in initialPairs.zip initialPairs.tail do
+    let earlier := (shortName pair.1.1.getId).toString
+    let later := (shortName pair.2.1.getId).toString
+    unless earlier < later do
+      throwErrorAt pair.2.2 (unsortedInitialMessage later earlier)
   if rows.size > transitionBound then
     throwErrorAt rows[transitionBound]! (transitionBoundMessage rows.size)
   let resolvedRows ← rows.toList.mapM fun (row : TSyntax `nexus3Transition) => do
