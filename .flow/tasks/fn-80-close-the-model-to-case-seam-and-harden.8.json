@@ -1,0 +1,18 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-09T03:22:55.326973Z",
+  "depends_on": [
+    "fn-80-close-the-model-to-case-seam-and-harden.3",
+    "fn-80-close-the-model-to-case-seam-and-harden.4",
+    "fn-80-close-the-model-to-case-seam-and-harden.7"
+  ],
+  "id": "fn-80-close-the-model-to-case-seam-and-harden.8",
+  "priority": null,
+  "spec": "fn-80-close-the-model-to-case-seam-and-harden",
+  "spec_path": ".flow/tasks/fn-80-close-the-model-to-case-seam-and-harden.8.md",
+  "status": "todo",
+  "title": "Author the worker-outage fault Case and its live test",
+  "updated_at": "2026-09-09T03:22:55.326973Z"
+}

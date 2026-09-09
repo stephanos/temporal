@@ -6,7 +6,7 @@ this document records delivery order. Architecture and terminology live in the
 
 ## Current work
 
-### Typed operations and field-level Properties — fn-77
+### 1. Typed operations and field-level Properties — fn-77
 
 [fn-77 — Typed operations, parameterized Actions, and field-level Properties](../.flow/specs/fn-77-typed-operations-parameterized-actions.md)
 adds direct generated API references, typed SDK-command/event declarations, modeled request/result
@@ -26,6 +26,37 @@ monitoring interfaces; Nexus operation cancellation remains deferred to fn-79.
 Keep this off the first-canary critical path. Field lowering composes with fn-78's delivered scoped
 temporal lowering. Share value/capture contracts across these owners rather than creating two
 representations. Tasks with overlapping source files run serially without artificial dependencies.
+
+### 2. Close the model-to-Case seam — fn-80
+
+[fn-80 — Close the model-to-Case seam and harden](../.flow/specs/fn-80-close-the-model-to-case-seam-and-harden.md),
+derived from the 2026-09-08 assessment against [UMPIRE4_VISION](UMPIRE4_VISION.md). The assessment
+found the substrate rigorous and the product-facing seams thin: the shipped Nexus3 Producer
+hand-writes its Program and monitor and rejects any Property not clause-for-clause equal to one
+expected value, so a model edit yields a lowering error instead of a different Case. The
+proof-carrying scoped lowering in `Umpire.Case.Scoped` is the only path where wire bytes provably
+mean the checked model, and no shipped Case uses it.
+
+Eight requirements: general checked lowering replacing the equality gate (R1), generalized command
+syntax and the always-erroring `query ... all ...` form (R2, R8), an event-count liveness horizon
+replacing the one the recorder derives from the test host's clock (R3), one realizable worker fault
+where today only labeled intent exists (R4), Profile derivation and a runner helper for the 60-to-80
+line cost of running a Case from Go (R5), the discarded recorder close error (R6), and gates plus
+the axiom baseline (R7).
+
+Nine tasks are defined with a SHIP plan review. Task .4 is the declared early proof point: if the
+shipped success Property cannot lower through the scoped path, re-evaluate before starting R2 and
+R8. Everything except .4 is ready now; .4 is blocked.
+
+Sequencing within the spec is partly bound to fn-77. Task fn-77.8 already landed the whole-Case
+coverage modules R1 consumes. R1 and R5 serialize behind **fn-77.10**, which rewrites the Nexus3
+Producer, the async-nexus fixture bytes, and the live test — starting earlier means a byte conflict
+on regenerated fixtures. R3, R4, and R6 touch none of those files and are startable now; R2 and R8
+follow R1 so both edit the Nexus3 test module in one order.
+
+Boundaries worth carrying forward: no canary Profile or production authorization (fn-70, fn-29 own
+those), no Nexus cancellation lowering (fn-79, deferred), no second fault kind, and no removal of
+`elapsed_milliseconds`.
 
 ### Additional open specs
 

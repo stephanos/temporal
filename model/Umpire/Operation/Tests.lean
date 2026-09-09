@@ -1,6 +1,7 @@
-import Umpire.Operation
+import Umpire.Operation.Canonical
 
-/-! Structural admission controls independent of any generated product API or Target semantics. -/
+/-! Structural admission and identity controls independent of any generated product API or Target
+semantics. -/
 
 namespace Umpire.Operation.Tests
 
@@ -42,6 +43,26 @@ private def error? (result : Except Error α) : Option Error :=
   some "example.send"
 #guard (event String (.of "example.sent")).toOption.map (·.identity.value) == some "example.sent"
 #guard error? (event String (.of "bad")) == some (.invalidIdentity (.of "bad"))
+
+private def wideSchema : RpcSchema := { schema with
+  request := { schema.request with nodes := (List.range 200).map fun n =>
+    ⟨"example.Request", "proto3", "field-" ++ toString n, "context", ["example.Other"], none⟩ }
+  schemaInputs := schema.response.nodes }
+
+private def identityKey (s : RpcSchema) : String := Canonical.key (Canonical.rpcSchema s)
+
+-- Identity separates the method, both payload signature roots, and the interaction shape.
+#guard identityKey schema != identityKey { schema with fullName := "example.Service.Other" }
+#guard identityKey schema !=
+  identityKey { schema with request := { schema.request with root := "example.Other" } }
+#guard identityKey schema !=
+  identityKey { schema with response := { schema.response with root := "example.Other" } }
+#guard identityKey schema != identityKey { schema with clientStreaming := true }
+#guard identityKey schema != identityKey { schema with serverStreaming := true }
+-- The descriptor closure those roots select is not re-encoded, so the key stays bounded however
+-- large the closure grows; a binding admitted by `checkRpc` already proves which schema is meant.
+#guard identityKey schema == identityKey wideSchema
+#guard (identityKey wideSchema).length < 4096
 
 example {owner : RpcOwner} {Request Response : Type}
     {reference : owner.Witness Request Response} (binding : CheckedRpc owner reference) :

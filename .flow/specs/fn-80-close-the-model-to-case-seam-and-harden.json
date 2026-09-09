@@ -1,11 +1,149 @@
 {
   "branch_name": "fn-80-close-the-model-to-case-seam-and-harden",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-09-09T03:08:14.453422Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-80-close-the-model-to-case-seam-and-harden",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-09-09T03:29:54.162529Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "20df01ac1e90971cb7acf1cd3ff3dba94daf1f1db4a308885c37402dc20e4980",
+      "backend": "copilot",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "copilot",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-c0974fcad773521d3b224e832cb231f7",
+            "classification": "introduced",
+            "findingId": "finding-c0974fcad773521d3b224e832cb231f7",
+            "firstSeenThisRound": true,
+            "severity": "P0",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-fdd7d4b57f6a6c2bbbb0c4f3e42b20dd",
+            "classification": "introduced",
+            "findingId": "finding-fdd7d4b57f6a6c2bbbb0c4f3e42b20dd",
+            "firstSeenThisRound": true,
+            "severity": "P0",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-73f08d91136ec724c05127e7c9b301c2",
+            "classification": "introduced",
+            "findingId": "finding-73f08d91136ec724c05127e7c9b301c2",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "9172bf8775a074645243fbe48d76d70d079744dc",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.4",
+      "outcome": "verdict",
+      "output_bytes": 6312,
+      "output_sha256": "440c571cd79bcc0305e10407e234b7082c43178729e217b0e5524f894e557e3c",
+      "reservation_id": "8653be1bfb0c4c6b9ca933e5958bf273",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-09T03:27:08.614428Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "b2541b7ea6966e1e3cdc6f0fafd214b356017136c7aa03c0aca78d3e5696cc19",
+      "backend": "copilot",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "copilot",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-c0974fcad773521d3b224e832cb231f7",
+            "classification": "introduced",
+            "findingId": "finding-c0974fcad773521d3b224e832cb231f7",
+            "firstSeenThisRound": false,
+            "severity": "P0",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-fdd7d4b57f6a6c2bbbb0c4f3e42b20dd",
+            "classification": "introduced",
+            "findingId": "finding-fdd7d4b57f6a6c2bbbb0c4f3e42b20dd",
+            "firstSeenThisRound": false,
+            "severity": "P0",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-73f08d91136ec724c05127e7c9b301c2",
+            "classification": "introduced",
+            "findingId": "finding-73f08d91136ec724c05127e7c9b301c2",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "9172bf8775a074645243fbe48d76d70d079744dc",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.4",
+      "outcome": "verdict",
+      "output_bytes": 1091,
+      "output_sha256": "4b4e90fc86c5f744862915b0222feeba9ced24c6ea24ded9fb9fa28297ea702c",
+      "reservation_id": "777aa9c61211475393f3e585ffcc6d06",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-09T03:29:54.159731Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-80-close-the-model-to-case-seam-and-harden.md",
   "status": "open",
   "title": "Close the model-to-Case seam and harden runtime liveness",
@@ -20,5 +158,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-09T03:08:14.455603Z"
+  "updated_at": "2026-09-09T03:29:54.162945Z"
 }

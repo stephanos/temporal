@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-09T03:22:55.326891Z",
+  "depends_on": [
+    "fn-80-close-the-model-to-case-seam-and-harden.4"
+  ],
+  "id": "fn-80-close-the-model-to-case-seam-and-harden.5",
+  "priority": null,
+  "spec": "fn-80-close-the-model-to-case-seam-and-harden",
+  "spec_path": ".flow/tasks/fn-80-close-the-model-to-case-seam-and-harden.5.md",
+  "status": "todo",
+  "title": "Generalize the Nexus3 model, property, behavior, and limits macros",
+  "updated_at": "2026-09-09T03:22:55.326891Z"
+}
