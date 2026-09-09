@@ -22,25 +22,20 @@ import (
 
 const (
 	packageLocalTestCommand  = "mise exec -- go test -count=1 -tags test_dep ./tools/umpire/... ./common/testing/testpilot/... ./tests/testcore/testpilot/..."
-	liveTestCommand          = "mise exec -- go test -count=1 -tags 'test_dep integration' ./tests -run '^(TestUmpire|TestTestpilotAsyncNexusCase)'"
+	liveTestCommand          = "mise exec -- go test -v -count=1 -tags 'test_dep integration' ./tests -run '^TestTestpilot'"
 	liveTestTargetCommand    = "make umpire-check-live-tests"
 	conformanceTargetCommand = "./tools/umpire/cmd/umpire-gen-case-runtime-conformance"
 	retiredVocabularyTarget  = "umpire-check-retired-vocabulary"
 	retiredGeneratedTestPath = "tests/umpire4_caller_closure_generated_test.go"
-	testpilotLiveSuccess     = "TestTestpilotAsyncNexusCase"
+	liveTestSelector         = "'^TestTestpilot'"
+	liveTestVerboseFlag      = "go test -v -count=1"
+	liveTestEmptyBaseline    = ": > \"$expected\""
+	liveTestFloorScrape      = "--- PASS: ([^ ]+)"
+	liveTestFloorFailure     = "The live Testpilot selector matched no passing test identity."
+	liveTestEmptyMismatch    = "Live Testpilot failure identities differ from the empty expected set."
+	liveTestSuccess          = "Live Testpilot failure identities match the empty expected set across %s passing identities."
+	liveTestNoIdentity       = "The live suite failed without reporting a test identity."
 )
-
-var inheritedLiveFailures = []string{
-	"TestUmpire2TestSuite",
-	"TestUmpire2TestSuite/TestPlanAndDriveKitchenSinkNexusOperation",
-	"TestUmpire2TestSuite/TestPlanAndDriveNexusOperationCHASM",
-	"TestUmpire2TestSuite/TestProbeNexusDegraded",
-	"TestUmpire2TestSuite/TestProbeNexusExploration",
-	"TestUmpire2TestSuite/TestProbeNexusFlagged",
-	"TestUmpire2TestSuite/TestProbeNexusRandomized",
-	"TestUmpire2TestSuite/TestProbeNexusResilience",
-	"TestUmpire3ParticipantProcessCrashAndRestartResumesRealSDKProgram",
-}
 
 type ciWorkflow struct {
 	Name        string                       `yaml:"name"`
@@ -135,12 +130,22 @@ func TestUmpireCIWorkflowRunsSeparatedUnitAndLiveProofs(t *testing.T) {
 	require.Equal(t, 1, strings.Count(normalizedDryRun, liveTestCommand))
 	require.Contains(t, normalizedDryRun, conformanceTargetCommand)
 	require.Contains(t, normalizedDryRun, retiredVocabularyTarget)
-	for _, identity := range inheritedLiveFailures {
-		require.Contains(t, normalizedDryRun, identity)
-	}
-	require.Contains(t, normalizedDryRun, testpilotLiveSuccess)
-	require.Contains(t, normalizedDryRun, "Live Umpire failure identities differ from the inherited exact set.")
-	require.Contains(t, normalizedDryRun, "Live Umpire failure identities match the inherited exact set.")
+
+	// The gate selects by prefix and compares the whole failure identity set
+	// against an empty baseline, so a new live Testpilot test joins without
+	// being enumerated here. An empty baseline alone cannot tell "everything
+	// passed" from "the selector matched nothing", so the floor below is the
+	// half of the gate that makes the empty baseline meaningful; pin both.
+	require.Contains(t, normalizedDryRun, liveTestVerboseFlag)
+	require.Contains(t, normalizedDryRun, liveTestSelector)
+	require.Contains(t, normalizedDryRun, liveTestEmptyBaseline)
+	require.Contains(t, normalizedDryRun, liveTestFloorScrape)
+	require.Contains(t, normalizedDryRun, liveTestFloorFailure)
+	require.Contains(t, normalizedDryRun, liveTestEmptyMismatch)
+	require.Contains(t, normalizedDryRun, liveTestSuccess)
+	require.Contains(t, normalizedDryRun, liveTestNoIdentity)
+	require.NotContains(t, normalizedDryRun, "TestUmpire2TestSuite")
+	require.NotContains(t, normalizedDryRun, "TestUmpire3ParticipantProcessCrashAndRestartResumesRealSDKProgram")
 	require.NotContains(t, normalizedDryRun, retiredGeneratedTestPath)
 }
 
