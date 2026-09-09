@@ -38,6 +38,21 @@ func TestCompositeSessionKeepsControllerAndWorkerAuthoritySeparate(t *testing.T)
 	require.Equal(t, []string{"worker", "controller"}, append(workers.closes, controller.closes...))
 }
 
+// A fault is worker authority, so the composite hands it to the worker Session; a Program with no
+// worker use has no worker Session and therefore no queue to stop.
+func TestCompositeSessionRoutesFaultsToTheWorker(t *testing.T) {
+	workers := &recordingWorkerSession{}
+	session := newCompositeSession(&recordingControllerSession{bridge: &recordingBridge{}}, workers, testpilot.PreparedProgram{})
+	origin := testpilot.Coordinate{RunID: "run", EntrypointID: "controller", ActivationID: "activation", InstructionID: "stop", Attempt: 1}
+	_, err := session.InjectFault(t.Context(), origin, "queue", testpilotspb.FAULT_KIND_WORKER_STOP)
+	require.NoError(t, err)
+	require.Equal(t, 1, workers.faults)
+
+	workerless := newCompositeSession(&recordingControllerSession{bridge: &recordingBridge{}}, nil, testpilot.PreparedProgram{})
+	_, err = workerless.InjectFault(t.Context(), origin, "queue", testpilotspb.FAULT_KIND_WORKER_STOP)
+	require.ErrorIs(t, err, ErrInvalid)
+}
+
 type recordingControllerSession struct {
 	bridge      testpilot.CapabilityBridge
 	invocations int

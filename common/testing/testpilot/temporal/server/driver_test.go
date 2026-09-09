@@ -278,6 +278,10 @@ func TestSessionAndEffectIdentityCollisions(t *testing.T) {
 	require.Nil(t, duplicate)
 	_, err = s.Reserve(t.Context(), testpilot.ReservationRequest{})
 	require.Error(t, err)
+	// A fault is a worker-lifecycle outage; the server Driver owns no worker and refuses it the
+	// way it refuses reservations.
+	_, err = s.InjectFault(t.Context(), coordinate("run", "check"), "queue", testpilotspb.FAULT_KIND_WORKER_STOP)
+	require.Error(t, err)
 	require.NoError(t, s.Close(t.Context()))
 	denied, err := s.InvokeRPC(t.Context(), coordinate("run", "length"), "endpoint", methods[1], request(methods[1], "x"))
 	require.ErrorIs(t, err, errClosed)

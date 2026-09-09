@@ -189,7 +189,7 @@ func (h *Driver) OpenSession(ctx context.Context, runID string, program testpilo
 	h.sessions[runID] = session
 	h.mu.unlock()
 
-	release, err := h.registry.acquire(ctx, runID, definition.registrations, func(queue string, failure error) {
+	lease, err := h.registry.acquire(ctx, runID, definition.registrations, definition.hasFault, func(queue string, failure error) {
 		session.workerFailed(queue, failure)
 	})
 	if err != nil {
@@ -198,7 +198,7 @@ func (h *Driver) OpenSession(ctx context.Context, runID string, program testpilo
 		cancel()
 		return nil, errors.Join(err, cleanupErr)
 	}
-	session.releaseWorkers = release
+	session.workers = lease
 	return session, nil
 }
 
@@ -234,7 +234,7 @@ func (h *Driver) prepareDefinitionResources(snapshot *testpilotspb.Program, plan
 		return programDefinition{}, ErrInvalid
 	}
 	roles := preparedRolesByID(preparedRoles)
-	definition := programDefinition{snapshot: snapshot, entries: make(map[string]entryDefinition), endpoints: make(map[string]string), queueWorkflows: make(map[string]map[string]struct{})}
+	definition := programDefinition{snapshot: snapshot, entries: make(map[string]entryDefinition), endpoints: make(map[string]string), queueWorkflows: make(map[string]map[string]struct{}), faultQueues: make(map[string]string)}
 	if err := h.validateSymbolicRoles(roles, requireWorker); err != nil {
 		return programDefinition{}, err
 	}
@@ -345,6 +345,14 @@ func (h *Driver) addInstructionBindings(definition *programDefinition, plan test
 		}
 		if response := source.GetRespondNexus(); response != nil && response.GetKind() == testpilotspb.NEXUS_RESPONSE_KIND_ASYNCHRONOUS {
 			definition.hasAsync = true
+		}
+		if fault := source.GetInjectFault(); fault != nil {
+			role, ok := roles[fault.GetRoleId()]
+			if !ok || role.Kind != testpilotspb.ROLE_KIND_TASK_QUEUE || role.Resource == "" {
+				return ErrInvalid
+			}
+			definition.faultQueues[fault.GetRoleId()] = role.Resource
+			definition.hasFault = true
 		}
 	}
 	return nil
