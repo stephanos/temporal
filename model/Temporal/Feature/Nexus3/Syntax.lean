@@ -251,8 +251,11 @@ macro "query" name:ident "on" modelRef:ident "witness" propertyRef:ident "in" be
     `(command| def $name : Except Authoring.AdmissionError (Authoring.CheckedModel ($modelRef)) :=
         Authoring.check ($modelRef) $queryKey ($limitsRef) ($propertyRef) ($behaviorRef))
 
-macro "query" _name:ident "on" _modelRef:ident "all" _propertyRef:ident
-    "in" _behaviorRef:ident "limits" _limitsRef:ident : command =>
-  Lean.Macro.throwError "unsupported Nexus3 success Query spelling"
+macro "query" name:ident "on" modelRef:ident "all" propertyRef:ident "in" behaviorRef:ident
+    "limits" limitsRef:ident : command => do
+    let queryKey := Lean.quote name.getId.toString
+    `(command| def $name : Except Authoring.AdmissionError (Authoring.CheckedModel ($modelRef)) :=
+        Authoring.check ($modelRef) $queryKey ($limitsRef) ($propertyRef) ($behaviorRef)
+          (form := Authoring.QueryFormKind.verifyClaim))
 
 end Temporal.Feature.Nexus3

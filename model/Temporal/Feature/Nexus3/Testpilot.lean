@@ -308,6 +308,6 @@ def produceCompletionCase
 def completionCase : Except LoweringError temporal.server.api.testpilot.v1.Case := do
   let checked ← checkedCompletion
   produceCompletionCase checked.target checked.property checked.behavior checked.query
-    (some checked.witness)
+    checked.witness
 
 end Temporal.Feature.Nexus3.Testpilot
