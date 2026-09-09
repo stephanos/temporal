@@ -562,6 +562,10 @@ func (s *artifactSession) InvokeCapability(context.Context, testpilot.Coordinate
 	return &artifactEffect{result: succeededResult(nil)}, nil
 }
 
+func (s *artifactSession) InjectFault(context.Context, testpilot.Coordinate, string, testpilotspb.FaultKind) (testpilot.EffectHandle, error) {
+	return nil, temporal.ErrInvalid
+}
+
 func (s *artifactSession) Bridge(context.Context) (testpilot.CapabilityBridge, error) {
 	return s.bridge, nil
 }

@@ -55,6 +55,9 @@ func (s *recordingControllerSession) InvokeRPC(context.Context, testpilot.Coordi
 func (*recordingControllerSession) InvokeCapability(context.Context, testpilot.Coordinate, testpilot.OpaqueCapability, proto.Message) (testpilot.EffectHandle, error) {
 	return recordingEffect{}, nil
 }
+func (*recordingControllerSession) InjectFault(context.Context, testpilot.Coordinate, string, testpilotspb.FaultKind) (testpilot.EffectHandle, error) {
+	return nil, errors.New("controller Sessions do not realize faults")
+}
 func (s *recordingControllerSession) Bridge(context.Context) (testpilot.CapabilityBridge, error) {
 	return s.bridge, nil
 }
@@ -72,6 +75,7 @@ func (*recordingControllerSession) Diagnose(context.Context, string, *testpilots
 
 type recordingWorkerSession struct {
 	reserves    int
+	faults      int
 	quarantines int
 	closes      []string
 }
@@ -79,6 +83,10 @@ type recordingWorkerSession struct {
 func (s *recordingWorkerSession) Reserve(context.Context, testpilot.ReservationRequest) ([]testpilot.ReservationHandle, error) {
 	s.reserves++
 	return []testpilot.ReservationHandle{recordingReservation{}}, nil
+}
+func (s *recordingWorkerSession) InjectFault(context.Context, testpilot.Coordinate, string, testpilotspb.FaultKind) (testpilot.EffectHandle, error) {
+	s.faults++
+	return recordingEffect{}, nil
 }
 func (s *recordingWorkerSession) Close(context.Context) error {
 	s.closes = append(s.closes, "worker")

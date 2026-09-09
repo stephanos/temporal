@@ -414,6 +414,80 @@ func (this *RespondNexus) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
+// Marshal an object of type InjectFault to the protobuf v3 wire format
+func (val *InjectFault) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type InjectFault from the protobuf v3 wire format
+func (val *InjectFault) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *InjectFault) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two InjectFault values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *InjectFault) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *InjectFault
+	switch t := that.(type) {
+	case *InjectFault:
+		that1 = t
+	case InjectFault:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type FaultInjected to the protobuf v3 wire format
+func (val *FaultInjected) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type FaultInjected from the protobuf v3 wire format
+func (val *FaultInjected) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *FaultInjected) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two FaultInjected values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *FaultInjected) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *FaultInjected
+	switch t := that.(type) {
+	case *FaultInjected:
+		that1 = t
+	case FaultInjected:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
 // Marshal an object of type Instruction to the protobuf v3 wire format
 func (val *Instruction) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
@@ -562,4 +636,23 @@ func NexusResponseKindFromString(s string) (NexusResponseKind, error) {
 		return NexusResponseKind(v), nil
 	}
 	return NexusResponseKind(0), fmt.Errorf("%s is not a valid NexusResponseKind", s)
+}
+
+var (
+	FaultKind_shorthandValue = map[string]int32{
+		"Unspecified":  0,
+		"WorkerStop":   1,
+		"WorkerResume": 2,
+	}
+)
+
+// FaultKindFromString parses a FaultKind value from  either the protojson
+// canonical SCREAMING_CASE enum or the traditional temporal PascalCase enum to FaultKind
+func FaultKindFromString(s string) (FaultKind, error) {
+	if v, ok := FaultKind_value[s]; ok {
+		return FaultKind(v), nil
+	} else if v, ok := FaultKind_shorthandValue[s]; ok {
+		return FaultKind(v), nil
+	}
+	return FaultKind(0), fmt.Errorf("%s is not a valid FaultKind", s)
 }

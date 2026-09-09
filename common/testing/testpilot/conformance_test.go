@@ -230,6 +230,7 @@ func (h *facadeDriver) closedSessions() int {
 
 type facadeSession struct {
 	driver *facadeDriver
+	faults []string
 	closed bool
 }
 
@@ -251,6 +252,10 @@ func (s *facadeSession) InvokeRPC(_ context.Context, coordinate testpilot.Coordi
 }
 func (*facadeSession) InvokeCapability(context.Context, testpilot.Coordinate, testpilot.OpaqueCapability, proto.Message) (testpilot.EffectHandle, error) {
 	return nil, errors.New("facade conformance Cases do not complete Nexus operations")
+}
+func (s *facadeSession) InjectFault(_ context.Context, _ testpilot.Coordinate, roleID string, kind testpilotspb.FaultKind) (testpilot.EffectHandle, error) {
+	s.faults = append(s.faults, roleID+"/"+kind.String())
+	return facadeEffect{result: testpilot.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}}}, nil
 }
 func (*facadeSession) Bridge(context.Context) (testpilot.CapabilityBridge, error) {
 	return nil, errors.New("facade conformance Cases do not use capability bridges")

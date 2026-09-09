@@ -22,7 +22,13 @@ const (
 	Await
 	Finish
 	RespondNexus
+	InjectFault
 )
+
+// MaxOpcode is the highest declared opcode. A Profile authorizes each opcode at most once, so it
+// is also the ceiling on an authorized capability list; Driver profile validation reuses it
+// instead of restating a literal that a new instruction would silently invalidate.
+const MaxOpcode = InjectFault
 
 type RolePolicy struct {
 	ID                  string

@@ -128,7 +128,7 @@ func (a *admission) bindPolicy(policy Policy) error {
 	if err := checkLimits(a.prepared.source.Limits, policy.Limits); err != nil {
 		return err
 	}
-	if len(policy.Roles) > 10000 || len(policy.Capabilities) > 7 || len(policy.EnvironmentBindings) > 10000 {
+	if len(policy.Roles) > 10000 || len(policy.Capabilities) > int(MaxOpcode) || len(policy.EnvironmentBindings) > 10000 {
 		return invalid(ir.LimitExceeded, "policy", "policy collection ceiling exceeded")
 	}
 	var environmentBytes int64
@@ -165,7 +165,7 @@ func (a *admission) bindPolicy(policy Policy) error {
 		snapshot.Roles[i] = bound
 	}
 	for _, capability := range snapshot.Capabilities {
-		if capability < InvokeRPC || capability > RespondNexus || a.capabilities[capability] {
+		if capability < InvokeRPC || capability > MaxOpcode || a.capabilities[capability] {
 			return invalid(ir.Malformed, "policy.capabilities", "invalid or duplicate capability")
 		}
 		a.capabilities[capability] = true

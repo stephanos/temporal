@@ -238,3 +238,27 @@ func TestGuardedExpressionExactPathAndSharedBudget(t *testing.T) {
 	_, _, err = c.BindGuardedExpression(present(slot("a")), slot("a"), nil, scope, limits)
 	require.Error(t, err)
 }
+
+// The Run Event reference range is the one guard between a Contract expression and an event field
+// the recorder never populates, so the two fault fields must be inside it and nothing beyond.
+func TestRunEventReferencesAdmitFaultFields(t *testing.T) {
+	c := fixtureCatalog(t)
+	textType := boundType(t, c, scalar(testpilotspb.SCALAR_KIND_TEXT))
+	for _, field := range []testpilotspb.RunEventField{testpilotspb.RUN_EVENT_FIELD_FAULT_ROLE_ID, testpilotspb.RUN_EVENT_FIELD_FAULT_KIND} {
+		t.Run(field.String(), func(t *testing.T) {
+			scope := map[Reference]Binding{{Kind: EventReference, Field: int32(field)}: {Type: textType, Available: true}}
+			reference := &testpilotspb.ContractExpression{Expression: &testpilotspb.ContractExpression_RunEvent{RunEvent: &testpilotspb.RunEventFieldRef{Field: field}}}
+			compiled, err := c.BindExpression(reference, nil, scope, DefaultLimits())
+			require.NoError(t, err)
+			require.NotNil(t, compiled)
+		})
+	}
+	for _, field := range []testpilotspb.RunEventField{testpilotspb.RUN_EVENT_FIELD_UNSPECIFIED, testpilotspb.RUN_EVENT_FIELD_FAULT_KIND + 1} {
+		t.Run("rejected/"+field.String(), func(t *testing.T) {
+			scope := map[Reference]Binding{{Kind: EventReference, Field: int32(field)}: {Type: textType, Available: true}}
+			reference := &testpilotspb.ContractExpression{Expression: &testpilotspb.ContractExpression_RunEvent{RunEvent: &testpilotspb.RunEventFieldRef{Field: field}}}
+			_, err := c.BindExpression(reference, nil, scope, DefaultLimits())
+			require.Error(t, err)
+		})
+	}
+}
