@@ -21,23 +21,25 @@ import (
 // the public capability vocabulary to the same numbering, so a capability can never authorize a
 // different instruction than the one it is named for.
 func TestCapabilitiesMatchExecutionOpcodes(t *testing.T) {
-	for capability, name := range map[Capability]string{
-		InvokeRPC:              "InvokeRPC",
-		AwaitSlot:              "AwaitSlot",
-		CompleteNexusOperation: "CompleteNexusOperation",
-		StartNexusOperation:    "StartNexusOperation",
-		Await:                  "Await",
-		Finish:                 "Finish",
-		RespondNexus:           "RespondNexus",
-		InjectFault:            "InjectFault",
+	for name, pair := range map[string]struct {
+		capability Capability
+		opcode     execution.Opcode
+	}{
+		"InvokeRPC":              {InvokeRPC, execution.InvokeRPC},
+		"AwaitSlot":              {AwaitSlot, execution.AwaitSlot},
+		"CompleteNexusOperation": {CompleteNexusOperation, execution.CompleteNexusOperation},
+		"StartNexusOperation":    {StartNexusOperation, execution.StartNexusOperation},
+		"Await":                  {Await, execution.Await},
+		"Finish":                 {Finish, execution.Finish},
+		"RespondNexus":           {RespondNexus, execution.RespondNexus},
+		"InjectFault":            {InjectFault, execution.InjectFault},
 	} {
 		t.Run(name, func(t *testing.T) {
-			require.LessOrEqual(t, capability, MaxCapability)
+			require.Equal(t, pair.opcode, execution.Opcode(pair.capability))
+			require.LessOrEqual(t, pair.capability, MaxCapability)
 		})
 	}
 	require.Equal(t, execution.Opcode(MaxCapability), execution.MaxOpcode)
-	require.Equal(t, execution.Opcode(InvokeRPC), execution.InvokeRPC)
-	require.Equal(t, execution.Opcode(InjectFault), execution.InjectFault)
 }
 
 type nilProfileMap map[string]int
