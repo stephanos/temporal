@@ -35,9 +35,11 @@ transition row are visual separators, not Lean addition or a function type. `/--
 documentation; `/- ... -/` is a block comment.
 
 IDs derive from the feature namespace, declaration kind, and name. `Integration.md` specifies
-the convention and Case boundary. Broader cancellation model admission, the proposed forms below,
-and cancellation Case integration remain design work; there is no parallel identity registry to
-maintain.
+the convention and Case boundary, including the optional per-declaration compatibility ID this
+broader draft keeps for renames; neither derivation nor that override needs a parallel identity
+registry to maintain. The success-only slice is delivered and produces a checked Case. The
+proposed forms below, broader cancellation model admission, and cancellation Case integration
+remain design work.
 -/
 
 -- A namespace groups related names; the full type name is `Temporal.Feature.Nexus3.State`.
@@ -92,7 +94,12 @@ inductive Fact where
 `temporal.nexus3.target.lifecycle`.
 Likewise, `cancellationResolves` gets `temporal.nexus3.property.cancellationResolves`. IDs survive
 builds, comment edits, and declaration reordering. Renaming a declaration changes its ID and the
-IDs of its owned members; affected generated fixtures must be regenerated.
+IDs of its owned members; affected generated fixtures must be regenerated. A declaration that must
+keep its old ID across a rename may instead carry an explicit compatibility ID. That override is
+declaration-local — it does not cascade to owned members, which keep deriving from the owner's new
+name — and it preserves identity only: the Behavior Fingerprint still follows the checked meaning,
+and admission judges the override like any other ID. The success-only syntax that compiles in
+`Nexus.lean` accepts no such input; `Integration.md` holds the convention.
 
 The state and Action declarations supply the complete vocabulary, including terminal states
 with no outgoing rows. `initial` requires every scenario to begin at `scheduled`.
@@ -146,12 +153,15 @@ property cancellationIsARequest on lifecycle
   require requestState: resultingState cancelRequested
 
 /-- A bounded progress requirement: a request must be followed by either terminal result within
-one additional transition of that same operation. The intended existing temporal semantics allow a response
-on the triggering step; our request row does not produce one, so resolution needs the next step.
-This is a bound in model steps, not seconds. The Behavior below explicitly includes progress.
+one additional transition of that same operation. The intended existing temporal semantics allow a
+response on the triggering step; our request row does not produce one, so resolution needs the next
+step. This is a bound in model steps, not seconds. The Behavior below explicitly includes progress.
 `for operation` binds the trigger and response to one operation; other operations do not consume
-its bound. This scoped counting is a proposed extension, not existing Nexus2 functionality.
-A trace ending immediately after the request cannot demonstrate the required response. -/
+its bound. Operation-scoped counting is now a delivered generic capability, qualified through
+non-cancellation fixtures; it was never Nexus2 functionality, which counts global transitions.
+What stays unsupported is this cancellation-specific use of it, which `Integration.md` rejects at
+Case production. A trace ending immediately after the request cannot demonstrate the required
+response. -/
 property cancellationResolves on lifecycle
   for operation
   when action requestCancel
