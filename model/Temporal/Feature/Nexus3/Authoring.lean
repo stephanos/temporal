@@ -40,10 +40,10 @@ structure SuccessModelNames where
   declaration : String
   roleName : String
   setup : String
-  states : List String
-  actions : List String
-  outcomes : List String
-  facts : List String
+  stateKeys : List String
+  actionKeys : List String
+  outcomeKeys : List String
+  factKeys : List String
 
 inductive FiniteAdmissionError where
   | outgoingTerminalTransition
@@ -151,11 +151,12 @@ def resultsAt (model : SuccessModel Setup State Action Outcome Fact) (index : Na
 
 end SuccessModel
 
-def successResult (outcome : Outcome) (state : State) (fact : Fact) :
+/-- One declared transition result: the reached state, its Model Outcome, and the Facts it records. -/
+def transitionResult (outcome : Outcome) (state : State) (facts : List Fact) :
     TransitionResult State Outcome Fact := {
   modelOutcome := outcome
   resultingState := state
-  observations := [fact]
+  observations := facts
 }
 
 def successTable
@@ -169,10 +170,11 @@ def successTable
     (transitions : List (FiniteTransitionRow State Action Outcome Fact)) :
     FiniteTable Setup State Action Outcome Fact := {
   setups := [{ value := setupValue, key := names.setup }]
-  states := (states.zip names.states).map fun entry => { value := entry.1, key := entry.2 }
-  actions := (actions.zip names.actions).map fun entry => { value := entry.1, key := entry.2 }
-  outcomes := (outcomes.zip names.outcomes).map fun entry => { value := entry.1, key := entry.2 }
-  facts := (facts.zip names.facts).map fun entry => { value := entry.1, key := entry.2 }
+  states := (states.zip names.stateKeys).map fun entry => { value := entry.1, key := entry.2 }
+  actions := (actions.zip names.actionKeys).map fun entry => { value := entry.1, key := entry.2 }
+  outcomes :=
+    (outcomes.zip names.outcomeKeys).map fun entry => { value := entry.1, key := entry.2 }
+  facts := (facts.zip names.factKeys).map fun entry => { value := entry.1, key := entry.2 }
   initial := [{ setup := setupValue, states := initial }]
   transitions
 }
@@ -200,10 +202,10 @@ def successModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
   let providerId := ownedId "provider" ownerKey "finite-table"
   let lawId := ownedId "law" ownerKey "canonical-table"
   let operationRoleId := ownedId "role" ownerKey names.roleName
-  let stateIds := names.states.map (ownedId "state" ownerKey)
-  let actionIds := names.actions.map (ownedId "action" ownerKey)
-  let outcomeIds := names.outcomes.map (ownedId "outcome" ownerKey)
-  let factIds := names.facts.map (ownedId "fact" ownerKey)
+  let stateIds := names.stateKeys.map (ownedId "state" ownerKey)
+  let actionIds := names.actionKeys.map (ownedId "action" ownerKey)
+  let outcomeIds := names.outcomeKeys.map (ownedId "outcome" ownerKey)
+  let factIds := names.factKeys.map (ownedId "fact" ownerKey)
   let relationIds := transitions.map fun row => ownedId "relation" ownerKey row.key
   let table := successTable names setupValue states actions outcomes facts initial transitions
   let identity : FiniteModelIdentity Setup State Action Outcome Fact := {
@@ -276,32 +278,40 @@ def outcomeAt (values : ModelVocabulary) (index : Nat) : ModelValue :=
 def factAt (values : ModelVocabulary) (index : Nat) : ModelValue :=
   (values.facts[index]?).getD unknownValue
 
-/-! The success slice constrains the last declared step and starts from the first declared one. -/
+/-! Selection by declared spelling. An unknown spelling resolves to the unknown Model Value, whose
+Definition ID no Target provides, so the clause referencing it is rejected at Property admission. -/
 
-def firstState (values : ModelVocabulary) : ModelValue := values.stateAt 0
-def lastState (values : ModelVocabulary) : ModelValue :=
-  (values.states.getLast?).getD unknownValue
-def firstAction (values : ModelVocabulary) : ModelValue := values.actionAt 0
-def lastAction (values : ModelVocabulary) : ModelValue :=
-  (values.actions.getLast?).getD unknownValue
-def lastOutcome (values : ModelVocabulary) : ModelValue :=
-  (values.outcomes.getLast?).getD unknownValue
-def lastFact (values : ModelVocabulary) : ModelValue :=
-  (values.facts.getLast?).getD unknownValue
+def named (values : List ModelValue) (spelling : String) : ModelValue :=
+  (values.find? (·.value == spelling)).getD unknownValue
+
+def namedState (values : ModelVocabulary) (spelling : String) : ModelValue :=
+  named values.states spelling
+def namedAction (values : ModelVocabulary) (spelling : String) : ModelValue :=
+  named values.actions spelling
+def namedOutcome (values : ModelVocabulary) (spelling : String) : ModelValue :=
+  named values.outcomes spelling
+def namedFact (values : ModelVocabulary) (spelling : String) : ModelValue :=
+  named values.facts spelling
 
 end ModelVocabulary
 
+/-- The clause labels and the member spellings each `require` clause selects. -/
 structure SuccessPropertyNames where
   declaration : String
   stateClause : String
   outcomeClause : String
   factClause : String
+  selectedAction : String
+  resultingState : String
+  modelOutcome : String
+  observedFact : String
 
+/-- The setup state and the ordered occurrence labels with the Action each one selects. -/
 structure SuccessBehaviorNames where
   declaration : String
   roleName : String
-  startOccurrence : String
-  completionOccurrence : String
+  setupState : String
+  occurrences : List (String × String)
 
 def modelVocabulary [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
@@ -326,11 +336,14 @@ def propertySpec [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
   requires := [model.capabilityId]
   clauses := [
     .transitionContract (ownedId "property" names.declaration names.stateClause)
-      (.selectedAction values.lastAction) (.resultingState values.lastState),
+      (.selectedAction (values.namedAction names.selectedAction))
+      (.resultingState (values.namedState names.resultingState)),
     .transitionContract (ownedId "property" names.declaration names.outcomeClause)
-      (.selectedAction values.lastAction) (.modelOutcome values.lastOutcome),
+      (.selectedAction (values.namedAction names.selectedAction))
+      (.modelOutcome (values.namedOutcome names.modelOutcome)),
     .inputOutput (ownedId "property" names.declaration names.factClause)
-      (.selectedAction values.lastAction) (.fact values.lastFact)
+      (.selectedAction (values.namedAction names.selectedAction))
+      (.fact (values.namedFact names.observedFact))
   ]
 }
 
@@ -344,13 +357,10 @@ def behaviorSpec [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
   requires := [model.capabilityId]
   roles := [{ id := model.operationRoleId, valueKind := .state }]
   setup := [SetupConstraint.roleEquals (ownedId "setup" names.declaration names.roleName)
-    model.operationRoleId values.firstState]
-  occurrences := [
-    { key := names.declaration ++ "." ++ names.startOccurrence,
-      action := values.firstAction.definitionId },
-    { key := names.declaration ++ "." ++ names.completionOccurrence,
-      action := values.lastAction.definitionId }
-  ]
+    model.operationRoleId (values.namedState names.setupState)]
+  occurrences := names.occurrences.map fun occurrence =>
+    { key := names.declaration ++ "." ++ occurrence.1,
+      action := (values.namedAction occurrence.2).definitionId }
 }
 
 def withStates

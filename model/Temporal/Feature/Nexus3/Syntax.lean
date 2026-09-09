@@ -1,125 +1,148 @@
+import Lean.Elab.Command
+import Lean.Elab.ElabRules
 import Temporal.Feature.Nexus3.Authoring
 
-/-! The success-slice command grammar and its expansion into typed Authoring declarations. -/
+/-! The success-slice command grammar and its expansion into typed Authoring declarations.
+
+The grammar admits whatever the declaring inductives declare: the ordered state, Action, Model
+Outcome and Fact domains are the constructors of the named types, in constructor order, and every
+identifier a command mentions is resolved against them. There is no admissible-spelling list.
+-/
 
 namespace Temporal.Feature.Nexus3
 
 open Umpire
+open Lean Elab Command
 
-macro "model" name:ident "role" role:ident
+/-- One `before + action → result` row of a declared model. -/
+declare_syntax_cat nexus3Transition
+
+syntax ident ":" ident "+" ident "→"
+  "{" "state" ":=" ident "," "outcome" ":=" ident "," "facts" ":=" "[" ident,* "]" "}" :
+  nexus3Transition
+
+/-- The last component of a constructor name, which is the spelling an author writes. -/
+private def shortName : Name → Name
+  | .str _ spelling => .str .anonymous spelling
+  | name => name
+
+/-- The ordered constructors of a named enum-like inductive. -/
+private def domainConstructors (typeRef : Ident) : CommandElabM (List Name) := do
+  let name ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo typeRef)
+  let info ← getConstInfoInduct name
+  pure info.ctors
+
+/-- Resolve one authored spelling against a declared domain, reporting an unknown one in place. -/
+private def resolveMember (domain : String) (constructors : List Name) (member : Ident) :
+    CommandElabM Ident := do
+  match constructors.find? fun constructor => shortName constructor == member.getId with
+  | some constructor => pure (mkIdentFrom member constructor)
+  | none => throwErrorAt member s!"unknown Nexus3 {domain} '{member.getId}'"
+
+private def memberKeys (constructors : List Name) : Array Term :=
+  constructors.toArray.map fun constructor => Lean.quote (shortName constructor).toString
+
+private def memberIdents (constructors : List Name) : Array Term :=
+  constructors.toArray.map fun constructor => mkIdent constructor
+
+elab "model" name:ident "role" role:ident
     "states" stateType:ident
     "actions" actionType:ident "outcomes" outcomeType:ident "facts" factType:ident
-    "initial" "[" initial:ident "]" "terminal" "[" terminal:ident "]" "transitions"
-    startRel:ident ":" scheduled:ident "+" awaitStart:ident "→"
-      "{" "state" ":=" started:ident "," "outcome" ":=" acknowledged:ident ","
-        "facts" ":=" "[" startedFact:ident "]" "}"
-    successRel:ident ":" startedSource:ident "+" awaitSuccess:ident "→"
-      "{" "state" ":=" succeeded:ident "," "outcome" ":=" completed:ident ","
-        "facts" ":=" "[" succeededFact:ident "]" "}" : command => do
-    let spellings := [role.getId, stateType.getId, actionType.getId, outcomeType.getId,
-      factType.getId, initial.getId, terminal.getId, startRel.getId, scheduled.getId,
-      awaitStart.getId, started.getId, acknowledged.getId, startedFact.getId, successRel.getId,
-      startedSource.getId, awaitSuccess.getId, succeeded.getId, completed.getId,
-      succeededFact.getId]
-    unless spellings == [`operation, `State, `Action, `Outcome, `Fact, `scheduled,
-        `succeeded, `start, `scheduled, `awaitStart, `started, `acknowledged, `started, `success,
-        `started, `awaitSuccess, `succeeded, `completed, `succeeded] do
-      Lean.Macro.throwError "unsupported Nexus3 success model spelling"
-    let key := Lean.quote name.getId.toString
-    let roleKey := Lean.quote role.getId.toString
-    let setupKey := Lean.quote initial.getId.toString
-    let scheduledKey := Lean.quote scheduled.getId.toString
-    let startedKey := Lean.quote started.getId.toString
-    let succeededKey := Lean.quote succeeded.getId.toString
-    let awaitStartKey := Lean.quote awaitStart.getId.toString
-    let awaitSuccessKey := Lean.quote awaitSuccess.getId.toString
-    let acknowledgedKey := Lean.quote acknowledged.getId.toString
-    let completedKey := Lean.quote completed.getId.toString
-    let startedFactKey := Lean.quote startedFact.getId.toString
-    let succeededFactKey := Lean.quote succeededFact.getId.toString
-    let startRelationKey := Lean.quote startRel.getId.toString
-    let successRelationKey := Lean.quote successRel.getId.toString
-    let setupScheduled := Lean.mkIdentFrom name `Setup.scheduled
-    let stateScheduled := Lean.mkIdentFrom name `State.scheduled
-    let stateStarted := Lean.mkIdentFrom name `State.started
-    let stateSucceeded := Lean.mkIdentFrom name `State.succeeded
-    let actionAwaitStart := Lean.mkIdentFrom name `Action.awaitStart
-    let actionAwaitSuccess := Lean.mkIdentFrom name `Action.awaitSuccess
-    let outcomeAcknowledged := Lean.mkIdentFrom name `Outcome.acknowledged
-    let outcomeCompleted := Lean.mkIdentFrom name `Outcome.completed
-    let factStarted := Lean.mkIdentFrom name `Fact.started
-    let factSucceeded := Lean.mkIdentFrom name `Fact.succeeded
-    `(command| def $name := Authoring.successModel {
-        declaration := $key
-        roleName := $roleKey
-        setup := $setupKey
-        states := [$scheduledKey, $startedKey, $succeededKey]
-        actions := [$awaitStartKey, $awaitSuccessKey]
-        outcomes := [$acknowledgedKey, $completedKey]
-        facts := [$startedFactKey, $succeededFactKey]
-      }
-        ($setupScheduled)
-        [($stateScheduled), ($stateStarted), ($stateSucceeded)]
-        [($actionAwaitStart), ($actionAwaitSuccess)]
-        [($outcomeAcknowledged), ($outcomeCompleted)]
-        [($factStarted), ($factSucceeded)]
-        [($stateScheduled)] [($stateSucceeded)]
-        [{ key := $startRelationKey, source := ($stateScheduled), action := ($actionAwaitStart),
-            results := [Authoring.successResult ($outcomeAcknowledged) ($stateStarted)
-              ($factStarted)] },
-          { key := $successRelationKey, source := ($stateStarted),
-            action := ($actionAwaitSuccess),
-            results := [Authoring.successResult ($outcomeCompleted) ($stateSucceeded)
-              ($factSucceeded)] }]
-        (by exact ⟨rfl, rfl, rfl⟩))
+    "initial" "[" initialRefs:ident,+ "]" "terminal" "[" terminalRefs:ident,+ "]" "transitions"
+    rows:nexus3Transition+ : command => do
+  let stateCtors ← domainConstructors stateType
+  let actionCtors ← domainConstructors actionType
+  let outcomeCtors ← domainConstructors outcomeType
+  let factCtors ← domainConstructors factType
+  let setupConstructors ← domainConstructors (mkIdentFrom name `Setup)
+  let setupConstructor ← match setupConstructors with
+    | [only] => pure (mkIdent only)
+    | _ => throwErrorAt name "a Nexus3 model needs exactly one Setup constructor"
+  let initialStates ← initialRefs.getElems.toList.mapM (resolveMember "state" stateCtors)
+  let terminalStates ← terminalRefs.getElems.toList.mapM (resolveMember "state" stateCtors)
+  let transitionTerms ← rows.toList.mapM fun (row : TSyntax `nexus3Transition) => do
+    match row with
+    | `(nexus3Transition| $key:ident : $source:ident + $selected:ident →
+        { state := $resulting:ident , outcome := $outcomeRef:ident ,
+          facts := [$observed,*] }) => do
+        let sourceState ← resolveMember "state" stateCtors source
+        let selectedAction ← resolveMember "action" actionCtors selected
+        let resultingState ← resolveMember "state" stateCtors resulting
+        let modelOutcome ← resolveMember "outcome" outcomeCtors outcomeRef
+        let observedFacts ← observed.getElems.toList.mapM (resolveMember "fact" factCtors)
+        let keyLiteral := Lean.quote key.getId.toString
+        `(term|
+          { key := $keyLiteral
+            source := $sourceState
+            action := $selectedAction
+            results := [Authoring.transitionResult $modelOutcome $resultingState
+              [$(observedFacts.toArray),*]] })
+    | _ => throwErrorAt row "unsupported Nexus3 transition"
+  let declarationKey := Lean.quote name.getId.toString
+  let roleKey := Lean.quote role.getId.toString
+  let setupKey := Lean.quote (initialRefs.getElems[0]!).getId.toString
+  let names ← `(term|
+    { declaration := $declarationKey
+      roleName := $roleKey
+      setup := $setupKey
+      stateKeys := [$(memberKeys stateCtors),*]
+      actionKeys := [$(memberKeys actionCtors),*]
+      outcomeKeys := [$(memberKeys outcomeCtors),*]
+      factKeys := [$(memberKeys factCtors),*] })
+  elabCommand (← `(command|
+    def $name := Authoring.successModel $names ($setupConstructor)
+      ([$(memberIdents stateCtors),*]) ([$(memberIdents actionCtors),*])
+      ([$(memberIdents outcomeCtors),*]) ([$(memberIdents factCtors),*])
+      ([$(initialStates.toArray),*]) ([$(terminalStates.toArray),*])
+      ([$(transitionTerms.toArray),*])
+      (by exact ⟨rfl, rfl, rfl⟩)))
 
-macro "property" name:ident "on" modelRef:ident "for" roleRef:ident "when" "action" actionRef:ident
+macro "property" name:ident "on" modelRef:ident "for" _roleRef:ident
+    "when" "action" actionRef:ident
     "require" stateClause:ident ":" "resultingState" stateRef:ident
     "require" outcomeClause:ident ":" "outcome" outcomeRef:ident
     "require" factClause:ident ":" "fact" factRef:ident : command => do
-    unless [roleRef.getId, actionRef.getId, stateClause.getId,
-        stateRef.getId, outcomeClause.getId, outcomeRef.getId, factClause.getId, factRef.getId] ==
-      [`operation, `awaitSuccess, `successState, `succeeded,
-        `successOutcome, `completed, `successFact, `succeeded] do
-      Lean.Macro.throwError "unsupported Nexus3 success Property spelling"
     let ownerKey := Lean.quote name.getId.toString
     let stateClauseKey := Lean.quote stateClause.getId.toString
     let outcomeClauseKey := Lean.quote outcomeClause.getId.toString
     let factClauseKey := Lean.quote factClause.getId.toString
+    let actionKey := Lean.quote actionRef.getId.toString
+    let stateKey := Lean.quote stateRef.getId.toString
+    let outcomeKey := Lean.quote outcomeRef.getId.toString
+    let factKey := Lean.quote factRef.getId.toString
     `(command| def $name (values : Authoring.ModelVocabulary) : PropertySpec :=
         Authoring.propertySpec ($modelRef) values {
           declaration := $ownerKey
           stateClause := $stateClauseKey
           outcomeClause := $outcomeClauseKey
           factClause := $factClauseKey
+          selectedAction := $actionKey
+          resultingState := $stateKey
+          modelOutcome := $outcomeKey
+          observedFact := $factKey
         })
 
 macro "behavior" name:ident "on" modelRef:ident roleRef:ident "starts" setupRef:ident
-    "actions" "exactly" "[" startLabel:ident ":" startAction:ident ","
-      completionLabel:ident ":" completionAction:ident "]" : command => do
-    unless [roleRef.getId, setupRef.getId, startLabel.getId,
-        startAction.getId, completionLabel.getId, completionAction.getId] ==
-      [`operation, `scheduled, `start, `awaitStart,
-        `completion, `awaitSuccess] do
-      Lean.Macro.throwError "unsupported Nexus3 success Behavior spelling"
+    "actions" "exactly" "[" occurrences:(ident ":" ident),+ "]" : command => do
     let ownerKey := Lean.quote name.getId.toString
     let roleKey := Lean.quote roleRef.getId.toString
-    let startKey := Lean.quote startLabel.getId.toString
-    let completionKey := Lean.quote completionLabel.getId.toString
+    let setupKey := Lean.quote setupRef.getId.toString
+    let entries ← occurrences.getElems.mapM fun occurrence => do
+      let label := Lean.quote occurrence.raw[0].getId.toString
+      let selected := Lean.quote occurrence.raw[2].getId.toString
+      `(term| ($label, $selected))
     `(command| def $name (values : Authoring.ModelVocabulary) : ExactSequenceSpec :=
         Authoring.behaviorSpec ($modelRef) values {
           declaration := $ownerKey
           roleName := $roleKey
-          startOccurrence := $startKey
-          completionOccurrence := $completionKey
+          setupState := $setupKey
+          occurrences := [$entries,*]
         })
 
 macro "limits" name:ident "transitions" transitionCount:num "selected_actions" actionCount:num
-    "candidate_evaluations" candidateCount:num : command => do
-    unless transitionCount.raw.isNatLit? == some 2 && actionCount.raw.isNatLit? == some 2 &&
-        candidateCount.raw.isNatLit? == some 16 do
-      Lean.Macro.throwError "unsupported Nexus3 success Limits spelling"
-    `(command| def $name : QueryLimitSpec := QueryLimitSpec.mk 2 2 16)
+    "candidate_evaluations" candidateCount:num : command =>
+    `(command| def $name : QueryLimitSpec :=
+        QueryLimitSpec.mk $transitionCount $actionCount $candidateCount)
 
 macro "query" name:ident "on" modelRef:ident "witness" propertyRef:ident "in" behaviorRef:ident
     "limits" limitsRef:ident : command => do
