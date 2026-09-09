@@ -110,3 +110,10 @@ bullets are deferred with them.
 - Commits:
 - Tests:
 - PRs:
+
+## Superseded
+This task's SCOPE_EXCEEDED block was acted on: R2 is now carried by the four-step sequence its own
+handover recommended, created as tasks .10 (ordered lists, no syntax change), .11 (constructor-derived
+elaboration), .12 (located diagnostics), .13 (second lifecycle + Nexus.md), chained in that order.
+Task .6 (R8) was re-pointed to depend on .11, since its approach follows step (b) directly.
+Do not implement this task; it stays blocked as the record of why R2 was split.
