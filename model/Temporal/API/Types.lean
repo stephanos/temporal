@@ -13203,6 +13203,11 @@ structure CleanupOutcome where
   diagnosticIds : List String
   deriving Repr
 
+structure FaultInjected where
+  roleId : String
+  kind : FaultKind
+  deriving Repr
+
 structure InstructionOutcome where
   status : InstructionOutcomeStatus
   protocolCode : String
@@ -13254,8 +13259,7 @@ structure RunEvent where
   outcome : Option InstructionOutcome
   observations : List ObservationResult
   executionIncomplete : Bool
-  faultRoleId : String
-  faultKind : FaultKind
+  faultInjected : Option FaultInjected
   deriving Repr
 
 structure Verdict where

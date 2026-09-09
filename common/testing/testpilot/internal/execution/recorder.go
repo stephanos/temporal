@@ -129,7 +129,7 @@ func (r *recorder) stage(facts []*testpilotspb.RunEvent) ([]*testpilotspb.RunEve
 		snapshot.Sequence = 0
 		snapshot.ElapsedMilliseconds = 0
 		if previous, exists := r.sources[snapshot.SourceId]; exists {
-			semantic := testpilotspb.RunEvent{Kind: previous.event.Kind, Coordinates: previous.event.Coordinates, SourceId: previous.event.SourceId, CausalSourceIds: previous.event.CausalSourceIds, Outcome: previous.event.Outcome, Observations: previous.event.Observations, ExecutionIncomplete: previous.producerIncomplete}
+			semantic := testpilotspb.RunEvent{Kind: previous.event.Kind, Coordinates: previous.event.Coordinates, SourceId: previous.event.SourceId, CausalSourceIds: previous.event.CausalSourceIds, Outcome: previous.event.Outcome, Observations: previous.event.Observations, ExecutionIncomplete: previous.producerIncomplete, FaultInjected: previous.event.FaultInjected}
 			if !proto.Equal(&semantic, snapshot) {
 				return nil, invalid(ir.Malformed, "recorder", "conflicting source identity")
 			}
