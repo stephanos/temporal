@@ -86,6 +86,7 @@ member list is parallel to the matching name and Definition ID list. -/
 structure SuccessModel (Setup State Action Outcome Fact : Type)
     [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact] where
   key : String
+  roleName : String
   setupValue : Setup
   states : List State
   actions : List Action
@@ -144,6 +145,19 @@ def relationIdAt (model : SuccessModel Setup State Action Outcome Fact) (index :
     DefinitionId :=
   (model.relationIds[index]?).getD unknownId
 
+/-- The role Definition ID a declaration naming this role addresses. A role the model does not
+declare yields an ID no Target provides, so the declaration is rejected at admission naming it. -/
+def namedRole (model : SuccessModel Setup State Action Outcome Fact) (spelling : String) :
+    DefinitionId :=
+  if spelling == model.roleName then model.operationRoleId
+  else ownedId "role" model.key spelling
+
+/-- The capability a declaration naming this role requires, resolved the same way. -/
+def roleCapability (model : SuccessModel Setup State Action Outcome Fact) (spelling : String) :
+    DefinitionId :=
+  if spelling == model.roleName then model.capabilityId
+  else ownedId "capability" model.key spelling
+
 /-- The declared results of one transition row, by declaration position. -/
 def resultsAt (model : SuccessModel Setup State Action Outcome Fact) (index : Nat) :
     List (TransitionResult State Outcome Fact) :=
@@ -151,7 +165,8 @@ def resultsAt (model : SuccessModel Setup State Action Outcome Fact) (index : Na
 
 end SuccessModel
 
-/-- One declared transition result: the reached state, its Model Outcome, and the Facts it records. -/
+/-- One declared transition result: the reached state, its Model Outcome, and the Facts it
+records. -/
 def transitionResult (outcome : Outcome) (state : State) (facts : List Fact) :
     TransitionResult State Outcome Fact := {
   modelOutcome := outcome
@@ -247,7 +262,8 @@ def successModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     metadata := { id := kernelId, source }
   }
   exact {
-    key := ownerKey, setupValue, states, actions, outcomes, facts, initial, terminal,
+    key := ownerKey, roleName := names.roleName, setupValue,
+    states, actions, outcomes, facts, initial, terminal,
     targetId, kernelId, capabilityId, providerId, lawId, operationRoleId,
     stateIds, actionIds, outcomeIds, factIds, relationIds,
     table, identity, lawStatement, law, lawProof,
@@ -298,13 +314,14 @@ end ModelVocabulary
 /-- The clause labels and the member spellings each `require` clause selects. -/
 structure SuccessPropertyNames where
   declaration : String
+  roleName : String
   stateClause : String
   outcomeClause : String
   factClause : String
-  selectedAction : String
-  resultingState : String
-  modelOutcome : String
-  observedFact : String
+  actionSpelling : String
+  stateSpelling : String
+  outcomeSpelling : String
+  factSpelling : String
 
 /-- The setup state and the ordered occurrence labels with the Action each one selects. -/
 structure SuccessBehaviorNames where
@@ -333,17 +350,17 @@ def propertySpec [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
   family
   key := names.declaration
   source
-  requires := [model.capabilityId]
+  requires := [model.roleCapability names.roleName]
   clauses := [
     .transitionContract (ownedId "property" names.declaration names.stateClause)
-      (.selectedAction (values.namedAction names.selectedAction))
-      (.resultingState (values.namedState names.resultingState)),
+      (.selectedAction (values.namedAction names.actionSpelling))
+      (.resultingState (values.namedState names.stateSpelling)),
     .transitionContract (ownedId "property" names.declaration names.outcomeClause)
-      (.selectedAction (values.namedAction names.selectedAction))
-      (.modelOutcome (values.namedOutcome names.modelOutcome)),
+      (.selectedAction (values.namedAction names.actionSpelling))
+      (.modelOutcome (values.namedOutcome names.outcomeSpelling)),
     .inputOutput (ownedId "property" names.declaration names.factClause)
-      (.selectedAction (values.namedAction names.selectedAction))
-      (.fact (values.namedFact names.observedFact))
+      (.selectedAction (values.namedAction names.actionSpelling))
+      (.fact (values.namedFact names.factSpelling))
   ]
 }
 
@@ -354,10 +371,10 @@ def behaviorSpec [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
   family
   key := names.declaration
   source
-  requires := [model.capabilityId]
-  roles := [{ id := model.operationRoleId, valueKind := .state }]
+  requires := [model.roleCapability names.roleName]
+  roles := [{ id := model.namedRole names.roleName, valueKind := .state }]
   setup := [SetupConstraint.roleEquals (ownedId "setup" names.declaration names.roleName)
-    model.operationRoleId (values.namedState names.setupState)]
+    (model.namedRole names.roleName) (values.namedState names.setupState)]
   occurrences := names.occurrences.map fun occurrence =>
     { key := names.declaration ++ "." ++ occurrence.1,
       action := (values.namedAction occurrence.2).definitionId }
