@@ -19,6 +19,7 @@ type schedulerHost struct {
 	complete func(context.Context, Coordinate, OpaqueCapability, *testpilotspb.Value) (EffectHandle, error)
 	invoke   func(context.Context, Coordinate, proto.Message) (EffectHandle, error)
 	reserve  func(context.Context, ReservationRequest) ([]ReservationHandle, error)
+	fault    func(context.Context, Coordinate, string, testpilotspb.FaultKind) (EffectHandle, error)
 }
 
 func (h *schedulerHost) InvokeRPC(ctx context.Context, c Coordinate, _ string, _ protoreflect.MethodDescriptor, m proto.Message) (EffectHandle, error) {
@@ -26,6 +27,9 @@ func (h *schedulerHost) InvokeRPC(ctx context.Context, c Coordinate, _ string, _
 }
 func (h *schedulerHost) Reserve(ctx context.Context, r ReservationRequest) ([]ReservationHandle, error) {
 	return h.reserve(ctx, r)
+}
+func (h *schedulerHost) InjectFault(ctx context.Context, c Coordinate, roleID string, kind testpilotspb.FaultKind) (EffectHandle, error) {
+	return h.fault(ctx, c, roleID, kind)
 }
 func (*schedulerHost) Diagnose(context.Context, string, *testpilotspb.RunDiagnostic) error {
 	return nil

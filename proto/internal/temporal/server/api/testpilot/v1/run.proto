@@ -1,5 +1,6 @@
 syntax = "proto3";
 package temporal.server.api.testpilot.v1;
+import "temporal/server/api/testpilot/v1/instruction.proto";
 import "temporal/server/api/testpilot/v1/outcome.proto";
 import "temporal/server/api/testpilot/v1/value.proto";
 option go_package = "go.temporal.io/server/api/testpilot/v1;testpilot";
@@ -19,6 +20,7 @@ enum RunEventKind {
   RUN_EVENT_KIND_CLEANUP_COMPLETED = 8;
   RUN_EVENT_KIND_RUN_CLOSED = 9;
   RUN_EVENT_KIND_DIAGNOSTIC = 10;
+  RUN_EVENT_KIND_FAULT_INJECTED = 11;
 }
 message RunEventFilter { repeated RunEventKind kinds = 1; }
 message RunEventCoordinates {
@@ -43,6 +45,8 @@ message RunEvent {
   // Set before evaluation of the first event establishing execution incompleteness.
   // Incompleteness remains effective for every later event.
   bool execution_incomplete = 9;
+  // Carried only by RUN_EVENT_KIND_FAULT_INJECTED events; it names the realized fault.
+  FaultInjected fault_injected = 10;
 }
 // (-- api-linter: core::0216::synonyms=disabled --)
 enum RunStatus {

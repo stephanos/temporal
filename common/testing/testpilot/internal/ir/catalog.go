@@ -261,8 +261,13 @@ func CheckSurface(source proto.Message, limits Limits) error {
 }
 
 func intrinsicEnums() []protoreflect.EnumDescriptor {
-	return []protoreflect.EnumDescriptor{testpilotspb.InstructionOutcomeStatus(0).Descriptor(), testpilotspb.RunEventKind(0).Descriptor()}
+	return []protoreflect.EnumDescriptor{testpilotspb.InstructionOutcomeStatus(0).Descriptor(), testpilotspb.RunEventKind(0).Descriptor(), testpilotspb.FaultKind(0).Descriptor()}
 }
+
+// MaxRunEventKind is the highest admitted Run Event kind. Recording, Monitor observation,
+// Contract transition admission and capture iteration all bound themselves by it, so a new kind
+// is admitted in one place rather than four.
+const MaxRunEventKind = testpilotspb.RUN_EVENT_KIND_FAULT_INJECTED
 
 func inspectMap(field protoreflect.FieldDescriptor, value protoreflect.Value, depth int64, b *budget, path string) error {
 	if int64(value.Map().Len()) > b.limits.Fanout {

@@ -84,7 +84,7 @@ func validWorkerProfile(profile testpilot.ProfileSpec) bool {
 		MaxRequestBytes: 16 << 20, MaxResponseBytes: 16 << 20,
 		MaxTotalDurationMilliseconds: 86400000, MaxCleanupDurationMilliseconds: 86400000,
 	}
-	if profile.Identity == "" || len(profile.Identity) > 256 || profile.Catalog == nil || profile.Catalog.Identity() == "" || limits == nil || len(profile.Capabilities) > 7 || len(profile.Roles) > 10000 {
+	if profile.Identity == "" || len(profile.Identity) > 256 || profile.Catalog == nil || profile.Catalog.Identity() == "" || limits == nil || len(profile.Capabilities) > int(testpilot.MaxCapability) || len(profile.Roles) > 10000 {
 		return false
 	}
 	fields := limits.ProtoReflect().Descriptor().Fields()
