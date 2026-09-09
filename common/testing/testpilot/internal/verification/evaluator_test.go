@@ -80,6 +80,100 @@ func TestEvaluatorHorizonsAndReplay(t *testing.T) {
 	}
 }
 
+func diagnostic(sequence, elapsed int64) *testpilotspb.RunEvent {
+	return event(sequence, elapsed, testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC)
+}
+
+// TestEvaluatorEventCountHorizon pins the rule_events clock: it ticks once per event the rule
+// evaluates, restarts on a transition into a new state, outranks a transition that would have
+// satisfied the rule on the same event, and stops once the rule is terminal. Every case also
+// asserts that the online Observe path and the offline Evaluate path agree, because both reach
+// the counter through the same helper.
+func TestEvaluatorEventCountHorizon(t *testing.T) {
+	for _, tc := range []struct {
+		name       string
+		ruleEvents int64
+		events     []*testpilotspb.RunEvent
+		incomplete int64
+		want       testpilotspb.VerdictStatus
+		stop       int64
+		status     testpilotspb.RunStatus
+	}{
+		{
+			name: "expires after exactly the declared count", ruleEvents: 3,
+			events: []*testpilotspb.RunEvent{diagnostic(2, 10), diagnostic(3, 20)},
+			want:   testpilotspb.VERDICT_STATUS_VIOLATED, stop: 3, status: testpilotspb.RUN_STATUS_STOPPED_BY_MONITOR,
+		},
+		{
+			name: "transition restarts the count", ruleEvents: 3,
+			events: []*testpilotspb.RunEvent{observed(2, 10, 7), diagnostic(3, 20), diagnostic(4, 30)},
+			want:   testpilotspb.VERDICT_STATUS_VIOLATED, stop: 5, status: testpilotspb.RUN_STATUS_STOPPED_BY_MONITOR,
+		},
+		{
+			name: "expiry outranks the satisfying event", ruleEvents: 2,
+			events: []*testpilotspb.RunEvent{observed(2, 10, 7)},
+			want:   testpilotspb.VERDICT_STATUS_VIOLATED, stop: 2, status: testpilotspb.RUN_STATUS_STOPPED_BY_MONITOR,
+		},
+		{
+			name: "a terminal rule stops counting", ruleEvents: 3,
+			events: []*testpilotspb.RunEvent{observed(2, 10, 7), observed(3, 20, 7), diagnostic(4, 30), diagnostic(5, 40)},
+			want:   testpilotspb.VERDICT_STATUS_SATISFIED, status: testpilotspb.RUN_STATUS_COMPLETED,
+		},
+		{
+			name: "incompleteness suppresses expiry", ruleEvents: 2,
+			events: []*testpilotspb.RunEvent{diagnostic(2, 10), diagnostic(3, 20)}, incomplete: 2,
+			want: testpilotspb.VERDICT_STATUS_INCONCLUSIVE, status: testpilotspb.RUN_STATUS_INCOMPLETE,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			c, cat, view, limits := fixture(t)
+			r := c.Rules[0]
+			r.Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
+			r.Horizon = &testpilotspb.ContractHorizonDefinition{RuleEvents: tc.ruleEvents, ViolationStateId: "bad"}
+			r.States = append(r.States, &testpilotspb.ContractStateDefinition{StateId: "middle", Status: testpilotspb.CONTRACT_STATE_STATUS_NONTERMINAL})
+			r.Transitions = []*testpilotspb.ContractTransitionDefinition{
+				transition("advance", "start", "middle", present(observation("id"))),
+				transition("finish", "middle", "good", present(observation("id"))),
+			}
+			p, err := Prepare(c, cat, view, limits)
+			require.NoError(t, err)
+
+			events := append([]*testpilotspb.RunEvent{event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED)}, tc.events...)
+			closure := int64(len(events) + 1)
+			events = append(events, event(closure, 10*closure, testpilotspb.RUN_EVENT_KIND_RUN_CLOSED))
+			for _, e := range events {
+				e.ExecutionIncomplete = e.Sequence == tc.incomplete
+			}
+			run := &testpilotspb.Run{RunId: "run", CaseId: "case", ProgramId: "program", Status: tc.status, Events: events}
+
+			monitor, err := p.New(context.Background(), view)
+			require.NoError(t, err)
+			online := monitor.(*Evaluator)
+			var firstStop int64
+			for _, e := range run.Events {
+				d, err := online.Observe(context.Background(), e)
+				require.NoError(t, err)
+				if d == execution.Stop && firstStop == 0 {
+					firstStop = e.Sequence
+				}
+			}
+			require.Equal(t, tc.stop, firstStop)
+			live, err := online.Close(context.Background(), run)
+			require.NoError(t, err)
+			require.Equal(t, tc.want, live.Status)
+
+			offline, verdict, err := p.evaluate(context.Background(), run)
+			require.NoError(t, err)
+			liveBytes, err := proto.MarshalOptions{Deterministic: true}.Marshal(live)
+			require.NoError(t, err)
+			offlineBytes, err := proto.MarshalOptions{Deterministic: true}.Marshal(verdict)
+			require.NoError(t, err)
+			require.Equal(t, liveBytes, offlineBytes)
+			require.Equal(t, online.trace, offline.trace)
+		})
+	}
+}
+
 func observed(sequence, elapsed, id int64) *testpilotspb.RunEvent {
 	e := event(sequence, elapsed, testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED)
 	e.Observations = []*testpilotspb.ObservationResult{{ObservationId: "id", Value: &testpilotspb.Value{Value: &testpilotspb.Value_SignedInteger{SignedInteger: fmt.Sprint(id)}}}}

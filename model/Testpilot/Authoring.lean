@@ -394,6 +394,13 @@ def horizon (elapsedMilliseconds : Int64) (violationStateId : String) :
     ContractHorizonDefinition :=
   { elapsed_milliseconds := elapsedMilliseconds, violation_state_id := violationStateId }
 
+/-- Set the evaluated-event deadline and state entered when a bounded obligation expires. The
+count is host-clock independent: it ticks once per Run Event the rule evaluates and resets when
+the rule transitions into a new state. -/
+def horizonEvents (ruleEvents : Int64) (violationStateId : String) :
+    ContractHorizonDefinition :=
+  { rule_events := ruleEvents, violation_state_id := violationStateId }
+
 /-- Assemble one deterministic rule while preserving state and transition order. -/
 def rule (ruleId : String) (kind : ContractRuleKind) (initialStateId : String)
     (states : Array ContractStateDefinition) (transitions : Array ContractTransitionDefinition)

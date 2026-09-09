@@ -189,6 +189,36 @@ func TestPrepareRejectsMalformedContracts(t *testing.T) {
 		})
 	}
 }
+func TestPrepareAdmitsExactlyOneHorizonBound(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		horizon *testpilotspb.ContractHorizonDefinition
+		admit   bool
+	}{
+		{"elapsed only", &testpilotspb.ContractHorizonDefinition{ElapsedMilliseconds: 1000, ViolationStateId: "bad"}, true},
+		{"events only", &testpilotspb.ContractHorizonDefinition{RuleEvents: 3, ViolationStateId: "bad"}, true},
+		{"both positive", &testpilotspb.ContractHorizonDefinition{ElapsedMilliseconds: 1000, RuleEvents: 3, ViolationStateId: "bad"}, false},
+		{"both zero", &testpilotspb.ContractHorizonDefinition{ViolationStateId: "bad"}, false},
+		{"negative events", &testpilotspb.ContractHorizonDefinition{RuleEvents: -1, ViolationStateId: "bad"}, false},
+		{"negative elapsed with events", &testpilotspb.ContractHorizonDefinition{ElapsedMilliseconds: -1, RuleEvents: 3, ViolationStateId: "bad"}, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			c, catalog, view, policy := fixture(t)
+			c.Rules[0].Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
+			c.Rules[0].Horizon = tc.horizon
+			_, err := Prepare(c, catalog, view, policy)
+			if tc.admit {
+				require.NoError(t, err)
+				return
+			}
+			var admissionErr *ir.Error
+			require.ErrorAs(t, err, &admissionErr)
+			require.Equal(t, ir.Malformed, admissionErr.Category)
+			require.Equal(t, "liveness requires exactly one positive horizon bound", admissionErr.Detail)
+		})
+	}
+}
+
 func TestPrepareBoundsAndImmutableIndexes(t *testing.T) {
 	c, catalog, view, policy := fixture(t)
 	prepared, err := Prepare(c, catalog, view, policy)
