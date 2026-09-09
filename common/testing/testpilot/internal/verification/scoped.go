@@ -629,7 +629,10 @@ func (r *scopedRun) answer(s *testpilotspb.ScopedContract, index int, closed, in
 			pending = pending || o.status == testpilotspb.RULE_VERDICT_STATUS_PENDING
 		}
 	}
-	if incomplete || len(r.accepted) != len(r.processed) {
+	// An empty evidence stream observed nothing. The model kernel reads an empty obligation list as
+	// vacuous satisfaction because a model trace is total; a recorded evidence stream is not, so
+	// silence resolves inconclusive here rather than manufacturing a satisfied answer.
+	if incomplete || len(r.accepted) == 0 || len(r.accepted) != len(r.processed) {
 		return testpilotspb.RULE_VERDICT_STATUS_INCONCLUSIVE
 	}
 	if pending {

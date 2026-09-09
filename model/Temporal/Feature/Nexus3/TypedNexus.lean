@@ -2,9 +2,11 @@ import Temporal.API
 import Temporal.Shared
 import Temporal.Testpilot.CaseSupport
 import Umpire.Case.Compiler
+import Umpire.Case.Scoped
 import Umpire.Case.Observed
 import Umpire.Property
 import Umpire.Property.Scoped
+import Umpire.Observation.Projection.Coverage
 import Umpire.Target.FiniteMachine
 
 /-!
@@ -147,6 +149,12 @@ def capabilityId : DefinitionId := .of "temporal.nexus3.typed-nexus.capability"
 def providerId : DefinitionId := .of "temporal.nexus3.typed-nexus.provider"
 def runFieldId : DefinitionId := .of "temporal.nexus3.typed-nexus.scope.run"
 def operationFieldId : DefinitionId := .of "temporal.nexus3.typed-nexus.scope.operation"
+def projectionId : DefinitionId := .of "temporal.nexus3.typed-nexus.projection"
+def evidenceSourceId : DefinitionId := .of "temporal.nexus3.typed-nexus.source.history"
+def operationIdentityFieldId : DefinitionId :=
+  .of "temporal.nexus3.typed-nexus.evidence.operation-identity"
+def completedEvidenceKindId : DefinitionId :=
+  .of "temporal.nexus3.typed-nexus.evidence.completed"
 def linkPropertyId : DefinitionId := .of "temporal.nexus3.typed-nexus.property.bounded-completion"
 def linkClauseId : DefinitionId := .of "temporal.nexus3.typed-nexus.clause.bounded-completion"
 def captureId : DefinitionId := .of "temporal.nexus3.typed-nexus.capture.scheduled-operation"
@@ -410,6 +418,8 @@ inductive AdmissionError where
   | target (error : FiniteTargetAdmissionError)
   | property (error : PropertyError)
   | scoped (error : Property.Scoped.Error)
+  | projection (error : Observation.Projection.Error)
+  | coverage (error : Observation.Projection.CoverageError)
   | inconsistent (reason : String)
 
 private abbrev TypedTarget :=
@@ -493,15 +503,75 @@ def linkDeclaration : PropertyDeclaration := {
   scopedClauses := [boundedCompletion]
 }
 
+/-! ### The declared evidence projection
+
+The scoped capability reads `ScopedEvidence` the Program lifts out of the very history the monitor
+rules read, so the bounded response is answered from recorded evidence rather than in the model
+alone. One rule per recorded shape: each scheduled event selects itself by the operation identity it
+records, and a completion selects itself by its own attributes member.
+
+The operation key is the scheduled event's own id. A completion records the scheduled event it
+answers and nothing else that names its operation, so keying on that id is the only way both sides
+of one operation land under the same key -- the same indistinguishability the crossed-completion
+Known Gap names, read here as the key rather than as a rule. -/
+
+/-- The evidence kind one operation's scheduled event records. -/
+def OperationCase.scheduledEvidenceKindId (entry : OperationCase) : DefinitionId :=
+  .of ("temporal.nexus3.typed-nexus.evidence.scheduled-" ++ entry.operation)
+
+/-- The operation identity a scheduled event retains, the one field the Link correlation reads. -/
+def retainedOperationIdentity : List (EvidenceFieldDeclaration × FieldDisposition) :=
+  [(⟨operationIdentityFieldId, .text⟩, .retain)]
+
+def projectionLimits : Observation.Projection.Limits := {
+  events := 64, buffered := 32, keys := 8, support := 256
+  work := 1000000000, eventSize := 512 }
+
+/-- The declared projection. A completion names one representative completed step: the Target owns
+both completions from either scheduled state, and the bounded-response clause reads the completed
+outcome by its declared identity, so which of the two the projector releases never changes its
+answer. Separating them would need the operation identity a completed event does not record. -/
+def projectionDeclaration : Except AdmissionError
+    (Observation.Projection.Declaration ModelValue ModelValue ModelValue ModelValue) := do
+  let scheduled ← operationCases.mapM fun entry => do
+    let command ← (scheduleCommand entry.command).mapError AdmissionError.operation
+    let state ← entry.scheduledState.mapError AdmissionError.field
+    let outcome ← entry.scheduledOutcome.mapError AdmissionError.field
+    pure ({ kind := entry.scheduledEvidenceKindId
+            fields := retainedOperationIdentity
+            meaning := .confirmed none [(scheduleAction command,
+              { resultingState := state, modelOutcome := outcome, observations := [] })] } :
+      Observation.Projection.Rule ModelValue ModelValue ModelValue ModelValue)
+  let completedOutcome ← firstCase.completedOutcome.mapError AdmissionError.field
+  pure {
+    id := projectionId
+    scopeFields := [runFieldId]
+    operationField := operationFieldId
+    sources := [evidenceSourceId]
+    rules := scheduled ++ [{
+      kind := completedEvidenceKindId
+      meaning := .confirmed none [(awaitAction,
+        { resultingState := completedState, modelOutcome := completedOutcome
+          observations := [] })] }]
+    limits := projectionLimits }
+
+/-- The one covered coordinate: the operation identity the scheduled evidence records is the value
+the Link capture retains, and `operationIdentityFieldId` is the declared field that supplies it. -/
+def coverageMappings : List Observation.Projection.FieldMapping :=
+  [⟨scheduledOperationPath, operationIdentityFieldId⟩]
+
 /-! ### Admission -/
 
 /-- The complete checked model: the Target that owns both completions, the same-step field
-requirement, and the compiled bounded-response consumer carrying the Link. -/
+requirement, the compiled bounded-response consumer carrying the Link, and the checked evidence
+projection the scoped capability runs on. -/
 structure Model where
   target : TypedTarget
   fieldProperty : CheckedFieldProperty
   link : CheckedProperty
   compiled : Property.Scoped.Compiled target
+  plan : Observation.Projection.Checked target
+  coverage : Observation.Projection.Coverage plan
 
 private def fieldBindings : List PropertyFieldBinding :=
   [scheduledOutcomeId, completedOutcomeId, scheduledStateId].map
@@ -571,7 +641,12 @@ def checked : Except AdmissionError Model := do
   let link ← (checkProperty context (.portable linkDeclaration)).mapError AdmissionError.property
   let compiled ← (Property.Scoped.compile target link [runFieldId] operationFieldId
     runLimits).mapError AdmissionError.scoped
-  pure ⟨target, fieldProperty, link, compiled⟩
+  let declaration ← projectionDeclaration
+  let plan ← (Observation.Projection.check target declaration () pendingState).mapError
+    AdmissionError.projection
+  let coverage ← (Observation.Projection.Coverage.check plan valueLimits coverageMappings).mapError
+    AdmissionError.coverage
+  pure ⟨target, fieldProperty, link, compiled, plan, coverage⟩
 
 
 /-! ### The Testpilot Case
@@ -606,6 +681,14 @@ def nexusEndpointBindingId := "temporal.typed-nexus.nexus-endpoint"
 def controllerId := "controller"
 def workflowEntrypointId := "workflow"
 def observationId := "history-event"
+def scopedObservationId := "scoped-evidence"
+
+/-- The protobuf oneof members of `HistoryEvent.attributes` this Case lifts. -/
+def scheduledAttributesField := "nexus_operation_scheduled_event_attributes"
+def completedAttributesField := "nexus_operation_completed_event_attributes"
+/-- The one Run coordinate the recorded history does not carry: every event this Case lifts belongs
+to the single Run the Case executes, so the Case declares that scope rather than reading it. -/
+def runScopeValue := "typed-nexus"
 def workflowType := "umpire-typed-nexus-workflow"
 
 /-- Per-operation Program identities, so the two operations never share an instruction, a Slot or
@@ -654,6 +737,29 @@ private def workflowInstructions (entry : OperationCase) : Array InstructionDefi
     (bounds 10000) #[Ref.instruction workflowEntrypointId entry.startInstructionId]
     none (some textOutcome)]
 
+/-- The Program-declared source of the scoped capability's evidence. Each rule reads only the
+history event it guards: a scheduled event by the operation identity it records, a completion by its
+own attributes member. The operation key is the scheduled event's own id on one side and the
+scheduled event a completion references on the other, so both land under the same key. -/
+private def evidenceTarget : ProjectionTarget :=
+  Program.scopedEvidenceTarget scopedObservationId
+    ((operationCases.map fun entry =>
+        Program.scopedEvidenceRule
+          (guard := historyAttribute scheduledAttributesField "operation")
+          (source := evidenceSourceId.value)
+          (kind := entry.scheduledEvidenceKindId.value)
+          (operation := field "event_id")
+          (scope := #[Program.scopedEvidenceLiteral runFieldId.value runScopeValue])
+          (fields := #[Program.scopedEvidenceBinding operationIdentityFieldId.value
+            (historyAttribute scheduledAttributesField "operation")])
+          (guardEqualsText := entry.operation)) ++
+      [Program.scopedEvidenceRule
+        (guard := Path.make #[Path.oneofSelector attributesGroup completedAttributesField])
+        (source := evidenceSourceId.value)
+        (kind := completedEvidenceKindId.value)
+        (operation := historyAttribute completedAttributesField "scheduled_event_id")
+        (scope := #[Program.scopedEvidenceLiteral runFieldId.value runScopeValue])]).toArray
+
 private def program (startPath historyPath : String) : Program :=
   Program.make "temporal.case.typed-nexus.program"
     #[Program.role workflowServiceRole .ROLE_KIND_ENDPOINT,
@@ -663,7 +769,9 @@ private def program (startPath historyPath : String) : Program :=
       Program.role nexusEndpointRole .ROLE_KIND_ENDPOINT
         (resourceBindingId := nexusEndpointBindingId)]
     (operationCases.map (fun entry => Program.capabilitySlot entry.slotId)).toArray
-    #[Program.observation observationId (Types.singular (Types.messageType historyEventNode))]
+    #[Program.observation observationId (Types.singular (Types.messageType historyEventNode)),
+      Program.observation scopedObservationId (Types.singular
+        (Types.messageType "temporal.server.api.testpilot.v1.ScopedEvidence"))]
     (#[Program.controller controllerId (
         #[Program.node "start-workflow"
             (Program.invokeRPC workflowServiceRole startPath #[
@@ -682,7 +790,8 @@ private def program (startPath historyPath : String) : Program :=
               assign (nested ["execution", "workflow_id"]) runId,
               assign (field "maximum_page_size") (signedInteger 64),
               assign (field "wait_new_event") (boolean true)]
-              #[project historyEvents observationId .PROJECTION_KIND_EMIT_EACH])
+              #[Program.responseProjection historyEvents .PROJECTION_KIND_EMIT_EACH
+                  #[Program.observationTarget observationId, evidenceTarget]])
             historyLimits
             (operationCases.map fun entry =>
               Ref.instruction controllerId entry.completeInstructionId).toArray
@@ -754,18 +863,27 @@ def operationRule (entry : OperationCase) (property : CheckedProperty) :
 /-- This Case retains one history event per operation, so it declares its own capture-byte ceiling
 rather than the shared single-capture one; every other bound is the shared Contract ceiling. -/
 def typedNexusContractLimits : ContractLimits :=
-  { contractLimits with max_capture_bytes := 65536 }
+  { contractLimits with
+    max_capture_bytes := 65536, max_captures := 64, max_transitions := 64
+    max_work_per_event := 4000000 }
 
-/-- The bounded-response clause is checked, fingerprinted and evaluated in the model, but the
-Driver reads a scoped capability only from declared `ScopedEvidence` Observations and no
-instruction of this Program emits one. The Case says so rather than letting the recorded Property
-imply an online window. -/
-private def modelOnlyWindow (link : CheckedProperty) : Umpire.Case.CaseKnownGap :=
+/-- The bounded-response window now runs online: the history read lifts each recorded Nexus event
+into the declared `ScopedEvidence` Observation the scoped capability decodes, so the clause is
+answered from recorded evidence rather than in the model alone.
+
+What the lift cannot supply is the operation identity of a completion, which no completed event
+records. The key is therefore the scheduled event a completion references, and the projection
+releases one representative completed step. The bounded-response clause reads the completed outcome
+by its declared identity, so the released payload never changes its answer -- but a Case that wanted
+to tell the two completions apart online still could not, which is exactly what the crossed
+completion gap below already names. -/
+private def completionIdentityIsUnrecorded (link : CheckedProperty) : Umpire.Case.CaseKnownGap :=
   { kind := .interpretation
-    code := "temporal.nexus3.typed-nexus.bounded-completion-is-model-only"
+    code := "temporal.nexus3.typed-nexus.completion-identity-is-unrecorded"
     subject := some link.id.value
-    detail := some ("the bounded-response window is evaluated in the model only; this Case emits " ++
-      "no ScopedEvidence Observation for a runtime scoped capability to read") }
+    detail := some ("the bounded-response window runs online from lifted history evidence; a " ++
+      "completed event records no operation identity, so the operation key is the scheduled " ++
+      "event it references and the projection releases one representative completed step") }
 
 /-- The model Property separates a crossed completion from missing evidence, and the rules here do
 not. A completed history event records the scheduled event it references but not the operation
@@ -799,6 +917,8 @@ def typedNexusCase : Except Umpire.Case.Compiler.LoweringError
     requirement.behaviorFingerprint.render .«property»
   let rules ← operationCases.mapM fun entry =>
     (operationRule entry requirement).mapError fun reason => loweringError clauseId.value reason
+  let lowered ← Umpire.Case.Scoped.lower model.plan model.compiled scopedObservationId
+    model.coverage
   Umpire.Case.Compiler.compile {
     version := { major := 1 }
     caseId := "temporal.case.typed-nexus"
@@ -809,10 +929,11 @@ def typedNexusCase : Except Umpire.Case.Compiler.LoweringError
       requirementBinding,
       binding model.link.id.value model.link.behaviorFingerprint.render .«property»]
     sources := [source]
-    knownGaps := [modelOnlyWindow model.link, crossedCompletionIsInconclusive requirement]
+    knownGaps := [completionIdentityIsUnrecorded model.link,
+      crossedCompletionIsInconclusive requirement]
     program := program (methodPath start.schema) (methodPath history.schema)
     contractId := "temporal.case.typed-nexus.contract"
-    properties := rules.map (.monitor requirementBinding)
+    properties := rules.map (.monitor requirementBinding) ++ [lowered.contractLowering]
     contractLimits := typedNexusContractLimits
   }
 

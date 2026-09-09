@@ -12986,10 +12986,37 @@ structure RequestAssignment where
   value : Option ProgramExpression
   deriving Repr
 
+inductive ScopedEvidenceBinding.Value where
+  | notSet
+  | path (value : FieldPath)
+  | literal (value : String)
+  deriving Repr
+
+structure ScopedEvidenceBinding where
+  fieldId : String
+  value : ScopedEvidenceBinding.Value
+  deriving Repr
+
+structure ScopedEvidenceRule where
+  guard : Option FieldPath
+  scope : List ScopedEvidenceBinding
+  source : String
+  operation : Option FieldPath
+  kind : String
+  fields : List ScopedEvidenceBinding
+  guardEqualsText : String
+  deriving Repr
+
+structure ScopedEvidenceProjection where
+  observationId : String
+  rules : List ScopedEvidenceRule
+  deriving Repr
+
 inductive ProjectionTarget.Target where
   | notSet
   | slotId (value : String)
   | observationId (value : String)
+  | scopedEvidence (value : ScopedEvidenceProjection)
   deriving Repr
 
 structure ProjectionTarget where
