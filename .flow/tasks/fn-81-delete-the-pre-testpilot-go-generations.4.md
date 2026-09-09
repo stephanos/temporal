@@ -39,9 +39,45 @@ Implements R4 and the CI-side half of R3 (spec §Live-test gate, commits 7 and 8
 - [ ] `make lint-code` passes
 
 ## Done summary
-TBD
+Removed every Makefile variable, target, and `.PHONY` name that served a deleted tree — all
+`UMPIRE3_*` variables, `UMPIRE_GENMODELS`, and 83 targets across the umpire3, genmodels,
+agentworkflow, and gomad-prototype blocks — plus the `umpire3` and `umpire-model-verification`
+workflows, the CODEOWNERS rows over deleted paths, and the `.gitignore` rows for deleted trees. The
+gomad3 wiring, the planindex target, and the fairsim rules are untouched, and the gomad3 line count
+in the Makefile is unchanged.
 
+The `gomad-prototype` block was not a block whose only purpose was a deleted tree, as the .1 ledger
+recorded. Two of its six lines served retained trees: `cd model && lake build Shared`, which
+`umpire-build-model` already covers because `model/lakefile.lean:59` declares `Shared` a default
+target, and the `tools/common/formal` test invocation, which is preserved here as its own
+`common-formal-test` target because fn-81 removed that nested module's only importer.
+
+`umpire-check-live-tests` now runs `go test -v` with the `^TestTestpilot` prefix against an empty
+expected-failure set. The verbose flag is required because `--- PASS:` lines only print under `-v`.
+The whole-set `diff -u` comparison the recorded pitfall requires is kept; the pinned nine identities
+are gone. The empty baseline is paired with a floor requiring at least one passing identity, because
+an empty baseline alone cannot distinguish "everything passed" from "the selector matched nothing" —
+verified by running the gate's shell against a selector that matches nothing, where `go test` exits 0
+with an empty failure set and only the floor catches it. `ci_workflow_test.go` pins the verbose
+command, the selector, the empty baseline, the floor scrape and its message, and asserts the nine
+retired identities no longer appear.
+
+`make lint-code` fell from the 1,284-issue task-start baseline to 128, since 1,156 findings lived in
+the deleted trees. None of the 128 is in a file this spec edited. The gate still exits 2, so it
+remains inherited-red rather than passing; the acceptance line "make lint-code passes" was not
+achievable at any point in this spec.
+
+Two acceptance criteria could not be met literally and are recorded rather than forced. The Makefile
+grep still matches one line, the retained `./.gomad` prune clause for the gomad3 artifact store,
+which the task's own Approach explicitly keeps — the acceptance regex is over-broad relative to the
+Approach. And `make lint-code` is the inherited red above.
+
+stage: impl-review - ran (backend claude, model claude-fable-5-1, effort high, 2 rounds: NEEDS_WORK
+on a comment naming deleted paths and on a collapsed blank line inside `define NEWLINE` that the
+block-removal pass had silently changed from a newline to the empty string, then SHIP)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: a64f9b9d69f324a4a642caadefd9487d556d9b06, 24107bbab1118740d58bf6a4968b3e52dad6dae9
+- Tests: make -n umpire-check-live-tests (renders the verbose command, the ^TestTestpilot selector, the empty baseline, and the floor), make umpire-check-live-tests (rc=0 against a live cluster: 'Live Testpilot failure identities match the empty expected set across 4 passing identities.'), floor negative check: the same gate shell with -run '^TestNoSuchSelectorZZZ' exits go test 0 with an empty failure set and the floor still trips - the case an empty baseline alone would have passed, make -n umpire-check-regression (rc=0), make common-formal-test (rc=0, 2 packages ok), CGO_ENABLED=0 go test -count=1 -tags test_dep ./tools/umpire/regression/... (rc=0), make lint-code GOLANGCI_LINT_FIX=false: 128 issues, down from the 1,284 task-start baseline; none in any file this spec edited (errcheck 220->1, exhaustive 5->0, forbidigo 209->0, goimports 1->0, govet 5->4, revive 732->106, staticcheck 111->17, testifylint 1->0). Still exit 2, so this gate stays inherited-red, Makefile removal audit: every removed non-blank line belongs to a removed target, variable, or .PHONY name, or to the rewritten gate; gomad3 line count unchanged at 29, grep -n -E 'umpire[123]|gomad[12]?([^0-9a-z]|$)|agentworkflow|genmodels' Makefile returns one line: the retained './.gomad' prune clause for the gomad3 artifact store
 - PRs:
+stage: plan-sync - skipped(config: planSync.enabled != true)
