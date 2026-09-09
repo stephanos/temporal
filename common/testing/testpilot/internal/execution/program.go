@@ -189,6 +189,32 @@ type projection struct {
 	path        *ir.Path
 	cardinality testpilotspb.ProjectionKind
 	sinks       []*testpilotspb.ProjectionTarget
+	// One entry per sink, nil where the sink is not an evidence lift.
+	lifts []*evidenceLift
+}
+
+// evidenceBinding is one bound read out of the projected value into a ScopedEvidence slot.
+type evidenceBinding struct {
+	fieldID string
+	path    *ir.Path
+	literal string
+}
+
+// evidenceRule lifts one guarded shape of the projected value into a ScopedEvidence value.
+type evidenceRule struct {
+	guard        *ir.Path
+	guardEquals  string
+	scope        []evidenceBinding
+	source, kind string
+	operation    *ir.Path
+	fields       []evidenceBinding
+}
+
+// evidenceLift is the bound form of one declared ScopedEvidenceProjection sink.
+type evidenceLift struct {
+	observationID string
+	element       ir.Type
+	rules         []evidenceRule
 }
 type slotWriter struct {
 	graph    *graph
