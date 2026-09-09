@@ -5,6 +5,9 @@ The user explicitly allows the Umpire DSLs to change. Existing language and fini
 are therefore migration constraints to evaluate, not reasons to reject a better design.
 No model, runtime, dependency, or normative specification was changed for this investigation.
 
+> The Umpire3 sources this assessment cites were removed by fn-81. They are named below as
+> provenance rather than as links.
+
 Supporting investigations: [Veil implementation details](VEIL_BACKEND_RESEARCH.md) and
 [DSL opportunities with conceptual examples](UMPIRE_DSL_OPPORTUNITIES.md).
 
@@ -48,8 +51,9 @@ a verification engine. The grammar and current internal data structures can both
   an important cost to address. The broader claim in `Umpire/ARCHITECTURE.md` is not supported by
   this implementation.
 
-The older [Umpire3 semantic binding](../tools/umpire3/model/Umpire3/Veil/Semantics.lean) and
-[Nexus concrete correspondence](../tools/umpire3/model/Temporal/Families/NexusCancellation/Targets/Veil/SoundConcreteSemantics.lean)
+The older Umpire3 semantic binding (`Umpire3/Veil/Semantics.lean`) and Nexus concrete
+correspondence (`Temporal/Families/NexusCancellation/Targets/Veil/SoundConcreteSemantics.lean`),
+both under the `tools/umpire3` tree fn-81 removed,
 show a real local precedent for using Veil. They also show the cost of separate representations:
 initial-state, transition, property, encoding, and coverage correspondence all need evidence.
 These files were inspected, not built. They do not establish compatibility of current Umpire,

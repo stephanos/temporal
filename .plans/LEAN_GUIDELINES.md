@@ -32,7 +32,7 @@ style wherever they differ from the general guidance below.
    check target. [model/README.md](../model/README.md) names the owners.
 3. **Learn the local style.** Read the imports and neighbouring modules, and identify the intended
    public API from the documented facades and module boundaries. Workspaces here follow Lean Std
-   or Batteries conventions; `tools/umpire3/model` also depends on mathlib.
+   or Batteries conventions.
 4. **Search before adding.** Look through the workspace and its `.lake/packages` for an existing
    definition, theorem, instance, or notation that covers the requested behaviour. Keep the
    toolchain and import set fixed: a proof that wants a broader import or a new dependency is a
