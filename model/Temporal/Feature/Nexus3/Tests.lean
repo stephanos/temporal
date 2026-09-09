@@ -197,8 +197,9 @@ private def runCheck
     (authoredTable := lifecycle.table)
     (authoredDefinition := lifecycle.targetDefinition)
     (propertyAuthor : Authoring.ModelVocabulary → PropertySpec := successfulResult)
-    (behaviorAuthor : Authoring.ModelVocabulary → ExactSequenceSpec := successfulCompletion) :=
-  Authoring.check lifecycle "completion" shortTrace propertyAuthor behaviorAuthor
+    (behaviorAuthor : Authoring.ModelVocabulary → ExactSequenceSpec := successfulCompletion)
+    (form : Authoring.QueryFormKind := .selectWitness) :=
+  Authoring.check lifecycle "completion" shortTrace propertyAuthor behaviorAuthor (form := form)
     (authoredTable := authoredTable) (authoredDefinition := authoredDefinition)
 
 private def invalidResultTable :=
@@ -648,6 +649,12 @@ query unsatisfiableCompletion on lifecycle
 
 #guard match unsatisfiableCompletion with
   | .error (.notSelected planned) => planned == .unsatisfiable
+  | _ => false
+
+/- A verify Query whose requirement an admitted trace violates reports that counterexample, which
+is the reason to author the form at all. -/
+#guard match runCheck (propertyAuthor := noWitnessProperty) (form := .verifyClaim) with
+  | .error (.notSelected (.found _ .violatingCounterexample)) => true
   | _ => false
 
 /--
