@@ -45,9 +45,37 @@ Serialize source edits with other workers in this checkout. Preserve comments an
 
 
 ## Done summary
-TBD
+Reconciled the retained Nexus3 authoring draft with what has actually shipped, without touching any
+executable declaration. `Integration.md` now carries the broader draft's optional per-declaration
+compatibility ID — declaration-local, identity-only, and admitted on the same malformed, duplicate,
+conflicting and wrong-kind grounds as a derived ID — alongside an explicit statement that the
+checked success demonstration has no overrides and takes no author identity or version input.
+`Nexus.md` teaches the same distinction at both identity sites, and its progress Property now says
+that generic operation-scoped counting is delivered and qualified while only the
+cancellation-specific use of it rejects at Case production. One paragraph, in `Integration.md`
+alone, explains why the historical already-started `Cancellation.lean` Target — and the offline
+evidence projection over it in `Temporal/System/Nexus/ImplementationLink.lean`, which reaches no
+Testpilot path, capability, Case, or test — is not this draft's scheduled-only Target and qualifies
+no runtime behavior. `Nexus.lean`'s stale module docstring was refreshed to match.
 
+Preserved: the relocated draft and every teaching comment, the four action bindings and the confirm
+row, command-versus-confirmation, both terminal resolution alternatives, terminal admission,
+same-operation bounds, the unfinished-prefix caveat, and whole-Case rejection of unsupported
+Properties. No override syntax, alias, or registry was introduced anywhere, and fn-79 was not
+resumed.
+
+Review findings that changed the text: the first round correctly caught that the draft's claim of
+"no evidence adapter" for the historical Target was false, and that the Target carries Nexus2's
+states and Actions under its own Nexus3 identity rather than Nexus2's.
+
+Deviation from the task's execution constraints, on the orchestrator's explicit instruction: this
+run committed on `stephanos/umpire` with `git add -A`. That swept in `.plans/UMPIRE4_ORDER.md`, an
+fn-81 roadmap reconciliation authored by a parallel session in this checkout. It was preserved
+verbatim, never reverted, and is named in the commit that carries it.
+
+stage: impl-review - ran [round 1 NEEDS_WORK -> round 2 SHIP -> round 3 SHIP], backend claude, model claude-fable-5-1 at high effort (cross-family bridges exhausted; pinned off the implementing model)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: d4ac329cce418a0542c1739a3439b0f9ab3a9bba, 034c700316f84b0e0b9957bc9a16434deb1fd8a6, 2e2939c627e00546be212ae64431528dc3cd8de3, 74c4f04a2072221107ed58562072c5983ad1e69b
+- Tests: git diff --check -- model/Temporal/Feature/Nexus3/Nexus.md model/Temporal/Feature/Nexus3/Integration.md model/Temporal/Feature/Nexus3/Nexus.lean (rc=0, baseline rc=0), cd model && LEAN_NUM_THREADS=1 mise exec -- lake build Temporal.Feature.Nexus3.Tests (rc=0; baseline rc=0; green receipt 74c4f04a-unittest), make lint-model (rc=2 inherited: 169 findings, all in generated Temporal/API/{Types,Proto}.lean; equals the pre-task baseline; Nexus3 and Umpire.Lint clean), python3 scratchpad/fn67_check.py -> /tmp/fn67-task2-consistency.json (45 task-scoped positive/negative draft-consistency, link, whitespace and width checks; 45 pass, 0 fail), flowctl claude impl-review --spec claude:claude-fable-5-1:high round 1 -> NEEDS_WORK (3 introduced findings), flowctl claude impl-review --spec claude:claude-fable-5-1:high round 2 -> SHIP (1 P3 nit, applied), flowctl claude impl-review --spec claude:claude-fable-5-1:high round 3 -> SHIP (0 findings), GATE_SKIPPED:lint-code:docs-only - range touches no Go, proto, schema or generated path; the only unmatched file is .plans/UMPIRE4_ORDER.md, a swept-in markdown roadmap from a parallel session (flowctl gate classify reports FULL solely on that unmatched extension)
 - PRs:
+stage: plan-sync - skipped(config: planSync.enabled != true)
