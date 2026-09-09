@@ -155,12 +155,17 @@ core enum lacks) loses the same five dead constructors, renames `kernel`, `obser
 (`CASE_DEFINITION_KIND_FACT`); Testpilot treats those bytes as opaque, so only the Case fixtures
 regenerate.
 
-Two golden families have no regenerator today: the fingerprint and canonical-metadata goldens
-under `Umpire/Target/Tests/Compatibility/Fixtures` and the six Nexus fixture JSON files, all
-consumed through `include_str`. The first R2 task adds one Lake executable, `umpire-goldens`,
-that writes both families from their semantic inputs, and `umpire-check-regression` renders them
-into a temporary root and diffs, following the regression-views pattern. From then on every
-golden in the tree has a regenerator.
+Four golden families have no regenerator today, all consumed through `include_str` and asserted
+by `native_decide`: the fingerprint and canonical-metadata goldens under
+`Umpire/Target/Tests/Compatibility/Fixtures` (two files), the Nexus fixture JSON files under
+`Temporal/Feature/Nexus/Fixtures` (six), the Switch query and artifact fixtures under
+`Umpire/Examples/Fixtures` (two), and the artifact codec goldens under
+`Umpire/Artifact/Tests/Fixtures` (six). The first R2 task adds one Lake executable,
+`umpire-goldens`, rooted at `Temporal/Tool/Goldens.lean` because a `Temporal.Tool` module may
+import both the Umpire test fixtures and the Nexus operation modules while a module under
+`Umpire/` may not import `Temporal`. It writes all four families from the values their tests
+compute, and `umpire-check-regression` renders them into a temporary root and diffs, following
+the regression-views pattern. From then on every golden in the tree has a regenerator.
 
 ### R3 authoring languages and search
 
@@ -277,9 +282,11 @@ consumes, becomes `Nexus/Race/Terminal.lean`. The rest of `Temporal/Feature/Nexu
 `Producer.lean`, and `Syntax`, `Authoring`, `TypedUnary`, tests, `Nexus.md`, and `Integration.md`
 keep their names. Identity roots `temporal.nexus2.*` become `temporal.nexus.race.*` and
 `temporal.nexus3.*` become `temporal.nexus.success.*` (with the terminal table under
-`temporal.nexus.race.terminal.*`). `Temporal.ImplementationLinkTests.Nexus` merges into
-`Temporal.System.Nexus.ImplementationLinkTests` and its dedicated `ModelLint` class and exception
-are removed. Per-feature `EVIDENCE.md` files become `COVERAGE.md`.
+`temporal.nexus.race.terminal.*`). `Temporal.ImplementationLinkTests.Nexus` moves to
+`TemporalModelTests.Nexus.ImplementationLink` under `model/TemporalModelTests/`, where the
+`.modelTests` class already permits importing both Feature and System modules, and the dedicated
+`temporalImplementationLinkTest` class, its exact classifier, and the closed-namespace entry are
+removed from `ModelLint`. Per-feature `EVIDENCE.md` files become `COVERAGE.md`.
 
 The generalized command syntax fn-80 R2 delivers is respelled. The five commands stay; the
 keywords change where the investigation found them opaque:
@@ -491,8 +498,9 @@ go test -tags 'test_dep integration' ./tests -run 'TestTestpilot|TestUmpire'
   table; `checkModel` and `model` are the only construction entry points; the Switch example and
   every Nexus model build; the dead modules, `TargetBehaviorClosure`, and the five unused
   `DefinitionKind` constructors are gone from both the core and the Provenance enum; the
-  `umpire-goldens` writer regenerates the compatibility and Nexus fixture goldens and the
-  regression check diffs them; regenerated fingerprints and goldens pass the regression check.
+  `umpire-goldens` writer under `Temporal.Tool` regenerates the compatibility, Nexus fixture,
+  Switch example, and artifact codec goldens (sixteen files) and the regression check diffs them;
+  regenerated fingerprints and goldens pass the regression check.
   Errors: a Definition ID of kind `kernel` or `observation` is rejected as unknown kind; a stale
   golden fails `umpire-check-regression`; the retired gate rejects `CheckedTarget`,
   `TransitionKernel`, `AuthoredTarget`, `QueryTarget`, `TargetBehaviorDomain`, and `modelOutcome`.
@@ -531,8 +539,9 @@ go test -tags 'test_dep integration' ./tests -run 'TestTestpilot|TestUmpire'
   `temporal.nexus.race.*` and `temporal.nexus.success.*`, the Implementation Link imports
   `Nexus.Race.Terminal`, the five commands accept the R6 keyword set and reject each old spelling
   with a located error asserted by one `#guard_msgs` block per keyword, `Nexus.md` and
-  `Integration.md` use the new keywords, the Lake executables and Make targets use the `umpire-`
-  convention, and the live Nexus Case runs with the same satisfied Contract. Errors: `initial`,
+  `Integration.md` use the new keywords, the Implementation Link tests live under
+  `TemporalModelTests` with no dedicated lint class, the Lake executables and Make targets use the
+  `umpire-` convention, and the live Nexus Case runs with the same satisfied Contract. Errors: `initial`,
   `terminal`, `transitions`, `witness`, `all`, `behavior`, `selected_actions`, and
   `candidate_evaluations` are macro errors naming the replacement keyword; `temporal.nexus3`,
   `temporal.nexus2`, `Temporal.Feature.Nexus2`, and `Temporal.Feature.Nexus3` in any live source
@@ -543,7 +552,7 @@ go test -tags 'test_dep integration' ./tests -run 'TestTestpilot|TestUmpire'
   under the Testpilot facade
   and `tools/umpire`, and the tagged live selector pass after every task; the retired gate contains
   every compound name this spec retires; `ModelLint` has no Verify reservation and no
-  `ImplementationLinkTests` exception; the three model documents and `UMPIRE4_ORDER.md` describe
+  `temporalImplementationLinkTest` class; the three model documents and `UMPIRE4_ORDER.md` describe
   the tree under the new vocabulary. Errors: a listed scan path that does not exist fails
   `umpire-check-retired-vocabulary` with the path named; a doc, fixture, or open spec that
   mentions a retired token fails it; a retired rule for a bare English word is rejected by the
