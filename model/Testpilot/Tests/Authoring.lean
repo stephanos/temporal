@@ -143,6 +143,8 @@ private def contract : Contract := Monitor.contract "contract" #[
     #[] (horizon := some (Monitor.horizon 1000 "late"))
 ] (Monitor.limits 2 4 2 16 64 1024 3 4096)
 
+private def eventsHorizon : ContractHorizonDefinition := Monitor.horizonEvents 3 "late"
+
 private def verdict := Verdict.make .VERDICT_STATUS_SATISFIED #[
   Verdict.rule "safety" .RULE_VERDICT_STATUS_SATISFIED "done" #[1]
 ] #[1]
@@ -170,5 +172,8 @@ private def run : temporal.server.api.testpilot.v1.Run := Run.make "run" "case" 
 #guard program.roles[2]!.resource_binding_id == "task.queue"
 #guard contract.rules.size == 2
 #guard run.events.size == 1
+#guard eventsHorizon.rule_events == 3
+#guard eventsHorizon.elapsed_milliseconds == 0
+#guard eventsHorizon.violation_state_id == "late"
 
 end Testpilot.Tests.Authoring
