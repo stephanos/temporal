@@ -74,6 +74,12 @@ private def identityKey (s : RpcSchema) : String := Canonical.key (Canonical.rpc
   request := { schema.request with nodes := schema.request.nodes.map fun n => { n with
     valueShape := some (.message [⟨1, "payload", .text, .singular, .optional, none⟩] none) } } }
 #guard identityKey schema != identityKey { schema with schemaInputs := schema.response.nodes }
+-- Distinct closures receive distinct identities across a family of single-edit descriptors: the
+-- fold's separation is exercised rather than assumed.
+#guard (((List.range 512).map fun n => identityKey { schema with
+  request := { schema.request with
+    nodes := [⟨"example.Request", "proto3", "field-" ++ toString n, "", [], none⟩] } }).eraseDups).length
+  == 512
 -- The closure reaches identity only through that fixed-width digest, so the key stays bounded
 -- however large the closure grows.
 #guard (identityKey wideSchema).length < 4096

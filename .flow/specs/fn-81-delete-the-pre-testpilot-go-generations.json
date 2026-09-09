@@ -1,11 +1,165 @@
 {
   "branch_name": "fn-81-delete-the-pre-testpilot-go-generations",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-09-09T04:20:59.093320Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-81-delete-the-pre-testpilot-go-generations",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 3,
+  "plan_review_status": "needs_work",
+  "plan_reviewed_at": "2026-09-09T04:39:24.324697Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "9562ce6735c2a9062320e5dd04efd88da486f3bd88ae60942504cd1f9f942b83",
+      "backend": "copilot",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "copilot",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-719c2d6e185c6db8caaadbe3bc5f0953",
+            "classification": "introduced",
+            "findingId": "finding-719c2d6e185c6db8caaadbe3bc5f0953",
+            "firstSeenThisRound": true,
+            "severity": "P0",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-ec1e018d7b5caed08ad7e0420d26dfb2",
+            "classification": "introduced",
+            "findingId": "finding-ec1e018d7b5caed08ad7e0420d26dfb2",
+            "firstSeenThisRound": true,
+            "severity": "P0",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-2acadc89a6c6974fa87b1149c7370387",
+            "classification": "introduced",
+            "findingId": "finding-2acadc89a6c6974fa87b1149c7370387",
+            "firstSeenThisRound": true,
+            "severity": "P0",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "97e469a3a69fc7ca2d7f60a843b8fe7e38d55b61",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.4",
+      "outcome": "verdict",
+      "output_bytes": 4323,
+      "output_sha256": "613c732aee6d0077505a45ab157b9c52b7f4259dcd6a21e3c933d25b072ccd44",
+      "reservation_id": "b436d60813be4322a339f7ca1f372d44",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-09T04:35:31.510564Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "633681c9c2844c5802b3b08c6d397fec616cdda3795092c9a89fcc6289269bbe",
+      "backend": "copilot",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "copilot",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-719c2d6e185c6db8caaadbe3bc5f0953",
+            "classification": "introduced",
+            "findingId": "finding-719c2d6e185c6db8caaadbe3bc5f0953",
+            "firstSeenThisRound": false,
+            "severity": "P0",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-ec1e018d7b5caed08ad7e0420d26dfb2",
+            "classification": "introduced",
+            "findingId": "finding-ec1e018d7b5caed08ad7e0420d26dfb2",
+            "firstSeenThisRound": false,
+            "severity": "P0",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-59f84bed9104a26b1ef9596c3cb79b7b",
+            "classification": "introduced",
+            "findingId": "finding-59f84bed9104a26b1ef9596c3cb79b7b",
+            "firstSeenThisRound": true,
+            "severity": "P0",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-2acadc89a6c6974fa87b1149c7370387",
+            "classification": "introduced",
+            "findingId": "finding-2acadc89a6c6974fa87b1149c7370387",
+            "firstSeenThisRound": false,
+            "severity": "P0",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "97e469a3a69fc7ca2d7f60a843b8fe7e38d55b61",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.4",
+      "outcome": "verdict",
+      "output_bytes": 2198,
+      "output_sha256": "559b8a795650c6474970bbd5979a08e301c11695496c42d5aab99d92efec07e8",
+      "reservation_id": "2d47d5c11aa0458bb67736d12d27e637",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-09T04:39:24.321702Z",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {
+    "plan": 1
+  },
+  "review_reservations": {
+    "76dea77d032d46bf81deea83a9a00e41": {
+      "artifact_sha256": "13c35ea2bf4aa83a0995280e590ad92e623e9a3518db3ea5caae9549b7999b6a",
+      "counter_scope": "plan",
+      "epoch": 0,
+      "exclusive": false,
+      "forced": false,
+      "review_type": "plan"
+    }
+  },
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-81-delete-the-pre-testpilot-go-generations.md",
   "status": "open",
   "title": "Delete the pre-Testpilot Go generations",
@@ -20,5 +174,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-09T04:20:59.096202Z"
+  "updated_at": "2026-09-09T04:40:08.704115Z"
 }
