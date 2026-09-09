@@ -37,6 +37,14 @@ Verify complete typed-operation compatibility and bounded qualification for the 
 ### Execution constraints
 Read the full parent spec. Preserve existing comments and unrelated dirty source. New paths listed here are proposed owners; reuse an established equivalent before creating one. Run Lean jobs serially; fn76 lint recovery is complete. Preserve fn75 semantic import isolation and fn78 obligation/evidence authority. No operation cancellation, new dependency/toolchain, or implicit fixture promotion. Do not stage, commit, or push; the user owns commits. Capture task-local before/after trust for changed load-bearing declarations; task11 additionally compares to the original task1 substrate.
 
+### Known findings introduced by this spec
+`make lint-model` is red on two findings this spec introduced, so neither may be recorded as an
+inherited baseline failure:
+- `unusedArguments` on `Umpire.instReprPropertyFieldProjection` (`model/Umpire/Property/Evaluation.lean:470`)
+  — from task .5's `deriving Repr`; no consumer of that instance exists.
+- `simpNF` on `Umpire.Operation.CheckedRpc.mk.injEq` (`model/Umpire/Operation.lean:58`) — from task .1;
+  the structure's only non-proof field makes the generated lemma simp-provable.
+
 ## Acceptance
 - [ ] Original before/after raw trust inventories have no unapproved expansion or missing entries; unchanged canonical/fixture/identity bytes are preserved and new schema/parameter changes follow checked versioning.
 - [ ] Tenfold variation/payload/collection/capture tests reject within declared bounds without cross-Run leaks, resets or broader exhaustive claims.
