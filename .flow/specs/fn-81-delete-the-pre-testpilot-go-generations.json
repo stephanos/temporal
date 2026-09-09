@@ -9,7 +9,7 @@
   "depends_on_epics": [],
   "id": "fn-81-delete-the-pre-testpilot-go-generations",
   "impl_review_rounds": {
-    "fn-81-delete-the-pre-testpilot-go-generations.1": 1
+    "fn-81-delete-the-pre-testpilot-go-generations.1": 3
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -263,14 +263,54 @@
       "task": "fn-81-delete-the-pre-testpilot-go-generations.1",
       "timestamp": "2026-09-09T16:55:46.465087Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "2532aaae4bf4ed417f4991b14106ec169236c6d8ad27826168402562990703d3",
+      "backend": "claude",
+      "base_sha": "5b9cc0dc9df7b03d231dc685c1fa99bffdf9c3b3",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "eb3da17ea2e3bf3bc9630b287107c35936dc6073",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 4838,
+      "output_sha256": "3a0354b8594baaeafde1fc22f25f1ad3fd3a612eaafbff4e05d1b122b88b0421",
+      "reservation_id": "bdb743a6660048b9856098697ea9e375",
+      "round_consumed": true,
+      "scope": "impl:fn-81-delete-the-pre-testpilot-go-generations.1",
+      "superseded_by": null,
+      "task": "fn-81-delete-the-pre-testpilot-go-generations.1",
+      "timestamp": "2026-09-09T17:05:26.108507Z",
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
     "plan": 1,
     "plan#completion": 0
   },
-  "review_pending_rounds": {},
-  "review_reservations": {},
+  "review_pending_rounds": {
+    "impl:fn-81-delete-the-pre-testpilot-go-generations.1": 1
+  },
+  "review_reservations": {
+    "04fd9ece7be04d83ab3507b5a5d62916": {
+      "artifact_sha256": "2532aaae4bf4ed417f4991b14106ec169236c6d8ad27826168402562990703d3",
+      "counter_scope": "impl:fn-81-delete-the-pre-testpilot-go-generations.1",
+      "epoch": 0,
+      "exclusive": false,
+      "forced": false,
+      "review_type": "impl"
+    }
+  },
   "review_transport_failures": {
     "impl:fn-81-delete-the-pre-testpilot-go-generations.1": 0,
     "plan": 0
@@ -289,5 +329,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-09T16:55:46.465720Z"
+  "updated_at": "2026-09-09T17:05:26.109278Z"
 }
