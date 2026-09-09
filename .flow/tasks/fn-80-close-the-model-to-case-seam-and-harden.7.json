@@ -3,9 +3,7 @@
   "claim_note": "",
   "claimed_at": null,
   "created_at": "2026-09-09T03:22:55.326947Z",
-  "depends_on": [
-    "fn-80-close-the-model-to-case-seam-and-harden.4"
-  ],
+  "depends_on": [],
   "id": "fn-80-close-the-model-to-case-seam-and-harden.7",
   "priority": null,
   "spec": "fn-80-close-the-model-to-case-seam-and-harden",

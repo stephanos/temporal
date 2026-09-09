@@ -45,6 +45,67 @@ Implements R1 (spec §R1). Replaces the hand-written Program-and-monitor Produce
 ## Done summary
 Blocked:
 Serialize behind fn-77-typed-operations-parameterized-actions.10: it modifies the Nexus3 Producer, the async-nexus fixture bytes, and the live test. Unblock when fn-77.10 is done.
+
+Blocked:
+BLOCKED: DEPENDENCY_BLOCKED — R1's scoped route has no runtime evidence path.
+
+R1 requires the shipped async-nexus Case to (a) carry `contract.scoped`, (b) drop the
+hand-written correlated-history monitor rule, and (c) still be **satisfied live**. Those three
+cannot hold together today, and forcing them through would turn a real regression test into a
+vacuous one.
+
+Evidence gathered this session:
+
+1. `bindScoped` (`common/testing/testpilot/internal/verification/scoped_prepare.go:71-73`)
+   rejects any Case whose `Contract.scoped` names an `evidence_observation_id` that is not a
+   Program Observation typed **exactly** `temporal.server.api.testpilot.v1.ScopedEvidence`
+   (`PreparationTypeMismatch`, "scoped evidence requires exact declared ScopedEvidence
+   Observation"). The async-nexus Program declares only `history-event`
+   (`temporal.api.history.v1.HistoryEvent`), so the regenerated Case would not even `Prepare`.
+
+2. An Observation is filled only by an `InvokeRPC` response projection
+   (`PROJECTION_KIND_ONE` / `PROJECTION_KIND_EMIT_EACH` are the only two kinds), and the
+   version-one `Instruction` table (`instruction.proto:60-70`) has no instruction that can
+   produce a `ScopedEvidence` value. `run.proto:125` states the rule outright: "ScopedEvidence
+   is supplied only through the capability's declared typed Observation." No Temporal
+   WorkflowService RPC returns that message.
+
+3. Consequently a scoped clause on this Program receives zero evidence, and
+   `scopedRun.answer` (`internal/verification/scoped.go:622-642`) returns **SATISFIED**
+   vacuously for a clause with no operations and no accepted evidence. Shipping that would
+   delete the correlated-history rule — the only thing in the Case that today proves the Nexus
+   operation actually scheduled, started and completed — and replace it with a clause that is
+   green because it never ran.
+
+4. fn-77 already banked this exact conclusion in-tree, as the Known Gap
+   `temporal.nexus3.typed-nexus.bounded-completion-is-model-only`
+   (`model/Temporal/Feature/Nexus3/TypedNexus.lean:759-768`): "the Driver reads a scoped
+   capability only from declared `ScopedEvidence` Observations and no instruction of this
+   Program emits one."
+
+Finding on the question the spec asked to settle first (the clause form):
+
+**The scoped clause form CAN carry state, outcome and fact predicates.**
+`Umpire.Case.Scoped.pattern` (`model/Umpire/Case/Scoped.lean:44-56`) maps
+`.resultingState → SCOPED_PREDICATE_FIELD_RESULTING_STATE`,
+`.modelOutcome → SCOPED_PREDICATE_FIELD_OUTCOME`,
+`.observation → SCOPED_PREDICATE_FIELD_FACT` and
+`.selectedAction → SCOPED_PREDICATE_FIELD_ACTION`, so the three Nexus3 `require` clauses are
+expressible as three `bounded_response%` clauses sharing an `awaitSuccess` trigger. The blocker
+is the evidence path, not the clause form — so R2 (task .5) and R8 (task .6), which generalize
+the macros over the same `Authoring.check` owners, are unaffected and stay startable.
+
+Suggested resolution: land the follow-up fn-77's completion review already named — a
+`ScopedEvidence`-emitting projection (a Program-declared source that lifts recorded Nexus
+history into `ScopedEvidence` with `identity`, `operation`, `kind` and `fields`) — then re-open
+this task. Until then R1's own Goal-§1 defect (the clause-for-clause equality gate in
+`produceCompletionCase` that turns a model edit into a lowering error) is still worth closing on
+its own, but that is a smaller task than this one's acceptance and should be re-planned rather
+than silently substituted here.
+
+Impact: tasks .5, .7 and .8 carried a `depends_on` edge to this task only for file-overlap and
+live-assertion-churn reasons that no longer exist; the edges were dropped so the rest of the
+spec can proceed. Task .9's R1-related doc bullets will need the same re-planning.
 ## Evidence
 - Commits:
 - Tests:
