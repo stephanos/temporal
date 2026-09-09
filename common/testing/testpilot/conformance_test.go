@@ -230,7 +230,6 @@ func (h *facadeDriver) closedSessions() int {
 
 type facadeSession struct {
 	driver *facadeDriver
-	faults []string
 	closed bool
 }
 
@@ -253,9 +252,8 @@ func (s *facadeSession) InvokeRPC(_ context.Context, coordinate testpilot.Coordi
 func (*facadeSession) InvokeCapability(context.Context, testpilot.Coordinate, testpilot.OpaqueCapability, proto.Message) (testpilot.EffectHandle, error) {
 	return nil, errors.New("facade conformance Cases do not complete Nexus operations")
 }
-func (s *facadeSession) InjectFault(_ context.Context, _ testpilot.Coordinate, roleID string, kind testpilotspb.FaultKind) (testpilot.EffectHandle, error) {
-	s.faults = append(s.faults, roleID+"/"+kind.String())
-	return facadeEffect{result: testpilot.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}}}, nil
+func (*facadeSession) InjectFault(context.Context, testpilot.Coordinate, string, testpilotspb.FaultKind) (testpilot.EffectHandle, error) {
+	return nil, errors.New("facade conformance Cases inject no faults")
 }
 func (*facadeSession) Bridge(context.Context) (testpilot.CapabilityBridge, error) {
 	return nil, errors.New("facade conformance Cases do not use capability bridges")
@@ -401,6 +399,8 @@ func eventKindName(kind testpilotspb.RunEventKind) string {
 		return "RUN_CLOSED"
 	case testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC:
 		return "DIAGNOSTIC"
+	case testpilotspb.RUN_EVENT_KIND_FAULT_INJECTED:
+		return "FAULT_INJECTED"
 	default:
 		return "UNSPECIFIED"
 	}
