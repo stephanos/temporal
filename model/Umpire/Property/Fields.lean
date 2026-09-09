@@ -265,6 +265,21 @@ def PropertyFieldPath.validate (path : PropertyFieldPath) (facts : List Property
   if readiness != .available then throw ⟨source, "operand presence or oneof selection is not established"⟩
   if card != .singular || type != path.type then throw ⟨source, "field type or cardinality mismatch"⟩
 
+/-- Every presence fact a value at these coordinates carries with it: one `present` path for each
+`establish` or `select` step it traverses. A checked cursor reaches those steps only over a payload
+that actually supplied the optional value or selected the oneof member, so an occurrence retained
+under these coordinates had its presence decided at the step that admitted it rather than in the
+Boolean branch that later reads it. -/
+def PropertyFieldPath.retainedFacts (path : PropertyFieldPath) : List PropertyFieldPath :=
+  let rec collect (traversed : List Field.Step) : List Field.Step → List PropertyFieldPath
+    | [] => []
+    | step :: rest =>
+      let learned := match step with
+        | .establish | .select _ => [{ path with steps := traversed ++ [.present], type := .boolean }]
+        | _ => []
+      learned ++ collect (traversed ++ [step]) rest
+  collect [] path.steps
+
 /-- Presence learned by a true atom is local to its enclosing conjunction. -/
 def PropertyFieldComparison.established (comparison : PropertyFieldComparison) : List PropertyFieldPath :=
   let learn (operand : PropertyFieldOperand) (value : PropertyFieldOperand) :=

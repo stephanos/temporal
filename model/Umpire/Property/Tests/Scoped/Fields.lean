@@ -26,7 +26,9 @@ private def source : SourceLocation := { path := "Umpire/Property/Tests/Scoped/F
 private def schema : Schema := ⟨"M", [{
   name := "M", protoSyntax := "proto3", descriptor := "m", fileContext := "", references := [],
   valueShape := some (.message [
-    ⟨1, "count", .integer .int32, .singular, .implicit (.integer .int32 0), none⟩]) }]⟩
+    ⟨1, "count", .integer .int32, .singular, .implicit (.integer .int32 0), none⟩,
+    ⟨2, "label", .text, .singular, .optional, none⟩,
+    ⟨3, "choice", .text, .singular, .oneof "pick", none⟩]) }]⟩
 private def owner : RpcOwner where
   Witness _ _ := Unit
   schema _ := ⟨"example.Call", schema, schema, [], false, false⟩
@@ -365,6 +367,30 @@ private def plan (target : TestTarget) := Observation.Projection.check target {
       | .error (.property (.unsupported clauseId _)) => clauseId == id "test.scoped.fields"
       | _ => false) &&
     (Observation.Scoped.compile projection bare runLimits).isOk)) == some true
+
+-- A retained occurrence's presence was decided by the cursor that admitted it, so optional and
+-- oneof-selected coordinates can be captured and read back. The same coordinates read as this
+-- step's own operand still require a presence fact established in their Boolean branch.
+private def optionalPath : PropertyFieldPath :=
+  { triggerPath with steps := [.field "M" 2, .establish], type := .text }
+private def oneofPath : PropertyFieldPath :=
+  { triggerPath with steps := [.field "M" 3, .select "pick"], type := .text }
+private def expected : PropertyFieldOperand := .literal (.text "expected") source
+
+private def retaining (retained : PropertyFieldPath) : PropertyScopedClause :=
+  clause 1 (captures := [{ capture with path := retained }])
+    (requirement := some (PropertyPredicate.compareFields .equal
+      (.field { retained with capture := some ⟨captureName, 0⟩ } source) expected source))
+
+private def reading (unretained : PropertyFieldPath) : PropertyScopedClause :=
+  clause 1 (captures := [])
+    (requirement := some (PropertyPredicate.compareFields .equal (.field unretained source)
+      expected source))
+
+#guard error? (retaining optionalPath) [] == none
+#guard error? (retaining oneofPath) [] == none
+#guard errorKind? (reading optionalPath) [] == some .invalidClause
+#guard errorKind? (reading oneofPath) [] == some .invalidClause
 
 /-- info: 'Umpire.Property.Scoped.Captures.record_extends' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in

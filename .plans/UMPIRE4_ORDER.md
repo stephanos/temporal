@@ -6,7 +6,7 @@ this document records delivery order. Architecture and terminology live in the
 
 ## Current work
 
-### 1. Typed operations and field-level Properties — fn-77
+### Typed operations and field-level Properties — fn-77
 
 [fn-77 — Typed operations, parameterized Actions, and field-level Properties](../.flow/specs/fn-77-typed-operations-parameterized-actions.md)
 adds direct generated API references, typed SDK-command/event declarations, modeled request/result
@@ -26,22 +26,6 @@ monitoring interfaces; Nexus operation cancellation remains deferred to fn-79.
 Keep this off the first-canary critical path. Field lowering composes with fn-78's delivered scoped
 temporal lowering. Share value/capture contracts across these owners rather than creating two
 representations. Tasks with overlapping source files run serially without artificial dependencies.
-
-### 2. fn-70 — Scheduled canary proof of concept
-
-[Spec](../.flow/specs/fn-70-scheduled-canary-proof-of-concept-as-a.md).
-Deliver after **fn-78**; fn-68, fn-71, fn-72, and fn-73 are transitive prerequisites.
-Nine tasks cover all ten requirements, with a SHIP plan review. Implementation follows fn-77
-to serialize shared Producer edits; fn-77 is not a semantic prerequisite.
-
-Implement the second consumer under `tools/canary`: manual check selection, a fresh scheduled
-Workflow each minute, Activity-owned Testpilot execution, bounded results, and isolated repeated
-measurements. Consume the Driver and binding interfaces delivered above; do not repeat their
-implementation work. Retain the cross-consumer proof; fn-73 already owns the live proof that one
-Case byte sequence runs against two environment bindings.
-
-This is a local/development prototype. It does not depend on fn-26 or fn-29 and does not authorize
-production deployment or replace fn-29's separately scoped production-canary design.
 
 ### Additional open specs
 
@@ -123,6 +107,26 @@ Includes former fn-78.5/.8/.9 cancellation scope and fn-77’s cancellation qual
 on an explicit user request; autonomous delivery approval does not override this deferral. Generic
 fn-78 syntax/monitoring/qualification and fn-70 remain deliverable without it. Existing shutdown
 and bounded cleanup cancellation behavior stays in scope.
+
+
+**fn-70 — Scheduled canary proof of concept:** deferred by user decision; it was previously
+queued after fn-78 as the second model consumer. Resume on an explicit user request. Nothing in
+the delivery queue depends on it.
+
+[Spec](../.flow/specs/fn-70-scheduled-canary-proof-of-concept-as-a.md).
+Retained scope on resume: fn-78 first, with fn-68, fn-71, fn-72, and fn-73 as transitive
+prerequisites.
+Nine tasks cover all ten requirements, with a SHIP plan review. Implementation follows fn-77
+to serialize shared Producer edits; fn-77 is not a semantic prerequisite.
+
+Implement the second consumer under `tools/canary`: manual check selection, a fresh scheduled
+Workflow each minute, Activity-owned Testpilot execution, bounded results, and isolated repeated
+measurements. Consume the Driver and binding interfaces delivered above; do not repeat their
+implementation work. Retain the cross-consumer proof; fn-73 already owns the live proof that one
+Case byte sequence runs against two environment bindings.
+
+This is a local/development prototype. It does not depend on fn-26 or fn-29 and does not authorize
+production deployment or replace fn-29's separately scoped production-canary design.
 
 
 These entries are outside the delivery queue and are not prerequisites for it.

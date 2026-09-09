@@ -78,9 +78,20 @@ func (a *admission) bindScoped(seen map[string]bool) error {
 	}
 	fields := l.ProtoReflect().Descriptor().Fields()
 	for i := 0; i < fields.Len(); i++ {
-		if l.ProtoReflect().Get(fields.Get(i)).Int() <= 0 {
+		f := fields.Get(i)
+		// The capture ceilings are required only by a capability that declares captures or a
+		// correlation; one that declares neither leaves both unset and keeps its exact encoding.
+		if f.Name() == "max_captures" || f.Name() == "max_correlation_depth" {
+			continue
+		}
+		if l.ProtoReflect().Get(f).Int() <= 0 {
 			return invalid(ir.LimitExceeded, "scoped limits must be positive")
 		}
+	}
+	capturesDeclared := slices.ContainsFunc(s.Clauses, func(c *testpilotspb.ScopedClause) bool { return len(c.Captures) > 0 })
+	correlationDeclared := slices.ContainsFunc(s.Clauses, func(c *testpilotspb.ScopedClause) bool { return c.Correlation != nil })
+	if l.MaxCaptures < 0 || l.MaxCorrelationDepth < 0 || capturesDeclared && l.MaxCaptures <= 0 || correlationDeclared && l.MaxCorrelationDepth <= 0 {
+		return invalid(ir.LimitExceeded, "scoped capture limits must be positive when declared")
 	}
 	limits := a.prepared.source.Limits
 	if l.MaxEvents > a.prepared.program.Limits().MaxRunEvents || l.MaxBuffered > l.MaxEvents || l.MaxKeys > l.MaxEvents || l.MaxEventBytes > a.prepared.program.Limits().MaxResponseBytes || l.MaxProjectionWork > limits.MaxTotalWork || l.MaxObligationWork > limits.MaxTotalWork || l.MaxSemanticTransitions > limits.MaxTransitions {
@@ -89,9 +100,15 @@ func (a *admission) bindScoped(seen map[string]bool) error {
 	if err := add(&a.captures, l.MaxObligations, limits.MaxCaptures); err != nil {
 		return err
 	}
+	if err := add(&a.captures, l.MaxCaptures, limits.MaxCaptures); err != nil {
+		return err
+	}
 	// Retained evidence, support references and countdowns share the Contract's capture budget.
 	bytes := int64(0)
-	for _, pair := range [][2]int64{{l.MaxEvents, l.MaxEventBytes}, {l.MaxSupport, 8}, {l.MaxObligations, 16}} {
+	for _, pair := range [][2]int64{{l.MaxEvents, l.MaxEventBytes}, {l.MaxSupport, 8}, {l.MaxObligations, 16}, {l.MaxCaptures, l.MaxEventBytes}} {
+		if pair[0] == 0 {
+			continue
+		}
 		if pair[0] > (limits.MaxCaptureBytes-bytes)/pair[1] {
 			return invalid(ir.LimitExceeded, "scoped retention exceeds capture bytes")
 		}
@@ -122,7 +139,7 @@ func (a *admission) bindScoped(seen map[string]bool) error {
 	if err := add(&a.states, int64(len(states)), limits.MaxStates); err != nil {
 		return err
 	}
-	kinds := map[string]bool{}
+	kinds, retained := map[string]bool{}, map[string]bool{}
 	for _, r := range s.ProjectionRules {
 		if !validID(r.Kind) || kinds[r.Kind] {
 			return invalid(ir.Malformed, "invalid or repeated scoped evidence kind")
@@ -160,6 +177,11 @@ func (a *admission) bindScoped(seen map[string]bool) error {
 				return invalid(ir.Malformed, "invalid field policy")
 			}
 			fields[f.FieldId] = true
+			// Only a field this projection actually retains carries a value a capture or a
+			// correlation operand can read.
+			if f.Disposition == testpilotspb.SCOPED_FIELD_DISPOSITION_RETAIN {
+				retained[f.FieldId] = true
+			}
 		}
 	}
 	if int64(len(seen)+len(s.Clauses)) > limits.MaxRules {
@@ -173,6 +195,100 @@ func (a *admission) bindScoped(seen map[string]bool) error {
 		if c.Clock != testpilotspb.SCOPED_CLOCK_OPERATION_TRANSITIONS || c.Bound < 0 || c.Endpoint < testpilotspb.SCOPED_ENDPOINT_RUNTIME_PREFIX || c.Endpoint > testpilotspb.SCOPED_ENDPOINT_DELIBERATELY_CLOSED || !validPredicate(c.Trigger, true) || !validPredicate(c.Response, false) {
 			return invalid(ir.Unknown, fmt.Sprintf("unsupported scoped clause %s", c.ClauseId))
 		}
+		captures := map[string]int64{}
+		for _, d := range c.Captures {
+			if !validID(d.CaptureId) || captures[d.CaptureId] != 0 || !validID(d.FieldId) || d.Lifetime <= 0 || !retained[d.FieldId] {
+				return invalid(ir.Malformed, fmt.Sprintf("invalid capture declaration in scoped clause %s", c.ClauseId))
+			}
+			captures[d.CaptureId] = d.Lifetime
+		}
+		if c.Correlation != nil {
+			if err := validCorrelation(c.Correlation, retained, captures, l.MaxCorrelationDepth); err != nil {
+				return err
+			}
+		}
 	}
 	return nil
+}
+
+func validScopedLiteral(v *testpilotspb.Value) bool {
+	switch literal := v.GetValue().(type) {
+	case *testpilotspb.Value_Text, *testpilotspb.Value_BoolValue:
+		return true
+	case *testpilotspb.Value_Natural:
+		text := literal.Natural
+		if text != "0" && (len(text) == 0 || text[0] < '1' || text[0] > '9') {
+			return false
+		}
+		for _, c := range text {
+			if c < '0' || c > '9' {
+				return false
+			}
+		}
+		return true
+	default:
+		return false
+	}
+}
+
+func validOperand(o *testpilotspb.ScopedOperand, retained map[string]bool, captures map[string]int64) error {
+	switch v := o.GetOperand().(type) {
+	case *testpilotspb.ScopedOperand_Literal:
+		if !validScopedLiteral(v.Literal) {
+			return invalid(ir.TypeMismatch, "unsupported correlation literal")
+		}
+		return nil
+	case *testpilotspb.ScopedOperand_FieldId:
+		if !validID(v.FieldId) || !retained[v.FieldId] {
+			return invalid(ir.Malformed, "unretained correlation field operand")
+		}
+		return nil
+	case *testpilotspb.ScopedOperand_Capture:
+		lifetime := captures[v.Capture.GetCaptureId()]
+		if lifetime == 0 || v.Capture.GetOrdinal() < 0 || v.Capture.GetOrdinal() >= lifetime {
+			return invalid(ir.Malformed, "unbound capture reference")
+		}
+		return nil
+	default:
+		return invalid(ir.Unknown, "unsupported correlation operand")
+	}
+}
+
+// validCorrelation checks the whole condition under the declared depth ceiling. An exhausted depth
+// is an explicit rejection, never a silently truncated condition.
+func validCorrelation(c *testpilotspb.ScopedCorrelation, retained map[string]bool, captures map[string]int64, depth int64) error {
+	if depth <= 0 {
+		return invalid(ir.LimitExceeded, "correlation depth exhausted")
+	}
+	switch v := c.GetCondition().(type) {
+	case *testpilotspb.ScopedCorrelation_Predicate:
+		if !validPredicate(v.Predicate, true) && !validPredicate(v.Predicate, false) {
+			return invalid(ir.Unknown, "unsupported correlation predicate")
+		}
+		return nil
+	case *testpilotspb.ScopedCorrelation_Comparison:
+		if v.Comparison.GetOperator() < testpilotspb.SCOPED_COMPARISON_OPERATOR_EQUAL || v.Comparison.GetOperator() > testpilotspb.SCOPED_COMPARISON_OPERATOR_NOT_EQUAL {
+			return invalid(ir.Unknown, "unsupported comparison operator")
+		}
+		if err := validOperand(v.Comparison.GetLeft(), retained, captures); err != nil {
+			return err
+		}
+		return validOperand(v.Comparison.GetRight(), retained, captures)
+	case *testpilotspb.ScopedCorrelation_All, *testpilotspb.ScopedCorrelation_Any:
+		operands := c.GetAll().GetOperands()
+		if c.GetAny() != nil {
+			operands = c.GetAny().GetOperands()
+		}
+		if len(operands) == 0 {
+			return invalid(ir.Malformed, "empty correlation group")
+		}
+		for _, operand := range operands {
+			if err := validCorrelation(operand, retained, captures, depth-1); err != nil {
+				return err
+			}
+		}
+		return nil
+	default:
+		return invalid(ir.Unknown, "unsupported correlation condition")
+	}
 }

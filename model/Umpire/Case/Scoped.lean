@@ -57,13 +57,18 @@ private def meaning (plan : Projection.Checked target) (compiled : Property.Scop
     Testpilot.Scoped.Compiled := {
   plan := plan.executable
   clauses := compiled.portableClauses
+  -- Every lowered clause declares an empty keyed fragment, so the decoded capability carries the
+  -- exact meaning a scoped Property had before the portable capture capability existed.
+  keyed := compiled.portableReferences.map fun binding =>
+    (binding.original.declaration.id.value, ⟨[], none⟩)
   scopeFields := compiled.scopeFields
   operationField := compiled.operationField
   sources := plan.sourceDeclaration.sources
   policies := plan.fieldPolicies
   transitions := compiled.limits.transitions
   obligations := compiled.limits.obligations
-  work := compiled.limits.work }
+  work := compiled.limits.work
+  captures := 0 }
 
 /-- Successful lowering carries equality of the data actually decoded for portable execution. -/
 structure Lowered (plan : Projection.Checked target) (compiled : Property.Scoped.Compiled target) where
@@ -84,8 +89,10 @@ def lower (plan : Projection.Checked target) (compiled : Property.Scoped.Compile
     (evidenceObservationId : String) : Except Compiler.LoweringError (Lowered plan compiled) := do
   let failed := fun reason => Compiler.LoweringError.mk compiled.property.id.value
     compiled.property.source reason
-  -- The portable contract carries no keyed captures yet, so lowering a clause that declares them
-  -- would silently drop its correlation and let offline replay disagree with the model.
+  -- The portable contract carries keyed captures, but it names a retained value by the declared
+  -- evidence field the projector emits, and a model field operand's structural coordinates have no
+  -- declared evidence identity yet. Lowering a clause that declares them would silently drop its
+  -- correlation and let offline replay disagree with the model.
   if let some clause := compiled.property.scopedClauses.find? fun clause =>
       !clause.declaration.captures.isEmpty || clause.correlation.isSome then
     throw (failed ("unsupported keyed field captures in scoped clause " ++ clause.declaration.id.value))
@@ -105,7 +112,10 @@ def lower (plan : Projection.Checked target) (compiled : Property.Scoped.Compile
         (match clause.declaration.endpoint with
           | .runtimePrefix => .SCOPED_ENDPOINT_RUNTIME_PREFIX
           | .deliberatelyClosed => .SCOPED_ENDPOINT_DELIBERATELY_CLOSED)
-        (some (← pattern clause.triggerPattern)) (some (← pattern clause.responsePattern)) default)
+        (some (← pattern clause.triggerPattern)) (some (← pattern clause.responsePattern))
+        -- Keyed captures are rejected above, so a lowered clause declares none and keeps the exact
+        -- encoding a scoped Property had before the portable capability existed.
+        #[] none default)
     let limits : ScopedLimits := {
       max_events := ← number declaration.limits.events
       max_buffered := ← number declaration.limits.buffered
