@@ -45,8 +45,30 @@ Create and wire the proposed test module Temporal.Feature.Nexus3.Tests.TypedUnar
 - [ ] New named real unary test and baseline Nexus3 live success/rejection tests produce explicit run/pass/no-skip receipts with immutable Case/Run identity.
 
 ## Done summary
-TBD
+Blocked:
+DESIGN_CONFLICT escalated from an implementation attempt on 2026-09-09.
 
+The identity encoding delivered by tasks .1/.4/.5 renders every model payload key as the exact
+encoded bytes of the complete generated `RpcSchema` — 27,718,530 characters for
+`StartWorkflowExecution` at ~6.6 s per call — so no qualification of a generated Temporal operation
+can be evaluated in feasible time. `ParameterDomain.check` with two real samples took 43 s, and
+`checkTarget` feeds a ~55 MB canonical to a pure-Lean SHA-256 running at ~4 s/MB.
+
+Blocked on fn-77-typed-operations-parameterized-actions.12, which bounds the identity encoding.
+Resume once .12 is done. Nothing was committed by the blocked attempt; the tree was returned to
+its inherited state.
+
+Runtime design settled during the attempt and still usable on resume: a scoped capability cannot
+run on the real Driver (`bindScoped` demands an exact `ScopedEvidence` Observation and
+`NewWorkflowServiceCatalog` has no testpilot descriptors), so the live Case must use a `.monitor`
+rule like async-nexus, with `Umpire.Case.Coverage.Request.inputs` binding the modeled nested
+request field to the exact request assignment. A controller-only Program needs only
+`Capability.InvokeRPC` and one ENDPOINT role with the two WorkflowService methods; no worker is
+required because `WorkflowExecutionStarted` is written at start.
+
+Designs ruled out before escalating: Target over `ActionInstance` via `ParameterDomain.checkTarget`;
+Target over plain `ModelValue`s; one `.fixed` sample; dropping `schemaInputs` (still 5,914,132
+chars); `native_decide` in place of `#guard`.
 ## Evidence
 - Commits:
 - Tests:
