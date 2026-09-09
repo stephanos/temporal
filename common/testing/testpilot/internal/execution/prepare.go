@@ -27,8 +27,10 @@ type admission struct {
 	observations           map[string]ir.Type
 	runID                  ir.Type
 	writers                map[string]slotWriter
-	graphIndex             map[string]*graph
-	work                   int64
+	// Each declared evidence source, and the one instruction that may lift under it.
+	evidenceSources map[string]Coordinate
+	graphIndex      map[string]*graph
+	work            int64
 }
 
 func invalid(category ir.ErrorCategory, path, detail string) error {
@@ -79,7 +81,7 @@ func Prepare(source *testpilotspb.Case, catalog *ir.Catalog, policy Policy) (*Pr
 		return nil, err
 	}
 	prepared := &PreparedProgram{source: proto.CloneOf(source.Program), catalog: catalog, slots: map[string]ir.Type{}, carriers: map[carrierCoordinate]ReservationCarrierPlan{}, roles: map[string]resolvedRole{}}
-	a := &admission{prepared: prepared, roles: map[string]testpilotspb.RoleKind{}, allowed: map[string]RolePolicy{}, methods: map[string]map[string]bool{}, carriers: map[string]map[string]ReservationCarrierPolicy{}, capabilities: map[Opcode]bool{}, bindingsRequired: true, environment: map[string]string{}, environmentDefinitions: map[string]bool{}, environmentUsed: map[string]bool{}, observations: map[string]ir.Type{}, writers: map[string]slotWriter{}, graphIndex: map[string]*graph{}}
+	a := &admission{prepared: prepared, roles: map[string]testpilotspb.RoleKind{}, allowed: map[string]RolePolicy{}, methods: map[string]map[string]bool{}, carriers: map[string]map[string]ReservationCarrierPolicy{}, capabilities: map[Opcode]bool{}, bindingsRequired: true, environment: map[string]string{}, environmentDefinitions: map[string]bool{}, environmentUsed: map[string]bool{}, observations: map[string]ir.Type{}, writers: map[string]slotWriter{}, evidenceSources: map[string]Coordinate{}, graphIndex: map[string]*graph{}}
 	for _, check := range []func() error{func() error { return a.bindPolicy(policy) }, a.bindSchemas, a.bindGraphs, a.bindInstructions, a.bindDataflow, a.bindReservations, a.bindReservationCarriers} {
 		if err := check(); err != nil {
 			return nil, err
