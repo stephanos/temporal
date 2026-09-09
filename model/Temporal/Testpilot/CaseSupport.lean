@@ -1,5 +1,6 @@
 import Testpilot.Authoring
 import Umpire.Case.Provenance
+import Umpire.Operation
 
 /-!
 Shared Testpilot producers lower their checked inputs through these closed Case construction
@@ -50,6 +51,12 @@ def historyEvents : FieldPath :=
 
 def historyAttribute (selected name : String) : FieldPath :=
   Path.make #[Path.oneofSelector "attributes" selected, Path.field name]
+
+/-- The gRPC transport path of a checked generated method, derived from its own admitted full name
+rather than copied beside it. -/
+def methodPath (schema : Umpire.Operation.RpcSchema) : String :=
+  let segments := schema.fullName.splitOn "."
+  "/" ++ ".".intercalate segments.dropLast ++ "/" ++ (segments.getLast?.getD "")
 
 def text (value : String) : ProgramExpression := ProgramExpr.literal (Value.text value)
 def signedInteger (value : Int) : ProgramExpression :=
