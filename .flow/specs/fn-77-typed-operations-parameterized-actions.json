@@ -12,7 +12,7 @@
     "fn-77-typed-operations-parameterized-actions.5": 0,
     "fn-77-typed-operations-parameterized-actions.6": 0,
     "fn-77-typed-operations-parameterized-actions.7": 0,
-    "fn-77-typed-operations-parameterized-actions.8": 1
+    "fn-77-typed-operations-parameterized-actions.8": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -433,12 +433,73 @@
       "task": "fn-77-typed-operations-parameterized-actions.8",
       "timestamp": "2026-09-09T03:00:19.505323Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "84160c6d6e53305d24a9fb0ad803b3585b109eb91791d562740fc68368504d81",
+      "backend": "copilot",
+      "base_sha": "004fa79c7784cf16bc1e276865679fdc3262d699",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "copilot",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-2d47ed0dd8a86342ca2814ed1fe15a60",
+            "classification": "introduced",
+            "findingId": "finding-2d47ed0dd8a86342ca2814ed1fe15a60",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-0b8f3bcf660e4d05e28592bad4cb3a11",
+            "classification": "introduced",
+            "findingId": "finding-0b8f3bcf660e4d05e28592bad4cb3a11",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-4df377ee4910fdd53cd0773ad3f60739",
+            "classification": "introduced",
+            "findingId": "finding-4df377ee4910fdd53cd0773ad3f60739",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "5890fe08fc8a8815f887f57f944fb10da39e8ae7",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.4",
+      "outcome": "verdict",
+      "output_bytes": 2201,
+      "output_sha256": "bcd2dd58edef85e2be8db036e323a1535027192eb4bde9444337feba07df2b89",
+      "reservation_id": "c4bc2c88d57d404da62d065a781086f8",
+      "round_consumed": true,
+      "scope": "impl:fn-77-typed-operations-parameterized-actions.8",
+      "superseded_by": null,
+      "task": "fn-77-typed-operations-parameterized-actions.8",
+      "timestamp": "2026-09-09T03:08:36.076110Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-77-typed-operations-parameterized-actions.5": 1,
     "impl:fn-77-typed-operations-parameterized-actions.6": 1,
     "impl:fn-77-typed-operations-parameterized-actions.7": 1,
+    "impl:fn-77-typed-operations-parameterized-actions.8": 1,
     "plan": 1,
     "plan#completion": 0
   },
@@ -465,5 +526,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-09T03:00:19.510743Z"
+  "updated_at": "2026-09-09T03:08:36.081364Z"
 }
