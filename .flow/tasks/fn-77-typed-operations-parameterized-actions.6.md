@@ -66,3 +66,5 @@ stage: impl-review - ran [round 1 NEEDS_WORK (copilot/gpt-5.4) .. round 2 SHIP (
 - Commits: d5c3328267a1937daabe7f4209c152a852c69a51, fc9f6a27f3c1d29d8976d6e5c0b4fbbf5983700c
 - Tests: cd model && mise exec -- lake build Umpire.Property.Tests Umpire.Property.Tests.Scoped.Evidence Umpire.Case.CompilerTests, cd model && mise exec -- lake build Umpire.Property.Tests.Scoped.Fields, cd model && mise exec -- lake build Umpire.Property.ImportTests Umpire.Query.Tests, mise exec -- make umpire-build-model, make lint-model (inherited red: 1 pre-existing unusedArguments diagnostic on Umpire.instReprPropertyFieldProjection, identical count verified at base 28189ca5), make lint-code not run: no Go changed; tracked red fn-2-agentworkflow-configuration-and-cli.6
 - PRs:
+
+stage: plan-sync - skipped(config: planSync.enabled != true)

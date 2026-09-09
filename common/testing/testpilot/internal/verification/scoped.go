@@ -20,10 +20,20 @@ type scopedObligation struct {
 	remaining int64
 	status    testpilotspb.RuleVerdictStatus
 }
+
+// retainedCapture is one occurrence a declared capture kept. Entries are only appended, so an
+// ordinal already recorded keeps the value it was admitted with rather than being replaced by a
+// later match.
+type retainedCapture struct {
+	capture string
+	ordinal int64
+	value   *testpilotspb.Value
+}
 type scopedOperation struct {
 	state       *testpilotspb.ScopedValue
 	last        *testpilotspb.ScopedIdentity
 	obligations [][]scopedObligation
+	captures    []retainedCapture
 }
 type scopedRun struct {
 	scope                                                                         []*testpilotspb.ScopedBinding
@@ -33,6 +43,7 @@ type scopedRun struct {
 	operations                                                                    map[string]*scopedOperation
 	ruleSupport                                                                   [][]int64
 	transitions, obligations, projectionWork, obligationWork, retainedStepSupport int64
+	capturedValues                                                                int64
 }
 
 func newScoped(s *testpilotspb.ScopedContract) *scopedRun {
@@ -53,6 +64,7 @@ func (r *scopedRun) clone() *scopedRun {
 		for i, obs := range v.obligations {
 			op.obligations[i] = slices.Clone(obs)
 		}
+		op.captures = slices.Clone(v.captures)
 		n.operations[k] = &op
 	}
 	n.ruleSupport = make([][]int64, len(r.ruleSupport))
@@ -306,6 +318,105 @@ func predicate(p *testpilotspb.ScopedPredicate, tr *testpilotspb.ScopedTransitio
 		}
 	})
 }
+func evidenceField(e *admittedScopedEvidence, id string) *testpilotspb.Value {
+	i := slices.IndexFunc(e.Fields, func(f *testpilotspb.ScopedEvidenceField) bool { return f.FieldId == id })
+	if i < 0 {
+		return nil
+	}
+	return e.Fields[i].Value
+}
+
+// operandValue reads only declared evidence. An occurrence the operation never retained -- a future
+// ordinal, or one belonging to a different operation -- has no value here, so admission fails rather
+// than binding the nearest match.
+func operandValue(o *testpilotspb.ScopedOperand, e *admittedScopedEvidence, op *scopedOperation) (*testpilotspb.Value, error) {
+	switch v := o.GetOperand().(type) {
+	case *testpilotspb.ScopedOperand_Literal:
+		return v.Literal, nil
+	case *testpilotspb.ScopedOperand_FieldId:
+		if value := evidenceField(e, v.FieldId); value != nil {
+			return value, nil
+		}
+		return nil, invalid(ir.Malformed, "missing correlation field operand")
+	case *testpilotspb.ScopedOperand_Capture:
+		for _, entry := range op.captures {
+			if entry.capture == v.Capture.GetCaptureId() && entry.ordinal == v.Capture.GetOrdinal() {
+				return entry.value, nil
+			}
+		}
+		return nil, invalid(ir.Malformed, "missing retained capture occurrence")
+	default:
+		return nil, invalid(ir.Unknown, "unsupported correlation operand")
+	}
+}
+
+// correlationHolds evaluates groups left to right and stops at the first decisive operand, so an
+// operand an earlier one made irrelevant is never read and cannot fail admission.
+func correlationHolds(c *testpilotspb.ScopedCorrelation, out *testpilotspb.ScopedTransition, e *admittedScopedEvidence, op *scopedOperation) (bool, error) {
+	switch v := c.GetCondition().(type) {
+	case *testpilotspb.ScopedCorrelation_Predicate:
+		return predicate(v.Predicate, out), nil
+	case *testpilotspb.ScopedCorrelation_Comparison:
+		left, err := operandValue(v.Comparison.GetLeft(), e, op)
+		if err != nil {
+			return false, err
+		}
+		right, err := operandValue(v.Comparison.GetRight(), e, op)
+		if err != nil {
+			return false, err
+		}
+		return proto.Equal(left, right) == (v.Comparison.GetOperator() == testpilotspb.SCOPED_COMPARISON_OPERATOR_EQUAL), nil
+	case *testpilotspb.ScopedCorrelation_All:
+		for _, operand := range v.All.GetOperands() {
+			holds, err := correlationHolds(operand, out, e, op)
+			if err != nil || !holds {
+				return false, err
+			}
+		}
+		return true, nil
+	case *testpilotspb.ScopedCorrelation_Any:
+		for _, operand := range v.Any.GetOperands() {
+			holds, err := correlationHolds(operand, out, e, op)
+			if err != nil {
+				return false, err
+			}
+			if holds {
+				return true, nil
+			}
+		}
+		return false, nil
+	default:
+		return false, invalid(ir.Unknown, "unsupported correlation condition")
+	}
+}
+
+// retain keeps this step's occurrence of every declared capture. A step supplying no value at the
+// declared field records nothing; an operation already holding its declared lifetime rejects.
+func (r *scopedRun) retain(s *testpilotspb.ScopedContract, e *admittedScopedEvidence, op *scopedOperation) error {
+	for _, c := range s.Clauses {
+		for _, d := range c.Captures {
+			value := evidenceField(e, d.FieldId)
+			if value == nil {
+				continue
+			}
+			ordinal := int64(0)
+			for _, entry := range op.captures {
+				if entry.capture == d.CaptureId {
+					ordinal++
+				}
+			}
+			if ordinal >= d.Lifetime {
+				return invalid(ir.LimitExceeded, "capture lifetime exhausted")
+			}
+			if err := add(&r.capturedValues, 1, s.Limits.MaxCaptures); err != nil {
+				return err
+			}
+			op.captures = append(op.captures, retainedCapture{capture: d.CaptureId, ordinal: ordinal, value: value})
+		}
+	}
+	return nil
+}
+
 func (r *scopedRun) release(s *testpilotspb.ScopedContract, e *admittedScopedEvidence) error {
 	rule := projectionRule(s, e.Kind)
 	var support []*testpilotspb.ScopedIdentity
@@ -343,6 +454,21 @@ func (r *scopedRun) release(s *testpilotspb.ScopedContract, e *admittedScopedEvi
 			return proto.Equal(tr.PriorState, op.state) && sameResult(tr, out)
 		}) {
 			return invalid(ir.Malformed, "unauthorized operation transition")
+		}
+		// A declared correlation decides which authorized steps are this operation's semantic steps
+		// at all. It reads this step's own evidence together with what the operation already
+		// retained, so an occurrence binds only after an earlier step admitted it.
+		for _, c := range s.Clauses {
+			if c.Correlation == nil {
+				continue
+			}
+			holds, err := correlationHolds(c.Correlation, out, e, op)
+			if err != nil {
+				return err
+			}
+			if !holds {
+				return invalid(ir.Malformed, "correlation rejected this operation's step")
+			}
 		}
 		if r.transitions >= s.Limits.MaxSemanticTransitions {
 			return invalid(ir.LimitExceeded, "semantic transition ceiling exceeded")
@@ -391,6 +517,11 @@ func (r *scopedRun) release(s *testpilotspb.ScopedContract, e *admittedScopedEvi
 				}
 			}
 			r.ruleSupport[i] = unionSequences(r.ruleSupport[i], r.sequences(support))
+		}
+		// This step's own occurrences are retained only once its whole append was admitted, so no
+		// correlation can read the occurrence its own step creates.
+		if err := r.retain(s, e, op); err != nil {
+			return err
 		}
 		op.state = out.ResultingState
 		operationCount = int64(len(r.operations))

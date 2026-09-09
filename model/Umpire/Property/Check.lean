@@ -473,8 +473,8 @@ private def validateFieldComparison (context : PropertyCheckContext) (owner : Pr
       -- A capture reads an earlier admitted occurrence, so its root is not this step's context.
       -- The declaration already fixes which coordinates that occurrence retains, so the operand
       -- must name a declared capture, its exact retained path, and an ordinal its lifetime keeps.
-      match path.capture with
-      | some key =>
+      let available ← match path.capture with
+      | some key => do
           let some declared := captures.find? (·.name == key.name)
             | throw (nestedPropertyError .unsupportedPredicateInput owner.id source
                 ("unbound capture " ++ key.name.value) [key.name])
@@ -486,9 +486,13 @@ private def validateFieldComparison (context : PropertyCheckContext) (owner : Pr
             throw (nestedPropertyError .unsupportedPredicateInput owner.id source
               ("capture " ++ key.name.value ++ ": occurrence beyond declared lifetime")
               [key.name])
-      | none =>
+          -- The retained occurrence's presence was decided by the cursor that admitted it, so the
+          -- reading branch inherits those facts instead of having to establish them again.
+          pure (facts ++ path.retainedFacts)
+      | none => do
           if contextKind == .guard && field != .priorState && field != .selectedAction then
             throw (nestedPropertyError .invalidPredicateContext owner.id source field.name [path.reference])
+          pure facts
       validatePattern context { owner with source } access {
         field := predicateTraceField field, reference := path.reference }
         |>.mapError fun error => { error with sourceLocation := some source }
@@ -498,7 +502,7 @@ private def validateFieldComparison (context : PropertyCheckContext) (owner : Pr
           "wrong operation owner or schema" [path.reference])
       if path.root == .request && path.side != .request then
         throw (nestedPropertyError .invalidPredicateContext owner.id source "request payload side mismatch")
-      path.validate facts source |>.mapError fun error =>
+      path.validate available source |>.mapError fun error =>
         nestedPropertyError .invalidClause owner.id error.source error.reason [path.reference]
 
 private def establishedFields : PropertyPredicate → List PropertyFieldPath
@@ -1144,8 +1148,9 @@ private def scopedPattern (clause : PropertyScopedClause)
 /-- A declared capture names an exact retained field of this clause's own operation. Its key must
 be the clause's operation key, its retained coordinates must be a same-step path admitted by the
 selected operation binding, and its lifetime must retain at least one occurrence. The coordinates
-are validated with no established presence facts: a retained occurrence's presence was decided at
-the step that admitted it, not in the Boolean branch that later reads it. -/
+carry their own presence facts: a retained occurrence's presence was decided at the step that
+admitted it, not in the Boolean branch that later reads it, so an optional or oneof-selected field
+can be captured. -/
 private def checkScopedCapture (context : PropertyCheckContext) (owner : PropertyDeclaration)
     (access : PropertyCapabilityView) (clause : PropertyScopedClause)
     (capture : PropertyScopedCapture) : Except PropertyError Unit := do
@@ -1166,7 +1171,7 @@ private def checkScopedCapture (context : PropertyCheckContext) (owner : Propert
     throw (nestedPropertyError .unsupportedPredicateInput clause.id clause.source
       ("capture " ++ capture.name.value ++ ": wrong operation owner or schema")
       [capture.path.reference])
-  capture.path.validate [] clause.source |>.mapError fun error =>
+  capture.path.validate capture.path.retainedFacts clause.source |>.mapError fun error =>
     nestedPropertyError .invalidClause clause.id error.source error.reason [capture.path.reference]
 
 private def checkScopedClause (context : PropertyCheckContext)
