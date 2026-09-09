@@ -58,6 +58,10 @@ private def duplicateTransitionMessage (key priorKey source selected : String) :
 private def unreachableTerminalMessage (spelling : String) : String :=
   s!"Nexus3 terminal state '{spelling}' is unreachable from every initial state"
 
+private def unsortedActionsMessage (earlier later : String) : String :=
+  "Nexus3 action constructors must be declared in sorted order, because the planner admits " ++
+    s!"only a canonically ordered Action catalog; '{later}' precedes '{earlier}'"
+
 private def transitionBoundMessage (declared : Nat) : String :=
   s!"Nexus3 model declares {declared} transitions; the elaboration bound is {transitionBound}"
 
@@ -112,6 +116,10 @@ elab "model" name:ident "role" role:ident
   let actionCtors ← domainConstructors "action" actionType
   let outcomeCtors ← domainConstructors "outcome" outcomeType
   let factCtors ← domainConstructors "fact" factType
+  let actionSpellings := actionCtors.map fun constructor => (shortName constructor).toString
+  for pair in actionSpellings.zip actionSpellings.tail do
+    unless pair.1 < pair.2 do
+      throwErrorAt actionType (unsortedActionsMessage pair.2 pair.1)
   let setupConstructors ← domainConstructors "setup" (mkIdentFrom name `Setup)
   let setupConstructor ← match setupConstructors with
     | [only] => pure (mkIdent only)

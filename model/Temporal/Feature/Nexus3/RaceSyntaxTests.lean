@@ -18,14 +18,14 @@ inductive Setup where
   | queued
   deriving BEq, DecidableEq, Repr
 
-/- The planner admits a Target only when its Action catalog is in canonical order, so each domain
-is declared in the order its derived Definition IDs sort. -/
+/- Only the Action catalog is order-checked, and the `model` command rejects an unsorted one in
+place. The other domains are declared in lifecycle order to keep that distinction visible. -/
 inductive State where
+  | queued
+  | running
   | cancelRequested
   | canceled
   | completed
-  | queued
-  | running
   deriving BEq, DecidableEq, Repr
 
 inductive Action where
@@ -37,14 +37,14 @@ inductive Action where
 
 inductive Outcome where
   | accepted
-  | canceled
   | cancellationRequested
+  | canceled
   | completed
   deriving BEq, DecidableEq, Repr
 
 inductive Fact where
-  | cancelRequested
   | running
+  | cancelRequested
   | settled
   deriving BEq, DecidableEq, Repr
 
@@ -91,13 +91,14 @@ query cancellation on raceLifecycle
 
 /- The second lifecycle's derived identities come from its own spellings, its witness runs the whole
 three-step trace against a two-clause Property, and the Behavior admits only the three Actions it
-names while the model declares four. -/
+names while the model declares four. Admission canonicalizes clause order, so the checked clauses
+read in sorted-ID order rather than declaration order. -/
 #guard raceLifecycle.stateIds.map (·.value) ==
-  ["temporal.nexus3.state.raceLifecycle.cancelRequested",
+  ["temporal.nexus3.state.raceLifecycle.queued",
+    "temporal.nexus3.state.raceLifecycle.running",
+    "temporal.nexus3.state.raceLifecycle.cancelRequested",
     "temporal.nexus3.state.raceLifecycle.canceled",
-    "temporal.nexus3.state.raceLifecycle.completed",
-    "temporal.nexus3.state.raceLifecycle.queued",
-    "temporal.nexus3.state.raceLifecycle.running"]
+    "temporal.nexus3.state.raceLifecycle.completed"]
 
 #guard raceLifecycle.operationRoleId.value == "temporal.nexus3.role.raceLifecycle.handler"
 
@@ -112,7 +113,9 @@ names while the model declares four. -/
       ["running", "cancelRequested", "canceled"] &&
     checked.behavior.allowedActions ==
       [raceLifecycle.actionIdAt 1, raceLifecycle.actionIdAt 2, raceLifecycle.actionIdAt 3] &&
-    checked.property.clauses.length == 2)) == some true
+    checked.property.clauses.map (·.id.value) ==
+      ["temporal.nexus3.property.cancellationSettles.settledFact",
+        "temporal.nexus3.property.cancellationSettles.settledState"])) == some true
 
 /- Nothing is shared with the success slice: the two Targets are different declarations. -/
 #guard raceLifecycle.targetId != lifecycle.targetId

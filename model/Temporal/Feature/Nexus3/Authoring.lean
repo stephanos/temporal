@@ -352,8 +352,9 @@ def propertySpec [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
   key := names.declaration
   source
   requires := [model.roleCapability names.roleName]
-  clauses := names.requirements.map fun requirement =>
+  clauses :=
     let selected := PropertyPattern.selectedAction (values.namedAction names.actionSpelling)
+    names.requirements.map fun requirement =>
     match requirement with
     | .stateClause label spelling =>
         .transitionContract (ownedId "property" names.declaration label) selected
