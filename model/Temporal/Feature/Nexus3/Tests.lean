@@ -581,7 +581,7 @@ private def misspelledRole (values : Authoring.ModelVocabulary) : ExactSequenceS
   | _ => false
 
 /--
-error: unknown Nexus3 action 'awaitFinish'
+error: unknown Nexus3 action 'awaitFinish'; declared: awaitStart, awaitSuccess
 -/
 #guard_msgs (error) in
 model unknownActionLifecycle
@@ -597,7 +597,7 @@ model unknownActionLifecycle
       { state := started, outcome := acknowledged, facts := [started] }
 
 /--
-error: unknown Nexus3 state 'missing'
+error: unknown Nexus3 state 'missing'; declared: scheduled, started, succeeded
 -/
 #guard_msgs (error) in
 model unknownStateLifecycle
@@ -620,6 +620,68 @@ query unsupportedQuery on lifecycle
   all successfulResult
   in successfulCompletion
   limits shortTrace
+
+inductive ParameterizedState where
+  | queued
+  | running (attempt : Nat)
+  deriving BEq, DecidableEq, Repr
+
+/--
+error: Nexus3 state 'running' takes arguments; a state domain must be an enum-like inductive
+-/
+#guard_msgs (error) in
+model parameterizedLifecycle
+  role operation
+  states ParameterizedState
+  actions Action
+  outcomes Outcome
+  facts Fact
+  initial [queued]
+  terminal [running]
+  transitions
+    start: queued + awaitStart →
+      { state := running, outcome := acknowledged, facts := [started] }
+
+/--
+error: duplicate Nexus3 transition 'again': 'scheduled + awaitStart' is already declared by 'start'
+-/
+#guard_msgs (error) in
+model duplicateTransitionLifecycle
+  role operation
+  states State
+  actions Action
+  outcomes Outcome
+  facts Fact
+  initial [scheduled]
+  terminal [succeeded]
+  transitions
+    start: scheduled + awaitStart →
+      { state := started, outcome := acknowledged, facts := [started] }
+    again: scheduled + awaitStart →
+      { state := succeeded, outcome := completed, facts := [succeeded] }
+
+/--
+error: Nexus3 terminal state 'succeeded' is unreachable from every initial state
+-/
+#guard_msgs (error) in
+model unreachableTerminalLifecycle
+  role operation
+  states State
+  actions Action
+  outcomes Outcome
+  facts Fact
+  initial [scheduled]
+  terminal [succeeded]
+  transitions
+    start: scheduled + awaitStart →
+      { state := started, outcome := acknowledged, facts := [started] }
+
+/- The over-bound class is pinned on the elaborator's own message builder rather than on a
+declaration. Reaching it needs 257 transition rows, which is roughly twenty kilobytes of
+near-identical test text; the elaborator calls exactly the builder guarded here. -/
+#guard transitionBound == 256
+#guard transitionBoundMessage 257 ==
+  "Nexus3 model declares 257 transitions; the elaboration bound is 256"
 
 #print axioms Temporal.Feature.Nexus3.Authoring.successModel
 #print axioms Temporal.Feature.Nexus3.Authoring.check
