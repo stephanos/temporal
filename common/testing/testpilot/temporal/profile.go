@@ -151,12 +151,19 @@ func (u *programUsage) add(instruction *testpilotspb.InstructionDefinition, cont
 		u.shapes[key] = map[testpilotspb.EntrypointKind]int64{}
 		u.carrierOrder[key.role] = append(u.carrierOrder[key.role], key.method)
 	}
+	// Carrier shapes are checked per reserving node, so the ceiling one carrier needs is the
+	// largest single node's reservation of that context, never the sum across nodes: summing
+	// would authorize more than any one instruction can ask for.
+	node := map[testpilotspb.EntrypointKind]int64{}
 	for _, reservation := range instruction.GetActivationReservations() {
 		kind, declared := contexts[reservation.GetEntrypointId()]
 		if !declared || reservation.GetCount() <= 0 {
 			return ErrInvalid
 		}
-		u.shapes[key][kind] += reservation.GetCount()
+		node[kind] += reservation.GetCount()
+	}
+	for kind, count := range node {
+		u.shapes[key][kind] = max(u.shapes[key][kind], count)
 	}
 	return nil
 }
@@ -185,11 +192,8 @@ func deriveRoles(program *testpilotspb.Program, usage *programUsage) ([]testpilo
 		}
 		roles = append(roles, policy)
 	}
-	// A method or carrier attributed to a role the Program never declared would authorize a
-	// surface the Case cannot reach, so it is an error rather than a dropped entry.
-	if len(usage.methods) > len(seen) {
-		return nil, ErrInvalid
-	}
+	// A method attributed to a role the Program never declared would authorize a surface the Case
+	// cannot reach, so it is an error rather than a dropped entry.
 	for role := range usage.methods {
 		if _, declared := seen[role]; !declared {
 			return nil, ErrInvalid
