@@ -4,7 +4,6 @@
   "claimed_at": null,
   "created_at": "2026-09-09T03:22:55.326920Z",
   "depends_on": [
-    "fn-80-close-the-model-to-case-seam-and-harden.5",
     "fn-80-close-the-model-to-case-seam-and-harden.11"
   ],
   "id": "fn-80-close-the-model-to-case-seam-and-harden.6",
