@@ -1736,6 +1736,16 @@ def scopedClockUnspecified : ScopedClock := { number := 0 }
 def scopedClockOperationTransitions : ScopedClock := { number := 1 }
 end ScopedClock
 
+structure ScopedComparisonOperator where
+  number : Int
+  deriving DecidableEq, Repr
+
+namespace ScopedComparisonOperator
+def scopedComparisonOperatorUnspecified : ScopedComparisonOperator := { number := 0 }
+def scopedComparisonOperatorEqual : ScopedComparisonOperator := { number := 1 }
+def scopedComparisonOperatorNotEqual : ScopedComparisonOperator := { number := 2 }
+end ScopedComparisonOperator
+
 structure ScopedEndpoint where
   number : Int
   deriving DecidableEq, Repr
@@ -12739,6 +12749,34 @@ structure ContractRuleDefinition where
   captures : List ContractCaptureDefinition
   deriving Repr
 
+structure ScopedCaptureDeclaration where
+  captureId : String
+  fieldId : String
+  lifetime : Int
+  deriving Repr
+
+structure ScopedCaptureRef where
+  captureId : String
+  ordinal : Int
+  deriving Repr
+
+inductive ScopedOperand.Operand where
+  | notSet
+  | literal (value : Value)
+  | fieldId (value : String)
+  | capture (value : ScopedCaptureRef)
+  deriving Repr
+
+structure ScopedOperand where
+  operand : ScopedOperand.Operand
+  deriving Repr
+
+structure ScopedComparison where
+  operator : ScopedComparisonOperator
+  left : Option ScopedOperand
+  right : Option ScopedOperand
+  deriving Repr
+
 inductive ScopedPredicate.Constraint where
   | notSet
   | present (value : Bool)
@@ -12751,6 +12789,22 @@ structure ScopedPredicate where
   constraint : ScopedPredicate.Constraint
   deriving Repr
 
+inductive ScopedCorrelation.Condition where
+  | notSet
+  | predicate (value : ScopedPredicate)
+  | comparison (value : ScopedComparison)
+  | all (value : Temporal.API.Proto.MessageRef)
+  | any (value : Temporal.API.Proto.MessageRef)
+  deriving Repr
+
+structure ScopedCorrelation where
+  condition : ScopedCorrelation.Condition
+  deriving Repr
+
+structure ScopedCorrelationGroup where
+  operands : List Temporal.API.Proto.MessageRef
+  deriving Repr
+
 structure ScopedClause where
   clauseId : String
   clock : ScopedClock
@@ -12758,6 +12812,8 @@ structure ScopedClause where
   endpoint : ScopedEndpoint
   trigger : Option ScopedPredicate
   response : Option ScopedPredicate
+  captures : List ScopedCaptureDeclaration
+  correlation : Option ScopedCorrelation
   deriving Repr
 
 structure ScopedLimits where
@@ -12770,6 +12826,8 @@ structure ScopedLimits where
   maxSemanticTransitions : Int
   maxObligations : Int
   maxObligationWork : Int
+  maxCaptures : Int
+  maxCorrelationDepth : Int
   deriving Repr
 
 structure ScopedFieldPolicy where

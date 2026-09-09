@@ -119,6 +119,88 @@ private def domainWith (coverage : ParameterCoverage) (values : List String) :
 #guard domainWith .sampled [submittedWorkflowType, submittedWorkflowType] ==
   some .duplicateArgument
 
+/-! ### Tenfold variation, payload and collection load, and bounded atomic rejection
+
+Growing the requested variation five times over does not change what the domain claims, does not
+collapse two requests into one instance, and does not turn a resource ceiling into a semantic one.
+The authored Case keeps its own two samples throughout; every domain below is admitted beside it. -/
+
+/-- Ten distinct workflow types, one per requested variation. -/
+private def tenfoldWorkflowTypes : List String :=
+  (List.range 10).map fun index => "umpire-typed-unary-variation-" ++ toString index
+
+/-- The sample count, claim, runtime scope and distinct-instance count of one admitted domain. -/
+private def domainShape (limits : Limits) (values : List Raw) :
+    Option (Nat × ParameterCoverage × RuntimeScope × Nat) := do
+  let template ← startTemplate.toOption
+  let domain ← (ParameterDomain.check template limits values .sampled
+    (.schema runtimeBounds)).toOption
+  pure (domain.actions.length, domain.coverage, domain.runtimeScope,
+    (domain.actions.map (·.canonical)).eraseDups.length)
+
+/-- The rejection one requested domain reports, or `none` when the whole list was admitted. -/
+private def domainRejection (limits : Limits) (values : List Raw) : Option ParameterError := do
+  let template ← startTemplate.toOption
+  match ParameterDomain.check template limits values .sampled (.schema runtimeBounds) with
+  | .error error => some error
+  | .ok _ => none
+
+/-- A rejection owned by the value layer, which is what an exhausted resource ceiling reports. -/
+private def isResourceRejection : Option ParameterError → Bool
+  | some (.value _) => true
+  | _ => false
+
+-- Ten requested variations enumerate exactly ten distinct Action instances, and the claim they
+-- carry is the same sampled claim two carried: size is not coverage.
+#guard domainShape valueLimits (tenfoldWorkflowTypes.map requestValue) ==
+  some (10, .sampled, .schema runtimeBounds, 10)
+
+-- The authored Case still explores exactly its own two samples; the domains above are beside it.
+#guard (checked.toOption.map fun model =>
+  (model.domain.actions.length, model.domain.coverage)) == some (2, .sampled)
+
+/-- One admitted Start request carrying `count` payload elements. Only the collection size varies. -/
+private def collectionRequest (workflowType : String) (count : Nat) : Raw :=
+  Value.message startRequestRoot [
+    (2, Value.literal (.text "umpire-typed-unary")),
+    (3, Value.message workflowTypeNode [(1, Value.literal (.text workflowType))]),
+    (5, Value.message payloadsNode [(1, Value.repeated ((List.range count).map fun index =>
+      Value.message payloadNode [(2, Value.literal (.bytes [UInt8.ofNat index]))]))])]
+
+/-- The runtime rejection one exact request value reports, or `none` when it is admitted. -/
+private def runtimeRejection (raw : Raw) : Option (Option ParameterError) := do
+  let model ← checked.toOption
+  pure (match model.domain.admitRuntime valueLimits raw with
+    | .error error => some error
+    | .ok _ => none)
+
+-- The declared runtime payload bound is exactly a bound: a load inside it is admitted and a larger
+-- one is out of scope. Neither answer enlarges the finite sample above.
+#guard runtimeRejection (collectionRequest submittedWorkflowType 12) == some none
+#guard runtimeRejection (collectionRequest submittedWorkflowType 16) == some (some .outOfScope)
+
+/-- A resource ceiling whose collection cardinality is too small for the loads below. It is the
+checker's own budget, not the declared semantic scope, so exceeding it is reported by the value
+layer rather than as a claim about what the domain covers. -/
+private def scarceLimits : Limits := { valueLimits with collection := 8 }
+
+-- The same load that is out of scope above is a collection-cardinality resource rejection here,
+-- and the two answers stay distinguishable.
+#guard isResourceRejection (domainRejection scarceLimits
+  [collectionRequest submittedWorkflowType 16])
+
+-- Rejection is atomic over the whole requested domain: nine admissible variations plus one the
+-- ceiling refuses yield no domain at all, never a nine-sample one.
+#guard isResourceRejection (domainRejection scarceLimits
+  ((tenfoldWorkflowTypes.take 9).map requestValue ++
+    [collectionRequest "umpire-typed-unary-variation-9" 16]))
+#guard domainShape scarceLimits ((tenfoldWorkflowTypes.take 9).map requestValue ++
+  [collectionRequest "umpire-typed-unary-variation-9" 16]) == none
+
+-- A repeated variation is refused the same way, before any instance is admitted.
+#guard domainRejection valueLimits ((tenfoldWorkflowTypes.map requestValue) ++
+  [requestValue "umpire-typed-unary-variation-0"]) == some .duplicateArgument
+
 /-! ### The independent field requirement, over the actual correlated evidence -/
 
 /-- Evaluate the checked Property over one modeled step: the Action at `actionIndex` paired with
@@ -260,6 +342,24 @@ private def presence (raw : Raw) (number : Nat) : Option Bool := do
         | some [rule] => rule.kind == .CONTRACT_RULE_KIND_SAFETY && rule.horizon.isNone
         | _ => false)
   | .error _ => false
+
+/-- The states and transitions of the one derived rule, as the runtime reads them. -/
+private def producedRule : Option (List (String × ContractStateStatus) × List (String × String)) := do
+  let output ← typedUnaryCase.toOption
+  let contract ← output.contract
+  let rule ← contract.rules.toList.head?
+  pure (rule.states.toList.map fun state => (state.state_id, state.status),
+    rule.transitions.toList.map fun transition =>
+      (transition.transition_id, transition.target_state_id))
+
+-- The runtime rule separates the same three answers the model Property does: a recorded type that
+-- disagrees is a violation, and an event that never establishes the field leaves the rule pending.
+#guard producedRule == some (
+  [("pending", .CONTRACT_STATE_STATUS_NONTERMINAL),
+   ("satisfied", .CONTRACT_STATE_STATUS_SATISFIED),
+   ("violated", .CONTRACT_STATE_STATUS_VIOLATED)],
+  [("match-recorded-workflow-type", "satisfied"),
+   ("reject-recorded-workflow-type", "violated")])
 
 private def producedProgram : Option Program :=
   typedUnaryCase.toOption.bind fun output => output.program

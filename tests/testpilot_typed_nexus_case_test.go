@@ -3,22 +3,15 @@
 package tests
 
 import (
-	"context"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 	enumspb "go.temporal.io/api/enums/v1"
 	historypb "go.temporal.io/api/history/v1"
-	"go.temporal.io/api/nexus/v1"
-	"go.temporal.io/api/operatorservice/v1"
-	"go.temporal.io/sdk/client"
 	testpilotpb "go.temporal.io/server/api/testpilot/v1"
-	"go.temporal.io/server/common/namespace"
-	"go.temporal.io/server/common/testing/testpilot"
 	testpilotdriver "go.temporal.io/server/common/testing/testpilot/temporal"
 	testpilotfixture "go.temporal.io/server/tests/testcore/testpilot"
-	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -43,55 +36,18 @@ func TestTestpilotTypedNexusOperationsCase(t *testing.T) {
 		TaskQueue:     "umpire-typed-nexus-queue",
 		NexusEndpoint: "umpire-typed-nexus-endpoint",
 	}
-	_, err = env.RegisterNamespace(namespace.Name(environment.Namespace), 1, enumspb.ARCHIVAL_STATE_DISABLED, "", "")
-	require.NoError(t, err)
-	created, err := env.OperatorClient().CreateNexusEndpoint(env.Context(), &operatorservice.CreateNexusEndpointRequest{
-		Spec: &nexus.EndpointSpec{
-			Name: environment.NexusEndpoint,
-			Target: &nexus.EndpointTarget{Variant: &nexus.EndpointTarget_Worker_{
-				Worker: &nexus.EndpointTarget_Worker{Namespace: environment.Namespace, TaskQueue: environment.TaskQueue},
-			}},
+	live := newTestpilotLiveCase(t, env, caseSource,
+		testpilotfixture.TypedNexusProfile(catalog, caseSource, environment),
+		testpilotLiveResources{
+			Namespace: environment.Namespace, TaskQueue: environment.TaskQueue,
+			NexusEndpoint: environment.NexusEndpoint,
 		},
-	})
-	require.NoError(t, err)
-	t.Cleanup(func() {
-		ctx, cancel := context.WithTimeout(context.Background(), testpilotCleanupTimeout)
-		defer cancel()
-		_, err := env.OperatorClient().DeleteNexusEndpoint(ctx, &operatorservice.DeleteNexusEndpointRequest{
-			Id: created.GetEndpoint().GetId(), Version: created.GetEndpoint().GetVersion(),
-		})
-		require.NoError(t, err)
-	})
-
-	profile := testpilotfixture.TypedNexusProfile(catalog, caseSource, environment)
-	frozen := profile.Snapshot()
-	expectedProfile := frozen.Snapshot()
-	prepared, err := testpilot.Prepare(caseSource, frozen)
-	require.NoError(t, err)
-	caseClient, err := client.Dial(client.Options{HostPort: env.FrontendGRPCAddress(), Namespace: environment.Namespace})
-	require.NoError(t, err)
-	t.Cleanup(caseClient.Close)
-	driver, err := testpilotdriver.New(testpilotdriver.Options{
-		Profile: frozen,
-		ServerEndpoints: map[string]testpilotdriver.Endpoint{
-			"temporal.workflow-service": {Target: env.FrontendGRPCAddress(), Credentials: insecure.NewCredentials()},
-		},
-		SystemCallbackBaseURL: "http://" + env.HttpAPIAddress(),
-		SDKClient:             caseClient,
-		WorkerRoleID:          "temporal.worker",
-		WorkerStopTimeout:     typedNexusCleanupTimeout,
-	})
-	require.NoError(t, err)
-	t.Cleanup(func() {
-		ctx, cancel := context.WithTimeout(context.Background(), typedNexusCleanupTimeout)
-		defer cancel()
-		require.NoError(t, driver.Close(ctx))
-	})
+		typedNexusCleanupTimeout)
 
 	operations := []string{testpilotfixture.TypedNexusFirstOperation, testpilotfixture.TypedNexusSecondOperation}
 	runIDs := make(map[string]struct{}, 2)
 	for range 2 {
-		run, verdict, err := prepared.Run(env.Context(), driver)
+		run, verdict, err := live.prepared.Run(env.Context(), live.driver)
 		require.NoError(t, err)
 		require.Equal(t, testpilotpb.RUN_STATUS_COMPLETED, run.GetStatus())
 		require.Equal(t, testpilotpb.CLEANUP_STATUS_SUCCEEDED, run.GetCleanup().GetStatus())
@@ -105,13 +61,13 @@ func TestTestpilotTypedNexusOperationsCase(t *testing.T) {
 
 		require.NotContains(t, runIDs, run.GetRunId())
 		runIDs[run.GetRunId()] = struct{}{}
-		_, err = caseClient.DescribeWorkflowExecution(env.Context(), run.GetRunId(), "")
+		_, err = live.client.DescribeWorkflowExecution(env.Context(), run.GetRunId(), "")
 		require.NoError(t, err)
 	}
 
 	require.True(t, proto.Equal(caseSnapshot, caseSource))
-	require.True(t, proto.Equal(caseSnapshot, prepared.Snapshot()))
-	require.Equal(t, expectedProfile.EnvironmentBindings, driver.Snapshot().EnvironmentBindings)
+	require.True(t, proto.Equal(caseSnapshot, live.prepared.Snapshot()))
+	require.Equal(t, live.profile.EnvironmentBindings, live.driver.Snapshot().EnvironmentBindings)
 }
 
 // requireCorrelatedNexusOperationEvidence reads one rule's supporting Observations back out of the

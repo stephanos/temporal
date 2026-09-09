@@ -217,6 +217,39 @@ Gaps in order, attaches exact opaque provenance, and performs final generated Ca
 input contains generated protocol values and introduces no parallel wire representation. A
 Testpilot-only synthetic Producer can assemble a generated Case directly.
 
+### Typed field lowering
+
+A Case whose Properties name concrete request and evidence fields is lowered in both directions, and
+each direction has one owner.
+
+`Umpire.Case.Coverage` owns the request side. A requested coverage map binds each modeled input
+field to the exact entrypoint and instruction whose request assignment constructs it, with the exact
+modeled value. `Coverage.check` runs against the Program the Case actually produced and rejects the
+whole requested Case before any Driver I/O when a mapping names an unknown instruction, a field the
+Program never constructs from an exact value, a different value than the model declares, a presence
+read (which describes a payload rather than constructing one), or result coordinates, which are
+covered by declared Observations and never by a request assignment.
+
+`Umpire.Case.Observed` owns the evidence side. `Observed.pathOf` derives the runtime read path a
+modeled operand's coordinates describe, rooted at the declared Observation's own message, mirroring
+`Coverage.targetPath` in the other direction. Because every field path in a derived Contract rule is
+`Observed.pathOf` applied to the same `PropertyFieldPath` the Property compares, moving a coordinate
+in the Property moves the runtime read with it, and a field the Property stops naming stops being
+read. Reads it cannot derive — a wrong oneof group, an unselected member, a presence read, a
+repeated element, a keyed map lookup, a cardinality — reject by name rather than resolving to an
+approximate path.
+
+Operation identity is versioned separately from the model values it carries.
+`Umpire.Operation.Canonical.rpcSchema` names the selected operation by method full name, both
+payload signature roots and streaming shape, and reaches the descriptor closure through
+`Canonical.closure`, a bounded structural fold, so a proto revision that preserves method and
+message names but changes the descriptor closure changes the identity. That encoding is versioned
+`parameterized-v2-` under the named migration `parameterized-operation-identity-v2`; the digest is
+bounded, so it retains what `Canonical.rpcSchema_inj` states rather than claiming injectivity over
+an unbounded schema space. Parameter values belong to canonical Action instances and enter Behavior
+Fingerprints through the domain's canonical meaning, which records the explored dimension, the
+coverage claim, every sample, and the declared runtime scope.
+
 `Testpilot.ProtoJSON.canonical` delegates canonical Case encoding to `Protobuf.Json`;
 `Umpire.Case.ProtoJSON.canonical` is only a temporary forwarding compatibility name. Testpilot's
 `Prepare` owns static admission, including Program and Contract closure, types, paths, instruction

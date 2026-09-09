@@ -470,12 +470,16 @@ private def program (startPath historyPath : String) : Program :=
       Program.environment taskQueueBindingId])
 
 /-- The runtime reading of the one checked clause: the workflow type the started event recorded is
-the one the Program submitted. -/
+the one the Program submitted. The rule distinguishes the same three answers the model Property
+does. An event that establishes the recorded type and disagrees with it is a violation, not an
+absence; an event that never establishes the field leaves the rule pending, so a Run that produced
+no started event still closes inconclusive. -/
 private def startedRule (checkedProperty : CheckedProperty) : ContractRuleDefinition :=
   Monitor.rule (checkedProperty.id.value ++ ".recorded-workflow-type")
     .CONTRACT_RULE_KIND_SAFETY "pending"
     #[Monitor.state "pending" .CONTRACT_STATE_STATUS_NONTERMINAL,
-      Monitor.state "satisfied" .CONTRACT_STATE_STATUS_SATISFIED]
+      Monitor.state "satisfied" .CONTRACT_STATE_STATUS_SATISFIED,
+      Monitor.state "violated" .CONTRACT_STATE_STATUS_VIOLATED]
     #[Monitor.transition "match-recorded-workflow-type" "pending" "satisfied"
       #[.RUN_EVENT_KIND_INSTRUCTION_COMPLETED]
       (ContractExpr.all #[
@@ -483,6 +487,15 @@ private def startedRule (checkedProperty : CheckedProperty) : ContractRuleDefini
         ContractExpr.present (projected (observed observationId) recordedTypePath),
         ContractExpr.equals (projected (observed observationId) recordedTypePath)
           (ContractExpr.literal (Value.text submittedWorkflowType))])
+      .CONTRACT_SUPPORT_KIND_MATCHING_EVENT,
+      Monitor.transition "reject-recorded-workflow-type" "pending" "violated"
+      #[.RUN_EVENT_KIND_INSTRUCTION_COMPLETED]
+      (ContractExpr.all #[
+        ContractExpr.present (observed observationId),
+        ContractExpr.present (projected (observed observationId) recordedTypePath),
+        ContractExpr.negation (ContractExpr.equals
+          (projected (observed observationId) recordedTypePath)
+          (ContractExpr.literal (Value.text submittedWorkflowType)))])
       .CONTRACT_SUPPORT_KIND_MATCHING_EVENT]
 
 /-- The modeled input field this Case must construct, and the exact instruction that constructs it. -/

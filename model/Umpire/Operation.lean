@@ -54,6 +54,10 @@ structure RpcOwner where
   Witness : Type → Type → Type
   schema : {Request Response : Type} → Witness Request Response → RpcSchema
 
+-- Both other fields are proofs, so an auto-generated injectivity lemma would reduce to equality of
+-- the one data field and be provable by `simp` from the structure rules alone. The private
+-- constructor is never destructured by name, so the lemma is not generated.
+set_option genInjectivity false in
 /-- A unary binding retains kernel-checked equality to its expected generated schema. -/
 structure CheckedRpc (owner : RpcOwner) {Request Response : Type}
     (reference : owner.Witness Request Response) where
