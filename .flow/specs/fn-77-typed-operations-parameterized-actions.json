@@ -9,7 +9,7 @@
   "depends_on_epics": [],
   "id": "fn-77-typed-operations-parameterized-actions",
   "impl_review_rounds": {
-    "fn-77-typed-operations-parameterized-actions.12": 2,
+    "fn-77-typed-operations-parameterized-actions.12": 3,
     "fn-77-typed-operations-parameterized-actions.5": 0,
     "fn-77-typed-operations-parameterized-actions.6": 0,
     "fn-77-typed-operations-parameterized-actions.7": 0,
@@ -590,6 +590,66 @@
       "task": "fn-77-typed-operations-parameterized-actions.12",
       "timestamp": "2026-09-09T04:31:14.968718Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "ea935a15adcc38d07d32f905942a08154e256a5aab417adb3fd34fbf7b5ca16d",
+      "backend": "copilot",
+      "base_sha": "9172bf8775a074645243fbe48d76d70d079744dc",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "copilot",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-570d3804235fa57d3dff706ab87f5fc0",
+            "classification": "introduced",
+            "findingId": "finding-570d3804235fa57d3dff706ab87f5fc0",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-819857a328ba0d26b47422213c47f0fd",
+            "classification": "introduced",
+            "findingId": "finding-819857a328ba0d26b47422213c47f0fd",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "not_fixed"
+          },
+          {
+            "chainRoot": "finding-90226201c1ae72dfea4231c495ca4c7a",
+            "classification": "introduced",
+            "findingId": "finding-90226201c1ae72dfea4231c495ca4c7a",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e4b4412e5d691d3b275ba5a403bf653da05c602d",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.4",
+      "outcome": "verdict",
+      "output_bytes": 2630,
+      "output_sha256": "536cad9c26e3d66aa512a1e3082856d705d3b60d03d2ffdda226eac619d2ea11",
+      "reservation_id": "f2e828601b1a408cbbedd2bbcc275e6c",
+      "round_consumed": true,
+      "scope": "impl:fn-77-typed-operations-parameterized-actions.12",
+      "superseded_by": null,
+      "task": "fn-77-typed-operations-parameterized-actions.12",
+      "timestamp": "2026-09-09T04:41:14.904840Z",
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
@@ -624,5 +684,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-09T04:31:14.974479Z"
+  "updated_at": "2026-09-09T04:41:14.909844Z"
 }

@@ -13,7 +13,7 @@ partly CI-wired code. Nothing in the current Umpire, Testpilot, or Temporal mode
 | --- | --- | --- |
 | gomad, gomad1, gomad2, gomad3, gomad3sim, gomad3integration | 209,000 | gomad3 workflow, Makefile targets, four nested go.mod files, a root go.mod `replace` |
 | umpire1, umpire2, umpire3 | 92,700 | umpire3 and umpire-model-verification workflows, two Makefile variable blocks and about 70 targets, a second Lake project under umpire3 (677 MB on disk) |
-| common/testing/umpire and the testcore monitor | 26,400 | history-service instrumentation in seven files, the functional test harness monitor and gRPC interceptor |
+| common/testing/umpire and the testcore monitor | 26,400 | instrumentation in the history workflow cache, observer comments in six other history files, the functional test harness monitor and gRPC interceptor |
 | agentworkflow | 11,200 | Makefile, its own go.mod |
 | legacy tests under tests | 6,200 | the live-test gate that pins nine expected failures by name |
 | cmd/umpire-genmodels | — | imports umpire2 and common/testing/umpire/verify; mise tasks and an install script |
@@ -241,4 +241,5 @@ before deleting any tree.
 | R5 | Gates and measurements | .5 | — |
 | R6 | White-box seam removal | .2 | — |
 | R7 | Docs, index relabel, roadmap, flow record sync | .5 | — |
+
 
