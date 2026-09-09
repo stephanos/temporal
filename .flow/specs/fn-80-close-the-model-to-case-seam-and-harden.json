@@ -12,7 +12,7 @@
     "fn-80-close-the-model-to-case-seam-and-harden.1": 0,
     "fn-80-close-the-model-to-case-seam-and-harden.2": 0,
     "fn-80-close-the-model-to-case-seam-and-harden.3": 0,
-    "fn-80-close-the-model-to-case-seam-and-harden.7": 1
+    "fn-80-close-the-model-to-case-seam-and-harden.7": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -578,12 +578,42 @@
       "task": "fn-80-close-the-model-to-case-seam-and-harden.7",
       "timestamp": "2026-09-09T16:15:45.439964Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "0890dc2250cfd97664c27ee9d193233eb344f0103f9dff460f1d658a1b1d237f",
+      "backend": "claude",
+      "base_sha": "cf37c891f0b76d094ee719c15e6106494b68b76d",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "ca31554e902fec40e07ce8b7613d6251060ffbf7",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 4790,
+      "output_sha256": "df47e09e92bf4ba441407d6519c72d828cb44fe6d59ef295970c392454c026bc",
+      "reservation_id": "00ccccd50dd2418d84d23db6863ce29c",
+      "round_consumed": true,
+      "scope": "impl:fn-80-close-the-model-to-case-seam-and-harden.7",
+      "superseded_by": null,
+      "task": "fn-80-close-the-model-to-case-seam-and-harden.7",
+      "timestamp": "2026-09-09T16:21:35.748096Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-80-close-the-model-to-case-seam-and-harden.1": 1,
     "impl:fn-80-close-the-model-to-case-seam-and-harden.2": 1,
     "impl:fn-80-close-the-model-to-case-seam-and-harden.3": 1,
+    "impl:fn-80-close-the-model-to-case-seam-and-harden.7": 1,
     "plan": 1,
     "plan#completion": 0
   },
@@ -610,5 +640,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-09T16:15:45.440589Z"
+  "updated_at": "2026-09-09T16:21:35.752665Z"
 }

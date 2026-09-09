@@ -12,7 +12,7 @@ import (
 	"go.temporal.io/server/tests/testcore"
 )
 
-// CaseBinding is everything a live Run needs that the Case itself cannot know: which physical
+// caseBinding is everything a live Run needs that the Case itself cannot know: which physical
 // namespace, task queue and Nexus endpoint its symbolic bindings resolve to, the identity the
 // derived Profile carries, and whether this test owns creating the endpoint.
 type CaseBinding struct {
