@@ -55,3 +55,5 @@ stage: impl-review - ran [round 1 NEEDS_WORK (copilot/gpt-5.4) .. round 2 SHIP (
 - Commits: 8ecf132a160d7bea386afc130f2551fb80f2b813, 0491652266a384f2d1c4bd358cc3e2f3cdf319cb, 47fb8ac98e8d78d71d87b895ebd74fb637afc49a, 7a18621bee3998ae94126c9be08e2fa9ead145bd, 9829a291cdc6f66f241bb4f755a5aebd366c114e, e670f137367d965dd121d6f6d9bef4c0931a088a
 - Tests: cd model && mise exec -- lake build Umpire.Property.Tests Umpire.Property.ImportTests Umpire.Query.Tests, cd model && mise exec -- lake build Umpire.Property.Tests.Fields, mise exec -- make umpire-build-model
 - PRs:
+
+stage: plan-sync - skipped(config: planSync.enabled != true)

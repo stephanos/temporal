@@ -57,11 +57,11 @@ private def template := do
     (owner.schema (Request := Unit) (Response := Unit) ())
   ActionTemplate.check (rpc Empty binding) PropertyTests.requestCancel
 private def rootPath (root : PropertyFieldRoot) (reference : DefinitionId) : PropertyFieldPath :=
-  ⟨root, reference, owner.schema (Request := Unit) (Response := Unit) (), .request,
-    [.field "M" 1], .integer .int32⟩
+  { root, reference, schema := owner.schema (Request := Unit) (Response := Unit) (),
+    side := .request, steps := [.field "M" 1], type := .integer .int32 }
 private def stateRootPath (root : PropertyFieldRoot) (reference : DefinitionId) : PropertyFieldPath :=
-  ⟨root, reference, stateOwner.schema (Request := Unit) (Response := Unit) (), .request,
-    [.field "S" 1], .integer .int32⟩
+  { root, reference, schema := stateOwner.schema (Request := Unit) (Response := Unit) (),
+    side := .request, steps := [.field "S" 1], type := .integer .int32 }
 private def requestPath := rootPath .request PropertyTests.requestCancel
 private def priorPath := stateRootPath .priorState PropertyTests.pendingCount
 private def eventPath := stateRootPath .event PropertyTests.cancelDelivered

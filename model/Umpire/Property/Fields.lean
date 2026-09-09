@@ -14,7 +14,17 @@ inductive PropertyFieldRoot where
   | request | priorState | resultingState | outcome | event
   deriving BEq, DecidableEq, Repr
 
-/-- Structural coordinates for a field operand, independent of generated Lean spelling. -/
+/-- The exact earlier occurrence a capture operand names: its declared capture and the ordinal of
+the occurrence within the reading operation. Ordinals are assigned in admission order, so a later
+occurrence is a new ordinal rather than a replacement of an earlier one. -/
+structure PropertyFieldCaptureKey where
+  name : DefinitionId
+  ordinal : Nat
+  deriving BEq, DecidableEq, Repr
+
+/-- Structural coordinates for a field operand, independent of generated Lean spelling. A `capture`
+key names one retained earlier occurrence instead of the operand's own step; same-step operands
+leave it absent and keep their existing identity. -/
 structure PropertyFieldPath where
   root : PropertyFieldRoot
   reference : DefinitionId
@@ -22,6 +32,7 @@ structure PropertyFieldPath where
   side : Side
   steps : List Field.Step
   type : Singular
+  capture : Option PropertyFieldCaptureKey := none
   deriving BEq, DecidableEq, Repr
 
 /-- An exact scalar literal or a schema-qualified selection with its own diagnostic source. -/
@@ -112,12 +123,21 @@ private def fieldRootData : PropertyFieldRoot → Nat
   | .outcome => 3
   | .event => 4
 
+/-- A same-step path keeps its existing encoding; a capture key is appended only when present, so
+declarations written before keyed captures existed retain their exact canonical bytes. -/
+private def fieldPathData (path : PropertyFieldPath) : List Raw :=
+  [.atom (fieldRootData path.root), textData path.reference.value,
+    Canonical.rpcSchema path.schema, .atom (if path.side == .request then 0 else 1),
+    sequence (path.steps.map fieldStepData), fieldTypeData path.type] ++
+    path.capture.toList.map fun key => sequence [textData key.name.value, .atom key.ordinal]
+
 private def fieldOperandData : PropertyFieldOperand → Raw
   | .literal value _ => sequence [.atom 0, literal value]
-  | .field path _ => sequence [.atom 1, .atom (fieldRootData path.root),
-      textData path.reference.value, Canonical.rpcSchema path.schema,
-      .atom (if path.side == .request then 0 else 1),
-      sequence (path.steps.map fieldStepData), fieldTypeData path.type]
+  | .field path _ => sequence (.atom 1 :: fieldPathData path)
+
+/-- Versioned structural identity of one operand path; diagnostic sources have no semantic meaning. -/
+def PropertyFieldPath.canonical (path : PropertyFieldPath) : String :=
+  "property-field-path/v1:" ++ Canonical.key (sequence (fieldPathData path))
 
 /-- New comparison identity is versioned and exact; diagnostic sources have no semantic meaning. -/
 def PropertyFieldComparison.canonical (comparison : PropertyFieldComparison) : String :=
@@ -189,7 +209,8 @@ def PropertyFieldBinding.ofAction (template : ActionTemplate owner Request Respo
 /-- Construct structural operand coordinates from the selected checked cursor. -/
 def PropertyFieldPath.ofCursor (root : PropertyFieldRoot) (reference : DefinitionId)
     (cursor : Field.Cursor owner witness payloadSide limits valueType card readiness) : PropertyFieldPath :=
-  ⟨root, reference, owner.schema witness, payloadSide, cursor.path, valueType⟩
+  { root, reference, schema := owner.schema witness, side := payloadSide,
+    steps := cursor.path, type := valueType }
 
 private def fieldSchema (path : PropertyFieldPath) : Schema :=
   if path.side == .request then path.schema.request else path.schema.response

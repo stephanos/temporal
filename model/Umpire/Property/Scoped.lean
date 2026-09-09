@@ -1,4 +1,5 @@
 import Umpire.Property.Scoped.Reference
+import Umpire.Property.Scoped.Capture
 
 /-!
 Checked, bounded operation-scoped Property evaluation. `compile` binds the Property's scope and
@@ -12,11 +13,13 @@ namespace Umpire.Property.Scoped
 variable {Law : LawDefinition → Prop} {Setup : Type}
 variable {target : CheckedTarget Law Setup ModelValue ModelValue ModelValue ModelValue}
 
-/-- Evaluation limits bound retained transitions, independent triggers and charged work. -/
+/-- Evaluation limits bound retained transitions, independent triggers, retained capture values
+and charged work. A consumer that declares no captures needs no capture budget. -/
 structure Limits where
   transitions : Nat
   obligations : Nat
   work : Nat
+  captures : Nat := 0
   deriving BEq, DecidableEq, Repr
 
 /-- A rejected append returns no replacement state and never supplies a semantic answer. -/
@@ -30,6 +33,8 @@ inductive Error where
   | transitionsExhausted
   | obligationsExhausted
   | workExhausted
+  | capturesExhausted
+  | capture (error : CaptureError)
   deriving BEq, DecidableEq, Repr
 
 private def referenceClause (clause : ResolvedPropertyScopedClause) : ResolvedPropertyClause :=
@@ -246,6 +251,7 @@ private structure Operation where
   key : String
   state : ModelValue
   executions : List Execution
+  captures : Captures := Captures.empty
 
 private structure Payload where
   scope : List (DefinitionId × String)
@@ -253,6 +259,7 @@ private structure Payload where
   operations : List Operation := []
   transitions : Nat := 0
   retainedObligations : Nat := 0
+  capturedValues : Nat := 0
   work : Nat := 0
   closed : Bool := false
 
@@ -300,10 +307,23 @@ private def validateCoordinate (clause : ResolvedPropertyScopedClause) (step : T
     Error.property
   pure ()
 
+/-- A labeled transition is one of this operation's semantic steps only when the clause's declared
+correlation holds over this step's evidence together with the operation's retained captures.
+Reading an occurrence this operation never retained -- a future ordinal, or one belonging to a
+different operation -- fails admission rather than binding the nearest match, and a correlation
+that is false rejects the step instead of spending the operation's window. -/
+private def validateCorrelation (clause : ResolvedPropertyScopedClause) (step : Transition)
+    (evidence : List PropertyFieldEvidence) : Except Error Unit := do
+  let some correlation := clause.correlation | pure ()
+  let input ← (checkPropertyPredicateInputWithEvidence correlation
+    (predicateInput .guard step) evidence).mapError Error.property
+  if !evaluatePropertyPredicate correlation input then
+    throw (.invalidTransition step.operation)
+
 /-- Validate transition authority and continuity before processing every clause atomically. No
 poll, duplicate read, acknowledgement or unrelated operation can spend this operation's window. -/
-def Run.consume {compiled : Compiled target} (run : Run compiled) (step : Transition) :
-    Except Error (Run compiled) := do
+def Run.consume {compiled : Compiled target} (run : Run compiled) (step : Transition)
+    (evidence : List PropertyFieldEvidence := []) : Except Error (Run compiled) := do
   let payload := run.payload
   if payload.closed then throw .closed
   if step.scope != payload.scope || step.operationField != compiled.operationField ||
@@ -317,17 +337,23 @@ def Run.consume {compiled : Compiled target} (run : Run compiled) (step : Transi
       !(target.kernel.steps operation.state step.action).contains step.result then
     throw (.invalidTransition step.operation)
   if payload.transitions ≥ compiled.limits.transitions then throw .transitionsExhausted
+  let declarations := compiled.clauses.flatMap (·.original.declaration.captures)
   let work := payload.work + payload.retainedObligations +
     16 * compiled.property.scopedClauses.length * (payload.transitions + 1) *
       (1 + target.behaviorDescription.transitions.foldl (fun maximum row => max maximum row.observations.length) 0) +
       payload.operations.length +
-    (target.kernel.steps operation.state step.action).length
+    (target.kernel.steps operation.state step.action).length +
+    payload.capturedValues + (1 + declarations.length) * evidence.length
   if work > compiled.limits.work then throw .workExhausted
+  -- Correlation reads this step's own evidence together with what the operation already retained,
+  -- so an occurrence is bound only after an earlier step admitted it.
+  let available := evidence ++ operation.captures.evidence
   let mut executions := []
   let mut created := 0
   for compiledClause in compiled.clauses do
     let clause := compiledClause.original
     validateCoordinate clause step
+    validateCorrelation clause step available
     let current ← match operation.executions.find? (·.clause.declaration.id == clause.declaration.id) with
       | some current => pure current
       | none => Execution.start compiledClause payload.initial
@@ -336,7 +362,11 @@ def Run.consume {compiled : Compiled target} (run : Run compiled) (step : Transi
     executions := executions ++ [next]
   if payload.retainedObligations + created > compiled.limits.obligations then
     throw .obligationsExhausted
-  let next := { operation with state := step.result.resultingState, executions }
+  -- This step's own occurrences are retained only once the whole append was admitted, so no
+  -- correlation can read the occurrence its own step creates.
+  let (captures, charged) ← (operation.captures.record declarations evidence).mapError Error.capture
+  if payload.capturedValues + charged > compiled.limits.captures then throw .capturesExhausted
+  let next := { operation with state := step.result.resultingState, executions, captures }
   let operations := if payload.operations.any (·.key == step.operation) then
     payload.operations.map fun current => if current.key == step.operation then next else current
     else payload.operations ++ [next]
@@ -344,12 +374,19 @@ def Run.consume {compiled : Compiled target} (run : Run compiled) (step : Transi
     operations
     transitions := payload.transitions + 1
     retainedObligations := payload.retainedObligations + created
+    capturedValues := payload.capturedValues + charged
     work }⟩
 
 /-- Whole-stream, incremental and offline evaluation share this exact checked transition fold. -/
 def Run.consumeMany {compiled : Compiled target} (run : Run compiled)
     (steps : List Transition) : Except Error (Run compiled) :=
-  steps.foldlM Run.consume run
+  steps.foldlM (fun run step => run.consume step) run
+
+/-- Field-bearing streams use the exact same atomic append; each step carries the same-step
+projections its clause operands read and its declared captures retain. -/
+def Run.consumeEvidence {compiled : Compiled target} (run : Run compiled)
+    (steps : List (Transition × List PropertyFieldEvidence)) : Except Error (Run compiled) :=
+  steps.foldlM (fun run step => run.consume step.1 step.2) run
 
 /-- The operation-scoped histories of successful admissions, with their checked fold invariants. -/
 def Run.executions {compiled : Compiled target} (run : Run compiled) : List (String × Execution) :=
@@ -377,6 +414,14 @@ theorem Run.consumeMany_append {compiled : Compiled target} (run : Run compiled)
     run.consumeMany (first ++ second) =
       (run.consumeMany first >>= fun next => next.consumeMany second) := by
   simp [consumeMany, List.foldlM_append]
+
+/-- Splitting a field-bearing stream at any chunk boundary retains the same captures, the same
+obligations and the same first rejection. -/
+theorem Run.consumeEvidence_append {compiled : Compiled target} (run : Run compiled)
+    (first second : List (Transition × List PropertyFieldEvidence)) :
+    run.consumeEvidence (first ++ second) =
+      (run.consumeEvidence first >>= fun next => next.consumeEvidence second) := by
+  simp [consumeEvidence, List.foldlM_append]
 
 /-- Closing twice preserves the same immutable state. Finite-close answers may resolve previously
 pending obligations; incomplete runtime prefixes retain their explicit unresolved interpretation. -/

@@ -189,7 +189,11 @@ def ResolvedPropertyClause.id : ResolvedPropertyClause → DefinitionId
   | .guardedQuiescentWithin clause => clause.id
 
 /-- The supported scoped fragment retains both typed predicates and their existing temporal
-patterns. Construction is confined to Property admission. -/
+patterns. `correlation` is the optional admitted precondition over this step's request/prior-state
+field evidence and the operation's retained captures; it gates which labeled transitions belong to
+the operation and never contributes a trigger or a response. Its guard context is deliberate: a
+requirement about a step's outcome is a product violation, not evidence that the step belongs to a
+different operation. Construction is confined to Property admission. -/
 structure ResolvedPropertyScopedClause where
   private mk ::
   declaration : PropertyScopedClause
@@ -197,6 +201,7 @@ structure ResolvedPropertyScopedClause where
   response : CheckedPropertyPredicate .expectation
   triggerPattern : PropertyPattern
   responsePattern : PropertyPattern
+  correlation : Option (CheckedPropertyPredicate .guard) := none
   deriving BEq, DecidableEq, Repr
 
 structure CheckedProperty where
@@ -458,15 +463,23 @@ private def fieldPredicateField : PropertyFieldRoot → PropertyPredicateField
 
 private def validateFieldComparison (context : PropertyCheckContext) (owner : PropertyDeclaration)
     (access : PropertyCapabilityView) (contextKind : PropertyPredicateContext)
-    (comparison : PropertyFieldComparison) (facts : List PropertyFieldPath) :
-    Except PropertyError Unit := do
+    (comparison : PropertyFieldComparison) (facts : List PropertyFieldPath)
+    (captures : List DefinitionId) : Except PropertyError Unit := do
   let _ ← PropertyFieldComparison.check comparison.operator comparison.left comparison.right comparison.source
     |>.mapError fun error => nestedPropertyError .typeMismatch owner.id error.source error.reason
   for operand in [comparison.left, comparison.right] do
     if let .field path source := operand then
       let field := fieldPredicateField path.root
-      if contextKind == .guard && field != .priorState && field != .selectedAction then
-        throw (nestedPropertyError .invalidPredicateContext owner.id source field.name [path.reference])
+      -- A capture reads an earlier admitted occurrence, so its root is not this step's context;
+      -- it is admitted only where the reading clause declared that exact capture name.
+      match path.capture with
+      | some key =>
+          if !captures.contains key.name then
+            throw (nestedPropertyError .unsupportedPredicateInput owner.id source
+              ("unbound capture " ++ key.name.value) [key.name])
+      | none =>
+          if contextKind == .guard && field != .priorState && field != .selectedAction then
+            throw (nestedPropertyError .invalidPredicateContext owner.id source field.name [path.reference])
       validatePattern context { owner with source } access {
         field := predicateTraceField field, reference := path.reference }
         |>.mapError fun error => { error with sourceLocation := some source }
@@ -489,12 +502,13 @@ private def validatePropertyPredicate
     (owner : PropertyDeclaration)
     (access : PropertyCapabilityView)
     (contextKind : PropertyPredicateContext)
-    (predicate : PropertyPredicate) (facts : List PropertyFieldPath := []) :
+    (predicate : PropertyPredicate) (facts : List PropertyFieldPath := [])
+    (captures : List DefinitionId := []) :
     Except PropertyError Unit :=
   match predicate with
   | .atom atom => do
       if let some comparison := atom.fieldComparison then
-        validateFieldComparison context owner access contextKind comparison facts
+        validateFieldComparison context owner access contextKind comparison facts captures
       else
         if !contextKind.allows atom.field then
           throw (propertyError .invalidPredicateContext owner.id owner.source
@@ -511,13 +525,13 @@ private def validatePropertyPredicate
   | .all items => do
       let mut available := facts
       for item in items do
-        validatePropertyPredicate context owner access contextKind item available
+        validatePropertyPredicate context owner access contextKind item available captures
         available := available ++ establishedFields item
   | .any items =>
       for item in items do
-        validatePropertyPredicate context owner access contextKind item facts
+        validatePropertyPredicate context owner access contextKind item facts captures
   | .not item =>
-      validatePropertyPredicate context owner access contextKind item facts
+      validatePropertyPredicate context owner access contextKind item facts captures
 
 private def resolvePropertyPredicate
     (context : PropertyCheckContext)
@@ -525,10 +539,11 @@ private def resolvePropertyPredicate
     (access : PropertyCapabilityView)
     (source : SourceLocation)
     (contextKind : PropertyPredicateContext)
-    (predicate : PropertyPredicate) :
+    (predicate : PropertyPredicate)
+    (captures : List DefinitionId := []) :
     Except PropertyError (CheckedPropertyPredicate contextKind) := do
   withNestedSource source <|
-    validatePropertyPredicate context { owner with source } access contextKind predicate
+    validatePropertyPredicate context { owner with source } access contextKind predicate [] captures
   pure { ownerId := owner.id, source, predicate, access }
 
 /-- Check every Boolean child against one explicit same-step context before it can be evaluated. -/
@@ -1030,6 +1045,14 @@ private def clauseJson : ResolvedPropertyClause → String
   | .guardedQuiescentWithin clause =>
       guardedTemporalJson "guarded-quiescent-within" "forbidden" clause
 
+private def scopedCaptureJson (capture : PropertyScopedCapture) : String :=
+  "{\"name\":" ++ quote capture.name.value ++
+    ",\"key\":" ++ quote capture.key.value ++
+    ",\"path\":" ++ quote capture.path.canonical ++
+    ",\"lifetime\":" ++ toString capture.lifetime ++ "}"
+
+/-- Captures and their correlation are emitted only when declared, so scoped Properties written
+before keyed captures existed keep their exact canonical metadata and behavior fingerprint. -/
 private def scopedClauseJson (clause : ResolvedPropertyScopedClause) : String :=
   let declaration := clause.declaration
   "{\"id\":" ++ quote declaration.id.value ++
@@ -1040,7 +1063,11 @@ private def scopedClauseJson (clause : ResolvedPropertyScopedClause) : String :=
     ",\"clock\":\"operation-transitions\",\"bound\":" ++ toString declaration.bound ++
     ",\"endpoint\":" ++ quote (match declaration.endpoint with
       | .deliberatelyClosed => "deliberately-closed"
-      | .runtimePrefix => "runtime-prefix") ++ "}"
+      | .runtimePrefix => "runtime-prefix") ++
+    (if declaration.captures.isEmpty then "" else
+      ",\"captures\":" ++ array (declaration.captures.map scopedCaptureJson)) ++
+    (clause.correlation.map fun correlation =>
+      ",\"correlation\":" ++ predicateJson correlation.expression).getD "" ++ "}"
 
 private def capabilityJson (capability : PropertyCapability) : String :=
   "{\"id\":" ++ quote capability.id.value ++
@@ -1105,6 +1132,34 @@ private def scopedPattern (clause : PropertyScopedClause)
     | _ => throw failure
   pure { field, reference := atom.reference, constraint }
 
+/-- A declared capture names an exact retained field of this clause's own operation. Its key must
+be the clause's operation key, its retained coordinates must be a same-step path admitted by the
+selected operation binding, and its lifetime must retain at least one occurrence. The coordinates
+are validated with no established presence facts: a retained occurrence's presence was decided at
+the step that admitted it, not in the Boolean branch that later reads it. -/
+private def checkScopedCapture (context : PropertyCheckContext) (owner : PropertyDeclaration)
+    (access : PropertyCapabilityView) (clause : PropertyScopedClause)
+    (capture : PropertyScopedCapture) : Except PropertyError Unit := do
+  requireDefinitionId clause.id clause.source capture.name
+  if capture.key != clause.key then
+    throw (nestedPropertyError .invalidClause clause.id clause.source
+      ("capture " ++ capture.name.value ++ ": wrong operation key " ++ capture.key.value)
+      [capture.name, capture.key])
+  if capture.lifetime == 0 || capture.path.capture.isSome then
+    throw (nestedPropertyError .invalidClause clause.id clause.source
+      ("capture " ++ capture.name.value ++ ": unsupported retained lifetime or coordinates")
+      [capture.name])
+  validatePattern context { owner with id := clause.id, source := clause.source } access {
+    field := predicateTraceField (fieldPredicateField capture.path.root)
+    reference := capture.path.reference }
+  if !(context.fieldBindings.any fun binding =>
+      binding.reference == capture.path.reference && binding.schema == capture.path.schema) then
+    throw (nestedPropertyError .unsupportedPredicateInput clause.id clause.source
+      ("capture " ++ capture.name.value ++ ": wrong operation owner or schema")
+      [capture.path.reference])
+  capture.path.validate [] clause.source |>.mapError fun error =>
+    nestedPropertyError .invalidClause clause.id error.source error.reason [capture.path.reference]
+
 private def checkScopedClause (context : PropertyCheckContext)
     (owner : PropertyDeclaration) (access : PropertyCapabilityView)
     (clause : PropertyScopedClause) : Except PropertyError ResolvedPropertyScopedClause := do
@@ -1115,13 +1170,18 @@ private def checkScopedClause (context : PropertyCheckContext)
       clause.scope.contains clause.key || clause.bound > 18446744073709551615 then
     throw (nestedPropertyError .invalidClause clause.id clause.source
       "unsupported scoped key, scope, or numeric bound")
+  requireUniqueIds clause.id clause.source (clause.captures.map PropertyScopedCapture.name)
+  for capture in clause.captures do checkScopedCapture context owner access clause capture
   let owner := { owner with id := clause.id, source := clause.source }
   let trigger ← resolvePropertyPredicate context owner access clause.source .guard clause.trigger
   let response ← resolvePropertyPredicate context owner access clause.source .expectation clause.response
   let triggerPattern ← scopedPattern clause clause.trigger true
   let responsePattern ← scopedPattern clause clause.response false
+  let correlation ← clause.correlation.mapM fun predicate =>
+    resolvePropertyPredicate context owner access clause.source .guard predicate
+      (clause.captures.map PropertyScopedCapture.name)
   pure ⟨{ clause with scope := DefinitionId.canonicalSet clause.scope },
-    trigger, response, triggerPattern, responsePattern⟩
+    trigger, response, triggerPattern, responsePattern, correlation⟩
 
 /-- Check an authored property, expand named limits, and freeze its capability view before planning. -/
 def checkProperty
@@ -1136,8 +1196,11 @@ def checkProperty
     throw (propertyError .unsupportedPropertyVersion declaration.id declaration.source
       ("supported versions are 1 and 2, found " ++ toString declaration.version)
       [declaration.id])
+  -- Capture names share the clause namespace: one operation retains one store, so a repeated name
+  -- would make an occurrence ordinal ambiguous across clauses.
   requireUniqueIds declaration.id declaration.source
-    (declaration.clauses.map PropertyClause.id ++ declaration.scopedClauses.map (·.id))
+    (declaration.clauses.map PropertyClause.id ++ declaration.scopedClauses.map (·.id) ++
+      declaration.scopedClauses.flatMap (·.captures.map PropertyScopedCapture.name))
   requireUniqueIds declaration.id declaration.source
     (context.limitProfiles.map PropertyLimitProfile.id)
   let hasVersionTwoForm := declaration.clauses.any fun clause => match clause with

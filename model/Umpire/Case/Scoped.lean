@@ -84,6 +84,11 @@ def lower (plan : Projection.Checked target) (compiled : Property.Scoped.Compile
     (evidenceObservationId : String) : Except Compiler.LoweringError (Lowered plan compiled) := do
   let failed := fun reason => Compiler.LoweringError.mk compiled.property.id.value
     compiled.property.source reason
+  -- The portable contract carries no keyed captures yet, so lowering a clause that declares them
+  -- would silently drop its correlation and let offline replay disagree with the model.
+  if let some clause := compiled.property.scopedClauses.find? fun clause =>
+      !clause.declaration.captures.isEmpty || clause.correlation.isSome then
+    throw (failed ("unsupported keyed field captures in scoped clause " ++ clause.declaration.id.value))
   let build : Except String ScopedContract := do
     let declaration := plan.sourceDeclaration
     let rules ← declaration.rules.mapM fun rule => do
