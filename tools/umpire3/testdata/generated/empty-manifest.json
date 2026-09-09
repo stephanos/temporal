@@ -1,6 +1,0 @@
-{
-  "formatVersion": "umpire3/v2",
-  "toolchain": {
-    "lean": "4.28.0"
-  }
-}

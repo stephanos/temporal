@@ -1,8 +1,0 @@
-<Project>
-<ProjectName>Umpire</ProjectName>
-<InputFiles>
-  <PFile>./Umpire.p</PFile>
-</InputFiles>
-<OutputDir>./PGenerated/</OutputDir>
-<Target>PChecker,PEx</Target>
-</Project>

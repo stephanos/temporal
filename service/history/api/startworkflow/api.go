@@ -267,10 +267,9 @@ func (s *Starter) prepareNewWorkflow(ctx context.Context, workflowID string) (*c
 		return nil, err
 	}
 
-	// Emit an OTEL span event so the umpire test observer can create the run-precise WorkflowRun
-	// entity at start with its lineage. A first run is its own chain root with no predecessor;
-	// continue-as-new / reset / retry successors carry the real first/previous run ids (their emit
-	// sites are separate). See .plans/UMPIRE.md.
+	// Emit an OTEL span event carrying the run-precise start and its lineage. A first run is its own
+	// chain root with no predecessor; continue-as-new, reset, and retry successors carry the real
+	// first and previous run ids from their own emit sites.
 	wfKey := mutableState.GetWorkflowKey()
 	trace.SpanFromContext(ctx).AddEvent(telemetry.EventWorkflowExecutionStarted,
 		trace.WithAttributes(

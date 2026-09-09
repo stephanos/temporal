@@ -88,7 +88,7 @@ func TestRetiredVocabularyCommandAllowsOrdinaryEnglishAndExcludedHistory(t *test
 
 	repositoryRoot := t.TempDir()
 	writeFixture(t, repositoryRoot, "model/README.md", "A projection can refine a bounded engineering approximation without claiming conformance or qualification.\n")
-	writeFixture(t, repositoryRoot, "tools/umpire3/history.go", "package umpire3\nconst old = \""+"semantic"+"Identity\"\n")
+	writeFixture(t, repositoryRoot, "tools/legacy/history.go", "package legacy\nconst old = \""+"semantic"+"Identity\"\n")
 	writeFixture(t, repositoryRoot, ".flow/memory/history.md", "The old API used "+"Declaration"+"Id.\n")
 	writeFixture(t, repositoryRoot, ".flow/specs/fn-18-versioned-umpire-artifact-boundary.json", `{"id":"fn-18-versioned-umpire-artifact-boundary","status":"closed","note":"`+"semantic"+`Identity"}`+"\n")
 	writeFixture(t, repositoryRoot, ".flow/specs/fn-18-versioned-umpire-artifact-boundary.md", "Historical "+"Qualification"+"Result.\n")

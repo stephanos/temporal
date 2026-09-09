@@ -343,11 +343,9 @@ func (u *Updater) addWorkflowTaskToMatching(ctx context.Context) error {
 		return err
 	}
 
-	// Emit an OTEL span event so the umpire can observe that a speculative
-	// workflow task was dispatched. The event is recorded on whatever span is
-	// active in the context (the enclosing UpdateWorkflowExecution RPC span).
-	// The umpire's ImportSpans path looks for this event name and converts it
-	// into a ScheduleSpeculativeWorkflowTask scorebook move.
+	// Emit an OTEL span event recording that a speculative workflow task was
+	// dispatched. The event is recorded on whatever span is active in the
+	// context (the enclosing UpdateWorkflowExecution RPC span).
 	trace.SpanFromContext(ctx).AddEvent(
 		telemetry.EventSpeculativeWorkflowTaskScheduled,
 		trace.WithAttributes(

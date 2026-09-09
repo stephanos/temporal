@@ -844,8 +844,8 @@ func (handler *workflowTaskCompletedHandler) handleCommandCompleteWorkflow(
 	}
 	handler.emitWorkflowExecutionClosed(ctx, event)
 
-	// Emit an OTEL span event so the umpire test observer can transition the
-	// Workflow entity to a completed state.
+	// Emit an OTEL span event carrying the workflow's transition to a completed
+	// state, for trace consumers that track execution lifecycle.
 	wfKey := handler.mutableState.GetWorkflowKey()
 	trace.SpanFromContext(ctx).AddEvent(telemetry.EventWorkflowExecutionCompleted,
 		trace.WithAttributes(
@@ -1168,10 +1168,10 @@ func (handler *workflowTaskCompletedHandler) handleCommandContinueAsNewWorkflow(
 	handler.newMutableState = newMutableState
 	handler.emitWorkflowExecutionClosed(ctx, event)
 
-	// Emit OTEL span events for the umpire run graph: the continue-as-new successor's start (with
-	// its lineage and the continued_as_new edge label) and the predecessor's continued-as-new close
-	// (so the closing run reaches a continued_as_new terminal rather than staying started). See
-	// .plans/UMPIRE.md.
+	// Emit OTEL span events for both sides of the continue-as-new edge: the successor's start (with
+	// its lineage and the continued_as_new edge label) and the predecessor's continued-as-new close,
+	// so a trace consumer sees the closing run reach a continued_as_new terminal rather than staying
+	// started.
 	newKey := newMutableState.GetWorkflowKey()
 	prevKey := handler.mutableState.GetWorkflowKey()
 	span := trace.SpanFromContext(ctx)
