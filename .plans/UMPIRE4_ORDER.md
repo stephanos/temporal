@@ -80,8 +80,8 @@ those), no Nexus cancellation lowering (fn-79, deferred), no second fault kind, 
 [fn-81 — Delete the pre-Testpilot Go generations](../.flow/specs/fn-81-delete-the-pre-testpilot-go-generations.md),
 a mechanical deletion sweep from the same 2026-09-08 assessment. Nothing here changed modeled
 behavior. The repository carried every earlier generation as live, compiled, partly CI-wired code
-that no current Umpire, Testpilot, or Temporal model imported. **All five tasks are done**; the
-spec stays open pending its completion review.
+that no current Umpire, Testpilot, or Temporal model imported. Tasks .1 through .4 have landed and
+.5, this reconciliation, is the last; the spec stays open pending its completion review.
 
 What went, and what it was wired into:
 
