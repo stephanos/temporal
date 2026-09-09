@@ -384,19 +384,19 @@ func (l *workerLease) beginTransition(ctx context.Context, queue string, stop bo
 		return nil, ErrRegistrationConflict
 	}
 	group.stopped = stop
-	worker, registration, key := group.worker, group.registration, group.key
+	worker := group.worker
 	l.registry.mu.unlock()
 
 	if stop {
 		return func(ctx context.Context) error { return stopBounded(ctx, worker) }, nil
 	}
-	return func(ctx context.Context) error {
-		return l.finishResume(ctx, group, key, queue, registration)
-	}, nil
+	return func(ctx context.Context) error { return l.finishResume(ctx, group) }, nil
 }
 
-func (l *workerLease) finishResume(ctx context.Context, group *workerGroup, key, queue string, registration queueRegistration) error {
-	resumed, err := l.registry.factory(key, queue, registration)
+// A group's key and registration are immutable after creation, so finishResume reads them from
+// the group rather than carrying copies taken under the lock.
+func (l *workerLease) finishResume(ctx context.Context, group *workerGroup) error {
+	resumed, err := l.registry.factory(group.key, group.registration.queue, group.registration)
 	if err == nil && resumed == nil {
 		err = ErrInvalid
 	}
@@ -416,7 +416,7 @@ func (l *workerLease) finishResume(ctx context.Context, group *workerGroup, key,
 	}
 	// The Run may have been released while the worker was starting. Recording the fresh worker in
 	// a retired group would leave it polling the queue with nothing left to stop it.
-	if l.registry.groups[key] != group {
+	if l.registry.groups[group.key] != group {
 		l.registry.mu.unlock()
 		if resumed != nil && err == nil {
 			resumed.Stop()
