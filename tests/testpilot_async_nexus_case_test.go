@@ -3,7 +3,6 @@
 package tests
 
 import (
-	"context"
 	"os"
 	"path/filepath"
 	"sync"
@@ -13,17 +12,13 @@ import (
 	"github.com/stretchr/testify/require"
 	enumspb "go.temporal.io/api/enums/v1"
 	historypb "go.temporal.io/api/history/v1"
-	"go.temporal.io/api/nexus/v1"
-	"go.temporal.io/api/operatorservice/v1"
 	"go.temporal.io/api/serviceerror"
 	"go.temporal.io/sdk/client"
 	testpilotpb "go.temporal.io/server/api/testpilot/v1"
-	"go.temporal.io/server/common/namespace"
 	"go.temporal.io/server/common/testing/testpilot"
 	testpilotdriver "go.temporal.io/server/common/testing/testpilot/temporal"
 	"go.temporal.io/server/tests/testcore"
 	testpilotfixture "go.temporal.io/server/tests/testcore/testpilot"
-	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -138,57 +133,19 @@ func newTestpilotLiveBinding(
 	createEndpoint bool,
 ) testpilotLiveBinding {
 	t.Helper()
-	_, err := env.RegisterNamespace(namespace.Name(environment.Namespace), 1, enumspb.ARCHIVAL_STATE_DISABLED, "", "")
-	require.NoError(t, err)
-	if createEndpoint {
-		created, err := env.OperatorClient().CreateNexusEndpoint(env.Context(), &operatorservice.CreateNexusEndpointRequest{
-			Spec: &nexus.EndpointSpec{
-				Name: environment.NexusEndpoint,
-				Target: &nexus.EndpointTarget{Variant: &nexus.EndpointTarget_Worker_{
-					Worker: &nexus.EndpointTarget_Worker{Namespace: environment.Namespace, TaskQueue: environment.TaskQueue},
-				}},
-			},
-		})
-		require.NoError(t, err)
-		t.Cleanup(func() {
-			ctx, cancel := context.WithTimeout(context.Background(), testpilotCleanupTimeout)
-			defer cancel()
-			_, err := env.OperatorClient().DeleteNexusEndpoint(ctx, &operatorservice.DeleteNexusEndpointRequest{
-				Id: created.GetEndpoint().GetId(), Version: created.GetEndpoint().GetVersion(),
-			})
-			require.NoError(t, err)
-		})
-	}
-
 	profile := testpilotfixture.AsyncNexusProfile(catalog, caseSource, environment)
-	frozen := profile.Snapshot()
-	expectedProfile := frozen.Snapshot()
-	frozenEnvironment := requireTestpilotProfileEnvironment(t, frozen)
-	prepared, err := testpilot.Prepare(caseSource, frozen)
-	require.NoError(t, err)
-	caseClient, err := client.Dial(client.Options{HostPort: env.FrontendGRPCAddress(), Namespace: frozenEnvironment.Namespace})
-	require.NoError(t, err)
-	t.Cleanup(caseClient.Close)
-	driver, err := testpilotdriver.New(testpilotdriver.Options{
-		Profile: frozen,
-		ServerEndpoints: map[string]testpilotdriver.Endpoint{
-			"temporal.workflow-service": {Target: env.FrontendGRPCAddress(), Credentials: insecure.NewCredentials()},
-		},
-		SystemCallbackBaseURL: "http://" + env.HttpAPIAddress(),
-		SDKClient:             caseClient,
-		WorkerRoleID:          "temporal.worker",
-		WorkerStopTimeout:     testpilotCleanupTimeout,
-	})
-	require.NoError(t, err)
-	t.Cleanup(func() {
-		ctx, cancel := context.WithTimeout(context.Background(), testpilotCleanupTimeout)
-		defer cancel()
-		require.NoError(t, driver.Close(ctx))
-	})
-	for index := range frozen.EnvironmentBindings {
-		frozen.EnvironmentBindings[index].Value = "mutated-after-freeze"
+	frozenEnvironment := requireTestpilotProfileEnvironment(t, profile.Snapshot())
+	resources := testpilotLiveResources{
+		Namespace: frozenEnvironment.Namespace, TaskQueue: frozenEnvironment.TaskQueue,
 	}
-	return testpilotLiveBinding{environment: frozenEnvironment, profile: expectedProfile, prepared: prepared, client: caseClient, driver: driver}
+	if createEndpoint {
+		resources.NexusEndpoint = frozenEnvironment.NexusEndpoint
+	}
+	live := newTestpilotLiveCase(t, env, caseSource, profile, resources, testpilotCleanupTimeout)
+	return testpilotLiveBinding{
+		environment: frozenEnvironment, profile: live.profile, prepared: live.prepared,
+		client: live.client, driver: live.driver,
+	}
 }
 
 func requireTestpilotProfileEnvironment(t testing.TB, profile testpilot.ProfileSpec) testpilotfixture.AsyncNexusEnvironment {

@@ -767,6 +767,22 @@ private def modelOnlyWindow (link : CheckedProperty) : Umpire.Case.CaseKnownGap 
     detail := some ("the bounded-response window is evaluated in the model only; this Case emits " ++
       "no ScopedEvidence Observation for a runtime scoped capability to read") }
 
+/-- The model Property separates a crossed completion from missing evidence, and the rules here do
+not. A completed history event records the scheduled event it references but not the operation
+identity that was scheduled, so a reference to another scheduled event is indistinguishable from
+the sibling operation's own completion. Separating them at runtime would need a correlation
+condition the model never declared, which ACT-4 makes an Implementation Link obligation rather than
+a rule this Case may add on its own; until one is declared, both readings close the rule
+inconclusive. -/
+private def crossedCompletionIsInconclusive (requirement : CheckedProperty) :
+    Umpire.Case.CaseKnownGap :=
+  { kind := .interpretation
+    code := "temporal.nexus3.typed-nexus.crossed-completion-is-inconclusive"
+    subject := some requirement.id.value
+    detail := some ("a completed event carries no operation identity, so a completion referencing " ++
+      "another scheduled event leaves the rule pending rather than violated; the model Property " ++
+      "still distinguishes the two") }
+
 private def loweringError (definitionId construct : String) : Umpire.Case.Compiler.LoweringError :=
   { sourceDefinitionId := definitionId, source, construct }
 
@@ -793,7 +809,7 @@ def typedNexusCase : Except Umpire.Case.Compiler.LoweringError
       requirementBinding,
       binding model.link.id.value model.link.behaviorFingerprint.render .«property»]
     sources := [source]
-    knownGaps := [modelOnlyWindow model.link]
+    knownGaps := [modelOnlyWindow model.link, crossedCompletionIsInconclusive requirement]
     program := program (methodPath start.schema) (methodPath history.schema)
     contractId := "temporal.case.typed-nexus.contract"
     properties := rules.map (.monitor requirementBinding)

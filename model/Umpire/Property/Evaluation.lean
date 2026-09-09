@@ -467,7 +467,6 @@ structure PropertyFieldProjection (owner : RpcOwner) {Request Response : Type}
     (witness : owner.Witness Request Response) where
   private mk ::
   private value : PropertyFieldValue
-  deriving Repr
 
 /-- Project a modeled state, result or event; requests must use the selected Action constructor. -/
 def PropertyFieldProjection.ofCursor (root : PropertyFieldRoot) (reference : DefinitionId)
