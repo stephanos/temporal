@@ -39,9 +39,6 @@ private def produceWith
     (query?.getD checked.query)
     witness?
 
-private def changedProperty? : Option CheckedProperty := admitted.map fun checked =>
-  { checked.property with clauses := checked.property.clauses.drop 1 }
-
 private def scopedProperty? : Option CheckedProperty := do
   let checked ← admitted
   (checkProperty (.ofTarget checked.target) (.portable {
@@ -65,28 +62,50 @@ private def scopedProperty? : Option CheckedProperty := do
       error.construct == "property.scoped-eventually-within/v1"
   | .ok _ => false
 
-private def changedBehavior? : Option CheckedBehavior := admitted.map fun checked =>
-  { checked.behavior with actionsExactly := some [checked.vocabulary.awaitSuccessAction.definitionId] }
-
-private def changedQuery? : Option (CheckedQuery lifecycle.lawStatement) := admitted.map fun checked =>
-  { checked.query with
-    form := .verify checked.property
-    quantifier := .universal
-    claim := .verifiedWithinLimits }
-
 private def changedWitness? : Option BehaviorTrace := admitted.map fun checked =>
   { checked.witness with trace := {
       checked.witness.trace with steps := checked.witness.trace.steps.reverse } }
+
+private def undeclaredFactWitness? : Option BehaviorTrace := admitted.map fun checked =>
+  { checked.witness with trace := { checked.witness.trace with
+      steps := checked.witness.trace.steps.map fun step =>
+        { step with observations := [ModelValue.named
+            (DefinitionId.of "temporal.nexus3.fact.lifecycle.undeclared") "undeclared"] } } }
 
 private def rejected : Except Compiler.LoweringError temporal.server.api.testpilot.v1.Case → Bool
   | .error _ => true
   | .ok _ => false
 
-#guard rejected (produceWith (property? := changedProperty?))
-#guard rejected (produceWith (behavior? := changedBehavior?))
-#guard rejected (produceWith (query? := changedQuery?))
+/-- The identity-bearing shape of a produced Case: its provenance payload and the state and
+transition names of every derived rule. -/
+private def caseShape
+    (produced : Except Compiler.LoweringError temporal.server.api.testpilot.v1.Case) :
+    Option (List UInt8 × List String × List String) :=
+  match produced with
+  | .ok output =>
+      let rules := (output.contract.map (·.rules.toList)).getD []
+      some ((output.provenance.map (·.producer_data.toList)).getD [],
+        rules.flatMap fun rule => rule.states.toList.map (·.state_id),
+        rules.flatMap fun rule => rule.transitions.toList.map (·.transition_id))
+  | .error _ => none
+
+private def differsFromCompletionCase
+    (produced : Except Compiler.LoweringError temporal.server.api.testpilot.v1.Case) : Bool :=
+  (caseShape produced).isSome &&
+    caseShape produced != caseShape Temporal.Feature.Nexus3.Testpilot.completionCase
+
 #guard rejected (produceWith (witness? := none))
-#guard rejected (produceWith (witness? := changedWitness?))
+
+/- A Fact the Producer declares no Nexus history evidence for rejects by name. -/
+#guard match produceWith (witness? := undeclaredFactWitness?) with
+  | .error error =>
+      error.construct == "witness.fact-evidence" &&
+      error.sourceDefinitionId == "temporal.nexus3.fact.lifecycle.undeclared"
+  | .ok _ => false
+
+/- A different selected witness records its Facts in a different order, so the derived
+correlated-history rule and the Case bytes differ instead of rejecting. -/
+#guard differsFromCompletionCase (produceWith (witness? := changedWitness?))
 
 private def isEquality : ContractExpression → Bool
   | { expression := some (.equals _), .. } => true
@@ -281,22 +300,42 @@ query renamedQuery on renamedLifecycle
   in renamedCompletion
   limits renamedTrace
 
-private def wrongTargetResult :
-    Except Compiler.LoweringError temporal.server.api.testpilot.v1.Case := do
-  let checked ← completion.mapError fun _ => {
-    sourceDefinitionId := "temporal.nexus3.query.completion"
-    source := Authoring.source
-    construct := "checked-completion"
-  }
-  let renamed ← renamedQuery.mapError fun _ => {
+private def renamedCheckedModel :
+    Except Compiler.LoweringError (Authoring.CheckedModel renamedLifecycle) :=
+  renamedQuery.mapError fun _ => {
     sourceDefinitionId := "temporal.nexus3.query.renamedQuery"
     source := Authoring.source
     construct := "checked-renamed-query"
   }
+
+private def originalCheckedModel :
+    Except Compiler.LoweringError (Authoring.CheckedModel lifecycle) :=
+  completion.mapError fun _ => {
+    sourceDefinitionId := "temporal.nexus3.query.completion"
+    source := Authoring.source
+    construct := "checked-completion"
+  }
+
+private def renamedTargetResult :
+    Except Compiler.LoweringError temporal.server.api.testpilot.v1.Case := do
+  let checked ← originalCheckedModel
+  let renamed ← renamedCheckedModel
   Temporal.Feature.Nexus3.Testpilot.produceCompletionCase renamed.target checked.property
     checked.behavior renamed.query (some checked.witness)
 
-#guard rejected wrongTargetResult
+private def renamedBehaviorResult :
+    Except Compiler.LoweringError temporal.server.api.testpilot.v1.Case := do
+  let checked ← originalCheckedModel
+  let renamed ← renamedCheckedModel
+  Temporal.Feature.Nexus3.Testpilot.produceCompletionCase checked.target checked.property
+    renamed.behavior checked.query (some checked.witness)
+
+/- A different checked Target and Query carry their own identities into the Case bytes; the
+Producer no longer compares them against one expected model. -/
+#guard differsFromCompletionCase renamedTargetResult
+
+/- The same holds for a different checked Behavior on its own. -/
+#guard differsFromCompletionCase renamedBehaviorResult
 
 private def modelMemberIds
     (candidate : Authoring.SuccessModel Setup State Action Outcome Fact) : List DefinitionId :=
@@ -394,6 +433,19 @@ private def identityFingerprintCheck : Option Bool := do
 
 theorem identityAndFingerprintStability : identityFingerprintCheck = some true := by
   native_decide
+
+/-- A clause no step of the selected witness carries rejects by clause name rather than lowering a
+rule that nothing establishes. -/
+private def unexpressibleClauseRejection : Option Bool := do
+  let checked ← admitted
+  let changed ← checkedPropertyOf (changedMeaning checked.vocabulary)
+  match Temporal.Feature.Nexus3.Testpilot.produceCompletionCase checked.target changed
+      checked.behavior checked.query (some checked.witness) with
+  | .error error => pure (error.construct == "property.clause-evidence" &&
+      (changed.clauses.map (·.id.value)).contains error.sourceDefinitionId)
+  | .ok _ => pure false
+
+#guard unexpressibleClauseRejection == some true
 
 theorem checkedKnownGapsSurviveAdmission : admitted.map (fun checked =>
     checked.query.authoredKnownGaps.toList == [{
