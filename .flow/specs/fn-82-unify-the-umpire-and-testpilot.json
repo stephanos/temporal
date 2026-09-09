@@ -15,9 +15,9 @@
   "id": "fn-82-unify-the-umpire-and-testpilot",
   "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_rounds": 2,
-  "plan_review_status": "needs_work",
-  "plan_reviewed_at": "2026-09-09T05:42:34.439857Z",
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-09-09T05:49:13.510515Z",
   "review_attempts": [
     {
       "artifact_sha256": "e2c1abccfa7d9ffb2f658c8dfed8e9a9ea1cf842b1e119886cd090dd16da9d7a",
@@ -47,22 +47,72 @@
       "task": null,
       "timestamp": "2026-09-09T05:42:34.436485Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "38e1fa4d2a5b9a3ba6353677c75179799f20850deaa50d4b5c0071db3a941d77",
+      "backend": "claude",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "acb89464066c917b4d61be3e2c9517fbad6158cb",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 6011,
+      "output_sha256": "15770b4799067e61fe9aada4757aa5bb342cfeac68a475a300fc151f27c8f9b3",
+      "reservation_id": "9a7b885265934733af867789d980bd64",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-09T05:46:45.929013Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "043b089bc5efdd1855cc9692a25a1562999656e35834cac3bcd2794508059cb1",
+      "backend": "claude",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "2c77b700f98b98fb746ba615b6fbd96fc500163c",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 3025,
+      "output_sha256": "dbe418830fd81d7e7727f584daa348c7ccf159cda8c1dcb29ecbc6183a0bfda4",
+      "reservation_id": "ba4aebc1520f485196337623931bba97",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-09T05:49:13.503331Z",
+      "verdict": "SHIP"
     }
   ],
-  "review_hash_epoch": {},
-  "review_pending_rounds": {
-    "plan": 1
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
   },
-  "review_reservations": {
-    "9a7b885265934733af867789d980bd64": {
-      "artifact_sha256": "38e1fa4d2a5b9a3ba6353677c75179799f20850deaa50d4b5c0071db3a941d77",
-      "counter_scope": "plan",
-      "epoch": 0,
-      "exclusive": false,
-      "forced": false,
-      "review_type": "plan"
-    }
-  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
   "review_transport_failures": {
     "plan": 0
   },
@@ -80,5 +130,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-09T05:45:49.108222Z"
+  "updated_at": "2026-09-09T05:49:13.511052Z"
 }
