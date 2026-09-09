@@ -2,7 +2,6 @@
 .bin/
 .stamp/
 .gomad/
-tests/.gomad-run/
 
 .idea/
 .vscode/settings.json
@@ -13,9 +12,6 @@ tests/.gomad-run/
 .testoutput
 testdata/
 !/model/Temporal/Feature/Nexus/Experimental/testdata/
-!/tools/umpire2/testdata/
-!/tools/umpire2/testdata/genmodels/
-!/tools/umpire2/testdata/genmodels/**
 !/tools/umpire/testdata/
 !/tools/umpire/testdata/**
 !/tools/umpire/**/testdata/
@@ -24,10 +20,6 @@ testdata/
 !/common/testing/testpilot/testdata/**
 !/tests/testcore/testpilot/testdata/
 !/tests/testcore/testpilot/testdata/**
-!/tools/umpire3/testdata/
-!/tools/umpire3/testdata/**
-!/tools/umpire3/**/testdata/
-!/tools/umpire3/**/testdata/**
 !/cmd/tools/genleanmodeldescriptors/testdata/
 !/cmd/tools/genleanmodeldescriptors/testdata/**
 !/cmd/tools/genleandynamicconfig/testdata/
@@ -42,11 +34,6 @@ testdata/
 *.cov
 *.html
 /test.log
-
-# Umpire verification tool output
-/tools/umpire2/testdata/results/
-/tools/umpire2/testdata/genmodels/tla/_apalache-out/
-/tools/umpire2/testdata/genmodels/p/PGenerated/
 
 # Executables produced by temporal repo
 /temporal-*
@@ -65,11 +52,7 @@ testdata/
 
 # Lake build output for the offline Lean model
 /model/.lake/
-/tools/umpire3/model/.lake/
-/tools/umpire3/model-checkers/lean-temporal/lean/.lake/
 /tools/common/formal/.lake/
-/tools/gomad/formal/.lake/
-/tools/gomad/formal/veil/.lake/
 
 # direnv
 .envrc
