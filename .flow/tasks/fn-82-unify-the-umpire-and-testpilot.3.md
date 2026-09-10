@@ -43,9 +43,43 @@ two checking entry points, and the dead modules and declarations deleted.
 - [ ] `make lint-model` passes with the updated `semanticRoots` and Model prefix rule; the Makefile layout check passes
 - [ ] Goldens regenerated; the gate rejects `CheckedTarget`, `AuthoredTarget`, `QueryTarget`, `TargetBehaviorDomain`, `MeaningProvision`, `LawWitness`, `Umpire.Target` and passes on the tree
 ## Done summary
-TBD
+`Umpire.Target` is `Umpire.Model`. `Target/{Data,Projection,Semantics,Frontend,FiniteTable +
+FiniteMachine}` became `Model/{Types,Canonical,Check,Elab,Table}`; `Target/Language.lean`,
+`Shared/{Transition,TraceReplay}.lean`, `OutcomeClassification/ImportTests.lean` and
+`TargetBehaviorClosure` are deleted; `DefinitionFamily` moved to `Umpire/Id.lean` and
+`Parameterized.lean` under `Umpire/Operation`. `TargetDefinition` and `TargetDeclaration` merged
+into one `ModelSpec` whose `providers`/`connectors` default to empty, which deleted the two
+field-by-field copies the old split forced. `AuthoredTarget`/`CheckedTarget`/`TargetComposition`
+are `DraftModel`/`CheckedModel`/`Providers`; the behavior domain is a `Vocabulary` and its
+description a `BehaviorTable`; the capability layer is `Capability`, `Provider`, `Law`, `LawProof`,
+`Meaning`, `Connector`; `AuthoringOccurrence*`/`AuthoringDiagnostic` are `SourceRef`, `SourceSpan`,
+`LocatedError`; `canonicalBehavior` is `behaviorVersion`; the `CheckedModel` field is `machine`.
+`checkModel` and `model` are the public construction entry points and `composeModel` is private.
+`ModelLint` pins the `Umpire.Model` prefix with `model-isolation` rules, the Makefile package check
+asserts `Model/Check.lean`, and `Shared.lean` now exposes the modules `Shared` actually owns.
 
+The review caught a real defect the gates could not: task .2's `DefinitionKind` rename and this
+task's `KnownGapKind` rename never reached `tools/umpire/internal/artifactv2`, whose validators
+still accepted `observation`, `kernel` and `capability-contract`. Any produced artifact carrying a
+capability gap decoded as invalid. Both vocabularies are now named slices, `knownGapKindRank`
+derives its order from one of them, and a new `vocabulary_test.go` reads
+`Umpire.KnownGapKind.name` and `Umpire.DefinitionKind.name` out of the Lean source and pins the Go
+lists against them — verified to fail when the Go list drifts.
+
+Deviation, recorded in the task file: `FiniteTable` keeps two checkers. `checkModel` lowers through
+a `FiniteModelIdentity` to the ModelValue carriers; `checkTypedModel` keeps the author's typed
+carriers. Their return types differ, so they cannot merge. `validateModel` was not a checker at all
+and became the total `CheckedTable.withIdentity`.
+
+Note: commit `ebb94a44e` carries this task's 207-file change set. A parallel session ran
+`git add -A && git commit -m wip` while the work was in flight and swept it up; only the message
+was amended.
+
+stage: impl-review - ran (model: claude-fable-5-1) - NEEDS_WORK then SHIP; 1 P1 (the Go decoder
+vocabularies) and 7 P3 findings, all addressed
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: ebb94a44e4c2299cbf401e36937b47701a57047a, 3d2478fe0c6a84be5bac5514ebee1db4f6dc1179, aeee2c7c75c3fe3644a9bd18027ead37ca376bec
+- Tests: cd model && lake build Umpire UmpireTests Temporal TemporalModelTests TestpilotTests Testpilot TemporalExperimentalTests (pass), make lint-model (169 diagnostics, equals baseline; modelLint and modelLintTests pass), make umpire-check-goldens / -regression-views / -case-runtime-conformance / -semantic-inventory / -retired-vocabulary (pass), make umpire-check-lean-api / -testpilot-protocol / -testpilot-authoring (pass), make umpire-check-live-tests (pass, 6 passing identities), TMPDIR=<physical> CGO_ENABLED=0 go test -count=1 -tags test_dep ./tools/umpire/... ./common/testing/testpilot/... ./tests/testcore/testpilot/... (pass), go test -run TestKindVocabulariesMatchLean: proven to fail when the Go kind list drifts from Lean, make lint-code GOLANGCI_LINT_FIX=false (128 findings, equals baseline)
 - PRs:
+stage: plan-sync - skipped(config: planSync.enabled != true)
