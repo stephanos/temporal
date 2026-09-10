@@ -14,7 +14,6 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"slices"
 	"strings"
 )
 
@@ -33,6 +32,21 @@ var declarationHead = regexp.MustCompile(
 	`^(?:@\[[^\]]*\]\s*)*(?:(?:private|protected|partial|unsafe|noncomputable|scoped|local|nonrec)\s+)*` +
 		`(?:structure|inductive|class|abbrev|def|theorem|macro|syntax)\s+` +
 		`([A-Za-z_\x{00e0}-\x{ffff}][A-Za-z0-9_'!?\x{00e0}-\x{ffff}]*(?:\.[A-Za-z0-9_'!?\x{00e0}-\x{ffff}]+)*)`)
+
+// memberHead splits a declaration head into its keyword and name, so the walker knows
+// whether the indented block that follows holds fields or constructors.
+var memberHead = regexp.MustCompile(
+	`^(?:@\[[^\]]*\]\s*)*(?:(?:private|protected|partial|unsafe|noncomputable|scoped|local|nonrec)\s+)*` +
+		`(structure|class|inductive)\s`)
+
+// structureField matches one field line inside a `structure` or `class` block. A field
+// name is an ordinary identifier followed by a colon, which excludes `deriving`,
+// `extends`, comments, and the continuation lines of a multi-line type.
+var structureField = regexp.MustCompile(`^\s+([A-Za-z_][A-Za-z0-9_'!?]*)\s*:[^=]`)
+
+// inductiveConstructor matches every `| name` on one line, so both the one-per-line and
+// the packed spellings are indexed.
+var inductiveConstructor = regexp.MustCompile(`\|\s*([A-Za-z_][A-Za-z0-9_'!?]*)`)
 
 var namespaceHead = regexp.MustCompile(`^namespace\s+([A-Za-z_][A-Za-z0-9_'.]*)`)
 
@@ -114,6 +128,34 @@ func (index *Index) addModule(module string) {
 	}
 }
 
+// memberBlock is the indented body of a `structure`, `class` or `inductive`, whose
+// lines name the owner's fields or constructors. The block ends at the first line that
+// starts in column zero.
+type memberBlock struct {
+	owner   string
+	keyword string
+}
+
+// consume indexes one line of the block and reports whether the block is still open.
+func (block memberBlock) consume(index *Index, line, trimmed string) bool {
+	if trimmed != "" && line == trimmed {
+		return false
+	}
+	if strings.HasPrefix(trimmed, "--") || strings.HasPrefix(trimmed, "/-") {
+		return true
+	}
+	if block.keyword == "inductive" {
+		for _, match := range inductiveConstructor.FindAllStringSubmatch(trimmed, -1) {
+			index.declarations[block.owner+"."+match[1]] = struct{}{}
+		}
+		return true
+	}
+	if match := structureField.FindStringSubmatch(line); match != nil {
+		index.declarations[block.owner+"."+match[1]] = struct{}{}
+	}
+	return true
+}
+
 func (index *Index) addFile(content string) {
 	// Each frame is a namespace name, or "" for a `section` or `mutual` block that
 	// contributes no name but is still closed by an `end`.
@@ -127,9 +169,13 @@ func (index *Index) addFile(content string) {
 		}
 		return named
 	}
+	var members memberBlock
 	for _, raw := range strings.Split(content, "\n") {
 		line := strings.TrimRight(raw, " \t\r")
 		trimmed := strings.TrimLeft(line, " \t")
+		if members.owner != "" && !members.consume(index, line, trimmed) {
+			members = memberBlock{}
+		}
 		switch {
 		case namespaceHead.MatchString(trimmed):
 			name := namespaceHead.FindStringSubmatch(trimmed)[1]
@@ -150,7 +196,12 @@ func (index *Index) addFile(content string) {
 				continue
 			}
 			name := declarationHead.FindStringSubmatch(trimmed)[1]
-			index.declarations[qualify(qualified(), name)] = struct{}{}
+			qualifiedName := qualify(qualified(), name)
+			index.declarations[qualifiedName] = struct{}{}
+			members = memberBlock{}
+			if match := memberHead.FindStringSubmatch(trimmed); match != nil {
+				members = memberBlock{owner: qualifiedName, keyword: match[1]}
+			}
 		default:
 		}
 	}
@@ -163,21 +214,11 @@ func qualify(open []string, name string) string {
 	return strings.Join(open, ".") + "." + name
 }
 
-// Resolve reports whether name is a module, a namespace, a declaration, or the
-// trailing field or constructor segment of one. Lean does not spell fields and
-// constructors on their own lines in a form worth parsing, and their parent already
-// proves the citation points at real code.
+// Resolve reports whether name is a module, a namespace, or a declaration. Fields and
+// constructors are indexed as declarations under their owner, so an invented segment
+// under a real structure does not resolve just because its parent does.
 func (index *Index) Resolve(name string) bool {
-	if index.has(name) {
-		return true
-	}
-	if cut := strings.LastIndex(name, "."); cut > 0 {
-		// Only a declaration can own a field or constructor. Falling back to a
-		// namespace or module would accept any invented segment under it.
-		_, ok := index.declarations[name[:cut]]
-		return ok
-	}
-	return false
+	return index.has(name)
 }
 
 func (index *Index) has(name string) bool {
@@ -196,16 +237,4 @@ func (index *Index) has(name string) bool {
 // reporting that every name resolved.
 func (index *Index) Size() (modules, namespaces, declarations int) {
 	return len(index.modules), len(index.namespaces), len(index.declarations)
-}
-
-// Names returns every indexed name in sorted order, for diagnostics.
-func (index *Index) Names() []string {
-	all := make([]string, 0, len(index.modules)+len(index.namespaces)+len(index.declarations))
-	for _, set := range []map[string]struct{}{index.modules, index.namespaces, index.declarations} {
-		for name := range set {
-			all = append(all, name)
-		}
-	}
-	slices.Sort(all)
-	return all
 }

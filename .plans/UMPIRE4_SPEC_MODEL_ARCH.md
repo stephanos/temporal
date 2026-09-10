@@ -87,15 +87,13 @@ module inventory rather than scanning import text.
 
 The current accepted policy keeps `Shared.*` independent of `Umpire.*` and `Temporal.*`, and
 `Umpire.*` independent of `Temporal.*`. It isolates `Temporal.Feature.*` from
-`Temporal.System.*`, `Temporal.Verify.*`, and `Umpire.Verify.Veil`, with the exact verification-test
-exception `Temporal.Feature.Nexus.Experimental.CallerClosure.VeilTests`. In the reverse direction,
-only the exact reviewed Implementation Link consumer `Temporal.System.Nexus.ImplementationLink` composes
-`Temporal.System.*` with `Temporal.Feature.*`; Implementation Link-shaped names receive no exception.
+`Temporal.System.*`. In the reverse direction, only the exact reviewed Implementation Link consumer
+`Temporal.System.Nexus.ImplementationLink` composes `Temporal.System.*` with `Temporal.Feature.*`;
+Implementation Link-shaped names receive no exception.
 
-Ordinary aggregates, tools, and tests remain isolated from `Temporal.Verify.*` and
-`Umpire.Verify.Veil`. The complete opt-in consumer set is `TemporalVerify`, `TemporalVeilTests`,
-`Temporal.Tool.VerifyVeil`, and `Temporal.Feature.Nexus.Experimental.CallerClosure.VeilTests`; it
-is an exact set, not a wildcard convention (MOD-05).
+No optional verification module exists in the tree, so `ModelLint` reserves nothing for one and
+enforces no verification isolation. MOD-05's opt-in consumer set, and the isolation that holds it,
+return with the modules under fn-24 and fn-25.
 
 Physical placement under `Temporal/Verify/` keeps expert bindings discoverable beside their owning
 Temporal families. Import isolation, not physical distance, protects the ordinary authoring path.

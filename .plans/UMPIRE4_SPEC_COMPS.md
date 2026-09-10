@@ -859,13 +859,13 @@ their direct and transitive reachability constraints over the complete first-par
 
 - `Shared.*` remains independent of `Umpire.*` and `Temporal.*` (MOD-09).
 - `Umpire.*` remains independent of `Temporal.*` (MOD-01).
-- `Temporal.Feature.*` remains isolated from `Temporal.System.*`, `Temporal.Verify.*`, and
-  `Umpire.Verify.Veil` (MOD-03).
+- `Temporal.Feature.*` remains isolated from `Temporal.System.*`, and from optional verification
+  once it exists (MOD-03).
 - `Temporal.System.*` remains isolated from `Temporal.Feature.*` except for the exact
   `Temporal.System.Nexus.ImplementationLink` consumer (MOD-10).
-- `Temporal.Verify.*` and `Umpire.Verify.Veil` remain opt-in. Their exact aggregate, tool, and test
-  consumers are `TemporalVerify`, `TemporalVeilTests`, `Temporal.Tool.VerifyVeil`, and
-  `Temporal.Feature.Nexus.Experimental.CallerClosure.VeilTests` (MOD-05).
+- Optional verification remains opt-in, but no such module exists in the tree, so `ModelLint`
+  reserves nothing for it and enforces no verification isolation. MOD-05's exact consumer set
+  returns with the modules under fn-24 and fn-25.
 - `Temporal.Tool.*` composes modules but owns no semantic authority.
 - Umpire Go packages never import `tools/canary`; Canary may import stable Umpire Go packages.
 - Commands remain thin adapters.

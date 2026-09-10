@@ -4,7 +4,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -242,15 +241,11 @@ func TestRetiredVocabularyCommandScansTestpilotAndSharedTrees(t *testing.T) {
 func retiredVocabularyCommand(t *testing.T, repositoryRoot string) *exec.Cmd {
 	t.Helper()
 
-	_, currentFile, _, ok := runtime.Caller(0)
-	require.True(t, ok)
-	checkoutRoot := filepath.Clean(filepath.Join(filepath.Dir(currentFile), "..", "..", ".."))
-
 	command := exec.Command(
 		"go", "run", "./tools/umpire/cmd/umpire-check-retired-vocabulary",
 		"--repository-root", repositoryRoot,
 	)
-	command.Dir = checkoutRoot
+	command.Dir = checkoutRoot(t)
 	return command
 }
 
