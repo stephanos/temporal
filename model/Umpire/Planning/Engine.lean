@@ -10,7 +10,7 @@ namespace Umpire
 def modelValueOrderKey (value : ModelValue) : String :=
   value.definitionId.value ++ "\u001f" ++ value.value
 
-def transitionResultOrderKey
+def stepOrderKey
     (result : Step ModelValue ModelValue ModelValue) : String :=
   modelValueOrderKey result.outcome ++ "\u001e" ++
     modelValueOrderKey result.state ++ "\u001e" ++
@@ -62,7 +62,7 @@ structure IncrementalPlannerKernel (target : QueryTarget LawStatement) where
       modelValueOrderKey left ≤ modelValueOrderKey right
   stepOrdered : ∀ state action first second left right, first < second →
     stepAt state action first = some left → stepAt state action second = some right →
-      transitionResultOrderKey left ≤ transitionResultOrderKey right
+      stepOrderKey left ≤ stepOrderKey right
 
 /-- Canonical ordering obligations for the finite lists already owned by a checked target. -/
 structure FiniteKernelOrder
@@ -73,7 +73,7 @@ structure FiniteKernelOrder
   initial : ∀ setup, (target.kernel.initialStates setup).Pairwise fun left right =>
     modelValueOrderKey left ≤ modelValueOrderKey right
   step : ∀ state action, (target.kernel.steps state action).Pairwise fun left right =>
-    transitionResultOrderKey left ≤ transitionResultOrderKey right
+    stepOrderKey left ≤ stepOrderKey right
 
 /-- Derive indexed planning from the target's sound and complete finite list interface. -/
 def IncrementalPlannerKernel.ofFinite
@@ -156,7 +156,7 @@ def IncrementalPlannerKernel.ofCheckedQuery?
         modelValueOrderKey left ≤ modelValueOrderKey right)
     (stepOrdered : ∀ evidence, query.completeness = some evidence → ∀ state action,
       (query.target.kernel.steps state action).Pairwise fun left right =>
-        transitionResultOrderKey left ≤ transitionResultOrderKey right) :
+        stepOrderKey left ≤ stepOrderKey right) :
     Option (IncrementalPlannerKernel query.target) :=
   match evidenceEq : query.completeness with
   | none => none
@@ -186,9 +186,9 @@ structure FinitePlannerAdmissionError where
 private def modelValueLe (left right : ModelValue) : Bool :=
   decide (modelValueOrderKey left ≤ modelValueOrderKey right)
 
-private def transitionResultLe
+private def stepLe
     (left right : Step ModelValue ModelValue ModelValue) : Bool :=
-  decide (transitionResultOrderKey left ≤ transitionResultOrderKey right)
+  decide (stepOrderKey left ≤ stepOrderKey right)
 
 private theorem modelValueLe_trans (a b c : ModelValue) :
     modelValueLe a b → modelValueLe b c → modelValueLe a c := by
@@ -202,14 +202,14 @@ private theorem modelValueLe_total (a b : ModelValue) :
 
 private theorem transitionResultLe_trans
     (a b c : Step ModelValue ModelValue ModelValue) :
-    transitionResultLe a b → transitionResultLe b c → transitionResultLe a c := by
-  simp only [transitionResultLe, decide_eq_true_eq]
+    stepLe a b → stepLe b c → stepLe a c := by
+  simp only [stepLe, decide_eq_true_eq]
   exact fun ab bc => String.le_trans ab bc
 
 private theorem transitionResultLe_total
     (a b : Step ModelValue ModelValue ModelValue) :
-    transitionResultLe a b || transitionResultLe b a := by
-  simp only [transitionResultLe, Bool.or_eq_true, decide_eq_true_eq]
+    stepLe a b || stepLe b a := by
+  simp only [stepLe, Bool.or_eq_true, decide_eq_true_eq]
   exact String.le_total _ _
 
 private theorem modelValueBeqSelf (value : ModelValue) : (value == value) = true := by
@@ -229,7 +229,7 @@ private theorem modelValueListBeqSelf (values : List ModelValue) :
     rw [modelValueBeqSelf, ih]
     rfl
 
-private theorem transitionResultBeqSelf
+private theorem stepBeqSelf
     (result : Step ModelValue ModelValue ModelValue) :
     (result == result) = true := by
   cases result with
@@ -238,14 +238,14 @@ private theorem transitionResultBeqSelf
     rw [modelValueBeqSelf, modelValueBeqSelf, modelValueListBeqSelf]
     rfl
 
-private theorem transitionResultListBeqSelf
+private theorem stepListBeqSelf
     (results : List (Step ModelValue ModelValue ModelValue)) :
     (results == results) = true := by
   induction results with
   | nil => rfl
   | cons head tail ih =>
     change (head == head && tail == tail) = true
-    rw [transitionResultBeqSelf, ih]
+    rw [stepBeqSelf, ih]
     rfl
 
 /-- Derive the indexed kernel with Definition-ID ordering owned by Planning. The separate adapter
@@ -262,7 +262,7 @@ private def IncrementalPlannerKernel.ofCanonicalFinite
     (target.kernel.initialStates setup |>.mergeSort modelValueLe)[index]?
   stepLimit := fun state action => (target.kernel.steps state action).length
   stepAt := fun state action index =>
-    (target.kernel.steps state action |>.mergeSort transitionResultLe)[index]?
+    (target.kernel.steps state action |>.mergeSort stepLe)[index]?
   actionSound := by
     intro index action _ emitted
     apply evidence.actionSound action
@@ -300,14 +300,14 @@ private def IncrementalPlannerKernel.ofCanonicalFinite
     apply target.kernel.stepSound
     rcases List.getElem?_eq_some_iff.mp emitted with ⟨inBounds, selected⟩
     have member : result ∈
-        (target.kernel.steps state action |>.mergeSort transitionResultLe) := by
+        (target.kernel.steps state action |>.mergeSort stepLe) := by
       rw [List.mem_iff_getElem]
       exact ⟨index, inBounds, selected⟩
     exact List.mem_mergeSort.mp member
   stepComplete := by
     intro state action result admitted
     have member : result ∈
-        (target.kernel.steps state action |>.mergeSort transitionResultLe) :=
+        (target.kernel.steps state action |>.mergeSort stepLe) :=
       List.mem_mergeSort.mpr (target.kernel.stepComplete state action result admitted)
     rw [List.mem_iff_getElem] at member
     rcases member with ⟨index, inBounds, selected⟩
@@ -339,7 +339,7 @@ private def IncrementalPlannerKernel.ofCanonicalFinite
       (List.pairwise_mergeSort transitionResultLe_trans transitionResultLe_total
         (target.kernel.steps state action))
       first second firstBound secondBound earlier
-    simpa [transitionResultLe, selectedLeft, selectedRight] using ordered
+    simpa [stepLe, selectedLeft, selectedRight] using ordered
 }
 
 private def finiteOrderError?
@@ -370,7 +370,7 @@ private def finiteOrderError?
             let pairs := domain.states.flatMap fun state => domain.actions.map fun action =>
               (state, action)
             match pairs.find? fun pair =>
-                (query.target.kernel.steps pair.1 pair.2 |>.mergeSort transitionResultLe) !=
+                (query.target.kernel.steps pair.1 pair.2 |>.mergeSort stepLe) !=
                   query.target.kernel.steps pair.1 pair.2 with
             | some (state, action) => some {
                 kind := .noncanonicalStepOrder
@@ -424,14 +424,14 @@ theorem IncrementalPlannerKernel.ofCheckedQuery_isSome
       query.target.kernel.initialStates setup)
     (stepCanonical : ∀ state action,
       (query.target.kernel.steps state action).mergeSort (fun left right =>
-        decide (transitionResultOrderKey left ≤ transitionResultOrderKey right)) =
+        decide (stepOrderKey left ≤ stepOrderKey right)) =
       query.target.kernel.steps state action) :
     (IncrementalPlannerKernel.ofCheckedQuery expectedTarget query).toOption.isSome = true := by
   rcases behaviorDomainComplete with ⟨domain, behaviorDomain⟩
   change evidence.actions.mergeSort modelValueLe = evidence.actions at actionCanonical
   change ∀ setup, (query.target.kernel.initialStates setup).mergeSort modelValueLe =
     query.target.kernel.initialStates setup at initialCanonical
-  change ∀ state action, (query.target.kernel.steps state action).mergeSort transitionResultLe =
+  change ∀ state action, (query.target.kernel.steps state action).mergeSort stepLe =
     query.target.kernel.steps state action at stepCanonical
   have actionCanonicalBool :
       (evidence.actions.mergeSort modelValueLe != evidence.actions) = false := by
@@ -449,13 +449,13 @@ theorem IncrementalPlannerKernel.ofCheckedQuery_isSome
     rw [modelValueListBeqSelf]
     rfl
   have stepCanonicalBool : ∀ state action,
-      ((query.target.kernel.steps state action).mergeSort transitionResultLe !=
+      ((query.target.kernel.steps state action).mergeSort stepLe !=
         query.target.kernel.steps state action) = false := by
     intro state action
     rw [stepCanonical]
     change (!(query.target.kernel.steps state action ==
       query.target.kernel.steps state action)) = false
-    rw [transitionResultListBeqSelf]
+    rw [stepListBeqSelf]
     rfl
   have findFalse : ∀ {α : Type} (items : List α),
       items.find? (fun _ => false) = none := by
@@ -609,9 +609,9 @@ private def receiptTrace (trace : BehaviorTrace) : Lean.Json :=
     ("initialState", receiptValue trace.trace.initialState),
     ("steps", .arr (trace.trace.steps.map fun step => .mkObj [
       ("selectedAction", receiptValue step.selectedAction),
-      ("modelOutcome", receiptValue step.outcome),
-      ("resultingState", receiptValue step.state),
-      ("observations", .arr (step.facts.map receiptValue).toArray)]).toArray)]
+      ("outcome", receiptValue step.outcome),
+      ("state", receiptValue step.state),
+      ("facts", .arr (step.facts.map receiptValue).toArray)]).toArray)]
 
 /-- Canonical endpoint receipt binds independent claims, all Query limits and policies, the
 assurance method, and exact model paths supporting realized trigger coverage. -/

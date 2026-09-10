@@ -238,21 +238,21 @@ def ModelTraceStep.result
     (ModelTraceStep.result selectedAction result).selectedAction = selectedAction := rfl
 
 /-- A step built from a transition result retains its Model Outcome. -/
-@[simp] theorem ModelTraceStep.result_modelOutcome
+@[simp] theorem ModelTraceStep.result_outcome
     {State Action Outcome Observation : Type}
     (selectedAction : Action)
     (result : Step State Outcome Observation) :
     (ModelTraceStep.result selectedAction result).outcome = result.outcome := rfl
 
 /-- A step built from a transition result retains its resulting state. -/
-@[simp] theorem ModelTraceStep.result_resultingState
+@[simp] theorem ModelTraceStep.result_state
     {State Action Outcome Observation : Type}
     (selectedAction : Action)
     (result : Step State Outcome Observation) :
     (ModelTraceStep.result selectedAction result).state = result.state := rfl
 
 /-- A step built from a transition result retains its observations. -/
-@[simp] theorem ModelTraceStep.result_observations
+@[simp] theorem ModelTraceStep.result_facts
     {State Action Outcome Observation : Type}
     (selectedAction : Action)
     (result : Step State Outcome Observation) :
@@ -270,7 +270,7 @@ def Step.map
   | ⟨outcome, state, observations⟩ => ⟨mapOutcome outcome, mapState state, observations.map mapObservation⟩
 
 /-- Mapping a transition result maps its Model Outcome. -/
-@[simp] theorem Step.map_modelOutcome
+@[simp] theorem Step.map_outcome
     {State Outcome Observation MappedState MappedOutcome MappedObservation : Type}
     (result : Step State Outcome Observation)
     (mapState : State → MappedState)
@@ -280,7 +280,7 @@ def Step.map
       mapOutcome result.outcome := rfl
 
 /-- Mapping a transition result maps its resulting state. -/
-@[simp] theorem Step.map_resultingState
+@[simp] theorem Step.map_state
     {State Outcome Observation MappedState MappedOutcome MappedObservation : Type}
     (result : Step State Outcome Observation)
     (mapState : State → MappedState)
@@ -290,7 +290,7 @@ def Step.map
       mapState result.state := rfl
 
 /-- Mapping a transition result maps its observations in their existing order. -/
-@[simp] theorem Step.map_observations
+@[simp] theorem Step.map_facts
     {State Outcome Observation MappedState MappedOutcome MappedObservation : Type}
     (result : Step State Outcome Observation)
     (mapState : State → MappedState)

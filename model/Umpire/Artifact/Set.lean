@@ -77,16 +77,12 @@ private def setOperandValid : SetupOperand → Bool
   | .role definitionId => definitionId.isNamespaced
   | .value value => setModelValueValid value
 
-private def setRoleKindValid : DefinitionKind → Bool
-  | .state | .action | .outcome | .fact | .relation | .capability | .provider | .law |
-      .connector | .target | .machine => true
-
 private def drivePlanCollectionsValid (plan : DrivePlan) : Bool :=
   plan.bindings == plan.bindings.mergeSort setBindingLe &&
     plan.bindings.all fun binding =>
       binding.role.isNamespaced && setModelValueValid binding.value &&
     plan.symbolicRoles.all fun role =>
-      role.id.isNamespaced && setRoleKindValid role.valueKind &&
+      role.id.isNamespaced &&
     plan.modelPreconditions.all fun precondition =>
       precondition.id.isNamespaced && setOperandValid precondition.left &&
         setOperandValid precondition.right &&

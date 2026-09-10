@@ -177,38 +177,38 @@
       ],
       "transitions": [
         {
-          "state": "false",
+          "priorState": "false",
           "action": "false",
-          "modelOutcome": "false",
-          "resultingState": "false",
-          "observations": [
+          "outcome": "false",
+          "state": "false",
+          "facts": [
             "false"
           ]
         },
         {
-          "state": "false",
+          "priorState": "false",
           "action": "true",
-          "modelOutcome": "true",
-          "resultingState": "true",
-          "observations": [
+          "outcome": "true",
+          "state": "true",
+          "facts": [
             "false"
           ]
         },
         {
-          "state": "true",
+          "priorState": "true",
           "action": "false",
-          "modelOutcome": "false",
-          "resultingState": "false",
-          "observations": [
+          "outcome": "false",
+          "state": "false",
+          "facts": [
             "true"
           ]
         },
         {
-          "state": "true",
+          "priorState": "true",
           "action": "true",
-          "modelOutcome": "true",
-          "resultingState": "true",
-          "observations": [
+          "outcome": "true",
+          "state": "true",
+          "facts": [
             "true"
           ]
         }

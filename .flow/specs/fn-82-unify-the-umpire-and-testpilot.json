@@ -14,7 +14,8 @@
   ],
   "id": "fn-82-unify-the-umpire-and-testpilot",
   "impl_review_rounds": {
-    "fn-82-unify-the-umpire-and-testpilot.1": 0
+    "fn-82-unify-the-umpire-and-testpilot.1": 0,
+    "fn-82-unify-the-umpire-and-testpilot.2": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -167,10 +168,40 @@
       "task": "fn-82-unify-the-umpire-and-testpilot.1",
       "timestamp": "2026-09-10T03:13:06.120412Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "d979d1ec52787532e7ff13ab5afee059fa19bc2c08aab39f7167b7967ff11ad6",
+      "backend": "claude",
+      "base_sha": "15ffdecba73d4069b039bb804480d84e594a1e08",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "abd7d513d2d7e8a6d8452328e92c6f6a9ef9a5b6",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 7290,
+      "output_sha256": "3ff079500866b599055ac73400c64e624546fe45be63853d5b7680582078c107",
+      "reservation_id": "be6988213de64224842c89f52c2cf659",
+      "round_consumed": true,
+      "scope": "impl:fn-82-unify-the-umpire-and-testpilot.2",
+      "superseded_by": null,
+      "task": "fn-82-unify-the-umpire-and-testpilot.2",
+      "timestamp": "2026-09-10T04:19:38.523671Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-82-unify-the-umpire-and-testpilot.1": 1,
+    "impl:fn-82-unify-the-umpire-and-testpilot.2": 1,
     "plan": 1,
     "plan#completion": 0
   },
@@ -178,6 +209,7 @@
   "review_reservations": {},
   "review_transport_failures": {
     "impl:fn-82-unify-the-umpire-and-testpilot.1": 0,
+    "impl:fn-82-unify-the-umpire-and-testpilot.2": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-82-unify-the-umpire-and-testpilot.md",
@@ -194,5 +226,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-10T03:13:06.121282Z"
+  "updated_at": "2026-09-10T04:19:38.524239Z"
 }

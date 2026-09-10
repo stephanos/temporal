@@ -231,7 +231,7 @@ structure Lowered (plan : Projection.Checked target) (compiled : Property.Scoped
   decoding : Testpilot.Scoped.decode wire = .ok decoded
   meaning : decoded = Scoped.meaning plan compiled keyed
   maximumFacts : plan.executable.transitions.foldl (fun maximum row => max maximum row.2.2.facts.length) 0 =
-    target.behaviorDescription.transitions.foldl (fun maximum row => max maximum row.observations.length) 0
+    target.behaviorDescription.transitions.foldl (fun maximum row => max maximum row.facts.length) 0
   candidateCounts : ∀ row ∈ plan.executable.transitions,
     (plan.executable.transitions.filter (fun candidate => candidate.1 == row.1 && candidate.2.1 == row.2.1)).length =
       (target.kernel.steps row.1 row.2.1).length
@@ -295,7 +295,7 @@ def lower (plan : Projection.Checked target) (compiled : Property.Scoped.Compile
           plan.executable.transitions plan.initialState).mapError failed
         if maximumFacts : plan.executable.transitions.foldl
             (fun maximum row => max maximum row.2.2.facts.length) 0 =
-            target.behaviorDescription.transitions.foldl (fun maximum row => max maximum row.observations.length) 0 then
+            target.behaviorDescription.transitions.foldl (fun maximum row => max maximum row.facts.length) 0 then
           if candidateCounts : ∀ row ∈ plan.executable.transitions,
               (plan.executable.transitions.filter (fun candidate =>
                 candidate.1 == row.1 && candidate.2.1 == row.2.1)).length =

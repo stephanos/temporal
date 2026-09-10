@@ -383,6 +383,8 @@ func buildRetiredRules() ([]tokenRule, error) {
 		"CASE_DEFINITION_KIND_" + "EXPERIMENT_SPACE",
 		"CASE_DEFINITION_KIND_" + "VARIATION_AXIS",
 		"CASE_DEFINITION_KIND_" + "COVERAGE_GOAL",
+		"CASE_DEFINITION_KIND_" + "CHOICE",
+		"CASE_DEFINITION_KIND_" + "FAULT",
 		"Umpire.Observation." + "Qualification",
 		"Umpire." + "Refinement",
 		"Temporal.System.Nexus." + "Refinement",

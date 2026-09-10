@@ -4,8 +4,8 @@
   "behaviorFingerprint": "sha256:6b81f3a1bc1b67f699b5f2dd7bd030e08c4bcf52c656274d4b25abb374bb87df",
   "experiment": {
     "formatVersion": "umpire-experiment/v2",
-    "artifactChecksum": "sha256:fa701806df655fa9cebc9b7d94f36b74176890c96bb535c7a3f6629afe64ff41",
-    "behaviorFingerprint": "sha256:d8d3ae24a015475a629922a632aedf4b6bf8289710f49f62cf051c3c12bf7427",
+    "artifactChecksum": "sha256:8af20c6a12bbe9c468ed22743fbfcdf9ae1a546492c245e9146e26c2a1518a47",
+    "behaviorFingerprint": "sha256:071d7e31114d3a33d6b97a9c5a05a2ff605b6138e47e580bfa30a0e5abcd2455",
     "provenanceChecksum": "sha256:9ac3c6316036d5631c81c30f45e408e80e8536359f36ef6bdd504c9f57470f41"
   },
   "authorityProfile": {
@@ -91,5 +91,5 @@
     ]
   },
   "provenanceChecksum": "sha256:09745642d54e6faf89fd0c5a1a848d62fab3d8e472cc653db4fd02a96ff9e34e",
-  "artifactChecksum": "sha256:805ffec308c478d6fce3c7058d3e8a0acad1c432ab825deab4e5cd9b59a4fbac"
+  "artifactChecksum": "sha256:3413906af76888b2e7ef232f484ff8c053c233a0f214752934c7172c197ea47d"
 }

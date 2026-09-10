@@ -55,11 +55,11 @@ def Machine.describeBehavior
   let transitions := domain.states.flatMap fun state =>
     domain.actions.flatMap fun action =>
       (kernel.steps state action).map fun result => {
-        state := domain.encodeState state
+        priorState := domain.encodeState state
         action := domain.encodeAction action
-        modelOutcome := domain.encodeOutcome result.outcome
-        resultingState := domain.encodeState result.state
-        observations := result.facts.map domain.encodeObservation
+        outcome := domain.encodeOutcome result.outcome
+        state := domain.encodeState result.state
+        facts := result.facts.map domain.encodeObservation
       }
   {
     setups := canonicalStrings (domain.setups.map domain.encodeSetup)
@@ -192,11 +192,11 @@ private def initialStateRowJson (row : TargetInitialStateRow) : String :=
   "{\"setup\":" ++ quote row.setup ++ ",\"state\":" ++ quote row.state ++ "}"
 
 private def transitionRowJson (row : TargetTransitionRow) : String :=
-  "{\"state\":" ++ quote row.state ++
+  "{\"priorState\":" ++ quote row.priorState ++
     ",\"action\":" ++ quote row.action ++
-    ",\"modelOutcome\":" ++ quote row.modelOutcome ++
-    ",\"resultingState\":" ++ quote row.resultingState ++
-    ",\"observations\":" ++ array (row.observations.map quote) ++ "}"
+    ",\"outcome\":" ++ quote row.outcome ++
+    ",\"state\":" ++ quote row.state ++
+    ",\"facts\":" ++ array (row.facts.map quote) ++ "}"
 
 private def targetBehaviorDescriptionJson (description : TargetBehaviorDescription) : String :=
   "{\"domains\":{\"setups\":" ++ array (description.setups.map quote) ++

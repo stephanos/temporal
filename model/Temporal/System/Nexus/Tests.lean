@@ -63,7 +63,7 @@ example : machine.behaviorDescription? =
   native_decide
 
 example : target.behaviorFingerprint.render =
-    "sha256:136b39d84af2978b3937ecf390d6a6cf4a5fdf45142d29aafa378ee4c84a121e" := by
+    "sha256:dc03735bdbd093c181a5bfcbcb1dfae083b47278caa3394bbc14666487b3736d" := by
   native_decide
 
 example : target.kernel.authoritativeInitial queuedSetup queuedState ∧

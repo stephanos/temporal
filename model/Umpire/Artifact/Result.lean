@@ -30,9 +30,9 @@ structure ArtifactLimit where
 structure ArtifactModelTraceStep where
   position : Nat
   selectedAction : ModelValue
-  modelOutcome : ModelValue
-  resultingState : ModelValue
-  observations : List ModelValue
+  outcome : ModelValue
+  state : ModelValue
+  facts : List ModelValue
   deriving BEq, DecidableEq, Repr
 
 /-- The immutable Model Trace projection, without Evidence or evaluator constructors. -/
@@ -321,9 +321,9 @@ private def modelValueResultJson (value : ModelValue) : String :=
 private def modelTraceStepJson (step : ArtifactModelTraceStep) : String :=
   "{\"position\":" ++ toString step.position ++
     ",\"selectedAction\":" ++ modelValueResultJson step.selectedAction ++
-    ",\"modelOutcome\":" ++ modelValueResultJson step.modelOutcome ++
-    ",\"resultingState\":" ++ modelValueResultJson step.resultingState ++
-    ",\"observations\":" ++ resultArray (step.observations.map modelValueResultJson) ++ "}"
+    ",\"outcome\":" ++ modelValueResultJson step.outcome ++
+    ",\"state\":" ++ modelValueResultJson step.state ++
+    ",\"facts\":" ++ resultArray (step.facts.map modelValueResultJson) ++ "}"
 
 private def modelTraceJson (trace : ArtifactModelTrace) : String :=
   "{\"traceId\":" ++ quoteResult trace.traceId ++

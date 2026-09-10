@@ -134,7 +134,7 @@ private def differsFromCompletionCase
 /-- One authored `require` clause dropped: a smaller Property is a smaller Contract, not an error. -/
 private def fewerClausesProperty? : Option CheckedProperty := do
   let checked ← admitted
-  let first ← (transitionResultClauses Authoring.family "successfulResult"
+  let first ← (stepClauses Authoring.family "successfulResult"
     (checked.vocabulary.actionAt 1) (checked.vocabulary.stateAt 2)
     (checked.vocabulary.outcomeAt 1) (checked.vocabulary.factAt 1)).head?
   propertyWithClauses [first]
@@ -222,7 +222,7 @@ private def impossibleSuccess (values : Authoring.ModelVocabulary) : ExactSequen
   ]
 
 private def noWitnessProperty (values : Authoring.ModelVocabulary) : PropertySpec :=
-  Authoring.withClauses (successfulResult values) <| transitionResultClauses Authoring.family
+  Authoring.withClauses (successfulResult values) <| stepClauses Authoring.family
       "successfulResult" (values.actionAt 1) (values.stateAt 1) (values.outcomeAt 1)
       (values.factAt 1)
 
@@ -418,7 +418,7 @@ private def reorderedAndDocumented (values : Authoring.ModelVocabulary) : Proper
   Authoring.reorderedAndDocumented (successfulResult values) "Comment-only presentation."
 
 private def changedMeaning (values : Authoring.ModelVocabulary) : PropertySpec :=
-  Authoring.withClauses (successfulResult values) <| transitionResultClauses Authoring.family
+  Authoring.withClauses (successfulResult values) <| stepClauses Authoring.family
       "successfulResult" (values.actionAt 1) (values.stateAt 1) (values.outcomeAt 1)
       (values.factAt 1)
 
@@ -447,7 +447,7 @@ private def fewerClauses (values : Authoring.ModelVocabulary) : PropertySpec :=
 /-- A Property about the start step lowers to clauses about the start step: the trigger each
 clause carries is the Action the `require` line named. -/
 private def startClauses (values : Authoring.ModelVocabulary) : PropertySpec :=
-  Authoring.withClauses (successfulResult values) <| transitionResultClauses Authoring.family
+  Authoring.withClauses (successfulResult values) <| stepClauses Authoring.family
       "successfulResult" (values.actionAt 0) (values.stateAt 1) (values.outcomeAt 0)
       (values.factAt 0)
 

@@ -95,12 +95,12 @@ def deferredFromOnResult : Step ModelValue ModelValue ModelValue := {
 }
 
 theorem appliedResult_ordered :
-    transitionResultOrderKey appliedResult ≤ transitionResultOrderKey deferredResult := by
+    stepOrderKey appliedResult ≤ stepOrderKey deferredResult := by
   decide
 
 theorem appliedFromOnResult_ordered :
-    transitionResultOrderKey appliedFromOnResult ≤
-      transitionResultOrderKey deferredFromOnResult := by
+    stepOrderKey appliedFromOnResult ≤
+      stepOrderKey deferredFromOnResult := by
   decide
 
 def initialStates (setup : List RoleBinding) : List ModelValue :=
