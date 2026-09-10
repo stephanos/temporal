@@ -21,9 +21,9 @@ other: the Profile must authorize it, the role it names must be a task-queue rol
 records one `FAULT_INJECTED` event per realized outage. Nothing about a requested fault is evidence
 until that event exists.
 
-A Case may also declare where its operation-scoped evidence comes from. A response projection can
+A Case may also declare where its operation-correlated evidence comes from. A response projection can
 lift a projected value into a declared `CorrelatedEvidence` Observation through guarded rules, which is
-the only way a Program supplies the evidence a `Contract.scoped` capability reads. A capability that
+the only way a Program supplies the evidence a `Contract.correlated` capability reads. A capability that
 admits no evidence answers inconclusive: silence is not a satisfied property.
 
 ## Preparation diagnostics
@@ -49,6 +49,6 @@ including Contract rule context, are retained. Missing or invalid Profile/Catalo
 are malformed; Profile binding validation, including binding ceilings, is also malformed without
 changing its rejection limits. Program and Contract limit violations retain their existing categories.
 
-These diagnostics cover static admission, including scoped Contracts. ProtoJSON decoding errors
+These diagnostics cover static admission, including correlated Contracts. ProtoJSON decoding errors
 and runtime Run/Driver failures keep their own error contracts. No diagnostic wire format is added.
 See [the public error contract](preparation_error.go) and [Temporal Driver ownership](temporal/README.md).

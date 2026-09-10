@@ -47,18 +47,18 @@ func (a *admission) bindCorrelated(seen map[string]bool) error {
 		return nil
 	}
 	if s.Version != 1 {
-		return invalid(ir.Unknown, "unsupported scoped capability version")
+		return invalid(ir.Unknown, "unsupported correlated capability version")
 	}
 	if !validID(s.ProjectionId) || s.ProjectionFingerprint == "" || !validID(s.OperationField) || !uniqueIDs(s.ScopeFields) || slices.Contains(s.ScopeFields, s.OperationField) || !uniqueIDs(s.Sources) || !correlatedValue(s.InitialState) {
-		return invalid(ir.Malformed, "invalid scoped projection binding")
+		return invalid(ir.Malformed, "invalid correlated projection binding")
 	}
 	typ, ok := a.prepared.observations[s.EvidenceObservationId]
 	if !ok || typ.Cardinality() != ir.Singular || !ir.SameMessage(typ.Message(), (&testpilotspb.CorrelatedEvidence{}).ProtoReflect().Descriptor()) {
-		return invalid(ir.TypeMismatch, "scoped evidence requires exact declared CorrelatedEvidence Observation")
+		return invalid(ir.TypeMismatch, "correlated evidence requires exact declared CorrelatedEvidence Observation")
 	}
 	l := s.Limits
 	if l == nil {
-		return invalid(ir.Malformed, "scoped limits required")
+		return invalid(ir.Malformed, "correlated limits required")
 	}
 	fields := l.ProtoReflect().Descriptor().Fields()
 	for i := 0; i < fields.Len(); i++ {
@@ -69,17 +69,17 @@ func (a *admission) bindCorrelated(seen map[string]bool) error {
 			continue
 		}
 		if l.ProtoReflect().Get(f).Int() <= 0 {
-			return invalid(ir.LimitExceeded, "scoped limits must be positive")
+			return invalid(ir.LimitExceeded, "correlated limits must be positive")
 		}
 	}
 	capturesDeclared := slices.ContainsFunc(s.Clauses, func(c *testpilotspb.CorrelatedRule) bool { return len(c.Captures) > 0 })
 	correlationDeclared := slices.ContainsFunc(s.Clauses, func(c *testpilotspb.CorrelatedRule) bool { return c.Correlation != nil })
 	if l.MaxCaptures < 0 || l.MaxCorrelationDepth < 0 || capturesDeclared && l.MaxCaptures <= 0 || correlationDeclared && l.MaxCorrelationDepth <= 0 {
-		return invalid(ir.LimitExceeded, "scoped capture limits must be positive when declared")
+		return invalid(ir.LimitExceeded, "correlated capture limits must be positive when declared")
 	}
 	limits := a.prepared.source.Limits
 	if l.MaxEvents > a.prepared.program.Limits().MaxRunEvents || l.MaxBuffered > l.MaxEvents || l.MaxKeys > l.MaxEvents || l.MaxEventBytes > a.prepared.program.Limits().MaxResponseBytes || l.MaxProjectionWork > limits.MaxTotalWork || l.MaxObligationWork > limits.MaxTotalWork || l.MaxSemanticTransitions > limits.MaxTransitions {
-		return invalid(ir.LimitExceeded, "incompatible scoped limits")
+		return invalid(ir.LimitExceeded, "incompatible correlated limits")
 	}
 	if err := add(&a.captures, l.MaxObligations, limits.MaxCaptures); err != nil {
 		return err
@@ -94,7 +94,7 @@ func (a *admission) bindCorrelated(seen map[string]bool) error {
 			continue
 		}
 		if pair[0] > (limits.MaxCaptureBytes-bytes)/pair[1] {
-			return invalid(ir.LimitExceeded, "scoped retention exceeds capture bytes")
+			return invalid(ir.LimitExceeded, "correlated retention exceeds capture bytes")
 		}
 		bytes += pair[0] * pair[1]
 	}
@@ -102,7 +102,7 @@ func (a *admission) bindCorrelated(seen map[string]bool) error {
 		return err
 	}
 	if len(s.Transitions) == 0 || len(s.ProjectionRules) == 0 || len(s.Clauses) == 0 {
-		return invalid(ir.Malformed, "scoped transition table, projection and clauses required")
+		return invalid(ir.Malformed, "correlated transition table, projection and clauses required")
 	}
 	if err := add(&a.transitions, int64(len(s.Transitions)), limits.MaxTransitions); err != nil {
 		return err
@@ -110,13 +110,13 @@ func (a *admission) bindCorrelated(seen map[string]bool) error {
 	states := map[[2]string]bool{{s.InitialState.DefinitionId, s.InitialState.Value}: true}
 	for _, tr := range s.Transitions {
 		if !correlatedValue(tr.PriorState) || !correlatedValue(tr.Action) || !correlatedValue(tr.State) || !correlatedValue(tr.Outcome) {
-			return invalid(ir.Malformed, "invalid scoped transition value")
+			return invalid(ir.Malformed, "invalid correlated transition value")
 		}
 		states[[2]string{tr.PriorState.DefinitionId, tr.PriorState.Value}] = true
 		states[[2]string{tr.State.DefinitionId, tr.State.Value}] = true
 		for _, fact := range tr.Facts {
 			if !correlatedValue(fact) {
-				return invalid(ir.Malformed, "invalid scoped fact")
+				return invalid(ir.Malformed, "invalid correlated fact")
 			}
 		}
 	}
@@ -128,7 +128,7 @@ func (a *admission) bindCorrelated(seen map[string]bool) error {
 	kinds, retained, ambiguous := map[string]bool{}, map[string]testpilotspb.ScalarKind{}, map[string]bool{}
 	for _, r := range s.ProjectionRules {
 		if !validID(r.Kind) || kinds[r.Kind] {
-			return invalid(ir.Malformed, "invalid or repeated scoped evidence kind")
+			return invalid(ir.Malformed, "invalid or repeated correlated evidence kind")
 		}
 		kinds[r.Kind] = true
 		switch r.Meaning {
@@ -185,16 +185,16 @@ func (a *admission) bindCorrelated(seen map[string]bool) error {
 		}
 		seen[c.ClauseId] = true
 		if c.Clock != testpilotspb.CORRELATED_CLOCK_OPERATION_TRANSITIONS || c.Bound < 0 || c.Ending < testpilotspb.TRACE_ENDING_PARTIAL || c.Ending > testpilotspb.TRACE_ENDING_FINAL || !validPredicate(c.Trigger, true) || !validPredicate(c.Response, false) {
-			return invalid(ir.Unknown, fmt.Sprintf("unsupported scoped clause %s", c.ClauseId))
+			return invalid(ir.Unknown, fmt.Sprintf("unsupported correlated rule %s", c.ClauseId))
 		}
-		captures := map[string]scopedCapture{}
+		captures := map[string]correlatedCapture{}
 		for _, d := range c.Captures {
 			kind, ok := retained[d.FieldId]
 			if !validID(d.CaptureId) || declared[d.CaptureId] || !validID(d.FieldId) || d.Lifetime <= 0 || !ok || ambiguous[d.FieldId] {
-				return invalid(ir.Malformed, fmt.Sprintf("invalid capture declaration in scoped clause %s", c.ClauseId))
+				return invalid(ir.Malformed, fmt.Sprintf("invalid capture declaration in correlated rule %s", c.ClauseId))
 			}
 			declared[d.CaptureId] = true
-			captures[d.CaptureId] = scopedCapture{lifetime: d.Lifetime, kind: kind}
+			captures[d.CaptureId] = correlatedCapture{lifetime: d.Lifetime, kind: kind}
 		}
 		if c.Correlation != nil {
 			if err := validCorrelation(c.Correlation, retained, ambiguous, captures, l.MaxCorrelationDepth); err != nil {
@@ -225,14 +225,14 @@ func validCorrelatedLiteral(v *testpilotspb.Value) bool {
 	}
 }
 
-// scopedCapture is one clause's declared capture: how many occurrences an operation retains and the
+// correlatedCapture is one clause's declared capture: how many occurrences an operation retains and the
 // declared scalar kind every occurrence carries.
-type scopedCapture struct {
+type correlatedCapture struct {
 	lifetime int64
 	kind     testpilotspb.ScalarKind
 }
 
-func scopedLiteralKind(v *testpilotspb.Value) testpilotspb.ScalarKind {
+func correlatedLiteralKind(v *testpilotspb.Value) testpilotspb.ScalarKind {
 	switch v.GetValue().(type) {
 	case *testpilotspb.Value_Text:
 		return testpilotspb.SCALAR_KIND_TEXT
@@ -247,13 +247,13 @@ func scopedLiteralKind(v *testpilotspb.Value) testpilotspb.ScalarKind {
 
 // validOperand reports the operand's declared scalar kind, so a comparison is checked against the
 // types the projection declares instead of comparing values of different kinds.
-func validOperand(o *testpilotspb.CorrelatedOperand, retained map[string]testpilotspb.ScalarKind, ambiguous map[string]bool, captures map[string]scopedCapture) (testpilotspb.ScalarKind, error) {
+func validOperand(o *testpilotspb.CorrelatedOperand, retained map[string]testpilotspb.ScalarKind, ambiguous map[string]bool, captures map[string]correlatedCapture) (testpilotspb.ScalarKind, error) {
 	switch v := o.GetOperand().(type) {
 	case *testpilotspb.CorrelatedOperand_Literal:
 		if !validCorrelatedLiteral(v.Literal) {
 			return 0, invalid(ir.TypeMismatch, "unsupported correlation literal")
 		}
-		return scopedLiteralKind(v.Literal), nil
+		return correlatedLiteralKind(v.Literal), nil
 	case *testpilotspb.CorrelatedOperand_FieldId:
 		kind, ok := retained[v.FieldId]
 		if !validID(v.FieldId) || !ok {
@@ -276,7 +276,7 @@ func validOperand(o *testpilotspb.CorrelatedOperand, retained map[string]testpil
 
 // validCorrelation checks the whole condition under the declared depth ceiling. An exhausted depth
 // is an explicit rejection, never a silently truncated condition.
-func validCorrelation(c *testpilotspb.CorrelatedCorrelation, retained map[string]testpilotspb.ScalarKind, ambiguous map[string]bool, captures map[string]scopedCapture, depth int64) error {
+func validCorrelation(c *testpilotspb.CorrelatedCorrelation, retained map[string]testpilotspb.ScalarKind, ambiguous map[string]bool, captures map[string]correlatedCapture, depth int64) error {
 	if depth <= 0 {
 		return invalid(ir.LimitExceeded, "correlation depth exhausted")
 	}

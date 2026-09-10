@@ -213,13 +213,13 @@ private def clause (coverage : Projection.Coverage plan)
   let correlated ← source.correlation.mapM fun checked =>
     correlation coverage declared checked.expression
   pure {
-    wire := CorrelatedRule.mk source.declaration.id.value .CORRELATED_CLOCK_OPERATION_TRANSITIONS
+    wire := Testpilot.Authoring.Contract.correlatedRule source.declaration.id.value
       (← number source.declaration.bound)
       (match source.declaration.ending with
         | .«partial» => .TRACE_ENDING_PARTIAL
         | .final => .TRACE_ENDING_FINAL)
-      (some (← pattern source.triggerPattern)) (some (← pattern source.responsePattern))
-      (captures.map Prod.fst).toArray (correlated.map (·.1)) default
+      (← pattern source.triggerPattern) (← pattern source.responsePattern)
+      (captures.map Prod.fst).toArray (correlated.map (·.1))
     keyed := (source.declaration.id.value, ⟨declared, correlated.map (·.2.1)⟩)
     depth := (correlated.map (·.2.2)).getD 0 }
 
@@ -272,20 +272,14 @@ def lower (plan : Projection.Checked target) (compiled : Property.Correlated.Com
       max_obligation_work := ← number compiled.limits.work
       max_captures := ← number (if declaresCaptures then compiled.limits.captures else 0)
       max_correlation_depth := ← number (lowered.foldl (fun ceiling row => max ceiling row.depth) 0) }
-    pure {
-      version := 1
-      projection_id := declaration.id.value
-      projection_fingerprint := plan.behaviorFingerprint.render
-      evidence_observation_id := evidenceObservationId
-      scope_fields := declaration.scopeFields.toArray.map DefinitionId.value
-      operation_field := declaration.operationField.value
-      sources := declaration.sources.toArray.map DefinitionId.value
-      initial_state := some (atom plan.initialState)
-      transitions := plan.executable.transitions.toArray.map fun (prior, action, result) =>
-        { output action result with prior_state := some (atom prior) }
-      projection_rules := rules.toArray
-      clauses := (lowered.map (·.wire)).toArray
-      limits := some limits }
+    pure (Testpilot.Authoring.Contract.correlated declaration.id.value
+      plan.behaviorFingerprint.render evidenceObservationId declaration.operationField.value
+      (declaration.scopeFields.toArray.map DefinitionId.value)
+      (declaration.sources.toArray.map DefinitionId.value)
+      (atom plan.initialState)
+      (plan.executable.transitions.toArray.map fun (prior, action, result) =>
+        { output action result with prior_state := some (atom prior) })
+      rules.toArray (lowered.map (·.wire)).toArray limits)
   let wire ← build.mapError failed
   match decoding : Testpilot.Correlated.decode wire with
   | .error reason => throw (failed reason)
@@ -359,7 +353,7 @@ theorem Lowered.evidence_validation {plan : Projection.Checked target}
 /-- Every window returned by actual wire observation admission retains checked Property correspondence. -/
 theorem Lowered.observed_property {plan : Projection.Checked target}
     {compiled : Property.Correlated.Compiled target} (lowered : Lowered plan compiled)
-    (before after : Testpilot.Correlated.Run lowered.decoded) (sequence : Nat)
+    (before after : Testpilot.Correlated.Monitor lowered.decoded) (sequence : Nat)
     (wire : CorrelatedEvidence) (_admitted : before.observe sequence wire = .ok after)
     (operation : Shared.CorrelatedObligation.Operation lowered.decoded.plan.transitions lowered.decoded.clauses)
     (_operation : operation ∈ after.monitor.operations)

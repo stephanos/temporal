@@ -16,7 +16,7 @@ type admittedCorrelatedEvidence struct {
 	supportingEventSequences []int64
 }
 
-type scopedObligation struct {
+type correlatedObligation struct {
 	remaining int64
 	status    testpilotspb.RuleVerdictStatus
 }
@@ -29,38 +29,38 @@ type retainedCapture struct {
 	ordinal int64
 	value   *testpilotspb.Value
 }
-type scopedOperation struct {
+type correlatedOperation struct {
 	state       *testpilotspb.CorrelatedValue
 	last        *testpilotspb.CorrelatedIdentity
-	obligations [][]scopedObligation
+	obligations [][]correlatedObligation
 	captures    []retainedCapture
 }
-type scopedRun struct {
+type correlatedMonitor struct {
 	scope                                                                         []*testpilotspb.CorrelatedBinding
 	accepted                                                                      []*admittedCorrelatedEvidence
 	processed                                                                     []*testpilotspb.CorrelatedIdentity
 	support                                                                       [][]*testpilotspb.CorrelatedIdentity
-	operations                                                                    map[string]*scopedOperation
+	operations                                                                    map[string]*correlatedOperation
 	ruleSupport                                                                   [][]int64
 	transitions, obligations, projectionWork, obligationWork, retainedStepSupport int64
 	capturedValues                                                                int64
 }
 
-func newCorrelated(s *testpilotspb.CorrelatedContract) *scopedRun {
+func newCorrelated(s *testpilotspb.CorrelatedContract) *correlatedMonitor {
 	if s == nil {
 		return nil
 	}
-	return &scopedRun{operations: map[string]*scopedOperation{}, ruleSupport: make([][]int64, len(s.Clauses))}
+	return &correlatedMonitor{operations: map[string]*correlatedOperation{}, ruleSupport: make([][]int64, len(s.Clauses))}
 }
-func (r *scopedRun) clone() *scopedRun {
+func (r *correlatedMonitor) clone() *correlatedMonitor {
 	n := *r
 	n.accepted = slices.Clone(r.accepted)
 	n.processed = slices.Clone(r.processed)
 	n.support = slices.Clone(r.support)
-	n.operations = map[string]*scopedOperation{}
+	n.operations = map[string]*correlatedOperation{}
 	for k, v := range r.operations {
 		op := *v
-		op.obligations = make([][]scopedObligation, len(v.obligations))
+		op.obligations = make([][]correlatedObligation, len(v.obligations))
 		for i, obs := range v.obligations {
 			op.obligations[i] = slices.Clone(obs)
 		}
@@ -77,7 +77,7 @@ func identityEqual(a, b *testpilotspb.CorrelatedIdentity) bool { return proto.Eq
 func identityIndex(ids []*testpilotspb.CorrelatedIdentity, id *testpilotspb.CorrelatedIdentity) int {
 	return slices.IndexFunc(ids, func(x *testpilotspb.CorrelatedIdentity) bool { return identityEqual(x, id) })
 }
-func (r *scopedRun) event(id *testpilotspb.CorrelatedIdentity) *admittedCorrelatedEvidence {
+func (r *correlatedMonitor) event(id *testpilotspb.CorrelatedIdentity) *admittedCorrelatedEvidence {
 	i := slices.IndexFunc(r.accepted, func(e *admittedCorrelatedEvidence) bool { return identityEqual(e.Identity, id) })
 	if i < 0 {
 		return nil
@@ -90,7 +90,7 @@ func sourceBefore(a, b *testpilotspb.CorrelatedIdentity) bool {
 func orderingEdge(a *testpilotspb.CorrelatedIdentity, b *admittedCorrelatedEvidence) bool {
 	return identityIndex(b.Parents, a) >= 0 || sourceBefore(a, b.Identity)
 }
-func (r *scopedRun) reaches(before, after *testpilotspb.CorrelatedIdentity) bool {
+func (r *correlatedMonitor) reaches(before, after *testpilotspb.CorrelatedIdentity) bool {
 	visited := []*testpilotspb.CorrelatedIdentity{before}
 	for i := 0; i < len(visited); i++ {
 		if identityEqual(visited[i], after) {
@@ -104,7 +104,7 @@ func (r *scopedRun) reaches(before, after *testpilotspb.CorrelatedIdentity) bool
 	}
 	return false
 }
-func (r *scopedRun) validateGraph() error {
+func (r *correlatedMonitor) validateGraph() error {
 	for _, e := range r.accepted {
 		for _, id := range e.Parents {
 			if p := r.event(id); p != nil && p.Operation != e.Operation {
@@ -135,7 +135,7 @@ func (r *scopedRun) validateGraph() error {
 	}
 	return nil
 }
-func (r *scopedRun) ready(e *admittedCorrelatedEvidence) bool {
+func (r *correlatedMonitor) ready(e *admittedCorrelatedEvidence) bool {
 	for _, id := range e.Parents {
 		if identityIndex(r.processed, id) < 0 {
 			return false
@@ -191,24 +191,24 @@ func projectionRule(s *testpilotspb.CorrelatedContract, kind string) *testpilots
 	}
 	return nil
 }
-func (r *scopedRun) validate(s *testpilotspb.CorrelatedContract, e *admittedCorrelatedEvidence, sequence int64) error {
+func (r *correlatedMonitor) validate(s *testpilotspb.CorrelatedContract, e *admittedCorrelatedEvidence, sequence int64) error {
 	if e.Identity == nil || e.Operation == "" || evidenceSize(e) > s.Limits.MaxEventBytes {
-		return invalid(ir.Malformed, "invalid scoped evidence size or identity")
+		return invalid(ir.Malformed, "invalid correlated evidence size or identity")
 	}
 	if len(e.Identity.Scope) != len(s.ScopeFields) {
-		return invalid(ir.Malformed, "wrong scoped bindings")
+		return invalid(ir.Malformed, "wrong correlated bindings")
 	}
 	for i, b := range e.Identity.Scope {
 		if b.FieldId != s.ScopeFields[i] || b.Value == "" {
-			return invalid(ir.Malformed, "wrong scoped bindings")
+			return invalid(ir.Malformed, "wrong correlated bindings")
 		}
 	}
 	if r.scope != nil && !slices.EqualFunc(r.scope, e.Identity.Scope, func(a, b *testpilotspb.CorrelatedBinding) bool { return proto.Equal(a, b) }) {
-		return invalid(ir.Malformed, "changed scoped bindings")
+		return invalid(ir.Malformed, "changed correlated bindings")
 	}
 	for _, id := range append(slices.Clone(e.Parents), e.Identity) {
 		if id == nil || !slices.EqualFunc(id.Scope, e.Identity.Scope, func(a, b *testpilotspb.CorrelatedBinding) bool { return proto.Equal(a, b) }) || !slices.Contains(s.Sources, id.Source) || id.Ordinal < 0 || id.Ordinal >= s.Limits.MaxEvents {
-			return invalid(ir.Malformed, "invalid scoped source identity")
+			return invalid(ir.Malformed, "invalid correlated source identity")
 		}
 	}
 	for i, p := range e.Parents {
@@ -226,7 +226,7 @@ func (r *scopedRun) validate(s *testpilotspb.CorrelatedContract, e *admittedCorr
 	}
 	rule := projectionRule(s, e.Kind)
 	if rule == nil {
-		return invalid(ir.Unknown, "unsupported scoped evidence kind")
+		return invalid(ir.Unknown, "unsupported correlated evidence kind")
 	}
 	seen := map[string]bool{}
 	for _, f := range e.Fields {
@@ -252,10 +252,10 @@ func (r *scopedRun) validate(s *testpilotspb.CorrelatedContract, e *admittedCorr
 					ok = ok && c >= '0' && c <= '9'
 				}
 			default:
-				return invalid(ir.TypeMismatch, "unsupported scoped scalar")
+				return invalid(ir.TypeMismatch, "unsupported correlated scalar")
 			}
 			if !ok {
-				return invalid(ir.TypeMismatch, "scoped field type mismatch")
+				return invalid(ir.TypeMismatch, "correlated field type mismatch")
 			}
 		}
 	}
@@ -281,7 +281,7 @@ func unionSequences(a, b []int64) []int64 {
 	slices.Sort(a)
 	return a
 }
-func (r *scopedRun) sequences(ids []*testpilotspb.CorrelatedIdentity) []int64 {
+func (r *correlatedMonitor) sequences(ids []*testpilotspb.CorrelatedIdentity) []int64 {
 	var out []int64
 	for _, id := range ids {
 		if e := r.event(id); e != nil {
@@ -329,7 +329,7 @@ func evidenceField(e *admittedCorrelatedEvidence, id string) *testpilotspb.Value
 // operandValue reads only declared evidence. An occurrence the operation never retained -- a future
 // ordinal, or one belonging to a different operation -- has no value here, so admission fails rather
 // than binding the nearest match.
-func operandValue(o *testpilotspb.CorrelatedOperand, e *admittedCorrelatedEvidence, op *scopedOperation) (*testpilotspb.Value, error) {
+func operandValue(o *testpilotspb.CorrelatedOperand, e *admittedCorrelatedEvidence, op *correlatedOperation) (*testpilotspb.Value, error) {
 	switch v := o.GetOperand().(type) {
 	case *testpilotspb.CorrelatedOperand_Literal:
 		return v.Literal, nil
@@ -352,7 +352,7 @@ func operandValue(o *testpilotspb.CorrelatedOperand, e *admittedCorrelatedEviden
 
 // correlationHolds evaluates groups left to right and stops at the first decisive operand, so an
 // operand an earlier one made irrelevant is never read and cannot fail admission.
-func correlationHolds(c *testpilotspb.CorrelatedCorrelation, out *testpilotspb.CorrelatedTransition, e *admittedCorrelatedEvidence, op *scopedOperation) (bool, error) {
+func correlationHolds(c *testpilotspb.CorrelatedCorrelation, out *testpilotspb.CorrelatedTransition, e *admittedCorrelatedEvidence, op *correlatedOperation) (bool, error) {
 	switch v := c.GetCondition().(type) {
 	case *testpilotspb.CorrelatedCorrelation_Predicate:
 		return predicate(v.Predicate, out), nil
@@ -392,7 +392,7 @@ func correlationHolds(c *testpilotspb.CorrelatedCorrelation, out *testpilotspb.C
 
 // retain keeps this step's occurrence of every declared capture. A step supplying no value at the
 // declared field records nothing; an operation already holding its declared lifetime rejects.
-func (r *scopedRun) retain(s *testpilotspb.CorrelatedContract, e *admittedCorrelatedEvidence, op *scopedOperation) error {
+func (r *correlatedMonitor) retain(s *testpilotspb.CorrelatedContract, e *admittedCorrelatedEvidence, op *correlatedOperation) error {
 	for _, c := range s.Clauses {
 		for _, d := range c.Captures {
 			value := evidenceField(e, d.FieldId)
@@ -417,7 +417,7 @@ func (r *scopedRun) retain(s *testpilotspb.CorrelatedContract, e *admittedCorrel
 	return nil
 }
 
-func (r *scopedRun) release(s *testpilotspb.CorrelatedContract, e *admittedCorrelatedEvidence) error {
+func (r *correlatedMonitor) release(s *testpilotspb.CorrelatedContract, e *admittedCorrelatedEvidence) error {
 	rule := projectionRule(s, e.Kind)
 	var support []*testpilotspb.CorrelatedIdentity
 	for _, p := range e.Parents {
@@ -435,7 +435,7 @@ func (r *scopedRun) release(s *testpilotspb.CorrelatedContract, e *admittedCorre
 	operationCount := int64(len(r.operations))
 	op := r.operations[e.Operation]
 	if op == nil {
-		op = &scopedOperation{state: s.InitialState, obligations: make([][]scopedObligation, len(s.Clauses))}
+		op = &correlatedOperation{state: s.InitialState, obligations: make([][]correlatedObligation, len(s.Clauses))}
 		r.operations[e.Operation] = op
 	}
 	if op.last != nil && !r.reaches(op.last, e.Identity) {
@@ -501,7 +501,7 @@ func (r *scopedRun) release(s *testpilotspb.CorrelatedContract, e *admittedCorre
 				if err := add(&r.obligations, 1, s.Limits.MaxObligations); err != nil {
 					return err
 				}
-				op.obligations[i] = append(op.obligations[i], scopedObligation{remaining: c.Bound, status: testpilotspb.RULE_VERDICT_STATUS_PENDING})
+				op.obligations[i] = append(op.obligations[i], correlatedObligation{remaining: c.Bound, status: testpilotspb.RULE_VERDICT_STATUS_PENDING})
 			}
 			for j := range op.obligations[i] {
 				o := &op.obligations[i][j]
@@ -530,7 +530,7 @@ func (r *scopedRun) release(s *testpilotspb.CorrelatedContract, e *admittedCorre
 	op.last = e.Identity
 	return nil
 }
-func (r *scopedRun) stage(ctx context.Context, s *testpilotspb.CorrelatedContract, e *admittedCorrelatedEvidence, sequence int64) (*scopedRun, int64, error) {
+func (r *correlatedMonitor) stage(ctx context.Context, s *testpilotspb.CorrelatedContract, e *admittedCorrelatedEvidence, sequence int64) (*correlatedMonitor, int64, error) {
 	if err := r.validate(s, e, sequence); err != nil {
 		return nil, 0, err
 	}
@@ -550,7 +550,7 @@ func (r *scopedRun) stage(ctx context.Context, s *testpilotspb.CorrelatedContrac
 	}
 	l := s.Limits
 	if int64(len(n.accepted)) > l.MaxEvents {
-		return nil, 0, invalid(ir.LimitExceeded, "scoped events exhausted")
+		return nil, 0, invalid(ir.LimitExceeded, "correlated events exhausted")
 	}
 	keys := map[string]bool{}
 	size := int64(1)
@@ -559,7 +559,7 @@ func (r *scopedRun) stage(ctx context.Context, s *testpilotspb.CorrelatedContrac
 		size += evidenceSize(event)
 	}
 	if int64(len(keys)) > l.MaxKeys {
-		return nil, 0, invalid(ir.LimitExceeded, "scoped keys exhausted")
+		return nil, 0, invalid(ir.LimitExceeded, "correlated keys exhausted")
 	}
 	outputs := int64(len(s.Transitions) + 1)
 	for _, rule := range s.ProjectionRules {
@@ -608,18 +608,18 @@ func (r *scopedRun) stage(ctx context.Context, s *testpilotspb.CorrelatedContrac
 		}
 	}
 	if int64(len(n.accepted)-len(n.processed)) > l.MaxBuffered {
-		return nil, 0, invalid(ir.LimitExceeded, "scoped buffer exhausted")
+		return nil, 0, invalid(ir.LimitExceeded, "correlated buffer exhausted")
 	}
 	retained := n.retainedStepSupport
 	for _, ids := range n.support {
 		retained += int64(len(ids))
 	}
 	if retained > l.MaxSupport {
-		return nil, 0, invalid(ir.LimitExceeded, "scoped support exhausted")
+		return nil, 0, invalid(ir.LimitExceeded, "correlated support exhausted")
 	}
 	return n, work + n.obligationWork - r.obligationWork, nil
 }
-func (r *scopedRun) answer(s *testpilotspb.CorrelatedContract, index int, closed, incomplete bool) testpilotspb.RuleVerdictStatus {
+func (r *correlatedMonitor) answer(s *testpilotspb.CorrelatedContract, index int, closed, incomplete bool) testpilotspb.RuleVerdictStatus {
 	pending := false
 	for _, op := range r.operations {
 		for _, o := range op.obligations[index] {

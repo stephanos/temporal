@@ -396,7 +396,7 @@ func TestPreparedProjectionUsesProgramFanout(t *testing.T) {
 }
 
 // TestPrepareRejectsAPlainContractBeyondItsOwnPerEventCeiling keeps the Driver's raised per-event
-// ceiling visible: it admits a scoped capability's reservation, and a Contract that declares a
+// ceiling visible: it admits a correlated capability's reservation, and a Contract that declares a
 // modest per-event value is still held to exactly that value.
 func TestPrepareRejectsAPlainContractBeyondItsOwnPerEventCeiling(t *testing.T) {
 	source, catalog, program, ceiling := fixture(t)

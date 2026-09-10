@@ -152,6 +152,32 @@ private def contract : Contract := Contract.contract "contract" #[
 
 private def eventsDeadline : ContractDeadline := Contract.deadlineEvents 3 "late"
 
+private def correlatedPredicate (field : CorrelatedPredicateField) (definitionId value : String) :
+    CorrelatedPredicate :=
+  { field, definition_id := definitionId, constraint := some (.equals_text value) }
+
+private def correlatedValue (definitionId value : String) : CorrelatedValue :=
+  { definition_id := definitionId, value }
+
+private def correlatedCapability : CorrelatedContract :=
+  Contract.correlated "projection" "sha256:projection" "evidence" "operation"
+    #["run"] #["source"] (correlatedValue "state" "open")
+    #[{ prior_state := some (correlatedValue "state" "open"),
+        action := some (correlatedValue "action" "request"),
+        state := some (correlatedValue "state" "open"),
+        outcome := some (correlatedValue "outcome" "accepted") }]
+    #[] #[
+      Contract.correlatedRule "response" 1 .TRACE_ENDING_PARTIAL
+        (correlatedPredicate .CORRELATED_PREDICATE_FIELD_ACTION "action" "request")
+        (correlatedPredicate .CORRELATED_PREDICATE_FIELD_OUTCOME "outcome" "accepted")
+    ]
+    { max_events := 16, max_buffered := 8, max_keys := 8, max_support := 256,
+      max_projection_work := 1000000, max_event_bytes := 512, max_semantic_transitions := 32,
+      max_obligations := 16, max_obligation_work := 1000000 }
+
+private def correlatedContract : Contract :=
+  Contract.contract "correlated" #[] (Contract.limits 0 0 0 16 64 1024 0 0) (some correlatedCapability)
+
 private def verdict := Verdict.make .VERDICT_STATUS_SATISFIED #[
   Verdict.rule "safety" .RULE_VERDICT_STATUS_SATISFIED "done" #[1]
 ] #[1]
@@ -183,5 +209,13 @@ private def run : temporal.server.api.testpilot.v1.Run := Run.make "run" "case" 
 #guard eventsDeadline.rule_events == 3
 #guard eventsDeadline.elapsed_milliseconds == 0
 #guard eventsDeadline.violation_state_id == "late"
+#guard contract.correlated.isNone
+#guard correlatedContract.correlated.any (fun capability =>
+  capability.version == 1 && capability.projection_id == "projection" &&
+    capability.evidence_observation_id == "evidence" && capability.clauses.size == 1)
+#guard correlatedCapability.clauses[0]!.clock == .CORRELATED_CLOCK_OPERATION_TRANSITIONS
+#guard correlatedCapability.clauses[0]!.ending == .TRACE_ENDING_PARTIAL
+#guard correlatedCapability.clauses[0]!.captures.isEmpty
+#guard correlatedCapability.clauses[0]!.correlation.isNone
 
 end Testpilot.Tests.Authoring

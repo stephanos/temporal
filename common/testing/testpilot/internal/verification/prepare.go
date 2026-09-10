@@ -57,10 +57,10 @@ func validID(id string) bool {
 }
 
 // hardLimits is the Driver ceiling every Profile's Contract ceiling must fit under. MaxWorkPerEvent
-// is sized for a scoped capability rather than for expression evaluation alone: an evidence event
-// charges the scoped stage's conservative reservation into the same per-event bucket, and that
+// is sized for a correlated capability rather than for expression evaluation alone: an evidence event
+// charges the correlated stage's conservative reservation into the same per-event bucket, and that
 // reservation is cubic in the accepted evidence count, so the expression-evaluation ceiling it used
-// to carry made every multi-operation scoped Case reject at its own first evidence event. The
+// to carry made every multi-operation correlated Case reject at its own first evidence event. The
 // capability still bounds itself through the max_projection_work and max_obligation_work it
 // declares, which admission bounds by the Contract's total, and every Case still declares its own
 // smaller per-event value.

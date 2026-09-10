@@ -66,8 +66,8 @@ private def boundary (projectionWork obligationWork support : Int64) (eventSize 
 /-- info: 'Umpire.Case.Correlated.Lowered.evidence_validation' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms Umpire.Case.Correlated.Lowered.evidence_validation
-/-- info: 'Testpilot.Correlated.Run.observe' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+/-- info: 'Testpilot.Correlated.Monitor.observe' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
-#print axioms Testpilot.Correlated.Run.observe
+#print axioms Testpilot.Correlated.Monitor.observe
 
 end Umpire.Case.CorrelatedTests

@@ -49,7 +49,7 @@ func correlatedFixture(t *testing.T, bound int64) (*testpilotspb.Contract, *ir.C
 	limits := view.Limits()
 	limits.MaxRunEvents = 32
 	typ := messageType("temporal.server.api.testpilot.v1.CorrelatedEvidence")
-	program := &testpilotspb.Program{ProgramId: "scoped.program", Limits: limits, Observations: []*testpilotspb.ObservationDefinition{{ObservationId: "evidence", Type: typ}}, Entrypoints: []*testpilotspb.EntrypointDefinition{{EntrypointId: "controller", Activation: &testpilotspb.EntrypointDefinition_Controller{Controller: &testpilotspb.ControllerActivation{}}}}, Cleanup: &testpilotspb.CleanupDefinition{EntrypointId: "cleanup"}}
+	program := &testpilotspb.Program{ProgramId: "correlated.program", Limits: limits, Observations: []*testpilotspb.ObservationDefinition{{ObservationId: "evidence", Type: typ}}, Entrypoints: []*testpilotspb.EntrypointDefinition{{EntrypointId: "controller", Activation: &testpilotspb.EntrypointDefinition_Controller{Controller: &testpilotspb.ControllerActivation{}}}}, Cleanup: &testpilotspb.CleanupDefinition{EntrypointId: "cleanup"}}
 	prepared, err := execution.Prepare(&testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: 1}, CaseId: "correlated.case", Program: program, Contract: &testpilotspb.Contract{ContractId: "correlated"}}, catalog, execution.Profile{Identity: "host", CatalogIdentity: catalog.Identity(), Limits: proto.CloneOf(limits)})
 	require.NoError(t, err)
 	ceiling.MaxCaptures = 32
@@ -89,7 +89,7 @@ func correlatedEvidence(ordinal int64, kind, operation string, parents ...int64)
 	}
 	return e
 }
-func scopedEvent(t *testing.T, seq int64, e *testpilotspb.CorrelatedEvidence) *testpilotspb.RunEvent {
+func correlatedEvent(t *testing.T, seq int64, e *testpilotspb.CorrelatedEvidence) *testpilotspb.RunEvent {
 	t.Helper()
 	a, err := anypb.New(e)
 	require.NoError(t, err)
@@ -126,7 +126,7 @@ func TestCorrelatedDeadlinesAndCausalAdmission(t *testing.T) {
 				if tc.ops != nil {
 					op = tc.ops[i]
 				}
-				event := scopedEvent(t, int64(i+2), correlatedEvidence(int64(i), kind, op))
+				event := correlatedEvent(t, int64(i+2), correlatedEvidence(int64(i), kind, op))
 				_, err = e.Observe(context.Background(), event)
 				require.NoError(t, err)
 			}
@@ -198,16 +198,16 @@ func TestCorrelatedWireAdmissionIsAtomic(t *testing.T) {
 			require.NoError(t, err)
 			_, err = e.Observe(context.Background(), event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED))
 			require.NoError(t, err)
-			_, err = e.Observe(context.Background(), scopedEvent(t, 2, correlatedEvidence(0, "request", "a")))
+			_, err = e.Observe(context.Background(), correlatedEvent(t, 2, correlatedEvidence(0, "request", "a")))
 			require.NoError(t, err)
 			before := proto.CloneOf(e.result)
 			bad := correlatedEvidence(1, "reply", "a")
 			mutate(bad)
-			_, err = e.Observe(context.Background(), scopedEvent(t, 3, bad))
+			_, err = e.Observe(context.Background(), correlatedEvent(t, 3, bad))
 			require.Error(t, err)
 			require.Equal(t, testpilotspb.RULE_VERDICT_STATUS_INCONCLUSIVE, e.result.Rules[0].Status)
 			require.True(t, proto.Equal(before.Rules[0], e.result.Rules[0]))
-			require.EqualValues(t, 1, e.scoped.transitions)
+			require.EqualValues(t, 1, e.correlated.transitions)
 		})
 	}
 }
@@ -222,10 +222,10 @@ func TestCorrelatedCausalChunksDuplicatesAndIsolation(t *testing.T) {
 		_, err = e.Observe(context.Background(), event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED))
 		require.NoError(t, err)
 		observations := []*testpilotspb.RunEvent{
-			scopedEvent(t, 2, correlatedEvidence(1, "reply", "a", 0)),
-			scopedEvent(t, 3, correlatedEvidence(1, "reply", "a", 0)),
-			scopedEvent(t, 4, correlatedEvidence(0, "request", "a")),
-			scopedEvent(t, 5, correlatedEvidence(0, "request", "a")),
+			correlatedEvent(t, 2, correlatedEvidence(1, "reply", "a", 0)),
+			correlatedEvent(t, 3, correlatedEvidence(1, "reply", "a", 0)),
+			correlatedEvent(t, 4, correlatedEvidence(0, "request", "a")),
+			correlatedEvent(t, 5, correlatedEvidence(0, "request", "a")),
 		}
 		for _, chunk := range [][]*testpilotspb.RunEvent{observations[:split], observations[split:]} {
 			for _, observation := range chunk {
@@ -233,7 +233,7 @@ func TestCorrelatedCausalChunksDuplicatesAndIsolation(t *testing.T) {
 				require.NoError(t, err)
 			}
 		}
-		require.EqualValues(t, 2, e.scoped.transitions)
+		require.EqualValues(t, 2, e.correlated.transitions)
 		require.Equal(t, testpilotspb.RULE_VERDICT_STATUS_SATISFIED, e.result.Rules[0].Status)
 		require.Equal(t, []int64{2, 4}, e.result.Rules[0].SupportingEventSequences)
 	}
@@ -285,7 +285,7 @@ func TestCorrelatedCheckedLeanFixtures(t *testing.T) {
 					for _, encoded := range chunk {
 						var evidence testpilotspb.CorrelatedEvidence
 						require.NoError(t, protojson.Unmarshal(encoded, &evidence))
-						observation := scopedEvent(t, int64(len(run.Events)+1), &evidence)
+						observation := correlatedEvent(t, int64(len(run.Events)+1), &evidence)
 						observation.ElapsedMilliseconds = 9000
 						run.Events = append(run.Events, observation)
 						decision, err := monitor.Observe(context.Background(), observation)
@@ -343,14 +343,14 @@ func TestCorrelatedResourceBoundaries(t *testing.T) {
 				require.NoError(t, err)
 				_, err = e.Observe(context.Background(), event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED))
 				require.NoError(t, err)
-				_, err = e.Observe(context.Background(), scopedEvent(t, 2, correlatedEvidence(0, "both", "a")))
+				_, err = e.Observe(context.Background(), correlatedEvent(t, 2, correlatedEvidence(0, "both", "a")))
 				if delta < 0 {
 					require.Error(t, err)
-					require.Zero(t, e.scoped.transitions)
-					require.Empty(t, e.scoped.accepted)
+					require.Zero(t, e.correlated.transitions)
+					require.Empty(t, e.correlated.accepted)
 				} else {
 					require.NoError(t, err)
-					require.EqualValues(t, 1, e.scoped.transitions)
+					require.EqualValues(t, 1, e.correlated.transitions)
 				}
 			})
 		}
@@ -398,12 +398,12 @@ func TestCorrelatedRunCeilingsAreAtomic(t *testing.T) {
 			require.NoError(t, err)
 			_, err = e.Observe(context.Background(), event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED))
 			require.NoError(t, err)
-			_, err = e.Observe(context.Background(), scopedEvent(t, 2, tc.first))
+			_, err = e.Observe(context.Background(), correlatedEvent(t, 2, tc.first))
 			require.NoError(t, err)
-			before := e.scoped
-			_, err = e.Observe(context.Background(), scopedEvent(t, 3, tc.second))
+			before := e.correlated
+			_, err = e.Observe(context.Background(), correlatedEvent(t, 3, tc.second))
 			require.Error(t, err)
-			require.Same(t, before, e.scoped)
+			require.Same(t, before, e.correlated)
 			require.Equal(t, testpilotspb.RULE_VERDICT_STATUS_INCONCLUSIVE, e.result.Rules[0].Status)
 		})
 	}
@@ -431,8 +431,8 @@ func TestCorrelatedViolationSurvivesEvaluatorAndCleanupFailure(t *testing.T) {
 	require.NoError(t, err)
 	e, err := p.newEvaluator(context.Background(), view)
 	require.NoError(t, err)
-	run := &testpilotspb.Run{RunId: "one", ProgramId: "scoped.program", Status: testpilotspb.RUN_STATUS_INCOMPLETE,
-		Events:  []*testpilotspb.RunEvent{event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED), scopedEvent(t, 2, correlatedEvidence(0, "request", "a"))},
+	run := &testpilotspb.Run{RunId: "one", ProgramId: "correlated.program", Status: testpilotspb.RUN_STATUS_INCOMPLETE,
+		Events:  []*testpilotspb.RunEvent{event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED), correlatedEvent(t, 2, correlatedEvidence(0, "request", "a"))},
 		Cleanup: &testpilotspb.CleanupOutcome{Status: testpilotspb.CLEANUP_STATUS_FAILED}}
 	for _, observation := range run.Events {
 		_, err = e.Observe(context.Background(), observation)
@@ -466,7 +466,7 @@ func TestCorrelatedPreparedConcurrentIsolation(t *testing.T) {
 			require.NoError(t, err)
 			_, err = e.Observe(context.Background(), event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED))
 			require.NoError(t, err)
-			_, err = e.Observe(context.Background(), scopedEvent(t, 2, correlatedEvidence(0, kind, "a")))
+			_, err = e.Observe(context.Background(), correlatedEvent(t, 2, correlatedEvidence(0, kind, "a")))
 			require.NoError(t, err)
 			want := testpilotspb.RULE_VERDICT_STATUS_INCONCLUSIVE
 			if kind == "both" {
@@ -491,22 +491,22 @@ func TestCorrelatedConfirmedSubmissionAndFieldPolicies(t *testing.T) {
 			require.NoError(t, err)
 			_, err = e.Observe(context.Background(), event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED))
 			require.NoError(t, err)
-			_, err = e.Observe(context.Background(), scopedEvent(t, 2, correlatedEvidence(0, "submit", "a")))
+			_, err = e.Observe(context.Background(), correlatedEvent(t, 2, correlatedEvidence(0, "submit", "a")))
 			require.NoError(t, err)
-			require.Zero(t, e.scoped.transitions)
+			require.Zero(t, e.correlated.transitions)
 			confirmed := correlatedEvidence(1, "request", "a")
 			confirmed.Fields = []*testpilotspb.CorrelatedEvidenceField{{FieldId: "payload", Value: &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: "value"}}}}
 			if valid {
 				confirmed.Parents = []*testpilotspb.CorrelatedIdentity{correlatedEvidence(0, "submit", "a").Identity}
 			}
-			_, err = e.Observe(context.Background(), scopedEvent(t, 3, confirmed))
+			_, err = e.Observe(context.Background(), correlatedEvent(t, 3, confirmed))
 			if valid {
 				require.NoError(t, err)
-				require.EqualValues(t, 1, e.scoped.transitions)
+				require.EqualValues(t, 1, e.correlated.transitions)
 				require.Equal(t, []int64{2, 3}, e.result.Rules[0].SupportingEventSequences)
 			} else {
 				require.Error(t, err)
-				require.Zero(t, e.scoped.transitions)
+				require.Zero(t, e.correlated.transitions)
 			}
 		})
 	}
@@ -527,7 +527,7 @@ func TestCorrelatedPhysicalObservationSizeRemainsBounded(t *testing.T) {
 	evidence := correlatedEvidence(0, "both", "a")
 	evidence.Fields = []*testpilotspb.CorrelatedEvidenceField{{FieldId: "payload", Value: &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: strings.Repeat("💡", 2000)}}}}
 	require.Less(t, evidenceSize(&admittedCorrelatedEvidence{CorrelatedEvidence: evidence, supportingEventSequences: []int64{2}}), c.Correlated.Limits.MaxEventBytes)
-	_, err = e.Observe(context.Background(), scopedEvent(t, 2, evidence))
+	_, err = e.Observe(context.Background(), correlatedEvent(t, 2, evidence))
 	require.Error(t, err)
-	require.Empty(t, e.scoped.accepted)
+	require.Empty(t, e.correlated.accepted)
 }

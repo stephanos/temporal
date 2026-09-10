@@ -331,9 +331,9 @@ private def segmentsOf (path : Except String FieldPath) : Option (List (String Ã
 #guard_msgs in
 #print axioms Umpire.Property.Correlated.Captures.record_extends
 
-/-- info: 'Umpire.Property.Correlated.Run.consumeEvidence_append' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+/-- info: 'Umpire.Property.Correlated.Monitor.consumeEvidence_append' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
-#print axioms Umpire.Property.Correlated.Run.consumeEvidence_append
+#print axioms Umpire.Property.Correlated.Monitor.consumeEvidence_append
 
 /-- info: 'Umpire.Operation.CheckedRpc.schema_eq' does not depend on any axioms -/
 #guard_msgs in

@@ -445,10 +445,33 @@ def limits (maxRules maxStates maxTransitions maxExpressionDepth maxWorkPerEvent
     max_total_work := maxTotalWork, max_captures := maxCaptures,
     max_capture_bytes := maxCaptureBytes }
 
-/-- Assemble a generated Contract while preserving rule order. -/
+/-- Assemble one correlated rule: the operation-local window one checked clause lowers to. The
+clock is the only one version one admits, so callers never choose it. -/
+def correlatedRule (clauseId : String) (bound : Int64) (ending : TraceEnding)
+    (trigger response : CorrelatedPredicate)
+    (captures : Array CorrelatedCaptureDeclaration := #[])
+    (correlation : Option CorrelatedCorrelation := none) : CorrelatedRule :=
+  { clause_id := clauseId, clock := .CORRELATED_CLOCK_OPERATION_TRANSITIONS, bound, ending,
+    trigger := some trigger, response := some response, captures, correlation }
+
+/-- Assemble the version-one correlated capability while preserving transition, projection-rule and
+rule order. Version one is the only admitted version, so callers never choose it. -/
+def correlated (projectionId projectionFingerprint evidenceObservationId operationField : String)
+    (scopeFields sources : Array String) (initialState : CorrelatedValue)
+    (transitions : Array CorrelatedTransition) (projectionRules : Array CorrelatedProjectionRule)
+    (rules : Array CorrelatedRule) (limits : CorrelatedLimits) : CorrelatedContract :=
+  { version := 1, projection_id := projectionId,
+    projection_fingerprint := projectionFingerprint,
+    evidence_observation_id := evidenceObservationId, scope_fields := scopeFields,
+    operation_field := operationField, sources, initial_state := some initialState,
+    transitions, projection_rules := projectionRules, clauses := rules,
+    limits := some limits }
+
+/-- Assemble a generated Contract while preserving rule order. A Contract may carry deterministic
+monitor rules, one correlated capability, or both. -/
 def contract (contractId : String) (rules : Array ContractRuleDefinition)
-    (limits : ContractLimits) : Contract :=
-  { contract_id := contractId, rules, limits := some limits }
+    (limits : ContractLimits) (capability : Option CorrelatedContract := none) : Contract :=
+  { contract_id := contractId, rules, limits := some limits, correlated := capability }
 
 end Contract
 
