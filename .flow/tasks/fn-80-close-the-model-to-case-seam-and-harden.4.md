@@ -43,70 +43,44 @@ Implements R1 (spec §R1). Replaces the hand-written Program-and-monitor Produce
 - [ ] `#print axioms` on changed declarations matches the approved baseline; `make lint-model` passes
 
 ## Done summary
-Blocked:
-Serialize behind fn-77-typed-operations-parameterized-actions.10: it modifies the Nexus3 Producer, the async-nexus fixture bytes, and the live test. Unblock when fn-77.10 is done.
+`produce` replaces `produceCompletionCase`. It lowers one `CheckedModel` and compares nothing
+against an expected one: the Contract carries no monitor rule at all, and its whole content is the
+scoped capability `Umpire.Case.Scoped.lower` certified from the checked Property.
 
-Blocked:
-BLOCKED: DEPENDENCY_BLOCKED — R1's scoped route has no runtime evidence path.
+Each `require` clause becomes one operation-scoped bounded-response clause, placed by the Action
+order the Behavior fixes: from the operation's first Action, the required value is due within as
+many semantic transitions as the Behavior puts between them. That placement is what makes the
+derived Contract discriminating. A same-step clause triggered on its own Action would answer
+satisfied for an operation that never reached the Action at all, because nothing triggered; the
+offline artifact test pins that a history with no completion is now inconclusive rather than green.
+The window includes its trigger step, so the converse hole is closed too: a required value the
+selected trace already reaches earlier rejects by clause name, which is what a reordered witness
+now does.
 
-R1 requires the shipped async-nexus Case to (a) carry `contract.scoped`, (b) drop the
-hand-written correlated-history monitor rule, and (c) still be **satisfied live**. Those three
-cannot hold together today, and forcing them through would turn a real regression test into a
-vacuous one.
+The evidence is lifted out of the same history read the Case already performs, through the
+`ScopedEvidence` projection task .14 added, keyed by the scheduled event a started or completed
+Nexus event names. The live Case is satisfied in both environments, and the live test reads both
+the history event and the ScopedEvidence lifted from it back out of the Run.
 
-Evidence gathered this session:
+Verified for the acceptance's "one edit, one Case" claim: renaming a `require` label, regenerating
+and reverting changed the async-nexus Case bytes and no Lean file under
+`model/Temporal/Feature/Nexus3/` other than `Nexus.lean`.
 
-1. `bindScoped` (`common/testing/testpilot/internal/verification/scoped_prepare.go:71-73`)
-   rejects any Case whose `Contract.scoped` names an `evidence_observation_id` that is not a
-   Program Observation typed **exactly** `temporal.server.api.testpilot.v1.ScopedEvidence`
-   (`PreparationTypeMismatch`, "scoped evidence requires exact declared ScopedEvidence
-   Observation"). The async-nexus Program declares only `history-event`
-   (`temporal.api.history.v1.HistoryEvent`), so the regenerated Case would not even `Prepare`.
+Two deviations, both argued rather than silent:
+- A changed *witness* no longer produces different Case bytes. The witness is not carried into the
+  Contract; it is the trace the derived window is checked against, so a witness inconsistent with
+  the clause placement rejects instead. A changed Target, Behavior, Query or Property still
+  produces different bytes, and the guards pin that.
+- The whole-Case coverage request is derived from the same clause list that produced the clauses,
+  so no Property edit can make `Coverage.check` reject through `completionCase`. The rejection is
+  reachable through `produce`'s `required` parameter and pinned there; the field-coverage half of
+  R1 is vacuous for this Case, which declares no projected input fields. The general mechanism is
+  pinned in `Umpire.Case.Tests.FieldLowering`.
 
-2. An Observation is filled only by an `InvokeRPC` response projection
-   (`PROJECTION_KIND_ONE` / `PROJECTION_KIND_EMIT_EACH` are the only two kinds), and the
-   version-one `Instruction` table (`instruction.proto:60-70`) has no instruction that can
-   produce a `ScopedEvidence` value. `run.proto:125` states the rule outright: "ScopedEvidence
-   is supplied only through the capability's declared typed Observation." No Temporal
-   WorkflowService RPC returns that message.
-
-3. Consequently a scoped clause on this Program receives zero evidence, and
-   `scopedRun.answer` (`internal/verification/scoped.go:622-642`) returns **SATISFIED**
-   vacuously for a clause with no operations and no accepted evidence. Shipping that would
-   delete the correlated-history rule — the only thing in the Case that today proves the Nexus
-   operation actually scheduled, started and completed — and replace it with a clause that is
-   green because it never ran.
-
-4. fn-77 already banked this exact conclusion in-tree, as the Known Gap
-   `temporal.nexus3.typed-nexus.bounded-completion-is-model-only`
-   (`model/Temporal/Feature/Nexus3/TypedNexus.lean:759-768`): "the Driver reads a scoped
-   capability only from declared `ScopedEvidence` Observations and no instruction of this
-   Program emits one."
-
-Finding on the question the spec asked to settle first (the clause form):
-
-**The scoped clause form CAN carry state, outcome and fact predicates.**
-`Umpire.Case.Scoped.pattern` (`model/Umpire/Case/Scoped.lean:44-56`) maps
-`.resultingState → SCOPED_PREDICATE_FIELD_RESULTING_STATE`,
-`.modelOutcome → SCOPED_PREDICATE_FIELD_OUTCOME`,
-`.observation → SCOPED_PREDICATE_FIELD_FACT` and
-`.selectedAction → SCOPED_PREDICATE_FIELD_ACTION`, so the three Nexus3 `require` clauses are
-expressible as three `bounded_response%` clauses sharing an `awaitSuccess` trigger. The blocker
-is the evidence path, not the clause form — so R2 (task .5) and R8 (task .6), which generalize
-the macros over the same `Authoring.check` owners, are unaffected and stay startable.
-
-Suggested resolution: land the follow-up fn-77's completion review already named — a
-`ScopedEvidence`-emitting projection (a Program-declared source that lifts recorded Nexus
-history into `ScopedEvidence` with `identity`, `operation`, `kind` and `fields`) — then re-open
-this task. Until then R1's own Goal-§1 defect (the clause-for-clause equality gate in
-`produceCompletionCase` that turns a model edit into a lowering error) is still worth closing on
-its own, but that is a smaller task than this one's acceptance and should be re-planned rather
-than silently substituted here.
-
-Impact: tasks .5, .7 and .8 carried a `depends_on` edge to this task only for file-overlap and
-live-assertion-churn reasons that no longer exist; the edges were dropped so the rest of the
-spec can proceed. Task .9's R1-related doc bullets will need the same re-planning.
+stage: impl-review - ran [a584f8f7..a37a14dc] SHIP
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 4737e7534c480b2b8d3d737be930499938041adf, 7ea712d1704f2bff44111c05edc1061b3e2de1a2, a37a14dcebc50fb9b3fea0cb430156c29227290a
+- Tests: cd model && lake build Temporal TemporalModelTests UmpireTests TestpilotTests, make lint-model (169 errors, unchanged baseline, all in generated Temporal/API; import-graph clean), make umpire-check-case-runtime-conformance, CGO_ENABLED=0 go test -tags test_dep ./common/testing/testpilot/... ./tests/testcore/testpilot/..., go test -tags 'test_dep integration' ./tests -run '^TestTestpilotAsyncNexus' (satisfied in both environments through the scoped Verdict), make umpire-check-live-tests (empty failure set across 6 passing identities), make umpire-check-regression, make lint-code GOLANGCI_LINT_FIX=false (128: errcheck 1, govet 4, revive 106, staticcheck 17 - unchanged baseline), go vet -tags test_dep ./... (15 pre-existing diagnostics, unchanged), one require label renamed, regenerated, reverted: only Nexus.lean and the Case bytes changed
 - PRs:
+stage: plan-sync - skipped(config: planSync.enabled != true)
