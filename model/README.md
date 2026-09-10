@@ -111,9 +111,9 @@ Operation-scoped response Properties can use `correlated_response%` inside
 
 ```lean
 correlated_response% (family.id "property" "response") at source
-  whenever (.selectedActionIs request) eventually (.modelOutcomeIs response)
-  within 1 on .operationTransitions
-  scoped [runField] by operationField closing .partial
+  whenever (.selectedActionIs request) eventually (.outcomeIs response)
+  within 1
+  scoped [runField] by operationField closing .«partial»
 ```
 
 This is the same `PropertyScopedClause` as the typed record constructor. `property% spec against

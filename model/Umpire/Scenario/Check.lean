@@ -30,7 +30,7 @@ private def orderingEdge (ordering : Scenario.Order) : DefinitionGraph.Edge := {
   after := ordering.after
 }
 
-private def occurrenceOrder (edge : DefinitionGraph.Edge) : Scenario.Order := {
+private def canonicalOrder (edge : DefinitionGraph.Edge) : Scenario.Order := {
   before := edge.before
   after := edge.after
 }
@@ -176,7 +176,7 @@ private def validateOrdering
   | some evidence =>
       let witness := evidence.residualPredecessorWitness
       throw (scenarioError .cyclicOrdering owner.id owner.source witness.value [witness])
-  | none => pure (analysis.canonicalEdges.map occurrenceOrder)
+  | none => pure (analysis.canonicalEdges.map canonicalOrder)
 
 private def validateBinding
     (context : ScenarioCheckContext)

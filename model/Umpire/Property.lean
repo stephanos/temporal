@@ -582,14 +582,14 @@ inductive PropertyClause where
       (trigger response : PropertyPattern)
       (limit : Limit)
       (guard : Option PropertyPredicate := none)
-      («unless» : Option PropertyUnless := none)
+      (exception : Option PropertyUnless := none)
       (source : SourceLocation := { path := "" })
   | neverWithin
       (id : DefinitionId)
       (trigger forbidden : PropertyPattern)
       (limit : Limit)
       (guard : Option PropertyPredicate := none)
-      («unless» : Option PropertyUnless := none)
+      (exception : Option PropertyUnless := none)
       (source : SourceLocation := { path := "" })
   | branches (group : PropertyBranches)
   deriving BEq, DecidableEq, Repr
