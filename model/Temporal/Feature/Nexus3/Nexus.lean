@@ -8,8 +8,10 @@ This executable slice models only `scheduled → started → succeeded`. `awaitS
 `awaitSuccess` wait for recorded Temporal outcomes; they do not manufacture those outcomes.
 Cancellation remains an unsupported design sketch in `Nexus.md`; the imported `Cancellation` module
 is the historical already-started Target described in `Integration.md`, not this slice's.
-Operation-scoped progress is a delivered generic capability, but this slice declares no scoped
-Property and the Producer in `Testpilot.lean` rejects one.
+This slice authors no scoped Property of its own. It does not need one: the Producer in
+`Testpilot.lean` derives the operation-scoped clauses the Case carries from the `require` lines
+below and the Action order the Behavior fixes, so the same-step requirement written here is what the
+runtime capability reads.
 
 Read from top to bottom: vocabulary → allowed behavior → requirement → scenario → question.
 The five blocks are the intentionally small Nexus3 success authoring surface. Their elaborator
