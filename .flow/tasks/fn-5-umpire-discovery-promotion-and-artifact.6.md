@@ -15,7 +15,7 @@ proposal bytes compile without modifying the source tree.
 
 - Add `temporal-model-promote` with one accepted argument: the fixed candidate identity from task `.5`.
 - Emit one canonical `umpire-promotion-proposal/v2` envelope that separately contains the unchanged
-  base Query/PlannerRun/base-`ExperimentSpec` lineage, selected fault-bearing `ExperimentSpec`
+  base Query/PlanResult/base-`Plan` lineage, selected fault-bearing `Plan`
   identity/checksum, promoted identities, compiled-source identity/SHA, and exact source bytes.
 - Reject missing/extra/unknown arguments, either lineage drift, unsealed source, serialization drift,
   and elaboration drift with empty stdout, one structured diagnostic plus one LF, and status 1.
@@ -43,7 +43,7 @@ proposal bytes compile without modifying the source tree.
 
 ## Acceptance
 - [ ] The executable accepts only the one fixed candidate identity and emits one canonical inert proposal envelope plus one LF.
-- [ ] The envelope separately binds every base-plan, fault-bearing ExperimentSpec, promoted-source identity, SHA-256, and exact source byte required by fn-22 validation.
+- [ ] The envelope separately binds every base-plan, fault-bearing Plan, promoted-source identity, SHA-256, and exact source byte required by fn-22 validation.
 - [ ] Missing, extra, unknown, stale/crossed base-or-fault lineage, unsealed, noncanonical, or non-elaborating input yields status 1, empty stdout, and one exact diagnostic.
 - [ ] Direct invocation makes no reproduction, minimization, Exact Replay, or runtime eligibility claim; fn-22 owns those checks and the final runtime cross-binding.
 - [ ] Emitted proposal source compiles in a clean focused Lake fixture and repeated invocations are byte-identical.

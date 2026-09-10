@@ -17,7 +17,7 @@ inductive PromotionErrorKind where
   | invalidSourceSpec
   | baseIdentityDrift
   | nonFoundResult
-  | plannerRunDrift
+  | planResultDrift
   | traceDrift
   | reasonDrift
   | experimentSpecDrift
@@ -48,7 +48,7 @@ structure PromotionBaseAnchor where
   targetBehaviorFingerprint : BehaviorFingerprint
   kernelDefinitionId : DefinitionId
   kernelBehaviorFingerprint : BehaviorFingerprint
-  plannerRun : PlanResult
+  planResult : PlanResult
   plan : Plan
   expectedTrace : Scenario.Trace
   selectionReason : SelectionReason
@@ -306,8 +306,8 @@ def compilePromotionSource
   validateSourceSpec baseQuery spec
   validateBaseAnchor baseQuery anchor
   let replanned ← search baseQuery kernel |>.mapError (promotionKnownGapError baseQuery.id)
-  if replanned != anchor.plannerRun then
-    throw (promotionError .plannerRunDrift baseQuery.id
+  if replanned != anchor.planResult then
+    throw (promotionError .planResultDrift baseQuery.id
       "recomputed PlanResult does not match the fixed base run")
   let (trace, reason) ← match replanned.result.outcome with
     | .found trace reason => pure (trace, reason)

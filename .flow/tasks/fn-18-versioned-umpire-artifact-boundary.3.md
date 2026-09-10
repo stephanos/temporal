@@ -4,7 +4,7 @@ satisfies: [R1, R2, R6, R8]
 # fn-18-versioned-umpire-artifact-boundary.3 Prove canonical v2 admission and hard rejection
 
 ## Description
-Make fn-37's v2 DrivePlan and ExperimentSpec the sole persisted baseline and prove Lean/Go agreement before adding later families.
+Make fn-37's v2 Plan.Steps and Plan the sole persisted baseline and prove Lean/Go agreement before adding later families.
 
 
 **Size:** M
@@ -35,7 +35,7 @@ Make fn-37's v2 DrivePlan and ExperimentSpec the sole persisted baseline and pro
 `mise exec -- go test -count=1 ./tools/umpire/artifact/... -run TestExperimentV2`
 
 ## Done summary
-Added the canonical v2 ExperimentSpec admission boundary over the task-.2 kernel: Switch and Nexus fixtures round-trip byte-for-byte, exact pretty-preimage checksums agree, and every required mutation class rejects with stable precedence. The public encoder now rejects invalid or stale values, retained Definition IDs use bounded ASCII namespaced validation, and nested DrivePlan versions are classified before field errors.
+Added the canonical v2 Plan admission boundary over the task-.2 kernel: Switch and Nexus fixtures round-trip byte-for-byte, exact pretty-preimage checksums agree, and every required mutation class rejects with stable precedence. The public encoder now rejects invalid or stale values, retained Definition IDs use bounded ASCII namespaced validation, and nested Plan.Steps versions are classified before field errors.
 
 Baseline: green (`mise exec -- go test -count=1 ./tools/umpire/artifact/... -run TestExperimentV2`). Final focused/full Go, internal artifactv2, Lean codec, exact regression, vet, changed-lines lint, race, and fuzz gates passed. The unittest receipt was not writable because the protected inherited `config/development.yaml` false symlink stat keeps the worktree dirty; the task gate itself passed. Review-fix memory capture was attempted but repository memory is not initialized.
 

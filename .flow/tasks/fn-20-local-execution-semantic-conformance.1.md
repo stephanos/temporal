@@ -21,7 +21,7 @@ Add the small domain-neutral semantic-check deep module consumed by the private 
 - Accept only checked mapping/query/Property values plus one bounded typed EvidenceBundle and return a complete Observation Evaluation/verdict Generated View.
 - Reuse fn-4 Observation Evaluation, coordinate bijection checks, `CheckedProperty.traceView`, `evaluateProperty`, and strict aggregation without changing their denotation.
 - Keep non-accepted outcomes total: emit the complete matching non-resolved Property partition without invoking evaluation.
-- Stop at the domain-neutral Observation Evaluation/verdict Generated View. Do not accept an ExperimentSpec plan, compute `evaluationOutcomeChecksum`, or mirror fn-18 transport; Task `.2` owns the plan-sensitive composition.
+- Stop at the domain-neutral Observation Evaluation/verdict Generated View. Do not accept an Plan plan, compute `evaluationOutcomeChecksum`, or mirror fn-18 transport; Task `.2` owns the plan-sensitive composition.
 - Pin deterministic ordering, exactly-at-bound behavior, independent operational absence, and proof that Property inputs are immutable/reusable.
 
 ### Investigation targets
@@ -34,7 +34,7 @@ Add the small domain-neutral semantic-check deep module consumed by the private 
 ## Acceptance
 - [ ] One call returns a complete accepted/non-accepted semantic result with canonical Property ordering and no partial trace or verdict set.
 - [ ] Non-accepted inputs provably skip Property evaluation; accepted inputs preserve the existing evaluator's clause results.
-- [ ] The API contains no ExperimentSpec plan, transport binding, operational status, or accepted-outcome identity computation.
+- [ ] The API contains no Plan plan, transport binding, operational status, or accepted-outcome identity computation.
 - [ ] Reusable modules import no Temporal, artifact IO, process, or command package.
 - [ ] Focused Lean tests cover satisfied, violated, Observation Evaluation non-success, incomplete verdicts, repeated values, and N/N+1 evidence.
 ## Done summary
