@@ -271,7 +271,7 @@ private def invalidUnitProperty : Property := {
   clauses := [.eventuallyWithin
     (Authoring.GuardedRace.family.id "property" "invalid-unit.clause")
     (.selectedAction frontendRaceModel.resolveAction) (.fact frontendRaceModel.terminalFact)
-    (.exact { value := 1, unit := .candidateEvaluations })]
+    { value := 1, unit := .candidateEvaluations }]
 }
 
 private def wrongKindProperty : Property := {

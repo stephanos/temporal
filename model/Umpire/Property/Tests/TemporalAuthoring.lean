@@ -8,8 +8,8 @@ namespace Umpire.Property.ScopedTests
 private def written : PropertyScopedClause :=
   correlated_response% (id "test.scoped.response") at source
     whenever (.selectedActionIs request)
-    eventually (.modelOutcomeIs response)
-    within 1 on .operationTransitions
+    eventually (.outcomeIs response)
+    within 1
     scoped [id "test.run"] by (id "test.operation") closing .«partial»
 
 #guard written == { clause 1 with trigger := .selectedActionIs request }
@@ -82,42 +82,36 @@ private def wrongStepContext : PropertyScopedClause := { written with trigger :=
 #guard_msgs (error, substring := true) in
 #check property% (spec written) against source tracking []
 
-/-- error: Unknown constant -/
-#guard_msgs (error, substring := true) in
-#check (correlated_response% (id "test.scoped.response") at source
-  whenever (.selectedActionIs request) eventually (.modelOutcomeIs response)
-  within 1 on .logicalTime scoped [id "test.run"] by (id "test.operation") closing .«partial»)
-
 /-- error: failed to synthesize -/
 #guard_msgs (error, substring := true) in
 #check (correlated_response% (id "test.scoped.response") at source
-  whenever (.selectedActionIs request) eventually (.modelOutcomeIs response)
-  within (-1) on .operationTransitions scoped [id "test.run"] by (id "test.operation") closing .«partial»)
+  whenever (.selectedActionIs request) eventually (.outcomeIs response)
+  within (-1) scoped [id "test.run"] by (id "test.operation") closing .«partial»)
 
 /-- error: Type mismatch -/
 #guard_msgs (error, substring := true) in
 #check (correlated_response% (id "test.scoped.response") at source
-  whenever (step "a" request) eventually (.modelOutcomeIs response)
-  within 1 on .operationTransitions scoped [id "test.run"] by (id "test.operation") closing .«partial»)
+  whenever (step "a" request) eventually (.outcomeIs response)
+  within 1 scoped [id "test.run"] by (id "test.operation") closing .«partial»)
 
 /-- error: Unknown constant -/
 #guard_msgs (error, substring := true) in
 #check (correlated_response% (id "test.scoped.response") at source
-  whenever (.selectedActionIs request) eventually (.modelOutcomeIs response)
-  within 1 on .operationTransitions scoped [id "test.run"] by (id "test.operation") closing .terminalModel)
+  whenever (.selectedActionIs request) eventually (.outcomeIs response)
+  within 1 scoped [id "test.run"] by (id "test.operation") closing .terminalModel)
 
 /-- error: Type mismatch -/
 #guard_msgs (error, substring := true) in
 example (raw : Observation.Projection.Event) : PropertyScopedClause :=
   correlated_response% (id "test.scoped.response") at source
-    whenever raw eventually (.modelOutcomeIs response)
-    within 1 on .operationTransitions scoped [id "test.run"] by (id "test.operation") closing .«partial»
+    whenever raw eventually (.outcomeIs response)
+    within 1 scoped [id "test.run"] by (id "test.operation") closing .«partial»
 
 /-- error: Type mismatch -/
 #guard_msgs (error, substring := true) in
 example (effect : temporal.server.api.testpilot.v1.Instruction) : PropertyScopedClause :=
   correlated_response% (id "test.scoped.response") at source
-    whenever effect eventually (.modelOutcomeIs response)
-    within 1 on .operationTransitions scoped [id "test.run"] by (id "test.operation") closing .«partial»
+    whenever effect eventually (.outcomeIs response)
+    within 1 scoped [id "test.run"] by (id "test.operation") closing .«partial»
 
 end Umpire.Property.ScopedTests

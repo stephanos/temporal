@@ -13,42 +13,7 @@ private def characterizedErrorOf
   | .ok _ => none
   | .error error => some (error, canonicalPropertyErrorJson error)
 
-def mixedUnitProperty : Property := {
-  portableProperty with
-  id := id "test.property.mixed-unit"
-  clauses := [
-    .eventuallyWithin (id "test.property.mixed-unit.clause")
-      (pattern .observation cancelRequested)
-      (pattern .observation cancelDelivered)
-      (.named cancelBudget.id .selectedActions)
-  ]
-}
-
-example :
-    characterizedErrorOf (Property.check context (mixedUnitProperty)) = some ({
-      kind := .unitMismatch
-      definitionId := id "test.property.mixed-unit"
-      sourcePath := "Umpire/Property/Tests.lean"
-      offendingValue :=
-        "test.limit.cancel-budget: expected selected-actions, found observation-positions"
-      relatedDefinitionIds := [cancelBudget.id]
-    }, "{\"kind\":\"unit-mismatch\",\"definitionId\":\"test.property.mixed-unit\"," ++
-      "\"sourcePath\":\"Umpire/Property/Tests.lean\",\"offendingValue\":" ++
-      "\"test.limit.cancel-budget: expected selected-actions, found observation-positions\"," ++
-      "\"relatedDefinitionIds\":[\"test.limit.cancel-budget\"]}") := by
-  native_decide
-
-def candidateEvaluationLimit : PropertyLimitProfile := {
-  id := id "test.limit.candidate-evaluations"
-  source
-  limit := { value := 2, unit := .candidateEvaluations }
-}
-
-def candidateEvaluationContext : PropertyCheckContext := {
-  context with limitProfiles := candidateEvaluationLimit :: context.limitProfiles
-}
-
-def candidateEvaluationProperty (limit : PropertyLimit) : Property := {
+def candidateEvaluationProperty (limit : Limit) : Property := {
   portableProperty with
   id := id "test.property.candidate-evaluations"
   clauses := [
@@ -59,18 +24,16 @@ def candidateEvaluationProperty (limit : PropertyLimit) : Property := {
   ]
 }
 
-/-- Query's candidate-evaluation Limit is rejected in both exact and named Property forms. -/
-example : [
-    errorKindOf (Property.check context (
-      candidateEvaluationProperty (.exact candidateEvaluationLimit.limit))),
-    errorKindOf (Property.check candidateEvaluationContext (
-      candidateEvaluationProperty (.named candidateEvaluationLimit.id .candidateEvaluations)))
-  ] = [some .unitMismatch, some .unitMismatch] := by
+/-- Query's candidate-evaluation Limit is not a Property position unit. -/
+example :
+    errorKindOf (Property.check context
+      (candidateEvaluationProperty { value := 2, unit := .candidateEvaluations })) =
+      some .unitMismatch := by
   native_decide
 
 /-! Exploration's ExperimentSpec Limit is not a Property position unit. -/
 example : errorKindOf (Property.check context (
-    candidateEvaluationProperty (.exact { value := 2, unit := .experimentSpecs }))) =
+    candidateEvaluationProperty { value := 2, unit := .experimentSpecs })) =
     some .unitMismatch := by
   native_decide
 
@@ -81,7 +44,7 @@ def missingLogicalTimeProperty : Property := {
     .eventuallyWithin (id "test.property.missing-logical-time.clause")
       (pattern .observation cancelRequested)
       (pattern .observation cancelDelivered)
-      (.exact { value := 1, unit := .logicalTime })
+      { value := 1, unit := .logicalTime }
   ]
 }
 
@@ -236,30 +199,6 @@ example :
       "[\"test.observation.hidden-record\"]}") := by
   native_decide
 
-def unknownLimitProfileProperty : Property := {
-  portableProperty with
-  id := id "test.property.unknown-limit-profile"
-  clauses := [
-    .eventuallyWithin (id "test.property.unknown-limit-profile.clause")
-      (pattern .observation cancelRequested)
-      (pattern .observation cancelDelivered)
-      (.named (id "test.limit.unknown") .observationPositions)
-  ]
-}
-
-example :
-    characterizedErrorOf (Property.check context (unknownLimitProfileProperty)) = some ({
-      kind := .unknownLimitProfile
-      definitionId := unknownLimitProfileProperty.id
-      sourcePath := "Umpire/Property/Tests.lean"
-      offendingValue := "test.limit.unknown"
-      relatedDefinitionIds := [id "test.limit.unknown"]
-    }, "{\"kind\":\"unknown-limit-profile\",\"definitionId\":" ++
-      "\"test.property.unknown-limit-profile\",\"sourcePath\":" ++
-      "\"Umpire/Property/Tests.lean\",\"offendingValue\":\"test.limit.unknown\"," ++
-      "\"relatedDefinitionIds\":[\"test.limit.unknown\"]}") := by
-  native_decide
-
 def invalidClauseProperty : Property := {
   portableProperty with
   id := id "test.property.invalid-clause"
@@ -281,31 +220,6 @@ example :
       "\"Umpire/Property/Tests.lean\",\"offendingValue\":" ++
       "\"test.property.invalid-clause.clause: observation\",\"relatedDefinitionIds\":" ++
       "[\"test.property.invalid-clause.clause\"]}") := by
-  native_decide
-
-def duplicateLimitProfileContext : PropertyCheckContext := {
-  context with limitProfiles := [cancelBudget, cancelBudget]
-}
-
-def duplicateLimitProfileProperty : Property := {
-  portableProperty with
-  id := id "test.property.duplicate-limit-profile"
-}
-
-example :
-    characterizedErrorOf
-      (Property.check duplicateLimitProfileContext (duplicateLimitProfileProperty)) =
-      some ({
-        kind := .duplicateDefinitionId
-        definitionId := duplicateLimitProfileProperty.id
-        sourcePath := "Umpire/Property/Tests.lean"
-        offendingValue := "test.limit.cancel-budget"
-        relatedDefinitionIds := [cancelBudget.id]
-      }, "{\"kind\":\"duplicate-definition-id\",\"definitionId\":" ++
-        "\"test.property.duplicate-limit-profile\",\"sourcePath\":" ++
-        "\"Umpire/Property/Tests.lean\",\"offendingValue\":" ++
-        "\"test.limit.cancel-budget\",\"relatedDefinitionIds\":" ++
-        "[\"test.limit.cancel-budget\"]}") := by
   native_decide
 
 end Umpire.PropertyTests

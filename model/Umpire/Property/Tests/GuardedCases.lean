@@ -248,7 +248,7 @@ private def guardedTemporalDeclaration : Property := {
       requestGuard none
       (pattern .observation cancelRequested)
       (pattern .observation cancelDelivered)
-      (.exact { value := 1, unit := .semanticTransitions })
+      { value := 1, unit := .semanticTransitions }
   ]
 }
 
@@ -260,7 +260,7 @@ private def guardedQuiescentDeclaration : Property := {
       requestGuard none
       (pattern .observation cancelDelivered)
       (pattern .observation cancelRequested)
-      (.exact { value := 1, unit := .semanticTransitions })
+      { value := 1, unit := .semanticTransitions }
   ]
 }
 
@@ -438,7 +438,7 @@ private def wrongTemporalUnit : Property := {
       requestGuard none
       (pattern .observation cancelRequested)
       (pattern .observation cancelDelivered)
-      (.exact { value := 1, unit := .candidateEvaluations })
+      { value := 1, unit := .candidateEvaluations }
   ]
 }
 

@@ -172,7 +172,6 @@ private def clause (bound : Nat) (endpoint : PropertyScopedEndpoint := .«partia
     constraint := .equals (.text "response") }
   scope := [id "test.run"]
   key := id "test.operation"
-  clock := .operationTransitions
   bound
   endpoint
   captures

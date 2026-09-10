@@ -77,7 +77,6 @@ def clause (bound : Nat) (endpoint : PropertyScopedEndpoint := .«partial») : P
     constraint := .equals (.text "response") }
   scope := [id "test.run"]
   key := id "test.operation"
-  clock := .operationTransitions
   bound
   endpoint
 }
