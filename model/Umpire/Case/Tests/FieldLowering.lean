@@ -1,4 +1,4 @@
-import Umpire.Case.Scoped
+import Umpire.Case.Correlated
 import Umpire.Property.Elab
 import Umpire.Model.Table
 import Umpire.Shared.Test
@@ -179,32 +179,32 @@ private def correlation (ordinal : Nat := 0) (name : DefinitionId := captureName
       (.literal (.integer .int32 1) source) source]
 
 private def capture (lifetime : Nat := 4) (path : PropertyFieldPath := acceptedPath) :
-    PropertyScopedCapture := { name := captureName, key := id "test.operation", path, lifetime }
+    PropertyCorrelatedCapture := { name := captureName, key := id "test.operation", path, lifetime }
 
-private def clause (bound : Nat := 1) (endpoint : PropertyScopedEndpoint := .«partial»)
-    (captures : List PropertyScopedCapture := [capture])
-    (requirement : Option PropertyPredicate := some correlation) : PropertyScopedClause := {
-  id := id "test.scoped.fields"
+private def clause (bound : Nat := 1) (ending : TraceEnding := .«partial»)
+    (captures : List PropertyCorrelatedCapture := [capture])
+    (requirement : Option PropertyPredicate := some correlation) : PropertyCorrelatedClause := {
+  id := id "test.correlated.fields"
   source
   trigger := .atom { field := .selectedAction, reference := id "test.trigger" }
   response := .atom { field := .outcome, reference := id "test.outcome" }
   scope := [id "test.run"]
   key := id "test.operation"
   bound
-  endpoint
+  ending
   captures
   correlation := requirement
 }
 
-private def property (target : TestTarget) (temporal : PropertyScopedClause) :=
+private def property (target : TestTarget) (temporal : PropertyCorrelatedClause) :=
   Property.check (context target) ({
     id := id "test.property.fields"
     source
     requires := [id "test.capability"]
     clauses := []
-    scopedClauses := [temporal] })
+    correlatedRules := [temporal] })
 
-private def runLimits : Property.Scoped.Limits :=
+private def runLimits : Property.Correlated.Limits :=
   { transitions := 64, obligations := 32, work := 100000000, captures := 32 }
 private def scope : List (DefinitionId × String) := [(id "test.run", "run-1")]
 
@@ -230,7 +230,7 @@ private def modelEvent (report : Report) : Case.Projection.Event := {
   runSequences := [report.ordinal + 1]
   fields := report.count.toList.map fun count => ⟨countField, some (.natural count)⟩ }
 
-private def wireEvent (report : Report) : ScopedEvidence := {
+private def wireEvent (report : Report) : CorrelatedEvidence := {
   identity := some {
     scope := #[{ field_id := "test.run", value := "run-1" }]
     source := "test.source", ordinal := Int64.ofInt report.ordinal }
@@ -238,9 +238,9 @@ private def wireEvent (report : Report) : ScopedEvidence := {
   kind := report.kind
   fields := (report.count.toList.map fun count =>
     ({ field_id := "test.count", value := some { value := some (.natural (toString count)) } } :
-      ScopedEvidenceField)).toArray }
+      CorrelatedEvidenceField)).toArray }
 
-private def transition (report : Report) : Property.Scoped.Transition :=
+private def transition (report : Report) : Property.Correlated.Transition :=
   let (action, outcome) := match report.kind with
     | "test.request.one" => (trigger, payload 1)
     | "test.request.two" => (trigger, payload 2)
@@ -261,13 +261,13 @@ private def code : PropertyEndpointAnswer → Nat
 /-! ### The three evaluators -/
 
 /-- The model kernel, over the projections the coverage rebuilds from the declared evidence. -/
-private def modelAnswers (temporal : PropertyScopedClause) (reports : List Report)
+private def modelAnswers (temporal : PropertyCorrelatedClause) (reports : List Report)
     (split : Nat := 0) : Option (List Nat) := do
   let target ← targetResult.toOption
   let projected ← (plan target).toOption
   let coverage ← (Case.Projection.Coverage.check projected valueLimits [mapping]).toOption
   let checked ← (property target temporal).toOption
-  let compiled ← (Property.Scoped.compile target checked [id "test.run"] (id "test.operation")
+  let compiled ← (Property.Correlated.compile target checked [id "test.run"] (id "test.operation")
     runLimits).toOption
   let initial ← (compiled.start () state scope).toOption
   let steps ← reports.mapM fun report => do
@@ -278,14 +278,14 @@ private def modelAnswers (temporal : PropertyScopedClause) (reports : List Repor
   pure (run.close.answers.map fun answer => code answer.2)
 
 /-- The evidence-driven model adapter, over exactly the projected Observations. -/
-private def adapterAnswers (temporal : PropertyScopedClause) (reports : List Report)
+private def adapterAnswers (temporal : PropertyCorrelatedClause) (reports : List Report)
     (split : Nat := 0) : Option (List Nat) := do
   let target ← targetResult.toOption
   let projected ← (plan target).toOption
   let coverage ← (Case.Projection.Coverage.check projected valueLimits [mapping]).toOption
   let checked ← (property target temporal).toOption
-  let compiled ← (Case.Projection.Scoped.compile projected checked runLimits coverage).toOption
-  let initial ← (Case.Projection.Scoped.start projected compiled () scope coverage).toOption
+  let compiled ← (Case.Projection.Correlated.compile projected checked runLimits coverage).toOption
+  let initial ← (Case.Projection.Correlated.start projected compiled () scope coverage).toOption
   let events := reports.map modelEvent
   let run ← (initial.admitMany (events.take split) >>= fun next =>
     next.admitMany (events.drop split)).toOption
@@ -299,7 +299,7 @@ private def requestValue (count : Int) : PortableValue :=
 private def program (assigned : Int := 7) : Program :=
   Testpilot.Authoring.Program.make "fields.program" #[] #[]
     #[Testpilot.Authoring.Program.observation "evidence" (Testpilot.Authoring.Types.singular
-      (Testpilot.Authoring.Types.messageType "temporal.server.api.testpilot.v1.ScopedEvidence"))]
+      (Testpilot.Authoring.Types.messageType "temporal.server.api.testpilot.v1.CorrelatedEvidence"))]
     #[Testpilot.Authoring.Program.controller "controller"
       #[Testpilot.Authoring.Program.node "start"
         (Testpilot.Authoring.Program.invokeRPC "source" "/example.Call/Do"
@@ -324,10 +324,10 @@ private def tagInputCoverage : Coverage.InputMapping :=
     entrypointId := "controller", instructionId := "start" }
 
 private def caseCoverage (assigned : Int := 7) : Coverage.Request :=
-  { inputs := [inputCoverage assigned, tagInputCoverage], clauses := [id "test.scoped.fields"] }
+  { inputs := [inputCoverage assigned, tagInputCoverage], clauses := [id "test.correlated.fields"] }
 
 /-- Lower one requested Case, from the checked coverage through to the assembled artifact. -/
-private def compiledCase (temporal : PropertyScopedClause)
+private def compiledCase (temporal : PropertyCorrelatedClause)
     (mappings : List Case.Projection.FieldMapping := [mapping])
     (requested : Coverage.Request := caseCoverage) (assigned : Int := 7)
     (fields : List (EvidenceFieldDeclaration × FieldDisposition) := retainedCount) :
@@ -337,9 +337,9 @@ private def compiledCase (temporal : PropertyScopedClause)
   let coverage ← (Case.Projection.Coverage.check projected valueLimits mappings).mapError
     (·.reason)
   let checked ← (property target temporal).mapError fun _ => "property"
-  let compiled ← (Property.Scoped.compile target checked [id "test.run"] (id "test.operation")
-    runLimits).mapError fun _ => "scoped compile"
-  let lowered ← (Scoped.lower projected compiled "evidence" coverage).mapError (·.construct)
+  let compiled ← (Property.Correlated.compile target checked [id "test.run"] (id "test.operation")
+    runLimits).mapError fun _ => "correlated compile"
+  let lowered ← (Correlated.lower projected compiled "evidence" coverage).mapError (·.construct)
   (Compiler.compile {
     version := { major := 1 }
     caseId := "fields.case"
@@ -350,23 +350,23 @@ private def compiledCase (temporal : PropertyScopedClause)
     program := program assigned
     contractId := "fields"
     properties := [lowered.contractLowering]
-    contractLimits := Testpilot.Authoring.Monitor.limits 16 32 64 16 100000 1000000000 32 65536
+    contractLimits := Testpilot.Authoring.Contract.limits 16 32 64 16 100000 1000000000 32 65536
     coverage := requested
   }).mapError (·.construct)
 
-private def capabilityOf (temporal : PropertyScopedClause) : Except String ScopedContract := do
+private def capabilityOf (temporal : PropertyCorrelatedClause) : Except String CorrelatedContract := do
   let artifact ← compiledCase temporal
   let some contract := artifact.contract | throw "missing contract"
-  let some capability := contract.«scoped» | throw "missing capability"
+  let some capability := contract.«correlated» | throw "missing capability"
   pure capability
 
 /-- The portable interpreter over the lowered Case, replayed at one chunk boundary. -/
-private def portableAnswers (temporal : PropertyScopedClause) (reports : List Report)
+private def portableAnswers (temporal : PropertyCorrelatedClause) (reports : List Report)
     (split : Nat := 0) : Option (List Nat) := do
   let capability ← (capabilityOf temporal).toOption
-  let compiled ← (Testpilot.Scoped.decode capability).toOption
+  let compiled ← (Testpilot.Correlated.decode capability).toOption
   let initial ← (compiled.start [(⟨"test.run"⟩, "run-1")]).toOption
-  let observe := fun (run : Testpilot.Scoped.Run compiled) (report : Report) =>
+  let observe := fun (run : Testpilot.Correlated.Run compiled) (report : Report) =>
     run.observe (report.ordinal + 2) (wireEvent report)
   let run ← (((reports.take split).foldlM observe initial) >>= fun next =>
     (reports.drop split).foldlM observe next).toOption
@@ -406,19 +406,19 @@ private def agrees (scenario : Scenario) : Bool :=
   let projected ← (plan target).toOption
   let coverage ← (Case.Projection.Coverage.check projected valueLimits [mapping]).toOption
   let checked ← (property target (clause)).toOption
-  let compiled ← (Property.Scoped.compile target checked [id "test.run"] (id "test.operation")
+  let compiled ← (Property.Correlated.compile target checked [id "test.run"] (id "test.operation")
     runLimits).toOption
   let initial ← (compiled.start () state scope).toOption
   let steps ← [request 0 2, reply 1].mapM fun report => do
     let evidence ← (coverage.evidence (modelEvent report).fields).toOption
     pure (transition report, evidence)
   pure (match initial.consumeEvidence steps with
-    | .error failure => failure == Property.Scoped.Error.invalidTransition "a"
+    | .error failure => failure == Property.Correlated.Error.invalidTransition "a"
     | .ok _ => false)) == some true
 
 #guard (do
   let capability ← (capabilityOf (clause)).toOption
-  let compiled ← (Testpilot.Scoped.decode capability).toOption
+  let compiled ← (Testpilot.Correlated.decode capability).toOption
   let initial ← (compiled.start [(⟨"test.run"⟩, "run-1")]).toOption
   let admitted ← (initial.observe 2 (wireEvent (request 0 2))).toOption
   pure (match admitted.observe 3 (wireEvent (reply 1)) with
@@ -429,14 +429,14 @@ private def agrees (scenario : Scenario) : Bool :=
 
 /-- The keyed fragment written out here from the declarations above, not read back from the
 encoder. -/
-private def expectedKeyed : List (String × Testpilot.Scoped.Keyed) :=
-  [("test.scoped.fields", ⟨[⟨captureName, countField, 2, 4⟩],
+private def expectedKeyed : List (String × Testpilot.Correlated.Keyed) :=
+  [("test.correlated.fields", ⟨[⟨captureName, countField, 2, 4⟩],
     some (.any (.cons (.predicate ⟨1, id "test.trigger", none⟩)
       (.cons (.comparison true (.capture captureName 0) (.literal (.natural 1))) .nil)))⟩)]
 
-private def decodedKeyed (temporal : PropertyScopedClause) :
-    Except String (List (String × Testpilot.Scoped.Keyed)) := do
-  let compiled ← Testpilot.Scoped.decode (← capabilityOf temporal)
+private def decodedKeyed (temporal : PropertyCorrelatedClause) :
+    Except String (List (String × Testpilot.Correlated.Keyed)) := do
+  let compiled ← Testpilot.Correlated.decode (← capabilityOf temporal)
   pure compiled.keyed
 
 #guard (decodedKeyed (clause)).toOption == some expectedKeyed
@@ -531,8 +531,8 @@ private def coverageRejects (mappings : List Case.Projection.FieldMapping)
   let coverage ← (Case.Projection.Coverage.check projected valueLimits
     [mapping, ⟨requestTagPath, tagField⟩]).toOption
   let checked ← (property target (clause)).toOption
-  let compiled ← (Case.Projection.Scoped.compile projected checked runLimits coverage).toOption
-  let initial ← (Case.Projection.Scoped.start projected compiled () scope coverage).toOption
+  let compiled ← (Case.Projection.Correlated.compile projected checked runLimits coverage).toOption
+  let initial ← (Case.Projection.Correlated.start projected compiled () scope coverage).toOption
   let run ← (initial.admitMany ([request 0 1, reply 1].map modelEvent)).toOption
   pure (run.close.answers.map fun answer => code answer.2)) == some [2]
 
@@ -544,7 +544,7 @@ private def coverageRejects (mappings : List Case.Projection.FieldMapping)
     [⟨requestPath, countField⟩]).toOption
   let checked ← (property target (clause (captures := [capture (path := requestPath)])
     (requirement := none))).toOption
-  pure (match Case.Projection.Scoped.compile projected checked runLimits coverage with
+  pure (match Case.Projection.Correlated.compile projected checked runLimits coverage with
     | .error (.property (.unsupported _ reason)) =>
         reason == "request operand is not rebuildable from projected evidence"
     | _ => false)) == some true
@@ -554,8 +554,8 @@ private def coverageRejects (mappings : List Case.Projection.FieldMapping)
   let target ← targetResult.toOption
   let projected ← (plan target).toOption
   let checked ← (property target (clause)).toOption
-  pure (match Case.Projection.Scoped.compile projected checked runLimits with
-    | .error (.property (.unsupported clauseId _)) => clauseId == id "test.scoped.fields"
+  pure (match Case.Projection.Correlated.compile projected checked runLimits with
+    | .error (.property (.unsupported clauseId _)) => clauseId == id "test.correlated.fields"
     | _ => false)) == some true
 
 /-! ### Requested input construction and clause lowering are inspected too -/
@@ -586,14 +586,14 @@ private def coverageRejects (mappings : List Case.Projection.FieldMapping)
 
 /-! ### Trust -/
 
-/-- info: 'Umpire.Case.Scoped.Lowered.window_property' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+/-- info: 'Umpire.Case.Correlated.Lowered.window_property' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
-#print axioms Umpire.Case.Scoped.Lowered.window_property
-/-- info: 'Umpire.Case.Scoped.Lowered.evidence_validation' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#print axioms Umpire.Case.Correlated.Lowered.window_property
+/-- info: 'Umpire.Case.Correlated.Lowered.evidence_validation' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
-#print axioms Umpire.Case.Scoped.Lowered.evidence_validation
-/-- info: 'Umpire.Case.Projection.Scoped.Run.admitMany_append' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#print axioms Umpire.Case.Correlated.Lowered.evidence_validation
+/-- info: 'Umpire.Case.Projection.Correlated.Run.admitMany_append' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
-#print axioms Umpire.Case.Projection.Scoped.Run.admitMany_append
+#print axioms Umpire.Case.Projection.Correlated.Run.admitMany_append
 
 end Umpire.Case.FieldLoweringTests

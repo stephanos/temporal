@@ -22,7 +22,7 @@ records one `FAULT_INJECTED` event per realized outage. Nothing about a requeste
 until that event exists.
 
 A Case may also declare where its operation-scoped evidence comes from. A response projection can
-lift a projected value into a declared `ScopedEvidence` Observation through guarded rules, which is
+lift a projected value into a declared `CorrelatedEvidence` Observation through guarded rules, which is
 the only way a Program supplies the evidence a `Contract.scoped` capability reads. A capability that
 admits no evidence answers inconclusive: silence is not a satisfied property.
 

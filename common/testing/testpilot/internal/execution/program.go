@@ -25,7 +25,7 @@ const (
 	InjectFault
 )
 
-// MaxOpcode is the highest declared opcode. A Profile authorizes each opcode at most once, so it
+// MaxOpcode is the highest declared capability. A Profile authorizes each capability at most once, so it
 // is also the ceiling on an authorized capability list; Driver profile validation reuses it
 // instead of restating a literal that a new instruction would silently invalidate.
 const MaxOpcode = InjectFault
@@ -43,16 +43,16 @@ type ReservationCarrierPolicy struct {
 }
 
 type ReservationCarrierShape struct {
-	Context      testpilotspb.EntrypointKind
+	Kind         testpilotspb.EntrypointKind
 	MaximumCount int64
 }
 
-// Policy is a static Driver snapshot. Prepare freezes its collections and resource ceilings.
-type Policy struct {
+// Profile is a static Driver snapshot. Prepare freezes its collections and resource ceilings.
+type Profile struct {
 	Identity               string
 	CatalogIdentity        string
 	Roles                  []RolePolicy
-	Capabilities           []Opcode
+	Opcodes                []Opcode
 	EnvironmentBindings    []EnvironmentBinding
 	EnvironmentFingerprint string
 	Limits                 *testpilotspb.ProgramLimits
@@ -85,7 +85,7 @@ func (v ProgramView) MaximumActivations() int64           { return v.maximumActi
 type PreparedProgram struct {
 	source                 *testpilotspb.Program
 	catalog                *ir.Catalog
-	policy                 Policy
+	policy                 Profile
 	view                   ProgramView
 	graphs                 []*graph
 	slots                  map[string]ir.Type
@@ -136,7 +136,7 @@ type ReservationCarrierPlan struct {
 
 type ReservationTopology struct {
 	EntrypointID string
-	Context      testpilotspb.EntrypointKind
+	Kind         testpilotspb.EntrypointKind
 	Count        int64
 }
 
@@ -193,14 +193,14 @@ type projection struct {
 	lifts []*evidenceLift
 }
 
-// evidenceBinding is one bound read out of the projected value into a ScopedEvidence slot.
+// evidenceBinding is one bound read out of the projected value into a CorrelatedEvidence slot.
 type evidenceBinding struct {
 	fieldID string
 	path    *ir.Path
 	literal string
 }
 
-// evidenceRule lifts one guarded shape of the projected value into a ScopedEvidence value.
+// evidenceRule lifts one guarded shape of the projected value into a CorrelatedEvidence value.
 type evidenceRule struct {
 	guard        *ir.Path
 	guardEquals  string
@@ -210,7 +210,7 @@ type evidenceRule struct {
 	fields       []evidenceBinding
 }
 
-// evidenceLift is the bound form of one declared ScopedEvidenceProjection sink.
+// evidenceLift is the bound form of one declared CorrelatedEvidenceProjection sink.
 type evidenceLift struct {
 	observationID string
 	element       ir.Type
@@ -261,8 +261,8 @@ func (p *PreparedProgram) Cleanup() (EntrypointPlan, bool) {
 	}
 	return EntrypointPlan{graph: graph, program: p}, true
 }
-func (p EntrypointPlan) ID() string                           { return p.graph.id }
-func (p EntrypointPlan) Context() testpilotspb.EntrypointKind { return p.graph.context }
+func (p EntrypointPlan) ID() string                        { return p.graph.id }
+func (p EntrypointPlan) Kind() testpilotspb.EntrypointKind { return p.graph.context }
 func (p EntrypointPlan) Activation() *testpilotspb.EntrypointDefinition {
 	return proto.CloneOf(p.graph.activation)
 }

@@ -83,14 +83,14 @@ The retained semantic APIs keep these responsibilities separate:
 Planning artifacts and Generated Views remain useful model outputs. They are not inputs to Testpilot
 and do not establish that a runtime action occurred.
 
-Operation-scoped bounded response authoring lowers through the existing Property checker.
-`correlated_response%` and typed `PropertyScopedClause` values share canonical meaning and fingerprints;
+Operation-correlated bounded response authoring lowers through the existing Property checker.
+`correlated_response%` and typed `PropertyCorrelatedClause` values share canonical meaning and fingerprints;
 key, scope, bound, and endpoint remain explicit semantic choices.
-Checked projection, source Property, and portable Contract are connected by `Umpire.Case.Scoped`
+Checked projection, source Property, and portable Contract are connected by `Umpire.Case.Correlated`
 certificates. Shared table/projection/obligation modules contain no feature callback; generic
 Testpilot interprets the admitted versioned capability and maintains fresh state for each Run.
 
-The non-cancellation scoped corpus now includes RPC Programs that emit typed observations through
+The non-cancellation correlated corpus now includes RPC Programs that emit typed observations through
 the public Prepare/Run path. It qualifies correlation, inclusive deadlines, preserved violation
 proof, incomplete/lost execution, cleanup failure, and bounded tenfold loads. The existing Nexus3
 success Case remains the live Driver integration. Cancellation Models, evidence adapters, operation
@@ -127,7 +127,7 @@ Case
 └── Contract
     ├── deterministic safety and bounded-liveness rules
     ├── bounded captures
-    ├── expiry-before-transition horizons
+    ├── expiry-before-transition deadlines
     └── independent work and storage limits
 ```
 
@@ -200,7 +200,7 @@ bindings.
 
 Public static admission exposes `testpilot.PreparationError` with a stable category, bounded input
 path, and human-readable detail through `errors.As`. It covers Catalog, Profile, Program, and
-Contract rejection, including scoped Contracts; ProtoJSON decoding and runtime failures keep their
+Contract rejection, including correlated Contracts; ProtoJSON decoding and runtime failures keep their
 own contracts. See the canonical [facade guidance](../common/testing/testpilot/README.md#preparation-diagnostics)
 and [public diagnostic type](../common/testing/testpilot/preparation_error.go).
 
@@ -211,7 +211,7 @@ and [worker ownership](../common/testing/testpilot/temporal/worker/README.md).
 
 The Executor appends monotonic immutable Run Events. Each event has a unique source identity and
 causal references to prior sources. The Evaluator observes the appended copy synchronously and uses
-the same prepared Contract for offline evaluation. It checks horizon expiry before every
+the same prepared Contract for offline evaluation. It checks deadline expiry before every
 transition, keeps captures rule-local and Run-local, and records exact supporting event sequences.
 Private Slots never become evidence automatically.
 

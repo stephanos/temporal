@@ -1,5 +1,5 @@
 import Testpilot.Authoring
-import Umpire.Case
+import Umpire.Provenance
 import Umpire.Property
 
 /-!
@@ -9,9 +9,9 @@ Case that will execute them.
 A Case has two independent construction boundaries. A modeled input field is *constructed* by the
 Program: exactly one request assignment of one named instruction must target its coordinates and
 supply its exact value. A modeled result or event field is *observed*: the projection-level
-`Umpire.Case.Projection.Coverage` maps it onto a declared Observation, and the scoped
+`Umpire.Case.Projection.Coverage` maps it onto a declared Observation, and the correlated
 lowering consumes that map. A requested clause is *lowered*: it must appear exactly once among the
-Case's compiled scoped clause bindings.
+Case's compiled correlated rule bindings.
 
 `Umpire.Case.Compiler.Input.coverage` carries the requested map, and `compile` admits it before it
 assembles anything. A requested input field with no assignment, an assignment that constructs a
@@ -152,8 +152,8 @@ private def checkInput (program : Program) (mapping : InputMapping) : Except Str
 
 /-- Admit the requested coverage against the Case being assembled. Every requested input field must
 be constructed exactly once by the named instruction, and every requested clause must appear exactly
-once among the lowered scoped clause bindings. -/
-def check (program : Program) (clauses : List CaseScopedClauseBinding) (request : Request)
+once among the lowered correlated rule bindings. -/
+def check (program : Program) (clauses : List Provenance.CorrelatedRuleBinding) (request : Request)
     (caseId : String) : Except Error Unit := do
   if (request.inputs.map (·.path)).eraseDups.length != request.inputs.length then
     throw ⟨caseId, "duplicate input field coverage"⟩

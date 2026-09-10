@@ -255,28 +255,28 @@ def slotTarget (slotId : String) : ProjectionTarget :=
 def observationTarget (observationId : String) : ProjectionTarget :=
   { target := some (.observation_id observationId) }
 
-def scopedEvidenceBinding (fieldId : String) (path : FieldPath) : ScopedEvidenceBinding :=
+def correlatedEvidenceBinding (fieldId : String) (path : FieldPath) : CorrelatedEvidenceBinding :=
   { field_id := fieldId, value := some (.path path) }
 
 /-- A Run coordinate the recorded fact does not itself carry is declared by the Case. -/
-def scopedEvidenceLiteral (fieldId value : String) : ScopedEvidenceBinding :=
+def correlatedEvidenceLiteral (fieldId value : String) : CorrelatedEvidenceBinding :=
   { field_id := fieldId, value := some (.literal value) }
 
 /-- One evidence-lift rule. `guard` is what selects it: the rule fires only where that path
 resolves and, where `guardEqualsText` is given, only where it reads exactly that text. `kind` is
 therefore the literal the selected shape denotes rather than a value read from it. -/
-def scopedEvidenceRule (guard : FieldPath) (source kind : String) (operation : FieldPath)
-    (scope : Array ScopedEvidenceBinding := #[])
-    (fields : Array ScopedEvidenceBinding := #[])
-    (guardEqualsText : String := "") : ScopedEvidenceRule :=
+def correlatedEvidenceRule (guard : FieldPath) (source kind : String) (operation : FieldPath)
+    (scope : Array CorrelatedEvidenceBinding := #[])
+    (fields : Array CorrelatedEvidenceBinding := #[])
+    (guardEqualsText : String := "") : CorrelatedEvidenceRule :=
   { guard := some guard, scope, source,
     operation := some operation, kind, fields, guard_equals_text := guardEqualsText }
 
-/-- Lift a projected value into the declared `ScopedEvidence` Observation a scoped capability
+/-- Lift a projected value into the declared `CorrelatedEvidence` Observation a correlated capability
 reads. Rules are tried in declaration order and a value no rule claims emits nothing. -/
-def scopedEvidenceTarget (observationId : String) (rules : Array ScopedEvidenceRule) :
+def correlatedEvidenceTarget (observationId : String) (rules : Array CorrelatedEvidenceRule) :
     ProjectionTarget :=
-  { target := some (.scoped_evidence { observation_id := observationId, rules }) }
+  { target := some (.correlated_evidence { observation_id := observationId, rules }) }
 
 def responseProjection (source : FieldPath) (kind : ProjectionKind)
     (targets : Array ProjectionTarget) : ResponseProjection :=
@@ -307,7 +307,7 @@ def startNexusOperation (endpointRoleId serviceName operationName : String)
       (StartNexusOperation.mk endpointRoleId serviceName operationName (some input) default)) }
 
 def awaitOutcome (instruction : InstructionRef) : Instruction :=
-  { instruction := some (.await_outcome { instruction := some instruction }) }
+  { instruction := some (.await_instruction { instruction := some instruction }) }
 
 def finish (result : ProgramExpression) : Instruction :=
   { instruction := some (.finish { result := some result }) }
@@ -386,7 +386,7 @@ def make (programId : String) (roles : Array RoleDefinition) (slots : Array Slot
 
 end Program
 
-namespace Monitor
+namespace Contract
 
 /-! Constructors for generated Contract monitor machines and their bounds. -/
 
@@ -418,24 +418,24 @@ def transition (transitionId sourceStateId targetStateId : String)
     predicate := some predicate, support_kind := support, capture_assignments := assignments }
 
 /-- Set the elapsed-time deadline and state entered when a bounded obligation expires. -/
-def horizon (elapsedMilliseconds : Int64) (violationStateId : String) :
-    ContractHorizonDefinition :=
+def deadline (elapsedMilliseconds : Int64) (violationStateId : String) :
+    ContractDeadline :=
   { elapsed_milliseconds := elapsedMilliseconds, violation_state_id := violationStateId }
 
 /-- Set the evaluated-event deadline and state entered when a bounded obligation expires. The
 count is host-clock independent: it ticks once per Run Event the rule evaluates and resets when
 the rule transitions into a new state. -/
-def horizonEvents (ruleEvents : Int64) (violationStateId : String) :
-    ContractHorizonDefinition :=
+def deadlineEvents (ruleEvents : Int64) (violationStateId : String) :
+    ContractDeadline :=
   { rule_events := ruleEvents, violation_state_id := violationStateId }
 
 /-- Assemble one deterministic rule while preserving state and transition order. -/
 def rule (ruleId : String) (kind : ContractRuleKind) (initialStateId : String)
     (states : Array ContractStateDefinition) (transitions : Array ContractTransitionDefinition)
-    (horizon : Option ContractHorizonDefinition := none)
+    (deadline : Option ContractDeadline := none)
     (captures : Array ContractCaptureDefinition := #[]) : ContractRuleDefinition :=
   { rule_id := ruleId, kind, initial_state_id := initialStateId, states, transitions,
-    horizon, captures }
+    deadline, captures }
 
 /-- Construct Contract-wide bounds; callers should name arguments where the positions are unclear. -/
 def limits (maxRules maxStates maxTransitions maxExpressionDepth maxWorkPerEvent maxTotalWork
@@ -450,7 +450,7 @@ def contract (contractId : String) (rules : Array ContractRuleDefinition)
     (limits : ContractLimits) : Contract :=
   { contract_id := contractId, rules, limits := some limits }
 
-end Monitor
+end Contract
 
 namespace Run
 

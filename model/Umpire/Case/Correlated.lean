@@ -1,10 +1,10 @@
-import Testpilot.Scoped
-import Umpire.Case.ScopedProofs
+import Testpilot.Correlated
+import Umpire.Case.CorrelatedProofs
 import Umpire.Case.Compiler
-import Umpire.Case.Projection.Scoped
+import Umpire.Case.Projection.Correlated
 
 /-!
-Checked lowering of operation-scoped obligations into the closed Testpilot capability. The complete
+Checked lowering of operation-correlated obligations into the closed Testpilot capability. The complete
 Target table and admitted projection mappings are serialized; a checked decode equality binds the
 actual portable interpreter to that exact shared executable table. Numeric narrowing is checked
 before any protobuf constructor can truncate a value.
@@ -16,7 +16,7 @@ field; an uncovered operand rejects the whole requested fragment before any Driv
 that declares neither captures nor a correlation needs no coverage and keeps its exact existing
 encoding.
 -/
-namespace Umpire.Case.Scoped
+namespace Umpire.Case.Correlated
 open temporal.server.api.testpilot.v1
 open Umpire.Case.Projection
 
@@ -25,20 +25,20 @@ variable {target : CheckedModel Law Setup ModelValue ModelValue ModelValue Model
 
 private def number (value : Nat) : Except String Int64 :=
   if value ≤ 9223372036854775807 then .ok (Int64.ofInt value) else .error "protobuf signed overflow"
-private def atom (value : ModelValue) : ScopedValue :=
+private def atom (value : ModelValue) : CorrelatedValue :=
   { definition_id := value.definitionId.value, value := value.value }
 private def output (action : ModelValue) (result : Step ModelValue ModelValue ModelValue) :
-    ScopedTransition := {
+    CorrelatedTransition := {
   action := some (atom action)
-  resulting_state := some (atom result.state)
+  state := some (atom result.state)
   outcome := some (atom result.outcome)
   facts := result.facts.toArray.map atom }
 private def fieldPolicy (field : EvidenceFieldDeclaration × FieldDisposition) :
-    Except String ScopedFieldPolicy := do
+    Except String CorrelatedFieldPolicy := do
   let disposition ← match field.2 with
-    | .retain => pure ScopedFieldDisposition.SCOPED_FIELD_DISPOSITION_RETAIN
-    | .redact => pure .SCOPED_FIELD_DISPOSITION_REDACT
-    | .reject => pure .SCOPED_FIELD_DISPOSITION_REJECT
+    | .retain => pure CorrelatedFieldDisposition.CORRELATED_FIELD_DISPOSITION_RETAIN
+    | .redact => pure .CORRELATED_FIELD_DISPOSITION_REDACT
+    | .reject => pure .CORRELATED_FIELD_DISPOSITION_REJECT
     | .hash _ => throw "unsupported field disposition"
   pure {
     field_id := field.1.id.value
@@ -47,14 +47,14 @@ private def fieldPolicy (field : EvidenceFieldDeclaration × FieldDisposition) :
       | .natural => .SCALAR_KIND_NATURAL
       | .boolean => .SCALAR_KIND_BOOLEAN }
     disposition }
-private def pattern (value : PropertyPattern) : Except String ScopedPredicate := do
+private def pattern (value : PropertyPattern) : Except String CorrelatedPredicate := do
   let field ← match value.field with
-    | .selectedAction => pure ScopedPredicateField.SCOPED_PREDICATE_FIELD_ACTION
-    | .outcome => pure .SCOPED_PREDICATE_FIELD_OUTCOME
-    | .resultingState => pure .SCOPED_PREDICATE_FIELD_RESULTING_STATE
-    | .observation => pure .SCOPED_PREDICATE_FIELD_FACT
+    | .selectedAction => pure CorrelatedPredicateField.CORRELATED_PREDICATE_FIELD_ACTION
+    | .outcome => pure .CORRELATED_PREDICATE_FIELD_OUTCOME
+    | .resultingState => pure .CORRELATED_PREDICATE_FIELD_STATE
+    | .observation => pure .CORRELATED_PREDICATE_FIELD_FACT
     | _ => throw "unsupported predicate projection"
-  let predicate : ScopedPredicate := { field, definition_id := value.reference.value }
+  let predicate : CorrelatedPredicate := { field, definition_id := value.reference.value }
   match value.constraint with
   | .present => pure { predicate with constraint := some (.present true) }
   | .equals text => pure { predicate with constraint := some (.equals_text text) }
@@ -63,8 +63,8 @@ private def pattern (value : PropertyPattern) : Except String ScopedPredicate :=
 /-- The exact executable meaning the emitted capability must decode to. `keyed` is the keyed
 fragment this lowering produced from the checked coverage, so a Case that declares no captures
 carries the same empty fragment, the same unset capture ceiling and the same bytes as before. -/
-private def meaning (plan : Projection.Checked target) (compiled : Property.Scoped.Compiled target)
-    (keyed : List (String × Testpilot.Scoped.Keyed)) : Testpilot.Scoped.Compiled := {
+private def meaning (plan : Projection.Checked target) (compiled : Property.Correlated.Compiled target)
+    (keyed : List (String × Testpilot.Correlated.Keyed)) : Testpilot.Correlated.Compiled := {
   plan := plan.executable
   clauses := compiled.portableClauses
   keyed
@@ -79,12 +79,12 @@ private def meaning (plan : Projection.Checked target) (compiled : Property.Scop
     else 0 }
 
 /-- One declared capture, named by the declared evidence field its covered coordinates map onto. -/
-private def capture (coverage : Projection.Coverage plan) (declaration : PropertyScopedCapture) :
-    Except String (ScopedCaptureDeclaration × Testpilot.Scoped.Capture) := do
+private def capture (coverage : Projection.Coverage plan) (declaration : PropertyCorrelatedCapture) :
+    Except String (CorrelatedCaptureDeclaration × Testpilot.Correlated.Capture) := do
   let some entry := coverage.entryOf? declaration.path
     | throw ("captured coordinates have no declared Observation for " ++ declaration.name.value)
   let lifetime ← number declaration.lifetime
-  let wire : ScopedCaptureDeclaration :=
+  let wire : CorrelatedCaptureDeclaration :=
     { capture_id := declaration.name.value, field_id := entry.field.value, lifetime }
   pure (wire, ⟨declaration.name, entry.field, entry.scalarKind, declaration.lifetime⟩)
 
@@ -104,8 +104,8 @@ private def literalOperand (value : Operation.Scalar) :
 
 /-- One correlation operand, with the declared scalar kind the portable decoder checks it against. -/
 private def operand (coverage : Projection.Coverage plan)
-    (captures : List Testpilot.Scoped.Capture) (value : PropertyFieldOperand) :
-    Except String (ScopedOperand × Testpilot.Scoped.Operand × Nat) :=
+    (captures : List Testpilot.Correlated.Capture) (value : PropertyFieldOperand) :
+    Except String (CorrelatedOperand × Testpilot.Correlated.Operand × Nat) :=
   match value with
   | .literal scalar _ => do
       let (wire, decoded, kind) ← literalOperand scalar
@@ -118,7 +118,7 @@ private def operand (coverage : Projection.Coverage plan)
           if key.ordinal ≥ declaration.lifetime then
             throw ("capture ordinal beyond declared lifetime for " ++ key.name.value)
           let ordinal ← number key.ordinal
-          let reference : ScopedCaptureRef := { capture_id := key.name.value, ordinal }
+          let reference : CorrelatedCaptureRef := { capture_id := key.name.value, ordinal }
           pure ({ operand := some (.capture reference) }, .capture key.name key.ordinal,
             declaration.kind)
       | none => do
@@ -128,11 +128,11 @@ private def operand (coverage : Projection.Coverage plan)
           pure ({ operand := some (.field_id entry.field.value) }, .field entry.field,
             entry.scalarKind)
 
-private def predicateField : PropertyPredicateField → Except String ScopedPredicateField
-  | .selectedAction => .ok .SCOPED_PREDICATE_FIELD_ACTION
-  | .outcome => .ok .SCOPED_PREDICATE_FIELD_OUTCOME
-  | .resultingState => .ok .SCOPED_PREDICATE_FIELD_RESULTING_STATE
-  | .expectationFact => .ok .SCOPED_PREDICATE_FIELD_FACT
+private def predicateField : PropertyPredicateField → Except String CorrelatedPredicateField
+  | .selectedAction => .ok .CORRELATED_PREDICATE_FIELD_ACTION
+  | .outcome => .ok .CORRELATED_PREDICATE_FIELD_OUTCOME
+  | .resultingState => .ok .CORRELATED_PREDICATE_FIELD_STATE
+  | .expectationFact => .ok .CORRELATED_PREDICATE_FIELD_FACT
   | .priorState => .error "unsupported correlation predicate field"
 
 private def predicateCode : PropertyPredicateField → Nat
@@ -147,8 +147,8 @@ mutual
 its own nesting requires. The depth ceiling emitted for the capability is the exact depth this
 correlation needs, so an exhausted depth is never a silently truncated condition. -/
 private def correlation (coverage : Projection.Coverage plan)
-    (captures : List Testpilot.Scoped.Capture) :
-    PropertyPredicate → Except String (ScopedCorrelation × Testpilot.Scoped.Correlation × Nat)
+    (captures : List Testpilot.Correlated.Capture) :
+    PropertyPredicate → Except String (CorrelatedCorrelation × Testpilot.Correlated.Correlation × Nat)
   | .atom value =>
       match value.constraint with
       | .fields comparison => do
@@ -159,20 +159,20 @@ private def correlation (coverage : Projection.Coverage plan)
           let (leftWire, left, leftKind) ← operand coverage captures comparison.left
           let (rightWire, right, rightKind) ← operand coverage captures comparison.right
           if leftKind != rightKind then throw "incompatible correlation operand types"
-          let wire : ScopedComparison := {
-            operator := if equal then .SCOPED_COMPARISON_OPERATOR_EQUAL
-              else .SCOPED_COMPARISON_OPERATOR_NOT_EQUAL
+          let wire : CorrelatedComparison := {
+            operator := if equal then .CORRELATED_COMPARISON_OPERATOR_EQUAL
+              else .CORRELATED_COMPARISON_OPERATOR_NOT_EQUAL
             left := some leftWire, right := some rightWire }
           pure ({ condition := some (.comparison wire) }, .comparison equal left right, 1)
       | .present => do
           let field ← predicateField value.field
-          let wire : ScopedPredicate :=
+          let wire : CorrelatedPredicate :=
             { field, definition_id := value.reference.value, constraint := some (.present true) }
           pure ({ condition := some (.predicate wire) },
             .predicate ⟨predicateCode value.field, value.reference, none⟩, 1)
       | .equals (.text text) => do
           let field ← predicateField value.field
-          let wire : ScopedPredicate :=
+          let wire : CorrelatedPredicate :=
             { field, definition_id := value.reference.value, constraint := some (.equals_text text) }
           pure ({ condition := some (.predicate wire) },
             .predicate ⟨predicateCode value.field, value.reference, some text⟩, 1)
@@ -189,9 +189,9 @@ private def correlation (coverage : Projection.Coverage plan)
   termination_by expression => sizeOf expression
 
 private def correlations (coverage : Projection.Coverage plan)
-    (captures : List Testpilot.Scoped.Capture) :
+    (captures : List Testpilot.Correlated.Capture) :
     List PropertyPredicate →
-      Except String (Array ScopedCorrelation × Testpilot.Scoped.Correlations × Nat)
+      Except String (Array CorrelatedCorrelation × Testpilot.Correlated.Correlations × Nat)
   | [] => pure (#[], .nil, 0)
   | head :: rest => do
       let (headWire, headDecoded, headDepth) ← correlation coverage captures head
@@ -202,65 +202,65 @@ end
 
 /-- One lowered clause: its wire form, its keyed fragment and the correlation depth it needs. -/
 private structure LoweredClause where
-  wire : ScopedClause
-  keyed : String × Testpilot.Scoped.Keyed
+  wire : CorrelatedRule
+  keyed : String × Testpilot.Correlated.Keyed
   depth : Nat
 
 private def clause (coverage : Projection.Coverage plan)
-    (source : CheckedPropertyScopedClause) : Except String LoweredClause := do
+    (source : CheckedPropertyCorrelatedClause) : Except String LoweredClause := do
   let captures ← source.declaration.captures.mapM (capture coverage)
   let declared := captures.map Prod.snd
   let correlated ← source.correlation.mapM fun checked =>
     correlation coverage declared checked.expression
   pure {
-    wire := ScopedClause.mk source.declaration.id.value .SCOPED_CLOCK_OPERATION_TRANSITIONS
+    wire := CorrelatedRule.mk source.declaration.id.value .CORRELATED_CLOCK_OPERATION_TRANSITIONS
       (← number source.declaration.bound)
-      (match source.declaration.endpoint with
-        | .«partial» => .SCOPED_ENDPOINT_RUNTIME_PREFIX
-        | .final => .SCOPED_ENDPOINT_DELIBERATELY_CLOSED)
+      (match source.declaration.ending with
+        | .«partial» => .TRACE_ENDING_PARTIAL
+        | .final => .TRACE_ENDING_FINAL)
       (some (← pattern source.triggerPattern)) (some (← pattern source.responsePattern))
       (captures.map Prod.fst).toArray (correlated.map (·.1)) default
     keyed := (source.declaration.id.value, ⟨declared, correlated.map (·.2.1)⟩)
     depth := (correlated.map (·.2.2)).getD 0 }
 
 /-- Successful lowering carries equality of the data actually decoded for portable execution. -/
-structure Lowered (plan : Projection.Checked target) (compiled : Property.Scoped.Compiled target) where
-  wire : ScopedContract
-  decoded : Testpilot.Scoped.Compiled
-  keyed : List (String × Testpilot.Scoped.Keyed)
-  decoding : Testpilot.Scoped.decode wire = .ok decoded
-  meaning : decoded = Scoped.meaning plan compiled keyed
+structure Lowered (plan : Projection.Checked target) (compiled : Property.Correlated.Compiled target) where
+  wire : CorrelatedContract
+  decoded : Testpilot.Correlated.Compiled
+  keyed : List (String × Testpilot.Correlated.Keyed)
+  decoding : Testpilot.Correlated.decode wire = .ok decoded
+  meaning : decoded = Correlated.meaning plan compiled keyed
   maximumFacts : plan.executable.transitions.foldl (fun maximum row => max maximum row.2.2.facts.length) 0 =
     target.behaviorTable.transitions.foldl (fun maximum row => max maximum row.facts.length) 0
   candidateCounts : ∀ row ∈ plan.executable.transitions,
     (plan.executable.transitions.filter (fun candidate => candidate.1 == row.1 && candidate.2.1 == row.2.1)).length =
       (target.machine.steps row.1 row.2.1).length
   certificates : ∀ binding ∈ compiled.portableReferences,
-    ScopedProofs.Certificate binding plan.executable.transitions plan.initialState
+    CorrelatedProofs.Certificate binding plan.executable.transitions plan.initialState
 
-/-- Lower checked scoped declarations and projection together; failure rejects the entire fragment. -/
-def lower (plan : Projection.Checked target) (compiled : Property.Scoped.Compiled target)
+/-- Lower checked correlated declarations and projection together; failure rejects the entire fragment. -/
+def lower (plan : Projection.Checked target) (compiled : Property.Correlated.Compiled target)
     (evidenceObservationId : String)
     (coverage : Projection.Coverage plan := Projection.Coverage.empty plan) :
-    Except Compiler.LoweringError (Lowered plan compiled) := do
-  let failed := fun reason => Compiler.LoweringError.mk compiled.property.id.value
+    Except Compiler.Error (Lowered plan compiled) := do
+  let failed := fun reason => Compiler.Error.mk compiled.property.id.value
     compiled.property.source reason
-  let lowered ← (compiled.property.scopedClauses.mapM (clause coverage)).mapError failed
+  let lowered ← (compiled.property.correlatedRules.mapM (clause coverage)).mapError failed
   let keyed := lowered.map (·.keyed)
-  let build : Except String ScopedContract := do
+  let build : Except String CorrelatedContract := do
     let declaration := plan.sourceDeclaration
     let rules ← declaration.rules.mapM fun rule => do
       let fields ← rule.fields.mapM fieldPolicy
       let (meaning, submission, outputs) := match rule.meaning with
-        | .irrelevant => (ScopedEvidenceMeaning.SCOPED_EVIDENCE_MEANING_IRRELEVANT, none, [])
-        | .submission action => (.SCOPED_EVIDENCE_MEANING_SUBMISSION, some (atom action), [])
-        | .confirmed required steps => (.SCOPED_EVIDENCE_MEANING_CONFIRMED,
+        | .irrelevant => (CorrelatedEvidenceMeaning.CORRELATED_EVIDENCE_MEANING_IRRELEVANT, none, [])
+        | .submission action => (.CORRELATED_EVIDENCE_MEANING_SUBMISSION, some (atom action), [])
+        | .confirmed required steps => (.CORRELATED_EVIDENCE_MEANING_CONFIRMED,
             required.map atom, steps.map fun (action, result) => output action result)
-      pure (ScopedProjectionRule.mk rule.kind.value meaning submission outputs.toArray fields.toArray default)
+      pure (CorrelatedProjectionRule.mk rule.kind.value meaning submission outputs.toArray fields.toArray default)
     -- A capability that declares neither captures nor a correlation leaves both ceilings unset, so
     -- its encoding and meaning are exactly the ones it had before the keyed capability existed.
     let declaresCaptures := keyed.any fun entry => !entry.2.captures.isEmpty
-    let limits : ScopedLimits := {
+    let limits : CorrelatedLimits := {
       max_events := ← number declaration.limits.events
       max_buffered := ← number declaration.limits.buffered
       max_keys := ← number declaration.limits.keys
@@ -287,11 +287,11 @@ def lower (plan : Projection.Checked target) (compiled : Property.Scoped.Compile
       clauses := (lowered.map (·.wire)).toArray
       limits := some limits }
   let wire ← build.mapError failed
-  match decoding : Testpilot.Scoped.decode wire with
+  match decoding : Testpilot.Correlated.decode wire with
   | .error reason => throw (failed reason)
   | .ok decoded =>
       if agreement : decoded = meaning plan compiled keyed then
-        let certificates ← (ScopedProofs.certifyAll compiled.portableReferences
+        let certificates ← (CorrelatedProofs.certifyAll compiled.portableReferences
           plan.executable.transitions plan.initialState).mapError failed
         if maximumFacts : plan.executable.transitions.foldl
             (fun maximum row => max maximum row.2.2.facts.length) 0 =
@@ -303,12 +303,12 @@ def lower (plan : Projection.Checked target) (compiled : Property.Scoped.Compile
             pure ⟨wire, decoded, keyed, decoding, agreement, maximumFacts, candidateCounts, certificates.down⟩
           else throw (failed "portable work candidate multiplicity differs from checked kernel")
         else throw (failed "portable work maximum fact count differs from checked description")
-      else throw (failed "portable scoped meaning roundtrip mismatch")
+      else throw (failed "portable correlated meaning roundtrip mismatch")
 
 /-- Carry the checked property/source mapping in opaque Umpire provenance, not executable metadata. -/
-def Lowered.contractLowering {plan : Projection.Checked target} {compiled : Property.Scoped.Compiled target} (lowered : Lowered plan compiled) : Compiler.ContractLowering :=
-  .scoped ⟨compiled.property.id.value, compiled.property.behaviorFingerprint.render, .property⟩
-    lowered.wire (compiled.property.scopedClauses.map fun clause => {
+def Lowered.contractLowering {plan : Projection.Checked target} {compiled : Property.Correlated.Compiled target} (lowered : Lowered plan compiled) : Compiler.ContractLowering :=
+  .correlated ⟨compiled.property.id.value, compiled.property.behaviorFingerprint.render, .property⟩
+    lowered.wire (compiled.property.correlatedRules.map fun clause => {
       clauseId := clause.declaration.id.value
       propertyId := compiled.property.id.value
       propertyFingerprint := compiled.property.behaviorFingerprint.render
@@ -317,7 +317,7 @@ def Lowered.contractLowering {plan : Projection.Checked target} {compiled : Prop
       source := clause.declaration.source })
 
 /-- Any row executable by the actual decoded Contract is authorized by the original Target. -/
-theorem Lowered.table_authorized {plan : Projection.Checked target} {compiled : Property.Scoped.Compiled target} (lowered : Lowered plan compiled)
+theorem Lowered.table_authorized {plan : Projection.Checked target} {compiled : Property.Correlated.Compiled target} (lowered : Lowered plan compiled)
     (row) (member : row ∈ lowered.decoded.plan.transitions) :
     target.machine.authoritativeStep row.1 row.2.1 row.2.2 := by
   rw [lowered.meaning] at member
@@ -326,12 +326,12 @@ theorem Lowered.table_authorized {plan : Projection.Checked target} {compiled : 
 /-- Each actual decoded window selects its checked source clause through the lowering certificate.
 The witness is built from the exact retained rows, never from an independently supplied truth value. -/
 theorem Lowered.window_property {plan : Projection.Checked target}
-    {compiled : Property.Scoped.Compiled target} (lowered : Lowered plan compiled)
-    {history : List (Shared.ScopedObligation.Admitted lowered.decoded.plan.transitions)}
-    (window : Shared.ScopedObligation.Window lowered.decoded.clauses history) :
+    {compiled : Property.Correlated.Compiled target} (lowered : Lowered plan compiled)
+    {history : List (Shared.CorrelatedObligation.Admitted lowered.decoded.plan.transitions)}
+    (window : Shared.CorrelatedObligation.Window lowered.decoded.clauses history) :
     ∃ binding ∈ compiled.portableReferences,
       ∃ input : CheckedPropertyEvaluationInput binding.reference,
-        ScopedProofs.HistoryInput binding plan.initialState (history.map (·.value)) input ∧
+        CorrelatedProofs.HistoryInput binding plan.initialState (history.map (·.value)) input ∧
         window.obligations.all (fun obligation => decide (obligation = .satisfied)) =
           evaluatePropertyClause binding.reference input binding.clause := by
   have member := window.clause.property
@@ -340,36 +340,36 @@ theorem Lowered.window_property {plan : Projection.Checked target}
   obtain ⟨binding, member, same⟩ := List.mem_map.mp sourceMember
   have certificate := lowered.certificates binding member
   have table : lowered.decoded.plan.transitions = plan.executable.transitions := by rw [lowered.meaning]; rfl
-  have checked : ScopedProofs.Certificate binding lowered.decoded.plan.transitions plan.initialState := by
+  have checked : CorrelatedProofs.Certificate binding lowered.decoded.plan.transitions plan.initialState := by
     rw [table]; exact certificate
   obtain ⟨input, admitted, answer⟩ := checked.closed_property window same.symm
   exact ⟨binding, member, input, admitted, answer⟩
 
 /-- Actual decoded scope/source/field admission is the checked projector's admission boundary. -/
 theorem Lowered.evidence_validation {plan : Projection.Checked target}
-    {compiled : Property.Scoped.Compiled target} (lowered : Lowered plan compiled)
+    {compiled : Property.Correlated.Compiled target} (lowered : Lowered plan compiled)
     (scope : List (DefinitionId × String)) (event : Projection.Event) :
     lowered.decoded.validateEvent scope event =
       (plan.validateEvent scope event).mapError (fun _ => "invalid evidence") := by
   rw [lowered.meaning]
-  unfold Testpilot.Scoped.Compiled.validateEvent Projection.Checked.validateEvent
-  simp only [Scoped.meaning, plan.executable_limits]
+  unfold Testpilot.Correlated.Compiled.validateEvent Projection.Checked.validateEvent
+  simp only [Correlated.meaning, plan.executable_limits]
   rfl
 
 /-- Every window returned by actual wire observation admission retains checked Property correspondence. -/
 theorem Lowered.observed_property {plan : Projection.Checked target}
-    {compiled : Property.Scoped.Compiled target} (lowered : Lowered plan compiled)
-    (before after : Testpilot.Scoped.Run lowered.decoded) (sequence : Nat)
-    (wire : ScopedEvidence) (_admitted : before.observe sequence wire = .ok after)
-    (operation : Shared.ScopedObligation.Operation lowered.decoded.plan.transitions lowered.decoded.clauses)
+    {compiled : Property.Correlated.Compiled target} (lowered : Lowered plan compiled)
+    (before after : Testpilot.Correlated.Run lowered.decoded) (sequence : Nat)
+    (wire : CorrelatedEvidence) (_admitted : before.observe sequence wire = .ok after)
+    (operation : Shared.CorrelatedObligation.Operation lowered.decoded.plan.transitions lowered.decoded.clauses)
     (_operation : operation ∈ after.monitor.operations)
-    (window : Shared.ScopedObligation.Window lowered.decoded.clauses operation.history)
+    (window : Shared.CorrelatedObligation.Window lowered.decoded.clauses operation.history)
     (_window : window ∈ operation.windows) :
     ∃ binding ∈ compiled.portableReferences,
       ∃ input : CheckedPropertyEvaluationInput binding.reference,
-        ScopedProofs.HistoryInput binding plan.initialState (operation.history.map (·.value)) input ∧
+        CorrelatedProofs.HistoryInput binding plan.initialState (operation.history.map (·.value)) input ∧
         window.obligations.all (fun obligation => decide (obligation = .satisfied)) =
           evaluatePropertyClause binding.reference input binding.clause :=
   lowered.window_property window
 
-end Umpire.Case.Scoped
+end Umpire.Case.Correlated

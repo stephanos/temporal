@@ -167,12 +167,12 @@ func TestFaultTransitionsRequireADedicatedGroup(t *testing.T) {
 func TestWorkerProfileAdmitsTheFaultCapability(t *testing.T) {
 	prepared := preparedSymbolicRuntimeFixture(t)
 	profile := symbolicRuntimeDriver(t, prepared.Snapshot().GetLimits()).options.profile
-	profile.Capabilities = make([]testpilot.Capability, 0, testpilot.MaxCapability)
-	for capability := testpilot.InvokeRPC; capability <= testpilot.MaxCapability; capability++ {
-		profile.Capabilities = append(profile.Capabilities, capability)
+	profile.Opcodes = make([]testpilot.Opcode, 0, testpilot.MaxOpcode)
+	for capability := testpilot.InvokeRPC; capability <= testpilot.MaxOpcode; capability++ {
+		profile.Opcodes = append(profile.Opcodes, capability)
 	}
 	require.True(t, validWorkerProfile(profile))
-	profile.Capabilities = append(profile.Capabilities, testpilot.InjectFault)
+	profile.Opcodes = append(profile.Opcodes, testpilot.InjectFault)
 	require.False(t, validWorkerProfile(profile))
 }
 
@@ -198,7 +198,7 @@ func TestPreparedDefinitionCarriesTheDeclaredFaultQueue(t *testing.T) {
 			Outcome:       runtimeStatusSchema(), Limits: runtimeBounds(),
 		})
 	}, func(profile *testpilot.ProfileSpec) {
-		profile.Capabilities = append(profile.Capabilities, testpilot.InjectFault)
+		profile.Opcodes = append(profile.Opcodes, testpilot.InjectFault)
 	})
 	definition, err = host.prepareDefinition(withFault)
 	require.NoError(t, err)
@@ -450,7 +450,7 @@ func TestFaultValidationAgreesWithOpen(t *testing.T) {
 			Outcome:       runtimeStatusSchema(), Limits: runtimeBounds(),
 		})
 	}, func(profile *testpilot.ProfileSpec) {
-		profile.Capabilities = append(profile.Capabilities, testpilot.InjectFault)
+		profile.Opcodes = append(profile.Opcodes, testpilot.InjectFault)
 	})
 	require.NoError(t, host.Validate(t.Context(), cleanupFault))
 	definition, err := host.prepareDefinition(cleanupFault)
@@ -466,7 +466,7 @@ func TestFaultValidationAgreesWithOpen(t *testing.T) {
 			Outcome:       runtimeStatusSchema(), Limits: runtimeBounds(),
 		}}
 	}, func(profile *testpilot.ProfileSpec) {
-		profile.Capabilities = append(profile.Capabilities, testpilot.InjectFault)
+		profile.Opcodes = append(profile.Opcodes, testpilot.InjectFault)
 	})
 	require.ErrorIs(t, host.Validate(t.Context(), workerless), ErrInvalid)
 	_, err = host.prepareDefinition(workerless)
@@ -483,7 +483,7 @@ func TestFaultValidationAgreesWithOpen(t *testing.T) {
 			Outcome:       runtimeStatusSchema(), Limits: runtimeBounds(),
 		})
 	}, func(profile *testpilot.ProfileSpec) {
-		profile.Capabilities = append(profile.Capabilities, testpilot.InjectFault)
+		profile.Opcodes = append(profile.Opcodes, testpilot.InjectFault)
 		profile.Roles = append(profile.Roles, testpilot.RolePolicy{ID: "idle-queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE})
 		profile.EnvironmentBindings = append(profile.EnvironmentBindings, testpilot.EnvironmentBinding{ID: "other-queue", Value: "other-queue"})
 	})

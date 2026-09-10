@@ -6,7 +6,7 @@ import Testpilot.Examples.Synthetic
 import Testpilot.ProtoJSON
 
 private def renderTestpilot
-    (compiled : Except Umpire.Case.Compiler.LoweringError
+    (compiled : Except Umpire.Case.Compiler.Error
       temporal.server.api.testpilot.v1.Case) : IO Unit :=
   match compiled with
   | .ok output => do

@@ -49,7 +49,7 @@ func TestTestpilotTypedNexusOperationsCase(t *testing.T) {
 		require.Equal(t, testpilotpb.VERDICT_STATUS_SATISFIED, verdict.GetStatus())
 		require.True(t, proto.Equal(verdict, run.GetVerdict()))
 		// One derived monitor rule per operation, then the scoped bounded-response clause the same
-		// history feeds through its lifted ScopedEvidence.
+		// history feeds through its lifted CorrelatedEvidence.
 		require.Len(t, verdict.GetRules(), len(operations)+1)
 		for index, operation := range operations {
 			rule := verdict.GetRules()[index]
@@ -58,7 +58,7 @@ func TestTestpilotTypedNexusOperationsCase(t *testing.T) {
 		}
 		scoped := verdict.GetRules()[len(operations)]
 		require.Equal(t, testpilotpb.RULE_VERDICT_STATUS_SATISFIED, scoped.GetStatus())
-		requireLiftedScopedEvidence(t, run, scoped.GetSupportingEventSequences(), operations)
+		requireLiftedCorrelatedEvidence(t, run, scoped.GetSupportingEventSequences(), operations)
 
 		require.NotContains(t, runIDs, run.GetRunId())
 		runIDs[run.GetRunId()] = struct{}{}
@@ -102,11 +102,11 @@ func requireCorrelatedNexusOperationEvidence(t testing.TB, run *testpilotpb.Run,
 	require.Equal(t, scheduled.GetRequestId(), events[1].GetNexusOperationCompletedEventAttributes().GetRequestId())
 }
 
-// requireLiftedScopedEvidence reads the scoped clause's supporting Observations back out of the Run
-// and checks they are the ScopedEvidence the history projection lifted: one scheduled and one
+// requireLiftedCorrelatedEvidence reads the scoped clause's supporting Observations back out of the Run
+// and checks they are the CorrelatedEvidence the history projection lifted: one scheduled and one
 // completed value per operation, keyed by the scheduled event both sides name, in one dense
 // zero-based source stream.
-func requireLiftedScopedEvidence(t testing.TB, run *testpilotpb.Run, sequences []int64, operations []string) {
+func requireLiftedCorrelatedEvidence(t testing.TB, run *testpilotpb.Run, sequences []int64, operations []string) {
 	t.Helper()
 	require.Len(t, sequences, 2*len(operations))
 	kinds := make([]string, 0, len(sequences))
@@ -116,8 +116,8 @@ func requireLiftedScopedEvidence(t testing.TB, run *testpilotpb.Run, sequences [
 		require.LessOrEqual(t, sequence, int64(len(run.GetEvents())))
 		event := run.GetEvents()[sequence-1]
 		require.Equal(t, "history", event.GetCoordinates().GetInstructionId())
-		var evidence testpilotpb.ScopedEvidence
-		require.NoError(t, observationValue(t, event, "scoped-evidence").GetMessageValue().UnmarshalTo(&evidence))
+		var evidence testpilotpb.CorrelatedEvidence
+		require.NoError(t, observationValue(t, event, "correlated-evidence").GetMessageValue().UnmarshalTo(&evidence))
 		require.EqualValues(t, index, evidence.GetIdentity().GetOrdinal())
 		require.NotEmpty(t, evidence.GetOperation())
 		kinds = append(kinds, evidence.GetKind())

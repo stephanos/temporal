@@ -545,11 +545,11 @@ func (s *scheduler) publishInstructionStart(ctx context.Context, task scheduledN
 	return publish(ctx, []*testpilotspb.RunEvent{{Kind: testpilotspb.RUN_EVENT_KIND_INSTRUCTION_STARTED, SourceId: s.nodeSource(task) + ".started", Coordinates: eventCoordinates(coordinate), CausalSourceIds: causes}}, nil)
 }
 
-func (s *scheduler) admitDispatch(ctx context.Context, task scheduledNode, request proto.Message, input *testpilotspb.Value, cleanup bool) (EffectHandle, []scheduledReservation, SlotBridge, error) {
+func (s *scheduler) admitDispatch(ctx context.Context, task scheduledNode, request proto.Message, input *testpilotspb.Value, cleanup bool) (EffectHandle, []scheduledReservation, CapabilityBridge, error) {
 	n := task.activation.values.graph.nodes[task.index]
 	var effect EffectHandle
 	var reservations []scheduledReservation
-	var bridge SlotBridge
+	var bridge CapabilityBridge
 	admit := s.recorder.admit
 	if cleanup {
 		admit = s.recorder.admitCleanup
@@ -578,7 +578,7 @@ func (s *scheduler) admitDispatch(ctx context.Context, task scheduledNode, reque
 	return effect, reservations, bridge, err
 }
 
-func (s *scheduler) startWaits(ctx, operationCtx context.Context, cancel context.CancelFunc, task scheduledNode, effect EffectHandle, bridge SlotBridge, reservations []scheduledReservation, cleanup bool) {
+func (s *scheduler) startWaits(ctx, operationCtx context.Context, cancel context.CancelFunc, task scheduledNode, effect EffectHandle, bridge CapabilityBridge, reservations []scheduledReservation, cleanup bool) {
 	for _, reservation := range reservations {
 		s.waits.Add(1)
 		go func() {
@@ -684,11 +684,11 @@ func (s *scheduler) validateReservations(task scheduledNode, declarationIndex in
 	}
 	return reservations, nil
 }
-func (s *scheduler) acceptEffect(ctx context.Context, task scheduledNode, request proto.Message, input *testpilotspb.Value) (EffectHandle, SlotBridge, error) {
+func (s *scheduler) acceptEffect(ctx context.Context, task scheduledNode, request proto.Message, input *testpilotspb.Value) (EffectHandle, CapabilityBridge, error) {
 	n := task.activation.values.graph.nodes[task.index]
 	c := s.coordinate(task)
 	var effect EffectHandle
-	var bridge SlotBridge
+	var bridge CapabilityBridge
 	var err error
 	switch n.opcode {
 	case InvokeRPC:
@@ -718,12 +718,12 @@ func (s *scheduler) acceptEffect(ctx context.Context, task scheduledNode, reques
 			}
 		}
 	default:
-		err = invalid(ir.Unsupported, "scheduler", "controller opcode required")
+		err = invalid(ir.Unsupported, "scheduler", "controller capability required")
 	}
 
 	return effect, bridge, err
 }
-func (s *scheduler) waitNode(ctx context.Context, task scheduledNode, effect EffectHandle, bridge SlotBridge) (EffectResult, error) {
+func (s *scheduler) waitNode(ctx context.Context, task scheduledNode, effect EffectHandle, bridge CapabilityBridge) (EffectResult, error) {
 	a := task.activation.values
 	n := a.graph.nodes[task.index]
 	var result EffectResult

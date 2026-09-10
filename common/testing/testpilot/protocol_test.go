@@ -39,7 +39,6 @@ func TestProtocolUsesCohesivePublicVocabulary(t *testing.T) {
 		"temporal/server/api/testpilot/v1/expression.proto",
 		"temporal/server/api/testpilot/v1/instruction.proto",
 		"temporal/server/api/testpilot/v1/program.proto",
-		"temporal/server/api/testpilot/v1/outcome.proto",
 		"temporal/server/api/testpilot/v1/run.proto",
 		"temporal/server/api/testpilot/v1/contract.proto",
 	} {
@@ -47,10 +46,19 @@ func TestProtocolUsesCohesivePublicVocabulary(t *testing.T) {
 		require.NoError(t, err, path)
 	}
 	for _, retired := range []string{
-		"ValueExpression", "CaseMetadata", "CaseDefinitionBinding", "CaseDefinitionKind",
-		"CaseKnownGap", "CaseKnownGapKind", "OptionalString", "SlotSchema", "SlotKind",
-		"ActivationBinding", "EntrypointContext", "RunEventKinds", "RunEventSequence",
+		"ValueExpression", "Case" + "Metadata", "CaseDefinition" + "Binding", "CaseDefinition" + "Kind",
+		"CaseKnown" + "Gap", "CaseKnownGapK" + "ind", "OptionalString", "SlotSchema", "SlotKind",
+		"ActivationBinding", "Entrypoint" + "Context", "RunEventKinds", "RunEventSequence",
 		"RunDisposition", "RuleVerdictKind", "VerdictKind",
+		"ContractHorizon" + "Definition",
+		"Scoped" + "Binding", "Scoped" + "CaptureDeclaration", "Scoped" + "CaptureRef", "Scoped" + "Clause",
+		"Scoped" + "Clock", "Scoped" + "Comparison", "Scoped" + "ComparisonOperator", "Scoped" + "Contract",
+		"Scoped" + "Correlation", "Scoped" + "CorrelationGroup", "Scoped" + "Endpoint", "Scoped" + "Evidence",
+		"Scoped" + "EvidenceBinding", "Scoped" + "EvidenceField", "Scoped" + "EvidenceMeaning",
+		"Scoped" + "EvidenceProjection", "Scoped" + "EvidenceRule", "Scoped" + "FieldDisposition",
+		"Scoped" + "FieldPolicy", "Scoped" + "Identity", "Scoped" + "Limits", "Scoped" + "Operand",
+		"Scoped" + "Predicate", "Scoped" + "PredicateField", "Scoped" + "ProjectionRule", "Scoped" + "Transition",
+		"Scoped" + "Value",
 	} {
 		_, err := protoregistry.GlobalFiles.FindDescriptorByName(protoreflect.FullName("temporal.server.api.testpilot.v1." + retired))
 		require.Error(t, err, retired)

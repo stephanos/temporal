@@ -297,7 +297,7 @@ func (r *recorder) shouldAbort() bool {
 	return r.stopped || r.incomplete
 }
 
-func (r *recorder) terminalDisposition(executionErr error) testpilotspb.RunStatus {
+func (r *recorder) terminalStatus(executionErr error) testpilotspb.RunStatus {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if r.stopped {

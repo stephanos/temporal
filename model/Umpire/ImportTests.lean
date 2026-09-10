@@ -33,11 +33,11 @@ import Umpire
 #check Umpire.compileBatch
 #check Umpire.Evidence.Reading
 #check Umpire.Evidence.CheckedReading
-#check Umpire.Case
-#check Umpire.Case.Program
-#check Umpire.Case.Contract
-#check Umpire.Case.Run
-#check Umpire.Case.ValueType
+#check Umpire.Provenance.Metadata
+#check Umpire.Provenance.DefinitionBinding
+#check Umpire.Provenance.DefinitionKind
+#check Umpire.Provenance.KnownGap
+#check Umpire.Provenance.make
 
 /-! Neutral outcome-classification constructor contracts stay usable without inventory imports. -/
 #check Umpire.OutcomeConstructorDescriptor

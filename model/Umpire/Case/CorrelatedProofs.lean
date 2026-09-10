@@ -1,5 +1,5 @@
-import Testpilot.Scoped
-import Umpire.Property.Scoped
+import Testpilot.Correlated
+import Umpire.Property.Correlated
 
 /-!
 Finite-row compiler certificates connect actual portable histories to checked Property inputs.
@@ -7,25 +7,25 @@ Certificates are checked once over the complete transition table. The history th
 its reference input by the same checked-input append operation as task 6; it never assumes an
 unrelated input with an equal verdict and adds no runtime replay or oracle comparison.
 -/
-namespace Umpire.Case.ScopedProofs
-open Property.Scoped
-open Shared.ScopedObligation
+namespace Umpire.Case.CorrelatedProofs
+open Property.Correlated
+open Shared.CorrelatedObligation
 
-abbrev Row := Shared.ScopedObligation.Transition
+abbrev Row := Shared.CorrelatedObligation.Transition
 
 private def trace (row : Row) : ModelTrace ModelValue ModelValue ModelValue ModelValue :=
   ⟨row.1, [.result row.2.1 row.2.2]⟩
 
 /-- The applicable source predicates projected from one checked reference input. -/
 def coordinates (binding : PortableReference) (input : CheckedPropertyEvaluationInput binding.reference) :
-    List Shared.ScopedObligation.Coordinate :=
-  (input.scopedCoordinates binding.original.triggerPattern binding.original.responsePattern).map
+    List Shared.CorrelatedObligation.Coordinate :=
+  (input.correlatedCoordinates binding.original.triggerPattern binding.original.responsePattern).map
     (fun point => ⟨point.1, point.2⟩)
 
 private def append (binding : PortableReference)
     (first second : CheckedPropertyEvaluationInput binding.reference) :
     CheckedPropertyEvaluationInput binding.reference :=
-  first.appendScoped second binding.original.declaration.id binding.original.triggerPattern
+  first.appendCorrelated second binding.original.declaration.id binding.original.triggerPattern
     binding.original.responsePattern binding.original.declaration.bound binding.shape
 
 private theorem append_coordinates (binding : PortableReference)
@@ -33,7 +33,7 @@ private theorem append_coordinates (binding : PortableReference)
     coordinates binding (append binding first second) =
       coordinates binding first ++ coordinates binding second := by
   unfold coordinates append
-  rw [CheckedPropertyEvaluationInput.scopedCoordinates_append first second binding.original.declaration.id
+  rw [CheckedPropertyEvaluationInput.correlatedCoordinates_append first second binding.original.declaration.id
     binding.original.triggerPattern binding.original.responsePattern binding.original.declaration.bound binding.shape]
   exact List.map_append
 
@@ -144,22 +144,22 @@ theorem Certificate.closed_property {binding : PortableReference} {table : List 
     binding.original.declaration.id binding.original.triggerPattern binding.original.responsePattern
     binding.original.declaration.bound rfl binding.triggerAligned binding.responseAligned
 
-private def endpointAnswer : Shared.ScopedObligation.Answer → PropertyEndpointAnswer
+private def endpointAnswer : Shared.CorrelatedObligation.Answer → PropertyEndpointAnswer
   | .satisfied => .satisfied | .violated => .violated | .unresolved => .unresolved
 
 /-- The actual portable endpoint decision agrees with task 6 for both close modes and incomplete
 inputs, including preservation of any violation already established before evidence failed. -/
-theorem endpoint_agrees (obligations : List Shared.ScopedObligation.Obligation)
-    (closed incomplete : Bool) (endpoint : PropertyScopedEndpoint) :
-    endpointAnswer (Shared.ScopedObligation.answer obligations closed incomplete
+theorem endpoint_agrees (obligations : List Shared.CorrelatedObligation.Obligation)
+    (closed incomplete : Bool) (ending : TraceEnding) :
+    endpointAnswer (Shared.CorrelatedObligation.answer obligations closed incomplete
       (endpoint == .final)) =
-    let selected := if incomplete || !closed then PropertyScopedEndpoint.«partial» else endpoint
-    let result := Property.Scoped.close selected obligations
+    let selected := if incomplete || !closed then TraceEnding.«partial» else endpoint
+    let result := Property.Correlated.close selected obligations
     if incomplete && result != .violated then .unresolved else result := by
   cases violated : obligations.contains .violated <;>
     cases satisfied : obligations.all (fun obligation => decide (obligation = .satisfied)) <;>
     cases closed <;> cases incomplete <;> cases endpoint <;>
-    simp only [Shared.ScopedObligation.answer, Property.Scoped.close, violated, satisfied,
+    simp only [Shared.CorrelatedObligation.answer, Property.Correlated.close, violated, satisfied,
       Bool.false_eq_true, if_false, if_true] <;> rfl
 
-end Umpire.Case.ScopedProofs
+end Umpire.Case.CorrelatedProofs

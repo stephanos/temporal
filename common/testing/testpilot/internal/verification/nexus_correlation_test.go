@@ -79,7 +79,7 @@ func nexusCorrelationFixture(t testing.TB) (*PreparedContract, execution.Program
 		Entrypoints:  []*testpilotspb.EntrypointDefinition{{EntrypointId: "controller", Activation: &testpilotspb.EntrypointDefinition_Controller{Controller: &testpilotspb.ControllerActivation{}}}},
 		Cleanup:      &testpilotspb.CleanupDefinition{EntrypointId: "cleanup"},
 	}}
-	program, err := execution.Prepare(source, catalog, execution.Policy{Identity: "profile", CatalogIdentity: catalog.Identity(), Limits: programLimits})
+	program, err := execution.Prepare(source, catalog, execution.Profile{Identity: "profile", CatalogIdentity: catalog.Identity(), Limits: programLimits})
 	require.NoError(t, err)
 	limits := &testpilotspb.ContractLimits{MaxRules: 4, MaxStates: 16, MaxTransitions: 16, MaxExpressionDepth: 12, MaxWorkPerEvent: 100000, MaxTotalWork: 1000000000, MaxCaptures: 4, MaxCaptureBytes: 8192}
 	rule := &testpilotspb.ContractRuleDefinition{
@@ -93,7 +93,7 @@ func nexusCorrelationFixture(t testing.TB) (*PreparedContract, execution.Program
 			{StateId: "violated", Status: testpilotspb.CONTRACT_STATE_STATUS_VIOLATED},
 		},
 		Captures: []*testpilotspb.ContractCaptureDefinition{{CaptureId: "scheduled-event", Type: &testpilotspb.ContractCaptureType{Type: &testpilotspb.ContractCaptureType_Message{Message: &testpilotspb.NamedType{ProtobufType: "temporal.api.history.v1.HistoryEvent"}}}}},
-		Horizon:  &testpilotspb.ContractHorizonDefinition{ElapsedMilliseconds: 30000, ViolationStateId: "violated"},
+		Deadline: &testpilotspb.ContractDeadline{ElapsedMilliseconds: 30000, ViolationStateId: "violated"},
 	}
 	rule.Transitions = []*testpilotspb.ContractTransitionDefinition{
 		nexusTransition("capture-scheduled-event", "pending", "scheduled-correlated", all(

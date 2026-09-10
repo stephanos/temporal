@@ -375,7 +375,7 @@ private def segmentsOf (path : Except String FieldPath) : Option (List (String Ã
   | .ok output =>
       output.case_id == "temporal.case.typed-unary" &&
       (match output.contract.map (fun contract => contract.rules.toList) with
-        | some [rule] => rule.kind == .CONTRACT_RULE_KIND_SAFETY && rule.horizon.isNone
+        | some [rule] => rule.kind == .CONTRACT_RULE_KIND_SAFETY && rule.deadline.isNone
         | _ => false)
   | .error _ => false
 

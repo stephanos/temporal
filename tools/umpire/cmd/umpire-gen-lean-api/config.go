@@ -25,9 +25,26 @@ type outputLayout struct {
 }
 
 type generationConfig struct {
-	Descriptors []descriptorSpec
-	OutputRoot  string
-	Layout      outputLayout
+	Descriptors  []descriptorSpec
+	SkipPackages []string
+	OutputRoot   string
+	Layout       outputLayout
+}
+
+// skipPackageValues collects the proto packages whose files never reach the projection. A package
+// named here must actually appear in the merged descriptor set: a typo that silently generated the
+// mirror again is exactly what the flag exists to prevent.
+type skipPackageValues []string
+
+func (values *skipPackageValues) String() string { return strings.Join(*values, ",") }
+
+func (values *skipPackageValues) Set(value string) error {
+	trimmed := strings.TrimSpace(value)
+	if trimmed == "" {
+		return errors.New("skipped package is required")
+	}
+	*values = append(*values, trimmed)
+	return nil
 }
 
 type descriptorValues []descriptorSpec
@@ -51,9 +68,11 @@ func (values *descriptorValues) Set(value string) error {
 
 func parseGenerationConfig(arguments []string) (generationConfig, error) {
 	var descriptors descriptorValues
+	var skipPackages skipPackageValues
 	flags := flag.NewFlagSet("umpire-gen-lean-api", flag.ContinueOnError)
 	flags.SetOutput(io.Discard)
 	flags.Var(&descriptors, "descriptor", "descriptor set path (repeatable)")
+	flags.Var(&skipPackages, "skip-package", "proto package to leave ungenerated (repeatable)")
 	leanRoot := flags.String("lean-root", "", "root Lean module")
 	outputRoot := flags.String("output-root", "", "generated artifact root")
 	if err := flags.Parse(arguments); err != nil {
@@ -82,11 +101,21 @@ func parseGenerationConfig(arguments []string) (generationConfig, error) {
 		return generationConfig{}, errors.New("--output-root is required")
 	}
 
-	configuration := generationConfig{
-		Descriptors: append([]descriptorSpec(nil), descriptors...),
-		OutputRoot:  *outputRoot,
-		Layout:      newOutputLayout(*leanRoot),
+	seenSkips := make(map[string]bool, len(skipPackages))
+	for _, skipped := range skipPackages {
+		if seenSkips[skipped] {
+			return generationConfig{}, fmt.Errorf("duplicate skipped package %q", skipped)
+		}
+		seenSkips[skipped] = true
 	}
+
+	configuration := generationConfig{
+		Descriptors:  append([]descriptorSpec(nil), descriptors...),
+		SkipPackages: append([]string(nil), skipPackages...),
+		OutputRoot:   *outputRoot,
+		Layout:       newOutputLayout(*leanRoot),
+	}
+	slices.Sort(configuration.SkipPackages)
 	slices.SortFunc(configuration.Descriptors, func(left, right descriptorSpec) int {
 		return strings.Compare(left.Locator, right.Locator)
 	})

@@ -33,7 +33,7 @@ func New(plan testpilot.EntrypointPlan) (*State, error) {
 	if plan == (testpilot.EntrypointPlan{}) {
 		return nil, errors.New("activation requires a prepared entrypoint")
 	}
-	if plan.Context() != testpilotspb.ENTRYPOINT_KIND_WORKFLOW && plan.Context() != testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER {
+	if plan.Kind() != testpilotspb.ENTRYPOINT_KIND_WORKFLOW && plan.Kind() != testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER {
 		return nil, errors.New("activation requires a workflow or Nexus-handler entrypoint")
 	}
 	instructions := plan.Instructions()

@@ -1,7 +1,6 @@
 import Testpilot.Authoring
-import Umpire.Case
+import Umpire.Provenance
 import Umpire.Case.Coverage
-import Umpire.Case.Provenance
 import Umpire.KnownGap
 
 /-!
@@ -16,7 +15,7 @@ and returns the generated Case without introducing a parallel protocol represent
 namespace Umpire
 
 /-- Convert one checked planning Known Gap to the exact Umpire provenance row vocabulary. -/
-def KnownGap.toCaseKnownGap (gap : KnownGap) : Case.CaseKnownGap := {
+def KnownGap.toProvenanceGap (gap : KnownGap) : Provenance.KnownGap := {
   kind := match gap.kind with
     | .capability => .capability
     | .input => .input
@@ -28,8 +27,8 @@ def KnownGap.toCaseKnownGap (gap : KnownGap) : Case.CaseKnownGap := {
 }
 
 /-- Convert checked planning Known Gaps to exact provenance rows in one order-preserving pass. -/
-def KnownGapSet.toCaseKnownGaps (gaps : KnownGapSet) : List Case.CaseKnownGap :=
-  gaps.toList.map KnownGap.toCaseKnownGap
+def KnownGapSet.toProvenanceGaps (gaps : KnownGapSet) : List Provenance.KnownGap :=
+  gaps.toList.map KnownGap.toProvenanceGap
 
 end Umpire
 
@@ -40,7 +39,7 @@ open Umpire.Case
 open temporal.server.api.testpilot.v1
 
 /-- A stable failure for a checked construct outside the generated Testpilot vocabulary. -/
-structure LoweringError where
+structure Error where
   sourceDefinitionId : String
   source : SourceLocation
   construct : String
@@ -48,11 +47,11 @@ structure LoweringError where
 
 /-- One checked property already lowered to a generated rule, or rejected with its source. -/
 inductive ContractLowering where
-  | monitor (sourceDefinition : CaseDefinitionBinding) (rule : ContractRuleDefinition)
-  | scoped (sourceDefinition : CaseDefinitionBinding) (capability : ScopedContract)
-      (clauses : List CaseScopedClauseBinding)
+  | monitor (sourceDefinition : Provenance.DefinitionBinding) (rule : ContractRuleDefinition)
+  | correlated (sourceDefinition : Provenance.DefinitionBinding) (capability : CorrelatedContract)
+      (clauses : List Provenance.CorrelatedRuleBinding)
   | unsupported
-      (sourceDefinition : CaseDefinitionBinding)
+      (sourceDefinition : Provenance.DefinitionBinding)
       (source : SourceLocation)
       (construct : String)
 
@@ -62,9 +61,9 @@ structure Input where
   caseId : String
   producerId : String
   producerVersion : String := ""
-  definitions : List CaseDefinitionBinding
+  definitions : List Provenance.DefinitionBinding
   sources : List SourceLocation
-  knownGaps : List CaseKnownGap
+  knownGaps : List Provenance.KnownGap
   program : Program
   contractId : String
   properties : List ContractLowering
@@ -73,7 +72,7 @@ structure Input where
   none keeps its exact existing meaning. -/
   coverage : Coverage.Request := {}
 
-private def lowerProperty : ContractLowering → Except LoweringError (Option ContractRuleDefinition)
+private def lowerProperty : ContractLowering → Except Error (Option ContractRuleDefinition)
   | .monitor sourceDefinition rule =>
       if sourceDefinition.kind != .property then
         .error {
@@ -83,7 +82,7 @@ private def lowerProperty : ContractLowering → Except LoweringError (Option Co
         }
       else
         .ok (some rule)
-  | .scoped sourceDefinition _ _ =>
+  | .correlated sourceDefinition _ _ =>
       if sourceDefinition.kind != .property then
         .error {
           sourceDefinitionId := sourceDefinition.definitionId
@@ -94,34 +93,34 @@ private def lowerProperty : ContractLowering → Except LoweringError (Option Co
       .error { sourceDefinitionId := sourceDefinition.definitionId, source, construct }
 
 /-- Assemble generated values into a Case while preserving Umpire provenance and typed rejection. -/
-def compile (input : Input) : Except LoweringError temporal.server.api.testpilot.v1.Case := do
+def compile (input : Input) : Except Error temporal.server.api.testpilot.v1.Case := do
   let lowered ← input.properties.mapM lowerProperty
   let rules := lowered.filterMap id
-  let scopedProperties := input.properties.filterMap fun property => match property with
-    | .scoped binding capability clauses => some (binding, capability, clauses)
+  let correlatedProperties := input.properties.filterMap fun property => match property with
+    | .correlated binding capability clauses => some (binding, capability, clauses)
     | _ => none
-  if scopedProperties.length > 1 then
+  if correlatedProperties.length > 1 then
     throw {
       sourceDefinitionId := input.contractId
       source := { path := "" }
-      construct := "multiple scoped projections" }
-  let capability := scopedProperties.head?.map (·.2.1)
-  let scopedClauses := scopedProperties.flatMap (·.2.2)
+      construct := "multiple correlated projections" }
+  let capability := correlatedProperties.head?.map (·.2.1)
+  let correlatedRules := correlatedProperties.flatMap (·.2.2)
   -- A requested mapping that this Case does not construct or lower rejects the whole Case here,
   -- before any Program or Contract could reach a Driver.
-  (Coverage.check input.program scopedClauses input.coverage input.caseId).mapError fun failure =>
-    LoweringError.mk failure.subject { path := "" } failure.reason
-  let metadata : CaseMetadata := {
+  (Coverage.check input.program correlatedRules input.coverage input.caseId).mapError fun failure =>
+    Error.mk failure.subject { path := "" } failure.reason
+  let metadata : Provenance.Metadata := {
     producerId := input.producerId
     producerVersion := input.producerVersion
     definitions := input.definitions
     sources := input.sources
     knownGaps := input.knownGaps
-    scopedClauses
+    correlatedRules
   }
   pure (Testpilot.Authoring.case input.version.major input.caseId input.program
-    { Testpilot.Authoring.Monitor.contract input.contractId rules.toArray input.contractLimits with
-      «scoped» := capability }
+    { Testpilot.Authoring.Contract.contract input.contractId rules.toArray input.contractLimits with
+      «correlated» := capability }
     (Provenance.make metadata) input.version.minor)
 
 end Umpire.Case.Compiler

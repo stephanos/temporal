@@ -17,7 +17,7 @@ type Environment struct {
 
 // DeriveProfile returns the minimal authorization the Case implies: the roles it declares, the
 // methods it invokes, the reservation carriers its instructions actually use, the capabilities its
-// opcodes require, and the environment values its declared bindings resolve to. Nothing is widened
+// capabilities require, and the environment values its declared bindings resolve to. Nothing is widened
 // beyond what the Case references, and anything the Case names that the catalog does not know is
 // an error rather than a silently authorized surface.
 //
@@ -28,7 +28,7 @@ func DeriveProfile(source *testpilotspb.Case, catalog *testpilot.Catalog, enviro
 	if program == nil || catalog == nil || environment.Identity == "" {
 		return testpilot.ProfileSpec{}, ErrInvalid
 	}
-	contexts, err := entrypointContexts(program)
+	contexts, err := entrypointKinds(program)
 	if err != nil {
 		return testpilot.ProfileSpec{}, err
 	}
@@ -48,14 +48,14 @@ func DeriveProfile(source *testpilotspb.Case, catalog *testpilot.Catalog, enviro
 		Identity:            environment.Identity,
 		Catalog:             catalog,
 		Roles:               roles,
-		Capabilities:        usage.capabilities(),
+		Opcodes:             usage.capabilities(),
 		EnvironmentBindings: bindings,
 		ProgramLimits:       proto.CloneOf(program.GetLimits()),
 		ContractLimits:      proto.CloneOf(source.GetContract().GetLimits()),
 	}, nil
 }
 
-func entrypointContexts(program *testpilotspb.Program) (map[string]testpilotspb.EntrypointKind, error) {
+func entrypointKinds(program *testpilotspb.Program) (map[string]testpilotspb.EntrypointKind, error) {
 	contexts := make(map[string]testpilotspb.EntrypointKind, len(program.GetEntrypoints()))
 	for _, entrypoint := range program.GetEntrypoints() {
 		var kind testpilotspb.EntrypointKind
@@ -90,12 +90,12 @@ type programUsage struct {
 	methodSeen   map[carrierKey]bool
 	carrierOrder map[string][]string
 	shapes       map[carrierKey]map[testpilotspb.EntrypointKind]int64
-	opcodes      map[testpilot.Capability]bool
+	opcodes      map[testpilot.Opcode]bool
 }
 
-func (u *programUsage) capabilities() []testpilot.Capability {
-	result := make([]testpilot.Capability, 0, len(u.opcodes))
-	for capability := testpilot.InvokeRPC; capability <= testpilot.MaxCapability; capability++ {
+func (u *programUsage) capabilities() []testpilot.Opcode {
+	result := make([]testpilot.Opcode, 0, len(u.opcodes))
+	for capability := testpilot.InvokeRPC; capability <= testpilot.MaxOpcode; capability++ {
 		if u.opcodes[capability] {
 			result = append(result, capability)
 		}
@@ -109,7 +109,7 @@ func deriveUsage(program *testpilotspb.Program, contexts map[string]testpilotspb
 		methodSeen:   map[carrierKey]bool{},
 		carrierOrder: map[string][]string{},
 		shapes:       map[carrierKey]map[testpilotspb.EntrypointKind]int64{},
-		opcodes:      map[testpilot.Capability]bool{},
+		opcodes:      map[testpilot.Opcode]bool{},
 	}
 	for _, entrypoint := range program.GetEntrypoints() {
 		for _, instruction := range entrypoint.GetInstructions() {
@@ -185,7 +185,7 @@ func deriveRoles(program *testpilotspb.Program, usage *programUsage) ([]testpilo
 			shapes := make([]testpilot.ReservationCarrierShape, 0, len(counts))
 			for kind := testpilotspb.ENTRYPOINT_KIND_CONTROLLER; kind <= testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER; kind++ {
 				if count := counts[kind]; count > 0 {
-					shapes = append(shapes, testpilot.ReservationCarrierShape{Context: kind, MaximumCount: count})
+					shapes = append(shapes, testpilot.ReservationCarrierShape{Kind: kind, MaximumCount: count})
 				}
 			}
 			policy.ReservationCarriers = append(policy.ReservationCarriers, testpilot.ReservationCarrierPolicy{Method: method, Shapes: shapes})

@@ -5,7 +5,7 @@ import Umpire.Case.Compiler
 import Umpire.Case.Observed
 import Umpire.Property.Elab
 import Umpire.Property.Evaluate
-import Umpire.Property.Scoped
+import Umpire.Property.Correlated
 import Umpire.Operation.Parameterized
 
 /-!
@@ -489,12 +489,12 @@ no started event still closes inconclusive. -/
 private def startedRule (checkedProperty : CheckedProperty) :
     Except String ContractRuleDefinition := do
   let recordedTypePath ← readPathOf startedTypePath
-  pure (Monitor.rule (checkedProperty.id.value ++ ".recorded-workflow-type")
+  pure (Contract.rule (checkedProperty.id.value ++ ".recorded-workflow-type")
     .CONTRACT_RULE_KIND_SAFETY "pending"
-    #[Monitor.state "pending" .CONTRACT_STATE_STATUS_NONTERMINAL,
-      Monitor.state "satisfied" .CONTRACT_STATE_STATUS_SATISFIED,
-      Monitor.state "violated" .CONTRACT_STATE_STATUS_VIOLATED]
-    #[Monitor.transition "match-recorded-workflow-type" "pending" "satisfied"
+    #[Contract.state "pending" .CONTRACT_STATE_STATUS_NONTERMINAL,
+      Contract.state "satisfied" .CONTRACT_STATE_STATUS_SATISFIED,
+      Contract.state "violated" .CONTRACT_STATE_STATUS_VIOLATED]
+    #[Contract.transition "match-recorded-workflow-type" "pending" "satisfied"
       #[.RUN_EVENT_KIND_INSTRUCTION_COMPLETED]
       (ContractExpr.all #[
         ContractExpr.present (observed observationId),
@@ -502,7 +502,7 @@ private def startedRule (checkedProperty : CheckedProperty) :
         ContractExpr.equals (projected (observed observationId) recordedTypePath)
           (ContractExpr.literal (Value.text submittedWorkflowType))])
       .CONTRACT_SUPPORT_KIND_MATCHING_EVENT,
-      Monitor.transition "reject-recorded-workflow-type" "pending" "violated"
+      Contract.transition "reject-recorded-workflow-type" "pending" "violated"
       #[.RUN_EVENT_KIND_INSTRUCTION_COMPLETED]
       (ContractExpr.all #[
         ContractExpr.present (observed observationId),
@@ -517,21 +517,21 @@ def coverage : Umpire.Case.Coverage.Request := {
   inputs := [{ path := submittedTypePath, value := .text submittedWorkflowType
                entrypointId := controllerId, instructionId := startInstructionId }] }
 
-private def loweringError (definitionId construct : String) : Umpire.Case.Compiler.LoweringError :=
+private def compilerError (definitionId construct : String) : Umpire.Case.Compiler.Error :=
   { sourceDefinitionId := definitionId, source, construct }
 
 /-- The checked typed unary declaration lowered to the closed Case format. -/
-def typedUnaryCase : Except Umpire.Case.Compiler.LoweringError
+def typedUnaryCase : Except Umpire.Case.Compiler.Error
     temporal.server.api.testpilot.v1.Case := do
   let model ← checked.mapError fun _ =>
-    loweringError propertyId.value "checked-typed-unary"
+    compilerError propertyId.value "checked-typed-unary"
   let history ← historyBinding.mapError fun _ =>
-    loweringError historyMethod.fullName "checked-history-binding"
+    compilerError historyMethod.fullName "checked-history-binding"
   let checkedProperty := model.property.property
   let propertyBinding := binding checkedProperty.id.value
     checkedProperty.behaviorFingerprint.render .«property»
   let rule ← (startedRule checkedProperty).mapError fun reason =>
-    loweringError clauseId.value reason
+    compilerError clauseId.value reason
   Umpire.Case.Compiler.compile {
     version := { major := 1 }
     caseId := "temporal.case.typed-unary"

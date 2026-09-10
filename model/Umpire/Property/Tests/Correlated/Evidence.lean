@@ -1,10 +1,10 @@
-import Umpire.Property.Tests.Scoped.Fixtures
+import Umpire.Property.Tests.Correlated.Fixtures
 
-/-! Partial, repeated and reordered evidence use the same checked scoped transition kernel. -/
+/-! Partial, repeated and reordered evidence use the same checked correlated transition kernel. -/
 
-namespace Umpire.Property.ScopedTests
+namespace Umpire.Property.CorrelatedTests
 
-open Property.Scoped
+open Property.Correlated
 namespace Evidence
 
 private def plan (target : TestTarget) := Case.Projection.check target {
@@ -38,12 +38,12 @@ private def event (ordinal : Nat) (kind : String) (parents : List Nat := [])
 }
 
 private def evaluateEvidence (bound : Nat) (events : List Case.Projection.Event)
-    (endpoint : PropertyScopedEndpoint := .«partial») : Option (List PropertyEndpointAnswer) := do
+    (ending : TraceEnding := .«partial») : Option (List PropertyEndpointAnswer) := do
   let target ← targetResult.toOption
-  let property ← (property target bound endpoint).toOption
+  let property ← (property target bound ending).toOption
   let plan ← (plan target).toOption
-  let compiled ← (Case.Projection.Scoped.compile plan property limits).toOption
-  let initial ← (Case.Projection.Scoped.start plan compiled () scope).toOption
+  let compiled ← (Case.Projection.Correlated.compile plan property limits).toOption
+  let initial ← (Case.Projection.Correlated.start plan compiled () scope).toOption
   let run ← (initial.admitMany events).toOption
   pure (run.close.answers.map Prod.snd)
 
@@ -67,8 +67,8 @@ private def partialEvents : List Case.Projection.Event := [
   let target ← targetResult.toOption
   let property ← (property target 1).toOption
   let plan ← (plan target).toOption
-  let compiled ← (Case.Projection.Scoped.compile plan property limits).toOption
-  let initial ← (Case.Projection.Scoped.start plan compiled () scope).toOption
+  let compiled ← (Case.Projection.Correlated.compile plan property limits).toOption
+  let initial ← (Case.Projection.Correlated.start plan compiled () scope).toOption
   let whole ← (initial.admitMany partialEvents).toOption
   pure ((List.range (partialEvents.length + 1)).all fun split =>
     ((initial.admitMany (partialEvents.take split) >>= fun before =>
@@ -79,12 +79,12 @@ private def partialEvents : List Case.Projection.Event := [
   let target ← targetResult.toOption
   let property ← (property target 0).toOption
   let plan ← (plan target).toOption
-  let compiled ← (Case.Projection.Scoped.compile plan property limits).toOption
-  let initial ← (Case.Projection.Scoped.start plan compiled () scope).toOption
+  let compiled ← (Case.Projection.Correlated.compile plan property limits).toOption
+  let initial ← (Case.Projection.Correlated.start plan compiled () scope).toOption
   let violated ← (initial.admit (event 0 "request")).toOption
   pure ((violated.admit (event 0 "both")).isOk,
     violated.answers.map Prod.snd, (violated.close.admit (event 1 "reply")).isOk)) ==
   some (false, [.violated], false)
 
 end Evidence
-end Umpire.Property.ScopedTests
+end Umpire.Property.CorrelatedTests

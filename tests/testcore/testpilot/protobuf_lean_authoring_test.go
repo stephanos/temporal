@@ -53,7 +53,7 @@ func TestLeanAuthoringProtoJSONStrictDecode(t *testing.T) {
 	require.Empty(t, environment.GetBindingId())
 
 	rule := decoded.GetContract().GetRules()[0]
-	require.Equal(t, int64(9223372036854775807), rule.GetHorizon().GetElapsedMilliseconds())
+	require.Equal(t, int64(9223372036854775807), rule.GetDeadline().GetElapsedMilliseconds())
 	contractAny := rule.GetTransitions()[0].GetPredicate().GetAny()
 	require.NotNil(t, contractAny)
 	require.Equal(t, "run", contractAny.GetOperands()[1].GetEquals().GetRight().GetLiteral().GetText())

@@ -16,14 +16,14 @@ import (
 	"google.golang.org/protobuf/types/descriptorpb"
 )
 
-// Capability, execution.Opcode and the instruction-to-opcode switch are three hand-maintained
+// Opcode, execution.Opcode and the instruction-to-capability switch are three hand-maintained
 // lists. The switch is pinned to the Instruction oneof inside the execution package; this pins
-// the public capability vocabulary to the same numbering, so a capability can never authorize a
+// the public opcode vocabulary to the same numbering, so an opcode can never authorize a
 // different instruction than the one it is named for.
 func TestCapabilitiesMatchExecutionOpcodes(t *testing.T) {
 	for name, pair := range map[string]struct {
-		capability Capability
-		opcode     execution.Opcode
+		opcode          Opcode
+		executionOpcode execution.Opcode
 	}{
 		"InvokeRPC":              {InvokeRPC, execution.InvokeRPC},
 		"AwaitSlot":              {AwaitSlot, execution.AwaitSlot},
@@ -35,11 +35,11 @@ func TestCapabilitiesMatchExecutionOpcodes(t *testing.T) {
 		"InjectFault":            {InjectFault, execution.InjectFault},
 	} {
 		t.Run(name, func(t *testing.T) {
-			require.Equal(t, pair.opcode, execution.Opcode(pair.capability))
-			require.LessOrEqual(t, pair.capability, MaxCapability)
+			require.Equal(t, pair.executionOpcode, execution.Opcode(pair.opcode))
+			require.LessOrEqual(t, pair.opcode, MaxOpcode)
 		})
 	}
-	require.Equal(t, execution.MaxOpcode, execution.Opcode(MaxCapability))
+	require.Equal(t, execution.MaxOpcode, execution.Opcode(MaxOpcode))
 }
 
 type nilProfileMap map[string]int

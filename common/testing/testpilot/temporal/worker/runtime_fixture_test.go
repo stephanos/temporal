@@ -40,12 +40,12 @@ func preparedRuntimeFixtureWithProfile(t *testing.T, responseKind testpilotspb.N
 	profile := testpilot.ProfileSpec{
 		Identity: "profile", Catalog: catalog,
 		Roles: []testpilot.RolePolicy{
-			{ID: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT, Methods: []string{method}, ReservationCarriers: []testpilot.ReservationCarrierPolicy{{Method: method, Shapes: []testpilot.ReservationCarrierShape{{Context: testpilotspb.ENTRYPOINT_KIND_WORKFLOW, MaximumCount: 8}, {Context: testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER, MaximumCount: 8}}}}},
+			{ID: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT, Methods: []string{method}, ReservationCarriers: []testpilot.ReservationCarrierPolicy{{Method: method, Shapes: []testpilot.ReservationCarrierShape{{Kind: testpilotspb.ENTRYPOINT_KIND_WORKFLOW, MaximumCount: 8}, {Kind: testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER, MaximumCount: 8}}}}},
 			{ID: "worker", Kind: testpilotspb.ROLE_KIND_WORKER},
 			{ID: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE},
 			{ID: "nexus-endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT},
 		},
-		Capabilities: []testpilot.Capability{testpilot.InvokeRPC, testpilot.StartNexusOperation, testpilot.Await, testpilot.Finish, testpilot.RespondNexus},
+		Opcodes: []testpilot.Opcode{testpilot.InvokeRPC, testpilot.StartNexusOperation, testpilot.Await, testpilot.Finish, testpilot.RespondNexus},
 		EnvironmentBindings: []testpilot.EnvironmentBinding{
 			{ID: "namespace", Value: "namespace"}, {ID: "task-queue", Value: "task-queue"}, {ID: "nexus-endpoint", Value: "endpoint"},
 		},
@@ -65,7 +65,7 @@ func preparedRuntimeFixtureWithProfile(t *testing.T, responseKind testpilotspb.N
 	}
 	await := &testpilotspb.InstructionDefinition{
 		InstructionId: "await", Dependencies: []*testpilotspb.InstructionRef{{EntrypointId: "workflow", InstructionId: "start"}},
-		Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitOutcome{AwaitOutcome: &testpilotspb.AwaitInstruction{Instruction: &testpilotspb.InstructionRef{EntrypointId: "workflow", InstructionId: "start"}}}},
+		Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitInstruction{AwaitInstruction: &testpilotspb.AwaitInstruction{Instruction: &testpilotspb.InstructionRef{EntrypointId: "workflow", InstructionId: "start"}}}},
 		Outcome:     runtimeValueOutcomeSchema(), Limits: runtimeBounds(),
 	}
 	finish := &testpilotspb.InstructionDefinition{

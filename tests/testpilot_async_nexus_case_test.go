@@ -132,7 +132,7 @@ func loadTestpilotCase(t testing.TB, name string) *testpilotpb.Case {
 }
 
 // requireCorrelatedNexusHistoryEvidence reads the supporting evidence back out of the Run. Each
-// supporting event carries both the history event it projected and the ScopedEvidence the same
+// supporting event carries both the history event it projected and the CorrelatedEvidence the same
 // projection lifted from it, and the two agree: the operation key every value carries is the
 // scheduled event both the started and the completed event name.
 func requireCorrelatedNexusHistoryEvidence(t testing.TB, run *testpilotpb.Run, sequences []int64, endpoint string) {
@@ -148,8 +148,8 @@ func requireCorrelatedNexusHistoryEvidence(t testing.TB, run *testpilotpb.Run, s
 		var historyEvent historypb.HistoryEvent
 		require.NoError(t, observationValue(t, event, "history-event").GetMessageValue().UnmarshalTo(&historyEvent))
 		events = append(events, &historyEvent)
-		var evidence testpilotpb.ScopedEvidence
-		require.NoError(t, observationValue(t, event, "scoped-evidence").GetMessageValue().UnmarshalTo(&evidence))
+		var evidence testpilotpb.CorrelatedEvidence
+		require.NoError(t, observationValue(t, event, "correlated-evidence").GetMessageValue().UnmarshalTo(&evidence))
 		keys = append(keys, evidence.GetOperation())
 		kinds = append(kinds, evidence.GetKind())
 	}

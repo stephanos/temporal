@@ -150,12 +150,12 @@ func TestCarrierEffectFinalizesWithFreshBoundAndRetries(t *testing.T) {
 	_, err := effect.Wait(canceled)
 	require.ErrorIs(t, err, context.Canceled)
 	require.ErrorContains(t, err, "injected terminal failure")
-	require.Equal(t, []delivery.TriggerDisposition{delivery.TriggerUncertain}, terminal.dispositions)
+	require.Equal(t, []delivery.TriggerStatus{delivery.TriggerUncertain}, terminal.dispositions)
 	require.Equal(t, []error{nil}, terminal.contextErrors)
 	require.True(t, terminal.admissible)
 
 	require.NoError(t, effect.Cancel(t.Context()))
-	require.Equal(t, []delivery.TriggerDisposition{delivery.TriggerUncertain, delivery.TriggerUncertain}, terminal.dispositions)
+	require.Equal(t, []delivery.TriggerStatus{delivery.TriggerUncertain, delivery.TriggerUncertain}, terminal.dispositions)
 	require.Equal(t, []error{nil, nil}, terminal.contextErrors)
 	require.False(t, terminal.admissible)
 }
@@ -171,14 +171,14 @@ func TestCarrierEffectDrainFinalizesCompletedResult(t *testing.T) {
 		carrier: terminal, cleanupTimeout: time.Second,
 	}
 	require.NoError(t, effect.Drain(t.Context()))
-	require.Equal(t, []delivery.TriggerDisposition{delivery.TriggerNonSuccess}, terminal.dispositions)
+	require.Equal(t, []delivery.TriggerStatus{delivery.TriggerNonSuccess}, terminal.dispositions)
 	require.False(t, terminal.admissible)
 }
 
 type recordingTerminalCarrier struct {
 	failures       int
 	admissible     bool
-	dispositions   []delivery.TriggerDisposition
+	dispositions   []delivery.TriggerStatus
 	contextErrors  []error
 	pinnedResponse *workflowservice.StartWorkflowExecutionResponse
 }
@@ -188,7 +188,7 @@ func (c *recordingTerminalCarrier) PinStartResponse(ctx context.Context, respons
 	c.pinnedResponse = proto.CloneOf(response)
 	return nil
 }
-func (c *recordingTerminalCarrier) TriggerTerminal(ctx context.Context, disposition delivery.TriggerDisposition) (int, error) {
+func (c *recordingTerminalCarrier) TriggerTerminal(ctx context.Context, disposition delivery.TriggerStatus) (int, error) {
 	c.contextErrors = append(c.contextErrors, ctx.Err())
 	c.dispositions = append(c.dispositions, disposition)
 	if c.failures > 0 {

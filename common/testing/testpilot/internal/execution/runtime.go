@@ -57,7 +57,7 @@ func Run(
 	if terminationErr != nil {
 		ordinaryErr = errors.Join(ordinaryErr, scheduler.fail("termination_failed", terminationErr))
 	}
-	disposition := scheduler.recorder.terminalDisposition(ordinaryErr)
+	disposition := scheduler.recorder.terminalStatus(ordinaryErr)
 
 	cleanup := &testpilotspb.CleanupOutcome{Status: testpilotspb.CLEANUP_STATUS_SUCCEEDED}
 	cleanupStart := scheduler.ownedCount()

@@ -84,7 +84,7 @@ func validWorkerProfile(profile testpilot.ProfileSpec) bool {
 		MaxRequestBytes: 16 << 20, MaxResponseBytes: 16 << 20,
 		MaxTotalDurationMilliseconds: 86400000, MaxCleanupDurationMilliseconds: 86400000,
 	}
-	if profile.Identity == "" || len(profile.Identity) > 256 || profile.Catalog == nil || profile.Catalog.Identity() == "" || limits == nil || len(profile.Capabilities) > int(testpilot.MaxCapability) || len(profile.Roles) > 10000 {
+	if profile.Identity == "" || len(profile.Identity) > 256 || profile.Catalog == nil || profile.Catalog.Identity() == "" || limits == nil || len(profile.Opcodes) > int(testpilot.MaxOpcode) || len(profile.Roles) > 10000 {
 		return false
 	}
 	fields := limits.ProtoReflect().Descriptor().Fields()
@@ -168,7 +168,7 @@ func DeclaresFault(plans []testpilot.EntrypointPlan) bool {
 
 func hasWorkerEntrypoint(plans []testpilot.EntrypointPlan) bool {
 	for _, plan := range plans {
-		if plan.Context() == testpilotspb.ENTRYPOINT_KIND_WORKFLOW || plan.Context() == testpilotspb.ENTRYPOINT_KIND_ACTIVITY || plan.Context() == testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER {
+		if plan.Kind() == testpilotspb.ENTRYPOINT_KIND_WORKFLOW || plan.Kind() == testpilotspb.ENTRYPOINT_KIND_ACTIVITY || plan.Kind() == testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER {
 			return true
 		}
 	}
@@ -299,7 +299,7 @@ func (h *Driver) boundEntry(plan testpilot.EntrypointPlan, roles map[string]test
 	activation := plan.Activation()
 	entry := entryDefinition{plan: plan}
 	var workerRole, queueRole string
-	switch plan.Context() {
+	switch plan.Kind() {
 	case testpilotspb.ENTRYPOINT_KIND_WORKFLOW:
 		binding := activation.GetWorkflow()
 		if binding == nil {

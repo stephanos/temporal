@@ -67,14 +67,14 @@ func (p *PreparedContract) newEvaluator(ctx context.Context, view execution.Prog
 			return nil, invalid(ir.TypeMismatch, "Program observations differ")
 		}
 	}
-	e := &Evaluator{scoped: newScoped(p.source.Scoped), prepared: p, rules: make([]ruleState, len(p.rules)), result: &testpilotspb.Verdict{Rules: make([]*testpilotspb.RuleVerdict, len(p.rules))}}
+	e := &Evaluator{scoped: newCorrelated(p.source.Correlated), prepared: p, rules: make([]ruleState, len(p.rules)), result: &testpilotspb.Verdict{Rules: make([]*testpilotspb.RuleVerdict, len(p.rules))}}
 	for i, m := range p.rules {
 		e.rules[i] = ruleState{state: m.initial, captures: map[string]capturedValue{}}
 		e.result.Rules[i] = &testpilotspb.RuleVerdict{RuleId: m.source.RuleId, Status: testpilotspb.RULE_VERDICT_STATUS_INCONCLUSIVE}
 	}
 
-	if p.source.Scoped != nil {
-		for _, clause := range p.source.Scoped.Clauses {
+	if p.source.Correlated != nil {
+		for _, clause := range p.source.Correlated.Clauses {
 			e.result.Rules = append(e.result.Rules, &testpilotspb.RuleVerdict{RuleId: clause.ClauseId, Status: testpilotspb.RULE_VERDICT_STATUS_INCONCLUSIVE})
 		}
 	}
@@ -130,19 +130,19 @@ func (e *Evaluator) Observe(ctx context.Context, event *testpilotspb.RunEvent) (
 
 	scoped := e.scoped
 	if scoped != nil {
-		if value := observations[e.prepared.source.Scoped.EvidenceObservationId]; value != nil {
-			evidence := &testpilotspb.ScopedEvidence{}
+		if value := observations[e.prepared.source.Correlated.EvidenceObservationId]; value != nil {
+			evidence := &testpilotspb.CorrelatedEvidence{}
 			if err := value.GetMessageValue().UnmarshalTo(evidence); err != nil {
 				return e.fail(event.Sequence, err)
 			}
-			admitted := &admittedScopedEvidence{ScopedEvidence: evidence}
+			admitted := &admittedCorrelatedEvidence{CorrelatedEvidence: evidence}
 			if previous := scoped.event(evidence.Identity); previous != nil {
 				admitted.supportingEventSequences = slices.Clone(previous.supportingEventSequences)
 			} else {
 				admitted.supportingEventSequences = []int64{event.Sequence}
 			}
 			var used int64
-			scoped, used, err = scoped.stage(ctx, e.prepared.source.Scoped, admitted, event.Sequence)
+			scoped, used, err = scoped.stage(ctx, e.prepared.source.Correlated, admitted, event.Sequence)
 			if err != nil {
 				return e.fail(event.Sequence, err)
 			}
@@ -183,7 +183,7 @@ func (e *Evaluator) Observe(ctx context.Context, event *testpilotspb.RunEvent) (
 	}
 
 	if e.scoped != nil {
-		e.recordScoped(event.Kind == testpilotspb.RUN_EVENT_KIND_RUN_CLOSED, false)
+		e.recordCorrelated(event.Kind == testpilotspb.RUN_EVENT_KIND_RUN_CLOSED, false)
 	}
 	e.captureCount += count
 	e.captureBytes += bytes
@@ -256,11 +256,11 @@ func (e *Evaluator) nextChange(ctx context.Context, i int, event *testpilotspb.R
 		return nil, err
 	}
 	cost.work++
-	if horizonReached(&e.rules[i], m.source.Horizon, event) {
+	if horizonReached(&e.rules[i], m.source.Deadline, event) {
 		if incomplete {
 			return nil, nil
 		}
-		return &ruleChange{rule: i, state: m.states[m.source.Horizon.ViolationStateId], support: true, trace: transitionTrace{event.Sequence, m.source.RuleId, "", m.source.States[state.state].StateId, m.source.Horizon.ViolationStateId}}, nil
+		return &ruleChange{rule: i, state: m.states[m.source.Deadline.ViolationStateId], support: true, trace: transitionTrace{event.Sequence, m.source.RuleId, "", m.source.States[state.state].StateId, m.source.Deadline.ViolationStateId}}, nil
 	}
 	resolve := func(ref ir.Reference) *testpilotspb.Value {
 		switch ref.Kind {
@@ -299,7 +299,7 @@ func (e *Evaluator) nextChange(ctx context.Context, i int, event *testpilotspb.R
 // both reach it through nextChange, so neither can tick on its own terms. A rule that already
 // sits in a terminal state never reaches here, which is where counting stops. The elapsed bound
 // keeps its host-clock comparison; admission guarantees exactly one bound is positive.
-func horizonReached(state *ruleState, horizon *testpilotspb.ContractHorizonDefinition, event *testpilotspb.RunEvent) bool {
+func horizonReached(state *ruleState, horizon *testpilotspb.ContractDeadline, event *testpilotspb.RunEvent) bool {
 	if horizon == nil {
 		return false
 	}
@@ -447,7 +447,7 @@ func (e *Evaluator) verdict(disposition testpilotspb.RunStatus) *testpilotspb.Ve
 	e.result.Status = testpilotspb.VERDICT_STATUS_INCONCLUSIVE
 	scopedSatisfied := true
 	if e.scoped != nil {
-		scopedSatisfied = e.recordScoped(true, e.incomplete || disposition != testpilotspb.RUN_STATUS_COMPLETED)
+		scopedSatisfied = e.recordCorrelated(true, e.incomplete || disposition != testpilotspb.RUN_STATUS_COMPLETED)
 	}
 	if scopedSatisfied && !e.incomplete && disposition == testpilotspb.RUN_STATUS_COMPLETED && e.satisfied == len(e.prepared.rules) {
 		e.result.Status = testpilotspb.VERDICT_STATUS_SATISFIED
@@ -514,8 +514,8 @@ func checkRunOrder(ctx context.Context, events []*testpilotspb.RunEvent) error {
 	return nil
 }
 
-func (e *Evaluator) recordScoped(closed, incomplete bool) bool {
-	s := e.prepared.source.Scoped
+func (e *Evaluator) recordCorrelated(closed, incomplete bool) bool {
+	s := e.prepared.source.Correlated
 	all := true
 	for i := range s.Clauses {
 		result := e.result.Rules[len(e.prepared.rules)+i]

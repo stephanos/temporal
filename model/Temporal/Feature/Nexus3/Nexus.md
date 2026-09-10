@@ -38,7 +38,7 @@ and `facts` name enum-like types, and their constructors — in constructor orde
 ordered domains. No other file holds a list of admissible spellings, so renaming a member or adding
 a transition needs no syntax change. It does change the renamed member's derived ID, so a rename is a
 fixture regeneration, not a syntax error. The Producer no longer binds Facts by spelling: it derives
-the Case's operation-scoped clauses from the `require` lines and the Action order the Behavior fixes,
+the Case's operation-correlated clauses from the `require` lines and the Action order the Behavior fixes,
 so renaming a member changes the Case bytes and no Producer source.
 
 The grammar accepts one or more initial states and terminal states, up to 256 transition rows, any
@@ -186,7 +186,7 @@ one additional transition of that same operation. The intended existing temporal
 response on the triggering step; our request row does not produce one, so resolution needs the next
 step. This is a bound in model steps, not seconds. The Behavior below explicitly includes progress.
 `for operation` binds the trigger and response to one operation; other operations do not consume
-its bound. Operation-scoped counting is now a delivered generic capability, qualified through
+its bound. Operation-correlated counting is now a delivered generic capability, qualified through
 non-cancellation fixtures; it was never Nexus2 functionality, which counts global transitions.
 What stays unsupported is this cancellation-specific use of it, which `Integration.md` rejects at
 Case production. A trace ending immediately after the request cannot demonstrate the required

@@ -166,7 +166,7 @@ func facadeProfile(t testing.TB, source *testpilotspb.Case) testpilot.ProfileSpe
 			ID: "temporal.workflow-service", Kind: testpilotspb.ROLE_KIND_ENDPOINT,
 			Methods: []string{"/temporal.api.workflowservice.v1.WorkflowService/GetSystemInfo"},
 		}},
-		Capabilities:   []testpilot.Capability{testpilot.InvokeRPC},
+		Opcodes:        []testpilot.Opcode{testpilot.InvokeRPC},
 		ProgramLimits:  proto.CloneOf(source.GetProgram().GetLimits()),
 		ContractLimits: proto.CloneOf(source.GetContract().GetLimits()),
 	}

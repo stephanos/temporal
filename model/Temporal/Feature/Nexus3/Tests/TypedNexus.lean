@@ -106,12 +106,12 @@ private def completedEvidenceOf (entry : OperationCase) : Option (List PropertyF
 a test tampers with it; `completing` is the operation whose completion arrives. -/
 private def stepOf (entry : OperationCase) (control : Control)
     (recorded : String := entry.operation) (completing : OperationCase := entry) :
-    Option (Property.Scoped.Transition × List PropertyFieldEvidence) := do
+    Option (Property.Correlated.Transition × List PropertyFieldEvidence) := do
   let scheduledState ← entry.scheduledState.toOption
   let step (priorState : ModelValue) (action : ModelValue)
       (result : Step ModelValue ModelValue ModelValue)
       (evidence : List PropertyFieldEvidence) :
-      Property.Scoped.Transition × List PropertyFieldEvidence :=
+      Property.Correlated.Transition × List PropertyFieldEvidence :=
     ({ scope, operationField := operationFieldId, operation := entry.operation
        priorState, action, result }, evidence)
   match control with
@@ -136,7 +136,7 @@ private def stepOf (entry : OperationCase) (control : Control)
 
 /-- A poll step that carries no evidence at all, so nothing is retained and nothing is read. -/
 private def silentPoll (entry : OperationCase) :
-    Option (Property.Scoped.Transition × List PropertyFieldEvidence) := do
+    Option (Property.Correlated.Transition × List PropertyFieldEvidence) := do
   let (transition, _) ← stepOf entry .poll
   pure (transition, [])
 
@@ -148,17 +148,17 @@ private def code : PropertyEndpointAnswer → Nat
   | .violated => 3
   | .unresolved => 0
 
-/-- Drive the compiled scoped consumer over one stream of admitted steps. `none` is a rejected
+/-- Drive the compiled correlated consumer over one stream of admitted steps. `none` is a rejected
 append: the stream never became one of the operation's semantic histories. -/
-private def linkAnswers (steps : List (Property.Scoped.Transition × List PropertyFieldEvidence)) :
+private def linkAnswers (steps : List (Property.Correlated.Transition × List PropertyFieldEvidence)) :
     Option (List Nat) := do
   let model ← checked.toOption
   let initial ← (model.compiled.start () pendingState scope).toOption
   let run ← (initial.consumeEvidence steps).toOption
   pure (run.close.answers.map fun answer => code answer.2)
 
-private def stream (steps : List (Option (Property.Scoped.Transition × List PropertyFieldEvidence))) :
-    Option (List (Property.Scoped.Transition × List PropertyFieldEvidence)) :=
+private def stream (steps : List (Option (Property.Correlated.Transition × List PropertyFieldEvidence))) :
+    Option (List (Property.Correlated.Transition × List PropertyFieldEvidence)) :=
   steps.mapM id
 
 -- A scheduled operation that completes inside its window is satisfied.
@@ -190,7 +190,7 @@ private def stream (steps : List (Option (Property.Scoped.Transition × List Pro
     silentPoll firstCase]
   let initial ← (model.compiled.start () pendingState scope).toOption
   pure (match initial.consumeEvidence steps with
-    | .error failure => failure == Property.Scoped.Error.invalidTransition firstCase.operation
+    | .error failure => failure == Property.Correlated.Error.invalidTransition firstCase.operation
     | .ok _ => false)) == some true
 
 -- A retained occurrence is never rewritten. A later step of the same operation supplies a second
@@ -293,11 +293,11 @@ private def segmentsOf (path : Except String FieldPath) : Option (List (String �
         (payload.splitOn linkPropertyId.value).length ≥ 2
   | none => false
 
--- The Contract carries the scoped capability the lifted evidence feeds, bound to the declared
--- ScopedEvidence Observation the history projection writes.
-#guard match typedNexusCase.toOption.bind (·.contract) |>.bind (·.«scoped») with
+-- The Contract carries the correlated capability the lifted evidence feeds, bound to the declared
+-- CorrelatedEvidence Observation the history projection writes.
+#guard match typedNexusCase.toOption.bind (·.contract) |>.bind (·.«correlated») with
   | some capability =>
-      capability.evidence_observation_id == scopedObservationId &&
+      capability.evidence_observation_id == correlatedObservationId &&
       capability.projection_id == projectionId.value &&
       capability.clauses.size == 1 &&
       capability.clauses[0]!.clause_id == linkClauseId.value
@@ -310,8 +310,8 @@ private def segmentsOf (path : Except String FieldPath) : Option (List (String �
         | some [first, second] =>
             first.rule_id == fieldPropertyId.value ++ "." ++ firstOperation &&
             second.rule_id == fieldPropertyId.value ++ "." ++ secondOperation &&
-            first.kind == .CONTRACT_RULE_KIND_SAFETY && first.horizon.isNone &&
-            second.kind == .CONTRACT_RULE_KIND_SAFETY && second.horizon.isNone &&
+            first.kind == .CONTRACT_RULE_KIND_SAFETY && first.deadline.isNone &&
+            second.kind == .CONTRACT_RULE_KIND_SAFETY && second.deadline.isNone &&
             first.captures.size == 1 && second.captures.size == 1
         | _ => false)
   | .error _ => false
@@ -327,13 +327,13 @@ private def segmentsOf (path : Except String FieldPath) : Option (List (String �
 
 /-! ### Trust -/
 
-/-- info: 'Umpire.Property.Scoped.Captures.record_extends' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+/-- info: 'Umpire.Property.Correlated.Captures.record_extends' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
-#print axioms Umpire.Property.Scoped.Captures.record_extends
+#print axioms Umpire.Property.Correlated.Captures.record_extends
 
-/-- info: 'Umpire.Property.Scoped.Run.consumeEvidence_append' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+/-- info: 'Umpire.Property.Correlated.Run.consumeEvidence_append' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
-#print axioms Umpire.Property.Scoped.Run.consumeEvidence_append
+#print axioms Umpire.Property.Correlated.Run.consumeEvidence_append
 
 /-- info: 'Umpire.Operation.CheckedRpc.schema_eq' does not depend on any axioms -/
 #guard_msgs in

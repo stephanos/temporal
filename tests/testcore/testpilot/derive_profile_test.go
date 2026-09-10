@@ -32,7 +32,7 @@ func TestDeriveProfileEqualsTheHandWrittenAsyncNexusProfile(t *testing.T) {
 	})
 	require.Equal(t, oracle.Identity, derived.Identity)
 	require.Equal(t, oracle.Roles, derived.Roles)
-	require.Equal(t, oracle.Capabilities, derived.Capabilities)
+	require.Equal(t, oracle.Opcodes, derived.Opcodes)
 	require.Equal(t, oracle.EnvironmentBindings, derived.EnvironmentBindings)
 	require.Same(t, oracle.Catalog, derived.Catalog)
 	require.True(t, proto.Equal(oracle.ProgramLimits, derived.ProgramLimits))
@@ -53,7 +53,7 @@ func TestDeriveProfileEqualsTheHandWrittenTypedProfiles(t *testing.T) {
 		Namespace: "namespace", TaskQueue: "task-queue", NexusEndpoint: "nexus-endpoint",
 	})
 	require.Equal(t, oracle.Roles, derived.Roles)
-	require.Equal(t, oracle.Capabilities, derived.Capabilities)
+	require.Equal(t, oracle.Opcodes, derived.Opcodes)
 	require.Equal(t, oracle.EnvironmentBindings, derived.EnvironmentBindings)
 
 	unary := loadLeanCase(t, "typed-unary")
@@ -65,7 +65,7 @@ func TestDeriveProfileEqualsTheHandWrittenTypedProfiles(t *testing.T) {
 		Namespace: "namespace", TaskQueue: "task-queue",
 	})
 	require.Equal(t, unaryOracle.Roles, derivedUnary.Roles)
-	require.Equal(t, unaryOracle.Capabilities, derivedUnary.Capabilities)
+	require.Equal(t, unaryOracle.Opcodes, derivedUnary.Opcodes)
 	require.Equal(t, unaryOracle.EnvironmentBindings, derivedUnary.EnvironmentBindings)
 }
 
@@ -76,8 +76,8 @@ func TestDeriveProfileNeverWidensBeyondTheCase(t *testing.T) {
 	derived, err := temporaldriver.DeriveProfile(source, catalog, asyncNexusEnvironment())
 	require.NoError(t, err)
 
-	// Every derived method, carrier and capability is one the Case itself references.
-	methods, capabilities := map[string]bool{}, map[testpilot.Capability]bool{}
+	// Every derived method, carrier and opcode is one the Case itself references.
+	methods, opcodes := map[string]bool{}, map[testpilot.Opcode]bool{}
 	reserving := map[string]bool{}
 	program := source.GetProgram()
 	plans := append(program.GetEntrypoints(), &testpilotspb.EntrypointDefinition{
@@ -85,7 +85,7 @@ func TestDeriveProfileNeverWidensBeyondTheCase(t *testing.T) {
 	})
 	for _, entrypoint := range plans {
 		for _, instruction := range entrypoint.GetInstructions() {
-			capabilities[testpilot.InstructionCapability(instruction.GetInstruction())] = true
+			opcodes[testpilot.InstructionCapability(instruction.GetInstruction())] = true
 			if rpc := instruction.GetInstruction().GetInvokeRpc(); rpc != nil {
 				methods[rpc.GetEndpointRoleId()+rpc.GetMethod()] = true
 				if len(instruction.GetActivationReservations()) > 0 {
@@ -94,8 +94,8 @@ func TestDeriveProfileNeverWidensBeyondTheCase(t *testing.T) {
 			}
 		}
 	}
-	for _, capability := range derived.Capabilities {
-		require.True(t, capabilities[capability])
+	for _, opcode := range derived.Opcodes {
+		require.True(t, opcodes[opcode])
 	}
 	for _, role := range derived.Roles {
 		for _, method := range role.Methods {
@@ -127,7 +127,7 @@ func TestDeriveProfileNeverWidensBeyondTheCase(t *testing.T) {
 	derivedBare, err := temporaldriver.DeriveProfile(bare, catalog, asyncNexusEnvironment())
 	require.NoError(t, err)
 	require.Empty(t, derivedBare.Roles)
-	require.Empty(t, derivedBare.Capabilities)
+	require.Empty(t, derivedBare.Opcodes)
 	require.Empty(t, derivedBare.EnvironmentBindings)
 }
 

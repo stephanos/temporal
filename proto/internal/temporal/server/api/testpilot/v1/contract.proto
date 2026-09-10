@@ -46,7 +46,7 @@ message ContractTransitionDefinition {
   ContractSupportKind support_kind = 6;
   repeated ContractCaptureAssignment capture_assignments = 7;
 }
-// ContractHorizonDefinition bounds one liveness rule. Exactly one bound is positive.
+// ContractDeadline bounds one liveness rule. Exactly one bound is positive.
 // elapsed_milliseconds expires the rule at the first Run Event whose elapsed coordinate
 // reaches it; that coordinate is derived from the recording host's clock, so a bound
 // expressed in it is host-clock dependent.
@@ -54,7 +54,7 @@ message ContractTransitionDefinition {
 // its last transition into a new state. The counter resets on each such transition and stops
 // once the rule reaches a terminal state. It also freezes, with every other rule effect, once
 // execution becomes incomplete, so no expiry is ever concluded from a truncated Run.
-message ContractHorizonDefinition {
+message ContractDeadline {
   int64 elapsed_milliseconds = 1;
   string violation_state_id = 2;
   int64 rule_events = 3;
@@ -67,7 +67,7 @@ message ContractRuleDefinition {
   string initial_state_id = 3;
   repeated ContractStateDefinition states = 4;
   repeated ContractTransitionDefinition transitions = 5;
-  ContractHorizonDefinition horizon = 6;
+  ContractDeadline deadline = 6;
   repeated ContractCaptureDefinition captures = 7;
 }
 message ContractLimits {
@@ -86,11 +86,11 @@ message Contract {
   string contract_id = 1;
   repeated ContractRuleDefinition rules = 2;
   ContractLimits limits = 3;
-  ScopedContract scoped = 4;
+  CorrelatedContract correlated = 4;
 }
 
-// ScopedContract v1 projects causally ordered evidence before ticking operation-local windows.
-message ScopedContract {
+// CorrelatedContract v1 projects causally ordered evidence before ticking operation-local windows.
+message CorrelatedContract {
   int32 version = 1;
   string projection_id = 2;
   string projection_fingerprint = 3;
@@ -98,63 +98,63 @@ message ScopedContract {
   repeated string scope_fields = 5;
   string operation_field = 6;
   repeated string sources = 7;
-  ScopedValue initial_state = 8;
-  repeated ScopedTransition transitions = 9;
-  repeated ScopedProjectionRule projection_rules = 10;
-  repeated ScopedClause clauses = 11;
-  ScopedLimits limits = 12;
+  CorrelatedValue initial_state = 8;
+  repeated CorrelatedTransition transitions = 9;
+  repeated CorrelatedProjectionRule projection_rules = 10;
+  repeated CorrelatedRule clauses = 11;
+  CorrelatedLimits limits = 12;
 }
-message ScopedValue { string definition_id = 1; string value = 2; }
-message ScopedTransition {
-  ScopedValue prior_state = 1;
-  ScopedValue action = 2;
-  ScopedValue resulting_state = 3;
-  ScopedValue outcome = 4;
-  repeated ScopedValue facts = 5;
+message CorrelatedValue { string definition_id = 1; string value = 2; }
+message CorrelatedTransition {
+  CorrelatedValue prior_state = 1;
+  CorrelatedValue action = 2;
+  CorrelatedValue state = 3;
+  CorrelatedValue outcome = 4;
+  repeated CorrelatedValue facts = 5;
 }
-enum ScopedEvidenceMeaning {
-  SCOPED_EVIDENCE_MEANING_UNSPECIFIED = 0;
-  SCOPED_EVIDENCE_MEANING_IRRELEVANT = 1;
-  SCOPED_EVIDENCE_MEANING_SUBMISSION = 2;
-  SCOPED_EVIDENCE_MEANING_CONFIRMED = 3;
+enum CorrelatedEvidenceMeaning {
+  CORRELATED_EVIDENCE_MEANING_UNSPECIFIED = 0;
+  CORRELATED_EVIDENCE_MEANING_IRRELEVANT = 1;
+  CORRELATED_EVIDENCE_MEANING_SUBMISSION = 2;
+  CORRELATED_EVIDENCE_MEANING_CONFIRMED = 3;
 }
-enum ScopedFieldDisposition {
-  SCOPED_FIELD_DISPOSITION_UNSPECIFIED = 0;
-  SCOPED_FIELD_DISPOSITION_RETAIN = 1;
-  SCOPED_FIELD_DISPOSITION_REDACT = 2;
-  SCOPED_FIELD_DISPOSITION_REJECT = 3;
+enum CorrelatedFieldDisposition {
+  CORRELATED_FIELD_DISPOSITION_UNSPECIFIED = 0;
+  CORRELATED_FIELD_DISPOSITION_RETAIN = 1;
+  CORRELATED_FIELD_DISPOSITION_REDACT = 2;
+  CORRELATED_FIELD_DISPOSITION_REJECT = 3;
 }
-message ScopedFieldPolicy {
+message CorrelatedFieldPolicy {
   string field_id = 1;
   ScalarType type = 2;
-  ScopedFieldDisposition disposition = 3;
+  CorrelatedFieldDisposition disposition = 3;
 }
-message ScopedProjectionRule {
+message CorrelatedProjectionRule {
   string kind = 1;
-  ScopedEvidenceMeaning meaning = 2;
-  ScopedValue submission = 3;
+  CorrelatedEvidenceMeaning meaning = 2;
+  CorrelatedValue submission = 3;
   // Output rows omit prior_state; the complete transition table checks continuity at admission.
-  repeated ScopedTransition outputs = 4;
-  repeated ScopedFieldPolicy fields = 5;
+  repeated CorrelatedTransition outputs = 4;
+  repeated CorrelatedFieldPolicy fields = 5;
 }
-enum ScopedClock {
-  SCOPED_CLOCK_UNSPECIFIED = 0;
-  SCOPED_CLOCK_OPERATION_TRANSITIONS = 1;
+enum CorrelatedClock {
+  CORRELATED_CLOCK_UNSPECIFIED = 0;
+  CORRELATED_CLOCK_OPERATION_TRANSITIONS = 1;
 }
-enum ScopedEndpoint {
-  SCOPED_ENDPOINT_UNSPECIFIED = 0;
-  SCOPED_ENDPOINT_RUNTIME_PREFIX = 1;
-  SCOPED_ENDPOINT_DELIBERATELY_CLOSED = 2;
+enum TraceEnding {
+  TRACE_ENDING_UNSPECIFIED = 0;
+  TRACE_ENDING_PARTIAL = 1;
+  TRACE_ENDING_FINAL = 2;
 }
-enum ScopedPredicateField {
-  SCOPED_PREDICATE_FIELD_UNSPECIFIED = 0;
-  SCOPED_PREDICATE_FIELD_ACTION = 1;
-  SCOPED_PREDICATE_FIELD_OUTCOME = 2;
-  SCOPED_PREDICATE_FIELD_RESULTING_STATE = 3;
-  SCOPED_PREDICATE_FIELD_FACT = 4;
+enum CorrelatedPredicateField {
+  CORRELATED_PREDICATE_FIELD_UNSPECIFIED = 0;
+  CORRELATED_PREDICATE_FIELD_ACTION = 1;
+  CORRELATED_PREDICATE_FIELD_OUTCOME = 2;
+  CORRELATED_PREDICATE_FIELD_STATE = 3;
+  CORRELATED_PREDICATE_FIELD_FACT = 4;
 }
-message ScopedPredicate {
-  ScopedPredicateField field = 1;
+message CorrelatedPredicate {
+  CorrelatedPredicateField field = 1;
   string definition_id = 2;
   oneof constraint {
     bool present = 3;
@@ -162,64 +162,64 @@ message ScopedPredicate {
   }
 }
 
-// ScopedCaptureDeclaration retains one declared evidence field of the operation's admitted steps.
+// CorrelatedCaptureDeclaration retains one declared evidence field of the operation's admitted steps.
 // Occurrences are numbered from zero in admission order and never rewritten, so a correlation
 // operand names an exact earlier occurrence rather than an implicit latest match. `lifetime` is how
 // many occurrences one operation retains.
-message ScopedCaptureDeclaration {
+message CorrelatedCaptureDeclaration {
   string capture_id = 1;
   string field_id = 2;
   int64 lifetime = 3;
 }
-message ScopedCaptureRef {
+message CorrelatedCaptureRef {
   string capture_id = 1;
   int64 ordinal = 2;
 }
 
-// ScopedOperand reads only declared evidence: an exact literal, one declared evidence field of the
+// CorrelatedOperand reads only declared evidence: an exact literal, one declared evidence field of the
 // step being admitted, or one retained earlier occurrence of a declared capture.
-message ScopedOperand {
+message CorrelatedOperand {
   oneof operand {
     Value literal = 1;
     string field_id = 2;
-    ScopedCaptureRef capture = 3;
+    CorrelatedCaptureRef capture = 3;
   }
 }
-enum ScopedComparisonOperator {
-  SCOPED_COMPARISON_OPERATOR_UNSPECIFIED = 0;
-  SCOPED_COMPARISON_OPERATOR_EQUAL = 1;
-  SCOPED_COMPARISON_OPERATOR_NOT_EQUAL = 2;
+enum CorrelatedComparisonOperator {
+  CORRELATED_COMPARISON_OPERATOR_UNSPECIFIED = 0;
+  CORRELATED_COMPARISON_OPERATOR_EQUAL = 1;
+  CORRELATED_COMPARISON_OPERATOR_NOT_EQUAL = 2;
 }
-message ScopedComparison {
-  ScopedComparisonOperator operator = 1;
-  ScopedOperand left = 2;
-  ScopedOperand right = 3;
+message CorrelatedComparison {
+  CorrelatedComparisonOperator operator = 1;
+  CorrelatedOperand left = 2;
+  CorrelatedOperand right = 3;
 }
-message ScopedCorrelationGroup { repeated ScopedCorrelation operands = 1; }
+message CorrelatedCorrelationGroup { repeated CorrelatedCorrelation operands = 1; }
 
-// ScopedCorrelation decides whether a labeled transition is one of the operation's semantic steps.
+// CorrelatedCorrelation decides whether a labeled transition is one of the operation's semantic steps.
 // It never supplies a trigger or a response: the bounded countdown stays exactly the one the
 // clause's trigger and response patterns describe. `all` and `any` are evaluated left to right and
 // stop at the first decisive operand, so an operand an earlier one made irrelevant is never read.
-message ScopedCorrelation {
+message CorrelatedCorrelation {
   oneof condition {
-    ScopedPredicate predicate = 1;
-    ScopedComparison comparison = 2;
-    ScopedCorrelationGroup all = 3;
-    ScopedCorrelationGroup any = 4;
+    CorrelatedPredicate predicate = 1;
+    CorrelatedComparison comparison = 2;
+    CorrelatedCorrelationGroup all = 3;
+    CorrelatedCorrelationGroup any = 4;
   }
 }
-message ScopedClause {
+message CorrelatedRule {
   string clause_id = 1;
-  ScopedClock clock = 7;
+  CorrelatedClock clock = 7;
   int64 bound = 8;
-  ScopedEndpoint endpoint = 9;
-  ScopedPredicate trigger = 10;
-  ScopedPredicate response = 11;
-  repeated ScopedCaptureDeclaration captures = 12;
-  ScopedCorrelation correlation = 13;
+  TraceEnding ending = 9;
+  CorrelatedPredicate trigger = 10;
+  CorrelatedPredicate response = 11;
+  repeated CorrelatedCaptureDeclaration captures = 12;
+  CorrelatedCorrelation correlation = 13;
 }
-message ScopedLimits {
+message CorrelatedLimits {
   int64 max_events = 1;
   int64 max_buffered = 2;
   int64 max_keys = 3;

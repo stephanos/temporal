@@ -362,7 +362,7 @@ def testKnownGapCatalog : List KnownGapCatalogDescriptor := [
   }
 ]
 
-/-- The complete canonical Known Gap catalog, including explicitly scoped test fixtures. -/
+/-- The complete canonical Known Gap catalog, including explicitly bounded test fixtures. -/
 def knownGapCatalog
     (requestRawKnownGapInputCatalogRow : KnownGapCatalogDescriptor) :
     List KnownGapCatalogDescriptor :=

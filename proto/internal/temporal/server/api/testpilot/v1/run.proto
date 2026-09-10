@@ -1,7 +1,6 @@
 syntax = "proto3";
 package temporal.server.api.testpilot.v1;
 import "temporal/server/api/testpilot/v1/instruction.proto";
-import "temporal/server/api/testpilot/v1/outcome.proto";
 import "temporal/server/api/testpilot/v1/value.proto";
 option go_package = "go.temporal.io/server/api/testpilot/v1;testpilot";
 
@@ -126,19 +125,19 @@ message Run {
   }
 }
 
-// ScopedEvidence is supplied only through the capability's declared typed Observation.
+// CorrelatedEvidence is supplied only through the capability's declared typed Observation.
 // Source ordinals and parents carry semantic order; Run elapsed time never supplies a tick.
-message ScopedBinding { string field_id = 1; string value = 2; }
-message ScopedIdentity {
-  repeated ScopedBinding scope = 1;
+message CorrelatedBinding { string field_id = 1; string value = 2; }
+message CorrelatedIdentity {
+  repeated CorrelatedBinding scope = 1;
   string source = 2;
   int64 ordinal = 3;
 }
-message ScopedEvidenceField { string field_id = 1; Value value = 2; }
-message ScopedEvidence {
-  ScopedIdentity identity = 1;
+message CorrelatedEvidenceField { string field_id = 1; Value value = 2; }
+message CorrelatedEvidence {
+  CorrelatedIdentity identity = 1;
   string operation = 2;
   string kind = 3;
-  repeated ScopedIdentity parents = 4;
-  repeated ScopedEvidenceField fields = 6;
+  repeated CorrelatedIdentity parents = 4;
+  repeated CorrelatedEvidenceField fields = 6;
 }

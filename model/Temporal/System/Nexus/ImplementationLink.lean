@@ -5,7 +5,7 @@ import Temporal.System.Nexus.Core
 import Umpire.ImplementationLink
 import Umpire.Property.Elab
 import Umpire.Property.Evaluate
-import Umpire.Property.Scoped
+import Umpire.Property.Correlated
 
 /-!
 # Nexus lifecycle Implementation Link

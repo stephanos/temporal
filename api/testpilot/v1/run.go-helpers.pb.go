@@ -340,35 +340,35 @@ func (this *Run) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
-// Marshal an object of type ScopedBinding to the protobuf v3 wire format
-func (val *ScopedBinding) Marshal() ([]byte, error) {
+// Marshal an object of type CorrelatedBinding to the protobuf v3 wire format
+func (val *CorrelatedBinding) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
 }
 
-// Unmarshal an object of type ScopedBinding from the protobuf v3 wire format
-func (val *ScopedBinding) Unmarshal(buf []byte) error {
+// Unmarshal an object of type CorrelatedBinding from the protobuf v3 wire format
+func (val *CorrelatedBinding) Unmarshal(buf []byte) error {
 	return proto.Unmarshal(buf, val)
 }
 
 // Size returns the size of the object, in bytes, once serialized
-func (val *ScopedBinding) Size() int {
+func (val *CorrelatedBinding) Size() int {
 	return proto.Size(val)
 }
 
-// Equal returns whether two ScopedBinding values are equivalent by recursively
+// Equal returns whether two CorrelatedBinding values are equivalent by recursively
 // comparing the message's fields.
 // For more information see the documentation for
 // https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *ScopedBinding) Equal(that interface{}) bool {
+func (this *CorrelatedBinding) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	var that1 *ScopedBinding
+	var that1 *CorrelatedBinding
 	switch t := that.(type) {
-	case *ScopedBinding:
+	case *CorrelatedBinding:
 		that1 = t
-	case ScopedBinding:
+	case CorrelatedBinding:
 		that1 = &t
 	default:
 		return false
@@ -377,35 +377,35 @@ func (this *ScopedBinding) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
-// Marshal an object of type ScopedIdentity to the protobuf v3 wire format
-func (val *ScopedIdentity) Marshal() ([]byte, error) {
+// Marshal an object of type CorrelatedIdentity to the protobuf v3 wire format
+func (val *CorrelatedIdentity) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
 }
 
-// Unmarshal an object of type ScopedIdentity from the protobuf v3 wire format
-func (val *ScopedIdentity) Unmarshal(buf []byte) error {
+// Unmarshal an object of type CorrelatedIdentity from the protobuf v3 wire format
+func (val *CorrelatedIdentity) Unmarshal(buf []byte) error {
 	return proto.Unmarshal(buf, val)
 }
 
 // Size returns the size of the object, in bytes, once serialized
-func (val *ScopedIdentity) Size() int {
+func (val *CorrelatedIdentity) Size() int {
 	return proto.Size(val)
 }
 
-// Equal returns whether two ScopedIdentity values are equivalent by recursively
+// Equal returns whether two CorrelatedIdentity values are equivalent by recursively
 // comparing the message's fields.
 // For more information see the documentation for
 // https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *ScopedIdentity) Equal(that interface{}) bool {
+func (this *CorrelatedIdentity) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	var that1 *ScopedIdentity
+	var that1 *CorrelatedIdentity
 	switch t := that.(type) {
-	case *ScopedIdentity:
+	case *CorrelatedIdentity:
 		that1 = t
-	case ScopedIdentity:
+	case CorrelatedIdentity:
 		that1 = &t
 	default:
 		return false
@@ -414,35 +414,35 @@ func (this *ScopedIdentity) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
-// Marshal an object of type ScopedEvidenceField to the protobuf v3 wire format
-func (val *ScopedEvidenceField) Marshal() ([]byte, error) {
+// Marshal an object of type CorrelatedEvidenceField to the protobuf v3 wire format
+func (val *CorrelatedEvidenceField) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
 }
 
-// Unmarshal an object of type ScopedEvidenceField from the protobuf v3 wire format
-func (val *ScopedEvidenceField) Unmarshal(buf []byte) error {
+// Unmarshal an object of type CorrelatedEvidenceField from the protobuf v3 wire format
+func (val *CorrelatedEvidenceField) Unmarshal(buf []byte) error {
 	return proto.Unmarshal(buf, val)
 }
 
 // Size returns the size of the object, in bytes, once serialized
-func (val *ScopedEvidenceField) Size() int {
+func (val *CorrelatedEvidenceField) Size() int {
 	return proto.Size(val)
 }
 
-// Equal returns whether two ScopedEvidenceField values are equivalent by recursively
+// Equal returns whether two CorrelatedEvidenceField values are equivalent by recursively
 // comparing the message's fields.
 // For more information see the documentation for
 // https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *ScopedEvidenceField) Equal(that interface{}) bool {
+func (this *CorrelatedEvidenceField) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	var that1 *ScopedEvidenceField
+	var that1 *CorrelatedEvidenceField
 	switch t := that.(type) {
-	case *ScopedEvidenceField:
+	case *CorrelatedEvidenceField:
 		that1 = t
-	case ScopedEvidenceField:
+	case CorrelatedEvidenceField:
 		that1 = &t
 	default:
 		return false
@@ -451,35 +451,35 @@ func (this *ScopedEvidenceField) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
-// Marshal an object of type ScopedEvidence to the protobuf v3 wire format
-func (val *ScopedEvidence) Marshal() ([]byte, error) {
+// Marshal an object of type CorrelatedEvidence to the protobuf v3 wire format
+func (val *CorrelatedEvidence) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
 }
 
-// Unmarshal an object of type ScopedEvidence from the protobuf v3 wire format
-func (val *ScopedEvidence) Unmarshal(buf []byte) error {
+// Unmarshal an object of type CorrelatedEvidence from the protobuf v3 wire format
+func (val *CorrelatedEvidence) Unmarshal(buf []byte) error {
 	return proto.Unmarshal(buf, val)
 }
 
 // Size returns the size of the object, in bytes, once serialized
-func (val *ScopedEvidence) Size() int {
+func (val *CorrelatedEvidence) Size() int {
 	return proto.Size(val)
 }
 
-// Equal returns whether two ScopedEvidence values are equivalent by recursively
+// Equal returns whether two CorrelatedEvidence values are equivalent by recursively
 // comparing the message's fields.
 // For more information see the documentation for
 // https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *ScopedEvidence) Equal(that interface{}) bool {
+func (this *CorrelatedEvidence) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	var that1 *ScopedEvidence
+	var that1 *CorrelatedEvidence
 	switch t := that.(type) {
-	case *ScopedEvidence:
+	case *CorrelatedEvidence:
 		that1 = t
-	case ScopedEvidence:
+	case CorrelatedEvidence:
 		that1 = &t
 	default:
 		return false

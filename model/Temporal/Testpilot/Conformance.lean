@@ -12,10 +12,10 @@ private def conformanceProperty (caseId : String) :=
 private def conformanceRule
     (terminal : ContractStateStatus)
     (matchesEvent : Bool) : ContractRuleDefinition :=
-  Monitor.rule "result" .CONTRACT_RULE_KIND_SAFETY "pending"
-    #[Monitor.state "pending" .CONTRACT_STATE_STATUS_NONTERMINAL,
-      Monitor.state "terminal" terminal]
-    #[Monitor.transition "complete" "pending" "terminal"
+  Contract.rule "result" .CONTRACT_RULE_KIND_SAFETY "pending"
+    #[Contract.state "pending" .CONTRACT_STATE_STATUS_NONTERMINAL,
+      Contract.state "terminal" terminal]
+    #[Contract.transition "complete" "pending" "terminal"
       #[.RUN_EVENT_KIND_INSTRUCTION_COMPLETED]
       (ContractExpr.literal (Value.boolean matchesEvent))
       .CONTRACT_SUPPORT_KIND_MATCHING_EVENT]
@@ -37,7 +37,7 @@ private def conformanceCase
     (caseId : String)
     (terminal : ContractStateStatus)
     (matchesEvent : Bool)
-    (cleanupFailure := false) : Except Umpire.Case.Compiler.LoweringError Case :=
+    (cleanupFailure := false) : Except Umpire.Case.Compiler.Error Case :=
   let property := conformanceProperty caseId
   let definitions := [
     binding "temporal.workflow-service" "temporal-workflow-service/v1" .target,
@@ -58,22 +58,22 @@ private def conformanceCase
   }
 
 /-- Deterministic public-facade fixtures kept small enough for exact cross-language comparison. -/
-def conformanceSatisfiedCase : Except Umpire.Case.Compiler.LoweringError Case :=
+def conformanceSatisfiedCase : Except Umpire.Case.Compiler.Error Case :=
   conformanceCase "temporal.case.conformance.satisfied" .CONTRACT_STATE_STATUS_SATISFIED true
 
-def conformanceViolatedCase : Except Umpire.Case.Compiler.LoweringError Case :=
+def conformanceViolatedCase : Except Umpire.Case.Compiler.Error Case :=
   conformanceCase "temporal.case.conformance.violated" .CONTRACT_STATE_STATUS_VIOLATED true
 
-def conformanceInconclusiveCase : Except Umpire.Case.Compiler.LoweringError Case :=
+def conformanceInconclusiveCase : Except Umpire.Case.Compiler.Error Case :=
   conformanceCase "temporal.case.conformance.inconclusive" .CONTRACT_STATE_STATUS_SATISFIED false
 
-def conformanceCleanupFailureCase : Except Umpire.Case.Compiler.LoweringError Case :=
+def conformanceCleanupFailureCase : Except Umpire.Case.Compiler.Error Case :=
   conformanceCase "temporal.case.conformance.cleanup-failure" .CONTRACT_STATE_STATUS_VIOLATED true true
 
-def conformanceCrossRunIsolationCase : Except Umpire.Case.Compiler.LoweringError Case :=
+def conformanceCrossRunIsolationCase : Except Umpire.Case.Compiler.Error Case :=
   conformanceCase "temporal.case.conformance.cross-run-isolation" .CONTRACT_STATE_STATUS_SATISFIED true
 
-def conformanceStaticRejectionCase : Except Umpire.Case.Compiler.LoweringError Case :=
+def conformanceStaticRejectionCase : Except Umpire.Case.Compiler.Error Case :=
   (conformanceCase "temporal.case.conformance.static-rejection"
     .CONTRACT_STATE_STATUS_SATISFIED true).map fun output =>
     let invalidContract := output.contract.map fun contract =>

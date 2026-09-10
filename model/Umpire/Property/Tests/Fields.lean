@@ -1,6 +1,6 @@
 import Umpire.Property.Elab
 import Umpire.Property.Evaluate
-import Umpire.Property.Scoped
+import Umpire.Property.Correlated
 import Umpire.Property.Tests.Fixtures
 import Umpire.Operation.Action
 import Umpire.Value.Field

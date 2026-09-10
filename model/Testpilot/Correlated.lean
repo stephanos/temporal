@@ -1,27 +1,27 @@
 import Testpilot.Protocol
 import Shared.SemanticData
-import Shared.ScopedProjection
-import Shared.ScopedObligation
+import Shared.CorrelatedProjection
+import Shared.CorrelatedObligation
 
 /-!
-The version-one scoped Contract interpreter decodes closed protobuf data into a finite projection
+The version-one correlated Contract interpreter decodes closed protobuf data into a finite projection
 table and passive response windows. Its core is also used by checked model projection. No model,
 Target callback, Driver, or wall clock participates in this interpreter.
 -/
-namespace Testpilot.Scoped
+namespace Testpilot.Correlated
 open temporal.server.api.testpilot.v1
 open Shared.SemanticData
 open Shared
 
 abbrev Result := Shared.SemanticData.Result Atom Atom Atom
-abbrev Field := ScopedProjection.EvidenceField Name Scalar
-abbrev Event := ScopedProjection.Event Name Field
-abbrev Plan := ScopedProjection.Plan Name Atom Atom Result
+abbrev Field := CorrelatedProjection.EvidenceField Name Scalar
+abbrev Event := CorrelatedProjection.Event Name Field
+abbrev Plan := CorrelatedProjection.Plan Name Atom Atom Result
 
-abbrev Predicate := Shared.ScopedObligation.Predicate
-abbrev Predicate.mk := Shared.ScopedObligation.Predicate.mk
-abbrev Clause := Shared.ScopedObligation.Clause
-abbrev Clause.mk := Shared.ScopedObligation.Clause.mk
+abbrev Predicate := Shared.CorrelatedObligation.Predicate
+abbrev Predicate.mk := Shared.CorrelatedObligation.Predicate.mk
+abbrev Clause := Shared.CorrelatedObligation.Clause
+abbrev Clause.mk := Shared.CorrelatedObligation.Clause.mk
 
 /-- One correlation operand. Only declared evidence is readable: an exact literal, one declared
 evidence field of the step being admitted, or one retained earlier occurrence of a declared
@@ -95,22 +95,22 @@ private def positive (value : Int64) : Except String Nat := do
   if n == 0 then throw "nonpositive resource limit"
   pure n
 
-def atom (value : ScopedValue) : Atom := ⟨⟨value.definition_id⟩, value.value⟩
-private def checkedAtom (value : ScopedValue) : Except String Atom := do
+def atom (value : CorrelatedValue) : Atom := ⟨⟨value.definition_id⟩, value.value⟩
+private def checkedAtom (value : CorrelatedValue) : Except String Atom := do
   if !value.«Unknown.Fields».isEmpty || !validId value.definition_id then throw "invalid semantic value"
   pure (atom value)
-private def result (value : ScopedTransition) : Except String Result := do
+private def result (value : CorrelatedTransition) : Except String Result := do
   if !value.«Unknown.Fields».isEmpty then throw "unknown transition field"
-  pure ⟨← checkedAtom (← required value.outcome), ← checkedAtom (← required value.resulting_state),
+  pure ⟨← checkedAtom (← required value.outcome), ← checkedAtom (← required value.state),
     ← value.facts.toList.mapM checkedAtom⟩
 
-private def predicate (value : ScopedPredicate) : Except String Predicate := do
+private def predicate (value : CorrelatedPredicate) : Except String Predicate := do
   if !value.«Unknown.Fields».isEmpty || !validId value.definition_id then throw "invalid predicate"
   let field ← match value.field with
-    | .SCOPED_PREDICATE_FIELD_ACTION => pure 1
-    | .SCOPED_PREDICATE_FIELD_OUTCOME => pure 2
-    | .SCOPED_PREDICATE_FIELD_RESULTING_STATE => pure 3
-    | .SCOPED_PREDICATE_FIELD_FACT => pure 4
+    | .CORRELATED_PREDICATE_FIELD_ACTION => pure 1
+    | .CORRELATED_PREDICATE_FIELD_OUTCOME => pure 2
+    | .CORRELATED_PREDICATE_FIELD_STATE => pure 3
+    | .CORRELATED_PREDICATE_FIELD_FACT => pure 4
     | _ => throw "unsupported predicate field"
   let equalsText ← match value.constraint with
     | some (.present true) => pure none
@@ -146,7 +146,7 @@ supply it: a literal decodes to an exact admitted scalar, a field must be one th
 retains, and a capture reference must name a capture this clause declared at an ordinal its lifetime
 keeps. -/
 private def operand (retained : List (Name × Nat)) (captures : List Capture)
-    (wire : ScopedOperand) : Except String (Operand × Nat) := do
+    (wire : CorrelatedOperand) : Except String (Operand × Nat) := do
   if !wire.«Unknown.Fields».isEmpty then throw "unknown operand field"
   match wire.operand with
   | some (.literal value) =>
@@ -169,7 +169,7 @@ mutual
 /-- Decode one correlation node under the declared depth ceiling. An exhausted depth is an explicit
 rejection, never a silently truncated condition. -/
 private def correlationOf (retained : List (Name × Nat)) (captures : List Capture) (depth : Nat)
-    (wire : ScopedCorrelation) : Except String Correlation :=
+    (wire : CorrelatedCorrelation) : Except String Correlation :=
   match depth with
   | 0 => throw "correlation depth exhausted"
   | remaining + 1 => do
@@ -179,8 +179,8 @@ private def correlationOf (retained : List (Name × Nat)) (captures : List Captu
     | some (.comparison value) => do
         if !value.«Unknown.Fields».isEmpty then throw "unknown comparison field"
         let equal ← match value.operator with
-          | .SCOPED_COMPARISON_OPERATOR_EQUAL => pure true
-          | .SCOPED_COMPARISON_OPERATOR_NOT_EQUAL => pure false
+          | .CORRELATED_COMPARISON_OPERATOR_EQUAL => pure true
+          | .CORRELATED_COMPARISON_OPERATOR_NOT_EQUAL => pure false
           | _ => throw "unsupported comparison operator"
         let (left, leftKind) ← operand retained captures (← required value.left)
         let (right, rightKind) ← operand retained captures (← required value.right)
@@ -198,7 +198,7 @@ private def correlationOf (retained : List (Name × Nat)) (captures : List Captu
   termination_by (depth, 0)
 
 private def correlationsOf (retained : List (Name × Nat)) (captures : List Capture) (depth : Nat)
-    (wires : List ScopedCorrelation) : Except String Correlations :=
+    (wires : List CorrelatedCorrelation) : Except String Correlations :=
   match wires with
   | [] => pure .nil
   | head :: rest => do
@@ -208,8 +208,8 @@ private def correlationsOf (retained : List (Name × Nat)) (captures : List Capt
 end
 
 /-- Decode exact v1 executable meaning, rejecting unsupported clocks, endpoints and numeric values. -/
-def decode (wire : ScopedContract) : Except String Compiled := do
-  if wire.version != 1 then throw "unsupported scoped capability version"
+def decode (wire : CorrelatedContract) : Except String Compiled := do
+  if wire.version != 1 then throw "unsupported correlated capability version"
   if !wire.«Unknown.Fields».isEmpty then throw "unknown capability field"
   if !validId wire.projection_id || wire.projection_fingerprint.isEmpty ||
       !validId wire.evidence_observation_id || !validId wire.operation_field ||
@@ -217,7 +217,7 @@ def decode (wire : ScopedContract) : Except String Compiled := do
       wire.scope_fields.contains wire.operation_field then throw "invalid projection binding"
   let limits ← required wire.limits
   if !limits.«Unknown.Fields».isEmpty then throw "unknown limits field"
-  let projectionLimits : ScopedProjection.Limits := {
+  let projectionLimits : CorrelatedProjection.Limits := {
     events := ← positive limits.max_events
     buffered := ← positive limits.max_buffered
     keys := ← positive limits.max_keys
@@ -227,7 +227,7 @@ def decode (wire : ScopedContract) : Except String Compiled := do
   if projectionLimits.buffered > projectionLimits.events || projectionLimits.keys > projectionLimits.events then
     throw "incompatible projection limits"
   if wire.transitions.isEmpty || wire.projection_rules.isEmpty || wire.clauses.isEmpty then
-    throw "empty scoped capability"
+    throw "empty correlated capability"
   let transitions ← wire.transitions.toList.mapM fun tr => do
     if !tr.«Unknown.Fields».isEmpty then throw "unknown transition field"
     pure (← checkedAtom (← required tr.prior_state), ← checkedAtom (← required tr.action), ← result tr)
@@ -242,9 +242,9 @@ def decode (wire : ScopedContract) : Except String Compiled := do
         | .SCALAR_KIND_BOOLEAN => pure 3
         | _ => throw "unsupported field type"
       let disposition ← match field.disposition with
-        | .SCOPED_FIELD_DISPOSITION_RETAIN => pure 1
-        | .SCOPED_FIELD_DISPOSITION_REDACT => pure 2
-        | .SCOPED_FIELD_DISPOSITION_REJECT => pure 3
+        | .CORRELATED_FIELD_DISPOSITION_RETAIN => pure 1
+        | .CORRELATED_FIELD_DISPOSITION_REDACT => pure 2
+        | .CORRELATED_FIELD_DISPOSITION_REJECT => pure 3
         | _ => throw "unsupported field policy"
       pure (Name.mk field.field_id, kind, disposition)
     if (fields.map (·.1)).eraseDups != fields.map (·.1) then throw "duplicate field policy"
@@ -253,19 +253,19 @@ def decode (wire : ScopedContract) : Except String Compiled := do
   let rules ← wire.projection_rules.toList.mapM fun rule => do
     if !rule.«Unknown.Fields».isEmpty then throw "unknown projection rule field"
     let meaning ← match rule.meaning with
-      | .SCOPED_EVIDENCE_MEANING_IRRELEVANT => do
+      | .CORRELATED_EVIDENCE_MEANING_IRRELEVANT => do
           if rule.submission.isSome || !rule.outputs.isEmpty then throw "irrelevant evidence has outputs"
           pure .irrelevant
-      | .SCOPED_EVIDENCE_MEANING_SUBMISSION =>
+      | .CORRELATED_EVIDENCE_MEANING_SUBMISSION =>
           let action ← checkedAtom (← required rule.submission)
           if !rule.outputs.isEmpty || !transitions.any (·.2.1 == action) then throw "invalid submission"
           pure (.submission action)
-      | .SCOPED_EVIDENCE_MEANING_CONFIRMED => do
+      | .CORRELATED_EVIDENCE_MEANING_CONFIRMED => do
           if rule.outputs.isEmpty then throw "confirmed evidence requires outputs"
           let submission ← rule.submission.mapM checkedAtom
           if let some action := submission then
             if !wire.projection_rules.any (fun other =>
-                other.meaning == .SCOPED_EVIDENCE_MEANING_SUBMISSION &&
+                other.meaning == .CORRELATED_EVIDENCE_MEANING_SUBMISSION &&
                 other.submission.map atom == some action) then throw "missing submission mapping"
           let outputs ← rule.outputs.toList.mapM fun output => do
             if output.prior_state.isSome then throw "output supplied a prior state"
@@ -276,7 +276,7 @@ def decode (wire : ScopedContract) : Except String Compiled := do
             pure (action, result)
           pure (.confirmed submission outputs)
       | _ => throw "unsupported projection meaning"
-    pure (ScopedProjection.Rule.mk ⟨rule.kind⟩ rule.fields.size meaning)
+    pure (CorrelatedProjection.Rule.mk ⟨rule.kind⟩ rule.fields.size meaning)
   if !uniqueIds (wire.clauses.toList.map (·.clause_id)) then throw "invalid clause identities"
   -- Only a field this projection actually retains can supply a capture or a correlation operand;
   -- redacted and rejected fields carry no value to read.
@@ -298,10 +298,10 @@ def decode (wire : ScopedContract) : Except String Compiled := do
     else natural limits.max_correlation_depth
   let clauseData ← wire.clauses.toList.mapM fun clause => do
     if !clause.«Unknown.Fields».isEmpty then throw "unknown clause field"
-    if clause.clock != .SCOPED_CLOCK_OPERATION_TRANSITIONS then throw "unsupported semantic clock"
-    let final ← match clause.endpoint with
-      | .SCOPED_ENDPOINT_RUNTIME_PREFIX => pure false
-      | .SCOPED_ENDPOINT_DELIBERATELY_CLOSED => pure true
+    if clause.clock != .CORRELATED_CLOCK_OPERATION_TRANSITIONS then throw "unsupported semantic clock"
+    let final ← match clause.ending with
+      | .TRACE_ENDING_PARTIAL => pure false
+      | .TRACE_ENDING_FINAL => pure true
       | _ => throw "unsupported endpoint"
     let trigger ← predicate (← required clause.trigger)
     let response ← predicate (← required clause.response)
@@ -342,8 +342,8 @@ structure Retained where
 
 /-- Immutable state allocated independently for each decoded Contract execution. -/
 structure Run (compiled : Compiled) where
-  projection : ScopedProjection.Run compiled.plan Field
-  monitor : ScopedObligation.Monitor compiled.plan.transitions compiled.clauses
+  projection : CorrelatedProjection.Run compiled.plan Field
+  monitor : CorrelatedObligation.Monitor compiled.plan.transitions compiled.clauses
   captures : List Retained := []
   capturedValues : Nat := 0
   closed : Bool := false
@@ -353,7 +353,7 @@ def Compiled.start (compiled : Compiled) (scope : List (Name × String)) : Excep
   if scope.map Prod.fst != compiled.scopeFields || scope.any (·.2.isEmpty) then throw "wrong scope"
   pure { projection := { scope }, monitor := { initial := compiled.plan.initial } }
 
-private def identitySize (identity : ScopedProjection.Identity Name) : Nat :=
+private def identitySize (identity : CorrelatedProjection.Identity Name) : Nat :=
   identity.source.value.length + 1 + identity.scope.foldl (fun size (key, value) =>
     size + key.value.length + value.length) 0
 
@@ -368,7 +368,7 @@ def eventSize (event : Event) : Nat :=
 /-- Validate scope, field authority and evidence support before transactional projection. -/
 def Compiled.validateEvent (compiled : Compiled) (scope : List (Name × String)) (event : Event) :
     Except String Unit :=
-  (ScopedProjection.validateEvidence scalarKind eventSize compiled.plan.limits compiled.sources
+  (CorrelatedProjection.validateEvidence scalarKind eventSize compiled.plan.limits compiled.sources
     compiled.policies scope event).mapError (fun _ => "invalid evidence")
 
 /-- Resolve one operand against this step's declared evidence and the operation's retained
@@ -439,7 +439,7 @@ def Run.admit {compiled : Compiled} (run : Run compiled) (event : Event) :
   compiled.validateEvent run.projection.scope event
   let projection ← (run.projection.admit Name.value (·.state) eventSize event).mapError
     (fun _ => "projection rejected")
-  let limits : ScopedObligation.MonitorLimits :=
+  let limits : CorrelatedObligation.MonitorLimits :=
     ⟨compiled.transitions, compiled.obligations, compiled.work⟩
   let mut monitor := run.monitor
   let mut retained := run.captures
@@ -463,7 +463,7 @@ def Run.admit {compiled : Compiled} (run : Run compiled) (event : Event) :
     captures := retained
     capturedValues := run.capturedValues + charged }
 
-private def wireIdentity (wire : ScopedIdentity) : Except String (ScopedProjection.Identity Name) := do
+private def wireIdentity (wire : CorrelatedIdentity) : Except String (CorrelatedProjection.Identity Name) := do
   if !wire.«Unknown.Fields».isEmpty then throw "unknown identity field"
   let scope ← wire.scope.toList.mapM fun binding => do
     if !binding.«Unknown.Fields».isEmpty then throw "unknown binding field"
@@ -471,7 +471,7 @@ private def wireIdentity (wire : ScopedIdentity) : Except String (ScopedProjecti
   pure ⟨scope, ⟨wire.source⟩, ← natural wire.ordinal⟩
 
 /-- Decode one typed Observation and attach recorder-owned support, retaining first support on duplicates. -/
-def Run.observe {compiled : Compiled} (run : Run compiled) (sequence : Nat) (wire : ScopedEvidence) :
+def Run.observe {compiled : Compiled} (run : Run compiled) (sequence : Nat) (wire : CorrelatedEvidence) :
     Except String (Run compiled) := do
   if sequence == 0 || !wire.«Unknown.Fields».isEmpty then throw "invalid evidence envelope"
   let identity ← wireIdentity (← required wire.identity)
@@ -479,7 +479,7 @@ def Run.observe {compiled : Compiled} (run : Run compiled) (sequence : Nat) (wir
   let fields ← wire.fields.toList.mapM fun field => do
     if !field.«Unknown.Fields».isEmpty then throw "unknown evidence field"
     let value ← match field.value with | none => pure none | some value => some <$> wireScalar value
-    pure (ScopedProjection.EvidenceField.mk (Name.mk field.field_id) value)
+    pure (CorrelatedProjection.EvidenceField.mk (Name.mk field.field_id) value)
   let sequences := (run.projection.accepted.find? (·.identity == identity)).map (·.runSequences)
     |>.getD [sequence]
   run.admit ⟨identity, wire.operation, ⟨wire.kind⟩, parents, sequences, fields⟩
@@ -506,7 +506,7 @@ def Run.answers {compiled : Compiled} (run : Run compiled) (incomplete : Bool :=
       (incomplete || run.projection.accepted.isEmpty || !run.projection.pending.isEmpty)).map
     fun answer => match answer with | .satisfied => 2 | .violated => 3 | .unresolved => 0
 
-/-- Close without inventing a semantic transition or a wall-clock horizon. -/
+/-- Close without inventing a semantic transition or a wall-clock deadline. -/
 def Run.close {compiled : Compiled} (run : Run compiled) : Run compiled := { run with closed := true }
 
-end Testpilot.Scoped
+end Testpilot.Correlated

@@ -418,18 +418,18 @@ def cancellationKnownGap : KnownGap := {
   kind := .capability
   code := DefinitionId.of "temporal.nexus3.known-gap.cancellation"
   subject := some (DefinitionId.of "temporal.nexus3.property.cancellationResolves")
-  detail := some "Operation-scoped Nexus cancellation is unsupported by the success slice."
+  detail := some "Operation-correlated Nexus cancellation is unsupported by the success slice."
 }
 
-def operationScopedProgressKnownGap : KnownGap := {
+def operationCorrelatedProgressKnownGap : KnownGap := {
   kind := .capability
-  code := DefinitionId.of "temporal.nexus3.known-gap.operation-scoped-progress"
+  code := DefinitionId.of "temporal.nexus3.known-gap.operation-correlated-progress"
   subject := some (DefinitionId.of "temporal.nexus3.property.cancellationResolves")
-  detail := some "Operation-scoped progress counting is unsupported by the success slice."
+  detail := some "Operation-correlated progress counting is unsupported by the success slice."
 }
 
 def completionKnownGaps : Except KnownGapError KnownGapSet :=
-  KnownGapSet.checkCanonical [cancellationKnownGap, operationScopedProgressKnownGap]
+  KnownGapSet.checkCanonical [cancellationKnownGap, operationCorrelatedProgressKnownGap]
 
 inductive AdmissionError where
   | invalidTarget (error : FiniteAdmissionError)

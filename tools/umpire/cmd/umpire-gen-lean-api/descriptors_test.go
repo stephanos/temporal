@@ -79,3 +79,21 @@ func mustDescriptorInput(t *testing.T, locator string, encoded []byte) descripto
 	require.NoError(t, err)
 	return input
 }
+
+func TestDropSkippedPackagesRemovesOnlyNamedPackagesAndRejectsAbsentOnes(t *testing.T) {
+	set := &descriptorpb.FileDescriptorSet{File: []*descriptorpb.FileDescriptorProto{
+		{Name: proto.String("acme/kept.proto"), Package: proto.String("acme.v1")},
+		{Name: proto.String("acme/dropped.proto"), Package: proto.String("acme.internal.v1")},
+		{Name: proto.String("acme/dropped_too.proto"), Package: proto.String("acme.internal.v1")},
+	}}
+	require.NoError(t, dropSkippedPackages(set, []string{"acme.internal.v1"}))
+	require.Len(t, set.File, 1)
+	require.Equal(t, "acme/kept.proto", set.File[0].GetName())
+
+	require.NoError(t, dropSkippedPackages(set, nil))
+	require.Len(t, set.File, 1)
+
+	require.ErrorContains(t, dropSkippedPackages(set, []string{"acme.absent.v1"}),
+		`skipped package "acme.absent.v1" is absent`)
+	require.Len(t, set.File, 1)
+}

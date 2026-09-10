@@ -3,7 +3,7 @@ import Umpire.Property.Evaluate
 /-!
 Operation-local keyed field captures.
 
-A scoped clause declares named captures (`PropertyScopedCapture`); this module is the retained
+A correlated rule declares named captures (`PropertyCorrelatedCapture`); this module is the retained
 state one operation keeps for them. Each declared name numbers its occurrences from zero in
 admission order, and a recorded ordinal is never rewritten: a later occurrence becomes a new
 ordinal rather than an implicit latest-match replacement. Reading is therefore deterministic —
@@ -14,7 +14,7 @@ The store holds admitted projections re-keyed to their occurrence, which is exac
 checked predicate's field operands resolve against, so no second evaluator reads captured values.
 -/
 
-namespace Umpire.Property.Scoped
+namespace Umpire.Property.Correlated
 
 /-- Why a declared capture could not retain this step's evidence. -/
 inductive CaptureError where
@@ -44,7 +44,7 @@ def Captures.count (captures : Captures) (name : DefinitionId) : Nat :=
 /-- Retain one declared capture from this step. A step that supplies no projection at the declared
 coordinates simply records nothing; two projections at those coordinates are ambiguous and reject. -/
 private def Captures.retain (evidence : List PropertyFieldEvidence)
-    (state : Captures × Nat) (declaration : PropertyScopedCapture) :
+    (state : Captures × Nat) (declaration : PropertyCorrelatedCapture) :
     Except CaptureError (Captures × Nat) :=
   match evidence.filter fun value => value.path == declaration.path with
   | [] => .ok state
@@ -57,7 +57,7 @@ private def Captures.retain (evidence : List PropertyFieldEvidence)
   | _ => .error (.ambiguous declaration.name)
 
 private def Captures.retainAll (evidence : List PropertyFieldEvidence) :
-    List PropertyScopedCapture → Captures × Nat → Except CaptureError (Captures × Nat)
+    List PropertyCorrelatedCapture → Captures × Nat → Except CaptureError (Captures × Nat)
   | [], state => .ok state
   | declaration :: rest, state =>
       match Captures.retain evidence state declaration with
@@ -67,12 +67,12 @@ private def Captures.retainAll (evidence : List PropertyFieldEvidence) :
 /-- Retain this step's occurrence of every declared capture, reporting how many values were newly
 retained so the caller can charge them against its declared budget. The whole record fails closed:
 a rejected capture publishes no partial state. -/
-def Captures.record (captures : Captures) (declarations : List PropertyScopedCapture)
+def Captures.record (captures : Captures) (declarations : List PropertyCorrelatedCapture)
     (evidence : List PropertyFieldEvidence) : Except CaptureError (Captures × Nat) :=
   Captures.retainAll evidence declarations (captures, 0)
 
 private theorem Captures.retain_extends (evidence : List PropertyFieldEvidence)
-    (state next : Captures × Nat) (declaration : PropertyScopedCapture)
+    (state next : Captures × Nat) (declaration : PropertyCorrelatedCapture)
     (retained : Captures.retain evidence state declaration = .ok next) :
     ∃ added, next.1.evidence = state.1.evidence ++ added := by
   unfold Captures.retain at retained
@@ -84,7 +84,7 @@ private theorem Captures.retain_extends (evidence : List PropertyFieldEvidence)
   · exact absurd retained (by simp)
 
 private theorem Captures.retainAll_extends (evidence : List PropertyFieldEvidence)
-    (declarations : List PropertyScopedCapture) (state next : Captures × Nat)
+    (declarations : List PropertyCorrelatedCapture) (state next : Captures × Nat)
     (retained : Captures.retainAll evidence declarations state = .ok next) :
     ∃ added, next.1.evidence = state.1.evidence ++ added := by
   induction declarations generalizing state with
@@ -101,10 +101,10 @@ private theorem Captures.retainAll_extends (evidence : List PropertyFieldEvidenc
 
 /-- Retaining later occurrences only extends the store: an ordinal already recorded keeps the exact
 value it was admitted with, so repeated triggers read independent immutable captures. -/
-theorem Captures.record_extends (captures : Captures) (declarations : List PropertyScopedCapture)
+theorem Captures.record_extends (captures : Captures) (declarations : List PropertyCorrelatedCapture)
     (evidence : List PropertyFieldEvidence) (next : Captures) (charged : Nat)
     (recorded : captures.record declarations evidence = .ok (next, charged)) :
     ∃ added, next.evidence = captures.evidence ++ added :=
   Captures.retainAll_extends evidence declarations (captures, 0) (next, charged) recorded
 
-end Umpire.Property.Scoped
+end Umpire.Property.Correlated

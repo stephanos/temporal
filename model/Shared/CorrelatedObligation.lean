@@ -8,7 +8,7 @@ zero remaining transitions expires after that response opportunity. Resolved obl
 immutable. `consumeMany` is the common finite, incremental and offline fold.
 -/
 
-namespace Shared.ScopedObligation
+namespace Shared.CorrelatedObligation
 
 /-- The semantic predicate results at one admitted operation transition. -/
 structure Coordinate where
@@ -206,7 +206,7 @@ private def Operation.start (table : List Transition) (clauses : List Clause)
 private def Window.consume {history : List (Admitted table)} (window : Window clauses history)
     (row : Admitted table) : Window clauses (history ++ [row]) := {
   clause := window.clause
-  obligations := Shared.ScopedObligation.consume window.clause.val.bound window.obligations
+  obligations := Shared.CorrelatedObligation.consume window.clause.val.bound window.obligations
     (window.clause.val.coordinate row.value.2.1 row.value.2.2)
   consistent := by
     rw [List.map_append, consumeMany_append, ← window.consistent]
@@ -260,4 +260,4 @@ def Monitor.answers (monitor : Monitor table clauses) (closed incomplete : Bool)
       if window.clause.val.id == clause.id then window.obligations else []
     answer obligations closed incomplete clause.final
 
-end Shared.ScopedObligation
+end Shared.CorrelatedObligation

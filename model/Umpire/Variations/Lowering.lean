@@ -56,9 +56,9 @@ role, rejects rather than producing an instruction no Driver could dispatch. -/
 def FaultIntentDeclaration.lower
     (declaration : FaultIntentDeclaration)
     (realization : FaultRealization) :
-    Except Umpire.Case.Compiler.LoweringError InstructionDefinition :=
+    Except Umpire.Case.Compiler.Error InstructionDefinition :=
   let failed := fun construct =>
-    Umpire.Case.Compiler.LoweringError.mk declaration.id.value declaration.source construct
+    Umpire.Case.Compiler.Error.mk declaration.id.value declaration.source construct
   match faultKindOf declaration.capability with
   | none => .error (failed ("fault.unknown-capability/" ++ declaration.capability.value))
   | some kind =>

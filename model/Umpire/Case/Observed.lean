@@ -1,5 +1,5 @@
 import Testpilot.Authoring
-import Umpire.Case
+import Umpire.Provenance
 import Umpire.Property
 
 /-!

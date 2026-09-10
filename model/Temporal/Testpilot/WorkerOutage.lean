@@ -14,7 +14,7 @@ Two independent requirements sit on that Run:
 
 * The **outage order** is a bounded-liveness rule over the recorded `FAULT_INJECTED` events. It
   reaches its satisfied state only after a stop on this Case's task-queue role is followed by a
-  resume on the same role. Its horizon is an **event count**, not an elapsed-time deadline: a
+  resume on the same role. Its deadline is an **event count**, not an elapsed-time deadline: a
   Driver's outage window is measured in what the Run recorded, and a slow CI runner must not be able
   to turn a healthy outage into a violated one.
 * The **workflow completion** is a safety rule over the history the controller reads back. The
@@ -169,29 +169,29 @@ resume: `start-workflow` started and completed, the resumed workflow activation'
 `resume-worker` started, completed and its fault event. That is about ten on the traced path, and
 expiry outranks the satisfying event, so the real requirement is a resume within fifteen. Sixteen is
 that bound with deliberate slack, not a measured maximum. -/
-def workerOutageHorizon : Int64 := 16
+def workerOutageDeadline : Int64 := 16
 
 private def outageOrderRule : ContractRuleDefinition :=
-  Monitor.rule "worker-outage-order" .CONTRACT_RULE_KIND_BOUNDED_LIVENESS "awaiting-stop"
-    #[Monitor.state "awaiting-stop" .CONTRACT_STATE_STATUS_NONTERMINAL,
-      Monitor.state "stopped" .CONTRACT_STATE_STATUS_NONTERMINAL,
-      Monitor.state "resumed" .CONTRACT_STATE_STATUS_SATISFIED,
-      Monitor.state "expired" .CONTRACT_STATE_STATUS_VIOLATED]
-    #[Monitor.transition "observe-stop" "awaiting-stop" "stopped"
+  Contract.rule "worker-outage-order" .CONTRACT_RULE_KIND_BOUNDED_LIVENESS "awaiting-stop"
+    #[Contract.state "awaiting-stop" .CONTRACT_STATE_STATUS_NONTERMINAL,
+      Contract.state "stopped" .CONTRACT_STATE_STATUS_NONTERMINAL,
+      Contract.state "resumed" .CONTRACT_STATE_STATUS_SATISFIED,
+      Contract.state "expired" .CONTRACT_STATE_STATUS_VIOLATED]
+    #[Contract.transition "observe-stop" "awaiting-stop" "stopped"
         #[.RUN_EVENT_KIND_FAULT_INJECTED]
         (ContractExpr.all #[faultRoleIs, faultKindIs .FAULT_KIND_WORKER_STOP])
         .CONTRACT_SUPPORT_KIND_MATCHING_EVENT,
-      Monitor.transition "observe-resume" "stopped" "resumed"
+      Contract.transition "observe-resume" "stopped" "resumed"
         #[.RUN_EVENT_KIND_FAULT_INJECTED]
         (ContractExpr.all #[faultRoleIs, faultKindIs .FAULT_KIND_WORKER_RESUME])
         .CONTRACT_SUPPORT_KIND_MATCHING_EVENT]
-    (horizon := some (Monitor.horizonEvents workerOutageHorizon "expired"))
+    (deadline := some (Contract.deadlineEvents workerOutageDeadline "expired"))
 
 private def workflowCompletedRule : ContractRuleDefinition :=
-  Monitor.rule "worker-outage-workflow-completed" .CONTRACT_RULE_KIND_SAFETY "pending"
-    #[Monitor.state "pending" .CONTRACT_STATE_STATUS_NONTERMINAL,
-      Monitor.state "completed" .CONTRACT_STATE_STATUS_SATISFIED]
-    #[Monitor.transition "observe-workflow-completed" "pending" "completed"
+  Contract.rule "worker-outage-workflow-completed" .CONTRACT_RULE_KIND_SAFETY "pending"
+    #[Contract.state "pending" .CONTRACT_STATE_STATUS_NONTERMINAL,
+      Contract.state "completed" .CONTRACT_STATE_STATUS_SATISFIED]
+    #[Contract.transition "observe-workflow-completed" "pending" "completed"
         #[.RUN_EVENT_KIND_INSTRUCTION_COMPLETED]
         (ContractExpr.all #[
           ContractExpr.present (observed workerOutageObservation),
@@ -204,7 +204,7 @@ private def outageProperty :=
     "temporal-case-worker-outage-property/v1" .property
 
 /-- The checked-in `rule_events` Case: one deliberate outage, ordered and survived. -/
-def workerOutageCase : Except Umpire.Case.Compiler.LoweringError Case := do
+def workerOutageCase : Except Umpire.Case.Compiler.Error Case := do
   let stop ← stopIntent.lower stopRealization
   let resume ← resumeIntent.lower resumeRealization
   Umpire.Case.Compiler.compile {

@@ -605,7 +605,7 @@ def PropertyClause.id : PropertyClause → DefinitionId
   | .branches group => group.id
 
 /-- Closing an incomplete prefix does not invent missing deadline evidence. -/
-inductive PropertyScopedEndpoint where
+inductive TraceEnding where
   | final
   | «partial»
   deriving BEq, DecidableEq, Repr
@@ -614,7 +614,7 @@ inductive PropertyScopedEndpoint where
 whose exact value each occurrence retains, and how many occurrences that operation may retain.
 Occurrences are numbered from zero in admission order, so a correlation operand names an exact
 earlier occurrence rather than an implicit latest match. -/
-structure PropertyScopedCapture where
+structure PropertyCorrelatedCapture where
   name : DefinitionId
   key : DefinitionId
   path : PropertyFieldPath
@@ -627,7 +627,7 @@ the precondition — typically relating this step's request fields to an earlier
 — that every labeled transition must satisfy to be one of the operation's semantic steps. The
 correlation never supplies a trigger or a response; the bounded countdown stays exactly the one
 its trigger and response patterns describe. -/
-structure PropertyScopedClause where
+structure PropertyCorrelatedClause where
   id : DefinitionId
   source : SourceLocation
   trigger : PropertyPredicate
@@ -635,8 +635,8 @@ structure PropertyScopedClause where
   scope : List DefinitionId
   key : DefinitionId
   bound : Nat
-  endpoint : PropertyScopedEndpoint
-  captures : List PropertyScopedCapture := []
+  ending : TraceEnding
+  captures : List PropertyCorrelatedCapture := []
   correlation : Option PropertyPredicate := none
   deriving BEq, DecidableEq, Repr
 
@@ -646,7 +646,7 @@ structure Property where
   version : Nat := 1
   requires : List DefinitionId
   clauses : List PropertyClause
-  scopedClauses : List PropertyScopedClause := []
+  correlatedRules : List PropertyCorrelatedClause := []
   logicalTimeSource : Option DefinitionId := none
   documentation : String := ""
   deriving BEq, DecidableEq, Repr
@@ -741,13 +741,13 @@ def stepClauses
 reference resolution, and canonicalization remain owned by `property%` and `Property.check`. -/
 syntax (name := correlatedResponseSyntax)
   "correlated_response%" term:max "at" term:max &"whenever" term:max &"eventually" term:max
-  &"within" term:max "scoped" term:max "by" term:max &"closing" term:max : term
+  &"within" term:max &"correlated" term:max "by" term:max &"closing" term:max : term
 
 macro_rules
   | `(correlated_response% $id at $source whenever $trigger eventually $response
-      within $bound scoped $scope by $key closing $endpoint) =>
+      within $bound correlated $scope by $key closing $ending) =>
       `(({ id := $id, source := $source, trigger := $trigger, response := $response,
            bound := $bound, scope := $scope, key := $key,
-           endpoint := $endpoint } : PropertyScopedClause))
+           ending := $ending } : PropertyCorrelatedClause))
 
 end Umpire

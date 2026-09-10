@@ -138,10 +138,10 @@ StartNexusOperation cannot declare VALUE because its SDK future is an opaque run
 validates the target result against its declared VALUE type. Finish and every RespondNexus variant
 retain their evaluated result expressions and may declare their typed VALUE.
 
-A response projection sink may be a `ScopedEvidence` lift rather than a Slot or an Observation. Its
+A response projection sink may be a `CorrelatedEvidence` lift rather than a Slot or an Observation. Its
 rules are tried in declaration order and the first whose guard resolves builds the evidence value
 from paths read out of the projected value; a value no rule claims emits nothing. Admission requires
-the sink to be the exact declared `ScopedEvidence` Observation, every bound path to read a scalar the
+the sink to be the exact declared `CorrelatedEvidence` Observation, every bound path to read a scalar the
 portable evidence domain admits, and the lift to sit on one instruction of a controller entrypoint
 whose declared source no other instruction claims — a source ordinal is the position in that source's
 own dense stream, and only the emitting instruction can count it.

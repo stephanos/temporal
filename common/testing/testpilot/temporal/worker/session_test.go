@@ -316,7 +316,7 @@ func runtimeTestSessionWithBinding(t *testing.T, host *Driver, definition progra
 	return runtimeTestSessionWithDisposition(t, host, definition, prepared, runID, temporalRunID, binding, options, delivery.TriggerSucceeded)
 }
 
-func runtimeTestSessionWithDisposition(t *testing.T, host *Driver, definition programDefinition, prepared testpilot.PreparedProgram, runID, temporalRunID string, binding WorkflowBinding, options SessionOptions, disposition delivery.TriggerDisposition) (*Session, *Carrier, *workflowservice.StartWorkflowExecutionRequest) {
+func runtimeTestSessionWithDisposition(t *testing.T, host *Driver, definition programDefinition, prepared testpilot.PreparedProgram, runID, temporalRunID string, binding WorkflowBinding, options SessionOptions, disposition delivery.TriggerStatus) (*Session, *Carrier, *workflowservice.StartWorkflowExecutionRequest) {
 	t.Helper()
 	session, err := newSession(host, runID, "session-"+runID, definition, options)
 	require.NoError(t, err)

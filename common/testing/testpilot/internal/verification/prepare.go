@@ -105,7 +105,7 @@ func Prepare(source *testpilotspb.Contract, catalog *ir.Catalog, program executi
 	if err := ir.CheckSurface(source, ir.DefaultLimits()); err != nil {
 		return nil, err
 	}
-	if !validID(source.ContractId) || len(source.Rules) == 0 && source.Scoped == nil {
+	if !validID(source.ContractId) || len(source.Rules) == 0 && source.Correlated == nil {
 		return nil, invalid(ir.Malformed, "Contract identity and rules are required")
 	}
 	if err := checkLimits(ceiling, hardLimits()); err != nil {
@@ -144,7 +144,7 @@ func Prepare(source *testpilotspb.Contract, catalog *ir.Catalog, program executi
 		}
 		p.rules = append(p.rules, m)
 	}
-	if err := a.bindScoped(seen); err != nil {
+	if err := a.bindCorrelated(seen); err != nil {
 		return nil, err
 	}
 	if err := a.boundWork(); err != nil {
@@ -265,16 +265,16 @@ func (a *admission) bindStates(m *machine) error {
 		return invalid(ir.Malformed, "initial state must be nonterminal")
 	}
 	if rule.Kind == testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS {
-		target, exists := m.states[rule.Horizon.GetViolationStateId()]
+		target, exists := m.states[rule.Deadline.GetViolationStateId()]
 		// Exactly one bound carries the horizon, so a rule never expires on two clocks at once.
-		elapsed, events := rule.Horizon.GetElapsedMilliseconds(), rule.Horizon.GetRuleEvents()
+		elapsed, events := rule.Deadline.GetElapsedMilliseconds(), rule.Deadline.GetRuleEvents()
 		if elapsed < 0 || events < 0 || (elapsed > 0) == (events > 0) {
 			return invalid(ir.Malformed, "liveness requires exactly one positive horizon bound")
 		}
 		if !exists || rule.States[target].Status != testpilotspb.CONTRACT_STATE_STATUS_VIOLATED {
 			return invalid(ir.Malformed, "liveness requires a violated horizon target")
 		}
-	} else if rule.Horizon != nil {
+	} else if rule.Deadline != nil {
 		return invalid(ir.Malformed, "safety rule cannot declare a liveness horizon")
 	}
 	return nil

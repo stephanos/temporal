@@ -34,7 +34,7 @@ helpers, and `Testpilot.ProtoJSON` delegates the one canonical codec policy to `
 opaque producer provenance.
 
 `Temporal.Feature.Nexus3.Testpilot` lowers the checked Nexus3 completion model into the async Nexus
-example: its Contract carries no monitor rule, only the operation-scoped capability the checked
+example: its Contract carries no monitor rule, only the operation-correlated capability the checked
 Property lowered into. `Temporal.Testpilot` supplies the unrelated `GetSystemInfo` example, the
 worker-outage fault Case, and the six public-facade conformance fixtures. `Temporal.Tool.Testpilot` forwards rendering
 to `Testpilot.ProtoJSON`. The broader Nexus3 Markdown sketches remain design material rather than executable
@@ -106,26 +106,26 @@ An optional checked `authoredKnownGaps` set is composed with phase gaps before s
 publication. Gaps describe limits and missing evidence; they cannot make a Property pass or imply
 that an omitted limitation was detected.
 
-Operation-scoped response Properties can use `correlated_response%` inside
-`Property.scopedClauses`. For example, with Model-owned `request` and `response` values:
+Operation-correlated response Properties can use `correlated_response%` inside
+`Property.correlatedRules`. For example, with Model-owned `request` and `response` values:
 
 ```lean
 correlated_response% (family.id "property" "response") at source
   whenever (.selectedActionIs request) eventually (.outcomeIs response)
   within 1
-  scoped [runField] by operationField closing .«partial»
+  correlated [runField] by operationField closing .«partial»
 ```
 
-This is the same `PropertyScopedClause` as the typed record constructor. `property% spec against
+This is the same `PropertyCorrelatedClause` as the typed record constructor. `property% spec against
 context tracking [...]` resolves references and reports admission failures at the author expression;
 `spec.check context` provides the ordinary `Except` path for parameterized inputs. Authors choose
 the trigger, response, scope, operation key, natural bound, and endpoint. The checked projection and
-`Umpire.Case.Scoped.lower` derive executable Contract data and correspondence evidence without a
+`Umpire.Case.Correlated.lower` derive executable Contract data and correspondence evidence without a
 separately authored monitor. A response at the trigger or inclusive deadline satisfies that obligation;
 only admitted transitions of the same operation advance its clock. Incomplete execution never invents
 a deadline, and an already proved violation survives cleanup failure.
 
-The generated scoped corpus includes executable non-cancellation Cases qualified through public
+The generated correlated corpus includes executable non-cancellation Cases qualified through public
 Go `Prepare`/`Run`, including repeated/concurrent Runs and bounded tenfold loads. Its synthetic
 source is a controlled qualification fixture, not a production Implementation Link. The existing
 Nexus3 success integration remains the live Temporal demonstration. Nexus operation cancellation
@@ -196,7 +196,7 @@ confirmation, and resolution are not modeled here and remain deferred to fn-79.
 
 Known Gaps disclose what a Case does not check; they never waive a requested clause. The
 two-operation Nexus Case records two: its bounded-response window is evaluated in the model only,
-because no instruction of that Program emits the `ScopedEvidence` Observation a runtime scoped
+because no instruction of that Program emits the `CorrelatedEvidence` Observation a runtime correlated
 capability would read; and a completion referencing another scheduled event leaves its rule pending
 rather than violated, because a completed history event carries no operation identity and
 separating the two would need a correlation condition the model never declared.

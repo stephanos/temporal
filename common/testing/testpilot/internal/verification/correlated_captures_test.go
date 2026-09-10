@@ -23,41 +23,41 @@ const (
 func scopedText(text string) *testpilotspb.Value {
 	return &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: text}}
 }
-func scopedFieldOperand(id string) *testpilotspb.ScopedOperand {
-	return &testpilotspb.ScopedOperand{Operand: &testpilotspb.ScopedOperand_FieldId{FieldId: id}}
+func scopedFieldOperand(id string) *testpilotspb.CorrelatedOperand {
+	return &testpilotspb.CorrelatedOperand{Operand: &testpilotspb.CorrelatedOperand_FieldId{FieldId: id}}
 }
-func scopedCaptureOperand(id string, ordinal int64) *testpilotspb.ScopedOperand {
-	return &testpilotspb.ScopedOperand{Operand: &testpilotspb.ScopedOperand_Capture{Capture: &testpilotspb.ScopedCaptureRef{CaptureId: id, Ordinal: ordinal}}}
+func scopedCaptureOperand(id string, ordinal int64) *testpilotspb.CorrelatedOperand {
+	return &testpilotspb.CorrelatedOperand{Operand: &testpilotspb.CorrelatedOperand_Capture{Capture: &testpilotspb.CorrelatedCaptureRef{CaptureId: id, Ordinal: ordinal}}}
 }
-func scopedLiteralOperand(text string) *testpilotspb.ScopedOperand {
-	return &testpilotspb.ScopedOperand{Operand: &testpilotspb.ScopedOperand_Literal{Literal: scopedText(text)}}
+func scopedLiteralOperand(text string) *testpilotspb.CorrelatedOperand {
+	return &testpilotspb.CorrelatedOperand{Operand: &testpilotspb.CorrelatedOperand_Literal{Literal: scopedText(text)}}
 }
-func scopedComparison(operator testpilotspb.ScopedComparisonOperator, left, right *testpilotspb.ScopedOperand) *testpilotspb.ScopedCorrelation {
-	return &testpilotspb.ScopedCorrelation{Condition: &testpilotspb.ScopedCorrelation_Comparison{Comparison: &testpilotspb.ScopedComparison{Operator: operator, Left: left, Right: right}}}
+func correlatedComparison(operator testpilotspb.CorrelatedComparisonOperator, left, right *testpilotspb.CorrelatedOperand) *testpilotspb.CorrelatedCorrelation {
+	return &testpilotspb.CorrelatedCorrelation{Condition: &testpilotspb.CorrelatedCorrelation_Comparison{Comparison: &testpilotspb.CorrelatedComparison{Operator: operator, Left: left, Right: right}}}
 }
-func scopedTriggered() *testpilotspb.ScopedCorrelation {
-	return &testpilotspb.ScopedCorrelation{Condition: &testpilotspb.ScopedCorrelation_Predicate{Predicate: &testpilotspb.ScopedPredicate{Field: testpilotspb.SCOPED_PREDICATE_FIELD_ACTION, DefinitionId: "request", Constraint: &testpilotspb.ScopedPredicate_Present{Present: true}}}}
+func scopedTriggered() *testpilotspb.CorrelatedCorrelation {
+	return &testpilotspb.CorrelatedCorrelation{Condition: &testpilotspb.CorrelatedCorrelation_Predicate{Predicate: &testpilotspb.CorrelatedPredicate{Field: testpilotspb.CORRELATED_PREDICATE_FIELD_ACTION, DefinitionId: "request", Constraint: &testpilotspb.CorrelatedPredicate_Present{Present: true}}}}
 }
-func scopedAny(operands ...*testpilotspb.ScopedCorrelation) *testpilotspb.ScopedCorrelation {
-	return &testpilotspb.ScopedCorrelation{Condition: &testpilotspb.ScopedCorrelation_Any{Any: &testpilotspb.ScopedCorrelationGroup{Operands: operands}}}
+func scopedAny(operands ...*testpilotspb.CorrelatedCorrelation) *testpilotspb.CorrelatedCorrelation {
+	return &testpilotspb.CorrelatedCorrelation{Condition: &testpilotspb.CorrelatedCorrelation_Any{Any: &testpilotspb.CorrelatedCorrelationGroup{Operands: operands}}}
 }
-func scopedAll(operands ...*testpilotspb.ScopedCorrelation) *testpilotspb.ScopedCorrelation {
-	return &testpilotspb.ScopedCorrelation{Condition: &testpilotspb.ScopedCorrelation_All{All: &testpilotspb.ScopedCorrelationGroup{Operands: operands}}}
+func scopedAll(operands ...*testpilotspb.CorrelatedCorrelation) *testpilotspb.CorrelatedCorrelation {
+	return &testpilotspb.CorrelatedCorrelation{Condition: &testpilotspb.CorrelatedCorrelation_All{All: &testpilotspb.CorrelatedCorrelationGroup{Operands: operands}}}
 }
 
-// scopedCorrelation is the qualifying shape: the request step creates the occurrence its own
+// correlatedCorrelation is the qualifying shape: the request step creates the occurrence its own
 // correlation would read, so the trigger disjunct decides it before the capture operand is reached.
-func scopedCorrelation(ordinal int64) *testpilotspb.ScopedCorrelation {
-	return scopedAny(scopedTriggered(), scopedComparison(testpilotspb.SCOPED_COMPARISON_OPERATOR_EQUAL, scopedFieldOperand(repliedField), scopedCaptureOperand("seen", ordinal)))
+func correlatedCorrelation(ordinal int64) *testpilotspb.CorrelatedCorrelation {
+	return scopedAny(scopedTriggered(), correlatedComparison(testpilotspb.CORRELATED_COMPARISON_OPERATOR_EQUAL, scopedFieldOperand(repliedField), scopedCaptureOperand("seen", ordinal)))
 }
 
-func scopedCaptureFixture(t *testing.T, bound, lifetime int64, correlation *testpilotspb.ScopedCorrelation) (*testpilotspb.Contract, *ir.Catalog, execution.ProgramView, *testpilotspb.ContractLimits) {
+func scopedCaptureFixture(t *testing.T, bound, lifetime int64, correlation *testpilotspb.CorrelatedCorrelation) (*testpilotspb.Contract, *ir.Catalog, execution.ProgramView, *testpilotspb.ContractLimits) {
 	t.Helper()
-	c, catalog, view, ceiling := scopedFixture(t, bound)
-	policy := func(id string) []*testpilotspb.ScopedFieldPolicy {
-		return []*testpilotspb.ScopedFieldPolicy{{FieldId: id, Type: &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_TEXT}, Disposition: testpilotspb.SCOPED_FIELD_DISPOSITION_RETAIN}}
+	c, catalog, view, ceiling := correlatedFixture(t, bound)
+	policy := func(id string) []*testpilotspb.CorrelatedFieldPolicy {
+		return []*testpilotspb.CorrelatedFieldPolicy{{FieldId: id, Type: &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_TEXT}, Disposition: testpilotspb.CORRELATED_FIELD_DISPOSITION_RETAIN}}
 	}
-	for _, rule := range c.Scoped.ProjectionRules {
+	for _, rule := range c.Correlated.ProjectionRules {
 		switch rule.Kind {
 		case "request", "both":
 			rule.Fields = policy(capturedField)
@@ -67,23 +67,23 @@ func scopedCaptureFixture(t *testing.T, bound, lifetime int64, correlation *test
 			// "tick" and "poll" declare no field, so a correlation reading one finds none.
 		}
 	}
-	clause := c.Scoped.Clauses[0]
+	clause := c.Correlated.Clauses[0]
 	if lifetime > 0 {
-		clause.Captures = []*testpilotspb.ScopedCaptureDeclaration{{CaptureId: "seen", FieldId: capturedField, Lifetime: lifetime}}
+		clause.Captures = []*testpilotspb.CorrelatedCaptureDeclaration{{CaptureId: "seen", FieldId: capturedField, Lifetime: lifetime}}
 	}
 	clause.Correlation = correlation
-	c.Scoped.Limits.MaxCaptures = 8
-	c.Scoped.Limits.MaxCorrelationDepth = 4
+	c.Correlated.Limits.MaxCaptures = 8
+	c.Correlated.Limits.MaxCorrelationDepth = 4
 	return c, catalog, view, ceiling
 }
 
-func scopedFieldEvidence(ordinal int64, kind, operation, value string) *testpilotspb.ScopedEvidence {
-	e := scopedEvidence(ordinal, kind, operation)
+func scopedFieldEvidence(ordinal int64, kind, operation, value string) *testpilotspb.CorrelatedEvidence {
+	e := correlatedEvidence(ordinal, kind, operation)
 	switch kind {
 	case "request", "both":
-		e.Fields = []*testpilotspb.ScopedEvidenceField{{FieldId: capturedField, Value: scopedText(value)}}
+		e.Fields = []*testpilotspb.CorrelatedEvidenceField{{FieldId: capturedField, Value: scopedText(value)}}
 	case "reply":
-		e.Fields = []*testpilotspb.ScopedEvidenceField{{FieldId: repliedField, Value: scopedText(value)}}
+		e.Fields = []*testpilotspb.CorrelatedEvidenceField{{FieldId: repliedField, Value: scopedText(value)}}
 	default:
 		// A kind whose rule declares no field supplies none.
 	}
@@ -94,8 +94,8 @@ type scopedStep struct {
 	kind, operation, value string
 }
 
-// observeScoped replays the steps live and reports the clause verdict, or the first rejection.
-func observeScoped(t *testing.T, c *testpilotspb.Contract, catalog *ir.Catalog, view execution.ProgramView, ceiling *testpilotspb.ContractLimits, steps []scopedStep) (testpilotspb.RuleVerdictStatus, error) {
+// observeCorrelated replays the steps live and reports the clause verdict, or the first rejection.
+func observeCorrelated(t *testing.T, c *testpilotspb.Contract, catalog *ir.Catalog, view execution.ProgramView, ceiling *testpilotspb.ContractLimits, steps []scopedStep) (testpilotspb.RuleVerdictStatus, error) {
 	t.Helper()
 	p, err := Prepare(c, catalog, view, ceiling)
 	if err != nil {
@@ -114,23 +114,23 @@ func observeScoped(t *testing.T, c *testpilotspb.Contract, catalog *ir.Catalog, 
 	return e.result.Rules[0].Status, nil
 }
 
-func TestScopedCapturesCorrelateOperationSteps(t *testing.T) {
+func TestCorrelatedCapturesCorrelateOperationSteps(t *testing.T) {
 	for _, tc := range []struct {
 		name        string
 		bound       int64
 		lifetime    int64
-		correlation *testpilotspb.ScopedCorrelation
+		correlation *testpilotspb.CorrelatedCorrelation
 		steps       []scopedStep
 		want        testpilotspb.RuleVerdictStatus
 		reject      string
 	}{
 		{
-			name: "correlated-reply", bound: 1, lifetime: 2, correlation: scopedCorrelation(0),
+			name: "correlated-reply", bound: 1, lifetime: 2, correlation: correlatedCorrelation(0),
 			steps: []scopedStep{{"request", "a", "1"}, {"reply", "a", "1"}},
 			want:  testpilotspb.RULE_VERDICT_STATUS_SATISFIED,
 		},
 		{
-			name: "uncorrelated-reply", bound: 1, lifetime: 2, correlation: scopedCorrelation(0),
+			name: "uncorrelated-reply", bound: 1, lifetime: 2, correlation: correlatedCorrelation(0),
 			steps:  []scopedStep{{"request", "a", "1"}, {"reply", "a", "2"}},
 			reject: "correlation rejected this operation's step",
 		},
@@ -140,32 +140,32 @@ func TestScopedCapturesCorrelateOperationSteps(t *testing.T) {
 			want:  testpilotspb.RULE_VERDICT_STATUS_SATISFIED,
 		},
 		{
-			name: "future-occurrence", bound: 1, lifetime: 2, correlation: scopedCorrelation(1),
+			name: "future-occurrence", bound: 1, lifetime: 2, correlation: correlatedCorrelation(1),
 			steps:  []scopedStep{{"request", "a", "1"}, {"reply", "a", "1"}},
 			reject: "missing retained capture occurrence",
 		},
 		{
-			name: "foreign-operation", bound: 1, lifetime: 2, correlation: scopedCorrelation(0),
+			name: "foreign-operation", bound: 1, lifetime: 2, correlation: correlatedCorrelation(0),
 			steps:  []scopedStep{{"request", "a", "1"}, {"reply", "b", "1"}},
 			reject: "missing retained capture occurrence",
 		},
 		{
-			name: "occurrence-zero-is-immutable", bound: 2, lifetime: 2, correlation: scopedCorrelation(0),
+			name: "occurrence-zero-is-immutable", bound: 2, lifetime: 2, correlation: correlatedCorrelation(0),
 			steps: []scopedStep{{"request", "a", "1"}, {"request", "a", "2"}, {"reply", "a", "1"}},
 			want:  testpilotspb.RULE_VERDICT_STATUS_SATISFIED,
 		},
 		{
-			name: "latest-match-is-not-occurrence-zero", bound: 2, lifetime: 2, correlation: scopedCorrelation(0),
+			name: "latest-match-is-not-occurrence-zero", bound: 2, lifetime: 2, correlation: correlatedCorrelation(0),
 			steps:  []scopedStep{{"request", "a", "1"}, {"request", "a", "2"}, {"reply", "a", "2"}},
 			reject: "correlation rejected this operation's step",
 		},
 		{
-			name: "second-occurrence", bound: 2, lifetime: 2, correlation: scopedCorrelation(1),
+			name: "second-occurrence", bound: 2, lifetime: 2, correlation: correlatedCorrelation(1),
 			steps: []scopedStep{{"request", "a", "1"}, {"request", "a", "2"}, {"reply", "a", "2"}},
 			want:  testpilotspb.RULE_VERDICT_STATUS_SATISFIED,
 		},
 		{
-			name: "missing-field-operand", bound: 1, lifetime: 2, correlation: scopedCorrelation(0),
+			name: "missing-field-operand", bound: 1, lifetime: 2, correlation: correlatedCorrelation(0),
 			steps:  []scopedStep{{"request", "a", "1"}, {"tick", "a", ""}},
 			reject: "missing correlation field operand",
 		},
@@ -174,8 +174,8 @@ func TestScopedCapturesCorrelateOperationSteps(t *testing.T) {
 			bound:    1,
 			lifetime: 2,
 			correlation: scopedAny(scopedTriggered(), scopedAll(
-				scopedComparison(testpilotspb.SCOPED_COMPARISON_OPERATOR_EQUAL, scopedFieldOperand(repliedField), scopedLiteralOperand("9")),
-				scopedComparison(testpilotspb.SCOPED_COMPARISON_OPERATOR_EQUAL, scopedFieldOperand(repliedField), scopedCaptureOperand("seen", 1)))),
+				correlatedComparison(testpilotspb.CORRELATED_COMPARISON_OPERATOR_EQUAL, scopedFieldOperand(repliedField), scopedLiteralOperand("9")),
+				correlatedComparison(testpilotspb.CORRELATED_COMPARISON_OPERATOR_EQUAL, scopedFieldOperand(repliedField), scopedCaptureOperand("seen", 1)))),
 			steps:  []scopedStep{{"request", "a", "1"}, {"reply", "a", "1"}},
 			reject: "correlation rejected this operation's step",
 		},
@@ -184,25 +184,25 @@ func TestScopedCapturesCorrelateOperationSteps(t *testing.T) {
 			bound:    1,
 			lifetime: 2,
 			correlation: scopedAny(scopedTriggered(), scopedAll(
-				scopedComparison(testpilotspb.SCOPED_COMPARISON_OPERATOR_EQUAL, scopedFieldOperand(repliedField), scopedLiteralOperand("1")),
-				scopedComparison(testpilotspb.SCOPED_COMPARISON_OPERATOR_NOT_EQUAL, scopedFieldOperand(repliedField), scopedLiteralOperand("2")))),
+				correlatedComparison(testpilotspb.CORRELATED_COMPARISON_OPERATOR_EQUAL, scopedFieldOperand(repliedField), scopedLiteralOperand("1")),
+				correlatedComparison(testpilotspb.CORRELATED_COMPARISON_OPERATOR_NOT_EQUAL, scopedFieldOperand(repliedField), scopedLiteralOperand("2")))),
 			steps: []scopedStep{{"request", "a", "1"}, {"reply", "a", "1"}},
 			want:  testpilotspb.RULE_VERDICT_STATUS_SATISFIED,
 		},
 		{
-			name: "retained-occurrences-never-move-a-countdown", bound: 0, lifetime: 2, correlation: scopedCorrelation(0),
+			name: "retained-occurrences-never-move-a-countdown", bound: 0, lifetime: 2, correlation: correlatedCorrelation(0),
 			steps: []scopedStep{{"request", "a", "1"}, {"reply", "a", "1"}},
 			want:  testpilotspb.RULE_VERDICT_STATUS_VIOLATED,
 		},
 		{
-			name: "lifetime-exhausted", bound: 2, lifetime: 1, correlation: scopedCorrelation(0),
+			name: "lifetime-exhausted", bound: 2, lifetime: 1, correlation: correlatedCorrelation(0),
 			steps:  []scopedStep{{"request", "a", "1"}, {"request", "a", "2"}},
 			reject: "capture lifetime exhausted",
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			c, catalog, view, ceiling := scopedCaptureFixture(t, tc.bound, tc.lifetime, tc.correlation)
-			status, err := observeScoped(t, c, catalog, view, ceiling, tc.steps)
+			status, err := observeCorrelated(t, c, catalog, view, ceiling, tc.steps)
 			if tc.reject != "" {
 				require.ErrorContains(t, err, tc.reject)
 				return
@@ -213,8 +213,8 @@ func TestScopedCapturesCorrelateOperationSteps(t *testing.T) {
 	}
 }
 
-func TestScopedCaptureAdmissionIsAtomic(t *testing.T) {
-	c, catalog, view, ceiling := scopedCaptureFixture(t, 1, 2, scopedCorrelation(0))
+func TestCorrelatedCaptureAdmissionIsAtomic(t *testing.T) {
+	c, catalog, view, ceiling := scopedCaptureFixture(t, 1, 2, correlatedCorrelation(0))
 	p, err := Prepare(c, catalog, view, ceiling)
 	require.NoError(t, err)
 	e, err := p.newEvaluator(context.Background(), view)
@@ -238,28 +238,28 @@ func TestScopedCaptureAdmissionIsAtomic(t *testing.T) {
 	require.True(t, proto.Equal(scopedText("1"), occurrences[0].value))
 }
 
-func TestScopedCaptureCeilingRejects(t *testing.T) {
-	c, catalog, view, ceiling := scopedCaptureFixture(t, 2, 4, scopedCorrelation(0))
-	c.Scoped.Limits.MaxCaptures = 1
-	_, err := observeScoped(t, c, catalog, view, ceiling, []scopedStep{{"request", "a", "1"}, {"request", "a", "2"}})
+func TestCorrelatedCaptureCeilingRejects(t *testing.T) {
+	c, catalog, view, ceiling := scopedCaptureFixture(t, 2, 4, correlatedCorrelation(0))
+	c.Correlated.Limits.MaxCaptures = 1
+	_, err := observeCorrelated(t, c, catalog, view, ceiling, []scopedStep{{"request", "a", "1"}, {"request", "a", "2"}})
 	require.ErrorContains(t, err, "ceiling")
 }
 
-func TestScopedCapturePrepareRejectsUnsupportedDeclarations(t *testing.T) {
+func TestCorrelatedCapturePrepareRejectsUnsupportedDeclarations(t *testing.T) {
 	for name, tc := range map[string]struct {
-		mutate func(*testpilotspb.ScopedContract)
+		mutate func(*testpilotspb.CorrelatedContract)
 		reason string
 	}{
 		"unretained-capture-field": {
-			mutate: func(s *testpilotspb.ScopedContract) { s.Clauses[0].Captures[0].FieldId = "absent" },
+			mutate: func(s *testpilotspb.CorrelatedContract) { s.Clauses[0].Captures[0].FieldId = "absent" },
 			reason: "invalid capture declaration",
 		},
 		"redacted-capture-field": {
-			mutate: func(s *testpilotspb.ScopedContract) {
+			mutate: func(s *testpilotspb.CorrelatedContract) {
 				for _, rule := range s.ProjectionRules {
 					for _, f := range rule.Fields {
 						if f.FieldId == capturedField {
-							f.Disposition = testpilotspb.SCOPED_FIELD_DISPOSITION_REDACT
+							f.Disposition = testpilotspb.CORRELATED_FIELD_DISPOSITION_REDACT
 						}
 					}
 				}
@@ -267,49 +267,49 @@ func TestScopedCapturePrepareRejectsUnsupportedDeclarations(t *testing.T) {
 			reason: "invalid capture declaration",
 		},
 		"zero-lifetime": {
-			mutate: func(s *testpilotspb.ScopedContract) { s.Clauses[0].Captures[0].Lifetime = 0 },
+			mutate: func(s *testpilotspb.CorrelatedContract) { s.Clauses[0].Captures[0].Lifetime = 0 },
 			reason: "invalid capture declaration",
 		},
 		"repeated-capture-id": {
-			mutate: func(s *testpilotspb.ScopedContract) {
+			mutate: func(s *testpilotspb.CorrelatedContract) {
 				s.Clauses[0].Captures = append(s.Clauses[0].Captures, proto.CloneOf(s.Clauses[0].Captures[0]))
 			},
 			reason: "invalid capture declaration",
 		},
 		"ordinal-beyond-lifetime": {
-			mutate: func(s *testpilotspb.ScopedContract) { s.Clauses[0].Correlation = scopedCorrelation(2) },
+			mutate: func(s *testpilotspb.CorrelatedContract) { s.Clauses[0].Correlation = correlatedCorrelation(2) },
 			reason: "unbound capture reference",
 		},
 		"unknown-capture": {
-			mutate: func(s *testpilotspb.ScopedContract) {
-				s.Clauses[0].Correlation = scopedComparison(testpilotspb.SCOPED_COMPARISON_OPERATOR_EQUAL, scopedFieldOperand(repliedField), scopedCaptureOperand("other", 0))
+			mutate: func(s *testpilotspb.CorrelatedContract) {
+				s.Clauses[0].Correlation = correlatedComparison(testpilotspb.CORRELATED_COMPARISON_OPERATOR_EQUAL, scopedFieldOperand(repliedField), scopedCaptureOperand("other", 0))
 			},
 			reason: "unbound capture reference",
 		},
 		"unretained-operand": {
-			mutate: func(s *testpilotspb.ScopedContract) {
-				s.Clauses[0].Correlation = scopedComparison(testpilotspb.SCOPED_COMPARISON_OPERATOR_EQUAL, scopedFieldOperand("absent"), scopedCaptureOperand("seen", 0))
+			mutate: func(s *testpilotspb.CorrelatedContract) {
+				s.Clauses[0].Correlation = correlatedComparison(testpilotspb.CORRELATED_COMPARISON_OPERATOR_EQUAL, scopedFieldOperand("absent"), scopedCaptureOperand("seen", 0))
 			},
 			reason: "unretained correlation field operand",
 		},
 		"empty-group": {
-			mutate: func(s *testpilotspb.ScopedContract) { s.Clauses[0].Correlation = scopedAny() },
+			mutate: func(s *testpilotspb.CorrelatedContract) { s.Clauses[0].Correlation = scopedAny() },
 			reason: "empty correlation group",
 		},
 		"unsupported-operator": {
-			mutate: func(s *testpilotspb.ScopedContract) {
-				s.Clauses[0].Correlation = scopedComparison(testpilotspb.SCOPED_COMPARISON_OPERATOR_UNSPECIFIED, scopedLiteralOperand("1"), scopedCaptureOperand("seen", 0))
+			mutate: func(s *testpilotspb.CorrelatedContract) {
+				s.Clauses[0].Correlation = correlatedComparison(testpilotspb.CORRELATED_COMPARISON_OPERATOR_UNSPECIFIED, scopedLiteralOperand("1"), scopedCaptureOperand("seen", 0))
 			},
 			reason: "unsupported comparison operator",
 		},
 		"unsupported-literal": {
-			mutate: func(s *testpilotspb.ScopedContract) {
-				s.Clauses[0].Correlation = scopedComparison(testpilotspb.SCOPED_COMPARISON_OPERATOR_EQUAL, &testpilotspb.ScopedOperand{Operand: &testpilotspb.ScopedOperand_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_Natural{Natural: "01"}}}}, scopedCaptureOperand("seen", 0))
+			mutate: func(s *testpilotspb.CorrelatedContract) {
+				s.Clauses[0].Correlation = correlatedComparison(testpilotspb.CORRELATED_COMPARISON_OPERATOR_EQUAL, &testpilotspb.CorrelatedOperand{Operand: &testpilotspb.CorrelatedOperand_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_Natural{Natural: "01"}}}}, scopedCaptureOperand("seen", 0))
 			},
 			reason: "unsupported correlation literal",
 		},
 		"repeated-capture-id-across-clauses": {
-			mutate: func(s *testpilotspb.ScopedContract) {
+			mutate: func(s *testpilotspb.CorrelatedContract) {
 				second := proto.CloneOf(s.Clauses[0])
 				second.ClauseId = "second"
 				s.Clauses = append(s.Clauses, second)
@@ -317,7 +317,7 @@ func TestScopedCapturePrepareRejectsUnsupportedDeclarations(t *testing.T) {
 			reason: "invalid capture declaration",
 		},
 		"capture-of-another-clause": {
-			mutate: func(s *testpilotspb.ScopedContract) {
+			mutate: func(s *testpilotspb.CorrelatedContract) {
 				second := proto.CloneOf(s.Clauses[0])
 				second.ClauseId = "second"
 				second.Captures = nil
@@ -326,13 +326,13 @@ func TestScopedCapturePrepareRejectsUnsupportedDeclarations(t *testing.T) {
 			reason: "unbound capture reference",
 		},
 		"mismatched-operand-kinds": {
-			mutate: func(s *testpilotspb.ScopedContract) {
-				s.Clauses[0].Correlation = scopedComparison(testpilotspb.SCOPED_COMPARISON_OPERATOR_EQUAL, scopedFieldOperand(repliedField), &testpilotspb.ScopedOperand{Operand: &testpilotspb.ScopedOperand_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_Natural{Natural: "1"}}}})
+			mutate: func(s *testpilotspb.CorrelatedContract) {
+				s.Clauses[0].Correlation = correlatedComparison(testpilotspb.CORRELATED_COMPARISON_OPERATOR_EQUAL, scopedFieldOperand(repliedField), &testpilotspb.CorrelatedOperand{Operand: &testpilotspb.CorrelatedOperand_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_Natural{Natural: "1"}}}})
 			},
 			reason: "incompatible correlation operand types",
 		},
 		"mismatched-capture-kind": {
-			mutate: func(s *testpilotspb.ScopedContract) {
+			mutate: func(s *testpilotspb.CorrelatedContract) {
 				for _, rule := range s.ProjectionRules {
 					if rule.Kind == "reply" {
 						rule.Fields[0].Type = &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_NATURAL}
@@ -342,31 +342,31 @@ func TestScopedCapturePrepareRejectsUnsupportedDeclarations(t *testing.T) {
 			reason: "incompatible correlation operand types",
 		},
 		"ambiguous-retained-field-kind": {
-			mutate: func(s *testpilotspb.ScopedContract) {
+			mutate: func(s *testpilotspb.CorrelatedContract) {
 				for _, rule := range s.ProjectionRules {
 					if rule.Kind == "reply" {
-						rule.Fields = append(rule.Fields, &testpilotspb.ScopedFieldPolicy{FieldId: capturedField, Type: &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_NATURAL}, Disposition: testpilotspb.SCOPED_FIELD_DISPOSITION_RETAIN})
+						rule.Fields = append(rule.Fields, &testpilotspb.CorrelatedFieldPolicy{FieldId: capturedField, Type: &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_NATURAL}, Disposition: testpilotspb.CORRELATED_FIELD_DISPOSITION_RETAIN})
 					}
 				}
 			},
 			reason: "invalid capture declaration",
 		},
 		"depth-exhausted": {
-			mutate: func(s *testpilotspb.ScopedContract) { s.Limits.MaxCorrelationDepth = 1 },
+			mutate: func(s *testpilotspb.CorrelatedContract) { s.Limits.MaxCorrelationDepth = 1 },
 			reason: "correlation depth exhausted",
 		},
 		"missing-capture-ceiling": {
-			mutate: func(s *testpilotspb.ScopedContract) { s.Limits.MaxCaptures = 0 },
+			mutate: func(s *testpilotspb.CorrelatedContract) { s.Limits.MaxCaptures = 0 },
 			reason: "scoped capture limits must be positive",
 		},
 		"missing-depth-ceiling": {
-			mutate: func(s *testpilotspb.ScopedContract) { s.Limits.MaxCorrelationDepth = 0 },
+			mutate: func(s *testpilotspb.CorrelatedContract) { s.Limits.MaxCorrelationDepth = 0 },
 			reason: "scoped capture limits must be positive",
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			c, catalog, view, ceiling := scopedCaptureFixture(t, 1, 2, scopedCorrelation(0))
-			tc.mutate(c.Scoped)
+			c, catalog, view, ceiling := scopedCaptureFixture(t, 1, 2, correlatedCorrelation(0))
+			tc.mutate(c.Correlated)
 			_, err := Prepare(c, catalog, view, ceiling)
 			require.ErrorContains(t, err, tc.reason)
 		})
@@ -375,11 +375,11 @@ func TestScopedCapturePrepareRejectsUnsupportedDeclarations(t *testing.T) {
 
 // A capability that declares neither captures nor a correlation keeps its exact prior meaning and
 // leaves both new ceilings unset.
-func TestScopedCapabilityWithoutCapturesIsUnchanged(t *testing.T) {
-	c, catalog, view, ceiling := scopedFixture(t, 1)
-	require.Zero(t, c.Scoped.Limits.MaxCaptures)
-	require.Zero(t, c.Scoped.Limits.MaxCorrelationDepth)
-	require.True(t, slices.ContainsFunc(c.Scoped.Clauses, func(clause *testpilotspb.ScopedClause) bool {
+func TestCorrelatedCapabilityWithoutCapturesIsUnchanged(t *testing.T) {
+	c, catalog, view, ceiling := correlatedFixture(t, 1)
+	require.Zero(t, c.Correlated.Limits.MaxCaptures)
+	require.Zero(t, c.Correlated.Limits.MaxCorrelationDepth)
+	require.True(t, slices.ContainsFunc(c.Correlated.Clauses, func(clause *testpilotspb.CorrelatedRule) bool {
 		return len(clause.Captures) == 0 && clause.Correlation == nil
 	}))
 	p, err := Prepare(c, catalog, view, ceiling)
@@ -389,7 +389,7 @@ func TestScopedCapabilityWithoutCapturesIsUnchanged(t *testing.T) {
 	_, err = e.Observe(context.Background(), event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED))
 	require.NoError(t, err)
 	for i, kind := range []string{"request", "reply"} {
-		_, err = e.Observe(context.Background(), scopedEvent(t, int64(i+2), scopedEvidence(int64(i), kind, "a")))
+		_, err = e.Observe(context.Background(), scopedEvent(t, int64(i+2), correlatedEvidence(int64(i), kind, "a")))
 		require.NoError(t, err)
 	}
 	require.Equal(t, testpilotspb.RULE_VERDICT_STATUS_SATISFIED, e.result.Rules[0].Status)
@@ -397,7 +397,7 @@ func TestScopedCapabilityWithoutCapturesIsUnchanged(t *testing.T) {
 }
 
 // Live admission and offline replay agree on a capture-bearing capability at every chunk boundary.
-func TestScopedCaptureLiveAndOfflineAgree(t *testing.T) {
+func TestCorrelatedCaptureLiveAndOfflineAgree(t *testing.T) {
 	for _, tc := range []struct {
 		name  string
 		steps []scopedStep
@@ -409,13 +409,13 @@ func TestScopedCaptureLiveAndOfflineAgree(t *testing.T) {
 		{"interleaved-operations", []scopedStep{{"request", "a", "1"}, {"request", "b", "2"}, {"reply", "b", "2"}}, testpilotspb.RULE_VERDICT_STATUS_INCONCLUSIVE},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			c, catalog, view, ceiling := scopedCaptureFixture(t, 2, 2, scopedCorrelation(0))
+			c, catalog, view, ceiling := scopedCaptureFixture(t, 2, 2, correlatedCorrelation(0))
 			prepared, err := Prepare(c, catalog, view, ceiling)
 			require.NoError(t, err)
 			for split := 0; split <= len(tc.steps); split++ {
 				monitor, err := prepared.New(context.Background(), view)
 				require.NoError(t, err)
-				run := &testpilotspb.Run{RunId: "one", CaseId: "scoped.case", ProgramId: "scoped.program", Status: testpilotspb.RUN_STATUS_COMPLETED, Events: []*testpilotspb.RunEvent{event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED)}}
+				run := &testpilotspb.Run{RunId: "one", CaseId: "correlated.case", ProgramId: "scoped.program", Status: testpilotspb.RUN_STATUS_COMPLETED, Events: []*testpilotspb.RunEvent{event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED)}}
 				_, err = monitor.Observe(context.Background(), run.Events[0])
 				require.NoError(t, err)
 				for _, chunk := range [][]scopedStep{tc.steps[:split], tc.steps[split:]} {

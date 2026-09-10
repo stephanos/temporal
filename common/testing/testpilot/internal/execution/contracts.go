@@ -93,10 +93,10 @@ type ReservationHandle interface {
 	Consume(context.Context) (Coordinate, error)
 }
 
-// SlotBridge checks Run/activation ownership and immutable publication, rejects closed or
+// CapabilityBridge checks Run/activation ownership and immutable publication, rejects closed or
 // conflicting writes, and destroys capabilities at session closure. Only readiness and
 // consumption are exposed to execution; payload inspection remains inside the Driver adapter.
-type SlotBridge interface {
+type CapabilityBridge interface {
 	Publish(context.Context, Coordinate, string, OpaqueCapability) error
 	Await(context.Context, string) error
 	Consume(context.Context, string) (OpaqueCapability, error)
@@ -114,7 +114,7 @@ type Session interface {
 	InvokeRPC(context.Context, Coordinate, string, protoreflect.MethodDescriptor, proto.Message) (EffectHandle, error)
 	InvokeCapability(context.Context, Coordinate, OpaqueCapability, proto.Message) (EffectHandle, error)
 	InjectFault(context.Context, Coordinate, string, testpilotspb.FaultKind) (EffectHandle, error)
-	Bridge(context.Context) (SlotBridge, error)
+	Bridge(context.Context) (CapabilityBridge, error)
 	Quarantine(context.Context, EffectHandle) error
 	Close(context.Context) error
 	// Diagnose remains usable after Close, is bounded by Driver policy, and cannot mutate returned data.

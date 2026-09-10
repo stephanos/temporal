@@ -9,7 +9,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-// InstructionOpcode is the single mapping from a declared instruction to the opcode a Profile must
+// InstructionOpcode is the single mapping from a declared instruction to the capability a Profile must
 // authorize. Profile derivation reads it through the facade so a Case's instructions and the
 // capabilities that authorize them cannot drift apart.
 func InstructionOpcode(instruction *testpilotspb.Instruction) Opcode {
@@ -25,7 +25,7 @@ func InstructionOpcode(instruction *testpilotspb.Instruction) Opcode {
 		return CompleteNexusOperation
 	case *testpilotspb.Instruction_StartNexusOperation:
 		return StartNexusOperation
-	case *testpilotspb.Instruction_AwaitOutcome:
+	case *testpilotspb.Instruction_AwaitInstruction:
 		return Await
 	case *testpilotspb.Instruction_Finish:
 		return Finish
@@ -37,8 +37,8 @@ func InstructionOpcode(instruction *testpilotspb.Instruction) Opcode {
 		return 0
 	}
 }
-func opcodeContext(opcode Opcode) testpilotspb.EntrypointKind {
-	switch opcode {
+func opcodeContext(capability Opcode) testpilotspb.EntrypointKind {
+	switch capability {
 	case InvokeRPC, AwaitSlot, CompleteNexusOperation, InjectFault:
 		return testpilotspb.ENTRYPOINT_KIND_CONTROLLER
 	case StartNexusOperation, Await, Finish:
@@ -64,7 +64,7 @@ func (a *admission) bindInstructions() error {
 }
 func (a *admission) bindInstruction(g *graph, i int, n *node) error {
 	n.opcode = InstructionOpcode(n.source.Instruction)
-	if n.opcode == 0 || opcodeContext(n.opcode) != g.context || !a.capabilities[n.opcode] {
+	if n.opcode == 0 || opcodeContext(n.opcode) != g.context || !a.opcodes[n.opcode] {
 		return invalid(ir.Unsupported, nodePath(g, n), "unsupported instruction context or Driver capability")
 	}
 	if err := a.bindNodeBounds(g, n); err != nil {
@@ -104,12 +104,12 @@ func (a *admission) bindInstruction(g *graph, i int, n *node) error {
 	case InjectFault:
 		return a.bindFault(g, n)
 	default:
-		return invalid(ir.Unsupported, nodePath(g, n), "unknown opcode")
+		return invalid(ir.Unsupported, nodePath(g, n), "unknown capability")
 	}
 	return nil
 }
 func bindAwait(g *graph, n *node) error {
-	reference := n.source.Instruction.GetAwaitOutcome().GetInstruction()
+	reference := n.source.Instruction.GetAwaitInstruction().GetInstruction()
 	dependency, exists := g.index[reference.GetInstructionId()]
 	if !exists || reference.GetEntrypointId() != g.id || !n.ancestors[dependency] {
 		return invalid(ir.Unavailable, nodePath(g, n), "Await requires an earlier local instruction")
@@ -304,8 +304,8 @@ func (a *admission) bindProjectionSinks(g *graph, index int, n *node, source *te
 			key = "observation:" + destination.ObservationId
 			target, exists = a.observations[destination.ObservationId]
 			emits = true
-		case *testpilotspb.ProjectionTarget_ScopedEvidence:
-			lift, err := a.bindEvidenceLift(g, n, destination.ScopedEvidence, typ)
+		case *testpilotspb.ProjectionTarget_CorrelatedEvidence:
+			lift, err := a.bindEvidenceLift(g, n, destination.CorrelatedEvidence, typ)
 			if err != nil {
 				return nil, false, err
 			}
@@ -331,14 +331,14 @@ func (a *admission) bindProjectionSinks(g *graph, index int, n *node, source *te
 	return lifts, emits, nil
 }
 
-// bindEvidenceLift type-checks one declared ScopedEvidence lift against the value being projected.
-// The sink Observation must be the exact ScopedEvidence message the scoped capability decodes, and
+// bindEvidenceLift type-checks one declared CorrelatedEvidence lift against the value being projected.
+// The sink Observation must be the exact CorrelatedEvidence message the scoped capability decodes, and
 // every bound path must read a scalar the portable evidence domain admits, so a lift that cannot
 // produce decodable evidence rejects at Prepare rather than at the first recorded event.
-func (a *admission) bindEvidenceLift(g *graph, n *node, source *testpilotspb.ScopedEvidenceProjection, typ ir.Type) (*evidenceLift, error) {
+func (a *admission) bindEvidenceLift(g *graph, n *node, source *testpilotspb.CorrelatedEvidenceProjection, typ ir.Type) (*evidenceLift, error) {
 	target, exists := a.observations[source.GetObservationId()]
-	if !exists || target.Cardinality() != ir.Singular || !ir.SameMessage(target.Message(), (&testpilotspb.ScopedEvidence{}).ProtoReflect().Descriptor()) {
-		return nil, invalid(ir.TypeMismatch, nodePath(g, n), "evidence lift requires an exact declared ScopedEvidence Observation")
+	if !exists || target.Cardinality() != ir.Singular || !ir.SameMessage(target.Message(), (&testpilotspb.CorrelatedEvidence{}).ProtoReflect().Descriptor()) {
+		return nil, invalid(ir.TypeMismatch, nodePath(g, n), "evidence lift requires an exact declared CorrelatedEvidence Observation")
 	}
 	if typ.Cardinality() != ir.Singular || typ.Message() == nil || typ.Opaque() || typ.Any() {
 		return nil, invalid(ir.TypeMismatch, nodePath(g, n), "evidence lift requires a singular message projection")
@@ -368,7 +368,7 @@ func (a *admission) bindEvidenceLift(g *graph, n *node, source *testpilotspb.Sco
 	}
 	return lift, nil
 }
-func (a *admission) bindEvidenceRule(g *graph, n *node, source *testpilotspb.ScopedEvidenceRule, typ ir.Type) (*evidenceRule, error) {
+func (a *admission) bindEvidenceRule(g *graph, n *node, source *testpilotspb.CorrelatedEvidenceRule, typ ir.Type) (*evidenceRule, error) {
 	if !validID(source.GetSource()) || !validID(source.GetKind()) {
 		return nil, invalid(ir.Malformed, nodePath(g, n), "evidence rule requires a source and a kind")
 	}
@@ -423,7 +423,7 @@ var evidenceIntegerKinds = []testpilotspb.ScalarKind{
 	testpilotspb.SCALAR_KIND_SFIXED64,
 }
 
-func (a *admission) bindEvidenceBindings(g *graph, n *node, typ ir.Type, sources []*testpilotspb.ScopedEvidenceBinding, kinds ...testpilotspb.ScalarKind) ([]evidenceBinding, error) {
+func (a *admission) bindEvidenceBindings(g *graph, n *node, typ ir.Type, sources []*testpilotspb.CorrelatedEvidenceBinding, kinds ...testpilotspb.ScalarKind) ([]evidenceBinding, error) {
 	bound := make([]evidenceBinding, 0, len(sources))
 	seen := map[string]bool{}
 	for _, source := range sources {
@@ -432,12 +432,12 @@ func (a *admission) bindEvidenceBindings(g *graph, n *node, typ ir.Type, sources
 		}
 		seen[source.GetFieldId()] = true
 		switch supply := source.GetValue().(type) {
-		case *testpilotspb.ScopedEvidenceBinding_Literal:
+		case *testpilotspb.CorrelatedEvidenceBinding_Literal:
 			if supply.Literal == "" {
 				return nil, invalid(ir.Malformed, nodePath(g, n), "evidence literal binding requires a value")
 			}
 			bound = append(bound, evidenceBinding{fieldID: source.GetFieldId(), literal: supply.Literal})
-		case *testpilotspb.ScopedEvidenceBinding_Path:
+		case *testpilotspb.CorrelatedEvidenceBinding_Path:
 			path, err := a.bindEvidencePath(g, n, typ, supply.Path, kinds...)
 			if err != nil {
 				return nil, err
@@ -613,7 +613,7 @@ func (a *admission) bindNodeDataflow(g *graph, n *node, boolean ir.Type) error {
 	case Await, InjectFault:
 		// A fault names its target role statically; it binds no Program expression.
 	default:
-		return invalid(ir.Unsupported, nodePath(g, n), "unknown opcode")
+		return invalid(ir.Unsupported, nodePath(g, n), "unknown capability")
 	}
 	if err != nil {
 		return err

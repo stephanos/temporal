@@ -1,7 +1,7 @@
-import Testpilot.Scoped
+import Testpilot.Correlated
 
 /-!
-Portable field and capture evaluation for the version-one scoped capability.
+Portable field and capture evaluation for the version-one correlated capability.
 
 The capability under test is the closed one an offline reader decodes: declared evidence fields,
 per-operation keyed captures of those fields, and a correlation over this step's fields and the
@@ -17,7 +17,7 @@ open Shared.SemanticData
 namespace Testpilot.Tests.Fields
 
 private def number (value : Int) : Int64 := Int64.ofInt value
-private def value (definitionId text : String) : ScopedValue :=
+private def value (definitionId text : String) : CorrelatedValue :=
   { definition_id := definitionId, value := text }
 
 private def state := value "state" "ready"
@@ -26,82 +26,82 @@ private def reply := value "action" "reply"
 private def quiet := value "outcome" "quiet"
 private def responded := value "outcome" "response"
 
-private def transition (action : ScopedValue) (outcome : ScopedValue) : ScopedTransition := {
+private def transition (action : CorrelatedValue) (outcome : CorrelatedValue) : CorrelatedTransition := {
   prior_state := some state, action := some action
-  resulting_state := some state, outcome := some outcome }
-private def output (action : ScopedValue) (outcome : ScopedValue) : ScopedTransition :=
+  state := some state, outcome := some outcome }
+private def output (action : CorrelatedValue) (outcome : CorrelatedValue) : CorrelatedTransition :=
   { transition action outcome with prior_state := none }
 
 /-- Each evidence kind declares its own field, exactly as the two distinct operand paths a model
 correlation names would be projected. -/
 private def policy (fieldId : String)
-    (disposition := ScopedFieldDisposition.SCOPED_FIELD_DISPOSITION_RETAIN) : ScopedFieldPolicy :=
+    (disposition := CorrelatedFieldDisposition.CORRELATED_FIELD_DISPOSITION_RETAIN) : CorrelatedFieldPolicy :=
   { field_id := fieldId, type := some { kind := .SCALAR_KIND_TEXT }, disposition }
 
-private def rule (kind : String) (action outcome : ScopedValue) (fields : Array ScopedFieldPolicy) :
-    ScopedProjectionRule := {
-  kind, meaning := .SCOPED_EVIDENCE_MEANING_CONFIRMED
+private def rule (kind : String) (action outcome : CorrelatedValue) (fields : Array CorrelatedFieldPolicy) :
+    CorrelatedProjectionRule := {
+  kind, meaning := .CORRELATED_EVIDENCE_MEANING_CONFIRMED
   outputs := #[output action outcome], fields }
 
-private def requestRule (fields : Array ScopedFieldPolicy := #[policy "requested"]) :=
+private def requestRule (fields : Array CorrelatedFieldPolicy := #[policy "requested"]) :=
   rule "request" request quiet fields
 private def replyRule := rule "reply" reply responded #[policy "replied"]
 /-- A reply-shaped step that declares no fields at all, so a correlation reading one finds none. -/
 private def silentRule := rule "silent" reply responded #[]
 
 private def capture (lifetime : Nat := 2) (field := "requested") (id := "seen") :
-    ScopedCaptureDeclaration :=
+    CorrelatedCaptureDeclaration :=
   { capture_id := id, field_id := field, lifetime := number lifetime }
 
-private def literal (text : String) : ScopedOperand :=
+private def literal (text : String) : CorrelatedOperand :=
   { operand := some (.literal { value := some (.text text) }) }
-private def field (id : String) : ScopedOperand := { operand := some (.field_id id) }
-private def natural (text : String) : ScopedOperand :=
+private def field (id : String) : CorrelatedOperand := { operand := some (.field_id id) }
+private def natural (text : String) : CorrelatedOperand :=
   { operand := some (.literal { value := some (.natural text) }) }
-private def retained (ordinal : Nat) (id := "seen") : ScopedOperand :=
+private def retained (ordinal : Nat) (id := "seen") : CorrelatedOperand :=
   { operand := some (.capture { capture_id := id, ordinal := number ordinal }) }
 
-private def comparison (left right : ScopedOperand)
-    (operator := ScopedComparisonOperator.SCOPED_COMPARISON_OPERATOR_EQUAL) : ScopedCorrelation :=
+private def comparison (left right : CorrelatedOperand)
+    (operator := CorrelatedComparisonOperator.CORRELATED_COMPARISON_OPERATOR_EQUAL) : CorrelatedCorrelation :=
   { condition := some (.comparison { operator, left := some left, right := some right }) }
-private def triggered : ScopedCorrelation :=
+private def triggered : CorrelatedCorrelation :=
   { condition := some (.predicate {
-      field := .SCOPED_PREDICATE_FIELD_ACTION, definition_id := "action"
+      field := .CORRELATED_PREDICATE_FIELD_ACTION, definition_id := "action"
       constraint := some (.equals_text "request") }) }
-private def anyOf (operands : Array ScopedCorrelation) : ScopedCorrelation :=
+private def anyOf (operands : Array CorrelatedCorrelation) : CorrelatedCorrelation :=
   { condition := some (.any { operands }) }
-private def allOf (operands : Array ScopedCorrelation) : ScopedCorrelation :=
+private def allOf (operands : Array CorrelatedCorrelation) : CorrelatedCorrelation :=
   { condition := some (.all { operands }) }
 
 /-- The request step creates the occurrence its own correlation would read, so the trigger disjunct
 decides it before the capture operand is reached. -/
-private def correlation (ordinal : Nat := 0) : ScopedCorrelation :=
+private def correlation (ordinal : Nat := 0) : CorrelatedCorrelation :=
   anyOf #[triggered, comparison (field "replied") (retained ordinal)]
 
-private def clause (bound : Nat) (captures : Array ScopedCaptureDeclaration := #[capture])
-    (requirement : Option ScopedCorrelation := some (correlation))
-    (endpoint := ScopedEndpoint.SCOPED_ENDPOINT_RUNTIME_PREFIX) (clauseId := "response") :
-    ScopedClause := {
-  clause_id := clauseId, clock := .SCOPED_CLOCK_OPERATION_TRANSITIONS
-  bound := number bound, endpoint
+private def clause (bound : Nat) (captures : Array CorrelatedCaptureDeclaration := #[capture])
+    (requirement : Option CorrelatedCorrelation := some (correlation))
+    (ending := TraceEnding.TRACE_ENDING_PARTIAL) (clauseId := "response") :
+    CorrelatedRule := {
+  clause_id := clauseId, clock := .CORRELATED_CLOCK_OPERATION_TRANSITIONS
+  bound := number bound, ending
   trigger := some {
-    field := .SCOPED_PREDICATE_FIELD_ACTION, definition_id := "action"
+    field := .CORRELATED_PREDICATE_FIELD_ACTION, definition_id := "action"
     constraint := some (.equals_text "request") }
   response := some {
-    field := .SCOPED_PREDICATE_FIELD_OUTCOME, definition_id := "outcome"
+    field := .CORRELATED_PREDICATE_FIELD_OUTCOME, definition_id := "outcome"
     constraint := some (.equals_text "response") }
   captures, correlation := requirement }
 
-private def budget (captures : Nat := 8) (depth : Nat := 4) : ScopedLimits := {
+private def budget (captures : Nat := 8) (depth : Nat := 4) : CorrelatedLimits := {
   max_events := number 16, max_buffered := number 8, max_keys := number 8
   max_support := number 256, max_projection_work := number 1000000
   max_event_bytes := number 512, max_semantic_transitions := number 32
   max_obligations := number 16, max_obligation_work := number 1000000000
   max_captures := number captures, max_correlation_depth := number depth }
 
-private def contract (clauses : Array ScopedClause) (limits : ScopedLimits := budget)
-    (rules : Array ScopedProjectionRule := #[requestRule, replyRule, silentRule]) :
-    ScopedContract := {
+private def contract (clauses : Array CorrelatedRule) (limits : CorrelatedLimits := budget)
+    (rules : Array CorrelatedProjectionRule := #[requestRule, replyRule, silentRule]) :
+    CorrelatedContract := {
   version := 1, projection_id := "projection", projection_fingerprint := "fingerprint"
   evidence_observation_id := "evidence", scope_fields := #["run"], operation_field := "operation"
   sources := #["source"], initial_state := some state
@@ -109,7 +109,7 @@ private def contract (clauses : Array ScopedClause) (limits : ScopedLimits := bu
   projection_rules := rules, clauses, limits := some limits }
 
 private def evidence (ordinal : Nat) (kind : String) (count : String) (operation := "a")
-    (fieldId := if kind == "request" then "requested" else "replied") : ScopedEvidence := {
+    (fieldId := if kind == "request" then "requested" else "replied") : CorrelatedEvidence := {
   identity := some {
     scope := #[{ field_id := "run", value := "run-1" }], source := "source"
     ordinal := number ordinal }
@@ -119,16 +119,16 @@ private def evidence (ordinal : Nat) (kind : String) (count : String) (operation
 private def scope : List (Name × String) := [(⟨"run"⟩, "run-1")]
 
 /-- Replay a stream offline and report the clause answer, or the exact first rejection. -/
-private def replay (wire : ScopedContract) (events : List ScopedEvidence)
+private def replay (wire : CorrelatedContract) (events : List CorrelatedEvidence)
     (incomplete : Bool := false) : Except String (List Nat) := do
-  let compiled ← Testpilot.Scoped.decode wire
+  let compiled ← Testpilot.Correlated.decode wire
   let initial ← compiled.start scope
   let run ← events.zipIdx.foldlM (fun run (event, index) => run.observe (index + 1) event) initial
   pure (run.close.answers incomplete)
 
-private def answers (wire : ScopedContract) (events : List ScopedEvidence)
+private def answers (wire : CorrelatedContract) (events : List CorrelatedEvidence)
     (incomplete : Bool := false) : Option (List Nat) := (replay wire events incomplete).toOption
-private def rejection (wire : ScopedContract) (events : List ScopedEvidence) : Option String :=
+private def rejection (wire : CorrelatedContract) (events : List CorrelatedEvidence) : Option String :=
   match replay wire events with
   | .error reason => some reason
   | .ok _ => none
@@ -162,7 +162,7 @@ private def rejection (wire : ScopedContract) (events : List ScopedEvidence) : O
 -- and an unresolved prefix stays unresolved until a deliberate close decides it.
 #guard answers (contract #[clause 0]) [evidence 0 "request" "1", evidence 1 "reply" "1"] == some [3]
 #guard answers (contract #[clause 1]) [evidence 0 "request" "1"] == some [0]
-#guard answers (contract #[clause 1 (endpoint := .SCOPED_ENDPOINT_DELIBERATELY_CLOSED)])
+#guard answers (contract #[clause 1 (ending := .TRACE_ENDING_FINAL)])
   [evidence 0 "request" "1"] == some [3]
 #guard answers (contract #[clause 1]) [evidence 0 "request" "1", evidence 1 "reply" "1"] true ==
   some [0]
@@ -174,11 +174,11 @@ private def rejection (wire : ScopedContract) (events : List ScopedEvidence) : O
   [evidence 0 "request" "1", evidence 1 "request" "2"] == some "capture lifetime exhausted"
 
 /-- Decoding alone rejects a capability whose declarations could never bind. -/
-private def decodeError (wire : ScopedContract) : Option String :=
-  match Testpilot.Scoped.decode wire with
+private def decodeError (wire : CorrelatedContract) : Option String :=
+  match Testpilot.Correlated.decode wire with
   | .error reason => some reason
   | .ok _ => none
-private def decodes (wire : ScopedContract) : Bool := (Testpilot.Scoped.decode wire).isOk
+private def decodes (wire : CorrelatedContract) : Bool := (Testpilot.Correlated.decode wire).isOk
 
 #guard decodes (contract #[clause 1])
 #guard decodeError (contract #[clause 1 (captures := #[capture (field := "absent")])]) ==
@@ -203,7 +203,7 @@ private def decodes (wire : ScopedContract) : Bool := (Testpilot.Scoped.decode w
 -- A field the projection redacts carries no value, so it can supply neither a capture nor a
 -- correlation operand.
 #guard decodeError (contract #[clause 1]
-  (rules := #[requestRule #[policy "requested" .SCOPED_FIELD_DISPOSITION_REDACT], replyRule])) ==
+  (rules := #[requestRule #[policy "requested" .CORRELATED_FIELD_DISPOSITION_REDACT], replyRule])) ==
   some "capture names an unretained evidence field"
 
 -- Nested groups compose under the declared depth, and `all` stops at its first false operand, so
@@ -226,7 +226,7 @@ private def decodes (wire : ScopedContract) : Bool := (Testpilot.Scoped.decode w
 
 -- A malformed or incomplete evidence value keeps its declared meaning: the codec admits only the
 -- exact scalar forms this capability declares, and never approximates one.
-private def valued (wire : temporal.server.api.testpilot.v1.Value) : ScopedEvidence :=
+private def valued (wire : temporal.server.api.testpilot.v1.Value) : CorrelatedEvidence :=
   { evidence 0 "request" "1" with
     fields := #[{ field_id := "requested", value := some wire }] }
 #guard rejection (contract #[clause 1]) [valued { value := some (.natural "01") }] ==
@@ -254,7 +254,7 @@ private def valued (wire : temporal.server.api.testpilot.v1.Value) : ScopedEvide
 -- rather than compared and found unequal.
 #guard decodeError (contract #[clause 1 (requirement := some
   (comparison (field "replied") (natural "1")))]) == some "incompatible correlation operand types"
-private def naturalReply : ScopedFieldPolicy :=
+private def naturalReply : CorrelatedFieldPolicy :=
   { policy "replied" with type := some { kind := .SCALAR_KIND_NATURAL } }
 #guard decodeError (contract #[clause 1 (requirement := some
   (comparison (field "replied") (retained 0)))]
@@ -270,11 +270,11 @@ private def naturalReply : ScopedFieldPolicy :=
 
 -- A capability that declares neither captures nor a correlation keeps its exact prior meaning, and
 -- leaves both new ceilings unset.
-private def bare : ScopedContract :=
+private def bare : CorrelatedContract :=
   contract #[clause 1 (captures := #[]) (requirement := none)]
     (limits := { budget with max_captures := 0, max_correlation_depth := 0 })
 #guard answers bare [evidence 0 "request" "1", evidence 1 "reply" "2"] == some [2]
-#guard (Testpilot.Scoped.decode bare).toOption.map (fun compiled => compiled.captures == 0 &&
+#guard (Testpilot.Correlated.decode bare).toOption.map (fun compiled => compiled.captures == 0 &&
   compiled.keyed == [("response", ⟨[], none⟩)]) == some true
 
 end Testpilot.Tests.Fields

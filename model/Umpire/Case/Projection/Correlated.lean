@@ -1,8 +1,8 @@
 import Umpire.Case.Projection.Coverage
-import Umpire.Property.Scoped
+import Umpire.Property.Correlated
 
 /-!
-Atomic composition of checked evidence projection with the Property-owned scoped kernel.
+Atomic composition of checked evidence projection with the Property-owned correlated kernel.
 Only newly emitted, Target-authorized steps tick obligations. Pending evidence is retained by the
 projector; it cannot establish satisfaction. Projection or Property rejection returns no replacement
 Run and cannot erase an answer already supported by the previous immutable Run.
@@ -16,9 +16,9 @@ reconstructs, so a clause reading one is rejected rather than admitted into a Ru
 could never bind.
 -/
 
-namespace Umpire.Case.Projection.Scoped
+namespace Umpire.Case.Projection.Correlated
 
-open Property.Scoped
+open Property.Correlated
 
 variable {Law : Law → Prop} {Setup : Type}
 variable {target : CheckedModel Law Setup ModelValue ModelValue ModelValue ModelValue}
@@ -26,7 +26,7 @@ variable {target : CheckedModel Law Setup ModelValue ModelValue ModelValue Model
 /-- Failures retain which checked boundary rejected the append. -/
 inductive Error where
   | projection (error : Projection.Error)
-  | property (error : Property.Scoped.Error)
+  | property (error : Property.Correlated.Error)
   | coverage (error : Projection.CoverageError)
   deriving BEq, DecidableEq, Repr
 
@@ -37,7 +37,7 @@ which no projected scalar reconstructs, so a clause reading one is rejected here
 admitted into a Run whose operands could never bind. -/
 private def checkCoverage {plan : Projection.Checked target}
     (coverage : Projection.Coverage plan) (property : CheckedProperty) : Except Error Unit := do
-  for clause in property.scopedClauses do
+  for clause in property.correlatedRules do
     let unsupported := fun reason =>
       Error.property (.unsupported clause.declaration.id reason)
     let require := fun (path : PropertyFieldPath) => do
@@ -57,18 +57,18 @@ private def checkCoverage {plan : Projection.Checked target}
 A clause that declares keyed captures or a correlation is admitted only when the requested coverage
 supplies every field it reads; the default empty coverage therefore rejects every such clause. -/
 def compile (plan : Projection.Checked target) (property : CheckedProperty)
-    (limits : Property.Scoped.Limits)
+    (limits : Property.Correlated.Limits)
     (coverage : Projection.Coverage plan := Projection.Coverage.empty plan) :
     Except Error (Compiled target) := do
   checkCoverage coverage property
-  (Property.Scoped.compile target property plan.scopeFields plan.operationField limits).mapError
+  (Property.Correlated.compile target property plan.scopeFields plan.operationField limits).mapError
     Error.property
 
 /-- Both run-local states advance or reject together. -/
 structure Run (plan : Projection.Checked target) (compiled : Compiled target) where
   private mk ::
   private evidence : Projection.Run plan
-  private semantic : Property.Scoped.Run compiled
+  private semantic : Property.Correlated.Run compiled
   private coverage : Projection.Coverage plan
   private closed : Bool := false
 
@@ -136,4 +136,4 @@ theorem Run.admitMany_append {plan : Projection.Checked target} {compiled : Comp
       (run.admitMany first >>= fun next => next.admitMany second) := by
   simp [admitMany, List.foldlM_append]
 
-end Umpire.Case.Projection.Scoped
+end Umpire.Case.Projection.Correlated

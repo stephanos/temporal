@@ -1,14 +1,14 @@
-import Umpire.Property.Scoped.Reference
-import Umpire.Property.Scoped.Capture
+import Umpire.Property.Correlated.Reference
+import Umpire.Property.Correlated.Capture
 
 /-!
-Checked, bounded operation-scoped Property evaluation. `compile` binds the Property's scope and
+Checked, bounded operation-correlated Property evaluation. `compile` binds the Property's scope and
 key to an admitted semantic producer. `start` fixes an execution scope and Target initial state;
 `consume` validates an entire labeled transition before ticking only its operation's obligations.
 Every append is immutable and atomic. Whole-stream and offline consumers use `consumeMany`.
 -/
 
-namespace Umpire.Property.Scoped
+namespace Umpire.Property.Correlated
 
 variable {Law : Law → Prop} {Setup : Type}
 variable {target : CheckedModel Law Setup ModelValue ModelValue ModelValue ModelValue}
@@ -37,7 +37,7 @@ inductive Error where
   | capture (error : CaptureError)
   deriving BEq, DecidableEq, Repr
 
-private def referenceClause (clause : CheckedPropertyScopedClause) : CheckedPropertyClause :=
+private def referenceClause (clause : CheckedPropertyCorrelatedClause) : CheckedPropertyClause :=
   .eventuallyWithin clause.declaration.id clause.triggerPattern clause.responsePattern
     ⟨clause.declaration.bound, .steps⟩
 
@@ -56,7 +56,7 @@ private def responsePredicateField (pattern : PropertyPattern) : PropertyPredica
   | _ => .outcome
 
 private structure CompiledClause where
-  original : CheckedPropertyScopedClause
+  original : CheckedPropertyCorrelatedClause
   reference : CheckedProperty
   shape : reference.clauses = [referenceClause original]
   typedTrigger : some original.trigger.expression = patternPredicate .selectedAction original.triggerPattern
@@ -75,23 +75,23 @@ structure Compiled (target : CheckedModel Law Setup ModelValue ModelValue ModelV
   operationField : DefinitionId
   limits : Limits
 
-private def closedPredicate (pattern : PropertyPattern) : Shared.ScopedObligation.Predicate := {
+private def closedPredicate (pattern : PropertyPattern) : Shared.CorrelatedObligation.Predicate := {
   field := match pattern.field with
     | .selectedAction => 1 | .outcome => 2 | .resultingState => 3 | .observation => 4
     | _ => 0
   reference := pattern.reference
   equalsText := match pattern.constraint with | .equals text => some text | _ => none }
 
-private def closedClause (clause : CheckedPropertyScopedClause) : Shared.ScopedObligation.Clause := {
+private def closedClause (clause : CheckedPropertyCorrelatedClause) : Shared.CorrelatedObligation.Clause := {
   id := clause.declaration.id.value
   bound := clause.declaration.bound
-  final := clause.declaration.endpoint == .final
+  final := clause.declaration.ending == .final
   trigger := closedPredicate clause.triggerPattern
   response := closedPredicate clause.responsePattern }
 
 /-- Checked source reference retained for portable compiler correspondence. -/
 structure PortableReference where
-  original : CheckedPropertyScopedClause
+  original : CheckedPropertyCorrelatedClause
   reference : CheckedProperty
   shape : reference.clauses = [referenceClause original]
   triggerAligned : original.triggerPattern.field = .selectedAction
@@ -99,10 +99,10 @@ structure PortableReference where
     original.responsePattern.field = .resultingState ∨ original.responsePattern.field = .observation
 
 /-- Closed clause data derived from the checked supported predicate fragment. -/
-def PortableReference.portable (binding : PortableReference) : Shared.ScopedObligation.Clause :=
+def PortableReference.portable (binding : PortableReference) : Shared.CorrelatedObligation.Clause :=
   closedClause binding.original
 
-/-- The exact checked eventual clause for this scoped reference. -/
+/-- The exact checked eventual clause for this correlated reference. -/
 def PortableReference.clause (binding : PortableReference) :
     { clause // clause ∈ binding.reference.clauses } :=
   ⟨referenceClause binding.original, by simp [binding.shape]⟩
@@ -113,7 +113,7 @@ def Compiled.portableReferences (compiled : Compiled target) : List PortableRefe
     ⟨clause.original, clause.reference, clause.shape, clause.triggerAligned, clause.responseAligned⟩
 
 /-- Closed clause data derived from the checked supported predicate fragment. -/
-def Compiled.portableClauses (compiled : Compiled target) : List Shared.ScopedObligation.Clause :=
+def Compiled.portableClauses (compiled : Compiled target) : List Shared.CorrelatedObligation.Clause :=
   compiled.portableReferences.map PortableReference.portable
 
 /-- Reject a whole requested consumer when any clause or producer binding is unsupported. -/
@@ -121,12 +121,12 @@ def compile (target : CheckedModel Law Setup ModelValue ModelValue ModelValue Mo
     (property : CheckedProperty) (scopeFields : List DefinitionId)
     (operationField : DefinitionId) (limits : Limits) : Except Error (Compiled target) := do
   if let some clause := property.clauses.head? then
-    throw (.unsupported clause.id "mixed unscoped evaluation")
-  if property.scopedClauses.isEmpty then
-    throw (.unsupported property.id "no scoped clauses")
+    throw (.unsupported clause.id "mixed uncorrelated evaluation")
+  if property.correlatedRules.isEmpty then
+    throw (.unsupported property.id "no correlated clauses")
   let meanings := target.providers.flatMap (·.meanings)
   let mut clauses := []
-  for clause in property.scopedClauses do
+  for clause in property.correlatedRules do
     if property.access.meanings.any (fun required => !meanings.contains required) ||
         property.access.capabilities.any (fun required => !target.providers.any (fun provider =>
           provider.contract.id == required.id && provider.contract.version == required.version &&
@@ -166,11 +166,11 @@ structure Execution where
   coordinates : List Coordinate
   obligations : List Obligation
   consistent : obligations = consumeMany compiled.original.declaration.bound [] coordinates
-  projected : coordinates = (input.scopedCoordinates compiled.original.triggerPattern
+  projected : coordinates = (input.correlatedCoordinates compiled.original.triggerPattern
     compiled.original.responsePattern).map (fun point => Coordinate.mk point.1 point.2)
 
-/-- The original checked scoped clause behind this execution. -/
-abbrev Execution.clause (execution : Execution) : CheckedPropertyScopedClause := execution.compiled.original
+/-- The original checked correlated rule behind this execution. -/
+abbrev Execution.clause (execution : Execution) : CheckedPropertyCorrelatedClause := execution.compiled.original
 
 /-- Existing checked Property reference, admitted over exactly this execution's operation trace. -/
 abbrev Execution.reference (execution : Execution) : CheckedProperty := execution.compiled.reference
@@ -178,7 +178,7 @@ abbrev Execution.reference (execution : Execution) : CheckedProperty := executio
 private def Execution.start (clause : CompiledClause) (initial : ModelValue) : Except Error Execution := do
   let trace : ModelTrace ModelValue ModelValue ModelValue ModelValue := ⟨initial, []⟩
   let input ← (checkPropertyEvaluationInput clause.reference trace).mapError Error.property
-  if projected : ([] : List Coordinate) = (input.scopedCoordinates clause.original.triggerPattern
+  if projected : ([] : List Coordinate) = (input.correlatedCoordinates clause.original.triggerPattern
       clause.original.responsePattern).map (fun point => Coordinate.mk point.1 point.2) then
     pure ⟨clause, input, [], [], rfl, projected⟩
   else throw (.unsupported clause.original.declaration.id "invalid initial projection")
@@ -188,35 +188,35 @@ private def Execution.consume (execution : Execution)
     Except Error (Execution × Bool) := do
   let nextInput ← (checkPropertyEvaluationInput execution.reference
     ⟨priorState, [step]⟩).mapError Error.property
-  match shape : nextInput.scopedCoordinates execution.clause.triggerPattern execution.clause.responsePattern with
+  match shape : nextInput.correlatedCoordinates execution.clause.triggerPattern execution.clause.responsePattern with
   | [pair] =>
       let point := Coordinate.mk pair.1 pair.2
-      let input := execution.input.appendScoped nextInput execution.clause.declaration.id
+      let input := execution.input.appendCorrelated nextInput execution.clause.declaration.id
         execution.clause.triggerPattern execution.clause.responsePattern execution.clause.declaration.bound
         execution.compiled.shape
       let next : Execution := {
         compiled := execution.compiled
         input
         coordinates := execution.coordinates ++ [point]
-        obligations := Scoped.consume execution.clause.declaration.bound execution.obligations point
+        obligations := Correlated.consume execution.clause.declaration.bound execution.obligations point
         consistent := by
-          change Shared.ScopedObligation.consume _ _ _ = Shared.ScopedObligation.consumeMany _ _ _
+          change Shared.CorrelatedObligation.consume _ _ _ = Shared.CorrelatedObligation.consumeMany _ _ _
           rw [consumeMany_append]
           have consistent := execution.consistent
-          change execution.obligations = Shared.ScopedObligation.consumeMany _ _ _ at consistent
+          change execution.obligations = Shared.CorrelatedObligation.consumeMany _ _ _ at consistent
           rw [← consistent]
           rfl
         projected := by
           change execution.coordinates ++ [point] =
-            (input.scopedCoordinates execution.clause.triggerPattern execution.clause.responsePattern).map
+            (input.correlatedCoordinates execution.clause.triggerPattern execution.clause.responsePattern).map
               (fun point => Coordinate.mk point.1 point.2)
-          have appended := CheckedPropertyEvaluationInput.scopedCoordinates_append
+          have appended := CheckedPropertyEvaluationInput.correlatedCoordinates_append
             execution.input nextInput execution.clause.declaration.id execution.clause.triggerPattern
             execution.clause.responsePattern execution.clause.declaration.bound execution.compiled.shape
           change execution.coordinates ++ [point] =
-            ((execution.input.appendScoped nextInput execution.clause.declaration.id
+            ((execution.input.appendCorrelated nextInput execution.clause.declaration.id
               execution.clause.triggerPattern execution.clause.responsePattern
-              execution.clause.declaration.bound execution.compiled.shape).scopedCoordinates
+              execution.clause.declaration.bound execution.compiled.shape).correlatedCoordinates
                 execution.clause.triggerPattern execution.clause.responsePattern).map
                   (fun point => Coordinate.mk point.1 point.2)
           rw [appended, List.map_append, shape]
@@ -234,7 +234,7 @@ theorem Execution.closed_reference (execution : Execution) :
 /-- The exact eventual clause belonging to this execution's checked reference Property. -/
 def Execution.referenceClause (execution : Execution) :
     { clause // clause ∈ execution.reference.clauses } :=
-  ⟨Scoped.referenceClause execution.clause, by
+  ⟨Correlated.referenceClause execution.clause, by
     simp [Execution.reference, Execution.clause, execution.compiled.shape]⟩
 
 /-- Successful runtime admission carries the complete bridge: countdowns, typed predicate
@@ -299,7 +299,7 @@ private def predicateInput (context : PropertyPredicateContext) (step : Transiti
   facts := some step.result.facts
 }
 
-private def validateCoordinate (clause : CheckedPropertyScopedClause) (step : Transition) :
+private def validateCoordinate (clause : CheckedPropertyCorrelatedClause) (step : Transition) :
     Except Error Unit := do
   let _ ← (checkPropertyPredicateInput clause.trigger (predicateInput .before step)).mapError
     Error.property
@@ -312,7 +312,7 @@ correlation holds over this step's evidence together with the operation's retain
 Reading an occurrence this operation never retained -- a future ordinal, or one belonging to a
 different operation -- fails admission rather than binding the nearest match, and a correlation
 that is false rejects the step instead of spending the operation's window. -/
-private def validateCorrelation (clause : CheckedPropertyScopedClause) (step : Transition)
+private def validateCorrelation (clause : CheckedPropertyCorrelatedClause) (step : Transition)
     (evidence : List PropertyFieldEvidence) : Except Error Unit := do
   let some correlation := clause.correlation | pure ()
   let input ← (checkPropertyPredicateInputWithEvidence correlation
@@ -339,7 +339,7 @@ def Run.consume {compiled : Compiled target} (run : Run compiled) (step : Transi
   if payload.transitions ≥ compiled.limits.transitions then throw .transitionsExhausted
   let declarations := compiled.clauses.flatMap (·.original.declaration.captures)
   let work := payload.work + payload.retainedObligations +
-    16 * compiled.property.scopedClauses.length * (payload.transitions + 1) *
+    16 * compiled.property.correlatedRules.length * (payload.transitions + 1) *
       (1 + target.behaviorTable.transitions.foldl (fun maximum row => max maximum row.facts.length) 0) +
       payload.operations.length +
     (target.machine.steps operation.state step.action).length +
@@ -388,7 +388,7 @@ def Run.consumeEvidence {compiled : Compiled target} (run : Run compiled)
     (steps : List (Transition × List PropertyFieldEvidence)) : Except Error (Run compiled) :=
   steps.foldlM (fun run step => run.consume step.1 step.2) run
 
-/-- The operation-scoped histories of successful admissions, with their checked fold invariants. -/
+/-- The operation-correlated histories of successful admissions, with their checked fold invariants. -/
 def Run.executions {compiled : Compiled target} (run : Run compiled) : List (String × Execution) :=
   run.payload.operations.flatMap fun operation =>
     operation.executions.map fun execution => (operation.key, execution)
@@ -396,15 +396,15 @@ def Run.executions {compiled : Compiled target} (run : Run compiled) : List (Str
 /-- Inspect the current per-clause answer without closing or fabricating a transition. -/
 def Run.answers {compiled : Compiled target} (run : Run compiled) (incomplete : Bool := false) :
     List (DefinitionId × PropertyEndpointAnswer) :=
-  compiled.property.scopedClauses.map fun clause =>
+  compiled.property.correlatedRules.map fun clause =>
     let obligations := run.payload.operations.flatMap fun operation =>
       (operation.executions.find? (·.clause.declaration.id == clause.declaration.id)).map (·.obligations) |>.getD []
-    let endpoint := if incomplete || !run.payload.closed then
-      PropertyScopedEndpoint.«partial» else clause.declaration.endpoint
-    let answer := close endpoint obligations
+    let ending := if incomplete || !run.payload.closed then
+      TraceEnding.«partial» else clause.declaration.ending
+    let answer := close ending obligations
     (clause.declaration.id, if incomplete && answer != .violated then .unresolved else answer)
 
-/-- Closing freezes the Run; its endpoint policy distinguishes selected finite traces from prefixes. -/
+/-- Closing freezes the Run; its ending policy distinguishes selected finite traces from prefixes. -/
 def Run.close {compiled : Compiled target} (run : Run compiled) : Run compiled :=
   ⟨{ run.payload with closed := true }⟩
 
@@ -428,4 +428,4 @@ pending obligations; incomplete runtime prefixes retain their explicit unresolve
 theorem Run.close_idempotent {compiled : Compiled target} (run : Run compiled) :
     run.close.close = run.close := rfl
 
-end Umpire.Property.Scoped
+end Umpire.Property.Correlated

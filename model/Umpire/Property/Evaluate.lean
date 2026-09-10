@@ -516,7 +516,7 @@ def PropertyFieldEvidence.capturedAs (evidence : PropertyFieldEvidence)
   ⟨{ evidence.value with path := { evidence.value.path with capture := some key } }⟩
 
 /-- Check a same-step input together with the field evidence its operands read, admitting both
-this step's projections and the retained captures a scoped Run supplies. -/
+this step's projections and the retained captures a correlated Monitor supplies. -/
 def checkPropertyPredicateInputWithEvidence (predicate : CheckedPropertyPredicate contextKind)
     (input : PropertyPredicateInput) (evidence : List PropertyFieldEvidence) :
     Except PropertyError (CheckedPropertyPredicateInput predicate) :=
@@ -657,13 +657,13 @@ represented by `some []`; only unavailable fields produce an error. -/
 private def validatePropertyEvaluationView
     (property : CheckedProperty)
     (view : PropertyEvaluationView) : Except PropertyError Unit := do
-  if let some clause := property.scopedClauses.head? then
+  if let some clause := property.correlatedRules.head? then
     throw {
       kind := .invalidClause
       definitionId := clause.declaration.id
       sourcePath := clause.declaration.source.path
       sourceLocation := some clause.declaration.source
-      offendingValue := "scoped clauses require admitted operation traces",
+      offendingValue := "correlated rules require admitted operation traces",
       relatedDefinitionIds := [clause.declaration.id] }
   for clause in property.clauses do
     match clause with
@@ -857,10 +857,10 @@ private def checkedPositions
     (view : PropertyEvaluationView) : Option (List Nat) :=
   collectPositions ((occurrences pattern view).map (positionOf unit))
 
-/-- Aligned semantic transition positions used by scoped correspondence proofs. -/
-def Property.Scoped.positions (start : Nat) : List Bool → List Nat
+/-- Aligned semantic transition positions used by correlated correspondence proofs. -/
+def Property.Correlated.positions (start : Nat) : List Bool → List Nat
   | [] => []
-  | hit :: rest => (if hit then [start] else []) ++ Property.Scoped.positions (start + 1) rest
+  | hit :: rest => (if hit then [start] else []) ++ Property.Correlated.positions (start + 1) rest
 
 private theorem collectPositions_some (positions : List Nat) :
     collectPositions (positions.map some) = some positions := by
@@ -908,17 +908,17 @@ private theorem step_positions_mem (pattern : PropertyPattern)
   · simpa [stepOccurrences, fact, patternHoldsInStep, valuesInStep] using
       observation_positions_mem pattern start start step.logicalTime step.observations position
 
-private theorem scoped_step_positions_mem (pattern : PropertyPattern)
+private theorem correlated_step_positions_mem (pattern : PropertyPattern)
     (aligned : pattern.field = .selectedAction ∨ pattern.field = .outcome ∨
       pattern.field = .resultingState ∨ pattern.field = .observation)
     (start position : Nat) (steps : List PropertyEvaluationStep) :
     position ∈ (traceStepOccurrences pattern start steps).map (·.transitionPosition) ↔
-      position ∈ Property.Scoped.positions start (steps.map (patternHoldsInStep pattern)) := by
+      position ∈ Property.Correlated.positions start (steps.map (patternHoldsInStep pattern)) := by
   induction steps generalizing start with
   | nil => rfl
   | cons step rest ih =>
       simp only [traceStepOccurrences, List.map_append, List.mem_append,
-        step_positions_mem pattern aligned, ih, List.map_cons, Property.Scoped.positions]
+        step_positions_mem pattern aligned, ih, List.map_cons, Property.Correlated.positions]
       cases patternHoldsInStep pattern step <;> simp
 
 private theorem semantic_positions_mem (pattern : PropertyPattern)
@@ -926,7 +926,7 @@ private theorem semantic_positions_mem (pattern : PropertyPattern)
       pattern.field = .resultingState ∨ pattern.field = .observation)
     (view : PropertyEvaluationView) (position : Nat) :
     position ∈ (occurrences pattern view).map (·.transitionPosition) ↔
-      position ∈ Property.Scoped.positions 1 (view.steps.map (patternHoldsInStep pattern)) := by
+      position ∈ Property.Correlated.positions 1 (view.steps.map (patternHoldsInStep pattern)) := by
   have notState : (pattern.field == .state) = false := by
     rcases aligned with action | outcome | state | fact
     · rw [action]; rfl
@@ -934,7 +934,7 @@ private theorem semantic_positions_mem (pattern : PropertyPattern)
     · rw [state]; rfl
     · rw [fact]; rfl
   simp only [occurrences, notState, Bool.false_eq_true, ↓reduceIte, List.nil_append]
-  exact scoped_step_positions_mem pattern aligned 1 position view.steps
+  exact correlated_step_positions_mem pattern aligned 1 position view.steps
 
 private def valuesAtField
     (field : PropertyTraceField)
@@ -1630,15 +1630,15 @@ def evaluatePropertyClause
   evaluateResolvedPropertyClause clause.1 input.view
 
 /-- Aligned trigger/response truth values from this capability-limited checked input. -/
-def CheckedPropertyEvaluationInput.scopedCoordinates
+def CheckedPropertyEvaluationInput.correlatedCoordinates
     {property : CheckedProperty} (input : CheckedPropertyEvaluationInput property)
     (trigger response : PropertyPattern) : List (Bool × Bool) :=
   input.view.steps.map fun step =>
     (patternHoldsInStep trigger step, patternHoldsInStep response step)
 
 /-- Compose already checked step views for a single semantic-transition clause. Target trace
-continuity is the scoped consumer's admission responsibility; Property access remains unchanged. -/
-def CheckedPropertyEvaluationInput.appendScoped
+continuity is the correlated consumer's admission responsibility; Property access remains unchanged. -/
+def CheckedPropertyEvaluationInput.appendCorrelated
     {property : CheckedProperty} (first second : CheckedPropertyEvaluationInput property)
     (id : DefinitionId) (trigger response : PropertyPattern) (bound : Nat)
     (_shape : property.clauses = [.eventuallyWithin id trigger response ⟨bound, .steps⟩]) :
@@ -1646,17 +1646,17 @@ def CheckedPropertyEvaluationInput.appendScoped
   ⟨{ first.view with steps := first.view.steps ++ second.view.steps }⟩
 
 /-- Aligned coordinate projection commutes with incremental checked-input composition. -/
-theorem CheckedPropertyEvaluationInput.scopedCoordinates_append
+theorem CheckedPropertyEvaluationInput.correlatedCoordinates_append
     {property : CheckedProperty} (first second : CheckedPropertyEvaluationInput property)
     (id : DefinitionId) (trigger response : PropertyPattern) (bound : Nat)
     (shape : property.clauses = [.eventuallyWithin id trigger response ⟨bound, .steps⟩]) :
-    (first.appendScoped second id trigger response bound shape).scopedCoordinates trigger response =
-      first.scopedCoordinates trigger response ++ second.scopedCoordinates trigger response := by
-  simp [appendScoped, scopedCoordinates, List.map_append]
+    (first.appendCorrelated second id trigger response bound shape).correlatedCoordinates trigger response =
+      first.correlatedCoordinates trigger response ++ second.correlatedCoordinates trigger response := by
+  simp [appendCorrelated, correlatedCoordinates, List.map_append]
 
 /-- Existing bounded Property evaluation exposes its position quantification for the supported
-aligned scoped fragment, without changing the existing evaluator or its closed-trace meaning. -/
-theorem evaluatePropertyClause_scoped_positions
+aligned correlated fragment, without changing the existing evaluator or its closed-trace meaning. -/
+theorem evaluatePropertyClause_correlated_positions
     (property : CheckedProperty) (input : CheckedPropertyEvaluationInput property)
     (clause : { clause // clause ∈ property.clauses })
     (id : DefinitionId) (trigger response : PropertyPattern) (bound : Nat)
@@ -1665,8 +1665,8 @@ theorem evaluatePropertyClause_scoped_positions
     (responseAligned : response.field = .outcome ∨ response.field = .resultingState ∨
       response.field = .observation) :
     evaluatePropertyClause property input clause =
-      (Property.Scoped.positions 1 ((input.scopedCoordinates trigger response).map Prod.fst)).all
-        (fun first => (Property.Scoped.positions 1 ((input.scopedCoordinates trigger response).map Prod.snd)).any
+      (Property.Correlated.positions 1 ((input.correlatedCoordinates trigger response).map Prod.fst)).all
+        (fun first => (Property.Correlated.positions 1 ((input.correlatedCoordinates trigger response).map Prod.snd)).any
           fun second => first ≤ second && second - first ≤ bound) := by
   simp only [evaluatePropertyClause, shape, evaluateResolvedPropertyClause, evaluateEventuallyWithin]
   rw [checkedPositions_semantic, checkedPositions_semantic]
@@ -1674,7 +1674,7 @@ theorem evaluatePropertyClause_scoped_positions
   simp only [List.all_eq_true, List.any_eq_true]
   simp only [semantic_positions_mem trigger (Or.inl triggerAligned),
     semantic_positions_mem response (Or.inr responseAligned)]
-  simp [CheckedPropertyEvaluationInput.scopedCoordinates, List.map_map, Function.comp_def]
+  simp [CheckedPropertyEvaluationInput.correlatedCoordinates, List.map_map, Function.comp_def]
 
 /-- Structural agreement for every constructor in the portable property core. -/
 theorem evaluatePropertyClause_agrees

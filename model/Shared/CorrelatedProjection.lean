@@ -4,7 +4,7 @@ and model values are parameters; this module knows neither an authoring language
 A released step carries membership in the supplied table. Consumers supply only value rendering
 and result-state accessors, never a transition oracle. An append commits all releases or none.
 -/
-namespace Shared.ScopedProjection
+namespace Shared.CorrelatedProjection
 
 variable {Id State Action Result Field : Type}
 
@@ -268,4 +268,4 @@ def Run.admit (idText : Id → String) (stateOf : Result → State)
   if staged.pending.length > plan.limits.buffered then throw .bufferExhausted
   return staged
 
-end Shared.ScopedProjection
+end Shared.CorrelatedProjection

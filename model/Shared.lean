@@ -1,3 +1,3 @@
-import Shared.ScopedObligation
-import Shared.ScopedProjection
+import Shared.CorrelatedObligation
+import Shared.CorrelatedProjection
 import Shared.SemanticData

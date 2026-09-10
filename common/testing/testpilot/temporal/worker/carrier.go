@@ -62,7 +62,7 @@ func (s *Session) validCarrierBinding(plan testpilot.ReservationCarrierPlan, bin
 	}
 	var workflowEntrypoint string
 	for _, reservation := range plan.Reservations {
-		if reservation.Context != testpilotspb.ENTRYPOINT_KIND_WORKFLOW {
+		if reservation.Kind != testpilotspb.ENTRYPOINT_KIND_WORKFLOW {
 			continue
 		}
 		if workflowEntrypoint != "" || reservation.Count != 1 {
@@ -71,7 +71,7 @@ func (s *Session) validCarrierBinding(plan testpilot.ReservationCarrierPlan, bin
 		workflowEntrypoint = reservation.EntrypointID
 	}
 	entry, exists := s.definition.entries[workflowEntrypoint]
-	return exists && entry.plan.Context() == testpilotspb.ENTRYPOINT_KIND_WORKFLOW && entry.namespace == binding.Namespace && entry.workflowType == binding.WorkflowType && entry.queue == binding.TaskQueue
+	return exists && entry.plan.Kind() == testpilotspb.ENTRYPOINT_KIND_WORKFLOW && entry.namespace == binding.Namespace && entry.workflowType == binding.WorkflowType && entry.queue == binding.TaskQueue
 }
 
 func (c *Carrier) Handles() []testpilot.EffectHandle {
@@ -109,7 +109,7 @@ func (c *Carrier) PinStartResponse(ctx context.Context, response *workflowservic
 	return c.session.ledger.PinStartResponse(ctx, c.bundle, response)
 }
 
-func (c *Carrier) TriggerTerminal(ctx context.Context, disposition delivery.TriggerDisposition) (int, error) {
+func (c *Carrier) TriggerTerminal(ctx context.Context, disposition delivery.TriggerStatus) (int, error) {
 	if c == nil || c.session == nil {
 		return 0, ErrInvalid
 	}

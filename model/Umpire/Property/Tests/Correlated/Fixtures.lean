@@ -1,15 +1,15 @@
-import Umpire.Property.Scoped
-import Umpire.Case.Projection.Scoped
+import Umpire.Property.Correlated
+import Umpire.Case.Projection.Correlated
 import Umpire.Shared.Test
 
 /-! Non-cancellation, multi-operation finite Target with labeled self-loops. -/
 
-namespace Umpire.Property.ScopedTests
+namespace Umpire.Property.CorrelatedTests
 
-open Property.Scoped
+open Property.Correlated
 
 def id := DefinitionId.of
-def source : SourceLocation := { path := "Umpire/Property/Tests/Scoped.lean" }
+def source : SourceLocation := { path := "Umpire/Property/Tests/Correlated.lean" }
 def value (key payload : String) : ModelValue := ⟨id key, payload⟩
 def state := value "test.state" "ready"
 def request := value "test.trigger" "request"
@@ -34,7 +34,7 @@ def definitions : List DefinitionMetadata := kinds.map fun (name, kind) =>
 def provider : Provider (fun _ => True) := {
   id := id "test.provider"
   source
-  contract := { id := id "test.capability", behaviorVersion := "scoped-test/v1", requiredLaws := [] }
+  contract := { id := id "test.capability", behaviorVersion := "correlated-test/v1", requiredLaws := [] }
   meanings := (kinds.drop 4).map fun (name, kind) =>
     { definitionId := id name, kind, behaviorVersion := name ++ "/meaning-v1" }
   lawProofs := []
@@ -67,8 +67,8 @@ def targetResult := table.checkTypedModel {
 abbrev TestTarget := CheckedModel (fun _ => True) Unit ModelValue ModelValue ModelValue ModelValue
 def context (target : TestTarget) := PropertyCheckContext.ofTarget target
 
-def clause (bound : Nat) (endpoint : PropertyScopedEndpoint := .«partial») : PropertyScopedClause := {
-  id := id "test.scoped.response"
+def clause (bound : Nat) (ending : TraceEnding := .«partial») : PropertyCorrelatedClause := {
+  id := id "test.correlated.response"
   source
   trigger := .atom { field := .selectedAction, reference := id "test.trigger" }
   response := .atom {
@@ -78,19 +78,19 @@ def clause (bound : Nat) (endpoint : PropertyScopedEndpoint := .«partial») : P
   scope := [id "test.run"]
   key := id "test.operation"
   bound
-  endpoint
+  ending
 }
 
-def declaration (bound : Nat) (endpoint : PropertyScopedEndpoint := .«partial») : Property := {
+def declaration (bound : Nat) (ending : TraceEnding := .«partial») : Property := {
   id := id "test.property"
   source
   requires := [id "test.capability"]
   clauses := []
-  scopedClauses := [clause bound endpoint]
+  correlatedRules := [clause bound ending]
 }
 
-def property (target : TestTarget) (bound : Nat) (endpoint : PropertyScopedEndpoint := .«partial») :=
-  Property.check (context target) ((declaration bound endpoint))
+def property (target : TestTarget) (bound : Nat) (ending : TraceEnding := .«partial») :=
+  Property.check (context target) ((declaration bound ending))
 
 def limits : Limits := { transitions := 1000, obligations := 1000, work := 1000000 }
 def scope : List (DefinitionId × String) := [(id "test.run", "run-1")]
@@ -103,13 +103,13 @@ def step (operation : String) (action : ModelValue) : Transition := {
   result := result (action == reply || action == both)
 }
 
-def evaluate (bound : Nat) (endpoint : PropertyScopedEndpoint) (steps : List Transition)
+def evaluate (bound : Nat) (ending : TraceEnding) (steps : List Transition)
     (budget : Limits := limits) : Except Error (List (DefinitionId × PropertyEndpointAnswer)) := do
   let .ok target := targetResult | throw .invalidInitialState
-  let property ← (property target bound endpoint).mapError Error.property
+  let property ← (property target bound ending).mapError Error.property
   let compiled ← compile target property [id "test.run"] (id "test.operation") budget
   let initial ← compiled.start () state scope
   let run ← initial.consumeMany steps
   pure run.close.answers
 
-end Umpire.Property.ScopedTests
+end Umpire.Property.CorrelatedTests

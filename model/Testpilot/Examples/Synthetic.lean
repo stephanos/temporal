@@ -36,13 +36,13 @@ private def program : temporal.server.api.testpilot.v1.Program := Program.make
   (Program.limits 1 1 1 1 1 8 8 4 1024 1024 1000 1000)
   (environment := #[Program.environment "namespace", Program.environment "task.queue"])
 
-private def contract : Contract := Monitor.contract "testpilot.synthetic.contract" #[
-  Monitor.rule "completion" .CONTRACT_RULE_KIND_SAFETY "open"
-    #[Monitor.state "open" .CONTRACT_STATE_STATUS_NONTERMINAL,
-      Monitor.state "done" .CONTRACT_STATE_STATUS_SATISFIED]
-    #[Monitor.transition "complete" "open" "done" #[.RUN_EVENT_KIND_RUN_CLOSED]
+private def contract : Contract := Contract.contract "testpilot.synthetic.contract" #[
+  Contract.rule "completion" .CONTRACT_RULE_KIND_SAFETY "open"
+    #[Contract.state "open" .CONTRACT_STATE_STATUS_NONTERMINAL,
+      Contract.state "done" .CONTRACT_STATE_STATUS_SATISFIED]
+    #[Contract.transition "complete" "open" "done" #[.RUN_EVENT_KIND_RUN_CLOSED]
       (ContractExpr.literal (Value.boolean true))]
-] (Monitor.limits 1 2 1 8 32 64 1 1024)
+] (Contract.limits 1 2 1 8 32 64 1 1024)
 
 /-- A deterministic Case authored without an Umpire or Temporal dependency. -/
 def case : Case := Testpilot.Authoring.case 1 "testpilot.synthetic.case" program contract
