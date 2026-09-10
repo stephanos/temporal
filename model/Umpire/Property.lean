@@ -513,12 +513,6 @@ structure PropertyPredicateInput where
   facts : Option (List ModelValue) := none
   deriving BEq, DecidableEq, Repr
 
-structure PropertyLimitProfile where
-  id : DefinitionId
-  source : SourceLocation
-  limit : Limit
-  deriving BEq, DecidableEq, Repr
-
 /-- A named condition that removes one parent or case applicability context. -/
 structure PropertyUnless where
   id : DefinitionId
@@ -533,23 +527,18 @@ structure PropertySameStepClause where
   expectation : PropertyPredicate
   deriving BEq, DecidableEq, Repr
 
-inductive PropertyLimit where
-  | exact (limit : Limit)
-  | named (profile : DefinitionId) (expectedUnit : LimitUnit)
-  deriving BEq, DecidableEq, Repr
-
 /-- One legacy single-pattern bounded obligation owned by a named Property case. -/
 inductive PropertyTemporalClause where
   | eventuallyWithin
       (id : DefinitionId)
       (source : SourceLocation)
       (trigger response : PropertyPattern)
-      (limit : PropertyLimit)
+      (limit : Limit)
   | neverWithin
       (id : DefinitionId)
       (source : SourceLocation)
       (trigger forbidden : PropertyPattern)
-      (limit : PropertyLimit)
+      (limit : Limit)
   deriving BEq, DecidableEq, Repr
 
 def PropertyTemporalClause.id : PropertyTemporalClause → DefinitionId
@@ -591,11 +580,11 @@ inductive PropertyClause where
   | eventuallyWithin
       (id : DefinitionId)
       (trigger response : PropertyPattern)
-      (limit : PropertyLimit)
+      (limit : Limit)
   | neverWithin
       (id : DefinitionId)
       (trigger forbidden : PropertyPattern)
-      (limit : PropertyLimit)
+      (limit : Limit)
   | branches (group : PropertyBranches)
   | guardedEventuallyWithin
       (id : DefinitionId)
@@ -603,14 +592,14 @@ inductive PropertyClause where
       (guard : PropertyPredicate)
       (exception : Option PropertyUnless)
       (trigger response : PropertyPattern)
-      (limit : PropertyLimit)
+      (limit : Limit)
   | guardedNeverWithin
       (id : DefinitionId)
       (source : SourceLocation)
       (guard : PropertyPredicate)
       (exception : Option PropertyUnless)
       (trigger forbidden : PropertyPattern)
-      (limit : PropertyLimit)
+      (limit : Limit)
   deriving BEq, DecidableEq, Repr
 
 def PropertyClause.id : PropertyClause → DefinitionId
@@ -624,11 +613,6 @@ def PropertyClause.id : PropertyClause → DefinitionId
   | .guardedEventuallyWithin id _ _ _ _ _ _
   | .guardedNeverWithin id _ _ _ _ _ _ => id
   | .branches group => group.id
-
-/-- Semantic clocks are distinct from runtime and search-work limits. -/
-inductive PropertyScopedClock where
-  | operationTransitions
-  deriving BEq, DecidableEq, Repr
 
 /-- Closing an incomplete prefix does not invent missing deadline evidence. -/
 inductive PropertyScopedEndpoint where
@@ -660,7 +644,6 @@ structure PropertyScopedClause where
   response : PropertyPredicate
   scope : List DefinitionId
   key : DefinitionId
-  clock : PropertyScopedClock
   bound : Nat
   endpoint : PropertyScopedEndpoint
   captures : List PropertyScopedCapture := []
@@ -735,7 +718,7 @@ def resultingStateIs (value : ModelValue) : PropertyPredicate :=
     constraint := .equals (.text value.value)
   }
 
-def modelOutcomeIs (value : ModelValue) : PropertyPredicate :=
+def outcomeIs (value : ModelValue) : PropertyPredicate :=
   .atom {
     field := .outcome
     reference := value.definitionId
@@ -768,13 +751,13 @@ def stepClauses
 reference resolution, and canonicalization remain owned by `property%` and `Property.check`. -/
 syntax (name := correlatedResponseSyntax)
   "correlated_response%" term:max "at" term:max &"whenever" term:max &"eventually" term:max
-  &"within" term:max &"on" term:max "scoped" term:max "by" term:max &"closing" term:max : term
+  &"within" term:max "scoped" term:max "by" term:max &"closing" term:max : term
 
 macro_rules
   | `(correlated_response% $id at $source whenever $trigger eventually $response
-      within $bound on $clock scoped $scope by $key closing $endpoint) =>
+      within $bound scoped $scope by $key closing $endpoint) =>
       `(({ id := $id, source := $source, trigger := $trigger, response := $response,
-           bound := $bound, clock := $clock, scope := $scope, key := $key,
+           bound := $bound, scope := $scope, key := $key,
            endpoint := $endpoint } : PropertyScopedClause))
 
 end Umpire

@@ -14,7 +14,7 @@ def logicalEventuallyProperty : Property := {
     .eventuallyWithin (id "test.property.logical-eventually.clause")
       (pattern .observation cancelRequested)
       (pattern .observation cancelDelivered)
-      (.exact { value := 1, unit := .logicalTime })
+      { value := 1, unit := .logicalTime }
   ]
 }
 
@@ -26,7 +26,7 @@ def logicalQuiescentProperty : Property := {
     .neverWithin (id "test.property.logical-quiescent.clause")
       (pattern .observation cancelDelivered)
       (pattern .observation cancelRequested)
-      (.exact { value := 0, unit := .logicalTime })
+      { value := 0, unit := .logicalTime }
   ]
 }
 

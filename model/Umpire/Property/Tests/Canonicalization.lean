@@ -81,7 +81,7 @@ def changedConstructor : Property := {
       .neverWithin honoredDelivery.id
         (pattern .observation cancelRequested)
         (pattern .observation cancelDelivered)
-        (.exact cancelBudget.limit)
+        cancelBudget
     else
       clause
 }
@@ -103,7 +103,7 @@ def changedBound : Property := {
       .eventuallyWithin honoredDelivery.id
         (pattern .observation cancelRequested)
         (pattern .observation cancelDelivered)
-        (.exact { value := 3, unit := .observationPositions })
+        { value := 3, unit := .observationPositions }
     else
       clause
 }

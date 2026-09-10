@@ -255,7 +255,7 @@ private def scopedClauseOf
                 id, source := Authoring.source
                 trigger := .selectedActionIs opening, response := lowered
                 scope := [runFieldId], key := operationFieldId
-                clock := .operationTransitions, bound, endpoint := .«partial» }
+                bound, endpoint := .«partial» }
         | none, _ => unexpressible "property.clause-occurrence"
         | _, none => unexpressible "property.clause-shape"
   | _ => unexpressible "property.clause-form"

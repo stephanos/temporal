@@ -65,11 +65,7 @@ def cancellationMeanings : List Meaning := [
   meaning ownsOperation .relation
 ]
 
-def cancelBudget : PropertyLimitProfile := {
-  id := id "test.limit.cancel-budget"
-  source
-  limit := { value := 2, unit := .observationPositions }
-}
+def cancelBudget : Limit := { value := 2, unit := .observationPositions }
 
 def context : PropertyCheckContext := {
   definitions
@@ -80,7 +76,6 @@ def context : PropertyCheckContext := {
   meanings :=
     cancellationMeanings.map (fun item => (cancellationCapability, item)) ++
       [(hiddenCapability, meaning hiddenObservation .fact)]
-  limitProfiles := [cancelBudget]
 }
 
 def pattern
@@ -120,13 +115,13 @@ def honoredDelivery : PropertyClause :=
   .eventuallyWithin (id "test.property.honored-delivery")
     (pattern .observation cancelRequested)
     (pattern .observation cancelDelivered)
-    (.named cancelBudget.id .observationPositions)
+    cancelBudget
 
 def deliveryIsQuiescent : PropertyClause :=
   .neverWithin (id "test.property.delivery-is-quiescent")
     (pattern .observation cancelDelivered)
     (pattern .observation cancelRequested)
-    (.exact { value := 0, unit := .observationPositions })
+    { value := 0, unit := .observationPositions }
 
 def portableProperty : Property := {
   id := id "test.property.cancellation-contract"

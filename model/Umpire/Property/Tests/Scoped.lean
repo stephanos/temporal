@@ -124,10 +124,6 @@ private def independent (bound : Nat) (points : List Coordinate) : Bool :=
       pure (run.answers.map Prod.snd)
     result == some [.satisfied])) == some true
 
-/-- error: Unknown constant `Umpire.PropertyScopedClock.logicalTime` -/
-#guard_msgs in
-#check PropertyScopedClock.logicalTime
-
 /-- error: Unknown constant `Umpire.PropertyScopedEndpoint.terminalModel` -/
 #guard_msgs in
 #check PropertyScopedEndpoint.terminalModel

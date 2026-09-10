@@ -14,7 +14,7 @@ private def endpointAnswer (clause : PropertyClause)
 private def response (bound : Nat) : PropertyClause :=
   .eventuallyWithin (id "test.property.endpoint.response")
     (pattern .observation cancelRequested) (pattern .observation cancelDelivered)
-    (.exact { value := bound, unit := .semanticTransitions })
+    { value := bound, unit := .semanticTransitions }
 
 private def selectedPrefix : ModelTrace ModelValue ModelValue ModelValue ModelValue :=
   { positiveTrace with steps := positiveTrace.steps.take 1 }
@@ -28,7 +28,7 @@ private def selectedPrefix : ModelTrace ModelValue ModelValue ModelValue ModelVa
 private def quiescent : PropertyClause :=
   .neverWithin (id "test.property.endpoint.quiet")
     (pattern .observation cancelRequested) (pattern .observation cancelDelivered)
-    (.exact { value := 1, unit := .semanticTransitions })
+    { value := 1, unit := .semanticTransitions }
 
 #guard endpointAnswer quiescent selectedPrefix true == some .unresolved
 #guard endpointAnswer quiescent selectedPrefix false == some .satisfied
@@ -42,7 +42,7 @@ private def guardedResponse : PropertyClause :=
       constraint := .equals (.text "request")
     }) none
     (pattern .observation cancelRequested) (pattern .observation cancelDelivered)
-    (.exact { value := 1, unit := .semanticTransitions })
+    { value := 1, unit := .semanticTransitions }
 
 #guard endpointAnswer guardedResponse selectedPrefix true == some .unresolved
 #guard endpointAnswer guardedResponse positiveTrace true == some .satisfied
@@ -55,7 +55,7 @@ private def guardedLogicalResponse : PropertyClause :=
       constraint := .equals (.text "request")
     }) none
     (pattern .observation cancelRequested) (pattern .observation cancelDelivered)
-    (.exact { value := 1, unit := .logicalTime })
+    { value := 1, unit := .logicalTime }
 
 #guard ([none, some "not-a-time"] : List (Option String)).all fun coordinate =>
   let trace := { selectedPrefix with steps := selectedPrefix.steps.map fun step =>
