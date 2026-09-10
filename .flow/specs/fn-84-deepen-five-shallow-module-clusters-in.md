@@ -1,5 +1,7 @@
 # Deepen five shallow module clusters in Umpire and Testpilot
 
+> HTML render lens: `.flow/artifacts/fn-84-deepen-five-shallow-module-clusters-in/spec.html` (local file, gitignored; open from disk) — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
+
 ## Overview
 
 Five independent architecture scans of the Umpire Lean library and the Testpilot Go runtime, run
