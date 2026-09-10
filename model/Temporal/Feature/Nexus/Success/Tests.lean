@@ -254,8 +254,8 @@ theorem unsatisfiedSuccessPropertyHasNoWitness :
 
 property renamedResult on lifecycle
   for operation
-  when action awaitSuccess
-  require successState: resultingState succeeded
+  when awaitSuccess
+  require successState: state succeeded
   require successOutcome: outcome completed
   require successFact: fact succeeded
 
@@ -265,9 +265,9 @@ model renamedLifecycle
   actions Action
   outcomes Outcome
   facts Fact
-  initial [scheduled]
-  terminal [succeeded]
-  transitions
+  starts [scheduled]
+  ends [succeeded]
+  steps
     start: scheduled + awaitStart →
       { state := started, outcome := acknowledged, facts := [started] }
     success: started + awaitSuccess →
@@ -275,22 +275,22 @@ model renamedLifecycle
 
 property renamedModelResult on renamedLifecycle
   for operation
-  when action awaitSuccess
-  require successState: resultingState succeeded
+  when awaitSuccess
+  require successState: state succeeded
   require successOutcome: outcome completed
   require successFact: fact succeeded
 
-behavior renamedCompletion on renamedLifecycle
+scenario renamedCompletion on renamedLifecycle
   operation starts scheduled
   actions exactly [start: awaitStart, completion: awaitSuccess]
 
 limits renamedTrace
-  transitions 2
-  selected_actions 2
-  candidate_evaluations 16
+  steps 2
+  actions 2
+  search 16
 
 query renamedQuery on renamedLifecycle
-  witness renamedModelResult
+  find renamedModelResult
   in renamedCompletion
   limits renamedTrace
 
@@ -502,9 +502,9 @@ model probeLifecycle
   actions Action
   outcomes Outcome
   facts Fact
-  initial [scheduled]
-  terminal [succeeded]
-  transitions
+  starts [scheduled]
+  ends [succeeded]
+  steps
     start: scheduled + awaitStart →
       { state := started, outcome := acknowledged, facts := [started] }
     retry: started + awaitStart →
@@ -514,21 +514,21 @@ model probeLifecycle
 
 property probeStart on probeLifecycle
   for worker
-  when action awaitStart
-  require startState: resultingState started
+  when awaitStart
+  require startState: state started
   require startOutcome: outcome acknowledged
   require startFact: fact started
 
-behavior probeRun on probeLifecycle worker starts scheduled
+scenario probeRun on probeLifecycle worker starts scheduled
   actions exactly [first: awaitStart, second: awaitSuccess]
 
 limits probeLimits
-  transitions 3
-  selected_actions 2
-  candidate_evaluations 32
+  steps 3
+  actions 2
+  search 32
 
 query probeQuery on probeLifecycle
-  witness probeStart
+  find probeStart
   in probeRun
   limits probeLimits
 
@@ -570,7 +570,7 @@ private def misspelledRole (values : Authoring.ModelVocabulary) : Scenario :=
   | _ => false
 
 /--
-error: unknown Nexus.Success action 'awaitFinish'; declared: awaitStart, awaitSuccess
+error: unknown Nexus model action 'awaitFinish'; declared: awaitStart, awaitSuccess
 -/
 #guard_msgs (error) in
 model unknownActionLifecycle
@@ -579,14 +579,14 @@ model unknownActionLifecycle
   actions Action
   outcomes Outcome
   facts Fact
-  initial [scheduled]
-  terminal [succeeded]
-  transitions
+  starts [scheduled]
+  ends [succeeded]
+  steps
     start: scheduled + awaitFinish →
       { state := started, outcome := acknowledged, facts := [started] }
 
 /--
-error: unknown Nexus.Success state 'missing'; declared: scheduled, started, succeeded
+error: unknown Nexus model state 'missing'; declared: scheduled, started, succeeded
 -/
 #guard_msgs (error) in
 model unknownStateLifecycle
@@ -595,16 +595,16 @@ model unknownStateLifecycle
   actions Action
   outcomes Outcome
   facts Fact
-  initial [missing]
-  terminal [succeeded]
-  transitions
+  starts [missing]
+  ends [succeeded]
+  steps
     start: scheduled + awaitStart →
       { state := started, outcome := acknowledged, facts := [started] }
 
 /- The verify form elaborates through the same owner and claims the requirement over every trace
 the Behavior admits, so it selects no witness. -/
 query verifiedCompletion on lifecycle
-  all successfulResult
+  verify successfulResult
   in successfulCompletion
   limits shortTrace
 
@@ -623,11 +623,11 @@ witness-absent rather than lowering a Contract nothing selected. -/
 
 /- An unsatisfiable Behavior reports what planning actually delivered, so an impossible scenario is
 distinguishable from an exhausted limit (PLN-05). -/
-behavior impossibleCompletion on lifecycle operation starts scheduled
+scenario impossibleCompletion on lifecycle operation starts scheduled
   actions exactly [completion: awaitSuccess, start: awaitStart]
 
 query unsatisfiableCompletion on lifecycle
-  all successfulResult
+  verify successfulResult
   in impossibleCompletion
   limits shortTrace
 
@@ -642,7 +642,7 @@ is the reason to author the form at all. -/
   | _ => false
 
 /--
-error: Nexus.Success initial states must be declared in sorted order, because the planner admits only a canonically ordered initial-state list; 'succeeded' precedes 'scheduled'
+error: Nexus model start states must be declared in sorted order, because the planner admits only a canonically ordered start-state list; 'succeeded' precedes 'scheduled'
 -/
 #guard_msgs (error) in
 model unsortedInitialLifecycle
@@ -651,9 +651,9 @@ model unsortedInitialLifecycle
   actions Action
   outcomes Outcome
   facts Fact
-  initial [succeeded, scheduled]
-  terminal [succeeded]
-  transitions
+  starts [succeeded, scheduled]
+  ends [succeeded]
+  steps
     start: scheduled + awaitStart →
       { state := started, outcome := acknowledged, facts := [started] }
 
@@ -663,7 +663,7 @@ inductive UnsortedAction where
   deriving BEq, DecidableEq, Repr
 
 /--
-error: Nexus.Success action constructors must be declared in sorted order, because the planner admits only a canonically ordered Action catalog; 'resolve' precedes 'cancel'
+error: Nexus model action constructors must be declared in sorted order, because the planner admits only a canonically ordered Action catalog; 'resolve' precedes 'cancel'
 -/
 #guard_msgs (error) in
 model unsortedActionLifecycle
@@ -672,9 +672,9 @@ model unsortedActionLifecycle
   actions UnsortedAction
   outcomes Outcome
   facts Fact
-  initial [scheduled]
-  terminal [succeeded]
-  transitions
+  starts [scheduled]
+  ends [succeeded]
+  steps
     start: scheduled + cancel →
       { state := started, outcome := acknowledged, facts := [started] }
 
@@ -684,7 +684,7 @@ inductive ParameterizedState where
   deriving BEq, DecidableEq, Repr
 
 /--
-error: Nexus.Success state 'running' takes arguments; a state domain must be an enum-like inductive
+error: Nexus model state 'running' takes arguments; a state domain must be an enum-like inductive
 -/
 #guard_msgs (error) in
 model parameterizedLifecycle
@@ -693,14 +693,14 @@ model parameterizedLifecycle
   actions Action
   outcomes Outcome
   facts Fact
-  initial [queued]
-  terminal [running]
-  transitions
+  starts [queued]
+  ends [running]
+  steps
     start: queued + awaitStart →
       { state := running, outcome := acknowledged, facts := [started] }
 
 /--
-error: duplicate Nexus.Success transition 'again': 'scheduled + awaitStart' is already declared by 'start'
+error: duplicate Nexus model step 'again': 'scheduled + awaitStart' is already declared by 'start'
 -/
 #guard_msgs (error) in
 model duplicateTransitionLifecycle
@@ -709,16 +709,16 @@ model duplicateTransitionLifecycle
   actions Action
   outcomes Outcome
   facts Fact
-  initial [scheduled]
-  terminal [succeeded]
-  transitions
+  starts [scheduled]
+  ends [succeeded]
+  steps
     start: scheduled + awaitStart →
       { state := started, outcome := acknowledged, facts := [started] }
     again: scheduled + awaitStart →
       { state := succeeded, outcome := completed, facts := [succeeded] }
 
 /--
-error: Nexus.Success terminal state 'succeeded' is unreachable from every initial state
+error: Nexus model end state 'succeeded' is unreachable from every start state
 -/
 #guard_msgs (error) in
 model unreachableTerminalLifecycle
@@ -727,18 +727,18 @@ model unreachableTerminalLifecycle
   actions Action
   outcomes Outcome
   facts Fact
-  initial [scheduled]
-  terminal [succeeded]
-  transitions
+  starts [scheduled]
+  ends [succeeded]
+  steps
     start: scheduled + awaitStart →
       { state := started, outcome := acknowledged, facts := [started] }
 
-/-- Declare a model with `count` identical transition rows, so the elaboration bound is reachable
+/-- Declare a model with `count` identical step rows, so the elaboration bound is reachable
 without writing the rows out. The bound is checked before duplicate rows are, so identical rows
 reach it. -/
-local macro "boundedTransitionModel" modelName:ident count:num : command => do
+local macro "boundedStepModel" modelName:ident count:num : command => do
   let rows ← (List.replicate count.getNat ()).toArray.mapM fun _ =>
-    `(nexus.successTransition| step: scheduled + awaitStart →
+    `(successStep| step: scheduled + awaitStart →
         { state := started, outcome := acknowledged, facts := [started] })
   `(command| model $modelName
       role operation
@@ -746,15 +746,140 @@ local macro "boundedTransitionModel" modelName:ident count:num : command => do
       actions Action
       outcomes Outcome
       facts Fact
-      initial [scheduled]
-      terminal [succeeded]
-      transitions $rows*)
+      starts [scheduled]
+      ends [succeeded]
+      steps $rows*)
 
 /--
-error: Nexus.Success model declares 257 transitions; the elaboration bound is 256
+error: Nexus model declares 257 steps; the elaboration bound is 256
 -/
 #guard_msgs (error) in
-boundedTransitionModel overBoundLifecycle 257
+boundedStepModel overBoundLifecycle 257
+
+/-
+Every keyword the R6 rewrite retired still parses, so an author who writes the old spelling gets a
+located error naming the replacement instead of a parse failure that names neither. One block per
+retired keyword.
+-/
+
+/--
+error: the Nexus command keyword 'initial' is retired; write 'starts'
+-/
+#guard_msgs (error) in
+model retiredInitialLifecycle
+  role operation
+  states State
+  actions Action
+  outcomes Outcome
+  facts Fact
+  initial [scheduled]
+  ends [succeeded]
+  steps
+    start: scheduled + awaitStart →
+      { state := started, outcome := acknowledged, facts := [started] }
+
+/--
+error: the Nexus command keyword 'terminal' is retired; write 'ends'
+-/
+#guard_msgs (error) in
+model retiredTerminalLifecycle
+  role operation
+  states State
+  actions Action
+  outcomes Outcome
+  facts Fact
+  starts [scheduled]
+  terminal [succeeded]
+  steps
+    start: scheduled + awaitStart →
+      { state := started, outcome := acknowledged, facts := [started] }
+
+/--
+error: the Nexus command keyword 'transitions' is retired; write 'steps'
+-/
+#guard_msgs (error) in
+model retiredTransitionsLifecycle
+  role operation
+  states State
+  actions Action
+  outcomes Outcome
+  facts Fact
+  starts [scheduled]
+  ends [succeeded]
+  transitions
+    start: scheduled + awaitStart →
+      { state := started, outcome := acknowledged, facts := [started] }
+
+/--
+error: the Nexus command keyword 'when action' is retired; write 'when'
+-/
+#guard_msgs (error) in
+property retiredWhenAction on lifecycle
+  for operation
+  when action awaitSuccess
+  require successState: state succeeded
+
+/--
+error: the Nexus command keyword 'resultingState' is retired; write 'state'
+-/
+#guard_msgs (error) in
+property retiredResultingState on lifecycle
+  for operation
+  when awaitSuccess
+  require successState: resultingState succeeded
+
+/--
+error: the Nexus command keyword 'behavior' is retired; write 'scenario'
+-/
+#guard_msgs (error) in
+behavior retiredBehavior on lifecycle
+  operation starts scheduled
+  actions exactly [start: awaitStart, completion: awaitSuccess]
+
+/--
+error: the Nexus command keyword 'transitions' is retired; write 'steps'
+-/
+#guard_msgs (error) in
+limits retiredTransitionsLimit
+  transitions 2
+  actions 2
+  search 16
+
+/--
+error: the Nexus command keyword 'selected_actions' is retired; write 'actions'
+-/
+#guard_msgs (error) in
+limits retiredSelectedActionsLimit
+  steps 2
+  selected_actions 2
+  search 16
+
+/--
+error: the Nexus command keyword 'candidate_evaluations' is retired; write 'search'
+-/
+#guard_msgs (error) in
+limits retiredCandidateEvaluationsLimit
+  steps 2
+  actions 2
+  candidate_evaluations 16
+
+/--
+error: the Nexus command keyword 'witness' is retired; write 'find'
+-/
+#guard_msgs (error) in
+query retiredWitnessQuery on lifecycle
+  witness successfulResult
+  in successfulCompletion
+  limits shortTrace
+
+/--
+error: the Nexus command keyword 'all' is retired; write 'verify'
+-/
+#guard_msgs (error) in
+query retiredAllQuery on lifecycle
+  all successfulResult
+  in successfulCompletion
+  limits shortTrace
 
 #print axioms Temporal.Feature.Nexus.Success.Authoring.successModel
 #print axioms Temporal.Feature.Nexus.Success.Authoring.check

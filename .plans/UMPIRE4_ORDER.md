@@ -10,7 +10,7 @@ this document records delivery order. Architecture and terminology live in the
 
 [fn-82 — Unify the Umpire and Testpilot vocabulary](../.flow/specs/fn-82-unify-the-umpire-and-testpilot.md),
 from the 2026-09-08 vocabulary investigation of `model/`, the Testpilot protocol, and the Go facade.
-The model works; its vocabulary does not. A reader who moves from a Nexus3 model to the Umpire types
+The model works; its vocabulary does not. A reader who moves from a Nexus success model to the Umpire types
 behind it to the Case that comes out meets the same idea under several names and the same name for
 several ideas. Measured on the current tree:
 
@@ -177,7 +177,7 @@ leases, recovery, and publication stay outside Testpilot and Umpire.
 
 - [fn-80](../.flow/specs/fn-80-close-the-model-to-case-seam-and-harden.md): closed the
   model-to-Case seam. **14 of 15 tasks done** (the fifteenth is the superseded record of why R2 was
-  split) and the completion review is SHIP with all eight R-IDs met. The Nexus3 Producer no longer
+  split) and the completion review is SHIP with all eight R-IDs met. The Nexus success Producer no longer
   compares a checked Property clause-for-clause against one expected value: the correlated-history
   monitor is derived from the Facts the selected witness records, so a model edit produces different
   Case bytes instead of a lowering error, and the async-nexus Contract now carries no monitor rule at
@@ -211,7 +211,7 @@ leases, recovery, and publication stay outside Testpilot and Umpire.
   than dropped: a live resume-timeout has no Driver seam to fail through, and a same-queue assertion
   would assert the outage is not real, because a pooled peer on the same physical queue keeps polling.
 - [fn-67](../.flow/specs/fn-67-refine-simple-nexus3-authoring-draft.md): reconciled the broader
-  Nexus3 authoring draft with the delivered success slice. The optional per-declaration compatibility
+  Nexus success authoring draft with the delivered success slice. The optional per-declaration compatibility
   ID is now documented beside the success slice's derivation-only identity — declaration-local,
   identity-only, never freezing the Behavior Fingerprint — and the "no overrides" claims are scoped
   to the delivered syntax. `cancellationResolves` now states that generic operation-scoped counting
@@ -283,7 +283,7 @@ leases, recovery, and publication stay outside Testpilot and Umpire.
 
 - [fn-73](../.flow/specs/fn-73-explicit-environment-binding-for.md): established exact Case 1.0
   symbolic resource bindings, immutable Profile-owned snapshots, static Driver validation, and the
-  two-environment Nexus3 proof without request rewriting or Case-byte drift.
+  two-environment Nexus success proof without request rewriting or Case-byte drift.
 - [fn-71](../.flow/specs/fn-71-standalone-lean-testpilot-protocol.md): established independent
   `Testpilot.*` types, context-safe expressions, one current codec, and producer-owned Umpire
   provenance.
@@ -291,7 +291,7 @@ leases, recovery, and publication stay outside Testpilot and Umpire.
   Temporal Driver to `common/testing/testpilot/temporal`, preserved server/worker/delivery ownership,
   and retained functional fixtures and provisioning under `tests/`.
 - [fn-68](../.flow/specs/fn-68-minimal-nexus3-success-demonstration.md): proved the approachable
-  five-block Nexus3 success model through checked lowering, deterministic fixture generation,
+  five-block Nexus success model through checked lowering, deterministic fixture generation,
   offline evidence rejection, and the existing real Temporal Driver test.
 - [fn-69](../.flow/specs/fn-69-extract-testpilot-from-umpire.md): moved the Case protocol and
   reusable runtime to `common/testing/testpilot`, moved the functional Driver to
@@ -302,14 +302,14 @@ leases, recovery, and publication stay outside Testpilot and Umpire.
   Testpilot, generators, regression gates, and downstream contracts.
 - [fn-64](../.flow/specs/fn-64-umpire-case-runtime.md): Testpilot, Lean-produced Nexus proof,
   independent six-class facade corpus, and full regression gate.
-- [fn-65](../.flow/specs/fn-65-design-and-prototype-approachable.md): separate Nexus2 authoring
-  prototype. Its [requirement comparison](../model/Temporal/Feature/Nexus2/EVIDENCE.md) covered fn-62 R3.
+- [fn-65](../.flow/specs/fn-65-design-and-prototype-approachable.md): separate Nexus race authoring
+  prototype. Its [requirement comparison](../model/Temporal/Feature/Nexus/Race/COVERAGE.md) covered fn-62 R3.
 - [fn-62](../.flow/specs/fn-62-make-ordinary-temporal-model-authoring.md): remaining established
   authoring requirements, including Observation construction and model-owned Known Gaps;
-  [compatibility evidence](../model/Temporal/Feature/Nexus/EVIDENCE.md).
+  [compatibility coverage](../model/Temporal/Feature/Nexus/COVERAGE.md).
 
 Whole-spec completion-review status is tracked in Flow and is not implied by placement in this
-list. Nexus2 remains a prototype with explicit adoption boundaries.
+list. The Nexus race tree remains a prototype with explicit adoption boundaries.
 
 ## Deferred and superseded
 

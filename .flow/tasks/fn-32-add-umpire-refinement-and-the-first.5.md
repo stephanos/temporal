@@ -9,7 +9,7 @@ Close R5/R6 with import guards, aggregate tests, and authoring/Run Evaluation do
 
 ### Review reconciliation (normative)
 
-Extend fn-34's explicit import policy with exactly one composed-test class/root, `Temporal.ImplementationLinkTests.Nexus`, allowed to reach both the Feature family and `Temporal.System.Nexus.ImplementationLink`. Do not classify it as base System, do not use a prefix/suffix wildcard, and add near-miss tests proving sibling System and test modules remain rejected.
+Extend fn-34's explicit import policy with exactly one composed-test class/root, `TemporalModelTests.Nexus.ImplementationLink`, allowed to reach both the Feature family and `Temporal.System.Nexus.ImplementationLink`. Do not classify it as base System, do not use a prefix/suffix wildcard, and add near-miss tests proving sibling System and test modules remain rejected.
 
 **Size:** S
 **Files:** `model/ModelLint/ImportGraph.lean`, `model/ModelLint/ImportGraphTests.lean`, `model/UmpireTests.lean`, `model/TemporalModelTests.lean`, `model/README.md`, `model/Umpire/ARCHITECTURE.md`, `model/ARCHITECTURE.md`
@@ -28,7 +28,7 @@ Extend fn-34's explicit import policy with exactly one composed-test class/root,
 - `model/Umpire/ARCHITECTURE.md` — current deep-module contracts
 
 ### Acceptance
-- [ ] `ModelLint.ImportGraph` classifies exactly `Temporal.ImplementationLinkTests.Nexus` as the composed-test root; import guards prove only it and the focused production leaf reach both sides, while sibling and prefix/suffix near misses fail.
+- [ ] `ModelLint.ImportGraph` classifies exactly `TemporalModelTests.Nexus.ImplementationLink` as the composed-test root; import guards prove only it and the focused production leaf reach both sides, while sibling and prefix/suffix near misses fail.
 - [ ] Aggregate tests and regression fixtures pass.
 - [ ] Documentation distinguishes Observation, Implementation Link, and Property outcomes.
 ## Acceptance
@@ -43,5 +43,5 @@ stage: impl-review - ran [2026-08-27T23:18:42Z..2026-08-27T23:23:08Z; Codex SHIP
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: d0388026c4783bfd8b5eafc5232b6a175873b8a8
-- Tests: cd model && mise exec -- lake build Umpire.ImplementationLink.Tests, cd model && mise exec -- lake build Temporal.System.Nexus.ImplementationLinkTests, cd model && mise exec -- lake build UmpireTests TemporalModelTests, make umpire-check-regression (default Go toolchain failed: inherited corrupted module-cache toolchain), PATH=/tmp/fn32-task4-go-toolchain.tlojNU/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/bin:$PATH GOTOOLCHAIN=local make umpire-check-regression, make lint-model, cd model && mise exec -- lake build Temporal.Feature.Nexus.Lifecycle Temporal.System.Nexus.Core, cd model && mise exec -- lake build Temporal.Feature.Nexus.LifecycleTests Temporal.System.Nexus.Tests Temporal.System.Nexus.ImplementationLinkTests Temporal.ImplementationLinkTests.Nexus modelLintTests
+- Tests: cd model && mise exec -- lake build Umpire.ImplementationLink.Tests, cd model && mise exec -- lake build Temporal.System.Nexus.ImplementationLinkTests, cd model && mise exec -- lake build UmpireTests TemporalModelTests, make umpire-check-regression (default Go toolchain failed: inherited corrupted module-cache toolchain), PATH=/tmp/fn32-task4-go-toolchain.tlojNU/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/bin:$PATH GOTOOLCHAIN=local make umpire-check-regression, make lint-model, cd model && mise exec -- lake build Temporal.Feature.Nexus.Lifecycle Temporal.System.Nexus.Core, cd model && mise exec -- lake build Temporal.Feature.Nexus.LifecycleTests Temporal.System.Nexus.Tests Temporal.System.Nexus.ImplementationLinkTests TemporalModelTests.Nexus.ImplementationLink modelLintTests
 - PRs:
