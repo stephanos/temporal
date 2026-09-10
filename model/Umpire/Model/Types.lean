@@ -24,7 +24,7 @@ structure ModelSpec
   terminalConditions : List (List State) := []
   machine : MachineAvailability Setup State Action Outcome Observation
 
-/-- Optional finite planning is tied propositionally to the exact authoritative target kernel. -/
+/-- Optional finite planning is tied propositionally to the exact authoritative model Machine. -/
 structure FinitePlanningCapability
     {State Action Outcome Observation : Type}
     (authoritativeStep : State → Action → Step State Outcome Observation → Prop) where
@@ -46,7 +46,7 @@ inductive AuthoredPlanningCapability
   | unavailable
   | available
       (kernel : Machine Setup State Action Outcome Observation)
-      (kernelEq : availability = .checked kernel)
+      (machineEq : availability = .checked kernel)
       (capability : FinitePlanningCapability kernel.authoritativeStep)
 
 structure BehaviorInitialStateRow where
@@ -87,7 +87,7 @@ inductive SourceRefRole where
   | lawProof
   | meaning
   | reconciliation
-  | kernel
+  | machine
   deriving BEq, DecidableEq, Ord, Repr
 
 def SourceRefRole.name : SourceRefRole → String
@@ -102,7 +102,7 @@ def SourceRefRole.name : SourceRefRole → String
   | .lawProof => "law-proof"
   | .meaning => "meaning"
   | .reconciliation => "reconciliation"
-  | .kernel => "kernel"
+  | .machine => "machine"
 
 /-- The owner makes a nested occurrence path unambiguous when identities are reused. -/
 inductive SourceRefContext where

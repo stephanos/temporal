@@ -84,7 +84,7 @@ A sixth command joins the five fn-82 respells. It names a `find` Query, a realiz
 with its parameters, and the history event that confirms each Action:
 
 ```lean
-case asyncNexusSuccess
+case asyncNexusSuccess fixture "async-nexus"
   realizes completion
   as nexusOperation service "umpire.case.service" operation "complete" responds async
   evidence
@@ -92,27 +92,38 @@ case asyncNexusSuccess
     awaitSuccess ← history nexusOperationCompleted
 ```
 
-`realizes` takes a `find` Query; a `verify` Query rejects with a located error, because a Case
-realizes one selected trace. `as` names a template and its parameters. `evidence` maps each
-Action the Scenario selects to one recorded history event kind. The Step each event confirms
-(state, outcome, facts) is read from the checked Machine along the witness trace, so the author
-writes it once, in the `steps` block. Hook names for fault lines are resolved here too, because
-only the `case` block knows the template. The `case` command is an elaborator, not a macro: it
-resolves names and registers the Case (R4).
+`fixture` names the checked-in file and derives every identity the Case carries: the Case ID is
+`temporal.case.<fixture>`, the Program ID `<caseId>.program`, the Contract ID `<caseId>.contract`,
+and the run-scope literal `<fixture>`. The grammar has no other identity slot. `realizes` takes a
+`find` Query; a `verify` Query rejects with a located error, because a Case realizes one selected
+trace. `as` names a template and its parameters. `evidence` maps each Action the Scenario selects
+to one recorded history event kind. The Step each event confirms (state, outcome, facts) is read
+from the checked Machine along the witness trace, so the author writes it once, in the `steps`
+block. Hook names for fault lines are resolved here too, because only the `case` block knows the
+template. The `case` command is an elaborator, not a macro: it resolves names and registers the
+Case (R4).
 
-`Umpire.Case.Producer` is the reusable half. Its input is a `CheckedModel`, the selected witness,
-the Scenario order, the Property, an abstract `Realization` (roles, environment bindings, a
-Program, named hooks, the history observation, the Correlated operation key, the fault rule ID),
-an evidence mapping, and fault lines. Its output is the `Umpire.Case.Compiler.Input` the Nexus
-success Producer builds by hand today. Nothing in it names Temporal (SCP-02), so it cannot import
-the Temporal Case support module; the Temporal-named constants move to the templates. The
-Correlated-clause derivation, the same-step vacuity rejection, the coverage check that every
-Property clause appears in the Contract, and the Provenance bindings move unchanged. Witness
-selection is deterministic under PLN-02, which is what makes the fixture stable.
+Definition IDs and sources are per file. The command syntax derives the definition family from
+the enclosing namespace and the source location from the elaborating file, so two Models that
+both name a `lifecycle` in different files carry distinct Definition IDs and distinct Provenance
+sources. The Nexus success family keeps its current value under that derivation.
 
-Proof of R1: the async-Nexus Case regenerated through the `case` block is byte-identical to the
-fixture at this spec's base commit, or differs only in Provenance in a way the task receipt
-explains, and the live async-Nexus tests pass unchanged.
+`Umpire.Case.Producer` is the reusable half. Its input is an Umpire-owned record: the checked
+Model, its vocabulary as `ModelValue` lists, the checked Property, the checked Scenario, the
+witness trace, and the Query's ID, source, and Known Gaps; the Temporal authoring bundle converts
+to it at the call site, because MOD-01 forbids the Producer from importing a Temporal type. With
+it come an abstract `Realization`, an evidence mapping, and fault lines. Its output is the
+`Umpire.Case.Compiler.Input` the Nexus success Producer builds by hand today. Nothing in it names
+Temporal (SCP-02); the Temporal-named constants move to the templates. The Correlated-clause
+derivation, the same-step vacuity rejection, the coverage check that every Property clause
+appears in the Contract, and the Provenance bindings move unchanged. Witness selection is
+deterministic under PLN-02, which is what makes the fixture stable.
+
+Proof of R1 in two steps. The extraction alone (Realization built by hand with today's IDs)
+regenerates the async-Nexus fixture byte-identical. The `case` block then regenerates it with the
+derived identities: the diff is limited to the Case ID, Program ID, Contract ID, run-scope literal,
+and Provenance; with those fields masked the Program and Contract are byte-identical, the receipt
+lists the diff, and the live async-Nexus tests pass with no change beyond the fixture name.
 
 ### R2 realization templates
 
@@ -122,17 +133,26 @@ Model-bearing and fault-bearing checked-in Cases use:
 - `nexusOperation service operation responds sync|async`: a controller-started workflow
   schedules one Nexus operation on the Case's endpoint role; the handler responds synchronously,
   or asynchronously with the controller completing it; the controller reads history. The `async`
-  form is today's async-Nexus Program verbatim; `sync` is what R6 needs. Hooks: `start`,
-  `completion`.
+  form is today's async-Nexus Program verbatim. In the `sync` form nothing sequences the history
+  read after completion, so the template first reads with the close-event filter, as the
+  worker-outage Program does, and only then performs the full read the Projection consumes.
+  Hooks: `start`, `completion`.
 - `workflow type`: a controller-started workflow that finishes; the controller reads history. This
   is today's worker-outage Program without its two fault instructions. Hooks: `start`,
   `completion`. Its fault rule ID stays `worker-outage-order` so the existing artifact assertion
   keeps its meaning.
 
-A template is a Lean value, not syntax; adding a third is one Lean file. The `evidence` block's
-`history <eventKind>` resolves against the generated history event attribute oneof in
-`Temporal.API`, so a misspelled kind rejects with the admitted kinds listed, the same way an
-unknown Action does today. This resolution reads generated names the author never declared,
+A template is a Lean value, not syntax; adding a third is one Lean file. The template owns the
+evidence sources the Correlated capability reads, because they are Temporal-specific and depend
+on which event kinds the `case` block maps: for each admitted event kind the template states the
+attributes field, the operation-key path, the evidence kind ID, the source ID, and the scope
+literal, and its Program is a function of the resolved evidence rules, so the history node's
+projection targets are built from the mapping rather than patched afterwards. The Nexus template
+keys operations by the scheduled event ID as today; the `workflow` template runs one workflow per
+Run and keys by the run-scope literal, because a completed-workflow event names no operation. The
+`evidence` block's `history <eventKind>` resolves against the generated history event attribute
+oneof in `Temporal.API`, so a misspelled kind rejects with the admitted kinds listed, the same way
+an unknown Action does today. This resolution reads generated names the author never declared,
 which AUT-09 as drafted does not cover; see Parked unknowns.
 
 The typed examples (`TypedUnary`, `TypedNexus`) stay on the expert path unchanged.
@@ -152,31 +172,43 @@ scenario completionSurvivesOutage on lifecycle
 `fault <kind> before|after <hook>` names one of the two existing fault kinds and one hook of the
 template the `case` block chooses. The Producer owns the hook-to-instruction map the fault
 lowering has always left to its caller: it lowers each line through the existing intent and
-realization types in `Umpire.Variations`, with the hook's instruction as placement and the
-template's task-queue role as the outage role; the lowering itself keeps ignoring the occurrence.
-A hook the template does not declare rejects by name at the `fault` line, listing the template's
-hooks. Two fault lines with the same kind, hook and placement reject as duplicates. Stop and
-resume pairing is not checked at elaboration; the outage-order rule the Producer adds to the
-Contract whenever a Scenario carries faults (fn-80 R4, a `rule_events` Deadline over the recorded
-`FAULT_INJECTED` events in declared order) answers an unpaired stop at Run time.
+realization types in `Umpire.Variations`, with the template's task-queue role as the outage role;
+the lowering itself keeps ignoring the occurrence. Ordering in a controller entrypoint comes only
+from dependency edges, and a realization can only make the fault depend on something, so the
+Producer also rewrites edges: for `before`, the hook's instruction gains a dependency and guard
+on the fault; for `after`, the hook's successors gain a dependency on the fault. That is what
+makes a stop precede the start it names, as today's hand-written Program does. A hook the
+template does not declare rejects by name at the `fault` line, listing the template's hooks. Two
+fault lines with the same kind, hook and placement reject as duplicates. Stop and resume pairing
+is not checked at elaboration; the outage-order rule the Producer adds to the Contract whenever a
+Scenario carries faults (fn-80 R4, a `rule_events` Deadline over the recorded `FAULT_INJECTED`
+events in declared order) answers an unpaired stop at Run time.
 
 Proof of R3: the worker-outage Case file is deleted and re-authored as a Model (`pending →
-completed` on `awaitCompletion`, one Fact `completed`), a Property requiring the completed state,
-the Scenario above, and a `case` block on the `workflow` template. The fixture changes bytes
-because its Provenance now carries Model bindings; both live outage tests pass with the same
-Verdict shape and the offline artifact test pins the new bytes and the `rule_events` Deadline.
+completed` on `awaitCompletion`, one Fact `completed`), a Property requiring the completed state
+and fact, the Scenario above, and a `case` block on the `workflow` template. The fixture changes
+bytes: its Provenance carries Model bindings, and its completion requirement is now Correlated
+clauses rather than the hand-written safety rule, so the Verdict carries the outage-order rule
+(same ID, terminal state `resumed`) plus one satisfied rule per clause. Both live outage tests
+pass against that shape, and the offline artifact test pins the new bytes and the `rule_events`
+Deadline.
 
 ### R4 one registry, two authored files per Case
 
-The `case` command registers its Case in a Lean environment extension; the synthetic and
-conformance Cases register with an explicit call and a renderer variant, because the synthetic
-Case is pre-encoded bytes rather than a compiled value. `umpire-case --list` prints every
-registered functional Case as `<case-id> <fixture-name>` sorted by Case ID; `--render <id>` prints
-its canonical bytes. A Model file the aggregator module does not import registers nothing, so its
-fixture is absent and its live test fails at load; that failure is loud enough that no lint is
-added. The Go generator's hand-written functional table is deleted; it calls `--list` and renders
-each entry. The conformance corpus keeps its own builder because its entries carry expected
-Verdicts the registry does not model. The Lean renderer's dispatch table is deleted.
+The `case` command registers its Case in a Lean environment extension that stores the
+declaration name of the Case value and the fixture name; a persistent extension lives in the
+`.olean`, so it holds names, never closures. A term elaborator in the renderer's root module
+materializes the registered names into the sorted list the executable enumerates, and the
+duplicate-fixture diagnostic fires there. The two typed examples register their existing Case
+values with an explicit call so `--list` covers every functional fixture; their Programs,
+Profiles, and Contracts do not change. The synthetic and conformance Cases do not register: the
+Go conformance builder keeps naming them by renderer argument, because its entries carry expected
+Verdicts the registry does not model. `umpire-case --list` prints every registered Case as
+`<case-id> <fixture-name>` sorted by Case ID; `--render <id>` prints its canonical bytes. A Model
+file the aggregator module does not import registers nothing, so its fixture is absent and its
+live test fails at load; that failure is loud enough that no lint is added. The Go generator's
+hand-written functional table and its fixed-count guard are deleted; it calls `--list` and
+renders each entry. The Lean renderer's functional dispatch table is deleted.
 
 The offline artifact tests split by kind. One table-driven test over the testdata directory
 decodes every fixture, prepares it against its derived Profile, and pins its identity; the
@@ -211,16 +243,19 @@ A `COVERAGE.md` beside the Model maps each upstream assertion to a Property clau
 rule, or a Known Gap in the Case's Provenance: the result value and the completed history event
 are carried; the handler-supplied link on the completed event is a Known Gap unless the template
 can express it; the admin-service mutable-state assertion is a Known Gap of kind white-box, which
-is the vision's example of a test a black-box consumer cannot run. The upstream test is not
-deleted.
+is the vision's example of a test a black-box consumer cannot run. It also records that the
+upstream handler is an external Nexus server while the translation's handler runs inside the
+Testpilot worker. The upstream test is not deleted.
 
 ### R7 run a Case against any endpoint
 
 Provisioning leaves the functional test file. `common/testing/testpilot/temporal/provision`
-creates and deletes a namespace and a Nexus endpoint over the operator and workflow-service gRPC
-clients only; it takes no test environment, no `testing.T`, and no server-internal namespace
-package, which is the seam the fn-70 deferral note recorded as the reason the helpers stayed
-test-local. The live tests call it.
+registers a namespace and polls its description until the namespace cache serves it, creates a
+Nexus endpoint, and deletes both through the operator service, over the operator and
+workflow-service gRPC clients only; it takes no test environment, no `testing.T`, and no
+server-internal namespace package, which is the seam the fn-70 deferral note recorded as the
+reason the helpers stayed test-local. The live tests call it. Transport credentials are the
+insecure ones the live tests use; TLS and authentication flags are out of scope.
 
 `tools/umpire/cmd/umpire-run` takes a fixture path, a gRPC address, an HTTP address, a namespace,
 a task queue, an optional Nexus endpoint name, `--create`, and `--timeout`. It derives the Profile
@@ -245,24 +280,53 @@ mode on real bytes, and the seam fn-70 and fn-29 consume.
 ```lean
 namespace Umpire.Case
 
+/-- The checked authoring bundle, Umpire-owned; the Temporal authoring bundle converts to it. -/
+structure Producer.Input where
+  model : CheckedModel
+  vocabulary : Vocabulary            -- states, actions, outcomes, facts as ModelValue lists
+  property : CheckedProperty
+  scenario : CheckedScenario
+  witness : Trace
+  queryId : DefinitionId
+  querySource : SourceLocation
+  knownGaps : KnownGaps
+
+structure Identity where
+  caseId : String                    -- temporal.case.<fixture>; program and contract IDs derive
+  fixture : String
+
 inductive HookPlacement | before | after
 structure Hook where
   name : String
   instruction : InstructionRef
 
+/-- What the template knows about one admitted event kind. -/
+structure EvidenceSource where
+  eventKind : String
+  attributesField : String
+  operationKeyPath : Path
+  kindId : DefinitionId
+  sourceId : DefinitionId
+
+structure EvidenceRule where           -- one resolved (action, source) pair
+  action : ModelValue
+  source : EvidenceSource
+
 structure Realization where
   roles : Array RoleDefinition
   environment : Array EnvironmentDefinition
-  program : Program
+  program : Identity → List EvidenceRule → Program
   historyObservation : String
   operationKey : DefinitionId
+  scopeField : DefinitionId
   taskQueueRole : String
   faultRuleId : String
   hooks : List Hook
+  sources : List EvidenceSource
 
-structure EvidenceMapping (Action : Type) where
-  action : Action
-  eventKind : String          -- a generated history attribute name
+structure EvidenceMapping where
+  action : ModelValue
+  eventKind : String
 
 structure FaultLine where
   kind : FaultKind            -- .workerStop | .workerResume
@@ -270,8 +334,8 @@ structure FaultLine where
   placement : HookPlacement
 
 def Producer.produce
-    (checked : CheckedModel m) (realization : Realization)
-    (evidence : List (EvidenceMapping m.Action)) (faults : List FaultLine)
+    (input : Producer.Input) (identity : Identity) (realization : Realization)
+    (evidence : List EvidenceMapping) (faults : List FaultLine)
     (required : List DefinitionId := []) :
     Except LoweringError testpilot.v1.Case
 
@@ -289,7 +353,7 @@ end Temporal.Case.Template
 Command syntax additions (exact grammar is a task decision; these forms are normative):
 
 ```text
-case <name>
+case <name> fixture "<fixture-name>"
   realizes <query>
   as <template> <param>*
   evidence
@@ -297,6 +361,9 @@ case <name>
 
 scenario ... (fault <workerStop|workerResume> <before|after> <hook>)*
 ```
+
+The registry stores `(declaration name, case ID, fixture name)` per registered Case; the
+renderer's root module materializes the sorted list through a term elaborator.
 
 ```text
 umpire-case --list                   # <case-id> <fixture-name>, sorted by case-id
@@ -347,24 +414,30 @@ make umpire-check-regression                    # the full gate
 ## Acceptance Criteria
 
 - **R1:** `Temporal.Feature.Nexus.Success.Producer` no longer exists; the success Model file
-  ends in a `case` block; `Umpire.Case.Producer` passes `lint-model` under MOD-01 and SCP-02; the
-  regenerated async-Nexus fixture is byte-identical to the base commit's, or differs only in
-  Provenance with the diff explained in the receipt; both live async-Nexus tests pass. Errors:
-  `verify` Query, unmapped selected Action, evidence for an unselected Action, and no witness each
-  reject with a located message pinned by `#guard_msgs`.
+  ends in a `case` block; `Umpire.Case.Producer` takes the Umpire-owned input record and passes
+  `lint-model` under MOD-01 and SCP-02; the extraction step regenerates the async-Nexus fixture
+  byte-identical, and the `case` step regenerates it with a diff limited to the Case ID, Program
+  ID, Contract ID, run-scope literal, and Provenance, listed in the receipt; two Models in
+  different files get distinct Definition IDs and sources, pinned by `#guard`; both live
+  async-Nexus tests pass. Errors: `verify` Query, unmapped selected Action, evidence for an
+  unselected Action, and no witness each reject with a located message pinned by `#guard_msgs`.
 - **R2:** `Temporal.Case.Template.nexusOperation` (sync and async) and `.workflow` exist as Lean
-  values with hooks `start` and `completion`. Errors: an unknown history event kind in `evidence`
-  rejects listing the admitted kinds, pinned by `#guard_msgs`; no other error surface.
+  values with hooks `start` and `completion` and their evidence sources; the sync form's history
+  read waits for the close event before the full read. Errors: an unknown history event kind in
+  `evidence` rejects listing the admitted kinds, pinned by `#guard_msgs`; no other error surface.
 - **R3:** the worker-outage Case file no longer exists; the outage Case is a Model file with two
-  `fault` lines; both live outage tests pass with the outage-order rule and the completion rule
-  satisfied; the artifact test pins the `rule_events` Deadline. Errors: unknown hook and duplicate
-  fault line reject with located messages pinned by `#guard_msgs`; unpaired stop is unchecked at
-  elaboration and answered by the outage-order rule at Run time.
-- **R4:** the Go generator has no functional Case table and the Lean renderer has no dispatch
-  table; `umpire-case --list` prints every checked-in functional fixture name sorted, and nothing
-  else; the shared artifact test is table-driven over the testdata directory; `runCase` derives a
-  default binding from the fixture name. Errors: duplicate fixture name rejects at registration,
-  pinned by `#guard_msgs`; `--render` of an unknown ID exits non-zero naming the known IDs.
+  `fault` lines; a Producer unit test asserts the rewritten dependency edges for `before` and
+  `after`; both live outage tests pass with the outage-order rule (same ID, terminal state
+  `resumed`) and every clause rule satisfied; the artifact test pins the `rule_events` Deadline.
+  Errors: unknown hook and duplicate fault line reject with located messages pinned by
+  `#guard_msgs`; unpaired stop is unchecked at elaboration and answered by the outage-order rule
+  at Run time.
+- **R4:** the Go generator has no functional Case table and no fixed-count guard, and the Lean
+  renderer has no functional dispatch table; `umpire-case --list` prints every checked-in
+  functional fixture name sorted, and nothing else; the shared artifact test is table-driven over
+  the testdata directory; `runCase` derives a default binding from the fixture name. Errors:
+  duplicate fixture name rejects at the materializing elaborator, pinned by `#guard_msgs`;
+  `--render` of an unknown ID exits non-zero naming the known IDs.
 - **R5:** `model/AUTHORING.md` exists and the old tutorial does not; a Go test asserts each Lean
   block in it equals the marked region of the R6 Model file. Errors: a missing or duplicate
   marker fails that test naming the marker; no other error surface.
@@ -394,9 +467,9 @@ generic, and R2 through R7 build on it.
 
 | Req | Description | Task(s) | Gap justification |
 |-----|-------------|---------|-------------------|
-| R1 | `case` block, generic Producer, Nexus success Producer deleted | .1, .2, .3 | — |
-| R2 | realization templates and evidence kind resolution | .2, .6 | — |
-| R3 | fault lines, worker-outage re-authored | .5 | — |
+| R1 | `case` block, generic Producer, per-file families, Nexus success Producer deleted | .1, .2, .3 | — |
+| R2 | realization templates, evidence sources, event kind resolution | .2, .6 | — |
+| R3 | fault lines with edge rewriting, worker-outage re-authored | .5 | — |
 | R4 | Case registry, generator table deleted, artifact and live-test helpers | .3, .4 | — |
 | R5 | authoring walkthrough with drift test | .8 | — |
 | R6 | translated upstream test with coverage record | .6 | — |
@@ -413,8 +486,10 @@ generic, and R2 through R7 build on it.
 - **No new fault kinds, instruction kinds, proto messages, or field numbers.** Activity
   interpreters, signals, timers, child workflows, and RPC-level faults are separate proposals.
 - **No clock model.** Deadlines stay logical or single-host.
-- **No change to the typed examples** or to fn-77's generated-operation path; typed fixtures are
+- **No change to the typed examples' Programs, Profiles, or Contracts** or to fn-77's
+  generated-operation path; they only register their existing Case values, and typed fixtures are
   not runnable through `umpire-run`.
+- **No TLS or authentication flags** on `umpire-run`.
 - **No new CI workflow** and no generated-API drift gate (declined ledger).
 - **No edits to historical `.plans` documents** other than `UMPIRE4_ORDER.md`, and
   `UMPIRE4_SPEC.md` only for a `case` concept entry and one drafted rule under GOV-02.

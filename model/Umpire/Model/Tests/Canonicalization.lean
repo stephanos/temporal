@@ -197,12 +197,12 @@ example : (checkModel (authoringOf testTarget)).toOption.map CheckedModel.behavi
       CheckedModel.behaviorFingerprint := by
   native_decide
 
-example : canonicalCapabilityProviderJson primaryProvider =
-    canonicalCapabilityProviderJson primaryProvider := by
+example : canonicalProviderJson primaryProvider =
+    canonicalProviderJson primaryProvider := by
   rfl
 
-example : canonicalCapabilityConnectorJson ownershipConnector =
-    canonicalCapabilityConnectorJson ownershipConnector := by
+example : canonicalConnectorJson ownershipConnector =
+    canonicalConnectorJson ownershipConnector := by
   rfl
 
 end Umpire.ModelTests

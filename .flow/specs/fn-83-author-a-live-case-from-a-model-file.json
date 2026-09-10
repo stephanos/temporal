@@ -1,13 +1,168 @@
 {
   "branch_name": "fn-83-author-a-live-case-from-a-model-file",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-09-10T05:53:56.148901Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-82-unify-the-umpire-and-testpilot"
   ],
   "id": "fn-83-author-a-live-case-from-a-model-file",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 1,
+  "plan_review_status": "needs_work",
+  "plan_reviewed_at": "2026-09-10T06:15:33.008961Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "5f54f2044cffaac0662f631ee2daf17dfb6a68db88a577390a85bd97ef5759ea",
+      "backend": "claude",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-166cbd88b1f128f0e51a691ad47b933b",
+            "classification": "introduced",
+            "findingId": "finding-166cbd88b1f128f0e51a691ad47b933b",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-02d3488f4846e5b7cd8b45ce207ce4f2",
+            "classification": "introduced",
+            "findingId": "finding-02d3488f4846e5b7cd8b45ce207ce4f2",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-244dc51ca563db4854ad411b9de4235d",
+            "classification": "introduced",
+            "findingId": "finding-244dc51ca563db4854ad411b9de4235d",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-30c23d1a253e4e70f2dff4a2966e6952",
+            "classification": "introduced",
+            "findingId": "finding-30c23d1a253e4e70f2dff4a2966e6952",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-84a48acda2041259e5ca6e8d53d55e87",
+            "classification": "introduced",
+            "findingId": "finding-84a48acda2041259e5ca6e8d53d55e87",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-6addde353b9104de6bbe338e1a659464",
+            "classification": "introduced",
+            "findingId": "finding-6addde353b9104de6bbe338e1a659464",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-8f763e6f547d4b9472082cf34b204dcc",
+            "classification": "introduced",
+            "findingId": "finding-8f763e6f547d4b9472082cf34b204dcc",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-f98522d58c95e9a285ddaf9793eb0a2f",
+            "classification": "introduced",
+            "findingId": "finding-f98522d58c95e9a285ddaf9793eb0a2f",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-1eac38aba63f4006a4643d1c4f45a831",
+            "classification": "introduced",
+            "findingId": "finding-1eac38aba63f4006a4643d1c4f45a831",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-102878baf32d35a42ca69bff59fa4df1",
+            "classification": "introduced",
+            "findingId": "finding-102878baf32d35a42ca69bff59fa4df1",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-4facd0ce3482512af310b22747a20332",
+            "classification": "introduced",
+            "findingId": "finding-4facd0ce3482512af310b22747a20332",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-7b39f682b29e6e6841d9cc6cc9b050e9",
+            "classification": "introduced",
+            "findingId": "finding-7b39f682b29e6e6841d9cc6cc9b050e9",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-1ee4c0748229d65121e02c18bf807c09",
+            "classification": "introduced",
+            "findingId": "finding-1ee4c0748229d65121e02c18bf807c09",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "3d2478fe0c6a84be5bac5514ebee1db4f6dc1179",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 15975,
+      "output_sha256": "2f5492d0907c6b5dc8f36eb8d5d7270ef58c8bff75463051bc55c1c792589978",
+      "reservation_id": "d45dd427268a4f3abb2321f792523e82",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-10T06:15:33.005816Z",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-83-author-a-live-case-from-a-model-file.md",
   "status": "open",
   "title": "Author a live Case from a Model file",
@@ -22,5 +177,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-10T06:03:23.598619Z"
+  "updated_at": "2026-09-10T06:20:23.588043Z"
 }

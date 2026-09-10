@@ -25,7 +25,7 @@ private structure ConnectorValue where
   witnessedLaws : List Law
   deriving BEq, DecidableEq
 
-private structure CheckedTargetValue where
+private structure CheckedModelValue where
   id : DefinitionId
   source : SourceLocation
   definitions : List DefinitionMetadata
@@ -57,7 +57,7 @@ private def connectorValue (connector : Connector TestLawStatement) : ConnectorV
 }
 
 private def checkedTargetValue
-    (target : CheckedModel TestLawStatement Unit Bool Bool Bool Bool) : CheckedTargetValue := {
+    (target : CheckedModel TestLawStatement Unit Bool Bool Bool Bool) : CheckedModelValue := {
   id := target.id
   source := target.source
   definitions := target.definitions
@@ -102,7 +102,7 @@ private def stableConnectorLaw : Law := {
   body := "connector-sound/v1"
 }
 
-private def expectedCheckedTargetValue : CheckedTargetValue := {
+private def expectedCheckedTargetValue : CheckedModelValue := {
   id := DefinitionId.of "test.target.composed"
   source := stableSource "Test/CompositeSemantic.lean"
   definitions := [

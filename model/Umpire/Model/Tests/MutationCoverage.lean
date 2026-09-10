@@ -90,22 +90,22 @@ def targetMutationResults :
     authoredMutation ambiguousConnectorTarget (id "test.relation.shared") .reconciliation
       secondOwnershipConnector.id 110,
   locatedMutationSummary <| checkModel <|
-    authoredMutation incompleteKernelTarget testKernel.metadata.id .kernel testTarget.id 120
+    authoredMutation incompleteKernelTarget testKernel.metadata.id .machine testTarget.id 120
 ]
 
 example : targetMutationResults = [
-    some (.emptyDefinitionId, .definitionMetadata, "Test/TargetAuthoring.lean", 10, 2),
-    some (.invalidDefinitionId, .definitionMetadata, "Test/TargetAuthoring.lean", 20, 2),
-    some (.duplicateDefinitionId, .definitionMetadata, "Test/TargetAuthoring.lean", 32, 2),
-    some (.unknownDefinitionId, .capabilityRequirement, "Test/TargetAuthoring.lean", 40, 2),
-    some (.wrongKind, .capabilityRequirement, "Test/TargetAuthoring.lean", 50, 2),
-    some (.missingLaw, .lawRequirement, "Test/TargetAuthoring.lean", 60, 2),
-    some (.unexpectedLaw, .lawProof, "Test/TargetAuthoring.lean", 70, 2),
-    some (.lawContractMismatch, .lawRequirement, "Test/TargetAuthoring.lean", 80, 2),
-    some (.missingProvider, .capabilityRequirement, "Test/TargetAuthoring.lean", 90, 2),
-    some (.conflictingProviders, .meaning, "Test/TargetAuthoring.lean", 100, 2),
-    some (.ambiguousConnector, .reconciliation, "Test/TargetAuthoring.lean", 110, 2),
-    some (.incompleteMachine, .kernel, "Test/TargetAuthoring.lean", 120, 2)
+    some (.emptyDefinitionId, .definitionMetadata, "Test/ModelAuthoring.lean", 10, 2),
+    some (.invalidDefinitionId, .definitionMetadata, "Test/ModelAuthoring.lean", 20, 2),
+    some (.duplicateDefinitionId, .definitionMetadata, "Test/ModelAuthoring.lean", 32, 2),
+    some (.unknownDefinitionId, .capabilityRequirement, "Test/ModelAuthoring.lean", 40, 2),
+    some (.wrongKind, .capabilityRequirement, "Test/ModelAuthoring.lean", 50, 2),
+    some (.missingLaw, .lawRequirement, "Test/ModelAuthoring.lean", 60, 2),
+    some (.unexpectedLaw, .lawProof, "Test/ModelAuthoring.lean", 70, 2),
+    some (.lawContractMismatch, .lawRequirement, "Test/ModelAuthoring.lean", 80, 2),
+    some (.missingProvider, .capabilityRequirement, "Test/ModelAuthoring.lean", 90, 2),
+    some (.conflictingProviders, .meaning, "Test/ModelAuthoring.lean", 100, 2),
+    some (.ambiguousConnector, .reconciliation, "Test/ModelAuthoring.lean", 110, 2),
+    some (.incompleteMachine, .machine, "Test/ModelAuthoring.lean", 120, 2)
   ] := by
   native_decide
 

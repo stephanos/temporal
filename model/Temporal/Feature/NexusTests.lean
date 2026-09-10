@@ -117,7 +117,7 @@ theorem incompleteRawTargetRemainsTyped : targetErrorOf (checkModel incompleteTa
       offendingValue := kernelId.value
       relatedDefinitionIds := [kernelId]
     }
-    path := { role := .kernel, owner := targetId }
+    path := { role := .machine, owner := targetId }
     original := none
     offending := {
       sourcePath := "Temporal/Feature/Nexus/Lifecycle.lean"

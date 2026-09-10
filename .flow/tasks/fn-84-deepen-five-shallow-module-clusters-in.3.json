@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-10T06:05:41.292597Z",
+  "depends_on": [],
+  "id": "fn-84-deepen-five-shallow-module-clusters-in.3",
+  "priority": null,
+  "spec": "fn-84-deepen-five-shallow-module-clusters-in",
+  "spec_path": ".flow/tasks/fn-84-deepen-five-shallow-module-clusters-in.3.md",
+  "status": "todo",
+  "title": "Umpire.Search.admit and the AdmittedQuery",
+  "updated_at": "2026-09-10T06:18:39.564544Z"
+}

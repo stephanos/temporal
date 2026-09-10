@@ -97,14 +97,21 @@ living in the callers. After: `Umpire.Search.admit` owns the chain. It lives in 
 rather than `Umpire.Query` because Search already imports Query and the search view is Search's
 type. It returns either one `AdmissionDiagnostic` union (the stage that rejected plus that stage's
 typed error, byte-identical to what the stage returns today) or an `AdmittedQuery` that already
-holds the checked Property, Scenario, Query and its `SearchView`. `AdmittedQuery.retarget` is the
-one blessed transport across a proved Model equality. The four `.checked` constructors gain the
-same `:= by native_decide` auto-param `Umpire.model` already has, so callers stop naming an
-`_isSome` theorem.
+holds the checked Property, Scenario, Query and its `SearchView`. The search view is indexed by
+the checked Model, and so is `AdmittedQuery`.
 
-`search` and `SearchView` stay public, because `Umpire.Promotion` takes a search view and fn-22
-rests on that. The reduced surface lands once Promotion also consumes `AdmittedQuery`, outside this
-spec.
+Two transports exist today and both are kept, moved inside `Umpire.Search`: `SearchView.retarget`
+is the one blessed transport of a view across a proved Model equality, and
+`AdmittedQuery.withQuery` re-pairs an admitted base Query's view with another checked Query over
+the same Model. The second is what the Variations compiler, the Exploration engine and its
+candidate universe, the Exploration session and Promotion do today, each with one view and many
+Queries; they switch their `(query, view)` inputs to `AdmittedQuery`. The four `.checked`
+constructors gain the same `:= by native_decide` auto-param `Umpire.model` already has, so callers
+stop naming an `_isSome` theorem.
+
+Promotion switches to an `AdmittedQuery` in this spec like the other one-view-many-Queries sites.
+`search` and `SearchView` themselves stay public, because fn-22's replay and promotion work rests
+on being able to search a checked Query against a view it holds; hiding them is outside this spec.
 
 ### .4 Evidence structure verdict
 
@@ -121,11 +128,26 @@ Today `Umpire.Case.Correlated.lower` takes a checked correlated Property and ret
 lowering plus a correspondence certificate, and the Compiler admits it. The monitor-rule path has
 no such module. After: `Umpire.Case.Projection` (the module fn-82 R5 already establishes for
 reading declared Run values into model fields) gains `lower`, which takes the checked field
-Property and the declared Observation and returns the Contract lowering, the request-side coverage
-mapping the same Property implies, and a certificate. `Compiler.compile` admits it beside the
-correlated lowering. The three step-walkers over field coordinates (request coverage, observed read
-path, projection coverage) become one private walker with one rejection list. No fifth Case
-submodule is added, which keeps fn-82 R4's submodule set intact.
+Property, the declared Observation and a realization record, and returns the Contract lowering,
+the request-side coverage mapping the same Property implies, and a certificate. The realization
+record carries exactly what the Property does not state and the two shipped rules need: the
+request-side literal assignments the Program makes (today the workflow-type constant and the
+per-operation name), the rule identity suffix, and the capture policy for a cross-event
+comparison. The certificate states that every field the rule reads is a coordinate the Property
+compares and every literal it compares against is a value the Program assigns. Both shipped rule
+shapes, the two-transition safety rule of the typed unary Producer and the three-state capture
+rule of the typed Nexus Producer, are adapters of this one lowering, the way the correlated path's
+one lowering already serves its two Cases. `Compiler.compile` admits it beside the correlated
+lowering. The three step-walkers over field coordinates (request coverage, observed read path,
+projection coverage) become one private walker; their rejection lists differ per side today (the
+request side accepts a keyed step the read side rejects, the projection side accepts a first
+index), so the walker keeps per-side exceptions and lists them. No fifth Case submodule is added,
+which keeps fn-82 R4's submodule set intact.
+
+If the capture rule cannot be produced byte-identically from `lower` after the safety rule is,
+the task narrows R5 to the safety-rule shape, records the capture rule as a `CONSIDER(umpire)`
+beside the typed Nexus Producer, and says so in its summary; that narrowing is the only admitted
+deviation and it is the task's to report, not to decide silently.
 
 ## API Contracts
 <!-- scope: technical -->
@@ -136,11 +158,11 @@ Interfaces only. Bodies are the tasks' job.
 // .1  package worker (Go), owned by the registry
 func PlanOutages(plans []testpilot.InstructionPlan, roles []testpilot.PreparedRole,
                  registrations map[string]bool) (OutagePlan, error)
-func (OutagePlan) Requires() bool
+func (OutagePlan) Requires() bool          // the registry's dedicated-group input
 func (o *Outage) Begin(ctx context.Context, roleID string, kind FaultKind) (Settle, error)
 type Settle func(ctx context.Context) error
 func (o *Outage) Restore(ctx context.Context) error
-func (o *Outage) Stopped() []string
+func (o *Outage) Stopped(ctx context.Context) ([]string, error)   // takes the registry lock
 
 // .2  package contract (Go), leaf: imports neither internal/execution nor internal/ir
 type Coordinate, DriverIdentity, ReservationIdentity, ReservationRequest, EffectResult, OpaqueCapability
@@ -153,14 +175,18 @@ type Session interface { ... }   // the operation set the facade's Session expos
 ```
 
 ```lean
--- .3  Umpire.Search
-def admit (model : CheckedModel m) (property : Property) (scenario : Scenario)
-    (form : Query.Form) (limits : Limits) (gaps : KnownGapSet := {}) :
-    Except AdmissionDiagnostic (AdmittedQuery m)
-def AdmittedQuery.search : AdmittedQuery m → PlanResult
-def AdmittedQuery.searchWithIntent : AdmittedQuery m → PlanIntent → PlanResult
-def AdmittedQuery.analyzeBranches : AdmittedQuery m → BranchReport
-def AdmittedQuery.retarget : AdmittedQuery m → (h : m = m') → AdmittedQuery m'
+-- .3  Umpire.Search   (checked : CheckedModel is the index of both the view and the admitted Query)
+def admit (checked : CheckedModel) (property : Property) (scenario : Option Scenario)
+    (query : Query) (gaps : KnownGapSet := {}) :
+    Except AdmissionDiagnostic (AdmittedQuery checked)
+-- `query` is fn-82's authored record: form, limits, and the identity and policy inputs
+-- (family, key, source, policy, ending, exercise) that CheckedQuery.id and the fingerprints read.
+def AdmittedQuery.search : AdmittedQuery checked → PlanResult
+def AdmittedQuery.searchWithIntent : AdmittedQuery checked → PlanIntent → PlanResult
+def AdmittedQuery.analyzeBranches : AdmittedQuery checked → BranchReport
+def AdmittedQuery.withQuery : AdmittedQuery checked → (q : CheckedQuery) → q.model = checked →
+    AdmittedQuery checked          -- one view, another Query over the same Model
+def SearchView.retarget : SearchView checked → (h : checked = checked') → SearchView checked'
 def AdmissionDiagnostic.located : AdmissionDiagnostic → LocatedError
 -- Property.checked / Scenario.checked / Query.checked gain (ok : … := by native_decide)
 
@@ -173,12 +199,17 @@ def linkSupport    : EvidenceStructure → LinkSupport
 inductive Audience | raw | accepted
 
 -- .5  Umpire.Case.Projection
-def lower (property : CheckedFieldProperty) (observation : ObservationDeclaration) (root : String) :
-    Except Compiler.Error Lowered
+structure Realization where
+  literals : List (PropertyFieldPath × Value)   -- request-side values the Program assigns
+  ruleSuffix : String
+  capture : CapturePolicy                       -- .none for a safety rule; .crossEvent for the capture rule
+def lower (property : CheckedFieldProperty) (observation : ObservationDeclaration) (root : String)
+    (realization : Realization) : Except Compiler.Error Lowered
 structure Lowered where
   contract : ContractLowering
   coverage : CoverageRequest
-  certificate : Correspondence   -- every field path in `contract` is the read path of a coordinate `property` compares
+  certificate : Correspondence   -- every field the rule reads is a coordinate `property` compares;
+                                 -- every literal it compares against is in `realization.literals`
 -- Compiler.compile : Input → Except Compiler.Error Case   (signature unchanged; admits Lowered inside)
 ```
 
@@ -192,20 +223,25 @@ structure Lowered where
 - **.1 refusal identity.** A fault on a queue whose lease is not dedicated returns the same
   `ErrUnsupportedOperation` it does today; the server Driver's `InjectFault` refusal and its
   comment are untouched. `Begin` after `Close` has started returns an error and flips nothing.
-  `Restore` after a failed resume still releases the lease and marks the group failed. `Begin` twice
-  in the same direction conflicts. The one-`FAULT_INJECTED`-event-per-realized-instruction rule of
+  `Restore` after a failed resume still releases the hold and the dedicated group is gone
+  afterwards, which is what the registry does today. `Begin` twice in the same direction conflicts. The one-`FAULT_INJECTED`-event-per-realized-instruction rule of
   draft EVD-20 is enforced by the scheduler on a succeeded outcome, so a `Settle` error must surface
   as a non-succeeded instruction outcome and produce zero fault events.
 - **.2 alias purity.** Every moved type is re-exported by alias, so `conformance_test.go` and
   `facade_external_test.go` compile without edits. The `Quarantine` type switch that unwrapped the
-  facade's own adapters is deleted; quarantine of a handle the Session did not issue is still
-  refused, now by identity inside the leaf. The mirrored `MaxOpcode` justification comment survives
-  once, in the leaf.
-- **.3 optional Scenario.** `admit` accepts a Property-only Query (an empty Scenario), because two
-  of the six callers admit that way today. Each stage's typed error is carried unchanged inside
-  `AdmissionDiagnostic`. `retarget` replaces the two production `Eq.mpr` transports and the fixture
-  copies; if a fixture needs a transport `retarget` cannot express, the task records it rather than
-  keeping an `Eq.mpr`. The `native_decide` auto-param must not raise elaboration time of the Switch
+  facade's own adapters is deleted with the adapters, together with the facade test that
+  instantiates them. Refusing to quarantine a handle a Session did not issue is each Driver
+  Session's decision and already lives in the delivery ledger and the server Driver; the task pins
+  it through the existing conformance suite rather than moving it. The mirrored `MaxOpcode`
+  justification comment survives once, in the leaf.
+- **.3 optional Scenario.** `admit` accepts a Property-only Query (no Scenario), because two of
+  the six callers admit that way today. Each stage's typed error is carried unchanged inside
+  `AdmissionDiagnostic`. `SearchView.retarget` and `AdmittedQuery.withQuery` replace the five
+  production `Eq.mpr` transports (the Variations compiler, the Exploration engine, the Nexus
+  operations index and the two experimental Nexus modules) and the thirteen fixture copies; the
+  only `Eq.mpr (congrArg …)` over a view that remains is the body of `SearchView.retarget`. If a
+  site needs a transport neither operation expresses, the task records it rather than keeping an
+  `Eq.mpr` there. The `native_decide` auto-param must not raise elaboration time of the Switch
   example or any Nexus Model beyond the current `lake build` of the same targets by more than the
   noise floor the task measures first.
 - **.4 precedence.** The raw and accepted paths establish precedence in different orders today. The
@@ -213,11 +249,13 @@ structure Lowered where
   never disagree on a reachable input; where they can, precedence is an audience-specific table
   inside the module so that no diagnostic byte changes. Both faults firing at once is answered by
   the same precedence table.
-- **.5 rejection lists.** The task diffs the three field-step rejection lists before collapsing
-  them; a step kind one list accepts and another rejects is resolved to the stricter answer only if
-  no checked-in Case relies on the looser one, otherwise it is kept as a per-side exception and
-  recorded. A Property with no field atom lowers to no rule and is not an error. A rule the Property
-  does not imply is rejected by name.
+- **.5 rejection lists.** The three field-step walkers genuinely differ per side today: the
+  request-side walker accepts a keyed map step the read-side walker rejects, and the projection
+  walker accepts a first-index step. The one private walker therefore carries per-side exceptions
+  from the start and lists each with the Case that relies on it; a disagreement is resolved to the
+  stricter answer only where no checked-in Case relies on the looser one. A Property with no field
+  atom lowers to no rule and is not an error. A rule the Property does not imply is rejected by
+  name.
 - **Retired vocabulary.** New module and type names avoid every token the retired-vocabulary gate
   lists; file relocations are mirrored in the gate's scanned-path registry in the same change so the
   gate keeps failing closed rather than silently. Public names this spec deletes are added to the
@@ -254,50 +292,64 @@ Test target names above follow fn-82's module layout; a task uses whatever names
 
 - **R1:** One `outage` module inside the worker package owns outage admission and the
   dedicated-group state machine. Definition preparation calls `PlanOutages` once and `Validate` and
-  `Open` share the returned plan, so the test that asserted the two agree no longer exists. The
-  test-only stop/resume facade is deleted and every fault test drives `Begin`, `Settle`, `Restore`
-  and `Stopped` through the production path; no test reads a registry group field. The worker
-  README's stated outage contract stays true. Errors: a plan naming a queue no entrypoint registers
-  is refused at plan time with the same message as today; a fault on a non-dedicated lease returns
-  `ErrUnsupportedOperation`; `Begin` after `Close` began returns an error and flips no group; a
-  `Settle` error yields a non-succeeded outcome and zero `FAULT_INJECTED` events; the live
-  worker-outage tests and the `^TestTestpilot` gate pass with unchanged Verdicts.
+  `Open` share the returned `OutagePlan`, so the test that asserted the two agree no longer
+  exists. The test-only stop/resume facade is deleted and every fault test drives `Begin`,
+  `Settle`, `Restore` and `Stopped` through the production path; no fault test reads a registry
+  group field (the runtime tests' registry-emptiness reads are outside this criterion). The worker
+  README's stated outage contract stays true. Errors: an `OutagePlan` naming a queue no entrypoint
+  registers is refused at plan time with the same message as today; a fault on a non-dedicated
+  lease returns `ErrUnsupportedOperation`; `Begin` after `Close` began returns an error and flips no
+  group; `Restore` after a failed resume still releases the hold and the group is gone; a `Settle`
+  error yields a non-succeeded outcome and zero `FAULT_INJECTED` events; the live worker-outage
+  tests and the `^TestTestpilot` gate pass with unchanged Verdicts.
 - **R2:** A leaf package under the Testpilot module holds the Driver-facing contract and imports
   neither the execution package nor the IR package; the execution package and the facade both
   import it; the facade re-exports every moved type by alias and keeps only `Driver`,
   `PreparedProgram`, `EntrypointPlan`, `InstructionPlan` and `Expression` as its own. The four
   pass-through adapters, both coordinate converters and the profile policy copy loop are deleted.
   `go list -deps` shows no production package outside Testpilot importing the execution package.
-  Errors: `conformance_test.go` and `facade_external_test.go` compile unedited; quarantine of a
-  handle the Session did not issue is still refused; the facade conformance test passes; the MOD-14
-  restatement is present in `UMPIRE4_SPEC.md` and marked pending GOV-02.
-- **R3:** `Umpire.Search.admit` returns `Except AdmissionDiagnostic AdmittedQuery`, and the six
-  Temporal callers plus the Switch example obtain their search result through it; their bespoke
-  admission-error unions are deleted; no `Eq.mpr (congrArg …)` transport of a search view remains
-  in production or fixture code; the four `.checked` constructors take the `native_decide`
-  auto-param and no `_isSome` theorem remains whose only use was that argument; the search view's
-  proof fields are not reachable from outside `Umpire.Search` except through `search`, which stays
-  public for Promotion. Errors: each stage's rejection surfaces as its own `AdmissionDiagnostic`
-  constructor carrying the stage's typed error unchanged; a Property-only Query admits; admit then
-  search yields the same `PlanResult` bytes as today's staged calls on the Switch example and every
-  Nexus Model; goldens and fingerprints are byte-identical.
+  The facade test that instantiated the deleted adapters is deleted with them. Errors:
+  `conformance_test.go` and `facade_external_test.go` compile unedited; each Driver Session still
+  refuses to quarantine a handle it did not issue, pinned through the existing conformance suite;
+  the facade conformance test passes; the MOD-14 restatement is present in `UMPIRE4_SPEC.md` and
+  marked pending GOV-02.
+- **R3:** `Umpire.Search.admit` takes the checked Model, the Property, an optional Scenario, the
+  authored Query record (form, limits, identity and policy) and Known Gaps, and returns
+  `Except AdmissionDiagnostic AdmittedQuery`; the six Temporal callers plus the Switch example
+  obtain their search result through it and their bespoke admission-error unions are deleted; the
+  Variations compiler, the Exploration engine and candidate universe, the Exploration session and
+  Promotion take an `AdmittedQuery` and re-pair Queries with `AdmittedQuery.withQuery`; the only
+  `Eq.mpr (congrArg …)` over a search view in the tree is the body of `SearchView.retarget` inside
+  `Umpire.Search`; the four `.checked` constructors take the `native_decide` auto-param and no
+  `_isSome` theorem remains whose only use was that argument; the search view's proof fields are
+  not reachable from outside `Umpire.Search` except through `search`, which stays public for
+  Promotion. Errors: each stage's rejection surfaces as its own `AdmissionDiagnostic` constructor
+  carrying the stage's typed error unchanged; a Property-only Query admits; `CheckedQuery.id`,
+  the search-run scope and every fingerprint are byte-identical to today; admit then search yields
+  the same `PlanResult` bytes as today's staged calls on the Switch example and every Nexus Model;
+  the Variations goldens do not move.
 - **R4:** The Evidence structure module exposes `analyze`, `orderingFault?`, `closureFault?`,
   `factsInOrder` and `linkSupport` with an `Audience` parameter; findings, closure expectations and
   precedence are not exported; the raw and accepted callers hold no finding-to-diagnostic matcher
-  family and no reachability copy, and the shared correlated projection reuses the module's
-  reachability. Errors: every diagnostic in the mutation suite is byte-identical before and after;
+  family and no reachability copy; one generic reachability walker, owned on the `Shared` side
+  because MOD-09 forbids `Shared` importing Umpire, serves the correlated projection and the
+  Evidence structure module over their different node types. Errors: every diagnostic in the mutation suite is byte-identical before and after;
   the origin-mode matrix passes through the new interface; a fixture on which the two old precedence
   orders would have disagreed is listed in the task summary with the audience-specific table entry
   that preserves it.
-- **R5:** `Umpire.Case.Projection.lower` takes the checked field Property and the declared
-  Observation and returns the Contract lowering, the coverage request and a correspondence
-  certificate, and `Compiler.compile` admits it beside the correlated lowering; the typed unary and
-  typed Nexus Producers call it and hold no hand-written read path, rule, coverage request or
-  lowering-error helper; the three field-step walkers are one private walker with one rejection
-  list. Errors: a Property whose compared coordinate moves moves the rule; a coordinate the
-  Property stops naming is no longer read; a rule the Property does not imply rejects by name; each
-  unsupported step kind rejects by name once; every checked-in Case fixture is byte-identical and
-  the conformance and live gates pass with unchanged Verdicts.
+- **R5:** `Umpire.Case.Projection.lower` takes the checked field Property, the declared
+  Observation and a realization record (request-side literals, rule suffix, capture policy) and
+  returns the Contract lowering, the coverage request and a correspondence certificate, and
+  `Compiler.compile` admits it beside the correlated lowering; the typed unary and typed Nexus
+  Producers call it and hold no hand-written read path, rule, coverage request or lowering-error
+  helper; the three field-step walkers are one private walker whose per-side exceptions are listed
+  with the Case each serves. If the typed Nexus capture rule cannot be reproduced byte-identically,
+  the task narrows to the safety-rule shape, leaves that Producer's rule in place under a
+  `CONSIDER(umpire)`, and reports the narrowing. Errors: a Property whose compared coordinate moves
+  moves the rule; a coordinate the Property stops naming is no longer read; a literal the Program
+  does not assign rejects by name; a rule the Property does not imply rejects by name; each
+  unsupported step kind rejects by name once per side; every checked-in Case fixture is
+  byte-identical and the conformance and live gates pass with unchanged Verdicts.
 - **R6:** Each task closes with `make umpire-check-regression` green and a recorded equivalence
   pin: .1 the fault suite and the live outage tests, .2 the unedited conformance and facade tests,
   .3 the Switch and Nexus `PlanResult` byte comparison plus goldens, .4 the mutation suite, .5 the
@@ -355,10 +407,18 @@ and Search imports Query; placing it in Query would invert the import direction 
 enforces. Task .5 extends `Umpire.Case.Projection` rather than adding a `Rule` submodule because
 fn-82 R4 fixes the Case submodule set and fn-83's generic Producer already calls into Projection.
 
+Dispatch is serial in the order .1 to .5 even though only .5 declares a task dependency: every
+pair of tasks shares a documentation or test-root file (`tools/umpire/CONTEXT.md`, the model test
+root, the Umpire architecture document, the model README), and wave dispatch fails closed on an
+overlapping `Touches` line. That matches the intended order and no artificial split is made to
+manufacture a parallel wave. The spec-level dependency on fn-83 holds .1 and .2 as well as .5;
+fn-83 has no tasks yet and the two Go tasks are cheap to hold, so one dependency edge is kept over
+a task-level one that fn-83 cannot yet anchor.
+
 Prior art: fn-31 deepened the checked Model so examples stopped assembling completeness evidence
 and search views by hand; the six callers still assemble the chain above that, which is what .3
 finishes. fn-74 deepened worker activation with the same ownership argument .1 applies to outages.
-fn-75's equivalent-Machine seam is the expert counterpart of `AdmittedQuery.retarget`.
+fn-75's equivalent-Machine seam is the expert counterpart of `SearchView.retarget`.
 
 ## Early proof point
 

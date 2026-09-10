@@ -153,13 +153,12 @@ without hiding any semantic choice. Direct `Machine` construction remains the ex
 route when authoritative propositions are specified independently of enumeration. Both routes
 enter the same authored-to-checked boundary.
 
-The implemented Target facade packages a maintainer's `Umpire.ModelDefinition`, explicit provider
-and connector additions through the sealed `Umpire.ModelComposition` builder, and optional finite
+The implemented Model facade packages a maintainer's `Umpire.ModelSpec`, explicit provider
+and connector additions through the sealed `Umpire.Providers` builder, and optional finite
 planning capability as one sealed `Umpire.DraftModel`. `Umpire.checkModel` returns either one
 complete sealed `Umpire.CheckedModel` or one source-located `Umpire.LocatedError`;
-`Umpire.model` keeps extraction and proof-relation re-ascription inside the Target boundary
-for declarations that compile as valid. The lower-level `Umpire.composeModel` remains the typed
-expert seam and is not a second ordinary authoring path.
+`Umpire.model` keeps extraction and proof-relation re-ascription inside the Model boundary
+for declarations that compile as valid.
 
 `FiniteMachine` belongs inside `Umpire.Model`, below Query, Planning, Artifact, Temporal, runtime,
 and optional verification modules. It is not neutral `Shared` infrastructure, a Temporal-family
