@@ -36,10 +36,10 @@ type. `/-- ... -/` introduces documentation; `/- ... -/` is a block comment.
 The compiling grammar is general over the declaring inductives. `states`, `actions`, `outcomes`,
 and `facts` name enum-like types, and their constructors — in constructor order — are the model's
 ordered domains. No other file holds a list of admissible spellings, so renaming a member or adding
-a transition needs no syntax change. It does change the renamed member's derived ID, and a Fact a
-Case lowers must also be named in that Producer's evidence projection — `Testpilot.lean` binds the
-Facts it can witness in Nexus history by spelling — so a rename there is a Producer edit and a
-fixture regeneration, not a syntax error.
+a transition needs no syntax change. It does change the renamed member's derived ID, so a rename is a
+fixture regeneration, not a syntax error. The Producer no longer binds Facts by spelling: it derives
+the Case's operation-scoped clauses from the `require` lines and the Action order the Behavior fixes,
+so renaming a member changes the Case bytes and no Producer source.
 
 The grammar accepts one or more initial states and terminal states, up to 256 transition rows, any
 number of Facts per row, one or more `require` clauses, one or more Behavior occurrences, and any

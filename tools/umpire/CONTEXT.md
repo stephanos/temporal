@@ -56,3 +56,19 @@ _Avoid_: Verifier, Oracle, Referee
 **Verdict**:
 The Evaluator's conclusion that a Contract is satisfied, violated, or inconclusive, with references to the supporting Run Events.
 _Avoid_: Test result, ruling
+
+**Horizon**:
+The single bound a bounded-liveness rule declares, in one unit: the Run Events the rule evaluated since its last transition, or elapsed milliseconds on the host that produced the Run.
+_Avoid_: Deadline, timeout, TTL
+
+**Fault**:
+A deliberate outage a Program asks a Driver to realize, declared as an instruction and recorded as its own Run Event once realized.
+_Avoid_: Chaos, failure injection, error
+
+**Profile**:
+The authorization snapshot naming the roles, methods, capabilities and resource bindings one Case is permitted to use, frozen before a Driver is built.
+_Avoid_: Config, environment, policy file
+
+**Capability**:
+One entry of the closed set of instruction kinds a Profile authorizes; a Case whose Program uses one the Profile does not name rejects at Prepare.
+_Avoid_: Permission, feature flag, scope

@@ -12,6 +12,18 @@ worker lifecycle configuration remain caller-owned physical inputs.
 
 Task-queue registrations are complete before a worker starts. A registration consists of the
 allowlisted workflow types and Nexus service/operation pairs assigned to that physical queue.
+
+A Program that declares no `InjectFault` shares compatible registrations across Runs, as above. One
+that declares an `InjectFault` instruction opens a dedicated worker group keyed by its Run instead,
+so an outage this Run asks for can never reach another Run's workers. `Session.InjectFault` realizes
+`FAULT_KIND_WORKER_STOP` by stopping that group's SDK worker and suppressing its fatal-failure
+callback for the stop window, and `FAULT_KIND_WORKER_RESUME` by re-registering with the same
+structural signature; both are bounded by the instruction's own timeout. Releasing the group resumes
+a worker still stopped, and always reaches the registry, so a resume that cannot finish is reported
+as a failed cleanup rather than leaving the Run's hold behind. Tasks queued during the stop window
+wait in matching and dispatch after the resume. A transition the Driver refuses outright, or cannot
+complete, is a failed instruction outcome plus a Driver invariant diagnostic: the Run records that
+the fault was requested and not realized, and the Verdict is left to the Contract.
 The workflow implementation receives arbitrary SDK arguments through `converter.EncodedValues`,
 then rejects workflow types outside that allowlist before reservation admission.
 
