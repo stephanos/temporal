@@ -89,14 +89,14 @@ lean_lib ModelLintSupport where
 @[default_target] lean_exe «temporal-model-inspect» where
   root := `Temporal.Tool.Inspect
 
-lean_exe «temporal-model-semantic-inventory» where
-  root := `Temporal.Tool.SemanticInventoryMain
+lean_exe «umpire-inventory» where
+  root := `Temporal.Tool.InventoryMain
 
-lean_exe «temporal-model-semantic-inventory-tests» where
-  root := `Temporal.Tool.SemanticInventoryMainTests
+lean_exe «umpire-inventory-tests» where
+  root := `Temporal.Tool.InventoryMainTests
 
-lean_exe «temporal-model-semantic-inventory-make-tests» where
-  root := `Temporal.Tool.SemanticInventoryMakeTestsMain
+lean_exe «umpire-inventory-make-tests» where
+  root := `Temporal.Tool.InventoryMakeTestsMain
 
 @[default_target] lean_exe «temporal-testpilot» where
   root := `Temporal.Tool.Testpilot

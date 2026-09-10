@@ -3,7 +3,7 @@ import Umpire.Evidence.PropertyStatus
 
 /-! Semantic-stage constructor catalogs retain their owner-local vocabularies. -/
 
-namespace Umpire.SemanticInventoryTests.SemanticStages
+namespace Umpire.InventoryTests.SemanticStages
 
 open Umpire
 
@@ -78,4 +78,4 @@ example :
         ImplementationLinkStatus.stageNotRunMarker.name = false := by
   native_decide
 
-end Umpire.SemanticInventoryTests.SemanticStages
+end Umpire.InventoryTests.SemanticStages

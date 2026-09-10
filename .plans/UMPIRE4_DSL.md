@@ -386,7 +386,7 @@ modules:
                  +-> Umpire.Property -+
 Umpire.Core -----+-> Umpire.Scenario -+-> Umpire.Query -> Umpire.Artifact -> Umpire.Search
                  +-> Umpire.Search ---+
-                                                 +-------------> Umpire.Space
+                                                 +-------------> Umpire.Variations
 ```
 
 `Property`, `Behavior`, and `Search` depend only on Core. Query is the first layer that combines

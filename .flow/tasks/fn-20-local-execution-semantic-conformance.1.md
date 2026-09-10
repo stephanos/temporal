@@ -14,11 +14,11 @@ The legacy implementation detail below is retained for context but is subordinat
 Add the small domain-neutral semantic-check deep module consumed by the private checker (R4/R5/R6). It composes fn-4 Observation Evaluation and verdict APIs without adding Temporal, transport, or plan-identity meaning.
 
 **Size:** M
-**Files:** `model/Umpire/Observation/Check.lean`, `model/Umpire/Observation/Tests/Check.lean`, `model/Umpire/Observation.lean`, `model/UmpireTests.lean`
-**Touches:** [model/Umpire/Observation/Check.lean, model/Umpire/Observation/Tests/Check.lean, model/Umpire/Observation.lean, model/UmpireTests.lean]
+**Files:** `model/Umpire/Evidence/Check.lean`, `model/Umpire/Evidence/Tests/Check.lean`, `model/Umpire/Evidence.lean`, `model/UmpireTests.lean`
+**Touches:** [model/Umpire/Evidence/Check.lean, model/Umpire/Evidence/Tests/Check.lean, model/Umpire/Evidence.lean, model/UmpireTests.lean]
 
 ### Approach
-- Accept only checked mapping/query/Property values plus one bounded typed EvidenceBundle and return a complete Observation Evaluation/verdict Generated View.
+- Accept only checked mapping/query/Property values plus one bounded typed SyntheticEvidence and return a complete Observation Evaluation/verdict Generated View.
 - Reuse fn-4 Observation Evaluation, coordinate bijection checks, `CheckedProperty.traceView`, `evaluateProperty`, and strict aggregation without changing their denotation.
 - Keep non-accepted outcomes total: emit the complete matching non-resolved Property partition without invoking evaluation.
 - Stop at the domain-neutral Observation Evaluation/verdict Generated View. Do not accept an Plan plan, compute `evaluationOutcomeChecksum`, or mirror fn-18 transport; Task `.2` owns the plan-sensitive composition.
@@ -42,7 +42,7 @@ Implemented the domain-neutral Run Evaluation seam across checked Observation Ev
 
 Focused tests cover satisfied and violated Properties, Observation and Implementation Link non-success, incomplete verdict partitions, repeated values, deterministic canonical ordering, exact N/N+1 evidence behavior, logical-time prerequisites, and destination/query target binding. Memory capture was attempted after review fixes but the repository memory store is not initialized.
 
-baseline: red (cd model && mise exec -- lake build Umpire.Observation.Tests.Check failed pre-edit: task target absent)
+baseline: red (cd model && mise exec -- lake build Umpire.Evidence.Tests.Check failed pre-edit: task target absent)
 
 GATE_RECEIPT_NOT_WRITTEN:unittest:inherited protected config/development.yaml dirty state made receipt non-warrantable
 
@@ -50,5 +50,5 @@ stage: impl-review - ran [2026-08-29T22:29:27Z..2026-08-29T22:40:02Z]
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 12a1acd2d9c22f839215273930a4199e9756619f, e9a28ac0b0b52dca194c0643783b984ec1f7b81e
-- Tests: baseline: red (cd model && mise exec -- lake build Umpire.Observation.Tests.Check failed pre-edit: task target absent), cd model && mise exec -- lake build Umpire.Observation.Tests.Check, cd model && mise exec -- lake build Umpire.Observation.ImportTests Umpire.Observation.Tests, make umpire-check-regression, make lint-model, GATE_RECEIPT_NOT_WRITTEN:unittest:inherited protected config/development.yaml dirty state made receipt non-warrantable
+- Tests: baseline: red (cd model && mise exec -- lake build Umpire.Evidence.Tests.Check failed pre-edit: task target absent), cd model && mise exec -- lake build Umpire.Evidence.Tests.Check, cd model && mise exec -- lake build Umpire.Evidence.ImportTests Umpire.Evidence.Tests, make umpire-check-regression, make lint-model, GATE_RECEIPT_NOT_WRITTEN:unittest:inherited protected config/development.yaml dirty state made receipt non-warrantable
 - PRs:

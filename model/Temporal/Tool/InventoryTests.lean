@@ -1,11 +1,11 @@
-import Temporal.Tool.SemanticInventory
+import Temporal.Tool.Inventory
 
-/-! Canonical semantic-inventory validation and rendering regressions. -/
+/-! Canonical inventory validation and rendering regressions. -/
 
-namespace Temporal.Tool.SemanticInventoryTests
+namespace Temporal.Tool.InventoryTests
 
 open Umpire
-open Temporal.Tool.SemanticInventory
+open Temporal.Tool.Inventory
 
 private def rendered (inventory : Inventory) : Option String :=
   (validateAndRender inventory).toOption
@@ -75,4 +75,4 @@ example :
     malformed.map rendered = [none, none, none, none, none] := by
   native_decide
 
-end Temporal.Tool.SemanticInventoryTests
+end Temporal.Tool.InventoryTests

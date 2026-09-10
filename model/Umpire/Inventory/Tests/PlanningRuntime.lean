@@ -1,10 +1,10 @@
 import Umpire.Artifact.RunRecord
 import Umpire.Search
-import Umpire.SemanticInventory.Types
+import Umpire.Inventory.Types
 
 /-! Planning and runtime constructor catalogs retain their owner-local vocabularies. -/
 
-namespace Umpire.SemanticInventoryTests.PlanningRuntime
+namespace Umpire.InventoryTests.PlanningRuntime
 
 open Umpire
 
@@ -119,4 +119,4 @@ example :
   unfold OutcomeConstructorClassifiers.HasUniqueNames
   decide
 
-end Umpire.SemanticInventoryTests.PlanningRuntime
+end Umpire.InventoryTests.PlanningRuntime

@@ -102,8 +102,8 @@ TESTPILOT_PROTOCOL_PROTOS := \
 	proto/internal/temporal/server/api/testpilot/v1/program.proto \
 	proto/internal/temporal/server/api/testpilot/v1/run.proto \
 	proto/internal/temporal/server/api/testpilot/v1/value.proto
-_UMPIRE_SEMANTIC_INVENTORY_DOCUMENT ?= model/SEMANTIC_INVENTORY.md
-_UMPIRE_SEMANTIC_INVENTORY_RENDERER ?= cd model && $(LEAN_LAKE) -q exe temporal-model-semantic-inventory
+_UMPIRE_INVENTORY_DOCUMENT ?= model/INVENTORY.md
+_UMPIRE_INVENTORY_RENDERER ?= cd model && $(LEAN_LAKE) -q exe umpire-inventory
 UMPIRE_REGRESSION_FIXTURES := \
 	switch.query.exact-action:Umpire/Examples/testdata/switch-experiment-spec.json
 UMPIRE_GEN_LEAN_API_ARGS = \
@@ -637,26 +637,26 @@ umpire-check-testpilot-authoring:
 			mise exec -- go test -count=1 -tags test_dep ./tests/testcore/testpilot \
 			-run '^TestLeanAuthoringProtoJSONStrictDecode$$'
 
-umpire-gen-semantic-inventory:
+umpire-gen-inventory:
 	@set -eu; \
-		document="$(_UMPIRE_SEMANTIC_INVENTORY_DOCUMENT)"; \
+		document="$(_UMPIRE_INVENTORY_DOCUMENT)"; \
 		directory=$$(dirname "$$document"); \
 		base=$$(basename "$$document"); \
 		temporary=$$(mktemp "$$directory/.$$base.XXXXXX"); \
 		trap 'rm -f "$$temporary"' EXIT HUP INT TERM; \
-		( $(_UMPIRE_SEMANTIC_INVENTORY_RENDERER) ) > "$$temporary"; \
+		( $(_UMPIRE_INVENTORY_RENDERER) ) > "$$temporary"; \
 		chmod 0644 "$$temporary"; \
 		mv -f "$$temporary" "$$document"; \
 		trap - EXIT HUP INT TERM
 
-umpire-check-semantic-inventory:
+umpire-check-inventory:
 	@set -eu; \
-		document="$(_UMPIRE_SEMANTIC_INVENTORY_DOCUMENT)"; \
+		document="$(_UMPIRE_INVENTORY_DOCUMENT)"; \
 		directory=$$(dirname "$$document"); \
 		base=$$(basename "$$document"); \
 		temporary=$$(mktemp "$$directory/.$$base.XXXXXX"); \
 		trap 'rm -f "$$temporary"' EXIT HUP INT TERM; \
-		( $(_UMPIRE_SEMANTIC_INVENTORY_RENDERER) ) > "$$temporary"; \
+		( $(_UMPIRE_INVENTORY_RENDERER) ) > "$$temporary"; \
 		checked="$$document"; \
 		if [ ! -f "$$checked" ]; then checked=/dev/null; fi; \
 		diff -u --label "$$document (checked)" --label "$$document (generated)" \
@@ -694,7 +694,7 @@ umpire-check-live-tests:
 		fi; \
 		printf 'Live Testpilot failure identities match the empty expected set across %s passing identities.\n' "$$passing"
 
-umpire-check-regression: umpire-check-lean-api umpire-check-goldens umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-check-case-runtime-conformance umpire-check-semantic-inventory umpire-check-retired-vocabulary umpire-check-live-tests
+umpire-check-regression: umpire-check-lean-api umpire-check-goldens umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-check-case-runtime-conformance umpire-check-inventory umpire-check-retired-vocabulary umpire-check-live-tests
 	@temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
 		TMPDIR="$$temporary_root" mise exec -- go test -count=1 -tags test_dep ./tools/umpire/... ./common/testing/testpilot/... ./tests/testcore/testpilot/...
 	@set -eu; \
@@ -812,7 +812,7 @@ umpire-check-regression: umpire-check-lean-api umpire-check-goldens umpire-check
 			> "$$temporary/expected-invalid.stderr"; \
 		cmp -s "$$temporary/expected-invalid.stderr" "$$temporary/invalid.stderr"
 
-.PHONY: umpire-check-lean-api umpire-build-model umpire-check-plan-index umpire-inspect umpire-list-nexus umpire-explain-nexus umpire-gen-lean-api umpire-gen-lean-api-fixture umpire-gen-lean-dynamic-config-catalog umpire-gen-goldens umpire-check-goldens umpire-gen-regression-views umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-gen-case-runtime-conformance umpire-check-case-runtime-conformance umpire-gen-semantic-inventory umpire-check-semantic-inventory umpire-check-retired-vocabulary umpire-check-live-tests umpire-check-regression
+.PHONY: umpire-check-lean-api umpire-build-model umpire-check-plan-index umpire-inspect umpire-list-nexus umpire-explain-nexus umpire-gen-lean-api umpire-gen-lean-api-fixture umpire-gen-lean-dynamic-config-catalog umpire-gen-goldens umpire-check-goldens umpire-gen-regression-views umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-gen-case-runtime-conformance umpire-check-case-runtime-conformance umpire-gen-inventory umpire-check-inventory umpire-check-retired-vocabulary umpire-check-live-tests umpire-check-regression
 
 goimports: fmt-imports $(GOIMPORTS)
 	@printf $(COLOR) "Run goimports for all files..."
@@ -832,7 +832,7 @@ lint-code: $(GOLANGCI_LINT) $(ERRORTYPE)
 	@go vet -tags $(ALL_TEST_TAGS) -vettool="$(ERRORTYPE)" -style-check=false ./...
 
 .PHONY: lint-model
-lint-model: umpire-check-semantic-inventory
+lint-model: umpire-check-inventory
 	@printf $(COLOR) "Linting Lean model..."
 	@cd model && $(LEAN_LAKE) build modelLintTests modelLint
 	@cd model && $(LEAN_LAKE) exe modelLintTests

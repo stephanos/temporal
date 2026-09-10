@@ -1,5 +1,5 @@
-import Umpire.SemanticInventory.Types
-import Umpire.SemanticInventory.KnownGaps
+import Umpire.Inventory.Types
+import Umpire.Inventory.KnownGaps
 
 /-!
 Public documentation vocabulary and typed Known Gap catalogs for Umpire's semantic inventory.

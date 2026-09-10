@@ -7,8 +7,8 @@ satisfies: [R1, R8, R9]
 Implement D1 and R1 by extending the existing checked Query and Planning owners with explicit endpoint, trigger-coverage, answer, and search-completeness dimensions. Keep witness selection separate from universal verification and preserve deterministic finite selection and Exact Replay.
 
 **Size:** L
-**Files:** `model/Umpire/Target/{Language,Authoring,FiniteMachine,FiniteTable,Tests/**}.lean`, `model/Umpire/Query/{Language,Authoring,Tests/**}.lean`, `model/Umpire/Property/{Evaluation,Tests/**}.lean`, `model/Umpire/Planning/{Types,Engine,CaseAnalysis,Tests/**}.lean`, `model/Umpire/Space/Compiler.lean`, `model/Umpire/SemanticInventory/Tests/PlanningRuntime.lean`, `model/SEMANTIC_INVENTORY.md`
-**Touches:** [model/Umpire/Target/**, model/Umpire/Query/**, model/Umpire/Property/Evaluation.lean, model/Umpire/Property/Tests/**, model/Umpire/Planning/**, model/Umpire/Space/Compiler.lean, model/Umpire/SemanticInventory/Tests/PlanningRuntime.lean, model/SEMANTIC_INVENTORY.md]
+**Files:** `model/Umpire/Target/{Language,Authoring,FiniteMachine,FiniteTable,Tests/**}.lean`, `model/Umpire/Query/{Language,Authoring,Tests/**}.lean`, `model/Umpire/Property/{Evaluation,Tests/**}.lean`, `model/Umpire/Planning/{Types,Engine,CaseAnalysis,Tests/**}.lean`, `model/Umpire/Space/Compiler.lean`, `model/Umpire/SemanticInventory/Tests/PlanningRuntime.lean`, `model/INVENTORY.md`
+**Touches:** [model/Umpire/Target/**, model/Umpire/Query/**, model/Umpire/Property/Evaluation.lean, model/Umpire/Property/Tests/**, model/Umpire/Planning/**, model/Umpire/Space/Compiler.lean, model/Umpire/SemanticInventory/Tests/PlanningRuntime.lean, model/INVENTORY.md]
 
 ### Approach
 - Add explicit checked Target terminal declarations and carry them through finite admission, composed Targets, canonical identity, and compatibility. A composed state is terminal only when every constituent's declared terminal condition is met; absent declarations do not silently infer terminality from deadlock or one finished operation.
@@ -48,7 +48,7 @@ Status: complete and ready for the user to commit; implementation remains uncomm
 Baseline: green (`make umpire-build-model`, 480 jobs), before edits. The new exact-budget regression was observed failing before the planner change.
 
 Changed files:
-- model/SEMANTIC_INVENTORY.md
+- model/INVENTORY.md
 - model/Umpire/Planning/CaseAnalysis.lean
 - model/Umpire/Planning/Engine.lean
 - model/Umpire/Planning/Tests.lean
@@ -70,7 +70,7 @@ Changed files:
 Validation:
 - `LEAN_NUM_THREADS=2 make umpire-build-model`: passed, 482 jobs (/tmp/fn78-task2-final-build.log).
 - `cd model && mise exec -- lake build Umpire.Search.Tests Umpire.Property.Tests Umpire.Query.Tests Umpire.Model.Tests.FiniteMachine Umpire.Model.Tests.FiniteTable Umpire.Model.Tests.Compatibility`: passed, 82 jobs (/tmp/fn78-task2-final-focused.log).
-- `make umpire-gen-semantic-inventory`: passed; regenerated only model/SEMANTIC_INVENTORY.md, adding the two outcome names.
+- `make umpire-gen-semantic-inventory`: passed; regenerated only model/INVENTORY.md, adding the two outcome names.
 - `LEAN_NUM_THREADS=2 make lint-model`: passed, including builtin lint (346 jobs), exit 0 (/tmp/fn78-task2-final-lint-model.log). Reduced concurrency resolved an earlier resource-killed aggregate lint run.
 - `make lint-code GOLANGCI_LINT_FIX=false`: failed with 1,284 pre-existing issues in untouched Go sources (/tmp/fn78-task2-lint-code.log). No Go files differ; unrelated fixes were deliberately excluded. The failure prevents the recipe's later go-vet step from running.
 - `git diff --check`: passed.

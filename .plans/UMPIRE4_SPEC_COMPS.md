@@ -229,8 +229,8 @@ runtime, or optional-checker dependency.
 | --- | --- | --- |
 | `Umpire.Property` | Portable claims and pure evaluation over capability-limited Model Traces. | Present and deep. Retain its independent facade. |
 | `Umpire.Scenario` | Setup, action, occurrence, ordering, and exact-trace constraints without assigning outcomes. | Present and deep. Retain its independent facade. |
-| `Umpire.Space` | Finite variation axes, named choices, requested fault intents, and semantic coverage goals. | Delivered. Points lower through Behavior, Query, and the target-owned kernel; a fault intent lowers to the instruction a Driver realizes it through. |
-| `Umpire.Observation` | Checked mappings from raw evidence to accepted Model Facts, Model Traces, and Evidence Links. | Planned and required for live Run Evaluation. |
+| `Umpire.Variations` | Finite variation axes, named choices, requested fault intents, and semantic coverage goals. | Delivered. Points lower through Behavior, Query, and the target-owned kernel; a fault intent lowers to the instruction a Driver realizes it through. |
+| `Umpire.Evidence` | Checked mappings from raw evidence to accepted Model Facts, Model Traces, and Evidence Support. | Planned and required for live Run Evaluation. |
 | `Umpire.ImplementationLink` | Checked correspondence between independently authored Feature and System meanings. | Planned and required for honest implementation Run Evaluation. |
 
 Each module follows the same authored-to-checked lifecycle:
@@ -942,9 +942,9 @@ families will copy the current low-level interface.
 
 ### Priority 2: complete semantic foundations
 
-- Add `Umpire.Observation` and one Temporal-owned mapping.
+- Add `Umpire.Evidence` and one Temporal-owned mapping.
 - Add `Umpire.ImplementationLink` and one Feature/System correspondence.
-- Add `Umpire.Space` with finite choices, fault intent, and coverage goals.
+- Add `Umpire.Variations` with finite choices, fault intent, and coverage goals.
 - Complete structural and semantic catalogs with list/explain interfaces.
 - Retain the implemented `Umpire.Artifact` vertical facade and exact v2 construction boundary.
 

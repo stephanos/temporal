@@ -53,15 +53,15 @@ Direct and reverse dependencies contain first-party modules only. V1 `publicFaca
 `Temporal.Testpilot`, `Testpilot`, `Testpilot.Authoring`, `Testpilot.ProtoJSON`, `Testpilot.Protocol`,
 `Umpire`, `Umpire.Artifact`, `Umpire.Scenario`, `Umpire.Case`, `Umpire.Case.Compiler`, `Umpire.Core`,
 `Umpire.the deleted execution handoff`, `Umpire.Exploration`, `Umpire.ImplementationLink`, `Umpire.Json`,
-`Umpire.KnownGap`, `Umpire.Observation`, `Umpire.OutcomeClassification`, `Umpire.Search`,
-`Umpire.Promotion`, `Umpire.Property`, `Umpire.Query`, `Umpire.SemanticInventory`, `Umpire.Space`,
+`Umpire.KnownGap`, `Umpire.Evidence`, `Umpire.OutcomeClassification`, `Umpire.Search`,
+`Umpire.Promotion`, `Umpire.Property`, `Umpire.Query`, `Umpire.Inventory`, `Umpire.Variations`,
 `Umpire.Model`, and `Umpire.Model.Check`.
 
 V1 `focusedTests` roots are exactly `ModelLint.ImportGraphTests`,
 `Temporal.Tool.SemanticInventoryMainTests`, `Temporal.Tool.SemanticInventoryMakeTestsMain`,
 `Temporal.Tool.SemanticInventoryTests`, `TemporalExperimentalTests`, `TemporalModelTests`,
 `Testpilot.Tests`, `Testpilot.Tests.ProtoJSONMain`, `Umpire.Case.ScopedTests`,
-`Umpire.Observation.Tests`, `Umpire.OutcomeClassification.ImportTests`,
+`Umpire.Evidence.Tests`, `Umpire.OutcomeClassification.ImportTests`,
 `Umpire.Search.SemanticsImportTests`, `Umpire.Property.Tests.Scoped`,
 `Umpire.Model.CheckImportTests`, and `UmpireTests`. Reachability is reflexive: a configured root
 appears in its own row and in every imported descendant row. These sets are explicit policy, never

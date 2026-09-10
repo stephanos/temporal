@@ -63,7 +63,7 @@ inductive Rule where
   | umpireIndependence
   | modelIsolation
   | semanticModelIsolation
-  | semanticInventoryIsolation
+  | inventoryIsolation
   | outcomeClassificationIsolation
   | temporalSharedIsolation
   | featureIsolation
@@ -180,7 +180,7 @@ private def Rule.label : Rule → String
   | .umpireIndependence => "umpire-independence"
   | .modelIsolation => "model-isolation"
   | .semanticModelIsolation => "semantic-model-isolation"
-  | .semanticInventoryIsolation => "semantic-inventory-isolation"
+  | .inventoryIsolation => "inventory-isolation"
   | .outcomeClassificationIsolation => "outcome-classification-isolation"
   | .temporalSharedIsolation => "temporal-shared-isolation"
   | .featureIsolation => "feature-isolation"
@@ -268,9 +268,9 @@ private def forbiddenRule?
     (destinationClass : ModuleClass) : Option Rule :=
   if matchesPrefix `Umpire source &&
       policy.isProductionModule source sourceClass &&
-      !matchesPrefix `Umpire.SemanticInventory source &&
-      matchesPrefix `Umpire.SemanticInventory destination then
-    some .semanticInventoryIsolation
+      !matchesPrefix `Umpire.Inventory source &&
+      matchesPrefix `Umpire.Inventory destination then
+    some .inventoryIsolation
   else if source == `Temporal.Feature.Nexus &&
       matchesPrefix `Temporal.Feature.Nexus.Experimental destination then
     some .nexusExperimentalIsolation
