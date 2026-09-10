@@ -17,7 +17,7 @@ type nameRequest struct {
 	hasNumber bool
 }
 
-func allocateScopedLeanNames(
+func allocateCorrelatedLeanNames(
 	requestsByScope map[string][]nameRequest,
 	reservedByScope map[string][]string,
 ) (map[string]string, error) {

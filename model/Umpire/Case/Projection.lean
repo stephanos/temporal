@@ -22,7 +22,7 @@ structure Checked (target : CheckedModel Law Setup State Action Outcome Fact) wh
   private mk ::
   private declaration : Declaration State Action Outcome Fact
   private initial : State
-  private machine : Shared.ScopedProjection.Plan DefinitionId State Action
+  private machine : Shared.CorrelatedProjection.Plan DefinitionId State Action
     (Step State Outcome Fact)
   private tableSound : ∀ row ∈ machine.transitions,
     target.machine.authoritativeStep row.1 row.2.1 row.2.2
@@ -148,7 +148,7 @@ def check [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
     array (declaration.sources.map (quote ∘ DefinitionId.value)), array rules,
     array ([limits.events, limits.buffered, limits.keys, limits.support, limits.work,
       limits.eventSize].map toString)]
-  let machine : Shared.ScopedProjection.Plan DefinitionId State Action
+  let machine : Shared.CorrelatedProjection.Plan DefinitionId State Action
       (Umpire.Step State Outcome Fact) := {
     initial
     rules := declaration.rules.map fun rule => ⟨rule.kind, rule.fields.length, rule.meaning⟩
@@ -167,7 +167,7 @@ def check [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
 /-- Opaque immutable Run state; only successful admission can replace it. -/
 structure Run (plan : Checked target) where
   private mk ::
-  private payload : Shared.ScopedProjection.Run plan.machine Field
+  private payload : Shared.CorrelatedProjection.Run plan.machine Field
 
 /-- Allocate independent buffers, counters, keys, and semantic state for one Run binding. -/
 def Checked.start (plan : Checked target) (scope : List (DefinitionId × String)) :
@@ -185,7 +185,7 @@ theorem Checked.executable_limits (plan : Checked target) :
 def Run.accepted (run : Run plan) : List Event := run.payload.accepted
 
 private def checkedStep (scope : List (DefinitionId × String))
-    (step : Shared.ScopedProjection.Step plan.machine) : Step target :=
+    (step : Shared.CorrelatedProjection.Step plan.machine) : Step target :=
   ⟨scope, plan.declaration.operationField, step.operation, step.priorState, step.action, step.result,
     step.directSupport, step.support, step.directRunSequences, step.runSequences,
     plan.tableSound _ step.member⟩
@@ -229,7 +229,7 @@ def Checked.fieldPolicies (plan : Checked target) : List (DefinitionId × List (
 /-- Validate through the same closed field-policy boundary as portable evidence. -/
 def Checked.validateEvent (plan : Checked target) (scope : List (DefinitionId × String))
     (event : Event) : Except Error Unit :=
-  Shared.ScopedProjection.validateEvidence
+  Shared.CorrelatedProjection.validateEvidence
     (fun value => match value with | .text _ => 1 | .natural _ => 2 | .boolean _ => 3)
     eventSize plan.declaration.limits plan.declaration.sources plan.fieldPolicies scope event
 

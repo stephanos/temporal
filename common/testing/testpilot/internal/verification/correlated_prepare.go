@@ -9,9 +9,11 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func scopedValue(v *testpilotspb.ScopedValue) bool { return v != nil && validID(v.DefinitionId) }
-func sameResult(a, b *testpilotspb.ScopedTransition) bool {
-	return proto.Equal(a.Action, b.Action) && proto.Equal(a.ResultingState, b.ResultingState) && proto.Equal(a.Outcome, b.Outcome) && slices.EqualFunc(a.Facts, b.Facts, func(x, y *testpilotspb.ScopedValue) bool { return proto.Equal(x, y) })
+func correlatedValue(v *testpilotspb.CorrelatedValue) bool {
+	return v != nil && validID(v.DefinitionId)
+}
+func sameResult(a, b *testpilotspb.CorrelatedTransition) bool {
+	return proto.Equal(a.Action, b.Action) && proto.Equal(a.State, b.State) && proto.Equal(a.Outcome, b.Outcome) && slices.EqualFunc(a.Facts, b.Facts, func(x, y *testpilotspb.CorrelatedValue) bool { return proto.Equal(x, y) })
 }
 func uniqueIDs(ids []string) bool {
 	seen := map[string]bool{}
@@ -23,36 +25,36 @@ func uniqueIDs(ids []string) bool {
 	}
 	return len(ids) > 0
 }
-func validPredicate(p *testpilotspb.ScopedPredicate, trigger bool) bool {
+func validPredicate(p *testpilotspb.CorrelatedPredicate, trigger bool) bool {
 	if p == nil || !validID(p.DefinitionId) {
 		return false
 	}
-	if trigger && p.Field != testpilotspb.SCOPED_PREDICATE_FIELD_ACTION || !trigger && (p.Field < testpilotspb.SCOPED_PREDICATE_FIELD_OUTCOME || p.Field > testpilotspb.SCOPED_PREDICATE_FIELD_FACT) {
+	if trigger && p.Field != testpilotspb.CORRELATED_PREDICATE_FIELD_ACTION || !trigger && (p.Field < testpilotspb.CORRELATED_PREDICATE_FIELD_OUTCOME || p.Field > testpilotspb.CORRELATED_PREDICATE_FIELD_FACT) {
 		return false
 	}
 	switch c := p.Constraint.(type) {
-	case *testpilotspb.ScopedPredicate_Present:
+	case *testpilotspb.CorrelatedPredicate_Present:
 		return c.Present
-	case *testpilotspb.ScopedPredicate_EqualsText:
+	case *testpilotspb.CorrelatedPredicate_EqualsText:
 		return true
 	default:
 		return false
 	}
 }
-func (a *admission) bindScoped(seen map[string]bool) error {
-	s := a.prepared.source.Scoped
+func (a *admission) bindCorrelated(seen map[string]bool) error {
+	s := a.prepared.source.Correlated
 	if s == nil {
 		return nil
 	}
 	if s.Version != 1 {
 		return invalid(ir.Unknown, "unsupported scoped capability version")
 	}
-	if !validID(s.ProjectionId) || s.ProjectionFingerprint == "" || !validID(s.OperationField) || !uniqueIDs(s.ScopeFields) || slices.Contains(s.ScopeFields, s.OperationField) || !uniqueIDs(s.Sources) || !scopedValue(s.InitialState) {
+	if !validID(s.ProjectionId) || s.ProjectionFingerprint == "" || !validID(s.OperationField) || !uniqueIDs(s.ScopeFields) || slices.Contains(s.ScopeFields, s.OperationField) || !uniqueIDs(s.Sources) || !correlatedValue(s.InitialState) {
 		return invalid(ir.Malformed, "invalid scoped projection binding")
 	}
 	typ, ok := a.prepared.observations[s.EvidenceObservationId]
-	if !ok || typ.Cardinality() != ir.Singular || !ir.SameMessage(typ.Message(), (&testpilotspb.ScopedEvidence{}).ProtoReflect().Descriptor()) {
-		return invalid(ir.TypeMismatch, "scoped evidence requires exact declared ScopedEvidence Observation")
+	if !ok || typ.Cardinality() != ir.Singular || !ir.SameMessage(typ.Message(), (&testpilotspb.CorrelatedEvidence{}).ProtoReflect().Descriptor()) {
+		return invalid(ir.TypeMismatch, "scoped evidence requires exact declared CorrelatedEvidence Observation")
 	}
 	l := s.Limits
 	if l == nil {
@@ -70,8 +72,8 @@ func (a *admission) bindScoped(seen map[string]bool) error {
 			return invalid(ir.LimitExceeded, "scoped limits must be positive")
 		}
 	}
-	capturesDeclared := slices.ContainsFunc(s.Clauses, func(c *testpilotspb.ScopedClause) bool { return len(c.Captures) > 0 })
-	correlationDeclared := slices.ContainsFunc(s.Clauses, func(c *testpilotspb.ScopedClause) bool { return c.Correlation != nil })
+	capturesDeclared := slices.ContainsFunc(s.Clauses, func(c *testpilotspb.CorrelatedRule) bool { return len(c.Captures) > 0 })
+	correlationDeclared := slices.ContainsFunc(s.Clauses, func(c *testpilotspb.CorrelatedRule) bool { return c.Correlation != nil })
 	if l.MaxCaptures < 0 || l.MaxCorrelationDepth < 0 || capturesDeclared && l.MaxCaptures <= 0 || correlationDeclared && l.MaxCorrelationDepth <= 0 {
 		return invalid(ir.LimitExceeded, "scoped capture limits must be positive when declared")
 	}
@@ -107,13 +109,13 @@ func (a *admission) bindScoped(seen map[string]bool) error {
 	}
 	states := map[[2]string]bool{{s.InitialState.DefinitionId, s.InitialState.Value}: true}
 	for _, tr := range s.Transitions {
-		if !scopedValue(tr.PriorState) || !scopedValue(tr.Action) || !scopedValue(tr.ResultingState) || !scopedValue(tr.Outcome) {
+		if !correlatedValue(tr.PriorState) || !correlatedValue(tr.Action) || !correlatedValue(tr.State) || !correlatedValue(tr.Outcome) {
 			return invalid(ir.Malformed, "invalid scoped transition value")
 		}
 		states[[2]string{tr.PriorState.DefinitionId, tr.PriorState.Value}] = true
-		states[[2]string{tr.ResultingState.DefinitionId, tr.ResultingState.Value}] = true
+		states[[2]string{tr.State.DefinitionId, tr.State.Value}] = true
 		for _, fact := range tr.Facts {
-			if !scopedValue(fact) {
+			if !correlatedValue(fact) {
 				return invalid(ir.Malformed, "invalid scoped fact")
 			}
 		}
@@ -130,25 +132,25 @@ func (a *admission) bindScoped(seen map[string]bool) error {
 		}
 		kinds[r.Kind] = true
 		switch r.Meaning {
-		case testpilotspb.SCOPED_EVIDENCE_MEANING_IRRELEVANT:
+		case testpilotspb.CORRELATED_EVIDENCE_MEANING_IRRELEVANT:
 			if r.Submission != nil || len(r.Outputs) > 0 {
 				return invalid(ir.Malformed, "irrelevant evidence has semantic outputs")
 			}
-		case testpilotspb.SCOPED_EVIDENCE_MEANING_SUBMISSION:
-			if !scopedValue(r.Submission) || len(r.Outputs) > 0 || !slices.ContainsFunc(s.Transitions, func(tr *testpilotspb.ScopedTransition) bool { return proto.Equal(tr.Action, r.Submission) }) {
+		case testpilotspb.CORRELATED_EVIDENCE_MEANING_SUBMISSION:
+			if !correlatedValue(r.Submission) || len(r.Outputs) > 0 || !slices.ContainsFunc(s.Transitions, func(tr *testpilotspb.CorrelatedTransition) bool { return proto.Equal(tr.Action, r.Submission) }) {
 				return invalid(ir.Malformed, "invalid submission")
 			}
-		case testpilotspb.SCOPED_EVIDENCE_MEANING_CONFIRMED:
+		case testpilotspb.CORRELATED_EVIDENCE_MEANING_CONFIRMED:
 			if len(r.Outputs) == 0 {
 				return invalid(ir.Malformed, "confirmed evidence requires outputs")
 			}
-			if r.Submission != nil && !slices.ContainsFunc(s.ProjectionRules, func(other *testpilotspb.ScopedProjectionRule) bool {
-				return other.Meaning == testpilotspb.SCOPED_EVIDENCE_MEANING_SUBMISSION && proto.Equal(other.Submission, r.Submission)
+			if r.Submission != nil && !slices.ContainsFunc(s.ProjectionRules, func(other *testpilotspb.CorrelatedProjectionRule) bool {
+				return other.Meaning == testpilotspb.CORRELATED_EVIDENCE_MEANING_SUBMISSION && proto.Equal(other.Submission, r.Submission)
 			}) {
 				return invalid(ir.Malformed, "missing submission mapping")
 			}
 			for _, out := range r.Outputs {
-				if out == nil || out.PriorState != nil || !slices.ContainsFunc(s.Transitions, func(tr *testpilotspb.ScopedTransition) bool { return sameResult(tr, out) }) {
+				if out == nil || out.PriorState != nil || !slices.ContainsFunc(s.Transitions, func(tr *testpilotspb.CorrelatedTransition) bool { return sameResult(tr, out) }) {
 					return invalid(ir.Malformed, "projection output absent from transition table")
 				}
 			}
@@ -157,13 +159,13 @@ func (a *admission) bindScoped(seen map[string]bool) error {
 		}
 		fields := map[string]bool{}
 		for _, f := range r.Fields {
-			if !validID(f.FieldId) || fields[f.FieldId] || f.GetType().GetKind() < testpilotspb.SCALAR_KIND_TEXT || f.GetType().GetKind() > testpilotspb.SCALAR_KIND_BOOLEAN || f.Disposition < testpilotspb.SCOPED_FIELD_DISPOSITION_RETAIN || f.Disposition > testpilotspb.SCOPED_FIELD_DISPOSITION_REJECT {
+			if !validID(f.FieldId) || fields[f.FieldId] || f.GetType().GetKind() < testpilotspb.SCALAR_KIND_TEXT || f.GetType().GetKind() > testpilotspb.SCALAR_KIND_BOOLEAN || f.Disposition < testpilotspb.CORRELATED_FIELD_DISPOSITION_RETAIN || f.Disposition > testpilotspb.CORRELATED_FIELD_DISPOSITION_REJECT {
 				return invalid(ir.Malformed, "invalid field policy")
 			}
 			fields[f.FieldId] = true
 			// Only a field this projection actually retains carries a value a capture or a
 			// correlation operand can read.
-			if f.Disposition == testpilotspb.SCOPED_FIELD_DISPOSITION_RETAIN {
+			if f.Disposition == testpilotspb.CORRELATED_FIELD_DISPOSITION_RETAIN {
 				if declared, seen := retained[f.FieldId]; seen && declared != f.GetType().GetKind() {
 					ambiguous[f.FieldId] = true
 				}
@@ -182,7 +184,7 @@ func (a *admission) bindScoped(seen map[string]bool) error {
 			return invalid(ir.Malformed, "invalid clause provenance")
 		}
 		seen[c.ClauseId] = true
-		if c.Clock != testpilotspb.SCOPED_CLOCK_OPERATION_TRANSITIONS || c.Bound < 0 || c.Endpoint < testpilotspb.SCOPED_ENDPOINT_RUNTIME_PREFIX || c.Endpoint > testpilotspb.SCOPED_ENDPOINT_DELIBERATELY_CLOSED || !validPredicate(c.Trigger, true) || !validPredicate(c.Response, false) {
+		if c.Clock != testpilotspb.CORRELATED_CLOCK_OPERATION_TRANSITIONS || c.Bound < 0 || c.Ending < testpilotspb.TRACE_ENDING_PARTIAL || c.Ending > testpilotspb.TRACE_ENDING_FINAL || !validPredicate(c.Trigger, true) || !validPredicate(c.Response, false) {
 			return invalid(ir.Unknown, fmt.Sprintf("unsupported scoped clause %s", c.ClauseId))
 		}
 		captures := map[string]scopedCapture{}
@@ -203,7 +205,7 @@ func (a *admission) bindScoped(seen map[string]bool) error {
 	return nil
 }
 
-func validScopedLiteral(v *testpilotspb.Value) bool {
+func validCorrelatedLiteral(v *testpilotspb.Value) bool {
 	switch literal := v.GetValue().(type) {
 	case *testpilotspb.Value_Text, *testpilotspb.Value_BoolValue:
 		return true
@@ -245,14 +247,14 @@ func scopedLiteralKind(v *testpilotspb.Value) testpilotspb.ScalarKind {
 
 // validOperand reports the operand's declared scalar kind, so a comparison is checked against the
 // types the projection declares instead of comparing values of different kinds.
-func validOperand(o *testpilotspb.ScopedOperand, retained map[string]testpilotspb.ScalarKind, ambiguous map[string]bool, captures map[string]scopedCapture) (testpilotspb.ScalarKind, error) {
+func validOperand(o *testpilotspb.CorrelatedOperand, retained map[string]testpilotspb.ScalarKind, ambiguous map[string]bool, captures map[string]scopedCapture) (testpilotspb.ScalarKind, error) {
 	switch v := o.GetOperand().(type) {
-	case *testpilotspb.ScopedOperand_Literal:
-		if !validScopedLiteral(v.Literal) {
+	case *testpilotspb.CorrelatedOperand_Literal:
+		if !validCorrelatedLiteral(v.Literal) {
 			return 0, invalid(ir.TypeMismatch, "unsupported correlation literal")
 		}
 		return scopedLiteralKind(v.Literal), nil
-	case *testpilotspb.ScopedOperand_FieldId:
+	case *testpilotspb.CorrelatedOperand_FieldId:
 		kind, ok := retained[v.FieldId]
 		if !validID(v.FieldId) || !ok {
 			return 0, invalid(ir.Malformed, "unretained correlation field operand")
@@ -261,7 +263,7 @@ func validOperand(o *testpilotspb.ScopedOperand, retained map[string]testpilotsp
 			return 0, invalid(ir.TypeMismatch, "ambiguous retained field type")
 		}
 		return kind, nil
-	case *testpilotspb.ScopedOperand_Capture:
+	case *testpilotspb.CorrelatedOperand_Capture:
 		declaration, ok := captures[v.Capture.GetCaptureId()]
 		if !ok || v.Capture.GetOrdinal() < 0 || v.Capture.GetOrdinal() >= declaration.lifetime {
 			return 0, invalid(ir.Malformed, "unbound capture reference")
@@ -274,18 +276,18 @@ func validOperand(o *testpilotspb.ScopedOperand, retained map[string]testpilotsp
 
 // validCorrelation checks the whole condition under the declared depth ceiling. An exhausted depth
 // is an explicit rejection, never a silently truncated condition.
-func validCorrelation(c *testpilotspb.ScopedCorrelation, retained map[string]testpilotspb.ScalarKind, ambiguous map[string]bool, captures map[string]scopedCapture, depth int64) error {
+func validCorrelation(c *testpilotspb.CorrelatedCorrelation, retained map[string]testpilotspb.ScalarKind, ambiguous map[string]bool, captures map[string]scopedCapture, depth int64) error {
 	if depth <= 0 {
 		return invalid(ir.LimitExceeded, "correlation depth exhausted")
 	}
 	switch v := c.GetCondition().(type) {
-	case *testpilotspb.ScopedCorrelation_Predicate:
+	case *testpilotspb.CorrelatedCorrelation_Predicate:
 		if !validPredicate(v.Predicate, true) && !validPredicate(v.Predicate, false) {
 			return invalid(ir.Unknown, "unsupported correlation predicate")
 		}
 		return nil
-	case *testpilotspb.ScopedCorrelation_Comparison:
-		if v.Comparison.GetOperator() < testpilotspb.SCOPED_COMPARISON_OPERATOR_EQUAL || v.Comparison.GetOperator() > testpilotspb.SCOPED_COMPARISON_OPERATOR_NOT_EQUAL {
+	case *testpilotspb.CorrelatedCorrelation_Comparison:
+		if v.Comparison.GetOperator() < testpilotspb.CORRELATED_COMPARISON_OPERATOR_EQUAL || v.Comparison.GetOperator() > testpilotspb.CORRELATED_COMPARISON_OPERATOR_NOT_EQUAL {
 			return invalid(ir.Unknown, "unsupported comparison operator")
 		}
 		left, err := validOperand(v.Comparison.GetLeft(), retained, ambiguous, captures)
@@ -300,7 +302,7 @@ func validCorrelation(c *testpilotspb.ScopedCorrelation, retained map[string]tes
 			return invalid(ir.TypeMismatch, "incompatible correlation operand types")
 		}
 		return nil
-	case *testpilotspb.ScopedCorrelation_All, *testpilotspb.ScopedCorrelation_Any:
+	case *testpilotspb.CorrelatedCorrelation_All, *testpilotspb.CorrelatedCorrelation_Any:
 		operands := c.GetAll().GetOperands()
 		if c.GetAny() != nil {
 			operands = c.GetAny().GetOperands()

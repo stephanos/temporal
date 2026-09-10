@@ -12,9 +12,12 @@ func TestParseGenerationConfig(t *testing.T) {
 		"--descriptor", "fixtures/second.pb",
 		"--lean-root", "Acme.Model",
 		"--descriptor", "fixtures/first.pb",
+		"--skip-package", "zeta.v1",
+		"--skip-package", "acme.v1",
 		"--output-root", "generated",
 	})
 	require.NoError(t, err)
+	require.Equal(t, []string{"acme.v1", "zeta.v1"}, configuration.SkipPackages)
 	require.Equal(t, []descriptorSpec{
 		{Locator: "fixtures/first.pb", Path: filepath.FromSlash("fixtures/first.pb")},
 		{Locator: "fixtures/second.pb", Path: filepath.FromSlash("fixtures/second.pb")},
@@ -49,6 +52,11 @@ func TestParseGenerationConfigValidation(t *testing.T) {
 		"missing output":         {removeFlag(valid, "--output-root"), "--output-root is required"},
 		"operation word":         {append([]string{"generate"}, valid...), "unexpected positional"},
 		"empty dotted root part": {replaceFlagValue(valid, "--lean-root", "Acme..Model"), "Lean root"},
+		"empty skipped package":  {append(valid, "--skip-package", ""), "skipped package is required"},
+		"duplicate skipped package": {
+			append(valid, "--skip-package", "acme.v1", "--skip-package", "acme.v1"),
+			"duplicate skipped package",
+		},
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {

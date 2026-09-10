@@ -2,12 +2,11 @@ import Temporal.API
 import Temporal.Shared
 import Temporal.Testpilot.CaseSupport
 import Umpire.Case.Compiler
-import Umpire.Case.Scoped
+import Umpire.Case.Correlated
 import Umpire.Case.Observed
 import Umpire.Property.Elab
 import Umpire.Property.Evaluate
-import Umpire.Property.Scoped
-import Umpire.Property.Scoped
+import Umpire.Property.Correlated
 import Umpire.Case.Projection.Coverage
 import Umpire.Model.Table
 
@@ -28,7 +27,7 @@ schedules, starts or completes an operation.
 
 Two independent requirements sit on that evidence, and they fail in different ways:
 
-* The **Link** is the scoped clause's correlation. An operation retains the operation identity its
+* The **Link** is the correlated rule's correlation. An operation retains the operation identity its
   own scheduled evidence recorded, keyed by the operation, and a later step belongs to that
   operation only when the retained identity is one of the two the model declares. A step carrying
   an identity the model never declared is not one of this operation's semantic steps at all, so it
@@ -39,7 +38,7 @@ Two independent requirements sit on that evidence, and they fail in different wa
   correlated and the crossed completion, so selecting the await Action never selects which one
   arrives, and the crossed one is a violation of this clause rather than a rejection.
 
-The bounded response is the scoped clause itself: a scheduled operation must complete within its
+The bounded response is the correlated rule itself: a scheduled operation must complete within its
 declared window of semantic transitions. A run that has only been scheduled is unresolved, and a
 completion that arrives after the window closes is violated -- neither answer is manufactured from
 a synthetic deadline.
@@ -52,8 +51,8 @@ the operation literal each rule matches -- is authored here. The declared Observ
 history event, so a model coordinate that only walks the response wrapper around that event has no
 derived read path at all.
 
-The bounded-response clause has no runtime counterpart in this Case: the Driver evaluates a scoped
-capability only from declared `ScopedEvidence` Observations, which no instruction of this Program
+The bounded-response clause has no runtime counterpart in this Case: the Driver evaluates a correlated
+capability only from declared `CorrelatedEvidence` Observations, which no instruction of this Program
 emits. The window is therefore model-only, and the Case declares that as a Known Gap rather than
 letting its provenance imply an online reading it does not have.
 -/
@@ -419,7 +418,7 @@ inductive AdmissionError where
   | field (error : Field.Error)
   | target (error : TableAdmissionError)
   | property (error : PropertyError)
-  | scoped (error : Property.Scoped.Error)
+  | correlated (error : Property.Correlated.Error)
   | projection (error : Case.Projection.Error)
   | coverage (error : Case.Projection.CoverageError)
   | inconsistent (reason : String)
@@ -462,7 +461,7 @@ def fieldDeclaration : Property := {
 
 /-- The typed earlier command field each operation retains under its own key: the operation
 identity its scheduled evidence recorded. -/
-def scheduledOperationCapture : PropertyScopedCapture :=
+def scheduledOperationCapture : PropertyCorrelatedCapture :=
   { name := captureId, key := operationFieldId, path := scheduledOperationPath, lifetime := 2 }
 
 private def capturedOperationIs (operation : String) : PropertyPredicate :=
@@ -483,7 +482,7 @@ def declaredOperationIdentity : PropertyPredicate :=
 
 /-- The bounded response: a scheduled operation completes within its declared window of semantic
 transitions. Closing an unfinished prefix leaves it unresolved rather than inventing a deadline. -/
-def boundedCompletion : PropertyScopedClause := {
+def boundedCompletion : PropertyCorrelatedClause := {
   id := linkClauseId
   source
   trigger := selects scheduleActionId
@@ -491,7 +490,7 @@ def boundedCompletion : PropertyScopedClause := {
   scope := [runFieldId]
   key := operationFieldId
   bound := 2
-  endpoint := .«partial»
+  ending := .«partial»
   captures := [scheduledOperationCapture]
   correlation := some declaredOperationIdentity
 }
@@ -501,12 +500,12 @@ def linkDeclaration : Property := {
   source
   requires := [capabilityId]
   clauses := []
-  scopedClauses := [boundedCompletion]
+  correlatedRules := [boundedCompletion]
 }
 
 /-! ### The declared evidence projection
 
-The scoped capability reads `ScopedEvidence` the Program lifts out of the very history the monitor
+The correlated capability reads `CorrelatedEvidence` the Program lifts out of the very history the monitor
 rules read, so the bounded response is answered from recorded evidence rather than in the model
 alone. One rule per recorded shape: each scheduled event selects itself by the operation identity it
 records, and a completion selects itself by its own attributes member.
@@ -565,12 +564,12 @@ def coverageMappings : List Case.Projection.FieldMapping :=
 
 /-- The complete checked model: the Target that owns both completions, the same-step field
 requirement, the compiled bounded-response consumer carrying the Link, and the checked evidence
-projection the scoped capability runs on. -/
+projection the correlated capability runs on. -/
 structure Model where
   target : TypedTarget
   fieldProperty : CheckedFieldProperty
   link : CheckedProperty
-  compiled : Property.Scoped.Compiled target
+  compiled : Property.Correlated.Compiled target
   plan : Case.Projection.Checked target
   coverage : Case.Projection.Coverage plan
 
@@ -578,8 +577,8 @@ private def fieldBindings : List PropertyFieldBinding :=
   [scheduledOutcomeId, completedOutcomeId, scheduledStateId].map
     (PropertyFieldBinding.ofWitness Temporal.API.rpcOwner historyWitness)
 
-/-- Evaluation ceilings for the scoped consumer, separate from the semantic bound above. -/
-def runLimits : Property.Scoped.Limits :=
+/-- Evaluation ceilings for the correlated consumer, separate from the semantic bound above. -/
+def runLimits : Property.Correlated.Limits :=
   { transitions := 32, obligations := 16, work := 100000000, captures := 16 }
 
 /-- Admit the whole authored example: the SDK command and event declarations, the Target whose
@@ -640,8 +639,8 @@ def checked : Except AdmissionError Model := do
   let fieldProperty ← (CheckedFieldProperty.check context fieldDeclaration).mapError
     AdmissionError.property
   let link ← (Property.check context (linkDeclaration)).mapError AdmissionError.property
-  let compiled ← (Property.Scoped.compile target link [runFieldId] operationFieldId
-    runLimits).mapError AdmissionError.scoped
+  let compiled ← (Property.Correlated.compile target link [runFieldId] operationFieldId
+    runLimits).mapError AdmissionError.correlated
   let declaration ← projectionDeclaration
   let plan ← (Case.Projection.check target declaration () pendingState).mapError
     AdmissionError.projection
@@ -682,7 +681,7 @@ def nexusEndpointBindingId := "temporal.typed-nexus.nexus-endpoint"
 def controllerId := "controller"
 def workflowEntrypointId := "workflow"
 def observationId := "history-event"
-def scopedObservationId := "scoped-evidence"
+def correlatedObservationId := "correlated-evidence"
 
 /-- The protobuf oneof members of `HistoryEvent.attributes` this Case lifts. -/
 def scheduledAttributesField := "nexus_operation_scheduled_event_attributes"
@@ -738,28 +737,28 @@ private def workflowInstructions (entry : OperationCase) : Array InstructionDefi
     (bounds 10000) #[Ref.instruction workflowEntrypointId entry.startInstructionId]
     none (some textOutcome)]
 
-/-- The Program-declared source of the scoped capability's evidence. Each rule reads only the
+/-- The Program-declared source of the correlated capability's evidence. Each rule reads only the
 history event it guards: a scheduled event by the operation identity it records, a completion by its
 own attributes member. The operation key is the scheduled event's own id on one side and the
 scheduled event a completion references on the other, so both land under the same key. -/
 private def evidenceTarget : ProjectionTarget :=
-  Program.scopedEvidenceTarget scopedObservationId
+  Program.correlatedEvidenceTarget correlatedObservationId
     ((operationCases.map fun entry =>
-        Program.scopedEvidenceRule
+        Program.correlatedEvidenceRule
           (guard := historyAttribute scheduledAttributesField "operation")
           (source := evidenceSourceId.value)
           (kind := entry.scheduledEvidenceKindId.value)
           (operation := field "event_id")
-          (scope := #[Program.scopedEvidenceLiteral runFieldId.value runScopeValue])
-          (fields := #[Program.scopedEvidenceBinding operationIdentityFieldId.value
+          (scope := #[Program.correlatedEvidenceLiteral runFieldId.value runScopeValue])
+          (fields := #[Program.correlatedEvidenceBinding operationIdentityFieldId.value
             (historyAttribute scheduledAttributesField "operation")])
           (guardEqualsText := entry.operation)) ++
-      [Program.scopedEvidenceRule
+      [Program.correlatedEvidenceRule
         (guard := Path.make #[Path.oneofSelector attributesGroup completedAttributesField])
         (source := evidenceSourceId.value)
         (kind := completedEvidenceKindId.value)
         (operation := historyAttribute completedAttributesField "scheduled_event_id")
-        (scope := #[Program.scopedEvidenceLiteral runFieldId.value runScopeValue])]).toArray
+        (scope := #[Program.correlatedEvidenceLiteral runFieldId.value runScopeValue])]).toArray
 
 private def program (startPath historyPath : String) : Program :=
   Program.make "temporal.case.typed-nexus.program"
@@ -771,8 +770,8 @@ private def program (startPath historyPath : String) : Program :=
         (resourceBindingId := nexusEndpointBindingId)]
     (operationCases.map (fun entry => Program.capabilitySlot entry.slotId)).toArray
     #[Program.observation observationId (Types.singular (Types.messageType historyEventNode)),
-      Program.observation scopedObservationId (Types.singular
-        (Types.messageType "temporal.server.api.testpilot.v1.ScopedEvidence"))]
+      Program.observation correlatedObservationId (Types.singular
+        (Types.messageType "temporal.server.api.testpilot.v1.CorrelatedEvidence"))]
     (#[Program.controller controllerId (
         #[Program.node "start-workflow"
             (Program.invokeRPC workflowServiceRole startPath #[
@@ -837,12 +836,12 @@ def operationRule (entry : OperationCase) (property : CheckedProperty) :
   let eventIdPath ← readPathOf scheduledEventIdPath
   let referencedPath ← readPathOf completedScheduledEventIdPath
   let capture := "scheduled-" ++ entry.operation
-  pure (Monitor.rule (property.id.value ++ "." ++ entry.operation)
+  pure (Contract.rule (property.id.value ++ "." ++ entry.operation)
     .CONTRACT_RULE_KIND_SAFETY "pending"
-    #[Monitor.state "pending" .CONTRACT_STATE_STATUS_NONTERMINAL,
-      Monitor.state "scheduled" .CONTRACT_STATE_STATUS_NONTERMINAL,
-      Monitor.state "satisfied" .CONTRACT_STATE_STATUS_SATISFIED]
-    #[Monitor.transition ("capture-scheduled-" ++ entry.operation) "pending" "scheduled"
+    #[Contract.state "pending" .CONTRACT_STATE_STATUS_NONTERMINAL,
+      Contract.state "scheduled" .CONTRACT_STATE_STATUS_NONTERMINAL,
+      Contract.state "satisfied" .CONTRACT_STATE_STATUS_SATISFIED]
+    #[Contract.transition ("capture-scheduled-" ++ entry.operation) "pending" "scheduled"
         #[.RUN_EVENT_KIND_INSTRUCTION_COMPLETED]
         (ContractExpr.all #[
           ContractExpr.present (observed observationId),
@@ -850,8 +849,8 @@ def operationRule (entry : OperationCase) (property : CheckedProperty) :
           ContractExpr.equals (projected (observed observationId) operationPath)
             (ContractExpr.literal (Value.text entry.operation))])
         .CONTRACT_SUPPORT_KIND_MATCHING_EVENT
-        #[Monitor.captureAssignment capture observationId],
-      Monitor.transition ("match-completion-" ++ entry.operation) "scheduled" "satisfied"
+        #[Contract.captureAssignment capture observationId],
+      Contract.transition ("match-completion-" ++ entry.operation) "scheduled" "satisfied"
         #[.RUN_EVENT_KIND_INSTRUCTION_COMPLETED]
         (ContractExpr.all #[
           ContractExpr.present (captured capture),
@@ -859,7 +858,7 @@ def operationRule (entry : OperationCase) (property : CheckedProperty) :
           ContractExpr.equals (projected (captured capture) eventIdPath)
             (projected (observed observationId) referencedPath)])
         .CONTRACT_SUPPORT_KIND_MATCHING_EVENT]
-    (captures := #[Monitor.capture capture (Monitor.messageCapture historyEventNode)]))
+    (captures := #[Contract.capture capture (Contract.messageCapture historyEventNode)]))
 
 /-- This Case retains one history event per operation, so it declares its own capture-byte ceiling
 rather than the shared single-capture one; every other bound is the shared Contract ceiling. -/
@@ -869,7 +868,7 @@ def typedNexusContractLimits : ContractLimits :=
     max_work_per_event := 4000000 }
 
 /-- The bounded-response window now runs online: the history read lifts each recorded Nexus event
-into the declared `ScopedEvidence` Observation the scoped capability decodes, so the clause is
+into the declared `CorrelatedEvidence` Observation the correlated capability decodes, so the clause is
 answered from recorded evidence rather than in the model alone.
 
 What the lift cannot supply is the operation identity of a completion, which no completed event
@@ -878,7 +877,7 @@ releases one representative completed step. The bounded-response clause reads th
 by its declared identity, so the released payload never changes its answer -- but a Case that wanted
 to tell the two completions apart online still could not, which is exactly what the crossed
 completion gap below already names. -/
-private def completionIdentityIsUnrecorded (link : CheckedProperty) : Umpire.Case.CaseKnownGap :=
+private def completionIdentityIsUnrecorded (link : CheckedProperty) : Umpire.Provenance.KnownGap :=
   { kind := .interpretation
     code := "temporal.nexus3.typed-nexus.completion-identity-is-unrecorded"
     subject := some link.id.value
@@ -894,7 +893,7 @@ condition the model never declared, which ACT-4 makes an Implementation Link obl
 a rule this Case may add on its own; until one is declared, both readings close the rule
 inconclusive. -/
 private def crossedCompletionIsInconclusive (requirement : CheckedProperty) :
-    Umpire.Case.CaseKnownGap :=
+    Umpire.Provenance.KnownGap :=
   { kind := .interpretation
     code := "temporal.nexus3.typed-nexus.crossed-completion-is-inconclusive"
     subject := some requirement.id.value
@@ -902,23 +901,23 @@ private def crossedCompletionIsInconclusive (requirement : CheckedProperty) :
       "another scheduled event leaves the rule pending rather than violated; the model Property " ++
       "still distinguishes the two") }
 
-private def loweringError (definitionId construct : String) : Umpire.Case.Compiler.LoweringError :=
+private def compilerError (definitionId construct : String) : Umpire.Case.Compiler.Error :=
   { sourceDefinitionId := definitionId, source, construct }
 
 /-- The checked two-operation declaration lowered to the closed Case format. -/
-def typedNexusCase : Except Umpire.Case.Compiler.LoweringError
+def typedNexusCase : Except Umpire.Case.Compiler.Error
     temporal.server.api.testpilot.v1.Case := do
-  let model ← checked.mapError fun _ => loweringError fieldPropertyId.value "checked-typed-nexus"
+  let model ← checked.mapError fun _ => compilerError fieldPropertyId.value "checked-typed-nexus"
   let history ← historyBinding.mapError fun _ =>
-    loweringError historyMethod.fullName "checked-history-binding"
+    compilerError historyMethod.fullName "checked-history-binding"
   let start ← startBinding.mapError fun _ =>
-    loweringError startMethod.fullName "checked-start-binding"
+    compilerError startMethod.fullName "checked-start-binding"
   let requirement := model.fieldProperty.property
   let requirementBinding := binding requirement.id.value
     requirement.behaviorFingerprint.render .«property»
   let rules ← operationCases.mapM fun entry =>
-    (operationRule entry requirement).mapError fun reason => loweringError clauseId.value reason
-  let lowered ← Umpire.Case.Scoped.lower model.plan model.compiled scopedObservationId
+    (operationRule entry requirement).mapError fun reason => compilerError clauseId.value reason
+  let lowered ← Umpire.Case.Correlated.lower model.plan model.compiled correlatedObservationId
     model.coverage
   Umpire.Case.Compiler.compile {
     version := { major := 1 }

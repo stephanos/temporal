@@ -98,7 +98,6 @@ TESTPILOT_PROTOCOL_PROTOS := \
 	proto/internal/temporal/server/api/testpilot/v1/contract.proto \
 	proto/internal/temporal/server/api/testpilot/v1/expression.proto \
 	proto/internal/temporal/server/api/testpilot/v1/instruction.proto \
-	proto/internal/temporal/server/api/testpilot/v1/outcome.proto \
 	proto/internal/temporal/server/api/testpilot/v1/program.proto \
 	proto/internal/temporal/server/api/testpilot/v1/run.proto \
 	proto/internal/temporal/server/api/testpilot/v1/value.proto
@@ -111,6 +110,7 @@ UMPIRE_GEN_LEAN_API_ARGS = \
 	--descriptor $(API_BINPB) \
 	--descriptor $(INTERNAL_BINPB) \
 	--descriptor $(CHASM_BINPB) \
+	--skip-package temporal.server.api.testpilot.v1 \
 	--lean-root Temporal \
 	--output-root model
 
@@ -595,13 +595,13 @@ umpire-check-goldens:
 		done
 
 umpire-gen-case-runtime-conformance:
-	@cd model && $(LEAN_LAKE) build $(UMPIRE_TESTPILOT_RENDERER) umpire-scoped-fixtures >/dev/null
+	@cd model && $(LEAN_LAKE) build $(UMPIRE_TESTPILOT_RENDERER) umpire-correlated-fixtures >/dev/null
 	@$(UMPIRE_GEN_CASE_RUNTIME_CONFORMANCE_COMMAND) --repository-root . --output-root .
 	@$(UMPIRE_GEN_CASE_RUNTIME_CONFORMANCE_COMMAND) --repository-root . --output-root . --mode functional
 
 umpire-check-case-runtime-conformance:
 	@printf $(COLOR) "Check generated Umpire Testpilot conformance fixtures..."
-	@cd model && $(LEAN_LAKE) build $(UMPIRE_TESTPILOT_RENDERER) umpire-scoped-fixtures
+	@cd model && $(LEAN_LAKE) build $(UMPIRE_TESTPILOT_RENDERER) umpire-correlated-fixtures
 	@set -eu; temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
 		temporary=$$(mktemp -d "$$temporary_root/umpire-case-runtime-conformance.XXXXXX"); \
 		trap 'rm -rf "$$temporary"' EXIT HUP INT TERM; \

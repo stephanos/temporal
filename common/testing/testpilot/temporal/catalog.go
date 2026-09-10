@@ -10,7 +10,7 @@ import (
 )
 
 // NewWorkflowServiceCatalog freezes the exact public WorkflowService descriptor closure together
-// with the Testpilot protocol closure. A Case that declares a ScopedEvidence Observation names a
+// with the Testpilot protocol closure. A Case that declares a CorrelatedEvidence Observation names a
 // protocol message rather than a Temporal API one, so the Driver's catalog has to know both.
 func NewWorkflowServiceCatalog() (*testpilot.Catalog, error) {
 	descriptors := WorkflowServiceDescriptorSet()

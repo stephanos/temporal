@@ -130,27 +130,27 @@ private def program : temporal.server.api.testpilot.v1.Program := Program.make "
   (environment := #[Program.environment "namespace", Program.environment "task.queue",
     Program.environment "nexus.endpoint"])
 
-private def transition := Monitor.transition "take" "start" "done"
+private def transition := Contract.transition "take" "start" "done"
   #[.RUN_EVENT_KIND_INSTRUCTION_COMPLETED]
   contractExpressions[10]!
   .CONTRACT_SUPPORT_KIND_MATCHING_EVENT
-  #[Monitor.captureAssignment "captured" "observed"]
+  #[Contract.captureAssignment "captured" "observed"]
 
-private def contract : Contract := Monitor.contract "contract" #[
-  Monitor.rule "safety" .CONTRACT_RULE_KIND_SAFETY "start"
-    #[Monitor.state "start" .CONTRACT_STATE_STATUS_NONTERMINAL,
-      Monitor.state "done" .CONTRACT_STATE_STATUS_SATISFIED]
+private def contract : Contract := Contract.contract "contract" #[
+  Contract.rule "safety" .CONTRACT_RULE_KIND_SAFETY "start"
+    #[Contract.state "start" .CONTRACT_STATE_STATUS_NONTERMINAL,
+      Contract.state "done" .CONTRACT_STATE_STATUS_SATISFIED]
     #[transition]
-    (captures := #[Monitor.capture "captured" (Monitor.scalarCapture .SCALAR_KIND_TEXT),
-      Monitor.capture "enum" (Monitor.enumCapture "example.Enum"),
-      Monitor.capture "message" (Monitor.messageCapture "example.Message")]),
-  Monitor.rule "liveness" .CONTRACT_RULE_KIND_BOUNDED_LIVENESS "waiting"
-    #[Monitor.state "waiting" .CONTRACT_STATE_STATUS_NONTERMINAL,
-      Monitor.state "late" .CONTRACT_STATE_STATUS_VIOLATED]
-    #[] (horizon := some (Monitor.horizon 1000 "late"))
-] (Monitor.limits 2 4 2 16 64 1024 3 4096)
+    (captures := #[Contract.capture "captured" (Contract.scalarCapture .SCALAR_KIND_TEXT),
+      Contract.capture "enum" (Contract.enumCapture "example.Enum"),
+      Contract.capture "message" (Contract.messageCapture "example.Message")]),
+  Contract.rule "liveness" .CONTRACT_RULE_KIND_BOUNDED_LIVENESS "waiting"
+    #[Contract.state "waiting" .CONTRACT_STATE_STATUS_NONTERMINAL,
+      Contract.state "late" .CONTRACT_STATE_STATUS_VIOLATED]
+    #[] (deadline := some (Contract.deadline 1000 "late"))
+] (Contract.limits 2 4 2 16 64 1024 3 4096)
 
-private def eventsHorizon : ContractHorizonDefinition := Monitor.horizonEvents 3 "late"
+private def eventsDeadline : ContractDeadline := Contract.deadlineEvents 3 "late"
 
 private def verdict := Verdict.make .VERDICT_STATUS_SATISFIED #[
   Verdict.rule "safety" .RULE_VERDICT_STATUS_SATISFIED "done" #[1]
@@ -180,8 +180,8 @@ private def run : temporal.server.api.testpilot.v1.Run := Run.make "run" "case" 
 #guard contract.rules.size == 2
 #guard run.events.size == 1
 #guard injectFaultNamesRoleAndKind
-#guard eventsHorizon.rule_events == 3
-#guard eventsHorizon.elapsed_milliseconds == 0
-#guard eventsHorizon.violation_state_id == "late"
+#guard eventsDeadline.rule_events == 3
+#guard eventsDeadline.elapsed_milliseconds == 0
+#guard eventsDeadline.violation_state_id == "late"
 
 end Testpilot.Tests.Authoring

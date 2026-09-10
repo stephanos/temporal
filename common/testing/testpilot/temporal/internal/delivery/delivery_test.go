@@ -99,8 +99,8 @@ func newFixture(t *testing.T, runID, sessionID string) *fixture {
 		EndpointRoleID: "temporal",
 		Method:         startWorkflowPath,
 		Reservations: []testpilot.ReservationTopology{
-			{EntrypointID: "workflow", Context: testpilotspb.ENTRYPOINT_KIND_WORKFLOW, Count: 1},
-			{EntrypointID: "handler", Context: testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER, Count: 1},
+			{EntrypointID: "workflow", Kind: testpilotspb.ENTRYPOINT_KIND_WORKFLOW, Count: 1},
+			{EntrypointID: "handler", Kind: testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER, Count: 1},
 		},
 		Routes: []testpilot.ReservationRoute{{WorkflowEntrypointID: "workflow", WorkflowOrdinal: 0, SourceInstructionID: "start-nexus", HandlerEntrypointID: "handler", HandlerOrdinal: 0}},
 	}

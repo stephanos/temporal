@@ -15,7 +15,7 @@ import (
 
 type schedulerHost struct {
 	Session
-	bridge   SlotBridge
+	bridge   CapabilityBridge
 	complete func(context.Context, Coordinate, OpaqueCapability, *testpilotspb.Value) (EffectHandle, error)
 	invoke   func(context.Context, Coordinate, proto.Message) (EffectHandle, error)
 	reserve  func(context.Context, ReservationRequest) ([]ReservationHandle, error)
@@ -424,13 +424,13 @@ func TestSchedulerMalformedAndLimitFailures(t *testing.T) {
 	}
 }
 
-func (h *schedulerHost) Bridge(context.Context) (SlotBridge, error) { return h.bridge, nil }
+func (h *schedulerHost) Bridge(context.Context) (CapabilityBridge, error) { return h.bridge, nil }
 func (h *schedulerHost) InvokeCapability(ctx context.Context, c Coordinate, capability OpaqueCapability, input proto.Message) (EffectHandle, error) {
 	return h.complete(ctx, c, capability, input.(*testpilotspb.Value))
 }
 
 type schedulerBridge struct {
-	SlotBridge
+	CapabilityBridge
 	ready      chan struct{}
 	capability OpaqueCapability
 }

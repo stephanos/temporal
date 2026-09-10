@@ -1,5 +1,5 @@
 import Umpire.Property.Evaluate
-import Umpire.Property.Scoped
+import Umpire.Property.Correlated
 import Umpire.Scenario.Check
 import Umpire.Query.Check
 import Umpire.Search.Branches

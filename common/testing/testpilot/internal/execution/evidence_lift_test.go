@@ -15,8 +15,8 @@ import (
 )
 
 // liftFixture is one RPC whose response carries two alternative recorded shapes, plus the Testpilot
-// protocol closure a declared ScopedEvidence Observation names.
-func liftFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Policy) {
+// protocol closure a declared CorrelatedEvidence Observation names.
+func liftFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Profile) {
 	t.Helper()
 	message := func(name string, fields ...*descriptorpb.FieldDescriptorProto) *descriptorpb.DescriptorProto {
 		return &descriptorpb.DescriptorProto{Name: proto.String(name), Field: fields}
@@ -60,16 +60,16 @@ func liftFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Policy) {
 	require.NoError(t, err)
 
 	limits := &testpilotspb.ProgramLimits{MaxEntrypoints: 8, MaxNodes: 32, MaxEdges: 64, MaxActivations: 64, MaxAttempts: 32, MaxRunEvents: 256, MaxExpressionDepth: 16, MaxPathFanout: 128, MaxRequestBytes: 4096, MaxResponseBytes: 4096, MaxTotalDurationMilliseconds: 30000, MaxCleanupDurationMilliseconds: 5000}
-	policy := Policy{Identity: "host", CatalogIdentity: catalog.Identity(), Roles: []RolePolicy{{ID: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT, Methods: []string{"/lift.Source/Read"}}}, Capabilities: []Opcode{InvokeRPC}, Limits: proto.CloneOf(limits)}
+	policy := Profile{Identity: "host", CatalogIdentity: catalog.Identity(), Roles: []RolePolicy{{ID: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT, Methods: []string{"/lift.Source/Read"}}}, Opcodes: []Opcode{InvokeRPC}, Limits: proto.CloneOf(limits)}
 	node := &testpilotspb.InstructionDefinition{InstructionId: "read", Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRPC{EndpointRoleId: "endpoint", Method: "/lift.Source/Read"}}}, Outcome: statusSchema(), Limits: &testpilotspb.InstructionLimits{TimeoutMilliseconds: 1000, MaxAttempts: 1, MaxEmittedEvents: 8, MaxResponseBytes: 4096}}
 	artifact := &testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: 1}, CaseId: "lift", Program: &testpilotspb.Program{
 		ProgramId: "program", Roles: []*testpilotspb.RoleDefinition{{RoleId: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT}},
-		Observations: []*testpilotspb.ObservationDefinition{{ObservationId: "evidence", Type: messageValueType("temporal.server.api.testpilot.v1.ScopedEvidence")}, {ObservationId: "other", Type: scalar(testpilotspb.SCALAR_KIND_TEXT)}},
+		Observations: []*testpilotspb.ObservationDefinition{{ObservationId: "evidence", Type: messageValueType("temporal.server.api.testpilot.v1.CorrelatedEvidence")}, {ObservationId: "other", Type: scalar(testpilotspb.SCALAR_KIND_TEXT)}},
 		Entrypoints:  []*testpilotspb.EntrypointDefinition{{EntrypointId: "controller", Activation: &testpilotspb.EntrypointDefinition_Controller{Controller: &testpilotspb.ControllerActivation{}}, Instructions: []*testpilotspb.InstructionDefinition{node}}},
 		Cleanup:      &testpilotspb.CleanupDefinition{EntrypointId: "cleanup"}, Limits: limits}, Contract: &testpilotspb.Contract{ContractId: "contract"}}
 	node.Instruction.GetInvokeRpc().ResponseProjections = []*testpilotspb.ResponseProjection{{
 		Source: &testpilotspb.FieldPath{}, Kind: testpilotspb.PROJECTION_KIND_ONE,
-		Targets: []*testpilotspb.ProjectionTarget{{Target: &testpilotspb.ProjectionTarget_ScopedEvidence{ScopedEvidence: liftProjection()}}}}}
+		Targets: []*testpilotspb.ProjectionTarget{{Target: &testpilotspb.ProjectionTarget_CorrelatedEvidence{CorrelatedEvidence: liftProjection()}}}}}
 	return artifact, catalog, policy
 }
 
@@ -83,23 +83,23 @@ func nestedPath(names ...string) *testpilotspb.FieldPath {
 	}
 	return path
 }
-func liftProjection() *testpilotspb.ScopedEvidenceProjection {
-	return &testpilotspb.ScopedEvidenceProjection{ObservationId: "evidence", Rules: []*testpilotspb.ScopedEvidenceRule{
+func liftProjection() *testpilotspb.CorrelatedEvidenceProjection {
+	return &testpilotspb.CorrelatedEvidenceProjection{ObservationId: "evidence", Rules: []*testpilotspb.CorrelatedEvidenceRule{
 		{
 			Guard: nestedPath("scheduled", "operation"), GuardEqualsText: "first", Source: "source", Kind: "scheduled.first",
 			Operation: nestedPath("scheduled", "operation"),
-			Scope:     []*testpilotspb.ScopedEvidenceBinding{{FieldId: "run", Value: &testpilotspb.ScopedEvidenceBinding_Literal{Literal: "one"}}},
-			Fields:    []*testpilotspb.ScopedEvidenceBinding{{FieldId: "identity", Value: &testpilotspb.ScopedEvidenceBinding_Path{Path: nestedPath("scheduled", "operation")}}},
+			Scope:     []*testpilotspb.CorrelatedEvidenceBinding{{FieldId: "run", Value: &testpilotspb.CorrelatedEvidenceBinding_Literal{Literal: "one"}}},
+			Fields:    []*testpilotspb.CorrelatedEvidenceBinding{{FieldId: "identity", Value: &testpilotspb.CorrelatedEvidenceBinding_Path{Path: nestedPath("scheduled", "operation")}}},
 		},
 		{
 			Guard: nestedPath("scheduled"), Source: "source", Kind: "scheduled.other",
 			Operation: nestedPath("scheduled", "operation"),
-			Scope:     []*testpilotspb.ScopedEvidenceBinding{{FieldId: "run", Value: &testpilotspb.ScopedEvidenceBinding_Literal{Literal: "one"}}},
+			Scope:     []*testpilotspb.CorrelatedEvidenceBinding{{FieldId: "run", Value: &testpilotspb.CorrelatedEvidenceBinding_Literal{Literal: "one"}}},
 		},
 		{
 			Guard: nestedPath("completed"), Source: "source", Kind: "completed",
 			Operation: nestedPath("completed", "referenced"),
-			Scope:     []*testpilotspb.ScopedEvidenceBinding{{FieldId: "run", Value: &testpilotspb.ScopedEvidenceBinding_Literal{Literal: "one"}}},
+			Scope:     []*testpilotspb.CorrelatedEvidenceBinding{{FieldId: "run", Value: &testpilotspb.CorrelatedEvidenceBinding_Literal{Literal: "one"}}},
 		},
 	}}
 }
@@ -127,16 +127,16 @@ func setCompleted(referenced int64) func(protoreflect.Message) {
 	}
 }
 
-func stagedEvidence(t *testing.T, values *activationValues, prepared *PreparedProgram, mutate func(protoreflect.Message)) []*testpilotspb.ScopedEvidence {
+func stagedEvidence(t *testing.T, values *activationValues, prepared *PreparedProgram, mutate func(protoreflect.Message)) []*testpilotspb.CorrelatedEvidence {
 	t.Helper()
 	coordinate := Coordinate{RunID: "run", EntrypointID: "controller", ActivationID: "activation", InstructionID: "read", Attempt: 1}
 	batch, _, err := values.stage(context.Background(), coordinate, liftResponse(t, prepared, mutate), values.workLimit())
 	require.NoError(t, err)
-	staged := []*testpilotspb.ScopedEvidence{}
+	staged := []*testpilotspb.CorrelatedEvidence{}
 	for _, fact := range batch.facts {
 		for _, observation := range fact.observations {
 			require.Equal(t, "evidence", observation.ObservationId)
-			evidence := &testpilotspb.ScopedEvidence{}
+			evidence := &testpilotspb.CorrelatedEvidence{}
 			require.NoError(t, observation.Value.GetMessageValue().UnmarshalTo(evidence))
 			staged = append(staged, evidence)
 		}
@@ -163,8 +163,8 @@ func TestEvidenceLiftSelectsOneRuleAndCountsItsOwnOrdinals(t *testing.T) {
 	require.Equal(t, "first", first[0].GetOperation())
 	require.Equal(t, "source", first[0].GetIdentity().GetSource())
 	require.EqualValues(t, 0, first[0].GetIdentity().GetOrdinal())
-	require.Equal(t, []*testpilotspb.ScopedBinding{{FieldId: "run", Value: "one"}}, first[0].GetIdentity().GetScope())
-	require.Equal(t, []*testpilotspb.ScopedEvidenceField{{FieldId: "identity", Value: &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: "first"}}}}, first[0].GetFields())
+	require.Equal(t, []*testpilotspb.CorrelatedBinding{{FieldId: "run", Value: "one"}}, first[0].GetIdentity().GetScope())
+	require.Equal(t, []*testpilotspb.CorrelatedEvidenceField{{FieldId: "identity", Value: &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: "first"}}}}, first[0].GetFields())
 
 	// The guard equality is what separates the two scheduled rules, so a different identity falls
 	// through to the unguarded one.
@@ -183,49 +183,49 @@ func TestEvidenceLiftSelectsOneRuleAndCountsItsOwnOrdinals(t *testing.T) {
 }
 
 // TestEvidenceLiftRejectsUndeclarableRules pins the admission errors: the sink must be the exact
-// declared ScopedEvidence Observation, a rule must exist, and every bound coordinate must read a
+// declared CorrelatedEvidence Observation, a rule must exist, and every bound coordinate must read a
 // scalar the portable evidence domain admits.
 func TestEvidenceLiftRejectsUndeclarableRules(t *testing.T) {
-	for name, mutate := range map[string]func(*testpilotspb.ScopedEvidenceProjection){
-		"wrong observation": func(p *testpilotspb.ScopedEvidenceProjection) { p.ObservationId = "other" },
-		"unknown observation": func(p *testpilotspb.ScopedEvidenceProjection) {
+	for name, mutate := range map[string]func(*testpilotspb.CorrelatedEvidenceProjection){
+		"wrong observation": func(p *testpilotspb.CorrelatedEvidenceProjection) { p.ObservationId = "other" },
+		"unknown observation": func(p *testpilotspb.CorrelatedEvidenceProjection) {
 			p.ObservationId = "absent"
 		},
-		"no rules":       func(p *testpilotspb.ScopedEvidenceProjection) { p.Rules = nil },
-		"missing kind":   func(p *testpilotspb.ScopedEvidenceProjection) { p.Rules[0].Kind = "" },
-		"missing source": func(p *testpilotspb.ScopedEvidenceProjection) { p.Rules[0].Source = "" },
-		"message operation": func(p *testpilotspb.ScopedEvidenceProjection) {
+		"no rules":       func(p *testpilotspb.CorrelatedEvidenceProjection) { p.Rules = nil },
+		"missing kind":   func(p *testpilotspb.CorrelatedEvidenceProjection) { p.Rules[0].Kind = "" },
+		"missing source": func(p *testpilotspb.CorrelatedEvidenceProjection) { p.Rules[0].Source = "" },
+		"message operation": func(p *testpilotspb.CorrelatedEvidenceProjection) {
 			p.Rules[0].Operation = nestedPath("scheduled")
 		},
-		"message field": func(p *testpilotspb.ScopedEvidenceProjection) {
-			p.Rules[0].Fields[0].Value = &testpilotspb.ScopedEvidenceBinding_Path{Path: nestedPath("nested")}
+		"message field": func(p *testpilotspb.CorrelatedEvidenceProjection) {
+			p.Rules[0].Fields[0].Value = &testpilotspb.CorrelatedEvidenceBinding_Path{Path: nestedPath("nested")}
 		},
-		"unknown coordinate": func(p *testpilotspb.ScopedEvidenceProjection) {
+		"unknown coordinate": func(p *testpilotspb.CorrelatedEvidenceProjection) {
 			p.Rules[0].Operation = nestedPath("scheduled", "absent")
 		},
-		"nontext guard equality": func(p *testpilotspb.ScopedEvidenceProjection) {
+		"nontext guard equality": func(p *testpilotspb.CorrelatedEvidenceProjection) {
 			p.Rules[0].Guard = nestedPath("completed", "referenced")
 		},
-		"empty literal": func(p *testpilotspb.ScopedEvidenceProjection) {
-			p.Rules[0].Scope[0].Value = &testpilotspb.ScopedEvidenceBinding_Literal{Literal: ""}
+		"empty literal": func(p *testpilotspb.CorrelatedEvidenceProjection) {
+			p.Rules[0].Scope[0].Value = &testpilotspb.CorrelatedEvidenceBinding_Literal{Literal: ""}
 		},
-		"unsupplied binding": func(p *testpilotspb.ScopedEvidenceProjection) { p.Rules[0].Scope[0].Value = nil },
-		"duplicate field": func(p *testpilotspb.ScopedEvidenceProjection) {
+		"unsupplied binding": func(p *testpilotspb.CorrelatedEvidenceProjection) { p.Rules[0].Scope[0].Value = nil },
+		"duplicate field": func(p *testpilotspb.CorrelatedEvidenceProjection) {
 			p.Rules[0].Fields = append(p.Rules[0].Fields, proto.CloneOf(p.Rules[0].Fields[0]))
 		},
-		"presence guard": func(p *testpilotspb.ScopedEvidenceProjection) {
+		"presence guard": func(p *testpilotspb.CorrelatedEvidenceProjection) {
 			p.Rules[0].Guard = nestedPath("scheduled")
 			p.Rules[0].Guard.Segments[0].Selector = &testpilotspb.FieldPathSegment_Presence{Presence: &testpilotspb.PresenceSelector{}}
 			p.Rules[0].GuardEqualsText = ""
 		},
-		"empty guard": func(p *testpilotspb.ScopedEvidenceProjection) {
+		"empty guard": func(p *testpilotspb.CorrelatedEvidenceProjection) {
 			p.Rules[0].Guard = &testpilotspb.FieldPath{}
 			p.Rules[0].GuardEqualsText = ""
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			artifact, catalog, policy := liftFixture(t)
-			mutate(artifact.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().ResponseProjections[0].Targets[0].GetScopedEvidence())
+			mutate(artifact.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().ResponseProjections[0].Targets[0].GetCorrelatedEvidence())
 			_, err := Prepare(artifact, catalog, policy)
 			require.Error(t, err)
 		})
@@ -236,9 +236,9 @@ func TestEvidenceLiftRejectsUndeclarableRules(t *testing.T) {
 // one of its own declared coordinates fails rather than recording evidence with a hole in it.
 func TestEvidenceLiftRejectsPartialEvidence(t *testing.T) {
 	artifact, catalog, policy := liftFixture(t)
-	projection := artifact.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().ResponseProjections[0].Targets[0].GetScopedEvidence()
+	projection := artifact.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().ResponseProjections[0].Targets[0].GetCorrelatedEvidence()
 	projection.Rules = projection.Rules[2:]
-	projection.Rules[0].Fields = []*testpilotspb.ScopedEvidenceBinding{{FieldId: "identity", Value: &testpilotspb.ScopedEvidenceBinding_Path{Path: nestedPath("scheduled", "operation")}}}
+	projection.Rules[0].Fields = []*testpilotspb.CorrelatedEvidenceBinding{{FieldId: "identity", Value: &testpilotspb.CorrelatedEvidenceBinding_Path{Path: nestedPath("scheduled", "operation")}}}
 	prepared, err := Prepare(artifact, catalog, policy)
 	require.NoError(t, err)
 	store, err := newValueStore(prepared, "run")

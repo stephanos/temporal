@@ -35,7 +35,7 @@ func (a *admission) bindReservationCarriers() error {
 func (a *admission) checkCarrierShape(controller *graph, node *node, carrier ReservationCarrierPolicy) error {
 	maximum := make(map[testpilotspb.EntrypointKind]int64, len(carrier.Shapes))
 	for _, shape := range carrier.Shapes {
-		maximum[shape.Context] = shape.MaximumCount
+		maximum[shape.Kind] = shape.MaximumCount
 	}
 	counts := map[testpilotspb.EntrypointKind]int64{}
 	for _, reservation := range node.source.ActivationReservations {
@@ -99,7 +99,7 @@ func (a *admission) carrierReservations(controller *graph, node *node) ([]Reserv
 			return nil, nil, nil, err
 		}
 		target := a.graphIndex[reservation.EntrypointId]
-		reservations = append(reservations, ReservationTopology{EntrypointID: target.id, Context: target.context, Count: reservation.Count})
+		reservations = append(reservations, ReservationTopology{EntrypointID: target.id, Kind: target.context, Count: reservation.Count})
 		if target.context == testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER {
 			if err := a.charge(1); err != nil {
 				return nil, nil, nil, err

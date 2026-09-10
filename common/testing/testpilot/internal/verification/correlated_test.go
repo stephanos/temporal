@@ -22,12 +22,12 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 )
 
-func TestScopedCapabilityWireVersion(t *testing.T) {
+func TestCorrelatedCapabilityWireVersion(t *testing.T) {
 	var contract testpilotspb.Contract
-	require.NoError(t, protojson.Unmarshal([]byte(`{"contractId":"scoped","scoped":{"version":1}}`), &contract))
+	require.NoError(t, protojson.Unmarshal([]byte(`{"contractId":"correlated","correlated":{"version":1}}`), &contract))
 }
 
-func scopedFixture(t *testing.T, bound int64) (*testpilotspb.Contract, *ir.Catalog, execution.ProgramView, *testpilotspb.ContractLimits) {
+func correlatedFixture(t *testing.T, bound int64) (*testpilotspb.Contract, *ir.Catalog, execution.ProgramView, *testpilotspb.ContractLimits) {
 	t.Helper()
 	files := []*descriptorpb.FileDescriptorProto{}
 	seen := map[string]bool{}
@@ -48,19 +48,19 @@ func scopedFixture(t *testing.T, bound int64) (*testpilotspb.Contract, *ir.Catal
 	_, _, view, ceiling := fixture(t)
 	limits := view.Limits()
 	limits.MaxRunEvents = 32
-	typ := messageType("temporal.server.api.testpilot.v1.ScopedEvidence")
+	typ := messageType("temporal.server.api.testpilot.v1.CorrelatedEvidence")
 	program := &testpilotspb.Program{ProgramId: "scoped.program", Limits: limits, Observations: []*testpilotspb.ObservationDefinition{{ObservationId: "evidence", Type: typ}}, Entrypoints: []*testpilotspb.EntrypointDefinition{{EntrypointId: "controller", Activation: &testpilotspb.EntrypointDefinition_Controller{Controller: &testpilotspb.ControllerActivation{}}}}, Cleanup: &testpilotspb.CleanupDefinition{EntrypointId: "cleanup"}}
-	prepared, err := execution.Prepare(&testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: 1}, CaseId: "scoped.case", Program: program, Contract: &testpilotspb.Contract{ContractId: "scoped"}}, catalog, execution.Policy{Identity: "host", CatalogIdentity: catalog.Identity(), Limits: proto.CloneOf(limits)})
+	prepared, err := execution.Prepare(&testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: 1}, CaseId: "correlated.case", Program: program, Contract: &testpilotspb.Contract{ContractId: "correlated"}}, catalog, execution.Profile{Identity: "host", CatalogIdentity: catalog.Identity(), Limits: proto.CloneOf(limits)})
 	require.NoError(t, err)
 	ceiling.MaxCaptures = 32
 	ceiling.MaxCaptureBytes = 65536
-	state := &testpilotspb.ScopedValue{DefinitionId: "state", Value: "ready"}
-	value := func(id, v string) *testpilotspb.ScopedValue {
-		return &testpilotspb.ScopedValue{DefinitionId: id, Value: v}
+	state := &testpilotspb.CorrelatedValue{DefinitionId: "state", Value: "ready"}
+	value := func(id, v string) *testpilotspb.CorrelatedValue {
+		return &testpilotspb.CorrelatedValue{DefinitionId: id, Value: v}
 	}
-	trigger := &testpilotspb.ScopedPredicate{Field: testpilotspb.SCOPED_PREDICATE_FIELD_ACTION, DefinitionId: "request", Constraint: &testpilotspb.ScopedPredicate_Present{Present: true}}
-	response := &testpilotspb.ScopedPredicate{Field: testpilotspb.SCOPED_PREDICATE_FIELD_OUTCOME, DefinitionId: "outcome", Constraint: &testpilotspb.ScopedPredicate_EqualsText{EqualsText: "response"}}
-	s := &testpilotspb.ScopedContract{Version: 1, ProjectionId: "projection", ProjectionFingerprint: "projection-v1", EvidenceObservationId: "evidence", ScopeFields: []string{"run"}, OperationField: "operation", Sources: []string{"source"}, InitialState: state, Limits: &testpilotspb.ScopedLimits{MaxEvents: 16, MaxBuffered: 8, MaxKeys: 8, MaxSupport: 256, MaxProjectionWork: 1000000000, MaxEventBytes: 512, MaxSemanticTransitions: 32, MaxObligations: 16, MaxObligationWork: 1000000000}, Clauses: []*testpilotspb.ScopedClause{{ClauseId: "response", Clock: testpilotspb.SCOPED_CLOCK_OPERATION_TRANSITIONS, Bound: bound, Endpoint: testpilotspb.SCOPED_ENDPOINT_RUNTIME_PREFIX, Trigger: trigger, Response: response}}}
+	trigger := &testpilotspb.CorrelatedPredicate{Field: testpilotspb.CORRELATED_PREDICATE_FIELD_ACTION, DefinitionId: "request", Constraint: &testpilotspb.CorrelatedPredicate_Present{Present: true}}
+	response := &testpilotspb.CorrelatedPredicate{Field: testpilotspb.CORRELATED_PREDICATE_FIELD_OUTCOME, DefinitionId: "outcome", Constraint: &testpilotspb.CorrelatedPredicate_EqualsText{EqualsText: "response"}}
+	s := &testpilotspb.CorrelatedContract{Version: 1, ProjectionId: "projection", ProjectionFingerprint: "projection-v1", EvidenceObservationId: "evidence", ScopeFields: []string{"run"}, OperationField: "operation", Sources: []string{"source"}, InitialState: state, Limits: &testpilotspb.CorrelatedLimits{MaxEvents: 16, MaxBuffered: 8, MaxKeys: 8, MaxSupport: 256, MaxProjectionWork: 1000000000, MaxEventBytes: 512, MaxSemanticTransitions: 32, MaxObligations: 16, MaxObligationWork: 1000000000}, Clauses: []*testpilotspb.CorrelatedRule{{ClauseId: "response", Clock: testpilotspb.CORRELATED_CLOCK_OPERATION_TRANSITIONS, Bound: bound, Ending: testpilotspb.TRACE_ENDING_PARTIAL, Trigger: trigger, Response: response}}}
 	for _, kind := range []string{"request", "both", "tick", "reply"} {
 		action := kind
 		if kind == "both" {
@@ -70,32 +70,32 @@ func scopedFixture(t *testing.T, bound int64) (*testpilotspb.Contract, *ir.Catal
 		if kind == "both" || kind == "reply" {
 			outcome = "response"
 		}
-		tr := &testpilotspb.ScopedTransition{PriorState: state, Action: value(action, kind), ResultingState: state, Outcome: value("outcome", outcome)}
+		tr := &testpilotspb.CorrelatedTransition{PriorState: state, Action: value(action, kind), State: state, Outcome: value("outcome", outcome)}
 		s.Transitions = append(s.Transitions, tr)
 		out := proto.CloneOf(tr)
 		out.PriorState = nil
-		s.ProjectionRules = append(s.ProjectionRules, &testpilotspb.ScopedProjectionRule{Kind: kind, Meaning: testpilotspb.SCOPED_EVIDENCE_MEANING_CONFIRMED, Outputs: []*testpilotspb.ScopedTransition{out}})
+		s.ProjectionRules = append(s.ProjectionRules, &testpilotspb.CorrelatedProjectionRule{Kind: kind, Meaning: testpilotspb.CORRELATED_EVIDENCE_MEANING_CONFIRMED, Outputs: []*testpilotspb.CorrelatedTransition{out}})
 	}
-	s.ProjectionRules = append(s.ProjectionRules, &testpilotspb.ScopedProjectionRule{Kind: "poll", Meaning: testpilotspb.SCOPED_EVIDENCE_MEANING_IRRELEVANT})
-	return &testpilotspb.Contract{ContractId: "scoped", Limits: proto.CloneOf(ceiling), Scoped: s}, catalog, prepared.View(), ceiling
+	s.ProjectionRules = append(s.ProjectionRules, &testpilotspb.CorrelatedProjectionRule{Kind: "poll", Meaning: testpilotspb.CORRELATED_EVIDENCE_MEANING_IRRELEVANT})
+	return &testpilotspb.Contract{ContractId: "correlated", Limits: proto.CloneOf(ceiling), Correlated: s}, catalog, prepared.View(), ceiling
 }
-func scopedEvidence(ordinal int64, kind, operation string, parents ...int64) *testpilotspb.ScopedEvidence {
-	id := func(n int64) *testpilotspb.ScopedIdentity {
-		return &testpilotspb.ScopedIdentity{Scope: []*testpilotspb.ScopedBinding{{FieldId: "run", Value: "one"}}, Source: "source", Ordinal: n}
+func correlatedEvidence(ordinal int64, kind, operation string, parents ...int64) *testpilotspb.CorrelatedEvidence {
+	id := func(n int64) *testpilotspb.CorrelatedIdentity {
+		return &testpilotspb.CorrelatedIdentity{Scope: []*testpilotspb.CorrelatedBinding{{FieldId: "run", Value: "one"}}, Source: "source", Ordinal: n}
 	}
-	e := &testpilotspb.ScopedEvidence{Identity: id(ordinal), Operation: operation, Kind: kind}
+	e := &testpilotspb.CorrelatedEvidence{Identity: id(ordinal), Operation: operation, Kind: kind}
 	for _, p := range parents {
 		e.Parents = append(e.Parents, id(p))
 	}
 	return e
 }
-func scopedEvent(t *testing.T, seq int64, e *testpilotspb.ScopedEvidence) *testpilotspb.RunEvent {
+func scopedEvent(t *testing.T, seq int64, e *testpilotspb.CorrelatedEvidence) *testpilotspb.RunEvent {
 	t.Helper()
 	a, err := anypb.New(e)
 	require.NoError(t, err)
 	return &testpilotspb.RunEvent{Sequence: seq, Kind: testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED, Observations: []*testpilotspb.ObservationResult{{ObservationId: "evidence", Value: &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: a}}}}}
 }
-func TestScopedDeadlinesAndCausalAdmission(t *testing.T) {
+func TestCorrelatedDeadlinesAndCausalAdmission(t *testing.T) {
 	for _, tc := range []struct {
 		name  string
 		bound int64
@@ -114,7 +114,7 @@ func TestScopedDeadlinesAndCausalAdmission(t *testing.T) {
 		{"poll-stutter", 1, []string{"request", "poll", "reply"}, nil, testpilotspb.RULE_VERDICT_STATUS_SATISFIED},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			c, catalog, view, ceiling := scopedFixture(t, tc.bound)
+			c, catalog, view, ceiling := correlatedFixture(t, tc.bound)
 			p, err := Prepare(c, catalog, view, ceiling)
 			require.NoError(t, err)
 			e, err := p.newEvaluator(context.Background(), view)
@@ -126,7 +126,7 @@ func TestScopedDeadlinesAndCausalAdmission(t *testing.T) {
 				if tc.ops != nil {
 					op = tc.ops[i]
 				}
-				event := scopedEvent(t, int64(i+2), scopedEvidence(int64(i), kind, op))
+				event := scopedEvent(t, int64(i+2), correlatedEvidence(int64(i), kind, op))
 				_, err = e.Observe(context.Background(), event)
 				require.NoError(t, err)
 			}
@@ -135,38 +135,40 @@ func TestScopedDeadlinesAndCausalAdmission(t *testing.T) {
 	}
 }
 
-func TestScopedPrepareRejectsUnsupportedCapability(t *testing.T) {
+func TestCorrelatedPrepareRejectsUnsupportedCapability(t *testing.T) {
 	for name, mutate := range map[string]func(*testpilotspb.Contract){
-		"version":        func(c *testpilotspb.Contract) { c.Scoped.Version = 2 },
-		"unknown-field":  func(c *testpilotspb.Contract) { c.Scoped.ProtoReflect().SetUnknown([]byte{0xf8, 0x07, 1}) },
-		"nested-unknown": func(c *testpilotspb.Contract) { c.Scoped.InitialState.ProtoReflect().SetUnknown([]byte{0xf8, 0x07, 1}) },
-		"clock":          func(c *testpilotspb.Contract) { c.Scoped.Clauses[0].Clock = 99 },
-		"endpoint":       func(c *testpilotspb.Contract) { c.Scoped.Clauses[0].Endpoint = 99 },
-		"negative-bound": func(c *testpilotspb.Contract) { c.Scoped.Clauses[0].Bound = -1 },
-		"unsupported-formula": func(c *testpilotspb.Contract) {
-			c.Scoped.Clauses[0].Trigger.Field = testpilotspb.SCOPED_PREDICATE_FIELD_FACT
+		"version":       func(c *testpilotspb.Contract) { c.Correlated.Version = 2 },
+		"unknown-field": func(c *testpilotspb.Contract) { c.Correlated.ProtoReflect().SetUnknown([]byte{0xf8, 0x07, 1}) },
+		"nested-unknown": func(c *testpilotspb.Contract) {
+			c.Correlated.InitialState.ProtoReflect().SetUnknown([]byte{0xf8, 0x07, 1})
 		},
-		"absent-constraint":   func(c *testpilotspb.Contract) { c.Scoped.Clauses[0].Response.Constraint = nil },
-		"zero-limit":          func(c *testpilotspb.Contract) { c.Scoped.Limits.MaxSupport = 0 },
-		"negative-limit":      func(c *testpilotspb.Contract) { c.Scoped.Limits.MaxProjectionWork = -1 },
-		"overflow-product":    func(c *testpilotspb.Contract) { c.Scoped.Limits.MaxSupport = 9223372036854775807 },
-		"program-event-limit": func(c *testpilotspb.Contract) { c.Scoped.Limits.MaxEvents = 10000 },
+		"clock":          func(c *testpilotspb.Contract) { c.Correlated.Clauses[0].Clock = 99 },
+		"endpoint":       func(c *testpilotspb.Contract) { c.Correlated.Clauses[0].Ending = 99 },
+		"negative-bound": func(c *testpilotspb.Contract) { c.Correlated.Clauses[0].Bound = -1 },
+		"unsupported-formula": func(c *testpilotspb.Contract) {
+			c.Correlated.Clauses[0].Trigger.Field = testpilotspb.CORRELATED_PREDICATE_FIELD_FACT
+		},
+		"absent-constraint":   func(c *testpilotspb.Contract) { c.Correlated.Clauses[0].Response.Constraint = nil },
+		"zero-limit":          func(c *testpilotspb.Contract) { c.Correlated.Limits.MaxSupport = 0 },
+		"negative-limit":      func(c *testpilotspb.Contract) { c.Correlated.Limits.MaxProjectionWork = -1 },
+		"overflow-product":    func(c *testpilotspb.Contract) { c.Correlated.Limits.MaxSupport = 9223372036854775807 },
+		"program-event-limit": func(c *testpilotspb.Contract) { c.Correlated.Limits.MaxEvents = 10000 },
 		"capture-count":       func(c *testpilotspb.Contract) { c.Limits.MaxCaptures = 1 },
 		"capture-bytes":       func(c *testpilotspb.Contract) { c.Limits.MaxCaptureBytes = 1 },
-		"observation-type":    func(c *testpilotspb.Contract) { c.Scoped.EvidenceObservationId = "missing" },
+		"observation-type":    func(c *testpilotspb.Contract) { c.Correlated.EvidenceObservationId = "missing" },
 		"prior-state-output": func(c *testpilotspb.Contract) {
-			c.Scoped.ProjectionRules[0].Outputs[0].PriorState = c.Scoped.InitialState
+			c.Correlated.ProjectionRules[0].Outputs[0].PriorState = c.Correlated.InitialState
 		},
-		"unauthorized-result": func(c *testpilotspb.Contract) { c.Scoped.ProjectionRules[0].Outputs[0].Outcome.Value = "unmodeled" },
+		"unauthorized-result": func(c *testpilotspb.Contract) { c.Correlated.ProjectionRules[0].Outputs[0].Outcome.Value = "unmodeled" },
 		"missing-submission": func(c *testpilotspb.Contract) {
-			c.Scoped.ProjectionRules[0].Submission = c.Scoped.Transitions[0].Action
+			c.Correlated.ProjectionRules[0].Submission = c.Correlated.Transitions[0].Action
 		},
 		"duplicate-clause": func(c *testpilotspb.Contract) {
-			c.Scoped.Clauses = append(c.Scoped.Clauses, proto.CloneOf(c.Scoped.Clauses[0]))
+			c.Correlated.Clauses = append(c.Correlated.Clauses, proto.CloneOf(c.Correlated.Clauses[0]))
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			c, catalog, view, ceiling := scopedFixture(t, 1)
+			c, catalog, view, ceiling := correlatedFixture(t, 1)
 			mutate(c)
 			_, err := Prepare(c, catalog, view, ceiling)
 			require.Error(t, err)
@@ -174,32 +176,32 @@ func TestScopedPrepareRejectsUnsupportedCapability(t *testing.T) {
 	}
 }
 
-func TestScopedWireAdmissionIsAtomic(t *testing.T) {
-	for name, mutate := range map[string]func(*testpilotspb.ScopedEvidence){
-		"scope":   func(e *testpilotspb.ScopedEvidence) { e.Identity.Scope[0].Value = "another" },
-		"source":  func(e *testpilotspb.ScopedEvidence) { e.Identity.Source = "unknown" },
-		"ordinal": func(e *testpilotspb.ScopedEvidence) { e.Identity.Ordinal = -1 },
-		"kind":    func(e *testpilotspb.ScopedEvidence) { e.Kind = "unknown" },
-		"field": func(e *testpilotspb.ScopedEvidence) {
-			e.Fields = []*testpilotspb.ScopedEvidenceField{{FieldId: "unauthorized"}}
+func TestCorrelatedWireAdmissionIsAtomic(t *testing.T) {
+	for name, mutate := range map[string]func(*testpilotspb.CorrelatedEvidence){
+		"scope":   func(e *testpilotspb.CorrelatedEvidence) { e.Identity.Scope[0].Value = "another" },
+		"source":  func(e *testpilotspb.CorrelatedEvidence) { e.Identity.Source = "unknown" },
+		"ordinal": func(e *testpilotspb.CorrelatedEvidence) { e.Identity.Ordinal = -1 },
+		"kind":    func(e *testpilotspb.CorrelatedEvidence) { e.Kind = "unknown" },
+		"field": func(e *testpilotspb.CorrelatedEvidence) {
+			e.Fields = []*testpilotspb.CorrelatedEvidenceField{{FieldId: "unauthorized"}}
 		},
-		"cycle": func(e *testpilotspb.ScopedEvidence) {
-			e.Parents = []*testpilotspb.ScopedIdentity{proto.CloneOf(e.Identity)}
+		"cycle": func(e *testpilotspb.CorrelatedEvidence) {
+			e.Parents = []*testpilotspb.CorrelatedIdentity{proto.CloneOf(e.Identity)}
 		},
-		"unknown-field": func(e *testpilotspb.ScopedEvidence) { e.ProtoReflect().SetUnknown([]byte{0xf8, 0x07, 1}) },
+		"unknown-field": func(e *testpilotspb.CorrelatedEvidence) { e.ProtoReflect().SetUnknown([]byte{0xf8, 0x07, 1}) },
 	} {
 		t.Run(name, func(t *testing.T) {
-			c, catalog, view, ceiling := scopedFixture(t, 1)
+			c, catalog, view, ceiling := correlatedFixture(t, 1)
 			p, err := Prepare(c, catalog, view, ceiling)
 			require.NoError(t, err)
 			e, err := p.newEvaluator(context.Background(), view)
 			require.NoError(t, err)
 			_, err = e.Observe(context.Background(), event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED))
 			require.NoError(t, err)
-			_, err = e.Observe(context.Background(), scopedEvent(t, 2, scopedEvidence(0, "request", "a")))
+			_, err = e.Observe(context.Background(), scopedEvent(t, 2, correlatedEvidence(0, "request", "a")))
 			require.NoError(t, err)
 			before := proto.CloneOf(e.result)
-			bad := scopedEvidence(1, "reply", "a")
+			bad := correlatedEvidence(1, "reply", "a")
 			mutate(bad)
 			_, err = e.Observe(context.Background(), scopedEvent(t, 3, bad))
 			require.Error(t, err)
@@ -210,8 +212,8 @@ func TestScopedWireAdmissionIsAtomic(t *testing.T) {
 	}
 }
 
-func TestScopedCausalChunksDuplicatesAndIsolation(t *testing.T) {
-	c, catalog, view, ceiling := scopedFixture(t, 1)
+func TestCorrelatedCausalChunksDuplicatesAndIsolation(t *testing.T) {
+	c, catalog, view, ceiling := correlatedFixture(t, 1)
 	p, err := Prepare(c, catalog, view, ceiling)
 	require.NoError(t, err)
 	for split := 0; split <= 4; split++ {
@@ -220,10 +222,10 @@ func TestScopedCausalChunksDuplicatesAndIsolation(t *testing.T) {
 		_, err = e.Observe(context.Background(), event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED))
 		require.NoError(t, err)
 		observations := []*testpilotspb.RunEvent{
-			scopedEvent(t, 2, scopedEvidence(1, "reply", "a", 0)),
-			scopedEvent(t, 3, scopedEvidence(1, "reply", "a", 0)),
-			scopedEvent(t, 4, scopedEvidence(0, "request", "a")),
-			scopedEvent(t, 5, scopedEvidence(0, "request", "a")),
+			scopedEvent(t, 2, correlatedEvidence(1, "reply", "a", 0)),
+			scopedEvent(t, 3, correlatedEvidence(1, "reply", "a", 0)),
+			scopedEvent(t, 4, correlatedEvidence(0, "request", "a")),
+			scopedEvent(t, 5, correlatedEvidence(0, "request", "a")),
 		}
 		for _, chunk := range [][]*testpilotspb.RunEvent{observations[:split], observations[split:]} {
 			for _, observation := range chunk {
@@ -237,8 +239,8 @@ func TestScopedCausalChunksDuplicatesAndIsolation(t *testing.T) {
 	}
 }
 
-func TestScopedCheckedLeanFixtures(t *testing.T) {
-	encoded, err := os.ReadFile("../../testdata/case-runtime-conformance/scoped.json")
+func TestCorrelatedCheckedLeanFixtures(t *testing.T) {
+	encoded, err := os.ReadFile("../../testdata/case-runtime-conformance/correlated.json")
 	require.NoError(t, err)
 	var fixtures []struct {
 		Name       string            `json:"name"`
@@ -254,21 +256,21 @@ func TestScopedCheckedLeanFixtures(t *testing.T) {
 			var artifact testpilotspb.Case
 			require.NoError(t, protojson.Unmarshal(fixture.Case, &artifact))
 			var provenance struct {
-				ScopedClauses []struct {
+				CorrelatedRules []struct {
 					ClauseID              string `json:"clauseId"`
 					PropertyID            string `json:"propertyId"`
 					ProjectionID          string `json:"projectionId"`
 					ProjectionFingerprint string `json:"projectionFingerprint"`
-				} `json:"scopedClauses"`
+				} `json:"correlatedRules"`
 			}
 			require.NoError(t, json.Unmarshal(artifact.GetProvenance().GetProducerData(), &provenance))
-			require.Len(t, provenance.ScopedClauses, 1)
-			require.Equal(t, artifact.Contract.Scoped.Clauses[0].ClauseId, provenance.ScopedClauses[0].ClauseID)
-			require.Equal(t, "test.property", provenance.ScopedClauses[0].PropertyID)
-			require.Equal(t, artifact.Contract.Scoped.ProjectionId, provenance.ScopedClauses[0].ProjectionID)
-			require.Equal(t, artifact.Contract.Scoped.ProjectionFingerprint, provenance.ScopedClauses[0].ProjectionFingerprint)
-			_, catalog, _, ceiling := scopedFixture(t, 1)
-			program, err := execution.Prepare(&artifact, catalog, execution.Policy{Identity: "host", CatalogIdentity: catalog.Identity(), Limits: proto.CloneOf(artifact.Program.Limits)})
+			require.Len(t, provenance.CorrelatedRules, 1)
+			require.Equal(t, artifact.Contract.Correlated.Clauses[0].ClauseId, provenance.CorrelatedRules[0].ClauseID)
+			require.Equal(t, "test.property", provenance.CorrelatedRules[0].PropertyID)
+			require.Equal(t, artifact.Contract.Correlated.ProjectionId, provenance.CorrelatedRules[0].ProjectionID)
+			require.Equal(t, artifact.Contract.Correlated.ProjectionFingerprint, provenance.CorrelatedRules[0].ProjectionFingerprint)
+			_, catalog, _, ceiling := correlatedFixture(t, 1)
+			program, err := execution.Prepare(&artifact, catalog, execution.Profile{Identity: "host", CatalogIdentity: catalog.Identity(), Limits: proto.CloneOf(artifact.Program.Limits)})
 			require.NoError(t, err)
 			view := program.View()
 			prepared, err := Prepare(artifact.Contract, catalog, view, ceiling)
@@ -281,7 +283,7 @@ func TestScopedCheckedLeanFixtures(t *testing.T) {
 				require.NoError(t, err)
 				for _, chunk := range [][]json.RawMessage{fixture.Events[:split], fixture.Events[split:]} {
 					for _, encoded := range chunk {
-						var evidence testpilotspb.ScopedEvidence
+						var evidence testpilotspb.CorrelatedEvidence
 						require.NoError(t, protojson.Unmarshal(encoded, &evidence))
 						observation := scopedEvent(t, int64(len(run.Events)+1), &evidence)
 						observation.ElapsedMilliseconds = 9000
@@ -320,28 +322,28 @@ func TestScopedCheckedLeanFixtures(t *testing.T) {
 	}
 }
 
-func TestScopedResourceBoundaries(t *testing.T) {
+func TestCorrelatedResourceBoundaries(t *testing.T) {
 	for _, tc := range []struct {
 		name     string
-		limit    func(*testpilotspb.ScopedLimits, int64)
+		limit    func(*testpilotspb.CorrelatedLimits, int64)
 		boundary int64
 	}{
-		{"event-size", func(l *testpilotspb.ScopedLimits, n int64) { l.MaxEventBytes = n }, 19},
-		{"obligation-work", func(l *testpilotspb.ScopedLimits, n int64) { l.MaxObligationWork = n }, 17},
-		{"projection-work", func(l *testpilotspb.ScopedLimits, n int64) { l.MaxProjectionWork = n }, 1600},
-		{"retained-support", func(l *testpilotspb.ScopedLimits, n int64) { l.MaxSupport = n }, 5},
+		{"event-size", func(l *testpilotspb.CorrelatedLimits, n int64) { l.MaxEventBytes = n }, 19},
+		{"obligation-work", func(l *testpilotspb.CorrelatedLimits, n int64) { l.MaxObligationWork = n }, 17},
+		{"projection-work", func(l *testpilotspb.CorrelatedLimits, n int64) { l.MaxProjectionWork = n }, 1600},
+		{"retained-support", func(l *testpilotspb.CorrelatedLimits, n int64) { l.MaxSupport = n }, 5},
 	} {
 		for _, delta := range []int64{-1, 0} {
 			t.Run(fmt.Sprintf("%s/%d", tc.name, delta), func(t *testing.T) {
-				c, catalog, view, ceiling := scopedFixture(t, 0)
-				tc.limit(c.Scoped.Limits, tc.boundary+delta)
+				c, catalog, view, ceiling := correlatedFixture(t, 0)
+				tc.limit(c.Correlated.Limits, tc.boundary+delta)
 				p, err := Prepare(c, catalog, view, ceiling)
 				require.NoError(t, err)
 				e, err := p.newEvaluator(context.Background(), view)
 				require.NoError(t, err)
 				_, err = e.Observe(context.Background(), event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED))
 				require.NoError(t, err)
-				_, err = e.Observe(context.Background(), scopedEvent(t, 2, scopedEvidence(0, "both", "a")))
+				_, err = e.Observe(context.Background(), scopedEvent(t, 2, correlatedEvidence(0, "both", "a")))
 				if delta < 0 {
 					require.Error(t, err)
 					require.Zero(t, e.scoped.transitions)
@@ -355,7 +357,7 @@ func TestScopedResourceBoundaries(t *testing.T) {
 	}
 }
 
-func TestScopedCombinedStaticLimits(t *testing.T) {
+func TestCorrelatedCombinedStaticLimits(t *testing.T) {
 	for name, constrain := range map[string]func(*testpilotspb.ContractLimits){
 		"rules":         func(l *testpilotspb.ContractLimits) { l.MaxRules = 1 },
 		"states":        func(l *testpilotspb.ContractLimits) { l.MaxStates = 3 },
@@ -364,11 +366,11 @@ func TestScopedCombinedStaticLimits(t *testing.T) {
 		"capture-bytes": func(l *testpilotspb.ContractLimits) { l.MaxCaptureBytes = 10496 },
 	} {
 		t.Run(name, func(t *testing.T) {
-			c, catalog, view, ceiling := scopedFixture(t, 1)
+			c, catalog, view, ceiling := correlatedFixture(t, 1)
 			ordinary, _, _, _ := fixture(t)
 			addCapture(ordinary.Rules[0])
 			c.Rules = ordinary.Rules
-			c.Scoped.Limits.MaxSemanticTransitions = 4
+			c.Correlated.Limits.MaxSemanticTransitions = 4
 			constrain(c.Limits)
 			_, err := Prepare(c, catalog, view, ceiling)
 			require.Error(t, err)
@@ -376,20 +378,20 @@ func TestScopedCombinedStaticLimits(t *testing.T) {
 	}
 }
 
-func TestScopedRunCeilingsAreAtomic(t *testing.T) {
+func TestCorrelatedRunCeilingsAreAtomic(t *testing.T) {
 	for _, tc := range []struct {
 		name          string
-		configure     func(*testpilotspb.ScopedLimits)
-		first, second *testpilotspb.ScopedEvidence
+		configure     func(*testpilotspb.CorrelatedLimits)
+		first, second *testpilotspb.CorrelatedEvidence
 	}{
-		{"buffer", func(l *testpilotspb.ScopedLimits) { l.MaxBuffered = 1 }, scopedEvidence(2, "request", "a"), scopedEvidence(3, "request", "a")},
-		{"keys", func(l *testpilotspb.ScopedLimits) { l.MaxKeys = 1 }, scopedEvidence(0, "request", "a"), scopedEvidence(1, "request", "b")},
-		{"obligations", func(l *testpilotspb.ScopedLimits) { l.MaxObligations = 1 }, scopedEvidence(0, "request", "a"), scopedEvidence(1, "request", "a")},
-		{"transitions", func(l *testpilotspb.ScopedLimits) { l.MaxSemanticTransitions = 1 }, scopedEvidence(0, "request", "a"), scopedEvidence(1, "tick", "a")},
+		{"buffer", func(l *testpilotspb.CorrelatedLimits) { l.MaxBuffered = 1 }, correlatedEvidence(2, "request", "a"), correlatedEvidence(3, "request", "a")},
+		{"keys", func(l *testpilotspb.CorrelatedLimits) { l.MaxKeys = 1 }, correlatedEvidence(0, "request", "a"), correlatedEvidence(1, "request", "b")},
+		{"obligations", func(l *testpilotspb.CorrelatedLimits) { l.MaxObligations = 1 }, correlatedEvidence(0, "request", "a"), correlatedEvidence(1, "request", "a")},
+		{"transitions", func(l *testpilotspb.CorrelatedLimits) { l.MaxSemanticTransitions = 1 }, correlatedEvidence(0, "request", "a"), correlatedEvidence(1, "tick", "a")},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			c, catalog, view, ceiling := scopedFixture(t, 5)
-			tc.configure(c.Scoped.Limits)
+			c, catalog, view, ceiling := correlatedFixture(t, 5)
+			tc.configure(c.Correlated.Limits)
 			p, err := Prepare(c, catalog, view, ceiling)
 			require.NoError(t, err)
 			e, err := p.newEvaluator(context.Background(), view)
@@ -407,8 +409,8 @@ func TestScopedRunCeilingsAreAtomic(t *testing.T) {
 	}
 }
 
-func TestScopedMigrationRejectsStaleReader(t *testing.T) {
-	c, _, _, _ := scopedFixture(t, 1)
+func TestCorrelatedMigrationRejectsStaleReader(t *testing.T) {
+	c, _, _, _ := correlatedFixture(t, 1)
 	wire, err := protojson.Marshal(c)
 	require.NoError(t, err)
 	file := protodesc.ToFileDescriptorProto(testpilotspb.File_temporal_server_api_testpilot_v1_contract_proto)
@@ -423,14 +425,14 @@ func TestScopedMigrationRejectsStaleReader(t *testing.T) {
 	require.ErrorContains(t, err, "unknown field")
 }
 
-func TestScopedViolationSurvivesEvaluatorAndCleanupFailure(t *testing.T) {
-	c, catalog, view, ceiling := scopedFixture(t, 0)
+func TestCorrelatedViolationSurvivesEvaluatorAndCleanupFailure(t *testing.T) {
+	c, catalog, view, ceiling := correlatedFixture(t, 0)
 	p, err := Prepare(c, catalog, view, ceiling)
 	require.NoError(t, err)
 	e, err := p.newEvaluator(context.Background(), view)
 	require.NoError(t, err)
 	run := &testpilotspb.Run{RunId: "one", ProgramId: "scoped.program", Status: testpilotspb.RUN_STATUS_INCOMPLETE,
-		Events:  []*testpilotspb.RunEvent{event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED), scopedEvent(t, 2, scopedEvidence(0, "request", "a"))},
+		Events:  []*testpilotspb.RunEvent{event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED), scopedEvent(t, 2, correlatedEvidence(0, "request", "a"))},
 		Cleanup: &testpilotspb.CleanupOutcome{Status: testpilotspb.CLEANUP_STATUS_FAILED}}
 	for _, observation := range run.Events {
 		_, err = e.Observe(context.Background(), observation)
@@ -452,11 +454,11 @@ func TestScopedViolationSurvivesEvaluatorAndCleanupFailure(t *testing.T) {
 	require.Equal(t, []int64{2}, live.SupportingEventSequences)
 }
 
-func TestScopedPreparedConcurrentIsolation(t *testing.T) {
-	c, catalog, view, ceiling := scopedFixture(t, 1)
+func TestCorrelatedPreparedConcurrentIsolation(t *testing.T) {
+	c, catalog, view, ceiling := correlatedFixture(t, 1)
 	p, err := Prepare(c, catalog, view, ceiling)
 	require.NoError(t, err)
-	c.Scoped.Clauses[0].Bound = 0
+	c.Correlated.Clauses[0].Bound = 0
 	for _, kind := range []string{"both", "request"} {
 		t.Run(kind, func(t *testing.T) {
 			t.Parallel()
@@ -464,7 +466,7 @@ func TestScopedPreparedConcurrentIsolation(t *testing.T) {
 			require.NoError(t, err)
 			_, err = e.Observe(context.Background(), event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED))
 			require.NoError(t, err)
-			_, err = e.Observe(context.Background(), scopedEvent(t, 2, scopedEvidence(0, kind, "a")))
+			_, err = e.Observe(context.Background(), scopedEvent(t, 2, correlatedEvidence(0, kind, "a")))
 			require.NoError(t, err)
 			want := testpilotspb.RULE_VERDICT_STATUS_INCONCLUSIVE
 			if kind == "both" {
@@ -475,27 +477,27 @@ func TestScopedPreparedConcurrentIsolation(t *testing.T) {
 	}
 }
 
-func TestScopedConfirmedSubmissionAndFieldPolicies(t *testing.T) {
+func TestCorrelatedConfirmedSubmissionAndFieldPolicies(t *testing.T) {
 	for _, valid := range []bool{false, true} {
 		t.Run(fmt.Sprint(valid), func(t *testing.T) {
-			c, catalog, view, ceiling := scopedFixture(t, 1)
-			request := c.Scoped.ProjectionRules[0]
-			request.Submission = c.Scoped.Transitions[0].Action
-			request.Fields = []*testpilotspb.ScopedFieldPolicy{{FieldId: "payload", Type: &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_TEXT}, Disposition: testpilotspb.SCOPED_FIELD_DISPOSITION_RETAIN}}
-			c.Scoped.ProjectionRules = append(c.Scoped.ProjectionRules, &testpilotspb.ScopedProjectionRule{Kind: "submit", Meaning: testpilotspb.SCOPED_EVIDENCE_MEANING_SUBMISSION, Submission: request.Submission})
+			c, catalog, view, ceiling := correlatedFixture(t, 1)
+			request := c.Correlated.ProjectionRules[0]
+			request.Submission = c.Correlated.Transitions[0].Action
+			request.Fields = []*testpilotspb.CorrelatedFieldPolicy{{FieldId: "payload", Type: &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_TEXT}, Disposition: testpilotspb.CORRELATED_FIELD_DISPOSITION_RETAIN}}
+			c.Correlated.ProjectionRules = append(c.Correlated.ProjectionRules, &testpilotspb.CorrelatedProjectionRule{Kind: "submit", Meaning: testpilotspb.CORRELATED_EVIDENCE_MEANING_SUBMISSION, Submission: request.Submission})
 			p, err := Prepare(c, catalog, view, ceiling)
 			require.NoError(t, err)
 			e, err := p.newEvaluator(context.Background(), view)
 			require.NoError(t, err)
 			_, err = e.Observe(context.Background(), event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED))
 			require.NoError(t, err)
-			_, err = e.Observe(context.Background(), scopedEvent(t, 2, scopedEvidence(0, "submit", "a")))
+			_, err = e.Observe(context.Background(), scopedEvent(t, 2, correlatedEvidence(0, "submit", "a")))
 			require.NoError(t, err)
 			require.Zero(t, e.scoped.transitions)
-			confirmed := scopedEvidence(1, "request", "a")
-			confirmed.Fields = []*testpilotspb.ScopedEvidenceField{{FieldId: "payload", Value: &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: "value"}}}}
+			confirmed := correlatedEvidence(1, "request", "a")
+			confirmed.Fields = []*testpilotspb.CorrelatedEvidenceField{{FieldId: "payload", Value: &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: "value"}}}}
 			if valid {
-				confirmed.Parents = []*testpilotspb.ScopedIdentity{scopedEvidence(0, "submit", "a").Identity}
+				confirmed.Parents = []*testpilotspb.CorrelatedIdentity{correlatedEvidence(0, "submit", "a").Identity}
 			}
 			_, err = e.Observe(context.Background(), scopedEvent(t, 3, confirmed))
 			if valid {
@@ -510,21 +512,21 @@ func TestScopedConfirmedSubmissionAndFieldPolicies(t *testing.T) {
 	}
 }
 
-func TestScopedPhysicalObservationSizeRemainsBounded(t *testing.T) {
-	c, catalog, view, ceiling := scopedFixture(t, 1)
-	c.Scoped.Limits.MaxEventBytes = view.Limits().MaxResponseBytes
+func TestCorrelatedPhysicalObservationSizeRemainsBounded(t *testing.T) {
+	c, catalog, view, ceiling := correlatedFixture(t, 1)
+	c.Correlated.Limits.MaxEventBytes = view.Limits().MaxResponseBytes
 	c.Limits.MaxCaptureBytes = 131072
 	ceiling.MaxCaptureBytes = 131072
-	c.Scoped.ProjectionRules[1].Fields = []*testpilotspb.ScopedFieldPolicy{{FieldId: "payload", Type: &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_TEXT}, Disposition: testpilotspb.SCOPED_FIELD_DISPOSITION_RETAIN}}
+	c.Correlated.ProjectionRules[1].Fields = []*testpilotspb.CorrelatedFieldPolicy{{FieldId: "payload", Type: &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_TEXT}, Disposition: testpilotspb.CORRELATED_FIELD_DISPOSITION_RETAIN}}
 	p, err := Prepare(c, catalog, view, ceiling)
 	require.NoError(t, err)
 	e, err := p.newEvaluator(context.Background(), view)
 	require.NoError(t, err)
 	_, err = e.Observe(context.Background(), event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED))
 	require.NoError(t, err)
-	evidence := scopedEvidence(0, "both", "a")
-	evidence.Fields = []*testpilotspb.ScopedEvidenceField{{FieldId: "payload", Value: &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: strings.Repeat("💡", 2000)}}}}
-	require.Less(t, evidenceSize(&admittedScopedEvidence{ScopedEvidence: evidence, supportingEventSequences: []int64{2}}), c.Scoped.Limits.MaxEventBytes)
+	evidence := correlatedEvidence(0, "both", "a")
+	evidence.Fields = []*testpilotspb.CorrelatedEvidenceField{{FieldId: "payload", Value: &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: strings.Repeat("💡", 2000)}}}}
+	require.Less(t, evidenceSize(&admittedCorrelatedEvidence{CorrelatedEvidence: evidence, supportingEventSequences: []int64{2}}), c.Correlated.Limits.MaxEventBytes)
 	_, err = e.Observe(context.Background(), scopedEvent(t, 2, evidence))
 	require.Error(t, err)
 	require.Empty(t, e.scoped.accepted)

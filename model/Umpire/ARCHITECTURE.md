@@ -117,22 +117,22 @@ Exceptions are trigger-time applicability conditions and do not select a winning
 pending temporal obligation. Case analysis reports coverage, overlap, logical conflict, modeled
 incompatibility, exhaustive completion, and limit exhaustion as separate bounded results.
 
-`correlated_response%` is a readable spelling of `PropertyScopedClause`, admitted through the same
-`property%`/`Property.check` boundary. Scoped clauses declare execution fields, an operation key,
+`correlated_response%` is a readable spelling of `PropertyCorrelatedClause`, admitted through the same
+`property%`/`Property.check` boundary. Correlated clauses declare execution fields, an operation key,
 natural bound, and a partial or final endpoint.
 Projection admits causally supported, Model-authorized steps before obligation execution;
 submissions and duplicate observations contribute no transition. Independent trigger windows count
 only their operation's transitions, including self-loops. Runtime incompleteness leaves unresolved
 windows inconclusive; a known violation remains proved.
 
-`Shared.SemanticData`, `Shared.ScopedProjection`, and `Shared.ScopedObligation` own inert table data,
+`Shared.SemanticData`, `Shared.CorrelatedProjection`, and `Shared.CorrelatedObligation` own inert table data,
 causal admission, and bounded countdown execution. Umpire's checked facades retain their semantic
-proofs. `Umpire.Case.Scoped.lower` binds the generated wire decode to the checked projection and
-Property, carrying exact clause/source provenance. `Testpilot.Scoped` interprets the closed table
+proofs. `Umpire.Case.Correlated.lower` binds the generated wire decode to the checked projection and
+Property, carrying exact clause/source provenance. `Testpilot.Correlated` interprets the closed table
 capability without importing Umpire callbacks. Go admission rejects unsupported/stale capabilities
 and incompatible resource ceilings before Driver execution; mutable evidence and windows belong to
-one Run. The scoped fixture corpus exercises both offline parity and real public-facade recording.
-Nexus operation cancellation remains deferred to fn-79; generic scoped support does not admit a
+one Run. The correlated fixture corpus exercises both offline parity and real public-facade recording.
+Nexus operation cancellation remains deferred to fn-79; generic correlated support does not admit a
 cancellation Case or supply an operation cancellation capability.
 
 Query validity reports satisfiability, trigger exercise, answer, and search completeness separately.
@@ -206,7 +206,7 @@ language.
 ### Contract semantics
 
 Each rule has one initial state, finite transitions, and terminal satisfied or violated states.
-Bounded-liveness rules have explicit horizons. The Evaluator checks expiry before transitions for
+Bounded-liveness rules have explicit deadlines. The Evaluator checks expiry before transitions for
 every Run Event kind, so a matching event at the deadline cannot revive an expired rule.
 
 Captures copy only declared values, are bounded by count, bytes, and work, and are isolated per rule
@@ -256,8 +256,8 @@ an unbounded schema space. Parameter values belong to canonical Action instances
 Fingerprints through the domain's canonical meaning, which records the explored dimension, the
 coverage claim, every sample, and the declared runtime scope.
 
-`Testpilot.ProtoJSON.canonical` delegates canonical Case encoding to `Protobuf.Json`;
-`Umpire.Case.ProtoJSON.canonical` is only a temporary forwarding compatibility name. Testpilot's
+`Testpilot.ProtoJSON.canonical` delegates canonical Case encoding to `Protobuf.Json` and is the
+one Case encoder; Umpire keeps no forwarding name of its own. Testpilot's
 `Prepare` owns static admission, including Program and Contract closure, types, paths, instruction
 contexts, limits, identity, scope, and environment policy, before Driver I/O. Temporal-specific
 Producer declarations live outside Umpire.

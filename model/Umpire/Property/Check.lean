@@ -185,15 +185,15 @@ def CheckedPropertyClause.id : CheckedPropertyClause → DefinitionId
   | .guardedEventuallyWithin clause
   | .guardedNeverWithin clause => clause.id
 
-/-- The supported scoped fragment retains both typed predicates and their existing temporal
+/-- The supported correlated fragment retains both typed predicates and their existing temporal
 patterns. `correlation` is the optional admitted precondition over this step's request/prior-state
 field evidence and the operation's retained captures; it gates which labeled transitions belong to
 the operation and never contributes a trigger or a response. Its guard context is deliberate: a
 requirement about a step's outcome is a product violation, not evidence that the step belongs to a
 different operation. Construction is confined to Property admission. -/
-structure CheckedPropertyScopedClause where
+structure CheckedPropertyCorrelatedClause where
   private mk ::
-  declaration : PropertyScopedClause
+  declaration : PropertyCorrelatedClause
   trigger : CheckedPropertyPredicate .before
   response : CheckedPropertyPredicate .after
   triggerPattern : PropertyPattern
@@ -207,7 +207,7 @@ structure CheckedProperty where
   version : Nat
   requires : List DefinitionId
   clauses : List CheckedPropertyClause
-  scopedClauses : List CheckedPropertyScopedClause := []
+  correlatedRules : List CheckedPropertyCorrelatedClause := []
   access : PropertyCapabilityView
   documentation : String
   canonicalMetadata : String
@@ -244,12 +244,12 @@ def CheckedProperty.guardedClauseIds (property : CheckedProperty) : List Definit
 
 /-- Whether an Observation consumer must reject a checked clause it cannot preserve. -/
 def CheckedProperty.hasUnsupportedObservationClauses (property : CheckedProperty) : Bool :=
-  property.hasBranches || property.hasGuardedTemporalClauses || !property.scopedClauses.isEmpty
+  property.hasBranches || property.hasGuardedTemporalClauses || !property.correlatedRules.isEmpty
 
 /-- Stable IDs retained when Observation rejects unsupported checked Property semantics. -/
 def CheckedProperty.unsupportedObservationClauseIds
     (property : CheckedProperty) : List DefinitionId :=
-  property.guardedClauseIds ++ property.scopedClauses.map (·.declaration.id)
+  property.guardedClauseIds ++ property.correlatedRules.map (·.declaration.id)
 
 /-- Property identity used for predicate validation diagnostics. -/
 def CheckedPropertyPredicate.definitionId
@@ -458,7 +458,7 @@ private def fieldPredicateField : PropertyFieldRoot → PropertyPredicateField
 private def validateFieldComparison (context : PropertyCheckContext) (owner : Property)
     (access : PropertyCapabilityView) (contextKind : PropertyPredicateContext)
     (comparison : PropertyFieldComparison) (facts : List PropertyFieldPath)
-    (captures : List PropertyScopedCapture) : Except PropertyError Unit := do
+    (captures : List PropertyCorrelatedCapture) : Except PropertyError Unit := do
   let _ ← PropertyFieldComparison.check comparison.operator comparison.left comparison.right comparison.source
     |>.mapError fun error => nestedPropertyError .typeMismatch owner.id error.source error.reason
   for operand in [comparison.left, comparison.right] do
@@ -510,7 +510,7 @@ private def validatePropertyPredicate
     (access : PropertyCapabilityView)
     (contextKind : PropertyPredicateContext)
     (predicate : PropertyPredicate) (facts : List PropertyFieldPath := [])
-    (captures : List PropertyScopedCapture := []) :
+    (captures : List PropertyCorrelatedCapture := []) :
     Except PropertyError Unit :=
   match predicate with
   | .atom atom => do
@@ -547,7 +547,7 @@ private def resolvePropertyPredicate
     (source : SourceLocation)
     (contextKind : PropertyPredicateContext)
     (predicate : PropertyPredicate)
-    (captures : List PropertyScopedCapture := []) :
+    (captures : List PropertyCorrelatedCapture := []) :
     Except PropertyError (CheckedPropertyPredicate contextKind) := do
   withNestedSource source <|
     validatePropertyPredicate context { owner with source } access contextKind predicate [] captures
@@ -1054,27 +1054,27 @@ private def clauseJson : CheckedPropertyClause → String
   | .guardedNeverWithin clause =>
       guardedTemporalJson "guarded-never-within" "forbidden" clause
 
-private def scopedCaptureJson (capture : PropertyScopedCapture) : String :=
+private def correlatedCaptureJson (capture : PropertyCorrelatedCapture) : String :=
   "{\"name\":" ++ quote capture.name.value ++
     ",\"key\":" ++ quote capture.key.value ++
     ",\"path\":" ++ quote capture.path.canonical ++
     ",\"lifetime\":" ++ toString capture.lifetime ++ "}"
 
-/-- Captures and their correlation are emitted only when declared, so scoped Properties written
+/-- Captures and their correlation are emitted only when declared, so correlated Properties written
 before keyed captures existed keep their exact canonical metadata and behavior fingerprint. -/
-private def scopedClauseJson (clause : CheckedPropertyScopedClause) : String :=
+private def correlatedRuleJson (clause : CheckedPropertyCorrelatedClause) : String :=
   let declaration := clause.declaration
   "{\"id\":" ++ quote declaration.id.value ++
-    ",\"kind\":\"scoped-eventually-within/v1\",\"trigger\":" ++ patternJson clause.triggerPattern ++
+    ",\"kind\":\"correlated-eventually-within/v1\",\"trigger\":" ++ patternJson clause.triggerPattern ++
     ",\"response\":" ++ patternJson clause.responsePattern ++
     ",\"scope\":" ++ array (declaration.scope.map (quote ∘ DefinitionId.value)) ++
     ",\"key\":" ++ quote declaration.key.value ++
     ",\"clock\":\"operation-transitions\",\"bound\":" ++ toString declaration.bound ++
-    ",\"endpoint\":" ++ quote (match declaration.endpoint with
+    ",\"ending\":" ++ quote (match declaration.ending with
       | .final => "final"
       | .«partial» => "partial") ++
     (if declaration.captures.isEmpty then "" else
-      ",\"captures\":" ++ array (declaration.captures.map scopedCaptureJson)) ++
+      ",\"captures\":" ++ array (declaration.captures.map correlatedCaptureJson)) ++
     (clause.correlation.map fun correlation =>
       ",\"correlation\":" ++ predicateJson correlation.expression).getD "" ++ "}"
 
@@ -1094,7 +1094,7 @@ private def propertySemanticJson
     (requires : List DefinitionId)
     (clauses : List CheckedPropertyClause)
     (access : PropertyCapabilityView)
-    (scopedClauses : List CheckedPropertyScopedClause := []) : String :=
+    (correlatedRules : List CheckedPropertyCorrelatedClause := []) : String :=
   "{\"id\":" ++ quote id.value ++
     ",\"version\":" ++ toString version ++
     ",\"requires\":" ++
@@ -1105,12 +1105,12 @@ private def propertySemanticJson
     ",\"logicalTimeSource\":" ++
       (access.logicalTimeSource.map (quote ∘ DefinitionId.value) |>.getD "null") ++
     ",\"clauses\":" ++ array (clauses.mergeSort clauseLe |>.map clauseJson) ++
-    (if scopedClauses.isEmpty then "" else
-      ",\"scopedClauses\":" ++ array (scopedClauses.map scopedClauseJson)) ++ "}"
+    (if correlatedRules.isEmpty then "" else
+      ",\"correlatedRules\":" ++ array (correlatedRules.map correlatedRuleJson)) ++ "}"
 
 def canonicalPropertyJson (property : CheckedProperty) : String :=
   "{\"semantic\":" ++ propertySemanticJson property.id property.version property.requires
-      property.clauses property.access property.scopedClauses ++
+      property.clauses property.access property.correlatedRules ++
     ",\"source\":" ++ sourceJson property.source ++
     ",\"documentation\":" ++ quote property.documentation ++ "}"
 
@@ -1124,10 +1124,10 @@ def canonicalPropertyErrorJson (error : PropertyError) : String :=
       array (DefinitionId.canonicalSet error.relatedDefinitionIds |>.map
         (quote ∘ DefinitionId.value)) ++ "}"
 
-private def scopedPattern (clause : PropertyScopedClause)
+private def correlatedPattern (clause : PropertyCorrelatedClause)
     (predicate : PropertyPredicate) (trigger : Bool) : Except PropertyError PropertyPattern := do
   let failure := nestedPropertyError .invalidClause clause.id clause.source
-    "unsupported scoped predicate; use a single aligned step atom"
+    "unsupported correlated predicate; use a single aligned step atom"
   let .atom atom := predicate | throw failure
   let field ← match trigger, atom.field with
     | true, .selectedAction => pure PropertyTraceField.selectedAction
@@ -1147,9 +1147,9 @@ selected operation binding, and its lifetime must retain at least one occurrence
 carry their own presence facts: a retained occurrence's presence was decided at the step that
 admitted it, not in the Boolean branch that later reads it, so an optional or oneof-selected field
 can be captured. -/
-private def checkScopedCapture (context : PropertyCheckContext) (owner : Property)
-    (access : PropertyCapabilityView) (clause : PropertyScopedClause)
-    (capture : PropertyScopedCapture) : Except PropertyError Unit := do
+private def checkCorrelatedCapture (context : PropertyCheckContext) (owner : Property)
+    (access : PropertyCapabilityView) (clause : PropertyCorrelatedClause)
+    (capture : PropertyCorrelatedCapture) : Except PropertyError Unit := do
   requireDefinitionId clause.id clause.source capture.name
   if capture.key != clause.key then
     throw (nestedPropertyError .invalidClause clause.id clause.source
@@ -1170,23 +1170,23 @@ private def checkScopedCapture (context : PropertyCheckContext) (owner : Propert
   capture.path.validate capture.path.retainedFacts clause.source |>.mapError fun error =>
     nestedPropertyError .invalidClause clause.id error.source error.reason [capture.path.reference]
 
-private def checkScopedClause (context : PropertyCheckContext)
+private def checkCorrelatedRule (context : PropertyCheckContext)
     (owner : Property) (access : PropertyCapabilityView)
-    (clause : PropertyScopedClause) : Except PropertyError CheckedPropertyScopedClause := do
+    (clause : PropertyCorrelatedClause) : Except PropertyError CheckedPropertyCorrelatedClause := do
   requireDefinitionId clause.id clause.source clause.id
   requireDefinitionId clause.id clause.source clause.key
   for field in clause.scope do requireDefinitionId clause.id clause.source field
   if clause.scope.isEmpty || clause.scope.eraseDups != clause.scope ||
       clause.scope.contains clause.key || clause.bound > 18446744073709551615 then
     throw (nestedPropertyError .invalidClause clause.id clause.source
-      "unsupported scoped key, scope, or numeric bound")
-  requireUniqueIds clause.id clause.source (clause.captures.map PropertyScopedCapture.name)
-  for capture in clause.captures do checkScopedCapture context owner access clause capture
+      "unsupported correlated key, scope, or numeric bound")
+  requireUniqueIds clause.id clause.source (clause.captures.map PropertyCorrelatedCapture.name)
+  for capture in clause.captures do checkCorrelatedCapture context owner access clause capture
   let owner := { owner with id := clause.id, source := clause.source }
   let trigger ← resolvePropertyPredicate context owner access clause.source .before clause.trigger
   let response ← resolvePropertyPredicate context owner access clause.source .after clause.response
-  let triggerPattern ← scopedPattern clause clause.trigger true
-  let responsePattern ← scopedPattern clause clause.response false
+  let triggerPattern ← correlatedPattern clause clause.trigger true
+  let responsePattern ← correlatedPattern clause clause.response false
   let correlation ← clause.correlation.mapM fun predicate =>
     resolvePropertyPredicate context owner access clause.source .before predicate clause.captures
   pure ⟨{ clause with scope := DefinitionId.canonicalSet clause.scope },
@@ -1204,8 +1204,8 @@ def Property.check
   -- Capture names share the clause namespace: one operation retains one store, so a repeated name
   -- would make an occurrence ordinal ambiguous across clauses.
   requireUniqueIds declaration.id declaration.source
-    (declaration.clauses.map PropertyClause.id ++ declaration.scopedClauses.map (·.id) ++
-      declaration.scopedClauses.flatMap (·.captures.map PropertyScopedCapture.name))
+    (declaration.clauses.map PropertyClause.id ++ declaration.correlatedRules.map (·.id) ++
+      declaration.correlatedRules.flatMap (·.captures.map PropertyCorrelatedCapture.name))
   let hasVersionTwoForm := declaration.clauses.any fun clause => match clause with
     | .branches _ | .eventuallyWithin _ _ _ _ (some _) _ _
     | .neverWithin _ _ _ _ (some _) _ _ => true
@@ -1219,17 +1219,17 @@ def Property.check
   let mut clauses := []
   for clause in declaration.clauses.mergeSort authoredClauseLe do
     clauses := clauses ++ [← checkClause context declaration access clause]
-  let scopedClauses ← (declaration.scopedClauses.mergeSort fun a b =>
-    decide (a.id.value ≤ b.id.value)).mapM (checkScopedClause context declaration access)
+  let correlatedRules ← (declaration.correlatedRules.mergeSort fun a b =>
+    decide (a.id.value ≤ b.id.value)).mapM (checkCorrelatedRule context declaration access)
   let semantic := propertySemanticJson declaration.id declaration.version declaration.requires
-    clauses access scopedClauses
+    clauses access correlatedRules
   let checked : CheckedProperty := {
     id := declaration.id
     source := declaration.source
     version := declaration.version
     requires := DefinitionId.canonicalSet declaration.requires
     clauses := clauses.mergeSort clauseLe
-    scopedClauses
+    correlatedRules
     access
     documentation := declaration.documentation
     canonicalMetadata := ""

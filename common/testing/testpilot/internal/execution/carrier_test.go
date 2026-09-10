@@ -10,14 +10,14 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func carrierFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Policy) {
+func carrierFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Profile) {
 	t.Helper()
 	source, catalog, policy := capabilityFixture(t)
 	policy.Roles[0].ReservationCarriers = []ReservationCarrierPolicy{{
 		Method: "/example.Service/Call",
 		Shapes: []ReservationCarrierShape{
-			{Context: testpilotspb.ENTRYPOINT_KIND_WORKFLOW, MaximumCount: 2},
-			{Context: testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER, MaximumCount: 4},
+			{Kind: testpilotspb.ENTRYPOINT_KIND_WORKFLOW, MaximumCount: 2},
+			{Kind: testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER, MaximumCount: 4},
 		},
 	}}
 	return source, catalog, policy
@@ -48,8 +48,8 @@ func TestPrepareCompilesDeterministicReservationCarrierTopology(t *testing.T) {
 		EndpointRoleID: "endpoint",
 		Method:         "/example.Service/Call",
 		Reservations: []ReservationTopology{
-			{EntrypointID: "workflow", Context: testpilotspb.ENTRYPOINT_KIND_WORKFLOW, Count: 2},
-			{EntrypointID: "handler", Context: testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER, Count: 4},
+			{EntrypointID: "workflow", Kind: testpilotspb.ENTRYPOINT_KIND_WORKFLOW, Count: 2},
+			{EntrypointID: "handler", Kind: testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER, Count: 4},
 		},
 		Routes: []ReservationRoute{
 			{WorkflowEntrypointID: "workflow", WorkflowOrdinal: 0, SourceInstructionID: "start", HandlerEntrypointID: "handler", HandlerOrdinal: 0},
@@ -85,7 +85,7 @@ func TestPrepareExposesWorkflowOnlyCarrierReservations(t *testing.T) {
 	require.NoError(t, err)
 	plan, ok := prepared.ReservationCarrier("controller", "call")
 	require.True(t, ok)
-	require.Equal(t, []ReservationTopology{{EntrypointID: "workflow", Context: testpilotspb.ENTRYPOINT_KIND_WORKFLOW, Count: 1}}, plan.Reservations)
+	require.Equal(t, []ReservationTopology{{EntrypointID: "workflow", Kind: testpilotspb.ENTRYPOINT_KIND_WORKFLOW, Count: 1}}, plan.Reservations)
 	require.Empty(t, plan.Routes)
 }
 
@@ -107,50 +107,50 @@ func TestCompileCarrierTopologyChargesAdmissionWork(t *testing.T) {
 }
 
 func TestPrepareRejectsReservationCarrierPolicyErrors(t *testing.T) {
-	for name, mutate := range map[string]func(*testpilotspb.Case, *Policy){
-		"method outside ordinary authorization": func(_ *testpilotspb.Case, policy *Policy) {
+	for name, mutate := range map[string]func(*testpilotspb.Case, *Profile){
+		"method outside ordinary authorization": func(_ *testpilotspb.Case, policy *Profile) {
 			policy.Roles[0].ReservationCarriers[0].Method = "/example.Service/Other"
 		},
-		"streaming method": func(source *testpilotspb.Case, policy *Policy) {
+		"streaming method": func(source *testpilotspb.Case, policy *Profile) {
 			policy.Roles[0].Methods = append(policy.Roles[0].Methods, "/example.Service/Stream")
 			policy.Roles[0].ReservationCarriers[0].Method = "/example.Service/Stream"
 			source.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().Method = "/example.Service/Stream"
 		},
-		"duplicate method": func(_ *testpilotspb.Case, policy *Policy) {
+		"duplicate method": func(_ *testpilotspb.Case, policy *Profile) {
 			policy.Roles[0].ReservationCarriers = append(policy.Roles[0].ReservationCarriers, policy.Roles[0].ReservationCarriers[0])
 		},
-		"duplicate context": func(_ *testpilotspb.Case, policy *Policy) {
+		"duplicate context": func(_ *testpilotspb.Case, policy *Profile) {
 			shape := policy.Roles[0].ReservationCarriers[0].Shapes[0]
 			policy.Roles[0].ReservationCarriers[0].Shapes = []ReservationCarrierShape{shape, shape}
 		},
-		"unsupported context": func(_ *testpilotspb.Case, policy *Policy) {
-			policy.Roles[0].ReservationCarriers[0].Shapes[0].Context = testpilotspb.ENTRYPOINT_KIND_ACTIVITY
+		"unsupported context": func(_ *testpilotspb.Case, policy *Profile) {
+			policy.Roles[0].ReservationCarriers[0].Shapes[0].Kind = testpilotspb.ENTRYPOINT_KIND_ACTIVITY
 		},
-		"zero cardinality": func(_ *testpilotspb.Case, policy *Policy) {
+		"zero cardinality": func(_ *testpilotspb.Case, policy *Profile) {
 			policy.Roles[0].ReservationCarriers[0].Shapes[0].MaximumCount = 0
 		},
-		"cardinality overflow": func(_ *testpilotspb.Case, policy *Policy) {
+		"cardinality overflow": func(_ *testpilotspb.Case, policy *Profile) {
 			policy.Roles[0].ReservationCarriers[0].Shapes[0].MaximumCount = math.MaxInt64
 		},
-		"aggregate cardinality": func(_ *testpilotspb.Case, policy *Policy) {
+		"aggregate cardinality": func(_ *testpilotspb.Case, policy *Profile) {
 			for i := range policy.Roles[0].ReservationCarriers[0].Shapes {
 				policy.Roles[0].ReservationCarriers[0].Shapes[i].MaximumCount = policy.Limits.MaxActivations
 			}
 		},
-		"oversized carrier policy": func(_ *testpilotspb.Case, policy *Policy) {
+		"oversized carrier policy": func(_ *testpilotspb.Case, policy *Profile) {
 			policy.Roles[0].ReservationCarriers = make([]ReservationCarrierPolicy, 10001)
 		},
-		"carrier on non-endpoint": func(_ *testpilotspb.Case, policy *Policy) {
+		"carrier on non-endpoint": func(_ *testpilotspb.Case, policy *Profile) {
 			policy.Roles[1].ReservationCarriers = policy.Roles[0].ReservationCarriers
 			policy.Roles[0].ReservationCarriers = nil
 		},
-		"missing carrier authority": func(_ *testpilotspb.Case, policy *Policy) {
+		"missing carrier authority": func(_ *testpilotspb.Case, policy *Profile) {
 			policy.Roles[0].ReservationCarriers = nil
 		},
-		"unsupported reservation shape": func(_ *testpilotspb.Case, policy *Policy) {
+		"unsupported reservation shape": func(_ *testpilotspb.Case, policy *Profile) {
 			policy.Roles[0].ReservationCarriers[0].Shapes = policy.Roles[0].ReservationCarriers[0].Shapes[:1]
 		},
-		"reservation cardinality": func(source *testpilotspb.Case, _ *Policy) {
+		"reservation cardinality": func(source *testpilotspb.Case, _ *Profile) {
 			source.Program.Entrypoints[0].Instructions[0].ActivationReservations[0].Count = 3
 		},
 	} {
@@ -195,7 +195,7 @@ func TestPrepareRejectsInvalidReservationCarrierTopology(t *testing.T) {
 
 func TestReservationCarrierAuthorityDoesNotRequireReservations(t *testing.T) {
 	source, catalog, policy := fixture(t)
-	policy.Roles[0].ReservationCarriers = []ReservationCarrierPolicy{{Method: "/example.Service/Call", Shapes: []ReservationCarrierShape{{Context: testpilotspb.ENTRYPOINT_KIND_WORKFLOW, MaximumCount: 1}}}}
+	policy.Roles[0].ReservationCarriers = []ReservationCarrierPolicy{{Method: "/example.Service/Call", Shapes: []ReservationCarrierShape{{Kind: testpilotspb.ENTRYPOINT_KIND_WORKFLOW, MaximumCount: 1}}}}
 	prepared, err := Prepare(source, catalog, policy)
 	require.NoError(t, err)
 	_, ok := prepared.ReservationCarrier("controller", "call")

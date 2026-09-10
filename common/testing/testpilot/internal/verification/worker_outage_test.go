@@ -71,7 +71,7 @@ func workerOutageFixtureContract(t testing.TB) (*PreparedContract, execution.Pro
 		Entrypoints:  []*testpilotspb.EntrypointDefinition{{EntrypointId: "controller", Activation: &testpilotspb.EntrypointDefinition_Controller{Controller: &testpilotspb.ControllerActivation{}}}},
 		Cleanup:      &testpilotspb.CleanupDefinition{EntrypointId: "cleanup"},
 	}}
-	program, err := execution.Prepare(source, catalog, execution.Policy{Identity: "profile", CatalogIdentity: catalog.Identity(), Limits: limits})
+	program, err := execution.Prepare(source, catalog, execution.Profile{Identity: "profile", CatalogIdentity: catalog.Identity(), Limits: limits})
 	require.NoError(t, err)
 	prepared, err := Prepare(artifact.GetContract(), catalog, program.View(), artifact.GetContract().GetLimits())
 	require.NoError(t, err)

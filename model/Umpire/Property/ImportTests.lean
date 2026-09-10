@@ -1,6 +1,6 @@
 import Umpire.Property.Elab
 import Umpire.Property.Evaluate
-import Umpire.Property.Scoped
+import Umpire.Property.Correlated
 
 /-! Narrow-import regression for the `Umpire.Property` public facade. -/
 

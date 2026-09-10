@@ -209,6 +209,86 @@ func (FaultKind) EnumDescriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{2}
 }
 
+// Instruction outcome Status is normative Testpilot terminology.
+// (-- api-linter: core::0191::file-layout=disabled
+//
+//	core::0216::synonyms=disabled --)
+//
+// (-- api-linter: core::0216::synonyms=disabled --)
+type InstructionOutcomeStatus int32
+
+const (
+	INSTRUCTION_OUTCOME_STATUS_UNSPECIFIED          InstructionOutcomeStatus = 0
+	INSTRUCTION_OUTCOME_STATUS_SUCCEEDED            InstructionOutcomeStatus = 1
+	INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS InstructionOutcomeStatus = 2
+	INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE          InstructionOutcomeStatus = 3
+	INSTRUCTION_OUTCOME_STATUS_TIMED_OUT            InstructionOutcomeStatus = 4
+	INSTRUCTION_OUTCOME_STATUS_CANCELED             InstructionOutcomeStatus = 5
+)
+
+// Enum value maps for InstructionOutcomeStatus.
+var (
+	InstructionOutcomeStatus_name = map[int32]string{
+		0: "INSTRUCTION_OUTCOME_STATUS_UNSPECIFIED",
+		1: "INSTRUCTION_OUTCOME_STATUS_SUCCEEDED",
+		2: "INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS",
+		3: "INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE",
+		4: "INSTRUCTION_OUTCOME_STATUS_TIMED_OUT",
+		5: "INSTRUCTION_OUTCOME_STATUS_CANCELED",
+	}
+	InstructionOutcomeStatus_value = map[string]int32{
+		"INSTRUCTION_OUTCOME_STATUS_UNSPECIFIED":          0,
+		"INSTRUCTION_OUTCOME_STATUS_SUCCEEDED":            1,
+		"INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS": 2,
+		"INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE":          3,
+		"INSTRUCTION_OUTCOME_STATUS_TIMED_OUT":            4,
+		"INSTRUCTION_OUTCOME_STATUS_CANCELED":             5,
+	}
+)
+
+func (x InstructionOutcomeStatus) Enum() *InstructionOutcomeStatus {
+	p := new(InstructionOutcomeStatus)
+	*p = x
+	return p
+}
+
+func (x InstructionOutcomeStatus) String() string {
+	switch x {
+	case INSTRUCTION_OUTCOME_STATUS_UNSPECIFIED:
+		return "Unspecified"
+	case INSTRUCTION_OUTCOME_STATUS_SUCCEEDED:
+		return "Succeeded"
+	case INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS:
+		return "ProtocolNonSuccess"
+	case INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE:
+		return "SdkFailure"
+	case INSTRUCTION_OUTCOME_STATUS_TIMED_OUT:
+		return "TimedOut"
+	case INSTRUCTION_OUTCOME_STATUS_CANCELED:
+		return "Canceled"
+	default:
+		return strconv.Itoa(int(x))
+	}
+
+}
+
+func (InstructionOutcomeStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_temporal_server_api_testpilot_v1_instruction_proto_enumTypes[3].Descriptor()
+}
+
+func (InstructionOutcomeStatus) Type() protoreflect.EnumType {
+	return &file_temporal_server_api_testpilot_v1_instruction_proto_enumTypes[3]
+}
+
+func (x InstructionOutcomeStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use InstructionOutcomeStatus.Descriptor instead.
+func (InstructionOutcomeStatus) EnumDescriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{3}
+}
+
 type RequestAssignment struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Target        *FieldPath             `protobuf:"bytes,1,opt,name=target,proto3" json:"target,omitempty"`
@@ -261,35 +341,35 @@ func (x *RequestAssignment) GetValue() *ProgramExpression {
 	return nil
 }
 
-// ScopedEvidenceBinding names one ScopedEvidence slot and what supplies it: a path read from the
+// CorrelatedEvidenceBinding names one CorrelatedEvidence slot and what supplies it: a path read from the
 // projected value, or a literal the Case declares. A Run coordinate that the recorded fact does not
 // itself carry is declared, never invented from Driver state.
-type ScopedEvidenceBinding struct {
+type CorrelatedEvidenceBinding struct {
 	state   protoimpl.MessageState `protogen:"open.v1"`
 	FieldId string                 `protobuf:"bytes,1,opt,name=field_id,json=fieldId,proto3" json:"field_id,omitempty"`
 	// Types that are valid to be assigned to Value:
 	//
-	//	*ScopedEvidenceBinding_Path
-	//	*ScopedEvidenceBinding_Literal
-	Value         isScopedEvidenceBinding_Value `protobuf_oneof:"value"`
+	//	*CorrelatedEvidenceBinding_Path
+	//	*CorrelatedEvidenceBinding_Literal
+	Value         isCorrelatedEvidenceBinding_Value `protobuf_oneof:"value"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ScopedEvidenceBinding) Reset() {
-	*x = ScopedEvidenceBinding{}
+func (x *CorrelatedEvidenceBinding) Reset() {
+	*x = CorrelatedEvidenceBinding{}
 	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ScopedEvidenceBinding) String() string {
+func (x *CorrelatedEvidenceBinding) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ScopedEvidenceBinding) ProtoMessage() {}
+func (*CorrelatedEvidenceBinding) ProtoMessage() {}
 
-func (x *ScopedEvidenceBinding) ProtoReflect() protoreflect.Message {
+func (x *CorrelatedEvidenceBinding) ProtoReflect() protoreflect.Message {
 	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -301,91 +381,91 @@ func (x *ScopedEvidenceBinding) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ScopedEvidenceBinding.ProtoReflect.Descriptor instead.
-func (*ScopedEvidenceBinding) Descriptor() ([]byte, []int) {
+// Deprecated: Use CorrelatedEvidenceBinding.ProtoReflect.Descriptor instead.
+func (*CorrelatedEvidenceBinding) Descriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *ScopedEvidenceBinding) GetFieldId() string {
+func (x *CorrelatedEvidenceBinding) GetFieldId() string {
 	if x != nil {
 		return x.FieldId
 	}
 	return ""
 }
 
-func (x *ScopedEvidenceBinding) GetValue() isScopedEvidenceBinding_Value {
+func (x *CorrelatedEvidenceBinding) GetValue() isCorrelatedEvidenceBinding_Value {
 	if x != nil {
 		return x.Value
 	}
 	return nil
 }
 
-func (x *ScopedEvidenceBinding) GetPath() *FieldPath {
+func (x *CorrelatedEvidenceBinding) GetPath() *FieldPath {
 	if x != nil {
-		if x, ok := x.Value.(*ScopedEvidenceBinding_Path); ok {
+		if x, ok := x.Value.(*CorrelatedEvidenceBinding_Path); ok {
 			return x.Path
 		}
 	}
 	return nil
 }
 
-func (x *ScopedEvidenceBinding) GetLiteral() string {
+func (x *CorrelatedEvidenceBinding) GetLiteral() string {
 	if x != nil {
-		if x, ok := x.Value.(*ScopedEvidenceBinding_Literal); ok {
+		if x, ok := x.Value.(*CorrelatedEvidenceBinding_Literal); ok {
 			return x.Literal
 		}
 	}
 	return ""
 }
 
-type isScopedEvidenceBinding_Value interface {
-	isScopedEvidenceBinding_Value()
+type isCorrelatedEvidenceBinding_Value interface {
+	isCorrelatedEvidenceBinding_Value()
 }
 
-type ScopedEvidenceBinding_Path struct {
+type CorrelatedEvidenceBinding_Path struct {
 	Path *FieldPath `protobuf:"bytes,2,opt,name=path,proto3,oneof"`
 }
 
-type ScopedEvidenceBinding_Literal struct {
+type CorrelatedEvidenceBinding_Literal struct {
 	Literal string `protobuf:"bytes,3,opt,name=literal,proto3,oneof"`
 }
 
-func (*ScopedEvidenceBinding_Path) isScopedEvidenceBinding_Value() {}
+func (*CorrelatedEvidenceBinding_Path) isCorrelatedEvidenceBinding_Value() {}
 
-func (*ScopedEvidenceBinding_Literal) isScopedEvidenceBinding_Value() {}
+func (*CorrelatedEvidenceBinding_Literal) isCorrelatedEvidenceBinding_Value() {}
 
-// ScopedEvidenceRule lifts one recorded fact into a ScopedEvidence value. `guard` selects the rule:
+// CorrelatedEvidenceRule lifts one recorded fact into a CorrelatedEvidence value. `guard` selects the rule:
 // it fires only where that path resolves and, when `guard_equals_text` is set, only where it reads
 // exactly that text. So one rule per recorded kind selects itself and `kind` is the literal the
 // selected shape denotes. Every path is read from the projected value; no Run field, wall clock or
 // Driver state is reachable from here.
-type ScopedEvidenceRule struct {
-	state           protoimpl.MessageState   `protogen:"open.v1"`
-	Guard           *FieldPath               `protobuf:"bytes,1,opt,name=guard,proto3" json:"guard,omitempty"`
-	Scope           []*ScopedEvidenceBinding `protobuf:"bytes,2,rep,name=scope,proto3" json:"scope,omitempty"`
-	Source          string                   `protobuf:"bytes,3,opt,name=source,proto3" json:"source,omitempty"`
-	Operation       *FieldPath               `protobuf:"bytes,4,opt,name=operation,proto3" json:"operation,omitempty"`
-	Kind            string                   `protobuf:"bytes,5,opt,name=kind,proto3" json:"kind,omitempty"`
-	Fields          []*ScopedEvidenceBinding `protobuf:"bytes,6,rep,name=fields,proto3" json:"fields,omitempty"`
-	GuardEqualsText string                   `protobuf:"bytes,7,opt,name=guard_equals_text,json=guardEqualsText,proto3" json:"guard_equals_text,omitempty"`
+type CorrelatedEvidenceRule struct {
+	state           protoimpl.MessageState       `protogen:"open.v1"`
+	Guard           *FieldPath                   `protobuf:"bytes,1,opt,name=guard,proto3" json:"guard,omitempty"`
+	Scope           []*CorrelatedEvidenceBinding `protobuf:"bytes,2,rep,name=scope,proto3" json:"scope,omitempty"`
+	Source          string                       `protobuf:"bytes,3,opt,name=source,proto3" json:"source,omitempty"`
+	Operation       *FieldPath                   `protobuf:"bytes,4,opt,name=operation,proto3" json:"operation,omitempty"`
+	Kind            string                       `protobuf:"bytes,5,opt,name=kind,proto3" json:"kind,omitempty"`
+	Fields          []*CorrelatedEvidenceBinding `protobuf:"bytes,6,rep,name=fields,proto3" json:"fields,omitempty"`
+	GuardEqualsText string                       `protobuf:"bytes,7,opt,name=guard_equals_text,json=guardEqualsText,proto3" json:"guard_equals_text,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
 
-func (x *ScopedEvidenceRule) Reset() {
-	*x = ScopedEvidenceRule{}
+func (x *CorrelatedEvidenceRule) Reset() {
+	*x = CorrelatedEvidenceRule{}
 	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ScopedEvidenceRule) String() string {
+func (x *CorrelatedEvidenceRule) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ScopedEvidenceRule) ProtoMessage() {}
+func (*CorrelatedEvidenceRule) ProtoMessage() {}
 
-func (x *ScopedEvidenceRule) ProtoReflect() protoreflect.Message {
+func (x *CorrelatedEvidenceRule) ProtoReflect() protoreflect.Message {
 	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -397,61 +477,61 @@ func (x *ScopedEvidenceRule) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ScopedEvidenceRule.ProtoReflect.Descriptor instead.
-func (*ScopedEvidenceRule) Descriptor() ([]byte, []int) {
+// Deprecated: Use CorrelatedEvidenceRule.ProtoReflect.Descriptor instead.
+func (*CorrelatedEvidenceRule) Descriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *ScopedEvidenceRule) GetGuard() *FieldPath {
+func (x *CorrelatedEvidenceRule) GetGuard() *FieldPath {
 	if x != nil {
 		return x.Guard
 	}
 	return nil
 }
 
-func (x *ScopedEvidenceRule) GetScope() []*ScopedEvidenceBinding {
+func (x *CorrelatedEvidenceRule) GetScope() []*CorrelatedEvidenceBinding {
 	if x != nil {
 		return x.Scope
 	}
 	return nil
 }
 
-func (x *ScopedEvidenceRule) GetSource() string {
+func (x *CorrelatedEvidenceRule) GetSource() string {
 	if x != nil {
 		return x.Source
 	}
 	return ""
 }
 
-func (x *ScopedEvidenceRule) GetOperation() *FieldPath {
+func (x *CorrelatedEvidenceRule) GetOperation() *FieldPath {
 	if x != nil {
 		return x.Operation
 	}
 	return nil
 }
 
-func (x *ScopedEvidenceRule) GetKind() string {
+func (x *CorrelatedEvidenceRule) GetKind() string {
 	if x != nil {
 		return x.Kind
 	}
 	return ""
 }
 
-func (x *ScopedEvidenceRule) GetFields() []*ScopedEvidenceBinding {
+func (x *CorrelatedEvidenceRule) GetFields() []*CorrelatedEvidenceBinding {
 	if x != nil {
 		return x.Fields
 	}
 	return nil
 }
 
-func (x *ScopedEvidenceRule) GetGuardEqualsText() string {
+func (x *CorrelatedEvidenceRule) GetGuardEqualsText() string {
 	if x != nil {
 		return x.GuardEqualsText
 	}
 	return ""
 }
 
-// ScopedEvidenceProjection is the Program-declared source of the ScopedEvidence a scoped capability
+// CorrelatedEvidenceProjection is the Program-declared source of the CorrelatedEvidence a correlated capability
 // reads. Its rules are tried in declaration order and the first whose guard resolves supplies the
 // Observation; a projected value no rule claims emits nothing.
 //
@@ -459,28 +539,28 @@ func (x *ScopedEvidenceRule) GetGuardEqualsText() string {
 // count of values this lift has already emitted from the same projected list rather than anything
 // read out of the value. The projector requires exactly that: independent sources have independent
 // zero-based ordinals, and only the emitter can count them.
-type ScopedEvidenceProjection struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	ObservationId string                 `protobuf:"bytes,1,opt,name=observation_id,json=observationId,proto3" json:"observation_id,omitempty"`
-	Rules         []*ScopedEvidenceRule  `protobuf:"bytes,2,rep,name=rules,proto3" json:"rules,omitempty"`
+type CorrelatedEvidenceProjection struct {
+	state         protoimpl.MessageState    `protogen:"open.v1"`
+	ObservationId string                    `protobuf:"bytes,1,opt,name=observation_id,json=observationId,proto3" json:"observation_id,omitempty"`
+	Rules         []*CorrelatedEvidenceRule `protobuf:"bytes,2,rep,name=rules,proto3" json:"rules,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ScopedEvidenceProjection) Reset() {
-	*x = ScopedEvidenceProjection{}
+func (x *CorrelatedEvidenceProjection) Reset() {
+	*x = CorrelatedEvidenceProjection{}
 	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ScopedEvidenceProjection) String() string {
+func (x *CorrelatedEvidenceProjection) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ScopedEvidenceProjection) ProtoMessage() {}
+func (*CorrelatedEvidenceProjection) ProtoMessage() {}
 
-func (x *ScopedEvidenceProjection) ProtoReflect() protoreflect.Message {
+func (x *CorrelatedEvidenceProjection) ProtoReflect() protoreflect.Message {
 	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -492,19 +572,19 @@ func (x *ScopedEvidenceProjection) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ScopedEvidenceProjection.ProtoReflect.Descriptor instead.
-func (*ScopedEvidenceProjection) Descriptor() ([]byte, []int) {
+// Deprecated: Use CorrelatedEvidenceProjection.ProtoReflect.Descriptor instead.
+func (*CorrelatedEvidenceProjection) Descriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *ScopedEvidenceProjection) GetObservationId() string {
+func (x *CorrelatedEvidenceProjection) GetObservationId() string {
 	if x != nil {
 		return x.ObservationId
 	}
 	return ""
 }
 
-func (x *ScopedEvidenceProjection) GetRules() []*ScopedEvidenceRule {
+func (x *CorrelatedEvidenceProjection) GetRules() []*CorrelatedEvidenceRule {
 	if x != nil {
 		return x.Rules
 	}
@@ -517,7 +597,7 @@ type ProjectionTarget struct {
 	//
 	//	*ProjectionTarget_SlotId
 	//	*ProjectionTarget_ObservationId
-	//	*ProjectionTarget_ScopedEvidence
+	//	*ProjectionTarget_CorrelatedEvidence
 	Target        isProjectionTarget_Target `protobuf_oneof:"target"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -578,10 +658,10 @@ func (x *ProjectionTarget) GetObservationId() string {
 	return ""
 }
 
-func (x *ProjectionTarget) GetScopedEvidence() *ScopedEvidenceProjection {
+func (x *ProjectionTarget) GetCorrelatedEvidence() *CorrelatedEvidenceProjection {
 	if x != nil {
-		if x, ok := x.Target.(*ProjectionTarget_ScopedEvidence); ok {
-			return x.ScopedEvidence
+		if x, ok := x.Target.(*ProjectionTarget_CorrelatedEvidence); ok {
+			return x.CorrelatedEvidence
 		}
 	}
 	return nil
@@ -599,15 +679,15 @@ type ProjectionTarget_ObservationId struct {
 	ObservationId string `protobuf:"bytes,2,opt,name=observation_id,json=observationId,proto3,oneof"`
 }
 
-type ProjectionTarget_ScopedEvidence struct {
-	ScopedEvidence *ScopedEvidenceProjection `protobuf:"bytes,3,opt,name=scoped_evidence,json=scopedEvidence,proto3,oneof"`
+type ProjectionTarget_CorrelatedEvidence struct {
+	CorrelatedEvidence *CorrelatedEvidenceProjection `protobuf:"bytes,3,opt,name=correlated_evidence,json=correlatedEvidence,proto3,oneof"`
 }
 
 func (*ProjectionTarget_SlotId) isProjectionTarget_Target() {}
 
 func (*ProjectionTarget_ObservationId) isProjectionTarget_Target() {}
 
-func (*ProjectionTarget_ScopedEvidence) isProjectionTarget_Target() {}
+func (*ProjectionTarget_CorrelatedEvidence) isProjectionTarget_Target() {}
 
 type ResponseProjection struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -1234,7 +1314,7 @@ type Instruction struct {
 	//	*Instruction_AwaitSlot
 	//	*Instruction_CompleteNexusOperation
 	//	*Instruction_StartNexusOperation
-	//	*Instruction_AwaitOutcome
+	//	*Instruction_AwaitInstruction
 	//	*Instruction_Finish
 	//	*Instruction_RespondNexus
 	//	*Instruction_InjectFault
@@ -1316,10 +1396,10 @@ func (x *Instruction) GetStartNexusOperation() *StartNexusOperation {
 	return nil
 }
 
-func (x *Instruction) GetAwaitOutcome() *AwaitInstruction {
+func (x *Instruction) GetAwaitInstruction() *AwaitInstruction {
 	if x != nil {
-		if x, ok := x.Instruction.(*Instruction_AwaitOutcome); ok {
-			return x.AwaitOutcome
+		if x, ok := x.Instruction.(*Instruction_AwaitInstruction); ok {
+			return x.AwaitInstruction
 		}
 	}
 	return nil
@@ -1372,8 +1452,8 @@ type Instruction_StartNexusOperation struct {
 	StartNexusOperation *StartNexusOperation `protobuf:"bytes,4,opt,name=start_nexus_operation,json=startNexusOperation,proto3,oneof"`
 }
 
-type Instruction_AwaitOutcome struct {
-	AwaitOutcome *AwaitInstruction `protobuf:"bytes,5,opt,name=await_outcome,json=awaitOutcome,proto3,oneof"`
+type Instruction_AwaitInstruction struct {
+	AwaitInstruction *AwaitInstruction `protobuf:"bytes,5,opt,name=await_instruction,json=awaitInstruction,proto3,oneof"`
 }
 
 type Instruction_Finish struct {
@@ -1396,7 +1476,7 @@ func (*Instruction_CompleteNexusOperation) isInstruction_Instruction() {}
 
 func (*Instruction_StartNexusOperation) isInstruction_Instruction() {}
 
-func (*Instruction_AwaitOutcome) isInstruction_Instruction() {}
+func (*Instruction_AwaitInstruction) isInstruction_Instruction() {}
 
 func (*Instruction_Finish) isInstruction_Instruction() {}
 
@@ -1548,6 +1628,82 @@ func (x *InstructionDefinition) GetActivationReservations() []*ActivationReserva
 	return nil
 }
 
+type InstructionOutcome struct {
+	state          protoimpl.MessageState   `protogen:"open.v1"`
+	Status         InstructionOutcomeStatus `protobuf:"varint,1,opt,name=status,proto3,enum=temporal.server.api.testpilot.v1.InstructionOutcomeStatus" json:"status,omitempty"`
+	ProtocolCode   string                   `protobuf:"bytes,2,opt,name=protocol_code,json=protocolCode,proto3" json:"protocol_code,omitempty"`
+	SdkFailureCode string                   `protobuf:"bytes,3,opt,name=sdk_failure_code,json=sdkFailureCode,proto3" json:"sdk_failure_code,omitempty"`
+	Detail         string                   `protobuf:"bytes,4,opt,name=detail,proto3" json:"detail,omitempty"`
+	Value          *Value                   `protobuf:"bytes,5,opt,name=value,proto3" json:"value,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *InstructionOutcome) Reset() {
+	*x = InstructionOutcome{}
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InstructionOutcome) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InstructionOutcome) ProtoMessage() {}
+
+func (x *InstructionOutcome) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InstructionOutcome.ProtoReflect.Descriptor instead.
+func (*InstructionOutcome) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *InstructionOutcome) GetStatus() InstructionOutcomeStatus {
+	if x != nil {
+		return x.Status
+	}
+	return INSTRUCTION_OUTCOME_STATUS_UNSPECIFIED
+}
+
+func (x *InstructionOutcome) GetProtocolCode() string {
+	if x != nil {
+		return x.ProtocolCode
+	}
+	return ""
+}
+
+func (x *InstructionOutcome) GetSdkFailureCode() string {
+	if x != nil {
+		return x.SdkFailureCode
+	}
+	return ""
+}
+
+func (x *InstructionOutcome) GetDetail() string {
+	if x != nil {
+		return x.Detail
+	}
+	return ""
+}
+
+func (x *InstructionOutcome) GetValue() *Value {
+	if x != nil {
+		return x.Value
+	}
+	return nil
+}
+
 var File_temporal_server_api_testpilot_v1_instruction_proto protoreflect.FileDescriptor
 
 const file_temporal_server_api_testpilot_v1_instruction_proto_rawDesc = "" +
@@ -1555,27 +1711,27 @@ const file_temporal_server_api_testpilot_v1_instruction_proto_rawDesc = "" +
 	"2temporal/server/api/testpilot/v1/instruction.proto\x12 temporal.server.api.testpilot.v1\x1a1temporal/server/api/testpilot/v1/expression.proto\x1a,temporal/server/api/testpilot/v1/value.proto\"\xa3\x01\n" +
 	"\x11RequestAssignment\x12C\n" +
 	"\x06target\x18\x01 \x01(\v2+.temporal.server.api.testpilot.v1.FieldPathR\x06target\x12I\n" +
-	"\x05value\x18\x02 \x01(\v23.temporal.server.api.testpilot.v1.ProgramExpressionR\x05value\"\x9a\x01\n" +
-	"\x15ScopedEvidenceBinding\x12\x19\n" +
+	"\x05value\x18\x02 \x01(\v23.temporal.server.api.testpilot.v1.ProgramExpressionR\x05value\"\x9e\x01\n" +
+	"\x19CorrelatedEvidenceBinding\x12\x19\n" +
 	"\bfield_id\x18\x01 \x01(\tR\afieldId\x12A\n" +
 	"\x04path\x18\x02 \x01(\v2+.temporal.server.api.testpilot.v1.FieldPathH\x00R\x04path\x12\x1a\n" +
 	"\aliteral\x18\x03 \x01(\tH\x00R\aliteralB\a\n" +
-	"\x05value\"\x9a\x03\n" +
-	"\x12ScopedEvidenceRule\x12A\n" +
-	"\x05guard\x18\x01 \x01(\v2+.temporal.server.api.testpilot.v1.FieldPathR\x05guard\x12M\n" +
-	"\x05scope\x18\x02 \x03(\v27.temporal.server.api.testpilot.v1.ScopedEvidenceBindingR\x05scope\x12\x16\n" +
+	"\x05value\"\xa6\x03\n" +
+	"\x16CorrelatedEvidenceRule\x12A\n" +
+	"\x05guard\x18\x01 \x01(\v2+.temporal.server.api.testpilot.v1.FieldPathR\x05guard\x12Q\n" +
+	"\x05scope\x18\x02 \x03(\v2;.temporal.server.api.testpilot.v1.CorrelatedEvidenceBindingR\x05scope\x12\x16\n" +
 	"\x06source\x18\x03 \x01(\tR\x06source\x12I\n" +
 	"\toperation\x18\x04 \x01(\v2+.temporal.server.api.testpilot.v1.FieldPathR\toperation\x12\x12\n" +
-	"\x04kind\x18\x05 \x01(\tR\x04kind\x12O\n" +
-	"\x06fields\x18\x06 \x03(\v27.temporal.server.api.testpilot.v1.ScopedEvidenceBindingR\x06fields\x12*\n" +
-	"\x11guard_equals_text\x18\a \x01(\tR\x0fguardEqualsText\"\x8d\x01\n" +
-	"\x18ScopedEvidenceProjection\x12%\n" +
-	"\x0eobservation_id\x18\x01 \x01(\tR\robservationId\x12J\n" +
-	"\x05rules\x18\x02 \x03(\v24.temporal.server.api.testpilot.v1.ScopedEvidenceRuleR\x05rules\"\xc7\x01\n" +
+	"\x04kind\x18\x05 \x01(\tR\x04kind\x12S\n" +
+	"\x06fields\x18\x06 \x03(\v2;.temporal.server.api.testpilot.v1.CorrelatedEvidenceBindingR\x06fields\x12*\n" +
+	"\x11guard_equals_text\x18\a \x01(\tR\x0fguardEqualsText\"\x95\x01\n" +
+	"\x1cCorrelatedEvidenceProjection\x12%\n" +
+	"\x0eobservation_id\x18\x01 \x01(\tR\robservationId\x12N\n" +
+	"\x05rules\x18\x02 \x03(\v28.temporal.server.api.testpilot.v1.CorrelatedEvidenceRuleR\x05rules\"\xd3\x01\n" +
 	"\x10ProjectionTarget\x12\x19\n" +
 	"\aslot_id\x18\x01 \x01(\tH\x00R\x06slotId\x12'\n" +
-	"\x0eobservation_id\x18\x02 \x01(\tH\x00R\robservationId\x12e\n" +
-	"\x0fscoped_evidence\x18\x03 \x01(\v2:.temporal.server.api.testpilot.v1.ScopedEvidenceProjectionH\x00R\x0escopedEvidenceB\b\n" +
+	"\x0eobservation_id\x18\x02 \x01(\tH\x00R\robservationId\x12q\n" +
+	"\x13correlated_evidence\x18\x03 \x01(\v2>.temporal.server.api.testpilot.v1.CorrelatedEvidenceProjectionH\x00R\x12correlatedEvidenceB\b\n" +
 	"\x06target\"\xed\x01\n" +
 	"\x12ResponseProjection\x12C\n" +
 	"\x06source\x18\x01 \x01(\v2+.temporal.server.api.testpilot.v1.FieldPathR\x06source\x12D\n" +
@@ -1614,15 +1770,15 @@ const file_temporal_server_api_testpilot_v1_instruction_proto_rawDesc = "" +
 	"\x04kind\x18\x02 \x01(\x0e2+.temporal.server.api.testpilot.v1.FaultKindR\x04kind\"i\n" +
 	"\rFaultInjected\x12\x17\n" +
 	"\arole_id\x18\x01 \x01(\tR\x06roleId\x12?\n" +
-	"\x04kind\x18\x02 \x01(\x0e2+.temporal.server.api.testpilot.v1.FaultKindR\x04kind\"\xe5\x05\n" +
+	"\x04kind\x18\x02 \x01(\x0e2+.temporal.server.api.testpilot.v1.FaultKindR\x04kind\"\xed\x05\n" +
 	"\vInstruction\x12L\n" +
 	"\n" +
 	"invoke_rpc\x18\x01 \x01(\v2+.temporal.server.api.testpilot.v1.InvokeRPCH\x00R\tinvokeRpc\x12L\n" +
 	"\n" +
 	"await_slot\x18\x02 \x01(\v2+.temporal.server.api.testpilot.v1.AwaitSlotH\x00R\tawaitSlot\x12t\n" +
 	"\x18complete_nexus_operation\x18\x03 \x01(\v28.temporal.server.api.testpilot.v1.CompleteNexusOperationH\x00R\x16completeNexusOperation\x12k\n" +
-	"\x15start_nexus_operation\x18\x04 \x01(\v25.temporal.server.api.testpilot.v1.StartNexusOperationH\x00R\x13startNexusOperation\x12Y\n" +
-	"\rawait_outcome\x18\x05 \x01(\v22.temporal.server.api.testpilot.v1.AwaitInstructionH\x00R\fawaitOutcome\x12B\n" +
+	"\x15start_nexus_operation\x18\x04 \x01(\v25.temporal.server.api.testpilot.v1.StartNexusOperationH\x00R\x13startNexusOperation\x12a\n" +
+	"\x11await_instruction\x18\x05 \x01(\v22.temporal.server.api.testpilot.v1.AwaitInstructionH\x00R\x10awaitInstruction\x12B\n" +
 	"\x06finish\x18\x06 \x01(\v2(.temporal.server.api.testpilot.v1.FinishH\x00R\x06finish\x12U\n" +
 	"\rrespond_nexus\x18\a \x01(\v2..temporal.server.api.testpilot.v1.RespondNexusH\x00R\frespondNexus\x12R\n" +
 	"\finject_fault\x18\b \x01(\v2-.temporal.server.api.testpilot.v1.InjectFaultH\x00R\vinjectFaultB\r\n" +
@@ -1637,7 +1793,13 @@ const file_temporal_server_api_testpilot_v1_instruction_proto_rawDesc = "" +
 	"\vinstruction\x18\x04 \x01(\v2-.temporal.server.api.testpilot.v1.InstructionR\vinstruction\x12X\n" +
 	"\aoutcome\x18\x05 \x01(\v2>.temporal.server.api.testpilot.v1.InstructionOutcomeDefinitionR\aoutcome\x12K\n" +
 	"\x06limits\x18\x06 \x01(\v23.temporal.server.api.testpilot.v1.InstructionLimitsR\x06limits\x12z\n" +
-	"\x17activation_reservations\x18\a \x03(\v2A.temporal.server.api.testpilot.v1.ActivationReservationDefinitionR\x16activationReservations*i\n" +
+	"\x17activation_reservations\x18\a \x03(\v2A.temporal.server.api.testpilot.v1.ActivationReservationDefinitionR\x16activationReservations\"\x8e\x02\n" +
+	"\x12InstructionOutcome\x12R\n" +
+	"\x06status\x18\x01 \x01(\x0e2:.temporal.server.api.testpilot.v1.InstructionOutcomeStatusR\x06status\x12#\n" +
+	"\rprotocol_code\x18\x02 \x01(\tR\fprotocolCode\x12(\n" +
+	"\x10sdk_failure_code\x18\x03 \x01(\tR\x0esdkFailureCode\x12\x16\n" +
+	"\x06detail\x18\x04 \x01(\tR\x06detail\x12=\n" +
+	"\x05value\x18\x05 \x01(\v2'.temporal.server.api.testpilot.v1.ValueR\x05value*i\n" +
 	"\x0eProjectionKind\x12\x1f\n" +
 	"\x1bPROJECTION_KIND_UNSPECIFIED\x10\x00\x12\x17\n" +
 	"\x13PROJECTION_KIND_ONE\x10\x01\x12\x1d\n" +
@@ -1650,7 +1812,14 @@ const file_temporal_server_api_testpilot_v1_instruction_proto_rawDesc = "" +
 	"\tFaultKind\x12\x1a\n" +
 	"\x16FAULT_KIND_UNSPECIFIED\x10\x00\x12\x1a\n" +
 	"\x16FAULT_KIND_WORKER_STOP\x10\x01\x12\x1c\n" +
-	"\x18FAULT_KIND_WORKER_RESUME\x10\x02B2Z0go.temporal.io/server/api/testpilot/v1;testpilotb\x06proto3"
+	"\x18FAULT_KIND_WORKER_RESUME\x10\x02*\xa4\x02\n" +
+	"\x18InstructionOutcomeStatus\x12*\n" +
+	"&INSTRUCTION_OUTCOME_STATUS_UNSPECIFIED\x10\x00\x12(\n" +
+	"$INSTRUCTION_OUTCOME_STATUS_SUCCEEDED\x10\x01\x123\n" +
+	"/INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS\x10\x02\x12*\n" +
+	"&INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE\x10\x03\x12(\n" +
+	"$INSTRUCTION_OUTCOME_STATUS_TIMED_OUT\x10\x04\x12'\n" +
+	"#INSTRUCTION_OUTCOME_STATUS_CANCELED\x10\x05B2Z0go.temporal.io/server/api/testpilot/v1;testpilotb\x06proto3"
 
 var (
 	file_temporal_server_api_testpilot_v1_instruction_proto_rawDescOnce sync.Once
@@ -1664,78 +1833,83 @@ func file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP() []byt
 	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescData
 }
 
-var file_temporal_server_api_testpilot_v1_instruction_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
+var file_temporal_server_api_testpilot_v1_instruction_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
+var file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
 var file_temporal_server_api_testpilot_v1_instruction_proto_goTypes = []any{
 	(ProjectionKind)(0),                     // 0: temporal.server.api.testpilot.v1.ProjectionKind
 	(NexusResponseKind)(0),                  // 1: temporal.server.api.testpilot.v1.NexusResponseKind
 	(FaultKind)(0),                          // 2: temporal.server.api.testpilot.v1.FaultKind
-	(*RequestAssignment)(nil),               // 3: temporal.server.api.testpilot.v1.RequestAssignment
-	(*ScopedEvidenceBinding)(nil),           // 4: temporal.server.api.testpilot.v1.ScopedEvidenceBinding
-	(*ScopedEvidenceRule)(nil),              // 5: temporal.server.api.testpilot.v1.ScopedEvidenceRule
-	(*ScopedEvidenceProjection)(nil),        // 6: temporal.server.api.testpilot.v1.ScopedEvidenceProjection
-	(*ProjectionTarget)(nil),                // 7: temporal.server.api.testpilot.v1.ProjectionTarget
-	(*ResponseProjection)(nil),              // 8: temporal.server.api.testpilot.v1.ResponseProjection
-	(*InstructionLimits)(nil),               // 9: temporal.server.api.testpilot.v1.InstructionLimits
-	(*InvokeRPC)(nil),                       // 10: temporal.server.api.testpilot.v1.InvokeRPC
-	(*AwaitSlot)(nil),                       // 11: temporal.server.api.testpilot.v1.AwaitSlot
-	(*CompleteNexusOperation)(nil),          // 12: temporal.server.api.testpilot.v1.CompleteNexusOperation
-	(*StartNexusOperation)(nil),             // 13: temporal.server.api.testpilot.v1.StartNexusOperation
-	(*AwaitInstruction)(nil),                // 14: temporal.server.api.testpilot.v1.AwaitInstruction
-	(*Finish)(nil),                          // 15: temporal.server.api.testpilot.v1.Finish
-	(*RespondNexus)(nil),                    // 16: temporal.server.api.testpilot.v1.RespondNexus
-	(*InjectFault)(nil),                     // 17: temporal.server.api.testpilot.v1.InjectFault
-	(*FaultInjected)(nil),                   // 18: temporal.server.api.testpilot.v1.FaultInjected
-	(*Instruction)(nil),                     // 19: temporal.server.api.testpilot.v1.Instruction
-	(*ActivationReservationDefinition)(nil), // 20: temporal.server.api.testpilot.v1.ActivationReservationDefinition
-	(*InstructionDefinition)(nil),           // 21: temporal.server.api.testpilot.v1.InstructionDefinition
-	(*FieldPath)(nil),                       // 22: temporal.server.api.testpilot.v1.FieldPath
-	(*ProgramExpression)(nil),               // 23: temporal.server.api.testpilot.v1.ProgramExpression
-	(*InstructionRef)(nil),                  // 24: temporal.server.api.testpilot.v1.InstructionRef
-	(*InstructionOutcomeDefinition)(nil),    // 25: temporal.server.api.testpilot.v1.InstructionOutcomeDefinition
+	(InstructionOutcomeStatus)(0),           // 3: temporal.server.api.testpilot.v1.InstructionOutcomeStatus
+	(*RequestAssignment)(nil),               // 4: temporal.server.api.testpilot.v1.RequestAssignment
+	(*CorrelatedEvidenceBinding)(nil),       // 5: temporal.server.api.testpilot.v1.CorrelatedEvidenceBinding
+	(*CorrelatedEvidenceRule)(nil),          // 6: temporal.server.api.testpilot.v1.CorrelatedEvidenceRule
+	(*CorrelatedEvidenceProjection)(nil),    // 7: temporal.server.api.testpilot.v1.CorrelatedEvidenceProjection
+	(*ProjectionTarget)(nil),                // 8: temporal.server.api.testpilot.v1.ProjectionTarget
+	(*ResponseProjection)(nil),              // 9: temporal.server.api.testpilot.v1.ResponseProjection
+	(*InstructionLimits)(nil),               // 10: temporal.server.api.testpilot.v1.InstructionLimits
+	(*InvokeRPC)(nil),                       // 11: temporal.server.api.testpilot.v1.InvokeRPC
+	(*AwaitSlot)(nil),                       // 12: temporal.server.api.testpilot.v1.AwaitSlot
+	(*CompleteNexusOperation)(nil),          // 13: temporal.server.api.testpilot.v1.CompleteNexusOperation
+	(*StartNexusOperation)(nil),             // 14: temporal.server.api.testpilot.v1.StartNexusOperation
+	(*AwaitInstruction)(nil),                // 15: temporal.server.api.testpilot.v1.AwaitInstruction
+	(*Finish)(nil),                          // 16: temporal.server.api.testpilot.v1.Finish
+	(*RespondNexus)(nil),                    // 17: temporal.server.api.testpilot.v1.RespondNexus
+	(*InjectFault)(nil),                     // 18: temporal.server.api.testpilot.v1.InjectFault
+	(*FaultInjected)(nil),                   // 19: temporal.server.api.testpilot.v1.FaultInjected
+	(*Instruction)(nil),                     // 20: temporal.server.api.testpilot.v1.Instruction
+	(*ActivationReservationDefinition)(nil), // 21: temporal.server.api.testpilot.v1.ActivationReservationDefinition
+	(*InstructionDefinition)(nil),           // 22: temporal.server.api.testpilot.v1.InstructionDefinition
+	(*InstructionOutcome)(nil),              // 23: temporal.server.api.testpilot.v1.InstructionOutcome
+	(*FieldPath)(nil),                       // 24: temporal.server.api.testpilot.v1.FieldPath
+	(*ProgramExpression)(nil),               // 25: temporal.server.api.testpilot.v1.ProgramExpression
+	(*InstructionRef)(nil),                  // 26: temporal.server.api.testpilot.v1.InstructionRef
+	(*InstructionOutcomeDefinition)(nil),    // 27: temporal.server.api.testpilot.v1.InstructionOutcomeDefinition
+	(*Value)(nil),                           // 28: temporal.server.api.testpilot.v1.Value
 }
 var file_temporal_server_api_testpilot_v1_instruction_proto_depIdxs = []int32{
-	22, // 0: temporal.server.api.testpilot.v1.RequestAssignment.target:type_name -> temporal.server.api.testpilot.v1.FieldPath
-	23, // 1: temporal.server.api.testpilot.v1.RequestAssignment.value:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
-	22, // 2: temporal.server.api.testpilot.v1.ScopedEvidenceBinding.path:type_name -> temporal.server.api.testpilot.v1.FieldPath
-	22, // 3: temporal.server.api.testpilot.v1.ScopedEvidenceRule.guard:type_name -> temporal.server.api.testpilot.v1.FieldPath
-	4,  // 4: temporal.server.api.testpilot.v1.ScopedEvidenceRule.scope:type_name -> temporal.server.api.testpilot.v1.ScopedEvidenceBinding
-	22, // 5: temporal.server.api.testpilot.v1.ScopedEvidenceRule.operation:type_name -> temporal.server.api.testpilot.v1.FieldPath
-	4,  // 6: temporal.server.api.testpilot.v1.ScopedEvidenceRule.fields:type_name -> temporal.server.api.testpilot.v1.ScopedEvidenceBinding
-	5,  // 7: temporal.server.api.testpilot.v1.ScopedEvidenceProjection.rules:type_name -> temporal.server.api.testpilot.v1.ScopedEvidenceRule
-	6,  // 8: temporal.server.api.testpilot.v1.ProjectionTarget.scoped_evidence:type_name -> temporal.server.api.testpilot.v1.ScopedEvidenceProjection
-	22, // 9: temporal.server.api.testpilot.v1.ResponseProjection.source:type_name -> temporal.server.api.testpilot.v1.FieldPath
+	24, // 0: temporal.server.api.testpilot.v1.RequestAssignment.target:type_name -> temporal.server.api.testpilot.v1.FieldPath
+	25, // 1: temporal.server.api.testpilot.v1.RequestAssignment.value:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
+	24, // 2: temporal.server.api.testpilot.v1.CorrelatedEvidenceBinding.path:type_name -> temporal.server.api.testpilot.v1.FieldPath
+	24, // 3: temporal.server.api.testpilot.v1.CorrelatedEvidenceRule.guard:type_name -> temporal.server.api.testpilot.v1.FieldPath
+	5,  // 4: temporal.server.api.testpilot.v1.CorrelatedEvidenceRule.scope:type_name -> temporal.server.api.testpilot.v1.CorrelatedEvidenceBinding
+	24, // 5: temporal.server.api.testpilot.v1.CorrelatedEvidenceRule.operation:type_name -> temporal.server.api.testpilot.v1.FieldPath
+	5,  // 6: temporal.server.api.testpilot.v1.CorrelatedEvidenceRule.fields:type_name -> temporal.server.api.testpilot.v1.CorrelatedEvidenceBinding
+	6,  // 7: temporal.server.api.testpilot.v1.CorrelatedEvidenceProjection.rules:type_name -> temporal.server.api.testpilot.v1.CorrelatedEvidenceRule
+	7,  // 8: temporal.server.api.testpilot.v1.ProjectionTarget.correlated_evidence:type_name -> temporal.server.api.testpilot.v1.CorrelatedEvidenceProjection
+	24, // 9: temporal.server.api.testpilot.v1.ResponseProjection.source:type_name -> temporal.server.api.testpilot.v1.FieldPath
 	0,  // 10: temporal.server.api.testpilot.v1.ResponseProjection.kind:type_name -> temporal.server.api.testpilot.v1.ProjectionKind
-	7,  // 11: temporal.server.api.testpilot.v1.ResponseProjection.targets:type_name -> temporal.server.api.testpilot.v1.ProjectionTarget
-	3,  // 12: temporal.server.api.testpilot.v1.InvokeRPC.request_assignments:type_name -> temporal.server.api.testpilot.v1.RequestAssignment
-	8,  // 13: temporal.server.api.testpilot.v1.InvokeRPC.response_projections:type_name -> temporal.server.api.testpilot.v1.ResponseProjection
-	23, // 14: temporal.server.api.testpilot.v1.CompleteNexusOperation.result:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
-	23, // 15: temporal.server.api.testpilot.v1.StartNexusOperation.input:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
-	24, // 16: temporal.server.api.testpilot.v1.AwaitInstruction.instruction:type_name -> temporal.server.api.testpilot.v1.InstructionRef
-	23, // 17: temporal.server.api.testpilot.v1.Finish.result:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
+	8,  // 11: temporal.server.api.testpilot.v1.ResponseProjection.targets:type_name -> temporal.server.api.testpilot.v1.ProjectionTarget
+	4,  // 12: temporal.server.api.testpilot.v1.InvokeRPC.request_assignments:type_name -> temporal.server.api.testpilot.v1.RequestAssignment
+	9,  // 13: temporal.server.api.testpilot.v1.InvokeRPC.response_projections:type_name -> temporal.server.api.testpilot.v1.ResponseProjection
+	25, // 14: temporal.server.api.testpilot.v1.CompleteNexusOperation.result:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
+	25, // 15: temporal.server.api.testpilot.v1.StartNexusOperation.input:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
+	26, // 16: temporal.server.api.testpilot.v1.AwaitInstruction.instruction:type_name -> temporal.server.api.testpilot.v1.InstructionRef
+	25, // 17: temporal.server.api.testpilot.v1.Finish.result:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
 	1,  // 18: temporal.server.api.testpilot.v1.RespondNexus.kind:type_name -> temporal.server.api.testpilot.v1.NexusResponseKind
-	23, // 19: temporal.server.api.testpilot.v1.RespondNexus.result:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
+	25, // 19: temporal.server.api.testpilot.v1.RespondNexus.result:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
 	2,  // 20: temporal.server.api.testpilot.v1.InjectFault.kind:type_name -> temporal.server.api.testpilot.v1.FaultKind
 	2,  // 21: temporal.server.api.testpilot.v1.FaultInjected.kind:type_name -> temporal.server.api.testpilot.v1.FaultKind
-	10, // 22: temporal.server.api.testpilot.v1.Instruction.invoke_rpc:type_name -> temporal.server.api.testpilot.v1.InvokeRPC
-	11, // 23: temporal.server.api.testpilot.v1.Instruction.await_slot:type_name -> temporal.server.api.testpilot.v1.AwaitSlot
-	12, // 24: temporal.server.api.testpilot.v1.Instruction.complete_nexus_operation:type_name -> temporal.server.api.testpilot.v1.CompleteNexusOperation
-	13, // 25: temporal.server.api.testpilot.v1.Instruction.start_nexus_operation:type_name -> temporal.server.api.testpilot.v1.StartNexusOperation
-	14, // 26: temporal.server.api.testpilot.v1.Instruction.await_outcome:type_name -> temporal.server.api.testpilot.v1.AwaitInstruction
-	15, // 27: temporal.server.api.testpilot.v1.Instruction.finish:type_name -> temporal.server.api.testpilot.v1.Finish
-	16, // 28: temporal.server.api.testpilot.v1.Instruction.respond_nexus:type_name -> temporal.server.api.testpilot.v1.RespondNexus
-	17, // 29: temporal.server.api.testpilot.v1.Instruction.inject_fault:type_name -> temporal.server.api.testpilot.v1.InjectFault
-	24, // 30: temporal.server.api.testpilot.v1.InstructionDefinition.dependencies:type_name -> temporal.server.api.testpilot.v1.InstructionRef
-	23, // 31: temporal.server.api.testpilot.v1.InstructionDefinition.guard:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
-	19, // 32: temporal.server.api.testpilot.v1.InstructionDefinition.instruction:type_name -> temporal.server.api.testpilot.v1.Instruction
-	25, // 33: temporal.server.api.testpilot.v1.InstructionDefinition.outcome:type_name -> temporal.server.api.testpilot.v1.InstructionOutcomeDefinition
-	9,  // 34: temporal.server.api.testpilot.v1.InstructionDefinition.limits:type_name -> temporal.server.api.testpilot.v1.InstructionLimits
-	20, // 35: temporal.server.api.testpilot.v1.InstructionDefinition.activation_reservations:type_name -> temporal.server.api.testpilot.v1.ActivationReservationDefinition
-	36, // [36:36] is the sub-list for method output_type
-	36, // [36:36] is the sub-list for method input_type
-	36, // [36:36] is the sub-list for extension type_name
-	36, // [36:36] is the sub-list for extension extendee
-	0,  // [0:36] is the sub-list for field type_name
+	11, // 22: temporal.server.api.testpilot.v1.Instruction.invoke_rpc:type_name -> temporal.server.api.testpilot.v1.InvokeRPC
+	12, // 23: temporal.server.api.testpilot.v1.Instruction.await_slot:type_name -> temporal.server.api.testpilot.v1.AwaitSlot
+	13, // 24: temporal.server.api.testpilot.v1.Instruction.complete_nexus_operation:type_name -> temporal.server.api.testpilot.v1.CompleteNexusOperation
+	14, // 25: temporal.server.api.testpilot.v1.Instruction.start_nexus_operation:type_name -> temporal.server.api.testpilot.v1.StartNexusOperation
+	15, // 26: temporal.server.api.testpilot.v1.Instruction.await_instruction:type_name -> temporal.server.api.testpilot.v1.AwaitInstruction
+	16, // 27: temporal.server.api.testpilot.v1.Instruction.finish:type_name -> temporal.server.api.testpilot.v1.Finish
+	17, // 28: temporal.server.api.testpilot.v1.Instruction.respond_nexus:type_name -> temporal.server.api.testpilot.v1.RespondNexus
+	18, // 29: temporal.server.api.testpilot.v1.Instruction.inject_fault:type_name -> temporal.server.api.testpilot.v1.InjectFault
+	26, // 30: temporal.server.api.testpilot.v1.InstructionDefinition.dependencies:type_name -> temporal.server.api.testpilot.v1.InstructionRef
+	25, // 31: temporal.server.api.testpilot.v1.InstructionDefinition.guard:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
+	20, // 32: temporal.server.api.testpilot.v1.InstructionDefinition.instruction:type_name -> temporal.server.api.testpilot.v1.Instruction
+	27, // 33: temporal.server.api.testpilot.v1.InstructionDefinition.outcome:type_name -> temporal.server.api.testpilot.v1.InstructionOutcomeDefinition
+	10, // 34: temporal.server.api.testpilot.v1.InstructionDefinition.limits:type_name -> temporal.server.api.testpilot.v1.InstructionLimits
+	21, // 35: temporal.server.api.testpilot.v1.InstructionDefinition.activation_reservations:type_name -> temporal.server.api.testpilot.v1.ActivationReservationDefinition
+	3,  // 36: temporal.server.api.testpilot.v1.InstructionOutcome.status:type_name -> temporal.server.api.testpilot.v1.InstructionOutcomeStatus
+	28, // 37: temporal.server.api.testpilot.v1.InstructionOutcome.value:type_name -> temporal.server.api.testpilot.v1.Value
+	38, // [38:38] is the sub-list for method output_type
+	38, // [38:38] is the sub-list for method input_type
+	38, // [38:38] is the sub-list for extension type_name
+	38, // [38:38] is the sub-list for extension extendee
+	0,  // [0:38] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_testpilot_v1_instruction_proto_init() }
@@ -1746,20 +1920,20 @@ func file_temporal_server_api_testpilot_v1_instruction_proto_init() {
 	file_temporal_server_api_testpilot_v1_expression_proto_init()
 	file_temporal_server_api_testpilot_v1_value_proto_init()
 	file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[1].OneofWrappers = []any{
-		(*ScopedEvidenceBinding_Path)(nil),
-		(*ScopedEvidenceBinding_Literal)(nil),
+		(*CorrelatedEvidenceBinding_Path)(nil),
+		(*CorrelatedEvidenceBinding_Literal)(nil),
 	}
 	file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[4].OneofWrappers = []any{
 		(*ProjectionTarget_SlotId)(nil),
 		(*ProjectionTarget_ObservationId)(nil),
-		(*ProjectionTarget_ScopedEvidence)(nil),
+		(*ProjectionTarget_CorrelatedEvidence)(nil),
 	}
 	file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[16].OneofWrappers = []any{
 		(*Instruction_InvokeRpc)(nil),
 		(*Instruction_AwaitSlot)(nil),
 		(*Instruction_CompleteNexusOperation)(nil),
 		(*Instruction_StartNexusOperation)(nil),
-		(*Instruction_AwaitOutcome)(nil),
+		(*Instruction_AwaitInstruction)(nil),
 		(*Instruction_Finish)(nil),
 		(*Instruction_RespondNexus)(nil),
 		(*Instruction_InjectFault)(nil),
@@ -1769,8 +1943,8 @@ func file_temporal_server_api_testpilot_v1_instruction_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_temporal_server_api_testpilot_v1_instruction_proto_rawDesc), len(file_temporal_server_api_testpilot_v1_instruction_proto_rawDesc)),
-			NumEnums:      3,
-			NumMessages:   19,
+			NumEnums:      4,
+			NumMessages:   20,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

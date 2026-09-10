@@ -80,12 +80,14 @@ func TestPreparationErrorCase(t *testing.T) {
 		{"contract missing rules", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) { c.Contract.Rules = nil }, testpilot.PreparationMalformed, "contract", "Contract identity and rules are required", ""},
 		{"contract limit", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) { c.Contract.Limits.MaxRules++ }, testpilot.PreparationLimitExceeded, "contract", "limit outside positive Driver ceiling: max_rules", ""},
 		{"scoped version", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) {
-			c.Contract.Scoped = &testpilotspb.ScopedContract{Version: 2}
+			c.Contract.Correlated = &testpilotspb.CorrelatedContract{Version: 2}
 		}, testpilot.PreparationUnknown, "contract", "unsupported scoped capability version", ""},
 		{"scoped binding", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) {
-			c.Contract.Scoped = &testpilotspb.ScopedContract{Version: 1}
+			c.Contract.Correlated = &testpilotspb.CorrelatedContract{Version: 1}
 		}, testpilot.PreparationMalformed, "contract", "invalid scoped projection binding", ""},
-		{"scoped evidence", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) { c.Contract.Scoped = diagnosticScopedContract() }, testpilot.PreparationTypeMismatch, "contract", "scoped evidence requires exact declared ScopedEvidence Observation", ""},
+		{"scoped evidence", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) {
+			c.Contract.Correlated = diagnosticCorrelatedContract()
+		}, testpilot.PreparationTypeMismatch, "contract", "scoped evidence requires exact declared CorrelatedEvidence Observation", ""},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			source, profile := proofFixture(t)
@@ -97,11 +99,11 @@ func TestPreparationErrorCase(t *testing.T) {
 	}
 }
 
-func diagnosticScopedContract() *testpilotspb.ScopedContract {
-	return &testpilotspb.ScopedContract{Version: 1, ProjectionId: "projection", ProjectionFingerprint: "fingerprint", ScopeFields: []string{"run"}, OperationField: "operation", Sources: []string{"source"}, InitialState: &testpilotspb.ScopedValue{DefinitionId: "state"}, EvidenceObservationId: "evidence", Limits: &testpilotspb.ScopedLimits{}}
+func diagnosticCorrelatedContract() *testpilotspb.CorrelatedContract {
+	return &testpilotspb.CorrelatedContract{Version: 1, ProjectionId: "projection", ProjectionFingerprint: "fingerprint", ScopeFields: []string{"run"}, OperationField: "operation", Sources: []string{"source"}, InitialState: &testpilotspb.CorrelatedValue{DefinitionId: "state"}, EvidenceObservationId: "evidence", Limits: &testpilotspb.CorrelatedLimits{}}
 }
 
-func TestPreparationErrorScopedLimits(t *testing.T) {
+func TestPreparationErrorCorrelatedLimits(t *testing.T) {
 	source, profile := proofFixture(t)
 	files := &descriptorpb.FileDescriptorSet{}
 	seen := map[string]bool{}
@@ -116,12 +118,12 @@ func TestPreparationErrorScopedLimits(t *testing.T) {
 		}
 		files.File = append(files.File, protodesc.ToFileDescriptorProto(file))
 	}
-	collect((&testpilotspb.ScopedEvidence{}).ProtoReflect().Descriptor().ParentFile())
+	collect((&testpilotspb.CorrelatedEvidence{}).ProtoReflect().Descriptor().ParentFile())
 	catalog, err := testpilot.NewCatalog(files)
 	require.NoError(t, err)
 	profile.Catalog = catalog
-	source.Program.Observations = []*testpilotspb.ObservationDefinition{{ObservationId: "evidence", Type: &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Message{Message: &testpilotspb.NamedType{ProtobufType: "temporal.server.api.testpilot.v1.ScopedEvidence"}}}}}}}
-	source.Contract.Scoped = diagnosticScopedContract()
+	source.Program.Observations = []*testpilotspb.ObservationDefinition{{ObservationId: "evidence", Type: &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Message{Message: &testpilotspb.NamedType{ProtobufType: "temporal.server.api.testpilot.v1.CorrelatedEvidence"}}}}}}}
+	source.Contract.Correlated = diagnosticCorrelatedContract()
 	prepared, err := testpilot.Prepare(source, profile)
 	require.Nil(t, prepared)
 	requirePreparationError(t, err, testpilot.PreparationLimitExceeded, "contract", "scoped limits must be positive", "limit_exceeded at contract: scoped limits must be positive")
