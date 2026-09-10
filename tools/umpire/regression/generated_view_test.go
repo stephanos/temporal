@@ -219,7 +219,7 @@ func newGeneratedViewRepository(t *testing.T) (string, Reference, fixtureEnvelop
 	realRoot := filepath.Clean(filepath.Join("..", "..", ".."))
 	encoded, err := os.ReadFile(filepath.Join(realRoot, "model/Umpire/Examples/testdata/switch-experiment-spec.json"))
 	require.NoError(t, err)
-	fixture, err := artifactv2.DecodeExperiment(encoded)
+	fixture, err := artifactv2.DecodePlan(encoded)
 	require.NoError(t, err)
 	reference := Reference{
 		FormatVersion:           supportedFormatVersion,
@@ -236,7 +236,7 @@ func newGeneratedViewRepository(t *testing.T) (string, Reference, fixtureEnvelop
 
 func writeFixture(t *testing.T, repositoryRoot, relative string, fixture fixtureEnvelope) {
 	t.Helper()
-	encoded, err := artifactv2.CanonicalExperimentBytes(fixture)
+	encoded, err := artifactv2.CanonicalPlanBytes(fixture)
 	require.NoError(t, err)
 	writeFile(t, filepath.Join(repositoryRoot, filepath.FromSlash(relative)), encoded)
 }

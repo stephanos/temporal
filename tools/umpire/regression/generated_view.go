@@ -17,7 +17,7 @@ import (
 	"go.temporal.io/server/tools/umpire/internal/artifactv2"
 )
 
-const supportedFormatVersion = artifactv2.ExperimentFormat
+const supportedFormatVersion = artifactv2.PlanFormat
 
 // Reference is the complete metadata carried by a generated Go view.
 // Source paths are canonical and relative to the repository's model directory;
@@ -45,7 +45,7 @@ func RequireGeneratedView(t testing.TB, reference Reference) {
 	require.Equal(t, reference, actual, "generated view %q differs from its canonical fixture", reference.Identity)
 }
 
-type fixtureEnvelope = artifactv2.Experiment
+type fixtureEnvelope = artifactv2.Plan
 type fixturePlan = artifactv2.PlanSteps
 type fixtureProperty = artifactv2.Property
 type fixtureProvenance = artifactv2.Provenance
@@ -162,7 +162,7 @@ func validateReference(repositoryRoot string, reference Reference) error {
 }
 
 func decodeFixture(encoded []byte) (fixtureEnvelope, error) {
-	return artifactv2.DecodeExperiment(encoded)
+	return artifactv2.DecodePlan(encoded)
 }
 
 func validateSources(modelRoot string, sources []string) error {

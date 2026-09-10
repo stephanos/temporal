@@ -14,8 +14,8 @@ import (
 )
 
 const (
-	ExperimentFormat = "umpire-experiment/v2"
-	PlanStepsFormat  = "umpire-drive-plan/v2"
+	PlanFormat      = "umpire-experiment/v2"
+	PlanStepsFormat = "umpire-drive-plan/v2"
 )
 
 const (
@@ -24,7 +24,7 @@ const (
 	experimentChecksumDomain  = "umpire.experiment-spec/v2"
 )
 
-type Experiment struct {
+type Plan struct {
 	FormatVersion                       string     `json:"formatVersion"`
 	QueryBehaviorFingerprint            string     `json:"queryBehaviorFingerprint"`
 	Plan                                PlanSteps  `json:"plan"`
@@ -212,51 +212,51 @@ var canonicalKeys = map[string]string{
 	"valuekind":                           "valueKind",
 }
 
-// DecodeExperiment accepts only the exact canonical bytes emitted by Lean.
-func DecodeExperiment(encoded []byte) (Experiment, error) {
+// DecodePlan accepts only the exact canonical bytes emitted by Lean.
+func DecodePlan(encoded []byte) (Plan, error) {
 	if len(bytes.TrimSpace(encoded)) == 0 {
-		return Experiment{}, errors.New("canonical Plan JSON is empty")
+		return Plan{}, errors.New("canonical Plan JSON is empty")
 	}
 	format, err := preflightFormat(encoded)
 	if err != nil {
-		return Experiment{}, err
+		return Plan{}, err
 	}
-	if format != ExperimentFormat {
-		return Experiment{}, fmt.Errorf("unsupported format %q", format)
+	if format != PlanFormat {
+		return Plan{}, fmt.Errorf("unsupported format %q", format)
 	}
 	if err := validateJSONStructure(encoded); err != nil {
-		return Experiment{}, err
+		return Plan{}, err
 	}
 
 	decoder := json.NewDecoder(bytes.NewReader(encoded))
 	decoder.DisallowUnknownFields()
-	var document Experiment
+	var document Plan
 	if err := decoder.Decode(&document); err != nil {
-		return Experiment{}, err
+		return Plan{}, err
 	}
 	if err := requireEOF(decoder); err != nil {
-		return Experiment{}, err
+		return Plan{}, err
 	}
-	if err := ValidateExperiment(document); err != nil {
-		return Experiment{}, err
+	if err := ValidatePlan(document); err != nil {
+		return Plan{}, err
 	}
-	if err := ValidateExperimentClosure(document); err != nil {
-		return Experiment{}, err
+	if err := ValidatePlanClosure(document); err != nil {
+		return Plan{}, err
 	}
-	if err := VerifyExperimentChecksums(document); err != nil {
-		return Experiment{}, err
+	if err := VerifyPlanChecksums(document); err != nil {
+		return Plan{}, err
 	}
-	canonical, err := CanonicalExperimentBytes(document)
+	canonical, err := CanonicalPlanBytes(document)
 	if err != nil {
-		return Experiment{}, err
+		return Plan{}, err
 	}
 	if !bytes.Equal(encoded, canonical) {
-		return Experiment{}, errors.New("canonical Plan JSON is not v2 bytes")
+		return Plan{}, errors.New("canonical Plan JSON is not v2 bytes")
 	}
 	return document, nil
 }
 
-func CanonicalExperimentBytes(document Experiment) ([]byte, error) {
+func CanonicalPlanBytes(document Plan) ([]byte, error) {
 	return encodeJSONLine(document)
 }
 
@@ -269,7 +269,7 @@ func ExpectedPlanStepsChecksum(plan PlanSteps) (string, error) {
 	return derive(drivePlanChecksumDomain, encoded), nil
 }
 
-func ExpectedExperimentChecksum(document Experiment) (string, error) {
+func ExpectedPlanChecksum(document Plan) (string, error) {
 	document.ArtifactChecksum = ""
 	encoded, err := encodeJSONLine(document)
 	if err != nil {
@@ -282,15 +282,15 @@ func BehaviorFingerprint(canonical []byte) string {
 	return derive(behaviorFingerprintDomain, canonical)
 }
 
-func SealExperiment(document Experiment) (Experiment, error) {
+func SealPlan(document Plan) (Plan, error) {
 	planChecksum, err := ExpectedPlanStepsChecksum(document.Plan)
 	if err != nil {
-		return Experiment{}, err
+		return Plan{}, err
 	}
 	document.Plan.ArtifactChecksum = planChecksum
-	experimentChecksum, err := ExpectedExperimentChecksum(document)
+	experimentChecksum, err := ExpectedPlanChecksum(document)
 	if err != nil {
-		return Experiment{}, err
+		return Plan{}, err
 	}
 	document.ArtifactChecksum = experimentChecksum
 	return document, nil
@@ -431,9 +431,9 @@ func requireEOF(decoder *json.Decoder) error {
 	return nil
 }
 
-// ValidateExperiment checks the retained v2 field values independently of checksums and closure.
-func ValidateExperiment(document Experiment) error {
-	if document.FormatVersion != ExperimentFormat {
+// ValidatePlan checks the retained v2 field values independently of checksums and closure.
+func ValidatePlan(document Plan) error {
+	if document.FormatVersion != PlanFormat {
 		return fmt.Errorf("unsupported format %q", document.FormatVersion)
 	}
 	if document.Plan.FormatVersion != PlanStepsFormat {
@@ -492,13 +492,13 @@ func ValidateExperiment(document Experiment) error {
 	if !ValidDigest(document.ArtifactChecksum) {
 		return fmt.Errorf("artifact checksum %q is invalid", document.ArtifactChecksum)
 	}
-	if err := validateExperimentCollections(document); err != nil {
+	if err := validatePlanCollections(document); err != nil {
 		return err
 	}
 	return validatePlanSteps(document.Plan)
 }
 
-func validateExperimentCollections(document Experiment) error {
+func validatePlanCollections(document Plan) error {
 	if document.Properties == nil || document.ObservationRequirementDefinitionIDs == nil ||
 		document.Provenance.SourceDefinitionIDs == nil || document.Provenance.SourceLocations == nil {
 		return errors.New("canonical Plan JSON arrays must not be null")
@@ -878,8 +878,8 @@ func pointerValue(value *string) string {
 	return *value
 }
 
-// VerifyExperimentChecksums independently checks the nested PlanSteps and outer Plan.
-func VerifyExperimentChecksums(document Experiment) error {
+// VerifyPlanChecksums independently checks the nested PlanSteps and outer Plan.
+func VerifyPlanChecksums(document Plan) error {
 	nested, err := ExpectedPlanStepsChecksum(document.Plan)
 	if err != nil {
 		return err
@@ -887,7 +887,7 @@ func VerifyExperimentChecksums(document Experiment) error {
 	if nested != document.Plan.ArtifactChecksum {
 		return fmt.Errorf("nested plan artifact checksum mismatch: got %q, want %q", document.Plan.ArtifactChecksum, nested)
 	}
-	outer, err := ExpectedExperimentChecksum(document)
+	outer, err := ExpectedPlanChecksum(document)
 	if err != nil {
 		return err
 	}
@@ -897,8 +897,8 @@ func VerifyExperimentChecksums(document Experiment) error {
 	return nil
 }
 
-// ValidateExperimentClosure checks relationships between otherwise valid retained v2 fields.
-func ValidateExperimentClosure(document Experiment) error {
+// ValidatePlanClosure checks relationships between otherwise valid retained v2 fields.
+func ValidatePlanClosure(document Plan) error {
 	if document.QueryBehaviorFingerprint != document.Plan.QueryBehaviorFingerprint {
 		return errors.New("query behavior fingerprint differs from nested plan")
 	}
