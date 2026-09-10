@@ -144,7 +144,7 @@ The Nexus race tree's finite admission and typed authoring helpers are candidate
 allows a started setup and immediate cancellation; its race starts already running. Neither
 Target can substitute for the scheduled-only, request-then-resolution model here unchanged.
 
-`Cancellation.lean` is one such reuse already taken: it derives a separate Target from
+`Race/Terminal.lean` is one such reuse already taken: it derives a separate Target from
 `Nexus.Race.Race` and adds the explicit terminal closure that Race lacks. It is a historical
 already-started slice, not this draft's Target — it begins at a running operation rather than a
 scheduled one, and it carries the race tree's states and Actions under its own Target identity.
