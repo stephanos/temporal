@@ -245,8 +245,8 @@ horizon.
   directly for Targets whose authority is specified independently. Both paths MUST produce an
   `Umpire.DraftModel` and pass it to `Umpire.checkModel`. `Umpire.FiniteMachine` MUST NOT
   introduce another Behavior, Property, Query, Scenario, or macro language.
-- **AUT-09 — Macro-derived finite domains.** *(drafted by fn-80, pending human approval under
-  GOV-02.)* AUT-08's "author-provided" includes a domain a command macro derives from the author's
+- **AUT-09 — Macro-derived finite domains.** *(drafted by fn-80; approved 2026-09-10 under GOV-02.)*
+  AUT-08's "author-provided" includes a domain a command macro derives from the author's
   own declarations: the ordered domains, encoders and enumerators an authoring macro elaborates from
   the constructors of an enum-like inductive the author named are author-provided, not inferred. The
   macro MUST derive them from declarations the author wrote and MUST NOT admit a spelling the author
@@ -415,7 +415,7 @@ horizon.
   registration, or target effect. Temporal validation MUST compare binding references, not merely
   their currently resolved text. The Driver MUST obtain physical resource names solely from the
   immutable Profile binding snapshot.
-- **EVD-20 — Driver-realized faults.** *(drafted by fn-80, pending human approval under GOV-02.)*
+- **EVD-20 — Driver-realized faults.** *(drafted by fn-80; approved 2026-09-10 under GOV-02.)*
   A deliberate outage MUST be a declared instruction of the version-one instruction table, MUST name
   a role the Program declares, and MUST be authorized by a Profile capability like any other
   instruction. A Driver MUST record exactly one `RUN_EVENT_KIND_FAULT_INJECTED` Run Event per
@@ -424,7 +424,7 @@ horizon.
   Driver invariant diagnostic. A requested fault proves nothing until the Run carries that event
   for it. A Program that declares a fault MUST hold resources no other Run shares, so an outage it
   asks for cannot reach another Run.
-- **EVD-21 — Horizon units.** *(drafted by fn-80, pending human approval under GOV-02.)*
+- **EVD-21 — Horizon units.** *(drafted by fn-80; approved 2026-09-10 under GOV-02.)*
   A bounded-liveness rule MUST declare exactly one positive horizon bound. `rule_events` counts the
   Run Events the rule evaluated since its last transition and is the bound a conclusion may rest on,
   because it counts only what the Run recorded. `elapsed_milliseconds` remains admitted and is

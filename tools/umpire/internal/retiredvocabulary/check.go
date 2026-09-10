@@ -582,6 +582,9 @@ func buildRetiredRules() ([]tokenRule, error) {
 		"umpire-explain-" + "nexus",
 		"selected_" + "actions",
 		"candidate_" + "evaluations",
+		"model" + "Lint",
+		"model" + "LintTests",
+		"testpilot" + "ProtoJSONFixture",
 	}
 
 	rules := make([]tokenRule, 0, len(exactTokens)+5)
