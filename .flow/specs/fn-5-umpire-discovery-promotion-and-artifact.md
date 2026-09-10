@@ -36,21 +36,21 @@ four current examples, in canonical query-identity order:
 4. `workflow-nexus.query.exact-action-caller-closure`
 
 Each entry is constructed from its existing checked Property, Behavior, Query, and planned
-`ExperimentSpec`; it carries their canonical identities and source locations rather than copied
+`Plan`; it carries their canonical identities and source locations rather than copied
 semantic prose. `list` projects deterministic summaries from all four entries. `explain` performs
 an exact query-identity lookup and projects the same summary plus the checked declaration and plan
 lineage for that one example. Neither command infers entries by scanning imports or source text.
 
 `Umpire.Promotion` owns a sealed `CompiledPromotionSource` and the smallest checker needed to prove
 that a proposal uses the unchanged base checked Query, its target-owned `.found` expected count-one
-trace and base planned `ExperimentSpec`, fresh fixed promoted Behavior/Query identities, fixed
+trace and base planned `Plan`, fresh fixed promoted Behavior/Query identities, fixed
 imports, deterministic source bytes, and successful clean elaboration.
 `Temporal.Tool.PromotionBinding` owns exactly one static
 `PromotionCandidateBinding`,
 `temporal.nexus.caller-closure.promotion.cancel-unique-regression`. The binding keeps two distinct
-lineages: the unchanged `exactActionQuery`/PlannerRun/base `ExperimentSpec` supplies the checked
+lineages: the unchanged `exactActionQuery`/PlanResult/base `Plan` supplies the checked
 expected count-one trace, while the selected duplicate-delivery Space point supplies the separate
-fault-bearing `ExperimentSpec` identity/checksum later reproduced and minimized by fn-22. The fault
+fault-bearing `Plan` identity/checksum later reproduced and minimized by fn-22. The fault
 intent and observed count-two result are never treated as target-owned Query output.
 
 The fn-5 executable retains the closed downstream contract
@@ -58,7 +58,7 @@ The fn-5 executable retains the closed downstream contract
 one inert canonical `umpire-promotion-proposal/v2` envelope plus one LF. Direct invocation proves
 only that the fixed expected-trace source is checked, deterministic, and elaborates; it makes no
 claim that any runtime failure is reproduced, minimized, or accepted by Exact Replay. Fn-22 owns
-those eligibility gates and separately cross-binds the selected fault-bearing `ExperimentSpec`,
+those eligibility gates and separately cross-binds the selected fault-bearing `Plan`,
 minimized Result, Violation Signature, and inert fn-5 proposal before it writes a review artifact.
 Fn-5 does not import fn-22, consume runtime evidence, or install source.
 
@@ -67,7 +67,7 @@ flowchart LR
   N[Four checked Nexus examples] --> L[list]
   N --> E[explain exact query identity]
   Q[Base Query + expected count-one plan] --> B[One static promotion binding]
-  D[Fault-bearing ExperimentSpec identity] --> F[fn-22 eligibility + cross-binding]
+  D[Fault-bearing Plan identity] --> F[fn-22 eligibility + cross-binding]
   B --> C[Elaborated CompiledPromotionSource]
   C --> P[Review-only proposal envelope]
   P --> F
@@ -83,15 +83,15 @@ flowchart LR
   Unknown, case-shifted, ambiguous, or extra selectors emit empty stdout, one structured diagnostic
   plus one LF on stderr, and status 1. Existing positional scenario inspection remains unchanged.
 - Discovery rows expose only existing checked identities, kind labels, source locations, Behavior
-  Fingerprints, and planned `ExperimentSpec` identity. Output ordering is independent of authoring
+  Fingerprints, and planned `Plan` identity. Output ordering is independent of authoring
   order and repeated calls are byte-identical.
 - `temporal-model-promote temporal.nexus.caller-closure.promotion.cancel-unique-regression` accepts
   only that exact candidate identity and no source path, executable path, import, promoted identity,
   trace, or output override. Success emits exactly one canonical `umpire-promotion-proposal/v2`
   value plus one LF; unknown candidate, validation, elaboration, argument, or serialization failure
   emits no partial stdout.
-- The inert promotion envelope separately binds the base Query/PlannerRun/base-`ExperimentSpec`
-  identities, the selected fault-bearing `ExperimentSpec` identity/checksum, fixed promoted
+- The inert promotion envelope separately binds the base Query/PlanResult/base-`Plan`
+  identities, the selected fault-bearing `Plan` identity/checksum, fixed promoted
   identities, source identity, SHA-256, and exact source bytes. It contains no runtime eligibility
   claim and is never written into a Lean package by the command.
 
@@ -102,8 +102,8 @@ flowchart LR
   missing source/fingerprint fields, crossed Property/Behavior/Query ownership, missing plans, and
   nondeterministic order before either discovery command can succeed.
 - `explain` is exact: it does not case-fold, prefix-match, alias, or silently redirect selectors.
-- Promotion rejects non-`.found` base planning, base Query/PlannerRun/`ExperimentSpec` drift,
-  fault-bearing `ExperimentSpec` drift, crossed base/fault lineage, observed-trace substitution,
+- Promotion rejects non-`.found` base planning, base Query/PlanResult/`Plan` drift,
+  fault-bearing `Plan` drift, crossed base/fault lineage, observed-trace substitution,
   reused promoted identities, missing imports, nondeterministic rendering, digest drift, or source
   that does not elaborate in a clean focused Lake build.
 - Direct fn-5 invocation never establishes runtime eligibility. Fn-22 must reject non-reproduction,
@@ -127,10 +127,10 @@ make umpire-check-regression
   partial output, while existing positional inspection remains byte-compatible.
 - **R2:** Exactly one checked binding can compile the unchanged base Query's target-owned expected
   count-one trace into deterministic Lean source and a canonical inert review-only proposal for the
-  separately identified duplicate-delivery Space-point `ExperimentSpec`. The fixed candidate-argument
+  separately identified duplicate-delivery Space-point `Plan`. The fixed candidate-argument
   command makes no runtime eligibility claim. Fn-22 alone admits its output after runtime
   reproduction, complete minimized-or-irreducible reduction, and Exact Replay, then cross-binds the
-  fault-bearing `ExperimentSpec`, Result, Violation Signature, and proposal before publication.
+  fault-bearing `Plan`, Result, Violation Signature, and proposal before publication.
   Observed count-two substitution, conflated base/fault identities, drift, unelaborated source, or
   any override produces no proposal and nothing is installed automatically.
 

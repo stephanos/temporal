@@ -26,7 +26,7 @@ but must not invent behavior or broaden those Limits.
 - A **result** is the accepted interpretation of a run: established, violated, unknown, conflict,
   or unsupported.
 
-`ExperimentSpec`, Behavior Fingerprints, evidence artifacts, and Lean declaration forms remain inspectable
+`Plan`, Behavior Fingerprints, evidence artifacts, and Lean declaration forms remain inspectable
 implementation details rather than the primary user vocabulary.
 
 ## Complete executable traces

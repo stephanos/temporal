@@ -105,7 +105,7 @@ Semantic authority
              ▼                ▼                ▼
           Planning        Exploration     Formal Verification
              │                │                │
-             └────────── ExperimentSpec ───────┘
+             └────────── Plan ───────┘
                               │
                 ┌─────────────┴─────────────┐
                 ▼                           ▼
@@ -258,7 +258,7 @@ property. Implementation Link relates meanings but cannot silently select a prov
 | `Umpire.Query` | Combine a checked target, properties, behavior, quantifier, Limits, completeness evidence, and policy. | Present and deep. Remains the first semantic composition point. |
 | `Umpire.Search` | Deterministic bounded selection or verification over a checked query and finite kernel. | Present and deep. Keep planning outcomes explicit. |
 | `Umpire.Exploration` | Checked finite-universe selection through exhaustive or one uncovered-coordinate policy, pinned precedence, and process-local one-candidate sequencing. | Present for the retained bounded slice. Symmetry, persisted resume, adaptive corpora, and generalized coverage reporting remain deferred. |
-| `Umpire.Artifact` | Construct canonical `DrivePlan` and `ExperimentSpec` values from checked selections. | Present but partial. Deepen by controlling construction, anti-forgery, versioning, and canonical serialization. |
+| `Umpire.Artifact` | Construct canonical `Plan.Steps` and `Plan` values from checked selections. | Present but partial. Deepen by controlling construction, anti-forgery, versioning, and canonical serialization. |
 
 `Umpire.Search` is not a peer deep module in its current form. It mostly contains policy, Limits,
 and metadata structures. Query-specific vocabulary should sit behind Query or Planning. Substantial
@@ -535,7 +535,7 @@ An Implementation Link failure and an observation failure remain distinct.
 | --- | --- |
 | `Temporal.Tool.Inspect` | Resolve named scenarios and render canonical artifacts or diagnostics. |
 | `Temporal.Tool.Catalog` | Shared list, explain, and invariant-check engine for structural and semantic catalogs. |
-| `Temporal.Tool.GenerateTests` | Select named regressions or batches and emit canonical manifests and `ExperimentSpec`s. |
+| `Temporal.Tool.GenerateTests` | Select named regressions or batches and emit canonical manifests and `Plan`s. |
 | `Temporal.Tool.CheckModel` | Run model-declared verification profiles and emit verification receipts. |
 
 Tools are semantically thin. `Inspect` already demonstrates the intended shape: a pure injectable
@@ -563,8 +563,8 @@ canonical family model. Neither path enters `Temporal.lean`, ordinary tools, or 
 | Config catalog | Config importer | System configuration interpretation. |
 | Semantic catalog | Lean Catalog | Discovery, tools, exploration, and promotion. |
 | Regression/space | Lean authoring | Planning and exploration. |
-| `DrivePlan` | Lean Planning | Deterministic selected semantic occurrences and checkpoints. |
-| `ExperimentSpec` | Lean Artifact | Generated View, execution, replay, and verification reference. |
+| `Plan.Steps` | Lean Planning | Deterministic selected semantic occurrences and checkpoints. |
+| `Plan` | Lean Artifact | Generated View, execution, replay, and verification reference. |
 | `RuntimeConfiguration` | Temporal-owned profile compiler | Execution runtime operational binding. |
 | `ParticipantProgram` | Temporal System model | SDK participant adapters. |
 | `ExperimentRun` | Execution runtime | Run Evaluation, replay, and Claim Assessment. |
@@ -662,7 +662,7 @@ trees are baselines to evaluate, not integrated implementations of these interfa
 The runner interface is:
 
 ```text
-ExperimentSpec
+Plan
 + RuntimeConfiguration
 + Authority adapter
 + Participant adapter
@@ -677,7 +677,7 @@ ExperimentRun + RawEvidence
 The Run Evaluation interface is:
 
 ```text
-ExperimentSpec + ExperimentRun + RawEvidence
+Plan + ExperimentRun + RawEvidence
                          │
                          ▼
                  runevaluation.Check
@@ -1048,7 +1048,7 @@ The architecture is realized when:
    Verification, and Claim Assessment remain independently testable modules.
 4. Feature and base System are independently understandable and meet only through explicit
    Implementation Link.
-5. One canonical ExperimentSpec drives model inspection, generated tests, local execution,
+5. One canonical Plan drives model inspection, generated tests, local execution,
    campaigns, replay, Claim Assessment, and standalone canary.
 6. Live evidence is accepted through Lean-owned observation and property meaning without semantic
    duplication in Go.

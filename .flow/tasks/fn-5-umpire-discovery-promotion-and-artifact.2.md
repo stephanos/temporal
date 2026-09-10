@@ -46,7 +46,7 @@ existing inspector executable.
 - [ ] Existing comments in touched files are preserved.
 
 ## Done summary
-Added the deterministic `umpire-nexus-discovery/v1` list projection over the checked Nexus inventory and routed only the exact `temporal-model-inspect list` argument through it. Each canonical row exposes the checked Property, Behavior, and Query declaration identity, kind, source, and fingerprint plus the planned ExperimentSpec format and checksum. The existing positional inspector runner and its success and failure bytes remain unchanged.
+Added the deterministic `umpire-nexus-discovery/v1` list projection over the checked Nexus inventory and routed only the exact `temporal-model-inspect list` argument through it. Each canonical row exposes the checked Property, Behavior, and Query declaration identity, kind, source, and fingerprint plus the planned Plan format and checksum. The existing positional inspector runner and its success and failure bytes remain unchanged.
 
 Focused tests pin canonical field and row order, permutation stability, invalid-inventory failure with no partial stdout, exact LF/stderr/status behavior, rejection of alternate list arguments, and compatibility of the existing positional path. The exact task suite, real executable invocation, full Lean model lint, and diff check pass.
 

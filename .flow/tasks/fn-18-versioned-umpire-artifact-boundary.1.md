@@ -4,7 +4,7 @@ satisfies: [R2, R8]
 # fn-18-versioned-umpire-artifact-boundary.1 Adopt the deterministic pretty v2 Artifact baseline
 
 ## Description
-Place DrivePlan and ExperimentSpec v2 behind the vertical Artifact facade with deterministic pretty
+Place Plan.Steps and Plan v2 behind the vertical Artifact facade with deterministic pretty
 JSON as their one exact Lean/Go byte representation and no second format.
 
 
@@ -22,8 +22,8 @@ JSON as their one exact Lean/Go byte representation and no second format.
 - Share exact field order, escaping, number spelling, two-space indentation, no trailing spaces, and
   one terminal LF across Lean and Go.
 - Derive each domain-separated Artifact Checksum from that document's exact pretty checksum preimage:
-  omit only its own `artifactChecksum`, retain one terminal LF, and seal the nested DrivePlan before
-  deriving the outer ExperimentSpec checksum.
+  omit only its own `artifactChecksum`, retain one terminal LF, and seal the nested Plan.Steps before
+  deriving the outer Plan checksum.
 - Treat the checked-in pretty fixtures as exact byte goldens; Generated View and fixture consumers
   use the same strict decoder rather than a semantic-equality or whitespace-normalizing adapter.
 - Keep `umpire-drive-plan/v2` and `umpire-experiment/v2` as the sole supported current formats.
@@ -37,8 +37,8 @@ JSON as their one exact Lean/Go byte representation and no second format.
 View ingestion.
 
 ## Acceptance
-- [ ] Lean and Go emit and admit exactly the same deterministic pretty v2 bytes for DrivePlan and
-  ExperimentSpec, including fixed order/escaping/number spelling, two-space indentation, no trailing
+- [ ] Lean and Go emit and admit exactly the same deterministic pretty v2 bytes for Plan.Steps and
+  Plan, including fixed order/escaping/number spelling, two-space indentation, no trailing
   spaces, and one terminal LF.
 - [ ] Nested and outer Artifact Checksums are independently recomputed from exact pretty checksum
   preimages and every canonical pretty fixture is an exact byte golden.

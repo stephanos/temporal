@@ -12,7 +12,7 @@ The standalone canary producer supplies retained evidence through its trusted ch
 
 Add the first current-model release-evidence graph and manual authorization boundary. The graph
 admits exactly one retained local, hermetic-CI, remote-staging, and production-canary Claim Assessment
-receipt for the same byte-identical ExperimentSpec and accepted semantic outcome, authenticates
+receipt for the same byte-identical Plan and accepted semantic outcome, authenticates
 each receipt through a separate signed retention channel, and binds the staging/canary runs to one
 immutable Temporal server release candidate through independently signed build and deployment
 attestations supplied by the existing protected build and deployment authorities.
@@ -77,7 +77,7 @@ cryptography.
 The `tools/umpire/release` Go package is the deep operational verifier. It strictly decodes source sets and signed
 channel records, verifies signatures and role/key validity, recomputes identities and graph closure,
 invokes the fixed Lean release-policy export, constructs release artifacts, and delegates immutable
-publication. It does not execute an ExperimentSpec, interpret evidence, rerun Run Evaluation, mint an
+publication. It does not execute an Plan, interpret evidence, rerun Run Evaluation, mint an
 environment receipt, alter source artifacts, promote, deploy, or call a release workflow.
 
 Existing Claim Assessment receipts and ArtifactSet v2-v6 readers remain closed and byte-for-byte
@@ -109,7 +109,7 @@ build manifest are security bindings. The intended tag is display metadata and c
 for an immutable digest. SBOM absence is an explicit first-policy Known Gap and never inferred as
 present. Unknown repositories, digest algorithms, platforms, fields, or tag-only candidates reject.
 
-The ExperimentSpec is not the deployable candidate. It is the identical semantic evidence subject
+The Plan is not the deployable candidate. It is the identical semantic evidence subject
 across the four environment receipts and is bound to the candidate through source/build identity and
 the signed execution/deployment channel described below.
 
@@ -203,7 +203,7 @@ The first Temporal policy defines exactly one Claim Assessment slot for each pro
 | remote staging | v4 | ArtifactSet v5 | 8 hours | signed retention + deployment attestation |
 | production canary | v5 | ArtifactSet v6 | 2 hours | signed retention + deployment attestation |
 
-All four must bind the same pilot decision, ExperimentSpec identity and bytes, target/query/property
+All four must bind the same pilot decision, Plan identity and bytes, target/query/property
 identities, Limits, and evaluation-outcome identity. Each must retain its own RuntimeConfiguration,
 Run, environment provenance, target, trust, evidence, cleanup, authority, Known Gap, receipt, and set
 identity. Underlying run/source-set/receipt identities must be pairwise distinct; duplicate or
@@ -443,7 +443,7 @@ make umpire-check-regression
 <!-- scope: both -->
 
 Treat the Temporal server OCI image-index digest and source tree as the release candidate; the
-ExperimentSpec identifies what was semantically tested. Require signed build/deployment bindings
+Plan identifies what was semantically tested. Require signed build/deployment bindings
 because fn-28/fn-29 public evidence cannot truthfully identify a deployed image by itself. Keep
 retention signatures outside receipt bytes so prior artifacts remain immutable and their original
 trust claims are not upgraded retroactively.
@@ -464,7 +464,7 @@ rollback integration to a separately reviewed successor.
 
 - **R1:** Domain-neutral ReleaseCandidate, graph, policy, decision, expiry, revocation, and
   authorization types plus one Temporal policy distinguish the immutable server candidate from the
-  ExperimentSpec evidence subject and contain no Temporal/deployment/provider vocabulary in reusable
+  Plan evidence subject and contain no Temporal/deployment/provider vocabulary in reusable
   Umpire. Unknown/duplicate/broadened fields, tag-only identity, wrong digest/platform, or prior-type
   mutation rejects.
 - **R2:** TrustedRetentionManifest v2, ReleaseEvidenceIndex v2, externally provisioned CandidateBuildAttestation v2, two
@@ -475,7 +475,7 @@ rollback integration to a separately reviewed successor.
   unauthenticated, unsupported, wrong-role, or crossed input publishes no graph; authentic stale
   records become held slots and valid revocation facts become rejected/non-authorizing inputs.
 - **R3:** Exactly one local v2/set-v3, CI v3/set-v4, staging v4/set-v5, and canary v5/set-v6 receipt
-  is strictly admitted through signed retention, shares the same pilot/ExperimentSpec/query/property/
+  is strictly admitted through signed retention, shares the same pilot/Plan/query/property/
   Limits/outcome identity, retains distinct environment/run/trust/Known Gap facts, and binds source
   plus remote target intervals to the same candidate. Missing or authentic-stale inputs occupy
   explicit gap/stale slots and yield held; duplicate, aliased, mixed, or contradictory candidate

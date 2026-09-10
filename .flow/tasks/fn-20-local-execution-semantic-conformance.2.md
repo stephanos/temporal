@@ -21,7 +21,7 @@ Implement the fixed Lean side of the private checker bridge and the sole live-ev
 - Register the closed checker identity/version/digest and exactly one caller-closure declaration closure; resolve every request identity against compiled checked values.
 - Decode only the private direct Generated View with the four exact non-path admitted artifact-binding tuples, separate Run/RawEvidence Known Gaps, exact canonical request shape, and Limits; never read a file, manifest, artifact member, environment option, or arbitrary extension.
 - Freeze the fn-19 source schema/version/digest table after that dependency lands and translate its four source kinds into fn-4's typed EvidenceBundle while preserving order, causality, gaps, closure, correlations, and dispositions.
-- Call Task `.1`; then compose its Observation Evaluation/verdict Generated View with the exact compiled ExperimentSpec plan and checked program/mapping/query/Property values to compute fn-18's `evaluationOutcomeChecksum` in the Lean authority.
+- Call Task `.1`; then compose its Observation Evaluation/verdict Generated View with the exact compiled Plan plan and checked program/mapping/query/Property values to compute fn-18's `evaluationOutcomeChecksum` in the Lean authority.
 - Emit mapping/Observation Evaluation-only `observationKnownGaps` and the canonical exact-value union `resultKnownGaps` from request Run Known Gaps, RawEvidence Known Gaps, and semantic Known Gaps; keep unknown/conflict/unsupported distinct from protocol failure.
 - Register `temporal-run-evaluation-checker` and prove stdin/stdout/stderr bytes, exit behavior, request/response N/N+1 Limits, and deterministic repeated checking.
 
@@ -36,12 +36,12 @@ Implement the fixed Lean side of the private checker bridge and the sole live-ev
 ## Acceptance
 - [ ] The checker accepts only the exact compiled caller-closure experiment/program/mapping/query/Property/source closure and exact echoed artifact bindings; every drift rejects deterministically.
 - [ ] Four-source mapping preserves source-local and causal facts; incomplete/ambiguous/conflicting/unsupported/disposition cases receive the correct fn-4 outcome without guessed order.
-- [ ] Accepted-outcome identity includes the compiled ExperimentSpec plan plus every fn-18 stable semantic input and excludes only the specified transport/run fields.
+- [ ] Accepted-outcome identity includes the compiled Plan plan plus every fn-18 stable semantic input and excludes only the specified transport/run fields.
 - [ ] Semantic Known Gaps and the canonical Result Known Gap union follow the parent contract byte-for-byte and preserve upstream auditability through bound artifacts.
 - [ ] The executable performs no filesystem, network, environment-authority, artifact admission/publication, or Temporal runtime operation.
 - [ ] Canonical protocol, 32-MiB N/N+1, and no-stderr deterministic success tests pass.
 ## Done summary
-Implemented the v2 local run-evaluation boundary end to end: bounded canonical protocol input, lossless multi-source/source-local evidence with checked Observation semantics, exact Implementation Link/Feature projection, Lean-owned accepted checksum, and DrivePlan-bound Result checksums. The review redesign also closes every actual source fact/field/type/disposition/digest, preserves known-gap uncertainty, admits valid fn-19 non-success prefixes, and projects every non-accepted status to a fn-18-valid empty incomplete Result.
+Implemented the v2 local run-evaluation boundary end to end: bounded canonical protocol input, lossless multi-source/source-local evidence with checked Observation semantics, exact Implementation Link/Feature projection, Lean-owned accepted checksum, and Plan.Steps-bound Result checksums. The review redesign also closes every actual source fact/field/type/disposition/digest, preserves known-gap uncertainty, admits valid fn-19 non-success prefixes, and projects every non-accepted status to a fn-18-valid empty incomplete Result.
 
 Added the narrow Darwin prerequisite in commit 480138d20 by replacing unsupported `syscall` descriptor operations with existing `x/sys/unix` equivalents. Baseline was red before task edits because task-owned checker/Go/Make targets did not yet exist and `make umpire-check-regression` failed to compile `syscall.Openat`; after the prerequisite, its focused package and full regression passed with physical Darwin temporary paths. The default Darwin `/var` alias still makes the unmodified temp environment fail artifact containment, so final regression evidence records both that inherited environment result and the green physical-path invocation.
 

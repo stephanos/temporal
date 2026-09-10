@@ -52,8 +52,8 @@ Direct and reverse dependencies contain first-party modules only. V1 `publicFaca
 `Temporal.Feature.Nexus`, `Temporal.System`, `Temporal.System.Configuration`,
 `Temporal.Testpilot`, `Testpilot`, `Testpilot.Authoring`, `Testpilot.ProtoJSON`, `Testpilot.Protocol`,
 `Umpire`, `Umpire.Artifact`, `Umpire.Scenario`, `Umpire.Case`, `Umpire.Case.Compiler`, `Umpire.Core`,
-`Umpire.ExecutionHandoff`, `Umpire.Exploration`, `Umpire.ImplementationLink`, `Umpire.Json`,
-`Umpire.KnownGap`, `Umpire.Observation`, `Umpire.OutcomeClassification`, `Umpire.Planning`,
+`Umpire.the deleted execution handoff`, `Umpire.Exploration`, `Umpire.ImplementationLink`, `Umpire.Json`,
+`Umpire.KnownGap`, `Umpire.Observation`, `Umpire.OutcomeClassification`, `Umpire.Search`,
 `Umpire.Promotion`, `Umpire.Property`, `Umpire.Query`, `Umpire.SemanticInventory`, `Umpire.Space`,
 `Umpire.Model`, and `Umpire.Model.Check`.
 
@@ -62,7 +62,7 @@ V1 `focusedTests` roots are exactly `ModelLint.ImportGraphTests`,
 `Temporal.Tool.SemanticInventoryTests`, `TemporalExperimentalTests`, `TemporalModelTests`,
 `Testpilot.Tests`, `Testpilot.Tests.ProtoJSONMain`, `Umpire.Case.ScopedTests`,
 `Umpire.Observation.Tests`, `Umpire.OutcomeClassification.ImportTests`,
-`Umpire.Planning.SemanticsImportTests`, `Umpire.Property.Tests.Scoped`,
+`Umpire.Search.SemanticsImportTests`, `Umpire.Property.Tests.Scoped`,
 `Umpire.Model.CheckImportTests`, and `UmpireTests`. Reachability is reflexive: a configured root
 appears in its own row and in every imported descendant row. These sets are explicit policy, never
 filename heuristics. The 34 facade roots and 15 test roots are module names, not Lake target names;
@@ -169,7 +169,7 @@ state with no semantic authority.
 
 The refresh consumes delivered Testpilot, semantic-only Target, scoped monitoring and neutral outcome
 owners. It retains every originally configured facade that still exists, including
-`Umpire.ExecutionHandoff`; only absent historical roots are removed. Reserved Veil classification
+`Umpire.the deleted execution handoff`; only absent historical roots are removed. Reserved Veil classification
 cases remain even though their former executable roots are absent. Unfinished fn-77 owners are not
 silently added by filename discovery. Root policy changes require explicit reviewed choices.
 
