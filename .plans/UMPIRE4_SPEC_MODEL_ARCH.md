@@ -191,7 +191,7 @@ family maintainer's checked Target through the compiled Property, Behavior, and 
 ```lean
 Property.check (PropertyCheckContext.ofTarget target) property
 Scenario.check (ScenarioCheckContext.ofTarget target) behavior
-checkQuery (.ofTarget target) query
+Query.check (.ofTarget target) query
 ```
 
 This is the implemented typed Lean facade, not a promise of general macro syntax. It preserves the

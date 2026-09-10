@@ -1,4 +1,4 @@
-import Umpire.Query
+import Umpire.Query.Elab
 
 /-! Public-facade visibility regression for Umpire Query. -/
 
@@ -7,15 +7,14 @@ namespace Umpire.QueryTests
 open Umpire
 
 #check QueryCheckContext.ofTarget
-#check QuerySpec
-#check QuerySpec.checked
-#check QueryLimitSpec
+#check Query
+#check Query.check
+#check Query.checked
+#check Query.error?
+#check Limits
+#check Limits.bounded
 #check QueryLocatedError
 #check canonicalQueryLocatedErrorJson
-#check QueryAuthoringInput
-#check QueryAuthoringInput.ofSpec
-#check QueryAuthoringInput.check
-#check QueryAuthoringInput.check?
 #check KnownGap
 #check KnownGapSet
 #check KnownGapSet.empty

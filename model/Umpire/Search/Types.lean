@@ -1,4 +1,4 @@
-import Umpire.Query.Language
+import Umpire.Query.Check
 import Umpire.Property.Evaluate
 
 /-! Result metadata shared by artifact construction and the Planning implementation. -/
@@ -14,7 +14,7 @@ structure ExploredCounts where
 
 structure PlanningCompleteness where
   established : Bool
-  limits : QueryLimits
+  limits : Limits
   finiteEvidenceFingerprints : List BehaviorFingerprint
   deriving BEq, DecidableEq, Repr
 
@@ -45,8 +45,8 @@ structure PlanningValidity where
   searchComplete : Bool := false
   searchTermination : String := "unknown"
   requestedTriggers : List (DefinitionId × DefinitionId) := []
-  endpoint : QueryEndpoint := .final
-  exercise : QueryExercisePolicy := .allowVacuous
+  ending : Query.Ending := .final
+  requireFiring : Bool := false
   queryMetadata : String := ""
   assuranceMethod : String := "checked-finite-enumeration/v1"
   triggers : List PlanningTriggerEvidence := []

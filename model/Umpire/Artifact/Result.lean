@@ -197,7 +197,7 @@ structure ArtifactSemanticClauseVerdict where
   clauseDefinitionId : DefinitionId
   status : String
   coordinates : List ArtifactModelCoordinate
-  queryLimits : QueryLimits
+  queryLimits : Limits
   propertyLimit : Option ArtifactLimit
   evidenceLimit : ArtifactLimit
   provenanceDefinitionIds : List DefinitionId
@@ -211,7 +211,7 @@ structure ArtifactPropertyVerdict where
   propertyBehaviorFingerprint : BehaviorFingerprint
   traceId : Option String
   status : String
-  queryLimits : QueryLimits
+  queryLimits : Limits
   evidenceLimit : Option ArtifactLimit
   provenanceDefinitionIds : List DefinitionId
   clauses : List ArtifactSemanticClauseVerdict
@@ -222,7 +222,7 @@ structure ArtifactPropertyVerdict where
 structure ArtifactQuerySummary where
   queryDefinitionId : DefinitionId
   status : String
-  queryLimits : QueryLimits
+  queryLimits : Limits
   requiredPropertyDefinitionIds : List DefinitionId
   propertyVerdicts : List ArtifactPropertyVerdict
   missingPropertyDefinitionIds : List DefinitionId
@@ -300,9 +300,9 @@ private def optionalArtifactLimitJson (limit : Option ArtifactLimit) : String :=
 private def coreLimitJson (limit : Limit) : String :=
   "{\"value\":" ++ toString limit.value ++ ",\"unit\":" ++ quoteResult limit.unit.name ++ "}"
 
-private def queryLimitsJson (limits : QueryLimits) : String :=
-  "{\"behavior\":{\"transitions\":" ++ coreLimitJson limits.behavior.transitions ++
-    ",\"selectedActions\":" ++ coreLimitJson limits.behavior.selectedActions ++ "}" ++
+private def queryLimitsJson (limits : Limits) : String :=
+  "{\"steps\":" ++ coreLimitJson limits.steps ++
+    ",\"actions\":" ++ coreLimitJson limits.actions ++
     ",\"search\":" ++ coreLimitJson limits.search ++ "}"
 
 private def definitionReferenceJson (reference : ArtifactDefinitionReference) : String :=

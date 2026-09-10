@@ -260,7 +260,7 @@ example : target.requiredCapabilities = [switchCapabilityId] ∧
 
 example : exactActionQuery.completeness.map (fun evidence =>
     (evidence.roleDomainFingerprint, evidence.actionDomainFingerprint)) =
-    (CheckedQueryModel.ofTarget target).completeness.map (fun evidence =>
+    (ModelCompleteness.ofTarget target).completeness.map (fun evidence =>
       (evidence.roleDomainFingerprint, evidence.actionDomainFingerprint)) := by
   native_decide
 

@@ -58,7 +58,7 @@ private def incompatiblePinned : Plan :=
 private def seededSelection (seed : Nat) : Option (List ModelValue) :=
   let query : CheckedQuery Umpire.Examples.Switch.LawStatement := {
     Umpire.Examples.Switch.exploratoryQuery with
-    policy := { strategy := .seeded, seed, tieBreak := .definitionId }
+    policy := { strategy := .seeded, seed }
     behaviorFingerprint := behaviorFingerprintOf ("exploration/seeded-query/" ++ toString seed)
   }
   (search query Umpire.Examples.Switch.incrementalKernel).toOption.bind fun run =>

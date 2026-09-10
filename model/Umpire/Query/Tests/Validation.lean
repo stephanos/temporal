@@ -7,7 +7,7 @@ namespace Umpire.QueryTests
 open Umpire
 
 def checkedFixtureQuery : CheckedQuery (fun _ => True) :=
-  checkedQuery target (declaration (.verify Property.checked) exhaustivePolicy)
+  Query.checked target (declaration (.verify Property.checked) exhaustivePolicy)
     (by native_decide)
 
 /-- Checked Query authoring re-ascribes the dependent target at the language boundary. -/
@@ -16,7 +16,7 @@ example : checkedFixtureQuery.target = target := by
 
 #guard_msgs (error, substring := true) in
 def queryWithoutValidityProof : CheckedQuery (fun _ => True) :=
-  checkedQuery target (declaration (.verify Property.checked) exhaustivePolicy)
+  Query.checked target (declaration (.verify Property.checked) exhaustivePolicy)
 
 private def queryErrorOf
     (result : Except QueryError (CheckedQuery (fun _ => True))) : Option QueryError :=
@@ -37,16 +37,16 @@ def zetaProperty : CheckedProperty := {
 }
 
 def exactAdapterFailures : List (Option QueryError) := [
-  queryErrorOf (checkQuery context {
-    declaration (.witness Property.checked) with id := id "", source := { path := "" }
+  queryErrorOf (Query.check context {
+    declaration (.find Property.checked) with id := id "", source := { path := "" }
   }),
-  queryErrorOf (checkQuery context {
-    declaration (.witness Property.checked) with id := id "query"
+  queryErrorOf (Query.check context {
+    declaration (.find Property.checked) with id := id "query"
   }),
-  queryErrorOf (checkQuery context (declaration
-    (.select [zetaProperty, alphaProperty, zetaProperty, alphaProperty]))),
-  queryErrorOf (checkQuery context {
-    declaration (.witness Property.checked) with target := id "zeta.target.mismatch"
+  queryErrorOf (Query.check context (declaration
+    (.pick [zetaProperty, alphaProperty, zetaProperty, alphaProperty]))),
+  queryErrorOf (Query.check context {
+    declaration (.find Property.checked) with target := id "zeta.target.mismatch"
   })
 ]
 
@@ -84,26 +84,22 @@ example : exactAdapterFailures = [
   native_decide
 
 /-- Canonical Query diagnostics retain field order and canonical related-ID order. -/
-example : queryErrorJsonOf (checkQuery context {
-    declaration (.witness Property.checked) with target := id "zeta.target.mismatch"
+example : queryErrorJsonOf (Query.check context {
+    declaration (.find Property.checked) with target := id "zeta.target.mismatch"
   }) = some ("{\"kind\":\"target-mismatch\",\"definitionId\":" ++
     "\"query.declaration.fixture\",\"sourcePath\":\"Umpire/Query/Tests.lean\"," ++
     "\"offendingValue\":\"zeta.target.mismatch != query.target.fixture\"," ++
     "\"relatedDefinitionIds\":[\"query.target.fixture\",\"zeta.target.mismatch\"]}") := by
   native_decide
 
-def invalidLimits : QueryLimits := {
-  limits with behavior := {
-    limits.behavior with transitions := { value := 0, unit := .steps }
-  }
-}
+def invalidLimits : Limits := { limits with steps := { value := 0, unit := .steps } }
 
 /-! Invalid limits and unsupported verify strategies retain distinct deterministic failures. -/
 example : [
-    errorKindOf (checkQuery context {
-      declaration (.witness Property.checked) with limits := invalidLimits
+    errorKindOf (Query.check context {
+      declaration (.find Property.checked) with limits := invalidLimits
     }),
-    errorKindOf (checkQuery context (declaration (.verify Property.checked)))
+    errorKindOf (Query.check context (declaration (.verify Property.checked)))
   ] = [some .invalidLimit, some .incompatibleStrategy] := by
   native_decide
 
@@ -127,8 +123,8 @@ def invalidExactBehavior : CheckedScenario := {
 }
 
 /-! Structural exactness is insufficient: the selected kernel must admit the complete step. -/
-example : errorKindOf (checkQuery context
-    (declaration (.select [Property.checked]) searchPolicy invalidExactBehavior)) =
+example : errorKindOf (Query.check context
+    (declaration (.pick [Property.checked]) searchPolicy invalidExactBehavior)) =
       some .targetKernelMismatch := by
   native_decide
 

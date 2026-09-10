@@ -59,7 +59,7 @@ structure Plan.Steps where
   selectedVariants : List ModelValue
   requestedFaults : List ModelValue
   capabilityRequirementDefinitionIds : List DefinitionId
-  expandedLimits : QueryLimits
+  expandedLimits : Limits
   checkpoints : List ObservationCheckpoint
   selectionReason : SelectionReason
   explored : ExploredCounts

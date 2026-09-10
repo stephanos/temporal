@@ -113,7 +113,7 @@ private def guardedRunEvaluationResult : Option
     (PropertyCheckContext.ofTarget Umpire.Examples.Switch.target)
     (guardedSwitchPropertyDeclaration)).toOption
   let query := {
-    Umpire.Examples.Switch.exploratoryQuery with form := .select [property]
+    Umpire.Examples.Switch.exploratoryQuery with form := .pick [property]
   }
   let evaluation := checkRunEvaluation observationPlan repeatedEvidence checkedLink
     Umpire.Examples.Switch.switchSetup query [property]
@@ -132,7 +132,7 @@ private def guardedTemporalRunEvaluationResult : Option
     (PropertyCheckContext.ofTarget Umpire.Examples.Switch.target)
     (guardedTemporalSwitchPropertyDeclaration)).toOption
   let query := {
-    Umpire.Examples.Switch.exploratoryQuery with form := .select [property]
+    Umpire.Examples.Switch.exploratoryQuery with form := .pick [property]
   }
   let evaluation := checkRunEvaluation observationPlan repeatedEvidence checkedLink
     Umpire.Examples.Switch.switchSetup query [property]
@@ -262,11 +262,11 @@ def logicalTimeProperty : CheckedProperty :=
     (logicalTimePropertyDeclaration)).toOption.get (by native_decide)
 
 def logicalTimeQuery : CheckedQuery Umpire.Examples.Switch.LawStatement :=
-  (checkQuery (QueryCheckContext.ofTarget Umpire.Examples.Switch.target) {
+  (Query.check (QueryCheckContext.ofTarget Umpire.Examples.Switch.target) {
     id := DefinitionId.of "test.run-evaluation.query.logical-time"
     source := Umpire.Examples.Switch.source
     target := Umpire.Examples.Switch.target.id
-    form := .select [logicalTimeProperty]
+    form := .pick [logicalTimeProperty]
     behavior := Umpire.Examples.Switch.exploratoryQuery.behavior
     limits := Umpire.Examples.Switch.exploratoryQuery.limits
     policy := Umpire.Examples.Switch.exploratoryQuery.policy
@@ -311,11 +311,11 @@ def otherTargetProperty : CheckedProperty :=
     (Umpire.Examples.Switch.authoredProperty)).toOption.get (by native_decide)
 
 def otherTargetQuery : CheckedQuery Umpire.Examples.Switch.LawStatement :=
-  (checkQuery (QueryCheckContext.ofTarget otherTarget) {
+  (Query.check (QueryCheckContext.ofTarget otherTarget) {
     id := DefinitionId.of "test.run-evaluation.query.other-target"
     source := Umpire.Examples.Switch.source
     target := otherTarget.id
-    form := .select [otherTargetProperty]
+    form := .pick [otherTargetProperty]
     behavior := Umpire.Examples.Switch.exploratoryQuery.behavior
     limits := Umpire.Examples.Switch.exploratoryQuery.limits
     policy := Umpire.Examples.Switch.exploratoryQuery.policy
@@ -364,7 +364,7 @@ def initialOffProperty : CheckedProperty :=
 
 def twoPropertyQuery : CheckedQuery Umpire.Examples.Switch.LawStatement := {
   Umpire.Examples.Switch.exploratoryQuery with
-  form := .select [Umpire.Examples.Switch.flipProperty, initialOffProperty]
+  form := .pick [Umpire.Examples.Switch.flipProperty, initialOffProperty]
 }
 
 def orderedRunEvaluation (properties : List CheckedProperty) :=

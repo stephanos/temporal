@@ -20,7 +20,7 @@ Read and build these files in order:
    exact residual differences from the deferred ordinary-authoring specification.
 
 The authoring sequence is `FiniteTable.validate` / `checkModel`, then `Property.check`,
-`Scenario.check`, and `QuerySpec.check`, followed by planning with
+`Scenario.check`, and `Query.check`, followed by planning with
 `SearchView.ofCheckedQuery`. Raw declarations remain available for negative tests.
 A checked value exists only on the successful checker branch; the frontend alternatives do not
 create kernel-checked constants automatically.
@@ -49,7 +49,7 @@ mismatch, resulting-state guards, unsupported roles/operators, empty Boolean/cas
 invalid and omitted units, and duplicate Query Properties. Parent, case, exception, clause, setup,
 occurrence, Action, Target, Property, Behavior, Limits, and policy roles are retained where relevant.
 The omitted-unit case is a Lean structure-construction diagnostic because every raw `Limit` requires
-its unit; `QueryLimitSpec` avoids that omission by mapping its three named fields to fixed units.
+its unit; `Limits` avoids that omission by mapping its three named fields to fixed units.
 
 Contradictory setup bindings are valid Behavior input with an explicit `unsatisfiable` space status;
 the frontend test freezes that status instead of inventing an error. Contradictory reachable Property
@@ -60,7 +60,7 @@ in a trigger or exception remain rejected by the existing Property checker.
 For terms containing local variables, compiler evaluation is skipped and the frontend returns the
 ordinary typed checker expression. Invalid open-term Behavior and Query fixtures evaluate to their
 typed error variants and cannot produce a partial checked value. The successful-branch Query form
-accepts `Option (QueryAuthoringInput LawStatement)`: outer `none` means prerequisite Target/Property/
+accepts one authored `Query` and the Model it asks it of: a failing prerequisite Target/Property/
 Behavior construction did not produce an input, while `some (.error error)` is the Query checker's
 typed rejection. Closed diagnostic fixtures always use the latter path.
 
@@ -86,7 +86,7 @@ to the enumerated finite space and declared Limits; `limit-reached` is inconclus
 
 ## Admission trust experiment
 
-`Property.checked`, `Scenario.checked`, and `QuerySpec.checked` expose explicit-proof
+`Property.checked`, `Scenario.checked`, and `Query.checked` expose explicit-proof
 seams. The prototype attempted kernel success proofs through `rfl`, `decide`, and `decide +kernel`.
 Property still fails for both the full baseline and a minimal closed declaration, including an
 owner-local probe where private helpers were visible. The actual guarded Behavior and the explicit
@@ -159,7 +159,7 @@ and `constructorOneQuery`/`frontendOneQuery`:
 | Recovery | Six incomplete constructor/frontend names first produced six unknown-identifier errors | Replacing all six names in document version 2 cleared every error |
 
 A separate owner-API completion probe returned `declaration`, `check`, `checked`, and `error?` for
-both `Scenario.` and `QuerySpec.`. Compiler recovery was also observed in the fixture
+both `Scenario.` and `Query.`. Compiler recovery was also observed in the fixture
 module: exact negative declarations did not prevent later positive declarations and axiom audits
 from elaborating. No VS Code, Neovim, or Lean editor client was installed, so rendered client UI,
 completion ranking, navigation gestures, and interactive latency remain unmeasured. Human

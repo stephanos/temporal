@@ -1,29 +1,23 @@
 import Umpire.Query.Tests.Fixtures
 
-/-! Quantifier and claim checks for every public Query form. -/
+/-! Form identity checks for every public Query form. -/
 
 namespace Umpire.QueryTests
 
 open Umpire
 
 def summaryOf
-    (result : Except QueryError (CheckedQuery (fun _ => True))) :
-    Option (QueryQuantifier × QueryClaim) :=
-  result.toOption.map fun query => (query.quantifier, query.claim)
+    (result : Except QueryError (CheckedQuery (fun _ => True))) : Option String :=
+  result.toOption.map fun query => query.form.name
 
-/-! Every public form fixes its quantifier and claim before planning. -/
+/-! Every public form carries its own canonical name into the checked Query. -/
 example : [
-    summaryOf (checkQuery exhaustiveContext
+    summaryOf (Query.check exhaustiveContext
       (declaration (.verify Property.checked) exhaustivePolicy)),
-    summaryOf (checkQuery context (declaration (.witness Property.checked))),
-    summaryOf (checkQuery context (declaration (.counterexample Property.checked))),
-    summaryOf (checkQuery context (declaration (.select [Property.checked])))
-  ] = [
-    some (.universal, .verifiedWithinLimits),
-    some (.existential, .satisfyingWitness),
-    some (.existential, .violatingCounterexample),
-    some (.exploratory, .limitedSelection)
-  ] := by
+    summaryOf (Query.check context (declaration (.find Property.checked))),
+    summaryOf (Query.check context (declaration (.findViolation Property.checked))),
+    summaryOf (Query.check context (declaration (.pick [Property.checked])))
+  ] = [some "verify", some "find", some "find-violation", some "pick"] := by
   native_decide
 
 end Umpire.QueryTests

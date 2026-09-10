@@ -263,7 +263,7 @@ def behavior : CheckedScenario := {
   behaviorFingerprint := behaviorFingerprintOf "behavior/v1"
 }
 
-def limits (budget : Nat := 10) : QueryLimits := QueryLimits.bounded 1 1 budget
+def limits (budget : Nat := 10) : Limits := Limits.bounded 1 1 budget
 
 def policy (strategy : SearchStrategy) (seed : Nat := 17) : PlannerPolicy :=
   match strategy with
@@ -273,12 +273,11 @@ def policy (strategy : SearchStrategy) (seed : Nat := 17) : PlannerPolicy :=
   | .breadthFirst => {
       strategy
       seed
-      tieBreak := .definitionId
     }
 
-def checkedQuery
+def fixtureQuery
     (width : Nat)
-    (form : QueryForm)
+    (form : Query.Form)
     (strategy : SearchStrategy)
     (budget : Nat := 10)
     (seed : Nat := 17)
@@ -288,15 +287,13 @@ def checkedQuery
   source
   version := 1
   form
-  quantifier := form.quantifier
-  claim := form.claim
   behavior := selectedBehavior
   target := target width
   limits := limits budget
   policy := policy strategy seed
   modelProviders := []
   completeness := if withCompleteness then
-    (CheckedQueryModel.ofTarget (target width)).completeness
+    (ModelCompleteness.ofTarget (target width)).completeness
   else
     none
   documentation := "query documentation"
@@ -307,25 +304,25 @@ def checkedQuery
 }
 
 def orderedQuery (width : Nat) : CheckedQuery (fun _ => True) :=
-  checkedQuery width (.witness property) .shortest
+  fixtureQuery width (.find property) .shortest
 
 def incrementalKernel? (width : Nat) : Option (SearchView (target width)) :=
   SearchView.ofCheckedQuery? (orderedQuery width)
     (by
       intro evidence evidenceEq
-      simp [orderedQuery, checkedQuery, policy, CheckedQueryModel.ofTarget, target,
+      simp [orderedQuery, fixtureQuery, policy, ModelCompleteness.ofTarget, target,
         CheckedModel.withEquivalentMachine, baseTarget, model, targetAuthoring,
         DraftModel.make, modelSpec, finitePlanning] at evidenceEq
       cases Option.some.inj evidenceEq
       simp)
     (by
       intro _ _ candidate
-      simp only [orderedQuery, checkedQuery, policy, target, CheckedModel.withEquivalentMachine,
+      simp only [orderedQuery, fixtureQuery, policy, target, CheckedModel.withEquivalentMachine,
         baseTarget, model, targetAuthoring, DraftModel.make, modelSpec, kernel]
       split <;> simp)
     (by
       intro _ _ state action
-      simp only [orderedQuery, checkedQuery, policy, target, CheckedModel.withEquivalentMachine,
+      simp only [orderedQuery, fixtureQuery, policy, target, CheckedModel.withEquivalentMachine,
         baseTarget, model, targetAuthoring, DraftModel.make, modelSpec, kernel]
       split
       · rw [List.pairwise_iff_getElem]
@@ -342,13 +339,13 @@ def incrementalKernel (width : Nat) : SearchView (target width) :=
 
 def run
     (width : Nat)
-    (form : QueryForm)
+    (form : Query.Form)
     (strategy : SearchStrategy)
     (budget : Nat := 10)
     (seed : Nat := 17)
     (withCompleteness : Bool := true)
     (selectedBehavior : CheckedScenario := behavior) : Except KnownGapError PlanResult :=
-  search (checkedQuery width form strategy budget seed withCompleteness selectedBehavior)
+  search (fixtureQuery width form strategy budget seed withCompleteness selectedBehavior)
     (incrementalKernel width)
 
 end Umpire.SearchTests
