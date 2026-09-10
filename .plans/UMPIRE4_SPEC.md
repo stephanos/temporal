@@ -159,10 +159,10 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   import `Temporal.System.*`. Once optional verification exists, imports of it are allowed only for
   the consumers MOD-05 lists.
 - **MOD-05 — Verification isolation.** First-party (repository-owned) Lean modules MUST NOT directly
-  or transitively import `Temporal.Verify` or `Umpire.Verify.Veil` unless they are one of the
-  declared opt-in consumers. No such module exists in the tree, so `ModelLint` reserves nothing for
-  them; the reservation returns with the modules.
-  *(planned: fn-24-lean-native-verification-receipts-and)*
+  or transitively import an optional verification module unless they are one of its declared opt-in
+  consumers. No such module exists in the tree, so `ModelLint` reserves nothing for them; the
+  reservation returns with the modules. The two names are defined under "Verification and claim
+  concepts", each with its own owner.
 - **MOD-09 — `Shared` independence.** `Shared.*` MUST NOT directly or transitively import `Umpire.*`
   or `Temporal.*`.
 - **MOD-10 — `Temporal.System` isolation.** `Temporal.System.*` MUST NOT directly or transitively

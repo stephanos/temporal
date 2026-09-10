@@ -3,7 +3,6 @@ package vocabulary_test
 import (
 	"os"
 	"path/filepath"
-	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -39,12 +38,4 @@ func TestUmpireSpecNamesResolveAgainstTheModelTree(t *testing.T) {
 		index, names, "UMPIRE4_SPEC.md", filepath.Join(repositoryRoot, ".flow", "specs"))
 	require.NoError(t, err)
 	require.Empty(t, unresolved)
-}
-
-func checkoutRoot(t *testing.T) string {
-	t.Helper()
-
-	_, currentFile, _, ok := runtime.Caller(0)
-	require.True(t, ok)
-	return filepath.Clean(filepath.Join(filepath.Dir(currentFile), "..", "..", ".."))
 }

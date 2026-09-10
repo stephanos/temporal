@@ -126,3 +126,20 @@ func TestBuildIgnoresLeanInsideBlockComments(t *testing.T) {
 	require.True(t, index.Resolve("Umpire.afterComment"))
 	require.False(t, index.Resolve("afterComment"))
 }
+
+func TestBuildCountsCommentDelimitersOutsideStringsOnly(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	writeLean(t, root, "Umpire/Settings.lean", "namespace Umpire\n\n"+
+		"def tolerance : String := \"within +/-10% of the target\"\n"+
+		"def afterLiteral := 1 -- a trailing /- never opens a comment\n"+
+		"def afterComment := 2\n\n"+
+		"end Umpire\n")
+
+	index, err := leannames.Build(root)
+	require.NoError(t, err)
+	for _, name := range []string{"Umpire.tolerance", "Umpire.afterLiteral", "Umpire.afterComment"} {
+		require.True(t, index.Resolve(name), "expected %s to resolve", name)
+	}
+}
