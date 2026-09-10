@@ -284,9 +284,9 @@ def oneStepTrace : ModelTrace Bool Bool Bool Bool := {
   initialState := false
   steps := [{
     selectedAction := true
-    modelOutcome := true
-    resultingState := true
-    observations := [false]
+    outcome := true
+    state := true
+    facts := [false]
   }]
 }
 
@@ -298,7 +298,7 @@ def baseKernelMorphism : KernelMorphism Unit Bool Bool Bool Bool Unit Bool Bool 
   mapObservation := fun value => value
 }
 
-def mappedOneStepResult := baseKernelMorphism.mapTransitionResult (transition false true)
+def mappedOneStepResult := baseKernelMorphism.mapStep (transition false true)
 
 /-- Kernel morphisms reuse Core transition-result mapping and preserve step/trace structure. -/
 example :
@@ -314,7 +314,7 @@ def baseForwardSimulation : ForwardSimulation checkedSourceTarget.kernel
     intro _ _ result admitted
     cases result
     simpa [baseKernelMorphism, checkedDestinationTarget,
-      KernelMorphism.mapTransitionResult, TransitionResult.map] using admitted
+      KernelMorphism.mapStep, Step.map] using admitted
 }
 
 /-- Forward simulation derives destination trace authority through the shared morphism. -/

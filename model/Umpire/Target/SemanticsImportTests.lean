@@ -13,7 +13,7 @@ example (target : CheckedTarget LawStatement Setup State Action Outcome Observat
 
 example (target : CheckedTarget LawStatement Setup State Action Outcome Observation)
     (capability : FinitePlanningCapability target.kernel.authoritativeStep)
-    (state : State) (action : Action) (result : TransitionResult State Outcome Observation)
+    (state : State) (action : Action) (result : Step State Outcome Observation)
     (step : target.kernel.authoritativeStep state action result) : action ∈ capability.actions :=
   capability.actionComplete state action result step
 

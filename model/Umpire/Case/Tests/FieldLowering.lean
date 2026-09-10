@@ -67,11 +67,11 @@ private def state := value "test.state" "ready"
 private def trigger := value "test.trigger" "request"
 private def replied := value "test.reply" "reply"
 private def responded := value "test.outcome" "response"
-private def result (outcome : ModelValue) : TransitionResult ModelValue ModelValue ModelValue :=
-  { resultingState := state, modelOutcome := outcome, observations := [] }
+private def result (outcome : ModelValue) : Step ModelValue ModelValue ModelValue :=
+  { state := state, outcome := outcome, facts := [] }
 
 private def kinds : List (String × DefinitionKind) := [
-  ("test.target", .target), ("test.kernel", .kernel), ("test.provider", .provider),
+  ("test.target", .target), ("test.kernel", .machine), ("test.provider", .provider),
   ("test.capability", .capability), ("test.state", .state), ("test.trigger", .action),
   ("test.reply", .action), ("test.accepted", .outcome), ("test.outcome", .outcome)]
 private def definitions : List DefinitionMetadata := kinds.map fun (name, kind) =>

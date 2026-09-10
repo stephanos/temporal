@@ -66,13 +66,13 @@ inductive SparseOutcome where
   deriving BEq, DecidableEq, Repr
 
 def sparseTransition
-    (state action : Bool) : TransitionResult Bool SparseOutcome Bool := {
-  modelOutcome := if action then .on else .off
-  resultingState := action
-  observations := [state]
+    (state action : Bool) : Step Bool SparseOutcome Bool := {
+  outcome := if action then .on else .off
+  state := action
+  facts := [state]
 }
 
-def sparseOutcomeKernel : TransitionKernel Unit Bool Bool SparseOutcome Bool := {
+def sparseOutcomeKernel : Machine Unit Bool Bool SparseOutcome Bool := {
   metadata := testKernel.metadata
   setupDomain := fun _ => True
   stateDomain := fun _ => True
@@ -117,7 +117,7 @@ def sparseOutcomeKernel : TransitionKernel Unit Bool Bool SparseOutcome Bool := 
     actionCoverage := by intro state action result member; cases action <;> simp
     resultingStateCoverage := by
       intro state action result member
-      cases result.resultingState <;> simp
+      cases result.state <;> simp
     outcomeCoverage := by
       intro state action result member
       simp [sparseTransition] at member
@@ -231,8 +231,8 @@ def baseWitness : ImplementationLinkWitness baseDeclaration checkedSourceTarget
     stepForward := by
       intro state action result admitted
       cases result
-      simpa [checkedDestinationTarget, KernelMorphism.mapTransitionResult,
-        TransitionResult.map] using admitted
+      simpa [checkedDestinationTarget, KernelMorphism.mapStep,
+        Step.map] using admitted
   }
   requiredCoverage := baseCoverage
 }
@@ -248,8 +248,8 @@ def alternateProofWitness : ImplementationLinkWitness baseDeclaration checkedSou
     stepForward := by
       intro state action result admitted
       cases result
-      simpa [baseWitness, checkedDestinationTarget, KernelMorphism.mapTransitionResult,
-        TransitionResult.map] using admitted
+      simpa [baseWitness, checkedDestinationTarget, KernelMorphism.mapStep,
+        Step.map] using admitted
   }
 }
 
@@ -303,8 +303,8 @@ def reorderedWitness : ImplementationLinkWitness reorderedDeclaration checkedSou
     stepForward := by
       intro state action result admitted
       cases result
-      simpa [checkedDestinationTarget, KernelMorphism.mapTransitionResult,
-        TransitionResult.map] using admitted
+      simpa [checkedDestinationTarget, KernelMorphism.mapStep,
+        Step.map] using admitted
   }
   requiredCoverage := reorderedCoverage
 }

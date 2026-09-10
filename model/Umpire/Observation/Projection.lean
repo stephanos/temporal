@@ -23,7 +23,7 @@ structure Checked (target : CheckedTarget Law Setup State Action Outcome Fact) w
   private declaration : Declaration State Action Outcome Fact
   private initial : State
   private machine : Shared.ScopedProjection.Plan DefinitionId State Action
-    (TransitionResult State Outcome Fact)
+    (Step State Outcome Fact)
   private tableSound : ∀ row ∈ machine.transitions,
     target.kernel.authoritativeStep row.1 row.2.1 row.2.2
   private limitsMatch : machine.limits = declaration.limits
@@ -59,7 +59,7 @@ structure Step (target : CheckedTarget Law Setup State Action Outcome Fact) wher
   operation : String
   priorState : State
   action : Action
-  result : TransitionResult State Outcome Fact
+  result : Umpire.Step State Outcome Fact
   directSupport : List Identity
   support : List Identity
   directRunSequences : List Nat
@@ -85,8 +85,8 @@ private def meaningJson
   | .confirmed required steps => array [quote "confirmed",
       match required with | none => "null" | some value => quote (action value),
       array (steps.map fun (selected, result) => array [quote (action selected),
-        quote (state result.resultingState), quote (outcome result.modelOutcome),
-        array (result.observations.map (quote ∘ fact))])]
+        quote (state result.state), quote (outcome result.outcome),
+        array (result.facts.map (quote ∘ fact))])]
 
 /-- Validate declarations before allocating Run state; no semantic result is inferred from submission. -/
 def check [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
@@ -149,7 +149,7 @@ def check [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
     array ([limits.events, limits.buffered, limits.keys, limits.support, limits.work,
       limits.eventSize].map toString)]
   let machine : Shared.ScopedProjection.Plan DefinitionId State Action
-      (TransitionResult State Outcome Fact) := {
+      (Umpire.Step State Outcome Fact) := {
     initial
     rules := declaration.rules.map fun rule => ⟨rule.kind, rule.fields.length, rule.meaning⟩
     transitions := domain.states.flatMap fun prior => domain.actions.flatMap fun action =>
@@ -238,7 +238,7 @@ def Run.admit [DecidableEq State] [DecidableEq Action] [DecidableEq Outcome] [De
     (run : Run plan) (event : Event) : Except Error (Run plan × Progress (Step target)) := do
   if run.isClosed then throw .closed
   plan.validateEvent run.payload.scope event
-  let payload ← run.payload.admit DefinitionId.value (·.resultingState) eventSize event
+  let payload ← run.payload.admit DefinitionId.value (·.state) eventSize event
   let emissions := (payload.steps.drop run.payload.steps.length).map (checkedStep payload.scope)
   let pending := payload.pending
   let progress := match emissions with

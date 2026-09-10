@@ -11,7 +11,7 @@ evidence that their emitted values stay in the declared domains; Target derives 
 membership relations, exhaustive-domain plumbing, kernel, and finite planning capability.
 -/
 structure FiniteMachine (Setup State Action Outcome Observation : Type) where
-  metadata : KernelMetadata
+  metadata : MachineMetadata
   setups : List Setup
   states : List State
   actions : List Action
@@ -23,18 +23,18 @@ structure FiniteMachine (Setup State Action Outcome Observation : Type) where
   encodeOutcome : Outcome → String
   encodeObservation : Observation → String
   initialStates : Setup → List State
-  steps : State → Action → List (TransitionResult State Outcome Observation)
+  steps : State → Action → List (Step State Outcome Observation)
   setupCoverage : ∀ setup state, state ∈ initialStates setup → setup ∈ setups
   initialStateCoverage : ∀ setup state, state ∈ initialStates setup → state ∈ states
   transitionSourceCoverage : ∀ state action result,
     result ∈ steps state action → state ∈ states
   actionCoverage : ∀ state action result, result ∈ steps state action → action ∈ actions
   resultingStateCoverage : ∀ state action result,
-    result ∈ steps state action → result.resultingState ∈ states
+    result ∈ steps state action → result.state ∈ states
   outcomeCoverage : ∀ state action result,
-    result ∈ steps state action → result.modelOutcome ∈ outcomes
+    result ∈ steps state action → result.outcome ∈ outcomes
   observationCoverage : ∀ state action result value,
-    result ∈ steps state action → value ∈ result.observations → value ∈ observations
+    result ∈ steps state action → value ∈ result.facts → value ∈ observations
   actionExecutable : ∀ action, action ∈ actions →
     ∃ state result, result ∈ steps state action
 
@@ -45,7 +45,7 @@ structure FiniteTargetDefinition where
   source : SourceLocation
   definitions : List DefinitionMetadata
   requiredCapabilities : List DefinitionId
-  metadata : KernelMetadata
+  metadata : MachineMetadata
 
 /-- Finite admission keeps structural table failures separate from semantic Target failures. -/
 inductive FiniteTargetAdmissionError where
@@ -70,7 +70,7 @@ namespace FiniteMachine
 /-- Derive the complete membership-based transition kernel represented by the descriptor. -/
 def kernel
     (machine : FiniteMachine Setup State Action Outcome Observation) :
-    TransitionKernel Setup State Action Outcome Observation := {
+    Machine Setup State Action Outcome Observation := {
   metadata := machine.metadata
   setupDomain := fun setup => setup ∈ machine.setups
   stateDomain := fun state => state ∈ machine.states
@@ -117,9 +117,9 @@ def kernel
 }
 
 /-- The checked-kernel input consumed by ordinary Target definitions. -/
-def kernelAvailability
+def machineAvailability
     (machine : FiniteMachine Setup State Action Outcome Observation) :
-    KernelAvailability Setup State Action Outcome Observation :=
+    MachineAvailability Setup State Action Outcome Observation :=
   .checked machine.kernel
 
 /-- Derive finite planning from the same ordered action list and exact kernel relation. -/
@@ -134,14 +134,14 @@ def planning
 /-- The dependent planning input consumed by `AuthoredTarget.make`. -/
 def authoredPlanning
     (machine : FiniteMachine Setup State Action Outcome Observation) :
-    AuthoredPlanningCapability machine.kernelAvailability :=
+    AuthoredPlanningCapability machine.machineAvailability :=
   .available machine.kernel rfl machine.planning
 
 /-- Assemble ordinary Target metadata around the finite machine's exact setup list and checked
 kernel. The machine remains the evidence boundary: authors still provide every domain, encoder,
 enumerator, closure proof, and executable-action proof when constructing it.
 
-This constructor calls only `kernelAvailability` (which calls `kernel`) and projects `setups`; both
+This constructor calls only `machineAvailability` (which calls `kernel`) and projects `setups`; both
 functions assemble records without traversal, normalization, validation, or scanning. One
 invocation therefore adds one record assembly regardless of domain size, and 1×/10× independent
 declaration sets add exactly 1×/10× assemblies. -/
@@ -157,13 +157,13 @@ def targetDefinition
   definitions
   requiredCapabilities
   resolvedSetups := machine.setups
-  kernel := machine.kernelAvailability
+  kernel := machine.machineAvailability
 }
 
 /-- Assemble an authored Target with explicit composition and occurrence inputs, while deriving the
 dependent planning witness from the same finite machine. This calls `targetDefinition`,
 `AuthoredTarget.make`, and `authoredPlanning`; transitively, `authoredPlanning` calls
-`kernelAvailability`, `kernel`, and `planning`. Every call only assembles records or projects the
+`machineAvailability`, `kernel`, and `planning`. Every call only assembles records or projects the
 machine's existing values. The constructor adds no list traversal, normalization, validation, or
 nested scan, and does not run `checkTarget`. One call adds one authored assembly per declaration, so
 1×/10× independent declaration sets add exactly 1×/10× assemblies before unchanged checker work. -/
@@ -215,7 +215,7 @@ def authoredTarget
 
 @[simp] theorem kernel_authoritativeStep_iff
     (machine : FiniteMachine Setup State Action Outcome Observation)
-    (state : State) (action : Action) (result : TransitionResult State Outcome Observation) :
+    (state : State) (action : Action) (result : Step State Outcome Observation) :
     machine.kernel.authoritativeStep state action result ↔
       result ∈ machine.steps state action :=
   Iff.rfl
@@ -233,7 +233,7 @@ private def initialStates [DecidableEq Setup]
 
 private def steps [DecidableEq State] [DecidableEq Action]
     (table : FiniteTable Setup State Action Outcome Observation)
-    (state : State) (action : Action) : List (TransitionResult State Outcome Observation) :=
+    (state : State) (action : Action) : List (Step State Outcome Observation) :=
   table.transitions.flatMap fun row =>
     if row.source = state ∧ row.action = action then row.results else []
 
@@ -241,7 +241,7 @@ private def steps [DecidableEq State] [DecidableEq Action]
 def machine [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
     [DecidableEq Outcome] [DecidableEq Observation]
     (validated : ValidatedFiniteTable Setup State Action Outcome Observation)
-    (metadata : KernelMetadata) : FiniteMachine Setup State Action Outcome Observation := {
+    (metadata : MachineMetadata) : FiniteMachine Setup State Action Outcome Observation := {
   metadata
   setups := validated.table.setups.values
   states := validated.table.states.values
@@ -340,7 +340,7 @@ def authoredTarget [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
     requiredCapabilities := definition.requiredCapabilities
     resolvedSetups := machine.setups
     terminalConditions := validated.table.terminalConditions
-    kernel := machine.kernelAvailability
+    kernel := machine.machineAvailability
   } composition machine.authoredPlanning
 
 end ValidatedFiniteTable
@@ -376,13 +376,13 @@ private def modelResult
     [DecidableEq State] [DecidableEq Outcome] [DecidableEq Fact]
     (table : FiniteTable Setup State Action Outcome Fact)
     (identity : FiniteModelIdentity Setup State Action Outcome Fact)
-    (result : TransitionResult State Outcome Fact) :
-    Except FiniteTableError (TransitionResult ModelValue ModelValue ModelValue) := do
-  let resultingState ← modelValue table.states identity.stateId .resultState result.resultingState
-  let modelOutcome ← modelValue table.outcomes identity.outcomeId .outcome result.modelOutcome
-  let observations ← result.observations.mapM fun fact =>
+    (result : Step State Outcome Fact) :
+    Except FiniteTableError (Step ModelValue ModelValue ModelValue) := do
+  let state ← modelValue table.states identity.stateId .resultState result.state
+  let outcome ← modelValue table.outcomes identity.outcomeId .outcome result.outcome
+  let facts ← result.facts.mapM fun fact =>
     modelValue table.facts identity.factId .fact fact
-  pure { resultingState, modelOutcome, observations }
+  pure { state, outcome, facts }
 
 private def modelTable
     [DecidableEq State] [DecidableEq Action]

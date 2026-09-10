@@ -37,13 +37,13 @@ def witness
   proof
 }
 
-def transition (state action : Bool) : TransitionResult Bool Bool Bool := {
-  modelOutcome := action
-  resultingState := action
-  observations := [state]
+def transition (state action : Bool) : Step Bool Bool Bool := {
+  outcome := action
+  state := action
+  facts := [state]
 }
 
-def testKernel : TransitionKernel Unit Bool Bool Bool Bool := {
+def testKernel : Machine Unit Bool Bool Bool Bool := {
   metadata := {
     id := id "test.kernel.transition"
     source := source "Umpire/TargetTests.lean"
@@ -88,8 +88,8 @@ def testKernel : TransitionKernel Unit Bool Bool Bool Bool := {
     actionCoverage := by intro state action result member; cases action <;> simp
     resultingStateCoverage := by
       intro state action result member
-      cases result.resultingState <;> simp
-    outcomeCoverage := by intro state action result member; cases result.modelOutcome <;> simp
+      cases result.state <;> simp
+    outcomeCoverage := by intro state action result member; cases result.outcome <;> simp
     observationCoverage := by
       intro state action result value member observationMember
       cases value <;> simp
@@ -144,7 +144,7 @@ def ownershipConnector : CapabilityConnector TestLawStatement := {
 
 def testDefinitions : List DefinitionMetadata := [
   metadata "test.target.composed" .target,
-  metadata "test.kernel.transition" .kernel,
+  metadata "test.kernel.transition" .machine,
   metadata "test.capability.primary" .capability,
   metadata "test.capability.secondary" .capability,
   metadata "test.provider.primary" .provider,
@@ -154,7 +154,7 @@ def testDefinitions : List DefinitionMetadata := [
   metadata "test.connector.shared" .connector,
   metadata "test.relation.shared" .relation,
   metadata "test.action.request" .action,
-  metadata "test.observation.completed" .observation
+  metadata "test.observation.completed" .fact
 ]
 
 def testTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {

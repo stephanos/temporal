@@ -30,7 +30,7 @@ def propertySpec : PropertySpec := {
   key := "async-start"
   source
   requires := [lifecycleCapabilityId]
-  clauses := Internal.operationTransitionResultClauses "async-start"
+  clauses := Internal.operationStepClauses "async-start"
     startAction startedState startedOutcome startedObservation
   documentation := "Starting a scheduled Nexus operation produces the target-owned started result."
 }

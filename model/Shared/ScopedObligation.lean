@@ -149,9 +149,9 @@ structure Clause where
 def Predicate.holds (predicate : Predicate) (action : Atom) (result : Shared.SemanticData.Result Atom Atom Atom) : Bool :=
   let values := match predicate.field with
     | 1 => [action]
-    | 2 => [result.modelOutcome]
-    | 3 => [result.resultingState]
-    | 4 => result.observations
+    | 2 => [result.outcome]
+    | 3 => [result.state]
+    | 4 => result.facts
     | _ => []
   values.any fun value => value.definitionId == predicate.reference &&
     predicate.equalsText.all (· == value.value)
@@ -222,7 +222,7 @@ def Monitor.consume (limits : MonitorLimits) (monitor : Monitor table clauses)
   let created := (operation.windows.filter fun window =>
     (window.clause.val.coordinate row.value.2.1 row.value.2.2).trigger).length
   if monitor.obligations + created > limits.obligations then throw "obligations exhausted"
-  let maximumFacts := table.foldl (fun maximum row => max maximum row.2.2.observations.length) 0
+  let maximumFacts := table.foldl (fun maximum row => max maximum row.2.2.facts.length) 0
   let candidates := table.filter fun candidate => candidate.1 == row.value.1 &&
     candidate.2.1 == row.value.2.1
   let cost := monitor.obligations + 16 * clauses.length * (monitor.transitions + 1) *
@@ -230,7 +230,7 @@ def Monitor.consume (limits : MonitorLimits) (monitor : Monitor table clauses)
   if monitor.work + cost > limits.work then throw "work exhausted"
   let next : Operation table clauses := {
     key
-    state := row.value.2.2.resultingState
+    state := row.value.2.2.state
     history := operation.history ++ [row]
     windows := operation.windows.map (Window.consume · row) }
   let operations := if monitor.operations.any (·.key == key) then

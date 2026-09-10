@@ -30,12 +30,12 @@ private def run (budget : Nat) := do
   let a ← d.actions.head?
   let t ← (target .samplesOnly).toOption
   let step : ModelTraceStep ModelValue ModelValue ModelValue ModelValue := {
-    selectedAction := a.modelValue, modelOutcome := value "example.outcome.call" "accepted",
-    resultingState := value "example.state.phase" "done", observations := [] }
+    selectedAction := a.modelValue, outcome := value "example.outcome.call" "accepted",
+    state := value "example.state.phase" "done", facts := [] }
   let trace : BehaviorTrace := {
     setup := [], trace := { initialState := value "example.state.phase" "idle", steps := [step] } }
   let bad := { trace with trace := { trace.trace with steps := [
-    { step with resultingState := value "example.state.phase" "idle" }] } }
+    { step with state := value "example.state.phase" "idle" }] } }
   pure ((checkQuery (.ofTarget t) (queryDeclaration t 100 (some trace))).toOption.isSome,
     (checkQuery (.ofTarget t) (queryDeclaration t 100 (some bad))).toOption.isNone)) == some (true, true)
 

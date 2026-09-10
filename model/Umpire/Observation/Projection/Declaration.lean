@@ -27,7 +27,7 @@ abbrev Limits := Shared.ScopedProjection.Limits
 
 /-- Closed ownership mapping; only confirmation can release semantic steps. -/
 abbrev Meaning (State Action Outcome Fact : Type) :=
-  Shared.ScopedProjection.Meaning Action (TransitionResult State Outcome Fact)
+  Shared.ScopedProjection.Meaning Action (Step State Outcome Fact)
 
 /-- An evidence kind's complete authorized field policy and semantic interpretation. -/
 structure Rule (State Action Outcome Fact : Type) where
@@ -81,12 +81,12 @@ inductive Progress (Step : Type) where
   | emitted (first : Step) (rest : List Step)
 
 /-- Whether this append admitted no semantic change and left no new pending evidence. -/
-def Progress.isStutter : Progress Step → Bool
+def Progress.isStutter {Step : Type} : Progress Step → Bool
   | .stutter => true
   | _ => false
 
 /-- The newly emitted steps, never historical emissions. -/
-def Progress.emissions : Progress Step → List Step
+def Progress.emissions {Step : Type} : Progress Step → List Step
   | .emitted first rest => first :: rest
   | _ => []
 

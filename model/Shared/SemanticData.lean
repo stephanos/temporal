@@ -10,10 +10,10 @@ structure Atom where
   value : String
   deriving BEq, DecidableEq, Ord, Repr
 
-structure Result (State Outcome Observation : Type) where
-  modelOutcome : Outcome
-  resultingState : State
-  observations : List Observation
+structure Result (State Outcome Fact : Type) where
+  outcome : Outcome
+  state : State
+  facts : List Fact
   deriving BEq, DecidableEq, Repr
 
 inductive Scalar where

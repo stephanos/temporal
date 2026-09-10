@@ -437,7 +437,7 @@ def Run.admit {compiled : Compiled} (run : Run compiled) (event : Event) :
     Except String (Run compiled) := do
   if run.closed then throw "closed"
   compiled.validateEvent run.projection.scope event
-  let projection ← (run.projection.admit Name.value (·.resultingState) eventSize event).mapError
+  let projection ← (run.projection.admit Name.value (·.state) eventSize event).mapError
     (fun _ => "projection rejected")
   let limits : ScopedObligation.MonitorLimits :=
     ⟨compiled.transitions, compiled.obligations, compiled.work⟩

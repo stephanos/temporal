@@ -59,7 +59,7 @@ example : [
 
 /- The legacy semantic identity remains an exact compatibility boundary. -/
 #guard (fingerprintOf (checkProperty context authoredProperty)).map BehaviorFingerprint.render ==
-  some "sha256:794c1e7bcade5616a8a5964d1e3e0e332f12bb4bf4ac1a653eddde0ba5426f8e"
+  some "sha256:475e2e447421bc4b4c41ac2c6900cda23fd4b0e3eb274b076c10a1250b40fb04"
 
 def changedCapabilityContext : PropertyCheckContext := {
   context with

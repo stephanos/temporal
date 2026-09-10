@@ -62,22 +62,22 @@ inductive Fact where
   | terminal
   deriving BEq, DecidableEq, Repr
 
-def cancelRequestedResult : TransitionResult State Outcome Fact := {
-  modelOutcome := .cancellationRequested
-  resultingState := .cancelRequested
-  observations := [.cancelRequested]
+def cancelRequestedResult : Step State Outcome Fact := {
+  outcome := .cancellationRequested
+  state := .cancelRequested
+  facts := [.cancelRequested]
 }
 
-def canceledResult : TransitionResult State Outcome Fact := {
-  modelOutcome := .canceled
-  resultingState := .canceled
-  observations := [.lifecycleCanceled, .terminal]
+def canceledResult : Step State Outcome Fact := {
+  outcome := .canceled
+  state := .canceled
+  facts := [.lifecycleCanceled, .terminal]
 }
 
-def succeededResult : TransitionResult State Outcome Fact := {
-  modelOutcome := .succeeded
-  resultingState := .succeeded
-  observations := [.lifecycleSucceeded, .terminal]
+def succeededResult : Step State Outcome Fact := {
+  outcome := .succeeded
+  state := .succeeded
+  facts := [.lifecycleSucceeded, .terminal]
 }
 
 /-- The complete race model; `resolve` alternatives are Target-owned outcomes. -/
@@ -130,7 +130,7 @@ private def hasExactTransition
     (rows : List (FiniteTransitionRow State Action Outcome Fact))
     (source : State)
     (action : Action)
-    (results : List (TransitionResult State Outcome Fact)) : Bool :=
+    (results : List (Step State Outcome Fact)) : Bool :=
   rows.any fun row =>
     row.source == source && row.action == action && row.results == results
 
@@ -138,18 +138,18 @@ private def hasExactTransition
 def satisfiesRaceRequirement
     (rows : List (FiniteTransitionRow State Action Outcome Fact)) : Bool :=
   hasExactTransition rows .started .requestCancel [{
-    modelOutcome := .cancellationRequested
-    resultingState := .cancelRequested
-    observations := [.cancelRequested]
+    outcome := .cancellationRequested
+    state := .cancelRequested
+    facts := [.cancelRequested]
   }] &&
   hasExactTransition rows .cancelRequested .resolve [{
-    modelOutcome := .canceled
-    resultingState := .canceled
-    observations := [.lifecycleCanceled, .terminal]
+    outcome := .canceled
+    state := .canceled
+    facts := [.lifecycleCanceled, .terminal]
   }, {
-    modelOutcome := .succeeded
-    resultingState := .succeeded
-    observations := [.lifecycleSucceeded, .terminal]
+    outcome := .succeeded
+    state := .succeeded
+    facts := [.lifecycleSucceeded, .terminal]
   }]
 
 def LawStatement (law : LawDefinition) : Prop :=
@@ -187,11 +187,11 @@ def provider : CapabilityProvider LawStatement := {
       canonicalBehavior := "temporal-nexus2-cancellation-race-resolve/v1" },
     { definitionId := transitionOutcomeId, kind := .outcome,
       canonicalBehavior := "temporal-nexus2-cancellation-race-outcome/v1" },
-    { definitionId := cancelRequestedFactId, kind := .observation,
+    { definitionId := cancelRequestedFactId, kind := .fact,
       canonicalBehavior := "temporal-nexus2-cancellation-race-request-fact/v1" },
-    { definitionId := lifecycleFactId, kind := .observation,
+    { definitionId := lifecycleFactId, kind := .fact,
       canonicalBehavior := "temporal-nexus2-cancellation-race-lifecycle-fact/v1" },
-    { definitionId := terminalFactId, kind := .observation,
+    { definitionId := terminalFactId, kind := .fact,
       canonicalBehavior := "temporal-nexus2-cancellation-race-terminal-fact/v1" }
   ]
   lawWitnesses := [{ definition := raceLaw, proof := raceLawProof }]
@@ -199,7 +199,7 @@ def provider : CapabilityProvider LawStatement := {
 
 def definitions : List DefinitionMetadata := [
   metadata targetId .target "temporal-nexus2-cancellation-race-target/v1",
-  metadata kernelId .kernel "temporal-nexus2-cancellation-race-kernel/v1",
+  metadata kernelId .machine "temporal-nexus2-cancellation-race-kernel/v1",
   metadata capabilityId .capability "temporal-nexus2-cancellation-race/v1",
   metadata providerId .provider "temporal-nexus2-cancellation-race-provider/v1",
   metadata lawId .law raceLaw.body,
@@ -207,9 +207,9 @@ def definitions : List DefinitionMetadata := [
   metadata requestCancelActionId .action "temporal-nexus2-cancellation-race-request-cancel/v1",
   metadata resolveActionId .action "temporal-nexus2-cancellation-race-resolve/v1",
   metadata transitionOutcomeId .outcome "temporal-nexus2-cancellation-race-outcome/v1",
-  metadata cancelRequestedFactId .observation "temporal-nexus2-cancellation-race-request-fact/v1",
-  metadata lifecycleFactId .observation "temporal-nexus2-cancellation-race-lifecycle-fact/v1",
-  metadata terminalFactId .observation "temporal-nexus2-cancellation-race-terminal-fact/v1"
+  metadata cancelRequestedFactId .fact "temporal-nexus2-cancellation-race-request-fact/v1",
+  metadata lifecycleFactId .fact "temporal-nexus2-cancellation-race-lifecycle-fact/v1",
+  metadata terminalFactId .fact "temporal-nexus2-cancellation-race-terminal-fact/v1"
 ]
 
 def targetDefinition : FiniteTargetDefinition := {

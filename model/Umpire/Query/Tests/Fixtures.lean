@@ -47,13 +47,13 @@ private def encodeSetup (bindings : List RoleBinding) : String :=
   String.intercalate "|" (bindings.map fun binding =>
     binding.role.value ++ "=" ++ encodeValue binding.value)
 
-def transition : TransitionResult ModelValue ModelValue ModelValue := {
-  modelOutcome := acceptedValue
-  resultingState := completed
-  observations := [observedValue]
+def transition : Step ModelValue ModelValue ModelValue := {
+  outcome := acceptedValue
+  state := completed
+  facts := [observedValue]
 }
 
-def kernel : TransitionKernel
+def kernel : Machine
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
   metadata := {
     id := kernelId
@@ -188,7 +188,7 @@ def extraProvider : CapabilityProvider (fun _ => True) := {
 
 def targetDefinitions : List DefinitionMetadata := [
   metadata targetId .target "query-target/v1",
-  metadata kernelId .kernel "query-kernel/v1",
+  metadata kernelId .machine "query-kernel/v1",
   metadata extraCapabilityId .capability "query-extra-capability/v1",
   metadata extraProviderId .provider "query-extra-provider/v1"
 ]

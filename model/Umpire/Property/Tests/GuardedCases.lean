@@ -78,9 +78,9 @@ private def requestTrace (before after : Nat) : ModelTrace ModelValue ModelValue
   initialState := value pendingCount (toString before)
   steps := [{
     selectedAction := value requestCancel "request"
-    modelOutcome := value deliveredOutcome "delivered"
-    resultingState := value pendingCount (toString after)
-    observations := [value cancelRequested "request-1"]
+    outcome := value deliveredOutcome "delivered"
+    state := value pendingCount (toString after)
+    facts := [value cancelRequested "request-1"]
   }]
 }
 
@@ -143,9 +143,9 @@ private def tickTrace : ModelTrace ModelValue ModelValue ModelValue ModelValue :
   initialState := value pendingCount "2"
   steps := [{
     selectedAction := value tick "tick"
-    modelOutcome := value deliveredOutcome "delivered"
-    resultingState := value pendingCount "2"
-    observations := []
+    outcome := value deliveredOutcome "delivered"
+    state := value pendingCount "2"
+    facts := []
   }]
 }
 
@@ -221,9 +221,9 @@ private def incompleteTrace : ModelTrace ModelValue ModelValue ModelValue ModelV
       initialState := value pendingCount "0"
       steps := [{
         selectedAction := value (id "test.action.unknown") "request"
-        modelOutcome := value deliveredOutcome "delivered"
-        resultingState := value pendingCount "1"
-        observations := []
+        outcome := value deliveredOutcome "delivered"
+        state := value pendingCount "1"
+        facts := []
       }]
     }
 
@@ -347,7 +347,7 @@ private def fingerprintOf (declaration : PropertyDeclaration) : Option BehaviorF
 #guard (checkProperty context (.portable guardedDeclaration)).toOption.map
     (fun property => !property.canonicalMetadata.contains "temporalClauses") == some true
 #guard (fingerprintOf guardedDeclaration).map BehaviorFingerprint.render ==
-  some "sha256:692aeccb2cfe68380842e8cddcf0e2f7b98c2827a42660e4ab8b1fcdb4eab1cf"
+  some "sha256:6438696451dff4d28d3f4bb9ba05b4a9f9b0f6c8f0e1b012496dd5899ad0e8df"
 
 private def checkError?
     (declaration : PropertyDeclaration) : Option PropertyError :=

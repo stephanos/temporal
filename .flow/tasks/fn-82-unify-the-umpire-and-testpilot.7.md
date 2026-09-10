@@ -39,6 +39,7 @@ the duplicate testpilot mirror leaves `Temporal.API`.
 - Strict ProtoJSON decoding already rejects unknown fields, so a fixture still carrying `scoped` fails to decode; no new error path is needed.
 - The activity entrypoint, `RunRef`, `AnyType`, and `ROLE_KIND_PARTICIPANT` stay (spec §Boundaries).
 - Retire `ScopedContract`, `ScopedClause`, `ScopedEvidence`, `ScopedEndpoint`, `runtimePrefix`, `deliberatelyClosed`, `ContractHorizonDefinition`, `Testpilot.Scoped`, `Shared.ScopedProjection`, `Shared.ScopedObligation`, `Umpire.Case.Scoped`, `PropertyScopedClause`, `LoweringError`, `CaseMetadata`, `CaseDefinitionKind`, `Umpire.Case.ProtoJSON`, `SlotBridge`, `terminalDisposition`, `umpire-scoped-fixtures`.
+- Carried from .2: the retired gate still has no `resultingState` rule. The proto field `ScopedTransition.resulting_state` renders `json=resultingState` into `api/testpilot/v1/contract.pb.go`, which the gate scans. Rename that field (its siblings are already `outcome` and `facts`) with the Correlated rename and add the token to the gate.
 ## Acceptance
 - [ ] No `Scoped*` name remains in the proto package, Lean, or Go; `ContractDeadline`, `CorrelatedRule`, `TraceEnding`, and `await_instruction` are in place; `outcome.proto` is gone and `TestProtocolUsesCohesivePublicVocabulary` rejects every retired proto name
 - [ ] `Umpire.Provenance` holds the producer-owned types; the `Umpire.Case` alias modules, `abbrev Case`, and `Umpire.Case.ProtoJSON` are deleted; `Testpilot.Authoring.Contract` builds both rule kinds and the Nexus3 Producer uses it

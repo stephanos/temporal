@@ -13,9 +13,9 @@ open Umpire
 
 private def entry (value : Nat) (key : String) : FiniteCatalogEntry Nat := ⟨value, key⟩
 
-private def first : TransitionResult Nat Nat Nat := ⟨0, 1, [0, 1]⟩
+private def first : Step Nat Nat Nat := ⟨0, 1, [0, 1]⟩
 
-private def alternate : TransitionResult Nat Nat Nat := ⟨1, 0, [1]⟩
+private def alternate : Step Nat Nat Nat := ⟨1, 0, [1]⟩
 
 private def row : FiniteTransitionRow Nat Nat Nat Nat :=
   ⟨"advance", 0, 1, [first, alternate]⟩
@@ -61,11 +61,11 @@ private def negatives : List (FiniteTable Nat Nat Nat Nat Nat × FiniteTableErro
   ({ table with initial := [] }, .missingSetup),
   ({ table with transitions := [{ row with source := 9 }] }, .outOfDomain .source),
   ({ table with transitions := [{ row with action := 9 }] }, .outOfDomain .action),
-  ({ table with transitions := [{ row with results := [{ first with resultingState := 9 }] }] },
+  ({ table with transitions := [{ row with results := [{ first with state := 9 }] }] },
     .outOfDomain .resultState),
-  ({ table with transitions := [{ row with results := [{ first with modelOutcome := 9 }] }] },
+  ({ table with transitions := [{ row with results := [{ first with outcome := 9 }] }] },
     .outOfDomain .outcome),
-  ({ table with transitions := [{ row with results := [{ first with observations := [9] }] }] },
+  ({ table with transitions := [{ row with results := [{ first with facts := [9] }] }] },
     .outOfDomain .fact),
   ({ table with transitions := [{ row with results := [] }] }, .emptyAlternatives .transition),
   ({ table with transitions := [row] }, .actionWithoutRow),
@@ -104,17 +104,17 @@ example : table.states.values = [2, 0, 1] ∧
 
 /-- No fact is required on a result; an entirely empty modeled domain is also valid. -/
 example : error? { table with facts := [], transitions := [
-    { row with results := [{ first with observations := [] }] },
-    { otherRow with results := [{ alternate with observations := [] }] }] } = none ∧
+    { row with results := [{ first with facts := [] }] },
+    { otherRow with results := [{ alternate with facts := [] }] }] } = none ∧
     error? ⟨[], [], [], [], [], [], [], []⟩ = none := by decide
 
 /-- Proof projections are usable without unfolding validation or constructing a semantic kernel. -/
 example (checked : ValidatedFiniteTable Nat Nat Nat Nat Nat)
     (transition : FiniteTransitionRow Nat Nat Nat Nat)
     (member : transition ∈ checked.table.transitions)
-    (result : TransitionResult Nat Nat Nat) (emitted : result ∈ transition.results) :
+    (result : Step Nat Nat Nat) (emitted : result ∈ transition.results) :
     transition.source ∈ checked.table.states.values ∧
-      result.resultingState ∈ checked.table.states.values :=
+      result.state ∈ checked.table.states.values :=
   ⟨checked.source_coverage transition member,
     checked.result_state_coverage transition member result emitted⟩
 

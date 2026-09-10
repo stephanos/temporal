@@ -27,12 +27,12 @@ private def number (value : Nat) : Except String Int64 :=
   if value ≤ 9223372036854775807 then .ok (Int64.ofInt value) else .error "protobuf signed overflow"
 private def atom (value : ModelValue) : ScopedValue :=
   { definition_id := value.definitionId.value, value := value.value }
-private def output (action : ModelValue) (result : TransitionResult ModelValue ModelValue ModelValue) :
+private def output (action : ModelValue) (result : Step ModelValue ModelValue ModelValue) :
     ScopedTransition := {
   action := some (atom action)
-  resulting_state := some (atom result.resultingState)
-  outcome := some (atom result.modelOutcome)
-  facts := result.observations.toArray.map atom }
+  resulting_state := some (atom result.state)
+  outcome := some (atom result.outcome)
+  facts := result.facts.toArray.map atom }
 private def fieldPolicy (field : EvidenceFieldDeclaration × FieldDisposition) :
     Except String ScopedFieldPolicy := do
   let disposition ← match field.2 with
@@ -230,7 +230,7 @@ structure Lowered (plan : Projection.Checked target) (compiled : Property.Scoped
   keyed : List (String × Testpilot.Scoped.Keyed)
   decoding : Testpilot.Scoped.decode wire = .ok decoded
   meaning : decoded = Scoped.meaning plan compiled keyed
-  maximumFacts : plan.executable.transitions.foldl (fun maximum row => max maximum row.2.2.observations.length) 0 =
+  maximumFacts : plan.executable.transitions.foldl (fun maximum row => max maximum row.2.2.facts.length) 0 =
     target.behaviorDescription.transitions.foldl (fun maximum row => max maximum row.observations.length) 0
   candidateCounts : ∀ row ∈ plan.executable.transitions,
     (plan.executable.transitions.filter (fun candidate => candidate.1 == row.1 && candidate.2.1 == row.2.1)).length =
@@ -294,7 +294,7 @@ def lower (plan : Projection.Checked target) (compiled : Property.Scoped.Compile
         let certificates ← (ScopedProofs.certifyAll compiled.portableReferences
           plan.executable.transitions plan.initialState).mapError failed
         if maximumFacts : plan.executable.transitions.foldl
-            (fun maximum row => max maximum row.2.2.observations.length) 0 =
+            (fun maximum row => max maximum row.2.2.facts.length) 0 =
             target.behaviorDescription.transitions.foldl (fun maximum row => max maximum row.observations.length) 0 then
           if candidateCounts : ∀ row ∈ plan.executable.transitions,
               (plan.executable.transitions.filter (fun candidate =>

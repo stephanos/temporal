@@ -50,12 +50,12 @@ example : [
     Umpire.TargetTests.metadata "fixture.action.default" .action,
     Umpire.TargetTests.metadata "fixture.law.explicit" .law "explicit-contract/v2",
     Umpire.BehaviorTests.metadata "fixture.behavior.state" .state,
-    Umpire.PropertyTests.metadata "fixture.property.observation" .observation,
+    Umpire.PropertyTests.metadata "fixture.property.observation" .fact,
     Umpire.QueryTests.metadata (DefinitionId.of "fixture.query.target") .target
       "query-target/v1",
-    Umpire.PlanningTests.metadata (DefinitionId.of "fixture.planning.kernel") .kernel
+    Umpire.PlanningTests.metadata (DefinitionId.of "fixture.planning.kernel") .machine
       "planning-kernel/v1",
-    Umpire.ObservationTests.metadata "fixture.observation.mapping" .observation
+    Umpire.ObservationTests.metadata "fixture.observation.mapping" .fact
   ] = [
     { id := DefinitionId.of "fixture.action.default", kind := .action,
       source := {
@@ -81,7 +81,7 @@ example : [
         provenance := "lean-test"
       },
       version := 1, canonicalBehavior := "fixture.behavior.state/v1", documentation := "" },
-    { id := DefinitionId.of "fixture.property.observation", kind := .observation,
+    { id := DefinitionId.of "fixture.property.observation", kind := .fact,
       source := {
         path := "Umpire/Property/Tests.lean"
         line := 1
@@ -97,7 +97,7 @@ example : [
         provenance := "lean-test"
       },
       version := 1, canonicalBehavior := "query-target/v1", documentation := "query fixture" },
-    { id := DefinitionId.of "fixture.planning.kernel", kind := .kernel,
+    { id := DefinitionId.of "fixture.planning.kernel", kind := .machine,
       source := {
         path := "Umpire/Planning/Tests.lean"
         line := 1
@@ -106,7 +106,7 @@ example : [
       },
       version := 1, canonicalBehavior := "planning-kernel/v1",
       documentation := "planning fixture" },
-    { id := DefinitionId.of "fixture.observation.mapping", kind := .observation,
+    { id := DefinitionId.of "fixture.observation.mapping", kind := .fact,
       source := {
         path := "Umpire/Observation/Tests/Fixtures.lean"
         line := 1
@@ -219,7 +219,7 @@ private def earlyKernel? : Option (IncrementalPlannerKernel earlyQuery.target) :
       intro _ _ setup
       simp only [earlyQuery, materializeEarlyQuery, earlyTarget, checkedTarget, authoringAt,
         AuthoredTarget.withOccurrences, targetAuthoring, AuthoredTarget.make, targetDefinition,
-        transitionKernel, initialStates]
+        machine, initialStates]
       split <;> simp)
     (by
       intro _ _ state action
@@ -229,19 +229,19 @@ private def earlyKernel? : Option (IncrementalPlannerKernel earlyQuery.target) :
         · subst state
           simpa [earlyQuery, materializeEarlyQuery, earlyTarget, checkedTarget, authoringAt,
             AuthoredTarget.withOccurrences, targetAuthoring, AuthoredTarget.make,
-            targetDefinition, transitionKernel, stepResults] using appliedResult_ordered
+            targetDefinition, machine, stepResults] using appliedResult_ordered
         · by_cases selectedOn : state = onState
           · subst state
             simpa [earlyQuery, materializeEarlyQuery, earlyTarget, checkedTarget, authoringAt,
               AuthoredTarget.withOccurrences, targetAuthoring, AuthoredTarget.make,
-              targetDefinition, transitionKernel, stepResults, onState_ne_offState] using
+              targetDefinition, machine, stepResults, onState_ne_offState] using
                 appliedFromOnResult_ordered
           · simp [earlyQuery, materializeEarlyQuery, earlyTarget, checkedTarget, authoringAt,
               AuthoredTarget.withOccurrences, targetAuthoring, AuthoredTarget.make,
-              targetDefinition, transitionKernel, stepResults, selectedOff, selectedOn]
+              targetDefinition, machine, stepResults, selectedOff, selectedOn]
       · simp [earlyQuery, materializeEarlyQuery, earlyTarget, checkedTarget, authoringAt,
           AuthoredTarget.withOccurrences, targetAuthoring, AuthoredTarget.make,
-          targetDefinition, transitionKernel, stepResults, selectedAction])
+          targetDefinition, machine, stepResults, selectedAction])
 
 private theorem earlyKernel?_isSome : earlyKernel?.isSome = true := by
   rfl
@@ -282,7 +282,7 @@ private def relocatedKernel? : Option (IncrementalPlannerKernel relocatedQuery.t
       intro _ _ setup
       simp only [relocatedQuery, materializeRelocatedQuery, relocatedTarget, checkedTarget,
         authoringAt, AuthoredTarget.withOccurrences, targetAuthoring, AuthoredTarget.make,
-        targetDefinition, transitionKernel, initialStates]
+        targetDefinition, machine, initialStates]
       split <;> simp)
     (by
       intro _ _ state action
@@ -292,21 +292,21 @@ private def relocatedKernel? : Option (IncrementalPlannerKernel relocatedQuery.t
         · subst state
           simpa [relocatedQuery, materializeRelocatedQuery, relocatedTarget, checkedTarget,
             authoringAt, AuthoredTarget.withOccurrences, targetAuthoring, AuthoredTarget.make,
-            targetDefinition, transitionKernel, stepResults] using
+            targetDefinition, machine, stepResults] using
               appliedResult_ordered
         · by_cases selectedOn : state = onState
           · subst state
             simpa [relocatedQuery, materializeRelocatedQuery, relocatedTarget, checkedTarget,
               authoringAt, AuthoredTarget.withOccurrences, targetAuthoring,
-              AuthoredTarget.make, targetDefinition, transitionKernel, stepResults,
+              AuthoredTarget.make, targetDefinition, machine, stepResults,
               onState_ne_offState] using appliedFromOnResult_ordered
           · simp [relocatedQuery, materializeRelocatedQuery, relocatedTarget, checkedTarget,
               authoringAt, AuthoredTarget.withOccurrences, targetAuthoring,
-              AuthoredTarget.make, targetDefinition, transitionKernel, stepResults,
+              AuthoredTarget.make, targetDefinition, machine, stepResults,
               selectedOff, selectedOn]
       · simp [relocatedQuery, materializeRelocatedQuery, relocatedTarget, checkedTarget,
           authoringAt, AuthoredTarget.withOccurrences, targetAuthoring, AuthoredTarget.make,
-          targetDefinition, transitionKernel, stepResults, selectedAction])
+          targetDefinition, machine, stepResults, selectedAction])
 
 private theorem relocatedKernel?_isSome : relocatedKernel?.isSome = true := by
   rfl
@@ -408,7 +408,7 @@ private def missingLawDeclaration : TargetDeclaration LawStatement
 private def incompleteKernelDeclaration : TargetDeclaration LawStatement
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
   expertTargetDeclaration with
-  kernel := .incomplete transitionKernel.metadata
+  kernel := .incomplete machine.metadata
     [DefinitionId.of "umpire.kernel-proof.step-complete"]
 }
 
@@ -457,9 +457,9 @@ private def mismatchedTrace : BehaviorTrace := {
     initialState := offState
     steps := [{
       selectedAction := flipAction
-      modelOutcome := appliedOutcome
-      resultingState := offState
-      observations := [powerOffObservation]
+      outcome := appliedOutcome
+      state := offState
+      facts := [powerOffObservation]
     }]
   }
 }

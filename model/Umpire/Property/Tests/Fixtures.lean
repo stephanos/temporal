@@ -36,11 +36,11 @@ def definitions : List DefinitionMetadata := [
   metadata requestCancel.value .action,
   metadata tick.value .action,
   metadata deliveredOutcome.value .outcome,
-  metadata cancelRequested.value .observation,
-  metadata cancelDelivered.value .observation,
-  metadata logicalTime.value .observation,
+  metadata cancelRequested.value .fact,
+  metadata cancelDelivered.value .fact,
+  metadata logicalTime.value .fact,
   metadata ownsOperation.value .relation,
-  metadata hiddenObservation.value .observation
+  metadata hiddenObservation.value .fact
 ]
 
 def meaning
@@ -57,9 +57,9 @@ def cancellationMeanings : List MeaningProvision := [
   meaning requestCancel .action,
   meaning tick .action,
   meaning deliveredOutcome .outcome,
-  meaning cancelRequested .observation,
-  meaning cancelDelivered .observation,
-  meaning logicalTime .observation,
+  meaning cancelRequested .fact,
+  meaning cancelDelivered .fact,
+  meaning logicalTime .fact,
   meaning ownsOperation .relation
 ]
 
@@ -77,7 +77,7 @@ def context : PropertyCheckContext := {
   ]
   meanings :=
     cancellationMeanings.map (fun item => (cancellationCapability, item)) ++
-      [(hiddenCapability, meaning hiddenObservation .observation)]
+      [(hiddenCapability, meaning hiddenObservation .fact)]
   limitProfiles := [cancelBudget]
 }
 
@@ -152,9 +152,9 @@ def positiveTrace : ModelTrace ModelValue ModelValue ModelValue ModelValue := {
   steps := [
     {
       selectedAction := value requestCancel "request"
-      modelOutcome := value deliveredOutcome "delivered"
-      resultingState := value pendingCount "1"
-      observations := [
+      outcome := value deliveredOutcome "delivered"
+      state := value pendingCount "1"
+      facts := [
         value cancelRequested "request-1",
         value ownsOperation "subject:resource",
         value hiddenObservation "private-record"
@@ -162,9 +162,9 @@ def positiveTrace : ModelTrace ModelValue ModelValue ModelValue ModelValue := {
     },
     {
       selectedAction := value tick "tick"
-      modelOutcome := value deliveredOutcome "delivered"
-      resultingState := value pendingCount "1"
-      observations := [value cancelDelivered "request-1"]
+      outcome := value deliveredOutcome "delivered"
+      state := value pendingCount "1"
+      facts := [value cancelDelivered "request-1"]
     }
   ]
 }

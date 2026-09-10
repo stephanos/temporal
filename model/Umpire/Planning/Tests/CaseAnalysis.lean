@@ -27,7 +27,7 @@ private def analysisContext : PropertyCheckContext := {
     metadata request .action "planner-request/v1",
     metadata absentAction .action "planner-absent/v1",
     metadata accepted .outcome "planner-accepted/v1",
-    metadata observed .observation "planner-observed/v1"
+    metadata observed .fact "planner-observed/v1"
   ]
   providers := [{
     id := analysisCapability
@@ -43,11 +43,11 @@ private def analysisContext : PropertyCheckContext := {
     (analysisCapability, analysisMeaning request .action),
     (analysisCapability, analysisMeaning absentAction .action),
     (analysisCapability, analysisMeaning accepted .outcome),
-    (analysisCapability, analysisMeaning observed .observation),
+    (analysisCapability, analysisMeaning observed .fact),
     (absentCapability, analysisMeaning phase .state),
     (absentCapability, analysisMeaning absentAction .action),
     (absentCapability, analysisMeaning accepted .outcome),
-    (absentCapability, analysisMeaning observed .observation)
+    (absentCapability, analysisMeaning observed .fact)
   ]
 }
 

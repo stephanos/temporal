@@ -58,25 +58,25 @@ example : [
   ] = ["Umpire/CoreTests/Primitives.lean", "<unknown>"] := by
   decide
 
-private def transitionResult : TransitionResult Bool Nat String := {
-  modelOutcome := 4
-  resultingState := true
-  observations := ["accepted", "persisted"]
+private def step : Step Bool Nat String := {
+  outcome := 4
+  state := true
+  facts := ["accepted", "persisted"]
 }
 
-example : ModelTraceStep.result false transitionResult = ({
+example : ModelTraceStep.result false step = ({
     selectedAction := false
-    modelOutcome := 4
-    resultingState := true
-    observations := ["accepted", "persisted"]
+    outcome := 4
+    state := true
+    facts := ["accepted", "persisted"]
   } : ModelTraceStep Bool Bool Nat String) := by
   rfl
 
-example : transitionResult.map not (fun outcome => outcome + 1) String.length = ({
-    modelOutcome := 5
-    resultingState := false
-    observations := [8, 9]
-  } : TransitionResult Bool Nat Nat) := by
+example : step.map not (fun outcome => outcome + 1) String.length = ({
+    outcome := 5
+    state := false
+    facts := [8, 9]
+  } : Step Bool Nat Nat) := by
   rfl
 
 end Umpire.CoreTests
