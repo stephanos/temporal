@@ -87,7 +87,7 @@ AuthoredTarget ── checkTarget ──▶ CheckedTarget
 ```
 
 The finite-machine adapter is the ordinary route for fully enumerable Targets. Direct
-`TransitionKernel` construction remains the expert route when authoritative propositions are
+`Machine` construction remains the expert route when authoritative propositions are
 specified independently. Both routes converge before Property, Behavior, or Query checking.
 
 `FiniteMachine.targetDefinition` and `FiniteMachine.authoredTarget` assemble the ordinary finite

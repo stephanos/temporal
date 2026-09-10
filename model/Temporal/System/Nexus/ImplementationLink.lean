@@ -329,18 +329,18 @@ def witness : ImplementationLinkWitness declaration Temporal.System.Nexus.target
       change Temporal.System.Nexus.authoritativeStep state action result at admitted
       rcases Temporal.System.Nexus.authoritativeStep_cases state action result admitted with
         ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩
-      · simpa only [KernelMorphism.mapTransitionResult, TransitionResult.map,
+      · simpa only [KernelMorphism.mapStep, Step.map,
           mapState_queued, mapAction_dispatch, Temporal.System.Nexus.dispatchedResult,
           mapOutcome_dispatched, mapState_running, List.map_cons, mapObservation_running,
           List.map_nil, Temporal.Feature.Nexus.Lifecycle.startedResult] using
           Temporal.Feature.Nexus.Lifecycle.target_scheduled_start_authoritative
-      · simpa only [KernelMorphism.mapTransitionResult, TransitionResult.map,
+      · simpa only [KernelMorphism.mapStep, Step.map,
           mapState_running, mapAction_recordCancellation,
           Temporal.System.Nexus.cancellationRecordedResult, mapOutcome_cancellationRecorded,
           mapState_cancellationRecorded, List.map_cons, mapObservation_cancellationRecorded,
           List.map_nil, Temporal.Feature.Nexus.Lifecycle.canceledResult] using
           Temporal.Feature.Nexus.Lifecycle.target_started_cancel_authoritative
-      · simpa only [KernelMorphism.mapTransitionResult, TransitionResult.map,
+      · simpa only [KernelMorphism.mapStep, Step.map,
           mapState_running, mapAction_recordCompletion,
           Temporal.System.Nexus.completionRecordedResult, mapOutcome_completionRecorded,
           mapState_completionRecorded, List.map_cons, mapObservation_completionRecorded,
@@ -458,18 +458,18 @@ private def declaration (model : Temporal.Feature.Nexus2.Race.ModelVocabulary)
       meaning := .submission model.requestCancelAction },
     { kind := Evidence.Kind.cancellationConfirmed.id,
       meaning := .confirmed (some model.requestCancelAction) [(model.requestCancelAction, {
-        modelOutcome := model.cancellationRequestedOutcome,
-        resultingState := model.cancelRequestedState, observations := [model.cancelRequestedFact] })] },
+        outcome := model.cancellationRequestedOutcome,
+        state := model.cancelRequestedState, facts := [model.cancelRequestedFact] })] },
     { kind := Evidence.Kind.canceled.id,
       meaning := .confirmed none [(model.resolveAction, {
-        modelOutcome := model.canceledOutcome,
-        resultingState := model.canceledState,
-        observations := [model.lifecycleCanceledFact, model.terminalFact] })] },
+        outcome := model.canceledOutcome,
+        state := model.canceledState,
+        facts := [model.lifecycleCanceledFact, model.terminalFact] })] },
     { kind := Evidence.Kind.completed.id,
       meaning := .confirmed none [(model.resolveAction, {
-        modelOutcome := model.succeededOutcome,
-        resultingState := model.succeededState,
-        observations := [model.lifecycleSucceededFact, model.terminalFact] })] },
+        outcome := model.succeededOutcome,
+        state := model.succeededState,
+        facts := [model.lifecycleSucceededFact, model.terminalFact] })] },
     { kind := Evidence.Kind.unrelated.id, meaning := .irrelevant },
     { kind := Evidence.Kind.workflowCancellation.id, meaning := .irrelevant },
     { kind := Evidence.Kind.activationShutdown.id, meaning := .irrelevant }]

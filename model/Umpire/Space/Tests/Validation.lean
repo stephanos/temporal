@@ -54,33 +54,6 @@ example : CoverageGoalDeclaration.seek stateGoalId source
     } : CoverageGoalDeclaration) := by
   rfl
 
-example : [
-    DefinitionKind.experimentSpace.name,
-    DefinitionKind.variationAxis.name,
-    DefinitionKind.choice.name,
-    DefinitionKind.fault.name,
-    DefinitionKind.coverageGoal.name
-  ] = ["experiment-space", "variation-axis", "choice", "fault", "coverage-goal"] := by
-  native_decide
-
-def spaceValuedRoleContext : BehaviorCheckContext := {
-  definitions := [{
-    id := id "space.test.value.metadata"
-    kind := .experimentSpace
-    source
-    canonicalBehavior := "space-value/v1"
-  }]
-}
-
-def spaceValuedRole : BehaviorDeclaration := {
-  id := id "space.test.behavior.invalid-role"
-  source
-  roles := [{ id := id "space.test.role.invalid", valueKind := .experimentSpace }]
-}
-
-example : (checkBehavior spaceValuedRoleContext spaceValuedRole).toOption.isNone = true := by
-  native_decide
-
 example : checked.pointCount = 4 ∧
     checked.axes.map CheckedVariationAxis.id = [faultAxisId, stateAxisId] ∧
     checked.faults.map CheckedFaultIntent.id = [delayFaultId, failureFaultId] ∧
@@ -387,7 +360,7 @@ def targetWithGhostAuthoring : AuthoredTarget Umpire.Examples.Switch.LawStatemen
     Umpire.Examples.Switch.targetDefinition with
     definitions := Umpire.Examples.Switch.definitions ++ [ghostCapabilityMetadata]
   } Umpire.Examples.Switch.targetComposition
-    (.available Umpire.Examples.Switch.transitionKernel rfl Umpire.Examples.Switch.finitePlanning)
+    (.available Umpire.Examples.Switch.machine rfl Umpire.Examples.Switch.finitePlanning)
 
 def targetWithGhost : QueryTarget Umpire.Examples.Switch.LawStatement :=
   checkedTarget targetWithGhostAuthoring

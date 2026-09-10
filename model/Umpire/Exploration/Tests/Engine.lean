@@ -52,7 +52,7 @@ outcomes distinct.
 example :
     let limited := (engineRun .exhaustive 3).toOption
     let complete := (engineRun .exhaustive 4).toOption
-    let guided := (engineRun (.uncoveredCoordinate (.observation 1 1)) 1).toOption
+    let guided := (engineRun (.uncoveredCoordinate (.fact 1 1)) 1).toOption
     limited.any (fun result =>
         result.pinned.isEmpty && result.exploratory.length == 3 &&
           result.coordinateOutcome.isNone && result.completion == .limitReached) &&

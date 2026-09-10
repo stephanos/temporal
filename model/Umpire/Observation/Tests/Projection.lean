@@ -68,7 +68,7 @@ private def confirmed : List Event := [event 0 "test.submit", event 1 "test.conf
   let (irrelevant, ignored) ← duplicate.admit (event 2 "test.irrelevant")
   pure (progress.isStutter && ignored.isStutter && duplicate.work > run.work &&
     irrelevant.steps.length == 1 && irrelevant.accepted.length == 3 &&
-    (irrelevant.steps.head?.map Step.support).getD [] == [(event 0 "").identity, (event 1 "").identity])).toOption == some true
+    (irrelevant.steps.head?.map Projection.Step.support).getD [] == [(event 0 "").identity, (event 1 "").identity])).toOption == some true
 
 #guard (do
   let checked ← plan
@@ -78,14 +78,14 @@ private def confirmed : List Event := [event 0 "test.submit", event 1 "test.conf
   let (released, emissions) ← buffered.admit (event 0 "test.submit")
   let pending := match progress with | .pending _ => true | _ => false
   pure (pending && emissions.emissions.length == 2 && released.pending.isEmpty &&
-      released.steps.map (fun (step : Step target) => step.result.resultingState) == [true, false] &&
-      released.steps.map (fun (step : Step target) => step.directSupport.map Identity.ordinal) == [[1, 0], [2, 1]] &&
-      released.steps.map (fun (step : Step target) => step.support.map Identity.ordinal) == [[0, 1], [0, 1, 2]] &&
-      released.steps.map (fun (step : Step target) => step.directRunSequences) ==
+      released.steps.map (fun (step : Projection.Step target) => step.result.state) == [true, false] &&
+      released.steps.map (fun (step : Projection.Step target) => step.directSupport.map Identity.ordinal) == [[1, 0], [2, 1]] &&
+      released.steps.map (fun (step : Projection.Step target) => step.support.map Identity.ordinal) == [[0, 1], [0, 1, 2]] &&
+      released.steps.map (fun (step : Projection.Step target) => step.directRunSequences) ==
         [[100, 101], [101, 102]] &&
-      released.steps.map (fun (step : Step target) => step.runSequences) ==
+      released.steps.map (fun (step : Projection.Step target) => step.runSequences) ==
         [[100, 101], [100, 101, 102]] &&
-      released.steps.all (fun (step : Step target) => step.scope == scope && step.operation == "operation-1"))).toOption == some true
+      released.steps.all (fun (step : Projection.Step target) => step.scope == scope && step.operation == "operation-1"))).toOption == some true
 
 #guard (do
   let checked ← plan
@@ -96,7 +96,7 @@ private def confirmed : List Event := [event 0 "test.submit", event 1 "test.conf
   let failed := buffered.admit (event 3 "test.irrelevant")
   pure (error? failed == some (Error.invalidTransition (event 5 "").identity) &&
     buffered.accepted.length == 5 && buffered.pending.map Identity.ordinal == [4, 5] &&
-    buffered.steps.map (fun (step : Step target) => step.result.resultingState) == [true, false] &&
+    buffered.steps.map (fun (step : Projection.Step target) => step.result.state) == [true, false] &&
     buffered.state "operation-1" == false)).toOption == some true
 
 #guard (do
@@ -244,7 +244,7 @@ private def terminalTarget := checkedTarget (AuthoredTarget.make
   let (buffered, _) ← initial.admit child
   let (released, emitted) ← buffered.admit (event 0 "test.submit")
   pure (emitted.emissions.length == 1 && released.pending.isEmpty &&
-    released.steps.map (fun (step : Step target) => step.runSequences) == [[100, 200]])).toOption == some true
+    released.steps.map (fun (step : Projection.Step target) => step.runSequences) == [[100, 200]])).toOption == some true
 
 #guard (do
   let checked ← check target { declaration with rules := declaration.rules ++ [({
@@ -257,7 +257,7 @@ private def terminalTarget := checkedTarget (AuthoredTarget.make
   let (submitted, _) ← initial.admit (event 0 "test.submit")
   let (released, emissions) ← submitted.admit (event 1 "test.bundle" [0])
   pure (emissions.emissions.length == 2 && released.state "operation-1" == false &&
-    released.steps.map (fun (step : Step target) => step.runSequences) == [[100, 101], [100, 101]])).toOption == some true
+    released.steps.map (fun (step : Projection.Step target) => step.runSequences) == [[100, 101], [100, 101]])).toOption == some true
 
 #guard (do
   let checked ← check target { declaration with limits := { declaration.limits with support := 1 } }
@@ -323,11 +323,11 @@ private def orderingFinish : Event := { event 1 "test.finish" with
   let (released, progress) ← buffered.admit (event 0 "test.submit")
   pure (progress.emissions.length == 2 && [direct, released].all (fun run =>
     run.pending.isEmpty && run.state "operation-1" == false &&
-    run.steps.map (fun (step : Step target) => step.result.resultingState) == [true, false] &&
-    run.steps.map (fun (step : Step target) => step.directSupport) ==
+    run.steps.map (fun (step : Projection.Step target) => step.result.state) == [true, false] &&
+    run.steps.map (fun (step : Projection.Step target) => step.directSupport) ==
       [[(event 1 "").identity, (event 0 "").identity], [orderingFinish.identity]] &&
-    run.steps.map (fun (step : Step target) => step.support) ==
+    run.steps.map (fun (step : Projection.Step target) => step.support) ==
       [[(event 0 "").identity, (event 1 "").identity], [orderingFinish.identity]] &&
-    run.steps.map (fun (step : Step target) => step.runSequences) == [[100, 101], [201]]))).toOption == some true
+    run.steps.map (fun (step : Projection.Step target) => step.runSequences) == [[100, 101], [201]]))).toOption == some true
 
 end Umpire.Observation.ProjectionTests

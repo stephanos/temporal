@@ -127,9 +127,9 @@ private def renderRoleBinding (binding : RoleBinding) : String :=
 private def renderTraceStep
     (step : ModelTraceStep ModelValue ModelValue ModelValue ModelValue) : String :=
   "{ selectedAction := " ++ renderModelValue step.selectedAction ++
-    ", modelOutcome := " ++ renderModelValue step.modelOutcome ++
-    ", resultingState := " ++ renderModelValue step.resultingState ++
-    ", observations := " ++ array (step.observations.map renderModelValue) ++ " }"
+    ", outcome := " ++ renderModelValue step.outcome ++
+    ", state := " ++ renderModelValue step.state ++
+    ", facts := " ++ array (step.facts.map renderModelValue) ++ " }"
 
 private def renderBehaviorTrace (trace : BehaviorTrace) : String :=
   "{ setup := " ++ array (trace.setup.map renderRoleBinding) ++
@@ -181,9 +181,9 @@ private def authoredExactTrace (trace : BehaviorTrace) : AuthoredExactTrace := {
   initialState := some trace.trace.initialState
   steps := trace.trace.steps.map fun step => {
     selectedAction := some step.selectedAction
-    modelOutcome := some step.modelOutcome
-    resultingState := some step.resultingState
-    observations := some step.observations
+    modelOutcome := some step.outcome
+    resultingState := some step.state
+    observations := some step.facts
   }
 }
 

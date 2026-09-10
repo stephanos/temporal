@@ -10,7 +10,7 @@ def promotionSourceDefinitionId : DefinitionId := (DefinitionId.of "umpire.promo
 
 def source : SourceLocation := { path := "Umpire/Promotion/Tests/Fixtures/CompiledSource.lean", line := 1, column := 1, provenance := "lean-model" }
 
-def expectedTrace : BehaviorTrace := { setup := [{ role := (DefinitionId.of "switch.role.subject"), value := { definitionId := (DefinitionId.of "switch.state.power"), value := "off" } }], trace := { initialState := { definitionId := (DefinitionId.of "switch.state.power"), value := "off" }, steps := [{ selectedAction := { definitionId := (DefinitionId.of "switch.action.flip"), value := "flip" }, modelOutcome := { definitionId := (DefinitionId.of "switch.outcome.applied"), value := "applied" }, resultingState := { definitionId := (DefinitionId.of "switch.state.power"), value := "on" }, observations := [{ definitionId := (DefinitionId.of "switch.observation.power"), value := "on" }] }] } }
+def expectedTrace : BehaviorTrace := { setup := [{ role := (DefinitionId.of "switch.role.subject"), value := { definitionId := (DefinitionId.of "switch.state.power"), value := "off" } }], trace := { initialState := { definitionId := (DefinitionId.of "switch.state.power"), value := "off" }, steps := [{ selectedAction := { definitionId := (DefinitionId.of "switch.action.flip"), value := "flip" }, outcome := { definitionId := (DefinitionId.of "switch.outcome.applied"), value := "applied" }, state := { definitionId := (DefinitionId.of "switch.state.power"), value := "on" }, facts := [{ definitionId := (DefinitionId.of "switch.observation.power"), value := "on" }] }] } }
 
 def promotedQueryResult
     {LawStatement : LawDefinition → Prop}

@@ -116,12 +116,12 @@ read in sorted-ID order rather than declaration order. -/
 #guard raceLifecycle.terminal == [State.canceled, State.completed]
 
 /- The losing row declares no Fact, which is a different shape from every success-slice row. -/
-#guard (raceLifecycle.resultsAt 3).map (·.observations) == [[]]
+#guard (raceLifecycle.resultsAt 3).map (·.facts) == [[]]
 
 #guard (do
   let checked ← cancellation.toOption
   let selected ← checked.witness
-  pure (selected.trace.steps.map (·.resultingState.value) ==
+  pure (selected.trace.steps.map (·.state.value) ==
       ["running", "cancelRequested", "canceled"] &&
     checked.behavior.allowedActions ==
       [raceLifecycle.actionIdAt 1, raceLifecycle.actionIdAt 2, raceLifecycle.actionIdAt 3] &&

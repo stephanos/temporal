@@ -88,14 +88,14 @@ private def value (key payload : String) : ModelValue := ⟨id key, payload⟩
 private def state := value "test.state" "ready"
 private def quiet := value "test.outcome" "quiet"
 private def response := value "test.outcome" "response"
-private def result (responded : Bool) : TransitionResult ModelValue ModelValue ModelValue := {
-  resultingState := state
-  modelOutcome := if responded then response else quiet
-  observations := []
+private def result (responded : Bool) : Step ModelValue ModelValue ModelValue := {
+  state := state
+  outcome := if responded then response else quiet
+  facts := []
 }
 
 private def kinds : List (String × DefinitionKind) := [
-  ("test.target", .target), ("test.kernel", .kernel), ("test.provider", .provider),
+  ("test.target", .target), ("test.kernel", .machine), ("test.provider", .provider),
   ("test.capability", .capability), ("test.state", .state), ("test.trigger", .action),
   ("test.reply", .action), ("test.outcome", .outcome)]
 private def definitions : List DefinitionMetadata := kinds.map fun (name, kind) =>

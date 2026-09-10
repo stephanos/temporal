@@ -95,7 +95,7 @@ they do not execute a Case or determine a Verdict.
 order. The finite `Lifecycle.finiteMachine` is the ordinary Target seam: authors still provide the
 ordered domains, encoders, enumerators, closure proofs, and Action-executability proof, while
 `targetDefinition` and `authoredTarget` remove repeated record and planning transport. Authors who
-need an independently specified authoritative relation can use the expert `TransitionKernel` path.
+need an independently specified authoritative relation can use the expert `Machine` path.
 
 Property, Behavior, Query, and Observation inputs remain ordinary values. Call each language's
 `check` operation to inspect its typed `Except` error, then supply explicit checker-success evidence

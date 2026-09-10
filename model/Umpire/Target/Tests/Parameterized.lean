@@ -77,7 +77,7 @@ private def definition : FiniteTargetDefinition := {
   requiredCapabilities := []
   definitions := [
     ⟨.of "example.target.call", .target, source, 1, "target", ""⟩,
-    ⟨.of "example.kernel.call", .kernel, source, 1, "kernel", ""⟩,
+    ⟨.of "example.kernel.call", .machine, source, 1, "kernel", ""⟩,
     ⟨.of "example.state.phase", .state, source, 1, "phase", ""⟩,
     ⟨.of "example.outcome.call", .outcome, source, 1, "outcome", ""⟩]
 }
@@ -92,8 +92,8 @@ def target (scope : RuntimeScope) (samples : List Raw := [raw 0, raw 1]) :
   let ⟨_, d⟩ ← (domain .samplesOnly).toOption
   let t ← (target .samplesOnly).toOption
   pure (d.actions.map fun a =>
-    ((t.kernel.steps (value "example.state.phase" "idle") a.modelValue).map (·.modelOutcome.value),
-     (t.kernel.steps (value "example.state.phase" "done") a.modelValue).map (·.modelOutcome.value)))) ==
+    ((t.kernel.steps (value "example.state.phase" "idle") a.modelValue).map (·.outcome.value),
+     (t.kernel.steps (value "example.state.phase" "done") a.modelValue).map (·.outcome.value)))) ==
   some [(["accepted", "rejected"], ["rejected"]), (["accepted", "rejected"], ["rejected"])]
 #guard (do
   let ⟨_, d⟩ ← (domain .samplesOnly).toOption

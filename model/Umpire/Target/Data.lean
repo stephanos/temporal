@@ -20,12 +20,12 @@ structure TargetDeclaration
   resolvedSetups : List Setup
   /-- One eligible-state set per constituent; every set must match. Empty metadata never closes. -/
   terminalConditions : List (List State) := []
-  kernel : KernelAvailability Setup State Action Outcome Observation
+  kernel : MachineAvailability Setup State Action Outcome Observation
 
 /-- Optional finite planning is tied propositionally to the exact authoritative target kernel. -/
 structure FinitePlanningCapability
     {State Action Outcome Observation : Type}
-    (authoritativeStep : State → Action → TransitionResult State Outcome Observation → Prop) where
+    (authoritativeStep : State → Action → Step State Outcome Observation → Prop) where
   actions : List Action
   actionSound : ∀ action, action ∈ actions →
     ∃ state result, authoritativeStep state action result
@@ -34,16 +34,16 @@ structure FinitePlanningCapability
 
 inductive FinitePlanningAvailability
     {State Action Outcome Observation : Type}
-    (authoritativeStep : State → Action → TransitionResult State Outcome Observation → Prop) where
+    (authoritativeStep : State → Action → Step State Outcome Observation → Prop) where
   | unavailable
   | available (capability : FinitePlanningCapability authoritativeStep)
 
 inductive AuthoredPlanningCapability
     {Setup State Action Outcome Observation : Type}
-    (availability : KernelAvailability Setup State Action Outcome Observation) where
+    (availability : MachineAvailability Setup State Action Outcome Observation) where
   | unavailable
   | available
-      (kernel : TransitionKernel Setup State Action Outcome Observation)
+      (kernel : Machine Setup State Action Outcome Observation)
       (kernelEq : availability = .checked kernel)
       (capability : FinitePlanningCapability kernel.authoritativeStep)
 
@@ -147,6 +147,6 @@ structure TargetDefinition
   resolvedSetups : List Setup
   /-- One eligible-state set per constituent; every set must match. Empty metadata never closes. -/
   terminalConditions : List (List State) := []
-  kernel : KernelAvailability Setup State Action Outcome Observation
+  kernel : MachineAvailability Setup State Action Outcome Observation
 
 end Umpire

@@ -20,7 +20,7 @@ several ideas. Measured on the current tree:
 | Evidence | 8 | Outcome | 5 |
 | Observation | 6 | Capability | 5 |
 
-The reverse is as common: the transition relation is a `TransitionKernel`, a `FiniteMachine`, a
+The reverse is as common: the transition relation is a `Machine`, a `FiniteMachine`, a
 `FiniteTable`, or a `ValidatedFiniteModel` depending on the file; something that must hold is a
 Property, Clause, Obligation, Requirement, Claim, Law, or Rule; a budget is a Limit, Bound, Ceiling,
 Horizon, or `bounds`. `Scoped` prefixes 24 proto names and 40 Lean files with nothing stating that it

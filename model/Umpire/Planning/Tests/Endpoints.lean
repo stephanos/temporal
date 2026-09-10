@@ -18,7 +18,7 @@ private def temporalProperty (triggered responds : Bool) (bound : Nat := 1) : Ch
     { value := bound, unit := .semanticTransitions }]
   access := { capabilities := [], logicalTimeSource := none, meanings := [
     { definitionId := request, kind := .action, canonicalBehavior := "request" },
-    { definitionId := observed, kind := .observation, canonicalBehavior := "observed" }] }
+    { definitionId := observed, kind := .fact, canonicalBehavior := "observed" }] }
 }
 
 private def endpointRun
@@ -143,7 +143,7 @@ private def convergingTarget : Option (QueryTarget (fun _ => True)) :=
     initial := [⟨setup, [initial]⟩]
     transitions := [
       ⟨"other", initial, other, [transition 0]⟩,
-      ⟨"request", initial, requestValue, [{ transition 0 with observations := [] }]⟩]
+      ⟨"request", initial, requestValue, [{ transition 0 with facts := [] }]⟩]
   }
   (FiniteTable.checkTarget table {
     id := targetId
@@ -173,8 +173,8 @@ private def convergingRun : Option PlannerRun := do
     let selected : BehaviorTrace := {
       setup := artifact.plan.bindings
       trace := { initialState := artifact.plan.initialState, steps := [
-        { selectedAction := requestValue, modelOutcome := acceptedValue,
-          resultingState := completed, observations := [] }] } }
+        { selectedAction := requestValue, outcome := acceptedValue,
+          state := completed, facts := [] }] } }
     let query ← (checkQuery (.ofTarget target) { queryDeclaration with
       form := .counterexample (temporalProperty true true)
       behavior := { behavior with traceExactly := some selected } }).toOption
@@ -190,9 +190,9 @@ private def convergingRun : Option PlannerRun := do
     (.limitReached, [.unresolved])
 
 #guard (terminalTarget [[completed]]).map (·.behaviorFingerprint.render) ==
-  some "sha256:0e82afc10c6f5ae6b727dc3f1b711b67c969cae12c8e33c64fd0a445b9fff18e"
+  some "sha256:3d1b55f8204b5ed7f6902b2e91606695364d809f9aa58ae3106c51e53e77954e"
 #guard (admittedQuery .deliberatelyClosed .allowVacuous).map (·.behaviorFingerprint.render) ==
-  some "sha256:455a7e180231fa05baf5d44811bc52ec776fc1cd5f9a2494d0ff6b8ad5a5f967"
+  some "sha256:ad39b1f1783f9893a63a82698dfd398b1fff7b3309e9195efc3bc3ad9fad5a0e"
 #guard (endpointRun .deliberatelyClosed .requireAllTriggers
   (.verify (temporalProperty true false)) 10 2).map
     (·.result.metadata.validity.searchTermination) == some "limit-reached"

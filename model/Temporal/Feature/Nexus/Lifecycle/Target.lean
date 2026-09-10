@@ -41,22 +41,22 @@ def succeededObservation : ModelValue := ModelValue.named lifecycleObservationId
 def scheduledSetup : List RoleBinding := [{ role := operationRoleId, value := scheduledState }]
 def startedSetup : List RoleBinding := [{ role := operationRoleId, value := startedState }]
 
-def startedResult : TransitionResult ModelValue ModelValue ModelValue := {
-  modelOutcome := startedOutcome
-  resultingState := startedState
-  observations := [startedObservation]
+def startedResult : Step ModelValue ModelValue ModelValue := {
+  outcome := startedOutcome
+  state := startedState
+  facts := [startedObservation]
 }
 
-def canceledResult : TransitionResult ModelValue ModelValue ModelValue := {
-  modelOutcome := canceledOutcome
-  resultingState := canceledState
-  observations := [canceledObservation]
+def canceledResult : Step ModelValue ModelValue ModelValue := {
+  outcome := canceledOutcome
+  state := canceledState
+  facts := [canceledObservation]
 }
 
-def succeededResult : TransitionResult ModelValue ModelValue ModelValue := {
-  modelOutcome := succeededOutcome
-  resultingState := succeededState
-  observations := [succeededObservation]
+def succeededResult : Step ModelValue ModelValue ModelValue := {
+  outcome := succeededOutcome
+  state := succeededState
+  facts := [succeededObservation]
 }
 
 def lifecycleState? (state : ModelValue) : Option OperationState :=
@@ -81,8 +81,8 @@ def lifecycleEvent? (action : ModelValue) : Option OperationEvent :=
   else
     none
 
-def transitionResult? : OperationState → Option
-    (TransitionResult ModelValue ModelValue ModelValue)
+def modelStep? : OperationState → Option
+    (Step ModelValue ModelValue ModelValue)
   | .started => some startedResult
   | .canceled => some canceledResult
   | .succeeded => some succeededResult
@@ -90,11 +90,11 @@ def transitionResult? : OperationState → Option
 
 /-- Enumerate only exposed results reached through the focused `step` relation. -/
 def stepResult? (state action : ModelValue) : Option
-    (TransitionResult ModelValue ModelValue ModelValue) := do
+    (Step ModelValue ModelValue ModelValue) := do
   let lifecycleState ← lifecycleState? state
   let lifecycleEvent ← lifecycleEvent? action
   let resultingState ← step lifecycleState lifecycleEvent
-  transitionResult? resultingState
+  modelStep? resultingState
 
 def initialState? (setup : List RoleBinding) : Option ModelValue :=
   if setup = scheduledSetup then
@@ -109,7 +109,7 @@ def initialStates (setup : List RoleBinding) : List ModelValue :=
 
 def stepResults
     (state action : ModelValue) :
-    List (TransitionResult ModelValue ModelValue ModelValue) :=
+    List (Step ModelValue ModelValue ModelValue) :=
   (stepResult? state action).toList
 
 theorem initialStates_length_le_one (setup : List RoleBinding) :
@@ -122,7 +122,7 @@ theorem stepResults_length_le_one (state action : ModelValue) :
 
 theorem step_action_exposed
     (state action : ModelValue)
-    (result : TransitionResult ModelValue ModelValue ModelValue)
+    (result : Step ModelValue ModelValue ModelValue)
     (member : result ∈ stepResults state action) :
     action = cancelAction ∨ action = startAction ∨ action = reportSuccessAction := by
   by_cases isCancel : action = cancelAction
@@ -135,7 +135,7 @@ theorem step_action_exposed
 
 theorem step_result_exposed
     (state action : ModelValue)
-    (result : TransitionResult ModelValue ModelValue ModelValue)
+    (result : Step ModelValue ModelValue ModelValue)
     (member : result ∈ stepResults state action) :
     result = startedResult ∨ result = canceledResult ∨ result = succeededResult := by
   have started_ne_scheduled : startedState ≠ scheduledState := by native_decide
@@ -152,45 +152,45 @@ theorem step_result_exposed
     by_cases start : action = startAction
     · subst action
       left
-      simpa [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?, step]
+      simpa [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, modelStep?, step]
         using member
     · by_cases cancel : action = cancelAction
       · subst action
-        simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?, step,
+        simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, modelStep?, step,
           cancel_ne_start] at member
       · by_cases reportSuccess : action = reportSuccessAction
         · subst action
-          simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?, step,
+          simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, modelStep?, step,
             success_ne_start, success_ne_cancel] at member
-        · simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
+        · simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, modelStep?,
             step, start, cancel, reportSuccess] at member
   · by_cases started : state = startedState
     · subst state
       by_cases cancel : action = cancelAction
       · subst action
         right; left
-        simpa [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?, step,
+        simpa [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, modelStep?, step,
           started_ne_scheduled, cancel_ne_start] using member
       · by_cases reportSuccess : action = reportSuccessAction
         · subst action
           right; right
-          simpa [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
+          simpa [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, modelStep?,
             step, started_ne_scheduled, success_ne_start, success_ne_cancel] using member
         · by_cases start : action = startAction
           · subst action
-            simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
+            simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, modelStep?,
               step, started_ne_scheduled] at member
-          · simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
+          · simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, modelStep?,
               step, started_ne_scheduled, start, cancel, reportSuccess] at member
     · by_cases canceled : state = canceledState
       · subst state
-        simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?, step,
+        simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, modelStep?, step,
           canceled_ne_scheduled, canceled_ne_started] at member
       · by_cases succeeded : state = succeededState
         · subst state
-          simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?, step,
+          simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, modelStep?, step,
             succeeded_ne_scheduled, succeeded_ne_started, succeeded_ne_canceled] at member
-        · simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
+        · simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, modelStep?,
             step, scheduled, started, canceled, succeeded] at member
 
 def roleAssignments : List (List RoleBinding) := [scheduledSetup, startedSetup]
@@ -241,14 +241,14 @@ def finiteMachine : FiniteMachine
       · simp [started]
       · by_cases canceled : state = canceledState
         · subst state
-          simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
+          simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, modelStep?,
             step, scheduledState, startedState, canceledState, ModelValue.named] at member
         · by_cases succeeded : state = succeededState
           · subst state
-            simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
+            simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, modelStep?,
               step, scheduledState, startedState, canceledState, succeededState,
                 ModelValue.named] at member
-          · simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
+          · simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, modelStep?,
               step, scheduled, started, canceled, succeeded] at member
   actionCoverage := by
     intro state action result member
@@ -275,15 +275,15 @@ def finiteMachine : FiniteMachine
     rcases member with rfl | rfl | rfl
     · exact ⟨startedState, canceledResult, by
         change canceledResult ∈ stepResults startedState cancelAction
-        simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
+        simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, modelStep?,
           step, scheduledState, startedState, startAction, cancelAction, ModelValue.named]⟩
     · exact ⟨scheduledState, startedResult, by
         change startedResult ∈ stepResults scheduledState startAction
-        simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
+        simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, modelStep?,
           step, scheduledState, startAction]⟩
     · exact ⟨startedState, succeededResult, by
         change succeededResult ∈ stepResults startedState reportSuccessAction
-        simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
+        simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, modelStep?,
           step, scheduledState, startedState, startAction, cancelAction,
           reportSuccessAction, ModelValue.named]⟩
 }
@@ -293,7 +293,7 @@ def authoritativeInitial (setup : List RoleBinding) (state : ModelValue) : Prop 
 
 def authoritativeStep
     (state action : ModelValue)
-    (result : TransitionResult ModelValue ModelValue ModelValue) : Prop :=
+    (result : Step ModelValue ModelValue ModelValue) : Prop :=
   finiteMachine.kernel.authoritativeStep state action result
 
 theorem initialStates_sound
@@ -312,19 +312,19 @@ theorem initialStates_complete
 
 theorem stepResults_sound
     (state action : ModelValue)
-    (result : TransitionResult ModelValue ModelValue ModelValue)
+    (result : Step ModelValue ModelValue ModelValue)
     (member : result ∈ stepResults state action) :
     authoritativeStep state action result := by
   exact finiteMachine.kernel.stepSound state action result member
 
 theorem stepResults_complete
     (state action : ModelValue)
-    (result : TransitionResult ModelValue ModelValue ModelValue)
+    (result : Step ModelValue ModelValue ModelValue)
     (admitted : authoritativeStep state action result) :
     result ∈ stepResults state action := by
   exact finiteMachine.kernel.stepComplete state action result admitted
 
-def transitionKernel : TransitionKernel
+def machine : Machine
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue :=
   finiteMachine.kernel
 
@@ -355,7 +355,7 @@ def lifecycleProvider : CapabilityProvider LawStatement := {
       canonicalBehavior := "temporal-nexus-basic-lifecycle-report-success/v1" },
     { definitionId := transitionOutcomeId, kind := .outcome,
       canonicalBehavior := "temporal-nexus-basic-lifecycle-outcome/v2" },
-    { definitionId := lifecycleObservationId, kind := .observation,
+    { definitionId := lifecycleObservationId, kind := .fact,
       canonicalBehavior := "temporal-nexus-basic-lifecycle-observation/v2" }
   ]
   lawWitnesses := [{ definition := lifecycleLaw, proof := lifecycleLawProof }]
@@ -363,7 +363,7 @@ def lifecycleProvider : CapabilityProvider LawStatement := {
 
 def definitions : List DefinitionMetadata := [
   metadata targetId .target "temporal-nexus-basic-lifecycle-target/v2",
-  metadata kernelId .kernel "temporal-nexus-basic-lifecycle-kernel/v2",
+  metadata kernelId .machine "temporal-nexus-basic-lifecycle-kernel/v2",
   metadata lifecycleCapabilityId .capability "temporal-nexus-basic-lifecycle/v2",
   metadata lifecycleProviderId .provider "temporal-nexus-basic-lifecycle-provider/v2",
   metadata lifecycleLawId .law lifecycleLaw.body,
@@ -372,10 +372,10 @@ def definitions : List DefinitionMetadata := [
   metadata cancelActionId .action "temporal-nexus-basic-lifecycle-cancel/v1",
   metadata reportSuccessActionId .action "temporal-nexus-basic-lifecycle-report-success/v1",
   metadata transitionOutcomeId .outcome "temporal-nexus-basic-lifecycle-outcome/v2",
-  metadata lifecycleObservationId .observation "temporal-nexus-basic-lifecycle-observation/v2"
+  metadata lifecycleObservationId .fact "temporal-nexus-basic-lifecycle-observation/v2"
 ]
 
-def finitePlanning : FinitePlanningCapability transitionKernel.authoritativeStep :=
+def finitePlanning : FinitePlanningCapability machine.authoritativeStep :=
   finiteMachine.planning
 
 @[simp] private theorem finiteMachine_planning_actions :
@@ -414,19 +414,19 @@ theorem target_started_initial_authoritative :
 theorem target_scheduled_start_authoritative :
     target.kernel.authoritativeStep scheduledState startAction startedResult := by
   change startedResult ∈ stepResults scheduledState startAction
-  simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
+  simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, modelStep?,
     step, scheduledState, startAction]
 
 theorem target_started_cancel_authoritative :
     target.kernel.authoritativeStep startedState cancelAction canceledResult := by
   change canceledResult ∈ stepResults startedState cancelAction
-  simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
+  simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, modelStep?,
     step, scheduledState, startedState, startAction, cancelAction, ModelValue.named]
 
 theorem target_started_reportSuccess_authoritative :
     target.kernel.authoritativeStep startedState reportSuccessAction succeededResult := by
   change succeededResult ∈ stepResults startedState reportSuccessAction
-  simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
+  simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, modelStep?,
     step, scheduledState, startedState, startAction, cancelAction,
     reportSuccessAction, ModelValue.named]
 

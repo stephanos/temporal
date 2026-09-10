@@ -36,7 +36,7 @@ def traceWithLogicalTime
   positiveTrace with
   steps := positiveTrace.steps.mapIdx fun index step => {
     step with
-    observations := step.observations ++ [value logicalTime (if index == 0 then first else second)]
+    facts := step.facts ++ [value logicalTime (if index == 0 then first else second)]
   }
 }
 

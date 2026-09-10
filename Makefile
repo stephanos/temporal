@@ -82,6 +82,11 @@ LEAN_LAKE := mise exec -- lake
 endif
 
 UMPIRE_GEN_LEAN_API_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-gen-lean-api
+UMPIRE_GOLDEN_DIRECTORIES := \
+	Umpire/Target/Tests/Compatibility/Fixtures \
+	Temporal/Feature/Nexus/Fixtures \
+	Umpire/Examples/Fixtures \
+	Umpire/Artifact/Tests/Fixtures
 UMPIRE_GEN_REGRESSION_VIEWS_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-gen-regression-views
 UMPIRE_GEN_CASE_RUNTIME_CONFORMANCE_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-gen-case-runtime-conformance
 UMPIRE_GEN_LEAN_DYNAMIC_CONFIG_CATALOG_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-gen-lean-dynamic-config-catalog
@@ -569,6 +574,26 @@ umpire-check-regression-views:
 		TMPDIR="$$temporary_root" go test -count=1 -tags test_dep \
 			./tools/umpire/cmd/umpire-gen-regression-views ./tools/umpire/regression
 
+umpire-gen-goldens:
+	@cd model && $(LEAN_LAKE) build umpire-goldens $(UMPIRE_REGRESSION_INSPECTOR) >/dev/null
+	@cd model && $(LEAN_LAKE) exe umpire-goldens --output-root .
+	@set -eu; cd model; for scenario_fixture in $(UMPIRE_REGRESSION_FIXTURES); do \
+		scenario=$${scenario_fixture%%:*}; \
+		fixture=$${scenario_fixture#*:}; \
+		$(LEAN_LAKE) exe $(UMPIRE_REGRESSION_INSPECTOR) "$$scenario" > "$$fixture"; \
+	done
+
+umpire-check-goldens:
+	@printf $(COLOR) "Check Umpire model goldens..."
+	@cd model && $(LEAN_LAKE) build umpire-goldens
+	@set -eu; temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
+		temporary=$$(mktemp -d "$$temporary_root/umpire-goldens.XXXXXX"); \
+		trap 'rm -rf "$$temporary"' EXIT HUP INT TERM; \
+		( cd model && $(LEAN_LAKE) exe umpire-goldens --output-root "$$temporary" ); \
+		for directory in $(UMPIRE_GOLDEN_DIRECTORIES); do \
+			diff -ru "model/$$directory" "$$temporary/$$directory"; \
+		done
+
 umpire-gen-case-runtime-conformance:
 	@cd model && $(LEAN_LAKE) build $(UMPIRE_TESTPILOT_RENDERER) umpire-scoped-fixtures >/dev/null
 	@$(UMPIRE_GEN_CASE_RUNTIME_CONFORMANCE_COMMAND) --repository-root . --output-root .
@@ -669,7 +694,7 @@ umpire-check-live-tests:
 		fi; \
 		printf 'Live Testpilot failure identities match the empty expected set across %s passing identities.\n' "$$passing"
 
-umpire-check-regression: umpire-check-lean-api umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-check-case-runtime-conformance umpire-check-semantic-inventory umpire-check-retired-vocabulary umpire-check-live-tests
+umpire-check-regression: umpire-check-lean-api umpire-check-goldens umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-check-case-runtime-conformance umpire-check-semantic-inventory umpire-check-retired-vocabulary umpire-check-live-tests
 	@temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
 		TMPDIR="$$temporary_root" mise exec -- go test -count=1 -tags test_dep ./tools/umpire/... ./common/testing/testpilot/... ./tests/testcore/testpilot/...
 	@set -eu; \
@@ -779,7 +804,7 @@ umpire-check-regression: umpire-check-lean-api umpire-check-regression-views ump
 			> "$$temporary/expected-invalid.stderr"; \
 		cmp -s "$$temporary/expected-invalid.stderr" "$$temporary/invalid.stderr"
 
-.PHONY: umpire-check-lean-api umpire-build-model umpire-check-plan-index umpire-inspect umpire-list-nexus umpire-explain-nexus umpire-gen-lean-api umpire-gen-lean-api-fixture umpire-gen-lean-dynamic-config-catalog umpire-gen-regression-views umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-gen-case-runtime-conformance umpire-check-case-runtime-conformance umpire-gen-semantic-inventory umpire-check-semantic-inventory umpire-check-retired-vocabulary umpire-check-live-tests umpire-check-regression
+.PHONY: umpire-check-lean-api umpire-build-model umpire-check-plan-index umpire-inspect umpire-list-nexus umpire-explain-nexus umpire-gen-lean-api umpire-gen-lean-api-fixture umpire-gen-lean-dynamic-config-catalog umpire-gen-goldens umpire-check-goldens umpire-gen-regression-views umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-gen-case-runtime-conformance umpire-check-case-runtime-conformance umpire-gen-semantic-inventory umpire-check-semantic-inventory umpire-check-retired-vocabulary umpire-check-live-tests umpire-check-regression
 
 goimports: fmt-imports $(GOIMPORTS)
 	@printf $(COLOR) "Run goimports for all files..."

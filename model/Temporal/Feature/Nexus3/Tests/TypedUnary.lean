@@ -216,8 +216,8 @@ private def evaluation (actionIndex evidenceIndex : Nat) (withEvidence : Bool :=
   let outcome ← started.getLast?
   let trace : ModelTrace ModelValue ModelValue ModelValue ModelValue := {
     initialState := pendingState
-    steps := [{ selectedAction := action.modelValue, modelOutcome := outcome.modelValue
-                resultingState := startedState, observations := [startedFact] }] }
+    steps := [{ selectedAction := action.modelValue, outcome := outcome.modelValue
+                state := startedState, facts := [startedFact] }] }
   let evidence := submitted.map (·.evidence) ++
     (if withEvidence then started.map (·.evidence) else [])
   let input ← (model.property.checkInput trace [evidence]).toOption

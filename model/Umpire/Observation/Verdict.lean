@@ -235,7 +235,7 @@ private def validLogicalTimeSteps
     List (ModelTraceStep ModelValue ModelValue ModelValue ModelValue) → Bool
   | [] => true
   | step :: rest =>
-      match step.observations.filter fun observation => observation.definitionId == source with
+      match step.facts.filter fun observation => observation.definitionId == source with
       | [observation] =>
           match observation.value.toNat? with
           | some current =>

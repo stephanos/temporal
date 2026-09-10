@@ -25,23 +25,18 @@ inductive CaseDefinitionKind where
   | state
   | action
   | outcome
-  | observation
+  | fact
   | relation
   | capability
   | property
   | query
-  | behavior
+  | scenario
   | target
   | compiler
   | provider
   | law
   | connector
-  | kernel
-  | experimentSpace
-  | variationAxis
-  | choice
-  | fault
-  | coverageGoal
+  | machine
   deriving BEq, DecidableEq, Repr
 
 /-- One source Definition ID and the behavior fingerprint used for this Case. -/

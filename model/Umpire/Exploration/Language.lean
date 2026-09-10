@@ -65,9 +65,9 @@ private def maximumObservationPositions (space : CheckedExperimentSpace LawState
 private def coordinateKnown
     (space : CheckedExperimentSpace LawStatement) : ModelCoordinate → Bool
   | .initialState => true
-  | .selectedAction step | .modelOutcome step | .resultingState step =>
+  | .selectedAction step | .outcome step | .state step =>
       step > 0 && step ≤ maximumTraceSteps space
-  | .observation step position =>
+  | .fact step position =>
       step > 0 && step ≤ maximumTraceSteps space &&
         position > 0 && position ≤ maximumObservationPositions space
 
