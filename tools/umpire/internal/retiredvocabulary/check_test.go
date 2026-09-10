@@ -29,8 +29,8 @@ func TestValidateRetiredTokenRejectsBareWords(t *testing.T) {
 		"umpire-gen-regression-" + "projections",
 		"Umpire." + "Refinement",
 		"umpire-experiment/" + "v1",
-		"await_outcome",
-		"behavior%",
+		"await_" + "outcome",
+		"behavior" + "%",
 	} {
 		require.NoError(t, validateRetiredToken(token), "token %q", token)
 	}
