@@ -33,9 +33,10 @@ helpers, and `Testpilot.ProtoJSON` delegates the one canonical codec policy to `
 `Umpire.Case` retains only Umpire-owned definitions, fingerprints, sources, and Known Gaps for
 opaque producer provenance.
 
-`Temporal.Feature.Nexus3.Testpilot` lowers the checked success-only Nexus3 completion Query and
-witness into the async Nexus example. `Temporal.Testpilot` supplies the unrelated `GetSystemInfo`
-example and the six public-facade conformance fixtures. `Temporal.Tool.Testpilot` forwards rendering
+`Temporal.Feature.Nexus3.Testpilot` lowers the checked Nexus3 completion model into the async Nexus
+example: its Contract carries no monitor rule, only the operation-scoped capability the checked
+Property lowered into. `Temporal.Testpilot` supplies the unrelated `GetSystemInfo` example, the
+worker-outage fault Case, and the six public-facade conformance fixtures. `Temporal.Tool.Testpilot` forwards rendering
 to `Testpilot.ProtoJSON`. The broader Nexus3 Markdown sketches remain design material rather than executable
 coverage. Lean is the first Producer, while the Case format and Go runtime remain independent of
 Lean.

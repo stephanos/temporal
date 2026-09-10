@@ -22,7 +22,7 @@ Focused public imports are available by responsibility:
 | `Umpire.Property` | Property authoring, validation, and pure trace evaluation. |
 | `Umpire.Behavior` | Setup and trace-shape authoring and validation. |
 | `Umpire.Query` | Bounded questions over a checked Target, Properties, and Behavior. |
-| `Umpire.Space` | Checked finite axes, request-only faults, and atomic point compilation. |
+| `Umpire.Space` | Checked finite axes, fault intents and their lowering, and atomic point compilation. |
 | `Umpire.Exploration` | Bounded finite selection, pinned precedence, and process-local sessions. |
 | `Umpire.Observation` | Offline evidence mappings and accepted semantic traces. |
 | `Umpire.ImplementationLink` | Checked correspondence between independent semantic Targets. |
