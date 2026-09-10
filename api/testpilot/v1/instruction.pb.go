@@ -364,10 +364,10 @@ type ScopedEvidenceRule struct {
 	Guard           *FieldPath               `protobuf:"bytes,1,opt,name=guard,proto3" json:"guard,omitempty"`
 	Scope           []*ScopedEvidenceBinding `protobuf:"bytes,2,rep,name=scope,proto3" json:"scope,omitempty"`
 	Source          string                   `protobuf:"bytes,3,opt,name=source,proto3" json:"source,omitempty"`
-	Operation       *FieldPath               `protobuf:"bytes,5,opt,name=operation,proto3" json:"operation,omitempty"`
-	Kind            string                   `protobuf:"bytes,6,opt,name=kind,proto3" json:"kind,omitempty"`
-	Fields          []*ScopedEvidenceBinding `protobuf:"bytes,7,rep,name=fields,proto3" json:"fields,omitempty"`
-	GuardEqualsText string                   `protobuf:"bytes,8,opt,name=guard_equals_text,json=guardEqualsText,proto3" json:"guard_equals_text,omitempty"`
+	Operation       *FieldPath               `protobuf:"bytes,4,opt,name=operation,proto3" json:"operation,omitempty"`
+	Kind            string                   `protobuf:"bytes,5,opt,name=kind,proto3" json:"kind,omitempty"`
+	Fields          []*ScopedEvidenceBinding `protobuf:"bytes,6,rep,name=fields,proto3" json:"fields,omitempty"`
+	GuardEqualsText string                   `protobuf:"bytes,7,opt,name=guard_equals_text,json=guardEqualsText,proto3" json:"guard_equals_text,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -1565,10 +1565,10 @@ const file_temporal_server_api_testpilot_v1_instruction_proto_rawDesc = "" +
 	"\x05guard\x18\x01 \x01(\v2+.temporal.server.api.testpilot.v1.FieldPathR\x05guard\x12M\n" +
 	"\x05scope\x18\x02 \x03(\v27.temporal.server.api.testpilot.v1.ScopedEvidenceBindingR\x05scope\x12\x16\n" +
 	"\x06source\x18\x03 \x01(\tR\x06source\x12I\n" +
-	"\toperation\x18\x05 \x01(\v2+.temporal.server.api.testpilot.v1.FieldPathR\toperation\x12\x12\n" +
-	"\x04kind\x18\x06 \x01(\tR\x04kind\x12O\n" +
-	"\x06fields\x18\a \x03(\v27.temporal.server.api.testpilot.v1.ScopedEvidenceBindingR\x06fields\x12*\n" +
-	"\x11guard_equals_text\x18\b \x01(\tR\x0fguardEqualsText\"\x8d\x01\n" +
+	"\toperation\x18\x04 \x01(\v2+.temporal.server.api.testpilot.v1.FieldPathR\toperation\x12\x12\n" +
+	"\x04kind\x18\x05 \x01(\tR\x04kind\x12O\n" +
+	"\x06fields\x18\x06 \x03(\v27.temporal.server.api.testpilot.v1.ScopedEvidenceBindingR\x06fields\x12*\n" +
+	"\x11guard_equals_text\x18\a \x01(\tR\x0fguardEqualsText\"\x8d\x01\n" +
 	"\x18ScopedEvidenceProjection\x12%\n" +
 	"\x0eobservation_id\x18\x01 \x01(\tR\robservationId\x12J\n" +
 	"\x05rules\x18\x02 \x03(\v24.temporal.server.api.testpilot.v1.ScopedEvidenceRuleR\x05rules\"\xc7\x01\n" +
