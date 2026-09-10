@@ -6,20 +6,20 @@ import Umpire.Json
 namespace Umpire
 
 inductive KnownGapKind where
-  | capabilityContract
+  | capability
   | input
   | interpretation
   | claim
   deriving BEq, DecidableEq, Ord, Repr
 
 def KnownGapKind.name : KnownGapKind → String
-  | .capabilityContract => "capability-contract"
+  | .capability => "capability"
   | .input => "input"
   | .interpretation => "interpretation"
   | .claim => "claim"
 
 def KnownGapKind.parse? : String → Option KnownGapKind
-  | "capability-contract" => some .capabilityContract
+  | "capability" => some .capability
   | "input" => some .input
   | "interpretation" => some .interpretation
   | "claim" => some .claim
@@ -72,7 +72,7 @@ structure KnownGapSet where
   deriving BEq, DecidableEq, Repr
 
 private def knownGapKindRank : KnownGapKind → String
-  | .capabilityContract => "0"
+  | .capability => "0"
   | .input => "1"
   | .interpretation => "2"
   | .claim => "3"

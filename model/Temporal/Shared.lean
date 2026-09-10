@@ -1,5 +1,5 @@
 import Umpire.Shared
-import Umpire.Target.Authoring
+import Umpire.Id
 
 namespace Temporal.Shared
 
@@ -27,7 +27,7 @@ def definitionMetadata
     (id : Umpire.DefinitionId)
     (kind : Umpire.DefinitionKind)
     (source : Umpire.SourceLocation)
-    (canonicalBehavior : String) : Umpire.DefinitionMetadata :=
-  Umpire.Shared.definitionMetadata id kind source 1 canonicalBehavior ""
+    (behaviorVersion : String) : Umpire.DefinitionMetadata :=
+  Umpire.Shared.definitionMetadata id kind source 1 behaviorVersion ""
 
 end Temporal.Shared

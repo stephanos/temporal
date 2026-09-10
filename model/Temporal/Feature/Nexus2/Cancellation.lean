@@ -32,7 +32,7 @@ structure ModelVocabulary where
 
 /-- Vocabulary lowering stays behind the generic finite identity owner. -/
 def modelVocabulary : Except FiniteTableError ModelVocabulary := do
-  let model ← table.validateModel identity
+  let model ← table.checkIdentity identity
   pure {
     scheduledState := ← model.stateValue .scheduled
     startedState := ← model.stateValue .started
@@ -210,7 +210,7 @@ def queryDeclaration
 end Success
 
 inductive BaselineAdmissionError where
-  | invalidTarget (error : FiniteTargetAdmissionError)
+  | invalidTarget (error : TableAdmissionError)
   | invalidVocabulary (error : FiniteTableError)
   | invalidProperty (error : PropertyError)
   | invalidBehavior (error : BehaviorError)
@@ -225,14 +225,14 @@ structure CheckedOperation where
   run : PlannerRun
 
 structure CheckedBaseline where
-  target : QueryTarget LawStatement
+  target : QueryModel LawStatement
   model : ModelVocabulary
   start : CheckedOperation
   cancel : CheckedOperation
   success : CheckedOperation
 
 private def checkOperation
-    (target : QueryTarget LawStatement)
+    (target : QueryModel LawStatement)
     (propertyDeclaration : PropertyDeclaration)
     (behaviorDeclaration : BehaviorDeclaration)
     (queryDeclaration : CheckedProperty → CheckedBehavior → QueryDeclaration) :

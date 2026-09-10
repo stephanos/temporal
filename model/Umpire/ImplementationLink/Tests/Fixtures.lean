@@ -1,63 +1,63 @@
 import Umpire.ImplementationLink
-import Umpire.Target.Tests.Fixtures
+import Umpire.Model.Tests.Fixtures
 
 /-! Independently checked finite Targets and exact forward-simulation fixtures. -/
 
 namespace Umpire.ImplementationLinkTests
 
 open Umpire
-open Umpire.TargetTests
+open Umpire.ModelTests
 
-def checkedSourceTarget : CheckedTarget TestLawStatement Unit Bool Bool Bool Bool :=
-  checkedTarget (authoringOf testTarget)
+def checkedSourceTarget : CheckedModel TestLawStatement Unit Bool Bool Bool Bool :=
+  model (authoringOf testTarget)
 
-def checkedDestinationTarget : CheckedTarget TestLawStatement Unit Bool Bool Bool Bool :=
+def checkedDestinationTarget : CheckedModel TestLawStatement Unit Bool Bool Bool Bool :=
   checkedSourceTarget
 
-def versionedPrimaryProvider : CapabilityProvider TestLawStatement := {
+def versionedPrimaryProvider : Provider TestLawStatement := {
   primaryProvider with contract := { primaryProvider.contract with version := 2 }
 }
 
-def versionedCapabilityTargetDeclaration :
-    TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
+def versionedCapabilityModelSpec :
+    ModelSpec TestLawStatement Unit Bool Bool Bool Bool := {
   testTarget with providers := [versionedPrimaryProvider, secondaryProvider]
 }
 
 def checkedVersionedCapabilityTarget :
-    CheckedTarget TestLawStatement Unit Bool Bool Bool Bool :=
-  checkedTarget (authoringOf versionedCapabilityTargetDeclaration)
+    CheckedModel TestLawStatement Unit Bool Bool Bool Bool :=
+  model (authoringOf versionedCapabilityModelSpec)
 
-def lawDriftPrimaryProvider : CapabilityProvider TestLawStatement := {
+def lawDriftPrimaryProvider : Provider TestLawStatement := {
   primaryProvider with
   contract := { primaryProvider.contract with requiredLaws := [] }
-  lawWitnesses := []
+  lawProofs := []
 }
 
-def lawDriftCapabilityTargetDeclaration :
-    TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
+def lawDriftCapabilityModelSpec :
+    ModelSpec TestLawStatement Unit Bool Bool Bool Bool := {
   testTarget with providers := [lawDriftPrimaryProvider, secondaryProvider]
 }
 
 def checkedLawDriftCapabilityTarget :
-    CheckedTarget TestLawStatement Unit Bool Bool Bool Bool :=
-  checkedTarget (authoringOf lawDriftCapabilityTargetDeclaration)
+    CheckedModel TestLawStatement Unit Bool Bool Bool Bool :=
+  model (authoringOf lawDriftCapabilityModelSpec)
 
-def conflictingCapabilityProvider : CapabilityProvider TestLawStatement := {
+def conflictingProvider : Provider TestLawStatement := {
   secondaryProvider with contract := {
     secondaryProvider.contract with id := primaryProvider.contract.id
   }
 }
 
-def conflictingCapabilityTargetDeclaration :
-    TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
+def conflictingCapabilityModelSpec :
+    ModelSpec TestLawStatement Unit Bool Bool Bool Bool := {
   testTarget with
   requiredCapabilities := [primaryProvider.contract.id]
-  providers := [primaryProvider, conflictingCapabilityProvider]
+  providers := [primaryProvider, conflictingProvider]
 }
 
 def checkedConflictingCapabilityTarget :
-    CheckedTarget TestLawStatement Unit Bool Bool Bool Bool :=
-  checkedTarget (authoringOf conflictingCapabilityTargetDeclaration)
+    CheckedModel TestLawStatement Unit Bool Bool Bool Bool :=
+  model (authoringOf conflictingCapabilityModelSpec)
 
 inductive SparseOutcome where
   | off
@@ -87,7 +87,7 @@ def sparseOutcomeKernel : Machine Unit Bool Bool SparseOutcome Bool := {
   authoritativeStep := fun state action result => result = sparseTransition state action
   stepSound := by simp
   stepComplete := by simp
-  behaviorDomain := .complete {
+  vocabulary := .complete {
     setups := [()]
     states := [false, true]
     actions := [false, true]
@@ -129,25 +129,25 @@ def sparseOutcomeKernel : Machine Unit Bool Bool SparseOutcome Bool := {
   }
 }
 
-def sparseOutcomeTargetDeclaration :
-    TargetDeclaration TestLawStatement Unit Bool Bool SparseOutcome Bool := {
-  testTarget with kernel := .checked sparseOutcomeKernel
+def sparseOutcomeModelSpec :
+    ModelSpec TestLawStatement Unit Bool Bool SparseOutcome Bool := {
+  testTarget with machine := .checked sparseOutcomeKernel
 }
 
 def sparseOutcomeTargetAuthoring :
-    AuthoredTarget TestLawStatement Unit Bool Bool SparseOutcome Bool :=
-  AuthoredTarget.make {
-    id := sparseOutcomeTargetDeclaration.id
-    source := sparseOutcomeTargetDeclaration.source
-    definitions := sparseOutcomeTargetDeclaration.definitions
-    requiredCapabilities := sparseOutcomeTargetDeclaration.requiredCapabilities
-    resolvedSetups := sparseOutcomeTargetDeclaration.resolvedSetups
-    kernel := sparseOutcomeTargetDeclaration.kernel
-  } (targetCompositionOf testTarget) .unavailable
+    DraftModel TestLawStatement Unit Bool Bool SparseOutcome Bool :=
+  DraftModel.make {
+    id := sparseOutcomeModelSpec.id
+    source := sparseOutcomeModelSpec.source
+    definitions := sparseOutcomeModelSpec.definitions
+    requiredCapabilities := sparseOutcomeModelSpec.requiredCapabilities
+    resolvedSetups := sparseOutcomeModelSpec.resolvedSetups
+    machine := sparseOutcomeModelSpec.machine
+  } (providersOf testTarget) .unavailable
 
 def checkedSparseOutcomeTarget :
-    CheckedTarget TestLawStatement Unit Bool Bool SparseOutcome Bool :=
-  checkedTarget sparseOutcomeTargetAuthoring
+    CheckedModel TestLawStatement Unit Bool Bool SparseOutcome Bool :=
+  model sparseOutcomeTargetAuthoring
 
 def relationReference : ImplementationSemanticReference :=
   (implementationSemanticReference? checkedSourceTarget (id "test.relation.shared")

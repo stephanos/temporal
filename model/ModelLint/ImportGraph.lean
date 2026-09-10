@@ -61,8 +61,8 @@ inductive Rule where
   | sharedIndependence
   | testpilotIndependence
   | umpireIndependence
-  | targetIsolation
-  | semanticTargetIsolation
+  | modelIsolation
+  | semanticModelIsolation
   | semanticInventoryIsolation
   | outcomeClassificationIsolation
   | temporalSharedIsolation
@@ -154,7 +154,7 @@ def defaultPolicy : Policy := {
     `Umpire.Lint
   ],
   semanticRoots := #[
-    `Umpire.Target.Semantics,
+    `Umpire.Model.Check,
     `Umpire.Property.Language,
     `Umpire.Property.Check,
     `Umpire.Property.Trace,
@@ -178,8 +178,8 @@ private def Rule.label : Rule → String
   | .sharedIndependence => "shared-independence"
   | .testpilotIndependence => "testpilot-independence"
   | .umpireIndependence => "umpire-independence"
-  | .targetIsolation => "target-isolation"
-  | .semanticTargetIsolation => "semantic-target-isolation"
+  | .modelIsolation => "model-isolation"
+  | .semanticModelIsolation => "semantic-model-isolation"
   | .semanticInventoryIsolation => "semantic-inventory-isolation"
   | .outcomeClassificationIsolation => "outcome-classification-isolation"
   | .temporalSharedIsolation => "temporal-shared-isolation"
@@ -247,10 +247,10 @@ private def isAllowedTemporalSharedDestination : ModuleClass → Bool
   | .shared | .umpire | .temporalShared => true
   | _ => false
 
-private def isTargetModule (name : Lean.Name) : Bool :=
-  matchesPrefix `Umpire.Target name
+private def isModelModule (name : Lean.Name) : Bool :=
+  matchesPrefix `Umpire.Model name
 
-private def isTargetForbiddenDestination (name : Lean.Name) : Bool :=
+private def isModelForbiddenDestination (name : Lean.Name) : Bool :=
   #[
     `Umpire.Query,
     `Umpire.Planning,
@@ -274,8 +274,8 @@ private def forbiddenRule?
   else if source == `Temporal.Feature.Nexus &&
       matchesPrefix `Temporal.Feature.Nexus.Experimental destination then
     some .nexusExperimentalIsolation
-  else if isTargetModule source && isTargetForbiddenDestination destination then
-    some .targetIsolation
+  else if isModelModule source && isModelForbiddenDestination destination then
+    some .modelIsolation
   else if sourceClass == .shared &&
       (destinationClass == .umpire || destinationClass == .umpireVeil ||
         isTemporalClass destinationClass) then
@@ -325,8 +325,8 @@ def check (policy : Policy) (modules : Array ModuleRecord) : Array Violation :=
     if source == `Umpire.OutcomeClassification && !matchesPrefix `Init destination then
       some .outcomeClassificationIsolation
     else if policy.semanticRoots.contains source &&
-        (matchesPrefix `Umpire.Target.Frontend destination || destination == `Lean.Elab.Term) then
-      some .semanticTargetIsolation
+        (matchesPrefix `Umpire.Model.Elab destination || destination == `Lean.Elab.Term) then
+      some .semanticModelIsolation
     else
       match policy.classify? source, policy.classify? destination with
       | some sourceClass, some destinationClass =>

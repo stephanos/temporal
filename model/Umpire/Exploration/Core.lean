@@ -17,7 +17,7 @@ def ExplorationPolicy.name : ExplorationPolicy → String
   | .uncoveredCoordinate _ => "uncovered-coordinate"
 
 /-- Unchecked inputs for one bounded selection over exactly one checked Experiment Space. -/
-structure ExplorationRequest (LawStatement : LawDefinition → Prop) where
+structure ExplorationRequest (LawStatement : Law → Prop) where
   space : CheckedExperimentSpace LawStatement
   policy : ExplorationPolicy
   limit : Limit

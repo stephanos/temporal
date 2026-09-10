@@ -117,7 +117,7 @@ def literalClosure : List EvidenceClosureFact := [{
 
 /-- Literal canonical mapping identity; no expected Evidence Link field is implementation-derived. -/
 def literalMappingDigest : String :=
-  "sha256:ec942a617aebb787e4368e03da04969489eaafd847b2fc291556cf5cf0edcd8b"
+  "sha256:b81115a37b9be97e434f819965098f203cc0c185ce7d2458e39a20ec92da1e43"
 
 def literalEvidenceLink
     (mappingDigest : String)

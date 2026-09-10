@@ -46,29 +46,29 @@ example : source = {
 
 example : definitions = [
     { id := targetId, kind := .target, source, version := 1,
-      canonicalBehavior := "switch-two-state-target/v1", documentation := "" },
+      behaviorVersion := "switch-two-state-target/v1", documentation := "" },
     { id := kernelId, kind := .machine, source, version := 1,
-      canonicalBehavior := "switch-two-state-kernel/v1", documentation := "" },
+      behaviorVersion := "switch-two-state-kernel/v1", documentation := "" },
     { id := switchCapabilityId, kind := .capability, source, version := 1,
-      canonicalBehavior := "switch-state/v1", documentation := "" },
+      behaviorVersion := "switch-state/v1", documentation := "" },
     { id := switchProviderId, kind := .provider, source, version := 1,
-      canonicalBehavior := "switch-state-provider/v1", documentation := "" },
+      behaviorVersion := "switch-state-provider/v1", documentation := "" },
     { id := flipLawId, kind := .law, source, version := 1,
-      canonicalBehavior := "switch-flip-preserves-domain-law/v1", documentation := "" },
+      behaviorVersion := "switch-flip-preserves-domain-law/v1", documentation := "" },
     { id := powerStateId, kind := .state, source, version := 1,
-      canonicalBehavior := "switch-power-state/v1", documentation := "" },
+      behaviorVersion := "switch-power-state/v1", documentation := "" },
     { id := flipActionId, kind := .action, source, version := 1,
-      canonicalBehavior := "switch-flip-action/v1", documentation := "" },
+      behaviorVersion := "switch-flip-action/v1", documentation := "" },
     { id := appliedOutcomeId, kind := .outcome, source, version := 1,
-      canonicalBehavior := "switch-applied-outcome/v1", documentation := "" },
+      behaviorVersion := "switch-applied-outcome/v1", documentation := "" },
     { id := deferredOutcomeId, kind := .outcome, source, version := 1,
-      canonicalBehavior := "switch-deferred-outcome/v1", documentation := "" },
+      behaviorVersion := "switch-deferred-outcome/v1", documentation := "" },
     { id := powerObservationId, kind := .fact, source, version := 1,
-      canonicalBehavior := "switch-power-observation/v1", documentation := "" }
+      behaviorVersion := "switch-power-observation/v1", documentation := "" }
   ] := by
   native_decide
 
-example : (checkTarget targetAuthoring).isOk = true := by
+example : (checkModel targetAuthoring).isOk = true := by
   native_decide
 
 example :
@@ -232,14 +232,14 @@ example : [
   ] := by
   native_decide
 
-example : target.kernel.initialStates switchSetup = [offState] ∧
-    target.kernel.steps offState flipAction = [appliedResult, deferredResult] := by
+example : target.machine.initialStates switchSetup = [offState] ∧
+    target.machine.steps offState flipAction = [appliedResult, deferredResult] := by
   native_decide
 
 theorem direct_kernel_keeps_independent_authority_and_two_results :
     machine.authoritativeInitial = authoritativeInitial ∧
     machine.authoritativeStep = authoritativeStep ∧
-    targetDefinition.kernel = .checked machine ∧
+    modelSpec.machine = .checked machine ∧
     stepResults offState flipAction = [appliedResult, deferredResult] ∧
     authoritativeStep offState flipAction appliedResult ∧
     authoritativeStep offState flipAction deferredResult := by
@@ -249,18 +249,18 @@ theorem direct_kernel_keeps_independent_authority_and_two_results :
 
 theorem direct_kernel_golden_behavior_fingerprint :
     target.behaviorFingerprint.render =
-      "sha256:607a0ef59ce2e76db02675bc6bbf625da9ea2e1f7927fde2064083bc1bf05edb" := by
+      "sha256:dd15faf7be2de6646dbf65eca30c27bdc2829e29b35158c575ec3245d28ebd3c" := by
   native_decide
 
 example : target.requiredCapabilities = [switchCapabilityId] ∧
     flipProperty.requires = [switchCapabilityId] ∧
     exploratoryBehavior.requires = [switchCapabilityId] ∧
-    exactActionQuery.targetComposition = [switchCapabilityId, switchProviderId] := by
+    exactActionQuery.modelProviders = [switchCapabilityId, switchProviderId] := by
   native_decide
 
 example : exactActionQuery.completeness.map (fun evidence =>
     (evidence.roleDomainFingerprint, evidence.actionDomainFingerprint)) =
-    (CheckedQueryTarget.ofTarget target).completeness.map (fun evidence =>
+    (CheckedQueryModel.ofTarget target).completeness.map (fun evidence =>
       (evidence.roleDomainFingerprint, evidence.actionDomainFingerprint)) := by
   native_decide
 

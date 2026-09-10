@@ -114,7 +114,7 @@ example :
 /-- Wrapper vocabulary remains exactly the canonical checked-plan vocabulary. -/
 example :
     let original := completeUncheckedEvidenceBackedTrace.vocabulary.head?.get (by native_decide)
-    let forged := { original with canonicalBehavior := original.canonicalBehavior ++ "/forged" }
+    let forged := { original with behaviorVersion := original.behaviorVersion ++ "/forged" }
     diagnosticKindOf (validateEvidenceBackedTrace {
       completeUncheckedEvidenceBackedTrace with
       vocabulary := completeUncheckedEvidenceBackedTrace.vocabulary ++ [forged]

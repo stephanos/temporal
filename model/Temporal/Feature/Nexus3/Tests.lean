@@ -187,7 +187,7 @@ theorem checkedWitnessIsExact : admitted.bind (fun checked =>
 
 private def runCheck
     (authoredTable := lifecycle.table)
-    (authoredDefinition := lifecycle.targetDefinition)
+    (authoredDefinition := lifecycle.modelSpec)
     (propertyAuthor : Authoring.ModelVocabulary → PropertySpec := successfulResult)
     (behaviorAuthor : Authoring.ModelVocabulary → ExactSequenceSpec := successfulCompletion)
     (form : Authoring.QueryFormKind := .selectWitness) :=
@@ -349,34 +349,34 @@ private def checkedPropertyOf (spec : PropertySpec) : Option CheckedProperty := 
   spec.check (PropertyCheckContext.ofTarget checked.target) |>.toOption
 
 private def metadataMatchesDeclaration (definition : DefinitionMetadata) : Bool :=
-  definition.source == Authoring.source && definition.canonicalBehavior == definition.id.value
+  definition.source == Authoring.source && definition.behaviorVersion == definition.id.value
 
 theorem metadataIsDerivedFromDeclarations :
-    lifecycle.targetDefinition.definitions.all metadataMatchesDeclaration := by
+    lifecycle.modelSpec.definitions.all metadataMatchesDeclaration := by
   native_decide
 
-private def reversedDefinitions : FiniteTargetDefinition :=
-  { lifecycle.targetDefinition with definitions := lifecycle.targetDefinition.definitions.reverse }
+private def reversedDefinitions : TableModelSpec :=
+  { lifecycle.modelSpec with definitions := lifecycle.modelSpec.definitions.reverse }
 
-private def malformedDefinition : FiniteTargetDefinition :=
-  { lifecycle.targetDefinition with definitions := lifecycle.targetDefinition.definitions.map fun item =>
+private def malformedDefinition : TableModelSpec :=
+  { lifecycle.modelSpec with definitions := lifecycle.modelSpec.definitions.map fun item =>
       if item.id == (lifecycle.stateIdAt 0) then
         { item with id := DefinitionId.of "" }
       else item }
 
-private def duplicateDefinition : FiniteTargetDefinition :=
-  { lifecycle.targetDefinition with
-    definitions := lifecycle.targetDefinition.definitions ++
-      lifecycle.targetDefinition.definitions.take 1 }
+private def duplicateDefinition : TableModelSpec :=
+  { lifecycle.modelSpec with
+    definitions := lifecycle.modelSpec.definitions ++
+      lifecycle.modelSpec.definitions.take 1 }
 
-private def wrongKindDefinition : FiniteTargetDefinition :=
-  { lifecycle.targetDefinition with definitions := lifecycle.targetDefinition.definitions.map fun item =>
+private def wrongKindDefinition : TableModelSpec :=
+  { lifecycle.modelSpec with definitions := lifecycle.modelSpec.definitions.map fun item =>
       if item.id == (lifecycle.stateIdAt 0) then { item with kind := .action } else item }
 
-private def conflictingDefinition : FiniteTargetDefinition :=
-  { lifecycle.targetDefinition with definitions := lifecycle.targetDefinition.definitions ++
-      lifecycle.targetDefinition.definitions.take 1 |>.map fun item =>
-        { item with canonicalBehavior := item.canonicalBehavior ++ ".conflict" } }
+private def conflictingDefinition : TableModelSpec :=
+  { lifecycle.modelSpec with definitions := lifecycle.modelSpec.definitions ++
+      lifecycle.modelSpec.definitions.take 1 |>.map fun item =>
+        { item with behaviorVersion := item.behaviorVersion ++ ".conflict" } }
 
 theorem definitionReorderingPreservesAdmission :
     (runCheck (authoredDefinition := reversedDefinitions)).toOption.isSome := by
@@ -474,12 +474,12 @@ private def startClauses (values : Authoring.ModelVocabulary) : PropertySpec :=
 
 theorem checkedKnownGapsSurviveAdmission : admitted.map (fun checked =>
     checked.query.authoredKnownGaps.toList == [{
-      kind := .capabilityContract
+      kind := .capability
       code := DefinitionId.of "temporal.nexus3.known-gap.cancellation"
       subject := some (DefinitionId.of "temporal.nexus3.property.cancellationResolves")
       detail := some "Operation-scoped Nexus cancellation is unsupported by the success slice."
     }, {
-      kind := .capabilityContract
+      kind := .capability
       code := DefinitionId.of "temporal.nexus3.known-gap.operation-scoped-progress"
       subject := some (DefinitionId.of "temporal.nexus3.property.cancellationResolves")
       detail := some "Operation-scoped progress counting is unsupported by the success slice."
@@ -776,9 +776,9 @@ open Umpire
     target.isTerminal vocabulary.succeededState &&
     !target.isTerminal vocabulary.cancelRequestedState &&
     target.id != original.id && target.behaviorFingerprint != original.behaviorFingerprint &&
-    target.kernel.steps vocabulary.startedState vocabulary.requestCancelAction ==
-      original.kernel.steps vocabulary.startedState vocabulary.requestCancelAction &&
-    target.kernel.steps vocabulary.cancelRequestedState vocabulary.resolveAction ==
-      original.kernel.steps vocabulary.cancelRequestedState vocabulary.resolveAction)) == some true
+    target.machine.steps vocabulary.startedState vocabulary.requestCancelAction ==
+      original.machine.steps vocabulary.startedState vocabulary.requestCancelAction &&
+    target.machine.steps vocabulary.cancelRequestedState vocabulary.resolveAction ==
+      original.machine.steps vocabulary.cancelRequestedState vocabulary.resolveAction)) == some true
 
 end Temporal.Feature.Nexus3.CancellationTests

@@ -17,7 +17,7 @@ open Umpire
     Except PlanningRequestError PlannerRun)
 
 private def authoredPlanningGap : KnownGap := {
-  kind := .capabilityContract
+  kind := .capability
   code := id "planner.known-gap.authored"
   subject := some targetId
   detail := some "The authored model does not provide this capability."
@@ -304,7 +304,7 @@ private def remainingPlannerKnownGaps : List KnownGap :=
 
 private def knownGapRowMutations (plan : DrivePlan) : List DrivePlan := [
   { plan with knownGaps := (checkedKnownGaps
-      (({ firstPlannerKnownGap with kind := .capabilityContract } : KnownGap) ::
+      (({ firstPlannerKnownGap with kind := .capability } : KnownGap) ::
         remainingPlannerKnownGaps)) },
   { plan with knownGaps := (checkedKnownGaps
       (({ firstPlannerKnownGap with code := id "umpire.known-gap.changed" } : KnownGap) ::

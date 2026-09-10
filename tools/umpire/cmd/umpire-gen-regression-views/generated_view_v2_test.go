@@ -23,5 +23,5 @@ func TestGeneratedViewExtractorAcceptsCanonicalV2Artifact(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "umpire-experiment/v2", view.Format)
 	require.Equal(t, "switch.query.exact-action", view.Identity)
-	require.Equal(t, "sha256:8af20c6a12bbe9c468ed22743fbfcdf9ae1a546492c245e9146e26c2a1518a47", view.ArtifactChecksum)
+	require.Equal(t, "sha256:9fa327849c3d0a48290bb16fec73a00be4cc1b6234862ee506a547f29b6d3b12", view.ArtifactChecksum)
 }

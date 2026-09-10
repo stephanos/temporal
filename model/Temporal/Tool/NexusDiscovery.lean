@@ -158,7 +158,7 @@ private def planLineage (spec : ExperimentSpec) : NexusDiscoveryPlan := {
 Project one checked Property, Behavior, Query, and optional planned Artifact into an input row.
 -/
 def candidateOf
-    {LawStatement : LawDefinition → Prop}
+    {LawStatement : Law → Prop}
     (property : CheckedProperty)
     (behavior : CheckedBehavior)
     (query : CheckedQuery LawStatement)

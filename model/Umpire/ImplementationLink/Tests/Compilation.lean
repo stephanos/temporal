@@ -5,7 +5,7 @@ import Umpire.ImplementationLink.Tests.Fixtures
 namespace Umpire.ImplementationLinkTests
 
 open Umpire
-open Umpire.TargetTests
+open Umpire.ModelTests
 
 /-- Forward value construction is exactly the explicit source-destination record. -/
 example : ImplementationValueMapping.forward false true =
@@ -306,8 +306,8 @@ example :
     baseKernelMorphism.mapTrace oneStepTrace = oneStepTrace := by
   native_decide
 
-def baseForwardSimulation : ForwardSimulation checkedSourceTarget.kernel
-    checkedDestinationTarget.kernel := {
+def baseForwardSimulation : ForwardSimulation checkedSourceTarget.machine
+    checkedDestinationTarget.machine := {
   morphism := baseKernelMorphism
   initialForward := by intro _ _ admitted; exact admitted
   stepForward := by
@@ -319,15 +319,15 @@ def baseForwardSimulation : ForwardSimulation checkedSourceTarget.kernel
 
 /-- Forward simulation derives destination trace authority through the shared morphism. -/
 example (trace : ModelTrace Bool Bool Bool Bool)
-    (admitted : AuthoritativeModelTrace checkedSourceTarget.kernel () trace) :
-    AuthoritativeModelTrace checkedDestinationTarget.kernel ()
+    (admitted : AuthoritativeModelTrace checkedSourceTarget.machine () trace) :
+    AuthoritativeModelTrace checkedDestinationTarget.machine ()
       (baseForwardSimulation.morphism.mapTrace trace) :=
   baseForwardSimulation.traceForward () trace admitted
 
 /-- Forward trace authority is derived from the exact initial and step witnesses. -/
 example (trace : ModelTrace Bool Bool Bool Bool)
-    (admitted : AuthoritativeModelTrace checkedSourceTarget.kernel () trace) :
-    AuthoritativeModelTrace checkedDestinationTarget.kernel ()
+    (admitted : AuthoritativeModelTrace checkedSourceTarget.machine () trace) :
+    AuthoritativeModelTrace checkedDestinationTarget.machine ()
       (baseWitness.translateTrace trace) :=
   baseWitness.traceForward () trace admitted
 

@@ -4,7 +4,7 @@ import Temporal.Shared
 # Nexus lifecycle semantics
 
 Start here with the ordinary Nexus states, events, and complete transition relation. Read
-`Temporal.Feature.Nexus.Lifecycle.Target` next to see this meaning encoded as a checked Umpire
+`Temporal.Feature.Nexus.Lifecycle.Model` next to see this meaning encoded as a checked Umpire
 target.
 -/
 
@@ -56,14 +56,14 @@ def step : OperationState → OperationEvent → Option OperationState
   | _, _ => none
 
 /-- The provider law ties the teaching surface to the authoritative Nexus lifecycle. -/
-def LawStatement (law : LawDefinition) : Prop :=
+def LawStatement (law : Law) : Prop :=
   law.id = lifecycleLawId ∧
     law.body = "temporal-nexus-basic-lifecycle-authoritative-step/v2" ∧
     step .scheduled .start = some .started ∧
     step .started .cancel = some .canceled ∧
     step .started .succeed = some .succeeded
 
-def lifecycleLaw : LawDefinition := {
+def lifecycleLaw : Law := {
   id := lifecycleLawId
   body := "temporal-nexus-basic-lifecycle-authoritative-step/v2"
 }

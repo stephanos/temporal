@@ -17,7 +17,7 @@ def definitionMetadata
     (value : String)
     (kind : DefinitionKind)
     (source : SourceLocation)
-    (canonicalBehavior : String) : DefinitionMetadata :=
-  Shared.definitionMetadata (definitionId value) kind source 1 canonicalBehavior ""
+    (behaviorVersion : String) : DefinitionMetadata :=
+  Shared.definitionMetadata (definitionId value) kind source 1 behaviorVersion ""
 
 end Umpire.Shared.Test

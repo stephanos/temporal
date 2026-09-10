@@ -1,11 +1,11 @@
-import Umpire.Target.Tests.Parameterized
+import Umpire.Model.Tests.Parameterized
 import Umpire.Planning.Tests.Fixtures
 
 /-! Parameterized finite completeness, bounded search, and exact checked Query replay. -/
 namespace Umpire.ParameterizedPlanningTests
-open Umpire Operation Value TargetTests.Parameterized
+open Umpire Operation Value ModelTests.Parameterized
 
-private def queryDeclaration (t : QueryTarget (fun _ => True)) (budget : Nat)
+private def queryDeclaration (t : QueryModel (fun _ => True)) (budget : Nat)
     (exact : Option BehaviorTrace := none) : QueryDeclaration := {
   id := .of "example.query.call", source, target := t.id
   form := .verify PlanningTests.property

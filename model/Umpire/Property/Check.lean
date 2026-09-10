@@ -69,20 +69,20 @@ structure PropertyError where
 structure PropertyCapability where
   id : DefinitionId
   version : Nat
-  canonicalBehavior : String
+  behaviorVersion : String
   deriving BEq, DecidableEq, Ord, Repr
 
 /-- The inspectable vocabulary boundary admitted by a property's checked requirements. -/
 structure PropertyCapabilityView where
   capabilities : List PropertyCapability
-  meanings : List MeaningProvision
+  meanings : List Meaning
   logicalTimeSource : Option DefinitionId
   deriving BEq, DecidableEq, Repr
 
 structure PropertyCheckContext where
   definitions : List DefinitionMetadata
   providers : List PropertyCapability
-  meanings : List (DefinitionId × MeaningProvision)
+  meanings : List (DefinitionId × Meaning)
   limitProfiles : List PropertyLimitProfile := []
   fieldBindings : List PropertyFieldBinding := []
   deriving BEq, DecidableEq, Repr
@@ -144,13 +144,13 @@ structure ResolvedPropertyCaseGroup where
   deriving BEq, DecidableEq, Repr
 
 def PropertyCheckContext.ofTarget
-    (target : CheckedTarget LawStatement Setup State Action Outcome Observation)
+    (target : CheckedModel LawStatement Setup State Action Outcome Observation)
     (limitProfiles : List PropertyLimitProfile := []) : PropertyCheckContext := {
   definitions := target.definitions
   providers := target.providers.map fun provider => {
     id := provider.contract.id
     version := provider.contract.version
-    canonicalBehavior := provider.contract.canonicalBehavior
+    behaviorVersion := provider.contract.behaviorVersion
   }
   meanings := target.providers.flatMap fun provider =>
     provider.meanings.map fun meaning => (provider.contract.id, meaning)
@@ -276,13 +276,13 @@ def CheckedPropertyPredicate.expression
 
 private def capabilityLe (left right : PropertyCapability) : Bool :=
   decide (left.id.value < right.id.value) ||
-    (left.id == right.id && decide (left.canonicalBehavior ≤ right.canonicalBehavior))
+    (left.id == right.id && decide (left.behaviorVersion ≤ right.behaviorVersion))
 
-private def meaningLe (left right : MeaningProvision) : Bool :=
+private def meaningLe (left right : Meaning) : Bool :=
   decide (left.definitionId.value < right.definitionId.value) ||
     (left.definitionId == right.definitionId && decide (left.kind.name < right.kind.name)) ||
     (left.definitionId == right.definitionId && left.kind == right.kind &&
-      decide (left.canonicalBehavior ≤ right.canonicalBehavior))
+      decide (left.behaviorVersion ≤ right.behaviorVersion))
 
 private def clauseLe (left right : ResolvedPropertyClause) : Bool :=
   decide (left.id.value ≤ right.id.value)
@@ -304,7 +304,7 @@ private def canonicalCapabilities
     (capabilities : List PropertyCapability) : List PropertyCapability :=
   capabilities.mergeSort capabilityLe |>.eraseDups
 
-private def canonicalMeanings (meanings : List MeaningProvision) : List MeaningProvision :=
+private def canonicalMeanings (meanings : List Meaning) : List Meaning :=
   meanings.mergeSort meaningLe |>.eraseDups
 
 private def propertyError
@@ -1085,12 +1085,12 @@ private def scopedClauseJson (clause : ResolvedPropertyScopedClause) : String :=
 private def capabilityJson (capability : PropertyCapability) : String :=
   "{\"id\":" ++ quote capability.id.value ++
     ",\"version\":" ++ toString capability.version ++
-    ",\"canonicalBehavior\":" ++ quote capability.canonicalBehavior ++ "}"
+    ",\"behaviorVersion\":" ++ quote capability.behaviorVersion ++ "}"
 
-private def meaningJson (meaning : MeaningProvision) : String :=
+private def meaningJson (meaning : Meaning) : String :=
   "{\"id\":" ++ quote meaning.definitionId.value ++
     ",\"kind\":" ++ quote meaning.kind.name ++
-    ",\"canonicalBehavior\":" ++ quote meaning.canonicalBehavior ++ "}"
+    ",\"behaviorVersion\":" ++ quote meaning.behaviorVersion ++ "}"
 
 private def propertySemanticJson
     (id : DefinitionId)

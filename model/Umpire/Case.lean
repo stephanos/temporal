@@ -13,7 +13,7 @@ namespace Umpire.Case
 
 /-- The closed categories of source-model incompleteness retained in Umpire provenance. -/
 inductive CaseKnownGapKind where
-  | capabilityContract
+  | capability
   | input
   | interpretation
   | claim

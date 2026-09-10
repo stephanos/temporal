@@ -48,7 +48,7 @@ private def input : Input := {
 
 private def planningGaps : KnownGapSet :=
   (KnownGapSet.checkCanonical [
-    { kind := .capabilityContract, code := DefinitionId.of "example.gap.capability" },
+    { kind := .capability, code := DefinitionId.of "example.gap.capability" },
     {
       kind := .input
       code := DefinitionId.of "example.gap.input"
@@ -90,7 +90,7 @@ private def expectedProducerData := String.intercalate "\n" [
   "  ],",
   "  \"knownGaps\": [",
   "    {",
-  "      \"kind\": \"CASE_KNOWN_GAP_KIND_CAPABILITY_CONTRACT\",",
+  "      \"kind\": \"CASE_KNOWN_GAP_KIND_CAPABILITY\",",
   "      \"code\": \"example.gap.capability\"",
   "    },",
   "    {",

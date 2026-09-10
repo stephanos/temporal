@@ -9,7 +9,7 @@ open Umpire
 private def id (value : String) : DefinitionId := DefinitionId.of value
 
 private def capabilityGap : KnownGap := {
-  kind := .capabilityContract
+  kind := .capability
   code := id "umpire.known-gap.capability-contract"
 }
 
@@ -30,9 +30,9 @@ private def claimGap : KnownGap := {
   code := id "umpire.known-gap.promotion"
 }
 
-example : ["capability-contract", "input", "interpretation", "claim"].map
+example : ["capability", "input", "interpretation", "claim"].map
     KnownGapKind.parse? =
-    [some .capabilityContract, some .input, some .interpretation, some .claim] ∧
+    [some .capability, some .input, some .interpretation, some .claim] ∧
     KnownGapKind.parse? "other" = none := by
   native_decide
 
