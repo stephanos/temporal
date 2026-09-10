@@ -479,16 +479,18 @@ def guardedTemporalPropertyDeclaration : Property := {
   satisfiedPropertyDeclaration with
   id := id "test.property.observation.guarded-temporal"
   version := 2
-  clauses := [.guardedEventuallyWithin
-    (id "test.property.observation.guarded-temporal.clause") source
-    (.atom {
+  clauses := [.eventuallyWithin
+      (id := (id "test.property.observation.guarded-temporal.clause"))
+      (source := source)
+      (guard := some (.atom {
       field := .selectedAction
       reference := startAction
       constraint := .equals (.text "start")
-    }) none
-    (verdictPattern .selectedAction startAction)
-    (verdictPattern .outcome successOutcome)
-    { value := 0, unit := .semanticTransitions }]
+    }))
+      («unless» := none)
+      (trigger := (verdictPattern .selectedAction startAction))
+      (response := (verdictPattern .outcome successOutcome))
+      (limit := { value := 0, unit := .semanticTransitions })]
 }
 
 def checkedQueryTemplate : CheckedQuery Umpire.Examples.Switch.LawStatement :=

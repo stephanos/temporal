@@ -80,7 +80,7 @@ structure JointExpectationEvidence where
   source : SourceLocation
   transitionPosition : Nat
   triggerCoordinate : Nat
-  effectiveGuards : List (CheckedPropertyPredicate .guard)
+  effectiveGuards : List (CheckedPropertyPredicate .before)
   exceptions : List CheckedPropertyUnless
   formula : JointObligationFormula
   deriving BEq, DecidableEq, Repr
@@ -168,7 +168,7 @@ structure CaseFinding where
   transitionPosition : Nat
   priorState : Option ModelValue
   selectedAction : Option ModelValue
-  effectiveGuards : List (CheckedPropertyPredicate .guard)
+  effectiveGuards : List (CheckedPropertyPredicate .before)
   exceptions : List CheckedPropertyUnless
   deriving BEq, DecidableEq, Repr
 
