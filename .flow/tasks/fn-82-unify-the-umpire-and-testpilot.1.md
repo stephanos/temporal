@@ -40,9 +40,18 @@ adds its retired names here, so the gate must fail closed and scan the right spe
 - [ ] `proto/internal/buf.yaml` ignores the testpilot package for breaking checks and `make buf-breaking` passes
 - [ ] `go test -tags test_dep ./tools/umpire/...` and `make umpire-check-retired-vocabulary` pass
 ## Done summary
-TBD
+Hardened the retired-vocabulary gate before any rename lands: `addFile`, `addTree`, and the
+open-spec record loader now fail with `scanned path <path> does not exist` instead of dropping a
+moved path from the scan; `downstreamSpecs` names only ids that resolve (the two stale entries
+corrected, five open specs added); `model/Testpilot` and `model/Shared` joined the scan roots and
+the `Shared`/`Testpilot` facades the required-file list; a bare-word retired rule is rejected at
+rule-build time and surfaced by `Check`. `proto/internal/buf.yaml` ignores the internal testpilot
+package for breaking checks, proven by deleting a field from `ScopedEvidence` and observing buf
+report it without the entry (rc 100) and pass with it (rc 0).
 
+stage: impl-review - ran (model: claude-fable-5-1) - SHIP, 2 introduced P3 findings both fixed
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: b3786b187f0b6111eaa45bc1a4f670cf3ec9eb4a, 3c1148e4574fd039d83ab1df03e081f354c7fa9f
+- Tests: TMPDIR=<physical> CGO_ENABLED=0 go test -count=1 -tags test_dep ./tools/umpire/... (pass), make umpire-check-retired-vocabulary (pass), make buf-breaking (pass, MAKE_RC=0), buf breaking with a deliberate testpilot field deletion: rc=0 with the ignore entry, rc=100 without
 - PRs:
