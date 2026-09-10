@@ -203,16 +203,16 @@ func TestRequireInspectorArtifactDoesNotExposeStderr(t *testing.T) {
 func TestRunGenerationRejectsInvalidInspectorAndFixtureArtifactsBeforePublication(t *testing.T) {
 	inspectorCases := map[string][]byte{
 		"malformed JSON": []byte("{"),
-		"unsupported format": syntheticExperiment(t, syntheticOptions{
+		"unsupported format": syntheticPlan(t, syntheticOptions{
 			format: "umpire-experiment/unsupported",
 		}),
-		"query identity mismatch": syntheticExperiment(t, syntheticOptions{
+		"query identity mismatch": syntheticPlan(t, syntheticOptions{
 			identity: "query.changed",
 		}),
-		"missing provenance": syntheticExperiment(t, syntheticOptions{
+		"missing provenance": syntheticPlan(t, syntheticOptions{
 			sources: []string{},
 		}),
-		"nonexistent provenance": syntheticExperiment(t, syntheticOptions{
+		"nonexistent provenance": syntheticPlan(t, syntheticOptions{
 			sources: []string{"Missing.lean"},
 		}),
 	}
@@ -454,7 +454,7 @@ func newGenerationFixture(
 	modelRoot := filepath.Join(repositoryRoot, "model")
 	writeLeanSource(t, modelRoot, "One.lean")
 	entry := syntheticEntry(syntheticIdentity)
-	encoded := syntheticExperiment(t, syntheticOptions{})
+	encoded := syntheticPlan(t, syntheticOptions{})
 	fixture := decodeGenerationFixture(t, encoded)
 	writeGenerationFixture(t, repositoryRoot, entry.FixturePath, fixture)
 	return generationConfig{
@@ -483,7 +483,7 @@ func recordingPublisher(published *bool) func(
 
 func decodeGenerationFixture(t *testing.T, encoded []byte) experimentEnvelope {
 	t.Helper()
-	fixture, err := decodeExperiment(encoded)
+	fixture, err := decodePlan(encoded)
 	require.NoError(t, err)
 	return fixture
 }
@@ -495,7 +495,7 @@ func writeGenerationFixture(
 	fixture experimentEnvelope,
 ) {
 	t.Helper()
-	encoded, err := artifactv2.CanonicalExperimentBytes(fixture)
+	encoded, err := artifactv2.CanonicalPlanBytes(fixture)
 	require.NoError(t, err)
 	target := filepath.Join(repositoryRoot, filepath.FromSlash(relative))
 	require.NoError(t, os.MkdirAll(filepath.Dir(target), 0o700))

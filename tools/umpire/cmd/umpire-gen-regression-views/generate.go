@@ -83,7 +83,7 @@ func parseGenerationConfig(arguments []string) (generationConfig, error) {
 
 func defaultGenerationDependencies() generationDependencies {
 	return generationDependencies{
-		Inspect:  inspectExperiment,
+		Inspect:  inspectPlan,
 		ReadFile: os.ReadFile,
 		Render:   renderGeneratedViews,
 		Publish: func(
@@ -231,7 +231,7 @@ func removeRetiredGeneratedView(root, relative string, remove func(string) error
 	return remove(target)
 }
 
-func inspectExperiment(modelRoot, identity string) (inspectorOutput, error) {
+func inspectPlan(modelRoot, identity string) (inspectorOutput, error) {
 	command := exec.Command("lake", "exe", inspectorExecutable, identity)
 	command.Dir = modelRoot
 	var stdout bytes.Buffer
