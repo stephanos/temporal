@@ -416,7 +416,7 @@ The controller submits the request and then reads the execution's history, emitt
 declared Observation. The workflow entrypoint carries the submitted workflow type, because the
 shared Driver admits a `StartWorkflowExecution` only when the instruction reserves a workflow
 entrypoint and binds its namespace and task queue symbolically — the same generic policy the
-existing Nexus.Success Case runs under. The workflow itself does nothing but finish; the evidence the
+existing Nexus success Case runs under. The workflow itself does nothing but finish; the evidence the
 requirement reads is the started event, which the server writes when the execution begins.
 -/
 

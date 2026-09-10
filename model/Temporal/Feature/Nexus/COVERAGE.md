@@ -22,7 +22,7 @@ artifact differs only through the explicitly authored Known Gap and the checksum
 gap. The gap states that the synthetic Evidence example makes no live-system claim. There is no
 production fallback to empty data and no claim that omitted gaps were inferred.
 
-The residual requirements are covered without inheriting Nexus.Race's prototype exceptions: R1 is the
+The residual requirements are covered without inheriting the Nexus race prototype's exceptions: R1 is the
 compiled established facade journey and its runnable failures; R2 is the proof-carrying finite
 Target seam and Lifecycle migration; R4 is Temporal-rooted identity/source/Limit authoring; R5 is
 the three constructor-backed operation migrations; R6 is typed Observation construction and
@@ -62,7 +62,7 @@ operation still calls `SearchView.ofCheckedQuery` directly.
 | Shared Nexus admission proof | `lifecycleIncrementalKernelResult_isSome` is proof-only: it applies the existing semantic admission theorem with Lifecycle completeness and canonicality lemmas. It adds zero runtime calls, traversals, conversions, checker passes, or fallback paths. | Runtime work at 1× and 10× is unchanged because Lean erases the proof; each operation retains its one direct planner-admission call. |
 
 These are structural pass conditions, not timing claims or cached admission measurements. The
-separate Nexus.Race prototype measured only bounded experimental cases and still does not establish
+separate Nexus race prototype measured only bounded experimental cases and still does not establish
 editor responsiveness, cold/repeated elaboration, human readability, product-owner usability, or
 approval of a broader syntax.
 

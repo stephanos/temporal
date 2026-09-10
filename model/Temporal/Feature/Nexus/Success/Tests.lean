@@ -1,7 +1,7 @@
 import Temporal.Feature.Nexus.Success.Model
 import Temporal.Feature.Nexus.Success.Producer
 
-/-! Executable checks for the compact Nexus.Success command surface and checked meaning. -/
+/-! Executable checks for the compact Nexus success command surface and checked meaning. -/
 
 namespace Temporal.Feature.Nexus.Success.Tests
 

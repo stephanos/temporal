@@ -37,7 +37,7 @@ opaque producer provenance.
 example: its Contract carries no monitor rule, only the operation-correlated capability the checked
 Property lowered into. `Temporal.Testpilot` supplies the unrelated `GetSystemInfo` example, the
 worker-outage fault Case, and the six public-facade conformance fixtures. `Temporal.Tool.Testpilot` forwards rendering
-to `Testpilot.ProtoJSON`. The broader Nexus.Success Markdown sketches remain design material rather than executable
+to `Testpilot.ProtoJSON`. The broader Nexus success Markdown sketches remain design material rather than executable
 coverage. Lean is the first Producer, while the Case format and Go runtime remain independent of
 Lean.
 
@@ -128,7 +128,7 @@ a deadline, and an already proved violation survives cleanup failure.
 The generated correlated corpus includes executable non-cancellation Cases qualified through public
 Go `Prepare`/`Run`, including repeated/concurrent Runs and bounded tenfold loads. Its synthetic
 source is a controlled qualification fixture, not a production Implementation Link. The existing
-Nexus.Success success integration remains the live Temporal demonstration. Nexus operation cancellation
+Nexus success integration remains the live Temporal demonstration. Nexus operation cancellation
 Models, adapters, capabilities, and Cases are explicitly deferred to fn-79.
 
 ### Typed operation authoring
@@ -214,7 +214,7 @@ real selected artifact, Observation evaluation, malformed identity/reference, mi
 incomplete Model, invalid step, and invalid Observation specimens. The exact compatibility,
 trust, and cost inventory is in [the established coverage record](Temporal/Feature/Nexus/COVERAGE.md).
 
-The experimental [Nexus.Race authoring prototype](Temporal/Feature/Nexus/Race/README.md) demonstrates the
+The experimental [Nexus race authoring prototype](Temporal/Feature/Nexus/Race/README.md) demonstrates the
 ordinary finite route, guarded Properties, bounded case analysis, and constructor/frontend
 measurements under its narrow prototype exceptions. It is a separate `temporal.nexus.race.*` model,
 not the established migration or a production authoring rule. Editor responsiveness, cold/repeated
@@ -301,7 +301,7 @@ model/.lake/build/bin/umpire-case async-nexus
 mise exec -- go test -count=1 -tags 'test_dep integration' ./tests -run '^TestTestpilotAsyncNexusCase$'
 ```
 
-The live Nexus.Success selector prepares the same canonical Case bytes against two Profiles, runs both
+The live Nexus success selector prepares the same canonical Case bytes against two Profiles, runs both
 environments concurrently, verifies namespace isolation and correlated endpoint history, and obtains
 the same satisfied Contract result. Its binding fingerprints and Driver identities differ because
 their physical resources differ.
