@@ -49,59 +49,17 @@ private structure ForbiddenCase where
 
 private def forbiddenCases : Array ForbiddenCase := #[
   { label := "Shared to Umpire", source := `Shared.Root, destination := `Umpire.Core,
-    rule := .sharedIndependence },
+    rule := .sharedIndependence},
   { label := "Shared to Temporal", source := `Shared.Root, destination := `Temporal.Feature.Root,
-    rule := .sharedIndependence },
-  { label := "Shared to Veil", source := `Shared.Root,
-    destination := `Umpire.Verify.Veil.Core,
-    rule := .sharedIndependence },
+    rule := .sharedIndependence},
   { label := "Umpire to Temporal", source := `Umpire.Root, destination := `Temporal.Feature.Root,
-    rule := .umpireIndependence },
-  { label := "Umpire to Verify", source := `Umpire.Root,
-    destination := `Temporal.Verify.Root,
-    rule := .umpireIndependence },
-  { label := "Veil implementation to Temporal", source := `Umpire.Verify.Veil.Core,
-    destination := `Temporal.Feature.Root,
-    rule := .umpireIndependence },
+    rule := .umpireIndependence},
   { label := "Feature to System", source := `Temporal.Feature.Root,
     destination := `Temporal.System.Root,
-    rule := .featureIsolation },
-  { label := "Feature to Verify", source := `Temporal.Feature.Root,
-    destination := `Temporal.Verify.Root,
-    rule := .featureIsolation },
-  { label := "Feature to Veil", source := `Temporal.Feature.Root,
-    destination := `Umpire.Verify.Veil.Core,
-    rule := .featureIsolation },
+    rule := .featureIsolation},
   { label := "System to Feature", source := `Temporal.System.Root,
     destination := `Temporal.Feature.Root,
-    rule := .systemIsolation },
-  { label := "Umpire to Veil", source := `Umpire.Root,
-    destination := `Umpire.Verify.Veil.Core,
-    rule := .verificationIsolation },
-  { label := "System to Verify", source := `Temporal.System.Root,
-    destination := `Temporal.Verify.Root,
-    rule := .verificationIsolation },
-  { label := "System to Veil", source := `Temporal.System.Root,
-    destination := `Umpire.Verify.Veil.Core,
-    rule := .verificationIsolation },
-  { label := "Temporal to Verify", source := `Temporal.Root,
-    destination := `Temporal.Verify.Root,
-    rule := .verificationIsolation },
-  { label := "Temporal to Veil", source := `Temporal.Root,
-    destination := `Umpire.Verify.Veil.Core,
-    rule := .verificationIsolation },
-  { label := "model tests to Verify", source := `TemporalModelTests,
-    destination := `Temporal.Verify.Root,
-    rule := .verificationIsolation },
-  { label := "model tests to Veil", source := `TemporalModelTests,
-    destination := `Umpire.Verify.Veil.Core,
-    rule := .verificationIsolation },
-  { label := "tool to Verify", source := `Temporal.Tool.Inspect,
-    destination := `Temporal.Verify.Root,
-    rule := .verificationIsolation },
-  { label := "tool to Veil", source := `Temporal.Tool.Inspect,
-    destination := `Umpire.Verify.Veil.Core,
-    rule := .verificationIsolation }
+    rule := .systemIsolation}
 ]
 
 private def testDirectAndTransitiveRejections : IO Unit := do
@@ -152,20 +110,20 @@ private def testTestpilotIsolation : IO Unit := do
       .testpilotIndependence #[`Testpilot.Protocol, `ModelLint.Bridge, destination]
   let sources := #[
     sourceRecord `Testpilot.Protocol,
-    sourceRecord `TemporalVeilTests.UnclassifiedBridge,
+    sourceRecord `TemporalExperimentalTests.UnclassifiedBridge,
     sourceRecord `Umpire.Core
   ]
   let modules := #[
-    moduleRecord `Testpilot.Protocol #[`TemporalVeilTests.UnclassifiedBridge],
-    moduleRecord `TemporalVeilTests.UnclassifiedBridge #[`Umpire.Core],
+    moduleRecord `Testpilot.Protocol #[`TemporalExperimentalTests.UnclassifiedBridge],
+    moduleRecord `TemporalExperimentalTests.UnclassifiedBridge #[`Umpire.Core],
     moduleRecord `Umpire.Core
   ]
   requireEqual "unclassified Testpilot bridge"
     (reconcile defaultPolicy sources modules)
-    #[.unclassifiedModule `TemporalVeilTests.UnclassifiedBridge]
+    #[.unclassifiedModule `TemporalExperimentalTests.UnclassifiedBridge]
   requireViolation "unclassified Testpilot bridge preserves forbidden path" modules
     .testpilotIndependence
-    #[`Testpilot.Protocol, `TemporalVeilTests.UnclassifiedBridge, `Umpire.Core]
+    #[`Testpilot.Protocol, `TemporalExperimentalTests.UnclassifiedBridge, `Umpire.Core]
 
 private def testOrdinaryNexusFacadeIsolation : IO Unit := do
   requireViolation "ordinary Nexus facade to Experimental direct"
@@ -221,8 +179,6 @@ private def testTemporalSharedIsolation : IO Unit := do
     `Temporal.Feature.Root,
     `Temporal.System.Root,
     `Temporal.Tool.Inspect,
-    `Temporal.Verify.Root,
-    `Umpire.Verify.Veil.Core,
     `TemporalModelTests
   ] do
     requireViolation s!"Temporal.Shared to {destination} direct"
@@ -295,7 +251,6 @@ private def testTargetIsolation : IO Unit := do
     `Umpire.Search,
     `Umpire.Artifact,
     `Umpire.Runtime.Driver,
-    `Umpire.Verify.Core,
     `Temporal.Feature.Nexus.Lifecycle
   ]
   for source in #[`Umpire.Model, `Umpire.Model.Tests.Validation] do
@@ -384,8 +339,7 @@ private def testInventoryIsolation : IO Unit := do
     `Umpire.Evidence.PropertyStatus,
     `Umpire.Artifact.RunRecord,
     `Umpire.Artifact.Result,
-    `Umpire.ImplementationLink.Application,
-    `Umpire.Verify.Veil.Core
+    `Umpire.ImplementationLink.Application
   ] do
     for destination in #[`Umpire.Inventory, `Umpire.Inventory.Types] do
       let direct := check defaultPolicy #[moduleRecord source #[destination]]
@@ -544,27 +498,6 @@ private def testExactImplementationLinkExceptions : IO Unit := do
       .systemIsolation
       #[nearMiss, `Temporal.Feature.Nexus.Root]
 
-private def testExactVerifyExceptions : IO Unit := do
-  let verifyDestinations := #[`Temporal.Verify.Nexus.Root, `Umpire.Verify.Veil.Core]
-  for consumer in defaultPolicy.verifyConsumers do
-    let modules := #[
-      moduleRecord consumer verifyDestinations,
-      moduleRecord verifyDestinations[0]!,
-      moduleRecord verifyDestinations[1]!
-    ]
-    requireEqual s!"exact verification consumer {consumer}" (check defaultPolicy modules) #[]
-  for nearMiss in #[`Temporal.Tool.VerifyVeil.Extra] do
-    let modules := #[moduleRecord nearMiss #[`Umpire.Verify.Veil.Core],
-      moduleRecord `Umpire.Verify.Veil.Core]
-    let violations := check defaultPolicy modules
-    requireEqual s!"verification near miss {nearMiss}" violations.size 1
-  for unclassifiedNearMiss in #[`TemporalVerify.Extra, `TemporalVeilTests.Extra] do
-    let sources := #[sourceRecord unclassifiedNearMiss]
-    let modules := #[moduleRecord unclassifiedNearMiss]
-    requireEqual s!"aggregate near miss {unclassifiedNearMiss}"
-      (reconcile defaultPolicy sources modules)
-      #[.unclassifiedModule unclassifiedNearMiss]
-
 private def testModelInventoryPolicy : IO Unit := do
   requireEqual "experimental test aggregate classified"
     (reconcile defaultPolicy #[sourceRecord `TemporalExperimentalTests]
@@ -579,8 +512,8 @@ private def testModelInventoryPolicy : IO Unit := do
     #[.unknownFirstPartyImport `Temporal.Root `Temporal.Future]
   requireEqual "unknown near-miss aggregate import"
     (reconcile defaultPolicy #[sourceRecord `Temporal.Root]
-      #[moduleRecord `Temporal.Root #[`TemporalVerify.Extra]])
-    #[.unknownFirstPartyImport `Temporal.Root `TemporalVerify.Extra]
+      #[moduleRecord `Temporal.Root #[`TemporalModelTests.Extra]])
+    #[.unknownFirstPartyImport `Temporal.Root `TemporalModelTests.Extra]
 
 private def testExternalLeaves : IO Unit := do
   let sources := #[sourceRecord `Shared.Root]
@@ -668,7 +601,6 @@ private unsafe def runSyntheticSuite : IO UInt32 := do
   testExternalMetadataClosure
   testDirectAndTransitiveRejections
   testExactImplementationLinkExceptions
-  testExactVerifyExceptions
   testModelInventoryPolicy
   testExternalLeaves
   testStableShortestPath
