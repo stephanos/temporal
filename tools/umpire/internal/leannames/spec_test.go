@@ -105,11 +105,17 @@ func TestUnresolvedReportsBothRefusals(t *testing.T) {
 		"`Umpire.Property.missing` does not.\n" +
 		"- A rule citing `Umpire.Future` *(planned: fn-24-open-owner)*\n" +
 		"- A rule citing `Umpire.Abandoned` *(planned: fn-25-closed-owner)*\n" +
-		"- A rule citing `Umpire.Orphan` *(planned: fn-99-absent-owner)*\n"
+		"- A rule citing `Umpire.Orphan` *(planned: fn-99-absent-owner)*\n" +
+		"- A planned rule also citing `Umpire.Property` *(planned: fn-25-closed-owner)*\n" +
+		"- A planned rule citing `Umpire.Property.absent` *(planned: fn-24-open-owner)*\n"
 
 	unresolved, err := leannames.Unresolved(
 		index, leannames.ExtractSpecNames(document), "DOC.md", specsDirectory)
 	require.NoError(t, err)
+	// Line 6 is silent because the name resolves, even though its block's owner is
+	// closed: a planned marker exempts names the tree does not have, and must not start
+	// failing the ones it does. Line 7 is silent because its owner is still open, which
+	// is the whole point of the exemption.
 	require.Equal(t, []string{
 		"DOC.md:2: Umpire.Property.missing names no module, namespace, or declaration",
 		"DOC.md:4: Umpire.Abandoned is marked planned under fn-25-closed-owner, which is not open",

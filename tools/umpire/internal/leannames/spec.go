@@ -83,12 +83,16 @@ func Unresolved(index *Index, names []SpecName, label, specsDirectory string) ([
 	openSpec := map[string]bool{}
 	var messages []string
 	for _, name := range names {
+		// A name that resolves is accepted whatever its block says. The planned marker
+		// exempts a name the tree does not have yet; it must not stop checking the ones
+		// it does, and it must not start failing real names when its owner closes.
+		if index.Resolve(name.Name) {
+			continue
+		}
 		if name.PlannedSpec == "" {
-			if !index.Resolve(name.Name) {
-				messages = append(messages, fmt.Sprintf(
-					"%s:%d: %s names no module, namespace, or declaration",
-					label, name.Line, name.Name))
-			}
+			messages = append(messages, fmt.Sprintf(
+				"%s:%d: %s names no module, namespace, or declaration",
+				label, name.Line, name.Name))
 			continue
 		}
 		open, known := openSpec[name.PlannedSpec]
