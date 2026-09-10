@@ -21,7 +21,7 @@ Implement D2 and R2 by exposing typed authoring forms for the Behavior constrain
 - `model/Umpire/Behavior/Authoring.lean:9-67` — current typed exact-sequence lowering
 - `model/Umpire/Behavior/Language.lean` — canonical checked declarations
 - `model/Umpire/Behavior/Tests/Canonicalization.lean` — fingerprint equivalence tests
-- `model/Temporal/Feature/Nexus2/AuthoringTests.lean:112-160` — authoring equivalence/diagnostic pattern
+- `model/Temporal/Feature/Nexus/Race/AuthoringTests.lean:112-160` — authoring equivalence/diagnostic pattern
 
 ### Key context
 - Ordering permits intervening Behavior-allowed occurrences; adjacency requires consecutive semantic occurrences.

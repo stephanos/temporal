@@ -112,7 +112,7 @@ property resolves_after_cancel on race
     eventually fact terminal is true
     within 1 semantic_transition
 
-behavior cancellation_race on race
+scenario cancellation_race on race
   id "cancellation-race"
   requires cancellationLifecycle
   role "operation" starts in started
@@ -123,9 +123,9 @@ query check_cancellation_race on race
   verify resolves_after_cancel
   in cancellation_race
   limits
-    transitions 2
-    selected_actions 2
-    candidate_evaluations 32
+    steps 2
+    actions 2
+    search 32
   policy exhaustive
 ```
 

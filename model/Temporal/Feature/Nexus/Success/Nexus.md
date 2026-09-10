@@ -144,13 +144,13 @@ model lifecycle
   actions Action
   outcomes Outcome
   facts Fact
-  initial [scheduled]
-  terminal [canceled, succeeded]
+  starts [scheduled]
+  ends [canceled, succeeded]
 
   -- Read `before + action → result` as one permitted step, not an instruction to execute it.
   -- `oneOf` lists alternatives, not priorities or a random distribution; both must be considered.
   -- Each result has a state and outcome; omitted facts mean the empty set, not inferred facts.
-  transitions
+  steps
     start: scheduled + awaitStart → { state := started, outcome := acknowledged }
     success: started + awaitSuccess →
       { state := succeeded, outcome := completed, facts := [terminal] }
@@ -173,18 +173,18 @@ rejects a late event. Those behaviors need explicit modeling before they can be 
 -/
 
 /-- A safety requirement: every cancellation-request step must leave the operation pending
-cancellation. `when` selects the triggering step, and `resultingState` reads that same step's
+cancellation. `when` selects the triggering step, and `state` reads that same step's
 output. A transition directly to `canceled` would violate this particular request/response model.
 A trace with no request satisfies this conditional requirement without exercising it. -/
 property cancellationIsARequest on lifecycle
   for operation
-  when action requestCancel
-  require requestState: resultingState cancelRequested
+  when requestCancel
+  require requestState: state cancelRequested
 
 /-- A bounded progress requirement: a request must be followed by either terminal result within
 one additional transition of that same operation. The intended existing temporal semantics allow a
 response on the triggering step; our request row does not produce one, so resolution needs the next
-step. This is a bound in model steps, not seconds. The Behavior below explicitly includes progress.
+step. This is a bound in model steps, not seconds. The Scenario below explicitly includes progress.
 `for operation` binds the trigger and response to one operation; other operations do not consume
 its bound. Operation-correlated counting is now a delivered generic capability, qualified through
 non-cancellation fixtures; it was never Nexus.Race functionality, which counts global transitions.
@@ -193,22 +193,22 @@ Case production. A trace ending immediately after the request cannot demonstrate
 response. -/
 property cancellationResolves on lifecycle
   for operation
-  when action requestCancel
+  when requestCancel
   require terminalResponse: eventually fact terminal
     within 1 operation_transition
 
-/-- A reusable condition for witness Queries. It inspects the final state of this operation,
+/-- A reusable condition for find Queries. It inspects the final state of this operation,
 not whether a controller instruction returned successfully. Merely declaring a Property does
 not run it; the Queries below explicitly select it. -/
 property successfulResult on lifecycle
   for operation
   require successState: finalState succeeded
 
-/-- A Behavior selects model traces, not runtime instructions. `exactly` fixes the selected
+/-- A Scenario selects model traces, not runtime instructions. `exactly` fixes the selected
 Action sequence and its length. In `completion: awaitSuccess`, the name before `:` labels this
 occurrence, while the name after `:` identifies the Action. Labels distinguish occurrences if
 the same Action is later allowed more than once in a scenario. -/
-behavior successfulCompletion on lifecycle
+scenario successfulCompletion on lifecycle
   operation starts scheduled
   actions exactly [start: awaitStart, completion: awaitSuccess]
 
@@ -216,9 +216,9 @@ behavior successfulCompletion on lifecycle
 `scheduled → started → cancelRequested → canceled` and
 `scheduled → started → cancelRequested → succeeded`.
 The requests are the same in both traces; the model supplies the resolution alternatives.
-Completion before the request and a request with no later resolution are outside this Behavior.
+Completion before the request and a request with no later resolution are outside this Scenario.
 Claims checked only here therefore do not cover every possible cancellation interleaving. -/
-behavior cancellationRace on lifecycle
+scenario cancellationRace on lifecycle
   operation starts scheduled
   actions exactly [start: awaitStart, request: requestCancel, resolution: awaitResolution]
 
@@ -227,24 +227,24 @@ Queries share these explicit model-search bounds. Exhaustive verification must r
 limit-reached if the budget is insufficient. The cancellation scenario includes resolution;
 its progress property does not claim fairness or promise a wall-clock completion deadline.
 
-The three limits bound different quantities. Transitions bound trace steps; selected Actions
-bound Action occurrences; candidate evaluations bound search work. They coincide in some small
-examples, but are not interchangeable. The initial state is not itself a transition.
+The three limits bound different quantities. Steps bound trace steps; actions bound Action
+occurrences; search bounds the work the planner may spend. They coincide in some small
+examples, but are not interchangeable. The start state is not itself a step.
 The cancellation scenario needs three steps; successful completion still needs only two.
 The search budget of 32 is a proposed budget, not a measured guarantee of exhaustive coverage.
 -/
 
 limits shortTrace
-  transitions 3
-  selected_actions 3
-  candidate_evaluations 32
+  steps 3
+  actions 3
+  search 32
 
-/-- A witness Query asks whether at least one admitted trace ends successfully. Its expected
-witness is `scheduled → started → succeeded`. Finding one establishes possibility, not that
-every trace succeeds. `witness successfulResult` refers to the named Property above, so Queries
+/-- A `find` Query asks whether at least one admitted trace ends successfully. Its expected
+trace is `scheduled → started → succeeded`. Finding one establishes possibility, not that
+every trace succeeds. `find successfulResult` refers to the named Property above, so Queries
 reuse the Property language rather than introducing their own predicate evaluator. -/
 query completion on lifecycle
-  witness successfulResult
+  find successfulResult
   in successfulCompletion
   limits shortTrace
 
@@ -268,13 +268,13 @@ query cancellationProgress on lifecycle
   limits shortTrace
   search exhaustive
 
-/-- The successful branch is a witness that cancellation can lose. If found, it refutes the
+/-- The successful branch is a trace that cancellation can lose. If found, it refutes the
 stronger claim "every cancellation request ends in cancellation" in this model. It gives no
 probability or frequency for either outcome, and is not evidence of a real Temporal execution.
 All expected results in these comments remain expectations until the draft is implemented and
 the corresponding checked Queries actually run. -/
 query completionCanWin on lifecycle
-  witness successfulResult
+  find successfulResult
   in cancellationRace
   limits shortTrace
 

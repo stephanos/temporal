@@ -16,7 +16,7 @@ Read and build these files in order:
    `Tests.lean` checks semantic admission, equivalence, negative cases, coverage, and conflicts.
    `AuthoringTests.lean` compares those constructors with the isolated `property%`, `scenario%`,
    and `query%` specimens. Both test roots are imported by `TemporalModelTests`.
-4. `EVIDENCE.md` maps every prototype requirement to executable declarations and records the
+4. `COVERAGE.md` maps every prototype requirement to executable declarations and records the
    exact residual differences from the deferred ordinary-authoring specification.
 
 The authoring sequence is `FiniteTable.validate` / `checkModel`, then `Property.check`,

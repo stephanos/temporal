@@ -9,6 +9,6 @@
   "spec": "fn-70-scheduled-canary-proof-of-concept-as-a",
   "spec_path": ".flow/tasks/fn-70-scheduled-canary-proof-of-concept-as-a.2.md",
   "status": "todo",
-  "title": "Give the checked Nexus3 Case a finite target Workflow lifetime",
+  "title": "Give the checked Nexus success Case a finite target Workflow lifetime",
   "updated_at": "2026-09-08T13:56:39.265485Z"
 }

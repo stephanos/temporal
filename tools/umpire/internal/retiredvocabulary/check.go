@@ -574,6 +574,14 @@ func buildRetiredRules() ([]tokenRule, error) {
 		"Authoring." + "Monitor",
 		"Umpire." + "Refinement",
 		"Temporal.System.Nexus." + "Refinement",
+		"temporal-nexus" + "2",
+		"temporal-nexus" + "3",
+		"Temporal.ImplementationLink" + "Tests",
+		"temporal-model-" + "inspect",
+		"umpire-list-" + "nexus",
+		"umpire-explain-" + "nexus",
+		"selected_" + "actions",
+		"candidate_" + "evaluations",
 	}
 
 	rules := make([]tokenRule, 0, len(exactTokens)+5)
@@ -599,6 +607,30 @@ func buildRetiredRules() ([]tokenRule, error) {
 		name:    "SCOPED_*",
 		pattern: regexp.MustCompile(`(^|[^A-Za-z0-9_])SCOPED_[A-Z0-9_]+`),
 	})
+	// The generation-numbered module and identity roots. A leading hyphen is excluded because the
+	// only occurrences in that shape are immutable Flow spec slugs, which name closed records rather
+	// than anything in the tree; the kebab identity roots the model actually emitted are held by the
+	// `temporal-nexus2` and `temporal-nexus3` rules above.
+	for _, generation := range []string{"2", "3"} {
+		rules = append(rules, tokenRule{
+			name:    "Nexus" + generation,
+			pattern: regexp.MustCompile(`(^|[^A-Za-z0-9_-])[Nn]exus` + generation + `([^A-Za-z0-9_]|$)`),
+		})
+	}
+	// The Lake executable is `temporal-testpilot`; the Driver's reservation carriers spell three
+	// unrelated wire constants that begin with it. Requiring a non-hyphen boundary holds the
+	// executable name without reaching into headers this task does not rename.
+	rules = append(rules, tokenRule{
+		name:    "temporal-testpilot",
+		pattern: regexp.MustCompile(`(^|[^A-Za-z0-9_-])temporal-testpilot([^A-Za-z0-9_-]|$)`),
+	})
+	// `resultingState` stays live as an `Umpire.Property` trace and clause field constructor, so
+	// only the retired Nexus `require` spelling can be held. The keyword always follows the clause
+	// label and its colon, which the field constructor never does.
+	rules = append(rules, tokenRule{
+		name:    "require <label>: resultingState",
+		pattern: regexp.MustCompile(`require +[A-Za-z0-9_]+ *: *resultingState`),
+	})
 	for _, token := range []string{"bounds", "omissions", "qualification", "qualified"} {
 		rules = append(rules, tokenRule{
 			name:    `"` + token + `"`,
@@ -623,6 +655,18 @@ func allowedNegativeFixture(relativePath, token string) bool {
 		},
 		"common/testing/testpilot/internal/ir/catalog.go": {
 			"." + "qualified": true,
+		},
+		// The retired command keywords still parse so the elaborator can reject them by name.
+		// The grammar that admits them and the blocks that assert each rejection are the only
+		// places the old spellings may appear.
+		"model/Temporal/Feature/Nexus/Success/Syntax.lean": {
+			"selected_" + "actions":      true,
+			"candidate_" + "evaluations": true,
+		},
+		"model/Temporal/Feature/Nexus/Success/Tests.lean": {
+			"selected_" + "actions":                true,
+			"candidate_" + "evaluations":           true,
+			"require <label>: " + "resultingState": true,
 		},
 		"tests/testcore/testpilot/testdata/async-nexus-case.json": {
 			`"bounds"`: true,

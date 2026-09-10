@@ -33,7 +33,7 @@ Add one exact `explain` lookup over the same checked Nexus inventory used by `li
 
 ### Quick command
 
-`cd model && mise exec -- lake build Temporal.Tool.NexusDiscoveryTests Temporal.Tool.InspectTests temporal-model-inspect`
+`cd model && mise exec -- lake build Temporal.Tool.NexusDiscoveryTests Temporal.Tool.InspectTests umpire-inspect`
 
 ## Acceptance
 - [ ] Each of the four canonical query identities returns one deterministic explanation consistent with its list row.
@@ -51,5 +51,5 @@ stage: impl-review - ran (Codex SHIP; 0 introduced and 0 pre-existing findings)
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 32f519e122b23a50e90c3d7c14fd9f7df65a47a3
-- Tests: BASELINE_GREEN: cd model && mise exec -- lake build Temporal.Tool.NexusDiscoveryTests Temporal.Tool.InspectTests temporal-model-inspect, cd model && mise exec -- lake build Temporal.Tool.NexusDiscoveryTests Temporal.Tool.InspectTests temporal-model-inspect (95 jobs), direct relinked temporal-model-inspect explain smoke for all four exact identities, repeated byte equality, jq-valid payloads, and exact unknown failure/status/stdout, make lint-model (205 lint jobs), git diff --check, flowctl codex impl-review fn-5-umpire-discovery-promotion-and-artifact.3 --base bcf5d189e --receipt /tmp/impl-review-receipt-fn-5-umpire-discovery-promotion-and-artifact.3.json (SHIP)
+- Tests: BASELINE_GREEN: cd model && mise exec -- lake build Temporal.Tool.NexusDiscoveryTests Temporal.Tool.InspectTests umpire-inspect, cd model && mise exec -- lake build Temporal.Tool.NexusDiscoveryTests Temporal.Tool.InspectTests umpire-inspect (95 jobs), direct relinked umpire-inspect explain smoke for all four exact identities, repeated byte equality, jq-valid payloads, and exact unknown failure/status/stdout, make lint-model (205 lint jobs), git diff --check, flowctl codex impl-review fn-5-umpire-discovery-promotion-and-artifact.3 --base bcf5d189e --receipt /tmp/impl-review-receipt-fn-5-umpire-discovery-promotion-and-artifact.3.json (SHIP)
 - PRs:

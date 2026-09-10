@@ -28,8 +28,8 @@ satisfies: [R3, R7, R8, R9]
 Adapt the generic D3 projection kernel to correlated Temporal Nexus history. The adapter establishes cancellation confirmation and either terminal resolution from declared causal evidence while leaving SDK transport in `common/testing/testpilot/temporal/worker` and all generic Testpilot packages free of Nexus semantics.
 
 **Size:** M
-**Files:** `model/Temporal/System/Nexus/{Core,ImplementationLink,ImplementationLinkTests}.lean`, focused Nexus evidence modules/tests under `model/Temporal/System/Nexus/`, `model/Temporal/ImplementationLinkTests/Nexus.lean`, `model/Temporal/Feature/Nexus3/{Nexus,Tests}.lean`
-**Touches:** [model/Temporal/System/Nexus/**, model/Temporal/ImplementationLinkTests/Nexus.lean, model/Temporal/Feature/Nexus3/Nexus.lean, model/Temporal/Feature/Nexus3/Tests.lean]
+**Files:** `model/Temporal/System/Nexus/{Core,ImplementationLink,ImplementationLinkTests}.lean`, focused Nexus evidence modules/tests under `model/Temporal/System/Nexus/`, `model/TemporalModelTests/Nexus/ImplementationLink.lean`, `model/Temporal/Feature/Nexus/Success/{Nexus,Tests}.lean`
+**Touches:** [model/Temporal/System/Nexus/**, model/TemporalModelTests/Nexus/ImplementationLink.lean, model/Temporal/Feature/Nexus/Success/Model.lean, model/Temporal/Feature/Nexus/Success/Tests.lean]
 
 ### Approach
 - Declare correlation over namespace, workflow/run, scheduled-event/operation, and request identity using stable source-event identity and causal references.
@@ -41,8 +41,8 @@ Adapt the generic D3 projection kernel to correlated Temporal Nexus history. The
 **Required** (read before coding):
 - `model/Temporal/System/Nexus/ImplementationLink.lean` — sole System/Feature correspondence leaf
 - `model/Temporal/System/Nexus/Core.lean` — checked System lifecycle
-- `model/Temporal/Feature/Nexus3/Nexus.lean` — feature Target authority
-- `model/Temporal/Feature/Nexus3/Testpilot.lean:246-300` — existing checked success producer gate
+- `model/Temporal/Feature/Nexus/Success/Model.lean` — feature Target authority
+- `model/Temporal/Feature/Nexus/Success/Producer.lean:246-300` — existing checked success producer gate
 - `common/testing/testpilot/temporal/worker/callback.go` — SDK-only Nexus mechanics boundary
 
 ### Key context
@@ -75,22 +75,22 @@ satisfies: [R6, R7, R8, R9]
 Expose D5's readable bounded temporal syntax over the checked scoped clause and qualify a complete authored Nexus cancellation Case through the existing public Testpilot Prepare/Run facade. Keep Nexus syntax and lowering next to the feature adapter while reusable temporal constructors remain in `Umpire.Property`.
 
 **Size:** L
-**Files:** `model/Umpire/Property/{Authoring,Syntax,Tests/**}.lean`, `model/Temporal/Feature/Nexus3/{Authoring,Syntax,Nexus,Testpilot,Tests,Integration.md}`, `model/Temporal/Tool/Testpilot.lean`, managed Testpilot fixtures/generator tests, `tests/testpilot_async_nexus_case_test.go`, `model/{README,ARCHITECTURE}.md`, `model/Umpire/ARCHITECTURE.md`
-**Touches:** [model/Umpire/Property/**, model/Temporal/Feature/Nexus3/**, model/Temporal/Tool/Testpilot.lean, tools/umpire/cmd/umpire-gen-case-runtime-conformance/**, tests/testcore/testpilot/**, tests/testpilot_async_nexus_case_test.go, model/README.md, model/ARCHITECTURE.md, model/Umpire/ARCHITECTURE.md]
+**Files:** `model/Umpire/Property/{Authoring,Syntax,Tests/**}.lean`, `model/Temporal/Feature/Nexus/Success/{Authoring,Syntax,Nexus,Testpilot,Tests,Integration.md}`, `model/Temporal/Tool/Testpilot.lean`, managed Testpilot fixtures/generator tests, `tests/testpilot_async_nexus_case_test.go`, `model/{README,ARCHITECTURE}.md`, `model/Umpire/ARCHITECTURE.md`
+**Touches:** [model/Umpire/Property/**, model/Temporal/Feature/Nexus/Success/**, model/Temporal/Tool/Testpilot.lean, tools/umpire/cmd/umpire-gen-case-runtime-conformance/**, tests/testcore/testpilot/**, tests/testpilot_async_nexus_case_test.go, model/README.md, model/ARCHITECTURE.md, model/Umpire/ARCHITECTURE.md]
 
 ### Approach
 - Add typed constructors and hygienic notation that resolve trigger, response, same-operation key, operation-transition clock, natural bound, and endpoint explicitly into the same checked clause.
 - Use elaboration for context-sensitive rejection and source-local diagnostics; do not add a general expression framework or make authors maintain serialization/proof plumbing.
-- Extend the existing Nexus3 Producer's checked Query/witness gate to cancellation, compile one deterministic admitted Case, and bind task 9's per-operation cancellation capability through task 1's generic server seam.
+- Extend the existing Nexus success Producer's checked Query/witness gate to cancellation, compile one deterministic admitted Case, and bind task 9's per-operation cancellation capability through task 1's generic server seam.
 - Drive local Temporal integration through public `Prepare`/`Run`; recognize correlated cancellation and either permitted terminal result without forcing the chosen model outcome.
-- Update ownership/architecture docs and replace the Nexus3 integration draft's unsupported-cancellation statements.
+- Update ownership/architecture docs and replace the Nexus success integration draft's unsupported-cancellation statements.
 
 ### Investigation targets
 **Required** (read before coding):
 - `model/Umpire/Property/Authoring.lean` — reusable typed Property owner
-- `model/Temporal/Feature/Nexus3/Syntax.lean` — feature-local macro pattern
-- `model/Temporal/Feature/Nexus3/Testpilot.lean:246-300` — checked Query/witness and Case compilation
-- `model/Temporal/Feature/Nexus3/Tests.lean` — authored equality/rejection tests
+- `model/Temporal/Feature/Nexus/Success/Syntax.lean` — feature-local macro pattern
+- `model/Temporal/Feature/Nexus/Success/Producer.lean:246-300` — checked Query/witness and Case compilation
+- `model/Temporal/Feature/Nexus/Success/Tests.lean` — authored equality/rejection tests
 - `tests/testpilot_async_nexus_case_test.go` — existing real Driver proof
 
 ### Key context
@@ -106,7 +106,7 @@ Expose D5's readable bounded temporal syntax over the checked scoped clause and 
 - [ ] Repeated/concurrent Runs and tenfold candidate/evidence/overlapping-obligation loads demonstrate isolation and bounded failure with recorded semantic/work limits and costs.
 - [ ] Existing success/rejection/cross-language/identity/lifecycle regressions remain green; unchanged fixtures retain exact bytes and IDs.
 - [ ] `make umpire-build-model`, `make umpire-check-regression`, `make lint-model`, `make lint-code`, generated staleness checks, focused Go tests with `-tags test_dep`, and the scoped integration test with `test_dep integration` pass with evidence recorded.
-- [ ] Umpire and model architecture docs describe the final ownership and syntax; `model/Temporal/Feature/Nexus3/Integration.md` no longer claims cancellation lowering is unsupported.
+- [ ] Umpire and model architecture docs describe the final ownership and syntax; `model/Temporal/Feature/Nexus/Success/Integration.md` no longer claims cancellation lowering is unsupported.
 ## Done summary
 TBD
 

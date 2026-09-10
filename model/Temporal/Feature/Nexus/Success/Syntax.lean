@@ -15,23 +15,27 @@ open Umpire
 open Lean Elab Command
 
 /-- One `before + action → result` row of a declared model. -/
-declare_syntax_cat nexus.successTransition
+declare_syntax_cat successStep
 
 syntax ident ":" ident "+" ident "→"
   "{" "state" ":=" ident "," "outcome" ":=" ident "," "facts" ":=" "[" ident,* "]" "}" :
-  nexus.successTransition
+  successStep
 
 /-- One `require` clause of a declared Property. -/
-declare_syntax_cat nexus.successRequire
+declare_syntax_cat successRequire
 
-syntax "require" ident ":" "resultingState" ident : nexus.successRequire
-syntax "require" ident ":" "outcome" ident : nexus.successRequire
-syntax "require" ident ":" "fact" ident : nexus.successRequire
+syntax "require" ident ":" &"state" ident : successRequire
+syntax "require" ident ":" "outcome" ident : successRequire
+syntax "require" ident ":" "fact" ident : successRequire
+
+/-- The retired `resultingState` spelling still parses, so the macro can reject it in place and
+name its replacement instead of failing as an unexplained parse error. -/
+syntax "require" ident ":" "resultingState" ident : successRequire
 
 /-- One labelled occurrence of a declared Action in a Behavior sequence. -/
-declare_syntax_cat nexus.successOccurrence
+declare_syntax_cat successOccurrence
 
-syntax ident ":" ident : nexus.successOccurrence
+syntax ident ":" ident : successOccurrence
 
 /-- The elaboration bound on declared transition rows. The tested scale is far smaller; this is a
 ceiling on how large a table the elaborator will build, not a modelling recommendation. -/
@@ -46,28 +50,28 @@ private def spellings (constructors : List Name) : String :=
   ", ".intercalate (constructors.map fun constructor => (shortName constructor).toString)
 
 private def unknownMemberMessage (domain spelling : String) (constructors : List Name) : String :=
-  s!"unknown Nexus.Success {domain} '{spelling}'; declared: {spellings constructors}"
+  s!"unknown Nexus model {domain} '{spelling}'; declared: {spellings constructors}"
 
 private def parameterizedConstructorMessage (domain spelling : String) : String :=
-  s!"Nexus.Success {domain} '{spelling}' takes arguments; a {domain} domain must be an enum-like inductive"
+  s!"Nexus model {domain} '{spelling}' takes arguments; a {domain} domain must be an enum-like inductive"
 
 private def duplicateTransitionMessage (key priorKey source selected : String) : String :=
-  s!"duplicate Nexus.Success transition '{key}': '{source} + {selected}' is already declared by " ++
+  s!"duplicate Nexus model step '{key}': '{source} + {selected}' is already declared by " ++
     s!"'{priorKey}'"
 
 private def unreachableTerminalMessage (spelling : String) : String :=
-  s!"Nexus.Success terminal state '{spelling}' is unreachable from every initial state"
+  s!"Nexus model end state '{spelling}' is unreachable from every start state"
 
 private def unsortedActionsMessage (earlier later : String) : String :=
-  "Nexus.Success action constructors must be declared in sorted order, because the planner admits " ++
+  "Nexus model action constructors must be declared in sorted order, because the planner admits " ++
     s!"only a canonically ordered Action catalog; '{later}' precedes '{earlier}'"
 
 private def unsortedInitialMessage (earlier later : String) : String :=
-  "Nexus.Success initial states must be declared in sorted order, because the planner admits " ++
-    s!"only a canonically ordered initial-state list; '{later}' precedes '{earlier}'"
+  "Nexus model start states must be declared in sorted order, because the planner admits " ++
+    s!"only a canonically ordered start-state list; '{later}' precedes '{earlier}'"
 
 private def transitionBoundMessage (declared : Nat) : String :=
-  s!"Nexus.Success model declares {declared} transitions; the elaboration bound is {transitionBound}"
+  s!"Nexus model declares {declared} steps; the elaboration bound is {transitionBound}"
 
 /-- The ordered constructors of a named enum-like inductive. A constructor that takes arguments is
 not an enum-like member, so the domain is rejected at the type the model names. -/
@@ -108,14 +112,39 @@ private def reachableStates (edges : List (Name × Name)) : Nat → List Name �
 private def memberKeys (constructors : List Name) : Array Term :=
   constructors.toArray.map fun constructor => Lean.quote (shortName constructor).toString
 
+/-- The keyword one alternation position actually matched. A retired spelling parses alongside its
+replacement so the elaborator can point at the retired token, rather than reporting a parse error
+that names neither spelling. -/
+private def keywordSpelling : Syntax → String
+  | .atom _ value => value
+  | keyword => (keyword.getArg 0).getAtomVal
+
+private def retiredKeywordMessage (retired replacement : String) : String :=
+  s!"the Nexus command keyword '{retired}' is retired; write '{replacement}'"
+
+private def rejectRetiredKeyword (keyword : Syntax) (retired replacement : String) :
+    CommandElabM Unit := do
+  if keywordSpelling keyword == retired then
+    throwErrorAt keyword (retiredKeywordMessage retired replacement)
+
+private def rejectRetiredMacroKeyword (keyword : Syntax) (retired replacement : String) :
+    MacroM Unit := do
+  if keywordSpelling keyword == retired then
+    Lean.Macro.throwErrorAt keyword (retiredKeywordMessage retired replacement)
+
 private def memberIdents (constructors : List Name) : Array Term :=
   constructors.toArray.map fun constructor => mkIdent constructor
 
 elab "model" name:ident "role" role:ident
     "states" stateType:ident
     "actions" actionType:ident "outcomes" outcomeType:ident "facts" factType:ident
-    "initial" "[" initialRefs:ident,+ "]" "terminal" "[" terminalRefs:ident,+ "]" "transitions"
-    rows:nexus.successTransition+ : command => do
+    startsKeyword:(&"starts" <|> "initial") "[" initialRefs:ident,+ "]"
+    endsKeyword:(&"ends" <|> "terminal") "[" terminalRefs:ident,+ "]"
+    stepsKeyword:(&"steps" <|> "transitions")
+    rows:successStep+ : command => do
+  rejectRetiredKeyword startsKeyword "initial" "starts"
+  rejectRetiredKeyword endsKeyword "terminal" "ends"
+  rejectRetiredKeyword stepsKeyword "transitions" "steps"
   let stateCtors ← domainConstructors "state" stateType
   let actionCtors ← domainConstructors "action" actionType
   let outcomeCtors ← domainConstructors "outcome" outcomeType
@@ -127,7 +156,7 @@ elab "model" name:ident "role" role:ident
   let setupConstructors ← domainConstructors "setup" (mkIdentFrom name `Setup)
   let setupConstructor ← match setupConstructors with
     | [only] => pure (mkIdent only)
-    | _ => throwErrorAt name "a Nexus.Success model needs exactly one Setup constructor"
+    | _ => throwErrorAt name "a Nexus model needs exactly one Setup constructor"
   let initialStates ← initialRefs.getElems.toList.mapM (resolveMember "state" stateCtors)
   let terminalStates ← terminalRefs.getElems.toList.mapM (resolveMember "state" stateCtors)
   let initialPairs := initialStates.zip initialRefs.getElems.toList
@@ -138,9 +167,9 @@ elab "model" name:ident "role" role:ident
       throwErrorAt pair.2.2 (unsortedInitialMessage later earlier)
   if rows.size > transitionBound then
     throwErrorAt rows[transitionBound]! (transitionBoundMessage rows.size)
-  let resolvedRows ← rows.toList.mapM fun (row : TSyntax `nexus.successTransition) => do
+  let resolvedRows ← rows.toList.mapM fun (row : TSyntax `successStep) => do
     match row with
-    | `(nexus.successTransition| $key:ident : $source:ident + $selected:ident →
+    | `(successStep| $key:ident : $source:ident + $selected:ident →
         { state := $resulting:ident , outcome := $outcomeRef:ident ,
           facts := [$observed,*] }) => do
         let sourceState ← resolveMember "state" stateCtors source
@@ -156,7 +185,7 @@ elab "model" name:ident "role" role:ident
             results := [Authoring.step $resolvedOutcome $targetState
               [$(observedFacts.toArray),*]] })
         pure ({ key, sourceState, selectedAction, targetState, rowTerm : ResolvedRow })
-    | _ => throwErrorAt row "unsupported Nexus.Success transition"
+    | _ => throwErrorAt row "unsupported Nexus model step"
   let mut declared : List ResolvedRow := []
   for resolved in resolvedRows do
     if let some prior := declared.find? fun candidate =>
@@ -197,23 +226,27 @@ elab "model" name:ident "role" role:ident
       (by exact ⟨rfl, rfl, rfl⟩)))
 
 macro "property" name:ident "on" modelRef:ident "for" roleRef:ident
-    "when" "action" actionRef:ident
-    requirements:nexus.successRequire+ : command => do
+    "when" actionKeyword:("action")? actionRef:ident
+    requirements:successRequire+ : command => do
+    if let some retired := actionKeyword then
+      Lean.Macro.throwErrorAt retired (retiredKeywordMessage "when action" "when")
     let ownerKey := Lean.quote name.getId.toString
     let roleKey := Lean.quote roleRef.getId.toString
     let actionKey := Lean.quote actionRef.getId.toString
     let clauses ← requirements.mapM fun requirement => do
       match requirement with
-      | `(nexus.successRequire| require $label:ident : resultingState $member:ident) =>
+      | `(successRequire| require $label:ident : state $member:ident) =>
           `(term| Authoring.PropertyRequirement.stateClause
               $(Lean.quote label.getId.toString) $(Lean.quote member.getId.toString))
-      | `(nexus.successRequire| require $label:ident : outcome $member:ident) =>
+      | `(successRequire| require $_:ident : resultingState $_:ident) =>
+          Lean.Macro.throwErrorAt requirement (retiredKeywordMessage "resultingState" "state")
+      | `(successRequire| require $label:ident : outcome $member:ident) =>
           `(term| Authoring.PropertyRequirement.outcomeClause
               $(Lean.quote label.getId.toString) $(Lean.quote member.getId.toString))
-      | `(nexus.successRequire| require $label:ident : fact $member:ident) =>
+      | `(successRequire| require $label:ident : fact $member:ident) =>
           `(term| Authoring.PropertyRequirement.factClause
               $(Lean.quote label.getId.toString) $(Lean.quote member.getId.toString))
-      | _ => Lean.Macro.throwErrorAt requirement "unsupported Nexus.Success require clause"
+      | _ => Lean.Macro.throwErrorAt requirement "unsupported Nexus require clause"
     `(command| def $name (values : Authoring.ModelVocabulary) : Property :=
         Authoring.authoredProperty ($modelRef) values {
           declaration := $ownerKey
@@ -222,16 +255,18 @@ macro "property" name:ident "on" modelRef:ident "for" roleRef:ident
           requirements := [$clauses,*]
         })
 
-macro "behavior" name:ident "on" modelRef:ident roleRef:ident "starts" setupRef:ident
-    "actions" "exactly" "[" occurrences:nexus.successOccurrence,+ "]" : command => do
+macro scenarioKeyword:("scenario" <|> "behavior") name:ident "on" modelRef:ident roleRef:ident
+    "starts" setupRef:ident
+    "actions" "exactly" "[" occurrences:successOccurrence,+ "]" : command => do
+    rejectRetiredMacroKeyword scenarioKeyword "behavior" "scenario"
     let ownerKey := Lean.quote name.getId.toString
     let roleKey := Lean.quote roleRef.getId.toString
     let setupKey := Lean.quote setupRef.getId.toString
     let entries ← occurrences.getElems.mapM fun occurrence => do
       match occurrence with
-      | `(nexus.successOccurrence| $label:ident : $selected:ident) =>
+      | `(successOccurrence| $label:ident : $selected:ident) =>
           `(term| ($(Lean.quote label.getId.toString), $(Lean.quote selected.getId.toString)))
-      | _ => Lean.Macro.throwErrorAt occurrence "unsupported Nexus.Success Behavior occurrence"
+      | _ => Lean.Macro.throwErrorAt occurrence "unsupported Nexus Scenario occurrence"
     `(command| def $name (values : Authoring.ModelVocabulary) : Scenario :=
         Authoring.authoredScenario ($modelRef) values {
           declaration := $ownerKey
@@ -240,22 +275,31 @@ macro "behavior" name:ident "on" modelRef:ident roleRef:ident "starts" setupRef:
           occurrences := [$entries,*]
         })
 
-macro "limits" name:ident "transitions" transitionCount:num "selected_actions" actionCount:num
-    "candidate_evaluations" candidateCount:num : command =>
+macro "limits" name:ident
+    stepsKeyword:(&"steps" <|> "transitions") stepCount:num
+    actionsKeyword:(&"actions" <|> "selected_actions") actionCount:num
+    searchKeyword:(&"search" <|> "candidate_evaluations") searchCount:num : command => do
+    rejectRetiredMacroKeyword stepsKeyword "transitions" "steps"
+    rejectRetiredMacroKeyword actionsKeyword "selected_actions" "actions"
+    rejectRetiredMacroKeyword searchKeyword "candidate_evaluations" "search"
     `(command| def $name : Limits :=
-        Limits.bounded $transitionCount $actionCount $candidateCount)
+        Limits.bounded $stepCount $actionCount $searchCount)
 
-macro "query" name:ident "on" modelRef:ident "witness" propertyRef:ident "in" behaviorRef:ident
+macro "query" name:ident "on" modelRef:ident
+    findKeyword:(&"find" <|> "witness") propertyRef:ident "in" scenarioRef:ident
     "limits" limitsRef:ident : command => do
+    rejectRetiredMacroKeyword findKeyword "witness" "find"
     let queryKey := Lean.quote name.getId.toString
     `(command| def $name : Except Authoring.AdmissionError (Authoring.CheckedModel ($modelRef)) :=
-        Authoring.check ($modelRef) $queryKey ($limitsRef) ($propertyRef) ($behaviorRef))
+        Authoring.check ($modelRef) $queryKey ($limitsRef) ($propertyRef) ($scenarioRef))
 
-macro "query" name:ident "on" modelRef:ident "all" propertyRef:ident "in" behaviorRef:ident
+macro "query" name:ident "on" modelRef:ident
+    verifyKeyword:(&"verify" <|> "all") propertyRef:ident "in" scenarioRef:ident
     "limits" limitsRef:ident : command => do
+    rejectRetiredMacroKeyword verifyKeyword "all" "verify"
     let queryKey := Lean.quote name.getId.toString
     `(command| def $name : Except Authoring.AdmissionError (Authoring.CheckedModel ($modelRef)) :=
-        Authoring.check ($modelRef) $queryKey ($limitsRef) ($propertyRef) ($behaviorRef)
+        Authoring.check ($modelRef) $queryKey ($limitsRef) ($propertyRef) ($scenarioRef)
           (form := Authoring.QueryFormKind.verifyClaim))
 
 end Temporal.Feature.Nexus.Success

@@ -7,7 +7,7 @@ Status: task planning against delivered dependencies. Nexus operation cancellati
 ## Goal & Context
 <!-- scope: business -->
 
-Demonstrate that functional tests and a continuously scheduled canary can consume the same Lean-owned behavior through Testpilot without either consumer adding scenario semantics. An engineer manually selects a small set of supported checks; Temporal starts a new Workflow for each selected check once per minute. Begin with exactly the Nexus3 scheduled → started → succeeded Case produced by fn-68. This is a second consumer of the model and Testpilot, not a second interpreter or an independently implemented Temporal Driver.
+Demonstrate that functional tests and a continuously scheduled canary can consume the same Lean-owned behavior through Testpilot without either consumer adding scenario semantics. An engineer manually selects a small set of supported checks; Temporal starts a new Workflow for each selected check once per minute. Begin with exactly the Nexus success scheduled → started → succeeded Case produced by fn-68. This is a second consumer of the model and Testpilot, not a second interpreter or an independently implemented Temporal Driver.
 
 The first demonstration targets a local/development Temporal environment with dedicated resources. Production deployment and qualification are outside this proof of concept. This spec is separate from fn-29, whose protected production-canary design excludes automatic scheduling. It does not amend fn-29 or require its receipt/release machinery.
 
@@ -17,7 +17,7 @@ The first demonstration targets a local/development Temporal environment with de
 The dependency path is:
 
 ```text
-Nexus3 checked Query / Property / selected witness
+Nexus success checked Query / Property / selected witness
     -> fn-68 Producer -> versioned Case artifact
     -> Testpilot Prepare / PreparedCase.Run
     -> shared Temporal Driver
@@ -29,9 +29,9 @@ Nexus3 checked Query / Property / selected witness
                    manually configured Schedule
 ```
 
-- `Temporal.Feature.Nexus3.Testpilot` remains the owner of checked lowering, history correlation and Contract meaning. The delivered fn-68 Producer is the compatibility baseline. Canary does not assemble an alternative success monitor.
+- `Temporal.Feature.Nexus.Success.Producer` remains the owner of checked lowering, history correlation and Contract meaning. The delivered fn-68 Producer is the compatibility baseline. Canary does not assemble an alternative success monitor.
 - `api/testpilot/v1` and `common/testing/testpilot` retain their existing protocol and execution authority. Runtime execution never invokes Lean or imports Umpire Go generation tools.
-- Consume the shared Temporal Driver delivered by `fn-72-extract-the-reusable-temporal-testpilot`, preserving its server/worker authority split and private delivery ledger. This spec owns canary integration only; Driver extraction and functional-test migration belong to that prerequisite. Do not introduce a second driver implementation or a dependency on `tests/`.
+- Consume the shared Temporal Driver delivered by `fn-72-extract-the-reusable-umpire-case`, preserving its server/worker authority split and private delivery ledger. This spec owns canary integration only; Driver extraction and functional-test migration belong to that prerequisite. Do not introduce a second driver implementation or a dependency on `tests/`.
 - `tools/canary` owns its manually selected check catalog, schedule reconciliation, orchestration Workflow, Activity, environment configuration, and bounded result reporting. It contains no Nexus assertions, request rewriting, private Testpilot imports or alternate evaluator.
 - Build/package canonical Cases ahead of execution through their owning Producer. Pin each catalog entry to a Case digest and retain its producer provenance. Updating a selected artifact is an explicit configuration/update action, never a periodic regeneration or latest-version lookup.
 - Keep process-owned SDK clients, driver registrations and immutable prepared Cases in the Activity worker. Workflow history carries serializable check/artifact identities and bounded outcome summaries, not clients, credentials, PreparedCase values, or complete Run payloads.
@@ -55,7 +55,7 @@ their smallest fixes in the existing owners, followed by canary integration:
   Monitor, Session, Run, or effect. `Run` repeats current preflight validation; an earlier successful
   check grants no lasting execution authority. Canary validates every selected prepared Case and
   Driver before scheduling, without duplicating private execution rules.
-- Ensure the checked Nexus3 Producer supplies a finite target `workflow_execution_timeout` of
+- Ensure the checked Nexus success Producer supplies a finite target `workflow_execution_timeout` of
   60 seconds. Current request construction omits a server lifetime. Make this amendment in the
   Producer, regenerate and explicitly repin both consumers, and qualify lowering/provenance/trust.
   Preserve the success Property and correlated Contract; canary never patches requests. If fn-77
@@ -92,7 +92,7 @@ Model violation and inconclusive results are measurements, not retryable Activit
 
 ### Selection, ownership, and reporting
 
-The supported catalog initially contains exactly `nexus3-success`. Operator configuration supplies
+The supported catalog initially contains exactly `nexus-success`. Operator configuration supplies
 an installation identity, pinned artifact digest, explicit environment bindings, and caller-owned
 connection/provisioning policy. A production catalog may define its own public ProfileSpec policy;
 it cannot import the functional test fixture helper or infer new product assertions from a Case.
@@ -168,21 +168,21 @@ resume. A manual status warning alone does not satisfy R8.
 ## Acceptance Criteria
 <!-- scope: both -->
 
-- **R1:** `tools/canary` exposes only explicitly selected supported checks, initially Nexus3 success. Unknown/duplicate names, empty selection, stale or mismatched artifacts and unauthorized/incompatible bindings are covered by tests; invalid selections create no active schedule or target Run.
+- **R1:** `tools/canary` exposes only explicitly selected supported checks, initially Nexus success. Unknown/duplicate names, empty selection, stale or mismatched artifacts and unauthorized/incompatible bindings are covered by tests; invalid selections create no active schedule or target Run.
 - **R2:** Canary and the existing functional test consume the fn-68 Producer's checked success behavior through the same Testpilot facade. Source IDs/fingerprints and exact Known Gaps remain bound to checked inputs. No duplicated monitor, Nexus assertion, scenario interpreter, or runtime Lean invocation exists in canary.
-- **R3:** One shared Temporal Driver serves both consumers from outside `tests/`, preserving server/worker/delivery ownership. Dependency checks show canary and shared Driver production code import neither `tests/`, Umpire generator tools nor private Testpilot execution/verification packages. Canary integration preserves the prerequisite Driver guarantees; its extraction and migration tests remain owned by `fn-72-extract-the-reusable-temporal-testpilot`.
+- **R3:** One shared Temporal Driver serves both consumers from outside `tests/`, preserving server/worker/delivery ownership. Dependency checks show canary and shared Driver production code import neither `tests/`, Umpire generator tools nor private Testpilot execution/verification packages. Canary integration preserves the prerequisite Driver guarantees; its extraction and migration tests remain owned by `fn-72-extract-the-reusable-umpire-case`.
 - **R4:** The same checked selection executes against two explicit namespace/task-queue configurations using one binding mechanism and isolated run-owned resources. Neither consumer rewrites prepared requests or independently hard-codes corresponding worker/request bindings; mismatch tests fail before check dispatch.
 - **R5:** Applying an explicit selection creates one stable, 60-second, Skip-overlap Schedule per check, starting a fresh Workflow for each measurement. Reapply is idempotent, conflicts reject, removal pauses only owned schedules, and pause/resume work. A check exceeding the interval does not overlap or accumulate buffered starts; catch-up is bounded and tested.
 - **R6:** Workflow orchestration contains only deterministic SDK operations and calls a bounded Activity for Testpilot execution. Workflow execution retries and check Activity retries are disabled. Replay tests show no duplicate external dispatch; a violated or inconclusive measurement is retained without an automatic rerun.
 - **R7:** Repeated completed measurements retain distinct Run/resource identities and unchanged semantics, with separate disposition, Verdict, cleanup and bounded artifact references. Cross-run isolation, late completions, reporting failure and retention exhaustion have focused tests; none overwrites a prior measurement or causes redispatch.
 - **R8:** Activity worker loss, cancellation and timeouts cannot fabricate Run closure or success. Uncertain orchestration failures pause the schedule until explicit resume; bounded cleanup and finite target resource lifetimes are demonstrated. Status inspection distinguishes missing/stale measurements and unavailable orchestration from actual violated/inconclusive Verdicts.
-- **R9:** A live local demonstration runs the existing Nexus3 functional test and at least two successive scheduled canary measurements through the shared Driver. Successful canary Runs have completed disposition, satisfied Verdict, successful cleanup and the Producer-defined correlated history support. Assert event-driven results rather than fixed test sleeps; use a generous bounded deadline for the real minute cadence.
+- **R9:** A live local demonstration runs the existing Nexus success functional test and at least two successive scheduled canary measurements through the shared Driver. Successful canary Runs have completed disposition, satisfied Verdict, successful cleanup and the Producer-defined correlated history support. Assert event-driven results rather than fixed test sleeps; use a generous bounded deadline for the real minute cadence.
 - **R10:** Documentation under `tools/canary` gives reproducible build/artifact provisioning, explicit selection, worker, schedule apply/pause/resume/status and cleanup commands; names required environment settings, finite limits, retry/overlap behavior, result storage and the same-cluster freshness limitation. It clearly identifies the non-production proof-of-concept scope and fn-68 dependency.
 
 ## Boundaries
 <!-- scope: business -->
 
-No production deployment, customer traffic, release qualification, protected GitHub workflow, general lease/fencing/recovery platform, dashboard, alerting service, remote result store, or fn-29 receipt machinery. No arbitrary scenario upload, discovery, randomized exploration, cancellation-model expansion, fault injection, new runtime opcode, alternate evaluator, or universal Property compiler. No unrelated Lean authoring redesign, blanket codec migration, broad generator changes, new third-party libraries, or CI expansion. Shared Driver extraction and environment-binding implementation are owned by `fn-72-extract-the-reusable-temporal-testpilot` and `fn-73-explicit-environment-binding-for`, respectively; do not duplicate that work here. Driver activation-interface deepening and Lean semantic refactors remain independent work. This spec authorizes design/implementation scope; actual infrastructure deployment is not performed by creating the spec.
+No production deployment, customer traffic, release qualification, protected GitHub workflow, general lease/fencing/recovery platform, dashboard, alerting service, remote result store, or fn-29 receipt machinery. No arbitrary scenario upload, discovery, randomized exploration, cancellation-model expansion, fault injection, new runtime opcode, alternate evaluator, or universal Property compiler. No unrelated Lean authoring redesign, blanket codec migration, broad generator changes, new third-party libraries, or CI expansion. Shared Driver extraction and environment-binding implementation are owned by `fn-72-extract-the-reusable-umpire-case` and `fn-73-explicit-environment-binding-for`, respectively; do not duplicate that work here. Driver activation-interface deepening and Lean semantic refactors remain independent work. This spec authorizes design/implementation scope; actual infrastructure deployment is not performed by creating the spec.
 
 The three prerequisite amendments above are included solely to satisfy existing R1/R4/R8. No
 other scheduler policy, public runtime interface, Producer scenario, or server configuration change
@@ -193,12 +193,12 @@ scope; exhaustion is an explicit pause requiring operator storage management.
 <!-- scope: both -->
 
 - User requested `tools/canary` as a second Lean-model consumer, with a very small manually selected scenario set, repeated starts once per minute, and a Temporal Workflow for each check.
-- Reuse fn-68's checked success lowering and live proof rather than create competing integration work. This spec depends on fn-68, `fn-72-extract-the-reusable-temporal-testpilot`, `fn-73-explicit-environment-binding-for`, and `fn-78-typed-temporal-authoring-and-checked`; re-anchor on their final interfaces, artifact identities, semantic contracts, and metadata policy before implementation.
+- Reuse fn-68's checked success lowering and live proof rather than create competing integration work. This spec depends on fn-68, `fn-72-extract-the-reusable-umpire-case`, `fn-73-explicit-environment-binding-for`, and `fn-78-typed-temporal-authoring-and-checked`; re-anchor on their final interfaces, artifact identities, semantic contracts, and metadata policy before implementation.
 - Temporal Schedules are preferred over a local ticker because scheduling is part of the requested demonstration and remains inspectable/durable. Fresh scheduled Workflows are preferred over an endless per-check workflow because each measurement has an independent orchestration record and fixed start cadence.
 - Execute the Case within an Activity to keep runtime I/O out of Workflow replay. Keep the same Driver in tests and canary; consumer differences belong in orchestration, bindings and reporting.
 - Prefer the smallest complete success slice. Add a second scenario only through a later request; a new generic framework is not the acceptance test.
 - The prototype intentionally differs from fn-29's manual-only production controller. Neither spec supersedes the other; do not inherit production gates or claim production readiness from this demonstration.
-- Model-to-Case continuity is owned by fn-68, shared Driver placement by `fn-72-extract-the-reusable-temporal-testpilot`, environment binding by `fn-73-explicit-environment-binding-for`, and scoped temporal semantics and evidence projection by `fn-78-typed-temporal-authoring-and-checked`. The standalone Lean protocol is a transitive prerequisite through binding. Activation-interface deepening and Lean Target/inventory refactors do not block this proof unless an evidenced integration requirement changes that decision.
+- Model-to-Case continuity is owned by fn-68, shared Driver placement by `fn-72-extract-the-reusable-umpire-case`, environment binding by `fn-73-explicit-environment-binding-for`, and scoped temporal semantics and evidence projection by `fn-78-typed-temporal-authoring-and-checked`. The standalone Lean protocol is a transitive prerequisite through binding. Activation-interface deepening and Lean Target/inventory refactors do not block this proof unless an evidenced integration requirement changes that decision.
 
 Honoring the existing CHASM pause setting is preferable to adding a worker-side recovery service:
 the server can observe terminal cancellation or termination even when the worker cannot run code.
@@ -231,7 +231,7 @@ receipts; synthetic or unmatched test selections cannot stand in for that eviden
 
 ## Early proof point
 
-Before adding schedules, prepare a Nexus3-produced Case through the non-test shared Driver and execute two isolated measurements using the canary Activity entry point. Compare with the functional consumer and demonstrate the alternate namespace/queue binding. If this requires canary-specific request interpretation or a copied Contract, report the unmet prerequisite acceptance criterion and resolve it in its owning spec before adding cadence.
+Before adding schedules, prepare a Nexus success-produced Case through the non-test shared Driver and execute two isolated measurements using the canary Activity entry point. Compare with the functional consumer and demonstrate the alternate namespace/queue binding. If this requires canary-specific request interpretation or a copied Contract, report the unmet prerequisite acceptance criterion and resolve it in its owning spec before adding cadence.
 
 ## Verification
 
@@ -242,7 +242,7 @@ The shared package path is established at `common/testing/testpilot/temporal`. A
 - `.plans/UMPIRE4_SPEC.md` — semantic authority, Testpilot facade and Driver ownership.
 - `.plans/UMPIRE_ARCHITECTURE_REVIEW.md` — findings 1, 3, 4 and 5.
 - `fn-68-minimal-nexus3-success-demonstration` — checked lowering and existing fixture/live integration.
-- `fn-72-extract-the-reusable-temporal-testpilot` — reusable Temporal Driver extraction.
+- `fn-72-extract-the-reusable-umpire-case` — reusable Temporal Driver extraction.
 - `fn-73-explicit-environment-binding-for` — explicit shared environment binding.
 - `fn-78-typed-temporal-authoring-and-checked` — typed temporal semantics, lowering, and evidence projection.
 - `fn-29-bounded-production-canary-execution-and` — separate production qualification scope.
