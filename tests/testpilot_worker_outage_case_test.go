@@ -128,10 +128,3 @@ func faultEvents(run *testpilotpb.Run) []int64 {
 	}
 	return sequences
 }
-
-func runEventAt(t testing.TB, run *testpilotpb.Run, sequence int64) *testpilotpb.RunEvent {
-	t.Helper()
-	require.Positive(t, sequence)
-	require.LessOrEqual(t, sequence, int64(len(run.GetEvents())))
-	return run.GetEvents()[sequence-1]
-}
