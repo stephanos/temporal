@@ -102,7 +102,7 @@ structure PlanRequest where
   additionalCapabilityRequirementDefinitionIds : List DefinitionId
   deriving BEq, DecidableEq, Repr
 
-inductive ArtifactIntentErrorKind where
+inductive PlanRequestErrorKind where
   | invalidDefinitionId
   | duplicateEntry
   | identityDrift
@@ -112,7 +112,7 @@ inductive ArtifactIntentErrorKind where
   | variantMismatch
   deriving BEq, DecidableEq, Ord, Repr
 
-def ArtifactIntentErrorKind.name : ArtifactIntentErrorKind → String
+def PlanRequestErrorKind.name : PlanRequestErrorKind → String
   | .invalidDefinitionId => "invalid-definition-id"
   | .duplicateEntry => "duplicate-entry"
   | .identityDrift => "identity-drift"
@@ -121,8 +121,8 @@ def ArtifactIntentErrorKind.name : ArtifactIntentErrorKind → String
   | .invalidCapability => "invalid-capability"
   | .variantMismatch => "variant-mismatch"
 
-structure ArtifactIntentError where
-  kind : ArtifactIntentErrorKind
+structure PlanRequestError where
+  kind : PlanRequestErrorKind
   definitionId : DefinitionId
   relatedDefinitionIds : List DefinitionId
   deriving BEq, DecidableEq, Repr

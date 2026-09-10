@@ -243,14 +243,14 @@ and seed.
 
 ## Authored variation Space
 
-Space is a finite composition package above an existing checked Query. An
-`ExperimentSpaceDeclaration` has one to eight canonically ordered axes, two to sixteen choices per
+Space is a finite composition package above an existing checked Query. A
+`VariationSpace` has one to eight canonically ordered axes, two to sixteen choices per
 axis, at most twelve fault intents, and one to sixty-four seek-only coverage goals; the Cartesian
 product is bounded at 256 points. Each axis may bind one existing Behavior role to checked semantic
 values, select declared faults, or include one baseline choice with no effect. It does not copy or
 replace the base Property, Behavior, Query, target, or planner.
 
-`checkExperimentSpace` returns one complete `CheckedExperimentSpace` or one typed canonical error.
+`checkVariationSpace` returns one complete `CheckedVariationSpace` or one typed canonical error.
 `projectCheckedSpaceMetadata` returns the canonical source-backed `CheckedSpaceMetadata` that fn-5
 later consumes for catalog aggregation; it neither persists a registry nor implements list/explain.
 `lowerSpacePoint` rechecks the derived Behavior and Query for one exact assignment, produces checked

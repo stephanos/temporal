@@ -520,7 +520,6 @@ func buildRetiredRules() ([]tokenRule, error) {
 		"Umpire." + "SemanticInventory",
 		"SEMANTIC_" + "INVENTORY",
 		"temporal-model-semantic-" + "inventory",
-		"Umpire.Observation." + "Qualification",
 		"Umpire." + "Refinement",
 		"Temporal.System.Nexus." + "Refinement",
 	}
