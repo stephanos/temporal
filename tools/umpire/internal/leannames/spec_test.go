@@ -81,3 +81,38 @@ func TestSpecIsOpenReadsTheFlowRecord(t *testing.T) {
 	require.NoError(t, err)
 	require.False(t, open)
 }
+
+func TestUnresolvedReportsBothRefusals(t *testing.T) {
+	t.Parallel()
+
+	modelRoot := t.TempDir()
+	writeLean(t, modelRoot, "Umpire/Property.lean", "namespace Umpire\nstructure Property where\n  id : String\nend Umpire\n")
+	index, err := leannames.Build(modelRoot)
+	require.NoError(t, err)
+
+	specsDirectory := t.TempDir()
+	for id, status := range map[string]string{
+		"fn-24-open-owner":   "open",
+		"fn-25-closed-owner": "closed",
+	} {
+		require.NoError(t, os.WriteFile(
+			filepath.Join(specsDirectory, id+".json"),
+			[]byte(`{"id":"`+id+`","status":"`+status+`"}`+"\n"), 0o600))
+	}
+
+	document := "" +
+		"`Umpire.Property` and `Umpire.Property.id` both exist.\n" +
+		"`Umpire.Property.missing` does not.\n" +
+		"- A rule citing `Umpire.Future` *(planned: fn-24-open-owner)*\n" +
+		"- A rule citing `Umpire.Abandoned` *(planned: fn-25-closed-owner)*\n" +
+		"- A rule citing `Umpire.Orphan` *(planned: fn-99-absent-owner)*\n"
+
+	unresolved, err := leannames.Unresolved(
+		index, leannames.ExtractSpecNames(document), "DOC.md", specsDirectory)
+	require.NoError(t, err)
+	require.Equal(t, []string{
+		"DOC.md:2: Umpire.Property.missing names no module, namespace, or declaration",
+		"DOC.md:4: Umpire.Abandoned is marked planned under fn-25-closed-owner, which is not open",
+		"DOC.md:5: Umpire.Orphan is marked planned under fn-99-absent-owner, which is not open",
+	}, unresolved)
+}

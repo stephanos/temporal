@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strings"
 )
 
@@ -72,6 +73,41 @@ func ExtractSpecNames(document string) []SpecName {
 		}
 	}
 	return names
+}
+
+// Unresolved returns one message per citation a document makes that the tree does not
+// back: a name that is not in the index, or a name marked planned whose owning Flow spec
+// is not open. Messages are sorted, and an empty result means the document's mechanical
+// half holds. `label` prefixes each message, so a caller can name the document.
+func Unresolved(index *Index, names []SpecName, label, specsDirectory string) ([]string, error) {
+	openSpec := map[string]bool{}
+	var messages []string
+	for _, name := range names {
+		if name.PlannedSpec == "" {
+			if !index.Resolve(name.Name) {
+				messages = append(messages, fmt.Sprintf(
+					"%s:%d: %s names no module, namespace, or declaration",
+					label, name.Line, name.Name))
+			}
+			continue
+		}
+		open, known := openSpec[name.PlannedSpec]
+		if !known {
+			var err error
+			open, err = SpecIsOpen(specsDirectory, name.PlannedSpec)
+			if err != nil {
+				return nil, err
+			}
+			openSpec[name.PlannedSpec] = open
+		}
+		if !open {
+			messages = append(messages, fmt.Sprintf(
+				"%s:%d: %s is marked planned under %s, which is not open",
+				label, name.Line, name.Name, name.PlannedSpec))
+		}
+	}
+	slices.Sort(messages)
+	return messages, nil
 }
 
 // SpecIsOpen reports whether the Flow spec record in specsDirectory is open. A planned
