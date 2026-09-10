@@ -92,8 +92,7 @@ Testpilot interprets the admitted versioned capability and maintains fresh state
 
 The non-cancellation correlated corpus now includes RPC Programs that emit typed observations through
 the public Prepare/Run path. It qualifies correlation, inclusive deadlines, preserved violation
-proof, incomplete/lost execution, cleanup failure, and bounded tenfold loads. The existing Nexus success
-success Case remains the live Driver integration. Cancellation Models, evidence adapters, operation
+proof, incomplete/lost execution, cleanup failure, and bounded tenfold loads. The existing Nexus success Case remains the live Driver integration. Cancellation Models, evidence adapters, operation
 capabilities, and authored Cases are deferred to fn-79, independently of Run-context cancellation
 and bounded cleanup.
 
