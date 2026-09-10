@@ -382,7 +382,7 @@ private def testSemanticInventoryIsolation : IO Unit := do
     `Umpire.Search,
     `Umpire.Evidence.Evaluate.Types,
     `Umpire.Evidence.PropertyStatus,
-    `Umpire.Artifact.Runtime,
+    `Umpire.Artifact.RunRecord,
     `Umpire.Artifact.Result,
     `Umpire.ImplementationLink.Application,
     `Umpire.Verify.Veil.Core
@@ -413,7 +413,7 @@ private def testSemanticInventoryIsolation : IO Unit := do
   let allowed := #[
     moduleRecord `Umpire.SemanticInventory #[
       `Umpire.SemanticInventory.Types, `Umpire.SemanticInventory.KnownGaps,
-      `Umpire.Search, `Umpire.Artifact.Runtime, `Umpire.Artifact.Result,
+      `Umpire.Search, `Umpire.Artifact.RunRecord, `Umpire.Artifact.Result,
       `Umpire.Evidence.PropertyStatus, `Umpire.ImplementationLink.Application
     ],
     moduleRecord `Umpire.SemanticInventory.Types #[`Umpire.OutcomeClassification],
@@ -426,7 +426,7 @@ private def testSemanticInventoryIsolation : IO Unit := do
     moduleRecord `Umpire.Lint #[`UmpireTests],
     moduleRecord `Temporal.Tool.SemanticInventory #[`Umpire.SemanticInventory],
     moduleRecord `Umpire.Search #[`Umpire.OutcomeClassification],
-    moduleRecord `Umpire.Artifact.Runtime #[`Umpire.OutcomeClassification],
+    moduleRecord `Umpire.Artifact.RunRecord #[`Umpire.OutcomeClassification],
     moduleRecord `Umpire.Artifact.Result #[`Umpire.KnownGap],
     moduleRecord `Umpire.Evidence.PropertyStatus #[`Umpire.OutcomeClassification],
     moduleRecord `Umpire.ImplementationLink.Application #[`Umpire.OutcomeClassification],
@@ -440,7 +440,7 @@ private def testOutcomeClassificationIsolation : IO Unit := do
   let source := `Umpire.OutcomeClassification
   for destination in #[
     `Umpire, `Umpire.Core, `Umpire.KnownGap, `Umpire.Search,
-    `Umpire.Artifact.Runtime, `Umpire.Artifact.Result,
+    `Umpire.Artifact.RunRecord, `Umpire.Artifact.Result,
     `Umpire.Evidence.Evaluate.Types, `Umpire.Evidence.PropertyStatus,
     `Umpire.ImplementationLink.Application,
     `Umpire.SemanticInventory, `Umpire.SemanticInventory.Types,

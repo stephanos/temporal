@@ -1,4 +1,4 @@
-import Umpire.Artifact.Runtime
+import Umpire.Artifact.RunRecord
 import Umpire.Search
 import Umpire.SemanticInventory.Types
 
@@ -102,7 +102,7 @@ example : [
   ] := by
   native_decide
 
-example : [KnownGapCarryMapping.exact, .observationAdmission].map KnownGapCarryMapping.name =
+example : [KnownGapCarryMapping.full, .lossy].map KnownGapCarryMapping.name =
     [
       "kind -> kind; code -> code; subject -> subject; detail -> detail",
       "code -> code; subject.toList -> relatedDefinitionIds; kind -> absent; detail -> absent"

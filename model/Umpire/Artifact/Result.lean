@@ -7,27 +7,30 @@ namespace Umpire
 
 /-! Exact inert v2 transports for interpreted Evidence and one Run Evaluation Result. -/
 
+/-! The closed wire projections the interpreted Evidence and Result documents carry. -/
+namespace Artifact.Wire
+
 /-- One Definition ID plus the checked behavior it denotes. -/
-structure ArtifactDefinitionReference where
+structure DefinitionReference where
   definitionId : DefinitionId
   behaviorFingerprint : BehaviorFingerprint
   deriving BEq, DecidableEq, Repr
 
 /-- Explicit transport projection of a Model coordinate. -/
-structure ArtifactModelCoordinate where
+structure ModelCoordinate where
   kind : String
   step : Option Nat
   position : Option Nat
   deriving BEq, DecidableEq, Ord, Repr
 
 /-- One positive bound with its exact closed wire unit. -/
-structure ArtifactLimit where
+structure Limit where
   value : Nat
   unit : String
   deriving BEq, DecidableEq, Ord, Repr
 
 /-- One contiguous projected Model Trace step. -/
-structure ArtifactModelTraceStep where
+structure ModelTraceStep where
   position : Nat
   selectedAction : ModelValue
   outcome : ModelValue
@@ -36,34 +39,34 @@ structure ArtifactModelTraceStep where
   deriving BEq, DecidableEq, Repr
 
 /-- The immutable Model Trace projection, without Evidence or evaluator constructors. -/
-structure ArtifactModelTrace where
+structure ModelTrace where
   traceId : String
   initialState : ModelValue
-  steps : List ArtifactModelTraceStep
+  steps : List ModelTraceStep
   deriving BEq, DecidableEq, Repr
 
 /-- One projected vocabulary meaning. -/
-structure ArtifactMeaning where
+structure Meaning where
   definitionId : DefinitionId
   kind : DefinitionKind
   behaviorVersion : String
   deriving BEq, DecidableEq, Repr
 
 /-- One exact raw-field identity. -/
-structure ArtifactFieldReference where
+structure FieldReference where
   kindDefinitionId : DefinitionId
   fieldDefinitionId : DefinitionId
   deriving BEq, DecidableEq, Ord, Repr
 
 /-- One persisted Observation disposition declaration. -/
-structure ArtifactFieldDispositionRecord where
-  field : ArtifactFieldReference
+structure FieldDispositionRecord where
+  field : FieldReference
   disposition : String
   digestPolicyDefinitionId : Option DefinitionId
   deriving BEq, DecidableEq, Repr
 
 /-- One persisted causal-order support row. -/
-structure ArtifactEvidenceOrderingFact where
+structure EvidenceOrderingFact where
   factDefinitionId : DefinitionId
   kindDefinitionId : DefinitionId
   ordinal : Nat
@@ -71,14 +74,14 @@ structure ArtifactEvidenceOrderingFact where
   deriving BEq, DecidableEq, Repr
 
 /-- One persisted source-closure support row. -/
-structure ArtifactEvidenceClosureFact where
+structure EvidenceClosureFact where
   kindDefinitionId : DefinitionId
   lastOrdinal : Nat
   deriving BEq, DecidableEq, Repr
 
 /-- The closed wire variants of AppliedDispositionEvidence. -/
-structure ArtifactAppliedFieldDisposition where
-  field : ArtifactFieldReference
+structure AppliedFieldDisposition where
+  field : FieldReference
   kind : String
   normalizedValue : Option String
   digestPolicyDefinitionId : Option DefinitionId
@@ -86,8 +89,8 @@ structure ArtifactAppliedFieldDisposition where
   deriving BEq, DecidableEq, Repr
 
 /-- Why one already-established Model Fact is backed by exact Evidence. -/
-structure ArtifactEvidenceSupport where
-  coordinate : ArtifactModelCoordinate
+structure EvidenceSupport where
+  coordinate : ModelCoordinate
   mappingDefinitionId : DefinitionId
   mappingVersion : Nat
   mappingBehaviorFingerprint : BehaviorFingerprint
@@ -96,17 +99,17 @@ structure ArtifactEvidenceSupport where
   evidenceDefinitionIds : List DefinitionId
   ruleDefinitionId : DefinitionId
   bindingDefinitionIds : List DefinitionId
-  orderingSupport : List ArtifactEvidenceOrderingFact
-  closureSupport : List ArtifactEvidenceClosureFact
-  appliedDispositions : List ArtifactAppliedFieldDisposition
-  appliedLimit : ArtifactLimit
+  orderingSupport : List EvidenceOrderingFact
+  closureSupport : List EvidenceClosureFact
+  appliedDispositions : List AppliedFieldDisposition
+  appliedLimit : Limit
   meaningBehaviorFingerprint : BehaviorFingerprint
   deriving BEq, DecidableEq, Repr
 
 /-- Complete persisted projection of EvidenceBackedTrace without duplicate sibling links. -/
-structure ArtifactEvidenceBackedModelTrace where
+structure EvidenceBackedModelTrace where
   traceId : String
-  observationPlan : ArtifactDefinitionReference
+  observationPlan : DefinitionReference
   mappingDefinitionId : DefinitionId
   mappingVersion : Nat
   mappingBehaviorFingerprint : BehaviorFingerprint
@@ -114,22 +117,110 @@ structure ArtifactEvidenceBackedModelTrace where
   profileDefinitionId : DefinitionId
   profileVersion : Nat
   sourceClosed : Bool
-  vocabulary : List ArtifactMeaning
-  appliedLimit : ArtifactLimit
+  vocabulary : List Meaning
+  appliedLimit : Limit
   evidenceDefinitionIds : List DefinitionId
-  trace : ArtifactModelTrace
+  trace : ModelTrace
   deriving BEq, DecidableEq, Repr
 
 /-- Closed projection of one Observation diagnostic. -/
-structure ArtifactObservationDiagnostic where
+structure ObservationDiagnostic where
   kind : String
   observationPlanDefinitionId : DefinitionId
   relatedDefinitionIds : List DefinitionId
-  appliedLimit : Option ArtifactLimit
+  appliedLimit : Option Limit
   observedCount : Option Nat
   alternatives : List DefinitionId
   missingDiscriminatorDefinitionId : Option DefinitionId
   deriving BEq, DecidableEq, Repr
+
+/-- Exact projected checked-Target identity. -/
+structure ImplementationTargetReference where
+  definitionId : DefinitionId
+  kind : DefinitionKind
+  behaviorFingerprint : BehaviorFingerprint
+  deriving BEq, DecidableEq, Repr
+
+/-- Closed projection of one Implementation Link diagnostic. -/
+structure ImplementationLinkDiagnostic where
+  kind : String
+  coordinate : Option ModelCoordinate
+  relatedDefinitionIds : List DefinitionId
+  sourceSetupBehaviorFingerprint : Option BehaviorFingerprint
+  appliedLimit : Option Limit
+  observedCount : Option Nat
+  knownGapCode : Option DefinitionId
+  knownGapReason : Option String
+  unsupportedVocabularyKind : Option DefinitionKind
+  evidenceSupportBehaviorFingerprint : Option BehaviorFingerprint
+  identity : BehaviorFingerprint
+  deriving BEq, DecidableEq, Repr
+
+/-- One full Implementation Link identity plus its already-produced diagnostic, if any. -/
+structure ImplementationLinkRecord where
+  definitionId : DefinitionId
+  behaviorFingerprint : BehaviorFingerprint
+  sourceTarget : ImplementationTargetReference
+  destinationTarget : ImplementationTargetReference
+  diagnostic : Option ImplementationLinkDiagnostic
+  deriving BEq, DecidableEq, Repr
+
+/-- Closed projection of one semantic verdict diagnostic. -/
+structure PropertyStatusDiagnostic where
+  kind : String
+  relatedDefinitionIds : List DefinitionId
+  observationDiagnostic : Option ObservationDiagnostic
+  deriving BEq, DecidableEq, Repr
+
+/-- One already-evaluated Property clause with exact coordinate Evidence Links. -/
+structure SemanticClauseVerdict where
+  propertyDefinitionId : DefinitionId
+  clauseDefinitionId : DefinitionId
+  status : String
+  coordinates : List ModelCoordinate
+  queryLimits : Limits
+  propertyLimit : Option Limit
+  evidenceLimit : Limit
+  provenanceDefinitionIds : List DefinitionId
+  evidenceSupports : List EvidenceSupport
+  deriving BEq, DecidableEq, Repr
+
+/-- One already-produced semantic Property verdict. -/
+structure PropertyVerdict where
+  queryDefinitionId : DefinitionId
+  propertyDefinitionId : DefinitionId
+  propertyBehaviorFingerprint : BehaviorFingerprint
+  traceId : Option String
+  status : String
+  queryLimits : Limits
+  evidenceLimit : Option Limit
+  provenanceDefinitionIds : List DefinitionId
+  clauses : List SemanticClauseVerdict
+  diagnostic : Option PropertyStatusDiagnostic
+  deriving BEq, DecidableEq, Repr
+
+/-- Exact strict Query aggregation, including byte-identical embedded verdicts. -/
+structure QuerySummary where
+  queryDefinitionId : DefinitionId
+  status : String
+  queryLimits : Limits
+  requiredPropertyDefinitionIds : List DefinitionId
+  propertyVerdicts : List PropertyVerdict
+  missingPropertyDefinitionIds : List DefinitionId
+  duplicatePropertyDefinitionIds : List DefinitionId
+  unexpectedPropertyDefinitionIds : List DefinitionId
+  divergentPropertyDefinitionIds : List DefinitionId
+  wrongQueryResultDefinitionIds : List DefinitionId
+  traceIds : List String
+  deriving BEq, DecidableEq, Repr
+
+/-- One Limit retained at its exact closed evaluation stage. -/
+structure StagedLimit where
+  stage : String
+  limit : Limit
+  deriving BEq, DecidableEq, Repr
+
+end Artifact.Wire
 
 /-- Persisted output of Observation Evaluation; it never maps RawEvidence itself. -/
 structure EvidenceArtifact where
@@ -140,103 +231,17 @@ structure EvidenceArtifact where
   runtimeConfiguration : ArtifactBinding
   run : ArtifactBinding
   rawEvidence : ArtifactBinding
-  observationProgram : ArtifactDefinitionReference
-  mapping : ArtifactDefinitionReference
+  observationProgram : Artifact.Wire.DefinitionReference
+  mapping : Artifact.Wire.DefinitionReference
   observationEvaluationStatus : String
-  evidenceBackedModelTrace : Option ArtifactEvidenceBackedModelTrace
-  evidenceSupports : List ArtifactEvidenceSupport
-  dispositions : List ArtifactFieldDispositionRecord
-  diagnostics : List ArtifactObservationDiagnostic
+  evidenceBackedModelTrace : Option Artifact.Wire.EvidenceBackedModelTrace
+  evidenceSupports : List Artifact.Wire.EvidenceSupport
+  dispositions : List Artifact.Wire.FieldDispositionRecord
+  diagnostics : List Artifact.Wire.ObservationDiagnostic
   knownGaps : KnownGapSet
   provenance : ArtifactProvenance
   provenanceChecksum : ArtifactChecksum
   artifactChecksum : ArtifactChecksum
-  deriving BEq, DecidableEq, Repr
-
-/-- Exact projected checked-Target identity. -/
-structure ArtifactImplementationTargetReference where
-  definitionId : DefinitionId
-  kind : DefinitionKind
-  behaviorFingerprint : BehaviorFingerprint
-  deriving BEq, DecidableEq, Repr
-
-/-- Closed projection of one Implementation Link diagnostic. -/
-structure ArtifactImplementationLinkDiagnostic where
-  kind : String
-  coordinate : Option ArtifactModelCoordinate
-  relatedDefinitionIds : List DefinitionId
-  sourceSetupBehaviorFingerprint : Option BehaviorFingerprint
-  appliedLimit : Option ArtifactLimit
-  observedCount : Option Nat
-  knownGapCode : Option DefinitionId
-  knownGapReason : Option String
-  unsupportedVocabularyKind : Option DefinitionKind
-  evidenceSupportBehaviorFingerprint : Option BehaviorFingerprint
-  identity : BehaviorFingerprint
-  deriving BEq, DecidableEq, Repr
-
-/-- One full Implementation Link identity plus its already-produced diagnostic, if any. -/
-structure ArtifactImplementationLinkRecord where
-  definitionId : DefinitionId
-  behaviorFingerprint : BehaviorFingerprint
-  sourceTarget : ArtifactImplementationTargetReference
-  destinationTarget : ArtifactImplementationTargetReference
-  diagnostic : Option ArtifactImplementationLinkDiagnostic
-  deriving BEq, DecidableEq, Repr
-
-/-- Closed projection of one semantic verdict diagnostic. -/
-structure ArtifactEvidence.PropertyStatusDiagnostic where
-  kind : String
-  relatedDefinitionIds : List DefinitionId
-  observationDiagnostic : Option ArtifactObservationDiagnostic
-  deriving BEq, DecidableEq, Repr
-
-/-- One already-evaluated Property clause with exact coordinate Evidence Links. -/
-structure ArtifactSemanticClauseVerdict where
-  propertyDefinitionId : DefinitionId
-  clauseDefinitionId : DefinitionId
-  status : String
-  coordinates : List ArtifactModelCoordinate
-  queryLimits : Limits
-  propertyLimit : Option ArtifactLimit
-  evidenceLimit : ArtifactLimit
-  provenanceDefinitionIds : List DefinitionId
-  evidenceSupports : List ArtifactEvidenceSupport
-  deriving BEq, DecidableEq, Repr
-
-/-- One already-produced semantic Property verdict. -/
-structure ArtifactPropertyVerdict where
-  queryDefinitionId : DefinitionId
-  propertyDefinitionId : DefinitionId
-  propertyBehaviorFingerprint : BehaviorFingerprint
-  traceId : Option String
-  status : String
-  queryLimits : Limits
-  evidenceLimit : Option ArtifactLimit
-  provenanceDefinitionIds : List DefinitionId
-  clauses : List ArtifactSemanticClauseVerdict
-  diagnostic : Option ArtifactEvidence.PropertyStatusDiagnostic
-  deriving BEq, DecidableEq, Repr
-
-/-- Exact strict Query aggregation, including byte-identical embedded verdicts. -/
-structure ArtifactQuerySummary where
-  queryDefinitionId : DefinitionId
-  status : String
-  queryLimits : Limits
-  requiredPropertyDefinitionIds : List DefinitionId
-  propertyVerdicts : List ArtifactPropertyVerdict
-  missingPropertyDefinitionIds : List DefinitionId
-  duplicatePropertyDefinitionIds : List DefinitionId
-  unexpectedPropertyDefinitionIds : List DefinitionId
-  divergentPropertyDefinitionIds : List DefinitionId
-  wrongQueryResultDefinitionIds : List DefinitionId
-  traceIds : List String
-  deriving BEq, DecidableEq, Repr
-
-/-- One Limit retained at its exact closed evaluation stage. -/
-structure ArtifactStagedLimit where
-  stage : String
-  limit : ArtifactLimit
   deriving BEq, DecidableEq, Repr
 
 /-- Inert Run Evaluation result; it performs neither evaluation nor Claim Assessment. -/
@@ -251,12 +256,12 @@ structure ResultArtifact where
   evidence : ArtifactBinding
   operationalStatus : String
   observationEvaluationStatus : String
-  implementationLink : ArtifactImplementationLinkRecord
+  implementationLink : Artifact.Wire.ImplementationLinkRecord
   implementationLinkStatus : String
-  propertyVerdicts : List ArtifactPropertyVerdict
-  querySummary : ArtifactQuerySummary
+  propertyVerdicts : List Artifact.Wire.PropertyVerdict
+  querySummary : Artifact.Wire.QuerySummary
   semanticStatus : String
-  limits : List ArtifactStagedLimit
+  limits : List Artifact.Wire.StagedLimit
   knownGaps : KnownGapSet
   cleanupStatus : String
   evaluationOutcomeChecksum : Option ArtifactChecksum
@@ -267,7 +272,7 @@ structure ResultArtifact where
 
 /-- Result aggregation retains all four Known Gap fields without projection. -/
 def ResultArtifact.knownGapCarryMapping : KnownGapCarryMapping :=
-  .exact
+  .full
 
 private def quoteResult (value : String) : String := Lean.Json.compress (.str value)
 
@@ -291,10 +296,10 @@ private def optionalChecksumResultJson (value : Option ArtifactChecksum) : Strin
 private def optionalNatResultJson (value : Option Nat) : String :=
   optionalResultJson (value.map toString)
 
-private def artifactLimitJson (limit : ArtifactLimit) : String :=
+private def artifactLimitJson (limit : Artifact.Wire.Limit) : String :=
   "{\"value\":" ++ toString limit.value ++ ",\"unit\":" ++ quoteResult limit.unit ++ "}"
 
-private def optionalArtifactLimitJson (limit : Option ArtifactLimit) : String :=
+private def optionalArtifactLimitJson (limit : Option Artifact.Wire.Limit) : String :=
   optionalResultJson (limit.map artifactLimitJson)
 
 private def coreLimitJson (limit : Limit) : String :=
@@ -305,11 +310,11 @@ private def queryLimitsJson (limits : Limits) : String :=
     ",\"actions\":" ++ coreLimitJson limits.actions ++
     ",\"search\":" ++ coreLimitJson limits.search ++ "}"
 
-private def definitionReferenceJson (reference : ArtifactDefinitionReference) : String :=
+private def definitionReferenceJson (reference : Artifact.Wire.DefinitionReference) : String :=
   "{\"definitionId\":" ++ quoteResult reference.definitionId.value ++
     ",\"behaviorFingerprint\":" ++ quoteResult reference.behaviorFingerprint.render ++ "}"
 
-private def modelCoordinateJson (coordinate : ArtifactModelCoordinate) : String :=
+private def modelCoordinateJson (coordinate : Artifact.Wire.ModelCoordinate) : String :=
   "{\"kind\":" ++ quoteResult coordinate.kind ++
     ",\"step\":" ++ optionalNatResultJson coordinate.step ++
     ",\"position\":" ++ optionalNatResultJson coordinate.position ++ "}"
@@ -318,14 +323,14 @@ private def modelValueResultJson (value : ModelValue) : String :=
   "{\"definitionId\":" ++ quoteResult value.definitionId.value ++
     ",\"value\":" ++ quoteResult value.value ++ "}"
 
-private def modelTraceStepJson (step : ArtifactModelTraceStep) : String :=
+private def modelTraceStepJson (step : Artifact.Wire.ModelTraceStep) : String :=
   "{\"position\":" ++ toString step.position ++
     ",\"selectedAction\":" ++ modelValueResultJson step.selectedAction ++
     ",\"outcome\":" ++ modelValueResultJson step.outcome ++
     ",\"state\":" ++ modelValueResultJson step.state ++
     ",\"facts\":" ++ resultArray (step.facts.map modelValueResultJson) ++ "}"
 
-private def modelTraceJson (trace : ArtifactModelTrace) : String :=
+private def modelTraceJson (trace : Artifact.Wire.ModelTrace) : String :=
   "{\"traceId\":" ++ quoteResult trace.traceId ++
     ",\"initialState\":" ++ modelValueResultJson trace.initialState ++
     ",\"steps\":" ++ resultArray (trace.steps.map modelTraceStepJson) ++ "}"
@@ -336,33 +341,33 @@ private def sourceLocationResultJson (source : SourceLocation) : String :=
     ",\"column\":" ++ toString source.column ++
     ",\"provenance\":" ++ quoteResult source.provenance ++ "}"
 
-private def meaningProvisionJson (meaning : ArtifactMeaning) : String :=
+private def meaningProvisionJson (meaning : Artifact.Wire.Meaning) : String :=
   "{\"definitionId\":" ++ quoteResult meaning.definitionId.value ++
     ",\"kind\":" ++ quoteResult meaning.kind.name ++
     ",\"behaviorVersion\":" ++ quoteResult meaning.behaviorVersion ++ "}"
 
-private def fieldReferenceJson (field : ArtifactFieldReference) : String :=
+private def fieldReferenceJson (field : Artifact.Wire.FieldReference) : String :=
   "{\"kindDefinitionId\":" ++ quoteResult field.kindDefinitionId.value ++
     ",\"fieldDefinitionId\":" ++ quoteResult field.fieldDefinitionId.value ++ "}"
 
-private def fieldDispositionRecordJson (record : ArtifactFieldDispositionRecord) : String :=
+private def fieldDispositionRecordJson (record : Artifact.Wire.FieldDispositionRecord) : String :=
   "{\"field\":" ++ fieldReferenceJson record.field ++
     ",\"disposition\":" ++ quoteResult record.disposition ++
     ",\"digestPolicyDefinitionId\":" ++
       optionalIdResultJson record.digestPolicyDefinitionId ++ "}"
 
-private def evidenceOrderingFactJson (fact : ArtifactEvidenceOrderingFact) : String :=
+private def evidenceOrderingFactJson (fact : Artifact.Wire.EvidenceOrderingFact) : String :=
   "{\"factDefinitionId\":" ++ quoteResult fact.factDefinitionId.value ++
     ",\"kindDefinitionId\":" ++ quoteResult fact.kindDefinitionId.value ++
     ",\"ordinal\":" ++ toString fact.ordinal ++
     ",\"causalFactDefinitionIds\":" ++ resultArray
       (fact.causalFactDefinitionIds.map (quoteResult ∘ DefinitionId.value)) ++ "}"
 
-private def evidenceClosureFactJson (fact : ArtifactEvidenceClosureFact) : String :=
+private def evidenceClosureFactJson (fact : Artifact.Wire.EvidenceClosureFact) : String :=
   "{\"kindDefinitionId\":" ++ quoteResult fact.kindDefinitionId.value ++
     ",\"lastOrdinal\":" ++ toString fact.lastOrdinal ++ "}"
 
-private def appliedFieldDispositionJson (disposition : ArtifactAppliedFieldDisposition) : String :=
+private def appliedFieldDispositionJson (disposition : Artifact.Wire.AppliedFieldDisposition) : String :=
   "{\"field\":" ++ fieldReferenceJson disposition.field ++
     ",\"kind\":" ++ quoteResult disposition.kind ++
     ",\"normalizedValue\":" ++ optionalStringJson disposition.normalizedValue ++
@@ -370,7 +375,7 @@ private def appliedFieldDispositionJson (disposition : ArtifactAppliedFieldDispo
       optionalIdResultJson disposition.digestPolicyDefinitionId ++
     ",\"digestToken\":" ++ optionalStringJson disposition.digestToken ++ "}"
 
-private def evidenceSupportJson (link : ArtifactEvidenceSupport) : String :=
+private def evidenceSupportJson (link : Artifact.Wire.EvidenceSupport) : String :=
   "{\"coordinate\":" ++ modelCoordinateJson link.coordinate ++
     ",\"mappingDefinitionId\":" ++ quoteResult link.mappingDefinitionId.value ++
     ",\"mappingVersion\":" ++ toString link.mappingVersion ++
@@ -389,7 +394,7 @@ private def evidenceSupportJson (link : ArtifactEvidenceSupport) : String :=
     ",\"appliedLimit\":" ++ artifactLimitJson link.appliedLimit ++
     ",\"meaningBehaviorFingerprint\":" ++ quoteResult link.meaningBehaviorFingerprint.render ++ "}"
 
-private def evidenceBackedModelTraceJson (trace : ArtifactEvidenceBackedModelTrace) : String :=
+private def evidenceBackedModelTraceJson (trace : Artifact.Wire.EvidenceBackedModelTrace) : String :=
   "{\"traceId\":" ++ quoteResult trace.traceId ++
     ",\"observationPlan\":" ++ definitionReferenceJson trace.observationPlan ++
     ",\"mappingDefinitionId\":" ++ quoteResult trace.mappingDefinitionId.value ++
@@ -406,10 +411,10 @@ private def evidenceBackedModelTraceJson (trace : ArtifactEvidenceBackedModelTra
     ",\"trace\":" ++ modelTraceJson trace.trace ++ "}"
 
 private def optionalEvidenceBackedModelTraceJson
-    (trace : Option ArtifactEvidenceBackedModelTrace) : String :=
+    (trace : Option Artifact.Wire.EvidenceBackedModelTrace) : String :=
   optionalResultJson (trace.map evidenceBackedModelTraceJson)
 
-private def observationDiagnosticJson (diagnostic : ArtifactObservationDiagnostic) : String :=
+private def observationDiagnosticJson (diagnostic : Artifact.Wire.ObservationDiagnostic) : String :=
   "{\"kind\":" ++ quoteResult diagnostic.kind ++
     ",\"observationPlanDefinitionId\":" ++
       quoteResult diagnostic.observationPlanDefinitionId.value ++
@@ -464,16 +469,16 @@ def canonicalEvidenceArtifactBytes (evidence : EvidenceArtifact) : String :=
   canonicalEvidenceArtifactJson evidence ++ "\n"
 
 private def implementationTargetReferenceJson
-    (target : ArtifactImplementationTargetReference) : String :=
+    (target : Artifact.Wire.ImplementationTargetReference) : String :=
   "{\"definitionId\":" ++ quoteResult target.definitionId.value ++
     ",\"kind\":" ++ quoteResult target.kind.name ++
     ",\"behaviorFingerprint\":" ++ quoteResult target.behaviorFingerprint.render ++ "}"
 
-private def optionalModelCoordinateJson (coordinate : Option ArtifactModelCoordinate) : String :=
+private def optionalModelCoordinateJson (coordinate : Option Artifact.Wire.ModelCoordinate) : String :=
   optionalResultJson (coordinate.map modelCoordinateJson)
 
 private def implementationLinkDiagnosticJson
-    (diagnostic : ArtifactImplementationLinkDiagnostic) : String :=
+    (diagnostic : Artifact.Wire.ImplementationLinkDiagnostic) : String :=
   "{\"kind\":" ++ quoteResult diagnostic.kind ++
     ",\"coordinate\":" ++ optionalModelCoordinateJson diagnostic.coordinate ++
     ",\"relatedDefinitionIds\":" ++ resultArray
@@ -491,10 +496,10 @@ private def implementationLinkDiagnosticJson
     ",\"identity\":" ++ quoteResult diagnostic.identity.render ++ "}"
 
 private def optionalImplementationLinkDiagnosticJson
-    (diagnostic : Option ArtifactImplementationLinkDiagnostic) : String :=
+    (diagnostic : Option Artifact.Wire.ImplementationLinkDiagnostic) : String :=
   optionalResultJson (diagnostic.map implementationLinkDiagnosticJson)
 
-private def implementationLinkRecordJson (record : ArtifactImplementationLinkRecord) : String :=
+private def implementationLinkRecordJson (record : Artifact.Wire.ImplementationLinkRecord) : String :=
   "{\"definitionId\":" ++ quoteResult record.definitionId.value ++
     ",\"behaviorFingerprint\":" ++ quoteResult record.behaviorFingerprint.render ++
     ",\"sourceTarget\":" ++ implementationTargetReferenceJson record.sourceTarget ++
@@ -502,7 +507,7 @@ private def implementationLinkRecordJson (record : ArtifactImplementationLinkRec
     ",\"diagnostic\":" ++ optionalImplementationLinkDiagnosticJson record.diagnostic ++ "}"
 
 private def propertyStatusDiagnosticJson
-    (diagnostic : ArtifactEvidence.PropertyStatusDiagnostic) : String :=
+    (diagnostic : Artifact.Wire.PropertyStatusDiagnostic) : String :=
   "{\"kind\":" ++ quoteResult diagnostic.kind ++
     ",\"relatedDefinitionIds\":" ++ resultArray
       (diagnostic.relatedDefinitionIds.map (quoteResult ∘ DefinitionId.value)) ++
@@ -510,10 +515,10 @@ private def propertyStatusDiagnosticJson
       (diagnostic.observationDiagnostic.map observationDiagnosticJson) ++ "}"
 
 private def optionalPropertyStatusDiagnosticJson
-    (diagnostic : Option ArtifactEvidence.PropertyStatusDiagnostic) : String :=
+    (diagnostic : Option Artifact.Wire.PropertyStatusDiagnostic) : String :=
   optionalResultJson (diagnostic.map propertyStatusDiagnosticJson)
 
-private def semanticClauseVerdictJson (verdict : ArtifactSemanticClauseVerdict) : String :=
+private def semanticClauseVerdictJson (verdict : Artifact.Wire.SemanticClauseVerdict) : String :=
   "{\"propertyDefinitionId\":" ++ quoteResult verdict.propertyDefinitionId.value ++
     ",\"clauseDefinitionId\":" ++ quoteResult verdict.clauseDefinitionId.value ++
     ",\"status\":" ++ quoteResult verdict.status ++
@@ -525,7 +530,7 @@ private def semanticClauseVerdictJson (verdict : ArtifactSemanticClauseVerdict) 
       (verdict.provenanceDefinitionIds.map (quoteResult ∘ DefinitionId.value)) ++
     ",\"evidenceSupports\":" ++ resultArray (verdict.evidenceSupports.map evidenceSupportJson) ++ "}"
 
-private def propertyVerdictJson (verdict : ArtifactPropertyVerdict) : String :=
+private def propertyVerdictJson (verdict : Artifact.Wire.PropertyVerdict) : String :=
   "{\"queryDefinitionId\":" ++ quoteResult verdict.queryDefinitionId.value ++
     ",\"propertyDefinitionId\":" ++ quoteResult verdict.propertyDefinitionId.value ++
     ",\"propertyBehaviorFingerprint\":" ++ quoteResult verdict.propertyBehaviorFingerprint.render ++
@@ -538,7 +543,7 @@ private def propertyVerdictJson (verdict : ArtifactPropertyVerdict) : String :=
     ",\"clauses\":" ++ resultArray (verdict.clauses.map semanticClauseVerdictJson) ++
     ",\"diagnostic\":" ++ optionalPropertyStatusDiagnosticJson verdict.diagnostic ++ "}"
 
-private def querySummaryJson (summary : ArtifactQuerySummary) : String :=
+private def querySummaryJson (summary : Artifact.Wire.QuerySummary) : String :=
   "{\"queryDefinitionId\":" ++ quoteResult summary.queryDefinitionId.value ++
     ",\"status\":" ++ quoteResult summary.status ++
     ",\"queryLimits\":" ++ queryLimitsJson summary.queryLimits ++
@@ -557,7 +562,7 @@ private def querySummaryJson (summary : ArtifactQuerySummary) : String :=
       (summary.wrongQueryResultDefinitionIds.map (quoteResult ∘ DefinitionId.value)) ++
     ",\"traceIds\":" ++ resultArray (summary.traceIds.map quoteResult) ++ "}"
 
-private def stagedLimitJson (staged : ArtifactStagedLimit) : String :=
+private def stagedLimitJson (staged : Artifact.Wire.StagedLimit) : String :=
   "{\"stage\":" ++ quoteResult staged.stage ++
     ",\"limit\":" ++ artifactLimitJson staged.limit ++ "}"
 
@@ -612,14 +617,14 @@ private def portablePropertyResultJson (property : PortableProperty) : String :=
 
 private def evaluationOutcomeJson
     (plan : Plan.Steps)
-    (trace : ArtifactEvidenceBackedModelTrace)
-    (evidenceSupports : List ArtifactEvidenceSupport)
-    (observationProgram mapping : ArtifactDefinitionReference)
-    (implementationLink : ArtifactImplementationLinkRecord)
-    (querySummary : ArtifactQuerySummary)
+    (trace : Artifact.Wire.EvidenceBackedModelTrace)
+    (evidenceSupports : List Artifact.Wire.EvidenceSupport)
+    (observationProgram mapping : Artifact.Wire.DefinitionReference)
+    (implementationLink : Artifact.Wire.ImplementationLinkRecord)
+    (querySummary : Artifact.Wire.QuerySummary)
     (properties : List PortableProperty)
-    (propertyVerdicts : List ArtifactPropertyVerdict)
-    (limits : List ArtifactStagedLimit) : String :=
+    (propertyVerdicts : List Artifact.Wire.PropertyVerdict)
+    (limits : List Artifact.Wire.StagedLimit) : String :=
   "{\"plan\":" ++ canonicalDrivePlanJson plan ++
     ",\"evidenceBackedModelTrace\":" ++ evidenceBackedModelTraceJson trace ++
     ",\"evidenceSupports\":" ++ resultArray (evidenceSupports.map evidenceSupportJson) ++
@@ -658,7 +663,7 @@ private def implementationLinkFailureStatus? (kind : String) : Option String :=
     some "unsupported"
   else none
 
-private def coordinateIdentityName (coordinate : ArtifactModelCoordinate) : Option String :=
+private def coordinateIdentityName (coordinate : Artifact.Wire.ModelCoordinate) : Option String :=
   match coordinate.kind, coordinate.step, coordinate.position with
   | "initial-state", none, none => some "initial-state"
   | kind, some step, none =>
@@ -671,14 +676,14 @@ private def coordinateIdentityName (coordinate : ArtifactModelCoordinate) : Opti
   | _, _, _ => none
 
 private def implementationDiagnosticTargetIdentityJson
-    (target : ArtifactImplementationTargetReference) : String :=
+    (target : Artifact.Wire.ImplementationTargetReference) : String :=
   "{\"id\":" ++ quoteResult target.definitionId.value ++
     ",\"kind\":" ++ quoteResult target.kind.name ++
     ",\"behaviorFingerprint\":" ++ quoteResult target.behaviorFingerprint.render ++ "}"
 
 private def implementationDiagnosticIdentityJson
-    (record : ArtifactImplementationLinkRecord)
-    (diagnostic : ArtifactImplementationLinkDiagnostic)
+    (record : Artifact.Wire.ImplementationLinkRecord)
+    (diagnostic : Artifact.Wire.ImplementationLinkDiagnostic)
     (status : String) : String :=
   "{\"implementationLinkId\":" ++ quoteResult record.definitionId.value ++
     ",\"implementationLinkBehaviorFingerprint\":" ++ quoteResult record.behaviorFingerprint.render ++
@@ -702,8 +707,8 @@ private def implementationDiagnosticIdentityJson
       optionalFingerprintResultJson diagnostic.evidenceSupportBehaviorFingerprint ++ "}"
 
 /-- Fingerprint only the frozen pretty diagnostic projection; no link application occurs. -/
-def ArtifactImplementationLinkRecord.expectedDiagnosticIdentity
-    (record : ArtifactImplementationLinkRecord) : Option BehaviorFingerprint := do
+def Artifact.Wire.ImplementationLinkRecord.expectedDiagnosticIdentity
+    (record : Artifact.Wire.ImplementationLinkRecord) : Option BehaviorFingerprint := do
   let diagnostic ← record.diagnostic
   let status ← implementationLinkFailureStatus? diagnostic.kind
   some <| behaviorFingerprintOf <| Json.prettyBytes <|
