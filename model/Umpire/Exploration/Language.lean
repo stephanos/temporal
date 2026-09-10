@@ -15,7 +15,7 @@ structure PinnedExperimentSpec where
 Validated exploration inputs. Construction checks the Space bound, policy coordinate, typed Limit,
 and pinned Artifact partition together.
 -/
-structure CheckedExplorationRequest (LawStatement : LawDefinition → Prop) where
+structure CheckedExplorationRequest (LawStatement : Law → Prop) where
   private mk ::
   space : CheckedExperimentSpace LawStatement
   policy : ExplorationPolicy
@@ -59,7 +59,7 @@ private def maximumTraceSteps (space : CheckedExperimentSpace LawStatement) : Na
     space.baseQuery.limits.behavior.selectedActions.value
 
 private def maximumObservationPositions (space : CheckedExperimentSpace LawStatement) : Nat :=
-  space.baseQuery.target.behaviorDescription.transitions.foldl
+  space.baseQuery.target.behaviorTable.transitions.foldl
     (fun maximum transition => Nat.max maximum transition.facts.length) 0
 
 private def coordinateKnown
@@ -87,7 +87,7 @@ private def pinnedMatchesContract
     (spec : ExperimentSpec) : Bool :=
   spec.plan.targetDefinitionId == space.baseQuery.target.id &&
     spec.plan.targetBehaviorFingerprint == space.baseQuery.target.behaviorFingerprint &&
-    spec.plan.kernelDefinitionId == space.baseQuery.target.kernel.metadata.id &&
+    spec.plan.kernelDefinitionId == space.baseQuery.target.machine.metadata.id &&
     spec.plan.kernelBehaviorFingerprint == space.baseQuery.target.behaviorFingerprint
 
 private def checkPinned
@@ -109,7 +109,7 @@ private def checkPinned
         spec.plan.targetDefinitionId,
         spec.plan.kernelDefinitionId,
         request.space.baseQuery.target.id,
-        request.space.baseQuery.target.kernel.metadata.id
+        request.space.baseQuery.target.machine.metadata.id
       ])
     checked := checked ++ [{
       experimentSpec := spec

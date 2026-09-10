@@ -1,6 +1,6 @@
 import Temporal.Shared
 import Umpire.Planning
-import Umpire.Target.FiniteMachine
+import Umpire.Model.Table
 import Umpire.Property.Authoring
 import Umpire.Behavior.Authoring
 import Umpire.Query.Authoring
@@ -29,10 +29,10 @@ def metadata
     (kind : DefinitionKind) : DefinitionMetadata :=
   Temporal.Shared.definitionMetadata id kind source id.value
 
-def meaning (id : DefinitionId) (kind : DefinitionKind) : MeaningProvision := {
+def meaning (id : DefinitionId) (kind : DefinitionKind) : Meaning := {
   definitionId := id
   kind
-  canonicalBehavior := id.value
+  behaviorVersion := id.value
 }
 
 /-- The ordered member names of one declared success model, in declaration order. -/
@@ -48,23 +48,23 @@ structure SuccessModelNames where
 inductive FiniteAdmissionError where
   | outgoingTerminalTransition
   | noncanonicalTable
-  | finite (error : FiniteTargetAdmissionError)
+  | finite (error : TableAdmissionError)
 
 def checkFiniteTarget [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
     [DecidableEq Outcome] [DecidableEq Fact]
     (table : FiniteTable Setup State Action Outcome Fact)
     (canonicalTable : FiniteTable Setup State Action Outcome Fact)
     (identity : FiniteModelIdentity Setup State Action Outcome Fact)
-    (definition : FiniteTargetDefinition)
-    (composition : TargetComposition LawStatement)
-    (terminal : State → Bool) : Except FiniteAdmissionError (QueryTarget LawStatement) := do
-  let _ ← table.validateModel identity
-    |>.mapError (FiniteAdmissionError.finite ∘ FiniteTargetAdmissionError.invalidTable)
+    (definition : TableModelSpec)
+    (composition : Providers LawStatement)
+    (terminal : State → Bool) : Except FiniteAdmissionError (QueryModel LawStatement) := do
+  let _ ← table.checkIdentity identity
+    |>.mapError (FiniteAdmissionError.finite ∘ TableAdmissionError.invalidTable)
   if table.transitions.any fun row => terminal row.source then
     throw .outgoingTerminalTransition
   if table ≠ canonicalTable then
     throw .noncanonicalTable
-  table.checkModelTarget identity definition composition |>.mapError .finite
+  table.checkModel identity definition composition |>.mapError .finite
 
 /-- Every declared transition row must appear in the authored table exactly as declared. -/
 def satisfiesTransitionRequirement [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
@@ -77,7 +77,7 @@ def SuccessLawStatement [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     (lawId : DefinitionId)
     (table : FiniteTable Setup State Action Outcome Fact)
     (required : List (FiniteTransitionRow State Action Outcome Fact))
-    (law : LawDefinition) : Prop :=
+    (law : Law) : Prop :=
   law.id = lawId ∧ law.body = lawId.value ∧
     satisfiesTransitionRequirement table.transitions required = true
 
@@ -107,11 +107,11 @@ structure SuccessModel (Setup State Action Outcome Fact : Type)
   relationIds : List DefinitionId
   table : FiniteTable Setup State Action Outcome Fact
   identity : FiniteModelIdentity Setup State Action Outcome Fact
-  lawStatement : LawDefinition → Prop
-  law : LawDefinition
+  lawStatement : Law → Prop
+  law : Law
   lawProof : lawStatement law
-  composition : TargetComposition lawStatement
-  targetDefinition : FiniteTargetDefinition
+  composition : Providers lawStatement
+  modelSpec : TableModelSpec
 
 /-- The Definition ID an out-of-catalog member resolves to; a declared member never reaches it. -/
 def unknownId : DefinitionId := DefinitionId.of ""
@@ -231,10 +231,10 @@ def successModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     factId := catalogId facts factIds
   }
   let lawStatement := SuccessLawStatement lawId table transitions
-  let law : LawDefinition := { id := lawId, body := lawId.value }
-  let contract : CapabilityContract := {
+  let law : Law := { id := lawId, body := lawId.value }
+  let contract : Capability := {
     id := capabilityId
-    canonicalBehavior := capabilityId.value
+    behaviorVersion := capabilityId.value
     requiredLaws := [law]
   }
   let meanings :=
@@ -242,19 +242,19 @@ def successModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     table.actions.map (fun entry => meaning (identity.actionId entry.value) .action) ++
     table.outcomes.map (fun entry => meaning (identity.outcomeId entry.value) .outcome) ++
     table.facts.map (fun entry => meaning (identity.factId entry.value) .fact)
-  let provider : CapabilityProvider lawStatement := {
+  let provider : Provider lawStatement := {
     id := providerId
     source
     contract
     meanings
-    lawWitnesses := [{ definition := law, proof := lawProof }]
+    lawProofs := [{ definition := law, proof := lawProof }]
   }
   let definitions :=
     [metadata targetId .target, metadata kernelId .machine, metadata capabilityId .capability,
       metadata providerId .provider, metadata lawId .law] ++
     (meanings.map fun provided => metadata provided.definitionId provided.kind) ++
     table.transitions.map fun row => metadata (ownedId "relation" ownerKey row.key) .relation
-  let targetDefinition : FiniteTargetDefinition := {
+  let modelSpec : TableModelSpec := {
     id := targetId
     source
     definitions
@@ -267,7 +267,7 @@ def successModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     targetId, kernelId, capabilityId, providerId, lawId, operationRoleId,
     stateIds, actionIds, outcomeIds, factIds, relationIds,
     table, identity, lawStatement, law, lawProof,
-    composition := TargetComposition.empty |>.provide provider, targetDefinition
+    composition := Providers.empty |>.provide provider, modelSpec
   }
 
 /-- The checked member values of one model, in declaration order. -/
@@ -336,7 +336,7 @@ def modelVocabulary [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact
     [DecidableEq Outcome] [DecidableEq Fact]
     (model : SuccessModel Setup State Action Outcome Fact)
     (table : FiniteTable Setup State Action Outcome Fact) : Except FiniteTableError ModelVocabulary := do
-  let checked ← table.validateModel model.identity
+  let checked ← table.checkIdentity model.identity
   pure {
     states := ← model.states.mapM checked.stateValue
     actions := ← model.actions.mapM checked.actionValue
@@ -416,14 +416,14 @@ def reorderedAndDocumented (spec : PropertySpec) (documentation : String) : Prop
   { spec with clauses := spec.clauses.reverse, documentation }
 
 def cancellationKnownGap : KnownGap := {
-  kind := .capabilityContract
+  kind := .capability
   code := DefinitionId.of "temporal.nexus3.known-gap.cancellation"
   subject := some (DefinitionId.of "temporal.nexus3.property.cancellationResolves")
   detail := some "Operation-scoped Nexus cancellation is unsupported by the success slice."
 }
 
 def operationScopedProgressKnownGap : KnownGap := {
-  kind := .capabilityContract
+  kind := .capability
   code := DefinitionId.of "temporal.nexus3.known-gap.operation-scoped-progress"
   subject := some (DefinitionId.of "temporal.nexus3.property.cancellationResolves")
   detail := some "Operation-scoped progress counting is unsupported by the success slice."
@@ -453,7 +453,7 @@ inductive QueryFormKind where
 
 structure CheckedModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     (model : SuccessModel Setup State Action Outcome Fact) where
-  target : QueryTarget model.lawStatement
+  target : QueryModel model.lawStatement
   vocabulary : ModelVocabulary
   property : CheckedProperty
   behavior : CheckedBehavior
@@ -474,7 +474,7 @@ def check [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     (behaviorAuthor : ModelVocabulary → ExactSequenceSpec)
     (form : QueryFormKind := .selectWitness)
     (authoredTable : FiniteTable Setup State Action Outcome Fact := model.table)
-    (authoredDefinition : FiniteTargetDefinition := model.targetDefinition) :
+    (authoredDefinition : TableModelSpec := model.modelSpec) :
     Except AdmissionError (CheckedModel model) := do
   let target ← checkFiniteTarget authoredTable model.table model.identity authoredDefinition
     model.composition (fun value => model.terminal.contains value) |>.mapError .invalidTarget

@@ -434,7 +434,7 @@ open Umpire Observation.Projection
 
 /-- Cancellation admission preserves which owner rejected the declaration or source evidence. -/
 inductive Error where
-  | target (error : FiniteTargetAdmissionError)
+  | target (error : TableAdmissionError)
   | vocabulary (error : FiniteTableError)
   | correlation (error : Evidence.Error)
   | projection (error : Observation.Projection.Error)
@@ -442,7 +442,7 @@ inductive Error where
 /-- Target-bound cancellation mapping. Only `check` constructs this checked declaration. -/
 structure Checked where
   private mk ::
-  target : QueryTarget Temporal.Feature.Nexus2.Race.LawStatement
+  target : QueryModel Temporal.Feature.Nexus2.Race.LawStatement
   private plan : Observation.Projection.Checked target
   private maxOperations : Nat
 

@@ -18,7 +18,7 @@ namespace Umpire
 /-- Convert one checked planning Known Gap to the exact Umpire provenance row vocabulary. -/
 def KnownGap.toCaseKnownGap (gap : KnownGap) : Case.CaseKnownGap := {
   kind := match gap.kind with
-    | .capabilityContract => .capabilityContract
+    | .capability => .capability
     | .input => .input
     | .interpretation => .interpretation
     | .claim => .claim

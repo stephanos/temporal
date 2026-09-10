@@ -311,7 +311,7 @@ structure CheckedCoverageGoal where
   deriving BEq, DecidableEq, Repr
 
 /-- The checked Query closure against which a Space declaration is validated. -/
-structure SpaceCheckContext (LawStatement : LawDefinition → Prop) where
+structure SpaceCheckContext (LawStatement : Law → Prop) where
   baseQuery : CheckedQuery LawStatement
 
 /-- Build the validation context for one checked Query. -/
@@ -324,7 +324,7 @@ def SpaceCheckContext.ofQuery
 Canonical checked Space. Its private constructor guarantees that axes, choices, faults, goals,
 references, bounds, point count, metadata, and Behavior Fingerprint were validated together.
 -/
-structure CheckedExperimentSpace (LawStatement : LawDefinition → Prop) where
+structure CheckedExperimentSpace (LawStatement : Law → Prop) where
   private mk ::
   id : DefinitionId
   source : SourceLocation
@@ -497,7 +497,7 @@ private def faultSemanticJson
       ",\"action\":" ++ quote occurrence.action.value ++ "}" ++
     ",\"capability\":{\"id\":" ++ quote capability.id.value ++
       ",\"version\":" ++ toString capability.version ++
-      ",\"canonicalBehavior\":" ++ quote capability.canonicalBehavior ++ "}" ++
+      ",\"behaviorVersion\":" ++ quote capability.behaviorVersion ++ "}" ++
     ",\"incompatibleWith\":" ++
       array (canonicalIds incompatibleWith |>.map (quote ∘ DefinitionId.value)) ++ "}"
 
@@ -516,7 +516,7 @@ private def coverageSubjectJson : CheckedCoverageSubject → String
       "{\"kind\":" ++ quote metadata.kind.name ++
         ",\"id\":" ++ quote metadata.id.value ++
         ",\"version\":" ++ toString metadata.version ++
-        ",\"canonicalBehavior\":" ++ quote metadata.canonicalBehavior ++ "}"
+        ",\"behaviorVersion\":" ++ quote metadata.behaviorVersion ++ "}"
   | .property reference =>
       "{\"kind\":\"property\",\"id\":" ++ quote reference.id.value ++
         ",\"version\":" ++ toString reference.version ++

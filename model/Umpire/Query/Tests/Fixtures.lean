@@ -24,8 +24,8 @@ def extraProviderId : DefinitionId := id "query.provider.extra"
 def metadata
     (definitionId : DefinitionId)
     (kind : DefinitionKind)
-    (canonicalBehavior : String) : DefinitionMetadata :=
-  { Shared.Test.definitionMetadata definitionId.value kind source canonicalBehavior with
+    (behaviorVersion : String) : DefinitionMetadata :=
+  { Shared.Test.definitionMetadata definitionId.value kind source behaviorVersion with
     id := definitionId
     documentation := "query fixture"
   }
@@ -92,7 +92,7 @@ def kernel : Machine
     intro state action result admitted
     rcases admitted with ⟨rfl, rfl, rfl⟩
     simp
-  behaviorDomain := .complete {
+  vocabulary := .complete {
     setups := [setup]
     states := [initial, completed]
     actions := [requestValue]
@@ -174,16 +174,16 @@ def finitePlanning : FinitePlanningCapability kernel.authoritativeStep := {
     simp [admitted.2.1]
 }
 
-def extraProvider : CapabilityProvider (fun _ => True) := {
+def extraProvider : Provider (fun _ => True) := {
   id := extraProviderId
   source
   contract := {
     id := extraCapabilityId
-    canonicalBehavior := "query-extra-capability/v1"
+    behaviorVersion := "query-extra-capability/v1"
     requiredLaws := []
   }
   meanings := []
-  lawWitnesses := []
+  lawProofs := []
 }
 
 def targetDefinitions : List DefinitionMetadata := [
@@ -193,28 +193,28 @@ def targetDefinitions : List DefinitionMetadata := [
   metadata extraProviderId .provider "query-extra-provider/v1"
 ]
 
-def targetDefinition : TargetDefinition
+def modelSpec : ModelSpec (fun _ => True)
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
   id := targetId
   source
   definitions := targetDefinitions
   requiredCapabilities := []
   resolvedSetups := [setup]
-  kernel := .checked kernel
+  machine := .checked kernel
 }
 
-def targetComposition : TargetComposition (fun _ => True) :=
-  TargetComposition.empty |>.provide extraProvider
+def modelProviders : Providers (fun _ => True) :=
+  Providers.empty |>.provide extraProvider
 
-def targetAuthoring : AuthoredTarget (fun _ => True)
+def targetAuthoring : DraftModel (fun _ => True)
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue :=
-  AuthoredTarget.make targetDefinition targetComposition
+  DraftModel.make modelSpec modelProviders
     (.available kernel rfl finitePlanning)
 
-def target : QueryTarget (fun _ => True) := checkedTarget targetAuthoring
+def target : QueryModel (fun _ => True) := model targetAuthoring
 
-def targetWithoutPlanning : QueryTarget (fun _ => True) :=
-  checkedTarget targetAuthoring.withoutPlanning
+def targetWithoutPlanning : QueryModel (fun _ => True) :=
+  model targetAuthoring.withoutPlanning
 
 def checkedProperty : CheckedProperty := {
   id := id "query.property.fixture"

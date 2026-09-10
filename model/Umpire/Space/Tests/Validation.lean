@@ -351,24 +351,24 @@ def ghostCapabilityMetadata : DefinitionMetadata := {
   id := ghostCapabilityId
   kind := .capability
   source
-  canonicalBehavior := "space-unprovided-capability/v1"
+  behaviorVersion := "space-unprovided-capability/v1"
 }
 
-def targetWithGhostAuthoring : AuthoredTarget Umpire.Examples.Switch.LawStatement
+def targetWithGhostAuthoring : DraftModel Umpire.Examples.Switch.LawStatement
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue :=
-  AuthoredTarget.make {
-    Umpire.Examples.Switch.targetDefinition with
+  DraftModel.make {
+    Umpire.Examples.Switch.modelSpec with
     definitions := Umpire.Examples.Switch.definitions ++ [ghostCapabilityMetadata]
-  } Umpire.Examples.Switch.targetComposition
+  } Umpire.Examples.Switch.modelProviders
     (.available Umpire.Examples.Switch.machine rfl Umpire.Examples.Switch.finitePlanning)
 
-def targetWithGhost : QueryTarget Umpire.Examples.Switch.LawStatement :=
-  checkedTarget targetWithGhostAuthoring
+def targetWithGhost : QueryModel Umpire.Examples.Switch.LawStatement :=
+  model targetWithGhostAuthoring
 
 def queryWithGhost : CheckedQuery Umpire.Examples.Switch.LawStatement := {
   Umpire.Examples.Switch.exactActionQuery with
   target := targetWithGhost
-  completeness := (CheckedQueryTarget.ofTarget targetWithGhost).completeness
+  completeness := (CheckedQueryModel.ofTarget targetWithGhost).completeness
 }
 
 def ghostContext : SpaceCheckContext Umpire.Examples.Switch.LawStatement := .ofQuery queryWithGhost

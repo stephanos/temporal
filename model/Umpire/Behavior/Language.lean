@@ -1,5 +1,5 @@
 import Umpire.Shared.DefinitionGraph
-import Umpire.Target.Semantics
+import Umpire.Model.Check
 
 /-! Implementation behind the `Umpire.Behavior` public facade. -/
 
@@ -194,7 +194,7 @@ structure BehaviorCheckContext where
   deriving BEq, DecidableEq, Repr
 
 def BehaviorCheckContext.ofTarget
-    (target : CheckedTarget LawStatement Setup State Action Outcome Observation) :
+    (target : CheckedModel LawStatement Setup State Action Outcome Observation) :
     BehaviorCheckContext := {
   definitions := target.definitions
 }

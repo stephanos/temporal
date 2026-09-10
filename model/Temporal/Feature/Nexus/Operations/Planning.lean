@@ -16,7 +16,7 @@ open Temporal.Feature.Nexus.Lifecycle
 namespace Internal
 
 theorem lifecycleBehaviorDomainComplete :
-    ∃ domain, finiteMachine.kernel.behaviorDomain = .complete domain := by
+    ∃ domain, finiteMachine.kernel.vocabulary = .complete domain := by
   simp [FiniteMachine.kernel]
 
 theorem lifecycleActionDomainCanonical :
@@ -44,7 +44,7 @@ end Internal
 /-- A checked Lifecycle Query with complete canonical action evidence admits the existing planner. -/
 theorem lifecycleIncrementalKernelResult_isSome
     (query : CheckedQuery LawStatement)
-    (queryTarget : query.target = target)
+    (queryModel : query.target = target)
     (evidence : FiniteCompletenessEvidence LawStatement query.target)
     (queryCompleteness : query.completeness = some evidence)
     (evidenceActions : evidence.actions = actionDomain) :
@@ -55,17 +55,17 @@ theorem lifecycleIncrementalKernelResult_isSome
       change (value != value) = false
       exact bne_self_eq_false value
   apply IncrementalPlannerKernel.ofCheckedQuery_isSome target.id query evidence
-  · simpa [queryTarget] using targetBneSelf
+  · simpa [queryModel] using targetBneSelf
   · exact queryCompleteness
-  · rw [queryTarget]
+  · rw [queryModel]
     exact Internal.lifecycleBehaviorDomainComplete
   · rw [evidenceActions]
     exact Internal.lifecycleActionDomainCanonical
   · intro setup
-    rw [queryTarget]
+    rw [queryModel]
     exact Internal.lifecycleInitialStatesCanonical setup
   · intro state action
-    rw [queryTarget]
+    rw [queryModel]
     exact Internal.lifecycleStepResultsCanonical state action
 
 end Temporal.Feature.Nexus.Operations

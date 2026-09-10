@@ -23,7 +23,7 @@ structure EvidenceBackedTrace where
   profileId : DefinitionId
   profileVersion : Nat
   sourceClosed : Bool
-  vocabulary : List MeaningProvision
+  vocabulary : List Meaning
   dispositions : List FieldDispositionDeclaration
   appliedBound : EvidenceBound
   evidenceIdentities : List DefinitionId
@@ -435,7 +435,7 @@ private def validateCheckedProvenance
   if rule.output != value.definitionId ||
       rule.outputKind != evidenceLink.coordinate.definitionKind ||
       computedValue != .text value.value || !conditionHolds ||
-      rule.meaning.canonicalBehavior != evidenceLink.meaningDigest ||
+      rule.meaning.behaviorVersion != evidenceLink.meaningDigest ||
       evidenceLink.bindingIds != expectedBindings ||
       actualReferences != expectedReferences then
     throw {
@@ -548,7 +548,7 @@ def validateEvidenceBackedTrace
         evidenceLink.appliedBound != trace.appliedBound ||
         evidenceLink.evidenceIdentities.isEmpty ||
         evidenceLink.evidenceIdentities.any (fun id => !trace.evidenceIdentities.contains id) ||
-        !(trace.vocabulary.any fun meaning => meaning.canonicalBehavior == evidenceLink.meaningDigest) then
+        !(trace.vocabulary.any fun meaning => meaning.behaviorVersion == evidenceLink.meaningDigest) then
       throw {
         kind := .inconsistentEvidenceLink
         planId := trace.mappingId

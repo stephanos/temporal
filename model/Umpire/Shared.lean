@@ -25,12 +25,12 @@ def definitionMetadata
     (kind : DefinitionKind)
     (source : SourceLocation)
     (version : Nat)
-    (canonicalBehavior documentation : String) : DefinitionMetadata := {
+    (behaviorVersion documentation : String) : DefinitionMetadata := {
   id
   kind
   source
   version
-  canonicalBehavior
+  behaviorVersion
   documentation
 }
 

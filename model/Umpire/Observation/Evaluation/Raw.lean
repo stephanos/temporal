@@ -711,7 +711,7 @@ private def evidenceLinkFor
   closureSupport := bundle.closures.mergeSort closureLe
   appliedDispositions := emission.dispositions
   appliedBound := plan.evidenceBound
-  meaningDigest := emission.rule.meaning.canonicalBehavior
+  meaningDigest := emission.rule.meaning.behaviorVersion
 }
 
 private def singleEmission

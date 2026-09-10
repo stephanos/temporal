@@ -10,7 +10,7 @@ satisfies: [R2, R5]
 ## Description
 ### Umpire4 reconciliation (normative)
 
-The first family binding belongs under `Temporal.Verify` and states an explicit checked correspondence to the existing `Umpire.CheckedTarget` and `Umpire.Property`. Do not create a second Feature/System semantics or place family identity under generic Umpire verification mechanics.
+The first family binding belongs under `Temporal.Verify` and states an explicit checked correspondence to the existing `Umpire.CheckedModel` and `Umpire.Property`. Do not create a second Feature/System semantics or place family identity under generic Umpire verification mechanics.
 
 The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
 

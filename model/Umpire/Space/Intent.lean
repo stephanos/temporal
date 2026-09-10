@@ -38,7 +38,7 @@ def checkArtifactIntent
     behaviorFingerprint := query.behavior.behaviorFingerprint
     targetDefinitionId := query.target.id
     targetBehaviorFingerprint := query.target.behaviorFingerprint
-    kernelDefinitionId := query.target.kernel.metadata.id
+    kernelDefinitionId := query.target.machine.metadata.id
     kernelBehaviorFingerprint := query.target.behaviorFingerprint
     selectedChoices := declaration.selectedChoices.mergeSort valueLe
     selectedVariants := declaration.selectedVariants.mergeSort bindingLe

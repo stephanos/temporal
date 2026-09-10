@@ -286,24 +286,24 @@ example :
 
 def otherTargetId : DefinitionId := DefinitionId.of "test.run-evaluation.target.other"
 
-def otherTargetDefinition : TargetDefinition
+def otherModelSpec : ModelSpec Umpire.Examples.Switch.LawStatement
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
-  Umpire.Examples.Switch.targetDefinition with
+  Umpire.Examples.Switch.modelSpec with
   id := otherTargetId
-  definitions := Umpire.Examples.Switch.targetDefinition.definitions.map fun definition =>
+  definitions := Umpire.Examples.Switch.modelSpec.definitions.map fun definition =>
     if definition.id == Umpire.Examples.Switch.targetId then
       { definition with id := otherTargetId }
     else
       definition
 }
 
-def otherTargetAuthoring : AuthoredTarget Umpire.Examples.Switch.LawStatement
+def otherTargetAuthoring : DraftModel Umpire.Examples.Switch.LawStatement
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue :=
-  AuthoredTarget.make otherTargetDefinition Umpire.Examples.Switch.targetComposition
+  DraftModel.make otherModelSpec Umpire.Examples.Switch.modelProviders
     (.available Umpire.Examples.Switch.machine rfl Umpire.Examples.Switch.finitePlanning)
 
-def otherTarget : QueryTarget Umpire.Examples.Switch.LawStatement :=
-  checkedTarget otherTargetAuthoring
+def otherTarget : QueryModel Umpire.Examples.Switch.LawStatement :=
+  model otherTargetAuthoring
 
 def otherTargetProperty : CheckedProperty :=
   (checkProperty (PropertyCheckContext.ofTarget otherTarget)

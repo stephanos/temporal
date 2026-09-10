@@ -56,7 +56,7 @@ def querySpec
 }
 
 inductive AdmissionError where
-  | invalidTarget (error : FiniteTargetAdmissionError)
+  | invalidTarget (error : TableAdmissionError)
   | invalidVocabulary (error : FiniteTableError)
   | invalidProperty (error : PropertyError)
   | invalidBehavior (error : BehaviorError)
@@ -68,14 +68,14 @@ structure CheckedOperation where
   query : CheckedQuery LawStatement
 
 structure CheckedBaseline where
-  target : QueryTarget LawStatement
+  target : QueryModel LawStatement
   model : Cancellation.ModelVocabulary
   start : CheckedOperation
   cancel : CheckedOperation
   success : CheckedOperation
 
 private def checkOperation
-    (target : QueryTarget LawStatement)
+    (target : QueryModel LawStatement)
     (property : PropertySpec)
     (behavior : ExactSequenceSpec)
     (queryKey : String) : Except AdmissionError CheckedOperation := do

@@ -33,7 +33,7 @@ private def definitionKind : CaseDefinitionKind → String
   | .machine => "CASE_DEFINITION_KIND_MACHINE"
 
 private def gapKind : CaseKnownGapKind → String
-  | .capabilityContract => "CASE_KNOWN_GAP_KIND_CAPABILITY_CONTRACT"
+  | .capability => "CASE_KNOWN_GAP_KIND_CAPABILITY"
   | .input => "CASE_KNOWN_GAP_KIND_INPUT"
   | .interpretation => "CASE_KNOWN_GAP_KIND_INTERPRETATION"
   | .claim => "CASE_KNOWN_GAP_KIND_CLAIM"

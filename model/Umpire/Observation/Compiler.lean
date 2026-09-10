@@ -1,6 +1,6 @@
 import Umpire.Observation.Declaration
 import Umpire.Shared.DefinitionGraph
-import Umpire.Target
+import Umpire.Model
 
 /-!
 The Observation language describes, validates, and canonicalizes inert mappings from typed evidence
@@ -17,14 +17,14 @@ namespace Umpire
 /-- Checked target vocabulary plus the evidence profiles against which mappings may compile. -/
 structure ObservationCheckContext where
   definitions : List DefinitionMetadata
-  meanings : List MeaningProvision
+  meanings : List Meaning
   profiles : List EvidenceProfileDeclaration
   deriving BEq, DecidableEq, Repr
 
 /-- One provider-qualified meaning used while resolving a checked target's connector semantics. -/
 private structure ProvidedObservationMeaning where
   provider : DefinitionId
-  meaning : MeaningProvision
+  meaning : Meaning
 
 private def providedMeaningLe
     (left right : ProvidedObservationMeaning) : Bool :=
@@ -40,14 +40,14 @@ private def meaningKeyLe
     (left.1 == right.1 && decide (left.2.name ≤ right.2.name))
 
 private def resolvedTargetMeanings
-    (target : CheckedTarget LawStatement Setup State Action Outcome Observation) :
-    List MeaningProvision :=
+    (target : CheckedModel LawStatement Setup State Action Outcome Observation) :
+    List Meaning :=
   let provided := target.providers.flatMap fun provider =>
     provider.meanings.map fun meaning => { provider := provider.id, meaning }
   let canonicalProvided := provided.mergeSort providedMeaningLe
   let keys := canonicalProvided.map (fun item => (item.meaning.definitionId, item.meaning.kind))
     |>.mergeSort meaningKeyLe |>.eraseDups
-  let reconciliations := target.connectors.flatMap CapabilityConnector.reconciliations
+  let reconciliations := target.connectors.flatMap Connector.reconciliations
   keys.flatMap fun key =>
     let candidates := canonicalProvided.filter fun item =>
       item.meaning.definitionId == key.1 && item.meaning.kind == key.2
@@ -55,7 +55,7 @@ private def resolvedTargetMeanings
     | [] => []
     | first :: _ =>
         if candidates.all fun item =>
-            item.meaning.canonicalBehavior == first.meaning.canonicalBehavior then
+            item.meaning.behaviorVersion == first.meaning.behaviorVersion then
           [first.meaning]
         else
           let providers := DefinitionId.canonicalSet
@@ -66,13 +66,13 @@ private def resolvedTargetMeanings
           | some reconciliation => [{
               definitionId := reconciliation.definitionId
               kind := reconciliation.kind
-              canonicalBehavior := reconciliation.canonicalBehavior
+              behaviorVersion := reconciliation.behaviorVersion
             }]
           | none => []
 
 /-- Build an Observation context from the definitions and resolved meanings of a checked target. -/
 def ObservationCheckContext.ofTarget
-    (target : CheckedTarget LawStatement Setup State Action Outcome Observation)
+    (target : CheckedModel LawStatement Setup State Action Outcome Observation)
     (profiles : List EvidenceProfileDeclaration) : ObservationCheckContext := {
   definitions := target.definitions
   meanings := resolvedTargetMeanings target
@@ -246,7 +246,7 @@ structure CheckedObservationRule where
   id : DefinitionId
   output : DefinitionId
   outputKind : DefinitionKind
-  meaning : MeaningProvision
+  meaning : Meaning
   value : CheckedObservationExpression
   condition : Option CheckedObservationExpression
   deriving BEq, DecidableEq, Repr
@@ -264,7 +264,7 @@ structure CheckedObservationPlan where
   closures : List EvidenceClosureDeclaration
   dispositions : List FieldDispositionDeclaration
   evidenceBound : EvidenceBound
-  meanings : List MeaningProvision
+  meanings : List Meaning
   documentation : String
   canonicalMetadata : String
   behaviorFingerprint : BehaviorFingerprint
@@ -309,7 +309,7 @@ private def observationOrder (edge : DefinitionGraph.Edge) : ObservationOrdering
 private def dispositionLe
     (left right : FieldDispositionDeclaration) : Bool := fieldRefLe left.field right.field
 
-private def meaningLe (left right : MeaningProvision) : Bool :=
+private def meaningLe (left right : Meaning) : Bool :=
   decide (left.definitionId.value < right.definitionId.value) ||
     (left.definitionId == right.definitionId && decide (left.kind.name ≤ right.kind.name))
 
@@ -451,10 +451,10 @@ private def checkedBindingJson (binding : CheckedObservationBinding) : String :=
     ",\"type\":" ++ quote binding.valueType.name ++
     ",\"expression\":" ++ checkedExpressionJson binding.expression ++ "}"
 
-private def meaningJson (meaning : MeaningProvision) : String :=
+private def meaningJson (meaning : Meaning) : String :=
   "{\"id\":" ++ quote meaning.definitionId.value ++
     ",\"kind\":" ++ quote meaning.kind.name ++
-    ",\"canonicalBehavior\":" ++ quote meaning.canonicalBehavior ++ "}"
+    ",\"behaviorVersion\":" ++ quote meaning.behaviorVersion ++ "}"
 
 private def checkedRuleJson (rule : CheckedObservationRule) : String :=
   "{\"id\":" ++ quote rule.id.value ++
@@ -491,7 +491,7 @@ private def planSemanticJson
     (closures : List EvidenceClosureDeclaration)
     (dispositions : List FieldDispositionDeclaration)
     (bound : EvidenceBound)
-    (meanings : List MeaningProvision) : String :=
+    (meanings : List Meaning) : String :=
   "{\"id\":" ++ quote id.value ++
     ",\"version\":" ++ toString version ++
     ",\"profile\":" ++ profileJson profile ++
@@ -784,7 +784,7 @@ private def compileBindings
 private def validateSemanticOutput
     (context : ObservationCheckContext)
     (declaration : ObservationMappingDeclaration)
-    (rule : ObservationRule) : Except ObservationError MeaningProvision := do
+    (rule : ObservationRule) : Except ObservationError Meaning := do
   match context.definitions.find? fun item => item.id == rule.output with
   | none => throw (error .unknownSemanticDeclaration declaration rule.output.value [rule.output])
   | some target =>

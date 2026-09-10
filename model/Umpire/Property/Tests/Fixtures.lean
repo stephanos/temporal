@@ -45,13 +45,13 @@ def definitions : List DefinitionMetadata := [
 
 def meaning
     (definitionId : DefinitionId)
-    (kind : DefinitionKind) : MeaningProvision := {
+    (kind : DefinitionKind) : Meaning := {
   definitionId
   kind
-  canonicalBehavior := definitionId.value ++ "/meaning-v1"
+  behaviorVersion := definitionId.value ++ "/meaning-v1"
 }
 
-def cancellationMeanings : List MeaningProvision := [
+def cancellationMeanings : List Meaning := [
   meaning pendingCount .state,
   meaning cancellationPhase .state,
   meaning requestCancel .action,
@@ -72,8 +72,8 @@ def cancelBudget : PropertyLimitProfile := {
 def context : PropertyCheckContext := {
   definitions
   providers := [
-    { id := cancellationCapability, version := 1, canonicalBehavior := "test-cancellation/v1" },
-    { id := hiddenCapability, version := 1, canonicalBehavior := "test-hidden/v1" }
+    { id := cancellationCapability, version := 1, behaviorVersion := "test-cancellation/v1" },
+    { id := hiddenCapability, version := 1, behaviorVersion := "test-hidden/v1" }
   ]
   meanings :=
     cancellationMeanings.map (fun item => (cancellationCapability, item)) ++

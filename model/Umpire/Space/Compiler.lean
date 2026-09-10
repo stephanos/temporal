@@ -271,23 +271,23 @@ private def queryDeclaration
     documentation := base.documentation
   }
 
-private structure RecheckedQuery (target : QueryTarget LawStatement) where
+private structure RecheckedQuery (target : QueryModel LawStatement) where
   query : CheckedQuery LawStatement
   targetEq : query.target = target
 
 private def materializeQuery
-    (target : QueryTarget LawStatement)
+    (target : QueryModel LawStatement)
     (query : CheckedQuery LawStatement) : RecheckedQuery target :=
-  let checkedTarget := CheckedQueryTarget.ofTarget target
+  let model := CheckedQueryModel.ofTarget target
   {
     query := {
       query with
-      target := checkedTarget.target
-      completeness := checkedTarget.completeness
+      target := model.target
+      completeness := model.completeness
     }
     targetEq := by
       cases planningEq : target.planning <;>
-        simp [checkedTarget, CheckedQueryTarget.ofTarget, planningEq]
+        simp [model, CheckedQueryModel.ofTarget, planningEq]
   }
 
 private def selectedFaults

@@ -1,4 +1,4 @@
-import Temporal.Feature.Nexus.Lifecycle.Target
+import Temporal.Feature.Nexus.Lifecycle.Model
 import Temporal.Shared
 import Umpire.Planning
 
@@ -157,12 +157,12 @@ def satisfiesLifecycleRequirement
   }
 
 /-- The capability law binds provider metadata to the independently authored lifecycle requirement. -/
-def LawStatement (law : LawDefinition) : Prop :=
+def LawStatement (law : Law) : Prop :=
   law.id = lifecycleLawId ∧
     law.body = "temporal-nexus2-basic-lifecycle-authoritative-table/v1" ∧
     satisfiesLifecycleRequirement table.transitions = true
 
-def lifecycleLaw : LawDefinition := {
+def lifecycleLaw : Law := {
   id := lifecycleLawId
   body := "temporal-nexus2-basic-lifecycle-authoritative-table/v1"
 }
@@ -172,32 +172,32 @@ theorem lifecycleLawProof : LawStatement lifecycleLaw := ⟨rfl, rfl, rfl⟩
 private def metadata
     (definitionId : DefinitionId)
     (kind : DefinitionKind)
-    (canonicalBehavior : String) : DefinitionMetadata :=
-  Temporal.Shared.definitionMetadata definitionId kind source canonicalBehavior
+    (behaviorVersion : String) : DefinitionMetadata :=
+  Temporal.Shared.definitionMetadata definitionId kind source behaviorVersion
 
-def lifecycleProvider : CapabilityProvider LawStatement := {
+def lifecycleProvider : Provider LawStatement := {
   id := lifecycleProviderId
   source
   contract := {
     id := lifecycleCapabilityId
-    canonicalBehavior := "temporal-nexus2-basic-lifecycle/v1"
+    behaviorVersion := "temporal-nexus2-basic-lifecycle/v1"
     requiredLaws := [lifecycleLaw]
   }
   meanings := [
     { definitionId := operationStateId, kind := .state,
-      canonicalBehavior := "temporal-nexus2-basic-lifecycle-state/v1" },
+      behaviorVersion := "temporal-nexus2-basic-lifecycle-state/v1" },
     { definitionId := startActionId, kind := .action,
-      canonicalBehavior := "temporal-nexus2-basic-lifecycle-start/v1" },
+      behaviorVersion := "temporal-nexus2-basic-lifecycle-start/v1" },
     { definitionId := cancelActionId, kind := .action,
-      canonicalBehavior := "temporal-nexus2-basic-lifecycle-cancel/v1" },
+      behaviorVersion := "temporal-nexus2-basic-lifecycle-cancel/v1" },
     { definitionId := reportSuccessActionId, kind := .action,
-      canonicalBehavior := "temporal-nexus2-basic-lifecycle-report-success/v1" },
+      behaviorVersion := "temporal-nexus2-basic-lifecycle-report-success/v1" },
     { definitionId := transitionOutcomeId, kind := .outcome,
-      canonicalBehavior := "temporal-nexus2-basic-lifecycle-outcome/v1" },
+      behaviorVersion := "temporal-nexus2-basic-lifecycle-outcome/v1" },
     { definitionId := lifecycleFactId, kind := .fact,
-      canonicalBehavior := "temporal-nexus2-basic-lifecycle-fact/v1" }
+      behaviorVersion := "temporal-nexus2-basic-lifecycle-fact/v1" }
   ]
-  lawWitnesses := [{ definition := lifecycleLaw, proof := lifecycleLawProof }]
+  lawProofs := [{ definition := lifecycleLaw, proof := lifecycleLawProof }]
 }
 
 def definitions : List DefinitionMetadata := [
@@ -214,7 +214,7 @@ def definitions : List DefinitionMetadata := [
   metadata lifecycleFactId .fact "temporal-nexus2-basic-lifecycle-fact/v1"
 ]
 
-def targetDefinition : FiniteTargetDefinition := {
+def modelSpec : TableModelSpec := {
   id := targetId
   source
   definitions
@@ -222,12 +222,12 @@ def targetDefinition : FiniteTargetDefinition := {
   metadata := { id := kernelId, source }
 }
 
-def targetComposition : TargetComposition LawStatement :=
-  TargetComposition.empty |>.provide lifecycleProvider
+def modelProviders : Providers LawStatement :=
+  Providers.empty |>.provide lifecycleProvider
 
 /-- Target admission validates the typed table before exposing any checked semantic value. -/
-def targetResult : Except FiniteTargetAdmissionError (QueryTarget LawStatement) :=
-  table.checkModelTarget identity targetDefinition targetComposition
+def targetResult : Except TableAdmissionError (QueryModel LawStatement) :=
+  table.checkModel identity modelSpec modelProviders
 
 def establishedState : State → Temporal.Feature.Nexus.Lifecycle.OperationState
   | .scheduled => .scheduled

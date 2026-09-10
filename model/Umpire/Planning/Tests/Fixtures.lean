@@ -23,8 +23,8 @@ def kernelId : DefinitionId := id "planner.kernel.fixture"
 def metadata
     (definitionId : DefinitionId)
     (kind : DefinitionKind)
-    (canonicalBehavior : String) : DefinitionMetadata :=
-  { Shared.Test.definitionMetadata definitionId.value kind source canonicalBehavior with
+    (behaviorVersion : String) : DefinitionMetadata :=
+  { Shared.Test.definitionMetadata definitionId.value kind source behaviorVersion with
     id := definitionId
     documentation := "planning fixture"
   }
@@ -91,7 +91,7 @@ def kernel (width : Nat) : Machine
     rw [if_pos ⟨rfl, rfl⟩]
     apply List.mem_map.mpr
     exact ⟨0, by simp, rfl⟩
-  behaviorDomain := .complete {
+  vocabulary := .complete {
     setups := [setup]
     states := [initial, completed]
     actions := [requestValue]
@@ -176,7 +176,7 @@ def finitePlanning (width : Nat) : FinitePlanningCapability (kernel width).autho
     simp [admitted.2.1]
 }
 
-def targetDefinition (width : Nat) : TargetDefinition
+def modelSpec (width : Nat) : ModelSpec (fun _ => True)
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
   id := targetId
   source
@@ -186,15 +186,15 @@ def targetDefinition (width : Nat) : TargetDefinition
   ]
   requiredCapabilities := []
   resolvedSetups := [setup]
-  kernel := .checked (kernel width)
+  machine := .checked (kernel width)
 }
 
-def targetAuthoring : AuthoredTarget (fun _ => True)
+def targetAuthoring : DraftModel (fun _ => True)
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue :=
-  AuthoredTarget.make (targetDefinition 0) TargetComposition.empty
+  DraftModel.make (modelSpec 0) Providers.empty
     (.available (kernel 0) rfl (finitePlanning 0))
 
-def baseTarget : QueryTarget (fun _ => True) := checkedTarget targetAuthoring
+def baseTarget : QueryModel (fun _ => True) := model targetAuthoring
 
 private theorem completed_ne_initial : completed ≠ initial := by
   native_decide
@@ -205,25 +205,25 @@ private theorem eraseDups_replicate_append_two
   cases width <;> simp [List.replicate_succ, List.eraseDups_cons, self]
 
 private theorem kernelBehaviorDescription_eq (width : Nat) :
-    (kernel width).behaviorDescription? = (kernel 0).behaviorDescription? := by
+    (kernel width).behaviorTable? = (kernel 0).behaviorTable? := by
   induction width with
   | zero => rfl
   | succ width ih =>
-      simp [Machine.behaviorDescription?, Machine.describeBehavior, kernel,
+      simp [Machine.behaviorTable?, Machine.describeBehavior, kernel,
         transitions, transition, completed_ne_initial, Function.comp_def, List.map_const',
         List.range_succ]
       rw [eraseDups_replicate_append_two _ _ (by native_decide)]
       native_decide
 
-def target (width : Nat) : QueryTarget (fun _ => True) :=
-  baseTarget.withEquivalentKernel (kernel width)
-    (by simp [baseTarget, checkedTarget, targetAuthoring, AuthoredTarget.make, targetDefinition,
+def target (width : Nat) : QueryModel (fun _ => True) :=
+  baseTarget.withEquivalentMachine (kernel width)
+    (by simp [baseTarget, model, targetAuthoring, DraftModel.make, modelSpec,
       kernel])
-    (by simp [baseTarget, checkedTarget, targetAuthoring, AuthoredTarget.make, targetDefinition,
+    (by simp [baseTarget, model, targetAuthoring, DraftModel.make, modelSpec,
       kernel])
-    (by simp [baseTarget, checkedTarget, targetAuthoring, AuthoredTarget.make, targetDefinition,
+    (by simp [baseTarget, model, targetAuthoring, DraftModel.make, modelSpec,
       kernel])
-    (by simp [baseTarget, checkedTarget, targetAuthoring, AuthoredTarget.make, targetDefinition,
+    (by simp [baseTarget, model, targetAuthoring, DraftModel.make, modelSpec,
       kernel])
     (kernelBehaviorDescription_eq width |>.trans (by native_decide))
     (.available (finitePlanning width))
@@ -293,9 +293,9 @@ def checkedQuery
   target := target width
   limits := limits budget
   policy := policy strategy seed
-  targetComposition := []
+  modelProviders := []
   completeness := if withCompleteness then
-    (CheckedQueryTarget.ofTarget (target width)).completeness
+    (CheckedQueryModel.ofTarget (target width)).completeness
   else
     none
   documentation := "query documentation"
@@ -312,20 +312,20 @@ def incrementalKernel? (width : Nat) : Option (IncrementalPlannerKernel (target 
   IncrementalPlannerKernel.ofCheckedQuery? (orderedQuery width)
     (by
       intro evidence evidenceEq
-      simp [orderedQuery, checkedQuery, policy, CheckedQueryTarget.ofTarget, target,
-        CheckedTarget.withEquivalentKernel, baseTarget, checkedTarget, targetAuthoring,
-        AuthoredTarget.make, targetDefinition, finitePlanning] at evidenceEq
+      simp [orderedQuery, checkedQuery, policy, CheckedQueryModel.ofTarget, target,
+        CheckedModel.withEquivalentMachine, baseTarget, model, targetAuthoring,
+        DraftModel.make, modelSpec, finitePlanning] at evidenceEq
       cases Option.some.inj evidenceEq
       simp)
     (by
       intro _ _ candidate
-      simp only [orderedQuery, checkedQuery, policy, target, CheckedTarget.withEquivalentKernel,
-        baseTarget, checkedTarget, targetAuthoring, AuthoredTarget.make, targetDefinition, kernel]
+      simp only [orderedQuery, checkedQuery, policy, target, CheckedModel.withEquivalentMachine,
+        baseTarget, model, targetAuthoring, DraftModel.make, modelSpec, kernel]
       split <;> simp)
     (by
       intro _ _ state action
-      simp only [orderedQuery, checkedQuery, policy, target, CheckedTarget.withEquivalentKernel,
-        baseTarget, checkedTarget, targetAuthoring, AuthoredTarget.make, targetDefinition, kernel]
+      simp only [orderedQuery, checkedQuery, policy, target, CheckedModel.withEquivalentMachine,
+        baseTarget, model, targetAuthoring, DraftModel.make, modelSpec, kernel]
       split
       · rw [List.pairwise_iff_getElem]
         intro first second firstBound secondBound earlier

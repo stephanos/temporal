@@ -81,9 +81,9 @@ example : Umpire.Json.prettyBytes escapingProbeJson =
 example : compiledArtifact.hasValidArtifactChecksum ∧
     compiledArtifact.plan.hasValidArtifactChecksum ∧
     compiledArtifact.artifactChecksum.render =
-      "sha256:8af20c6a12bbe9c468ed22743fbfcdf9ae1a546492c245e9146e26c2a1518a47" ∧
+      "sha256:9fa327849c3d0a48290bb16fec73a00be4cc1b6234862ee506a547f29b6d3b12" ∧
     compiledArtifact.plan.artifactChecksum.render =
-      "sha256:7f6aa675d57491e968736829a643fd9a5662d52c38c1a493be096b60495f5f8b" := by
+      "sha256:2036ce80c7c93dd19d0acb03fa6ebceb678f909684ca17bac413f254954ddbbd" := by
   native_decide
 
 private def guardedPropertyDeclaration : PropertyDeclaration := {

@@ -10,7 +10,7 @@ open Umpire
 #check QuerySpec
 #check QuerySpec.checked
 #check QueryLimitSpec
-#check QueryAuthoringDiagnostic
+#check QueryLocatedError
 #check canonicalQueryAuthoringDiagnosticJson
 #check QueryAuthoringInput
 #check QueryAuthoringInput.ofSpec

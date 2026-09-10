@@ -65,19 +65,19 @@ Testpilot terms have precise boundaries:
 
 ## Semantic authoring and planning
 
-The retained semantic model uses separate `Target`, `Property`, `Behavior`, `Query`, `Space`,
-`Exploration`, and `Promotion` APIs. A checked Target owns behavior; Properties state trace claims;
+The retained semantic model uses separate `Model`, `Property`, `Behavior`, `Query`, `Space`,
+`Exploration`, and `Promotion` APIs. A checked Model owns behavior; Properties state trace claims;
 Behaviors constrain trace shape; Queries ask bounded questions; Spaces and Exploration select
 finite candidates. These packages do not perform runtime I/O.
 
-For ordinary authoring, use `import Umpire` or the focused `Umpire.Target`, `Umpire.Property`,
+For ordinary authoring, use `import Umpire` or the focused `Umpire.Model`, `Umpire.Property`,
 `Umpire.Behavior`, and `Umpire.Query` facades. These retain the finite-table/machine helpers and
-syntax-aware checkers. `Umpire.Target.Language` remains compatible with existing authoring imports.
-When implementing evaluation or planning over an already checked Target, use
-`Umpire.Target.Semantics`; it exposes the authoritative kernel and finite planning contracts without
-loading the Target elaborator. `Umpire.Planning` consumes checked Queries and does not supply the
+syntax-aware checkers.
+When implementing evaluation or planning over an already checked Model, use
+`Umpire.Model.Check`; it exposes the authoritative Machine and finite planning contracts without
+loading the model elaborator. `Umpire.Planning` consumes checked Queries and does not supply the
 authoring conveniences of the other facades. The
-[ownership guide](Umpire/ARCHITECTURE.md#target-ownership-and-semantic-imports) explains how pure
+[ownership guide](Umpire/ARCHITECTURE.md#model-ownership-and-semantic-imports) explains how pure
 admission and serialization support both paths.
 
 `Umpire.Promotion` remains scenario-neutral. It replans an unchanged checked Query, validates the
@@ -91,23 +91,23 @@ they do not execute a Case or determine a Verdict.
 ### Ordinary Nexus authoring
 
 `Temporal.Feature.Nexus` is the compiled established walkthrough. Read
-`Lifecycle.Semantics`, `Lifecycle.Target`, the three `Operations` modules, and `Observation` in that
-order. The finite `Lifecycle.finiteMachine` is the ordinary Target seam: authors still provide the
+`Lifecycle.Semantics`, `Lifecycle.Model`, the three `Operations` modules, and `Observation` in that
+order. The finite `Lifecycle.finiteMachine` is the ordinary Model seam: authors still provide the
 ordered domains, encoders, enumerators, closure proofs, and Action-executability proof, while
-`targetDefinition` and `authoredTarget` remove repeated record and planning transport. Authors who
+`modelSpec` and `draftModel` remove repeated record and planning transport. Authors who
 need an independently specified authoritative relation can use the expert `Machine` path.
 
 Property, Behavior, Query, and Observation inputs remain ordinary values. Call each language's
 `check` operation to inspect its typed `Except` error, then supply explicit checker-success evidence
 to its `checked` operation. Stable `DefinitionId` suffixes, source locations, providers/connectors,
-Target-owned outcomes, and stage-specific `QueryLimitSpec` values are authored choices; declaration
+Model-owned outcomes, and stage-specific `QueryLimitSpec` values are authored choices; declaration
 order and instance search choose none of them. Planning returns `Except KnownGapError PlannerRun`.
 An optional checked `authoredKnownGaps` set is composed with phase gaps before search or artifact
 publication. Gaps describe limits and missing evidence; they cannot make a Property pass or imply
 that an omitted limitation was detected.
 
 Operation-scoped response Properties can use `bounded_response%` inside
-`PropertySpec.scopedClauses`. For example, with Target-owned `request` and `response` values:
+`PropertySpec.scopedClauses`. For example, with Model-owned `request` and `response` values:
 
 ```lean
 bounded_response% (family.id "property" "response") at source
@@ -129,7 +129,7 @@ The generated scoped corpus includes executable non-cancellation Cases qualified
 Go `Prepare`/`Run`, including repeated/concurrent Runs and bounded tenfold loads. Its synthetic
 source is a controlled qualification fixture, not a production Implementation Link. The existing
 Nexus3 success integration remains the live Temporal demonstration. Nexus operation cancellation
-Targets, adapters, capabilities, and Cases are explicitly deferred to fn-79.
+Models, adapters, capabilities, and Cases are explicitly deferred to fn-79.
 
 ### Typed operation authoring
 
@@ -139,7 +139,7 @@ against the generator's own selection for that method, so a wrong-method pairing
 or response closure, and an unsupported streaming shape each reject with their own diagnostic.
 `Umpire.Operation.ActionTemplate` carries the admitted binding, and `ParameterDomain.check` admits
 an explicit list of exact request values as parameterized Action instances. Selecting an Action
-never selects its outcome: the authoritative Target still owns which result each instance admits.
+never selects its outcome: the authoritative Model still owns which result each instance admits.
 
 Two claims are declared separately and reported separately.
 
@@ -211,7 +211,7 @@ Lean syntax used by the walkthrough:
 
 `Temporal.Feature.NexusTests` compiles this facade-only path, including an authored gap reaching a
 real selected artifact, Observation evaluation, malformed identity/reference, missing proof,
-incomplete Target, invalid transition, and invalid Observation specimens. The exact compatibility,
+incomplete Model, invalid step, and invalid Observation specimens. The exact compatibility,
 trust, and cost inventory is in [the established evidence record](Temporal/Feature/Nexus/EVIDENCE.md).
 
 The experimental [Nexus2 authoring prototype](Temporal/Feature/Nexus2/README.md) demonstrates the

@@ -43,10 +43,10 @@ structure ArtifactModelTrace where
   deriving BEq, DecidableEq, Repr
 
 /-- One projected vocabulary meaning. -/
-structure ArtifactMeaningProvision where
+structure ArtifactMeaning where
   definitionId : DefinitionId
   kind : DefinitionKind
-  canonicalBehavior : String
+  behaviorVersion : String
   deriving BEq, DecidableEq, Repr
 
 /-- One exact raw-field identity. -/
@@ -114,7 +114,7 @@ structure ArtifactEvidenceBackedModelTrace where
   profileDefinitionId : DefinitionId
   profileVersion : Nat
   sourceClosed : Bool
-  vocabulary : List ArtifactMeaningProvision
+  vocabulary : List ArtifactMeaning
   appliedLimit : ArtifactLimit
   evidenceDefinitionIds : List DefinitionId
   trace : ArtifactModelTrace
@@ -336,10 +336,10 @@ private def sourceLocationResultJson (source : SourceLocation) : String :=
     ",\"column\":" ++ toString source.column ++
     ",\"provenance\":" ++ quoteResult source.provenance ++ "}"
 
-private def meaningProvisionJson (meaning : ArtifactMeaningProvision) : String :=
+private def meaningProvisionJson (meaning : ArtifactMeaning) : String :=
   "{\"definitionId\":" ++ quoteResult meaning.definitionId.value ++
     ",\"kind\":" ++ quoteResult meaning.kind.name ++
-    ",\"canonicalBehavior\":" ++ quoteResult meaning.canonicalBehavior ++ "}"
+    ",\"behaviorVersion\":" ++ quoteResult meaning.behaviorVersion ++ "}"
 
 private def fieldReferenceJson (field : ArtifactFieldReference) : String :=
   "{\"kindDefinitionId\":" ++ quoteResult field.kindDefinitionId.value ++

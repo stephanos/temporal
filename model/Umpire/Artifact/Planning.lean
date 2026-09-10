@@ -70,7 +70,7 @@ private def intentIdentityMatches
     intent.behaviorFingerprint == query.behavior.behaviorFingerprint &&
     intent.targetDefinitionId == query.target.id &&
     intent.targetBehaviorFingerprint == query.target.behaviorFingerprint &&
-    intent.kernelDefinitionId == query.target.kernel.metadata.id &&
+    intent.kernelDefinitionId == query.target.machine.metadata.id &&
     intent.kernelBehaviorFingerprint == query.target.behaviorFingerprint
 
 namespace ArtifactIntent
@@ -83,7 +83,7 @@ def empty (query : CheckedQuery LawStatement) : ArtifactIntent := {
   behaviorFingerprint := query.behavior.behaviorFingerprint
   targetDefinitionId := query.target.id
   targetBehaviorFingerprint := query.target.behaviorFingerprint
-  kernelDefinitionId := query.target.kernel.metadata.id
+  kernelDefinitionId := query.target.machine.metadata.id
   kernelBehaviorFingerprint := query.target.behaviorFingerprint
   selectedChoices := []
   selectedVariants := []
@@ -176,7 +176,7 @@ private def artifactMatchesQuery
     spec.plan.behaviorFingerprint == query.behavior.behaviorFingerprint &&
     spec.plan.targetDefinitionId == query.target.id &&
     spec.plan.targetBehaviorFingerprint == query.target.behaviorFingerprint &&
-    spec.plan.kernelDefinitionId == query.target.kernel.metadata.id &&
+    spec.plan.kernelDefinitionId == query.target.machine.metadata.id &&
     spec.plan.kernelBehaviorFingerprint == query.target.behaviorFingerprint
 
 /-- Canonically project checked intent onto an ordinary target-owned planner Artifact. -/
@@ -265,10 +265,10 @@ private def artifactProvenance (query : CheckedQuery LawStatement) : ArtifactPro
     query.id,
     query.behavior.id,
     query.target.id,
-    query.target.kernel.metadata.id
+    query.target.machine.metadata.id
   ] ++ query.form.properties.map CheckedProperty.id)
   sourceLocations := (query.source :: query.behavior.source :: query.target.source ::
-    query.target.kernel.metadata.source :: query.form.properties.map CheckedProperty.source)
+    query.target.machine.metadata.source :: query.form.properties.map CheckedProperty.source)
       |>.mergeSort sourceLe |>.eraseDups
 }
 
@@ -306,7 +306,7 @@ def artifactOfSelectionWithKnownGaps
     behaviorFingerprint := query.behavior.behaviorFingerprint
     targetDefinitionId := query.target.id
     targetBehaviorFingerprint := query.target.behaviorFingerprint
-    kernelDefinitionId := query.target.kernel.metadata.id
+    kernelDefinitionId := query.target.machine.metadata.id
     kernelBehaviorFingerprint := query.target.behaviorFingerprint
     bindings := trace.setup.mergeSort bindingLe
     symbolicRoles := query.behavior.roles.filter fun role =>

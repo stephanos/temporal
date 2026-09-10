@@ -84,7 +84,7 @@ if Veil becomes Umpire's authority.
 
 Umpire's `TransitionKernel` carries more semantic coordinates than a basic Veil transition: Setup,
 State, Action, Model Outcome, and ordered Observations, along with authoritative relations and
-sound/complete finite lists. Its `TargetBehaviorDomain` separately enumerates all five domains and
+sound/complete finite lists. Its `Vocabulary` separately enumerates all five domains and
 provides stable encoders. Target admission requires a complete behavior domain and materializes the
 state-by-action transition rows for the behavior fingerprint. A symbolic backend therefore cannot
 simply replace the planner; admission and fingerprinting currently require complete finite
@@ -132,7 +132,7 @@ rules, but remain necessary even if those rules are rewritten because they preve
 ### 1. Veil as an optional Umpire backend
 
 This is immediately plausible for opted-in safety Properties and bounded trace queries. Keep
-`CheckedTarget`, Property/Behavior/Query, current planning, fingerprints, and all Case/runtime code.
+`CheckedModel`, Property/Behavior/Query, current planning, fingerprints, and all Case/runtime code.
 Add the labeled transition adapter, a small supported-Property compiler, result/receipt mapping, and
 Exact Replay. The concrete checker can consume an enumerable adapter directly. Symbolic trace and
 invariant checking either need a Veil contribution that exposes function APIs, or an Umpire module
@@ -172,7 +172,7 @@ Testpilot.
 
 The remaining central proof is an isomorphism/refinement between Umpire's enriched transition label
 and Veil's relation, plus a theorem that every enumerable action execution denotes exactly that
-relation. Without the latter, adopting Veil below `CheckedTarget` weakens Umpire's current
+relation. Without the latter, adopting Veil below `CheckedModel` weakens Umpire's current
 sound/complete enumerator boundary.
 
 The retired Umpire3 integration is concrete evidence of this cost. Its generic

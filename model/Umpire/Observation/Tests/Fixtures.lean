@@ -144,11 +144,11 @@ def context : ObservationCheckContext := {
   ]
   meanings := [
     { definitionId := operationState, kind := .state,
-      canonicalBehavior := operationState.value ++ "/meaning-v1" },
+      behaviorVersion := operationState.value ++ "/meaning-v1" },
     { definitionId := contributionObservation, kind := .fact,
-      canonicalBehavior := contributionObservation.value ++ "/meaning-v1" },
+      behaviorVersion := contributionObservation.value ++ "/meaning-v1" },
     { definitionId := digestObservation, kind := .fact,
-      canonicalBehavior := digestObservation.value ++ "/meaning-v1" }
+      behaviorVersion := digestObservation.value ++ "/meaning-v1" }
   ]
   profiles := [evidenceProfile]
 }
@@ -224,11 +224,11 @@ def evaluationContext : ObservationCheckContext := {
   ]
   meanings := context.meanings ++ [
     { definitionId := completedState, kind := .state,
-      canonicalBehavior := completedState.value ++ "/meaning-v1" },
+      behaviorVersion := completedState.value ++ "/meaning-v1" },
     { definitionId := startAction, kind := .action,
-      canonicalBehavior := startAction.value ++ "/meaning-v1" },
+      behaviorVersion := startAction.value ++ "/meaning-v1" },
     { definitionId := successOutcome, kind := .outcome,
-      canonicalBehavior := successOutcome.value ++ "/meaning-v1" }
+      behaviorVersion := successOutcome.value ++ "/meaning-v1" }
   ]
   profiles := [{ evidenceProfile with kinds := [{
     id := eventKind
@@ -369,7 +369,7 @@ def verdictPropertyContext : PropertyCheckContext := {
   providers := [{
     id := verdictCapability
     version := 1
-    canonicalBehavior := "test-observation-verdict/v1"
+    behaviorVersion := "test-observation-verdict/v1"
   }]
   meanings := evaluationContext.meanings.map fun meaning => (verdictCapability, meaning)
 }

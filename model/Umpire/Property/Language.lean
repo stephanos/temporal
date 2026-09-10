@@ -1,4 +1,4 @@
-import Umpire.Target.Semantics
+import Umpire.Model.Check
 import Umpire.Property.Fields
 
 /-! Implementation behind the `Umpire.Property` public facade. -/

@@ -472,7 +472,7 @@ private def validateSemanticMapping
     (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
       SourceSetup ModelValue ModelValue ModelValue ModelValue
       DestinationSetup ModelValue ModelValue ModelValue ModelValue)
-    (meaning : MeaningProvision) : Except ImplementationLinkDiagnostic Unit := do
+    (meaning : Meaning) : Except ImplementationLinkDiagnostic Unit := do
   let mappings := match meaning.kind with
     | .relation => checked.declaration.relationMappings
     | .capability => checked.declaration.capabilityMappings
@@ -528,7 +528,7 @@ private def mappedSetup
       SourceSetup ModelValue ModelValue ModelValue ModelValue
       DestinationSetup ModelValue ModelValue ModelValue ModelValue)
     (sourceSetup : SourceSetup) : Except ImplementationLinkDiagnostic DestinationSetup := do
-  let sourceDomain ← match checked.sourceTarget.kernel.behaviorDomain with
+  let sourceDomain ← match checked.sourceTarget.machine.vocabulary with
     | .complete domain => pure domain
     | _ => throw <| implementationLinkDiagnostic checked .behaviorFingerprintDrift
   let sourceSetupBehaviorFingerprint :=
@@ -561,7 +561,7 @@ private abbrev AdmittedSourceSteps
       DestinationSetup ModelValue ModelValue ModelValue ModelValue)
     (state : ModelValue)
     (steps : List (ModelTraceStep ModelValue ModelValue ModelValue ModelValue)) :=
-  PLift (AuthoritativeTraceSteps checked.sourceTarget.kernel state steps)
+  PLift (AuthoritativeTraceSteps checked.sourceTarget.machine state steps)
 
 private abbrev ExactListMember (value : Value) (values : List Value) :=
   PLift (value ∈ values)
@@ -594,10 +594,10 @@ private def admittedSourceSteps
         facts := step.facts
       }
       match exactListMember? result
-          (checked.sourceTarget.kernel.steps state step.selectedAction) with
+          (checked.sourceTarget.machine.steps state step.selectedAction) with
       | some admitted =>
         match admittedSourceSteps checked step.state (position + 1) rest with
-        | .ok admittedRest => .ok ⟨⟨checked.sourceTarget.kernel.stepSound
+        | .ok admittedRest => .ok ⟨⟨checked.sourceTarget.machine.stepSound
             state step.selectedAction result admitted.down, admittedRest.down⟩⟩
         | .error failure => .error failure
       | none =>
@@ -613,7 +613,7 @@ private abbrev AdmittedSourceTrace
       DestinationSetup ModelValue ModelValue ModelValue ModelValue)
     (sourceSetup : SourceSetup)
     (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue) :=
-  PLift (AuthoritativeModelTrace checked.sourceTarget.kernel sourceSetup trace)
+  PLift (AuthoritativeModelTrace checked.sourceTarget.machine sourceSetup trace)
 
 private def admittedSourceTrace
     (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
@@ -623,11 +623,11 @@ private def admittedSourceTrace
     (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue) :
     Except ImplementationLinkDiagnostic (AdmittedSourceTrace checked sourceSetup trace) := do
   match exactListMember? trace.initialState
-      (checked.sourceTarget.kernel.initialStates sourceSetup) with
+      (checked.sourceTarget.machine.initialStates sourceSetup) with
   | some admitted =>
     let admittedSteps ← admittedSourceSteps checked trace.initialState 1 trace.steps
     pure ⟨{
-      initial := checked.sourceTarget.kernel.initialSound sourceSetup trace.initialState admitted.down
+      initial := checked.sourceTarget.machine.initialSound sourceSetup trace.initialState admitted.down
       steps := admittedSteps.down
     }⟩
   | none =>
@@ -738,7 +738,7 @@ structure AppliedImplementationLink
   destinationSetup : DestinationSetup
   trace : ModelTrace ModelValue ModelValue ModelValue ModelValue
   evidenceLinks : List ImplementationLinkEvidenceLink
-  authoritative : AuthoritativeModelTrace checked.destinationTarget.kernel destinationSetup trace
+  authoritative : AuthoritativeModelTrace checked.destinationTarget.machine destinationSetup trace
 
 /-- A non-success constructor cannot carry a destination Model Trace. -/
 inductive ImplementationLinkResult

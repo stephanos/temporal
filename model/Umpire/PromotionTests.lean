@@ -38,7 +38,7 @@ private def baseAnchor : PromotionBaseAnchor := {
   behaviorFingerprint := exactActionQuery.behavior.behaviorFingerprint
   targetDefinitionId := exactActionQuery.target.id
   targetBehaviorFingerprint := exactActionQuery.target.behaviorFingerprint
-  kernelDefinitionId := exactActionQuery.target.kernel.metadata.id
+  kernelDefinitionId := exactActionQuery.target.machine.metadata.id
   kernelBehaviorFingerprint := exactActionQuery.target.behaviorFingerprint
   plannerRun := exactActionRun
   experimentSpec := compiledArtifact
@@ -63,7 +63,7 @@ private def sourceExpectation : PromotionSourceExpectation :=
   let bytes := include_str "Promotion/Tests/Fixtures/CompiledSource.lean"
   {
     bytes
-    sha256 := "sha256:6d1dda9d3a6368f874edbae6585d183c106e5cc224fef0c0cda1dad65ea821bc"
+    sha256 := "sha256:e249fa46e5bc940e5df599e32094a6f0f2292c32227b3366368514e40c1dad3d"
   }
 
 private def errorKindOf
@@ -165,7 +165,7 @@ private def nonFoundAnchor : Option PromotionBaseAnchor := do
     behaviorFingerprint := nonFoundQuery.behavior.behaviorFingerprint
     targetDefinitionId := nonFoundQuery.target.id
     targetBehaviorFingerprint := nonFoundQuery.target.behaviorFingerprint
-    kernelDefinitionId := nonFoundQuery.target.kernel.metadata.id
+    kernelDefinitionId := nonFoundQuery.target.machine.metadata.id
     kernelBehaviorFingerprint := nonFoundQuery.target.behaviorFingerprint
     plannerRun
     experimentSpec := compiledArtifact

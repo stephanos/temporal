@@ -17,7 +17,7 @@ example : ((incrementalKernel? 2).map fun kernel =>
   rfl
 
 private def admissionErrorKind
-    {target : QueryTarget LawStatement}
+    {target : QueryModel LawStatement}
     (result : Except FinitePlannerAdmissionError (IncrementalPlannerKernel target)) :
     Option FinitePlannerAdmissionErrorKind :=
   match result with
@@ -76,28 +76,28 @@ exposing its cursor representation. Ordinary planning still stops at the first s
 
 section Replacement
 
-variable (original : QueryTarget LawStatement)
-  (sameBehavior : original.kernel.behaviorDescription? =
-    some { original.behaviorDescription with terminalConditions := [] })
+variable (original : QueryModel LawStatement)
+  (sameBehavior : original.machine.behaviorTable? =
+    some { original.behaviorTable with terminalConditions := [] })
 
-private def replacementWithoutPlanning : QueryTarget LawStatement :=
-  original.withEquivalentKernel original.kernel rfl
+private def replacementWithoutPlanning : QueryModel LawStatement :=
+  original.withEquivalentMachine original.machine rfl
     ⟨rfl, rfl, rfl, rfl, rfl⟩ rfl rfl sameBehavior
 
 private theorem replacement_without_planning_has_no_completeness :
-    (CheckedQueryTarget.ofTarget (replacementWithoutPlanning original sameBehavior)).completeness =
+    (CheckedQueryModel.ofTarget (replacementWithoutPlanning original sameBehavior)).completeness =
       none := rfl
 
 /-- error: Type mismatch -/
 #guard_msgs (error, substring := true) in
-#check (original.withEquivalentKernel original.kernel rfl
-  ⟨rfl, rfl, rfl, rfl, rfl⟩ rfl rfl : QueryTarget LawStatement)
+#check (original.withEquivalentMachine original.machine rfl
+  ⟨rfl, rfl, rfl, rfl, rfl⟩ rfl rfl : QueryModel LawStatement)
 private theorem replacement_without_planning_rejects_planner
     (query : CheckedQuery LawStatement) :
     let replacement := replacementWithoutPlanning original sameBehavior
     let replacedQuery := { query with
       target := replacement
-      completeness := (CheckedQueryTarget.ofTarget replacement).completeness }
+      completeness := (CheckedQueryModel.ofTarget replacement).completeness }
     (match IncrementalPlannerKernel.ofCheckedQuery replacement.id replacedQuery with
     | .ok _ => none
     | .error error => some error.kind) = some .missingFiniteCompleteness := by
@@ -105,9 +105,9 @@ private theorem replacement_without_planning_rejects_planner
     change (!(original.id.value == original.id.value)) = false
     simp
   simp [IncrementalPlannerKernel.ofCheckedQuery, replacementWithoutPlanning,
-    CheckedTarget.withEquivalentKernel, CheckedQueryTarget.ofTarget, sameId]
+    CheckedModel.withEquivalentMachine, CheckedQueryModel.ofTarget, sameId]
 
-variable (capability : FinitePlanningCapability original.kernel.authoritativeStep)
+variable (capability : FinitePlanningCapability original.machine.authoritativeStep)
 /-- error: Fields missing: `actionComplete` -/
 #guard_msgs (error, substring := true) in
 #check ({ actions := capability.actions, actionSound := capability.actionSound } :

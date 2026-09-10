@@ -13,7 +13,7 @@ private def frontendBaselineContext : PropertyCheckContext := {
   providers := [{
     id := Lifecycle.lifecycleProvider.contract.id
     version := Lifecycle.lifecycleProvider.contract.version
-    canonicalBehavior := Lifecycle.lifecycleProvider.contract.canonicalBehavior
+    behaviorVersion := Lifecycle.lifecycleProvider.contract.behaviorVersion
   }]
   meanings := Lifecycle.lifecycleProvider.meanings.map fun meaning =>
     (Lifecycle.lifecycleProvider.contract.id, meaning)
@@ -45,7 +45,7 @@ private def frontendRaceContext : PropertyCheckContext := {
   providers := [{
     id := Race.provider.contract.id
     version := Race.provider.contract.version
-    canonicalBehavior := Race.provider.contract.canonicalBehavior
+    behaviorVersion := Race.provider.contract.behaviorVersion
   }]
   meanings := Race.provider.meanings.map fun meaning => (Race.provider.contract.id, meaning)
 }
@@ -79,7 +79,7 @@ private def baselineEquivalence : Bool :=
   match Authoring.Baseline.checkBaseline, Cancellation.checkBaseline with
   | .ok authored, .ok established =>
       authored.target.id == established.target.id &&
-      authored.target.behaviorDescription == established.target.behaviorDescription &&
+      authored.target.behaviorTable == established.target.behaviorTable &&
       authored.target.providers.map (fun provider => provider.id) ==
         established.target.providers.map (fun provider => provider.id) &&
       authored.start.property.id == established.start.property.id &&
@@ -134,7 +134,7 @@ private def guardedBehaviorEquivalence : Option Bool := do
 
 private def raceAlternativesAndProvider : Option (Nat × List DefinitionId) := do
   let target ← Race.targetResult.toOption
-  let alternatives := target.kernel.steps
+  let alternatives := target.machine.steps
     (ModelValue.named Race.operationStateId "cancel-requested")
     (ModelValue.named Race.resolveActionId "resolve")
   pure (alternatives.length, target.providers.map (fun provider => provider.id))
@@ -455,7 +455,7 @@ private def contradictoryBehavior (model : Race.ModelVocabulary) : ExactSequence
   pure checked.isUnsatisfiable) == some true
 
 private def queryErrorKind
-    (target : QueryTarget Race.LawStatement)
+    (target : QueryModel Race.LawStatement)
     (spec : QuerySpec) : Option QueryErrorKind :=
   match spec.check target with
   | .error error => some error.kind
@@ -625,7 +625,7 @@ private def frontendGuardedQueryEquivalence : Option Bool := do
     frontend.form == constructor.form && frontend.quantifier == constructor.quantifier &&
     frontend.claim == constructor.claim && frontend.limits == constructor.limits &&
     frontend.policy == constructor.policy &&
-    frontend.targetComposition == constructor.targetComposition)
+    frontend.modelProviders == constructor.modelProviders)
 
 #guard frontendGuardedQueryEquivalence == some true
 
@@ -919,7 +919,7 @@ private def invalidOpenBehaviorHasNoCheckedValue : Option BehaviorErrorKind :=
 
 private def openQueryFrontend
     (spec : QuerySpec)
-    (target : QueryTarget Race.LawStatement) :
+    (target : QueryModel Race.LawStatement) :
     Except QueryError (CheckedQuery Race.LawStatement) :=
   query% spec against target tracking [queryParent spec.declaration.id]
 
