@@ -15,7 +15,7 @@ This is the missing reproducible accepted violation needed before C10 can replay
 ## Goal & Context
 <!-- scope: business -->
 
-Model/runtime engineers need one honest negative control proving that authored requested faults can cross the current ExperimentSpec, local participant, raw-evidence, and semantic-Run Evaluation boundaries without confusing a requested attempt, an operational receipt, or an induced observation with target-owned meaning. Success means the existing normal run remains satisfied, while the exact faulted run is operationally succeeded, accepted, and semantically violated for the intended reason.
+Model/runtime engineers need one honest negative control proving that authored requested faults can cross the current Plan, local participant, raw-evidence, and semantic-Run Evaluation boundaries without confusing a requested attempt, an operational receipt, or an induced observation with target-owned meaning. Success means the existing normal run remains satisfied, while the exact faulted run is operationally succeeded, accepted, and semantically violated for the intended reason.
 
 Developers gain one concrete end-to-end realization of fn-16 fault intent. Operators gain no new authority, endpoint, credential, retry, plugin, or CLI option; both runs use the already planned bounded local commands over immutable admitted sets.
 
@@ -24,7 +24,7 @@ Developers gain one concrete end-to-end realization of fn-16 fault intent. Opera
 
 ```mermaid
 flowchart LR
-  S[Checked two-choice Nexus space] --> E[Fault-bearing ExperimentSpec]
+  S[Checked two-choice Nexus space] --> E[Fault-bearing Plan]
   E --> C[Closed faulted RuntimeConfiguration]
   C --> P[Local Nexus participant]
   P --> R[One real cancellation]
@@ -36,9 +36,9 @@ flowchart LR
 
 The Temporal-owned space is `temporal.nexus.caller-closure.space.duplicate-delivery-negative-control`. Its sole axis is `temporal.nexus.caller-closure.axis.cancellation-delivery`; its choices are `temporal.nexus.caller-closure.choice.delivery-baseline` and `temporal.nexus.caller-closure.choice.duplicate-delivery-observation`. The selected fault is `temporal.nexus.caller-closure.fault.duplicate-delivery-observation`, targeting required occurrence `workflow-nexus.occurrence.force-close`, action `workflow.action.force-close`, and capability `nexus.capability.cancellation`. The space carries one baseline and one fault-selection coverage goal because checked spaces require explicit seek metadata.
 
-The baseline choice proves lowering mechanics but does not replace the existing ordinary caller-closure fixture. The fault choice lowers through the fn-16 checked intent path to a distinct ExperimentSpec with exactly one requested fault; the target-owned planned trace remains the ordinary count-one expected trace. The existing no-fault ExperimentSpec, RuntimeConfiguration, participant program, fixtures, and output bytes remain unchanged.
+The baseline choice proves lowering mechanics but does not replace the existing ordinary caller-closure fixture. The fault choice lowers through the fn-16 checked intent path to a distinct Plan with exactly one requested fault; the target-owned planned trace remains the ordinary count-one expected trace. The existing no-fault Plan, RuntimeConfiguration, participant program, fixtures, and output bytes remain unchanged.
 
-A second closed RuntimeConfiguration and participant-program identity admit only that exact fault-bearing ExperimentSpec. They reuse the fn-19 local authority, five phases, budgets, four-source Evidence Limitary, protocol, one participant, and one force-close control. Every other fault, occurrence, action, target, capability set, program, mapping, or profile is rejected before environment creation.
+A second closed RuntimeConfiguration and participant-program identity admit only that exact fault-bearing Plan. They reuse the fn-19 local authority, five phases, budgets, four-source Evidence Limitary, protocol, one participant, and one force-close control. Every other fault, occurrence, action, target, capability set, program, mapping, or profile is rejected before environment creation.
 
 The participant waits until the real Nexus cancellation handler has received the cancellation under the pinned `WaitRequested` workflow mode. Only then may it contribute one synthetic duplicate observation. It never issues a second force-close or cancellation request and never mutates history. The one normal cancellation lifecycle chain contains exactly one `NEXUS_OPERATION_CANCEL_REQUESTED` event followed by one `NEXUS_OPERATION_CANCEL_REQUEST_COMPLETED` event; a second request chain is forbidden. The fault-specific evidence Generated View records one accepted control attempt with the exact fault identity and receipt, one real cancellation correlation, mechanical callback count one, synthetic-contribution count one, and an exact injected-duplicate marker tied to that same correlation. These are transport facts; the participant never emits a semantic verdict.
 
@@ -47,7 +47,7 @@ The fault-specific Temporal Observation mapping is a small checked extension of 
 ## API Contracts
 <!-- scope: technical -->
 
-- The checked space has exactly one axis, two choices, one request-only fault, and two coverage goals. Canonical lowering of the fault choice produces one ordinary v2 ExperimentSpec whose `requestedFaults` contains only the fault-to-occurrence binding and whose capability requirements contain the cancellation capability. Neither choice authors an outcome, observation, receipt, or success.
+- The checked space has exactly one axis, two choices, one request-only fault, and two coverage goals. Canonical lowering of the fault choice produces one ordinary v2 Plan whose `requestedFaults` contains only the fault-to-occurrence binding and whose capability requirements contain the cancellation capability. Neither choice authors an outcome, observation, receipt, or success.
 - The faulted runtime binding is a second immutable built-in program/configuration pair. Its preflight requires exactly one matching requested fault, the fixed target/action/occurrence/capability/program/profile/mapping closure, seed zero, attempt one, and the existing bounded local authority. It has no configurable fault selector or arbitrary parameter map.
 - Realization uses one real caller force-close and `NexusOperationCancellationTypeWaitRequested`. Injection occurs exactly once after the corresponding completed cancellation lifecycle correlation is established and before participant-output source closure. If the real cancellation is absent, rejected, failed, timed out, or uncorrelated, no synthetic duplicate is emitted.
 - Faulted ExperimentRun records exactly one accepted control attempt for the planned occurrence with non-null matching fault and receipt identities. RawEvidence retains the existing four sources, unique fact identities and source ordinals, one normal requested/completed cancellation history chain, mechanical callback count one, synthetic-contribution count one, and the fixed injected-duplicate marker. The marker and both contributions share the real operation/cancellation correlation and cannot be inferred from timing or retries.
@@ -58,7 +58,7 @@ The fault-specific Temporal Observation mapping is a small checked extension of 
 ## Edge Cases & Constraints
 <!-- scope: technical -->
 
-- Zero, duplicate, extra, stale, wrong-target, wrong-occurrence, wrong-action, or wrong-capability requested faults fail preflight before server or participant startup. A fault-bearing ExperimentSpec paired with the normal configuration, or the inverse, also fails before IO.
+- Zero, duplicate, extra, stale, wrong-target, wrong-occurrence, wrong-action, or wrong-capability requested faults fail preflight before server or participant startup. A fault-bearing Plan paired with the normal configuration, or the inverse, also fails before IO.
 - A synthetic marker without one completed real cancellation lifecycle receipt is a runtime invariant failure, not evidence. A real receipt without the selected marker/contribution is operationally inspectable but cannot become the intended accepted violation.
 - The real and synthetic contributions have distinct fact identities and ordinals while sharing the exact run/operation/cancellation correlation. Duplicate fact identity is malformed evidence; duplicate semantic contribution with valid distinct facts is the intentional negative control.
 - Mechanical callback count other than one, synthetic-contribution count other than one, multiple markers, mismatched correlations, reordered causal dependencies, missing receipt, partial closure, a gap, or unusable disposition fails at the exact owning boundary below. It never guesses the intended fault.
@@ -97,8 +97,8 @@ make umpire-check-regression
 ## Acceptance Criteria
 <!-- scope: both -->
 
-- **R1:** One exact Temporal-owned two-choice checked space lowers the selected duplicate-delivery fault through fn-16 into a canonical fault-bearing ExperimentSpec while the target-owned planned trace remains the ordinary expected count-one trace and every pre-existing no-fault artifact remains byte-identical. Errors: invalid space Limits/effects/goals, absent or mismatched required occurrence/action/capability, duplicate/incompatible selection, lowering/planning failure, or authored outcome/evidence fields yields no faulted ExperimentSpec.
-- **R2:** One second closed RuntimeConfiguration/participant-program pair and immutable input set admit only the exact fault-bearing ExperimentSpec and existing bounded local authority. Errors: zero/extra/different faults, normal/faulted configuration crossing, profile/program/protocol/mapping/capability/budget/seed/attempt drift, malformed set closure, or duplicate identity rejects before environment creation with no side effect.
+- **R1:** One exact Temporal-owned two-choice checked space lowers the selected duplicate-delivery fault through fn-16 into a canonical fault-bearing Plan while the target-owned planned trace remains the ordinary expected count-one trace and every pre-existing no-fault artifact remains byte-identical. Errors: invalid space Limits/effects/goals, absent or mismatched required occurrence/action/capability, duplicate/incompatible selection, lowering/planning failure, or authored outcome/evidence fields yields no faulted Plan.
+- **R2:** One second closed RuntimeConfiguration/participant-program pair and immutable input set admit only the exact fault-bearing Plan and existing bounded local authority. Errors: zero/extra/different faults, normal/faulted configuration crossing, profile/program/protocol/mapping/capability/budget/seed/attempt drift, malformed set closure, or duplicate identity rejects before environment creation with no side effect.
 - **R3:** The faulted participant performs exactly one force-close and one real `WaitRequested` cancellation lifecycle containing one requested and one completed history event, then emits exactly one labeled synthetic duplicate observation after the completed real correlation and before source closure. A complete realization remains operationally succeeded. Errors: no completed real receipt, rejection/failure/timeout, duplicate activation, second request chain, synthetic history mutation, wrong correlation, or cleanup failure follows the exact mutation table and never emits a successful synthetic claim.
 - **R4:** The admitted faulted ExperimentRun and RawEvidence retain one accepted fault-bound control attempt/receipt, four exact closed sources, unique ordered facts, mechanical callback count one, synthetic-contribution count one, the fixed injected marker, the normal requested/completed cancellation causal chain, sanitized allowlisted fields, and explicit closure/cleanup. Errors: duplicate/missing facts or receipts, malformed marker/count, mismatched references/order/correlation, unsafe field/payload leakage, gap, N+1 capacity, or incomplete source closure follows the exact mutation table and cannot be admitted as a closed operational success.
 - **R5:** A checked fault-specific evidence profile/program/mapping is compiled before RuntimeConfiguration binding; the existing Run Evaluation controller/checker consumes it to derive semantic cancellation count two from callback count one plus synthetic-contribution count one. The unchanged pure caller-closure Property reports semantic `violated` with delivery/ownership satisfied and only its at-most-one cancellation clause responsible. Errors: every request/receipt/marker/count/mapping/configuration/causality/closure/disposition/Property-partition mutation yields exactly the tooling, unknown, conflict, unsupported, or incomplete result assigned by the mutation table and never a guessed violation.
@@ -109,7 +109,7 @@ make umpire-check-regression
 ## Early proof point
 <!-- scope: technical -->
 
-Task `.1` proves the exact checked fault intent can lower into a distinct ordinary ExperimentSpec while retaining the unchanged target-owned count-one plan and byte-identical normal artifact. If it fails, reconsider the fn-16 checked-space binding before adding any runtime or evidence behavior.
+Task `.1` proves the exact checked fault intent can lower into a distinct ordinary Plan while retaining the unchanged target-owned count-one plan and byte-identical normal artifact. If it fails, reconsider the fn-16 checked-space binding before adding any runtime or evidence behavior.
 
 ## Boundaries
 <!-- scope: business -->
@@ -133,7 +133,7 @@ A second exact program/configuration pair preserves the existing normal fixture 
 ## References
 <!-- scope: technical -->
 
-- Flow spec fn-16 — checked finite spaces, request-only fault intents, canonical point lowering, and ordinary ExperimentSpec intent fields.
+- Flow spec fn-16 — checked finite spaces, request-only fault intents, canonical point lowering, and ordinary Plan intent fields.
 - Flow spec fn-18 — exact RuntimeConfiguration, ExperimentRun, RawEvidence, Result, closure, Limits, admission, and immutable publication contracts.
 - Flow spec fn-19 — bounded local authority, participant protocol, five-phase runtime, four evidence sources, and operational precedence.
 - Flow spec fn-20 — exact Nexus evidence mapping, pure Property evaluation, accepted Result identity, and status/CLI contracts.
@@ -145,7 +145,7 @@ A second exact program/configuration pair preserves the existing normal fixture 
 
 | Req | Description | Task(s) | Gap justification |
 | --- | --- | --- | --- |
-| R1 | Checked negative-control space and fault-bearing ExperimentSpec | `.1` | — |
+| R1 | Checked negative-control space and fault-bearing Plan | `.1` | — |
 | R2 | Closed faulted program/configuration and input set | `.7`, `.2` | — |
 | R3 | One real cancellation plus exactly one injected observation | `.3`, `.4` | — |
 | R4 | Closed causal fault-realization evidence | `.4`, `.6` | — |

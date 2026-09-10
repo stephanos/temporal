@@ -13,7 +13,7 @@ Admit one exact closed set of the v2 Test Plan and retained execution/evaluation
 
 ### Approach
 - Admit only the exact two-member executable, four-member execution, or six-member evaluation
-  closures and their exact ordered safe paths from the parent contract; DrivePlan stays nested.
+  closures and their exact ordered safe paths from the parent contract; Plan.Steps stays nested.
 - Decode members individually, then validate unique safe paths, exact checksums, version agreement, bindings, and complete relationship closure.
 - Resolve model references only through the appropriate retained Artifact fields; never invent pseudo-Artifact documents.
 - Reject partial, extra, duplicate, mixed, stale, unresolved, or path-inconsistent sets atomically.
@@ -35,7 +35,7 @@ Admit one exact closed set of the v2 Test Plan and retained execution/evaluation
 ## Done summary
 Admitted only the exact two-member executable, four-member execution, and six-member evaluation Artifact v2 closures at their prescribed ordered safe paths. The new Lean and Go deep modules decode members independently, validate canonical transport and complete retained relationships, reject partial, extra, duplicate, mixed, stale, unresolved, unsafe, path-inconsistent, or non-canonical input atomically, and remain inert, bounded, fetch-free, and publication-independent.
 
-Lean and Go independently reproduce the exact deterministic 2-space pretty manifest bytes with one terminal LF, member rows, set identity, set checksum, and raw manifest SHA-256. TDD began from the inherited green Quick baseline, then drove the missing set admission and manifest APIs plus unresolved-link rejection. The configured Codex review found one Lean transport-parity gap for checksum-preserving invalid planning collections; focused DrivePlan and ExperimentSpec validators and regression proofs closed it, all scoped and aggregate gates pass, and the same-receipt re-review reached SHIP with no remaining findings.
+Lean and Go independently reproduce the exact deterministic 2-space pretty manifest bytes with one terminal LF, member rows, set identity, set checksum, and raw manifest SHA-256. TDD began from the inherited green Quick baseline, then drove the missing set admission and manifest APIs plus unresolved-link rejection. The configured Codex review found one Lean transport-parity gap for checksum-preserving invalid planning collections; focused Plan.Steps and Plan validators and regression proofs closed it, all scoped and aggregate gates pass, and the same-receipt re-review reached SHIP with no remaining findings.
 
 stage: impl-review - ran [2026-08-29T08:54:34Z..2026-08-29T09:04:34Z] (model: gpt-5.6-sol)
 ## Evidence

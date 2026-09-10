@@ -4,7 +4,7 @@ satisfies: [R1, R6]
 # fn-27-hermetic-ci-execution-and-qualification.1 Pin the byte-identical v2 Artifact for ordinary CI tests
 
 ## Description
-Freeze the exact canonical v2 `ExperimentSpec` already used by the local Nexus path as the sole CI semantic input. Generate an ordinary Go test from that admitted Artifact without recompiling or reconstructing its definitions. Check the exact bytes, format version, Artifact Checksum, Definition IDs, Behavior Fingerprints, Limits, Known Gaps, query, Properties, Observation program, and Implementation Link before runtime IO.
+Freeze the exact canonical v2 `Plan` already used by the local Nexus path as the sole CI semantic input. Generate an ordinary Go test from that admitted Artifact without recompiling or reconstructing its definitions. Check the exact bytes, format version, Artifact Checksum, Definition IDs, Behavior Fingerprints, Limits, Known Gaps, query, Properties, Observation program, and Implementation Link before runtime IO.
 
 ## Acceptance
 - [ ] CI and local tests consume byte-identical canonical v2 Artifact bytes.
@@ -12,7 +12,7 @@ Freeze the exact canonical v2 `ExperimentSpec` already used by the local Nexus p
 - [ ] No CI Evaluation Profile, provenance schema, or semantic copy is introduced.
 
 ## Done summary
-Made the aggregate regression gate portable across Darwin's logical and physical temporary roots. Generated an inspectable Run Evaluation subject pin from the exact canonical ExperimentSpec bytes and reject byte, version, checksum, fingerprint, closure, or generated-output drift before runtime I/O.
+Made the aggregate regression gate portable across Darwin's logical and physical temporary roots. Generated an inspectable Run Evaluation subject pin from the exact canonical Plan bytes and reject byte, version, checksum, fingerprint, closure, or generated-output drift before runtime I/O.
 
 All task and spec Quick commands pass. Diff-scoped lint and vet pass; the repository-wide `make lint-code` remains inherited red with 1,375 unrelated findings.
 

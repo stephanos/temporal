@@ -11,7 +11,7 @@ Implement R1/R2's deep reusable Go boundary for checked requests, participant pr
 **Touches:** [tools/umpire/runtime/runtime.go, tools/umpire/runtime/request.go, tools/umpire/runtime/participant.go, tools/umpire/runtime/errors.go, tools/umpire/runtime/request_test.go]
 
 ### Approach
-- Consume only fn-18 admitted typed sets; require exact two-member ExperimentSpec/RuntimeConfiguration input and never parse persisted bytes.
+- Consume only fn-18 admitted typed sets; require exact two-member Plan/RuntimeConfiguration input and never parse persisted bytes.
 - Define immutable CheckedRunRequest, closed participant program/command/receipt/resource vocabulary, adapter/environment interfaces, stable error kinds, and bounded identity/value types.
 - Validate profile/config/program/target/action/occurrence/participant/protocol/capability/budget/run/seed/attempt relations before invoking a factory.
 - Use constructor/private-field discipline so callbacks, arbitrary maps, alternate semantic values, and unchecked receipts cannot enter the engine.

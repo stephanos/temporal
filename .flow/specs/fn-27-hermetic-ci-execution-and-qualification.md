@@ -4,7 +4,7 @@
 
 ## Intent
 
-Prove portability by running the byte-identical canonical v2 `ExperimentSpec` used locally through the ordinary CI test command and the same runner and Run Evaluation interfaces. CI changes operational bindings only; it never recompiles semantic meaning, rewrites the Artifact, or introduces a CI-specific evaluator.
+Prove portability by running the byte-identical canonical v2 `Plan` used locally through the ordinary CI test command and the same runner and Run Evaluation interfaces. CI changes operational bindings only; it never recompiles semantic meaning, rewrites the Artifact, or introduces a CI-specific evaluator.
 
 This is a bounded hermetic execution proof, not a Claim Assessment platform. It adds no Evaluation Profile, Evaluation Receipt, provenance schema, artifact-set version, release evidence, or environment-specific copy of Feature/System meaning.
 
@@ -12,7 +12,7 @@ This is a bounded hermetic execution proof, not a Claim Assessment platform. It 
 
 ```mermaid
 flowchart LR
-  A[Canonical v2 ExperimentSpec] --> B[Generated ordinary Go test]
+  A[Canonical v2 Plan] --> B[Generated ordinary Go test]
   B --> C[Disposable loopback CI runtime]
   C --> D[Raw Evidence and Execution Receipts]
   D --> E[Shared Run Evaluation]
@@ -53,7 +53,7 @@ mise exec -- make umpire-check-regression
 
 ## Acceptance Criteria
 
-- **R1:** CI consumes the byte-identical canonical v2 `ExperimentSpec` used locally and checks its format version, Artifact Checksum, Definition IDs, and Behavior Fingerprints before runtime IO. Errors: recompilation, checksum/fingerprint drift, unsupported version, noncanonical bytes, or incomplete closure performs no runtime IO and fails the portability proof.
+- **R1:** CI consumes the byte-identical canonical v2 `Plan` used locally and checks its format version, Artifact Checksum, Definition IDs, and Behavior Fingerprints before runtime IO. Errors: recompilation, checksum/fingerprint drift, unsupported version, noncanonical bytes, or incomplete closure performs no runtime IO and fails the portability proof.
 - **R2:** One ordinary generated Go test uses the shared runner with a bounded invocation-owned loopback environment, fixed concurrency, and deterministic cleanup. Errors: external endpoint, credential, arbitrary executable, undeclared network authority, Limit drift, participant leak, or incomplete cleanup fails closed.
 - **R3:** CI delegates Evidence interpretation to the same Run Evaluation authority used locally and retains Execution, Observation Evaluation, Implementation Link, Property, cleanup, and tooling outcomes separately. Errors: CI-specific mapper/evaluator, direct Evidence-to-Feature translation, status collapse, or Property reevaluation fails completion.
 - **R4:** Equivalent local and CI Evidence has the same Behavior Fingerprints and Run Evaluation meaning while allowed runtime transport identities remain distinct. Errors: environment-specific semantic copies, changed Model Trace/Fact meaning, or nondeterministic evaluation fails the parity proof.

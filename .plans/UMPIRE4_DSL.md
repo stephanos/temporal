@@ -38,7 +38,7 @@ property + behavior + query + checked target
                  |                         |
                  +------ bounded planner <-+
                               |
-                       ExperimentSpec(s)
+                       Plan(s)
                     |
         +-----------+-----------+
         |                       |
@@ -54,7 +54,7 @@ property + behavior + query + checked target
                             property verdicts
 ```
 
-The implemented current-model path ends at deterministic `ExperimentSpec` compilation and
+The implemented current-model path ends at deterministic `Plan` compilation and
 inspection. Runtime
 execution, live Observation Evaluation, replay, promotion, and deployment Claim Assessment are
 separate integration work and must preserve the same Behavior Fingerprints.
@@ -66,7 +66,7 @@ separate integration work and must preserve the same Behavior Fingerprints.
 - Properties are pure, portable, and capability-scoped; they never mention evidence sources.
 - Behavior denotes a constrained Model Trace space, not a procedural RPC script.
 - Scenario authoring records requested actions; target semantics owns outcomes.
-- A `DrivePlan` is generated execution intent, not an author-facing language or proof of execution.
+- A `Plan.Steps` is generated execution intent, not an author-facing language or proof of execution.
 - Raw evidence is interpreted separately before properties evaluate it.
 - Missing, ambiguous, conflicting, stale, or unsupported evidence never becomes success.
 - Every search, execution, observation, and minimization phase has explicit typed Limits.
@@ -256,7 +256,7 @@ later consumes for catalog aggregation; it neither persists a registry nor imple
 `lowerSpacePoint` rechecks the derived Behavior and Query for one exact assignment, produces checked
 Artifact intent, and retains proof that the target is unchanged. `compileBatch` transports the same
 caller-owned target-indexed kernel across every point and returns either every canonical
-`ExperimentSpec` or no partial batch.
+`Plan` or no partial batch.
 
 Faults remain requested attempts, never authored outcomes, receipts, realization, or success.
 Target-owned planning supplies outcomes and resulting states. Coverage goals state what later C8
@@ -272,15 +272,15 @@ cannot consume requested-fault or coverage metadata.
 - `unsatisfiable`: behavior constraints admit no trace; and
 - `invalid`: vocabulary, capabilities, types, or Limits are malformed.
 
-## DrivePlan and ExperimentSpec
+## Plan.Steps and Plan
 
 The runtime consumes generated artifacts rather than evaluating behavior constraints directly.
 
-A `DrivePlan` records selected semantic occurrences, their deterministic order, resources and
+A `Plan.Steps` records selected semantic occurrences, their deterministic order, resources and
 bindings, choices, variants, requested faults, required drive capabilities, preconditions, Limits,
 observation checkpoints, source identities, selection reason, and Known Gaps.
 
-An `ExperimentSpec` is the portable environment-independent envelope. It embeds or references the
+An `Plan` is the portable environment-independent envelope. It embeds or references the
 plan and adds property identities, observation requirements, format version, Behavior Fingerprint,
 provenance, and digests. It records what a runtime should attempt; it never claims the attempt,
 fault, outcome, or observation occurred.
@@ -346,7 +346,7 @@ internal representations.
 | Config catalog | Keys, types, defaults, precedence, scope, and classification |
 | Semantic catalog | Lean-owned vocabulary, Targets, Properties, checked Space metadata, observations, and Behavior Fingerprints |
 | Regression/space | Named Behavior, Query, and finite Space declarations |
-| ExperimentSpec | Environment-independent bounded execution intent |
+| Plan | Environment-independent bounded execution intent |
 | ExperimentRun | One environment-specific realization with controls and cleanup |
 | Raw evidence | Typed facts, receipts, source positions, causality, and Known Gaps |
 | Semantic evidence | Lean-owned interpretation of raw facts |
@@ -361,9 +361,9 @@ The stable component responsibilities are:
 | API importer | Descriptor sets to structural Lean declarations and catalog |
 | Config importer | Dynamic-config declarations to typed catalog and fixtures |
 | Authoring languages | Lean declarations to checked semantic catalog |
-| Experiment compiler | Checked query and Limits to `ExperimentSpec` |
+| Experiment compiler | Checked query and Limits to `Plan` |
 | Go/docs Generated View | Stable regression catalog to non-semantic developer Generated Views |
-| Execution runtime | `ExperimentSpec` and environment to run plus raw evidence |
+| Execution runtime | `Plan` and environment to run plus raw evidence |
 | Run Evaluation | Spec, run, and raw evidence to semantic evidence and result |
 | Exploration | Scenario space, strategy, Limits, and coverage to selected specs |
 | SDK participant | Participant program to SDK behavior and observations |
@@ -449,7 +449,7 @@ Generic optional Veil machinery lives under `Umpire.Verify.Veil` and contains no
 vocabulary. Family-specific views, declarations, mappings, and correspondence proofs live under
 `Temporal.Verify`, not under `Umpire`, `Temporal.Feature`, or base `Temporal.System` modules.
 
-Umpire never generates Veil source from Go, JSON, templates, or `ExperimentSpec`. Lean
+Umpire never generates Veil source from Go, JSON, templates, or `Plan`. Lean
 metaprogramming may remove local boilerplate, but authored declarations remain inspectable and
 source-bound. Ordinary Umpire and Temporal imports must remain usable without importing or
 compiling Veil modules.
@@ -465,7 +465,7 @@ digests, and replay disagreement never become success.
 
 Every Veil counterexample must replay through the canonical Umpire transition kernel before it can
 support a semantic violation or promoted regression. Verification receipts reference rather than
-duplicate `ExperimentSpec` and remain offline build/test artifacts; Veil never enters production
+duplicate `Plan` and remain offline build/test artifacts; Veil never enters production
 request paths or server binaries. The normal model build and regression gate do not compile or run
 `Temporal.Verify`; a separate focused verification gate owns Veil's toolchain, cost, and retained
 trust evidence.

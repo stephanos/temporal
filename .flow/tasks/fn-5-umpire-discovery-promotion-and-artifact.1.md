@@ -13,7 +13,7 @@ Create the concrete checked inventory that is the sole input to retained Nexus `
 ### Approach
 
 - Define one private-constructor `NexusDiscoveryEntry` from existing checked Property, Behavior,
-  Query, source, Behavior Fingerprint, and planned `ExperimentSpec` identities.
+  Query, source, Behavior Fingerprint, and planned `Plan` identities.
 - Register exactly the async-start, cancellation, successful-completion, and exact-action
   caller-closure examples in canonical query-identity order.
 - Validate the entire inventory before exposing it: exact four-row membership, unique and correctly
@@ -41,13 +41,13 @@ Create the concrete checked inventory that is the sole input to retained Nexus `
 
 ## Acceptance
 - [ ] The inventory contains exactly the four named Nexus query examples in canonical query-identity order.
-- [ ] Every row is constructed from existing checked Property, Behavior, Query, source, fingerprint, and planned ExperimentSpec values without copied semantic prose.
+- [ ] Every row is constructed from existing checked Property, Behavior, Query, source, fingerprint, and planned Plan values without copied semantic prose.
 - [ ] Duplicate, missing, wrong-kind, crossed-owner, and missing-plan fixtures fail; reordered valid fixtures produce the same checked inventory and bytes.
 - [ ] The module performs no source scan and imports only the concrete Nexus owners it projects.
 - [ ] Existing comments in touched files are preserved.
 
 ## Done summary
-Defined the closed Nexus discovery inventory over the four retained checked examples. The private checked boundary projects exact Property, Behavior, Query, source, Behavior Fingerprint, and planned ExperimentSpec lineage from the concrete owner modules; validates membership, ownership, kinds, nonempty sources and fingerprints, and present plans; canonicalizes valid permutations by query identity; and exposes deterministic internal binding bytes without preempting the public JSON/CLI work in task .2.
+Defined the closed Nexus discovery inventory over the four retained checked examples. The private checked boundary projects exact Property, Behavior, Query, source, Behavior Fingerprint, and planned Plan lineage from the concrete owner modules; validates membership, ownership, kinds, nonempty sources and fingerprints, and present plans; canonicalizes valid permutations by query identity; and exposes deterministic internal binding bytes without preempting the public JSON/CLI work in task .2.
 
 Focused tests cover exact canonical membership, valid permutation stability, duplicates, missing rows, wrong kinds, crossed ownership, missing sources and fingerprints, and missing plans. The focused target, aggregate experimental suite, full Lean model lint, and diff check pass.
 

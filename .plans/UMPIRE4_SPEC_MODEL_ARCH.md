@@ -300,7 +300,7 @@ Temporal.System model│
       checked Umpire query ──▶ planning or exploration
                                       │
                                       ▼
-                               ExperimentSpec
+                               Plan
                                       │
                                       ▼
                               runtime execution
@@ -319,7 +319,7 @@ The existing separation of Property, Behavior, Query, Observation, execution, an
 - Query states what bounded planning or execution must establish.
 - Observation interprets raw implementation evidence.
 - Implementation Link relates System meaning to Feature meaning.
-- `ExperimentSpec` records environment-independent execution intent.
+- `Plan` records environment-independent execution intent.
 - Result reports accepted execution, evidence, and property outcomes.
 
 No stage acquires semantic authority merely because it is downstream.
@@ -363,7 +363,7 @@ The verification path MUST satisfy these rules:
   Property evaluator before supporting a semantic violation or promotion;
 - kernel proof, reconstructed solver proof, trusted solver, bounded search, testing, and concrete
   replay remain distinct trust classes;
-- Veil is not part of `ExperimentSpec`, runtime execution, evidence interpretation, production
+- Veil is not part of `Plan`, runtime execution, evidence interpretation, production
   binaries, or the normal Temporal model build; and
 - Umpire does not generate Veil source or introduce a checker-neutral semantic IR.
 
@@ -476,7 +476,7 @@ The target architecture is realized when:
   sake of concise syntax.
 - Requiring ordinary Temporal engineers to learn Veil.
 - Importing `Temporal.Verify` from the ordinary Temporal facade or normal developer tools.
-- Generating Veil source, shipping Veil in production paths, or treating `ExperimentSpec` as a
+- Generating Veil source, shipping Veil in production paths, or treating `Plan` as a
   checker-neutral intermediate representation.
 - Accepting a Veil proof or counterexample without a checked binding to canonical semantics.
 - Duplicating Temporal semantic authority in Go, Generated Views, runtime adapters, evidence

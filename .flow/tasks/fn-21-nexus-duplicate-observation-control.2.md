@@ -12,7 +12,7 @@ Add the second exact model-owned participant program, RuntimeConfiguration, and 
 
 ### Approach
 - Extend fn-19's model-owned execution composition with one second closed program/configuration identity rather than widening the normal program.
-- Bind exactly the Task `.1` fault-bearing ExperimentSpec, Task `.7` checked profile/program/mapping references and digests, existing local profile/protocol/budgets, one participant, exact target/action/occurrence, and cancellation capability.
+- Bind exactly the Task `.1` fault-bearing Plan, Task `.7` checked profile/program/mapping references and digests, existing local profile/protocol/budgets, one participant, exact target/action/occurrence, and cancellation capability.
 - Extend preflight by a closed exact-match capability: the new pair requires one matching requested fault; the normal pair still requires none. Perform every check before the environment factory.
 - Generate and strictly fn-18-admit the canonical two-member faulted input set; keep normal/faulted semantic, artifact, set, and fixture identities distinct.
 - Mutate fault count/ID/occurrence, checked mapping/program/config crossing, profile/protocol/capabilities/budgets/seed/attempt and assert the spec mutation table's preflight status-1/no-IO result.
@@ -27,7 +27,7 @@ Add the second exact model-owned participant program, RuntimeConfiguration, and 
 
 ### Acceptance
 - [ ] The second input set is canonical, complete, immutable, and strictly admitted through fn-18 using Task `.7`'s checked mapping references.
-- [ ] Only the exact one-fault ExperimentSpec/configuration/program/mapping closure produces a checked run request.
+- [ ] Only the exact one-fault Plan/configuration/program/mapping closure produces a checked run request.
 - [ ] Every crossing/drift mutation returns the exact preflight status-1/no-execution result.
 - [ ] Existing normal configuration/program/input bytes remain identical and still reject every fault.
 - [ ] No hard-coded future digest, new artifact family, authority material, arbitrary fault value, or reusable Temporal vocabulary is introduced.
@@ -36,7 +36,7 @@ Add the second exact model-owned participant program, RuntimeConfiguration, and 
 - [ ] R7 existing authority/format/user-surface boundaries remain intact.
 
 ## Done summary
-Bound the exact System-owned duplicate-delivery ExperimentSpec, participant program, checked observation tuple, RuntimeConfiguration, and canonical immutable input set. Strict preflight now accepts only that one-fault closure, rejects every enumerated fault/configuration drift before environment creation, and preserves the normal fixture bytes and no-fault behavior.
+Bound the exact System-owned duplicate-delivery Plan, participant program, checked observation tuple, RuntimeConfiguration, and canonical immutable input set. Strict preflight now accepts only that one-fault closure, rejects every enumerated fault/configuration drift before environment creation, and preserves the normal fixture bytes and no-fault behavior.
 
 Baseline and final parent-spec Quick gates remain inherited red: the named Lean target is obsolete, macOS `/var` resolves through `/private/var`, and the local-run Make commands depend on later-task targets/output. Task-focused aggregate Lean builds, tagged Go runtime/Nexus tests, and `make lint-model` pass; `make lint-code` reports the inherited repository backlog of 1,377 findings with no introduced diff finding.
 

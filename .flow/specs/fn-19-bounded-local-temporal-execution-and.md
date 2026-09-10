@@ -4,13 +4,13 @@
 
 ## Umpire4 architecture reconciliation
 
-The reusable Go package is `tools/umpire/runner`, with a separate `participant` protocol and adapters under `tools/umpire/adapter`. All model-owned execution profiles, participant programs, configuration interpretation, and evidence-source contracts live under `Temporal.System`; `Temporal.Feature` retains only product-visible meaning. The runner consumes fn-18's complete current ExperimentSpec and operational bindings without reconstructing missing semantic intent.
+The reusable Go package is `tools/umpire/runner`, with a separate `participant` protocol and adapters under `tools/umpire/adapter`. All model-owned execution profiles, participant programs, configuration interpretation, and evidence-source contracts live under `Temporal.System`; `Temporal.Feature` retains only product-visible meaning. The runner consumes fn-18's complete current Plan and operational bindings without reconstructing missing semantic intent.
 
 There is no installed public `umpire-local-run` command. Generated ordinary Go tests call the reusable runner directly for local/CI execution and retain normal `go test` discovery, filtering, breakpoints, and failure reporting. A focused internal integration harness may prove the adapter contract, but it is not a second user-facing run-tests surface.
 
 ## Overview
 
-Deliver the first current-model execution slice: consume one fn-18-admitted `ExperimentSpec` plus portable `RuntimeConfiguration`, realize the exact Nexus caller-closure action in an isolated ephemeral Temporal server through one Go SDK participant, and return an admitted in-memory `ExperimentRun` plus bounded `RawEvidence` without interpreting that evidence or evaluating a Property.
+Deliver the first current-model execution slice: consume one fn-18-admitted `Plan` plus portable `RuntimeConfiguration`, realize the exact Nexus caller-closure action in an isolated ephemeral Temporal server through one Go SDK participant, and return an admitted in-memory `ExperimentRun` plus bounded `RawEvidence` without interpreting that evidence or evaluating a Property.
 
 The reusable center is a domain-neutral Go runtime/participant boundary. Temporal environment ownership stays in a Temporal adapter, and the Nexus action/program binding stays in a Nexus adapter. A closed built-in local authority profile structurally excludes remote endpoints, credentials, ambient namespaces, arbitrary executables, and user-supplied hooks.
 
@@ -46,7 +46,7 @@ Temporal-specific authority and lifecycle code lives below `tools/umpire/tempora
 
 ### Exact input and authority contract
 
-The runner accepts one fn-18 `AdmittedSet` whose manifest contains exactly one `umpire-experiment/v2` and one `umpire-runtime-configuration/v2`, with no Run, evidence, Result, coverage, or unrelated member. The ExperimentSpec is accepted only in fn-18's sole deterministic fixed-order two-space pretty JSON representation with exactly one terminal LF; its Artifact Checksum hashes the UTF-8 bytes `"umpire.experiment-spec/v2" + "\n" + preimage`, where `preimage` is those exact pretty bytes with only the outer ExperimentSpec `artifactChecksum` omitted and the already-sealed DrivePlan retained. Set admission, literal generated digest binding, member identities, semantic references, and all cross-bindings are complete before runtime preflight.
+The runner accepts one fn-18 `AdmittedSet` whose manifest contains exactly one `umpire-experiment/v2` and one `umpire-runtime-configuration/v2`, with no Run, evidence, Result, coverage, or unrelated member. The Plan is accepted only in fn-18's sole deterministic fixed-order two-space pretty JSON representation with exactly one terminal LF; its Artifact Checksum hashes the UTF-8 bytes `"umpire.experiment-spec/v2" + "\n" + preimage`, where `preimage` is those exact pretty bytes with only the outer Plan `artifactChecksum` omitted and the already-sealed Plan.Steps retained. Set admission, literal generated digest binding, member identities, semantic references, and all cross-bindings are complete before runtime preflight.
 
 `CheckedRunRequest` contains the admitted set, a 1–512-byte namespaced `runIdentity`, unsigned seed, positive attempt, and an in-memory `AuthorityProfile`. This first binding accepts seed `0` and attempt `1` only. Workflow, operation, task-queue, worker, and participant correlation IDs are derived from the run identity plus closed kind suffixes; duplicate kind/ID pairs reject before server startup.
 
@@ -131,14 +131,14 @@ go test -count=1 ./tools/umpire/temporal/nexus/... -run '^TestGeneratedWorkflowN
 ## Acceptance Criteria
 <!-- scope: both -->
 
-- **R1:** Runtime accepts only a complete fn-18-admitted two-member ExperimentSpec/RuntimeConfiguration set plus the exact closed local authority, validates all identities/references/capabilities/budgets/program/target/action/occurrence/run arguments before IO, and returns no partial checked request or side effect on any preflight error. [paraphrase]
+- **R1:** Runtime accepts only a complete fn-18-admitted two-member Plan/RuntimeConfiguration set plus the exact closed local authority, validates all identities/references/capabilities/budgets/program/target/action/occurrence/run arguments before IO, and returns no partial checked request or side effect on any preflight error. [paraphrase]
 - **R2:** One domain-neutral checked participant/runtime interface owns commands, receipts, resources, phase orchestration, and artifact construction without Temporal/Nexus vocabulary, arbitrary callbacks/maps, alternate semantic IR, byte parsing, publication, evidence interpretation, or Property evaluation. Temporal and Nexus code remain vertical adapters. [user]
 - **R3:** The five-phase engine enforces exact per-phase/global Limits, single attempts, terminal-state rules, observation after started realization, independent isolation/cleanup contexts, cleanup exactly once, cancellation precedence, the complete hard-failure/incomplete/success precedence table, source-capacity outcomes, and deterministic diagnostics. Every post-start failure produces truthful bounded Run/RawEvidence values or an invariant error that cannot be published. [paraphrase]
 - **R4:** The sole authority profile starts and owns one loopback ephemeral Temporal server, fresh namespace, clients, and workers per invocation through an error-returning, partial-start-cleaning, context-bounded lifecycle API; exposes no remote/ambient authority; records run-owned correlation identities; and guarantees cooperative teardown and process-crash disappearance without shared-state contamination. [paraphrase]
 - **R5:** One exact Nexus SDK participant prepares the caller/operation, realizes only the planned force-close occurrence once, observes terminal history/cancellation receipt, proves resource isolation, and cleans every handle. Unsupported target/action/occurrence/fault/protocol/capability/program inputs fail before server startup; operational receipts never become model outcomes or semantic verdicts. [paraphrase]
-- **R6:** Four bounded sources preserve gapless source order, causal/reference closure, terminal history, control and cleanup receipts, explicit partial/failed gaps, allowlisted dispositions, N+1 capacity evidence, and exact fn-18 bindings. The admitted in-memory set contains only ExperimentSpec, RuntimeConfiguration, ExperimentRun, and RawEvidence and no Evidence/Result. [paraphrase]
+- **R6:** Four bounded sources preserve gapless source order, causal/reference closure, terminal history, control and cleanup receipts, explicit partial/failed gaps, allowlisted dispositions, N+1 capacity evidence, and exact fn-18 bindings. The admitted in-memory set contains only Plan, RuntimeConfiguration, ExperimentRun, and RawEvidence and no Evidence/Result. [paraphrase]
 - **R7:** Independent fake-adapter phase/failure oracles, field/reference/capacity mutations, one bounded generated-test caller-closure run, public docs, and roadmap status prove the local operational slice. No public execution CLI/root wrapper, remote/CI/canary execution, fault injection, semantic interpretation, Run Evaluation, replay/minimization/promotion, Claim Assessment, model-local Makefile, or prohibited legacy dependency is introduced. [user]
-- **R8:** The runner consumes one complete current ExperimentSpec and exposes a reusable library used by deterministic generated Go tests; no public local-run/run-tests command or root wrapper is installed. This supersedes the command portion of R7. Errors: reconstructing setup/program/order/observation/termination/cleanup intent in Go, accepting an incomplete legacy spec for execution, bypassing generated-test digest binding, or introducing a second CLI execution surface fails completion.
+- **R8:** The runner consumes one complete current Plan and exposes a reusable library used by deterministic generated Go tests; no public local-run/run-tests command or root wrapper is installed. This supersedes the command portion of R7. Errors: reconstructing setup/program/order/observation/termination/cleanup intent in Go, accepting an incomplete legacy spec for execution, bypassing generated-test digest binding, or introducing a second CLI execution surface fails completion.
 - **R9:** Temporal execution profiles, participant programs, configuration meaning, evidence-source contracts, and adapter bindings are owned by `Temporal.System`, while Feature remains product-only and the reusable runner/participant packages remain domain-neutral. Errors: a Feature import of System, a runtime program under Feature, Temporal/Nexus vocabulary in runner/participant, or an adapter claiming a model outcome or Property result fails completion.
 
 ## Early proof point
@@ -162,7 +162,7 @@ Task `.3` is the runtime proof gate. A deterministic fake environment/participan
 
 The existing `temporaltest` LiteServer eliminates remote authority, stale external operations, namespace leases, and credential handling rather than adding policy machinery for them. A single closed profile/program is the smallest proof of the current artifact-to-runtime seam.
 
-Participant commands are a narrow runtime protocol, not a Drive/Behavior DSL: the already-compiled ExperimentSpec owns what to do, while the adapter owns how one exact semantic action is realized. Keeping the protocol inert and domain-neutral permits later SDK implementations without moving Temporal/Nexus concepts into reusable Umpire types.
+Participant commands are a narrow runtime protocol, not a Drive/Behavior DSL: the already-compiled Plan owns what to do, while the adapter owns how one exact semantic action is realized. Keeping the protocol inert and domain-neutral permits later SDK implementations without moving Temporal/Nexus concepts into reusable Umpire types.
 
 The runtime returns admitted failed/incomplete operational attempts because failures are evidence. Semantic interpretation stays downstream so a successful force-close request cannot be mislabeled as caller-closure Run Evaluation.
 
@@ -193,5 +193,5 @@ The runtime does not promise crash-resumable remote cleanup. The single in-proce
 | R5 | Nexus SDK participant | `.5`, `.6`, `.7` | — |
 | R6 | Raw evidence/output set | `.3`, `.6`, `.7` | — |
 | R7 | Oracles, live command, docs/boundaries | `.1`–`.9` | — |
-| R8 | Complete ExperimentSpec through generated Go tests | `.1`–`.8` | — |
+| R8 | Complete Plan through generated Go tests | `.1`–`.8` | — |
 | R9 | System-owned programs and execution configuration | `.1`, `.5`, `.6`, `.8` | — |

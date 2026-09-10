@@ -40,7 +40,7 @@ private def baseAnchor : PromotionBaseAnchor := {
   targetBehaviorFingerprint := exactActionQuery.target.behaviorFingerprint
   kernelDefinitionId := exactActionQuery.target.machine.metadata.id
   kernelBehaviorFingerprint := exactActionQuery.target.behaviorFingerprint
-  plannerRun := exactActionRun
+  planResult := exactActionRun
   plan := compiledArtifact
   expectedTrace := targetOwnedCountOneTrace
   selectionReason := .satisfyingWitness
@@ -156,7 +156,7 @@ private def nonFoundRun : Except KnownGapError PlanResult :=
   search nonFoundQuery incrementalKernel
 
 private def nonFoundAnchor : Option PromotionBaseAnchor := do
-  let plannerRun ← nonFoundRun.toOption
+  let planResult ← nonFoundRun.toOption
   pure {
     queryDefinitionId := nonFoundQuery.id
     queryBehaviorFingerprint := nonFoundQuery.behaviorFingerprint
@@ -167,7 +167,7 @@ private def nonFoundAnchor : Option PromotionBaseAnchor := do
     targetBehaviorFingerprint := nonFoundQuery.target.behaviorFingerprint
     kernelDefinitionId := nonFoundQuery.target.machine.metadata.id
     kernelBehaviorFingerprint := nonFoundQuery.target.behaviorFingerprint
-    plannerRun
+    planResult
     plan := compiledArtifact
     expectedTrace := targetOwnedCountOneTrace
     selectionReason := .satisfyingWitness
@@ -209,7 +209,7 @@ example :
         baseAnchor with kernelBehaviorFingerprint := otherFingerprint
       })),
       errorKindOf (compileWith (anchor := {
-        baseAnchor with plannerRun := { exactActionRun with instrumentation := {} }
+        baseAnchor with planResult := { exactActionRun with instrumentation := {} }
       })),
       errorKindOf (compileWith (anchor := {
         baseAnchor with selectionReason := .behaviorSelection
@@ -242,7 +242,7 @@ example :
       some .baseIdentityDrift,
       some .baseIdentityDrift,
       some .baseIdentityDrift,
-      some .plannerRunDrift,
+      some .planResultDrift,
       some .reasonDrift,
       some .experimentSpecDrift,
       some .invalidSourceSpec,

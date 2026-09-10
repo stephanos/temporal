@@ -12,9 +12,9 @@ Author the Temporal-owned one-axis/two-choice space and compile its selected fau
 
 ### Approach
 - Compose the spec's exact space/axis/choice/fault/goal identities over the existing checked exact-action caller-closure Query and required force-close occurrence.
-- Reuse fn-16 `CheckedExperimentSpace`, `lowerSpacePoint`, checked `ArtifactIntent`, and target-indexed kernel; do not construct requested-fault artifact fields directly.
-- Pin the two assignments, checked metadata/digest, selected intent arrays/capability union, derived identities, and faulted ExperimentSpec bytes.
-- Prove the fault choice still receives the ordinary count-one Model Trace and that the pre-existing no-fault ExperimentSpec bytes and pure Property are unchanged.
+- Reuse fn-16 `CheckedExperimentSpace`, `lowerSpacePoint`, checked `PlanRequest`, and target-indexed kernel; do not construct requested-fault artifact fields directly.
+- Pin the two assignments, checked metadata/digest, selected intent arrays/capability union, derived identities, and faulted Plan bytes.
+- Prove the fault choice still receives the ordinary count-one Model Trace and that the pre-existing no-fault Plan bytes and pure Property are unchanged.
 - Add reorder plus stale occurrence/action/capability, duplicate effect, invalid goal, and outcome-authoring negative fixtures; preserve existing comments and vertical imports.
 
 ### Investigation targets
@@ -33,7 +33,7 @@ Author the Temporal-owned one-axis/two-choice space and compile its selected fau
 - [ ] Focused and aggregate Lean tests pass with reusable Umpire imports remaining Temporal-free.
 
 ## Acceptance
-- [ ] R1 exact space and ordinary fault-bearing ExperimentSpec are checked and deterministic.
+- [ ] R1 exact space and ordinary fault-bearing Plan are checked and deterministic.
 - [ ] R7 package purity, comments, and no-general-fault boundaries hold.
 
 ## Done summary

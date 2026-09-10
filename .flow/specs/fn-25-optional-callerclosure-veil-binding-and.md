@@ -315,7 +315,7 @@ make umpire-check-regression
   receipt/error/status behavior; defer mode exposes none. Both modes preserve ordinary builds, native
   verification, regression fixtures, import direction, comments, generated projections, and runtime/
   production isolation, and update the C11 roadmap with the exact outcome.
-- **R7:** Adopt mode places generic optional mechanics only under `Umpire.Verify.Veil`, family correspondence only under `Temporal.Verify.Nexus.CallerClosure`, and the opt-in aggregate only in `TemporalVerify.lean`; defer mode creates none of them. Errors: Veil in `Umpire.lean`, `Temporal.lean`, ordinary model tests/tools, ExperimentSpec/runtime paths, or a family-specific view under reusable Umpire fails isolation.
+- **R7:** Adopt mode places generic optional mechanics only under `Umpire.Verify.Veil`, family correspondence only under `Temporal.Verify.Nexus.CallerClosure`, and the opt-in aggregate only in `TemporalVerify.lean`; defer mode creates none of them. Errors: Veil in `Umpire.lean`, `Temporal.lean`, ordinary model tests/tools, Plan/runtime paths, or a family-specific view under reusable Umpire fails isolation.
 
 ## Early proof point
 
@@ -328,7 +328,7 @@ decode, stop and revise the family boundary before task `.3`.
 
 ## Boundaries
 
-- No changes to `ExperimentSpec`, DrivePlan, runtime/evidence/result artifacts, exploration,
+- No changes to `Plan`, Plan.Steps, runtime/evidence/result artifacts, exploration,
   promotion, local execution, remote execution, Claim Assessment, CI defaults, or production binaries.
 - No generated checker source, generic first-order/transition IR, second semantic evaluator, remote
   checker service, general plugin registry, additional family/property, or blanket Veil adoption.

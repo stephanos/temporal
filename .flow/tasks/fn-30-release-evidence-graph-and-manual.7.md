@@ -21,7 +21,7 @@ Complete R1-R9 with one controlled end-to-end proof, adversarial matrices, compa
 - Use ephemeral test roots/keys and an explicitly non-production authorization marker; assert no fixture signer/output is accepted by the protected production trust snapshot or retained channel.
 - Add table-driven invalid/held/rejected matrices for trust, candidate, evidence-index signature/role/candidate/invocation/expiry/order/cardinality/tampering, seven slots, source diversity, freshness, Known Gaps, policy-process protocol, role ordering, gate refusal, concurrency, paths, versions, limits, secrets, and capability reachability.
 - Prove canonical Lean/Go protocol agreement and unchanged v2-v6 source bytes/readers; wire focused checks plus the repository's aggregate regression gate.
-- Document candidate versus ExperimentSpec, external authority attestations, evidence gaps versus invalid input, evidence versus trust, Claim Assessment versus authorization, two-role veto/gate semantics, expiry/revocation, inspection commands, and the non-deployment boundary.
+- Document candidate versus Plan, external authority attestations, evidence gaps versus invalid input, evidence versus trust, Claim Assessment versus authorization, two-role veto/gate semantics, expiry/revocation, inspection commands, and the non-deployment boundary.
 
 ### Investigation targets
 **Required** (read before coding):

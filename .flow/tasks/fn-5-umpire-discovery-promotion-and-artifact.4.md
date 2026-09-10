@@ -14,8 +14,8 @@ Define the narrow checked source boundary used by the one retained duplicate-del
 
 - Define private-constructor `CompiledPromotionSource` and the smallest compiler input needed to
   bind an unchanged base checked Query, its target/kernel-owned `.found` trace and base planned
-  `ExperimentSpec`, fresh promoted Behavior/Query identities, fixed imports, and deterministic bytes.
-- Recompute the base plan and require whole-value equality with the base `ExperimentSpec` before
+  `Plan`, fresh promoted Behavior/Query identities, fixed imports, and deterministic bytes.
+- Recompute the base plan and require whole-value equality with the base `Plan` before
   rendering; fault intent and the observed runtime trace are never accepted as expected model behavior.
 - Seal a source only after deterministic rendering, SHA-256 identity computation, and successful
   elaboration through a clean focused Lake test.
@@ -40,15 +40,15 @@ Define the narrow checked source boundary used by the one retained duplicate-del
 `cd model && mise exec -- lake build Umpire.PromotionTests UmpireTests`
 
 ## Acceptance
-- [ ] Only an unchanged base checked Query with its recomputed target-owned `.found` trace and matching base ExperimentSpec can produce a sealed source.
-- [ ] Non-found results, base target/kernel/query/ExperimentSpec drift, trace/reason/count drift, reused promoted identities, missing imports, nondeterministic rendering, and digest drift fail without a partial source.
+- [ ] Only an unchanged base checked Query with its recomputed target-owned `.found` trace and matching base Plan can produce a sealed source.
+- [ ] Non-found results, base target/kernel/query/Plan drift, trace/reason/count drift, reused promoted identities, missing imports, nondeterministic rendering, and digest drift fail without a partial source.
 - [ ] Substituting the observed duplicate-delivery count-two trace for the expected count-one trace is rejected by a focused test.
 - [ ] Exact source bytes elaborate in a clean focused Lake invocation before `CompiledPromotionSource` is exposed.
 - [ ] The reusable module imports no Temporal, Nexus, runtime, replay, minimization, filesystem, or command package.
 - [ ] Existing comments in touched files are preserved.
 
 ## Done summary
-Implemented a sealed review-only Lean promotion-source compiler that replans an unchanged checked Query, validates the complete target-owned PlannerRun and ExperimentSpec lineage, rejects observed count-two trace substitution, and exposes no partial source on drift. The renderer is closed over one clean-elaborated syntax shape, accepts only quoted identity/location data, fixes imports and declarations, and seals exact bytes plus SHA-256 behind a private constructor.
+Implemented a sealed review-only Lean promotion-source compiler that replans an unchanged checked Query, validates the complete target-owned PlanResult and Plan lineage, rejects observed count-two trace substitution, and exposes no partial source on drift. The renderer is closed over one clean-elaborated syntax shape, accepts only quoted identity/location data, fixes imports and declarations, and seals exact bytes plus SHA-256 behind a private constructor.
 
 Focused compile-time tests cover base/query/target/kernel/artifact/trace/reason drift, non-found planning, reused identities, invalid source data, deterministic bytes and digest, clean fixture elaboration through a typed base Query, and constructor/record-update/syntax-input sealing. The exact Quick build and full model/import-graph lint pass.
 

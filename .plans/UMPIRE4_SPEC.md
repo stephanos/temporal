@@ -274,7 +274,7 @@ horizon.
   or Behavior Fingerprint.
 - **Generated View.** A deterministic representation of an Artifact, such as a Go test or
   documentation. It is bound to the source Artifact Checksum and cannot define behavior.
-- **Planning Artifact (`Umpire.ExperimentSpec`).** Model-planning data retained for scenario-neutral
+- **Planning Artifact (`Umpire.Plan`).** Model-planning data retained for scenario-neutral
   catalog and reviewed-promotion use. It is not accepted by Testpilot.
 
 ### Planning and Limit rules
@@ -290,7 +290,7 @@ horizon.
   trace or counterexample exists.
 - **PLN-05 — Unsatisfiable is an error.** A checked `Umpire.Scenario` that admits no Model Trace MUST
   report `unsatisfiable`, never a passing Test.
-- **PLN-06 — Generated Execution Plan.** A `Umpire.DrivePlan` MUST contain generated instructions.
+- **PLN-06 — Generated Execution Plan.** A `Umpire.Plan.Steps` MUST contain generated instructions.
   It MUST NOT be an authoring language or Evidence that Execution occurred.
 
 ### Artifact rules
@@ -300,7 +300,7 @@ horizon.
 - **ART-02 — Model binding.** Artifacts MUST carry Definition IDs, Behavior Fingerprints, their own
   Artifact Checksums, source information, Known Gaps, and enough compatibility data for stale readers
   to reject them.
-- **ART-03 — Retired: executable Test Plan.** `Umpire.ExperimentSpec` is no longer a runtime input;
+- **ART-03 — Retired: executable Test Plan.** `Umpire.Plan` is no longer a runtime input;
   ART-09 defines the replacement Case Artifact.
 - **ART-04 — Safe format changes.** Readers MUST reject unknown major versions and unknown fields
   that could affect behavior. Changing the meaning of old data requires a named, deterministic
