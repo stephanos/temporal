@@ -23,7 +23,7 @@ const workerOutageFixture = "../../../../../tests/testcore/testpilot/testdata/wo
 
 // TestWorkerOutageContractAgreesOnlineAndOffline replays one recorded outage Run through the
 // shipped Contract twice: once event by event as the runtime does, and once offline over the whole
-// recorded Run. Both answers must be the same Verdict, because the event-count horizon reaches its
+// recorded Run. Both answers must be the same Verdict, because the event-count deadline reaches its
 // counter through the one helper both paths call. The last case is the outage that never ended: it
 // expires on the count, and it expires identically either way.
 func TestWorkerOutageContractAgreesOnlineAndOffline(t *testing.T) {

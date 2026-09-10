@@ -266,16 +266,16 @@ func (a *admission) bindStates(m *machine) error {
 	}
 	if rule.Kind == testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS {
 		target, exists := m.states[rule.Deadline.GetViolationStateId()]
-		// Exactly one bound carries the horizon, so a rule never expires on two clocks at once.
+		// Exactly one bound carries the deadline, so a rule never expires on two clocks at once.
 		elapsed, events := rule.Deadline.GetElapsedMilliseconds(), rule.Deadline.GetRuleEvents()
 		if elapsed < 0 || events < 0 || (elapsed > 0) == (events > 0) {
-			return invalid(ir.Malformed, "liveness requires exactly one positive horizon bound")
+			return invalid(ir.Malformed, "liveness requires exactly one positive deadline bound")
 		}
 		if !exists || rule.States[target].Status != testpilotspb.CONTRACT_STATE_STATUS_VIOLATED {
-			return invalid(ir.Malformed, "liveness requires a violated horizon target")
+			return invalid(ir.Malformed, "liveness requires a violated deadline target")
 		}
 	} else if rule.Deadline != nil {
-		return invalid(ir.Malformed, "safety rule cannot declare a liveness horizon")
+		return invalid(ir.Malformed, "safety rule cannot declare a liveness deadline")
 	}
 	return nil
 }
