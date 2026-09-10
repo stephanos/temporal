@@ -31,10 +31,10 @@ message ScopedEvidenceRule {
   FieldPath guard = 1;
   repeated ScopedEvidenceBinding scope = 2;
   string source = 3;
-  FieldPath operation = 5;
-  string kind = 6;
-  repeated ScopedEvidenceBinding fields = 7;
-  string guard_equals_text = 8;
+  FieldPath operation = 4;
+  string kind = 5;
+  repeated ScopedEvidenceBinding fields = 6;
+  string guard_equals_text = 7;
 }
 
 // ScopedEvidenceProjection is the Program-declared source of the ScopedEvidence a scoped capability

@@ -77,7 +77,11 @@ Both halves of R1 are now tasks. **.14** adds the `ScopedEvidence`-emitting proj
 need — a Program-declared source lifting recorded history into `ScopedEvidence` with `identity`,
 `operation`, `kind` and `fields` — and must also close the vacuous-satisfaction hole, since a clause
 receiving no evidence answering SATISFIED is the defect that makes the naive fix dangerous. Task .4
-now depends on it. **.15** carries R1's separable product defect, the clause-for-clause equality gate
+now depends on it. **.14 has since landed and closed both halves**: the lift is a
+`ScopedEvidenceProjection` sink on `ProjectionTarget`, the typed-nexus Case runs its bounded-response
+clause live through it, and a capability that admitted no evidence now answers unresolved in both
+the Lean portable interpreter and the Go runtime. The paragraphs above describe the wall as it stood
+before that. **.15** carries R1's separable product defect, the clause-for-clause equality gate
 in `produceCompletionCase` that turns a model edit into a lowering error; it needs no evidence path
 and does not wait on .14.
 
