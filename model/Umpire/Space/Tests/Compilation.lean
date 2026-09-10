@@ -97,7 +97,7 @@ private def transportedKernel : SearchView lowered.query.target :=
     baseKernel
 
 private def transportedRun :=
-  planWithArtifactIntent lowered.query transportedKernel lowered.intent
+  searchWithPlanRequest lowered.query transportedKernel lowered.intent
 
 private def batchResult :=
   compileBatch checked baseKernel
@@ -279,7 +279,7 @@ private def duplicateSpecRejection :=
     run.artifact.map fun spec =>
       SpaceCompiler.Internal.appendPlannerRun checked lowered.id [spec] run
 
-/-! Duplicate final ExperimentSpec identity rejects the point without returning the prior spec. -/
+/-! Duplicate final Plan identity rejects the point without returning the prior spec. -/
 example :
     duplicateSpecRejection.map (fun rejection =>
       (rejection.toOption, compileErrorKindOf rejection)) =

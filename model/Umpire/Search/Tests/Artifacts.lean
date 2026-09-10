@@ -9,11 +9,11 @@ open Umpire
 #check (composeSearchKnownGaps :
   CheckedQuery (fun _ => True) → Except KnownGapError KnownGapSet)
 #check (artifactOfSelection : CheckedQuery (fun _ => True) → Scenario.Trace → SelectionReason →
-  ExploredCounts → Except KnownGapError ExperimentSpec)
+  ExploredCounts → Except KnownGapError Plan)
 #check (search : (query : CheckedQuery (fun _ => True)) →
   SearchView query.target → Except KnownGapError PlanResult)
-#check (planWithArtifactIntent : (query : CheckedQuery (fun _ => True)) →
-  SearchView query.target → ArtifactIntent →
+#check (searchWithPlanRequest : (query : CheckedQuery (fun _ => True)) →
+  SearchView query.target → PlanRequest →
     Except PlanningRequestError PlanResult)
 
 private def authoredPlanningGap : KnownGap := {
@@ -79,16 +79,16 @@ example :
     ] := by
   native_decide
 
-def witnessSpec (seed : Nat := 17) : Option ExperimentSpec :=
+def witnessSpec (seed : Nat := 17) : Option Plan :=
   (run 2 (.witness property) .shortest 10 seed false).toOption.bind PlanResult.artifact
 
 private def authoredWitnessRun : Except KnownGapError PlanResult :=
   search (queryWithKnownGaps authoredPlanningGaps) (incrementalKernel 2)
 
-private def authoredWitnessSpec : Option ExperimentSpec :=
+private def authoredWitnessSpec : Option Plan :=
   authoredWitnessRun.toOption.bind PlanResult.artifact
 
-def incidentalWitnessSpec : Option ExperimentSpec :=
+def incidentalWitnessSpec : Option Plan :=
   let query := checkedQuery 2 (.witness property) .shortest 10 17 false
   let incidental : CheckedQuery (fun _ => True) := {
     query with
@@ -168,9 +168,9 @@ example :
 /-! The empty checked-intent facade preserves ordinary planning bytes exactly. -/
 example :
     let query := checkedQuery 2 (.witness property) .shortest 10 17 false
-    let withIntent := planWithArtifactIntent query (incrementalKernel 2) (.empty query)
-    withIntent.toOption.bind (fun run => run.artifact.map canonicalExperimentSpecBytes) =
-      witnessSpec.map canonicalExperimentSpecBytes := by
+    let withIntent := searchWithPlanRequest query (incrementalKernel 2) (.empty query)
+    withIntent.toOption.bind (fun run => run.artifact.map canonicalPlanBytes) =
+      witnessSpec.map canonicalPlanBytes := by
   native_decide
 
 /-! Ordinary planning continues to leave every reserved intent array empty. -/
@@ -181,18 +181,18 @@ example : witnessSpec.map (fun spec =>
 
 /-! A meaning-bearing Query input is part of the exact Artifact Checksum. -/
 example :
-    witnessSpec.map ExperimentSpec.artifactChecksum !=
-      (witnessSpec 18).map ExperimentSpec.artifactChecksum := by
+    witnessSpec.map Plan.artifactChecksum !=
+      (witnessSpec 18).map Plan.artifactChecksum := by
   native_decide
 
 private theorem witnessSpec_isSome : witnessSpec.isSome = true := by
   native_decide
 
-private def checksumSpec : ExperimentSpec :=
+private def checksumSpec : Plan :=
   witnessSpec.get witnessSpec_isSome
 
 /-! Planning Artifacts expose only checked Known Gaps. -/
-#check (DrivePlan.knownGaps : DrivePlan → KnownGapSet)
+#check (Plan.Steps.knownGaps : Plan.Steps → KnownGapSet)
 
 private def optionalKnownGap (subject : Option DefinitionId) (detail : Option String) : KnownGap := {
   kind := .input
@@ -219,7 +219,7 @@ example : [
   ] := by
   native_decide
 
-private def authoredDefinitionIdLine (plan : DrivePlan) : Option String :=
+private def authoredDefinitionIdLine (plan : Plan.Steps) : Option String :=
   (canonicalDrivePlanJson plan).splitOn "\n" |>.find? fun line =>
     line.contains "\"authoredDefinitionId\""
 
@@ -258,7 +258,7 @@ private def mutationRole : Scenario.Role := {
   valueKind := .state
 }
 
-private def drivePlanContentMutations (plan : DrivePlan) : List DrivePlan := [
+private def drivePlanContentMutations (plan : Plan.Steps) : List Plan.Steps := [
   { plan with formatVersion := "umpire-drive-plan/unsupported" },
   { plan with queryDefinitionId := mutationId },
   { plan with queryBehaviorFingerprint := mutationFingerprint },
@@ -302,7 +302,7 @@ private def checkedKnownGaps (gaps : List KnownGap) : KnownGapSet :=
 private def remainingPlannerKnownGaps : List KnownGap :=
   canonicalPlannerKnownGaps.toList.drop 1
 
-private def knownGapRowMutations (plan : DrivePlan) : List DrivePlan := [
+private def knownGapRowMutations (plan : Plan.Steps) : List Plan.Steps := [
   { plan with knownGaps := (checkedKnownGaps
       (({ firstPlannerKnownGap with kind := .capability } : KnownGap) ::
         remainingPlannerKnownGaps)) },
@@ -317,7 +317,7 @@ private def knownGapRowMutations (plan : DrivePlan) : List DrivePlan := [
         remainingPlannerKnownGaps)) }
 ]
 
-private def experimentSpecContentMutations (spec : ExperimentSpec) : List ExperimentSpec := [
+private def experimentSpecContentMutations (spec : Plan) : List Plan := [
   { spec with formatVersion := "umpire-experiment/unsupported" },
   { spec with queryBehaviorFingerprint := mutationFingerprint },
   { spec with plan := { spec.plan with requestedActions := [mutationValue] } },
@@ -327,7 +327,7 @@ private def experimentSpecContentMutations (spec : ExperimentSpec) : List Experi
   { spec with provenance := { spec.provenance with sourceLocations := [] } }
 ]
 
-/-! Every persisted DrivePlan category participates in its Artifact Checksum. -/
+/-! Every persisted Plan.Steps category participates in its Artifact Checksum. -/
 example :
     (drivePlanContentMutations checksumSpec.plan).all fun mutated =>
       mutated.expectedArtifactChecksum != checksumSpec.plan.artifactChecksum := by
@@ -339,7 +339,7 @@ example :
       mutated.expectedArtifactChecksum != checksumSpec.plan.artifactChecksum := by
   native_decide
 
-/-! Every persisted ExperimentSpec category, including its complete nested plan, participates. -/
+/-! Every persisted Plan category, including its complete nested plan, participates. -/
 example :
     (experimentSpecContentMutations checksumSpec).all fun mutated =>
       mutated.expectedArtifactChecksum != checksumSpec.artifactChecksum := by
@@ -351,7 +351,7 @@ example :
       checksumSpec.plan with artifactChecksum := drivePlanChecksumOf "changed"
     }
     let changedSpecChecksum := {
-      checksumSpec with artifactChecksum := experimentSpecChecksumOf "changed"
+      checksumSpec with artifactChecksum := planChecksumOf "changed"
     }
     changedPlanChecksum.expectedArtifactChecksum = checksumSpec.plan.expectedArtifactChecksum ∧
       changedSpecChecksum.expectedArtifactChecksum = checksumSpec.expectedArtifactChecksum := by
@@ -364,20 +364,20 @@ example :
       checksumSpec.expectedArtifactChecksum = checksumSpec.expectedArtifactChecksum := by
   native_decide
 
-/-! DrivePlan and ExperimentSpec use distinct checksum domains for identical canonical content. -/
+/-! Plan.Steps and Plan use distinct checksum domains for identical canonical content. -/
 example :
     (drivePlanChecksumOf "same-content").render !=
-      (experimentSpecChecksumOf "same-content").render := by
+      (planChecksumOf "same-content").render := by
   native_decide
 
 /-! Persisted canonical bytes add exactly one LF to an LF-free canonical JSON object. -/
 example :
     canonicalDrivePlanBytes checksumSpec.plan = canonicalDrivePlanJson checksumSpec.plan ++ "\n" ∧
-      canonicalExperimentSpecBytes checksumSpec = canonicalExperimentSpecJson checksumSpec ++ "\n" ∧
+      canonicalPlanBytes checksumSpec = canonicalExperimentSpecJson checksumSpec ++ "\n" ∧
       !(canonicalDrivePlanJson checksumSpec.plan).endsWith "\n" ∧
       !(canonicalExperimentSpecJson checksumSpec).endsWith "\n" ∧
       !(canonicalDrivePlanBytes checksumSpec.plan).endsWith "\n\n" ∧
-      !(canonicalExperimentSpecBytes checksumSpec).endsWith "\n\n" := by
+      !(canonicalPlanBytes checksumSpec).endsWith "\n\n" := by
   native_decide
 
 /-! Lean and Go share unrestricted canonical base-10 naturals beyond machine-word range. -/

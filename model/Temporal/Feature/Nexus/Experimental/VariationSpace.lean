@@ -181,7 +181,7 @@ structure PreparedVariationSpace where
   private mk ::
   checked : CheckedExperimentSpace LawStatement
   metadata : CheckedSpaceMetadata
-  specs : List ExperimentSpec
+  specs : List Plan
 
 private def prepareCheckedQuery
     (spaceDeclaration : ExperimentSpaceDeclaration)
@@ -223,7 +223,7 @@ def metadataResult : Except VariationSpacePreparationError CheckedSpaceMetadata 
   preparedResult.map PreparedVariationSpace.metadata
 
 /-- Fallible atomic batch projection of the prepared experimental Space. -/
-def batchResult : Except VariationSpacePreparationError (List ExperimentSpec) :=
+def batchResult : Except VariationSpacePreparationError (List Plan) :=
   preparedResult.map PreparedVariationSpace.specs
 
 def canonicalAssignments : List (List ModelValue) := [
@@ -262,7 +262,7 @@ def reorderedMetadataResult : Except VariationSpacePreparationError CheckedSpace
   reorderedPreparedResult.map PreparedVariationSpace.metadata
 
 /-- Batch projection used to prove source-order invariance. -/
-def reorderedBatchResult : Except VariationSpacePreparationError (List ExperimentSpec) :=
+def reorderedBatchResult : Except VariationSpacePreparationError (List Plan) :=
   reorderedPreparedResult.map PreparedVariationSpace.specs
 
 end Temporal.Feature.Nexus.Experimental.VariationSpace

@@ -31,7 +31,7 @@ example :
       some .unitMismatch := by
   native_decide
 
-/-! Exploration's ExperimentSpec Limit is not a Property position unit. -/
+/-! Exploration's Plan Limit is not a Property position unit. -/
 example : errorKindOf (Property.check context (
     candidateEvaluationProperty { value := 2, unit := .experimentSpecs })) =
     some .unitMismatch := by

@@ -31,13 +31,13 @@ private def traceStepsOfPlan :
   | _, _, _, _, _ => none
 
 private def modelTraceOfExperimentSpec?
-    (spec : ExperimentSpec) : Option (ModelTrace ModelValue ModelValue ModelValue ModelValue) := do
+    (spec : Plan) : Option (ModelTrace ModelValue ModelValue ModelValue ModelValue) := do
   let steps ← traceStepsOfPlan spec.plan.requestedActions spec.plan.modelOutcomes
     spec.plan.resultingStates spec.plan.checkpoints 1
   pure { initialState := spec.plan.initialState, steps }
 
 /-- Extract coverage only when the canonical Artifact encodes one complete selected Model Trace. -/
-def CandidateCoverage.ofExperimentSpec? (spec : ExperimentSpec) : Option CandidateCoverage := do
+def CandidateCoverage.ofExperimentSpec? (spec : Plan) : Option CandidateCoverage := do
   if !spec.isValidTransport then
     none
   let trace ← modelTraceOfExperimentSpec? spec
