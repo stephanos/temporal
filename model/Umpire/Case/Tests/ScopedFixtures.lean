@@ -36,27 +36,27 @@ structure Scenario where
   bound : Nat
   events : List ScopedEvidence
   expected : Nat
-  endpoint : PropertyScopedEndpoint := .runtimePrefix
+  endpoint : PropertyScopedEndpoint := .«partial»
   incomplete : Bool := false
 
 def scenarios : List Scenario := [
-  ⟨"zero-response", 0, [evidence 0 "both"], 2, .runtimePrefix, false⟩,
-  ⟨"zero-missing", 0, [evidence 0 "request"], 3, .runtimePrefix, false⟩,
-  ⟨"trigger", 2, [evidence 0 "request"], 0, .runtimePrefix, false⟩,
-  ⟨"deadline", 1, [evidence 0 "request", evidence 1 "reply"], 2, .runtimePrefix, false⟩,
-  ⟨"late", 1, [evidence 0 "request", evidence 1 "tick", evidence 2 "reply"], 3, .runtimePrefix, false⟩,
-  ⟨"multiple", 2, [evidence 0 "request", evidence 1 "request", evidence 2 "reply"], 2, .runtimePrefix, false⟩,
-  ⟨"interleaved", 1, [evidence 0 "request", evidence 1 "tick" "b", evidence 2 "reply"], 2, .runtimePrefix, false⟩,
-  ⟨"self-loop", 1, [evidence 0 "request", evidence 1 "tick"], 3, .runtimePrefix, false⟩,
-  ⟨"closed", 3, [evidence 0 "request"], 3, .deliberatelyClosed, false⟩,
-  ⟨"incomplete-close", 3, [evidence 0 "request"], 0, .deliberatelyClosed, true⟩,
-  ⟨"pending-cause", 1, [evidence 1 "reply" "a" [0]], 0, .deliberatelyClosed, false⟩,
-  ⟨"causal-chunks", 1, [evidence 1 "reply" "a" [0], evidence 0 "request", evidence 1 "reply" "a" [0]], 2, .runtimePrefix, false⟩,
-  ⟨"poll-stutter", 1, [evidence 0 "request", evidence 1 "poll", evidence 2 "reply"], 2, .runtimePrefix, false⟩,
-  ⟨"violation-incomplete", 0, [evidence 0 "request"], 3, .deliberatelyClosed, true⟩,
+  ⟨"zero-response", 0, [evidence 0 "both"], 2, .«partial», false⟩,
+  ⟨"zero-missing", 0, [evidence 0 "request"], 3, .«partial», false⟩,
+  ⟨"trigger", 2, [evidence 0 "request"], 0, .«partial», false⟩,
+  ⟨"deadline", 1, [evidence 0 "request", evidence 1 "reply"], 2, .«partial», false⟩,
+  ⟨"late", 1, [evidence 0 "request", evidence 1 "tick", evidence 2 "reply"], 3, .«partial», false⟩,
+  ⟨"multiple", 2, [evidence 0 "request", evidence 1 "request", evidence 2 "reply"], 2, .«partial», false⟩,
+  ⟨"interleaved", 1, [evidence 0 "request", evidence 1 "tick" "b", evidence 2 "reply"], 2, .«partial», false⟩,
+  ⟨"self-loop", 1, [evidence 0 "request", evidence 1 "tick"], 3, .«partial», false⟩,
+  ⟨"closed", 3, [evidence 0 "request"], 3, .final, false⟩,
+  ⟨"incomplete-close", 3, [evidence 0 "request"], 0, .final, true⟩,
+  ⟨"pending-cause", 1, [evidence 1 "reply" "a" [0]], 0, .final, false⟩,
+  ⟨"causal-chunks", 1, [evidence 1 "reply" "a" [0], evidence 0 "request", evidence 1 "reply" "a" [0]], 2, .«partial», false⟩,
+  ⟨"poll-stutter", 1, [evidence 0 "request", evidence 1 "poll", evidence 2 "reply"], 2, .«partial», false⟩,
+  ⟨"violation-incomplete", 0, [evidence 0 "request"], 3, .final, true⟩,
   -- Silence is not vacuous truth: a capability that admitted no evidence observed nothing, so it
   -- reports unresolved rather than the empty-obligation satisfaction the total model trace has.
-  ⟨"unobserved", 1, [], 0, .runtimePrefix, false⟩]
+  ⟨"unobserved", 1, [], 0, .«partial», false⟩]
 
 def compiledCase (scenario : Scenario) : Except String temporal.server.api.testpilot.v1.Case := do
   let target ← targetResult.mapError (fun _ => "target")

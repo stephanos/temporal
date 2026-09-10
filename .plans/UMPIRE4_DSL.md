@@ -384,7 +384,7 @@ modules:
 
 ```text
                  +-> Umpire.Property -+
-Umpire.Core -----+-> Umpire.Behavior -+-> Umpire.Query -> Umpire.Artifact -> Umpire.Planning
+Umpire.Core -----+-> Umpire.Scenario -+-> Umpire.Query -> Umpire.Artifact -> Umpire.Planning
                  +-> Umpire.Search ---+
                                                  +-------------> Umpire.Space
 ```

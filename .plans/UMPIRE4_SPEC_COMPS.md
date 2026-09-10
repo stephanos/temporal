@@ -228,7 +228,7 @@ runtime, or optional-checker dependency.
 | Module | Responsibility | Status and direction |
 | --- | --- | --- |
 | `Umpire.Property` | Portable claims and pure evaluation over capability-limited Model Traces. | Present and deep. Retain its independent facade. |
-| `Umpire.Behavior` | Setup, action, occurrence, ordering, and exact-trace constraints without assigning outcomes. | Present and deep. Retain its independent facade. |
+| `Umpire.Scenario` | Setup, action, occurrence, ordering, and exact-trace constraints without assigning outcomes. | Present and deep. Retain its independent facade. |
 | `Umpire.Space` | Finite variation axes, named choices, requested fault intents, and semantic coverage goals. | Delivered. Points lower through Behavior, Query, and the target-owned kernel; a fault intent lowers to the instruction a Driver realizes it through. |
 | `Umpire.Observation` | Checked mappings from raw evidence to accepted Model Facts, Model Traces, and Evidence Links. | Planned and required for live Run Evaluation. |
 | `Umpire.ImplementationLink` | Checked correspondence between independently authored Feature and System meanings. | Planned and required for honest implementation Run Evaluation. |

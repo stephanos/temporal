@@ -38,7 +38,7 @@ private def event (ordinal : Nat) (kind : String) (parents : List Nat := [])
 }
 
 private def evaluateEvidence (bound : Nat) (events : List Observation.Projection.Event)
-    (endpoint : PropertyScopedEndpoint := .runtimePrefix) : Option (List PropertyEndpointAnswer) := do
+    (endpoint : PropertyScopedEndpoint := .«partial») : Option (List PropertyEndpointAnswer) := do
   let target ← targetResult.toOption
   let property ← (property target bound endpoint).toOption
   let plan ← (plan target).toOption
@@ -48,7 +48,7 @@ private def evaluateEvidence (bound : Nat) (events : List Observation.Projection
   pure (run.close.answers.map Prod.snd)
 
 #guard evaluateEvidence 1 [event 1 "request" [0]] == some [.unresolved]
-#guard evaluateEvidence 1 [event 1 "request" [0]] .deliberatelyClosed == some [.unresolved]
+#guard evaluateEvidence 1 [event 1 "request" [0]] .final == some [.unresolved]
 #guard evaluateEvidence 1 [event 0 "both", event 2 "request" [1]] == some [.unresolved]
 #guard evaluateEvidence 0 [event 0 "request", event 2 "reply" [1]] == some [.violated]
 #guard evaluateEvidence 1 [event 0 "request", event 0 "request", event 1 "reply" [0],

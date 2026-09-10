@@ -181,13 +181,13 @@ private def correlation (ordinal : Nat := 0) (name : DefinitionId := captureName
 private def capture (lifetime : Nat := 4) (path : PropertyFieldPath := acceptedPath) :
     PropertyScopedCapture := { name := captureName, key := id "test.operation", path, lifetime }
 
-private def clause (bound : Nat := 1) (endpoint : PropertyScopedEndpoint := .runtimePrefix)
+private def clause (bound : Nat := 1) (endpoint : PropertyScopedEndpoint := .«partial»)
     (captures : List PropertyScopedCapture := [capture])
     (requirement : Option PropertyPredicate := some correlation) : PropertyScopedClause := {
   id := id "test.scoped.fields"
   source
   trigger := .atom { field := .selectedAction, reference := id "test.trigger" }
-  response := .atom { field := .modelOutcome, reference := id "test.outcome" }
+  response := .atom { field := .outcome, reference := id "test.outcome" }
   scope := [id "test.run"]
   key := id "test.operation"
   clock := .operationTransitions

@@ -122,7 +122,7 @@ theorem checked_eventuallyWithin_agrees
     (id : DefinitionId) (trigger response : PropertyPattern) (bound : Nat)
     (shape : clause.val = .eventuallyWithin id trigger response ⟨bound, .semanticTransitions⟩)
     (triggerAligned : trigger.field = .selectedAction)
-    (responseAligned : response.field = .modelOutcome ∨ response.field = .resultingState ∨
+    (responseAligned : response.field = .outcome ∨ response.field = .resultingState ∨
       response.field = .observation) :
     (consumeMany bound [] ((input.scopedCoordinates trigger response).map
       (fun point => Coordinate.mk point.1 point.2))).all

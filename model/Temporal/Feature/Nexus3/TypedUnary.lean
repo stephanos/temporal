@@ -352,7 +352,7 @@ def declaration : Property := {
   source
   version := 2
   requires := [capabilityId]
-  clauses := [.sameStepCases {
+  clauses := [.branches {
     id := groupId, source, guard := alwaysApplies
     cases := [{
       id := caseId, source, guard := alwaysApplies

@@ -26,7 +26,7 @@ structure QuerySpec where
   behavior : CheckedScenario
   limits : QueryLimitSpec
   policy : PlannerPolicy
-  endpoint : QueryEndpoint := .deliberatelyClosed
+  endpoint : QueryEndpoint := .final
   exercise : QueryExercisePolicy := .allowVacuous
   authoredKnownGaps : KnownGapSet := KnownGapSet.empty
   documentation : String := ""
