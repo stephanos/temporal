@@ -24,7 +24,8 @@ line cost of running a Case from Go (R5), the discarded recorder close error (R6
 the axiom baseline (R7).
 
 Originally nine tasks with a SHIP plan review; re-planned to fifteen after four escalations.
-**10 of 15 done.**
+**14 of 15 done.** The fifteenth, `.5`, is the superseded record of why R2 was split into `.10`–`.13`
+and is not work.
 
 **R2 and R8 are fully covered.** Task .5 escalated SCOPE_EXCEEDED — R2 looked like deleting four
 identifier whitelists, but `Authoring.successModel` was arity-fixed at three states, two actions, two
@@ -93,9 +94,15 @@ GOV-02: **EVD-20** (Driver-realized faults), **EVD-21** (horizon units), and **A
 was split into .10–.13. fn-80 R4 owns the vision's "inject one fault" acceptance criterion, and that
 criterion is now met by a Case that runs live.
 
-**Task .4, the early proof point, is blocked — and the finding matters beyond this spec.** R1 wants
-the shipped async-nexus Case to carry `contract.scoped`, drop its hand-written correlated-history
-monitor rule, and still be satisfied live. Those three cannot hold together today: `bindScoped`
+#### How it got here
+
+The three paragraphs below describe the wall as it stood before `.14` and `.4`, and are kept because
+the reasoning outlived the blockage. Both tasks have since shipped; the delivered state is above.
+
+**Task .4, the early proof point, was blocked — and the finding mattered beyond this spec.** R1
+wanted the shipped async-nexus Case to carry `contract.scoped`, drop its hand-written
+correlated-history monitor rule, and still be satisfied live. Those three could not hold together
+then: `bindScoped`
 refuses any Case whose `Contract.scoped` names an `evidence_observation_id` that is not a Program
 Observation typed exactly `ScopedEvidence`, no version-one `Instruction` can produce that value
 (`run.proto:125` states it is supplied only through the capability's declared typed Observation),
@@ -108,15 +115,11 @@ an `awaitSuccess` trigger. The blocker is the evidence path, not the clause form
 unaffected and stay startable. This is the same gap fn-77 closed out as
 `bounded-completion-is-model-only`, now reached from the other side.
 
-Both halves of R1 are now tasks. **.14** adds the `ScopedEvidence`-emitting projection both specs
-need — a Program-declared source lifting recorded history into `ScopedEvidence` with `identity`,
-`operation`, `kind` and `fields` — and must also close the vacuous-satisfaction hole, since a clause
-receiving no evidence answering SATISFIED is the defect that makes the naive fix dangerous. Task .4
-now depends on it. **.14 has since landed and closed both halves**: the lift is a
-`ScopedEvidenceProjection` sink on `ProjectionTarget`, the typed-nexus Case runs its bounded-response
-clause live through it, and a capability that admitted no evidence now answers unresolved in both
-the Lean portable interpreter and the Go runtime. The paragraphs above describe the wall as it stood
-before that. **.15** carried R1's separable product defect — the clause-for-clause equality
+Both halves of R1 became tasks. **.14** was to add the `ScopedEvidence`-emitting projection both
+specs were stuck behind — a Program-declared source lifting recorded history into `ScopedEvidence`
+with `identity`, `operation`, `kind` and `fields` — and to close the vacuous-satisfaction hole, since
+a clause receiving no evidence answering SATISFIED is the defect that makes the naive fix dangerous.
+Task .4 depended on it. Both shipped; what they delivered is described above. **.15** carried R1's separable product defect — the clause-for-clause equality
 gate that turned a model edit into a lowering error — and needed no evidence path, so it did not
 wait on .14. The producer it edited has since been replaced wholesale by `.4`'s `produce`.
 
