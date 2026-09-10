@@ -25,7 +25,7 @@ func TestRequireGeneratedViewIsIndependentOfWorkingDirectory(t *testing.T) {
 		ObservationRequirements: []string{
 			"switch.observation.power",
 		},
-		ArtifactChecksum: "sha256:0b745cd509a28f18f9d721d5d151892cd85cb688a4f9e025fe90055ea0f56f5a",
+		ArtifactChecksum: "sha256:38833797faa2b888e72082c679c81d0ae6a3bbe6683ae942715087c4b351a32a",
 	})
 }
 

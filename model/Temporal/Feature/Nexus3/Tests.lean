@@ -488,7 +488,7 @@ theorem checkedKnownGapsSurviveAdmission : admitted.map (fun checked =>
 
 theorem queryGapsDoNotChangeSuccessProperty : admitted.map (fun checked =>
     match checked.query.form with
-    | .witness checkedProperty => checkedProperty == checked.property &&
+    | .find checkedProperty => checkedProperty == checked.property &&
         checkedProperty.behaviorFingerprint == checked.property.behaviorFingerprint
     | _ => false) = some true := by
   native_decide
@@ -610,8 +610,7 @@ query verifiedCompletion on lifecycle
 
 #guard (do
   let checked ← verifiedCompletion.toOption
-  pure (checked.witness.isNone && checked.query.quantifier == .universal &&
-    checked.query.claim == .verifiedWithinLimits)) == some true
+  pure (checked.witness.isNone && checked.query.form.name == "verify")) == some true
 
 /- A Case realizes one selected trace, so the Producer rejects a verify-form model as
 witness-absent rather than lowering a Contract nothing selected. -/

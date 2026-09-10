@@ -1,5 +1,5 @@
 import Umpire.Observation.Evaluation
-import Umpire.Query
+import Umpire.Query.Check
 import Umpire.OutcomeClassification
 
 /-!
@@ -80,7 +80,7 @@ structure SemanticClauseVerdict where
   clauseId : DefinitionId
   status : SemanticVerdictStatus
   coordinates : List ModelCoordinate
-  queryLimits : QueryLimits
+  queryLimits : Limits
   propertyLimit : Option Limit
   evidenceBound : EvidenceBound
   provenance : List DefinitionId
@@ -93,7 +93,7 @@ structure SemanticPropertyVerdict where
   propertyDigest : String
   traceId : Option String
   status : SemanticVerdictStatus
-  queryLimits : QueryLimits
+  queryLimits : Limits
   evidenceBound : Option EvidenceBound
   provenance : List DefinitionId
   clauses : List SemanticClauseVerdict
@@ -137,7 +137,7 @@ theorem StrictQueryStatus.constructorClassifiers_exactlyOne :
 structure StrictQuerySummary where
   queryId : DefinitionId
   status : StrictQueryStatus
-  queryLimits : QueryLimits
+  queryLimits : Limits
   requiredProperties : List DefinitionId
   verdicts : List SemanticPropertyVerdict
   missingProperties : List DefinitionId

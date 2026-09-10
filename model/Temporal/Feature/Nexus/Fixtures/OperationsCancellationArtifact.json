@@ -1,10 +1,10 @@
 {
   "formatVersion": "umpire-experiment/v2",
-  "queryBehaviorFingerprint": "sha256:9c36b48c1c258e7c1637a1d0457c5a04249a49960d6d379bed46a5b26556e0b2",
+  "queryBehaviorFingerprint": "sha256:ab160f75d1d0a422f77072ec132f7fcf027a5694eaec9dceff171b383ac0ac93",
   "plan": {
     "formatVersion": "umpire-drive-plan/v2",
     "queryDefinitionId": "temporal.nexus.basic-lifecycle.query.cancellation",
-    "queryBehaviorFingerprint": "sha256:9c36b48c1c258e7c1637a1d0457c5a04249a49960d6d379bed46a5b26556e0b2",
+    "queryBehaviorFingerprint": "sha256:ab160f75d1d0a422f77072ec132f7fcf027a5694eaec9dceff171b383ac0ac93",
     "behaviorDefinitionId": "temporal.nexus.basic-lifecycle.behavior.cancellation",
     "behaviorFingerprint": "sha256:54481a44690637f3837b5d2de4af258dc05d2f40d41fe766e7a61d9533087171",
     "targetDefinitionId": "temporal.nexus.basic-lifecycle.target",
@@ -75,15 +75,13 @@
       "temporal.nexus.basic-lifecycle.capability"
     ],
     "expandedLimits": {
-      "behavior": {
-        "transitions": {
-          "value": 1,
-          "unit": "steps"
-        },
-        "selectedActions": {
-          "value": 1,
-          "unit": "actions"
-        }
+      "steps": {
+        "value": 1,
+        "unit": "steps"
+      },
+      "actions": {
+        "value": 1,
+        "unit": "actions"
       },
       "search": {
         "value": 8,
@@ -181,7 +179,7 @@
         }
       ]
     },
-    "artifactChecksum": "sha256:851d46406cf082b243e5bc54a7d62fda466646ce863d597452df94bbbbbb1240"
+    "artifactChecksum": "sha256:04c0a00bcf27b249382e7e114966c8cd730e949d9d859542a385a40ef0800c42"
   },
   "properties": [
     {
@@ -218,5 +216,5 @@
       }
     ]
   },
-  "artifactChecksum": "sha256:840e0b835a6866eea64ae9823976907af919cce60522e5132f4f95d2b9402e60"
+  "artifactChecksum": "sha256:cb9bf9c797ba81fd2f9b408ba4bda710737bf754d00af15d05b85d987aa51aa4"
 }

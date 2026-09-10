@@ -100,7 +100,7 @@ need an independently specified authoritative relation can use the expert `Machi
 Property, Scenario, Query, and Observation inputs remain ordinary values. Call each language's
 `check` operation to inspect its typed `Except` error, then supply explicit checker-success evidence
 to its `checked` operation. Stable `DefinitionId` suffixes, source locations, providers/connectors,
-Model-owned outcomes, and stage-specific `QueryLimitSpec` values are authored choices; declaration
+Model-owned outcomes, and stage-specific `Limits` values are authored choices; declaration
 order and instance search choose none of them. Planning returns `Except KnownGapError PlanResult`.
 An optional checked `authoredKnownGaps` set is composed with phase gaps before search or artifact
 publication. Gaps describe limits and missing evidence; they cannot make a Property pass or imply

@@ -498,7 +498,7 @@ def checkedQueryTemplate : CheckedQuery Umpire.Examples.Switch.LawStatement :=
 
 def verdictQuery
     (properties : List CheckedProperty) : CheckedQuery Umpire.Examples.Switch.LawStatement := {
-  checkedQueryTemplate with form := .select properties
+  checkedQueryTemplate with form := .pick properties
 }
 
 def evaluationDiagnostic (kind : ObservationFailureKind) : ObservationDiagnostic := {

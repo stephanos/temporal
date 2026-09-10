@@ -116,7 +116,7 @@ private def guardedAdmission : Option (CheckedProperty × CheckedScenario × Che
   let property ← (Authoring.GuardedRace.authoredProperty model).check
     (PropertyCheckContext.ofTarget target) |>.toOption
   let behavior ← (Authoring.GuardedRace.authoredScenario model).check (.ofTarget target) |>.toOption
-  let query ← (Authoring.GuardedRace.querySpec property behavior).check target |>.toOption
+  let query ← Query.check (.ofTarget target) (Authoring.GuardedRace.authoredQuery property behavior) |>.toOption
   pure (property, behavior, query)
 
 #guard guardedAdmission.isSome
@@ -143,7 +143,7 @@ private def raceAlternativesAndProvider : Option (Nat × List DefinitionId) := d
 #guard raceAlternativesAndProvider == some (2, [Race.providerId])
 
 private def inspectedGuardedSurface : Option
-    (DefinitionId × List DefinitionId × List DefinitionId × QueryForm × QueryLimits × PlannerPolicy) := do
+    (DefinitionId × List DefinitionId × List DefinitionId × Query.Form × Limits × PlannerPolicy) := do
   let (property, behavior, query) ← guardedAdmission
   pure (property.id, property.guardedClauseIds,
     behavior.requiredOccurrences.map Scenario.Step.id, query.form, query.limits, query.policy)
@@ -155,8 +155,8 @@ private def inspectedGuardedSurface : Option
       Authoring.GuardedRace.family.id "occurrence" "request",
       Authoring.GuardedRace.family.id "occurrence" "resolution"
     ] &&
-    (match form with | .select [_] => true | _ => false) &&
-    limits == QueryLimits.bounded 2 2 32 && policy == PlannerPolicy.exhaustive) == some true
+    (match form with | .pick [_] => true | _ => false) &&
+    limits == Limits.bounded 2 2 32 && policy == PlannerPolicy.exhaustive) == some true
 
 private def propertyErrorKind (spec : Property) : Option PropertyErrorKind := do
   let target ← Race.targetResult.toOption
@@ -447,15 +447,15 @@ private def contradictoryBehavior (model : Race.ModelVocabulary) : Scenario := {
 
 private def queryErrorKind
     (target : QueryModel Race.LawStatement)
-    (spec : QuerySpec) : Option QueryErrorKind :=
-  match spec.check target with
+    (declaration : Query) : Option QueryErrorKind :=
+  match Query.check (.ofTarget target) declaration with
   | .error error => some error.kind
   | .ok _ => none
 
 private def wrongTargetQuery : Option QueryErrorKind := do
   let target ← Race.targetResult.toOption
   let (property, behavior, _) ← guardedAdmission
-  let spec := { Authoring.GuardedRace.querySpec property behavior with
+  let spec := { Authoring.GuardedRace.authoredQuery property behavior with
     target := DefinitionId.of "temporal.nexus2.other.target" }
   queryErrorKind target spec
 
@@ -465,8 +465,8 @@ private def wrongTargetDiagnostic : Option (QueryErrorKind × List DefinitionId)
   let target ← Race.targetResult.toOption
   let (property, behavior, _) ← guardedAdmission
   let other := DefinitionId.of "temporal.nexus2.other.target"
-  let spec := { Authoring.GuardedRace.querySpec property behavior with target := other }
-  match spec.check target with
+  let spec := { Authoring.GuardedRace.authoredQuery property behavior with target := other }
+  match Query.check (.ofTarget target) spec with
   | .error error => some (error.kind, error.relatedDefinitionIds)
   | .ok _ => none
 
@@ -477,16 +477,14 @@ private def wrongTargetDiagnostic : Option (QueryErrorKind × List DefinitionId)
 private def wrongUnitQuery : Option QueryErrorKind := do
   let target ← Race.targetResult.toOption
   let (property, behavior, _) ← guardedAdmission
-  let declaration := { (Authoring.GuardedRace.querySpec property behavior).declaration with
+  let declaration := { Authoring.GuardedRace.authoredQuery property behavior with
     limits := {
-      behavior := {
-        transitions := { value := 2, unit := .actions }
-        selectedActions := { value := 2, unit := .actions }
-      }
+      steps := { value := 2, unit := .actions }
+      actions := { value := 2, unit := .actions }
       search := { value := 32, unit := .search }
     }
   }
-  match checkQuery (.ofTarget target) declaration with
+  match Query.check (.ofTarget target) declaration with
   | .error error => pure error.kind
   | .ok _ => none
 
@@ -510,7 +508,7 @@ private def missingReplacementAnalysis : Option
   let spec := Authoring.GuardedRace.withoutReplacement model
   let property ← spec.check (PropertyCheckContext.ofTarget target) |>.toOption
   let behavior ← (Authoring.GuardedRace.authoredScenario model).check (.ofTarget target) |>.toOption
-  let query ← (Authoring.GuardedRace.querySpec property behavior).check target |>.toOption
+  let query ← Query.check (.ofTarget target) (Authoring.GuardedRace.authoredQuery property behavior) |>.toOption
   let kernel ← SearchView.ofCheckedQuery query.target.id query |>.toOption
   let result := analyzeBranches query kernel
   let finding ← result.findings.find? fun finding => finding.kind == .missingReplacement
@@ -549,16 +547,15 @@ private def changedBehaviorFingerprint : Option Bool := do
 
 #guard changedBehaviorFingerprint == some true
 
-private def allQueryForms : Option (List QueryClaim) := do
+private def allQueryForms : Option (List String) := do
   let target ← Race.targetResult.toOption
   let (property, behavior, _) ← guardedAdmission
-  let base := Authoring.GuardedRace.querySpec property behavior
-  [.verify property, .witness property, .counterexample property, .select [property]].mapM fun form => do
-    let checked ← ({ base with form }).check target |>.toOption
-    pure checked.claim
+  let base := Authoring.GuardedRace.authoredQuery property behavior
+  [.verify property, .find property, .findViolation property, .pick [property]].mapM fun form => do
+    let checked ← (Query.check (.ofTarget target) { base with form }).toOption
+    pure checked.form.name
 
-#guard allQueryForms == some [
-  .verifiedWithinLimits, .satisfyingWitness, .violatingCounterexample, .limitedSelection]
+#guard allQueryForms == some ["verify", "find", "find-violation", "pick"]
 
 private def frontendRaceBehaviorContext : ScenarioCheckContext := {
   definitions := Race.definitions
@@ -583,14 +580,20 @@ private def frontendGuardedBehaviorEquivalence : Bool :=
 
 #guard frontendGuardedBehaviorEquivalence
 
-private def frontendGuardedQueryInput : Option (QueryAuthoringInput Race.LawStatement) := do
-  let target ← Race.targetResult.toOption
-  let property ← frontendGuardedProperty.toOption
-  let behavior ← frontendGuardedBehavior.toOption
-  pure (QueryAuthoringInput.ofSpec (Authoring.GuardedRace.querySpec property behavior) target)
+private def frontendRaceTarget : QueryModel Race.LawStatement :=
+  Race.targetResult.toOption.get (by native_decide)
 
-def frontendGuardedQuery : Option (Except QueryError (CheckedQuery Race.LawStatement)) :=
-  query% frontendGuardedQueryInput tracking [
+private def frontendCheckedProperty : CheckedProperty :=
+  frontendGuardedProperty.toOption.get (by native_decide)
+
+private def frontendCheckedScenario : CheckedScenario :=
+  frontendGuardedBehavior.toOption.get (by native_decide)
+
+private def frontendGuardedQueryDeclaration : Query :=
+  Authoring.GuardedRace.authoredQuery frontendCheckedProperty frontendCheckedScenario
+
+def frontendGuardedQuery : Except QueryError (CheckedQuery Race.LawStatement) :=
+  query% frontendGuardedQueryDeclaration against frontendRaceTarget tracking [
     queryParent (Authoring.GuardedRace.family.id "query" "case-analysis"),
     targetAnchor Race.targetId,
     propertyAnchor (Authoring.GuardedRace.family.id "property" "cases"),
@@ -599,12 +602,10 @@ def frontendGuardedQuery : Option (Except QueryError (CheckedQuery Race.LawState
 
 private def frontendGuardedAdmission : Option
     (CheckedProperty × CheckedScenario × CheckedQuery Race.LawStatement) := do
-  let input ← frontendGuardedQueryInput
-  let queryResult ← frontendGuardedQuery
-  let query ← queryResult.toOption
+  let query ← frontendGuardedQuery.toOption
   let property ← frontendGuardedProperty.toOption
   let behavior ← frontendGuardedBehavior.toOption
-  if query.target.id != input.target.id then none else
+  if query.target.id != frontendRaceTarget.id then none else
   pure (property, behavior, query)
 
 private def frontendGuardedQueryEquivalence : Option Bool := do
@@ -613,8 +614,7 @@ private def frontendGuardedQueryEquivalence : Option Bool := do
   pure (frontend.id == constructor.id &&
     frontend.canonicalMetadata == constructor.canonicalMetadata &&
     frontend.behaviorFingerprint == constructor.behaviorFingerprint &&
-    frontend.form == constructor.form && frontend.quantifier == constructor.quantifier &&
-    frontend.claim == constructor.claim && frontend.limits == constructor.limits &&
+    frontend.form == constructor.form && frontend.limits == constructor.limits &&
     frontend.policy == constructor.policy &&
     frontend.modelProviders == constructor.modelProviders)
 
@@ -690,90 +690,78 @@ error: expected scenarioParent, setupAnchor, occurrenceAnchor, or actionAnchor
 #check scenario% malformedBehavior against frontendRaceBehaviorContext tracking [
   unsupportedBehaviorRole malformedBehavior.id]
 
-private def mapGuardedQueryInput
-    (change : QueryDeclaration → QueryDeclaration) :
-    Option (QueryAuthoringInput Race.LawStatement) := do
-  let input ← frontendGuardedQueryInput
-  pure { input with declaration := change input.declaration }
-
 private def otherTargetId : DefinitionId :=
   DefinitionId.of "temporal.nexus2.other.target"
 
-private def wrongTargetQueryInput : Option (QueryAuthoringInput Race.LawStatement) :=
-  mapGuardedQueryInput fun declaration => { declaration with target := otherTargetId }
+private def mismatchedTargetQuery : Query :=
+  { frontendGuardedQueryDeclaration with target := otherTargetId }
 
-private def emptyQueryInput : Option (QueryAuthoringInput Race.LawStatement) :=
-  mapGuardedQueryInput fun declaration => { declaration with form := .select [] }
+private def emptyQuery : Query :=
+  { frontendGuardedQueryDeclaration with form := .pick [] }
 
-private def missingCapabilityQueryInput : Option (QueryAuthoringInput Race.LawStatement) := do
-  let input ← frontendGuardedQueryInput
-  let property ← input.declaration.form.properties.head?
-  pure { input with declaration := { input.declaration with
-    form := .select [{ property with requires := [unknownActionId] }] } }
+private def missingCapabilityQuery : Query :=
+  { frontendGuardedQueryDeclaration with
+    form := .pick [{ frontendCheckedProperty with requires := [unknownActionId] }] }
 
-private def invalidLimitQueryInput : Option (QueryAuthoringInput Race.LawStatement) :=
-  mapGuardedQueryInput fun declaration => { declaration with
-    limits := QueryLimits.bounded 2 2 0 }
+private def invalidLimitQuery : Query :=
+  { frontendGuardedQueryDeclaration with limits := Limits.bounded 2 2 0 }
 
-private def wrongUnitQueryInput : Option (QueryAuthoringInput Race.LawStatement) :=
-  mapGuardedQueryInput fun declaration => { declaration with limits := {
-    behavior := {
-      transitions := { value := 2, unit := .actions }
-      selectedActions := { value := 2, unit := .actions }
-    }
+private def mismatchedUnitQuery : Query :=
+  { frontendGuardedQueryDeclaration with limits := {
+    steps := { value := 2, unit := .actions }
+    actions := { value := 2, unit := .actions }
     search := { value := 32, unit := .search }
   } }
 
-private def duplicatePropertyQueryInput : Option (QueryAuthoringInput Race.LawStatement) := do
-  let input ← frontendGuardedQueryInput
-  let property ← input.declaration.form.properties.head?
-  pure { input with declaration := { input.declaration with form := .select [property, property] } }
+private def duplicatePropertyQuery : Query :=
+  { frontendGuardedQueryDeclaration with
+    form := .pick [frontendCheckedProperty, frontendCheckedProperty] }
 
 /--
-error: query authoring failed: {"error":{"kind":"target-mismatch","definitionId":"temporal.nexus2.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.other.target != temporal.nexus2.cancellation-race.target","relatedDefinitionIds":["temporal.nexus2.cancellation-race.target","temporal.nexus2.other.target"]},"role":"target","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":738,"column":15,"endLine":738,"endColumn":28}}
+error: query authoring failed: {"error":{"kind":"target-mismatch","definitionId":"temporal.nexus2.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.other.target != temporal.nexus2.cancellation-race.target","relatedDefinitionIds":["temporal.nexus2.cancellation-race.target","temporal.nexus2.other.target"]},"role":"target","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":726,"column":15,"endLine":726,"endColumn":28}}
 -/
 #guard_msgs (error) in
-#check query% wrongTargetQueryInput tracking [
+#check query% mismatchedTargetQuery against frontendRaceTarget tracking [
   queryParent (Authoring.GuardedRace.family.id "query" "case-analysis"),
   targetAnchor otherTargetId]
 
 /--
-error: query authoring failed: {"error":{"kind":"missing-property","definitionId":"temporal.nexus2.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"properties","relatedDefinitionIds":[]},"role":"property","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":746,"column":17,"endLine":746,"endColumn":69}}
+error: query authoring failed: {"error":{"kind":"missing-property","definitionId":"temporal.nexus2.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"properties","relatedDefinitionIds":[]},"role":"property","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":734,"column":17,"endLine":734,"endColumn":69}}
 -/
 #guard_msgs (error) in
-#check query% emptyQueryInput tracking [
+#check query% emptyQuery against frontendRaceTarget tracking [
   queryParent (Authoring.GuardedRace.family.id "query" "case-analysis"),
   propertyAnchor (Authoring.GuardedRace.family.id "property" "cases")]
 
 /--
-error: query authoring failed: {"error":{"kind":"missing-capability","definitionId":"temporal.nexus2.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.unknown.action","relatedDefinitionIds":["temporal.nexus2.cancellation-race.target","temporal.nexus2.unknown.action"]},"role":"property","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":754,"column":17,"endLine":754,"endColumn":69}}
+error: query authoring failed: {"error":{"kind":"missing-capability","definitionId":"temporal.nexus2.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.unknown.action","relatedDefinitionIds":["temporal.nexus2.cancellation-race.target","temporal.nexus2.unknown.action"]},"role":"property","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":742,"column":17,"endLine":742,"endColumn":69}}
 -/
 #guard_msgs (error) in
-#check query% missingCapabilityQueryInput tracking [
+#check query% missingCapabilityQuery against frontendRaceTarget tracking [
   queryParent (Authoring.GuardedRace.family.id "query" "case-analysis"),
   propertyAnchor (Authoring.GuardedRace.family.id "property" "cases")]
 
 /--
-error: query authoring failed: {"error":{"kind":"invalid-limit","definitionId":"temporal.nexus2.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"search.candidateEvaluations=0","relatedDefinitionIds":[]},"role":"limits","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":762,"column":15,"endLine":762,"endColumn":72}}
+error: query authoring failed: {"error":{"kind":"invalid-limit","definitionId":"temporal.nexus2.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"search=0","relatedDefinitionIds":[]},"role":"limits","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":750,"column":15,"endLine":750,"endColumn":72}}
 -/
 #guard_msgs (error) in
-#check query% invalidLimitQueryInput tracking [
+#check query% invalidLimitQuery against frontendRaceTarget tracking [
   queryParent (Authoring.GuardedRace.family.id "query" "case-analysis"),
   limitsAnchor (Authoring.GuardedRace.family.id "query" "case-analysis")]
 
 /--
-error: query authoring failed: {"error":{"kind":"unit-mismatch","definitionId":"temporal.nexus2.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"behavior.transitions:actions","relatedDefinitionIds":[]},"role":"limits","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":770,"column":15,"endLine":770,"endColumn":72}}
+error: query authoring failed: {"error":{"kind":"unit-mismatch","definitionId":"temporal.nexus2.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"steps:actions","relatedDefinitionIds":[]},"role":"limits","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":758,"column":15,"endLine":758,"endColumn":72}}
 -/
 #guard_msgs (error) in
-#check query% wrongUnitQueryInput tracking [
+#check query% mismatchedUnitQuery against frontendRaceTarget tracking [
   queryParent (Authoring.GuardedRace.family.id "query" "case-analysis"),
   limitsAnchor (Authoring.GuardedRace.family.id "query" "case-analysis")]
 
 /--
-error: query authoring failed: {"error":{"kind":"duplicate-property","definitionId":"temporal.nexus2.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.cancellation-race.property.cases","relatedDefinitionIds":["temporal.nexus2.cancellation-race.property.cases"]},"role":"property","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":778,"column":17,"endLine":778,"endColumn":69}}
+error: query authoring failed: {"error":{"kind":"duplicate-property","definitionId":"temporal.nexus2.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.cancellation-race.property.cases","relatedDefinitionIds":["temporal.nexus2.cancellation-race.property.cases"]},"role":"property","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":766,"column":17,"endLine":766,"endColumn":69}}
 -/
 #guard_msgs (error) in
-#check query% duplicatePropertyQueryInput tracking [
+#check query% duplicatePropertyQuery against frontendRaceTarget tracking [
   queryParent (Authoring.GuardedRace.family.id "query" "case-analysis"),
   propertyAnchor (Authoring.GuardedRace.family.id "property" "cases")]
 
@@ -781,7 +769,7 @@ error: query authoring failed: {"error":{"kind":"duplicate-property","definition
 error: expected queryParent, targetAnchor, propertyAnchor, scenarioAnchor, limitsAnchor, or policyAnchor
 -/
 #guard_msgs (error) in
-#check query% wrongTargetQueryInput tracking [
+#check query% mismatchedTargetQuery against frontendRaceTarget tracking [
   unsupportedQueryRole (Authoring.GuardedRace.family.id "query" "case-analysis")]
 
 private def unknownStateProperty : Property := {
@@ -807,7 +795,7 @@ private def unknownResultProperty : Property := {
 }
 
 /--
-error: property authoring failed: {"error":{"kind":"unknown-reference","definitionId":"temporal.nexus2.cancellation-race.property.unknown-state","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.unknown.state","relatedDefinitionIds":["temporal.nexus2.unknown.state"]},"role":"clause","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":815,"column":15,"endLine":815,"endColumn":64}}
+error: property authoring failed: {"error":{"kind":"unknown-reference","definitionId":"temporal.nexus2.cancellation-race.property.unknown-state","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.unknown.state","relatedDefinitionIds":["temporal.nexus2.unknown.state"]},"role":"clause","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":803,"column":15,"endLine":803,"endColumn":64}}
 -/
 #guard_msgs (error) in
 #check property% unknownStateProperty against frontendRaceContext tracking [
@@ -815,26 +803,23 @@ error: property authoring failed: {"error":{"kind":"unknown-reference","definiti
   clauseAnchor (DefinitionId.of "temporal.nexus2.unknown.state")]
 
 /--
-error: property authoring failed: {"error":{"kind":"unknown-reference","definitionId":"temporal.nexus2.cancellation-race.property.unknown-result","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.unknown.result","relatedDefinitionIds":["temporal.nexus2.unknown.result"]},"role":"clause","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":823,"column":15,"endLine":823,"endColumn":65}}
+error: property authoring failed: {"error":{"kind":"unknown-reference","definitionId":"temporal.nexus2.cancellation-race.property.unknown-result","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.unknown.result","relatedDefinitionIds":["temporal.nexus2.unknown.result"]},"role":"clause","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":811,"column":15,"endLine":811,"endColumn":65}}
 -/
 #guard_msgs (error) in
 #check property% unknownResultProperty against frontendRaceContext tracking [
   parentAnchor unknownResultProperty.id,
   clauseAnchor (DefinitionId.of "temporal.nexus2.unknown.result")]
 
-private def incompatibleStrategyQueryInput : Option (QueryAuthoringInput Race.LawStatement) := do
-  let input ← frontendGuardedQueryInput
-  let property ← input.declaration.form.properties.head?
-  pure { input with declaration := { input.declaration with
-    form := .verify property
-    policy := .shortest
-  } }
+private def incompatibleStrategyQuery : Query :=
+  { frontendGuardedQueryDeclaration with
+    form := .verify frontendCheckedProperty
+    policy := .shortest }
 
 /--
-error: query authoring failed: {"error":{"kind":"incompatible-strategy","definitionId":"temporal.nexus2.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"shortest","relatedDefinitionIds":[]},"role":"policy","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":839,"column":15,"endLine":839,"endColumn":72}}
+error: query authoring failed: {"error":{"kind":"incompatible-strategy","definitionId":"temporal.nexus2.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"shortest","relatedDefinitionIds":[]},"role":"policy","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":824,"column":15,"endLine":824,"endColumn":72}}
 -/
 #guard_msgs (error) in
-#check query% incompatibleStrategyQueryInput tracking [
+#check query% incompatibleStrategyQuery against frontendRaceTarget tracking [
   queryParent (Authoring.GuardedRace.family.id "query" "case-analysis"),
   policyAnchor (Authoring.GuardedRace.family.id "query" "case-analysis")]
 
@@ -845,11 +830,8 @@ private def frontendContradictoryBehavior : Except ScenarioError CheckedScenario
 
 #guard frontendContradictoryBehavior.toOption.map CheckedScenario.isUnsatisfiable == some true
 
-private def invalidQueryHasNoCheckedValue : Option QueryErrorKind := do
-  let input ← wrongTargetQueryInput
-  match input.check with
-  | .error error => some error.kind
-  | .ok _ => none
+private def invalidQueryHasNoCheckedValue : Option QueryErrorKind :=
+  (Query.error? mismatchedTargetQuery frontendRaceTarget).map QueryError.kind
 
 #guard invalidQueryHasNoCheckedValue == some .targetMismatch
 
@@ -872,21 +854,18 @@ private def behaviorSourceMetadataDifference : Option Bool := do
 
 #guard behaviorSourceMetadataDifference == some true
 
-private def movedQueryInput : Option (QueryAuthoringInput Race.LawStatement) := do
-  let input ← frontendGuardedQueryInput
-  pure { input with declaration := { input.declaration with
-    source := { path := "Moved/Query.lean", line := 902, column := 5 }
-  } }
+private def movedQuery : Query :=
+  { frontendGuardedQueryDeclaration with
+    source := { path := "Moved/Query.lean", line := 902, column := 5 } }
 
-private def movedQueryFrontend : Option (Except QueryError (CheckedQuery Race.LawStatement)) :=
-  query% movedQueryInput tracking [
+private def movedQueryFrontend : Except QueryError (CheckedQuery Race.LawStatement) :=
+  query% movedQuery against frontendRaceTarget tracking [
     queryParent (Authoring.GuardedRace.family.id "query" "case-analysis")]
 
 private def querySourceMetadataDifference : Option Bool := do
-  let input ← frontendGuardedQueryInput
-  let constructor ← input.check.toOption
-  let movedResult ← movedQueryFrontend
-  let moved ← movedResult.toOption
+  let constructor ← (Query.check (.ofTarget frontendRaceTarget)
+    frontendGuardedQueryDeclaration).toOption
+  let moved ← movedQueryFrontend.toOption
   pure (moved.id == constructor.id && moved.source != constructor.source &&
     moved.canonicalMetadata == constructor.canonicalMetadata &&
     moved.behaviorFingerprint == constructor.behaviorFingerprint)
@@ -906,15 +885,15 @@ private def invalidOpenBehaviorHasNoCheckedValue : Option ScenarioErrorKind :=
 #guard invalidOpenBehaviorHasNoCheckedValue == some .invalidDefinitionId
 
 private def openQueryFrontend
-    (spec : QuerySpec)
+    (declaration : Query)
     (target : QueryModel Race.LawStatement) :
     Except QueryError (CheckedQuery Race.LawStatement) :=
-  query% spec against target tracking [queryParent spec.declaration.id]
+  query% declaration against target tracking [queryParent declaration.id]
 
 private def invalidOpenQueryHasNoCheckedValue : Option QueryErrorKind := do
   let target ← Race.targetResult.toOption
   let (property, behavior, _) ← guardedAdmission
-  let spec := { Authoring.GuardedRace.querySpec property behavior with target := otherTargetId }
+  let spec := { Authoring.GuardedRace.authoredQuery property behavior with target := otherTargetId }
   match openQueryFrontend spec target with
   | .error error => some error.kind
   | .ok _ => none
@@ -925,8 +904,8 @@ private def invalidOpenQueryHasNoCheckedValue : Option QueryErrorKind := do
 error: Tactic `decide` failed for proposition
 -/
 #guard_msgs (error, substring := true) in
-example : frontendGuardedQueryInput.map
-    (fun input => input.check.toOption.isSome) = some true := by
+example : (Query.check (.ofTarget frontendRaceTarget)
+    frontendGuardedQueryDeclaration).toOption.isSome = true := by
   decide +kernel
 
 private def frontendCancelSpec : Property :=
@@ -996,31 +975,31 @@ private def frontendBaselineAdmission : Option FrontendBaseline := do
   let constructor ← Authoring.Baseline.checkBaseline.toOption
   let startProperty ← frontendStartProperty.toOption
   let startBehavior ← frontendStartBehavior.toOption
-  let startSpec := Authoring.Baseline.querySpec "start" startProperty startBehavior
+  let startSpec := Authoring.Baseline.authoredQuery "start" startProperty startBehavior
   let startQuery ← (query% startSpec against constructor.target tracking [
-    queryParent startSpec.declaration.id,
+    queryParent startSpec.id,
     targetAnchor startSpec.target,
     propertyAnchor startProperty.id,
     scenarioAnchor startBehavior.id,
-    limitsAnchor startSpec.declaration.id]) |>.toOption
+    limitsAnchor startSpec.id]) |>.toOption
   let cancelProperty ← frontendCancelProperty.toOption
   let cancelBehavior ← frontendCancelBehavior.toOption
-  let cancelSpec := Authoring.Baseline.querySpec "cancel" cancelProperty cancelBehavior
+  let cancelSpec := Authoring.Baseline.authoredQuery "cancel" cancelProperty cancelBehavior
   let cancelQuery ← (query% cancelSpec against constructor.target tracking [
-    queryParent cancelSpec.declaration.id,
+    queryParent cancelSpec.id,
     targetAnchor cancelSpec.target,
     propertyAnchor cancelProperty.id,
     scenarioAnchor cancelBehavior.id,
-    limitsAnchor cancelSpec.declaration.id]) |>.toOption
+    limitsAnchor cancelSpec.id]) |>.toOption
   let successProperty ← frontendSuccessProperty.toOption
   let successBehavior ← frontendSuccessBehavior.toOption
-  let successSpec := Authoring.Baseline.querySpec "success" successProperty successBehavior
+  let successSpec := Authoring.Baseline.authoredQuery "success" successProperty successBehavior
   let successQuery ← (query% successSpec against constructor.target tracking [
-    queryParent successSpec.declaration.id,
+    queryParent successSpec.id,
     targetAnchor successSpec.target,
     propertyAnchor successProperty.id,
     scenarioAnchor successBehavior.id,
-    limitsAnchor successSpec.declaration.id]) |>.toOption
+    limitsAnchor successSpec.id]) |>.toOption
   pure {
     startProperty := startProperty
     startBehavior := startBehavior
@@ -1172,44 +1151,44 @@ def frontendTenBehaviors : List (Except ScenarioError CheckedScenario) := [
 #guard frontendOneBehavior.toOption.isSome
 #guard frontendTenBehaviors.all (fun result => result.toOption.isSome)
 
-def constructorOneQuery : Option (Except QueryError (CheckedQuery Race.LawStatement)) :=
-  frontendGuardedQueryInput.map QueryAuthoringInput.check
+def constructorOneQuery : Except QueryError (CheckedQuery Race.LawStatement) :=
+  Query.check (.ofTarget frontendRaceTarget) frontendGuardedQueryDeclaration
 
-def constructorTenQueries : List (Option (Except QueryError (CheckedQuery Race.LawStatement))) := [
-  frontendGuardedQueryInput.map QueryAuthoringInput.check,
-  frontendGuardedQueryInput.map QueryAuthoringInput.check,
-  frontendGuardedQueryInput.map QueryAuthoringInput.check,
-  frontendGuardedQueryInput.map QueryAuthoringInput.check,
-  frontendGuardedQueryInput.map QueryAuthoringInput.check,
-  frontendGuardedQueryInput.map QueryAuthoringInput.check,
-  frontendGuardedQueryInput.map QueryAuthoringInput.check,
-  frontendGuardedQueryInput.map QueryAuthoringInput.check,
-  frontendGuardedQueryInput.map QueryAuthoringInput.check,
-  frontendGuardedQueryInput.map QueryAuthoringInput.check]
+def constructorTenQueries : List (Except QueryError (CheckedQuery Race.LawStatement)) := [
+  Query.check (.ofTarget frontendRaceTarget) frontendGuardedQueryDeclaration,
+  Query.check (.ofTarget frontendRaceTarget) frontendGuardedQueryDeclaration,
+  Query.check (.ofTarget frontendRaceTarget) frontendGuardedQueryDeclaration,
+  Query.check (.ofTarget frontendRaceTarget) frontendGuardedQueryDeclaration,
+  Query.check (.ofTarget frontendRaceTarget) frontendGuardedQueryDeclaration,
+  Query.check (.ofTarget frontendRaceTarget) frontendGuardedQueryDeclaration,
+  Query.check (.ofTarget frontendRaceTarget) frontendGuardedQueryDeclaration,
+  Query.check (.ofTarget frontendRaceTarget) frontendGuardedQueryDeclaration,
+  Query.check (.ofTarget frontendRaceTarget) frontendGuardedQueryDeclaration,
+  Query.check (.ofTarget frontendRaceTarget) frontendGuardedQueryDeclaration]
 
-def frontendOneQuery : Option (Except QueryError (CheckedQuery Race.LawStatement)) :=
-  query% frontendGuardedQueryInput tracking [
+def frontendOneQuery : Except QueryError (CheckedQuery Race.LawStatement) :=
+  query% frontendGuardedQueryDeclaration against frontendRaceTarget tracking [
     queryParent (Authoring.GuardedRace.family.id "query" "case-analysis"),
     targetAnchor Race.targetId,
     propertyAnchor (Authoring.GuardedRace.family.id "property" "cases"),
     scenarioAnchor (Authoring.GuardedRace.family.id "behavior" "request-then-resolve"),
     limitsAnchor (Authoring.GuardedRace.family.id "query" "case-analysis")]
 
-def frontendTenQueries : List (Option (Except QueryError (CheckedQuery Race.LawStatement))) := [
-  query% frontendGuardedQueryInput tracking [queryParent (Authoring.GuardedRace.family.id "query" "case-analysis")],
-  query% frontendGuardedQueryInput tracking [queryParent (Authoring.GuardedRace.family.id "query" "case-analysis")],
-  query% frontendGuardedQueryInput tracking [queryParent (Authoring.GuardedRace.family.id "query" "case-analysis")],
-  query% frontendGuardedQueryInput tracking [queryParent (Authoring.GuardedRace.family.id "query" "case-analysis")],
-  query% frontendGuardedQueryInput tracking [queryParent (Authoring.GuardedRace.family.id "query" "case-analysis")],
-  query% frontendGuardedQueryInput tracking [queryParent (Authoring.GuardedRace.family.id "query" "case-analysis")],
-  query% frontendGuardedQueryInput tracking [queryParent (Authoring.GuardedRace.family.id "query" "case-analysis")],
-  query% frontendGuardedQueryInput tracking [queryParent (Authoring.GuardedRace.family.id "query" "case-analysis")],
-  query% frontendGuardedQueryInput tracking [queryParent (Authoring.GuardedRace.family.id "query" "case-analysis")],
-  query% frontendGuardedQueryInput tracking [queryParent (Authoring.GuardedRace.family.id "query" "case-analysis")]]
+def frontendTenQueries : List (Except QueryError (CheckedQuery Race.LawStatement)) := [
+  query% frontendGuardedQueryDeclaration against frontendRaceTarget tracking [queryParent (Authoring.GuardedRace.family.id "query" "case-analysis")],
+  query% frontendGuardedQueryDeclaration against frontendRaceTarget tracking [queryParent (Authoring.GuardedRace.family.id "query" "case-analysis")],
+  query% frontendGuardedQueryDeclaration against frontendRaceTarget tracking [queryParent (Authoring.GuardedRace.family.id "query" "case-analysis")],
+  query% frontendGuardedQueryDeclaration against frontendRaceTarget tracking [queryParent (Authoring.GuardedRace.family.id "query" "case-analysis")],
+  query% frontendGuardedQueryDeclaration against frontendRaceTarget tracking [queryParent (Authoring.GuardedRace.family.id "query" "case-analysis")],
+  query% frontendGuardedQueryDeclaration against frontendRaceTarget tracking [queryParent (Authoring.GuardedRace.family.id "query" "case-analysis")],
+  query% frontendGuardedQueryDeclaration against frontendRaceTarget tracking [queryParent (Authoring.GuardedRace.family.id "query" "case-analysis")],
+  query% frontendGuardedQueryDeclaration against frontendRaceTarget tracking [queryParent (Authoring.GuardedRace.family.id "query" "case-analysis")],
+  query% frontendGuardedQueryDeclaration against frontendRaceTarget tracking [queryParent (Authoring.GuardedRace.family.id "query" "case-analysis")],
+  query% frontendGuardedQueryDeclaration against frontendRaceTarget tracking [queryParent (Authoring.GuardedRace.family.id "query" "case-analysis")]]
 
 private def queryAdmissionSucceeded
-    (result : Option (Except QueryError (CheckedQuery Race.LawStatement))) : Bool :=
-  result.bind Except.toOption |>.isSome
+    (result : Except QueryError (CheckedQuery Race.LawStatement)) : Bool :=
+  result.toOption.isSome
 
 #guard queryAdmissionSucceeded constructorOneQuery
 #guard constructorTenQueries.all queryAdmissionSucceeded
@@ -1238,13 +1217,13 @@ example : (Property.check
 #print axioms Authoring.Baseline.checkBaseline
 #print axioms Authoring.GuardedRace.authoredProperty
 #print axioms Authoring.GuardedRace.authoredScenario
-#print axioms Authoring.GuardedRace.querySpec
+#print axioms Authoring.GuardedRace.authoredQuery
 #print axioms Property.check
 #print axioms Property.checked
 #print axioms Scenario.check
 #print axioms Scenario.checked
-#print axioms QuerySpec.check
-#print axioms QuerySpec.checked
+#print axioms Query.check
+#print axioms Query.checked
 #print axioms frontendGuardedBehavior
 #print axioms frontendGuardedAdmission
 #print axioms frontendBaselineAdmission

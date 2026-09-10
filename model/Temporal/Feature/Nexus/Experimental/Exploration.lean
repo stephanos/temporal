@@ -23,9 +23,9 @@ private theorem queryResult_target
       contradiction
   | ok behavior =>
       change (materializeQuery <$> Except.mapError VariationSpacePreparationError.query
-        (checkQuery queryContext _)) = Except.ok query at resultEq
+        (Query.check queryContext _)) = Except.ok query at resultEq
       generalize checkedEq :
-          (checkQuery queryContext _).mapError VariationSpacePreparationError.query =
+          (Query.check queryContext _).mapError VariationSpacePreparationError.query =
             checkedResult at resultEq
       cases checkedResult with
       | error error =>

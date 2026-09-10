@@ -90,7 +90,7 @@ def authoredScenario : Scenario := {
 def behaviorResult : Except ScenarioError CheckedScenario :=
   Scenario.check (.ofTarget target) authoredScenario
 
-def queryLimits : QueryLimits := QueryLimits.bounded 2 2 32
+def queryLimits : Limits := Limits.bounded 2 2 32
 
 /-- Typed failure from any stage of preparing the checked experimental Space. -/
 inductive VariationSpacePreparationError where
@@ -101,11 +101,11 @@ inductive VariationSpacePreparationError where
   | compilation (error : SpaceCompilationError)
   deriving Repr
 
-private def queryDeclaration (behavior : CheckedScenario) : QueryDeclaration := {
+private def authoredQuery (behavior : CheckedScenario) : Query := {
   id := queryId
   source
   target := target.id
-  form := .select [AsyncStart.property, SuccessfulCompletion.property]
+  form := .pick [AsyncStart.property, SuccessfulCompletion.property]
   behavior
   limits := queryLimits
   policy
@@ -114,7 +114,7 @@ private def queryDeclaration (behavior : CheckedScenario) : QueryDeclaration := 
 /-- Check and materialize the base Query without extracting a compiler-trusted success witness. -/
 def queryResult : Except VariationSpacePreparationError (CheckedQuery LawStatement) := do
   let behavior ← behaviorResult.mapError VariationSpacePreparationError.behavior
-  let checked ← (checkQuery queryContext (queryDeclaration behavior)).mapError
+  let checked ← (Query.check queryContext (authoredQuery behavior)).mapError
     VariationSpacePreparationError.query
   pure (materializeQuery checked)
 
@@ -209,7 +209,7 @@ private def prepareDeclaration
   match behaviorResult with
   | .error error => .error (.behavior error)
   | .ok behavior =>
-      match checkQuery queryContext (queryDeclaration behavior) with
+      match Query.check queryContext (authoredQuery behavior) with
       | .error error => .error (.query error)
       | .ok checked =>
           prepareCheckedQuery spaceDeclaration (materializeQuery checked) (by rfl)

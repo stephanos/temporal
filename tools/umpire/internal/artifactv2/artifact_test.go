@@ -43,7 +43,7 @@ func TestDecodeExperimentAcceptsLeanNaturalAboveUint64(t *testing.T) {
 	document, err := DecodeExperiment(readRepositoryFile(t,
 		"model/Umpire/Examples/testdata/switch-experiment-spec.json"))
 	require.NoError(t, err)
-	document.Plan.ExpandedLimits.Behavior.Transitions.Value = natural
+	document.Plan.ExpandedLimits.Steps.Value = natural
 	document, err = SealExperiment(document)
 	require.NoError(t, err)
 	canonical, err := CanonicalExperimentBytes(document)
@@ -51,7 +51,7 @@ func TestDecodeExperimentAcceptsLeanNaturalAboveUint64(t *testing.T) {
 
 	decoded, err := DecodeExperiment(canonical)
 	require.NoError(t, err)
-	require.Equal(t, natural, decoded.Plan.ExpandedLimits.Behavior.Transitions.Value)
+	require.Equal(t, natural, decoded.Plan.ExpandedLimits.Steps.Value)
 }
 
 func TestCanonicalExperimentBytesUsesStablePrettyJSON(t *testing.T) {
@@ -93,14 +93,14 @@ func TestExpectedChecksumsUseExactPrettyPreimages(t *testing.T) {
 	planChecksum, err := ExpectedPlanStepsChecksum(document.Plan)
 	require.NoError(t, err)
 	require.Equal(t,
-		"sha256:84736945a7e129a9d2b60ee9c7fefa458dba579c7167e03c35fc43d0cfdb5347",
+		"sha256:7a33a78cd4bd8e5acf18e896fa23de21b8311cc37baed0322aabf88ed165f200",
 		planChecksum,
 	)
 	document.Plan.ArtifactChecksum = planChecksum
 	experimentChecksum, err := ExpectedExperimentChecksum(document)
 	require.NoError(t, err)
 	require.Equal(t,
-		"sha256:0b745cd509a28f18f9d721d5d151892cd85cb688a4f9e025fe90055ea0f56f5a",
+		"sha256:38833797faa2b888e72082c679c81d0ae6a3bbe6683ae942715087c4b351a32a",
 		experimentChecksum,
 	)
 }
@@ -152,7 +152,7 @@ func TestDecodeExperimentRejectsNoncanonicalEncodings(t *testing.T) {
 		1,
 	)
 	malformedFingerprint := uppercaseFirstDigest(t, withoutTerminalLF)
-	malformedChecksum := bytes.Replace(withoutTerminalLF, []byte("sha256:0b745cd509a28f18f9d721d5d151892cd85cb688a4f9e025fe90055ea0f56f5a"), []byte("sha256:1234"), 1)
+	malformedChecksum := bytes.Replace(withoutTerminalLF, []byte("sha256:38833797faa2b888e72082c679c81d0ae6a3bbe6683ae942715087c4b351a32a"), []byte("sha256:1234"), 1)
 
 	cases := map[string][]byte{
 		"reordered object fields":        append(reordered, '\n'),
@@ -189,10 +189,10 @@ func TestDecodeExperimentVerifiesNestedAndOuterChecksumsIndependently(t *testing
 		want    string
 	}{
 		"nested": {encoded: bytes.Replace(canonical,
-			[]byte("sha256:84736945a7e129a9d2b60ee9c7fefa458dba579c7167e03c35fc43d0cfdb5347"),
+			[]byte("sha256:7a33a78cd4bd8e5acf18e896fa23de21b8311cc37baed0322aabf88ed165f200"),
 			[]byte("sha256:2caad30cc09a2006600917465e4f9223529afbba7acf734c3a629b0e3723ba7d"), 1), want: "nested"},
 		"outer": {encoded: bytes.Replace(canonical,
-			[]byte("sha256:0b745cd509a28f18f9d721d5d151892cd85cb688a4f9e025fe90055ea0f56f5a"),
+			[]byte("sha256:38833797faa2b888e72082c679c81d0ae6a3bbe6683ae942715087c4b351a32a"),
 			[]byte("sha256:d7fc19d59b8b97922df475596bc45022e97c19d051149aa0c9aabe82dff18179"), 1), want: "plan artifact checksum mismatch"},
 	}
 	for name, test := range cases {
@@ -307,13 +307,13 @@ func TestDecodeExperimentRejectsResealedMalformedV2Values(t *testing.T) {
 			mutate: func(document *Experiment) { document.Plan.SelectionReason = "arbitrary" },
 			want:   "selection reason",
 		},
-		"transitions limit unit": {
-			mutate: func(document *Experiment) { document.Plan.ExpandedLimits.Behavior.Transitions.Unit = "arbitrary" },
-			want:   "behavior transitions limit unit",
+		"steps limit unit": {
+			mutate: func(document *Experiment) { document.Plan.ExpandedLimits.Steps.Unit = "arbitrary" },
+			want:   "steps limit unit",
 		},
-		"selected actions limit unit": {
-			mutate: func(document *Experiment) { document.Plan.ExpandedLimits.Behavior.SelectedActions.Unit = "arbitrary" },
-			want:   "behavior selected actions limit unit",
+		"actions limit unit": {
+			mutate: func(document *Experiment) { document.Plan.ExpandedLimits.Actions.Unit = "arbitrary" },
+			want:   "actions limit unit",
 		},
 		"search limit unit": {
 			mutate: func(document *Experiment) { document.Plan.ExpandedLimits.Search.Unit = "arbitrary" },
@@ -423,8 +423,8 @@ func TestDecodeExperimentRejectsResealedMalformedV2Values(t *testing.T) {
 func TestDecodeExperimentAcceptsResealedLeanRecordValues(t *testing.T) {
 	cases := map[string]func(*Experiment){
 		"zero limits and independent trace lists": func(document *Experiment) {
-			document.Plan.ExpandedLimits.Behavior.Transitions.Value = Natural("0")
-			document.Plan.ExpandedLimits.Behavior.SelectedActions.Value = Natural("0")
+			document.Plan.ExpandedLimits.Steps.Value = Natural("0")
+			document.Plan.ExpandedLimits.Actions.Value = Natural("0")
 			document.Plan.ExpandedLimits.Search.Value = Natural("0")
 			document.Plan.ModelOutcomes = []ModelValue{}
 			document.Plan.LinearExtension[0].Position = Natural("0")

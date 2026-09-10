@@ -311,9 +311,9 @@ theorem declarationsAdmitAndRunWithExplicitInputs :
       (baseline.start.run.result.outcome.name,
         baseline.cancel.run.result.outcome.name,
         baseline.success.run.result.outcome.name,
-        baseline.start.query.form.quantifier,
-        baseline.cancel.query.form.quantifier,
-        baseline.success.query.form.quantifier,
+        baseline.start.query.form.name,
+        baseline.cancel.query.form.name,
+        baseline.success.query.form.name,
         baseline.start.query.limits,
         baseline.cancel.query.limits,
         baseline.success.query.limits,
@@ -321,22 +321,13 @@ theorem declarationsAdmitAndRunWithExplicitInputs :
         baseline.cancel.query.policy,
         baseline.success.query.policy)) == some (
       "found", "found", "found",
-      QueryQuantifier.existential, QueryQuantifier.existential, QueryQuantifier.existential,
-      { behavior := {
-          transitions := { value := 1, unit := .steps },
-          selectedActions := { value := 1, unit := .actions }
-        }, search := { value := 8, unit := .search } },
-      { behavior := {
-          transitions := { value := 1, unit := .steps },
-          selectedActions := { value := 1, unit := .actions }
-        }, search := { value := 8, unit := .search } },
-      { behavior := {
-          transitions := { value := 1, unit := .steps },
-          selectedActions := { value := 1, unit := .actions }
-        }, search := { value := 8, unit := .search } },
-      { strategy := .shortest, seed := 17, tieBreak := .definitionId },
-      { strategy := .shortest, seed := 17, tieBreak := .definitionId },
-      { strategy := .shortest, seed := 17, tieBreak := .definitionId })) = true := by
+      "find", "find", "find",
+      Limits.bounded 1 1 8,
+      Limits.bounded 1 1 8,
+      Limits.bounded 1 1 8,
+      { strategy := .shortest, seed := 17 },
+      { strategy := .shortest, seed := 17 },
+      { strategy := .shortest, seed := 17 })) = true := by
   native_decide
 
 private def targetErrorKind
@@ -420,17 +411,14 @@ theorem contradictoryBehaviorIsRejectedByBehavior :
 
 private def queryErrorKinds : Option (QueryErrorKind × QueryErrorKind) := do
   let baseline ← checkBaseline.toOption
-  let declaration := Cancel.queryDeclaration baseline.cancel.property baseline.cancel.behavior
+  let declaration := Cancel.authoredQuery baseline.cancel.property baseline.cancel.behavior
   let zero := { declaration with limits := {
     declaration.limits with search := { value := 0, unit := .search } } }
   let wrongUnit := { declaration with limits := {
-    declaration.limits with behavior := {
-      declaration.limits.behavior with
-      transitions := { value := 1, unit := .actions }
-    } } }
-  let zeroKind ← match checkQuery (.ofTarget baseline.target) zero with
+    declaration.limits with steps := { value := 1, unit := .actions } } }
+  let zeroKind ← match Query.check (.ofTarget baseline.target) zero with
     | .error error => some error.kind | .ok _ => none
-  let unitKind ← match checkQuery (.ofTarget baseline.target) wrongUnit with
+  let unitKind ← match Query.check (.ofTarget baseline.target) wrongUnit with
     | .error error => some error.kind | .ok _ => none
   pure (zeroKind, unitKind)
 
@@ -442,13 +430,13 @@ theorem invalidAndWrongUnitLimitsAreQueryFailures :
 def omittedLimitUnit : Limit := { value := 1 }
 
 #guard_msgs (error, substring := true) in
-def omittedQueryLimits (baseline : CheckedBaseline) : QueryDeclaration := {
+def omittedQueryLimits (baseline : CheckedBaseline) : Query := {
   id := Cancel.queryId
   source := Cancellation.source
   target := targetId
-  form := .witness baseline.cancel.property
+  form := .find baseline.cancel.property
   behavior := baseline.cancel.behavior
-  policy := { strategy := .shortest, seed := 17, tieBreak := .definitionId }
+  policy := { strategy := .shortest, seed := 17 }
 }
 
 private def unsatisfiablePlannerStatus : Option (ScenarioStatus × String) := do
@@ -463,8 +451,8 @@ private def unsatisfiablePlannerStatus : Option (ScenarioStatus × String) := do
       right := .value baseline.model.startedState
     }] }
   let behavior ← (Scenario.check (.ofTarget baseline.target) declaration).toOption
-  let query ← (checkQuery (.ofTarget baseline.target)
-    (Cancel.queryDeclaration baseline.cancel.property behavior)).toOption
+  let query ← (Query.check (.ofTarget baseline.target)
+    (Cancel.authoredQuery baseline.cancel.property behavior)).toOption
   let kernel ← (SearchView.ofCheckedQuery baseline.target.id query).toOption
   let run ← (search query kernel).toOption
   pure (behavior.spaceStatus, run.result.outcome.name)
@@ -548,8 +536,8 @@ private def guardedPlannerOutcome
       entry.2.definitionId != cancelActionId
   } else propertyContext
   let property ← (Property.check propertyContext (declaration)).toOption
-  let query ← (checkQuery (.ofTarget baseline.target)
-    (Cancel.queryDeclaration property baseline.cancel.behavior)).toOption
+  let query ← (Query.check (.ofTarget baseline.target)
+    (Cancel.authoredQuery property baseline.cancel.behavior)).toOption
   let kernel ← (SearchView.ofCheckedQuery baseline.target.id query).toOption
   let run ← (search query kernel).toOption
   let outcome := run.result.outcome
@@ -605,8 +593,8 @@ private def guardedTemporalPlannerOutcome
       entry.2.definitionId != cancelActionId
   } else propertyContext
   let property ← (Property.check propertyContext (declaration)).toOption
-  let query ← (checkQuery (.ofTarget baseline.target)
-    (Cancel.queryDeclaration property baseline.cancel.behavior)).toOption
+  let query ← (Query.check (.ofTarget baseline.target)
+    (Cancel.authoredQuery property baseline.cancel.behavior)).toOption
   let kernel ← (SearchView.ofCheckedQuery baseline.target.id query).toOption
   let run ← (search query kernel).toOption
   let outcome := run.result.outcome
@@ -631,7 +619,7 @@ private def noncanonicalPlannerError : Option FinitePlannerAdmissionErrorKind :=
   let property ← (Property.check (PropertyCheckContext.ofTarget target)
     ((Cancel.authoredProperty model))).toOption
   let behavior ← (Scenario.check (.ofTarget target) (Cancel.authoredScenario model)).toOption
-  let query ← (checkQuery (.ofTarget target) (Cancel.queryDeclaration property behavior)).toOption
+  let query ← (Query.check (.ofTarget target) (Cancel.authoredQuery property behavior)).toOption
   match SearchView.ofCheckedQuery target.id query with
   | .error error => some error.kind
   | .ok _ => none
@@ -653,7 +641,7 @@ private def noncanonicalStepPlannerError : Option FinitePlannerAdmissionErrorKin
   let property ← (Property.check (PropertyCheckContext.ofTarget target)
     ((Cancel.authoredProperty model))).toOption
   let behavior ← (Scenario.check (.ofTarget target) (Cancel.authoredScenario model)).toOption
-  let query ← (checkQuery (.ofTarget target) (Cancel.queryDeclaration property behavior)).toOption
+  let query ← (Query.check (.ofTarget target) (Cancel.authoredQuery property behavior)).toOption
   match SearchView.ofCheckedQuery target.id query with
   | .error error => some error.kind
   | .ok _ => none
@@ -731,15 +719,13 @@ theorem terminalResponseAndBothOutcomesAreExercised :
 theorem exactRequestThenResolveQueryKeepsExplicitBoundsAndForm :
     checkRace.toOption.map (fun checked =>
       (checked.verify.behavior.actionsExactly,
-        checked.verify.query.limits.behavior.transitions,
-        checked.verify.query.limits.behavior.selectedActions,
-        checked.verify.query.quantifier,
-        checked.verify.query.claim)) = modelVocabulary.toOption.map (fun model =>
+        checked.verify.query.limits.steps,
+        checked.verify.query.limits.actions,
+        checked.verify.query.form.name)) = modelVocabulary.toOption.map (fun model =>
       (some [model.requestCancelAction.definitionId, model.resolveAction.definitionId],
         { value := 2, unit := .steps },
         { value := 2, unit := .actions },
-        QueryQuantifier.universal,
-        QueryClaim.verifiedWithinLimits)) := by
+        "verify")) := by
   native_decide
 
 private def selectedOutcome
@@ -914,13 +900,13 @@ private def caseAnalysisFor?
     ((raceCasePropertyDeclaration checked.model cases))).toOption
   let behavior ← (Scenario.check (.ofTarget checked.target)
     (exactBehaviorDeclaration checked.model)).toOption
-  let query ← (checkQuery (.ofTarget checked.target) {
+  let query ← (Query.check (.ofTarget checked.target) {
     id := raceId "temporal.nexus2.cancellation-race.query.case-analysis"
     source
     target := targetId
-    form := .select [property]
+    form := .pick [property]
     behavior
-    limits := QueryLimits.bounded 2 2 budget
+    limits := Limits.bounded 2 2 budget
     policy := .exhaustive
   }).toOption
   let kernel ← (SearchView.ofCheckedQuery query.target.id query).toOption
@@ -976,7 +962,7 @@ private def jointTemporalSummary :=
   ((caseAnalysis? 32).bind fun result => result.joint.triggers.head?).map fun trigger =>
     (trigger.trigger.modeledPrefix.trace.steps.length,
       trigger.trigger.transitionPosition,
-      trigger.trigger.limits.behavior.transitions,
+      trigger.trigger.limits.steps,
       trigger.expectations.filterMap fun expectation => match expectation.formula with
         | .guardedTemporal _ _ _ limit => some (expectation.triggerCoordinate, limit)
         | .sameStep _ => none,
@@ -1073,14 +1059,14 @@ private def jointRaceAnalysis?
       (declaration)).toOption
   let behavior ← (Scenario.check (.ofTarget checked.target)
     (exactBehaviorDeclaration checked.model)).toOption
-  let form := QueryForm.select properties
-  let query ← (checkQuery (.ofTarget checked.target) {
+  let form := Query.Form.pick properties
+  let query ← (Query.check (.ofTarget checked.target) {
     id := raceId "temporal.nexus2.cancellation-race.query.joint-analysis"
     source
     target := targetId
     form
     behavior
-    limits := QueryLimits.bounded 2 2 32
+    limits := Limits.bounded 2 2 32
     policy := .exhaustive
   }).toOption
   let kernel ← (SearchView.ofCheckedQuery query.target.id query).toOption
@@ -1207,7 +1193,7 @@ theorem finiteRaceSeparatesModelRelativeFromLogicalIncompatibility :
     (modelRelativeRaceConflictSummary == some ("model-incompatible", true, some (
         1,
         2,
-        QueryLimits.bounded 2 2 32,
+        Limits.bounded 2 2 32,
         2,
         [
           raceId "temporal.nexus2.cancellation-race.property.joint.resolve-canceled-state.clause",
@@ -1229,13 +1215,13 @@ private def mismatchedAnalysisTargetError : Option QueryErrorKind := do
       [requestCase checked.model, resolveCase checked.model]))).toOption
   let behavior ← (Scenario.check (.ofTarget checked.target)
     (exactBehaviorDeclaration checked.model)).toOption
-  match checkQuery (.ofTarget checked.target) {
+  match Query.check (.ofTarget checked.target) {
     id := raceId "temporal.nexus2.cancellation-race.query.case-analysis.bad-target"
     source
     target := raceId "temporal.nexus2.cancellation-race.target.other"
-    form := .select [property]
+    form := .pick [property]
     behavior
-    limits := QueryLimits.bounded 2 2 32
+    limits := Limits.bounded 2 2 32
     policy := .exhaustive
   } with
   | .error error => some error.kind

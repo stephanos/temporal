@@ -104,8 +104,8 @@ shape; no constructor infers Model outcomes or checker success.
 
 `FiniteTable` keeps ordered typed catalogs, setup alternatives, transition alternatives, Model
 Outcomes, and Model Facts explicit, then validates domain closure before constructing the ordinary
-finite Model. `DefinitionFamily`, `Property`, `Scenario`, `QuerySpec`, and
-`QueryLimitSpec` reduce repeated structure while delegating to the existing language-owned checkers.
+finite Model. `DefinitionFamily`, `Property`, `Scenario`, `Query`, and
+`Limits` reduce repeated structure while delegating to the existing language-owned checkers.
 Their `checked` operations require explicit proof of checker success; the ordinary `check`
 operations return the existing typed `Except` results.
 

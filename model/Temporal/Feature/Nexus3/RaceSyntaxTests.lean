@@ -98,7 +98,7 @@ query cancellationVerified on raceLifecycle
 
 #guard (do
   let checked ← cancellationVerified.toOption
-  pure (checked.witness.isNone && checked.query.claim == .verifiedWithinLimits)) == some true
+  pure (checked.witness.isNone && checked.query.form.name == "verify")) == some true
 
 /- The second lifecycle's derived identities come from its own spellings, its witness runs the whole
 three-step trace against a two-clause Property, and the Behavior admits only the three Actions it

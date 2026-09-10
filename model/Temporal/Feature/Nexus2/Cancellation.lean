@@ -86,21 +86,15 @@ def authoredScenario (model : ModelVocabulary) : Scenario :=
     (roles := [operationRole])
     (setup := [SetupConstraint.roleEquals setupConstraintId operationRoleId model.scheduledState])
 
-def queryDeclaration
-    (property : CheckedProperty) (behavior : CheckedScenario) : QueryDeclaration := {
+def authoredQuery
+    (property : CheckedProperty) (behavior : CheckedScenario) : Query := {
   id := queryId
   source
   target := targetId
-  form := .witness property
+  form := .find property
   behavior
-  limits := {
-    behavior := {
-      transitions := { value := 1, unit := .steps }
-      selectedActions := { value := 1, unit := .actions }
-    }
-    search := { value := 8, unit := .search }
-  }
-  policy := { strategy := .shortest, seed := 17, tieBreak := .definitionId }
+  limits := Limits.bounded 1 1 8
+  policy := { strategy := .shortest, seed := 17 }
 }
 
 end Start
@@ -138,21 +132,15 @@ def authoredScenario (model : ModelVocabulary) : Scenario :=
     (roles := [operationRole])
     (setup := [SetupConstraint.roleEquals setupConstraintId operationRoleId model.startedState])
 
-def queryDeclaration
-    (property : CheckedProperty) (behavior : CheckedScenario) : QueryDeclaration := {
+def authoredQuery
+    (property : CheckedProperty) (behavior : CheckedScenario) : Query := {
   id := queryId
   source
   target := targetId
-  form := .witness property
+  form := .find property
   behavior
-  limits := {
-    behavior := {
-      transitions := { value := 1, unit := .steps }
-      selectedActions := { value := 1, unit := .actions }
-    }
-    search := { value := 8, unit := .search }
-  }
-  policy := { strategy := .shortest, seed := 17, tieBreak := .definitionId }
+  limits := Limits.bounded 1 1 8
+  policy := { strategy := .shortest, seed := 17 }
 }
 
 end Cancel
@@ -190,21 +178,15 @@ def authoredScenario (model : ModelVocabulary) : Scenario :=
     (roles := [operationRole])
     (setup := [SetupConstraint.roleEquals setupConstraintId operationRoleId model.startedState])
 
-def queryDeclaration
-    (property : CheckedProperty) (behavior : CheckedScenario) : QueryDeclaration := {
+def authoredQuery
+    (property : CheckedProperty) (behavior : CheckedScenario) : Query := {
   id := queryId
   source
   target := targetId
-  form := .witness property
+  form := .find property
   behavior
-  limits := {
-    behavior := {
-      transitions := { value := 1, unit := .steps }
-      selectedActions := { value := 1, unit := .actions }
-    }
-    search := { value := 8, unit := .search }
-  }
-  policy := { strategy := .shortest, seed := 17, tieBreak := .definitionId }
+  limits := Limits.bounded 1 1 8
+  policy := { strategy := .shortest, seed := 17 }
 }
 
 end Success
@@ -235,13 +217,13 @@ private def checkOperation
     (target : QueryModel LawStatement)
     (authoredProperty : Property)
     (authoredScenario : Scenario)
-    (queryDeclaration : CheckedProperty → CheckedScenario → QueryDeclaration) :
+    (authoredQuery : CheckedProperty → CheckedScenario → Query) :
     Except BaselineAdmissionError CheckedOperation := do
   let property ← Property.check (PropertyCheckContext.ofTarget target) (authoredProperty)
     |>.mapError BaselineAdmissionError.invalidProperty
   let behavior ← Scenario.check (.ofTarget target) authoredScenario
     |>.mapError BaselineAdmissionError.invalidBehavior
-  let query ← checkQuery (.ofTarget target) (queryDeclaration property behavior)
+  let query ← Query.check (.ofTarget target) (authoredQuery property behavior)
     |>.mapError BaselineAdmissionError.invalidQuery
   let kernel ← SearchView.ofCheckedQuery target.id query
     |>.mapError BaselineAdmissionError.invalidPlanner
@@ -253,11 +235,11 @@ def checkBaseline : Except BaselineAdmissionError CheckedBaseline := do
   let target ← targetResult.mapError BaselineAdmissionError.invalidTarget
   let model ← modelVocabulary.mapError BaselineAdmissionError.invalidVocabulary
   let start ← checkOperation target (Start.authoredProperty model)
-    (Start.authoredScenario model) Start.queryDeclaration
+    (Start.authoredScenario model) Start.authoredQuery
   let cancel ← checkOperation target (Cancel.authoredProperty model)
-    (Cancel.authoredScenario model) Cancel.queryDeclaration
+    (Cancel.authoredScenario model) Cancel.authoredQuery
   let success ← checkOperation target (Success.authoredProperty model)
-    (Success.authoredScenario model) Success.queryDeclaration
+    (Success.authoredScenario model) Success.authoredQuery
   pure { target, model, start, cancel, success }
 
 end Temporal.Feature.Nexus2.Cancellation
