@@ -42,70 +42,68 @@ with unchanged wire identifiers, and `Umpire.ExecutionHandoff` is deleted.
 - [ ] `Plan` and `Plan.Steps` replace `ExperimentSpec` and `DrivePlan`; `umpire-experiment/v2` and `umpire-drive-plan/v2` bytes are unchanged in every fixture and `make umpire-check-regression-views` passes
 - [ ] `make lint-model`, the Makefile layout check, Go tests under `tools/umpire`, and the gate pass
 ## Done summary
-Blocked:
-BLOCKED: SCOPE_EXCEEDED - session budget, not a technical obstacle.
+All five acceptance bullets are met and every gate is at or under its baseline.
 
-Two of the task's five acceptance bullets are landed, green and committed; the other three
-are a coherent unit I did not want to start and abandon mid-flight. Every gate is at baseline
-at HEAD, so the tree is safe to pick up from.
+Landed in this session (commits f0d01b7c8b, 3e3e291b6b, f8c430fd94, 928ab49ac7),
+completing the work started in 6db43bf3a7, ff7bb6c3cd, a73a492c96, f5452b241d, 67edfd3851:
 
-Landed (commits 6db43bf3a7, ff7bb6c3cd, a73a492c96, f5452b241d, 67edfd3851):
-- `Umpire.Search` replaces `Umpire.Planning`. `Planning/{Engine,Types,CaseAnalysis}.lean` are
-  `Search.lean` and `Search/{Types,Branches}.lean`; the tests moved with them.
-  `IncrementalPlannerKernel` is `SearchView`, `PlannerInstrumentation` is `SearchStats`,
-  `PlannerRun` is `PlanResult`, `FinitePlannerAdmissionError` is `FiniteSearchAdmissionError`,
-  the case-analysis vocabulary is `Branch*`, the joint-obligation vocabulary is `Overlap*`,
-  `analyzeCases` is `analyzeBranches`, and the entry point `plan` is `search`. The
-  `PlanningOutcome` constructors are `noneFound`, `neverTriggered` and `stillPending` with
-  matching canonical names. `Umpire.ExecutionHandoff` and its tests are deleted.
-  `Temporal.Feature.Nexus.Operations.Planning` is `.Search` so the feature layer stops naming
-  a retired module.
-- `ExperimentSpec` is `Plan`, `DrivePlan` is `Plan.Steps`, `ArtifactIntent`/`ArtifactFaultIntent`
-  are `PlanRequest`/`RequestedFault`, and `artifactv2`'s Go types follow with every JSON tag
-  untouched. `umpire-experiment/v2` and `umpire-drive-plan/v2` are byte-identical and
-  `umpire-check-regression-views` passes.
-- The gate rejects `Umpire.Planning`, `Umpire.ExecutionHandoff`, `PlannerRun`,
-  `PlannerInstrumentation`, `IncrementalPlannerKernel`, `FinitePlannerAdmissionError`,
-  `ExecutionHandoff`, `ExperimentSpec`, `DrivePlan`, `ArtifactIntent`, `ArtifactFaultIntent`
-  and `analyzeCases`; the scanned Umpire4 documents and open downstream spec records are
-  respelled.
+- `LimitUnit` is exactly `steps`, `actions`, `logicalTime`, `search`, `plans`, with the
+  canonical strings following. `observationPositions` is deleted, not renamed: its three
+  consumers (the occurrence coordinate lookup, the endpoint total, the field validation)
+  all reduce to `steps`, and the `PropertyOccurrence.observationPosition` field plus the
+  observation-offset threading through nine functions and four agreement theorems, which
+  existed only to answer it, go with them. Every clause that used it now bounds `steps`;
+  the Nexus2 race test's terminal trigger coordinate moves from 3 to 2 accordingly.
+- `QueryDeclaration` + `QuerySpec` collapse into one authored `Query` whose only
+  construction operations are `check` and `checked`. `QueryAuthoringInput` and its second
+  `query%` elaborator are deleted; the one remaining elaborator takes the authored Query
+  and the Model it asks it of, and the Nexus2 frontend tests build concrete values for it.
+  `QueryQuantifier`, `QueryClaim` and `TieBreakPolicy` are deleted -- the form constructor
+  already says what the Query claims, so `Query.Form.name` replaces all three -- and
+  `QueryExercisePolicy` becomes the `requireFiring : Bool` it always was.
+- `QueryForm` is `Query.Form` with `verify`/`find`/`findViolation`/`pick` and JSON
+  `verify`/`find`/`find-violation`/`pick`; `QueryEndpoint` is `Query.Ending` with
+  `partial`/`final`/`terminal`; `CheckedQueryModel` is `ModelCompleteness`.
+- `QueryLimits`, `BehaviorPhaseLimits` and `QueryLimitSpec` flatten into one
+  `Limits {steps, actions, search}`, so the query and artifact JSON lose the nested
+  `behavior` object and Go's `artifactv2.Limits` follows.
+- Module layout follows Property and Scenario: `Umpire/Query.lean` (types),
+  `Query/Check.lean` (canonicalization and checking), `Query/Elab.lean` (the
+  located-diagnostic elaborator). `Query/Language.lean` and `Query/Authoring.lean` are
+  deleted, the Makefile package-layout arm folds Query into the Property/Scenario loop,
+  and `ModelLint` semanticRoots plus its tests follow.
+- `umpire-experiment/v2` and `umpire-drive-plan/v2` remain byte-identical as identifiers.
+  All seventeen goldens, the Case conformance fixtures, the Generated Views and every
+  inline fingerprint literal regenerated through their owning targets; no golden was
+  hand-edited.
+- The gate rejects `QueryDeclaration`, `QuerySpec`, `QueryAuthoringInput`, `QueryLimitSpec`,
+  `QueryQuantifier`, `QueryClaim`, `QueryExercisePolicy`, `BehaviorPhaseLimits`,
+  `TieBreakPolicy`, `CheckedQueryTarget`, `CheckedQueryModel`, `checkQuery`,
+  `Umpire.Query.Language`, `Umpire.Query.Authoring`, and the retired wire strings
+  `find-witness`, `find-counterexample`, `select-behavior`, `semantic-transitions`,
+  `selected-actions`, `observation-positions`, `candidate-evaluations`, `experiment-specs`.
+  Because the gate also bans the lowerCamel variant, the local `queryDeclaration` values
+  are `authoredQuery`, matching `.4`'s `authoredProperty`/`authoredScenario`.
+- The P3 the spec completion review left on the landed work is closed: Go's
+  `artifactv2.Experiment` (and `DecodeExperiment`, `SealExperiment`, `ValidateExperiment`,
+  `CanonicalExperimentBytes`, `ExpectedExperimentChecksum`, `VerifyExperimentChecksums`,
+  `ExperimentFormat`) is `Plan`, with every JSON tag and wire identifier untouched.
 
-Remaining, in the order I would do it:
-1. `LimitUnit` in `Umpire/Core.lean:109-123`: `semanticTransitions`->`steps`,
-   `selectedActions`->`actions`, `candidateEvaluations`->`search`, `experimentSpecs`->`plans`,
-   with the canonical strings following. `observationPositions` is DELETED, and that is the
-   only semantic edit in the task: it has three live consumers
-   (`Property/Evaluate.lean:846` coordinate lookup, `Evaluate.lean:2191` totals,
-   `Property/Check.lean:671` field validation) plus six test fixtures that use it as a clause
-   limit; each of those clauses must move to `steps` and be re-baselined. Wire strings appear
-   in ten JSON fixtures and in `tools/umpire/internal/artifactv2/artifact.go:731`, so the
-   Lean ones regenerate through `lake exe umpire-goldens` and the Go reader list must follow
-   in the same commit (this is exactly the class of miss the `.2`/`.3` review caught).
-2. Query: `QueryDeclaration`+`QuerySpec` collapse to one `Query` with `check`/`checked`;
-   delete `QueryAuthoringInput` and its second `query%` elaborator, `QueryQuantifier`,
-   `QueryClaim`, `TieBreakPolicy`; `QueryForm` becomes `Query.Form` with
-   `verify`/`find`/`findViolation`/`pick` and matching JSON at `Query/Language.lean:487-490`;
-   `QueryEndpoint` becomes `Query.Ending` with `partial`/`final`/`terminal`;
-   `QueryExercisePolicy` becomes `requireFiring : Bool`; `CheckedQueryTarget` becomes
-   `ModelCompleteness`; `QueryLimits`+`BehaviorPhaseLimits` flatten to one
-   `Limits {steps, actions, search}` and `QueryLimitSpec` becomes `Limits`. Note that
-   `.partial` needs French quotes (`«partial»`) because `partial` is a Lean keyword - task .4
-   already spells `PropertyScopedEndpoint.«partial»` that way.
-3. Query's own gate entries (`QueryDeclaration`, `QuerySpec`, `QueryAuthoringInput`,
-   `QueryLimitSpec`, `QueryQuantifier`, `QueryClaim`, `TieBreakPolicy`, `find-witness`,
-   `find-counterexample`, `select-behavior`, `semantic-transitions`, `selected-actions`,
-   `candidate-evaluations`, `experiment-specs`) plus the Makefile Query layout arm, which
-   still asserts the old `Umpire/Query/Language.lean` shape.
+Review: SHIP with three P3s (a stale `search.candidateEvaluations` fixture string, a
+half-rewritten Nexus2 README sentence, and the planning receipt's unchanged `formatVersion`
+tag). All three are fixed in 928ab49ac7, along with three identifiers the sweep left
+spelled "QueryDeclaration".
 
-Method notes for the next session, all verified here:
-- Restrict every sweep to `model/`, `tools/umpire/`, `common/testing/testpilot/`, `tests/`,
-  `.plans/UMPIRE4_*.md` and the gate's `downstreamSpecs` records. A repo-wide walk rewrote an
-  unrelated `BehaviorTrace` in `tools/common/formal/trace` on the first attempt.
-- A rename that lands inside a `#guard_msgs` docstring's embedded line/column numbers must be
-  re-baselined from the build log, not by hand; the same is true of every inline fingerprint.
-- `make lint-code` must be re-checked after any Go error-string respelling: staticcheck ST1005
-  fires on a message that starts with a single capitalized word.
+Deliberately left to their owning tasks: the Nexus3 `limits` macro still spells its
+keywords `transitions`/`selected_actions`/`candidate_evaluations` (task .8 owns the command
+keywords), and `Query.Ending`'s docstring forward-references the `TraceEnding` task .7
+introduces.
+
+Swept in, not authored here: `.plans/UMPIRE4_ORDER.md` progress prose from a parallel
+session. Its "Landed:" paragraph named retired vocabulary the gate scans, so it is
+respelled to describe the same renames without the retired identifiers.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 6db43bf3a771db96fc2a94bbc10f8be11a0e7a9b, ff7bb6c3cdef82fabc52911b2e34623d2fdaf1d4, a73a492c962279e7f90a12e8cc73859792e03cef, f5452b241dd244df44a7ea5cba4b7a3f7141c3be, 67edfd3851b7f3d1ddb4de41038b94f7ca8efd35, f0d01b7c8b, 3e3e291b6b, f8c430fd94, 928ab49ac7
+- Tests: cd model && lake build Umpire UmpireTests Temporal TemporalModelTests TestpilotTests Testpilot TemporalExperimentalTests +Umpire.PromotionTests (pass, 402 jobs), make umpire-check-regression (pass; goldens, regression-views, testpilot-protocol, testpilot-authoring, case-runtime-conformance, semantic-inventory, retired-vocabulary, lean-api, live-tests, the model layout assertions, and go test ./tools/umpire/... ./common/testing/testpilot/... ./tests/testcore/testpilot/...), make umpire-build-model (pass, includes the Makefile package-layout check), make lint-model (169 diagnostics, all generated Temporal/API; equals baseline), make lint-code GOLANGCI_LINT_FIX=false (126 findings; baseline 128), CC=/usr/bin/cc go vet -tags test_dep ./... (15 diagnostics; equals baseline), go run ./tools/planindex (48 lines; equals baseline)
 - PRs:
+stage: plan-sync - skipped(config: planSync.enabled != true)
