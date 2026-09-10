@@ -29,6 +29,7 @@ import Umpire.ImplementationLink.Tests
 import Umpire.Space.Tests.Compilation
 import Umpire.Space.Tests.Determinism
 import Umpire.Space.Tests.Intent
+import Umpire.Space.Tests.Lowering
 import Umpire.Space.Tests.Metadata
 import Umpire.Space.Tests.Validation
 import Umpire.Exploration.Tests.Validation
