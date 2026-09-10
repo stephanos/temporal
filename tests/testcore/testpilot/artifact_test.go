@@ -135,7 +135,10 @@ func TestLeanCasesDecodeAndGetSystemInfoPreparesWithoutDriverIO(t *testing.T) {
 	getSystemInfo := loadLeanCase(t, "get-system-info")
 	asyncNexus := loadLeanCase(t, "async-nexus")
 	require.NotEqual(t, getSystemInfo.GetProgram().GetProgramId(), asyncNexus.GetProgram().GetProgramId())
-	require.NotEqual(t, getSystemInfo.GetContract().GetRules()[0].GetRuleId(), asyncNexus.GetContract().GetRules()[0].GetRuleId())
+	// The async Nexus Case's Contract is its scoped capability; the system-info Case's is a rule.
+	require.Len(t, getSystemInfo.GetContract().GetRules(), 1)
+	require.Empty(t, asyncNexus.GetContract().GetRules())
+	require.NotNil(t, asyncNexus.GetContract().GetScoped())
 
 	catalog, err := temporal.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
@@ -360,7 +363,9 @@ func TestLeanAsyncNexusPreparedCaseReuseAndCorrelation(t *testing.T) {
 		require.Equal(t, testpilotspb.VERDICT_STATUS_SATISFIED, result.verdict.GetStatus())
 		require.NotContains(t, identities, result.run.GetRunId())
 		identities[result.run.GetRunId()] = struct{}{}
-		require.Len(t, result.verdict.GetSupportingEventSequences(), 3)
+		// One recorded Nexus event per admitted semantic step: the started event and the completed
+		// one. The scheduled event names no model step, so it supports nothing.
+		require.Len(t, result.verdict.GetSupportingEventSequences(), 2)
 		requireHistoryEvidence(t, result.run, result.verdict.GetSupportingEventSequences())
 	}
 	require.Equal(t, int64(6), successDriver.opens.Load())
@@ -383,21 +388,27 @@ func TestLeanAsyncNexusPreparedCaseReuseAndCorrelation(t *testing.T) {
 		})
 	}
 
+	// None of these histories answers the model's bounded response, and none of them is a
+	// violation either: the first leaves the obligation open, and the other two carry evidence the
+	// projector cannot admit as this operation's semantic steps at all. A stream it cannot admit
+	// is an incomplete observation, not a product verdict.
 	for _, test := range []struct {
-		name string
-		mode artifactMode
+		name   string
+		mode   artifactMode
+		status testpilotspb.RunStatus
 	}{
-		{name: "missing completion", mode: artifactMissingCompletion},
-		{name: "foreign completion", mode: artifactForeignCompletion},
-		{name: "duplicate and unrelated events", mode: artifactDuplicateOnly},
+		{name: "missing completion", mode: artifactMissingCompletion, status: testpilotspb.RUN_STATUS_COMPLETED},
+		{name: "foreign completion", mode: artifactForeignCompletion, status: testpilotspb.RUN_STATUS_INCOMPLETE},
+		{name: "duplicate and unrelated events", mode: artifactDuplicateOnly, status: testpilotspb.RUN_STATUS_INCOMPLETE},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			driver := &artifactDriver{identity: prepared.Identity(), mode: test.mode}
 			actual, verdict, err := prepared.Run(t.Context(), driver)
 			require.NoError(t, err)
-			require.Equal(t, testpilotspb.RUN_STATUS_COMPLETED, actual.GetStatus())
+			require.Equal(t, test.status, actual.GetStatus())
 			require.Equal(t, testpilotspb.VERDICT_STATUS_INCONCLUSIVE, verdict.GetStatus())
-			require.Less(t, len(verdict.GetSupportingEventSequences()), 3)
+			require.Less(t, len(verdict.GetSupportingEventSequences()), 2)
+			require.Equal(t, test.status == testpilotspb.RUN_STATUS_INCOMPLETE, actual.GetEvaluationFailure() != nil)
 		})
 	}
 }
