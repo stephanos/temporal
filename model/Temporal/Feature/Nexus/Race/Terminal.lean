@@ -26,11 +26,11 @@ def modelSpec : TableModelSpec := {
     if definition.id == Race.targetId then
       { definition with
         id := .of "temporal.nexus.race.terminal.target"
-        source := source, behaviorVersion := "temporal-nexus-race-terminal-terminal/v1" }
+        source := source, behaviorVersion := "temporal-nexus-race-terminal/v1" }
     else if definition.id == Race.kernelId then
       { definition with
         id := .of "temporal.nexus.race.terminal.kernel"
-        source := source, behaviorVersion := "temporal-nexus-race-terminal-terminal-kernel/v1" }
+        source := source, behaviorVersion := "temporal-nexus-race-terminal-kernel/v1" }
     else definition
 }
 
