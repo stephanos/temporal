@@ -23,15 +23,15 @@ Shared
 
 Umpire.Core ──▶ Model.Types ──▶ Model.Canonical ──▶ Model.Check
                                                        ├──▶ Property / Scenario semantics
-                                                       │       └──▶ Query semantics ──▶ Planning
+                                                       │       └──▶ Query semantics ──▶ Search
                                                        ├──▶ Model.Elab ──▶ Model authoring facade
                                                        └──▶ Model.Table ──▶ Model authoring facade
 
-Checked Models ──▶ Observation / ImplementationLink / Space / Exploration / Promotion
+Checked Models ──▶ Evidence / ImplementationLink / Variations / Exploration / Promotion
 
 Testpilot.Protocol ──▶ Testpilot.Authoring ──▶ Temporal.Testpilot
          │                       ▲                       ▲
-         └────▶ Testpilot.ProtoJSON          Umpire provenance
+         └────▶ Testpilot.ProtoJSON       Umpire.Case ──▶ Umpire.Provenance
 
 Temporal.API ───────────────────────────┐
 Temporal.DynamicConfig ────────────────┤
@@ -47,10 +47,10 @@ source inventory and compiled module metadata.
 
 `Umpire.Model.Check` is the narrow checked-model import. It owns pure admission together with
 private checked construction; `Model.Canonical` owns pure canonicalization, and `Model.Elab`
-owns syntax capture and located elaboration. Property, Scenario, Query, and Planning semantic
+owns syntax capture and located elaboration. Property, Scenario, Query, and Search semantic
 modules cannot transitively import the model elaborator or `Lean.Elab.Term`. The ordinary authoring
 facades remain `Umpire.Model`, `Umpire.Property`, `Umpire.Scenario`, and `Umpire.Query`; importing
-Planning alone does not provide their authoring conveniences. See the
+`Umpire.Search` alone does not provide their authoring conveniences. See the
 [Model ownership table](Umpire/ARCHITECTURE.md#model-ownership-and-semantic-imports) for the checked
 API and replacement-proof contracts.
 
@@ -72,20 +72,20 @@ make umpire-gen-lean-dynamic-config-catalog
 
 The retained semantic APIs keep these responsibilities separate:
 
-- The Model owns valid setup, state, Action, outcome, observation, transition, and capability domains.
-- Property states a claim over model traces.
-- A Scenario constrains allowed trace shape without choosing target-owned outcomes.
-- Query asks one bounded planning question.
-- Space and Exploration select from a finite checked universe without performing runtime I/O.
-- Observation and Implementation Link retain the offline semantic mapping path for model analysis.
-- Promotion validates one exact scenario-neutral planned source for human review.
+- The Model owns valid setup, state, Action, Model Outcome, Fact, step, and Capability domains.
+- Property states a claim over Traces.
+- A Scenario constrains allowed Trace shape without choosing Model-owned outcomes.
+- Query asks one bounded question, and Search answers it.
+- Variations and Exploration select from a finite checked universe without performing runtime I/O.
+- Evidence and Implementation Link retain the offline mapping path for model analysis.
+- Promotion validates one exact scenario-neutral Plan source for human review.
 
-Planning artifacts and Generated Views remain useful model outputs. They are not inputs to Testpilot
-and do not establish that a runtime action occurred.
+Plans and Generated Views remain useful model outputs. They are not inputs to Testpilot and do not
+establish that a runtime Action occurred.
 
 Operation-correlated bounded response authoring lowers through the existing Property checker.
 `correlated_response%` and typed `PropertyCorrelatedClause` values share canonical meaning and fingerprints;
-key, scope, bound, and endpoint remain explicit semantic choices.
+key, scope, bound, and ending remain explicit semantic choices.
 Checked projection, source Property, and portable Contract are connected by `Umpire.Case.Correlated`
 certificates. Shared table/projection/obligation modules contain no feature callback; generic
 Testpilot interprets the admitted versioned capability and maintains fresh state for each Run.
@@ -224,7 +224,7 @@ late completion and Driver diagnostics cannot mutate returned data.
 
 Semantic owners depend on `Umpire.OutcomeClassification` for neutral classifier and projection
 vocabulary and on `Umpire.KnownGap` for carry contracts. Concrete stage classifiers, exhaustive
-proofs, the Implementation Link stage not-run marker, Observation's lossy admission mapping, and
+proofs, the Implementation Link stage not-run marker, Evidence's lossy admission mapping, and
 Result Artifact's exact carry mapping stay with their semantic owners. The inventory consumes those
 contracts and owns its catalogs; the Temporal inventory tool assembles, validates, and renders them.
 
@@ -232,11 +232,11 @@ Inventory consumers explicitly import `Umpire.Inventory` or a focused inventory 
 the ordinary `Umpire` umbrella does not import it. `make lint-model` rejects direct and transitive
 production Umpire paths into the inventory, including facade, helper, external, and test-fixture
 bridges, and keeps `Umpire.OutcomeClassification` limited to Lean's `Init` foundation. Dedicated
-inventory tests, including Planning Known Gap catalog tests, remain valid consumers. See the
+inventory tests, including Search Known Gap catalog tests, remain valid consumers. See the
 [ownership guidance](Umpire/ARCHITECTURE.md#artifact-and-generated-view-boundaries).
 
 `model/INVENTORY.md` is generated by `umpire-inventory`. The retained
-planning Generated Views are generated by `umpire-gen-regression-views`. Case conformance fixtures
+Plan Generated Views are generated by `umpire-gen-regression-views`. Case conformance fixtures
 are rendered by `umpire-case` and published transactionally by
 `umpire-gen-case-runtime-conformance`.
 

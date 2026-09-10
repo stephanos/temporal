@@ -44,7 +44,7 @@ parenthetical. It deliberately does not touch fn-77's five in-flight terms
 `Umpire.Operation` and `Umpire.Value` renames wait for fn-77 .11 and are limited to `ValueShape` to
 `Shape` plus moving `Parameterized.lean`.
 
-**Progress: 4 of 10 done; .5 is partially landed.** The early proof point (task .2) **held** — the
+**Progress: all ten tasks done; the spec stays open for its completion review.** The early proof point (task .2) **held** — the
 regenerate-never-edit loop converged with no hand-edited golden. The `umpire-goldens` writer was
 built and proved to reproduce every golden byte-for-byte *before* any rename, and
 `umpire-check-goldens` was proved to fail on a deliberately stale golden before being trusted. It
@@ -57,9 +57,32 @@ with the entry (rc 0). **.2** renamed `DefinitionKind.{machine,fact}`, dropped f
 introduced `Machine`/`Step` down to `Shared.SemanticData.Result`. **.3** moved the model core to
 `Umpire.Model` with `DraftModel`/`CheckedModel`/`Providers`/`Vocabulary`. **.4** merged the two
 authored Property records into one `Property` and the three authored scenario records into one
-`Scenario`, and moved the scenario module to `Umpire.Scenario`. **.5** has two of five bullets
-committed — `Umpire.Search` replaces the planning module end to end, and the two artifact records
-became `Plan`/`Plan.Steps` with byte-identical wire identifiers.
+`Scenario`, and moved the scenario module to `Umpire.Scenario`. **.5** replaced the planning module
+with `Umpire.Search` end to end, made the two artifact records `Plan`/`Plan.Steps` with
+byte-identical wire identifiers, flattened `Limits` to `steps`/`actions`/`search`, and folded the
+Query language into `Umpire.Query` with the forms `verify`/`find`/`findViolation`/`pick`. **.6**
+moved the offline evaluator to `Umpire.Evidence` and the Run-to-Model seam to
+`Umpire.Case.Projection`. **.7** renamed the protocol's `Scoped` family to `Correlated`, split
+`Umpire.Provenance` out of `Umpire/Case.lean`, replaced the Go `Capability` with `Opcode`, folded
+`outcome.proto` into `instruction.proto`, and gave the Lean-API generator a `--skip-package` filter
+so the hand-authored Testpilot Lean tree is no longer shadowed by a generated one. **.8** moved the two
+generation-numbered Nexus trees into `Nexus/Race` and `Nexus/Success`, took the R6 command keywords with a located
+error for each retired spelling, moved the Implementation Link tests under `TemporalModelTests`, and
+gave every Lake executable the `umpire-` convention. **.9** rewrote the specification glossary and
+added the resolution test that proves every dotted Lean name it cites exists. **.10** reconciled
+these documents and ran the full gate set.
+
+**The retired-name policy this spec establishes.** A retired name enters the
+retired-vocabulary gate when, and only when, it is a compound identifier, a module path, an
+executable or Make target name, a macro name, or a snake_case keyword — drafted as SEM-20. Bare
+English words are never gated, because the gate matches their lowercase form too and would reject
+ordinary prose; a retired bare keyword is rejected by the command macro that used to accept it, with
+a located error naming its replacement. Three rules needed a narrower boundary than the shared
+compound pattern, and each is pinned by a rejecting and an accepting row in the vocabulary table
+test. The generation-numbered module roots exclude a leading hyphen, so immutable Flow spec slugs
+pass. The retired renderer executable name excludes hyphens on both sides, so the Driver's three
+reservation-carrier wire headers pass. And only the Nexus `require <label>: resultingState`
+spelling is held, because `resultingState` stays live as an `Umpire.Property` field constructor.
 
 **One finding worth carrying beyond this spec: a rename can escape the Lean tree with every gate
 still green.** `.2`'s `DefinitionKind` and `.3`'s `KnownGapKind` renames never reached
