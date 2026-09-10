@@ -49,13 +49,15 @@ end Umpire
 	require.NoError(t, err)
 
 	for _, name := range []string{
-		"Umpire.Model.Check",           // a module derived from its path
-		"Umpire.Model",                 // the directory above it
-		"Umpire.CheckedModel",          // a structure inside `namespace Umpire`
-		"Umpire.checkModel",            // a `private def` inside `namespace Umpire`
-		"Umpire.Table.rows_eq_rows",    // a theorem inside a nested namespace
-		"Umpire.CheckedModel.identity", // a field, through its parent structure
-		"Umpire.LimitUnit.steps",       // a constructor, through its parent inductive
+		"Umpire.Model.Check",             // a module derived from its path
+		"Umpire.Model",                   // the directory above it
+		"Umpire.CheckedModel",            // a structure inside `namespace Umpire`
+		"Umpire.checkModel",              // a `private def` inside `namespace Umpire`
+		"Umpire.Table.rows_eq_rows",      // a theorem inside a nested namespace
+		"Umpire.CheckedModel.identity",   // a structure field
+		"Umpire.CheckedModel.vocabulary", // its sibling
+		"Umpire.LimitUnit.steps",         // an inductive constructor
+		"Umpire.LimitUnit.actions",       // its sibling
 	} {
 		require.True(t, index.Resolve(name), "expected %s to resolve", name)
 	}

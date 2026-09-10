@@ -49,17 +49,17 @@ private structure ForbiddenCase where
 
 private def forbiddenCases : Array ForbiddenCase := #[
   { label := "Shared to Umpire", source := `Shared.Root, destination := `Umpire.Core,
-    rule := .sharedIndependence},
+    rule := .sharedIndependence },
   { label := "Shared to Temporal", source := `Shared.Root, destination := `Temporal.Feature.Root,
-    rule := .sharedIndependence},
+    rule := .sharedIndependence },
   { label := "Umpire to Temporal", source := `Umpire.Root, destination := `Temporal.Feature.Root,
-    rule := .umpireIndependence},
+    rule := .umpireIndependence },
   { label := "Feature to System", source := `Temporal.Feature.Root,
     destination := `Temporal.System.Root,
-    rule := .featureIsolation},
+    rule := .featureIsolation },
   { label := "System to Feature", source := `Temporal.System.Root,
     destination := `Temporal.Feature.Root,
-    rule := .systemIsolation}
+    rule := .systemIsolation }
 ]
 
 private def testDirectAndTransitiveRejections : IO Unit := do
