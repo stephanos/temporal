@@ -56,7 +56,7 @@ def authoredQuery
   policy
 }
 
-def keyedQueryDeclaration
+def keyedAuthoredQuery
     (key : String)
     (property : CheckedProperty)
     (behavior : CheckedScenario) : Query :=

@@ -31,7 +31,7 @@ def invalidError : QueryError := {
   kind := .invalidLimit
   definitionId := id "planner.query.invalid"
   sourcePath := source.path
-  offendingValue := "search.candidateEvaluations=0"
+  offendingValue := "search=0"
   relatedDefinitionIds := []
 }
 

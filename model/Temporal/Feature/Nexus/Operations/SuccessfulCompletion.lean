@@ -75,7 +75,7 @@ def wrongActionTrace : Scenario.Trace :=
   Scenario.Trace.singleStep startedSetup startedState startAction startedResult
 
 def authoredQuery : Query :=
-  Internal.keyedQueryDeclaration "successful-completion" property behavior
+  Internal.keyedAuthoredQuery "successful-completion" property behavior
 
 def queryResult : Except QueryError (CheckedQuery LawStatement) := Query.check (.ofTarget target) authoredQuery
 

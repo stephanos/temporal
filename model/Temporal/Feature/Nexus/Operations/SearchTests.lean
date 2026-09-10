@@ -105,7 +105,7 @@ theorem constructorDeclarationsRetainPublishedIdentities : [
   ] := by
   native_decide
 
-theorem rawQueryDeclarationCompatibility :
+theorem rawAuthoredQueryCompatibility :
     Internal.authoredQuery AsyncStart.queryId AsyncStart.property AsyncStart.behavior =
       AsyncStart.authoredQuery := by
   native_decide
