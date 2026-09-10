@@ -62,20 +62,20 @@ const (
 )
 
 type bundleState struct {
-	id                 uint64
-	origin             testpilot.Coordinate
-	plan               testpilot.ReservationCarrierPlan
-	binding            binding
-	workflow           *routeState
-	nexus              map[sourceKey]*routeState
-	routes             []*routeState
-	responseRunID      string
-	triggerDisposition TriggerDisposition
-	triggerFinal       bool
-	triggerCanceled    []*routeState
-	parentReleased     bool
-	parentCanceled     []*routeState
-	active             int
+	id              uint64
+	origin          testpilot.Coordinate
+	plan            testpilot.ReservationCarrierPlan
+	binding         binding
+	workflow        *routeState
+	nexus           map[sourceKey]*routeState
+	routes          []*routeState
+	responseRunID   string
+	triggerStatus   TriggerStatus
+	triggerFinal    bool
+	triggerCanceled []*routeState
+	parentReleased  bool
+	parentCanceled  []*routeState
+	active          int
 }
 
 type sourceKey struct {
@@ -136,20 +136,20 @@ type Release struct{ unused int }
 
 func (r Release) Unused() int { return r.unused }
 
-type TriggerDisposition uint8
+type TriggerStatus uint8
 
 type CompletionFunc func()
 type QuarantineFunc func(context.Context, testpilot.EffectHandle, CompletionFunc) error
 
 const (
-	TriggerSucceeded TriggerDisposition = iota + 1
+	TriggerSucceeded TriggerStatus = iota + 1
 	TriggerRejected
 	TriggerCanceled
 	TriggerNonSuccess
 	TriggerUncertain
 )
 
-func (d TriggerDisposition) String() string {
+func (d TriggerStatus) String() string {
 	switch d {
 	case TriggerSucceeded:
 		return "succeeded"
@@ -248,8 +248,8 @@ func (l *Ledger) CreateBundle(ctx context.Context, origin testpilot.Coordinate, 
 		identity := proxy.Identity()
 		routeState := &routeState{bundle: state, identity: identity, retained: proxy.retained, authority: reserved}
 		proxy.retained.route = routeState
-		entrypointContext := validated[reservationKey{entrypoint: identity.EntrypointID, ordinal: identity.Ordinal}]
-		if entrypointContext == testpilotspb.ENTRYPOINT_KIND_WORKFLOW {
+		entrypointKind := validated[reservationKey{entrypoint: identity.EntrypointID, ordinal: identity.Ordinal}]
+		if entrypointKind == testpilotspb.ENTRYPOINT_KIND_WORKFLOW {
 			routeState.kind = workflowRoute
 			state.workflow = routeState
 		} else {
@@ -305,7 +305,7 @@ func validateTopology(plan testpilot.ReservationCarrierPlan, limits Limits) (map
 		if !validRouteText(topology.EntrypointID) || topology.Count <= 0 || topology.Count > int64(limits.MaxRoutes-len(expected)) {
 			return nil, 0, ErrInvalid
 		}
-		if topology.Context != testpilotspb.ENTRYPOINT_KIND_WORKFLOW && topology.Context != testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER {
+		if topology.Kind != testpilotspb.ENTRYPOINT_KIND_WORKFLOW && topology.Kind != testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER {
 			return nil, 0, ErrInvalid
 		}
 		for ordinal := int64(0); ordinal < topology.Count; ordinal++ {
@@ -313,9 +313,9 @@ func validateTopology(plan testpilot.ReservationCarrierPlan, limits Limits) (map
 			if _, duplicate := expected[key]; duplicate {
 				return nil, 0, ErrInvalid
 			}
-			expected[key] = topology.Context
+			expected[key] = topology.Kind
 		}
-		if topology.Context == testpilotspb.ENTRYPOINT_KIND_WORKFLOW {
+		if topology.Kind == testpilotspb.ENTRYPOINT_KIND_WORKFLOW {
 			workflowCount += int(topology.Count)
 		} else {
 			handlerCount += int(topology.Count)
@@ -405,7 +405,7 @@ func (l *Ledger) PinStartResponse(ctx context.Context, bundle Bundle, response *
 	if err != nil {
 		return err
 	}
-	if l.stopped || state.triggerFinal && state.triggerDisposition != TriggerSucceeded {
+	if l.stopped || state.triggerFinal && state.triggerStatus != TriggerSucceeded {
 		l.diagnoseLocked()
 		return ErrRouteStale
 	}
@@ -417,7 +417,7 @@ func (l *Ledger) PinStartResponse(ctx context.Context, bundle Bundle, response *
 	return nil
 }
 
-func (l *Ledger) TriggerTerminal(ctx context.Context, bundle Bundle, disposition TriggerDisposition) (Release, error) {
+func (l *Ledger) TriggerTerminal(ctx context.Context, bundle Bundle, disposition TriggerStatus) (Release, error) {
 	if err := contextError(ctx); err != nil {
 		return Release{}, err
 	}
@@ -438,7 +438,7 @@ func (l *Ledger) TriggerTerminal(ctx context.Context, bundle Bundle, disposition
 		return Release{}, ErrRouteStale
 	}
 	if state.triggerFinal {
-		if state.triggerDisposition != disposition {
+		if state.triggerStatus != disposition {
 			l.mu.Unlock()
 			return Release{}, ErrRouteConflict
 		}
@@ -456,13 +456,13 @@ func (l *Ledger) TriggerTerminal(ctx context.Context, bundle Bundle, disposition
 			return Release{}, ErrRouteConflict
 		}
 		state.triggerFinal = true
-		state.triggerDisposition = disposition
+		state.triggerStatus = disposition
 		l.retireBundleLocked(state)
 		l.mu.Unlock()
 		return Release{}, nil
 	}
 	state.triggerFinal = true
-	state.triggerDisposition = disposition
+	state.triggerStatus = disposition
 	release := Release{}
 	for _, route := range state.routes {
 		if route.authority == reserved {

@@ -20,10 +20,10 @@ func faultNode(id, role string, kind testpilotspb.FaultKind) *testpilotspb.Instr
 	}
 }
 
-func faultFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Policy) {
+func faultFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Profile) {
 	t.Helper()
 	c, catalog, policy := fixture(t)
-	policy.Capabilities = append(policy.Capabilities, InjectFault)
+	policy.Opcodes = append(policy.Opcodes, InjectFault)
 	addWorker(c, &policy)
 	c.Program.Entrypoints[0].Instructions = []*testpilotspb.InstructionDefinition{
 		faultNode("stop", "queue", testpilotspb.FAULT_KIND_WORKER_STOP),
@@ -33,9 +33,9 @@ func faultFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Policy) {
 	return c, catalog, policy
 }
 
-// The Opcode list, the instruction-to-opcode switch and the Instruction oneof are three
+// The Opcode list, the instruction-to-capability switch and the Instruction oneof are three
 // hand-maintained lists. Pinning them to each other is what stops a new instruction from landing
-// in only one of them; Capability alignment is asserted from the facade package, which owns it.
+// in only one of them; Opcode alignment is asserted from the facade package, which owns it.
 func TestInstructionOpcodesCoverTheInstructionTable(t *testing.T) {
 	oneof := (&testpilotspb.Instruction{}).ProtoReflect().Descriptor().Oneofs().ByName("instruction")
 	require.NotNil(t, oneof)
@@ -47,12 +47,12 @@ func TestInstructionOpcodesCoverTheInstructionTable(t *testing.T) {
 		t.Run(string(field.Name()), func(t *testing.T) {
 			instruction := &testpilotspb.Instruction{}
 			instruction.ProtoReflect().Mutable(field)
-			opcode := InstructionOpcode(instruction)
+			capability := InstructionOpcode(instruction)
 			// The oneof field number is the opcode: the two lists cannot be reordered apart.
-			require.Equal(t, Opcode(field.Number()), opcode)
-			require.False(t, seen[opcode])
-			seen[opcode] = true
-			require.NotEqual(t, testpilotspb.ENTRYPOINT_KIND_UNSPECIFIED, opcodeContext(opcode))
+			require.Equal(t, Opcode(field.Number()), capability)
+			require.False(t, seen[capability])
+			seen[capability] = true
+			require.NotEqual(t, testpilotspb.ENTRYPOINT_KIND_UNSPECIFIED, opcodeContext(capability))
 		})
 	}
 }
@@ -60,23 +60,23 @@ func TestInstructionOpcodesCoverTheInstructionTable(t *testing.T) {
 func TestPrepareAdmitsFaultInjection(t *testing.T) {
 	for _, tc := range []struct {
 		name     string
-		mutate   func(*testpilotspb.Case, *Policy)
+		mutate   func(*testpilotspb.Case, *Profile)
 		category ir.ErrorCategory
 	}{
-		{"admitted", func(*testpilotspb.Case, *Policy) {}, ""},
-		{"missing capability", func(_ *testpilotspb.Case, p *Policy) {
-			p.Capabilities = p.Capabilities[:len(p.Capabilities)-1]
+		{"admitted", func(*testpilotspb.Case, *Profile) {}, ""},
+		{"missing capability", func(_ *testpilotspb.Case, p *Profile) {
+			p.Opcodes = p.Opcodes[:len(p.Opcodes)-1]
 		}, ir.Unsupported},
-		{"undeclared role", func(c *testpilotspb.Case, _ *Policy) {
+		{"undeclared role", func(c *testpilotspb.Case, _ *Profile) {
 			c.Program.Entrypoints[0].Instructions[0].Instruction.GetInjectFault().RoleId = "missing"
 		}, ir.Malformed},
-		{"non task queue role", func(c *testpilotspb.Case, _ *Policy) {
+		{"non task queue role", func(c *testpilotspb.Case, _ *Profile) {
 			c.Program.Entrypoints[0].Instructions[0].Instruction.GetInjectFault().RoleId = "worker"
 		}, ir.Malformed},
-		{"unknown fault kind", func(c *testpilotspb.Case, _ *Policy) {
+		{"unknown fault kind", func(c *testpilotspb.Case, _ *Profile) {
 			c.Program.Entrypoints[0].Instructions[0].Instruction.GetInjectFault().Kind = testpilotspb.FAULT_KIND_UNSPECIFIED
 		}, ir.Malformed},
-		{"outside the controller context", func(c *testpilotspb.Case, _ *Policy) {
+		{"outside the controller context", func(c *testpilotspb.Case, _ *Profile) {
 			workflow := c.Program.Entrypoints[len(c.Program.Entrypoints)-1]
 			workflow.Instructions = []*testpilotspb.InstructionDefinition{faultNode("stop", "queue", testpilotspb.FAULT_KIND_WORKER_STOP)}
 		}, ir.Unsupported},

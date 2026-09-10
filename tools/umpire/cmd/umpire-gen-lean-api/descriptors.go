@@ -71,3 +71,32 @@ func mergeDescriptorInputs(inputs []descriptorInput) (*descriptorpb.FileDescript
 	}
 	return result, nil
 }
+
+// dropSkippedPackages removes every file of a skipped proto package from the merged set, so no
+// Lean declaration is generated for it. A skipped package that the set does not contain is an
+// error: silently generating the package the caller meant to drop is the failure this prevents.
+func dropSkippedPackages(set *descriptorpb.FileDescriptorSet, packages []string) error {
+	if len(packages) == 0 {
+		return nil
+	}
+	skipped := make(map[string]bool, len(packages))
+	matched := make(map[string]bool, len(packages))
+	for _, name := range packages {
+		skipped[name] = true
+	}
+	retained := make([]*descriptorpb.FileDescriptorProto, 0, len(set.File))
+	for _, file := range set.File {
+		if skipped[file.GetPackage()] {
+			matched[file.GetPackage()] = true
+			continue
+		}
+		retained = append(retained, file)
+	}
+	for _, name := range packages {
+		if !matched[name] {
+			return fmt.Errorf("skipped package %q is absent from the descriptor set", name)
+		}
+	}
+	set.File = retained
+	return nil
+}

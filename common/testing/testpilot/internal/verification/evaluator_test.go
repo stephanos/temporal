@@ -36,7 +36,7 @@ func TestEvaluatorHorizonsAndReplay(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			c, cat, view, limits := fixture(t)
 			c.Rules[0].Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
-			c.Rules[0].Horizon = &testpilotspb.ContractHorizonDefinition{ElapsedMilliseconds: 5000, ViolationStateId: "bad"}
+			c.Rules[0].Deadline = &testpilotspb.ContractDeadline{ElapsedMilliseconds: 5000, ViolationStateId: "bad"}
 			p, err := Prepare(c, cat, view, limits)
 			require.NoError(t, err)
 			run := &testpilotspb.Run{RunId: "run", CaseId: "case", ProgramId: "program", Status: testpilotspb.RUN_STATUS_COMPLETED, Events: []*testpilotspb.RunEvent{event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED), event(2, tc.witness, tc.kind)}}
@@ -131,7 +131,7 @@ func TestEvaluatorEventCountHorizon(t *testing.T) {
 			c, cat, view, limits := fixture(t)
 			r := c.Rules[0]
 			r.Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
-			r.Horizon = &testpilotspb.ContractHorizonDefinition{RuleEvents: tc.ruleEvents, ViolationStateId: "bad"}
+			r.Deadline = &testpilotspb.ContractDeadline{RuleEvents: tc.ruleEvents, ViolationStateId: "bad"}
 			r.States = append(r.States, &testpilotspb.ContractStateDefinition{StateId: "middle", Status: testpilotspb.CONTRACT_STATE_STATUS_NONTERMINAL})
 			r.Transitions = []*testpilotspb.ContractTransitionDefinition{
 				transition("advance", "start", "middle", present(observation("id"))),
@@ -296,7 +296,7 @@ func TestEvaluatorFailurePrefixAndAtomicity(t *testing.T) {
 			c, cat, view, limits := fixture(t)
 			r := c.Rules[0]
 			r.Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
-			r.Horizon = &testpilotspb.ContractHorizonDefinition{ElapsedMilliseconds: 5000, ViolationStateId: "bad"}
+			r.Deadline = &testpilotspb.ContractDeadline{ElapsedMilliseconds: 5000, ViolationStateId: "bad"}
 			r.Transitions[0].TargetStateId = "bad"
 			p, err := Prepare(c, cat, view, limits)
 			require.NoError(t, err)
@@ -419,7 +419,7 @@ func TestEvaluatorIncompleteCannotAcceptLateWitness(t *testing.T) {
 	c, cat, view, limits := fixture(t)
 	r := c.Rules[0]
 	r.Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
-	r.Horizon = &testpilotspb.ContractHorizonDefinition{ElapsedMilliseconds: 5000, ViolationStateId: "bad"}
+	r.Deadline = &testpilotspb.ContractDeadline{ElapsedMilliseconds: 5000, ViolationStateId: "bad"}
 	p, err := Prepare(c, cat, view, limits)
 	require.NoError(t, err)
 	incomplete := event(2, 4000, testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC)

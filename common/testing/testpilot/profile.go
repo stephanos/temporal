@@ -37,10 +37,10 @@ func (c *Catalog) Identity() string {
 	return c.catalog.Identity()
 }
 
-type Capability uint8
+type Opcode uint8
 
 const (
-	InvokeRPC Capability = iota + 1
+	InvokeRPC Opcode = iota + 1
 	AwaitSlot
 	CompleteNexusOperation
 	StartNexusOperation
@@ -50,16 +50,16 @@ const (
 	InjectFault
 )
 
-// MaxCapability is the highest declared capability. A Profile authorizes each capability at most
+// MaxOpcode is the highest declared capability. A Profile authorizes each capability at most
 // once, so it is also the ceiling on an authorized capability list; Driver profile validation
 // reuses it rather than restating a literal a new instruction would silently invalidate.
-const MaxCapability = InjectFault
+const MaxOpcode = InjectFault
 
 // InstructionCapability is the capability one declared instruction requires, or zero when the
 // instruction is unset or outside the version-one table. Callers deriving a Profile from a Case
 // read it rather than restating the mapping.
-func InstructionCapability(instruction *testpilotspb.Instruction) Capability {
-	return Capability(execution.InstructionOpcode(instruction))
+func InstructionCapability(instruction *testpilotspb.Instruction) Opcode {
+	return Opcode(execution.InstructionOpcode(instruction))
 }
 
 // CheckMethod reports whether this catalog admits one unary gRPC method by its full path.
@@ -87,7 +87,7 @@ type ReservationCarrierPolicy struct {
 }
 
 type ReservationCarrierShape struct {
-	Context      testpilotspb.EntrypointKind
+	Kind         testpilotspb.EntrypointKind
 	MaximumCount int64
 }
 
@@ -100,7 +100,7 @@ type ProfileSpec struct {
 	Identity            string
 	Catalog             *Catalog
 	Roles               []RolePolicy
-	Capabilities        []Capability
+	Opcodes             []Opcode
 	EnvironmentBindings []EnvironmentBinding
 	ProgramLimits       *testpilotspb.ProgramLimits
 	ContractLimits      *testpilotspb.ContractLimits
@@ -111,35 +111,35 @@ type EnvironmentBinding struct {
 	Value string
 }
 
-func (p ProfileSpec) policy() execution.Policy {
+func (p ProfileSpec) policy() execution.Profile {
 	roles := make([]execution.RolePolicy, len(p.Roles))
 	for i, role := range p.Roles {
 		carriers := make([]execution.ReservationCarrierPolicy, len(role.ReservationCarriers))
 		for j, carrier := range role.ReservationCarriers {
 			shapes := make([]execution.ReservationCarrierShape, len(carrier.Shapes))
 			for k, shape := range carrier.Shapes {
-				shapes[k] = execution.ReservationCarrierShape{Context: shape.Context, MaximumCount: shape.MaximumCount}
+				shapes[k] = execution.ReservationCarrierShape{Kind: shape.Kind, MaximumCount: shape.MaximumCount}
 			}
 			carriers[j] = execution.ReservationCarrierPolicy{Method: carrier.Method, Shapes: shapes}
 		}
 		roles[i] = execution.RolePolicy{ID: role.ID, Kind: role.Kind, Methods: slices.Clone(role.Methods), ReservationCarriers: carriers}
 	}
-	capabilities := make([]execution.Opcode, len(p.Capabilities))
-	for i, capability := range p.Capabilities {
+	capabilities := make([]execution.Opcode, len(p.Opcodes))
+	for i, capability := range p.Opcodes {
 		capabilities[i] = execution.Opcode(capability)
 	}
 	bindings := make([]execution.EnvironmentBinding, len(p.EnvironmentBindings))
 	for i, binding := range p.EnvironmentBindings {
 		bindings[i] = execution.EnvironmentBinding{ID: binding.ID, Value: binding.Value}
 	}
-	return execution.Policy{Identity: p.Identity, CatalogIdentity: p.Catalog.Identity(), Roles: roles, Capabilities: capabilities, EnvironmentBindings: bindings, Limits: proto.CloneOf(p.ProgramLimits)}
+	return execution.Profile{Identity: p.Identity, CatalogIdentity: p.Catalog.Identity(), Roles: roles, Opcodes: capabilities, EnvironmentBindings: bindings, Limits: proto.CloneOf(p.ProgramLimits)}
 }
 
 func (p ProfileSpec) Snapshot() ProfileSpec {
 	snapshot := p
 	snapshot.ProgramLimits = proto.CloneOf(p.ProgramLimits)
 	snapshot.ContractLimits = proto.CloneOf(p.ContractLimits)
-	snapshot.Capabilities = slices.Clone(p.Capabilities)
+	snapshot.Opcodes = slices.Clone(p.Opcodes)
 	snapshot.EnvironmentBindings = slices.Clone(p.EnvironmentBindings)
 	snapshot.Roles = slices.Clone(p.Roles)
 	for i, role := range p.Roles {

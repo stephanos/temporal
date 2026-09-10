@@ -19,7 +19,7 @@ type admission struct {
 	allowed                map[string]RolePolicy
 	methods                map[string]map[string]bool
 	carriers               map[string]map[string]ReservationCarrierPolicy
-	capabilities           map[Opcode]bool
+	opcodes                map[Opcode]bool
 	bindingsRequired       bool
 	environment            map[string]string
 	environmentDefinitions map[string]bool
@@ -61,7 +61,7 @@ func (a *admission) charge(count int64) error {
 }
 
 // Prepare performs static admission only; Contract semantics are admitted by verification.
-func Prepare(source *testpilotspb.Case, catalog *ir.Catalog, policy Policy) (*PreparedProgram, error) {
+func Prepare(source *testpilotspb.Case, catalog *ir.Catalog, policy Profile) (*PreparedProgram, error) {
 	if catalog == nil {
 		return nil, invalid(ir.Malformed, "catalog", "catalog is required")
 	}
@@ -81,7 +81,7 @@ func Prepare(source *testpilotspb.Case, catalog *ir.Catalog, policy Policy) (*Pr
 		return nil, err
 	}
 	prepared := &PreparedProgram{source: proto.CloneOf(source.Program), catalog: catalog, slots: map[string]ir.Type{}, carriers: map[carrierCoordinate]ReservationCarrierPlan{}, roles: map[string]resolvedRole{}}
-	a := &admission{prepared: prepared, roles: map[string]testpilotspb.RoleKind{}, allowed: map[string]RolePolicy{}, methods: map[string]map[string]bool{}, carriers: map[string]map[string]ReservationCarrierPolicy{}, capabilities: map[Opcode]bool{}, bindingsRequired: true, environment: map[string]string{}, environmentDefinitions: map[string]bool{}, environmentUsed: map[string]bool{}, observations: map[string]ir.Type{}, writers: map[string]slotWriter{}, evidenceSources: map[string]Coordinate{}, graphIndex: map[string]*graph{}}
+	a := &admission{prepared: prepared, roles: map[string]testpilotspb.RoleKind{}, allowed: map[string]RolePolicy{}, methods: map[string]map[string]bool{}, carriers: map[string]map[string]ReservationCarrierPolicy{}, opcodes: map[Opcode]bool{}, bindingsRequired: true, environment: map[string]string{}, environmentDefinitions: map[string]bool{}, environmentUsed: map[string]bool{}, observations: map[string]ir.Type{}, writers: map[string]slotWriter{}, evidenceSources: map[string]Coordinate{}, graphIndex: map[string]*graph{}}
 	for _, check := range []func() error{func() error { return a.bindPolicy(policy) }, a.bindSchemas, a.bindGraphs, a.bindInstructions, a.bindDataflow, a.bindReservations, a.bindReservationCarriers} {
 		if err := check(); err != nil {
 			return nil, err
@@ -120,7 +120,7 @@ func checkLimits(limits, ceiling *testpilotspb.ProgramLimits) error {
 	}
 	return nil
 }
-func (a *admission) bindPolicy(policy Policy) error {
+func (a *admission) bindPolicy(policy Profile) error {
 	if !validID(policy.Identity) || policy.CatalogIdentity != a.prepared.catalog.Identity() {
 		return invalid(ir.Malformed, "policy", "Driver or catalog identity mismatch")
 	}
@@ -130,7 +130,7 @@ func (a *admission) bindPolicy(policy Policy) error {
 	if err := checkLimits(a.prepared.source.Limits, policy.Limits); err != nil {
 		return err
 	}
-	if len(policy.Roles) > 10000 || len(policy.Capabilities) > int(MaxOpcode) || len(policy.EnvironmentBindings) > 10000 {
+	if len(policy.Roles) > 10000 || len(policy.Opcodes) > int(MaxOpcode) || len(policy.EnvironmentBindings) > 10000 {
 		return invalid(ir.LimitExceeded, "policy", "policy collection ceiling exceeded")
 	}
 	var environmentBytes int64
@@ -157,7 +157,7 @@ func (a *admission) bindPolicy(policy Policy) error {
 	snapshot := policy
 	snapshot.Limits = proto.CloneOf(policy.Limits)
 	snapshot.Roles = slices.Clone(policy.Roles)
-	snapshot.Capabilities = slices.Clone(policy.Capabilities)
+	snapshot.Opcodes = slices.Clone(policy.Opcodes)
 	snapshot.EnvironmentBindings = slices.Clone(policy.EnvironmentBindings)
 	for i, role := range snapshot.Roles {
 		bound, err := a.bindRolePolicy(role, policy.Limits)
@@ -166,11 +166,11 @@ func (a *admission) bindPolicy(policy Policy) error {
 		}
 		snapshot.Roles[i] = bound
 	}
-	for _, capability := range snapshot.Capabilities {
-		if capability < InvokeRPC || capability > MaxOpcode || a.capabilities[capability] {
+	for _, capability := range snapshot.Opcodes {
+		if capability < InvokeRPC || capability > MaxOpcode || a.opcodes[capability] {
 			return invalid(ir.Malformed, "policy.capabilities", "invalid or duplicate capability")
 		}
-		a.capabilities[capability] = true
+		a.opcodes[capability] = true
 	}
 	a.prepared.policy = snapshot
 	a.prepared.environmentFingerprint = policy.EnvironmentFingerprint
@@ -241,13 +241,13 @@ func (a *admission) bindCarrierPolicy(carrier ReservationCarrierPolicy, methods 
 	seen := map[testpilotspb.EntrypointKind]bool{}
 	var total int64
 	for _, shape := range carrier.Shapes {
-		if shape.Context != testpilotspb.ENTRYPOINT_KIND_WORKFLOW && shape.Context != testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER {
+		if shape.Kind != testpilotspb.ENTRYPOINT_KIND_WORKFLOW && shape.Kind != testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER {
 			return invalid(ir.Unsupported, "policy.reservation_carriers", "carrier shape has an unsupported activation context")
 		}
-		if seen[shape.Context] {
+		if seen[shape.Kind] {
 			return invalid(ir.Malformed, "policy.reservation_carriers", "duplicate carrier activation context")
 		}
-		seen[shape.Context] = true
+		seen[shape.Kind] = true
 		if shape.MaximumCount <= 0 || shape.MaximumCount > limits.MaxActivations-total {
 			return invalid(ir.LimitExceeded, "policy.reservation_carriers", "carrier cardinality exceeds the activation ceiling")
 		}

@@ -1,8 +1,8 @@
-import Umpire.Property.Scoped.Kernel
+import Umpire.Property.Correlated.Kernel
 
 /-! Positional correspondence between countdown windows and bounded temporal witnesses. -/
 
-namespace Umpire.Property.Scoped
+namespace Umpire.Property.Correlated
 
 private theorem window_witness (bound : Nat) (coordinates : List Coordinate) :
     ((coordinates.take (bound + 1)).any (·.response) = true) ↔
@@ -26,10 +26,10 @@ def PositionalMeaning (bound : Nat) (coordinates : List Coordinate) : Prop :=
 theorem closedReference_positions (bound : Nat) (coordinates : List Coordinate) :
     closedReference bound coordinates = true ↔ PositionalMeaning bound coordinates := by
   induction coordinates with
-  | nil => simp [Shared.ScopedObligation.closedReference, PositionalMeaning]
+  | nil => simp [Shared.CorrelatedObligation.closedReference, PositionalMeaning]
   | cons point rest ih =>
-      change Shared.ScopedObligation.closedReference bound (point :: rest) = true ↔ _
-      rw [Shared.ScopedObligation.closedReference, Bool.and_eq_true]
+      change Shared.CorrelatedObligation.closedReference bound (point :: rest) = true ↔ _
+      rw [Shared.CorrelatedObligation.closedReference, Bool.and_eq_true]
       constructor
       · rintro ⟨head, tail⟩ i hi trigger
         cases i with
@@ -124,15 +124,15 @@ theorem checked_eventuallyWithin_agrees
     (triggerAligned : trigger.field = .selectedAction)
     (responseAligned : response.field = .outcome ∨ response.field = .resultingState ∨
       response.field = .observation) :
-    (consumeMany bound [] ((input.scopedCoordinates trigger response).map
+    (consumeMany bound [] ((input.correlatedCoordinates trigger response).map
       (fun point => Coordinate.mk point.1 point.2))).all
         (fun obligation => decide (obligation = .satisfied)) =
       evaluatePropertyClause property input clause := by
   apply Bool.eq_iff_iff.mpr
-  rw [consumeMany_positions, evaluatePropertyClause_scoped_positions property input clause
+  rw [consumeMany_positions, evaluatePropertyClause_correlated_positions property input clause
     id trigger response bound shape triggerAligned responseAligned]
-  have agreement := positions_meaning 1 bound ((input.scopedCoordinates trigger response).map
+  have agreement := positions_meaning 1 bound ((input.correlatedCoordinates trigger response).map
     (fun point => Coordinate.mk point.1 point.2))
   simpa [List.map_map, Function.comp_def] using agreement.symm
 
-end Umpire.Property.Scoped
+end Umpire.Property.Correlated

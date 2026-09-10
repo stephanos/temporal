@@ -199,7 +199,7 @@ func (p projection) liftAt(index int) *evidenceLift {
 	return p.lifts[index]
 }
 
-// liftEvidence builds the declared ScopedEvidence value from one projected value. The first rule
+// liftEvidence builds the declared CorrelatedEvidence value from one projected value. The first rule
 // whose guard resolves owns the value; a value no rule claims emits nothing, and a rule that fired
 // but cannot read one of its own declared coordinates fails rather than recording partial evidence.
 func (a *activationValues) liftEvidence(w *valueWork, lift *evidenceLift, value *testpilotspb.Value, ordinal int64) (*testpilotspb.Value, error) {
@@ -217,7 +217,7 @@ func (a *activationValues) liftEvidence(w *valueWork, lift *evidenceLift, value 
 				continue
 			}
 		}
-		evidence := &testpilotspb.ScopedEvidence{Kind: rule.kind, Identity: &testpilotspb.ScopedIdentity{Source: rule.source, Ordinal: ordinal}}
+		evidence := &testpilotspb.CorrelatedEvidence{Kind: rule.kind, Identity: &testpilotspb.CorrelatedIdentity{Source: rule.source, Ordinal: ordinal}}
 		for _, binding := range rule.scope {
 			text := binding.literal
 			if binding.path != nil {
@@ -225,7 +225,7 @@ func (a *activationValues) liftEvidence(w *valueWork, lift *evidenceLift, value 
 					return nil, err
 				}
 			}
-			evidence.Identity.Scope = append(evidence.Identity.Scope, &testpilotspb.ScopedBinding{FieldId: binding.fieldID, Value: text})
+			evidence.Identity.Scope = append(evidence.Identity.Scope, &testpilotspb.CorrelatedBinding{FieldId: binding.fieldID, Value: text})
 		}
 		if evidence.Operation, err = a.readLiftKey(w, lift, rule.operation, value); err != nil {
 			return nil, err
@@ -237,7 +237,7 @@ func (a *activationValues) liftEvidence(w *valueWork, lift *evidenceLift, value 
 					return nil, err
 				}
 			}
-			evidence.Fields = append(evidence.Fields, &testpilotspb.ScopedEvidenceField{FieldId: binding.fieldID, Value: scalar})
+			evidence.Fields = append(evidence.Fields, &testpilotspb.CorrelatedEvidenceField{FieldId: binding.fieldID, Value: scalar})
 		}
 		encoded, err := proto.Marshal(evidence)
 		if err != nil {

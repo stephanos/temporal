@@ -4,7 +4,7 @@
 Proposed binding syntax. Read `Nexus.md` first. This file keeps identity conventions, execution
 choices, and evidence interpretation out of the feature-facing model. Both Markdown files remain
 design specimens; the checked success-only completion Producer lives in `Testpilot.lean`.
-Nexus operation cancellation in this draft is explicitly deferred to fn-79. The generic scoped
+Nexus operation cancellation in this draft is explicitly deferred to fn-79. The generic correlated
 qualification delivers no scheduled-only cancellation Target, evidence adapter, operation
 capability, or Case; *Current support and reuse* below says why the historical already-started
 Target is not one either.
@@ -93,15 +93,15 @@ events for other operations contribute zero steps. An event cannot satisfy anoth
 obligation. Each triggered obligation retains its own operation identity and starting coordinate.
 
 The one-step progress Property permits the response on the trigger step or the next step of the
-same operation. This requires operation-scoped counting before evaluation; merely filtering the
+same operation. This requires operation-correlated counting before evaluation; merely filtering the
 response while continuing to count global steps is incorrect. Nexus2's global transition unit
 cannot be reused unchanged for this meaning.
 
-A classic Contract rule declares exactly one horizon bound: elapsed milliseconds, or a count of the
-Run Events the rule itself evaluated since its last transition. The generic version-one scoped
+A classic Contract rule declares exactly one deadline bound: elapsed milliseconds, or a count of the
+Run Events the rule itself evaluated since its last transition. The generic version-one correlated
 Contract capability counts admitted operation transitions instead, with checked lowering through
-`Umpire.Case.Scoped.lower`. The three units are separate: there is no implicit conversion between
-them, and a scoped clause never falls back to either of the classic bounds. That generic capability is delivered, and non-cancellation typed fixtures
+`Umpire.Case.Correlated.lower`. The three units are separate: there is no implicit conversion between
+them, and a correlated rule never falls back to either of the classic bounds. That generic capability is delivered, and non-cancellation typed fixtures
 qualify it through public Prepare/Run. Only its cancellation-specific use is still unsupported:
 cancellation progress rejects at Case production because the scheduled-only cancellation Target,
 its evidence adapter, and the operation capability remain deferred to fn-79. A Known Gap must not
@@ -122,9 +122,9 @@ meaning; returning it under a Nexus3 Query ID would not establish Nexus3 lowerin
 The Nexus3 Producer, `produce`, carries the checked values into generated Program and Contract
 values. It compares no checked value against an expected model: a different Target, Behavior, Query
 or Property produces different Case bytes. The Contract carries no monitor rule at all. Each
-`require` clause becomes one operation-scoped bounded-response clause, placed by the Action order
+`require` clause becomes one operation-correlated bounded-response clause, placed by the Action order
 the Behavior fixes: from the operation's first Action, the required value is due within as many
-semantic transitions as the Behavior puts between them, and `Umpire.Case.Scoped.lower` certifies the
+semantic transitions as the Behavior puts between them, and `Umpire.Case.Correlated.lower` certifies the
 correspondence between the checked clauses and the emitted capability. The evidence those clauses
 read is lifted out of the same history read the Case already performs, keyed by the scheduled event
 a started or a completed Nexus event names, which is the only identity either records.

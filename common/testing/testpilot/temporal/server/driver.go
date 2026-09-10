@@ -93,7 +93,7 @@ func New(options Options) (*Driver, error) {
 
 func validProfile(p testpilot.ProfileSpec) bool {
 	l := p.ProgramLimits
-	if p.Identity == "" || len(p.Identity) > 256 || len(p.Capabilities) > int(testpilot.MaxCapability) || p.Catalog.Identity() == "" || l == nil || l.MaxActivations <= 0 || l.MaxActivations > 100000 || l.MaxAttempts <= 0 || l.MaxAttempts > 100000 || l.MaxNodes <= 0 || l.MaxNodes > 10000 || l.MaxRequestBytes <= 0 || l.MaxRequestBytes > 16<<20 || l.MaxResponseBytes <= 0 || l.MaxResponseBytes > 16<<20 || l.MaxTotalDurationMilliseconds <= 0 || l.MaxTotalDurationMilliseconds > 86400000 || l.MaxCleanupDurationMilliseconds <= 0 || l.MaxCleanupDurationMilliseconds > 86400000 || len(p.Roles) > 10000 {
+	if p.Identity == "" || len(p.Identity) > 256 || len(p.Opcodes) > int(testpilot.MaxOpcode) || p.Catalog.Identity() == "" || l == nil || l.MaxActivations <= 0 || l.MaxActivations > 100000 || l.MaxAttempts <= 0 || l.MaxAttempts > 100000 || l.MaxNodes <= 0 || l.MaxNodes > 10000 || l.MaxRequestBytes <= 0 || l.MaxRequestBytes > 16<<20 || l.MaxResponseBytes <= 0 || l.MaxResponseBytes > 16<<20 || l.MaxTotalDurationMilliseconds <= 0 || l.MaxTotalDurationMilliseconds > 86400000 || l.MaxCleanupDurationMilliseconds <= 0 || l.MaxCleanupDurationMilliseconds > 86400000 || len(p.Roles) > 10000 {
 		return false
 	}
 	total := 0
@@ -111,7 +111,7 @@ func cloneProfile(p testpilot.ProfileSpec) testpilot.ProfileSpec {
 	for i := range p.Roles {
 		p.Roles[i].Methods = slices.Clone(p.Roles[i].Methods)
 	}
-	p.Capabilities = slices.Clone(p.Capabilities)
+	p.Opcodes = slices.Clone(p.Opcodes)
 	p.EnvironmentBindings = slices.Clone(p.EnvironmentBindings)
 	p.ProgramLimits = proto.CloneOf(p.ProgramLimits)
 	p.ContractLimits = proto.CloneOf(p.ContractLimits)

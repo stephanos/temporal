@@ -52,7 +52,7 @@ writes seventeen files, not the sixteen the plan counted: `Artifact/Tests/Fixtur
 is a seventh in that family.
 
 Landed: **.1** hardened the retired-vocabulary gate to fail closed and named the buf breaking entry,
-proved empirically by deleting a `ScopedEvidence` field and watching buf report it (rc 100) then pass
+proved empirically by deleting a correlated-evidence field and watching buf report it (rc 100) then pass
 with the entry (rc 0). **.2** renamed `DefinitionKind.{machine,fact}`, dropped five dead kinds, and
 introduced `Machine`/`Step` down to `Shared.SemanticData.Result`. **.3** moved the model core to
 `Umpire.Model` with `DraftModel`/`CheckedModel`/`Providers`/`Vocabulary`. **.4** merged the two
@@ -261,7 +261,7 @@ leases, recovery, and publication stay outside Testpilot and Umpire.
   to the inherited 1,284; the two `lint-model` findings this spec introduced were fixed, leaving 169
   in generated `Temporal/API` only. It closed out with Known Gap
   `bounded-completion-is-model-only`: the scoped bounded-response clause was proven portable in Lean
-  and Go but did not run on the real Driver, because no Program emitted a `ScopedEvidence`
+  and Go but did not run on the real Driver, because no Program emitted a correlated-evidence
   Observation. fn-80 `.14` supplied that Program-declared source and ran the clause live, so the gap
   is gone; the typed-nexus Case now carries `completion-identity-is-unrecorded` in its place, which
   names what recorded history still does not say. Reviews from task `.9` onward ran on the

@@ -1,9 +1,9 @@
-import Umpire.Case.Scoped
-import Umpire.Property.Tests.Scoped.Fixtures
+import Umpire.Case.Correlated
+import Umpire.Property.Tests.Correlated.Fixtures
 
 /-! Independent small traces exercise actual checked lowering and typed portable observations. -/
-namespace Umpire.Case.ScopedFixtures
-open Umpire.Property.ScopedTests
+namespace Umpire.Case.CorrelatedFixtures
+open Umpire.Property.CorrelatedTests
 open temporal.server.api.testpilot.v1
 
 def plan (target : TestTarget) := Case.Projection.check target {
@@ -22,11 +22,11 @@ def plan (target : TestTarget) := Case.Projection.check target {
     work := 1000000000, eventSize := 512 }
 } () state
 
-def identity (ordinal : Nat) : ScopedIdentity := {
+def identity (ordinal : Nat) : CorrelatedIdentity := {
   scope := #[{ field_id := "test.run", value := "run-1" }]
   source := "test.source", ordinal := Int64.ofInt ordinal }
 
-def evidence (ordinal : Nat) (kind : String) (operation := "a") (parents : List Nat := []) : ScopedEvidence := {
+def evidence (ordinal : Nat) (kind : String) (operation := "a") (parents : List Nat := []) : CorrelatedEvidence := {
   identity := some (identity ordinal)
   operation, kind := "test." ++ kind
   parents := parents.toArray.map identity }
@@ -34,9 +34,9 @@ def evidence (ordinal : Nat) (kind : String) (operation := "a") (parents : List 
 structure Scenario where
   name : String
   bound : Nat
-  events : List ScopedEvidence
+  events : List CorrelatedEvidence
   expected : Nat
-  endpoint : PropertyScopedEndpoint := .«partial»
+  endpoint : TraceEnding := .«partial»
   incomplete : Bool := false
 
 def scenarios : List Scenario := [
@@ -62,28 +62,28 @@ def compiledCase (scenario : Scenario) : Except String temporal.server.api.testp
   let target ← targetResult.mapError (fun _ => "target")
   let property ← (property target scenario.bound scenario.endpoint).mapError (fun _ => "property")
   let plan ← (plan target).mapError (fun _ => "projection")
-  let compiled ← (Case.Projection.Scoped.compile plan property
-    { transitions := 32, obligations := 16, work := 1000000000 }).mapError (fun _ => "scoped compile")
-  let lowered ← (Scoped.lower plan compiled "evidence").mapError (fun error => error.construct)
-  let binding : CaseDefinitionBinding :=
+  let compiled ← (Case.Projection.Correlated.compile plan property
+    { transitions := 32, obligations := 16, work := 1000000000 }).mapError (fun _ => "correlated compile")
+  let lowered ← (Correlated.lower plan compiled "evidence").mapError (fun error => error.construct)
+  let binding : Provenance.DefinitionBinding :=
     ⟨property.id.value, property.behaviorFingerprint.render, .property⟩
-  let program := Testpilot.Authoring.Program.make "scoped.program" #[] #[]
+  let program := Testpilot.Authoring.Program.make "correlated.program" #[] #[]
     #[Testpilot.Authoring.Program.observation "evidence" (Testpilot.Authoring.Types.singular
-      (Testpilot.Authoring.Types.messageType "temporal.server.api.testpilot.v1.ScopedEvidence"))]
+      (Testpilot.Authoring.Types.messageType "temporal.server.api.testpilot.v1.CorrelatedEvidence"))]
     #[Testpilot.Authoring.Program.controller "controller" #[]]
     (Testpilot.Authoring.Program.cleanup "cleanup" #[])
     (Testpilot.Authoring.Program.limits 4 16 16 16 16 32 8 8 4096 4096 10000 1000)
   (Compiler.compile {
     version := { major := 1 }
-    caseId := "scoped." ++ scenario.name
-    producerId := "umpire.scoped.fixtures"
+    caseId := "correlated." ++ scenario.name
+    producerId := "umpire.correlated.fixtures"
     definitions := [binding]
     sources := [source]
     knownGaps := []
     program
-    contractId := "scoped"
+    contractId := "correlated"
     properties := [lowered.contractLowering]
-    contractLimits := Testpilot.Authoring.Monitor.limits 16 32 64 16 100000 1000000000 32 65536
+    contractLimits := Testpilot.Authoring.Contract.limits 16 32 64 16 100000 1000000000 32 65536
   }).mapError (·.construct)
 
 /-- Exercise the same checked Contract through ordinary RPC response projection and Run recording.
@@ -93,7 +93,7 @@ def runnableCase (scenario : Scenario) : Except String temporal.server.api.testp
   let some program := artifact.program | throw "missing program"
   let nodes := scenario.events.toArray.mapIdx fun index _ =>
     Testpilot.Authoring.Program.node ("read." ++ toString index)
-      (Testpilot.Authoring.Program.invokeRPC "source" "/test.scoped.Source/Read" #[]
+      (Testpilot.Authoring.Program.invokeRPC "source" "/test.correlated.Source/Read" #[]
         #[Testpilot.Authoring.Program.responseProjection (Testpilot.Authoring.Path.make #[])
           .PROJECTION_KIND_ONE #[Testpilot.Authoring.Program.observationTarget "evidence"]])
       (Testpilot.Authoring.Program.instructionLimits 1000 1 1 4096)
@@ -108,18 +108,18 @@ def runnableCase (scenario : Scenario) : Except String temporal.server.api.testp
     entrypoints := #[Testpilot.Authoring.Program.controller "controller" nodes]
     limits := some (Testpilot.Authoring.Program.limits 4 256 256 256 256 2048 8 256 4096 4096 10000 1000) } }
 
-def capability (scenario : Scenario) : Except String ScopedContract := do
+def capability (scenario : Scenario) : Except String CorrelatedContract := do
   let artifact ← compiledCase scenario
   let some contract := artifact.contract | throw "missing contract"
-  let some capability := contract.«scoped» | throw "missing capability"
+  let some capability := contract.«correlated» | throw "missing capability"
   pure capability
 
 def evaluate (scenario : Scenario) : Except String (List Nat) := do
-  let compiled ← Testpilot.Scoped.decode (← capability scenario)
+  let compiled ← Testpilot.Correlated.decode (← capability scenario)
   let initial ← compiled.start scope
   let run ← scenario.events.zipIdx.foldlM (fun run (event, index) => run.observe (index + 2) event) initial
   pure (run.close.answers scenario.incomplete)
 
 #guard scenarios.all (fun scenario => (evaluate scenario).toOption == some [scenario.expected])
 
-end Umpire.Case.ScopedFixtures
+end Umpire.Case.CorrelatedFixtures

@@ -2,7 +2,7 @@ import Umpire.Core
 import Umpire.Model
 import Umpire.Property.Elab
 import Umpire.Property.Evaluate
-import Umpire.Property.Scoped
+import Umpire.Property.Correlated
 import Umpire.Scenario.Elab
 import Umpire.Query.Elab
 import Umpire.Artifact
@@ -13,9 +13,9 @@ import Umpire.Variations
 import Umpire.Exploration
 import Umpire.Evidence
 import Umpire.Case.Projection
-import Umpire.Case.Projection.Scoped
+import Umpire.Case.Projection.Correlated
 import Umpire.ImplementationLink
+import Umpire.Provenance
 import Umpire.Case
 import Umpire.Case.Compiler
 import Umpire.Case.Observed
-import Umpire.Case.ProtoJSON

@@ -22,7 +22,7 @@ func fixture(t *testing.T, responseBytes ...int64) (*testpilotspb.Contract, *ir.
 		limits.MaxResponseBytes = responseBytes[0]
 	}
 	source := &testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: 1}, CaseId: "case", Contract: &testpilotspb.Contract{ContractId: "contract"}, Program: &testpilotspb.Program{ProgramId: "program", Limits: limits, Observations: []*testpilotspb.ObservationDefinition{{ObservationId: "id", Type: scalar(testpilotspb.SCALAR_KIND_INT64)}, {ObservationId: "text", Type: scalar(testpilotspb.SCALAR_KIND_TEXT)}, {ObservationId: "message", Type: messageType("example.Empty")}}, Entrypoints: []*testpilotspb.EntrypointDefinition{{EntrypointId: "controller", Activation: &testpilotspb.EntrypointDefinition_Controller{Controller: &testpilotspb.ControllerActivation{}}}}, Cleanup: &testpilotspb.CleanupDefinition{EntrypointId: "cleanup"}}}
-	prepared, err := execution.Prepare(source, catalog, execution.Policy{Identity: "host", CatalogIdentity: catalog.Identity(), Limits: proto.CloneOf(limits)})
+	prepared, err := execution.Prepare(source, catalog, execution.Profile{Identity: "host", CatalogIdentity: catalog.Identity(), Limits: proto.CloneOf(limits)})
 	require.NoError(t, err)
 	ceiling := &testpilotspb.ContractLimits{MaxRules: 16, MaxStates: 32, MaxTransitions: 64, MaxExpressionDepth: 16, MaxWorkPerEvent: 100000, MaxTotalWork: 1000000000, MaxCaptures: 8, MaxCaptureBytes: 65536}
 	contract := &testpilotspb.Contract{ContractId: "contract", Limits: proto.CloneOf(ceiling), Rules: []*testpilotspb.ContractRuleDefinition{{RuleId: "rule", Kind: testpilotspb.CONTRACT_RULE_KIND_SAFETY, InitialStateId: "start", States: []*testpilotspb.ContractStateDefinition{{StateId: "start", Status: testpilotspb.CONTRACT_STATE_STATUS_NONTERMINAL}, {StateId: "good", Status: testpilotspb.CONTRACT_STATE_STATUS_SATISFIED}, {StateId: "bad", Status: testpilotspb.CONTRACT_STATE_STATUS_VIOLATED}}, Transitions: []*testpilotspb.ContractTransitionDefinition{transition("first", "start", "good", boolean(true))}}}}
@@ -73,7 +73,7 @@ func TestPrepareMachinesAndOrder(t *testing.T) {
 			r.Transitions = append(r.Transitions, transition("second", "start", "bad", boolean(true)))
 			if live {
 				r.Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
-				r.Horizon = &testpilotspb.ContractHorizonDefinition{ElapsedMilliseconds: 1000, ViolationStateId: "bad"}
+				r.Deadline = &testpilotspb.ContractDeadline{ElapsedMilliseconds: 1000, ViolationStateId: "bad"}
 			}
 			prepared, err := Prepare(c, catalog, view, policy)
 			require.NoError(t, err)
@@ -153,14 +153,14 @@ func TestPrepareRejectsMalformedContracts(t *testing.T) {
 		"missing horizon":      func(c *testpilotspb.Contract) { c.Rules[0].Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS },
 		"wrong expiry target": func(c *testpilotspb.Contract) {
 			c.Rules[0].Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
-			c.Rules[0].Horizon = &testpilotspb.ContractHorizonDefinition{ElapsedMilliseconds: 1, ViolationStateId: "good"}
+			c.Rules[0].Deadline = &testpilotspb.ContractDeadline{ElapsedMilliseconds: 1, ViolationStateId: "good"}
 		},
 		"negative horizon": func(c *testpilotspb.Contract) {
 			c.Rules[0].Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
-			c.Rules[0].Horizon = &testpilotspb.ContractHorizonDefinition{ElapsedMilliseconds: -1, ViolationStateId: "bad"}
+			c.Rules[0].Deadline = &testpilotspb.ContractDeadline{ElapsedMilliseconds: -1, ViolationStateId: "bad"}
 		},
 		"safety horizon": func(c *testpilotspb.Contract) {
-			c.Rules[0].Horizon = &testpilotspb.ContractHorizonDefinition{ElapsedMilliseconds: 1, ViolationStateId: "bad"}
+			c.Rules[0].Deadline = &testpilotspb.ContractDeadline{ElapsedMilliseconds: 1, ViolationStateId: "bad"}
 		},
 		"unknown observation": func(c *testpilotspb.Contract) { c.Rules[0].Transitions[0].Predicate = present(observation("missing")) },
 		"Run ID intrinsic forbidden": func(c *testpilotspb.Contract) {
@@ -192,20 +192,20 @@ func TestPrepareRejectsMalformedContracts(t *testing.T) {
 func TestPrepareAdmitsExactlyOneHorizonBound(t *testing.T) {
 	for _, tc := range []struct {
 		name    string
-		horizon *testpilotspb.ContractHorizonDefinition
+		horizon *testpilotspb.ContractDeadline
 		admit   bool
 	}{
-		{"elapsed only", &testpilotspb.ContractHorizonDefinition{ElapsedMilliseconds: 1000, ViolationStateId: "bad"}, true},
-		{"events only", &testpilotspb.ContractHorizonDefinition{RuleEvents: 3, ViolationStateId: "bad"}, true},
-		{"both positive", &testpilotspb.ContractHorizonDefinition{ElapsedMilliseconds: 1000, RuleEvents: 3, ViolationStateId: "bad"}, false},
-		{"both zero", &testpilotspb.ContractHorizonDefinition{ViolationStateId: "bad"}, false},
-		{"negative events", &testpilotspb.ContractHorizonDefinition{RuleEvents: -1, ViolationStateId: "bad"}, false},
-		{"negative elapsed with events", &testpilotspb.ContractHorizonDefinition{ElapsedMilliseconds: -1, RuleEvents: 3, ViolationStateId: "bad"}, false},
+		{"elapsed only", &testpilotspb.ContractDeadline{ElapsedMilliseconds: 1000, ViolationStateId: "bad"}, true},
+		{"events only", &testpilotspb.ContractDeadline{RuleEvents: 3, ViolationStateId: "bad"}, true},
+		{"both positive", &testpilotspb.ContractDeadline{ElapsedMilliseconds: 1000, RuleEvents: 3, ViolationStateId: "bad"}, false},
+		{"both zero", &testpilotspb.ContractDeadline{ViolationStateId: "bad"}, false},
+		{"negative events", &testpilotspb.ContractDeadline{RuleEvents: -1, ViolationStateId: "bad"}, false},
+		{"negative elapsed with events", &testpilotspb.ContractDeadline{ElapsedMilliseconds: -1, RuleEvents: 3, ViolationStateId: "bad"}, false},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			c, catalog, view, policy := fixture(t)
 			c.Rules[0].Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
-			c.Rules[0].Horizon = tc.horizon
+			c.Rules[0].Deadline = tc.horizon
 			_, err := Prepare(c, catalog, view, policy)
 			if tc.admit {
 				require.NoError(t, err)

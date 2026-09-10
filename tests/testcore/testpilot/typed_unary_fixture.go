@@ -26,7 +26,7 @@ func TypedUnaryProfile(catalog *testpilot.Catalog, source *testpilotspb.Case, en
 			{ID: "temporal.worker", Kind: testpilotspb.ROLE_KIND_WORKER},
 			{ID: "temporal.task-queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE},
 		},
-		[]testpilot.Capability{testpilot.InvokeRPC, testpilot.Finish},
+		[]testpilot.Opcode{testpilot.InvokeRPC, testpilot.Finish},
 		[]testpilot.EnvironmentBinding{
 			{ID: TypedUnaryNamespaceBindingID, Value: environment.Namespace},
 			{ID: TypedUnaryTaskQueueBindingID, Value: environment.TaskQueue},

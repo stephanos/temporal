@@ -11,8 +11,8 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-type admittedScopedEvidence struct {
-	*testpilotspb.ScopedEvidence
+type admittedCorrelatedEvidence struct {
+	*testpilotspb.CorrelatedEvidence
 	supportingEventSequences []int64
 }
 
@@ -30,23 +30,23 @@ type retainedCapture struct {
 	value   *testpilotspb.Value
 }
 type scopedOperation struct {
-	state       *testpilotspb.ScopedValue
-	last        *testpilotspb.ScopedIdentity
+	state       *testpilotspb.CorrelatedValue
+	last        *testpilotspb.CorrelatedIdentity
 	obligations [][]scopedObligation
 	captures    []retainedCapture
 }
 type scopedRun struct {
-	scope                                                                         []*testpilotspb.ScopedBinding
-	accepted                                                                      []*admittedScopedEvidence
-	processed                                                                     []*testpilotspb.ScopedIdentity
-	support                                                                       [][]*testpilotspb.ScopedIdentity
+	scope                                                                         []*testpilotspb.CorrelatedBinding
+	accepted                                                                      []*admittedCorrelatedEvidence
+	processed                                                                     []*testpilotspb.CorrelatedIdentity
+	support                                                                       [][]*testpilotspb.CorrelatedIdentity
 	operations                                                                    map[string]*scopedOperation
 	ruleSupport                                                                   [][]int64
 	transitions, obligations, projectionWork, obligationWork, retainedStepSupport int64
 	capturedValues                                                                int64
 }
 
-func newScoped(s *testpilotspb.ScopedContract) *scopedRun {
+func newCorrelated(s *testpilotspb.CorrelatedContract) *scopedRun {
 	if s == nil {
 		return nil
 	}
@@ -73,25 +73,25 @@ func (r *scopedRun) clone() *scopedRun {
 	}
 	return &n
 }
-func identityEqual(a, b *testpilotspb.ScopedIdentity) bool { return proto.Equal(a, b) }
-func identityIndex(ids []*testpilotspb.ScopedIdentity, id *testpilotspb.ScopedIdentity) int {
-	return slices.IndexFunc(ids, func(x *testpilotspb.ScopedIdentity) bool { return identityEqual(x, id) })
+func identityEqual(a, b *testpilotspb.CorrelatedIdentity) bool { return proto.Equal(a, b) }
+func identityIndex(ids []*testpilotspb.CorrelatedIdentity, id *testpilotspb.CorrelatedIdentity) int {
+	return slices.IndexFunc(ids, func(x *testpilotspb.CorrelatedIdentity) bool { return identityEqual(x, id) })
 }
-func (r *scopedRun) event(id *testpilotspb.ScopedIdentity) *admittedScopedEvidence {
-	i := slices.IndexFunc(r.accepted, func(e *admittedScopedEvidence) bool { return identityEqual(e.Identity, id) })
+func (r *scopedRun) event(id *testpilotspb.CorrelatedIdentity) *admittedCorrelatedEvidence {
+	i := slices.IndexFunc(r.accepted, func(e *admittedCorrelatedEvidence) bool { return identityEqual(e.Identity, id) })
 	if i < 0 {
 		return nil
 	}
 	return r.accepted[i]
 }
-func sourceBefore(a, b *testpilotspb.ScopedIdentity) bool {
+func sourceBefore(a, b *testpilotspb.CorrelatedIdentity) bool {
 	return a.Source == b.Source && a.Ordinal < b.Ordinal
 }
-func orderingEdge(a *testpilotspb.ScopedIdentity, b *admittedScopedEvidence) bool {
+func orderingEdge(a *testpilotspb.CorrelatedIdentity, b *admittedCorrelatedEvidence) bool {
 	return identityIndex(b.Parents, a) >= 0 || sourceBefore(a, b.Identity)
 }
-func (r *scopedRun) reaches(before, after *testpilotspb.ScopedIdentity) bool {
-	visited := []*testpilotspb.ScopedIdentity{before}
+func (r *scopedRun) reaches(before, after *testpilotspb.CorrelatedIdentity) bool {
+	visited := []*testpilotspb.CorrelatedIdentity{before}
 	for i := 0; i < len(visited); i++ {
 		if identityEqual(visited[i], after) {
 			return true
@@ -112,7 +112,7 @@ func (r *scopedRun) validateGraph() error {
 			}
 		}
 	}
-	removed := []*testpilotspb.ScopedIdentity{}
+	removed := []*testpilotspb.CorrelatedIdentity{}
 	for range r.accepted {
 		for _, e := range r.accepted {
 			if identityIndex(removed, e.Identity) >= 0 {
@@ -135,24 +135,24 @@ func (r *scopedRun) validateGraph() error {
 	}
 	return nil
 }
-func (r *scopedRun) ready(e *admittedScopedEvidence) bool {
+func (r *scopedRun) ready(e *admittedCorrelatedEvidence) bool {
 	for _, id := range e.Parents {
 		if identityIndex(r.processed, id) < 0 {
 			return false
 		}
 	}
-	return e.Identity.Ordinal == 0 || slices.ContainsFunc(r.processed, func(id *testpilotspb.ScopedIdentity) bool {
+	return e.Identity.Ordinal == 0 || slices.ContainsFunc(r.processed, func(id *testpilotspb.CorrelatedIdentity) bool {
 		return id.Source == e.Identity.Source && id.Ordinal+1 == e.Identity.Ordinal
 	})
 }
-func identitySize(id *testpilotspb.ScopedIdentity) int64 {
+func identitySize(id *testpilotspb.CorrelatedIdentity) int64 {
 	n := int64(utf8.RuneCountInString(id.Source) + 1)
 	for _, b := range id.Scope {
 		n += int64(utf8.RuneCountInString(b.FieldId) + utf8.RuneCountInString(b.Value))
 	}
 	return n
 }
-func evidenceSize(e *admittedScopedEvidence) int64 {
+func evidenceSize(e *admittedCorrelatedEvidence) int64 {
 	n := identitySize(e.Identity) + int64(utf8.RuneCountInString(e.Operation)+utf8.RuneCountInString(e.Kind))
 	for _, seq := range e.supportingEventSequences {
 		n += int64(len(strconv.FormatInt(seq, 10)))
@@ -183,7 +183,7 @@ func evidenceSize(e *admittedScopedEvidence) int64 {
 	}
 	return n
 }
-func projectionRule(s *testpilotspb.ScopedContract, kind string) *testpilotspb.ScopedProjectionRule {
+func projectionRule(s *testpilotspb.CorrelatedContract, kind string) *testpilotspb.CorrelatedProjectionRule {
 	for _, r := range s.ProjectionRules {
 		if r.Kind == kind {
 			return r
@@ -191,7 +191,7 @@ func projectionRule(s *testpilotspb.ScopedContract, kind string) *testpilotspb.S
 	}
 	return nil
 }
-func (r *scopedRun) validate(s *testpilotspb.ScopedContract, e *admittedScopedEvidence, sequence int64) error {
+func (r *scopedRun) validate(s *testpilotspb.CorrelatedContract, e *admittedCorrelatedEvidence, sequence int64) error {
 	if e.Identity == nil || e.Operation == "" || evidenceSize(e) > s.Limits.MaxEventBytes {
 		return invalid(ir.Malformed, "invalid scoped evidence size or identity")
 	}
@@ -203,11 +203,11 @@ func (r *scopedRun) validate(s *testpilotspb.ScopedContract, e *admittedScopedEv
 			return invalid(ir.Malformed, "wrong scoped bindings")
 		}
 	}
-	if r.scope != nil && !slices.EqualFunc(r.scope, e.Identity.Scope, func(a, b *testpilotspb.ScopedBinding) bool { return proto.Equal(a, b) }) {
+	if r.scope != nil && !slices.EqualFunc(r.scope, e.Identity.Scope, func(a, b *testpilotspb.CorrelatedBinding) bool { return proto.Equal(a, b) }) {
 		return invalid(ir.Malformed, "changed scoped bindings")
 	}
 	for _, id := range append(slices.Clone(e.Parents), e.Identity) {
-		if id == nil || !slices.EqualFunc(id.Scope, e.Identity.Scope, func(a, b *testpilotspb.ScopedBinding) bool { return proto.Equal(a, b) }) || !slices.Contains(s.Sources, id.Source) || id.Ordinal < 0 || id.Ordinal >= s.Limits.MaxEvents {
+		if id == nil || !slices.EqualFunc(id.Scope, e.Identity.Scope, func(a, b *testpilotspb.CorrelatedBinding) bool { return proto.Equal(a, b) }) || !slices.Contains(s.Sources, id.Source) || id.Ordinal < 0 || id.Ordinal >= s.Limits.MaxEvents {
 			return invalid(ir.Malformed, "invalid scoped source identity")
 		}
 	}
@@ -230,13 +230,13 @@ func (r *scopedRun) validate(s *testpilotspb.ScopedContract, e *admittedScopedEv
 	}
 	seen := map[string]bool{}
 	for _, f := range e.Fields {
-		i := slices.IndexFunc(rule.Fields, func(p *testpilotspb.ScopedFieldPolicy) bool { return p.FieldId == f.FieldId })
+		i := slices.IndexFunc(rule.Fields, func(p *testpilotspb.CorrelatedFieldPolicy) bool { return p.FieldId == f.FieldId })
 		if i < 0 || seen[f.FieldId] {
 			return invalid(ir.Malformed, "unauthorized evidence field")
 		}
 		seen[f.FieldId] = true
 		p := rule.Fields[i]
-		if p.Disposition == testpilotspb.SCOPED_FIELD_DISPOSITION_REJECT || p.Disposition == testpilotspb.SCOPED_FIELD_DISPOSITION_REDACT && f.Value != nil || p.Disposition == testpilotspb.SCOPED_FIELD_DISPOSITION_RETAIN && f.Value == nil {
+		if p.Disposition == testpilotspb.CORRELATED_FIELD_DISPOSITION_REJECT || p.Disposition == testpilotspb.CORRELATED_FIELD_DISPOSITION_REDACT && f.Value != nil || p.Disposition == testpilotspb.CORRELATED_FIELD_DISPOSITION_RETAIN && f.Value == nil {
 			return invalid(ir.Malformed, "field disposition mismatch")
 		}
 		if f.Value != nil {
@@ -260,13 +260,13 @@ func (r *scopedRun) validate(s *testpilotspb.ScopedContract, e *admittedScopedEv
 		}
 	}
 	for _, f := range rule.Fields {
-		if f.Disposition != testpilotspb.SCOPED_FIELD_DISPOSITION_REJECT && !seen[f.FieldId] {
+		if f.Disposition != testpilotspb.CORRELATED_FIELD_DISPOSITION_REJECT && !seen[f.FieldId] {
 			return invalid(ir.Malformed, "missing declared evidence field")
 		}
 	}
 	return nil
 }
-func appendIdentity(ids []*testpilotspb.ScopedIdentity, id *testpilotspb.ScopedIdentity) []*testpilotspb.ScopedIdentity {
+func appendIdentity(ids []*testpilotspb.CorrelatedIdentity, id *testpilotspb.CorrelatedIdentity) []*testpilotspb.CorrelatedIdentity {
 	if identityIndex(ids, id) < 0 {
 		return append(ids, id)
 	}
@@ -281,7 +281,7 @@ func unionSequences(a, b []int64) []int64 {
 	slices.Sort(a)
 	return a
 }
-func (r *scopedRun) sequences(ids []*testpilotspb.ScopedIdentity) []int64 {
+func (r *scopedRun) sequences(ids []*testpilotspb.CorrelatedIdentity) []int64 {
 	var out []int64
 	for _, id := range ids {
 		if e := r.event(id); e != nil {
@@ -290,36 +290,36 @@ func (r *scopedRun) sequences(ids []*testpilotspb.ScopedIdentity) []int64 {
 	}
 	return out
 }
-func predicate(p *testpilotspb.ScopedPredicate, tr *testpilotspb.ScopedTransition) bool {
-	var values []*testpilotspb.ScopedValue
+func predicate(p *testpilotspb.CorrelatedPredicate, tr *testpilotspb.CorrelatedTransition) bool {
+	var values []*testpilotspb.CorrelatedValue
 	switch p.Field {
-	case testpilotspb.SCOPED_PREDICATE_FIELD_ACTION:
-		values = []*testpilotspb.ScopedValue{tr.Action}
-	case testpilotspb.SCOPED_PREDICATE_FIELD_OUTCOME:
-		values = []*testpilotspb.ScopedValue{tr.Outcome}
-	case testpilotspb.SCOPED_PREDICATE_FIELD_RESULTING_STATE:
-		values = []*testpilotspb.ScopedValue{tr.ResultingState}
-	case testpilotspb.SCOPED_PREDICATE_FIELD_FACT:
+	case testpilotspb.CORRELATED_PREDICATE_FIELD_ACTION:
+		values = []*testpilotspb.CorrelatedValue{tr.Action}
+	case testpilotspb.CORRELATED_PREDICATE_FIELD_OUTCOME:
+		values = []*testpilotspb.CorrelatedValue{tr.Outcome}
+	case testpilotspb.CORRELATED_PREDICATE_FIELD_STATE:
+		values = []*testpilotspb.CorrelatedValue{tr.State}
+	case testpilotspb.CORRELATED_PREDICATE_FIELD_FACT:
 		values = tr.Facts
 	default:
 		return false
 	}
-	return slices.ContainsFunc(values, func(v *testpilotspb.ScopedValue) bool {
+	return slices.ContainsFunc(values, func(v *testpilotspb.CorrelatedValue) bool {
 		if v.DefinitionId != p.DefinitionId {
 			return false
 		}
 		switch c := p.Constraint.(type) {
-		case *testpilotspb.ScopedPredicate_Present:
+		case *testpilotspb.CorrelatedPredicate_Present:
 			return c.Present
-		case *testpilotspb.ScopedPredicate_EqualsText:
+		case *testpilotspb.CorrelatedPredicate_EqualsText:
 			return v.Value == c.EqualsText
 		default:
 			return false
 		}
 	})
 }
-func evidenceField(e *admittedScopedEvidence, id string) *testpilotspb.Value {
-	i := slices.IndexFunc(e.Fields, func(f *testpilotspb.ScopedEvidenceField) bool { return f.FieldId == id })
+func evidenceField(e *admittedCorrelatedEvidence, id string) *testpilotspb.Value {
+	i := slices.IndexFunc(e.Fields, func(f *testpilotspb.CorrelatedEvidenceField) bool { return f.FieldId == id })
 	if i < 0 {
 		return nil
 	}
@@ -329,16 +329,16 @@ func evidenceField(e *admittedScopedEvidence, id string) *testpilotspb.Value {
 // operandValue reads only declared evidence. An occurrence the operation never retained -- a future
 // ordinal, or one belonging to a different operation -- has no value here, so admission fails rather
 // than binding the nearest match.
-func operandValue(o *testpilotspb.ScopedOperand, e *admittedScopedEvidence, op *scopedOperation) (*testpilotspb.Value, error) {
+func operandValue(o *testpilotspb.CorrelatedOperand, e *admittedCorrelatedEvidence, op *scopedOperation) (*testpilotspb.Value, error) {
 	switch v := o.GetOperand().(type) {
-	case *testpilotspb.ScopedOperand_Literal:
+	case *testpilotspb.CorrelatedOperand_Literal:
 		return v.Literal, nil
-	case *testpilotspb.ScopedOperand_FieldId:
+	case *testpilotspb.CorrelatedOperand_FieldId:
 		if value := evidenceField(e, v.FieldId); value != nil {
 			return value, nil
 		}
 		return nil, invalid(ir.Malformed, "missing correlation field operand")
-	case *testpilotspb.ScopedOperand_Capture:
+	case *testpilotspb.CorrelatedOperand_Capture:
 		for _, entry := range op.captures {
 			if entry.capture == v.Capture.GetCaptureId() && entry.ordinal == v.Capture.GetOrdinal() {
 				return entry.value, nil
@@ -352,11 +352,11 @@ func operandValue(o *testpilotspb.ScopedOperand, e *admittedScopedEvidence, op *
 
 // correlationHolds evaluates groups left to right and stops at the first decisive operand, so an
 // operand an earlier one made irrelevant is never read and cannot fail admission.
-func correlationHolds(c *testpilotspb.ScopedCorrelation, out *testpilotspb.ScopedTransition, e *admittedScopedEvidence, op *scopedOperation) (bool, error) {
+func correlationHolds(c *testpilotspb.CorrelatedCorrelation, out *testpilotspb.CorrelatedTransition, e *admittedCorrelatedEvidence, op *scopedOperation) (bool, error) {
 	switch v := c.GetCondition().(type) {
-	case *testpilotspb.ScopedCorrelation_Predicate:
+	case *testpilotspb.CorrelatedCorrelation_Predicate:
 		return predicate(v.Predicate, out), nil
-	case *testpilotspb.ScopedCorrelation_Comparison:
+	case *testpilotspb.CorrelatedCorrelation_Comparison:
 		left, err := operandValue(v.Comparison.GetLeft(), e, op)
 		if err != nil {
 			return false, err
@@ -365,8 +365,8 @@ func correlationHolds(c *testpilotspb.ScopedCorrelation, out *testpilotspb.Scope
 		if err != nil {
 			return false, err
 		}
-		return proto.Equal(left, right) == (v.Comparison.GetOperator() == testpilotspb.SCOPED_COMPARISON_OPERATOR_EQUAL), nil
-	case *testpilotspb.ScopedCorrelation_All:
+		return proto.Equal(left, right) == (v.Comparison.GetOperator() == testpilotspb.CORRELATED_COMPARISON_OPERATOR_EQUAL), nil
+	case *testpilotspb.CorrelatedCorrelation_All:
 		for _, operand := range v.All.GetOperands() {
 			holds, err := correlationHolds(operand, out, e, op)
 			if err != nil || !holds {
@@ -374,7 +374,7 @@ func correlationHolds(c *testpilotspb.ScopedCorrelation, out *testpilotspb.Scope
 			}
 		}
 		return true, nil
-	case *testpilotspb.ScopedCorrelation_Any:
+	case *testpilotspb.CorrelatedCorrelation_Any:
 		for _, operand := range v.Any.GetOperands() {
 			holds, err := correlationHolds(operand, out, e, op)
 			if err != nil {
@@ -392,7 +392,7 @@ func correlationHolds(c *testpilotspb.ScopedCorrelation, out *testpilotspb.Scope
 
 // retain keeps this step's occurrence of every declared capture. A step supplying no value at the
 // declared field records nothing; an operation already holding its declared lifetime rejects.
-func (r *scopedRun) retain(s *testpilotspb.ScopedContract, e *admittedScopedEvidence, op *scopedOperation) error {
+func (r *scopedRun) retain(s *testpilotspb.CorrelatedContract, e *admittedCorrelatedEvidence, op *scopedOperation) error {
 	for _, c := range s.Clauses {
 		for _, d := range c.Captures {
 			value := evidenceField(e, d.FieldId)
@@ -417,9 +417,9 @@ func (r *scopedRun) retain(s *testpilotspb.ScopedContract, e *admittedScopedEvid
 	return nil
 }
 
-func (r *scopedRun) release(s *testpilotspb.ScopedContract, e *admittedScopedEvidence) error {
+func (r *scopedRun) release(s *testpilotspb.CorrelatedContract, e *admittedCorrelatedEvidence) error {
 	rule := projectionRule(s, e.Kind)
-	var support []*testpilotspb.ScopedIdentity
+	var support []*testpilotspb.CorrelatedIdentity
 	for _, p := range e.Parents {
 		i := identityIndex(r.processed, p)
 		for _, ancestor := range r.support[i] {
@@ -429,7 +429,7 @@ func (r *scopedRun) release(s *testpilotspb.ScopedContract, e *admittedScopedEvi
 	support = appendIdentity(support, e.Identity)
 	r.processed = append(r.processed, e.Identity)
 	r.support = append(r.support, support)
-	if rule.Meaning != testpilotspb.SCOPED_EVIDENCE_MEANING_CONFIRMED {
+	if rule.Meaning != testpilotspb.CORRELATED_EVIDENCE_MEANING_CONFIRMED {
 		return nil
 	}
 	operationCount := int64(len(r.operations))
@@ -441,16 +441,16 @@ func (r *scopedRun) release(s *testpilotspb.ScopedContract, e *admittedScopedEvi
 	if op.last != nil && !r.reaches(op.last, e.Identity) {
 		return invalid(ir.Malformed, "incomparable operation transitions")
 	}
-	if rule.Submission != nil && !slices.ContainsFunc(e.Parents, func(id *testpilotspb.ScopedIdentity) bool {
+	if rule.Submission != nil && !slices.ContainsFunc(e.Parents, func(id *testpilotspb.CorrelatedIdentity) bool {
 		p := r.event(id)
-		return p != nil && projectionRule(s, p.Kind).Meaning == testpilotspb.SCOPED_EVIDENCE_MEANING_SUBMISSION && proto.Equal(projectionRule(s, p.Kind).Submission, rule.Submission)
+		return p != nil && projectionRule(s, p.Kind).Meaning == testpilotspb.CORRELATED_EVIDENCE_MEANING_SUBMISSION && proto.Equal(projectionRule(s, p.Kind).Submission, rule.Submission)
 	}) {
 		return invalid(ir.Malformed, "missing causal submission")
 	}
 	for _, out := range rule.Outputs {
 		direct := appendIdentity(slices.Clone(e.Parents), e.Identity)
 		r.retainedStepSupport += int64(len(direct) + len(support) + len(r.sequences(direct)) + len(r.sequences(support)))
-		if !slices.ContainsFunc(s.Transitions, func(tr *testpilotspb.ScopedTransition) bool {
+		if !slices.ContainsFunc(s.Transitions, func(tr *testpilotspb.CorrelatedTransition) bool {
 			return proto.Equal(tr.PriorState, op.state) && sameResult(tr, out)
 		}) {
 			return invalid(ir.Malformed, "unauthorized operation transition")
@@ -523,19 +523,19 @@ func (r *scopedRun) release(s *testpilotspb.ScopedContract, e *admittedScopedEvi
 		if err := r.retain(s, e, op); err != nil {
 			return err
 		}
-		op.state = out.ResultingState
+		op.state = out.State
 		operationCount = int64(len(r.operations))
 		r.transitions++
 	}
 	op.last = e.Identity
 	return nil
 }
-func (r *scopedRun) stage(ctx context.Context, s *testpilotspb.ScopedContract, e *admittedScopedEvidence, sequence int64) (*scopedRun, int64, error) {
+func (r *scopedRun) stage(ctx context.Context, s *testpilotspb.CorrelatedContract, e *admittedCorrelatedEvidence, sequence int64) (*scopedRun, int64, error) {
 	if err := r.validate(s, e, sequence); err != nil {
 		return nil, 0, err
 	}
 	previous := r.event(e.Identity)
-	if previous != nil && !proto.Equal(previous.ScopedEvidence, e.ScopedEvidence) {
+	if previous != nil && !proto.Equal(previous.CorrelatedEvidence, e.CorrelatedEvidence) {
 		return nil, 0, invalid(ir.Malformed, "conflicting source identity")
 	}
 	if previous == nil && (len(e.supportingEventSequences) != 1 || e.supportingEventSequences[0] != sequence) {
@@ -543,7 +543,7 @@ func (r *scopedRun) stage(ctx context.Context, s *testpilotspb.ScopedContract, e
 	}
 	n := r.clone()
 	if previous == nil {
-		n.accepted = append(n.accepted, &admittedScopedEvidence{ScopedEvidence: proto.CloneOf(e.ScopedEvidence), supportingEventSequences: slices.Clone(e.supportingEventSequences)})
+		n.accepted = append(n.accepted, &admittedCorrelatedEvidence{CorrelatedEvidence: proto.CloneOf(e.CorrelatedEvidence), supportingEventSequences: slices.Clone(e.supportingEventSequences)})
 	}
 	if n.scope == nil {
 		n.scope = proto.CloneOf(e.Identity).Scope
@@ -580,7 +580,7 @@ func (r *scopedRun) stage(ctx context.Context, s *testpilotspb.ScopedContract, e
 		return nil, 0, err
 	}
 	ordered := slices.Clone(n.accepted)
-	slices.SortFunc(ordered, func(a, b *admittedScopedEvidence) int {
+	slices.SortFunc(ordered, func(a, b *admittedCorrelatedEvidence) int {
 		if a.Identity.Source < b.Identity.Source {
 			return -1
 		}
@@ -619,7 +619,7 @@ func (r *scopedRun) stage(ctx context.Context, s *testpilotspb.ScopedContract, e
 	}
 	return n, work + n.obligationWork - r.obligationWork, nil
 }
-func (r *scopedRun) answer(s *testpilotspb.ScopedContract, index int, closed, incomplete bool) testpilotspb.RuleVerdictStatus {
+func (r *scopedRun) answer(s *testpilotspb.CorrelatedContract, index int, closed, incomplete bool) testpilotspb.RuleVerdictStatus {
 	pending := false
 	for _, op := range r.operations {
 		for _, o := range op.obligations[index] {
@@ -636,7 +636,7 @@ func (r *scopedRun) answer(s *testpilotspb.ScopedContract, index int, closed, in
 		return testpilotspb.RULE_VERDICT_STATUS_INCONCLUSIVE
 	}
 	if pending {
-		if closed && s.Clauses[index].Endpoint == testpilotspb.SCOPED_ENDPOINT_DELIBERATELY_CLOSED {
+		if closed && s.Clauses[index].Ending == testpilotspb.TRACE_ENDING_FINAL {
 			return testpilotspb.RULE_VERDICT_STATUS_VIOLATED
 		}
 		return testpilotspb.RULE_VERDICT_STATUS_INCONCLUSIVE

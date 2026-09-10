@@ -118,9 +118,9 @@ func hasFaultInstruction(program testpilot.PreparedProgram) bool {
 
 func hasWorkerEntrypoint(program testpilot.PreparedProgram) bool {
 	for _, entrypoint := range program.Entrypoints() {
-		if entrypoint.Context() == testpilotspb.ENTRYPOINT_KIND_WORKFLOW ||
-			entrypoint.Context() == testpilotspb.ENTRYPOINT_KIND_ACTIVITY ||
-			entrypoint.Context() == testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER {
+		if entrypoint.Kind() == testpilotspb.ENTRYPOINT_KIND_WORKFLOW ||
+			entrypoint.Kind() == testpilotspb.ENTRYPOINT_KIND_ACTIVITY ||
+			entrypoint.Kind() == testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER {
 			return true
 		}
 	}
@@ -280,7 +280,7 @@ type carrierEffect struct {
 	cleanupTimeout time.Duration
 	mu             sync.Mutex
 	finished       bool
-	disposition    delivery.TriggerDisposition
+	disposition    delivery.TriggerStatus
 	response       *workflowservice.StartWorkflowExecutionResponse
 }
 
@@ -305,7 +305,7 @@ func (e *carrierEffect) Drain(ctx context.Context) error {
 
 type terminalCarrier interface {
 	PinStartResponse(context.Context, *workflowservice.StartWorkflowExecutionResponse) error
-	TriggerTerminal(context.Context, delivery.TriggerDisposition) (int, error)
+	TriggerTerminal(context.Context, delivery.TriggerStatus) (int, error)
 }
 
 func (e *carrierEffect) finish(result testpilot.EffectResult, waitErr error) error {
@@ -328,11 +328,11 @@ func (e *carrierEffect) finish(result testpilot.EffectResult, waitErr error) err
 	return errors.Join(responseErr, e.finalize(disposition, response))
 }
 
-func (e *carrierEffect) trigger(disposition delivery.TriggerDisposition) error {
+func (e *carrierEffect) trigger(disposition delivery.TriggerStatus) error {
 	return e.finalize(disposition, nil)
 }
 
-func (e *carrierEffect) finalize(disposition delivery.TriggerDisposition, response *workflowservice.StartWorkflowExecutionResponse) error {
+func (e *carrierEffect) finalize(disposition delivery.TriggerStatus, response *workflowservice.StartWorkflowExecutionResponse) error {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	if e.finished {

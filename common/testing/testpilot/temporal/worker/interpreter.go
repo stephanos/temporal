@@ -33,7 +33,7 @@ type workflowInterpreter struct {
 
 func (s *Session) executeWorkflow(ctx workflow.Context, delivered delivery.Activation) (*testpilotspb.Value, error) {
 	entry, exists := s.definition.entries[delivered.Coordinate().EntrypointID]
-	if !exists || entry.plan.Context() != testpilotspb.ENTRYPOINT_KIND_WORKFLOW {
+	if !exists || entry.plan.Kind() != testpilotspb.ENTRYPOINT_KIND_WORKFLOW {
 		return nil, ErrInvalid
 	}
 	state, err := activation.New(entry.plan)
@@ -102,7 +102,7 @@ func (i *workflowInterpreter) startNexus(index int, instruction testpilot.Instru
 }
 
 func (i *workflowInterpreter) awaitNexus(index int, instruction testpilot.InstructionPlan) error {
-	await := instruction.Source().GetInstruction().GetAwaitOutcome()
+	await := instruction.Source().GetInstruction().GetAwaitInstruction()
 	future := i.futures[await.GetInstruction().GetInstructionId()]
 	if future == nil {
 		return ErrInvalid
@@ -185,7 +185,7 @@ func (s *Session) executeNexus(ctx context.Context, delivered delivery.Activatio
 
 func (s *Session) interpretNexus(ctx context.Context, delivered delivery.Activation, options nexus.StartOperationOptions) (testpilotspb.NexusResponseKind, *testpilotspb.Value, string, error) {
 	entry, exists := s.definition.entries[delivered.Coordinate().EntrypointID]
-	if !exists || entry.plan.Context() != testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER {
+	if !exists || entry.plan.Kind() != testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER {
 		return 0, nil, "", ErrInvalid
 	}
 	state, err := activation.New(entry.plan)

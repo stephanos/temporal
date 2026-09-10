@@ -1,7 +1,7 @@
-import Umpire.Case.Tests.ScopedFixtures
+import Umpire.Case.Tests.CorrelatedFixtures
 import Testpilot.ProtoJSON
 
-open Umpire.Case.ScopedFixtures
+open Umpire.Case.CorrelatedFixtures
 open Lean
 
 private def parse (text : String) : IO Lean.Json :=
