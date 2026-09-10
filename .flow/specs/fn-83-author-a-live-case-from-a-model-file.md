@@ -149,7 +149,9 @@ attributes field, the operation-key path, the evidence kind ID, the source ID, a
 literal, and its Program is a function of the resolved evidence rules, so the history node's
 projection targets are built from the mapping rather than patched afterwards. The Nexus template
 keys operations by the scheduled event ID as today; the `workflow` template runs one workflow per
-Run and keys by the run-scope literal, because a completed-workflow event names no operation. The
+Run, so it keys by a stable path on the single close event such as `event_id`, because a
+completed-workflow event names no operation and an operation key is always a path, never a
+literal. The
 `evidence` block's `history <eventKind>` resolves against the generated history event attribute
 oneof in `Temporal.API`, so a misspelled kind rejects with the admitted kinds listed, the same way
 an unknown Action does today. This resolution reads generated names the author never declared,
