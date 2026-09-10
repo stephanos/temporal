@@ -143,3 +143,33 @@ func TestBuildCountsCommentDelimitersOutsideStringsOnly(t *testing.T) {
 		require.True(t, index.Resolve(name), "expected %s to resolve", name)
 	}
 }
+
+func TestBuildHandlesModifiedSectionsAndClassInductives(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	writeLean(t, root, "Umpire/Modified.lean", "namespace Umpire\n\n"+
+		"noncomputable section\n\n"+
+		"def inSection := 1\n\n"+
+		"end\n\n"+
+		"class inductive Trusted where\n"+
+		"  | kernel\n"+
+		"  | solver\n\n"+
+		"def afterSection := 2\n\n"+
+		"end Umpire\n")
+
+	index, err := leannames.Build(root)
+	require.NoError(t, err)
+	// The modified `section`'s `end` must close the section, not the namespace, or every
+	// later declaration would be indexed unqualified and silently stop resolving.
+	for _, name := range []string{
+		"Umpire.inSection",
+		"Umpire.afterSection",
+		"Umpire.Trusted",
+		"Umpire.Trusted.kernel",
+		"Umpire.Trusted.solver",
+	} {
+		require.True(t, index.Resolve(name), "expected %s to resolve", name)
+	}
+	require.False(t, index.Resolve("Umpire.inductive"))
+}
