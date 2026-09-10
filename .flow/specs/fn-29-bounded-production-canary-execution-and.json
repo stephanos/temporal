@@ -11,7 +11,8 @@
     "fn-48-canonicalize-known-gaps-as-a-checked-set",
     "fn-64-umpire-case-runtime",
     "fn-69-extract-testpilot-from-umpire",
-    "fn-82-unify-the-umpire-and-testpilot"
+    "fn-82-unify-the-umpire-and-testpilot",
+    "fn-83-author-a-live-case-from-a-model-file"
   ],
   "id": "fn-29-bounded-production-canary-execution-and",
   "impl_review_rounds": {},
@@ -162,5 +163,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-09T05:23:37.858354Z"
+  "updated_at": "2026-09-10T06:03:26.252714Z"
 }

@@ -58,7 +58,7 @@ def checkFiniteTarget [DecidableEq Setup] [DecidableEq State] [DecidableEq Actio
     (definition : TableModelSpec)
     (composition : Providers LawStatement)
     (terminal : State → Bool) : Except FiniteAdmissionError (QueryModel LawStatement) := do
-  let _ ← table.checkIdentity identity
+  let _ ← table.validate
     |>.mapError (FiniteAdmissionError.finite ∘ TableAdmissionError.invalidTable)
   if table.transitions.any fun row => terminal row.source then
     throw .outgoingTerminalTransition
@@ -336,7 +336,7 @@ def modelVocabulary [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact
     [DecidableEq Outcome] [DecidableEq Fact]
     (model : SuccessModel Setup State Action Outcome Fact)
     (table : FiniteTable Setup State Action Outcome Fact) : Except FiniteTableError ModelVocabulary := do
-  let checked ← table.checkIdentity model.identity
+  let checked ← (table.validate.map (·.withIdentity model.identity))
   pure {
     states := ← model.states.mapM checked.stateValue
     actions := ← model.actions.mapM checked.actionValue

@@ -592,11 +592,19 @@ func validateDrivePlan(plan DrivePlan) error {
 	return validateKnownGaps(plan.KnownGaps)
 }
 
+// knownGapKinds and definitionKinds mirror `Umpire.KnownGapKind.name` and
+// `Umpire.DefinitionKind.name`. Lean emits these strings; a rename on that side that does not
+// reach here decodes as invalid, so vocabulary_test.go reads both Lean sources and pins them.
+var knownGapKinds = []string{"capability", "input", "interpretation", "claim"}
+
+var definitionKinds = []string{
+	"state", "action", "outcome", "fact", "relation", "capability",
+	"provider", "law", "connector", "target", "machine",
+}
+
 func validateKnownGaps(knownGaps []KnownGap) error {
 	for _, gap := range knownGaps {
-		switch gap.Kind {
-		case "capability-contract", "input", "interpretation", "claim":
-		default:
+		if !slices.Contains(knownGapKinds, gap.Kind) {
 			return fmt.Errorf("known gap kind %q is invalid", gap.Kind)
 		}
 		if !validDefinitionID(gap.Code) {
@@ -638,9 +646,7 @@ func validateRoles(roles []Role) error {
 		if !validDefinitionID(role.DefinitionID) {
 			return fmt.Errorf("symbolic role definition ID %q is invalid", role.DefinitionID)
 		}
-		switch role.ValueKind {
-		case "state", "action", "outcome", "observation", "relation", "capability", "provider", "law", "connector", "target", "kernel":
-		default:
+		if !slices.Contains(definitionKinds, role.ValueKind) {
 			return fmt.Errorf("symbolic role value kind %q is invalid", role.ValueKind)
 		}
 	}
@@ -842,18 +848,10 @@ func compareKnownGap(left, right KnownGap) int {
 }
 
 func knownGapKindRank(kind string) int {
-	switch kind {
-	case "capability-contract":
-		return 0
-	case "input":
-		return 1
-	case "interpretation":
-		return 2
-	case "claim":
-		return 3
-	default:
-		return 4
+	if rank := slices.Index(knownGapKinds, kind); rank >= 0 {
+		return rank
 	}
+	return len(knownGapKinds)
 }
 
 func compareInt(left, right int) int {

@@ -465,7 +465,7 @@ private def testOutcomeClassificationIsolation : IO Unit := do
     moduleRecord `Init #[`Init.Prelude],
     moduleRecord `Init.Data.List.Basic #[`Init.Prelude],
     moduleRecord `Init.Prelude,
-    moduleRecord `Umpire.OutcomeClassification.ImportTests #[source, `Umpire.Core],
+    moduleRecord `Umpire.ImportTests #[source, `Umpire.Core],
     moduleRecord `Umpire.Core
   ]
   requireEqual "neutral classification uses only Init foundation; import tests remain consumers"

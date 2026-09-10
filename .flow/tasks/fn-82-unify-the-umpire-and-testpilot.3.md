@@ -35,6 +35,7 @@ two checking entry points, and the dead modules and declarations deleted.
 - `Umpire.Target.Semantics` may not reach `Umpire.Target.Frontend` or `Lean.Elab.Term`; the same rule must hold for `Model.Check` versus `Model.Elab` after the move.
 - `Makefile:1421` asserts one exact lint diagnostic that names `Umpire.Core`; it does not change here.
 - Retire compounds only (`CheckedTarget`, `AuthoredTarget`, `Umpire.Target`, `TargetBehaviorDomain`, `MeaningProvision`, ...), never `Target`.
+- Deviation recorded during implementation: `FiniteTable` keeps two checkers, not one. `checkModel` lowers a table through its `FiniteModelIdentity` to the ModelValue carriers; `checkTypedModel` keeps the author's typed carriers. They return different types, so they cannot merge; `validateModel` became the total `CheckedTable.withIdentity` instead of a third checker.
 ## Acceptance
 - [ ] `Umpire.Model` with `Types`, `Canonical`, `Check`, `Elab`, `Table` replaces `Umpire.Target`; `Target/Language.lean`, `Shared/Transition.lean`, `Shared/TraceReplay.lean`, and the `OutcomeClassification/` directory are gone
 - [ ] `checkModel` and `model` are the only public construction entry points; `composeModel` is private and no `composeTarget` remains

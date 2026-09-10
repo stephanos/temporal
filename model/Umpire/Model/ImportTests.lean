@@ -22,7 +22,7 @@ import Umpire.Model
 #check Umpire.FiniteModelIdentity
 #check Umpire.FiniteModelSetupBinding
 #check Umpire.CheckedTableModel
-#check Umpire.FiniteTable.checkIdentity
+#check Umpire.CheckedTable.withIdentity
 #check Umpire.CheckedTableModel.stateValue
 #check Umpire.CheckedTableModel.setupValue
 #check Umpire.Providers

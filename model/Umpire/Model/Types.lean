@@ -1,9 +1,9 @@
 import Umpire.Core
 
 /-!
-Pure Target inputs, behavior rows, and relation-indexed finite planning contracts.
-Occurrence and diagnostic rows contain only inert source data; captured syntax belongs to Frontend.
-Checked construction and admission remain together in Semantics.
+Pure model inputs, behavior rows, and relation-indexed finite planning contracts.
+Source-reference and diagnostic rows contain only inert source data; captured syntax belongs to
+`Model.Elab`. Checked construction and admission remain together in `Model.Check`.
 -/
 
 namespace Umpire

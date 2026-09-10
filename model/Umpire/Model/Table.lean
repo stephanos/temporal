@@ -601,16 +601,19 @@ private def modelTable
     terminalConditions
   }
 
-/-- Validate the typed catalogs and rows before exposing stable-key value resolution. -/
-def checkIdentity [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
-    [DecidableEq Outcome] [DecidableEq Fact]
-    (table : FiniteTable Setup State Action Outcome Fact)
-    (identity : FiniteModelIdentity Setup State Action Outcome Fact) :
-    Except FiniteTableError (CheckedTableModel Setup State Action Outcome Fact) := do
-  let validated ← table.validate
-  pure ⟨validated.table, identity⟩
-
 end FiniteTable
+
+namespace CheckedTable
+
+/-- Pair a checked table with the explicit ModelValue identities its lowering reads. The identities
+are the author's choice of stable keys, not a further obligation, so this adds no checking. -/
+def withIdentity
+    (checked : CheckedTable Setup State Action Outcome Fact)
+    (identity : FiniteModelIdentity Setup State Action Outcome Fact) :
+    CheckedTableModel Setup State Action Outcome Fact :=
+  ⟨checked.table, identity⟩
+
+end CheckedTable
 
 namespace CheckedTableModel
 
@@ -665,7 +668,7 @@ def checkModel [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
     (composition : Providers LawStatement := .empty) :
     Except TableAdmissionError
       (CheckedModel LawStatement (List RoleBinding) ModelValue ModelValue ModelValue ModelValue) := do
-  let _ ← table.checkIdentity identity |>.mapError TableAdmissionError.invalidTable
+  let _ ← table.validate |>.mapError TableAdmissionError.invalidTable
   let lowered ← modelTable table identity |>.mapError TableAdmissionError.invalidTable
   let validated ← FiniteTable.validate
     (Setup := List RoleBinding)

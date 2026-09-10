@@ -182,7 +182,7 @@ structure BehaviorLocatedError where
 private def quoteJson (value : String) : String :=
   Lean.Json.compress (.str value)
 
-def canonicalBehaviorAuthoringDiagnosticJson
+def canonicalBehaviorLocatedErrorJson
     (diagnostic : BehaviorLocatedError) : String :=
   "{\"error\":" ++ canonicalBehaviorErrorJson diagnostic.error ++
     ",\"role\":" ++ quoteJson diagnostic.role.name ++
@@ -281,12 +281,12 @@ private def elaborateBehavior
       match selectBehaviorSourceRef error occurrences with
       | some occurrence =>
           Lean.throwErrorAt occurrence.reference s!"behavior authoring failed: {
-            canonicalBehaviorAuthoringDiagnosticJson {
+            canonicalBehaviorLocatedErrorJson {
               error, role := occurrence.role, anchor := occurrence.anchor }}"
       | none =>
           let anchor ← behaviorAuthoringSpan specSyntax.raw
           Lean.throwErrorAt specSyntax.raw s!"behavior authoring failed: {
-            canonicalBehaviorAuthoringDiagnosticJson { error, role := .parent, anchor }}"
+            canonicalBehaviorLocatedErrorJson { error, role := .parent, anchor }}"
   | none =>
       Lean.Elab.Term.elabTerm checkSyntax expectedType
 

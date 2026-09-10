@@ -8,10 +8,10 @@ namespace Umpire.PropertyImportTests
 #check (Umpire.PropertySpec : Type)
 #check Umpire.stepClauses
 #check Umpire.PropertySpec.checked
-#check Umpire.canonicalPropertyAuthoringDiagnosticJson
+#check Umpire.canonicalPropertyLocatedErrorJson
 
 private def escapedDiagnosticJson : String :=
-  Umpire.canonicalPropertyAuthoringDiagnosticJson {
+  Umpire.canonicalPropertyLocatedErrorJson {
     error := {
       kind := .invalidDefinitionId
       definitionId := Umpire.DefinitionId.of "test.property"
