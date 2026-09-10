@@ -34,18 +34,83 @@ var downstreamSpecs = []string{
 	"fn-25-optional-callerclosure-veil-binding-and",
 	"fn-26-local-qualification-receipts-and-staged",
 	"fn-27-hermetic-ci-execution-and-qualification",
-	"fn-28-authorized-remote-staging-black-box",
+	"fn-28-portable-evaluation-contract-and",
 	"fn-29-bounded-production-canary-execution-and",
 	"fn-30-release-evidence-graph-and-manual",
 	"fn-32-add-umpire-refinement-and-the-first",
-	"fn-33-run-resumable-semantic-exploration",
+	"fn-33-run-serial-bounded-semantic-exploration",
+	"fn-46-export-lean-model-module-impact-index",
+	"fn-70-scheduled-canary-proof-of-concept-as-a",
+	"fn-74-deepen-testpilot-worker-activation",
+	"fn-78-typed-temporal-authoring-and-checked",
+	"fn-79-deferred-nexus-operation-cancellation",
 }
 
-var retiredRules = buildRetiredRules()
+// requiredFiles names the individual files the scan must cover. Each one is a
+// facade or document a rename sweep is likely to move, so a missing entry is a
+// silent scan hole rather than an absence to tolerate.
+var requiredFiles = []string{
+	"model/Umpire.lean",
+	"model/UmpireTests.lean",
+	"model/Temporal.lean",
+	"model/TemporalModelTests.lean",
+	"model/TemporalExperimentalTests.lean",
+	"model/Shared.lean",
+	"model/Testpilot.lean",
+	"model/README.md",
+	"model/ARCHITECTURE.md",
+	"model/Umpire/ARCHITECTURE.md",
+}
+
+type scanRoot struct {
+	path       string
+	extensions map[string]bool
+}
+
+// scanRoots names the trees the scan walks. A root that has moved is a hole in
+// the scan, so the walk fails closed on a missing one just as requiredFiles does.
+var scanRoots = []scanRoot{
+	{path: "model/Umpire", extensions: modelExtensions},
+	{path: "model/Temporal", extensions: modelExtensions},
+	{path: "model/Testpilot", extensions: modelExtensions},
+	{path: "model/Shared", extensions: modelExtensions},
+	{path: "tools/umpire", extensions: facadeExtensions},
+	{path: "common/testing/testpilot", extensions: facadeExtensions},
+	{path: "common/testing/testpilot/temporal", extensions: facadeExtensions},
+	{path: "tests/testcore/testpilot", extensions: facadeExtensions},
+	{path: "api/testpilot", extensions: facadeExtensions},
+	{path: "proto/internal/temporal/server/api/testpilot", extensions: facadeExtensions},
+}
+
+var (
+	modelExtensions  = map[string]bool{".lean": true, ".md": true, ".json": true}
+	facadeExtensions = map[string]bool{".go": true, ".md": true, ".json": true, ".proto": true}
+)
+
+// DownstreamSpecs lists the Flow specs whose open records the scan covers.
+func DownstreamSpecs() []string { return slices.Clone(downstreamSpecs) }
+
+// RequiredFiles lists the individual files the scan refuses to run without.
+func RequiredFiles() []string { return slices.Clone(requiredFiles) }
+
+// ScanRoots lists the trees the scan refuses to run without.
+func ScanRoots() []string {
+	roots := make([]string, 0, len(scanRoots))
+	for _, root := range scanRoots {
+		roots = append(roots, root.path)
+	}
+	return roots
+}
+
+var retiredRules, retiredRulesError = buildRetiredRules()
 
 // Check scans only live Umpire source, current Generated Views, active Umpire4
 // documentation, and the open downstream Flow closure.
 func Check(repositoryRoot string) ([]Violation, error) {
+	if retiredRulesError != nil {
+		return nil, retiredRulesError
+	}
+
 	paths, err := scopedPaths(repositoryRoot)
 	if err != nil {
 		return nil, err
@@ -91,33 +156,12 @@ func Check(repositoryRoot string) ([]Violation, error) {
 func scopedPaths(repositoryRoot string) ([]string, error) {
 	seen := make(map[string]struct{})
 
-	for _, root := range []string{"model/Umpire", "model/Temporal"} {
-		if err := addTree(repositoryRoot, root, map[string]bool{".lean": true, ".md": true, ".json": true}, seen); err != nil {
+	for _, root := range scanRoots {
+		if err := addTree(repositoryRoot, root.path, root.extensions, seen); err != nil {
 			return nil, err
 		}
 	}
-	for _, root := range []string{
-		"tools/umpire",
-		"common/testing/testpilot",
-		"common/testing/testpilot/temporal",
-		"tests/testcore/testpilot",
-		"api/testpilot",
-		"proto/internal/temporal/server/api/testpilot",
-	} {
-		if err := addTree(repositoryRoot, root, map[string]bool{".go": true, ".md": true, ".json": true, ".proto": true}, seen); err != nil {
-			return nil, err
-		}
-	}
-	for _, path := range []string{
-		"model/Umpire.lean",
-		"model/UmpireTests.lean",
-		"model/Temporal.lean",
-		"model/TemporalModelTests.lean",
-		"model/TemporalExperimentalTests.lean",
-		"model/README.md",
-		"model/ARCHITECTURE.md",
-		"model/Umpire/ARCHITECTURE.md",
-	} {
+	for _, path := range requiredFiles {
 		if err := addFile(repositoryRoot, path, seen); err != nil {
 			return nil, err
 		}
@@ -156,7 +200,7 @@ func addFile(repositoryRoot, relativePath string, seen map[string]struct{}) erro
 	path := filepath.Join(repositoryRoot, filepath.FromSlash(relativePath))
 	info, err := os.Lstat(path)
 	if os.IsNotExist(err) {
-		return nil
+		return fmt.Errorf("scanned path %s does not exist", relativePath)
 	}
 	if err != nil {
 		return fmt.Errorf("stat %s: %w", relativePath, err)
@@ -170,7 +214,7 @@ func addFile(repositoryRoot, relativePath string, seen map[string]struct{}) erro
 func addTree(repositoryRoot, relativeRoot string, extensions map[string]bool, seen map[string]struct{}) error {
 	root := filepath.Join(repositoryRoot, filepath.FromSlash(relativeRoot))
 	if _, err := os.Lstat(root); os.IsNotExist(err) {
-		return nil
+		return fmt.Errorf("scanned path %s does not exist", relativeRoot)
 	} else if err != nil {
 		return fmt.Errorf("stat %s: %w", relativeRoot, err)
 	}
@@ -201,7 +245,7 @@ func addOpenFlowRecord(repositoryRoot, relativeDirectory, id, wantedStatus strin
 	path := filepath.Join(repositoryRoot, filepath.FromSlash(relativeJSON))
 	content, err := os.ReadFile(path)
 	if os.IsNotExist(err) {
-		return nil
+		return fmt.Errorf("scanned path %s does not exist", relativeJSON)
 	}
 	if err != nil {
 		return fmt.Errorf("read %s: %w", relativeJSON, err)
@@ -261,7 +305,22 @@ func addOpenTasks(repositoryRoot, specID string, seen map[string]struct{}) error
 	return nil
 }
 
-func buildRetiredRules() []tokenRule {
+// bareWord matches a token that is one ordinary word: a single letter followed
+// only by lowercase letters. Retiring such a token would ban ordinary English,
+// because every rule also matches its lowerCamel variant.
+var bareWord = regexp.MustCompile(`^[A-Za-z][a-z]*$`)
+
+func validateRetiredToken(token string) error {
+	if token == "" {
+		return fmt.Errorf("retired token must not be empty")
+	}
+	if bareWord.MatchString(token) {
+		return fmt.Errorf("retired token %q is a bare word; retire a compound identifier, module path, macro name, or snake_case keyword instead", token)
+	}
+	return nil
+}
+
+func buildRetiredRules() ([]tokenRule, error) {
 	exactTokens := []string{
 		"Declaration" + "Id",
 		"Declaration" + "Kind",
@@ -314,6 +373,9 @@ func buildRetiredRules() []tokenRule {
 
 	rules := make([]tokenRule, 0, len(exactTokens)+5)
 	for _, token := range exactTokens {
+		if err := validateRetiredToken(token); err != nil {
+			return nil, err
+		}
 		variants := []string{regexp.QuoteMeta(token)}
 		if token[0] >= 'A' && token[0] <= 'Z' && !strings.ContainsAny(token, "./") {
 			lowerCamel := strings.ToLower(token[:1]) + token[1:]
@@ -334,7 +396,7 @@ func buildRetiredRules() []tokenRule {
 		name:    ".qualified",
 		pattern: regexp.MustCompile(`[.]qualified([^A-Za-z0-9_]|$)`),
 	})
-	return rules
+	return rules, nil
 }
 
 func allowedNegativeFixture(relativePath, token string) bool {
