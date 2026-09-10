@@ -278,8 +278,8 @@ func runFunctionalGeneration(configuration generationConfig, entries []functiona
 	if dependencies.Render == nil || dependencies.Publish == nil {
 		return errors.New("missing Case renderer or fixture publisher")
 	}
-	if len(entries) != 5 {
-		return fmt.Errorf("functional fixture manifest has %d entries, want exactly 5", len(entries))
+	if len(entries) != 6 {
+		return fmt.Errorf("functional fixture manifest has %d entries, want exactly 6", len(entries))
 	}
 	repositoryRoot, err := filepath.Abs(configuration.RepositoryRoot)
 	if err != nil {
@@ -367,6 +367,7 @@ func functionalCasePath(entry functionalEntry) string {
 func functionalManifest() []functionalEntry {
 	return []functionalEntry{
 		{RendererArg: "get-system-info", CaseID: "temporal.case.get-system-info", Filename: "get-system-info-case.json"},
+		{RendererArg: "worker-outage", CaseID: "temporal.case.worker-outage", Filename: "worker-outage-case.json"},
 		{RendererArg: "async-nexus", CaseID: "temporal.case.async-nexus-success", Filename: "async-nexus-case.json"},
 		{RendererArg: "typed-unary", CaseID: "temporal.case.typed-unary", Filename: "typed-unary-case.json"},
 		{RendererArg: "typed-nexus", CaseID: "temporal.case.typed-nexus", Filename: "typed-nexus-case.json"},
