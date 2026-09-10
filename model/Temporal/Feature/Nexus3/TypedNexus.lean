@@ -451,7 +451,7 @@ def fieldDeclaration : Property := {
   source
   version := 2
   requires := [capabilityId]
-  clauses := [.sameStepCases {
+  clauses := [.branches {
     id := groupId, source, guard := selects awaitActionId
     cases := [{
       id := caseId, source, guard := selects awaitActionId
@@ -487,12 +487,12 @@ def boundedCompletion : PropertyScopedClause := {
   id := linkClauseId
   source
   trigger := selects scheduleActionId
-  response := .atom { field := .modelOutcome, reference := completedOutcomeId }
+  response := .atom { field := .outcome, reference := completedOutcomeId }
   scope := [runFieldId]
   key := operationFieldId
   clock := .operationTransitions
   bound := 2
-  endpoint := .runtimePrefix
+  endpoint := .«partial»
   captures := [scheduledOperationCapture]
   correlation := some declaredOperationIdentity
 }

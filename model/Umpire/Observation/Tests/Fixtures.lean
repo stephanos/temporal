@@ -408,7 +408,7 @@ def repeatedPropertyDeclaration : Property := {
   clauses := [
     .inputOutput (id "test.property.observation.repeated.step")
       (verdictPattern .selectedAction startAction)
-      (verdictPattern .modelOutcome successOutcome)
+      (verdictPattern .outcome successOutcome)
   ]
 }
 
@@ -444,7 +444,7 @@ def guardedPropertyDeclaration : Property := {
   satisfiedPropertyDeclaration with
   id := id "test.property.observation.guarded"
   version := 2
-  clauses := [.sameStepCases {
+  clauses := [.branches {
     id := id "test.property.observation.guarded.group"
     source
     guard := .atom {
@@ -487,7 +487,7 @@ def guardedTemporalPropertyDeclaration : Property := {
       constraint := .equals (.text "start")
     }) none
     (verdictPattern .selectedAction startAction)
-    (verdictPattern .modelOutcome successOutcome)
+    (verdictPattern .outcome successOutcome)
     (.exact { value := 0, unit := .semanticTransitions })]
 }
 

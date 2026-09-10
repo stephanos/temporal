@@ -464,7 +464,7 @@ def exactTrace : AuthoredExactTrace := {
   initialState := some offState
   steps := [{
     selectedAction := some flipAction
-    modelOutcome := some appliedOutcome
+    outcome := some appliedOutcome
     resultingState := some onState
     observations := some appliedResult.facts
   }]

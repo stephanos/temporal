@@ -222,10 +222,10 @@ private def propertyUsesLogicalTime (property : CheckedProperty) : Bool :=
   property.clauses.any fun clause =>
     match clause with
     | .ordered _ _ _ unit => unit == .logicalTime
-    | .eventuallyWithin _ _ _ limit | .quiescentWithin _ _ _ limit =>
+    | .eventuallyWithin _ _ _ limit | .neverWithin _ _ _ limit =>
         limit.unit == .logicalTime
-    | .sameStepCases _ => false
-    | .guardedEventuallyWithin guarded | .guardedQuiescentWithin guarded =>
+    | .branches _ => false
+    | .guardedEventuallyWithin guarded | .guardedNeverWithin guarded =>
         guarded.limit.unit == .logicalTime
     | _ => false
 
@@ -288,21 +288,21 @@ private def vocabularyFailure
           }
   check property.access.meanings
 
-private def clausePatterns : ResolvedPropertyClause → List PropertyPattern
+private def clausePatterns : CheckedPropertyClause → List PropertyPattern
   | .stateInvariant _ state => [state]
   | .transitionContract _ precondition postcondition => [precondition, postcondition]
   | .identityRelation _ relation => [relation]
   | .inputOutput _ input output => [input, output]
   | .ordered _ before after _ => [before, after]
   | .eventuallyWithin _ trigger response _ => [trigger, response]
-  | .quiescentWithin _ trigger forbidden _ => [trigger, forbidden]
-  | .sameStepCases _ => []
-  | .guardedEventuallyWithin guarded | .guardedQuiescentWithin guarded =>
+  | .neverWithin _ trigger forbidden _ => [trigger, forbidden]
+  | .branches _ => []
+  | .guardedEventuallyWithin guarded | .guardedNeverWithin guarded =>
       [guarded.trigger, guarded.response]
 
 private def relevantEvidenceLinks
     (trace : EvidenceBackedTrace)
-    (clause : ResolvedPropertyClause) : List EvidenceLink :=
+    (clause : CheckedPropertyClause) : List EvidenceLink :=
   let patterns := clausePatterns clause
   trace.evidenceLinks.filter fun evidenceLink =>
     patterns.any fun pattern =>
@@ -313,7 +313,7 @@ private def relevantEvidenceLinks
 private def clauseVerdict
     (query : CheckedQuery LawStatement)
     (trace : EvidenceBackedTrace)
-    (clause : ResolvedPropertyClause)
+    (clause : CheckedPropertyClause)
     (result : PropertyClauseResult) : SemanticClauseVerdict :=
   let evidenceLinks := relevantEvidenceLinks trace clause
   {

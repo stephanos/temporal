@@ -181,7 +181,7 @@ private def authoredExactTrace (trace : Scenario.Trace) : AuthoredExactTrace := 
   initialState := some trace.trace.initialState
   steps := trace.trace.steps.map fun step => {
     selectedAction := some step.selectedAction
-    modelOutcome := some step.outcome
+    outcome := some step.outcome
     resultingState := some step.state
     observations := some step.facts
   }

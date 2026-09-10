@@ -140,7 +140,7 @@ structure Predicate where
 structure Clause where
   id : String
   bound : Nat
-  deliberatelyClosed : Bool
+  final : Bool
   trigger : Predicate
   response : Predicate
   deriving BEq, DecidableEq
@@ -247,17 +247,17 @@ inductive Answer where
   deriving BEq, DecidableEq, Repr
 
 /-- Endpoint policy preserves established violations and never promotes missing evidence. -/
-def answer (obligations : List Obligation) (closed incomplete deliberatelyClosed : Bool) : Answer :=
+def answer (obligations : List Obligation) (closed incomplete final : Bool) : Answer :=
   if obligations.contains .violated then .violated
   else if incomplete then .unresolved
   else if obligations.all (fun obligation => decide (obligation = .satisfied)) then .satisfied
-  else if closed && deliberatelyClosed then .violated else .unresolved
+  else if closed && final then .violated else .unresolved
 
 /-- Closing is a semantic endpoint choice; incomplete evidence never supplies a deadline. -/
 def Monitor.answers (monitor : Monitor table clauses) (closed incomplete : Bool) : List Answer :=
   clauses.map fun clause =>
     let obligations := monitor.operations.flatMap fun operation => operation.windows.flatMap fun window =>
       if window.clause.val.id == clause.id then window.obligations else []
-    answer obligations closed incomplete clause.deliberatelyClosed
+    answer obligations closed incomplete clause.final
 
 end Shared.ScopedObligation

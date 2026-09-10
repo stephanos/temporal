@@ -299,7 +299,7 @@ def decode (wire : ScopedContract) : Except String Compiled := do
   let clauseData ← wire.clauses.toList.mapM fun clause => do
     if !clause.«Unknown.Fields».isEmpty then throw "unknown clause field"
     if clause.clock != .SCOPED_CLOCK_OPERATION_TRANSITIONS then throw "unsupported semantic clock"
-    let deliberatelyClosed ← match clause.endpoint with
+    let final ← match clause.endpoint with
       | .SCOPED_ENDPOINT_RUNTIME_PREFIX => pure false
       | .SCOPED_ENDPOINT_DELIBERATELY_CLOSED => pure true
       | _ => throw "unsupported endpoint"
@@ -315,7 +315,7 @@ def decode (wire : ScopedContract) : Except String Compiled := do
       pure (Capture.mk ⟨declaration.capture_id⟩ ⟨declaration.field_id⟩ kind
         (← positive declaration.lifetime))
     let correlation ← clause.correlation.mapM (correlationOf retainedFields captures depthLimit)
-    pure (Clause.mk clause.clause_id (← natural clause.bound) deliberatelyClosed trigger response,
+    pure (Clause.mk clause.clause_id (← natural clause.bound) final trigger response,
       clause.clause_id, Keyed.mk captures correlation)
   pure {
     plan := { initial := ← checkedAtom (← required wire.initial_state), rules, transitions, limits := projectionLimits }

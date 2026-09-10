@@ -24,8 +24,8 @@ def close (endpoint : PropertyScopedEndpoint) (obligations : List Obligation) :
   if obligations.contains .violated then .violated
   else if obligations.all (fun obligation => decide (obligation = .satisfied)) then .satisfied
   else match endpoint with
-    | .deliberatelyClosed => .violated
-    | .runtimePrefix => .unresolved
+    | .final => .violated
+    | .«partial» => .unresolved
 
 
 end Umpire.Property.Scoped

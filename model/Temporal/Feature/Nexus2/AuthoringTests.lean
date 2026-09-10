@@ -175,7 +175,7 @@ private def malformedProperty : Property := {
 private def duplicateClauseProperty (model : Race.ModelVocabulary) : Property :=
   let clause := PropertyClause.transitionContract
     (Authoring.GuardedRace.family.id "property" "duplicate.clause")
-    (.selectedAction model.resolveAction) (.modelOutcome model.canceledOutcome)
+    (.selectedAction model.resolveAction) (.outcome model.canceledOutcome)
   {
     id := (Authoring.GuardedRace.family).id "property" "duplicate"
     source := Race.source
@@ -194,7 +194,7 @@ private def unknownReferenceProperty (model : Race.ModelVocabulary) : Property :
     (Authoring.GuardedRace.family.id "property" "unknown-reference.clause")
     (.selectedAction { model.resolveAction with
       definitionId := DefinitionId.of "temporal.nexus2.unknown.action" })
-    (.modelOutcome model.canceledOutcome)]
+    (.outcome model.canceledOutcome)]
 }
 
 #guard Race.modelVocabulary.toOption.bind (fun model =>
@@ -216,7 +216,7 @@ private def missingCapabilityProperty (model : Race.ModelVocabulary) : Property 
   requires := []
   clauses := [.transitionContract
     (Authoring.GuardedRace.family.id "property" "missing-capability.clause")
-    (.selectedAction model.resolveAction) (.modelOutcome model.canceledOutcome)]
+    (.selectedAction model.resolveAction) (.outcome model.canceledOutcome)]
 }
 
 #guard Race.modelVocabulary.toOption.bind (fun model =>
@@ -227,7 +227,7 @@ private def unsupportedGuardProperty (model : Race.ModelVocabulary) : Property :
   source := Race.source
   version := 2
   requires := [Race.capabilityId]
-  clauses := [.sameStepCases {
+  clauses := [.branches {
     id := Authoring.GuardedRace.family.id "case-group" "unsupported-guard"
     source := Race.source
     guard := .resultingStateIs model.cancelRequestedState
@@ -243,7 +243,7 @@ private def emptyGroupProperty : Property := {
   source := Race.source
   version := 2
   requires := [Race.capabilityId]
-  clauses := [.sameStepCases {
+  clauses := [.branches {
     id := Authoring.GuardedRace.family.id "case-group" "empty"
     source := Race.source
     guard := .selectedActionIs frontendRaceModel.resolveAction
@@ -256,7 +256,7 @@ private def emptyBooleanProperty : Property := {
   source := Race.source
   version := 2
   requires := [Race.capabilityId]
-  clauses := [.sameStepCases {
+  clauses := [.branches {
     id := Authoring.GuardedRace.family.id "case-group" "empty-boolean"
     source := Race.source
     guard := .all []
@@ -280,12 +280,12 @@ private def wrongKindProperty : Property := {
   requires := [Race.capabilityId]
   clauses := [.transitionContract
     (Authoring.GuardedRace.family.id "property" "wrong-kind.clause")
-    (.selectedAction frontendRaceModel.startedState) (.modelOutcome frontendRaceModel.canceledOutcome)]
+    (.selectedAction frontendRaceModel.startedState) (.outcome frontendRaceModel.canceledOutcome)]
 }
 
 private def invalidExceptionProperty : Property :=
   let request := Authoring.GuardedRace.requestCase frontendRaceModel
-  { Authoring.GuardedRace.authoredProperty frontendRaceModel with clauses := [.sameStepCases {
+  { Authoring.GuardedRace.authoredProperty frontendRaceModel with clauses := [.branches {
       id := Authoring.GuardedRace.family.id "case-group" "invalid-exception"
       source := Race.source
       guard := .selectedActionIs frontendRaceModel.requestCancelAction
@@ -388,7 +388,7 @@ error: expected parentAnchor, caseAnchor, exceptionAnchor, or clauseAnchor
 
 private def emptyCaseProperty (model : Race.ModelVocabulary) : Property :=
   let request := Authoring.GuardedRace.requestCase model
-  { Authoring.GuardedRace.authoredProperty model with clauses := [.sameStepCases {
+  { Authoring.GuardedRace.authoredProperty model with clauses := [.branches {
       id := Authoring.GuardedRace.family.id "case-group" "empty-case"
       source := Race.source
       guard := .selectedActionIs model.requestCancelAction
@@ -514,7 +514,7 @@ private def missingReplacementAnalysis : Option
   let result := analyzeCases query kernel
   let finding ← result.findings.find? fun finding => finding.kind == .missingReplacement
   pure (result.status, finding.parentId, finding.caseIds,
-    finding.exceptions.map ResolvedPropertyException.id,
+    finding.exceptions.map CheckedPropertyUnless.id,
     finding.priorState, finding.selectedAction)
 
 #guard Race.modelVocabulary.toOption.map (fun model =>
@@ -801,7 +801,7 @@ private def unknownResultProperty : Property := {
   clauses := [.transitionContract
     (Authoring.GuardedRace.family.id "property" "unknown-result.clause")
     (.selectedAction frontendRaceModel.resolveAction)
-    (.modelOutcome { frontendRaceModel.canceledOutcome with
+    (.outcome { frontendRaceModel.canceledOutcome with
       definitionId := DefinitionId.of "temporal.nexus2.unknown.result" })]
 }
 

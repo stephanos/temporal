@@ -160,14 +160,14 @@ private def correlation (ordinal : Nat := 0) (name : DefinitionId := captureName
     PropertyPredicate.compareFields .equal (.field replyPath source)
       (.field (capturedPath ordinal name) source) source]
 
-private def clause (bound : Nat) (endpoint : PropertyScopedEndpoint := .runtimePrefix)
+private def clause (bound : Nat) (endpoint : PropertyScopedEndpoint := .«partial»)
     (captures : List PropertyScopedCapture := [capture])
     (requirement : Option PropertyPredicate := some (correlation)) : PropertyScopedClause := {
   id := id "test.scoped.fields"
   source
   trigger := .atom { field := .selectedAction, reference := trigger }
   response := .atom {
-    field := .modelOutcome
+    field := .outcome
     reference := id "test.outcome"
     constraint := .equals (.text "response") }
   scope := [id "test.run"]
@@ -296,7 +296,7 @@ private def strayCapture : PropertyPredicate :=
 -- Matching responses keep the original inclusive deadline and endpoint semantics.
 #guard answer (clause 0) [request "a" 1, reply "a" 1] == some .violated
 #guard (run (clause 1) [request "a" 1]).toOption == some ⟨[.unresolved], [.unresolved]⟩
-#guard (run (clause 1 .deliberatelyClosed) [request "a" 1]).toOption ==
+#guard (run (clause 1 .final) [request "a" 1]).toOption ==
   some ⟨[.unresolved], [.violated]⟩
 
 -- A rejected capture or exhausted budget publishes no state, and cannot repair a proved violation.
@@ -309,7 +309,7 @@ private def rejectionPreserves (rejected : List (Scoped.Transition × List Prope
     (budget : Scoped.Limits := runLimits) : Option (Bool × List PropertyEndpointAnswer) := do
   let target ← targetResult.toOption
   let property ← (Property.check (context target)
-    ((declaration (clause 0 .deliberatelyClosed)))).toOption
+    ((declaration (clause 0 .final)))).toOption
   let compiled ← (Scoped.compile target property [id "test.run"] (id "test.operation")
     budget).toOption
   let initial ← (compiled.start () state scope).toOption
