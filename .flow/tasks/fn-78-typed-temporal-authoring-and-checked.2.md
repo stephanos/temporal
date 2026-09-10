@@ -7,8 +7,8 @@ satisfies: [R1, R8, R9]
 Implement D1 and R1 by extending the existing checked Query and Planning owners with explicit endpoint, trigger-coverage, answer, and search-completeness dimensions. Keep witness selection separate from universal verification and preserve deterministic finite selection and Exact Replay.
 
 **Size:** L
-**Files:** `model/Umpire/Target/{Language,Authoring,FiniteMachine,FiniteTable,Tests/**}.lean`, `model/Umpire/Query/{Language,Authoring,Tests/**}.lean`, `model/Umpire/Property/{Evaluation,Tests/**}.lean`, `model/Umpire/Planning/{Types,Engine,CaseAnalysis,Tests/**}.lean`, `model/Umpire/Space/Compiler.lean`, `model/Umpire/SemanticInventory/Tests/PlanningRuntime.lean`, `model/INVENTORY.md`
-**Touches:** [model/Umpire/Target/**, model/Umpire/Query/**, model/Umpire/Property/Evaluation.lean, model/Umpire/Property/Tests/**, model/Umpire/Planning/**, model/Umpire/Space/Compiler.lean, model/Umpire/SemanticInventory/Tests/PlanningRuntime.lean, model/INVENTORY.md]
+**Files:** `model/Umpire/Target/{Language,Authoring,FiniteMachine,FiniteTable,Tests/**}.lean`, `model/Umpire/Query/{Language,Authoring,Tests/**}.lean`, `model/Umpire/Property/{Evaluation,Tests/**}.lean`, `model/Umpire/Planning/{Types,Engine,CaseAnalysis,Tests/**}.lean`, `model/Umpire/Variations/Compiler.lean`, `model/Umpire/Inventory/Tests/PlanningRuntime.lean`, `model/INVENTORY.md`
+**Touches:** [model/Umpire/Target/**, model/Umpire/Query/**, model/Umpire/Property/Evaluation.lean, model/Umpire/Property/Tests/**, model/Umpire/Planning/**, model/Umpire/Variations/Compiler.lean, model/Umpire/Inventory/Tests/PlanningRuntime.lean, model/INVENTORY.md]
 
 ### Approach
 - Add explicit checked Target terminal declarations and carry them through finite admission, composed Targets, canonical identity, and compatibility. A composed state is terminal only when every constituent's declared terminal condition is met; absent declarations do not silently infer terminality from deadlock or one finished operation.
@@ -57,8 +57,8 @@ Changed files:
 - model/Umpire/Property/Tests.lean
 - model/Umpire/Query/Authoring.lean
 - model/Umpire/Query/Language.lean
-- model/Umpire/SemanticInventory/Tests/PlanningRuntime.lean
-- model/Umpire/Space/Compiler.lean
+- model/Umpire/Inventory/Tests/PlanningRuntime.lean
+- model/Umpire/Variations/Compiler.lean
 - model/Umpire/Target/FiniteMachine.lean
 - model/Umpire/Target/FiniteTable.lean
 - model/Umpire/Target/Language.lean
@@ -70,7 +70,7 @@ Changed files:
 Validation:
 - `LEAN_NUM_THREADS=2 make umpire-build-model`: passed, 482 jobs (/tmp/fn78-task2-final-build.log).
 - `cd model && mise exec -- lake build Umpire.Search.Tests Umpire.Property.Tests Umpire.Query.Tests Umpire.Model.Tests.FiniteMachine Umpire.Model.Tests.FiniteTable Umpire.Model.Tests.Compatibility`: passed, 82 jobs (/tmp/fn78-task2-final-focused.log).
-- `make umpire-gen-semantic-inventory`: passed; regenerated only model/INVENTORY.md, adding the two outcome names.
+- `make umpire-gen-inventory`: passed; regenerated only model/INVENTORY.md, adding the two outcome names.
 - `LEAN_NUM_THREADS=2 make lint-model`: passed, including builtin lint (346 jobs), exit 0 (/tmp/fn78-task2-final-lint-model.log). Reduced concurrency resolved an earlier resource-killed aggregate lint run.
 - `make lint-code GOLANGCI_LINT_FIX=false`: failed with 1,284 pre-existing issues in untouched Go sources (/tmp/fn78-task2-lint-code.log). No Go files differ; unrelated fixes were deliberately excluded. The failure prevents the recipe's later go-vet step from running.
 - `git diff --check`: passed.
@@ -81,7 +81,7 @@ The final complete model build includes the last missing-state prefix correction
 
 Trust audit: evaluatePropertyEndpoint and evaluatePropertyEndpoint_closed retain the existing evaluateProperty transitive set [propext, Classical.choice, Quot.sound]; PlanningOutcome.constructorClassifiers_exactlyOne remains axiom-free. FiniteTable.validate retains its existing set; no new custom/compiler-trust axioms, toolchains, or dependencies were added.
 
-Scope notes: Property/Evaluation and its focused tests are necessary additional task touches. Space/Compiler and SemanticInventory test/generated inventory are compatibility consumers of the two added outcomes. Runtime-prefix semantics cover the existing checked fragment; correlated operation-scoped transition semantics remain task .6. Terminal conditions explicitly list eligible global states per constituent and are conjunctive; empty metadata or an empty constituent never infers terminality from deadlock. Architecture documentation remains qualification-task work. Existing .flow and .plans/UMPIRE4_ORDER.md changes were preserved.
+Scope notes: Property/Evaluation and its focused tests are necessary additional task touches. Variations/Compiler and Inventory test/generated inventory are compatibility consumers of the two added outcomes. Runtime-prefix semantics cover the existing checked fragment; correlated operation-scoped transition semantics remain task .6. Terminal conditions explicitly list eligible global states per constituent and are conjunctive; empty metadata or an empty constituent never infers terminality from deadlock. Architecture documentation remains qualification-task work. Existing .flow and .plans/UMPIRE4_ORDER.md changes were preserved.
 
 stage: impl-review - passed(gpt-6-astra at medium; two findings fixed; resumed verdict SHIP)
 
@@ -96,5 +96,5 @@ Independent review fixes (conductor-owned review):
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: baseline: green (make umpire-build-model, 480 jobs), LEAN_NUM_THREADS=2 make umpire-build-model (passed, 482 jobs), cd model && mise exec -- lake build Umpire.Search.Tests Umpire.Property.Tests Umpire.Query.Tests Umpire.Model.Tests.FiniteMachine Umpire.Model.Tests.FiniteTable Umpire.Model.Tests.Compatibility (passed, 82 jobs), make umpire-gen-semantic-inventory (passed), LEAN_NUM_THREADS=2 make lint-model (passed, builtin lint 346 jobs, exit 0), make lint-code GOLANGCI_LINT_FIX=false (inherited failure: 1284 issues in unchanged Go sources), git diff --check (passed), review regressions: both endpoint test modules failed before fixes (/tmp/fn78-task2-review-red.log), cd model && LEAN_NUM_THREADS=2 mise exec -- lake build Umpire.Property.Tests.Endpoints Umpire.Search.Tests.Endpoints (passed, 37 jobs; /tmp/fn78-task2-review-focused.log), LEAN_NUM_THREADS=2 make umpire-build-model (post-review fixes passed, 482 jobs; /tmp/fn78-task2-review-build.log), LEAN_NUM_THREADS=2 make lint-model (post-review fixes passed, 346 builtin-lint jobs, exit 0; /tmp/fn78-task2-review-lint-model.log), git diff --check (post-review fixes passed), flowctl codex impl-review fn-78.2 (gpt-6-astra at medium; two findings fixed; resumed verdict SHIP)
+- Tests: baseline: green (make umpire-build-model, 480 jobs), LEAN_NUM_THREADS=2 make umpire-build-model (passed, 482 jobs), cd model && mise exec -- lake build Umpire.Search.Tests Umpire.Property.Tests Umpire.Query.Tests Umpire.Model.Tests.FiniteMachine Umpire.Model.Tests.FiniteTable Umpire.Model.Tests.Compatibility (passed, 82 jobs), make umpire-gen-inventory (passed), LEAN_NUM_THREADS=2 make lint-model (passed, builtin lint 346 jobs, exit 0), make lint-code GOLANGCI_LINT_FIX=false (inherited failure: 1284 issues in unchanged Go sources), git diff --check (passed), review regressions: both endpoint test modules failed before fixes (/tmp/fn78-task2-review-red.log), cd model && LEAN_NUM_THREADS=2 mise exec -- lake build Umpire.Property.Tests.Endpoints Umpire.Search.Tests.Endpoints (passed, 37 jobs; /tmp/fn78-task2-review-focused.log), LEAN_NUM_THREADS=2 make umpire-build-model (post-review fixes passed, 482 jobs; /tmp/fn78-task2-review-build.log), LEAN_NUM_THREADS=2 make lint-model (post-review fixes passed, 346 builtin-lint jobs, exit 0; /tmp/fn78-task2-review-lint-model.log), git diff --check (post-review fixes passed), flowctl codex impl-review fn-78.2 (gpt-6-astra at medium; two findings fixed; resumed verdict SHIP)
 - PRs:
