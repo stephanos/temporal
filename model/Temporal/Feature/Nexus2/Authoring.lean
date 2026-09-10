@@ -121,7 +121,7 @@ private def sameStep
   expectation
 }
 
-def requestCase (model : ModelVocabulary) : PropertyCase := {
+def requestCase (model : ModelVocabulary) : PropertyBranch := {
   id := family.id "case" "request"
   source
   guard := .selectedActionIs model.requestCancelAction
@@ -132,7 +132,7 @@ def requestCase (model : ModelVocabulary) : PropertyCase := {
     (.exact { value := 1, unit := .semanticTransitions })]
 }
 
-def resolutionCase (model : ModelVocabulary) : PropertyCase := {
+def resolutionCase (model : ModelVocabulary) : PropertyBranch := {
   id := family.id "case" "resolve"
   source
   guard := .selectedActionIs model.resolveAction
@@ -144,7 +144,7 @@ def authoredProperty (model : ModelVocabulary) : Property := {
   source
   version := 2
   requires := [capabilityId]
-  clauses := [.sameStepCases {
+  clauses := [.branches {
     id := family.id "case-group" "lifecycle"
     source
     guard := .any [
@@ -187,7 +187,7 @@ def querySpec
 /-- Separate alternative specimen: the exception is explicit and has no replacement case. -/
 def withoutReplacement (model : ModelVocabulary) : Property :=
   let request := requestCase model
-  { authoredProperty model with clauses := [.sameStepCases {
+  { authoredProperty model with clauses := [.branches {
     id := family.id "case-group" "missing-replacement"
     source
     guard := .selectedActionIs model.requestCancelAction

@@ -75,13 +75,13 @@ private def stateExpectation (clauseId : String) : PropertySameStepClause := {
   expectation := atom .resultingState phase (.text completed.value)
 }
 
-private def temporalClause : PropertyCaseTemporalClause :=
+private def temporalClause : PropertyTemporalClause :=
   .eventuallyWithin (id "planner.property.analysis.case.normal.temporal") source
     (PropertyPattern.exact .selectedAction request requestValue.value)
     (PropertyPattern.exact .observation observed observedValue.value)
     (.exact { value := 0, unit := .semanticTransitions })
 
-private def normalCase : PropertyCase := {
+private def normalCase : PropertyBranch := {
   id := id "planner.property.analysis.case.normal"
   source
   guard := initialGuard
@@ -89,14 +89,14 @@ private def normalCase : PropertyCase := {
   temporalClauses := [temporalClause]
 }
 
-private def overlappingCase : PropertyCase := {
+private def overlappingCase : PropertyBranch := {
   id := id "planner.property.analysis.case.overlap"
   source
   guard := requestGuard
   clauses := [stateExpectation "planner.property.analysis.case.overlap.state"]
 }
 
-private def excludedCase : PropertyCase := {
+private def excludedCase : PropertyBranch := {
   normalCase with
   id := id "planner.property.analysis.case.excluded"
   exception := some {
@@ -106,7 +106,7 @@ private def excludedCase : PropertyCase := {
   }
 }
 
-private def absentInputCase : PropertyCase := {
+private def absentInputCase : PropertyBranch := {
   id := id "planner.property.analysis.case.absent-input"
   source
   guard := initialGuard
@@ -114,11 +114,11 @@ private def absentInputCase : PropertyCase := {
 }
 
 private def group
-    (cases : List PropertyCase)
+    (cases : List PropertyBranch)
     (complete : Bool := true)
     (exclusive : Bool := true)
     (guard : PropertyPredicate := requestGuard)
-    (exception : Option PropertyException := none) : PropertyCaseGroup := {
+    (exception : Option PropertyUnless := none) : PropertyBranches := {
   id := id "planner.property.analysis.group"
   source
   guard
@@ -128,15 +128,15 @@ private def group
   exclusive
 }
 
-private def authoredProperty (selectedGroup : PropertyCaseGroup) : Property := {
+private def authoredProperty (selectedGroup : PropertyBranches) : Property := {
   id := id "planner.property.analysis"
   source
   version := 2
   requires := [analysisCapability]
-  clauses := [.sameStepCases selectedGroup]
+  clauses := [.branches selectedGroup]
 }
 
-private def Property.checked? (selectedGroup : PropertyCaseGroup) : Option CheckedProperty :=
+private def Property.checked? (selectedGroup : PropertyBranches) : Option CheckedProperty :=
   (Property.check analysisContext ((authoredProperty selectedGroup))).toOption
 
 private def analysisTarget : QueryModel (fun _ => True) := target 0
@@ -155,7 +155,7 @@ private def analysisQuery
   }
 
 private def analyzed?
-    (selectedGroup : PropertyCaseGroup)
+    (selectedGroup : PropertyBranches)
     (budget : Nat := 8) : Option CaseAnalysisResult := do
   let property ← Property.checked? selectedGroup
   let query := analysisQuery property budget
@@ -172,7 +172,7 @@ private def analyzedAbsentInput? : Option CaseAnalysisResult := do
   let kernel ← (IncrementalPlannerKernel.ofCheckedQuery query.target.id query).toOption
   pure (analyzeCases query kernel)
 
-private def findingKinds? (selectedGroup : PropertyCaseGroup) : Option (List CaseFindingKind) :=
+private def findingKinds? (selectedGroup : PropertyBranches) : Option (List CaseFindingKind) :=
   (analyzed? selectedGroup).map fun result => result.findings.map CaseFinding.kind
 
 /-! Complete/exclusive failures are source-linked obligations; temporal clauses remain in scope. -/

@@ -59,7 +59,7 @@ example : [
 
 /- The legacy semantic identity remains an exact compatibility boundary. -/
 #guard (fingerprintOf (Property.check context authoredProperty)).map BehaviorFingerprint.render ==
-  some "sha256:d60c739ab4f09cfe36ed622f466edddda0b02d81aa7ef48288f1aa448c515bab"
+  some "sha256:d4f5e1474603bf339c82b2e93313854128a90c5032476e1b34de0551094857a3"
 
 def changedCapabilityContext : PropertyCheckContext := {
   context with
@@ -78,7 +78,7 @@ def changedConstructor : Property := {
   portableProperty with
   clauses := portableProperty.clauses.map fun clause =>
     if clause.id == honoredDelivery.id then
-      .quiescentWithin honoredDelivery.id
+      .neverWithin honoredDelivery.id
         (pattern .observation cancelRequested)
         (pattern .observation cancelDelivered)
         (.exact cancelBudget.limit)

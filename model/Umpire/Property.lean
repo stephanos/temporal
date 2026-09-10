@@ -305,7 +305,7 @@ inductive PropertyTraceField where
   | priorState
   | resultingState
   | selectedAction
-  | modelOutcome
+  | outcome
   | observation
   | relation
   deriving BEq, DecidableEq, Ord, Repr
@@ -315,14 +315,14 @@ def PropertyTraceField.name : PropertyTraceField → String
   | .priorState => "prior-state"
   | .resultingState => "resulting-state"
   | .selectedAction => "selected-action"
-  | .modelOutcome => "model-outcome"
+  | .outcome => "outcome"
   | .observation => "observation"
   | .relation => "relation"
 
 def PropertyTraceField.definitionKind : PropertyTraceField → DefinitionKind
   | .state | .priorState | .resultingState => .state
   | .selectedAction => .action
-  | .modelOutcome => .outcome
+  | .outcome => .outcome
   | .observation => .fact
   | .relation => .relation
 
@@ -367,7 +367,7 @@ inductive PropertyPredicateField where
   | priorState
   | selectedAction
   | resultingState
-  | modelOutcome
+  | outcome
   | expectationFact
   deriving BEq, DecidableEq, Ord, Repr
 
@@ -376,14 +376,14 @@ def PropertyPredicateField.name : PropertyPredicateField → String
   | .priorState => "prior-state"
   | .selectedAction => "selected-action"
   | .resultingState => "resulting-state"
-  | .modelOutcome => "model-outcome"
+  | .outcome => "outcome"
   | .expectationFact => "expectation-fact"
 
 /-- Definition kind required by a predicate field reference. -/
 def PropertyPredicateField.definitionKind : PropertyPredicateField → DefinitionKind
   | .priorState | .resultingState => .state
   | .selectedAction => .action
-  | .modelOutcome => .outcome
+  | .outcome => .outcome
   | .expectationFact => .fact
 
 /-- Whether a field belongs to the context at the same trace step. -/
@@ -392,7 +392,7 @@ def PropertyPredicateContext.allows
     (field : PropertyPredicateField) : Bool :=
   match context, field with
   | .guard, .priorState | .guard, .selectedAction => true
-  | .expectation, .resultingState | .expectation, .modelOutcome
+  | .expectation, .resultingState | .expectation, .outcome
   | .expectation, .expectationFact => true
   | _, _ => false
 
@@ -509,7 +509,7 @@ structure PropertyPredicateInput where
   priorState : Option ModelValue := none
   selectedAction : Option ModelValue := none
   resultingState : Option ModelValue := none
-  modelOutcome : Option ModelValue := none
+  outcome : Option ModelValue := none
   facts : Option (List ModelValue) := none
   deriving BEq, DecidableEq, Repr
 
@@ -520,7 +520,7 @@ structure PropertyLimitProfile where
   deriving BEq, DecidableEq, Repr
 
 /-- A named condition that removes one parent or case applicability context. -/
-structure PropertyException where
+structure PropertyUnless where
   id : DefinitionId
   source : SourceLocation
   condition : PropertyPredicate
@@ -539,42 +539,42 @@ inductive PropertyLimit where
   deriving BEq, DecidableEq, Repr
 
 /-- One legacy single-pattern bounded obligation owned by a named Property case. -/
-inductive PropertyCaseTemporalClause where
+inductive PropertyTemporalClause where
   | eventuallyWithin
       (id : DefinitionId)
       (source : SourceLocation)
       (trigger response : PropertyPattern)
       (limit : PropertyLimit)
-  | quiescentWithin
+  | neverWithin
       (id : DefinitionId)
       (source : SourceLocation)
       (trigger forbidden : PropertyPattern)
       (limit : PropertyLimit)
   deriving BEq, DecidableEq, Repr
 
-def PropertyCaseTemporalClause.id : PropertyCaseTemporalClause → DefinitionId
-  | .eventuallyWithin id _ _ _ _ | .quiescentWithin id _ _ _ _ => id
+def PropertyTemporalClause.id : PropertyTemporalClause → DefinitionId
+  | .eventuallyWithin id _ _ _ _ | .neverWithin id _ _ _ _ => id
 
-def PropertyCaseTemporalClause.source : PropertyCaseTemporalClause → SourceLocation
-  | .eventuallyWithin _ source _ _ _ | .quiescentWithin _ source _ _ _ => source
+def PropertyTemporalClause.source : PropertyTemporalClause → SourceLocation
+  | .eventuallyWithin _ source _ _ _ | .neverWithin _ source _ _ _ => source
 
 /-- One named branch in a same-step Property group. Matching branches are all applied. -/
-structure PropertyCase where
+structure PropertyBranch where
   id : DefinitionId
   source : SourceLocation
   guard : PropertyPredicate
-  exception : Option PropertyException := none
+  exception : Option PropertyUnless := none
   clauses : List PropertySameStepClause
-  temporalClauses : List PropertyCaseTemporalClause := []
+  temporalClauses : List PropertyTemporalClause := []
   deriving BEq, DecidableEq, Repr
 
 /-- A parent applicability condition and its explicitly checked named cases. -/
-structure PropertyCaseGroup where
+structure PropertyBranches where
   id : DefinitionId
   source : SourceLocation
   guard : PropertyPredicate
-  exception : Option PropertyException := none
-  cases : List PropertyCase
+  exception : Option PropertyUnless := none
+  cases : List PropertyBranch
   complete : Bool := false
   exclusive : Bool := false
   deriving BEq, DecidableEq, Repr
@@ -592,23 +592,23 @@ inductive PropertyClause where
       (id : DefinitionId)
       (trigger response : PropertyPattern)
       (limit : PropertyLimit)
-  | quiescentWithin
+  | neverWithin
       (id : DefinitionId)
       (trigger forbidden : PropertyPattern)
       (limit : PropertyLimit)
-  | sameStepCases (group : PropertyCaseGroup)
+  | branches (group : PropertyBranches)
   | guardedEventuallyWithin
       (id : DefinitionId)
       (source : SourceLocation)
       (guard : PropertyPredicate)
-      (exception : Option PropertyException)
+      (exception : Option PropertyUnless)
       (trigger response : PropertyPattern)
       (limit : PropertyLimit)
-  | guardedQuiescentWithin
+  | guardedNeverWithin
       (id : DefinitionId)
       (source : SourceLocation)
       (guard : PropertyPredicate)
-      (exception : Option PropertyException)
+      (exception : Option PropertyUnless)
       (trigger forbidden : PropertyPattern)
       (limit : PropertyLimit)
   deriving BEq, DecidableEq, Repr
@@ -620,10 +620,10 @@ def PropertyClause.id : PropertyClause → DefinitionId
   | .inputOutput id _ _
   | .ordered id _ _ _
   | .eventuallyWithin id _ _ _
-  | .quiescentWithin id _ _ _
+  | .neverWithin id _ _ _
   | .guardedEventuallyWithin id _ _ _ _ _ _
-  | .guardedQuiescentWithin id _ _ _ _ _ _ => id
-  | .sameStepCases group => group.id
+  | .guardedNeverWithin id _ _ _ _ _ _ => id
+  | .branches group => group.id
 
 /-- Semantic clocks are distinct from runtime and search-work limits. -/
 inductive PropertyScopedClock where
@@ -632,8 +632,8 @@ inductive PropertyScopedClock where
 
 /-- Closing an incomplete prefix does not invent missing deadline evidence. -/
 inductive PropertyScopedEndpoint where
-  | deliberatelyClosed
-  | runtimePrefix
+  | final
+  | «partial»
   deriving BEq, DecidableEq, Repr
 
 /-- One named per-operation capture: the operation key it belongs to, the checked field coordinates
@@ -690,8 +690,8 @@ def selectedAction (value : ModelValue) : PropertyPattern :=
 def resultingState (value : ModelValue) : PropertyPattern :=
   .exact .resultingState value.definitionId value.value
 
-def modelOutcome (value : ModelValue) : PropertyPattern :=
-  .exact .modelOutcome value.definitionId value.value
+def outcome (value : ModelValue) : PropertyPattern :=
+  .exact .outcome value.definitionId value.value
 
 def fact (value : ModelValue) : PropertyPattern :=
   .exact .observation value.definitionId value.value
@@ -737,7 +737,7 @@ def resultingStateIs (value : ModelValue) : PropertyPredicate :=
 
 def modelOutcomeIs (value : ModelValue) : PropertyPredicate :=
   .atom {
-    field := .modelOutcome
+    field := .outcome
     reference := value.definitionId
     constraint := .equals (.text value.value)
   }
@@ -759,19 +759,19 @@ def stepClauses
   .transitionContract (family.id "property" (propertyKey ++ ".state"))
     (.selectedAction action) (.resultingState state),
   .transitionContract (family.id "property" (propertyKey ++ ".outcome"))
-    (.selectedAction action) (.modelOutcome outcome),
+    (.selectedAction action) (.outcome outcome),
   .inputOutput (family.id "property" (propertyKey ++ ".fact"))
     (.selectedAction action) (.fact fact)
 ]
 
 /-- Readable bounded response clauses elaborate directly to the typed declaration. Admission,
 reference resolution, and canonicalization remain owned by `property%` and `Property.check`. -/
-syntax (name := boundedResponseSyntax)
-  "bounded_response%" term:max "at" term:max &"whenever" term:max &"eventually" term:max
+syntax (name := correlatedResponseSyntax)
+  "correlated_response%" term:max "at" term:max &"whenever" term:max &"eventually" term:max
   &"within" term:max &"on" term:max "scoped" term:max "by" term:max &"closing" term:max : term
 
 macro_rules
-  | `(bounded_response% $id at $source whenever $trigger eventually $response
+  | `(correlated_response% $id at $source whenever $trigger eventually $response
       within $bound on $clock scoped $scope by $key closing $endpoint) =>
       `(({ id := $id, source := $source, trigger := $trigger, response := $response,
            bound := $bound, clock := $clock, scope := $scope, key := $key,

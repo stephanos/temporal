@@ -360,7 +360,7 @@ def authoredProperty [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fac
           (.resultingState (values.namedState spelling))
     | .outcomeClause label spelling =>
         .transitionContract (ownedId "property" names.declaration label) selected
-          (.modelOutcome (values.namedOutcome spelling))
+          (.outcome (values.namedOutcome spelling))
     | .factClause label spelling =>
         .inputOutput (ownedId "property" names.declaration label) selected
           (.fact (values.namedFact spelling))

@@ -122,7 +122,7 @@ private def result (expression : PropertyPredicate) (kind : PropertyPredicateCon
   let input ← (predicate.checkInput {
     context := kind
     selectedAction := some a.modelValue, priorState := some b.modelValue,
-    modelOutcome := some c.modelValue } [a.evidence, b.evidence, c.evidence]).toOption
+    outcome := some c.modelValue } [a.evidence, b.evidence, c.evidence]).toOption
   pure (evaluatePropertyPredicate predicate.predicate input)
 #guard result (relation requestPath priorPath) .guard 1 1 9 == some true
 #guard result (relation requestPath priorPath) .guard 1 2 9 == some false
@@ -257,7 +257,7 @@ example (value : ModelValue) : PropertyFieldEvidence := ⟨value⟩
 private def truePredicate := compare (.literal (.boolean true) source) (.literal (.boolean true) source)
 private def declaration : Property := { PropertyTests.portableProperty with
   version := 2
-  clauses := [.sameStepCases {
+  clauses := [.branches {
     id := .of "test.property.fields.group", source, guard := truePredicate,
     cases := [{
       id := .of "test.property.fields.case", source, guard := truePredicate,

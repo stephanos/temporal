@@ -26,7 +26,7 @@ structure CaseAnalysisScope where
   behaviorFingerprint : BehaviorFingerprint
   properties : List AnalyzedProperty
   limits : QueryLimits
-  endpoint : QueryEndpoint := .deliberatelyClosed
+  endpoint : QueryEndpoint := .final
   exercise : QueryExercisePolicy := .allowVacuous
   deriving BEq, DecidableEq, Repr
 
@@ -81,7 +81,7 @@ structure JointExpectationEvidence where
   transitionPosition : Nat
   triggerCoordinate : Nat
   effectiveGuards : List (CheckedPropertyPredicate .guard)
-  exceptions : List ResolvedPropertyException
+  exceptions : List CheckedPropertyUnless
   formula : JointObligationFormula
   deriving BEq, DecidableEq, Repr
 
@@ -169,7 +169,7 @@ structure CaseFinding where
   priorState : Option ModelValue
   selectedAction : Option ModelValue
   effectiveGuards : List (CheckedPropertyPredicate .guard)
-  exceptions : List ResolvedPropertyException
+  exceptions : List CheckedPropertyUnless
   deriving BEq, DecidableEq, Repr
 
 /-- Exercise status for one declared completeness/exclusivity obligation. -/
@@ -270,7 +270,7 @@ private def observeProperty
   let input ← checkPropertyEvaluationInput property trace.trace
     |>.mapError (queryEvaluationError query property)
   let evaluation := evaluateProperty property input
-  let endpoint := evaluatePropertyEndpoint property input (query.endpoint == .runtimePrefix)
+  let endpoint := evaluatePropertyEndpoint property input (query.endpoint == .«partial»)
   let observations := (analyzeCaseApplicability property input).map fun applicability =>
     { applicability with
       trace
@@ -341,7 +341,7 @@ private def findingsAt (observation : CaseObservation) : List CaseFinding :=
 
 private def requirementOf
     (property : CheckedProperty)
-    (group : ResolvedPropertyCaseGroup)
+    (group : CheckedPropertyBranches)
     (observations : List CaseObservation) : CaseRequirement :=
   let matching := observations.filter fun observation =>
     observation.propertyId == property.id && observation.parentId == group.id
@@ -353,7 +353,7 @@ private def requirementOf
     source := group.source
     complete := group.complete
     exclusive := group.exclusive
-    caseIds := DefinitionId.canonicalSet (group.cases.map ResolvedPropertyCase.id)
+    caseIds := DefinitionId.canonicalSet (group.cases.map CheckedPropertyBranch.id)
     clauses := clauseIdentities.mergeSort clauseLe |>.eraseDups
     parentExercised := matching.any fun observation => observation.parentGuardMatched
     exercisedCaseIds := DefinitionId.canonicalSet
@@ -364,7 +364,7 @@ private def requirementsOf
     (properties : List CheckedProperty)
     (observations : List CaseObservation) : List CaseRequirement :=
   properties.flatMap fun property => property.clauses.filterMap fun clause => match clause with
-    | .sameStepCases group => some (requirementOf property group observations)
+    | .branches group => some (requirementOf property group observations)
     | _ => none
 
 private def statusOf
@@ -489,7 +489,7 @@ private def atomDomainKey (atom : PropertyAtom) : String :=
   atom.field.name ++ "\u001f" ++ atom.reference.value
 
 private def scalarExpectationField : PropertyPredicateField → Bool
-  | .resultingState | .modelOutcome => true
+  | .resultingState | .outcome => true
   | .priorState | .selectedAction | .expectationFact => false
 
 private def logicalConflictsAt
@@ -522,7 +522,7 @@ private def unsupportedPredicateClasses
 
 private def unsupportedOfProperty (property : CheckedProperty) : List UnsupportedJointFormula :=
   property.clauses.flatMap fun clause => match clause with
-  | .sameStepCases group => group.cases.flatMap fun item =>
+  | .branches group => group.cases.flatMap fun item =>
       item.clauses.flatMap fun sameStep =>
         (unsupportedPredicateClasses sameStep.expectation.expression).map fun formulaClass => {
           propertyId := property.id
@@ -531,7 +531,7 @@ private def unsupportedOfProperty (property : CheckedProperty) : List Unsupporte
           formulaClass
           formula := some sameStep.expectation.expression
         }
-  | .guardedEventuallyWithin _ | .guardedQuiescentWithin _ => []
+  | .guardedEventuallyWithin _ | .guardedNeverWithin _ => []
   | other => [{
       propertyId := property.id
       clauseId := other.id

@@ -90,7 +90,7 @@ private def guardedPropertyDeclaration : Property := {
   authoredProperty with
   id := DefinitionId.of "switch.property.guarded-flip"
   version := 2
-  clauses := [.sameStepCases {
+  clauses := [.branches {
     id := DefinitionId.of "switch.property.guarded-flip.group"
     source
     guard := .atom {
@@ -159,6 +159,6 @@ fingerprint and requirements; source order cannot alter the sealed bytes. -/
       requirementDefinitionIds := property.requires
     }] &&
     canonicalExperimentSpecBytes first == canonicalExperimentSpecBytes reordered &&
-    !(canonicalExperimentSpecBytes first).contains "same-step-cases") == some true
+    !(canonicalExperimentSpecBytes first).contains "branches") == some true
 
 end Umpire.Artifact.Tests.Codecs

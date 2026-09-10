@@ -51,7 +51,7 @@ Direct and reverse dependencies contain first-party modules only. V1 `publicFaca
 `Shared`, `Temporal`, `Temporal.API`, `Temporal.DynamicConfig`, `Temporal.Feature`,
 `Temporal.Feature.Nexus`, `Temporal.System`, `Temporal.System.Configuration`,
 `Temporal.Testpilot`, `Testpilot`, `Testpilot.Authoring`, `Testpilot.ProtoJSON`, `Testpilot.Protocol`,
-`Umpire`, `Umpire.Artifact`, `Umpire.Behavior`, `Umpire.Case`, `Umpire.Case.Compiler`, `Umpire.Core`,
+`Umpire`, `Umpire.Artifact`, `Umpire.Scenario`, `Umpire.Case`, `Umpire.Case.Compiler`, `Umpire.Core`,
 `Umpire.ExecutionHandoff`, `Umpire.Exploration`, `Umpire.ImplementationLink`, `Umpire.Json`,
 `Umpire.KnownGap`, `Umpire.Observation`, `Umpire.OutcomeClassification`, `Umpire.Planning`,
 `Umpire.Promotion`, `Umpire.Property`, `Umpire.Query`, `Umpire.SemanticInventory`, `Umpire.Space`,

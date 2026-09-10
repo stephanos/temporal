@@ -31,19 +31,19 @@ private def tickGuard : PropertyPredicate :=
 private def pendingOne : PropertyPredicate :=
   guardAtom .priorState pendingCount (.natural 1)
 
-private def requestCase : PropertyCase := {
+private def requestCase : PropertyBranch := {
   id := id "test.property.case.request"
   source
   guard := requestGuard
   clauses := [
     expectation "test.property.case.request.state" .resultingState pendingCount
       (.equals (.natural 1)),
-    expectation "test.property.case.request.outcome" .modelOutcome deliveredOutcome
+    expectation "test.property.case.request.outcome" .outcome deliveredOutcome
       (.equals (.text "delivered"))
   ]
 }
 
-private def resolutionCase : PropertyCase := {
+private def resolutionCase : PropertyBranch := {
   id := id "test.property.case.resolution"
   source
   guard := tickGuard
@@ -53,10 +53,10 @@ private def resolutionCase : PropertyCase := {
 }
 
 private def guardedGroup
-    (cases : List PropertyCase := [requestCase, resolutionCase])
+    (cases : List PropertyBranch := [requestCase, resolutionCase])
     (complete : Bool := true)
     (exclusive : Bool := true)
-    (exception : Option PropertyException := none) : PropertyCaseGroup := {
+    (exception : Option PropertyUnless := none) : PropertyBranches := {
   id := id "test.property.case-group.delivery"
   source
   guard := .any [requestGuard, tickGuard]
@@ -67,11 +67,11 @@ private def guardedGroup
 }
 
 private def guardedDeclaration
-    (group : PropertyCaseGroup := guardedGroup) : Property := {
+    (group : PropertyBranches := guardedGroup) : Property := {
   portableProperty with
   id := id "test.property.guarded-delivery"
   version := 2
-  clauses := [cancelIsUnique, .sameStepCases group]
+  clauses := [cancelIsUnique, .branches group]
 }
 
 private def requestTrace (before after : Nat) : ModelTrace ModelValue ModelValue ModelValue ModelValue := {
@@ -98,7 +98,7 @@ example (property : CheckedProperty) (input : CheckedPropertyEvaluationInput pro
     (evaluateProperty property input).satisfied = true ↔ property.denote input :=
   evaluateProperty_agrees property input
 
-private def exceptedRequestCase : PropertyCase := {
+private def exceptedRequestCase : PropertyBranch := {
   requestCase with
   exception := some {
     id := id "test.property.case.request.exception.pending"
@@ -107,7 +107,7 @@ private def exceptedRequestCase : PropertyCase := {
   }
 }
 
-private def replacementCase : PropertyCase := {
+private def replacementCase : PropertyBranch := {
   id := id "test.property.case.request.replacement"
   source
   guard := .all [requestGuard, pendingOne]
@@ -130,7 +130,7 @@ private def replacementDeclaration : Property :=
   ] == [some false, some true]
 
 private def parentExcludedDeclaration : Property :=
-  let group : PropertyCaseGroup := {
+  let group : PropertyBranches := {
     guardedGroup with exception := some {
       id := id "test.property.case-group.delivery.exception.tick"
       source
@@ -153,8 +153,8 @@ private def tickTrace : ModelTrace ModelValue ModelValue ModelValue ModelValue :
 #guard (evaluation? parentExcludedDeclaration tickTrace).map
   PropertyEvaluation.satisfied == some false
 
-private def groupOnlyDeclaration (group : PropertyCaseGroup) : Property := {
-  guardedDeclaration group with clauses := [.sameStepCases group]
+private def groupOnlyDeclaration (group : PropertyBranches) : Property := {
+  guardedDeclaration group with clauses := [.branches group]
 }
 
 private def falseParentDeclaration : Property :=
@@ -198,7 +198,7 @@ private def exclusiveOverlapDeclaration : Property :=
       PropertyEvaluation.satisfied
   ] == [some true, some false]
 
-private def failingOverlapCase : PropertyCase := {
+private def failingOverlapCase : PropertyBranch := {
   id := id "test.property.case.request.failing-overlap"
   source
   guard := requestGuard
@@ -256,7 +256,7 @@ private def guardedQuiescentDeclaration : Property := {
   guardedTemporalDeclaration with
   id := id "test.property.guarded-quiescent"
   clauses := [
-    .guardedQuiescentWithin (id "test.property.guarded-quiescent.clause") source
+    .guardedNeverWithin (id "test.property.guarded-quiescent.clause") source
       requestGuard none
       (pattern .observation cancelDelivered)
       (pattern .observation cancelRequested)
@@ -266,7 +266,7 @@ private def guardedQuiescentDeclaration : Property := {
 
 #guard [guardedTemporalDeclaration, guardedQuiescentDeclaration].map (fun declaration =>
     (Property.check context (declaration)).toOption.map fun property =>
-      property.clauses.map ResolvedPropertyClause.id) == [
+      property.clauses.map CheckedPropertyClause.id) == [
     some [id "test.property.guarded-temporal.clause"],
     some [id "test.property.guarded-quiescent.clause"]
   ]
@@ -295,7 +295,7 @@ private def changedExpectationDeclaration : Property :=
   let changedRequest := { requestCase with clauses := [
     expectation "test.property.case.request.state" .resultingState pendingCount
       (.equals (.natural 2)),
-    expectation "test.property.case.request.outcome" .modelOutcome deliveredOutcome
+    expectation "test.property.case.request.outcome" .outcome deliveredOutcome
       (.equals (.text "delivered"))
   ] }
   guardedDeclaration (guardedGroup [changedRequest, resolutionCase])
@@ -347,7 +347,7 @@ private def fingerprintOf (declaration : Property) : Option BehaviorFingerprint 
 #guard (Property.check context (guardedDeclaration)).toOption.map
     (fun property => !property.canonicalMetadata.contains "temporalClauses") == some true
 #guard (fingerprintOf guardedDeclaration).map BehaviorFingerprint.render ==
-  some "sha256:2bdf8bbc4a76122f44ba9b5bb6254bcc6924b99830871bbeead8e7c70a92271c"
+  some "sha256:1338637fd2543d225f061d77e6b15d4b9d35245ec301b95a540cc1bd4266e56f"
 
 private def checkError?
     (declaration : Property) : Option PropertyError :=
@@ -355,7 +355,7 @@ private def checkError?
   | .ok _ => none
   | .error error => some error
 
-private def withGroup (group : PropertyCaseGroup) : Property :=
+private def withGroup (group : PropertyBranches) : Property :=
   guardedDeclaration group
 
 private def malformedSource : SourceLocation :=

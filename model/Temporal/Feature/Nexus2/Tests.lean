@@ -479,7 +479,7 @@ private def guardedCancelDeclaration
     (guardValue : String := model.cancelAction.value) : Property := {
   Cancel.authoredProperty model with
   version := 2
-  clauses := [.sameStepCases {
+  clauses := [.branches {
     id := Temporal.Shared.definitionId
       "temporal.nexus2.basic-lifecycle.property.cancel.same-step"
     source := Cancellation.source
@@ -513,7 +513,7 @@ private def guardedCancelDeclaration
             "temporal.nexus2.basic-lifecycle.property.cancel.same-step.outcome"
           source := Cancellation.source
           expectation := .atom {
-            field := .modelOutcome
+            field := .outcome
             reference := transitionOutcomeId
             constraint := .equals (.text model.canceledOutcome.value)
           }
@@ -584,7 +584,7 @@ private def guardedTemporalCancelDeclaration
       constraint := .equals model.canceledFact.value
     }
     {
-      field := .modelOutcome
+      field := .outcome
       reference := transitionOutcomeId
       constraint := .equals model.canceledOutcome.value
     }
@@ -860,7 +860,7 @@ private def raceExpectation
   expectation := raceAtom field reference literal
 }
 
-private def requestCase (model : ModelVocabulary) : PropertyCase := {
+private def requestCase (model : ModelVocabulary) : PropertyBranch := {
   id := raceId "temporal.nexus2.cancellation-race.case.request"
   source
   guard := raceAtom .selectedAction requestCancelActionId (.text model.requestCancelAction.value)
@@ -873,7 +873,7 @@ private def requestCase (model : ModelVocabulary) : PropertyCase := {
     (.exact { value := 1, unit := .semanticTransitions })]
 }
 
-private def resolveCase (model : ModelVocabulary) : PropertyCase := {
+private def resolveCase (model : ModelVocabulary) : PropertyBranch := {
   id := raceId "temporal.nexus2.cancellation-race.case.resolve"
   source
   guard := raceAtom .selectedAction resolveActionId (.text model.resolveAction.value)
@@ -883,7 +883,7 @@ private def resolveCase (model : ModelVocabulary) : PropertyCase := {
 
 private def raceCaseGroup
     (model : ModelVocabulary)
-    (cases : List PropertyCase) : PropertyCaseGroup := {
+    (cases : List PropertyBranch) : PropertyBranches := {
   id := raceId "temporal.nexus2.cancellation-race.case-group.lifecycle"
   source
   guard := .any [
@@ -897,16 +897,16 @@ private def raceCaseGroup
 
 private def raceCasePropertyDeclaration
     (model : ModelVocabulary)
-    (cases : List PropertyCase) : Property := {
+    (cases : List PropertyBranch) : Property := {
   id := raceId "temporal.nexus2.cancellation-race.property.cases"
   source
   version := 2
   requires := [capabilityId]
-  clauses := [.sameStepCases (raceCaseGroup model cases)]
+  clauses := [.branches (raceCaseGroup model cases)]
 }
 
 private def caseAnalysisFor?
-    (cases : List PropertyCase)
+    (cases : List PropertyBranch)
     (budget : Nat := 32) : Option CaseAnalysisResult := do
   let checked ← checkRace.toOption
   let property ← (Property.check (PropertyCheckContext.ofTarget checked.target)
@@ -992,7 +992,7 @@ theorem finiteRaceJointTemporalScopeIsFrozenAtTrigger :
       2)) = true := by
   native_decide
 
-private def requestCaseWithLaterException (model : ModelVocabulary) : PropertyCase := {
+private def requestCaseWithLaterException (model : ModelVocabulary) : PropertyBranch := {
   requestCase model with
   exception := some {
     id := raceId "temporal.nexus2.cancellation-race.case.request.exception.later-state"
@@ -1047,7 +1047,7 @@ private def jointPropertyDeclaration
   source
   version := 2
   requires := [capabilityId]
-  clauses := [.sameStepCases {
+  clauses := [.branches {
     id := raceId ("temporal.nexus2.cancellation-race.property.joint." ++ key ++ ".group")
     source
     guard := raceAtom .selectedAction action.definitionId (.text action.value)
@@ -1187,7 +1187,7 @@ private def modelRelativeRaceConflict? : Option CaseAnalysisResult := do
     jointPropertyDeclaration "resolve-canceled-state" checked.model.resolveAction
       (raceAtom .resultingState operationStateId (.text checked.model.canceledState.value)),
     jointPropertyDeclaration "resolve-succeeded-outcome" checked.model.resolveAction
-      (raceAtom .modelOutcome transitionOutcomeId (.text checked.model.succeededOutcome.value))
+      (raceAtom .outcome transitionOutcomeId (.text checked.model.succeededOutcome.value))
   ]
 
 /-! Each requirement has a witness on a different race branch, but no admitted branch meets both. -/

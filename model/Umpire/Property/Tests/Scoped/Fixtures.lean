@@ -67,12 +67,12 @@ def targetResult := table.checkTypedModel {
 abbrev TestTarget := CheckedModel (fun _ => True) Unit ModelValue ModelValue ModelValue ModelValue
 def context (target : TestTarget) := PropertyCheckContext.ofTarget target
 
-def clause (bound : Nat) (endpoint : PropertyScopedEndpoint := .runtimePrefix) : PropertyScopedClause := {
+def clause (bound : Nat) (endpoint : PropertyScopedEndpoint := .«partial») : PropertyScopedClause := {
   id := id "test.scoped.response"
   source
   trigger := .atom { field := .selectedAction, reference := id "test.trigger" }
   response := .atom {
-    field := .modelOutcome
+    field := .outcome
     reference := id "test.outcome"
     constraint := .equals (.text "response") }
   scope := [id "test.run"]
@@ -82,7 +82,7 @@ def clause (bound : Nat) (endpoint : PropertyScopedEndpoint := .runtimePrefix) :
   endpoint
 }
 
-def declaration (bound : Nat) (endpoint : PropertyScopedEndpoint := .runtimePrefix) : Property := {
+def declaration (bound : Nat) (endpoint : PropertyScopedEndpoint := .«partial») : Property := {
   id := id "test.property"
   source
   requires := [id "test.capability"]
@@ -90,7 +90,7 @@ def declaration (bound : Nat) (endpoint : PropertyScopedEndpoint := .runtimePref
   scopedClauses := [clause bound endpoint]
 }
 
-def property (target : TestTarget) (bound : Nat) (endpoint : PropertyScopedEndpoint := .runtimePrefix) :=
+def property (target : TestTarget) (bound : Nat) (endpoint : PropertyScopedEndpoint := .«partial») :=
   Property.check (context target) ((declaration bound endpoint))
 
 def limits : Limits := { transitions := 1000, obligations := 1000, work := 1000000 }

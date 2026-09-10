@@ -122,7 +122,7 @@ def exactWitness : AuthoredExactTrace := {
   initialState := some acceptedTrace.trace.initialState
   steps := acceptedTrace.trace.steps.map fun step => {
     selectedAction := some step.selectedAction
-    modelOutcome := some step.outcome
+    outcome := some step.outcome
     resultingState := some step.state
     observations := some step.facts
   }

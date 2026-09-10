@@ -146,14 +146,14 @@ elab "model" name:ident "role" role:ident
         let sourceState ← resolveMember "state" stateCtors source
         let selectedAction ← resolveMember "action" actionCtors selected
         let targetState ← resolveMember "state" stateCtors resulting
-        let modelOutcome ← resolveMember "outcome" outcomeCtors outcomeRef
+        let resolvedOutcome ← resolveMember "outcome" outcomeCtors outcomeRef
         let observedFacts ← observed.getElems.toList.mapM (resolveMember "fact" factCtors)
         let keyLiteral := Lean.quote key.getId.eraseMacroScopes.toString
         let rowTerm ← `(term|
           { key := $keyLiteral
             source := $sourceState
             action := $selectedAction
-            results := [Authoring.step $modelOutcome $targetState
+            results := [Authoring.step $resolvedOutcome $targetState
               [$(observedFacts.toArray),*]] })
         pure ({ key, sourceState, selectedAction, targetState, rowTerm : ResolvedRow })
     | _ => throwErrorAt row "unsupported Nexus3 transition"

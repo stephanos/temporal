@@ -191,7 +191,7 @@ horizon.
   does not select a trace.
 - **Known Gap.** A missing or unsupported Capability Contract, input, interpretation, or claim. A
   Known Gap limits what an Artifact or Result can prove.
-- **Behavior (`Umpire.Behavior`).** Lean data that defines the Model Traces a Scenario allows. It
+- **Behavior (`Umpire.Scenario`).** Lean data that defines the Model Traces a Scenario allows. It
   neither evaluates Properties nor determines whether a trace occurred at runtime.
 - **Target (`Umpire.CheckedModel`).** A validated Behavior Model shared by Properties, Behaviors,
   and Queries. It is ready for planning and evaluation.
@@ -204,11 +204,11 @@ horizon.
 ### Model languages
 
 - **SEM-04 — Separate languages.** Each Lean authoring language—including `Umpire.Property`,
-  `Umpire.Behavior`, `Umpire.Query`, and `Umpire.Observation`—MUST be separate and have a distinct
+  `Umpire.Scenario`, `Umpire.Query`, and `Umpire.Observation`—MUST be separate and have a distinct
   purpose.
 - **SEM-05 — Pure `Umpire.Property`.** `Umpire.Property` declarations MUST use only Model Traces and
   Capability Contracts. They MUST NOT depend on implementation Evidence.
-- **SEM-06 — Declarative `Umpire.Behavior`.** `Umpire.Behavior` declarations MUST constrain
+- **SEM-06 — Declarative `Umpire.Scenario`.** `Umpire.Scenario` declarations MUST constrain
   allowed Model Traces. They MUST NOT become step-by-step RPC or runtime scripts.
 - **SEM-07 — Model-owned outcomes.** Authors MUST request Actions, while `Umpire.CheckedModel`
   determines their Model Outcomes and resulting states.
@@ -232,7 +232,7 @@ horizon.
 - **AUT-06 — Explicit composition.** Competing providers MUST be selected explicitly, and
   cross-domain relationships MUST be connected explicitly. Declaration order and Lean's automatic
   instance search MUST NOT choose behavior.
-- **AUT-07 — Single authoring path.** `Umpire.Property`, `Umpire.Behavior`, and `Umpire.Query` MUST
+- **AUT-07 — Single authoring path.** `Umpire.Property`, `Umpire.Scenario`, and `Umpire.Query` MUST
   be the only public languages for declaring Properties, Scenarios, and Queries.
   `Umpire.CheckedModel` is their shared model representation, not an authoring language. Wrappers
   MUST NOT provide another way to define behavior.
@@ -288,7 +288,7 @@ horizon.
   every candidate.
 - **PLN-04 — Limit Reached is inconclusive.** Limit Reached MUST NOT be treated as proof that no
   trace or counterexample exists.
-- **PLN-05 — Unsatisfiable is an error.** A checked `Umpire.Behavior` that admits no Model Trace MUST
+- **PLN-05 — Unsatisfiable is an error.** A checked `Umpire.Scenario` that admits no Model Trace MUST
   report `unsatisfiable`, never a passing Test.
 - **PLN-06 — Generated Execution Plan.** A `Umpire.DrivePlan` MUST contain generated instructions.
   It MUST NOT be an authoring language or Evidence that Execution occurred.
@@ -498,7 +498,7 @@ horizon.
 - **CLI-01 — Code location.** Umpire CLI code MUST either live under `tools/umpire` or be imported
   from `temporal/tools/common`.
 - **CLI-02 — Thin interface.** User-facing tools MAY select declarations and tighten declared
-  Limits. They MUST NOT invent `Umpire.Behavior` declarations or broaden model-declared Limits.
+  Limits. They MUST NOT invent `Umpire.Scenario` declarations or broaden model-declared Limits.
 - **CLI-03 — Inspectability.** User-facing tools SHOULD provide consistent commands to list and
   explain named Properties, Scenarios, Tests, Explorations, verification checks, Artifacts, and
   Results.

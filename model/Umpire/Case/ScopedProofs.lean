@@ -152,8 +152,8 @@ inputs, including preservation of any violation already established before evide
 theorem endpoint_agrees (obligations : List Shared.ScopedObligation.Obligation)
     (closed incomplete : Bool) (endpoint : PropertyScopedEndpoint) :
     endpointAnswer (Shared.ScopedObligation.answer obligations closed incomplete
-      (endpoint == .deliberatelyClosed)) =
-    let selected := if incomplete || !closed then PropertyScopedEndpoint.runtimePrefix else endpoint
+      (endpoint == .final)) =
+    let selected := if incomplete || !closed then PropertyScopedEndpoint.«partial» else endpoint
     let result := Property.Scoped.close selected obligations
     if incomplete && result != .violated then .unresolved else result := by
   cases violated : obligations.contains .violated <;>

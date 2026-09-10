@@ -120,7 +120,7 @@ structure Scenario.Order where
 /-- Optional fields keep malformed promoted witnesses representable until checking. -/
 structure AuthoredExactTraceStep where
   selectedAction : Option ModelValue
-  modelOutcome : Option ModelValue
+  outcome : Option ModelValue
   resultingState : Option ModelValue
   observations : Option (List ModelValue)
   deriving BEq, DecidableEq, Repr

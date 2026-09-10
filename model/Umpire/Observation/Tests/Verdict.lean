@@ -231,7 +231,7 @@ example :
       (PropertyTraceField.valueAt? .observation twoStepTrace (.fact 1 1)).isSome,
       (PropertyTraceField.valueAt? .relation twoStepTrace (.fact 1 1)).isSome,
       (PropertyTraceField.valueAt? .selectedAction twoStepTrace (.selectedAction 0)).isSome,
-      (PropertyTraceField.valueAt? .modelOutcome twoStepTrace (.outcome 0)).isSome,
+      (PropertyTraceField.valueAt? .outcome twoStepTrace (.outcome 0)).isSome,
       (PropertyTraceField.valueAt? .state twoStepTrace (.state 0)).isSome,
       (PropertyTraceField.valueAt? .observation twoStepTrace (.fact 0 1)).isSome,
       (PropertyTraceField.valueAt? .relation twoStepTrace (.fact 1 0)).isSome,

@@ -21,26 +21,26 @@ private def requestGuard : PropertyPredicate :=
 private def pendingOne : PropertyPredicate :=
   guardAtom .priorState pendingCount (.natural 1)
 
-private def temporalException : PropertyException := {
+private def temporalException : PropertyUnless := {
   id := id "test.property.guarded-temporal.exception.pending"
   source
   condition := pendingOne
 }
 
-private def parentException : PropertyException := {
+private def parentException : PropertyUnless := {
   id := id "test.property.guarded-temporal.exception.parent"
   source
   condition := guardAtom .priorState pendingCount (.natural 2)
 }
 
-private def caseException : PropertyException := {
+private def caseException : PropertyUnless := {
   id := id "test.property.guarded-temporal.exception.case"
   source
   condition := pendingOne
 }
 
 private def guardedEventually
-    (exception : Option PropertyException := none)
+    (exception : Option PropertyUnless := none)
     (limit : PropertyLimit := .exact { value := 1, unit := .semanticTransitions }) :
     PropertyClause :=
   .guardedEventuallyWithin (id "test.property.guarded-temporal.eventually") source
@@ -50,8 +50,8 @@ private def guardedEventually
     limit
 
 private def guardedQuiescent
-    (exception : Option PropertyException := none) : PropertyClause :=
-  .guardedQuiescentWithin (id "test.property.guarded-temporal.quiescent") source
+    (exception : Option PropertyUnless := none) : PropertyClause :=
+  .guardedNeverWithin (id "test.property.guarded-temporal.quiescent") source
     requestGuard exception
     (pattern .observation cancelRequested)
     (pattern .observation cancelDelivered)
@@ -66,12 +66,12 @@ private def declaration
 }
 
 private def caseTemporalGroup
-    (parentException? : Option PropertyException := none)
-    (caseException? : Option PropertyException := none)
+    (parentException? : Option PropertyUnless := none)
+    (caseException? : Option PropertyUnless := none)
     (caseId : DefinitionId := id "test.property.guarded-temporal.case")
     (clauseId : DefinitionId := id "test.property.guarded-temporal.case.eventually") :
     PropertyClause :=
-  .sameStepCases {
+  .branches {
     id := id "test.property.guarded-temporal.group"
     source
     guard := guardAtom .selectedAction requestCancel (.text "request")
@@ -129,13 +129,13 @@ private def satisfied?
 
 /- Guarded bounded forms are admitted only as version-two checked Property data. -/
 #guard (checked?).map (fun property =>
-    (property.version, property.clauses.map ResolvedPropertyClause.id,
+    (property.version, property.clauses.map CheckedPropertyClause.id,
       property.canonicalMetadata.contains "guarded-eventually-within")) ==
   some (2, [id "test.property.guarded-temporal.eventually"], true)
 
 /- Named cases retain their parent/case shape while using a legacy single-pattern response. -/
 #guard (checked? (declaration [caseTemporalGroup])).map (fun property =>
-    (property.canonicalMetadata.contains "same-step-cases",
+    (property.canonicalMetadata.contains "branches",
       property.canonicalMetadata.contains "guarded-eventually-within")) ==
   some (true, true)
 
@@ -146,7 +146,7 @@ private def satisfied?
     pure (
       eventually.behaviorFingerprint != quiescent.behaviorFingerprint,
       eventually.canonicalMetadata.contains "guarded-eventually-within",
-      quiescent.canonicalMetadata.contains "guarded-quiescent-within")) ==
+      quiescent.canonicalMetadata.contains "guarded-never-within")) ==
   some (true, true, true)
 
 private def changedBoundDeclaration :=
@@ -314,7 +314,7 @@ private def parentExcludedTrace : ModelTrace ModelValue ModelValue ModelValue Mo
 
 private def overlappingTemporalCases :=
   declaration [
-    .sameStepCases {
+    .branches {
       id := id "test.property.guarded-temporal.overlap"
       source
       guard := requestGuard
@@ -335,7 +335,7 @@ private def overlappingTemporalCases :=
           source
           guard := guardAtom .priorState pendingCount (.natural 0)
           clauses := []
-          temporalClauses := [.quiescentWithin
+          temporalClauses := [.neverWithin
             (id "test.property.guarded-temporal.case.failing.quiescent") source
             (pattern .observation cancelRequested)
             (pattern .observation cancelDelivered)

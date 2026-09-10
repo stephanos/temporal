@@ -37,7 +37,7 @@ inductive Error where
   | capture (error : CaptureError)
   deriving BEq, DecidableEq, Repr
 
-private def referenceClause (clause : ResolvedPropertyScopedClause) : ResolvedPropertyClause :=
+private def referenceClause (clause : CheckedPropertyScopedClause) : CheckedPropertyClause :=
   .eventuallyWithin clause.declaration.id clause.triggerPattern clause.responsePattern
     ⟨clause.declaration.bound, .semanticTransitions⟩
 
@@ -53,17 +53,17 @@ private def responsePredicateField (pattern : PropertyPattern) : PropertyPredica
   match pattern.field with
   | .resultingState => .resultingState
   | .observation => .expectationFact
-  | _ => .modelOutcome
+  | _ => .outcome
 
 private structure CompiledClause where
-  original : ResolvedPropertyScopedClause
+  original : CheckedPropertyScopedClause
   reference : CheckedProperty
   shape : reference.clauses = [referenceClause original]
   typedTrigger : some original.trigger.expression = patternPredicate .selectedAction original.triggerPattern
   typedResponse : some original.response.expression =
     patternPredicate (responsePredicateField original.responsePattern) original.responsePattern
   triggerAligned : original.triggerPattern.field = .selectedAction
-  responseAligned : original.responsePattern.field = .modelOutcome ∨
+  responseAligned : original.responsePattern.field = .outcome ∨
     original.responsePattern.field = .resultingState ∨ original.responsePattern.field = .observation
 
 /-- The compiled consumer retains the exact checked Property and producer scope binding. -/
@@ -77,25 +77,25 @@ structure Compiled (target : CheckedModel Law Setup ModelValue ModelValue ModelV
 
 private def closedPredicate (pattern : PropertyPattern) : Shared.ScopedObligation.Predicate := {
   field := match pattern.field with
-    | .selectedAction => 1 | .modelOutcome => 2 | .resultingState => 3 | .observation => 4
+    | .selectedAction => 1 | .outcome => 2 | .resultingState => 3 | .observation => 4
     | _ => 0
   reference := pattern.reference
   equalsText := match pattern.constraint with | .equals text => some text | _ => none }
 
-private def closedClause (clause : ResolvedPropertyScopedClause) : Shared.ScopedObligation.Clause := {
+private def closedClause (clause : CheckedPropertyScopedClause) : Shared.ScopedObligation.Clause := {
   id := clause.declaration.id.value
   bound := clause.declaration.bound
-  deliberatelyClosed := clause.declaration.endpoint == .deliberatelyClosed
+  final := clause.declaration.endpoint == .final
   trigger := closedPredicate clause.triggerPattern
   response := closedPredicate clause.responsePattern }
 
 /-- Checked source reference retained for portable compiler correspondence. -/
 structure PortableReference where
-  original : ResolvedPropertyScopedClause
+  original : CheckedPropertyScopedClause
   reference : CheckedProperty
   shape : reference.clauses = [referenceClause original]
   triggerAligned : original.triggerPattern.field = .selectedAction
-  responseAligned : original.responsePattern.field = .modelOutcome ∨
+  responseAligned : original.responsePattern.field = .outcome ∨
     original.responsePattern.field = .resultingState ∨ original.responsePattern.field = .observation
 
 /-- Closed clause data derived from the checked supported predicate fragment. -/
@@ -143,7 +143,7 @@ def compile (target : CheckedModel Law Setup ModelValue ModelValue ModelValue Mo
         (.exact ⟨clause.declaration.bound, .semanticTransitions⟩)] })).mapError Error.property
     if shape : reference.clauses = [referenceClause clause] then
       if triggerAligned : clause.triggerPattern.field = .selectedAction then
-        if responseAligned : clause.responsePattern.field = .modelOutcome ∨
+        if responseAligned : clause.responsePattern.field = .outcome ∨
             clause.responsePattern.field = .resultingState ∨ clause.responsePattern.field = .observation then
           if typedTrigger : some clause.trigger.expression = patternPredicate .selectedAction clause.triggerPattern then
             if typedResponse : some clause.response.expression =
@@ -170,7 +170,7 @@ structure Execution where
     compiled.original.responsePattern).map (fun point => Coordinate.mk point.1 point.2)
 
 /-- The original checked scoped clause behind this execution. -/
-abbrev Execution.clause (execution : Execution) : ResolvedPropertyScopedClause := execution.compiled.original
+abbrev Execution.clause (execution : Execution) : CheckedPropertyScopedClause := execution.compiled.original
 
 /-- Existing checked Property reference, admitted over exactly this execution's operation trace. -/
 abbrev Execution.reference (execution : Execution) : CheckedProperty := execution.compiled.reference
@@ -295,11 +295,11 @@ private def predicateInput (context : PropertyPredicateContext) (step : Transiti
   priorState := some step.priorState
   selectedAction := some step.action
   resultingState := some step.result.state
-  modelOutcome := some step.result.outcome
+  outcome := some step.result.outcome
   facts := some step.result.facts
 }
 
-private def validateCoordinate (clause : ResolvedPropertyScopedClause) (step : Transition) :
+private def validateCoordinate (clause : CheckedPropertyScopedClause) (step : Transition) :
     Except Error Unit := do
   let _ ← (checkPropertyPredicateInput clause.trigger (predicateInput .guard step)).mapError
     Error.property
@@ -312,7 +312,7 @@ correlation holds over this step's evidence together with the operation's retain
 Reading an occurrence this operation never retained -- a future ordinal, or one belonging to a
 different operation -- fails admission rather than binding the nearest match, and a correlation
 that is false rejects the step instead of spending the operation's window. -/
-private def validateCorrelation (clause : ResolvedPropertyScopedClause) (step : Transition)
+private def validateCorrelation (clause : CheckedPropertyScopedClause) (step : Transition)
     (evidence : List PropertyFieldEvidence) : Except Error Unit := do
   let some correlation := clause.correlation | pure ()
   let input ← (checkPropertyPredicateInputWithEvidence correlation
@@ -400,7 +400,7 @@ def Run.answers {compiled : Compiled target} (run : Run compiled) (incomplete : 
     let obligations := run.payload.operations.flatMap fun operation =>
       (operation.executions.find? (·.clause.declaration.id == clause.declaration.id)).map (·.obligations) |>.getD []
     let endpoint := if incomplete || !run.payload.closed then
-      PropertyScopedEndpoint.runtimePrefix else clause.declaration.endpoint
+      PropertyScopedEndpoint.«partial» else clause.declaration.endpoint
     let answer := close endpoint obligations
     (clause.declaration.id, if incomplete && answer != .violated then .unresolved else answer)
 

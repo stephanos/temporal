@@ -141,7 +141,7 @@ Fields occur exactly in the shown order; an `Option` is always an explicit value
   both numbers null, the three step kinds require a positive step and null position, and observation
   requires positive step and position. Coordinates order by that kind order, then step, then position.
 - `ModelTrace` is `{traceId, initialState, steps}`. Each contiguous one-based step is
-  `{position, selectedAction, modelOutcome, resultingState, observations}`; observations retain
+  `{position, selectedAction, outcome, resultingState, observations}`; observations retain
   their list position and every value is a `ModelValue`.
 - `SourceLocation` is `{path, line, column, provenance}`. `Provenance` is
   `{sourceDefinitionIds, sourceLocations}` with definition IDs sorted and locations sorted by

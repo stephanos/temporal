@@ -71,7 +71,7 @@ def authoredProperty (model : ModelVocabulary) : Property := {
       (PropertyPattern.exact .resultingState operationStateId model.startedState.value),
     .transitionContract (id "temporal.nexus2.basic-lifecycle.property.start.outcome")
       (PropertyPattern.exact .selectedAction startActionId model.startAction.value)
-      (PropertyPattern.exact .modelOutcome transitionOutcomeId model.startedOutcome.value),
+      (PropertyPattern.exact .outcome transitionOutcomeId model.startedOutcome.value),
     .inputOutput (id "temporal.nexus2.basic-lifecycle.property.start.fact")
       (PropertyPattern.exact .selectedAction startActionId model.startAction.value)
       (PropertyPattern.exact .observation lifecycleFactId model.startedFact.value)
@@ -123,7 +123,7 @@ def authoredProperty (model : ModelVocabulary) : Property := {
       (PropertyPattern.exact .resultingState operationStateId model.canceledState.value),
     .transitionContract (id "temporal.nexus2.basic-lifecycle.property.cancel.outcome")
       (PropertyPattern.exact .selectedAction cancelActionId model.cancelAction.value)
-      (PropertyPattern.exact .modelOutcome transitionOutcomeId model.canceledOutcome.value),
+      (PropertyPattern.exact .outcome transitionOutcomeId model.canceledOutcome.value),
     .inputOutput (id "temporal.nexus2.basic-lifecycle.property.cancel.fact")
       (PropertyPattern.exact .selectedAction cancelActionId model.cancelAction.value)
       (PropertyPattern.exact .observation lifecycleFactId model.canceledFact.value)
@@ -175,7 +175,7 @@ def authoredProperty (model : ModelVocabulary) : Property := {
       (PropertyPattern.exact .resultingState operationStateId model.succeededState.value),
     .transitionContract (id "temporal.nexus2.basic-lifecycle.property.success.outcome")
       (PropertyPattern.exact .selectedAction reportSuccessActionId model.reportSuccessAction.value)
-      (PropertyPattern.exact .modelOutcome transitionOutcomeId model.succeededOutcome.value),
+      (PropertyPattern.exact .outcome transitionOutcomeId model.succeededOutcome.value),
     .inputOutput (id "temporal.nexus2.basic-lifecycle.property.success.fact")
       (PropertyPattern.exact .selectedAction reportSuccessActionId model.reportSuccessAction.value)
       (PropertyPattern.exact .observation lifecycleFactId model.succeededFact.value)

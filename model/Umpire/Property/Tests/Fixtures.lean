@@ -99,7 +99,7 @@ def cancelIsUnique : PropertyClause :=
 def deliveryContract : PropertyClause :=
   .transitionContract (id "test.property.delivery-contract")
     (pattern .selectedAction requestCancel)
-    (pattern .modelOutcome deliveredOutcome (.equals "delivered"))
+    (pattern .outcome deliveredOutcome (.equals "delivered"))
 
 def ownershipIsPresent : PropertyClause :=
   .identityRelation (id "test.property.ownership")
@@ -123,7 +123,7 @@ def honoredDelivery : PropertyClause :=
     (.named cancelBudget.id .observationPositions)
 
 def deliveryIsQuiescent : PropertyClause :=
-  .quiescentWithin (id "test.property.delivery-is-quiescent")
+  .neverWithin (id "test.property.delivery-is-quiescent")
     (pattern .observation cancelDelivered)
     (pattern .observation cancelRequested)
     (.exact { value := 0, unit := .observationPositions })

@@ -27,40 +27,40 @@ private def endpointRun
   (plan { checkedQuery width form .exhaustive budget with endpoint, exercise }
     (incrementalKernel width)).toOption
 
-#guard (endpointRun .deliberatelyClosed .requireAllTriggers
+#guard (endpointRun .final .requireAllTriggers
   (.verify (temporalProperty false false))).map (·.result.outcome.name) ==
     some "nonempty-unexercised"
 
-#guard (endpointRun .deliberatelyClosed .requireAllTriggers
+#guard (endpointRun .final .requireAllTriggers
   (.witness (temporalProperty false false))).map (·.result.outcome.name) ==
     some "nonempty-unexercised"
 
-#guard (endpointRun .deliberatelyClosed .requireAllTriggers
+#guard (endpointRun .final .requireAllTriggers
   (.witness (temporalProperty true true))).map (·.result.metadata.validity.answer) == some .witness
 
-#guard (endpointRun .deliberatelyClosed .requireAllTriggers
+#guard (endpointRun .final .requireAllTriggers
   (.verify (temporalProperty true true))).map (fun run =>
     (run.result.metadata.validity.satisfiability, run.result.metadata.validity.coverage,
       run.result.metadata.validity.answer, run.result.metadata.validity.searchComplete)) ==
     some (.nonempty, .exercised, .verified, true)
 
-#guard (endpointRun .runtimePrefix .requireAllTriggers
+#guard (endpointRun .«partial» .requireAllTriggers
   (.verify (temporalProperty true false))).map (fun run =>
     (run.result.outcome.name, run.result.isVerified, run.result.metadata.validity.searchComplete)) ==
     some ("unresolved-prefix", false, true)
 
-#guard (endpointRun .runtimePrefix .requireAllTriggers
+#guard (endpointRun .«partial» .requireAllTriggers
   (.verify (temporalProperty true false 0))).map (·.result.metadata.validity.answer) ==
     some .counterexample
 
-#guard (endpointRun .deliberatelyClosed .requireAllTriggers
+#guard (endpointRun .final .requireAllTriggers
   (.verify (temporalProperty true false)) 10 2).map (fun run =>
     (run.result.metadata.validity.answer, run.result.metadata.validity.searchComplete,
       run.result.metadata.completeness.established,
       run.artifact.isSome, run.result.metadata.explored.traces)) ==
     some (.counterexample, false, false, true, 2)
 
-#guard (endpointRun .deliberatelyClosed .requireAllTriggers
+#guard (endpointRun .final .requireAllTriggers
   (.verify (temporalProperty false false)) 10 2).map (fun run =>
     (run.result.outcome.name, run.result.metadata.validity.satisfiability,
       run.result.metadata.validity.coverage, run.result.metadata.validity.answer)) ==
@@ -69,14 +69,14 @@ private def endpointRun
 #guard (endpointRun .terminalModel .allowVacuous (.verify property)).map
   (·.result.metadata.validity.satisfiability) == some .impossible
 
-#guard (endpointRun .deliberatelyClosed .requireAllTriggers
+#guard (endpointRun .final .requireAllTriggers
   (.verify (temporalProperty true true)) 2).map (fun run =>
     run.result.metadata.validity.triggers.map (fun evidence =>
       (evidence.trace.trace.steps.length, evidence.trigger.transitionPosition,
         evidence.trigger.occurrence.value))) ==
     some [(1, 1, some requestValue), (1, 1, some requestValue), (1, 1, some requestValue)]
 
-#guard (endpointRun .deliberatelyClosed .requireAllTriggers
+#guard (endpointRun .final .requireAllTriggers
   (.verify (temporalProperty true true))).map (fun run =>
     (canonicalPlanningReceiptJson run.result).contains "checked-finite-enumeration/v1") == some true
 
@@ -124,12 +124,12 @@ private def admittedQuery (endpoint : QueryEndpoint) (exercise : QueryExercisePo
     Option (CheckedQuery (fun _ => True)) :=
   (checkQuery (.ofTarget baseTarget) { queryDeclaration with endpoint, exercise }).toOption
 
-#guard (admittedQuery .deliberatelyClosed .allowVacuous).map (fun query =>
+#guard (admittedQuery .final .allowVacuous).map (fun query =>
   query.canonicalMetadata.contains "endpointPolicy/v1") == some false
-#guard (admittedQuery .runtimePrefix .requireAllTriggers).map (fun query =>
+#guard (admittedQuery .«partial» .requireAllTriggers).map (fun query =>
   (query.endpoint, query.exercise, query.canonicalMetadata.contains "endpointPolicy/v1")) ==
-    some (.runtimePrefix, .requireAllTriggers, true)
-#guard (admittedQuery .runtimePrefix .requireAllTriggers).map (·.behaviorFingerprint) !=
+    some (.«partial», .requireAllTriggers, true)
+#guard (admittedQuery .«partial» .requireAllTriggers).map (·.behaviorFingerprint) !=
   (admittedQuery .terminalModel .requireAllTriggers).map (·.behaviorFingerprint)
 
 private def convergingTarget : Option (QueryModel (fun _ => True)) :=
@@ -184,16 +184,16 @@ private def convergingRun : Option PlannerRun := do
       replayed.result.metadata.validity.answer)) == some (some [requestValue], .counterexample)
 
 #guard (let query := { checkedQuery 0 (.select [temporalProperty true false]) .exhaustive with
-    endpoint := .runtimePrefix }
+    endpoint := .«partial» }
   let analysis := analyzeCases query (incrementalKernel 0)
   (analysis.joint.status, analysis.propertyEvaluations.map (·.endpointAnswer))) ==
     (.limitReached, [.unresolved])
 
 #guard (terminalTarget [[completed]]).map (·.behaviorFingerprint.render) ==
   some "sha256:0359b9a0d4340f3d4c04b85b6ac0950c2a563076febbacffddfaac2e506f42b5"
-#guard (admittedQuery .deliberatelyClosed .allowVacuous).map (·.behaviorFingerprint.render) ==
+#guard (admittedQuery .final .allowVacuous).map (·.behaviorFingerprint.render) ==
   some "sha256:be5535ef4d07080095b565f71a70233db180f95447d86414ae57330d27a9e43f"
-#guard (endpointRun .deliberatelyClosed .requireAllTriggers
+#guard (endpointRun .final .requireAllTriggers
   (.verify (temporalProperty true false)) 10 2).map
     (·.result.metadata.validity.searchTermination) == some "limit-reached"
 

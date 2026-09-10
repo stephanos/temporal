@@ -21,22 +21,22 @@ structure RunEvaluation
 private def canonicalIds (ids : List DefinitionId) : List DefinitionId :=
   ids.mergeSort (fun left right => decide (left.value ≤ right.value)) |>.eraseDups
 
-private def clausePatterns : ResolvedPropertyClause → List PropertyPattern
+private def clausePatterns : CheckedPropertyClause → List PropertyPattern
   | .stateInvariant _ state => [state]
   | .transitionContract _ precondition postcondition => [precondition, postcondition]
   | .identityRelation _ relation => [relation]
   | .inputOutput _ input output => [input, output]
   | .ordered _ before after _ => [before, after]
   | .eventuallyWithin _ trigger response _ => [trigger, response]
-  | .quiescentWithin _ trigger forbidden _ => [trigger, forbidden]
-  | .sameStepCases _ => []
-  | .guardedEventuallyWithin guarded | .guardedQuiescentWithin guarded =>
+  | .neverWithin _ trigger forbidden _ => [trigger, forbidden]
+  | .branches _ => []
+  | .guardedEventuallyWithin guarded | .guardedNeverWithin guarded =>
       [guarded.trigger, guarded.response]
 
 private def relevantEvidenceLinks
     (destinationTrace : ModelTrace ModelValue ModelValue ModelValue ModelValue)
     (implementationEvidenceLinks : List ImplementationLinkEvidenceLink)
-    (clause : ResolvedPropertyClause) : List EvidenceLink :=
+    (clause : CheckedPropertyClause) : List EvidenceLink :=
   let patterns := clausePatterns clause
   implementationEvidenceLinks.filterMap fun implementationEvidenceLink =>
     if patterns.any fun pattern =>
@@ -53,7 +53,7 @@ private def translatedClauseVerdict
     (sourceTrace : EvidenceBackedTrace)
     (destinationTrace : ModelTrace ModelValue ModelValue ModelValue ModelValue)
     (implementationEvidenceLinks : List ImplementationLinkEvidenceLink)
-    (clause : ResolvedPropertyClause)
+    (clause : CheckedPropertyClause)
     (result : PropertyClauseResult) : SemanticClauseVerdict :=
   let evidenceLinks := relevantEvidenceLinks destinationTrace implementationEvidenceLinks clause
   {

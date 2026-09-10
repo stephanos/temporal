@@ -45,7 +45,7 @@ structure PlanningValidity where
   searchComplete : Bool := false
   searchTermination : String := "unknown"
   requestedTriggers : List (DefinitionId × DefinitionId) := []
-  endpoint : QueryEndpoint := .deliberatelyClosed
+  endpoint : QueryEndpoint := .final
   exercise : QueryExercisePolicy := .allowVacuous
   queryMetadata : String := ""
   assuranceMethod : String := "checked-finite-enumeration/v1"

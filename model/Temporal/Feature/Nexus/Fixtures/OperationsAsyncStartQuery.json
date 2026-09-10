@@ -7,7 +7,7 @@
   "properties": [
     {
       "id": "temporal.nexus.basic-lifecycle.property.async-start",
-      "behaviorFingerprint": "sha256:f768c9a0df86e37d7dc6ff57edb348830a617dd9954143611204c139a0cc4d12"
+      "behaviorFingerprint": "sha256:3c9885e45b07234ae7b24118d8e94b69b8e212423fe3299f968c91762be7cf8e"
     }
   ],
   "behavior": {

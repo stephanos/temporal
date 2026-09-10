@@ -71,7 +71,7 @@ Behaviors constrain trace shape; Queries ask bounded questions; Spaces and Explo
 finite candidates. These packages do not perform runtime I/O.
 
 For ordinary authoring, use `import Umpire` or the focused `Umpire.Model`, `Umpire.Property`,
-`Umpire.Behavior`, and `Umpire.Query` facades. These retain the finite-table/machine helpers and
+`Umpire.Scenario`, and `Umpire.Query` facades. These retain the finite-table/machine helpers and
 syntax-aware checkers.
 When implementing evaluation or planning over an already checked Model, use
 `Umpire.Model.Check`; it exposes the authoritative Machine and finite planning contracts without
@@ -106,14 +106,14 @@ An optional checked `authoredKnownGaps` set is composed with phase gaps before s
 publication. Gaps describe limits and missing evidence; they cannot make a Property pass or imply
 that an omitted limitation was detected.
 
-Operation-scoped response Properties can use `bounded_response%` inside
+Operation-scoped response Properties can use `correlated_response%` inside
 `Property.scopedClauses`. For example, with Model-owned `request` and `response` values:
 
 ```lean
-bounded_response% (family.id "property" "response") at source
+correlated_response% (family.id "property" "response") at source
   whenever (.selectedActionIs request) eventually (.modelOutcomeIs response)
   within 1 on .operationTransitions
-  scoped [runField] by operationField closing .runtimePrefix
+  scoped [runField] by operationField closing .partial
 ```
 
 This is the same `PropertyScopedClause` as the typed record constructor. `property% spec against

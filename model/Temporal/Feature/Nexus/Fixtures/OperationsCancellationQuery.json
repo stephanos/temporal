@@ -7,7 +7,7 @@
   "properties": [
     {
       "id": "temporal.nexus.basic-lifecycle.property.cancellation",
-      "behaviorFingerprint": "sha256:32d49d381aac01a60729f82fe630181eb8ef6173d5e99cc3e2007d2c5b2b2bb7"
+      "behaviorFingerprint": "sha256:270931e4c5a0d072d0ebd76e509024e237b2215b941c3497cc4055134d34ab48"
     }
   ],
   "behavior": {

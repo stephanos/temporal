@@ -49,7 +49,7 @@ source inventory and compiled module metadata.
 private checked construction; `Model.Canonical` owns pure canonicalization, and `Model.Elab`
 owns syntax capture and located elaboration. Property, Behavior, Query, and Planning semantic
 modules cannot transitively import the model elaborator or `Lean.Elab.Term`. The ordinary authoring
-facades remain `Umpire.Model`, `Umpire.Property`, `Umpire.Behavior`, and `Umpire.Query`; importing
+facades remain `Umpire.Model`, `Umpire.Property`, `Umpire.Scenario`, and `Umpire.Query`; importing
 Planning alone does not provide their authoring conveniences. See the
 [Model ownership table](Umpire/ARCHITECTURE.md#model-ownership-and-semantic-imports) for the checked
 API and replacement-proof contracts.
@@ -84,7 +84,7 @@ Planning artifacts and Generated Views remain useful model outputs. They are not
 and do not establish that a runtime action occurred.
 
 Operation-scoped bounded response authoring lowers through the existing Property checker.
-`bounded_response%` and typed `PropertyScopedClause` values share canonical meaning and fingerprints;
+`correlated_response%` and typed `PropertyScopedClause` values share canonical meaning and fingerprints;
 key, scope, operation-transition clock, bound, and endpoint remain explicit semantic choices.
 Checked projection, source Property, and portable Contract are connected by `Umpire.Case.Scoped`
 certificates. Shared table/projection/obligation modules contain no feature callback; generic

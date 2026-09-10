@@ -37,7 +37,7 @@ must be reused rather than counted as missing functionality.
 | Owner | Responsibility |
 | --- | --- |
 | `Umpire.Property` | Typed scoped response clauses, their canonical meaning, passive obligation semantics, and compiler correspondence. |
-| `Umpire.Behavior` | Checked declarative trace constraints and their authoring surface. |
+| `Umpire.Scenario` | Checked declarative trace constraints and their authoring surface. |
 | `Umpire.Query` and Planning | Endpoint policy, satisfiability, exercise coverage, answers, semantic scope, and search completeness. |
 | Checked Target semantics | Authoritative transitions/outcomes and explicit input versus observation ownership. |
 | `Temporal.Feature` | Product requirements and non-cancellation qualification examples; no raw history or SDK dependencies. |

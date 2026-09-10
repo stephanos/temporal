@@ -23,10 +23,10 @@ guidance selects from that same universe and reports its bounded outcome separat
 -/
 example :
     exhaustiveCandidates.map (ArtifactChecksum.render ∘ ExplorationCandidate.identity) == [
-      "sha256:08ca605e2d5b556230d7593b9a7e088b00970f153e9145963f0873983b5b634b",
-      "sha256:0beae8011517812fbf284afdbe70eb6b329b338f3efcc52a7ba20fab9c9de7b8",
-      "sha256:23b6bac41bfee2637d1ba16737c50c9f3df83ba5c520b1c9e72bb6257c1e2bbc",
-      "sha256:868d5978e85783eabb8af534b375be1d50c22f44456355898e8a3949d12f3607"
+      "sha256:1272a5861a0a491cca53cd228dc8d72c1bcc970fd0c77b8eeee4eadcb3f2641e",
+      "sha256:873abde394db383b2a9a750c6ecddebe1dedcf20faaea9ed75c9e623f3bca4cb",
+      "sha256:ac24d6bac3eb7ac03b1bee26374c8a84bc06b211163d5c3f0169f7e2a6aa9ed4",
+      "sha256:b38b568baaaea2bf7e1d9aa6ca1b24e26f161c65c3fa3234e4f52ab741efc720"
     ] &&
       exhaustiveResult.completion == .exhausted &&
       (run (.uncoveredCoordinate (.fact 1 1)) 1).toOption.any (fun result =>
@@ -84,5 +84,6 @@ example :
       (afterFirst.bind ExplorationSession.next |>.any (fun step =>
         step.1.identity == secondCandidate.identity)) = true := by
   native_decide
+
 
 end Temporal.Feature.Nexus.Experimental.ExplorationTests

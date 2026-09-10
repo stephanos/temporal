@@ -293,7 +293,7 @@ private def resolutionPropertyDeclaration
   requires := [capabilityId]
   clauses := [.transitionContract clauseId
     (PropertyPattern.exact .selectedAction resolveActionId model.resolveAction.value)
-    (PropertyPattern.exact .modelOutcome transitionOutcomeId outcome.value)]
+    (PropertyPattern.exact .outcome transitionOutcomeId outcome.value)]
   documentation
 }
 

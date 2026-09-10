@@ -235,7 +235,7 @@ private def checkExactTrace
       | none =>
           throw (scenarioError .incompleteExactTrace owner.id owner.source
             ("step-" ++ toString index ++ ":selected-action") [])
-    let outcome ← match authoredStep.modelOutcome with
+    let outcome ← match authoredStep.outcome with
       | some value => pure value
       | none =>
           throw (scenarioError .incompleteExactTrace owner.id owner.source

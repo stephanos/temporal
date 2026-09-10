@@ -60,7 +60,7 @@ private def declaration
   source
   version := 2
   requires := [capability]
-  clauses := [.sameStepCases {
+  clauses := [.branches {
     id := id ("planner.property.joint." ++ key ++ ".group")
     source
     guard := requestGuard
@@ -201,7 +201,7 @@ private def unsatisfiableBehavior : CheckedScenario := {
 private def withUnsupportedAny : Property :=
   let base := declaration "unsupported" [.present]
   { base with clauses := base.clauses.map fun clause => match clause with
-    | .sameStepCases group => .sameStepCases { group with cases := group.cases.map fun item =>
+    | .branches group => .branches { group with cases := group.cases.map fun item =>
         { item with clauses := item.clauses.map fun clause =>
           { clause with expectation := .any [
               exactAtom .resultingState phase (.equals (.text completed.value)),
@@ -228,7 +228,7 @@ private def rightDeclaration : Property :=
 private def caseOrderDeclaration (reverse : Bool) : Property :=
   let base := declaration "case-order" [.equals (.text completed.value)]
   { base with clauses := base.clauses.map fun clause => match clause with
-    | .sameStepCases group =>
+    | .branches group =>
         match group.cases with
         | first :: _ =>
             let second := { first with
@@ -236,10 +236,10 @@ private def caseOrderDeclaration (reverse : Bool) : Property :=
               clauses := first.clauses.map fun clause => { clause with
                 id := id "planner.property.joint.case-order.clause-second" }
             }
-            .sameStepCases {
+            .branches {
               group with cases := if reverse then [second, first] else [first, second]
             }
-        | [] => .sameStepCases group
+        | [] => .branches group
     | other => other }
 
 /-! Case source order also preserves the complete joint evidence; neither branch has priority. -/

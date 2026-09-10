@@ -20,7 +20,7 @@ Focused public imports are available by responsibility:
 | `Umpire.Model` | Finite-machine and expert Model authoring plus checked composition. |
 | `Umpire.Model.Check` | Checked Model/Machine access, pure admission, and relation-indexed finite planning. |
 | `Umpire.Property` | Property authoring, validation, and pure trace evaluation. |
-| `Umpire.Behavior` | Setup and trace-shape authoring and validation. |
+| `Umpire.Scenario` | Setup and trace-shape authoring and validation. |
 | `Umpire.Query` | Bounded questions over a checked Model, Properties, and Behavior. |
 | `Umpire.Space` | Checked finite axes, fault intents and their lowering, and atomic point compilation. |
 | `Umpire.Exploration` | Bounded finite selection, pinned precedence, and process-local sessions. |
@@ -41,7 +41,7 @@ domain-specific Temporal modules; the complete import graph is enforced by `make
 
 Ordinary authors keep `import Umpire.Model` (or `import Umpire`). The Model facade includes
 finite-table/machine adapters and syntax-aware authoring. Authors of Properties, Behaviors, and
-Queries likewise keep their public `Umpire.Property`, `Umpire.Behavior`, and `Umpire.Query` facades.
+Queries likewise keep their public `Umpire.Property`, `Umpire.Scenario`, and `Umpire.Query` facades.
 
 Library code that consumes checked semantics imports `Umpire.Model.Check`. Property and
 Behavior semantic implementations use that surface; Query uses their semantic modules, and
@@ -110,7 +110,7 @@ Exceptions are trigger-time applicability conditions and do not select a winning
 pending temporal obligation. Case analysis reports coverage, overlap, logical conflict, modeled
 incompatibility, exhaustive completion, and limit exhaustion as separate bounded results.
 
-`bounded_response%` is a readable spelling of `PropertyScopedClause`, admitted through the same
+`correlated_response%` is a readable spelling of `PropertyScopedClause`, admitted through the same
 `property%`/`Property.check` boundary. Scoped clauses declare execution fields, an operation key,
 operation-transition clock, natural bound, and runtime-prefix or deliberately-closed endpoint.
 Projection admits causally supported, Model-authorized steps before obligation execution;

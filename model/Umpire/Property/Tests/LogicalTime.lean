@@ -23,7 +23,7 @@ def logicalQuiescentProperty : Property := {
   id := id "test.property.logical-quiescent"
   logicalTimeSource := some logicalTime
   clauses := [
-    .quiescentWithin (id "test.property.logical-quiescent.clause")
+    .neverWithin (id "test.property.logical-quiescent.clause")
       (pattern .observation cancelDelivered)
       (pattern .observation cancelRequested)
       (.exact { value := 0, unit := .logicalTime })

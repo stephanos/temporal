@@ -197,7 +197,7 @@ private def predicateField : PropertyTraceField → Option PropertyPredicateFiel
   | .priorState => some .priorState
   | .selectedAction => some .selectedAction
   | .resultingState => some .resultingState
-  | .modelOutcome => some .modelOutcome
+  | .outcome => some .outcome
   | .observation => some .expectationFact
   | .state | .relation => none
 
@@ -222,7 +222,7 @@ private def patternHolds
   match pattern.field with
   | .selectedAction => carries step.selectedAction
   | .resultingState => carries step.state
-  | .modelOutcome => carries step.outcome
+  | .outcome => carries step.outcome
   | .observation => step.facts.any carries
   | _ => false
 
@@ -238,7 +238,7 @@ response holds earlier rejects rather than lowering a clause a shorter trace cou
 private def scopedClauseOf
     (occurrences : List DefinitionId) (opening : ModelValue)
     (steps : List (ModelTraceStep ModelValue ModelValue ModelValue ModelValue))
-    (clause : ResolvedPropertyClause) : Except LoweringError PropertyScopedClause :=
+    (clause : CheckedPropertyClause) : Except LoweringError PropertyScopedClause :=
   let unexpressible := fun construct => Except.error (loweringError clause.id.value construct)
   match clause with
   | .transitionContract id trigger response
@@ -255,7 +255,7 @@ private def scopedClauseOf
                 id, source := Authoring.source
                 trigger := .selectedActionIs opening, response := lowered
                 scope := [runFieldId], key := operationFieldId
-                clock := .operationTransitions, bound, endpoint := .runtimePrefix }
+                clock := .operationTransitions, bound, endpoint := .«partial» }
         | none, _ => unexpressible "property.clause-occurrence"
         | _, none => unexpressible "property.clause-shape"
   | _ => unexpressible "property.clause-form"
