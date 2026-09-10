@@ -49,9 +49,76 @@ to `Umpire.Variations`, and rename the semantic inventory with its executable, t
 
 
 ## Done summary
-TBD
+All five acceptance bullets are met and every gate is at or under its baseline.
 
+Landed in commits 61bc4cc11e, ba0885cd26, e6ab89152a, 0cbc1c33c4, dc7f6e7af1, 953e10da56,
+b4ad2eccd0, 6a5df0c8df:
+
+- `Umpire/Observation/` held two generations under one name. The live seam --
+  `Projection.lean`, `Projection/{Declaration,Coverage}.lean` and
+  `Evaluation/Scoped.lean` -- moves to `Umpire/Case/Projection/` with its tests and keeps
+  `Fact` as its type parameter; `Case/Projection/Scoped.compile` now names
+  `Property.Scoped.Limits` explicitly, because under `Umpire.Case.Projection` a bare
+  `Limits` resolves to the projection's own abbrev.
+- The rest becomes `Umpire/Evidence/`: `Declaration.lean` + `Compiler.lean` +
+  `Language.lean` are `Evidence/Reading.lean` and `Evidence/Reading/Check.lean`,
+  `Evaluation/` is `Evaluate/`, `Verdict.lean` is `PropertyStatus.lean`. The reading
+  vocabulary follows the module (`Evidence.{Reading, ReadingSpec, CheckedReading,
+  ReadingContext, ReadingError, ReadingErrorKind, checkReading, checkedReading}`),
+  `SemanticVerdict*` is `Evidence.PropertyStatus*`, `StrictQuery{Status,Summary}` is
+  `Query{Status,StatusSummary}`, `EvidenceLink` and its two mirrors are `EvidenceSupport`,
+  and `EvidenceBundle` is `SyntheticEvidence`. `Observation` keeps its one meaning -- a
+  declared typed Run value -- so the profile, kind, rule, field, expression and evaluation
+  diagnostic records keep their names.
+- `ImplementationLinkKnownGap` is `UnmappedSource` (it is a hole in a mapping's source
+  domain, not a Known Gap), `ForwardSimulation` is `StepPreservation`, `KernelMorphism` is
+  `ValueTranslation`, `ProjectionSentinelDescriptor` is `NotRunMarker`, and
+  `notEvaluatedProjectionSentinel` is `stageNotRunMarker` with its rendered
+  `implementation-link.not-evaluated` string unchanged.
+- `Artifact/Runtime.lean` is `RunRecord.lean` with `ObservationConfiguration` as
+  `EvidenceSourceConfiguration`; the twenty-two wire projections in `Result.lean` drop the
+  `Artifact` prefix inside one `Artifact.Wire` namespace, and `EvidenceArtifact` moves
+  beside `ResultArtifact`; `KnownGapCarryMapping.{exact, observationAdmission}` are
+  `{full, lossy}` with their rendered strings unchanged.
+- `Umpire/Space/` is `Umpire/Variations/` with `VariationSpace`, `PlannedVariant` and
+  `SpaceMetadataRows`; Exploration is `CandidateSet`, `CandidateCursor`,
+  `PinnedRegression` and `DroppedCandidate`.
+- `Umpire/SemanticInventory/` is `Umpire/Inventory/`, `Temporal/Tool/SemanticInventory*` is
+  `Inventory*`, the Lake executables are `umpire-inventory{,-tests,-make-tests}`, the Make
+  targets are `umpire-gen-inventory`/`umpire-check-inventory` (with the `lint-model`
+  prerequisite and `umpire-check-regression` following), and the document is
+  `model/INVENTORY.md`. The `ModelLint` rule is `inventoryIsolation`, so a production
+  Umpire import of `Umpire.Inventory` still fails `lint-model`; `ImportGraphTests` covers
+  the direct, bridged and helper cases. Catalog ids -- the `umpire.semantic-inventory.*`
+  rows and `implementation-link.not-evaluated` -- are byte-unchanged; only owner strings
+  and module names moved.
+- The gate rejects thirty new compounds covering every retired name above, and drops the
+  `Umpire.Observation.Qualification` entry the new `Umpire.Observation` rule subsumes.
+
+Two things a reader should know:
+
+1. `evidenceLinks` and `evidenceLinkBehaviorFingerprint` are JSON member keys inside
+   `umpire-evidence/v2` and `umpire-result/v2`; renaming the Lean types renamed them, which
+   rewrote three fixture checksums, the artifact-set identity and
+   `evaluationOutcomeChecksum`. The `formatVersion` identifiers are untouched, no Go code
+   reads those keys, and task .2 already crossed this line for `outcome`/`state`/`facts`.
+   The rendered diagnostic strings `evidence-link-mismatch` and `inconsistent-evidence-link`
+   are deliberately kept for catalog stability.
+2. Carried debt, from task .2 and outside this task's files: `Umpire/Core.lean:307-329`
+   still names the finite-domain record's model-fact type parameter `Observation`
+   (`observationDomain`, `observations`, `encodeObservation`, `observationSound/Complete`).
+   The spec's vocabulary table retires "the `Observation` type parameter" in favour of
+   `Fact`. It reaches `Umpire.Model`, `Umpire.ImplementationLink` and the Nexus features,
+   so it belongs in one deliberate pass rather than as a side effect here.
+
+Review: NEEDS_WORK then SHIP. The first round found `PinnedPlan` where the spec says
+`PinnedRegression` (task .5's `ExperimentSpec` -> `Plan` sweep had renamed it in passing),
+`ArtifactIntent*` compounds the gate's boundary regex cannot see, stale Space-era names in
+`UMPIRE4_DSL.md`, a relabelled inventory-hash row, and a gate rule subsumed by a new one;
+all are fixed in b4ad2eccd0. The second round found open Flow records half-respelled to
+paths that exist in neither tree; fixed in 6a5df0c8df.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 61bc4cc11e, ba0885cd26, e6ab89152a, 0cbc1c33c4, dc7f6e7af1, 953e10da56, b4ad2eccd0, 6a5df0c8df
+- Tests: cd model && lake build Umpire UmpireTests Temporal TemporalModelTests TestpilotTests Testpilot TemporalExperimentalTests +Umpire.PromotionTests (pass, 401 jobs), make umpire-check-regression (pass; goldens, regression-views, testpilot-protocol, testpilot-authoring, case-runtime-conformance, inventory, retired-vocabulary, lean-api, live-tests, the model layout assertions, and go test ./tools/umpire/... ./common/testing/testpilot/... ./tests/testcore/testpilot/...), make umpire-check-inventory (pass), make umpire-build-model (pass, includes the Makefile package-layout check), cd model && lake exe umpire-inventory-tests (pass); TMPDIR=<physical> lake exe umpire-inventory-make-tests (pass), make lint-model (169 diagnostics, all generated Temporal/API; equals baseline), make lint-code GOLANGCI_LINT_FIX=false (126 findings; baseline 128), CC=/usr/bin/cc go vet -tags test_dep ./... (15 diagnostics; equals baseline), go run ./tools/planindex (48 lines; equals baseline)
 - PRs:
+stage: plan-sync - skipped(config: planSync.enabled != true)
