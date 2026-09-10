@@ -52,7 +52,7 @@ example :
         some ("limit-reached", false)) := by
   native_decide
 
-def targetRelativeEmptyBehavior : CheckedBehavior := {
+def targetRelativeEmptyBehavior : CheckedScenario := {
   behavior with
   actionsExactly := some [request, request]
   behaviorFingerprint := behaviorFingerprintOf "behavior/target-relative-empty-v1"
@@ -67,7 +67,7 @@ example :
       some ("unsatisfiable", false, false) := by
   native_decide
 
-def staticallyUnsatisfiableBehavior : CheckedBehavior := {
+def staticallyUnsatisfiableBehavior : CheckedScenario := {
   behavior with
   spaceStatus := .unsatisfiable
   behaviorFingerprint := behaviorFingerprintOf "behavior/statically-unsatisfiable-v1"

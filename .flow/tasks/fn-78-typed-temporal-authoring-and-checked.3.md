@@ -11,7 +11,7 @@ Implement D2 and R2 by exposing typed authoring forms for the Behavior constrain
 **Touches:** [model/Umpire/Behavior/**]
 
 ### Approach
-- Generalize the existing `ExactSequenceSpec` authoring owner with typed forms for allowed/forbidden actions, required named occurrences, occurrence bounds, ordering, and adjacency.
+- Generalize the existing `Scenario` authoring owner with typed forms for allowed/forbidden actions, required named occurrences, occurrence bounds, ordering, and adjacency.
 - Lower every surface form into the existing checked Behavior declaration before validation, canonicalization, and evaluation.
 - Keep exact action-sequence and exact-trace fixtures as explicit constructs; do not silently broaden them into ordering constraints.
 - Use Lean elaboration/source diagnostics where context is needed and compile-failure guards at the author expression.
@@ -35,7 +35,7 @@ Implement D2 and R2 by exposing typed authoring forms for the Behavior constrain
 - [ ] No new form authorizes a transition absent from the Target, and no union/interleaving/repetition semantics are introduced.
 - [ ] Focused Behavior tests and `make umpire-build-model` pass; final architecture documentation is owned by the qualification task.
 ## Done summary
-Implemented typed BehaviorSpec/BehaviorConstraint lowering through the unchanged canonical Behavior checker. Existing ExactSequenceSpec lowering remains unchanged, and behavior% supports both named and inline specs with the existing source diagnostics.
+Implemented typed Scenario/Scenario.Constraint lowering through the unchanged canonical Behavior checker. Existing Scenario lowering remains unchanged, and scenario% supports both named and inline specs with the existing source diagnostics.
 
 Task: fn-78-typed-temporal-authoring-and-checked.3
 Status: complete and ready for the user to commit; changes remain uncommitted as instructed.
@@ -47,7 +47,7 @@ Changed files:
 
 Coverage: R2/R9 constructor/surface canonical and fingerprint equality; literal pinned exact-sequence fingerprint; exact actions versus exact trace outcomes; before/inOrder permit allowed intervening actions while adjacent rejects them; a two-occurrence constraint checks but planning with two-step limits reports impossible on the one-transition Target. R6 compile guards cover malformed bounds, missing action/occurrence references, wrong reference kind, and wrong context. Inline exact/constraint authoring guards retain expected-type elaboration.
 
-Trust: BehaviorSpec.declaration uses [propext]; BehaviorSpec.checked uses [propext, Classical.choice, Quot.sound], matching the existing authoring boundary. No added native_decide, custom axioms, or Target/Language semantics changes.
+Trust: Scenario.declaration uses [propext]; Scenario.checked uses [propext, Classical.choice, Quot.sound], matching the existing authoring boundary. No added native_decide, custom axioms, or Target/Language semantics changes.
 
 Baseline: make lint-code failed pre-edit (/tmp/fn78-task3-baseline-lint-code.log). Initial simultaneous model build/lint suffered missing .olean artifact races; subsequent model gates were serialized. Focused red/green test logs: /tmp/fn78-task3-red.log and /tmp/fn78-task3-focused-final.log.
 

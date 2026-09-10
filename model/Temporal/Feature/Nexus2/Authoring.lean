@@ -1,7 +1,7 @@
 import Temporal.Feature.Nexus2.Cancellation
 import Temporal.Feature.Nexus2.Race
-import Umpire.Property.Authoring
-import Umpire.Behavior.Authoring
+import Umpire.Property.Elab
+import Umpire.Scenario.Elab
 import Umpire.Query.Authoring
 
 /-! Constructor comparison specimens over the already admitted Nexus2 Targets. -/
@@ -18,33 +18,32 @@ def family : DefinitionFamily := {
   root := Temporal.Shared.definitionId "temporal.nexus2.basic-lifecycle"
 }
 
-def propertySpec
+def authoredProperty
     (key : String)
-    (action state outcome fact : ModelValue) : PropertySpec := {
-  family
-  key
+    (action state outcome fact : ModelValue) : Property := {
+  id := family.id "property" key
   source := Cancellation.source
   requires := [lifecycleCapabilityId]
   clauses := stepClauses family key action state outcome fact
 }
 
-def behaviorSpec
+def authoredScenario
     (key setupKey occurrenceKey : String)
-    (initialState action : ModelValue) : ExactSequenceSpec := {
-  family
-  key
-  source := Cancellation.source
-  requires := [lifecycleCapabilityId]
-  roles := [Cancellation.operationRole]
-  setup := [SetupConstraint.roleEquals (family.id "setup" setupKey)
-    operationRoleId initialState]
-  occurrences := [{ key := occurrenceKey, action := action.definitionId }]
-}
+    (initialState action : ModelValue) : Scenario :=
+  Scenario.exactly
+    (family := family)
+    (key := key)
+    (source := Cancellation.source)
+    (requires := [lifecycleCapabilityId])
+    (roles := [Cancellation.operationRole])
+    (setup := [SetupConstraint.roleEquals (family.id "setup" setupKey)
+      operationRoleId initialState])
+    (occurrences := [{ key := occurrenceKey, action := action.definitionId }])
 
 def querySpec
     (key : String)
     (property : CheckedProperty)
-    (behavior : CheckedBehavior) : QuerySpec := {
+    (behavior : CheckedScenario) : QuerySpec := {
   family
   key
   source := Cancellation.source
@@ -59,12 +58,12 @@ inductive AdmissionError where
   | invalidTarget (error : TableAdmissionError)
   | invalidVocabulary (error : FiniteTableError)
   | invalidProperty (error : PropertyError)
-  | invalidBehavior (error : BehaviorError)
+  | invalidBehavior (error : ScenarioError)
   | invalidQuery (error : QueryError)
 
 structure CheckedOperation where
   property : CheckedProperty
-  behavior : CheckedBehavior
+  behavior : CheckedScenario
   query : CheckedQuery LawStatement
 
 structure CheckedBaseline where
@@ -76,8 +75,8 @@ structure CheckedBaseline where
 
 private def checkOperation
     (target : QueryModel LawStatement)
-    (property : PropertySpec)
-    (behavior : ExactSequenceSpec)
+    (property : Property)
+    (behavior : Scenario)
     (queryKey : String) : Except AdmissionError CheckedOperation := do
   let property ← property.check (PropertyCheckContext.ofTarget target)
     |>.mapError AdmissionError.invalidProperty
@@ -92,15 +91,15 @@ def checkBaseline : Except AdmissionError CheckedBaseline := do
   let target ← targetResult.mapError AdmissionError.invalidTarget
   let model ← Cancellation.modelVocabulary.mapError AdmissionError.invalidVocabulary
   let start ← checkOperation target
-    (propertySpec "start" model.startAction model.startedState model.startedOutcome model.startedFact)
-    (behaviorSpec "start" "scheduled" "start" model.scheduledState model.startAction) "start"
+    (authoredProperty "start" model.startAction model.startedState model.startedOutcome model.startedFact)
+    (authoredScenario "start" "scheduled" "start" model.scheduledState model.startAction) "start"
   let cancel ← checkOperation target
-    (propertySpec "cancel" model.cancelAction model.canceledState model.canceledOutcome model.canceledFact)
-    (behaviorSpec "cancel" "started-cancel" "cancel" model.startedState model.cancelAction) "cancel"
+    (authoredProperty "cancel" model.cancelAction model.canceledState model.canceledOutcome model.canceledFact)
+    (authoredScenario "cancel" "started-cancel" "cancel" model.startedState model.cancelAction) "cancel"
   let success ← checkOperation target
-    (propertySpec "success" model.reportSuccessAction model.succeededState
+    (authoredProperty "success" model.reportSuccessAction model.succeededState
       model.succeededOutcome model.succeededFact)
-    (behaviorSpec "success" "started-success" "success" model.startedState
+    (authoredScenario "success" "started-success" "success" model.startedState
       model.reportSuccessAction) "success"
   pure { target, model, start, cancel, success }
 
@@ -140,9 +139,8 @@ def resolutionCase (model : ModelVocabulary) : PropertyCase := {
   clauses := [sameStep "resolve.terminal" (.factIs model.terminalFact)]
 }
 
-def propertySpec (model : ModelVocabulary) : PropertySpec := {
-  family
-  key := "cases"
+def authoredProperty (model : ModelVocabulary) : Property := {
+  id := (family).id "property" "cases"
   source
   version := 2
   requires := [capabilityId]
@@ -159,23 +157,23 @@ def propertySpec (model : ModelVocabulary) : PropertySpec := {
   }]
 }
 
-def behaviorSpec (model : ModelVocabulary) : ExactSequenceSpec := {
-  family
-  key := "request-then-resolve"
-  source
-  requires := [capabilityId]
-  roles := [operationRole]
-  setup := [SetupConstraint.roleEquals (family.id "setup" "started")
-    operationRoleId model.startedState]
-  occurrences := [
+def authoredScenario (model : ModelVocabulary) : Scenario :=
+  Scenario.exactly
+    (family := family)
+    (key := "request-then-resolve")
+    (source := source)
+    (requires := [capabilityId])
+    (roles := [operationRole])
+    (setup := [SetupConstraint.roleEquals (family.id "setup" "started")
+    operationRoleId model.startedState])
+    (occurrences := [
     { key := "request", action := model.requestCancelAction.definitionId },
     { key := "resolution", action := model.resolveAction.definitionId }
-  ]
-}
+  ])
 
 def querySpec
     (property : CheckedProperty)
-    (behavior : CheckedBehavior) : QuerySpec := {
+    (behavior : CheckedScenario) : QuerySpec := {
   family
   key := "case-analysis"
   source
@@ -187,9 +185,9 @@ def querySpec
 }
 
 /-- Separate alternative specimen: the exception is explicit and has no replacement case. -/
-def withoutReplacement (model : ModelVocabulary) : PropertySpec :=
+def withoutReplacement (model : ModelVocabulary) : Property :=
   let request := requestCase model
-  { propertySpec model with clauses := [.sameStepCases {
+  { authoredProperty model with clauses := [.sameStepCases {
     id := family.id "case-group" "missing-replacement"
     source
     guard := .selectedActionIs model.requestCancelAction

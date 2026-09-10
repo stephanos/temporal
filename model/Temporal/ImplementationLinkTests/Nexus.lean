@@ -482,7 +482,7 @@ def behaviorFingerprintDriftResult : FeaturePropertyResult := evaluateFeaturePro
 def mutatedPropertyId : DefinitionId :=
   id "temporal.test.nexus.feature.property.mutated-start"
 
-def mutatedPropertyDeclaration : PropertyDeclaration := {
+def mutatedPropertyDeclaration : Property := {
   id := mutatedPropertyId
   source := Temporal.Feature.Nexus.Operations.source
   requires := [Temporal.Feature.Nexus.Lifecycle.lifecycleCapabilityId]
@@ -498,8 +498,8 @@ def mutatedPropertyDeclaration : PropertyDeclaration := {
 }
 
 def mutatedPropertyResult : Except PropertyError CheckedProperty :=
-  checkProperty (PropertyCheckContext.ofTarget Temporal.Feature.Nexus.Lifecycle.target)
-    (.portable mutatedPropertyDeclaration)
+  Property.check (PropertyCheckContext.ofTarget Temporal.Feature.Nexus.Lifecycle.target)
+    (mutatedPropertyDeclaration)
 
 private theorem mutatedPropertyResult_isSome : mutatedPropertyResult.toOption.isSome = true := by
   native_decide

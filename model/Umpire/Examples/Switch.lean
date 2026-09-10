@@ -412,7 +412,7 @@ theorem target_off_flip_applied_authoritative :
   change authoritativeStep offState flipAction appliedResult
   exact ⟨rfl, .inl ⟨rfl, .inl rfl⟩⟩
 
-def propertyDeclaration : PropertyDeclaration := {
+def authoredProperty : Property := {
   id := flipPropertyId
   source
   requires := [switchCapabilityId]
@@ -425,21 +425,21 @@ def propertyDeclaration : PropertyDeclaration := {
 }
 
 def propertyResult : Except PropertyError CheckedProperty :=
-  checkProperty (PropertyCheckContext.ofTarget target) (.portable propertyDeclaration)
+  Property.check (PropertyCheckContext.ofTarget target) (authoredProperty)
 
 private theorem propertyResult_isSome : propertyResult.toOption.isSome = true := by
   native_decide
 
 def flipProperty : CheckedProperty :=
-  checkedProperty (PropertyCheckContext.ofTarget target) (.portable propertyDeclaration)
+  Property.checked (PropertyCheckContext.ofTarget target) (authoredProperty)
     propertyResult_isSome
 
-def switchRole : ResourceRole := { id := switchRoleId, valueKind := .state }
+def switchRole : Scenario.Role := { id := switchRoleId, valueKind := .state }
 
 def setupConstraint : SetupConstraint :=
   SetupConstraint.roleEquals (id "switch.setup.subject-is-off") switchRoleId offState
 
-def exploratoryBehaviorDeclaration : BehaviorDeclaration := {
+def exploratoryBehaviorDeclaration : Scenario := {
   id := exploratoryBehaviorId
   source
   requires := [switchCapabilityId]
@@ -447,12 +447,12 @@ def exploratoryBehaviorDeclaration : BehaviorDeclaration := {
   setup := [setupConstraint]
   allowedActions := [flipActionId]
   requiredOccurrences := [{ id := id "switch.occurrence.flip", action := flipActionId }]
-  occurrenceBounds := [OccurrenceBound.exactly flipActionId 1]
+  occurrenceBounds := [Scenario.Count.exactly flipActionId 1]
   documentation := "Explore the finite switch outcomes for one selected flip."
 }
 
-def exactActionBehaviorDeclaration : BehaviorDeclaration :=
-  BehaviorDeclaration.exactlyOneAction exactActionBehaviorId source
+def exactActionBehaviorDeclaration : Scenario :=
+  Scenario.exactlyOneAction exactActionBehaviorId source
     { id := id "switch.occurrence.flip", action := flipActionId }
     (requires := [switchCapabilityId])
     (roles := [switchRole])
@@ -470,7 +470,7 @@ def exactTrace : AuthoredExactTrace := {
   }]
 }
 
-def exactTraceBehaviorDeclaration : BehaviorDeclaration := {
+def exactTraceBehaviorDeclaration : Scenario := {
   exactActionBehaviorDeclaration with
   id := exactTraceBehaviorId
   traceExactly := some exactTrace
@@ -478,14 +478,14 @@ def exactTraceBehaviorDeclaration : BehaviorDeclaration := {
 }
 
 private def checkBehaviorDeclaration
-    (declaration : BehaviorDeclaration) : Except BehaviorError CheckedBehavior :=
-  checkBehavior (.ofTarget target) declaration
+    (declaration : Scenario) : Except ScenarioError CheckedScenario :=
+  Scenario.check (.ofTarget target) declaration
 
-def exploratoryBehaviorResult : Except BehaviorError CheckedBehavior :=
+def exploratoryBehaviorResult : Except ScenarioError CheckedScenario :=
   checkBehaviorDeclaration exploratoryBehaviorDeclaration
-def exactActionBehaviorResult : Except BehaviorError CheckedBehavior :=
+def exactActionBehaviorResult : Except ScenarioError CheckedScenario :=
   checkBehaviorDeclaration exactActionBehaviorDeclaration
-def exactTraceBehaviorResult : Except BehaviorError CheckedBehavior :=
+def exactTraceBehaviorResult : Except ScenarioError CheckedScenario :=
   checkBehaviorDeclaration exactTraceBehaviorDeclaration
 
 private theorem exploratoryBehaviorResult_isSome :
@@ -497,23 +497,23 @@ private theorem exactActionBehaviorResult_isSome :
 private theorem exactTraceBehaviorResult_isSome :
     exactTraceBehaviorResult.toOption.isSome = true := by native_decide
 
-def exploratoryBehavior : CheckedBehavior :=
-  checkedBehavior (.ofTarget target) exploratoryBehaviorDeclaration
+def exploratoryBehavior : CheckedScenario :=
+  Scenario.checked (.ofTarget target) exploratoryBehaviorDeclaration
     exploratoryBehaviorResult_isSome
 
-def exactActionBehavior : CheckedBehavior :=
-  checkedBehavior (.ofTarget target) exactActionBehaviorDeclaration
+def exactActionBehavior : CheckedScenario :=
+  Scenario.checked (.ofTarget target) exactActionBehaviorDeclaration
     exactActionBehaviorResult_isSome
 
-def exactTraceBehavior : CheckedBehavior :=
-  checkedBehavior (.ofTarget target) exactTraceBehaviorDeclaration
+def exactTraceBehavior : CheckedScenario :=
+  Scenario.checked (.ofTarget target) exactTraceBehaviorDeclaration
     exactTraceBehaviorResult_isSome
 
-def appliedTrace : BehaviorTrace :=
-  BehaviorTrace.singleStep switchSetup offState flipAction appliedResult
+def appliedTrace : Scenario.Trace :=
+  Scenario.Trace.singleStep switchSetup offState flipAction appliedResult
 
-def deferredTrace : BehaviorTrace :=
-  BehaviorTrace.singleStep switchSetup offState flipAction deferredResult
+def deferredTrace : Scenario.Trace :=
+  Scenario.Trace.singleStep switchSetup offState flipAction deferredResult
 
 def limits : QueryLimits := QueryLimits.bounded 1 1 8
 
@@ -524,7 +524,7 @@ def queryContext : QueryCheckContext LawStatement := .ofTarget target
 private def queryDeclaration
     (queryId : DefinitionId)
     (form : QueryForm)
-    (behavior : CheckedBehavior) : QueryDeclaration := {
+    (behavior : CheckedScenario) : QueryDeclaration := {
   id := queryId
   source
   target := target.id

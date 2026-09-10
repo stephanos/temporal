@@ -82,7 +82,7 @@ def clause (bound : Nat) (endpoint : PropertyScopedEndpoint := .runtimePrefix) :
   endpoint
 }
 
-def declaration (bound : Nat) (endpoint : PropertyScopedEndpoint := .runtimePrefix) : PropertyDeclaration := {
+def declaration (bound : Nat) (endpoint : PropertyScopedEndpoint := .runtimePrefix) : Property := {
   id := id "test.property"
   source
   requires := [id "test.capability"]
@@ -91,7 +91,7 @@ def declaration (bound : Nat) (endpoint : PropertyScopedEndpoint := .runtimePref
 }
 
 def property (target : TestTarget) (bound : Nat) (endpoint : PropertyScopedEndpoint := .runtimePrefix) :=
-  checkProperty (context target) (.portable (declaration bound endpoint))
+  Property.check (context target) ((declaration bound endpoint))
 
 def limits : Limits := { transitions := 1000, obligations := 1000, work := 1000000 }
 def scope : List (DefinitionId × String) := [(id "test.run", "run-1")]

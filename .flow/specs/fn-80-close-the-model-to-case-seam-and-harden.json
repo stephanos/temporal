@@ -1639,7 +1639,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-80-close-the-model-to-case-seam-and-harden.md",
-  "status": "open",
+  "status": "done",
   "title": "Close the model-to-Case seam and harden runtime liveness",
   "tracker": {
     "baseHashFlow": null,
@@ -1652,5 +1652,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-10T02:43:13.097671Z"
+  "updated_at": "2026-09-10T06:35:37.990599Z"
 }
