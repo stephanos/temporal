@@ -10,7 +10,9 @@
     "fn-82-unify-the-umpire-and-testpilot"
   ],
   "id": "fn-83-author-a-live-case-from-a-model-file",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-83-author-a-live-case-from-a-model-file.1": 0
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
@@ -303,15 +305,75 @@
       "task": null,
       "timestamp": "2026-09-10T06:22:17.094985Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "97d1f81e421b3ca4d95706807e80cbd8fc8ac0c531d0868ce40d955fc40811b4",
+      "backend": "claude",
+      "base_sha": "e399191fd3614fbe8f516efc49f115f2e3046155",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": "nonzero_exit",
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "bcfe3f5c40cd348e8482d1f4cf9b363bb4f1b13b",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "transport_failure",
+      "output_bytes": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "reservation_id": "902dd6fba95143d48890d720e8324239",
+      "round_consumed": false,
+      "scope": "impl:fn-83-author-a-live-case-from-a-model-file.1",
+      "superseded_by": null,
+      "task": "fn-83-author-a-live-case-from-a-model-file.1",
+      "timestamp": "2026-09-10T23:30:46.025874Z",
+      "verdict": null
+    },
+    {
+      "artifact_sha256": "97d1f81e421b3ca4d95706807e80cbd8fc8ac0c531d0868ce40d955fc40811b4",
+      "backend": "claude",
+      "base_sha": "e399191fd3614fbe8f516efc49f115f2e3046155",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "bcfe3f5c40cd348e8482d1f4cf9b363bb4f1b13b",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-sonnet-4-5",
+      "outcome": "verdict",
+      "output_bytes": 2971,
+      "output_sha256": "fbd7fe54796d7a9fb8a12220e103bbf77def1a0b11c4942e00d953bb76d53c8d",
+      "reservation_id": "f3b9ab89341b447e812bc8bc6e1bdf90",
+      "round_consumed": true,
+      "scope": "impl:fn-83-author-a-live-case-from-a-model-file.1",
+      "superseded_by": null,
+      "task": "fn-83-author-a-live-case-from-a-model-file.1",
+      "timestamp": "2026-09-10T23:36:28.928509Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-83-author-a-live-case-from-a-model-file.1": 1,
     "plan": 1,
     "plan#completion": 0
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "impl:fn-83-author-a-live-case-from-a-model-file.1": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-83-author-a-live-case-from-a-model-file.md",
@@ -328,5 +390,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-10T16:39:54.074945Z"
+  "updated_at": "2026-09-10T23:36:28.929099Z"
 }
