@@ -9,8 +9,8 @@ Nexus operation cancellation is deferred to fn-79. Implement and qualify this ge
 Implement D4's single checked scoped-obligation semantic kernel and its correspondence to existing Property meaning. Model, incremental, and offline evaluation must share one passive `compile / consume / close` transition contract over admitted projected semantic steps.
 
 **Size:** L
-**Files:** `model/Umpire/{Property,Observation}.lean` facade imports, `model/Umpire/Property/{Language,Authoring,Check,Evaluation,Trace,Tests/**}.lean`, focused scoped-obligation modules/tests under `model/Umpire/Property/`, `model/Umpire/Evidence/{Projection,Verdict,Evaluation/**}.lean`, `model/Temporal/Feature/Nexus3/{Testpilot,Tests}.lean` for the existing Producer rejection guard, `model/Umpire/Property/COMPATIBILITY.md` only if a semantic migration is required
-**Touches:** [model/Umpire/Property.lean, model/Umpire/Evidence.lean, model/Umpire/Property/**, model/Umpire/Evidence/Projection.lean, model/Umpire/Evidence/Verdict.lean, model/Temporal/Feature/Nexus3/Testpilot.lean, model/Temporal/Feature/Nexus3/Tests.lean, model/Umpire/Evidence/Evaluation/**, model/Umpire/Property/COMPATIBILITY.md]
+**Files:** `model/Umpire/{Property,Evidence}.lean` facade imports, `model/Umpire/Property/{Language,Authoring,Check,Evaluation,Trace,Tests/**}.lean`, focused scoped-obligation modules/tests under `model/Umpire/Property/`, `model/Umpire/Evidence/{Projection,Verdict,Evaluation/**}.lean`, `model/Temporal/Feature/Nexus3/{Testpilot,Tests}.lean` for the existing Producer rejection guard, `model/Umpire/Property/COMPATIBILITY.md` only if a semantic migration is required
+**Touches:** [model/Umpire/Property.lean, model/Umpire/Evidence.lean, model/Umpire/Property/**, model/Umpire/Case/Projection.lean, model/Umpire/Evidence/PropertyStatus.lean, model/Temporal/Feature/Nexus3/Testpilot.lean, model/Temporal/Feature/Nexus3/Tests.lean, model/Umpire/Evidence/Evaluate/**, model/Umpire/Property/COMPATIBILITY.md]
 
 ### Approach
 - Add a checked clause with trigger/response predicates, immutable correlation key, semantic clock, natural bound, and endpoint policy.
@@ -26,7 +26,7 @@ Implement D4's single checked scoped-obligation semantic kernel and its correspo
 - `model/Umpire/Property/Authoring.lean:65-109` — typed constructors
 - `model/Umpire/Property/Check.lean:505-599` — checked admission and diagnostics
 - `model/Umpire/Property/Evaluation.lean:572-655` — existing bounded temporal reference evaluator
-- `model/Umpire/Evidence/Verdict.lean` — evidence-backed verdict mapping
+- `model/Umpire/Evidence/PropertyStatus.lean` — evidence-backed verdict mapping
 
 ### Key context
 - Closing a selected finite trace with a live obligation violates; closing an incomplete runtime prefix without deadline evidence remains inconclusive.
@@ -51,7 +51,7 @@ The Observation adapter consumes only newly emitted semantic steps. Its exact ap
 
 Until portable lowering is provided by task7, the actual Nexus3 Producer rejects any scoped clause before producing a Case, with the responsible clause ID and source. Case.Compiler has no Property input, so the guard belongs in Temporal/Feature/Nexus3/Testpilot.lean. No cancellation capability or adapter was implemented.
 
-Extra owner paths beyond the Property subtree: model/Umpire/Evidence/Projection.lean (read-only admitted scope/key/initial-state getters), model/Umpire/Evidence/Evaluation/Scoped.lean (adapter), model/Umpire/{Property,Observation}.lean (facade imports), and model/Temporal/Feature/Nexus3/{Testpilot,Tests}.lean (whole-Case rejection and regression). Existing Flow changes and the conductor's System/Nexus/ImplementationLink.lean repair are outside this worker's implementation.
+Extra owner paths beyond the Property subtree: model/Umpire/Case/Projection.lean (read-only admitted scope/key/initial-state getters), model/Umpire/Case/Projection/Scoped.lean (adapter), model/Umpire/{Property,Evidence}.lean (facade imports), and model/Temporal/Feature/Nexus3/{Testpilot,Tests}.lean (whole-Case rejection and regression). Existing Flow changes and the conductor's System/Nexus/ImplementationLink.lean repair are outside this worker's implementation.
 
 Baseline: green focused Property/Projection build (36 jobs), /tmp/fn78-task6-baseline.log and .exit. Final focused gate: green, 152 jobs, /tmp/fn78-task6-gate-focused3.log and .exit; this includes Property.Tests.Scoped.Evidence and Nexus3 producer tests. Earlier iterative red logs are superseded by this final focused receipt. Full build passed 502 jobs, exit0 (/tmp/fn78-task6-build2.log and .exit). Final LEAN_NUM_THREADS=1 make lint-model passed exit0 (/tmp/fn78-task6-lint-model2.log and .exit), including all rebuilt scoped regression/axiom modules. Final git diff --check passed exit0. The full build preceded only removal of redundant eq_comm simp arguments in three proof branches; the final lint gate verifies this final source. The initial full-build facade import-order error and initial lint proof warnings were corrected; their red receipts are superseded by build2 and lint-model2.
 

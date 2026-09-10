@@ -58,8 +58,8 @@ Direct and reverse dependencies contain first-party modules only. V1 `publicFaca
 `Umpire.Model`, and `Umpire.Model.Check`.
 
 V1 `focusedTests` roots are exactly `ModelLint.ImportGraphTests`,
-`Temporal.Tool.SemanticInventoryMainTests`, `Temporal.Tool.SemanticInventoryMakeTestsMain`,
-`Temporal.Tool.SemanticInventoryTests`, `TemporalExperimentalTests`, `TemporalModelTests`,
+`Temporal.Tool.InventoryMainTests`, `Temporal.Tool.InventoryMakeTestsMain`,
+`Temporal.Tool.InventoryTests`, `TemporalExperimentalTests`, `TemporalModelTests`,
 `Testpilot.Tests`, `Testpilot.Tests.ProtoJSONMain`, `Umpire.Case.ScopedTests`,
 `Umpire.Evidence.Tests`, `Umpire.OutcomeClassification.ImportTests`,
 `Umpire.Search.SemanticsImportTests`, `Umpire.Property.Tests.Scoped`,
