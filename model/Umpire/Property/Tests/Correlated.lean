@@ -1,16 +1,16 @@
-import Umpire.Property.Tests.Scoped.Fixtures
+import Umpire.Property.Tests.Correlated.Fixtures
 import Umpire.Property.Elab
-import Umpire.Property.Scoped.Reference
+import Umpire.Property.Correlated.Reference
 
-/-! Scoped admission, independent deadlines, per-operation ticks, and resource failure boundaries. -/
+/-! Correlated admission, independent deadlines, per-operation ticks, and resource failure boundaries. -/
 
-namespace Umpire.Property.ScopedTests
+namespace Umpire.Property.CorrelatedTests
 
-open Property.Scoped
+open Property.Correlated
 
 private def answer (bound : Nat) (steps : List Transition)
-    (endpoint : PropertyScopedEndpoint := .«partial») : Option PropertyEndpointAnswer :=
-  (evaluate bound endpoint steps).toOption.bind fun answers => answers.head?.map Prod.snd
+    (ending : TraceEnding := .«partial») : Option PropertyEndpointAnswer :=
+  (evaluate bound ending steps).toOption.bind fun answers => answers.head?.map Prod.snd
 
 #guard ([0, 1, 3] : List Nat).all fun bound =>
   answer bound [step "a" both] == some .satisfied
@@ -63,9 +63,9 @@ private def error? (value : Except Error α) : Option Error :=
   error? (evaluate (count + 1) .«partial» (List.replicate (count + 1) (step "a" request))
     { limits with obligations := count }) == some .obligationsExhausted
 
-private def admissionError (changed : PropertyScopedClause) : Option PropertyError := do
+private def admissionError (changed : PropertyCorrelatedClause) : Option PropertyError := do
   let target ← targetResult.toOption
-  match Property.check (context target) ({ declaration 1 with scopedClauses := [changed] }) with
+  match Property.check (context target) ({ declaration 1 with correlatedRules := [changed] }) with
   | .ok _ => none
   | .error error => some error
 
@@ -77,18 +77,18 @@ private def admissionError (changed : PropertyScopedClause) : Option PropertyErr
   { clause 1 with key := id "test.run" },
   { clause 1 with scope := [] },
   { clause 1 with bound := 18446744073709551616 }
-] : List PropertyScopedClause).all fun changed =>
+] : List PropertyCorrelatedClause).all fun changed =>
   (admissionError changed).any fun error => error.definitionId == changed.id &&
     error.sourcePath == source.path
 
 #guard (do
   let target ← targetResult.toOption
   let first := clause 1
-  let second := { clause 2 with id := id "test.scoped.second" }
+  let second := { clause 2 with id := id "test.correlated.second" }
   let a ← (Property.check (context target)
-    ({ declaration 1 with scopedClauses := [first, second] })).toOption
+    ({ declaration 1 with correlatedRules := [first, second] })).toOption
   let b ← (Property.check (context target)
-    ({ declaration 1 with scopedClauses := [second, first] })).toOption
+    ({ declaration 1 with correlatedRules := [second, first] })).toOption
   pure (a.behaviorFingerprint == b.behaviorFingerprint && a.canonicalMetadata == b.canonicalMetadata)) == some true
 
 #guard (do
@@ -96,7 +96,7 @@ private def admissionError (changed : PropertyScopedClause) : Option PropertyErr
   let property ← (property target 1).toOption
   pure (error? (compile target property [id "test.other"] (id "test.operation") limits),
     (checkPropertyEvaluationInput property { initialState := state, steps := [] }).isOk)) ==
-  some (some (.unsupported (id "test.scoped.response") "producer scope/key mismatch"), false)
+  some (some (.unsupported (id "test.correlated.response") "producer scope/key mismatch"), false)
 
 private def streams : Nat → List (List Coordinate)
   | 0 => [[]]
@@ -117,32 +117,32 @@ private def independent (bound : Nat) (points : List Coordinate) : Bool :=
   pure ([PropertyPredicate.resultingStateIs state, PropertyPredicate.factIs fact].all fun responsePredicate =>
     let result := do
       let property ← (Property.check (context target) ({
-        declaration 0 with scopedClauses := [{ clause 0 with response := responsePredicate }] })).toOption
+        declaration 0 with correlatedRules := [{ clause 0 with response := responsePredicate }] })).toOption
       let compiled ← (compile target property [id "test.run"] (id "test.operation") limits).toOption
       let initial ← (compiled.start () state scope).toOption
       let run ← (initial.consume (step "a" both)).toOption
       pure (run.answers.map Prod.snd)
     result == some [.satisfied])) == some true
 
-/-- error: Unknown constant `Umpire.PropertyScopedEndpoint.terminalModel` -/
+/-- error: Unknown constant `Umpire.TraceEnding.terminalModel` -/
 #guard_msgs in
-#check PropertyScopedEndpoint.terminalModel
+#check TraceEnding.terminalModel
 
-/-- info: 'Umpire.Property.Scoped.Execution.closed_property' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+/-- info: 'Umpire.Property.Correlated.Execution.closed_property' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
-#print axioms Umpire.Property.Scoped.Execution.closed_property
+#print axioms Umpire.Property.Correlated.Execution.closed_property
 
-/-- info: 'Umpire.Property.Scoped.checked_eventuallyWithin_agrees' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+/-- info: 'Umpire.Property.Correlated.checked_eventuallyWithin_agrees' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
-#print axioms Umpire.Property.Scoped.checked_eventuallyWithin_agrees
-/-- info: 'Umpire.Property.Scoped.Run.consume' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#print axioms Umpire.Property.Correlated.checked_eventuallyWithin_agrees
+/-- info: 'Umpire.Property.Correlated.Run.consume' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
-#print axioms Umpire.Property.Scoped.Run.consume
-/-- info: 'Umpire.Property.Scoped.Run.consumeMany_append' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#print axioms Umpire.Property.Correlated.Run.consume
+/-- info: 'Umpire.Property.Correlated.Run.consumeMany_append' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
-#print axioms Umpire.Property.Scoped.Run.consumeMany_append
-/-- info: 'Umpire.Case.Projection.Scoped.Run.admitMany_append' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#print axioms Umpire.Property.Correlated.Run.consumeMany_append
+/-- info: 'Umpire.Case.Projection.Correlated.Run.admitMany_append' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
-#print axioms Umpire.Case.Projection.Scoped.Run.admitMany_append
+#print axioms Umpire.Case.Projection.Correlated.Run.admitMany_append
 
-end Umpire.Property.ScopedTests
+end Umpire.Property.CorrelatedTests

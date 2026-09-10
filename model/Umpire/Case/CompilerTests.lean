@@ -1,5 +1,5 @@
 import Umpire.Case.Compiler
-import Umpire.Case.ScopedTests
+import Umpire.Case.CorrelatedTests
 
 namespace Umpire.Case.CompilerTests
 
@@ -9,7 +9,7 @@ open Umpire.Case.Compiler
 open Testpilot.Authoring
 open temporal.server.api.testpilot.v1
 
-private def property : CaseDefinitionBinding := {
+private def property : Provenance.DefinitionBinding := {
   definitionId := "example.property"
   behaviorFingerprint := "example-property/v1"
   kind := .property
@@ -23,15 +23,15 @@ private def source : SourceLocation := {
 }
 
 private def rule (id : String := "example.rule") : ContractRuleDefinition :=
-  Monitor.rule id .CONTRACT_RULE_KIND_SAFETY "satisfied"
-    #[Monitor.state "satisfied" .CONTRACT_STATE_STATUS_SATISFIED] #[]
+  Contract.rule id .CONTRACT_RULE_KIND_SAFETY "satisfied"
+    #[Contract.state "satisfied" .CONTRACT_STATE_STATUS_SATISFIED] #[]
 
 private def program : Program :=
   Program.make "example.program" #[] #[] #[] #[] (Program.cleanup "cleanup" #[])
     (Program.limits 1 1 1 1 1 16 4 1 1024 1024 1000 100)
 
 private def contractLimits : ContractLimits :=
-  Monitor.limits 2 2 1 4 4 64 1 64
+  Contract.limits 2 2 1 4 4 64 1 64
 
 private def input : Input := {
   version := { major := 1 }
@@ -68,7 +68,7 @@ private def planningGaps : KnownGapSet :=
   ]).toOption.get (by native_decide)
 
 private def inputWithPlanningGaps : Input := {
-  input with knownGaps := planningGaps.toCaseKnownGaps
+  input with knownGaps := planningGaps.toProvenanceGaps
 }
 
 private def expectedProducerData := String.intercalate "\n" [
@@ -133,7 +133,7 @@ private def expectedProducerData := String.intercalate "\n" [
   | .error _ => false
 
 private def rejectsAs (sourceDefinitionId : String) (expectedSource : SourceLocation)
-    (construct : String) (result : Except LoweringError temporal.server.api.testpilot.v1.Case) : Bool :=
+    (construct : String) (result : Except Error temporal.server.api.testpilot.v1.Case) : Bool :=
   match result with
   | .error failure =>
       failure.sourceDefinitionId == sourceDefinitionId && failure.source == expectedSource &&

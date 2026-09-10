@@ -17,11 +17,11 @@ const (
 // gets no Nexus handler shape at all.
 func workflowServiceRole(nexusHandlers int64) testpilot.RolePolicy {
 	shapes := []testpilot.ReservationCarrierShape{
-		{Context: testpilotspb.ENTRYPOINT_KIND_WORKFLOW, MaximumCount: 1},
+		{Kind: testpilotspb.ENTRYPOINT_KIND_WORKFLOW, MaximumCount: 1},
 	}
 	if nexusHandlers > 0 {
 		shapes = append(shapes, testpilot.ReservationCarrierShape{
-			Context: testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER, MaximumCount: nexusHandlers,
+			Kind: testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER, MaximumCount: nexusHandlers,
 		})
 	}
 	return testpilot.RolePolicy{
@@ -35,8 +35,8 @@ func workflowServiceRole(nexusHandlers int64) testpilot.RolePolicy {
 
 // nexusCapabilities is the instruction set a workflow-owned Nexus Case needs. The unary Case
 // declares its own narrower set instead of borrowing this one.
-func nexusCapabilities() []testpilot.Capability {
-	return []testpilot.Capability{
+func nexusCapabilities() []testpilot.Opcode {
+	return []testpilot.Opcode{
 		testpilot.InvokeRPC, testpilot.AwaitSlot, testpilot.CompleteNexusOperation,
 		testpilot.StartNexusOperation, testpilot.Await, testpilot.Finish, testpilot.RespondNexus,
 	}
@@ -49,14 +49,14 @@ func caseProfile(
 	catalog *testpilot.Catalog,
 	source *testpilotspb.Case,
 	roles []testpilot.RolePolicy,
-	capabilities []testpilot.Capability,
+	opcodes []testpilot.Opcode,
 	bindings []testpilot.EnvironmentBinding,
 ) testpilot.ProfileSpec {
 	return testpilot.ProfileSpec{
 		Identity:            identity,
 		Catalog:             catalog,
 		Roles:               roles,
-		Capabilities:        capabilities,
+		Opcodes:             opcodes,
 		EnvironmentBindings: bindings,
 		ProgramLimits:       proto.CloneOf(source.GetProgram().GetLimits()),
 		ContractLimits:      proto.CloneOf(source.GetContract().GetLimits()),

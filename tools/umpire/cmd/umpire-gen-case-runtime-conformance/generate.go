@@ -96,9 +96,9 @@ type rendererOutput struct {
 }
 
 type generationDependencies struct {
-	RenderScoped func(modelRoot string) (rendererOutput, error)
-	Render       func(modelRoot, argument string) (rendererOutput, error)
-	Publish      func(artifactio.Set, string, map[string][]byte, func(string) error) error
+	RenderCorrelated func(modelRoot string) (rendererOutput, error)
+	Render           func(modelRoot, argument string) (rendererOutput, error)
+	Publish          func(artifactio.Set, string, map[string][]byte, func(string) error) error
 }
 
 func Run(arguments []string) error {
@@ -152,8 +152,8 @@ func (value *generationModeValue) Set(encoded string) error {
 func defaultGenerationDependencies() generationDependencies {
 	return generationDependencies{
 		Render: renderLeanCase,
-		RenderScoped: func(modelRoot string) (rendererOutput, error) {
-			return renderExecutable(modelRoot, "umpire-scoped-fixtures")
+		RenderCorrelated: func(modelRoot string) (rendererOutput, error) {
+			return renderExecutable(modelRoot, "umpire-correlated-fixtures")
 		},
 		Publish: func(set artifactio.Set, root string, artifacts map[string][]byte, validate func(string) error) error {
 			return set.Publish(root, artifacts, validate)
@@ -201,7 +201,7 @@ func runGeneration(configuration generationConfig, entries []manifestEntry, depe
 	if err := validateArtifacts(entries, artifacts); err != nil {
 		return err
 	}
-	if err := renderScopedArtifacts(dependencies, modelRoot, artifacts); err != nil {
+	if err := renderCorrelatedArtifacts(dependencies, modelRoot, artifacts); err != nil {
 		return err
 	}
 	outputRoot, err := filepath.Abs(configuration.OutputRoot)
@@ -248,28 +248,28 @@ func renderStable(class string, render func() (rendererOutput, error)) ([]byte, 
 	return encoded, nil
 }
 
-func renderScopedArtifacts(dependencies generationDependencies, modelRoot string, artifacts map[string][]byte) error {
-	if dependencies.RenderScoped == nil {
+func renderCorrelatedArtifacts(dependencies generationDependencies, modelRoot string, artifacts map[string][]byte) error {
+	if dependencies.RenderCorrelated == nil {
 		return nil
 	}
-	encoded, err := renderStable("scoped", func() (rendererOutput, error) { return dependencies.RenderScoped(modelRoot) })
+	encoded, err := renderStable("correlated", func() (rendererOutput, error) { return dependencies.RenderCorrelated(modelRoot) })
 	if err != nil {
 		return err
 	}
 	if !json.Valid(encoded) {
-		return errors.New("invalid scoped fixtures")
+		return errors.New("invalid correlated fixtures")
 	}
-	artifacts[fixtureRoot+"/scoped.json"] = encoded
+	artifacts[fixtureRoot+"/correlated.json"] = encoded
 	return nil
 }
 
 func validateGeneratedArtifacts(entries []manifestEntry, artifacts, candidate map[string][]byte) error {
-	if expected, ok := artifacts[fixtureRoot+"/scoped.json"]; ok {
-		encoded := candidate[fixtureRoot+"/scoped.json"]
+	if expected, ok := artifacts[fixtureRoot+"/correlated.json"]; ok {
+		encoded := candidate[fixtureRoot+"/correlated.json"]
 		if !json.Valid(encoded) || !bytes.Equal(encoded, expected) {
-			return errors.New("invalid staged scoped fixtures")
+			return errors.New("invalid staged correlated fixtures")
 		}
-		delete(candidate, fixtureRoot+"/scoped.json")
+		delete(candidate, fixtureRoot+"/correlated.json")
 	}
 	return validateArtifacts(entries, candidate)
 }

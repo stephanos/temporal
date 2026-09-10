@@ -1,5 +1,5 @@
 import Testpilot.Authoring
-import Umpire.Case.Provenance
+import Umpire.Provenance
 import Umpire.Operation
 
 /-!
@@ -16,8 +16,8 @@ def source : Umpire.SourceLocation := {
   path := "Temporal/Testpilot.lean", line := 1, column := 1, provenance := "checked-model"
 }
 
-def binding (id fingerprint : String) (kind : Umpire.Case.CaseDefinitionKind) :
-    Umpire.Case.CaseDefinitionBinding :=
+def binding (id fingerprint : String) (kind : Umpire.Provenance.DefinitionKind) :
+    Umpire.Provenance.DefinitionBinding :=
   { definitionId := id, behaviorFingerprint := fingerprint, kind }
 
 def textType : ValueType := Types.singular (Types.scalar .SCALAR_KIND_TEXT)
@@ -80,12 +80,12 @@ def programLimits : ProgramLimits :=
   Program.limits 4 16 24 8 16 256 12 32 32768 4096 30000 5000
 
 def contractLimits : ContractLimits :=
-  Monitor.limits 4 16 16 12 100000 1000000000 4 8192
+  Contract.limits 4 16 16 12 100000 1000000000 4 8192
 
 def provenance (producerId producerVersion : String)
-    (definitions : List Umpire.Case.CaseDefinitionBinding)
+    (definitions : List Umpire.Provenance.DefinitionBinding)
     (sources : List Umpire.SourceLocation)
-    (knownGaps : List Umpire.Case.CaseKnownGap) : CaseProvenance :=
-  Umpire.Case.Provenance.make { producerId, producerVersion, definitions, sources, knownGaps }
+    (knownGaps : List Umpire.Provenance.KnownGap) : CaseProvenance :=
+  Umpire.Provenance.make { producerId, producerVersion, definitions, sources, knownGaps }
 
 end Temporal.Testpilot.CaseSupport

@@ -43,7 +43,7 @@ func TestSyntheticCaseStrictDecodeAndNoIOAdmission(t *testing.T) {
 			{ID: "task.queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE},
 		},
 		EnvironmentBindings: []testpilot.EnvironmentBinding{{ID: "namespace", Value: "namespace"}, {ID: "task.queue", Value: "task-queue"}},
-		Capabilities:        []testpilot.Capability{testpilot.Finish},
+		Opcodes:             []testpilot.Opcode{testpilot.Finish},
 		ProgramLimits:       proto.CloneOf(source.GetProgram().GetLimits()),
 		ContractLimits:      proto.CloneOf(source.GetContract().GetLimits()),
 	}
@@ -87,7 +87,7 @@ func TestSyntheticCaseGoAdmissionRejectsRawInvalidInputs(t *testing.T) {
 			{ID: "task.queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE},
 		},
 		EnvironmentBindings: []testpilot.EnvironmentBinding{{ID: "namespace", Value: "namespace"}, {ID: "task.queue", Value: "task-queue"}},
-		Capabilities:        []testpilot.Capability{testpilot.Finish},
+		Opcodes:             []testpilot.Opcode{testpilot.Finish},
 		ProgramLimits:       proto.CloneOf(source.GetProgram().GetLimits()),
 		ContractLimits:      proto.CloneOf(source.GetContract().GetLimits()),
 	}
@@ -135,10 +135,10 @@ func TestLeanCasesDecodeAndGetSystemInfoPreparesWithoutDriverIO(t *testing.T) {
 	getSystemInfo := loadLeanCase(t, "get-system-info")
 	asyncNexus := loadLeanCase(t, "async-nexus")
 	require.NotEqual(t, getSystemInfo.GetProgram().GetProgramId(), asyncNexus.GetProgram().GetProgramId())
-	// The async Nexus Case's Contract is its scoped capability; the system-info Case's is a rule.
+	// The async Nexus Case's Contract is its correlated capability; the system-info Case's is a rule.
 	require.Len(t, getSystemInfo.GetContract().GetRules(), 1)
 	require.Empty(t, asyncNexus.GetContract().GetRules())
-	require.NotNil(t, asyncNexus.GetContract().GetScoped())
+	require.NotNil(t, asyncNexus.GetContract().GetCorrelated())
 
 	catalog, err := temporal.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
@@ -150,7 +150,7 @@ func TestLeanCasesDecodeAndGetSystemInfoPreparesWithoutDriverIO(t *testing.T) {
 			Kind:    testpilotspb.ROLE_KIND_ENDPOINT,
 			Methods: []string{"/temporal.api.workflowservice.v1.WorkflowService/GetSystemInfo"},
 		}},
-		Capabilities:   []testpilot.Capability{testpilot.InvokeRPC},
+		Opcodes:        []testpilot.Opcode{testpilot.InvokeRPC},
 		ProgramLimits:  proto.CloneOf(getSystemInfo.GetProgram().GetLimits()),
 		ContractLimits: proto.CloneOf(getSystemInfo.GetContract().GetLimits()),
 	}}
@@ -288,13 +288,13 @@ func TestLeanAsyncNexusBindingsPrepareAcrossProfilesAndRejectBeforeDispatch(t *t
 	require.Zero(t, validating.opens)
 }
 
-type caseDefinitionBinding struct {
+type provenanceDefinitionBinding struct {
 	DefinitionID        string `json:"definitionId"`
 	BehaviorFingerprint string `json:"behaviorFingerprint"`
 	Kind                string `json:"kind"`
 }
 
-type caseKnownGap struct {
+type provenanceKnownGap struct {
 	Code string `json:"code"`
 }
 
@@ -308,8 +308,8 @@ func TestLeanAsyncNexusCasePreparesWithCheckedNexus3Provenance(t *testing.T) {
 	require.Equal(t, "1", source.GetProvenance().GetProducerVersion())
 
 	var provenance struct {
-		Definitions []caseDefinitionBinding `json:"definitions"`
-		KnownGaps   []caseKnownGap          `json:"knownGaps"`
+		Definitions []provenanceDefinitionBinding `json:"definitions"`
+		KnownGaps   []provenanceKnownGap          `json:"knownGaps"`
 	}
 	require.NoError(t, json.Unmarshal(source.GetProvenance().GetProducerData(), &provenance))
 	require.Equal(t, []string{
@@ -329,7 +329,7 @@ func TestLeanAsyncNexusCasePreparesWithCheckedNexus3Provenance(t *testing.T) {
 	}
 	require.Equal(t, []string{
 		"temporal.nexus3.known-gap.cancellation",
-		"temporal.nexus3.known-gap.operation-scoped-progress",
+		"temporal.nexus3.known-gap.operation-correlated-progress",
 	}, knownGapCodes(provenance.KnownGaps))
 }
 
@@ -413,7 +413,7 @@ func TestLeanAsyncNexusPreparedCaseReuseAndCorrelation(t *testing.T) {
 	}
 }
 
-func definitionIDs(definitions []caseDefinitionBinding) []string {
+func definitionIDs(definitions []provenanceDefinitionBinding) []string {
 	result := make([]string, len(definitions))
 	for index, definition := range definitions {
 		result[index] = definition.DefinitionID
@@ -421,7 +421,7 @@ func definitionIDs(definitions []caseDefinitionBinding) []string {
 	return result
 }
 
-func definitionKinds(definitions []caseDefinitionBinding) []string {
+func definitionKinds(definitions []provenanceDefinitionBinding) []string {
 	result := make([]string, len(definitions))
 	for index, definition := range definitions {
 		result[index] = definition.Kind
@@ -429,7 +429,7 @@ func definitionKinds(definitions []caseDefinitionBinding) []string {
 	return result
 }
 
-func knownGapCodes(knownGaps []caseKnownGap) []string {
+func knownGapCodes(knownGaps []provenanceKnownGap) []string {
 	result := make([]string, len(knownGaps))
 	for index, knownGap := range knownGaps {
 		result[index] = knownGap.Code

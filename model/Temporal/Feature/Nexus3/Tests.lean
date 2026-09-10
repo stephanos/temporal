@@ -12,13 +12,13 @@ open temporal.server.api.testpilot.v1
 
 private def admitted := completion.toOption
 
--- The Case's Contract is the scoped capability and nothing else: no monitor rule, and one clause
+-- The Case's Contract is the correlated capability and nothing else: no monitor rule, and one clause
 -- per `require` line the model wrote.
 #guard match Temporal.Feature.Nexus3.Testpilot.completionCase, admitted with
   | .ok output, some checked =>
       output.case_id == "temporal.case.async-nexus-success" &&
       output.contract.map (·.rules.isEmpty) == some true &&
-      (match output.contract.bind (·.«scoped») with
+      (match output.contract.bind (·.«correlated») with
         | some capability =>
             capability.clauses.map (·.clause_id) ==
               (checked.property.clauses.map (·.id.value)).toArray
@@ -31,7 +31,7 @@ private def produceWith
     (property? : Option CheckedProperty := none)
     (behavior? : Option CheckedScenario := none)
     (witness? : Option Scenario.Trace := admitted.bind (·.witness)) :
-    Except Compiler.LoweringError temporal.server.api.testpilot.v1.Case := do
+    Except Compiler.Error temporal.server.api.testpilot.v1.Case := do
   let checked ← completion.mapError fun _ => {
     sourceDefinitionId := "temporal.nexus3.query.completion"
     source := Authoring.source
@@ -53,7 +53,7 @@ private def propertyWithClauses (clauses : List PropertyClause) : Option Checked
 
 private def invariantClauseId : DefinitionId := .of "temporal.nexus3.property.state-invariant"
 
-/-- A clause form with no trigger and no response: an operation-scoped clause is a bounded response,
+/-- A clause form with no trigger and no response: an operation-correlated clause is a bounded response,
 so an invariant is not a shape it can carry. -/
 private def invariantProperty? : Option CheckedProperty := do
   let checked ← admitted
@@ -72,14 +72,14 @@ private def negatedProperty? : Option CheckedProperty := do
     { field := .resultingState, reference := (checked.vocabulary.stateAt 2).definitionId,
       constraint := .notEquals (checked.vocabulary.stateAt 1).value }]
 
-private def rejected : Except Compiler.LoweringError temporal.server.api.testpilot.v1.Case → Bool
+private def rejected : Except Compiler.Error temporal.server.api.testpilot.v1.Case → Bool
   | .error _ => true
   | .ok _ => false
 
 -- Requiring a clause this Case does not carry rejects at whole-Case coverage, before any Driver
 -- I/O could observe anything.
 #guard match (do
-    let checked ← completion.mapError fun _ => Compiler.LoweringError.mk
+    let checked ← completion.mapError fun _ => Compiler.Error.mk
       "temporal.nexus3.query.completion" Authoring.source "checked-completion"
     Temporal.Feature.Nexus3.Testpilot.produce checked
       [DefinitionId.of "temporal.nexus3.property.absent"]) with
@@ -100,7 +100,7 @@ private def rejected : Except Compiler.LoweringError temporal.server.api.testpil
             (payload.splitOn gap.code.value).length ≥ 2) == some true
   | _, _ => false
 
--- A clause form the scoped capability cannot carry rejects by name.
+-- A clause form the correlated capability cannot carry rejects by name.
 
 #guard match produceWith (property? := invariantProperty?) with
   | .error error =>
@@ -115,19 +115,19 @@ private def rejected : Except Compiler.LoweringError temporal.server.api.testpil
   | .ok _ => false
 
 /-- The identity-bearing shape of a produced Case: its provenance payload and the clause ids of the
-scoped capability it carries. -/
+correlated capability it carries. -/
 private def caseShape
-    (produced : Except Compiler.LoweringError temporal.server.api.testpilot.v1.Case) :
+    (produced : Except Compiler.Error temporal.server.api.testpilot.v1.Case) :
     Option (List UInt8 × List String) :=
   match produced with
   | .ok output =>
       some ((output.provenance.map (·.producer_data.toList)).getD [],
-        ((output.contract.bind (·.«scoped»)).map fun capability =>
+        ((output.contract.bind (·.«correlated»)).map fun capability =>
           capability.clauses.toList.map (·.clause_id)).getD [])
   | .error _ => none
 
 private def differsFromCompletionCase
-    (produced : Except Compiler.LoweringError temporal.server.api.testpilot.v1.Case) : Bool :=
+    (produced : Except Compiler.Error temporal.server.api.testpilot.v1.Case) : Bool :=
   (caseShape produced).isSome &&
     caseShape produced != caseShape Temporal.Feature.Nexus3.Testpilot.completionCase
 
@@ -156,7 +156,7 @@ private def changedWitness? : Option Scenario.Trace := admitted.bind fun checked
 private def checkedBindings : Bool :=
   match admitted, Temporal.Feature.Nexus3.Testpilot.completionCase with
   | some checked, .ok output =>
-      -- The Property binding carries the derived scoped Property: the Case records the Property it
+      -- The Property binding carries the derived correlated Property: the Case records the Property it
       -- actually lowered, whose fingerprint differs from the authored same-step one.
       (output.provenance.map fun provenance =>
         (String.fromUTF8? provenance.producer_data).any fun payload =>
@@ -295,7 +295,7 @@ query renamedQuery on renamedLifecycle
   limits renamedTrace
 
 private def renamedCheckedModel :
-    Except Compiler.LoweringError (Authoring.CheckedModel renamedLifecycle) :=
+    Except Compiler.Error (Authoring.CheckedModel renamedLifecycle) :=
   renamedQuery.mapError fun _ => {
     sourceDefinitionId := "temporal.nexus3.query.renamedQuery"
     source := Authoring.source
@@ -303,7 +303,7 @@ private def renamedCheckedModel :
   }
 
 private def originalCheckedModel :
-    Except Compiler.LoweringError (Authoring.CheckedModel lifecycle) :=
+    Except Compiler.Error (Authoring.CheckedModel lifecycle) :=
   completion.mapError fun _ => {
     sourceDefinitionId := "temporal.nexus3.query.completion"
     source := Authoring.source
@@ -311,7 +311,7 @@ private def originalCheckedModel :
   }
 
 private def renamedTargetResult :
-    Except Compiler.LoweringError temporal.server.api.testpilot.v1.Case := do
+    Except Compiler.Error temporal.server.api.testpilot.v1.Case := do
   let _ ← originalCheckedModel
   let renamed ← renamedCheckedModel
   Temporal.Feature.Nexus3.Testpilot.produce renamed
@@ -324,10 +324,10 @@ private def renamedOccurrences (values : Authoring.ModelVocabulary) : Scenario :
     Authoring.occurrence "successfulCompletion.finish" (values.actionAt 1).definitionId]
 
 private def renamedBehaviorResult :
-    Except Compiler.LoweringError temporal.server.api.testpilot.v1.Case := do
+    Except Compiler.Error temporal.server.api.testpilot.v1.Case := do
   let checked ← originalCheckedModel
   let renamedBehavior ← ((renamedOccurrences checked.vocabulary).check
-    (.ofTarget checked.target)).mapError fun _ => Compiler.LoweringError.mk
+    (.ofTarget checked.target)).mapError fun _ => Compiler.Error.mk
       checked.behavior.id.value Authoring.source "checked-behavior"
   Temporal.Feature.Nexus3.Testpilot.produce { checked with «behavior» := renamedBehavior }
 
@@ -456,7 +456,7 @@ private def startClauses (values : Authoring.ModelVocabulary) : Property :=
   let started ← checkedPropertyOf (startClauses checked.vocabulary)
   match produceWith (property? := some started) with
   | .ok output =>
-      match output.contract.bind (·.«scoped») with
+      match output.contract.bind (·.«correlated») with
       | some capability =>
           pure (output.contract.map (·.rules.isEmpty) == some true &&
             capability.clauses.size == 3 &&
@@ -465,10 +465,10 @@ private def startClauses (values : Authoring.ModelVocabulary) : Property :=
                 some (checked.vocabulary.actionAt 0).definitionId.value) &&
             -- Canonical clause order, so the three responses arrive by clause id.
             (capability.clauses.map fun clause =>
-              (clause.response.map (·.field)).getD .SCOPED_PREDICATE_FIELD_UNSPECIFIED) == #[
-                .SCOPED_PREDICATE_FIELD_FACT,
-                .SCOPED_PREDICATE_FIELD_OUTCOME,
-                .SCOPED_PREDICATE_FIELD_RESULTING_STATE])
+              (clause.response.map (·.field)).getD .CORRELATED_PREDICATE_FIELD_UNSPECIFIED) == #[
+                .CORRELATED_PREDICATE_FIELD_FACT,
+                .CORRELATED_PREDICATE_FIELD_OUTCOME,
+                .CORRELATED_PREDICATE_FIELD_STATE])
       | none => pure false
   | .error _ => pure false) == some true
 
@@ -477,12 +477,12 @@ theorem checkedKnownGapsSurviveAdmission : admitted.map (fun checked =>
       kind := .capability
       code := DefinitionId.of "temporal.nexus3.known-gap.cancellation"
       subject := some (DefinitionId.of "temporal.nexus3.property.cancellationResolves")
-      detail := some "Operation-scoped Nexus cancellation is unsupported by the success slice."
+      detail := some "Operation-correlated Nexus cancellation is unsupported by the success slice."
     }, {
       kind := .capability
-      code := DefinitionId.of "temporal.nexus3.known-gap.operation-scoped-progress"
+      code := DefinitionId.of "temporal.nexus3.known-gap.operation-correlated-progress"
       subject := some (DefinitionId.of "temporal.nexus3.property.cancellationResolves")
-      detail := some "Operation-scoped progress counting is unsupported by the success slice."
+      detail := some "Operation-correlated progress counting is unsupported by the success slice."
     }]) = some true := by
   native_decide
 
@@ -615,7 +615,7 @@ query verifiedCompletion on lifecycle
 /- A Case realizes one selected trace, so the Producer rejects a verify-form model as
 witness-absent rather than lowering a Contract nothing selected. -/
 #guard match (do
-    let checked ← verifiedCompletion.mapError fun _ => Compiler.LoweringError.mk
+    let checked ← verifiedCompletion.mapError fun _ => Compiler.Error.mk
       "temporal.nexus3.query.verifiedCompletion" Authoring.source "checked-verified"
     Temporal.Feature.Nexus3.Testpilot.produce checked) with
   | .error error => error.construct == "witness.absent"

@@ -162,7 +162,7 @@ func TestCancellationBeforeAndDuringAdmissionIsAtomic(t *testing.T) {
 }
 
 func TestTriggerFailuresRetireRoutesAndCancelAdmittedWork(t *testing.T) {
-	for _, disposition := range []TriggerDisposition{TriggerRejected, TriggerCanceled, TriggerNonSuccess, TriggerUncertain} {
+	for _, disposition := range []TriggerStatus{TriggerRejected, TriggerCanceled, TriggerNonSuccess, TriggerUncertain} {
 		t.Run(disposition.String(), func(t *testing.T) {
 			f := newFixture(t, "run", "session")
 			header := workflowHeader(t, f)

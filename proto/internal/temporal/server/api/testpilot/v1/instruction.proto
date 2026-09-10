@@ -11,10 +11,10 @@ enum ProjectionKind {
   PROJECTION_KIND_ONE = 1;
   PROJECTION_KIND_EMIT_EACH = 2;
 }
-// ScopedEvidenceBinding names one ScopedEvidence slot and what supplies it: a path read from the
+// CorrelatedEvidenceBinding names one CorrelatedEvidence slot and what supplies it: a path read from the
 // projected value, or a literal the Case declares. A Run coordinate that the recorded fact does not
 // itself carry is declared, never invented from Driver state.
-message ScopedEvidenceBinding {
+message CorrelatedEvidenceBinding {
   string field_id = 1;
   oneof value {
     FieldPath path = 2;
@@ -22,22 +22,22 @@ message ScopedEvidenceBinding {
   }
 }
 
-// ScopedEvidenceRule lifts one recorded fact into a ScopedEvidence value. `guard` selects the rule:
+// CorrelatedEvidenceRule lifts one recorded fact into a CorrelatedEvidence value. `guard` selects the rule:
 // it fires only where that path resolves and, when `guard_equals_text` is set, only where it reads
 // exactly that text. So one rule per recorded kind selects itself and `kind` is the literal the
 // selected shape denotes. Every path is read from the projected value; no Run field, wall clock or
 // Driver state is reachable from here.
-message ScopedEvidenceRule {
+message CorrelatedEvidenceRule {
   FieldPath guard = 1;
-  repeated ScopedEvidenceBinding scope = 2;
+  repeated CorrelatedEvidenceBinding scope = 2;
   string source = 3;
   FieldPath operation = 4;
   string kind = 5;
-  repeated ScopedEvidenceBinding fields = 6;
+  repeated CorrelatedEvidenceBinding fields = 6;
   string guard_equals_text = 7;
 }
 
-// ScopedEvidenceProjection is the Program-declared source of the ScopedEvidence a scoped capability
+// CorrelatedEvidenceProjection is the Program-declared source of the CorrelatedEvidence a correlated capability
 // reads. Its rules are tried in declaration order and the first whose guard resolves supplies the
 // Observation; a projected value no rule claims emits nothing.
 //
@@ -45,16 +45,16 @@ message ScopedEvidenceRule {
 // count of values this lift has already emitted from the same projected list rather than anything
 // read out of the value. The projector requires exactly that: independent sources have independent
 // zero-based ordinals, and only the emitter can count them.
-message ScopedEvidenceProjection {
+message CorrelatedEvidenceProjection {
   string observation_id = 1;
-  repeated ScopedEvidenceRule rules = 2;
+  repeated CorrelatedEvidenceRule rules = 2;
 }
 
 message ProjectionTarget {
   oneof target {
     string slot_id = 1;
     string observation_id = 2;
-    ScopedEvidenceProjection scoped_evidence = 3;
+    CorrelatedEvidenceProjection correlated_evidence = 3;
   }
 }
 message ResponseProjection {
@@ -127,7 +127,7 @@ message Instruction {
     AwaitSlot await_slot = 2;
     CompleteNexusOperation complete_nexus_operation = 3;
     StartNexusOperation start_nexus_operation = 4;
-    AwaitInstruction await_outcome = 5;
+    AwaitInstruction await_instruction = 5;
     Finish finish = 6;
     RespondNexus respond_nexus = 7;
     InjectFault inject_fault = 8;
@@ -143,4 +143,24 @@ message InstructionDefinition {
   InstructionOutcomeDefinition outcome = 5;
   InstructionLimits limits = 6;
   repeated ActivationReservationDefinition activation_reservations = 7;
+}
+
+// Instruction outcome Status is normative Testpilot terminology.
+// (-- api-linter: core::0191::file-layout=disabled
+//     core::0216::synonyms=disabled --)
+// (-- api-linter: core::0216::synonyms=disabled --)
+enum InstructionOutcomeStatus {
+  INSTRUCTION_OUTCOME_STATUS_UNSPECIFIED = 0;
+  INSTRUCTION_OUTCOME_STATUS_SUCCEEDED = 1;
+  INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS = 2;
+  INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE = 3;
+  INSTRUCTION_OUTCOME_STATUS_TIMED_OUT = 4;
+  INSTRUCTION_OUTCOME_STATUS_CANCELED = 5;
+}
+message InstructionOutcome {
+  InstructionOutcomeStatus status = 1;
+  string protocol_code = 2;
+  string sdk_failure_code = 3;
+  string detail = 4;
+  Value value = 5;
 }

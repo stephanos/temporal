@@ -15,16 +15,16 @@ private def getSystemInfoProperty :=
     "temporal-case-get-system-info-property/v1" .property
 
 private def getSystemInfoRule : ContractRuleDefinition :=
-  Monitor.rule "server-version-present" .CONTRACT_RULE_KIND_SAFETY "pending"
-    #[Monitor.state "pending" .CONTRACT_STATE_STATUS_NONTERMINAL,
-      Monitor.state "satisfied" .CONTRACT_STATE_STATUS_SATISFIED]
-    #[Monitor.transition "observe-server-version" "pending" "satisfied"
+  Contract.rule "server-version-present" .CONTRACT_RULE_KIND_SAFETY "pending"
+    #[Contract.state "pending" .CONTRACT_STATE_STATUS_NONTERMINAL,
+      Contract.state "satisfied" .CONTRACT_STATE_STATUS_SATISFIED]
+    #[Contract.transition "observe-server-version" "pending" "satisfied"
       #[.RUN_EVENT_KIND_INSTRUCTION_COMPLETED]
       (ContractExpr.present (ContractExpr.observation "server-version"))
       .CONTRACT_SUPPORT_KIND_MATCHING_EVENT]
 
 /-- An orthogonal unary Case with an empty request and typed response projection. -/
-def getSystemInfoCase : Except Umpire.Case.Compiler.LoweringError Case :=
+def getSystemInfoCase : Except Umpire.Case.Compiler.Error Case :=
   let definitions := [
     binding "temporal.workflow-service" "temporal-workflow-service/v1" .target,
     getSystemInfoProperty

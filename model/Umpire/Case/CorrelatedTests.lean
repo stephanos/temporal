@@ -1,26 +1,26 @@
-import Umpire.Case.Tests.ScopedFixtures
+import Umpire.Case.Tests.CorrelatedFixtures
 
-namespace Umpire.Case.ScopedTests
-open ScopedFixtures
-open Umpire.Property.ScopedTests
+namespace Umpire.Case.CorrelatedTests
+open CorrelatedFixtures
+open Umpire.Property.CorrelatedTests
 open temporal.server.api.testpilot.v1
 
 private def first := scenarios[0]
-private def accepts (change : ScopedContract → ScopedContract) : Bool :=
-  ((capability first).bind (fun wire => Testpilot.Scoped.decode (change wire))).isOk
+private def accepts (change : CorrelatedContract → CorrelatedContract) : Bool :=
+  ((capability first).bind (fun wire => Testpilot.Correlated.decode (change wire))).isOk
 
 #guard !accepts (fun wire => { wire with version := 2 })
 #guard !accepts (fun wire => { wire with version := 0 })
 #guard !accepts (fun wire => { wire with clauses := wire.clauses.map fun clause => { clause with bound := -1 } })
 #guard !accepts (fun wire => { wire with clauses := wire.clauses.map fun clause => {
-  clause with clock := .SCOPED_CLOCK_UNSPECIFIED } })
+  clause with clock := .CORRELATED_CLOCK_UNSPECIFIED } })
 #guard !accepts (fun wire => { wire with limits := wire.limits.map fun limits => { limits with max_events := 0 } })
 #guard !accepts (fun wire => { wire with projection_rules := wire.projection_rules.map fun rule => {
   rule with outputs := rule.outputs.map fun output => { output with prior_state := wire.initial_state } } })
 
-private def admitted (change : ScopedEvidence → ScopedEvidence) : Bool :=
+private def admitted (change : CorrelatedEvidence → CorrelatedEvidence) : Bool :=
   (do
-    let compiled ← Testpilot.Scoped.decode (← capability first)
+    let compiled ← Testpilot.Correlated.decode (← capability first)
     let initial ← compiled.start scope
     let _ ← initial.observe 2 (change (evidence 0 "both"))
     pure () : Except String Unit).isOk
@@ -38,7 +38,7 @@ private def boundary (projectionWork obligationWork support : Int64) (eventSize 
     let wire := { wire with limits := wire.limits.map fun limits => { limits with
       max_projection_work := projectionWork, max_obligation_work := obligationWork, max_support := support,
       max_event_bytes := eventSize } }
-    let compiled ← Testpilot.Scoped.decode wire
+    let compiled ← Testpilot.Correlated.decode wire
     let initial ← compiled.start scope
     let _ ← initial.observe 2 (evidence 0 "both")
     pure () : Except String Unit).isOk
@@ -54,20 +54,20 @@ private def boundary (projectionWork obligationWork support : Int64) (eventSize 
   let projection ← (plan target).toOption
   pure (projection.behaviorVersion.startsWith "[\"checked-projection/v2\"")) == some true
 
-/-- info: 'Umpire.Case.Scoped.Lowered.window_property' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+/-- info: 'Umpire.Case.Correlated.Lowered.window_property' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
-#print axioms Umpire.Case.Scoped.Lowered.window_property
-/-- info: 'Umpire.Case.Scoped.Lowered.observed_property' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#print axioms Umpire.Case.Correlated.Lowered.window_property
+/-- info: 'Umpire.Case.Correlated.Lowered.observed_property' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
-#print axioms Umpire.Case.Scoped.Lowered.observed_property
-/-- info: 'Umpire.Case.ScopedProofs.endpoint_agrees' depends on axioms: [propext] -/
+#print axioms Umpire.Case.Correlated.Lowered.observed_property
+/-- info: 'Umpire.Case.CorrelatedProofs.endpoint_agrees' depends on axioms: [propext] -/
 #guard_msgs in
-#print axioms Umpire.Case.ScopedProofs.endpoint_agrees
-/-- info: 'Umpire.Case.Scoped.Lowered.evidence_validation' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#print axioms Umpire.Case.CorrelatedProofs.endpoint_agrees
+/-- info: 'Umpire.Case.Correlated.Lowered.evidence_validation' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
-#print axioms Umpire.Case.Scoped.Lowered.evidence_validation
-/-- info: 'Testpilot.Scoped.Run.observe' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#print axioms Umpire.Case.Correlated.Lowered.evidence_validation
+/-- info: 'Testpilot.Correlated.Run.observe' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
-#print axioms Testpilot.Scoped.Run.observe
+#print axioms Testpilot.Correlated.Run.observe
 
-end Umpire.Case.ScopedTests
+end Umpire.Case.CorrelatedTests

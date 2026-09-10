@@ -32,16 +32,16 @@ func TestWorkerOutageCaseDeclaresAnEventCountHorizon(t *testing.T) {
 	}
 	require.NotNil(t, liveness)
 	require.Equal(t, "worker-outage-order", liveness.GetRuleId())
-	require.Positive(t, liveness.GetHorizon().GetRuleEvents())
-	require.Zero(t, liveness.GetHorizon().GetElapsedMilliseconds())
-	require.Equal(t, "expired", liveness.GetHorizon().GetViolationStateId())
+	require.Positive(t, liveness.GetDeadline().GetRuleEvents())
+	require.Zero(t, liveness.GetDeadline().GetElapsedMilliseconds())
+	require.Equal(t, "expired", liveness.GetDeadline().GetViolationStateId())
 
 	derived, err := temporal.DeriveProfile(source, catalog, temporal.Environment{
 		Identity: "worker-outage-profile", Namespace: workerOutageArtifactNamespace,
 		TaskQueue: workerOutageArtifactTaskQueue,
 	})
 	require.NoError(t, err)
-	require.Contains(t, derived.Capabilities, testpilot.InjectFault)
+	require.Contains(t, derived.Opcodes, testpilot.InjectFault)
 
 	prepared, err := testpilot.Prepare(source, derived)
 	require.NoError(t, err)

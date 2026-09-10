@@ -45,18 +45,18 @@ private def literalProgram : temporal.server.api.testpilot.v1.Program := Program
   (Program.cleanup "cleanup" #[])
   limits
 
-private def contract : Contract := Monitor.contract "contract" #[
-  Monitor.rule "rule" .CONTRACT_RULE_KIND_BOUNDED_LIVENESS "open"
-    #[Monitor.state "open" .CONTRACT_STATE_STATUS_NONTERMINAL,
-      Monitor.state "done" .CONTRACT_STATE_STATUS_SATISFIED,
-      Monitor.state "late" .CONTRACT_STATE_STATUS_VIOLATED]
-    #[Monitor.transition "complete" "open" "done" #[.RUN_EVENT_KIND_RUN_CLOSED]
+private def contract : Contract := Contract.contract "contract" #[
+  Contract.rule "rule" .CONTRACT_RULE_KIND_BOUNDED_LIVENESS "open"
+    #[Contract.state "open" .CONTRACT_STATE_STATUS_NONTERMINAL,
+      Contract.state "done" .CONTRACT_STATE_STATUS_SATISFIED,
+      Contract.state "late" .CONTRACT_STATE_STATUS_VIOLATED]
+    #[Contract.transition "complete" "open" "done" #[.RUN_EVENT_KIND_RUN_CLOSED]
       contractExpr .CONTRACT_SUPPORT_KIND_MATCHING_EVENT
-      #[Monitor.captureAssignment "captured" "result"]]
-    (horizon := some (Monitor.horizon 9223372036854775807 "late"))
-    (captures := #[Monitor.capture "captured" (Monitor.messageCapture
+      #[Contract.captureAssignment "captured" "result"]]
+    (deadline := some (Contract.deadline 9223372036854775807 "late"))
+    (captures := #[Contract.capture "captured" (Contract.messageCapture
       "temporal.server.api.testpilot.v1.FormatVersion")])
-] (Monitor.limits 1 3 1 16 32 64 1 1024)
+] (Contract.limits 1 3 1 16 32 64 1 1024)
 
 def literalCase : Case := Testpilot.Authoring.case 1 "case" literalProgram contract
   (provenance "testpilot-tests" "1" (ByteArray.mk #[0, 255, 128]))
@@ -126,7 +126,7 @@ private def tests : IO Unit := do
   assert (first.contains "\"maxAttempts\":\"9223372036854775807\"")
     "int64 upper bound was not rendered as a ProtoJSON string"
   assert (first.contains "\"elapsedMilliseconds\":\"9223372036854775807\"")
-    "monitor horizon was dropped"
+    "monitor deadline was dropped"
   assert (first.contains "AP+A") "opaque non-UTF-8 provenance bytes were not rendered"
   assert (first.contains "\"floatingPoint\":1.5") "floating value was dropped"
   assert (first.contains "\"enumValue\":{\"number\":1}") "enum value was dropped"

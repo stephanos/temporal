@@ -19,7 +19,7 @@ import (
 	"google.golang.org/protobuf/types/descriptorpb"
 )
 
-type scopedFacadeFixture struct {
+type correlatedFacadeFixture struct {
 	Name       string            `json:"name"`
 	Runnable   json.RawMessage   `json:"runnableCase"`
 	Events     []json.RawMessage `json:"events"`
@@ -27,75 +27,75 @@ type scopedFacadeFixture struct {
 	Incomplete bool              `json:"incomplete"`
 }
 
-func scopedFacadeFixtures(t testing.TB) []scopedFacadeFixture {
+func correlatedFacadeFixtures(t testing.TB) []correlatedFacadeFixture {
 	t.Helper()
-	encoded, err := os.ReadFile(facadeCorpusRoot + "/scoped.json")
+	encoded, err := os.ReadFile(facadeCorpusRoot + "/correlated.json")
 	require.NoError(t, err)
-	var fixtures []scopedFacadeFixture
+	var fixtures []correlatedFacadeFixture
 	require.NoError(t, json.Unmarshal(encoded, &fixtures))
 	return fixtures
 }
 
-func scopedFacadeInputs(t testing.TB, fixture scopedFacadeFixture) (*testpilotspb.Case, []*testpilotspb.ScopedEvidence) {
+func correlatedFacadeInputs(t testing.TB, fixture correlatedFacadeFixture) (*testpilotspb.Case, []*testpilotspb.CorrelatedEvidence) {
 	t.Helper()
 	source, err := testpilot.DecodeCaseProtoJSON(fixture.Runnable)
 	require.NoError(t, err)
-	events := make([]*testpilotspb.ScopedEvidence, len(fixture.Events))
+	events := make([]*testpilotspb.CorrelatedEvidence, len(fixture.Events))
 	for i, encoded := range fixture.Events {
-		events[i] = new(testpilotspb.ScopedEvidence)
+		events[i] = new(testpilotspb.CorrelatedEvidence)
 		require.NoError(t, protojson.Unmarshal(encoded, events[i]))
 	}
 	return source, events
 }
 
-func scopedFacadeProfile(t testing.TB, source *testpilotspb.Case) testpilot.ProfileSpec {
+func correlatedFacadeProfile(t testing.TB, source *testpilotspb.Case) testpilot.ProfileSpec {
 	t.Helper()
 	descriptors := facadeDescriptorClosure(testpilotspb.File_temporal_server_api_testpilot_v1_run_proto)
 	descriptors.File = append(descriptors.File, &descriptorpb.FileDescriptorProto{
-		Name: proto.String("test/scoped/source.proto"), Package: proto.String("test.scoped"), Syntax: proto.String("proto3"),
+		Name: proto.String("test/correlated/source.proto"), Package: proto.String("test.correlated"), Syntax: proto.String("proto3"),
 		Dependency: []string{testpilotspb.File_temporal_server_api_testpilot_v1_run_proto.Path()},
 		Service: []*descriptorpb.ServiceDescriptorProto{{Name: proto.String("Source"), Method: []*descriptorpb.MethodDescriptorProto{{
-			Name: proto.String("Read"), InputType: proto.String(".temporal.server.api.testpilot.v1.ScopedEvidence"), OutputType: proto.String(".temporal.server.api.testpilot.v1.ScopedEvidence"),
+			Name: proto.String("Read"), InputType: proto.String(".temporal.server.api.testpilot.v1.CorrelatedEvidence"), OutputType: proto.String(".temporal.server.api.testpilot.v1.CorrelatedEvidence"),
 		}}}},
 	})
 	catalog, err := testpilot.NewCatalog(descriptors)
 	require.NoError(t, err)
 	return testpilot.ProfileSpec{
-		Identity: "scoped-facade", Catalog: catalog,
-		Roles:         []testpilot.RolePolicy{{ID: "source", Kind: testpilotspb.ROLE_KIND_ENDPOINT, Methods: []string{"/test.scoped.Source/Read"}}},
-		Capabilities:  []testpilot.Capability{testpilot.InvokeRPC},
+		Identity: "correlated-facade", Catalog: catalog,
+		Roles:         []testpilot.RolePolicy{{ID: "source", Kind: testpilotspb.ROLE_KIND_ENDPOINT, Methods: []string{"/test.correlated.Source/Read"}}},
+		Opcodes:       []testpilot.Opcode{testpilot.InvokeRPC},
 		ProgramLimits: proto.CloneOf(source.GetProgram().GetLimits()), ContractLimits: proto.CloneOf(source.GetContract().GetLimits()),
 	}
 }
 
-type scopedFacadeDriver struct {
+type correlatedFacadeDriver struct {
 	identity testpilot.DriverIdentity
-	events   []*testpilotspb.ScopedEvidence
+	events   []*testpilotspb.CorrelatedEvidence
 	failAt   int
 	closeErr error
 	stop     context.CancelFunc
 }
 
-func (d *scopedFacadeDriver) Identity(context.Context) (testpilot.DriverIdentity, error) {
+func (d *correlatedFacadeDriver) Identity(context.Context) (testpilot.DriverIdentity, error) {
 	return d.identity, nil
 }
-func (*scopedFacadeDriver) Validate(context.Context, testpilot.PreparedProgram) error { return nil }
-func (d *scopedFacadeDriver) Open(context.Context, string, testpilot.PreparedProgram) (testpilot.Session, error) {
-	return &scopedFacadeSession{facadeSession: &facadeSession{driver: &facadeDriver{}}, driver: d}, nil
+func (*correlatedFacadeDriver) Validate(context.Context, testpilot.PreparedProgram) error { return nil }
+func (d *correlatedFacadeDriver) Open(context.Context, string, testpilot.PreparedProgram) (testpilot.Session, error) {
+	return &correlatedFacadeSession{facadeSession: &facadeSession{driver: &facadeDriver{}}, driver: d}, nil
 }
 
-type scopedFacadeSession struct {
+type correlatedFacadeSession struct {
 	*facadeSession
-	driver *scopedFacadeDriver
+	driver *correlatedFacadeDriver
 }
 
-func (s *scopedFacadeSession) InvokeRPC(_ context.Context, coordinate testpilot.Coordinate, endpoint string, method protoreflect.MethodDescriptor, _ proto.Message) (testpilot.EffectHandle, error) {
-	if endpoint != "source" || method.FullName() != "test.scoped.Source.Read" {
-		return nil, errors.New("unexpected scoped fixture RPC")
+func (s *correlatedFacadeSession) InvokeRPC(_ context.Context, coordinate testpilot.Coordinate, endpoint string, method protoreflect.MethodDescriptor, _ proto.Message) (testpilot.EffectHandle, error) {
+	if endpoint != "source" || method.FullName() != "test.correlated.Source.Read" {
+		return nil, errors.New("unexpected correlated fixture RPC")
 	}
 	index, err := strconv.Atoi(strings.TrimPrefix(coordinate.InstructionID, "read."))
 	if err != nil || index < 0 || index >= len(s.driver.events) {
-		return nil, errors.New("unexpected scoped fixture instruction")
+		return nil, errors.New("unexpected correlated fixture instruction")
 	}
 	if index == s.driver.failAt {
 		if s.driver.stop != nil {
@@ -108,18 +108,18 @@ func (s *scopedFacadeSession) InvokeRPC(_ context.Context, coordinate testpilot.
 		Response: proto.CloneOf(s.driver.events[index]),
 	}}, nil
 }
-func (s *scopedFacadeSession) Close(context.Context) error { return s.driver.closeErr }
+func (s *correlatedFacadeSession) Close(context.Context) error { return s.driver.closeErr }
 
-func TestScopedPublicFacade(t *testing.T) {
-	for _, fixture := range scopedFacadeFixtures(t) {
+func TestCorrelatedPublicFacade(t *testing.T) {
+	for _, fixture := range correlatedFacadeFixtures(t) {
 		if fixture.Incomplete {
 			continue
 		}
 		t.Run(fixture.Name, func(t *testing.T) {
-			source, events := scopedFacadeInputs(t, fixture)
-			prepared, err := testpilot.Prepare(source, scopedFacadeProfile(t, source))
+			source, events := correlatedFacadeInputs(t, fixture)
+			prepared, err := testpilot.Prepare(source, correlatedFacadeProfile(t, source))
 			require.NoError(t, err)
-			driver := &scopedFacadeDriver{identity: prepared.Identity(), events: events, failAt: -1}
+			driver := &correlatedFacadeDriver{identity: prepared.Identity(), events: events, failAt: -1}
 			run, verdict, err := prepared.Run(t.Context(), driver)
 			require.NoError(t, err)
 			want := map[int]testpilotspb.VerdictStatus{0: testpilotspb.VERDICT_STATUS_INCONCLUSIVE, 2: testpilotspb.VERDICT_STATUS_SATISFIED, 3: testpilotspb.VERDICT_STATUS_VIOLATED}[fixture.Expected]
@@ -138,21 +138,21 @@ func TestScopedPublicFacade(t *testing.T) {
 	}
 }
 
-func TestScopedFacadeFailureAndPriorProof(t *testing.T) {
-	fixtures := scopedFacadeFixtures(t)
+func TestCorrelatedFacadeFailureAndPriorProof(t *testing.T) {
+	fixtures := correlatedFacadeFixtures(t)
 	for _, name := range []string{"wrong-correlation", "lost", "stopped", "cleanup-after-violation"} {
 		t.Run(name, func(t *testing.T) {
 			fixture := fixtures[3]
 			if name == "cleanup-after-violation" {
 				fixture = fixtures[1]
 			}
-			source, events := scopedFacadeInputs(t, fixture)
+			source, events := correlatedFacadeInputs(t, fixture)
 			if name == "lost" || name == "stopped" {
-				source.Contract.Scoped.Clauses[0].Endpoint = testpilotspb.SCOPED_ENDPOINT_DELIBERATELY_CLOSED
+				source.Contract.Correlated.Clauses[0].Ending = testpilotspb.TRACE_ENDING_FINAL
 			}
-			prepared, err := testpilot.Prepare(source, scopedFacadeProfile(t, source))
+			prepared, err := testpilot.Prepare(source, correlatedFacadeProfile(t, source))
 			require.NoError(t, err)
-			driver := &scopedFacadeDriver{identity: prepared.Identity(), events: events, failAt: -1}
+			driver := &correlatedFacadeDriver{identity: prepared.Identity(), events: events, failAt: -1}
 			ctx, cancel := context.WithCancel(t.Context())
 			defer cancel()
 			switch name {
@@ -186,16 +186,16 @@ func TestScopedFacadeFailureAndPriorProof(t *testing.T) {
 	}
 }
 
-func TestScopedFacadeRepeatedConcurrentIsolation(t *testing.T) {
-	source, events := scopedFacadeInputs(t, scopedFacadeFixtures(t)[6])
-	prepared, err := testpilot.Prepare(source, scopedFacadeProfile(t, source))
+func TestCorrelatedFacadeRepeatedConcurrentIsolation(t *testing.T) {
+	source, events := correlatedFacadeInputs(t, correlatedFacadeFixtures(t)[6])
+	prepared, err := testpilot.Prepare(source, correlatedFacadeProfile(t, source))
 	require.NoError(t, err)
-	other := make([]*testpilotspb.ScopedEvidence, len(events))
+	other := make([]*testpilotspb.CorrelatedEvidence, len(events))
 	for i, event := range events {
 		other[i] = proto.CloneOf(event)
 	}
 	other[len(other)-1].Operation = "b"
-	drivers := []*scopedFacadeDriver{
+	drivers := []*correlatedFacadeDriver{
 		{identity: prepared.Identity(), events: events, failAt: -1},
 		{identity: prepared.Identity(), events: other, failAt: -1},
 	}
@@ -235,12 +235,12 @@ func TestScopedFacadeRepeatedConcurrentIsolation(t *testing.T) {
 	require.Len(t, ids, 20)
 }
 
-func TestScopedFacadeTenfoldLoad(t *testing.T) {
+func TestCorrelatedFacadeTenfoldLoad(t *testing.T) {
 	for _, kind := range []string{"evidence", "obligations", "buffer", "work"} {
 		for _, count := range []int{2, 20} {
 			t.Run(fmt.Sprintf("%s/%d", kind, count), func(t *testing.T) {
-				source, events := scopedFacadeInputs(t, scopedFacadeFixtures(t)[0])
-				source.Contract.Scoped.Clauses[0].Bound = 100
+				source, events := correlatedFacadeInputs(t, correlatedFacadeFixtures(t)[0])
+				source.Contract.Correlated.Clauses[0].Bound = 100
 				if kind == "obligations" {
 					events[0].Kind = "test.request"
 				}
@@ -263,14 +263,14 @@ func TestScopedFacadeTenfoldLoad(t *testing.T) {
 					source.Program.Entrypoints[0].Instructions = append(source.Program.Entrypoints[0].Instructions, instruction)
 				}
 				if kind == "obligations" || kind == "work" {
-					source.Contract.Scoped.Limits.MaxEvents = 32
+					source.Contract.Correlated.Limits.MaxEvents = 32
 				}
 				if kind == "work" {
-					source.Contract.Scoped.Limits.MaxObligationWork = 200
+					source.Contract.Correlated.Limits.MaxObligationWork = 200
 				}
-				prepared, err := testpilot.Prepare(source, scopedFacadeProfile(t, source))
+				prepared, err := testpilot.Prepare(source, correlatedFacadeProfile(t, source))
 				require.NoError(t, err)
-				driver := &scopedFacadeDriver{identity: prepared.Identity(), events: events, failAt: -1}
+				driver := &correlatedFacadeDriver{identity: prepared.Identity(), events: events, failAt: -1}
 				run, verdict, err := prepared.Run(t.Context(), driver)
 				require.NoError(t, err)
 				want, disposition := testpilotspb.VERDICT_STATUS_INCONCLUSIVE, testpilotspb.RUN_STATUS_COMPLETED
@@ -289,16 +289,16 @@ func TestScopedFacadeTenfoldLoad(t *testing.T) {
 	}
 }
 
-func TestScopedFacadeCaptureAdmission(t *testing.T) {
+func TestCorrelatedFacadeCaptureAdmission(t *testing.T) {
 	for _, bytes := range []bool{false, true} {
 		t.Run(fmt.Sprint(bytes), func(t *testing.T) {
-			source, _ := scopedFacadeInputs(t, scopedFacadeFixtures(t)[0])
+			source, _ := correlatedFacadeInputs(t, correlatedFacadeFixtures(t)[0])
 			if bytes {
 				source.Contract.Limits.MaxCaptureBytes = 1
 			} else {
 				source.Contract.Limits.MaxCaptures = 1
 			}
-			prepared, err := testpilot.Prepare(source, scopedFacadeProfile(t, source))
+			prepared, err := testpilot.Prepare(source, correlatedFacadeProfile(t, source))
 			require.Error(t, err)
 			require.Nil(t, prepared)
 		})

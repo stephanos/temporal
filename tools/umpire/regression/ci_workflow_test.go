@@ -191,7 +191,7 @@ func TestUmpireDocumentationStatesAttachedOwnershipAndBoundedClaim(t *testing.T)
 			"The Testpilot `.proto` files own the Case protocol",
 			"`common/testing/testpilot` owns the Profile/Driver contract",
 			"`common/testing/testpilot/temporal`",
-			"checks horizon expiry before every transition",
+			"checks deadline expiry before every transition",
 		},
 		"model/Umpire/ARCHITECTURE.md": {
 			"Case, Program, Contract, and Run vocabularies are finite, versioned, and bounded",

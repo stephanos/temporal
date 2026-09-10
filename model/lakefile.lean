@@ -23,9 +23,6 @@ input_file testpilotExpressionProto where
 input_file testpilotInstructionProto where
   path := "../proto/internal/temporal/server/api/testpilot/v1/instruction.proto"
 
-input_file testpilotOutcomeProto where
-  path := "../proto/internal/temporal/server/api/testpilot/v1/outcome.proto"
-
 input_file testpilotProgramProto where
   path := "../proto/internal/temporal/server/api/testpilot/v1/program.proto"
 
@@ -42,7 +39,6 @@ target testpilotProtocolSchemas (pkg : NPackage __name__) : FilePath := do
     testpilotContractProto,
     testpilotExpressionProto,
     testpilotInstructionProto,
-    testpilotOutcomeProto,
     testpilotProgramProto,
     testpilotRunProto,
     testpilotValueProto
@@ -104,8 +100,8 @@ lean_exe «umpire-inventory-make-tests» where
 lean_exe «umpire-goldens» where
   root := `Temporal.Tool.Goldens
 
-lean_exe «umpire-scoped-fixtures» where
-  root := `Umpire.Case.Tests.ScopedFixtureMain
+lean_exe «umpire-correlated-fixtures» where
+  root := `Umpire.Case.Tests.CorrelatedFixtureMain
 
 lean_exe modelLint where
   root := `ModelLint

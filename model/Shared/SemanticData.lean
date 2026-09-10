@@ -1,4 +1,4 @@
-/-! Inert named values shared by checked models and closed portable scoped execution. -/
+/-! Inert named values shared by checked models and closed portable correlated execution. -/
 namespace Shared.SemanticData
 
 structure Name where

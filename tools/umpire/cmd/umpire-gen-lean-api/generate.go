@@ -32,6 +32,9 @@ func run(configuration generationConfig) error {
 	if err != nil {
 		return err
 	}
+	if err := dropSkippedPackages(set, configuration.SkipPackages); err != nil {
+		return err
+	}
 	projection, err := buildProjection(set)
 	if err != nil {
 		return err

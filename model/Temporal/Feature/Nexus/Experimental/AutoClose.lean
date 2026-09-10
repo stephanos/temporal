@@ -1093,7 +1093,7 @@ judgement call — defensible, since the caller opted into `REQUEST_CANCEL` — 
 ## Where to go next
 
 * `../../../spec.md` — the design, including the locked decision this file produced.
-* `../../../lean-model-plan.md` — how the model was scoped, and the negative checks that keep it
+* `../../../lean-model-plan.md` — how the model was bounded, and the negative checks that keep it
   honest. Those are worth understanding: *deliberately break `deliverable` and confirm the proofs
   fail.* A model whose theorems survive a broken definition is proving nothing, and that check is
   the only thing standing between this file and comfortable fiction.

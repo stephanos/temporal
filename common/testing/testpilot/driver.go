@@ -125,7 +125,7 @@ type ReservationCarrierPlan struct {
 
 type ReservationTopology struct {
 	EntrypointID string
-	Context      testpilotspb.EntrypointKind
+	Kind         testpilotspb.EntrypointKind
 	Count        int64
 }
 
@@ -181,7 +181,7 @@ func (p PreparedProgram) ReservationCarrier(entrypointID, instructionID string) 
 	}
 	result := ReservationCarrierPlan{EndpointRoleID: plan.EndpointRoleID, Method: plan.Method, Reservations: make([]ReservationTopology, len(plan.Reservations)), Routes: make([]ReservationRoute, len(plan.Routes))}
 	for i, topology := range plan.Reservations {
-		result.Reservations[i] = ReservationTopology{EntrypointID: topology.EntrypointID, Context: topology.Context, Count: topology.Count}
+		result.Reservations[i] = ReservationTopology{EntrypointID: topology.EntrypointID, Kind: topology.Kind, Count: topology.Count}
 	}
 	for i, route := range plan.Routes {
 		result.Routes[i] = ReservationRoute{WorkflowEntrypointID: route.WorkflowEntrypointID, WorkflowOrdinal: route.WorkflowOrdinal, SourceInstructionID: route.SourceInstructionID, HandlerEntrypointID: route.HandlerEntrypointID, HandlerOrdinal: route.HandlerOrdinal}
@@ -189,8 +189,8 @@ func (p PreparedProgram) ReservationCarrier(entrypointID, instructionID string) 
 	return result, true
 }
 
-func (p EntrypointPlan) ID() string                           { return p.plan.ID() }
-func (p EntrypointPlan) Context() testpilotspb.EntrypointKind { return p.plan.Context() }
+func (p EntrypointPlan) ID() string                        { return p.plan.ID() }
+func (p EntrypointPlan) Kind() testpilotspb.EntrypointKind { return p.plan.Kind() }
 func (p EntrypointPlan) Activation() *testpilotspb.EntrypointDefinition {
 	return p.plan.Activation()
 }
@@ -206,7 +206,7 @@ func (p EntrypointPlan) Instructions() []InstructionPlan {
 func (p EntrypointPlan) RuntimeWorkLimit() int64 { return p.plan.RuntimeWorkLimit() }
 
 func (p InstructionPlan) Source() *testpilotspb.InstructionDefinition { return p.plan.Source() }
-func (p InstructionPlan) Opcode() Capability                          { return Capability(p.plan.Opcode()) }
+func (p InstructionPlan) Opcode() Opcode                              { return Opcode(p.plan.Opcode()) }
 func (p InstructionPlan) Dependencies() []int                         { return p.plan.Dependencies() }
 func (p InstructionPlan) Guard() *Expression {
 	if expression := p.plan.Guard(); expression != nil {
@@ -313,7 +313,7 @@ func (s sessionAdapter) InjectFault(ctx context.Context, coordinate execution.Co
 	return adaptEffect(handle, err)
 }
 
-func (s sessionAdapter) Bridge(ctx context.Context) (execution.SlotBridge, error) {
+func (s sessionAdapter) Bridge(ctx context.Context) (execution.CapabilityBridge, error) {
 	bridge, err := s.session.Bridge(ctx)
 	if err != nil {
 		return nil, err

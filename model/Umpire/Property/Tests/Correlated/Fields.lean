@@ -1,5 +1,5 @@
-import Umpire.Property.Scoped
-import Umpire.Case.Projection.Scoped
+import Umpire.Property.Correlated
+import Umpire.Case.Projection.Correlated
 import Umpire.Model.Table
 import Umpire.Property.Elab
 import Umpire.Operation.Action
@@ -7,7 +7,7 @@ import Umpire.Value.Field
 import Umpire.Shared.Test
 
 /-!
-Keyed field captures composed with the existing scoped bounded-response obligations.
+Keyed field captures composed with the existing correlated bounded-response obligations.
 
 The Target's actions are the model payloads of checked request projections, so a step's typed
 `count` field is exactly the field evidence its clause reads. One declared capture retains the
@@ -16,12 +16,12 @@ the request occurrence it names. Retained captures never change a countdown: the
 labeled transitions are the operation's semantic steps at all.
 -/
 
-namespace Umpire.Property.ScopedFieldTests
+namespace Umpire.Property.CorrelatedFieldTests
 
 open Umpire Operation Value
 
 private def id := DefinitionId.of
-private def source : SourceLocation := { path := "Umpire/Property/Tests/Scoped/Fields.lean" }
+private def source : SourceLocation := { path := "Umpire/Property/Tests/Correlated/Fields.lean" }
 
 private def schema : Schema := ⟨"M", [{
   name := "M", protoSyntax := "proto3", descriptor := "m", fileContext := "", references := [],
@@ -103,7 +103,7 @@ private def definitions : List DefinitionMetadata := kinds.map fun (name, kind) 
 private def provider : Provider (fun _ => True) := {
   id := id "test.provider"
   source
-  contract := { id := id "test.capability", behaviorVersion := "scoped-fields-test/v1", requiredLaws := [] }
+  contract := { id := id "test.capability", behaviorVersion := "correlated-fields-test/v1", requiredLaws := [] }
   meanings := (kinds.drop 4).map fun (name, kind) =>
     { definitionId := id name, kind, behaviorVersion := name ++ "/meaning-v1" }
   lawProofs := []
@@ -150,7 +150,7 @@ private def capturedPath (ordinal : Nat) (name : DefinitionId := captureName) : 
   { triggerPath with capture := some ⟨name, ordinal⟩ }
 
 private def capture (lifetime : Nat := 4) (key : DefinitionId := id "test.operation") :
-    PropertyScopedCapture := { name := captureName, key, path := triggerPath, lifetime }
+    PropertyCorrelatedCapture := { name := captureName, key, path := triggerPath, lifetime }
 
 /-- A reply belongs to this operation only when its own `count` equals the captured request
 occurrence. The request disjunct short-circuits before the capture operand is read, so the step
@@ -160,10 +160,10 @@ private def correlation (ordinal : Nat := 0) (name : DefinitionId := captureName
     PropertyPredicate.compareFields .equal (.field replyPath source)
       (.field (capturedPath ordinal name) source) source]
 
-private def clause (bound : Nat) (endpoint : PropertyScopedEndpoint := .«partial»)
-    (captures : List PropertyScopedCapture := [capture])
-    (requirement : Option PropertyPredicate := some (correlation)) : PropertyScopedClause := {
-  id := id "test.scoped.fields"
+private def clause (bound : Nat) (ending : TraceEnding := .«partial»)
+    (captures : List PropertyCorrelatedCapture := [capture])
+    (requirement : Option PropertyPredicate := some (correlation)) : PropertyCorrelatedClause := {
+  id := id "test.correlated.fields"
   source
   trigger := .atom { field := .selectedAction, reference := trigger }
   response := .atom {
@@ -173,25 +173,25 @@ private def clause (bound : Nat) (endpoint : PropertyScopedEndpoint := .«partia
   scope := [id "test.run"]
   key := id "test.operation"
   bound
-  endpoint
+  ending
   captures
   correlation := requirement
 }
 
-private def declaration (temporal : PropertyScopedClause) : Property := {
+private def declaration (temporal : PropertyCorrelatedClause) : Property := {
   id := id "test.property.fields"
   source
   requires := [id "test.capability"]
   clauses := []
-  scopedClauses := [temporal]
+  correlatedRules := [temporal]
 }
 
-private def runLimits : Scoped.Limits :=
+private def runLimits : Correlated.Limits :=
   { transitions := 1000, obligations := 1000, work := 1000000, captures := 1000 }
 private def scope : List (DefinitionId × String) := [(id "test.run", "run-1")]
 
 private def step (operation : String) (identity : DefinitionId) (count : Int) :
-    Scoped.Transition × List PropertyFieldEvidence :=
+    Correlated.Transition × List PropertyFieldEvidence :=
   ({ scope
      operationField := id "test.operation"
      operation
@@ -208,43 +208,43 @@ private structure Outcome where
   deriving BEq, DecidableEq, Repr
 
 /-- Consume the stream in the given chunks, so a split inside unresolved evidence is observable. -/
-private def runChunks (temporal : PropertyScopedClause)
-    (chunks : List (List (Scoped.Transition × List PropertyFieldEvidence)))
-    (budget : Scoped.Limits := runLimits) : Except Scoped.Error Outcome :=
+private def runChunks (temporal : PropertyCorrelatedClause)
+    (chunks : List (List (Correlated.Transition × List PropertyFieldEvidence)))
+    (budget : Correlated.Limits := runLimits) : Except Correlated.Error Outcome :=
   match targetResult with
-  | .error _ => throw Scoped.Error.invalidInitialState
+  | .error _ => throw Correlated.Error.invalidInitialState
   | .ok target => do
       let property ← (Property.check (context target) ((declaration temporal))).mapError
-        Scoped.Error.property
-      let compiled ← Scoped.compile target property [id "test.run"] (id "test.operation") budget
+        Correlated.Error.property
+      let compiled ← Correlated.compile target property [id "test.run"] (id "test.operation") budget
       let initial ← compiled.start () state scope
       let consumed ← chunks.foldlM (fun run chunk => run.consumeEvidence chunk) initial
       pure ⟨consumed.answers.map Prod.snd, consumed.close.answers.map Prod.snd⟩
 
-private def run (temporal : PropertyScopedClause)
-    (steps : List (Scoped.Transition × List PropertyFieldEvidence))
-    (budget : Scoped.Limits := runLimits) : Except Scoped.Error Outcome :=
+private def run (temporal : PropertyCorrelatedClause)
+    (steps : List (Correlated.Transition × List PropertyFieldEvidence))
+    (budget : Correlated.Limits := runLimits) : Except Correlated.Error Outcome :=
   runChunks temporal [steps] budget
 
-private def answer (temporal : PropertyScopedClause)
-    (steps : List (Scoped.Transition × List PropertyFieldEvidence))
-    (budget : Scoped.Limits := runLimits) : Option PropertyEndpointAnswer :=
+private def answer (temporal : PropertyCorrelatedClause)
+    (steps : List (Correlated.Transition × List PropertyFieldEvidence))
+    (budget : Correlated.Limits := runLimits) : Option PropertyEndpointAnswer :=
   (run temporal steps budget).toOption.bind (·.closed.head?)
 
-private def error? (temporal : PropertyScopedClause)
-    (steps : List (Scoped.Transition × List PropertyFieldEvidence))
-    (budget : Scoped.Limits := runLimits) : Option Scoped.Error :=
+private def error? (temporal : PropertyCorrelatedClause)
+    (steps : List (Correlated.Transition × List PropertyFieldEvidence))
+    (budget : Correlated.Limits := runLimits) : Option Correlated.Error :=
   match run temporal steps budget with
   | .ok _ => none
   | .error failure => some failure
 
 /-- Drop a step's evidence without changing the labeled transition it reports. -/
-private def unwitnessed (step : Scoped.Transition × List PropertyFieldEvidence) :
-    Scoped.Transition × List PropertyFieldEvidence := (step.1, [])
+private def unwitnessed (step : Correlated.Transition × List PropertyFieldEvidence) :
+    Correlated.Transition × List PropertyFieldEvidence := (step.1, [])
 
-private def errorKind? (temporal : PropertyScopedClause)
-    (steps : List (Scoped.Transition × List PropertyFieldEvidence))
-    (budget : Scoped.Limits := runLimits) : Option PropertyErrorKind :=
+private def errorKind? (temporal : PropertyCorrelatedClause)
+    (steps : List (Correlated.Transition × List PropertyFieldEvidence))
+    (budget : Correlated.Limits := runLimits) : Option PropertyErrorKind :=
   match error? temporal steps budget with
   | some (.property failure) => some failure.kind
   | _ => none
@@ -292,7 +292,7 @@ private def strayCapture : PropertyPredicate :=
 #guard answer (clause 2 (requirement := some (correlation 1)))
   [request "a" 1, request "a" 2, reply "a" 2] == some .satisfied
 
--- Matching responses keep the original inclusive deadline and endpoint semantics.
+-- Matching responses keep the original inclusive deadline and ending semantics.
 #guard answer (clause 0) [request "a" 1, reply "a" 1] == some .violated
 #guard (run (clause 1) [request "a" 1]).toOption == some ⟨[.unresolved], [.unresolved]⟩
 #guard (run (clause 1 .final) [request "a" 1]).toOption ==
@@ -304,12 +304,12 @@ private def strayCapture : PropertyPredicate :=
 #guard error? (clause 1 (captures := [capture (lifetime := 1)])) [request "a" 1, request "a" 2] ==
   some (.capture (.exhausted captureName))
 /-- Whether a rejected append leaves the established violation and the retained captures intact. -/
-private def rejectionPreserves (rejected : List (Scoped.Transition × List PropertyFieldEvidence))
-    (budget : Scoped.Limits := runLimits) : Option (Bool × List PropertyEndpointAnswer) := do
+private def rejectionPreserves (rejected : List (Correlated.Transition × List PropertyFieldEvidence))
+    (budget : Correlated.Limits := runLimits) : Option (Bool × List PropertyEndpointAnswer) := do
   let target ← targetResult.toOption
   let property ← (Property.check (context target)
     ((declaration (clause 0 .final)))).toOption
-  let compiled ← (Scoped.compile target property [id "test.run"] (id "test.operation")
+  let compiled ← (Correlated.compile target property [id "test.run"] (id "test.operation")
     budget).toOption
   let initial ← (compiled.start () state scope).toOption
   let violated ← (initial.consumeEvidence [request "a" 1]).toOption
@@ -320,7 +320,7 @@ private def rejectionPreserves (rejected : List (Scoped.Transition × List Prope
 
 -- Two interleaved operations retain separate captures, and every chunk boundary inside the stream
 -- preserves the same retained values, the same obligations and the same answers.
-private def interleaved : List (Scoped.Transition × List PropertyFieldEvidence) :=
+private def interleaved : List (Correlated.Transition × List PropertyFieldEvidence) :=
   [request "a" 1, request "b" 2, reply "a" 1, reply "b" 2]
 #guard (run (clause 3) interleaved).toOption == some ⟨[.satisfied], [.satisfied]⟩
 #guard error? (clause 3) [request "a" 1, request "b" 2, reply "a" 2] == some (.invalidTransition "a")
@@ -328,7 +328,7 @@ private def interleaved : List (Scoped.Transition × List PropertyFieldEvidence)
   (runChunks (clause 3) [interleaved.take split, interleaved.drop split]).toOption ==
     (run (clause 3) interleaved).toOption
 
--- A scoped Property that declares no captures keeps its exact canonical metadata, so existing
+-- A correlated Property that declares no captures keeps its exact canonical metadata, so existing
 -- declarations do not acquire a new fingerprint from the default-empty extension.
 #guard (do
   let target ← targetResult.toOption
@@ -362,10 +362,10 @@ private def plan (target : TestTarget) := Case.Projection.check target {
   let keyed ← (Property.check (context target) ((declaration (clause 1)))).toOption
   let bare ← (Property.check (context target)
     ((declaration (clause 1 (captures := []) (requirement := none))))).toOption
-  pure ((match Case.Projection.Scoped.compile projection keyed runLimits with
-      | .error (.property (.unsupported clauseId _)) => clauseId == id "test.scoped.fields"
+  pure ((match Case.Projection.Correlated.compile projection keyed runLimits with
+      | .error (.property (.unsupported clauseId _)) => clauseId == id "test.correlated.fields"
       | _ => false) &&
-    (Case.Projection.Scoped.compile projection bare runLimits).isOk)) == some true
+    (Case.Projection.Correlated.compile projection bare runLimits).isOk)) == some true
 
 -- A retained occurrence's presence was decided by the cursor that admitted it, so optional and
 -- oneof-selected coordinates can be captured and read back. The same coordinates read as this
@@ -376,12 +376,12 @@ private def oneofPath : PropertyFieldPath :=
   { triggerPath with steps := [.field "M" 3, .select "pick"], type := .text }
 private def expected : PropertyFieldOperand := .literal (.text "expected") source
 
-private def retaining (retained : PropertyFieldPath) : PropertyScopedClause :=
+private def retaining (retained : PropertyFieldPath) : PropertyCorrelatedClause :=
   clause 1 (captures := [{ capture with path := retained }])
     (requirement := some (PropertyPredicate.compareFields .equal
       (.field { retained with capture := some ⟨captureName, 0⟩ } source) expected source))
 
-private def reading (unretained : PropertyFieldPath) : PropertyScopedClause :=
+private def reading (unretained : PropertyFieldPath) : PropertyCorrelatedClause :=
   clause 1 (captures := [])
     (requirement := some (PropertyPredicate.compareFields .equal (.field unretained source)
       expected source))
@@ -391,14 +391,14 @@ private def reading (unretained : PropertyFieldPath) : PropertyScopedClause :=
 #guard errorKind? (reading optionalPath) [] == some .invalidClause
 #guard errorKind? (reading oneofPath) [] == some .invalidClause
 
-/-- info: 'Umpire.Property.Scoped.Captures.record_extends' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+/-- info: 'Umpire.Property.Correlated.Captures.record_extends' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
-#print axioms Umpire.Property.Scoped.Captures.record_extends
-/-- info: 'Umpire.Property.Scoped.Run.consumeEvidence_append' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#print axioms Umpire.Property.Correlated.Captures.record_extends
+/-- info: 'Umpire.Property.Correlated.Run.consumeEvidence_append' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
-#print axioms Umpire.Property.Scoped.Run.consumeEvidence_append
-/-- info: 'Umpire.Property.Scoped.Execution.closed_property' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#print axioms Umpire.Property.Correlated.Run.consumeEvidence_append
+/-- info: 'Umpire.Property.Correlated.Execution.closed_property' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
-#print axioms Umpire.Property.Scoped.Execution.closed_property
+#print axioms Umpire.Property.Correlated.Execution.closed_property
 
-end Umpire.Property.ScopedFieldTests
+end Umpire.Property.CorrelatedFieldTests
