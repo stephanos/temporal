@@ -1,5 +1,5 @@
 import Temporal.Case.Evidence
-import Temporal.Case.EventKind
+import Temporal.Case.Support
 
 /-!
 # The `nexusOperation` realization
@@ -19,6 +19,7 @@ filter, which cannot resolve until the workflow closes.
 namespace Temporal.Case.Template
 
 open Umpire
+open Temporal.Case.Support
 open Temporal.Testpilot.CaseSupport
 open Testpilot.Authoring
 open temporal.server.api.testpilot.v1
@@ -31,21 +32,9 @@ inductive Response where
 
 namespace NexusOperation
 
-def workflowServiceRole := "temporal.workflow-service"
-def workerRole := "temporal.worker"
-def taskQueueRole := "temporal.task-queue"
-def nexusEndpointRole := "temporal.nexus-endpoint"
 def workerNamespaceBinding := "temporal.worker.namespace"
 def taskQueueBinding := "temporal.task-queue.resource"
 def nexusEndpointBinding := "temporal.nexus-endpoint.resource"
-
-private def startWorkflowMethod :=
-  "/temporal.api.workflowservice.v1.WorkflowService/StartWorkflowExecution"
-private def getHistoryMethod :=
-  "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory"
-
-def historyObservation := "history-event"
-def correlatedObservation := "correlated-evidence"
 
 /-! ### Coordinates
 
@@ -103,11 +92,6 @@ private def historyAssignments : Array RequestAssignment := #[
   assign (field "maximum_page_size") (signedInteger 64),
   assign (field "wait_new_event") (boolean true)
 ]
-
-/-- `HISTORY_EVENT_FILTER_TYPE_CLOSE_EVENT`. The read blocks until the workflow closes and returns
-only the closing event, so it is what sequences the synchronous form's full read. -/
-private def closeEventFilter : ProgramExpression :=
-  ProgramExpr.literal (Value.enumeration 2)
 
 private def closeReadAssignments : Array RequestAssignment :=
   historyAssignments.push (assign (field "history_event_filter_type") closeEventFilter)
@@ -168,8 +152,7 @@ private def asyncProgram
         (resourceBindingId := nexusEndpointBinding)]
     #[Program.capabilitySlot "completion-authority"]
     #[Program.observation historyObservation historyEventType,
-      Program.observation correlatedObservation (Types.singular
-        (Types.messageType "temporal.server.api.testpilot.v1.CorrelatedEvidence"))]
+      Program.observation correlatedObservation correlatedEvidenceType]
     #[
       Program.controller "controller" #[
         startWorkflowNode workflowType,
@@ -210,8 +193,7 @@ private def syncProgram
         (resourceBindingId := nexusEndpointBinding)]
     #[]
     #[Program.observation historyObservation historyEventType,
-      Program.observation correlatedObservation (Types.singular
-        (Types.messageType "temporal.server.api.testpilot.v1.CorrelatedEvidence"))]
+      Program.observation correlatedObservation correlatedEvidenceType]
     #[
       Program.controller "controller" #[
         startWorkflowNode workflowType,
@@ -249,9 +231,9 @@ def nexusOperation (service operation : String) (responds : Response) :
     projectionId := NexusOperation.projectionId
     scopeField := NexusOperation.runFieldId
     operationKey := NexusOperation.operationFieldId
-    historyObservation := NexusOperation.historyObservation
-    correlatedObservation := NexusOperation.correlatedObservation
-    taskQueueRole := NexusOperation.taskQueueRole
+    historyObservation := Support.historyObservation
+    correlatedObservation := Support.correlatedObservation
+    taskQueueRole := Support.taskQueueRole
     faultRuleId := "nexus-operation-order"
     hooks := [
       { name := "start", instruction := Ref.instruction "controller" "start-workflow" },
