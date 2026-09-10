@@ -168,10 +168,10 @@ Both generated-view consumers require the same strict Experiment reader. The clo
 declaration set in `internal/artifactv2/artifact.go` and `natural.go`, not merely the exported names
 observed at the import boundary.
 
-- Direct consumer symbols: `ExperimentFormat`, `DrivePlanFormat`, `Experiment`, `DrivePlan`,
+- Direct consumer symbols: `ExperimentFormat`, `DrivePlanFormat`, `Experiment`, `Plan.Steps`,
   `Property`, `Provenance`, `SourceLocation`, `Natural`, `DecodeExperiment`,
   `CanonicalExperimentBytes`, `SealExperiment`, and `ValidDigest`.
-- Experiment data types reached by `DrivePlan`: `ModelValue`, `Binding`, `Role`, `Precondition`,
+- Experiment data types reached by `Plan.Steps`: `ModelValue`, `Binding`, `Role`, `Precondition`,
   `Operand`, `Occurrence`, `Limits`, `BehaviorLimits`, `Limit`, `Checkpoint`, `ExploredCounts`, and
   `KnownGap`.
 - Decode/canonical validation closure: `canonicalKeys`, `preflightFormat`, `validateJSONStructure`,

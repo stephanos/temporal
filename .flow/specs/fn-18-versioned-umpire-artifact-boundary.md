@@ -4,7 +4,7 @@
 
 ## Umpire4 v2 baseline
 
-Fn-37 owns the only supported DrivePlan and ExperimentSpec families: `umpire-drive-plan/v2` and
+Fn-37 owns the only supported Plan.Steps and Plan families: `umpire-drive-plan/v2` and
 `umpire-experiment/v2`. Fn-18 retains those schemas, Definition IDs, Behavior Fingerprints, Limits,
 and Known Gaps while establishing deterministic pretty JSON as their one canonical byte
 representation. Canonical objects preserve fixed field order, escaping, and number spelling, use
@@ -75,11 +75,11 @@ Behavior Fingerprints. The two types are never interchangeable.
 
 - Decode operations require one expected family and exact deterministic pretty canonical bytes with
   two-space indentation, no trailing spaces, and one terminal LF.
-- The v2 DrivePlan and ExperimentSpec codecs share one Lean/Go field order, escaping, number
+- The v2 Plan.Steps and Plan codecs share one Lean/Go field order, escaping, number
   spelling, indentation, and terminal-LF contract. Each Artifact Checksum is derived from the exact
   domain-separated pretty checksum preimage for that document: the same canonical object with only
-  its own `artifactChecksum` field omitted and one terminal LF. The outer ExperimentSpec preimage
-  contains its already-sealed DrivePlan.
+  its own `artifactChecksum` field omitted and one terminal LF. The outer Plan preimage
+  contains its already-sealed Plan.Steps.
 - Unknown keys, duplicate or case-colliding keys, malformed fingerprints/checksums, wrong family,
   unsupported version, compact JSON, alternate indentation or whitespace, noncanonical
   order/escaping/numbers, checksum drift, and missing or extra LF reject without normalization.
@@ -99,9 +99,9 @@ bytes `domain + "\n" + preimage`, where `preimage` is the document's determinist
 with only its own `artifactChecksum` field omitted and exactly one terminal LF. The domains are
 `umpire.drive-plan/v2`, `umpire.experiment-spec/v2`, `umpire.runtime-configuration/v2`,
 `umpire.experiment-run/v2`, `umpire.raw-evidence/v2`, `umpire.evidence/v2`, and `umpire.result/v2`.
-The outer ExperimentSpec preimage contains the already-sealed DrivePlan. `provenanceChecksum` uses
+The outer Plan preimage contains the already-sealed Plan.Steps. `provenanceChecksum` uses
 domain `umpire.provenance/v2` over the exact pretty provenance subobject plus one LF; for retained
-DrivePlan/ExperimentSpec it is a computed binding value, not a new JSON field.
+Plan.Steps/Plan it is a computed binding value, not a new JSON field.
 
 An `ArtifactBinding` has the exact field order
 `{formatVersion, artifactChecksum, behaviorFingerprint, provenanceChecksum}`. It never carries a
@@ -233,9 +233,9 @@ all field-value, canonicality, checksum, and relationship checks after a bounded
 
 ### Artifact-set manifest and atomic visibility
 
-Only three closures exist: the two-member executable set (ExperimentSpec, RuntimeConfiguration),
+Only three closures exist: the two-member executable set (Plan, RuntimeConfiguration),
 the four-member execution set (plus ExperimentRun and RawEvidence), and the six-member evaluation
-set (plus Evidence and Result). DrivePlan remains nested in ExperimentSpec. Exact member paths are
+set (plus Evidence and Result). Plan.Steps remains nested in Plan. Exact member paths are
 `artifacts/experiment.json`, `artifacts/runtime-configuration.json`,
 `artifacts/experiment-run.json`, `artifacts/raw-evidence.json`, `artifacts/evidence.json`, and
 `artifacts/result.json`; absent later-stage paths are omitted.
@@ -291,7 +291,7 @@ make umpire-check-artifact-set SET=tools/umpire/artifact/testdata/valid-run-eval
 - **R1:** One bounded strict JSON kernel rejects malformed, compact, alternate-whitespace,
   noncanonical, oversized, duplicate, unknown-field, wrong-family, unsupported-version, and
   checksum-invalid bytes before returning a value. [paraphrase]
-- **R2:** DrivePlan and ExperimentSpec v2 are the sole baseline and round-trip byte-for-byte in the
+- **R2:** Plan.Steps and Plan v2 are the sole baseline and round-trip byte-for-byte in the
   one deterministic pretty representation. Lean and Go agree on field order, escaping, number
   spelling, two-space indentation, one terminal LF, and independently recomputed Artifact Checksums
   derived from exact pretty checksum preimages, with complete Definition ID, Behavior Fingerprint,

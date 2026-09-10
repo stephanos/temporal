@@ -28,7 +28,7 @@ Complete R3/R5/R6's live operational proof by projecting allowlisted SDK/history
 - [ ] Closed live evidence has exactly four sources, gapless source ordinals, complete causal/reference closure, terminal history, one control receipt, and zero open handles.
 - [ ] Every corruption/capacity/partial-history case is explicit and cannot be mislabeled closed/succeeded.
 - [ ] Headers/payloads/raw errors/authority values cannot enter retained fields.
-- [ ] The admitted in-memory set contains exactly ExperimentSpec, RuntimeConfiguration, ExperimentRun, and RawEvidence; its integration harness can publish/reopen it through fn-18 exactly once.
+- [ ] The admitted in-memory set contains exactly Plan, RuntimeConfiguration, ExperimentRun, and RawEvidence; its integration harness can publish/reopen it through fn-18 exactly once.
 
 ## Acceptance
 - [ ] R3/R5/R6 one-live-run evidence and admitted output set are complete.
