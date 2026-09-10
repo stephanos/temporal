@@ -30,14 +30,14 @@ type Index struct {
 // token is a string literal declares no name and is skipped by the identifier group.
 var declarationHead = regexp.MustCompile(
 	`^(?:@\[[^\]]*\]\s*)*(?:(?:private|protected|partial|unsafe|noncomputable|scoped|local|nonrec)\s+)*` +
-		`(?:structure|inductive|class|abbrev|def|theorem|macro|syntax)\s+` +
+		`(?:class\s+inductive|structure|inductive|class|abbrev|def|theorem|macro|syntax)\s+` +
 		`([A-Za-z_\x{00e0}-\x{ffff}][A-Za-z0-9_'!?\x{00e0}-\x{ffff}]*(?:\.[A-Za-z0-9_'!?\x{00e0}-\x{ffff}]+)*)`)
 
 // memberHead splits a declaration head into its keyword and name, so the walker knows
 // whether the indented block that follows holds fields or constructors.
 var memberHead = regexp.MustCompile(
 	`^(?:@\[[^\]]*\]\s*)*(?:(?:private|protected|partial|unsafe|noncomputable|scoped|local|nonrec)\s+)*` +
-		`(structure|class|inductive)\s`)
+		`(?:class\s+)?(structure|class|inductive)\s`)
 
 // structureField matches one field line inside a `structure` or `class` block. A field
 // name is an ordinary identifier followed by a colon, which excludes `deriving`,
@@ -57,7 +57,8 @@ var namespaceHead = regexp.MustCompile(`^namespace\s+([A-Za-z_][A-Za-z0-9_'.]*)`
 // sectionHead matches the other `end`-closed openers. They contribute no name, but
 // they must occupy a stack frame or their `end` would close the enclosing namespace
 // and every later declaration would be indexed unqualified.
-var sectionHead = regexp.MustCompile(`^(?:section|mutual)\b`)
+var sectionHead = regexp.MustCompile(
+	`^(?:(?:private|protected|partial|unsafe|noncomputable|scoped|local|nonrec)\s+)*(?:section|mutual)\b`)
 
 var endHead = regexp.MustCompile(`^end(?:\s+([A-Za-z_][A-Za-z0-9_'.]*))?\s*$`)
 

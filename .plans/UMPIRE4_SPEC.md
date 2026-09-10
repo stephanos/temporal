@@ -76,9 +76,11 @@ a declared Nexus history Observation reaches a correlated completion within a bo
 - **Slot.** Private immutable single-assignment execution data. Slot opacity does not make declared
   response projections secret; only declared Observations enter Contract evidence.
 - **Observation.** A declared typed value attached to a Run Event and available to the Contract.
-- **Verdict.** The three-valued conclusion `satisfied`, `violated`, or `inconclusive`, with rule
-  states and supporting Run Event sequences. The model-side answer a Query endpoint produces is
-  `Umpire.PropertyEndpointAnswer`, in the same three values.
+- **Verdict.** The three-valued conclusion a Run reaches: `satisfied`, `violated`, or
+  `inconclusive`, with Rule states and supporting Run Event sequences. The model-side answer a Query
+  endpoint produces is `Umpire.PropertyEndpointAnswer`, whose three values are `satisfied`,
+  `violated`, and `unresolved`; `unresolved` is the model-side spelling of `inconclusive`, and
+  SEM-19 makes closing that gap a rename rather than a synonym.
 
 ### Where things live
 
