@@ -70,7 +70,7 @@ structure PhaseLimit where
   deriving BEq, DecidableEq, Repr
 
 /-- Exact observation-profile, program, and mapping identities used by a Run. -/
-structure ObservationConfiguration where
+structure EvidenceSourceConfiguration where
   profileDefinitionId : DefinitionId
   profileBehaviorFingerprint : BehaviorFingerprint
   programDefinitionId : DefinitionId
@@ -97,7 +97,7 @@ structure RuntimeConfiguration where
   experiment : ArtifactBinding
   authorityProfile : AuthorityProfile
   phaseLimits : List PhaseLimit
-  observation : ObservationConfiguration
+  observation : EvidenceSourceConfiguration
   participantBindings : List ParticipantBinding
   knownGaps : KnownGapSet
   provenance : ArtifactProvenance
@@ -325,7 +325,7 @@ private def phaseLimitJson (limit : PhaseLimit) : String :=
     ",\"maxRecords\":" ++ toString limit.maxRecords ++
     ",\"maxBytes\":" ++ toString limit.maxBytes ++ "}"
 
-private def observationConfigurationJson (observation : ObservationConfiguration) : String :=
+private def evidenceSourceConfigurationJson (observation : EvidenceSourceConfiguration) : String :=
   "{\"profileDefinitionId\":" ++ quoteRuntime observation.profileDefinitionId.value ++
     ",\"profileBehaviorFingerprint\":" ++ quoteRuntime observation.profileBehaviorFingerprint.render ++
     ",\"programDefinitionId\":" ++ quoteRuntime observation.programDefinitionId.value ++
@@ -349,7 +349,7 @@ private def runtimeConfigurationContentJson (configuration : RuntimeConfiguratio
     ",\"experiment\":" ++ configuration.experiment.canonicalJson ++
     ",\"authorityProfile\":" ++ authorityProfileJson configuration.authorityProfile ++
     ",\"phaseLimits\":" ++ runtimeArray (configuration.phaseLimits.map phaseLimitJson) ++
-    ",\"observation\":" ++ observationConfigurationJson configuration.observation ++
+    ",\"observation\":" ++ evidenceSourceConfigurationJson configuration.observation ++
     ",\"participantBindings\":" ++
       runtimeArray (configuration.participantBindings.map participantBindingJson) ++
     ",\"knownGaps\":" ++ runtimeArray (configuration.knownGaps.toList.map canonicalKnownGapJson) ++
