@@ -115,22 +115,22 @@ def completionRecordedObservation : ModelValue :=
 def queuedSetup : ExecutionSetup := .queued
 def runningSetup : ExecutionSetup := .running
 
-def dispatchedResult : TransitionResult ModelValue ModelValue ModelValue := {
-  modelOutcome := dispatchedOutcome
-  resultingState := runningState
-  observations := [runningObservation]
+def dispatchedResult : Step ModelValue ModelValue ModelValue := {
+  outcome := dispatchedOutcome
+  state := runningState
+  facts := [runningObservation]
 }
 
-def cancellationRecordedResult : TransitionResult ModelValue ModelValue ModelValue := {
-  modelOutcome := cancellationRecordedOutcome
-  resultingState := cancellationRecordedState
-  observations := [cancellationRecordedObservation]
+def cancellationRecordedResult : Step ModelValue ModelValue ModelValue := {
+  outcome := cancellationRecordedOutcome
+  state := cancellationRecordedState
+  facts := [cancellationRecordedObservation]
 }
 
-def completionRecordedResult : TransitionResult ModelValue ModelValue ModelValue := {
-  modelOutcome := completionRecordedOutcome
-  resultingState := completionRecordedState
-  observations := [completionRecordedObservation]
+def completionRecordedResult : Step ModelValue ModelValue ModelValue := {
+  outcome := completionRecordedOutcome
+  state := completionRecordedState
+  facts := [completionRecordedObservation]
 }
 
 private def executionState? (state : ModelValue) : Option ExecutionState :=
@@ -155,8 +155,8 @@ private def executionEvent? (action : ModelValue) : Option ExecutionEvent :=
   else
     none
 
-private def transitionResult? : ExecutionState → Option
-    (TransitionResult ModelValue ModelValue ModelValue)
+private def modelStep? : ExecutionState → Option
+    (Step ModelValue ModelValue ModelValue)
   | .running => some dispatchedResult
   | .cancellationRecorded => some cancellationRecordedResult
   | .completionRecorded => some completionRecordedResult
@@ -174,15 +174,15 @@ def initialStates (setup : ExecutionSetup) : List ModelValue :=
   (initialState? setup).toList
 
 def stepResult? (state action : ModelValue) : Option
-    (TransitionResult ModelValue ModelValue ModelValue) := do
+    (Step ModelValue ModelValue ModelValue) := do
   let executionState ← executionState? state
   let executionEvent ← executionEvent? action
   let resultingState ← step executionState executionEvent
-  transitionResult? resultingState
+  modelStep? resultingState
 
 def stepResults
     (state action : ModelValue) :
-    List (TransitionResult ModelValue ModelValue ModelValue) :=
+    List (Step ModelValue ModelValue ModelValue) :=
   (stepResult? state action).toList
 
 private theorem initialStates_cases
@@ -196,7 +196,7 @@ private theorem initialStates_cases
 
 private theorem stepResults_cases
     (state action : ModelValue)
-    (result : TransitionResult ModelValue ModelValue ModelValue)
+    (result : Step ModelValue ModelValue ModelValue)
     (member : result ∈ stepResults state action) :
     (state = queuedState ∧ action = dispatchAction ∧ result = dispatchedResult) ∨
       (state = runningState ∧ action = recordCancellationAction ∧
@@ -220,17 +220,17 @@ private theorem stepResults_cases
     · subst action
       left
       refine ⟨rfl, rfl, ?_⟩
-      simpa [stepResults, stepResult?, executionState?, executionEvent?, transitionResult?, step]
+      simpa [stepResults, stepResult?, executionState?, executionEvent?, modelStep?, step]
         using member
     · by_cases cancel : action = recordCancellationAction
       · subst action
-        simp [stepResults, stepResult?, executionState?, executionEvent?, transitionResult?, step,
+        simp [stepResults, stepResult?, executionState?, executionEvent?, modelStep?, step,
           cancel_ne_dispatch] at member
       · by_cases complete : action = recordCompletionAction
         · subst action
-          simp [stepResults, stepResult?, executionState?, executionEvent?, transitionResult?, step,
+          simp [stepResults, stepResult?, executionState?, executionEvent?, modelStep?, step,
             complete_ne_dispatch, complete_ne_cancel] at member
-        · simp [stepResults, stepResult?, executionState?, executionEvent?, transitionResult?, step,
+        · simp [stepResults, stepResult?, executionState?, executionEvent?, modelStep?, step,
             dispatch, cancel, complete] at member
   · by_cases running : state = runningState
     · subst state
@@ -238,29 +238,29 @@ private theorem stepResults_cases
       · subst action
         right; left
         refine ⟨rfl, rfl, ?_⟩
-        simpa [stepResults, stepResult?, executionState?, executionEvent?, transitionResult?, step,
+        simpa [stepResults, stepResult?, executionState?, executionEvent?, modelStep?, step,
           running_ne_queued, cancel_ne_dispatch] using member
       · by_cases complete : action = recordCompletionAction
         · subst action
           right; right
           refine ⟨rfl, rfl, ?_⟩
-          simpa [stepResults, stepResult?, executionState?, executionEvent?, transitionResult?, step,
+          simpa [stepResults, stepResult?, executionState?, executionEvent?, modelStep?, step,
             running_ne_queued, complete_ne_dispatch, complete_ne_cancel] using member
         · by_cases dispatch : action = dispatchAction
           · subst action
-            simp [stepResults, stepResult?, executionState?, executionEvent?, transitionResult?,
+            simp [stepResults, stepResult?, executionState?, executionEvent?, modelStep?,
               step, running_ne_queued] at member
-          · simp [stepResults, stepResult?, executionState?, executionEvent?, transitionResult?,
+          · simp [stepResults, stepResult?, executionState?, executionEvent?, modelStep?,
               step, running_ne_queued, dispatch, cancel, complete] at member
     · by_cases canceled : state = cancellationRecordedState
       · subst state
-        simp [stepResults, stepResult?, executionState?, executionEvent?, transitionResult?, step,
+        simp [stepResults, stepResult?, executionState?, executionEvent?, modelStep?, step,
           canceled_ne_queued, canceled_ne_running] at member
       · by_cases completed : state = completionRecordedState
         · subst state
-          simp [stepResults, stepResult?, executionState?, executionEvent?, transitionResult?, step,
+          simp [stepResults, stepResult?, executionState?, executionEvent?, modelStep?, step,
             completed_ne_queued, completed_ne_running, completed_ne_canceled] at member
-        · simp [stepResults, stepResult?, executionState?, executionEvent?, transitionResult?, step,
+        · simp [stepResults, stepResult?, executionState?, executionEvent?, modelStep?, step,
             queued, running, canceled, completed] at member
 
 def setups : List ExecutionSetup := [queuedSetup, runningSetup]
@@ -328,16 +328,16 @@ def finiteMachine : FiniteMachine
     rcases member with rfl | rfl | rfl
     · exact ⟨queuedState, dispatchedResult, by
         change dispatchedResult ∈ stepResults queuedState dispatchAction
-        simp [stepResults, stepResult?, executionState?, executionEvent?, transitionResult?, step,
+        simp [stepResults, stepResult?, executionState?, executionEvent?, modelStep?, step,
           queuedState, dispatchAction]⟩
     · exact ⟨runningState, cancellationRecordedResult, by
         change cancellationRecordedResult ∈
           stepResults runningState recordCancellationAction
-        simp [stepResults, stepResult?, executionState?, executionEvent?, transitionResult?, step,
+        simp [stepResults, stepResult?, executionState?, executionEvent?, modelStep?, step,
           queuedState, runningState, dispatchAction, recordCancellationAction, ModelValue.named]⟩
     · exact ⟨runningState, completionRecordedResult, by
         change completionRecordedResult ∈ stepResults runningState recordCompletionAction
-        simp [stepResults, stepResult?, executionState?, executionEvent?, transitionResult?, step,
+        simp [stepResults, stepResult?, executionState?, executionEvent?, modelStep?, step,
           queuedState, runningState, dispatchAction, recordCancellationAction,
           recordCompletionAction, ModelValue.named]⟩
 }
@@ -347,7 +347,7 @@ def authoritativeInitial (setup : ExecutionSetup) (state : ModelValue) : Prop :=
 
 def authoritativeStep
     (state action : ModelValue)
-    (result : TransitionResult ModelValue ModelValue ModelValue) : Prop :=
+    (result : Step ModelValue ModelValue ModelValue) : Prop :=
   finiteMachine.kernel.authoritativeStep state action result
 
 theorem initialStates_sound
@@ -366,14 +366,14 @@ theorem initialStates_complete
 
 theorem stepResults_sound
     (state action : ModelValue)
-    (result : TransitionResult ModelValue ModelValue ModelValue)
+    (result : Step ModelValue ModelValue ModelValue)
     (member : result ∈ stepResults state action) :
     authoritativeStep state action result := by
   exact finiteMachine.kernel.stepSound state action result member
 
 theorem stepResults_complete
     (state action : ModelValue)
-    (result : TransitionResult ModelValue ModelValue ModelValue)
+    (result : Step ModelValue ModelValue ModelValue)
     (admitted : authoritativeStep state action result) :
     result ∈ stepResults state action := by
   exact finiteMachine.kernel.stepComplete state action result admitted
@@ -388,7 +388,7 @@ theorem authoritativeInitial_cases
 
 theorem authoritativeStep_cases
     (state action : ModelValue)
-    (result : TransitionResult ModelValue ModelValue ModelValue)
+    (result : Step ModelValue ModelValue ModelValue)
     (admitted : authoritativeStep state action result) :
     (state = queuedState ∧ action = dispatchAction ∧ result = dispatchedResult) ∨
       (state = runningState ∧ action = recordCancellationAction ∧
@@ -436,7 +436,7 @@ private theorem observationDomain_eq :
   apply propext
   simp [finiteMachine, observations]
 
-def transitionKernel : TransitionKernel
+def machine : Machine
     ExecutionSetup ModelValue ModelValue ModelValue ModelValue := {
   metadata := finiteMachine.kernel.metadata
   setupDomain := fun candidate => candidate = queuedSetup ∨ candidate = runningSetup
@@ -489,7 +489,7 @@ def lifecycleProvider : CapabilityProvider LawStatement := {
       canonicalBehavior := "temporal-system-nexus-lifecycle-record-completion/v1" },
     { definitionId := transitionOutcomeId, kind := .outcome,
       canonicalBehavior := "temporal-system-nexus-lifecycle-outcome/v1" },
-    { definitionId := lifecycleObservationId, kind := .observation,
+    { definitionId := lifecycleObservationId, kind := .fact,
       canonicalBehavior := "temporal-system-nexus-lifecycle-observation/v1" }
   ]
   lawWitnesses := [{ definition := lifecycleLaw, proof := lifecycleLawProof }]
@@ -497,7 +497,7 @@ def lifecycleProvider : CapabilityProvider LawStatement := {
 
 def definitions : List DefinitionMetadata := [
   metadata targetId .target "temporal-system-nexus-lifecycle-target/v1",
-  metadata kernelId .kernel "temporal-system-nexus-lifecycle-kernel/v1",
+  metadata kernelId .machine "temporal-system-nexus-lifecycle-kernel/v1",
   metadata lifecycleCapabilityId .capability "temporal-system-nexus-lifecycle/v1",
   metadata lifecycleProviderId .provider "temporal-system-nexus-lifecycle-provider/v1",
   metadata lifecycleLawId .law lifecycleLaw.body,
@@ -508,11 +508,11 @@ def definitions : List DefinitionMetadata := [
   metadata recordCompletionActionId .action
     "temporal-system-nexus-lifecycle-record-completion/v1",
   metadata transitionOutcomeId .outcome "temporal-system-nexus-lifecycle-outcome/v1",
-  metadata lifecycleObservationId .observation
+  metadata lifecycleObservationId .fact
     "temporal-system-nexus-lifecycle-observation/v1"
 ]
 
-def finitePlanning : FinitePlanningCapability transitionKernel.authoritativeStep :=
+def finitePlanning : FinitePlanningCapability machine.authoritativeStep :=
   finiteMachine.planning
 
 @[simp] private theorem finiteMachine_planning_actions :
@@ -526,7 +526,7 @@ def targetDefinition : TargetDefinition
   definitions
   requiredCapabilities := [lifecycleCapabilityId]
   resolvedSetups := setups
-  kernel := .checked transitionKernel
+  kernel := .checked machine
 }
 
 def targetComposition : TargetComposition LawStatement :=
@@ -535,7 +535,7 @@ def targetComposition : TargetComposition LawStatement :=
 def targetAuthoring : AuthoredTarget LawStatement
     ExecutionSetup ModelValue ModelValue ModelValue ModelValue :=
   AuthoredTarget.make targetDefinition targetComposition
-    (.available transitionKernel rfl finitePlanning)
+    (.available machine rfl finitePlanning)
 
 /-- The independently checked pure Nexus System target. -/
 def target : CheckedTarget LawStatement
@@ -550,21 +550,21 @@ theorem target_queued_initial_authoritative :
 theorem target_queued_dispatch_authoritative :
     target.kernel.authoritativeStep queuedState dispatchAction dispatchedResult := by
   change dispatchedResult ∈ stepResults queuedState dispatchAction
-  simp [stepResults, stepResult?, executionState?, executionEvent?, transitionResult?, step,
+  simp [stepResults, stepResult?, executionState?, executionEvent?, modelStep?, step,
     queuedState, dispatchAction]
 
 theorem target_running_cancellation_authoritative :
     target.kernel.authoritativeStep runningState recordCancellationAction
       cancellationRecordedResult := by
   change cancellationRecordedResult ∈ stepResults runningState recordCancellationAction
-  simp [stepResults, stepResult?, executionState?, executionEvent?, transitionResult?, step,
+  simp [stepResults, stepResult?, executionState?, executionEvent?, modelStep?, step,
     queuedState, runningState, dispatchAction, recordCancellationAction, ModelValue.named]
 
 theorem target_running_completion_authoritative :
     target.kernel.authoritativeStep runningState recordCompletionAction
       completionRecordedResult := by
   change completionRecordedResult ∈ stepResults runningState recordCompletionAction
-  simp [stepResults, stepResult?, executionState?, executionEvent?, transitionResult?, step,
+  simp [stepResults, stepResult?, executionState?, executionEvent?, modelStep?, step,
     queuedState, runningState, dispatchAction, recordCancellationAction, recordCompletionAction,
       ModelValue.named]
 

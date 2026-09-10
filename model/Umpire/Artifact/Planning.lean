@@ -255,7 +255,7 @@ private def propertyReference (property : CheckedProperty) : PortableProperty :=
 
 private def propertyObservationRequirements (property : CheckedProperty) : List DefinitionId :=
   property.access.meanings.filterMap fun meaning =>
-    if meaning.kind == .observation || meaning.kind == .relation then
+    if meaning.kind == .fact || meaning.kind == .relation then
       some meaning.definitionId
     else
       none
@@ -286,15 +286,15 @@ def artifactOfSelectionWithKnownGaps
     (explored : ExploredCounts)
     (knownGaps : KnownGapSet) : ExperimentSpec :=
   let actions := trace.trace.steps.map fun step => step.selectedAction
-  let outcomes := trace.trace.steps.map fun step => step.modelOutcome
-  let states := trace.trace.steps.map fun step => step.resultingState
+  let outcomes := trace.trace.steps.map fun step => step.outcome
+  let states := trace.trace.steps.map fun step => step.state
   let slots := query.behavior.assignOccurrences (actions.map ModelValue.definitionId) |>.getD
       (actions.map fun _ => none)
   let extension := actions.zip slots |>.zipIdx |>.map fun ((action, authored), index) =>
     plannedOccurrence query.behavior index action authored
   let checkpoints := trace.trace.steps.zipIdx.map fun (step, index) => {
     transition := index + 1
-    observations := step.observations
+    observations := step.facts
   }
   let provenance := artifactProvenance query
   let planWithoutChecksum : DrivePlan := {

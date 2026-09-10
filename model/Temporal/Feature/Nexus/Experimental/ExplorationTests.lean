@@ -23,13 +23,13 @@ guidance selects from that same universe and reports its bounded outcome separat
 -/
 example :
     exhaustiveCandidates.map (ArtifactChecksum.render ∘ ExplorationCandidate.identity) == [
-      "sha256:3746b90f78163b803a68575d8352bce26d0f66cdbd72b65a5b80f3469bd31ca6",
-      "sha256:825d01d0a03e84b4234eb590ffab2afefcf92bce659a6efd1320bd128c3d01cf",
-      "sha256:add1bd4201541142516de626e3f218b5709b6b4466bee7c84f6fe8b26c4f77f8",
-      "sha256:d036efe10679c29dce068d75933ba5c12ebe574dd71bcc40790406ef64339c3b"
+      "sha256:0e45863511b623a6de288689347144418966a4d3cb0e269ea5883cd3b65c7b34",
+      "sha256:1d8e5a59efe92dcdbac2a50f3e9420cf633b01cf7e1b74b5b00695cc503d706f",
+      "sha256:a2098dee0fb5301a5a422109ea25e41bfab6d494a907c0358dffe730cc43f526",
+      "sha256:d0a45abd7ad421e2cd58c73a321e6732cee294366a04cf2abcdf9ad799a7a160"
     ] &&
       exhaustiveResult.completion == .exhausted &&
-      (run (.uncoveredCoordinate (.observation 1 1)) 1).toOption.any (fun result =>
+      (run (.uncoveredCoordinate (.fact 1 1)) 1).toOption.any (fun result =>
         result.exploratory.map ExplorationCandidate.identity == [firstCandidate.identity] &&
           result.coordinateOutcome == some .coordinateSelected &&
           result.completion == .limitReached) = true := by

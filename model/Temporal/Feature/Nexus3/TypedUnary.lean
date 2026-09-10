@@ -272,14 +272,14 @@ def sampledWorkflowTypes : List String := [submittedWorkflowType, alternateWorkf
 
 /-- The Target, its kernel, and the capability the Property requires. -/
 private def structuralKinds : List (DefinitionId × DefinitionKind) := [
-  (targetId, .target), (kernelId, .kernel), (providerId, .provider), (capabilityId, .capability)]
+  (targetId, .target), (kernelId, .machine), (providerId, .provider), (capabilityId, .capability)]
 
 /-- The modeled vocabulary a Property clause may name. The Action's own definition is contributed
 by the parameterized domain, which attaches the domain's canonical meaning to it, so it belongs to
 the provider's meanings but never to this list. -/
 private def vocabularyKinds : List (DefinitionId × DefinitionKind) := [
   (pendingStateId, .state), (startedStateId, .state),
-  (startedOutcomeId, .outcome), (startedFactId, .observation)]
+  (startedOutcomeId, .outcome), (startedFactId, .fact)]
 
 private def definitions : List DefinitionMetadata :=
   (structuralKinds ++ vocabularyKinds).map fun (id, kind) =>
@@ -378,8 +378,8 @@ def checked : Except AdmissionError Model := do
     throw (.inconsistent "domain and evidence lengths differ")
   let rows := (domain.actions.zip outcomes).zipIdx.map fun ((action, outcome), index) =>
     ({ key := "start-" ++ toString index, source := pendingState, action
-       results := [{ resultingState := startedState, modelOutcome := outcome
-                     observations := [startedFact] }] } :
+       results := [{ state := startedState, outcome := outcome
+                     facts := [startedFact] }] } :
       FiniteTransitionRow ModelValue (ActionInstance template valueLimits) ModelValue ModelValue)
   let table : FiniteTable Unit ModelValue (ActionInstance template valueLimits) ModelValue
       ModelValue := {

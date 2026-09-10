@@ -149,7 +149,7 @@ def compatibleTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bo
 example : (composeTarget compatibleTarget).isOk = true := by
   native_decide
 
-def collidingStateEncodingKernel : TransitionKernel Unit Bool Bool Bool Bool := {
+def collidingStateEncodingKernel : Machine Unit Bool Bool Bool Bool := {
   testKernel with
   behaviorDomain := match testKernel.behaviorDomain with
     | .complete domain => .complete { domain with encodeState := fun _ => "state" }
@@ -171,7 +171,7 @@ example : (errorOf (composeTarget collidingStateEncodingTarget)) = some {
   } := by
   native_decide
 
-def changedStateEncodingKernel : TransitionKernel Unit Bool Bool Bool Bool := {
+def changedStateEncodingKernel : Machine Unit Bool Bool Bool Bool := {
   testKernel with
   behaviorDomain := match testKernel.behaviorDomain with
     | .complete domain => .complete {

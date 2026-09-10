@@ -24,9 +24,9 @@ private def traceStepsOfPlan :
       let rest ← traceStepsOfPlan actions outcomes states checkpoints (transition + 1)
       pure ({
         selectedAction := action
-        modelOutcome := outcome
-        resultingState := state
-        observations := checkpoint.observations
+        outcome := outcome
+        state := state
+        facts := checkpoint.observations
       } :: rest)
   | _, _, _, _, _ => none
 

@@ -160,18 +160,18 @@ def roleCapability (model : SuccessModel Setup State Action Outcome Fact) (spell
 
 /-- The declared results of one transition row, by declaration position. -/
 def resultsAt (model : SuccessModel Setup State Action Outcome Fact) (index : Nat) :
-    List (TransitionResult State Outcome Fact) :=
+    List (Step State Outcome Fact) :=
   ((model.table.transitions[index]?).map (·.results)).getD []
 
 end SuccessModel
 
 /-- One declared transition result: the reached state, its Model Outcome, and the Facts it
 records. -/
-def transitionResult (outcome : Outcome) (state : State) (facts : List Fact) :
-    TransitionResult State Outcome Fact := {
-  modelOutcome := outcome
-  resultingState := state
-  observations := facts
+def step (outcome : Outcome) (state : State) (facts : List Fact) :
+    Step State Outcome Fact := {
+  outcome := outcome
+  state := state
+  facts := facts
 }
 
 def successTable
@@ -241,7 +241,7 @@ def successModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     table.states.map (fun entry => meaning (identity.stateId entry.value) .state) ++
     table.actions.map (fun entry => meaning (identity.actionId entry.value) .action) ++
     table.outcomes.map (fun entry => meaning (identity.outcomeId entry.value) .outcome) ++
-    table.facts.map (fun entry => meaning (identity.factId entry.value) .observation)
+    table.facts.map (fun entry => meaning (identity.factId entry.value) .fact)
   let provider : CapabilityProvider lawStatement := {
     id := providerId
     source
@@ -250,7 +250,7 @@ def successModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     lawWitnesses := [{ definition := law, proof := lawProof }]
   }
   let definitions :=
-    [metadata targetId .target, metadata kernelId .kernel, metadata capabilityId .capability,
+    [metadata targetId .target, metadata kernelId .machine, metadata capabilityId .capability,
       metadata providerId .provider, metadata lawId .law] ++
     (meanings.map fun provided => metadata provided.definitionId provided.kind) ++
     table.transitions.map fun row => metadata (ownedId "relation" ownerKey row.key) .relation
@@ -398,7 +398,7 @@ def transitionRow
     (key : String)
     (source : State)
     (selectedAction : Action)
-    (results : List (TransitionResult State Outcome Fact)) :
+    (results : List (Step State Outcome Fact)) :
     FiniteTransitionRow State Action Outcome Fact :=
   { key, source, action := selectedAction, results }
 

@@ -100,14 +100,14 @@ def initialRule : ObservationRule := {
 def contributionRule : ObservationRule := {
   id := id "test.rule.contribution"
   output := contributionObservation
-  outputKind := .observation
+  outputKind := .fact
   value := .portable (.contributionMarker secretFieldSpec.expression)
 }
 
 def digestRule : ObservationRule := {
   id := id "test.rule.digest"
   output := digestObservation
-  outputKind := .observation
+  outputKind := .fact
   value := .portable (.digestToken digestPolicyId hashedFieldSpec.expression)
 }
 
@@ -138,16 +138,16 @@ def baseDeclaration : ObservationMappingDeclaration :=
 def context : ObservationCheckContext := {
   definitions := [
     metadata operationState.value .state,
-    metadata contributionObservation.value .observation,
-    metadata digestObservation.value .observation,
-    metadata unauthorizedObservation.value .observation
+    metadata contributionObservation.value .fact,
+    metadata digestObservation.value .fact,
+    metadata unauthorizedObservation.value .fact
   ]
   meanings := [
     { definitionId := operationState, kind := .state,
       canonicalBehavior := operationState.value ++ "/meaning-v1" },
-    { definitionId := contributionObservation, kind := .observation,
+    { definitionId := contributionObservation, kind := .fact,
       canonicalBehavior := contributionObservation.value ++ "/meaning-v1" },
-    { definitionId := digestObservation, kind := .observation,
+    { definitionId := digestObservation, kind := .fact,
       canonicalBehavior := digestObservation.value ++ "/meaning-v1" }
   ]
   profiles := [evidenceProfile]
@@ -296,9 +296,9 @@ def expectedTrace : ModelTrace ModelValue ModelValue ModelValue ModelValue := {
   initialState := ModelValue.named operationState "ready"
   steps := [{
     selectedAction := ModelValue.named startAction "start"
-    modelOutcome := ModelValue.named successOutcome "ok"
-    resultingState := ModelValue.named completedState "done"
-    observations := [
+    outcome := ModelValue.named successOutcome "ok"
+    state := ModelValue.named completedState "done"
+    facts := [
       ModelValue.named contributionObservation "contributed",
       ModelValue.named digestObservation "synthetic.digest/v1:3006720707513255331"
     ]

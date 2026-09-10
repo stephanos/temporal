@@ -70,28 +70,28 @@ theorem onState_ne_offState : onState ≠ offState := by
 
 def switchSetup : List RoleBinding := [{ role := switchRoleId, value := offState }]
 
-def appliedResult : TransitionResult ModelValue ModelValue ModelValue := {
-  modelOutcome := appliedOutcome
-  resultingState := onState
-  observations := [powerOnObservation]
+def appliedResult : Step ModelValue ModelValue ModelValue := {
+  outcome := appliedOutcome
+  state := onState
+  facts := [powerOnObservation]
 }
 
-def deferredResult : TransitionResult ModelValue ModelValue ModelValue := {
-  modelOutcome := deferredOutcome
-  resultingState := offState
-  observations := [powerOffObservation]
+def deferredResult : Step ModelValue ModelValue ModelValue := {
+  outcome := deferredOutcome
+  state := offState
+  facts := [powerOffObservation]
 }
 
-def appliedFromOnResult : TransitionResult ModelValue ModelValue ModelValue := {
-  modelOutcome := appliedOutcome
-  resultingState := offState
-  observations := [powerOffObservation]
+def appliedFromOnResult : Step ModelValue ModelValue ModelValue := {
+  outcome := appliedOutcome
+  state := offState
+  facts := [powerOffObservation]
 }
 
-def deferredFromOnResult : TransitionResult ModelValue ModelValue ModelValue := {
-  modelOutcome := deferredOutcome
-  resultingState := onState
-  observations := [powerOnObservation]
+def deferredFromOnResult : Step ModelValue ModelValue ModelValue := {
+  outcome := deferredOutcome
+  state := onState
+  facts := [powerOnObservation]
 }
 
 theorem appliedResult_ordered :
@@ -111,7 +111,7 @@ def authoritativeInitial (setup : List RoleBinding) (state : ModelValue) : Prop 
 
 def stepResults
     (state action : ModelValue) :
-    List (TransitionResult ModelValue ModelValue ModelValue) :=
+    List (Step ModelValue ModelValue ModelValue) :=
   if action = flipAction then
     if state = offState then
       [appliedResult, deferredResult]
@@ -124,7 +124,7 @@ def stepResults
 
 def authoritativeStep
     (state action : ModelValue)
-    (result : TransitionResult ModelValue ModelValue ModelValue) : Prop :=
+    (result : Step ModelValue ModelValue ModelValue) : Prop :=
   action = flipAction ∧
     ((state = offState ∧ (result = appliedResult ∨ result = deferredResult)) ∨
       (state = onState ∧
@@ -151,7 +151,7 @@ theorem initialStates_complete
 
 theorem stepResults_sound
     (state action : ModelValue)
-    (result : TransitionResult ModelValue ModelValue ModelValue)
+    (result : Step ModelValue ModelValue ModelValue)
     (member : result ∈ stepResults state action) :
     authoritativeStep state action result := by
   by_cases selectedAction : action = flipAction
@@ -169,7 +169,7 @@ theorem stepResults_sound
 
 theorem stepResults_complete
     (state action : ModelValue)
-    (result : TransitionResult ModelValue ModelValue ModelValue)
+    (result : Step ModelValue ModelValue ModelValue)
     (admitted : authoritativeStep state action result) :
     result ∈ stepResults state action := by
   rcases admitted with ⟨rfl, admitted⟩
@@ -177,7 +177,7 @@ theorem stepResults_complete
   · rcases admitted with rfl | rfl <;> simp [stepResults, offState, ModelValue.named]
   · rcases admitted with rfl | rfl <;> simp [stepResults, offState, onState, ModelValue.named]
 
-def transitionKernel : TransitionKernel
+def machine : Machine
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
   metadata := {
     id := kernelId
@@ -338,7 +338,7 @@ def switchProvider : CapabilityProvider LawStatement := {
       canonicalBehavior := "switch-applied-outcome/v1" },
     { definitionId := deferredOutcomeId, kind := .outcome,
       canonicalBehavior := "switch-deferred-outcome/v1" },
-    { definitionId := powerObservationId, kind := .observation,
+    { definitionId := powerObservationId, kind := .fact,
       canonicalBehavior := "switch-power-observation/v1" }
   ]
   lawWitnesses := [{ definition := flipLaw, proof := flipLawProof }]
@@ -346,7 +346,7 @@ def switchProvider : CapabilityProvider LawStatement := {
 
 def definitions : List DefinitionMetadata := [
   metadata targetId .target "switch-two-state-target/v1",
-  metadata kernelId .kernel "switch-two-state-kernel/v1",
+  metadata kernelId .machine "switch-two-state-kernel/v1",
   metadata switchCapabilityId .capability "switch-state/v1",
   metadata switchProviderId .provider "switch-state-provider/v1",
   metadata flipLawId .law flipLaw.body,
@@ -354,10 +354,10 @@ def definitions : List DefinitionMetadata := [
   metadata flipActionId .action "switch-flip-action/v1",
   metadata appliedOutcomeId .outcome "switch-applied-outcome/v1",
   metadata deferredOutcomeId .outcome "switch-deferred-outcome/v1",
-  metadata powerObservationId .observation "switch-power-observation/v1"
+  metadata powerObservationId .fact "switch-power-observation/v1"
 ]
 
-def finitePlanning : FinitePlanningCapability transitionKernel.authoritativeStep := {
+def finitePlanning : FinitePlanningCapability machine.authoritativeStep := {
   actions := [flipAction]
   actionSound := by
     intro action member
@@ -376,7 +376,7 @@ def targetDefinition : TargetDefinition
   definitions
   requiredCapabilities := [switchCapabilityId]
   resolvedSetups := [switchSetup]
-  kernel := .checked transitionKernel
+  kernel := .checked machine
 }
 
 def targetComposition : TargetComposition LawStatement :=
@@ -385,7 +385,7 @@ def targetComposition : TargetComposition LawStatement :=
 def targetAuthoring : AuthoredTarget LawStatement
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue :=
   AuthoredTarget.make targetDefinition targetComposition
-    (.available transitionKernel rfl finitePlanning)
+    (.available machine rfl finitePlanning)
 
 /-- Re-ascribe the source kernel after checked composition so its proof relation remains reducible. -/
 def target : QueryTarget LawStatement := checkedTarget targetAuthoring
@@ -402,7 +402,7 @@ theorem target_initial
 
 theorem target_step
     (state action : ModelValue)
-    (result : TransitionResult ModelValue ModelValue ModelValue)
+    (result : Step ModelValue ModelValue ModelValue)
     (admitted : target.kernel.authoritativeStep state action result) :
     authoritativeStep state action result := by
   exact admitted
@@ -466,7 +466,7 @@ def exactTrace : AuthoredExactTrace := {
     selectedAction := some flipAction
     modelOutcome := some appliedOutcome
     resultingState := some onState
-    observations := some appliedResult.observations
+    observations := some appliedResult.facts
   }]
 }
 
@@ -595,7 +595,7 @@ private def incrementalKernel? : Option (IncrementalPlannerKernel exactActionQue
       intro _ _ setup
       simp only [exactActionQuery, checkedQuery, target, checkedTarget, targetAuthoring,
         AuthoredTarget.make, targetDefinition,
-        transitionKernel, initialStates]
+        machine, initialStates]
       split <;> simp)
     (by
       intro _ _ state action
@@ -605,19 +605,19 @@ private def incrementalKernel? : Option (IncrementalPlannerKernel exactActionQue
         · subst state
           simpa [exactActionQuery, checkedQuery, target, checkedTarget, targetAuthoring,
             AuthoredTarget.make, targetDefinition,
-            transitionKernel, stepResults] using appliedResult_ordered
+            machine, stepResults] using appliedResult_ordered
         · by_cases selectedOn : state = onState
           · subst state
             simpa [exactActionQuery, checkedQuery, target, checkedTarget, targetAuthoring,
               AuthoredTarget.make, targetDefinition,
-              transitionKernel, stepResults, onState_ne_offState] using
+              machine, stepResults, onState_ne_offState] using
               appliedFromOnResult_ordered
           · simp [exactActionQuery, checkedQuery, target, checkedTarget, targetAuthoring,
               AuthoredTarget.make, targetDefinition,
-              transitionKernel, stepResults, selectedOff, selectedOn]
+              machine, stepResults, selectedOff, selectedOn]
       · simp [exactActionQuery, checkedQuery, target, checkedTarget, targetAuthoring,
           AuthoredTarget.make, targetDefinition,
-          transitionKernel, stepResults, selectedAction])
+          machine, stepResults, selectedAction])
 
 private theorem incrementalKernel?_isSome : incrementalKernel?.isSome = true := by
   rfl

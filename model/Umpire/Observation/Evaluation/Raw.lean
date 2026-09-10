@@ -857,24 +857,24 @@ def evaluateUnchecked
     let action ← singleEmission plan item.record .action item.emissions
     let outcome ← singleEmission plan item.record .outcome item.emissions
     let state ← singleEmission plan item.record .state item.emissions
-    let observations := item.emissions.filter fun emission => emission.rule.outputKind == .observation
+    let observations := item.emissions.filter fun emission => emission.rule.outputKind == .fact
     let usable := item.emissions.filter fun emission =>
       emission.rule.outputKind == .action || emission.rule.outputKind == .outcome ||
-        emission.rule.outputKind == .state || emission.rule.outputKind == .observation
+        emission.rule.outputKind == .state || emission.rule.outputKind == .fact
     if usable.length != item.emissions.length then
       throw (diagnostic plan .unconsumedReference [item.record.id])
     steps := steps ++ [{
       selectedAction := action.value
-      modelOutcome := outcome.value
-      resultingState := state.value
-      observations := observations.map Emission.value
+      outcome := outcome.value
+      state := state.value
+      facts := observations.map Emission.value
     }]
     evidenceLinks := evidenceLinks ++ [
       evidenceLinkFor plan bundle (.selectedAction stepPosition) action,
-      evidenceLinkFor plan bundle (.modelOutcome stepPosition) outcome,
-      evidenceLinkFor plan bundle (.resultingState stepPosition) state
+      evidenceLinkFor plan bundle (.outcome stepPosition) outcome,
+      evidenceLinkFor plan bundle (.state stepPosition) state
     ] ++ observations.mapIdx fun observationIndex observation =>
-      evidenceLinkFor plan bundle (.observation stepPosition (observationIndex + 1)) observation
+      evidenceLinkFor plan bundle (.fact stepPosition (observationIndex + 1)) observation
     stepPosition := stepPosition + 1
   let trace : ModelTrace ModelValue ModelValue ModelValue ModelValue := {
     initialState := initial.value

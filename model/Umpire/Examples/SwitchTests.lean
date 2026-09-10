@@ -41,13 +41,13 @@ example : source = {
     exactActionBehaviorId.value = "switch.behavior.exact-action" ∧
     exactActionQueryId.value = "switch.query.exact-action" ∧
     flipLaw.body = "switch-flip-preserves-domain-law/v1" ∧
-    transitionKernel.metadata.id = kernelId := by
+    machine.metadata.id = kernelId := by
   native_decide
 
 example : definitions = [
     { id := targetId, kind := .target, source, version := 1,
       canonicalBehavior := "switch-two-state-target/v1", documentation := "" },
-    { id := kernelId, kind := .kernel, source, version := 1,
+    { id := kernelId, kind := .machine, source, version := 1,
       canonicalBehavior := "switch-two-state-kernel/v1", documentation := "" },
     { id := switchCapabilityId, kind := .capability, source, version := 1,
       canonicalBehavior := "switch-state/v1", documentation := "" },
@@ -63,7 +63,7 @@ example : definitions = [
       canonicalBehavior := "switch-applied-outcome/v1", documentation := "" },
     { id := deferredOutcomeId, kind := .outcome, source, version := 1,
       canonicalBehavior := "switch-deferred-outcome/v1", documentation := "" },
-    { id := powerObservationId, kind := .observation, source, version := 1,
+    { id := powerObservationId, kind := .fact, source, version := 1,
       canonicalBehavior := "switch-power-observation/v1", documentation := "" }
   ] := by
   native_decide
@@ -237,9 +237,9 @@ example : target.kernel.initialStates switchSetup = [offState] ∧
   native_decide
 
 theorem direct_kernel_keeps_independent_authority_and_two_results :
-    transitionKernel.authoritativeInitial = authoritativeInitial ∧
-    transitionKernel.authoritativeStep = authoritativeStep ∧
-    targetDefinition.kernel = .checked transitionKernel ∧
+    machine.authoritativeInitial = authoritativeInitial ∧
+    machine.authoritativeStep = authoritativeStep ∧
+    targetDefinition.kernel = .checked machine ∧
     stepResults offState flipAction = [appliedResult, deferredResult] ∧
     authoritativeStep offState flipAction appliedResult ∧
     authoritativeStep offState flipAction deferredResult := by
@@ -249,7 +249,7 @@ theorem direct_kernel_keeps_independent_authority_and_two_results :
 
 theorem direct_kernel_golden_behavior_fingerprint :
     target.behaviorFingerprint.render =
-      "sha256:0443154d4f2860a69590a3d3867f4992ad17024ebf62b424545382c41b871666" := by
+      "sha256:afbe90c52786e55a6c2d36e64c95df2764f29d38dcb67ea8c8e4358a5bef8100" := by
   native_decide
 
 example : target.requiredCapabilities = [switchCapabilityId] ∧

@@ -78,9 +78,8 @@ private def setOperandValid : SetupOperand → Bool
   | .value value => setModelValueValid value
 
 private def setRoleKindValid : DefinitionKind → Bool
-  | .state | .action | .outcome | .observation | .relation | .capability | .provider | .law |
-      .connector | .target | .kernel => true
-  | _ => false
+  | .state | .action | .outcome | .fact | .relation | .capability | .provider | .law |
+      .connector | .target | .machine => true
 
 private def drivePlanCollectionsValid (plan : DrivePlan) : Bool :=
   plan.bindings == plan.bindings.mergeSort setBindingLe &&

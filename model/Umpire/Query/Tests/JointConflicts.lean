@@ -21,7 +21,7 @@ private def propertyContext : PropertyCheckContext := {
     metadata phase .state "planner-phase/v1",
     metadata request .action "planner-request/v1",
     metadata accepted .outcome "planner-accepted/v1",
-    metadata observed .observation "planner-observed/v1"
+    metadata observed .fact "planner-observed/v1"
   ]
   providers := [{
     id := capability
@@ -31,7 +31,7 @@ private def propertyContext : PropertyCheckContext := {
     (capability, meaning phase .state),
     (capability, meaning request .action),
     (capability, meaning accepted .outcome),
-    (capability, meaning observed .observation)
+    (capability, meaning observed .fact)
   ]
 }
 

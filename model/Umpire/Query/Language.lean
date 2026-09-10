@@ -466,16 +466,16 @@ private def validateExactTrace
           [target.id, target.kernel.metadata.id])
       let mut current := exact.trace.initialState
       for (step, index) in exact.trace.steps.zipIdx do
-        let expected : TransitionResult ModelValue ModelValue ModelValue := {
-          modelOutcome := step.modelOutcome
-          resultingState := step.resultingState
-          observations := step.observations
+        let expected : Step ModelValue ModelValue ModelValue := {
+          outcome := step.outcome
+          state := step.state
+          facts := step.facts
         }
         if !((target.kernel.steps current step.selectedAction).contains expected) then
           throw (queryError .targetKernelMismatch declaration
             ("step-" ++ toString index)
             [target.id, target.kernel.metadata.id, step.selectedAction.definitionId])
-        current := step.resultingState
+        current := step.state
 
 private def stringListJson (items : List String) : String :=
   array (items.map quote)

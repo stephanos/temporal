@@ -52,16 +52,16 @@ example : (errorOf (composeTarget incompleteBehaviorDomainTarget)) = some {
   native_decide
 
 -- An emitted step outside the authoritative relation cannot inhabit a checked kernel proof.
-def outsideRelation : TransitionResult Bool Bool Bool := {
-  modelOutcome := false
-  resultingState := false
-  observations := [true]
+def outsideRelation : Step Bool Bool Bool := {
+  outcome := false
+  state := false
+  facts := [true]
 }
 
 example : ¬testKernel.authoritativeStep false true outsideRelation := by
   simp [testKernel, outsideRelation, transition]
 
-example (result : TransitionResult Bool Bool Bool)
+example (result : Step Bool Bool Bool)
     (member : result ∈ testKernel.steps false true) :
     testKernel.authoritativeStep false true result :=
   testKernel.stepSound false true result member
@@ -75,7 +75,7 @@ example
       (fun _ : Bool => True)
       (fun _ : Bool => True)
       testKernel.initialStates
-      (fun _ _ => ([] : List (TransitionResult Bool Bool Bool)))) :
+      (fun _ _ => ([] : List (Step Bool Bool Bool)))) :
     () ∈ domain.setups ∧ true ∈ domain.actions :=
   ⟨domain.setupComplete () trivial, domain.actionComplete true trivial⟩
 

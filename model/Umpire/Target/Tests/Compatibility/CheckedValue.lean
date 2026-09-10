@@ -33,9 +33,9 @@ private structure CheckedTargetValue where
   providers : List ProviderValue
   connectors : List ConnectorValue
   resolvedSetups : List Unit
-  kernelMetadata : KernelMetadata
+  machineMetadata : MachineMetadata
   initialStates : List Bool
-  stepResults : List (List (TransitionResult Bool Bool Bool))
+  stepResults : List (List (Step Bool Bool Bool))
   deriving BEq, DecidableEq
 
 private def providerValue (provider : CapabilityProvider TestLawStatement) : ProviderValue := {
@@ -65,7 +65,7 @@ private def checkedTargetValue
   providers := target.providers.map providerValue
   connectors := target.connectors.map connectorValue
   resolvedSetups := target.resolvedSetups
-  kernelMetadata := target.kernel.metadata
+  machineMetadata := target.kernel.metadata
   initialStates := target.kernel.initialStates ()
   stepResults := [
     target.kernel.steps false false,
@@ -110,8 +110,8 @@ private def expectedCheckedTargetValue : CheckedTargetValue := {
     stableMetadata "test.capability.primary" .capability,
     stableMetadata "test.capability.secondary" .capability,
     stableMetadata "test.connector.shared" .connector,
-    stableMetadata "test.kernel.transition" .kernel,
-    stableMetadata "test.observation.completed" .observation,
+    stableMetadata "test.kernel.transition" .machine,
+    stableMetadata "test.observation.completed" .fact,
     stableMetadata "test.provider.primary" .provider,
     stableMetadata "test.provider.secondary" .provider,
     stableMetadata "test.relation.shared" .relation,
@@ -170,16 +170,16 @@ private def expectedCheckedTargetValue : CheckedTargetValue := {
     witnessedLaws := [stableConnectorLaw]
   }]
   resolvedSetups := [()]
-  kernelMetadata := {
+  machineMetadata := {
     id := DefinitionId.of "test.kernel.transition"
     source := stableSource "Umpire/TargetTests.lean"
   }
   initialStates := [false]
   stepResults := [
-    [{ modelOutcome := false, resultingState := false, observations := [false] }],
-    [{ modelOutcome := true, resultingState := true, observations := [false] }],
-    [{ modelOutcome := false, resultingState := false, observations := [true] }],
-    [{ modelOutcome := true, resultingState := true, observations := [true] }]
+    [{ outcome := false, state := false, facts := [false] }],
+    [{ outcome := true, state := true, facts := [false] }],
+    [{ outcome := false, state := false, facts := [true] }],
+    [{ outcome := true, state := true, facts := [true] }]
   ]
 }
 

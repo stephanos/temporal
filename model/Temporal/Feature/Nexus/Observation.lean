@@ -136,7 +136,7 @@ def Mapping.spec : ObservationMappingSpec := {
       (equalsAny Profile.outcomeFieldSpec [
         startedOutcome.value, canceledOutcome.value, succeededOutcome.value
       ]) |>.declaration,
-    rule Mapping.observationRuleId lifecycleObservationId .observation Profile.observationFieldSpec
+    rule Mapping.observationRuleId lifecycleObservationId .fact Profile.observationFieldSpec
       (equalsAny Profile.observationFieldSpec [
         startedObservation.value, canceledObservation.value, succeededObservation.value
       ]) |>.declaration

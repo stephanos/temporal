@@ -163,7 +163,7 @@ def evidenceLinkFailureKinds : List (ObservationStatus × Option ObservationFail
   let result := validateEvidenceBackedTrace {
     completeUncheckedEvidenceBackedTrace with
     evidenceLinks := completeUncheckedEvidenceBackedTrace.evidenceLinks ++ [{
-      completeFirstEvidenceLink with coordinate := .observation 1 99
+      completeFirstEvidenceLink with coordinate := .fact 1 99
     }]
   }
   admissionStatusAndKind result,
@@ -247,15 +247,15 @@ example :
     accepted.map (fun trace => trace.evidenceLinks.map EvidenceLink.coordinate) = some [
       .initialState,
       .selectedAction 1,
-      .modelOutcome 1,
-      .resultingState 1,
-      .observation 1 1,
-      .observation 1 2,
+      .outcome 1,
+      .state 1,
+      .fact 1 1,
+      .fact 1 2,
       .selectedAction 2,
-      .modelOutcome 2,
-      .resultingState 2,
-      .observation 2 1,
-      .observation 2 2
+      .outcome 2,
+      .state 2,
+      .fact 2 1,
+      .fact 2 2
     ] := by
   native_decide
 
