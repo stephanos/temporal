@@ -614,7 +614,9 @@ private def receiptTrace (trace : Scenario.Trace) : Lean.Json :=
       ("facts", .arr (step.facts.map receiptValue).toArray)]).toArray)]
 
 /-- Canonical endpoint receipt binds independent claims, all Query limits and policies, the
-assurance method, and exact model paths supporting realized trigger coverage. -/
+assurance method, and exact model paths supporting realized trigger coverage. Its `formatVersion`
+names the in-memory projection, not a persisted artifact format: nothing stores these bytes and no
+reader outside this module parses them, so the tag carries no compatibility promise. -/
 def canonicalPlanningReceiptJson (result : PlanningResult) : String :=
   let validity := result.metadata.validity
   let satisfiability := match validity.satisfiability with
