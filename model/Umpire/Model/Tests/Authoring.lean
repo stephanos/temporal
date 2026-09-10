@@ -8,7 +8,7 @@ open Umpire
 
 def occurrenceId
     (line column endLine endColumn localOrdinal : Nat) : SourceSpan := {
-  sourcePath := "Test/TargetAuthoring.lean"
+  sourcePath := "Test/ModelAuthoring.lean"
   line
   column
   endLine
@@ -53,7 +53,7 @@ def diagnosticSummary
         diagnostic.offending.line)
 
 example : diagnosticSummary (checkModel reusedDefinitionIdAuthoring) =
-    some (.wrongKind, .capabilityRequirement, "Test/TargetAuthoring.lean", 50) := by
+    some (.wrongKind, .capabilityRequirement, "Test/ModelAuthoring.lean", 50) := by
   native_decide
 
 def definitionsWithKind
@@ -88,8 +88,8 @@ example : [
     diagnosticSummary (checkModel wrongProviderDefinitionAuthoring),
     diagnosticSummary (checkModel wrongConnectorDefinitionAuthoring)
   ] = [
-    some (.wrongKind, .providerDefinition, "Test/TargetAuthoring.lean", 60),
-    some (.wrongKind, .connectorDefinition, "Test/TargetAuthoring.lean", 70)
+    some (.wrongKind, .providerDefinition, "Test/ModelAuthoring.lean", 60),
+    some (.wrongKind, .connectorDefinition, "Test/ModelAuthoring.lean", 70)
   ] := by
   native_decide
 

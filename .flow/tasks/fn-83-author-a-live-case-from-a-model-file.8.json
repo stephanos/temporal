@@ -1,0 +1,18 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-10T06:06:08.649661Z",
+  "depends_on": [
+    "fn-83-author-a-live-case-from-a-model-file.5",
+    "fn-83-author-a-live-case-from-a-model-file.6",
+    "fn-83-author-a-live-case-from-a-model-file.7"
+  ],
+  "id": "fn-83-author-a-live-case-from-a-model-file.8",
+  "priority": null,
+  "spec": "fn-83-author-a-live-case-from-a-model-file",
+  "spec_path": ".flow/tasks/fn-83-author-a-live-case-from-a-model-file.8.md",
+  "status": "todo",
+  "title": "Authoring walkthrough, drift test, documents, roadmap, and full gate",
+  "updated_at": "2026-09-10T06:06:08.649661Z"
+}

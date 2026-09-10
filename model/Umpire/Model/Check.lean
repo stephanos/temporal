@@ -362,32 +362,32 @@ private def composeModel
     | .checked kernel => pure kernel
     | .incomplete metadata missingProofs =>
         requireDefinition definitions target.id target.source metadata.id .machine
-          (occurrencePath .kernel target.id)
+          (occurrencePath .machine target.id)
         throw (validationError .incompleteMachine target.id metadata.source
-          (occurrencePath .kernel target.id) metadata.id metadata.id.value missingProofs)
+          (occurrencePath .machine target.id) metadata.id metadata.id.value missingProofs)
   requireDefinition definitions target.id target.source kernel.metadata.id .machine
-    (occurrencePath .kernel target.id)
+    (occurrencePath .machine target.id)
   let vocabulary ← match kernel.vocabulary with
     | .missing =>
         throw (validationError .missingVocabulary target.id kernel.metadata.source
-          (occurrencePath .kernel target.id) kernel.metadata.id kernel.metadata.id.value
+          (occurrencePath .machine target.id) kernel.metadata.id kernel.metadata.id.value
           [kernel.metadata.id])
     | .incomplete missingCoverage =>
         throw (validationError .incompleteVocabulary target.id kernel.metadata.source
-          (occurrencePath .kernel target.id) kernel.metadata.id kernel.metadata.id.value
+          (occurrencePath .machine target.id) kernel.metadata.id kernel.metadata.id.value
           missingCoverage)
     | .complete domain => pure domain
   match invalidBehaviorDomainEncoding? vocabulary with
   | some encoding =>
       throw (validationError .incompleteVocabulary target.id kernel.metadata.source
-        (occurrencePath .kernel target.id) kernel.metadata.id encoding [kernel.metadata.id])
+        (occurrencePath .machine target.id) kernel.metadata.id encoding [kernel.metadata.id])
   | none => pure ()
   let terminalConditions := target.terminalConditions.map fun states =>
     canonicalStrings (states.map vocabulary.encodeState)
   for states in terminalConditions do
     if !(states.all fun state => (kernel.describeBehavior vocabulary).states.contains state) then
       throw (validationError .incompleteVocabulary target.id kernel.metadata.source
-        (occurrencePath .kernel target.id) kernel.metadata.id "terminal-state" [kernel.metadata.id])
+        (occurrencePath .machine target.id) kernel.metadata.id "terminal-state" [kernel.metadata.id])
   let behavior := { kernel.describeBehavior vocabulary with
     terminalConditions := terminalConditions.mergeSort |>.eraseDups }
   let semantic := targetSemanticJson target.id definitions target.requiredCapabilities
