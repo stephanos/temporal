@@ -126,7 +126,7 @@ private def checkExplorationRequestInputs
     throw (requestError request .spacePointLimitExceeded (toString request.space.pointCount))
   if request.limit.value == 0 || request.limit.value > SpaceLimits.v1.maximumPoints then
     throw (requestError request .invalidLimitValue (toString request.limit.value))
-  if request.limit.unit != .experimentSpecs then
+  if request.limit.unit != .plans then
     throw (requestError request .invalidLimitUnit request.limit.unit.name)
   match request.policy with
   | .exhaustive => pure ()

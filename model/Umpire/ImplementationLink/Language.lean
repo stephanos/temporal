@@ -1096,7 +1096,7 @@ private def checkImplementationLinkWithDomains
     declaration.destinationTarget (.ofTarget destination)
   if declaration.applicationLimit.value == 0 then
     throw (implementationLinkError .invalidLimitValue declaration.id declaration.source "0")
-  if declaration.applicationLimit.unit != .semanticTransitions then
+  if declaration.applicationLimit.unit != .steps then
     throw (implementationLinkError .invalidLimitUnit declaration.id declaration.source
       declaration.applicationLimit.unit.name)
   match conflictingCapabilityId? source with

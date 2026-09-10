@@ -161,7 +161,7 @@ private def textSet (values : List String) : PropertyAtomConstraint :=
             conflict.admittedContinuations.length))) ==
   some ("model-incompatible", true, some (
     0,
-    ({ value := 8, unit := .candidateEvaluations } : Limit),
+    ({ value := 8, unit := .search } : Limit),
     1))
 
 /-! No common trigger, no admitted Behavior trace, and exhausted work remain separate outcomes. -/

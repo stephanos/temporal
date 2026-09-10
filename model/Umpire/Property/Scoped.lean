@@ -39,7 +39,7 @@ inductive Error where
 
 private def referenceClause (clause : CheckedPropertyScopedClause) : CheckedPropertyClause :=
   .eventuallyWithin clause.declaration.id clause.triggerPattern clause.responsePattern
-    ⟨clause.declaration.bound, .semanticTransitions⟩
+    ⟨clause.declaration.bound, .steps⟩
 
 private def patternPredicate (field : PropertyPredicateField) (pattern : PropertyPattern) :
     Option PropertyPredicate := do
@@ -140,7 +140,7 @@ def compile (target : CheckedModel Law Setup ModelValue ModelValue ModelValue Mo
       source := clause.declaration.source
       requires := property.requires
       clauses := [.eventuallyWithin clause.declaration.id clause.triggerPattern clause.responsePattern
-        ⟨clause.declaration.bound, .semanticTransitions⟩] })).mapError Error.property
+        ⟨clause.declaration.bound, .steps⟩] })).mapError Error.property
     if shape : reference.clauses = [referenceClause clause] then
       if triggerAligned : clause.triggerPattern.field = .selectedAction then
         if responseAligned : clause.responsePattern.field = .outcome ∨

@@ -163,7 +163,7 @@ private def propertyVerdict (property : PortableProperty) : ArtifactPropertyVerd
     status := "satisfied"
     coordinates := [initialCoordinate]
     queryLimits := compiledArtifact.plan.expandedLimits
-    propertyLimit := some { value := 1, unit := "observation-positions" }
+    propertyLimit := some { value := 1, unit := "steps" }
     evidenceLimit
     provenanceDefinitionIds := [property.definitionId]
     evidenceLinks := [initialEvidenceLink]

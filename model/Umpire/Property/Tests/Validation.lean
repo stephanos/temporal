@@ -13,27 +13,27 @@ private def characterizedErrorOf
   | .ok _ => none
   | .error error => some (error, canonicalPropertyErrorJson error)
 
-def candidateEvaluationProperty (limit : Limit) : Property := {
+def searchLimitProperty (limit : Limit) : Property := {
   portableProperty with
-  id := id "test.property.candidate-evaluations"
+  id := id "test.property.search-limit"
   clauses := [
-    .eventuallyWithin (id "test.property.candidate-evaluations.clause")
+    .eventuallyWithin (id "test.property.search-limit.clause")
       (pattern .observation cancelRequested)
       (pattern .observation cancelDelivered)
       limit
   ]
 }
 
-/-- Query's candidate-evaluation Limit is not a Property position unit. -/
+/-- Query's search Limit is not a Property position unit. -/
 example :
     errorKindOf (Property.check context
-      (candidateEvaluationProperty { value := 2, unit := .candidateEvaluations })) =
+      (searchLimitProperty { value := 2, unit := .search })) =
       some .unitMismatch := by
   native_decide
 
 /-! Exploration's Plan Limit is not a Property position unit. -/
 example : errorKindOf (Property.check context (
-    candidateEvaluationProperty { value := 2, unit := .experimentSpecs })) =
+    searchLimitProperty { value := 2, unit := .plans })) =
     some .unitMismatch := by
   native_decide
 

@@ -129,7 +129,7 @@ def requestCase (model : ModelVocabulary) : PropertyBranch := {
   temporalClauses := [.eventuallyWithin
     (family.id "case" "request.terminal") source
     (.selectedAction model.requestCancelAction) (.fact model.terminalFact)
-    { value := 1, unit := .semanticTransitions }]
+    { value := 1, unit := .steps }]
 }
 
 def resolutionCase (model : ModelVocabulary) : PropertyBranch := {

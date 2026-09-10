@@ -32,7 +32,7 @@ private def authoredRequest (value : Nat) :
     ExplorationRequest Umpire.Examples.Switch.LawStatement := {
   space := SpaceTests.checked
   policy := .exhaustive
-  limit := { value, unit := .experimentSpecs }
+  limit := { value, unit := .plans }
 }
 
 private def checkedRequestResult := checkExplorationRequest (authoredRequest 4)
@@ -94,8 +94,8 @@ example :
         result.candidates.length == 4 && result.outcome.name == "exhausted") &&
       above.any (fun result =>
         result.candidates.length == 4 && result.outcome.name == "exhausted") &&
-      checkedRequest.limit.unit == .experimentSpecs &&
-      checkedRequest.space.baseQuery.limits.search.unit == .candidateEvaluations = true := by
+      checkedRequest.limit.unit == .plans &&
+      checkedRequest.space.baseQuery.limits.search.unit == .search = true := by
   native_decide
 
 private def firstCandidateResult : Option ExplorationCandidate :=
@@ -146,7 +146,7 @@ private def differentSpace := differentSpaceResult.toOption.get (by native_decid
 private def differentRequestResult := checkExplorationRequest {
   space := differentSpace
   policy := ExplorationPolicy.exhaustive
-  limit := { value := 3, unit := .experimentSpecs }
+  limit := { value := 3, unit := .plans }
 }
 
 private def differentRequest := differentRequestResult.toOption.get (by native_decide)
@@ -183,7 +183,7 @@ private theorem reorderedSpaceTargetEq :
 private def reorderedRequest : ExplorationRequest Umpire.Examples.Switch.LawStatement := {
   space := reorderedSpace
   policy := .exhaustive
-  limit := { value := 3, unit := .experimentSpecs }
+  limit := { value := 3, unit := .plans }
 }
 
 private def checkedReorderedResult := checkExplorationRequest reorderedRequest

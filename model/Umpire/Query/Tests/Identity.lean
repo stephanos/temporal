@@ -8,19 +8,19 @@ open Umpire
 
 example : QueryLimits.bounded 1 2 3 = ({
     behavior := {
-      transitions := { value := 1, unit := .semanticTransitions }
-      selectedActions := { value := 2, unit := .selectedActions }
+      transitions := { value := 1, unit := .steps }
+      selectedActions := { value := 2, unit := .actions }
     }
-    search := { value := 3, unit := .candidateEvaluations }
+    search := { value := 3, unit := .search }
   } : QueryLimits) := by
   rfl
 
 example : QueryLimits.bounded 0 0 0 = ({
     behavior := {
-      transitions := { value := 0, unit := .semanticTransitions }
-      selectedActions := { value := 0, unit := .selectedActions }
+      transitions := { value := 0, unit := .steps }
+      selectedActions := { value := 0, unit := .actions }
     }
-    search := { value := 0, unit := .candidateEvaluations }
+    search := { value := 0, unit := .search }
   } : QueryLimits) := by
   rfl
 
@@ -161,7 +161,7 @@ def changedBehavior : CheckedScenario := {
 
 def changedLimits : QueryLimits := {
   limits with behavior := {
-    limits.behavior with transitions := { value := 2, unit := .semanticTransitions }
+    limits.behavior with transitions := { value := 2, unit := .steps }
   }
 }
 

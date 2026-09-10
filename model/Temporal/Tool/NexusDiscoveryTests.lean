@@ -89,8 +89,8 @@ private def expectedListBytes : String :=
   "\"behaviorFingerprint\":\"sha256:a03bbfcba396776571b733d6cb61f34ad744a4dada0ac180bb8cfed4435036d1\"}," ++
   "\"query\":{\"definitionId\":\"temporal.nexus.basic-lifecycle.query.async-start\",\"kind\":\"query\"," ++
   "\"source\":{\"path\":\"Temporal/Feature/Nexus/Operations.lean\",\"line\":1,\"column\":1,\"provenance\":\"lean-model\"}," ++
-  "\"behaviorFingerprint\":\"sha256:0f2b824ab805074c230bcd4cc03031d9bb9fcc8da36c35aeeeaee1a8d4a6a092\"}," ++
-  "\"plan\":{\"formatVersion\":\"umpire-experiment/v2\",\"artifactChecksum\":\"sha256:ba3e74f70ec164d1d5ce7f228428d03fb8a4d4cf21579c1fe6998a81d121d2d4\"}}," ++
+  "\"behaviorFingerprint\":\"sha256:d1c83c429591016874cba0e6e5857ff51b6513633178fde82ae9ae5e036932f4\"}," ++
+  "\"plan\":{\"formatVersion\":\"umpire-experiment/v2\",\"artifactChecksum\":\"sha256:0857c53af04ba1beaf31fb625d46e782b18e1002d770763a2d5843d47cd52507\"}}," ++
   "{\"queryDefinitionId\":\"temporal.nexus.basic-lifecycle.query.cancellation\",\"property\":{\"definitionId\":\"temporal.nexus.basic-lifecycle.property.cancellation\"," ++
   "\"kind\":\"property\",\"source\":{\"path\":\"Temporal/Feature/Nexus/Operations.lean\",\"line\":1,\"column\":1," ++
   "\"provenance\":\"lean-model\"},\"behaviorFingerprint\":\"sha256:270931e4c5a0d072d0ebd76e509024e237b2215b941c3497cc4055134d34ab48\"}," ++
@@ -99,8 +99,8 @@ private def expectedListBytes : String :=
   "\"behaviorFingerprint\":\"sha256:54481a44690637f3837b5d2de4af258dc05d2f40d41fe766e7a61d9533087171\"}," ++
   "\"query\":{\"definitionId\":\"temporal.nexus.basic-lifecycle.query.cancellation\",\"kind\":\"query\"," ++
   "\"source\":{\"path\":\"Temporal/Feature/Nexus/Operations.lean\",\"line\":1,\"column\":1,\"provenance\":\"lean-model\"}," ++
-  "\"behaviorFingerprint\":\"sha256:3d31cf39de412aa0b784ea5b241e3addafab2d310c477a0280a0ec4115ec96be\"}," ++
-  "\"plan\":{\"formatVersion\":\"umpire-experiment/v2\",\"artifactChecksum\":\"sha256:2cd2c83d9b0ea2c6482051ed60da186514fb0078fd57c99fed4449c8b6c33bf8\"}}," ++
+  "\"behaviorFingerprint\":\"sha256:9c36b48c1c258e7c1637a1d0457c5a04249a49960d6d379bed46a5b26556e0b2\"}," ++
+  "\"plan\":{\"formatVersion\":\"umpire-experiment/v2\",\"artifactChecksum\":\"sha256:840e0b835a6866eea64ae9823976907af919cce60522e5132f4f95d2b9402e60\"}}," ++
   "{\"queryDefinitionId\":\"temporal.nexus.basic-lifecycle.query.successful-completion\",\"property\":{\"definitionId\":\"temporal.nexus.basic-lifecycle.property.successful-completion\"," ++
   "\"kind\":\"property\",\"source\":{\"path\":\"Temporal/Feature/Nexus/Operations.lean\",\"line\":1,\"column\":1," ++
   "\"provenance\":\"lean-model\"},\"behaviorFingerprint\":\"sha256:144637d8e69f94f04299e46da00bcc23cba81fb8e95570e2d18534d27cb5efef\"}," ++
@@ -109,8 +109,8 @@ private def expectedListBytes : String :=
   "\"provenance\":\"lean-model\"},\"behaviorFingerprint\":\"sha256:f0d3559ebef58a279567a3685cf0a01d91c6db2c887da48ac2c2b0c3803ed86b\"}," ++
   "\"query\":{\"definitionId\":\"temporal.nexus.basic-lifecycle.query.successful-completion\",\"kind\":\"query\"," ++
   "\"source\":{\"path\":\"Temporal/Feature/Nexus/Operations.lean\",\"line\":1,\"column\":1,\"provenance\":\"lean-model\"}," ++
-  "\"behaviorFingerprint\":\"sha256:9379b1659ce1a0ff41ace3e03816e2c76296e1b8822338ae2473f0d7df25d32e\"}," ++
-  "\"plan\":{\"formatVersion\":\"umpire-experiment/v2\",\"artifactChecksum\":\"sha256:17298e2cfc86e2a0f2ce4dd13b801d7b94d5fff3200c650da4f115699b655d20\"}}]}\n"
+  "\"behaviorFingerprint\":\"sha256:7dbf91c33e63af25e3714ffa480608ea258a463626ac4f6e567794f88441a5cc\"}," ++
+  "\"plan\":{\"formatVersion\":\"umpire-experiment/v2\",\"artifactChecksum\":\"sha256:1c2d381235e9aecbfc92dedcc3b2f9c2f0345d5f396abd5e657917c6a22c53b8\"}}]}\n"
 
 example : inventoryValue.canonicalListBytes = expectedListBytes ∧
     reordered.toOption.map NexusDiscoveryInventory.canonicalListBytes =
@@ -118,8 +118,8 @@ example : inventoryValue.canonicalListBytes = expectedListBytes ∧
   native_decide
 
 private def expectedLineageJson : List String := [
-    "{\"formatVersion\":\"umpire-experiment/v2\",\"artifactChecksum\":\"sha256:ba3e74f70ec164d1d5ce7f228428d03fb8a4d4cf21579c1fe6998a81d121d2d4\"," ++
-    "\"queryDefinitionId\":\"temporal.nexus.basic-lifecycle.query.async-start\",\"queryBehaviorFingerprint\":\"sha256:0f2b824ab805074c230bcd4cc03031d9bb9fcc8da36c35aeeeaee1a8d4a6a092\"," ++
+    "{\"formatVersion\":\"umpire-experiment/v2\",\"artifactChecksum\":\"sha256:0857c53af04ba1beaf31fb625d46e782b18e1002d770763a2d5843d47cd52507\"," ++
+    "\"queryDefinitionId\":\"temporal.nexus.basic-lifecycle.query.async-start\",\"queryBehaviorFingerprint\":\"sha256:d1c83c429591016874cba0e6e5857ff51b6513633178fde82ae9ae5e036932f4\"," ++
     "\"behaviorDefinitionId\":\"temporal.nexus.basic-lifecycle.behavior.async-start\",\"behaviorFingerprint\":\"sha256:a03bbfcba396776571b733d6cb61f34ad744a4dada0ac180bb8cfed4435036d1\"," ++
     "\"targetDefinitionId\":\"temporal.nexus.basic-lifecycle.target\",\"targetBehaviorFingerprint\":\"sha256:bf81a3382115f48aa4f04d2668b9c587a47b95f50dbad00abb10b2d2ad806dc6\"," ++
     "\"kernelDefinitionId\":\"temporal.nexus.basic-lifecycle.kernel\",\"kernelBehaviorFingerprint\":\"sha256:bf81a3382115f48aa4f04d2668b9c587a47b95f50dbad00abb10b2d2ad806dc6\"," ++
@@ -129,8 +129,8 @@ private def expectedLineageJson : List String := [
     "\"temporal.nexus.basic-lifecycle.target\"],\"provenanceSources\":[{\"path\":\"Temporal/Feature/Nexus/Lifecycle.lean\"," ++
     "\"line\":1,\"column\":1,\"provenance\":\"lean-model\"},{\"path\":\"Temporal/Feature/Nexus/Operations.lean\"," ++
     "\"line\":1,\"column\":1,\"provenance\":\"lean-model\"}]}",
-    "{\"formatVersion\":\"umpire-experiment/v2\",\"artifactChecksum\":\"sha256:2cd2c83d9b0ea2c6482051ed60da186514fb0078fd57c99fed4449c8b6c33bf8\"," ++
-    "\"queryDefinitionId\":\"temporal.nexus.basic-lifecycle.query.cancellation\",\"queryBehaviorFingerprint\":\"sha256:3d31cf39de412aa0b784ea5b241e3addafab2d310c477a0280a0ec4115ec96be\"," ++
+    "{\"formatVersion\":\"umpire-experiment/v2\",\"artifactChecksum\":\"sha256:840e0b835a6866eea64ae9823976907af919cce60522e5132f4f95d2b9402e60\"," ++
+    "\"queryDefinitionId\":\"temporal.nexus.basic-lifecycle.query.cancellation\",\"queryBehaviorFingerprint\":\"sha256:9c36b48c1c258e7c1637a1d0457c5a04249a49960d6d379bed46a5b26556e0b2\"," ++
     "\"behaviorDefinitionId\":\"temporal.nexus.basic-lifecycle.behavior.cancellation\",\"behaviorFingerprint\":\"sha256:54481a44690637f3837b5d2de4af258dc05d2f40d41fe766e7a61d9533087171\"," ++
     "\"targetDefinitionId\":\"temporal.nexus.basic-lifecycle.target\",\"targetBehaviorFingerprint\":\"sha256:bf81a3382115f48aa4f04d2668b9c587a47b95f50dbad00abb10b2d2ad806dc6\"," ++
     "\"kernelDefinitionId\":\"temporal.nexus.basic-lifecycle.kernel\",\"kernelBehaviorFingerprint\":\"sha256:bf81a3382115f48aa4f04d2668b9c587a47b95f50dbad00abb10b2d2ad806dc6\"," ++
@@ -140,8 +140,8 @@ private def expectedLineageJson : List String := [
     "\"temporal.nexus.basic-lifecycle.target\"],\"provenanceSources\":[{\"path\":\"Temporal/Feature/Nexus/Lifecycle.lean\"," ++
     "\"line\":1,\"column\":1,\"provenance\":\"lean-model\"},{\"path\":\"Temporal/Feature/Nexus/Operations.lean\"," ++
     "\"line\":1,\"column\":1,\"provenance\":\"lean-model\"}]}",
-    "{\"formatVersion\":\"umpire-experiment/v2\",\"artifactChecksum\":\"sha256:17298e2cfc86e2a0f2ce4dd13b801d7b94d5fff3200c650da4f115699b655d20\"," ++
-    "\"queryDefinitionId\":\"temporal.nexus.basic-lifecycle.query.successful-completion\",\"queryBehaviorFingerprint\":\"sha256:9379b1659ce1a0ff41ace3e03816e2c76296e1b8822338ae2473f0d7df25d32e\"," ++
+    "{\"formatVersion\":\"umpire-experiment/v2\",\"artifactChecksum\":\"sha256:1c2d381235e9aecbfc92dedcc3b2f9c2f0345d5f396abd5e657917c6a22c53b8\"," ++
+    "\"queryDefinitionId\":\"temporal.nexus.basic-lifecycle.query.successful-completion\",\"queryBehaviorFingerprint\":\"sha256:7dbf91c33e63af25e3714ffa480608ea258a463626ac4f6e567794f88441a5cc\"," ++
     "\"behaviorDefinitionId\":\"temporal.nexus.basic-lifecycle.behavior.successful-completion\"," ++
     "\"behaviorFingerprint\":\"sha256:f0d3559ebef58a279567a3685cf0a01d91c6db2c887da48ac2c2b0c3803ed86b\"," ++
     "\"targetDefinitionId\":\"temporal.nexus.basic-lifecycle.target\",\"targetBehaviorFingerprint\":\"sha256:bf81a3382115f48aa4f04d2668b9c587a47b95f50dbad00abb10b2d2ad806dc6\"," ++

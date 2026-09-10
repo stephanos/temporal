@@ -34,7 +34,7 @@ def samePositionBoundary : Property := {
     .eventuallyWithin (id "test.property.same-position-boundary.clause")
       (pattern .observation cancelDelivered)
       (pattern .observation cancelDelivered)
-      { value := 0, unit := .observationPositions }
+      { value := 0, unit := .steps }
   ]
 }
 

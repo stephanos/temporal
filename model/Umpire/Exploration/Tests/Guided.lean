@@ -33,7 +33,7 @@ private def authoredRequest
     (value : Nat := 1) : ExplorationRequest Umpire.Examples.Switch.LawStatement := {
   space := SpaceTests.checked
   policy := .uncoveredCoordinate coordinate
-  limit := { value, unit := .experimentSpecs }
+  limit := { value, unit := .plans }
 }
 
 private def checkedRequestResult :=
