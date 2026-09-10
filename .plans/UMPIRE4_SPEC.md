@@ -431,9 +431,10 @@ horizon.
   host-clock dependent, so a Case whose verdict must not depend on the machine that produced it
   SHOULD declare the event count instead; EVD-07 already forbids resting a conclusion on
   synchronized wall clocks. Both bounds MUST be ticked through one shared helper, so the online and
-  the offline evaluation of the same Run answer identically. Counting MUST continue while execution
-  is incomplete with the expiry conclusion suppressed, and MUST stop once the rule is terminal. An
-  operation-scoped clause counts admitted operation transitions and MUST NOT fall back to either.
+  the offline evaluation of the same Run answer identically. The counter MUST reset on each
+  transition into a new state, MUST stop once the rule is terminal, and MUST freeze with every other
+  rule effect once execution becomes incomplete, so no expiry is ever concluded from a truncated Run.
+  An operation-scoped clause counts admitted operation transitions and MUST NOT fall back to either.
 
 ## Exploration, replay, and promotion
 
