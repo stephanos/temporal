@@ -1,4 +1,4 @@
-import Temporal.Feature.Nexus3.TypedUnary
+import Temporal.Feature.Nexus.Success.TypedUnary
 
 /-!
 Executable checks for the generated unary example.
@@ -11,12 +11,12 @@ written out beside them; and the whole-Case coverage rejects a Program that does
 modeled input field, before any Driver I/O could happen.
 -/
 
-namespace Temporal.Feature.Nexus3.Tests.TypedUnary
+namespace Temporal.Feature.Nexus.Success.Tests.TypedUnary
 
 open Umpire
 open Umpire.Operation
 open Umpire.Value
-open Temporal.Feature.Nexus3.TypedUnary
+open Temporal.Feature.Nexus.Success.TypedUnary
 open temporal.server.api.testpilot.v1
 
 /-! ### The generated reference is admitted, and only against its own selection -/
@@ -457,4 +457,4 @@ private def inputMapping : Umpire.Case.Coverage.InputMapping :=
 #guard_msgs in
 #print axioms Umpire.Operation.ParameterTable.actionDomain_iff
 
-end Temporal.Feature.Nexus3.Tests.TypedUnary
+end Temporal.Feature.Nexus.Success.Tests.TypedUnary

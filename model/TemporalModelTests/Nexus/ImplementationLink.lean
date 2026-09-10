@@ -7,7 +7,7 @@ already-accepted System trace at the test boundary; the production operation con
 Observation result and never interprets raw Evidence.
 -/
 
-namespace Temporal.ImplementationLinkTests.Nexus
+namespace TemporalModelTests.Nexus.ImplementationLink
 
 open Umpire
 open Temporal.System.Nexus.ImplementationLink
@@ -579,4 +579,4 @@ example :
       missingCoordinateResult.evaluated?.isNone := by
   native_decide
 
-end Temporal.ImplementationLinkTests.Nexus
+end TemporalModelTests.Nexus.ImplementationLink

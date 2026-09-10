@@ -1,13 +1,13 @@
-import Temporal.Feature.Nexus2.Authoring
+import Temporal.Feature.Nexus.Race.Authoring
 import Umpire.Search
 import Umpire.Search.Branches
 
 /-! Executable constructor admission, equivalence, identity, diagnostics, and trust fixtures. -/
 
-namespace Temporal.Feature.Nexus2.AuthoringTests
+namespace Temporal.Feature.Nexus.Race.AuthoringTests
 
 open Umpire
-open Temporal.Feature.Nexus2
+open Temporal.Feature.Nexus.Race
 
 private def frontendBaselineContext : PropertyCheckContext := {
   definitions := Lifecycle.definitions
@@ -165,7 +165,7 @@ private def propertyErrorKind (spec : Property) : Option PropertyErrorKind := do
   | .ok _ => none
 
 private def malformedProperty : Property := {
-  id := (DefinitionFamily.mk (DefinitionId.of "temporal.nexus2.")).id "property" "malformed"
+  id := (DefinitionFamily.mk (DefinitionId.of "temporal.nexus.race.")).id "property" "malformed"
   source := Race.source
   requires := []
   clauses := []
@@ -194,7 +194,7 @@ private def unknownReferenceProperty (model : Race.ModelVocabulary) : Property :
   clauses := [.transitionContract
     (Authoring.GuardedRace.family.id "property" "unknown-reference.clause")
     (.selectedAction { model.resolveAction with
-      definitionId := DefinitionId.of "temporal.nexus2.unknown.action" })
+      definitionId := DefinitionId.of "temporal.nexus.race.unknown.action" })
     (.outcome model.canceledOutcome)]
 }
 
@@ -209,7 +209,7 @@ private def unknownReferenceDiagnostic : Option (PropertyErrorKind × List Defin
   | .ok _ => none
 
 #guard unknownReferenceDiagnostic == some (
-  .unknownReference, [DefinitionId.of "temporal.nexus2.unknown.action"])
+  .unknownReference, [DefinitionId.of "temporal.nexus.race.unknown.action"])
 
 private def missingCapabilityProperty (model : Race.ModelVocabulary) : Property := {
   id := (Authoring.GuardedRace.family).id "property" "missing-capability"
@@ -301,14 +301,14 @@ private def missingProviderContext : PropertyCheckContext :=
   { frontendRaceContext with providers := [] }
 
 /--
-error: property authoring failed: {"error":{"kind":"invalid-definition-id","definitionId":"temporal.nexus2..property.malformed","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2..property.malformed","relatedDefinitionIds":["temporal.nexus2..property.malformed"]},"role":"parent","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":308,"column":15,"endLine":308,"endColumn":35}}
+error: property authoring failed: {"error":{"kind":"invalid-definition-id","definitionId":"temporal.nexus.race..property.malformed","sourcePath":"Temporal/Feature/Nexus/Race/Race.lean","offendingValue":"temporal.nexus.race..property.malformed","relatedDefinitionIds":["temporal.nexus.race..property.malformed"]},"role":"parent","anchor":{"sourcePath":"Temporal/Feature/Nexus/Race/AuthoringTests.lean","line":308,"column":15,"endLine":308,"endColumn":35}}
 -/
 #guard_msgs (error) in
 #check property% malformedProperty against frontendRaceContext tracking [
   parentAnchor malformedProperty.id]
 
 /--
-error: property authoring failed: {"error":{"kind":"duplicate-definition-id","definitionId":"temporal.nexus2.cancellation-race.property.duplicate","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.cancellation-race.property.duplicate.clause","relatedDefinitionIds":["temporal.nexus2.cancellation-race.property.duplicate.clause"]},"role":"clause","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":317,"column":15,"endLine":317,"endColumn":78}}
+error: property authoring failed: {"error":{"kind":"duplicate-definition-id","definitionId":"temporal.nexus.race.cancellation-race.property.duplicate","sourcePath":"Temporal/Feature/Nexus/Race/Race.lean","offendingValue":"temporal.nexus.race.cancellation-race.property.duplicate.clause","relatedDefinitionIds":["temporal.nexus.race.cancellation-race.property.duplicate.clause"]},"role":"clause","anchor":{"sourcePath":"Temporal/Feature/Nexus/Race/AuthoringTests.lean","line":317,"column":15,"endLine":317,"endColumn":78}}
 -/
 #guard_msgs (error) in
 #check property% duplicateClauseProperty frontendRaceModel against frontendRaceContext tracking [
@@ -317,22 +317,22 @@ error: property authoring failed: {"error":{"kind":"duplicate-definition-id","de
   clauseAnchor (Authoring.GuardedRace.family.id "property" "duplicate.clause")]
 
 /--
-error: property authoring failed: {"error":{"kind":"unknown-reference","definitionId":"temporal.nexus2.cancellation-race.property.unknown-reference","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.unknown.action","relatedDefinitionIds":["temporal.nexus2.unknown.action"]},"role":"clause","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":325,"column":15,"endLine":325,"endColumn":65}}
+error: property authoring failed: {"error":{"kind":"unknown-reference","definitionId":"temporal.nexus.race.cancellation-race.property.unknown-reference","sourcePath":"Temporal/Feature/Nexus/Race/Race.lean","offendingValue":"temporal.nexus.race.unknown.action","relatedDefinitionIds":["temporal.nexus.race.unknown.action"]},"role":"clause","anchor":{"sourcePath":"Temporal/Feature/Nexus/Race/AuthoringTests.lean","line":325,"column":15,"endLine":325,"endColumn":69}}
 -/
 #guard_msgs (error) in
 #check property% unknownReferenceProperty frontendRaceModel against frontendRaceContext tracking [
   parentAnchor (unknownReferenceProperty frontendRaceModel).id,
-  clauseAnchor (DefinitionId.of "temporal.nexus2.unknown.action")]
+  clauseAnchor (DefinitionId.of "temporal.nexus.race.unknown.action")]
 
 /--
-error: property authoring failed: {"error":{"kind":"missing-capability","definitionId":"temporal.nexus2.cancellation-race.property.cases","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.cancellation-race.capability","relatedDefinitionIds":["temporal.nexus2.cancellation-race.capability"]},"role":"parent","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":332,"column":15,"endLine":332,"endColumn":32}}
+error: property authoring failed: {"error":{"kind":"missing-capability","definitionId":"temporal.nexus.race.cancellation-race.property.cases","sourcePath":"Temporal/Feature/Nexus/Race/Race.lean","offendingValue":"temporal.nexus.race.cancellation-race.capability","relatedDefinitionIds":["temporal.nexus.race.cancellation-race.capability"]},"role":"parent","anchor":{"sourcePath":"Temporal/Feature/Nexus/Race/AuthoringTests.lean","line":332,"column":15,"endLine":332,"endColumn":32}}
 -/
 #guard_msgs (error) in
 #check property% Authoring.GuardedRace.authoredProperty frontendRaceModel against missingProviderContext tracking [
   parentAnchor Race.capabilityId]
 
 /--
-error: property authoring failed: {"error":{"kind":"invalid-predicate-context","definitionId":"temporal.nexus2.cancellation-race.property.unsupported-guard","sourcePath":"Temporal/Feature/Nexus2/Race.lean","source":{"path":"Temporal/Feature/Nexus2/Race.lean","line":1,"column":1,"provenance":"lean-model"},"offendingValue":"before: resulting-state","relatedDefinitionIds":["temporal.nexus2.cancellation-race.state.operation"]},"role":"case","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":340,"column":13,"endLine":340,"endColumn":64}}
+error: property authoring failed: {"error":{"kind":"invalid-predicate-context","definitionId":"temporal.nexus.race.cancellation-race.property.unsupported-guard","sourcePath":"Temporal/Feature/Nexus/Race/Race.lean","source":{"path":"Temporal/Feature/Nexus/Race/Race.lean","line":1,"column":1,"provenance":"lean-model"},"offendingValue":"before: resulting-state","relatedDefinitionIds":["temporal.nexus.race.cancellation-race.state.operation"]},"role":"case","anchor":{"sourcePath":"Temporal/Feature/Nexus/Race/AuthoringTests.lean","line":340,"column":13,"endLine":340,"endColumn":64}}
 -/
 #guard_msgs (error) in
 #check property% unsupportedGuardProperty frontendRaceModel against frontendRaceContext tracking [
@@ -340,7 +340,7 @@ error: property authoring failed: {"error":{"kind":"invalid-predicate-context","
   caseAnchor frontendRaceModel.cancelRequestedState.definitionId]
 
 /--
-error: property authoring failed: {"error":{"kind":"empty-case-group","definitionId":"temporal.nexus2.cancellation-race.property.empty-group","sourcePath":"Temporal/Feature/Nexus2/Race.lean","source":{"path":"Temporal/Feature/Nexus2/Race.lean","line":1,"column":1,"provenance":"lean-model"},"offendingValue":"temporal.nexus2.cancellation-race.case-group.empty","relatedDefinitionIds":["temporal.nexus2.cancellation-race.case-group.empty"]},"role":"clause","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":348,"column":15,"endLine":348,"endColumn":69}}
+error: property authoring failed: {"error":{"kind":"empty-case-group","definitionId":"temporal.nexus.race.cancellation-race.property.empty-group","sourcePath":"Temporal/Feature/Nexus/Race/Race.lean","source":{"path":"Temporal/Feature/Nexus/Race/Race.lean","line":1,"column":1,"provenance":"lean-model"},"offendingValue":"temporal.nexus.race.cancellation-race.case-group.empty","relatedDefinitionIds":["temporal.nexus.race.cancellation-race.case-group.empty"]},"role":"clause","anchor":{"sourcePath":"Temporal/Feature/Nexus/Race/AuthoringTests.lean","line":348,"column":15,"endLine":348,"endColumn":69}}
 -/
 #guard_msgs (error) in
 #check property% emptyGroupProperty against frontendRaceContext tracking [
@@ -348,7 +348,7 @@ error: property authoring failed: {"error":{"kind":"empty-case-group","definitio
   clauseAnchor (Authoring.GuardedRace.family.id "case-group" "empty")]
 
 /--
-error: property authoring failed: {"error":{"kind":"empty-boolean-group","definitionId":"temporal.nexus2.cancellation-race.property.empty-boolean","sourcePath":"Temporal/Feature/Nexus2/Race.lean","source":{"path":"Temporal/Feature/Nexus2/Race.lean","line":1,"column":1,"provenance":"lean-model"},"offendingValue":"all","relatedDefinitionIds":[]},"role":"parent","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":355,"column":15,"endLine":355,"endColumn":38}}
+error: property authoring failed: {"error":{"kind":"empty-boolean-group","definitionId":"temporal.nexus.race.cancellation-race.property.empty-boolean","sourcePath":"Temporal/Feature/Nexus/Race/Race.lean","source":{"path":"Temporal/Feature/Nexus/Race/Race.lean","line":1,"column":1,"provenance":"lean-model"},"offendingValue":"all","relatedDefinitionIds":[]},"role":"parent","anchor":{"sourcePath":"Temporal/Feature/Nexus/Race/AuthoringTests.lean","line":355,"column":15,"endLine":355,"endColumn":38}}
 -/
 #guard_msgs (error) in
 #check property% emptyBooleanProperty against frontendRaceContext tracking [
@@ -356,7 +356,7 @@ error: property authoring failed: {"error":{"kind":"empty-boolean-group","defini
   clauseAnchor (Authoring.GuardedRace.family.id "case-group" "empty-boolean")]
 
 /--
-error: property authoring failed: {"error":{"kind":"unit-mismatch","definitionId":"temporal.nexus2.cancellation-race.property.invalid-unit","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"search is not a Property position unit","relatedDefinitionIds":["temporal.nexus2.cancellation-race.action.resolve","temporal.nexus2.cancellation-race.fact.terminal"]},"role":"parent","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":363,"column":15,"endLine":363,"endColumn":37}}
+error: property authoring failed: {"error":{"kind":"unit-mismatch","definitionId":"temporal.nexus.race.cancellation-race.property.invalid-unit","sourcePath":"Temporal/Feature/Nexus/Race/Race.lean","offendingValue":"search is not a Property position unit","relatedDefinitionIds":["temporal.nexus.race.cancellation-race.action.resolve","temporal.nexus.race.cancellation-race.fact.terminal"]},"role":"parent","anchor":{"sourcePath":"Temporal/Feature/Nexus/Race/AuthoringTests.lean","line":363,"column":15,"endLine":363,"endColumn":37}}
 -/
 #guard_msgs (error) in
 #check property% invalidUnitProperty against frontendRaceContext tracking [
@@ -364,7 +364,7 @@ error: property authoring failed: {"error":{"kind":"unit-mismatch","definitionId
   clauseAnchor (Authoring.GuardedRace.family.id "property" "invalid-unit.clause")]
 
 /--
-error: property authoring failed: {"error":{"kind":"wrong-reference-kind","definitionId":"temporal.nexus2.cancellation-race.property.wrong-kind","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.cancellation-race.state.operation: expected action, found state","relatedDefinitionIds":["temporal.nexus2.cancellation-race.state.operation"]},"role":"clause","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":372,"column":15,"endLine":372,"endColumn":58}}
+error: property authoring failed: {"error":{"kind":"wrong-reference-kind","definitionId":"temporal.nexus.race.cancellation-race.property.wrong-kind","sourcePath":"Temporal/Feature/Nexus/Race/Race.lean","offendingValue":"temporal.nexus.race.cancellation-race.state.operation: expected action, found state","relatedDefinitionIds":["temporal.nexus.race.cancellation-race.state.operation"]},"role":"clause","anchor":{"sourcePath":"Temporal/Feature/Nexus/Race/AuthoringTests.lean","line":372,"column":15,"endLine":372,"endColumn":58}}
 -/
 #guard_msgs (error) in
 #check property% wrongKindProperty against frontendRaceContext tracking [
@@ -372,7 +372,7 @@ error: property authoring failed: {"error":{"kind":"wrong-reference-kind","defin
   clauseAnchor frontendRaceModel.startedState.definitionId]
 
 /--
-error: property authoring failed: {"error":{"kind":"invalid-predicate-context","definitionId":"temporal.nexus2.cancellation-race.property.cases","sourcePath":"Temporal/Feature/Nexus2/Race.lean","source":{"path":"Temporal/Feature/Nexus2/Race.lean","line":1,"column":1,"provenance":"lean-model"},"offendingValue":"before: resulting-state","relatedDefinitionIds":["temporal.nexus2.cancellation-race.state.operation"]},"role":"exception","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":381,"column":18,"endLine":381,"endColumn":69}}
+error: property authoring failed: {"error":{"kind":"invalid-predicate-context","definitionId":"temporal.nexus.race.cancellation-race.property.cases","sourcePath":"Temporal/Feature/Nexus/Race/Race.lean","source":{"path":"Temporal/Feature/Nexus/Race/Race.lean","line":1,"column":1,"provenance":"lean-model"},"offendingValue":"before: resulting-state","relatedDefinitionIds":["temporal.nexus.race.cancellation-race.state.operation"]},"role":"exception","anchor":{"sourcePath":"Temporal/Feature/Nexus/Race/AuthoringTests.lean","line":381,"column":18,"endLine":381,"endColumn":69}}
 -/
 #guard_msgs (error) in
 #check property% invalidExceptionProperty against frontendRaceContext tracking [
@@ -401,7 +401,7 @@ private def emptyCaseProperty (model : Race.ModelVocabulary) : Property :=
     }] }
 
 /--
-error: property authoring failed: {"error":{"kind":"empty-case","definitionId":"temporal.nexus2.cancellation-race.property.cases","sourcePath":"Temporal/Feature/Nexus2/Race.lean","source":{"path":"Temporal/Feature/Nexus2/Race.lean","line":1,"column":1,"provenance":"lean-model"},"offendingValue":"temporal.nexus2.cancellation-race.case.empty","relatedDefinitionIds":["temporal.nexus2.cancellation-race.case-group.empty-case","temporal.nexus2.cancellation-race.case.empty"]},"role":"case","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":410,"column":13,"endLine":410,"endColumn":61}}
+error: property authoring failed: {"error":{"kind":"empty-case","definitionId":"temporal.nexus.race.cancellation-race.property.cases","sourcePath":"Temporal/Feature/Nexus/Race/Race.lean","source":{"path":"Temporal/Feature/Nexus/Race/Race.lean","line":1,"column":1,"provenance":"lean-model"},"offendingValue":"temporal.nexus.race.cancellation-race.case.empty","relatedDefinitionIds":["temporal.nexus.race.cancellation-race.case-group.empty-case","temporal.nexus.race.cancellation-race.case.empty"]},"role":"case","anchor":{"sourcePath":"Temporal/Feature/Nexus/Race/AuthoringTests.lean","line":410,"column":13,"endLine":410,"endColumn":61}}
 -/
 #guard_msgs (error) in
 #check property% emptyCaseProperty frontendRaceModel against frontendRaceContext tracking [
@@ -456,7 +456,7 @@ private def wrongTargetQuery : Option QueryErrorKind := do
   let target ← Race.targetResult.toOption
   let (property, behavior, _) ← guardedAdmission
   let spec := { Authoring.GuardedRace.authoredQuery property behavior with
-    target := DefinitionId.of "temporal.nexus2.other.target" }
+    target := DefinitionId.of "temporal.nexus.race.other.target" }
   queryErrorKind target spec
 
 #guard wrongTargetQuery == some .targetMismatch
@@ -464,15 +464,15 @@ private def wrongTargetQuery : Option QueryErrorKind := do
 private def wrongTargetDiagnostic : Option (QueryErrorKind × List DefinitionId) := do
   let target ← Race.targetResult.toOption
   let (property, behavior, _) ← guardedAdmission
-  let other := DefinitionId.of "temporal.nexus2.other.target"
+  let other := DefinitionId.of "temporal.nexus.race.other.target"
   let spec := { Authoring.GuardedRace.authoredQuery property behavior with target := other }
   match Query.check (.ofTarget target) spec with
   | .error error => some (error.kind, error.relatedDefinitionIds)
   | .ok _ => none
 
 #guard wrongTargetDiagnostic == some (
-  .targetMismatch, [DefinitionId.of "temporal.nexus2.cancellation-race.target",
-    DefinitionId.of "temporal.nexus2.other.target"])
+  .targetMismatch, [DefinitionId.of "temporal.nexus.race.cancellation-race.target",
+    DefinitionId.of "temporal.nexus.race.other.target"])
 
 private def wrongUnitQuery : Option QueryErrorKind := do
   let target ← Race.targetResult.toOption
@@ -632,11 +632,11 @@ private def frontendGuardedQueryOutcome : Option (String × String) := do
 
 private def malformedBehavior : Scenario := {
   Authoring.GuardedRace.authoredScenario frontendRaceModel with
-  id := (DefinitionFamily.mk (DefinitionId.of "temporal.nexus2.")).id "behavior" "malformed"
+  id := (DefinitionFamily.mk (DefinitionId.of "temporal.nexus.race.")).id "behavior" "malformed"
 }
 
 private def unknownActionId : DefinitionId :=
-  DefinitionId.of "temporal.nexus2.unknown.action"
+  DefinitionId.of "temporal.nexus.race.unknown.action"
 
 private def unknownActionBehavior : Scenario :=
   { (Authoring.GuardedRace.authoredScenario frontendRaceModel).withSteps
@@ -651,14 +651,14 @@ private def wrongKindBehavior : Scenario :=
     id := Authoring.GuardedRace.family.id "behavior" "wrong-kind" }
 
 /--
-error: scenario authoring failed: {"error":{"kind":"invalid-definition-id","definitionId":"temporal.nexus2..behavior.malformed","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2..behavior.malformed","relatedDefinitionIds":["temporal.nexus2..behavior.malformed"]},"role":"parent","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":658,"column":17,"endLine":658,"endColumn":37}}
+error: scenario authoring failed: {"error":{"kind":"invalid-definition-id","definitionId":"temporal.nexus.race..behavior.malformed","sourcePath":"Temporal/Feature/Nexus/Race/Race.lean","offendingValue":"temporal.nexus.race..behavior.malformed","relatedDefinitionIds":["temporal.nexus.race..behavior.malformed"]},"role":"parent","anchor":{"sourcePath":"Temporal/Feature/Nexus/Race/AuthoringTests.lean","line":658,"column":17,"endLine":658,"endColumn":37}}
 -/
 #guard_msgs (error) in
 #check scenario% malformedBehavior against frontendRaceBehaviorContext tracking [
   scenarioParent malformedBehavior.id]
 
 /--
-error: scenario authoring failed: {"error":{"kind":"duplicate-definition-id","definitionId":"temporal.nexus2.cancellation-race.behavior.duplicate-occurrence","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.cancellation-race.occurrence.same","relatedDefinitionIds":["temporal.nexus2.cancellation-race.occurrence.same"]},"role":"occurrence","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":668,"column":19,"endLine":668,"endColumn":72}}
+error: scenario authoring failed: {"error":{"kind":"duplicate-definition-id","definitionId":"temporal.nexus.race.cancellation-race.behavior.duplicate-occurrence","sourcePath":"Temporal/Feature/Nexus/Race/Race.lean","offendingValue":"temporal.nexus.race.cancellation-race.occurrence.same","relatedDefinitionIds":["temporal.nexus.race.cancellation-race.occurrence.same"]},"role":"occurrence","anchor":{"sourcePath":"Temporal/Feature/Nexus/Race/AuthoringTests.lean","line":668,"column":19,"endLine":668,"endColumn":72}}
 -/
 #guard_msgs (error) in
 #check scenario% duplicateOccurrenceBehavior frontendRaceModel
@@ -668,7 +668,7 @@ error: scenario authoring failed: {"error":{"kind":"duplicate-definition-id","de
   occurrenceAnchor (Authoring.GuardedRace.family.id "occurrence" "same")]
 
 /--
-error: scenario authoring failed: {"error":{"kind":"unknown-reference","definitionId":"temporal.nexus2.cancellation-race.behavior.unknown-action","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.unknown.action","relatedDefinitionIds":["temporal.nexus2.unknown.action"]},"role":"action","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":676,"column":15,"endLine":676,"endColumn":30}}
+error: scenario authoring failed: {"error":{"kind":"unknown-reference","definitionId":"temporal.nexus.race.cancellation-race.behavior.unknown-action","sourcePath":"Temporal/Feature/Nexus/Race/Race.lean","offendingValue":"temporal.nexus.race.unknown.action","relatedDefinitionIds":["temporal.nexus.race.unknown.action"]},"role":"action","anchor":{"sourcePath":"Temporal/Feature/Nexus/Race/AuthoringTests.lean","line":676,"column":15,"endLine":676,"endColumn":30}}
 -/
 #guard_msgs (error) in
 #check scenario% unknownActionBehavior against frontendRaceBehaviorContext tracking [
@@ -676,7 +676,7 @@ error: scenario authoring failed: {"error":{"kind":"unknown-reference","definiti
   actionAnchor unknownActionId]
 
 /--
-error: scenario authoring failed: {"error":{"kind":"wrong-reference-kind","definitionId":"temporal.nexus2.cancellation-race.behavior.wrong-kind","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.cancellation-race.state.operation: expected action, found state","relatedDefinitionIds":["temporal.nexus2.cancellation-race.state.operation"]},"role":"action","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":684,"column":15,"endLine":684,"endColumn":58}}
+error: scenario authoring failed: {"error":{"kind":"wrong-reference-kind","definitionId":"temporal.nexus.race.cancellation-race.behavior.wrong-kind","sourcePath":"Temporal/Feature/Nexus/Race/Race.lean","offendingValue":"temporal.nexus.race.cancellation-race.state.operation: expected action, found state","relatedDefinitionIds":["temporal.nexus.race.cancellation-race.state.operation"]},"role":"action","anchor":{"sourcePath":"Temporal/Feature/Nexus/Race/AuthoringTests.lean","line":684,"column":15,"endLine":684,"endColumn":58}}
 -/
 #guard_msgs (error) in
 #check scenario% wrongKindBehavior against frontendRaceBehaviorContext tracking [
@@ -691,7 +691,7 @@ error: expected scenarioParent, setupAnchor, occurrenceAnchor, or actionAnchor
   unsupportedBehaviorRole malformedBehavior.id]
 
 private def otherTargetId : DefinitionId :=
-  DefinitionId.of "temporal.nexus2.other.target"
+  DefinitionId.of "temporal.nexus.race.other.target"
 
 private def mismatchedTargetQuery : Query :=
   { frontendGuardedAuthoredQuery with target := otherTargetId }
@@ -718,7 +718,7 @@ private def duplicatePropertyQuery : Query :=
     form := .pick [frontendCheckedProperty, frontendCheckedProperty] }
 
 /--
-error: query authoring failed: {"error":{"kind":"target-mismatch","definitionId":"temporal.nexus2.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.other.target != temporal.nexus2.cancellation-race.target","relatedDefinitionIds":["temporal.nexus2.cancellation-race.target","temporal.nexus2.other.target"]},"role":"target","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":726,"column":15,"endLine":726,"endColumn":28}}
+error: query authoring failed: {"error":{"kind":"target-mismatch","definitionId":"temporal.nexus.race.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus/Race/Race.lean","offendingValue":"temporal.nexus.race.other.target != temporal.nexus.race.cancellation-race.target","relatedDefinitionIds":["temporal.nexus.race.cancellation-race.target","temporal.nexus.race.other.target"]},"role":"target","anchor":{"sourcePath":"Temporal/Feature/Nexus/Race/AuthoringTests.lean","line":726,"column":15,"endLine":726,"endColumn":28}}
 -/
 #guard_msgs (error) in
 #check query% mismatchedTargetQuery against frontendRaceTarget tracking [
@@ -726,7 +726,7 @@ error: query authoring failed: {"error":{"kind":"target-mismatch","definitionId"
   targetAnchor otherTargetId]
 
 /--
-error: query authoring failed: {"error":{"kind":"missing-property","definitionId":"temporal.nexus2.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"properties","relatedDefinitionIds":[]},"role":"property","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":734,"column":17,"endLine":734,"endColumn":69}}
+error: query authoring failed: {"error":{"kind":"missing-property","definitionId":"temporal.nexus.race.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus/Race/Race.lean","offendingValue":"properties","relatedDefinitionIds":[]},"role":"property","anchor":{"sourcePath":"Temporal/Feature/Nexus/Race/AuthoringTests.lean","line":734,"column":17,"endLine":734,"endColumn":69}}
 -/
 #guard_msgs (error) in
 #check query% emptyQuery against frontendRaceTarget tracking [
@@ -734,7 +734,7 @@ error: query authoring failed: {"error":{"kind":"missing-property","definitionId
   propertyAnchor (Authoring.GuardedRace.family.id "property" "cases")]
 
 /--
-error: query authoring failed: {"error":{"kind":"missing-capability","definitionId":"temporal.nexus2.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.unknown.action","relatedDefinitionIds":["temporal.nexus2.cancellation-race.target","temporal.nexus2.unknown.action"]},"role":"property","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":742,"column":17,"endLine":742,"endColumn":69}}
+error: query authoring failed: {"error":{"kind":"missing-capability","definitionId":"temporal.nexus.race.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus/Race/Race.lean","offendingValue":"temporal.nexus.race.unknown.action","relatedDefinitionIds":["temporal.nexus.race.cancellation-race.target","temporal.nexus.race.unknown.action"]},"role":"property","anchor":{"sourcePath":"Temporal/Feature/Nexus/Race/AuthoringTests.lean","line":742,"column":17,"endLine":742,"endColumn":69}}
 -/
 #guard_msgs (error) in
 #check query% missingCapabilityQuery against frontendRaceTarget tracking [
@@ -742,7 +742,7 @@ error: query authoring failed: {"error":{"kind":"missing-capability","definition
   propertyAnchor (Authoring.GuardedRace.family.id "property" "cases")]
 
 /--
-error: query authoring failed: {"error":{"kind":"invalid-limit","definitionId":"temporal.nexus2.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"search=0","relatedDefinitionIds":[]},"role":"limits","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":750,"column":15,"endLine":750,"endColumn":72}}
+error: query authoring failed: {"error":{"kind":"invalid-limit","definitionId":"temporal.nexus.race.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus/Race/Race.lean","offendingValue":"search=0","relatedDefinitionIds":[]},"role":"limits","anchor":{"sourcePath":"Temporal/Feature/Nexus/Race/AuthoringTests.lean","line":750,"column":15,"endLine":750,"endColumn":72}}
 -/
 #guard_msgs (error) in
 #check query% invalidLimitQuery against frontendRaceTarget tracking [
@@ -750,7 +750,7 @@ error: query authoring failed: {"error":{"kind":"invalid-limit","definitionId":"
   limitsAnchor (Authoring.GuardedRace.family.id "query" "case-analysis")]
 
 /--
-error: query authoring failed: {"error":{"kind":"unit-mismatch","definitionId":"temporal.nexus2.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"steps:actions","relatedDefinitionIds":[]},"role":"limits","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":758,"column":15,"endLine":758,"endColumn":72}}
+error: query authoring failed: {"error":{"kind":"unit-mismatch","definitionId":"temporal.nexus.race.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus/Race/Race.lean","offendingValue":"steps:actions","relatedDefinitionIds":[]},"role":"limits","anchor":{"sourcePath":"Temporal/Feature/Nexus/Race/AuthoringTests.lean","line":758,"column":15,"endLine":758,"endColumn":72}}
 -/
 #guard_msgs (error) in
 #check query% mismatchedUnitQuery against frontendRaceTarget tracking [
@@ -758,7 +758,7 @@ error: query authoring failed: {"error":{"kind":"unit-mismatch","definitionId":"
   limitsAnchor (Authoring.GuardedRace.family.id "query" "case-analysis")]
 
 /--
-error: query authoring failed: {"error":{"kind":"duplicate-property","definitionId":"temporal.nexus2.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.cancellation-race.property.cases","relatedDefinitionIds":["temporal.nexus2.cancellation-race.property.cases"]},"role":"property","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":766,"column":17,"endLine":766,"endColumn":69}}
+error: query authoring failed: {"error":{"kind":"duplicate-property","definitionId":"temporal.nexus.race.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus/Race/Race.lean","offendingValue":"temporal.nexus.race.cancellation-race.property.cases","relatedDefinitionIds":["temporal.nexus.race.cancellation-race.property.cases"]},"role":"property","anchor":{"sourcePath":"Temporal/Feature/Nexus/Race/AuthoringTests.lean","line":766,"column":17,"endLine":766,"endColumn":69}}
 -/
 #guard_msgs (error) in
 #check query% duplicatePropertyQuery against frontendRaceTarget tracking [
@@ -780,7 +780,7 @@ private def unknownStateProperty : Property := {
     (Authoring.GuardedRace.family.id "property" "unknown-state.clause")
     (.selectedAction frontendRaceModel.resolveAction)
     (.resultingState { frontendRaceModel.cancelRequestedState with
-      definitionId := DefinitionId.of "temporal.nexus2.unknown.state" })]
+      definitionId := DefinitionId.of "temporal.nexus.race.unknown.state" })]
 }
 
 private def unknownResultProperty : Property := {
@@ -791,24 +791,24 @@ private def unknownResultProperty : Property := {
     (Authoring.GuardedRace.family.id "property" "unknown-result.clause")
     (.selectedAction frontendRaceModel.resolveAction)
     (.outcome { frontendRaceModel.canceledOutcome with
-      definitionId := DefinitionId.of "temporal.nexus2.unknown.result" })]
+      definitionId := DefinitionId.of "temporal.nexus.race.unknown.result" })]
 }
 
 /--
-error: property authoring failed: {"error":{"kind":"unknown-reference","definitionId":"temporal.nexus2.cancellation-race.property.unknown-state","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.unknown.state","relatedDefinitionIds":["temporal.nexus2.unknown.state"]},"role":"clause","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":803,"column":15,"endLine":803,"endColumn":64}}
+error: property authoring failed: {"error":{"kind":"unknown-reference","definitionId":"temporal.nexus.race.cancellation-race.property.unknown-state","sourcePath":"Temporal/Feature/Nexus/Race/Race.lean","offendingValue":"temporal.nexus.race.unknown.state","relatedDefinitionIds":["temporal.nexus.race.unknown.state"]},"role":"clause","anchor":{"sourcePath":"Temporal/Feature/Nexus/Race/AuthoringTests.lean","line":803,"column":15,"endLine":803,"endColumn":68}}
 -/
 #guard_msgs (error) in
 #check property% unknownStateProperty against frontendRaceContext tracking [
   parentAnchor unknownStateProperty.id,
-  clauseAnchor (DefinitionId.of "temporal.nexus2.unknown.state")]
+  clauseAnchor (DefinitionId.of "temporal.nexus.race.unknown.state")]
 
 /--
-error: property authoring failed: {"error":{"kind":"unknown-reference","definitionId":"temporal.nexus2.cancellation-race.property.unknown-result","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.unknown.result","relatedDefinitionIds":["temporal.nexus2.unknown.result"]},"role":"clause","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":811,"column":15,"endLine":811,"endColumn":65}}
+error: property authoring failed: {"error":{"kind":"unknown-reference","definitionId":"temporal.nexus.race.cancellation-race.property.unknown-result","sourcePath":"Temporal/Feature/Nexus/Race/Race.lean","offendingValue":"temporal.nexus.race.unknown.result","relatedDefinitionIds":["temporal.nexus.race.unknown.result"]},"role":"clause","anchor":{"sourcePath":"Temporal/Feature/Nexus/Race/AuthoringTests.lean","line":811,"column":15,"endLine":811,"endColumn":69}}
 -/
 #guard_msgs (error) in
 #check property% unknownResultProperty against frontendRaceContext tracking [
   parentAnchor unknownResultProperty.id,
-  clauseAnchor (DefinitionId.of "temporal.nexus2.unknown.result")]
+  clauseAnchor (DefinitionId.of "temporal.nexus.race.unknown.result")]
 
 private def incompatibleStrategyQuery : Query :=
   { frontendGuardedAuthoredQuery with
@@ -816,7 +816,7 @@ private def incompatibleStrategyQuery : Query :=
     policy := .shortest }
 
 /--
-error: query authoring failed: {"error":{"kind":"incompatible-strategy","definitionId":"temporal.nexus2.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"shortest","relatedDefinitionIds":[]},"role":"policy","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":824,"column":15,"endLine":824,"endColumn":72}}
+error: query authoring failed: {"error":{"kind":"incompatible-strategy","definitionId":"temporal.nexus.race.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus/Race/Race.lean","offendingValue":"shortest","relatedDefinitionIds":[]},"role":"policy","anchor":{"sourcePath":"Temporal/Feature/Nexus/Race/AuthoringTests.lean","line":824,"column":15,"endLine":824,"endColumn":72}}
 -/
 #guard_msgs (error) in
 #check query% incompatibleStrategyQuery against frontendRaceTarget tracking [
@@ -1230,4 +1230,4 @@ example : (Property.check
 #print axioms frontendOneQuery
 #print axioms Race.targetResult
 
-end Temporal.Feature.Nexus2.AuthoringTests
+end Temporal.Feature.Nexus.Race.AuthoringTests

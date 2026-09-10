@@ -1,7 +1,7 @@
 import Temporal.Testpilot
-import Temporal.Feature.Nexus3.Testpilot
-import Temporal.Feature.Nexus3.TypedUnary
-import Temporal.Feature.Nexus3.TypedNexus
+import Temporal.Feature.Nexus.Success.Producer
+import Temporal.Feature.Nexus.Success.TypedUnary
+import Temporal.Feature.Nexus.Success.TypedNexus
 import Testpilot.Examples.Synthetic
 import Testpilot.ProtoJSON
 
@@ -24,9 +24,9 @@ def main (arguments : List String) : IO Unit :=
   match arguments with
   | ["get-system-info"] => renderTestpilot Temporal.Testpilot.getSystemInfoCase
   | ["worker-outage"] => renderTestpilot Temporal.Testpilot.workerOutageCase
-  | ["async-nexus"] => renderTestpilot Temporal.Feature.Nexus3.Testpilot.completionCase
-  | ["typed-unary"] => renderTestpilot Temporal.Feature.Nexus3.TypedUnary.typedUnaryCase
-  | ["typed-nexus"] => renderTestpilot Temporal.Feature.Nexus3.TypedNexus.typedNexusCase
+  | ["async-nexus"] => renderTestpilot Temporal.Feature.Nexus.Success.Producer.completionCase
+  | ["typed-unary"] => renderTestpilot Temporal.Feature.Nexus.Success.TypedUnary.typedUnaryCase
+  | ["typed-nexus"] => renderTestpilot Temporal.Feature.Nexus.Success.TypedNexus.typedNexusCase
   | ["synthetic"] => renderSynthetic
   | ["conformance-satisfied"] => renderTestpilot Temporal.Testpilot.conformanceSatisfiedCase
   | ["conformance-violated"] => renderTestpilot Temporal.Testpilot.conformanceViolatedCase

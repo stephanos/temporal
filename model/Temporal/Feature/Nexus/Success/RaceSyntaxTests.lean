@@ -1,16 +1,16 @@
-import Temporal.Feature.Nexus3.Nexus
+import Temporal.Feature.Nexus.Success.Model
 
 /-!
 # A second lifecycle through the same five commands
 
 This module authors a lifecycle that shares no state, Action or Fact spelling, no arity and no role
-name with the Nexus3 success slice: five states, four Actions, four Model Outcomes, three Facts,
+name with the Nexus.Success success slice: five states, four Actions, four Model Outcomes, three Facts,
 four transitions, two terminal states, a losing row that records no Fact, a two-clause Property,
 and a three-occurrence Behavior over a four-Action model. It exists to prove the command surface
 elaborates whatever the declaring inductives declare rather than one widened spelling list.
 -/
 
-namespace Temporal.Feature.Nexus3.RaceSyntax
+namespace Temporal.Feature.Nexus.Success.RaceSyntax
 
 open Umpire
 
@@ -105,13 +105,13 @@ three-step trace against a two-clause Property, and the Behavior admits only the
 names while the model declares four. Admission canonicalizes clause order, so the checked clauses
 read in sorted-ID order rather than declaration order. -/
 #guard raceLifecycle.stateIds.map (·.value) ==
-  ["temporal.nexus3.state.raceLifecycle.queued",
-    "temporal.nexus3.state.raceLifecycle.running",
-    "temporal.nexus3.state.raceLifecycle.cancelRequested",
-    "temporal.nexus3.state.raceLifecycle.canceled",
-    "temporal.nexus3.state.raceLifecycle.completed"]
+  ["temporal.nexus.success.state.raceLifecycle.queued",
+    "temporal.nexus.success.state.raceLifecycle.running",
+    "temporal.nexus.success.state.raceLifecycle.cancelRequested",
+    "temporal.nexus.success.state.raceLifecycle.canceled",
+    "temporal.nexus.success.state.raceLifecycle.completed"]
 
-#guard raceLifecycle.operationRoleId.value == "temporal.nexus3.role.raceLifecycle.handler"
+#guard raceLifecycle.operationRoleId.value == "temporal.nexus.success.role.raceLifecycle.handler"
 
 #guard raceLifecycle.terminal == [State.canceled, State.completed]
 
@@ -126,10 +126,10 @@ read in sorted-ID order rather than declaration order. -/
     checked.behavior.allowedActions ==
       [raceLifecycle.actionIdAt 1, raceLifecycle.actionIdAt 2, raceLifecycle.actionIdAt 3] &&
     checked.property.clauses.map (·.id.value) ==
-      ["temporal.nexus3.property.cancellationSettles.settledFact",
-        "temporal.nexus3.property.cancellationSettles.settledState"])) == some true
+      ["temporal.nexus.success.property.cancellationSettles.settledFact",
+        "temporal.nexus.success.property.cancellationSettles.settledState"])) == some true
 
 /- Nothing is shared with the success slice: the two Targets are different declarations. -/
 #guard raceLifecycle.targetId != lifecycle.targetId
 
-end Temporal.Feature.Nexus3.RaceSyntax
+end Temporal.Feature.Nexus.Success.RaceSyntax

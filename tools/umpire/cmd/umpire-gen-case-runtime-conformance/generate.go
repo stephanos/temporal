@@ -20,7 +20,7 @@ import (
 const (
 	fixtureRoot           = "common/testing/testpilot/testdata/case-runtime-conformance"
 	functionalFixtureRoot = "tests/testcore/testpilot/testdata"
-	rendererExecutable    = "temporal-testpilot"
+	rendererExecutable    = "umpire-case"
 )
 
 type generationMode string

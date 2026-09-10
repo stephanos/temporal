@@ -57,7 +57,7 @@ emits. The window is therefore model-only, and the Case declares that as a Known
 letting its provenance imply an online reading it does not have.
 -/
 
-namespace Temporal.Feature.Nexus3.TypedNexus
+namespace Temporal.Feature.Nexus.Success.TypedNexus
 
 open Umpire
 open Umpire.Operation
@@ -87,7 +87,7 @@ def historyBinding : Except Operation.Error
 def historySchema : RpcSchema := Temporal.API.rpcOwner.schema historyWitness
 
 def source : SourceLocation :=
-  Temporal.Shared.sourceLocation "Temporal/Feature/Nexus3/TypedNexus.lean"
+  Temporal.Shared.sourceLocation "Temporal/Feature/Nexus/Success/TypedNexus.lean"
 
 /-- Semantic value bounds for the admitted history payloads. -/
 def valueLimits : Limits := ⟨16, 20000000, 262144, 512⟩
@@ -112,12 +112,12 @@ def nexusService := "umpire.case.service"
 def firstOperation := "complete"
 def secondOperation := "confirm"
 
-def firstCommandId : DefinitionId := .of "temporal.nexus3.typed-nexus.command.schedule-complete"
-def secondCommandId : DefinitionId := .of "temporal.nexus3.typed-nexus.command.schedule-confirm"
+def firstCommandId : DefinitionId := .of "temporal.nexus.success.typed-nexus.command.schedule-complete"
+def secondCommandId : DefinitionId := .of "temporal.nexus.success.typed-nexus.command.schedule-confirm"
 def scheduledEventDeclarationId : DefinitionId :=
-  .of "temporal.nexus3.typed-nexus.event.operation-scheduled"
+  .of "temporal.nexus.success.typed-nexus.event.operation-scheduled"
 def completedEventDeclarationId : DefinitionId :=
-  .of "temporal.nexus3.typed-nexus.event.operation-completed"
+  .of "temporal.nexus.success.typed-nexus.event.operation-completed"
 
 /-- One scheduled operation's declared SDK command. Its submission, return and error signature is
 declared separately from any RPC, and its identity is what the Link correlation retains. -/
@@ -134,35 +134,35 @@ def completedEventDeclaration : Except Operation.Error (Declaration .event Strin
 
 /-! ### Model identities -/
 
-def pendingStateId : DefinitionId := .of "temporal.nexus3.typed-nexus.state.pending"
-def scheduledStateId : DefinitionId := .of "temporal.nexus3.typed-nexus.state.scheduled"
-def completedStateId : DefinitionId := .of "temporal.nexus3.typed-nexus.state.completed"
-def scheduleActionId : DefinitionId := .of "temporal.nexus3.typed-nexus.action.schedule"
-def awaitActionId : DefinitionId := .of "temporal.nexus3.typed-nexus.action.await-completion"
-def pollActionId : DefinitionId := .of "temporal.nexus3.typed-nexus.action.poll-history"
-def scheduledOutcomeId : DefinitionId := .of "temporal.nexus3.typed-nexus.outcome.scheduled"
-def completedOutcomeId : DefinitionId := .of "temporal.nexus3.typed-nexus.outcome.completed"
-def noProgressOutcomeId : DefinitionId := .of "temporal.nexus3.typed-nexus.outcome.no-progress"
-def operationRoleId : DefinitionId := .of "temporal.nexus3.typed-nexus.role.operation"
-def targetId : DefinitionId := .of "temporal.nexus3.typed-nexus.target"
-def kernelId : DefinitionId := .of "temporal.nexus3.typed-nexus.kernel"
-def capabilityId : DefinitionId := .of "temporal.nexus3.typed-nexus.capability"
-def providerId : DefinitionId := .of "temporal.nexus3.typed-nexus.provider"
-def runFieldId : DefinitionId := .of "temporal.nexus3.typed-nexus.scope.run"
-def operationFieldId : DefinitionId := .of "temporal.nexus3.typed-nexus.scope.operation"
-def projectionId : DefinitionId := .of "temporal.nexus3.typed-nexus.projection"
-def evidenceSourceId : DefinitionId := .of "temporal.nexus3.typed-nexus.source.history"
+def pendingStateId : DefinitionId := .of "temporal.nexus.success.typed-nexus.state.pending"
+def scheduledStateId : DefinitionId := .of "temporal.nexus.success.typed-nexus.state.scheduled"
+def completedStateId : DefinitionId := .of "temporal.nexus.success.typed-nexus.state.completed"
+def scheduleActionId : DefinitionId := .of "temporal.nexus.success.typed-nexus.action.schedule"
+def awaitActionId : DefinitionId := .of "temporal.nexus.success.typed-nexus.action.await-completion"
+def pollActionId : DefinitionId := .of "temporal.nexus.success.typed-nexus.action.poll-history"
+def scheduledOutcomeId : DefinitionId := .of "temporal.nexus.success.typed-nexus.outcome.scheduled"
+def completedOutcomeId : DefinitionId := .of "temporal.nexus.success.typed-nexus.outcome.completed"
+def noProgressOutcomeId : DefinitionId := .of "temporal.nexus.success.typed-nexus.outcome.no-progress"
+def operationRoleId : DefinitionId := .of "temporal.nexus.success.typed-nexus.role.operation"
+def targetId : DefinitionId := .of "temporal.nexus.success.typed-nexus.target"
+def kernelId : DefinitionId := .of "temporal.nexus.success.typed-nexus.kernel"
+def capabilityId : DefinitionId := .of "temporal.nexus.success.typed-nexus.capability"
+def providerId : DefinitionId := .of "temporal.nexus.success.typed-nexus.provider"
+def runFieldId : DefinitionId := .of "temporal.nexus.success.typed-nexus.scope.run"
+def operationFieldId : DefinitionId := .of "temporal.nexus.success.typed-nexus.scope.operation"
+def projectionId : DefinitionId := .of "temporal.nexus.success.typed-nexus.projection"
+def evidenceSourceId : DefinitionId := .of "temporal.nexus.success.typed-nexus.source.history"
 def operationIdentityFieldId : DefinitionId :=
-  .of "temporal.nexus3.typed-nexus.evidence.operation-identity"
+  .of "temporal.nexus.success.typed-nexus.evidence.operation-identity"
 def completedEvidenceKindId : DefinitionId :=
-  .of "temporal.nexus3.typed-nexus.evidence.completed"
-def linkPropertyId : DefinitionId := .of "temporal.nexus3.typed-nexus.property.bounded-completion"
-def linkClauseId : DefinitionId := .of "temporal.nexus3.typed-nexus.clause.bounded-completion"
-def captureId : DefinitionId := .of "temporal.nexus3.typed-nexus.capture.scheduled-operation"
-def fieldPropertyId : DefinitionId := .of "temporal.nexus3.typed-nexus.property.correlated-completion"
-def groupId : DefinitionId := .of "temporal.nexus3.typed-nexus.property.group"
-def caseId : DefinitionId := .of "temporal.nexus3.typed-nexus.property.case"
-def clauseId : DefinitionId := .of "temporal.nexus3.typed-nexus.clause.correlated-completion"
+  .of "temporal.nexus.success.typed-nexus.evidence.completed"
+def linkPropertyId : DefinitionId := .of "temporal.nexus.success.typed-nexus.property.bounded-completion"
+def linkClauseId : DefinitionId := .of "temporal.nexus.success.typed-nexus.clause.bounded-completion"
+def captureId : DefinitionId := .of "temporal.nexus.success.typed-nexus.capture.scheduled-operation"
+def fieldPropertyId : DefinitionId := .of "temporal.nexus.success.typed-nexus.property.correlated-completion"
+def groupId : DefinitionId := .of "temporal.nexus.success.typed-nexus.property.group"
+def caseId : DefinitionId := .of "temporal.nexus.success.typed-nexus.property.case"
+def clauseId : DefinitionId := .of "temporal.nexus.success.typed-nexus.clause.correlated-completion"
 
 def pendingState : ModelValue := .named pendingStateId "pending"
 def completedState : ModelValue := .named completedStateId "completed"
@@ -397,7 +397,7 @@ private def definitions : List DefinitionMetadata :=
 private def provider : Provider (fun _ => True) := {
   id := providerId
   source
-  contract := { id := capabilityId, behaviorVersion := "temporal-nexus3-typed-nexus/v1"
+  contract := { id := capabilityId, behaviorVersion := "temporal-nexus-success-typed-nexus/v1"
                 requiredLaws := [] }
   meanings := vocabularyKinds.map fun (id, kind) =>
     { definitionId := id, kind, behaviorVersion := id.value ++ "/meaning-v1" }
@@ -517,7 +517,7 @@ Known Gap names, read here as the key rather than as a rule. -/
 
 /-- The evidence kind one operation's scheduled event records. -/
 def OperationCase.scheduledEvidenceKindId (entry : OperationCase) : DefinitionId :=
-  .of ("temporal.nexus3.typed-nexus.evidence.scheduled-" ++ entry.operation)
+  .of ("temporal.nexus.success.typed-nexus.evidence.scheduled-" ++ entry.operation)
 
 /-- The operation identity a scheduled event retains, the one field the Link correlation reads. -/
 def retainedOperationIdentity : List (EvidenceFieldDeclaration × FieldDisposition) :=
@@ -879,7 +879,7 @@ to tell the two completions apart online still could not, which is exactly what 
 completion gap below already names. -/
 private def completionIdentityIsUnrecorded (link : CheckedProperty) : Umpire.Provenance.KnownGap :=
   { kind := .interpretation
-    code := "temporal.nexus3.typed-nexus.completion-identity-is-unrecorded"
+    code := "temporal.nexus.success.typed-nexus.completion-identity-is-unrecorded"
     subject := some link.id.value
     detail := some ("the bounded-response window runs online from lifted history evidence; a " ++
       "completed event records no operation identity, so the operation key is the scheduled " ++
@@ -895,7 +895,7 @@ inconclusive. -/
 private def crossedCompletionIsInconclusive (requirement : CheckedProperty) :
     Umpire.Provenance.KnownGap :=
   { kind := .interpretation
-    code := "temporal.nexus3.typed-nexus.crossed-completion-is-inconclusive"
+    code := "temporal.nexus.success.typed-nexus.crossed-completion-is-inconclusive"
     subject := some requirement.id.value
     detail := some ("a completed event carries no operation identity, so a completion referencing " ++
       "another scheduled event leaves the rule pending rather than violated; the model Property " ++
@@ -922,7 +922,7 @@ def typedNexusCase : Except Umpire.Case.Compiler.Error
   Umpire.Case.Compiler.compile {
     version := { major := 1 }
     caseId := "temporal.case.typed-nexus"
-    producerId := "temporal.nexus3.typed-nexus"
+    producerId := "temporal.nexus.success.typed-nexus"
     producerVersion := "1"
     definitions := [
       binding model.target.id.value model.target.behaviorFingerprint.render .target,
@@ -937,4 +937,4 @@ def typedNexusCase : Except Umpire.Case.Compiler.Error
     contractLimits := typedNexusContractLimits
   }
 
-end Temporal.Feature.Nexus3.TypedNexus
+end Temporal.Feature.Nexus.Success.TypedNexus

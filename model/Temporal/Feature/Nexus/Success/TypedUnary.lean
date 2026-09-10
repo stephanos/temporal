@@ -29,7 +29,7 @@ its own workflow type, so crossing the pairing is a Property violation rather th
 the mutation tests in `Tests/TypedUnary.lean` exercise exactly that distinction.
 -/
 
-namespace Temporal.Feature.Nexus3.TypedUnary
+namespace Temporal.Feature.Nexus.Success.TypedUnary
 
 open Umpire
 open Umpire.Operation
@@ -59,7 +59,7 @@ def historyWitness : Temporal.API.rpcOwner.Witness
   ⟨historyMethod, historyReference⟩
 
 def source : SourceLocation :=
-  Temporal.Shared.sourceLocation "Temporal/Feature/Nexus3/TypedUnary.lean"
+  Temporal.Shared.sourceLocation "Temporal/Feature/Nexus/Success/TypedUnary.lean"
 
 /-- Semantic value bounds for the admitted request and response payloads. -/
 def valueLimits : Limits := ⟨16, 20000000, 262144, 512⟩
@@ -87,20 +87,20 @@ def alternateWorkflowType := "umpire-typed-unary-alternate"
 
 /-! ### Model identities -/
 
-def startActionId : DefinitionId := .of "temporal.nexus3.typed-unary.action.start-workflow"
-def pendingStateId : DefinitionId := .of "temporal.nexus3.typed-unary.state.pending"
-def startedStateId : DefinitionId := .of "temporal.nexus3.typed-unary.state.started"
-def startedOutcomeId : DefinitionId := .of "temporal.nexus3.typed-unary.outcome.started-evidence"
-def startedFactId : DefinitionId := .of "temporal.nexus3.typed-unary.fact.started-recorded"
-def operationRoleId : DefinitionId := .of "temporal.nexus3.typed-unary.role.operation"
-def targetId : DefinitionId := .of "temporal.nexus3.typed-unary.target"
-def kernelId : DefinitionId := .of "temporal.nexus3.typed-unary.kernel"
-def capabilityId : DefinitionId := .of "temporal.nexus3.typed-unary.capability"
-def providerId : DefinitionId := .of "temporal.nexus3.typed-unary.provider"
-def propertyId : DefinitionId := .of "temporal.nexus3.typed-unary.property.submitted-workflow-type"
-def groupId : DefinitionId := .of "temporal.nexus3.typed-unary.property.group"
-def caseId : DefinitionId := .of "temporal.nexus3.typed-unary.property.case"
-def clauseId : DefinitionId := .of "temporal.nexus3.typed-unary.property.clause"
+def startActionId : DefinitionId := .of "temporal.nexus.success.typed-unary.action.start-workflow"
+def pendingStateId : DefinitionId := .of "temporal.nexus.success.typed-unary.state.pending"
+def startedStateId : DefinitionId := .of "temporal.nexus.success.typed-unary.state.started"
+def startedOutcomeId : DefinitionId := .of "temporal.nexus.success.typed-unary.outcome.started-evidence"
+def startedFactId : DefinitionId := .of "temporal.nexus.success.typed-unary.fact.started-recorded"
+def operationRoleId : DefinitionId := .of "temporal.nexus.success.typed-unary.role.operation"
+def targetId : DefinitionId := .of "temporal.nexus.success.typed-unary.target"
+def kernelId : DefinitionId := .of "temporal.nexus.success.typed-unary.kernel"
+def capabilityId : DefinitionId := .of "temporal.nexus.success.typed-unary.capability"
+def providerId : DefinitionId := .of "temporal.nexus.success.typed-unary.provider"
+def propertyId : DefinitionId := .of "temporal.nexus.success.typed-unary.property.submitted-workflow-type"
+def groupId : DefinitionId := .of "temporal.nexus.success.typed-unary.property.group"
+def caseId : DefinitionId := .of "temporal.nexus.success.typed-unary.property.case"
+def clauseId : DefinitionId := .of "temporal.nexus.success.typed-unary.property.clause"
 
 def pendingState : ModelValue := .named pendingStateId "pending"
 def startedState : ModelValue := .named startedStateId "started"
@@ -290,7 +290,7 @@ private def definitions : List DefinitionMetadata :=
 private def provider : Provider (fun _ => True) := {
   id := providerId
   source
-  contract := { id := capabilityId, behaviorVersion := "temporal-nexus3-typed-unary/v1"
+  contract := { id := capabilityId, behaviorVersion := "temporal-nexus-success-typed-unary/v1"
                 requiredLaws := [] }
   meanings := ((startActionId, DefinitionKind.action) :: vocabularyKinds).map
     fun (id, kind) => { definitionId := id, kind, behaviorVersion := id.value ++ "/meaning-v1" }
@@ -416,7 +416,7 @@ The controller submits the request and then reads the execution's history, emitt
 declared Observation. The workflow entrypoint carries the submitted workflow type, because the
 shared Driver admits a `StartWorkflowExecution` only when the instruction reserves a workflow
 entrypoint and binds its namespace and task queue symbolically — the same generic policy the
-existing Nexus3 Case runs under. The workflow itself does nothing but finish; the evidence the
+existing Nexus.Success Case runs under. The workflow itself does nothing but finish; the evidence the
 requirement reads is the started event, which the server writes when the execution begins.
 -/
 
@@ -535,7 +535,7 @@ def typedUnaryCase : Except Umpire.Case.Compiler.Error
   Umpire.Case.Compiler.compile {
     version := { major := 1 }
     caseId := "temporal.case.typed-unary"
-    producerId := "temporal.nexus3.typed-unary"
+    producerId := "temporal.nexus.success.typed-unary"
     producerVersion := "1"
     definitions := [
       binding model.target.id.value model.target.behaviorFingerprint.render .target,
@@ -549,4 +549,4 @@ def typedUnaryCase : Except Umpire.Case.Compiler.Error
     coverage
   }
 
-end Temporal.Feature.Nexus3.TypedUnary
+end Temporal.Feature.Nexus.Success.TypedUnary

@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	inspectorExecutable            = "temporal-model-inspect"
+	inspectorExecutable            = "umpire-inspect"
 	retiredCallerClosureReportPath = "model/Temporal/Tool/Generated/Regressions.md"
 )
 

@@ -1,21 +1,21 @@
-import Temporal.Feature.Nexus2.Cancellation
-import Temporal.Feature.Nexus2.Race
+import Temporal.Feature.Nexus.Race.Cancellation
+import Temporal.Feature.Nexus.Race.Race
 import Umpire.Property.Elab
 import Umpire.Scenario.Elab
 import Umpire.Query.Elab
 
-/-! Constructor comparison specimens over the already admitted Nexus2 Targets. -/
+/-! Constructor comparison specimens over the already admitted Nexus.Race Targets. -/
 
-namespace Temporal.Feature.Nexus2.Authoring
+namespace Temporal.Feature.Nexus.Race.Authoring
 
 open Umpire
 
 namespace Baseline
 
-open Temporal.Feature.Nexus2.Lifecycle
+open Temporal.Feature.Nexus.Race.Lifecycle
 
 def family : DefinitionFamily := {
-  root := Temporal.Shared.definitionId "temporal.nexus2.basic-lifecycle"
+  root := Temporal.Shared.definitionId "temporal.nexus.race.basic-lifecycle"
 }
 
 def authoredProperty
@@ -106,10 +106,10 @@ end Baseline
 
 namespace GuardedRace
 
-open Temporal.Feature.Nexus2.Race
+open Temporal.Feature.Nexus.Race.Race
 
 def family : DefinitionFamily := {
-  root := Temporal.Shared.definitionId "temporal.nexus2.cancellation-race"
+  root := Temporal.Shared.definitionId "temporal.nexus.race.cancellation-race"
 }
 
 private def sameStep
@@ -200,4 +200,4 @@ def withoutReplacement (model : ModelVocabulary) : Property :=
 
 end GuardedRace
 
-end Temporal.Feature.Nexus2.Authoring
+end Temporal.Feature.Nexus.Race.Authoring
