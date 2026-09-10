@@ -1,11 +1,11 @@
-import Umpire.Planning.Engine
+import Umpire.Search
 
 /-!
 # Checked promotion sources
 
 This module compiles one already-planned, target-owned trace into deterministic Lean source for
 human review. `compilePromotionSource` replans the unchanged checked Query, checks the complete
-PlannerRun and ExperimentSpec, and exposes a `CompiledPromotionSource` only when the rendered bytes
+PlanResult and ExperimentSpec, and exposes a `CompiledPromotionSource` only when the rendered bytes
 and their SHA-256 identity match fixed expectations. Runtime evidence, replay, minimization,
 filesystem access, and proposal publication remain outside this reusable boundary.
 -/
@@ -48,7 +48,7 @@ structure PromotionBaseAnchor where
   targetBehaviorFingerprint : BehaviorFingerprint
   kernelDefinitionId : DefinitionId
   kernelBehaviorFingerprint : BehaviorFingerprint
-  plannerRun : PlannerRun
+  plannerRun : PlanResult
   experimentSpec : ExperimentSpec
   expectedTrace : Scenario.Trace
   selectionReason : SelectionReason
@@ -298,7 +298,7 @@ planning, rendering, or digest failure.
 -/
 def compilePromotionSource
     (baseQuery : CheckedQuery LawStatement)
-    (kernel : IncrementalPlannerKernel baseQuery.target)
+    (kernel : SearchView baseQuery.target)
     (anchor : PromotionBaseAnchor)
     (spec : PromotionSourceSpec)
     (expectation : PromotionSourceExpectation) :
@@ -308,7 +308,7 @@ def compilePromotionSource
   let replanned ← plan baseQuery kernel |>.mapError (promotionKnownGapError baseQuery.id)
   if replanned != anchor.plannerRun then
     throw (promotionError .plannerRunDrift baseQuery.id
-      "recomputed PlannerRun does not match the fixed base run")
+      "recomputed PlanResult does not match the fixed base run")
   let (trace, reason) ← match replanned.result.outcome with
     | .found trace reason => pure (trace, reason)
     | _ => throw (promotionError .nonFoundResult baseQuery.id

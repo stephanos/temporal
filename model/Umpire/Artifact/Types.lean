@@ -1,4 +1,4 @@
-import Umpire.Planning.Types
+import Umpire.Search.Types
 
 namespace Umpire
 

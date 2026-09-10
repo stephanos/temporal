@@ -1,9 +1,10 @@
-import Umpire.Planning
+import Umpire.Search
+import Umpire.Search.Branches
 import Umpire.Shared.Test
 
 /-! Shared deterministic model, checked query, incremental kernel, and runner fixtures. -/
 
-namespace Umpire.PlanningTests
+namespace Umpire.SearchTests
 
 open Umpire
 
@@ -308,8 +309,8 @@ def checkedQuery
 def orderedQuery (width : Nat) : CheckedQuery (fun _ => True) :=
   checkedQuery width (.witness property) .shortest
 
-def incrementalKernel? (width : Nat) : Option (IncrementalPlannerKernel (target width)) :=
-  IncrementalPlannerKernel.ofCheckedQuery? (orderedQuery width)
+def incrementalKernel? (width : Nat) : Option (SearchView (target width)) :=
+  SearchView.ofCheckedQuery? (orderedQuery width)
     (by
       intro evidence evidenceEq
       simp [orderedQuery, checkedQuery, policy, CheckedQueryModel.ofTarget, target,
@@ -336,7 +337,7 @@ private theorem incrementalKernel?_isSome (width : Nat) :
     (incrementalKernel? width).isSome = true := by
   rfl
 
-def incrementalKernel (width : Nat) : IncrementalPlannerKernel (target width) :=
+def incrementalKernel (width : Nat) : SearchView (target width) :=
   (incrementalKernel? width).get (incrementalKernel?_isSome width)
 
 def run
@@ -346,8 +347,8 @@ def run
     (budget : Nat := 10)
     (seed : Nat := 17)
     (withCompleteness : Bool := true)
-    (selectedBehavior : CheckedScenario := behavior) : Except KnownGapError PlannerRun :=
+    (selectedBehavior : CheckedScenario := behavior) : Except KnownGapError PlanResult :=
   plan (checkedQuery width form strategy budget seed withCompleteness selectedBehavior)
     (incrementalKernel width)
 
-end Umpire.PlanningTests
+end Umpire.SearchTests

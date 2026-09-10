@@ -229,7 +229,7 @@ Diagnostics identify the parent Property and case/clause IDs, source locations, 
 
 The first concrete interfaces to investigate are `FiniteMachine.ofTable`, typed pattern constructors, and source-aware checked-declaration commands. These are proposed names, not promises that a particular signature has been implemented. Choose the narrowest owning existing module after testing the design against both models.
 
-Feature declarations and comparison fixtures live in `Temporal.Feature.Nexus2`. Reusable domain-neutral mechanics belong behind the corresponding `Umpire.Model`, `Umpire.Property`, `Umpire.Scenario`, `Umpire.Query`, and `Umpire.Planning` interfaces. Any syntax frontend imports those owners; the low-level finite adapter itself remains free of new syntax and of Query/Planning imports. Do not build a new catch-all framework for the experiment.
+Feature declarations and comparison fixtures live in `Temporal.Feature.Nexus2`. Reusable domain-neutral mechanics belong behind the corresponding `Umpire.Model`, `Umpire.Property`, `Umpire.Scenario`, `Umpire.Query`, and `Umpire.Search` interfaces. Any syntax frontend imports those owners; the low-level finite adapter itself remains free of new syntax and of Query/Planning imports. Do not build a new catch-all framework for the experiment.
 
 Suggested feature files:
 

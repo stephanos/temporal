@@ -60,7 +60,7 @@ def authoredQuery : CheckedQuery LawStatement := {
   AsyncStart.query with authoredKnownGaps := authoredGapSet
 }
 
-def authoredRun : Except KnownGapError PlannerRun :=
+def authoredRun : Except KnownGapError PlanResult :=
   plan authoredQuery AsyncStart.incrementalKernel
 
 /-- Planning publishes the exact checked union without changing Query or Behavior identity. -/

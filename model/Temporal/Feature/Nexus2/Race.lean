@@ -379,14 +379,14 @@ inductive RaceAdmissionError where
   | invalidProperty (error : PropertyError)
   | invalidBehavior (error : ScenarioError)
   | invalidQuery (error : QueryError)
-  | invalidPlanner (error : FinitePlannerAdmissionError)
+  | invalidPlanner (error : FiniteSearchAdmissionError)
   | invalidKnownGap (error : KnownGapError)
 
 structure CheckedQuestion where
   property : CheckedProperty
   behavior : CheckedScenario
   query : CheckedQuery LawStatement
-  run : PlannerRun
+  run : PlanResult
 
 structure CheckedRace where
   target : QueryModel LawStatement
@@ -424,7 +424,7 @@ private def checkQuestion
   }
   let query ← checkQuery (.ofTarget target) declaration
     |>.mapError RaceAdmissionError.invalidQuery
-  let kernel ← IncrementalPlannerKernel.ofCheckedQuery target.id query
+  let kernel ← SearchView.ofCheckedQuery target.id query
     |>.mapError RaceAdmissionError.invalidPlanner
   let run ← plan query kernel |>.mapError RaceAdmissionError.invalidKnownGap
   pure { property, behavior, query, run }
