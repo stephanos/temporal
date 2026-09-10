@@ -1,14 +1,14 @@
-import Temporal.Feature.Nexus2.Authoring
+import Temporal.Feature.Nexus.Race.Authoring
 
 /-! An ordinary transition edit changes only typed table data and is readmitted without proof or
 support-code changes. Direct single-run elaboration measured 0.53s on the task checkout; editor
 completion, hover, navigation, recovery, repeated-run variance, scaling, and human usability remain
 unmeasured. -/
 
-namespace Temporal.Feature.Nexus2.AuthoringEditProbe
+namespace Temporal.Feature.Nexus.Race.AuthoringEditProbe
 
 open Umpire
-open Temporal.Feature.Nexus2
+open Temporal.Feature.Nexus.Race
 
 def editedTable : FiniteTable Race.Setup Race.State Race.Action Race.Outcome Race.Fact := {
   Race.table with
@@ -31,4 +31,4 @@ private def editedTransitionFingerprintDiffers : Option Bool := do
 
 #guard editedTransitionFingerprintDiffers == some true
 
-end Temporal.Feature.Nexus2.AuthoringEditProbe
+end Temporal.Feature.Nexus.Race.AuthoringEditProbe

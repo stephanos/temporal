@@ -1,5 +1,5 @@
 import Temporal.Testpilot
-import Temporal.Feature.Nexus3.Testpilot
+import Temporal.Feature.Nexus.Success.Producer
 import Umpire.Variations.Tests.Lowering
 
 namespace Temporal.TestpilotTests
@@ -36,15 +36,15 @@ private def activationKind : EntrypointDefinition → Option Nat
 -- The async-nexus Case carries no monitor rule: everything its Contract says is the correlated
 -- capability the checked model lowered into, reading the evidence this Program's history read
 -- lifts.
-#guard match Temporal.Feature.Nexus3.Testpilot.completionCase with
+#guard match Temporal.Feature.Nexus.Success.Producer.completionCase with
   | .ok output =>
       output.program.map (fun program => program.entrypoints.map activationKind) ==
         some #[some 0, some 1, some 2] &&
       output.contract.map (·.rules.isEmpty) == some true &&
       (match output.contract.bind (·.«correlated») with
         | some capability =>
-            capability.evidence_observation_id == Temporal.Feature.Nexus3.Testpilot.correlatedObservation &&
-            capability.projection_id == Temporal.Feature.Nexus3.Testpilot.projectionId.value &&
+            capability.evidence_observation_id == Temporal.Feature.Nexus.Success.Producer.correlatedObservation &&
+            capability.projection_id == Temporal.Feature.Nexus.Success.Producer.projectionId.value &&
             capability.clauses.size == 3 &&
             -- The Behavior places the required Action one semantic transition after the
             -- operation's opening one, so that is the window each clause carries.
@@ -52,8 +52,8 @@ private def activationKind : EntrypointDefinition → Option Nat
               clause.clock == .CORRELATED_CLOCK_OPERATION_TRANSITIONS && clause.bound == 1 &&
               clause.ending == .TRACE_ENDING_PARTIAL) &&
             capability.projection_rules.map (·.kind) == #[
-              Temporal.Feature.Nexus3.Testpilot.completedEvidenceKindId.value,
-              Temporal.Feature.Nexus3.Testpilot.startedEvidenceKindId.value]
+              Temporal.Feature.Nexus.Success.Producer.completedEvidenceKindId.value,
+              Temporal.Feature.Nexus.Success.Producer.startedEvidenceKindId.value]
         | none => false)
   | .error _ => false
 

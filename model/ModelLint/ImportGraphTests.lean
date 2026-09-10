@@ -152,20 +152,20 @@ private def testTestpilotIsolation : IO Unit := do
       .testpilotIndependence #[`Testpilot.Protocol, `ModelLint.Bridge, destination]
   let sources := #[
     sourceRecord `Testpilot.Protocol,
-    sourceRecord `Temporal.ImplementationLinkTests.UnclassifiedBridge,
+    sourceRecord `TemporalVeilTests.UnclassifiedBridge,
     sourceRecord `Umpire.Core
   ]
   let modules := #[
-    moduleRecord `Testpilot.Protocol #[`Temporal.ImplementationLinkTests.UnclassifiedBridge],
-    moduleRecord `Temporal.ImplementationLinkTests.UnclassifiedBridge #[`Umpire.Core],
+    moduleRecord `Testpilot.Protocol #[`TemporalVeilTests.UnclassifiedBridge],
+    moduleRecord `TemporalVeilTests.UnclassifiedBridge #[`Umpire.Core],
     moduleRecord `Umpire.Core
   ]
   requireEqual "unclassified Testpilot bridge"
     (reconcile defaultPolicy sources modules)
-    #[.unclassifiedModule `Temporal.ImplementationLinkTests.UnclassifiedBridge]
+    #[.unclassifiedModule `TemporalVeilTests.UnclassifiedBridge]
   requireViolation "unclassified Testpilot bridge preserves forbidden path" modules
     .testpilotIndependence
-    #[`Testpilot.Protocol, `Temporal.ImplementationLinkTests.UnclassifiedBridge, `Umpire.Core]
+    #[`Testpilot.Protocol, `TemporalVeilTests.UnclassifiedBridge, `Umpire.Core]
 
 private def testOrdinaryNexusFacadeIsolation : IO Unit := do
   requireViolation "ordinary Nexus facade to Experimental direct"
@@ -517,7 +517,7 @@ private def testExactImplementationLinkExceptions : IO Unit := do
       `Temporal.Feature.Nexus.Root,
       `Temporal.System.Nexus.Core
     ],
-    moduleRecord `Temporal.ImplementationLinkTests.Nexus #[
+    moduleRecord `TemporalModelTests.Nexus.ImplementationLink #[
       `Temporal.Feature.Nexus.Root,
       `Temporal.System.Nexus.ImplementationLink
     ],
@@ -525,13 +525,11 @@ private def testExactImplementationLinkExceptions : IO Unit := do
     moduleRecord `Temporal.Feature.Nexus.Root
   ]
   requireEqual "exact Implementation Link composition" (check defaultPolicy allowed) #[]
-  requireEqual "composed test has a distinct exact class"
-    (defaultPolicy.classify? `Temporal.ImplementationLinkTests.Nexus)
-    (some .temporalImplementationLinkTest)
-  requireEqual "composed test is not base System"
-    (defaultPolicy.classify? `Temporal.ImplementationLinkTests.Nexus ==
-      some .temporalSystem)
-    false
+  -- The composed test needs both a Feature and a System import, which the model-test class
+  -- already permits; a `Temporal.System.*` home would trip `systemIsolation` instead.
+  requireEqual "composed test is an ordinary model test"
+    (defaultPolicy.classify? `TemporalModelTests.Nexus.ImplementationLink)
+    (some .modelTests)
   for nearMiss in #[
     `Temporal.System.Nexus.ImplementationLink.Extra,
     `Temporal.System.Nexus.ImplementationLinkSibling,
@@ -545,14 +543,6 @@ private def testExactImplementationLinkExceptions : IO Unit := do
       ]
       .systemIsolation
       #[nearMiss, `Temporal.Feature.Nexus.Root]
-  for nearMiss in #[
-    `Temporal.ImplementationLinkTests.Nexus.Extra,
-    `Temporal.ImplementationLinkTests.NexusExtra,
-    `Temporal.ImplementationLinkTests.Other
-  ] do
-    requireEqual s!"composed-test near miss {nearMiss}"
-      (reconcile defaultPolicy #[sourceRecord nearMiss] #[moduleRecord nearMiss])
-      #[.unclassifiedModule nearMiss]
 
 private def testExactVerifyExceptions : IO Unit := do
   let verifyDestinations := #[`Temporal.Verify.Nexus.Root, `Umpire.Verify.Veil.Core]

@@ -13,8 +13,8 @@ const (
 	typedNexusArtifactTaskQueue = "typed-nexus-task-queue"
 	typedNexusArtifactEndpoint  = "typed-nexus-endpoint"
 	typedNexusEvidenceID        = "correlated-evidence"
-	typedNexusProjectionID      = "temporal.nexus3.typed-nexus.projection"
-	typedNexusClauseID          = "temporal.nexus3.typed-nexus.clause.bounded-completion"
+	typedNexusProjectionID      = "temporal.nexus.success.typed-nexus.projection"
+	typedNexusClauseID          = "temporal.nexus.success.typed-nexus.clause.bounded-completion"
 )
 
 // TestTypedNexusCaseAdmitsItsCorrelatedCapability prepares the unchanged two-operation Case bytes

@@ -1,8 +1,8 @@
-# Nexus2 authoring design
+# Nexus.Race authoring design
 
-Status: authorized prototype design under the user's delegated design/replanning authority. Examples below describe a candidate interface and are not compiled Lean; no final grammar or usability result is claimed. The user selected the current lifecycle followed by a cancellation/completion race. Prototype code will live under `model/Temporal/Feature/Nexus2`.
+Status: authorized prototype design under the user's delegated design/replanning authority. Examples below describe a candidate interface and are not compiled Lean; no final grammar or usability result is claimed. The user selected the current lifecycle followed by a cancellation/completion race. Prototype code will live under `model/Temporal/Feature/Nexus/Race`.
 
-Tracking: [fn-65 — Nexus2 authoring](../../../../.flow/specs/fn-65-design-and-prototype-approachable.md).
+Tracking: [fn-65 — Nexus.Race authoring](../../../../.flow/specs/fn-65-design-and-prototype-approachable.md).
 
 ## Goal
 
@@ -46,7 +46,7 @@ Reproduce the existing four-state model exactly in behavioral terms:
 
 Allow the same two setups: an operation initially scheduled or initially started. Other state/action pairs have no transition in this focused model. `reportSuccess` is modeled handler progress, not a caller command. Cancellation is abstracted to one transition here, as in the existing example.
 
-Nexus2 has its own explicitly declared identity root. Compare model behavior through a documented mapping to Nexus; new IDs and source paths mean equal canonical artifact bytes are not the baseline expectation. For the two candidate authoring interfaces within Nexus2, hold IDs and semantic inputs constant and compare the resulting checked semantics and fingerprints. Source locations may legitimately differ.
+Nexus.Race has its own explicitly declared identity root. Compare model behavior through a documented mapping to Nexus; new IDs and source paths mean equal canonical artifact bytes are not the baseline expectation. For the two candidate authoring interfaces within Nexus.Race, hold IDs and semantic inputs constant and compare the resulting checked semantics and fingerprints. Source locations may legitimately differ.
 
 ### Cancellation/completion race
 
@@ -195,7 +195,7 @@ The current `PropertyPattern` matches one field/reference/value constraint, and 
 
 Guards bind all atoms to the same triggering step and restrict them to its prior state and selected Action. The first compound expectations bind all atoms to the same resulting step and allow resulting-state, Model Outcome, and fact references. There are no unbound variables, arbitrary callbacks, general quantifiers, or implicit cross-step joins. Cross-field equality such as “outcome unchanged” is not automatically available; finite literal cases may express it, otherwise reject it until a separately specified operator exists. Existing single-pattern temporal responses retain their semantics; compound temporal response expressions are outside the first extension.
 
-Represent guards, named cases, and optional coverage/exclusivity requirements as checked data owned by `Umpire.Property`. The extended checker validates types, permitted fields, references, capability requirements, identities, and structure. Its evaluator owns conjunction, disjunction, negation, applicability, and branch obligations. Update the semantic agreement proofs, canonical encodings, fingerprints, version handling, and affected consumers together. Preserve existing declarations' meaning and behavior-neutral encodings; reject new unsupported operators in downstream formats instead of omitting conditions or claiming success. No second case interpreter belongs in Nexus2 or runtime code.
+Represent guards, named cases, and optional coverage/exclusivity requirements as checked data owned by `Umpire.Property`. The extended checker validates types, permitted fields, references, capability requirements, identities, and structure. Its evaluator owns conjunction, disjunction, negation, applicability, and branch obligations. Update the semantic agreement proofs, canonical encodings, fingerprints, version handling, and affected consumers together. Preserve existing declarations' meaning and behavior-neutral encodings; reject new unsupported operators in downstream formats instead of omitting conditions or claiming success. No second case interpreter belongs in Nexus.Race or runtime code.
 
 Frontend lowering must retain parent, case, exception, and clause identities plus author-facing source locations, so failures can explain which conditions applied. Static declaration checking does not by itself establish reachability, case coverage, or compatibility of all requirements.
 
@@ -229,11 +229,11 @@ Diagnostics identify the parent Property and case/clause IDs, source locations, 
 
 The first concrete interfaces to investigate are `FiniteMachine.ofTable`, typed pattern constructors, and source-aware checked-declaration commands. These are proposed names, not promises that a particular signature has been implemented. Choose the narrowest owning existing module after testing the design against both models.
 
-Feature declarations and comparison fixtures live in `Temporal.Feature.Nexus2`. Reusable domain-neutral mechanics belong behind the corresponding `Umpire.Model`, `Umpire.Property`, `Umpire.Scenario`, `Umpire.Query`, and `Umpire.Search` interfaces. Any syntax frontend imports those owners; the low-level finite adapter itself remains free of new syntax and of Query/Planning imports. Do not build a new catch-all framework for the experiment.
+Feature declarations and comparison fixtures live in `Temporal.Feature.Nexus.Race`. Reusable domain-neutral mechanics belong behind the corresponding `Umpire.Model`, `Umpire.Property`, `Umpire.Scenario`, `Umpire.Query`, and `Umpire.Search` interfaces. Any syntax frontend imports those owners; the low-level finite adapter itself remains free of new syntax and of Query/Planning imports. Do not build a new catch-all framework for the experiment.
 
 Suggested feature files:
 
-| File under `Nexus2/` | Purpose |
+| File under `Nexus.Race/` | Purpose |
 | --- | --- |
 | `Lifecycle.lean` | Readable vocabulary, initial states, transitions, checked baseline Target |
 | `Cancellation.lean` | Baseline Property, Behavior, and explicit Query |
@@ -242,7 +242,7 @@ Suggested feature files:
 | `AuthoringTests.lean` | Checked examples and invalid declarations, including unsupported conditions and exception timing, with expected diagnostics |
 | `README.md` | Brief learning path and measured comparison results |
 
-Use explicit imports of Nexus2 during the experiment. It should have a dedicated runnable test root before prototype completion. The existing ordinary Nexus facade and inspector registrations continue to identify the established model. A generated review document is a later prototype deliverable if the authoring baseline works; it must be produced from checked data, not independently maintained examples presented as generated output.
+Use explicit imports of Nexus.Race during the experiment. It should have a dedicated runnable test root before prototype completion. The existing ordinary Nexus facade and inspector registrations continue to identify the established model. A generated review document is a later prototype deliverable if the authoring baseline works; it must be produced from checked data, not independently maintained examples presented as generated output.
 
 ## Correctness and diagnostics
 
@@ -304,7 +304,7 @@ The user instructed: “defer fn-62, prototype fn-65, then retain only fn-62’s
 [GOV-02, AUT-07, and AUT-08](../../../../.plans/UMPIRE4_SPEC.md) remain authoritative. Under the human's standing delegation, the following narrow exceptions are accepted for the fn-65 prototype; they do not rewrite those rules or authorize a repository-wide migration.
 
 - **AUT-08 evidence responsibility:** the rule says authors MUST provide ordered domains, encoders, enumerators, domain-closure evidence, and Action-executability evidence. Requiring ordinary authors to provide only finite catalogs/tables while generic constructors supply enumerators and proofs changes that authoring responsibility. The prototype permits those mechanical obligations to be discharged by reusable kernel-checked constructors over validated author data. The resulting `FiniteMachine` still carries every required witness, produces `DraftModel`, and passes `checkModel`. Capability laws remain real obligations, and a rejected table cannot produce a checked Target. This is not permission to omit evidence or manufacture success.
-- **AUT-07 syntax path:** a focused wrapper accepting Property/Behavior/Query declarations may constitute another way to define behavior even if it lowers to existing types. Lowering alone does not demonstrate compliance. The prototype permits an isolated comparison frontend, with examples/fixtures in Nexus2 and reusable syntax outside the low-level finite adapter. Existing pure language owners retain validation and evaluation authority; no independent behavioral interpreter or second production authoring path is authorized. Choosing a production frontend or broader adoption requires a recorded reconciliation with AUT-07 after comparison evidence exists.
+- **AUT-07 syntax path:** a focused wrapper accepting Property/Behavior/Query declarations may constitute another way to define behavior even if it lowers to existing types. Lowering alone does not demonstrate compliance. The prototype permits an isolated comparison frontend, with examples/fixtures in Nexus.Race and reusable syntax outside the low-level finite adapter. Existing pure language owners retain validation and evaluation authority; no independent behavioral interpreter or second production authoring path is authorized. Choosing a production frontend or broader adoption requires a recorded reconciliation with AUT-07 after comparison evidence exists.
 
 AUT-08's prohibition on a macro language inside `FiniteMachine` remains intact. Generic finite construction belongs behind `Umpire.Model`; Property semantics belong in `Umpire.Property`; syntax is only a frontend importing the owners. The guarded-case extension is deliberate semantic work, not behavior-neutral helper cleanup. There is no exception to the no-hidden-native-trust boundary: native diagnostics cannot discharge proof obligations, and the current `model` default cannot be silently reused. If kernel admission proves impractical, report measured cost and retain the successful-branch constructor route or record an explicit further decision before changing trust.
 

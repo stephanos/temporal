@@ -1,20 +1,20 @@
-import Temporal.Feature.Nexus3.Nexus
-import Temporal.Feature.Nexus3.Testpilot
+import Temporal.Feature.Nexus.Success.Model
+import Temporal.Feature.Nexus.Success.Producer
 
-/-! Executable checks for the compact Nexus3 command surface and checked meaning. -/
+/-! Executable checks for the compact Nexus.Success command surface and checked meaning. -/
 
-namespace Temporal.Feature.Nexus3.Tests
+namespace Temporal.Feature.Nexus.Success.Tests
 
 open Umpire
 open Umpire.Case
-open Temporal.Feature.Nexus3
+open Temporal.Feature.Nexus.Success
 open temporal.server.api.testpilot.v1
 
 private def admitted := completion.toOption
 
 -- The Case's Contract is the correlated capability and nothing else: no monitor rule, and one clause
 -- per `require` line the model wrote.
-#guard match Temporal.Feature.Nexus3.Testpilot.completionCase, admitted with
+#guard match Temporal.Feature.Nexus.Success.Producer.completionCase, admitted with
   | .ok output, some checked =>
       output.case_id == "temporal.case.async-nexus-success" &&
       output.contract.map (·.rules.isEmpty) == some true &&
@@ -33,11 +33,11 @@ private def produceWith
     (witness? : Option Scenario.Trace := admitted.bind (·.witness)) :
     Except Compiler.Error temporal.server.api.testpilot.v1.Case := do
   let checked ← completion.mapError fun _ => {
-    sourceDefinitionId := "temporal.nexus3.query.completion"
+    sourceDefinitionId := "temporal.nexus.success.query.completion"
     source := Authoring.source
     construct := "checked-completion"
   }
-  Temporal.Feature.Nexus3.Testpilot.produce { checked with
+  Temporal.Feature.Nexus.Success.Producer.produce { checked with
     «property» := property?.getD checked.property
     «behavior» := behavior?.getD checked.behavior
     «witness» := witness? }
@@ -51,7 +51,7 @@ private def propertyWithClauses (clauses : List PropertyClause) : Option Checked
     requires := checked.property.requires
     clauses })).toOption
 
-private def invariantClauseId : DefinitionId := .of "temporal.nexus3.property.state-invariant"
+private def invariantClauseId : DefinitionId := .of "temporal.nexus.success.property.state-invariant"
 
 /-- A clause form with no trigger and no response: an operation-correlated clause is a bounded response,
 so an invariant is not a shape it can carry. -/
@@ -61,7 +61,7 @@ private def invariantProperty? : Option CheckedProperty := do
     { field := .state, reference := (checked.vocabulary.stateAt 2).definitionId,
       constraint := .equals (checked.vocabulary.stateAt 2).value }]
 
-private def negatedClauseId : DefinitionId := .of "temporal.nexus3.property.negated-state"
+private def negatedClauseId : DefinitionId := .of "temporal.nexus.success.property.negated-state"
 
 /-- A same-step clause whose value constraint the portable predicate vocabulary has no spelling
 for: it carries presence and exact equality, and nothing else. -/
@@ -80,10 +80,10 @@ private def rejected : Except Compiler.Error temporal.server.api.testpilot.v1.Ca
 -- I/O could observe anything.
 #guard match (do
     let checked ← completion.mapError fun _ => Compiler.Error.mk
-      "temporal.nexus3.query.completion" Authoring.source "checked-completion"
-    Temporal.Feature.Nexus3.Testpilot.produce checked
-      [DefinitionId.of "temporal.nexus3.property.absent"]) with
-  | .error error => error.sourceDefinitionId == "temporal.nexus3.property.absent"
+      "temporal.nexus.success.query.completion" Authoring.source "checked-completion"
+    Temporal.Feature.Nexus.Success.Producer.produce checked
+      [DefinitionId.of "temporal.nexus.success.property.absent"]) with
+  | .error error => error.sourceDefinitionId == "temporal.nexus.success.property.absent"
   | .ok _ => false
 
 -- A Case realizes one selected trace, so a Query with no selected witness has nothing to realize.
@@ -91,7 +91,7 @@ private def rejected : Except Compiler.Error temporal.server.api.testpilot.v1.Ca
 
 -- Known Gaps are carried into the Case, never consulted while lowering: the Case's recorded gaps
 -- are exactly the Query's, and the rejections below happen with those gaps in hand.
-#guard match admitted, Temporal.Feature.Nexus3.Testpilot.completionCase with
+#guard match admitted, Temporal.Feature.Nexus.Success.Producer.completionCase with
   | some checked, .ok output =>
       !checked.query.authoredKnownGaps.toList.isEmpty &&
       (output.provenance.map fun provenance =>
@@ -129,7 +129,7 @@ private def caseShape
 private def differsFromCompletionCase
     (produced : Except Compiler.Error temporal.server.api.testpilot.v1.Case) : Bool :=
   (caseShape produced).isSome &&
-    caseShape produced != caseShape Temporal.Feature.Nexus3.Testpilot.completionCase
+    caseShape produced != caseShape Temporal.Feature.Nexus.Success.Producer.completionCase
 
 /-- One authored `require` clause dropped: a smaller Property is a smaller Contract, not an error. -/
 private def fewerClausesProperty? : Option CheckedProperty := do
@@ -154,7 +154,7 @@ private def changedWitness? : Option Scenario.Trace := admitted.bind fun checked
   | .ok _ => false
 
 private def checkedBindings : Bool :=
-  match admitted, Temporal.Feature.Nexus3.Testpilot.completionCase with
+  match admitted, Temporal.Feature.Nexus.Success.Producer.completionCase with
   | some checked, .ok output =>
       -- The Property binding carries the derived correlated Property: the Case records the Property it
       -- actually lowered, whose fingerprint differs from the authored same-step one.
@@ -297,7 +297,7 @@ query renamedQuery on renamedLifecycle
 private def renamedCheckedModel :
     Except Compiler.Error (Authoring.CheckedModel renamedLifecycle) :=
   renamedQuery.mapError fun _ => {
-    sourceDefinitionId := "temporal.nexus3.query.renamedQuery"
+    sourceDefinitionId := "temporal.nexus.success.query.renamedQuery"
     source := Authoring.source
     construct := "checked-renamed-query"
   }
@@ -305,7 +305,7 @@ private def renamedCheckedModel :
 private def originalCheckedModel :
     Except Compiler.Error (Authoring.CheckedModel lifecycle) :=
   completion.mapError fun _ => {
-    sourceDefinitionId := "temporal.nexus3.query.completion"
+    sourceDefinitionId := "temporal.nexus.success.query.completion"
     source := Authoring.source
     construct := "checked-completion"
   }
@@ -314,7 +314,7 @@ private def renamedTargetResult :
     Except Compiler.Error temporal.server.api.testpilot.v1.Case := do
   let _ ← originalCheckedModel
   let renamed ← renamedCheckedModel
-  Temporal.Feature.Nexus3.Testpilot.produce renamed
+  Temporal.Feature.Nexus.Success.Producer.produce renamed
 
 /-- The same Actions in the same order under different occurrence names: a different checked
 Behavior that still places every clause. -/
@@ -329,7 +329,7 @@ private def renamedBehaviorResult :
   let renamedBehavior ← ((renamedOccurrences checked.vocabulary).check
     (.ofTarget checked.target)).mapError fun _ => Compiler.Error.mk
       checked.behavior.id.value Authoring.source "checked-behavior"
-  Temporal.Feature.Nexus3.Testpilot.produce { checked with «behavior» := renamedBehavior }
+  Temporal.Feature.Nexus.Success.Producer.produce { checked with «behavior» := renamedBehavior }
 
 /- A renamed model carries its own Target, Query and Property identities into the Case bytes; the
 Producer no longer compares them against one expected model. -/
@@ -475,13 +475,13 @@ private def startClauses (values : Authoring.ModelVocabulary) : Property :=
 theorem checkedKnownGapsSurviveAdmission : admitted.map (fun checked =>
     checked.query.authoredKnownGaps.toList == [{
       kind := .capability
-      code := DefinitionId.of "temporal.nexus3.known-gap.cancellation"
-      subject := some (DefinitionId.of "temporal.nexus3.property.cancellationResolves")
+      code := DefinitionId.of "temporal.nexus.success.known-gap.cancellation"
+      subject := some (DefinitionId.of "temporal.nexus.success.property.cancellationResolves")
       detail := some "Operation-correlated Nexus cancellation is unsupported by the success slice."
     }, {
       kind := .capability
-      code := DefinitionId.of "temporal.nexus3.known-gap.operation-correlated-progress"
-      subject := some (DefinitionId.of "temporal.nexus3.property.cancellationResolves")
+      code := DefinitionId.of "temporal.nexus.success.known-gap.operation-correlated-progress"
+      subject := some (DefinitionId.of "temporal.nexus.success.property.cancellationResolves")
       detail := some "Operation-correlated progress counting is unsupported by the success slice."
     }]) = some true := by
   native_decide
@@ -535,11 +535,11 @@ query probeQuery on probeLifecycle
 /- The added transition reaches the derived model, and the renamed role and reselected members
 reach the derived Property and Behavior. -/
 #guard probeLifecycle.relationIds.map (·.value) ==
-  ["temporal.nexus3.relation.probeLifecycle.start",
-    "temporal.nexus3.relation.probeLifecycle.retry",
-    "temporal.nexus3.relation.probeLifecycle.success"]
+  ["temporal.nexus.success.relation.probeLifecycle.start",
+    "temporal.nexus.success.relation.probeLifecycle.retry",
+    "temporal.nexus.success.relation.probeLifecycle.success"]
 
-#guard probeLifecycle.operationRoleId.value == "temporal.nexus3.role.probeLifecycle.worker"
+#guard probeLifecycle.operationRoleId.value == "temporal.nexus.success.role.probeLifecycle.worker"
 
 #guard (do
   let checked ← probeQuery.toOption
@@ -570,7 +570,7 @@ private def misspelledRole (values : Authoring.ModelVocabulary) : Scenario :=
   | _ => false
 
 /--
-error: unknown Nexus3 action 'awaitFinish'; declared: awaitStart, awaitSuccess
+error: unknown Nexus.Success action 'awaitFinish'; declared: awaitStart, awaitSuccess
 -/
 #guard_msgs (error) in
 model unknownActionLifecycle
@@ -586,7 +586,7 @@ model unknownActionLifecycle
       { state := started, outcome := acknowledged, facts := [started] }
 
 /--
-error: unknown Nexus3 state 'missing'; declared: scheduled, started, succeeded
+error: unknown Nexus.Success state 'missing'; declared: scheduled, started, succeeded
 -/
 #guard_msgs (error) in
 model unknownStateLifecycle
@@ -616,8 +616,8 @@ query verifiedCompletion on lifecycle
 witness-absent rather than lowering a Contract nothing selected. -/
 #guard match (do
     let checked ← verifiedCompletion.mapError fun _ => Compiler.Error.mk
-      "temporal.nexus3.query.verifiedCompletion" Authoring.source "checked-verified"
-    Temporal.Feature.Nexus3.Testpilot.produce checked) with
+      "temporal.nexus.success.query.verifiedCompletion" Authoring.source "checked-verified"
+    Temporal.Feature.Nexus.Success.Producer.produce checked) with
   | .error error => error.construct == "witness.absent"
   | .ok _ => false
 
@@ -642,7 +642,7 @@ is the reason to author the form at all. -/
   | _ => false
 
 /--
-error: Nexus3 initial states must be declared in sorted order, because the planner admits only a canonically ordered initial-state list; 'succeeded' precedes 'scheduled'
+error: Nexus.Success initial states must be declared in sorted order, because the planner admits only a canonically ordered initial-state list; 'succeeded' precedes 'scheduled'
 -/
 #guard_msgs (error) in
 model unsortedInitialLifecycle
@@ -663,7 +663,7 @@ inductive UnsortedAction where
   deriving BEq, DecidableEq, Repr
 
 /--
-error: Nexus3 action constructors must be declared in sorted order, because the planner admits only a canonically ordered Action catalog; 'resolve' precedes 'cancel'
+error: Nexus.Success action constructors must be declared in sorted order, because the planner admits only a canonically ordered Action catalog; 'resolve' precedes 'cancel'
 -/
 #guard_msgs (error) in
 model unsortedActionLifecycle
@@ -684,7 +684,7 @@ inductive ParameterizedState where
   deriving BEq, DecidableEq, Repr
 
 /--
-error: Nexus3 state 'running' takes arguments; a state domain must be an enum-like inductive
+error: Nexus.Success state 'running' takes arguments; a state domain must be an enum-like inductive
 -/
 #guard_msgs (error) in
 model parameterizedLifecycle
@@ -700,7 +700,7 @@ model parameterizedLifecycle
       { state := running, outcome := acknowledged, facts := [started] }
 
 /--
-error: duplicate Nexus3 transition 'again': 'scheduled + awaitStart' is already declared by 'start'
+error: duplicate Nexus.Success transition 'again': 'scheduled + awaitStart' is already declared by 'start'
 -/
 #guard_msgs (error) in
 model duplicateTransitionLifecycle
@@ -718,7 +718,7 @@ model duplicateTransitionLifecycle
       { state := succeeded, outcome := completed, facts := [succeeded] }
 
 /--
-error: Nexus3 terminal state 'succeeded' is unreachable from every initial state
+error: Nexus.Success terminal state 'succeeded' is unreachable from every initial state
 -/
 #guard_msgs (error) in
 model unreachableTerminalLifecycle
@@ -738,7 +738,7 @@ without writing the rows out. The bound is checked before duplicate rows are, so
 reach it. -/
 local macro "boundedTransitionModel" modelName:ident count:num : command => do
   let rows ← (List.replicate count.getNat ()).toArray.mapM fun _ =>
-    `(nexus3Transition| step: scheduled + awaitStart →
+    `(nexus.successTransition| step: scheduled + awaitStart →
         { state := started, outcome := acknowledged, facts := [started] })
   `(command| model $modelName
       role operation
@@ -751,33 +751,14 @@ local macro "boundedTransitionModel" modelName:ident count:num : command => do
       transitions $rows*)
 
 /--
-error: Nexus3 model declares 257 transitions; the elaboration bound is 256
+error: Nexus.Success model declares 257 transitions; the elaboration bound is 256
 -/
 #guard_msgs (error) in
 boundedTransitionModel overBoundLifecycle 257
 
-#print axioms Temporal.Feature.Nexus3.Authoring.successModel
-#print axioms Temporal.Feature.Nexus3.Authoring.check
-#print axioms Temporal.Feature.Nexus3.lifecycle
-#print axioms Temporal.Feature.Nexus3.completion
+#print axioms Temporal.Feature.Nexus.Success.Authoring.successModel
+#print axioms Temporal.Feature.Nexus.Success.Authoring.check
+#print axioms Temporal.Feature.Nexus.Success.lifecycle
+#print axioms Temporal.Feature.Nexus.Success.completion
 
-end Temporal.Feature.Nexus3.Tests
-
-namespace Temporal.Feature.Nexus3.CancellationTests
-
-open Umpire
-
-#guard (do
-  let target ← Cancellation.targetResult.toOption
-  let original ← Nexus2.Race.targetResult.toOption
-  let vocabulary ← Nexus2.Race.modelVocabulary.toOption
-  pure (target.isTerminal vocabulary.canceledState &&
-    target.isTerminal vocabulary.succeededState &&
-    !target.isTerminal vocabulary.cancelRequestedState &&
-    target.id != original.id && target.behaviorFingerprint != original.behaviorFingerprint &&
-    target.machine.steps vocabulary.startedState vocabulary.requestCancelAction ==
-      original.machine.steps vocabulary.startedState vocabulary.requestCancelAction &&
-    target.machine.steps vocabulary.cancelRequestedState vocabulary.resolveAction ==
-      original.machine.steps vocabulary.cancelRequestedState vocabulary.resolveAction)) == some true
-
-end Temporal.Feature.Nexus3.CancellationTests
+end Temporal.Feature.Nexus.Success.Tests

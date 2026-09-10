@@ -1,5 +1,5 @@
 import Temporal.Feature.Nexus.Lifecycle
-import Temporal.Feature.Nexus3.Cancellation
+import Temporal.Feature.Nexus.Race.Terminal
 import Temporal.System.Nexus.Evidence
 import Temporal.System.Nexus.Core
 import Umpire.ImplementationLink
@@ -444,11 +444,11 @@ inductive Error where
 /-- Target-bound cancellation mapping. Only `check` constructs this checked declaration. -/
 structure Checked where
   private mk ::
-  target : QueryModel Temporal.Feature.Nexus2.Race.LawStatement
+  target : QueryModel Temporal.Feature.Nexus.Race.Race.LawStatement
   private plan : Case.Projection.Checked target
   private maxOperations : Nat
 
-private def declaration (model : Temporal.Feature.Nexus2.Race.ModelVocabulary)
+private def declaration (model : Temporal.Feature.Nexus.Race.Race.ModelVocabulary)
     (limits : Case.Projection.Limits) :
     Declaration ModelValue ModelValue ModelValue ModelValue := {
   id := Evidence.field "cancellation-projection"
@@ -481,8 +481,8 @@ private def declaration (model : Temporal.Feature.Nexus2.Race.ModelVocabulary)
 
 /-- Check the evidence mapping against the reused Feature authority; no Query witness is an input. -/
 def check (limits : Case.Projection.Limits) : Except Error Checked := do
-  let target ← Temporal.Feature.Nexus3.Cancellation.targetResult.mapError .target
-  let model ← Temporal.Feature.Nexus2.Race.modelVocabulary.mapError .vocabulary
+  let target ← Temporal.Feature.Nexus.Race.Terminal.targetResult.mapError .target
+  let model ← Temporal.Feature.Nexus.Race.Race.modelVocabulary.mapError .vocabulary
   let plan ← Case.Projection.check target (declaration model limits)
     model.startedSetup model.startedState |>.mapError .projection
   pure ⟨target, plan, limits.keys⟩

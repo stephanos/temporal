@@ -91,8 +91,8 @@ UMPIRE_GEN_REGRESSION_VIEWS_COMMAND := mise exec -- go run -tags test_dep ./tool
 UMPIRE_GEN_CASE_RUNTIME_CONFORMANCE_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-gen-case-runtime-conformance
 UMPIRE_GEN_LEAN_DYNAMIC_CONFIG_CATALOG_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-gen-lean-dynamic-config-catalog
 UMPIRE_EXPORT_PROTO_DESCRIPTORS_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-export-proto-descriptors
-UMPIRE_REGRESSION_INSPECTOR := temporal-model-inspect
-UMPIRE_TESTPILOT_RENDERER := temporal-testpilot
+UMPIRE_REGRESSION_INSPECTOR := umpire-inspect
+UMPIRE_TESTPILOT_RENDERER := umpire-case
 TESTPILOT_PROTOCOL_PROTOS := \
 	proto/internal/temporal/server/api/testpilot/v1/case.proto \
 	proto/internal/temporal/server/api/testpilot/v1/contract.proto \
@@ -519,10 +519,10 @@ umpire-inspect:
 	@test -n "$(SCENARIO)" || (echo "SCENARIO is required" >&2; exit 1)
 	@cd model && $(LEAN_LAKE) exe $(UMPIRE_REGRESSION_INSPECTOR) "$(SCENARIO)"
 
-umpire-list-nexus:
+umpire-list:
 	@cd model && $(LEAN_LAKE) exe $(UMPIRE_REGRESSION_INSPECTOR) list
 
-umpire-explain-nexus:
+umpire-explain:
 	@test -n "$(QUERY)" || (echo "QUERY is required" >&2; exit 1)
 	@cd model && $(LEAN_LAKE) exe $(UMPIRE_REGRESSION_INSPECTOR) explain "$(QUERY)"
 
@@ -630,8 +630,8 @@ umpire-check-testpilot-authoring:
 	@set -eu; temporary=$$(mktemp); \
 		trap 'rm -f "$$temporary"' EXIT HUP INT TERM; \
 		cd model; \
-		$(LEAN_LAKE) build Testpilot TestpilotTests testpilotProtoJSONFixture; \
-		$(LEAN_LAKE) exe testpilotProtoJSONFixture > "$$temporary"; \
+		$(LEAN_LAKE) build Testpilot TestpilotTests umpire-protojson-fixture; \
+		$(LEAN_LAKE) exe umpire-protojson-fixture > "$$temporary"; \
 		cd ..; \
 		TESTPILOT_LEAN_AUTHORING_CASE="$$temporary" \
 			mise exec -- go test -count=1 -tags test_dep ./tests/testcore/testpilot \
@@ -812,7 +812,7 @@ umpire-check-regression: umpire-check-lean-api umpire-check-goldens umpire-check
 			> "$$temporary/expected-invalid.stderr"; \
 		cmp -s "$$temporary/expected-invalid.stderr" "$$temporary/invalid.stderr"
 
-.PHONY: umpire-check-lean-api umpire-build-model umpire-check-plan-index umpire-inspect umpire-list-nexus umpire-explain-nexus umpire-gen-lean-api umpire-gen-lean-api-fixture umpire-gen-lean-dynamic-config-catalog umpire-gen-goldens umpire-check-goldens umpire-gen-regression-views umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-gen-case-runtime-conformance umpire-check-case-runtime-conformance umpire-gen-inventory umpire-check-inventory umpire-check-retired-vocabulary umpire-check-live-tests umpire-check-regression
+.PHONY: umpire-check-lean-api umpire-build-model umpire-check-plan-index umpire-inspect umpire-list umpire-explain umpire-gen-lean-api umpire-gen-lean-api-fixture umpire-gen-lean-dynamic-config-catalog umpire-gen-goldens umpire-check-goldens umpire-gen-regression-views umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-gen-case-runtime-conformance umpire-check-case-runtime-conformance umpire-gen-inventory umpire-check-inventory umpire-check-retired-vocabulary umpire-check-live-tests umpire-check-regression
 
 goimports: fmt-imports $(GOIMPORTS)
 	@printf $(COLOR) "Run goimports for all files..."
@@ -834,16 +834,16 @@ lint-code: $(GOLANGCI_LINT) $(ERRORTYPE)
 .PHONY: lint-model
 lint-model: umpire-check-inventory
 	@printf $(COLOR) "Linting Lean model..."
-	@cd model && $(LEAN_LAKE) build modelLintTests modelLint
-	@cd model && $(LEAN_LAKE) exe modelLintTests
+	@cd model && $(LEAN_LAKE) build umpire-lint-tests umpire-lint
+	@cd model && $(LEAN_LAKE) exe umpire-lint-tests
 	@diagnostics=$$(mktemp); \
 		trap 'rm -f "$$diagnostics"' EXIT; \
 		status=0; \
-		cd model && $(LEAN_LAKE) exe modelLintTests --controlled-violation 2>"$$diagnostics" || status=$$?; \
+		cd model && $(LEAN_LAKE) exe umpire-lint-tests --controlled-violation 2>"$$diagnostics" || status=$$?; \
 		test "$$status" -eq 1; \
 		expected='[model-import-graph/shared-independence] forbidden qualified import path: Shared.Root -> ModelLint.Bridge -> Umpire.Core'; \
 		test "$$(cat "$$diagnostics")" = "$$expected"
-	@cd model && $(LEAN_LAKE) exe modelLint
+	@cd model && $(LEAN_LAKE) exe umpire-lint
 	@cd model && $(LEAN_LAKE) --wfail lint --builtin-only --lint-only=.all,.extra,-.missingDocs
 
 lint-yaml: $(YAMLFMT)

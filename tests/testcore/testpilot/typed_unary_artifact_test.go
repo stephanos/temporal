@@ -25,7 +25,7 @@ import (
 const (
 	typedUnaryArtifactNamespace = "typed-unary-namespace"
 	typedUnaryArtifactTaskQueue = "typed-unary-task-queue"
-	typedUnaryRuleID            = "temporal.nexus3.typed-unary.property.submitted-workflow-type.recorded-workflow-type"
+	typedUnaryRuleID            = "temporal.nexus.success.typed-unary.property.submitted-workflow-type.recorded-workflow-type"
 )
 
 // typedUnaryArtifactPrepared prepares the unchanged typed unary Case bytes against the Profile the

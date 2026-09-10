@@ -158,7 +158,7 @@ func requireCorrelatedNexusHistoryEvidence(t testing.TB, run *testpilotpb.Run, s
 		enumspb.EVENT_TYPE_NEXUS_OPERATION_COMPLETED,
 	}, []enumspb.EventType{events[0].GetEventType(), events[1].GetEventType()})
 	require.Equal(t, []string{
-		"temporal.nexus3.evidence.started", "temporal.nexus3.evidence.completed",
+		"temporal.nexus.success.evidence.started", "temporal.nexus.success.evidence.completed",
 	}, kinds)
 
 	scheduledID := events[0].GetNexusOperationStartedEventAttributes().GetScheduledEventId()

@@ -1,5 +1,5 @@
 /-!
-# Nexus3 Case integration draft
+# Nexus.Success Case integration draft
 
 Proposed binding syntax. Read `Nexus.md` first. This file keeps identity conventions, execution
 choices, and evidence interpretation out of the feature-facing model. Both Markdown files remain
@@ -12,18 +12,18 @@ Target is not one either.
 ## Admission and identity
 
 IDs derive from `feature namespace + declaration kind + relative declaration name`. This feature's
-namespace is `temporal.nexus3`; for example, the progress Property gets the ID
-`temporal.nexus3.property.cancellationResolves`. Ordinary references still resolve to declarations,
+namespace is `temporal.nexus.success`; for example, the progress Property gets the ID
+`temporal.nexus.success.property.cancellationResolves`. Ordinary references still resolve to declarations,
 not strings. A future checker derives IDs after resolving those references; authors keep no registry.
 
 Nested declarations use their named owner to disambiguate them. Examples:
-* state `lifecycle.scheduled` → `temporal.nexus3.state.lifecycle.scheduled`
-* relation `lifecycle.start` → `temporal.nexus3.relation.lifecycle.start`
+* state `lifecycle.scheduled` → `temporal.nexus.success.state.lifecycle.scheduled`
+* relation `lifecycle.start` → `temporal.nexus.success.relation.lifecycle.start`
 * clause `cancellationResolves.terminalResponse` →
-  `temporal.nexus3.property.cancellationResolves.terminalResponse`
-* occurrence `cancellationRace.start` → `temporal.nexus3.occurrence.cancellationRace.start`
+  `temporal.nexus.success.property.cancellationResolves.terminalResponse`
+* occurrence `cancellationRace.start` → `temporal.nexus.success.occurrence.cancellationRace.start`
 * setup role `cancellationRace.operation` →
-  `temporal.nexus3.setup.cancellationRace.operation`.
+  `temporal.nexus.success.setup.cancellationRace.operation`.
 
 Here "stable" means unchanged across builds, comment edits, and declaration reordering. A rename
 changes the derived ID, including the IDs of declarations whose relative names contain that owner.
@@ -54,7 +54,7 @@ supplies missing transitions or makes a Property pass.
 Authors provide no identity or version input in the delivered success syntax; the override above is
 proposed for the broader draft only. Generated `DefinitionMetadata` retains Umpire's format
 version `1` because Target admission and artifact provenance consume that core field;
-`Temporal.Shared.definitionMetadata` supplies it outside the Nexus3 syntax.
+`Temporal.Shared.definitionMetadata` supplies it outside the Nexus.Success syntax.
 
 The produced Testpilot Case has a separate wire version. The checked completion selection emits one
 Case 1.0 Program whose symbolic namespace, task-queue, and Nexus endpoint IDs are stable resource
@@ -94,7 +94,7 @@ obligation. Each triggered obligation retains its own operation identity and sta
 
 The one-step progress Property permits the response on the trigger step or the next step of the
 same operation. This requires operation-correlated counting before evaluation; merely filtering the
-response while continuing to count global steps is incorrect. Nexus2's global transition unit
+response while continuing to count global steps is incorrect. Nexus.Race's global transition unit
 cannot be reused unchanged for this meaning.
 
 A classic Contract rule declares exactly one deadline bound: elapsed milliseconds, or a count of the
@@ -118,8 +118,8 @@ rejection requirements.
 
 `Temporal.Testpilot.asyncNexusCase` is a useful example of setup, asynchronous handler response,
 completion capability, and history correlation. It has independently authored Program/Contract
-meaning; returning it under a Nexus3 Query ID would not establish Nexus3 lowering correctness.
-The Nexus3 Producer, `produce`, carries the checked values into generated Program and Contract
+meaning; returning it under a Nexus.Success Query ID would not establish Nexus.Success lowering correctness.
+The Nexus.Success Producer, `produce`, carries the checked values into generated Program and Contract
 values. It compares no checked value against an expected model: a different Target, Behavior, Query
 or Property produces different Case bytes. The Contract carries no monitor rule at all. Each
 `require` clause becomes one operation-correlated bounded-response clause, placed by the Action order
@@ -140,14 +140,14 @@ The generated fixture is prepared and run in the live integration test against t
 namespace, task-queue, and Nexus endpoint bindings. Both environments retain the same symbolic Case
 and satisfied Contract meaning; only their Profile binding fingerprints and Driver identities differ.
 
-Nexus2's finite admission and typed authoring helpers are candidates for reuse. Its baseline
+Nexus.Race's finite admission and typed authoring helpers are candidates for reuse. Its baseline
 allows a started setup and immediate cancellation; its race starts already running. Neither
 Target can substitute for the scheduled-only, request-then-resolution model here unchanged.
 
 `Cancellation.lean` is one such reuse already taken: it derives a separate Target from
-`Nexus2.Race` and adds the explicit terminal closure that Race lacks. It is a historical
+`Nexus.Race.Race` and adds the explicit terminal closure that Race lacks. It is a historical
 already-started slice, not this draft's Target — it begins at a running operation rather than a
-scheduled one, and it carries Nexus2's states and Actions under its own Nexus3 Target identity.
+scheduled one, and it carries Nexus.Race's states and Actions under its own Nexus.Success Target identity.
 `Temporal/System/Nexus/ImplementationLink.lean` adds an offline Lean evidence projection over it,
 distinguishing submission from confirmation and admitting either resolution. Nothing lowers that
 projection: it reaches no Testpilot evidence path, no operation-level cancellation capability, and
@@ -170,12 +170,12 @@ success. Supported producers must also carry the scope omissions from Nexus.md a
 Known Gaps in Case metadata. Gaps disclose limitations; they never waive a requested Property.
 -/
 
-import Temporal.Feature.Nexus3.Nexus
+import Temporal.Feature.Nexus.Success.Model
 
-namespace Temporal.Feature.Nexus3
+namespace Temporal.Feature.Nexus.Success
 
 integration lifecycleCases on lifecycle
-  identity namespace "temporal.nexus3"
+  identity namespace "temporal.nexus.success"
     derive from kind and qualifiedName
 
   actions for operation
@@ -198,4 +198,4 @@ integration lifecycleCases on lifecycle
     completionCanWin    => operationCancellationInstructionUnavailable
     cancellationProgress => operationCancellationInstructionUnavailable, cancellationEvidenceAdapterUnavailable
 
-end Temporal.Feature.Nexus3
+end Temporal.Feature.Nexus.Success

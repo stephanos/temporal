@@ -126,8 +126,8 @@ func requireLiftedCorrelatedEvidence(t testing.TB, run *testpilotpb.Run, sequenc
 	expected := make([]string, 0, len(sequences))
 	for _, operation := range operations {
 		expected = append(expected,
-			"temporal.nexus3.typed-nexus.evidence.scheduled-"+operation,
-			"temporal.nexus3.typed-nexus.evidence.completed")
+			"temporal.nexus.success.typed-nexus.evidence.scheduled-"+operation,
+			"temporal.nexus.success.typed-nexus.evidence.completed")
 	}
 	require.Equal(t, expected, kinds)
 	// Both sides of one operation land under one key: the scheduled event a completion references.

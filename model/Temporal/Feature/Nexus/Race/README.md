@@ -1,4 +1,4 @@
-# Nexus2 authoring prototype
+# Nexus.Race authoring prototype
 
 ## Checked learning path
 
@@ -25,7 +25,7 @@ The authoring sequence is `FiniteTable.validate` / `checkModel`, then `Property.
 A checked value exists only on the successful checker branch; the frontend alternatives do not
 create kernel-checked constants automatically.
 
-`Authoring.lean` keeps ordinary typed constructors as the default Nexus2 authoring surface. The
+`Authoring.lean` keeps ordinary typed constructors as the default Nexus.Race authoring surface. The
 compiled `property%`, `scenario%`, and `query%` alternatives remain in `AuthoringTests.lean` for
 comparison. All three lower to the existing Property, Behavior, and Query checkers; they add source
 occurrence capture and do not add an evaluator or migrate any production declaration.
@@ -134,7 +134,7 @@ wrapped only the named definitions or admission guards with `set_option trace.pr
 `set_option trace.profiler.threshold 0`, then ran:
 
 ```sh
-(cd model && mise exec -- lake build Temporal.Feature.Nexus2.AuthoringTests)
+(cd model && mise exec -- lake build Temporal.Feature.Nexus.Race.AuthoringTests)
 ```
 
 Those temporary profiler options were removed after capture. The admission guards remain compiled
@@ -172,7 +172,7 @@ frontend alternatives provide more precise authored spans for closed failures, b
 closed-expression elaboration work and have not demonstrated a human authoring advantage sufficient
 to replace the constructor path.
 
-The compiled alternatives remain test specimens under the narrow Nexus2 AUT-07 exception. The prose
+The compiled alternatives remain test specimens under the narrow Nexus.Race AUT-07 exception. The prose
 notation in `DESIGN.md` is explicitly labeled proposed, uncompiled syntax. Production adoption still
 requires a recorded AUT-07 single-authoring-path reconciliation and AUT-08 remains unchanged: no
 macro language belongs in `FiniteMachine`, all finite evidence remains present, and native diagnostics

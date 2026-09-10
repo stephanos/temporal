@@ -1,17 +1,18 @@
 import Temporal.Feature.Nexus.Operations
-import Temporal.Feature.Nexus2.Cancellation
-import Temporal.Feature.Nexus2.Race
-import Temporal.Feature.Nexus2.Authoring
-import Temporal.Feature.Nexus2.AuthoringTests
-import Temporal.Feature.Nexus2.AuthoringEditProbe
+import Temporal.Feature.Nexus.Race.Cancellation
+import Temporal.Feature.Nexus.Race.Race
+import Temporal.Feature.Nexus.Race.Terminal
+import Temporal.Feature.Nexus.Race.Authoring
+import Temporal.Feature.Nexus.Race.AuthoringTests
+import Temporal.Feature.Nexus.Race.AuthoringEditProbe
 import Umpire.CoreImportTests
 
-/-! Dedicated admission, behavior-equivalence, planning, and negative tests for the Nexus2 baseline. -/
+/-! Dedicated admission, behavior-equivalence, planning, and negative tests for the Nexus.Race baseline. -/
 
-namespace Temporal.Feature.Nexus2.Tests
+namespace Temporal.Feature.Nexus.Race.Tests
 
 open Umpire
-open Temporal.Feature.Nexus2
+open Temporal.Feature.Nexus.Race
 
 namespace Baseline
 
@@ -343,14 +344,14 @@ theorem missingProviderIsTargetFailure :
   native_decide
 
 private def competingProviderId : DefinitionId :=
-  Temporal.Shared.definitionId "temporal.nexus2.basic-lifecycle.provider.competing"
+  Temporal.Shared.definitionId "temporal.nexus.race.basic-lifecycle.provider.competing"
 
 private def competingProvider : Provider LawStatement :=
   { lifecycleProvider with
     id := competingProviderId
     meanings := lifecycleProvider.meanings.map fun meaning =>
       if meaning.definitionId = operationStateId then
-        { meaning with behaviorVersion := "temporal-nexus2-conflicting-state/v1" }
+        { meaning with behaviorVersion := "temporal-nexus-race-conflicting-state/v1" }
       else
         meaning
   }
@@ -359,7 +360,7 @@ private def competingDefinition : TableModelSpec := {
   modelSpec with
   definitions := modelSpec.definitions ++ [
     Temporal.Shared.definitionMetadata competingProviderId .provider Lifecycle.source
-      "temporal-nexus2-basic-lifecycle-provider/v1"
+      "temporal-nexus-race-basic-lifecycle-provider/v1"
   ]
 }
 
@@ -373,10 +374,10 @@ theorem competingProvidersAreTargetFailure :
 
 private def propertyErrorKind : Option PropertyErrorKind := do
   let baseline ← checkBaseline.toOption
-  let unknown := Temporal.Shared.definitionId "temporal.nexus2.basic-lifecycle.action.unknown"
+  let unknown := Temporal.Shared.definitionId "temporal.nexus.race.basic-lifecycle.action.unknown"
   let declaration := { Start.authoredProperty baseline.model with
     clauses := [.transitionContract
-      (Temporal.Shared.definitionId "temporal.nexus2.basic-lifecycle.property.bad-reference")
+      (Temporal.Shared.definitionId "temporal.nexus.race.basic-lifecycle.property.bad-reference")
       (PropertyPattern.exact .selectedAction unknown "unknown")
       (PropertyPattern.exact .resultingState operationStateId baseline.model.startedState.value)] }
   match Property.check (PropertyCheckContext.ofTarget baseline.target) (declaration) with
@@ -442,7 +443,7 @@ def omittedQueryLimits (baseline : CheckedBaseline) : Query := {
 private def unsatisfiablePlannerStatus : Option (ScenarioStatus × String) := do
   let baseline ← checkBaseline.toOption
   let differentId :=
-    Temporal.Shared.definitionId "temporal.nexus2.basic-lifecycle.setup.started-different"
+    Temporal.Shared.definitionId "temporal.nexus.race.basic-lifecycle.setup.started-different"
   let declaration := { Cancel.authoredScenario baseline.model with
     setup := (Cancel.authoredScenario baseline.model).setup ++ [{
       id := differentId
@@ -469,7 +470,7 @@ private def guardedCancelDeclaration
   version := 2
   clauses := [.branches {
     id := Temporal.Shared.definitionId
-      "temporal.nexus2.basic-lifecycle.property.cancel.same-step"
+      "temporal.nexus.race.basic-lifecycle.property.cancel.same-step"
     source := Cancellation.source
     guard := .atom {
       field := .selectedAction
@@ -478,7 +479,7 @@ private def guardedCancelDeclaration
     }
     cases := [{
       id := Temporal.Shared.definitionId
-        "temporal.nexus2.basic-lifecycle.property.cancel.same-step.case"
+        "temporal.nexus.race.basic-lifecycle.property.cancel.same-step.case"
       source := Cancellation.source
       guard := .atom {
         field := .priorState
@@ -488,7 +489,7 @@ private def guardedCancelDeclaration
       clauses := [
         {
           id := Temporal.Shared.definitionId
-            "temporal.nexus2.basic-lifecycle.property.cancel.same-step.state"
+            "temporal.nexus.race.basic-lifecycle.property.cancel.same-step.state"
           source := Cancellation.source
           expectation := .atom {
             field := .resultingState
@@ -498,7 +499,7 @@ private def guardedCancelDeclaration
         },
         {
           id := Temporal.Shared.definitionId
-            "temporal.nexus2.basic-lifecycle.property.cancel.same-step.outcome"
+            "temporal.nexus.race.basic-lifecycle.property.cancel.same-step.outcome"
           source := Cancellation.source
           expectation := .atom {
             field := .outcome
@@ -508,7 +509,7 @@ private def guardedCancelDeclaration
         },
         {
           id := Temporal.Shared.definitionId
-            "temporal.nexus2.basic-lifecycle.property.cancel.same-step.fact"
+            "temporal.nexus.race.basic-lifecycle.property.cancel.same-step.fact"
           source := Cancellation.source
           expectation := .atom {
             field := .expectationFact
@@ -559,7 +560,7 @@ private def guardedTemporalCancelDeclaration
   version := 2
   clauses := [.eventuallyWithin
       (id := (Temporal.Shared.definitionId
-      "temporal.nexus2.basic-lifecycle.property.cancel.guarded-temporal"))
+      "temporal.nexus.race.basic-lifecycle.property.cancel.guarded-temporal"))
       (source := Cancellation.source)
       (guard := some (.atom {
       field := .selectedAction
@@ -818,7 +819,7 @@ theorem unsupportedScopeHasNoInventedTransitionsOrVocabulary :
 
 private def unsupportedActionError : Option ScenarioErrorKind := do
   let checked ← checkRace.toOption
-  let unknown := Temporal.Shared.definitionId "temporal.nexus2.race.action.caller-close"
+  let unknown := Temporal.Shared.definitionId "temporal.nexus.race.race.action.caller-close"
   let declaration := { exactBehaviorDeclaration checked.model with
     allowedActions := (exactBehaviorDeclaration checked.model).allowedActions ++ [unknown] }
   match Scenario.check (.ofTarget checked.target) declaration with
@@ -848,30 +849,30 @@ private def raceExpectation
 }
 
 private def requestCase (model : ModelVocabulary) : PropertyBranch := {
-  id := raceId "temporal.nexus2.cancellation-race.case.request"
+  id := raceId "temporal.nexus.race.cancellation-race.case.request"
   source
   guard := raceAtom .selectedAction requestCancelActionId (.text model.requestCancelAction.value)
-  clauses := [raceExpectation "temporal.nexus2.cancellation-race.case.request.state"
+  clauses := [raceExpectation "temporal.nexus.race.cancellation-race.case.request.state"
     .resultingState operationStateId (.text model.cancelRequestedState.value)]
   temporalClauses := [.eventuallyWithin
-    (raceId "temporal.nexus2.cancellation-race.case.request.terminal") source
+    (raceId "temporal.nexus.race.cancellation-race.case.request.terminal") source
     (PropertyPattern.exact .selectedAction requestCancelActionId model.requestCancelAction.value)
     (PropertyPattern.exact .observation terminalFactId model.terminalFact.value)
     { value := 1, unit := .steps }]
 }
 
 private def resolveCase (model : ModelVocabulary) : PropertyBranch := {
-  id := raceId "temporal.nexus2.cancellation-race.case.resolve"
+  id := raceId "temporal.nexus.race.cancellation-race.case.resolve"
   source
   guard := raceAtom .selectedAction resolveActionId (.text model.resolveAction.value)
-  clauses := [raceExpectation "temporal.nexus2.cancellation-race.case.resolve.terminal"
+  clauses := [raceExpectation "temporal.nexus.race.cancellation-race.case.resolve.terminal"
     .expectationFact terminalFactId (.text model.terminalFact.value)]
 }
 
 private def raceCaseGroup
     (model : ModelVocabulary)
     (cases : List PropertyBranch) : PropertyBranches := {
-  id := raceId "temporal.nexus2.cancellation-race.case-group.lifecycle"
+  id := raceId "temporal.nexus.race.cancellation-race.case-group.lifecycle"
   source
   guard := .any [
     raceAtom .selectedAction requestCancelActionId (.text model.requestCancelAction.value),
@@ -885,7 +886,7 @@ private def raceCaseGroup
 private def raceCasePropertyDeclaration
     (model : ModelVocabulary)
     (cases : List PropertyBranch) : Property := {
-  id := raceId "temporal.nexus2.cancellation-race.property.cases"
+  id := raceId "temporal.nexus.race.cancellation-race.property.cases"
   source
   version := 2
   requires := [capabilityId]
@@ -901,7 +902,7 @@ private def caseAnalysisFor?
   let behavior ← (Scenario.check (.ofTarget checked.target)
     (exactBehaviorDeclaration checked.model)).toOption
   let query ← (Query.check (.ofTarget checked.target) {
-    id := raceId "temporal.nexus2.cancellation-race.query.case-analysis"
+    id := raceId "temporal.nexus.race.cancellation-race.query.case-analysis"
     source
     target := targetId
     form := .pick [property]
@@ -935,16 +936,16 @@ private def caseAnalysisSummary : Option CaseAnalysisSummary :=
 theorem finiteRaceCaseCoverageIsExhaustive :
     (caseAnalysisSummary == some (
       targetId,
-      raceId "temporal.nexus2.cancellation-race.behavior.request-then-resolve",
+      raceId "temporal.nexus.race.cancellation-race.behavior.request-then-resolve",
       "exhaustive",
       true,
       some (true, [
-        raceId "temporal.nexus2.cancellation-race.case.request",
-        raceId "temporal.nexus2.cancellation-race.case.resolve"
+        raceId "temporal.nexus.race.cancellation-race.case.request",
+        raceId "temporal.nexus.race.cancellation-race.case.resolve"
       ], [
-        raceId "temporal.nexus2.cancellation-race.case.request.state",
-        raceId "temporal.nexus2.cancellation-race.case.request.terminal",
-        raceId "temporal.nexus2.cancellation-race.case.resolve.terminal"
+        raceId "temporal.nexus.race.cancellation-race.case.request.state",
+        raceId "temporal.nexus.race.cancellation-race.case.request.terminal",
+        raceId "temporal.nexus.race.cancellation-race.case.resolve.terminal"
       ]))) = true := by
   native_decide
 
@@ -982,7 +983,7 @@ theorem finiteRaceJointTemporalScopeIsFrozenAtTrigger :
 private def requestCaseWithLaterException (model : ModelVocabulary) : PropertyBranch := {
   requestCase model with
   exception := some {
-    id := raceId "temporal.nexus2.cancellation-race.case.request.exception.later-state"
+    id := raceId "temporal.nexus.race.cancellation-race.case.request.exception.later-state"
     source
     condition := raceAtom .priorState operationStateId (.text model.cancelRequestedState.value)
   }
@@ -1021,7 +1022,7 @@ theorem finiteRaceLaterExceptionCannotWithdrawTemporalObligation :
       1,
       1,
       ({ value := 1, unit := .steps } : Limit),
-      raceId "temporal.nexus2.cancellation-race.case.request.exception.later-state",
+      raceId "temporal.nexus.race.cancellation-race.case.request.exception.later-state",
       true,
       2))) = true := by
   native_decide
@@ -1030,20 +1031,20 @@ private def jointPropertyDeclaration
     (key : String)
     (action : ModelValue)
     (expectation : PropertyPredicate) : Property := {
-  id := raceId ("temporal.nexus2.cancellation-race.property.joint." ++ key)
+  id := raceId ("temporal.nexus.race.cancellation-race.property.joint." ++ key)
   source
   version := 2
   requires := [capabilityId]
   clauses := [.branches {
-    id := raceId ("temporal.nexus2.cancellation-race.property.joint." ++ key ++ ".group")
+    id := raceId ("temporal.nexus.race.cancellation-race.property.joint." ++ key ++ ".group")
     source
     guard := raceAtom .selectedAction action.definitionId (.text action.value)
     cases := [{
-      id := raceId ("temporal.nexus2.cancellation-race.property.joint." ++ key ++ ".case")
+      id := raceId ("temporal.nexus.race.cancellation-race.property.joint." ++ key ++ ".case")
       source
       guard := raceAtom .selectedAction action.definitionId (.text action.value)
       clauses := [{
-        id := raceId ("temporal.nexus2.cancellation-race.property.joint." ++ key ++ ".clause")
+        id := raceId ("temporal.nexus.race.cancellation-race.property.joint." ++ key ++ ".clause")
         source
         expectation
       }]
@@ -1061,7 +1062,7 @@ private def jointRaceAnalysis?
     (exactBehaviorDeclaration checked.model)).toOption
   let form := Query.Form.pick properties
   let query ← (Query.check (.ofTarget checked.target) {
-    id := raceId "temporal.nexus2.cancellation-race.query.joint-analysis"
+    id := raceId "temporal.nexus.race.cancellation-race.query.joint-analysis"
     source
     target := targetId
     form
@@ -1076,12 +1077,12 @@ private def observationTriggerPropertyDeclaration
     (key : String)
     (action : ModelValue)
     (trigger response : ModelValue) : Property := {
-  id := raceId ("temporal.nexus2.cancellation-race.property.observation-trigger." ++ key)
+  id := raceId ("temporal.nexus.race.cancellation-race.property.observation-trigger." ++ key)
   source
   version := 2
   requires := [capabilityId]
   clauses := [.eventuallyWithin
-      (id := (raceId ("temporal.nexus2.cancellation-race.property.observation-trigger." ++ key ++ ".clause")))
+      (id := (raceId ("temporal.nexus.race.cancellation-race.property.observation-trigger." ++ key ++ ".clause")))
       (source := source)
       (guard := some (raceAtom .selectedAction action.definitionId (.text action.value)))
       (exception := none)
@@ -1162,8 +1163,8 @@ theorem finiteRaceReportsSourceLinkedLogicalContradiction :
           some model.startedState,
           some model.requestCancelAction,
           [
-            raceId "temporal.nexus2.cancellation-race.property.joint.request-cancel-requested.clause",
-            raceId "temporal.nexus2.cancellation-race.property.joint.request-succeeded.clause"
+            raceId "temporal.nexus.race.cancellation-race.property.joint.request-cancel-requested.clause",
+            raceId "temporal.nexus.race.cancellation-race.property.joint.request-succeeded.clause"
           ],
           [source, source])))) = true := by
   native_decide
@@ -1196,8 +1197,8 @@ theorem finiteRaceSeparatesModelRelativeFromLogicalIncompatibility :
         Limits.bounded 2 2 32,
         2,
         [
-          raceId "temporal.nexus2.cancellation-race.property.joint.resolve-canceled-state.clause",
-          raceId "temporal.nexus2.cancellation-race.property.joint.resolve-succeeded-outcome.clause"
+          raceId "temporal.nexus.race.cancellation-race.property.joint.resolve-canceled-state.clause",
+          raceId "temporal.nexus.race.cancellation-race.property.joint.resolve-succeeded-outcome.clause"
         ]))) = true := by
   native_decide
 
@@ -1216,9 +1217,9 @@ private def mismatchedAnalysisTargetError : Option QueryErrorKind := do
   let behavior ← (Scenario.check (.ofTarget checked.target)
     (exactBehaviorDeclaration checked.model)).toOption
   match Query.check (.ofTarget checked.target) {
-    id := raceId "temporal.nexus2.cancellation-race.query.case-analysis.bad-target"
+    id := raceId "temporal.nexus.race.cancellation-race.query.case-analysis.bad-target"
     source
-    target := raceId "temporal.nexus2.cancellation-race.target.other"
+    target := raceId "temporal.nexus.race.cancellation-race.target.other"
     form := .pick [property]
     behavior
     limits := Limits.bounded 2 2 32
@@ -1235,4 +1236,23 @@ theorem malformedCaseAnalysisInputsAreRejected :
 
 end AbstractRace
 
-end Temporal.Feature.Nexus2.Tests
+end Temporal.Feature.Nexus.Race.Tests
+
+namespace Temporal.Feature.Nexus.Race.TerminalTests
+
+open Umpire
+
+#guard (do
+  let target ← Terminal.targetResult.toOption
+  let original ← Race.targetResult.toOption
+  let vocabulary ← Race.modelVocabulary.toOption
+  pure (target.isTerminal vocabulary.canceledState &&
+    target.isTerminal vocabulary.succeededState &&
+    !target.isTerminal vocabulary.cancelRequestedState &&
+    target.id != original.id && target.behaviorFingerprint != original.behaviorFingerprint &&
+    target.machine.steps vocabulary.startedState vocabulary.requestCancelAction ==
+      original.machine.steps vocabulary.startedState vocabulary.requestCancelAction &&
+    target.machine.steps vocabulary.cancelRequestedState vocabulary.resolveAction ==
+      original.machine.steps vocabulary.cancelRequestedState vocabulary.resolveAction)) == some true
+
+end Temporal.Feature.Nexus.Race.TerminalTests

@@ -1,4 +1,4 @@
-import Temporal.Feature.Nexus2.Lifecycle
+import Temporal.Feature.Nexus.Race.Lifecycle
 
 /-!
 # Abstract cancellation/completion race
@@ -10,28 +10,28 @@ requests, retries, caller closure, and multiple operations. Missing rows and voc
 those inputs; the model makes no fairness, runtime-delivery, or runtime-timeout claim.
 -/
 
-namespace Temporal.Feature.Nexus2.Race
+namespace Temporal.Feature.Nexus.Race.Race
 
 open Umpire
 
 private def id (value : String) : DefinitionId := Temporal.Shared.definitionId value
 
 def source : SourceLocation :=
-  Temporal.Shared.sourceLocation "Temporal/Feature/Nexus2/Race.lean"
+  Temporal.Shared.sourceLocation "Temporal/Feature/Nexus/Race/Race.lean"
 
-def targetId : DefinitionId := id "temporal.nexus2.cancellation-race.target"
-def kernelId : DefinitionId := id "temporal.nexus2.cancellation-race.kernel"
-def capabilityId : DefinitionId := id "temporal.nexus2.cancellation-race.capability"
-def providerId : DefinitionId := id "temporal.nexus2.cancellation-race.provider"
-def lawId : DefinitionId := id "temporal.nexus2.cancellation-race.law.authoritative-table"
-def operationStateId : DefinitionId := id "temporal.nexus2.cancellation-race.state.operation"
-def requestCancelActionId : DefinitionId := id "temporal.nexus2.cancellation-race.action.request-cancel"
-def resolveActionId : DefinitionId := id "temporal.nexus2.cancellation-race.action.resolve"
-def transitionOutcomeId : DefinitionId := id "temporal.nexus2.cancellation-race.outcome.transition"
-def cancelRequestedFactId : DefinitionId := id "temporal.nexus2.cancellation-race.fact.cancel-requested"
-def lifecycleFactId : DefinitionId := id "temporal.nexus2.cancellation-race.fact.lifecycle"
-def terminalFactId : DefinitionId := id "temporal.nexus2.cancellation-race.fact.terminal"
-def operationRoleId : DefinitionId := id "temporal.nexus2.cancellation-race.role.operation"
+def targetId : DefinitionId := id "temporal.nexus.race.cancellation-race.target"
+def kernelId : DefinitionId := id "temporal.nexus.race.cancellation-race.kernel"
+def capabilityId : DefinitionId := id "temporal.nexus.race.cancellation-race.capability"
+def providerId : DefinitionId := id "temporal.nexus.race.cancellation-race.provider"
+def lawId : DefinitionId := id "temporal.nexus.race.cancellation-race.law.authoritative-table"
+def operationStateId : DefinitionId := id "temporal.nexus.race.cancellation-race.state.operation"
+def requestCancelActionId : DefinitionId := id "temporal.nexus.race.cancellation-race.action.request-cancel"
+def resolveActionId : DefinitionId := id "temporal.nexus.race.cancellation-race.action.resolve"
+def transitionOutcomeId : DefinitionId := id "temporal.nexus.race.cancellation-race.outcome.transition"
+def cancelRequestedFactId : DefinitionId := id "temporal.nexus.race.cancellation-race.fact.cancel-requested"
+def lifecycleFactId : DefinitionId := id "temporal.nexus.race.cancellation-race.fact.lifecycle"
+def terminalFactId : DefinitionId := id "temporal.nexus.race.cancellation-race.fact.terminal"
+def operationRoleId : DefinitionId := id "temporal.nexus.race.cancellation-race.role.operation"
 
 inductive Setup where
   | started
@@ -154,12 +154,12 @@ def satisfiesRaceRequirement
 
 def LawStatement (law : Law) : Prop :=
   law.id = lawId ∧
-    law.body = "temporal-nexus2-cancellation-race-authoritative-table/v1" ∧
+    law.body = "temporal-nexus-race-cancellation-race-authoritative-table/v1" ∧
     satisfiesRaceRequirement table.transitions = true
 
 def raceLaw : Law := {
   id := lawId
-  body := "temporal-nexus2-cancellation-race-authoritative-table/v1"
+  body := "temporal-nexus-race-cancellation-race-authoritative-table/v1"
 }
 
 theorem raceLawProof : LawStatement raceLaw := ⟨rfl, rfl, rfl⟩
@@ -175,41 +175,41 @@ def provider : Provider LawStatement := {
   source
   contract := {
     id := capabilityId
-    behaviorVersion := "temporal-nexus2-cancellation-race/v1"
+    behaviorVersion := "temporal-nexus-race-cancellation-race/v1"
     requiredLaws := [raceLaw]
   }
   meanings := [
     { definitionId := operationStateId, kind := .state,
-      behaviorVersion := "temporal-nexus2-cancellation-race-state/v1" },
+      behaviorVersion := "temporal-nexus-race-cancellation-race-state/v1" },
     { definitionId := requestCancelActionId, kind := .action,
-      behaviorVersion := "temporal-nexus2-cancellation-race-request-cancel/v1" },
+      behaviorVersion := "temporal-nexus-race-cancellation-race-request-cancel/v1" },
     { definitionId := resolveActionId, kind := .action,
-      behaviorVersion := "temporal-nexus2-cancellation-race-resolve/v1" },
+      behaviorVersion := "temporal-nexus-race-cancellation-race-resolve/v1" },
     { definitionId := transitionOutcomeId, kind := .outcome,
-      behaviorVersion := "temporal-nexus2-cancellation-race-outcome/v1" },
+      behaviorVersion := "temporal-nexus-race-cancellation-race-outcome/v1" },
     { definitionId := cancelRequestedFactId, kind := .fact,
-      behaviorVersion := "temporal-nexus2-cancellation-race-request-fact/v1" },
+      behaviorVersion := "temporal-nexus-race-cancellation-race-request-fact/v1" },
     { definitionId := lifecycleFactId, kind := .fact,
-      behaviorVersion := "temporal-nexus2-cancellation-race-lifecycle-fact/v1" },
+      behaviorVersion := "temporal-nexus-race-cancellation-race-lifecycle-fact/v1" },
     { definitionId := terminalFactId, kind := .fact,
-      behaviorVersion := "temporal-nexus2-cancellation-race-terminal-fact/v1" }
+      behaviorVersion := "temporal-nexus-race-cancellation-race-terminal-fact/v1" }
   ]
   lawProofs := [{ definition := raceLaw, proof := raceLawProof }]
 }
 
 def definitions : List DefinitionMetadata := [
-  metadata targetId .target "temporal-nexus2-cancellation-race-target/v1",
-  metadata kernelId .machine "temporal-nexus2-cancellation-race-kernel/v1",
-  metadata capabilityId .capability "temporal-nexus2-cancellation-race/v1",
-  metadata providerId .provider "temporal-nexus2-cancellation-race-provider/v1",
+  metadata targetId .target "temporal-nexus-race-cancellation-race-target/v1",
+  metadata kernelId .machine "temporal-nexus-race-cancellation-race-kernel/v1",
+  metadata capabilityId .capability "temporal-nexus-race-cancellation-race/v1",
+  metadata providerId .provider "temporal-nexus-race-cancellation-race-provider/v1",
   metadata lawId .law raceLaw.body,
-  metadata operationStateId .state "temporal-nexus2-cancellation-race-state/v1",
-  metadata requestCancelActionId .action "temporal-nexus2-cancellation-race-request-cancel/v1",
-  metadata resolveActionId .action "temporal-nexus2-cancellation-race-resolve/v1",
-  metadata transitionOutcomeId .outcome "temporal-nexus2-cancellation-race-outcome/v1",
-  metadata cancelRequestedFactId .fact "temporal-nexus2-cancellation-race-request-fact/v1",
-  metadata lifecycleFactId .fact "temporal-nexus2-cancellation-race-lifecycle-fact/v1",
-  metadata terminalFactId .fact "temporal-nexus2-cancellation-race-terminal-fact/v1"
+  metadata operationStateId .state "temporal-nexus-race-cancellation-race-state/v1",
+  metadata requestCancelActionId .action "temporal-nexus-race-cancellation-race-request-cancel/v1",
+  metadata resolveActionId .action "temporal-nexus-race-cancellation-race-resolve/v1",
+  metadata transitionOutcomeId .outcome "temporal-nexus-race-cancellation-race-outcome/v1",
+  metadata cancelRequestedFactId .fact "temporal-nexus-race-cancellation-race-request-fact/v1",
+  metadata lifecycleFactId .fact "temporal-nexus-race-cancellation-race-lifecycle-fact/v1",
+  metadata terminalFactId .fact "temporal-nexus-race-cancellation-race-terminal-fact/v1"
 ]
 
 def modelSpec : TableModelSpec := {
@@ -265,18 +265,18 @@ def modelVocabulary : Except FiniteTableError ModelVocabulary := do
 def operationRole : Scenario.Role := { id := operationRoleId, valueKind := .state }
 
 def terminalResponsePropertyId : DefinitionId :=
-  id "temporal.nexus2.cancellation-race.property.terminal-response"
+  id "temporal.nexus.race.cancellation-race.property.terminal-response"
 def canceledResolutionPropertyId : DefinitionId :=
-  id "temporal.nexus2.cancellation-race.property.canceled-resolution"
+  id "temporal.nexus.race.cancellation-race.property.canceled-resolution"
 def succeededResolutionPropertyId : DefinitionId :=
-  id "temporal.nexus2.cancellation-race.property.succeeded-resolution"
+  id "temporal.nexus.race.cancellation-race.property.succeeded-resolution"
 
 def terminalResponsePropertyDeclaration (model : ModelVocabulary) : Property := {
   id := terminalResponsePropertyId
   source
   requires := [capabilityId]
   clauses := [.eventuallyWithin
-    (id "temporal.nexus2.cancellation-race.property.terminal-response.clause")
+    (id "temporal.nexus.race.cancellation-race.property.terminal-response.clause")
     (PropertyPattern.exact .selectedAction requestCancelActionId model.requestCancelAction.value)
     (PropertyPattern.exact .observation terminalFactId model.terminalFact.value)
     { value := 1, unit := .steps }]
@@ -299,27 +299,27 @@ private def resolutionPropertyDeclaration
 
 def canceledResolutionPropertyDeclaration (model : ModelVocabulary) : Property :=
   resolutionPropertyDeclaration canceledResolutionPropertyId
-    (id "temporal.nexus2.cancellation-race.property.canceled-resolution.clause")
+    (id "temporal.nexus.race.cancellation-race.property.canceled-resolution.clause")
     model model.canceledOutcome "The abstract resolution may select the canceled outcome."
 
 def succeededResolutionPropertyDeclaration (model : ModelVocabulary) : Property :=
   resolutionPropertyDeclaration succeededResolutionPropertyId
-    (id "temporal.nexus2.cancellation-race.property.succeeded-resolution.clause")
+    (id "temporal.nexus.race.cancellation-race.property.succeeded-resolution.clause")
     model model.succeededOutcome "The abstract resolution may select the succeeded outcome."
 
 def requestOccurrenceId : DefinitionId :=
-  id "temporal.nexus2.cancellation-race.occurrence.request"
+  id "temporal.nexus.race.cancellation-race.occurrence.request"
 def resolutionOccurrenceId : DefinitionId :=
-  id "temporal.nexus2.cancellation-race.occurrence.resolution"
+  id "temporal.nexus.race.cancellation-race.occurrence.resolution"
 def setupConstraintId : DefinitionId :=
-  id "temporal.nexus2.cancellation-race.setup.started"
+  id "temporal.nexus.race.cancellation-race.setup.started"
 
 private def startedSetupConstraint (model : ModelVocabulary) : SetupConstraint :=
   SetupConstraint.roleEquals setupConstraintId operationRoleId model.startedState
 
 /-- Select exactly request then abstract resolution; neither Action chooses the terminal outcome. -/
 def exactBehaviorDeclaration (model : ModelVocabulary) : Scenario := {
-  id := id "temporal.nexus2.cancellation-race.behavior.request-then-resolve"
+  id := id "temporal.nexus.race.cancellation-race.behavior.request-then-resolve"
   source
   requires := [capabilityId]
   roles := [operationRole]
@@ -339,7 +339,7 @@ def exactBehaviorDeclaration (model : ModelVocabulary) : Scenario := {
 }
 
 private def requestOnlyBehaviorDeclaration (model : ModelVocabulary) : Scenario := {
-  id := id "temporal.nexus2.cancellation-race.behavior.request-only"
+  id := id "temporal.nexus.race.cancellation-race.behavior.request-only"
   source
   requires := [capabilityId]
   roles := [operationRole]
@@ -352,7 +352,7 @@ private def requestOnlyBehaviorDeclaration (model : ModelVocabulary) : Scenario 
 }
 
 private def noTriggerBehaviorDeclaration (model : ModelVocabulary) : Scenario := {
-  id := id "temporal.nexus2.cancellation-race.behavior.no-trigger"
+  id := id "temporal.nexus.race.cancellation-race.behavior.no-trigger"
   source
   requires := [capabilityId]
   roles := [operationRole]
@@ -363,9 +363,9 @@ private def noTriggerBehaviorDeclaration (model : ModelVocabulary) : Scenario :=
 
 private def unsatisfiableBehaviorDeclaration (model : ModelVocabulary) : Scenario := {
   exactBehaviorDeclaration model with
-  id := id "temporal.nexus2.cancellation-race.behavior.unsatisfiable"
+  id := id "temporal.nexus.race.cancellation-race.behavior.unsatisfiable"
   setup := (exactBehaviorDeclaration model).setup ++ [{
-    id := id "temporal.nexus2.cancellation-race.setup.not-started"
+    id := id "temporal.nexus.race.cancellation-race.setup.not-started"
     relation := .different
     left := .role operationRoleId
     right := .value model.startedState
@@ -438,31 +438,31 @@ def checkRace : Except RaceAdmissionError CheckedRace := do
   let canceled := canceledResolutionPropertyDeclaration model
   let succeeded := succeededResolutionPropertyDeclaration model
   let verify ← checkQuestion target
-    (id "temporal.nexus2.cancellation-race.query.verify-terminal") terminal exact
+    (id "temporal.nexus.race.cancellation-race.query.verify-terminal") terminal exact
     Query.Form.verify .exhaustive 32
   let canceledWitness ← checkQuestion target
-    (id "temporal.nexus2.cancellation-race.query.witness-canceled") canceled exact
+    (id "temporal.nexus.race.cancellation-race.query.witness-canceled") canceled exact
     Query.Form.find .shortest 32
   let succeededWitness ← checkQuestion target
-    (id "temporal.nexus2.cancellation-race.query.witness-succeeded") succeeded exact
+    (id "temporal.nexus.race.cancellation-race.query.witness-succeeded") succeeded exact
     Query.Form.find .shortest 32
   let cancellationAlwaysWins ← checkQuestion target
-    (id "temporal.nexus2.cancellation-race.query.counterexample-cancellation-always-wins") canceled exact
+    (id "temporal.nexus.race.cancellation-race.query.counterexample-cancellation-always-wins") canceled exact
     Query.Form.findViolation .shortest 32
   let requestOnly ← checkQuestion target
-    (id "temporal.nexus2.cancellation-race.query.request-only") terminal
+    (id "temporal.nexus.race.cancellation-race.query.request-only") terminal
     (requestOnlyBehaviorDeclaration model) Query.Form.verify .exhaustive 32
   let noTrigger ← checkQuestion target
-    (id "temporal.nexus2.cancellation-race.query.no-trigger") terminal
+    (id "temporal.nexus.race.cancellation-race.query.no-trigger") terminal
     (noTriggerBehaviorDeclaration model) Query.Form.verify .exhaustive 32
   let unsatisfiable ← checkQuestion target
-    (id "temporal.nexus2.cancellation-race.query.unsatisfiable") terminal
+    (id "temporal.nexus.race.cancellation-race.query.unsatisfiable") terminal
     (unsatisfiableBehaviorDeclaration model) Query.Form.verify .exhaustive 32
   let exhaustiveAbsence ← checkQuestion target
-    (id "temporal.nexus2.cancellation-race.query.exhaustive-absence") terminal exact
+    (id "temporal.nexus.race.cancellation-race.query.exhaustive-absence") terminal exact
     Query.Form.findViolation .exhaustive 32
   let limitReached ← checkQuestion target
-    (id "temporal.nexus2.cancellation-race.query.limit-reached") terminal exact
+    (id "temporal.nexus.race.cancellation-race.query.limit-reached") terminal exact
     Query.Form.findViolation .exhaustive 1
   pure {
     target
@@ -478,4 +478,4 @@ def checkRace : Except RaceAdmissionError CheckedRace := do
     limitReached
   }
 
-end Temporal.Feature.Nexus2.Race
+end Temporal.Feature.Nexus.Race.Race

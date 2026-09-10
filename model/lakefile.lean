@@ -3,7 +3,7 @@ import Lake
 open System Lake DSL
 
 package «temporal-model» where
-  lintDriver := "modelLint"
+  lintDriver := "umpire-lint"
   builtinLint? := true
 
 require "leanprover-community" / batteries @ git "v4.33.0"
@@ -60,7 +60,7 @@ target testpilotProtocolSchemas (pkg : NPackage __name__) : FilePath := do
 @[default_target] lean_lib TestpilotTests where
   roots := #[`Testpilot.Tests]
 
-lean_exe testpilotProtoJSONFixture where
+lean_exe «umpire-protojson-fixture» where
   root := `Testpilot.Tests.ProtoJSONMain
 
 @[default_target] lean_lib Temporal
@@ -82,7 +82,7 @@ lean_lib ModelLintSupport where
     `ModelLint.ImportGraph
   ]
 
-@[default_target] lean_exe «temporal-model-inspect» where
+@[default_target] lean_exe «umpire-inspect» where
   root := `Temporal.Tool.Inspect
 
 lean_exe «umpire-inventory» where
@@ -94,7 +94,7 @@ lean_exe «umpire-inventory-tests» where
 lean_exe «umpire-inventory-make-tests» where
   root := `Temporal.Tool.InventoryMakeTestsMain
 
-@[default_target] lean_exe «temporal-testpilot» where
+@[default_target] lean_exe «umpire-case» where
   root := `Temporal.Tool.Testpilot
 
 lean_exe «umpire-goldens» where
@@ -103,10 +103,10 @@ lean_exe «umpire-goldens» where
 lean_exe «umpire-correlated-fixtures» where
   root := `Umpire.Case.Tests.CorrelatedFixtureMain
 
-lean_exe modelLint where
+lean_exe «umpire-lint» where
   root := `ModelLint
   supportInterpreter := true
 
-lean_exe modelLintTests where
+lean_exe «umpire-lint-tests» where
   root := `ModelLint.ImportGraphTests
   supportInterpreter := true

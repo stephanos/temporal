@@ -33,11 +33,11 @@ helpers, and `Testpilot.ProtoJSON` delegates the one canonical codec policy to `
 `Umpire.Case` retains only Umpire-owned definitions, fingerprints, sources, and Known Gaps for
 opaque producer provenance.
 
-`Temporal.Feature.Nexus3.Testpilot` lowers the checked Nexus3 completion model into the async Nexus
+`Temporal.Feature.Nexus.Success.Producer` lowers the checked Nexus.Success completion model into the async Nexus
 example: its Contract carries no monitor rule, only the operation-correlated capability the checked
 Property lowered into. `Temporal.Testpilot` supplies the unrelated `GetSystemInfo` example, the
 worker-outage fault Case, and the six public-facade conformance fixtures. `Temporal.Tool.Testpilot` forwards rendering
-to `Testpilot.ProtoJSON`. The broader Nexus3 Markdown sketches remain design material rather than executable
+to `Testpilot.ProtoJSON`. The broader Nexus.Success Markdown sketches remain design material rather than executable
 coverage. Lean is the first Producer, while the Case format and Go runtime remain independent of
 Lean.
 
@@ -128,7 +128,7 @@ a deadline, and an already proved violation survives cleanup failure.
 The generated correlated corpus includes executable non-cancellation Cases qualified through public
 Go `Prepare`/`Run`, including repeated/concurrent Runs and bounded tenfold loads. Its synthetic
 source is a controlled qualification fixture, not a production Implementation Link. The existing
-Nexus3 success integration remains the live Temporal demonstration. Nexus operation cancellation
+Nexus.Success success integration remains the live Temporal demonstration. Nexus operation cancellation
 Models, adapters, capabilities, and Cases are explicitly deferred to fn-79.
 
 ### Typed operation authoring
@@ -178,13 +178,13 @@ coordinate in the Property moves the runtime read with it.
 
 Two authored examples carry this end to end:
 
-- [`Temporal/Feature/Nexus3/TypedUnary.lean`](Temporal/Feature/Nexus3/TypedUnary.lean) references the
+- [`Temporal/Feature/Nexus/Success/TypedUnary.lean`](Temporal/Feature/Nexus/Success/TypedUnary.lean) references the
   generated `StartWorkflowExecution` and requires the submitted nested `workflow_type.name` to equal
   the workflow type the `WorkflowExecutionStarted` event records, read through the generated
   `GetWorkflowExecutionHistory` response schema. Its derived rule reports all three answers: an
   agreeing recorded type is satisfied, a disagreeing one is violated, and an event that never
   establishes the field leaves the rule pending.
-- [`Temporal/Feature/Nexus3/TypedNexus.lean`](Temporal/Feature/Nexus3/TypedNexus.lean) runs two
+- [`Temporal/Feature/Nexus/Success/TypedNexus.lean`](Temporal/Feature/Nexus/Success/TypedNexus.lean) runs two
   workflow-owned Nexus SDK operations in one Case, each retaining its own scheduled evidence under
   its own operation key, and requires a completion to reference the scheduled event its own
   operation was scheduled at.
@@ -214,12 +214,12 @@ real selected artifact, Observation evaluation, malformed identity/reference, mi
 incomplete Model, invalid step, and invalid Observation specimens. The exact compatibility,
 trust, and cost inventory is in [the established evidence record](Temporal/Feature/Nexus/EVIDENCE.md).
 
-The experimental [Nexus2 authoring prototype](Temporal/Feature/Nexus2/README.md) demonstrates the
+The experimental [Nexus.Race authoring prototype](Temporal/Feature/Nexus/Race/README.md) demonstrates the
 ordinary finite route, guarded Properties, bounded case analysis, and constructor/frontend
-measurements under its narrow prototype exceptions. It is a separate `temporal.nexus2.*` model,
+measurements under its narrow prototype exceptions. It is a separate `temporal.nexus.race.*` model,
 not the established migration or a production authoring rule. Editor responsiveness, cold/repeated
 elaboration, human readability, product-owner usability, and broader syntax approval remain
-unmeasured. Its [evidence inventory](Temporal/Feature/Nexus2/EVIDENCE.md) records those boundaries.
+unmeasured. Its [evidence inventory](Temporal/Feature/Nexus/Race/EVIDENCE.md) records those boundaries.
 
 ## Runtime ownership
 
@@ -301,7 +301,7 @@ model/.lake/build/bin/temporal-testpilot async-nexus
 mise exec -- go test -count=1 -tags 'test_dep integration' ./tests -run '^TestTestpilotAsyncNexusCase$'
 ```
 
-The live Nexus3 selector prepares the same canonical Case bytes against two Profiles, runs both
+The live Nexus.Success selector prepares the same canonical Case bytes against two Profiles, runs both
 environments concurrently, verifies namespace isolation and correlated endpoint history, and obtains
 the same satisfied Contract result. Its binding fingerprints and Driver identities differ because
 their physical resources differ.
