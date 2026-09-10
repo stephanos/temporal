@@ -251,7 +251,7 @@ private def guardedTemporalDeclaration : Property := {
       (exception := none)
       (trigger := (pattern .observation cancelRequested))
       (response := (pattern .observation cancelDelivered))
-      (limit := { value := 1, unit := .semanticTransitions })
+      (limit := { value := 1, unit := .steps })
   ]
 }
 
@@ -266,7 +266,7 @@ private def guardedQuiescentDeclaration : Property := {
       (exception := none)
       (trigger := (pattern .observation cancelDelivered))
       (forbidden := (pattern .observation cancelRequested))
-      (limit := { value := 1, unit := .semanticTransitions })
+      (limit := { value := 1, unit := .steps })
   ]
 }
 
@@ -447,7 +447,7 @@ private def wrongTemporalUnit : Property := {
       (exception := none)
       (trigger := (pattern .observation cancelRequested))
       (response := (pattern .observation cancelDelivered))
-      (limit := { value := 1, unit := .candidateEvaluations })
+      (limit := { value := 1, unit := .search })
   ]
 }
 

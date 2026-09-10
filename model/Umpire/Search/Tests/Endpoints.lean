@@ -15,7 +15,7 @@ private def temporalProperty (triggered responds : Bool) (bound : Nat := 1) : Ch
       constraint := .equals (if triggered then "request" else "absent") }
     { field := .observation, reference := observed,
       constraint := .equals (if responds then "accepted" else "absent") }
-    { value := bound, unit := .semanticTransitions }]
+    { value := bound, unit := .steps }]
   access := { capabilities := [], logicalTimeSource := none, meanings := [
     { definitionId := request, kind := .action, behaviorVersion := "request" },
     { definitionId := observed, kind := .fact, behaviorVersion := "observed" }] }
@@ -192,7 +192,7 @@ private def convergingRun : Option PlanResult := do
 #guard (terminalTarget [[completed]]).map (·.behaviorFingerprint.render) ==
   some "sha256:0359b9a0d4340f3d4c04b85b6ac0950c2a563076febbacffddfaac2e506f42b5"
 #guard (admittedQuery .final .allowVacuous).map (·.behaviorFingerprint.render) ==
-  some "sha256:be5535ef4d07080095b565f71a70233db180f95447d86414ae57330d27a9e43f"
+  some "sha256:a3dbde44f860901ea71295f4ed458f5e831e9ff368ba00b01e7bf96e20ab5b5f"
 #guard (endpointRun .final .requireAllTriggers
   (.verify (temporalProperty true false)) 10 2).map
     (·.result.metadata.validity.searchTermination) == some "limit-reached"

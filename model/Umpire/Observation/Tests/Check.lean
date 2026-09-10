@@ -104,7 +104,7 @@ def guardedTemporalSwitchPropertyDeclaration : Property := {
       reference := Umpire.Examples.Switch.appliedOutcomeId
       constraint := .present
     })
-      (limit := { value := 0, unit := .semanticTransitions })]
+      (limit := { value := 0, unit := .steps })]
 }
 
 private def guardedRunEvaluationResult : Option

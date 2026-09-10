@@ -436,7 +436,7 @@ private def queryErrorKind
 private def invalidBounds : QueryLimits := {
   limits with
   behavior := {
-    limits.behavior with transitions := { value := 0, unit := .semanticTransitions }
+    limits.behavior with transitions := { value := 0, unit := .steps }
   }
 }
 

@@ -106,13 +106,6 @@ Method notes for the next session, all verified here:
 - `make lint-code` must be re-checked after any Go error-string respelling: staticcheck ST1005
   fires on a message that starts with a single capitalized word.
 ## Evidence
-- Commits: 6db43bf3a771db96fc2a94bbc10f8be11a0e7a9b, ff7bb6c3cdef82fabc52911b2e34623d2fdaf1d4, a73a492c962279e7f90a12e8cc73859792e03cef, f5452b241dd244df44a7ea5cba4b7a3f7141c3be, 67edfd3851b7f3d1ddb4de41038b94f7ca8efd35
-- Tests: cd model && lake build Umpire UmpireTests Temporal TemporalModelTests TestpilotTests Testpilot TemporalExperimentalTests +Umpire.PromotionTests (pass, 402 jobs); make lint-model (169 diagnostics, all generated Temporal/API; equals baseline); make umpire-check-goldens / -regression-views / -case-runtime-conformance / -semantic-inventory / -retired-vocabulary / -lean-api / -testpilot-protocol / -testpilot-authoring (pass); make umpire-check-live-tests (pass); TMPDIR=<physical> CGO_ENABLED=0 go test -count=1 -tags test_dep ./tools/umpire/... ./common/testing/testpilot/... ./tests/testcore/testpilot/... (pass); make lint-code GOLANGCI_LINT_FIX=false (128 findings, equals baseline); CC=/usr/bin/cc go vet -tags test_dep ./... (15 diagnostics, equals baseline)
+- Commits:
+- Tests:
 - PRs:
-
-Added by the spec completion review of 2026-09-10 (P3, on landed work): rename the Go outer
-artifact type `artifactv2.Experiment` (and `DecodeExperiment`) to `Plan` when this task resumes,
-keeping every JSON tag untouched. The retired `ExperimentSpec` is gone so the gate passes, but the
-Go facade currently carries a third spelling for the concept.
-
-stage: plan-sync - skipped(config: planSync.enabled != true)

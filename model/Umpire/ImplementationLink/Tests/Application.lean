@@ -241,7 +241,7 @@ def linkDeclaration : ImplementationLinkDeclaration
   ]
   relationMappings := []
   capabilityMappings := [capabilityMapping]
-  applicationLimit := { value := 3, unit := .semanticTransitions }
+  applicationLimit := { value := 3, unit := .steps }
 }
 
 theorem linkCoverage : ImplementationLinkRequiredCoverage linkDeclaration
@@ -446,7 +446,7 @@ example :
   native_decide
 
 def limitedDeclaration := {
-  linkDeclaration with applicationLimit := { value := 1, unit := .semanticTransitions }
+  linkDeclaration with applicationLimit := { value := 1, unit := .steps }
 }
 
 theorem limitedCoverage : ImplementationLinkRequiredCoverage limitedDeclaration
@@ -709,7 +709,7 @@ example : limitApplication.diagnostic?.map (fun diagnostic =>
     true,
     (limitApplication.diagnostic?.get (by native_decide)).identity,
     (limitApplication.diagnostic?.get (by native_decide)).identity,
-    some { value := 1, unit := .semanticTransitions },
+    some { value := 1, unit := .steps },
     some 2) := by
   native_decide
 

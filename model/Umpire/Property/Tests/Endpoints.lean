@@ -14,7 +14,7 @@ private def endpointAnswer (clause : PropertyClause)
 private def response (bound : Nat) : PropertyClause :=
   .eventuallyWithin (id "test.property.endpoint.response")
     (pattern .observation cancelRequested) (pattern .observation cancelDelivered)
-    { value := bound, unit := .semanticTransitions }
+    { value := bound, unit := .steps }
 
 private def selectedPrefix : ModelTrace ModelValue ModelValue ModelValue ModelValue :=
   { positiveTrace with steps := positiveTrace.steps.take 1 }
@@ -28,7 +28,7 @@ private def selectedPrefix : ModelTrace ModelValue ModelValue ModelValue ModelVa
 private def quiescent : PropertyClause :=
   .neverWithin (id "test.property.endpoint.quiet")
     (pattern .observation cancelRequested) (pattern .observation cancelDelivered)
-    { value := 1, unit := .semanticTransitions }
+    { value := 1, unit := .steps }
 
 #guard endpointAnswer quiescent selectedPrefix true == some .unresolved
 #guard endpointAnswer quiescent selectedPrefix false == some .satisfied
@@ -46,7 +46,7 @@ private def guardedResponse : PropertyClause :=
       (exception := none)
       (trigger := (pattern .observation cancelRequested))
       (response := (pattern .observation cancelDelivered))
-      (limit := { value := 1, unit := .semanticTransitions })
+      (limit := { value := 1, unit := .steps })
 
 #guard endpointAnswer guardedResponse selectedPrefix true == some .unresolved
 #guard endpointAnswer guardedResponse positiveTrace true == some .satisfied

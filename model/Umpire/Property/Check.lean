@@ -664,14 +664,9 @@ private def requirePositionUnit
     (access : PropertyCapabilityView)
     (unit : LimitUnit)
     (patterns : List PropertyPattern) : Except PropertyError Unit := do
-  if unit == .candidateEvaluations || unit == .experimentSpecs then
+  if unit == .search || unit == .plans then
     throw (propertyError .unitMismatch owner.id owner.source
       (unit.name ++ " is not a Property position unit")
-      (patterns.map PropertyPattern.reference))
-  if unit == .observationPositions &&
-      !(patterns.all fun pattern => pattern.field == .observation || pattern.field == .relation) then
-    throw (propertyError .unitMismatch owner.id owner.source
-      (unit.name ++ " requires observation or relation references")
       (patterns.map PropertyPattern.reference))
   if unit == .logicalTime && access.logicalTimeSource.isNone then
     throw (propertyError .missingLogicalTimeSource owner.id owner.source unit.name)
