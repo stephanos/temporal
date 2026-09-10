@@ -22,8 +22,9 @@ horizon; it depends on the clock of the host that produced the Run. `rule_events
 exactly that many Run Events the rule evaluated since its last transition, which is a count of what
 the Run recorded and nothing else. One helper owns the counter, and the online `Evaluator.Observe`
 path and the offline `PreparedContract.Evaluate` path both reach it through that helper, so neither
-can tick on its own terms. Counting continues while execution is incomplete and expiry stays
-suppressed there; a rule that has reached a terminal state stops counting. A witness must be
+can tick on its own terms. The counter resets on each transition into a new state, stops once the
+rule reaches a terminal state, and freezes with every other rule effect once execution becomes
+incomplete, so no expiry is ever concluded from a truncated Run. A witness must be
 strictly earlier than expiry. Early completed closure is inconclusive. `RunEvent.execution_incomplete` takes effect before expiry and remains effective
 for later events, even when they omit the flag. Pending rules then stay inconclusive past their
 horizon; time and late witnesses cannot manufacture a result.
