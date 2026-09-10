@@ -89,10 +89,18 @@ private def rejected : Except Compiler.LoweringError temporal.server.api.testpil
 -- A Case realizes one selected trace, so a Query with no selected witness has nothing to realize.
 #guard rejected (produceWith (witness? := none))
 
--- A clause form the scoped capability cannot carry rejects by name. The model declares Known Gaps,
--- and this rejection happens with them in hand: nothing on this path consults one, so none admits
--- an unexpressible clause.
-#guard admitted.any (fun checked => !checked.query.authoredKnownGaps.toList.isEmpty)
+-- Known Gaps are carried into the Case, never consulted while lowering: the Case's recorded gaps
+-- are exactly the Query's, and the rejections below happen with those gaps in hand.
+#guard match admitted, Temporal.Feature.Nexus3.Testpilot.completionCase with
+  | some checked, .ok output =>
+      !checked.query.authoredKnownGaps.toList.isEmpty &&
+      (output.provenance.map fun provenance =>
+        (String.fromUTF8? provenance.producer_data).any fun payload =>
+          checked.query.authoredKnownGaps.toList.all fun gap =>
+            (payload.splitOn gap.code.value).length ≥ 2) == some true
+  | _, _ => false
+
+-- A clause form the scoped capability cannot carry rejects by name.
 
 #guard match produceWith (property? := invariantProperty?) with
   | .error error =>
@@ -134,15 +142,16 @@ private def fewerClausesProperty? : Option CheckedProperty := do
 -- Editing the Property changes the Case bytes rather than rejecting.
 #guard differsFromCompletionCase (produceWith (property? := fewerClausesProperty?))
 
-/-- The Contract is derived from the checked Property, not from the selected trace, so a different
-witness selects the same Contract. The witness still has to exist: it is what makes the Query's
-claim a realized one. -/
+/-- The selected trace is what the derived window is checked against, so a witness that reaches the
+required value before the Action the clause names is a witness the clause could be answered on
+without that Action. -/
 private def changedWitness? : Option BehaviorTrace := admitted.bind fun checked =>
   checked.witness.map fun selected =>
     { selected with trace := { selected.trace with steps := selected.trace.steps.reverse } }
 
-#guard caseShape (produceWith (witness? := changedWitness?)) ==
-  caseShape Temporal.Feature.Nexus3.Testpilot.completionCase
+#guard match produceWith (witness? := changedWitness?) with
+  | .error error => error.construct == "property.clause-early-response"
+  | .ok _ => false
 
 private def checkedBindings : Bool :=
   match admitted, Temporal.Feature.Nexus3.Testpilot.completionCase with
