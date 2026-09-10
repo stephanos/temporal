@@ -44,7 +44,7 @@ private def kernel : SearchView SpaceTests.checked.baseQuery.target :=
 private def authoredRequest : ExplorationRequest Umpire.Examples.Switch.LawStatement := {
   space := SpaceTests.checked
   policy := .exhaustive
-  limit := { value := 4, unit := .experimentSpecs }
+  limit := { value := 4, unit := .plans }
 }
 
 private def checkedRequestResult := checkExplorationRequest authoredRequest

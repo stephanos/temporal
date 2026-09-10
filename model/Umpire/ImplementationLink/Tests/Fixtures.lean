@@ -195,7 +195,7 @@ def baseDeclaration :
   ]
   relationMappings := [relationMapping]
   capabilityMappings := [primaryCapabilityMapping, secondaryCapabilityMapping]
-  applicationLimit := { value := 10, unit := .semanticTransitions }
+  applicationLimit := { value := 10, unit := .steps }
   documentation := "Identity fixture whose documentation is non-semantic."
 }
 

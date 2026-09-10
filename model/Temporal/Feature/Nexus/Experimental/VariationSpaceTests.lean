@@ -70,33 +70,33 @@ example : reorderedMetadataResult.toOption == metadataResult.toOption ∧
   native_decide
 
 example : metadata.behaviorFingerprint.render =
-      "sha256:f5af0c8a23a8cdcd1ef4aaddf1da5ca5564a8b49bd063dab5bd0fd736d5ef6ac" ∧
+      "sha256:9f1998b27b0f83f7f73e596736bbe5a76d8fc426ac8243bcaf5bc86d2f9c53de" ∧
     specs.map (fun spec =>
       (spec.plan.queryDefinitionId.value, spec.plan.behaviorDefinitionId.value,
         spec.plan.artifactChecksum.render, spec.artifactChecksum.render)) = [
       (
         "temporal.nexus.basic-lifecycle.space.fault-matrix.point.2a58049440a727cf7c6d4fc6ee6170ad93e4e760e8335e898b56334e36e8b49f.query",
         "temporal.nexus.basic-lifecycle.space.fault-matrix.point.2a58049440a727cf7c6d4fc6ee6170ad93e4e760e8335e898b56334e36e8b49f.behavior",
-        "sha256:fad2b87bbf67a53eafdc654be67d07e25d15eb6f0342bf1a5582398a9a7e57e6",
-        "sha256:873abde394db383b2a9a750c6ecddebe1dedcf20faaea9ed75c9e623f3bca4cb"
+        "sha256:3aed9f59d131f83d81ca57b41a4757719a7886814893b48d1b0471834f6f2f5b",
+        "sha256:34b04499cc9163e1a5abb39963d9ce215f82fe41e355967ceeb33b07419dd1be"
       ),
       (
         "temporal.nexus.basic-lifecycle.space.fault-matrix.point.eeb5f0ebe497093667fd32438f2fdbb86bcf280365384d6052c55f974928bc57.query",
         "temporal.nexus.basic-lifecycle.space.fault-matrix.point.eeb5f0ebe497093667fd32438f2fdbb86bcf280365384d6052c55f974928bc57.behavior",
-        "sha256:14166e6a70911df0d72f444085d36a997ef01e2fc17112ed26cc0bacf8fb54f9",
-        "sha256:ac24d6bac3eb7ac03b1bee26374c8a84bc06b211163d5c3f0169f7e2a6aa9ed4"
+        "sha256:42bbe25ce5e3ec9602e37b9bbf0f1f14a0026b9b516900092beacef6459b3057",
+        "sha256:79aa2d3b71be2ea76aadb3692e5e60258e1c590c6628a8c5cc0acda4f8fae555"
       ),
       (
         "temporal.nexus.basic-lifecycle.space.fault-matrix.point.e0236c7b60bb7385d889ca90eb37214572f2944773155cfcb22beeac62531d5c.query",
         "temporal.nexus.basic-lifecycle.space.fault-matrix.point.e0236c7b60bb7385d889ca90eb37214572f2944773155cfcb22beeac62531d5c.behavior",
-        "sha256:4f59bd1c683dfe41194c9446b1f24bf0cd77579d251c95b71855a05fb72a079f",
-        "sha256:1272a5861a0a491cca53cd228dc8d72c1bcc970fd0c77b8eeee4eadcb3f2641e"
+        "sha256:c514e0063a77585000e15177b9d67344c635742e6bbde0ca662e8316ed6aa871",
+        "sha256:8a7e1f0f32b24b3b30024e3c6efe06274abf1726f4bf422f46dfb4112803186d"
       ),
       (
         "temporal.nexus.basic-lifecycle.space.fault-matrix.point.75801c294e9ad01c61860ac4febbac4498c47a19d8355ab6204a32ed0247afef.query",
         "temporal.nexus.basic-lifecycle.space.fault-matrix.point.75801c294e9ad01c61860ac4febbac4498c47a19d8355ab6204a32ed0247afef.behavior",
-        "sha256:4997158e72edf2c8fc151d1c91a3d8e0407842eed2402b9f9ac1d349cc57aa5b",
-        "sha256:b38b568baaaea2bf7e1d9aa6ca1b24e26f161c65c3fa3234e4f52ab741efc720"
+        "sha256:7783e0bda139f00d09262aac5bdf1562972b9554ce1752ebcc0ab2a031158c72",
+        "sha256:916a2cc537c6c35066ad8a147cf139e00c661612594e80a59d90e1fc585d6221"
       )
     ] := by
   native_decide

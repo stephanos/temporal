@@ -323,17 +323,17 @@ theorem declarationsAdmitAndRunWithExplicitInputs :
       "found", "found", "found",
       QueryQuantifier.existential, QueryQuantifier.existential, QueryQuantifier.existential,
       { behavior := {
-          transitions := { value := 1, unit := .semanticTransitions },
-          selectedActions := { value := 1, unit := .selectedActions }
-        }, search := { value := 8, unit := .candidateEvaluations } },
+          transitions := { value := 1, unit := .steps },
+          selectedActions := { value := 1, unit := .actions }
+        }, search := { value := 8, unit := .search } },
       { behavior := {
-          transitions := { value := 1, unit := .semanticTransitions },
-          selectedActions := { value := 1, unit := .selectedActions }
-        }, search := { value := 8, unit := .candidateEvaluations } },
+          transitions := { value := 1, unit := .steps },
+          selectedActions := { value := 1, unit := .actions }
+        }, search := { value := 8, unit := .search } },
       { behavior := {
-          transitions := { value := 1, unit := .semanticTransitions },
-          selectedActions := { value := 1, unit := .selectedActions }
-        }, search := { value := 8, unit := .candidateEvaluations } },
+          transitions := { value := 1, unit := .steps },
+          selectedActions := { value := 1, unit := .actions }
+        }, search := { value := 8, unit := .search } },
       { strategy := .shortest, seed := 17, tieBreak := .definitionId },
       { strategy := .shortest, seed := 17, tieBreak := .definitionId },
       { strategy := .shortest, seed := 17, tieBreak := .definitionId })) = true := by
@@ -422,11 +422,11 @@ private def queryErrorKinds : Option (QueryErrorKind × QueryErrorKind) := do
   let baseline ← checkBaseline.toOption
   let declaration := Cancel.queryDeclaration baseline.cancel.property baseline.cancel.behavior
   let zero := { declaration with limits := {
-    declaration.limits with search := { value := 0, unit := .candidateEvaluations } } }
+    declaration.limits with search := { value := 0, unit := .search } } }
   let wrongUnit := { declaration with limits := {
     declaration.limits with behavior := {
       declaration.limits.behavior with
-      transitions := { value := 1, unit := .selectedActions }
+      transitions := { value := 1, unit := .actions }
     } } }
   let zeroKind ← match checkQuery (.ofTarget baseline.target) zero with
     | .error error => some error.kind | .ok _ => none
@@ -589,7 +589,7 @@ private def guardedTemporalCancelDeclaration
       reference := transitionOutcomeId
       constraint := .equals model.canceledOutcome.value
     })
-      (limit := { value := 0, unit := .semanticTransitions })]
+      (limit := { value := 0, unit := .steps })]
 }
 
 private def guardedTemporalPlannerOutcome
@@ -736,8 +736,8 @@ theorem exactRequestThenResolveQueryKeepsExplicitBoundsAndForm :
         checked.verify.query.quantifier,
         checked.verify.query.claim)) = modelVocabulary.toOption.map (fun model =>
       (some [model.requestCancelAction.definitionId, model.resolveAction.definitionId],
-        { value := 2, unit := .semanticTransitions },
-        { value := 2, unit := .selectedActions },
+        { value := 2, unit := .steps },
+        { value := 2, unit := .actions },
         QueryQuantifier.universal,
         QueryClaim.verifiedWithinLimits)) := by
   native_decide
@@ -811,7 +811,7 @@ theorem budgetExhaustionDiffersFromExhaustiveAbsence :
         checked.exhaustiveAbsence.run.result.metadata.completeness.established,
         checked.limitReached.run.result.outcome.name,
         checked.limitReached.run.result.metadata.completeness.established)) = some (
-      { value := 32, unit := .candidateEvaluations }, 4,
+      { value := 32, unit := .search }, 4,
       "none-found", true,
       "limit-reached", false) := by
   native_decide
@@ -871,7 +871,7 @@ private def requestCase (model : ModelVocabulary) : PropertyBranch := {
     (raceId "temporal.nexus2.cancellation-race.case.request.terminal") source
     (PropertyPattern.exact .selectedAction requestCancelActionId model.requestCancelAction.value)
     (PropertyPattern.exact .observation terminalFactId model.terminalFact.value)
-    { value := 1, unit := .semanticTransitions }]
+    { value := 1, unit := .steps }]
 }
 
 private def resolveCase (model : ModelVocabulary) : PropertyBranch := {
@@ -968,7 +968,7 @@ theorem finiteRaceCaseBudgetExhaustionIsInconclusive :
         result.scope.limits.search)) = some (
       "limit-reached",
       false,
-      { value := 1, unit := .candidateEvaluations }) := by
+      { value := 1, unit := .search }) := by
   native_decide
 
 /-! Joint temporal evidence retains the request trigger coordinate and its original bound. -/
@@ -987,8 +987,8 @@ theorem finiteRaceJointTemporalScopeIsFrozenAtTrigger :
     (jointTemporalSummary == some (
       0,
       1,
-      ({ value := 2, unit := .semanticTransitions } : Limit),
-      [(1, ({ value := 1, unit := .semanticTransitions } : Limit))],
+      ({ value := 2, unit := .steps } : Limit),
+      [(1, ({ value := 1, unit := .steps } : Limit))],
       2,
       2)) = true := by
   native_decide
@@ -1034,7 +1034,7 @@ theorem finiteRaceLaterExceptionCannotWithdrawTemporalObligation :
       "compatible-within-limits",
       1,
       1,
-      ({ value := 1, unit := .semanticTransitions } : Limit),
+      ({ value := 1, unit := .steps } : Limit),
       raceId "temporal.nexus2.cancellation-race.case.request.exception.later-state",
       true,
       2))) = true := by
@@ -1101,7 +1101,7 @@ private def observationTriggerPropertyDeclaration
       (exception := none)
       (trigger := (PropertyPattern.exact .observation trigger.definitionId trigger.value))
       (response := (PropertyPattern.exact .observation response.definitionId response.value))
-      (limit := { value := 1, unit := .observationPositions })]
+      (limit := { value := 1, unit := .steps })]
 }
 
 private def distinctObservationTriggerAnalysis? : Option BranchAnalysisResult := do
@@ -1142,9 +1142,9 @@ theorem finiteRaceSeparatesObservationTriggerOccurrences :
             trigger.admittedContinuations.length,
             trigger.satisfyingContinuations.length))) == modelVocabulary.toOption.map (fun model =>
       ("compatible-within-limits", true, [
-        (some model.lifecycleCanceledFact, LimitUnit.observationPositions, 2, 2, 1, 1),
-        (some model.lifecycleSucceededFact, LimitUnit.observationPositions, 2, 2, 1, 1),
-        (some model.terminalFact, LimitUnit.observationPositions, 3, 2, 2, 2)
+        (some model.lifecycleCanceledFact, LimitUnit.steps, 2, 2, 1, 1),
+        (some model.lifecycleSucceededFact, LimitUnit.steps, 2, 2, 1, 1),
+        (some model.terminalFact, LimitUnit.steps, 2, 2, 2, 2)
       ]))) = true := by
   native_decide
 

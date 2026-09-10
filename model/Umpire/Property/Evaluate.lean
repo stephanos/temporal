@@ -758,24 +758,22 @@ structure PropertyOccurrence where
   value : ModelValue
   transitionPosition : Nat
   selectedActionPosition : Nat
-  observationPosition : Nat
   logicalTime : Option Nat
   deriving BEq, DecidableEq, Repr
 
 private def observationOccurrences
     (pattern : PropertyPattern)
-    (transitionPosition selectedActionPosition observationOffset : Nat)
+    (transitionPosition selectedActionPosition : Nat)
     (logicalTime : Option Nat) : List ModelValue → List PropertyOccurrence
   | [] => []
   | value :: rest =>
       let tail := observationOccurrences pattern transitionPosition selectedActionPosition
-        (observationOffset + 1) logicalTime rest
+        logicalTime rest
       if pattern.evaluate value then
         {
           value
           transitionPosition
           selectedActionPosition
-          observationPosition := observationOffset + 1
           logicalTime
         } :: tail
       else
@@ -783,7 +781,7 @@ private def observationOccurrences
 
 private def optionalOccurrence
     (pattern : PropertyPattern)
-    (transitionPosition selectedActionPosition observationPosition : Nat)
+    (transitionPosition selectedActionPosition : Nat)
     (logicalTime : Option Nat)
     (value : Option ModelValue) : List PropertyOccurrence :=
   match value with
@@ -792,61 +790,58 @@ private def optionalOccurrence
         value
         transitionPosition
         selectedActionPosition
-        observationPosition
         logicalTime
       }] else []
   | none => []
 
 private def stepOccurrences
     (pattern : PropertyPattern)
-    (transitionPosition observationOffset : Nat)
+    (transitionPosition : Nat)
     (step : PropertyEvaluationStep) : List PropertyOccurrence :=
   match pattern.field with
   | .state | .resultingState =>
-      optionalOccurrence pattern transitionPosition transitionPosition observationOffset
+      optionalOccurrence pattern transitionPosition transitionPosition
         step.logicalTime step.resultingState
   | .priorState =>
-      optionalOccurrence pattern (transitionPosition - 1) transitionPosition observationOffset
+      optionalOccurrence pattern (transitionPosition - 1) transitionPosition
         step.logicalTime step.priorState
   | .selectedAction =>
-      optionalOccurrence pattern transitionPosition transitionPosition observationOffset
+      optionalOccurrence pattern transitionPosition transitionPosition
         step.logicalTime step.selectedAction
   | .outcome =>
-      optionalOccurrence pattern transitionPosition transitionPosition observationOffset
+      optionalOccurrence pattern transitionPosition transitionPosition
         step.logicalTime step.outcome
   | .observation | .relation =>
-      observationOccurrences pattern transitionPosition transitionPosition observationOffset
+      observationOccurrences pattern transitionPosition transitionPosition
         step.logicalTime step.observations
 
 private def traceStepOccurrences
     (pattern : PropertyPattern)
-    (transitionPosition observationOffset : Nat) :
+    (transitionPosition : Nat) :
     List PropertyEvaluationStep → List PropertyOccurrence
   | [] => []
   | step :: rest =>
-      stepOccurrences pattern transitionPosition observationOffset step ++
-        traceStepOccurrences pattern (transitionPosition + 1)
-          (observationOffset + step.observations.length) rest
+      stepOccurrences pattern transitionPosition step ++
+        traceStepOccurrences pattern (transitionPosition + 1) rest
 
 private def occurrences
     (pattern : PropertyPattern)
     (view : PropertyEvaluationView) : List PropertyOccurrence :=
   let initial := if pattern.field == .state then
-    optionalOccurrence pattern 0 0 0 none view.initialState
+    optionalOccurrence pattern 0 0 none view.initialState
   else
     []
-  initial ++ traceStepOccurrences pattern 1 0 view.steps
+  initial ++ traceStepOccurrences pattern 1 view.steps
 
 private def positionOf
     (unit : LimitUnit)
     (occurrence : PropertyOccurrence) : Option Nat :=
   match unit with
-  | .semanticTransitions => some occurrence.transitionPosition
-  | .selectedActions => some occurrence.selectedActionPosition
-  | .observationPositions => some occurrence.observationPosition
+  | .steps => some occurrence.transitionPosition
+  | .actions => some occurrence.selectedActionPosition
   | .logicalTime => occurrence.logicalTime
-  | .candidateEvaluations => none
-  | .experimentSpecs => none
+  | .search => none
+  | .plans => none
 
 private def collectPositions : List (Option Nat) → Option (List Nat)
   | [] => some []
@@ -874,17 +869,17 @@ private theorem collectPositions_some (positions : List Nat) :
   | cons position rest ih => simp [collectPositions, ih]
 
 private theorem checkedPositions_semantic (pattern : PropertyPattern) (view : PropertyEvaluationView) :
-    checkedPositions pattern .semanticTransitions view =
+    checkedPositions pattern .steps view =
       some ((occurrences pattern view).map (·.transitionPosition)) := by
-  have position : positionOf .semanticTransitions = fun occurrence => some occurrence.transitionPosition := rfl
+  have position : positionOf .steps = fun occurrence => some occurrence.transitionPosition := rfl
   simpa [checkedPositions, List.map_map, Function.comp_def, position] using
     collectPositions_some ((occurrences pattern view).map (·.transitionPosition))
 
 private theorem observation_positions_mem (pattern : PropertyPattern)
-    (start selected offset : Nat) (time : Option Nat) (values : List ModelValue) (position : Nat) :
-    position ∈ (observationOccurrences pattern start selected offset time values).map
+    (start selected : Nat) (time : Option Nat) (values : List ModelValue) (position : Nat) :
+    position ∈ (observationOccurrences pattern start selected time values).map
       (·.transitionPosition) ↔ position = start ∧ values.any pattern.evaluate = true := by
-  induction values generalizing offset with
+  induction values with
   | nil => simp [observationOccurrences]
   | cons value rest ih =>
       simp only [observationOccurrences]
@@ -893,8 +888,8 @@ private theorem observation_positions_mem (pattern : PropertyPattern)
 private theorem step_positions_mem (pattern : PropertyPattern)
     (aligned : pattern.field = .selectedAction ∨ pattern.field = .outcome ∨
       pattern.field = .resultingState ∨ pattern.field = .observation)
-    (start offset position : Nat) (step : PropertyEvaluationStep) :
-    position ∈ (stepOccurrences pattern start offset step).map (·.transitionPosition) ↔
+    (start position : Nat) (step : PropertyEvaluationStep) :
+    position ∈ (stepOccurrences pattern start step).map (·.transitionPosition) ↔
       position = start ∧ patternHoldsInStep pattern step = true := by
   rcases aligned with action | outcome | state | fact
   · cases value : step.selectedAction with
@@ -911,15 +906,15 @@ private theorem step_positions_mem (pattern : PropertyPattern)
         simp [stepOccurrences, state, optionalOccurrence, value, patternHoldsInStep, valuesInStep, hit]
 
   · simpa [stepOccurrences, fact, patternHoldsInStep, valuesInStep] using
-      observation_positions_mem pattern start start offset step.logicalTime step.observations position
+      observation_positions_mem pattern start start step.logicalTime step.observations position
 
 private theorem scoped_step_positions_mem (pattern : PropertyPattern)
     (aligned : pattern.field = .selectedAction ∨ pattern.field = .outcome ∨
       pattern.field = .resultingState ∨ pattern.field = .observation)
-    (start offset position : Nat) (steps : List PropertyEvaluationStep) :
-    position ∈ (traceStepOccurrences pattern start offset steps).map (·.transitionPosition) ↔
+    (start position : Nat) (steps : List PropertyEvaluationStep) :
+    position ∈ (traceStepOccurrences pattern start steps).map (·.transitionPosition) ↔
       position ∈ Property.Scoped.positions start (steps.map (patternHoldsInStep pattern)) := by
-  induction steps generalizing start offset with
+  induction steps generalizing start with
   | nil => rfl
   | cons step rest ih =>
       simp only [traceStepOccurrences, List.map_append, List.mem_append,
@@ -939,7 +934,7 @@ private theorem semantic_positions_mem (pattern : PropertyPattern)
     · rw [state]; rfl
     · rw [fact]; rfl
   simp only [occurrences, notState, Bool.false_eq_true, ↓reduceIte, List.nil_append]
-  exact scoped_step_positions_mem pattern aligned 1 0 position view.steps
+  exact scoped_step_positions_mem pattern aligned 1 position view.steps
 
 private def valuesAtField
     (field : PropertyTraceField)
@@ -1231,9 +1226,9 @@ private theorem guardedTemporalApplies_agrees
 
 private def triggerPositionsInStep
     (clause : CheckedPropertyTemporalClause)
-    (transitionPosition observationOffset : Nat)
+    (transitionPosition : Nat)
     (step : PropertyEvaluationStep) : Option (List Nat) :=
-  collectPositions ((stepOccurrences clause.trigger transitionPosition observationOffset step).map
+  collectPositions ((stepOccurrences clause.trigger transitionPosition step).map
     (positionOf clause.limit.unit))
 
 private def responseWithinEvaluate
@@ -1276,10 +1271,10 @@ private def evaluateGuardedTemporalSteps
     (forbidden : Bool)
     (clause : CheckedPropertyTemporalClause)
     (responsePositions : List Nat) :
-    Nat → Nat → List PropertyEvaluationStep → Bool
-  | _, _, [] => true
-  | transitionPosition, observationOffset, step :: rest =>
-      match triggerPositionsInStep clause transitionPosition observationOffset step with
+    Nat → List PropertyEvaluationStep → Bool
+  | _, [] => true
+  | transitionPosition, step :: rest =>
+      match triggerPositionsInStep clause transitionPosition step with
       | none => false
       | some triggerPositions =>
           let applies := !triggerPositions.isEmpty &&
@@ -1287,38 +1282,38 @@ private def evaluateGuardedTemporalSteps
           (!applies || triggerPositions.all fun first =>
             responseWithinEvaluate forbidden first responsePositions clause.limit.value) &&
           evaluateGuardedTemporalSteps forbidden clause responsePositions
-            (transitionPosition + 1) (observationOffset + step.observations.length) rest
+            (transitionPosition + 1) rest
 
 private def guardedTemporalStepsDenote
     (forbidden : Bool)
     (clause : CheckedPropertyTemporalClause)
     (responsePositions : List Nat) :
-    Nat → Nat → List PropertyEvaluationStep → Prop
-  | _, _, [] => True
-  | transitionPosition, observationOffset, step :: rest =>
-      match triggerPositionsInStep clause transitionPosition observationOffset step with
+    Nat → List PropertyEvaluationStep → Prop
+  | _, [] => True
+  | transitionPosition, step :: rest =>
+      match triggerPositionsInStep clause transitionPosition step with
       | none => False
       | some triggerPositions =>
           ((triggerPositions ≠ [] ∧ guardedTemporalAppliesDenote clause (guardInput step)) →
             allHolds triggerPositions fun first =>
               responseWithinDenote forbidden first responsePositions clause.limit.value) ∧
           guardedTemporalStepsDenote forbidden clause responsePositions
-            (transitionPosition + 1) (observationOffset + step.observations.length) rest
+            (transitionPosition + 1) rest
 
 private theorem evaluateGuardedTemporalSteps_agrees
     (forbidden : Bool)
     (clause : CheckedPropertyTemporalClause)
     (responsePositions : List Nat)
-    (transitionPosition observationOffset : Nat)
+    (transitionPosition : Nat)
     (steps : List PropertyEvaluationStep) :
     evaluateGuardedTemporalSteps forbidden clause responsePositions
-        transitionPosition observationOffset steps = true ↔
+        transitionPosition steps = true ↔
       guardedTemporalStepsDenote forbidden clause responsePositions
-        transitionPosition observationOffset steps := by
-  induction steps generalizing transitionPosition observationOffset with
+        transitionPosition steps := by
+  induction steps generalizing transitionPosition with
   | nil => simp [evaluateGuardedTemporalSteps, guardedTemporalStepsDenote]
   | cons step rest inductionHypothesis =>
-      cases triggerResult : triggerPositionsInStep clause transitionPosition observationOffset step with
+      cases triggerResult : triggerPositionsInStep clause transitionPosition step with
       | none =>
           simp [evaluateGuardedTemporalSteps, guardedTemporalStepsDenote, triggerResult]
       | some triggerPositions =>
@@ -1347,7 +1342,7 @@ private def evaluateGuardedTemporal
   match checkedPositions clause.response clause.limit.unit view with
   | none => false
   | some responsePositions =>
-      evaluateGuardedTemporalSteps forbidden clause responsePositions 1 0 view.steps
+      evaluateGuardedTemporalSteps forbidden clause responsePositions 1 view.steps
 
 private def guardedTemporalDenotes
     (forbidden : Bool)
@@ -1356,7 +1351,7 @@ private def guardedTemporalDenotes
   match checkedPositions clause.response clause.limit.unit view with
   | none => False
   | some responsePositions =>
-      guardedTemporalStepsDenote forbidden clause responsePositions 1 0 view.steps
+      guardedTemporalStepsDenote forbidden clause responsePositions 1 view.steps
 
 private theorem evaluateGuardedTemporal_agrees
     (forbidden : Bool)
@@ -1368,7 +1363,7 @@ private theorem evaluateGuardedTemporal_agrees
   | none => simp [evaluateGuardedTemporal, guardedTemporalDenotes, responseResult]
   | some responsePositions =>
       simpa [evaluateGuardedTemporal, guardedTemporalDenotes, responseResult] using
-        evaluateGuardedTemporalSteps_agrees forbidden clause responsePositions 1 0 view.steps
+        evaluateGuardedTemporalSteps_agrees forbidden clause responsePositions 1 view.steps
 
 private def parentAppliesEvaluate
     (group : CheckedPropertyBranches)
@@ -1646,7 +1641,7 @@ continuity is the scoped consumer's admission responsibility; Property access re
 def CheckedPropertyEvaluationInput.appendScoped
     {property : CheckedProperty} (first second : CheckedPropertyEvaluationInput property)
     (id : DefinitionId) (trigger response : PropertyPattern) (bound : Nat)
-    (_shape : property.clauses = [.eventuallyWithin id trigger response ⟨bound, .semanticTransitions⟩]) :
+    (_shape : property.clauses = [.eventuallyWithin id trigger response ⟨bound, .steps⟩]) :
     CheckedPropertyEvaluationInput property :=
   ⟨{ first.view with steps := first.view.steps ++ second.view.steps }⟩
 
@@ -1654,7 +1649,7 @@ def CheckedPropertyEvaluationInput.appendScoped
 theorem CheckedPropertyEvaluationInput.scopedCoordinates_append
     {property : CheckedProperty} (first second : CheckedPropertyEvaluationInput property)
     (id : DefinitionId) (trigger response : PropertyPattern) (bound : Nat)
-    (shape : property.clauses = [.eventuallyWithin id trigger response ⟨bound, .semanticTransitions⟩]) :
+    (shape : property.clauses = [.eventuallyWithin id trigger response ⟨bound, .steps⟩]) :
     (first.appendScoped second id trigger response bound shape).scopedCoordinates trigger response =
       first.scopedCoordinates trigger response ++ second.scopedCoordinates trigger response := by
   simp [appendScoped, scopedCoordinates, List.map_append]
@@ -1665,7 +1660,7 @@ theorem evaluatePropertyClause_scoped_positions
     (property : CheckedProperty) (input : CheckedPropertyEvaluationInput property)
     (clause : { clause // clause ∈ property.clauses })
     (id : DefinitionId) (trigger response : PropertyPattern) (bound : Nat)
-    (shape : clause.val = .eventuallyWithin id trigger response ⟨bound, .semanticTransitions⟩)
+    (shape : clause.val = .eventuallyWithin id trigger response ⟨bound, .steps⟩)
     (triggerAligned : trigger.field = .selectedAction)
     (responseAligned : response.field = .outcome ∨ response.field = .resultingState ∨
       response.field = .observation) :
@@ -1907,7 +1902,7 @@ private def sameStepJointObservationsAt
           triggerOccurrence := {
             field := .selectedAction
             value := step.selectedAction
-            coordinateUnit := .semanticTransitions
+            coordinateUnit := .steps
             coordinate := transitionPosition
           }
           priorState := step.priorState
@@ -1928,15 +1923,14 @@ private def guardedTemporalJointObservations
   | none => []
   | some responsePositions =>
       let rec visit
-          (transitionPosition observationOffset : Nat)
+          (transitionPosition : Nat)
           (steps : List PropertyEvaluationStep) : List JointObligationObservation :=
         match steps with
         | [] => []
         | step :: rest =>
-            let tail := visit (transitionPosition + 1)
-              (observationOffset + step.observations.length) rest
+            let tail := visit (transitionPosition + 1) rest
             let triggerOccurrences :=
-              stepOccurrences clause.trigger transitionPosition observationOffset step
+              stepOccurrences clause.trigger transitionPosition step
             match collectPositions (triggerOccurrences.map (positionOf clause.limit.unit)) with
             | none => tail
             | some triggerPositions =>
@@ -1965,7 +1959,7 @@ private def guardedTemporalJointObservations
                   } : JointObligationObservation)) ++ tail
                 else
                   tail
-      visit 1 0 view.steps
+      visit 1 view.steps
 
 /-- Observe jointly analyzable obligations only through the same checked input and evaluator used
 for ordinary Property truth. Later trace steps cannot change trigger-time guards or exceptions. -/
@@ -2187,8 +2181,7 @@ private def combineEndpointAnswers (answers : List PropertyEndpointAnswer) : Pro
 
 private def endpointCoordinate (unit : LimitUnit) (view : PropertyEvaluationView) : Option Nat :=
   match unit with
-  | .semanticTransitions | .selectedActions => some view.steps.length
-  | .observationPositions => some (view.steps.foldl (fun n step => n + step.observations.length) 0)
+  | .steps | .actions => some view.steps.length
   | .logicalTime => view.steps.getLast?.bind (·.logicalTime)
   | _ => none
 
@@ -2219,20 +2212,19 @@ private def guardedEndpointAnswer
   match checkedPositions clause.response clause.limit.unit view with
   | none => .unresolved
   | some responses =>
-      let rec visit (transitionPosition observationOffset : Nat)
+      let rec visit (transitionPosition : Nat)
           (steps : List PropertyEvaluationStep) : List PropertyEndpointAnswer :=
         match steps with
         | [] => []
         | step :: rest =>
-            let tail := visit (transitionPosition + 1)
-              (observationOffset + step.observations.length) rest
+            let tail := visit (transitionPosition + 1) rest
             if guardedTemporalAppliesEvaluate clause (guardInput step) then
-              match triggerPositionsInStep clause transitionPosition observationOffset step with
+              match triggerPositionsInStep clause transitionPosition step with
               | none => .unresolved :: tail
               | some triggers => triggers.map (fun coordinate =>
                   temporalEndpointAnswer clause.forbidden coordinate responses clause.limit view) ++ tail
             else tail
-      combineEndpointAnswers (visit 1 0 view.steps)
+      combineEndpointAnswers (visit 1 view.steps)
 
 private def clauseEndpointAnswer
     (clause : CheckedPropertyClause)
@@ -2289,7 +2281,7 @@ def evaluatePropertyEndpoint
         occurrence := {
           field := pattern.field
           value := some occurrence.value
-          coordinateUnit := .semanticTransitions
+          coordinateUnit := .steps
           coordinate := occurrence.transitionPosition
         }
       } : PropertyTriggerEvidence)

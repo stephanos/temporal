@@ -44,11 +44,30 @@ parenthetical. It deliberately does not touch fn-77's five in-flight terms
 `Umpire.Operation` and `Umpire.Value` renames wait for fn-77 .11 and are limited to `ValueShape` to
 `Shape` plus moving `Parameterized.lean`.
 
-Task .2, the first rename, is the declared early proof point: it renames `DefinitionKind.kernel` to
-`machine` and `.observation` to `.fact`, adds the `umpire-goldens` writer, and regenerates every
-fingerprint, golden, and Case fixture through the owning targets. If that loop cannot converge
-without hand-editing a golden, stop and re-evaluate the "regenerate, never edit" rule before any
-other rename starts.
+**Progress: 4 of 10 done; .5 is partially landed.** The early proof point (task .2) **held** — the
+regenerate-never-edit loop converged with no hand-edited golden. The `umpire-goldens` writer was
+built and proved to reproduce every golden byte-for-byte *before* any rename, and
+`umpire-check-goldens` was proved to fail on a deliberately stale golden before being trusted. It
+writes seventeen files, not the sixteen the plan counted: `Artifact/Tests/Fixtures/ArtifactSetV2.json`
+is a seventh in that family.
+
+Landed: **.1** hardened the retired-vocabulary gate to fail closed and named the buf breaking entry,
+proved empirically by deleting a `ScopedEvidence` field and watching buf report it (rc 100) then pass
+with the entry (rc 0). **.2** renamed `DefinitionKind.{machine,fact}`, dropped five dead kinds, and
+introduced `Machine`/`Step` down to `Shared.SemanticData.Result`. **.3** moved the model core to
+`Umpire.Model` with `DraftModel`/`CheckedModel`/`Providers`/`Vocabulary`. **.4** merged the two
+authored Property records into one `Property` and the three authored scenario records into one
+`Scenario`, and moved the scenario module to `Umpire.Scenario`. **.5** has two of five bullets
+committed — `Umpire.Search` replaces the planning module end to end, and the two artifact records
+became `Plan`/`Plan.Steps` with byte-identical wire identifiers.
+
+**One finding worth carrying beyond this spec: a rename can escape the Lean tree with every gate
+still green.** `.2`'s `DefinitionKind` and `.3`'s `KnownGapKind` renames never reached
+`tools/umpire/internal/artifactv2`, which kept accepting `observation`, `kernel` and
+`capability-contract`, so any artifact carrying a capability gap decoded as invalid. No gate caught
+it; only review did. `vocabulary_test.go` now reads the enum names out of the Lean source and pins
+the Go lists against them. A vocabulary change is exactly where this class of miss repeats, so the
+Go side of every rename needs checking explicitly.
 
 Boundaries: no deletion of the offline `Umpire.Evidence` evaluator, `Umpire.Artifact.RunRecord`,
 `Umpire.Variations`, `Umpire.Exploration`, or `Umpire.Promotion` — they are renamed and moved, and

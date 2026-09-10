@@ -41,7 +41,7 @@ private def caseException : PropertyUnless := {
 
 private def guardedEventually
     (exception : Option PropertyUnless := none)
-    (limit : Limit := { value := 1, unit := .semanticTransitions }) :
+    (limit : Limit := { value := 1, unit := .steps }) :
     PropertyClause :=
   .eventuallyWithin
       (id := (id "test.property.guarded-temporal.eventually"))
@@ -61,7 +61,7 @@ private def guardedQuiescent
       (exception := exception)
       (trigger := (pattern .observation cancelRequested))
       (forbidden := (pattern .observation cancelDelivered))
-      (limit := { value := 1, unit := .semanticTransitions })
+      (limit := { value := 1, unit := .steps })
 
 private def declaration
     (clauses : List PropertyClause := [guardedEventually]) : Property := {
@@ -91,7 +91,7 @@ private def caseTemporalGroup
       temporalClauses := [.eventuallyWithin clauseId source
         (pattern .observation cancelRequested)
         (pattern .observation cancelDelivered)
-        { value := 1, unit := .semanticTransitions }]
+        { value := 1, unit := .steps }]
     }]
   }
 
@@ -156,7 +156,7 @@ private def satisfied?
   some (true, true, true)
 
 private def changedBoundDeclaration :=
-  declaration [guardedEventually (limit := { value := 2, unit := .semanticTransitions })]
+  declaration [guardedEventually (limit := { value := 2, unit := .steps })]
 
 private def changedTriggerDeclaration :=
   declaration [.eventuallyWithin
@@ -166,7 +166,7 @@ private def changedTriggerDeclaration :=
       (exception := none)
       (trigger := (pattern .observation cancelDelivered))
       (response := (pattern .observation cancelRequested))
-      (limit := { value := 1, unit := .semanticTransitions })]
+      (limit := { value := 1, unit := .steps })]
 
 private def changedExceptionDeclaration :=
   declaration [guardedEventually (some temporalException)]
@@ -195,7 +195,7 @@ private def changedClauseSourceDeclaration :=
       (exception := none)
       (trigger := (pattern .observation cancelRequested))
       (response := (pattern .observation cancelDelivered))
-      (limit := { value := 1, unit := .semanticTransitions })]
+      (limit := { value := 1, unit := .steps })]
 
 #guard [
     changedSourceDeclaration,
@@ -213,7 +213,7 @@ private def changedClauseSourceDeclaration :=
 
 /- A zero bound preserves its unit and excludes a response on the following transition. -/
 private def zeroBoundDeclaration :=
-  declaration [guardedEventually (limit := { value := 0, unit := .semanticTransitions })]
+  declaration [guardedEventually (limit := { value := 0, unit := .steps })]
 
 private def zeroBoundResult : Option (Bool × Option Limit) := do
   let property ← checked? zeroBoundDeclaration
@@ -221,7 +221,7 @@ private def zeroBoundResult : Option (Bool × Option Limit) := do
   let clause ← evaluation.clauses.head?
   pure (evaluation.satisfied, clause.evaluatedLimit)
 
-#guard zeroBoundResult == some (false, some { value := 0, unit := .semanticTransitions })
+#guard zeroBoundResult == some (false, some { value := 0, unit := .steps })
 
 private def twoTriggerTrace : ModelTrace ModelValue ModelValue ModelValue ModelValue := {
   initialState := value pendingCount "0"
@@ -312,7 +312,7 @@ private def overlappingTemporalCases :=
             (id "test.property.guarded-temporal.case.passing.eventually") source
             (pattern .observation cancelRequested)
             (pattern .observation cancelDelivered)
-            { value := 1, unit := .semanticTransitions }]
+            { value := 1, unit := .steps }]
         },
         {
           id := id "test.property.guarded-temporal.case.failing"
@@ -323,7 +323,7 @@ private def overlappingTemporalCases :=
             (id "test.property.guarded-temporal.case.failing.quiescent") source
             (pattern .observation cancelRequested)
             (pattern .observation cancelDelivered)
-            { value := 1, unit := .semanticTransitions }]
+            { value := 1, unit := .steps }]
         }
       ]
     }
@@ -358,7 +358,7 @@ private def unknownThroughNegation :=
       (exception := none)
       (trigger := (pattern .observation cancelRequested))
       (response := (pattern .observation cancelDelivered))
-      (limit := { value := 1, unit := .semanticTransitions })]
+      (limit := { value := 1, unit := .steps })]
 
 private def evaluationError? : Option (PropertyErrorKind × Option SourceLocation) := do
   let property ← checked? unknownThroughNegation
@@ -377,7 +377,7 @@ private def invalidFutureGuard :=
       (exception := none)
       (trigger := (pattern .observation cancelRequested))
       (response := (pattern .observation cancelDelivered))
-      (limit := { value := 1, unit := .semanticTransitions })]
+      (limit := { value := 1, unit := .steps })]
 
 /- Initial guards cannot inspect the result whose later response they govern. -/
 #guard (match Property.check context (invalidFutureGuard) with
@@ -396,7 +396,7 @@ def compoundTemporalResponse : PropertyClause :=
       (exception := none)
       (trigger := (pattern .observation cancelRequested))
       (response := (.all [guardAtom .resultingState pendingCount (.natural 1)]))
-      (limit := { value := 1, unit := .semanticTransitions })
+      (limit := { value := 1, unit := .steps })
 
 private def failedTemporalIdentity : Option PropertyClauseIdentity := do
   let property ← checked? (declaration [guardedEventually (some temporalException)])
@@ -429,7 +429,7 @@ private def failedCaseTemporalIdentity : Option PropertyClauseIdentity := do
     some (id "test.property.guarded-temporal.case"),
     id "test.property.guarded-temporal.case.eventually",
     source,
-    some { value := 1, unit := .semanticTransitions },
+    some { value := 1, unit := .steps },
     [parentException.id, caseException.id])
 
 example (property : CheckedProperty) (input : CheckedPropertyEvaluationInput property) :
@@ -458,7 +458,7 @@ private def bareTemporal
       (exception := exception)
       (trigger := pattern .observation cancelRequested)
       (response := pattern .observation cancelDelivered)
-      (limit := { value := 1, unit := .semanticTransitions })
+      (limit := { value := 1, unit := .steps })
 
 #guard clauseErrorKind (bareTemporal) == none
 #guard clauseErrorKind (bareTemporal (guard := some requestGuard)) == none

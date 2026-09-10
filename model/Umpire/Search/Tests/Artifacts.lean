@@ -281,7 +281,7 @@ private def drivePlanContentMutations (plan : Plan.Steps) : List Plan.Steps := [
   { plan with requestedFaults := [mutationValue] },
   { plan with capabilityRequirementDefinitionIds := [mutationId] },
   { plan with expandedLimits := {
-      plan.expandedLimits with search := { value := 11, unit := .candidateEvaluations }
+      plan.expandedLimits with search := { value := 11, unit := .search }
     } },
   { plan with checkpoints := [] },
   { plan with selectionReason := .behaviorSelection },

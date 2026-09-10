@@ -44,10 +44,10 @@ inference. -/
 def QueryLimits.bounded
     (transitionBound selectedActionBound candidateEvaluationBound : Nat) : QueryLimits := {
   behavior := {
-    transitions := { value := transitionBound, unit := .semanticTransitions }
-    selectedActions := { value := selectedActionBound, unit := .selectedActions }
+    transitions := { value := transitionBound, unit := .steps }
+    selectedActions := { value := selectedActionBound, unit := .actions }
   }
-  search := { value := candidateEvaluationBound, unit := .candidateEvaluations }
+  search := { value := candidateEvaluationBound, unit := .search }
 }
 
 /-- Deterministic planning parameters. The seed is part of Query identity for every strategy, but
@@ -431,13 +431,13 @@ private def validateLimits (declaration : QueryDeclaration) : Except QueryError 
     throw (queryError .invalidLimit declaration "behavior.selectedActions=0")
   if limits.search.value == 0 then
     throw (queryError .invalidLimit declaration "search.candidateEvaluations=0")
-  if limits.behavior.transitions.unit != .semanticTransitions then
+  if limits.behavior.transitions.unit != .steps then
     throw (queryError .unitMismatch declaration
       ("behavior.transitions:" ++ limits.behavior.transitions.unit.name))
-  if limits.behavior.selectedActions.unit != .selectedActions then
+  if limits.behavior.selectedActions.unit != .actions then
     throw (queryError .unitMismatch declaration
       ("behavior.selectedActions:" ++ limits.behavior.selectedActions.unit.name))
-  if limits.search.unit != .candidateEvaluations then
+  if limits.search.unit != .search then
     throw (queryError .unitMismatch declaration
       ("search:" ++ limits.search.unit.name))
 
