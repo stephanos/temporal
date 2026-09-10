@@ -110,4 +110,9 @@ Method notes for the next session, all verified here:
 - Tests: cd model && lake build Umpire UmpireTests Temporal TemporalModelTests TestpilotTests Testpilot TemporalExperimentalTests +Umpire.PromotionTests (pass, 402 jobs); make lint-model (169 diagnostics, all generated Temporal/API; equals baseline); make umpire-check-goldens / -regression-views / -case-runtime-conformance / -semantic-inventory / -retired-vocabulary / -lean-api / -testpilot-protocol / -testpilot-authoring (pass); make umpire-check-live-tests (pass); TMPDIR=<physical> CGO_ENABLED=0 go test -count=1 -tags test_dep ./tools/umpire/... ./common/testing/testpilot/... ./tests/testcore/testpilot/... (pass); make lint-code GOLANGCI_LINT_FIX=false (128 findings, equals baseline); CC=/usr/bin/cc go vet -tags test_dep ./... (15 diagnostics, equals baseline)
 - PRs:
 
+Added by the spec completion review of 2026-09-10 (P3, on landed work): rename the Go outer
+artifact type `artifactv2.Experiment` (and `DecodeExperiment`) to `Plan` when this task resumes,
+keeping every JSON tag untouched. The retired `ExperimentSpec` is gone so the gate passes, but the
+Go facade currently carries a third spelling for the concept.
+
 stage: plan-sync - skipped(config: planSync.enabled != true)
