@@ -61,10 +61,10 @@ model/
 │   └── LeanSourceInventory.lean  # reusable canonical source/metadata reconciliation
 │
 ├── Umpire/
-│   ├── Core, Property, Behavior, Query, Planning, ...
-│   ├── Observation and Implementation Link
-│   └── Verify/
-│       └── Veil/                 # generic optional Veil machinery
+│   ├── Model, Property, Scenario, Query, Search, ...
+│   ├── Evidence, Case and Implementation Link
+│   └── Verify/                   # planned
+│       └── Veil/                 # planned: generic optional Veil machinery
 │
 ├── Temporal/
 │   ├── API/                      # generated structure
@@ -72,13 +72,16 @@ model/
 │   ├── Feature/                  # canonical product meaning
 │   ├── System/                   # canonical implementation meaning
 │   ├── Tool/                     # ordinary developer tools
-│   └── Verify/                   # expert-only Temporal checker adapters
+│   └── Verify/                   # planned: expert-only Temporal checker adapters
 │       └── <Family>/...
 │
 ├── Umpire.lean                   # reusable public facade
-├── Temporal.lean                 # ordinary facade; excludes Temporal.Verify
-└── TemporalVerify.lean           # opt-in expert verification aggregate
+├── Temporal.lean                 # ordinary facade; excludes optional verification
+└── TemporalVerify.lean           # planned: opt-in expert verification aggregate
 ```
+
+Entries marked planned do not exist in the tree. They are the shape optional verification takes when
+fn-24 and fn-25 deliver it.
 
 The exact internal filenames may evolve. Normative ownership of import boundaries remains in
 MOD-01, MOD-03, MOD-05, MOD-09, MOD-10, and MOD-11. The import-graph phase of `make lint-model` is
@@ -95,8 +98,9 @@ No optional verification module exists in the tree, so `ModelLint` reserves noth
 enforces no verification isolation. MOD-05's opt-in consumer set, and the isolation that holds it,
 return with the modules under fn-24 and fn-25.
 
-Physical placement under `Temporal/Verify/` keeps expert bindings discoverable beside their owning
-Temporal families. Import isolation, not physical distance, protects the ordinary authoring path.
+Once it exists, physical placement under `Temporal/Verify/` will keep expert bindings discoverable
+beside their owning Temporal families. Import isolation, not physical distance, protects the
+ordinary authoring path.
 
 ## 4. Module responsibilities
 
@@ -365,8 +369,9 @@ The verification path MUST satisfy these rules:
   binaries, or the normal Temporal model build; and
 - Umpire does not generate Veil source or introduce a checker-neutral semantic IR.
 
-`TemporalVerify.lean` is the opt-in aggregate for these adapters. A focused verification command or
-test target may build it without changing the ordinary Temporal developer workflow.
+`TemporalVerify.lean` is the planned opt-in aggregate for these adapters. Once fn-24 delivers it, a
+focused verification command or test target may build it without changing the ordinary Temporal
+developer workflow.
 
 ## 10. Failure model and diagnostics
 
