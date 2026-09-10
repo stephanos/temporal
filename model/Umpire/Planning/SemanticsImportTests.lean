@@ -1,6 +1,6 @@
-import Umpire.Property.Evaluation
+import Umpire.Property.Evaluate
 import Umpire.Property.Scoped
-import Umpire.Behavior.Language
+import Umpire.Scenario.Check
 import Umpire.Query.Language
 import Umpire.Planning.CaseAnalysis
 
@@ -9,7 +9,7 @@ import Umpire.Planning.CaseAnalysis
 #check Umpire.CheckedModel
 #check Umpire.FinitePlanningCapability
 #check Umpire.CheckedProperty
-#check Umpire.CheckedBehavior
+#check Umpire.CheckedScenario
 #check Umpire.CheckedQuery
 #check Umpire.PlanningMetadata
 #check Umpire.evaluatePropertyEndpoint

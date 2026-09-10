@@ -240,7 +240,7 @@ def property : CheckedProperty := {
   behaviorFingerprint := behaviorFingerprintOf "property/v1"
 }
 
-def behavior : CheckedBehavior := {
+def behavior : CheckedScenario := {
   id := id "planner.behavior.fixture"
   source
   version := 1
@@ -282,7 +282,7 @@ def checkedQuery
     (budget : Nat := 10)
     (seed : Nat := 17)
     (withCompleteness : Bool := true)
-    (selectedBehavior : CheckedBehavior := behavior) : CheckedQuery (fun _ => True) := {
+    (selectedBehavior : CheckedScenario := behavior) : CheckedQuery (fun _ => True) := {
   id := id "planner.query.fixture"
   source
   version := 1
@@ -346,7 +346,7 @@ def run
     (budget : Nat := 10)
     (seed : Nat := 17)
     (withCompleteness : Bool := true)
-    (selectedBehavior : CheckedBehavior := behavior) : Except KnownGapError PlannerRun :=
+    (selectedBehavior : CheckedScenario := behavior) : Except KnownGapError PlannerRun :=
   plan (checkedQuery width form strategy budget seed withCompleteness selectedBehavior)
     (incrementalKernel width)
 

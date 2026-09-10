@@ -1,18 +1,18 @@
-import Umpire.Behavior.Tests.Fixtures
+import Umpire.Scenario.Tests.Fixtures
 
 /-! Constraint-refinement checks over the bounded Behavior trace universe. -/
 
-namespace Umpire.BehaviorTests
+namespace Umpire.ScenarioTests
 
 open Umpire
 
-def broadDeclaration : BehaviorDeclaration := {
+def broadDeclaration : Scenario := {
   id := id "test.behavior.broad"
   source
   roles := [operationRole]
 }
 
-def candidates : List BehaviorTrace := [
+def candidates : List Scenario.Trace := [
   acceptedTrace,
   rejectedTrace,
   interleavedTrace,
@@ -22,21 +22,21 @@ def candidates : List BehaviorTrace := [
 ]
 
 def declarationNarrows
-    (base narrowed : BehaviorDeclaration) : Bool :=
+    (base narrowed : Scenario) : Bool :=
   candidates.all fun candidate =>
     !checkedAdmits narrowed candidate || checkedAdmits base candidate
 
-def requiredDeclaration : BehaviorDeclaration := {
+def requiredDeclaration : Scenario := {
   broadDeclaration with requiredOccurrences := [cancelOccurrence, closeOccurrence]
 }
 
-def narrowedDeclarations : List (BehaviorDeclaration × BehaviorDeclaration) := [
+def narrowedDeclarations : List (Scenario × Scenario) := [
   (broadDeclaration, { broadDeclaration with setup := [setupEqualsA] }),
   (broadDeclaration, { broadDeclaration with allowedActions := [requestCancel, callerClose] }),
   (broadDeclaration, requiredDeclaration),
   (broadDeclaration, { broadDeclaration with forbiddenActions := [tick] }),
   (broadDeclaration, {
-    broadDeclaration with occurrenceBounds := [OccurrenceBound.atMost requestCancel 1]
+    broadDeclaration with occurrenceBounds := [Scenario.Count.atMost requestCancel 1]
   }),
   (requiredDeclaration, {
     requiredDeclaration with
@@ -54,4 +54,4 @@ def narrowedDeclarations : List (BehaviorDeclaration × BehaviorDeclaration) := 
 example : narrowedDeclarations.all fun pair => declarationNarrows pair.1 pair.2 := by
   native_decide
 
-end Umpire.BehaviorTests
+end Umpire.ScenarioTests

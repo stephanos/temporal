@@ -1,4 +1,4 @@
-import Umpire.Property.Trace
+import Umpire.Property.Check
 
 /-! Executable and denotational semantics for checked Properties over admitted trace views. -/
 
@@ -530,7 +530,7 @@ structure CheckedFieldPredicate (context : PropertyPredicateContext) where
 /-- Check closed operands against the admitted field bindings and the ordinary Property checker.
 Each operand names its own binding, so no single generated authority is imposed on the context. -/
 def CheckedFieldPredicate.check (context : PropertyCheckContext)
-    (declaration : PropertyDeclaration) (kind : PropertyPredicateContext)
+    (declaration : Property) (kind : PropertyPredicateContext)
     (expression : PropertyPredicate) : Except PropertyError (CheckedFieldPredicate kind) := do
   pure ⟨← checkPropertyPredicate context declaration kind expression⟩
 
@@ -699,8 +699,8 @@ structure CheckedFieldProperty where
 
 /-- Check an ordinary closed Property declaration whose clauses compare admitted field bindings. -/
 def CheckedFieldProperty.check (context : PropertyCheckContext)
-    (declaration : PropertyDeclaration) : Except PropertyError CheckedFieldProperty := do
-  pure ⟨← checkProperty context (.portable declaration)⟩
+    (declaration : Property) : Except PropertyError CheckedFieldProperty := do
+  pure ⟨← Property.check context (declaration)⟩
 
 /-- Validate aligned checked evidence without exposing raw model payloads to evaluation. -/
 def CheckedFieldProperty.checkInput (checked : CheckedFieldProperty)

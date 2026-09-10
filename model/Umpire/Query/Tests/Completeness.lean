@@ -20,7 +20,7 @@ example : [
     .kernelRelation
   ].all (fun missing =>
     errorKindOf (checkQuery (incompleteContext missing)
-      (declaration (.verify checkedProperty) exhaustivePolicy)) ==
+      (declaration (.verify Property.checked) exhaustivePolicy)) ==
         some .missingFiniteCompleteness) := by
   native_decide
 
@@ -29,24 +29,24 @@ def noFiniteDomains : QueryCheckContext (fun _ => True) :=
 
 /-! Planning availability is additive: non-exhaustive semantic queries still consume the target. -/
 example : (checkQuery noFiniteDomains
-    (declaration (.witness checkedProperty) searchPolicy)).isOk := by
+    (declaration (.witness Property.checked) searchPolicy)).isOk := by
   native_decide
 
 example : errorKindOf (checkQuery noFiniteDomains
-    (declaration (.verify checkedProperty) exhaustivePolicy)) =
+    (declaration (.verify Property.checked) exhaustivePolicy)) =
       some .missingFiniteCompleteness := by
   native_decide
 
 /-! The checked planner input retains the exact certified domains, not only their digests. -/
 example : ((checkQuery exhaustiveContext
-    (declaration (.verify checkedProperty) exhaustivePolicy)).toOption.bind fun query =>
+    (declaration (.verify Property.checked) exhaustivePolicy)).toOption.bind fun query =>
       query.completeness.map fun evidence =>
         (evidence.roleAssignments.length, evidence.actions.length)) = some (1, 1) := by
   native_decide
 
 /-! Query copies Target's stable compatibility tokens and finite domains verbatim. -/
 example : ((checkQuery exhaustiveContext
-    (declaration (.verify checkedProperty) exhaustivePolicy)).toOption.bind fun query =>
+    (declaration (.verify Property.checked) exhaustivePolicy)).toOption.bind fun query =>
       query.completeness.map fun evidence =>
         (evidence.roleAssignments, evidence.actions,
           evidence.roleDomainFingerprint.render, evidence.actionDomainFingerprint.render)) =
@@ -82,15 +82,15 @@ def duplicateActionContext : QueryCheckContext (fun _ => True) :=
 
 /-- Duplicate finite actions reject before Planning can enumerate a different candidate domain. -/
 example : errorKindOf (checkQuery duplicateActionContext
-    (declaration (.verify checkedProperty) exhaustivePolicy)) = some .duplicateFiniteDomain := by
+    (declaration (.verify Property.checked) exhaustivePolicy)) = some .duplicateFiniteDomain := by
   native_decide
 
 /-! Completeness follows the exhaustive strategy, not a particular query form. -/
 example : [
-    QueryForm.verify checkedProperty,
-    .witness checkedProperty,
-    .counterexample checkedProperty,
-    .select [checkedProperty]
+    QueryForm.verify Property.checked,
+    .witness Property.checked,
+    .counterexample Property.checked,
+    .select [Property.checked]
   ].all (fun form =>
     errorKindOf (checkQuery noFiniteDomains (declaration form exhaustivePolicy)) ==
       some .missingFiniteCompleteness) := by

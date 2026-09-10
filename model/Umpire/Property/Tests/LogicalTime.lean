@@ -6,7 +6,7 @@ namespace Umpire.PropertyTests
 
 open Umpire
 
-def logicalEventuallyProperty : PropertyDeclaration := {
+def logicalEventuallyProperty : Property := {
   portableProperty with
   id := id "test.property.logical-eventually"
   logicalTimeSource := some logicalTime
@@ -18,7 +18,7 @@ def logicalEventuallyProperty : PropertyDeclaration := {
   ]
 }
 
-def logicalQuiescentProperty : PropertyDeclaration := {
+def logicalQuiescentProperty : Property := {
   portableProperty with
   id := id "test.property.logical-quiescent"
   logicalTimeSource := some logicalTime

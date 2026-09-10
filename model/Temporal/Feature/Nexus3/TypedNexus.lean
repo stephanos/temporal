@@ -4,7 +4,9 @@ import Temporal.Testpilot.CaseSupport
 import Umpire.Case.Compiler
 import Umpire.Case.Scoped
 import Umpire.Case.Observed
-import Umpire.Property
+import Umpire.Property.Elab
+import Umpire.Property.Evaluate
+import Umpire.Property.Scoped
 import Umpire.Property.Scoped
 import Umpire.Observation.Projection.Coverage
 import Umpire.Model.Table
@@ -444,7 +446,7 @@ def completionReferencesSchedule : PropertyPredicate := .all [
     (.field completedScheduledEventIdPath source) source]
 
 /-- The authored same-step Property. Its one clause applies exactly to the await step. -/
-def fieldDeclaration : PropertyDeclaration := {
+def fieldDeclaration : Property := {
   id := fieldPropertyId
   source
   version := 2
@@ -495,7 +497,7 @@ def boundedCompletion : PropertyScopedClause := {
   correlation := some declaredOperationIdentity
 }
 
-def linkDeclaration : PropertyDeclaration := {
+def linkDeclaration : Property := {
   id := linkPropertyId
   source
   requires := [capabilityId]
@@ -638,7 +640,7 @@ def checked : Except AdmissionError Model := do
   let context := { PropertyCheckContext.ofTarget target with fieldBindings }
   let fieldProperty ← (CheckedFieldProperty.check context fieldDeclaration).mapError
     AdmissionError.property
-  let link ← (checkProperty context (.portable linkDeclaration)).mapError AdmissionError.property
+  let link ← (Property.check context (linkDeclaration)).mapError AdmissionError.property
   let compiled ← (Property.Scoped.compile target link [runFieldId] operationFieldId
     runLimits).mapError AdmissionError.scoped
   let declaration ← projectionDeclaration

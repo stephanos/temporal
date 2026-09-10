@@ -14,19 +14,19 @@ Read and build these files in order:
    wall-clock claim.
 3. `Authoring.lean` shows the default typed constructors for the baseline and guarded race.
    `Tests.lean` checks semantic admission, equivalence, negative cases, coverage, and conflicts.
-   `AuthoringTests.lean` compares those constructors with the isolated `property%`, `behavior%`,
+   `AuthoringTests.lean` compares those constructors with the isolated `property%`, `scenario%`,
    and `query%` specimens. Both test roots are imported by `TemporalModelTests`.
 4. `EVIDENCE.md` maps every prototype requirement to executable declarations and records the
    exact residual differences from the deferred ordinary-authoring specification.
 
-The authoring sequence is `FiniteTable.validate` / `checkModel`, then `PropertySpec.check`,
-`ExactSequenceSpec.check`, and `QuerySpec.check`, followed by planning with
+The authoring sequence is `FiniteTable.validate` / `checkModel`, then `Property.check`,
+`Scenario.check`, and `QuerySpec.check`, followed by planning with
 `IncrementalPlannerKernel.ofCheckedQuery`. Raw declarations remain available for negative tests.
 A checked value exists only on the successful checker branch; the frontend alternatives do not
 create kernel-checked constants automatically.
 
 `Authoring.lean` keeps ordinary typed constructors as the default Nexus2 authoring surface. The
-compiled `property%`, `behavior%`, and `query%` alternatives remain in `AuthoringTests.lean` for
+compiled `property%`, `scenario%`, and `query%` alternatives remain in `AuthoringTests.lean` for
 comparison. All three lower to the existing Property, Behavior, and Query checkers; they add source
 occurrence capture and do not add an evaluator or migrate any production declaration.
 
@@ -86,7 +86,7 @@ to the enumerated finite space and declared Limits; `limit-reached` is inconclus
 
 ## Admission trust experiment
 
-`PropertySpec.checked`, `ExactSequenceSpec.checked`, and `QuerySpec.checked` expose explicit-proof
+`Property.checked`, `Scenario.checked`, and `QuerySpec.checked` expose explicit-proof
 seams. The prototype attempted kernel success proofs through `rfl`, `decide`, and `decide +kernel`.
 Property still fails for both the full baseline and a minimal closed declaration, including an
 owner-local probe where private helpers were visible. The actual guarded Behavior and the explicit
@@ -95,7 +95,7 @@ No attempt reported a heartbeat or recursion-depth limit, so the deeper reductio
 unidentified.
 
 The practical frontend therefore returns and recomputes the existing successful checker branch. It
-does not turn elaborator evaluation into a `CheckedProperty`, `CheckedBehavior`, or `CheckedQuery`
+does not turn elaborator evaluation into a `CheckedProperty`, `CheckedScenario`, or `CheckedQuery`
 constant. The successful-branch Query input is assembled only from existing checked constructor
 results. No new native extraction, `model` default, `sorry`, `admit`, or custom axiom is used.
 `#print axioms` audits the constructor families, each check and explicit-proof seam, the guarded and
@@ -159,7 +159,7 @@ and `constructorOneQuery`/`frontendOneQuery`:
 | Recovery | Six incomplete constructor/frontend names first produced six unknown-identifier errors | Replacing all six names in document version 2 cleared every error |
 
 A separate owner-API completion probe returned `declaration`, `check`, `checked`, and `error?` for
-both `ExactSequenceSpec.` and `QuerySpec.`. Compiler recovery was also observed in the fixture
+both `Scenario.` and `QuerySpec.`. Compiler recovery was also observed in the fixture
 module: exact negative declarations did not prevent later positive declarations and axiom audits
 from elaborating. No VS Code, Neovim, or Lean editor client was installed, so rendered client UI,
 completion ranking, navigation gestures, and interactive latency remain unmeasured. Human

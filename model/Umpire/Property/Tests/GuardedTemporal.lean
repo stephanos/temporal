@@ -58,7 +58,7 @@ private def guardedQuiescent
     (.exact { value := 1, unit := .semanticTransitions })
 
 private def declaration
-    (clauses : List PropertyClause := [guardedEventually]) : PropertyDeclaration := {
+    (clauses : List PropertyClause := [guardedEventually]) : Property := {
   portableProperty with
   id := id "test.property.guarded-temporal"
   version := 2
@@ -113,15 +113,15 @@ private def trace
 private def trigger := value cancelRequested "request-1"
 private def response := value cancelDelivered "request-1"
 
-private def checked? (authored : PropertyDeclaration := declaration) : Option CheckedProperty :=
-  (checkProperty context (.portable authored)).toOption
+private def checked? (authored : Property := declaration) : Option CheckedProperty :=
+  (Property.check context (authored)).toOption
 
 private def fingerprintOf
-    (authored : PropertyDeclaration := declaration) : Option BehaviorFingerprint :=
+    (authored : Property := declaration) : Option BehaviorFingerprint :=
   (checked? authored).map CheckedProperty.behaviorFingerprint
 
 private def satisfied?
-    (authored : PropertyDeclaration)
+    (authored : Property)
     (modelTrace : ModelTrace ModelValue ModelValue ModelValue ModelValue) : Option Bool := do
   let property ← checked? authored
   let result ← (evaluatePropertyOnTrace property modelTrace).toOption
@@ -173,11 +173,11 @@ private def changedExceptionDeclaration :=
     declaration [guardedQuiescent]
   ].all fun authored => fingerprintOf declaration != fingerprintOf authored
 
-private def changedSourceDeclaration : PropertyDeclaration := {
+private def changedSourceDeclaration : Property := {
   declaration with source := { source with line := source.line + 1 }
 }
 
-private def changedDocumentationDeclaration : PropertyDeclaration := {
+private def changedDocumentationDeclaration : Property := {
   declaration with documentation := "Updated guarded temporal documentation."
 }
 
@@ -256,7 +256,7 @@ private def wrongNamedUnit :=
     .named cancelBudget.id .semanticTransitions)]
 
 /- A named bound cannot be silently reinterpreted in another coordinate unit. -/
-#guard (match checkProperty context (.portable wrongNamedUnit) with
+#guard (match Property.check context (wrongNamedUnit) with
   | .error error => some (error.kind, error.sourceLocation)
   | .ok _ => none) == some (.unitMismatch, some source)
 
@@ -392,7 +392,7 @@ private def invalidFutureGuard :=
     (.exact { value := 1, unit := .semanticTransitions })]
 
 /- Initial guards cannot inspect the result whose later response they govern. -/
-#guard (match checkProperty context (.portable invalidFutureGuard) with
+#guard (match Property.check context (invalidFutureGuard) with
   | .error error => some (error.kind, error.sourceLocation)
   | .ok _ => none) == some (.invalidPredicateContext, some source)
 

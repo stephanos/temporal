@@ -1,7 +1,7 @@
 import Umpire.Property.Scoped
 import Umpire.Observation.Evaluation.Scoped
 import Umpire.Model.Table
-import Umpire.Property.Authoring
+import Umpire.Property.Elab
 import Umpire.Operation.Action
 import Umpire.Value.Field
 import Umpire.Shared.Test
@@ -179,7 +179,7 @@ private def clause (bound : Nat) (endpoint : PropertyScopedEndpoint := .runtimeP
   correlation := requirement
 }
 
-private def declaration (temporal : PropertyScopedClause) : PropertyDeclaration := {
+private def declaration (temporal : PropertyScopedClause) : Property := {
   id := id "test.property.fields"
   source
   requires := [id "test.capability"]
@@ -215,7 +215,7 @@ private def runChunks (temporal : PropertyScopedClause)
   match targetResult with
   | .error _ => throw Scoped.Error.invalidInitialState
   | .ok target => do
-      let property ← (checkProperty (context target) (.portable (declaration temporal))).mapError
+      let property ← (Property.check (context target) ((declaration temporal))).mapError
         Scoped.Error.property
       let compiled ← Scoped.compile target property [id "test.run"] (id "test.operation") budget
       let initial ← compiled.start () state scope
@@ -308,8 +308,8 @@ private def strayCapture : PropertyPredicate :=
 private def rejectionPreserves (rejected : List (Scoped.Transition × List PropertyFieldEvidence))
     (budget : Scoped.Limits := runLimits) : Option (Bool × List PropertyEndpointAnswer) := do
   let target ← targetResult.toOption
-  let property ← (checkProperty (context target)
-    (.portable (declaration (clause 0 .deliberatelyClosed)))).toOption
+  let property ← (Property.check (context target)
+    ((declaration (clause 0 .deliberatelyClosed)))).toOption
   let compiled ← (Scoped.compile target property [id "test.run"] (id "test.operation")
     budget).toOption
   let initial ← (compiled.start () state scope).toOption
@@ -333,9 +333,9 @@ private def interleaved : List (Scoped.Transition × List PropertyFieldEvidence)
 -- declarations do not acquire a new fingerprint from the default-empty extension.
 #guard (do
   let target ← targetResult.toOption
-  let bare ← (checkProperty (context target)
-    (.portable (declaration (clause 1 (captures := []) (requirement := none))))).toOption
-  let keyed ← (checkProperty (context target) (.portable (declaration (clause 1)))).toOption
+  let bare ← (Property.check (context target)
+    ((declaration (clause 1 (captures := []) (requirement := none))))).toOption
+  let keyed ← (Property.check (context target) ((declaration (clause 1)))).toOption
   pure ((bare.canonicalMetadata.splitOn "\"captures\"").length == 1 &&
     (bare.canonicalMetadata.splitOn "\"correlation\"").length == 1 &&
     (keyed.canonicalMetadata.splitOn "\"captures\"").length == 2 &&
@@ -360,9 +360,9 @@ private def plan (target : TestTarget) := Observation.Projection.check target {
 #guard (do
   let target ← targetResult.toOption
   let projection ← (plan target).toOption
-  let keyed ← (checkProperty (context target) (.portable (declaration (clause 1)))).toOption
-  let bare ← (checkProperty (context target)
-    (.portable (declaration (clause 1 (captures := []) (requirement := none))))).toOption
+  let keyed ← (Property.check (context target) ((declaration (clause 1)))).toOption
+  let bare ← (Property.check (context target)
+    ((declaration (clause 1 (captures := []) (requirement := none))))).toOption
   pure ((match Observation.Scoped.compile projection keyed runLimits with
       | .error (.property (.unsupported clauseId _)) => clauseId == id "test.scoped.fields"
       | _ => false) &&

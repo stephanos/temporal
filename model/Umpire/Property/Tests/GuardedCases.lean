@@ -67,7 +67,7 @@ private def guardedGroup
 }
 
 private def guardedDeclaration
-    (group : PropertyCaseGroup := guardedGroup) : PropertyDeclaration := {
+    (group : PropertyCaseGroup := guardedGroup) : Property := {
   portableProperty with
   id := id "test.property.guarded-delivery"
   version := 2
@@ -85,10 +85,10 @@ private def requestTrace (before after : Nat) : ModelTrace ModelValue ModelValue
 }
 
 private def evaluation?
-    (declaration : PropertyDeclaration)
+    (declaration : Property)
     (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue) :
     Option PropertyEvaluation := do
-  let property ← (checkProperty context (.portable declaration)).toOption
+  let property ← (Property.check context (declaration)).toOption
   (evaluatePropertyOnTrace property trace).toOption
 
 #guard (evaluation? guardedDeclaration (requestTrace 0 1)).map
@@ -117,10 +117,10 @@ private def replacementCase : PropertyCase := {
   ]
 }
 
-private def missingReplacementDeclaration : PropertyDeclaration :=
+private def missingReplacementDeclaration : Property :=
   guardedDeclaration (guardedGroup [exceptedRequestCase])
 
-private def replacementDeclaration : PropertyDeclaration :=
+private def replacementDeclaration : Property :=
   guardedDeclaration (guardedGroup [exceptedRequestCase, replacementCase])
 
 #guard [
@@ -129,7 +129,7 @@ private def replacementDeclaration : PropertyDeclaration :=
     (evaluation? replacementDeclaration (requestTrace 1 0)).map PropertyEvaluation.satisfied
   ] == [some false, some true]
 
-private def parentExcludedDeclaration : PropertyDeclaration :=
+private def parentExcludedDeclaration : Property :=
   let group : PropertyCaseGroup := {
     guardedGroup with exception := some {
       id := id "test.property.case-group.delivery.exception.tick"
@@ -153,14 +153,14 @@ private def tickTrace : ModelTrace ModelValue ModelValue ModelValue ModelValue :
 #guard (evaluation? parentExcludedDeclaration tickTrace).map
   PropertyEvaluation.satisfied == some false
 
-private def groupOnlyDeclaration (group : PropertyCaseGroup) : PropertyDeclaration := {
+private def groupOnlyDeclaration (group : PropertyCaseGroup) : Property := {
   guardedDeclaration group with clauses := [.sameStepCases group]
 }
 
-private def falseParentDeclaration : PropertyDeclaration :=
+private def falseParentDeclaration : Property :=
   groupOnlyDeclaration { guardedGroup with guard := tickGuard }
 
-private def incompleteAllowedDeclaration : PropertyDeclaration :=
+private def incompleteAllowedDeclaration : Property :=
   groupOnlyDeclaration (guardedGroup [exceptedRequestCase] (complete := false))
 
 /- Parent and case exceptions are independently false, true exclusions are vacuous only for the
@@ -183,11 +183,11 @@ guarded group, and disabling completeness explicitly permits an unreplaced excep
       PropertyEvaluation.satisfied
   ] == [some true, some true, some true, some true, some true]
 
-private def compatibleOverlapDeclaration : PropertyDeclaration :=
+private def compatibleOverlapDeclaration : Property :=
   let duplicate := { requestCase with id := id "test.property.case.request.also" }
   guardedDeclaration (guardedGroup [requestCase, duplicate] (exclusive := false))
 
-private def exclusiveOverlapDeclaration : PropertyDeclaration :=
+private def exclusiveOverlapDeclaration : Property :=
   let duplicate := { requestCase with id := id "test.property.case.request.also" }
   guardedDeclaration (guardedGroup [requestCase, duplicate])
 
@@ -228,9 +228,9 @@ private def incompleteTrace : ModelTrace ModelValue ModelValue ModelValue ModelV
     }
 
 private def evaluationErrorKind?
-    (declaration : PropertyDeclaration)
+    (declaration : Property)
     (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue) : Option PropertyErrorKind := do
-  let property ← (checkProperty context (.portable declaration)).toOption
+  let property ← (Property.check context (declaration)).toOption
   match evaluatePropertyOnTrace property trace with
   | .ok _ => none
   | .error error => some error.kind
@@ -240,7 +240,7 @@ private def evaluationErrorKind?
 /- Known absence is an ordinary false expectation rather than an unknown-input diagnostic. -/
 #guard (evaluation? guardedDeclaration tickTrace).map PropertyEvaluation.satisfied == some false
 
-private def guardedTemporalDeclaration : PropertyDeclaration := {
+private def guardedTemporalDeclaration : Property := {
   guardedDeclaration with
   id := id "test.property.guarded-temporal"
   clauses := [
@@ -252,7 +252,7 @@ private def guardedTemporalDeclaration : PropertyDeclaration := {
   ]
 }
 
-private def guardedQuiescentDeclaration : PropertyDeclaration := {
+private def guardedQuiescentDeclaration : Property := {
   guardedTemporalDeclaration with
   id := id "test.property.guarded-quiescent"
   clauses := [
@@ -265,33 +265,33 @@ private def guardedQuiescentDeclaration : PropertyDeclaration := {
 }
 
 #guard [guardedTemporalDeclaration, guardedQuiescentDeclaration].map (fun declaration =>
-    (checkProperty context (.portable declaration)).toOption.map fun property =>
+    (Property.check context (declaration)).toOption.map fun property =>
       property.clauses.map ResolvedPropertyClause.id) == [
     some [id "test.property.guarded-temporal.clause"],
     some [id "test.property.guarded-quiescent.clause"]
   ]
 
-private def reorderedDeclaration : PropertyDeclaration :=
+private def reorderedDeclaration : Property :=
   guardedDeclaration (guardedGroup [resolutionCase, requestCase])
 
-private def reorderedClausesDeclaration : PropertyDeclaration := {
+private def reorderedClausesDeclaration : Property := {
   guardedDeclaration with clauses := guardedDeclaration.clauses.reverse
 }
 
-private def changedGuardDeclaration : PropertyDeclaration :=
+private def changedGuardDeclaration : Property :=
   guardedDeclaration { guardedGroup with guard := requestGuard }
 
-private def changedCaseGuardDeclaration : PropertyDeclaration :=
+private def changedCaseGuardDeclaration : Property :=
   guardedDeclaration (guardedGroup [{ requestCase with guard := pendingOne }, resolutionCase])
 
-private def changedExceptionDeclaration : PropertyDeclaration :=
+private def changedExceptionDeclaration : Property :=
   guardedDeclaration (guardedGroup (exception := some {
     id := id "test.property.case-group.delivery.exception"
     source
     condition := pendingOne
   }))
 
-private def changedExpectationDeclaration : PropertyDeclaration :=
+private def changedExpectationDeclaration : Property :=
   let changedRequest := { requestCase with clauses := [
     expectation "test.property.case.request.state" .resultingState pendingCount
       (.equals (.natural 2)),
@@ -300,21 +300,21 @@ private def changedExpectationDeclaration : PropertyDeclaration :=
   ] }
   guardedDeclaration (guardedGroup [changedRequest, resolutionCase])
 
-private def changedCompleteDeclaration : PropertyDeclaration :=
+private def changedCompleteDeclaration : Property :=
   guardedDeclaration (guardedGroup (complete := false))
 
-private def changedExclusiveDeclaration : PropertyDeclaration :=
+private def changedExclusiveDeclaration : Property :=
   guardedDeclaration (guardedGroup (exclusive := false))
 
-private def changedGuardedSourceDeclaration : PropertyDeclaration := {
+private def changedGuardedSourceDeclaration : Property := {
   guardedDeclaration with source := { source with line := source.line + 1 }
 }
 
-private def changedGuardedDocumentationDeclaration : PropertyDeclaration := {
+private def changedGuardedDocumentationDeclaration : Property := {
   guardedDeclaration with documentation := "Updated guarded Property documentation."
 }
 
-private def changedNestedSourceDeclaration : PropertyDeclaration :=
+private def changedNestedSourceDeclaration : Property :=
   let nestedSource := { source with line := source.line + 1 }
   let changedRequest := {
     requestCase with
@@ -325,8 +325,8 @@ private def changedNestedSourceDeclaration : PropertyDeclaration :=
     guardedGroup [changedRequest, resolutionCase] with source := nestedSource
   }
 
-private def fingerprintOf (declaration : PropertyDeclaration) : Option BehaviorFingerprint :=
-  (checkProperty context (.portable declaration)).toOption.map CheckedProperty.behaviorFingerprint
+private def fingerprintOf (declaration : Property) : Option BehaviorFingerprint :=
+  (Property.check context (declaration)).toOption.map CheckedProperty.behaviorFingerprint
 
 #guard [reorderedDeclaration, reorderedClausesDeclaration].all fun declaration =>
   fingerprintOf guardedDeclaration == fingerprintOf declaration
@@ -344,18 +344,18 @@ private def fingerprintOf (declaration : PropertyDeclaration) : Option BehaviorF
     changedNestedSourceDeclaration
   ].all fun declaration =>
   fingerprintOf guardedDeclaration == fingerprintOf declaration
-#guard (checkProperty context (.portable guardedDeclaration)).toOption.map
+#guard (Property.check context (guardedDeclaration)).toOption.map
     (fun property => !property.canonicalMetadata.contains "temporalClauses") == some true
 #guard (fingerprintOf guardedDeclaration).map BehaviorFingerprint.render ==
   some "sha256:2bdf8bbc4a76122f44ba9b5bb6254bcc6924b99830871bbeead8e7c70a92271c"
 
 private def checkError?
-    (declaration : PropertyDeclaration) : Option PropertyError :=
-  match checkProperty context (.portable declaration) with
+    (declaration : Property) : Option PropertyError :=
+  match Property.check context (declaration) with
   | .ok _ => none
   | .error error => some error
 
-private def withGroup (group : PropertyCaseGroup) : PropertyDeclaration :=
+private def withGroup (group : PropertyCaseGroup) : Property :=
   guardedDeclaration group
 
 private def malformedSource : SourceLocation :=
@@ -372,21 +372,21 @@ private def duplicateSource : SourceLocation :=
 private def referenceSource : SourceLocation :=
   { malformedSource with line := 63, column := 11 }
 
-private def duplicateCases : PropertyDeclaration :=
+private def duplicateCases : Property :=
   withGroup (guardedGroup [requestCase, requestCase])
 
-private def malformedParent : PropertyDeclaration :=
+private def malformedParent : Property :=
   withGroup { guardedGroup with id := DefinitionId.of "" }
 
-private def malformedCase : PropertyDeclaration :=
+private def malformedCase : Property :=
   withGroup (guardedGroup [{ requestCase with id := DefinitionId.of "Bad Case" }])
 
-private def malformedClause : PropertyDeclaration :=
+private def malformedClause : Property :=
   withGroup (guardedGroup [{ requestCase with clauses := [
     expectation "" .resultingState pendingCount (.equals (.natural 1))
   ] }])
 
-private def duplicateException : PropertyDeclaration :=
+private def duplicateException : Property :=
   withGroup (guardedGroup [{
     requestCase with exception := some {
       id := requestCase.id
@@ -395,44 +395,44 @@ private def duplicateException : PropertyDeclaration :=
     }
   }])
 
-private def emptyGroup : PropertyDeclaration :=
+private def emptyGroup : Property :=
   withGroup (guardedGroup [])
 
-private def emptyCase : PropertyDeclaration :=
+private def emptyCase : Property :=
   withGroup (guardedGroup [{ requestCase with clauses := [] }])
 
-private def wrongReferenceKind : PropertyDeclaration :=
+private def wrongReferenceKind : Property :=
   withGroup { guardedGroup with guard := guardAtom .selectedAction pendingCount (.text "1") }
 
-private def unknownReference : PropertyDeclaration :=
+private def unknownReference : Property :=
   withGroup { guardedGroup with guard :=
     (guardAtom .selectedAction (id "test.action.missing") (.text "missing")) }
 
-private def undeclaredReference : PropertyDeclaration :=
+private def undeclaredReference : Property :=
   withGroup (guardedGroup [{ requestCase with clauses := [
     expectation "test.property.case.hidden" .expectationFact hiddenObservation .present
   ] }])
 
-private def invalidGuardContext : PropertyDeclaration :=
+private def invalidGuardContext : Property :=
   withGroup { guardedGroup with guard :=
     (guardAtom .resultingState pendingCount (.natural 1)) }
 
-private def invalidExpectationContext : PropertyDeclaration :=
+private def invalidExpectationContext : Property :=
   withGroup (guardedGroup [{ requestCase with clauses := [
     expectation "test.property.case.invalid-expectation" .selectedAction requestCancel .present
   ] }])
 
-private def emptyOperator : PropertyDeclaration :=
+private def emptyOperator : Property :=
   withGroup { guardedGroup with guard := .all [] }
 
-private def mixedLiteralTypes : PropertyDeclaration :=
+private def mixedLiteralTypes : Property :=
   withGroup { guardedGroup with guard := .atom {
     field := .selectedAction
     reference := requestCancel
     constraint := .oneOf [.text "request", .natural 1]
   } }
 
-private def wrongTemporalUnit : PropertyDeclaration := {
+private def wrongTemporalUnit : Property := {
   guardedTemporalDeclaration with clauses := [
     .guardedEventuallyWithin (id "test.property.guarded-temporal.bad-unit") source
       requestGuard none
@@ -442,16 +442,16 @@ private def wrongTemporalUnit : PropertyDeclaration := {
   ]
 }
 
-private def legacyVersion : PropertyDeclaration :=
+private def legacyVersion : Property :=
   { guardedDeclaration with version := 1 }
 
-private def malformedCaseAtOwnedSource : PropertyDeclaration :=
+private def malformedCaseAtOwnedSource : Property :=
   withGroup (guardedGroup [{ requestCase with
     id := DefinitionId.of "Bad Case"
     source := malformedSource
   }])
 
-private def duplicateClauseAtOwnedSource : PropertyDeclaration :=
+private def duplicateClauseAtOwnedSource : Property :=
   let first := {
     expectation "test.property.case.duplicate-source" .resultingState pendingCount .present with
     source := malformedSource
@@ -459,7 +459,7 @@ private def duplicateClauseAtOwnedSource : PropertyDeclaration :=
   let second := { first with source := duplicateSource }
   withGroup (guardedGroup [{ requestCase with clauses := [first, second] }])
 
-private def unknownReferenceAtOwnedSource : PropertyDeclaration :=
+private def unknownReferenceAtOwnedSource : Property :=
   withGroup { guardedGroup with
     source := referenceSource
     guard := guardAtom .selectedAction (id "test.action.missing") (.text "missing")

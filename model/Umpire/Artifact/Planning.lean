@@ -234,17 +234,17 @@ def ExperimentSpec.withArtifactIntent
   }
 
 private def plannedOccurrence
-    (behavior : CheckedBehavior)
+    (behavior : CheckedScenario)
     (index : Nat)
     (action : ModelValue)
-    (authored : Option NamedOccurrence) : PlannedOccurrence :=
-  let definitionId := authored.map NamedOccurrence.id |>.getD
+    (authored : Option Scenario.Step) : PlannedOccurrence :=
+  let definitionId := authored.map Scenario.Step.id |>.getD
     (DefinitionId.of (behavior.id.value ++ ".selected-occurrence-" ++ toString (index + 1)))
   {
     definitionId
     actionDefinitionId := action.definitionId
     position := index + 1
-    authoredDefinitionId := authored.map NamedOccurrence.id
+    authoredDefinitionId := authored.map Scenario.Step.id
   }
 
 private def propertyReference (property : CheckedProperty) : PortableProperty := {
@@ -281,7 +281,7 @@ namespace ArtifactPlanning.Internal
 
 def artifactOfSelectionWithKnownGaps
     (query : CheckedQuery LawStatement)
-    (trace : BehaviorTrace)
+    (trace : Scenario.Trace)
     (reason : SelectionReason)
     (explored : ExploredCounts)
     (knownGaps : KnownGapSet) : ExperimentSpec :=
@@ -356,7 +356,7 @@ end ArtifactPlanning.Internal
 /-- Artifact construction checks Known Gap composition before publishing a selected trace. -/
 def artifactOfSelection
     (query : CheckedQuery LawStatement)
-    (trace : BehaviorTrace)
+    (trace : Scenario.Trace)
     (reason : SelectionReason)
     (explored : ExploredCounts) : Except KnownGapError ExperimentSpec := do
   let knownGaps ← composePlanningKnownGaps query

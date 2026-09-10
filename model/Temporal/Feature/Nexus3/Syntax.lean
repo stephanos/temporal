@@ -214,8 +214,8 @@ macro "property" name:ident "on" modelRef:ident "for" roleRef:ident
           `(term| Authoring.PropertyRequirement.factClause
               $(Lean.quote label.getId.toString) $(Lean.quote member.getId.toString))
       | _ => Lean.Macro.throwErrorAt requirement "unsupported Nexus3 require clause"
-    `(command| def $name (values : Authoring.ModelVocabulary) : PropertySpec :=
-        Authoring.propertySpec ($modelRef) values {
+    `(command| def $name (values : Authoring.ModelVocabulary) : Property :=
+        Authoring.authoredProperty ($modelRef) values {
           declaration := $ownerKey
           roleName := $roleKey
           actionSpelling := $actionKey
@@ -232,8 +232,8 @@ macro "behavior" name:ident "on" modelRef:ident roleRef:ident "starts" setupRef:
       | `(nexus3Occurrence| $label:ident : $selected:ident) =>
           `(term| ($(Lean.quote label.getId.toString), $(Lean.quote selected.getId.toString)))
       | _ => Lean.Macro.throwErrorAt occurrence "unsupported Nexus3 Behavior occurrence"
-    `(command| def $name (values : Authoring.ModelVocabulary) : ExactSequenceSpec :=
-        Authoring.behaviorSpec ($modelRef) values {
+    `(command| def $name (values : Authoring.ModelVocabulary) : Scenario :=
+        Authoring.authoredScenario ($modelRef) values {
           declaration := $ownerKey
           roleName := $roleKey
           setupState := $setupKey

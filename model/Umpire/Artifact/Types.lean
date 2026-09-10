@@ -48,7 +48,7 @@ structure DrivePlan where
   kernelDefinitionId : DefinitionId
   kernelBehaviorFingerprint : BehaviorFingerprint
   bindings : List RoleBinding
-  symbolicRoles : List ResourceRole
+  symbolicRoles : List Scenario.Role
   modelPreconditions : List SetupConstraint
   initialState : ModelValue
   requestedActions : List ModelValue

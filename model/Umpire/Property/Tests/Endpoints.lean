@@ -7,7 +7,7 @@ namespace Umpire.PropertyTests
 private def endpointAnswer (clause : PropertyClause)
     (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue)
     (runtimePrefix : Bool) (logicalTimeSource : Option DefinitionId := none) : Option PropertyEndpointAnswer := do
-  let property ← (checkProperty context (.portable { portableProperty with version := 2, clauses := [clause], logicalTimeSource })).toOption
+  let property ← (Property.check context ({ portableProperty with version := 2, clauses := [clause], logicalTimeSource })).toOption
   let input ← (checkPropertyEvaluationInput property trace).toOption
   pure (evaluatePropertyEndpoint property input runtimePrefix).answer
 

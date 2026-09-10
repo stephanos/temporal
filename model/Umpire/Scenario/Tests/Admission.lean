@@ -1,8 +1,8 @@
-import Umpire.Behavior.Tests.Fixtures
+import Umpire.Scenario.Tests.Fixtures
 
 /-! Allowed, forbidden, ordered, adjacent, action-exact, and trace-exact admission checks. -/
 
-namespace Umpire.BehaviorTests
+namespace Umpire.ScenarioTests
 
 open Umpire
 
@@ -12,23 +12,23 @@ example : !checkedAdmits constrainedDeclaration reversedTrace := by native_decid
 example : !checkedAdmits constrainedDeclaration repeatedCancelTrace := by native_decide
 example : !checkedAdmits constrainedDeclaration otherSetupTrace := by native_decide
 
-example : (checkBehavior context constrainedDeclaration).toOption.bind (fun behavior =>
+example : (Scenario.check context constrainedDeclaration).toOption.bind (fun behavior =>
     behavior.assignOccurrences [requestCancel, callerClose]) =
     some [some cancelOccurrence, some closeOccurrence] := by
   native_decide
 
-example : (checkBehavior context constrainedDeclaration).toOption.bind (fun behavior =>
+example : (Scenario.check context constrainedDeclaration).toOption.bind (fun behavior =>
     behavior.assignOccurrences [callerClose, requestCancel]) = none := by
   native_decide
 
-def adjacentDeclaration : BehaviorDeclaration := {
+def adjacentDeclaration : Scenario := {
   constrainedDeclaration with adjacencies := [[requestCancel, callerClose]]
 }
 
 example : checkedAdmits adjacentDeclaration acceptedTrace := by native_decide
 example : !checkedAdmits adjacentDeclaration interleavedTrace := by native_decide
 
-def forbiddenDeclaration : BehaviorDeclaration := {
+def forbiddenDeclaration : Scenario := {
   constrainedDeclaration with
   allowedActions := [requestCancel, callerClose]
   forbiddenActions := [tick]
@@ -37,7 +37,7 @@ def forbiddenDeclaration : BehaviorDeclaration := {
 example : checkedAdmits forbiddenDeclaration acceptedTrace := by native_decide
 example : !checkedAdmits forbiddenDeclaration interleavedTrace := by native_decide
 
-def exactActionsDeclaration : BehaviorDeclaration := {
+def exactActionsDeclaration : Scenario := {
   constrainedDeclaration with actionsExactly := some [requestCancel, callerClose]
 }
 
@@ -49,7 +49,7 @@ example :
 
 example : !checkedAdmits exactActionsDeclaration interleavedTrace := by native_decide
 
-def exactTraceDeclaration : BehaviorDeclaration := {
+def exactTraceDeclaration : Scenario := {
   constrainedDeclaration with traceExactly := some exactWitness
 }
 
@@ -59,4 +59,4 @@ example :
     !checkedAdmits exactTraceDeclaration rejectedTrace := by
   native_decide
 
-end Umpire.BehaviorTests
+end Umpire.ScenarioTests

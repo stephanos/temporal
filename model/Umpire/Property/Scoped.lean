@@ -135,7 +135,7 @@ def compile (target : CheckedModel Law Setup ModelValue ModelValue ModelValue Mo
     if clause.declaration.scope != DefinitionId.canonicalSet scopeFields ||
         clause.declaration.key != operationField then
       throw (.unsupported clause.declaration.id "producer scope/key mismatch")
-    let reference ← (checkProperty (.ofTarget target) (.portable {
+    let reference ← (Property.check (.ofTarget target) ({
       id := clause.declaration.id
       source := clause.declaration.source
       requires := property.requires

@@ -27,7 +27,7 @@ Three independently developed alternatives informed this proposal:
 | Alternative | Strongest benefit | Limitation | Decision |
 | --- | --- | --- | --- |
 | Ordinary typed records plus a total admission function | Small implementation; generic proofs can travel through successful validator branches | A plain `def` only constructs data; compilation alone does not establish semantic admission or capture precise field locations | Build this semantic foundation, but exercise admission explicitly in tests |
-| Focused `property%`/`behavior%`/`query%` forms inside ordinary `def` declarations | Retains Lean declaration names, typed terms, and navigation while making checking/source capture the frontend's job | Requires proof-generation and editor tests; no guarantee it beats good records | Preferred syntax candidate to compare after the foundation works |
+| Focused `property%`/`scenario%`/`query%` forms inside ordinary `def` declarations | Retains Lean declaration names, typed terms, and navigation while making checking/source capture the frontend's job | Requires proof-generation and editor tests; no guarantee it beats good records | Preferred syntax candidate to compare after the foundation works |
 | Typed finite tables with generated enum catalogs | Greatest reduction in work when adding states/transitions | Automatic constructor-name encodings make renames semantic; derivation adds tooling | Use the finite table; begin with explicit typed catalogs and stable keys, and defer enum derivation |
 
 For the first prototype, explicit vocabulary catalogs make domain membership and stable wire keys visible. A state addition may require adding its catalog entry and transition rows, but must not require a proof or support-code change. Automatically collecting the domain from transition rows would lose isolated states and turn misspelled names into new states, so it is not an acceptable shortcut.
@@ -131,7 +131,7 @@ query check_cancellation_race on race
 
 The finite candidate budget of 32 is a proposed initial budget to verify against the real planner. Exhaustive verification must report Limit Reached if that budget cannot cover the admitted traces; the prototype must not treat the number as evidence of completeness. If the bound needs adjustment, make the declared change visible.
 
-The block spelling above emphasizes readability. The preferred Lean integration to test is `def resolvesAfterCancel := property% race ...`, and equivalently `behavior%` and `query%`, so ordinary definitions, namespaces, and references remain available. Compare this spelling against the constructor-only form before freezing the grammar; this document does not authorize two parallel public syntaxes.
+The block spelling above emphasizes readability. The preferred Lean integration to test is `def resolvesAfterCancel := property% race ...`, and equivalently `scenario%` and `query%`, so ordinary definitions, namespaces, and references remain available. Compare this spelling against the constructor-only form before freezing the grammar; this document does not authorize two parallel public syntaxes.
 
 The simple syntax above packages existing patterns, `eventuallyWithin`, Behavior constraints, and Query data. The guarded-case design below deliberately extends the existing Property representation and semantics where single patterns are insufficient. Neither surface accepts arbitrary Lean predicates or supplies a separate evaluator. The plain-Lean comparison expresses the same declarations through named constructors and the same explicit inputs.
 

@@ -46,8 +46,8 @@ def satisfiedRunEvaluation := checkRunEvaluation satisfiedObservationPlan satisf
   Umpire.Examples.Switch.switchSetup Umpire.Examples.Switch.exploratoryQuery
   [Umpire.Examples.Switch.flipProperty]
 
-def guardedSwitchPropertyDeclaration : PropertyDeclaration := {
-  Umpire.Examples.Switch.propertyDeclaration with
+def guardedSwitchPropertyDeclaration : Property := {
+  Umpire.Examples.Switch.authoredProperty with
   id := DefinitionId.of "test.run-evaluation.property.guarded"
   version := 2
   clauses := [.sameStepCases {
@@ -81,8 +81,8 @@ def guardedSwitchPropertyDeclaration : PropertyDeclaration := {
   }]
 }
 
-def guardedTemporalSwitchPropertyDeclaration : PropertyDeclaration := {
-  Umpire.Examples.Switch.propertyDeclaration with
+def guardedTemporalSwitchPropertyDeclaration : Property := {
+  Umpire.Examples.Switch.authoredProperty with
   id := DefinitionId.of "test.run-evaluation.property.guarded-temporal"
   version := 2
   clauses := [.guardedEventuallyWithin
@@ -108,9 +108,9 @@ def guardedTemporalSwitchPropertyDeclaration : PropertyDeclaration := {
 
 private def guardedRunEvaluationResult : Option
     (StrictQueryStatus × SemanticVerdictStatus × Option SemanticVerdictFailureKind) := do
-  let property ← (checkProperty
+  let property ← (Property.check
     (PropertyCheckContext.ofTarget Umpire.Examples.Switch.target)
-    (.portable guardedSwitchPropertyDeclaration)).toOption
+    (guardedSwitchPropertyDeclaration)).toOption
   let query := {
     Umpire.Examples.Switch.exploratoryQuery with form := .select [property]
   }
@@ -127,9 +127,9 @@ private def guardedRunEvaluationResult : Option
 private def guardedTemporalRunEvaluationResult : Option
     (StrictQueryStatus × SemanticVerdictStatus ×
       Option (SemanticVerdictFailureKind × List DefinitionId)) := do
-  let property ← (checkProperty
+  let property ← (Property.check
     (PropertyCheckContext.ofTarget Umpire.Examples.Switch.target)
-    (.portable guardedTemporalSwitchPropertyDeclaration)).toOption
+    (guardedTemporalSwitchPropertyDeclaration)).toOption
   let query := {
     Umpire.Examples.Switch.exploratoryQuery with form := .select [property]
   }
@@ -236,8 +236,8 @@ example :
         [(.unsupported, true, some .semanticTraceUnavailable)]) := by
   native_decide
 
-def logicalTimePropertyDeclaration : PropertyDeclaration := {
-  Umpire.Examples.Switch.propertyDeclaration with
+def logicalTimePropertyDeclaration : Property := {
+  Umpire.Examples.Switch.authoredProperty with
   id := DefinitionId.of "test.run-evaluation.property.logical-time"
   logicalTimeSource := some Umpire.Examples.Switch.powerObservationId
   clauses := [
@@ -257,8 +257,8 @@ def logicalTimePropertyDeclaration : PropertyDeclaration := {
 }
 
 def logicalTimeProperty : CheckedProperty :=
-  (checkProperty (PropertyCheckContext.ofTarget Umpire.Examples.Switch.target)
-    (.portable logicalTimePropertyDeclaration)).toOption.get (by native_decide)
+  (Property.check (PropertyCheckContext.ofTarget Umpire.Examples.Switch.target)
+    (logicalTimePropertyDeclaration)).toOption.get (by native_decide)
 
 def logicalTimeQuery : CheckedQuery Umpire.Examples.Switch.LawStatement :=
   (checkQuery (QueryCheckContext.ofTarget Umpire.Examples.Switch.target) {
@@ -306,8 +306,8 @@ def otherTarget : QueryModel Umpire.Examples.Switch.LawStatement :=
   model otherTargetAuthoring
 
 def otherTargetProperty : CheckedProperty :=
-  (checkProperty (PropertyCheckContext.ofTarget otherTarget)
-    (.portable Umpire.Examples.Switch.propertyDeclaration)).toOption.get (by native_decide)
+  (Property.check (PropertyCheckContext.ofTarget otherTarget)
+    (Umpire.Examples.Switch.authoredProperty)).toOption.get (by native_decide)
 
 def otherTargetQuery : CheckedQuery Umpire.Examples.Switch.LawStatement :=
   (checkQuery (QueryCheckContext.ofTarget otherTarget) {
@@ -345,8 +345,8 @@ example :
       (.incomplete, [], [Umpire.Examples.Switch.flipPropertyId]) := by
   native_decide
 
-def initialOffPropertyDeclaration : PropertyDeclaration := {
-  Umpire.Examples.Switch.propertyDeclaration with
+def initialOffPropertyDeclaration : Property := {
+  Umpire.Examples.Switch.authoredProperty with
   id := DefinitionId.of "test.run-evaluation.property.initial-off"
   clauses := [
     .stateInvariant (DefinitionId.of "test.run-evaluation.property.initial-off.clause") {
@@ -358,8 +358,8 @@ def initialOffPropertyDeclaration : PropertyDeclaration := {
 }
 
 def initialOffProperty : CheckedProperty :=
-  (checkProperty (PropertyCheckContext.ofTarget Umpire.Examples.Switch.target)
-    (.portable initialOffPropertyDeclaration)).toOption.get (by native_decide)
+  (Property.check (PropertyCheckContext.ofTarget Umpire.Examples.Switch.target)
+    (initialOffPropertyDeclaration)).toOption.get (by native_decide)
 
 def twoPropertyQuery : CheckedQuery Umpire.Examples.Switch.LawStatement := {
   Umpire.Examples.Switch.exploratoryQuery with

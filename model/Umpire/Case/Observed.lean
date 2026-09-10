@@ -1,6 +1,6 @@
 import Testpilot.Authoring
 import Umpire.Case
-import Umpire.Property.Fields
+import Umpire.Property
 
 /-!
 The runtime read path a modeled operand's coordinates describe.
