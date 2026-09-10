@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
 	"go.temporal.io/server/tools/umpire/internal/retiredvocabulary"
 )
 
