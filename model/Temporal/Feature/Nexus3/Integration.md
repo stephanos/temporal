@@ -111,19 +111,29 @@ proof that the model's one-step requirement was violated.
 
 ## Current support and reuse
 
-The successful-completion Query has checked mapping and lowering through `produceCompletionCase`
-and `completionCase`. Cancellation Queries remain unsupported until the Program can retain and
+The successful-completion Query has checked mapping and lowering through `produce` and
+`completionCase`. Cancellation Queries remain unsupported until the Program can retain and
 address the matching operation handle. The mappings below state that executable boundary and its
 rejection requirements.
 
 `Temporal.Testpilot.asyncNexusCase` is a useful example of setup, asynchronous handler response,
 completion capability, and history correlation. It has independently authored Program/Contract
 meaning; returning it under a Nexus3 Query ID would not establish Nexus3 lowering correctness.
-The Nexus3 Producer carries the checked values into generated Program and Contract values. It
-compares no checked value against an expected model: a different Target, Behavior, Query, or
-witness produces different Case bytes. The correlated-history rule is derived from the Facts the
-selected witness records, through the evidence projections the Producer declares, so a Fact with no
-declared Nexus history evidence and a clause no witness step carries both reject by name.
+The Nexus3 Producer, `produce`, carries the checked values into generated Program and Contract
+values. It compares no checked value against an expected model: a different Target, Behavior, Query
+or Property produces different Case bytes. The Contract carries no monitor rule at all. Each
+`require` clause becomes one operation-scoped bounded-response clause, placed by the Action order
+the Behavior fixes: from the operation's first Action, the required value is due within as many
+semantic transitions as the Behavior puts between them, and `Umpire.Case.Scoped.lower` certifies the
+correspondence between the checked clauses and the emitted capability. The evidence those clauses
+read is lifted out of the same history read the Case already performs, keyed by the scheduled event
+a started or a completed Nexus event names, which is the only identity either records.
+
+Four claims reject by name rather than lowering something weaker: a Query that selected no witness,
+a clause form with no trigger and response to carry, a value constraint the portable predicate
+vocabulary has no spelling for, and a required value the selected trace already reaches before the
+Action the clause names — the last because the window includes its trigger step, so such a clause
+could be answered without that Action ever being observed.
 `Umpire.Case.Compiler.compile` then validates the source-bound rule rows, preserves unsupported
 construct errors, attaches exact Umpire provenance, and performs final generated Case assembly.
 The generated fixture is prepared and run in the live integration test against two distinct
