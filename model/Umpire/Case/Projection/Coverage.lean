@@ -1,4 +1,4 @@
-import Umpire.Observation.Projection
+import Umpire.Case.Projection
 import Umpire.Property.Evaluate
 
 /-!
@@ -38,7 +38,7 @@ element and a cardinality are outside it and reject with that reason, because th
 them would have to carry sibling data no declared Observation reported.
 -/
 
-namespace Umpire.Observation.Projection
+namespace Umpire.Case.Projection
 
 variable {Law : Law → Prop} {Setup State Action Outcome Fact : Type}
 variable {target : CheckedModel Law Setup State Action Outcome Fact}
@@ -263,4 +263,4 @@ def Coverage.evidence {plan : Checked target} (coverage : Coverage plan)
         | .ok evidence => values := values ++ [evidence]
   pure values
 
-end Umpire.Observation.Projection
+end Umpire.Case.Projection

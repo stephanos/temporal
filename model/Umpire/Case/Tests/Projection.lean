@@ -1,9 +1,9 @@
-import Umpire.Observation.Projection
+import Umpire.Case.Projection
 import Umpire.Model.Tests.Validation
 
 /-! Transactional evidence projection, independent of product-specific history. -/
 
-namespace Umpire.Observation.ProjectionTests
+namespace Umpire.Case.ProjectionTests
 
 open Projection
 
@@ -329,4 +329,4 @@ private def orderingFinish : Event := { event 1 "test.finish" with
       [[(event 0 "").identity, (event 1 "").identity], [orderingFinish.identity]] &&
     run.steps.map (fun (step : Projection.Step target) => step.runSequences) == [[100, 101], [201]]))).toOption == some true
 
-end Umpire.Observation.ProjectionTests
+end Umpire.Case.ProjectionTests

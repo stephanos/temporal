@@ -1,7 +1,7 @@
 import Testpilot.Scoped
 import Umpire.Case.ScopedProofs
 import Umpire.Case.Compiler
-import Umpire.Observation.Evaluation.Scoped
+import Umpire.Case.Projection.Scoped
 
 /-!
 Checked lowering of operation-scoped obligations into the closed Testpilot capability. The complete
@@ -18,7 +18,7 @@ encoding.
 -/
 namespace Umpire.Case.Scoped
 open temporal.server.api.testpilot.v1
-open Umpire.Observation
+open Umpire.Case.Projection
 
 variable {Law : Law → Prop} {Setup : Type}
 variable {target : CheckedModel Law Setup ModelValue ModelValue ModelValue ModelValue}

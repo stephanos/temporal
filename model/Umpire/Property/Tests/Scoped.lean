@@ -141,8 +141,8 @@ private def independent (bound : Nat) (points : List Coordinate) : Bool :=
 /-- info: 'Umpire.Property.Scoped.Run.consumeMany_append' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms Umpire.Property.Scoped.Run.consumeMany_append
-/-- info: 'Umpire.Observation.Scoped.Run.admitMany_append' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+/-- info: 'Umpire.Case.Projection.Scoped.Run.admitMany_append' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
-#print axioms Umpire.Observation.Scoped.Run.admitMany_append
+#print axioms Umpire.Case.Projection.Scoped.Run.admitMany_append
 
 end Umpire.Property.ScopedTests

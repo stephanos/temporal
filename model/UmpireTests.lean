@@ -40,6 +40,8 @@ import Umpire.Exploration.Tests.Pinned
 import Umpire.Exploration.Tests.Session
 import Umpire.Case.CompilerTests
 import Umpire.Case.Tests.FieldLowering
+import Umpire.Case.Tests.Projection
+import Umpire.Case.Tests.ProjectionBoundary
 import Umpire.Case.Tests.ObservedPath
 
 namespace UmpireTests

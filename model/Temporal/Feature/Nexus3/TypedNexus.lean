@@ -8,7 +8,7 @@ import Umpire.Property.Elab
 import Umpire.Property.Evaluate
 import Umpire.Property.Scoped
 import Umpire.Property.Scoped
-import Umpire.Observation.Projection.Coverage
+import Umpire.Case.Projection.Coverage
 import Umpire.Model.Table
 
 /-!
@@ -420,8 +420,8 @@ inductive AdmissionError where
   | target (error : TableAdmissionError)
   | property (error : PropertyError)
   | scoped (error : Property.Scoped.Error)
-  | projection (error : Observation.Projection.Error)
-  | coverage (error : Observation.Projection.CoverageError)
+  | projection (error : Case.Projection.Error)
+  | coverage (error : Case.Projection.CoverageError)
   | inconsistent (reason : String)
 
 private abbrev TypedTarget :=
@@ -524,7 +524,7 @@ def OperationCase.scheduledEvidenceKindId (entry : OperationCase) : DefinitionId
 def retainedOperationIdentity : List (EvidenceFieldDeclaration × FieldDisposition) :=
   [(⟨operationIdentityFieldId, .text⟩, .retain)]
 
-def projectionLimits : Observation.Projection.Limits := {
+def projectionLimits : Case.Projection.Limits := {
   events := 64, buffered := 32, keys := 8, support := 256
   work := 1000000000, eventSize := 512 }
 
@@ -533,7 +533,7 @@ both completions from either scheduled state, and the bounded-response clause re
 outcome by its declared identity, so which of the two the projector releases never changes its
 answer. Separating them would need the operation identity a completed event does not record. -/
 def projectionDeclaration : Except AdmissionError
-    (Observation.Projection.Declaration ModelValue ModelValue ModelValue ModelValue) := do
+    (Case.Projection.Declaration ModelValue ModelValue ModelValue ModelValue) := do
   let scheduled ← operationCases.mapM fun entry => do
     let command ← (scheduleCommand entry.command).mapError AdmissionError.operation
     let state ← entry.scheduledState.mapError AdmissionError.field
@@ -542,7 +542,7 @@ def projectionDeclaration : Except AdmissionError
             fields := retainedOperationIdentity
             meaning := .confirmed none [(scheduleAction command,
               { state := state, outcome := outcome, facts := [] })] } :
-      Observation.Projection.Rule ModelValue ModelValue ModelValue ModelValue)
+      Case.Projection.Rule ModelValue ModelValue ModelValue ModelValue)
   let completedOutcome ← firstCase.completedOutcome.mapError AdmissionError.field
   pure {
     id := projectionId
@@ -558,7 +558,7 @@ def projectionDeclaration : Except AdmissionError
 
 /-- The one covered coordinate: the operation identity the scheduled evidence records is the value
 the Link capture retains, and `operationIdentityFieldId` is the declared field that supplies it. -/
-def coverageMappings : List Observation.Projection.FieldMapping :=
+def coverageMappings : List Case.Projection.FieldMapping :=
   [⟨scheduledOperationPath, operationIdentityFieldId⟩]
 
 /-! ### Admission -/
@@ -571,8 +571,8 @@ structure Model where
   fieldProperty : CheckedFieldProperty
   link : CheckedProperty
   compiled : Property.Scoped.Compiled target
-  plan : Observation.Projection.Checked target
-  coverage : Observation.Projection.Coverage plan
+  plan : Case.Projection.Checked target
+  coverage : Case.Projection.Coverage plan
 
 private def fieldBindings : List PropertyFieldBinding :=
   [scheduledOutcomeId, completedOutcomeId, scheduledStateId].map
@@ -643,9 +643,9 @@ def checked : Except AdmissionError Model := do
   let compiled ← (Property.Scoped.compile target link [runFieldId] operationFieldId
     runLimits).mapError AdmissionError.scoped
   let declaration ← projectionDeclaration
-  let plan ← (Observation.Projection.check target declaration () pendingState).mapError
+  let plan ← (Case.Projection.check target declaration () pendingState).mapError
     AdmissionError.projection
-  let coverage ← (Observation.Projection.Coverage.check plan valueLimits coverageMappings).mapError
+  let coverage ← (Case.Projection.Coverage.check plan valueLimits coverageMappings).mapError
     AdmissionError.coverage
   pure ⟨target, fieldProperty, link, compiled, plan, coverage⟩
 

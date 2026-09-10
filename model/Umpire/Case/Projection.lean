@@ -1,4 +1,4 @@
-import Umpire.Observation.Projection.Declaration
+import Umpire.Case.Projection.Declaration
 
 /-!
 Checked incremental evidence projection. `check` binds closed mappings to one Target; `start`
@@ -12,7 +12,7 @@ work reservation bounds the finite graph scans, support unions, and Target trans
 it is charged before staging, independently of the buffer, key, and retained-support ceilings.
 -/
 
-namespace Umpire.Observation.Projection
+namespace Umpire.Case.Projection
 
 variable {Law : Law → Prop} {Setup State Action Outcome Fact : Type}
 variable {target : CheckedModel Law Setup State Action Outcome Fact}
@@ -258,4 +258,4 @@ def Run.close (run : Run plan) : Except Error (Run plan) := do
   if run.work + reservation > plan.declaration.limits.work then throw .workExhausted
   return ⟨{ run.payload with closed := true, work := run.work + reservation }⟩
 
-end Umpire.Observation.Projection
+end Umpire.Case.Projection

@@ -432,24 +432,24 @@ end Temporal.System.Nexus.ImplementationLink
 
 namespace Temporal.System.Nexus.ImplementationLink.Cancellation
 
-open Umpire Observation.Projection
+open Umpire Case.Projection
 
 /-- Cancellation admission preserves which owner rejected the declaration or source evidence. -/
 inductive Error where
   | target (error : TableAdmissionError)
   | vocabulary (error : FiniteTableError)
   | correlation (error : Evidence.Error)
-  | projection (error : Observation.Projection.Error)
+  | projection (error : Case.Projection.Error)
 
 /-- Target-bound cancellation mapping. Only `check` constructs this checked declaration. -/
 structure Checked where
   private mk ::
   target : QueryModel Temporal.Feature.Nexus2.Race.LawStatement
-  private plan : Observation.Projection.Checked target
+  private plan : Case.Projection.Checked target
   private maxOperations : Nat
 
 private def declaration (model : Temporal.Feature.Nexus2.Race.ModelVocabulary)
-    (limits : Observation.Projection.Limits) :
+    (limits : Case.Projection.Limits) :
     Declaration ModelValue ModelValue ModelValue ModelValue := {
   id := Evidence.field "cancellation-projection"
   scopeFields := [Evidence.field "execution", Evidence.field "namespace",
@@ -480,10 +480,10 @@ private def declaration (model : Temporal.Feature.Nexus2.Race.ModelVocabulary)
 }
 
 /-- Check the evidence mapping against the reused Feature authority; no Query witness is an input. -/
-def check (limits : Observation.Projection.Limits) : Except Error Checked := do
+def check (limits : Case.Projection.Limits) : Except Error Checked := do
   let target ← Temporal.Feature.Nexus3.Cancellation.targetResult.mapError .target
   let model ← Temporal.Feature.Nexus2.Race.modelVocabulary.mapError .vocabulary
-  let plan ← Observation.Projection.check target (declaration model limits)
+  let plan ← Case.Projection.check target (declaration model limits)
     model.startedSetup model.startedState |>.mapError .projection
   pure ⟨target, plan, limits.keys⟩
 
@@ -495,7 +495,7 @@ def Checked.behaviorFingerprint (checked : Checked) : BehaviorFingerprint :=
 structure Run (checked : Checked) where
   private mk ::
   private binding : Evidence.Binding
-  private projection : Observation.Projection.Run checked.plan
+  private projection : Case.Projection.Run checked.plan
 
 /-- Allocate fresh state after validating the entire operation binding. -/
 def Checked.start (checked : Checked) (binding : Evidence.Binding) : Except Error (Run checked) := do

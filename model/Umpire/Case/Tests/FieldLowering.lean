@@ -148,7 +148,7 @@ private def retainedDetail : List (EvidenceFieldDeclaration × FieldDisposition)
   [(⟨tagField, .text⟩, .retain), (⟨flagField, .boolean⟩, .retain)]
 
 private def declaration (fields : List (EvidenceFieldDeclaration × FieldDisposition) := retainedCount) :
-    Observation.Projection.Declaration ModelValue ModelValue ModelValue ModelValue := {
+    Case.Projection.Declaration ModelValue ModelValue ModelValue ModelValue := {
   id := id "test.projection"
   scopeFields := [id "test.run"]
   operationField := id "test.operation"
@@ -165,9 +165,9 @@ private def declaration (fields : List (EvidenceFieldDeclaration × FieldDisposi
 
 private def plan (target : TestTarget)
     (fields : List (EvidenceFieldDeclaration × FieldDisposition) := retainedCount) :=
-  Observation.Projection.check target (declaration fields) () state
+  Case.Projection.check target (declaration fields) () state
 
-private def mapping : Observation.Projection.FieldMapping := ⟨acceptedPath, countField⟩
+private def mapping : Case.Projection.FieldMapping := ⟨acceptedPath, countField⟩
 
 /-- A reply belongs to this operation only when the first count it retained is one. The trigger
 disjunct decides the request step before the capture operand is reached, so the step that creates
@@ -223,7 +223,7 @@ private def request (ordinal count : Nat) (operation := "a") : Report :=
 private def reply (ordinal : Nat) (operation := "a") : Report :=
   ⟨ordinal, "test.reply", operation, none⟩
 
-private def modelEvent (report : Report) : Observation.Projection.Event := {
+private def modelEvent (report : Report) : Case.Projection.Event := {
   identity := { scope, source := id "test.source", ordinal := report.ordinal }
   operation := report.operation
   kind := id report.kind
@@ -265,7 +265,7 @@ private def modelAnswers (temporal : PropertyScopedClause) (reports : List Repor
     (split : Nat := 0) : Option (List Nat) := do
   let target ← targetResult.toOption
   let projected ← (plan target).toOption
-  let coverage ← (Observation.Projection.Coverage.check projected valueLimits [mapping]).toOption
+  let coverage ← (Case.Projection.Coverage.check projected valueLimits [mapping]).toOption
   let checked ← (property target temporal).toOption
   let compiled ← (Property.Scoped.compile target checked [id "test.run"] (id "test.operation")
     runLimits).toOption
@@ -282,10 +282,10 @@ private def adapterAnswers (temporal : PropertyScopedClause) (reports : List Rep
     (split : Nat := 0) : Option (List Nat) := do
   let target ← targetResult.toOption
   let projected ← (plan target).toOption
-  let coverage ← (Observation.Projection.Coverage.check projected valueLimits [mapping]).toOption
+  let coverage ← (Case.Projection.Coverage.check projected valueLimits [mapping]).toOption
   let checked ← (property target temporal).toOption
-  let compiled ← (Observation.Scoped.compile projected checked runLimits coverage).toOption
-  let initial ← (Observation.Scoped.start projected compiled () scope coverage).toOption
+  let compiled ← (Case.Projection.Scoped.compile projected checked runLimits coverage).toOption
+  let initial ← (Case.Projection.Scoped.start projected compiled () scope coverage).toOption
   let events := reports.map modelEvent
   let run ← (initial.admitMany (events.take split) >>= fun next =>
     next.admitMany (events.drop split)).toOption
@@ -328,13 +328,13 @@ private def caseCoverage (assigned : Int := 7) : Coverage.Request :=
 
 /-- Lower one requested Case, from the checked coverage through to the assembled artifact. -/
 private def compiledCase (temporal : PropertyScopedClause)
-    (mappings : List Observation.Projection.FieldMapping := [mapping])
+    (mappings : List Case.Projection.FieldMapping := [mapping])
     (requested : Coverage.Request := caseCoverage) (assigned : Int := 7)
     (fields : List (EvidenceFieldDeclaration × FieldDisposition) := retainedCount) :
     Except String CaseArtifact := do
   let target ← targetResult.mapError fun _ => "target"
   let projected ← (plan target fields).mapError fun _ => "projection"
-  let coverage ← (Observation.Projection.Coverage.check projected valueLimits mappings).mapError
+  let coverage ← (Case.Projection.Coverage.check projected valueLimits mappings).mapError
     (·.reason)
   let checked ← (property target temporal).mapError fun _ => "property"
   let compiled ← (Property.Scoped.compile target checked [id "test.run"] (id "test.operation")
@@ -404,7 +404,7 @@ private def agrees (scenario : Scenario) : Bool :=
 #guard (do
   let target ← targetResult.toOption
   let projected ← (plan target).toOption
-  let coverage ← (Observation.Projection.Coverage.check projected valueLimits [mapping]).toOption
+  let coverage ← (Case.Projection.Coverage.check projected valueLimits [mapping]).toOption
   let checked ← (property target (clause)).toOption
   let compiled ← (Property.Scoped.compile target checked [id "test.run"] (id "test.operation")
     runLimits).toOption
@@ -474,7 +474,7 @@ private def rejects (result : Except String α) (reason : String) : Bool :=
   "captured coordinates have no declared Observation for test.capture.count"
 
 -- Coverage is admitted only against the projection declaration the Case will run under.
-private def coverageRejects (mappings : List Observation.Projection.FieldMapping)
+private def coverageRejects (mappings : List Case.Projection.FieldMapping)
     (fields : List (EvidenceFieldDeclaration × FieldDisposition) := retainedCount)
     (reason : String) : Bool :=
   match targetResult with
@@ -482,7 +482,7 @@ private def coverageRejects (mappings : List Observation.Projection.FieldMapping
   | .ok target => match plan target fields with
     | .error _ => false
     | .ok projected =>
-        match Observation.Projection.Coverage.check projected valueLimits mappings with
+        match Case.Projection.Coverage.check projected valueLimits mappings with
         | .error failure => failure.reason == reason
         | .ok _ => false
 
@@ -504,7 +504,7 @@ private def coverageRejects (mappings : List Observation.Projection.FieldMapping
 #guard (do
   let target ← targetResult.toOption
   let projected ← (plan target).toOption
-  let coverage ← (Observation.Projection.Coverage.check projected valueLimits
+  let coverage ← (Case.Projection.Coverage.check projected valueLimits
     [mapping, ⟨tagPath, tagField⟩]).toOption
   let values ← (coverage.evidence [⟨tagField, some (.text "v")⟩]).toOption
   pure (values.map PropertyFieldEvidence.path == [tagPath])) == some true
@@ -518,7 +518,7 @@ private def coverageRejects (mappings : List Observation.Projection.FieldMapping
 #guard (do
   let target ← targetResult.toOption
   let projected ← (plan target).toOption
-  let coverage ← (Observation.Projection.Coverage.check projected valueLimits
+  let coverage ← (Case.Projection.Coverage.check projected valueLimits
     [⟨firstIndexPath, countField⟩]).toOption
   let values ← (coverage.evidence [⟨countField, some (.natural 1)⟩]).toOption
   pure (values.map PropertyFieldEvidence.path == [firstIndexPath])) == some true
@@ -528,11 +528,11 @@ private def coverageRejects (mappings : List Observation.Projection.FieldMapping
 #guard (do
   let target ← targetResult.toOption
   let projected ← (plan target).toOption
-  let coverage ← (Observation.Projection.Coverage.check projected valueLimits
+  let coverage ← (Case.Projection.Coverage.check projected valueLimits
     [mapping, ⟨requestTagPath, tagField⟩]).toOption
   let checked ← (property target (clause)).toOption
-  let compiled ← (Observation.Scoped.compile projected checked runLimits coverage).toOption
-  let initial ← (Observation.Scoped.start projected compiled () scope coverage).toOption
+  let compiled ← (Case.Projection.Scoped.compile projected checked runLimits coverage).toOption
+  let initial ← (Case.Projection.Scoped.start projected compiled () scope coverage).toOption
   let run ← (initial.admitMany ([request 0 1, reply 1].map modelEvent)).toOption
   pure (run.close.answers.map fun answer => code answer.2)) == some [2]
 
@@ -540,11 +540,11 @@ private def coverageRejects (mappings : List Observation.Projection.FieldMapping
 #guard (do
   let target ← targetResult.toOption
   let projected ← (plan target).toOption
-  let coverage ← (Observation.Projection.Coverage.check projected valueLimits
+  let coverage ← (Case.Projection.Coverage.check projected valueLimits
     [⟨requestPath, countField⟩]).toOption
   let checked ← (property target (clause (captures := [capture (path := requestPath)])
     (requirement := none))).toOption
-  pure (match Observation.Scoped.compile projected checked runLimits coverage with
+  pure (match Case.Projection.Scoped.compile projected checked runLimits coverage with
     | .error (.property (.unsupported _ reason)) =>
         reason == "request operand is not rebuildable from projected evidence"
     | _ => false)) == some true
@@ -554,7 +554,7 @@ private def coverageRejects (mappings : List Observation.Projection.FieldMapping
   let target ← targetResult.toOption
   let projected ← (plan target).toOption
   let checked ← (property target (clause)).toOption
-  pure (match Observation.Scoped.compile projected checked runLimits with
+  pure (match Case.Projection.Scoped.compile projected checked runLimits with
     | .error (.property (.unsupported clauseId _)) => clauseId == id "test.scoped.fields"
     | _ => false)) == some true
 
@@ -592,8 +592,8 @@ private def coverageRejects (mappings : List Observation.Projection.FieldMapping
 /-- info: 'Umpire.Case.Scoped.Lowered.evidence_validation' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms Umpire.Case.Scoped.Lowered.evidence_validation
-/-- info: 'Umpire.Observation.Scoped.Run.admitMany_append' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+/-- info: 'Umpire.Case.Projection.Scoped.Run.admitMany_append' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
-#print axioms Umpire.Observation.Scoped.Run.admitMany_append
+#print axioms Umpire.Case.Projection.Scoped.Run.admitMany_append
 
 end Umpire.Case.FieldLoweringTests

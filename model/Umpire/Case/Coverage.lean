@@ -9,7 +9,7 @@ Case that will execute them.
 A Case has two independent construction boundaries. A modeled input field is *constructed* by the
 Program: exactly one request assignment of one named instruction must target its coordinates and
 supply its exact value. A modeled result or event field is *observed*: the projection-level
-`Umpire.Observation.Projection.Coverage` maps it onto a declared Observation, and the scoped
+`Umpire.Case.Projection.Coverage` maps it onto a declared Observation, and the scoped
 lowering consumes that map. A requested clause is *lowered*: it must appear exactly once among the
 Case's compiled scoped clause bindings.
 

@@ -1,4 +1,4 @@
-import Umpire.Observation.Projection.Coverage
+import Umpire.Case.Projection.Coverage
 import Umpire.Property.Scoped
 
 /-!
@@ -16,7 +16,7 @@ reconstructs, so a clause reading one is rejected rather than admitted into a Ru
 could never bind.
 -/
 
-namespace Umpire.Observation.Scoped
+namespace Umpire.Case.Projection.Scoped
 
 open Property.Scoped
 
@@ -56,7 +56,8 @@ private def checkCoverage {plan : Projection.Checked target}
 /-- The consumer's binding comes from the admitted projector, never a second authored scope.
 A clause that declares keyed captures or a correlation is admitted only when the requested coverage
 supplies every field it reads; the default empty coverage therefore rejects every such clause. -/
-def compile (plan : Projection.Checked target) (property : CheckedProperty) (limits : Limits)
+def compile (plan : Projection.Checked target) (property : CheckedProperty)
+    (limits : Property.Scoped.Limits)
     (coverage : Projection.Coverage plan := Projection.Coverage.empty plan) :
     Except Error (Compiled target) := do
   checkCoverage coverage property
@@ -135,4 +136,4 @@ theorem Run.admitMany_append {plan : Projection.Checked target} {compiled : Comp
       (run.admitMany first >>= fun next => next.admitMany second) := by
   simp [admitMany, List.foldlM_append]
 
-end Umpire.Observation.Scoped
+end Umpire.Case.Projection.Scoped

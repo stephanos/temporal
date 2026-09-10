@@ -1,4 +1,4 @@
-import Umpire.Observation.Projection
+import Umpire.Case.Projection
 
 /-!
 Closed Nexus evidence at the SDK/history boundary. `Binding` freezes one Testpilot Run and the
@@ -9,7 +9,7 @@ history, callback transport, wall clock, or exploration-selected outcome enters 
 
 namespace Temporal.System.Nexus.Evidence
 
-open Umpire Observation.Projection
+open Umpire Case.Projection
 
 /-- Testpilot Run identity is separate from Temporal workflow execution identity. -/
 structure Scope where

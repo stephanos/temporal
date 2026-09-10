@@ -7,7 +7,7 @@ never a confirmed Model Outcome. Confirmation mappings name Target results which
 against the authoritative kernel. Source ordinals and explicit parents are the only ordering inputs.
 -/
 
-namespace Umpire.Observation.Projection
+namespace Umpire.Case.Projection
 
 /-- Identity within declared Run bindings; independent sources have independent zero-based ordinals. -/
 abbrev Identity := Shared.ScopedProjection.Identity DefinitionId
@@ -90,4 +90,4 @@ def Progress.emissions {Step : Type} : Progress Step → List Step
   | .emitted first rest => first :: rest
   | _ => []
 
-end Umpire.Observation.Projection
+end Umpire.Case.Projection
