@@ -1,10 +1,10 @@
-import Umpire.Space.Lowering
+import Umpire.Variations.Lowering
 
 /-! Exact fault-intent lowering. The identity between what this produces and the instruction a
 shipped Case carries is pinned on the consumer's side of the boundary, which is the side allowed to
 name both. -/
 
-namespace Umpire.SpaceLoweringTests
+namespace Umpire.VariationsLoweringTests
 
 open Umpire
 open Testpilot.Authoring
@@ -69,4 +69,4 @@ private def lowered (capability : DefinitionId) : Option InstructionDefinition :
     | .error failure => failure.construct == "fault.incomplete-realization"
     | .ok _ => false
 
-end Umpire.SpaceLoweringTests
+end Umpire.VariationsLoweringTests

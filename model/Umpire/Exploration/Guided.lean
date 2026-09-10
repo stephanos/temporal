@@ -60,9 +60,9 @@ def outcome
 /-- Apply coordinate guidance after the engine has established request and universe bindings. -/
 def select
     (request : CheckedExplorationRequest LawStatement)
-    (candidateUniverse : CandidateUniverse)
+    (candidateSet : CandidateSet)
     (coordinate : ModelCoordinate) : GuidedSelection :=
-  let eligible := ExplorationSelection.Internal.eligibleCandidates request candidateUniverse
+  let eligible := ExplorationSelection.Internal.eligibleCandidates request candidateSet
   let ordered := prioritize coordinate
     (ArtifactChecksum.render ∘ ExplorationCandidate.identity)
     (fun candidate => candidate.coverage.modelCoordinates) eligible
@@ -81,14 +81,14 @@ policy inputs produce no selection. An absent match stays uncovered and makes no
 -/
 def selectUncoveredCoordinate
     (request : CheckedExplorationRequest LawStatement)
-    (candidateUniverse : CandidateUniverse) : Option GuidedSelection :=
+    (candidateSet : CandidateSet) : Option GuidedSelection :=
   match request.policy with
   | .exhaustive => none
   | .uncoveredCoordinate coordinate =>
-      if candidateUniverse.spaceDefinitionId != request.space.id ||
-          candidateUniverse.spaceBehaviorFingerprint != request.space.behaviorFingerprint then
+      if candidateSet.spaceDefinitionId != request.space.id ||
+          candidateSet.spaceBehaviorFingerprint != request.space.behaviorFingerprint then
         none
       else
-        some (GuidedSelection.Internal.select request candidateUniverse coordinate)
+        some (GuidedSelection.Internal.select request candidateSet coordinate)
 
 end Umpire

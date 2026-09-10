@@ -1,5 +1,5 @@
-import Umpire.Space.Compiler
-import Umpire.Space.Metadata
+import Umpire.Variations.Compiler
+import Umpire.Variations.Metadata
 import Temporal.Feature.Nexus.Operations
 
 /-! Experimental authored variation over the focused two-action Nexus lifecycle. -/
@@ -161,7 +161,7 @@ def completionHandlerFailureCoverageGoal : CoverageGoalDeclaration :=
   coverageGoal completionHandlerFailureCoverageGoalId completionFaultAxisId
     completionHandlerFailureChoiceId
 
-def declaration : ExperimentSpaceDeclaration := {
+def declaration : VariationSpace := {
   id := spaceId
   source
   baseQuery := queryId
@@ -179,24 +179,24 @@ def declaration : ExperimentSpaceDeclaration := {
 /-- Checked Space, canonical metadata, and atomic batch prepared as one fallible value. -/
 structure PreparedVariationSpace where
   private mk ::
-  checked : CheckedExperimentSpace LawStatement
+  checked : CheckedVariationSpace LawStatement
   metadata : CheckedSpaceMetadata
   specs : List Plan
 
 private def prepareCheckedQuery
-    (spaceDeclaration : ExperimentSpaceDeclaration)
+    (spaceDeclaration : VariationSpace)
     (query : CheckedQuery LawStatement)
     (queryTargetEq : query.target = target) :
     Except VariationSpacePreparationError PreparedVariationSpace := do
   let context : SpaceCheckContext LawStatement := .ofQuery query
-  match checkedResultEq : checkExperimentSpace context spaceDeclaration with
+  match checkedResultEq : checkVariationSpace context spaceDeclaration with
   | .error error => throw (.space error)
   | .ok checked =>
       let metadata ← (projectCheckedSpaceMetadata checked).mapError
         VariationSpacePreparationError.metadata
       have checkedTargetEq : checked.baseQuery.target = target :=
         (congrArg (fun candidate => candidate.target) <|
-          checkExperimentSpace_baseQuery checkedResultEq).trans queryTargetEq
+          checkVariationSpace_baseQuery checkedResultEq).trans queryTargetEq
       let checkedKernel : SearchView checked.baseQuery.target :=
         Eq.mpr (congrArg SearchView checkedTargetEq) incrementalKernel
       let specs ← (compileBatch checked checkedKernel).mapError
@@ -204,7 +204,7 @@ private def prepareCheckedQuery
       pure { checked, metadata, specs }
 
 private def prepareDeclaration
-    (spaceDeclaration : ExperimentSpaceDeclaration) :
+    (spaceDeclaration : VariationSpace) :
     Except VariationSpacePreparationError PreparedVariationSpace :=
   match behaviorResult with
   | .error error => .error (.behavior error)
@@ -246,7 +246,7 @@ def canonicalAssignments : List (List ModelValue) := [
 ]
 
 /-- Semantically identical declaration with axes, choices, faults, and goals reordered. -/
-def reorderedDeclaration : ExperimentSpaceDeclaration := {
+def reorderedDeclaration : VariationSpace := {
   declaration with
   axes := (declaration.axes.map fun axis => { axis with choices := axis.choices.reverse }).reverse
   faults := declaration.faults.reverse

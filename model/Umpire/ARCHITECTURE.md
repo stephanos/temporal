@@ -26,7 +26,7 @@ Focused public imports are available by responsibility:
 | `Umpire.Scenario` | The authored Scenario language: setup roles, occurrences, and trace shape. |
 | `Umpire.Scenario.Check` | Scenario admission, canonicalization, and trace admission. |
 | `Umpire.Query` | Bounded questions over a checked Model, Properties, and Scenarios. |
-| `Umpire.Space` | Checked finite axes, fault intents and their lowering, and atomic point compilation. |
+| `Umpire.Variations` | Checked finite axes, fault intents and their lowering, and atomic point compilation. |
 | `Umpire.Exploration` | Bounded finite selection, pinned precedence, and process-local sessions. |
 | `Umpire.Evidence` | Offline evidence mappings and accepted semantic traces. |
 | `Umpire.ImplementationLink` | Checked correspondence between independent semantic Models. |

@@ -1,10 +1,10 @@
-import Umpire.Space.Compiler
-import Umpire.Space.Tests.Fixtures
+import Umpire.Variations.Compiler
+import Umpire.Variations.Tests.Fixtures
 import Umpire.Search.Tests.Fixtures
 
 /-! Exact assignment lowering and atomic checked-Space compilation. -/
 
-namespace Umpire.SpaceTests
+namespace Umpire.VariationsTests
 
 open Umpire
 
@@ -40,7 +40,7 @@ private def baseQueryWithAuthoredGaps := {
 }
 
 private def checkedWithAuthoredGapsResult :=
-  checkExperimentSpace (.ofQuery baseQueryWithAuthoredGaps) declaration
+  checkVariationSpace (.ofQuery baseQueryWithAuthoredGaps) declaration
 
 private def checkedWithAuthoredGaps :=
   checkedWithAuthoredGapsResult.toOption.get (by native_decide)
@@ -53,7 +53,7 @@ private def conflictingGaps : KnownGapSet :=
   (KnownGapSet.checkCanonical [conflictingGap]).toOption.get (by native_decide)
 
 private def checkedWithConflictingGapsResult :=
-  checkExperimentSpace (.ofQuery {
+  checkVariationSpace (.ofQuery {
     checked.baseQuery with authoredKnownGaps := conflictingGaps
   }) declaration
 
@@ -81,7 +81,7 @@ private theorem checkedWithConflictingGapsResultEq :
 private theorem checkedTargetEq :
     checked.baseQuery.target = Umpire.Examples.Switch.target := by
   exact congrArg (fun query => query.target)
-    (checkExperimentSpace_baseQuery checkedResultEq)
+    (checkVariationSpace_baseQuery checkedResultEq)
 
 private def baseKernel : SearchView checked.baseQuery.target :=
   Eq.mpr (congrArg SearchView checkedTargetEq)
@@ -90,7 +90,7 @@ private def baseKernel : SearchView checked.baseQuery.target :=
 private def conflictingBaseKernel :
     SearchView checkedWithConflictingGaps.baseQuery.target :=
   Eq.mpr (congrArg SearchView (congrArg (fun query => query.target)
-    (checkExperimentSpace_baseQuery checkedWithConflictingGapsResultEq))) baseKernel
+    (checkVariationSpace_baseQuery checkedWithConflictingGapsResultEq))) baseKernel
 
 private def transportedKernel : SearchView lowered.query.target :=
   Eq.mpr (congrArg SearchView lowered.targetEq)
@@ -296,4 +296,4 @@ example :
     (none, some .duplicatePointIdentity) := by
   native_decide
 
-end Umpire.SpaceTests
+end Umpire.VariationsTests

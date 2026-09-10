@@ -1,6 +1,6 @@
 import Umpire.Search
 import Umpire.Search.Branches
-import Umpire.Space.Intent
+import Umpire.Variations.Intent
 
 /-! Exact checked-Space point lowering and atomic target-owned batch compilation. -/
 
@@ -55,8 +55,8 @@ structure SpaceCompilationError where
   deriving BEq, DecidableEq, Repr
 
 /-- One exact assignment lowered through Behavior, Query, and Artifact-intent checking. -/
-structure LoweredSpacePoint
-    (space : CheckedExperimentSpace LawStatement) where
+structure PlannedVariant
+    (space : CheckedVariationSpace LawStatement) where
   id : DefinitionId
   assignment : List ModelValue
   query : CheckedQuery LawStatement
@@ -87,14 +87,14 @@ private def assignmentJson (assignment : List ModelValue) : String :=
       ",\"choice\":" ++ quote selected.value ++ "}")
 
 private def pointIdentity
-    (space : CheckedExperimentSpace LawStatement)
+    (space : CheckedVariationSpace LawStatement)
     (assignment : List ModelValue) : DefinitionId :=
   let digest := (behaviorFingerprintOf <|
     "umpire-space-point/v1\n" ++ space.id.value ++ "\n" ++ assignmentJson assignment).render
   DefinitionId.of (space.id.value ++ ".point." ++ (digest.drop 7).toString)
 
 private def compilationError
-    (space : CheckedExperimentSpace LawStatement)
+    (space : CheckedVariationSpace LawStatement)
     (kind : SpaceCompilationErrorKind)
     (pointId : DefinitionId)
     (offendingValue : String)
@@ -107,7 +107,7 @@ private def compilationError
 }
 
 private def knownGapCompilationError
-    (space : CheckedExperimentSpace LawStatement)
+    (space : CheckedVariationSpace LawStatement)
     (pointId : DefinitionId)
     (error : KnownGapError) : SpaceCompilationError := {
   compilationError space .knownGapCheckFailed pointId error.kind.name
@@ -132,7 +132,7 @@ private def firstDuplicateAxis : List ModelValue → Option DefinitionId
   | _ => none
 
 private def selectedChoices
-    (space : CheckedExperimentSpace LawStatement)
+    (space : CheckedVariationSpace LawStatement)
     (assignment : List ModelValue) :
     Except SpaceCompilationError (DefinitionId × List ModelValue ×
       List (CheckedVariationAxis × CheckedChoice)) := do
@@ -179,7 +179,7 @@ private def derivedQueryId (pointId : DefinitionId) : DefinitionId :=
   DefinitionId.of (pointId.value ++ ".query")
 
 private def visibleDefinitionIds
-    (space : CheckedExperimentSpace LawStatement) : List DefinitionId :=
+    (space : CheckedVariationSpace LawStatement) : List DefinitionId :=
   [
     space.id,
     space.baseQuery.id,
@@ -210,7 +210,7 @@ def firstDerivedIdentityCollision
 
 /-- Reject a point when either derived identity aliases an already visible definition. -/
 def rejectDerivedIdentityCollisions
-    (space : CheckedExperimentSpace LawStatement)
+    (space : CheckedVariationSpace LawStatement)
     (pointId : DefinitionId)
     (visible : List DefinitionId) : Except SpaceCompilationError Unit := do
   match firstDerivedIdentityCollision pointId visible with
@@ -231,7 +231,7 @@ private def bindingConstraint
 }
 
 private def authoredScenario
-    (space : CheckedExperimentSpace LawStatement)
+    (space : CheckedVariationSpace LawStatement)
     (pointId : DefinitionId)
     (bindings : List RoleBinding) : Scenario :=
   let base := space.baseQuery.behavior
@@ -255,7 +255,7 @@ private def authoredScenario
   }
 
 private def authoredQuery
-    (space : CheckedExperimentSpace LawStatement)
+    (space : CheckedVariationSpace LawStatement)
     (pointId : DefinitionId)
     (behavior : CheckedScenario) : Query :=
   let base := space.baseQuery
@@ -292,7 +292,7 @@ private def materializeQuery
   }
 
 private def selectedFaults
-    (space : CheckedExperimentSpace LawStatement)
+    (space : CheckedVariationSpace LawStatement)
     (choices : List (CheckedVariationAxis × CheckedChoice)) :
     Except SpaceCompilationError (List CheckedFaultIntent) := do
   let ids := choices.flatMap fun selected => selected.2.faults
@@ -325,9 +325,9 @@ private def intentDeclaration
 
 /-- Lower one complete exact assignment without planning or constructing a target kernel. -/
 def lowerSpacePoint
-    (space : CheckedExperimentSpace LawStatement)
+    (space : CheckedVariationSpace LawStatement)
     (assignment : List ModelValue) :
-    Except SpaceCompilationError (LoweredSpacePoint space) := do
+    Except SpaceCompilationError (PlannedVariant space) := do
   let (pointId, assignment, choices) ← selectedChoices space assignment
   SpaceCompiler.Internal.rejectDerivedIdentityCollisions space pointId
     (visibleDefinitionIds space)
@@ -366,9 +366,9 @@ private def cartesianAssignments :
           { definitionId := axis.id, value := choice.id.value } :: assignment
 
 private def planPoint
-    (space : CheckedExperimentSpace LawStatement)
+    (space : CheckedVariationSpace LawStatement)
     (kernel : SearchView space.baseQuery.target)
-    (point : LoweredSpacePoint space) : Except SpaceCompilationError PlanResult := do
+    (point : PlannedVariant space) : Except SpaceCompilationError PlanResult := do
   let pointKernel : SearchView point.query.target :=
     Eq.mpr (congrArg SearchView point.targetEq) kernel
   match searchWithPlanRequest point.query pointKernel point.intent with
@@ -382,7 +382,7 @@ namespace SpaceCompiler.Internal
 
 /-- Append a canonical point identity only once; duplicate identity exposes no updated prefix. -/
 def appendPointIdentity
-    (space : CheckedExperimentSpace LawStatement)
+    (space : CheckedVariationSpace LawStatement)
     (pointIds : List DefinitionId)
     (pointId : DefinitionId) : Except SpaceCompilationError (List DefinitionId) :=
   if pointIds.contains pointId then
@@ -394,7 +394,7 @@ def appendPointIdentity
 Append one planned point only after it selected a unique Artifact; failure exposes no prefix.
 -/
 def appendPlannerRun
-    (space : CheckedExperimentSpace LawStatement)
+    (space : CheckedVariationSpace LawStatement)
     (pointId : DefinitionId)
     (specs : List Plan)
     (run : PlanResult) : Except SpaceCompilationError (List Plan) := do
@@ -423,7 +423,7 @@ end SpaceCompiler.Internal
 
 /-- Compile every canonical point through one transported caller-owned kernel, or return no batch. -/
 def compileBatch
-    (space : CheckedExperimentSpace LawStatement)
+    (space : CheckedVariationSpace LawStatement)
     (kernel : SearchView space.baseQuery.target) :
     Except SpaceCompilationError (List Plan) := do
   let assignments := cartesianAssignments space.axes

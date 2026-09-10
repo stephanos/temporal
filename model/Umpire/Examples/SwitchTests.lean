@@ -1,9 +1,9 @@
 import Umpire.Examples.Switch
-import Umpire.Space.Tests.Compilation
-import Umpire.Space.Tests.Determinism
-import Umpire.Space.Tests.Intent
-import Umpire.Space.Tests.Metadata
-import Umpire.Space.Tests.Validation
+import Umpire.Variations.Tests.Compilation
+import Umpire.Variations.Tests.Determinism
+import Umpire.Variations.Tests.Intent
+import Umpire.Variations.Tests.Metadata
+import Umpire.Variations.Tests.Validation
 import Umpire.Json
 
 namespace Umpire.Examples.SwitchTests

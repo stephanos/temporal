@@ -38,20 +38,20 @@ private theorem queryResult_target
           rfl
 
 private structure PreparedExploration where
-  space : CheckedExperimentSpace LawStatement
+  space : CheckedVariationSpace LawStatement
   kernel : SearchView space.baseQuery.target
 
 private def prepare : Except VariationSpacePreparationError PreparedExploration :=
   match queryEq : queryResult with
   | .error error => .error error
   | .ok query =>
-      match checkedEq : checkExperimentSpace (.ofQuery query) declaration with
+      match checkedEq : checkVariationSpace (.ofQuery query) declaration with
       | .error error => .error (.space error)
       | .ok checked =>
           let queryTargetEq := queryResult_target query queryEq
           let checkedTargetEq : checked.baseQuery.target = target :=
             (congrArg (fun candidate => candidate.target) <|
-              checkExperimentSpace_baseQuery checkedEq).trans queryTargetEq
+              checkVariationSpace_baseQuery checkedEq).trans queryTargetEq
           .ok {
             space := checked
             kernel := Eq.mpr (congrArg SearchView checkedTargetEq) incrementalKernel
@@ -87,7 +87,7 @@ def run
 def startSession
     (policy : ExplorationPolicy)
     (limit : Nat)
-    (pinned : List Plan := []) : Except NexusExplorationError ExplorationSession := do
+    (pinned : List Plan := []) : Except NexusExplorationError CandidateCursor := do
   let prepared ← prepare.mapError NexusExplorationError.preparation
   (beginSession (request prepared policy limit pinned) prepared.kernel).mapError
     NexusExplorationError.exploration

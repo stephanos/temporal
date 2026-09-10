@@ -23,12 +23,12 @@ import Umpire
 #check Umpire.Query
 #check Umpire.SearchView
 #check Umpire.Plan
-#check Umpire.ExperimentSpaceDeclaration
-#check Umpire.CheckedExperimentSpace
-#check Umpire.checkExperimentSpace
+#check Umpire.VariationSpace
+#check Umpire.CheckedVariationSpace
+#check Umpire.checkVariationSpace
 #check Umpire.CheckedSpaceMetadata
 #check Umpire.projectCheckedSpaceMetadata
-#check Umpire.LoweredSpacePoint
+#check Umpire.PlannedVariant
 #check Umpire.lowerSpacePoint
 #check Umpire.compileBatch
 #check Umpire.Evidence.Reading

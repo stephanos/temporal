@@ -38,8 +38,8 @@ def isPinned
 /-- The canonical candidate partition still eligible for the Exploration Limit. -/
 def eligibleCandidates
     (request : CheckedExplorationRequest LawStatement)
-    (candidateUniverse : CandidateUniverse) : List ExplorationCandidate :=
-  candidateUniverse.candidates.filter fun candidate => !isPinned request candidate
+    (candidateSet : CandidateSet) : List ExplorationCandidate :=
+  candidateSet.candidates.filter fun candidate => !isPinned request candidate
 
 end ExplorationSelection.Internal
 
@@ -48,8 +48,8 @@ namespace ExhaustiveSelection.Internal
 /-- Apply the exhaustive policy after the engine has established request and universe bindings. -/
 def select
     (request : CheckedExplorationRequest LawStatement)
-    (candidateUniverse : CandidateUniverse) : ExhaustiveSelection :=
-  let candidates := ExplorationSelection.Internal.eligibleCandidates request candidateUniverse
+    (candidateSet : CandidateSet) : ExhaustiveSelection :=
+  let candidates := ExplorationSelection.Internal.eligibleCandidates request candidateSet
   {
     candidates := candidates.take request.limit.value
     outcome := if candidates.length ≤ request.limit.value then
@@ -66,12 +66,12 @@ inputs produce no selection. Only reaching the finite universe end reports exhau
 -/
 def selectExhaustive
     (request : CheckedExplorationRequest LawStatement)
-    (candidateUniverse : CandidateUniverse) : Option ExhaustiveSelection :=
+    (candidateSet : CandidateSet) : Option ExhaustiveSelection :=
   if request.policy != .exhaustive ||
-      candidateUniverse.spaceDefinitionId != request.space.id ||
-      candidateUniverse.spaceBehaviorFingerprint != request.space.behaviorFingerprint then
+      candidateSet.spaceDefinitionId != request.space.id ||
+      candidateSet.spaceBehaviorFingerprint != request.space.behaviorFingerprint then
     none
   else
-    some (ExhaustiveSelection.Internal.select request candidateUniverse)
+    some (ExhaustiveSelection.Internal.select request candidateSet)
 
 end Umpire

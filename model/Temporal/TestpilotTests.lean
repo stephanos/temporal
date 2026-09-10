@@ -1,6 +1,6 @@
 import Temporal.Testpilot
 import Temporal.Feature.Nexus3.Testpilot
-import Umpire.Space.Tests.Lowering
+import Umpire.Variations.Tests.Lowering
 
 namespace Temporal.TestpilotTests
 
@@ -65,7 +65,7 @@ private def activationKind : EntrypointDefinition → Option Nat
       (artifact.program.bind fun program =>
         (program.entrypoints.find? fun entrypoint => entrypoint.entrypoint_id == "controller").bind
           fun controller => controller.instructions[0]?).any
-        (Umpire.SpaceLoweringTests.sameFaultNode · stop)
+        (Umpire.VariationsLoweringTests.sameFaultNode · stop)
   | _, _ => false
 
 -- The outage rule is the checked-in `rule_events` horizon: no elapsed-time bound participates.

@@ -1,5 +1,5 @@
 import Umpire.Exploration.Candidate
-import Umpire.Space.Tests.Fixtures
+import Umpire.Variations.Tests.Fixtures
 
 /-! Atomic compilation and canonical coverage for one finite Exploration candidate universe. -/
 
@@ -7,18 +7,18 @@ namespace Umpire.ExplorationTests
 
 open Umpire
 
-/-! Only the exact-kernel public builder may construct a CandidateUniverse. -/
+/-! Only the exact-kernel public builder may construct a CandidateSet. -/
 /--
-error: Unknown constant `Umpire.CandidateUniverse.Internal.fromCompiledSpecs`
+error: Unknown constant `Umpire.CandidateSet.Internal.fromCompiledSpecs`
 -/
 #guard_msgs (error, substring := true) in
-#check Umpire.CandidateUniverse.Internal.fromCompiledSpecs
+#check Umpire.CandidateSet.Internal.fromCompiledSpecs
 
 /--
-error: Unknown constant `Umpire.CandidateUniverse.Internal.fromCompilationResult`
+error: Unknown constant `Umpire.CandidateSet.Internal.fromCompilationResult`
 -/
 #guard_msgs (error, substring := true) in
-#check Umpire.CandidateUniverse.Internal.fromCompilationResult
+#check Umpire.CandidateSet.Internal.fromCompilationResult
 
 private theorem except_eq_ok_get
     (result : Except ε α)
@@ -29,20 +29,20 @@ private theorem except_eq_ok_get
   | ok _ => rfl
 
 private theorem checkedSpaceResultEq :
-    SpaceTests.checkedResult = .ok SpaceTests.checked :=
-  except_eq_ok_get SpaceTests.checkedResult (by native_decide)
+    VariationsTests.checkedResult = .ok VariationsTests.checked :=
+  except_eq_ok_get VariationsTests.checkedResult (by native_decide)
 
 private theorem checkedSpaceTargetEq :
-    SpaceTests.checked.baseQuery.target = Umpire.Examples.Switch.target := by
+    VariationsTests.checked.baseQuery.target = Umpire.Examples.Switch.target := by
   exact congrArg (fun query => query.target)
-    (checkExperimentSpace_baseQuery checkedSpaceResultEq)
+    (checkVariationSpace_baseQuery checkedSpaceResultEq)
 
-private def kernel : SearchView SpaceTests.checked.baseQuery.target :=
+private def kernel : SearchView VariationsTests.checked.baseQuery.target :=
   Eq.mpr (congrArg SearchView checkedSpaceTargetEq)
     Umpire.Examples.Switch.incrementalKernel
 
 private def authoredRequest : ExplorationRequest Umpire.Examples.Switch.LawStatement := {
-  space := SpaceTests.checked
+  space := VariationsTests.checked
   policy := .exhaustive
   limit := { value := 4, unit := .plans }
 }
@@ -58,7 +58,7 @@ private theorem checkedRequestResultEq : checkedRequestResult = .ok checkedReque
 private theorem checkedRequestTargetEq :
     checkedRequest.space.baseQuery.target = Umpire.Examples.Switch.target := by
   calc
-    checkedRequest.space.baseQuery.target = SpaceTests.checked.baseQuery.target :=
+    checkedRequest.space.baseQuery.target = VariationsTests.checked.baseQuery.target :=
       congrArg (fun space => space.baseQuery.target)
         (checkExplorationRequest_space checkedRequestResultEq)
     _ = Umpire.Examples.Switch.target := checkedSpaceTargetEq
@@ -67,9 +67,9 @@ private def candidateKernel : SearchView checkedRequest.space.baseQuery.target :
   Eq.mpr (congrArg SearchView checkedRequestTargetEq)
     Umpire.Examples.Switch.incrementalKernel
 
-private def compiled := compileBatch SpaceTests.checked kernel
+private def compiled := compileBatch VariationsTests.checked kernel
 
-private def universeResult := buildCandidateUniverse checkedRequest candidateKernel
+private def universeResult := buildCandidateSet checkedRequest candidateKernel
 
 private def universeErrorKindOf
     (result : Except ExplorationError α) : Option ExplorationErrorKind :=
@@ -107,17 +107,17 @@ example : universeResult.toOption.map (fun result =>
           decide ((left.map DefinitionId.value) ≤ (right.map DefinitionId.value)))) = some [
     [],
     [],
-    [SpaceTests.delayFaultId],
-    [SpaceTests.delayFaultId]
+    [VariationsTests.delayFaultId],
+    [VariationsTests.delayFaultId]
   ] := by
   native_decide
 
 /-! Candidate identity order is canonical and independent of compiled input order. -/
 example :
     let forward := compiled.toOption.bind fun specs =>
-      (CandidateUniverse.Internal.validateCompiledSpecs checkedRequest specs).toOption
+      (CandidateSet.Internal.validateCompiledSpecs checkedRequest specs).toOption
     let reversed := compiled.toOption.bind fun specs =>
-      (CandidateUniverse.Internal.validateCompiledSpecs checkedRequest specs.reverse).toOption
+      (CandidateSet.Internal.validateCompiledSpecs checkedRequest specs.reverse).toOption
     forward = reversed ∧ forward.map (fun result =>
       decide (result.Pairwise fun left right =>
         checksumLe left right = true)) = some true := by
@@ -144,17 +144,17 @@ private def invalidTraceArtifact : Plan :=
 
 /-! Invalid, incomplete, duplicate, or count-mismatched inputs expose no partial universe. -/
 example : [
-    universeErrorKindOf (CandidateUniverse.Internal.validateCompiledSpecs checkedRequest
+    universeErrorKindOf (CandidateSet.Internal.validateCompiledSpecs checkedRequest
       [invalidArtifact]),
-    universeErrorKindOf (CandidateUniverse.Internal.validateCompiledSpecs checkedRequest
+    universeErrorKindOf (CandidateSet.Internal.validateCompiledSpecs checkedRequest
       [invalidTraceArtifact]),
-    universeErrorKindOf (CandidateUniverse.Internal.validateCompiledSpecs checkedRequest [
+    universeErrorKindOf (CandidateSet.Internal.validateCompiledSpecs checkedRequest [
       Umpire.Examples.Switch.compiledArtifact,
       Umpire.Examples.Switch.compiledArtifact,
       Umpire.Examples.Switch.compiledArtifact,
       Umpire.Examples.Switch.compiledArtifact
     ]),
-    universeErrorKindOf (CandidateUniverse.Internal.validateCompiledSpecs checkedRequest
+    universeErrorKindOf (CandidateSet.Internal.validateCompiledSpecs checkedRequest
       [Umpire.Examples.Switch.compiledArtifact])
   ] = [
     some .invalidCandidateArtifact,
@@ -166,10 +166,10 @@ example : [
 
 /-! The closed v1 universe accepts N = 256 and rejects empty or N + 1 before construction. -/
 example : [
-    universeErrorKindOf (CandidateUniverse.Internal.checkCandidateCount checkedRequest
+    universeErrorKindOf (CandidateSet.Internal.checkCandidateCount checkedRequest
       SpaceLimits.v1.maximumPoints),
-    universeErrorKindOf (CandidateUniverse.Internal.checkCandidateCount checkedRequest 0),
-    universeErrorKindOf (CandidateUniverse.Internal.checkCandidateCount checkedRequest
+    universeErrorKindOf (CandidateSet.Internal.checkCandidateCount checkedRequest 0),
+    universeErrorKindOf (CandidateSet.Internal.checkCandidateCount checkedRequest
       (SpaceLimits.v1.maximumPoints + 1))
   ] = [none, some .emptySpace, some .spacePointLimitExceeded] := by
   native_decide

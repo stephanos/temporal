@@ -1,5 +1,5 @@
 import Umpire.Artifact
-import Umpire.Space.Language
+import Umpire.Variations.Language
 
 /-! Checked projection from selected Space semantics into the existing Artifact intent fields. -/
 

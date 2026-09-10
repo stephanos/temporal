@@ -1,4 +1,4 @@
-import Umpire.Space.Language
+import Umpire.Variations.Language
 
 /-! Canonical in-memory metadata rows projected from one checked Experiment Space. -/
 
@@ -109,7 +109,7 @@ structure SpaceMetadataError where
   deriving BEq, DecidableEq, Repr
 
 /-- Unchecked rows can be inspected or transported, but fn-5 consumes only the checked aggregate. -/
-structure SpaceMetadataProjection where
+structure SpaceMetadataRows where
   space : SpaceMetadataRow
   axes : List SpaceAxisMetadataRow
   choices : List SpaceChoiceMetadataRow
@@ -173,7 +173,7 @@ private def definitionReference (metadata : DefinitionMetadata) : SpaceDefinitio
   kind := metadata.kind
 }
 
-private def targetReference (space : CheckedExperimentSpace LawStatement) : SpaceSemanticReference :=
+private def targetReference (space : CheckedVariationSpace LawStatement) : SpaceSemanticReference :=
   let target := space.baseQuery.target
   let version := (target.definitions.find? fun metadata =>
     metadata.id == target.id && metadata.kind == .target).map DefinitionMetadata.version |>.getD 1
@@ -186,7 +186,7 @@ private def coverageSubject : CheckedCoverageSubject → SpaceCoverageMetadataSu
   | .property reference => .property (semanticReference reference.id reference.source
       reference.version reference.behaviorFingerprint)
 
-private def spaceRow (space : CheckedExperimentSpace LawStatement) : SpaceMetadataRow := {
+private def spaceRow (space : CheckedVariationSpace LawStatement) : SpaceMetadataRow := {
   id := space.id
   source := space.source
   version := space.version
@@ -202,7 +202,7 @@ private def spaceRow (space : CheckedExperimentSpace LawStatement) : SpaceMetada
   baseBehaviorFingerprint := space.behaviorFingerprint
 }
 
-private def axisRows (space : CheckedExperimentSpace LawStatement) : List SpaceAxisMetadataRow :=
+private def axisRows (space : CheckedVariationSpace LawStatement) : List SpaceAxisMetadataRow :=
   space.axes.map (fun axis => {
     id := axis.id
     source := axis.source
@@ -212,7 +212,7 @@ private def axisRows (space : CheckedExperimentSpace LawStatement) : List SpaceA
     baseBehaviorFingerprint := axis.behaviorFingerprint
   }) |>.mergeSort axisRowLe
 
-private def choiceRows (space : CheckedExperimentSpace LawStatement) : List SpaceChoiceMetadataRow :=
+private def choiceRows (space : CheckedVariationSpace LawStatement) : List SpaceChoiceMetadataRow :=
   space.axes.flatMap (fun axis => axis.choices.map fun choice => {
     id := choice.id
     source := choice.source
@@ -224,7 +224,7 @@ private def choiceRows (space : CheckedExperimentSpace LawStatement) : List Spac
     baseBehaviorFingerprint := choice.behaviorFingerprint
   }) |>.mergeSort choiceRowLe
 
-private def faultRows (space : CheckedExperimentSpace LawStatement) : List SpaceFaultMetadataRow :=
+private def faultRows (space : CheckedVariationSpace LawStatement) : List SpaceFaultMetadataRow :=
   space.faults.map (fun fault => {
     id := fault.id
     source := fault.source
@@ -236,7 +236,7 @@ private def faultRows (space : CheckedExperimentSpace LawStatement) : List Space
   }) |>.mergeSort faultRowLe
 
 private def coverageGoalRows
-    (space : CheckedExperimentSpace LawStatement) : List SpaceCoverageGoalMetadataRow :=
+    (space : CheckedVariationSpace LawStatement) : List SpaceCoverageGoalMetadataRow :=
   space.coverageGoals.map (fun goal => {
     id := goal.id
     source := goal.source
@@ -247,8 +247,8 @@ private def coverageGoalRows
   }) |>.mergeSort goalRowLe
 
 /-- Build the canonical unchecked rows used as input to the fail-closed metadata checker. -/
-def canonicalSpaceMetadataProjection
-    (space : CheckedExperimentSpace LawStatement) : SpaceMetadataProjection := {
+def canonicalSpaceMetadataRows
+    (space : CheckedVariationSpace LawStatement) : SpaceMetadataRows := {
   space := spaceRow space
   axes := axisRows space
   choices := choiceRows space
@@ -321,11 +321,11 @@ private def firstStaleGoal
     | none => none
 
 /-- Validate row completeness, exact references, and digests against the checked Space. -/
-def checkSpaceMetadataProjection
-    (space : CheckedExperimentSpace LawStatement)
-    (candidate : SpaceMetadataProjection) :
+def checkSpaceMetadataRows
+    (space : CheckedVariationSpace LawStatement)
+    (candidate : SpaceMetadataRows) :
     Except SpaceMetadataError CheckedSpaceMetadata := do
-  let expected := canonicalSpaceMetadataProjection space
+  let expected := canonicalSpaceMetadataRows space
   match staleBaseDigest expected.space candidate.space with
   | some stale =>
       throw (metadataError .baseDigestMismatch expected.space stale.value [stale])
@@ -373,8 +373,8 @@ def checkSpaceMetadataProjection
 
 /-- Project one checked Space to its deterministic source-backed metadata rows. -/
 def projectCheckedSpaceMetadata
-    (space : CheckedExperimentSpace LawStatement) :
+    (space : CheckedVariationSpace LawStatement) :
     Except SpaceMetadataError CheckedSpaceMetadata :=
-  checkSpaceMetadataProjection space (canonicalSpaceMetadataProjection space)
+  checkSpaceMetadataRows space (canonicalSpaceMetadataRows space)
 
 end Umpire

@@ -28,20 +28,20 @@ private def secondBinding := secondCandidate.plan.artifactBinding
 
 private def afterFirst := firstOutstanding.observe [firstBinding]
 
-private def secondStep := afterFirst.bind ExplorationSession.next
+private def secondStep := afterFirst.bind CandidateCursor.next
 
 private def secondOutstanding := secondStep.map Prod.snd |>.get (by native_decide)
 
-private def advancesFromFirst (candidate : ExplorationSession) : Bool :=
-  (candidate.observe [firstBinding]).bind ExplorationSession.next |>.any fun step =>
+private def advancesFromFirst (candidate : CandidateCursor) : Bool :=
+  (candidate.observe [firstBinding]).bind CandidateCursor.next |>.any fun step =>
     step.1.identity == secondCandidate.identity
 
-private def pinnedOnlySession : ExplorationSession :=
+private def pinnedOnlySession : CandidateCursor :=
   (beginSession (engineRequest .exhaustive 1
     (selectedCandidates.map ExplorationCandidate.plan)) engineKernel).toOption.get
       (by native_decide)
 
-private def pinnedOverlapSession : ExplorationSession :=
+private def pinnedOverlapSession : CandidateCursor :=
   (beginSession (engineRequest .exhaustive 1 [firstCandidate.plan])
     engineKernel).toOption.get (by native_decide)
 
@@ -79,7 +79,7 @@ example :
 example :
     pinnedOnlySession.next.any (fun first =>
       first.1.identity == firstCandidate.identity &&
-        ((first.2.observe [firstBinding]).bind ExplorationSession.next |>.any (fun second =>
+        ((first.2.observe [firstBinding]).bind CandidateCursor.next |>.any (fun second =>
           second.1.identity == secondCandidate.identity))) = true := by
   native_decide
 
@@ -87,7 +87,7 @@ example :
 example :
     pinnedOverlapSession.next.any (fun pinned =>
       pinned.1.identity == firstCandidate.identity &&
-        ((pinned.2.observe [firstBinding]).bind ExplorationSession.next |>.any (fun exploratory =>
+        ((pinned.2.observe [firstBinding]).bind CandidateCursor.next |>.any (fun exploratory =>
           exploratory.1.identity == secondCandidate.identity))) = true := by
   native_decide
 
