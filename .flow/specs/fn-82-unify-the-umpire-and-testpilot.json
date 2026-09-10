@@ -362,17 +362,58 @@
       "task": "fn-82-unify-the-umpire-and-testpilot.4",
       "timestamp": "2026-09-10T08:23:17.998832Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "3e9f93cdfb74e88413f9b57f4346c3afecbf6634eb137c1fc8be59d2a95101e6",
+      "backend": "claude",
+      "base_sha": "0210cb8849772c894881808304587fc88e4383f4",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "23d674849f8586772f6fb858e335220105e89f6a",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 5718,
+      "output_sha256": "27feb8c4ebbd110a3e27c9ef82067cb436dde7bf0c3be1c14c2c0245a068b01f",
+      "reservation_id": "63ab31df71a743369a3e2ad292719cc9",
+      "round_consumed": true,
+      "scope": "impl:fn-82-unify-the-umpire-and-testpilot.4",
+      "superseded_by": null,
+      "task": "fn-82-unify-the-umpire-and-testpilot.4",
+      "timestamp": "2026-09-10T08:46:25.840375Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-82-unify-the-umpire-and-testpilot.1": 1,
     "impl:fn-82-unify-the-umpire-and-testpilot.2": 1,
     "impl:fn-82-unify-the-umpire-and-testpilot.3": 1,
+    "impl:fn-82-unify-the-umpire-and-testpilot.4": 1,
     "plan": 1,
     "plan#completion": 0
   },
-  "review_pending_rounds": {},
-  "review_reservations": {},
+  "review_pending_rounds": {
+    "impl:fn-82-unify-the-umpire-and-testpilot.4": 1
+  },
+  "review_reservations": {
+    "64c3d07dd1fc4dc7b197afff54e66463": {
+      "artifact_sha256": "3e9f93cdfb74e88413f9b57f4346c3afecbf6634eb137c1fc8be59d2a95101e6",
+      "counter_scope": "impl:fn-82-unify-the-umpire-and-testpilot.4",
+      "epoch": 1,
+      "exclusive": false,
+      "forced": false,
+      "review_type": "impl"
+    }
+  },
   "review_transport_failures": {
     "completion": 0,
     "impl:fn-82-unify-the-umpire-and-testpilot.1": 0,
@@ -395,5 +436,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-10T08:23:17.999870Z"
+  "updated_at": "2026-09-10T08:46:26.453762Z"
 }
