@@ -29,12 +29,12 @@ private def queryError (suffix : String) : QueryError := {
 example : OutcomeConstructorClassifiers.names PlanningOutcome.constructorClassifiers = [
     "found",
     "verified-within-limits",
-    "no-such-trace-within-complete-limits",
+    "none-found",
     "limit-reached",
     "unsatisfiable",
     "invalid",
-    "nonempty-unexercised",
-    "unresolved-prefix"
+    "never-triggered",
+    "still-pending"
   ] := by
   native_decide
 

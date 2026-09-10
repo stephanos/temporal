@@ -273,7 +273,7 @@ private def artifactProvenance (query : CheckedQuery LawStatement) : ArtifactPro
 }
 
 /-- Compose checked authored and phase-owned Known Gaps before planning or publication. -/
-def composePlanningKnownGaps
+def composeSearchKnownGaps
     (query : CheckedQuery LawStatement) : Except KnownGapError KnownGapSet :=
   KnownGapSet.union query.authoredKnownGaps canonicalPlannerKnownGaps
 
@@ -359,7 +359,7 @@ def artifactOfSelection
     (trace : Scenario.Trace)
     (reason : SelectionReason)
     (explored : ExploredCounts) : Except KnownGapError ExperimentSpec := do
-  let knownGaps ← composePlanningKnownGaps query
+  let knownGaps ← composeSearchKnownGaps query
   pure (ArtifactPlanning.Internal.artifactOfSelectionWithKnownGaps
     query trace reason explored knownGaps)
 

@@ -408,7 +408,7 @@ def appendPlannerRun
       throw (compilationError space .budgetExhausted pointId run.result.outcome.name)
   | .verified =>
       throw (compilationError space .verifiedWithoutArtifact pointId run.result.outcome.name)
-  | .noSuchTraceWithinCompleteLimits | .nonemptyUnexercised | .unresolvedPrefix =>
+  | .noneFound | .neverTriggered | .stillPending =>
       throw (compilationError space .noArtifact pointId run.result.outcome.name)
   | .found _ _ =>
       match run.artifact with

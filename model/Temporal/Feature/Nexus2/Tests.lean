@@ -466,7 +466,7 @@ private def unsatisfiablePlannerStatus : Option (ScenarioStatus × String) := do
   let query ← (checkQuery (.ofTarget baseline.target)
     (Cancel.queryDeclaration baseline.cancel.property behavior)).toOption
   let kernel ← (SearchView.ofCheckedQuery baseline.target.id query).toOption
-  let run ← (plan query kernel).toOption
+  let run ← (search query kernel).toOption
   pure (behavior.spaceStatus, run.result.outcome.name)
 
 theorem unsatisfiableScenarioRemainsPlannerStatus :
@@ -551,7 +551,7 @@ private def guardedPlannerOutcome
   let query ← (checkQuery (.ofTarget baseline.target)
     (Cancel.queryDeclaration property baseline.cancel.behavior)).toOption
   let kernel ← (SearchView.ofCheckedQuery baseline.target.id query).toOption
-  let run ← (plan query kernel).toOption
+  let run ← (search query kernel).toOption
   let outcome := run.result.outcome
   pure (outcome.name, match outcome with
     | .invalid error => some error.kind
@@ -608,7 +608,7 @@ private def guardedTemporalPlannerOutcome
   let query ← (checkQuery (.ofTarget baseline.target)
     (Cancel.queryDeclaration property baseline.cancel.behavior)).toOption
   let kernel ← (SearchView.ofCheckedQuery baseline.target.id query).toOption
-  let run ← (plan query kernel).toOption
+  let run ← (search query kernel).toOption
   let outcome := run.result.outcome
   pure (outcome.name, match outcome with
     | .invalid error => some error.kind
@@ -812,7 +812,7 @@ theorem budgetExhaustionDiffersFromExhaustiveAbsence :
         checked.limitReached.run.result.outcome.name,
         checked.limitReached.run.result.metadata.completeness.established)) = some (
       { value := 32, unit := .candidateEvaluations }, 4,
-      "no-such-trace-within-complete-limits", true,
+      "none-found", true,
       "limit-reached", false) := by
   native_decide
 

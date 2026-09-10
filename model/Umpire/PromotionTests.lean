@@ -153,7 +153,7 @@ private def nonFoundQuery : CheckedQuery LawStatement := {
 }
 
 private def nonFoundRun : Except KnownGapError PlanResult :=
-  plan nonFoundQuery incrementalKernel
+  search nonFoundQuery incrementalKernel
 
 private def nonFoundAnchor : Option PromotionBaseAnchor := do
   let plannerRun ← nonFoundRun.toOption

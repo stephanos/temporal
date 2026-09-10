@@ -495,80 +495,80 @@ structure SearchStats where
 inductive PlanningOutcome where
   | found (trace : Scenario.Trace) (reason : SelectionReason)
   | verified
-  | noSuchTraceWithinCompleteLimits
+  | noneFound
   | limitReached
   | unsatisfiable
-  | nonemptyUnexercised
-  | unresolvedPrefix
+  | neverTriggered
+  | stillPending
   | invalid (error : QueryError)
   deriving BEq, DecidableEq, Repr
 
 def PlanningOutcome.name : PlanningOutcome → String
   | .found _ _ => "found"
   | .verified => "verified-within-limits"
-  | .noSuchTraceWithinCompleteLimits => "no-such-trace-within-complete-limits"
+  | .noneFound => "none-found"
   | .limitReached => "limit-reached"
   | .unsatisfiable => "unsatisfiable"
-  | .nonemptyUnexercised => "nonempty-unexercised"
-  | .unresolvedPrefix => "unresolved-prefix"
+  | .neverTriggered => "never-triggered"
+  | .stillPending => "still-pending"
   | .invalid _ => "invalid"
 
-private def planningOutcomeConstructorIndex : PlanningOutcome → Nat
+private def searchOutcomeConstructorIndex : PlanningOutcome → Nat
   | .found _ _ => 0
   | .verified => 1
-  | .noSuchTraceWithinCompleteLimits => 2
+  | .noneFound => 2
   | .limitReached => 3
   | .unsatisfiable => 4
   | .invalid _ => 5
-  | .nonemptyUnexercised => 6
-  | .unresolvedPrefix => 7
+  | .neverTriggered => 6
+  | .stillPending => 7
 
 /-- Canonical documentation and exact constructor matchers for Planning outcomes. -/
 def PlanningOutcome.constructorClassifiers :
     List (OutcomeConstructorClassifier PlanningOutcome) := [
   {
     descriptor := { name := "found", description := "Planning selected one Model Trace." }
-    accepts := fun outcome => planningOutcomeConstructorIndex outcome == 0
+    accepts := fun outcome => searchOutcomeConstructorIndex outcome == 0
   },
   {
     descriptor := {
       name := "verified-within-limits"
       description := "Planning verified the requested universal claim within complete Limits."
     }
-    accepts := fun outcome => planningOutcomeConstructorIndex outcome == 1
+    accepts := fun outcome => searchOutcomeConstructorIndex outcome == 1
   },
   {
     descriptor := {
-      name := "no-such-trace-within-complete-limits"
+      name := "none-found"
       description := "Complete bounded search found no matching Model Trace."
     }
-    accepts := fun outcome => planningOutcomeConstructorIndex outcome == 2
+    accepts := fun outcome => searchOutcomeConstructorIndex outcome == 2
   },
   {
     descriptor := {
       name := "limit-reached"
       description := "Planning reached its search Limit before completing the Query."
     }
-    accepts := fun outcome => planningOutcomeConstructorIndex outcome == 3
+    accepts := fun outcome => searchOutcomeConstructorIndex outcome == 3
   },
   {
     descriptor := {
       name := "unsatisfiable"
       description := "The checked Behavior admits no Model Traces."
     }
-    accepts := fun outcome => planningOutcomeConstructorIndex outcome == 4
+    accepts := fun outcome => searchOutcomeConstructorIndex outcome == 4
   },
   {
     descriptor := { name := "invalid", description := "Planning rejected the Query." }
-    accepts := fun outcome => planningOutcomeConstructorIndex outcome == 5
+    accepts := fun outcome => searchOutcomeConstructorIndex outcome == 5
   },
   {
-    descriptor := { name := "nonempty-unexercised", description := "Admissible traces leave requested triggers unexercised." }
-    accepts := fun outcome => planningOutcomeConstructorIndex outcome == 6
+    descriptor := { name := "never-triggered", description := "Admissible traces leave requested triggers unexercised." }
+    accepts := fun outcome => searchOutcomeConstructorIndex outcome == 6
   },
   {
-    descriptor := { name := "unresolved-prefix", description := "An admitted runtime prefix retains unresolved obligations." }
-    accepts := fun outcome => planningOutcomeConstructorIndex outcome == 7
+    descriptor := { name := "still-pending", description := "An admitted runtime prefix retains unresolved obligations." }
+    accepts := fun outcome => searchOutcomeConstructorIndex outcome == 7
   }
 ]
 
@@ -577,12 +577,12 @@ theorem PlanningOutcome.constructorClassifiers_exactlyOne :
     OutcomeConstructorClassifiers.ExactlyOne PlanningOutcome.constructorClassifiers
   | .found _ _ => rfl
   | .verified => rfl
-  | .noSuchTraceWithinCompleteLimits => rfl
+  | .noneFound => rfl
   | .limitReached => rfl
   | .unsatisfiable => rfl
   | .invalid _ => rfl
-  | .nonemptyUnexercised => rfl
-  | .unresolvedPrefix => rfl
+  | .neverTriggered => rfl
+  | .stillPending => rfl
 
 structure PlanningResult where
   private mk ::
@@ -623,7 +623,7 @@ def canonicalPlanningReceiptJson (result : PlanningResult) : String :=
     | .unknown => "unknown" | .exercised => "exercised" | .unexercised => "unexercised"
   let answer := match validity.answer with
     | .unknown => "unknown" | .witness => "witness" | .verified => "verified"
-    | .counterexample => "counterexample" | .unresolvedPrefix => "unresolved-prefix"
+    | .counterexample => "counterexample" | .stillPending => "still-pending"
   let limits := result.metadata.completeness.limits
   Lean.Json.compress <| .mkObj [
     ("formatVersion", .str "umpire-planning-receipt/v1"),
@@ -745,7 +745,7 @@ private def finalizePlanning
             match query.claim with
             | .verifiedWithinLimits => (.verified, true)
             | .satisfyingWitness | .violatingCounterexample | .limitedSelection =>
-                (.noSuchTraceWithinCompleteLimits, true)
+                (.noneFound, true)
   PlanningResult.mk outcome (planningMetadata query explored established)
 
 private def setupLe (left right : List RoleBinding) : Bool :=
@@ -907,7 +907,7 @@ private partial def pullCandidate
               activePath := { cursor with currentAction := none, nextOutcome := 0 } :: parents
             }
 
-private def purePlannerBackend
+private def pureSearchBackend
     (query : CheckedQuery LawStatement)
     (kernel : SearchView query.target) :
     PlannerBackend Unit PurePlannerState Scenario.Trace := {
@@ -1085,14 +1085,14 @@ def traverseBoundedCandidates
   if query.behavior.isUnsatisfiable then
     traversalResult query initial (.complete false) {} {}
   else
-    let backend := purePlannerBackend query kernel
+    let backend := pureSearchBackend query kernel
     traverseLoop query backend (backend.start ()) initial visit query.limits.search.value false {} {}
 
-/-- Plan a checked Query without invoking runtime, readers, evidence, or promotion behavior. -/
-def plan
+/-- Search a checked Query without invoking runtime, readers, evidence, or promotion behavior. -/
+def search
     (query : CheckedQuery LawStatement)
     (kernel : SearchView query.target) : Except KnownGapError PlanResult := do
-  let knownGaps ← composePlanningKnownGaps query
+  let knownGaps ← composeSearchKnownGaps query
   let traversed := traverseBoundedCandidates query kernel {} (observeCandidate query)
   let state := traversed.state
   let searchComplete := match traversed.termination with
@@ -1104,15 +1104,15 @@ def plan
     | _, _ => traversed.termination
   let run := finish query traversed.metadata.explored traversed.instrumentation termination knownGaps
   let outcome := match run.result.outcome with
-    | .verified | .noSuchTraceWithinCompleteLimits =>
-        if state.unresolved then .unresolvedPrefix
-        else if !covered then .nonemptyUnexercised else run.result.outcome
+    | .verified | .noneFound =>
+        if state.unresolved then .stillPending
+        else if !covered then .neverTriggered else run.result.outcome
     | other => other
   let answer := match outcome with
     | .found _ .violatingCounterexample => PlanningAnswer.counterexample
     | .found _ .satisfyingWitness => .witness
     | .verified => .verified
-    | .unresolvedPrefix => .unresolvedPrefix
+    | .stillPending => .stillPending
     | _ => .unknown
   let validity : PlanningValidity := {
     satisfiability := if state.nonempty then .nonempty else
@@ -1139,7 +1139,7 @@ def planWithArtifactIntent
     (kernel : SearchView query.target)
     (intent : ArtifactIntent) : Except PlanningRequestError PlanResult := do
   intent.validateFor query |>.mapError PlanningRequestError.artifactIntent
-  let run ← plan query kernel |>.mapError PlanningRequestError.knownGap
+  let run ← search query kernel |>.mapError PlanningRequestError.knownGap
   let artifact ← match run.artifact with
     | none => pure none
     | some spec => some <$> (spec.withArtifactIntent query intent |>.mapError

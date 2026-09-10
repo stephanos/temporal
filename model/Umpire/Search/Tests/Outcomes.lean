@@ -22,7 +22,7 @@ example : [
   ] = [
     some "verified-within-limits",
     some "found",
-    some "no-such-trace-within-complete-limits",
+    some "none-found",
     some "found"
   ] := by
   native_decide
@@ -48,7 +48,7 @@ example :
         run.result.metadata.completeness.limits),
       exhausted.toOption.map fun run =>
         (run.result.outcome.name, run.result.metadata.completeness.established)) =
-      (some ("no-such-trace-within-complete-limits", true, limits),
+      (some ("none-found", true, limits),
         some ("limit-reached", false)) := by
   native_decide
 

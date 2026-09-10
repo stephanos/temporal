@@ -105,10 +105,10 @@ def incrementalKernel : SearchView query.target :=
   incrementalKernelResult.toOption.get incrementalKernelResult_isSome
 
 def run : Except KnownGapError PlanResult :=
-  plan query incrementalKernel
+  search query incrementalKernel
 
 def repeatedRun : Except KnownGapError PlanResult :=
-  plan query incrementalKernel
+  search query incrementalKernel
 
 end SuccessfulCompletion
 

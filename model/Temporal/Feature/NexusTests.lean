@@ -61,7 +61,7 @@ def authoredQuery : CheckedQuery LawStatement := {
 }
 
 def authoredRun : Except KnownGapError PlanResult :=
-  plan authoredQuery AsyncStart.incrementalKernel
+  search authoredQuery AsyncStart.incrementalKernel
 
 /-- Planning publishes the exact checked union without changing Query or Behavior identity. -/
 theorem authoredGapReachesTheSelectedArtifact :

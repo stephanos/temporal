@@ -28,7 +28,7 @@ inductive PlanningCoverage where
   deriving BEq, DecidableEq, Repr
 
 inductive PlanningAnswer where
-  | unknown | witness | verified | counterexample | unresolvedPrefix
+  | unknown | witness | verified | counterexample | stillPending
   deriving BEq, DecidableEq, Repr
 
 /-- A realized trigger retains the model path, not merely its final Target state. -/

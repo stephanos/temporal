@@ -245,7 +245,7 @@ private def checkOperation
     |>.mapError BaselineAdmissionError.invalidQuery
   let kernel ← SearchView.ofCheckedQuery target.id query
     |>.mapError BaselineAdmissionError.invalidPlanner
-  let run ← plan query kernel |>.mapError BaselineAdmissionError.invalidKnownGap
+  let run ← search query kernel |>.mapError BaselineAdmissionError.invalidKnownGap
   pure { property, behavior, query, run }
 
 /-- All three journeys proceed only through successful Target and declaration admission branches. -/

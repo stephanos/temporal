@@ -6,11 +6,11 @@ namespace Umpire.SearchTests
 
 open Umpire
 
-#check (composePlanningKnownGaps :
+#check (composeSearchKnownGaps :
   CheckedQuery (fun _ => True) → Except KnownGapError KnownGapSet)
 #check (artifactOfSelection : CheckedQuery (fun _ => True) → Scenario.Trace → SelectionReason →
   ExploredCounts → Except KnownGapError ExperimentSpec)
-#check (plan : (query : CheckedQuery (fun _ => True)) →
+#check (search : (query : CheckedQuery (fun _ => True)) →
   SearchView query.target → Except KnownGapError PlanResult)
 #check (planWithArtifactIntent : (query : CheckedQuery (fun _ => True)) →
   SearchView query.target → ArtifactIntent →
@@ -49,11 +49,11 @@ private def knownGapErrorOf
 
 /-! Authored and phase-owned gaps compose once into exact canonical rows. -/
 example :
-    (composePlanningKnownGaps (queryWithKnownGaps KnownGapSet.empty)).toOption.map
+    (composeSearchKnownGaps (queryWithKnownGaps KnownGapSet.empty)).toOption.map
         KnownGapSet.toList = some canonicalPlannerKnownGaps.toList ∧
-      (composePlanningKnownGaps (queryWithKnownGaps authoredPlanningGaps)).toOption.map
+      (composeSearchKnownGaps (queryWithKnownGaps authoredPlanningGaps)).toOption.map
         KnownGapSet.toList = some (authoredPlanningGap :: canonicalPlannerKnownGaps.toList) ∧
-      (composePlanningKnownGaps (queryWithKnownGaps exactPhaseOverlap)).toOption.map
+      (composeSearchKnownGaps (queryWithKnownGaps exactPhaseOverlap)).toOption.map
         KnownGapSet.toList = some canonicalPlannerKnownGaps.toList := by
   native_decide
 
@@ -64,8 +64,8 @@ example :
       query with behavior := { query.behavior with spaceStatus := .unsatisfiable }
     }
     let noSelection := { query with form := .verify property }
-    [knownGapErrorOf (plan unsatisfiable (incrementalKernel 2)),
-      knownGapErrorOf (plan noSelection (incrementalKernel 2))] = [
+    [knownGapErrorOf (search unsatisfiable (incrementalKernel 2)),
+      knownGapErrorOf (search noSelection (incrementalKernel 2))] = [
       some {
         kind := .conflictingDetail
         code := plannerExecutionEvidenceKnownGap.code
@@ -83,7 +83,7 @@ def witnessSpec (seed : Nat := 17) : Option ExperimentSpec :=
   (run 2 (.witness property) .shortest 10 seed false).toOption.bind PlanResult.artifact
 
 private def authoredWitnessRun : Except KnownGapError PlanResult :=
-  plan (queryWithKnownGaps authoredPlanningGaps) (incrementalKernel 2)
+  search (queryWithKnownGaps authoredPlanningGaps) (incrementalKernel 2)
 
 private def authoredWitnessSpec : Option ExperimentSpec :=
   authoredWitnessRun.toOption.bind PlanResult.artifact
@@ -96,7 +96,7 @@ def incidentalWitnessSpec : Option ExperimentSpec :=
     behavior := { query.behavior with documentation := "changed behavior documentation" }
     form := .witness { property with documentation := "changed property documentation" }
   }
-  (plan incidental (incrementalKernel 2)).toOption.bind PlanResult.artifact
+  (search incidental (incrementalKernel 2)).toOption.bind PlanResult.artifact
 
 def selectedArtifactIsInspectable : Bool :=
   match witnessSpec with

@@ -24,16 +24,16 @@ private def temporalProperty (triggered responds : Bool) (bound : Nat := 1) : Ch
 private def endpointRun
     (endpoint : QueryEndpoint) (exercise : QueryExercisePolicy)
     (form : QueryForm) (width : Nat := 0) (budget : Nat := 10) : Option PlanResult :=
-  (plan { checkedQuery width form .exhaustive budget with endpoint, exercise }
+  (search { checkedQuery width form .exhaustive budget with endpoint, exercise }
     (incrementalKernel width)).toOption
 
 #guard (endpointRun .final .requireAllTriggers
   (.verify (temporalProperty false false))).map (·.result.outcome.name) ==
-    some "nonempty-unexercised"
+    some "never-triggered"
 
 #guard (endpointRun .final .requireAllTriggers
   (.witness (temporalProperty false false))).map (·.result.outcome.name) ==
-    some "nonempty-unexercised"
+    some "never-triggered"
 
 #guard (endpointRun .final .requireAllTriggers
   (.witness (temporalProperty true true))).map (·.result.metadata.validity.answer) == some .witness
@@ -47,7 +47,7 @@ private def endpointRun
 #guard (endpointRun .«partial» .requireAllTriggers
   (.verify (temporalProperty true false))).map (fun run =>
     (run.result.outcome.name, run.result.isVerified, run.result.metadata.validity.searchComplete)) ==
-    some ("unresolved-prefix", false, true)
+    some ("still-pending", false, true)
 
 #guard (endpointRun .«partial» .requireAllTriggers
   (.verify (temporalProperty true false 0))).map (·.result.metadata.validity.answer) ==
@@ -106,7 +106,7 @@ private def terminalRun : Option PlanResult := do
     completeness := (CheckedQueryModel.ofTarget target).completeness
     endpoint := .terminalModel }
   let kernel ← (SearchView.ofCheckedQuery target.id query).toOption
-  (plan query kernel).toOption
+  (search query kernel).toOption
 
 #guard terminalRun.map (·.result.outcome.name) == some "verified-within-limits"
 
@@ -159,7 +159,7 @@ private def convergingRun : Option PlanResult := do
     target
     completeness := (CheckedQueryModel.ofTarget target).completeness }
   let kernel ← (SearchView.ofCheckedQuery target.id query).toOption
-  (plan query kernel).toOption
+  (search query kernel).toOption
 
 #guard convergingRun.map (fun run =>
     (run.result.metadata.validity.answer, run.result.metadata.explored.traces,
@@ -179,7 +179,7 @@ private def convergingRun : Option PlanResult := do
       form := .counterexample (temporalProperty true true)
       behavior := { behavior with traceExactly := some selected } }).toOption
     let kernel ← (SearchView.ofCheckedQuery target.id query).toOption
-    let replayed ← (plan query kernel).toOption
+    let replayed ← (search query kernel).toOption
     pure (replayed.artifact.map (·.plan.requestedActions),
       replayed.result.metadata.validity.answer)) == some (some [requestValue], .counterexample)
 

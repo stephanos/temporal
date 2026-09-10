@@ -65,7 +65,7 @@ exposing its cursor representation. Ordinary planning still stops at the first s
     let query := checkedQuery 2 (.select [property]) .exhaustive 10
     let traversed := traverseBoundedCandidates query (incrementalKernel 2) [] fun traces trace =>
       .ok (.continue (traces ++ [trace]))
-    let planned := plan query (incrementalKernel 2)
+    let planned := search query (incrementalKernel 2)
     (traversed.state.map fun trace => trace.trace.steps.length,
       traversed.termination.name,
       traversed.metadata.completeness.established,

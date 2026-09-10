@@ -631,13 +631,13 @@ theorem exactActionQuery_target : exactActionQuery.target = target := by rfl
 theorem exactTraceQuery_target : exactTraceQuery.target = target := by rfl
 
 def exploratoryRun : Except KnownGapError PlanResult :=
-  plan exploratoryQuery incrementalKernel
+  search exploratoryQuery incrementalKernel
 
 def exactActionRunResult : Except KnownGapError PlanResult :=
-  plan exactActionQuery incrementalKernel
+  search exactActionQuery incrementalKernel
 
 def exactTraceRun : Except KnownGapError PlanResult :=
-  plan exactTraceQuery incrementalKernel
+  search exactTraceQuery incrementalKernel
 
 def artifact : Option ExperimentSpec := exactActionRunResult.toOption.bind PlanResult.artifact
 

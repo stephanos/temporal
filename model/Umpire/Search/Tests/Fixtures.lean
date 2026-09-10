@@ -348,7 +348,7 @@ def run
     (seed : Nat := 17)
     (withCompleteness : Bool := true)
     (selectedBehavior : CheckedScenario := behavior) : Except KnownGapError PlanResult :=
-  plan (checkedQuery width form strategy budget seed withCompleteness selectedBehavior)
+  search (checkedQuery width form strategy budget seed withCompleteness selectedBehavior)
     (incrementalKernel width)
 
 end Umpire.SearchTests

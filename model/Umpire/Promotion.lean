@@ -305,7 +305,7 @@ def compilePromotionSource
     Except PromotionError CompiledPromotionSource := do
   validateSourceSpec baseQuery spec
   validateBaseAnchor baseQuery anchor
-  let replanned ← plan baseQuery kernel |>.mapError (promotionKnownGapError baseQuery.id)
+  let replanned ← search baseQuery kernel |>.mapError (promotionKnownGapError baseQuery.id)
   if replanned != anchor.plannerRun then
     throw (promotionError .plannerRunDrift baseQuery.id
       "recomputed PlanResult does not match the fixed base run")
