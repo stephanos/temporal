@@ -57,9 +57,13 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   `Umpire.Provenance.DefinitionBinding` rows and `Umpire.Provenance.KnownGap` rows that tie the Case
   back to the Model Definitions it came from. The runtime reads none of it.
 - **Program.** A bounded acyclic graph of typed instructions in controller, workflow, activity, or
-  Nexus-handler entrypoints. One instruction kind is an Opcode.
+  Nexus-handler entrypoints.
+- **Opcode.** The kind of one Program instruction. A Profile authorizes a set of Opcodes; nothing
+  else authorizes what a Program may do.
 - **Contract.** A finite set of deterministic safety and bounded-liveness Rules over Run Events and
   declared Observations.
+- **Rule.** One state machine inside a Contract, with an initial state, finite transitions, terminal
+  satisfied or violated states, and, when it is a bounded-liveness Rule, one Deadline.
 - **Profile.** An immutable authorization and environment snapshot containing a descriptor Catalog,
   symbolic role policy, physical environment bindings, Opcodes, and independent Program and
   Contract ceilings. A binding authorizes no Opcode by itself.
@@ -204,13 +208,13 @@ a declared Nexus history Observation reaches a correlated completion within a bo
 
 - **Model (`Umpire.Model`).** The checked behavior an author writes. `Umpire.DraftModel` is the
   unchecked author record, `Umpire.checkModel` admits it, and `Umpire.CheckedModel` is the result
-  every Property, Scenario, and Query shares. `Umpire.ModelSpec` is the declaration data behind it.
+  every Property, Scenario, and Query shares. `Umpire.ModelSpec` is the declaration data behind it,
+  and `Umpire.Vocabulary` holds its enumerated finite domains — states, Actions, Model Outcomes, and
+  Facts — in a canonical order.
 - **Machine (`Umpire.Machine`).** The transition relation of a Model together with the proofs that
   it is the authority for that Model's behavior.
 - **Table (`Umpire.FiniteTable`).** The finite row form of a Machine. `Umpire.CheckedTable` is an
   admitted one and `Umpire.TableModelSpec` is its author record.
-- **Vocabulary (`Umpire.Vocabulary`).** The enumerated finite domains of a Model: its states,
-  Actions, Model Outcomes, and Facts, in a canonical order.
 - **Action.** Something an author asks the Model to do, such as closing a Workflow. Requesting an
   Action neither chooses its Model Outcome nor proves that the Action occurred at runtime.
 - **Model Outcome.** The result the Model produces for an Action. It is an expected model result,
@@ -221,8 +225,7 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   cancellation.” Logs, spans, RPCs, and records are Evidence used to decide whether the claim held
   during a Run. Facts are the `facts` of a `Umpire.Step`; the Fact domain is a Model's own type.
 - **Trace (`Umpire.Scenario.Trace`).** A starting state and a sequence of Steps. It contains no
-  runtime Evidence. One position inside a Trace is a `Umpire.ModelCoordinate`; SEM-19 retires that
-  name to `TraceAddress`, which the tree has not taken yet.
+  runtime Evidence. One position inside a Trace is a `Umpire.ModelCoordinate`.
 - **Scenario (`Umpire.Scenario`).** A named, constrained set of Traces. It defines available
   variations and faults but selects no single Trace, and it neither evaluates Properties nor
   determines whether a Trace occurred at runtime. `Umpire.CheckedScenario` is an admitted one.
@@ -241,7 +244,7 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   `Umpire.Scenario`, `Umpire.Query`, and `Umpire.Evidence`—MUST be separate and have a distinct
   purpose.
 - **SEM-05 — Pure `Umpire.Property`.** `Umpire.Property` declarations MUST use only Traces and
-  Capability Contracts. They MUST NOT depend on implementation Evidence.
+  Capabilities. They MUST NOT depend on implementation Evidence.
 - **SEM-06 — Declarative `Umpire.Scenario`.** `Umpire.Scenario` declarations MUST constrain
   allowed Traces. They MUST NOT become step-by-step RPC or runtime scripts.
 - **SEM-07 — Model-owned outcomes.** Authors MUST request Actions, while `Umpire.CheckedModel`
@@ -254,7 +257,7 @@ a declared Nexus history Observation reaches a correlated completion within a bo
 - **AUT-01 — Approachable authoring.** A Temporal engineer with basic Lean knowledge SHOULD be able
   to write ordinary Model Definitions without understanding Umpire's implementation details.
 - **AUT-02 — Explicit meaning.** Authoring interfaces MUST make states, Actions, Model Outcomes,
-  relations, Limits, faults, Capability Contracts, Known Gaps, and unsupported cases explicit.
+  relations, Limits, faults, Capabilities, Known Gaps, and unsupported cases explicit.
 - **AUT-03 — Checked declarations.** Public declarations MUST be checked before Search or a Run. Failures SHOULD report errors at the relevant source location.
 - **AUT-04 — Stable IDs.** Every public Model Definition MUST have a stable, dot-separated Definition
   ID that is checked against the expected definition kind. Source order and documentation MUST NOT
@@ -390,15 +393,15 @@ a declared Nexus history Observation reaches a correlated completion within a bo
 - **Evaluator.** The verification component that creates one fresh Monitor per Run or evaluates a
   closed Run offline using the same Contract transition semantics.
 - **Monitor.** One private Run-local Contract state machine. It returns Continue or Stop but cannot
-  dispatch work or mutate a Run. `Testpilot.Correlated.Monitor` is the Lean Monitor for a
-  Correlated capability; `Shared.CorrelatedObligation.Monitor` is the semantics it and the Go
-  runtime share.
-- **Evidence (`Umpire.Evidence`).** Offline evaluation of captured runtime records against a Model.
-  `Umpire.Evidence.Reading` is one admitted record and `Umpire.Evidence.PropertyStatus` is what a
-  Property's clauses came to under it.
+  dispatch work or mutate a Run. `Testpilot.Correlated.Monitor` is the Lean Monitor for a Correlated
+  Rule; `Shared.CorrelatedObligation.Monitor` is the semantics it and the Go runtime share.
+- **Evidence.** The captured runtime records a claim about a Run rests on: logs, spans, RPCs, and
+  history. `Umpire.Evidence` evaluates them against a Model offline, `Umpire.Evidence.Reading` is one
+  admitted record, and `Umpire.Evidence.PropertyStatus` is what a Property's clauses came to under
+  them.
 - **Projection (`Umpire.Case.Projection`).** Reading declared Run values into model Steps and
-  fields. It is the only seam between a Run and a Model; nothing else in the tree is called a
-  projection.
+  fields. It is the only seam between a Run and a Model. `Shared.CorrelatedProjection` is the part
+  of that reading a Lean Producer and the Go runtime must agree on.
 - **Run disposition.** `completed`, `stopped_by_monitor`, or `incomplete`; it is independent of the
   cleanup status and Verdict.
 - **Cleanup status.** `succeeded`, `failed`, or `timed_out`; cleanup failure never erases a proved
@@ -406,8 +409,8 @@ a declared Nexus history Observation reaches a correlated completion within a bo
 
 ### Runtime rules
 
-- **EVD-01 — Thin runtime.** Runtime and CLI code MUST only prepare Cases, bind authorized Driver
-  capabilities, and execute admitted Programs. It MUST NOT independently decide scenario or product
+- **EVD-01 — Thin runtime.** Runtime and CLI code MUST only prepare Cases, bind the Driver
+  authority a Profile's Opcodes allow, and execute admitted Programs. It MUST NOT independently decide scenario or product
   behavior.
 - **EVD-04 — Fail closed.** Missing, ambiguous, conflicting, outdated, unsupported, or causally
   unrelated Evidence MUST NOT establish success or absence.
@@ -452,7 +455,7 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   immutable Profile binding snapshot.
 - **EVD-20 — Driver-realized faults.** *(drafted by fn-80; approved 2026-09-10 under GOV-02.)*
   A deliberate outage MUST be a declared instruction of the version-one instruction table, MUST name
-  a role the Program declares, and MUST be authorized by a Profile capability like any other
+  a role the Program declares, and MUST be authorized by a Profile Opcode like any other
   instruction. A Driver MUST record exactly one `RUN_EVENT_KIND_FAULT_INJECTED` Run Event per
   realized instruction, carrying the role and the kind it realized, and MUST record none for an
   instruction it refused or could not complete; such an instruction is a failed outcome plus a

@@ -104,3 +104,25 @@ func TestBuildIgnoresDeclarationKeywordsInsideABody(t *testing.T) {
 	require.False(t, index.Resolve("Umpire.keyword"))
 	require.False(t, index.Resolve("Umpire.bodyDef"))
 }
+
+func TestBuildIgnoresLeanInsideBlockComments(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	writeLean(t, root, "Umpire/Doc.lean", "namespace Umpire\n\n"+
+		"/-\n"+
+		"An example a reader copies, not code:\n"+
+		"def commented := 1\n"+
+		"end Umpire\n"+
+		"-/\n\n"+
+		"def afterComment := 2\n\n"+
+		"end Umpire\n")
+
+	index, err := leannames.Build(root)
+	require.NoError(t, err)
+	require.False(t, index.Resolve("Umpire.commented"))
+	require.False(t, index.Resolve("commented"))
+	// The `end Umpire` inside the comment must not have closed the namespace.
+	require.True(t, index.Resolve("Umpire.afterComment"))
+	require.False(t, index.Resolve("afterComment"))
+}
