@@ -7,7 +7,7 @@ import Umpire.Scenario.Elab
 import Umpire.Query.Elab
 
 /-!
-The Nexus.Success success-slice construction and admission layer. `Syntax` emits ordinary declarations
+The Nexus success-slice construction and admission layer. `Syntax` emits ordinary declarations
 that call this module, which owns all Umpire records and checked planning. Every model member is
 held in an ordered list parallel to its name and Definition ID list, so the declared arity is the
 declaration's, not this module's.

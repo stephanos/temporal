@@ -1,4 +1,4 @@
-# Nexus.Race authoring prototype
+# Nexus race authoring prototype
 
 ## Checked learning path
 
@@ -25,7 +25,7 @@ The authoring sequence is `FiniteTable.validate` / `checkModel`, then `Property.
 A checked value exists only on the successful checker branch; the frontend alternatives do not
 create kernel-checked constants automatically.
 
-`Authoring.lean` keeps ordinary typed constructors as the default Nexus.Race authoring surface. The
+`Authoring.lean` keeps ordinary typed constructors as the default race-tree authoring surface. The
 compiled `property%`, `scenario%`, and `query%` alternatives remain in `AuthoringTests.lean` for
 comparison. All three lower to the existing Property, Behavior, and Query checkers; they add source
 occurrence capture and do not add an evaluator or migrate any production declaration.
