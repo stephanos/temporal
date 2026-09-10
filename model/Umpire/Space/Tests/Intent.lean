@@ -19,7 +19,7 @@ private def selectedVariant : RoleBinding := {
   value := Umpire.Examples.Switch.offState
 }
 
-private def selectedFault : ArtifactFaultIntent := {
+private def selectedFault : RequestedFault := {
   definitionId := delayFaultId
   occurrenceDefinitionId := occurrenceId
   actionDefinitionId := Umpire.Examples.Switch.flipActionId
@@ -35,20 +35,20 @@ private def intentDeclaration : ArtifactIntentDeclaration := {
   ]
 }
 
-private def checkedIntentResult : Except ArtifactIntentError ArtifactIntent :=
+private def checkedIntentResult : Except ArtifactIntentError PlanRequest :=
   checkArtifactIntent Umpire.Examples.Switch.exactActionQuery intentDeclaration
 
 private theorem checkedIntentResult_isSome : checkedIntentResult.toOption.isSome = true := by
   native_decide
 
-private def checkedIntent : ArtifactIntent :=
+private def checkedIntent : PlanRequest :=
   checkedIntentResult.toOption.get checkedIntentResult_isSome
 
 private def projectedRunResult : Except PlanningRequestError PlanResult :=
-  planWithArtifactIntent Umpire.Examples.Switch.exactActionQuery
+  searchWithPlanRequest Umpire.Examples.Switch.exactActionQuery
     Umpire.Examples.Switch.incrementalKernel checkedIntent
 
-private def projectedSpec : Option ExperimentSpec :=
+private def projectedSpec : Option Plan :=
   projectedRunResult.toOption.bind PlanResult.artifact
 
 private def intentErrorKindOf
@@ -89,8 +89,8 @@ example :
     let staleIntent := {
       checkedIntent with queryDefinitionId := id "switch.query.stale"
     }
-    requestErrorOf (planWithArtifactIntent query Umpire.Examples.Switch.incrementalKernel
-      staleIntent) = some (.artifactIntent {
+    requestErrorOf (searchWithPlanRequest query Umpire.Examples.Switch.incrementalKernel
+      staleIntent) = some (.planRequest {
         kind := .identityDrift
         definitionId := staleIntent.queryDefinitionId
         relatedDefinitionIds := [query.id]
@@ -126,10 +126,10 @@ example : projectedSpec.map (fun projected =>
       projected.artifactChecksum != ordinary.artifactChecksum) = some true := by
   native_decide
 
-private def changedOccurrencePositions (spec : ExperimentSpec) : List PlannedOccurrence :=
+private def changedOccurrencePositions (spec : Plan) : List PlannedOccurrence :=
   spec.plan.linearExtension.map fun occurrence => { occurrence with position := 99 }
 
-private def targetSemanticMutations (spec : ExperimentSpec) : List ExperimentSpec := [
+private def targetSemanticMutations (spec : Plan) : List Plan := [
   { spec with plan := { spec.plan with initialState := Umpire.Examples.Switch.onState } },
   { spec with plan := { spec.plan with requestedActions := [] } },
   { spec with plan := { spec.plan with modelOutcomes := [] } },
@@ -144,7 +144,7 @@ example : (targetSemanticMutations Umpire.Examples.Switch.compiledArtifact).all 
       checkedIntent) == some .identityDrift := by
   native_decide
 
-private def withValidChecksums (spec : ExperimentSpec) : ExperimentSpec :=
+private def withValidChecksums (spec : Plan) : Plan :=
   let plan := { spec.plan with artifactChecksum := spec.plan.expectedArtifactChecksum }
   let spec := { spec with plan }
   { spec with artifactChecksum := spec.expectedArtifactChecksum }
@@ -225,8 +225,8 @@ example :
         ordinary.plan with kernelDefinitionId := id "switch.kernel.stale"
       }
     }
-    requestErrorOf (planWithArtifactIntent drifted Umpire.Examples.Switch.incrementalKernel
-      checkedIntent) = some (.artifactIntent {
+    requestErrorOf (searchWithPlanRequest drifted Umpire.Examples.Switch.incrementalKernel
+      checkedIntent) = some (.planRequest {
         kind := .identityDrift
         definitionId := checkedIntent.queryDefinitionId
         relatedDefinitionIds := [drifted.id]

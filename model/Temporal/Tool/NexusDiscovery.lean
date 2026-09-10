@@ -43,7 +43,7 @@ structure NexusDiscoveryPropertyBinding where
   behaviorFingerprint : BehaviorFingerprint
   deriving BEq, DecidableEq, Repr
 
-/-- Identity lineage projected from one planned `ExperimentSpec`. -/
+/-- Identity lineage projected from one planned `Plan`. -/
 structure NexusDiscoveryPlan where
   formatVersion : String
   artifactChecksum : ArtifactChecksum
@@ -135,7 +135,7 @@ private def propertyBinding
   behaviorFingerprint := property.behaviorFingerprint
 }
 
-private def planLineage (spec : ExperimentSpec) : NexusDiscoveryPlan := {
+private def planLineage (spec : Plan) : NexusDiscoveryPlan := {
   formatVersion := spec.formatVersion
   artifactChecksum := spec.artifactChecksum
   queryDefinitionId := spec.plan.queryDefinitionId
@@ -162,7 +162,7 @@ def candidateOf
     (property : CheckedProperty)
     (behavior : CheckedScenario)
     (query : CheckedQuery LawStatement)
-    (plan : Option ExperimentSpec) : NexusDiscoveryCandidate := {
+    (plan : Option Plan) : NexusDiscoveryCandidate := {
   property := declaration .property property.id property.source property.behaviorFingerprint
   behavior := declaration .behavior behavior.id behavior.source behavior.behaviorFingerprint
   query := declaration .query query.id query.source query.behaviorFingerprint
@@ -414,7 +414,7 @@ def NexusDiscoveryEntry.canonicalSummaryJson (entry : NexusDiscoveryEntry) : Str
     ",\"property\":" ++ declarationSummaryJson entry.property ++
     ",\"behavior\":" ++ declarationSummaryJson entry.behavior ++
     ",\"query\":" ++ declarationSummaryJson entry.query ++
-    ",\"experimentSpec\":" ++ planSummaryJson entry.plan ++ "}"
+    ",\"plan\":" ++ planSummaryJson entry.plan ++ "}"
 
 /-- Encode one validated row and its complete checked plan lineage as canonical explanation JSON. -/
 def NexusDiscoveryEntry.canonicalExplanationJson (entry : NexusDiscoveryEntry) : String :=

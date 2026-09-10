@@ -33,7 +33,7 @@ def isPinned
     (request : CheckedExplorationRequest LawStatement)
     (candidate : ExplorationCandidate) : Bool :=
   request.pinned.any fun pinned =>
-    pinned.experimentSpec.artifactChecksum == candidate.identity
+    pinned.plan.artifactChecksum == candidate.identity
 
 /-- The canonical candidate partition still eligible for the Exploration Limit. -/
 def eligibleCandidates

@@ -12,7 +12,7 @@ def validLimit : Limit := { value := 4, unit := .experimentSpecs }
 def request
     (policy : ExplorationPolicy := .exhaustive)
     (limit : Limit := validLimit)
-    (pinned : List ExperimentSpec := []) :
+    (pinned : List Plan := []) :
     ExplorationRequest Umpire.Examples.Switch.LawStatement := {
   space := SpaceTests.checked
   policy
@@ -34,14 +34,14 @@ def errorOf
   | .ok _ => none
   | .error error => some error
 
-private def compatiblePinned : ExperimentSpec :=
+private def compatiblePinned : Plan :=
   Umpire.Examples.Switch.compiledArtifact
 
-private def invalidPinned : ExperimentSpec := {
-  compatiblePinned with artifactChecksum := experimentSpecChecksumOf "invalid"
+private def invalidPinned : Plan := {
+  compatiblePinned with artifactChecksum := planChecksumOf "invalid"
 }
 
-private def incompatiblePinned : ExperimentSpec :=
+private def incompatiblePinned : Plan :=
   let planDraft := {
     compatiblePinned.plan with
     artifactChecksum := drivePlanChecksumOf ""
@@ -50,7 +50,7 @@ private def incompatiblePinned : ExperimentSpec :=
   let plan := { planDraft with artifactChecksum := planDraft.expectedArtifactChecksum }
   let specDraft := {
     compatiblePinned with
-    artifactChecksum := experimentSpecChecksumOf ""
+    artifactChecksum := planChecksumOf ""
     plan
   }
   { specDraft with artifactChecksum := specDraft.expectedArtifactChecksum }
@@ -87,7 +87,7 @@ example : (checkExplorationRequest <| request
       checked.space == SpaceTests.checked &&
         checked.policy == .uncoveredCoordinate (.fact 1 1) &&
         checked.limit == { value := 2, unit := .experimentSpecs } &&
-        checked.pinned.map (fun pinned => pinned.experimentSpec.artifactChecksum) ==
+        checked.pinned.map (fun pinned => pinned.plan.artifactChecksum) ==
           [compatiblePinned.artifactChecksum]) = some true := by
   native_decide
 

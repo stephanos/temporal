@@ -90,7 +90,7 @@ private def expectedListBytes : String :=
   "\"query\":{\"definitionId\":\"temporal.nexus.basic-lifecycle.query.async-start\",\"kind\":\"query\"," ++
   "\"source\":{\"path\":\"Temporal/Feature/Nexus/Operations.lean\",\"line\":1,\"column\":1,\"provenance\":\"lean-model\"}," ++
   "\"behaviorFingerprint\":\"sha256:0f2b824ab805074c230bcd4cc03031d9bb9fcc8da36c35aeeeaee1a8d4a6a092\"}," ++
-  "\"experimentSpec\":{\"formatVersion\":\"umpire-experiment/v2\",\"artifactChecksum\":\"sha256:ba3e74f70ec164d1d5ce7f228428d03fb8a4d4cf21579c1fe6998a81d121d2d4\"}}," ++
+  "\"plan\":{\"formatVersion\":\"umpire-experiment/v2\",\"artifactChecksum\":\"sha256:ba3e74f70ec164d1d5ce7f228428d03fb8a4d4cf21579c1fe6998a81d121d2d4\"}}," ++
   "{\"queryDefinitionId\":\"temporal.nexus.basic-lifecycle.query.cancellation\",\"property\":{\"definitionId\":\"temporal.nexus.basic-lifecycle.property.cancellation\"," ++
   "\"kind\":\"property\",\"source\":{\"path\":\"Temporal/Feature/Nexus/Operations.lean\",\"line\":1,\"column\":1," ++
   "\"provenance\":\"lean-model\"},\"behaviorFingerprint\":\"sha256:270931e4c5a0d072d0ebd76e509024e237b2215b941c3497cc4055134d34ab48\"}," ++
@@ -100,7 +100,7 @@ private def expectedListBytes : String :=
   "\"query\":{\"definitionId\":\"temporal.nexus.basic-lifecycle.query.cancellation\",\"kind\":\"query\"," ++
   "\"source\":{\"path\":\"Temporal/Feature/Nexus/Operations.lean\",\"line\":1,\"column\":1,\"provenance\":\"lean-model\"}," ++
   "\"behaviorFingerprint\":\"sha256:3d31cf39de412aa0b784ea5b241e3addafab2d310c477a0280a0ec4115ec96be\"}," ++
-  "\"experimentSpec\":{\"formatVersion\":\"umpire-experiment/v2\",\"artifactChecksum\":\"sha256:2cd2c83d9b0ea2c6482051ed60da186514fb0078fd57c99fed4449c8b6c33bf8\"}}," ++
+  "\"plan\":{\"formatVersion\":\"umpire-experiment/v2\",\"artifactChecksum\":\"sha256:2cd2c83d9b0ea2c6482051ed60da186514fb0078fd57c99fed4449c8b6c33bf8\"}}," ++
   "{\"queryDefinitionId\":\"temporal.nexus.basic-lifecycle.query.successful-completion\",\"property\":{\"definitionId\":\"temporal.nexus.basic-lifecycle.property.successful-completion\"," ++
   "\"kind\":\"property\",\"source\":{\"path\":\"Temporal/Feature/Nexus/Operations.lean\",\"line\":1,\"column\":1," ++
   "\"provenance\":\"lean-model\"},\"behaviorFingerprint\":\"sha256:144637d8e69f94f04299e46da00bcc23cba81fb8e95570e2d18534d27cb5efef\"}," ++
@@ -110,7 +110,7 @@ private def expectedListBytes : String :=
   "\"query\":{\"definitionId\":\"temporal.nexus.basic-lifecycle.query.successful-completion\",\"kind\":\"query\"," ++
   "\"source\":{\"path\":\"Temporal/Feature/Nexus/Operations.lean\",\"line\":1,\"column\":1,\"provenance\":\"lean-model\"}," ++
   "\"behaviorFingerprint\":\"sha256:9379b1659ce1a0ff41ace3e03816e2c76296e1b8822338ae2473f0d7df25d32e\"}," ++
-  "\"experimentSpec\":{\"formatVersion\":\"umpire-experiment/v2\",\"artifactChecksum\":\"sha256:17298e2cfc86e2a0f2ce4dd13b801d7b94d5fff3200c650da4f115699b655d20\"}}]}\n"
+  "\"plan\":{\"formatVersion\":\"umpire-experiment/v2\",\"artifactChecksum\":\"sha256:17298e2cfc86e2a0f2ce4dd13b801d7b94d5fff3200c650da4f115699b655d20\"}}]}\n"
 
 example : inventoryValue.canonicalListBytes = expectedListBytes ∧
     reordered.toOption.map NexusDiscoveryInventory.canonicalListBytes =

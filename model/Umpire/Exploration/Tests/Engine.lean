@@ -31,7 +31,7 @@ def engineKernel : SearchView SpaceTests.checked.baseQuery.target :=
 def engineRequest
     (policy : ExplorationPolicy)
     (value : Nat)
-    (pinned : List ExperimentSpec := []) :
+    (pinned : List Plan := []) :
     ExplorationRequest Umpire.Examples.Switch.LawStatement := {
   space := SpaceTests.checked
   policy
@@ -42,7 +42,7 @@ def engineRequest
 def engineRun
     (policy : ExplorationPolicy)
     (value : Nat)
-    (pinned : List ExperimentSpec := []) :=
+    (pinned : List Plan := []) :=
   explore (engineRequest policy value pinned) engineKernel
 
 /-!
@@ -67,7 +67,7 @@ example :
 /-! The selected identity projection preserves the exact pinned-then-exploratory partition order. -/
 example : (engineRun .exhaustive 4).toOption.map (fun result =>
     result.selectedIdentities ==
-      result.pinned.map (fun pinned => pinned.experimentSpec.artifactChecksum) ++
+      result.pinned.map (fun pinned => pinned.plan.artifactChecksum) ++
         result.exploratory.map ExplorationCandidate.identity) = some true := by
   native_decide
 

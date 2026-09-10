@@ -81,15 +81,15 @@ private def checksumLe (left right : ArtifactChecksum) : Bool :=
   decide (left.render ≤ right.render)
 
 /-!
-Every candidate preserves one valid canonical ExperimentSpec, uses its recomputed identity, and
+Every candidate preserves one valid canonical Plan, uses its recomputed identity, and
 extracts only the coordinates of that Artifact's complete selected Model Trace.
 -/
 example : universeResult.toOption.map (fun result =>
     result.candidates.length == 4 &&
       result.candidates.all fun candidate =>
-        candidate.experimentSpec.isValidTransport &&
-          candidate.identity == candidate.experimentSpec.expectedArtifactChecksum &&
-          candidate.canonicalBytes == canonicalExperimentSpecBytes candidate.experimentSpec &&
+        candidate.plan.isValidTransport &&
+          candidate.identity == candidate.plan.expectedArtifactChecksum &&
+          candidate.canonicalBytes == canonicalPlanBytes candidate.plan &&
           candidate.coverage.modelCoordinates == [
             .initialState,
             .selectedAction 1,
@@ -123,12 +123,12 @@ example :
         checksumLe left right = true)) = some true := by
   native_decide
 
-private def invalidArtifact : ExperimentSpec := {
+private def invalidArtifact : Plan := {
   Umpire.Examples.Switch.compiledArtifact with
-  artifactChecksum := experimentSpecChecksumOf "invalid"
+  artifactChecksum := planChecksumOf "invalid"
 }
 
-private def invalidTraceArtifact : ExperimentSpec :=
+private def invalidTraceArtifact : Plan :=
   let planDraft := {
     Umpire.Examples.Switch.compiledArtifact.plan with
     artifactChecksum := drivePlanChecksumOf ""
@@ -137,7 +137,7 @@ private def invalidTraceArtifact : ExperimentSpec :=
   let plan := { planDraft with artifactChecksum := planDraft.expectedArtifactChecksum }
   let specDraft := {
     Umpire.Examples.Switch.compiledArtifact with
-    artifactChecksum := experimentSpecChecksumOf ""
+    artifactChecksum := planChecksumOf ""
     plan
   }
   { specDraft with artifactChecksum := specDraft.expectedArtifactChecksum }

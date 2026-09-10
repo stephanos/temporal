@@ -46,7 +46,7 @@ func RequireGeneratedView(t testing.TB, reference Reference) {
 }
 
 type fixtureEnvelope = artifactv2.Experiment
-type fixturePlan = artifactv2.DrivePlan
+type fixturePlan = artifactv2.PlanSteps
 type fixtureProperty = artifactv2.Property
 type fixtureProvenance = artifactv2.Provenance
 type fixtureSource = artifactv2.SourceLocation

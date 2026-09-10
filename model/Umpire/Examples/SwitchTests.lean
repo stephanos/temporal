@@ -307,7 +307,7 @@ example : compiledArtifact.formatVersion = "umpire-experiment/v2" ∧
     compiledArtifact.plan.provenance = compiledArtifact.provenance := by
   native_decide
 
-example : canonicalExperimentSpecBytes compiledArtifact = expectedCompiledArtifactJson := by
+example : canonicalPlanBytes compiledArtifact = expectedCompiledArtifactJson := by
   native_decide
 
 end Umpire.Examples.SwitchTests

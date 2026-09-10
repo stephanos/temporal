@@ -102,7 +102,7 @@ func TestGeneratedViewRejectsInvalidExperimentMetadata(t *testing.T) {
 		want    string
 	}{
 		"empty JSON":              {encoded: nil, want: "JSON is empty"},
-		"malformed JSON":          {encoded: []byte("{"), want: "decode canonical ExperimentSpec JSON"},
+		"malformed JSON":          {encoded: []byte("{"), want: "decode canonical Plan JSON"},
 		"trailing JSON":           {encoded: append(append([]byte(nil), valid...), []byte("{}")...), want: "trailing JSON value"},
 		"unsupported version":     {encoded: syntheticExperiment(t, syntheticOptions{format: "umpire-experiment/v1"}), want: "unsupported format"},
 		"identity mismatch":       {encoded: syntheticExperiment(t, syntheticOptions{identity: "another.query"}), want: "query definition ID mismatch"},
@@ -385,8 +385,8 @@ func syntheticExperiment(t *testing.T, options syntheticOptions) []byte {
 	document, err := artifactv2.SealExperiment(artifactv2.Experiment{
 		FormatVersion:            options.format,
 		QueryBehaviorFingerprint: fingerprint,
-		Plan: artifactv2.DrivePlan{
-			FormatVersion: artifactv2.DrivePlanFormat, QueryDefinitionID: options.identity,
+		Plan: artifactv2.PlanSteps{
+			FormatVersion: artifactv2.PlanStepsFormat, QueryDefinitionID: options.identity,
 			QueryBehaviorFingerprint: fingerprint, BehaviorDefinitionID: "synthetic.behavior",
 			BehaviorFingerprint: fingerprint, TargetDefinitionID: "synthetic.target",
 			TargetBehaviorFingerprint: fingerprint, KernelDefinitionID: "synthetic.kernel",
