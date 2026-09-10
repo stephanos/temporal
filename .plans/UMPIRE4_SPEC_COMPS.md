@@ -278,7 +278,7 @@ even when one public operation composes them.
 | `Umpire.Promotion` | Convert an exact checked witness or minimized accepted failure into a reviewable regression proposal. | Planned. It never installs source automatically. |
 | `Umpire.Evaluation` | Generic profile and receipt vocabulary plus bounded claim evaluation over admitted results. | Planned. Temporal owns concrete environment profiles and authority. |
 | `Umpire.Verify.Native` | Lean-native bounded receipts and canonical counterexample replay. | Planned and unconditional. |
-| `Umpire.Verify.Veil` | Generic optional Veil invocation, binding support, trust classes, and receipt vocabulary. | Conditional and excluded from `import Umpire`. |
+| `Umpire.Verify.Veil` | Planned under fn-25: generic optional Veil invocation, binding support, trust classes, and receipt vocabulary. | Conditional and excluded from `import Umpire`. |
 
 Catalog and Promotion remain separate: Catalog explains existing checked declarations; Promotion
 proposes a new exact regression from existing checked semantic evidence. Claim Assessment does not

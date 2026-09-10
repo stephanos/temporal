@@ -217,6 +217,9 @@ One maintainer pays this cost for a family; many Temporal engineers reuse the ch
 
 ### 6.3 Verification expert
 
+This role and the modules it names are planned under fn-24 and fn-25. Nothing in this subsection
+exists in the tree today.
+
 A verification expert works under `Temporal.Verify`. They define or maintain an explicit checker
 view, optional handwritten Veil declarations, and a checked correspondence with an existing
 canonical Feature or System model. They do not create a second ordinary regression interface or a
@@ -327,6 +330,9 @@ The existing separation of Property, Behavior, Query, Observation, execution, an
 No stage acquires semantic authority merely because it is downstream.
 
 ## 9. Optional formal-verification flow
+
+This whole section is planned under fn-24 and fn-25. No optional verification module exists in the
+tree, so nothing here is enforced or importable today.
 
 Formal verification branches from checked semantics rather than from runtime artifacts:
 
