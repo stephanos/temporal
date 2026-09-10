@@ -687,5 +687,5 @@ unsafe def main (args : List String) : IO UInt32 :=
   | [] => runSyntheticSuite
   | ["--controlled-violation"] => runControlledViolation
   | _ => do
-      IO.eprintln "usage: modelLintTests [--controlled-violation]"
+      IO.eprintln "usage: umpire-lint-tests [--controlled-violation]"
       pure 2
