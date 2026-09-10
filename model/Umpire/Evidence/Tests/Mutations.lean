@@ -1,11 +1,11 @@
-import Umpire.Observation.Tests.Aggregation
+import Umpire.Evidence.Tests.Aggregation
 
 /-!
 Independent cross-layer mutations. Expected traces, diagnostics, and verdicts are literal test data;
 none is projected from the implementation result being checked.
 -/
 
-namespace Umpire.ObservationTests
+namespace Umpire.EvidenceTests
 
 open Umpire
 
@@ -25,19 +25,19 @@ example :
 
 /-! Mapping mutations fail at compilation before any evidence can be interpreted. -/
 
-def unknownOperatorMutation : ObservationMappingDeclaration := {
+def unknownOperatorMutation : Evidence.Reading := {
   baseDeclaration with
   bindings := [{ normalizedName with
     expression := .portable
       (.normalize { name := "text.unknown", version := 1 } (field nameFieldSpec)) }]
 }
 
-def wrongBindingTypeMutation : ObservationMappingDeclaration := {
+def wrongBindingTypeMutation : Evidence.Reading := {
   baseDeclaration with
   bindings := [{ normalizedName with valueType := .natural }]
 }
 
-def clearValueTaintMutation : ObservationMappingDeclaration := {
+def clearValueTaintMutation : Evidence.Reading := {
   baseDeclaration with
   rules := baseDeclaration.rules.map fun rule =>
     if rule.id == contributionRule.id then
@@ -48,9 +48,9 @@ def clearValueTaintMutation : ObservationMappingDeclaration := {
 
 /-- Operator, type, and information-flow mutations have exact compile-time owners. -/
 example : [
-    errorKindOf (checkObservation context unknownOperatorMutation),
-    errorKindOf (checkObservation context wrongBindingTypeMutation),
-    errorKindOf (checkObservation context clearValueTaintMutation)
+    errorKindOf (Evidence.checkReading context unknownOperatorMutation),
+    errorKindOf (Evidence.checkReading context wrongBindingTypeMutation),
+    errorKindOf (Evidence.checkReading context clearValueTaintMutation)
   ] = [
     some .unknownOperator,
     some .incompatibleBinding,
@@ -60,15 +60,15 @@ example : [
 
 /-! Evidence-volume mutations fail at evaluation, after the mapping has compiled. -/
 
-def boundedDeclaration : ObservationMappingDeclaration := {
+def boundedDeclaration : Evidence.Reading := {
   evaluationDeclaration with
   evidenceBound := { value := 2, unit := .evidenceRecords }
 }
 
-def boundedPlan : CheckedObservationPlan :=
-  (checkObservation evaluationContext boundedDeclaration).toOption.get (by native_decide)
+def boundedPlan : Evidence.CheckedReading :=
+  (Evidence.checkReading evaluationContext boundedDeclaration).toOption.get (by native_decide)
 
-def limitPlusOneEvidence : EvidenceBundle := {
+def limitPlusOneEvidence : SyntheticEvidence := {
   completeEvidence with
   records := completeEvidence.records ++ [{
     stepEvidence with
@@ -119,14 +119,14 @@ def literalClosure : List EvidenceClosureFact := [{
 def literalMappingDigest : String :=
   "sha256:b81115a37b9be97e434f819965098f203cc0c185ce7d2458e39a20ec92da1e43"
 
-def literalEvidenceLink
+def literalEvidenceSupport
     (mappingDigest : String)
     (coordinate : ModelCoordinate)
     (evidenceIdentity ruleId : DefinitionId)
     (bindingIds : List DefinitionId)
     (orderingSupport : List EvidenceOrderingFact)
     (appliedDispositions : List AppliedFieldDisposition)
-    (meaningDigest : String) : EvidenceLink := {
+    (meaningDigest : String) : EvidenceSupport := {
   coordinate
   mappingId := id "test.mapping.observation-evaluation"
   mappingVersion := 1
@@ -144,8 +144,8 @@ def literalEvidenceLink
 }
 
 /-- Independently authored Evidence Links for every Model Trace slot in `expectedTrace`. -/
-def literalEvidenceLinks (mappingDigest : String) : List EvidenceLink := [
-  literalEvidenceLink mappingDigest .initialState
+def literalEvidenceSupports (mappingDigest : String) : List EvidenceSupport := [
+  literalEvidenceSupport mappingDigest .initialState
     (id "test.evidence.record.initial") (id "test.rule.initial-state")
     [id "test.binding.normalized-name"] literalInitialOrdering [
       {
@@ -157,22 +157,22 @@ def literalEvidenceLinks (mappingDigest : String) : List EvidenceLink := [
         evidence := .retained "initial"
       }
     ] "test.state.operation/meaning-v1",
-  literalEvidenceLink mappingDigest (.selectedAction 1)
+  literalEvidenceSupport mappingDigest (.selectedAction 1)
     (id "test.evidence.record.step-1") (id "test.rule.step-action") [] literalStepOrdering [{
       field := { kind := id "test.evidence.kind.event", field := id "test.evidence.field.role" }
       evidence := .retained "step"
     }] "test.action.start/meaning-v1",
-  literalEvidenceLink mappingDigest (.outcome 1)
+  literalEvidenceSupport mappingDigest (.outcome 1)
     (id "test.evidence.record.step-1") (id "test.rule.step-outcome") [] literalStepOrdering [{
       field := { kind := id "test.evidence.kind.event", field := id "test.evidence.field.role" }
       evidence := .retained "step"
     }] "test.outcome.success/meaning-v1",
-  literalEvidenceLink mappingDigest (.state 1)
+  literalEvidenceSupport mappingDigest (.state 1)
     (id "test.evidence.record.step-1") (id "test.rule.step-state") [] literalStepOrdering [{
       field := { kind := id "test.evidence.kind.event", field := id "test.evidence.field.role" }
       evidence := .retained "step"
     }] "test.state.completed/meaning-v1",
-  literalEvidenceLink mappingDigest (.fact 1 1)
+  literalEvidenceSupport mappingDigest (.fact 1 1)
     (id "test.evidence.record.step-1") (id "test.rule.contribution") [] literalStepOrdering [
       {
         field := { kind := id "test.evidence.kind.event", field := id "test.evidence.field.role" }
@@ -183,7 +183,7 @@ def literalEvidenceLinks (mappingDigest : String) : List EvidenceLink := [
         evidence := .redactedContribution
       }
     ] "test.observation.contribution/meaning-v1",
-  literalEvidenceLink mappingDigest (.fact 1 2)
+  literalEvidenceSupport mappingDigest (.fact 1 2)
     (id "test.evidence.record.step-1") (id "test.rule.digest") [] literalStepOrdering [
       {
         field := { kind := id "test.evidence.kind.event", field := id "test.evidence.field.hashed" }
@@ -198,43 +198,43 @@ def literalEvidenceLinks (mappingDigest : String) : List EvidenceLink := [
 ]
 
 /-- Observation Evaluation must match the literal mapping identity and every authored Evidence Link field. -/
-example : (completeEvidenceBackedTrace.mappingDigest, completeEvidenceBackedTrace.evidenceLinks) =
-    (literalMappingDigest, literalEvidenceLinks literalMappingDigest) := by
+example : (completeEvidenceBackedTrace.mappingDigest, completeEvidenceBackedTrace.evidenceSupports) =
+    (literalMappingDigest, literalEvidenceSupports literalMappingDigest) := by
   native_decide
 
 def literalUncheckedEvidenceBackedTrace : UncheckedEvidenceBackedTrace := {
   completeUncheckedEvidenceBackedTrace with
   mappingDigest := literalMappingDigest
-  evidenceLinks := literalEvidenceLinks literalMappingDigest
+  evidenceSupports := literalEvidenceSupports literalMappingDigest
 }
 
-def literalFirstEvidenceLink : EvidenceLink :=
-  literalUncheckedEvidenceBackedTrace.evidenceLinks.head?.get (by native_decide)
+def literalFirstEvidenceSupport : EvidenceSupport :=
+  literalUncheckedEvidenceBackedTrace.evidenceSupports.head?.get (by native_decide)
 
 def missingCoordinateMutation : UncheckedEvidenceBackedTrace := {
   literalUncheckedEvidenceBackedTrace with
-  evidenceLinks := literalUncheckedEvidenceBackedTrace.evidenceLinks.tail
+  evidenceSupports := literalUncheckedEvidenceBackedTrace.evidenceSupports.tail
 }
 
 def duplicateModelCoordinateMutation : UncheckedEvidenceBackedTrace := {
   literalUncheckedEvidenceBackedTrace with
-  evidenceLinks := literalFirstEvidenceLink :: literalUncheckedEvidenceBackedTrace.evidenceLinks
+  evidenceSupports := literalFirstEvidenceSupport :: literalUncheckedEvidenceBackedTrace.evidenceSupports
 }
 
 def shiftedCoordinateMutation : UncheckedEvidenceBackedTrace := {
   literalUncheckedEvidenceBackedTrace with
-  evidenceLinks := literalUncheckedEvidenceBackedTrace.evidenceLinks.map fun evidenceLink =>
-    if evidenceLink.coordinate == .fact 1 2 then
-      { evidenceLink with coordinate := .fact 1 3 }
+  evidenceSupports := literalUncheckedEvidenceBackedTrace.evidenceSupports.map fun evidenceSupport =>
+    if evidenceSupport.coordinate == .fact 1 2 then
+      { evidenceSupport with coordinate := .fact 1 3 }
     else
-      evidenceLink
+      evidenceSupport
 }
 
 def missingOrderingMutation : UncheckedEvidenceBackedTrace := {
   literalUncheckedEvidenceBackedTrace with
-  evidenceLinks := literalUncheckedEvidenceBackedTrace.evidenceLinks.map fun evidenceLink => {
-    evidenceLink with
-    orderingSupport := evidenceLink.orderingSupport.map fun fact =>
+  evidenceSupports := literalUncheckedEvidenceBackedTrace.evidenceSupports.map fun evidenceSupport => {
+    evidenceSupport with
+    orderingSupport := evidenceSupport.orderingSupport.map fun fact =>
       if fact.recordId == stepEvidenceId then
         { fact with causalParents := [stepEvidenceId] }
       else
@@ -244,13 +244,13 @@ def missingOrderingMutation : UncheckedEvidenceBackedTrace := {
 
 def redactedCleartextMutation : UncheckedEvidenceBackedTrace := {
   literalUncheckedEvidenceBackedTrace with
-  evidenceLinks := [{
-    literalFirstEvidenceLink with
+  evidenceSupports := [{
+    literalFirstEvidenceSupport with
     appliedDispositions := [{
       field := { kind := eventKind, field := secretField }
       evidence := .retained "forbidden-secret"
     }]
-  }] ++ literalUncheckedEvidenceBackedTrace.evidenceLinks.tail
+  }] ++ literalUncheckedEvidenceBackedTrace.evidenceSupports.tail
 }
 
 private def rehashAcceptedEnvelope
@@ -259,15 +259,15 @@ private def rehashAcceptedEnvelope
   traceId := (behaviorFingerprintOf <|
     trace.mappingDigest ++ ":" ++ reprStr trace.evidenceIdentities ++ ":" ++
       reprStr trace.recordSupport ++ ":" ++ reprStr trace.trace ++ ":" ++
-      reprStr trace.evidenceLinks).render
+      reprStr trace.evidenceSupports).render
 }
 
-private def updateFirstEvidenceLink
+private def updateFirstEvidenceSupport
     (trace : UncheckedEvidenceBackedTrace)
-    (update : EvidenceLink → EvidenceLink) : UncheckedEvidenceBackedTrace :=
-  match trace.evidenceLinks with
+    (update : EvidenceSupport → EvidenceSupport) : UncheckedEvidenceBackedTrace :=
+  match trace.evidenceSupports with
   | [] => trace
-  | first :: rest => { trace with evidenceLinks := update first :: rest }
+  | first :: rest => { trace with evidenceSupports := update first :: rest }
 
 private def updateFirstRecordSupport
     (trace : UncheckedEvidenceBackedTrace)
@@ -290,14 +290,14 @@ def noncanonicalPlanIdentityMutation : UncheckedEvidenceBackedTrace := {
   }
 }
 
-def admissionBoundPlan : CheckedObservationPlan :=
-  (checkObservation evaluationContext {
+def admissionBoundPlan : Evidence.CheckedReading :=
+  (Evidence.checkReading evaluationContext {
     evaluationDeclaration with evidenceBound := { value := 1, unit := .evidenceRecords }
   }).toOption.get (by native_decide)
 
 def boundOverflowAdmissionMutation : UncheckedEvidenceBackedTrace :=
-  let links := literalUncheckedEvidenceBackedTrace.evidenceLinks.map fun evidenceLink => {
-    evidenceLink with
+  let links := literalUncheckedEvidenceBackedTrace.evidenceSupports.map fun evidenceSupport => {
+    evidenceSupport with
     mappingDigest := admissionBoundPlan.behaviorFingerprint.render
     appliedBound := admissionBoundPlan.evidenceBound
   }
@@ -306,32 +306,32 @@ def boundOverflowAdmissionMutation : UncheckedEvidenceBackedTrace :=
     checkedPlan := admissionBoundPlan
     mappingDigest := admissionBoundPlan.behaviorFingerprint.render
     appliedBound := admissionBoundPlan.evidenceBound
-    evidenceLinks := links
+    evidenceSupports := links
   }
 
 def linkMetadataMutations : List UncheckedEvidenceBackedTrace := [
-  updateFirstEvidenceLink literalUncheckedEvidenceBackedTrace fun link => {
+  updateFirstEvidenceSupport literalUncheckedEvidenceBackedTrace fun link => {
     link with mappingId := id "test.mapping.forged"
   },
-  updateFirstEvidenceLink literalUncheckedEvidenceBackedTrace fun link => {
+  updateFirstEvidenceSupport literalUncheckedEvidenceBackedTrace fun link => {
     link with mappingVersion := link.mappingVersion + 1
   },
-  updateFirstEvidenceLink literalUncheckedEvidenceBackedTrace fun link => {
+  updateFirstEvidenceSupport literalUncheckedEvidenceBackedTrace fun link => {
     link with mappingDigest := link.mappingDigest ++ "/forged"
   },
-  updateFirstEvidenceLink literalUncheckedEvidenceBackedTrace fun link => {
+  updateFirstEvidenceSupport literalUncheckedEvidenceBackedTrace fun link => {
     link with profileId := id "test.evidence.profile.forged"
   },
-  updateFirstEvidenceLink literalUncheckedEvidenceBackedTrace fun link => {
+  updateFirstEvidenceSupport literalUncheckedEvidenceBackedTrace fun link => {
     link with profileVersion := link.profileVersion + 1
   },
-  updateFirstEvidenceLink literalUncheckedEvidenceBackedTrace fun link => {
+  updateFirstEvidenceSupport literalUncheckedEvidenceBackedTrace fun link => {
     link with appliedBound := { value := link.appliedBound.value + 1, unit := .evidenceRecords }
   },
-  updateFirstEvidenceLink literalUncheckedEvidenceBackedTrace fun link => {
+  updateFirstEvidenceSupport literalUncheckedEvidenceBackedTrace fun link => {
     link with evidenceIdentities := []
   },
-  updateFirstEvidenceLink literalUncheckedEvidenceBackedTrace fun link => {
+  updateFirstEvidenceSupport literalUncheckedEvidenceBackedTrace fun link => {
     link with meaningDigest := link.meaningDigest ++ "/forged"
   }
 ]
@@ -343,12 +343,12 @@ def unconsumedIdentityMutation : UncheckedEvidenceBackedTrace := {
 }
 
 def duplicateOrderingSupportMutation : UncheckedEvidenceBackedTrace :=
-  rehashAcceptedEnvelope <| updateFirstEvidenceLink literalUncheckedEvidenceBackedTrace fun link => {
+  rehashAcceptedEnvelope <| updateFirstEvidenceSupport literalUncheckedEvidenceBackedTrace fun link => {
     link with orderingSupport := link.orderingSupport.head?.toList ++ link.orderingSupport
   }
 
 def duplicateClosureSupportMutation : UncheckedEvidenceBackedTrace :=
-  rehashAcceptedEnvelope <| updateFirstEvidenceLink literalUncheckedEvidenceBackedTrace fun link => {
+  rehashAcceptedEnvelope <| updateFirstEvidenceSupport literalUncheckedEvidenceBackedTrace fun link => {
     link with closureSupport := link.closureSupport.head?.toList ++ link.closureSupport
   }
 
@@ -381,7 +381,7 @@ def recordSupportMutations : List UncheckedEvidenceBackedTrace := [
 def digestPolicyAdmissionMutation : UncheckedEvidenceBackedTrace :=
   rehashAcceptedEnvelope {
     literalUncheckedEvidenceBackedTrace with
-    evidenceLinks := literalUncheckedEvidenceBackedTrace.evidenceLinks.map fun link =>
+    evidenceSupports := literalUncheckedEvidenceBackedTrace.evidenceSupports.map fun link =>
       if link.ruleId == digestRule.id then {
         link with appliedDispositions := link.appliedDispositions.map fun applied =>
           if applied.field.field == hashedField then {
@@ -417,7 +417,7 @@ example :
         expressionAdmissionMutation,
         traceIdentityMutation
       ]).map admissionDiagnostic? = [
-      some { kind := .inconsistentEvidenceLink, planId := evaluationDeclaration.id },
+      some { kind := .inconsistentEvidenceSupport, planId := evaluationDeclaration.id },
       some {
         kind := .evidenceBoundExhausted
         planId := evaluationDeclaration.id
@@ -426,7 +426,7 @@ example :
       },
       some { kind := .absentModelCoordinate, planId := evaluationDeclaration.id },
     ] ++ List.replicate 8 (some {
-        kind := .inconsistentEvidenceLink
+        kind := .inconsistentEvidenceSupport
         planId := evaluationDeclaration.id
         relatedDefinitionIds := [initialRule.id]
       }) ++ [
@@ -458,7 +458,7 @@ example :
         relatedDefinitionIds := [initialEvidenceId, nameField]
       },
       some {
-        kind := .inconsistentEvidenceLink
+        kind := .inconsistentEvidenceSupport
         planId := evaluationDeclaration.id
         relatedDefinitionIds := [initialEvidenceId, nameField]
       },
@@ -473,11 +473,11 @@ example :
         relatedDefinitionIds := [digestRule.id, hashedField, id "test.digest.forged"]
       },
       some {
-        kind := .inconsistentEvidenceLink
+        kind := .inconsistentEvidenceSupport
         planId := evaluationDeclaration.id
         relatedDefinitionIds := [initialRule.id]
       },
-      some { kind := .inconsistentEvidenceLink, planId := evaluationDeclaration.id }
+      some { kind := .inconsistentEvidenceSupport, planId := evaluationDeclaration.id }
     ] := by
   native_decide
 
@@ -485,13 +485,13 @@ example :
 example : [
     admissionDiagnostic? {
       noncanonicalPlanIdentityMutation with
-      evidenceLinks := noncanonicalPlanIdentityMutation.evidenceLinks.tail
+      evidenceSupports := noncanonicalPlanIdentityMutation.evidenceSupports.tail
     },
     admissionDiagnostic? {
       boundOverflowAdmissionMutation with
-      evidenceLinks := boundOverflowAdmissionMutation.evidenceLinks.tail
+      evidenceSupports := boundOverflowAdmissionMutation.evidenceSupports.tail
     },
-    admissionDiagnostic? <| updateFirstEvidenceLink missingCoordinateMutation fun link => {
+    admissionDiagnostic? <| updateFirstEvidenceSupport missingCoordinateMutation fun link => {
       link with mappingVersion := link.mappingVersion + 1
     },
     admissionDiagnostic? {
@@ -503,7 +503,7 @@ example : [
       traceId := traceIdentityMutation.traceId
     }
   ] = [
-    some { kind := .inconsistentEvidenceLink, planId := evaluationDeclaration.id },
+    some { kind := .inconsistentEvidenceSupport, planId := evaluationDeclaration.id },
     some {
       kind := .evidenceBoundExhausted
       planId := evaluationDeclaration.id
@@ -568,4 +568,4 @@ example :
       (.accepted, none, .satisfied, .violated) := by
   native_decide
 
-end Umpire.ObservationTests
+end Umpire.EvidenceTests

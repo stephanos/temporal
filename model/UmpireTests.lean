@@ -21,9 +21,9 @@ import Umpire.Artifact.Tests.Result
 import Umpire.Artifact.Tests.Goldens
 import Umpire.Artifact.Tests.Set
 import Umpire.Tests.MigrationCompatibility
-import Umpire.Observation.Tests
-import Umpire.Observation.Tests.Mutations
-import Umpire.Observation.ImportTests
+import Umpire.Evidence.Tests
+import Umpire.Evidence.Tests.Mutations
+import Umpire.Evidence.ImportTests
 import Umpire.ImplementationLink.Tests
 import Umpire.Space.Tests.Compilation
 import Umpire.Space.Tests.Determinism

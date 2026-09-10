@@ -1,4 +1,4 @@
-import Umpire.Observation.Declaration
+import Umpire.Evidence.Reading
 import Umpire.Shared.DefinitionGraph
 import Umpire.Model
 
@@ -6,7 +6,7 @@ import Umpire.Model
 The Observation language describes, validates, and canonicalizes inert mappings from typed evidence
 profiles to target-owned semantic definitions. `ObservationExpression` is a closed data grammar;
 forbidden callback and recursive authoring are represented only by `ObservationExpressionAuthoring`
-sentinels so no executable code enters a declaration or checked plan. `checkObservation` is the one
+sentinels so no executable code enters a declaration or checked plan. `Evidence.checkReading` is the one
 authored-to-checked boundary: it resolves the selected profile and target meanings, checks field
 dispositions and static information flow, validates ordering and closure, and produces a canonical
 plan whose identity includes its typed expressions and positive evidence-record bound.
@@ -15,7 +15,7 @@ plan whose identity includes its typed expressions and positive evidence-record 
 namespace Umpire
 
 /-- Checked target vocabulary plus the evidence profiles against which mappings may compile. -/
-structure ObservationCheckContext where
+structure Evidence.ReadingContext where
   definitions : List DefinitionMetadata
   meanings : List Meaning
   profiles : List EvidenceProfileDeclaration
@@ -71,15 +71,15 @@ private def resolvedTargetMeanings
           | none => []
 
 /-- Build an Observation context from the definitions and resolved meanings of a checked target. -/
-def ObservationCheckContext.ofTarget
+def Evidence.ReadingContext.ofTarget
     (target : CheckedModel LawStatement Setup State Action Outcome Observation)
-    (profiles : List EvidenceProfileDeclaration) : ObservationCheckContext := {
+    (profiles : List EvidenceProfileDeclaration) : Evidence.ReadingContext := {
   definitions := target.definitions
   meanings := resolvedTargetMeanings target
   profiles
 }
 
-inductive ObservationErrorKind where
+inductive Evidence.ReadingErrorKind where
   | emptyDefinitionId
   | invalidDefinitionId
   | duplicateDefinitionId
@@ -108,7 +108,7 @@ inductive ObservationErrorKind where
   | missingDigestPolicy
   deriving BEq, DecidableEq, Ord, Repr
 
-def ObservationErrorKind.name : ObservationErrorKind → String
+def Evidence.ReadingErrorKind.name : Evidence.ReadingErrorKind → String
   | .emptyDefinitionId => "empty-definition-id"
   | .invalidDefinitionId => "invalid-definition-id"
   | .duplicateDefinitionId => "duplicate-definition-id"
@@ -136,8 +136,8 @@ def ObservationErrorKind.name : ObservationErrorKind → String
   | .invalidBoundValue => "invalid-bound-value"
   | .missingDigestPolicy => "missing-digest-policy"
 
-structure ObservationError where
-  kind : ObservationErrorKind
+structure Evidence.ReadingError where
+  kind : Evidence.ReadingErrorKind
   definitionId : DefinitionId
   sourcePath : String
   offendingValue : String
@@ -252,7 +252,7 @@ structure CheckedObservationRule where
   deriving BEq, DecidableEq, Repr
 
 /-- Canonical, inert mapping plan admitted for later pure Observation Evaluation. -/
-structure CheckedObservationPlan where
+structure Evidence.CheckedReading where
   id : DefinitionId
   source : SourceLocation
   version : Nat
@@ -324,10 +324,10 @@ private def sourceJson (source : SourceLocation) : String :=
     ",\"provenance\":" ++ quote source.provenance ++ "}"
 
 private def error
-    (kind : ObservationErrorKind)
-    (declaration : ObservationMappingDeclaration)
+    (kind : Evidence.ReadingErrorKind)
+    (declaration : Evidence.Reading)
     (offendingValue : String)
-    (relatedDefinitionIds : List DefinitionId := []) : ObservationError := {
+    (relatedDefinitionIds : List DefinitionId := []) : Evidence.ReadingError := {
   kind
   definitionId := if declaration.id.value == "" then
     DefinitionId.of "umpire.observation.anonymous"
@@ -344,8 +344,8 @@ private def firstDuplicateFieldRef : List EvidenceFieldReference → Option Evid
   | _ => none
 
 private def requireDefinitionId
-    (declaration : ObservationMappingDeclaration)
-    (definitionId : DefinitionId) : Except ObservationError Unit :=
+    (declaration : Evidence.Reading)
+    (definitionId : DefinitionId) : Except Evidence.ReadingError Unit :=
   match definitionId.validate with
   | .error .empty =>
       throw (error .emptyDefinitionId declaration "<empty>" [definitionId])
@@ -354,8 +354,8 @@ private def requireDefinitionId
   | .ok () => pure ()
 
 private def requireUniqueIds
-    (declaration : ObservationMappingDeclaration)
-    (ids : List DefinitionId) : Except ObservationError Unit :=
+    (declaration : Evidence.Reading)
+    (ids : List DefinitionId) : Except Evidence.ReadingError Unit :=
   match DefinitionId.firstDuplicate ids with
   | some duplicate => throw (error .duplicateDefinitionId declaration duplicate.value [duplicate])
   | none => pure ()
@@ -506,7 +506,7 @@ private def planSemanticJson
       ",\"unit\":" ++ quote bound.unit.name ++ "}" ++
     ",\"meanings\":" ++ array (meanings.mergeSort meaningLe |>.map meaningJson) ++ "}"
 
-def canonicalObservationPlanJson (plan : CheckedObservationPlan) : String :=
+def Evidence.canonicalReadingJson (plan : Evidence.CheckedReading) : String :=
   "{\"semantic\":" ++ planSemanticJson plan.id plan.version plan.profile
       plan.digestPolicies plan.bindings plan.rules plan.ordering plan.closures plan.dispositions
       plan.evidenceBound plan.meanings ++
@@ -514,13 +514,13 @@ def canonicalObservationPlanJson (plan : CheckedObservationPlan) : String :=
     ",\"documentation\":" ++ quote plan.documentation ++ "}"
 
 /-- Whether a checked plan still carries the canonical identity established by compilation. -/
-def CheckedObservationPlan.hasCanonicalIdentity (plan : CheckedObservationPlan) : Bool :=
+def Evidence.CheckedReading.hasCanonicalIdentity (plan : Evidence.CheckedReading) : Bool :=
   plan.behaviorFingerprint == behaviorFingerprintOf (planSemanticJson plan.id plan.version plan.profile
     plan.digestPolicies plan.bindings plan.rules plan.ordering plan.closures plan.dispositions
     plan.evidenceBound plan.meanings) &&
-  plan.canonicalMetadata == canonicalObservationPlanJson plan
+  plan.canonicalMetadata == Evidence.canonicalReadingJson plan
 
-def canonicalObservationErrorJson (observationError : ObservationError) : String :=
+def Evidence.canonicalReadingErrorJson (observationError : Evidence.ReadingError) : String :=
   "{\"kind\":" ++ quote observationError.kind.name ++
     ",\"definitionId\":" ++ quote observationError.definitionId.value ++
     ",\"sourcePath\":" ++ quote observationError.sourcePath ++
@@ -531,8 +531,8 @@ def canonicalObservationErrorJson (observationError : ObservationError) : String
     "}"
 
 private def validateProfiles
-    (context : ObservationCheckContext)
-    (declaration : ObservationMappingDeclaration) : Except ObservationError Unit := do
+    (context : Evidence.ReadingContext)
+    (declaration : Evidence.Reading) : Except Evidence.ReadingError Unit := do
   requireUniqueIds declaration (context.profiles.map EvidenceProfileDeclaration.id)
   for profile in context.profiles.mergeSort profileLe do
     requireDefinitionId declaration profile.id
@@ -544,8 +544,8 @@ private def validateProfiles
         requireDefinitionId declaration field.id
 
 private def selectedProfile
-    (context : ObservationCheckContext)
-    (declaration : ObservationMappingDeclaration) : Except ObservationError EvidenceProfileDeclaration := do
+    (context : Evidence.ReadingContext)
+    (declaration : Evidence.Reading) : Except Evidence.ReadingError EvidenceProfileDeclaration := do
   validateProfiles context declaration
   match context.profiles.find? fun profile => profile.id == declaration.profile with
   | some profile => pure profile
@@ -553,17 +553,17 @@ private def selectedProfile
       [declaration.profile])
 
 private def evidenceKind
-    (declaration : ObservationMappingDeclaration)
+    (declaration : Evidence.Reading)
     (profile : EvidenceProfileDeclaration)
-    (kindId : DefinitionId) : Except ObservationError EvidenceKindDeclaration :=
+    (kindId : DefinitionId) : Except Evidence.ReadingError EvidenceKindDeclaration :=
   match profile.kinds.find? fun kind => kind.id == kindId with
   | some kind => pure kind
   | none => throw (error .unknownEvidenceKind declaration kindId.value [kindId])
 
 private def evidenceField
-    (declaration : ObservationMappingDeclaration)
+    (declaration : Evidence.Reading)
     (profile : EvidenceProfileDeclaration)
-    (reference : EvidenceFieldReference) : Except ObservationError EvidenceFieldDeclaration := do
+    (reference : EvidenceFieldReference) : Except Evidence.ReadingError EvidenceFieldDeclaration := do
   let kind ← evidenceKind declaration profile reference.kind
   match kind.fields.find? fun field => field.id == reference.field with
   | some field => pure field
@@ -597,7 +597,7 @@ private def authoredExpressionBindingReferences :
   | .callback _ | .recursive _ => []
 
 private def declarationExpressions
-    (declaration : ObservationMappingDeclaration) : List ObservationExpressionAuthoring :=
+    (declaration : Evidence.Reading) : List ObservationExpressionAuthoring :=
   declaration.bindings.map ObservationBinding.expression ++
     declaration.rules.flatMap fun rule => rule.value :: rule.condition.toList
 
@@ -613,7 +613,7 @@ private def policyExists
   policies.any fun policy => policy.id == id
 
 private def validatePolicies
-    (declaration : ObservationMappingDeclaration) : Except ObservationError Unit := do
+    (declaration : Evidence.Reading) : Except Evidence.ReadingError Unit := do
   requireUniqueIds declaration (declaration.digestPolicies.map DigestPolicyDeclaration.id)
   for policy in declaration.digestPolicies.mergeSort policyLe do
     requireDefinitionId declaration policy.id
@@ -624,8 +624,8 @@ private def validatePolicies
         (policy.name ++ "/v" ++ toString policy.version) [policy.id])
 
 private def validateDispositions
-    (declaration : ObservationMappingDeclaration)
-    (profile : EvidenceProfileDeclaration) : Except ObservationError Unit := do
+    (declaration : Evidence.Reading)
+    (profile : EvidenceProfileDeclaration) : Except Evidence.ReadingError Unit := do
   let dispositionReferences := declaration.dispositions.map FieldDispositionDeclaration.field
   match firstDuplicateFieldRef (dispositionReferences.mergeSort fieldRefLe) with
   | some duplicate =>
@@ -658,10 +658,10 @@ private def allowsClearOutput : InformationFlowLabel → Bool
   | _ => false
 
 private def checkExpression
-    (declaration : ObservationMappingDeclaration)
+    (declaration : Evidence.Reading)
     (profile : EvidenceProfileDeclaration)
     (bindings : List CheckedObservationBinding) :
-    ObservationExpression → Except ObservationError CheckedObservationExpression
+    ObservationExpression → Except Evidence.ReadingError CheckedObservationExpression
   | .text value => pure (.text value)
   | .natural value => pure (.natural value)
   | .boolean value => pure (.boolean value)
@@ -736,16 +736,16 @@ private def checkExpression
       pure (.digestToken checkedPolicy checked)
 
 private def checkAuthoredExpression
-    (declaration : ObservationMappingDeclaration)
+    (declaration : Evidence.Reading)
     (profile : EvidenceProfileDeclaration)
     (bindings : List CheckedObservationBinding) :
-    ObservationExpressionAuthoring → Except ObservationError CheckedObservationExpression
+    ObservationExpressionAuthoring → Except Evidence.ReadingError CheckedObservationExpression
   | .portable expression => checkExpression declaration profile bindings expression
   | .callback name => throw (error .callbackExpression declaration name)
   | .recursive id => throw (error .recursiveExpression declaration id.value [id])
 
 private def validateBindingReferences
-    (declaration : ObservationMappingDeclaration) : Except ObservationError Unit := do
+    (declaration : Evidence.Reading) : Except Evidence.ReadingError Unit := do
   let bindingIds := declaration.bindings.map ObservationBinding.id
   for binding in declaration.bindings do
     for dependency in DefinitionId.canonicalSet
@@ -754,8 +754,8 @@ private def validateBindingReferences
         throw (error .incompatibleBinding declaration dependency.value [binding.id, dependency])
 
 private def compileBindings
-    (declaration : ObservationMappingDeclaration)
-    (profile : EvidenceProfileDeclaration) : Except ObservationError (List CheckedObservationBinding) := do
+    (declaration : Evidence.Reading)
+    (profile : EvidenceProfileDeclaration) : Except Evidence.ReadingError (List CheckedObservationBinding) := do
   validateBindingReferences declaration
   let mut remaining := declaration.bindings.mergeSort bindingLe
   let mut checked : List CheckedObservationBinding := []
@@ -782,9 +782,9 @@ private def compileBindings
   | [] => pure (checked.mergeSort checkedBindingLe)
 
 private def validateSemanticOutput
-    (context : ObservationCheckContext)
-    (declaration : ObservationMappingDeclaration)
-    (rule : ObservationRule) : Except ObservationError Meaning := do
+    (context : Evidence.ReadingContext)
+    (declaration : Evidence.Reading)
+    (rule : ObservationRule) : Except Evidence.ReadingError Meaning := do
   match context.definitions.find? fun item => item.id == rule.output with
   | none => throw (error .unknownSemanticDeclaration declaration rule.output.value [rule.output])
   | some target =>
@@ -798,10 +798,10 @@ private def validateSemanticOutput
   | none => throw (error .unauthorizedSemanticDeclaration declaration rule.output.value [rule.output])
 
 private def compileRules
-    (context : ObservationCheckContext)
-    (declaration : ObservationMappingDeclaration)
+    (context : Evidence.ReadingContext)
+    (declaration : Evidence.Reading)
     (profile : EvidenceProfileDeclaration)
-    (bindings : List CheckedObservationBinding) : Except ObservationError (List CheckedObservationRule) := do
+    (bindings : List CheckedObservationBinding) : Except Evidence.ReadingError (List CheckedObservationRule) := do
   match DefinitionId.firstDuplicate (declaration.rules.map ObservationRule.output) with
   | some duplicate => throw (error .overlappingOutputs declaration duplicate.value [duplicate])
   | none => pure ()
@@ -835,8 +835,8 @@ private def compileRules
   pure (checked.mergeSort checkedRuleLe)
 
 private def validateOrdering
-    (declaration : ObservationMappingDeclaration)
-    (analysis : DefinitionGraph.Analysis) : Except ObservationError (List ObservationOrdering) := do
+    (declaration : Evidence.Reading)
+    (analysis : DefinitionGraph.Analysis) : Except Evidence.ReadingError (List ObservationOrdering) := do
   match analysis.edgeFindings.duplicate with
   | some duplicate => throw (error .contradictoryOrdering declaration
       (duplicate.before.value ++ "->" ++ duplicate.after.value)
@@ -858,8 +858,8 @@ private def validateOrdering
   | none => pure (analysis.canonicalEdges.map observationOrder)
 
 private def validateClosures
-    (declaration : ObservationMappingDeclaration)
-    (profile : EvidenceProfileDeclaration) : Except ObservationError (List EvidenceClosureDeclaration) := do
+    (declaration : Evidence.Reading)
+    (profile : EvidenceProfileDeclaration) : Except Evidence.ReadingError (List EvidenceClosureDeclaration) := do
   let kinds := declaration.closures.map EvidenceClosureDeclaration.kind
   match DefinitionId.firstDuplicate kinds with
   | some duplicate => throw (error .duplicateClosure declaration duplicate.value [duplicate])
@@ -872,9 +872,9 @@ private def validateClosures
   pure (declaration.closures.mergeSort closureLe)
 
 /-- Compile one mapping declaration deterministically, returning no partial plan on any error. -/
-def checkObservation
-    (context : ObservationCheckContext)
-    (declaration : ObservationMappingDeclaration) : Except ObservationError CheckedObservationPlan := do
+def Evidence.checkReading
+    (context : Evidence.ReadingContext)
+    (declaration : Evidence.Reading) : Except Evidence.ReadingError Evidence.CheckedReading := do
   requireDefinitionId declaration declaration.id
   let profile ← selectedProfile context declaration
   requireUniqueIds declaration (declaration.bindings.map ObservationBinding.id)
@@ -899,7 +899,7 @@ def checkObservation
   let meanings := rules.map CheckedObservationRule.meaning |>.mergeSort meaningLe |>.eraseDups
   let semantic := planSemanticJson declaration.id declaration.version profile declaration.digestPolicies
     bindings rules ordering closures declaration.dispositions declaration.evidenceBound meanings
-  let checked : CheckedObservationPlan := {
+  let checked : Evidence.CheckedReading := {
     id := declaration.id
     source := declaration.source
     version := declaration.version
@@ -919,6 +919,28 @@ def checkObservation
     canonicalMetadata := ""
     behaviorFingerprint := behaviorFingerprintOf semantic
   }
-  pure { checked with canonicalMetadata := canonicalObservationPlanJson checked }
+  pure { checked with canonicalMetadata := Evidence.canonicalReadingJson checked }
+
+/-- Produce a checked Observation plan directly from an explicit proof that the typed checker
+succeeds. Use `Evidence.checkReading` when an invalid mapping's typed diagnostic is needed. -/
+def Evidence.checkedReading
+    (context : Evidence.ReadingContext)
+    (declaration : Evidence.Reading)
+    (valid : (Evidence.checkReading context declaration).toOption.isSome = true) :
+    Evidence.CheckedReading :=
+  (Evidence.checkReading context declaration).toOption.get valid
+
+/-- Admit a constructor-authored mapping only through the existing Observation checker. -/
+def Evidence.ReadingSpec.check
+    (spec : Evidence.ReadingSpec)
+    (context : Evidence.ReadingContext) : Except Evidence.ReadingError Evidence.CheckedReading :=
+  Evidence.checkReading context spec.declaration
+
+/-- Produce the checked mapping after the kernel verifies that the existing checker succeeds. -/
+def Evidence.ReadingSpec.checked
+    (spec : Evidence.ReadingSpec)
+    (context : Evidence.ReadingContext)
+    (valid : (spec.check context).toOption.isSome = true) : Evidence.CheckedReading :=
+  Evidence.checkedReading context spec.declaration valid
 
 end Umpire

@@ -76,7 +76,7 @@
       "steps": []
     }
   },
-  "evidenceLinks": [
+  "evidenceSupports": [
     {
       "coordinate": {
         "kind": "initial-state",
@@ -160,5 +160,5 @@
     ]
   },
   "provenanceChecksum": "sha256:b84f046f2250d5718d6d135ad1a6e7b2059b221ddd30ce6c3a6ac08baaff5310",
-  "artifactChecksum": "sha256:bc64a42da388cd7d8d597060d658b8036fe315d824c0e971dbacba29eca5b913"
+  "artifactChecksum": "sha256:0c1f82751d6db350dc2cc05a9467f14e015b1280e0dd4bfac9ce0b38eb4a0253"
 }

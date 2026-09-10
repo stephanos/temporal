@@ -115,7 +115,7 @@ Implementation Link application outcomes.
 
 ### `umpire.semantic-inventory.outcome-family.09-semantic-property`
 
-Owner: `Umpire.SemanticVerdictStatus`
+Owner: `Umpire.Evidence.PropertyStatus`
 
 Semantic Property evaluation outcomes.
 
@@ -129,7 +129,7 @@ Semantic Property evaluation outcomes.
 
 ### `umpire.semantic-inventory.outcome-family.10-strict-query`
 
-Owner: `Umpire.StrictQueryStatus`
+Owner: `Umpire.QueryStatus`
 
 Strict Query projection outcomes.
 
@@ -161,7 +161,7 @@ Each row identifies one authored source, synthesized family, projection, exact c
 | `umpire.semantic-inventory.known-gap-source.06-runtime-storage-order` | `Umpire.Artifact` | authored | production | exact-known-gap | `umpire.known-gap.runtime-storage-order` | — | Runtime storage ordering is unavailable during pure planning. |
 | `umpire.semantic-inventory.known-gap-source.07-runtime-transport-order` | `Umpire.Artifact` | authored | production | exact-known-gap | `umpire.known-gap.runtime-transport-order` | — | Runtime transport ordering is unavailable during pure planning. |
 | `umpire.semantic-inventory.known-gap-source.08-promotion` | `Umpire.Artifact` | authored | production | exact-known-gap | `umpire.known-gap.promotion` | — | Promotion is not established by pure planning. |
-| `umpire.semantic-inventory.known-gap-source.09-observation-diagnostic` | `Umpire.Observation` | synthesized | production | generated-known-gap-family | `umpire.observation.*` | — | A closed Observation diagnostic synthesized during Run Evaluation. |
+| `umpire.semantic-inventory.known-gap-source.09-observation-diagnostic` | `Umpire.Evidence` | synthesized | production | generated-known-gap-family | `umpire.observation.*` | — | A closed Observation diagnostic synthesized during Run Evaluation. |
 | `umpire.semantic-inventory.known-gap-source.10-implementation-link-setup` | `Umpire.ImplementationLink` | authored | production | authored-implementation-link-known-gap-family | `setup` | — | Polymorphic authored setup Known Gaps retained by an Implementation Link declaration. |
 | `umpire.semantic-inventory.known-gap-source.11-implementation-link-state` | `Umpire.ImplementationLink` | authored | production | authored-implementation-link-known-gap-family | `state` | — | Polymorphic authored state Known Gaps retained by an Implementation Link declaration. |
 | `umpire.semantic-inventory.known-gap-source.12-implementation-link-action` | `Umpire.ImplementationLink` | authored | production | authored-implementation-link-known-gap-family | `action` | — | Polymorphic authored action Known Gaps retained by an Implementation Link declaration. |
@@ -170,7 +170,7 @@ Each row identifies one authored source, synthesized family, projection, exact c
 | `umpire.semantic-inventory.known-gap-source.15-implementation-link-relation` | `Umpire.ImplementationLink` | authored | production | authored-implementation-link-known-gap-family | `relation` | — | Polymorphic authored relation Known Gaps retained by an Implementation Link declaration. |
 | `umpire.semantic-inventory.known-gap-source.16-implementation-link-capability` | `Umpire.ImplementationLink` | authored | production | authored-implementation-link-known-gap-family | `capability` | — | Polymorphic authored capability Known Gaps retained by an Implementation Link declaration. |
 | `umpire.semantic-inventory.known-gap-source.17-request-raw-known-gap-input` | `Umpire.Case` | carried | production | admitted-known-gap-input | `umpire.case.known-gap-input` | — | Validated Case Known Gaps before stage-specific projection. |
-| `umpire.semantic-inventory.known-gap-source.18-observation-known-gap-admission` | `Umpire.Observation` | carried | production | evidence-gap-admission-projection | `umpire.semantic-inventory.known-gap-source.17-request-raw-known-gap-input` | code -> code; subject.toList -> relatedDefinitionIds; kind -> absent; detail -> absent | Request and Raw Evidence Known Gaps admitted as lossy Evidence Gaps. |
+| `umpire.semantic-inventory.known-gap-source.18-observation-known-gap-admission` | `Umpire.Evidence` | carried | production | evidence-gap-admission-projection | `umpire.semantic-inventory.known-gap-source.17-request-raw-known-gap-input` | code -> code; subject.toList -> relatedDefinitionIds; kind -> absent; detail -> absent | Request and Raw Evidence Known Gaps admitted as lossy Evidence Gaps. |
 | `umpire.semantic-inventory.known-gap-source.19-result-request-raw-known-gap-carry` | `Umpire.Artifact.Result` | carried | production | carried-catalog-entry | `umpire.semantic-inventory.known-gap-source.17-request-raw-known-gap-input` | kind -> kind; code -> code; subject -> subject; detail -> detail | Request and Raw Evidence Known Gaps carried exactly into Result. |
 | `umpire.semantic-inventory.known-gap-source.20-result-observation-known-gap-carry` | `Umpire.Artifact.Result` | carried | production | carried-catalog-entry | `umpire.semantic-inventory.known-gap-source.09-observation-diagnostic` | kind -> kind; code -> code; subject -> subject; detail -> detail | Synthesized Observation Known Gaps carried exactly into Result. |
 | `umpire.semantic-inventory.known-gap-source.21-test-capability` | `Umpire.SearchTests.KnownGaps` | authored | test-only | exact-known-gap | `umpire.known-gap.capability-contract` | — | Test-only capability-contract Known Gap fixture. |

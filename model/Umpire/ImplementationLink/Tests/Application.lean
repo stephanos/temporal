@@ -50,7 +50,7 @@ def actionRuleId : DefinitionId := id "test.implementation-link.rule.action"
 def outcomeRuleId : DefinitionId := id "test.implementation-link.rule.outcome"
 def observationRuleId : DefinitionId := id "test.implementation-link.rule.observation"
 
-def observationDeclaration : ObservationMappingDeclaration := {
+def observationDeclaration : Evidence.Reading := {
   id := id "test.implementation-link.observation"
   source
   profile := profileId
@@ -99,14 +99,14 @@ def observationDeclaration : ObservationMappingDeclaration := {
   evidenceBound := { value := 3, unit := .evidenceRecords }
 }
 
-def observationPlanResult : Except ObservationError CheckedObservationPlan :=
-  checkObservation (ObservationCheckContext.ofTarget Umpire.Examples.Switch.target [evidenceProfile])
+def observationPlanResult : Except Evidence.ReadingError Evidence.CheckedReading :=
+  Evidence.checkReading (Evidence.ReadingContext.ofTarget Umpire.Examples.Switch.target [evidenceProfile])
     observationDeclaration
 
 private theorem observationPlanResult_isSome : observationPlanResult.toOption.isSome = true := by
   native_decide
 
-def observationPlan : CheckedObservationPlan :=
+def observationPlan : Evidence.CheckedReading :=
   observationPlanResult.toOption.get observationPlanResult_isSome
 
 private def textField (fieldId : DefinitionId) (value : String) : EvidenceFieldValue := {
@@ -149,7 +149,7 @@ def stepRecord
   ]
 }
 
-def repeatedEvidence : EvidenceBundle := {
+def repeatedEvidence : SyntheticEvidence := {
   profile := profileId
   profileVersion := 1
   records := [
@@ -160,20 +160,20 @@ def repeatedEvidence : EvidenceBundle := {
   closures := [{ kind := evidenceKind, lastSequence := 3 }]
 }
 
-def impossibleInitialEvidence : EvidenceBundle := {
+def impossibleInitialEvidence : SyntheticEvidence := {
   repeatedEvidence with
   records := [initialRecord "on"]
   closures := [{ kind := evidenceKind, lastSequence := 1 }]
 }
 
-def impossibleStepEvidence : EvidenceBundle := {
+def impossibleStepEvidence : SyntheticEvidence := {
   repeatedEvidence with
   records := [initialRecord,
     stepRecord firstStepRecordId 2 initialRecordId "applied" "off"]
   closures := [{ kind := evidenceKind, lastSequence := 2 }]
 }
 
-private def acceptedTrace? (bundle : EvidenceBundle) : Option EvidenceBackedTrace :=
+private def acceptedTrace? (bundle : SyntheticEvidence) : Option EvidenceBackedTrace :=
   match evaluateEvidence observationPlan bundle with
   | .accepted trace => some trace
   | _ => none
@@ -194,7 +194,7 @@ private def uncheckedTraceOf (trace : EvidenceBackedTrace) : UncheckedEvidenceBa
   evidenceIdentities := trace.evidenceIdentities
   recordSupport := trace.recordSupport
   trace := trace.trace
-  evidenceLinks := trace.evidenceLinks
+  evidenceSupports := trace.evidenceSupports
 }
 
 def repeatedEvidenceTrace : EvidenceBackedTrace :=
@@ -312,7 +312,7 @@ def observedPowerOffObservation : ModelValue := {
   Umpire.Examples.Switch.powerOffObservation with value := "observed-off"
 }
 
-def observedEvidence : EvidenceBundle := {
+def observedEvidence : SyntheticEvidence := {
   repeatedEvidence with
   records := [
     stepRecord secondStepRecordId 3 firstStepRecordId
@@ -357,7 +357,7 @@ example :
     checkedObservedApplication.status = .applied ∧
     checkedObservedApplication.translated?.map (fun translation =>
       (translation.trace == observedTrace.trace,
-        translation.evidenceLinks.length,
+        translation.evidenceSupports.length,
         translation.hasAuthorityClaim)) = some (true, 9, false) := by
   native_decide
 
@@ -551,32 +551,32 @@ private def repeatedUncheckedEvidenceTrace : UncheckedEvidenceBackedTrace :=
 
 def invalidCoordinateTrace : UncheckedEvidenceBackedTrace := {
   repeatedUncheckedEvidenceTrace with
-  evidenceLinks := repeatedEvidenceTrace.evidenceLinks.mapIdx fun index evidenceLink =>
-    if index == 0 then { evidenceLink with coordinate := .selectedAction 0 } else evidenceLink
+  evidenceSupports := repeatedEvidenceTrace.evidenceSupports.mapIdx fun index evidenceSupport =>
+    if index == 0 then { evidenceSupport with coordinate := .selectedAction 0 } else evidenceSupport
 }
 
 def absentCoordinateTrace : UncheckedEvidenceBackedTrace := {
-  repeatedUncheckedEvidenceTrace with evidenceLinks := repeatedEvidenceTrace.evidenceLinks.tail
+  repeatedUncheckedEvidenceTrace with evidenceSupports := repeatedEvidenceTrace.evidenceSupports.tail
 }
 
 def duplicateCoordinateTrace : UncheckedEvidenceBackedTrace := {
   repeatedUncheckedEvidenceTrace with
-  evidenceLinks := repeatedEvidenceTrace.evidenceLinks.head?.toList ++
-    repeatedEvidenceTrace.evidenceLinks
+  evidenceSupports := repeatedEvidenceTrace.evidenceSupports.head?.toList ++
+    repeatedEvidenceTrace.evidenceSupports
 }
 
 def contradictoryCoordinateTrace : UncheckedEvidenceBackedTrace := {
   repeatedUncheckedEvidenceTrace with
-  evidenceLinks := (repeatedEvidenceTrace.evidenceLinks.head?.map fun evidenceLink => {
-    evidenceLink with ruleId := id "test.implementation-link.rule.contradiction"
-  }).toList ++ repeatedEvidenceTrace.evidenceLinks
+  evidenceSupports := (repeatedEvidenceTrace.evidenceSupports.head?.map fun evidenceSupport => {
+    evidenceSupport with ruleId := id "test.implementation-link.rule.contradiction"
+  }).toList ++ repeatedEvidenceTrace.evidenceSupports
 }
 
-def mismatchedEvidenceLinkTrace : UncheckedEvidenceBackedTrace := {
+def mismatchedEvidenceSupportTrace : UncheckedEvidenceBackedTrace := {
   repeatedUncheckedEvidenceTrace with
-  evidenceLinks := repeatedEvidenceTrace.evidenceLinks.mapIdx fun index evidenceLink =>
-    if index == 0 then { evidenceLink with mappingDigest := "sha256:mismatched" }
-    else evidenceLink
+  evidenceSupports := repeatedEvidenceTrace.evidenceSupports.mapIdx fun index evidenceSupport =>
+    if index == 0 then { evidenceSupport with mappingDigest := "sha256:mismatched" }
+    else evidenceSupport
 }
 
 def limitApplication := applyImplementationLink checkedLimitedLink
@@ -589,7 +589,7 @@ def knownGapApplication := applyImplementationLink checkedGapLink
 def observationAdmissionFailureMatrix :
     List (ObservationStatus × Option ObservationFailureKind) :=
   [invalidCoordinateTrace, absentCoordinateTrace, duplicateCoordinateTrace,
-    contradictoryCoordinateTrace, mismatchedEvidenceLinkTrace].map fun trace =>
+    contradictoryCoordinateTrace, mismatchedEvidenceSupportTrace].map fun trace =>
       match validateEvidenceBackedTrace trace with
       | .ok _ => (.accepted, none)
       | .error diagnostic => (diagnostic.status, some diagnostic.kind)
@@ -599,16 +599,16 @@ example : observationAdmissionFailureMatrix = [
   (.unknown, some .absentModelCoordinate),
   (.conflict, some .duplicateModelCoordinate),
   (.conflict, some .duplicateModelCoordinate),
-  (.conflict, some .inconsistentEvidenceLink)
+  (.conflict, some .inconsistentEvidenceSupport)
 ] := by
   native_decide
 
 /-- The positive application returns the complete repeated-value trace with one link per position. -/
 example : completeApplication.applied?.map (fun application =>
     (application.trace == repeatedEvidenceTrace.trace,
-      application.evidenceLinks.map (fun evidenceLink =>
-      (evidenceLink.coordinate, evidenceLink.sourceValue, evidenceLink.destinationValue,
-        evidenceLink.sourceEvidenceLink.coordinate)))) = some (
+      application.evidenceSupports.map (fun evidenceSupport =>
+      (evidenceSupport.coordinate, evidenceSupport.sourceValue, evidenceSupport.destinationValue,
+        evidenceSupport.sourceEvidenceSupport.coordinate)))) = some (
     true,
     [
       (.initialState, Umpire.Examples.Switch.offState, Umpire.Examples.Switch.offState,
@@ -634,10 +634,10 @@ example : completeApplication.applied?.map (fun application =>
 
 /-- Evidence Link identities bind their exact positional source evidence and translated fact. -/
 example : completeApplication.applied?.map (fun application =>
-    application.evidenceLinks.all fun evidenceLink =>
-      evidenceLink.identity != behaviorFingerprintOf "" &&
-        evidenceLink.sourceEvidenceLinkBehaviorFingerprint ==
-          behaviorFingerprintOf (reprStr evidenceLink.sourceEvidenceLink)) = some true := by
+    application.evidenceSupports.all fun evidenceSupport =>
+      evidenceSupport.identity != behaviorFingerprintOf "" &&
+        evidenceSupport.sourceEvidenceSupportBehaviorFingerprint ==
+          behaviorFingerprintOf (reprStr evidenceSupport.sourceEvidenceSupport)) = some true := by
   native_decide
 
 def failureMatrix : List (ImplementationLinkStatus × Option ImplementationLinkFailureKind) := [
@@ -675,7 +675,7 @@ def allFailureKinds : List ImplementationLinkFailureKind := [
   .duplicateCoordinate,
   .contradictoryCoordinate,
   .multipleMappings,
-  .evidenceLinkMismatch,
+  .evidenceSupportMismatch,
   .knownGap,
   .unsupportedVocabulary
 ]

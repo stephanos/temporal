@@ -1,10 +1,10 @@
-import Umpire.Observation.Compiler
-import Umpire.Observation.Tests.Fixtures
+import Umpire.Evidence.Reading.Check
+import Umpire.Evidence.Tests.Fixtures
 import Umpire.Model.Tests.Fixtures
 
 /-! Deterministic checked-plan identity and exact structural compilation failures. -/
 
-namespace Umpire.ObservationTests
+namespace Umpire.EvidenceTests
 
 open Umpire
 
@@ -37,7 +37,7 @@ def projectedInitialRuleSpec : ObservationRuleSpec := {
   condition := initialRule.condition
 }
 
-def projectedMappingSpec : ObservationMappingSpec := {
+def projectedMappingSpec : Evidence.ReadingSpec := {
   id := baseDeclaration.id
   source
   profile := profileId
@@ -76,31 +76,31 @@ example :
     projectedMappingSpec.declaration = baseDeclaration := by
   exact ⟨rfl, rfl, rfl⟩
 
-def checkedProjectedPlan : CheckedObservationPlan :=
+def checkedProjectedPlan : Evidence.CheckedReading :=
   projectedMappingSpec.checked context (by native_decide)
 
 /-- Specification checking and checked extraction delegate to the existing checker exactly once. -/
 example :
-    projectedMappingSpec.check context = checkObservation context baseDeclaration ∧
+    projectedMappingSpec.check context = Evidence.checkReading context baseDeclaration ∧
     checkedProjectedPlan =
-      (checkObservation context baseDeclaration).toOption.get (by native_decide) := by
+      (Evidence.checkReading context baseDeclaration).toOption.get (by native_decide) := by
   exact ⟨rfl, rfl⟩
 
 #guard_msgs (error, substring := true) in
-def projectedMappingWithoutValidityProof : CheckedObservationPlan :=
+def projectedMappingWithoutValidityProof : Evidence.CheckedReading :=
   projectedMappingSpec.checked context
 
-def checkedBasePlan : CheckedObservationPlan :=
-  checkedObservation context baseDeclaration (by native_decide)
+def checkedBasePlan : Evidence.CheckedReading :=
+  Evidence.checkedReading context baseDeclaration (by native_decide)
 
 /-- Checked Observation authoring returns the typed checker's complete canonical plan. -/
 example : checkedBasePlan =
-    (checkObservation context baseDeclaration).toOption.get (by native_decide) := by
+    (Evidence.checkReading context baseDeclaration).toOption.get (by native_decide) := by
   native_decide
 
 #guard_msgs (error, substring := true) in
-def observationWithoutValidityProof : CheckedObservationPlan :=
-  checkedObservation context baseDeclaration
+def observationWithoutValidityProof : Evidence.CheckedReading :=
+  Evidence.checkedReading context baseDeclaration
 
 def reorderedInitialRule : ObservationRule := {
   initialRule with
@@ -109,7 +109,7 @@ def reorderedInitialRule : ObservationRule := {
     (.present (field nameFieldSpec))))
 }
 
-def reorderedDeclaration : ObservationMappingDeclaration := {
+def reorderedDeclaration : Evidence.Reading := {
   baseDeclaration with
   digestPolicies := baseDeclaration.digestPolicies.reverse
   bindings := baseDeclaration.bindings.reverse
@@ -130,7 +130,7 @@ example : planIdentityOf context baseDeclaration != planIdentityOf context {
   native_decide
 
 def checkedNormalizedNameIsTyped : Option Bool := do
-  let plan ← (checkObservation context baseDeclaration).toOption
+  let plan ← (Evidence.checkReading context baseDeclaration).toOption
   let binding ← plan.bindings.find? fun binding => binding.id == normalizedName.id
   match binding.expression with
   | .normalize .textTrimV1 (.field reference .text .retain) =>
@@ -141,11 +141,11 @@ def checkedNormalizedNameIsTyped : Option Bool := do
 example : checkedNormalizedNameIsTyped = some true := by
   native_decide
 
-def connectedContext : Option ObservationCheckContext :=
+def connectedContext : Option Evidence.ReadingContext :=
   ((checkModel (DraftModel.make Umpire.ModelTests.testTarget) |>.mapError LocatedError.error)).toOption.map fun target =>
-    ObservationCheckContext.ofTarget target [evidenceProfile]
+    Evidence.ReadingContext.ofTarget target [evidenceProfile]
 
-def reconciledMappingSpec : ObservationMappingSpec := {
+def reconciledMappingSpec : Evidence.ReadingSpec := {
   baseSpec with
   id := id "test.mapping.reconciled"
   digestPolicies := []
@@ -160,12 +160,12 @@ def reconciledMappingSpec : ObservationMappingSpec := {
   dispositions := []
 }
 
-def reconciledMapping : ObservationMappingDeclaration :=
+def reconciledMapping : Evidence.Reading :=
   reconciledMappingSpec.declaration
 
 def reconciledMeaningDigest : Option String := do
   let checkContext ← connectedContext
-  let plan ← (checkObservation checkContext reconciledMapping).toOption
+  let plan ← (Evidence.checkReading checkContext reconciledMapping).toOption
   let rule ← plan.rules.find? fun rule => rule.id == id "test.rule.reconciled"
   pure rule.meaning.behaviorVersion
 
@@ -174,10 +174,10 @@ example : reconciledMeaningDigest = some "test-shared-connector/reconciled-v1" :
   native_decide
 
 def providerResolutionFailures :
-    Option DefinitionErrorKind × Option ObservationErrorKind :=
+    Option DefinitionErrorKind × Option Evidence.ReadingErrorKind :=
   (Umpire.ModelTests.errorOf ((checkModel (DraftModel.make Umpire.ModelTests.conflictingTarget) |>.mapError LocatedError.error))
       |>.map DefinitionError.kind,
-    errorKindOf (checkObservation { context with meanings := [] } reconciledMapping))
+    errorKindOf (Evidence.checkReading { context with meanings := [] } reconciledMapping))
 
 /-- Conflicting providers fail before Observation construction; unresolved meaning stays fail-closed. -/
 example : providerResolutionFailures =
@@ -185,30 +185,30 @@ example : providerResolutionFailures =
   native_decide
 
 /-- Every consumed field has one checked disposition in the canonical plan. -/
-example : (checkObservation context baseDeclaration).toOption.map
+example : (Evidence.checkReading context baseDeclaration).toOption.map
     (fun plan => plan.dispositions.length) = some 4 := by
   native_decide
 
 def withSingleRuleExpression
-    (expression : ObservationExpressionAuthoring) : ObservationMappingDeclaration := {
+    (expression : ObservationExpressionAuthoring) : Evidence.Reading := {
   baseDeclaration with
   rules := [{ initialRule with value := expression, condition := none }]
   ordering := []
 }
 
-def emptyProfileContext : ObservationCheckContext := {
+def emptyProfileContext : Evidence.ReadingContext := {
   context with profiles := [{ evidenceProfile with id := id "" }]
 }
 
-def invalidProfileContext : ObservationCheckContext := {
+def invalidProfileContext : Evidence.ReadingContext := {
   context with profiles := [{ evidenceProfile with id := id "profile" }]
 }
 
-def duplicateProfileContext : ObservationCheckContext := {
+def duplicateProfileContext : Evidence.ReadingContext := {
   context with profiles := [evidenceProfile, evidenceProfile]
 }
 
-def emptyFieldContext : ObservationCheckContext := {
+def emptyFieldContext : Evidence.ReadingContext := {
   context with profiles := [{
     evidenceProfile with kinds := [{
       id := eventKind
@@ -217,7 +217,7 @@ def emptyFieldContext : ObservationCheckContext := {
   }]
 }
 
-def invalidFieldContext : ObservationCheckContext := {
+def invalidFieldContext : Evidence.ReadingContext := {
   context with profiles := [{
     evidenceProfile with kinds := [{
       id := eventKind
@@ -226,7 +226,7 @@ def invalidFieldContext : ObservationCheckContext := {
   }]
 }
 
-def duplicateFieldContext : ObservationCheckContext := {
+def duplicateFieldContext : Evidence.ReadingContext := {
   context with profiles := [{
     evidenceProfile with kinds := [{
       id := eventKind
@@ -239,7 +239,7 @@ def duplicateFieldContext : ObservationCheckContext := {
 }
 
 def contextWithProjectedNameDeclaration
-    (declaration : EvidenceFieldDeclaration) : ObservationCheckContext := {
+    (declaration : EvidenceFieldDeclaration) : Evidence.ReadingContext := {
   context with profiles := [{
     evidenceProfile with kinds := evidenceProfile.kinds.map fun kind => {
       kind with fields := kind.fields.map fun field =>
@@ -249,41 +249,41 @@ def contextWithProjectedNameDeclaration
 }
 
 def contextWithProjectedFields
-    (fields : List EvidenceFieldDeclaration) : ObservationCheckContext := {
+    (fields : List EvidenceFieldDeclaration) : Evidence.ReadingContext := {
   context with profiles := [{
     evidenceProfile with kinds := [{ id := eventKind, fields }]
   }]
 }
 
-def projectedFieldFailures : List (Option ObservationErrorKind) := [
-  errorKindOf (checkObservation
+def projectedFieldFailures : List (Option Evidence.ReadingErrorKind) := [
+  errorKindOf (Evidence.checkReading
     (contextWithProjectedNameDeclaration { projectedNameField with field := id "" }.declaration)
     baseDeclaration),
-  errorKindOf (checkObservation
+  errorKindOf (Evidence.checkReading
     (contextWithProjectedNameDeclaration { projectedNameField with field := id "field" }.declaration)
     baseDeclaration),
-  errorKindOf (checkObservation
+  errorKindOf (Evidence.checkReading
     (contextWithProjectedFields [projectedNameField.declaration, projectedNameField.declaration])
     baseDeclaration),
-  errorKindOf (checkObservation context (withSingleRuleExpression (.portable
+  errorKindOf (Evidence.checkReading context (withSingleRuleExpression (.portable
     { projectedNameField with kind := id "test.kind.unknown" }.expression))),
-  errorKindOf (checkObservation context (withSingleRuleExpression (.portable
+  errorKindOf (Evidence.checkReading context (withSingleRuleExpression (.portable
     { projectedNameField with field := id "test.field.unknown" }.expression))),
-  errorKindOf (checkObservation
+  errorKindOf (Evidence.checkReading
     (contextWithProjectedNameDeclaration { projectedNameField with valueType := .boolean }.declaration)
     baseDeclaration),
-  errorKindOf (checkObservation context {
+  errorKindOf (Evidence.checkReading context {
     baseDeclaration with
     rules := [{ initialRule with value := .portable projectedNameField.expression }]
     ordering := []
     dispositions := baseDeclaration.dispositions.filter fun disposition =>
       disposition.field != projectedNameField.reference
   }),
-  errorKindOf (checkObservation context {
+  errorKindOf (Evidence.checkReading context {
     baseDeclaration with dispositions := baseDeclaration.dispositions ++
       [projectedNameField.disposition .retain]
   }),
-  errorKindOf (checkObservation context {
+  errorKindOf (Evidence.checkReading context {
     baseDeclaration with
     digestPolicies := []
     dispositions := baseDeclaration.dispositions.map fun declaration =>
@@ -308,50 +308,50 @@ example : projectedFieldFailures = [
 ] := by
   native_decide
 
-def structuralFailures : List (Option ObservationErrorKind) := [
-  errorKindOf (checkObservation emptyProfileContext { baseDeclaration with profile := id "" }),
-  errorKindOf (checkObservation invalidProfileContext { baseDeclaration with profile := id "profile" }),
-  errorKindOf (checkObservation duplicateProfileContext baseDeclaration),
-  errorKindOf (checkObservation context {
+def structuralFailures : List (Option Evidence.ReadingErrorKind) := [
+  errorKindOf (Evidence.checkReading emptyProfileContext { baseDeclaration with profile := id "" }),
+  errorKindOf (Evidence.checkReading invalidProfileContext { baseDeclaration with profile := id "profile" }),
+  errorKindOf (Evidence.checkReading duplicateProfileContext baseDeclaration),
+  errorKindOf (Evidence.checkReading context {
     baseDeclaration with rules := [{ initialRule with id := id "" }], ordering := [] }),
-  errorKindOf (checkObservation context {
+  errorKindOf (Evidence.checkReading context {
     baseDeclaration with rules := [{ initialRule with id := id "rule" }], ordering := [] }),
-  errorKindOf (checkObservation context {
+  errorKindOf (Evidence.checkReading context {
     baseDeclaration with rules := [initialRule, initialRule], ordering := [] }),
-  errorKindOf (checkObservation emptyFieldContext baseDeclaration),
-  errorKindOf (checkObservation invalidFieldContext baseDeclaration),
-  errorKindOf (checkObservation duplicateFieldContext baseDeclaration),
-  errorKindOf (checkObservation context { baseDeclaration with profile := id "test.profile.unknown" }),
-  errorKindOf (checkObservation context (withSingleRuleExpression
+  errorKindOf (Evidence.checkReading emptyFieldContext baseDeclaration),
+  errorKindOf (Evidence.checkReading invalidFieldContext baseDeclaration),
+  errorKindOf (Evidence.checkReading duplicateFieldContext baseDeclaration),
+  errorKindOf (Evidence.checkReading context { baseDeclaration with profile := id "test.profile.unknown" }),
+  errorKindOf (Evidence.checkReading context (withSingleRuleExpression
     (.portable (.field { kind := id "test.kind.unknown", field := nameField })))),
-  errorKindOf (checkObservation context (withSingleRuleExpression
+  errorKindOf (Evidence.checkReading context (withSingleRuleExpression
     (.portable (.field { kind := eventKind, field := id "test.field.unknown" })))),
-  errorKindOf (checkObservation context {
+  errorKindOf (Evidence.checkReading context {
     baseDeclaration with bindings := [{ normalizedName with
       expression := .portable
         (.normalize { name := "text.unknown", version := 1 } (field nameFieldSpec)) }]
   }),
-  errorKindOf (checkObservation context {
+  errorKindOf (Evidence.checkReading context {
     baseDeclaration with bindings := [{ normalizedName with
       expression := .portable
         (.normalize { name := "text.trim", version := 2 } (field nameFieldSpec)) }]
   }),
-  errorKindOf (checkObservation context {
+  errorKindOf (Evidence.checkReading context {
     baseDeclaration with bindings := [{ normalizedName with
       expression := .portable
         (.normalize { name := "text.trim", version := 1 } (.boolean true)) }]
   }),
-  errorKindOf (checkObservation context (withSingleRuleExpression (.callback "forbidden"))),
-  errorKindOf (checkObservation context (withSingleRuleExpression (.recursive initialRule.id))),
-  errorKindOf (checkObservation context (withSingleRuleExpression (field secretFieldSpec))),
-  errorKindOf (checkObservation context (withSingleRuleExpression (field hashedFieldSpec))),
-  errorKindOf (checkObservation context (withSingleRuleExpression (field rejectedFieldSpec))),
-  errorKindOf (checkObservation context {
+  errorKindOf (Evidence.checkReading context (withSingleRuleExpression (.callback "forbidden"))),
+  errorKindOf (Evidence.checkReading context (withSingleRuleExpression (.recursive initialRule.id))),
+  errorKindOf (Evidence.checkReading context (withSingleRuleExpression (field secretFieldSpec))),
+  errorKindOf (Evidence.checkReading context (withSingleRuleExpression (field hashedFieldSpec))),
+  errorKindOf (Evidence.checkReading context (withSingleRuleExpression (field rejectedFieldSpec))),
+  errorKindOf (Evidence.checkReading context {
     baseDeclaration with
     rules := [{ initialRule with output := id "test.state.unknown" }]
     ordering := []
   }),
-  errorKindOf (checkObservation context {
+  errorKindOf (Evidence.checkReading context {
     baseDeclaration with
     rules := [{
       initialRule with
@@ -360,22 +360,22 @@ def structuralFailures : List (Option ObservationErrorKind) := [
     }]
     ordering := []
   }),
-  errorKindOf (checkObservation context {
+  errorKindOf (Evidence.checkReading context {
     baseDeclaration with
     rules := [{ initialRule with outputKind := .action }]
     ordering := []
   }),
-  errorKindOf (checkObservation context {
+  errorKindOf (Evidence.checkReading context {
     baseDeclaration with
     dispositions := baseDeclaration.dispositions.filter fun disposition =>
       disposition.field.field != nameField
   }),
-  errorKindOf (checkObservation context {
+  errorKindOf (Evidence.checkReading context {
     baseDeclaration with
     dispositions := baseDeclaration.dispositions ++
       [{ field := { kind := eventKind, field := nameField }, disposition := .retain }]
   }),
-  errorKindOf (checkObservation context {
+  errorKindOf (Evidence.checkReading context {
     baseDeclaration with
     rules := [initialRule, {
       contributionRule with
@@ -384,30 +384,30 @@ def structuralFailures : List (Option ObservationErrorKind) := [
     }]
     ordering := []
   }),
-  errorKindOf (checkObservation context {
+  errorKindOf (Evidence.checkReading context {
     baseDeclaration with bindings := [{ normalizedName with valueType := .boolean }]
   }),
-  errorKindOf (checkObservation context {
+  errorKindOf (Evidence.checkReading context {
     baseDeclaration with ordering := [
       { before := initialRule.id, after := contributionRule.id },
       { before := contributionRule.id, after := initialRule.id }
     ]
   }),
-  errorKindOf (checkObservation context {
+  errorKindOf (Evidence.checkReading context {
     baseDeclaration with ordering := [
       { before := initialRule.id, after := contributionRule.id },
       { before := contributionRule.id, after := digestRule.id },
       { before := digestRule.id, after := initialRule.id }
     ]
   }),
-  errorKindOf (checkObservation context { baseDeclaration with closures := [] }),
-  errorKindOf (checkObservation context {
+  errorKindOf (Evidence.checkReading context { baseDeclaration with closures := [] }),
+  errorKindOf (Evidence.checkReading context {
     baseDeclaration with closures := [{ kind := eventKind }, { kind := eventKind }]
   }),
-  errorKindOf (checkObservation context {
+  errorKindOf (Evidence.checkReading context {
     baseDeclaration with evidenceBound := { value := 0, unit := .evidenceRecords }
   }),
-  errorKindOf (checkObservation context {
+  errorKindOf (Evidence.checkReading context {
     baseDeclaration with digestPolicies := []
   })
 ]
@@ -427,7 +427,7 @@ def cycleRule (ruleId : DefinitionId) : ObservationRule := {
   value := .portable (.text ruleId.value)
 }
 
-def divergentCycleContext : ObservationCheckContext := {
+def divergentCycleContext : Evidence.ReadingContext := {
   context with
   definitions := context.definitions ++ [cycleA, cycleB, cycleC, cycleD].map fun ruleId =>
     metadata (cycleOutput ruleId).value .fact
@@ -438,7 +438,7 @@ def divergentCycleContext : ObservationCheckContext := {
   }
 }
 
-def divergentCycleDeclaration : ObservationMappingDeclaration := {
+def divergentCycleDeclaration : Evidence.Reading := {
   baseDeclaration with
   id := id "test.mapping.divergent-cycle"
   digestPolicies := []
@@ -453,12 +453,12 @@ def divergentCycleDeclaration : ObservationMappingDeclaration := {
   dispositions := []
 }
 
-def mixedGraphAndBoundFaultDeclaration : ObservationMappingDeclaration := {
+def mixedGraphAndBoundFaultDeclaration : Evidence.Reading := {
   divergentCycleDeclaration with
   evidenceBound := { value := 0, unit := .evidenceRecords }
 }
 
-def multipleGraphFaultDeclaration : ObservationMappingDeclaration := {
+def multipleGraphFaultDeclaration : Evidence.Reading := {
   baseDeclaration with
   ordering := [
     { before := digestRule.id, after := digestRule.id },
@@ -471,15 +471,15 @@ def multipleGraphFaultDeclaration : ObservationMappingDeclaration := {
 }
 
 def compileErrorJson
-    (result : Except ObservationError CheckedObservationPlan) : Option String :=
+    (result : Except Evidence.ReadingError Evidence.CheckedReading) : Option String :=
   match result with
   | .ok _ => none
-  | .error failure => some (canonicalObservationErrorJson failure)
+  | .error failure => some (Evidence.canonicalReadingErrorJson failure)
 
 example : (
-    compileErrorJson (checkObservation divergentCycleContext mixedGraphAndBoundFaultDeclaration),
-    compileErrorJson (checkObservation context multipleGraphFaultDeclaration),
-    compileErrorJson (checkObservation divergentCycleContext divergentCycleDeclaration)
+    compileErrorJson (Evidence.checkReading divergentCycleContext mixedGraphAndBoundFaultDeclaration),
+    compileErrorJson (Evidence.checkReading context multipleGraphFaultDeclaration),
+    compileErrorJson (Evidence.checkReading divergentCycleContext divergentCycleDeclaration)
   ) = (
     some "{\"kind\":\"invalid-bound-value\",\"definitionId\":\"test.mapping.divergent-cycle\",\"sourcePath\":\"Umpire/Observation/Tests/Fixtures.lean\",\"offendingValue\":\"0\",\"relatedDefinitionIds\":[]}",
     some "{\"kind\":\"contradictory-ordering\",\"definitionId\":\"test.mapping.lifecycle\",\"sourcePath\":\"Umpire/Observation/Tests/Fixtures.lean\",\"offendingValue\":\"test.rule.initial-state->test.rule.contribution\",\"relatedDefinitionIds\":[\"test.rule.contribution\",\"test.rule.initial-state\"]}",
@@ -531,20 +531,20 @@ example : structuralFailures = [
 `ObservationProfileSpec.declaration` calls `List.map` once over its explicit kind collection and
 then the kind helper once per kind. `ObservationRuleSpec.declaration` calls
 `ObservationFieldSpec.expression` and performs record assembly without a collection traversal.
-`ObservationMappingSpec.declaration` calls `List.map` once over explicit disposition choices and
-otherwise performs record assembly. `ObservationMappingSpec.check` and `.checked` each delegate to
-one `checkObservation` call; neither normalizes, rescans, nor duplicates checker work. The
+`Evidence.ReadingSpec.declaration` calls `List.map` once over explicit disposition choices and
+otherwise performs record assembly. `Evidence.ReadingSpec.check` and `.checked` each delegate to
+one `Evidence.checkReading` call; neither normalizes, rescans, nor duplicates checker work. The
 independent 1×/10× specimens below therefore add exactly one copy of that wrapper work per input;
 the unchanged checker complexity is outside this construction inventory. -/
 
 def oneIndependentObservationConstruction :
-    List (EvidenceProfileDeclaration × ObservationRule × ObservationMappingDeclaration) := [
+    List (EvidenceProfileDeclaration × ObservationRule × Evidence.Reading) := [
   (projectedProfileSpec.declaration, projectedInitialRuleSpec.declaration,
     projectedMappingSpec.declaration)
 ]
 
 def tenIndependentObservationConstructions :
-    List (EvidenceProfileDeclaration × ObservationRule × ObservationMappingDeclaration) :=
+    List (EvidenceProfileDeclaration × ObservationRule × Evidence.Reading) :=
   (List.range 10).map fun index =>
     let suffix := toString index
     let profile := {
@@ -565,9 +565,9 @@ example : oneIndependentObservationConstruction.length = 1 ∧
 #print axioms ObservationKindSpec.declaration
 #print axioms ObservationProfileSpec.declaration
 #print axioms ObservationRuleSpec.declaration
-#print axioms ObservationMappingSpec.declaration
-#print axioms ObservationMappingSpec.check
-#print axioms checkedObservation
-#print axioms ObservationMappingSpec.checked
+#print axioms Evidence.ReadingSpec.declaration
+#print axioms Evidence.ReadingSpec.check
+#print axioms Evidence.checkedReading
+#print axioms Evidence.ReadingSpec.checked
 
-end Umpire.ObservationTests
+end Umpire.EvidenceTests

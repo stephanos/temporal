@@ -1,4 +1,4 @@
-import Umpire.Observation.Compiler
+import Umpire.Evidence.Reading.Check
 import Umpire.KnownGap
 import Umpire.OutcomeClassification
 
@@ -79,7 +79,7 @@ def EvidenceGap.knownGapAdmissionMapping : KnownGapCarryMapping :=
   .observationAdmission
 
 /-- Complete synthetic input envelope. Alternatives are preserved as data instead of selected. -/
-structure EvidenceBundle where
+structure SyntheticEvidence where
   profile : DefinitionId
   profileVersion : Nat
   records : List SyntheticEvidenceRecord
@@ -157,7 +157,7 @@ inductive ObservationFailureKind where
   | absentModelCoordinate
   | duplicateModelCoordinate
   | extraModelCoordinate
-  | inconsistentEvidenceLink
+  | inconsistentEvidenceSupport
   | unconsumedReference
   | missingClosureSupport
   | missingOrderSupport
@@ -176,7 +176,7 @@ def ObservationFailureKind.status : ObservationFailureKind → ObservationStatus
       .rejectedFieldPresent | .digestPolicyMismatch | .disallowedRawMaterial => .unsupported
   | .duplicateEvidenceIdentity | .contradictoryFact | .contradictoryBinding |
       .contradictoryOrder | .misdirectedFaultReceipt | .duplicateModelCoordinate |
-      .extraModelCoordinate | .inconsistentEvidenceLink | .digestCollision => .conflict
+      .extraModelCoordinate | .inconsistentEvidenceSupport | .digestCollision => .conflict
   | _ => .unknown
 
 structure ObservationDiagnostic where
@@ -230,7 +230,7 @@ structure EvidenceRecordSupport where
   deriving BEq, DecidableEq, Repr
 
 /-- Why the checked mapping accepted one Model Fact from the supplied Evidence. -/
-structure EvidenceLink where
+structure EvidenceSupport where
   coordinate : ModelCoordinate
   mappingId : DefinitionId
   mappingVersion : Nat
@@ -250,7 +250,7 @@ structure EvidenceLink where
 /-- Wide unchecked carrier used only while assembling and negatively testing trace admission. -/
 structure UncheckedEvidenceBackedTrace where
   traceId : String
-  checkedPlan : CheckedObservationPlan
+  checkedPlan : Evidence.CheckedReading
   mappingId : DefinitionId
   mappingVersion : Nat
   mappingDigest : String
@@ -264,7 +264,7 @@ structure UncheckedEvidenceBackedTrace where
   evidenceIdentities : List DefinitionId
   recordSupport : List EvidenceRecordSupport
   trace : ModelTrace ModelValue ModelValue ModelValue ModelValue
-  evidenceLinks : List EvidenceLink
+  evidenceSupports : List EvidenceSupport
   deriving BEq, DecidableEq, Repr
 
 end Umpire

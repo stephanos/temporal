@@ -1,5 +1,5 @@
 import Umpire.ImplementationLink.Language
-import Umpire.Observation.Evaluation
+import Umpire.Evidence.Evaluate
 import Umpire.OutcomeClassification
 
 /-!
@@ -85,7 +85,7 @@ inductive ImplementationLinkFailureKind where
   | duplicateCoordinate
   | contradictoryCoordinate
   | multipleMappings
-  | evidenceLinkMismatch
+  | evidenceSupportMismatch
   | knownGap
   | unsupportedVocabulary
   deriving BEq, DecidableEq, Ord, Repr
@@ -103,7 +103,7 @@ def ImplementationLinkFailureKind.name : ImplementationLinkFailureKind → Strin
   | .duplicateCoordinate => "duplicate-coordinate"
   | .contradictoryCoordinate => "contradictory-coordinate"
   | .multipleMappings => "multiple-mappings"
-  | .evidenceLinkMismatch => "evidence-link-mismatch"
+  | .evidenceSupportMismatch => "evidence-link-mismatch"
   | .knownGap => "known-gap"
   | .unsupportedVocabulary => "unsupported-vocabulary"
 
@@ -121,7 +121,7 @@ def ImplementationLinkFailureKind.status : ImplementationLinkFailureKind → Imp
   | .duplicateCoordinate
   | .contradictoryCoordinate
   | .multipleMappings
-  | .evidenceLinkMismatch => .conflict
+  | .evidenceSupportMismatch => .conflict
   | .knownGap
   | .unsupportedVocabulary => .unsupported
 
@@ -140,7 +140,7 @@ structure ImplementationLinkDiagnostic where
   knownGapCode : Option DefinitionId := none
   knownGapReason : Option String := none
   unsupportedVocabularyKind : Option DefinitionKind := none
-  evidenceLinkBehaviorFingerprint : Option BehaviorFingerprint := none
+  evidenceSupportBehaviorFingerprint : Option BehaviorFingerprint := none
   identity : BehaviorFingerprint
   deriving BEq, DecidableEq, Repr
 
@@ -187,7 +187,7 @@ private def implementationLinkDiagnosticSemanticJson
     (knownGapCode : Option DefinitionId)
     (knownGapReason : Option String)
     (unsupportedVocabularyKind : Option DefinitionKind)
-    (evidenceLinkBehaviorFingerprint : Option BehaviorFingerprint) : String :=
+    (evidenceSupportBehaviorFingerprint : Option BehaviorFingerprint) : String :=
   "{\"implementationLinkId\":" ++ quote implementationLinkId.value ++
     ",\"implementationLinkBehaviorFingerprint\":" ++
       quote implementationLinkBehaviorFingerprint.render ++
@@ -206,8 +206,8 @@ private def implementationLinkDiagnosticSemanticJson
     ",\"knownGapReason\":" ++ optionalJson knownGapReason ++
     ",\"unsupportedVocabularyKind\":" ++
       optionalJson (unsupportedVocabularyKind.map DefinitionKind.name) ++
-    ",\"evidenceLinkBehaviorFingerprint\":" ++
-      optionalJson (evidenceLinkBehaviorFingerprint.map BehaviorFingerprint.render) ++ "}"
+    ",\"evidenceSupportBehaviorFingerprint\":" ++
+      optionalJson (evidenceSupportBehaviorFingerprint.map BehaviorFingerprint.render) ++ "}"
 
 def canonicalImplementationLinkDiagnosticJson
     (diagnostic : ImplementationLinkDiagnostic) : String :=
@@ -217,7 +217,7 @@ def canonicalImplementationLinkDiagnosticJson
     diagnostic.relatedDefinitionIds diagnostic.sourceSetupBehaviorFingerprint
     diagnostic.appliedLimit diagnostic.observedCount diagnostic.knownGapCode
     diagnostic.knownGapReason diagnostic.unsupportedVocabularyKind
-    diagnostic.evidenceLinkBehaviorFingerprint
+    diagnostic.evidenceSupportBehaviorFingerprint
 
 /-- Whether a diagnostic still carries the identity of all its canonical provenance fields. -/
 def ImplementationLinkDiagnostic.hasCanonicalIdentity
@@ -237,7 +237,7 @@ private def implementationLinkDiagnostic
     (knownGapCode : Option DefinitionId := none)
     (knownGapReason : Option String := none)
     (unsupportedVocabularyKind : Option DefinitionKind := none)
-    (evidenceLinkBehaviorFingerprint : Option BehaviorFingerprint := none) :
+    (evidenceSupportBehaviorFingerprint : Option BehaviorFingerprint := none) :
     ImplementationLinkDiagnostic :=
   let relatedDefinitionIds := canonicalIds relatedDefinitionIds
   let sourceTarget := ImplementationTargetReference.ofTarget checked.sourceTarget
@@ -245,7 +245,7 @@ private def implementationLinkDiagnostic
   let semantic := implementationLinkDiagnosticSemanticJson checked.declaration.id
     checked.behaviorFingerprint sourceTarget destinationTarget kind coordinate relatedDefinitionIds
     sourceSetupBehaviorFingerprint appliedLimit observedCount knownGapCode knownGapReason
-    unsupportedVocabularyKind evidenceLinkBehaviorFingerprint
+    unsupportedVocabularyKind evidenceSupportBehaviorFingerprint
   {
     implementationLinkId := checked.declaration.id
     implementationLinkBehaviorFingerprint := checked.behaviorFingerprint
@@ -260,7 +260,7 @@ private def implementationLinkDiagnostic
     knownGapCode
     knownGapReason
     unsupportedVocabularyKind
-    evidenceLinkBehaviorFingerprint
+    evidenceSupportBehaviorFingerprint
     identity := behaviorFingerprintOf semantic
   }
 
@@ -402,7 +402,7 @@ def checkObservedTraceTranslation
   }
 
 /-- One destination fact retains its exact source coordinate, source fact, and Observation Evidence Link. -/
-structure ImplementationLinkEvidenceLink where
+structure ImplementationLinkEvidenceSupport where
   identity : BehaviorFingerprint
   implementationLinkId : DefinitionId
   implementationLinkBehaviorFingerprint : BehaviorFingerprint
@@ -411,17 +411,17 @@ structure ImplementationLinkEvidenceLink where
   coordinate : ModelCoordinate
   sourceValue : ModelValue
   destinationValue : ModelValue
-  sourceEvidenceLink : EvidenceLink
-  sourceEvidenceLinkBehaviorFingerprint : BehaviorFingerprint
+  sourceEvidenceSupport : EvidenceSupport
+  sourceEvidenceSupportBehaviorFingerprint : BehaviorFingerprint
   deriving BEq, DecidableEq, Repr
 
-private def evidenceLinkIdentityFor
+private def evidenceSupportIdentityFor
     (implementationLinkId : DefinitionId)
     (implementationLinkBehaviorFingerprint : BehaviorFingerprint)
     (sourceTarget destinationTarget : ImplementationTargetReference)
     (coordinate : ModelCoordinate)
     (sourceValue destinationValue : ModelValue)
-    (sourceEvidenceLink : EvidenceLink) : BehaviorFingerprint :=
+    (sourceEvidenceSupport : EvidenceSupport) : BehaviorFingerprint :=
   behaviorFingerprintOf <|
     "{\"implementationLinkId\":" ++ quote implementationLinkId.value ++
     ",\"implementationLinkBehaviorFingerprint\":" ++
@@ -431,17 +431,17 @@ private def evidenceLinkIdentityFor
     ",\"coordinate\":" ++ quote (coordinateName coordinate) ++
     ",\"sourceValue\":" ++ quote (reprStr sourceValue) ++
     ",\"destinationValue\":" ++ quote (reprStr destinationValue) ++
-    ",\"sourceEvidenceLink\":" ++ quote (reprStr sourceEvidenceLink) ++ "}"
+    ",\"sourceEvidenceSupport\":" ++ quote (reprStr sourceEvidenceSupport) ++ "}"
 
-private def implementationLinkEvidenceLinkFor
+private def implementationLinkEvidenceSupportFor
     (implementationLinkId : DefinitionId)
     (implementationLinkBehaviorFingerprint : BehaviorFingerprint)
     (sourceTarget destinationTarget : ImplementationTargetReference)
     (coordinate : ModelCoordinate)
     (sourceValue destinationValue : ModelValue)
-    (sourceEvidenceLink : EvidenceLink) : ImplementationLinkEvidenceLink := {
-  identity := evidenceLinkIdentityFor implementationLinkId implementationLinkBehaviorFingerprint
-    sourceTarget destinationTarget coordinate sourceValue destinationValue sourceEvidenceLink
+    (sourceEvidenceSupport : EvidenceSupport) : ImplementationLinkEvidenceSupport := {
+  identity := evidenceSupportIdentityFor implementationLinkId implementationLinkBehaviorFingerprint
+    sourceTarget destinationTarget coordinate sourceValue destinationValue sourceEvidenceSupport
   implementationLinkId
   implementationLinkBehaviorFingerprint
   sourceTarget
@@ -449,20 +449,20 @@ private def implementationLinkEvidenceLinkFor
   coordinate
   sourceValue
   destinationValue
-  sourceEvidenceLink
-  sourceEvidenceLinkBehaviorFingerprint := behaviorFingerprintOf (reprStr sourceEvidenceLink)
+  sourceEvidenceSupport
+  sourceEvidenceSupportBehaviorFingerprint := behaviorFingerprintOf (reprStr sourceEvidenceSupport)
 }
 
-private def implementationLinkEvidenceLink
+private def implementationLinkEvidenceSupport
     (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
       SourceSetup ModelValue ModelValue ModelValue ModelValue
       DestinationSetup ModelValue ModelValue ModelValue ModelValue)
     (coordinate : ModelCoordinate)
     (sourceValue destinationValue : ModelValue)
-    (sourceEvidenceLink : EvidenceLink) : ImplementationLinkEvidenceLink :=
-  implementationLinkEvidenceLinkFor checked.declaration.id checked.behaviorFingerprint
+    (sourceEvidenceSupport : EvidenceSupport) : ImplementationLinkEvidenceSupport :=
+  implementationLinkEvidenceSupportFor checked.declaration.id checked.behaviorFingerprint
     (.ofTarget checked.sourceTarget) (.ofTarget checked.destinationTarget) coordinate
-    sourceValue destinationValue sourceEvidenceLink
+    sourceValue destinationValue sourceEvidenceSupport
 
 private def supportedVocabularyKind : DefinitionKind → Bool
   | .state | .action | .outcome | .fact | .relation | .capability => true
@@ -501,7 +501,7 @@ private def validateVocabulary
       SourceSetup ModelValue ModelValue ModelValue ModelValue
       DestinationSetup ModelValue ModelValue ModelValue ModelValue)
     (trace : EvidenceBackedTrace) : Except ImplementationLinkDiagnostic Unit := do
-  let sourceMeanings := (ObservationCheckContext.ofTarget checked.sourceTarget []).meanings
+  let sourceMeanings := (Evidence.ReadingContext.ofTarget checked.sourceTarget []).meanings
   for meaning in trace.vocabulary do
     if !supportedVocabularyKind meaning.kind then
       throw (implementationLinkDiagnostic checked .unsupportedVocabulary
@@ -684,7 +684,7 @@ private def mappedValueAt
       checked.declaration.observationMappings checked.declaration.observationKnownGaps
       checked.forwardSimulation.morphism.mapObservation
 
-private def buildImplementationLinkEvidenceLinksWith
+private def buildImplementationLinkEvidenceSupportsWith
     (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
       SourceSetup ModelValue ModelValue ModelValue ModelValue
       DestinationSetup ModelValue ModelValue ModelValue ModelValue)
@@ -692,41 +692,41 @@ private def buildImplementationLinkEvidenceLinksWith
     (destinationTrace : ModelTrace ModelValue ModelValue ModelValue ModelValue)
     (mapValue : ModelCoordinate → ModelValue →
       Except ImplementationLinkDiagnostic ModelValue)
-    (makeLink : ModelCoordinate → ModelValue → ModelValue → EvidenceLink →
-      ImplementationLinkEvidenceLink) :
-    Except ImplementationLinkDiagnostic (List ImplementationLinkEvidenceLink) := do
+    (makeLink : ModelCoordinate → ModelValue → ModelValue → EvidenceSupport →
+      ImplementationLinkEvidenceSupport) :
+    Except ImplementationLinkDiagnostic (List ImplementationLinkEvidenceSupport) := do
   let mut links := []
   for coordinate in sourceTrace.trace.coordinates do
     let sourceValue ← match sourceTrace.trace.valueAt? coordinate with
       | some value => pure value
       | none => throw <| implementationLinkDiagnostic checked .invalidCoordinate (some coordinate)
-    let sourceEvidenceLink ← match sourceTrace.evidenceLinks.find? fun evidenceLink =>
-        evidenceLink.coordinate == coordinate with
-      | some evidenceLink => pure evidenceLink
+    let sourceEvidenceSupport ← match sourceTrace.evidenceSupports.find? fun evidenceSupport =>
+        evidenceSupport.coordinate == coordinate with
+      | some evidenceSupport => pure evidenceSupport
       | none => throw (implementationLinkDiagnostic checked .absentCoordinate (some coordinate)
           [sourceValue.definitionId])
     let destinationValue ← mapValue coordinate sourceValue
     match destinationTrace.valueAt? coordinate with
     | some actualDestination =>
         if actualDestination != destinationValue then
-          throw <| implementationLinkDiagnostic checked .evidenceLinkMismatch (some coordinate)
+          throw <| implementationLinkDiagnostic checked .evidenceSupportMismatch (some coordinate)
             [sourceValue.definitionId, destinationValue.definitionId,
               actualDestination.definitionId]
-            (evidenceLinkBehaviorFingerprint :=
-              some (behaviorFingerprintOf (reprStr sourceEvidenceLink)))
+            (evidenceSupportBehaviorFingerprint :=
+              some (behaviorFingerprintOf (reprStr sourceEvidenceSupport)))
     | none => throw <| implementationLinkDiagnostic checked .invalidCoordinate (some coordinate)
-    links := links ++ [makeLink coordinate sourceValue destinationValue sourceEvidenceLink]
+    links := links ++ [makeLink coordinate sourceValue destinationValue sourceEvidenceSupport]
   pure links
 
-private def buildImplementationLinkEvidenceLinks
+private def buildImplementationLinkEvidenceSupports
     (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
       SourceSetup ModelValue ModelValue ModelValue ModelValue
       DestinationSetup ModelValue ModelValue ModelValue ModelValue)
     (sourceTrace : EvidenceBackedTrace)
     (destinationTrace : ModelTrace ModelValue ModelValue ModelValue ModelValue) :
-    Except ImplementationLinkDiagnostic (List ImplementationLinkEvidenceLink) :=
-  buildImplementationLinkEvidenceLinksWith checked sourceTrace destinationTrace
-    (mappedValueAt checked) (implementationLinkEvidenceLink checked)
+    Except ImplementationLinkDiagnostic (List ImplementationLinkEvidenceSupport) :=
+  buildImplementationLinkEvidenceSupportsWith checked sourceTrace destinationTrace
+    (mappedValueAt checked) (implementationLinkEvidenceSupport checked)
 
 /-- Complete successful output, indexed by the exact checked link and carrying destination authority. -/
 structure AppliedImplementationLink
@@ -737,7 +737,7 @@ structure AppliedImplementationLink
   sourceSetup : SourceSetup
   destinationSetup : DestinationSetup
   trace : ModelTrace ModelValue ModelValue ModelValue ModelValue
-  evidenceLinks : List ImplementationLinkEvidenceLink
+  evidenceSupports : List ImplementationLinkEvidenceSupport
   authoritative : AuthoritativeModelTrace checked.destinationTarget.machine destinationSetup trace
 
 /-- A non-success constructor cannot carry a destination Model Trace. -/
@@ -814,13 +814,13 @@ private def applyCheckedImplementationLink
       (appliedLimit := some checked.declaration.applicationLimit)
       (observedCount := some evidenceBackedTrace.trace.steps.length))
   let destinationTrace := checked.forwardSimulation.morphism.mapTrace evidenceBackedTrace.trace
-  let evidenceLinks ← buildImplementationLinkEvidenceLinks checked evidenceBackedTrace destinationTrace
+  let evidenceSupports ← buildImplementationLinkEvidenceSupports checked evidenceBackedTrace destinationTrace
   pure {
     sourceTraceId := evidenceBackedTrace.traceId
     sourceSetup
     destinationSetup := checked.forwardSimulation.morphism.mapSetup sourceSetup
     trace := destinationTrace
-    evidenceLinks
+    evidenceSupports
     authoritative := checked.forwardSimulation.traceForward sourceSetup evidenceBackedTrace.trace
       sourceAuthority.down
   }
@@ -860,11 +860,11 @@ private def observedImplementationLinkDiagnostic
     (sourceSetupBehaviorFingerprint : Option BehaviorFingerprint := none)
     (appliedLimit : Option Limit := none)
     (observedCount : Option Nat := none)
-    (evidenceLinkBehaviorFingerprint : Option BehaviorFingerprint := none) :
+    (evidenceSupportBehaviorFingerprint : Option BehaviorFingerprint := none) :
     ImplementationLinkDiagnostic :=
   observedDiagnosticFrom translation <| implementationLinkDiagnostic checked kind coordinate
     relatedDefinitionIds sourceSetupBehaviorFingerprint appliedLimit observedCount
-    (evidenceLinkBehaviorFingerprint := evidenceLinkBehaviorFingerprint)
+    (evidenceSupportBehaviorFingerprint := evidenceSupportBehaviorFingerprint)
 
 private def observedMappedValueAt
     (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
@@ -945,7 +945,7 @@ structure TranslatedObservedTrace
   sourceSetup : SourceSetup
   destinationSetup : DestinationSetup
   trace : ModelTrace ModelValue ModelValue ModelValue ModelValue
-  evidenceLinks : List ImplementationLinkEvidenceLink
+  evidenceSupports : List ImplementationLinkEvidenceSupport
 
 def TranslatedObservedTrace.hasAuthorityClaim
     (_ : TranslatedObservedTrace checked translation) : Bool := false
@@ -1017,9 +1017,9 @@ private def applyCheckedObservedTraceTranslation
       (appliedLimit := some checked.declaration.applicationLimit)
       (observedCount := some evidenceBackedTrace.trace.steps.length))
   let destinationTrace ← translateObservedTrace checked translation evidenceBackedTrace.trace
-  let evidenceLinks ← match buildImplementationLinkEvidenceLinksWith checked evidenceBackedTrace
+  let evidenceSupports ← match buildImplementationLinkEvidenceSupportsWith checked evidenceBackedTrace
       destinationTrace (observedMappedValueAt checked translation)
-      (implementationLinkEvidenceLinkFor translation.declaration.id
+      (implementationLinkEvidenceSupportFor translation.declaration.id
         translation.behaviorFingerprint (.ofTarget checked.sourceTarget)
         (.ofTarget checked.destinationTarget)) with
     | .ok links => pure links
@@ -1029,7 +1029,7 @@ private def applyCheckedObservedTraceTranslation
     sourceSetup
     destinationSetup
     trace := destinationTrace
-    evidenceLinks
+    evidenceSupports
   }
 
 /-- Translate one admitted observed trace without asserting Target conformance. -/

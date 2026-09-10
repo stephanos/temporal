@@ -31,8 +31,8 @@ import Umpire
 #check Umpire.LoweredSpacePoint
 #check Umpire.lowerSpacePoint
 #check Umpire.compileBatch
-#check Umpire.ObservationMappingDeclaration
-#check Umpire.CheckedObservationPlan
+#check Umpire.Evidence.Reading
+#check Umpire.Evidence.CheckedReading
 #check Umpire.Case
 #check Umpire.Case.Program
 #check Umpire.Case.Contract

@@ -1,8 +1,8 @@
-import Umpire.Observation.Tests.Evaluation
+import Umpire.Evidence.Tests.Evaluation
 
 /-! Stable Model Coordinate identity and exact R3 Evidence Link failures. -/
 
-namespace Umpire.ObservationTests
+namespace Umpire.EvidenceTests
 
 open Umpire
 
@@ -15,8 +15,8 @@ def completeUncheckedEvidenceBackedTrace : UncheckedEvidenceBackedTrace :=
   uncheckedTraceOf completeEvidenceBackedTrace
 
 /-- The first Evidence Link in the complete accepted trace. -/
-def completeFirstEvidenceLink : EvidenceLink :=
-  completeEvidenceBackedTrace.evidenceLinks.head?.get (by native_decide)
+def completeFirstEvidenceSupport : EvidenceSupport :=
+  completeEvidenceBackedTrace.evidenceSupports.head?.get (by native_decide)
 
 private def rehashEvidenceBackedTrace
     (trace : UncheckedEvidenceBackedTrace) : UncheckedEvidenceBackedTrace := {
@@ -24,20 +24,20 @@ private def rehashEvidenceBackedTrace
   traceId := (behaviorFingerprintOf <|
     trace.mappingDigest ++ ":" ++ reprStr trace.evidenceIdentities ++ ":" ++
       reprStr trace.recordSupport ++ ":" ++ reprStr trace.trace ++ ":" ++
-      reprStr trace.evidenceLinks).render
+      reprStr trace.evidenceSupports).render
 }
 
 private def zeroRecordUncheckedTrace : UncheckedEvidenceBackedTrace :=
   let mappingDigest := zeroRecordEvaluationPlan.behaviorFingerprint.render
   let closures := completeEvidence.closures ++ [zeroRecordClosure]
-  let evidenceLinks := completeUncheckedEvidenceBackedTrace.evidenceLinks.map fun evidenceLink => {
-    evidenceLink with mappingDigest, closureSupport := closures
+  let evidenceSupports := completeUncheckedEvidenceBackedTrace.evidenceSupports.map fun evidenceSupport => {
+    evidenceSupport with mappingDigest, closureSupport := closures
   }
   rehashEvidenceBackedTrace {
     completeUncheckedEvidenceBackedTrace with
     checkedPlan := zeroRecordEvaluationPlan
     mappingDigest
-    evidenceLinks
+    evidenceSupports
   }
 
 /-- Accepted admission retains an explicit zero-record global closure. -/
@@ -46,17 +46,17 @@ example : (validateEvidenceBackedTrace zeroRecordUncheckedTrace).toOption.isSome
 
 /-- Missing or inconsistent zero-record closure support still fails closed. -/
 example :
-    let missing := zeroRecordUncheckedTrace.evidenceLinks.map fun evidenceLink => {
-      evidenceLink with closureSupport := completeEvidence.closures
+    let missing := zeroRecordUncheckedTrace.evidenceSupports.map fun evidenceSupport => {
+      evidenceSupport with closureSupport := completeEvidence.closures
     }
-    let inconsistent := zeroRecordUncheckedTrace.evidenceLinks.map fun evidenceLink => {
-      evidenceLink with closureSupport := completeEvidence.closures ++ [
+    let inconsistent := zeroRecordUncheckedTrace.evidenceSupports.map fun evidenceSupport => {
+      evidenceSupport with closureSupport := completeEvidence.closures ++ [
         { zeroRecordClosure with lastSequence := 1 }
       ]
     }
-    [missing, inconsistent].map (fun evidenceLinks =>
+    [missing, inconsistent].map (fun evidenceSupports =>
       match validateEvidenceBackedTrace <| rehashEvidenceBackedTrace {
-        zeroRecordUncheckedTrace with evidenceLinks
+        zeroRecordUncheckedTrace with evidenceSupports
       } with
       | .ok _ => none
       | .error failure => some (failure.kind, failure.relatedDefinitionIds)) =
@@ -70,9 +70,9 @@ example :
       evaluationDeclaration with
       evidenceBound := { value := 1, unit := .evidenceRecords }
     }
-    let plan := (checkObservation evaluationContext declaration).toOption.get (by native_decide)
-    let evidenceLinks := completeUncheckedEvidenceBackedTrace.evidenceLinks.map fun evidenceLink => {
-      evidenceLink with
+    let plan := (Evidence.checkReading evaluationContext declaration).toOption.get (by native_decide)
+    let evidenceSupports := completeUncheckedEvidenceBackedTrace.evidenceSupports.map fun evidenceSupport => {
+      evidenceSupport with
       mappingDigest := plan.behaviorFingerprint.render
       appliedBound := plan.evidenceBound
     }
@@ -81,7 +81,7 @@ example :
       checkedPlan := plan
       mappingDigest := plan.behaviorFingerprint.render
       appliedBound := plan.evidenceBound
-      evidenceLinks
+      evidenceSupports
     }
     (match validateEvidenceBackedTrace unchecked with
       | .ok _ => none
@@ -92,10 +92,10 @@ example :
 
 /-- Rehashed wrappers still fail when a rule's required disposition evidence is incomplete. -/
 example :
-    let evidenceLinks := completeUncheckedEvidenceBackedTrace.evidenceLinks.mapIdx fun index evidenceLink =>
-      if index == 0 then { evidenceLink with appliedDispositions := evidenceLink.appliedDispositions.tail }
-      else evidenceLink
-    let mutated := rehashEvidenceBackedTrace { completeUncheckedEvidenceBackedTrace with evidenceLinks }
+    let evidenceSupports := completeUncheckedEvidenceBackedTrace.evidenceSupports.mapIdx fun index evidenceSupport =>
+      if index == 0 then { evidenceSupport with appliedDispositions := evidenceSupport.appliedDispositions.tail }
+      else evidenceSupport
+    let mutated := rehashEvidenceBackedTrace { completeUncheckedEvidenceBackedTrace with evidenceSupports }
     diagnosticKindOf (validateEvidenceBackedTrace mutated) != none := by
   native_decide
 
@@ -127,7 +127,7 @@ def transitiveName : ObservationBinding := {
   expression := .portable (.binding normalizedName.id)
 }
 
-def transitiveDeclaration : ObservationMappingDeclaration := {
+def transitiveDeclaration : Evidence.Reading := {
   evaluationDeclaration with
   bindings := evaluationDeclaration.bindings ++ [transitiveName]
   rules := evaluationDeclaration.rules.map fun rule =>
@@ -138,32 +138,32 @@ def transitiveDeclaration : ObservationMappingDeclaration := {
 
 /-- Evidence Links name both direct and transitive checked-binding dependencies. -/
 example :
-    let result := match checkObservation evaluationContext transitiveDeclaration with
+    let result := match Evidence.checkReading evaluationContext transitiveDeclaration with
       | .ok plan => evaluateEvidence plan completeEvidence
       | .error _ => .unknown {
           kind := .zeroUsableInterpretations
           planId := transitiveDeclaration.id
         }
-    (acceptedOf result).map (fun trace => trace.evidenceLinks.head?.map EvidenceLink.bindingIds) =
+    (acceptedOf result).map (fun trace => trace.evidenceSupports.head?.map EvidenceSupport.bindingIds) =
       some (some [normalizedName.id, transitiveName.id]) := by
   native_decide
 
 /-- Exact statuses and diagnostics for invalid Evidence Link fixtures. -/
-def evidenceLinkFailureKinds : List (ObservationStatus × Option ObservationFailureKind) := [
+def evidenceSupportFailureKinds : List (ObservationStatus × Option ObservationFailureKind) := [
   let result := validateEvidenceBackedTrace {
     completeUncheckedEvidenceBackedTrace with
-    evidenceLinks := completeUncheckedEvidenceBackedTrace.evidenceLinks.tail
+    evidenceSupports := completeUncheckedEvidenceBackedTrace.evidenceSupports.tail
   }
   admissionStatusAndKind result,
   let result := validateEvidenceBackedTrace {
     completeUncheckedEvidenceBackedTrace with
-    evidenceLinks := completeFirstEvidenceLink :: completeUncheckedEvidenceBackedTrace.evidenceLinks
+    evidenceSupports := completeFirstEvidenceSupport :: completeUncheckedEvidenceBackedTrace.evidenceSupports
   }
   admissionStatusAndKind result,
   let result := validateEvidenceBackedTrace {
     completeUncheckedEvidenceBackedTrace with
-    evidenceLinks := completeUncheckedEvidenceBackedTrace.evidenceLinks ++ [{
-      completeFirstEvidenceLink with coordinate := .fact 1 99
+    evidenceSupports := completeUncheckedEvidenceBackedTrace.evidenceSupports ++ [{
+      completeFirstEvidenceSupport with coordinate := .fact 1 99
     }]
   }
   admissionStatusAndKind result,
@@ -180,19 +180,19 @@ def evidenceLinkFailureKinds : List (ObservationStatus × Option ObservationFail
       completeUncheckedEvidenceBackedTrace.evidenceIdentities ++ [id "test.evidence.record.unconsumed"]
   }
   admissionStatusAndKind result,
-  let evidenceLinks := completeUncheckedEvidenceBackedTrace.evidenceLinks.map fun evidenceLink => {
-    evidenceLink with closureSupport := [{
+  let evidenceSupports := completeUncheckedEvidenceBackedTrace.evidenceSupports.map fun evidenceSupport => {
+    evidenceSupport with closureSupport := [{
         kind := eventKind
         lastSequence := 99
       }]
   }
   let result := validateEvidenceBackedTrace {
-    completeUncheckedEvidenceBackedTrace with evidenceLinks
+    completeUncheckedEvidenceBackedTrace with evidenceSupports
   }
   admissionStatusAndKind result,
-  let evidenceLinks := completeUncheckedEvidenceBackedTrace.evidenceLinks.map fun evidenceLink =>
-    let recordId := evidenceLink.evidenceIdentities.head?.getD (id "test.evidence.record.missing")
-    { evidenceLink with orderingSupport := [{
+  let evidenceSupports := completeUncheckedEvidenceBackedTrace.evidenceSupports.map fun evidenceSupport =>
+    let recordId := evidenceSupport.evidenceIdentities.head?.getD (id "test.evidence.record.missing")
+    { evidenceSupport with orderingSupport := [{
         recordId
         kind := eventKind
         sequence := 1
@@ -200,17 +200,17 @@ def evidenceLinkFailureKinds : List (ObservationStatus × Option ObservationFail
       }]
     }
   let result := validateEvidenceBackedTrace {
-    completeUncheckedEvidenceBackedTrace with evidenceLinks
+    completeUncheckedEvidenceBackedTrace with evidenceSupports
   }
   admissionStatusAndKind result
 ]
 
 /-- Missing, duplicate, extra, inconsistent, and unsupported Evidence Links fail exactly. -/
-example : evidenceLinkFailureKinds = [
+example : evidenceSupportFailureKinds = [
   (.unknown, some .absentModelCoordinate),
   (.conflict, some .duplicateModelCoordinate),
   (.conflict, some .extraModelCoordinate),
-  (.conflict, some .inconsistentEvidenceLink),
+  (.conflict, some .inconsistentEvidenceSupport),
   (.unknown, some .unconsumedReference),
   (.unknown, some .missingClosureSupport),
   (.unknown, some .missingOrderSupport)
@@ -219,18 +219,18 @@ example : evidenceLinkFailureKinds = [
 
 /-- A zero step cannot alias the first selected-action coordinate during admission. -/
 example :
-    let evidenceLinks := completeUncheckedEvidenceBackedTrace.evidenceLinks.map fun evidenceLink =>
-      if evidenceLink.coordinate == .selectedAction 1 then
-        { evidenceLink with coordinate := .selectedAction 0 }
+    let evidenceSupports := completeUncheckedEvidenceBackedTrace.evidenceSupports.map fun evidenceSupport =>
+      if evidenceSupport.coordinate == .selectedAction 1 then
+        { evidenceSupport with coordinate := .selectedAction 0 }
       else
-        evidenceLink
+        evidenceSupport
     diagnosticKindOf (validateEvidenceBackedTrace {
-      completeUncheckedEvidenceBackedTrace with evidenceLinks
+      completeUncheckedEvidenceBackedTrace with evidenceSupports
     }) = some .absentModelCoordinate := by
   native_decide
 
 /-- Closed evidence with a second step that repeats the first step's values. -/
-def repeatedValueEvidence : EvidenceBundle := {
+def repeatedValueEvidence : SyntheticEvidence := {
   completeEvidence with
   records := completeEvidence.records ++ [{
     stepEvidence with
@@ -244,7 +244,7 @@ def repeatedValueEvidence : EvidenceBundle := {
 /-- Equal Model Values at different slots retain distinct one-based coordinates. -/
 example :
     let accepted := acceptedOf (evaluateFixture repeatedValueEvidence)
-    accepted.map (fun trace => trace.evidenceLinks.map EvidenceLink.coordinate) = some [
+    accepted.map (fun trace => trace.evidenceSupports.map EvidenceSupport.coordinate) = some [
       .initialState,
       .selectedAction 1,
       .outcome 1,
@@ -263,7 +263,7 @@ def primaryEvidenceSource : DefinitionId := id "test.evidence.source.primary"
 def auxiliaryEvidenceSource : DefinitionId := id "test.evidence.source.auxiliary"
 def auxiliaryEvidenceId : DefinitionId := id "test.evidence.record.auxiliary"
 
-def multiSourceEvidence : EvidenceBundle := {
+def multiSourceEvidence : SyntheticEvidence := {
   completeEvidence with
   records := [
     { stepEvidence with origin := some { source := primaryEvidenceSource, ordinal := 1 } },
@@ -296,7 +296,7 @@ example :
       multiSourceTrace.recordSupport.map fun support =>
           (support.recordId, support.origin, support.fields.map fun field =>
             (field.field, field.valueType)),
-      multiSourceTrace.evidenceLinks.all fun link =>
+      multiSourceTrace.evidenceSupports.all fun link =>
         link.orderingSupport.map (fun fact => (fact.recordId, fact.origin)) == [
           (auxiliaryEvidenceId,
             some { source := auxiliaryEvidenceSource, ordinal := 0 }),
@@ -317,12 +317,12 @@ example :
 
 /-! Every multi-source coordinate retains the complete source-local ordering and closure proof. -/
 example :
-    let first := multiSourceTrace.evidenceLinks.head?.get (by native_decide)
+    let first := multiSourceTrace.evidenceSupports.head?.get (by native_decide)
     let links := { first with orderingSupport := first.orderingSupport.tail } ::
-      multiSourceTrace.evidenceLinks.tail
+      multiSourceTrace.evidenceSupports.tail
     let unchecked := uncheckedTraceOf multiSourceTrace
     (match validateEvidenceBackedTrace <| rehashEvidenceBackedTrace {
-      unchecked with evidenceLinks := links
+      unchecked with evidenceSupports := links
     } with
       | .ok _ => none
       | .error failure => some (failure.kind, failure.relatedDefinitionIds)) =
@@ -331,13 +331,13 @@ example :
 
 /-- Duplicate per-link ordering support fails at the responsible accepted-boundary rule. -/
 example :
-    let first := completeFirstEvidenceLink
+    let first := completeFirstEvidenceSupport
     let duplicate := first.orderingSupport.head?.get (by native_decide)
     let links := {
       first with orderingSupport := duplicate :: first.orderingSupport
-    } :: completeUncheckedEvidenceBackedTrace.evidenceLinks.tail
+    } :: completeUncheckedEvidenceBackedTrace.evidenceSupports.tail
     let result := validateEvidenceBackedTrace <| rehashEvidenceBackedTrace {
-      completeUncheckedEvidenceBackedTrace with evidenceLinks := links
+      completeUncheckedEvidenceBackedTrace with evidenceSupports := links
     }
     (match result with
       | .ok _ => none
@@ -347,21 +347,21 @@ example :
 
 /-- Duplicate closure support preserves baseline kind and later-link rule identities. -/
 example :
-    let first := completeFirstEvidenceLink
-    let second := completeUncheckedEvidenceBackedTrace.evidenceLinks.tail.head?.get
+    let first := completeFirstEvidenceSupport
+    let second := completeUncheckedEvidenceBackedTrace.evidenceSupports.tail.head?.get
       (by native_decide)
     let duplicate := first.closureSupport.head?.get (by native_decide)
     let firstLinks := {
       first with closureSupport := duplicate :: first.closureSupport
-    } :: completeUncheckedEvidenceBackedTrace.evidenceLinks.tail
+    } :: completeUncheckedEvidenceBackedTrace.evidenceSupports.tail
     let laterLinks := first :: {
       second with closureSupport := duplicate :: second.closureSupport
-    } :: completeUncheckedEvidenceBackedTrace.evidenceLinks.tail.tail
+    } :: completeUncheckedEvidenceBackedTrace.evidenceSupports.tail.tail
     let firstLink := validateEvidenceBackedTrace <| rehashEvidenceBackedTrace {
-      completeUncheckedEvidenceBackedTrace with evidenceLinks := firstLinks
+      completeUncheckedEvidenceBackedTrace with evidenceSupports := firstLinks
     }
     let laterLink := validateEvidenceBackedTrace <| rehashEvidenceBackedTrace {
-      completeUncheckedEvidenceBackedTrace with evidenceLinks := laterLinks
+      completeUncheckedEvidenceBackedTrace with evidenceSupports := laterLinks
     }
     (match firstLink with
       | .ok _ => none
@@ -375,12 +375,12 @@ example :
   native_decide
 
 example :
-    let first := multiSourceTrace.evidenceLinks.head?.get (by native_decide)
+    let first := multiSourceTrace.evidenceSupports.head?.get (by native_decide)
     let links := { first with closureSupport := first.closureSupport.tail } ::
-      multiSourceTrace.evidenceLinks.tail
+      multiSourceTrace.evidenceSupports.tail
     let unchecked := uncheckedTraceOf multiSourceTrace
     (match validateEvidenceBackedTrace <| rehashEvidenceBackedTrace {
-      unchecked with evidenceLinks := links
+      unchecked with evidenceSupports := links
     } with
       | .ok _ => none
       | .error failure => some (failure.kind, failure.relatedDefinitionIds)) =
@@ -400,4 +400,4 @@ example :
       (evaluateFixture cyclic).diagnostic?.map ObservationDiagnostic.kind == some .contradictoryOrder := by
   native_decide
 
-end Umpire.ObservationTests
+end Umpire.EvidenceTests

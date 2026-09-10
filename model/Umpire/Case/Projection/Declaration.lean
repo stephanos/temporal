@@ -1,4 +1,4 @@
-import Umpire.Observation.Evaluation.Types
+import Umpire.Evidence.Evaluate.Types
 import Shared.ScopedProjection
 
 /-!

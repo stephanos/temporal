@@ -1,4 +1,4 @@
-import Umpire.Observation.Evaluation.Raw
+import Umpire.Evidence.Evaluate.Raw
 
 /-!
 Accepted-trace admission for Observation Evaluation. This boundary reconstructs and validates the
@@ -15,7 +15,7 @@ ensures that only successful Observation admission can produce one.
 structure EvidenceBackedTrace where
   private mk ::
   traceId : String
-  checkedPlan : CheckedObservationPlan
+  checkedPlan : Evidence.CheckedReading
   mappingId : DefinitionId
   mappingVersion : Nat
   mappingDigest : String
@@ -29,7 +29,7 @@ structure EvidenceBackedTrace where
   evidenceIdentities : List DefinitionId
   recordSupport : List EvidenceRecordSupport
   trace : ModelTrace ModelValue ModelValue ModelValue ModelValue
-  evidenceLinks : List EvidenceLink
+  evidenceSupports : List EvidenceSupport
   deriving BEq, DecidableEq, Repr
 
 private def EvidenceBackedTrace.ofUnchecked
@@ -49,7 +49,7 @@ private def EvidenceBackedTrace.ofUnchecked
   evidenceIdentities := unchecked.evidenceIdentities
   recordSupport := unchecked.recordSupport
   trace := unchecked.trace
-  evidenceLinks := unchecked.evidenceLinks
+  evidenceSupports := unchecked.evidenceSupports
 }
 
 /-- Observation Evaluation never exposes a partial Model Trace; only `accepted` carries one. -/
@@ -70,20 +70,20 @@ def ObservationResult.diagnostic? : ObservationResult → Option ObservationDiag
   | .accepted _ => none
   | .unknown diagnostic | .conflict diagnostic | .unsupported diagnostic => some diagnostic
 
-private def evidenceLinkEvidenceIds (evidenceLinks : List EvidenceLink) : List DefinitionId :=
-  DefinitionId.canonicalSet (evidenceLinks.flatMap EvidenceLink.evidenceIdentities)
+private def evidenceSupportEvidenceIds (evidenceSupports : List EvidenceSupport) : List DefinitionId :=
+  DefinitionId.canonicalSet (evidenceSupports.flatMap EvidenceSupport.evidenceIdentities)
 
 private def structuralLinkSupport
-    (evidenceLink : EvidenceLink) : Observation.Internal.StructuralLinkSupport := {
-  ruleId := evidenceLink.ruleId
-  evidenceIdentities := evidenceLink.evidenceIdentities
-  orderingSupport := evidenceLink.orderingSupport
-  closureSupport := evidenceLink.closureSupport
+    (evidenceSupport : EvidenceSupport) : Evidence.Internal.StructuralLinkSupport := {
+  ruleId := evidenceSupport.ruleId
+  evidenceIdentities := evidenceSupport.evidenceIdentities
+  orderingSupport := evidenceSupport.orderingSupport
+  closureSupport := evidenceSupport.closureSupport
 }
 
 private def acceptedOrderingDiagnostic?
     (mappingId : DefinitionId) :
-    Observation.Internal.StructuralFinding → Option ObservationDiagnostic
+    Evidence.Internal.StructuralFinding → Option ObservationDiagnostic
   | .mixedOrigins _ => some { kind := .missingOrderSupport, planId := mappingId }
   | .duplicateSequence _ secondId _ => some {
       kind := .missingOrderSupport
@@ -109,9 +109,9 @@ private def acceptedOrderingDiagnostic?
 
 private def acceptedMissingClosureFor?
     (mappingId : DefinitionId)
-    (originMode : Observation.Internal.StructuralOriginMode)
+    (originMode : Evidence.Internal.StructuralOriginMode)
     (fact : EvidenceOrderingFact) :
-    Observation.Internal.StructuralFinding → Option ObservationDiagnostic
+    Evidence.Internal.StructuralFinding → Option ObservationDiagnostic
   | .missingClosure recordIds source kind =>
       if recordIds.contains fact.recordId && kind == fact.kind &&
           source == if originMode == .sourceSequence then fact.origin.map EvidenceOrigin.source
@@ -128,9 +128,9 @@ private def acceptedMissingClosureFor?
 
 private def acceptedClosureDiagnosticFor?
     (mappingId : DefinitionId)
-    (originMode : Observation.Internal.StructuralOriginMode)
+    (originMode : Evidence.Internal.StructuralOriginMode)
     (closure : EvidenceClosureFact) :
-    Observation.Internal.StructuralFinding → Option ObservationDiagnostic
+    Evidence.Internal.StructuralFinding → Option ObservationDiagnostic
   | .closureWithoutFacts source kind =>
       if source == closure.source && kind == closure.kind then
         if originMode == .globalSequence && closure.lastSequence == 0 then none
@@ -159,7 +159,7 @@ private def acceptedClosureDiagnosticFor?
 
 private def acceptedMissingRequiredClosureDiagnostic?
     (mappingId : DefinitionId) :
-    Observation.Internal.StructuralFinding → Option ObservationDiagnostic
+    Evidence.Internal.StructuralFinding → Option ObservationDiagnostic
   | .missingRequiredKind kind => some {
       kind := .missingClosureSupport
       planId := mappingId
@@ -169,7 +169,7 @@ private def acceptedMissingRequiredClosureDiagnostic?
 
 private def validateAcceptedOrdering
     (trace : UncheckedEvidenceBackedTrace)
-    (analysis : Observation.Internal.StructuralAnalysis) : Except ObservationDiagnostic Unit := do
+    (analysis : Evidence.Internal.StructuralAnalysis) : Except ObservationDiagnostic Unit := do
   match analysis.findings.findSome? fun finding => match finding with
     | .duplicateIdentity recordId true => some {
         kind := .missingOrderSupport
@@ -196,9 +196,9 @@ private def validateAcceptedOrdering
 
 private def validateAcceptedClosures
     (trace : UncheckedEvidenceBackedTrace)
-    (analysis : Observation.Internal.StructuralAnalysis) : Except ObservationDiagnostic Unit := do
+    (analysis : Evidence.Internal.StructuralAnalysis) : Except ObservationDiagnostic Unit := do
   let firstClosures := analysis.links.head?.map
-    Observation.Internal.NormalizedStructuralLinkSupport.closures |>.getD []
+    Evidence.Internal.NormalizedStructuralLinkSupport.closures |>.getD []
   if firstClosures.isEmpty || !trace.sourceClosed then
     throw { kind := .missingClosureSupport, planId := trace.mappingId }
   match analysis.findings.findSome? fun finding => match finding with
@@ -250,25 +250,25 @@ private def validateAcceptedClosures
 
 private def validateAppliedDisposition
     (trace : UncheckedEvidenceBackedTrace)
-    (evidenceLink : EvidenceLink)
+    (evidenceSupport : EvidenceSupport)
     (applied : AppliedFieldDisposition) : Except ObservationDiagnostic Unit := do
   let expected ← match trace.dispositions.find? fun declaration => declaration.field == applied.field with
     | some declaration => pure declaration.disposition
     | none => throw {
-        kind := .inconsistentEvidenceLink
+        kind := .inconsistentEvidenceSupport
         planId := trace.mappingId
-        relatedDefinitionIds := [evidenceLink.ruleId, applied.field.field]
+        relatedDefinitionIds := [evidenceSupport.ruleId, applied.field.field]
       }
   match applied.evidence with
   | .raw _ => throw {
       kind := .rawValueLeakage
       planId := trace.mappingId
-      relatedDefinitionIds := [evidenceLink.ruleId, applied.field.field]
+      relatedDefinitionIds := [evidenceSupport.ruleId, applied.field.field]
     }
   | .rejectedMaterial _ => throw {
       kind := .rejectedValueLeakage
       planId := trace.mappingId
-      relatedDefinitionIds := [evidenceLink.ruleId, applied.field.field]
+      relatedDefinitionIds := [evidenceSupport.ruleId, applied.field.field]
     }
   | .retained _ =>
       match expected with
@@ -276,29 +276,29 @@ private def validateAppliedDisposition
       | .redact => throw {
           kind := .redactedValueLeakage
           planId := trace.mappingId
-          relatedDefinitionIds := [evidenceLink.ruleId, applied.field.field]
+          relatedDefinitionIds := [evidenceSupport.ruleId, applied.field.field]
         }
       | .reject => throw {
           kind := .rejectedValueLeakage
           planId := trace.mappingId
-          relatedDefinitionIds := [evidenceLink.ruleId, applied.field.field]
+          relatedDefinitionIds := [evidenceSupport.ruleId, applied.field.field]
         }
       | .hash _ => throw {
           kind := .digestPolicyMismatch
           planId := trace.mappingId
-          relatedDefinitionIds := [evidenceLink.ruleId, applied.field.field]
+          relatedDefinitionIds := [evidenceSupport.ruleId, applied.field.field]
         }
   | .redactedContribution =>
       if expected == .redact then pure () else throw {
-        kind := .inconsistentEvidenceLink
+        kind := .inconsistentEvidenceSupport
         planId := trace.mappingId
-        relatedDefinitionIds := [evidenceLink.ruleId, applied.field.field]
+        relatedDefinitionIds := [evidenceSupport.ruleId, applied.field.field]
       }
   | .digestToken policy _ =>
       if expected == .hash (some policy) then pure () else throw {
         kind := .digestPolicyMismatch
         planId := trace.mappingId
-        relatedDefinitionIds := [evidenceLink.ruleId, applied.field.field, policy]
+        relatedDefinitionIds := [evidenceSupport.ruleId, applied.field.field, policy]
       }
 
 private def renderedEvidenceValue
@@ -314,20 +314,20 @@ private def renderedEvidenceValue
 
 private partial def evaluateProvenanceExpression
     (trace : UncheckedEvidenceBackedTrace)
-    (evidenceLink : EvidenceLink)
+    (evidenceSupport : EvidenceSupport)
     (expression : CheckedObservationExpression)
     (visited : List DefinitionId := []) : Except ObservationDiagnostic EvidenceValue := do
   let failure : ObservationDiagnostic := {
-    kind := .inconsistentEvidenceLink
+    kind := .inconsistentEvidenceSupport
     planId := trace.mappingId
-    relatedDefinitionIds := [evidenceLink.ruleId]
+    relatedDefinitionIds := [evidenceSupport.ruleId]
   }
   match expression with
   | .text value => pure (.text value)
   | .natural value => pure (.natural value)
   | .boolean value => pure (.boolean value)
   | .field reference valueType _ =>
-      let applied ← match evidenceLink.appliedDispositions.find? fun item => item.field == reference with
+      let applied ← match evidenceSupport.appliedDispositions.find? fun item => item.field == reference with
         | some applied => pure applied
         | none => throw failure
       match applied.evidence with
@@ -340,55 +340,55 @@ private partial def evaluateProvenanceExpression
       if visited.contains id then throw failure
       else match trace.checkedPlan.bindings.find? fun binding => binding.id == id with
         | some binding =>
-            evaluateProvenanceExpression trace evidenceLink binding.expression (id :: visited)
+            evaluateProvenanceExpression trace evidenceSupport binding.expression (id :: visited)
         | none => throw failure
   | .normalize operator operand =>
-      let value ← evaluateProvenanceExpression trace evidenceLink operand visited
+      let value ← evaluateProvenanceExpression trace evidenceSupport operand visited
       match operator, value with
       | .textTrimV1, .text text => pure (.text text.trimAscii.copy)
       | .textLowercaseV1, .text text => pure (.text text.toLower)
       | .naturalRenderV1, .natural value => pure (.text (toString value))
       | _, _ => throw failure
   | .present operand =>
-      let references := Observation.Internal.canonicalReferences <|
-        Observation.Internal.expressionReferences trace.checkedPlan operand visited
+      let references := Evidence.Internal.canonicalReferences <|
+        Evidence.Internal.expressionReferences trace.checkedPlan operand visited
       if references.isEmpty then
-        match evaluateProvenanceExpression trace evidenceLink operand visited with
+        match evaluateProvenanceExpression trace evidenceSupport operand visited with
         | .ok _ => pure (.boolean true)
         | .error _ => pure (.boolean false)
       else
         pure (.boolean (references.all fun reference =>
-          evidenceLink.appliedDispositions.any fun applied => applied.field == reference))
+          evidenceSupport.appliedDispositions.any fun applied => applied.field == reference))
   | .equals left right =>
-      pure (.boolean ((← evaluateProvenanceExpression trace evidenceLink left visited) ==
-        (← evaluateProvenanceExpression trace evidenceLink right visited)))
+      pure (.boolean ((← evaluateProvenanceExpression trace evidenceSupport left visited) ==
+        (← evaluateProvenanceExpression trace evidenceSupport right visited)))
   | .and left right =>
-      match ← evaluateProvenanceExpression trace evidenceLink left visited,
-          ← evaluateProvenanceExpression trace evidenceLink right visited with
+      match ← evaluateProvenanceExpression trace evidenceSupport left visited,
+          ← evaluateProvenanceExpression trace evidenceSupport right visited with
       | .boolean leftValue, .boolean rightValue => pure (.boolean (leftValue && rightValue))
       | _, _ => throw failure
   | .or left right =>
-      match ← evaluateProvenanceExpression trace evidenceLink left visited,
-          ← evaluateProvenanceExpression trace evidenceLink right visited with
+      match ← evaluateProvenanceExpression trace evidenceSupport left visited,
+          ← evaluateProvenanceExpression trace evidenceSupport right visited with
       | .boolean leftValue, .boolean rightValue => pure (.boolean (leftValue || rightValue))
       | _, _ => throw failure
   | .not operand =>
-      match ← evaluateProvenanceExpression trace evidenceLink operand visited with
+      match ← evaluateProvenanceExpression trace evidenceSupport operand visited with
       | .boolean value => pure (.boolean (!value))
       | _ => throw failure
   | .contributionMarker operand =>
-      let references := Observation.Internal.canonicalReferences <|
-        Observation.Internal.expressionReferences trace.checkedPlan operand visited
+      let references := Evidence.Internal.canonicalReferences <|
+        Evidence.Internal.expressionReferences trace.checkedPlan operand visited
       if references.isEmpty || !(references.all fun reference =>
-          evidenceLink.appliedDispositions.any fun applied =>
+          evidenceSupport.appliedDispositions.any fun applied =>
             applied.field == reference && applied.evidence == .redactedContribution) then
         throw failure
       pure (.text "contributed")
   | .digestToken policy operand =>
-      let references := Observation.Internal.canonicalReferences <|
-        Observation.Internal.expressionReferences trace.checkedPlan operand visited
+      let references := Evidence.Internal.canonicalReferences <|
+        Evidence.Internal.expressionReferences trace.checkedPlan operand visited
       let tokens := references.filterMap fun reference =>
-        (evidenceLink.appliedDispositions.find? fun applied => applied.field == reference).bind fun applied =>
+        (evidenceSupport.appliedDispositions.find? fun applied => applied.field == reference).bind fun applied =>
           match applied.evidence with
           | .digestToken appliedPolicy token =>
               if appliedPolicy == policy.id then some token else none
@@ -402,46 +402,46 @@ private partial def evaluateProvenanceExpression
 
 private def validateCheckedProvenance
     (trace : UncheckedEvidenceBackedTrace)
-    (evidenceLink : EvidenceLink) : Except ObservationDiagnostic Unit := do
+    (evidenceSupport : EvidenceSupport) : Except ObservationDiagnostic Unit := do
   let plan := trace.checkedPlan
-  let rule ← match plan.rules.find? fun candidate => candidate.id == evidenceLink.ruleId with
+  let rule ← match plan.rules.find? fun candidate => candidate.id == evidenceSupport.ruleId with
     | some rule => pure rule
     | none => throw {
-        kind := .inconsistentEvidenceLink
+        kind := .inconsistentEvidenceSupport
         planId := trace.mappingId
-        relatedDefinitionIds := [evidenceLink.ruleId]
+        relatedDefinitionIds := [evidenceSupport.ruleId]
       }
-  let value ← match trace.trace.valueAt? evidenceLink.coordinate with
+  let value ← match trace.trace.valueAt? evidenceSupport.coordinate with
     | some value => pure value
     | none => throw {
-        kind := .inconsistentEvidenceLink
+        kind := .inconsistentEvidenceSupport
         planId := trace.mappingId
-        relatedDefinitionIds := [evidenceLink.ruleId]
+        relatedDefinitionIds := [evidenceSupport.ruleId]
       }
   let expectedBindings := DefinitionId.canonicalSet <|
-    Observation.Internal.expressionBindingIds plan rule.value ++
-      rule.condition.toList.flatMap (Observation.Internal.expressionBindingIds plan)
-  let expectedReferences := Observation.Internal.canonicalReferences <|
-    Observation.Internal.expressionReferences plan rule.value ++
-      rule.condition.toList.flatMap (Observation.Internal.expressionReferences plan)
-  let actualReferences := evidenceLink.appliedDispositions.map AppliedFieldDisposition.field
-  let computedValue ← evaluateProvenanceExpression trace evidenceLink rule.value
+    Evidence.Internal.expressionBindingIds plan rule.value ++
+      rule.condition.toList.flatMap (Evidence.Internal.expressionBindingIds plan)
+  let expectedReferences := Evidence.Internal.canonicalReferences <|
+    Evidence.Internal.expressionReferences plan rule.value ++
+      rule.condition.toList.flatMap (Evidence.Internal.expressionReferences plan)
+  let actualReferences := evidenceSupport.appliedDispositions.map AppliedFieldDisposition.field
+  let computedValue ← evaluateProvenanceExpression trace evidenceSupport rule.value
   let conditionHolds ← match rule.condition with
     | none => pure true
     | some condition =>
-        match ← evaluateProvenanceExpression trace evidenceLink condition with
+        match ← evaluateProvenanceExpression trace evidenceSupport condition with
         | .boolean value => pure value
         | _ => pure false
   if rule.output != value.definitionId ||
-      rule.outputKind != evidenceLink.coordinate.definitionKind ||
+      rule.outputKind != evidenceSupport.coordinate.definitionKind ||
       computedValue != .text value.value || !conditionHolds ||
-      rule.meaning.behaviorVersion != evidenceLink.meaningDigest ||
-      evidenceLink.bindingIds != expectedBindings ||
+      rule.meaning.behaviorVersion != evidenceSupport.meaningDigest ||
+      evidenceSupport.bindingIds != expectedBindings ||
       actualReferences != expectedReferences then
     throw {
-      kind := .inconsistentEvidenceLink
+      kind := .inconsistentEvidenceSupport
       planId := trace.mappingId
-      relatedDefinitionIds := [evidenceLink.ruleId]
+      relatedDefinitionIds := [evidenceSupport.ruleId]
     }
 
 private def validateRecordSupport
@@ -507,7 +507,7 @@ private def validateRecordSupport
         | _, _ => false
       if !valid then
         throw {
-          kind := .inconsistentEvidenceLink
+          kind := .inconsistentEvidenceSupport
           planId := trace.mappingId
           relatedDefinitionIds := [support.recordId, field.field]
         }
@@ -522,15 +522,15 @@ def validateEvidenceBackedTrace
       trace.profileId != plan.profile.id || trace.profileVersion != plan.profile.version ||
       trace.vocabulary != plan.meanings || trace.dispositions != plan.dispositions ||
       trace.appliedBound != plan.evidenceBound then
-    throw { kind := .inconsistentEvidenceLink, planId := trace.mappingId }
+    throw { kind := .inconsistentEvidenceSupport, planId := trace.mappingId }
   if trace.evidenceIdentities.length > trace.appliedBound.value then
     throw {
-      (Observation.Internal.diagnostic plan .evidenceBoundExhausted) with
+      (Evidence.Internal.diagnostic plan .evidenceBoundExhausted) with
       limit := some trace.appliedBound
       observedCount := some trace.evidenceIdentities.length
     }
   let expected := trace.trace.coordinates
-  let actual := trace.evidenceLinks.map EvidenceLink.coordinate
+  let actual := trace.evidenceSupports.map EvidenceSupport.coordinate
   for coordinate in expected do
     let count := (actual.filter fun candidate => candidate == coordinate).length
     if count == 0 then
@@ -539,41 +539,41 @@ def validateEvidenceBackedTrace
       throw { kind := .duplicateModelCoordinate, planId := trace.mappingId }
   if actual.any fun coordinate => !expected.contains coordinate then
     throw { kind := .extraModelCoordinate, planId := trace.mappingId }
-  for evidenceLink in trace.evidenceLinks do
-    if evidenceLink.mappingId != trace.mappingId ||
-        evidenceLink.mappingVersion != trace.mappingVersion ||
-        evidenceLink.mappingDigest != trace.mappingDigest ||
-        evidenceLink.profileId != trace.profileId ||
-        evidenceLink.profileVersion != trace.profileVersion ||
-        evidenceLink.appliedBound != trace.appliedBound ||
-        evidenceLink.evidenceIdentities.isEmpty ||
-        evidenceLink.evidenceIdentities.any (fun id => !trace.evidenceIdentities.contains id) ||
-        !(trace.vocabulary.any fun meaning => meaning.behaviorVersion == evidenceLink.meaningDigest) then
+  for evidenceSupport in trace.evidenceSupports do
+    if evidenceSupport.mappingId != trace.mappingId ||
+        evidenceSupport.mappingVersion != trace.mappingVersion ||
+        evidenceSupport.mappingDigest != trace.mappingDigest ||
+        evidenceSupport.profileId != trace.profileId ||
+        evidenceSupport.profileVersion != trace.profileVersion ||
+        evidenceSupport.appliedBound != trace.appliedBound ||
+        evidenceSupport.evidenceIdentities.isEmpty ||
+        evidenceSupport.evidenceIdentities.any (fun id => !trace.evidenceIdentities.contains id) ||
+        !(trace.vocabulary.any fun meaning => meaning.behaviorVersion == evidenceSupport.meaningDigest) then
       throw {
-        kind := .inconsistentEvidenceLink
+        kind := .inconsistentEvidenceSupport
         planId := trace.mappingId
-        relatedDefinitionIds := [evidenceLink.ruleId]
+        relatedDefinitionIds := [evidenceSupport.ruleId]
       }
-  let linkedEvidence := evidenceLinkEvidenceIds trace.evidenceLinks
+  let linkedEvidence := evidenceSupportEvidenceIds trace.evidenceSupports
   if linkedEvidence.isEmpty || linkedEvidence.any fun identity =>
       !trace.evidenceIdentities.contains identity then
     throw { kind := .unconsumedReference, planId := trace.mappingId }
   if trace.recordSupport.map EvidenceRecordSupport.recordId != trace.evidenceIdentities then
     throw { kind := .unconsumedReference, planId := trace.mappingId }
-  let structuralAnalysis := Observation.Internal.analyzeStructure [] []
+  let structuralAnalysis := Evidence.Internal.analyzeStructure [] []
     (plan.closures.map fun closure => closure.kind)
-    (trace.evidenceLinks.map structuralLinkSupport)
+    (trace.evidenceSupports.map structuralLinkSupport)
   validateAcceptedOrdering trace structuralAnalysis
   validateAcceptedClosures trace structuralAnalysis
   validateRecordSupport trace structuralAnalysis.facts
-  for evidenceLink in trace.evidenceLinks do
-    for applied in evidenceLink.appliedDispositions do
-      validateAppliedDisposition trace evidenceLink applied
-    validateCheckedProvenance trace evidenceLink
-  if trace.traceId != Observation.Internal.evidenceBackedTraceId trace.mappingDigest
+  for evidenceSupport in trace.evidenceSupports do
+    for applied in evidenceSupport.appliedDispositions do
+      validateAppliedDisposition trace evidenceSupport applied
+    validateCheckedProvenance trace evidenceSupport
+  if trace.traceId != Evidence.Internal.evidenceBackedTraceId trace.mappingDigest
       trace.evidenceIdentities
-      trace.recordSupport trace.trace trace.evidenceLinks then
-    throw { kind := .inconsistentEvidenceLink, planId := trace.mappingId }
+      trace.recordSupport trace.trace trace.evidenceSupports then
+    throw { kind := .inconsistentEvidenceSupport, planId := trace.mappingId }
   pure (EvidenceBackedTrace.ofUnchecked trace)
 
 end Umpire

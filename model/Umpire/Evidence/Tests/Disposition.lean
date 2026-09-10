@@ -1,40 +1,40 @@
-import Umpire.Observation.Tests.EvidenceLink
+import Umpire.Evidence.Tests.EvidenceSupport
 
 /-! Runtime disposition enforcement and forbidden raw-value non-retention. -/
 
-namespace Umpire.ObservationTests
+namespace Umpire.EvidenceTests
 
 open Umpire
 
 def dispositionFailureKinds : List (ObservationStatus × Option ObservationFailureKind) := [
-  let evidenceLink := completeFirstEvidenceLink
+  let evidenceSupport := completeFirstEvidenceSupport
   let result := validateEvidenceBackedTrace {
-    completeUncheckedEvidenceBackedTrace with evidenceLinks := [{
-      evidenceLink with appliedDispositions := [{
+    completeUncheckedEvidenceBackedTrace with evidenceSupports := [{
+      evidenceSupport with appliedDispositions := [{
         field := { kind := eventKind, field := secretField }
         evidence := .raw "forbidden-secret"
       }]
-    }] ++ completeUncheckedEvidenceBackedTrace.evidenceLinks.tail
+    }] ++ completeUncheckedEvidenceBackedTrace.evidenceSupports.tail
   }
   admissionStatusAndKind result,
-  let evidenceLink := completeFirstEvidenceLink
+  let evidenceSupport := completeFirstEvidenceSupport
   let result := validateEvidenceBackedTrace {
-    completeUncheckedEvidenceBackedTrace with evidenceLinks := [{
-      evidenceLink with appliedDispositions := [{
+    completeUncheckedEvidenceBackedTrace with evidenceSupports := [{
+      evidenceSupport with appliedDispositions := [{
         field := { kind := eventKind, field := secretField }
         evidence := .retained "forbidden-secret"
       }]
-    }] ++ completeUncheckedEvidenceBackedTrace.evidenceLinks.tail
+    }] ++ completeUncheckedEvidenceBackedTrace.evidenceSupports.tail
   }
   admissionStatusAndKind result,
-  let evidenceLink := completeFirstEvidenceLink
+  let evidenceSupport := completeFirstEvidenceSupport
   let result := validateEvidenceBackedTrace {
-    completeUncheckedEvidenceBackedTrace with evidenceLinks := [{
-      evidenceLink with appliedDispositions := [{
+    completeUncheckedEvidenceBackedTrace with evidenceSupports := [{
+      evidenceSupport with appliedDispositions := [{
         field := { kind := eventKind, field := rejectedField }
         evidence := .rejectedMaterial "forbidden-rejected"
       }]
-    }] ++ completeUncheckedEvidenceBackedTrace.evidenceLinks.tail
+    }] ++ completeUncheckedEvidenceBackedTrace.evidenceSupports.tail
   }
   admissionStatusAndKind result
 ]
@@ -46,13 +46,13 @@ example : dispositionFailureKinds = [
 ] := by
   native_decide
 
-def rejectedEvidence : EvidenceBundle := {
+def rejectedEvidence : SyntheticEvidence := {
   completeEvidence with records := [initialEvidence, {
     stepEvidence with fields := stepEvidence.fields ++ [textField rejectedField "forbidden-rejected"]
   }]
 }
 
-def digestMismatchEvidence : EvidenceBundle := {
+def digestMismatchEvidence : SyntheticEvidence := {
   completeEvidence with records := [initialEvidence, {
     stepEvidence with fields := stepEvidence.fields.map fun fieldValue =>
       if fieldValue.field == hashedField then
@@ -61,7 +61,7 @@ def digestMismatchEvidence : EvidenceBundle := {
   }]
 }
 
-def digestCollisionEvidence : EvidenceBundle := {
+def digestCollisionEvidence : SyntheticEvidence := {
   completeEvidence with
   records := [initialEvidence, {
     stepEvidence with fields := stepEvidence.fields.map fun fieldValue =>
@@ -90,13 +90,13 @@ def normalizedDigestRule : ObservationRule := {
       (.normalize { name := "text.trim", version := 1 } (field hashedFieldSpec))))
 }
 
-def normalizedDigestDeclaration : ObservationMappingDeclaration := {
+def normalizedDigestDeclaration : Evidence.Reading := {
   evaluationDeclaration with
   rules := evaluationDeclaration.rules.map fun rule =>
     if rule.id == digestRule.id then { rule with value := normalizedDigestRule.value } else rule
 }
 
-def normalizedDigestEvidence : EvidenceBundle := {
+def normalizedDigestEvidence : SyntheticEvidence := {
   completeEvidence with
   records := [initialEvidence, {
     stepEvidence with fields := stepEvidence.fields.map fun fieldValue =>
@@ -110,7 +110,7 @@ def normalizedDigestEvidence : EvidenceBundle := {
 
 /-- Reported digest validation follows the checked normalized operand, not the raw field value. -/
 example :
-    let result := match checkObservation evaluationContext normalizedDigestDeclaration with
+    let result := match Evidence.checkReading evaluationContext normalizedDigestDeclaration with
       | .ok plan => evaluateEvidence plan normalizedDigestEvidence
       | .error _ => .unknown {
           kind := .zeroUsableInterpretations
@@ -119,7 +119,7 @@ example :
     result.status = .accepted := by
   native_decide
 
-def irrelevantReportedTokenEvidence : EvidenceBundle :=
+def irrelevantReportedTokenEvidence : SyntheticEvidence :=
   let expectedToken := syntheticDigestToken digestPolicy "forbidden-hash-material"
   {
     completeEvidence with
@@ -161,4 +161,4 @@ example :
       rendered.contains "forbidden-rejected") = (false, false, false) := by
   native_decide
 
-end Umpire.ObservationTests
+end Umpire.EvidenceTests

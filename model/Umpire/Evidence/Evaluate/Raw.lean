@@ -1,4 +1,4 @@
-import Umpire.Observation.Evaluation.Structure
+import Umpire.Evidence.Evaluate.Structure
 
 /-!
 Internal raw Observation Evidence validation, expression evaluation, emission assembly, and
@@ -12,13 +12,13 @@ def syntheticDigestToken
     (normalizedValue : String) : String :=
   policy.name ++ "/v" ++ toString policy.version ++ ":" ++ toString normalizedValue.hash
 
-namespace Observation.Internal
+namespace Evidence.Internal
 
 private def idLe (left right : DefinitionId) : Bool :=
   decide (left.value ≤ right.value)
 
 def diagnostic
-    (plan : CheckedObservationPlan)
+    (plan : Evidence.CheckedReading)
     (kind : ObservationFailureKind)
     (related : List DefinitionId := []) : ObservationDiagnostic := {
   kind
@@ -75,14 +75,14 @@ def canonicalReferences
   references.mergeSort referenceLe |>.eraseDups
 
 private def fieldDeclaration?
-    (plan : CheckedObservationPlan)
+    (plan : Evidence.CheckedReading)
     (record : SyntheticEvidenceRecord)
     (fieldId : DefinitionId) : Option EvidenceFieldDeclaration := do
   let kind ← plan.profile.kinds.find? fun declaration => declaration.id == record.kind
   kind.fields.find? fun declaration => declaration.id == fieldId
 
 private def dispositionFor
-    (plan : CheckedObservationPlan)
+    (plan : Evidence.CheckedReading)
     (reference : EvidenceFieldReference) : Option FieldDisposition :=
   (plan.dispositions.find? fun declaration => declaration.field == reference).map
     FieldDispositionDeclaration.disposition
@@ -94,12 +94,12 @@ private def fieldValue?
   else record.fields.find? fun field => field.field == reference.field
 
 private def findPolicy
-    (plan : CheckedObservationPlan)
+    (plan : Evidence.CheckedReading)
     (id : DefinitionId) : Option DigestPolicyDeclaration :=
   plan.digestPolicies.find? fun policy => policy.id == id
 
 private def validateDigestMetadata
-    (plan : CheckedObservationPlan)
+    (plan : Evidence.CheckedReading)
     (record : SyntheticEvidenceRecord)
     (field : EvidenceFieldValue)
     (policyId : DefinitionId) : Except ObservationDiagnostic Unit := do
@@ -110,7 +110,7 @@ private def validateDigestMetadata
     | none => throw (diagnostic plan .digestPolicyMismatch [record.id, field.field, policyId])
 
 private def validateRecord
-    (plan : CheckedObservationPlan)
+    (plan : Evidence.CheckedReading)
     (record : SyntheticEvidenceRecord) : Except ObservationDiagnostic Unit := do
   if record.profile != plan.profile.id then
     throw (diagnostic plan .profileMismatch [record.id, record.profile])
@@ -162,14 +162,14 @@ private partial def rulePathExists
       rulePathExists ordering edge.after target (current :: visited)
 
 private def ruleLe
-    (plan : CheckedObservationPlan)
+    (plan : Evidence.CheckedReading)
     (left right : CheckedObservationRule) : Bool :=
   if rulePathExists plan.ordering left.id right.id then true
   else if rulePathExists plan.ordering right.id left.id then false
   else idLe left.id right.id
 
 partial def expressionBindingIds
-    (plan : CheckedObservationPlan)
+    (plan : Evidence.CheckedReading)
     (expression : CheckedObservationExpression)
     (visited : List DefinitionId := []) : List DefinitionId :=
   match expression with
@@ -186,7 +186,7 @@ partial def expressionBindingIds
   | _ => []
 
 partial def expressionReferences
-    (plan : CheckedObservationPlan)
+    (plan : Evidence.CheckedReading)
     (expression : CheckedObservationExpression)
     (visited : List DefinitionId := []) : List EvidenceFieldReference :=
   match expression with
@@ -205,7 +205,7 @@ partial def expressionReferences
 
 mutual
   private partial def evaluateExpression
-      (plan : CheckedObservationPlan)
+      (plan : Evidence.CheckedReading)
       (record : SyntheticEvidenceRecord)
       (expression : CheckedObservationExpression)
       (visited : List DefinitionId := []) : Except ObservationDiagnostic EvidenceValue := do
@@ -255,7 +255,7 @@ mutual
         pure (.text (syntheticDigestToken policy value.render))
 
   private partial def evaluateBinding
-      (plan : CheckedObservationPlan)
+      (plan : Evidence.CheckedReading)
       (record : SyntheticEvidenceRecord)
       (id : DefinitionId)
       (visited : List DefinitionId) : Except ObservationDiagnostic EvidenceValue := do
@@ -272,7 +272,7 @@ mutual
 end
 
 private def validateBindingFacts
-    (plan : CheckedObservationPlan)
+    (plan : Evidence.CheckedReading)
     (record : SyntheticEvidenceRecord) : Except ObservationDiagnostic Unit := do
   for fact in record.bindingFacts do
     let value ← evaluateBinding plan record fact.binding []
@@ -280,7 +280,7 @@ private def validateBindingFacts
       throw (diagnostic plan .contradictoryBinding [record.id, fact.binding])
 
 private def conditionHolds
-    (plan : CheckedObservationPlan)
+    (plan : Evidence.CheckedReading)
     (record : SyntheticEvidenceRecord)
     (condition : Option CheckedObservationExpression) : Except ObservationDiagnostic Bool := do
   match condition with
@@ -299,7 +299,7 @@ private structure DigestClaim where
   effectiveToken : String
 
 private partial def digestClaimsInExpression
-    (plan : CheckedObservationPlan)
+    (plan : Evidence.CheckedReading)
     (record : SyntheticEvidenceRecord)
     (expression : CheckedObservationExpression)
     (visited : List DefinitionId := []) : Except ObservationDiagnostic (List DigestClaim) := do
@@ -335,14 +335,14 @@ private partial def digestClaimsInExpression
   | _ => pure []
 
 private def digestClaimsForRule
-    (plan : CheckedObservationPlan)
+    (plan : Evidence.CheckedReading)
     (record : SyntheticEvidenceRecord)
     (rule : CheckedObservationRule) : Except ObservationDiagnostic (List DigestClaim) := do
   return (← digestClaimsInExpression plan record rule.value) ++
     (← rule.condition.toList.mapM (digestClaimsInExpression plan record)).flatten
 
 private def ruleReferencesRecord
-    (plan : CheckedObservationPlan)
+    (plan : Evidence.CheckedReading)
     (record : SyntheticEvidenceRecord)
     (rule : CheckedObservationRule) : Bool :=
   let references := canonicalReferences <|
@@ -351,7 +351,7 @@ private def ruleReferencesRecord
   references.isEmpty || references.all fun reference => reference.kind == record.kind
 
 private def detectDigestIssues
-    (plan : CheckedObservationPlan)
+    (plan : Evidence.CheckedReading)
     (records : List SyntheticEvidenceRecord) : Except ObservationDiagnostic Unit := do
   let mut claims := []
   for record in records do
@@ -372,7 +372,7 @@ private def detectDigestIssues
         [claim.recordId, claim.fieldId, claim.policyId])
 
 private def normalizedRetainedValue
-    (plan : CheckedObservationPlan)
+    (plan : Evidence.CheckedReading)
     (record : SyntheticEvidenceRecord)
     (reference : EvidenceFieldReference) : Except ObservationDiagnostic String := do
   match plan.bindings.find? fun binding =>
@@ -384,7 +384,7 @@ private def normalizedRetainedValue
       | none => throw (diagnostic plan .unresolvedBinding [record.id, reference.field])
 
 private def appliedDisposition
-    (plan : CheckedObservationPlan)
+    (plan : Evidence.CheckedReading)
     (record : SyntheticEvidenceRecord)
     (rule : CheckedObservationRule)
     (reference : EvidenceFieldReference) : Except ObservationDiagnostic AppliedFieldDisposition := do
@@ -411,7 +411,7 @@ private def appliedDisposition
   pure { field := reference, evidence }
 
 private def evidenceFieldSupport
-    (plan : CheckedObservationPlan)
+    (plan : Evidence.CheckedReading)
     (record : SyntheticEvidenceRecord)
     (field : EvidenceFieldValue) : Except ObservationDiagnostic EvidenceFieldSupport := do
   let reference : EvidenceFieldReference := { kind := record.kind, field := field.field }
@@ -432,7 +432,7 @@ private def evidenceFieldSupport
   pure { field := field.field, valueType := field.value.valueType, evidence }
 
 private def evidenceRecordSupport
-    (plan : CheckedObservationPlan)
+    (plan : Evidence.CheckedReading)
     (record : SyntheticEvidenceRecord) : Except ObservationDiagnostic EvidenceRecordSupport := do
   let fields ← (record.fields.mergeSort fieldValueLe).mapM (evidenceFieldSupport plan record)
   pure {
@@ -452,7 +452,7 @@ private structure Emission where
   deriving BEq, Repr
 
 private def emissionsFor
-    (plan : CheckedObservationPlan)
+    (plan : Evidence.CheckedReading)
     (record : SyntheticEvidenceRecord) : Except ObservationDiagnostic (List Emission) := do
   let mut emissions := []
   for rule in plan.rules.mergeSort (ruleLe plan) do
@@ -488,21 +488,21 @@ private def orderingFact (record : SyntheticEvidenceRecord) : EvidenceOrderingFa
 }
 
 private def duplicateIdentityDiagnostic?
-    (plan : CheckedObservationPlan) :
-    Observation.Internal.StructuralFinding → Option ObservationDiagnostic
+    (plan : Evidence.CheckedReading) :
+    Evidence.Internal.StructuralFinding → Option ObservationDiagnostic
   | .duplicateIdentity recordId _ =>
       some (diagnostic plan .duplicateEvidenceIdentity [recordId])
   | _ => none
 
 private def mixedOriginDiagnostic?
-    (plan : CheckedObservationPlan) :
-    Observation.Internal.StructuralFinding → Option ObservationDiagnostic
+    (plan : Evidence.CheckedReading) :
+    Evidence.Internal.StructuralFinding → Option ObservationDiagnostic
   | .mixedOrigins recordIds => some (diagnostic plan .incomparableOrdering recordIds)
   | _ => none
 
 private def rawSequenceDiagnostic?
-    (plan : CheckedObservationPlan) :
-    Observation.Internal.StructuralFinding → Option ObservationDiagnostic
+    (plan : Evidence.CheckedReading) :
+    Evidence.Internal.StructuralFinding → Option ObservationDiagnostic
   | .duplicateSequence firstId secondId _ =>
       some (diagnostic plan .incomparableOrdering [firstId, secondId])
   | .sequenceGap recordId source _ _ =>
@@ -510,9 +510,9 @@ private def rawSequenceDiagnostic?
   | _ => none
 
 private def rawRecordOrderingDiagnostic?
-    (plan : CheckedObservationPlan)
+    (plan : Evidence.CheckedReading)
     (recordId : DefinitionId) :
-    Observation.Internal.StructuralFinding → Option ObservationDiagnostic
+    Evidence.Internal.StructuralFinding → Option ObservationDiagnostic
   | .duplicateSequence firstId secondId _ =>
       if secondId == recordId then
         some (diagnostic plan .incomparableOrdering [firstId, secondId])
@@ -528,9 +528,9 @@ private def rawRecordOrderingDiagnostic?
   | _ => none
 
 private def rawParentDiagnosticFor?
-    (plan : CheckedObservationPlan)
+    (plan : Evidence.CheckedReading)
     (recordId parentId : DefinitionId) :
-    Observation.Internal.StructuralFinding → Option ObservationDiagnostic
+    Evidence.Internal.StructuralFinding → Option ObservationDiagnostic
   | .missingCausalParent candidate (some candidateParent) =>
       if candidate == recordId && candidateParent == parentId then
         some (diagnostic plan .missingCausalParent [candidate, candidateParent])
@@ -542,9 +542,9 @@ private def rawParentDiagnosticFor?
   | _ => none
 
 private def validateFaultTarget
-    (plan : CheckedObservationPlan)
+    (plan : Evidence.CheckedReading)
     (records : List SyntheticEvidenceRecord)
-    (originMode : Observation.Internal.StructuralOriginMode)
+    (originMode : Evidence.Internal.StructuralOriginMode)
     (record : SyntheticEvidenceRecord) : Except ObservationDiagnostic Unit := do
   let some target := record.faultTarget | return
   let targetRecord ← match records.find? fun candidate => candidate.id == target with
@@ -565,17 +565,17 @@ private def validateFaultTarget
   | .mixed => pure ()
 
 private def duplicateRawClosureDiagnosticFor?
-    (plan : CheckedObservationPlan)
+    (plan : Evidence.CheckedReading)
     (kind : DefinitionId) :
-    Observation.Internal.StructuralFinding → Option ObservationDiagnostic
+    Evidence.Internal.StructuralFinding → Option ObservationDiagnostic
   | .duplicateClosure _ candidate _ =>
       if candidate == kind then some (diagnostic plan .missingClosure [kind]) else none
   | _ => none
 
 private def rawSourceClosureDiagnosticFor?
-    (plan : CheckedObservationPlan)
+    (plan : Evidence.CheckedReading)
     (closure : EvidenceClosureFact) :
-    Observation.Internal.StructuralFinding → Option ObservationDiagnostic
+    Evidence.Internal.StructuralFinding → Option ObservationDiagnostic
   | .closureWithoutFacts source kind =>
       if source == closure.source && kind == closure.kind then
         some (diagnostic plan .missingClosure (source.toList ++ [kind]))
@@ -589,9 +589,9 @@ private def rawSourceClosureDiagnosticFor?
   | _ => none
 
 private def missingRawSourceClosureFor?
-    (plan : CheckedObservationPlan)
+    (plan : Evidence.CheckedReading)
     (record : SyntheticEvidenceRecord) :
-    Observation.Internal.StructuralFinding → Option ObservationDiagnostic
+    Evidence.Internal.StructuralFinding → Option ObservationDiagnostic
   | .missingClosure recordIds source kind =>
       if recordIds.contains record.id &&
           source == record.origin.map EvidenceOrigin.source && kind == record.kind then
@@ -601,15 +601,15 @@ private def missingRawSourceClosureFor?
   | _ => none
 
 private def missingRequiredClosureDiagnostic?
-    (plan : CheckedObservationPlan) :
-    Observation.Internal.StructuralFinding → Option ObservationDiagnostic
+    (plan : Evidence.CheckedReading) :
+    Evidence.Internal.StructuralFinding → Option ObservationDiagnostic
   | .missingRequiredKind kind => some (diagnostic plan .missingClosure [kind])
   | _ => none
 
 private def validateRawClosures
-    (plan : CheckedObservationPlan)
+    (plan : Evidence.CheckedReading)
     (records : List SyntheticEvidenceRecord)
-    (analysis : Observation.Internal.StructuralAnalysis) :
+    (analysis : Evidence.Internal.StructuralAnalysis) :
     Except ObservationDiagnostic Unit := do
   match analysis.originMode with
   | .globalSequence =>
@@ -623,7 +623,7 @@ private def validateRawClosures
           | none => throw (diagnostic plan .missingClosure [required.kind])
         let lastSequence := analysis.closureExpectations.find?
           (fun expectation => expectation.kind == required.kind)
-          |>.map Observation.Internal.ClosureExpectation.lastSequence
+          |>.map Evidence.Internal.ClosureExpectation.lastSequence
           |>.getD 0
         if closure.lastSequence != lastSequence then
           throw (diagnostic plan .missingClosure [required.kind])
@@ -655,10 +655,10 @@ private def validateRawClosures
   | .mixed => pure ()
 
 private def validateRawStructure
-    (plan : CheckedObservationPlan)
+    (plan : Evidence.CheckedReading)
     (records : List SyntheticEvidenceRecord)
     (closureRecords : List SyntheticEvidenceRecord)
-    (analysis : Observation.Internal.StructuralAnalysis) :
+    (analysis : Evidence.Internal.StructuralAnalysis) :
     Except ObservationDiagnostic Unit := do
   match analysis.findings.findSome? (duplicateIdentityDiagnostic? plan) with
   | some failure => throw failure
@@ -691,11 +691,11 @@ private def validateRawStructure
   | .mixed => pure ()
   validateRawClosures plan closureRecords analysis
 
-private def evidenceLinkFor
-    (plan : CheckedObservationPlan)
-    (bundle : EvidenceBundle)
+private def evidenceSupportFor
+    (plan : Evidence.CheckedReading)
+    (bundle : SyntheticEvidence)
     (coordinate : ModelCoordinate)
-    (emission : Emission) : EvidenceLink := {
+    (emission : Emission) : EvidenceSupport := {
   coordinate
   mappingId := plan.id
   mappingVersion := plan.version
@@ -715,7 +715,7 @@ private def evidenceLinkFor
 }
 
 private def singleEmission
-    (plan : CheckedObservationPlan)
+    (plan : Evidence.CheckedReading)
     (record : SyntheticEvidenceRecord)
     (kind : DefinitionKind)
     (emissions : List Emission) : Except ObservationDiagnostic Emission :=
@@ -726,7 +726,7 @@ private def singleEmission
       (record.id :: multiple.map fun emission => emission.rule.output))
 
 private def ensureComparableEmissions
-    (plan : CheckedObservationPlan)
+    (plan : Evidence.CheckedReading)
     (record : SyntheticEvidenceRecord)
     (emissions : List Emission) : Except ObservationDiagnostic Unit := do
   for left in emissions do
@@ -741,10 +741,10 @@ def evidenceBackedTraceId
     (evidenceIdentities : List DefinitionId)
     (recordSupport : List EvidenceRecordSupport)
     (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue)
-    (evidenceLinks : List EvidenceLink) : String :=
+    (evidenceSupports : List EvidenceSupport) : String :=
   (behaviorFingerprintOf <|
     mappingDigest ++ ":" ++ reprStr evidenceIdentities ++ ":" ++ reprStr recordSupport ++
-      ":" ++ reprStr trace ++ ":" ++ reprStr evidenceLinks).render
+      ":" ++ reprStr trace ++ ":" ++ reprStr evidenceSupports).render
 
 private structure RecordEmissions where
   record : SyntheticEvidenceRecord
@@ -760,8 +760,8 @@ private def recordPrecedes
   sourceLocal || recordDependsOn records right.id left.id
 
 def evaluateUnchecked
-    (plan : CheckedObservationPlan)
-    (bundle : EvidenceBundle) : Except ObservationDiagnostic UncheckedEvidenceBackedTrace := do
+    (plan : Evidence.CheckedReading)
+    (bundle : SyntheticEvidence) : Except ObservationDiagnostic UncheckedEvidenceBackedTrace := do
   if bundle.records.length > plan.evidenceBound.value then
     throw {
       (diagnostic plan .evidenceBoundExhausted) with
@@ -792,7 +792,7 @@ def evaluateUnchecked
         let actualFields := record.fields.map EvidenceFieldValue.field |>.mergeSort idLe
         if actualFields != expectedFields then
           throw (diagnostic plan .fieldMismatch [record.id, record.kind])
-  let structuralAnalysis := Observation.Internal.analyzeStructure
+  let structuralAnalysis := Evidence.Internal.analyzeStructure
     (records.map orderingFact) bundle.closures (plan.closures.map fun closure => closure.kind)
   validateRawStructure plan records bundle.records structuralAnalysis
   for record in records do
@@ -850,7 +850,7 @@ def evaluateUnchecked
   if firstRecord.emissions.any fun emission => emission.rule.outputKind != .state then
     throw (diagnostic plan .unconsumedReference [firstRecord.record.id])
   let mut steps := []
-  let mut evidenceLinks := [evidenceLinkFor plan bundle .initialState initial]
+  let mut evidenceSupports := [evidenceSupportFor plan bundle .initialState initial]
   let mut stepPosition := 1
   for item in remainingRecords do
     ensureComparableEmissions plan item.record item.emissions
@@ -869,12 +869,12 @@ def evaluateUnchecked
       state := state.value
       facts := observations.map Emission.value
     }]
-    evidenceLinks := evidenceLinks ++ [
-      evidenceLinkFor plan bundle (.selectedAction stepPosition) action,
-      evidenceLinkFor plan bundle (.outcome stepPosition) outcome,
-      evidenceLinkFor plan bundle (.state stepPosition) state
+    evidenceSupports := evidenceSupports ++ [
+      evidenceSupportFor plan bundle (.selectedAction stepPosition) action,
+      evidenceSupportFor plan bundle (.outcome stepPosition) outcome,
+      evidenceSupportFor plan bundle (.state stepPosition) state
     ] ++ observations.mapIdx fun observationIndex observation =>
-      evidenceLinkFor plan bundle (.fact stepPosition (observationIndex + 1)) observation
+      evidenceSupportFor plan bundle (.fact stepPosition (observationIndex + 1)) observation
     stepPosition := stepPosition + 1
   let trace : ModelTrace ModelValue ModelValue ModelValue ModelValue := {
     initialState := initial.value
@@ -884,7 +884,7 @@ def evaluateUnchecked
   let recordSupport ← records.mapM (evidenceRecordSupport plan)
   let unchecked : UncheckedEvidenceBackedTrace := {
     traceId := evidenceBackedTraceId plan.behaviorFingerprint.render evidenceIdentities recordSupport trace
-      evidenceLinks
+      evidenceSupports
     checkedPlan := plan
     mappingId := plan.id
     mappingVersion := plan.version
@@ -899,10 +899,10 @@ def evaluateUnchecked
     evidenceIdentities
     recordSupport
     trace
-    evidenceLinks
+    evidenceSupports
   }
   pure unchecked
 
-end Observation.Internal
+end Evidence.Internal
 
 end Umpire
