@@ -48,6 +48,10 @@ var structureField = regexp.MustCompile(`^\s+([A-Za-z_][A-Za-z0-9_'!?]*)\s*:[^=]
 // the packed spellings are indexed.
 var inductiveConstructor = regexp.MustCompile(`\|\s*([A-Za-z_][A-Za-z0-9_'!?]*)`)
 
+var stringLiteral = regexp.MustCompile(`"(?:[^"\\]|\\.)*"`)
+
+var lineComment = regexp.MustCompile(`--.*$`)
+
 var namespaceHead = regexp.MustCompile(`^namespace\s+([A-Za-z_][A-Za-z0-9_'.]*)`)
 
 // sectionHead matches the other `end`-closed openers. They contribute no name, but
@@ -127,6 +131,15 @@ func (index *Index) addModule(module string) {
 	}
 }
 
+// commentDelta reports how many block comments one line opens minus how many it closes.
+// String literals and `--` comments are removed first: a description holding `+/-10%`
+// would otherwise open a comment that never closes, and every later declaration in the
+// file would vanish from the index.
+func commentDelta(line string) int {
+	stripped := lineComment.ReplaceAllString(stringLiteral.ReplaceAllString(line, `""`), "")
+	return strings.Count(stripped, "/-") - strings.Count(stripped, "-/")
+}
+
 // memberBlock is the indented body of a `structure`, `class` or `inductive`, whose
 // lines name the owner's fields or constructors. The block ends at the first line that
 // starts in column zero.
@@ -177,7 +190,7 @@ func (index *Index) addFile(content string) {
 		line := strings.TrimRight(raw, " \t\r")
 		trimmed := strings.TrimLeft(line, " \t")
 		inComment := commentDepth > 0
-		commentDepth += strings.Count(line, "/-") - strings.Count(line, "-/")
+		commentDepth += commentDelta(line)
 		if commentDepth < 0 {
 			commentDepth = 0
 		}
