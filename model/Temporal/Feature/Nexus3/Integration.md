@@ -46,11 +46,10 @@ proposed, and the success syntax above accepts no such input. Its intended meani
 Admission must reject malformed IDs, duplicate or conflicting declarations, ambiguous references,
 and wrong-kind references before planning or Case production — overridden and derived IDs alike,
 so an override can neither introduce a colliding identity nor rescue a rejected one. Derivation
-does not use source positions, declaration order, or enum numeric ordinals. Semantic fingerprints
-— the Behavior Fingerprint named above is the same value — still come from checked meaning,
-including outcome alternatives, action roles, scope, and bounds; changed meaning changes the
-fingerprint whether or not the ID was overridden. Identity never supplies missing transitions or
-makes a Property pass.
+does not use source positions, declaration order, or enum numeric ordinals. Behavior Fingerprints
+still come from checked meaning, including outcome alternatives, action roles, scope, and bounds;
+changed meaning changes the fingerprint whether or not the ID was overridden. Identity never
+supplies missing transitions or makes a Property pass.
 
 Authors provide no identity or version input in the delivered success syntax; the override above is
 proposed for the broader draft only. Generated `DefinitionMetadata` retains Umpire's format
