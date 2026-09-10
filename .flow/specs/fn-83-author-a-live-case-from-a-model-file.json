@@ -12,7 +12,7 @@
   "id": "fn-83-author-a-live-case-from-a-model-file",
   "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_rounds": 1,
+  "plan_review_rounds": 2,
   "plan_review_status": "needs_work",
   "plan_reviewed_at": "2026-09-10T06:15:33.008961Z",
   "review_attempts": [
@@ -158,8 +158,19 @@
     }
   ],
   "review_hash_epoch": {},
-  "review_pending_rounds": {},
-  "review_reservations": {},
+  "review_pending_rounds": {
+    "plan": 1
+  },
+  "review_reservations": {
+    "2a43ddd2f62943949299fdd2670dc706": {
+      "artifact_sha256": "4ed8c1e940417fbfa266015c7baaa61b5e7a860e99b259fad488d8c7244950fb",
+      "counter_scope": "plan",
+      "epoch": 0,
+      "exclusive": false,
+      "forced": false,
+      "review_type": "plan"
+    }
+  },
   "review_transport_failures": {
     "plan": 0
   },
@@ -177,5 +188,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-10T06:20:23.588043Z"
+  "updated_at": "2026-09-10T06:21:06.244044Z"
 }

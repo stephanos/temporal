@@ -4,7 +4,8 @@
   "claimed_at": null,
   "created_at": "2026-09-10T06:06:08.649580Z",
   "depends_on": [
-    "fn-83-author-a-live-case-from-a-model-file.3"
+    "fn-83-author-a-live-case-from-a-model-file.3",
+    "fn-83-author-a-live-case-from-a-model-file.4"
   ],
   "id": "fn-83-author-a-live-case-from-a-model-file.5",
   "priority": null,
@@ -12,5 +13,5 @@
   "spec_path": ".flow/tasks/fn-83-author-a-live-case-from-a-model-file.5.md",
   "status": "todo",
   "title": "Fault lines in the Scenario and the worker-outage Model",
-  "updated_at": "2026-09-10T06:20:36.093696Z"
+  "updated_at": "2026-09-10T06:20:45.162193Z"
 }
