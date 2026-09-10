@@ -25,7 +25,7 @@ def propertySpec
   key
   source := Cancellation.source
   requires := [lifecycleCapabilityId]
-  clauses := transitionResultClauses family key action state outcome fact
+  clauses := stepClauses family key action state outcome fact
 }
 
 def behaviorSpec

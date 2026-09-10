@@ -53,11 +53,11 @@ structure TargetInitialStateRow where
   deriving BEq, DecidableEq, Ord, Repr
 
 structure TargetTransitionRow where
-  state : String
+  priorState : String
   action : String
-  modelOutcome : String
-  resultingState : String
-  observations : List String
+  outcome : String
+  state : String
+  facts : List String
   deriving BEq, DecidableEq, Ord, Repr
 
 /-- Canonical executable behavior evaluated over the complete finite Target Behavior Domain. -/

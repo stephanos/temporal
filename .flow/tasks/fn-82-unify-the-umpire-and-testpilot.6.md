@@ -39,6 +39,7 @@ to `Umpire.Variations`, and rename the semantic inventory with its executable, t
 - `Umpire.Case/Scoped.lean` is renamed by task .7; leave its name here even though it moves next to `Case/Projection/`.
 - Retire `Umpire.Observation`, `SemanticVerdictStatus`, `ImplementationLinkKnownGap`, `Umpire.Space`, `ExperimentSpace`, `Umpire.SemanticInventory`, `SEMANTIC_INVENTORY`, `temporal-model-semantic-inventory`.
 
+- Carried from .2: `Umpire.Artifact.Result.ArtifactModelTraceStep` now spells `outcome`/`state`/`facts`, matching `Step`; the remaining `Artifact*` wire projections in `Result.lean` still carry the prefix this task drops.
 ## Acceptance
 - [ ] `Umpire.Evidence` holds the offline evaluator and `Umpire.Case.Projection` holds the live seam with `Fact` as its type parameter; `Umpire/Observation/` no longer exists
 - [ ] `UnmappedSource`, `Evidence.PropertyStatus`, `NotRunMarker`, `Artifact.RunRecord`, `Umpire.Variations`, and the Exploration names match the spec

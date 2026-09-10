@@ -58,7 +58,7 @@ func TestProductionFixtureCarriesCanonicalMetadata(t *testing.T) {
 		ObservationRequirements: []string{
 			"switch.observation.power",
 		},
-		ArtifactChecksum: "sha256:fa701806df655fa9cebc9b7d94f36b74176890c96bb535c7a3f6629afe64ff41",
+		ArtifactChecksum: "sha256:8af20c6a12bbe9c468ed22743fbfcdf9ae1a546492c245e9146e26c2a1518a47",
 	}, view)
 }
 

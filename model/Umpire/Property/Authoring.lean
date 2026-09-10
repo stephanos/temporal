@@ -76,7 +76,7 @@ def factIs (value : ModelValue) : PropertyPredicate :=
 end PropertyPredicate
 
 /-- Build the three independent baseline obligations for one Target-owned transition result. -/
-def transitionResultClauses
+def stepClauses
     (family : DefinitionFamily)
     (propertyKey : String)
     (action state outcome fact : ModelValue) : List PropertyClause := [

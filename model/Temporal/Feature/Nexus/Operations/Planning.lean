@@ -34,7 +34,7 @@ theorem lifecycleInitialStatesCanonical (setup : List RoleBinding) :
 
 theorem lifecycleStepResultsCanonical (state action : ModelValue) :
     (stepResult? state action).toList.mergeSort (fun left right =>
-      decide (transitionResultOrderKey left ≤ transitionResultOrderKey right)) =
+      decide (stepOrderKey left ≤ stepOrderKey right)) =
       (stepResult? state action).toList := by
   cases stepResult? state action <;> simp only [Option.toList, List.mergeSort_nil,
     List.mergeSort_singleton]
