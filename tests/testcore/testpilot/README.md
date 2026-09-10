@@ -25,3 +25,12 @@ creates the endpoint), derives the Profile, provisions, prepares, and returns th
 the test on a Run error. Tests that vary bindings, run concurrently, or deliberately omit a
 resource call `bindCase` directly. Both are test helpers outside the public facade, so MOD-12's
 `Prepare` then `Run` sequence is unchanged.
+
+The worker-outage fixture is the fault Case: its controller stops the SDK worker of its own
+activation queue before starting the workflow, resumes it after, and reads the closing history event
+back. Its Contract carries the checked-in `rule_events` horizon -- the outage window is counted in
+what the Run recorded, never on the host's clock -- and a safety rule over the completed workflow,
+so the Run proves the queued task survived the outage. `worker_outage_artifact_test.go` prepares its
+unchanged bytes and pins that bound offline; the tagged live tests run it, and run it beside a plain
+Nexus Case on a *different* queue, because a pooled peer worker on the same physical queue would
+keep polling through the outage.

@@ -183,7 +183,7 @@ func TestValidateFunctionalArtifactsRejectsStaleFile(t *testing.T) {
 	}
 	artifacts[filepath.ToSlash(filepath.Join(functionalFixtureRoot, "stale.json"))] = []byte("stale")
 
-	require.ErrorContains(t, validateFunctionalArtifacts(entries, artifacts), "has 6 files, want 5")
+	require.ErrorContains(t, validateFunctionalArtifacts(entries, artifacts), "has 7 files, want 6")
 }
 
 func TestRunGenerationRejectsIncompleteManifestAndRendererFailureBeforePublication(t *testing.T) {

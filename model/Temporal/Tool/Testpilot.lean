@@ -23,6 +23,7 @@ private def renderSynthetic : IO Unit := do
 def main (arguments : List String) : IO Unit :=
   match arguments with
   | ["get-system-info"] => renderTestpilot Temporal.Testpilot.getSystemInfoCase
+  | ["worker-outage"] => renderTestpilot Temporal.Testpilot.workerOutageCase
   | ["async-nexus"] => renderTestpilot Temporal.Feature.Nexus3.Testpilot.completionCase
   | ["typed-unary"] => renderTestpilot Temporal.Feature.Nexus3.TypedUnary.typedUnaryCase
   | ["typed-nexus"] => renderTestpilot Temporal.Feature.Nexus3.TypedNexus.typedNexusCase
