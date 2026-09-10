@@ -6,7 +6,7 @@ namespace Umpire.PropertyImportTests
 
 #check (Umpire.PropertyDeclaration : Type)
 #check (Umpire.PropertySpec : Type)
-#check Umpire.transitionResultClauses
+#check Umpire.stepClauses
 #check Umpire.PropertySpec.checked
 #check Umpire.canonicalPropertyAuthoringDiagnosticJson
 

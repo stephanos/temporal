@@ -686,9 +686,9 @@ private def bindingJson (binding : RoleBinding) : String :=
 private def traceStepJson
     (step : ModelTraceStep ModelValue ModelValue ModelValue ModelValue) : String :=
   "{\"selectedAction\":" ++ valueJson step.selectedAction ++
-    ",\"modelOutcome\":" ++ valueJson step.outcome ++
-    ",\"resultingState\":" ++ valueJson step.state ++
-    ",\"observations\":" ++ array (step.facts.map valueJson) ++ "}"
+    ",\"outcome\":" ++ valueJson step.outcome ++
+    ",\"state\":" ++ valueJson step.state ++
+    ",\"facts\":" ++ array (step.facts.map valueJson) ++ "}"
 
 private def behaviorTraceJson (trace : BehaviorTrace) : String :=
   "{\"setup\":" ++ array (trace.setup.mergeSort bindingLe |>.map bindingJson) ++

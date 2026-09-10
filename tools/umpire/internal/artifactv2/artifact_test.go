@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -92,14 +93,14 @@ func TestExpectedChecksumsUseExactPrettyPreimages(t *testing.T) {
 	planChecksum, err := ExpectedDrivePlanChecksum(document.Plan)
 	require.NoError(t, err)
 	require.Equal(t,
-		"sha256:7854687bab028c0c51179e90e952b72e195dbd2ce86f3e27b86caf260393e075",
+		"sha256:7f6aa675d57491e968736829a643fd9a5662d52c38c1a493be096b60495f5f8b",
 		planChecksum,
 	)
 	document.Plan.ArtifactChecksum = planChecksum
 	experimentChecksum, err := ExpectedExperimentChecksum(document)
 	require.NoError(t, err)
 	require.Equal(t,
-		"sha256:fa701806df655fa9cebc9b7d94f36b74176890c96bb535c7a3f6629afe64ff41",
+		"sha256:8af20c6a12bbe9c468ed22743fbfcdf9ae1a546492c245e9146e26c2a1518a47",
 		experimentChecksum,
 	)
 }
@@ -108,6 +109,21 @@ func TestDecodeExperimentClassifiesV1BeforeV2Fields(t *testing.T) {
 	encoded := []byte(`{"formatVersion":"umpire-experiment/v1","semanticIdentity":"legacy","plan":null}` + "\n")
 	_, err := DecodeExperiment(encoded)
 	require.EqualError(t, err, `unsupported format "umpire-experiment/v1"`)
+}
+
+// uppercaseFirstDigest corrupts the first SHA-256 digest in place by upper-casing one hex
+// digit. Deriving the digest from the document keeps the case out of step with a rename that
+// changes every fingerprint, which a pinned prefix would silently stop exercising.
+func uppercaseFirstDigest(t *testing.T, encoded []byte) []byte {
+	t.Helper()
+
+	match := regexp.MustCompile(`sha256:[0-9a-f]*[a-f]`).FindIndex(encoded)
+	require.NotNil(t, match)
+	corrupted := bytes.Clone(encoded)
+	letter := match[1] - 1
+	corrupted[letter] = bytes.ToUpper(corrupted[letter : letter+1])[0]
+	require.NotEqual(t, encoded, corrupted)
+	return corrupted
 }
 
 func TestDecodeExperimentRejectsNoncanonicalEncodings(t *testing.T) {
@@ -135,8 +151,8 @@ func TestDecodeExperimentRejectsNoncanonicalEncodings(t *testing.T) {
 		[]byte("  \"queryBehaviorFingerprint\": \"sha256:0000000000000000000000000000000000000000000000000000000000000000\",\n  \"queryBehaviorFingerprint\": "),
 		1,
 	)
-	malformedFingerprint := bytes.Replace(withoutTerminalLF, []byte("sha256:d8d3"), []byte("sha256:D8D3"), 1)
-	malformedChecksum := bytes.Replace(withoutTerminalLF, []byte("sha256:fa701806df655fa9cebc9b7d94f36b74176890c96bb535c7a3f6629afe64ff41"), []byte("sha256:1234"), 1)
+	malformedFingerprint := uppercaseFirstDigest(t, withoutTerminalLF)
+	malformedChecksum := bytes.Replace(withoutTerminalLF, []byte("sha256:8af20c6a12bbe9c468ed22743fbfcdf9ae1a546492c245e9146e26c2a1518a47"), []byte("sha256:1234"), 1)
 
 	cases := map[string][]byte{
 		"reordered object fields":        append(reordered, '\n'),
@@ -173,10 +189,10 @@ func TestDecodeExperimentVerifiesNestedAndOuterChecksumsIndependently(t *testing
 		want    string
 	}{
 		"nested": {encoded: bytes.Replace(canonical,
-			[]byte("sha256:7854687bab028c0c51179e90e952b72e195dbd2ce86f3e27b86caf260393e075"),
+			[]byte("sha256:7f6aa675d57491e968736829a643fd9a5662d52c38c1a493be096b60495f5f8b"),
 			[]byte("sha256:2caad30cc09a2006600917465e4f9223529afbba7acf734c3a629b0e3723ba7d"), 1), want: "nested"},
 		"outer": {encoded: bytes.Replace(canonical,
-			[]byte("sha256:fa701806df655fa9cebc9b7d94f36b74176890c96bb535c7a3f6629afe64ff41"),
+			[]byte("sha256:8af20c6a12bbe9c468ed22743fbfcdf9ae1a546492c245e9146e26c2a1518a47"),
 			[]byte("sha256:d7fc19d59b8b97922df475596bc45022e97c19d051149aa0c9aabe82dff18179"), 1), want: "ExperimentSpec"},
 	}
 	for name, test := range cases {

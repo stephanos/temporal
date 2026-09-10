@@ -190,9 +190,9 @@ private def convergingRun : Option PlannerRun := do
     (.limitReached, [.unresolved])
 
 #guard (terminalTarget [[completed]]).map (·.behaviorFingerprint.render) ==
-  some "sha256:3d1b55f8204b5ed7f6902b2e91606695364d809f9aa58ae3106c51e53e77954e"
+  some "sha256:c82cf457e851b60b999b413cab51d48f6cf6878c3244a8d25a3ddef5c36da1c0"
 #guard (admittedQuery .deliberatelyClosed .allowVacuous).map (·.behaviorFingerprint.render) ==
-  some "sha256:ad39b1f1783f9893a63a82698dfd398b1fff7b3309e9195efc3bc3ad9fad5a0e"
+  some "sha256:97c95ff6a534e221dc0c9bdad1f00555087cc07a320a954f0c9213a556a94f68"
 #guard (endpointRun .deliberatelyClosed .requireAllTriggers
   (.verify (temporalProperty true false)) 10 2).map
     (·.result.metadata.validity.searchTermination) == some "limit-reached"
