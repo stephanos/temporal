@@ -298,13 +298,13 @@ type provenanceKnownGap struct {
 	Code string `json:"code"`
 }
 
-func TestLeanAsyncNexusCasePreparesWithCheckedNexus3Provenance(t *testing.T) {
+func TestLeanAsyncNexusCasePreparesWithCheckedSuccessProvenance(t *testing.T) {
 	source := loadLeanCase(t, "async-nexus")
 	catalog, err := temporal.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
 	_, err = testpilot.Prepare(source, asyncNexusProfile(catalog, source))
 	require.NoError(t, err)
-	require.Equal(t, "temporal.nexus3.testpilot", source.GetProvenance().GetProducerId())
+	require.Equal(t, "temporal.nexus.success.testpilot", source.GetProvenance().GetProducerId())
 	require.Equal(t, "1", source.GetProvenance().GetProducerVersion())
 
 	var provenance struct {
@@ -313,10 +313,10 @@ func TestLeanAsyncNexusCasePreparesWithCheckedNexus3Provenance(t *testing.T) {
 	}
 	require.NoError(t, json.Unmarshal(source.GetProvenance().GetProducerData(), &provenance))
 	require.Equal(t, []string{
-		"temporal.nexus3.target.lifecycle",
-		"temporal.nexus3.behavior.successfulCompletion",
-		"temporal.nexus3.query.completion",
-		"temporal.nexus3.property.successfulResult",
+		"temporal.nexus.success.target.lifecycle",
+		"temporal.nexus.success.behavior.successfulCompletion",
+		"temporal.nexus.success.query.completion",
+		"temporal.nexus.success.property.successfulResult",
 	}, definitionIDs(provenance.Definitions))
 	require.Equal(t, []string{
 		"CASE_DEFINITION_KIND_TARGET",
@@ -328,8 +328,8 @@ func TestLeanAsyncNexusCasePreparesWithCheckedNexus3Provenance(t *testing.T) {
 		require.Regexp(t, `^sha256:[0-9a-f]{64}$`, definition.BehaviorFingerprint)
 	}
 	require.Equal(t, []string{
-		"temporal.nexus3.known-gap.cancellation",
-		"temporal.nexus3.known-gap.operation-correlated-progress",
+		"temporal.nexus.success.known-gap.cancellation",
+		"temporal.nexus.success.known-gap.operation-correlated-progress",
 	}, knownGapCodes(provenance.KnownGaps))
 }
 

@@ -1,6 +1,6 @@
 import Lean.Elab.Command
 import Lean.Elab.ElabRules
-import Temporal.Feature.Nexus3.Authoring
+import Temporal.Feature.Nexus.Success.Authoring
 
 /-! The success-slice command grammar and its expansion into typed Authoring declarations.
 
@@ -9,29 +9,29 @@ Outcome and Fact domains are the constructors of the named types, in constructor
 identifier a command mentions is resolved against them. There is no admissible-spelling list.
 -/
 
-namespace Temporal.Feature.Nexus3
+namespace Temporal.Feature.Nexus.Success
 
 open Umpire
 open Lean Elab Command
 
 /-- One `before + action → result` row of a declared model. -/
-declare_syntax_cat nexus3Transition
+declare_syntax_cat nexus.successTransition
 
 syntax ident ":" ident "+" ident "→"
   "{" "state" ":=" ident "," "outcome" ":=" ident "," "facts" ":=" "[" ident,* "]" "}" :
-  nexus3Transition
+  nexus.successTransition
 
 /-- One `require` clause of a declared Property. -/
-declare_syntax_cat nexus3Require
+declare_syntax_cat nexus.successRequire
 
-syntax "require" ident ":" "resultingState" ident : nexus3Require
-syntax "require" ident ":" "outcome" ident : nexus3Require
-syntax "require" ident ":" "fact" ident : nexus3Require
+syntax "require" ident ":" "resultingState" ident : nexus.successRequire
+syntax "require" ident ":" "outcome" ident : nexus.successRequire
+syntax "require" ident ":" "fact" ident : nexus.successRequire
 
 /-- One labelled occurrence of a declared Action in a Behavior sequence. -/
-declare_syntax_cat nexus3Occurrence
+declare_syntax_cat nexus.successOccurrence
 
-syntax ident ":" ident : nexus3Occurrence
+syntax ident ":" ident : nexus.successOccurrence
 
 /-- The elaboration bound on declared transition rows. The tested scale is far smaller; this is a
 ceiling on how large a table the elaborator will build, not a modelling recommendation. -/
@@ -46,28 +46,28 @@ private def spellings (constructors : List Name) : String :=
   ", ".intercalate (constructors.map fun constructor => (shortName constructor).toString)
 
 private def unknownMemberMessage (domain spelling : String) (constructors : List Name) : String :=
-  s!"unknown Nexus3 {domain} '{spelling}'; declared: {spellings constructors}"
+  s!"unknown Nexus.Success {domain} '{spelling}'; declared: {spellings constructors}"
 
 private def parameterizedConstructorMessage (domain spelling : String) : String :=
-  s!"Nexus3 {domain} '{spelling}' takes arguments; a {domain} domain must be an enum-like inductive"
+  s!"Nexus.Success {domain} '{spelling}' takes arguments; a {domain} domain must be an enum-like inductive"
 
 private def duplicateTransitionMessage (key priorKey source selected : String) : String :=
-  s!"duplicate Nexus3 transition '{key}': '{source} + {selected}' is already declared by " ++
+  s!"duplicate Nexus.Success transition '{key}': '{source} + {selected}' is already declared by " ++
     s!"'{priorKey}'"
 
 private def unreachableTerminalMessage (spelling : String) : String :=
-  s!"Nexus3 terminal state '{spelling}' is unreachable from every initial state"
+  s!"Nexus.Success terminal state '{spelling}' is unreachable from every initial state"
 
 private def unsortedActionsMessage (earlier later : String) : String :=
-  "Nexus3 action constructors must be declared in sorted order, because the planner admits " ++
+  "Nexus.Success action constructors must be declared in sorted order, because the planner admits " ++
     s!"only a canonically ordered Action catalog; '{later}' precedes '{earlier}'"
 
 private def unsortedInitialMessage (earlier later : String) : String :=
-  "Nexus3 initial states must be declared in sorted order, because the planner admits " ++
+  "Nexus.Success initial states must be declared in sorted order, because the planner admits " ++
     s!"only a canonically ordered initial-state list; '{later}' precedes '{earlier}'"
 
 private def transitionBoundMessage (declared : Nat) : String :=
-  s!"Nexus3 model declares {declared} transitions; the elaboration bound is {transitionBound}"
+  s!"Nexus.Success model declares {declared} transitions; the elaboration bound is {transitionBound}"
 
 /-- The ordered constructors of a named enum-like inductive. A constructor that takes arguments is
 not an enum-like member, so the domain is rejected at the type the model names. -/
@@ -115,7 +115,7 @@ elab "model" name:ident "role" role:ident
     "states" stateType:ident
     "actions" actionType:ident "outcomes" outcomeType:ident "facts" factType:ident
     "initial" "[" initialRefs:ident,+ "]" "terminal" "[" terminalRefs:ident,+ "]" "transitions"
-    rows:nexus3Transition+ : command => do
+    rows:nexus.successTransition+ : command => do
   let stateCtors ← domainConstructors "state" stateType
   let actionCtors ← domainConstructors "action" actionType
   let outcomeCtors ← domainConstructors "outcome" outcomeType
@@ -127,7 +127,7 @@ elab "model" name:ident "role" role:ident
   let setupConstructors ← domainConstructors "setup" (mkIdentFrom name `Setup)
   let setupConstructor ← match setupConstructors with
     | [only] => pure (mkIdent only)
-    | _ => throwErrorAt name "a Nexus3 model needs exactly one Setup constructor"
+    | _ => throwErrorAt name "a Nexus.Success model needs exactly one Setup constructor"
   let initialStates ← initialRefs.getElems.toList.mapM (resolveMember "state" stateCtors)
   let terminalStates ← terminalRefs.getElems.toList.mapM (resolveMember "state" stateCtors)
   let initialPairs := initialStates.zip initialRefs.getElems.toList
@@ -138,9 +138,9 @@ elab "model" name:ident "role" role:ident
       throwErrorAt pair.2.2 (unsortedInitialMessage later earlier)
   if rows.size > transitionBound then
     throwErrorAt rows[transitionBound]! (transitionBoundMessage rows.size)
-  let resolvedRows ← rows.toList.mapM fun (row : TSyntax `nexus3Transition) => do
+  let resolvedRows ← rows.toList.mapM fun (row : TSyntax `nexus.successTransition) => do
     match row with
-    | `(nexus3Transition| $key:ident : $source:ident + $selected:ident →
+    | `(nexus.successTransition| $key:ident : $source:ident + $selected:ident →
         { state := $resulting:ident , outcome := $outcomeRef:ident ,
           facts := [$observed,*] }) => do
         let sourceState ← resolveMember "state" stateCtors source
@@ -156,7 +156,7 @@ elab "model" name:ident "role" role:ident
             results := [Authoring.step $resolvedOutcome $targetState
               [$(observedFacts.toArray),*]] })
         pure ({ key, sourceState, selectedAction, targetState, rowTerm : ResolvedRow })
-    | _ => throwErrorAt row "unsupported Nexus3 transition"
+    | _ => throwErrorAt row "unsupported Nexus.Success transition"
   let mut declared : List ResolvedRow := []
   for resolved in resolvedRows do
     if let some prior := declared.find? fun candidate =>
@@ -198,22 +198,22 @@ elab "model" name:ident "role" role:ident
 
 macro "property" name:ident "on" modelRef:ident "for" roleRef:ident
     "when" "action" actionRef:ident
-    requirements:nexus3Require+ : command => do
+    requirements:nexus.successRequire+ : command => do
     let ownerKey := Lean.quote name.getId.toString
     let roleKey := Lean.quote roleRef.getId.toString
     let actionKey := Lean.quote actionRef.getId.toString
     let clauses ← requirements.mapM fun requirement => do
       match requirement with
-      | `(nexus3Require| require $label:ident : resultingState $member:ident) =>
+      | `(nexus.successRequire| require $label:ident : resultingState $member:ident) =>
           `(term| Authoring.PropertyRequirement.stateClause
               $(Lean.quote label.getId.toString) $(Lean.quote member.getId.toString))
-      | `(nexus3Require| require $label:ident : outcome $member:ident) =>
+      | `(nexus.successRequire| require $label:ident : outcome $member:ident) =>
           `(term| Authoring.PropertyRequirement.outcomeClause
               $(Lean.quote label.getId.toString) $(Lean.quote member.getId.toString))
-      | `(nexus3Require| require $label:ident : fact $member:ident) =>
+      | `(nexus.successRequire| require $label:ident : fact $member:ident) =>
           `(term| Authoring.PropertyRequirement.factClause
               $(Lean.quote label.getId.toString) $(Lean.quote member.getId.toString))
-      | _ => Lean.Macro.throwErrorAt requirement "unsupported Nexus3 require clause"
+      | _ => Lean.Macro.throwErrorAt requirement "unsupported Nexus.Success require clause"
     `(command| def $name (values : Authoring.ModelVocabulary) : Property :=
         Authoring.authoredProperty ($modelRef) values {
           declaration := $ownerKey
@@ -223,15 +223,15 @@ macro "property" name:ident "on" modelRef:ident "for" roleRef:ident
         })
 
 macro "behavior" name:ident "on" modelRef:ident roleRef:ident "starts" setupRef:ident
-    "actions" "exactly" "[" occurrences:nexus3Occurrence,+ "]" : command => do
+    "actions" "exactly" "[" occurrences:nexus.successOccurrence,+ "]" : command => do
     let ownerKey := Lean.quote name.getId.toString
     let roleKey := Lean.quote roleRef.getId.toString
     let setupKey := Lean.quote setupRef.getId.toString
     let entries ← occurrences.getElems.mapM fun occurrence => do
       match occurrence with
-      | `(nexus3Occurrence| $label:ident : $selected:ident) =>
+      | `(nexus.successOccurrence| $label:ident : $selected:ident) =>
           `(term| ($(Lean.quote label.getId.toString), $(Lean.quote selected.getId.toString)))
-      | _ => Lean.Macro.throwErrorAt occurrence "unsupported Nexus3 Behavior occurrence"
+      | _ => Lean.Macro.throwErrorAt occurrence "unsupported Nexus.Success Behavior occurrence"
     `(command| def $name (values : Authoring.ModelVocabulary) : Scenario :=
         Authoring.authoredScenario ($modelRef) values {
           declaration := $ownerKey
@@ -258,4 +258,4 @@ macro "query" name:ident "on" modelRef:ident "all" propertyRef:ident "in" behavi
         Authoring.check ($modelRef) $queryKey ($limitsRef) ($propertyRef) ($behaviorRef)
           (form := Authoring.QueryFormKind.verifyClaim))
 
-end Temporal.Feature.Nexus3
+end Temporal.Feature.Nexus.Success

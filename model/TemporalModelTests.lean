@@ -3,13 +3,12 @@ import Temporal.Feature.Nexus.Experimental.ExplorationTests
 import Temporal.Feature.Nexus.LifecycleTests
 import Temporal.Feature.Nexus.ObservationTests
 import Temporal.Feature.Nexus.OperationsTests
-import Temporal.Feature.Nexus2.Tests
-import Temporal.Feature.Nexus3.RaceSyntaxTests
-import Temporal.Feature.Nexus3.Tests
-import Temporal.Feature.Nexus3.Tests.TypedNexus
-import Temporal.Feature.Nexus3.Tests.TypedUnary
-import Temporal.Feature.Nexus2.AuthoringTests
-import Temporal.ImplementationLinkTests.Nexus
+import Temporal.Feature.Nexus.Race.Tests
+import Temporal.Feature.Nexus.Success.RaceSyntaxTests
+import Temporal.Feature.Nexus.Success.Tests
+import Temporal.Feature.Nexus.Success.Tests.TypedNexus
+import Temporal.Feature.Nexus.Success.Tests.TypedUnary
+import Temporal.Feature.Nexus.Race.AuthoringTests
 import Temporal.SharedTests
 import Temporal.System
 import Temporal.System.Callback.ConfigurationTests
@@ -18,6 +17,7 @@ import Temporal.System.ConfigurationIntegrationTests
 import Temporal.System.Matching.ConfigurationTests
 import Temporal.System.Nexus.ImplementationLinkTests
 import Temporal.TestpilotTests
+import TemporalModelTests.Nexus.ImplementationLink
 
 namespace TemporalModelTests
 

@@ -7,20 +7,20 @@ import Umpire.Scenario.Elab
 import Umpire.Query.Elab
 
 /-!
-The Nexus3 success-slice construction and admission layer. `Syntax` emits ordinary declarations
+The Nexus.Success success-slice construction and admission layer. `Syntax` emits ordinary declarations
 that call this module, which owns all Umpire records and checked planning. Every model member is
 held in an ordered list parallel to its name and Definition ID list, so the declared arity is the
 declaration's, not this module's.
 -/
 
-namespace Temporal.Feature.Nexus3.Authoring
+namespace Temporal.Feature.Nexus.Success.Authoring
 
 open Umpire
 
-def family : DefinitionFamily := Temporal.Shared.definitionFamily "nexus3"
+def family : DefinitionFamily := Temporal.Shared.definitionFamily "nexus.success"
 
 def source : SourceLocation :=
-  Temporal.Shared.sourceLocation "Temporal/Feature/Nexus3/Nexus.lean"
+  Temporal.Shared.sourceLocation "Temporal/Feature/Nexus/Success/Model.lean"
 
 def ownedId (kind owner member : String) : DefinitionId :=
   family.id kind (owner ++ "." ++ member)
@@ -416,15 +416,15 @@ def reorderedAndDocumented (spec : Property) (documentation : String) : Property
 
 def cancellationKnownGap : KnownGap := {
   kind := .capability
-  code := DefinitionId.of "temporal.nexus3.known-gap.cancellation"
-  subject := some (DefinitionId.of "temporal.nexus3.property.cancellationResolves")
+  code := DefinitionId.of "temporal.nexus.success.known-gap.cancellation"
+  subject := some (DefinitionId.of "temporal.nexus.success.property.cancellationResolves")
   detail := some "Operation-correlated Nexus cancellation is unsupported by the success slice."
 }
 
 def operationCorrelatedProgressKnownGap : KnownGap := {
   kind := .capability
-  code := DefinitionId.of "temporal.nexus3.known-gap.operation-correlated-progress"
-  subject := some (DefinitionId.of "temporal.nexus3.property.cancellationResolves")
+  code := DefinitionId.of "temporal.nexus.success.known-gap.operation-correlated-progress"
+  subject := some (DefinitionId.of "temporal.nexus.success.property.cancellationResolves")
   detail := some "Operation-correlated progress counting is unsupported by the success slice."
 }
 
@@ -506,4 +506,4 @@ def check [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
       pure { target, vocabulary, property, behavior, query, kernel, run, witness := none }
   | _, outcome => throw (.notSelected outcome)
 
-end Temporal.Feature.Nexus3.Authoring
+end Temporal.Feature.Nexus.Success.Authoring

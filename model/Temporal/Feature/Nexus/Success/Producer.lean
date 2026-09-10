@@ -1,11 +1,11 @@
-import Temporal.Feature.Nexus3.Nexus
+import Temporal.Feature.Nexus.Success.Model
 import Temporal.Testpilot.CaseSupport
 import Umpire.Case.Correlated
 import Umpire.Case.Compiler
 import Umpire.Case.Projection.Coverage
 
 /-!
-# Nexus3 Testpilot producer
+# Nexus.Success Testpilot producer
 
 The checked model is carried into a Case; it is never compared against an expected one. The
 Nexus-specific Program is fixed realization, and everything the Contract says is derived:
@@ -26,7 +26,7 @@ trace, so a verify-form Query has none), a clause whose shape no correlated pred
 requested clause the lowering did not produce. None of those is waivable by a Known Gap.
 -/
 
-namespace Temporal.Feature.Nexus3.Testpilot
+namespace Temporal.Feature.Nexus.Success.Producer
 
 open Umpire
 open Umpire.Case.Compiler
@@ -56,12 +56,12 @@ Case already performs. A started or a completed Nexus event records the schedule
 and nothing else that names its operation, so that scheduled event id is the operation key on every
 side. -/
 
-def projectionId : DefinitionId := .of "temporal.nexus3.projection"
-def evidenceSourceId : DefinitionId := .of "temporal.nexus3.source.history"
-def runFieldId : DefinitionId := .of "temporal.nexus3.scope.run"
-def operationFieldId : DefinitionId := .of "temporal.nexus3.scope.operation"
-def startedEvidenceKindId : DefinitionId := .of "temporal.nexus3.evidence.started"
-def completedEvidenceKindId : DefinitionId := .of "temporal.nexus3.evidence.completed"
+def projectionId : DefinitionId := .of "temporal.nexus.success.projection"
+def evidenceSourceId : DefinitionId := .of "temporal.nexus.success.source.history"
+def runFieldId : DefinitionId := .of "temporal.nexus.success.scope.run"
+def operationFieldId : DefinitionId := .of "temporal.nexus.success.scope.operation"
+def startedEvidenceKindId : DefinitionId := .of "temporal.nexus.success.evidence.started"
+def completedEvidenceKindId : DefinitionId := .of "temporal.nexus.success.evidence.completed"
 
 /-- The one Run coordinate recorded history does not carry: every event this Case lifts belongs to
 the single Run it executes, so the Case declares that scope rather than reading it. -/
@@ -295,7 +295,7 @@ private def projectionDeclaration
           «facts» := [vocabulary.factAt 1] })] }]
   «limits» := projectionLimits }
 
-/-- Lower one checked Nexus3 model into a Case. The checked values are carried, never compared
+/-- Lower one checked Nexus.Success model into a Case. The checked values are carried, never compared
 against an expected model: a different Target, Behavior, Query or Property produces different Case
 bytes. Only a claim this Producer cannot realize rejects.
 
@@ -349,7 +349,7 @@ def produce {Setup State Action Outcome Fact : Type}
   compile {
     version := { major := 1 }
     caseId := "temporal.case.async-nexus-success"
-    producerId := "temporal.nexus3.testpilot"
+    producerId := "temporal.nexus.success.testpilot"
     producerVersion := "1"
     definitions := [
       binding checked.target.id.value checked.target.behaviorFingerprint.render .target,
@@ -371,10 +371,10 @@ def produce {Setup State Action Outcome Fact : Type}
 
 private def checkedCompletion : Except Error (Authoring.CheckedModel lifecycle) :=
   completion.mapError fun _ =>
-    compilerError "temporal.nexus3.query.completion" "checked-completion"
+    compilerError "temporal.nexus.success.query.completion" "checked-completion"
 
-/-- The checked Nexus3 completion declaration lowered to the closed Case format. -/
+/-- The checked Nexus.Success completion declaration lowered to the closed Case format. -/
 def completionCase : Except Error temporal.server.api.testpilot.v1.Case := do
   produce (← checkedCompletion)
 
-end Temporal.Feature.Nexus3.Testpilot
+end Temporal.Feature.Nexus.Success.Producer

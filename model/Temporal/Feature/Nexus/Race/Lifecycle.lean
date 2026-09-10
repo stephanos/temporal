@@ -5,27 +5,27 @@ import Umpire.Search.Branches
 
 /-! Typed finite authoring of the focused Nexus lifecycle under an independent identity root. -/
 
-namespace Temporal.Feature.Nexus2.Lifecycle
+namespace Temporal.Feature.Nexus.Race.Lifecycle
 
 open Umpire
 
 private def id (value : String) : DefinitionId := Temporal.Shared.definitionId value
 
 def source : SourceLocation :=
-  Temporal.Shared.sourceLocation "Temporal/Feature/Nexus2/Lifecycle.lean"
+  Temporal.Shared.sourceLocation "Temporal/Feature/Nexus/Race/Lifecycle.lean"
 
-def targetId : DefinitionId := id "temporal.nexus2.basic-lifecycle.target"
-def kernelId : DefinitionId := id "temporal.nexus2.basic-lifecycle.kernel"
-def lifecycleCapabilityId : DefinitionId := id "temporal.nexus2.basic-lifecycle.capability"
-def lifecycleProviderId : DefinitionId := id "temporal.nexus2.basic-lifecycle.provider"
-def lifecycleLawId : DefinitionId := id "temporal.nexus2.basic-lifecycle.law.authoritative-table"
-def operationStateId : DefinitionId := id "temporal.nexus2.basic-lifecycle.state.operation"
-def startActionId : DefinitionId := id "temporal.nexus2.basic-lifecycle.action.start"
-def cancelActionId : DefinitionId := id "temporal.nexus2.basic-lifecycle.action.cancel"
-def reportSuccessActionId : DefinitionId := id "temporal.nexus2.basic-lifecycle.action.succeed"
-def transitionOutcomeId : DefinitionId := id "temporal.nexus2.basic-lifecycle.outcome.transition"
-def lifecycleFactId : DefinitionId := id "temporal.nexus2.basic-lifecycle.fact.state"
-def operationRoleId : DefinitionId := id "temporal.nexus2.basic-lifecycle.role.operation"
+def targetId : DefinitionId := id "temporal.nexus.race.basic-lifecycle.target"
+def kernelId : DefinitionId := id "temporal.nexus.race.basic-lifecycle.kernel"
+def lifecycleCapabilityId : DefinitionId := id "temporal.nexus.race.basic-lifecycle.capability"
+def lifecycleProviderId : DefinitionId := id "temporal.nexus.race.basic-lifecycle.provider"
+def lifecycleLawId : DefinitionId := id "temporal.nexus.race.basic-lifecycle.law.authoritative-table"
+def operationStateId : DefinitionId := id "temporal.nexus.race.basic-lifecycle.state.operation"
+def startActionId : DefinitionId := id "temporal.nexus.race.basic-lifecycle.action.start"
+def cancelActionId : DefinitionId := id "temporal.nexus.race.basic-lifecycle.action.cancel"
+def reportSuccessActionId : DefinitionId := id "temporal.nexus.race.basic-lifecycle.action.succeed"
+def transitionOutcomeId : DefinitionId := id "temporal.nexus.race.basic-lifecycle.outcome.transition"
+def lifecycleFactId : DefinitionId := id "temporal.nexus.race.basic-lifecycle.fact.state"
+def operationRoleId : DefinitionId := id "temporal.nexus.race.basic-lifecycle.role.operation"
 
 inductive Setup where
   | scheduled
@@ -160,12 +160,12 @@ def satisfiesLifecycleRequirement
 /-- The capability law binds provider metadata to the independently authored lifecycle requirement. -/
 def LawStatement (law : Law) : Prop :=
   law.id = lifecycleLawId ∧
-    law.body = "temporal-nexus2-basic-lifecycle-authoritative-table/v1" ∧
+    law.body = "temporal-nexus-race-basic-lifecycle-authoritative-table/v1" ∧
     satisfiesLifecycleRequirement table.transitions = true
 
 def lifecycleLaw : Law := {
   id := lifecycleLawId
-  body := "temporal-nexus2-basic-lifecycle-authoritative-table/v1"
+  body := "temporal-nexus-race-basic-lifecycle-authoritative-table/v1"
 }
 
 theorem lifecycleLawProof : LawStatement lifecycleLaw := ⟨rfl, rfl, rfl⟩
@@ -181,38 +181,38 @@ def lifecycleProvider : Provider LawStatement := {
   source
   contract := {
     id := lifecycleCapabilityId
-    behaviorVersion := "temporal-nexus2-basic-lifecycle/v1"
+    behaviorVersion := "temporal-nexus-race-basic-lifecycle/v1"
     requiredLaws := [lifecycleLaw]
   }
   meanings := [
     { definitionId := operationStateId, kind := .state,
-      behaviorVersion := "temporal-nexus2-basic-lifecycle-state/v1" },
+      behaviorVersion := "temporal-nexus-race-basic-lifecycle-state/v1" },
     { definitionId := startActionId, kind := .action,
-      behaviorVersion := "temporal-nexus2-basic-lifecycle-start/v1" },
+      behaviorVersion := "temporal-nexus-race-basic-lifecycle-start/v1" },
     { definitionId := cancelActionId, kind := .action,
-      behaviorVersion := "temporal-nexus2-basic-lifecycle-cancel/v1" },
+      behaviorVersion := "temporal-nexus-race-basic-lifecycle-cancel/v1" },
     { definitionId := reportSuccessActionId, kind := .action,
-      behaviorVersion := "temporal-nexus2-basic-lifecycle-report-success/v1" },
+      behaviorVersion := "temporal-nexus-race-basic-lifecycle-report-success/v1" },
     { definitionId := transitionOutcomeId, kind := .outcome,
-      behaviorVersion := "temporal-nexus2-basic-lifecycle-outcome/v1" },
+      behaviorVersion := "temporal-nexus-race-basic-lifecycle-outcome/v1" },
     { definitionId := lifecycleFactId, kind := .fact,
-      behaviorVersion := "temporal-nexus2-basic-lifecycle-fact/v1" }
+      behaviorVersion := "temporal-nexus-race-basic-lifecycle-fact/v1" }
   ]
   lawProofs := [{ definition := lifecycleLaw, proof := lifecycleLawProof }]
 }
 
 def definitions : List DefinitionMetadata := [
-  metadata targetId .target "temporal-nexus2-basic-lifecycle-target/v1",
-  metadata kernelId .machine "temporal-nexus2-basic-lifecycle-kernel/v1",
-  metadata lifecycleCapabilityId .capability "temporal-nexus2-basic-lifecycle/v1",
-  metadata lifecycleProviderId .provider "temporal-nexus2-basic-lifecycle-provider/v1",
+  metadata targetId .target "temporal-nexus-race-basic-lifecycle-target/v1",
+  metadata kernelId .machine "temporal-nexus-race-basic-lifecycle-kernel/v1",
+  metadata lifecycleCapabilityId .capability "temporal-nexus-race-basic-lifecycle/v1",
+  metadata lifecycleProviderId .provider "temporal-nexus-race-basic-lifecycle-provider/v1",
   metadata lifecycleLawId .law lifecycleLaw.body,
-  metadata operationStateId .state "temporal-nexus2-basic-lifecycle-state/v1",
-  metadata startActionId .action "temporal-nexus2-basic-lifecycle-start/v1",
-  metadata cancelActionId .action "temporal-nexus2-basic-lifecycle-cancel/v1",
-  metadata reportSuccessActionId .action "temporal-nexus2-basic-lifecycle-report-success/v1",
-  metadata transitionOutcomeId .outcome "temporal-nexus2-basic-lifecycle-outcome/v1",
-  metadata lifecycleFactId .fact "temporal-nexus2-basic-lifecycle-fact/v1"
+  metadata operationStateId .state "temporal-nexus-race-basic-lifecycle-state/v1",
+  metadata startActionId .action "temporal-nexus-race-basic-lifecycle-start/v1",
+  metadata cancelActionId .action "temporal-nexus-race-basic-lifecycle-cancel/v1",
+  metadata reportSuccessActionId .action "temporal-nexus-race-basic-lifecycle-report-success/v1",
+  metadata transitionOutcomeId .outcome "temporal-nexus-race-basic-lifecycle-outcome/v1",
+  metadata lifecycleFactId .fact "temporal-nexus-race-basic-lifecycle-fact/v1"
 ]
 
 def modelSpec : TableModelSpec := {
@@ -255,4 +255,4 @@ def establishedSetup : Setup → List RoleBinding
   | .scheduled => Temporal.Feature.Nexus.Lifecycle.scheduledSetup
   | .started => Temporal.Feature.Nexus.Lifecycle.startedSetup
 
-end Temporal.Feature.Nexus2.Lifecycle
+end Temporal.Feature.Nexus.Race.Lifecycle

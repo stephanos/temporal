@@ -1,16 +1,16 @@
-import Temporal.Feature.Nexus2.Lifecycle
+import Temporal.Feature.Nexus.Race.Lifecycle
 
 /-! Independently authored start, cancellation, and successful-completion checks. -/
 
-namespace Temporal.Feature.Nexus2.Cancellation
+namespace Temporal.Feature.Nexus.Race.Cancellation
 
 open Umpire
-open Temporal.Feature.Nexus2.Lifecycle
+open Temporal.Feature.Nexus.Race.Lifecycle
 
 private def id (value : String) : DefinitionId := Temporal.Shared.definitionId value
 
 def source : SourceLocation :=
-  Temporal.Shared.sourceLocation "Temporal/Feature/Nexus2/Cancellation.lean"
+  Temporal.Shared.sourceLocation "Temporal/Feature/Nexus/Race/Cancellation.lean"
 
 structure ModelVocabulary where
   scheduledState : ModelValue
@@ -55,24 +55,24 @@ def operationRole : Scenario.Role := { id := operationRoleId, valueKind := .stat
 
 namespace Start
 
-def propertyId : DefinitionId := id "temporal.nexus2.basic-lifecycle.property.start"
-def behaviorId : DefinitionId := id "temporal.nexus2.basic-lifecycle.behavior.start"
-def queryId : DefinitionId := id "temporal.nexus2.basic-lifecycle.query.start"
-def occurrenceId : DefinitionId := id "temporal.nexus2.basic-lifecycle.occurrence.start"
-def setupConstraintId : DefinitionId := id "temporal.nexus2.basic-lifecycle.setup.scheduled"
+def propertyId : DefinitionId := id "temporal.nexus.race.basic-lifecycle.property.start"
+def behaviorId : DefinitionId := id "temporal.nexus.race.basic-lifecycle.behavior.start"
+def queryId : DefinitionId := id "temporal.nexus.race.basic-lifecycle.query.start"
+def occurrenceId : DefinitionId := id "temporal.nexus.race.basic-lifecycle.occurrence.start"
+def setupConstraintId : DefinitionId := id "temporal.nexus.race.basic-lifecycle.setup.scheduled"
 
 def authoredProperty (model : ModelVocabulary) : Property := {
   id := propertyId
   source
   requires := [lifecycleCapabilityId]
   clauses := [
-    .transitionContract (id "temporal.nexus2.basic-lifecycle.property.start.state")
+    .transitionContract (id "temporal.nexus.race.basic-lifecycle.property.start.state")
       (PropertyPattern.exact .selectedAction startActionId model.startAction.value)
       (PropertyPattern.exact .resultingState operationStateId model.startedState.value),
-    .transitionContract (id "temporal.nexus2.basic-lifecycle.property.start.outcome")
+    .transitionContract (id "temporal.nexus.race.basic-lifecycle.property.start.outcome")
       (PropertyPattern.exact .selectedAction startActionId model.startAction.value)
       (PropertyPattern.exact .outcome transitionOutcomeId model.startedOutcome.value),
-    .inputOutput (id "temporal.nexus2.basic-lifecycle.property.start.fact")
+    .inputOutput (id "temporal.nexus.race.basic-lifecycle.property.start.fact")
       (PropertyPattern.exact .selectedAction startActionId model.startAction.value)
       (PropertyPattern.exact .observation lifecycleFactId model.startedFact.value)
   ]
@@ -101,24 +101,24 @@ end Start
 
 namespace Cancel
 
-def propertyId : DefinitionId := id "temporal.nexus2.basic-lifecycle.property.cancel"
-def behaviorId : DefinitionId := id "temporal.nexus2.basic-lifecycle.behavior.cancel"
-def queryId : DefinitionId := id "temporal.nexus2.basic-lifecycle.query.cancel"
-def occurrenceId : DefinitionId := id "temporal.nexus2.basic-lifecycle.occurrence.cancel"
-def setupConstraintId : DefinitionId := id "temporal.nexus2.basic-lifecycle.setup.started-cancel"
+def propertyId : DefinitionId := id "temporal.nexus.race.basic-lifecycle.property.cancel"
+def behaviorId : DefinitionId := id "temporal.nexus.race.basic-lifecycle.behavior.cancel"
+def queryId : DefinitionId := id "temporal.nexus.race.basic-lifecycle.query.cancel"
+def occurrenceId : DefinitionId := id "temporal.nexus.race.basic-lifecycle.occurrence.cancel"
+def setupConstraintId : DefinitionId := id "temporal.nexus.race.basic-lifecycle.setup.started-cancel"
 
 def authoredProperty (model : ModelVocabulary) : Property := {
   id := propertyId
   source
   requires := [lifecycleCapabilityId]
   clauses := [
-    .transitionContract (id "temporal.nexus2.basic-lifecycle.property.cancel.state")
+    .transitionContract (id "temporal.nexus.race.basic-lifecycle.property.cancel.state")
       (PropertyPattern.exact .selectedAction cancelActionId model.cancelAction.value)
       (PropertyPattern.exact .resultingState operationStateId model.canceledState.value),
-    .transitionContract (id "temporal.nexus2.basic-lifecycle.property.cancel.outcome")
+    .transitionContract (id "temporal.nexus.race.basic-lifecycle.property.cancel.outcome")
       (PropertyPattern.exact .selectedAction cancelActionId model.cancelAction.value)
       (PropertyPattern.exact .outcome transitionOutcomeId model.canceledOutcome.value),
-    .inputOutput (id "temporal.nexus2.basic-lifecycle.property.cancel.fact")
+    .inputOutput (id "temporal.nexus.race.basic-lifecycle.property.cancel.fact")
       (PropertyPattern.exact .selectedAction cancelActionId model.cancelAction.value)
       (PropertyPattern.exact .observation lifecycleFactId model.canceledFact.value)
   ]
@@ -147,24 +147,24 @@ end Cancel
 
 namespace Success
 
-def propertyId : DefinitionId := id "temporal.nexus2.basic-lifecycle.property.success"
-def behaviorId : DefinitionId := id "temporal.nexus2.basic-lifecycle.behavior.success"
-def queryId : DefinitionId := id "temporal.nexus2.basic-lifecycle.query.success"
-def occurrenceId : DefinitionId := id "temporal.nexus2.basic-lifecycle.occurrence.success"
-def setupConstraintId : DefinitionId := id "temporal.nexus2.basic-lifecycle.setup.started-success"
+def propertyId : DefinitionId := id "temporal.nexus.race.basic-lifecycle.property.success"
+def behaviorId : DefinitionId := id "temporal.nexus.race.basic-lifecycle.behavior.success"
+def queryId : DefinitionId := id "temporal.nexus.race.basic-lifecycle.query.success"
+def occurrenceId : DefinitionId := id "temporal.nexus.race.basic-lifecycle.occurrence.success"
+def setupConstraintId : DefinitionId := id "temporal.nexus.race.basic-lifecycle.setup.started-success"
 
 def authoredProperty (model : ModelVocabulary) : Property := {
   id := propertyId
   source
   requires := [lifecycleCapabilityId]
   clauses := [
-    .transitionContract (id "temporal.nexus2.basic-lifecycle.property.success.state")
+    .transitionContract (id "temporal.nexus.race.basic-lifecycle.property.success.state")
       (PropertyPattern.exact .selectedAction reportSuccessActionId model.reportSuccessAction.value)
       (PropertyPattern.exact .resultingState operationStateId model.succeededState.value),
-    .transitionContract (id "temporal.nexus2.basic-lifecycle.property.success.outcome")
+    .transitionContract (id "temporal.nexus.race.basic-lifecycle.property.success.outcome")
       (PropertyPattern.exact .selectedAction reportSuccessActionId model.reportSuccessAction.value)
       (PropertyPattern.exact .outcome transitionOutcomeId model.succeededOutcome.value),
-    .inputOutput (id "temporal.nexus2.basic-lifecycle.property.success.fact")
+    .inputOutput (id "temporal.nexus.race.basic-lifecycle.property.success.fact")
       (PropertyPattern.exact .selectedAction reportSuccessActionId model.reportSuccessAction.value)
       (PropertyPattern.exact .observation lifecycleFactId model.succeededFact.value)
   ]
@@ -242,4 +242,4 @@ def checkBaseline : Except BaselineAdmissionError CheckedBaseline := do
     (Success.authoredScenario model) Success.authoredQuery
   pure { target, model, start, cancel, success }
 
-end Temporal.Feature.Nexus2.Cancellation
+end Temporal.Feature.Nexus.Race.Cancellation
