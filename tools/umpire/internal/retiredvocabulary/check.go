@@ -196,11 +196,17 @@ func scopedPaths(repositoryRoot string) ([]string, error) {
 	return paths, nil
 }
 
+// missingScannedPath is the one message every fail-closed branch reports, so the
+// test contract for a scan hole is spelled once.
+func missingScannedPath(relativePath string) error {
+	return fmt.Errorf("scanned path %s does not exist", relativePath)
+}
+
 func addFile(repositoryRoot, relativePath string, seen map[string]struct{}) error {
 	path := filepath.Join(repositoryRoot, filepath.FromSlash(relativePath))
 	info, err := os.Lstat(path)
 	if os.IsNotExist(err) {
-		return fmt.Errorf("scanned path %s does not exist", relativePath)
+		return missingScannedPath(relativePath)
 	}
 	if err != nil {
 		return fmt.Errorf("stat %s: %w", relativePath, err)
@@ -214,7 +220,7 @@ func addFile(repositoryRoot, relativePath string, seen map[string]struct{}) erro
 func addTree(repositoryRoot, relativeRoot string, extensions map[string]bool, seen map[string]struct{}) error {
 	root := filepath.Join(repositoryRoot, filepath.FromSlash(relativeRoot))
 	if _, err := os.Lstat(root); os.IsNotExist(err) {
-		return fmt.Errorf("scanned path %s does not exist", relativeRoot)
+		return missingScannedPath(relativeRoot)
 	} else if err != nil {
 		return fmt.Errorf("stat %s: %w", relativeRoot, err)
 	}
@@ -245,7 +251,7 @@ func addOpenFlowRecord(repositoryRoot, relativeDirectory, id, wantedStatus strin
 	path := filepath.Join(repositoryRoot, filepath.FromSlash(relativeJSON))
 	content, err := os.ReadFile(path)
 	if os.IsNotExist(err) {
-		return fmt.Errorf("scanned path %s does not exist", relativeJSON)
+		return missingScannedPath(relativeJSON)
 	}
 	if err != nil {
 		return fmt.Errorf("read %s: %w", relativeJSON, err)
