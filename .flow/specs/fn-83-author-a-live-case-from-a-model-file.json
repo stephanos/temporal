@@ -1,0 +1,26 @@
+{
+  "branch_name": "fn-83-author-a-live-case-from-a-model-file",
+  "created_at": "2026-09-10T05:53:56.148901Z",
+  "depends_on_epics": [
+    "fn-82-unify-the-umpire-and-testpilot"
+  ],
+  "id": "fn-83-author-a-live-case-from-a-model-file",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-83-author-a-live-case-from-a-model-file.md",
+  "status": "open",
+  "title": "Author a live Case from a Model file",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-10T06:03:23.598619Z"
+}

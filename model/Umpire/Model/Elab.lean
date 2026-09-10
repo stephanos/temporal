@@ -51,7 +51,7 @@ def elabModel
   match checkModel authored with
   | .ok checked => pure checked
   | .error diagnostic =>
-      let message := s!"target authoring failed: {canonicalAuthoringDiagnosticJson diagnostic}"
+      let message := s!"target authoring failed: {canonicalLocatedErrorJson diagnostic}"
       match captured.find? (fun item => item.occurrence.id == diagnostic.offending) with
       | some item => Lean.throwErrorAt item.reference message
       | none => Lean.throwError message

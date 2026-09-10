@@ -9,7 +9,9 @@
   "depends_on_epics": [
     "fn-40-centralize-plannerpolicy-constructors",
     "fn-64-umpire-case-runtime",
-    "fn-69-extract-testpilot-from-umpire"
+    "fn-69-extract-testpilot-from-umpire",
+    "fn-84-deepen-five-shallow-module-clusters-in",
+    "fn-83-author-a-live-case-from-a-model-file"
   ],
   "id": "fn-33-run-serial-bounded-semantic-exploration",
   "impl_review_rounds": {},
@@ -736,5 +738,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-06T16:54:46.401853Z"
+  "updated_at": "2026-09-10T06:03:24.115648Z"
 }

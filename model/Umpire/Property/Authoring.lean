@@ -167,7 +167,7 @@ structure PropertyLocatedError where
 private def quoteJson (value : String) : String :=
   Lean.Json.compress (.str value)
 
-def canonicalPropertyAuthoringDiagnosticJson (diagnostic : PropertyLocatedError) : String :=
+def canonicalPropertyLocatedErrorJson (diagnostic : PropertyLocatedError) : String :=
   "{\"error\":" ++ canonicalPropertyErrorJson diagnostic.error ++
     ",\"role\":" ++ quoteJson diagnostic.role.name ++
     ",\"anchor\":{\"sourcePath\":" ++ quoteJson diagnostic.anchor.sourcePath ++
@@ -258,12 +258,12 @@ private def elaborateProperty
       match selectPropertySourceRef error occurrences with
       | some occurrence =>
           Lean.throwErrorAt occurrence.reference s!"property authoring failed: {
-            canonicalPropertyAuthoringDiagnosticJson {
+            canonicalPropertyLocatedErrorJson {
               error, role := occurrence.role, anchor := occurrence.anchor }}"
       | none =>
           let anchor ← propertyAuthoringSpan specSyntax.raw
           Lean.throwErrorAt specSyntax.raw s!"property authoring failed: {
-            canonicalPropertyAuthoringDiagnosticJson { error, role := .parent, anchor }}"
+            canonicalPropertyLocatedErrorJson { error, role := .parent, anchor }}"
   | .ok _ =>
       Lean.Elab.Term.elabTerm (← `(PropertySpec.check $specSyntax $contextSyntax)) expectedType
 

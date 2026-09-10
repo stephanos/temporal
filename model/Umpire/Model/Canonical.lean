@@ -1,9 +1,9 @@
 import Umpire.Model.Types
 
 /-!
-Canonical Target behavior and serialization have one pure implementation below admission.
-Canonical contains shared implementation helpers; syntax and checked-value assembly are
-owned by Frontend and Semantics respectively.
+Canonical model behavior and serialization have one pure implementation below admission.
+`Canonical` contains shared implementation helpers; syntax and checked-value assembly are
+owned by `Model.Elab` and `Model.Check` respectively.
 -/
 
 namespace Umpire
@@ -218,7 +218,7 @@ def canonicalDefinitionErrorJson (error : DefinitionError) : String :=
     ",\"relatedDefinitionIds\":" ++
       array (canonicalIds error.relatedDefinitionIds |>.map (quote ∘ DefinitionId.value)) ++ "}"
 
-private def authoringOccurrenceIdJson (id : SourceSpan) : String :=
+private def sourceSpanJson (id : SourceSpan) : String :=
   "{\"sourcePath\":" ++ quote id.sourcePath ++
     ",\"line\":" ++ toString id.line ++
     ",\"column\":" ++ toString id.column ++
@@ -226,22 +226,22 @@ private def authoringOccurrenceIdJson (id : SourceSpan) : String :=
     ",\"endColumn\":" ++ toString id.endColumn ++
     ",\"localOrdinal\":" ++ toString id.localOrdinal ++ "}"
 
-private def authoringOccurrenceContextJson : SourceRefContext → String
+private def sourceRefContextJson : SourceRefContext → String
   | .direct => quote "direct"
   | .reconciliation definitionId =>
       "{\"reconciliation\":" ++ quote definitionId.value ++ "}"
 
-private def authoringOccurrencePathJson (path : SourceRefPath) : String :=
+private def sourceRefPathJson (path : SourceRefPath) : String :=
   "{\"role\":" ++ quote path.role.name ++
     ",\"owner\":" ++ quote path.owner.value ++
-    ",\"context\":" ++ authoringOccurrenceContextJson path.context ++ "}"
+    ",\"context\":" ++ sourceRefContextJson path.context ++ "}"
 
-def canonicalAuthoringDiagnosticJson (diagnostic : LocatedError) : String :=
+def canonicalLocatedErrorJson (diagnostic : LocatedError) : String :=
   "{\"error\":" ++ canonicalDefinitionErrorJson diagnostic.error ++
     ",\"original\":" ++
-      (diagnostic.original.map authoringOccurrenceIdJson |>.getD "null") ++
-    ",\"offending\":" ++ authoringOccurrenceIdJson diagnostic.offending ++
-    ",\"path\":" ++ authoringOccurrencePathJson diagnostic.path ++ "}"
+      (diagnostic.original.map sourceSpanJson |>.getD "null") ++
+    ",\"offending\":" ++ sourceSpanJson diagnostic.offending ++
+    ",\"path\":" ++ sourceRefPathJson diagnostic.path ++ "}"
 
 def Canonical.targetSemanticJson
     (id : DefinitionId)
