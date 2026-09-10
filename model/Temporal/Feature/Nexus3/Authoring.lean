@@ -1,5 +1,6 @@
 import Temporal.Shared
-import Umpire.Planning
+import Umpire.Search
+import Umpire.Search.Branches
 import Umpire.Model.Table
 import Umpire.Property.Elab
 import Umpire.Scenario.Elab
@@ -437,7 +438,7 @@ inductive AdmissionError where
   | invalidBehavior (error : ScenarioError)
   | invalidKnownGaps (error : KnownGapError)
   | invalidQuery (error : QueryError)
-  | invalidPlanner (error : FinitePlannerAdmissionError)
+  | invalidPlanner (error : FiniteSearchAdmissionError)
   /-- Planning ran but did not deliver what the Query form claimed; the outcome says what it did
   deliver, so an unsatisfiable Behavior is distinguishable from an exhausted limit. -/
   | notSelected (outcome : PlanningOutcome)
@@ -456,8 +457,8 @@ structure CheckedModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq F
   property : CheckedProperty
   behavior : CheckedScenario
   query : CheckedQuery model.lawStatement
-  kernel : IncrementalPlannerKernel query.target
-  run : PlannerRun
+  kernel : SearchView query.target
+  run : PlanResult
   /-- The selected trace, present only for a witness Query. A verify Query establishes its claim
   over every admitted trace and selects none. -/
   witness : Option Scenario.Trace
@@ -497,7 +498,7 @@ def check [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     authoredKnownGaps := gaps
   }
   let query ← querySpec.check target |>.mapError .invalidQuery
-  let kernel ← IncrementalPlannerKernel.ofCheckedQuery target.id query |>.mapError .invalidPlanner
+  let kernel ← SearchView.ofCheckedQuery target.id query |>.mapError .invalidPlanner
   let run ← plan query kernel |>.mapError .invalidKnownGaps
   match form, run.result.outcome with
   | .selectWitness, .found witness .satisfyingWitness =>

@@ -1,8 +1,8 @@
-import Umpire.Planning.Tests.Fixtures
+import Umpire.Search.Tests.Fixtures
 
 /-! Cursor laziness and incremental enumeration instrumentation checks. -/
 
-namespace Umpire.PlanningTests
+namespace Umpire.SearchTests
 
 open Umpire
 
@@ -18,14 +18,14 @@ example : ((incrementalKernel? 2).map fun kernel =>
 
 private def admissionErrorKind
     {target : QueryModel LawStatement}
-    (result : Except FinitePlannerAdmissionError (IncrementalPlannerKernel target)) :
+    (result : Except FiniteSearchAdmissionError (SearchView target)) :
     Option FinitePlannerAdmissionErrorKind :=
   match result with
   | .ok _ => none
   | .error error => some error.kind
 
 /-- The checked-query admission owner derives the same kernel without feature proof transport. -/
-example : (IncrementalPlannerKernel.ofCheckedQuery (target 2).id (orderedQuery 2)).toOption.map
+example : (SearchView.ofCheckedQuery (target 2).id (orderedQuery 2)).toOption.map
     (fun kernel =>
       (kernel.actionLimit, kernel.actionAt 0, kernel.initialAt setup 0,
         kernel.stepAt initial requestValue 0)) =
@@ -33,13 +33,13 @@ example : (IncrementalPlannerKernel.ofCheckedQuery (target 2).id (orderedQuery 2
   native_decide
 
 example : admissionErrorKind
-    (IncrementalPlannerKernel.ofCheckedQuery (id "planner.target.other") (orderedQuery 2)) =
+    (SearchView.ofCheckedQuery (id "planner.target.other") (orderedQuery 2)) =
     some .targetMismatch := by
   native_decide
 
 example :
     let query := { orderedQuery 2 with completeness := none }
-    admissionErrorKind (IncrementalPlannerKernel.ofCheckedQuery query.target.id query) =
+    admissionErrorKind (SearchView.ofCheckedQuery query.target.id query) =
       some .missingFiniteCompleteness := by
   native_decide
 
@@ -98,13 +98,13 @@ private theorem replacement_without_planning_rejects_planner
     let replacedQuery := { query with
       target := replacement
       completeness := (CheckedQueryModel.ofTarget replacement).completeness }
-    (match IncrementalPlannerKernel.ofCheckedQuery replacement.id replacedQuery with
+    (match SearchView.ofCheckedQuery replacement.id replacedQuery with
     | .ok _ => none
     | .error error => some error.kind) = some .missingFiniteCompleteness := by
   have sameId : (original.id != original.id) = false := by
     change (!(original.id.value == original.id.value)) = false
     simp
-  simp [IncrementalPlannerKernel.ofCheckedQuery, replacementWithoutPlanning,
+  simp [SearchView.ofCheckedQuery, replacementWithoutPlanning,
     CheckedModel.withEquivalentMachine, CheckedQueryModel.ofTarget, sameId]
 
 variable (capability : FinitePlanningCapability original.machine.authoritativeStep)
@@ -115,4 +115,4 @@ variable (capability : FinitePlanningCapability original.machine.authoritativeSt
 
 end Replacement
 
-end Umpire.PlanningTests
+end Umpire.SearchTests

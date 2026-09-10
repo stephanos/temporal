@@ -39,7 +39,7 @@ private theorem queryResult_target
 
 private structure PreparedExploration where
   space : CheckedExperimentSpace LawStatement
-  kernel : IncrementalPlannerKernel space.baseQuery.target
+  kernel : SearchView space.baseQuery.target
 
 private def prepare : Except VariationSpacePreparationError PreparedExploration :=
   match queryEq : queryResult with
@@ -54,7 +54,7 @@ private def prepare : Except VariationSpacePreparationError PreparedExploration 
               checkExperimentSpace_baseQuery checkedEq).trans queryTargetEq
           .ok {
             space := checked
-            kernel := Eq.mpr (congrArg IncrementalPlannerKernel checkedTargetEq) incrementalKernel
+            kernel := Eq.mpr (congrArg SearchView checkedTargetEq) incrementalKernel
           }
 
 /-- Typed failure from preparing or selecting the checked Nexus exploration Space. -/

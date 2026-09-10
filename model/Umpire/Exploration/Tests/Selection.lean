@@ -24,8 +24,8 @@ private theorem checkedSpaceTargetEq :
   exact congrArg (fun query => query.target)
     (checkExperimentSpace_baseQuery checkedSpaceResultEq)
 
-private def kernel : IncrementalPlannerKernel SpaceTests.checked.baseQuery.target :=
-  Eq.mpr (congrArg IncrementalPlannerKernel checkedSpaceTargetEq)
+private def kernel : SearchView SpaceTests.checked.baseQuery.target :=
+  Eq.mpr (congrArg SearchView checkedSpaceTargetEq)
     Umpire.Examples.Switch.incrementalKernel
 
 private def authoredRequest (value : Nat) :
@@ -53,8 +53,8 @@ private theorem checkedRequestTargetEq :
     _ = Umpire.Examples.Switch.target := checkedSpaceTargetEq
 
 private def candidateKernel :
-    IncrementalPlannerKernel checkedRequest.space.baseQuery.target :=
-  Eq.mpr (congrArg IncrementalPlannerKernel checkedRequestTargetEq)
+    SearchView checkedRequest.space.baseQuery.target :=
+  Eq.mpr (congrArg SearchView checkedRequestTargetEq)
     Umpire.Examples.Switch.incrementalKernel
 
 private def universeResult := buildCandidateUniverse checkedRequest candidateKernel
@@ -202,8 +202,8 @@ private theorem checkedReorderedTargetEq :
     _ = Umpire.Examples.Switch.target := reorderedSpaceTargetEq
 
 private def reorderedKernel :
-    IncrementalPlannerKernel checkedReordered.space.baseQuery.target :=
-  Eq.mpr (congrArg IncrementalPlannerKernel checkedReorderedTargetEq)
+    SearchView checkedReordered.space.baseQuery.target :=
+  Eq.mpr (congrArg SearchView checkedReorderedTargetEq)
     Umpire.Examples.Switch.incrementalKernel
 
 private def reorderedSelection : Option ExhaustiveSelection := do

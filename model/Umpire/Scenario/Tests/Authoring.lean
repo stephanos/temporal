@@ -1,5 +1,5 @@
 import Umpire.Scenario.Tests.Canonicalization
-import Umpire.Planning.Tests.Fixtures
+import Umpire.Search.Tests.Fixtures
 
 /-! Typed constraint lowering preserves the canonical checker and exact regression forms. -/
 
@@ -131,20 +131,20 @@ private def impossible : Scenario :=
     (family := { root := id "planner" : DefinitionFamily })
     (key := "twice")
     (source := source)
-    (roles := [{ id := PlanningTests.role, valueKind := .state }])
-    (constraints := [.require "first" PlanningTests.request, .require "second" PlanningTests.request])
+    (roles := [{ id := SearchTests.role, valueKind := .state }])
+    (constraints := [.require "first" SearchTests.request, .require "second" SearchTests.request])
 
 private def planningContext : ScenarioCheckContext := {
-  definitions := (PlanningTests.target 0).definitions ++ [
-    PlanningTests.metadata PlanningTests.request .action "request/v1"
+  definitions := (SearchTests.target 0).definitions ++ [
+    SearchTests.metadata SearchTests.request .action "request/v1"
   ]
 }
 
 #guard (impossible.check planningContext).isOk
 #guard ((impossible.check planningContext).toOption.bind fun behavior =>
-  (plan { PlanningTests.checkedQuery 0 (.witness PlanningTests.property) .exhaustive
+  (plan { SearchTests.checkedQuery 0 (.witness SearchTests.property) .exhaustive
       (selectedBehavior := behavior) with limits := QueryLimits.bounded 2 2 20 }
-    (PlanningTests.incrementalKernel 0)).toOption.map
+    (SearchTests.incrementalKernel 0)).toOption.map
       (·.result.metadata.validity.satisfiability)) == some .impossible
 
 #print axioms Scenario.constrained

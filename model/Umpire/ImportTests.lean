@@ -21,10 +21,8 @@ import Umpire
 #check Umpire.Scenario
 #check Umpire.ScenarioCheckContext.ofTarget
 #check Umpire.QueryDeclaration
-#check Umpire.IncrementalPlannerKernel
+#check Umpire.SearchView
 #check Umpire.ExperimentSpec
-#check Umpire.ExecutionHandoffDeclaration
-#check Umpire.ExecutionHandoff
 #check Umpire.ExperimentSpaceDeclaration
 #check Umpire.CheckedExperimentSpace
 #check Umpire.checkExperimentSpace

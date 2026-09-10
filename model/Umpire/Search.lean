@@ -1,7 +1,7 @@
 import Umpire.Artifact.Planning
 import Umpire.OutcomeClassification
 
-/-! Implementation behind the `Umpire.Planning` public facade. -/
+/-! Implementation behind the `Umpire.Search` public facade. -/
 
 namespace Umpire
 
@@ -32,7 +32,7 @@ The planner-specific kernel view is indexed rather than List-valued. Its proof f
 incremental value to the selected target relation, establish completeness independently of Query's
 claim-bearing evidence, and require canonical identity order for unseeded traversal.
 -/
-structure IncrementalPlannerKernel (target : QueryModel LawStatement) where
+structure SearchView (target : QueryModel LawStatement) where
   actionLimit : Nat
   actionAt : Nat → Option ModelValue
   initialLimit : List RoleBinding → Nat
@@ -76,9 +76,9 @@ structure FiniteKernelOrder
     stepOrderKey left ≤ stepOrderKey right
 
 /-- Derive indexed planning from the target's sound and complete finite list interface. -/
-def IncrementalPlannerKernel.ofFinite
+def SearchView.ofFinite
     (evidence : FiniteCompletenessEvidence LawStatement target)
-    (order : FiniteKernelOrder target evidence) : IncrementalPlannerKernel target := {
+    (order : FiniteKernelOrder target evidence) : SearchView target := {
   actionLimit := evidence.actions.length
   actionAt := fun index => evidence.actions[index]?
   initialLimit := fun setup => (target.machine.initialStates setup).length
@@ -146,7 +146,7 @@ def IncrementalPlannerKernel.ofFinite
 
 /-- Derive the indexed Planning view from admitted Query completeness. Callers state only the
 canonical ordering obligations; the established finite-kernel implementation remains authoritative. -/
-def IncrementalPlannerKernel.ofCheckedQuery?
+def SearchView.ofCheckedQuery?
     (query : CheckedQuery LawStatement)
     (actionOrdered : ∀ evidence, query.completeness = some evidence →
       evidence.actions.Pairwise fun left right =>
@@ -157,7 +157,7 @@ def IncrementalPlannerKernel.ofCheckedQuery?
     (stepOrdered : ∀ evidence, query.completeness = some evidence → ∀ state action,
       (query.target.machine.steps state action).Pairwise fun left right =>
         stepOrderKey left ≤ stepOrderKey right) :
-    Option (IncrementalPlannerKernel query.target) :=
+    Option (SearchView query.target) :=
   match evidenceEq : query.completeness with
   | none => none
   | some evidence =>
@@ -176,7 +176,7 @@ inductive FinitePlannerAdmissionErrorKind where
   deriving BEq, DecidableEq, Repr
 
 /-- Planner-kernel admission failures identify the selected Target and the offending finite rows. -/
-structure FinitePlannerAdmissionError where
+structure FiniteSearchAdmissionError where
   kind : FinitePlannerAdmissionErrorKind
   expectedTarget : DefinitionId
   actualTarget : DefinitionId
@@ -250,9 +250,9 @@ private theorem stepListBeqSelf
 
 /-- Derive the indexed kernel with Definition-ID ordering owned by Planning. The separate adapter
 is required because finite completeness does not constrain arbitrary out-of-domain selectors. -/
-private def IncrementalPlannerKernel.ofCanonicalFinite
+private def SearchView.ofCanonicalFinite
     (evidence : FiniteCompletenessEvidence LawStatement target) :
-    IncrementalPlannerKernel target :=
+    SearchView target :=
   let actions := evidence.actions.mergeSort modelValueLe
   {
   actionLimit := actions.length
@@ -345,7 +345,7 @@ private def IncrementalPlannerKernel.ofCanonicalFinite
 private def finiteOrderError?
     (query : CheckedQuery LawStatement)
     (evidence : FiniteCompletenessEvidence LawStatement query.target) :
-    Option FinitePlannerAdmissionError :=
+    Option FiniteSearchAdmissionError :=
   let targetId := query.target.id
   if evidence.actions.mergeSort modelValueLe != evidence.actions then
     some { kind := .noncanonicalActionOrder, expectedTarget := targetId, actualTarget := targetId }
@@ -381,10 +381,10 @@ private def finiteOrderError?
             | none => none
 
 /-- Admit the planner view from one checked Query, rejecting identity, completeness, or order drift. -/
-def IncrementalPlannerKernel.ofCheckedQuery
+def SearchView.ofCheckedQuery
     (expectedTarget : DefinitionId)
     (query : CheckedQuery LawStatement) :
-    Except FinitePlannerAdmissionError (IncrementalPlannerKernel query.target) :=
+    Except FiniteSearchAdmissionError (SearchView query.target) :=
   if expectedTarget != query.target.id then
     .error {
       kind := .targetMismatch
@@ -408,7 +408,7 @@ def IncrementalPlannerKernel.ofCheckedQuery
 /-- Prove checked-query planner admission from the same explicit finite-order evidence consumed by
 the admission checker. This keeps successful extraction kernel-checked while the `Except` result
 continues to expose target, completeness, and canonical-order failures to ordinary callers. -/
-theorem IncrementalPlannerKernel.ofCheckedQuery_isSome
+theorem SearchView.ofCheckedQuery_isSome
     (expectedTarget : DefinitionId)
     (query : CheckedQuery LawStatement)
     (evidence : FiniteCompletenessEvidence LawStatement query.target)
@@ -426,7 +426,7 @@ theorem IncrementalPlannerKernel.ofCheckedQuery_isSome
       (query.target.machine.steps state action).mergeSort (fun left right =>
         decide (stepOrderKey left ≤ stepOrderKey right)) =
       query.target.machine.steps state action) :
-    (IncrementalPlannerKernel.ofCheckedQuery expectedTarget query).toOption.isSome = true := by
+    (SearchView.ofCheckedQuery expectedTarget query).toOption.isSome = true := by
   rcases behaviorDomainComplete with ⟨domain, vocabulary⟩
   change evidence.actions.mergeSort modelValueLe = evidence.actions at actionCanonical
   change ∀ setup, (query.target.machine.initialStates setup).mergeSort modelValueLe =
@@ -461,7 +461,7 @@ theorem IncrementalPlannerKernel.ofCheckedQuery_isSome
       items.find? (fun _ => false) = none := by
     intro α items
     induction items <;> simp_all
-  simp [IncrementalPlannerKernel.ofCheckedQuery, targetMatches, completeness, finiteOrderError?,
+  simp [SearchView.ofCheckedQuery, targetMatches, completeness, finiteOrderError?,
     vocabulary, actionCanonicalBool, initialCanonicalBool, stepCanonicalBool, findFalse]
   rfl
 
@@ -482,7 +482,7 @@ private structure PurePlannerState where
   stepKernelPulls : Nat := 0
   deriving BEq, DecidableEq, Repr
 
-structure PlannerInstrumentation where
+structure SearchStats where
   backendPulls : Nat := 0
   generatedCandidates : Nat := 0
   retainedPendingCandidates : Nat := 0
@@ -660,10 +660,10 @@ def canonicalPlanningReceiptJson (result : PlanningResult) : String :=
       ("coordinate", Lean.toJson evidence.trigger.occurrence.coordinate),
       ("value", evidence.trigger.occurrence.value.map receiptValue |>.getD .null)]).toArray)]
 
-structure PlannerRun where
+structure PlanResult where
   result : PlanningResult
   artifact : Option ExperimentSpec
-  instrumentation : PlannerInstrumentation
+  instrumentation : SearchStats
   deriving BEq, DecidableEq, Repr
 
 /-- Typed failures that can reject a complete planning and Artifact-intent request. -/
@@ -720,7 +720,7 @@ structure BoundedTraversalResult (State : Type) where
   state : State
   termination : BoundedTraversalTermination
   metadata : PlanningMetadata
-  instrumentation : PlannerInstrumentation
+  instrumentation : SearchStats
 
 /-- The planner-private result finalizer enforces the query's claim strength. A backend completion
 signal establishes completeness only for a finite exhaustive query that admitted at least one
@@ -810,7 +810,7 @@ private def currentState (candidate : Scenario.Trace) : ModelValue :=
 
 private partial def nextRoot?
     (query : CheckedQuery LawStatement)
-    (kernel : IncrementalPlannerKernel query.target)
+    (kernel : SearchView query.target)
     (state : PurePlannerState) : Option (Scenario.Trace × PurePlannerState) :=
   match (candidateSetups query)[state.setupIndex]? with
   | none => none
@@ -839,7 +839,7 @@ of produced candidates or an unconsumed collection of kernel results.
 -/
 private partial def pullCandidate
     (query : CheckedQuery LawStatement)
-    (kernel : IncrementalPlannerKernel query.target)
+    (kernel : SearchView query.target)
     (state : PurePlannerState) : PlannerPull PurePlannerState Scenario.Trace :=
   match state.activePath with
   | [] =>
@@ -909,7 +909,7 @@ private partial def pullCandidate
 
 private def purePlannerBackend
     (query : CheckedQuery LawStatement)
-    (kernel : IncrementalPlannerKernel query.target) :
+    (kernel : SearchView query.target) :
     PlannerBackend Unit PurePlannerState Scenario.Trace := {
   start := fun _ => {}
   pull := fun _ => pullCandidate query kernel
@@ -988,7 +988,7 @@ private def notePropertyEvaluations
 private def notePull
     (candidate : Scenario.Trace)
     (next : PurePlannerState)
-    (instrumentation : PlannerInstrumentation) : PlannerInstrumentation := {
+    (instrumentation : SearchStats) : SearchStats := {
   instrumentation with
   backendPulls := instrumentation.backendPulls + 1
   generatedCandidates := instrumentation.generatedCandidates + 1
@@ -1003,9 +1003,9 @@ private def notePull
 private def finish
     (query : CheckedQuery LawStatement)
     (explored : ExploredCounts)
-    (instrumentation : PlannerInstrumentation)
+    (instrumentation : SearchStats)
     (termination : BoundedTraversalTermination)
-    (knownGaps : KnownGapSet) : PlannerRun :=
+    (knownGaps : KnownGapSet) : PlanResult :=
   let result := finalizePlanning query explored termination
   let artifact := match termination with
     | .stopped trace reason =>
@@ -1028,7 +1028,7 @@ private def traversalResult
     (state : State)
     (termination : BoundedTraversalTermination)
     (explored : ExploredCounts)
-    (instrumentation : PlannerInstrumentation) : BoundedTraversalResult State := {
+    (instrumentation : SearchStats) : BoundedTraversalResult State := {
   state
   termination
   metadata := traversalMetadata query explored termination
@@ -1044,7 +1044,7 @@ private def traverseLoop
     (remaining : Nat)
     (behaviorAdmitted : Bool)
     (explored : ExploredCounts)
-    (instrumentation : PlannerInstrumentation) : BoundedTraversalResult State :=
+    (instrumentation : SearchStats) : BoundedTraversalResult State :=
   match remaining with
   | 0 =>
       match backend.pull () cursor with
@@ -1078,7 +1078,7 @@ termination_by remaining
 backend stay hidden; candidate order, Behavior filtering, accounting, and completion are shared. -/
 def traverseBoundedCandidates
     (query : CheckedQuery LawStatement)
-    (kernel : IncrementalPlannerKernel query.target)
+    (kernel : SearchView query.target)
     (initial : State)
     (visit : State → Scenario.Trace → Except QueryError (BoundedTraversalStep State)) :
     BoundedTraversalResult State :=
@@ -1091,7 +1091,7 @@ def traverseBoundedCandidates
 /-- Plan a checked Query without invoking runtime, readers, evidence, or promotion behavior. -/
 def plan
     (query : CheckedQuery LawStatement)
-    (kernel : IncrementalPlannerKernel query.target) : Except KnownGapError PlannerRun := do
+    (kernel : SearchView query.target) : Except KnownGapError PlanResult := do
   let knownGaps ← composePlanningKnownGaps query
   let traversed := traverseBoundedCandidates query kernel {} (observeCandidate query)
   let state := traversed.state
@@ -1136,8 +1136,8 @@ Plan through the unchanged target kernel, then project checked Artifact intent i
 -/
 def planWithArtifactIntent
     (query : CheckedQuery LawStatement)
-    (kernel : IncrementalPlannerKernel query.target)
-    (intent : ArtifactIntent) : Except PlanningRequestError PlannerRun := do
+    (kernel : SearchView query.target)
+    (intent : ArtifactIntent) : Except PlanningRequestError PlanResult := do
   intent.validateFor query |>.mapError PlanningRequestError.artifactIntent
   let run ← plan query kernel |>.mapError PlanningRequestError.knownGap
   let artifact ← match run.artifact with

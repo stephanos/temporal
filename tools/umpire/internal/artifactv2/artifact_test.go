@@ -31,7 +31,7 @@ func TestDecodeExperimentAcceptsCanonicalSwitchAndNexusV2(t *testing.T) {
 }
 
 func TestDecodeExperimentAcceptsLeanNaturalAboveUint64(t *testing.T) {
-	encodedNatural := readRepositoryFile(t, "model/Umpire/Planning/Tests/Fixtures/NaturalAboveUint64.json")
+	encodedNatural := readRepositoryFile(t, "model/Umpire/Search/Tests/Fixtures/NaturalAboveUint64.json")
 	var natural Natural
 	require.NoError(t, json.Unmarshal(bytes.TrimSuffix(encodedNatural, []byte{'\n'}), &natural))
 	require.Equal(t, Natural("18446744073709551616"), natural)

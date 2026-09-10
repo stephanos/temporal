@@ -71,7 +71,7 @@ def runInspector (registry : ScenarioRegistry) (args : List String) : InspectorR
 
 private def plannedScenario
     (id : String)
-    (run : Except KnownGapError PlannerRun) : Scenario := {
+    (run : Except KnownGapError PlanResult) : Scenario := {
   id
   result := match run with
     | .error error => .error (.knownGap error)

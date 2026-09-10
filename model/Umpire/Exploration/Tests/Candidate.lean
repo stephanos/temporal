@@ -37,8 +37,8 @@ private theorem checkedSpaceTargetEq :
   exact congrArg (fun query => query.target)
     (checkExperimentSpace_baseQuery checkedSpaceResultEq)
 
-private def kernel : IncrementalPlannerKernel SpaceTests.checked.baseQuery.target :=
-  Eq.mpr (congrArg IncrementalPlannerKernel checkedSpaceTargetEq)
+private def kernel : SearchView SpaceTests.checked.baseQuery.target :=
+  Eq.mpr (congrArg SearchView checkedSpaceTargetEq)
     Umpire.Examples.Switch.incrementalKernel
 
 private def authoredRequest : ExplorationRequest Umpire.Examples.Switch.LawStatement := {
@@ -63,8 +63,8 @@ private theorem checkedRequestTargetEq :
         (checkExplorationRequest_space checkedRequestResultEq)
     _ = Umpire.Examples.Switch.target := checkedSpaceTargetEq
 
-private def candidateKernel : IncrementalPlannerKernel checkedRequest.space.baseQuery.target :=
-  Eq.mpr (congrArg IncrementalPlannerKernel checkedRequestTargetEq)
+private def candidateKernel : SearchView checkedRequest.space.baseQuery.target :=
+  Eq.mpr (congrArg SearchView checkedRequestTargetEq)
     Umpire.Examples.Switch.incrementalKernel
 
 private def compiled := compileBatch SpaceTests.checked kernel
