@@ -55,6 +55,8 @@ func workerOutageFixtureContract(t testing.TB) (*PreparedContract, execution.Pro
 	require.NoError(t, err)
 	artifact := &testpilotspb.Case{}
 	require.NoError(t, protojson.Unmarshal(encoded, artifact))
+	// A moved or renamed fixture fails here rather than silently evaluating a different Contract.
+	require.Equal(t, "temporal.case.worker-outage", artifact.GetCaseId())
 
 	catalog, err := ir.NewCatalog(nexusDescriptorClosure(historypb.File_temporal_api_history_v1_message_proto))
 	require.NoError(t, err)
