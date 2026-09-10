@@ -30,20 +30,20 @@ Each owner validates its complete candidate output before replacing managed file
 The checked-in Testpilot `.proto` closure is the sole Case schema. `Testpilot.Protocol` exposes its
 generated Lean declarations, `Testpilot.Authoring` constructs generated Cases through context-safe
 helpers, and `Testpilot.ProtoJSON` delegates the one canonical codec policy to `Protobuf.Json`.
-`Umpire.Case` retains only Umpire-owned definitions, fingerprints, sources, and Known Gaps for
-opaque producer provenance.
+`Umpire.Provenance` retains only Umpire-owned definition bindings, fingerprints, sources, Known
+Gaps, and Correlated Rule bindings, and encodes them as opaque producer provenance.
 
-`Temporal.Feature.Nexus.Success.Producer` lowers the checked Nexus.Success completion model into the async Nexus
-example: its Contract carries no monitor rule, only the operation-correlated capability the checked
-Property lowered into. `Temporal.Testpilot` supplies the unrelated `GetSystemInfo` example, the
+`Temporal.Feature.Nexus.Success.Producer` lowers the checked success model into the async Nexus
+example: its Contract carries no monitor Rule, only the Correlated capability the checked Property
+lowered into. `Temporal.Testpilot` supplies the unrelated `GetSystemInfo` example, the
 worker-outage fault Case, and the six public-facade conformance fixtures. `Temporal.Tool.Testpilot` forwards rendering
 to `Testpilot.ProtoJSON`. The broader Nexus success Markdown sketches remain design material rather than executable
 coverage. Lean is the first Producer, while the Case format and Go runtime remain independent of
 Lean.
 
 Umpire-backed Producers lower checked semantics into generated values and pass them to
-`Umpire.Case.Compiler` for source-bound property validation, exact opaque provenance, and final
-generated Case assembly. The Testpilot-only synthetic Producer assembles its generated Case
+`Umpire.Case.Compiler` for source-bound Property validation, the coverage the Case requests, exact
+opaque provenance, and final generated Case assembly. The Testpilot-only synthetic Producer assembles its generated Case
 directly.
 
 Exact Case 1.0 is the only admitted format. Resource-bearing Programs declare a complete closed graph
@@ -63,30 +63,31 @@ Testpilot terms have precise boundaries:
 - Run disposition, cleanup status, and Verdict remain independent. A proved violation survives
   later cleanup failure.
 
-## Semantic authoring and planning
+## Model authoring and Search
 
-The retained semantic model uses separate `Model`, `Property`, `Scenario`, `Query`, `Space`,
-`Exploration`, and `Promotion` APIs. A checked Model owns behavior; Properties state trace claims;
-Scenarios constrain trace shape; Queries ask bounded questions; Spaces and Exploration select
-finite candidates. These packages do not perform runtime I/O.
+The retained model uses separate `Umpire.Model`, `Umpire.Property`, `Umpire.Scenario`,
+`Umpire.Query`, `Umpire.Search`, `Umpire.Variations`, `Umpire.Exploration`, and `Umpire.Promotion`
+APIs. A checked Model owns behavior; Properties state Trace claims; Scenarios constrain Trace
+shape; Queries ask bounded questions and Search answers them; Variations and Exploration select
+finite candidates. None of these performs runtime I/O.
 
 For ordinary authoring, use `import Umpire` or the focused `Umpire.Model`, `Umpire.Property`,
 `Umpire.Scenario`, and `Umpire.Query` facades. These retain the finite-table/machine helpers and
 syntax-aware checkers.
-When implementing evaluation or planning over an already checked Model, use
-`Umpire.Model.Check`; it exposes the authoritative Machine and finite planning contracts without
+When implementing evaluation or Search over an already checked Model, use
+`Umpire.Model.Check`; it exposes the authoritative Machine and finite Search contracts without
 loading the model elaborator. `Umpire.Search` consumes checked Queries and does not supply the
 authoring conveniences of the other facades. The
 [ownership guide](Umpire/ARCHITECTURE.md#model-ownership-and-semantic-imports) explains how pure
 admission and serialization support both paths.
 
-`Umpire.Promotion` remains scenario-neutral. It replans an unchanged checked Query, validates the
-complete planning anchor and exact source bytes, and returns an opaque review-only source value.
+`Umpire.Promotion` remains scenario-neutral. It re-answers an unchanged checked Query, validates
+the complete Plan anchor and exact source bytes, and returns an opaque review-only source value.
 It has no Case execution authority and imports no Temporal scenario.
 
-The `umpire-inspect` executable exposes the retained checked catalog and emits deterministic
-planning artifacts. Generated Views remain navigation and test wrappers around that planning data;
-they do not execute a Case or determine a Verdict.
+The `umpire-inspect` executable exposes the retained checked catalog and emits deterministic Plan
+Artifacts. Generated Views remain navigation and test wrappers around that Plan data; they do not
+execute a Case or determine a Verdict.
 
 ### Ordinary Nexus authoring
 
@@ -97,11 +98,11 @@ ordered domains, encoders, enumerators, closure proofs, and Action-executability
 `modelSpec` and `draftModel` remove repeated record and planning transport. Authors who
 need an independently specified authoritative relation can use the expert `Machine` path.
 
-Property, Scenario, Query, and Observation inputs remain ordinary values. Call each language's
+Property, Scenario, Query, and Evidence inputs remain ordinary values. Call each language's
 `check` operation to inspect its typed `Except` error, then supply explicit checker-success evidence
 to its `checked` operation. Stable `DefinitionId` suffixes, source locations, providers/connectors,
 Model-owned outcomes, and stage-specific `Limits` values are authored choices; declaration
-order and instance search choose none of them. Planning returns `Except KnownGapError PlanResult`.
+order and instance search choose none of them. Search returns `Except KnownGapError PlanResult`.
 An optional checked `authoredKnownGaps` set is composed with phase gaps before search or artifact
 publication. Gaps describe limits and missing evidence; they cannot make a Property pass or imply
 that an omitted limitation was detected.

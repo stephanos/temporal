@@ -34,8 +34,12 @@ Focused public imports are available by responsibility:
 | `Umpire.Promotion` | Exact review-only source compilation from an unchanged planned Query. |
 | `Umpire.Artifact` | Retained model-planning and offline-analysis artifact codecs. |
 | `Umpire.Json` | Ordered JSON construction for codec owners. |
-| `Umpire.Case` | Umpire provenance and temporary aliases for generated Testpilot protocol types. |
-| `Umpire.Case.Compiler` | Generated Case assembly, source-bound producer diagnostics, and Umpire provenance. |
+| `Umpire.Case` | The four Case owners: assembly, coverage, Correlated lowering, and Projection. |
+| `Umpire.Case.Compiler` | Generated Case assembly and source-bound producer diagnostics. |
+| `Umpire.Case.Coverage` | The whole-Case field and Rule coverage a Case requests. |
+| `Umpire.Case.Correlated` | Lowering checked Correlated rules into the portable Contract capability. |
+| `Umpire.Case.Projection` | Reading declared Run values into model Steps and fields. |
+| `Umpire.Provenance` | Producer-owned definition bindings, Known Gaps, and the opaque `producerData` bytes. |
 | `Umpire.Inventory` | Explicit opt-in catalogs consuming semantic-owner contracts for documentation. |
 
 Implementation modules remain behind these facades. Reusable Umpire modules cannot import the
@@ -171,12 +175,11 @@ The checked-in `.proto` closure rooted at
 Run, values, paths, expressions, instructions, monitors, and Verdict data. Producers construct
 those generated values through the context-safe `Testpilot.Authoring` facade.
 
-`Umpire.Case` owns only Umpire-specific definition bindings, Behavior Fingerprints, sources, and
-Known Gaps. `Umpire.Case.Provenance` encodes that data into opaque `producerData`; Testpilot and Go
-do not interpret its contents. Temporary `Umpire.Case` type aliases delegate directly to the
-generated declarations and are removed when downstream imports use `Testpilot.Protocol` directly.
-The compatibility codec delegates directly to `Testpilot.ProtoJSON` and is covered by an
-equivalent-output regression under `Testpilot.Tests` until its callers migrate.
+`Umpire.Provenance` owns only Umpire-specific definition bindings, Behavior Fingerprints, sources,
+Known Gaps, and the Correlated Rule bindings a Case carries. `Umpire.Provenance.make` encodes that
+data into opaque `producerData`; Testpilot and Go do not interpret its contents. `Umpire.Case`
+carries no aliases for generated declarations: a consumer that needs one imports
+`Testpilot.Protocol`.
 
 The generated protocol contains no client, credential, worker, callback, endpoint, filesystem
 access, executable hook, or runtime registry.

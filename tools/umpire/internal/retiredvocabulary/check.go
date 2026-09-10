@@ -582,6 +582,20 @@ func buildRetiredRules() ([]tokenRule, error) {
 		"umpire-explain-" + "nexus",
 		"selected_" + "actions",
 		"candidate_" + "evaluations",
+		// The compound rule requires a non-identifier boundary on both sides, so a longer
+		// name built on a held one is not held by it.
+		"ExperimentSpace" + "Declaration",
+		"TargetBehaviorDomain" + "Availability",
+		"experiment" + "Specs",
+		// The retired Limit units, in the lowerCamel spelling their wire keys used.
+		"candidate" + "Evaluations",
+		"selected" + "Actions",
+		"semantic" + "Transitions",
+		"observation" + "Positions",
+		// The Go instruction kind, now `Opcode`. `CapabilityBridge` and `CapabilityEffect`
+		// are the live Driver seam and keep their names; the identifier boundary separates
+		// them from the bare type.
+		"testpilot." + "Capability",
 		"model" + "Lint",
 		"model" + "LintTests",
 		"testpilot" + "ProtoJSONFixture",
