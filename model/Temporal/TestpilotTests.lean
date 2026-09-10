@@ -44,7 +44,7 @@ private def activationKind : EntrypointDefinition → Option Nat
       output.contract.map (·.rules.isEmpty) == some true &&
       (match output.contract.bind (·.«correlated») with
         | some capability =>
-            capability.evidence_observation_id == Temporal.Case.Template.NexusOperation.correlatedObservation &&
+            capability.evidence_observation_id == Temporal.Case.Support.correlatedObservation &&
             capability.projection_id == Temporal.Case.Template.NexusOperation.projectionId.value &&
             capability.clauses.size == 3 &&
             -- The Behavior places the required Action one semantic transition after the
