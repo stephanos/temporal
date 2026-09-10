@@ -90,7 +90,7 @@ example :
       ["b-matching", "c-matching", "a-nonmatching"] := by
   native_decide
 
-/-! The explicit ExperimentSpec Limit applies after coordinate priority. -/
+/-! The explicit Plan Limit applies after coordinate priority. -/
 example :
     (GuidedSelection.Internal.prioritize requestedCoordinate
       CandidateProjection.identity CandidateProjection.coordinates projectedCandidates |>.take

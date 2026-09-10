@@ -611,7 +611,7 @@ private def portablePropertyResultJson (property : PortableProperty) : String :=
       (property.requirementDefinitionIds.map (quoteResult ∘ DefinitionId.value)) ++ "}"
 
 private def evaluationOutcomeJson
-    (plan : DrivePlan)
+    (plan : Plan.Steps)
     (trace : ArtifactEvidenceBackedModelTrace)
     (evidenceLinks : List ArtifactEvidenceLink)
     (observationProgram mapping : ArtifactDefinitionReference)
@@ -635,7 +635,7 @@ private def evaluationOutcomeJson
 def ResultArtifact.expectedEvaluationOutcomeChecksum
     (result : ResultArtifact)
     (evidence : EvidenceArtifact)
-    (experiment : ExperimentSpec) : Option ArtifactChecksum :=
+    (experiment : Plan) : Option ArtifactChecksum :=
   if result.semanticStatus == "satisfied" || result.semanticStatus == "violated" then do
     let trace ← evidence.evidenceBackedModelTrace
     some <| evaluationOutcomeChecksumOf <| Json.prettyBytes <|
@@ -752,7 +752,7 @@ private def evidenceMappingCloses (evidence : EvidenceArtifact) : Bool :=
 
 def EvidenceArtifact.closes
     (evidence : EvidenceArtifact)
-    (experiment : ExperimentSpec)
+    (experiment : Plan)
     (configuration : RuntimeConfiguration)
     (run : ExperimentRun)
     (rawEvidence : RawEvidence) : Bool :=
@@ -792,7 +792,7 @@ def ResultArtifact.isValidTransport (result : ResultArtifact) : Bool :=
 
 def ResultArtifact.closes
     (result : ResultArtifact)
-    (experiment : ExperimentSpec)
+    (experiment : Plan)
     (configuration : RuntimeConfiguration)
     (run : ExperimentRun)
     (rawEvidence : RawEvidence)

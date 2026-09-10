@@ -57,16 +57,16 @@ example : compiledArtifact.formatVersion = "umpire-experiment/v2" ∧
   native_decide
 
 /-! Moving the codecs behind the facade preserves the authoritative v2 fixture byte-for-byte. -/
-example : canonicalExperimentSpecBytes compiledArtifact =
-    include_str "Fixtures/SwitchExperimentSpecV2.json" := by
+example : canonicalPlanBytes compiledArtifact =
+    include_str "Fixtures/SwitchPlanV2.json" := by
   native_decide
 
 /-! Persisted canonical bytes use stable two-space JSON indentation and one terminal LF. -/
-example : (canonicalExperimentSpecBytes compiledArtifact).startsWith
+example : (canonicalPlanBytes compiledArtifact).startsWith
     "{\n  \"formatVersion\": \"umpire-experiment/v2\",\n" := by
   native_decide
 
-/-! The nested DrivePlan uses the same deterministic pretty representation and terminal LF. -/
+/-! The nested Plan.Steps uses the same deterministic pretty representation and terminal LF. -/
 example : (canonicalDrivePlanBytes compiledArtifact.plan).startsWith
     "{\n  \"formatVersion\": \"umpire-drive-plan/v2\",\n" ∧
     (canonicalDrivePlanBytes compiledArtifact.plan).endsWith "\n" := by
@@ -119,7 +119,7 @@ private def guardedPropertyDeclaration : Property := {
   }]
 }
 
-private def guardedArtifactPair? : Option (CheckedProperty × ExperimentSpec × ExperimentSpec) := do
+private def guardedArtifactPair? : Option (CheckedProperty × Plan × Plan) := do
   let property ← (Property.check (PropertyCheckContext.ofTarget target)
     (guardedPropertyDeclaration)).toOption
   let declaration (properties : List CheckedProperty) : QueryDeclaration := {
@@ -158,7 +158,7 @@ fingerprint and requirements; source order cannot alter the sealed bytes. -/
       behaviorFingerprint := property.behaviorFingerprint
       requirementDefinitionIds := property.requires
     }] &&
-    canonicalExperimentSpecBytes first == canonicalExperimentSpecBytes reordered &&
-    !(canonicalExperimentSpecBytes first).contains "branches") == some true
+    canonicalPlanBytes first == canonicalPlanBytes reordered &&
+    !(canonicalPlanBytes first).contains "branches") == some true
 
 end Umpire.Artifact.Tests.Codecs

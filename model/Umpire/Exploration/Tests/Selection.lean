@@ -80,7 +80,7 @@ example : (selectionResult checkedRequest3).map (fun selection =>
 
 /-!
 Zero rejects before selection, N - 1 is inconclusive, and N or N + 1 exhausts the four-candidate
-fixture without confusing the planner's candidate-evaluation Limit with this ExperimentSpec Limit.
+fixture without confusing the planner's candidate-evaluation Limit with this Plan Limit.
 -/
 example :
     let zero := checkExplorationRequest (authoredRequest 0)
@@ -104,7 +104,7 @@ private def firstCandidateResult : Option ExplorationCandidate :=
 private def firstCandidate := firstCandidateResult.get (by native_decide)
 
 private def pinnedRequestResult (value : Nat) := checkExplorationRequest {
-  authoredRequest value with pinned := [firstCandidate.experimentSpec]
+  authoredRequest value with pinned := [firstCandidate.plan]
 }
 
 private def pinnedRequest2 := (pinnedRequestResult 2).toOption.get (by native_decide)

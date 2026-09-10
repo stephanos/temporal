@@ -22,9 +22,9 @@ private def firstStep := session.next.get (by native_decide)
 
 private def firstOutstanding := firstStep.2
 
-private def firstBinding := firstCandidate.experimentSpec.artifactBinding
+private def firstBinding := firstCandidate.plan.artifactBinding
 
-private def secondBinding := secondCandidate.experimentSpec.artifactBinding
+private def secondBinding := secondCandidate.plan.artifactBinding
 
 private def afterFirst := firstOutstanding.observe [firstBinding]
 
@@ -38,11 +38,11 @@ private def advancesFromFirst (candidate : ExplorationSession) : Bool :=
 
 private def pinnedOnlySession : ExplorationSession :=
   (beginSession (engineRequest .exhaustive 1
-    (selectedCandidates.map ExplorationCandidate.experimentSpec)) engineKernel).toOption.get
+    (selectedCandidates.map ExplorationCandidate.plan)) engineKernel).toOption.get
       (by native_decide)
 
 private def pinnedOverlapSession : ExplorationSession :=
-  (beginSession (engineRequest .exhaustive 1 [firstCandidate.experimentSpec])
+  (beginSession (engineRequest .exhaustive 1 [firstCandidate.plan])
     engineKernel).toOption.get (by native_decide)
 
 /-! `next` preserves the checked selection order and cannot overlap outstanding candidates. -/

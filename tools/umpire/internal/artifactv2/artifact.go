@@ -15,7 +15,7 @@ import (
 
 const (
 	ExperimentFormat = "umpire-experiment/v2"
-	DrivePlanFormat  = "umpire-drive-plan/v2"
+	PlanStepsFormat  = "umpire-drive-plan/v2"
 )
 
 const (
@@ -27,14 +27,14 @@ const (
 type Experiment struct {
 	FormatVersion                       string     `json:"formatVersion"`
 	QueryBehaviorFingerprint            string     `json:"queryBehaviorFingerprint"`
-	Plan                                DrivePlan  `json:"plan"`
+	Plan                                PlanSteps  `json:"plan"`
 	Properties                          []Property `json:"properties"`
 	ObservationRequirementDefinitionIDs []string   `json:"observationRequirementDefinitionIds"`
 	Provenance                          Provenance `json:"provenance"`
 	ArtifactChecksum                    string     `json:"artifactChecksum,omitempty"`
 }
 
-type DrivePlan struct {
+type PlanSteps struct {
 	FormatVersion                      string         `json:"formatVersion"`
 	QueryDefinitionID                  string         `json:"queryDefinitionId"`
 	QueryBehaviorFingerprint           string         `json:"queryBehaviorFingerprint"`
@@ -220,7 +220,7 @@ var canonicalKeys = map[string]string{
 // DecodeExperiment accepts only the exact canonical bytes emitted by Lean.
 func DecodeExperiment(encoded []byte) (Experiment, error) {
 	if len(bytes.TrimSpace(encoded)) == 0 {
-		return Experiment{}, errors.New("canonical ExperimentSpec JSON is empty")
+		return Experiment{}, errors.New("canonical Plan JSON is empty")
 	}
 	format, err := preflightFormat(encoded)
 	if err != nil {
@@ -256,7 +256,7 @@ func DecodeExperiment(encoded []byte) (Experiment, error) {
 		return Experiment{}, err
 	}
 	if !bytes.Equal(encoded, canonical) {
-		return Experiment{}, errors.New("ExperimentSpec is not canonical v2 bytes")
+		return Experiment{}, errors.New("Plan is not canonical v2 bytes")
 	}
 	return document, nil
 }
@@ -265,7 +265,7 @@ func CanonicalExperimentBytes(document Experiment) ([]byte, error) {
 	return encodeJSONLine(document)
 }
 
-func ExpectedDrivePlanChecksum(plan DrivePlan) (string, error) {
+func ExpectedPlanStepsChecksum(plan PlanSteps) (string, error) {
 	plan.ArtifactChecksum = ""
 	encoded, err := encodeJSONLine(plan)
 	if err != nil {
@@ -288,7 +288,7 @@ func BehaviorFingerprint(canonical []byte) string {
 }
 
 func SealExperiment(document Experiment) (Experiment, error) {
-	planChecksum, err := ExpectedDrivePlanChecksum(document.Plan)
+	planChecksum, err := ExpectedPlanStepsChecksum(document.Plan)
 	if err != nil {
 		return Experiment{}, err
 	}
@@ -308,7 +308,7 @@ func preflightFormat(encoded []byte) (string, error) {
 		return "", err
 	}
 	if first != json.Delim('{') {
-		return "", errors.New("ExperimentSpec must be a JSON object")
+		return "", errors.New("Plan must be a JSON object")
 	}
 	seen := make(map[string]string)
 	format := ""
@@ -319,7 +319,7 @@ func preflightFormat(encoded []byte) (string, error) {
 		}
 		key, ok := keyToken.(string)
 		if !ok {
-			return "", errors.New("ExperimentSpec object key is not a string")
+			return "", errors.New("Plan object key is not a string")
 		}
 		folded := strings.ToLower(key)
 		if previous, duplicate := seen[folded]; duplicate {
@@ -441,7 +441,7 @@ func ValidateExperiment(document Experiment) error {
 	if document.FormatVersion != ExperimentFormat {
 		return fmt.Errorf("unsupported format %q", document.FormatVersion)
 	}
-	if document.Plan.FormatVersion != DrivePlanFormat {
+	if document.Plan.FormatVersion != PlanStepsFormat {
 		return fmt.Errorf("unsupported nested plan format %q", document.Plan.FormatVersion)
 	}
 	for _, field := range []struct {
@@ -500,13 +500,13 @@ func ValidateExperiment(document Experiment) error {
 	if err := validateExperimentCollections(document); err != nil {
 		return err
 	}
-	return validateDrivePlan(document.Plan)
+	return validatePlanSteps(document.Plan)
 }
 
 func validateExperimentCollections(document Experiment) error {
 	if document.Properties == nil || document.ObservationRequirementDefinitionIDs == nil ||
 		document.Provenance.SourceDefinitionIDs == nil || document.Provenance.SourceLocations == nil {
-		return errors.New("ExperimentSpec arrays must not be null")
+		return errors.New("Plan arrays must not be null")
 	}
 	if len(document.Properties) == 0 {
 		return errors.New("at least one property identity is required")
@@ -536,14 +536,14 @@ func validateExperimentCollections(document Experiment) error {
 	return nil
 }
 
-func validateDrivePlan(plan DrivePlan) error {
+func validatePlanSteps(plan PlanSteps) error {
 	if plan.Bindings == nil || plan.SymbolicRoles == nil || plan.ModelPreconditions == nil ||
 		plan.RequestedActions == nil || plan.ModelOutcomes == nil || plan.ResultingStates == nil ||
 		plan.LinearExtension == nil || plan.SelectedChoices == nil || plan.SelectedVariants == nil ||
 		plan.RequestedFaults == nil || plan.CapabilityRequirementDefinitionIDs == nil ||
 		plan.Checkpoints == nil || plan.KnownGaps == nil || plan.Provenance.SourceDefinitionIDs == nil ||
 		plan.Provenance.SourceLocations == nil {
-		return errors.New("DrivePlan arrays must not be null")
+		return errors.New("PlanSteps arrays must not be null")
 	}
 	if err := validateDefinitionIDSet("capability requirement definition ID", plan.CapabilityRequirementDefinitionIDs); err != nil {
 		return err
@@ -692,7 +692,7 @@ func validateOperand(label string, operand Operand) error {
 	return nil
 }
 
-func validateOccurrencesAndCheckpoints(plan DrivePlan) error {
+func validateOccurrencesAndCheckpoints(plan PlanSteps) error {
 	for index, occurrence := range plan.LinearExtension {
 		if !validDefinitionID(occurrence.DefinitionID) || !validDefinitionID(occurrence.ActionDefinitionID) ||
 			(occurrence.AuthoredDefinitionID != nil && !validDefinitionID(*occurrence.AuthoredDefinitionID)) {
@@ -885,9 +885,9 @@ func pointerValue(value *string) string {
 	return *value
 }
 
-// VerifyExperimentChecksums independently checks the nested DrivePlan and outer ExperimentSpec.
+// VerifyExperimentChecksums independently checks the nested PlanSteps and outer Plan.
 func VerifyExperimentChecksums(document Experiment) error {
-	nested, err := ExpectedDrivePlanChecksum(document.Plan)
+	nested, err := ExpectedPlanStepsChecksum(document.Plan)
 	if err != nil {
 		return err
 	}
@@ -899,7 +899,7 @@ func VerifyExperimentChecksums(document Experiment) error {
 		return err
 	}
 	if outer != document.ArtifactChecksum {
-		return fmt.Errorf("ExperimentSpec artifact checksum mismatch: got %q, want %q", document.ArtifactChecksum, outer)
+		return fmt.Errorf("Plan artifact checksum mismatch: got %q, want %q", document.ArtifactChecksum, outer)
 	}
 	return nil
 }

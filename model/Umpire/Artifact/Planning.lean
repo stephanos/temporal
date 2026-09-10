@@ -29,11 +29,11 @@ private def canonicalIds (ids : List DefinitionId) : List DefinitionId :=
 private def canonicalValues (values : List ModelValue) : List ModelValue :=
   values.mergeSort valueLe |>.eraseDups
 
-private def faultIntentLe (left right : ArtifactFaultIntent) : Bool :=
+private def faultIntentLe (left right : RequestedFault) : Bool :=
   decide (left.definitionId.value ≤ right.definitionId.value)
 
 private def canonicalFaultIntents
-    (faults : List ArtifactFaultIntent) : List ArtifactFaultIntent :=
+    (faults : List RequestedFault) : List RequestedFault :=
   faults.mergeSort faultIntentLe
 
 private def artifactIntentError
@@ -63,7 +63,7 @@ private def targetDefinesCapability
 
 private def intentIdentityMatches
     (query : CheckedQuery LawStatement)
-    (intent : ArtifactIntent) : Bool :=
+    (intent : PlanRequest) : Bool :=
   intent.queryDefinitionId == query.id &&
     intent.queryBehaviorFingerprint == query.behaviorFingerprint &&
     intent.behaviorDefinitionId == query.behavior.id &&
@@ -73,10 +73,10 @@ private def intentIdentityMatches
     intent.kernelDefinitionId == query.target.machine.metadata.id &&
     intent.kernelBehaviorFingerprint == query.target.behaviorFingerprint
 
-namespace ArtifactIntent
+namespace PlanRequest
 
 /-- The checked empty intent used by ordinary planning. -/
-def empty (query : CheckedQuery LawStatement) : ArtifactIntent := {
+def empty (query : CheckedQuery LawStatement) : PlanRequest := {
   queryDefinitionId := query.id
   queryBehaviorFingerprint := query.behaviorFingerprint
   behaviorDefinitionId := query.behavior.id
@@ -92,12 +92,12 @@ def empty (query : CheckedQuery LawStatement) : ArtifactIntent := {
 }
 
 /-- Canonical semantic values for the selected role bindings, retaining one value per role. -/
-def selectedVariantValues (intent : ArtifactIntent) : List ModelValue :=
+def selectedVariantValues (intent : PlanRequest) : List ModelValue :=
   intent.selectedVariants.map RoleBinding.value |>.mergeSort valueLe
 
 /-- Recheck that intent still belongs to the exact Query closure that will be planned. -/
 def validateFor
-    (intent : ArtifactIntent)
+    (intent : PlanRequest)
     (query : CheckedQuery LawStatement) : Except ArtifactIntentError Unit := do
   if !intentIdentityMatches query intent then
     throw (artifactIntentError .identityDrift intent.queryDefinitionId [query.id])
@@ -127,7 +127,7 @@ def validateFor
   | some duplicate =>
       throw (artifactIntentError .duplicateEntry duplicate [duplicate])
   | none => pure ()
-  match firstDuplicateId (intent.requestedFaults.map ArtifactFaultIntent.definitionId) with
+  match firstDuplicateId (intent.requestedFaults.map RequestedFault.definitionId) with
   | some duplicate =>
       throw (artifactIntentError .duplicateEntry duplicate [duplicate])
   | none => pure ()
@@ -158,7 +158,7 @@ def validateFor
     if !targetDefinesCapability query capability || !targetHasCapability query capability then
       throw (artifactIntentError .invalidCapability capability [capability, query.target.id])
 
-end ArtifactIntent
+end PlanRequest
 
 /-!
 Artifact intent enriches a valid model-selected v2 planning Artifact without Execution references.
@@ -168,7 +168,7 @@ The v2 planning Artifact remains unchanged and carries none of those runtime bin
 
 private def artifactMatchesQuery
     (query : CheckedQuery LawStatement)
-    (spec : ExperimentSpec) : Bool :=
+    (spec : Plan) : Bool :=
   spec.queryBehaviorFingerprint == query.behaviorFingerprint &&
     spec.plan.queryDefinitionId == query.id &&
     spec.plan.queryBehaviorFingerprint == query.behaviorFingerprint &&
@@ -180,10 +180,10 @@ private def artifactMatchesQuery
     spec.plan.kernelBehaviorFingerprint == query.target.behaviorFingerprint
 
 /-- Canonically project checked intent onto an ordinary target-owned planner Artifact. -/
-def ExperimentSpec.withArtifactIntent
-    (spec : ExperimentSpec)
+def Plan.withArtifactIntent
+    (spec : Plan)
     (query : CheckedQuery LawStatement)
-    (intent : ArtifactIntent) : Except ArtifactIntentError ExperimentSpec := do
+    (intent : PlanRequest) : Except ArtifactIntentError Plan := do
   intent.validateFor query
   if !spec.plan.hasValidArtifactChecksum || !spec.hasValidArtifactChecksum then
     throw (artifactIntentError .identityDrift spec.plan.queryDefinitionId
@@ -209,7 +209,7 @@ def ExperimentSpec.withArtifactIntent
       definitionId := fault.definitionId
       value := occurrence.definitionId.value
     }]
-  let planWithoutChecksum : DrivePlan := {
+  let planWithoutChecksum : Plan.Steps := {
     spec.plan with
     artifactChecksum := drivePlanChecksumOf ""
     selectedChoices := canonicalValues intent.selectedChoices
@@ -223,9 +223,9 @@ def ExperimentSpec.withArtifactIntent
     planWithoutChecksum with
     artifactChecksum := planWithoutChecksum.expectedArtifactChecksum
   }
-  let specWithoutChecksum : ExperimentSpec := {
+  let specWithoutChecksum : Plan := {
     spec with
-    artifactChecksum := experimentSpecChecksumOf ""
+    artifactChecksum := planChecksumOf ""
     plan
   }
   pure {
@@ -284,7 +284,7 @@ def artifactOfSelectionWithKnownGaps
     (trace : Scenario.Trace)
     (reason : SelectionReason)
     (explored : ExploredCounts)
-    (knownGaps : KnownGapSet) : ExperimentSpec :=
+    (knownGaps : KnownGapSet) : Plan :=
   let actions := trace.trace.steps.map fun step => step.selectedAction
   let outcomes := trace.trace.steps.map fun step => step.outcome
   let states := trace.trace.steps.map fun step => step.state
@@ -297,7 +297,7 @@ def artifactOfSelectionWithKnownGaps
     observations := step.facts
   }
   let provenance := artifactProvenance query
-  let planWithoutChecksum : DrivePlan := {
+  let planWithoutChecksum : Plan.Steps := {
     formatVersion := "umpire-drive-plan/v2"
     artifactChecksum := drivePlanChecksumOf ""
     queryDefinitionId := query.id
@@ -337,9 +337,9 @@ def artifactOfSelectionWithKnownGaps
   let properties := query.form.properties.map propertyReference |>.mergeSort propertyLe
   let observationRequirementDefinitionIds := canonicalIds
     (query.form.properties.flatMap propertyObservationRequirements)
-  let specWithoutChecksum : ExperimentSpec := {
+  let specWithoutChecksum : Plan := {
     formatVersion := "umpire-experiment/v2"
-    artifactChecksum := experimentSpecChecksumOf ""
+    artifactChecksum := planChecksumOf ""
     queryBehaviorFingerprint := query.behaviorFingerprint
     plan
     properties
@@ -358,7 +358,7 @@ def artifactOfSelection
     (query : CheckedQuery LawStatement)
     (trace : Scenario.Trace)
     (reason : SelectionReason)
-    (explored : ExploredCounts) : Except KnownGapError ExperimentSpec := do
+    (explored : ExploredCounts) : Except KnownGapError Plan := do
   let knownGaps ← composeSearchKnownGaps query
   pure (ArtifactPlanning.Internal.artifactOfSelectionWithKnownGaps
     query trace reason explored knownGaps)
