@@ -53,10 +53,45 @@ Also done earlier: **.1** the `rule_events` Contract horizon, **.2** the `Inject
 returning the recorder close error, **.3** worker stop/resume in the Driver, **.7** `DeriveProfile`
 with the hand-written fixture Profiles as oracles.
 
-**Five tasks remain, and every one is blocked on the same thing.** The completion review reads
-NEEDS_WORK, but it flagged no untracked work — each gap maps to an already-blocked task: R1's scoped
-route (.14 then .4), R4's fault Case and R3's Lean `rule_events` Case (.8), and R7's spec rules and
-documentation (.9, behind .8). Task .5 stays blocked as the superseded record of why R2 was split.
+**The scoped route, the fault Case and R7 have since landed.** Four more tasks shipped after that
+completion review, and none of them was the environment problem the earlier escalations claimed.
+
+**.14** added the missing evidence path both R1 and fn-77 were stuck behind: `ProjectionTarget`
+gained a `ScopedEvidenceProjection` variant whose guarded rules lift a recorded value into the
+declared `ScopedEvidence` Observation a scoped capability decodes. It also closed the
+vacuous-satisfaction hole on both sides — a capability that admitted no evidence now answers
+unresolved rather than reading silence as the empty-obligation satisfaction a total model trace has
+— and routed the typed-nexus Case's bounded-response clause through it, satisfying it live. fn-77's
+Known Gap `bounded-completion-is-model-only` is therefore gone, replaced by
+`completion-identity-is-unrecorded`, which names what history still does not say: a completed Nexus
+event records no operation identity, so the operation key is the scheduled event it references.
+
+**.4** then routed the shipped async-nexus Case through the same path. Its Contract now carries no
+monitor rule at all; each `require` clause becomes one operation-scoped bounded-response clause
+placed by the Action order the Behavior fixes, and `Umpire.Case.Scoped.lower` certifies the
+correspondence. The Case is satisfied live in both environments, and a history with no completion is
+now inconclusive rather than green — the discriminating power the old hand-written rule had, without
+the hand-written rule.
+
+**.8** delivered R4 end to end and R3's checked-in Case: a Producer-neutral fault Case stops the SDK
+worker of its own activation queue before starting the workflow, resumes it after, and requires both
+the ordered `FAULT_INJECTED` events and a workflow that completed anyway. Its liveness rule carries
+the `rule_events` horizon, so a slow host cannot turn a healthy outage into a violated verdict.
+`FaultIntentDeclaration.lower` resolves the open signature question: the declaration's capability
+names the outage through a closed version-one vocabulary, and the placement — which the Space
+language has no Program to express — arrives separately. Two acceptance bullets are recorded as
+deferred in the task rather than dropped: a live resume-timeout case, which no test can reach while
+the live environment supplies the real SDK worker factory, and the "same queue" concurrent Run,
+which runs on a different queue because a pooled peer worker on the same physical queue keeps
+polling through the outage.
+
+**.9** reconciled the documents this spec falsified and drafted three rules for human approval under
+GOV-02: **EVD-20** (Driver-realized faults), **EVD-21** (horizon units), and **AUT-09**
+(macro-derived finite domains count as author-provided). None is approved yet.
+
+**One task remains, and it is not work.** Task .5 stays blocked as the superseded record of why R2
+was split into .10–.13. fn-80 R4 owns the vision's "inject one fault" acceptance criterion, and that
+criterion is now met by a Case that runs live.
 
 **Task .4, the early proof point, is blocked — and the finding matters beyond this spec.** R1 wants
 the shipped async-nexus Case to carry `contract.scoped`, drop its hand-written correlated-history
@@ -81,9 +116,9 @@ now depends on it. **.14 has since landed and closed both halves**: the lift is 
 `ScopedEvidenceProjection` sink on `ProjectionTarget`, the typed-nexus Case runs its bounded-response
 clause live through it, and a capability that admitted no evidence now answers unresolved in both
 the Lean portable interpreter and the Go runtime. The paragraphs above describe the wall as it stood
-before that. **.15** carries R1's separable product defect, the clause-for-clause equality gate
-in `produceCompletionCase` that turns a model edit into a lowering error; it needs no evidence path
-and does not wait on .14.
+before that. **.15** carried R1's separable product defect — the clause-for-clause equality
+gate that turned a model edit into a lowering error — and needed no evidence path, so it did not
+wait on .14. The producer it edited has since been replaced wholesale by `.4`'s `produce`.
 
 Boundaries worth carrying forward: no canary Profile or production authorization (fn-70, fn-29 own
 those), no Nexus cancellation lowering (fn-79, deferred), no second fault kind, and no removal of
@@ -118,9 +153,10 @@ rejects them. The spec rewrites `UMPIRE4_SPEC.md` under GOV-02, and its task .10
 reconciliation, so it will edit this document.
 
 **Only fn-80 still blocks this spec; fn-77, fn-81, and fn-67 have all closed.** The dependency is
-byte conflict, not semantics: fn-80 tasks .4 to .8 edit `Umpire/Target`, `Umpire/Property`,
-`Umpire/Query`, `Umpire/Space`, and `Umpire/Case`, so no area of this spec can land while those are
-open. fn-81's deletion of the legacy Go trees and their Makefile blocks shrinks this spec's Go
+byte conflict, not semantics: fn-80 tasks .4 to .8 edited `Umpire/Target`, `Umpire/Property`,
+`Umpire/Query`, `Umpire/Space`, and `Umpire/Case`, so no area of this spec could land while those
+were open. All four have now shipped, and fn-80's only remaining task is the superseded `.5` record,
+so this spec's byte conflict is cleared. fn-81's deletion of the legacy Go trees and their Makefile blocks shrinks this spec's Go
 surface considerably. One seam fn-67 left deliberately for this spec to sweep: it added
 "Semantic fingerprints — the Behavior Fingerprint named above is the same value —" to reconcile a
 pre-existing loose term against the UMPIRE4_SPEC one; collapse that to a single term and delete the
@@ -174,7 +210,9 @@ leases, recovery, and publication stay outside Testpilot and Umpire.
   identity-only, never freezing the Behavior Fingerprint — and the "no overrides" claims are scoped
   to the delivered syntax. `cancellationResolves` now states that generic operation-scoped counting
   is delivered and qualified, with only its cancellation-specific use rejecting at Case production,
-  replacing a stale "proposed extension" line. The historical draft iteration is preserved intact and
+  replacing a stale "proposed extension" line. fn-80 then carried that further than fn-67 could
+  claim: the shipped async-nexus Case's Contract *is* an operation-scoped capability, so the
+  delivered success slice now qualifies the counting on the real Driver rather than beside it. The historical draft iteration is preserved intact and
   fn-79 was not resumed. Documentation only: `Nexus.lean` changed by module docstring alone, with
   every executable declaration byte-identical. Three impl-review rounds and the completion review are
   SHIP with zero gaps. Review round 1 caught a false claim that the historical `Cancellation.lean`
@@ -275,7 +313,8 @@ and bounded cleanup cancellation behavior stays in scope.
 
 **fn-70 — Scheduled canary proof of concept:** deferred by user decision; it was previously
 queued after fn-78 as the second model consumer. Resume on an explicit user request. Nothing in
-the delivery queue depends on it.
+the delivery queue depends on it. On resume it inherits fn-80's Profile derivation and its
+`BindCase`/`RunCase` helpers, so a second model consumer no longer hand-writes a `ProfileSpec`.
 
 [Spec](../.flow/specs/fn-70-scheduled-canary-proof-of-concept-as-a.md).
 Retained scope on resume: fn-78 first, with fn-68, fn-71, fn-72, and fn-73 as transitive
