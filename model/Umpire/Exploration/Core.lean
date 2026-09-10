@@ -1,5 +1,5 @@
 import Umpire.Artifact
-import Umpire.Space
+import Umpire.Variations
 
 /-! Pure checked inputs shared by bounded Experiment Space exploration policies. -/
 
@@ -18,7 +18,7 @@ def ExplorationPolicy.name : ExplorationPolicy → String
 
 /-- Unchecked inputs for one bounded selection over exactly one checked Experiment Space. -/
 structure ExplorationRequest (LawStatement : Law → Prop) where
-  space : CheckedExperimentSpace LawStatement
+  space : CheckedVariationSpace LawStatement
   policy : ExplorationPolicy
   limit : Limit
   pinned : List Plan := []

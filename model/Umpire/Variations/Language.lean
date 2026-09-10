@@ -125,7 +125,7 @@ def CoverageGoalDeclaration.seek
 }
 
 /-- One bounded authored Space over an existing checked Query. -/
-structure ExperimentSpaceDeclaration where
+structure VariationSpace where
   id : DefinitionId
   source : SourceLocation
   version : Nat := 1
@@ -324,7 +324,7 @@ def SpaceCheckContext.ofQuery
 Canonical checked Space. Its private constructor guarantees that axes, choices, faults, goals,
 references, bounds, point count, metadata, and Behavior Fingerprint were validated together.
 -/
-structure CheckedExperimentSpace (LawStatement : Law → Prop) where
+structure CheckedVariationSpace (LawStatement : Law → Prop) where
   private mk ::
   id : DefinitionId
   source : SourceLocation
@@ -339,7 +339,7 @@ structure CheckedExperimentSpace (LawStatement : Law → Prop) where
   canonicalMetadata : String
   behaviorFingerprint : BehaviorFingerprint
 
-instance : BEq (CheckedExperimentSpace LawStatement) where
+instance : BEq (CheckedVariationSpace LawStatement) where
   beq left right := left.canonicalMetadata == right.canonicalMetadata &&
     left.behaviorFingerprint == right.behaviorFingerprint
 
@@ -583,17 +583,17 @@ private def spaceSemanticJson
     ",\"pointCount\":" ++ toString pointCount ++ "}"
 
 /-- Canonical source-backed metadata of a checked Space. -/
-def canonicalExperimentSpaceJson (space : CheckedExperimentSpace LawStatement) : String :=
+def canonicalVariationSpaceJson (space : CheckedVariationSpace LawStatement) : String :=
   space.canonicalMetadata
 
-private def allDeclarationIds (declaration : ExperimentSpaceDeclaration) : List DefinitionId :=
+private def allDeclarationIds (declaration : VariationSpace) : List DefinitionId :=
   [declaration.id] ++ declaration.axes.flatMap (fun axis =>
     [axis.id] ++ axis.choices.map ChoiceDeclaration.id) ++
     declaration.faults.map FaultIntentDeclaration.id ++
     declaration.coverageGoals.map CoverageGoalDeclaration.id
 
 private def checkPointCount
-    (declaration : ExperimentSpaceDeclaration)
+    (declaration : VariationSpace)
     (axes : List VariationAxisDeclaration)
     (limits : SpaceLimits) : Except SpaceError Nat := do
   let mut count := 1
@@ -798,7 +798,7 @@ private def checkFault
   pure { checked with canonicalMetadata := canonicalFaultJson checked }
 
 private def validateFaultIncompatibilities
-    (owner : ExperimentSpaceDeclaration)
+    (owner : VariationSpace)
     (faults : List CheckedFaultIntent) : Except SpaceError Unit := do
   for fault in faults do
     for incompatibleId in fault.incompatibleWith do
@@ -811,7 +811,7 @@ private def validateFaultIncompatibilities
           (fault.id.value ++ "<->" ++ incompatible.id.value) [fault.id, incompatible.id])
 
 private def validateSelections
-    (owner : ExperimentSpaceDeclaration)
+    (owner : VariationSpace)
     (axes : List CheckedVariationAxis)
     (faults : List CheckedFaultIntent) : Except SpaceError Unit := do
   for fault in faults do
@@ -927,10 +927,10 @@ private def checkGoal
   }
   pure { checked with canonicalMetadata := canonicalGoalJson checked }
 
-private def checkExperimentSpaceRaw
+private def checkVariationSpaceRaw
     (context : SpaceCheckContext LawStatement)
-    (declaration : ExperimentSpaceDeclaration) :
-    Except SpaceError (CheckedExperimentSpace LawStatement) := do
+    (declaration : VariationSpace) :
+    Except SpaceError (CheckedVariationSpace LawStatement) := do
   let limits := SpaceLimits.v1
   requireDefinitionId declaration.id declaration.source declaration.id
   let axes := declaration.axes.mergeSort axisLe
@@ -991,19 +991,19 @@ private def checkExperimentSpaceRaw
   }
 
 /-- Check one complete finite Space without enumerating its Cartesian assignments. -/
-def checkExperimentSpace
+def checkVariationSpace
     (context : SpaceCheckContext LawStatement)
-    (declaration : ExperimentSpaceDeclaration) :
-    Except SpaceError (CheckedExperimentSpace LawStatement) := do
-  let checked ← checkExperimentSpaceRaw context declaration
+    (declaration : VariationSpace) :
+    Except SpaceError (CheckedVariationSpace LawStatement) := do
+  let checked ← checkVariationSpaceRaw context declaration
   pure { checked with baseQuery := context.baseQuery }
 
 /-- A successfully checked Space retains the exact Query supplied by its check context. -/
-theorem checkExperimentSpace_baseQuery
-    (resultEq : checkExperimentSpace context declaration = .ok checked) :
+theorem checkVariationSpace_baseQuery
+    (resultEq : checkVariationSpace context declaration = .ok checked) :
     checked.baseQuery = context.baseQuery := by
-  unfold checkExperimentSpace at resultEq
-  cases rawEq : checkExperimentSpaceRaw context declaration with
+  unfold checkVariationSpace at resultEq
+  cases rawEq : checkVariationSpaceRaw context declaration with
   | error error =>
       rw [rawEq] at resultEq
       change Except.error error = Except.ok checked at resultEq

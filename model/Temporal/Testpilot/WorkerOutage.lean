@@ -1,6 +1,6 @@
 import Temporal.Testpilot.CaseSupport
 import Umpire.Case.Compiler
-import Umpire.Space.Lowering
+import Umpire.Variations.Lowering
 
 /-!
 # A deliberate worker outage, end to end

@@ -1,8 +1,8 @@
-import Umpire.Space.Tests.Fixtures
+import Umpire.Variations.Tests.Fixtures
 
 /-! Exact v1 bounds, reference closure, effect conflicts, and canonical error checks. -/
 
-namespace Umpire.SpaceTests
+namespace Umpire.VariationsTests
 
 open Umpire
 
@@ -61,14 +61,14 @@ example : checked.pointCount = 4 ∧
       [delayGoalId, semanticGoalId, propertyGoalId, stateGoalId] := by
   native_decide
 
-def reordered : ExperimentSpaceDeclaration := {
+def reordered : VariationSpace := {
   declaration with
   axes := declaration.axes.reverse
   faults := declaration.faults.reverse
   coverageGoals := declaration.coverageGoals.reverse
 }
 
-def deeplyReordered : ExperimentSpaceDeclaration := {
+def deeplyReordered : VariationSpace := {
   declaration with
   axes := (declaration.axes.map fun axis => { axis with choices := axis.choices.reverse }).reverse
   faults := (declaration.faults.map fun fault => {
@@ -77,23 +77,23 @@ def deeplyReordered : ExperimentSpaceDeclaration := {
   coverageGoals := declaration.coverageGoals.reverse
 }
 
-example : (checkExperimentSpace context reordered).toOption.map canonicalExperimentSpaceJson =
-      checkedResult.toOption.map canonicalExperimentSpaceJson ∧
-    (checkExperimentSpace context reordered).toOption.map CheckedExperimentSpace.behaviorFingerprint =
-      checkedResult.toOption.map CheckedExperimentSpace.behaviorFingerprint := by
+example : (checkVariationSpace context reordered).toOption.map canonicalVariationSpaceJson =
+      checkedResult.toOption.map canonicalVariationSpaceJson ∧
+    (checkVariationSpace context reordered).toOption.map CheckedVariationSpace.behaviorFingerprint =
+      checkedResult.toOption.map CheckedVariationSpace.behaviorFingerprint := by
   native_decide
 
-example : (checkExperimentSpace context deeplyReordered).toOption.map canonicalExperimentSpaceJson =
-      checkedResult.toOption.map canonicalExperimentSpaceJson ∧
-    (checkExperimentSpace context deeplyReordered).toOption.map
-      CheckedExperimentSpace.behaviorFingerprint =
-      checkedResult.toOption.map CheckedExperimentSpace.behaviorFingerprint ∧
-    (checkExperimentSpace context deeplyReordered).toOption.any fun candidate =>
+example : (checkVariationSpace context deeplyReordered).toOption.map canonicalVariationSpaceJson =
+      checkedResult.toOption.map canonicalVariationSpaceJson ∧
+    (checkVariationSpace context deeplyReordered).toOption.map
+      CheckedVariationSpace.behaviorFingerprint =
+      checkedResult.toOption.map CheckedVariationSpace.behaviorFingerprint ∧
+    (checkVariationSpace context deeplyReordered).toOption.any fun candidate =>
       candidate == checked := by
   native_decide
 
-def checkedError (candidate : ExperimentSpaceDeclaration) : Option SpaceErrorKind :=
-  errorKindOf (checkExperimentSpace context candidate)
+def checkedError (candidate : VariationSpace) : Option SpaceErrorKind :=
+  errorKindOf (checkVariationSpace context candidate)
 
 def generatedChoice (axisIndex choiceIndex : Nat) : ChoiceDeclaration := {
   id := id ("space.test.choice.generated-" ++ toString axisIndex ++ "-" ++ toString choiceIndex)
@@ -109,7 +109,7 @@ def generatedAxis (axisIndex choiceCount : Nat) : VariationAxisDeclaration := {
   choices := (List.range choiceCount).map (generatedChoice axisIndex)
 }
 
-def pointOverflowDeclaration : ExperimentSpaceDeclaration := {
+def pointOverflowDeclaration : VariationSpace := {
   declaration with
   axes := (List.range 5).map fun index => generatedAxis index 4
 }
@@ -124,11 +124,11 @@ def duplicateInvalidLongAxis : VariationAxisDeclaration := {
   generatedAxis 91 17 with id := duplicateInvalidAxisId
 }
 
-def duplicateInvalidAxes : ExperimentSpaceDeclaration := {
+def duplicateInvalidAxes : VariationSpace := {
   declaration with axes := [duplicateInvalidShortAxis, duplicateInvalidLongAxis]
 }
 
-def reversedDuplicateInvalidAxes : ExperimentSpaceDeclaration := {
+def reversedDuplicateInvalidAxes : VariationSpace := {
   duplicateInvalidAxes with axes := duplicateInvalidAxes.axes.reverse
 }
 
@@ -158,8 +158,8 @@ example : [
   native_decide
 
 example : checkedError duplicateInvalidAxes = some .duplicateDefinitionId ∧
-    canonicalErrorOf (checkExperimentSpace context duplicateInvalidAxes) =
-      canonicalErrorOf (checkExperimentSpace context reversedDuplicateInvalidAxes) := by
+    canonicalErrorOf (checkVariationSpace context duplicateInvalidAxes) =
+      canonicalErrorOf (checkVariationSpace context reversedDuplicateInvalidAxes) := by
   native_decide
 
 def caseCollidingAxis : VariationAxisDeclaration := {
@@ -192,7 +192,7 @@ def stateAxisWith (choices : List ChoiceDeclaration) : VariationAxisDeclaration 
   stateAxis with choices
 }
 
-def withStateAxis (axis : VariationAxisDeclaration) : ExperimentSpaceDeclaration := {
+def withStateAxis (axis : VariationAxisDeclaration) : VariationSpace := {
   declaration with axes := [axis, faultAxis]
 }
 
@@ -244,9 +244,9 @@ def outcomeAxis : VariationAxisDeclaration := {
 }
 
 def outcomeRoleError : Option SpaceErrorKind :=
-  errorKindOf (checkExperimentSpace outcomeContext (withStateAxis outcomeAxis))
+  errorKindOf (checkVariationSpace outcomeContext (withStateAxis outcomeAxis))
 
-def withStateBinding (value : ModelValue) : ExperimentSpaceDeclaration :=
+def withStateBinding (value : ModelValue) : VariationSpace :=
   withStateAxis (stateAxisWith [stateBaseline, { stateOff with binding := some value }])
 
 def conflictingQuery : CheckedQuery Umpire.Examples.Switch.LawStatement := {
@@ -266,7 +266,7 @@ def conflictingContext : SpaceCheckContext Umpire.Examples.Switch.LawStatement :
   .ofQuery conflictingQuery
 
 def conflictingBindingError : Option SpaceErrorKind :=
-  errorKindOf (checkExperimentSpace conflictingContext declaration)
+  errorKindOf (checkVariationSpace conflictingContext declaration)
 
 example : [
     checkedError (withStateAxis missingRoleAxis),
@@ -293,7 +293,7 @@ example : [
   ] := by
   native_decide
 
-def withFaultChoice (choice : ChoiceDeclaration) : ExperimentSpaceDeclaration := {
+def withFaultChoice (choice : ChoiceDeclaration) : VariationSpace := {
   declaration with axes := [stateAxis, { faultAxis with choices := [faultBaseline, choice] }]
 }
 
@@ -305,7 +305,7 @@ def duplicateFaultChoice : ChoiceDeclaration := {
   faultDelay with faults := [delayFaultId, delayFaultId]
 }
 
-def duplicateSelectionDeclaration : ExperimentSpaceDeclaration := {
+def duplicateSelectionDeclaration : VariationSpace := {
   declaration with
   axes := [
     { stateAxis with choices := [stateBaseline, { stateOff with faults := [delayFaultId] }] },
@@ -313,7 +313,7 @@ def duplicateSelectionDeclaration : ExperimentSpaceDeclaration := {
   ]
 }
 
-def incompatibleSelectionDeclaration : ExperimentSpaceDeclaration := {
+def incompatibleSelectionDeclaration : VariationSpace := {
   declaration with
   axes := [
     { stateAxis with choices := [stateBaseline, { stateOff with faults := [failureFaultId] }] },
@@ -341,7 +341,7 @@ def asymmetricFailureFault : FaultIntentDeclaration := {
   failureFault with incompatibleWith := []
 }
 
-def withDelayFault (fault : FaultIntentDeclaration) : ExperimentSpaceDeclaration := {
+def withDelayFault (fault : FaultIntentDeclaration) : VariationSpace := {
   declaration with faults := [fault, failureFault]
 }
 
@@ -378,7 +378,7 @@ def missingCapabilityFault : FaultIntentDeclaration := {
 }
 
 def missingCapabilityError : Option SpaceErrorKind :=
-  errorKindOf (checkExperimentSpace ghostContext (withDelayFault missingCapabilityFault))
+  errorKindOf (checkVariationSpace ghostContext (withDelayFault missingCapabilityFault))
 
 example : [
     checkedError (withFaultChoice ghostFaultChoice),
@@ -415,7 +415,7 @@ def goalWith
   minimum
 }
 
-def withGoal (goal : CoverageGoalDeclaration) : ExperimentSpaceDeclaration := {
+def withGoal (goal : CoverageGoalDeclaration) : VariationSpace := {
   declaration with coverageGoals := [goal]
 }
 
@@ -475,12 +475,12 @@ def reorderedInvalidAxis : VariationAxisDeclaration := {
   faultAxis with choices := [firstUnknownFaultChoice, secondUnknownFaultChoice]
 }
 
-def reorderedInvalidDeclaration : ExperimentSpaceDeclaration := {
+def reorderedInvalidDeclaration : VariationSpace := {
   declaration with axes := [stateAxis, reorderedInvalidAxis]
 }
 
-example : canonicalErrorOf (checkExperimentSpace context reorderedInvalidDeclaration) =
-    canonicalErrorOf (checkExperimentSpace context {
+example : canonicalErrorOf (checkVariationSpace context reorderedInvalidDeclaration) =
+    canonicalErrorOf (checkVariationSpace context {
       reorderedInvalidDeclaration with
       axes := reorderedInvalidDeclaration.axes.reverse
       coverageGoals := reorderedInvalidDeclaration.coverageGoals.reverse
@@ -488,4 +488,4 @@ example : canonicalErrorOf (checkExperimentSpace context reorderedInvalidDeclara
     }) := by
   native_decide
 
-end Umpire.SpaceTests
+end Umpire.VariationsTests

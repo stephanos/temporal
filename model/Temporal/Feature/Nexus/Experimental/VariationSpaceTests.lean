@@ -9,7 +9,7 @@ open Temporal.Feature.Nexus.Experimental.VariationSpace
 private def prepared : PreparedVariationSpace :=
   preparedResult.toOption.get (by native_decide)
 
-private def checked : CheckedExperimentSpace LawStatement := prepared.checked
+private def checked : CheckedVariationSpace LawStatement := prepared.checked
 private def metadata : CheckedSpaceMetadata := prepared.metadata
 private def specs : List Plan := prepared.specs
 private def behavior : CheckedScenario := checked.baseQuery.behavior
@@ -102,7 +102,7 @@ example : metadata.behaviorFingerprint.render =
   native_decide
 
 private def spaceErrorKindOf
-    (result : Except SpaceError (CheckedExperimentSpace LawStatement)) : Option SpaceErrorKind :=
+    (result : Except SpaceError (CheckedVariationSpace LawStatement)) : Option SpaceErrorKind :=
   match result with
   | .ok _ => none
   | .error error => some error.kind
@@ -112,32 +112,32 @@ private def duplicateEffectChoice : ChoiceDeclaration := {
   id := DefinitionId.of "temporal.nexus.basic-lifecycle.choice.start-delay-duplicate"
 }
 
-private def duplicateEffectDeclaration : ExperimentSpaceDeclaration := {
+private def duplicateEffectDeclaration : VariationSpace := {
   declaration with
   axes := [{ startFaultAxis with choices := [startDelayChoice, duplicateEffectChoice] },
     completionFaultAxis]
 }
 
-private def staleOccurrenceDeclaration : ExperimentSpaceDeclaration := {
+private def staleOccurrenceDeclaration : VariationSpace := {
   declaration with
   faults := [{ startDelayFault with occurrence := (DefinitionId.of
     "temporal.nexus.basic-lifecycle.occurrence.two-action.stale") },
     completionHandlerFailureFault]
 }
 
-private def staleCapabilityDeclaration : ExperimentSpaceDeclaration := {
+private def staleCapabilityDeclaration : VariationSpace := {
   declaration with
   faults := [{ startDelayFault with capability := (DefinitionId.of
     "temporal.nexus.basic-lifecycle.capability.stale") },
     completionHandlerFailureFault]
 }
 
-private def impossibleGoalDeclaration : ExperimentSpaceDeclaration := {
+private def impossibleGoalDeclaration : VariationSpace := {
   declaration with
   coverageGoals := [{ startDelayCoverageGoal with minimum := 3 }]
 }
 
-private def incompatibleSelectionDeclaration : ExperimentSpaceDeclaration := {
+private def incompatibleSelectionDeclaration : VariationSpace := {
   declaration with
   faults := [
     { startDelayFault with incompatibleWith := [completionHandlerFailureFaultId] },
@@ -151,7 +151,7 @@ example : [
     staleCapabilityDeclaration,
     impossibleGoalDeclaration,
     incompatibleSelectionDeclaration
-  ].map (fun candidate => spaceErrorKindOf (checkExperimentSpace context candidate)) = [
+  ].map (fun candidate => spaceErrorKindOf (checkVariationSpace context candidate)) = [
     some .duplicateChoiceEffect,
     some .unknownOccurrence,
     some .unknownCapability,

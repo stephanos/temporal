@@ -1,9 +1,9 @@
-import Umpire.Space.Language
+import Umpire.Variations.Language
 import Umpire.Examples.Switch
 
 /-! Shared checked Query closure and authored Space declarations for validation tests. -/
 
-namespace Umpire.SpaceTests
+namespace Umpire.VariationsTests
 
 open Umpire
 
@@ -84,7 +84,7 @@ def propertyGoal : CoverageGoalDeclaration :=
   CoverageGoalDeclaration.seek propertyGoalId source
     (.property Umpire.Examples.Switch.flipPropertyId) 4
 
-def declaration : ExperimentSpaceDeclaration := {
+def declaration : VariationSpace := {
   id := spaceId
   source
   baseQuery := Umpire.Examples.Switch.exactActionQuery.id
@@ -98,22 +98,22 @@ def context : SpaceCheckContext Umpire.Examples.Switch.LawStatement :=
   .ofQuery Umpire.Examples.Switch.exactActionQuery
 
 def checkedResult : Except SpaceError
-    (CheckedExperimentSpace Umpire.Examples.Switch.LawStatement) :=
-  checkExperimentSpace context declaration
+    (CheckedVariationSpace Umpire.Examples.Switch.LawStatement) :=
+  checkVariationSpace context declaration
 
-def checked : CheckedExperimentSpace Umpire.Examples.Switch.LawStatement :=
+def checked : CheckedVariationSpace Umpire.Examples.Switch.LawStatement :=
   checkedResult.toOption.get (by native_decide)
 
 def errorKindOf
-    (result : Except SpaceError (CheckedExperimentSpace LawStatement)) : Option SpaceErrorKind :=
+    (result : Except SpaceError (CheckedVariationSpace LawStatement)) : Option SpaceErrorKind :=
   match result with
   | .ok _ => none
   | .error error => some error.kind
 
 def canonicalErrorOf
-    (result : Except SpaceError (CheckedExperimentSpace LawStatement)) : Option String :=
+    (result : Except SpaceError (CheckedVariationSpace LawStatement)) : Option String :=
   match result with
   | .ok _ => none
   | .error error => some (canonicalSpaceErrorJson error)
 
-end Umpire.SpaceTests
+end Umpire.VariationsTests

@@ -59,12 +59,12 @@ example :
           result.completion == .exhausted) = true := by
   native_decide
 
-private def session : ExplorationSession :=
+private def session : CandidateCursor :=
   (startSession .exhaustive 4).toOption.get (by native_decide)
 
 private def firstStep := session.next.get (by native_decide)
 
-private def firstOutstanding : ExplorationSession := firstStep.2
+private def firstOutstanding : CandidateCursor := firstStep.2
 
 private def firstBinding := firstCandidate.plan.artifactBinding
 
@@ -81,7 +81,7 @@ example :
       firstOutstanding.next.isNone &&
       (firstOutstanding.observe [secondBinding]).isNone &&
       (firstOutstanding.observe [stale]).isNone &&
-      (afterFirst.bind ExplorationSession.next |>.any (fun step =>
+      (afterFirst.bind CandidateCursor.next |>.any (fun step =>
         step.1.identity == secondCandidate.identity)) = true := by
   native_decide
 

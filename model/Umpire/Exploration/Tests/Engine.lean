@@ -1,5 +1,5 @@
 import Umpire.Exploration
-import Umpire.Space.Tests.Fixtures
+import Umpire.Variations.Tests.Fixtures
 
 /-! Atomic bounded Exploration through the public pure engine. -/
 
@@ -16,15 +16,15 @@ private theorem except_eq_ok_get
   | ok _ => rfl
 
 private theorem checkedSpaceResultEq :
-    SpaceTests.checkedResult = .ok SpaceTests.checked :=
-  except_eq_ok_get SpaceTests.checkedResult (by native_decide)
+    VariationsTests.checkedResult = .ok VariationsTests.checked :=
+  except_eq_ok_get VariationsTests.checkedResult (by native_decide)
 
 private theorem checkedSpaceTargetEq :
-    SpaceTests.checked.baseQuery.target = Umpire.Examples.Switch.target := by
+    VariationsTests.checked.baseQuery.target = Umpire.Examples.Switch.target := by
   exact congrArg (fun query => query.target)
-    (checkExperimentSpace_baseQuery checkedSpaceResultEq)
+    (checkVariationSpace_baseQuery checkedSpaceResultEq)
 
-def engineKernel : SearchView SpaceTests.checked.baseQuery.target :=
+def engineKernel : SearchView VariationsTests.checked.baseQuery.target :=
   Eq.mpr (congrArg SearchView checkedSpaceTargetEq)
     Umpire.Examples.Switch.incrementalKernel
 
@@ -33,7 +33,7 @@ def engineRequest
     (value : Nat)
     (pinned : List Plan := []) :
     ExplorationRequest Umpire.Examples.Switch.LawStatement := {
-  space := SpaceTests.checked
+  space := VariationsTests.checked
   policy
   limit := { value, unit := .plans }
   pinned

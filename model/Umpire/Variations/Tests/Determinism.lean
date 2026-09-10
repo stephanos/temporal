@@ -1,9 +1,9 @@
-import Umpire.Space.Compiler
-import Umpire.Space.Tests.Fixtures
+import Umpire.Variations.Compiler
+import Umpire.Variations.Tests.Fixtures
 
 /-! Equivalent authoring order produces identical lowered point and Artifact bytes. -/
 
-namespace Umpire.SpaceTests
+namespace Umpire.VariationsTests
 
 open Umpire
 
@@ -21,13 +21,13 @@ private theorem originalResultEq : checkedResult = .ok checked :=
 private theorem originalTargetEq :
     checked.baseQuery.target = Umpire.Examples.Switch.target :=
   congrArg (fun query => query.target) <|
-    checkExperimentSpace_baseQuery originalResultEq
+    checkVariationSpace_baseQuery originalResultEq
 
 private def originalKernel : SearchView checked.baseQuery.target :=
   Eq.mpr (congrArg SearchView originalTargetEq)
     Umpire.Examples.Switch.incrementalKernel
 
-private def reorderedDeclaration : ExperimentSpaceDeclaration := {
+private def reorderedDeclaration : VariationSpace := {
   declaration with
   axes := [
     { faultAxis with choices := faultAxis.choices.reverse },
@@ -37,7 +37,7 @@ private def reorderedDeclaration : ExperimentSpaceDeclaration := {
   coverageGoals := declaration.coverageGoals.reverse
 }
 
-private def reorderedResult := checkExperimentSpace context reorderedDeclaration
+private def reorderedResult := checkVariationSpace context reorderedDeclaration
 
 private def reordered := reorderedResult.toOption.get (by native_decide)
 
@@ -47,7 +47,7 @@ private theorem reorderedResultEq : reorderedResult = .ok reordered :=
 private theorem reorderedTargetEq :
     reordered.baseQuery.target = Umpire.Examples.Switch.target :=
   congrArg (fun query => query.target) <|
-    checkExperimentSpace_baseQuery reorderedResultEq
+    checkVariationSpace_baseQuery reorderedResultEq
 
 private def reorderedKernel : SearchView reordered.baseQuery.target :=
   Eq.mpr (congrArg SearchView reorderedTargetEq)
@@ -67,4 +67,4 @@ example :
       compiledProjection (compileBatch reordered reorderedKernel) := by
   native_decide
 
-end Umpire.SpaceTests
+end Umpire.VariationsTests
