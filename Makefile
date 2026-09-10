@@ -755,7 +755,7 @@ umpire-check-regression: umpire-check-lean-api umpire-check-goldens umpire-check
 			echo "Umpire Model facade does not expose its package" >&2; \
 			exit 1; \
 		}; \
-		for package in Property Scenario; do \
+		for package in Property Scenario Query; do \
 			test -f "model/Umpire/$$package/Check.lean" || { \
 				echo "missing physical Umpire $$package package" >&2; \
 				exit 1; \
@@ -765,14 +765,6 @@ umpire-check-regression: umpire-check-lean-api umpire-check-goldens umpire-check
 				exit 1; \
 			}; \
 		done; \
-		test -f model/Umpire/Query/Language.lean || { \
-			echo "missing physical Umpire Query package" >&2; \
-			exit 1; \
-		}; \
-		grep -qx 'import Umpire.Query.Language' model/Umpire/Query.lean || { \
-			echo "Umpire Query facade does not expose its package" >&2; \
-			exit 1; \
-		}; \
 		test -f model/Umpire/Search/Branches.lean || { \
 			echo "missing physical Umpire Search package" >&2; \
 			exit 1; \

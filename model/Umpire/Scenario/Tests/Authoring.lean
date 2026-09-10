@@ -142,8 +142,8 @@ private def planningContext : ScenarioCheckContext := {
 
 #guard (impossible.check planningContext).isOk
 #guard ((impossible.check planningContext).toOption.bind fun behavior =>
-  (search { SearchTests.checkedQuery 0 (.witness SearchTests.property) .exhaustive
-      (selectedBehavior := behavior) with limits := QueryLimits.bounded 2 2 20 }
+  (search { SearchTests.fixtureQuery 0 (.find SearchTests.property) .exhaustive
+      (selectedBehavior := behavior) with limits := Limits.bounded 2 2 20 }
     (SearchTests.incrementalKernel 0)).toOption.map
       (·.result.metadata.validity.satisfiability)) == some .impossible
 

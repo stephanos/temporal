@@ -74,17 +74,17 @@ theorem constructorDeclarationsRetainPublishedIdentities : [
       AsyncStart.authoredProperty.clauses.map PropertyClause.id,
       AsyncStart.authoredScenario.id,
       AsyncStart.authoredScenario.requiredOccurrences.map Scenario.Step.id,
-      AsyncStart.queryDeclaration.id),
+      AsyncStart.authoredQuery.id),
     (Cancellation.authoredProperty.id,
       Cancellation.authoredProperty.clauses.map PropertyClause.id,
       Cancellation.authoredScenario.id,
       Cancellation.authoredScenario.requiredOccurrences.map Scenario.Step.id,
-      Cancellation.queryDeclaration.id),
+      Cancellation.authoredQuery.id),
     (SuccessfulCompletion.authoredProperty.id,
       SuccessfulCompletion.authoredProperty.clauses.map PropertyClause.id,
       SuccessfulCompletion.authoredScenario.id,
       SuccessfulCompletion.authoredScenario.requiredOccurrences.map Scenario.Step.id,
-      SuccessfulCompletion.queryDeclaration.id)
+      SuccessfulCompletion.authoredQuery.id)
   ] = [
     (AsyncStart.propertyId, [
         Internal.id "temporal.nexus.basic-lifecycle.property.async-start.state",
@@ -106,8 +106,8 @@ theorem constructorDeclarationsRetainPublishedIdentities : [
   native_decide
 
 theorem rawQueryDeclarationCompatibility :
-    Internal.queryDeclaration AsyncStart.queryId AsyncStart.property AsyncStart.behavior =
-      AsyncStart.queryDeclaration := by
+    Internal.authoredQuery AsyncStart.queryId AsyncStart.property AsyncStart.behavior =
+      AsyncStart.authoredQuery := by
   native_decide
 
 private def propertyErrorKind (spec : Property) : Option PropertyErrorKind :=
@@ -119,8 +119,8 @@ private def scenarioStatus (spec : Scenario) : Option ScenarioStatus := do
   let checked ← spec.check (.ofTarget target) |>.toOption
   pure checked.spaceStatus
 
-private def queryErrorKind (spec : QuerySpec) : Option QueryErrorKind :=
-  match spec.check target with
+private def queryErrorKind (declaration : Query) : Option QueryErrorKind :=
+  match Query.check (.ofTarget target) declaration with
   | .error error => some error.kind
   | .ok _ => none
 
@@ -156,17 +156,17 @@ theorem contradictoryOperationBehaviorRemainsUnsatisfiable :
 
 theorem operationQueryTargetMismatchRetainsTypedFailure :
     queryErrorKind {
-      AsyncStart.querySpec with
-      key := "async-start-target-mismatch"
+      AsyncStart.authoredQuery with
+      id := Internal.family.id "query" "async-start-target-mismatch"
       target := Internal.id "temporal.nexus.basic-lifecycle.target.other"
     } = some .targetMismatch := by
   native_decide
 
 theorem invalidOperationLimitsRetainTypedFailure :
     queryErrorKind {
-      AsyncStart.querySpec with
-      key := "async-start-invalid-limits"
-      limits := { Internal.queryLimitSpec with transitions := 0 }
+      AsyncStart.authoredQuery with
+      id := Internal.family.id "query" "async-start-invalid-limits"
+      limits := { Internal.queryLimits with steps := { value := 0, unit := .steps } }
     } = some .invalidLimit := by
   native_decide
 
@@ -189,7 +189,7 @@ error: type mismatch
 -/
 #guard_msgs (error, substring := true) in
 def omittedQueryEvidence : CheckedQuery LawStatement :=
-  AsyncStart.querySpec.checked target
+  Query.checked target AsyncStart.authoredQuery
 
 /-- Every live ordinary Nexus consumer of the shared Lifecycle target. -/
 def compatibilityConsumers : List String := [
@@ -243,7 +243,7 @@ theorem checkedQueryPlannerAdmissionsPreserveFailures :
   native_decide
 
 theorem queryIdentitiesAndFingerprintsRemainShared :
-  let domainFingerprints := (CheckedQueryModel.ofTarget target).completeness.map fun evidence =>
+  let domainFingerprints := (ModelCompleteness.ofTarget target).completeness.map fun evidence =>
     (evidence.roleDomainFingerprint, evidence.actionDomainFingerprint)
   [
     AsyncStart.query,

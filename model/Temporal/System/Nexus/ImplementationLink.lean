@@ -449,7 +449,8 @@ structure Checked where
   private maxOperations : Nat
 
 private def declaration (model : Temporal.Feature.Nexus2.Race.ModelVocabulary)
-    (limits : Limits) : Declaration ModelValue ModelValue ModelValue ModelValue := {
+    (limits : Observation.Projection.Limits) :
+    Declaration ModelValue ModelValue ModelValue ModelValue := {
   id := Evidence.field "cancellation-projection"
   scopeFields := [Evidence.field "execution", Evidence.field "namespace",
     Evidence.field "workflow", Evidence.field "run"]
@@ -479,7 +480,7 @@ private def declaration (model : Temporal.Feature.Nexus2.Race.ModelVocabulary)
 }
 
 /-- Check the evidence mapping against the reused Feature authority; no Query witness is an input. -/
-def check (limits : Limits) : Except Error Checked := do
+def check (limits : Observation.Projection.Limits) : Except Error Checked := do
   let target ← Temporal.Feature.Nexus3.Cancellation.targetResult.mapError .target
   let model ← Temporal.Feature.Nexus2.Race.modelVocabulary.mapError .vocabulary
   let plan ← Observation.Projection.check target (declaration model limits)

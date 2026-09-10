@@ -25,9 +25,9 @@ structure BranchScope where
   behaviorId : DefinitionId
   behaviorFingerprint : BehaviorFingerprint
   properties : List AnalyzedProperty
-  limits : QueryLimits
-  endpoint : QueryEndpoint := .final
-  exercise : QueryExercisePolicy := .allowVacuous
+  limits : Limits
+  ending : Query.Ending := .final
+  requireFiring : Bool := false
   deriving BEq, DecidableEq, Repr
 
 inductive BranchStatus where
@@ -68,7 +68,7 @@ structure OverlapTriggerScope where
   occurrence : JointTriggerOccurrence
   priorState : Option ModelValue
   selectedAction : Option ModelValue
-  limits : QueryLimits
+  limits : Limits
   deriving BEq, DecidableEq, Repr
 
 /-- One source-linked expectation selected at a common trigger. -/
@@ -270,7 +270,7 @@ private def observeProperty
   let input ← checkPropertyEvaluationInput property trace.trace
     |>.mapError (queryEvaluationError query property)
   let evaluation := evaluateProperty property input
-  let endpoint := evaluatePropertyEndpoint property input (query.endpoint == .«partial»)
+  let endpoint := evaluatePropertyEndpoint property input (query.ending == .«partial»)
   let observations := (analyzeCaseApplicability property input).map fun applicability =>
     { applicability with
       trace
@@ -412,7 +412,7 @@ private def prefixAt (trace : Scenario.Trace) (transitionPosition : Nat) : Scena
 }
 
 private def triggerScopeOf
-    (limits : QueryLimits)
+    (limits : Limits)
     (trace : Scenario.Trace)
     (observation : JointObligationObservation) : OverlapTriggerScope := {
   modeledPrefix := prefixAt trace observation.transitionPosition
@@ -639,8 +639,8 @@ def analyzeBranches
         behaviorFingerprint := property.behaviorFingerprint
       }
       limits := query.limits
-      endpoint := query.endpoint
-      exercise := query.exercise
+      ending := query.ending
+      requireFiring := query.requireFiring
     }
     status := statusOf traversed
     findings := observations.flatMap findingsAt |>.mergeSort findingLe

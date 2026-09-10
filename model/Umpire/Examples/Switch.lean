@@ -516,16 +516,16 @@ def appliedTrace : Scenario.Trace :=
 def deferredTrace : Scenario.Trace :=
   Scenario.Trace.singleStep switchSetup offState flipAction deferredResult
 
-def limits : QueryLimits := QueryLimits.bounded 1 1 8
+def limits : Limits := Limits.bounded 1 1 8
 
 def shortestPolicy : PlannerPolicy := PlannerPolicy.shortest
 
 def queryContext : QueryCheckContext LawStatement := .ofTarget target
 
-private def queryDeclaration
+private def authoredQuery
     (queryId : DefinitionId)
-    (form : QueryForm)
-    (behavior : CheckedScenario) : QueryDeclaration := {
+    (form : Query.Form)
+    (behavior : CheckedScenario) : Query := {
   id := queryId
   source
   target := target.id
@@ -536,16 +536,16 @@ private def queryDeclaration
 }
 
 def exploratoryQueryResult : Except QueryError (CheckedQuery LawStatement) :=
-  checkQuery queryContext
-    (queryDeclaration exploratoryQueryId (.select [flipProperty]) exploratoryBehavior)
+  Query.check queryContext
+    (authoredQuery exploratoryQueryId (.pick [flipProperty]) exploratoryBehavior)
 
 def exactActionQueryResult : Except QueryError (CheckedQuery LawStatement) :=
-  checkQuery queryContext
-    (queryDeclaration exactActionQueryId (.witness flipProperty) exactActionBehavior)
+  Query.check queryContext
+    (authoredQuery exactActionQueryId (.find flipProperty) exactActionBehavior)
 
 def exactTraceQueryResult : Except QueryError (CheckedQuery LawStatement) :=
-  checkQuery queryContext
-    (queryDeclaration exactTraceQueryId (.witness flipProperty) exactTraceBehavior)
+  Query.check queryContext
+    (authoredQuery exactTraceQueryId (.find flipProperty) exactTraceBehavior)
 
 private theorem exploratoryQueryResult_isSome :
     exploratoryQueryResult.toOption.isSome = true := by native_decide
@@ -557,18 +557,18 @@ private theorem exactTraceQueryResult_isSome :
     exactTraceQueryResult.toOption.isSome = true := by native_decide
 
 def exploratoryQuery : CheckedQuery LawStatement :=
-  checkedQuery target
-    (queryDeclaration exploratoryQueryId (.select [flipProperty]) exploratoryBehavior)
+  Query.checked target
+    (authoredQuery exploratoryQueryId (.pick [flipProperty]) exploratoryBehavior)
     exploratoryQueryResult_isSome
 
 def exactActionQuery : CheckedQuery LawStatement :=
-  checkedQuery target
-    (queryDeclaration exactActionQueryId (.witness flipProperty) exactActionBehavior)
+  Query.checked target
+    (authoredQuery exactActionQueryId (.find flipProperty) exactActionBehavior)
     exactActionQueryResult_isSome
 
 def exactTraceQuery : CheckedQuery LawStatement :=
-  checkedQuery target
-    (queryDeclaration exactTraceQueryId (.witness flipProperty) exactTraceBehavior)
+  Query.checked target
+    (authoredQuery exactTraceQueryId (.find flipProperty) exactTraceBehavior)
     exactTraceQueryResult_isSome
 
 theorem stepResults_length_le_two (state action : ModelValue) :
@@ -588,13 +588,13 @@ private def incrementalKernel? : Option (SearchView exactActionQuery.target) :=
   SearchView.ofCheckedQuery? exactActionQuery
     (by
       intro evidence evidenceEq
-      simp [exactActionQuery, checkedQuery, CheckedQueryModel.ofTarget, target,
+      simp [exactActionQuery, Query.checked, ModelCompleteness.ofTarget, target,
         model, targetAuthoring, DraftModel.make, modelSpec] at evidenceEq
       cases Option.some.inj evidenceEq
       simp [finitePlanning])
     (by
       intro _ _ setup
-      simp only [exactActionQuery, checkedQuery, target, model, targetAuthoring,
+      simp only [exactActionQuery, Query.checked, target, model, targetAuthoring,
         DraftModel.make, modelSpec,
         machine, initialStates]
       split <;> simp)
@@ -604,19 +604,19 @@ private def incrementalKernel? : Option (SearchView exactActionQuery.target) :=
       · subst action
         by_cases selectedOff : state = offState
         · subst state
-          simpa [exactActionQuery, checkedQuery, target, model, targetAuthoring,
+          simpa [exactActionQuery, Query.checked, target, model, targetAuthoring,
             DraftModel.make, modelSpec,
             machine, stepResults] using appliedResult_ordered
         · by_cases selectedOn : state = onState
           · subst state
-            simpa [exactActionQuery, checkedQuery, target, model, targetAuthoring,
+            simpa [exactActionQuery, Query.checked, target, model, targetAuthoring,
               DraftModel.make, modelSpec,
               machine, stepResults, onState_ne_offState] using
               appliedFromOnResult_ordered
-          · simp [exactActionQuery, checkedQuery, target, model, targetAuthoring,
+          · simp [exactActionQuery, Query.checked, target, model, targetAuthoring,
               DraftModel.make, modelSpec,
               machine, stepResults, selectedOff, selectedOn]
-      · simp [exactActionQuery, checkedQuery, target, model, targetAuthoring,
+      · simp [exactActionQuery, Query.checked, target, model, targetAuthoring,
           DraftModel.make, modelSpec,
           machine, stepResults, selectedAction])
 

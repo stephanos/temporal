@@ -27,7 +27,7 @@ private def authoredPlanningGaps : KnownGapSet :=
   (KnownGapSet.checkCanonical [authoredPlanningGap]).toOption.get (by native_decide)
 
 private def queryWithKnownGaps (gaps : KnownGapSet) : CheckedQuery (fun _ => True) := {
-  checkedQuery 2 (.witness property) .shortest with authoredKnownGaps := gaps
+  fixtureQuery 2 (.find property) .shortest with authoredKnownGaps := gaps
 }
 
 private def conflictingPhaseGap : KnownGap := {
@@ -80,7 +80,7 @@ example :
   native_decide
 
 def witnessSpec (seed : Nat := 17) : Option Plan :=
-  (run 2 (.witness property) .shortest 10 seed false).toOption.bind PlanResult.artifact
+  (run 2 (.find property) .shortest 10 seed false).toOption.bind PlanResult.artifact
 
 private def authoredWitnessRun : Except KnownGapError PlanResult :=
   search (queryWithKnownGaps authoredPlanningGaps) (incrementalKernel 2)
@@ -89,12 +89,12 @@ private def authoredWitnessSpec : Option Plan :=
   authoredWitnessRun.toOption.bind PlanResult.artifact
 
 def incidentalWitnessSpec : Option Plan :=
-  let query := checkedQuery 2 (.witness property) .shortest 10 17 false
+  let query := fixtureQuery 2 (.find property) .shortest 10 17 false
   let incidental : CheckedQuery (fun _ => True) := {
     query with
     documentation := "changed query documentation"
     behavior := { query.behavior with documentation := "changed behavior documentation" }
-    form := .witness { property with documentation := "changed property documentation" }
+    form := .find { property with documentation := "changed property documentation" }
   }
   (search incidental (incrementalKernel 2)).toOption.bind PlanResult.artifact
 
@@ -125,7 +125,7 @@ example :
     let ordinary := witnessSpec
     let authored := authoredWitnessSpec
     authoredWitnessRun.toOption.map PlanResult.result =
-        (run 2 (.witness property) .shortest).toOption.map PlanResult.result ∧
+        (run 2 (.find property) .shortest).toOption.map PlanResult.result ∧
       authored.map (fun spec => spec.plan.knownGaps.toList) =
         some (authoredPlanningGap :: canonicalPlannerKnownGaps.toList) ∧
       authored.map (fun spec => spec.artifactChecksum) !=
@@ -152,7 +152,7 @@ def optionalBehavior : CheckedScenario := {
 
 /-! The linear extension contains every selected action, including optional occurrences. -/
 example :
-    ((run 2 (.select [property]) .shortest 10 17 false optionalBehavior).toOption.bind
+    ((run 2 (.pick [property]) .shortest 10 17 false optionalBehavior).toOption.bind
       (fun run => run.artifact.map fun spec =>
       (spec.plan.linearExtension.length,
         spec.plan.linearExtension.map PlannedOccurrence.actionDefinitionId))) =
@@ -167,7 +167,7 @@ example :
 
 /-! The empty checked-intent facade preserves ordinary planning bytes exactly. -/
 example :
-    let query := checkedQuery 2 (.witness property) .shortest 10 17 false
+    let query := fixtureQuery 2 (.find property) .shortest 10 17 false
     let withIntent := searchWithPlanRequest query (incrementalKernel 2) (.empty query)
     withIntent.toOption.bind (fun run => run.artifact.map canonicalPlanBytes) =
       witnessSpec.map canonicalPlanBytes := by

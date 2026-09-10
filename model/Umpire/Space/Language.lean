@@ -1,4 +1,4 @@
-import Umpire.Query
+import Umpire.Query.Check
 
 /-! Checked finite variation declarations over one existing Query closure. -/
 

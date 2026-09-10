@@ -7,7 +7,7 @@ namespace Umpire.SearchTests
 open Umpire
 
 def outcomeName
-    (form : QueryForm)
+    (form : Query.Form)
     (strategy : SearchStrategy)
     (withCompleteness : Bool := true) : Option String :=
   (run 2 form strategy 10 17 withCompleteness).toOption.map fun run =>
@@ -16,9 +16,9 @@ def outcomeName
 /-! Each Query form preserves its exact result semantics over the same deterministic kernel. -/
 example : [
     outcomeName (.verify property) .exhaustive,
-    outcomeName (.witness property) .shortest false,
-    outcomeName (.counterexample property) .exhaustive,
-    outcomeName (.select [property]) .breadthFirst false
+    outcomeName (.find property) .shortest false,
+    outcomeName (.findViolation property) .exhaustive,
+    outcomeName (.pick [property]) .breadthFirst false
   ] = [
     some "verified-within-limits",
     some "found",
@@ -41,8 +41,8 @@ example : (PlanningOutcome.invalid invalidError).name = "invalid" := by
 
 /-! Complete absence and exhausted effort remain distinct while retaining counts and limits. -/
 example :
-    let complete := run 0 (.counterexample property) .exhaustive
-    let exhausted := run 64 (.counterexample property) .shortest 1 17 false
+    let complete := run 0 (.findViolation property) .exhaustive
+    let exhausted := run 64 (.findViolation property) .shortest 1 17 false
     (complete.toOption.map fun run =>
       (run.result.outcome.name, run.result.metadata.completeness.established,
         run.result.metadata.completeness.limits),
@@ -77,7 +77,7 @@ def staticallyUnsatisfiableBehavior : CheckedScenario := {
 can be observed as verification. -/
 example :
     let empty := run 0 (.verify property) .exhaustive 10 17 true staticallyUnsatisfiableBehavior
-    let exhausted := run 64 (.counterexample property) .shortest 1 17 false
+    let exhausted := run 64 (.findViolation property) .shortest 1 17 false
     (empty.toOption.map fun run => (run.result.outcome.name, run.result.isVerified),
       exhausted.toOption.map fun run => (run.result.outcome.name, run.result.isVerified)) =
       (some ("unsatisfiable", false), some ("limit-reached", false)) := by

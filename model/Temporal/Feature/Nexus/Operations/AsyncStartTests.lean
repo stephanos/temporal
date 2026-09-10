@@ -24,7 +24,7 @@ theorem queryUsesLifecycleTarget : query.target = target := by
 theorem queryRetainsFiniteCompletenessEvidence : query.completeness.map (fun evidence =>
       (evidence.roleAssignments, evidence.actions,
         evidence.roleDomainFingerprint, evidence.actionDomainFingerprint)) =
-      (CheckedQueryModel.ofTarget target).completeness.map (fun evidence =>
+      (ModelCompleteness.ofTarget target).completeness.map (fun evidence =>
         (evidence.roleAssignments, evidence.actions,
           evidence.roleDomainFingerprint, evidence.actionDomainFingerprint)) ∧
     query.completeness.map (fun evidence =>

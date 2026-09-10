@@ -1,7 +1,7 @@
 import Temporal.Feature.Nexus.Lifecycle
 import Temporal.Shared
 import Umpire.Property.Elab
-import Umpire.Query.Authoring
+import Umpire.Query.Elab
 
 /-! Shared declaration mechanics behind the ordinary Nexus operation walkthroughs. -/
 
@@ -20,11 +20,7 @@ def family : DefinitionFamily :=
 /-- The ordinary operation bound names each existing Query stage and converts once by record
 assembly. Source construction likewise delegates once to `Temporal.Shared.sourceLocation`; neither
 path scans declarations or invokes a checker. -/
-def queryLimitSpec : QueryLimitSpec := {
-  transitions := 1
-  selectedActions := 1
-  candidateEvaluations := 8
-}
+def queryLimits : Limits := Limits.bounded 1 1 8
 
 /-- Preserve the established observation-clause identities while reusing the shared transition
 result constructor. The shared constructor names the fact clause with a `fact` suffix, whereas
@@ -47,32 +43,24 @@ def operationRole : Scenario.Role := { id := operationRoleId, valueKind := .stat
 
 namespace Internal
 
-def queryDeclaration
+def authoredQuery
     (queryId : DefinitionId)
     (property : CheckedProperty)
-    (behavior : CheckedScenario) : QueryDeclaration := {
+    (behavior : CheckedScenario) : Query := {
   id := queryId
   source
   target := target.id
-  form := .witness property
+  form := .find property
   behavior
-  limits := queryLimitSpec.toQueryLimits
+  limits := queryLimits
   policy
 }
 
-def querySpec
+def keyedQueryDeclaration
     (key : String)
     (property : CheckedProperty)
-    (behavior : CheckedScenario) : QuerySpec := {
-  family
-  key
-  source
-  target := target.id
-  form := .witness property
-  behavior
-  limits := queryLimitSpec
-  policy
-}
+    (behavior : CheckedScenario) : Query :=
+  authoredQuery (family.id "query" key) property behavior
 
 end Internal
 

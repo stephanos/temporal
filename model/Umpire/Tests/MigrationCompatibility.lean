@@ -171,11 +171,11 @@ private def earlyTarget : QueryModel LawStatement :=
 private def relocatedTarget : QueryModel LawStatement :=
   model (authoringAt 420 19)
 
-private def exactActionDeclaration : QueryDeclaration := {
+private def exactActionDeclaration : Query := {
   id := exactActionQueryId
   source
   target := targetId
-  form := .witness flipProperty
+  form := .find flipProperty
   behavior := exactActionBehavior
   limits
   policy := shortestPolicy
@@ -183,15 +183,15 @@ private def exactActionDeclaration : QueryDeclaration := {
 
 /-! Query canonical bytes depend on stable target semantics, not elaboration layout. -/
 example : [
-    (checkQuery (.ofTarget earlyTarget) exactActionDeclaration).toOption.map
+    (Query.check (.ofTarget earlyTarget) exactActionDeclaration).toOption.map
       canonicalQueryJson,
-    (checkQuery (.ofTarget relocatedTarget) exactActionDeclaration).toOption.map
+    (Query.check (.ofTarget relocatedTarget) exactActionDeclaration).toOption.map
       canonicalQueryJson
   ] = [some (canonicalQueryJson exactActionQuery), some (canonicalQueryJson exactActionQuery)] := by
   native_decide
 
 private def earlyQueryResult : Except QueryError (CheckedQuery LawStatement) :=
-  checkQuery (.ofTarget earlyTarget) exactActionDeclaration
+  Query.check (.ofTarget earlyTarget) exactActionDeclaration
 
 private theorem earlyQueryResult_isSome : earlyQueryResult.toOption.isSome = true := by
   native_decide
@@ -200,7 +200,7 @@ private def materializeEarlyQuery
     (checked : CheckedQuery LawStatement) : CheckedQuery LawStatement := {
   checked with
   target := earlyTarget
-  completeness := (CheckedQueryModel.ofTarget earlyTarget).completeness
+  completeness := (ModelCompleteness.ofTarget earlyTarget).completeness
 }
 
 private def earlyQuery : CheckedQuery LawStatement :=
@@ -210,7 +210,7 @@ private def earlyKernel? : Option (SearchView earlyQuery.target) :=
   SearchView.ofCheckedQuery? earlyQuery
     (by
       intro evidence evidenceEq
-      simp [earlyQuery, materializeEarlyQuery, CheckedQueryModel.ofTarget, earlyTarget,
+      simp [earlyQuery, materializeEarlyQuery, ModelCompleteness.ofTarget, earlyTarget,
         model, authoringAt, DraftModel.withOccurrences, targetAuthoring,
         DraftModel.make, modelSpec] at evidenceEq
       cases Option.some.inj evidenceEq
@@ -252,7 +252,7 @@ private def earlyKernel : SearchView earlyQuery.target :=
 private def earlyRun : Except KnownGapError PlanResult := search earlyQuery earlyKernel
 
 private def relocatedQueryResult : Except QueryError (CheckedQuery LawStatement) :=
-  checkQuery (.ofTarget relocatedTarget) exactActionDeclaration
+  Query.check (.ofTarget relocatedTarget) exactActionDeclaration
 
 private theorem relocatedQueryResult_isSome :
     relocatedQueryResult.toOption.isSome = true := by
@@ -262,7 +262,7 @@ private def materializeRelocatedQuery
     (checked : CheckedQuery LawStatement) : CheckedQuery LawStatement := {
   checked with
   target := relocatedTarget
-  completeness := (CheckedQueryModel.ofTarget relocatedTarget).completeness
+  completeness := (ModelCompleteness.ofTarget relocatedTarget).completeness
 }
 
 private def relocatedQuery : CheckedQuery LawStatement :=
@@ -273,7 +273,7 @@ private def relocatedKernel? : Option (SearchView relocatedQuery.target) :=
   SearchView.ofCheckedQuery? relocatedQuery
     (by
       intro evidence evidenceEq
-      simp [relocatedQuery, materializeRelocatedQuery, CheckedQueryModel.ofTarget,
+      simp [relocatedQuery, materializeRelocatedQuery, ModelCompleteness.ofTarget,
         relocatedTarget, model, authoringAt, DraftModel.withOccurrences,
         targetAuthoring, DraftModel.make, modelSpec] at evidenceEq
       cases Option.some.inj evidenceEq
@@ -433,18 +433,13 @@ private def queryErrorKind
   | .ok _ => none
   | .error failure => some failure.kind
 
-private def invalidBounds : QueryLimits := {
-  limits with
-  behavior := {
-    limits.behavior with transitions := { value := 0, unit := .steps }
-  }
-}
+private def invalidBounds : Limits := { limits with steps := { value := 0, unit := .steps } }
 
-private def invalidBoundDeclaration : QueryDeclaration := {
+private def invalidBoundDeclaration : Query := {
   exactActionDeclaration with limits := invalidBounds
 }
 
-private def exhaustiveDeclaration : QueryDeclaration := {
+private def exhaustiveDeclaration : Query := {
   exactActionDeclaration with policy := { shortestPolicy with strategy := .exhaustive }
 }
 
@@ -470,15 +465,15 @@ private def mismatchedBehavior : CheckedScenario := {
   behaviorFingerprint := behaviorFingerprintOf "switch-behavior-target-kernel-mismatch/v1"
 }
 
-private def mismatchedDeclaration : QueryDeclaration := {
+private def mismatchedDeclaration : Query := {
   exactActionDeclaration with behavior := mismatchedBehavior
 }
 
 /-! Query owns limits, finite-completeness, and exact-trace/kernel mismatch failures. -/
 example : [
-    queryErrorKind (checkQuery (.ofTarget target) invalidBoundDeclaration),
-    queryErrorKind (checkQuery (.ofTarget noFinitePlanningTarget) exhaustiveDeclaration),
-    queryErrorKind (checkQuery (.ofTarget target) mismatchedDeclaration)
+    queryErrorKind (Query.check (.ofTarget target) invalidBoundDeclaration),
+    queryErrorKind (Query.check (.ofTarget noFinitePlanningTarget) exhaustiveDeclaration),
+    queryErrorKind (Query.check (.ofTarget target) mismatchedDeclaration)
   ] = [some .invalidLimit, some .missingFiniteCompleteness, some .targetKernelMismatch] := by
   native_decide
 

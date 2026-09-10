@@ -67,16 +67,11 @@ private def limitJson (bound : Limit) : CanonicalJson :=
     ("unit", .string bound.unit.name)
   ]
 
-private def limitsJson (limits : QueryLimits) : CanonicalJson :=
+private def limitsJson (limits : Limits) : CanonicalJson :=
   .object [
-    ("behavior", .object [
-      ("transitions", limitJson limits.behavior.transitions),
-      ("selectedActions", limitJson limits.behavior.selectedActions)
-    ]),
-    ("search", .object [
-      ("value", .natural limits.search.value),
-      ("unit", .string limits.search.unit.name)
-    ])
+    ("steps", limitJson limits.steps),
+    ("actions", limitJson limits.actions),
+    ("search", limitJson limits.search)
   ]
 
 private def exploredJson (explored : ExploredCounts) : CanonicalJson :=

@@ -2,7 +2,7 @@ import Temporal.Feature.Nexus2.Cancellation
 import Temporal.Feature.Nexus2.Race
 import Umpire.Property.Elab
 import Umpire.Scenario.Elab
-import Umpire.Query.Authoring
+import Umpire.Query.Elab
 
 /-! Constructor comparison specimens over the already admitted Nexus2 Targets. -/
 
@@ -40,17 +40,16 @@ def authoredScenario
       operationRoleId initialState])
     (occurrences := [{ key := occurrenceKey, action := action.definitionId }])
 
-def querySpec
+def authoredQuery
     (key : String)
     (property : CheckedProperty)
-    (behavior : CheckedScenario) : QuerySpec := {
-  family
-  key
+    (behavior : CheckedScenario) : Query := {
+  id := family.id "query" key
   source := Cancellation.source
   target := targetId
-  form := .witness property
+  form := .find property
   behavior
-  limits := { transitions := 1, selectedActions := 1, candidateEvaluations := 8 }
+  limits := Limits.bounded 1 1 8
   policy := .shortest
 }
 
@@ -82,7 +81,7 @@ private def checkOperation
     |>.mapError AdmissionError.invalidProperty
   let behavior ← behavior.check (.ofTarget target)
     |>.mapError AdmissionError.invalidBehavior
-  let query ← (querySpec queryKey property behavior).check target
+  let query ← Query.check (.ofTarget target) (authoredQuery queryKey property behavior)
     |>.mapError AdmissionError.invalidQuery
   pure { property, behavior, query }
 
@@ -171,16 +170,15 @@ def authoredScenario (model : ModelVocabulary) : Scenario :=
     { key := "resolution", action := model.resolveAction.definitionId }
   ])
 
-def querySpec
+def authoredQuery
     (property : CheckedProperty)
-    (behavior : CheckedScenario) : QuerySpec := {
-  family
-  key := "case-analysis"
+    (behavior : CheckedScenario) : Query := {
+  id := family.id "query" "case-analysis"
   source
   target := targetId
-  form := .select [property]
+  form := .pick [property]
   behavior
-  limits := { transitions := 2, selectedActions := 2, candidateEvaluations := 32 }
+  limits := Limits.bounded 2 2 32
   policy := .exhaustive
 }
 

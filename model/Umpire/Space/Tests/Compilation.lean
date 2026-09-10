@@ -231,11 +231,11 @@ example :
   native_decide
 
 private def exhaustedPlannerRun : Except KnownGapError PlanResult :=
-  Umpire.SearchTests.run 64 (.counterexample Umpire.SearchTests.property)
+  Umpire.SearchTests.run 64 (.findViolation Umpire.SearchTests.property)
     .shortest 1 17 false
 
 private def absentPlannerRun : Except KnownGapError PlanResult :=
-  Umpire.SearchTests.run 0 (.counterexample Umpire.SearchTests.property) .exhaustive
+  Umpire.SearchTests.run 0 (.findViolation Umpire.SearchTests.property) .exhaustive
 
 private def staticallyUnsatisfiableBehavior : CheckedScenario := {
   Umpire.SearchTests.behavior with
@@ -272,7 +272,7 @@ example : [
   native_decide
 
 private def foundPlannerRun : Except KnownGapError PlanResult :=
-  Umpire.SearchTests.run 2 (.witness Umpire.SearchTests.property) .shortest
+  Umpire.SearchTests.run 2 (.find Umpire.SearchTests.property) .shortest
 
 private def duplicateSpecRejection :=
   foundPlannerRun.toOption.bind fun run =>

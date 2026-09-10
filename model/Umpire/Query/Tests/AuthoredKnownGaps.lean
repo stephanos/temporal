@@ -16,39 +16,38 @@ private def authoredGap : KnownGap := {
 private def authoredGaps : KnownGapSet :=
   (KnownGapSet.checkCanonical [authoredGap]).toOption.get (by native_decide)
 
-private def declarationWithAuthoredGaps : QueryDeclaration := {
-  declaration (.witness Property.checked) with authoredKnownGaps := authoredGaps
+private def declarationWithAuthoredGaps : Query := {
+  declaration (.find Property.checked) with authoredKnownGaps := authoredGaps
 }
 
 private def checkedWithAuthoredGaps : CheckedQuery (fun _ => True) :=
-  (checkQuery context declarationWithAuthoredGaps).toOption.get (by native_decide)
+  (Query.check context declarationWithAuthoredGaps).toOption.get (by native_decide)
 
-private def specWithAuthoredGaps : QuerySpec := {
-  family := { root := id "query.fixture" }
-  key := "authored-gaps"
+private def keyedWithAuthoredGaps : Query := {
+  id := (DefinitionFamily.mk (id "query.fixture")).id "query" "authored-gaps"
   source
   target := target.id
-  form := .witness Property.checked
+  form := .find Property.checked
   behavior := Scenario.checked
-  limits := { transitions := 1, selectedActions := 1, candidateEvaluations := 8 }
+  limits := Limits.bounded 1 1 8
   policy := searchPolicy
   authoredKnownGaps := authoredGaps
 }
 
 example : declarationWithAuthoredGaps.authoredKnownGaps = authoredGaps ∧
     checkedWithAuthoredGaps.authoredKnownGaps = authoredGaps ∧
-    specWithAuthoredGaps.declaration.authoredKnownGaps = authoredGaps ∧
-    (specWithAuthoredGaps.check target).toOption.map CheckedQuery.authoredKnownGaps =
-      some authoredGaps := by
+    keyedWithAuthoredGaps.authoredKnownGaps = authoredGaps ∧
+    (Query.check (.ofTarget target) keyedWithAuthoredGaps).toOption.map
+        CheckedQuery.authoredKnownGaps = some authoredGaps := by
   native_decide
 
 example :
-    let emptyDeclaration := declaration (.witness Property.checked)
+    let emptyDeclaration := declaration (.find Property.checked)
     let explicitEmpty := { emptyDeclaration with authoredKnownGaps := KnownGapSet.empty }
-    let checkedMetadata (owner : QueryDeclaration) :=
-      (checkQuery context owner).toOption.map CheckedQuery.canonicalMetadata
-    let checkedFingerprint (owner : QueryDeclaration) :=
-      (checkQuery context owner).toOption.map CheckedQuery.behaviorFingerprint
+    let checkedMetadata (owner : Query) :=
+      (Query.check context owner).toOption.map CheckedQuery.canonicalMetadata
+    let checkedFingerprint (owner : Query) :=
+      (Query.check context owner).toOption.map CheckedQuery.behaviorFingerprint
     checkedMetadata emptyDeclaration = checkedMetadata explicitEmpty ∧
       checkedFingerprint emptyDeclaration = checkedFingerprint explicitEmpty ∧
       checkedMetadata declarationWithAuthoredGaps = checkedMetadata emptyDeclaration ∧

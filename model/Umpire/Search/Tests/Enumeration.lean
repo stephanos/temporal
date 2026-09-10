@@ -49,7 +49,7 @@ high-branching step pulls the root and one child, retains no pending candidates,
 materialize siblings or upgrade the exhausted prefix into completeness.
 -/
 #guard
-    let planned := run 64 (.counterexample property) .shortest 2 17 false
+    let planned := run 64 (.findViolation property) .shortest 2 17 false
     planned.toOption.map (fun run =>
     (run.result.outcome.name, run.result.metadata.completeness.established,
       run.instrumentation.generatedCandidates,
@@ -62,7 +62,7 @@ materialize siblings or upgrade the exhausted prefix into completeness.
 /-! The shared traversal preserves admitted candidate order and exhaustive completion without
 exposing its cursor representation. Ordinary planning still stops at the first selected trace. -/
 #guard
-    let query := checkedQuery 2 (.select [property]) .exhaustive 10
+    let query := fixtureQuery 2 (.pick [property]) .exhaustive 10
     let traversed := traverseBoundedCandidates query (incrementalKernel 2) [] fun traces trace =>
       .ok (.continue (traces ++ [trace]))
     let planned := search query (incrementalKernel 2)
@@ -85,7 +85,7 @@ private def replacementWithoutPlanning : QueryModel LawStatement :=
     ⟨rfl, rfl, rfl, rfl, rfl⟩ rfl rfl sameBehavior
 
 private theorem replacement_without_planning_has_no_completeness :
-    (CheckedQueryModel.ofTarget (replacementWithoutPlanning original sameBehavior)).completeness =
+    (ModelCompleteness.ofTarget (replacementWithoutPlanning original sameBehavior)).completeness =
       none := rfl
 
 /-- error: Type mismatch -/
@@ -97,7 +97,7 @@ private theorem replacement_without_planning_rejects_planner
     let replacement := replacementWithoutPlanning original sameBehavior
     let replacedQuery := { query with
       target := replacement
-      completeness := (CheckedQueryModel.ofTarget replacement).completeness }
+      completeness := (ModelCompleteness.ofTarget replacement).completeness }
     (match SearchView.ofCheckedQuery replacement.id replacedQuery with
     | .ok _ => none
     | .error error => some error.kind) = some .missingFiniteCompleteness := by
@@ -105,7 +105,7 @@ private theorem replacement_without_planning_rejects_planner
     change (!(original.id.value == original.id.value)) = false
     simp
   simp [SearchView.ofCheckedQuery, replacementWithoutPlanning,
-    CheckedModel.withEquivalentMachine, CheckedQueryModel.ofTarget, sameId]
+    CheckedModel.withEquivalentMachine, ModelCompleteness.ofTarget, sameId]
 
 variable (capability : FinitePlanningCapability original.machine.authoritativeStep)
 /-- error: Fields missing: `actionComplete` -/

@@ -291,7 +291,7 @@ private def testTargetIsolation : IO Unit := do
   ]
   requireEqual "Target-owned imports" (check defaultPolicy allowed) #[]
   let destinations := #[
-    `Umpire.Query.Language,
+    `Umpire.Query,
     `Umpire.Search,
     `Umpire.Artifact,
     `Umpire.Runtime.Driver,
@@ -322,7 +322,8 @@ private def testSemanticTargetIsolation : IO Unit := do
     `Umpire.Property.Scoped.Reference,
     `Umpire.Scenario,
     `Umpire.Scenario.Check,
-    `Umpire.Query.Language,
+    `Umpire.Query,
+    `Umpire.Query.Check,
     `Umpire.Search,
     `Umpire.Search.Types,
     `Umpire.Search.Branches,
@@ -357,8 +358,8 @@ private def testSemanticTargetIsolation : IO Unit := do
     moduleRecord `Umpire.Property.Tests.Fixtures #[`Umpire.Property.Elab],
     moduleRecord `Umpire.Scenario #[`External.Pure],
     moduleRecord `Umpire.Scenario.Elab #[`Umpire.Model, `Umpire.Scenario],
-    moduleRecord `Umpire.Query.Authoring #[`Umpire.Model],
-    moduleRecord `Umpire.Query #[`Umpire.Query.Authoring]
+    moduleRecord `Umpire.Query.Elab #[`Umpire.Model, `Umpire.Query],
+    moduleRecord `Umpire.Query #[`External.Pure]
   ]
   requireEqual "pure imports and explicit authoring remain allowed"
     (check defaultPolicy allowed) #[]

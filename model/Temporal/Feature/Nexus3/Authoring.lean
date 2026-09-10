@@ -4,7 +4,7 @@ import Umpire.Search.Branches
 import Umpire.Model.Table
 import Umpire.Property.Elab
 import Umpire.Scenario.Elab
-import Umpire.Query.Authoring
+import Umpire.Query.Elab
 
 /-!
 The Nexus3 success-slice construction and admission layer. `Syntax` emits ordinary declarations
@@ -468,7 +468,7 @@ def check [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     [DecidableEq Outcome] [DecidableEq Fact]
     (model : SuccessModel Setup State Action Outcome Fact)
     (queryKey : String)
-    (limits : QueryLimitSpec)
+    (limits : Limits)
     (propertyAuthor : ModelVocabulary → Property)
     (behaviorAuthor : ModelVocabulary → Scenario)
     (form : QueryFormKind := .selectWitness)
@@ -482,13 +482,12 @@ def check [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     |>.mapError .invalidProperty
   let behavior ← (behaviorAuthor vocabulary).check (.ofTarget target) |>.mapError .invalidBehavior
   let gaps ← completionKnownGaps |>.mapError .invalidKnownGaps
-  let querySpec : QuerySpec := {
-    family
-    key := queryKey
+  let authoredQuery : Query := {
+    id := family.id "query" queryKey
     source
     target := model.targetId
     form := match form with
-      | .selectWitness => .witness property
+      | .selectWitness => .find property
       | .verifyClaim => .verify property
     behavior
     limits
@@ -497,7 +496,7 @@ def check [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
       | .verifyClaim => .exhaustive
     authoredKnownGaps := gaps
   }
-  let query ← querySpec.check target |>.mapError .invalidQuery
+  let query ← Query.check (.ofTarget target) authoredQuery |>.mapError .invalidQuery
   let kernel ← SearchView.ofCheckedQuery target.id query |>.mapError .invalidPlanner
   let run ← search query kernel |>.mapError .invalidKnownGaps
   match form, run.result.outcome with

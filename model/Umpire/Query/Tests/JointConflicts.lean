@@ -85,11 +85,9 @@ private def jointQuery
     (properties : List CheckedProperty)
     (budget : Nat := 8)
     (selectedBehavior : CheckedScenario := behavior) : CheckedQuery (fun _ => True) :=
-  let form := QueryForm.select properties
-  { SearchTests.checkedQuery 0 form .exhaustive budget 17 true selectedBehavior with
+  let form := Query.Form.pick properties
+  { SearchTests.fixtureQuery 0 form .exhaustive budget 17 true selectedBehavior with
     form
-    quantifier := form.quantifier
-    claim := form.claim
   }
 
 private def analyze?

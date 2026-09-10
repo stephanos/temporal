@@ -1,4 +1,4 @@
-import Umpire.Query
+import Umpire.Query.Check
 import Umpire.Shared.Test
 
 /-! Shared semantic model, checked definitions, completeness evidence, and Query helpers. -/
@@ -250,7 +250,7 @@ def Scenario.checked : CheckedScenario := {
   behaviorFingerprint := behaviorFingerprintOf "behavior/v1"
 }
 
-def limits : QueryLimits := QueryLimits.bounded 1 1 10
+def limits : Limits := Limits.bounded 1 1 10
 
 def exhaustivePolicy : PlannerPolicy := PlannerPolicy.exhaustive
 
@@ -262,9 +262,9 @@ def context : QueryCheckContext (fun _ => True) :=
 def exhaustiveContext : QueryCheckContext (fun _ => True) := .ofTarget target
 
 def declaration
-    (form : QueryForm)
+    (form : Query.Form)
     (policy : PlannerPolicy := searchPolicy)
-    (behavior : CheckedScenario := Scenario.checked) : QueryDeclaration := {
+    (behavior : CheckedScenario := Scenario.checked) : Query := {
   id := id "query.declaration.fixture"
   source
   target := target.id

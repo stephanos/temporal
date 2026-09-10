@@ -16,6 +16,6 @@ namespace Umpire.ScenarioImportTests
 #check Umpire.Property
 
 #guard_msgs (error, substring := true) in
-#check Umpire.QueryDeclaration
+#check Umpire.Query
 
 end Umpire.ScenarioImportTests

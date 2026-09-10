@@ -74,17 +74,16 @@ def wrongOutcomeTrace : Scenario.Trace :=
 def wrongActionTrace : Scenario.Trace :=
   Scenario.Trace.singleStep startedSetup startedState startAction startedResult
 
-def querySpec : QuerySpec := Internal.querySpec "successful-completion" property behavior
+def authoredQuery : Query :=
+  Internal.keyedQueryDeclaration "successful-completion" property behavior
 
-def queryDeclaration : QueryDeclaration := querySpec.declaration
-
-def queryResult : Except QueryError (CheckedQuery LawStatement) := querySpec.check target
+def queryResult : Except QueryError (CheckedQuery LawStatement) := Query.check (.ofTarget target) authoredQuery
 
 private theorem queryResult_isSome : queryResult.toOption.isSome = true := by
   native_decide
 
 def query : CheckedQuery LawStatement :=
-  querySpec.checked target queryResult_isSome
+  Query.checked target authoredQuery queryResult_isSome
 
 theorem query_target : query.target = target := by
   rfl

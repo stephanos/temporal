@@ -240,23 +240,23 @@ def checkPromotedQuery
     | .ok behavior => pure behavior
     | .error error =>
         throw (promotionError .promotedBehaviorInvalid promotedBehaviorId error.kind.name)
-  let queryDeclaration : QueryDeclaration := {
+  let authoredQuery : Query := {
     id := promotedQueryId
     source
     version := baseQuery.version
     target := baseQuery.target.id
     form := match baseQuery.form with
       | .verify property => .verify property
-      | .witness property => .witness property
-      | .counterexample property => .counterexample property
-      | .select properties => .select properties
+      | .find property => .find property
+      | .findViolation property => .findViolation property
+      | .pick properties => .pick properties
     behavior
     limits := baseQuery.limits
     policy := baseQuery.policy
     authoredKnownGaps := baseQuery.authoredKnownGaps
     documentation := "Checked exact-trace Regression proposed from " ++ baseQuery.id.value ++ "."
   }
-  match checkQuery (.ofTarget baseQuery.target) queryDeclaration with
+  match Query.check (.ofTarget baseQuery.target) authoredQuery with
   | .ok query => pure query
   | .error error => throw (promotionError .promotedQueryInvalid promotedQueryId error.kind.name)
 

@@ -431,7 +431,7 @@ theorem target_started_reportSuccess_authoritative :
     step, scheduledState, startedState, startAction, cancelAction,
     reportSuccessAction, ModelValue.named]
 
-def limits : QueryLimits := QueryLimits.bounded 1 1 8
+def limits : Limits := Limits.bounded 1 1 8
 
 def policy : PlannerPolicy := PlannerPolicy.shortest
 
@@ -441,7 +441,7 @@ def queryContext : QueryCheckContext LawStatement := .ofTarget target
 def materializeQuery (checked : CheckedQuery LawStatement) : CheckedQuery LawStatement := {
   checked with
   target
-  completeness := (CheckedQueryModel.ofTarget target).completeness
+  completeness := (ModelCompleteness.ofTarget target).completeness
 }
 
 end Temporal.Feature.Nexus.Lifecycle

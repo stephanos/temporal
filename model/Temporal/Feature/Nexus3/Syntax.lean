@@ -242,8 +242,8 @@ macro "behavior" name:ident "on" modelRef:ident roleRef:ident "starts" setupRef:
 
 macro "limits" name:ident "transitions" transitionCount:num "selected_actions" actionCount:num
     "candidate_evaluations" candidateCount:num : command =>
-    `(command| def $name : QueryLimitSpec :=
-        QueryLimitSpec.mk $transitionCount $actionCount $candidateCount)
+    `(command| def $name : Limits :=
+        Limits.bounded $transitionCount $actionCount $candidateCount)
 
 macro "query" name:ident "on" modelRef:ident "witness" propertyRef:ident "in" behaviorRef:ident
     "limits" limitsRef:ident : command => do

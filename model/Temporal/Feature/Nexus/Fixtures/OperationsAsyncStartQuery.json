@@ -1,9 +1,7 @@
 {
   "id": "temporal.nexus.basic-lifecycle.query.async-start",
   "version": 1,
-  "form": "find-witness",
-  "quantifier": "existential",
-  "claim": "satisfying-witness",
+  "form": "find",
   "properties": [
     {
       "id": "temporal.nexus.basic-lifecycle.property.async-start",
@@ -15,15 +13,13 @@
     "behaviorFingerprint": "sha256:a03bbfcba396776571b733d6cb61f34ad744a4dada0ac180bb8cfed4435036d1"
   },
   "limits": {
-    "behavior": {
-      "transitions": {
-        "value": 1,
-        "unit": "steps"
-      },
-      "selectedActions": {
-        "value": 1,
-        "unit": "actions"
-      }
+    "steps": {
+      "value": 1,
+      "unit": "steps"
+    },
+    "actions": {
+      "value": 1,
+      "unit": "actions"
     },
     "search": {
       "value": 8,
@@ -32,8 +28,7 @@
   },
   "policy": {
     "strategy": "shortest",
-    "seed": 17,
-    "tieBreak": "definition-id"
+    "seed": 17
   },
   "target": {
     "id": "temporal.nexus.basic-lifecycle.target",

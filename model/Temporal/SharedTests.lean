@@ -1,12 +1,12 @@
 import Temporal.Feature.Nexus.Operations.AsyncStart
 import Temporal.Feature.Nexus.Operations.Cancellation
-import Umpire.Query.Authoring
+import Umpire.Query.Elab
 
 /-! Temporal-owned identity, source, and named Query Limit contracts.
 
 The 1×/10× specimen counts independent family construction. Its added work is one
 `Temporal.Shared.definitionFamily` plus one `DefinitionFamily.id` call per declaration. Source and
-Limit construction add one `Temporal.Shared.sourceLocation` and one `QueryLimitSpec.toQueryLimits`
+Limit construction add one `Temporal.Shared.sourceLocation` and one `Limits.bounded`
 record assembly per declaration. None traverses a declaration collection; the owning language
 checkers remain separate and their existing work is excluded from this structural count. -/
 
@@ -31,17 +31,17 @@ def foreignRootFamily : DefinitionFamily :=
 
 example : Internal.family = family ∧
     Internal.family.id "query" "async-start" = AsyncStart.queryId ∧
-    Internal.queryLimitSpec.toQueryLimits = limits := by
+    Internal.queryLimits = limits := by
   exact ⟨rfl, rfl, rfl⟩
 
 private def queryErrorOf
-    (declaration : QueryDeclaration) : Option QueryError :=
-  match checkQuery queryContext declaration with
+    (declaration : Query) : Option QueryError :=
+  match Query.check queryContext declaration with
   | .error error => some error
   | .ok _ => none
 
-private def baseDeclaration : QueryDeclaration :=
-  Internal.queryDeclaration AsyncStart.queryId AsyncStart.property AsyncStart.behavior
+private def baseDeclaration : Query :=
+  Internal.authoredQuery AsyncStart.queryId AsyncStart.property AsyncStart.behavior
 
 def malformedIdError : Option QueryError :=
   queryErrorOf { baseDeclaration with id := DefinitionId.of "temporal" }
@@ -49,7 +49,7 @@ def malformedIdError : Option QueryError :=
 def duplicateReferenceError : Option QueryError :=
   queryErrorOf {
     baseDeclaration with
-    form := .select [AsyncStart.property, AsyncStart.property]
+    form := .pick [AsyncStart.property, AsyncStart.property]
   }
 
 def crossedReferenceError : Option QueryError :=
@@ -73,38 +73,31 @@ example : malformedIdError.map (fun error =>
         [Cancellation.propertyId, target.id]) := by
   native_decide
 
-private def declarationWithLimitSpec (spec : QueryLimitSpec) : QueryDeclaration :=
-  { baseDeclaration with limits := spec.toQueryLimits }
+private def declarationWithLimits (limits : Limits) : Query :=
+  { baseDeclaration with limits }
 
-private def wrongUnitLimits : QueryLimits := {
-  Internal.queryLimitSpec.toQueryLimits with
-  behavior := {
-    Internal.queryLimitSpec.toQueryLimits.behavior with
-    transitions := { value := 1, unit := .actions }
-  }
-}
+private def wrongUnitLimits : Limits :=
+  { Internal.queryLimits with steps := { value := 1, unit := .actions } }
 
 def limitErrors : List (Option (QueryErrorKind × String × String)) := [
-  queryErrorOf (declarationWithLimitSpec {
-    Internal.queryLimitSpec with transitions := 0
-  }) |>.map fun error => (error.kind, error.sourcePath, error.offendingValue),
-  queryErrorOf (declarationWithLimitSpec {
-    Internal.queryLimitSpec with selectedActions := 0
-  }) |>.map fun error => (error.kind, error.sourcePath, error.offendingValue),
-  queryErrorOf (declarationWithLimitSpec {
-    Internal.queryLimitSpec with candidateEvaluations := 0
-  }) |>.map fun error => (error.kind, error.sourcePath, error.offendingValue),
+  queryErrorOf (declarationWithLimits
+    { Internal.queryLimits with steps := { value := 0, unit := .steps } })
+    |>.map fun error => (error.kind, error.sourcePath, error.offendingValue),
+  queryErrorOf (declarationWithLimits
+    { Internal.queryLimits with actions := { value := 0, unit := .actions } })
+    |>.map fun error => (error.kind, error.sourcePath, error.offendingValue),
+  queryErrorOf (declarationWithLimits
+    { Internal.queryLimits with search := { value := 0, unit := .search } })
+    |>.map fun error => (error.kind, error.sourcePath, error.offendingValue),
   queryErrorOf { baseDeclaration with limits := wrongUnitLimits } |>.map fun error =>
     (error.kind, error.sourcePath, error.offendingValue)
 ]
 
 example : limitErrors = [
-    some (.invalidLimit, "Temporal/Feature/Nexus/Operations.lean", "behavior.transitions=0"),
-    some (.invalidLimit, "Temporal/Feature/Nexus/Operations.lean", "behavior.selectedActions=0"),
-    some (.invalidLimit, "Temporal/Feature/Nexus/Operations.lean",
-      "search.candidateEvaluations=0"),
-    some (.unitMismatch, "Temporal/Feature/Nexus/Operations.lean",
-      "behavior.transitions:actions")
+    some (.invalidLimit, "Temporal/Feature/Nexus/Operations.lean", "steps=0"),
+    some (.invalidLimit, "Temporal/Feature/Nexus/Operations.lean", "actions=0"),
+    some (.invalidLimit, "Temporal/Feature/Nexus/Operations.lean", "search=0"),
+    some (.unitMismatch, "Temporal/Feature/Nexus/Operations.lean", "steps:actions")
   ] := by
   native_decide
 
@@ -112,15 +105,15 @@ def alternateSource : SourceLocation :=
   Temporal.Shared.sourceLocation "Temporal/SharedTests/Alternate.lean"
 
 private def orderedDeclaration (properties : List CheckedProperty) (querySource : SourceLocation) :
-    QueryDeclaration := {
+    Query := {
   baseDeclaration with
   source := querySource
-  form := .select properties
+  form := .pick properties
 }
 
 private def checkedIdentity
-    (declaration : QueryDeclaration) : Option (DefinitionId × BehaviorFingerprint × SourceLocation) :=
-  (checkQuery queryContext declaration).toOption.map fun checked =>
+    (declaration : Query) : Option (DefinitionId × BehaviorFingerprint × SourceLocation) :=
+  (Query.check queryContext declaration).toOption.map fun checked =>
     (checked.id, checked.behaviorFingerprint, checked.source)
 
 example :
@@ -147,6 +140,6 @@ example : oneIndependentIdentity.length = 1 ∧ tenIndependentIdentities.length 
 
 #print axioms Temporal.Shared.definitionFamily
 #print axioms Internal.family
-#print axioms Internal.queryLimitSpec
+#print axioms Internal.queryLimits
 
 end Temporal.SharedTests
