@@ -193,7 +193,7 @@ func TestDecodeExperimentVerifiesNestedAndOuterChecksumsIndependently(t *testing
 			[]byte("sha256:2caad30cc09a2006600917465e4f9223529afbba7acf734c3a629b0e3723ba7d"), 1), want: "nested"},
 		"outer": {encoded: bytes.Replace(canonical,
 			[]byte("sha256:9fa327849c3d0a48290bb16fec73a00be4cc1b6234862ee506a547f29b6d3b12"),
-			[]byte("sha256:d7fc19d59b8b97922df475596bc45022e97c19d051149aa0c9aabe82dff18179"), 1), want: "Plan"},
+			[]byte("sha256:d7fc19d59b8b97922df475596bc45022e97c19d051149aa0c9aabe82dff18179"), 1), want: "plan artifact checksum mismatch"},
 	}
 	for name, test := range cases {
 		t.Run(name, func(t *testing.T) {

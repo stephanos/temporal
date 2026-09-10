@@ -256,7 +256,7 @@ func DecodeExperiment(encoded []byte) (Experiment, error) {
 		return Experiment{}, err
 	}
 	if !bytes.Equal(encoded, canonical) {
-		return Experiment{}, errors.New("Plan is not canonical v2 bytes")
+		return Experiment{}, errors.New("canonical Plan JSON is not v2 bytes")
 	}
 	return document, nil
 }
@@ -308,7 +308,7 @@ func preflightFormat(encoded []byte) (string, error) {
 		return "", err
 	}
 	if first != json.Delim('{') {
-		return "", errors.New("Plan must be a JSON object")
+		return "", errors.New("canonical Plan JSON must be an object")
 	}
 	seen := make(map[string]string)
 	format := ""
@@ -319,7 +319,7 @@ func preflightFormat(encoded []byte) (string, error) {
 		}
 		key, ok := keyToken.(string)
 		if !ok {
-			return "", errors.New("Plan object key is not a string")
+			return "", errors.New("canonical Plan JSON object key is not a string")
 		}
 		folded := strings.ToLower(key)
 		if previous, duplicate := seen[folded]; duplicate {
@@ -506,7 +506,7 @@ func ValidateExperiment(document Experiment) error {
 func validateExperimentCollections(document Experiment) error {
 	if document.Properties == nil || document.ObservationRequirementDefinitionIDs == nil ||
 		document.Provenance.SourceDefinitionIDs == nil || document.Provenance.SourceLocations == nil {
-		return errors.New("Plan arrays must not be null")
+		return errors.New("canonical Plan JSON arrays must not be null")
 	}
 	if len(document.Properties) == 0 {
 		return errors.New("at least one property identity is required")
@@ -899,7 +899,7 @@ func VerifyExperimentChecksums(document Experiment) error {
 		return err
 	}
 	if outer != document.ArtifactChecksum {
-		return fmt.Errorf("Plan artifact checksum mismatch: got %q, want %q", document.ArtifactChecksum, outer)
+		return fmt.Errorf("plan artifact checksum mismatch: got %q, want %q", document.ArtifactChecksum, outer)
 	}
 	return nil
 }
