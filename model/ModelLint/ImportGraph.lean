@@ -42,7 +42,7 @@ structure Classifier where
   exact : Bool := false
   deriving Repr, BEq
 
-/-- Explicit module classes, closed namespaces, and exact reviewed import exceptions. -/
+/-- Explicit module classes and exact reviewed import exceptions. -/
 structure Policy where
   firstPartyRoots : Array Lean.Name
   classifiers : Array Classifier
