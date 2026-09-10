@@ -1,3 +1,4 @@
+import Temporal.Case.Tests.Template
 import Temporal.Feature.NexusTests
 import Temporal.Feature.Nexus.Experimental.ExplorationTests
 import Temporal.Feature.Nexus.LifecycleTests

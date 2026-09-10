@@ -1,4 +1,5 @@
 import Temporal.Testpilot
+import Temporal.Case.Template
 import Temporal.Feature.Nexus.Success.Producer
 import Umpire.Variations.Tests.Lowering
 
@@ -43,8 +44,8 @@ private def activationKind : EntrypointDefinition → Option Nat
       output.contract.map (·.rules.isEmpty) == some true &&
       (match output.contract.bind (·.«correlated») with
         | some capability =>
-            capability.evidence_observation_id == Temporal.Feature.Nexus.Success.Producer.correlatedObservation &&
-            capability.projection_id == Temporal.Feature.Nexus.Success.Producer.projectionId.value &&
+            capability.evidence_observation_id == Temporal.Case.Template.NexusOperation.correlatedObservation &&
+            capability.projection_id == Temporal.Case.Template.NexusOperation.projectionId.value &&
             capability.clauses.size == 3 &&
             -- The Behavior places the required Action one semantic transition after the
             -- operation's opening one, so that is the window each clause carries.
@@ -52,8 +53,8 @@ private def activationKind : EntrypointDefinition → Option Nat
               clause.clock == .CORRELATED_CLOCK_OPERATION_TRANSITIONS && clause.bound == 1 &&
               clause.ending == .TRACE_ENDING_PARTIAL) &&
             capability.projection_rules.map (·.kind) == #[
-              Temporal.Feature.Nexus.Success.Producer.completedEvidenceKindId.value,
-              Temporal.Feature.Nexus.Success.Producer.startedEvidenceKindId.value]
+              Temporal.Case.Template.NexusOperation.completedEvidenceKindId.value,
+              Temporal.Case.Template.NexusOperation.startedEvidenceKindId.value]
         | none => false)
   | .error _ => false
 
