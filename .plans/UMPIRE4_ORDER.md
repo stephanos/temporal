@@ -6,99 +6,7 @@ this document records delivery order. Architecture and terminology live in the
 
 ## Current work
 
-### 1. Unify the Umpire and Testpilot vocabulary — fn-82
-
-[fn-82 — Unify the Umpire and Testpilot vocabulary](../.flow/specs/fn-82-unify-the-umpire-and-testpilot.md),
-from the 2026-09-08 vocabulary investigation of `model/`, the Testpilot protocol, and the Go facade.
-The model works; its vocabulary does not. A reader who moves from a Nexus success model to the Umpire types
-behind it to the Case that comes out meets the same idea under several names and the same name for
-several ideas. Measured on the current tree:
-
-| Word | Distinct meanings | Word | Distinct meanings |
-| ---- | ----------------- | ---- | ----------------- |
-| Projection | 9 | Target | 6 types |
-| Evidence | 8 | Outcome | 5 |
-| Observation | 6 | Capability | 5 |
-
-The reverse is as common: the transition relation is a `Machine`, a `FiniteMachine`, a
-`FiniteTable`, or a `CheckedTableModel` depending on the file; something that must hold is a
-Property, Clause, Obligation, Requirement, Claim, Law, or Rule; a budget is a Limit, Bound, Ceiling,
-Horizon, or `bounds`. `Scoped` prefixes 24 proto names and 40 Lean files with nothing stating that it
-means "tracked per operation, correlated by a key". Some vocabulary is simply dead — a 142-structure
-duplicate Testpilot mirror inside `Temporal.API` with zero consumers, five `DefinitionKind`
-constructors that exist only to be rejected, and alias families whose own files say "remove this
-alias".
-
-Ten tasks are defined with a SHIP plan review. Breaking changes are accepted throughout: nothing is
-versioned, aliased, or deprecated, old names are retired, and a hardened retired-vocabulary gate
-rejects them. The spec rewrites `UMPIRE4_SPEC.md` under GOV-02, and its task .10 owns the roadmap
-reconciliation, so it will edit this document.
-
-**Nothing blocks this spec any more.** fn-77, fn-80, fn-81 and fn-67 have all closed; fn-83 and
-fn-84 queue behind it. fn-81's deletion of the legacy Go trees and their Makefile blocks shrinks this spec's Go
-surface considerably. One seam fn-67 left deliberately for this spec to sweep: it added
-"Semantic fingerprints — the Behavior Fingerprint named above is the same value —" to reconcile a
-pre-existing loose term against the UMPIRE4_SPEC one; collapse that to a single term and delete the
-parenthetical. It deliberately does not touch fn-77's five in-flight terms
-(typed operation, parameterized Action, field-level Property, occurrence, capture); the
-`Umpire.Operation` and `Umpire.Value` renames wait for fn-77 .11 and are limited to `ValueShape` to
-`Shape` plus moving `Parameterized.lean`.
-
-**Progress: all ten tasks done; the spec stays open for its completion review.** The early proof point (task .2) **held** — the
-regenerate-never-edit loop converged with no hand-edited golden. The `umpire-goldens` writer was
-built and proved to reproduce every golden byte-for-byte *before* any rename, and
-`umpire-check-goldens` was proved to fail on a deliberately stale golden before being trusted. It
-writes seventeen files, not the sixteen the plan counted: `Artifact/Tests/Fixtures/ArtifactSetV2.json`
-is a seventh in that family.
-
-Landed: **.1** hardened the retired-vocabulary gate to fail closed and named the buf breaking entry,
-proved empirically by deleting a correlated-evidence field and watching buf report it (rc 100) then pass
-with the entry (rc 0). **.2** renamed `DefinitionKind.{machine,fact}`, dropped five dead kinds, and
-introduced `Machine`/`Step` down to `Shared.SemanticData.Result`. **.3** moved the model core to
-`Umpire.Model` with `DraftModel`/`CheckedModel`/`Providers`/`Vocabulary`. **.4** merged the two
-authored Property records into one `Property` and the three authored scenario records into one
-`Scenario`, and moved the scenario module to `Umpire.Scenario`. **.5** replaced the planning module
-with `Umpire.Search` end to end, made the two artifact records `Plan`/`Plan.Steps` with
-byte-identical wire identifiers, flattened `Limits` to `steps`/`actions`/`search`, and folded the
-Query language into `Umpire.Query` with the forms `verify`/`find`/`findViolation`/`pick`. **.6**
-moved the offline evaluator to `Umpire.Evidence` and the Run-to-Model seam to
-`Umpire.Case.Projection`. **.7** renamed the protocol's `Scoped` family to `Correlated`, split
-`Umpire.Provenance` out of `Umpire/Case.lean`, replaced the Go `Capability` with `Opcode`, folded
-`outcome.proto` into `instruction.proto`, and gave the Lean-API generator a `--skip-package` filter
-so the hand-authored Testpilot Lean tree is no longer shadowed by a generated one. **.8** moved the two
-generation-numbered Nexus trees into `Nexus/Race` and `Nexus/Success`, took the R6 command keywords with a located
-error for each retired spelling, moved the Implementation Link tests under `TemporalModelTests`, and
-gave every Lake executable the `umpire-` convention. **.9** rewrote the specification glossary and
-added the resolution test that proves every dotted Lean name it cites exists. **.10** reconciled
-these documents and ran the full gate set.
-
-**The retired-name policy this spec establishes.** A retired name enters the
-retired-vocabulary gate when, and only when, it is a compound identifier, a module path, an
-executable or Make target name, a macro name, or a snake_case keyword — drafted as SEM-20. Bare
-English words are never gated, because the gate matches their lowercase form too and would reject
-ordinary prose; a retired bare keyword is rejected by the command macro that used to accept it, with
-a located error naming its replacement. Three rules needed a narrower boundary than the shared
-compound pattern, and each is pinned by a rejecting and an accepting row in the vocabulary table
-test. The generation-numbered module roots exclude a leading hyphen, so immutable Flow spec slugs
-pass. The retired renderer executable name excludes hyphens on both sides, so the Driver's three
-reservation-carrier wire headers pass. And only the Nexus `require <label>: resultingState`
-spelling is held, because `resultingState` stays live as an `Umpire.Property` field constructor.
-
-**One finding worth carrying beyond this spec: a rename can escape the Lean tree with every gate
-still green.** `.2`'s `DefinitionKind` and `.3`'s `KnownGapKind` renames never reached
-`tools/umpire/internal/artifactv2`, which kept accepting `observation`, `kernel` and
-`capability-contract`, so any artifact carrying a capability gap decoded as invalid. No gate caught
-it; only review did. `vocabulary_test.go` now reads the enum names out of the Lean source and pins
-the Go lists against them. A vocabulary change is exactly where this class of miss repeats, so the
-Go side of every rename needs checking explicitly.
-
-Boundaries: no deletion of the offline `Umpire.Evidence` evaluator, `Umpire.Artifact.RunRecord`,
-`Umpire.Variations`, `Umpire.Exploration`, or `Umpire.Promotion` — they are renamed and moved, and
-fn-22, fn-33, fn-79, and fn-80 reserve the decision to retire them. No proto field-number changes, no
-new command syntax beyond respelling what fn-80 R2 generalizes, and no Go changes outside
-`common/testing/testpilot`, `tests/testcore/testpilot`, `tests` fixture helpers, and `tools/umpire`.
-
-### 2. Author a live Case from a Model file — fn-83
+### 1. Author a live Case from a Model file — fn-83
 
 [fn-83 — Author a live Case from a Model file](../.flow/specs/fn-83-author-a-live-case-from-a-model-file.md),
 from the 2026-09-09 gap analysis of [UMPIRE4_VISION](UMPIRE4_VISION.md) against the model, the
@@ -123,9 +31,9 @@ assertion becomes the vision's white-box Known Gap), a provisioning package plus
 CLI that runs a fixture against any gRPC endpoint with exit codes 0/1/2/3, and one tutorial
 `model/AUTHORING.md` whose code blocks a Go test holds equal to the translated Model file.
 
-**Blocked on fn-82 closing.** Every file it edits is one fn-82 renames, and it is written in
-fn-82's vocabulary and module layout. fn-82's task that respells the old Nexus success tutorial
-can keep that respell minimal, because fn-83 deletes the file. Reverse dependencies recorded in
+**Unblocked: fn-82 closed on 2026-09-10** (ten of ten tasks, completion review SHIP), so the
+vocabulary and module layout this spec is written against are now in the tree. Reverse
+dependencies recorded in
 Flow: fn-33 (the generic Producer is the only path from a Search result to a Case), fn-70 and
 fn-79 (both re-anchor on the `case` block), fn-46 (new module rows), and fn-29 (consumes the
 provisioning package, not the CLI).
@@ -136,7 +44,7 @@ drafts one amendment for approval. Boundaries: no
 exploration or fuzzing (fn-33), no canary (fn-70, fn-29), no Program surface syntax, no new fault
 or instruction kinds, no clock model, no change to the typed examples, no new CI workflow.
 
-### 3. Deepen five shallow module clusters in Umpire and Testpilot — fn-84
+### 2. Deepen five shallow module clusters in Umpire and Testpilot — fn-84
 
 [fn-84 — Deepen five shallow module clusters in Umpire and Testpilot](../.flow/specs/fn-84-deepen-five-shallow-module-clusters-in.md),
 from the 2026-09-09 architecture review of `model/Umpire`, `model/Testpilot`, `common/testing/testpilot`,
@@ -156,9 +64,9 @@ cross. The spec carries exactly those five, one task each, in the order the scan
 No behavior changes; every task records an equivalence pin before it moves code and closes with
 `make umpire-check-regression`. The plan review is SHIP after one fix round.
 
-**Blocked on fn-82 and fn-83.** fn-82 renames or moves files in all five areas, including the Go
-`Opcode` rename in the facade and the worker Driver's admission half, so the spec is written in
-fn-82's vocabulary and starts after it closes. Task .5 shares its seam with fn-83's generic
+**Blocked on fn-83 only; fn-82 closed on 2026-09-10.** fn-82 renamed or moved files in all five
+areas, including the Go `Opcode` rename in the facade and the worker Driver's admission half, and
+that work has landed. Task .5 shares its seam with fn-83's generic
 `Umpire.Case.Producer`, so the spec also waits for fn-83; that holds .1 and .2 as well, which is
 accepted because fn-83 has no tasks yet to anchor a task-level edge. fn-22 and fn-33 depend on this
 spec in turn: fn-33's exploration bridge sits on the search-view transport sites .3 replaces, and
@@ -168,7 +76,7 @@ because every pair of tasks shares a documentation or test-root file.
 Boundaries: no renames beyond what the new modules need, no change to the evaluation budget
 (`CONSIDER(umpire)` on the cubic reservation stays separate), to delivery routing, to the
 generators' publication tooling, to Property evaluation combinators, or to `Umpire.Json` sealing.
-The MOD-14 restatement .2 drafts and the EVD-20 draft .1 rests on both stay pending GOV-02.
+EVD-20 is approved (2026-09-10, GOV-02); the MOD-14 restatement .2 drafts stays pending.
 Candidates the scans surfaced and the spec declined are listed in its Decision Context.
 
 ### Additional open specs
@@ -195,144 +103,6 @@ block replanning or execution.
 All runtime work uses `testpilot.Prepare(case, profile)` → `PreparedCase.Run(ctx, driver)` and the
 server/worker authority split. New scenarios remain Case data; canary policy, credentials,
 leases, recovery, and publication stay outside Testpilot and Umpire.
-
-## Completed cutovers
-
-- [fn-80](../.flow/specs/fn-80-close-the-model-to-case-seam-and-harden.md): closed the
-  model-to-Case seam. **14 of 15 tasks done** (the fifteenth is the superseded record of why R2 was
-  split) and the completion review is SHIP with all eight R-IDs met. The Nexus success Producer no longer
-  compares a checked Property clause-for-clause against one expected value: the correlated-history
-  monitor is derived from the Facts the selected witness records, so a model edit produces different
-  Case bytes instead of a lowering error, and the async-nexus Contract now carries no monitor rule at
-  all — each `require` becomes an operation-scoped bounded response placed by the Behavior's Action
-  order, live-satisfied in both environments. The command syntax was generalized from four spelling
-  whitelists to a `Lean.Elab.Command` elaborator reading each inductive's constructors, admitting N
-  states, transitions, facts and occurrences, with five located diagnostics pinned by `#guard_msgs`
-  and a genuinely second lifecycle proving it; `query ... all ...` now elaborates through
-  `QueryForm.verify`. Liveness is bounded by a `rule_events` horizon instead of the test host's
-  clock, `Run` returns the recorder close error it used to discard, and `DeriveProfile` replaced the
-  hand-written Profiles in every live test. R4's worker outage is realizable end to end, and the live
-  gate now reports six passing identities rather than four.
-
-  Two consequences worth carrying forward. **fn-77's Known Gap `bounded-completion-is-model-only` is
-  closed** — the typed-nexus Case runs its bounded-response clause live and satisfied — and the
-  vacuous-satisfaction hole behind it is fixed in both the Lean portable interpreter and the Go
-  runtime, kept in lockstep so the conformance corpus still agrees; it is replaced by the narrower
-  `completion-identity-is-unrecorded`. And **`hardLimits().MaxWorkPerEvent` was raised 100,000 ->
-  100,000,000**: the scoped stage charges a reservation cubic in accepted evidence into the per-event
-  bucket, which rejected every multi-operation scoped Case at its own first evidence event. This is
-  the Driver ceiling only — each Case still declares its own smaller value, and a test pins that a
-  plain Contract rejects at its modest one — but it papers over the cubic recomputation rather than
-  fixing it. `CONSIDER(umpire)` at `internal/verification/prepare.go:68` records the real fix: charge
-  the per-event increment, then restore a ceiling that means expression evaluation again.
-
-  Three drafted spec rules — **EVD-20, EVD-21 and AUT-09** — were written under fresh IDs and
-  approved on 2026-09-10 under GOV-02. One item still needs a human: the spec's own Architecture and
-  API Contracts blocks are stale against what shipped: `FaultIntentDeclaration.lower` takes a
-  realization argument, and a changed *witness* no longer produces different bytes but rejects when
-  inconsistent with clause placement. Two `.8` acceptance bullets are deferred with a record rather
-  than dropped: a live resume-timeout has no Driver seam to fail through, and a same-queue assertion
-  would assert the outage is not real, because a pooled peer on the same physical queue keeps polling.
-- [fn-67](../.flow/specs/fn-67-refine-simple-nexus3-authoring-draft.md): reconciled the broader
-  Nexus success authoring draft with the delivered success slice. The optional per-declaration compatibility
-  ID is now documented beside the success slice's derivation-only identity — declaration-local,
-  identity-only, never freezing the Behavior Fingerprint — and the "no overrides" claims are scoped
-  to the delivered syntax. `cancellationResolves` now states that generic operation-scoped counting
-  is delivered and qualified, with only its cancellation-specific use rejecting at Case production,
-  replacing a stale "proposed extension" line. fn-80 then carried that further than fn-67 could
-  claim: the shipped async-nexus Case's Contract *is* an operation-scoped capability, so the
-  delivered success slice now qualifies the counting on the real Driver rather than beside it. The historical draft iteration is preserved intact and
-  fn-79 was not resumed. Documentation only: `Nexus.lean` changed by module docstring alone, with
-  every executable declaration byte-identical. Three impl-review rounds and the completion review are
-  SHIP with zero gaps. Review round 1 caught a false claim that the historical `Cancellation.lean`
-  Target has no evidence adapter — `System/Nexus/ImplementationLink.lean:431-530` holds an offline
-  Lean evidence projection; the boundary is that nothing lowers it into a Testpilot evidence path,
-  operation capability, or Case.
-- [fn-81](../.flow/specs/fn-81-delete-the-pre-testpilot-go-generations.md): deleted the
-  pre-Testpilot Go generations — **1,525 files, 386,985 deletions**, tracked files 7,785 -> 6,345,
-  packages 546 -> 422, and twelve third-party modules out of `go.mod` with zero hits in the retained
-  closure. No Lean was deleted. All five tasks and the completion review are SHIP. Go lint fell
-  **1,284 -> 128** (forbidigo 209->0, revive 732->106, errcheck 220->1); 1,156 findings had lived in
-  the deleted trees and none of the remaining 128 is in a file this spec touched. `lint-model` stayed
-  byte-identical at 169 and `go vet` at its 15 inherited diagnostics, both correctly unmoved.
-  Gomad v3 is retained per [GOMAD_MILESTONES](GOMAD_MILESTONES.md) F0 — it is the only path to
-  running an unchanged Temporal functional test under a deterministic runtime — and its one edit was
-  retiring the SIM-0 parity manifest, whose every source path pointed into the deleted `tools/gomad2`.
-  Task .1's evidence ledger before any deletion is what caught two consumers the plan had not
-  predicted: three upstream test bodies in `tests/nexus_workflow_test.go` that this branch had
-  replaced with umpire2 delegations (restored from `origin/main`), and `tools/common/formal`, whose
-  only test invocation sat inside the deleted `gomad-prototype` block and now has its own target.
-  The live-test gate was redesigned rather than repinned: it selects on the `^TestTestpilot` prefix so
-  new tests join without enumeration, and adds a passing-identity floor, because an empty baseline
-  alone cannot distinguish "everything passed" from "the selector matched nothing". R5 is partial for
-  a documented reason — `make lint-code` and `planindex` were red before any fn-81 edit and the
-  spec's own Boundaries forbid the branch-wide fix. Ten `docs/superpowers/specs` records could not
-  receive their historical banners: a global gitignore excludes them from the repo, so R7 cannot
-  reach them.
-- [fn-77](../.flow/specs/fn-77-typed-operations-parameterized-actions.md): delivered typed generated
-  operation references, parameterized Actions over finite and runtime domains, and field-level
-  Properties with keyed captures, portable capture evaluation, and checked Case coverage. Qualified
-  on the real Driver by two examples — a generated unary operation and two Nexus SDK operations with
-  captured field relations. All thirteen tasks and the completion review are SHIP; nine of nine
-  R-IDs covered with none unaddressed. Two tasks were added mid-spec: `.12` bounded a
-  parameterized-operation identity that encoded the whole generated `RpcSchema` (27.7M characters
-  per payload key, making qualification infeasible) down to ~4.4K under a `parameterized-v2-`
-  migration, and `.13` derived the unary example's Contract read path from its Property so the two
-  examples share one R8 mechanism. Trust comparison against the task `.1` substrate shows no
-  unexplained inventory loss and no axiom beyond `propext`/`Classical.choice`/`Quot.sound`; 204 of
-  208 frozen fixtures are byte-identical. `go vet ./...` is clean at zero and Go lint added nothing
-  to the inherited 1,284; the two `lint-model` findings this spec introduced were fixed, leaving 169
-  in generated `Temporal/API` only. It closed out with Known Gap
-  `bounded-completion-is-model-only`: the scoped bounded-response clause was proven portable in Lean
-  and Go but did not run on the real Driver, because no Program emitted a correlated-evidence
-  Observation. fn-80 `.14` supplied that Program-declared source and ran the clause live, so the gap
-  is gone; the typed-nexus Case now carries `completion-identity-is-unrecorded` in its place, which
-  names what recorded history still does not say. Reviews from task `.9` onward ran on the
-  same-family `claude` backend after both cross-family bridges ran out of budget.
-- [fn-76](../.flow/specs/fn-76-make-lean-semantic-inventory-consume.md): moved shared outcome and
-  Known Gap contracts to semantic owners and enforced inventory dependency direction. Preserved
-  generated inventory, canonical fixtures, and proof trust; all tasks and completion review are SHIP.
-  Model build/lint pass; exact inherited Go lint and live-test failures remain recorded in Flow.
-- [fn-75](../.flow/specs/fn-75-separate-lean-target-semantics-from.md): separated checked Target
-  semantics, pure projection, and authoring; enforced the transitive semantic import boundary.
-  Preserved canonical fixtures and proof trust; all three tasks and completion review are SHIP.
-- [fn-74](../.flow/specs/fn-74-deepen-testpilot-worker-activation.md): established private activation
-  state and work accounting for both SDK interpreters, plus public preparation diagnostics. Preserved
-  SDK scheduling, delivery authority, replay, and cleanup behavior; completion review is SHIP.
-- [fn-78](../.flow/specs/fn-78-typed-temporal-authoring-and-checked.md): delivered shared scoped
-  obligations, command/event evidence projection, independent Query validity, typed bounded temporal
-  notation, and readable existing Behavior constraints while preserving Nexus success. Completion
-  review is SHIP; Nexus operation cancellation remains deferred to fn-79.
-
-- [fn-73](../.flow/specs/fn-73-explicit-environment-binding-for.md): established exact Case 1.0
-  symbolic resource bindings, immutable Profile-owned snapshots, static Driver validation, and the
-  two-environment Nexus success proof without request rewriting or Case-byte drift.
-- [fn-71](../.flow/specs/fn-71-standalone-lean-testpilot-protocol.md): established independent
-  `Testpilot.*` types, context-safe expressions, one current codec, and producer-owned Umpire
-  provenance.
-- [fn-72](../.flow/specs/fn-72-extract-the-reusable-temporal-testpilot.md): moved the reusable
-  Temporal Driver to `common/testing/testpilot/temporal`, preserved server/worker/delivery ownership,
-  and retained functional fixtures and provisioning under `tests/`.
-- [fn-68](../.flow/specs/fn-68-minimal-nexus3-success-demonstration.md): proved the approachable
-  five-block Nexus success model through checked lowering, deterministic fixture generation,
-  offline evidence rejection, and the existing real Temporal Driver test.
-- [fn-69](../.flow/specs/fn-69-extract-testpilot-from-umpire.md): moved the Case protocol and
-  reusable runtime to `common/testing/testpilot`, moved the functional Driver to
-  `tests/testcore/testpilot`, refined the Testpilot protobuf model, migrated all consumers, and
-  removed the former Umpire protocol/runtime owners.
-- [fn-66](../.flow/specs/fn-66-remove-unused-umpire-tooling-after.md): removed the unused public
-  Artifact package and CLI plus orphaned internal codecs; retained the narrow Experiment reader,
-  Testpilot, generators, regression gates, and downstream contracts.
-- [fn-64](../.flow/specs/fn-64-umpire-case-runtime.md): Testpilot, Lean-produced Nexus proof,
-  independent six-class facade corpus, and full regression gate.
-- [fn-65](../.flow/specs/fn-65-design-and-prototype-approachable.md): separate Nexus race authoring
-  prototype. Its [requirement comparison](../model/Temporal/Feature/Nexus/Race/COVERAGE.md) covered fn-62 R3.
-- [fn-62](../.flow/specs/fn-62-make-ordinary-temporal-model-authoring.md): remaining established
-  authoring requirements, including Observation construction and model-owned Known Gaps;
-  [compatibility coverage](../model/Temporal/Feature/Nexus/COVERAGE.md).
-
-Whole-spec completion-review status is tracked in Flow and is not implied by placement in this
-list. The Nexus race tree remains a prototype with explicit adoption boundaries.
 
 ## Deferred and superseded
 
