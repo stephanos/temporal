@@ -64,62 +64,43 @@ on the same physical queue keeps polling through the outage.
 - [ ] `make umpire-check-live-tests` passes
 
 ## Done summary
-Blocked:
-BLOCKED: EXTERNAL_BLOCKED — four of this task's seven acceptance bullets need a live cluster this
-session cannot stand up, and no code was written for it.
+A Producer-neutral functional Case now asks the Driver for one real outage and requires the work to
+survive it. Its controller stops the SDK worker of its own activation queue, starts the workflow
+while nothing is polling that queue, resumes the worker, and long-polls for the closing history
+event. Two rules sit on that Run: a bounded-liveness rule over the recorded `FAULT_INJECTED` events
+that reaches its satisfied state only on a stop followed by a resume on this Case's task-queue role,
+carrying the checked-in `rule_events` horizon; and a safety rule over the completed workflow, which
+can only have been dispatched after the resume. Both are satisfied live.
 
-Started and stood down without edits: the tree is exactly as task .7 left it. Nothing is
-half-implemented.
+`FaultIntentDeclaration.lower` resolves the task's open signature question. The declaration decides
+the *outage*: a closed version-one vocabulary maps the capability a fault intent targets onto a
+`FaultKind`, and a capability outside it rejects by name. It cannot decide the *placement* -- the
+Space language has no Program to name an instruction, a role or a bound in -- so placement arrives as
+a separate `FaultRealization` argument. The shipped Case's stop instruction is the lowered intent
+itself, pinned by a `#guard` on the consumer's side of the Umpire/Temporal import boundary.
 
-Why it stopped here rather than landing the offline half: the acceptance is live-weighted.
-  - live Run completed, cleanup succeeded, Verdict satisfied, two ordered `FAULT_INJECTED` events
-  - a concurrent plain async-nexus Run on the same queue unaffected
-  - the negative resume-timeout case setting cleanup `failed`
-  - `make umpire-check-live-tests` passing
-all require `go test -tags 'test_dep integration' ./tests`, which needs a running test cluster.
-This session has ~5 GiB of disk, which the whole-server build plus a cluster does not fit. Landing
-only the fixture bytes would put a generated Case in the tree that nothing has ever executed —
-exactly the vacuous-evidence failure task .4 was blocked to avoid.
+Constraints the earlier tasks discovered, applied:
+- The fault Case owns its own queue resource binding, and the "concurrent plain Run unaffected"
+  assertion puts the plain Nexus Case on a *different* queue. A pooled peer worker on the same
+  physical queue keeps polling through the outage, so a same-queue assertion would be asserting the
+  outage is not real. The task's acceptance text says "same queue"; this is the deviation.
+- The functional manifest's exact count moves from five to six, with its stale-file test.
 
-What is ready for whoever picks it up, from the work that did land:
+Deferred, with a trace beside the tests: the live resume-timeout case. This Case always resumes and
+the Driver exposes no seam for making a live resume fail, so reaching it live would need a second
+fixture that stops and never resumes -- a Case whose own Contract could not be satisfied. The two
+halves are pinned where they are reachable: `TestSessionCloseResumesAndAlwaysReleasesTheHold` (task
+.3) for the Driver surfacing a failed resume, and the `cleanup-failure-after-proved-violation`
+conformance class for a failed cleanup leaving the Verdict alone. A Driver test seam is the follow-up.
 
-1. **The Driver half is done and unit-tested** (task .3). `Session.InjectFault` realizes
-   `WORKER_STOP`/`WORKER_RESUME` on a dedicated worker group keyed by Run ID, suppresses the SDK
-   fatal path for the outage window, resumes before release, and reports an unrealized transition
-   as a `fault_not_realized` outcome plus a Driver invariant diagnostic.
+`PreparedContract.Evaluate` is internal, so no test under `tests/` can call it. The online/offline
+agreement for this Case is instead pinned in `internal/verification` over the shipped Contract and a
+recorded outage Run, including the outage that never ends and expires on the count.
 
-2. **Two constraints the Case must respect**, both discovered while landing .2 and .3:
-   - `FAULT_INJECTED` is recorded **only on a succeeded outcome** (`scheduler.go`), so the Case's
-     Contract may treat the event as evidence that the outage actually happened.
-   - A dedicated group isolates the stop from peer Runs, but **a pooled peer worker on the same
-     physical task queue keeps polling it**. The Case's fault queue therefore needs its own
-     resource binding, and .8's "concurrent plain Run unaffected" assertion should put the plain
-     Run on a *different* queue, or the outage is not real for either Run.
-
-3. **The Profile is derived, not hand-written** (task .7). The live test should use `bindCase` /
-   `runCase` from `tests/testpilot_run_case_test.go`; `temporal.DeriveProfile` will produce the
-   fault Case's Profile, including the `InjectFault` capability, from the Case itself. Note
-   `temporal.Environment` is a fixed three-resource shape, so a second endpoint role carrying a
-   resource binding would collide — keep the fault Case to one.
-
-4. **Open design decision for `FaultIntentDeclaration.lower`.** The spec's signature is
-   `FaultIntentDeclaration → Except LoweringError InstructionDefinition`, but the declaration
-   (`Umpire/Space/Language.lean:68-78`) carries only `occurrence`, `action` and `capability`: it
-   has no role id, no fault kind, no instruction bounds and no outcome schema, so it cannot on its
-   own produce a node that `#guard`-equals the fixture's stop instruction. It needs a realization
-   argument (instruction id, task-queue role id, limits, outcome) or a closed capability-id to
-   `FaultKind` vocabulary. Decide that before writing the Case, since the Case's stop node is what
-   the guard compares against. `model/Umpire/Space/Lowering.lean` is the right home: it has to
-   import `Testpilot.Authoring` for `InstructionDefinition`, which `Space/Language.lean` does not.
-
-5. **The functional manifest asserts an exact count.**
-   `tools/umpire/cmd/umpire-gen-case-runtime-conformance/generate.go:282` reads
-   `want exactly 5`; a sixth fixture changes that literal and its test.
-
-Suggested resolution: run this task where `make umpire-check-live-tests` can run. The offline half
-(Case authoring, `FaultIntentDeclaration.lower`, manifest, regenerated bytes) is perhaps half the
-work and is safe to do anywhere, but it should not land without the live run that gives it meaning.
+stage: impl-review - ran [8a251dbf..966bf310] SHIP
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: c43161b503c3baee028c9b6b8c404671228faa12, 1197d567ac7e29b9423fa03524b92755f81bb269, c26d67874216c7249505f06322d6d0745eccd0ae, 966bf3101fe8b6e24973a53b9342ce08829f1c23
+- Tests: cd model && lake build Temporal TemporalModelTests UmpireTests TestpilotTests, make lint-model (169 errors, unchanged baseline, all in generated Temporal/API; import-graph clean), make umpire-check-case-runtime-conformance, CGO_ENABLED=0 go test -tags test_dep ./common/testing/testpilot/... ./tests/testcore/testpilot/..., go test -tags 'test_dep integration' ./tests -run '^TestTestpilotWorkerOutage' (both live outage tests pass), make umpire-check-live-tests (empty failure set across 6 passing identities, up from 4), make umpire-check-regression, make lint-code GOLANGCI_LINT_FIX=false (128: errcheck 1, govet 4, revive 106, staticcheck 17 - unchanged baseline), go vet -tags test_dep ./... (15 pre-existing diagnostics, unchanged)
 - PRs:
+stage: plan-sync - skipped(config: planSync.enabled != true)
