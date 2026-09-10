@@ -25,9 +25,9 @@ full-checker compatibility and symbolic proofs were not established. Experimenta
 synthetic evidence are design references, not production contracts or a general compiler proof.
 
 Re-anchor implementation on the current checkout. The fn-68 success Producer has since completed:
-[`Nexus3/Testpilot.lean`](../../model/Temporal/Feature/Nexus3/Testpilot.lean) checks the completion
+[`Nexus/Success/Producer.lean`](../../model/Temporal/Feature/Nexus/Success/Producer.lean) checks the completion
 Query/witness before producing its Case. Preserve that working success path and its rejection
-tests. Older draft statements that no Nexus3 Producer exists are not the baseline for this spec.
+tests. Older draft statements that no Nexus success Producer exists are not the baseline for this spec.
 The generic Case compiler assembles supplied lowerings; generic scoped lowering still needs
 its own checked implementation; cancellation-specific lowering is deferred to fn-79. Existing bounded Property semantics and Behavior constraints
 must be reused rather than counted as missing functionality.

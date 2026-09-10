@@ -56,10 +56,10 @@ model raceLifecycle
   actions Action
   outcomes Outcome
   facts Fact
-  initial [queued]
-  terminal [canceled, completed]
+  starts [queued]
+  ends [canceled, completed]
 
-  transitions
+  steps
     begin: queued + initiate →
       { state := running, outcome := accepted, facts := [running] }
     request: running + requestCancel →
@@ -72,27 +72,27 @@ model raceLifecycle
 /- Two `require` clauses, not the success slice's three. -/
 property cancellationSettles on raceLifecycle
   for handler
-  when action resolve
-  require settledState: resultingState canceled
+  when resolve
+  require settledState: state canceled
   require settledFact: fact settled
 
-behavior cancellationRace on raceLifecycle handler starts queued
+scenario cancellationRace on raceLifecycle handler starts queued
   actions exactly [begin: initiate, request: requestCancel, settle: resolve]
 
 limits raceTrace
-  transitions 4
-  selected_actions 3
-  candidate_evaluations 32
+  steps 4
+  actions 3
+  search 32
 
 query cancellation on raceLifecycle
-  witness cancellationSettles
+  find cancellationSettles
   in cancellationRace
   limits raceTrace
 
 /- The same second lifecycle also carries the verify form, which claims the requirement over every
 trace the Behavior admits instead of selecting one. -/
 query cancellationVerified on raceLifecycle
-  all cancellationSettles
+  verify cancellationSettles
   in cancellationRace
   limits raceTrace
 

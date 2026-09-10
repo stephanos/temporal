@@ -84,7 +84,7 @@ admission and serialization support both paths.
 complete planning anchor and exact source bytes, and returns an opaque review-only source value.
 It has no Case execution authority and imports no Temporal scenario.
 
-The `temporal-model-inspect` executable exposes the retained checked catalog and emits deterministic
+The `umpire-inspect` executable exposes the retained checked catalog and emits deterministic
 planning artifacts. Generated Views remain navigation and test wrappers around that planning data;
 they do not execute a Case or determine a Verdict.
 
@@ -212,14 +212,14 @@ Lean syntax used by the walkthrough:
 `Temporal.Feature.NexusTests` compiles this facade-only path, including an authored gap reaching a
 real selected artifact, Observation evaluation, malformed identity/reference, missing proof,
 incomplete Model, invalid step, and invalid Observation specimens. The exact compatibility,
-trust, and cost inventory is in [the established evidence record](Temporal/Feature/Nexus/EVIDENCE.md).
+trust, and cost inventory is in [the established coverage record](Temporal/Feature/Nexus/COVERAGE.md).
 
 The experimental [Nexus.Race authoring prototype](Temporal/Feature/Nexus/Race/README.md) demonstrates the
 ordinary finite route, guarded Properties, bounded case analysis, and constructor/frontend
 measurements under its narrow prototype exceptions. It is a separate `temporal.nexus.race.*` model,
 not the established migration or a production authoring rule. Editor responsiveness, cold/repeated
 elaboration, human readability, product-owner usability, and broader syntax approval remain
-unmeasured. Its [evidence inventory](Temporal/Feature/Nexus/Race/EVIDENCE.md) records those boundaries.
+unmeasured. Its [coverage inventory](Temporal/Feature/Nexus/Race/COVERAGE.md) records those boundaries.
 
 ## Runtime ownership
 
@@ -297,7 +297,7 @@ The Testpilot conformance and example trees are independently owner-managed by t
 ```sh
 make umpire-check-case-runtime-conformance
 make umpire-gen-case-runtime-conformance  # separate reviewed promotion
-model/.lake/build/bin/temporal-testpilot async-nexus
+model/.lake/build/bin/umpire-case async-nexus
 mise exec -- go test -count=1 -tags 'test_dep integration' ./tests -run '^TestTestpilotAsyncNexusCase$'
 ```
 
