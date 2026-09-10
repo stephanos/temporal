@@ -209,25 +209,55 @@ private def predicateOf (pattern : PropertyPattern) : Option PropertyPredicate :
     | _ => none
   pure (.atom { field, reference := pattern.reference, constraint })
 
+/-- Whether one modeled step already carries a pattern's value. -/
+private def patternHolds
+    (pattern : PropertyPattern)
+    (step : ModelTraceStep ModelValue ModelValue ModelValue ModelValue) : Bool :=
+  let carries := fun (value : ModelValue) =>
+    pattern.reference == value.definitionId &&
+      match pattern.constraint with
+      | .present => true
+      | .equals expected => expected == value.value
+      | _ => false
+  match pattern.field with
+  | .selectedAction => carries step.selectedAction
+  | .resultingState => carries step.resultingState
+  | .modelOutcome => carries step.modelOutcome
+  | .observation => step.observations.any carries
+  | _ => false
+
 /-- One `require` clause as an operation-scoped clause, placed by the checked Behavior. A same-step
 clause is the only form with a trigger and a response to carry across; a value constraint the
-portable predicate vocabulary has no spelling for, and an Action the Behavior never selects, each
-reject by clause name rather than being narrowed or guessed. -/
-private def scopedClauseOf (occurrences : List DefinitionId) (opening : ModelValue)
+portable predicate vocabulary has no spelling for, a trigger that is not an Action, and an Action
+the Behavior never selects each reject by clause name rather than being narrowed or guessed.
+
+The window is inclusive of its trigger step, so a required value that the selected trace already
+carries somewhere before the Action the clause names would answer the clause without that Action
+ever being observed. That is the vacuity this trigger choice exists to avoid, so a Property whose
+response holds earlier rejects rather than lowering a clause a shorter trace could satisfy. -/
+private def scopedClauseOf
+    (occurrences : List DefinitionId) (opening : ModelValue)
+    (steps : List (ModelTraceStep ModelValue ModelValue ModelValue ModelValue))
     (clause : ResolvedPropertyClause) : Except LoweringError PropertyScopedClause :=
   let unexpressible := fun construct => Except.error (loweringError clause.id.value construct)
   match clause with
   | .transitionContract id trigger response
   | .inputOutput id trigger response =>
-      match occurrences.idxOf? trigger.reference, predicateOf response with
-      | some bound, some response =>
-          .ok {
-            id, source := Authoring.source
-            trigger := .selectedActionIs opening, response
-            scope := [runFieldId], key := operationFieldId
-            clock := .operationTransitions, bound, endpoint := .runtimePrefix }
-      | none, _ => unexpressible "property.clause-occurrence"
-      | _, none => unexpressible "property.clause-shape"
+      if trigger.field != .selectedAction then
+        unexpressible "property.clause-shape"
+      else
+        match occurrences.idxOf? trigger.reference, predicateOf response with
+        | some bound, some lowered =>
+            if (steps.take bound).any (patternHolds response) then
+              unexpressible "property.clause-early-response"
+            else
+              .ok {
+                id, source := Authoring.source
+                trigger := .selectedActionIs opening, response := lowered
+                scope := [runFieldId], key := operationFieldId
+                clock := .operationTransitions, bound, endpoint := .runtimePrefix }
+        | none, _ => unexpressible "property.clause-occurrence"
+        | _, none => unexpressible "property.clause-shape"
   | _ => unexpressible "property.clause-form"
 
 /-- The scoped capability's own retention shares the Contract's capture budget, and it retains one
@@ -279,7 +309,7 @@ def produce {Setup State Action Outcome Fact : Type}
     Except LoweringError temporal.server.api.testpilot.v1.Case := do
   -- A Case realizes one selected trace, so a Query that verifies rather than selects has no
   -- witness to realize and rejects here. A Known Gap does not admit it.
-  let _ ← match checked.witness with
+  let selected ← match checked.witness with
     | some selected => pure selected
     | none => throw (loweringError checked.query.id.value "witness.absent")
   -- The operation's own sequence in trace order: what it does first, and where each later Action
@@ -288,11 +318,14 @@ def produce {Setup State Action Outcome Fact : Type}
   let occurrences ← match checked.behavior.actionsExactly with
     | some occurrences => pure occurrences
     | none => throw (loweringError checked.behavior.id.value "behavior.sequence.absent")
-  let opening ← match occurrences.head?.bind fun selected =>
-      checked.vocabulary.actions.find? fun value => value.definitionId == selected with
-    | some opening => pure opening
+  let opening ← match occurrences.head? with
+    | some first =>
+        match checked.vocabulary.actions.find? fun value => value.definitionId == first with
+        | some opening => pure opening
+        | none => throw (loweringError first.value "behavior.action.undeclared")
     | none => throw (loweringError checked.behavior.id.value "behavior.sequence.absent")
-  let scopedClauses ← checked.property.clauses.mapM (scopedClauseOf occurrences opening)
+  let scopedClauses ← checked.property.clauses.mapM
+    (scopedClauseOf occurrences opening selected.trace.steps)
   if scopedClauses.isEmpty then
     throw (loweringError checked.property.id.value "property.clauses.absent")
   let scopedProperty ← (checkProperty (.ofTarget checked.target) (.portable {
