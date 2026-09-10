@@ -152,13 +152,13 @@ inputs, including preservation of any violation already established before evide
 theorem endpoint_agrees (obligations : List Shared.CorrelatedObligation.Obligation)
     (closed incomplete : Bool) (ending : TraceEnding) :
     endpointAnswer (Shared.CorrelatedObligation.answer obligations closed incomplete
-      (endpoint == .final)) =
-    let selected := if incomplete || !closed then TraceEnding.«partial» else endpoint
+      (ending == .final)) =
+    let selected := if incomplete || !closed then TraceEnding.«partial» else ending
     let result := Property.Correlated.close selected obligations
     if incomplete && result != .violated then .unresolved else result := by
   cases violated : obligations.contains .violated <;>
     cases satisfied : obligations.all (fun obligation => decide (obligation = .satisfied)) <;>
-    cases closed <;> cases incomplete <;> cases endpoint <;>
+    cases closed <;> cases incomplete <;> cases ending <;>
     simp only [Shared.CorrelatedObligation.answer, Property.Correlated.close, violated, satisfied,
       Bool.false_eq_true, if_false, if_true] <;> rfl
 

@@ -614,9 +614,6 @@ func buildRetiredRules() ([]tokenRule, error) {
 
 func allowedNegativeFixture(relativePath, token string) bool {
 	allowed := map[string]map[string]bool{
-		"model/Umpire/Case/ProtoJSON.lean": {
-			`"bounds"`: true,
-		},
 		"tools/umpire/cmd/umpire-gen-regression-views/render_test.go": {
 			"umpire-experiment/" + "v1": true,
 		},

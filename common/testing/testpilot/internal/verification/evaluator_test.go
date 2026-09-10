@@ -16,7 +16,7 @@ import (
 func event(sequence, elapsed int64, kind testpilotspb.RunEventKind) *testpilotspb.RunEvent {
 	return &testpilotspb.RunEvent{Sequence: sequence, ElapsedMilliseconds: elapsed, Kind: kind, SourceId: fmt.Sprint(sequence)}
 }
-func TestEvaluatorHorizonsAndReplay(t *testing.T) {
+func TestEvaluatorDeadlinesAndReplay(t *testing.T) {
 	for _, tc := range []struct {
 		name       string
 		witness    int64
@@ -84,12 +84,12 @@ func diagnostic(sequence, elapsed int64) *testpilotspb.RunEvent {
 	return event(sequence, elapsed, testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC)
 }
 
-// TestEvaluatorEventCountHorizon pins the rule_events clock: it ticks once per event the rule
+// TestEvaluatorEventCountDeadline pins the rule_events clock: it ticks once per event the rule
 // evaluates, restarts on a transition into a new state, outranks a transition that would have
 // satisfied the rule on the same event, and stops once the rule is terminal. Every case also
 // asserts that the online Observe path and the offline Evaluate path agree, because both reach
 // the counter through the same helper.
-func TestEvaluatorEventCountHorizon(t *testing.T) {
+func TestEvaluatorEventCountDeadline(t *testing.T) {
 	for _, tc := range []struct {
 		name       string
 		ruleEvents int64

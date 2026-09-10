@@ -108,7 +108,6 @@ func TestRetiredVocabularyCommandAllowsOnlyCaseBoundsAndCatalogQualifiedLiteral(
 		path    string
 		content string
 	}{
-		{name: "Case encoder", path: "model/Umpire/Case/ProtoJSON.lean", content: "def key := \"" + "bou" + "nds\"\n"},
 		{name: "Temporal Case", path: "tests/testcore/testpilot/testdata/get-system-info-case.json", content: "{\"" + "bou" + "nds\":{}}\n"},
 		{name: "conformance Case", path: "common/testing/testpilot/testdata/case-runtime-conformance/satisfied/case.json", content: "{\"" + "bou" + "nds\":{}}\n"},
 		{name: "catalog validation literal", path: "common/testing/testpilot/internal/ir/catalog.go", content: "package ir\nconst suffix = \"." + "qualified\"\n"},

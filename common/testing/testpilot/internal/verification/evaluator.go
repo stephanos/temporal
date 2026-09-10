@@ -162,7 +162,7 @@ func (e *Evaluator) Observe(ctx context.Context, event *testpilotspb.RunEvent) (
 	for _, change := range changes {
 		state := &e.rules[change.rule]
 		if change.state != state.state {
-			// The event-count horizon measures events since the rule's last transition into a
+			// The event-count deadline measures events since the rule's last transition into a
 			// new state, so entering one restarts the count.
 			state.events = 0
 		}
@@ -256,7 +256,7 @@ func (e *Evaluator) nextChange(ctx context.Context, i int, event *testpilotspb.R
 		return nil, err
 	}
 	cost.work++
-	if horizonReached(&e.rules[i], m.source.Deadline, event) {
+	if deadlineReached(&e.rules[i], m.source.Deadline, event) {
 		if incomplete {
 			return nil, nil
 		}
@@ -293,21 +293,21 @@ func (e *Evaluator) nextChange(ctx context.Context, i int, event *testpilotspb.R
 	return nil, nil
 }
 
-// horizonReached advances the rule's event-count horizon for the one event the rule is
+// deadlineReached advances the rule's event-count deadline for the one event the rule is
 // evaluating and reports whether the declared bound is now reached. It is the single owner of
 // the counter: the online Evaluator.Observe path and the offline PreparedContract.Evaluate path
 // both reach it through nextChange, so neither can tick on its own terms. A rule that already
 // sits in a terminal state never reaches here, which is where counting stops. The elapsed bound
 // keeps its host-clock comparison; admission guarantees exactly one bound is positive.
-func horizonReached(state *ruleState, horizon *testpilotspb.ContractDeadline, event *testpilotspb.RunEvent) bool {
-	if horizon == nil {
+func deadlineReached(state *ruleState, deadline *testpilotspb.ContractDeadline, event *testpilotspb.RunEvent) bool {
+	if deadline == nil {
 		return false
 	}
-	if horizon.RuleEvents > 0 {
+	if deadline.RuleEvents > 0 {
 		state.events++
-		return state.events >= horizon.RuleEvents
+		return state.events >= deadline.RuleEvents
 	}
-	return event.ElapsedMilliseconds >= horizon.ElapsedMilliseconds
+	return event.ElapsedMilliseconds >= deadline.ElapsedMilliseconds
 }
 
 func (e *Evaluator) stageCaptures(state ruleState, tr *testpilotspb.ContractTransitionDefinition, event *testpilotspb.RunEvent, observations map[string]*testpilotspb.Value, cost *eventEvaluation) (map[string]capturedValue, error) {

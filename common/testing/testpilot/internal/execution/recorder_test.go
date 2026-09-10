@@ -80,7 +80,7 @@ func TestRecorderCoordinatesDeduplicationAndSnapshots(t *testing.T) {
 	run.Verdict.Status = testpilotspb.VERDICT_STATUS_VIOLATED
 	require.NotEqual(t, run.Verdict.Status, r.run.Verdict.Status)
 }
-func TestRecorderConflictAndFailureLatchBeforeHorizon(t *testing.T) {
+func TestRecorderConflictAndFailureLatchBeforeDeadline(t *testing.T) {
 	for _, failure := range []string{"conflict", "execution", "capacity", "store"} {
 		t.Run(failure, func(t *testing.T) {
 			var observed []*testpilotspb.RunEvent
