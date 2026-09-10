@@ -20,7 +20,7 @@ Implement the generic bounded Go interpreter that consumes one admitted contract
 
 **Required** (read before coding):
 - Parent spec, contract proto/admission, and existing `runevaluation` protocol/result validation.
-- `Umpire.Evidence.Evaluation`, `Umpire.Evidence.Check`, and caller-closure Run Evaluation tests.
+- `Umpire.Evidence.Evaluate`, `Umpire.Evidence.Check`, and caller-closure Run Evaluation tests.
 - Existing Evidence Link, disposition, causal-order, source-closure, and Limit representations.
 
 ## Acceptance
