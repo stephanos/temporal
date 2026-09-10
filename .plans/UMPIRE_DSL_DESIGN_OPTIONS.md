@@ -30,7 +30,7 @@ a verification engine. The grammar and current internal data structures can both
 ## What the current code actually requires
 
 - [Core.lean](../model/Umpire/Core.lean) defines `TransitionKernel` using executable initial/step
-  lists, authoritative relations, and soundness/completeness proofs. `Vocabulary` also
+  lists, authoritative relations, and soundness/completeness proofs. `TargetBehaviorDomain` also
   enumerates states, actions, outcomes, and facts.
 - [Target/Language.lean](../model/Umpire/Target/Language.lean) requires complete finite domain
   evidence at admission. `describeBehavior` visits the state/action product and materializes

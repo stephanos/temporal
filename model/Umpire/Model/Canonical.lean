@@ -157,7 +157,7 @@ private def providerSemanticJson (provider : Provider LawStatement) : String :=
     ",\"meanings\":" ++ array (provider.meanings.mergeSort meaningLe |>.map meaningJson) ++
     ",\"laws\":" ++ array (laws.map lawJson) ++ "}"
 
-def canonicalCapabilityProviderJson (provider : Provider LawStatement) : String :=
+def canonicalProviderJson (provider : Provider LawStatement) : String :=
   withoutClosingBrace (providerSemanticJson provider) ++
     ",\"source\":" ++ sourceJson provider.source ++ "}"
 
@@ -176,7 +176,7 @@ private def connectorSemanticJson (connector : Connector LawStatement) : String 
       array (connector.reconciliations.mergeSort reconciliationLe |>.map reconciliationJson) ++
     ",\"laws\":" ++ array (laws.map lawJson) ++ "}"
 
-def canonicalCapabilityConnectorJson (connector : Connector LawStatement) : String :=
+def canonicalConnectorJson (connector : Connector LawStatement) : String :=
   withoutClosingBrace (connectorSemanticJson connector) ++
     ",\"source\":" ++ sourceJson connector.source ++ "}"
 
