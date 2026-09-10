@@ -139,9 +139,9 @@ func (r *runtimeExpression) messageChildren(message protoreflect.Message, step P
 // ReadValue reads one bound Path out of an already-projected message Value, with the same runtime
 // path semantics a Contract expression reads an Observation with. A nil result denotes absence.
 func ReadValue(ctx context.Context, value *testpilotspb.Value, typ Type, path *Path, limits Limits) (*testpilotspb.Value, int64, error) {
-	check := limits
-	check.Work = DefaultLimits().Work
-	if err := check.validate(); err != nil {
+	// `limits.Work` is the caller's remaining runtime budget, which legitimately exceeds the hard
+	// admission ceiling, so only the structural bounds are validated against it.
+	if err := limits.validateStructure(); err != nil {
 		return nil, 0, err
 	}
 	if ctx == nil || value == nil || path == nil || typ.Message() == nil || limits.Work <= 0 {

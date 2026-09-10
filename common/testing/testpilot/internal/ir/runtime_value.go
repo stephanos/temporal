@@ -11,9 +11,7 @@ import (
 )
 
 func runtimeBudget(ctx context.Context, limits Limits) (*budget, error) {
-	check := limits
-	check.Work = DefaultLimits().Work
-	if err := check.validate(); err != nil {
+	if err := limits.validateStructure(); err != nil {
 		return nil, err
 	}
 	if ctx == nil || limits.Work <= 0 {

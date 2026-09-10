@@ -49,6 +49,13 @@ type Limits struct{ Depth, Work, Bytes, Fanout int64 }
 
 func DefaultLimits() Limits { return Limits{Depth: 64, Work: 100_000, Bytes: 16 << 20, Fanout: 10_000} }
 
+// validateStructure bounds everything but the work ceiling, which a runtime caller supplies as its
+// own remaining budget rather than as an admission bound.
+func (l Limits) validateStructure() error {
+	structure := l
+	structure.Work = DefaultLimits().Work
+	return structure.validate()
+}
 func (l Limits) validate() error {
 	hard := DefaultLimits()
 	if l.Depth <= 0 || l.Depth > hard.Depth || l.Work <= 0 || l.Work > hard.Work || l.Bytes <= 0 || l.Bytes > hard.Bytes || l.Fanout <= 0 || l.Fanout > hard.Fanout {
