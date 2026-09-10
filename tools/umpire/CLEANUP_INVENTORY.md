@@ -205,7 +205,7 @@ regenerate in this documentation-only task.
 | Testpilot conformance tree, six named classes / 12 files | SHA-256 of its sorted `sha256sum` manifest: `7809b6829822c097dccb76a07e4abdba233f3a552cb553c5ab019ca1888dddb9` |
 | Lean API output set (`API.lean`, `API/Proto.lean`, `API/Types.lean`) | SHA-256 of sorted manifest: `613a888529b061c095c9da5ae9301154297ecd1a6459108d8c5f5b0c06551d4e` |
 | Dynamic-config output set (`DynamicConfig.lean`, `Settings.lean`, `Types.lean`) | SHA-256 of sorted manifest: `9f114f949e39464e61fe5993e5fe7599a9e96b78f0701c37a4cc02f05b11e970` |
-| Semantic inventory `model/INVENTORY.md` | `e534439582339a330d32562f5c796a2a9736a7db200786653902d0c97c204d25` |
+| Semantic inventory document, renamed to `model/INVENTORY.md` after this snapshot | `e534439582339a330d32562f5c796a2a9736a7db200786653902d0c97c204d25` |
 
 The conformance classes are `satisfied`, `violated`, `inconclusive`,
 `static-preparation-rejection`, `cleanup-failure-after-proved-violation`, and

@@ -311,7 +311,7 @@ private def selectedFaults
 private def intentDeclaration
     (assignment : List ModelValue)
     (choices : List (CheckedVariationAxis × CheckedChoice))
-    (faults : List CheckedFaultIntent) : ArtifactIntentDeclaration := {
+    (faults : List CheckedFaultIntent) : PlanRequestDeclaration := {
   selectedChoices := assignment
   selectedVariants := choices.filterMap fun selected => selected.2.binding
   requestedFaults := faults.map fun fault => {
@@ -345,7 +345,7 @@ def lowerSpacePoint
   let materialized := materializeQuery space.baseQuery.target checked
   let query := materialized.query
   let faults ← selectedFaults space choices
-  let intent ← match checkArtifactIntent query (intentDeclaration assignment choices faults) with
+  let intent ← match checkPlanRequest query (intentDeclaration assignment choices faults) with
     | .ok intent => pure intent
     | .error error => throw (compilationError space .intentCheckFailed pointId error.kind.name
         error.relatedDefinitionIds)

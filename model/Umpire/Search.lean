@@ -671,7 +671,7 @@ structure PlanResult where
 /-- Typed failures that can reject a complete planning and Artifact-intent request. -/
 inductive PlanningRequestError where
   | knownGap (error : KnownGapError)
-  | planRequest (error : ArtifactIntentError)
+  | planRequest (error : PlanRequestError)
   deriving BEq, DecidableEq, Repr
 
 private instance : Inhabited (PlannerPull State Candidate) := ⟨.complete⟩
@@ -1143,7 +1143,7 @@ def searchWithPlanRequest
   let run ← search query kernel |>.mapError PlanningRequestError.knownGap
   let artifact ← match run.artifact with
     | none => pure none
-    | some spec => some <$> (spec.withArtifactIntent query intent |>.mapError
+    | some spec => some <$> (spec.withPlanRequest query intent |>.mapError
         PlanningRequestError.planRequest)
   pure { run with artifact }
 
