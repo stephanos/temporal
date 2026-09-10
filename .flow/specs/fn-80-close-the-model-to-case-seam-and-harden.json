@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-80-close-the-model-to-case-seam-and-harden",
-  "completion_review_status": "needs_work",
-  "completion_reviewed_at": "2026-09-09T22:24:42.140772Z",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-09-10T02:43:13.097671Z",
   "created_at": "2026-09-09T03:08:14.453422Z",
   "default_impl": null,
   "default_review": null,
@@ -25,7 +25,7 @@
     "fn-80-close-the-model-to-case-seam-and-harden.9": 0
   },
   "next_task": 1,
-  "plan_review_rounds": 2,
+  "plan_review_rounds": 0,
   "plan_review_status": "ship",
   "plan_reviewed_at": "2026-09-09T03:29:54.162529Z",
   "review_attempts": [
@@ -1556,6 +1556,35 @@
       "task": "fn-80-close-the-model-to-case-seam-and-harden.9",
       "timestamp": "2026-09-10T02:38:26.658031Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "8493be5a6158d9260e66856444392b2a524016d19645e014ac0f05affde440f2",
+      "backend": "claude",
+      "base_sha": "8a251dbf2172163deefb39abe67a2a47aaeee325",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "40b8fecf40650b971ee6c5e7677a1b64124b57ef",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 11414,
+      "output_sha256": "2ebf5f28e4929874c08572d717ef10590e526957c6bd3482fe944e5166ed4db5",
+      "reservation_id": "186c6f7498d549478e5836142d7f833f",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-10T02:43:13.095616Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -1574,7 +1603,7 @@
     "impl:fn-80-close-the-model-to-case-seam-and-harden.8": 1,
     "impl:fn-80-close-the-model-to-case-seam-and-harden.9": 1,
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {
     "impl:fn-80-close-the-model-to-case-seam-and-harden.14": 1
@@ -1623,5 +1652,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-10T02:38:26.658990Z"
+  "updated_at": "2026-09-10T02:43:13.097671Z"
 }
