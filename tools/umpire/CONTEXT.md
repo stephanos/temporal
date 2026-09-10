@@ -69,6 +69,6 @@ _Avoid_: Chaos, failure injection, error
 The authorization snapshot naming the roles, methods, capabilities and resource bindings one Case is permitted to use, frozen before a Driver is built.
 _Avoid_: Config, environment, policy file
 
-**Capability**:
-One entry of the closed set of instruction kinds a Profile authorizes; a Case whose Program uses one the Profile does not name rejects at Prepare.
-_Avoid_: Permission, feature flag, scope
+**Profile capability**:
+One entry of the closed set of instruction kinds a Profile authorizes; a Case whose Program uses one the Profile does not name rejects at Prepare. Distinct from the spec's **Capability Contract**, the named behavior one component requires and another provides, and from the operation-scoped Contract capability a Case's `Contract.scoped` carries; always say which one.
+_Avoid_: Permission, feature flag, scope, bare "capability"
