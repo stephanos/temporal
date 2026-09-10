@@ -52,8 +52,6 @@ private def activationKind : EntrypointDefinition → Option Nat
       | _ => false
   | .error _ => false
 
-
-
 -- The worker-outage Case's stop instruction is the lowered fault intent itself, not a hand-written
 -- copy of one: the Program the fixture renders carries exactly what `lower` produced.
 #guard match Temporal.Testpilot.stopIntent.lower Temporal.Testpilot.stopRealization,

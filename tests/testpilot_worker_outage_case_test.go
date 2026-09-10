@@ -13,14 +13,6 @@ import (
 	testpilotpb "go.temporal.io/server/api/testpilot/v1"
 )
 
-// Deferred, deliberately: the acceptance also asks for a live resume-timeout case setting cleanup
-// `failed`. This Case always resumes, and the Driver exposes no seam for making a live resume fail,
-// so the only way to reach it live would be a second fixture that stops and never resumes -- a Case
-// whose own Contract could not be satisfied. The two halves are pinned where they are reachable:
-// the Driver surfaces a failed resume from Session.Close
-// (`temporal/worker/fault_test.go` TestSessionCloseResumesAndAlwaysReleasesTheHold), and a failed
-// cleanup leaving the Verdict alone is the `cleanup-failure-after-proved-violation` conformance
-// class. A Driver test seam is the follow-up that would close it live.
 const workerOutageCleanupTimeout = 10 * time.Second
 
 func workerOutageBinding() CaseBinding {

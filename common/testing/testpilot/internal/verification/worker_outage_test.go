@@ -14,8 +14,11 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 )
 
-// The shipped worker-outage Case. Its Contract is what the live Run is judged by, so the
-// online/offline agreement below is over that Contract rather than over a rule written here.
+// The shipped worker-outage Case. The agreement below has to hold for the Contract the live Run is
+// judged by, and the two things it needs sit on opposite sides of one boundary: the generator
+// publishes that Contract to the functional fixture tree, and `PreparedContract.Evaluate` is
+// internal to this package, so no test outside it can call the offline path. The read crosses once,
+// here, rather than a second copy of the fixture being checked in to avoid it.
 const workerOutageFixture = "../../../../../tests/testcore/testpilot/testdata/worker-outage-case.json"
 
 // TestWorkerOutageContractAgreesOnlineAndOffline replays one recorded outage Run through the
