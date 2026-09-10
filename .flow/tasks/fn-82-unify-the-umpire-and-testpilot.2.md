@@ -44,9 +44,39 @@ families that have none, and regeneration of every fingerprint, golden, and Case
 - [ ] All goldens, views, inventory, and the sixteen Case fixtures are regenerated, not hand-edited, and every make check plus `lake build Umpire UmpireTests Temporal TemporalModelTests TestpilotTests` passes
 - [ ] The retired gate rejects the six old tokens and passes on the tree
 ## Done summary
-TBD
+The early proof point held: the regenerate-never-edit loop converged with no hand-edited golden.
 
+`DefinitionKind` and `Umpire.Case.CaseDefinitionKind` now carry `machine` and `fact` and have lost
+the five constructors that existed only to be rejected; `TransitionKernel` is `Machine`,
+`TransitionResult` is `Step` with `outcome`, `state` and `facts`, and `ModelTraceStep`,
+`ModelCoordinate`, `TargetTransitionRow`, `ArtifactModelTraceStep` and every canonical JSON key
+follow. A new Lake executable, `umpire-goldens` rooted at `Temporal.Tool.Goldens`, writes the
+seventeen golden files whose only other reader was an `include_str` inside a `native_decide`, and
+`umpire-check-goldens` renders into a temporary root and diffs (proven to fail on a stale golden
+before it was trusted). `umpire-gen-goldens` also writes the inspector fixture that had a check but
+no generator.
+
+Method: the writer was built and shown byte-identical to all seventeen goldens BEFORE any rename,
+so the regeneration mechanism was proven independently of the rename. Inline expectation literals
+(fingerprints, checksums, set identities) were re-baselined by running the module and reading the
+computed value, never by inventing one; the promotion source fixture was re-rendered by
+`renderPromotionSource`, which is its own regenerator (`sourceBytesDrift` fires when it drifts).
+
+Deviations, all recorded in the owning task files: `modelOutcome` and `resultingState` could not
+join the gate here. `PropertyTraceField` / `PropertyPredicateField` still spell both (and
+`PropertyTraceField` already owns `.state`, so `.resultingState` needs a name task .4 must choose),
+`resultingState` is a live Nexus3 `require` keyword (task .8), and the proto field
+`ScopedTransition.resulting_state` renders `json=resultingState` into the scanned
+`api/testpilot/v1/contract.pb.go` (task .7). Four other Case definition-kind spellings were retired
+instead. `.plans/UMPIRE4_SPEC_COMPS.md` and `UMPIRE4_SPEC_MODEL_ARCH.md` were respelled (five lines)
+against the spec's "no edits to historical .plans" boundary, because the gate's `UMPIRE4_*.md` glob
+scans them. The writer covers seventeen files, not the sixteen the task counted: the seventh file in
+`Umpire/Artifact/Tests/Fixtures` is `ArtifactSetV2.json`, which the rename also changes.
+
+stage: impl-review - ran (model: claude-fable-5-1) - SHIP, 5 introduced P3 findings, all addressed
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: fb13c642be84ad4043e27fa29b8ea4f76cce8a40, abd7d513d2d7e8a6d8452328e92c6f6a9ef9a5b6, c0526e17c481bb0853ac0b0ffa4b659f9568c8e2
+- Tests: cd model && lake build Umpire UmpireTests Temporal TemporalModelTests TestpilotTests Testpilot TemporalExperimentalTests (pass), make lint-model (169 diagnostics, all in generated Temporal/API/{Types,Proto}.lean; equals baseline; no import-graph violation), make umpire-check-goldens (pass; also proven to fail on a deliberately stale golden), make umpire-check-regression-views (pass), make umpire-check-case-runtime-conformance (pass), make umpire-check-semantic-inventory (pass), make umpire-check-retired-vocabulary (pass), make umpire-check-lean-api / -testpilot-protocol / -testpilot-authoring (pass), make umpire-check-live-tests (pass, 6 passing identities), TMPDIR=<physical> CGO_ENABLED=0 go test -count=1 -tags test_dep ./tools/umpire/... ./common/testing/testpilot/... ./tests/testcore/testpilot/... (pass), make lint-code GOLANGCI_LINT_FIX=false (128 findings, equals baseline), CC=/usr/bin/cc go vet -tags test_dep ./... (15 diagnostics, equals baseline), make buf-breaking (pass)
 - PRs:
+stage: plan-sync - skipped(config: planSync.enabled != true)
