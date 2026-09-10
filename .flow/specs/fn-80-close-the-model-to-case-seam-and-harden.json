@@ -18,7 +18,7 @@
     "fn-80-close-the-model-to-case-seam-and-harden.15": 0,
     "fn-80-close-the-model-to-case-seam-and-harden.2": 0,
     "fn-80-close-the-model-to-case-seam-and-harden.3": 0,
-    "fn-80-close-the-model-to-case-seam-and-harden.4": 1,
+    "fn-80-close-the-model-to-case-seam-and-harden.4": 0,
     "fn-80-close-the-model-to-case-seam-and-harden.6": 0,
     "fn-80-close-the-model-to-case-seam-and-harden.7": 0,
     "fn-80-close-the-model-to-case-seam-and-harden.8": 0
@@ -1406,6 +1406,35 @@
       "task": "fn-80-close-the-model-to-case-seam-and-harden.8",
       "timestamp": "2026-09-10T01:20:13.293650Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "eee85eeb3e4035ce39ad328f519a394dbb89ea8acddf4bcbbff13c980d80251a",
+      "backend": "claude",
+      "base_sha": "a584f8f7e5daaa6c38478359192c21c6e81cd173",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "4737e7534c480b2b8d3d737be930499938041adf",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 6813,
+      "output_sha256": "ceb7f82c98c985459d51e26cd83ff9178b9c68e9d60028f4577900d336edda5b",
+      "reservation_id": "4ba5b45d058b453f8df55623083adb7e",
+      "round_consumed": true,
+      "scope": "impl:fn-80-close-the-model-to-case-seam-and-harden.4",
+      "superseded_by": null,
+      "task": "fn-80-close-the-model-to-case-seam-and-harden.4",
+      "timestamp": "2026-09-10T02:04:13.796440Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -1418,6 +1447,7 @@
     "impl:fn-80-close-the-model-to-case-seam-and-harden.15": 1,
     "impl:fn-80-close-the-model-to-case-seam-and-harden.2": 1,
     "impl:fn-80-close-the-model-to-case-seam-and-harden.3": 1,
+    "impl:fn-80-close-the-model-to-case-seam-and-harden.4": 1,
     "impl:fn-80-close-the-model-to-case-seam-and-harden.6": 1,
     "impl:fn-80-close-the-model-to-case-seam-and-harden.7": 1,
     "impl:fn-80-close-the-model-to-case-seam-and-harden.8": 1,
@@ -1425,18 +1455,9 @@
     "plan#completion": 0
   },
   "review_pending_rounds": {
-    "impl:fn-80-close-the-model-to-case-seam-and-harden.14": 1,
-    "impl:fn-80-close-the-model-to-case-seam-and-harden.4": 1
+    "impl:fn-80-close-the-model-to-case-seam-and-harden.14": 1
   },
   "review_reservations": {
-    "4ba5b45d058b453f8df55623083adb7e": {
-      "artifact_sha256": "eee85eeb3e4035ce39ad328f519a394dbb89ea8acddf4bcbbff13c980d80251a",
-      "counter_scope": "impl:fn-80-close-the-model-to-case-seam-and-harden.4",
-      "epoch": 0,
-      "exclusive": false,
-      "forced": false,
-      "review_type": "impl"
-    },
     "5d04a45090c74039be45230288267479": {
       "artifact_sha256": "4a894ee62d47042800d271b39d4f944d635b54cb96d3cba9b6764790e1a5fba7",
       "counter_scope": "impl:fn-80-close-the-model-to-case-seam-and-harden.14",
@@ -1459,6 +1480,7 @@
     "impl:fn-80-close-the-model-to-case-seam-and-harden.15": 0,
     "impl:fn-80-close-the-model-to-case-seam-and-harden.2": 0,
     "impl:fn-80-close-the-model-to-case-seam-and-harden.3": 0,
+    "impl:fn-80-close-the-model-to-case-seam-and-harden.4": 0,
     "impl:fn-80-close-the-model-to-case-seam-and-harden.6": 0,
     "impl:fn-80-close-the-model-to-case-seam-and-harden.7": 0,
     "impl:fn-80-close-the-model-to-case-seam-and-harden.8": 0,
@@ -1478,5 +1500,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-10T01:58:30.093498Z"
+  "updated_at": "2026-09-10T02:04:13.797782Z"
 }
