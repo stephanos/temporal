@@ -72,7 +72,7 @@ make umpire-gen-lean-dynamic-config-catalog
 
 The retained semantic APIs keep these responsibilities separate:
 
-- The Model owns valid setup, state, Action, Model Outcome, Fact, step, and Capability domains.
+- The Model owns valid setup, state, Action, Model Outcome, Fact, Step, and Capability domains.
 - Property states a claim over Traces.
 - A Scenario constrains allowed Trace shape without choosing Model-owned outcomes.
 - Query asks one bounded question, and Search answers it.

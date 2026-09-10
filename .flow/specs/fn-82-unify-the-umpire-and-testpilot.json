@@ -15,6 +15,7 @@
   "id": "fn-82-unify-the-umpire-and-testpilot",
   "impl_review_rounds": {
     "fn-82-unify-the-umpire-and-testpilot.1": 0,
+    "fn-82-unify-the-umpire-and-testpilot.10": 0,
     "fn-82-unify-the-umpire-and-testpilot.2": 0,
     "fn-82-unify-the-umpire-and-testpilot.3": 0,
     "fn-82-unify-the-umpire-and-testpilot.4": 1,
@@ -1078,10 +1079,84 @@
       "task": "fn-82-unify-the-umpire-and-testpilot.9",
       "timestamp": "2026-09-10T18:28:29.654843Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "4f827c6051e5441d638ceea94dcbf050b759b8353eacdc68ad976d3431f0d22f",
+      "backend": "claude",
+      "base_sha": "43af659b4fa5968738cc3a1f7c40b597cf38268d",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": "nonzero_exit",
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "b553f9bbe9934809af5d38bcc165cd7ba2287bde",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "transport_failure",
+      "output_bytes": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "reservation_id": "4cfadab5143641f0aec0c7b74503d778",
+      "round_consumed": false,
+      "scope": "impl:fn-82-unify-the-umpire-and-testpilot.10",
+      "superseded_by": null,
+      "task": "fn-82-unify-the-umpire-and-testpilot.10",
+      "timestamp": "2026-09-10T18:50:09.796107Z",
+      "verdict": null
+    },
+    {
+      "artifact_sha256": "4f827c6051e5441d638ceea94dcbf050b759b8353eacdc68ad976d3431f0d22f",
+      "backend": "claude",
+      "base_sha": "43af659b4fa5968738cc3a1f7c40b597cf38268d",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-d32db6178a8e9d3d6a425daa6e2a8a7e",
+            "classification": "introduced",
+            "findingId": "finding-d32db6178a8e9d3d6a425daa6e2a8a7e",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "b553f9bbe9934809af5d38bcc165cd7ba2287bde",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-sonnet-4-5",
+      "outcome": "verdict",
+      "output_bytes": 1736,
+      "output_sha256": "a3f8be2d5a186d0d84ed60e78784a0bfa11f9929e237976745de28b73e3fc43a",
+      "reservation_id": "14c860dec4764ade9503e846fb561f60",
+      "round_consumed": true,
+      "scope": "impl:fn-82-unify-the-umpire-and-testpilot.10",
+      "superseded_by": null,
+      "task": "fn-82-unify-the-umpire-and-testpilot.10",
+      "timestamp": "2026-09-10T18:56:26.351796Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-82-unify-the-umpire-and-testpilot.1": 1,
+    "impl:fn-82-unify-the-umpire-and-testpilot.10": 1,
     "impl:fn-82-unify-the-umpire-and-testpilot.2": 1,
     "impl:fn-82-unify-the-umpire-and-testpilot.3": 1,
     "impl:fn-82-unify-the-umpire-and-testpilot.4": 1,
@@ -1109,6 +1184,7 @@
   "review_transport_failures": {
     "completion": 0,
     "impl:fn-82-unify-the-umpire-and-testpilot.1": 0,
+    "impl:fn-82-unify-the-umpire-and-testpilot.10": 0,
     "impl:fn-82-unify-the-umpire-and-testpilot.2": 0,
     "impl:fn-82-unify-the-umpire-and-testpilot.3": 0,
     "impl:fn-82-unify-the-umpire-and-testpilot.4": 0,
@@ -1133,5 +1209,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-10T18:28:29.655621Z"
+  "updated_at": "2026-09-10T18:56:26.352647Z"
 }
