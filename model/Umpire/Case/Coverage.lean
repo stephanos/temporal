@@ -1,6 +1,6 @@
 import Testpilot.Authoring
 import Umpire.Case
-import Umpire.Property.Fields
+import Umpire.Property
 
 /-!
 Whole-Case coverage: the checked map from selected modeled fields and requested clauses onto the

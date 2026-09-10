@@ -29,8 +29,8 @@ private def admitted := completion.toOption
 Case; none is compared against an expected one. -/
 private def produceWith
     (property? : Option CheckedProperty := none)
-    (behavior? : Option CheckedBehavior := none)
-    (witness? : Option BehaviorTrace := admitted.bind (·.witness)) :
+    (behavior? : Option CheckedScenario := none)
+    (witness? : Option Scenario.Trace := admitted.bind (·.witness)) :
     Except Compiler.LoweringError temporal.server.api.testpilot.v1.Case := do
   let checked ← completion.mapError fun _ => {
     sourceDefinitionId := "temporal.nexus3.query.completion"
@@ -45,7 +45,7 @@ private def produceWith
 /-- One authored Property replaced by a single clause of the caller's choosing. -/
 private def propertyWithClauses (clauses : List PropertyClause) : Option CheckedProperty := do
   let checked ← admitted
-  (checkProperty (.ofTarget checked.target) (.portable {
+  (Property.check (.ofTarget checked.target) ({
     id := checked.property.id
     source := checked.property.source
     requires := checked.property.requires
@@ -145,7 +145,7 @@ private def fewerClausesProperty? : Option CheckedProperty := do
 /-- The selected trace is what the derived window is checked against, so a witness that reaches the
 required value before the Action the clause names is a witness the clause could be answered on
 without that Action. -/
-private def changedWitness? : Option BehaviorTrace := admitted.bind fun checked =>
+private def changedWitness? : Option Scenario.Trace := admitted.bind fun checked =>
   checked.witness.map fun selected =>
     { selected with trace := { selected.trace with steps := selected.trace.steps.reverse } }
 
@@ -188,8 +188,8 @@ theorem checkedWitnessIsExact : admitted.bind (fun checked =>
 private def runCheck
     (authoredTable := lifecycle.table)
     (authoredDefinition := lifecycle.modelSpec)
-    (propertyAuthor : Authoring.ModelVocabulary → PropertySpec := successfulResult)
-    (behaviorAuthor : Authoring.ModelVocabulary → ExactSequenceSpec := successfulCompletion)
+    (propertyAuthor : Authoring.ModelVocabulary → Property := successfulResult)
+    (behaviorAuthor : Authoring.ModelVocabulary → Scenario := successfulCompletion)
     (form : Authoring.QueryFormKind := .selectWitness) :=
   Authoring.check lifecycle "completion" shortTrace propertyAuthor behaviorAuthor (form := form)
     (authoredTable := authoredTable) (authoredDefinition := authoredDefinition)
@@ -210,18 +210,18 @@ private def extraSuccessResultTable :=
           (lifecycle.resultsAt 1 ++ (lifecycle.resultsAt 0))
       else row
 
-private def shortenedSuccess (values : Authoring.ModelVocabulary) : ExactSequenceSpec :=
+private def shortenedSuccess (values : Authoring.ModelVocabulary) : Scenario :=
   Authoring.withOccurrences (successfulCompletion values)
     [Authoring.occurrence "successfulCompletion.completion"
       (values.actionAt 1).definitionId]
 
-private def impossibleSuccess (values : Authoring.ModelVocabulary) : ExactSequenceSpec :=
+private def impossibleSuccess (values : Authoring.ModelVocabulary) : Scenario :=
   Authoring.withOccurrences (successfulCompletion values) [
     Authoring.occurrence "successfulCompletion.completion" (values.actionAt 1).definitionId,
     Authoring.occurrence "successfulCompletion.start" (values.actionAt 0).definitionId
   ]
 
-private def noWitnessProperty (values : Authoring.ModelVocabulary) : PropertySpec :=
+private def noWitnessProperty (values : Authoring.ModelVocabulary) : Property :=
   Authoring.withClauses (successfulResult values) <| stepClauses Authoring.family
       "successfulResult" (values.actionAt 1) (values.stateAt 1) (values.outcomeAt 1)
       (values.factAt 1)
@@ -318,7 +318,7 @@ private def renamedTargetResult :
 
 /-- The same Actions in the same order under different occurrence names: a different checked
 Behavior that still places every clause. -/
-private def renamedOccurrences (values : Authoring.ModelVocabulary) : ExactSequenceSpec :=
+private def renamedOccurrences (values : Authoring.ModelVocabulary) : Scenario :=
   Authoring.withOccurrences (successfulCompletion values) [
     Authoring.occurrence "successfulCompletion.begin" (values.actionAt 0).definitionId,
     Authoring.occurrence "successfulCompletion.finish" (values.actionAt 1).definitionId]
@@ -344,7 +344,7 @@ private def modelMemberIds
   candidate.operationRoleId :: (candidate.stateIds ++ candidate.actionIds ++
     candidate.outcomeIds ++ candidate.factIds ++ candidate.relationIds)
 
-private def checkedPropertyOf (spec : PropertySpec) : Option CheckedProperty := do
+private def checkedPropertyOf (spec : Property) : Option CheckedProperty := do
   let checked ← admitted
   spec.check (PropertyCheckContext.ofTarget checked.target) |>.toOption
 
@@ -414,10 +414,10 @@ private def renamedIdentitiesAreCoherent : Option Bool := do
 theorem renameChangesDerivedIdentitiesCoherently : renamedIdentitiesAreCoherent = some true := by
   native_decide
 
-private def reorderedAndDocumented (values : Authoring.ModelVocabulary) : PropertySpec :=
+private def reorderedAndDocumented (values : Authoring.ModelVocabulary) : Property :=
   Authoring.reorderedAndDocumented (successfulResult values) "Comment-only presentation."
 
-private def changedMeaning (values : Authoring.ModelVocabulary) : PropertySpec :=
+private def changedMeaning (values : Authoring.ModelVocabulary) : Property :=
   Authoring.withClauses (successfulResult values) <| stepClauses Authoring.family
       "successfulResult" (values.actionAt 1) (values.stateAt 1) (values.outcomeAt 1)
       (values.factAt 1)
@@ -436,7 +436,7 @@ theorem identityAndFingerprintStability : identityFingerprintCheck = some true :
 
 /-- Dropping one checked `require` clause leaves a Property every witness step still carries, so it
 lowers to different Case bytes rather than rejecting. -/
-private def fewerClauses (values : Authoring.ModelVocabulary) : PropertySpec :=
+private def fewerClauses (values : Authoring.ModelVocabulary) : Property :=
   Authoring.withClauses (successfulResult values) (successfulResult values).clauses.tail
 
 #guard (do
@@ -446,7 +446,7 @@ private def fewerClauses (values : Authoring.ModelVocabulary) : PropertySpec :=
 
 /-- A Property about the start step lowers to clauses about the start step: the trigger each
 clause carries is the Action the `require` line named. -/
-private def startClauses (values : Authoring.ModelVocabulary) : PropertySpec :=
+private def startClauses (values : Authoring.ModelVocabulary) : Property :=
   Authoring.withClauses (successfulResult values) <| stepClauses Authoring.family
       "successfulResult" (values.actionAt 0) (values.stateAt 1) (values.outcomeAt 0)
       (values.factAt 0)
@@ -550,14 +550,14 @@ reach the derived Property and Behavior. -/
 
 /- A misspelled Property or Behavior member resolves to a value no Target provides, so admission
 rejects the declaration instead of silently checking a different one. -/
-private def misspelledProperty (values : Authoring.ModelVocabulary) : PropertySpec :=
-  Authoring.propertySpec lifecycle values {
+private def misspelledProperty (values : Authoring.ModelVocabulary) : Property :=
+  Authoring.authoredProperty lifecycle values {
     declaration := "successfulResult", roleName := "operation"
     actionSpelling := "awaitSuccess"
     requirements := [.stateClause "successState" "suceeded"] }
 
-private def misspelledRole (values : Authoring.ModelVocabulary) : ExactSequenceSpec :=
-  Authoring.behaviorSpec lifecycle values {
+private def misspelledRole (values : Authoring.ModelVocabulary) : Scenario :=
+  Authoring.authoredScenario lifecycle values {
     declaration := "successfulCompletion", roleName := "worker", setupState := "scheduled"
     occurrences := [("start", "awaitStart"), ("completion", "awaitSuccess")] }
 

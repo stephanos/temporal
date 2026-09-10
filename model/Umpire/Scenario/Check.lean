@@ -1,262 +1,36 @@
-import Umpire.Shared.DefinitionGraph
-import Umpire.Model.Check
+import Umpire.Scenario
 
-/-! Implementation behind the `Umpire.Behavior` public facade. -/
+/-! Canonicalization and checking for authored Scenarios. -/
 
 namespace Umpire
-
-/-! Checked, portable constraints over pure Model Traces. -/
-
-inductive BehaviorErrorKind where
-  | emptyDefinitionId
-  | invalidDefinitionId
-  | duplicateDefinitionId
-  | unknownReference
-  | wrongReferenceKind
-  | invalidBinding
-  | contradictoryOccurrenceBounds
-  | contradictoryConstraint
-  | forbiddenRequired
-  | duplicateOrdering
-  | selfOrdering
-  | cyclicOrdering
-  | occurrenceLimitExceeded
-  | incompleteExactTrace
-  deriving BEq, DecidableEq, Ord, Repr
-
-def BehaviorErrorKind.name : BehaviorErrorKind → String
-  | .emptyDefinitionId => "empty-definition-id"
-  | .invalidDefinitionId => "invalid-definition-id"
-  | .duplicateDefinitionId => "duplicate-definition-id"
-  | .unknownReference => "unknown-reference"
-  | .wrongReferenceKind => "wrong-reference-kind"
-  | .invalidBinding => "invalid-binding"
-  | .contradictoryOccurrenceBounds => "contradictory-occurrence-bounds"
-  | .contradictoryConstraint => "contradictory-constraint"
-  | .forbiddenRequired => "forbidden-required"
-  | .duplicateOrdering => "duplicate-ordering"
-  | .selfOrdering => "self-ordering"
-  | .cyclicOrdering => "cyclic-ordering"
-  | .occurrenceLimitExceeded => "occurrence-limit-exceeded"
-  | .incompleteExactTrace => "incomplete-exact-trace"
-
-structure BehaviorError where
-  kind : BehaviorErrorKind
-  definitionId : DefinitionId
-  sourcePath : String
-  offendingValue : String
-  relatedDefinitionIds : List DefinitionId
-  deriving BEq, DecidableEq, Repr
-
-/-- A symbolic setup role retains the kind of Model Value that may bind it. -/
-structure ResourceRole where
-  id : DefinitionId
-  valueKind : DefinitionKind
-  deriving BEq, DecidableEq, Repr
-
-inductive SetupOperand where
-  | role (id : DefinitionId)
-  | value (value : ModelValue)
-  deriving BEq, DecidableEq, Repr
-
-inductive SetupRelation where
-  | equal
-  | different
-  deriving BEq, DecidableEq, Ord, Repr
-
-def SetupRelation.name : SetupRelation → String
-  | .equal => "equal"
-  | .different => "different"
-
-structure SetupConstraint where
-  id : DefinitionId
-  relation : SetupRelation
-  left : SetupOperand
-  right : SetupOperand
-  deriving BEq, DecidableEq, Repr
-
-/-- Require one symbolic setup role to equal one concrete Model Value. -/
-def SetupConstraint.roleEquals
-    (id : DefinitionId)
-    (role : DefinitionId)
-    (value : ModelValue) : SetupConstraint := {
-  id
-  relation := .equal
-  left := .role role
-  right := .value value
-}
-
-/-- A required action occurrence has a stable Definition ID independent of its action Definition ID. -/
-structure NamedOccurrence where
-  id : DefinitionId
-  action : DefinitionId
-  deriving BEq, DecidableEq, Repr
-
-structure OccurrenceBound where
-  action : DefinitionId
-  minimum : Nat := 0
-  maximum : Option Nat := none
-  deriving BEq, DecidableEq, Repr
-
-namespace OccurrenceBound
-
-def exactly (action : DefinitionId) (count : Nat) : OccurrenceBound :=
-  { action, minimum := count, maximum := some count }
-
-def atLeast (action : DefinitionId) (count : Nat) : OccurrenceBound :=
-  { action, minimum := count }
-
-def atMost (action : DefinitionId) (count : Nat) : OccurrenceBound :=
-  { action, maximum := some count }
-
-end OccurrenceBound
-
-structure OccurrenceOrder where
-  before : DefinitionId
-  after : DefinitionId
-  deriving BEq, DecidableEq, Repr
-
-/-- Optional fields keep malformed promoted witnesses representable until checking. -/
-structure AuthoredExactTraceStep where
-  selectedAction : Option ModelValue
-  modelOutcome : Option ModelValue
-  resultingState : Option ModelValue
-  observations : Option (List ModelValue)
-  deriving BEq, DecidableEq, Repr
-
-structure AuthoredExactTrace where
-  setup : List RoleBinding
-  initialState : Option ModelValue
-  steps : List AuthoredExactTraceStep
-  deriving BEq, DecidableEq, Repr
-
-/-- A complete pure trace together with the symbolic setup bindings that selected it. -/
-structure BehaviorTrace where
-  setup : List RoleBinding
-  trace : ModelTrace ModelValue ModelValue ModelValue ModelValue
-  deriving BEq, DecidableEq, Repr
-
-/-- Build a complete Behavior trace containing one model-owned transition result. -/
-def BehaviorTrace.singleStep
-    (setup : List RoleBinding)
-    (initialState : ModelValue)
-    (selectedAction : ModelValue)
-    (result : Step ModelValue ModelValue ModelValue) : BehaviorTrace := {
-  setup
-  trace := {
-    initialState
-    steps := [ModelTraceStep.result selectedAction result]
-  }
-}
-
-structure BehaviorDeclaration where
-  id : DefinitionId
-  source : SourceLocation
-  version : Nat := 1
-  requires : List DefinitionId := []
-  roles : List ResourceRole := []
-  setup : List SetupConstraint := []
-  allowedActions : List DefinitionId := []
-  requiredOccurrences : List NamedOccurrence := []
-  forbiddenActions : List DefinitionId := []
-  occurrenceBounds : List OccurrenceBound := []
-  ordering : List OccurrenceOrder := []
-  sequences : List (List DefinitionId) := []
-  adjacencies : List (List DefinitionId) := []
-  actionsExactly : Option (List DefinitionId) := none
-  traceExactly : Option AuthoredExactTrace := none
-  documentation : String := ""
-  deriving BEq, DecidableEq, Repr
-
-/-- Declare exactly one occurrence of one Action while leaving its result to the Target. -/
-def BehaviorDeclaration.exactlyOneAction
-    (id : DefinitionId)
-    (source : SourceLocation)
-    (occurrence : NamedOccurrence)
-    (requires : List DefinitionId := [])
-    (roles : List ResourceRole := [])
-    (setup : List SetupConstraint := [])
-    (documentation : String := "") : BehaviorDeclaration := {
-  id
-  source
-  requires
-  roles
-  setup
-  allowedActions := [occurrence.action]
-  requiredOccurrences := [occurrence]
-  occurrenceBounds := [OccurrenceBound.exactly occurrence.action 1]
-  actionsExactly := some [occurrence.action]
-  documentation
-}
-
-structure BehaviorCheckContext where
-  definitions : List DefinitionMetadata
-  deriving BEq, DecidableEq, Repr
-
-def BehaviorCheckContext.ofTarget
-    (target : CheckedModel LawStatement Setup State Action Outcome Observation) :
-    BehaviorCheckContext := {
-  definitions := target.definitions
-}
-
-inductive BehaviorSpaceStatus where
-  | unclassified
-  | unsatisfiable
-  deriving BEq, DecidableEq, Ord, Repr
-
-def BehaviorSpaceStatus.name : BehaviorSpaceStatus → String
-  | .unclassified => "unclassified"
-  | .unsatisfiable => "unsatisfiable"
-
-structure CheckedBehavior where
-  id : DefinitionId
-  source : SourceLocation
-  version : Nat
-  requires : List DefinitionId
-  roles : List ResourceRole
-  setup : List SetupConstraint
-  allowedActions : List DefinitionId
-  requiredOccurrences : List NamedOccurrence
-  forbiddenActions : List DefinitionId
-  occurrenceBounds : List OccurrenceBound
-  ordering : List OccurrenceOrder
-  sequences : List (List DefinitionId)
-  adjacencies : List (List DefinitionId)
-  actionsExactly : Option (List DefinitionId)
-  traceExactly : Option BehaviorTrace
-  spaceStatus : BehaviorSpaceStatus
-  documentation : String
-  canonicalMetadata : String
-  behaviorFingerprint : BehaviorFingerprint
-  deriving BEq, DecidableEq, Repr
 
 private def quote (value : String) : String := Lean.Json.compress (.str value)
 
 private def array (items : List String) : String :=
   "[" ++ String.intercalate "," items ++ "]"
 
-private def roleLe (left right : ResourceRole) : Bool :=
+private def roleLe (left right : Scenario.Role) : Bool :=
   decide (left.id.value ≤ right.id.value)
 
 private def constraintLe (left right : SetupConstraint) : Bool :=
   decide (left.id.value ≤ right.id.value)
 
-private def occurrenceLe (left right : NamedOccurrence) : Bool :=
+private def occurrenceLe (left right : Scenario.Step) : Bool :=
   decide (left.id.value ≤ right.id.value)
 
-private def boundLe (left right : OccurrenceBound) : Bool :=
+private def boundLe (left right : Scenario.Count) : Bool :=
   decide (left.action.value ≤ right.action.value)
 
-private def orderLe (left right : OccurrenceOrder) : Bool :=
+private def orderLe (left right : Scenario.Order) : Bool :=
   decide (left.before.value < right.before.value) ||
     (left.before == right.before && decide (left.after.value ≤ right.after.value))
 
-private def orderingEdge (ordering : OccurrenceOrder) : DefinitionGraph.Edge := {
+private def orderingEdge (ordering : Scenario.Order) : DefinitionGraph.Edge := {
   before := ordering.before
   after := ordering.after
 }
 
-private def occurrenceOrder (edge : DefinitionGraph.Edge) : OccurrenceOrder := {
+private def occurrenceOrder (edge : DefinitionGraph.Edge) : Scenario.Order := {
   before := edge.before
   after := edge.after
 }
@@ -292,12 +66,12 @@ private def sourceJson (source : SourceLocation) : String :=
     ",\"column\":" ++ toString source.column ++
     ",\"provenance\":" ++ quote source.provenance ++ "}"
 
-private def behaviorError
-    (kind : BehaviorErrorKind)
+private def scenarioError
+    (kind : ScenarioErrorKind)
     (owner : DefinitionId)
     (source : SourceLocation)
     (offendingValue : String)
-    (relatedDefinitionIds : List DefinitionId := []) : BehaviorError := {
+    (relatedDefinitionIds : List DefinitionId := []) : ScenarioError := {
   kind
   definitionId := if owner.value == "" then
     DefinitionId.of "umpire.behavior.anonymous"
@@ -311,147 +85,147 @@ private def behaviorError
 private def requireDefinitionId
     (owner : DefinitionId)
     (source : SourceLocation)
-    (id : DefinitionId) : Except BehaviorError Unit :=
+    (id : DefinitionId) : Except ScenarioError Unit :=
   match id.validate with
   | .error .empty =>
-      .error (behaviorError .emptyDefinitionId owner source "<empty>" [id])
+      .error (scenarioError .emptyDefinitionId owner source "<empty>" [id])
   | .error .malformed =>
-      .error (behaviorError .invalidDefinitionId owner source id.value [id])
+      .error (scenarioError .invalidDefinitionId owner source id.value [id])
   | .ok () => .ok ()
 
 private def requireUniqueIds
     (owner : DefinitionId)
     (source : SourceLocation)
-    (ids : List DefinitionId) : Except BehaviorError Unit :=
+    (ids : List DefinitionId) : Except ScenarioError Unit :=
   match DefinitionId.firstDuplicate ids with
   | some duplicate =>
-      .error (behaviorError .duplicateDefinitionId owner source duplicate.value [duplicate])
+      .error (scenarioError .duplicateDefinitionId owner source duplicate.value [duplicate])
   | none => .ok ()
 
 private def findDefinition
-    (context : BehaviorCheckContext)
+    (context : ScenarioCheckContext)
     (id : DefinitionId) : Option DefinitionMetadata :=
   context.definitions.find? fun declaration => declaration.id == id
 
 private def validateReferenceKind
-    (context : BehaviorCheckContext)
-    (owner : BehaviorDeclaration)
+    (context : ScenarioCheckContext)
+    (owner : Scenario)
     (id : DefinitionId)
-    (expected : DefinitionKind) : Except BehaviorError Unit := do
+    (expected : DefinitionKind) : Except ScenarioError Unit := do
   requireDefinitionId owner.id owner.source id
   match findDefinition context id with
   | none =>
-      throw (behaviorError .unknownReference owner.id owner.source id.value [id])
+      throw (scenarioError .unknownReference owner.id owner.source id.value [id])
   | some metadata =>
       if metadata.kind != expected then
-        throw (behaviorError .wrongReferenceKind owner.id owner.source
+        throw (scenarioError .wrongReferenceKind owner.id owner.source
           (id.value ++ ": expected " ++ expected.name ++ ", found " ++ metadata.kind.name)
           [id])
 
 private def findRole
-    (roles : List ResourceRole)
-    (id : DefinitionId) : Option ResourceRole :=
+    (roles : List Scenario.Role)
+    (id : DefinitionId) : Option Scenario.Role :=
   roles.find? fun role => role.id == id
 
 private def operandKind
-    (context : BehaviorCheckContext)
-    (owner : BehaviorDeclaration)
-    (roles : List ResourceRole) : SetupOperand → Except BehaviorError DefinitionKind
+    (context : ScenarioCheckContext)
+    (owner : Scenario)
+    (roles : List Scenario.Role) : SetupOperand → Except ScenarioError DefinitionKind
   | .role id =>
       match findRole roles id with
       | some role => pure role.valueKind
-      | none => throw (behaviorError .invalidBinding owner.id owner.source id.value [id])
+      | none => throw (scenarioError .invalidBinding owner.id owner.source id.value [id])
   | .value value => do
       requireDefinitionId owner.id owner.source value.definitionId
       match findDefinition context value.definitionId with
       | some metadata => pure metadata.kind
       | none =>
-          throw (behaviorError .invalidBinding owner.id owner.source
+          throw (scenarioError .invalidBinding owner.id owner.source
             value.definitionId.value [value.definitionId])
 
 private def validateSetupConstraint
-    (context : BehaviorCheckContext)
-    (owner : BehaviorDeclaration)
-    (roles : List ResourceRole)
-    (constraint : SetupConstraint) : Except BehaviorError Unit := do
+    (context : ScenarioCheckContext)
+    (owner : Scenario)
+    (roles : List Scenario.Role)
+    (constraint : SetupConstraint) : Except ScenarioError Unit := do
   requireDefinitionId owner.id owner.source constraint.id
   let leftKind ← operandKind context owner roles constraint.left
   let rightKind ← operandKind context owner roles constraint.right
   if leftKind != rightKind then
-    throw (behaviorError .invalidBinding owner.id owner.source
+    throw (scenarioError .invalidBinding owner.id owner.source
       (leftKind.name ++ " != " ++ rightKind.name) [constraint.id])
 
 private def validateOrdering
-    (owner : BehaviorDeclaration)
-    (analysis : DefinitionGraph.Analysis) : Except BehaviorError (List OccurrenceOrder) := do
+    (owner : Scenario)
+    (analysis : DefinitionGraph.Analysis) : Except ScenarioError (List Scenario.Order) := do
   match analysis.edgeFindings.duplicate with
   | some edge =>
-      throw (behaviorError .duplicateOrdering owner.id owner.source
+      throw (scenarioError .duplicateOrdering owner.id owner.source
         (edge.before.value ++ "->" ++ edge.after.value) [edge.before, edge.after])
   | none => pure ()
   match analysis.edgeFindings.self with
   | some edge =>
-      throw (behaviorError .selfOrdering owner.id owner.source edge.before.value [edge.before])
+      throw (scenarioError .selfOrdering owner.id owner.source edge.before.value [edge.before])
   | none => pure ()
   match analysis.edgeFindings.unknownEndpoints with
   | finding :: _ =>
       let unknown := if !finding.beforeKnown then finding.edge.before else finding.edge.after
-      throw (behaviorError .unknownReference owner.id owner.source unknown.value [unknown])
+      throw (scenarioError .unknownReference owner.id owner.source unknown.value [unknown])
   | [] => pure ()
   match analysis.cycleEvidence with
   | some evidence =>
       let witness := evidence.residualPredecessorWitness
-      throw (behaviorError .cyclicOrdering owner.id owner.source witness.value [witness])
+      throw (scenarioError .cyclicOrdering owner.id owner.source witness.value [witness])
   | none => pure (analysis.canonicalEdges.map occurrenceOrder)
 
 private def validateBinding
-    (context : BehaviorCheckContext)
-    (owner : BehaviorDeclaration)
-    (roles : List ResourceRole)
-    (binding : RoleBinding) : Except BehaviorError Unit := do
+    (context : ScenarioCheckContext)
+    (owner : Scenario)
+    (roles : List Scenario.Role)
+    (binding : RoleBinding) : Except ScenarioError Unit := do
   let role ← match findRole roles binding.role with
     | some role => pure role
     | none =>
-        throw (behaviorError .invalidBinding owner.id owner.source
+        throw (scenarioError .invalidBinding owner.id owner.source
           binding.role.value [binding.role])
   requireDefinitionId owner.id owner.source binding.value.definitionId
   match findDefinition context binding.value.definitionId with
   | none =>
-      throw (behaviorError .invalidBinding owner.id owner.source
+      throw (scenarioError .invalidBinding owner.id owner.source
         binding.value.definitionId.value [binding.role, binding.value.definitionId])
   | some metadata =>
       if metadata.kind != role.valueKind then
-        throw (behaviorError .invalidBinding owner.id owner.source
+        throw (scenarioError .invalidBinding owner.id owner.source
           (binding.role.value ++ ": expected " ++ role.valueKind.name ++
             ", found " ++ metadata.kind.name)
           [binding.role, binding.value.definitionId])
 
 private def requireModelValueKind
-    (context : BehaviorCheckContext)
-    (owner : BehaviorDeclaration)
+    (context : ScenarioCheckContext)
+    (owner : Scenario)
     (expected : DefinitionKind)
-    (value : ModelValue) : Except BehaviorError Unit :=
+    (value : ModelValue) : Except ScenarioError Unit :=
   validateReferenceKind context owner value.definitionId expected
 
 private def checkExactTrace
-    (context : BehaviorCheckContext)
-    (owner : BehaviorDeclaration)
-    (roles : List ResourceRole)
-    (authored : AuthoredExactTrace) : Except BehaviorError BehaviorTrace := do
+    (context : ScenarioCheckContext)
+    (owner : Scenario)
+    (roles : List Scenario.Role)
+    (authored : AuthoredExactTrace) : Except ScenarioError Scenario.Trace := do
   requireUniqueIds owner.id owner.source (authored.setup.map RoleBinding.role)
   for binding in authored.setup do
     validateBinding context owner roles binding
   let boundRoles := authored.setup.map RoleBinding.role
   for role in roles do
     if !boundRoles.contains role.id then
-      throw (behaviorError .incompleteExactTrace owner.id owner.source
+      throw (scenarioError .incompleteExactTrace owner.id owner.source
         ("missing setup binding " ++ role.id.value) [role.id])
   if authored.setup.length != roles.length then
-    throw (behaviorError .invalidBinding owner.id owner.source "unexpected setup binding" boundRoles)
+    throw (scenarioError .invalidBinding owner.id owner.source "unexpected setup binding" boundRoles)
   let initialState ← match authored.initialState with
     | some state => pure state
     | none =>
-        throw (behaviorError .incompleteExactTrace owner.id owner.source
+        throw (scenarioError .incompleteExactTrace owner.id owner.source
           "initial-state" [])
   requireModelValueKind context owner .state initialState
   let mut steps := []
@@ -459,22 +233,22 @@ private def checkExactTrace
     let action ← match authoredStep.selectedAction with
       | some value => pure value
       | none =>
-          throw (behaviorError .incompleteExactTrace owner.id owner.source
+          throw (scenarioError .incompleteExactTrace owner.id owner.source
             ("step-" ++ toString index ++ ":selected-action") [])
     let outcome ← match authoredStep.modelOutcome with
       | some value => pure value
       | none =>
-          throw (behaviorError .incompleteExactTrace owner.id owner.source
+          throw (scenarioError .incompleteExactTrace owner.id owner.source
             ("step-" ++ toString index ++ ":model-outcome") [])
     let state ← match authoredStep.resultingState with
       | some value => pure value
       | none =>
-          throw (behaviorError .incompleteExactTrace owner.id owner.source
+          throw (scenarioError .incompleteExactTrace owner.id owner.source
             ("step-" ++ toString index ++ ":resulting-state") [])
     let facts ← match authoredStep.observations with
       | some values => pure values
       | none =>
-          throw (behaviorError .incompleteExactTrace owner.id owner.source
+          throw (scenarioError .incompleteExactTrace owner.id owner.source
             ("step-" ++ toString index ++ ":observations") [])
     requireModelValueKind context owner .action action
     requireModelValueKind context owner .outcome outcome
@@ -496,16 +270,16 @@ private def countAction (action : DefinitionId) (actions : List DefinitionId) : 
   (actions.filter fun candidate => candidate == action).length
 
 private def occurrenceIsReady
-    (ordering : List OccurrenceOrder)
-    (remaining : List NamedOccurrence)
-    (occurrence : NamedOccurrence) : Bool :=
+    (ordering : List Scenario.Order)
+    (remaining : List Scenario.Step)
+    (occurrence : Scenario.Step) : Bool :=
   ordering.all fun edge =>
     edge.after != occurrence.id ||
       !(remaining.any fun candidate => candidate.id == edge.before)
 
 private structure OccurrenceAssignmentState where
-  remaining : List NamedOccurrence
-  assignedRev : List (Option NamedOccurrence)
+  remaining : List Scenario.Step
+  assignedRev : List (Option Scenario.Step)
 
 private def insertOccurrenceState
     (states : List OccurrenceAssignmentState)
@@ -516,7 +290,7 @@ private def insertOccurrenceState
     states ++ [candidate]
 
 private def advanceOccurrenceStates
-    (ordering : List OccurrenceOrder)
+    (ordering : List Scenario.Order)
     (action : DefinitionId)
     (states : List OccurrenceAssignmentState) : List OccurrenceAssignmentState :=
   states.foldl (init := []) fun next state =>
@@ -536,8 +310,8 @@ assignment permutations one state, avoiding factorial backtracking for repeated 
 -/
 private def assignOccurrenceSlots
     (schedule : List DefinitionId)
-    (ordering : List OccurrenceOrder)
-    (occurrences : List NamedOccurrence) : Option (List (Option NamedOccurrence)) :=
+    (ordering : List Scenario.Order)
+    (occurrences : List Scenario.Step) : Option (List (Option Scenario.Step)) :=
   let countsSufficient := occurrences.all fun occurrence =>
     countAction occurrence.action schedule ≥
       (occurrences.filter fun candidate => candidate.action == occurrence.action).length
@@ -554,8 +328,8 @@ private def assignOccurrenceSlots
 
 private def hasOccurrenceAssignment
     (schedule : List DefinitionId)
-    (ordering : List OccurrenceOrder)
-    (occurrences : List NamedOccurrence) : Bool :=
+    (ordering : List Scenario.Order)
+    (occurrences : List Scenario.Step) : Bool :=
   (assignOccurrenceSlots schedule ordering occurrences).isSome
 
 private def isSubsequence : List DefinitionId → List DefinitionId → Bool
@@ -578,72 +352,72 @@ private def containsAdjacent (expected : List DefinitionId) : List DefinitionId 
   | actual@(_ :: remaining) => isPrefix expected actual || containsAdjacent expected remaining
 
 private def validateActionConstraints
-    (owner : BehaviorDeclaration)
+    (owner : Scenario)
     (allowed forbidden : List DefinitionId)
-    (required : List NamedOccurrence)
-    (bounds : List OccurrenceBound)
-    (ordering : List OccurrenceOrder)
+    (required : List Scenario.Step)
+    (bounds : List Scenario.Count)
+    (ordering : List Scenario.Order)
     (sequences adjacencies : List (List DefinitionId))
-    (exactSchedule : Option (List DefinitionId)) : Except BehaviorError Unit := do
+    (exactSchedule : Option (List DefinitionId)) : Except ScenarioError Unit := do
   for occurrence in required do
     if forbidden.contains occurrence.action then
-      throw (behaviorError .forbiddenRequired owner.id owner.source
+      throw (scenarioError .forbiddenRequired owner.id owner.source
         occurrence.action.value [occurrence.id, occurrence.action])
     if allowed != [] && !allowed.contains occurrence.action then
-      throw (behaviorError .contradictoryConstraint owner.id owner.source
+      throw (scenarioError .contradictoryConstraint owner.id owner.source
         ("required action not allowed: " ++ occurrence.action.value)
         [occurrence.id, occurrence.action])
   for action in allowed do
     if forbidden.contains action then
-      throw (behaviorError .contradictoryConstraint owner.id owner.source
+      throw (scenarioError .contradictoryConstraint owner.id owner.source
         ("allowed and forbidden: " ++ action.value) [action])
   for bound in bounds do
     match bound.maximum with
     | some maximum =>
         if bound.minimum > maximum then
-          throw (behaviorError .contradictoryOccurrenceBounds owner.id owner.source
+          throw (scenarioError .contradictoryOccurrenceBounds owner.id owner.source
             bound.action.value [bound.action])
     | none => pure ()
     let requiredCount := (required.filter fun occurrence => occurrence.action == bound.action).length
     match bound.maximum with
     | some maximum =>
         if requiredCount > maximum then
-          throw (behaviorError .contradictoryOccurrenceBounds owner.id owner.source
+          throw (scenarioError .contradictoryOccurrenceBounds owner.id owner.source
             bound.action.value [bound.action])
     | none => pure ()
     if forbidden.contains bound.action && bound.minimum > 0 then
-      throw (behaviorError .forbiddenRequired owner.id owner.source
+      throw (scenarioError .forbiddenRequired owner.id owner.source
         bound.action.value [bound.action])
   match exactSchedule with
   | none => pure ()
   | some actions =>
       for action in actions do
         if forbidden.contains action then
-          throw (behaviorError .forbiddenRequired owner.id owner.source action.value [action])
+          throw (scenarioError .forbiddenRequired owner.id owner.source action.value [action])
         if allowed != [] && !allowed.contains action then
-          throw (behaviorError .contradictoryConstraint owner.id owner.source
+          throw (scenarioError .contradictoryConstraint owner.id owner.source
             ("exact action not allowed: " ++ action.value) [action])
       for occurrence in required do
         let requiredCount := (required.filter fun candidate =>
           candidate.action == occurrence.action).length
         if countAction occurrence.action actions < requiredCount then
-          throw (behaviorError .contradictoryOccurrenceBounds owner.id owner.source
+          throw (scenarioError .contradictoryOccurrenceBounds owner.id owner.source
             occurrence.action.value [occurrence.action])
       for bound in bounds do
         let count := countAction bound.action actions
         if count < bound.minimum || bound.maximum.any fun maximum => count > maximum then
-          throw (behaviorError .contradictoryOccurrenceBounds owner.id owner.source
+          throw (scenarioError .contradictoryOccurrenceBounds owner.id owner.source
             bound.action.value [bound.action])
       if !hasOccurrenceAssignment actions ordering required then
-        throw (behaviorError .contradictoryConstraint owner.id owner.source
-          "exact schedule violates occurrence ordering" (required.map NamedOccurrence.id))
+        throw (scenarioError .contradictoryConstraint owner.id owner.source
+          "exact schedule violates occurrence ordering" (required.map Scenario.Step.id))
       for sequence in sequences do
         if !isSubsequence sequence actions then
-          throw (behaviorError .contradictoryConstraint owner.id owner.source
+          throw (scenarioError .contradictoryConstraint owner.id owner.source
             ("exact schedule omits sequence: " ++ idListKey sequence) sequence)
       for adjacency in adjacencies do
         if !containsAdjacent adjacency actions then
-          throw (behaviorError .contradictoryConstraint owner.id owner.source
+          throw (scenarioError .contradictoryConstraint owner.id owner.source
             ("exact schedule omits adjacency: " ++ idListKey adjacency) adjacency)
 
 private def operandJson : SetupOperand → String
@@ -652,7 +426,7 @@ private def operandJson : SetupOperand → String
       "{\"value\":{\"identity\":" ++ quote value.definitionId.value ++
         ",\"value\":" ++ quote value.value ++ "}}"
 
-private def roleJson (role : ResourceRole) : String :=
+private def roleJson (role : Scenario.Role) : String :=
   "{\"id\":" ++ quote role.id.value ++
     ",\"valueKind\":" ++ quote role.valueKind.name ++ "}"
 
@@ -662,16 +436,16 @@ private def setupConstraintJson (constraint : SetupConstraint) : String :=
     ",\"left\":" ++ operandJson constraint.left ++
     ",\"right\":" ++ operandJson constraint.right ++ "}"
 
-private def occurrenceJson (occurrence : NamedOccurrence) : String :=
+private def occurrenceJson (occurrence : Scenario.Step) : String :=
   "{\"id\":" ++ quote occurrence.id.value ++
     ",\"action\":" ++ quote occurrence.action.value ++ "}"
 
-private def boundJson (bound : OccurrenceBound) : String :=
+private def boundJson (bound : Scenario.Count) : String :=
   "{\"action\":" ++ quote bound.action.value ++
     ",\"minimum\":" ++ toString bound.minimum ++
     ",\"maximum\":" ++ (bound.maximum.map toString |>.getD "null") ++ "}"
 
-private def orderJson (edge : OccurrenceOrder) : String :=
+private def orderJson (edge : Scenario.Order) : String :=
   "{\"before\":" ++ quote edge.before.value ++
     ",\"after\":" ++ quote edge.after.value ++ "}"
 
@@ -690,7 +464,7 @@ private def traceStepJson
     ",\"state\":" ++ valueJson step.state ++
     ",\"facts\":" ++ array (step.facts.map valueJson) ++ "}"
 
-private def behaviorTraceJson (trace : BehaviorTrace) : String :=
+private def behaviorTraceJson (trace : Scenario.Trace) : String :=
   "{\"setup\":" ++ array (trace.setup.mergeSort bindingLe |>.map bindingJson) ++
     ",\"initialState\":" ++ valueJson trace.trace.initialState ++
     ",\"steps\":" ++ array (trace.trace.steps.map traceStepJson) ++ "}"
@@ -749,17 +523,17 @@ private def behaviorSemanticJson
     (id : DefinitionId)
     (version : Nat)
     (requires : List DefinitionId)
-    (roles : List ResourceRole)
+    (roles : List Scenario.Role)
     (setup : List SetupConstraint)
     (allowedActions : List DefinitionId)
-    (requiredOccurrences : List NamedOccurrence)
+    (requiredOccurrences : List Scenario.Step)
     (forbiddenActions : List DefinitionId)
-    (occurrenceBounds : List OccurrenceBound)
-    (ordering : List OccurrenceOrder)
+    (occurrenceBounds : List Scenario.Count)
+    (ordering : List Scenario.Order)
     (sequences adjacencies : List (List DefinitionId))
     (actionsExactly : Option (List DefinitionId))
-    (traceExactly : Option BehaviorTrace)
-    (spaceStatus : BehaviorSpaceStatus) : String :=
+    (traceExactly : Option Scenario.Trace)
+    (spaceStatus : ScenarioStatus) : String :=
   "{\"id\":" ++ quote id.value ++
     ",\"version\":" ++ toString version ++
     ",\"requires\":" ++ actionListJson (DefinitionId.canonicalSet requires) ++
@@ -778,7 +552,7 @@ private def behaviorSemanticJson
     ",\"traceExactly\":" ++ (traceExactly.map behaviorTraceJson |>.getD "null") ++
     ",\"spaceStatus\":" ++ quote spaceStatus.name ++ "}"
 
-def canonicalBehaviorJson (behavior : CheckedBehavior) : String :=
+def canonicalScenarioJson (behavior : CheckedScenario) : String :=
   "{\"semantic\":" ++ behaviorSemanticJson behavior.id behavior.version behavior.requires
       behavior.roles behavior.setup behavior.allowedActions behavior.requiredOccurrences
       behavior.forbiddenActions behavior.occurrenceBounds behavior.ordering behavior.sequences
@@ -786,7 +560,7 @@ def canonicalBehaviorJson (behavior : CheckedBehavior) : String :=
     ",\"source\":" ++ sourceJson behavior.source ++
     ",\"documentation\":" ++ quote behavior.documentation ++ "}"
 
-def canonicalBehaviorErrorJson (error : BehaviorError) : String :=
+def canonicalScenarioErrorJson (error : ScenarioError) : String :=
   "{\"kind\":" ++ quote error.kind.name ++
     ",\"definitionId\":" ++ quote error.definitionId.value ++
     ",\"sourcePath\":" ++ quote error.sourcePath ++
@@ -796,25 +570,25 @@ def canonicalBehaviorErrorJson (error : BehaviorError) : String :=
         (quote ∘ DefinitionId.value)) ++ "}"
 
 /-- Check and canonicalize a behavior without selecting a target or enumerating any trace. -/
-def checkBehavior
-    (context : BehaviorCheckContext)
-    (declaration : BehaviorDeclaration) : Except BehaviorError CheckedBehavior := do
+def Scenario.check
+    (context : ScenarioCheckContext)
+    (declaration : Scenario) : Except ScenarioError CheckedScenario := do
   requireDefinitionId declaration.id declaration.source declaration.id
   requireUniqueIds declaration.id declaration.source declaration.requires
-  requireUniqueIds declaration.id declaration.source (declaration.roles.map ResourceRole.id)
+  requireUniqueIds declaration.id declaration.source (declaration.roles.map Scenario.Role.id)
   requireUniqueIds declaration.id declaration.source (declaration.setup.map SetupConstraint.id)
   requireUniqueIds declaration.id declaration.source declaration.allowedActions
   requireUniqueIds declaration.id declaration.source declaration.forbiddenActions
   let orderingAnalysis := DefinitionGraph.analyze
-    (declaration.requiredOccurrences.map NamedOccurrence.id)
+    (declaration.requiredOccurrences.map Scenario.Step.id)
     (declaration.ordering.map orderingEdge)
   match orderingAnalysis.nodeFindings.duplicate with
   | some duplicate =>
-      throw (behaviorError .duplicateDefinitionId declaration.id declaration.source
+      throw (scenarioError .duplicateDefinitionId declaration.id declaration.source
         duplicate.value [duplicate])
   | none => pure ()
   requireUniqueIds declaration.id declaration.source
-    (declaration.occurrenceBounds.map OccurrenceBound.action)
+    (declaration.occurrenceBounds.map Scenario.Count.action)
   for capability in declaration.requires do
     validateReferenceKind context declaration capability .capability
   let roles := declaration.roles.mergeSort roleLe
@@ -827,12 +601,12 @@ def checkBehavior
   let forbidden := DefinitionId.canonicalSet declaration.forbiddenActions
   let required := declaration.requiredOccurrences.mergeSort occurrenceLe
   if required.length > maxRequiredOccurrences then
-    throw (behaviorError .occurrenceLimitExceeded declaration.id declaration.source
+    throw (scenarioError .occurrenceLimitExceeded declaration.id declaration.source
       (toString required.length ++ " > " ++ toString maxRequiredOccurrences)
-      (required.map NamedOccurrence.id))
+      (required.map Scenario.Step.id))
   let bounds := declaration.occurrenceBounds.mergeSort boundLe
-  for action in allowed ++ forbidden ++ required.map NamedOccurrence.action ++
-      bounds.map OccurrenceBound.action do
+  for action in allowed ++ forbidden ++ required.map Scenario.Step.action ++
+      bounds.map Scenario.Count.action do
     validateReferenceKind context declaration action .action
   for actions in declaration.sequences ++ declaration.adjacencies do
     for action in actions do
@@ -855,7 +629,7 @@ def checkBehavior
   | some actions, some trace =>
       let traceActions := trace.trace.steps.map fun step => step.selectedAction.definitionId
       if actions != traceActions then
-        throw (behaviorError .contradictoryConstraint declaration.id declaration.source
+        throw (scenarioError .contradictoryConstraint declaration.id declaration.source
           "actionsExactly != traceExactly actions" actions)
   | _, _ => pure ()
   let status := if setupUnsatisfiable setup then
@@ -865,7 +639,7 @@ def checkBehavior
   let semantic := behaviorSemanticJson declaration.id declaration.version declaration.requires
     roles setup allowed required forbidden bounds ordering sequences adjacencies
     declaration.actionsExactly exactTrace status
-  let checked : CheckedBehavior := {
+  let checked : CheckedScenario := {
     id := declaration.id
     source := declaration.source
     version := declaration.version
@@ -886,15 +660,15 @@ def checkBehavior
     canonicalMetadata := ""
     behaviorFingerprint := behaviorFingerprintOf semantic
   }
-  pure { checked with canonicalMetadata := canonicalBehaviorJson checked }
+  pure { checked with canonicalMetadata := canonicalScenarioJson checked }
 
 /-- Produce a checked Behavior directly from an explicit proof that the typed checker succeeds.
-Use `checkBehavior` when an invalid declaration's typed diagnostic is needed. -/
-def checkedBehavior
-    (context : BehaviorCheckContext)
-    (declaration : BehaviorDeclaration)
-    (valid : (checkBehavior context declaration).toOption.isSome = true) : CheckedBehavior :=
-  (checkBehavior context declaration).toOption.get valid
+Use `Scenario.check` when an invalid declaration's typed diagnostic is needed. -/
+def Scenario.checked
+    (context : ScenarioCheckContext)
+    (declaration : Scenario)
+    (valid : (Scenario.check context declaration).toOption.isSome = true) : CheckedScenario :=
+  (Scenario.check context declaration).toOption.get valid
 
 private def bindingFor (bindings : List RoleBinding) (role : DefinitionId) : Option ModelValue :=
   (bindings.find? fun binding => binding.role == role).map RoleBinding.value
@@ -913,25 +687,25 @@ private def setupConstraintHolds
       | .different => left != right
   | _, _ => false
 
-private def setupIsComplete (roles : List ResourceRole) (bindings : List RoleBinding) : Bool :=
+private def setupIsComplete (roles : List Scenario.Role) (bindings : List RoleBinding) : Bool :=
   bindings.length == roles.length &&
     roles.all (fun role => countAction role.id (bindings.map RoleBinding.role) == 1) &&
     bindings.all (fun binding => roles.any fun role => role.id == binding.role)
 
-private def traceActions (trace : BehaviorTrace) : List DefinitionId :=
+private def traceActions (trace : Scenario.Trace) : List DefinitionId :=
   trace.trace.steps.map fun step => step.selectedAction.definitionId
 
-private def normalizedTrace (trace : BehaviorTrace) : BehaviorTrace :=
+private def normalizedTrace (trace : Scenario.Trace) : Scenario.Trace :=
   { trace with setup := trace.setup.mergeSort bindingLe }
 
 /-- Canonically attribute selected action positions to authored required occurrences. -/
-def CheckedBehavior.assignOccurrences
-    (behavior : CheckedBehavior)
-    (schedule : List DefinitionId) : Option (List (Option NamedOccurrence)) :=
+def CheckedScenario.assignOccurrences
+    (behavior : CheckedScenario)
+    (schedule : List DefinitionId) : Option (List (Option Scenario.Step)) :=
   assignOccurrenceSlots schedule behavior.ordering behavior.requiredOccurrences
 
 /-- Membership is a pure predicate over already semantic, target-owned trace data. -/
-def CheckedBehavior.admits (behavior : CheckedBehavior) (candidate : BehaviorTrace) : Bool :=
+def CheckedScenario.admits (behavior : CheckedScenario) (candidate : Scenario.Trace) : Bool :=
   if behavior.spaceStatus == .unsatisfiable then
     false
   else
@@ -950,7 +724,15 @@ def CheckedBehavior.admits (behavior : CheckedBehavior) (candidate : BehaviorTra
       behavior.actionsExactly.all (fun exact => actions == exact) &&
       behavior.traceExactly.all (fun exact => normalizedTrace candidate == exact)
 
-def CheckedBehavior.isUnsatisfiable (behavior : CheckedBehavior) : Bool :=
+def CheckedScenario.isUnsatisfiable (behavior : CheckedScenario) : Bool :=
   behavior.spaceStatus == .unsatisfiable
+
+/-- The checker's diagnostic for an authored Scenario, or `none` when it is admitted. -/
+def Scenario.error?
+    (context : ScenarioCheckContext)
+    (scenario : Scenario) : Option ScenarioError :=
+  match Scenario.check context scenario with
+  | .error error => some error
+  | .ok _ => none
 
 end Umpire

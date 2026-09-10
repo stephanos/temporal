@@ -628,7 +628,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-81-delete-the-pre-testpilot-go-generations.md",
-  "status": "open",
+  "status": "done",
   "title": "Delete the pre-Testpilot Go generations",
   "tracker": {
     "baseHashFlow": null,
@@ -641,5 +641,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-09T19:56:08.029202Z"
+  "updated_at": "2026-09-10T06:35:11.337491Z"
 }

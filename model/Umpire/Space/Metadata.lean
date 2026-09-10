@@ -36,7 +36,7 @@ structure SpaceAxisMetadataRow where
   id : DefinitionId
   source : SourceLocation
   version : Nat
-  role : Option ResourceRole
+  role : Option Scenario.Role
   choices : List DefinitionId
   baseBehaviorFingerprint : BehaviorFingerprint
   deriving BEq, DecidableEq, Repr
@@ -58,7 +58,7 @@ structure SpaceFaultMetadataRow where
   id : DefinitionId
   source : SourceLocation
   version : Nat
-  occurrence : NamedOccurrence
+  occurrence : Scenario.Step
   capability : SpaceDefinitionReference
   incompatibleWith : List DefinitionId
   baseBehaviorFingerprint : BehaviorFingerprint

@@ -8,7 +8,7 @@ open Umpire
 
 #check (composePlanningKnownGaps :
   CheckedQuery (fun _ => True) → Except KnownGapError KnownGapSet)
-#check (artifactOfSelection : CheckedQuery (fun _ => True) → BehaviorTrace → SelectionReason →
+#check (artifactOfSelection : CheckedQuery (fun _ => True) → Scenario.Trace → SelectionReason →
   ExploredCounts → Except KnownGapError ExperimentSpec)
 #check (plan : (query : CheckedQuery (fun _ => True)) →
   IncrementalPlannerKernel query.target → Except KnownGapError PlannerRun)
@@ -144,7 +144,7 @@ example :
         }) = ordinary := by
   native_decide
 
-def optionalBehavior : CheckedBehavior := {
+def optionalBehavior : CheckedScenario := {
   behavior with
   requiredOccurrences := []
   behaviorFingerprint := behaviorFingerprintOf "behavior/optional-v1"
@@ -253,7 +253,7 @@ private def mutationPrecondition : SetupConstraint := {
   right := .value completed
 }
 
-private def mutationRole : ResourceRole := {
+private def mutationRole : Scenario.Role := {
   id := id "planner.role.mutated"
   valueKind := .state
 }

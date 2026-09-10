@@ -29,7 +29,7 @@ private def valueJson (value : ModelValue) : CanonicalJson :=
     ("value", .string value.value)
   ]
 
-private def roleJson (role : ResourceRole) : CanonicalJson :=
+private def roleJson (role : Scenario.Role) : CanonicalJson :=
   .object [
     ("definitionId", .string role.id.value),
     ("valueKind", .string role.valueKind.name)

@@ -13,7 +13,7 @@ private def characterizedErrorOf
   | .ok _ => none
   | .error error => some (error, canonicalPropertyErrorJson error)
 
-def mixedUnitProperty : PropertyDeclaration := {
+def mixedUnitProperty : Property := {
   portableProperty with
   id := id "test.property.mixed-unit"
   clauses := [
@@ -25,7 +25,7 @@ def mixedUnitProperty : PropertyDeclaration := {
 }
 
 example :
-    characterizedErrorOf (checkProperty context (.portable mixedUnitProperty)) = some ({
+    characterizedErrorOf (Property.check context (mixedUnitProperty)) = some ({
       kind := .unitMismatch
       definitionId := id "test.property.mixed-unit"
       sourcePath := "Umpire/Property/Tests.lean"
@@ -48,7 +48,7 @@ def candidateEvaluationContext : PropertyCheckContext := {
   context with limitProfiles := candidateEvaluationLimit :: context.limitProfiles
 }
 
-def candidateEvaluationProperty (limit : PropertyLimit) : PropertyDeclaration := {
+def candidateEvaluationProperty (limit : PropertyLimit) : Property := {
   portableProperty with
   id := id "test.property.candidate-evaluations"
   clauses := [
@@ -61,20 +61,20 @@ def candidateEvaluationProperty (limit : PropertyLimit) : PropertyDeclaration :=
 
 /-- Query's candidate-evaluation Limit is rejected in both exact and named Property forms. -/
 example : [
-    errorKindOf (checkProperty context (.portable <|
+    errorKindOf (Property.check context (
       candidateEvaluationProperty (.exact candidateEvaluationLimit.limit))),
-    errorKindOf (checkProperty candidateEvaluationContext (.portable <|
+    errorKindOf (Property.check candidateEvaluationContext (
       candidateEvaluationProperty (.named candidateEvaluationLimit.id .candidateEvaluations)))
   ] = [some .unitMismatch, some .unitMismatch] := by
   native_decide
 
 /-! Exploration's ExperimentSpec Limit is not a Property position unit. -/
-example : errorKindOf (checkProperty context (.portable <|
+example : errorKindOf (Property.check context (
     candidateEvaluationProperty (.exact { value := 2, unit := .experimentSpecs }))) =
     some .unitMismatch := by
   native_decide
 
-def missingLogicalTimeProperty : PropertyDeclaration := {
+def missingLogicalTimeProperty : Property := {
   portableProperty with
   id := id "test.property.missing-logical-time"
   clauses := [
@@ -86,7 +86,7 @@ def missingLogicalTimeProperty : PropertyDeclaration := {
 }
 
 example :
-    characterizedErrorOf (checkProperty context (.portable missingLogicalTimeProperty)) = some ({
+    characterizedErrorOf (Property.check context (missingLogicalTimeProperty)) = some ({
       kind := .missingLogicalTimeSource
       definitionId := id "test.property.missing-logical-time"
       sourcePath := "Umpire/Property/Tests.lean"
@@ -98,28 +98,19 @@ example :
       "\"offendingValue\":\"logical-time\",\"relatedDefinitionIds\":[]}") := by
   native_decide
 
-example :
-    characterizedErrorOf (checkProperty context
-      (.opaque (id "test.property.expert-only") source)) = some ({
-      kind := .opaqueDeclaration
-      definitionId := id "test.property.expert-only"
-      sourcePath := "Umpire/Property/Tests.lean"
-      offendingValue := "test.property.expert-only"
-      relatedDefinitionIds := [id "test.property.expert-only"]
-    }, "{\"kind\":\"opaque-declaration\",\"definitionId\":\"test.property.expert-only\"," ++
-      "\"sourcePath\":\"Umpire/Property/Tests.lean\"," ++
-      "\"offendingValue\":\"test.property.expert-only\"," ++
-      "\"relatedDefinitionIds\":[\"test.property.expert-only\"]}") := by
+/-- The opaque-declaration diagnostic outlives the deleted opaque authoring wrapper: it stays a
+plain error a producer may report, with its canonical spelling unchanged. -/
+example : PropertyErrorKind.name .opaqueDeclaration = "opaque-declaration" := by
   native_decide
 
-def unknownCapabilityProperty : PropertyDeclaration := {
+def unknownCapabilityProperty : Property := {
   portableProperty with
   id := id "test.property.unknown-capability"
   requires := [id "test.capability.unknown"]
 }
 
 example :
-    characterizedErrorOf (checkProperty context (.portable unknownCapabilityProperty)) = some ({
+    characterizedErrorOf (Property.check context (unknownCapabilityProperty)) = some ({
       kind := .unknownCapability
       definitionId := unknownCapabilityProperty.id
       sourcePath := "Umpire/Property/Tests.lean"
@@ -131,14 +122,14 @@ example :
       "\"relatedDefinitionIds\":[\"test.capability.unknown\"]}") := by
   native_decide
 
-def wrongCapabilityKindProperty : PropertyDeclaration := {
+def wrongCapabilityKindProperty : Property := {
   portableProperty with
   id := id "test.property.wrong-capability-kind"
   requires := [pendingCount]
 }
 
 example :
-    characterizedErrorOf (checkProperty context (.portable wrongCapabilityKindProperty)) = some ({
+    characterizedErrorOf (Property.check context (wrongCapabilityKindProperty)) = some ({
       kind := .wrongReferenceKind
       definitionId := wrongCapabilityKindProperty.id
       sourcePath := "Umpire/Property/Tests.lean"
@@ -156,14 +147,14 @@ def missingCapabilityContext : PropertyCheckContext := {
   providers := context.providers.filter fun capability => capability.id != cancellationCapability
 }
 
-def missingCapabilityProperty : PropertyDeclaration := {
+def missingCapabilityProperty : Property := {
   portableProperty with
   id := id "test.property.missing-capability"
 }
 
 example :
     characterizedErrorOf
-      (checkProperty missingCapabilityContext (.portable missingCapabilityProperty)) = some ({
+      (Property.check missingCapabilityContext (missingCapabilityProperty)) = some ({
         kind := .missingCapability
         definitionId := missingCapabilityProperty.id
         sourcePath := "Umpire/Property/Tests.lean"
@@ -176,7 +167,7 @@ example :
         "[\"test.capability.cancellation\"]}") := by
   native_decide
 
-def unknownReferenceProperty : PropertyDeclaration := {
+def unknownReferenceProperty : Property := {
   portableProperty with
   id := id "test.property.unknown-reference"
   clauses := [
@@ -186,7 +177,7 @@ def unknownReferenceProperty : PropertyDeclaration := {
 }
 
 example :
-    characterizedErrorOf (checkProperty context (.portable unknownReferenceProperty)) = some ({
+    characterizedErrorOf (Property.check context (unknownReferenceProperty)) = some ({
       kind := .unknownReference
       definitionId := unknownReferenceProperty.id
       sourcePath := "Umpire/Property/Tests.lean"
@@ -198,7 +189,7 @@ example :
       "\"relatedDefinitionIds\":[\"test.state.unknown\"]}") := by
   native_decide
 
-def wrongReferenceKindProperty : PropertyDeclaration := {
+def wrongReferenceKindProperty : Property := {
   portableProperty with
   id := id "test.property.wrong-reference-kind"
   clauses := [
@@ -208,7 +199,7 @@ def wrongReferenceKindProperty : PropertyDeclaration := {
 }
 
 example :
-    characterizedErrorOf (checkProperty context (.portable wrongReferenceKindProperty)) = some ({
+    characterizedErrorOf (Property.check context (wrongReferenceKindProperty)) = some ({
       kind := .wrongReferenceKind
       definitionId := wrongReferenceKindProperty.id
       sourcePath := "Umpire/Property/Tests.lean"
@@ -221,7 +212,7 @@ example :
       "\"relatedDefinitionIds\":[\"test.action.request-cancel\"]}") := by
   native_decide
 
-def undeclaredReferenceProperty : PropertyDeclaration := {
+def undeclaredReferenceProperty : Property := {
   portableProperty with
   id := id "test.property.undeclared-reference"
   clauses := [
@@ -232,7 +223,7 @@ def undeclaredReferenceProperty : PropertyDeclaration := {
 }
 
 example :
-    characterizedErrorOf (checkProperty context (.portable undeclaredReferenceProperty)) = some ({
+    characterizedErrorOf (Property.check context (undeclaredReferenceProperty)) = some ({
       kind := .undeclaredReference
       definitionId := undeclaredReferenceProperty.id
       sourcePath := "Umpire/Property/Tests.lean"
@@ -245,7 +236,7 @@ example :
       "[\"test.observation.hidden-record\"]}") := by
   native_decide
 
-def unknownLimitProfileProperty : PropertyDeclaration := {
+def unknownLimitProfileProperty : Property := {
   portableProperty with
   id := id "test.property.unknown-limit-profile"
   clauses := [
@@ -257,7 +248,7 @@ def unknownLimitProfileProperty : PropertyDeclaration := {
 }
 
 example :
-    characterizedErrorOf (checkProperty context (.portable unknownLimitProfileProperty)) = some ({
+    characterizedErrorOf (Property.check context (unknownLimitProfileProperty)) = some ({
       kind := .unknownLimitProfile
       definitionId := unknownLimitProfileProperty.id
       sourcePath := "Umpire/Property/Tests.lean"
@@ -269,7 +260,7 @@ example :
       "\"relatedDefinitionIds\":[\"test.limit.unknown\"]}") := by
   native_decide
 
-def invalidClauseProperty : PropertyDeclaration := {
+def invalidClauseProperty : Property := {
   portableProperty with
   id := id "test.property.invalid-clause"
   clauses := [
@@ -279,7 +270,7 @@ def invalidClauseProperty : PropertyDeclaration := {
 }
 
 example :
-    characterizedErrorOf (checkProperty context (.portable invalidClauseProperty)) = some ({
+    characterizedErrorOf (Property.check context (invalidClauseProperty)) = some ({
       kind := .invalidClause
       definitionId := invalidClauseProperty.id
       sourcePath := "Umpire/Property/Tests.lean"
@@ -296,14 +287,14 @@ def duplicateLimitProfileContext : PropertyCheckContext := {
   context with limitProfiles := [cancelBudget, cancelBudget]
 }
 
-def duplicateLimitProfileProperty : PropertyDeclaration := {
+def duplicateLimitProfileProperty : Property := {
   portableProperty with
   id := id "test.property.duplicate-limit-profile"
 }
 
 example :
     characterizedErrorOf
-      (checkProperty duplicateLimitProfileContext (.portable duplicateLimitProfileProperty)) =
+      (Property.check duplicateLimitProfileContext (duplicateLimitProfileProperty)) =
       some ({
         kind := .duplicateDefinitionId
         definitionId := duplicateLimitProfileProperty.id

@@ -13,7 +13,7 @@ private def value (suffix : String) : ModelValue := {
   value := suffix
 }
 
-private def trace (suffix : String) : BehaviorTrace := {
+private def trace (suffix : String) : Scenario.Trace := {
   setup := []
   trace := { initialState := value suffix, steps := [] }
 }

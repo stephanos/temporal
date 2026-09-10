@@ -1,4 +1,4 @@
-import Umpire.Property.Authoring
+import Umpire.Property.Elab
 import Testpilot.Authoring
 import Umpire.Property.Tests.Scoped.Fixtures
 
@@ -16,9 +16,8 @@ private def written : PropertyScopedClause :=
 
 private def authorContext := (targetResult.toOption.map context).getD
   { definitions := [], providers := [], meanings := [] }
-private def spec (clause : PropertyScopedClause) : PropertySpec := {
-  family := { root := id "test" }
-  key := "property"
+private def spec (clause : PropertyScopedClause) : Property := {
+  id := (DefinitionFamily.mk (id "test")).id "property" "property"
   source
   requires := [id "test.capability"]
   clauses := []
@@ -57,7 +56,7 @@ private def emptyScope : PropertyScopedClause := { written with scope := [] }
 
 private def wrongKey : PropertyScopedClause := { written with key := id "" }
 
-/-- error: property authoring failed: {"error":{"kind":"empty-definition-id","definitionId":"test.scoped.response","sourcePath":"Umpire/Property/Tests/Scoped.lean","offendingValue":"<empty>","relatedDefinitionIds":[""]},"role":"clause","anchor":{"sourcePath":"Umpire/Property/Tests/TemporalAuthoring.lean","line":62,"column":78,"endLine":62,"endColumn":105}} -/
+/-- error: property authoring failed: {"error":{"kind":"empty-definition-id","definitionId":"test.scoped.response","sourcePath":"Umpire/Property/Tests/Scoped.lean","offendingValue":"<empty>","relatedDefinitionIds":[""]},"role":"clause","anchor":{"sourcePath":"Umpire/Property/Tests/TemporalAuthoring.lean","line":61,"column":78,"endLine":61,"endColumn":105}} -/
 #guard_msgs (error, substring := true) in
 #check property% (spec wrongKey) against authorContext tracking [clauseAnchor (id "test.scoped.response")]
 

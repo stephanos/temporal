@@ -189,8 +189,8 @@ completeness records, planner ordering records, or planner-kernel construction. 
 family maintainer's checked Target through the compiled Property, Behavior, and Query interfaces:
 
 ```lean
-checkProperty (PropertyCheckContext.ofTarget target) property
-checkBehavior (BehaviorCheckContext.ofTarget target) behavior
+Property.check (PropertyCheckContext.ofTarget target) property
+Scenario.check (ScenarioCheckContext.ofTarget target) behavior
 checkQuery (.ofTarget target) query
 ```
 

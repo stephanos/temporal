@@ -73,12 +73,12 @@ def reorderedTarget : QueryModel (fun _ => True) :=
 def incidentalContext : QueryCheckContext (fun _ => True) := .ofTarget reorderedTarget
 
 def incidentalDeclaration : QueryDeclaration := {
-  declaration (.witness { checkedProperty with documentation := "changed docs" }) with
-  behavior := { checkedBehavior with documentation := "changed docs" }
+  declaration (.witness { Property.checked with documentation := "changed docs" }) with
+  behavior := { Scenario.checked with documentation := "changed docs" }
   documentation := "changed query docs"
 }
 
-example : canonicalOf context (declaration (.witness checkedProperty)) =
+example : canonicalOf context (declaration (.witness Property.checked)) =
     canonicalOf incidentalContext incidentalDeclaration := by
   native_decide
 
@@ -96,19 +96,19 @@ def noSetupContext : QueryCheckContext (fun _ => True) :=
   .ofTarget (model noSetupTargetAuthoring)
 
 /-- Query fingerprints bind the exact finite role assignments Planning will enumerate. -/
-example : fingerprintOf context (declaration (.witness checkedProperty)) !=
-    fingerprintOf noSetupContext (declaration (.witness checkedProperty)) := by
+example : fingerprintOf context (declaration (.witness Property.checked)) !=
+    fingerprintOf noSetupContext (declaration (.witness Property.checked)) := by
   native_decide
 
 def orderedProperty : CheckedProperty := {
-  checkedProperty with
+  Property.checked with
   id := id "query.property.ordered"
   behaviorFingerprint := behaviorFingerprintOf "property/ordered-v1"
 }
 
 /-! Property source order does not change the canonical query projection. -/
-example : canonicalOf context (declaration (.select [checkedProperty, orderedProperty])) =
-    canonicalOf context (declaration (.select [orderedProperty, checkedProperty])) := by
+example : canonicalOf context (declaration (.select [Property.checked, orderedProperty])) =
+    canonicalOf context (declaration (.select [orderedProperty, Property.checked])) := by
   native_decide
 
 def definitionsWithCanonicalBehavior
@@ -152,11 +152,11 @@ def contextFor (candidate : QueryModel (fun _ => True)) : QueryCheckContext (fun
 }
 
 def changedProperty : CheckedProperty := {
-  checkedProperty with behaviorFingerprint := behaviorFingerprintOf "property/v2"
+  Property.checked with behaviorFingerprint := behaviorFingerprintOf "property/v2"
 }
 
-def changedBehavior : CheckedBehavior := {
-  checkedBehavior with behaviorFingerprint := behaviorFingerprintOf "behavior/v2"
+def changedBehavior : CheckedScenario := {
+  Scenario.checked with behaviorFingerprint := behaviorFingerprintOf "behavior/v2"
 }
 
 def changedLimits : QueryLimits := {
@@ -166,32 +166,32 @@ def changedLimits : QueryLimits := {
 }
 
 def changedLimitsDeclaration : QueryDeclaration := {
-  declaration (.witness checkedProperty) with limits := changedLimits
+  declaration (.witness Property.checked) with limits := changedLimits
 }
 
 def changedStrategyDeclaration : QueryDeclaration := {
-  declaration (.witness checkedProperty) with policy := { searchPolicy with strategy := .seeded }
+  declaration (.witness Property.checked) with policy := { searchPolicy with strategy := .seeded }
 }
 
 def changedSeedDeclaration : QueryDeclaration := {
-  declaration (.witness checkedProperty) with policy := { searchPolicy with seed := 18 }
+  declaration (.witness Property.checked) with policy := { searchPolicy with seed := 18 }
 }
 
 /-! Every consumed semantic input changes Query identity. -/
 example :
-    let baseline := fingerprintOf context (declaration (.witness checkedProperty))
+    let baseline := fingerprintOf context (declaration (.witness Property.checked))
     [
       fingerprintOf context (declaration (.witness changedProperty)),
-      fingerprintOf context (declaration (.witness checkedProperty) searchPolicy changedBehavior),
+      fingerprintOf context (declaration (.witness Property.checked) searchPolicy changedBehavior),
       fingerprintOf context changedLimitsDeclaration,
       fingerprintOf context changedStrategyDeclaration,
       fingerprintOf context changedSeedDeclaration,
       fingerprintOf (contextFor changedSemanticTarget)
-        (declaration (.witness checkedProperty)),
+        (declaration (.witness Property.checked)),
       fingerprintOf (contextFor changedCompositionTarget)
-        (declaration (.witness checkedProperty)),
+        (declaration (.witness Property.checked)),
       fingerprintOf (contextFor changedKernelTarget)
-        (declaration (.witness checkedProperty))
+        (declaration (.witness Property.checked))
     ].all (fun changed => changed.isSome && changed != baseline) := by
   native_decide
 

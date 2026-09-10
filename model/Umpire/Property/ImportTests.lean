@@ -1,13 +1,14 @@
-import Umpire.Property
+import Umpire.Property.Elab
+import Umpire.Property.Evaluate
+import Umpire.Property.Scoped
 
 /-! Narrow-import regression for the `Umpire.Property` public facade. -/
 
 namespace Umpire.PropertyImportTests
 
-#check (Umpire.PropertyDeclaration : Type)
-#check (Umpire.PropertySpec : Type)
+#check (Umpire.Property : Type)
 #check Umpire.stepClauses
-#check Umpire.PropertySpec.checked
+#check Umpire.Property.checked
 #check Umpire.canonicalPropertyLocatedErrorJson
 
 private def escapedDiagnosticJson : String :=
@@ -33,8 +34,8 @@ private def escapedDiagnosticJson : String :=
   | .ok _ => true
   | .error _ => false
 
-#check (Umpire.checkProperty :
-  Umpire.PropertyCheckContext → Umpire.PropertyAuthoring →
+#check (Umpire.Property.check :
+  Umpire.PropertyCheckContext → Umpire.Property →
     Except Umpire.PropertyError Umpire.CheckedProperty)
 #check (Umpire.CheckedProperty.traceView :
   Umpire.CheckedProperty →
@@ -60,7 +61,7 @@ private def escapedDiagnosticJson : String :=
   ∀ (property : Umpire.CheckedProperty) (input : Umpire.CheckedPropertyEvaluationInput property),
     (Umpire.evaluateProperty property input).satisfied = true ↔ property.denote input)
 #check (Umpire.checkPropertyPredicate :
-  (context : Umpire.PropertyCheckContext) → (owner : Umpire.PropertyDeclaration) →
+  (context : Umpire.PropertyCheckContext) → (owner : Umpire.Property) →
     (contextKind : Umpire.PropertyPredicateContext) → Umpire.PropertyPredicate →
       Except Umpire.PropertyError (Umpire.CheckedPropertyPredicate contextKind))
 #check (Umpire.checkPropertyPredicateInput :
@@ -122,7 +123,7 @@ def forgedPropertyEvaluationInput
 }
 
 #guard_msgs (error, substring := true) in
-#check Umpire.BehaviorDeclaration
+#check Umpire.Scenario
 
 #guard_msgs (error, substring := true) in
 #check Umpire.QueryDeclaration

@@ -10,7 +10,7 @@ open _root_.Umpire
 inductive InspectionFailure where
   | declaration (error : DefinitionError)
   | property (error : PropertyError)
-  | behavior (error : BehaviorError)
+  | behavior (error : ScenarioError)
   | query (error : QueryError)
   | planning (subject : String)
   | knownGap (error : KnownGapError)
@@ -38,7 +38,7 @@ private def diagnostic (kind subject context : String) : String :=
 private def failureJson : InspectionFailure → String
   | .declaration error => canonicalDefinitionErrorJson error ++ "\n"
   | .property error => canonicalPropertyErrorJson error ++ "\n"
-  | .behavior error => canonicalBehaviorErrorJson error ++ "\n"
+  | .behavior error => canonicalScenarioErrorJson error ++ "\n"
   | .query error => canonicalQueryErrorJson error ++ "\n"
   | .planning subject => diagnostic "planning-failure" subject "no portable artifact"
   | .knownGap error => diagnostic "known-gap-check-failed" error.code.value error.kind.name

@@ -86,8 +86,8 @@ example : compiledArtifact.hasValidArtifactChecksum ∧
       "sha256:2036ce80c7c93dd19d0acb03fa6ebceb678f909684ca17bac413f254954ddbbd" := by
   native_decide
 
-private def guardedPropertyDeclaration : PropertyDeclaration := {
-  propertyDeclaration with
+private def guardedPropertyDeclaration : Property := {
+  authoredProperty with
   id := DefinitionId.of "switch.property.guarded-flip"
   version := 2
   clauses := [.sameStepCases {
@@ -120,8 +120,8 @@ private def guardedPropertyDeclaration : PropertyDeclaration := {
 }
 
 private def guardedArtifactPair? : Option (CheckedProperty × ExperimentSpec × ExperimentSpec) := do
-  let property ← (checkProperty (PropertyCheckContext.ofTarget target)
-    (.portable guardedPropertyDeclaration)).toOption
+  let property ← (Property.check (PropertyCheckContext.ofTarget target)
+    (guardedPropertyDeclaration)).toOption
   let declaration (properties : List CheckedProperty) : QueryDeclaration := {
     id := DefinitionId.of "switch.query.guarded-artifact"
     source

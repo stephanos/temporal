@@ -7,7 +7,7 @@ namespace Umpire.QueryTests
 open Umpire
 
 def checkedFixtureQuery : CheckedQuery (fun _ => True) :=
-  checkedQuery target (declaration (.verify checkedProperty) exhaustivePolicy)
+  checkedQuery target (declaration (.verify Property.checked) exhaustivePolicy)
     (by native_decide)
 
 /-- Checked Query authoring re-ascribes the dependent target at the language boundary. -/
@@ -16,7 +16,7 @@ example : checkedFixtureQuery.target = target := by
 
 #guard_msgs (error, substring := true) in
 def queryWithoutValidityProof : CheckedQuery (fun _ => True) :=
-  checkedQuery target (declaration (.verify checkedProperty) exhaustivePolicy)
+  checkedQuery target (declaration (.verify Property.checked) exhaustivePolicy)
 
 private def queryErrorOf
     (result : Except QueryError (CheckedQuery (fun _ => True))) : Option QueryError :=
@@ -29,24 +29,24 @@ private def queryErrorJsonOf
   queryErrorOf result |>.map canonicalQueryErrorJson
 
 def alphaProperty : CheckedProperty := {
-  checkedProperty with id := id "query.property.alpha"
+  Property.checked with id := id "query.property.alpha"
 }
 
 def zetaProperty : CheckedProperty := {
-  checkedProperty with id := id "query.property.zeta"
+  Property.checked with id := id "query.property.zeta"
 }
 
 def exactAdapterFailures : List (Option QueryError) := [
   queryErrorOf (checkQuery context {
-    declaration (.witness checkedProperty) with id := id "", source := { path := "" }
+    declaration (.witness Property.checked) with id := id "", source := { path := "" }
   }),
   queryErrorOf (checkQuery context {
-    declaration (.witness checkedProperty) with id := id "query"
+    declaration (.witness Property.checked) with id := id "query"
   }),
   queryErrorOf (checkQuery context (declaration
     (.select [zetaProperty, alphaProperty, zetaProperty, alphaProperty]))),
   queryErrorOf (checkQuery context {
-    declaration (.witness checkedProperty) with target := id "zeta.target.mismatch"
+    declaration (.witness Property.checked) with target := id "zeta.target.mismatch"
   })
 ]
 
@@ -85,7 +85,7 @@ example : exactAdapterFailures = [
 
 /-- Canonical Query diagnostics retain field order and canonical related-ID order. -/
 example : queryErrorJsonOf (checkQuery context {
-    declaration (.witness checkedProperty) with target := id "zeta.target.mismatch"
+    declaration (.witness Property.checked) with target := id "zeta.target.mismatch"
   }) = some ("{\"kind\":\"target-mismatch\",\"definitionId\":" ++
     "\"query.declaration.fixture\",\"sourcePath\":\"Umpire/Query/Tests.lean\"," ++
     "\"offendingValue\":\"zeta.target.mismatch != query.target.fixture\"," ++
@@ -101,13 +101,13 @@ def invalidLimits : QueryLimits := {
 /-! Invalid limits and unsupported verify strategies retain distinct deterministic failures. -/
 example : [
     errorKindOf (checkQuery context {
-      declaration (.witness checkedProperty) with limits := invalidLimits
+      declaration (.witness Property.checked) with limits := invalidLimits
     }),
-    errorKindOf (checkQuery context (declaration (.verify checkedProperty)))
+    errorKindOf (checkQuery context (declaration (.verify Property.checked)))
   ] = [some .invalidLimit, some .incompatibleStrategy] := by
   native_decide
 
-def exactTrace (outcome : ModelValue := acceptedValue) : BehaviorTrace := {
+def exactTrace (outcome : ModelValue := acceptedValue) : Scenario.Trace := {
   setup
   trace := {
     initialState := initial
@@ -120,15 +120,15 @@ def exactTrace (outcome : ModelValue := acceptedValue) : BehaviorTrace := {
   }
 }
 
-def invalidExactBehavior : CheckedBehavior := {
-  checkedBehavior with
+def invalidExactBehavior : CheckedScenario := {
+  Scenario.checked with
   traceExactly := some (exactTrace (value accepted "not-admitted"))
   behaviorFingerprint := behaviorFingerprintOf "behavior/invalid-exact-v1"
 }
 
 /-! Structural exactness is insufficient: the selected kernel must admit the complete step. -/
 example : errorKindOf (checkQuery context
-    (declaration (.select [checkedProperty]) searchPolicy invalidExactBehavior)) =
+    (declaration (.select [Property.checked]) searchPolicy invalidExactBehavior)) =
       some .targetKernelMismatch := by
   native_decide
 

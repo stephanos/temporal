@@ -170,7 +170,7 @@ private def convergingRun : Option PlannerRun := do
     let target ← convergingTarget
     let run ← convergingRun
     let artifact ← run.artifact
-    let selected : BehaviorTrace := {
+    let selected : Scenario.Trace := {
       setup := artifact.plan.bindings
       trace := { initialState := artifact.plan.initialState, steps := [
         { selectedAction := requestValue, outcome := acceptedValue,

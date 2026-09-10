@@ -328,7 +328,7 @@ def produce {Setup State Action Outcome Fact : Type}
     (scopedClauseOf occurrences opening selected.trace.steps)
   if scopedClauses.isEmpty then
     throw (loweringError checked.property.id.value "property.clauses.absent")
-  let scopedProperty ← (checkProperty (.ofTarget checked.target) (.portable {
+  let scopedProperty ← (Property.check (.ofTarget checked.target) ({
       id := checked.property.id
       source := checked.property.source
       version := checked.property.version

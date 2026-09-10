@@ -466,7 +466,7 @@ theorem IncrementalPlannerKernel.ofCheckedQuery_isSome
   rfl
 
 private structure PlannerCursor where
-  trace : BehaviorTrace
+  trace : Scenario.Trace
   nextAction : Nat := 0
   currentAction : Option ModelValue := none
   nextOutcome : Nat := 0
@@ -493,7 +493,7 @@ structure PlannerInstrumentation where
   deriving BEq, DecidableEq, Repr
 
 inductive PlanningOutcome where
-  | found (trace : BehaviorTrace) (reason : SelectionReason)
+  | found (trace : Scenario.Trace) (reason : SelectionReason)
   | verified
   | noSuchTraceWithinCompleteLimits
   | limitReached
@@ -602,7 +602,7 @@ end PlanningResult
 private def receiptValue (value : ModelValue) : Lean.Json :=
   .mkObj [("definitionId", .str value.definitionId.value), ("value", .str value.value)]
 
-private def receiptTrace (trace : BehaviorTrace) : Lean.Json :=
+private def receiptTrace (trace : Scenario.Trace) : Lean.Json :=
   .mkObj [
     ("setup", .arr (trace.setup.map fun binding => .mkObj [
       ("role", .str binding.role.value), ("value", receiptValue binding.value)]).toArray),
@@ -696,7 +696,7 @@ private def planningMetadata
 }
 
 inductive BoundedTraversalTermination where
-  | stopped (trace : BehaviorTrace) (reason : SelectionReason)
+  | stopped (trace : Scenario.Trace) (reason : SelectionReason)
   | complete (behaviorAdmitted : Bool)
   | limitReached
   | invalid (error : QueryError)
@@ -713,7 +713,7 @@ def BoundedTraversalTermination.name : BoundedTraversalTermination → String
 consumers can retain only the semantic state their analysis needs. -/
 inductive BoundedTraversalStep (State : Type) where
   | continue (state : State)
-  | stop (state : State) (trace : BehaviorTrace) (reason : SelectionReason)
+  | stop (state : State) (trace : Scenario.Trace) (reason : SelectionReason)
 
 /-- Bounded traversal evidence shared by planning and finite semantic analyses. -/
 structure BoundedTraversalResult (State : Type) where
@@ -783,15 +783,15 @@ private def seededIndex
 private def maximumDepth (query : CheckedQuery LawStatement) : Nat :=
   Nat.min query.limits.behavior.transitions.value query.limits.behavior.selectedActions.value
 
-private def rootTrace (setup : List RoleBinding) (initialState : ModelValue) : BehaviorTrace := {
+private def rootTrace (setup : List RoleBinding) (initialState : ModelValue) : Scenario.Trace := {
   setup
   trace := { initialState, steps := [] }
 }
 
 private def appendStep
-    (candidate : BehaviorTrace)
+    (candidate : Scenario.Trace)
     (action : ModelValue)
-    (result : Step ModelValue ModelValue ModelValue) : BehaviorTrace := {
+    (result : Step ModelValue ModelValue ModelValue) : Scenario.Trace := {
   candidate with trace := {
     candidate.trace with
     steps := candidate.trace.steps ++ [{
@@ -803,7 +803,7 @@ private def appendStep
   }
 }
 
-private def currentState (candidate : BehaviorTrace) : ModelValue :=
+private def currentState (candidate : Scenario.Trace) : ModelValue :=
   match candidate.trace.steps.getLast? with
   | some step => step.state
   | none => candidate.trace.initialState
@@ -811,7 +811,7 @@ private def currentState (candidate : BehaviorTrace) : ModelValue :=
 private partial def nextRoot?
     (query : CheckedQuery LawStatement)
     (kernel : IncrementalPlannerKernel query.target)
-    (state : PurePlannerState) : Option (BehaviorTrace × PurePlannerState) :=
+    (state : PurePlannerState) : Option (Scenario.Trace × PurePlannerState) :=
   match (candidateSetups query)[state.setupIndex]? with
   | none => none
   | some setup =>
@@ -840,7 +840,7 @@ of produced candidates or an unconsumed collection of kernel results.
 private partial def pullCandidate
     (query : CheckedQuery LawStatement)
     (kernel : IncrementalPlannerKernel query.target)
-    (state : PurePlannerState) : PlannerPull PurePlannerState BehaviorTrace :=
+    (state : PurePlannerState) : PlannerPull PurePlannerState Scenario.Trace :=
   match state.activePath with
   | [] =>
       match nextRoot? query kernel state with
@@ -910,7 +910,7 @@ private partial def pullCandidate
 private def purePlannerBackend
     (query : CheckedQuery LawStatement)
     (kernel : IncrementalPlannerKernel query.target) :
-    PlannerBackend Unit PurePlannerState BehaviorTrace := {
+    PlannerBackend Unit PurePlannerState Scenario.Trace := {
   start := fun _ => {}
   pull := fun _ => pullCandidate query kernel
 }
@@ -920,7 +920,7 @@ private structure PlanningObservations where
   unresolved : Bool := false
   required : List (DefinitionId × DefinitionId) := []
   triggers : List PlanningTriggerEvidence := []
-  counterexample : Option BehaviorTrace := none
+  counterexample : Option Scenario.Trace := none
 
 private def coverageMet
     (query : CheckedQuery LawStatement) (state : PlanningObservations) : Bool :=
@@ -931,7 +931,7 @@ private def coverageMet
 private def observeCandidate
     (query : CheckedQuery LawStatement)
     (state : PlanningObservations)
-    (candidate : BehaviorTrace) : Except QueryError (BoundedTraversalStep PlanningObservations) := do
+    (candidate : Scenario.Trace) : Except QueryError (BoundedTraversalStep PlanningObservations) := do
   let mut answers := []
   let mut current : PlanningObservations := { nonempty := true }
   for property in query.form.properties.mergeSort (fun left right =>
@@ -970,7 +970,7 @@ private def observeCandidate
       else pure (.continue next)
 
 private def noteCandidate
-    (candidate : BehaviorTrace)
+    (candidate : Scenario.Trace)
     (explored : ExploredCounts) : ExploredCounts := {
   explored with
   setups := explored.setups + if candidate.trace.steps.isEmpty then 1 else 0
@@ -986,7 +986,7 @@ private def notePropertyEvaluations
 }
 
 private def notePull
-    (candidate : BehaviorTrace)
+    (candidate : Scenario.Trace)
     (next : PurePlannerState)
     (instrumentation : PlannerInstrumentation) : PlannerInstrumentation := {
   instrumentation with
@@ -1037,10 +1037,10 @@ private def traversalResult
 
 private def traverseLoop
     (query : CheckedQuery LawStatement)
-    (backend : PlannerBackend Unit PurePlannerState BehaviorTrace)
+    (backend : PlannerBackend Unit PurePlannerState Scenario.Trace)
     (cursor : PurePlannerState)
     (consumerState : State)
-    (visit : State → BehaviorTrace → Except QueryError (BoundedTraversalStep State))
+    (visit : State → Scenario.Trace → Except QueryError (BoundedTraversalStep State))
     (remaining : Nat)
     (behaviorAdmitted : Bool)
     (explored : ExploredCounts)
@@ -1080,7 +1080,7 @@ def traverseBoundedCandidates
     (query : CheckedQuery LawStatement)
     (kernel : IncrementalPlannerKernel query.target)
     (initial : State)
-    (visit : State → BehaviorTrace → Except QueryError (BoundedTraversalStep State)) :
+    (visit : State → Scenario.Trace → Except QueryError (BoundedTraversalStep State)) :
     BoundedTraversalResult State :=
   if query.behavior.isUnsatisfiable then
     traversalResult query initial (.complete false) {} {}

@@ -9,7 +9,7 @@ namespace Umpire.PromotionTests
 open Umpire
 open Umpire.Examples.Switch
 
-private def targetOwnedTrace? : Option BehaviorTrace :=
+private def targetOwnedTrace? : Option Scenario.Trace :=
   match exactActionRun.result.outcome with
   | .found trace _ => some trace
   | _ => none
@@ -17,10 +17,10 @@ private def targetOwnedTrace? : Option BehaviorTrace :=
 private theorem targetOwnedTrace?_isSome : targetOwnedTrace?.isSome = true := by
   native_decide
 
-private def targetOwnedCountOneTrace : BehaviorTrace :=
+private def targetOwnedCountOneTrace : Scenario.Trace :=
   targetOwnedTrace?.get targetOwnedTrace?_isSome
 
-private def observedCountTwoTrace : BehaviorTrace := {
+private def observedCountTwoTrace : Scenario.Trace := {
   targetOwnedCountOneTrace with
   trace := {
     targetOwnedCountOneTrace.trace with
@@ -63,7 +63,7 @@ private def sourceExpectation : PromotionSourceExpectation :=
   let bytes := include_str "Promotion/Tests/Fixtures/CompiledSource.lean"
   {
     bytes
-    sha256 := "sha256:e249fa46e5bc940e5df599e32094a6f0f2292c32227b3366368514e40c1dad3d"
+    sha256 := "sha256:b86c039f088fbc928dba853861d5e33454d61b7a07e205d4334390ba0c78e6d9"
   }
 
 private def errorKindOf
@@ -137,7 +137,7 @@ private def changedExperimentSpec : ExperimentSpec := {
   compiledArtifact with artifactChecksum := experimentSpecChecksumOf "changed"
 }
 
-private def nonFoundBehavior : CheckedBehavior := {
+private def nonFoundBehavior : CheckedScenario := {
   exactActionBehavior with
   spaceStatus := .unsatisfiable
   canonicalMetadata := "switch-promotion-unsatisfiable/v1"
