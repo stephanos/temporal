@@ -12,19 +12,24 @@ open temporal.server.api.testpilot.v1
 
 private def admitted := completion.toOption
 
-#guard match Temporal.Feature.Nexus3.Testpilot.completionCase with
-  | .ok output =>
+-- The Case's Contract is the scoped capability and nothing else: no monitor rule, and one clause
+-- per `require` line the model wrote.
+#guard match Temporal.Feature.Nexus3.Testpilot.completionCase, admitted with
+  | .ok output, some checked =>
       output.case_id == "temporal.case.async-nexus-success" &&
-      (match output.contract.map (·.rules.toList) with
-        | some [rule] => rule.kind == .CONTRACT_RULE_KIND_SAFETY && rule.horizon.isNone
-        | _ => false)
-  | .error _ => false
+      output.contract.map (·.rules.isEmpty) == some true &&
+      (match output.contract.bind (·.«scoped») with
+        | some capability =>
+            capability.clauses.map (·.clause_id) ==
+              (checked.property.clauses.map (·.id.value)).toArray
+        | none => false)
+  | _, _ => false
 
+/-- Produce a Case from the checked model with one part replaced. Every part is carried into the
+Case; none is compared against an expected one. -/
 private def produceWith
-    (target? : Option (QueryTarget lifecycle.lawStatement) := none)
     (property? : Option CheckedProperty := none)
     (behavior? : Option CheckedBehavior := none)
-    (query? : Option (CheckedQuery lifecycle.lawStatement) := none)
     (witness? : Option BehaviorTrace := admitted.bind (·.witness)) :
     Except Compiler.LoweringError temporal.server.api.testpilot.v1.Case := do
   let checked ← completion.mapError fun _ => {
@@ -32,62 +37,85 @@ private def produceWith
     source := Authoring.source
     construct := "checked-completion"
   }
-  Temporal.Feature.Nexus3.Testpilot.produceCompletionCase
-    (target?.getD checked.target)
-    (property?.getD checked.property)
-    (behavior?.getD checked.behavior)
-    (query?.getD checked.query)
-    witness?
+  Temporal.Feature.Nexus3.Testpilot.produce { checked with
+    «property» := property?.getD checked.property
+    «behavior» := behavior?.getD checked.behavior
+    «witness» := witness? }
 
-private def scopedProperty? : Option CheckedProperty := do
+/-- One authored Property replaced by a single clause of the caller's choosing. -/
+private def propertyWithClauses (clauses : List PropertyClause) : Option CheckedProperty := do
   let checked ← admitted
   (checkProperty (.ofTarget checked.target) (.portable {
     id := checked.property.id
     source := checked.property.source
     requires := checked.property.requires
-    clauses := []
-    scopedClauses := [{
-      id := DefinitionId.of "test.scoped.unsupported-case"
-      source := checked.property.source
-      trigger := .selectedActionIs (checked.vocabulary.actionAt 1)
-      response := .modelOutcomeIs (checked.vocabulary.outcomeAt 1)
-      scope := [DefinitionId.of "test.run"]
-      key := DefinitionId.of "test.operation"
-      clock := .operationTransitions
-      bound := 1
-      endpoint := .runtimePrefix }] })).toOption
+    clauses })).toOption
 
-#guard match produceWith (property? := scopedProperty?) with
-  | .error error => error.sourceDefinitionId == "test.scoped.unsupported-case" &&
-      error.construct == "property.scoped-eventually-within/v1"
-  | .ok _ => false
+private def invariantClauseId : DefinitionId := .of "temporal.nexus3.property.state-invariant"
 
-private def changedWitness? : Option BehaviorTrace := admitted.bind fun checked =>
-  checked.witness.map fun selected =>
-    { selected with trace := { selected.trace with steps := selected.trace.steps.reverse } }
+/-- A clause form with no trigger and no response: an operation-scoped clause is a bounded response,
+so an invariant is not a shape it can carry. -/
+private def invariantProperty? : Option CheckedProperty := do
+  let checked ← admitted
+  propertyWithClauses [.stateInvariant invariantClauseId
+    { field := .state, reference := (checked.vocabulary.stateAt 2).definitionId,
+      constraint := .equals (checked.vocabulary.stateAt 2).value }]
 
-private def undeclaredFactWitness? : Option BehaviorTrace := admitted.bind fun checked =>
-  checked.witness.map fun selected =>
-    { selected with trace := { selected.trace with
-        steps := selected.trace.steps.map fun step =>
-          { step with observations := [ModelValue.named
-              (DefinitionId.of "temporal.nexus3.fact.lifecycle.undeclared") "undeclared"] } } }
+private def negatedClauseId : DefinitionId := .of "temporal.nexus3.property.negated-state"
+
+/-- A same-step clause whose value constraint the portable predicate vocabulary has no spelling
+for: it carries presence and exact equality, and nothing else. -/
+private def negatedProperty? : Option CheckedProperty := do
+  let checked ← admitted
+  propertyWithClauses [.transitionContract negatedClauseId
+    (PropertyPattern.selectedAction (checked.vocabulary.actionAt 1))
+    { field := .resultingState, reference := (checked.vocabulary.stateAt 2).definitionId,
+      constraint := .notEquals (checked.vocabulary.stateAt 1).value }]
 
 private def rejected : Except Compiler.LoweringError temporal.server.api.testpilot.v1.Case → Bool
   | .error _ => true
   | .ok _ => false
 
-/-- The identity-bearing shape of a produced Case: its provenance payload and the state and
-transition names of every derived rule. -/
+-- Requiring a clause this Case does not carry rejects at whole-Case coverage, before any Driver
+-- I/O could observe anything.
+#guard match (do
+    let checked ← completion.mapError fun _ => Compiler.LoweringError.mk
+      "temporal.nexus3.query.completion" Authoring.source "checked-completion"
+    Temporal.Feature.Nexus3.Testpilot.produce checked
+      [DefinitionId.of "temporal.nexus3.property.absent"]) with
+  | .error error => error.sourceDefinitionId == "temporal.nexus3.property.absent"
+  | .ok _ => false
+
+-- A Case realizes one selected trace, so a Query with no selected witness has nothing to realize.
+#guard rejected (produceWith (witness? := none))
+
+-- A clause form the scoped capability cannot carry rejects by name. The model declares Known Gaps,
+-- and this rejection happens with them in hand: nothing on this path consults one, so none admits
+-- an unexpressible clause.
+#guard admitted.any (fun checked => !checked.query.authoredKnownGaps.toList.isEmpty)
+
+#guard match produceWith (property? := invariantProperty?) with
+  | .error error =>
+      error.sourceDefinitionId == invariantClauseId.value &&
+        error.construct == "property.clause-form"
+  | .ok _ => false
+
+#guard match produceWith (property? := negatedProperty?) with
+  | .error error =>
+      error.sourceDefinitionId == negatedClauseId.value &&
+        error.construct == "property.clause-shape"
+  | .ok _ => false
+
+/-- The identity-bearing shape of a produced Case: its provenance payload and the clause ids of the
+scoped capability it carries. -/
 private def caseShape
     (produced : Except Compiler.LoweringError temporal.server.api.testpilot.v1.Case) :
-    Option (List UInt8 × List String × List String) :=
+    Option (List UInt8 × List String) :=
   match produced with
   | .ok output =>
-      let rules := (output.contract.map (·.rules.toList)).getD []
       some ((output.provenance.map (·.producer_data.toList)).getD [],
-        rules.flatMap fun rule => rule.states.toList.map (·.state_id),
-        rules.flatMap fun rule => rule.transitions.toList.map (·.transition_id))
+        ((output.contract.bind (·.«scoped»)).map fun capability =>
+          capability.clauses.toList.map (·.clause_id)).getD [])
   | .error _ => none
 
 private def differsFromCompletionCase
@@ -95,84 +123,39 @@ private def differsFromCompletionCase
   (caseShape produced).isSome &&
     caseShape produced != caseShape Temporal.Feature.Nexus3.Testpilot.completionCase
 
-#guard rejected (produceWith (witness? := none))
+/-- One authored `require` clause dropped: a smaller Property is a smaller Contract, not an error. -/
+private def fewerClausesProperty? : Option CheckedProperty := do
+  let checked ← admitted
+  let first ← (transitionResultClauses Authoring.family "successfulResult"
+    (checked.vocabulary.actionAt 1) (checked.vocabulary.stateAt 2)
+    (checked.vocabulary.outcomeAt 1) (checked.vocabulary.factAt 1)).head?
+  propertyWithClauses [first]
 
-/- A Fact the Producer declares no Nexus history evidence for rejects by name. -/
-#guard match produceWith (witness? := undeclaredFactWitness?) with
-  | .error error =>
-      error.construct == "witness.fact-evidence" &&
-      error.sourceDefinitionId == "temporal.nexus3.fact.lifecycle.undeclared"
-  | .ok _ => false
+-- Editing the Property changes the Case bytes rather than rejecting.
+#guard differsFromCompletionCase (produceWith (property? := fewerClausesProperty?))
 
-/- A different selected witness records its Facts in a different order, so the derived
-correlated-history rule and the Case bytes differ instead of rejecting. -/
-#guard differsFromCompletionCase (produceWith (witness? := changedWitness?))
+/-- The Contract is derived from the checked Property, not from the selected trace, so a different
+witness selects the same Contract. The witness still has to exist: it is what makes the Query's
+claim a realized one. -/
+private def changedWitness? : Option BehaviorTrace := admitted.bind fun checked =>
+  checked.witness.map fun selected =>
+    { selected with trace := { selected.trace with steps := selected.trace.steps.reverse } }
 
-private def isEquality : ContractExpression → Bool
-  | { expression := some (.equals _), .. } => true
-  | _ => false
-
-private def allTerms : Option ContractExpression → Option (Array ContractExpression)
-  | some { expression := some (.all expression), .. } => some expression.operands
-  | _ => none
-
-private def correlationShape : Bool :=
-  match Temporal.Feature.Nexus3.Testpilot.completionCase with
-  | .ok output =>
-      match output.contract.map (·.rules.toList) with
-      | some [rule] =>
-          match rule.transitions.toList with
-          | [scheduled, started, completed] =>
-              scheduled.capture_assignments.map (·.capture_id) == #["scheduled-event"] &&
-              (allTerms scheduled.predicate).map (·.size) == some 3 &&
-              (match allTerms started.predicate with
-                | some terms => terms.size == 4 && terms.toList.countP isEquality == 1
-                | _ => false) &&
-              (match allTerms completed.predicate with
-                | some terms => terms.size == 7 && terms.toList.countP isEquality == 2
-                | _ => false)
-          | _ => false
-      | _ => false
-  | .error _ => false
-
-#guard correlationShape
+#guard caseShape (produceWith (witness? := changedWitness?)) ==
+  caseShape Temporal.Feature.Nexus3.Testpilot.completionCase
 
 private def checkedBindings : Bool :=
-  match completion, Temporal.Feature.Nexus3.Testpilot.completionCase with
-  | .ok checked, .ok output =>
-      let metadata : CaseMetadata := {
-        producerId := "temporal.nexus3.testpilot"
-        producerVersion := "1"
-        definitions := [
-          {
-            definitionId := checked.target.id.value
-            behaviorFingerprint := checked.target.behaviorFingerprint.render
-            kind := .target
-          },
-          {
-            definitionId := checked.behavior.id.value
-            behaviorFingerprint := checked.behavior.behaviorFingerprint.render
-            kind := .«behavior»
-          },
-          {
-            definitionId := checked.query.id.value
-            behaviorFingerprint := checked.query.behaviorFingerprint.render
-            kind := .«query»
-          },
-          {
-            definitionId := checked.property.id.value
-            behaviorFingerprint := checked.property.behaviorFingerprint.render
-            kind := .«property»
-          }
-        ]
-        sources := [checked.target.source, checked.behavior.source, checked.query.source,
-          checked.property.source]
-        knownGaps := checked.query.authoredKnownGaps.toCaseKnownGaps
-      }
-      output.provenance.map (fun provenance =>
-        provenance.producer_id == metadata.producerId &&
-        provenance.producer_version == metadata.producerVersion &&
-        provenance.producer_data == Umpire.Case.Provenance.producerData metadata) == some true
+  match admitted, Temporal.Feature.Nexus3.Testpilot.completionCase with
+  | some checked, .ok output =>
+      -- The Property binding carries the derived scoped Property: the Case records the Property it
+      -- actually lowered, whose fingerprint differs from the authored same-step one.
+      (output.provenance.map fun provenance =>
+        (String.fromUTF8? provenance.producer_data).any fun payload =>
+          (payload.splitOn checked.target.behaviorFingerprint.render).length == 2 &&
+          (payload.splitOn checked.behavior.behaviorFingerprint.render).length == 2 &&
+          (payload.splitOn checked.query.behaviorFingerprint.render).length == 2 &&
+          (payload.splitOn checked.property.id.value).length ≥ 2 &&
+          (payload.splitOn checked.property.behaviorFingerprint.render).length == 1) == some true
   | _, _ => false
 
 #guard checkedBindings
@@ -320,23 +303,31 @@ private def originalCheckedModel :
 
 private def renamedTargetResult :
     Except Compiler.LoweringError temporal.server.api.testpilot.v1.Case := do
-  let checked ← originalCheckedModel
+  let _ ← originalCheckedModel
   let renamed ← renamedCheckedModel
-  Temporal.Feature.Nexus3.Testpilot.produceCompletionCase renamed.target checked.property
-    checked.behavior renamed.query checked.witness
+  Temporal.Feature.Nexus3.Testpilot.produce renamed
+
+/-- The same Actions in the same order under different occurrence names: a different checked
+Behavior that still places every clause. -/
+private def renamedOccurrences (values : Authoring.ModelVocabulary) : ExactSequenceSpec :=
+  Authoring.withOccurrences (successfulCompletion values) [
+    Authoring.occurrence "successfulCompletion.begin" (values.actionAt 0).definitionId,
+    Authoring.occurrence "successfulCompletion.finish" (values.actionAt 1).definitionId]
 
 private def renamedBehaviorResult :
     Except Compiler.LoweringError temporal.server.api.testpilot.v1.Case := do
   let checked ← originalCheckedModel
-  let renamed ← renamedCheckedModel
-  Temporal.Feature.Nexus3.Testpilot.produceCompletionCase checked.target checked.property
-    renamed.behavior checked.query checked.witness
+  let renamedBehavior ← ((renamedOccurrences checked.vocabulary).check
+    (.ofTarget checked.target)).mapError fun _ => Compiler.LoweringError.mk
+      checked.behavior.id.value Authoring.source "checked-behavior"
+  Temporal.Feature.Nexus3.Testpilot.produce { checked with «behavior» := renamedBehavior }
 
-/- A different checked Target and Query carry their own identities into the Case bytes; the
+/- A renamed model carries its own Target, Query and Property identities into the Case bytes; the
 Producer no longer compares them against one expected model. -/
 #guard differsFromCompletionCase renamedTargetResult
 
-/- The same holds for a different checked Behavior on its own. -/
+/- The same holds for a different checked Behavior on its own: it names the same Actions in the same
+order, so every clause still places, and its own identity still reaches the bytes. -/
 #guard differsFromCompletionCase renamedBehaviorResult
 
 private def modelMemberIds
@@ -444,47 +435,33 @@ private def fewerClauses (values : Authoring.ModelVocabulary) : PropertySpec :=
   let fewer ← checkedPropertyOf (fewerClauses checked.vocabulary)
   pure (differsFromCompletionCase (produceWith (property? := some fewer)))) == some true
 
-/-- A witness recording only the start step carries only clauses about that step. -/
+/-- A Property about the start step lowers to clauses about the start step: the trigger each
+clause carries is the Action the `require` line named. -/
 private def startClauses (values : Authoring.ModelVocabulary) : PropertySpec :=
   Authoring.withClauses (successfulResult values) <| transitionResultClauses Authoring.family
       "successfulResult" (values.actionAt 0) (values.stateAt 1) (values.outcomeAt 0)
       (values.factAt 0)
 
-private def startedOnlyWitness? : Option BehaviorTrace := admitted.bind fun checked =>
-  checked.witness.map fun selected =>
-    { selected with trace := { selected.trace with steps := selected.trace.steps.take 1 } }
-
-/- A one-Fact witness derives a two-stage chain whose single correlated stage is the satisfied
-state, so the terminal status follows the chain rather than a fixed state name. -/
 #guard (do
   let checked ← admitted
   let started ← checkedPropertyOf (startClauses checked.vocabulary)
-  match produceWith (property? := some started) (witness? := startedOnlyWitness?) with
+  match produceWith (property? := some started) with
   | .ok output =>
-      match output.contract.map (·.rules.toList) with
-      | some [rule] =>
-          pure (rule.states.toList.map (·.state_id) ==
-              ["pending", "scheduled-correlated", "started-correlated"] &&
-            rule.states.toList.map (·.status) ==
-              [.CONTRACT_STATE_STATUS_NONTERMINAL, .CONTRACT_STATE_STATUS_NONTERMINAL,
-                .CONTRACT_STATE_STATUS_SATISFIED] &&
-            rule.transitions.toList.map (·.transition_id) ==
-              ["capture-scheduled-event", "match-started-reference"])
-      | _ => pure false
+      match output.contract.bind (·.«scoped») with
+      | some capability =>
+          pure (output.contract.map (·.rules.isEmpty) == some true &&
+            capability.clauses.size == 3 &&
+            capability.clauses.all (fun clause =>
+              (clause.trigger.map (·.definition_id)) ==
+                some (checked.vocabulary.actionAt 0).definitionId.value) &&
+            -- Canonical clause order, so the three responses arrive by clause id.
+            (capability.clauses.map fun clause =>
+              (clause.response.map (·.field)).getD .SCOPED_PREDICATE_FIELD_UNSPECIFIED) == #[
+                .SCOPED_PREDICATE_FIELD_FACT,
+                .SCOPED_PREDICATE_FIELD_OUTCOME,
+                .SCOPED_PREDICATE_FIELD_RESULTING_STATE])
+      | none => pure false
   | .error _ => pure false) == some true
-
-/-- A clause no step of the selected witness carries rejects by clause name rather than lowering a
-rule that nothing establishes. -/
-private def unexpressibleClauseRejection : Option Bool := do
-  let checked ← admitted
-  let changed ← checkedPropertyOf (changedMeaning checked.vocabulary)
-  match Temporal.Feature.Nexus3.Testpilot.produceCompletionCase checked.target changed
-      checked.behavior checked.query checked.witness with
-  | .error error => pure (error.construct == "property.clause-evidence" &&
-      (changed.clauses.map (·.id.value)).contains error.sourceDefinitionId)
-  | .ok _ => pure false
-
-#guard unexpressibleClauseRejection == some true
 
 theorem checkedKnownGapsSurviveAdmission : admitted.map (fun checked =>
     checked.query.authoredKnownGaps.toList == [{
@@ -632,8 +609,7 @@ witness-absent rather than lowering a Contract nothing selected. -/
 #guard match (do
     let checked ← verifiedCompletion.mapError fun _ => Compiler.LoweringError.mk
       "temporal.nexus3.query.verifiedCompletion" Authoring.source "checked-verified"
-    Temporal.Feature.Nexus3.Testpilot.produceCompletionCase checked.target checked.property
-      checked.behavior checked.query checked.witness) with
+    Temporal.Feature.Nexus3.Testpilot.produce checked) with
   | .error error => error.construct == "witness.absent"
   | .ok _ => false
 

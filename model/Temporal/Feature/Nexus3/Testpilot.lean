@@ -1,14 +1,29 @@
 import Temporal.Feature.Nexus3.Nexus
 import Temporal.Testpilot.CaseSupport
+import Umpire.Case.Scoped
 import Umpire.Case.Compiler
+import Umpire.Observation.Projection.Coverage
 
 /-!
 # Nexus3 Testpilot producer
 
-This module carries the checked completion Query and its selected witness into generated values for
-Umpire Case assembly. The Nexus-specific Program is fixed realization; the history-correlation
-monitor is derived from the Facts the witness records, through the evidence projections this module
-declares. Checked values are never compared against an expected model.
+The checked model is carried into a Case; it is never compared against an expected one. The
+Nexus-specific Program is fixed realization, and everything the Contract says is derived:
+
+* Each `require` clause of the checked Property becomes one operation-scoped bounded-response
+  clause. The clause the model wrote decides the clause the Case carries, so editing a `require`
+  line changes the Case bytes rather than any file here.
+* The Contract carries no monitor rule at all. Its whole content is the scoped capability that
+  `Umpire.Case.Scoped.lower` produced, whose `Lowered` value is the correspondence certificate
+  between the checked model and the wire bytes.
+* The evidence those clauses read is lifted out of the recorded Nexus history by a declaration on
+  this Program's history read: one rule per recorded event kind, keyed by the scheduled event the
+  operation was scheduled at, which is the only identity a started or completed Nexus event
+  records.
+
+What still rejects, and why: a witness the Query did not select (a Case realizes one selected
+trace, so a verify-form Query has none), a clause whose shape no scoped predicate can carry, and a
+requested clause the lowering did not produce. None of those is waivable by a Known Gap.
 -/
 
 namespace Temporal.Feature.Nexus3.Testpilot
@@ -30,6 +45,43 @@ private def startWorkflowMethod :=
   "/temporal.api.workflowservice.v1.WorkflowService/StartWorkflowExecution"
 private def getHistoryMethod :=
   "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory"
+
+def historyObservation := "history-event"
+def scopedObservation := "scoped-evidence"
+
+/-! ### The declared evidence source
+
+The scoped capability reads `ScopedEvidence` this Program lifts out of the same history read the
+Case already performs. A started or a completed Nexus event records the scheduled event it answers
+and nothing else that names its operation, so that scheduled event id is the operation key on every
+side. -/
+
+def projectionId : DefinitionId := .of "temporal.nexus3.projection"
+def evidenceSourceId : DefinitionId := .of "temporal.nexus3.source.history"
+def runFieldId : DefinitionId := .of "temporal.nexus3.scope.run"
+def operationFieldId : DefinitionId := .of "temporal.nexus3.scope.operation"
+def startedEvidenceKindId : DefinitionId := .of "temporal.nexus3.evidence.started"
+def completedEvidenceKindId : DefinitionId := .of "temporal.nexus3.evidence.completed"
+
+/-- The one Run coordinate recorded history does not carry: every event this Case lifts belongs to
+the single Run it executes, so the Case declares that scope rather than reading it. -/
+def runScopeValue := "async-nexus"
+
+private def startedAttributesField := "nexus_operation_started_event_attributes"
+private def completedAttributesField := "nexus_operation_completed_event_attributes"
+
+private def evidenceRule (selected : String) (kind : DefinitionId) : ScopedEvidenceRule :=
+  Program.scopedEvidenceRule
+    (guard := Path.make #[Path.oneofSelector "attributes" selected])
+    (source := evidenceSourceId.value)
+    (kind := kind.value)
+    (operation := historyAttribute selected "scheduled_event_id")
+    (scope := #[Program.scopedEvidenceLiteral runFieldId.value runScopeValue])
+
+private def evidenceTarget : ProjectionTarget :=
+  Program.scopedEvidenceTarget scopedObservation #[
+    evidenceRule startedAttributesField startedEvidenceKindId,
+    evidenceRule completedAttributesField completedEvidenceKindId]
 
 private def textOutcome : InstructionOutcomeDefinition :=
   Program.outcome #[
@@ -56,7 +108,8 @@ private def historyAssignments : Array RequestAssignment := #[
 private def historyNode : InstructionDefinition :=
   rpc "history" getHistoryMethod #[Ref.instruction "controller" "complete-nexus-operation"]
     historyAssignments #[
-    project historyEvents "history-event" .PROJECTION_KIND_EMIT_EACH
+    Program.responseProjection historyEvents .PROJECTION_KIND_EMIT_EACH
+      #[Program.observationTarget historyObservation, evidenceTarget]
   ] (some (succeeded "controller" "complete-nexus-operation"))
 
 private def program : Program :=
@@ -70,7 +123,9 @@ private def program : Program :=
       Program.role nexusEndpointRole .ROLE_KIND_ENDPOINT
         (resourceBindingId := nexusEndpointBinding)]
     #[Program.capabilitySlot "completion-authority"]
-    #[Program.observation "history-event" historyEventType]
+    #[Program.observation historyObservation historyEventType,
+      Program.observation scopedObservation (Types.singular
+        (Types.messageType "temporal.server.api.testpilot.v1.ScopedEvidence"))]
     #[
       Program.controller "controller" #[
         rpc "start-workflow" startWorkflowMethod #[] #[
@@ -118,131 +173,17 @@ private def program : Program :=
       Program.environment taskQueueBinding,
       Program.environment nexusEndpointBinding])
 
-/-- One declared Nexus history projection that witnesses a modeled Fact, keyed by the Fact's
-modeled name. Only the Facts named here are lowerable, so renaming a Fact constructor rejects by
-name until this declaration set names the new spelling. -/
-private structure FactEvidence where
-  factKey : String
-  transitionId : String
-  correlatedStateId : String
-  attributeGroup : String
-  /-- Correlation keys read as `(captured scheduled-event attribute, observed attribute)`. A `none`
-  captured attribute reads the captured event's own identifier. -/
-  correlations : List (Option String × String)
+/-! ### The derived scoped Property
 
-private def historyObservation := "history-event"
-private def scheduledCapture := "scheduled-event"
-private def eventIdField := "event_id"
-private def pendingStateId := "pending"
-private def scheduledStateId := "scheduled-correlated"
-private def scheduledAttributes := "nexus_operation_scheduled_event_attributes"
+A `require` clause says what must hold at the step that selects one Action. The checked Behavior
+says where that Action sits in the operation's own sequence. Together they are a bounded response:
+from the operation's first selected Action, the required value is due within exactly as many
+semantic transitions as the Behavior places between them.
 
-/-- `correlatedStateId` names the monitor state each stage enters; the last stage of a derived
-chain is the satisfied one, so the shipped success chain enters `satisfied` and the shipped Case
-bytes are unchanged by this derivation. -/
-private def factEvidence : List FactEvidence := [
-  { factKey := "started"
-    transitionId := "match-started-reference"
-    correlatedStateId := "started-correlated"
-    attributeGroup := "nexus_operation_started_event_attributes"
-    correlations := [(none, "scheduled_event_id")] },
-  { factKey := "succeeded"
-    transitionId := "match-completed-event"
-    correlatedStateId := "satisfied"
-    attributeGroup := "nexus_operation_completed_event_attributes"
-    correlations := [(some "request_id", "request_id"), (none, "scheduled_event_id")] }
-]
-
-private def capturedSide (capturedKey : Option String) : ContractExpression :=
-  match capturedKey with
-  | none => projected (captured scheduledCapture) (field eventIdField)
-  | some name => projected (captured scheduledCapture) (historyAttribute scheduledAttributes name)
-
-private def observedSide (group name : String) : ContractExpression :=
-  projected (observed historyObservation) (historyAttribute group name)
-
-/-- Anchor the correlation on the scheduled event the Nexus operation recorded for this Run. -/
-private def anchorTransition : ContractTransitionDefinition :=
-  Monitor.transition "capture-scheduled-event" pendingStateId scheduledStateId
-    #[.RUN_EVENT_KIND_INSTRUCTION_COMPLETED]
-    (ContractExpr.all #[
-      ContractExpr.present (observed historyObservation),
-      ContractExpr.present (projected (observed historyObservation) (field eventIdField)),
-      ContractExpr.present (observedSide scheduledAttributes "request_id")])
-    .CONTRACT_SUPPORT_KIND_MATCHING_EVENT
-    #[Monitor.captureAssignment scheduledCapture historyObservation]
-
-private def correlationTransition (source : String) (evidence : FactEvidence) :
-    ContractTransitionDefinition :=
-  let capturedPresence := evidence.correlations.filterMap fun correlation =>
-    correlation.1.map fun name => ContractExpr.present (capturedSide (some name))
-  let observedPresence := evidence.correlations.map fun correlation =>
-    ContractExpr.present (observedSide evidence.attributeGroup correlation.2)
-  let equalities := evidence.correlations.map fun correlation =>
-    ContractExpr.equals (capturedSide correlation.1)
-      (observedSide evidence.attributeGroup correlation.2)
-  Monitor.transition evidence.transitionId source evidence.correlatedStateId
-    #[.RUN_EVENT_KIND_INSTRUCTION_COMPLETED]
-    (ContractExpr.all ([
-        ContractExpr.present (captured scheduledCapture),
-        ContractExpr.present (capturedSide none)] ++
-      capturedPresence ++ observedPresence ++ equalities).toArray)
-    .CONTRACT_SUPPORT_KIND_MATCHING_EVENT
-
-private def correlationTransitions (source : String) :
-    List FactEvidence → List ContractTransitionDefinition
-  | [] => []
-  | evidence :: rest =>
-      correlationTransition source evidence ::
-        correlationTransitions evidence.correlatedStateId rest
-
-/-- The final correlated stage is the satisfied state; every earlier stage is still pending. -/
-private def correlatedStates : List FactEvidence → List ContractStateDefinition
-  | [] => []
-  | [evidence] => [Monitor.state evidence.correlatedStateId .CONTRACT_STATE_STATUS_SATISFIED]
-  | evidence :: rest =>
-      Monitor.state evidence.correlatedStateId .CONTRACT_STATE_STATUS_NONTERMINAL ::
-        correlatedStates rest
-
-/-- Build the correlated-history rule from the Facts the selected witness records, in trace
-order. -/
-private def correlatedRule (ruleId : String) (chain : List FactEvidence) :
-    ContractRuleDefinition :=
-  Monitor.rule ruleId .CONTRACT_RULE_KIND_SAFETY pendingStateId
-    (Monitor.state pendingStateId .CONTRACT_STATE_STATUS_NONTERMINAL ::
-      Monitor.state scheduledStateId .CONTRACT_STATE_STATUS_NONTERMINAL ::
-      correlatedStates chain).toArray
-    (anchorTransition :: correlationTransitions scheduledStateId chain).toArray
-    (captures := #[Monitor.capture scheduledCapture
-      (Monitor.messageCapture "temporal.api.history.v1.HistoryEvent")])
-
-private def matchesStep
-    (pattern : PropertyPattern)
-    (step : ModelTraceStep ModelValue ModelValue ModelValue ModelValue) : Bool :=
-  let matchesValue (value : ModelValue) : Bool :=
-    pattern.reference == value.definitionId &&
-      match pattern.constraint with
-      | .present => true
-      | .equals expected => expected == value.value
-      | _ => false
-  match pattern.field with
-  | .selectedAction => matchesValue step.selectedAction
-  | .modelOutcome => matchesValue step.modelOutcome
-  | .resultingState => matchesValue step.resultingState
-  | .observation => step.observations.any matchesValue
-  | _ => false
-
-/-- A clause is lowerable when the selected witness records a step that carries it, so the
-correlated rule built from that witness is evidence for the clause. -/
-private def clauseIsWitnessed
-    (steps : List (ModelTraceStep ModelValue ModelValue ModelValue ModelValue))
-    (clause : ResolvedPropertyClause) : Bool :=
-  match clause with
-  | .transitionContract _ trigger response
-  | .inputOutput _ trigger response =>
-      steps.any fun step => matchesStep trigger step && matchesStep response step
-  | .stateInvariant _ invariant => steps.any (matchesStep invariant)
-  | _ => false
+That is what makes the derived Contract discriminating rather than vacuous. A same-step clause
+triggered on its own Action would answer satisfied for an operation that never reached the Action
+at all, because nothing triggered; triggering on the operation's first Action instead leaves the
+obligation open until the operation either reaches the required value or the window closes. -/
 
 private def loweringError (definitionId construct : String) : LoweringError := {
   sourceDefinitionId := definitionId
@@ -250,64 +191,157 @@ private def loweringError (definitionId construct : String) : LoweringError := {
   construct
 }
 
-private def checkedCompletion : Except LoweringError (Authoring.CheckedModel lifecycle) :=
-  completion.mapError fun _ =>
-    loweringError "temporal.nexus3.query.completion" "checked-completion"
+/-- The predicate field one modeled trace field names in a same-step predicate environment. A trace
+field with no same-step predicate is a clause this lowering cannot express. -/
+private def predicateField : PropertyTraceField → Option PropertyPredicateField
+  | .priorState => some .priorState
+  | .selectedAction => some .selectedAction
+  | .resultingState => some .resultingState
+  | .modelOutcome => some .modelOutcome
+  | .observation => some .expectationFact
+  | .state | .relation => none
 
-/-- Lower a checked Nexus3 completion Query and its selected witness into a Case. The checked
-values are carried, never compared against an expected model: a different Target, Behavior, Query,
-or witness produces different Case bytes. Only a clause this Producer cannot witness rejects. -/
-def produceCompletionCase
-    (target : QueryTarget LawStatement)
-    (checkedProperty : CheckedProperty)
-    (checkedBehavior : CheckedBehavior)
-    (checkedQuery : CheckedQuery LawStatement)
-    (witness? : Option BehaviorTrace) :
+private def predicateOf (pattern : PropertyPattern) : Option PropertyPredicate := do
+  let field ← predicateField pattern.field
+  let constraint ← match pattern.constraint with
+    | .present => some PropertyAtomConstraint.present
+    | .equals value => some (.equals (.text value))
+    | _ => none
+  pure (.atom { field, reference := pattern.reference, constraint })
+
+/-- One `require` clause as an operation-scoped clause, placed by the checked Behavior. A same-step
+clause is the only form with a trigger and a response to carry across; a value constraint the
+portable predicate vocabulary has no spelling for, and an Action the Behavior never selects, each
+reject by clause name rather than being narrowed or guessed. -/
+private def scopedClauseOf (occurrences : List DefinitionId) (opening : ModelValue)
+    (clause : ResolvedPropertyClause) : Except LoweringError PropertyScopedClause :=
+  let unexpressible := fun construct => Except.error (loweringError clause.id.value construct)
+  match clause with
+  | .transitionContract id trigger response
+  | .inputOutput id trigger response =>
+      match occurrences.idxOf? trigger.reference, predicateOf response with
+      | some bound, some response =>
+          .ok {
+            id, source := Authoring.source
+            trigger := .selectedActionIs opening, response
+            scope := [runFieldId], key := operationFieldId
+            clock := .operationTransitions, bound, endpoint := .runtimePrefix }
+      | none, _ => unexpressible "property.clause-occurrence"
+      | _, none => unexpressible "property.clause-shape"
+  | _ => unexpressible "property.clause-form"
+
+/-- The scoped capability's own retention shares the Contract's capture budget, and it retains one
+admitted evidence value per obligation rather than one captured message per rule, so this Case
+declares its own ceilings instead of the shared single-capture ones. -/
+def asyncNexusContractLimits : ContractLimits :=
+  { contractLimits with max_captures := 64, max_capture_bytes := 65536 }
+
+/-- Evaluation ceilings for the scoped consumer, separate from the semantic window above. -/
+def runLimits : Property.Scoped.Limits :=
+  { «transitions» := 16, obligations := 16, work := 100000000, captures := 0 }
+
+def projectionLimits : Observation.Projection.Limits := {
+  events := 32, buffered := 16, keys := 8, support := 128
+  work := 1000000000, eventSize := 512 }
+
+/-- The declared projection. A started Nexus event confirms the model's `awaitStart` step and a
+completed one confirms its `awaitSuccess` step; the scheduled event names no step, because the
+model's operation is already scheduled when it starts. -/
+private def projectionDeclaration
+    (vocabulary : Authoring.ModelVocabulary) :
+    Observation.Projection.Declaration ModelValue ModelValue ModelValue ModelValue := {
+  id := projectionId
+  scopeFields := [runFieldId]
+  operationField := operationFieldId
+  sources := [evidenceSourceId]
+  rules := [
+    { kind := startedEvidenceKindId
+      meaning := .confirmed none [(vocabulary.actionAt 0,
+        { «resultingState» := vocabulary.stateAt 1, modelOutcome := vocabulary.outcomeAt 0
+          observations := [vocabulary.factAt 0] })] },
+    { kind := completedEvidenceKindId
+      meaning := .confirmed none [(vocabulary.actionAt 1,
+        { «resultingState» := vocabulary.stateAt 2, modelOutcome := vocabulary.outcomeAt 1
+          observations := [vocabulary.factAt 1] })] }]
+  «limits» := projectionLimits }
+
+/-- Lower one checked Nexus3 model into a Case. The checked values are carried, never compared
+against an expected model: a different Target, Behavior, Query or Property produces different Case
+bytes. Only a claim this Producer cannot realize rejects.
+
+`required` names clauses the caller requires the Case to carry, beyond the ones the checked Property
+already names. Coverage is always requested explicitly, never left to a default. -/
+def produce {Setup State Action Outcome Fact : Type}
+    [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
+    {«model» : Authoring.SuccessModel Setup State Action Outcome Fact}
+    (checked : Authoring.CheckedModel «model»)
+    (required : List DefinitionId := []) :
     Except LoweringError temporal.server.api.testpilot.v1.Case := do
-  if let some clause := checkedProperty.scopedClauses.head? then
-    throw {
-      sourceDefinitionId := clause.declaration.id.value
-      source := clause.declaration.source
-      construct := "property.scoped-eventually-within/v1" }
-  let selectedWitness ← match witness? with
-    | some selectedWitness => pure selectedWitness
-    | none => throw (loweringError checkedQuery.id.value "witness.absent")
-  let chain ← (selectedWitness.trace.steps.flatMap (·.observations)).mapM fun factValue =>
-    match factEvidence.find? (·.factKey == factValue.value) with
-    | some evidence => pure evidence
-    | none => throw (loweringError factValue.definitionId.value "witness.fact-evidence")
-  if chain.isEmpty then
-    throw (loweringError checkedQuery.id.value "witness.fact-evidence.absent")
-  for clause in checkedProperty.clauses do
-    unless clauseIsWitnessed selectedWitness.trace.steps clause do
-      throw (loweringError clause.id.value "property.clause-evidence")
-  let propertyBinding := binding checkedProperty.id.value
-    checkedProperty.behaviorFingerprint.render .«property»
-  let definitions := [
-      binding target.id.value target.behaviorFingerprint.render .target,
-      binding checkedBehavior.id.value checkedBehavior.behaviorFingerprint.render .«behavior»,
-      binding checkedQuery.id.value checkedQuery.behaviorFingerprint.render .«query»,
-      propertyBinding
-    ]
+  -- A Case realizes one selected trace, so a Query that verifies rather than selects has no
+  -- witness to realize and rejects here. A Known Gap does not admit it.
+  let _ ← match checked.witness with
+    | some selected => pure selected
+    | none => throw (loweringError checked.query.id.value "witness.absent")
+  -- The operation's own sequence in trace order: what it does first, and where each later Action
+  -- sits after it. Only an `exactly` Behavior fixes that order, and the derivation needs it, so a
+  -- Behavior that only bounds occurrences rejects rather than being read in canonical key order.
+  let occurrences ← match checked.behavior.actionsExactly with
+    | some occurrences => pure occurrences
+    | none => throw (loweringError checked.behavior.id.value "behavior.sequence.absent")
+  let opening ← match occurrences.head?.bind fun selected =>
+      checked.vocabulary.actions.find? fun value => value.definitionId == selected with
+    | some opening => pure opening
+    | none => throw (loweringError checked.behavior.id.value "behavior.sequence.absent")
+  let scopedClauses ← checked.property.clauses.mapM (scopedClauseOf occurrences opening)
+  if scopedClauses.isEmpty then
+    throw (loweringError checked.property.id.value "property.clauses.absent")
+  let scopedProperty ← (checkProperty (.ofTarget checked.target) (.portable {
+      id := checked.property.id
+      source := checked.property.source
+      version := checked.property.version
+      requires := checked.property.requires
+      clauses := []
+      scopedClauses })).mapError fun _ =>
+    loweringError checked.property.id.value "property.scoped-admission"
+  let compiled ← (Property.Scoped.compile checked.target scopedProperty [runFieldId] operationFieldId
+    runLimits).mapError fun _ =>
+    loweringError checked.property.id.value "property.scoped-compile"
+  let setup : List RoleBinding :=
+    [{ «role» := «model».operationRoleId, value := checked.vocabulary.stateAt 0 }]
+  let plan ← (Observation.Projection.check checked.target
+    (projectionDeclaration checked.vocabulary) setup (checked.vocabulary.stateAt 0)).mapError
+    fun _ => loweringError projectionId.value "projection.admission"
+  let lowered ← Umpire.Case.Scoped.lower plan compiled scopedObservation
+    (Observation.Projection.Coverage.empty plan)
   compile {
     version := { major := 1 }
     caseId := "temporal.case.async-nexus-success"
     producerId := "temporal.nexus3.testpilot"
     producerVersion := "1"
-    definitions
-    sources := [target.source, checkedBehavior.source, checkedQuery.source, checkedProperty.source]
-    knownGaps := checkedQuery.authoredKnownGaps.toCaseKnownGaps
+    definitions := [
+      binding checked.target.id.value checked.target.behaviorFingerprint.render .target,
+      binding checked.behavior.id.value checked.behavior.behaviorFingerprint.render .«behavior»,
+      binding checked.query.id.value checked.query.behaviorFingerprint.render .«query»,
+      binding scopedProperty.id.value scopedProperty.behaviorFingerprint.render .«property»]
+    sources := [checked.target.source, checked.behavior.source, checked.query.source,
+      checked.property.source]
+    knownGaps := checked.query.authoredKnownGaps.toCaseKnownGaps
     program
     contractId := "temporal.case.async-nexus-success.contract"
-    properties := [.monitor propertyBinding
-      (correlatedRule (checkedProperty.id.value ++ ".correlated-history") chain)]
-    contractLimits
+    properties := [lowered.contractLowering]
+    contractLimits := asyncNexusContractLimits
+    -- Every clause the model wrote must appear among the lowered ones, so a clause silently lost
+    -- between the checked Property and the Contract rejects here, before any Driver I/O. A caller
+    -- may name further clauses it requires; one this Case does not carry rejects the same way.
+    coverage := { clauses := (scopedClauses.map (·.id) ++ required).eraseDups }
   }
+
+private def checkedCompletion : Except LoweringError (Authoring.CheckedModel lifecycle) :=
+  completion.mapError fun _ =>
+    loweringError "temporal.nexus3.query.completion" "checked-completion"
 
 /-- The checked Nexus3 completion declaration lowered to the closed Case format. -/
 def completionCase : Except LoweringError temporal.server.api.testpilot.v1.Case := do
-  let checked ← checkedCompletion
-  produceCompletionCase checked.target checked.property checked.behavior checked.query
-    checked.witness
+  produce (← checkedCompletion)
 
 end Temporal.Feature.Nexus3.Testpilot
