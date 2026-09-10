@@ -6,7 +6,7 @@ namespace Umpire.Case.ScopedFixtures
 open Umpire.Property.ScopedTests
 open temporal.server.api.testpilot.v1
 
-def plan (target : TestTarget) := Observation.Projection.check target {
+def plan (target : TestTarget) := Case.Projection.check target {
   id := id "test.projection"
   scopeFields := [id "test.run"]
   operationField := id "test.operation"
@@ -62,7 +62,7 @@ def compiledCase (scenario : Scenario) : Except String temporal.server.api.testp
   let target ← targetResult.mapError (fun _ => "target")
   let property ← (property target scenario.bound scenario.endpoint).mapError (fun _ => "property")
   let plan ← (plan target).mapError (fun _ => "projection")
-  let compiled ← (Observation.Scoped.compile plan property
+  let compiled ← (Case.Projection.Scoped.compile plan property
     { transitions := 32, obligations := 16, work := 1000000000 }).mapError (fun _ => "scoped compile")
   let lowered ← (Scoped.lower plan compiled "evidence").mapError (fun error => error.construct)
   let binding : CaseDefinitionBinding :=
