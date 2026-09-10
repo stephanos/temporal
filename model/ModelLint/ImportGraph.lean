@@ -23,15 +23,12 @@ inductive ModuleClass where
   | shared
   | testpilot
   | umpire
-  | umpireVeil
   | temporalShared
   | temporalFeature
   | temporalSystem
-  | temporalVerify
   | temporalTool
   | temporal
   | modelTests
-  | optInVerify
   | lintInfrastructure
   deriving Repr, BEq
 
@@ -47,7 +44,6 @@ structure Policy where
   firstPartyRoots : Array Lean.Name
   classifiers : Array Classifier
   implementationLinkConsumers : Array Lean.Name
-  verifyConsumers : Array Lean.Name
   testSupportNamespaces : Array Lean.Name
   testConsumerModules : Array Lean.Name
   /-- Exact production entry points whose full closure must remain free of Target elaboration. -/
@@ -68,7 +64,6 @@ inductive Rule where
   | nexusExperimentalIsolation
   | systemIsolation
   | testSupportIsolation
-  | verificationIsolation
   deriving Repr, BEq
 
 /-- One forbidden reachability result and its selected shortest qualified path. -/
@@ -102,8 +97,6 @@ def defaultPolicy : Policy := {
     `Temporal,
     `TemporalExperimentalTests,
     `TemporalModelTests,
-    `TemporalVeilTests,
-    `TemporalVerify,
     `Tools,
     `Umpire,
     `UmpireTests
@@ -117,23 +110,14 @@ def defaultPolicy : Policy := {
     { modulePrefix := `Temporal.Feature, moduleClass := .temporalFeature },
     { modulePrefix := `Temporal.System, moduleClass := .temporalSystem },
     { modulePrefix := `Temporal.Tool, moduleClass := .temporalTool },
-    { modulePrefix := `Temporal.Verify, moduleClass := .temporalVerify },
     { modulePrefix := `Temporal, moduleClass := .temporal },
     { modulePrefix := `TemporalExperimentalTests, moduleClass := .modelTests, exact := true },
     { modulePrefix := `TemporalModelTests, moduleClass := .modelTests },
-    { modulePrefix := `TemporalVeilTests, moduleClass := .optInVerify, exact := true },
-    { modulePrefix := `TemporalVerify, moduleClass := .optInVerify, exact := true },
     { modulePrefix := `Tools, moduleClass := .lintInfrastructure },
-    { modulePrefix := `Umpire.Verify.Veil, moduleClass := .umpireVeil },
     { modulePrefix := `Umpire, moduleClass := .umpire },
     { modulePrefix := `UmpireTests, moduleClass := .modelTests }
   ],
   implementationLinkConsumers := #[`Temporal.System.Nexus.ImplementationLink],
-  verifyConsumers := #[
-    `Temporal.Tool.VerifyVeil,
-    `TemporalVeilTests,
-    `TemporalVerify
-  ],
   testSupportNamespaces := #[
     `Shared.Test,
     `Temporal.Shared.Test,
@@ -179,7 +163,6 @@ private def Rule.label : Rule → String
   | .nexusExperimentalIsolation => "nexus-experimental-isolation"
   | .systemIsolation => "system-isolation"
   | .testSupportIsolation => "test-support-isolation"
-  | .verificationIsolation => "verification-isolation"
 
 private def pathText (path : Array Lean.Name) : String :=
   " -> ".intercalate <| path.toList.map (·.toString)
@@ -205,11 +188,7 @@ def InventoryIssue.render : InventoryIssue → String
 
 private def isTemporalClass : ModuleClass → Bool
   | .temporalShared | .temporalFeature | .temporalSystem
-  | .temporalVerify | .temporalTool | .temporal => true
-  | _ => false
-
-private def isVerifyClass : ModuleClass → Bool
-  | .temporalVerify | .umpireVeil => true
+  | .temporalTool | .temporal => true
   | _ => false
 
 private def nameHasComponent (name : Lean.Name) (component : String) : Bool :=
@@ -247,7 +226,6 @@ private def isModelForbiddenDestination (name : Lean.Name) : Bool :=
     `Umpire.Search,
     `Umpire.Artifact,
     `Umpire.Runtime,
-    `Umpire.Verify,
     `Temporal
   ].any (matchesPrefix · name)
 
@@ -268,15 +246,12 @@ private def forbiddenRule?
   else if isModelModule source && isModelForbiddenDestination destination then
     some .modelIsolation
   else if sourceClass == .shared &&
-      (destinationClass == .umpire || destinationClass == .umpireVeil ||
-        isTemporalClass destinationClass) then
+      (destinationClass == .umpire || isTemporalClass destinationClass) then
     some .sharedIndependence
   else if sourceClass == .testpilot &&
-      (destinationClass == .umpire || destinationClass == .umpireVeil ||
-        isTemporalClass destinationClass) then
+      (destinationClass == .umpire || isTemporalClass destinationClass) then
     some .testpilotIndependence
-  else if (sourceClass == .umpire || sourceClass == .umpireVeil) &&
-      isTemporalClass destinationClass then
+  else if sourceClass == .umpire && isTemporalClass destinationClass then
     some .umpireIndependence
   else if sourceClass == .temporalShared &&
       (policy.isTestSupportModule destination ||
@@ -284,19 +259,12 @@ private def forbiddenRule?
     some .temporalSharedIsolation
   else if sourceClass == .temporalFeature && destinationClass == .temporalSystem then
     some .featureIsolation
-  else if sourceClass == .temporalFeature && isVerifyClass destinationClass &&
-      !policy.verifyConsumers.contains source then
-    some .featureIsolation
   else if sourceClass == .temporalSystem && destinationClass == .temporalFeature &&
       !policy.implementationLinkConsumers.contains source then
     some .systemIsolation
   else if policy.isProductionModule source sourceClass &&
       policy.isTestSupportModule destination then
     some .testSupportIsolation
-  else if (sourceClass == .temporalSystem || sourceClass == .temporalTool ||
-      sourceClass == .temporal || sourceClass == .modelTests || sourceClass == .umpire) &&
-      isVerifyClass destinationClass && !policy.verifyConsumers.contains source then
-    some .verificationIsolation
   else
     none
 
