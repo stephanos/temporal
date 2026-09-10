@@ -5,30 +5,30 @@ import Umpire.Exploration.Engine
 namespace Umpire
 
 /-- One selected Plan in the process-local session's fixed execution order. -/
-structure ExplorationSessionCandidate where
+structure CandidateCursorCandidate where
   private mk ::
   plan : Plan
   deriving BEq, DecidableEq, Repr
 
 /-- The semantic identity of one process-local session candidate. -/
-def ExplorationSessionCandidate.identity
-    (candidate : ExplorationSessionCandidate) : ArtifactChecksum :=
+def CandidateCursorCandidate.identity
+    (candidate : CandidateCursorCandidate) : ArtifactChecksum :=
   candidate.plan.artifactChecksum
 
 /-- A fixed selected order with at most one candidate awaiting exact admission. -/
-structure ExplorationSession where
+structure CandidateCursor where
   private mk ::
-  remaining : List ExplorationSessionCandidate
-  outstanding : Option ExplorationSessionCandidate
+  remaining : List CandidateCursorCandidate
+  outstanding : Option CandidateCursorCandidate
   deriving BEq, DecidableEq, Repr
 
 private def sessionCandidateOfPinned
-    (pinned : PinnedPlan) : ExplorationSessionCandidate := {
+    (pinned : PinnedPlan) : CandidateCursorCandidate := {
   plan := pinned.plan
 }
 
 private def sessionCandidateOfExploratory
-    (candidate : ExplorationCandidate) : ExplorationSessionCandidate := {
+    (candidate : ExplorationCandidate) : CandidateCursorCandidate := {
   plan := candidate.plan
 }
 
@@ -36,7 +36,7 @@ private def sessionCandidateOfExploratory
 def beginSession
     (request : ExplorationRequest LawStatement)
     (kernel : SearchView request.space.baseQuery.target) :
-    Except ExplorationError ExplorationSession := do
+    Except ExplorationError CandidateCursor := do
   let result ← explore request kernel
   pure {
     remaining := result.pinned.map sessionCandidateOfPinned ++
@@ -45,17 +45,17 @@ def beginSession
   }
 
 /-- Return the next fixed candidate and a session that must observe it before advancing. -/
-def ExplorationSession.next
-    (session : ExplorationSession) : Option (ExplorationSessionCandidate × ExplorationSession) :=
+def CandidateCursor.next
+    (session : CandidateCursor) : Option (CandidateCursorCandidate × CandidateCursor) :=
   match session.outstanding, session.remaining with
   | none, candidate :: remaining =>
       some (candidate, { remaining, outstanding := some candidate })
   | _, _ => none
 
 /-- Admit exactly the immutable binding for the outstanding candidate. -/
-def ExplorationSession.observe
-    (session : ExplorationSession)
-    (bindings : List ArtifactBinding) : Option ExplorationSession :=
+def CandidateCursor.observe
+    (session : CandidateCursor)
+    (bindings : List ArtifactBinding) : Option CandidateCursor :=
   match session.outstanding, bindings with
   | some candidate, [binding] =>
       if binding == candidate.plan.artifactBinding then

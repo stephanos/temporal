@@ -1,5 +1,5 @@
 import Umpire.Exploration.Selection
-import Umpire.Space.Tests.Fixtures
+import Umpire.Variations.Tests.Fixtures
 
 /-! Deterministic bounded exhaustive selection over one canonical finite candidate universe. -/
 
@@ -16,21 +16,21 @@ private theorem except_eq_ok_get
   | ok _ => rfl
 
 private theorem checkedSpaceResultEq :
-    SpaceTests.checkedResult = .ok SpaceTests.checked :=
-  except_eq_ok_get SpaceTests.checkedResult (by native_decide)
+    VariationsTests.checkedResult = .ok VariationsTests.checked :=
+  except_eq_ok_get VariationsTests.checkedResult (by native_decide)
 
 private theorem checkedSpaceTargetEq :
-    SpaceTests.checked.baseQuery.target = Umpire.Examples.Switch.target := by
+    VariationsTests.checked.baseQuery.target = Umpire.Examples.Switch.target := by
   exact congrArg (fun query => query.target)
-    (checkExperimentSpace_baseQuery checkedSpaceResultEq)
+    (checkVariationSpace_baseQuery checkedSpaceResultEq)
 
-private def kernel : SearchView SpaceTests.checked.baseQuery.target :=
+private def kernel : SearchView VariationsTests.checked.baseQuery.target :=
   Eq.mpr (congrArg SearchView checkedSpaceTargetEq)
     Umpire.Examples.Switch.incrementalKernel
 
 private def authoredRequest (value : Nat) :
     ExplorationRequest Umpire.Examples.Switch.LawStatement := {
-  space := SpaceTests.checked
+  space := VariationsTests.checked
   policy := .exhaustive
   limit := { value, unit := .plans }
 }
@@ -47,7 +47,7 @@ private theorem checkedRequestResultEq : checkedRequestResult = .ok checkedReque
 private theorem checkedRequestTargetEq :
     checkedRequest.space.baseQuery.target = Umpire.Examples.Switch.target := by
   calc
-    checkedRequest.space.baseQuery.target = SpaceTests.checked.baseQuery.target :=
+    checkedRequest.space.baseQuery.target = VariationsTests.checked.baseQuery.target :=
       congrArg (fun space => space.baseQuery.target)
         (checkExplorationRequest_space checkedRequestResultEq)
     _ = Umpire.Examples.Switch.target := checkedSpaceTargetEq
@@ -57,7 +57,7 @@ private def candidateKernel :
   Eq.mpr (congrArg SearchView checkedRequestTargetEq)
     Umpire.Examples.Switch.incrementalKernel
 
-private def universeResult := buildCandidateUniverse checkedRequest candidateKernel
+private def universeResult := buildCandidateSet checkedRequest candidateKernel
 
 private def requestResult (value : Nat) := checkExplorationRequest (authoredRequest value)
 
@@ -67,8 +67,8 @@ private def checkedRequest5 := (requestResult 5).toOption.get (by native_decide)
 private def selectionResult
     (request : CheckedExplorationRequest Umpire.Examples.Switch.LawStatement) :
     Option ExhaustiveSelection := do
-  let candidateUniverse ← universeResult.toOption
-  selectExhaustive request candidateUniverse
+  let candidateSet ← universeResult.toOption
+  selectExhaustive request candidateSet
 
 /-! Canonical finite candidates are returned in semantic-identity order within the Limit. -/
 example : (selectionResult checkedRequest3).map (fun selection =>
@@ -99,7 +99,7 @@ example :
   native_decide
 
 private def firstCandidateResult : Option ExplorationCandidate :=
-  universeResult.toOption.bind fun candidateUniverse => candidateUniverse.candidates.head?
+  universeResult.toOption.bind fun candidateSet => candidateSet.candidates.head?
 
 private def firstCandidate := firstCandidateResult.get (by native_decide)
 
@@ -128,18 +128,18 @@ example :
         result.candidates.length == 3 && result.outcome == .exhausted) = true := by
   native_decide
 
-private def differentDeclaration : ExperimentSpaceDeclaration := {
-  SpaceTests.declaration with
+private def differentDeclaration : VariationSpace := {
+  VariationsTests.declaration with
   coverageGoals := [
-    { SpaceTests.stateGoal with minimum := 1 },
-    SpaceTests.delayGoal,
-    SpaceTests.semanticGoal,
-    SpaceTests.propertyGoal
+    { VariationsTests.stateGoal with minimum := 1 },
+    VariationsTests.delayGoal,
+    VariationsTests.semanticGoal,
+    VariationsTests.propertyGoal
   ]
 }
 
 private def differentSpaceResult :=
-  checkExperimentSpace SpaceTests.context differentDeclaration
+  checkVariationSpace VariationsTests.context differentDeclaration
 
 private def differentSpace := differentSpaceResult.toOption.get (by native_decide)
 
@@ -153,22 +153,22 @@ private def differentRequest := differentRequestResult.toOption.get (by native_d
 
 /-! A same-ID but semantically different checked Space cannot select from this universe. -/
 example :
-    SpaceTests.checked.id == differentSpace.id &&
-      SpaceTests.checked.behaviorFingerprint != differentSpace.behaviorFingerprint &&
+    VariationsTests.checked.id == differentSpace.id &&
+      VariationsTests.checked.behaviorFingerprint != differentSpace.behaviorFingerprint &&
       (selectionResult differentRequest).isNone = true := by
   native_decide
 
-private def reorderedDeclaration : ExperimentSpaceDeclaration := {
-  SpaceTests.declaration with
-  axes := (SpaceTests.declaration.axes.map fun axis => {
+private def reorderedDeclaration : VariationSpace := {
+  VariationsTests.declaration with
+  axes := (VariationsTests.declaration.axes.map fun axis => {
     axis with choices := axis.choices.reverse
   }).reverse
-  faults := SpaceTests.declaration.faults.reverse
-  coverageGoals := SpaceTests.declaration.coverageGoals.reverse
+  faults := VariationsTests.declaration.faults.reverse
+  coverageGoals := VariationsTests.declaration.coverageGoals.reverse
 }
 
 private def reorderedSpaceResult :=
-  checkExperimentSpace SpaceTests.context reorderedDeclaration
+  checkVariationSpace VariationsTests.context reorderedDeclaration
 
 private def reorderedSpace := reorderedSpaceResult.toOption.get (by native_decide)
 
@@ -178,7 +178,7 @@ private theorem reorderedSpaceResultEq : reorderedSpaceResult = .ok reorderedSpa
 private theorem reorderedSpaceTargetEq :
     reorderedSpace.baseQuery.target = Umpire.Examples.Switch.target := by
   exact congrArg (fun query => query.target)
-    (checkExperimentSpace_baseQuery reorderedSpaceResultEq)
+    (checkVariationSpace_baseQuery reorderedSpaceResultEq)
 
 private def reorderedRequest : ExplorationRequest Umpire.Examples.Switch.LawStatement := {
   space := reorderedSpace
@@ -207,8 +207,8 @@ private def reorderedKernel :
     Umpire.Examples.Switch.incrementalKernel
 
 private def reorderedSelection : Option ExhaustiveSelection := do
-  let candidateUniverse ← (buildCandidateUniverse checkedReordered reorderedKernel).toOption
-  selectExhaustive checkedReordered candidateUniverse
+  let candidateSet ← (buildCandidateSet checkedReordered reorderedKernel).toOption
+  selectExhaustive checkedReordered candidateSet
 
 private def canonicalSelectionProjection (selection : ExhaustiveSelection) :=
   (selection.candidates.map fun candidate =>

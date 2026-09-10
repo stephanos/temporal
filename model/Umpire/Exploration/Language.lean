@@ -17,7 +17,7 @@ and pinned Artifact partition together.
 -/
 structure CheckedExplorationRequest (LawStatement : Law → Prop) where
   private mk ::
-  space : CheckedExperimentSpace LawStatement
+  space : CheckedVariationSpace LawStatement
   policy : ExplorationPolicy
   limit : Limit
   pinned : List PinnedPlan
@@ -54,15 +54,15 @@ def canonicalExplorationErrorJson (error : ExplorationError) : String :=
     ",\"relatedDefinitionIds\":" ++
       array (canonicalIds error.relatedDefinitionIds |>.map (quote ∘ DefinitionId.value)) ++ "}"
 
-private def maximumTraceSteps (space : CheckedExperimentSpace LawStatement) : Nat :=
+private def maximumTraceSteps (space : CheckedVariationSpace LawStatement) : Nat :=
   Nat.min space.baseQuery.limits.steps.value space.baseQuery.limits.actions.value
 
-private def maximumObservationPositions (space : CheckedExperimentSpace LawStatement) : Nat :=
+private def maximumObservationPositions (space : CheckedVariationSpace LawStatement) : Nat :=
   space.baseQuery.target.behaviorTable.transitions.foldl
     (fun maximum transition => Nat.max maximum transition.facts.length) 0
 
 private def coordinateKnown
-    (space : CheckedExperimentSpace LawStatement) : ModelCoordinate → Bool
+    (space : CheckedVariationSpace LawStatement) : ModelCoordinate → Bool
   | .initialState => true
   | .selectedAction step | .outcome step | .state step =>
       step > 0 && step ≤ maximumTraceSteps space
@@ -82,7 +82,7 @@ private def firstDuplicatePinned : List Plan → Option Plan
   | _ => none
 
 private def pinnedMatchesContract
-    (space : CheckedExperimentSpace LawStatement)
+    (space : CheckedVariationSpace LawStatement)
     (spec : Plan) : Bool :=
   spec.plan.targetDefinitionId == space.baseQuery.target.id &&
     spec.plan.targetBehaviorFingerprint == space.baseQuery.target.behaviorFingerprint &&

@@ -1,5 +1,5 @@
 import Umpire.Exploration
-import Umpire.Space.Tests.Fixtures
+import Umpire.Variations.Tests.Fixtures
 
 /-! Closed policy, Limit, coordinate, and pinned-Artifact validation checks. -/
 
@@ -14,7 +14,7 @@ def request
     (limit : Limit := validLimit)
     (pinned : List Plan := []) :
     ExplorationRequest Umpire.Examples.Switch.LawStatement := {
-  space := SpaceTests.checked
+  space := VariationsTests.checked
   policy
   limit
   pinned
@@ -84,7 +84,7 @@ example : (checkExplorationRequest <| request
     (.uncoveredCoordinate (.fact 1 1))
     { value := 2, unit := .plans }
     [compatiblePinned]).toOption.map (fun checked =>
-      checked.space == SpaceTests.checked &&
+      checked.space == VariationsTests.checked &&
         checked.policy == .uncoveredCoordinate (.fact 1 1) &&
         checked.limit == { value := 2, unit := .plans } &&
         checked.pinned.map (fun pinned => pinned.plan.artifactChecksum) ==

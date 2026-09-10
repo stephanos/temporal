@@ -8,18 +8,18 @@ complete finite candidate universe, and only then constructs the pinned and expl
 namespace Umpire
 
 /-- The closed reason an eligible candidate was omitted from the exploratory partition. -/
-inductive ExplorationOmissionReason where
+inductive DroppedCandidateReason where
   | pinnedPrecedence
   deriving BEq, DecidableEq, Ord, Repr
 
 /-- Stable serialized name of one Exploration omission reason. -/
-def ExplorationOmissionReason.name : ExplorationOmissionReason → String
+def DroppedCandidateReason.name : DroppedCandidateReason → String
   | .pinnedPrecedence => "pinned-precedence"
 
 /-- One canonical exploratory identity omitted because its pinned Regression takes precedence. -/
-structure ExplorationOmission where
+structure DroppedCandidate where
   identity : ArtifactChecksum
-  reason : ExplorationOmissionReason
+  reason : DroppedCandidateReason
   deriving BEq, DecidableEq, Repr
 
 /-- The exact pinned-first partitions and truthful outcomes from one bounded Exploration. -/
@@ -27,7 +27,7 @@ structure ExplorationResult where
   private mk ::
   pinned : List PinnedPlan
   exploratory : List ExplorationCandidate
-  omissions : List ExplorationOmission
+  omissions : List DroppedCandidate
   coordinateOutcome : Option GuidedSelectionOutcome
   completion : ExhaustiveSelectionOutcome
   deriving BEq, DecidableEq, Repr
@@ -39,8 +39,8 @@ def ExplorationResult.selectedIdentities (result : ExplorationResult) : List Art
 
 private def pinnedPrecedenceOmissions
     (request : CheckedExplorationRequest LawStatement)
-    (candidateUniverse : CandidateUniverse) : List ExplorationOmission :=
-  candidateUniverse.candidates.filterMap fun candidate =>
+    (candidateSet : CandidateSet) : List DroppedCandidate :=
+  candidateSet.candidates.filterMap fun candidate =>
     if ExplorationSelection.Internal.isPinned request candidate then
       some { identity := candidate.identity, reason := .pinnedPrecedence }
     else
@@ -48,8 +48,8 @@ private def pinnedPrecedenceOmissions
 
 private def completionOf
     (request : CheckedExplorationRequest LawStatement)
-    (candidateUniverse : CandidateUniverse) : ExhaustiveSelectionOutcome :=
-  if (ExplorationSelection.Internal.eligibleCandidates request candidateUniverse).length ≤
+    (candidateSet : CandidateSet) : ExhaustiveSelectionOutcome :=
+  if (ExplorationSelection.Internal.eligibleCandidates request candidateSet).length ≤
       request.limit.value then
     .exhausted
   else
@@ -64,12 +64,12 @@ private def pinnedSelectsCoordinate
 
 private def exploreChecked
     (request : CheckedExplorationRequest LawStatement)
-    (candidateUniverse : CandidateUniverse) :
+    (candidateSet : CandidateSet) :
     ExplorationResult :=
-  let omissions := pinnedPrecedenceOmissions request candidateUniverse
+  let omissions := pinnedPrecedenceOmissions request candidateSet
   match request.policy with
   | .exhaustive =>
-      let selection := ExhaustiveSelection.Internal.select request candidateUniverse
+      let selection := ExhaustiveSelection.Internal.select request candidateSet
       {
         pinned := request.pinned
         exploratory := selection.candidates
@@ -78,7 +78,7 @@ private def exploreChecked
         completion := selection.outcome
       }
   | .uncoveredCoordinate coordinate =>
-      let selection := GuidedSelection.Internal.select request candidateUniverse coordinate
+      let selection := GuidedSelection.Internal.select request candidateSet coordinate
       {
         pinned := request.pinned
         exploratory := selection.candidates
@@ -87,7 +87,7 @@ private def exploreChecked
           .coordinateSelected
         else
           selection.outcome
-        completion := completionOf request candidateUniverse
+        completion := completionOf request candidateSet
       }
 
 /--
@@ -104,9 +104,9 @@ def explore
       let checkedKernel : SearchView checked.space.baseQuery.target :=
         Eq.mpr (congrArg (fun space => SearchView space.baseQuery.target)
           (checkExplorationRequest_space checkedEq)) kernel
-      match buildCandidateUniverse checked checkedKernel with
+      match buildCandidateSet checked checkedKernel with
       | .error error => .error error
-      | .ok candidateUniverse =>
-          .ok (exploreChecked checked candidateUniverse)
+      | .ok candidateSet =>
+          .ok (exploreChecked checked candidateSet)
 
 end Umpire

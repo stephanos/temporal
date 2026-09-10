@@ -1,5 +1,5 @@
 import Umpire.Exploration.Guided
-import Umpire.Space.Tests.Fixtures
+import Umpire.Variations.Tests.Fixtures
 
 /-! Deterministic guidance toward one uncovered Model Coordinate. -/
 
@@ -16,22 +16,22 @@ private theorem except_eq_ok_get
   | ok _ => rfl
 
 private theorem checkedSpaceResultEq :
-    SpaceTests.checkedResult = .ok SpaceTests.checked :=
-  except_eq_ok_get SpaceTests.checkedResult (by native_decide)
+    VariationsTests.checkedResult = .ok VariationsTests.checked :=
+  except_eq_ok_get VariationsTests.checkedResult (by native_decide)
 
 private theorem checkedSpaceTargetEq :
-    SpaceTests.checked.baseQuery.target = Umpire.Examples.Switch.target := by
+    VariationsTests.checked.baseQuery.target = Umpire.Examples.Switch.target := by
   exact congrArg (fun query => query.target)
-    (checkExperimentSpace_baseQuery checkedSpaceResultEq)
+    (checkVariationSpace_baseQuery checkedSpaceResultEq)
 
-private def kernel : SearchView SpaceTests.checked.baseQuery.target :=
+private def kernel : SearchView VariationsTests.checked.baseQuery.target :=
   Eq.mpr (congrArg SearchView checkedSpaceTargetEq)
     Umpire.Examples.Switch.incrementalKernel
 
 private def authoredRequest
     (coordinate : ModelCoordinate)
     (value : Nat := 1) : ExplorationRequest Umpire.Examples.Switch.LawStatement := {
-  space := SpaceTests.checked
+  space := VariationsTests.checked
   policy := .uncoveredCoordinate coordinate
   limit := { value, unit := .plans }
 }
@@ -47,7 +47,7 @@ private theorem checkedRequestResultEq : checkedRequestResult = .ok checkedReque
 private theorem checkedRequestTargetEq :
     checkedRequest.space.baseQuery.target = Umpire.Examples.Switch.target := by
   calc
-    checkedRequest.space.baseQuery.target = SpaceTests.checked.baseQuery.target :=
+    checkedRequest.space.baseQuery.target = VariationsTests.checked.baseQuery.target :=
       congrArg (fun space => space.baseQuery.target)
         (checkExplorationRequest_space checkedRequestResultEq)
     _ = Umpire.Examples.Switch.target := checkedSpaceTargetEq
@@ -56,8 +56,8 @@ private def candidateKernel : SearchView checkedRequest.space.baseQuery.target :
   Eq.mpr (congrArg SearchView checkedRequestTargetEq)
     Umpire.Examples.Switch.incrementalKernel
 
-private def candidateUniverse :=
-  (buildCandidateUniverse checkedRequest candidateKernel).toOption.get (by native_decide)
+private def candidateSet :=
+  (buildCandidateSet checkedRequest candidateKernel).toOption.get (by native_decide)
 
 private structure CandidateProjection where
   identity : String
@@ -109,7 +109,7 @@ example :
         ["coordinate-selected", "coordinate-uncovered"] := by
   native_decide
 
-private def selection := selectUncoveredCoordinate checkedRequest candidateUniverse
+private def selection := selectUncoveredCoordinate checkedRequest candidateSet
 
 private def exhaustiveRequest :=
   (checkExplorationRequest {
@@ -121,12 +121,12 @@ example : selection.map (fun result =>
     result.coordinate == requestedCoordinate &&
       result.candidates.length == 1 &&
       result.identities ==
-        (candidateUniverse.candidates.take 1 |>.map ExplorationCandidate.identity) &&
+        (candidateSet.candidates.take 1 |>.map ExplorationCandidate.identity) &&
       result.outcome.name == "coordinate-selected") = some true := by
   native_decide
 
 /-! The guided selector accepts no exhaustive-policy request. -/
-example : selectUncoveredCoordinate exhaustiveRequest candidateUniverse = none := by
+example : selectUncoveredCoordinate exhaustiveRequest candidateSet = none := by
   native_decide
 
 /-! An out-of-vocabulary coordinate never reaches selection. -/
@@ -140,18 +140,18 @@ runtime-observation or adaptive-state input.
 -/
 example :
     let requestBefore := checkedRequest
-    let universeBefore := candidateUniverse
-    selectUncoveredCoordinate checkedRequest candidateUniverse == selection &&
+    let universeBefore := candidateSet
+    selectUncoveredCoordinate checkedRequest candidateSet == selection &&
       checkedRequest.space == requestBefore.space &&
       checkedRequest.policy == requestBefore.policy &&
       checkedRequest.limit == requestBefore.limit &&
       checkedRequest.pinned == requestBefore.pinned &&
-      candidateUniverse == universeBefore := by
+      candidateSet == universeBefore := by
   native_decide
 
 private def selectorType :
     CheckedExplorationRequest Umpire.Examples.Switch.LawStatement →
-      CandidateUniverse → Option GuidedSelection :=
+      CandidateSet → Option GuidedSelection :=
   selectUncoveredCoordinate
 
 end Umpire.ExplorationTests

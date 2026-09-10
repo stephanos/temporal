@@ -1,18 +1,18 @@
-import Umpire.Space.Metadata
-import Umpire.Space.Tests.Fixtures
+import Umpire.Variations.Metadata
+import Umpire.Variations.Tests.Fixtures
 
 /-! Canonical checked Space metadata projection and fail-closed mismatch checks. -/
 
-namespace Umpire.SpaceTests
+namespace Umpire.VariationsTests
 
 open Umpire
 
 /-! A caller cannot forge stale checked Space fields while retaining an old semantic digest. -/
 /--
-error: Unknown constant `Umpire.CheckedExperimentSpace.mk`
+error: Unknown constant `Umpire.CheckedVariationSpace.mk`
 -/
 #guard_msgs (error, substring := true) in
-#check Umpire.CheckedExperimentSpace.mk
+#check Umpire.CheckedVariationSpace.mk
 
 def metadataResult : Except SpaceMetadataError CheckedSpaceMetadata :=
   projectCheckedSpaceMetadata checked
@@ -55,7 +55,7 @@ example : metadata.coverageGoals.map (fun goal => (goal.id, goal.minimum)) = [
   ] := by
   native_decide
 
-def metadataReorderedDeclaration : ExperimentSpaceDeclaration := {
+def metadataReorderedDeclaration : VariationSpace := {
   declaration with
   axes := (declaration.axes.map fun axis => { axis with choices := axis.choices.reverse }).reverse
   faults := (declaration.faults.map fun fault => {
@@ -65,7 +65,7 @@ def metadataReorderedDeclaration : ExperimentSpaceDeclaration := {
 }
 
 def deeplyReorderedMetadataResult : Except SpaceMetadataError CheckedSpaceMetadata :=
-  (checkExperimentSpace context metadataReorderedDeclaration).mapError (fun error => {
+  (checkVariationSpace context metadataReorderedDeclaration).mapError (fun error => {
     kind := .staleRow
     definitionId := error.definitionId
     sourcePath := error.sourcePath
@@ -79,7 +79,7 @@ example : deeplyReorderedMetadataResult.toOption == metadataResult.toOption := b
 def movedSpaceSource : SourceLocation := { source with line := 99 }
 
 def movedSourceMetadataResult : Except SpaceMetadataError CheckedSpaceMetadata :=
-  (checkExperimentSpace context { declaration with source := movedSpaceSource }).mapError (fun error => {
+  (checkVariationSpace context { declaration with source := movedSpaceSource }).mapError (fun error => {
     kind := .staleRow
     definitionId := error.definitionId
     sourcePath := error.sourcePath
@@ -92,30 +92,30 @@ example : movedSourceMetadataResult.toOption.any fun moved =>
       moved.behaviorFingerprint == metadata.behaviorFingerprint := by
   native_decide
 
-def projection : SpaceMetadataProjection := canonicalSpaceMetadataProjection checked
+def projection : SpaceMetadataRows := canonicalSpaceMetadataRows checked
 
 def metadataErrorKindOf
-    (candidate : SpaceMetadataProjection) : Option SpaceMetadataErrorKind :=
-  match checkSpaceMetadataProjection checked candidate with
+    (candidate : SpaceMetadataRows) : Option SpaceMetadataErrorKind :=
+  match checkSpaceMetadataRows checked candidate with
   | .ok _ => none
   | .error error => some error.kind
 
 def firstAxis : SpaceAxisMetadataRow :=
   projection.axes.head?.get (by native_decide)
 
-def missingAxisProjection : SpaceMetadataProjection := {
+def missingAxisProjection : SpaceMetadataRows := {
   projection with axes := projection.axes.tail
 }
 
-def extraAxisProjection : SpaceMetadataProjection := {
+def extraAxisProjection : SpaceMetadataRows := {
   projection with axes := projection.axes ++ [firstAxis]
 }
 
-def staleAxisProjection : SpaceMetadataProjection := {
+def staleAxisProjection : SpaceMetadataRows := {
   projection with axes := { firstAxis with version := firstAxis.version + 1 } :: projection.axes.tail
 }
 
-def staleBaseProjection : SpaceMetadataProjection := {
+def staleBaseProjection : SpaceMetadataRows := {
   projection with space := {
     projection.space with baseQuery := {
       projection.space.baseQuery with behaviorFingerprint := behaviorFingerprintOf "stale-base-query"
@@ -123,7 +123,7 @@ def staleBaseProjection : SpaceMetadataProjection := {
   }
 }
 
-def staleDigestProjection : SpaceMetadataProjection := {
+def staleDigestProjection : SpaceMetadataRows := {
   projection with behaviorFingerprint := behaviorFingerprintOf "stale-metadata"
 }
 
@@ -142,4 +142,4 @@ example : [
   ] := by
   native_decide
 
-end Umpire.SpaceTests
+end Umpire.VariationsTests

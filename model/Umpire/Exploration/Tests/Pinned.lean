@@ -29,8 +29,8 @@ example :
         result.omissions == [({
           identity := firstPinned.artifactChecksum
           reason := .pinnedPrecedence
-        } : ExplorationOmission)] &&
-        result.omissions.map (ExplorationOmissionReason.name ∘ ExplorationOmission.reason) ==
+        } : DroppedCandidate)] &&
+        result.omissions.map (DroppedCandidateReason.name ∘ DroppedCandidate.reason) ==
           ["pinned-precedence"] &&
         result.completion == .exhausted) := by
   native_decide

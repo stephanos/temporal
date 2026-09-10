@@ -9,7 +9,7 @@ import Umpire.Artifact
 import Umpire.Search
 import Umpire.Search.Branches
 import Umpire.Promotion
-import Umpire.Space
+import Umpire.Variations
 import Umpire.Exploration
 import Umpire.Evidence
 import Umpire.Case.Projection
