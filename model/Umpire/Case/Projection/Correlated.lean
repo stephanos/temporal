@@ -5,14 +5,14 @@ import Umpire.Property.Correlated
 Atomic composition of checked evidence projection with the Property-owned correlated kernel.
 Only newly emitted, Target-authorized steps tick obligations. Pending evidence is retained by the
 projector; it cannot establish satisfaction. Projection or Property rejection returns no replacement
-Run and cannot erase an answer already supported by the previous immutable Run.
+Monitor and cannot erase an answer already supported by the previous immutable Monitor.
 
-A Run also carries the checked modeled-fields to declared-Observations coverage map. Each admitted
+A Monitor also carries the checked modeled-fields to declared-Observations coverage map. Each admitted
 event's covered declared fields are rebuilt into admitted projections at their modeled coordinates,
 so a clause's keyed captures retain exactly the values the declared Observations supplied. A rebuilt
 projection witnesses the declared Observation's value at those coordinates, and nothing more: a
 request operand denotes the selected Action's own arguments, which no projected scalar
-reconstructs, so a clause reading one is rejected rather than admitted into a Run whose operands
+reconstructs, so a clause reading one is rejected rather than admitted into a Monitor whose operands
 could never bind.
 -/
 
@@ -30,11 +30,11 @@ inductive Error where
   | coverage (error : Projection.CoverageError)
   deriving BEq, DecidableEq, Repr
 
-/-- What the coverage map must supply before an evidence-driven Run may admit a clause. Every
+/-- What the coverage map must supply before an evidence-driven Monitor may admit a clause. Every
 modeled operand a clause reads must be covered by a declared Observation this projection emits, and
 that coverage must be rebuildable: a request operand denotes the selected Action's own arguments,
 which no projected scalar reconstructs, so a clause reading one is rejected here rather than
-admitted into a Run whose operands could never bind. -/
+admitted into a Monitor whose operands could never bind. -/
 private def checkCoverage {plan : Projection.Checked target}
     (coverage : Projection.Coverage plan) (property : CheckedProperty) : Except Error Unit := do
   for clause in property.correlatedRules do
@@ -65,10 +65,10 @@ def compile (plan : Projection.Checked target) (property : CheckedProperty)
     Error.property
 
 /-- Both run-local states advance or reject together. -/
-structure Run (plan : Projection.Checked target) (compiled : Compiled target) where
+structure Monitor (plan : Projection.Checked target) (compiled : Compiled target) where
   private mk ::
   private evidence : Projection.Run plan
-  private semantic : Property.Correlated.Run compiled
+  private semantic : Property.Correlated.Monitor compiled
   private coverage : Projection.Coverage plan
   private closed : Bool := false
 
@@ -76,10 +76,10 @@ structure Run (plan : Projection.Checked target) (compiled : Compiled target) wh
 def start [DecidableEq Setup] (plan : Projection.Checked target) (compiled : Compiled target)
     (setup : Setup) (scope : List (DefinitionId × String))
     (coverage : Projection.Coverage plan := Projection.Coverage.empty plan) :
-    Except Error (Run plan compiled) := do
+    Except Error (Monitor plan compiled) := do
   if compiled.scopeFields != plan.scopeFields || compiled.operationField != plan.operationField then
     throw (.property .wrongScope)
-  -- The Run reads its own coverage, so a Run started under a coverage that no longer supplies the
+  -- The Monitor reads its own coverage, so a Monitor started under a coverage that no longer supplies the
   -- compiled clauses is rejected here rather than admitting a capture that could never bind.
   checkCoverage coverage compiled.property
   let evidence ← (plan.start scope).mapError Error.projection
@@ -104,8 +104,8 @@ theorem semanticStep_authorized (step : Projection.Step target) :
 /-- Consume only the append's new emissions, together with the covered projections this event's
 declared fields supply. Re-reading accepted evidence cannot tick a self-loop, and a declared field
 whose value the modeled coordinates cannot denote rejects the whole append. -/
-def Run.admit {plan : Projection.Checked target} {compiled : Compiled target}
-    (run : Run plan compiled) (event : Projection.Event) : Except Error (Run plan compiled) := do
+def Monitor.admit {plan : Projection.Checked target} {compiled : Compiled target}
+    (run : Monitor plan compiled) (event : Projection.Event) : Except Error (Monitor plan compiled) := do
   if run.closed then throw (.property .closed)
   let (evidence, progress) ← (run.evidence.admit event).mapError Error.projection
   let values ← (run.coverage.evidence event.fields).mapError Error.coverage
@@ -114,24 +114,24 @@ def Run.admit {plan : Projection.Checked target} {compiled : Compiled target}
   pure ⟨evidence, semantic, run.coverage, false⟩
 
 /-- Offline replay and incremental evidence admission share the same atomic append. -/
-def Run.admitMany {plan : Projection.Checked target} {compiled : Compiled target}
-    (run : Run plan compiled) (events : List Projection.Event) : Except Error (Run plan compiled) :=
-  events.foldlM Run.admit run
+def Monitor.admitMany {plan : Projection.Checked target} {compiled : Compiled target}
+    (run : Monitor plan compiled) (events : List Projection.Event) : Except Error (Monitor plan compiled) :=
+  events.foldlM Monitor.admit run
 
 /-- Partial causal evidence cannot close a selected finite trace. Deadline violations already
 proved by admitted steps survive this incomplete-evidence interpretation. -/
-def Run.answers {plan : Projection.Checked target} {compiled : Compiled target}
-    (run : Run plan compiled) : List (DefinitionId × PropertyEndpointAnswer) :=
+def Monitor.answers {plan : Projection.Checked target} {compiled : Compiled target}
+    (run : Monitor plan compiled) : List (DefinitionId × PropertyEndpointAnswer) :=
   run.semantic.answers (!run.evidence.pending.isEmpty)
 
 /-- Stop evidence admission without inventing a Target transition or requiring runtime terminality. -/
-def Run.close {plan : Projection.Checked target} {compiled : Compiled target}
-    (run : Run plan compiled) : Run plan compiled :=
+def Monitor.close {plan : Projection.Checked target} {compiled : Compiled target}
+    (run : Monitor plan compiled) : Monitor plan compiled :=
   { run with semantic := run.semantic.close, closed := true }
 
 /-- Chunk equality includes splits inside unresolved causal evidence and the first rejection. -/
-theorem Run.admitMany_append {plan : Projection.Checked target} {compiled : Compiled target}
-    (run : Run plan compiled) (first second : List Projection.Event) :
+theorem Monitor.admitMany_append {plan : Projection.Checked target} {compiled : Compiled target}
+    (run : Monitor plan compiled) (first second : List Projection.Event) :
     run.admitMany (first ++ second) =
       (run.admitMany first >>= fun next => next.admitMany second) := by
   simp [admitMany, List.foldlM_append]

@@ -332,7 +332,7 @@ func (a *admission) bindProjectionSinks(g *graph, index int, n *node, source *te
 }
 
 // bindEvidenceLift type-checks one declared CorrelatedEvidence lift against the value being projected.
-// The sink Observation must be the exact CorrelatedEvidence message the scoped capability decodes, and
+// The sink Observation must be the exact CorrelatedEvidence message the correlated capability decodes, and
 // every bound path must read a scalar the portable evidence domain admits, so a lift that cannot
 // produce decodable evidence rejects at Prepare rather than at the first recorded event.
 func (a *admission) bindEvidenceLift(g *graph, n *node, source *testpilotspb.CorrelatedEvidenceProjection, typ ir.Type) (*evidenceLift, error) {

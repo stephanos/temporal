@@ -70,5 +70,5 @@ The authorization snapshot naming the roles, methods, capabilities and resource 
 _Avoid_: Config, environment, policy file
 
 **Profile capability**:
-One entry of the closed set of instruction kinds a Profile authorizes; a Case whose Program uses one the Profile does not name rejects at Prepare. Distinct from the spec's **Capability Contract**, the named behavior one component requires and another provides, and from the operation-scoped Contract capability a Case's `Contract.scoped` carries; always say which one.
+One entry of the closed set of instruction kinds a Profile authorizes; a Case whose Program uses one the Profile does not name rejects at Prepare. Distinct from the spec's **Capability Contract**, the named behavior one component requires and another provides, and from the operation-correlated Contract capability a Case's `Contract.correlated` carries; always say which one.
 _Avoid_: Permission, feature flag, scope, bare "capability"

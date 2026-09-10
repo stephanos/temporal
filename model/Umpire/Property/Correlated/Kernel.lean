@@ -4,8 +4,8 @@ import Shared.CorrelatedObligation
 /-! Property facade for the shared passive obligation kernel and its checked window theorems. -/
 namespace Umpire.Property.Correlated
 
-abbrev Coordinate := Shared.CorrelatedObligation.Coordinate
-abbrev Coordinate.mk := Shared.CorrelatedObligation.Coordinate.mk
+abbrev Coordinate := Shared.CorrelatedObligation.Match
+abbrev Coordinate.mk := Shared.CorrelatedObligation.Match.mk
 abbrev Obligation := Shared.CorrelatedObligation.Obligation
 abbrev Obligation.consume := Shared.CorrelatedObligation.Obligation.consume
 abbrev Obligation.consumeMany := Shared.CorrelatedObligation.Obligation.consumeMany

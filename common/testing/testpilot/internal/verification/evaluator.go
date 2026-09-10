@@ -15,7 +15,7 @@ import (
 // Evaluator owns one Run's state. Callbacks are synchronous and must not overlap.
 // PreparedContract can create independent Evaluators concurrently.
 type Evaluator struct {
-	scoped                                                   *scopedRun
+	correlated                                               *correlatedMonitor
 	result                                                   *testpilotspb.Verdict
 	satisfied                                                int
 	prepared                                                 *PreparedContract
@@ -67,7 +67,7 @@ func (p *PreparedContract) newEvaluator(ctx context.Context, view execution.Prog
 			return nil, invalid(ir.TypeMismatch, "Program observations differ")
 		}
 	}
-	e := &Evaluator{scoped: newCorrelated(p.source.Correlated), prepared: p, rules: make([]ruleState, len(p.rules)), result: &testpilotspb.Verdict{Rules: make([]*testpilotspb.RuleVerdict, len(p.rules))}}
+	e := &Evaluator{correlated: newCorrelated(p.source.Correlated), prepared: p, rules: make([]ruleState, len(p.rules)), result: &testpilotspb.Verdict{Rules: make([]*testpilotspb.RuleVerdict, len(p.rules))}}
 	for i, m := range p.rules {
 		e.rules[i] = ruleState{state: m.initial, captures: map[string]capturedValue{}}
 		e.result.Rules[i] = &testpilotspb.RuleVerdict{RuleId: m.source.RuleId, Status: testpilotspb.RULE_VERDICT_STATUS_INCONCLUSIVE}
@@ -128,21 +128,21 @@ func (e *Evaluator) Observe(ctx context.Context, event *testpilotspb.RunEvent) (
 		return e.fail(event.Sequence, err)
 	}
 
-	scoped := e.scoped
-	if scoped != nil {
+	correlated := e.correlated
+	if correlated != nil {
 		if value := observations[e.prepared.source.Correlated.EvidenceObservationId]; value != nil {
 			evidence := &testpilotspb.CorrelatedEvidence{}
 			if err := value.GetMessageValue().UnmarshalTo(evidence); err != nil {
 				return e.fail(event.Sequence, err)
 			}
 			admitted := &admittedCorrelatedEvidence{CorrelatedEvidence: evidence}
-			if previous := scoped.event(evidence.Identity); previous != nil {
+			if previous := correlated.event(evidence.Identity); previous != nil {
 				admitted.supportingEventSequences = slices.Clone(previous.supportingEventSequences)
 			} else {
 				admitted.supportingEventSequences = []int64{event.Sequence}
 			}
 			var used int64
-			scoped, used, err = scoped.stage(ctx, e.prepared.source.Correlated, admitted, event.Sequence)
+			correlated, used, err = correlated.stage(ctx, e.prepared.source.Correlated, admitted, event.Sequence)
 			if err != nil {
 				return e.fail(event.Sequence, err)
 			}
@@ -157,7 +157,7 @@ func (e *Evaluator) Observe(ctx context.Context, event *testpilotspb.RunEvent) (
 	if err := ctx.Err(); err != nil {
 		return e.fail(event.Sequence, err)
 	}
-	e.scoped = scoped
+	e.correlated = correlated
 	support := false
 	for _, change := range changes {
 		state := &e.rules[change.rule]
@@ -182,7 +182,7 @@ func (e *Evaluator) Observe(ctx context.Context, event *testpilotspb.RunEvent) (
 		e.result.SupportingEventSequences = append(e.result.SupportingEventSequences, event.Sequence)
 	}
 
-	if e.scoped != nil {
+	if e.correlated != nil {
 		e.recordCorrelated(event.Kind == testpilotspb.RUN_EVENT_KIND_RUN_CLOSED, false)
 	}
 	e.captureCount += count
@@ -445,11 +445,11 @@ func (e *Evaluator) recordTerminal(change ruleChange) {
 }
 func (e *Evaluator) verdict(disposition testpilotspb.RunStatus) *testpilotspb.Verdict {
 	e.result.Status = testpilotspb.VERDICT_STATUS_INCONCLUSIVE
-	scopedSatisfied := true
-	if e.scoped != nil {
-		scopedSatisfied = e.recordCorrelated(true, e.incomplete || disposition != testpilotspb.RUN_STATUS_COMPLETED)
+	correlatedSatisfied := true
+	if e.correlated != nil {
+		correlatedSatisfied = e.recordCorrelated(true, e.incomplete || disposition != testpilotspb.RUN_STATUS_COMPLETED)
 	}
-	if scopedSatisfied && !e.incomplete && disposition == testpilotspb.RUN_STATUS_COMPLETED && e.satisfied == len(e.prepared.rules) {
+	if correlatedSatisfied && !e.incomplete && disposition == testpilotspb.RUN_STATUS_COMPLETED && e.satisfied == len(e.prepared.rules) {
 		e.result.Status = testpilotspb.VERDICT_STATUS_SATISFIED
 	}
 	if e.violated {
@@ -520,17 +520,17 @@ func (e *Evaluator) recordCorrelated(closed, incomplete bool) bool {
 	for i := range s.Clauses {
 		result := e.result.Rules[len(e.prepared.rules)+i]
 		if result.Status != testpilotspb.RULE_VERDICT_STATUS_VIOLATED {
-			result.Status = e.scoped.answer(s, i, closed, incomplete)
+			result.Status = e.correlated.answer(s, i, closed, incomplete)
 		}
-		result.SupportingEventSequences = slices.Clone(e.scoped.ruleSupport[i])
+		result.SupportingEventSequences = slices.Clone(e.correlated.ruleSupport[i])
 		e.result.SupportingEventSequences = unionSequences(e.result.SupportingEventSequences, result.SupportingEventSequences)
 		result.TerminalStateId = ""
 		if result.Status == testpilotspb.RULE_VERDICT_STATUS_VIOLATED {
 			e.violated = true
-			result.TerminalStateId = "scoped.violated"
+			result.TerminalStateId = "correlated.violated"
 		}
 		if closed && result.Status == testpilotspb.RULE_VERDICT_STATUS_SATISFIED {
-			result.TerminalStateId = "scoped.satisfied"
+			result.TerminalStateId = "correlated.satisfied"
 		}
 		all = all && result.Status == testpilotspb.RULE_VERDICT_STATUS_SATISFIED
 	}
