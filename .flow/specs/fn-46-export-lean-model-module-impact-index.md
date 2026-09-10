@@ -62,7 +62,7 @@ V1 `focusedTests` roots are exactly `ModelLint.ImportGraphTests`,
 `Temporal.Tool.InventoryTests`, `TemporalExperimentalTests`, `TemporalModelTests`,
 `Testpilot.Tests`, `Testpilot.Tests.ProtoJSONMain`, `Umpire.Case.CorrelatedTests`,
 `Umpire.Evidence.Tests`, `Umpire.OutcomeClassification.ImportTests`,
-`Umpire.Search.SemanticsImportTests`, `Umpire.Property.Tests.Scoped`,
+`Umpire.Search.SemanticsImportTests`, `Umpire.Property.Tests.Correlated`,
 `Umpire.Model.CheckImportTests`, and `UmpireTests`. Reachability is reflexive: a configured root
 appears in its own row and in every imported descendant row. These sets are explicit policy, never
 filename heuristics. The 34 facade roots and 15 test roots are module names, not Lake target names;

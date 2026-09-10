@@ -60,7 +60,7 @@ def ExecutionPhase.name : ExecutionPhase → String
 def executionPhases : List ExecutionPhase :=
   [.preparation, .realization, .observation, .isolation, .cleanup]
 
-/-- Positive resource bounds bounded to exactly one execution stage. -/
+/-- Positive resource bounds scoped to exactly one execution stage. -/
 structure PhaseLimit where
   phase : ExecutionPhase
   durationMilliseconds : Nat

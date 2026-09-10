@@ -93,7 +93,7 @@ private def instructions : Array Instruction := #[
   Program.awaitSlot "slot",
   Program.completeNexusOperation "capability" (ProgramExpr.literal (Value.text "done")),
   Program.startNexusOperation "endpoint" "service" "operation" (ProgramExpr.literal (Value.text "input")),
-  Program.awaitOutcome instructionRef,
+  Program.awaitInstruction instructionRef,
   Program.finish (ProgramExpr.literal (Value.text "result")),
   Program.respondNexus .NEXUS_RESPONSE_KIND_ASYNCHRONOUS
     (ProgramExpr.literal (Value.text "token")) "capability",
