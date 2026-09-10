@@ -315,7 +315,7 @@ def witness : ImplementationLinkWitness declaration Temporal.System.Nexus.target
     Temporal.Feature.Nexus.Lifecycle.target := {
   index := implementationLinkWitnessIndex declaration Temporal.System.Nexus.target
     Temporal.Feature.Nexus.Lifecycle.target
-  forwardSimulation := {
+  stepPreservation := {
     morphism := { mapSetup, mapState, mapAction, mapOutcome, mapObservation }
     initialForward := by
       intro setup state admitted
@@ -331,18 +331,18 @@ def witness : ImplementationLinkWitness declaration Temporal.System.Nexus.target
       change Temporal.System.Nexus.authoritativeStep state action result at admitted
       rcases Temporal.System.Nexus.authoritativeStep_cases state action result admitted with
         ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩
-      · simpa only [KernelMorphism.mapStep, Step.map,
+      · simpa only [ValueTranslation.mapStep, Step.map,
           mapState_queued, mapAction_dispatch, Temporal.System.Nexus.dispatchedResult,
           mapOutcome_dispatched, mapState_running, List.map_cons, mapObservation_running,
           List.map_nil, Temporal.Feature.Nexus.Lifecycle.startedResult] using
           Temporal.Feature.Nexus.Lifecycle.target_scheduled_start_authoritative
-      · simpa only [KernelMorphism.mapStep, Step.map,
+      · simpa only [ValueTranslation.mapStep, Step.map,
           mapState_running, mapAction_recordCancellation,
           Temporal.System.Nexus.cancellationRecordedResult, mapOutcome_cancellationRecorded,
           mapState_cancellationRecorded, List.map_cons, mapObservation_cancellationRecorded,
           List.map_nil, Temporal.Feature.Nexus.Lifecycle.canceledResult] using
           Temporal.Feature.Nexus.Lifecycle.target_started_cancel_authoritative
-      · simpa only [KernelMorphism.mapStep, Step.map,
+      · simpa only [ValueTranslation.mapStep, Step.map,
           mapState_running, mapAction_recordCompletion,
           Temporal.System.Nexus.completionRecordedResult, mapOutcome_completionRecorded,
           mapState_completionRecorded, List.map_cons, mapObservation_completionRecorded,

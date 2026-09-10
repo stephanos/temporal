@@ -264,15 +264,15 @@ def productionKnownGapSources : List KnownGapSourceDescriptor :=
 def productionKnownGapCatalog : List KnownGapCatalogDescriptor :=
   productionKnownGapSources.map KnownGapSourceDescriptor.catalog
 
-private def implementationLinkKnownGapCatalogRow
+private def unmappedSourceCatalogRow
     (ordinal : String)
-    (family : ImplementationLinkKnownGapFamily) : KnownGapCatalogDescriptor := {
+    (family : UnmappedSourceFamily) : KnownGapCatalogDescriptor := {
   id := "umpire.semantic-inventory.known-gap-source." ++ ordinal ++
     "-implementation-link-" ++ family.name
   owner := "Umpire.ImplementationLink"
   lineage := .authored
   scope := .production
-  shape := .authoredImplementationLinkKnownGapFamily
+  shape := .authoredUnmappedSourceFamily
   source := family.name
   fieldMapping := none
   description := "Polymorphic authored " ++ family.name ++
@@ -280,14 +280,14 @@ private def implementationLinkKnownGapCatalogRow
 }
 
 /-- The seven polymorphic declaration fields that may author Implementation Link Known Gaps. -/
-def implementationLinkKnownGapCatalog : List KnownGapCatalogDescriptor := [
-  implementationLinkKnownGapCatalogRow "10" .setup,
-  implementationLinkKnownGapCatalogRow "11" .state,
-  implementationLinkKnownGapCatalogRow "12" .action,
-  implementationLinkKnownGapCatalogRow "13" .outcome,
-  implementationLinkKnownGapCatalogRow "14" .observation,
-  implementationLinkKnownGapCatalogRow "15" .relation,
-  implementationLinkKnownGapCatalogRow "16" .capability
+def unmappedSourceCatalog : List KnownGapCatalogDescriptor := [
+  unmappedSourceCatalogRow "10" .setup,
+  unmappedSourceCatalogRow "11" .state,
+  unmappedSourceCatalogRow "12" .action,
+  unmappedSourceCatalogRow "13" .outcome,
+  unmappedSourceCatalogRow "14" .observation,
+  unmappedSourceCatalogRow "15" .relation,
+  unmappedSourceCatalogRow "16" .capability
 ]
 
 /-- The lossy request and Raw Evidence Known Gap admission into Observation Evaluation. -/
@@ -366,7 +366,7 @@ def testKnownGapCatalog : List KnownGapCatalogDescriptor := [
 def knownGapCatalog
     (requestRawKnownGapInputCatalogRow : KnownGapCatalogDescriptor) :
     List KnownGapCatalogDescriptor :=
-  productionKnownGapCatalog ++ implementationLinkKnownGapCatalog ++
+  productionKnownGapCatalog ++ unmappedSourceCatalog ++
     [requestRawKnownGapInputCatalogRow,
       observationKnownGapAdmissionCatalogRow requestRawKnownGapInputCatalogRow,
       resultRequestRawKnownGapCarryCatalogRow requestRawKnownGapInputCatalogRow,
@@ -405,7 +405,7 @@ private def catalogError
 private def catalogExpectedLineage : KnownGapSourceShape → KnownGapLineage
   | .exactKnownGap => .authored
   | .generatedKnownGapFamily => .synthesized
-  | .authoredImplementationLinkKnownGapFamily => .authored
+  | .authoredUnmappedSourceFamily => .authored
   | .admittedKnownGapInput => .carried
   | .evidenceGapAdmissionProjection => .carried
   | .carriedCatalogEntry => .carried
@@ -433,9 +433,9 @@ private def catalogSourceIsValid
   | .exactKnownGap =>
       (productionExactCatalogSources ++ testExactCatalogSources).contains row.source
   | .generatedKnownGapFamily => row.source == observationKnownGapSource.source.label
-  | .authoredImplementationLinkKnownGapFamily =>
+  | .authoredUnmappedSourceFamily =>
       row.owner == "Umpire.ImplementationLink" &&
-        ImplementationLinkKnownGapFamily.all.any fun family => family.name == row.source
+        UnmappedSourceFamily.all.any fun family => family.name == row.source
   | .admittedKnownGapInput =>
       row == requestRawKnownGapInputCatalogRow &&
         !row.owner.trimAscii.isEmpty && (DefinitionId.of row.source).isNamespaced
@@ -454,7 +454,7 @@ private def catalogSourceIsValid
 private def catalogMappingIsValid (row : KnownGapCatalogDescriptor) : Bool :=
   match row.shape with
   | .exactKnownGap | .generatedKnownGapFamily |
-      .authoredImplementationLinkKnownGapFamily | .admittedKnownGapInput =>
+      .authoredUnmappedSourceFamily | .admittedKnownGapInput =>
       row.fieldMapping.isNone
   | .evidenceGapAdmissionProjection =>
       row.fieldMapping == some EvidenceGap.knownGapAdmissionMapping

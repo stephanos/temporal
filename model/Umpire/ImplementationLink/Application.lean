@@ -5,7 +5,7 @@ import Umpire.OutcomeClassification
 /-!
 Total application of one checked Implementation Link to an already Evidence-backed source Model
 Trace. Application replays the complete source trace through the retained source kernel before it
-translates any value through the retained `ForwardSimulation`. Only `applied` exposes the complete
+translates any value through the retained `StepPreservation`. Only `applied` exposes the complete
 destination trace; every failure exposes one canonical diagnostic and no partial trace.
 
 An explicitly checked observed-trace translation reuses the admitted positional Evidence Links for
@@ -64,7 +64,7 @@ theorem ImplementationLinkStatus.constructorClassifiers_exactlyOne :
   cases status <;> rfl
 
 /-- Rendered absence for a projection whose optional Implementation Link stage did not run. -/
-def ImplementationLinkStatus.notEvaluatedProjectionSentinel : ProjectionSentinelDescriptor := {
+def ImplementationLinkStatus.stageNotRunMarker : NotRunMarker := {
   id := "implementation-link.not-evaluated"
   owner := "Implementation Link"
   name := "not-evaluated"
@@ -494,7 +494,7 @@ private def validateSemanticMapping
   | _, _ => throw (implementationLinkDiagnostic checked .multipleMappings
       (relatedDefinitionIds := meaning.definitionId ::
         matchingMappings.map (fun mapping => mapping.destination.id) ++
-        matchingGaps.map ImplementationLinkKnownGap.code))
+        matchingGaps.map UnmappedSource.code))
 
 private def validateVocabulary
     (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
@@ -541,7 +541,7 @@ private def mappedSetup
   let gaps := checked.declaration.setupKnownGaps.filter fun gap => gap.source == sourceSetup
   match mappings, gaps with
   | [mapping], [] =>
-      let destination := checked.forwardSimulation.morphism.mapSetup sourceSetup
+      let destination := checked.stepPreservation.morphism.mapSetup sourceSetup
       if mapping.destination != destination then
         throw (implementationLinkDiagnostic checked .sourceSetupMismatch
           (sourceSetupBehaviorFingerprint := some sourceSetupBehaviorFingerprint))
@@ -641,7 +641,7 @@ private def mappedValue
     (coordinate : ModelCoordinate)
     (sourceValue : ModelValue)
     (mappings : List (ImplementationValueMapping ModelValue ModelValue))
-    (knownGaps : List (ImplementationLinkKnownGap ModelValue))
+    (knownGaps : List (UnmappedSource ModelValue))
     (mapValue : ModelValue → ModelValue) : Except ImplementationLinkDiagnostic ModelValue := do
   let matchingMappings := mappings.filter fun mapping => mapping.source == sourceValue
   let matchingGaps := knownGaps.filter fun gap => gap.source == sourceValue
@@ -662,7 +662,7 @@ private def mappedValue
   | _, _ => throw (implementationLinkDiagnostic checked .multipleMappings (some coordinate)
       (sourceValue.definitionId ::
         matchingMappings.map (fun mapping => mapping.destination.definitionId) ++
-        matchingGaps.map ImplementationLinkKnownGap.code))
+        matchingGaps.map UnmappedSource.code))
 
 private def mappedValueAt
     (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
@@ -673,16 +673,16 @@ private def mappedValueAt
   match coordinate with
   | .initialState | .state _ => mappedValue checked coordinate sourceValue
       checked.declaration.stateMappings checked.declaration.stateKnownGaps
-      checked.forwardSimulation.morphism.mapState
+      checked.stepPreservation.morphism.mapState
   | .selectedAction _ => mappedValue checked coordinate sourceValue
       checked.declaration.actionMappings checked.declaration.actionKnownGaps
-      checked.forwardSimulation.morphism.mapAction
+      checked.stepPreservation.morphism.mapAction
   | .outcome _ => mappedValue checked coordinate sourceValue
       checked.declaration.outcomeMappings checked.declaration.outcomeKnownGaps
-      checked.forwardSimulation.morphism.mapOutcome
+      checked.stepPreservation.morphism.mapOutcome
   | .fact _ _ => mappedValue checked coordinate sourceValue
       checked.declaration.observationMappings checked.declaration.observationKnownGaps
-      checked.forwardSimulation.morphism.mapObservation
+      checked.stepPreservation.morphism.mapObservation
 
 private def buildImplementationLinkEvidenceSupportsWith
     (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
@@ -813,15 +813,15 @@ private def applyCheckedImplementationLink
       (some (.selectedAction (checked.declaration.applicationLimit.value + 1)))
       (appliedLimit := some checked.declaration.applicationLimit)
       (observedCount := some evidenceBackedTrace.trace.steps.length))
-  let destinationTrace := checked.forwardSimulation.morphism.mapTrace evidenceBackedTrace.trace
+  let destinationTrace := checked.stepPreservation.morphism.mapTrace evidenceBackedTrace.trace
   let evidenceSupports ← buildImplementationLinkEvidenceSupports checked evidenceBackedTrace destinationTrace
   pure {
     sourceTraceId := evidenceBackedTrace.traceId
     sourceSetup
-    destinationSetup := checked.forwardSimulation.morphism.mapSetup sourceSetup
+    destinationSetup := checked.stepPreservation.morphism.mapSetup sourceSetup
     trace := destinationTrace
     evidenceSupports
-    authoritative := checked.forwardSimulation.traceForward sourceSetup evidenceBackedTrace.trace
+    authoritative := checked.stepPreservation.traceForward sourceSetup evidenceBackedTrace.trace
       sourceAuthority.down
   }
 

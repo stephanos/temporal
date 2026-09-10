@@ -19,7 +19,7 @@ example : (rendered currentInventory).isSome = true := by
 example :
     rendered { currentInventory with
       outcomeFamilies := currentInventory.outcomeFamilies.reverse
-      projectionSentinels := currentInventory.projectionSentinels.reverse
+      notRunMarkers := currentInventory.notRunMarkers.reverse
       knownGaps := currentInventory.knownGaps.reverse } =
       rendered currentInventory := by
   native_decide
@@ -43,7 +43,7 @@ example :
     | some document =>
         document.startsWith "# Umpire semantic inventory\n\n" &&
           document.contains "## Outcome families\n" &&
-          document.contains "## Projection sentinels\n" &&
+          document.contains "## Stage not-run markers\n" &&
           document.contains "## Known Gap flows\n" &&
           document.contains
             "| Catalog ID | Owner | Lineage | Scope | Shape | Source/reference | Field mapping | Description |" &&
@@ -54,8 +54,8 @@ example :
               family.constructors.all (fun constructor =>
                 occurrences document ("| `" ++ constructor.name ++ "` | " ++
                   constructor.description ++ " |") == 1)) &&
-          currentInventory.projectionSentinels.all (fun sentinel =>
-            occurrences document ("| `" ++ sentinel.id ++ "` |") == 1) &&
+          currentInventory.notRunMarkers.all (fun marker =>
+            occurrences document ("| `" ++ marker.id ++ "` |") == 1) &&
           currentInventory.knownGaps.all (fun row =>
             occurrences document ("| `" ++ row.id ++ "` | `" ++ row.owner ++ "` |") == 1)) = true := by
   native_decide
@@ -69,7 +69,7 @@ example :
     ]
     let malformed := malformedFamilies.map (fun families =>
       { currentInventory with outcomeFamilies := families }) ++ [
-      { currentInventory with projectionSentinels := [] },
+      { currentInventory with notRunMarkers := [] },
       { currentInventory with knownGaps := [] }
     ]
     malformed.map rendered = [none, none, none, none, none] := by

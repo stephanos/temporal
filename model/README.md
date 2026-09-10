@@ -276,7 +276,7 @@ carry mappings through `Umpire.KnownGap`. The inventory consumes their declarati
 stage behavior. `make lint-model` enforces this dependency direction, including transitive paths,
 and the neutral module's minimal foundation. The
 [ownership guide](Umpire/ARCHITECTURE.md#artifact-and-generated-view-boundaries) describes the
-exhaustive classifiers, projection sentinel, and exact versus lossy carry contracts.
+exhaustive classifiers, stage not-run marker, and exact versus lossy carry contracts.
 
 Its owner commands are:
 

@@ -68,14 +68,14 @@ example : semanticStageConstructorRows.filter (fun row => row.2 == "unknown") = 
   native_decide
 
 example :
-    ImplementationLinkStatus.notEvaluatedProjectionSentinel = {
+    ImplementationLinkStatus.stageNotRunMarker = {
       id := "implementation-link.not-evaluated"
       owner := "Implementation Link"
       name := "not-evaluated"
       description := "The optional Implementation Link stage was not evaluated."
     } ∧
     (OutcomeConstructorClassifiers.names ImplementationLinkStatus.constructorClassifiers).contains
-        ImplementationLinkStatus.notEvaluatedProjectionSentinel.name = false := by
+        ImplementationLinkStatus.stageNotRunMarker.name = false := by
   native_decide
 
 end Umpire.SemanticInventoryTests.SemanticStages

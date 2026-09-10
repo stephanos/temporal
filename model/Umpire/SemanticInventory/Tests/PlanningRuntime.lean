@@ -90,7 +90,7 @@ example : OutcomeConstructorClassifiers.ExactlyOne OperationalStatus.constructor
 example : [
     KnownGapSourceShape.exactKnownGap,
     .generatedKnownGapFamily,
-    .authoredImplementationLinkKnownGapFamily,
+    .authoredUnmappedSourceFamily,
     .evidenceGapAdmissionProjection,
     .carriedCatalogEntry
   ].map KnownGapSourceShape.name = [

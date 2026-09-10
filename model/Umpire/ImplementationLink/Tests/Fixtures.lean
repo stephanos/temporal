@@ -219,7 +219,7 @@ theorem baseCoverage : ImplementationLinkRequiredCoverage baseDeclaration checke
 def baseWitness : ImplementationLinkWitness baseDeclaration checkedSourceTarget
     checkedDestinationTarget := {
   index := implementationLinkWitnessIndex baseDeclaration checkedSourceTarget checkedDestinationTarget
-  forwardSimulation := {
+  stepPreservation := {
     morphism := {
       mapSetup := fun value => value
       mapState := fun value => value
@@ -231,7 +231,7 @@ def baseWitness : ImplementationLinkWitness baseDeclaration checkedSourceTarget
     stepForward := by
       intro state action result admitted
       cases result
-      simpa [checkedDestinationTarget, KernelMorphism.mapStep,
+      simpa [checkedDestinationTarget, ValueTranslation.mapStep,
         Step.map] using admitted
   }
   requiredCoverage := baseCoverage
@@ -240,15 +240,15 @@ def baseWitness : ImplementationLinkWitness baseDeclaration checkedSourceTarget
 def alternateProofWitness : ImplementationLinkWitness baseDeclaration checkedSourceTarget
     checkedDestinationTarget := {
   baseWitness with
-  forwardSimulation := {
-    baseWitness.forwardSimulation with
+  stepPreservation := {
+    baseWitness.stepPreservation with
     initialForward := by
       intro setup state admitted
       simpa [baseWitness, checkedDestinationTarget] using admitted
     stepForward := by
       intro state action result admitted
       cases result
-      simpa [baseWitness, checkedDestinationTarget, KernelMorphism.mapStep,
+      simpa [baseWitness, checkedDestinationTarget, ValueTranslation.mapStep,
         Step.map] using admitted
   }
 }
@@ -291,7 +291,7 @@ def reorderedWitness : ImplementationLinkWitness reorderedDeclaration checkedSou
     checkedDestinationTarget := {
   index := implementationLinkWitnessIndex reorderedDeclaration checkedSourceTarget
     checkedDestinationTarget
-  forwardSimulation := {
+  stepPreservation := {
     morphism := {
       mapSetup := fun value => value
       mapState := fun value => value
@@ -303,7 +303,7 @@ def reorderedWitness : ImplementationLinkWitness reorderedDeclaration checkedSou
     stepForward := by
       intro state action result admitted
       cases result
-      simpa [checkedDestinationTarget, KernelMorphism.mapStep,
+      simpa [checkedDestinationTarget, ValueTranslation.mapStep,
         Step.map] using admitted
   }
   requiredCoverage := reorderedCoverage

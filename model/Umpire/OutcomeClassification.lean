@@ -1,6 +1,6 @@
 import Init.Data.List.Basic
 
-/-! Owner-typed outcome classifiers and projection sentinels shared by semantic stages. -/
+/-! Owner-typed outcome classifiers and stage not-run markers shared by semantic stages. -/
 
 namespace Umpire
 
@@ -56,7 +56,7 @@ def HasUniqueNames (classifiers : List (OutcomeConstructorClassifier Outcome)) :
 end OutcomeConstructorClassifiers
 
 /-- A rendered projection value that is not a constructor of its owning outcome type. -/
-structure ProjectionSentinelDescriptor where
+structure NotRunMarker where
   id : String
   owner : String
   name : String
