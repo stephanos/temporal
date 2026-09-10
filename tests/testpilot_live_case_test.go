@@ -52,7 +52,7 @@ func newTestpilotLiveCase(
 	cleanupTimeout time.Duration,
 ) testpilotLiveCase {
 	t.Helper()
-	_, err := env.RegisterNamespace(namespace.Name(resources.Namespace), 1, enumspb.ARCHIVAL_STATE_DISABLED, "", "")
+	_, err := env.RegisterNamespace(env.Context(), namespace.Name(resources.Namespace), 1, enumspb.ARCHIVAL_STATE_DISABLED, "", "")
 	require.NoError(t, err)
 	if resources.NexusEndpoint != "" {
 		created, err := env.OperatorClient().CreateNexusEndpoint(env.Context(), &operatorservice.CreateNexusEndpointRequest{

@@ -5,8 +5,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.temporal.io/server/common/log/tag"
+	"go.temporal.io/server/common/namespace"
 	persistencetests "go.temporal.io/server/common/persistence/persistence-tests"
 	"go.temporal.io/server/common/testing/parallelsuite"
+	"go.temporal.io/server/common/testing/testlogger"
 )
 
 func TestWithInMemorySQLitePersistence(t *testing.T) {
@@ -62,4 +65,39 @@ func (s *TestEnvSuite) TestDedicatedClusterGuard_ConcurrentRecord() {
 	}
 	wg.Wait()
 	s.NoError(guard.validate())
+}
+
+func (s *TestEnvSuite) TestStartNamespaceLogCapture() {
+	testLogger := testlogger.NewTestLogger(s.T(), testlogger.FailOnExpectedErrorOnly)
+	env := &TestEnv{
+		FunctionalTestBase: &FunctionalTestBase{externalNamespace: namespace.Name("external")},
+		Logger:             testLogger,
+		nsName:             namespace.Name("primary"),
+		nsID:               namespace.ID("primary-id"),
+		t:                  s.T(),
+	}
+
+	capture := env.StartNamespaceLogCapture()
+
+	testLogger.Info("primary name", tag.WorkflowNamespace("primary"))
+	testLogger.Info("primary ID", tag.WorkflowNamespaceID("primary-id"))
+	testLogger.Info("external name", tag.WorkflowNamespace("external"))
+	testLogger.Info("unrelated name", tag.WorkflowNamespace("unrelated"))
+	testLogger.Info("unrelated ID", tag.WorkflowNamespaceID("unrelated-id"))
+
+	testLogger.Info("target only", tag.NexusEndpointTargetNamespaceID("primary-id"))
+	testLogger.Info("unscoped")
+
+	s.ElementsMatch([]testlogger.CapturedLog{
+		{
+			Level:   testlogger.Info,
+			Message: "primary name",
+			Tags:    []tag.Tag{tag.WorkflowNamespace("primary")},
+		},
+		{
+			Level:   testlogger.Info,
+			Message: "primary ID",
+			Tags:    []tag.Tag{tag.WorkflowNamespaceID("primary-id")},
+		},
+	}, capture.Snapshot())
 }

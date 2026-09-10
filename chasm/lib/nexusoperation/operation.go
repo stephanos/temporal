@@ -277,7 +277,7 @@ func (o *Operation) HandleNexusCompletion(
 	links := completion.GetLinks()
 
 	// For completion-before-start, apply the started transition first.
-	if o.GetStatus() == nexusoperationpb.OPERATION_STATUS_SCHEDULED {
+	if TransitionStarted.Possible(o) {
 		startTime := timestamp.TimeValuePtr(completion.GetStartTime())
 		if err := o.onStarted(ctx, completion.GetOperationToken(), startTime, links); err != nil {
 			return err
@@ -429,6 +429,10 @@ func (o *Operation) Terminate(
 				serviceerror.NewFailedPreconditionf("already terminated with request ID %s", existingReqID)
 		}
 		return chasm.TerminateComponentResponse{}, nil
+	}
+
+	if !TransitionTerminated.Possible(o) {
+		return chasm.TerminateComponentResponse{}, ErrOperationAlreadyCompleted
 	}
 
 	return chasm.TerminateComponentResponse{}, TransitionTerminated.Apply(o, ctx, EventTerminated{

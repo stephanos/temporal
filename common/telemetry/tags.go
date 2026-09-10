@@ -16,6 +16,14 @@ const (
 	BusinessIDKey = "temporalBusinessID"
 	RunIDKey      = "temporalRunID"
 
+	NexusEndpointKey  = "nexus.endpoint"
+	NexusNamespaceKey = "nexus.namespace"
+	NexusOperationKey = "nexus.operation"
+	NexusRequestIDKey = "nexus.request_id"
+	NexusServiceKey   = "nexus.service"
+
+	WorkerTaskIDKey = "worker_task.id"
+
 	AttrWorkflowID attribute.Key = "workflow.id"
 	AttrRunID      attribute.Key = "workflow.run_id"
 	// AttrFirstRunID / AttrPreviousRunID carry a run's lineage: the chain root and the immediate

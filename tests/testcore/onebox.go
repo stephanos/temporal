@@ -46,14 +46,17 @@ import (
 	"go.temporal.io/server/common/rpc"
 	"go.temporal.io/server/common/rpc/auth"
 	"go.temporal.io/server/common/rpc/encryption"
-	rpcfaultinjection "go.temporal.io/server/common/rpc/faultinjection"
+	"go.temporal.io/server/common/rpc/grpcfaults"
+	"go.temporal.io/server/common/rpc/httpfaults"
 	"go.temporal.io/server/common/searchattribute"
 	"go.temporal.io/server/common/telemetry"
+	"go.temporal.io/server/common/testing/grpcfaultstest"
+	"go.temporal.io/server/common/testing/httpfaultstest"
 	"go.temporal.io/server/common/testing/testhooks"
 	"go.temporal.io/server/common/wideevents"
-	"go.temporal.io/server/components/nexusoperations"
 	"go.temporal.io/server/service/frontend"
 	"go.temporal.io/server/service/history"
+	"go.temporal.io/server/service/history/hsm/nexusoperations"
 	"go.temporal.io/server/service/history/replication"
 	"go.temporal.io/server/service/history/tasks"
 	"go.temporal.io/server/service/matching"
@@ -109,7 +112,8 @@ type (
 		chasmVisibilityMgr        chasm.VisibilityManager
 		replicationStreamRecorder *ReplicationStreamRecorder
 		historyTaskRecorder       *HistoryTaskRecorder
-		faultInjector             *rpcfaultinjection.RPCFaultGenerator
+		grpcFaultGenerator        *grpcfaults.CallbackGenerator
+		httpFaultGenerator        *httpfaults.CallbackGenerator
 		spanExporters             map[telemetry.SpanExporterType]sdktrace.SpanExporter
 		spanProcessors            []sdktrace.SpanProcessor
 		additionalInterceptors    []grpc.UnaryServerInterceptor
@@ -222,9 +226,9 @@ func newTemporal(t *testing.T, params *temporalParams) *temporalImpl {
 		additionalInterceptors:           params.additionalInterceptors,
 		tokenProvider:                    params.tokenProvider,
 		enableHistoryTaskRecorder:        params.enableHistoryTaskRecorder,
-		faultInjector:                    rpcfaultinjection.NewRPCFaultGenerator(),
 	}
-	testhooks.Set(impl.testHooks, testhooks.RPCFaultGenerator, impl.faultInjector.Generate, testhooks.GlobalScope)
+	impl.grpcFaultGenerator = grpcfaultstest.NewCallbackGenerator(impl.testHooks)
+	impl.httpFaultGenerator = httpfaultstest.NewCallbackGenerator(impl.testHooks)
 
 	// Configure output file path for on-demand logging (call WriteToLog() to write)
 	clusterName := params.clusterMetadataConfig.CurrentClusterName
@@ -360,6 +364,7 @@ func (c *temporalImpl) startFrontend() {
 			fx.Provide(func() log.Logger { return logger }),
 			fx.Provide(func() log.ThrottledLogger { return logger }),
 			fx.Provide(func() resource.NamespaceLogger { return logger }),
+			fx.Provide(func() otellog.Logger { return wideevents.NoopLogger() }),
 			fx.Provide(c.newRPCFactory),
 			static.MembershipModule(c.makeHostMap(serviceName, host)),
 			fx.Provide(func() *cluster.Config { return c.clusterMetadataConfig }),
@@ -668,8 +673,12 @@ func (c *temporalImpl) GetHistoryTaskRecorder() *HistoryTaskRecorder {
 	return c.historyTaskRecorder
 }
 
-func (c *temporalImpl) GetFaultInjector() *rpcfaultinjection.RPCFaultGenerator {
-	return c.faultInjector
+func (c *temporalImpl) GetGRPCFaultGenerator() *grpcfaults.CallbackGenerator {
+	return c.grpcFaultGenerator
+}
+
+func (c *temporalImpl) GetHTTPFaultGenerator() *httpfaults.CallbackGenerator {
+	return c.httpFaultGenerator
 }
 
 func (c *temporalImpl) GetTLSConfigProvider() encryption.TLSConfigProvider {
@@ -745,6 +754,7 @@ func (c *temporalImpl) newRPCFactory(
 	tlsConfigProvider encryption.TLSConfigProvider,
 	monitor membership.Monitor,
 	tracingStatsHandler telemetry.ClientStatsHandler,
+	httpTransportInstrumenter telemetry.HTTPClientTransportInstrumenter,
 	httpPort httpPort,
 	metricsHandler metrics.Handler,
 ) (common.RPCFactory, error) {
@@ -791,6 +801,7 @@ func (c *temporalImpl) newRPCFactory(
 		grpcResolver.MakeURL(primitives.FrontendService),
 		int(httpPort),
 		frontendTLSConfig,
+		httpTransportInstrumenter,
 		options,
 		resource.PerServiceDialOptionsProvider(logger),
 		monitor,
