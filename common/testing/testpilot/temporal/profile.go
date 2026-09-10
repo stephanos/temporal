@@ -16,8 +16,8 @@ type Environment struct {
 }
 
 // DeriveProfile returns the minimal authorization the Case implies: the roles it declares, the
-// methods it invokes, the reservation carriers its instructions actually use, the capabilities its
-// capabilities require, and the environment values its declared bindings resolve to. Nothing is widened
+// methods it invokes, the reservation carriers its instructions actually use, the opcodes its
+// instructions require, and the environment values its declared bindings resolve to. Nothing is widened
 // beyond what the Case references, and anything the Case names that the catalog does not know is
 // an error rather than a silently authorized surface.
 //

@@ -150,16 +150,16 @@ func TestPrepareRejectsMalformedContracts(t *testing.T) {
 		"terminal source":      func(c *testpilotspb.Contract) { c.Rules[0].Transitions[0].SourceStateId = "good" },
 		"unspecified terminal": func(c *testpilotspb.Contract) { c.Rules[0].States[0].Status = 0 },
 		"unknown kind":         func(c *testpilotspb.Contract) { c.Rules[0].Kind = 99 },
-		"missing horizon":      func(c *testpilotspb.Contract) { c.Rules[0].Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS },
+		"missing deadline":     func(c *testpilotspb.Contract) { c.Rules[0].Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS },
 		"wrong expiry target": func(c *testpilotspb.Contract) {
 			c.Rules[0].Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
 			c.Rules[0].Deadline = &testpilotspb.ContractDeadline{ElapsedMilliseconds: 1, ViolationStateId: "good"}
 		},
-		"negative horizon": func(c *testpilotspb.Contract) {
+		"negative deadline": func(c *testpilotspb.Contract) {
 			c.Rules[0].Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
 			c.Rules[0].Deadline = &testpilotspb.ContractDeadline{ElapsedMilliseconds: -1, ViolationStateId: "bad"}
 		},
-		"safety horizon": func(c *testpilotspb.Contract) {
+		"safety deadline": func(c *testpilotspb.Contract) {
 			c.Rules[0].Deadline = &testpilotspb.ContractDeadline{ElapsedMilliseconds: 1, ViolationStateId: "bad"}
 		},
 		"unknown observation": func(c *testpilotspb.Contract) { c.Rules[0].Transitions[0].Predicate = present(observation("missing")) },
@@ -189,11 +189,11 @@ func TestPrepareRejectsMalformedContracts(t *testing.T) {
 		})
 	}
 }
-func TestPrepareAdmitsExactlyOneHorizonBound(t *testing.T) {
+func TestPrepareAdmitsExactlyOneDeadlineBound(t *testing.T) {
 	for _, tc := range []struct {
-		name    string
-		horizon *testpilotspb.ContractDeadline
-		admit   bool
+		name     string
+		deadline *testpilotspb.ContractDeadline
+		admit    bool
 	}{
 		{"elapsed only", &testpilotspb.ContractDeadline{ElapsedMilliseconds: 1000, ViolationStateId: "bad"}, true},
 		{"events only", &testpilotspb.ContractDeadline{RuleEvents: 3, ViolationStateId: "bad"}, true},
@@ -205,7 +205,7 @@ func TestPrepareAdmitsExactlyOneHorizonBound(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			c, catalog, view, policy := fixture(t)
 			c.Rules[0].Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
-			c.Rules[0].Deadline = tc.horizon
+			c.Rules[0].Deadline = tc.deadline
 			_, err := Prepare(c, catalog, view, policy)
 			if tc.admit {
 				require.NoError(t, err)
@@ -214,7 +214,7 @@ func TestPrepareAdmitsExactlyOneHorizonBound(t *testing.T) {
 			var admissionErr *ir.Error
 			require.ErrorAs(t, err, &admissionErr)
 			require.Equal(t, ir.Malformed, admissionErr.Category)
-			require.Equal(t, "liveness requires exactly one positive horizon bound", admissionErr.Detail)
+			require.Equal(t, "liveness requires exactly one positive deadline bound", admissionErr.Detail)
 		})
 	}
 }

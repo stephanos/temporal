@@ -16,9 +16,9 @@ multiple fields from the same event. Separate scalar captures cannot preserve th
 descriptor is bound exactly during preparation, and the same capture-count and byte ceilings bound
 the immutable runtime copy.
 
-A bounded-liveness rule declares exactly one horizon bound. `elapsed_milliseconds` expires before
+A bounded-liveness rule declares exactly one deadline bound. `elapsed_milliseconds` expires before
 transitions at the first recorded elapsed coordinate greater than or equal to its Run-relative
-horizon; it depends on the clock of the host that produced the Run. `rule_events` expires after
+deadline; it depends on the clock of the host that produced the Run. `rule_events` expires after
 exactly that many Run Events the rule evaluated since its last transition, which is a count of what
 the Run recorded and nothing else. One helper owns the counter, and the online `Evaluator.Observe`
 path and the offline `PreparedContract.Evaluate` path both reach it through that helper, so neither
@@ -27,7 +27,7 @@ rule reaches a terminal state, and freezes with every other rule effect once exe
 incomplete, so no expiry is ever concluded from a truncated Run. A witness must be
 strictly earlier than expiry. Early completed closure is inconclusive. `RunEvent.execution_incomplete` takes effect before expiry and remains effective
 for later events, even when they omit the flag. Pending rules then stay inconclusive past their
-horizon; time and late witnesses cannot manufacture a result.
+deadline; time and late witnesses cannot manufacture a result.
 
 The Executor records `Run.evaluation_failure_sequence` when an Observe callback fails after event
 append. It identifies the first callback whose staged evaluation did not commit. The evaluator
