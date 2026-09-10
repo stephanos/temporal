@@ -15,7 +15,7 @@ import Umpire.Search.Tests
 import Umpire.Search.VisibilityTests
 import Umpire.PromotionTests
 import Umpire.Artifact.Tests.Codecs
-import Umpire.Artifact.Tests.Runtime
+import Umpire.Artifact.Tests.RunRecord
 import Umpire.Artifact.Tests.Evidence
 import Umpire.Artifact.Tests.Result
 import Umpire.Artifact.Tests.Goldens

@@ -357,7 +357,7 @@ def testKnownGapCatalog : List KnownGapCatalogDescriptor := [
     scope := .testOnly
     shape := .carriedCatalogEntry
     source := plannerPromotionKnownGapSource.id.value
-    fieldMapping := some .exact
+    fieldMapping := some .full
     description := "Test-only use of the production planner promotion Known Gap."
   }
 ]

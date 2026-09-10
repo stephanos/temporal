@@ -7,7 +7,7 @@ namespace Umpire.Artifact.Tests.Result
 
 open Umpire
 open Umpire.Examples.Switch
-open Umpire.Artifact.Tests.Runtime
+open Umpire.Artifact.Tests.RunRecord
 open Umpire.Artifact.Tests.Evidence
 
 #check (EvidenceArtifact.knownGaps : EvidenceArtifact → KnownGapSet)
@@ -24,30 +24,30 @@ private def checksum (value : String) : ArtifactChecksum :=
 private def emptyChecksum : ArtifactChecksum :=
   checksum "sha256:0000000000000000000000000000000000000000000000000000000000000000"
 
-private def evidenceLimit : ArtifactLimit := { value := 2, unit := "evidence-records" }
+private def evidenceLimit : Artifact.Wire.Limit := { value := 2, unit := "evidence-records" }
 
-private def fieldReference : ArtifactFieldReference := {
+private def fieldReference : Artifact.Wire.FieldReference := {
   kindDefinitionId := id "umpire.evidence.kind.history"
   fieldDefinitionId := id "umpire.evidence.field.event"
 }
 
-private def observationProgram : ArtifactDefinitionReference := {
+private def observationProgram : Artifact.Wire.DefinitionReference := {
   definitionId := runtimeConfiguration.observation.programDefinitionId
   behaviorFingerprint := runtimeConfiguration.observation.programBehaviorFingerprint
 }
 
-private def mapping : ArtifactDefinitionReference := {
+private def mapping : Artifact.Wire.DefinitionReference := {
   definitionId := runtimeConfiguration.observation.mappingDefinitionId
   behaviorFingerprint := runtimeConfiguration.observation.mappingBehaviorFingerprint
 }
 
-private def initialCoordinate : ArtifactModelCoordinate := {
+private def initialCoordinate : Artifact.Wire.ModelCoordinate := {
   kind := "initial-state"
   step := none
   position := none
 }
 
-private def initialEvidenceSupport : ArtifactEvidenceSupport := {
+private def initialEvidenceSupport : Artifact.Wire.EvidenceSupport := {
   coordinate := initialCoordinate
   mappingDefinitionId := mapping.definitionId
   mappingVersion := 1
@@ -148,7 +148,7 @@ private def evidenceDraft : EvidenceArtifact := {
 
 def evidence : EvidenceArtifact := evidenceDraft.seal
 
-private def propertyVerdict (property : PortableProperty) : ArtifactPropertyVerdict := {
+private def propertyVerdict (property : PortableProperty) : Artifact.Wire.PropertyVerdict := {
   queryDefinitionId := compiledArtifact.plan.queryDefinitionId
   propertyDefinitionId := property.definitionId
   propertyBehaviorFingerprint := property.behaviorFingerprint
@@ -171,10 +171,10 @@ private def propertyVerdict (property : PortableProperty) : ArtifactPropertyVerd
   diagnostic := none
 }
 
-private def propertyVerdicts : List ArtifactPropertyVerdict :=
+private def propertyVerdicts : List Artifact.Wire.PropertyVerdict :=
   compiledArtifact.properties.map propertyVerdict
 
-private def querySummary : ArtifactQuerySummary := {
+private def querySummary : Artifact.Wire.QuerySummary := {
   queryDefinitionId := compiledArtifact.plan.queryDefinitionId
   status := "satisfied"
   queryLimits := compiledArtifact.plan.expandedLimits
@@ -250,7 +250,7 @@ private def resultWithOutcome : ResultArtifact := {
 
 def result : ResultArtifact := resultWithOutcome.seal
 
-private def incompleteQuerySummary : ArtifactQuerySummary := {
+private def incompleteQuerySummary : Artifact.Wire.QuerySummary := {
   querySummary with
   status := "incomplete"
   propertyVerdicts := []

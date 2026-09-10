@@ -76,7 +76,7 @@ structure EvidenceGap where
 
 /-- The intentionally lossy Known Gap mapping admitted by Observation Evaluation. -/
 def EvidenceGap.knownGapAdmissionMapping : KnownGapCarryMapping :=
-  .observationAdmission
+  .lossy
 
 /-- Complete synthetic input envelope. Alternatives are preserved as data instead of selected. -/
 structure SyntheticEvidence where

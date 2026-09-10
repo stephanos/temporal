@@ -1,5 +1,5 @@
 import Umpire.Artifact.Evidence
-import Umpire.Artifact.Tests.Runtime
+import Umpire.Artifact.Tests.RunRecord
 
 /-! RawEvidence exact v2 bytes, checksums, bounded grammar, causality, and Run closure. -/
 
@@ -7,7 +7,7 @@ namespace Umpire.Artifact.Tests.Evidence
 
 open Umpire
 open Umpire.Examples.Switch
-open Umpire.Artifact.Tests.Runtime
+open Umpire.Artifact.Tests.RunRecord
 
 #check (RawEvidence.knownGaps : RawEvidence → KnownGapSet)
 

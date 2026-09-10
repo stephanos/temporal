@@ -179,7 +179,7 @@ example : [
       claimReference.shape = .carriedCatalogEntry ∧
       claimReference.source =
         "umpire.semantic-inventory.known-gap-source.08-promotion" ∧
-      claimReference.fieldMapping = some .exact := by
+      claimReference.fieldMapping = some .full := by
   native_decide
 
 end Umpire.SearchTests.KnownGaps

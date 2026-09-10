@@ -1,4 +1,4 @@
-import Umpire.Artifact.Runtime
+import Umpire.Artifact.RunRecord
 
 namespace Umpire
 

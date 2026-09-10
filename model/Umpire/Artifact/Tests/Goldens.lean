@@ -6,7 +6,7 @@ namespace Umpire.Artifact.Tests.Goldens
 
 open Umpire
 open Umpire.Examples.Switch
-open Umpire.Artifact.Tests.Runtime
+open Umpire.Artifact.Tests.RunRecord
 open Umpire.Artifact.Tests.Evidence
 open Umpire.Artifact.Tests.Result
 
