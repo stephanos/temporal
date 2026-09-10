@@ -254,10 +254,10 @@ private def authoredScenario
     documentation := base.documentation
   }
 
-private def queryDeclaration
+private def authoredQuery
     (space : CheckedExperimentSpace LawStatement)
     (pointId : DefinitionId)
-    (behavior : CheckedScenario) : QueryDeclaration :=
+    (behavior : CheckedScenario) : Query :=
   let base := space.baseQuery
   {
     id := derivedQueryId pointId
@@ -279,7 +279,7 @@ private structure RecheckedQuery (target : QueryModel LawStatement) where
 private def materializeQuery
     (target : QueryModel LawStatement)
     (query : CheckedQuery LawStatement) : RecheckedQuery target :=
-  let model := CheckedQueryModel.ofTarget target
+  let model := ModelCompleteness.ofTarget target
   {
     query := {
       query with
@@ -288,7 +288,7 @@ private def materializeQuery
     }
     targetEq := by
       cases planningEq : target.planning <;>
-        simp [model, CheckedQueryModel.ofTarget, planningEq]
+        simp [model, ModelCompleteness.ofTarget, planningEq]
   }
 
 private def selectedFaults
@@ -337,12 +337,12 @@ def lowerSpacePoint
     | .ok behavior => pure behavior
     | .error error => throw (compilationError space .behaviorCheckFailed pointId
         error.offendingValue error.relatedDefinitionIds)
-  let checkedQuery ← match checkQuery (.ofTarget space.baseQuery.target)
-      (queryDeclaration space pointId behavior) with
+  let checked ← match Query.check (.ofTarget space.baseQuery.target)
+      (authoredQuery space pointId behavior) with
     | .ok query => pure query
     | .error error => throw (compilationError space .queryCheckFailed pointId
         error.offendingValue error.relatedDefinitionIds)
-  let materialized := materializeQuery space.baseQuery.target checkedQuery
+  let materialized := materializeQuery space.baseQuery.target checked
   let query := materialized.query
   let faults ← selectedFaults space choices
   let intent ← match checkArtifactIntent query (intentDeclaration assignment choices faults) with

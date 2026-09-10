@@ -406,23 +406,23 @@ private def checkQuestion
     (queryId : DefinitionId)
     (authoredProperty : Property)
     (authoredScenario : Scenario)
-    (form : CheckedProperty → QueryForm)
+    (form : CheckedProperty → Query.Form)
     (policy : PlannerPolicy)
     (candidateBudget : Nat) : Except RaceAdmissionError CheckedQuestion := do
   let property ← Property.check (PropertyCheckContext.ofTarget target) (authoredProperty)
     |>.mapError RaceAdmissionError.invalidProperty
   let behavior ← Scenario.check (.ofTarget target) authoredScenario
     |>.mapError RaceAdmissionError.invalidBehavior
-  let declaration : QueryDeclaration := {
+  let declaration : Query := {
     id := queryId
     source
     target := targetId
     form := form property
     behavior
-    limits := QueryLimits.bounded 2 2 candidateBudget
+    limits := Limits.bounded 2 2 candidateBudget
     policy
   }
-  let query ← checkQuery (.ofTarget target) declaration
+  let query ← Query.check (.ofTarget target) declaration
     |>.mapError RaceAdmissionError.invalidQuery
   let kernel ← SearchView.ofCheckedQuery target.id query
     |>.mapError RaceAdmissionError.invalidPlanner
@@ -439,31 +439,31 @@ def checkRace : Except RaceAdmissionError CheckedRace := do
   let succeeded := succeededResolutionPropertyDeclaration model
   let verify ← checkQuestion target
     (id "temporal.nexus2.cancellation-race.query.verify-terminal") terminal exact
-    QueryForm.verify .exhaustive 32
+    Query.Form.verify .exhaustive 32
   let canceledWitness ← checkQuestion target
     (id "temporal.nexus2.cancellation-race.query.witness-canceled") canceled exact
-    QueryForm.witness .shortest 32
+    Query.Form.find .shortest 32
   let succeededWitness ← checkQuestion target
     (id "temporal.nexus2.cancellation-race.query.witness-succeeded") succeeded exact
-    QueryForm.witness .shortest 32
+    Query.Form.find .shortest 32
   let cancellationAlwaysWins ← checkQuestion target
     (id "temporal.nexus2.cancellation-race.query.counterexample-cancellation-always-wins") canceled exact
-    QueryForm.counterexample .shortest 32
+    Query.Form.findViolation .shortest 32
   let requestOnly ← checkQuestion target
     (id "temporal.nexus2.cancellation-race.query.request-only") terminal
-    (requestOnlyBehaviorDeclaration model) QueryForm.verify .exhaustive 32
+    (requestOnlyBehaviorDeclaration model) Query.Form.verify .exhaustive 32
   let noTrigger ← checkQuestion target
     (id "temporal.nexus2.cancellation-race.query.no-trigger") terminal
-    (noTriggerBehaviorDeclaration model) QueryForm.verify .exhaustive 32
+    (noTriggerBehaviorDeclaration model) Query.Form.verify .exhaustive 32
   let unsatisfiable ← checkQuestion target
     (id "temporal.nexus2.cancellation-race.query.unsatisfiable") terminal
-    (unsatisfiableBehaviorDeclaration model) QueryForm.verify .exhaustive 32
+    (unsatisfiableBehaviorDeclaration model) Query.Form.verify .exhaustive 32
   let exhaustiveAbsence ← checkQuestion target
     (id "temporal.nexus2.cancellation-race.query.exhaustive-absence") terminal exact
-    QueryForm.counterexample .exhaustive 32
+    Query.Form.findViolation .exhaustive 32
   let limitReached ← checkQuestion target
     (id "temporal.nexus2.cancellation-race.query.limit-reached") terminal exact
-    QueryForm.counterexample .exhaustive 1
+    Query.Form.findViolation .exhaustive 1
   pure {
     target
     model

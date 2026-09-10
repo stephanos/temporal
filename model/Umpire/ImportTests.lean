@@ -20,7 +20,7 @@ import Umpire
 #check Umpire.Property
 #check Umpire.Scenario
 #check Umpire.ScenarioCheckContext.ofTarget
-#check Umpire.QueryDeclaration
+#check Umpire.Query
 #check Umpire.SearchView
 #check Umpire.Plan
 #check Umpire.ExperimentSpaceDeclaration

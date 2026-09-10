@@ -368,7 +368,7 @@ def targetWithGhost : QueryModel Umpire.Examples.Switch.LawStatement :=
 def queryWithGhost : CheckedQuery Umpire.Examples.Switch.LawStatement := {
   Umpire.Examples.Switch.exactActionQuery with
   target := targetWithGhost
-  completeness := (CheckedQueryModel.ofTarget targetWithGhost).completeness
+  completeness := (ModelCompleteness.ofTarget targetWithGhost).completeness
 }
 
 def ghostContext : SpaceCheckContext Umpire.Examples.Switch.LawStatement := .ofQuery queryWithGhost

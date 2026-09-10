@@ -4,7 +4,7 @@ import Umpire.Property.Elab
 import Umpire.Property.Evaluate
 import Umpire.Property.Scoped
 import Umpire.Scenario.Elab
-import Umpire.Query
+import Umpire.Query.Elab
 import Umpire.Artifact
 import Umpire.Search
 import Umpire.Search.Branches

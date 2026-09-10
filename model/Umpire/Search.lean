@@ -628,8 +628,8 @@ def canonicalPlanningReceiptJson (result : PlanningResult) : String :=
   Lean.Json.compress <| .mkObj [
     ("formatVersion", .str "umpire-planning-receipt/v1"),
     ("query", .str validity.queryMetadata),
-    ("endpoint", .str validity.endpoint.name),
-    ("exercise", .str validity.exercise.name),
+    ("ending", .str validity.ending.name),
+    ("requireFiring", .bool validity.requireFiring),
     ("satisfiability", .str satisfiability),
     ("coverage", .str coverage),
     ("answer", .str answer),
@@ -642,8 +642,8 @@ def canonicalPlanningReceiptJson (result : PlanningResult) : String :=
     ("requestedTriggers", .arr (validity.requestedTriggers.map fun (propertyId, clauseId) =>
       .mkObj [("propertyId", .str propertyId.value), ("clauseId", .str clauseId.value)]).toArray),
     ("assuranceMethod", .str validity.assuranceMethod),
-    ("limits", .arr #[.str (canonicalLimitJson limits.behavior.transitions),
-      .str (canonicalLimitJson limits.behavior.selectedActions),
+    ("limits", .arr #[.str (canonicalLimitJson limits.steps),
+      .str (canonicalLimitJson limits.actions),
       .str (canonicalLimitJson limits.search)]),
     ("explored", .mkObj [
       ("setups", Lean.toJson result.metadata.explored.setups),
@@ -742,10 +742,9 @@ private def finalizePlanning
           if query.policy.strategy != .exhaustive || query.completeness.isNone then
             (.limitReached, false)
           else
-            match query.claim with
-            | .verifiedWithinLimits => (.verified, true)
-            | .satisfyingWitness | .violatingCounterexample | .limitedSelection =>
-                (.noneFound, true)
+            match query.form with
+            | .verify _ => (.verified, true)
+            | .find _ | .findViolation _ | .pick _ => (.noneFound, true)
   PlanningResult.mk outcome (planningMetadata query explored established)
 
 private def setupLe (left right : List RoleBinding) : Bool :=
@@ -781,7 +780,7 @@ private def seededIndex
     logicalIndex
 
 private def maximumDepth (query : CheckedQuery LawStatement) : Nat :=
-  Nat.min query.limits.behavior.transitions.value query.limits.behavior.selectedActions.value
+  Nat.min query.limits.steps.value query.limits.actions.value
 
 private def rootTrace (setup : List RoleBinding) (initialState : ModelValue) : Scenario.Trace := {
   setup
@@ -924,7 +923,7 @@ private structure PlanningObservations where
 
 private def coverageMet
     (query : CheckedQuery LawStatement) (state : PlanningObservations) : Bool :=
-  query.exercise == .allowVacuous || state.required.all fun (propertyId, clauseId) =>
+  !query.requireFiring || state.required.all fun (propertyId, clauseId) =>
     state.triggers.any fun evidence =>
       evidence.trigger.propertyId == propertyId && evidence.trigger.clauseId == clauseId
 
@@ -944,7 +943,7 @@ private def observeCandidate
       relatedDefinitionIds := DefinitionId.canonicalSet
         (property.id :: property.guardedClauseIds ++ error.relatedDefinitionIds)
     }
-    let evaluation := evaluatePropertyEndpoint property input (query.endpoint == .«partial»)
+    let evaluation := evaluatePropertyEndpoint property input (query.ending == .«partial»)
     answers := answers ++ [evaluation.answer]
     current := { current with
       required := current.required ++ evaluation.requestedTriggers.map (property.id, ·)
@@ -959,13 +958,13 @@ private def observeCandidate
     counterexample := if violated && state.counterexample.isNone then some candidate else state.counterexample }
   match query.form with
   | .verify _ => pure (.continue next)
-  | .counterexample _ =>
+  | .findViolation _ =>
       if violated then pure (.stop next candidate .violatingCounterexample) else pure (.continue next)
-  | .witness _ =>
+  | .find _ =>
       if !violated && !unresolved && coverageMet query current then
         pure (.stop next candidate .satisfyingWitness)
       else pure (.continue next)
-  | .select _ =>
+  | .pick _ =>
       if coverageMet query current then pure (.stop next candidate .behaviorSelection)
       else pure (.continue next)
 
@@ -1060,7 +1059,7 @@ private def traverseLoop
           let explored := noteCandidate candidate explored
           let instrumentation := notePull candidate next instrumentation
           if query.behavior.admits candidate &&
-              (query.endpoint != .terminalModel || query.target.isTerminal (currentState candidate)) then
+              (query.ending != .terminal || query.target.isTerminal (currentState candidate)) then
             let explored := notePropertyEvaluations query explored
             match visit consumerState candidate with
             | .error error =>
@@ -1117,14 +1116,14 @@ def search
   let validity : PlanningValidity := {
     satisfiability := if state.nonempty then .nonempty else
       if searchComplete || query.behavior.isUnsatisfiable then .impossible else .unknown
-    coverage := if state.nonempty && (coverageMet { query with exercise := .requireAllTriggers } state) then .exercised else
+    coverage := if state.nonempty && (coverageMet { query with requireFiring := true } state) then .exercised else
       if searchComplete then .unexercised else .unknown
     answer
     searchComplete
     searchTermination := traversed.termination.name
     requestedTriggers := state.required
-    endpoint := query.endpoint
-    exercise := query.exercise
+    ending := query.ending
+    requireFiring := query.requireFiring
     queryMetadata := query.canonicalMetadata
     triggers := state.triggers
   }

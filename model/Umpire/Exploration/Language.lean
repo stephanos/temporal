@@ -55,8 +55,7 @@ def canonicalExplorationErrorJson (error : ExplorationError) : String :=
       array (canonicalIds error.relatedDefinitionIds |>.map (quote ∘ DefinitionId.value)) ++ "}"
 
 private def maximumTraceSteps (space : CheckedExperimentSpace LawStatement) : Nat :=
-  Nat.min space.baseQuery.limits.behavior.transitions.value
-    space.baseQuery.limits.behavior.selectedActions.value
+  Nat.min space.baseQuery.limits.steps.value space.baseQuery.limits.actions.value
 
 private def maximumObservationPositions (space : CheckedExperimentSpace LawStatement) : Nat :=
   space.baseQuery.target.behaviorTable.transitions.foldl

@@ -5,11 +5,11 @@ import Umpire.Search.Tests.Fixtures
 namespace Umpire.ParameterizedPlanningTests
 open Umpire Operation Value ModelTests.Parameterized
 
-private def queryDeclaration (t : QueryModel (fun _ => True)) (budget : Nat)
-    (exact : Option Scenario.Trace := none) : QueryDeclaration := {
+private def authoredQuery (t : QueryModel (fun _ => True)) (budget : Nat)
+    (exact : Option Scenario.Trace := none) : Query := {
   id := .of "example.query.call", source, target := t.id
   form := .verify SearchTests.property
-  limits := QueryLimits.bounded 1 1 budget
+  limits := Limits.bounded 1 1 budget
   policy := .exhaustive
   behavior := { SearchTests.behavior with
     roles := [], allowedActions := [actionId],
@@ -17,7 +17,7 @@ private def queryDeclaration (t : QueryModel (fun _ => True)) (budget : Nat)
 }
 private def run (budget : Nat) := do
   let t ← target .samplesOnly
-  let q ← checkQuery (.ofTarget t) (queryDeclaration t budget) |>.mapError (fun _ => "query")
+  let q ← Query.check (.ofTarget t) (authoredQuery t budget) |>.mapError (fun _ => "query")
   let k ← SearchView.ofCheckedQuery q.target.id q |>.mapError (fun _ => "planner")
   search q k |>.mapError (fun _ => "plan")
 #guard (run 1).toOption.map (fun r =>
@@ -36,8 +36,8 @@ private def run (budget : Nat) := do
     setup := [], trace := { initialState := value "example.state.phase" "idle", steps := [step] } }
   let bad := { trace with trace := { trace.trace with steps := [
     { step with state := value "example.state.phase" "idle" }] } }
-  pure ((checkQuery (.ofTarget t) (queryDeclaration t 100 (some trace))).toOption.isSome,
-    (checkQuery (.ofTarget t) (queryDeclaration t 100 (some bad))).toOption.isNone)) == some (true, true)
+  pure ((Query.check (.ofTarget t) (authoredQuery t 100 (some trace))).toOption.isSome,
+    (Query.check (.ofTarget t) (authoredQuery t 100 (some bad))).toOption.isNone)) == some (true, true)
 
 
 end Umpire.ParameterizedPlanningTests

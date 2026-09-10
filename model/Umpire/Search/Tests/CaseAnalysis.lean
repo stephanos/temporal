@@ -144,14 +144,12 @@ private def analysisTarget : QueryModel (fun _ => True) := target 0
 private def analysisQuery
     (property : CheckedProperty)
     (budget : Nat := 8) : CheckedQuery (fun _ => True) :=
-  let form := QueryForm.select [property]
+  let form := Query.Form.pick [property]
   {
-    checkedQuery 0 form .exhaustive budget with
+    fixtureQuery 0 form .exhaustive budget with
     form
-    quantifier := form.quantifier
-    claim := form.claim
     target := analysisTarget
-    completeness := (CheckedQueryModel.ofTarget analysisTarget).completeness
+    completeness := (ModelCompleteness.ofTarget analysisTarget).completeness
   }
 
 private def analyzed?

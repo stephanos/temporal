@@ -58,7 +58,7 @@ func TestProductionFixtureCarriesCanonicalMetadata(t *testing.T) {
 		ObservationRequirements: []string{
 			"switch.observation.power",
 		},
-		ArtifactChecksum: "sha256:0b745cd509a28f18f9d721d5d151892cd85cb688a4f9e025fe90055ea0f56f5a",
+		ArtifactChecksum: "sha256:38833797faa2b888e72082c679c81d0ae6a3bbe6683ae942715087c4b351a32a",
 	}, view)
 }
 
@@ -398,11 +398,9 @@ func syntheticExperiment(t *testing.T, options syntheticOptions) []byte {
 			SelectedChoices: []artifactv2.ModelValue{}, SelectedVariants: []artifactv2.ModelValue{},
 			RequestedFaults: []artifactv2.ModelValue{}, CapabilityRequirementDefinitionIDs: []string{},
 			ExpandedLimits: artifactv2.Limits{
-				Behavior: artifactv2.BehaviorLimits{
-					Transitions:     artifactv2.Limit{Value: artifactv2.Natural("1"), Unit: "steps"},
-					SelectedActions: artifactv2.Limit{Value: artifactv2.Natural("1"), Unit: "actions"},
-				},
-				Search: artifactv2.Limit{Value: artifactv2.Natural("1"), Unit: "search"},
+				Steps:   artifactv2.Limit{Value: artifactv2.Natural("1"), Unit: "steps"},
+				Actions: artifactv2.Limit{Value: artifactv2.Natural("1"), Unit: "actions"},
+				Search:  artifactv2.Limit{Value: artifactv2.Natural("1"), Unit: "search"},
 			},
 			Checkpoints: []artifactv2.Checkpoint{}, SelectionReason: "satisfying-witness",
 			Explored: artifactv2.ExploredCounts{

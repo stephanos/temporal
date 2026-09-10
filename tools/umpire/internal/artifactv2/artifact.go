@@ -119,13 +119,9 @@ type Occurrence struct {
 }
 
 type Limits struct {
-	Behavior BehaviorLimits `json:"behavior"`
-	Search   Limit          `json:"search"`
-}
-
-type BehaviorLimits struct {
-	Transitions     Limit `json:"transitions"`
-	SelectedActions Limit `json:"selectedActions"`
+	Steps   Limit `json:"steps"`
+	Actions Limit `json:"actions"`
+	Search  Limit `json:"search"`
 }
 
 type Limit struct {
@@ -156,7 +152,7 @@ var canonicalKeys = map[string]string{
 	"actiondefinitionid":                  "actionDefinitionId",
 	"artifactchecksum":                    "artifactChecksum",
 	"authoreddefinitionid":                "authoredDefinitionId",
-	"behavior":                            "behavior",
+	"actions":                             "actions",
 	"behaviordefinitionid":                "behaviorDefinitionId",
 	"behaviorfingerprint":                 "behaviorFingerprint",
 	"bindings":                            "bindings",
@@ -198,7 +194,6 @@ var canonicalKeys = map[string]string{
 	"right":                               "right",
 	"roledefinitionid":                    "roleDefinitionId",
 	"search":                              "search",
-	"selectedactions":                     "selectedActions",
 	"selectedchoices":                     "selectedChoices",
 	"selectedvariants":                    "selectedVariants",
 	"selectionreason":                     "selectionReason",
@@ -718,8 +713,8 @@ func validateLimits(limits Limits) error {
 		label string
 		limit Limit
 	}{
-		{label: "behavior transitions", limit: limits.Behavior.Transitions},
-		{label: "behavior selected actions", limit: limits.Behavior.SelectedActions},
+		{label: "steps", limit: limits.Steps},
+		{label: "actions", limit: limits.Actions},
 		{label: "search", limit: limits.Search},
 	} {
 		if !validLimitUnit(limit.limit.Unit) {
