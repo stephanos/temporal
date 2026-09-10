@@ -1,11 +1,11 @@
-import Umpire.SemanticInventory.KnownGaps
+import Umpire.Inventory.KnownGaps
 
 /-! Fixed and synthesized production Known Gap sources stay closed and canonical. -/
 
-namespace Umpire.SemanticInventoryTests.KnownGaps
+namespace Umpire.InventoryTests.KnownGaps
 
 open Umpire
-open Umpire.SemanticInventory
+open Umpire.Inventory
 
 private def validationErrorKind?
     (sources : List KnownGapSourceDescriptor) : Option KnownGapSourceErrorKind :=
@@ -21,7 +21,7 @@ private def exactGaps (sources : List KnownGapSourceDescriptor) : List KnownGap 
 /-- A reusable-boundary fixture for the owner-published admitted input catalog row. -/
 private def requestRawKnownGapInputCatalogRow : KnownGapCatalogDescriptor := {
   id := "umpire.semantic-inventory.known-gap-source.17-request-raw-known-gap-input"
-  owner := "Umpire.SemanticInventoryTests.KnownGaps"
+  owner := "Umpire.InventoryTests.KnownGaps"
   lineage := .carried
   scope := .production
   shape := .admittedKnownGapInput
@@ -31,7 +31,7 @@ private def requestRawKnownGapInputCatalogRow : KnownGapCatalogDescriptor := {
 }
 
 private def knownGapCatalog : List KnownGapCatalogDescriptor :=
-  Umpire.SemanticInventory.knownGapCatalog requestRawKnownGapInputCatalogRow
+  Umpire.Inventory.knownGapCatalog requestRawKnownGapInputCatalogRow
 
 private def sourceAt (index : Nat) : KnownGapSourceDescriptor :=
   productionKnownGapSources[index]?.getD observationKnownGapSource
@@ -50,7 +50,7 @@ private def catalogValidationErrorKind?
 private def catalogAt (index : Nat) : KnownGapCatalogDescriptor :=
   knownGapCatalog[index]?.getD {
     id := "umpire.semantic-inventory.known-gap-source.unknown"
-    owner := "Umpire.SemanticInventory"
+    owner := "Umpire.Inventory"
     lineage := .carried
     scope := .production
     shape := .carriedCatalogEntry
@@ -183,7 +183,7 @@ example : knownGapCatalog.length = 24 ∧
 example :
     let invalid := { requestRawKnownGapInputCatalogRow with owner := "" }
     catalogValidationErrorKindFor? invalid
-      (Umpire.SemanticInventory.knownGapCatalog invalid) = some .invalidSource := by
+      (Umpire.Inventory.knownGapCatalog invalid) = some .invalidSource := by
   native_decide
 
 example :
@@ -275,4 +275,4 @@ example :
         some .duplicateCode := by
   native_decide
 
-end Umpire.SemanticInventoryTests.KnownGaps
+end Umpire.InventoryTests.KnownGaps

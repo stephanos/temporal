@@ -2,7 +2,7 @@ import Umpire.Artifact.RunRecord
 import Umpire.ImplementationLink.Application
 import Umpire.Evidence.PropertyStatus
 import Umpire.Search
-import Umpire.SemanticInventory.KnownGaps
+import Umpire.Inventory.KnownGaps
 
 /-!
 Validation and canonical Markdown rendering for Umpire's semantic inventory.
@@ -12,7 +12,7 @@ normalizes outer catalog order while retaining each owner's constructor order, a
 only after the complete aggregate has passed validation.
 -/
 
-namespace Temporal.Tool.SemanticInventory
+namespace Temporal.Tool.Inventory
 
 open Umpire
 
@@ -84,7 +84,7 @@ def caseKnownGapInputCatalogRow : KnownGapCatalogDescriptor := {
 
 /-- The complete canonical Known Gap catalog assembled from its owner-published descriptors. -/
 def knownGapCatalog : List KnownGapCatalogDescriptor :=
-  Umpire.SemanticInventory.knownGapCatalog caseKnownGapInputCatalogRow
+  Umpire.Inventory.knownGapCatalog caseKnownGapInputCatalogRow
 
 /-- The repository's complete typed semantic inventory. -/
 def currentInventory : Inventory := {
@@ -159,7 +159,7 @@ def validate (inventory : Inventory) : Except InventoryError Inventory := do
     throw { kind := .invalidOutcomeFamily, detail := "catalog or owner-local order drift" }
   unless notRunMarkersAreValid canonical.notRunMarkers canonical.outcomeFamilies do
     throw { kind := .invalidNotRunMarker, detail := "catalog or owning family drift" }
-  match Umpire.SemanticInventory.validateKnownGapCatalog
+  match Umpire.Inventory.validateKnownGapCatalog
       caseKnownGapInputCatalogRow canonical.knownGaps with
   | .error failure =>
       throw {
@@ -248,4 +248,4 @@ def run
         catch _ => pure ()
         pure 1
 
-end Temporal.Tool.SemanticInventory
+end Temporal.Tool.Inventory

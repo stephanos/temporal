@@ -204,7 +204,7 @@ horizon.
 ### Model languages
 
 - **SEM-04 — Separate languages.** Each Lean authoring language—including `Umpire.Property`,
-  `Umpire.Scenario`, `Umpire.Query`, and `Umpire.Observation`—MUST be separate and have a distinct
+  `Umpire.Scenario`, `Umpire.Query`, and `Umpire.Evidence`—MUST be separate and have a distinct
   purpose.
 - **SEM-05 — Pure `Umpire.Property`.** `Umpire.Property` declarations MUST use only Model Traces and
   Capability Contracts. They MUST NOT depend on implementation Evidence.

@@ -374,11 +374,11 @@ private def testSemanticTargetIsolation : IO Unit := do
   requireEqual "metadata order does not select the path"
     ((check defaultPolicy cyclic.reverse).map (·.path)) expected
 
-private def testSemanticInventoryIsolation : IO Unit := do
+private def testInventoryIsolation : IO Unit := do
   for source in #[
     `Umpire,
     `Umpire.NewHelper,
-    `Umpire.SemanticInventoryHelper,
+    `Umpire.InventoryHelper,
     `Umpire.Search,
     `Umpire.Evidence.Evaluate.Types,
     `Umpire.Evidence.PropertyStatus,
@@ -387,11 +387,11 @@ private def testSemanticInventoryIsolation : IO Unit := do
     `Umpire.ImplementationLink.Application,
     `Umpire.Verify.Veil.Core
   ] do
-    for destination in #[`Umpire.SemanticInventory, `Umpire.SemanticInventory.Types] do
+    for destination in #[`Umpire.Inventory, `Umpire.Inventory.Types] do
       let direct := check defaultPolicy #[moduleRecord source #[destination]]
       requireEqual s!"{source} rejects inventory without endpoint metadata"
         (direct.map (·.render))
-        #[s!"[model-import-graph/semantic-inventory-isolation] forbidden qualified import path: \
+        #[s!"[model-import-graph/inventory-isolation] forbidden qualified import path: \
           {source} -> {destination}"]
       for bridge in #[
         `Umpire.NewHelper.Bridge,
@@ -411,20 +411,20 @@ private def testSemanticInventoryIsolation : IO Unit := do
         requireEqual s!"{source} rejects inventory through {bridge}"
           ((check defaultPolicy modules).any (·.path == #[source, bridge, destination])) true
   let allowed := #[
-    moduleRecord `Umpire.SemanticInventory #[
-      `Umpire.SemanticInventory.Types, `Umpire.SemanticInventory.KnownGaps,
+    moduleRecord `Umpire.Inventory #[
+      `Umpire.Inventory.Types, `Umpire.Inventory.KnownGaps,
       `Umpire.Search, `Umpire.Artifact.RunRecord, `Umpire.Artifact.Result,
       `Umpire.Evidence.PropertyStatus, `Umpire.ImplementationLink.Application
     ],
-    moduleRecord `Umpire.SemanticInventory.Types #[`Umpire.OutcomeClassification],
-    moduleRecord `Umpire.SemanticInventory.KnownGaps #[`Umpire.KnownGap],
-    moduleRecord `Umpire.Search.Tests.KnownGaps #[`Umpire.SemanticInventory.KnownGaps],
-    moduleRecord `Umpire.InventoryTests #[`Umpire.SemanticInventory],
-    moduleRecord `Umpire.SemanticInventory.Tests.PlanningRuntime #[`Umpire.SemanticInventory],
-    moduleRecord `Umpire.Shared.Test #[`Umpire.SemanticInventory],
+    moduleRecord `Umpire.Inventory.Types #[`Umpire.OutcomeClassification],
+    moduleRecord `Umpire.Inventory.KnownGaps #[`Umpire.KnownGap],
+    moduleRecord `Umpire.Search.Tests.KnownGaps #[`Umpire.Inventory.KnownGaps],
+    moduleRecord `Umpire.InventoryTests #[`Umpire.Inventory],
+    moduleRecord `Umpire.Inventory.Tests.PlanningRuntime #[`Umpire.Inventory],
+    moduleRecord `Umpire.Shared.Test #[`Umpire.Inventory],
     moduleRecord `UmpireTests #[`Umpire.Search.Tests.KnownGaps],
     moduleRecord `Umpire.Lint #[`UmpireTests],
-    moduleRecord `Temporal.Tool.SemanticInventory #[`Umpire.SemanticInventory],
+    moduleRecord `Temporal.Tool.Inventory #[`Umpire.Inventory],
     moduleRecord `Umpire.Search #[`Umpire.OutcomeClassification],
     moduleRecord `Umpire.Artifact.RunRecord #[`Umpire.OutcomeClassification],
     moduleRecord `Umpire.Artifact.Result #[`Umpire.KnownGap],
@@ -443,9 +443,9 @@ private def testOutcomeClassificationIsolation : IO Unit := do
     `Umpire.Artifact.RunRecord, `Umpire.Artifact.Result,
     `Umpire.Evidence.Evaluate.Types, `Umpire.Evidence.PropertyStatus,
     `Umpire.ImplementationLink.Application,
-    `Umpire.SemanticInventory, `Umpire.SemanticInventory.Types,
+    `Umpire.Inventory, `Umpire.Inventory.Types,
     `Umpire.OutcomeClassification.Helper, `Shared.Root,
-    `Temporal.Feature.Root, `Temporal.Tool.SemanticInventory, `ModelLint,
+    `Temporal.Feature.Root, `Temporal.Tool.Inventory, `ModelLint,
     `Lean, `Std, `Batteries, `External.Wrapper, `InitExtra
   ] do
     requireEqual s!"neutral classification rejects {destination} without endpoint metadata"
@@ -473,7 +473,7 @@ private def testOutcomeClassificationIsolation : IO Unit := do
 
 private def testInventoryBoundaryPaths : IO Unit := do
   for (source, destination) in #[
-    (`Umpire.NewFacade, `Umpire.SemanticInventory.Types),
+    (`Umpire.NewFacade, `Umpire.Inventory.Types),
     (`Umpire.OutcomeClassification, `Umpire.Core)
   ] do
     let modules := #[
@@ -671,7 +671,7 @@ private unsafe def runSyntheticSuite : IO UInt32 := do
   testTestSupportIsolation
   testTargetIsolation
   testSemanticTargetIsolation
-  testSemanticInventoryIsolation
+  testInventoryIsolation
   testOutcomeClassificationIsolation
   testInventoryBoundaryPaths
   testExternalMetadataReconciliation
