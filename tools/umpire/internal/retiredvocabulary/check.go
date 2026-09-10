@@ -2,6 +2,7 @@ package retiredvocabulary
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/fs"
 	"os"
@@ -318,7 +319,7 @@ var bareWord = regexp.MustCompile(`^[A-Za-z][a-z]*$`)
 
 func validateRetiredToken(token string) error {
 	if token == "" {
-		return fmt.Errorf("retired token must not be empty")
+		return errors.New("retired token must not be empty")
 	}
 	if bareWord.MatchString(token) {
 		return fmt.Errorf("retired token %q is a bare word; retire a compound identifier, module path, macro name, or snake_case keyword instead", token)
