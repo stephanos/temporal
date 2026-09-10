@@ -12,7 +12,7 @@ Register the thin exporter and process-level integration for R3-R5.
 
 ### Approach
 - Register a non-default `lean_exe` exporter plus an explicitly executed process-test root in the current Lean Lake configuration. Add an injected final-writer seam for success/write-failure tests.
-- Add exporter-only root preflight using a narrow adapter over pinned `Lake.loadWorkspaceRoot`: explicit current-directory root config, declared temporal-model package and root-owned modelLint/modelLintTests/exporter module targets, canonical directory equality, no dependency resolution/toolchain update/ambient CLI renaming. Capture configuration logs; preserve the shared lint loader's old discovery behavior and reinitialize metadata search paths as required.
+- Add exporter-only root preflight using a narrow adapter over pinned `Lake.loadWorkspaceRoot`: explicit current-directory root config, declared temporal-model package and root-owned umpire-lint/umpire-lint-tests/exporter module targets, canonical directory equality, no dependency resolution/toolchain update/ambient CLI renaming. Capture configuration logs; preserve the shared lint loader's old discovery behavior and reinitialize metadata search paths as required.
 - Buffer complete JSON before one final write; on final-write failure return non-zero while acknowledging the OS may have accepted a prefix.
 - Make `umpire-export-model-module-index` use quiet outer/nested Lake commands with no stdout banner; successful stderr is empty.
 - Add `umpire-check-model-module-index` to capture stdout/stderr/status separately across real warm/cold/stale outer Lake and Make paths, wrong-root, loader/index and failing-sink cases without a checked snapshot. Use isolated scratch packages, never destructive shared-cache cleanup. Wrong-root cases include another valid Lake package, wrong package name/missing owned targets and a valid relocated model checkout.
@@ -32,7 +32,7 @@ Use `lake -q exe`; both Lake layers and Make must reserve stdout exclusively for
 The full payload and LF are buffered before final write. A failed sink may leave an OS prefix and must return nonzero; no atomic stdout claim. Public facade/test hits describe import impact, not evidence that IO suites ran.
 
 ### Quick commands
-`cd model && mise exec -- lake -q build temporal-model-module-index modelLintTests modelLint && mise exec -- lake exe modelLintTests && cd .. && make umpire-check-model-module-index && make lint-model`
+`cd model && mise exec -- lake -q build temporal-model-module-index umpire-lint-tests umpire-lint && mise exec -- lake exe umpire-lint-tests && cd .. && make umpire-check-model-module-index && make lint-model`
 
 Run the newly registered process suite explicitly and require terminal exit 0 with actual named warm/cold/stale/wrong-root/final-write cases executed. Run nonfixing aggregate Go lint with the established exact inherited-set comparison; new findings, missing exits and resource kills fail. Preserve all comments/unrelated work; no staging/commits/pushes, default-build/CI expansion, generated API drift gate, new dependency or cancellation work.
 ## Acceptance

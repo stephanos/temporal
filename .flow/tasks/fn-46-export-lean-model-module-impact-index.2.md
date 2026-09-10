@@ -16,7 +16,7 @@ Implement the pure `temporal-model-module-index/v1` projection for R2/R3.
 - Reconcile inputs before constructing one direct adjacency and one reverse adjacency; reject cycles and invalid roots.
 - Compute reflexive reachability only from the exact 34 facade and 15 test roots over the full validated graph. Emit actual first-party direct/reverse imports only, with no shortcut edge through an external intermediary; external bridge paths still contribute root impact. Then project/sort/validate closed rows and compact JSON bytes in memory.
 - Normalize harmless source/module/edge permutations and valid platform path spellings; reject duplicate identities/edges and malformed/unsafe values rather than silently deduplicating. Keep every closed JSON array even when empty; semantic-artifact omit-empty rules do not apply.
-- Wire ModuleIndexTests into the existing executable modelLintTests runner. Include external-return paths, disconnected/diamond/fanout graphs, root-self/multi-root reachability, all configured roots, unknown/absent roots, cycle rejection and multiple deterministic issues. Measure pure index construction/projection at roughly 10x source count, separately from Lake/OLean work, without an all-pairs path table.
+- Wire ModuleIndexTests into the existing executable umpire-lint-tests runner. Include external-return paths, disconnected/diamond/fanout graphs, root-self/multi-root reachability, all configured roots, unknown/absent roots, cycle rejection and multiple deterministic issues. Measure pure index construction/projection at roughly 10x source count, separately from Lake/OLean work, without an all-pairs path table.
 
 ### Investigation targets
 **Required** (read before coding):
@@ -30,7 +30,7 @@ Implement the pure `temporal-model-module-index/v1` projection for R2/R3.
 - Lean `Json.compress` usage in existing canonical artifact renderers.
 
 ### Quick commands
-`cd model && mise exec -- lake -q build modelLintTests && mise exec -- lake exe modelLintTests`
+`cd model && mise exec -- lake -q build umpire-lint-tests && mise exec -- lake exe umpire-lint-tests`
 
 ### Execution constraints
 Preserve all parent R1–R5 and the exact reviewed root arrays; no filename discovery or silent unknown-root omission. Preserve comments/unrelated work and existing semantic import isolation. No staging/commits/pushes, new library or cancellation work. Lean jobs serial; new tests must execute through the normal runner. Required nonfixing Go lint uses exact inherited-set comparison, never count-only allowance or new-failure suppression.

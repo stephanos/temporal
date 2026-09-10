@@ -532,8 +532,8 @@ builders into `DeriveProfile` so all six fixtures run from the CLI.
 
 ## Parked unknowns
 
-- EVD-20 (Driver-realized faults), EVD-21 (Deadline units), and AUT-09 (macro-derived finite
-  domains) are drafted by fn-80 and still pending human approval under GOV-02. R3 builds on
-  EVD-20 as drafted, and R2's evidence resolution reads generated names AUT-09 does not cover, so
-  task .8 drafts one amendment for approval. A human approves or rejects the three rules and the
-  amendment before this spec's completion review; the code does not wait for them.
+- EVD-20, EVD-21, and AUT-09 were approved on 2026-09-10 under GOV-02. R2's evidence resolution
+  reads generated names AUT-09 does not cover, so task .8 drafts one amendment for approval; a
+  human approves or rejects it before this spec's completion review, and the code does not wait
+  for it.
+

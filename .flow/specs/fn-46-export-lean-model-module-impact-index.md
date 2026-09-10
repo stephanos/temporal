@@ -86,12 +86,12 @@ root impact still follows the complete validated graph. Configured roots must ex
 - `ModelLint.ModuleIndex.build(policy, sources, modules)` is pure and returns either a complete index
   or deterministic issues.
 - Exporter-only root preflight loads the current directory's Lake root configuration and requires
-  package name `temporal-model`, canonical root-directory equality, and the root-owned `modelLint`,
-  `modelLintTests` and exporter declarations with their expected module roots. It rejects an unrelated
+  package name `temporal-model`, canonical root-directory equality, and the root-owned `umpire-lint`,
+  `umpire-lint-tests` and exporter declarations with their expected module roots. It rejects an unrelated
   valid Lake package before inventory/build work. Use the pinned Lake root-loading adapter without
   dependency resolution, toolchain updates or ambient CLI renaming; capture configuration diagnostics.
   This identifies the project shape, not a security principal. Keep it outside shared lint loading
-  so current `modelLint` discovery behavior is unchanged; relocated valid checkouts remain supported.
+  so current `umpire-lint` discovery behavior is unchanged; relocated valid checkouts remain supported.
 - Harmless permutations and equivalent valid platform path spellings normalize. Duplicate source,
   metadata or edge identities, unsafe paths and malformed closed values reject; graph utilities must
   not silently deduplicate invalid index inputs. Empty arrays remain present in the closed v1 JSON.
@@ -117,8 +117,8 @@ root impact still follows the complete validated graph. Configured roots must ex
 ## Quick commands
 
 ```bash
-cd model && mise exec -- lake -q build modelLintTests modelLint temporal-model-module-index
-cd model && mise exec -- lake exe modelLintTests
+cd model && mise exec -- lake -q build umpire-lint-tests umpire-lint temporal-model-module-index
+cd model && mise exec -- lake exe umpire-lint-tests
 make umpire-export-model-module-index >/tmp/umpire-module-index.json
 make umpire-check-model-module-index
 make lint-model
@@ -143,7 +143,7 @@ make lint-model
   from validation/serialization failures. A short/failing final stdout write can truncate the stream;
   callers must honor its non-zero exit rather than treating a prefix as valid JSON.
 - Both the outer `lake -q exe` and the loader's nested `lake -q build` are quiet on success. The loader
-  captures child streams: `modelLint` may replay them to their original channels, while the exporter
+  captures child streams: `umpire-lint` may replay them to their original channels, while the exporter
   discards successful build chatter and reserves stdout for JSON.
 - Child streams are captured without pipe deadlock. Lint replays them to their original channels;
   exporter failures retain both transcripts on stderr. Preserve existing lint diagnostic prefixes,
@@ -176,7 +176,7 @@ silently added by filename discovery. Root policy changes require explicit revie
 ## Acceptance Criteria
 
 - **R1:** `ModelLint.PackageModules` is the single source/build/OLean/reconciliation pipeline used by
-  both `modelLint` and the exporter, with existing lint policy, diagnostics, and comments preserved.
+  both `umpire-lint` and the exporter, with existing lint policy, diagnostics, and comments preserved.
   Errors: discovery failure stops; source issues are all sorted; build failure stops later phases with
   captured output; independent per-module lookup/read failures are all sorted; and reconciliation
   reports all duplicate/missing metadata, unknown first-party imports, and unclassified modules.
@@ -206,7 +206,7 @@ silently added by filename discovery. Root policy changes require explicit revie
 
 ## Early proof point
 
-Task fn-46.1 proves the effectful package loader can be shared without changing `modelLint` behavior.
+Task fn-46.1 proves the effectful package loader can be shared without changing `umpire-lint` behavior.
 If that extraction changes diagnostics, build ordering, or loaded metadata, reconsider the seam before
 building a second consumer.
 

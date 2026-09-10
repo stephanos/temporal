@@ -107,9 +107,9 @@ Flow: fn-33 (the generic Producer is the only path from a Search result to a Cas
 fn-79 (both re-anchor on the `case` block), fn-46 (new module rows), and fn-29 (consumes the
 provisioning package, not the CLI).
 
-Two items need a human. EVD-20, EVD-21, and AUT-09 are still drafted and unapproved under GOV-02;
-fn-83's fault lines build on EVD-20 as drafted, and its evidence block reads generated history
-names AUT-09 does not cover, so task .8 drafts one amendment for approval. Boundaries: no
+EVD-20, EVD-21, and AUT-09 were approved on 2026-09-10 under GOV-02. One item still needs a
+human: fn-83's evidence block reads generated history names AUT-09 does not cover, so task .8
+drafts one amendment for approval. Boundaries: no
 exploration or fuzzing (fn-33), no canary (fn-70, fn-29), no Program surface syntax, no new fault
 or instruction kinds, no clock model, no change to the typed examples, no new CI workflow.
 
@@ -203,8 +203,8 @@ leases, recovery, and publication stay outside Testpilot and Umpire.
   fixing it. `CONSIDER(umpire)` at `internal/verification/prepare.go:68` records the real fix: charge
   the per-event increment, then restore a ceiling that means expression evaluation again.
 
-  Two items need a human. Three drafted spec rules — **EVD-20, EVD-21 and AUT-09** — are written
-  under fresh IDs and marked pending GOV-02; none is approved. And the spec's own Architecture and
+  Three drafted spec rules — **EVD-20, EVD-21 and AUT-09** — were written under fresh IDs and
+  approved on 2026-09-10 under GOV-02. One item still needs a human: the spec's own Architecture and
   API Contracts blocks are stale against what shipped: `FaultIntentDeclaration.lower` takes a
   realization argument, and a changed *witness* no longer produces different bytes but rejects when
   inconsistent with clause placement. Two `.8` acceptance bullets are deferred with a record rather
