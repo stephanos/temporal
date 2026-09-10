@@ -42,9 +42,72 @@ with unchanged wire identifiers, and `Umpire.ExecutionHandoff` is deleted.
 - [ ] `Plan` and `Plan.Steps` replace `ExperimentSpec` and `DrivePlan`; `umpire-experiment/v2` and `umpire-drive-plan/v2` bytes are unchanged in every fixture and `make umpire-check-regression-views` passes
 - [ ] `make lint-model`, the Makefile layout check, Go tests under `tools/umpire`, and the gate pass
 ## Done summary
-TBD
+Blocked:
+BLOCKED: SCOPE_EXCEEDED - session budget, not a technical obstacle.
 
+Two of the task's five acceptance bullets are landed, green and committed; the other three
+are a coherent unit I did not want to start and abandon mid-flight. Every gate is at baseline
+at HEAD, so the tree is safe to pick up from.
+
+Landed (commits 6db43bf3a7, ff7bb6c3cd, a73a492c96, f5452b241d, 67edfd3851):
+- `Umpire.Search` replaces `Umpire.Planning`. `Planning/{Engine,Types,CaseAnalysis}.lean` are
+  `Search.lean` and `Search/{Types,Branches}.lean`; the tests moved with them.
+  `IncrementalPlannerKernel` is `SearchView`, `PlannerInstrumentation` is `SearchStats`,
+  `PlannerRun` is `PlanResult`, `FinitePlannerAdmissionError` is `FiniteSearchAdmissionError`,
+  the case-analysis vocabulary is `Branch*`, the joint-obligation vocabulary is `Overlap*`,
+  `analyzeCases` is `analyzeBranches`, and the entry point `plan` is `search`. The
+  `PlanningOutcome` constructors are `noneFound`, `neverTriggered` and `stillPending` with
+  matching canonical names. `Umpire.ExecutionHandoff` and its tests are deleted.
+  `Temporal.Feature.Nexus.Operations.Planning` is `.Search` so the feature layer stops naming
+  a retired module.
+- `ExperimentSpec` is `Plan`, `DrivePlan` is `Plan.Steps`, `ArtifactIntent`/`ArtifactFaultIntent`
+  are `PlanRequest`/`RequestedFault`, and `artifactv2`'s Go types follow with every JSON tag
+  untouched. `umpire-experiment/v2` and `umpire-drive-plan/v2` are byte-identical and
+  `umpire-check-regression-views` passes.
+- The gate rejects `Umpire.Planning`, `Umpire.ExecutionHandoff`, `PlannerRun`,
+  `PlannerInstrumentation`, `IncrementalPlannerKernel`, `FinitePlannerAdmissionError`,
+  `ExecutionHandoff`, `ExperimentSpec`, `DrivePlan`, `ArtifactIntent`, `ArtifactFaultIntent`
+  and `analyzeCases`; the scanned Umpire4 documents and open downstream spec records are
+  respelled.
+
+Remaining, in the order I would do it:
+1. `LimitUnit` in `Umpire/Core.lean:109-123`: `semanticTransitions`->`steps`,
+   `selectedActions`->`actions`, `candidateEvaluations`->`search`, `experimentSpecs`->`plans`,
+   with the canonical strings following. `observationPositions` is DELETED, and that is the
+   only semantic edit in the task: it has three live consumers
+   (`Property/Evaluate.lean:846` coordinate lookup, `Evaluate.lean:2191` totals,
+   `Property/Check.lean:671` field validation) plus six test fixtures that use it as a clause
+   limit; each of those clauses must move to `steps` and be re-baselined. Wire strings appear
+   in ten JSON fixtures and in `tools/umpire/internal/artifactv2/artifact.go:731`, so the
+   Lean ones regenerate through `lake exe umpire-goldens` and the Go reader list must follow
+   in the same commit (this is exactly the class of miss the `.2`/`.3` review caught).
+2. Query: `QueryDeclaration`+`QuerySpec` collapse to one `Query` with `check`/`checked`;
+   delete `QueryAuthoringInput` and its second `query%` elaborator, `QueryQuantifier`,
+   `QueryClaim`, `TieBreakPolicy`; `QueryForm` becomes `Query.Form` with
+   `verify`/`find`/`findViolation`/`pick` and matching JSON at `Query/Language.lean:487-490`;
+   `QueryEndpoint` becomes `Query.Ending` with `partial`/`final`/`terminal`;
+   `QueryExercisePolicy` becomes `requireFiring : Bool`; `CheckedQueryTarget` becomes
+   `ModelCompleteness`; `QueryLimits`+`BehaviorPhaseLimits` flatten to one
+   `Limits {steps, actions, search}` and `QueryLimitSpec` becomes `Limits`. Note that
+   `.partial` needs French quotes (`«partial»`) because `partial` is a Lean keyword - task .4
+   already spells `PropertyScopedEndpoint.«partial»` that way.
+3. Query's own gate entries (`QueryDeclaration`, `QuerySpec`, `QueryAuthoringInput`,
+   `QueryLimitSpec`, `QueryQuantifier`, `QueryClaim`, `TieBreakPolicy`, `find-witness`,
+   `find-counterexample`, `select-behavior`, `semantic-transitions`, `selected-actions`,
+   `candidate-evaluations`, `experiment-specs`) plus the Makefile Query layout arm, which
+   still asserts the old `Umpire/Query/Language.lean` shape.
+
+Method notes for the next session, all verified here:
+- Restrict every sweep to `model/`, `tools/umpire/`, `common/testing/testpilot/`, `tests/`,
+  `.plans/UMPIRE4_*.md` and the gate's `downstreamSpecs` records. A repo-wide walk rewrote an
+  unrelated `BehaviorTrace` in `tools/common/formal/trace` on the first attempt.
+- A rename that lands inside a `#guard_msgs` docstring's embedded line/column numbers must be
+  re-baselined from the build log, not by hand; the same is true of every inline fingerprint.
+- `make lint-code` must be re-checked after any Go error-string respelling: staticcheck ST1005
+  fires on a message that starts with a single capitalized word.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 6db43bf3a771db96fc2a94bbc10f8be11a0e7a9b, ff7bb6c3cdef82fabc52911b2e34623d2fdaf1d4, a73a492c962279e7f90a12e8cc73859792e03cef, f5452b241dd244df44a7ea5cba4b7a3f7141c3be, 67edfd3851b7f3d1ddb4de41038b94f7ca8efd35
+- Tests: cd model && lake build Umpire UmpireTests Temporal TemporalModelTests TestpilotTests Testpilot TemporalExperimentalTests +Umpire.PromotionTests (pass, 402 jobs); make lint-model (169 diagnostics, all generated Temporal/API; equals baseline); make umpire-check-goldens / -regression-views / -case-runtime-conformance / -semantic-inventory / -retired-vocabulary / -lean-api / -testpilot-protocol / -testpilot-authoring (pass); make umpire-check-live-tests (pass); TMPDIR=<physical> CGO_ENABLED=0 go test -count=1 -tags test_dep ./tools/umpire/... ./common/testing/testpilot/... ./tests/testcore/testpilot/... (pass); make lint-code GOLANGCI_LINT_FIX=false (128 findings, equals baseline); CC=/usr/bin/cc go vet -tags test_dep ./... (15 diagnostics, equals baseline)
 - PRs:
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
