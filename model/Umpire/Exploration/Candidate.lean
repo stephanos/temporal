@@ -1,6 +1,6 @@
 import Umpire.Exploration.Coverage
 import Umpire.Exploration.Language
-import Umpire.Space.Compiler
+import Umpire.Variations.Compiler
 
 /-! Atomic compilation of one checked finite Space into canonical Exploration candidates. -/
 
@@ -16,7 +16,7 @@ structure ExplorationCandidate where
   deriving BEq, DecidableEq, Repr
 
 /-- One identity-ordered finite candidate set compiled from exactly one checked Experiment Space. -/
-structure CandidateUniverse where
+structure CandidateSet where
   private mk ::
   spaceDefinitionId : DefinitionId
   spaceBehaviorFingerprint : BehaviorFingerprint
@@ -74,7 +74,7 @@ private def firstDuplicateCandidate : List ExplorationCandidate → Option Explo
         firstDuplicateCandidate (second :: rest)
   | _ => none
 
-namespace CandidateUniverse.Internal
+namespace CandidateSet.Internal
 
 /-- Check the closed v1 cardinality bound before constructing any candidate universe value. -/
 def checkCandidateCount
@@ -110,7 +110,7 @@ def validateCompiledSpecs
 
 private def fromCompiledSpecs
     (request : CheckedExplorationRequest LawStatement)
-    (specs : List Plan) : Except ExplorationError CandidateUniverse := do
+    (specs : List Plan) : Except ExplorationError CandidateSet := do
   let orderedCandidates ← checkedCandidates request specs
   pure {
     spaceDefinitionId := request.space.id
@@ -121,19 +121,19 @@ private def fromCompiledSpecs
 private def fromCompilationResult
     (request : CheckedExplorationRequest LawStatement)
     (result : Except SpaceCompilationError (List Plan)) :
-    Except ExplorationError CandidateUniverse :=
+    Except ExplorationError CandidateSet :=
   match result with
   | .error error => .error (compilationError error)
   | .ok specs => fromCompiledSpecs request specs
 
-end CandidateUniverse.Internal
+end CandidateSet.Internal
 
 /-- Compile one checked Space through the caller's exact kernel into its canonical finite universe. -/
-def buildCandidateUniverse
+def buildCandidateSet
     (request : CheckedExplorationRequest LawStatement)
     (kernel : SearchView request.space.baseQuery.target) :
-    Except ExplorationError CandidateUniverse :=
-  CandidateUniverse.Internal.fromCompilationResult request
+    Except ExplorationError CandidateSet :=
+  CandidateSet.Internal.fromCompilationResult request
     (compileBatch request.space kernel)
 
 end Umpire

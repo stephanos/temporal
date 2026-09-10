@@ -1,9 +1,9 @@
-import Umpire.Space.Intent
-import Umpire.Space.Tests.Fixtures
+import Umpire.Variations.Intent
+import Umpire.Variations.Tests.Fixtures
 
 /-! Checked Artifact intent projection and fail-closed planner integration. -/
 
-namespace Umpire.SpaceTests
+namespace Umpire.VariationsTests
 
 open Umpire
 
@@ -235,4 +235,4 @@ example :
         Umpire.Examples.Switch.exactActionQuery checkedIntent) = some .identityDrift := by
   native_decide
 
-end Umpire.SpaceTests
+end Umpire.VariationsTests

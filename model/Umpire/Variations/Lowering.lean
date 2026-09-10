@@ -1,4 +1,4 @@
-import Umpire.Space.Language
+import Umpire.Variations.Language
 import Umpire.Case.Compiler
 
 /-!
