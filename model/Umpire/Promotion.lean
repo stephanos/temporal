@@ -5,7 +5,7 @@ import Umpire.Search
 
 This module compiles one already-planned, target-owned trace into deterministic Lean source for
 human review. `compilePromotionSource` replans the unchanged checked Query, checks the complete
-PlanResult and ExperimentSpec, and exposes a `CompiledPromotionSource` only when the rendered bytes
+PlanResult and Plan, and exposes a `CompiledPromotionSource` only when the rendered bytes
 and their SHA-256 identity match fixed expectations. Runtime evidence, replay, minimization,
 filesystem access, and proposal publication remain outside this reusable boundary.
 -/
@@ -49,7 +49,7 @@ structure PromotionBaseAnchor where
   kernelDefinitionId : DefinitionId
   kernelBehaviorFingerprint : BehaviorFingerprint
   plannerRun : PlanResult
-  experimentSpec : ExperimentSpec
+  plan : Plan
   expectedTrace : Scenario.Trace
   selectionReason : SelectionReason
   deriving BEq, DecidableEq, Repr
@@ -85,7 +85,7 @@ structure CompiledPromotionSource where
   baseTargetBehaviorFingerprint : BehaviorFingerprint
   baseKernelDefinitionId : DefinitionId
   baseKernelBehaviorFingerprint : BehaviorFingerprint
-  baseExperimentSpecChecksum : ArtifactChecksum
+  basePlanChecksum : ArtifactChecksum
   expectedTrace : Scenario.Trace
   selectionReason : SelectionReason
   promotedBehaviorDefinitionId : DefinitionId
@@ -319,9 +319,9 @@ def compilePromotionSource
   if reason != anchor.selectionReason then
     throw (promotionError .reasonDrift baseQuery.id
       "target-owned selection reason does not match the fixed reason")
-  if replanned.artifact != some anchor.experimentSpec then
+  if replanned.artifact != some anchor.plan then
     throw (promotionError .experimentSpecDrift baseQuery.id
-      "recomputed ExperimentSpec does not match the fixed base Artifact")
+      "recomputed Plan does not match the fixed base Artifact")
   let _ ← checkPromotedQuery baseQuery trace spec.promotedBehaviorDefinitionId
     spec.promotedQueryDefinitionId spec.sourceLocation
   let sourceBytes := renderPromotionSource spec trace
@@ -338,7 +338,7 @@ def compilePromotionSource
     anchor.behaviorDefinitionId anchor.behaviorFingerprint
     anchor.targetDefinitionId anchor.targetBehaviorFingerprint
     anchor.kernelDefinitionId anchor.kernelBehaviorFingerprint
-    anchor.experimentSpec.artifactChecksum trace reason
+    anchor.plan.artifactChecksum trace reason
     spec.promotedBehaviorDefinitionId spec.promotedQueryDefinitionId)
 
 end Umpire

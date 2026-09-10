@@ -444,8 +444,8 @@ def canonicalExperimentRunJson (run : ExperimentRun) : String :=
 def canonicalExperimentRunBytes (run : ExperimentRun) : String :=
   canonicalExperimentRunJson run ++ "\n"
 
-/-- Return the exact immutable binding for one sealed ExperimentSpec. -/
-def ExperimentSpec.artifactBinding (experiment : ExperimentSpec) : ArtifactBinding := {
+/-- Return the exact immutable binding for one sealed Plan. -/
+def Plan.artifactBinding (experiment : Plan) : ArtifactBinding := {
   formatVersion := experiment.formatVersion
   artifactChecksum := experiment.artifactChecksum
   behaviorFingerprint := experiment.queryBehaviorFingerprint
@@ -533,7 +533,7 @@ def RuntimeConfiguration.isValidTransport (configuration : RuntimeConfiguration)
 /-- Close the exact Experiment binding and its capability set. -/
 def RuntimeConfiguration.closesExperiment
     (configuration : RuntimeConfiguration)
-    (experiment : ExperimentSpec) : Bool :=
+    (experiment : Plan) : Bool :=
   let capabilities := canonicalDefinitionIds
     (configuration.authorityProfile.requiredCapabilityDefinitionIds ++
       configuration.participantBindings.flatMap ParticipantBinding.capabilityDefinitionIds)
@@ -629,7 +629,7 @@ private def plannedControlLe (left right : DefinitionId × DefinitionId) : Bool 
 /-- Close a Run over the exact Experiment, RuntimeConfiguration, Limits, and planned controls. -/
 def ExperimentRun.closes
     (run : ExperimentRun)
-    (experiment : ExperimentSpec)
+    (experiment : Plan)
     (configuration : RuntimeConfiguration) : Bool :=
   let planned := experiment.plan.linearExtension.map fun occurrence =>
     (occurrence.definitionId, occurrence.actionDefinitionId)

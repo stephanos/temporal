@@ -4,16 +4,16 @@ import Umpire.Exploration.Engine
 
 namespace Umpire
 
-/-- One selected ExperimentSpec in the process-local session's fixed execution order. -/
+/-- One selected Plan in the process-local session's fixed execution order. -/
 structure ExplorationSessionCandidate where
   private mk ::
-  experimentSpec : ExperimentSpec
+  plan : Plan
   deriving BEq, DecidableEq, Repr
 
 /-- The semantic identity of one process-local session candidate. -/
 def ExplorationSessionCandidate.identity
     (candidate : ExplorationSessionCandidate) : ArtifactChecksum :=
-  candidate.experimentSpec.artifactChecksum
+  candidate.plan.artifactChecksum
 
 /-- A fixed selected order with at most one candidate awaiting exact admission. -/
 structure ExplorationSession where
@@ -23,13 +23,13 @@ structure ExplorationSession where
   deriving BEq, DecidableEq, Repr
 
 private def sessionCandidateOfPinned
-    (pinned : PinnedExperimentSpec) : ExplorationSessionCandidate := {
-  experimentSpec := pinned.experimentSpec
+    (pinned : PinnedPlan) : ExplorationSessionCandidate := {
+  plan := pinned.plan
 }
 
 private def sessionCandidateOfExploratory
     (candidate : ExplorationCandidate) : ExplorationSessionCandidate := {
-  experimentSpec := candidate.experimentSpec
+  plan := candidate.plan
 }
 
 /-- Check and select one Exploration request before opening its process-local candidate session. -/
@@ -58,7 +58,7 @@ def ExplorationSession.observe
     (bindings : List ArtifactBinding) : Option ExplorationSession :=
   match session.outstanding, bindings with
   | some candidate, [binding] =>
-      if binding == candidate.experimentSpec.artifactBinding then
+      if binding == candidate.plan.artifactBinding then
         some { session with outstanding := none }
       else
         none

@@ -11,7 +11,7 @@ private def prepared : PreparedVariationSpace :=
 
 private def checked : CheckedExperimentSpace LawStatement := prepared.checked
 private def metadata : CheckedSpaceMetadata := prepared.metadata
-private def specs : List ExperimentSpec := prepared.specs
+private def specs : List Plan := prepared.specs
 private def behavior : CheckedScenario := checked.baseQuery.behavior
 private def context : SpaceCheckContext LawStatement := .ofQuery checked.baseQuery
 
@@ -65,8 +65,8 @@ example : behavior.requiredOccurrences = [
   native_decide
 
 example : reorderedMetadataResult.toOption == metadataResult.toOption ∧
-    reorderedBatchResult.toOption.map (List.map canonicalExperimentSpecBytes) =
-      batchResult.toOption.map (List.map canonicalExperimentSpecBytes) := by
+    reorderedBatchResult.toOption.map (List.map canonicalPlanBytes) =
+      batchResult.toOption.map (List.map canonicalPlanBytes) := by
   native_decide
 
 example : metadata.behaviorFingerprint.render =

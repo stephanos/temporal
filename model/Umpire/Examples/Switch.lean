@@ -639,7 +639,7 @@ def exactActionRunResult : Except KnownGapError PlanResult :=
 def exactTraceRun : Except KnownGapError PlanResult :=
   search exactTraceQuery incrementalKernel
 
-def artifact : Option ExperimentSpec := exactActionRunResult.toOption.bind PlanResult.artifact
+def artifact : Option Plan := exactActionRunResult.toOption.bind PlanResult.artifact
 
 private theorem artifact_isSome : artifact.isSome = true := by
   native_decide
@@ -655,6 +655,6 @@ private theorem exactActionRunResult_isSome : exactActionRunResult.toOption.isSo
 def exactActionRun : PlanResult :=
   exactActionRunResult.toOption.get exactActionRunResult_isSome
 
-def compiledArtifact : ExperimentSpec := artifact.get artifact_isSome
+def compiledArtifact : Plan := artifact.get artifact_isSome
 
 end Umpire.Examples.Switch

@@ -6,11 +6,11 @@ import Umpire.Space.Compiler
 
 namespace Umpire
 
-/-- One canonical ExperimentSpec and the pure model coverage already present in its selected trace. -/
+/-- One canonical Plan and the pure model coverage already present in its selected trace. -/
 structure ExplorationCandidate where
   private mk ::
   identity : ArtifactChecksum
-  experimentSpec : ExperimentSpec
+  plan : Plan
   canonicalBytes : String
   coverage : CandidateCoverage
   deriving BEq, DecidableEq, Repr
@@ -54,15 +54,15 @@ private def candidateLe (left right : ExplorationCandidate) : Bool :=
 
 private def candidateOfExperimentSpec
     (request : CheckedExplorationRequest LawStatement)
-    (spec : ExperimentSpec) : Except ExplorationError ExplorationCandidate := do
+    (spec : Plan) : Except ExplorationError ExplorationCandidate := do
   let coverage ← match CandidateCoverage.ofExperimentSpec? spec with
     | some coverage => pure coverage
     | none => throw (candidateError request .invalidCandidateArtifact
         spec.artifactChecksum.render [spec.plan.queryDefinitionId])
   pure {
     identity := spec.expectedArtifactChecksum
-    experimentSpec := spec
-    canonicalBytes := canonicalExperimentSpecBytes spec
+    plan := spec
+    canonicalBytes := canonicalPlanBytes spec
     coverage
   }
 
@@ -87,14 +87,14 @@ def checkCandidateCount
 
 private def checkedCandidates
     (request : CheckedExplorationRequest LawStatement)
-    (specs : List ExperimentSpec) : Except ExplorationError (List ExplorationCandidate) := do
+    (specs : List Plan) : Except ExplorationError (List ExplorationCandidate) := do
   checkCandidateCount request specs.length
   let candidates ← specs.mapM (candidateOfExperimentSpec request)
   let orderedCandidates := candidates.mergeSort candidateLe
   match firstDuplicateCandidate orderedCandidates with
   | some duplicate =>
       throw (candidateError request .duplicateCandidateIdentity duplicate.identity.render
-        [duplicate.experimentSpec.plan.queryDefinitionId])
+        [duplicate.plan.plan.queryDefinitionId])
   | none => pure ()
   if orderedCandidates.length != request.space.pointCount then
     throw (candidateError request .candidateCountMismatch
@@ -104,13 +104,13 @@ private def checkedCandidates
 /-- Validate a compiler-sized Artifact list and project only its canonical identity order. -/
 def validateCompiledSpecs
     (request : CheckedExplorationRequest LawStatement)
-    (specs : List ExperimentSpec) : Except ExplorationError (List ArtifactChecksum) := do
+    (specs : List Plan) : Except ExplorationError (List ArtifactChecksum) := do
   let candidates ← checkedCandidates request specs
   pure (candidates.map ExplorationCandidate.identity)
 
 private def fromCompiledSpecs
     (request : CheckedExplorationRequest LawStatement)
-    (specs : List ExperimentSpec) : Except ExplorationError CandidateUniverse := do
+    (specs : List Plan) : Except ExplorationError CandidateUniverse := do
   let orderedCandidates ← checkedCandidates request specs
   pure {
     spaceDefinitionId := request.space.id
@@ -120,7 +120,7 @@ private def fromCompiledSpecs
 
 private def fromCompilationResult
     (request : CheckedExplorationRequest LawStatement)
-    (result : Except SpaceCompilationError (List ExperimentSpec)) :
+    (result : Except SpaceCompilationError (List Plan)) :
     Except ExplorationError CandidateUniverse :=
   match result with
   | .error error => .error (compilationError error)

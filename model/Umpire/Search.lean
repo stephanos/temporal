@@ -662,14 +662,14 @@ def canonicalPlanningReceiptJson (result : PlanningResult) : String :=
 
 structure PlanResult where
   result : PlanningResult
-  artifact : Option ExperimentSpec
+  artifact : Option Plan
   instrumentation : SearchStats
   deriving BEq, DecidableEq, Repr
 
 /-- Typed failures that can reject a complete planning and Artifact-intent request. -/
 inductive PlanningRequestError where
   | knownGap (error : KnownGapError)
-  | artifactIntent (error : ArtifactIntentError)
+  | planRequest (error : ArtifactIntentError)
   deriving BEq, DecidableEq, Repr
 
 private instance : Inhabited (PlannerPull State Candidate) := ⟨.complete⟩
@@ -1134,16 +1134,16 @@ def search
 /--
 Plan through the unchanged target kernel, then project checked Artifact intent if one is selected.
 -/
-def planWithArtifactIntent
+def searchWithPlanRequest
     (query : CheckedQuery LawStatement)
     (kernel : SearchView query.target)
-    (intent : ArtifactIntent) : Except PlanningRequestError PlanResult := do
-  intent.validateFor query |>.mapError PlanningRequestError.artifactIntent
+    (intent : PlanRequest) : Except PlanningRequestError PlanResult := do
+  intent.validateFor query |>.mapError PlanningRequestError.planRequest
   let run ← search query kernel |>.mapError PlanningRequestError.knownGap
   let artifact ← match run.artifact with
     | none => pure none
     | some spec => some <$> (spec.withArtifactIntent query intent |>.mapError
-        PlanningRequestError.artifactIntent)
+        PlanningRequestError.planRequest)
   pure { run with artifact }
 
 end Umpire

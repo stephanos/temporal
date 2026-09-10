@@ -14,7 +14,7 @@ import (
 
 func TestDecodeExperimentAcceptsCanonicalSwitchAndNexusV2(t *testing.T) {
 	for _, relative := range []string{
-		"model/Umpire/Artifact/Tests/Fixtures/SwitchExperimentSpecV2.json",
+		"model/Umpire/Artifact/Tests/Fixtures/SwitchPlanV2.json",
 		"model/Umpire/Examples/Fixtures/SwitchCompiledArtifact.json",
 		"model/Umpire/Examples/testdata/switch-experiment-spec.json",
 		"model/Temporal/Feature/Nexus/Fixtures/OperationsAsyncStartArtifact.json",
@@ -25,7 +25,7 @@ func TestDecodeExperimentAcceptsCanonicalSwitchAndNexusV2(t *testing.T) {
 			document, err := DecodeExperiment(readRepositoryFile(t, relative))
 			require.NoError(t, err)
 			require.Equal(t, ExperimentFormat, document.FormatVersion)
-			require.Equal(t, DrivePlanFormat, document.Plan.FormatVersion)
+			require.Equal(t, PlanStepsFormat, document.Plan.FormatVersion)
 		})
 	}
 }
@@ -90,7 +90,7 @@ func TestExpectedChecksumsUseExactPrettyPreimages(t *testing.T) {
 	require.NoError(t, json.Unmarshal(readRepositoryFile(t,
 		"model/Umpire/Examples/testdata/switch-experiment-spec.json"), &document))
 
-	planChecksum, err := ExpectedDrivePlanChecksum(document.Plan)
+	planChecksum, err := ExpectedPlanStepsChecksum(document.Plan)
 	require.NoError(t, err)
 	require.Equal(t,
 		"sha256:2036ce80c7c93dd19d0acb03fa6ebceb678f909684ca17bac413f254954ddbbd",
@@ -193,7 +193,7 @@ func TestDecodeExperimentVerifiesNestedAndOuterChecksumsIndependently(t *testing
 			[]byte("sha256:2caad30cc09a2006600917465e4f9223529afbba7acf734c3a629b0e3723ba7d"), 1), want: "nested"},
 		"outer": {encoded: bytes.Replace(canonical,
 			[]byte("sha256:9fa327849c3d0a48290bb16fec73a00be4cc1b6234862ee506a547f29b6d3b12"),
-			[]byte("sha256:d7fc19d59b8b97922df475596bc45022e97c19d051149aa0c9aabe82dff18179"), 1), want: "ExperimentSpec"},
+			[]byte("sha256:d7fc19d59b8b97922df475596bc45022e97c19d051149aa0c9aabe82dff18179"), 1), want: "Plan"},
 	}
 	for name, test := range cases {
 		t.Run(name, func(t *testing.T) {

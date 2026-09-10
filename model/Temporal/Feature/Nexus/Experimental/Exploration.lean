@@ -67,7 +67,7 @@ private def request
     (prepared : PreparedExploration)
     (policy : ExplorationPolicy)
     (limit : Nat)
-    (pinned : List ExperimentSpec := []) : ExplorationRequest LawStatement := {
+    (pinned : List Plan := []) : ExplorationRequest LawStatement := {
   space := prepared.space
   policy
   limit := { value := limit, unit := .experimentSpecs }
@@ -78,7 +78,7 @@ private def request
 def run
     (policy : ExplorationPolicy)
     (limit : Nat)
-    (pinned : List ExperimentSpec := []) : Except NexusExplorationError ExplorationResult := do
+    (pinned : List Plan := []) : Except NexusExplorationError ExplorationResult := do
   let prepared ← prepare.mapError NexusExplorationError.preparation
   (explore (request prepared policy limit pinned) prepared.kernel).mapError
     NexusExplorationError.exploration
@@ -87,7 +87,7 @@ def run
 def startSession
     (policy : ExplorationPolicy)
     (limit : Nat)
-    (pinned : List ExperimentSpec := []) : Except NexusExplorationError ExplorationSession := do
+    (pinned : List Plan := []) : Except NexusExplorationError ExplorationSession := do
   let prepared ← prepare.mapError NexusExplorationError.preparation
   (beginSession (request prepared policy limit pinned) prepared.kernel).mapError
     NexusExplorationError.exploration

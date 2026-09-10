@@ -40,14 +40,14 @@ Pinned candidates precede and disappear from the exploratory partition without c
 Limit; only the complete eligible partition reports exhaustion.
 -/
 example :
-    let pinned := firstCandidate.experimentSpec
+    let pinned := firstCandidate.plan
     let limited := (run .exhaustive 2).toOption
     let retained := (run .exhaustive 3 [pinned]).toOption
     limited.any (fun result =>
         result.pinned.isEmpty && result.exploratory.length == 2 &&
           result.completion == .limitReached) &&
       retained.any (fun result =>
-        result.pinned.map (fun candidate => candidate.experimentSpec.artifactChecksum) ==
+        result.pinned.map (fun candidate => candidate.plan.artifactChecksum) ==
             [firstCandidate.identity] &&
           result.exploratory.length == 3 &&
           !(result.exploratory.map ExplorationCandidate.identity).contains
@@ -66,9 +66,9 @@ private def firstStep := session.next.get (by native_decide)
 
 private def firstOutstanding : ExplorationSession := firstStep.2
 
-private def firstBinding := firstCandidate.experimentSpec.artifactBinding
+private def firstBinding := firstCandidate.plan.artifactBinding
 
-private def secondBinding := secondCandidate.experimentSpec.artifactBinding
+private def secondBinding := secondCandidate.plan.artifactBinding
 
 /-!
 The Nexus session preserves its fixed order, permits only one outstanding candidate, and advances

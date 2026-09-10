@@ -321,8 +321,8 @@ private def expectedSwitchArtifactJson : String :=
 
 /-! Planning both layouts preserves the committed canonical artifact bytes. -/
 example : [
-    earlyRun.toOption.bind (fun run => run.artifact.map canonicalExperimentSpecBytes),
-    relocatedRun.toOption.bind (fun run => run.artifact.map canonicalExperimentSpecBytes)
+    earlyRun.toOption.bind (fun run => run.artifact.map canonicalPlanBytes),
+    relocatedRun.toOption.bind (fun run => run.artifact.map canonicalPlanBytes)
   ] = [some expectedSwitchArtifactJson, some expectedSwitchArtifactJson] := by
   native_decide
 

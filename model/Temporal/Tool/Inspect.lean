@@ -18,7 +18,7 @@ inductive InspectionFailure where
 
 structure Scenario where
   id : String
-  result : Except InspectionFailure ExperimentSpec
+  result : Except InspectionFailure Plan
 
 abbrev ScenarioRegistry : Type := List Scenario
 
@@ -60,7 +60,7 @@ def runInspector (registry : ScenarioRegistry) (args : List String) : InspectorR
           | .error failure => failed failure
           | .ok spec => {
               status := 0
-              stdout := canonicalExperimentSpecBytes spec
+              stdout := canonicalPlanBytes spec
               stderr := ""
             }
   | _ => {

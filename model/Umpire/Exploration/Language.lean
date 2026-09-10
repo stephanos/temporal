@@ -4,10 +4,10 @@ import Umpire.Exploration.Core
 
 namespace Umpire
 
-/-- One pinned canonical ExperimentSpec checked independently of the exploration budget. -/
-structure PinnedExperimentSpec where
+/-- One pinned canonical Plan checked independently of the exploration budget. -/
+structure PinnedPlan where
   private mk ::
-  experimentSpec : ExperimentSpec
+  plan : Plan
   canonicalBytes : String
   deriving BEq, DecidableEq, Repr
 
@@ -20,7 +20,7 @@ structure CheckedExplorationRequest (LawStatement : Law → Prop) where
   space : CheckedExperimentSpace LawStatement
   policy : ExplorationPolicy
   limit : Limit
-  pinned : List PinnedExperimentSpec
+  pinned : List PinnedPlan
 
 private def quote (value : String) : String := Lean.Json.compress (.str value)
 
@@ -71,10 +71,10 @@ private def coordinateKnown
       step > 0 && step ≤ maximumTraceSteps space &&
         position > 0 && position ≤ maximumObservationPositions space
 
-private def pinnedLe (left right : ExperimentSpec) : Bool :=
+private def pinnedLe (left right : Plan) : Bool :=
   decide (left.artifactChecksum.render ≤ right.artifactChecksum.render)
 
-private def firstDuplicatePinned : List ExperimentSpec → Option ExperimentSpec
+private def firstDuplicatePinned : List Plan → Option Plan
   | first :: second :: rest =>
       if first.artifactChecksum == second.artifactChecksum then
         some second
@@ -84,7 +84,7 @@ private def firstDuplicatePinned : List ExperimentSpec → Option ExperimentSpec
 
 private def pinnedMatchesContract
     (space : CheckedExperimentSpace LawStatement)
-    (spec : ExperimentSpec) : Bool :=
+    (spec : Plan) : Bool :=
   spec.plan.targetDefinitionId == space.baseQuery.target.id &&
     spec.plan.targetBehaviorFingerprint == space.baseQuery.target.behaviorFingerprint &&
     spec.plan.kernelDefinitionId == space.baseQuery.target.machine.metadata.id &&
@@ -92,7 +92,7 @@ private def pinnedMatchesContract
 
 private def checkPinned
     (request : ExplorationRequest LawStatement) :
-    Except ExplorationError (List PinnedExperimentSpec) := do
+    Except ExplorationError (List PinnedPlan) := do
   let pinned := request.pinned.mergeSort pinnedLe
   match firstDuplicatePinned pinned with
   | some duplicate =>
@@ -112,14 +112,14 @@ private def checkPinned
         request.space.baseQuery.target.machine.metadata.id
       ])
     checked := checked ++ [{
-      experimentSpec := spec
-      canonicalBytes := canonicalExperimentSpecBytes spec
+      plan := spec
+      canonicalBytes := canonicalPlanBytes spec
     }]
   pure checked
 
 private def checkExplorationRequestInputs
     (request : ExplorationRequest LawStatement) :
-    Except ExplorationError (List PinnedExperimentSpec) := do
+    Except ExplorationError (List PinnedPlan) := do
   if request.space.pointCount == 0 then
     throw (requestError request .emptySpace "0")
   if request.space.pointCount > SpaceLimits.v1.maximumPoints then

@@ -132,7 +132,7 @@ private def propertyJson (property : PortableProperty) : CanonicalJson :=
         .string definitionId.value))
   ]
 
-private def drivePlanContentFields (plan : DrivePlan) : List (String × CanonicalJson) := [
+private def drivePlanContentFields (plan : Plan.Steps) : List (String × CanonicalJson) := [
   ("formatVersion", .string plan.formatVersion),
   ("queryDefinitionId", .string plan.queryDefinitionId.value),
   ("queryBehaviorFingerprint", .string plan.queryBehaviorFingerprint.render),
@@ -164,27 +164,27 @@ private def drivePlanContentFields (plan : DrivePlan) : List (String × Canonica
   ("provenance", artifactProvenanceJson plan.provenance)
 ]
 
-private def drivePlanContentJson (plan : DrivePlan) : CanonicalJson :=
+private def drivePlanContentJson (plan : Plan.Steps) : CanonicalJson :=
   .object (drivePlanContentFields plan)
 
-def DrivePlan.expectedArtifactChecksum (plan : DrivePlan) : ArtifactChecksum :=
+def Plan.Steps.expectedArtifactChecksum (plan : Plan.Steps) : ArtifactChecksum :=
   drivePlanChecksumOf (drivePlanContentJson plan).prettyBytes
 
-def DrivePlan.hasValidArtifactChecksum (plan : DrivePlan) : Bool :=
+def Plan.Steps.hasValidArtifactChecksum (plan : Plan.Steps) : Bool :=
   plan.artifactChecksum == plan.expectedArtifactChecksum
 
-private def sealedDrivePlanJson (plan : DrivePlan) : CanonicalJson :=
+private def sealedDrivePlanJson (plan : Plan.Steps) : CanonicalJson :=
   .object (drivePlanContentFields plan ++ [
     ("artifactChecksum", .string plan.artifactChecksum.render)
   ])
 
-def canonicalDrivePlanJson (plan : DrivePlan) : String :=
+def canonicalDrivePlanJson (plan : Plan.Steps) : String :=
   (sealedDrivePlanJson plan).pretty
 
-def canonicalDrivePlanBytes (plan : DrivePlan) : String :=
+def canonicalDrivePlanBytes (plan : Plan.Steps) : String :=
   (sealedDrivePlanJson plan).prettyBytes
 
-private def experimentSpecContentFields (spec : ExperimentSpec) : List (String × CanonicalJson) := [
+private def planContentFields (spec : Plan) : List (String × CanonicalJson) := [
   ("formatVersion", .string spec.formatVersion),
   ("queryBehaviorFingerprint", .string spec.queryBehaviorFingerprint.render),
   ("plan", sealedDrivePlanJson spec.plan),
@@ -195,24 +195,24 @@ private def experimentSpecContentFields (spec : ExperimentSpec) : List (String �
   ("provenance", artifactProvenanceJson spec.provenance)
 ]
 
-private def experimentSpecContentJson (spec : ExperimentSpec) : CanonicalJson :=
-  .object (experimentSpecContentFields spec)
+private def planContentJson (spec : Plan) : CanonicalJson :=
+  .object (planContentFields spec)
 
-def ExperimentSpec.expectedArtifactChecksum (spec : ExperimentSpec) : ArtifactChecksum :=
-  experimentSpecChecksumOf (experimentSpecContentJson spec).prettyBytes
+def Plan.expectedArtifactChecksum (spec : Plan) : ArtifactChecksum :=
+  planChecksumOf (planContentJson spec).prettyBytes
 
-def ExperimentSpec.hasValidArtifactChecksum (spec : ExperimentSpec) : Bool :=
+def Plan.hasValidArtifactChecksum (spec : Plan) : Bool :=
   spec.artifactChecksum == spec.expectedArtifactChecksum
 
-private def sealedExperimentSpecJson (spec : ExperimentSpec) : CanonicalJson :=
-  .object (experimentSpecContentFields spec ++ [
+private def sealedExperimentSpecJson (spec : Plan) : CanonicalJson :=
+  .object (planContentFields spec ++ [
     ("artifactChecksum", .string spec.artifactChecksum.render)
   ])
 
-def canonicalExperimentSpecJson (spec : ExperimentSpec) : String :=
+def canonicalExperimentSpecJson (spec : Plan) : String :=
   (sealedExperimentSpecJson spec).pretty
 
-def canonicalExperimentSpecBytes (spec : ExperimentSpec) : String :=
+def canonicalPlanBytes (spec : Plan) : String :=
   (sealedExperimentSpecJson spec).prettyBytes
 
 end Umpire

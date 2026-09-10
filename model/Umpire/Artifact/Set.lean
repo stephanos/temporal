@@ -28,7 +28,7 @@ structure ArtifactSetManifest where
 
 /-- The retained documents that may form one exact executable, execution, or evaluation closure. -/
 structure ArtifactSet where
-  experiment : ExperimentSpec
+  experiment : Plan
   runtimeConfiguration : RuntimeConfiguration
   experimentRun : Option ExperimentRun := none
   rawEvidence : Option RawEvidence := none
@@ -77,7 +77,7 @@ private def setOperandValid : SetupOperand → Bool
   | .role definitionId => definitionId.isNamespaced
   | .value value => setModelValueValid value
 
-private def drivePlanCollectionsValid (plan : DrivePlan) : Bool :=
+private def drivePlanCollectionsValid (plan : Plan.Steps) : Bool :=
   plan.bindings == plan.bindings.mergeSort setBindingLe &&
     plan.bindings.all fun binding =>
       binding.role.isNamespaced && setModelValueValid binding.value &&
@@ -95,8 +95,8 @@ private def drivePlanCollectionsValid (plan : DrivePlan) : Bool :=
         occurrence.authoredDefinitionId.all DefinitionId.isNamespaced &&
     plan.checkpoints.all fun checkpoint => checkpoint.observations.all setModelValueValid
 
-/-- Check the complete canonical DrivePlan transport retained inside an Artifact set. -/
-def DrivePlan.isValidTransport (plan : DrivePlan) : Bool :=
+/-- Check the complete canonical Plan.Steps transport retained inside an Artifact set. -/
+def Plan.Steps.isValidTransport (plan : Plan.Steps) : Bool :=
   plan.formatVersion == "umpire-drive-plan/v2" && plan.queryDefinitionId.isNamespaced &&
     plan.behaviorDefinitionId.isNamespaced && plan.targetDefinitionId.isNamespaced &&
     plan.kernelDefinitionId.isNamespaced && drivePlanCollectionsValid plan &&
@@ -109,8 +109,8 @@ private def experimentPropertiesValid (properties : List PortableProperty) : Boo
       property.definitionId.isNamespaced &&
         setDefinitionIdsValid property.requirementDefinitionIds
 
-/-- Check the complete canonical ExperimentSpec transport retained inside an Artifact set. -/
-def ExperimentSpec.isValidTransport (experiment : ExperimentSpec) : Bool :=
+/-- Check the complete canonical Plan transport retained inside an Artifact set. -/
+def Plan.isValidTransport (experiment : Plan) : Bool :=
   experiment.formatVersion == "umpire-experiment/v2" && experiment.plan.isValidTransport &&
     experiment.queryBehaviorFingerprint == experiment.plan.queryBehaviorFingerprint &&
     experimentPropertiesValid experiment.properties &&

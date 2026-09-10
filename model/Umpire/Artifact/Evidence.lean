@@ -279,7 +279,7 @@ private def RawEvidenceSource.asRunClosure (source : RawEvidenceSource) : Source
 /-- Close RawEvidence over exact inputs, source summaries, and attempted control receipts. -/
 def RawEvidence.closes
     (evidence : RawEvidence)
-    (experiment : ExperimentSpec)
+    (experiment : Plan)
     (configuration : RuntimeConfiguration)
     (run : ExperimentRun) : Bool :=
   run.closes experiment configuration && evidence.experiment == experiment.artifactBinding &&

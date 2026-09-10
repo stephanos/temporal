@@ -21,7 +21,7 @@ structure ExplorationRequest (LawStatement : Law → Prop) where
   space : CheckedExperimentSpace LawStatement
   policy : ExplorationPolicy
   limit : Limit
-  pinned : List ExperimentSpec := []
+  pinned : List Plan := []
 
 /-- Stable categories for bounded Exploration request failures. -/
 inductive ExplorationErrorKind where

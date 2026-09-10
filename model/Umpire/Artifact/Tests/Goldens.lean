@@ -22,7 +22,7 @@ def retainedArtifactFormatManifest : List String := [
 
 /-- Canonical bytes for the one authoritative positive fixture in each retained family. -/
 def retainedArtifactCanonicalBytes : List String := [
-  canonicalExperimentSpecBytes compiledArtifact,
+  canonicalPlanBytes compiledArtifact,
   canonicalRuntimeConfigurationBytes runtimeConfiguration,
   canonicalExperimentRunBytes experimentRun,
   canonicalRawEvidenceBytes rawEvidence,
@@ -31,7 +31,7 @@ def retainedArtifactCanonicalBytes : List String := [
 ]
 
 example : retainedArtifactCanonicalBytes = [
-    include_str "Fixtures/SwitchExperimentSpecV2.json",
+    include_str "Fixtures/SwitchPlanV2.json",
     include_str "Fixtures/RuntimeConfigurationV2.json",
     include_str "Fixtures/ExperimentRunV2.json",
     include_str "Fixtures/RawEvidenceV2.json",

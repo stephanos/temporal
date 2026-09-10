@@ -54,10 +54,10 @@ private def reorderedKernel : SearchView reordered.baseQuery.target :=
     Umpire.Examples.Switch.incrementalKernel
 
 private def compiledProjection
-    (result : Except SpaceCompilationError (List ExperimentSpec)) :
+    (result : Except SpaceCompilationError (List Plan)) :
     Option (List (DefinitionId × String)) :=
   result.toOption.map fun specs => specs.map fun spec =>
-    (spec.plan.queryDefinitionId, canonicalExperimentSpecBytes spec)
+    (spec.plan.queryDefinitionId, canonicalPlanBytes spec)
 
 /-!
 Reordering axes, choices, faults, and goals preserves canonical point order and complete bytes.

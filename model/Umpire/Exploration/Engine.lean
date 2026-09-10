@@ -25,7 +25,7 @@ structure ExplorationOmission where
 /-- The exact pinned-first partitions and truthful outcomes from one bounded Exploration. -/
 structure ExplorationResult where
   private mk ::
-  pinned : List PinnedExperimentSpec
+  pinned : List PinnedPlan
   exploratory : List ExplorationCandidate
   omissions : List ExplorationOmission
   coordinateOutcome : Option GuidedSelectionOutcome
@@ -34,7 +34,7 @@ structure ExplorationResult where
 
 /-- Project selected semantic identities in their pinned-then-exploratory execution order. -/
 def ExplorationResult.selectedIdentities (result : ExplorationResult) : List ArtifactChecksum :=
-  result.pinned.map (fun pinned => pinned.experimentSpec.artifactChecksum) ++
+  result.pinned.map (fun pinned => pinned.plan.artifactChecksum) ++
     result.exploratory.map ExplorationCandidate.identity
 
 private def pinnedPrecedenceOmissions
@@ -59,7 +59,7 @@ private def pinnedSelectsCoordinate
     (request : CheckedExplorationRequest LawStatement)
     (coordinate : ModelCoordinate) : Bool :=
   request.pinned.any fun pinned =>
-    (CandidateCoverage.ofExperimentSpec? pinned.experimentSpec).any fun coverage =>
+    (CandidateCoverage.ofExperimentSpec? pinned.plan).any fun coverage =>
       coverage.modelCoordinates.contains coordinate
 
 private def exploreChecked

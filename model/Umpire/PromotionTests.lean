@@ -41,7 +41,7 @@ private def baseAnchor : PromotionBaseAnchor := {
   kernelDefinitionId := exactActionQuery.target.machine.metadata.id
   kernelBehaviorFingerprint := exactActionQuery.target.behaviorFingerprint
   plannerRun := exactActionRun
-  experimentSpec := compiledArtifact
+  plan := compiledArtifact
   expectedTrace := targetOwnedCountOneTrace
   selectionReason := .satisfyingWitness
 }
@@ -124,7 +124,7 @@ example :
     compileWith.toOption.map (fun compiled =>
         compiled.sourceBytes == sourceExpectation.bytes &&
           compiled.sourceSha256 == sourceExpectation.sha256 &&
-          compiled.baseExperimentSpecChecksum == compiledArtifact.artifactChecksum) = some true := by
+          compiled.basePlanChecksum == compiledArtifact.artifactChecksum) = some true := by
   native_decide
 
 private def otherId : DefinitionId :=
@@ -133,8 +133,8 @@ private def otherId : DefinitionId :=
 private def otherFingerprint : BehaviorFingerprint :=
   behaviorFingerprintOf "umpire/promotion/changed"
 
-private def changedExperimentSpec : ExperimentSpec := {
-  compiledArtifact with artifactChecksum := experimentSpecChecksumOf "changed"
+private def changedExperimentSpec : Plan := {
+  compiledArtifact with artifactChecksum := planChecksumOf "changed"
 }
 
 private def nonFoundBehavior : CheckedScenario := {
@@ -168,7 +168,7 @@ private def nonFoundAnchor : Option PromotionBaseAnchor := do
     kernelDefinitionId := nonFoundQuery.target.machine.metadata.id
     kernelBehaviorFingerprint := nonFoundQuery.target.behaviorFingerprint
     plannerRun
-    experimentSpec := compiledArtifact
+    plan := compiledArtifact
     expectedTrace := targetOwnedCountOneTrace
     selectionReason := .satisfyingWitness
   }
@@ -215,7 +215,7 @@ example :
         baseAnchor with selectionReason := .behaviorSelection
       })),
       errorKindOf (compileWith (anchor := {
-        baseAnchor with experimentSpec := changedExperimentSpec
+        baseAnchor with plan := changedExperimentSpec
       })),
       errorKindOf (compileWith (spec := {
         sourceSpec with sourceLocation := { sourceSpec.sourceLocation with path := "" }

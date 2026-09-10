@@ -82,7 +82,7 @@ example : runDiscoveryExplain (Temporal.Tool.NexusDiscovery.checkInventory [])
   native_decide
 
 def expectedSwitchStdout : String :=
-  canonicalExperimentSpecBytes _root_.Umpire.Examples.Switch.compiledArtifact
+  canonicalPlanBytes _root_.Umpire.Examples.Switch.compiledArtifact
 
 def repeatedSwitchOutput : List String :=
   (List.range 2).map fun _ => (runCli [_root_.Umpire.Examples.Switch.exactActionQueryId.value]).stdout
@@ -97,7 +97,7 @@ example : runCli [_root_.Umpire.Examples.Switch.exactActionQueryId.value] = {
 example : repeatedSwitchOutput = List.replicate 2 expectedSwitchStdout := by
   native_decide
 
-def operationScenarios : List (String × Option ExperimentSpec) := [
+def operationScenarios : List (String × Option Plan) := [
   (Temporal.Feature.Nexus.Operations.AsyncStart.query.id.value,
     Temporal.Feature.Nexus.Operations.AsyncStart.run.toOption.bind PlanResult.artifact),
   (Temporal.Feature.Nexus.Operations.Cancellation.query.id.value,
@@ -110,7 +110,7 @@ def operationScenarios : List (String × Option ExperimentSpec) := [
 example :
     operationScenarios.map (fun (id, artifact) =>
       (runCli [id]).status == 0 &&
-        (runCli [id]).stdout == (artifact.map canonicalExperimentSpecBytes |>.getD "")) =
+        (runCli [id]).stdout == (artifact.map canonicalPlanBytes |>.getD "")) =
       [true, true, true] := by
   native_decide
 

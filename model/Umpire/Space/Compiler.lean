@@ -61,7 +61,7 @@ structure LoweredSpacePoint
   assignment : List ModelValue
   query : CheckedQuery LawStatement
   targetEq : query.target = space.baseQuery.target
-  intent : ArtifactIntent
+  intent : PlanRequest
 
 private def quote (value : String) : String := Lean.Json.compress (.str value)
 
@@ -371,10 +371,10 @@ private def planPoint
     (point : LoweredSpacePoint space) : Except SpaceCompilationError PlanResult := do
   let pointKernel : SearchView point.query.target :=
     Eq.mpr (congrArg SearchView point.targetEq) kernel
-  match planWithArtifactIntent point.query pointKernel point.intent with
+  match searchWithPlanRequest point.query pointKernel point.intent with
     | .ok run => pure run
     | .error (.knownGap error) => throw (knownGapCompilationError space point.id error)
-    | .error (.artifactIntent error) =>
+    | .error (.planRequest error) =>
         throw (compilationError space .intentCheckFailed point.id error.kind.name
           error.relatedDefinitionIds)
 
@@ -396,8 +396,8 @@ Append one planned point only after it selected a unique Artifact; failure expos
 def appendPlannerRun
     (space : CheckedExperimentSpace LawStatement)
     (pointId : DefinitionId)
-    (specs : List ExperimentSpec)
-    (run : PlanResult) : Except SpaceCompilationError (List ExperimentSpec) := do
+    (specs : List Plan)
+    (run : PlanResult) : Except SpaceCompilationError (List Plan) := do
   match run.result.outcome with
   | .invalid error =>
       throw (compilationError space .plannerInvalid pointId error.offendingValue
@@ -425,7 +425,7 @@ end SpaceCompiler.Internal
 def compileBatch
     (space : CheckedExperimentSpace LawStatement)
     (kernel : SearchView space.baseQuery.target) :
-    Except SpaceCompilationError (List ExperimentSpec) := do
+    Except SpaceCompilationError (List Plan) := do
   let assignments := cartesianAssignments space.axes
   let mut pointIds := []
   let mut specs := []

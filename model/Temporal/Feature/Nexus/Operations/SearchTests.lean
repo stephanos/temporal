@@ -267,10 +267,10 @@ theorem queryIdentitiesAndFingerprintsRemainShared :
 
 /-! Golden artifacts preserve canonical bytes for every ordinary lifecycle consumer. -/
 theorem artifactsRetainCanonicalBytes : [
-    AsyncStart.run.toOption.bind (fun run => run.artifact.map canonicalExperimentSpecBytes),
-    Cancellation.run.toOption.bind (fun run => run.artifact.map canonicalExperimentSpecBytes),
+    AsyncStart.run.toOption.bind (fun run => run.artifact.map canonicalPlanBytes),
+    Cancellation.run.toOption.bind (fun run => run.artifact.map canonicalPlanBytes),
     SuccessfulCompletion.run.toOption.bind (fun run => run.artifact.map
-      canonicalExperimentSpecBytes)
+      canonicalPlanBytes)
   ] = [
     some expectedAsyncStartArtifactJson,
     some expectedCancellationArtifactJson,

@@ -9,11 +9,11 @@ open Umpire
 private def unpinnedCandidates : List ExplorationCandidate :=
   (engineRun .exhaustive 4).toOption.map ExplorationResult.exploratory |>.getD []
 
-private def firstPinned : ExperimentSpec :=
-  (unpinnedCandidates.head?.get (by native_decide)).experimentSpec
+private def firstPinned : Plan :=
+  (unpinnedCandidates.head?.get (by native_decide)).plan
 
-private def secondPinned : ExperimentSpec :=
-  ((unpinnedCandidates.drop 1).head?.get (by native_decide)).experimentSpec
+private def secondPinned : Plan :=
+  ((unpinnedCandidates.drop 1).head?.get (by native_decide)).plan
 
 /-!
 Pinned Regressions precede exploratory candidates, consume no exploration budget, and explain each
@@ -64,7 +64,7 @@ example :
 
 /-! Guided outcome includes coordinate coverage supplied by the selected pinned partition. -/
 example :
-    let pinned := unpinnedCandidates.map ExplorationCandidate.experimentSpec
+    let pinned := unpinnedCandidates.map ExplorationCandidate.plan
     let result :=
       (engineRun (.uncoveredCoordinate (.fact 1 1)) 1 pinned).toOption
     result.any (fun result =>
@@ -78,7 +78,7 @@ example :
     let result := (engineRun .exhaustive 2 [secondPinned, firstPinned]).toOption
     result.any (fun result =>
       let pinnedIdentities := result.pinned.map fun pinned =>
-        pinned.experimentSpec.artifactChecksum
+        pinned.plan.artifactChecksum
       pinnedIdentities == pinnedIdentities.mergeSort
           (fun left right => decide (left.render ≤ right.render)) &&
         result.exploratory.length == 2 && result.omissions.length == 2 &&

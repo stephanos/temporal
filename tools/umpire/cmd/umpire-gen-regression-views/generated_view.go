@@ -33,7 +33,7 @@ type generatedViewRecord struct {
 }
 
 type experimentEnvelope = artifactv2.Experiment
-type experimentPlan = artifactv2.DrivePlan
+type experimentPlan = artifactv2.PlanSteps
 type experimentProperty = artifactv2.Property
 type experimentProvenance = artifactv2.Provenance
 type experimentSource = artifactv2.SourceLocation
@@ -97,7 +97,7 @@ func extractGeneratedView(entry manifestEntry, encoded []byte, modelRoot string)
 func decodeExperiment(encoded []byte) (experimentEnvelope, error) {
 	document, err := artifactv2.DecodeExperiment(encoded)
 	if err != nil {
-		return experimentEnvelope{}, fmt.Errorf("decode canonical ExperimentSpec JSON: %w", err)
+		return experimentEnvelope{}, fmt.Errorf("decode canonical Plan JSON: %w", err)
 	}
 	return document, nil
 }

@@ -43,7 +43,7 @@ example : goldenDrivePlanChecksum.render =
     "sha256:3f40af6e8524a50317e0e116514d05bae3a2aef6cdbf47acc8faf071e24a9a9b" := by
   native_decide
 
-example : experimentSpecChecksumOf goldenCanonicalArtifact != goldenDrivePlanChecksum := by
+example : planChecksumOf goldenCanonicalArtifact != goldenDrivePlanChecksum := by
   native_decide
 
 example : (behaviorFingerprintOf goldenCanonicalArtifact).render !=

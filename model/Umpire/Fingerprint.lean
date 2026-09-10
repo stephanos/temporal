@@ -184,12 +184,12 @@ private def derive (domain canonicalContent : String) : String :=
 def behaviorFingerprintOf (canonicalContent : String) : BehaviorFingerprint :=
   ⟨derive "umpire.behavior-fingerprint/v1" canonicalContent⟩
 
-/-- Checksum an already-canonical DrivePlan object without its checksum field. -/
+/-- Checksum an already-canonical Plan.Steps object without its checksum field. -/
 def drivePlanChecksumOf (canonicalContent : String) : ArtifactChecksum :=
   ⟨derive "umpire.drive-plan/v2" canonicalContent⟩
 
-/-- Checksum an already-canonical ExperimentSpec object without its checksum field. -/
-def experimentSpecChecksumOf (canonicalContent : String) : ArtifactChecksum :=
+/-- Checksum an already-canonical Plan object without its checksum field. -/
+def planChecksumOf (canonicalContent : String) : ArtifactChecksum :=
   ⟨derive "umpire.experiment-spec/v2" canonicalContent⟩
 
 /-- Checksum an exact pretty Artifact provenance object. -/

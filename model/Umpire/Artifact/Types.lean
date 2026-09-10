@@ -36,7 +36,7 @@ structure ArtifactProvenance where
 The runtime-facing request remains explicit model data. Requested actions and model-owned outcomes
 are deliberately separate, and no field claims that runtime execution or evidence occurred.
 -/
-structure DrivePlan where
+structure Plan.Steps where
   formatVersion : String
   artifactChecksum : ArtifactChecksum
   queryDefinitionId : DefinitionId
@@ -68,18 +68,18 @@ structure DrivePlan where
   deriving BEq, DecidableEq, Repr
 
 /-- The portable envelope consumed by later execution, checking, replay, and generation work. -/
-structure ExperimentSpec where
+structure Plan where
   formatVersion : String
   artifactChecksum : ArtifactChecksum
   queryBehaviorFingerprint : BehaviorFingerprint
-  plan : DrivePlan
+  plan : Plan.Steps
   properties : List PortableProperty
   observationRequirementDefinitionIds : List DefinitionId
   provenance : ArtifactProvenance
   deriving BEq, DecidableEq, Repr
 
 /-- One requested fault bound to the authored occurrence and action it intends to affect. -/
-structure ArtifactFaultIntent where
+structure RequestedFault where
   definitionId : DefinitionId
   occurrenceDefinitionId : DefinitionId
   actionDefinitionId : DefinitionId
@@ -87,7 +87,7 @@ structure ArtifactFaultIntent where
   deriving BEq, DecidableEq, Repr
 
 /-- Checked semantic intent that may be projected onto one planner-selected Artifact. -/
-structure ArtifactIntent where
+structure PlanRequest where
   queryDefinitionId : DefinitionId
   queryBehaviorFingerprint : BehaviorFingerprint
   behaviorDefinitionId : DefinitionId
@@ -98,7 +98,7 @@ structure ArtifactIntent where
   kernelBehaviorFingerprint : BehaviorFingerprint
   selectedChoices : List ModelValue
   selectedVariants : List RoleBinding
-  requestedFaults : List ArtifactFaultIntent
+  requestedFaults : List RequestedFault
   additionalCapabilityRequirementDefinitionIds : List DefinitionId
   deriving BEq, DecidableEq, Repr
 

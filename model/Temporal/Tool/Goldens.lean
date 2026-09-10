@@ -56,21 +56,21 @@ private def nexusOperationGoldens : IO (List Golden) := do
     goldens := goldens.push
       { path := artifactPath,
         contents := ← required artifactPath
-          (run.toOption.bind fun planned => planned.artifact.map canonicalExperimentSpecBytes) }
+          (run.toOption.bind fun planned => planned.artifact.map canonicalPlanBytes) }
   pure goldens.toList
 
 private def switchExampleGoldens : List Golden := [
   { path := "Umpire/Examples/Fixtures/SwitchExactActionQuery.json",
     contents := Json.prettyBytes (canonicalQueryJson Umpire.Examples.Switch.exactActionQuery) },
   { path := "Umpire/Examples/Fixtures/SwitchCompiledArtifact.json",
-    contents := canonicalExperimentSpecBytes Umpire.Examples.Switch.compiledArtifact }
+    contents := canonicalPlanBytes Umpire.Examples.Switch.compiledArtifact }
 ]
 
 private def artifactCodecGoldens : IO (List Golden) := do
   let manifestPath := "Umpire/Artifact/Tests/Fixtures/ArtifactSetV2.json"
   pure [
-  { path := "Umpire/Artifact/Tests/Fixtures/SwitchExperimentSpecV2.json",
-    contents := canonicalExperimentSpecBytes Umpire.Examples.Switch.compiledArtifact },
+  { path := "Umpire/Artifact/Tests/Fixtures/SwitchPlanV2.json",
+    contents := canonicalPlanBytes Umpire.Examples.Switch.compiledArtifact },
   { path := "Umpire/Artifact/Tests/Fixtures/RuntimeConfigurationV2.json",
     contents := canonicalRuntimeConfigurationBytes Umpire.Artifact.Tests.Runtime.runtimeConfiguration },
   { path := "Umpire/Artifact/Tests/Fixtures/ExperimentRunV2.json",

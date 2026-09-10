@@ -9,7 +9,7 @@ namespace Umpire
 structure ArtifactIntentDeclaration where
   selectedChoices : List ModelValue
   selectedVariants : List RoleBinding
-  requestedFaults : List ArtifactFaultIntent
+  requestedFaults : List RequestedFault
   additionalCapabilityRequirementDefinitionIds : List DefinitionId
   deriving BEq, DecidableEq, Repr
 
@@ -21,7 +21,7 @@ private def bindingLe (left right : RoleBinding) : Bool :=
   decide (left.role.value < right.role.value) ||
     (left.role == right.role && valueLe left.value right.value)
 
-private def faultLe (left right : ArtifactFaultIntent) : Bool :=
+private def faultLe (left right : RequestedFault) : Bool :=
   decide (left.definitionId.value ≤ right.definitionId.value)
 
 private def idLe (left right : DefinitionId) : Bool :=
@@ -30,8 +30,8 @@ private def idLe (left right : DefinitionId) : Bool :=
 /-- Check and canonically bind one intent declaration to the exact Query closure it targets. -/
 def checkArtifactIntent
     (query : CheckedQuery LawStatement)
-    (declaration : ArtifactIntentDeclaration) : Except ArtifactIntentError ArtifactIntent := do
-  let intent : ArtifactIntent := {
+    (declaration : ArtifactIntentDeclaration) : Except ArtifactIntentError PlanRequest := do
+  let intent : PlanRequest := {
     queryDefinitionId := query.id
     queryBehaviorFingerprint := query.behaviorFingerprint
     behaviorDefinitionId := query.behavior.id
@@ -45,7 +45,7 @@ def checkArtifactIntent
     requestedFaults := declaration.requestedFaults.mergeSort faultLe
     additionalCapabilityRequirementDefinitionIds :=
       (declaration.additionalCapabilityRequirementDefinitionIds ++
-        declaration.requestedFaults.map ArtifactFaultIntent.capabilityDefinitionId).mergeSort idLe
+        declaration.requestedFaults.map RequestedFault.capabilityDefinitionId).mergeSort idLe
   }
   intent.validateFor query
   pure {
