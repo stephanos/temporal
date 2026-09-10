@@ -9,8 +9,8 @@ satisfies: [R3, R7, R8, R9]
 Adapt the generic D3 projection kernel to correlated Temporal Nexus history. The adapter establishes cancellation confirmation and either terminal resolution from declared causal evidence while leaving SDK transport in `common/testing/testpilot/temporal/worker` and all generic Testpilot packages free of Nexus semantics.
 
 **Size:** M
-**Files:** `model/Temporal/System/Nexus/{Core,ImplementationLink,ImplementationLinkTests}.lean`, focused Nexus evidence modules/tests under `model/Temporal/System/Nexus/`, `model/Temporal/ImplementationLinkTests/Nexus.lean`, `model/Temporal/Feature/Nexus3/{Nexus,Tests}.lean`
-**Touches:** [model/Temporal/System/Nexus/**, model/Temporal/ImplementationLinkTests/Nexus.lean, model/Temporal/Feature/Nexus3/Nexus.lean, model/Temporal/Feature/Nexus3/Tests.lean]
+**Files:** `model/Temporal/System/Nexus/{Core,ImplementationLink,ImplementationLinkTests}.lean`, focused Nexus evidence modules/tests under `model/Temporal/System/Nexus/`, `model/TemporalModelTests/Nexus/ImplementationLink.lean`, `model/Temporal/Feature/Nexus/Success/{Nexus,Tests}.lean`
+**Touches:** [model/Temporal/System/Nexus/**, model/TemporalModelTests/Nexus/ImplementationLink.lean, model/Temporal/Feature/Nexus/Success/Model.lean, model/Temporal/Feature/Nexus/Success/Tests.lean]
 
 ### Approach
 - Declare correlation over namespace, workflow/run, scheduled-event/operation, and request identity using stable source-event identity and causal references.
@@ -22,8 +22,8 @@ Adapt the generic D3 projection kernel to correlated Temporal Nexus history. The
 **Required** (read before coding):
 - `model/Temporal/System/Nexus/ImplementationLink.lean` — sole System/Feature correspondence leaf
 - `model/Temporal/System/Nexus/Core.lean` — checked System lifecycle
-- `model/Temporal/Feature/Nexus3/Nexus.lean` — feature Target authority
-- `model/Temporal/Feature/Nexus3/Testpilot.lean:246-300` — existing checked success producer gate
+- `model/Temporal/Feature/Nexus/Success/Model.lean` — feature Target authority
+- `model/Temporal/Feature/Nexus/Success/Producer.lean:246-300` — existing checked success producer gate
 - `common/testing/testpilot/temporal/worker/callback.go` — SDK-only Nexus mechanics boundary
 
 ### Key context

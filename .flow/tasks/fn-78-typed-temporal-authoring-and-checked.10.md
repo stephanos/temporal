@@ -4,12 +4,12 @@ satisfies: [R6, R7, R8, R9]
 # fn-78-typed-temporal-authoring-and-checked.10 Qualify generic scoped authoring without cancellation
 
 ## Description
-Deliver reusable bounded temporal syntax and non-cancellation qualification formerly bundled in task 8. Resolve typed trigger/response, correlation key, clock, natural bound, endpoint, and source-local diagnostics through the same checked clauses. Use generic multi-operation fixtures for scoped Contract parity, and preserve the existing Nexus success Prepare/Run integration. Update model/README.md, model/ARCHITECTURE.md, model/Umpire/ARCHITECTURE.md and Nexus3/Integration.md to describe the generic delivery and explicitly deferred cancellation. Do not implement a cancellation Target, evidence adapter, capability, or Case.
+Deliver reusable bounded temporal syntax and non-cancellation qualification formerly bundled in task 8. Resolve typed trigger/response, correlation key, clock, natural bound, endpoint, and source-local diagnostics through the same checked clauses. Use generic multi-operation fixtures for scoped Contract parity, and preserve the existing Nexus success Prepare/Run integration. Update model/README.md, model/ARCHITECTURE.md, model/Umpire/ARCHITECTURE.md and Nexus/Success/Integration.md to describe the generic delivery and explicitly deferred cancellation. Do not implement a cancellation Target, evidence adapter, capability, or Case.
 
 Repair stale regression-gate build-file references exposed by required validation against the current Lean build configuration.
 
 **Size:** L
-**Touches:** [Makefile, common/testing/testpilot/scoped_facade_test.go, common/testing/testpilot/testdata/case-runtime-conformance/scoped.json, model/Umpire/Case/Tests/**, model/Umpire/Property/**, model/Temporal/Feature/Nexus3/**, model/Temporal/Tool/Testpilot.lean, tests/testcore/testpilot/**, tests/testpilot_async_nexus_case_test.go, model/README.md, model/ARCHITECTURE.md, model/Umpire/ARCHITECTURE.md]
+**Touches:** [Makefile, common/testing/testpilot/scoped_facade_test.go, common/testing/testpilot/testdata/case-runtime-conformance/scoped.json, model/Umpire/Case/Tests/**, model/Umpire/Property/**, model/Temporal/Feature/Nexus/Success/**, model/Temporal/Tool/Testpilot.lean, tests/testcore/testpilot/**, tests/testpilot_async_nexus_case_test.go, model/README.md, model/ARCHITECTURE.md, model/Umpire/ARCHITECTURE.md]
 
 ## Acceptance
 - [ ] Readable bounded temporal notation and typed constructors have identical checked canonical meaning and fingerprints.
