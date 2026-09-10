@@ -74,3 +74,16 @@ Sequencing notes for whoever picks it up, from the survey done before stopping:
 - Commits:
 - Tests:
 - PRs:
+
+### R2 debt carried out of .2 and .3 (found by the spec completion review)
+
+Both tasks shipped without three renames the R2 table names. They are byte-neutral (type names and
+type parameters, not canonical JSON keys), so they need no golden regeneration:
+
+- `ModelTrace` -> `Trace` and `ModelCoordinate` -> `TraceAddress` (`model/Umpire/Core.lean:154,163`).
+  `ModelTraceStep` also retires into Step per the table, but `Umpire.Step` is already the
+  transition result, so it wants a namespaced name such as `Trace.Step`.
+- The `Fact` type parameter is still spelled `Observation` on `Machine`, `MaybeVocabulary`,
+  `Vocabulary`, `ModelTrace` and `FiniteMachine` (`Core.lean:163,304,346,369,391`,
+  `Model/Table.lean:194`). Renaming it collides textually with the `Umpire.Observation` module
+  namespace that R5 (task .6) owns, so sequence it with that task or rename binders only.
