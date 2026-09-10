@@ -1,5 +1,5 @@
 import Umpire.Property.Scoped
-import Umpire.Observation.Evaluation.Scoped
+import Umpire.Case.Projection.Scoped
 import Umpire.Shared.Test
 
 /-! Non-cancellation, multi-operation finite Target with labeled self-loops. -/
