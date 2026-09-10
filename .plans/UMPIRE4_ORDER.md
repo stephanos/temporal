@@ -156,10 +156,10 @@ rejects them. The spec rewrites `UMPIRE4_SPEC.md` under GOV-02, and its task .10
 reconciliation, so it will edit this document.
 
 **Only fn-80 still blocks this spec; fn-77, fn-81, and fn-67 have all closed.** The dependency is
-byte conflict, not semantics: fn-80 tasks .4 to .8 edited `Umpire/Target`, `Umpire/Property`,
-`Umpire/Query`, `Umpire/Space`, and `Umpire/Case`, so no area of this spec could land while those
-were open. All four have now shipped, and fn-80's only remaining task is the superseded `.5` record,
-so this spec's byte conflict is cleared. fn-81's deletion of the legacy Go trees and their Makefile blocks shrinks this spec's Go
+byte conflict, not semantics: fn-80 tasks .4, .6, .7 and .8 edited `Umpire/Target`,
+`Umpire/Property`, `Umpire/Query`, `Umpire/Space`, and `Umpire/Case`, so no area of this spec could
+land while those were open. All four have now shipped, and fn-80's only remaining task is the
+superseded `.5` record, so this spec's byte conflict is cleared. fn-81's deletion of the legacy Go trees and their Makefile blocks shrinks this spec's Go
 surface considerably. One seam fn-67 left deliberately for this spec to sweep: it added
 "Semantic fingerprints — the Behavior Fingerprint named above is the same value —" to reconcile a
 pre-existing loose term against the UMPIRE4_SPEC one; collapse that to a single term and delete the
@@ -256,9 +256,12 @@ leases, recovery, and publication stay outside Testpilot and Umpire.
   unexplained inventory loss and no axiom beyond `propext`/`Classical.choice`/`Quot.sound`; 204 of
   208 frozen fixtures are byte-identical. `go vet ./...` is clean at zero and Go lint added nothing
   to the inherited 1,284; the two `lint-model` findings this spec introduced were fixed, leaving 169
-  in generated `Temporal/API` only. Known Gap `bounded-completion-is-model-only` remains: the scoped
-  bounded-response clause is proven portable in Lean and Go but does not run on the real Driver,
-  because no Program emits a `ScopedEvidence` Observation. Reviews from task `.9` onward ran on the
+  in generated `Temporal/API` only. It closed out with Known Gap
+  `bounded-completion-is-model-only`: the scoped bounded-response clause was proven portable in Lean
+  and Go but did not run on the real Driver, because no Program emitted a `ScopedEvidence`
+  Observation. fn-80 `.14` supplied that Program-declared source and ran the clause live, so the gap
+  is gone; the typed-nexus Case now carries `completion-identity-is-unrecorded` in its place, which
+  names what recorded history still does not say. Reviews from task `.9` onward ran on the
   same-family `claude` backend after both cross-family bridges ran out of budget.
 - [fn-76](../.flow/specs/fn-76-make-lean-semantic-inventory-consume.md): moved shared outcome and
   Known Gap contracts to semantic owners and enforced inventory dependency direction. Preserved
@@ -316,8 +319,11 @@ and bounded cleanup cancellation behavior stays in scope.
 
 **fn-70 — Scheduled canary proof of concept:** deferred by user decision; it was previously
 queued after fn-78 as the second model consumer. Resume on an explicit user request. Nothing in
-the delivery queue depends on it. On resume it inherits fn-80's Profile derivation and its
-`BindCase`/`RunCase` helpers, so a second model consumer no longer hand-writes a `ProfileSpec`.
+the delivery queue depends on it. On resume it inherits fn-80's `temporal.DeriveProfile`, so a
+second model consumer no longer hand-writes a `ProfileSpec`. The bind-and-run helpers landed as
+test-local `bindCase`/`runCase` in `tests/testpilot_run_case_test.go` rather than exported from the
+fixture package, because exporting them would compile the whole server into a Quick command; a
+canary test under `tests/` reuses them where they are.
 
 [Spec](../.flow/specs/fn-70-scheduled-canary-proof-of-concept-as-a.md).
 Retained scope on resume: fn-78 first, with fn-68, fn-71, fn-72, and fn-73 as transitive
