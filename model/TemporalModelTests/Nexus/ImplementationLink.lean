@@ -85,7 +85,7 @@ example : Temporal.Feature.Nexus.Lifecycle.target.machine.authoritativeStep
 private def id (value : String) : DefinitionId := DefinitionId.of value
 
 def source : SourceLocation := {
-  path := "Temporal/ImplementationLinkTests/Nexus.lean"
+  path := "TemporalModelTests/Nexus/ImplementationLink.lean"
   line := 1
   column := 1
   provenance := "lean-test"
