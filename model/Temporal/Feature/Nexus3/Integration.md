@@ -98,10 +98,11 @@ same operation. This requires operation-scoped counting before evaluation; merel
 response while continuing to count global steps is incorrect. Nexus2's global transition unit
 cannot be reused unchanged for this meaning.
 
-Ordinary timed Contract rules use elapsed milliseconds. The generic version-one scoped Contract
-capability now counts admitted operation transitions, with checked lowering through
-`Umpire.Case.Scoped.lower`; there is no implicit conversion to milliseconds, instruction counts,
-or raw Run Event counts. That generic capability is delivered, and non-cancellation typed fixtures
+A classic Contract rule declares exactly one horizon bound: elapsed milliseconds, or a count of the
+Run Events the rule itself evaluated since its last transition. The generic version-one scoped
+Contract capability counts admitted operation transitions instead, with checked lowering through
+`Umpire.Case.Scoped.lower`. The three units are separate: there is no implicit conversion between
+them, and a scoped clause never falls back to either of the classic bounds. That generic capability is delivered, and non-cancellation typed fixtures
 qualify it through public Prepare/Run. Only its cancellation-specific use is still unsupported:
 cancellation progress rejects at Case production because the scheduled-only cancellation Target,
 its evidence adapter, and the operation capability remain deferred to fn-79. A Known Gap must not

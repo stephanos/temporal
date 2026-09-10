@@ -16,9 +16,15 @@ multiple fields from the same event. Separate scalar captures cannot preserve th
 descriptor is bound exactly during preparation, and the same capture-count and byte ceilings bound
 the immutable runtime copy.
 
-Pending liveness expires before transitions at the first recorded elapsed coordinate greater than
-or equal to its Run-relative horizon. A witness must be strictly earlier. Early completed closure
-is inconclusive. `RunEvent.execution_incomplete` takes effect before expiry and remains effective
+A bounded-liveness rule declares exactly one horizon bound. `elapsed_milliseconds` expires before
+transitions at the first recorded elapsed coordinate greater than or equal to its Run-relative
+horizon; it depends on the clock of the host that produced the Run. `rule_events` expires after
+exactly that many Run Events the rule evaluated since its last transition, which is a count of what
+the Run recorded and nothing else. One helper owns the counter, and the online `Evaluator.Observe`
+path and the offline `PreparedContract.Evaluate` path both reach it through that helper, so neither
+can tick on its own terms. Counting continues while execution is incomplete and expiry stays
+suppressed there; a rule that has reached a terminal state stops counting. A witness must be
+strictly earlier than expiry. Early completed closure is inconclusive. `RunEvent.execution_incomplete` takes effect before expiry and remains effective
 for later events, even when they omit the flag. Pending rules then stay inconclusive past their
 horizon; time and late witnesses cannot manufacture a result.
 

@@ -16,6 +16,16 @@ or effect. Scheduling, recording, expression admission, and Contract evaluation 
 package. The reusable Temporal Driver lives in `common/testing/testpilot/temporal`; functional
 fixtures and provisioning remain under `tests/`. Drivers cannot replace the prepared Contract evaluator.
 
+A Case may ask its Driver for a deliberate outage. `InjectFault` is a declared instruction like any
+other: the Profile must authorize it, the role it names must be a task-queue role, and the Run
+records one `FAULT_INJECTED` event per realized outage. Nothing about a requested fault is evidence
+until that event exists.
+
+A Case may also declare where its operation-scoped evidence comes from. A response projection can
+lift a projected value into a declared `ScopedEvidence` Observation through guarded rules, which is
+the only way a Program supplies the evidence a `Contract.scoped` capability reads. A capability that
+admits no evidence answers inconclusive: silence is not a satisfied property.
+
 ## Preparation diagnostics
 
 `NewCatalog`, `Prepare`, and `ProfileSpec.BindingFingerprint` return errors discoverable as

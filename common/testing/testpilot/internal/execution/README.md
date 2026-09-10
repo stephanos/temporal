@@ -76,7 +76,9 @@ diagnostics retain at most min(`MaxRunEvents`, 64) entries of bounded text.
 `Run` supplies the fixed terminal disposition and cleanup outcome to `close`. The recorder seals
 ordinary stores under the same barrier, appends a centrally timed closure fact when capacity permits,
 and calls Monitor.Close exactly once, even with cancelled context or recording failure. A previously
-proved violation survives failure. Returned Run, Verdict and callback inputs have independent mutable
+proved violation survives failure. A close that fails is returned to the caller beside the Run and
+the Verdict, which are still produced and unchanged: the recorder's failure is reported, never
+swallowed, and never allowed to revise a conclusion the Contract already reached. Returned Run, Verdict and callback inputs have independent mutable
 protobuf storage; callers own their snapshots. Repeated closure rejects without transferring again.
 `Run` owns actual Driver/bridge closure, cleanup, drain and quarantine, and reports failures
 accepted before this boundary before calling it. After closure, publication calls only the injected
@@ -135,6 +137,14 @@ declared fields. Mutating those results cannot mutate the plan or a subsequent v
 StartNexusOperation cannot declare VALUE because its SDK future is an opaque runtime handle; Await
 validates the target result against its declared VALUE type. Finish and every RespondNexus variant
 retain their evaluated result expressions and may declare their typed VALUE.
+
+A response projection sink may be a `ScopedEvidence` lift rather than a Slot or an Observation. Its
+rules are tried in declaration order and the first whose guard resolves builds the evidence value
+from paths read out of the projected value; a value no rule claims emits nothing. Admission requires
+the sink to be the exact declared `ScopedEvidence` Observation, every bound path to read a scalar the
+portable evidence domain admits, and the lift to sit on one instruction of a controller entrypoint
+whose declared source no other instruction claims — a source ordinal is the position in that source's
+own dense stream, and only the emitting instruction can count it.
 
 `EvaluateInput` evaluates the compiled guard first and skips the input on false. Its callback must
 read only that activation's previously validated, immutable field/Slot snapshots, returning nil for

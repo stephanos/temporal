@@ -245,6 +245,13 @@ horizon.
   directly for Targets whose authority is specified independently. Both paths MUST produce an
   `Umpire.AuthoredTarget` and pass it to `Umpire.checkTarget`. `Umpire.FiniteMachine` MUST NOT
   introduce another Behavior, Property, Query, Scenario, or macro language.
+- **AUT-09 — Macro-derived finite domains.** *(drafted by fn-80, pending human approval under
+  GOV-02.)* AUT-08's "author-provided" includes a domain a command macro derives from the author's
+  own declarations: the ordered domains, encoders and enumerators an authoring macro elaborates from
+  the constructors of an enum-like inductive the author named are author-provided, not inferred. The
+  macro MUST derive them from declarations the author wrote and MUST NOT admit a spelling the author
+  did not declare. Completeness, domain membership and Action executability MUST still be discharged
+  against the same authorities AUT-08 names; a macro MUST NOT weaken or assume them.
 
 ## Planning, Limits, and Artifacts
 
@@ -408,6 +415,25 @@ horizon.
   registration, or target effect. Temporal validation MUST compare binding references, not merely
   their currently resolved text. The Driver MUST obtain physical resource names solely from the
   immutable Profile binding snapshot.
+- **EVD-20 — Driver-realized faults.** *(drafted by fn-80, pending human approval under GOV-02.)*
+  A deliberate outage MUST be a declared instruction of the version-one instruction table, MUST name
+  a role the Program declares, and MUST be authorized by a Profile capability like any other
+  instruction. A Driver MUST record exactly one `RUN_EVENT_KIND_FAULT_INJECTED` Run Event per
+  realized instruction, carrying the role and the kind it realized, and MUST record none for an
+  instruction it refused or could not complete; such an instruction is a failed outcome plus a
+  Driver invariant diagnostic. A requested fault proves nothing until the Run carries that event
+  for it. A Program that declares a fault MUST hold resources no other Run shares, so an outage it
+  asks for cannot reach another Run.
+- **EVD-21 — Horizon units.** *(drafted by fn-80, pending human approval under GOV-02.)*
+  A bounded-liveness rule MUST declare exactly one positive horizon bound. `rule_events` counts the
+  Run Events the rule evaluated since its last transition and is the bound a conclusion may rest on,
+  because it counts only what the Run recorded. `elapsed_milliseconds` remains admitted and is
+  host-clock dependent, so a Case whose verdict must not depend on the machine that produced it
+  SHOULD declare the event count instead; EVD-07 already forbids resting a conclusion on
+  synchronized wall clocks. Both bounds MUST be ticked through one shared helper, so the online and
+  the offline evaluation of the same Run answer identically. Counting MUST continue while execution
+  is incomplete with the expiry conclusion suppressed, and MUST stop once the rule is terminal. An
+  operation-scoped clause counts admitted operation transitions and MUST NOT fall back to either.
 
 ## Exploration, replay, and promotion
 
