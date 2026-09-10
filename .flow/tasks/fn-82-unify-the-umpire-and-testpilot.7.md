@@ -47,9 +47,18 @@ the duplicate testpilot mirror leaves `Temporal.API`.
 - [ ] Go exposes `Opcode`/`Opcodes`, `Kind`, `CapabilityBridge` inside `execution`, and `Profile`; `go test -tags test_dep ./common/testing/testpilot/... ./tests/testcore/testpilot/...` passes
 - [ ] The sixteen regenerated Case fixtures pass `umpire-check-case-runtime-conformance`, `umpire-check-testpilot-protocol`, `umpire-check-testpilot-authoring`, `make buf-breaking`, and the tagged live selector with unchanged Verdicts; `umpire-correlated-fixtures` replaces `umpire-scoped-fixtures` in the lakefile, Makefile, and generator; the gate rejects `runtimePrefix` and `deliberatelyClosed` and passes on the tree
 ## Done summary
-TBD
+Renamed the Testpilot protocol's scoped vocabulary to Correlated, split Umpire provenance into its own module, replaced the Case capability enum with Opcode, and gave the Lean-API generator a package filter.
 
+- Proto: `Scoped*` -> `Correlated*`, `ScopedClause` -> `CorrelatedRule`, `ScopedEndpoint` -> `TraceEnding{UNSPECIFIED,PARTIAL,FINAL}`, `ContractHorizonDefinition` -> `ContractDeadline` on field `deadline`, `Contract.correlated`, `CorrelatedTransition.state`, `Instruction.await_instruction`. `outcome.proto` folded into `instruction.proto` and removed from the Makefile proto list, `model/lakefile.lean`, and both Go proto-list tests. No field numbers changed; `make buf-breaking` is clean.
+- Lean: `model/Umpire/Provenance.lean` is new and carries `KnownGapKind`, `DefinitionKind`, `DefinitionBinding`, `KnownGap`, `CorrelatedRuleBinding`, `Metadata`, `producerData` and `make`; its JSON key is `correlatedRules`. `model/Umpire/Case.lean` is now a four-import facade. `Testpilot.Authoring` gained `correlatedRule`, `correlated` and `contract` under `namespace Contract`, with `deadline`/`deadlineEvents` and `awaitInstruction`.
+- Go: the facade exposes `Opcode` (`InstructionCapability`) and the verification package speaks `deadline` throughout. `umpire-gen-lean-api` gained `--skip-package`, wired to skip `temporal.server.api.testpilot.v1` so the hand-authored Testpilot Lean tree is no longer shadowed by a generated one; `dropSkippedPackages` errors on a package the descriptor set does not contain.
+- Gate: added the retired compounds for every rename plus a `SCOPED_*` prefix rule, which I proved fires by planting `SCOPED_ENDPOINT_RUNTIME_PREFIX` into `correlated.json` and watching the gate name it. `vocabulary_test.go` now pins the Go limit-unit list against `LimitUnit` in `model/Umpire/Core.lean`.
+
+Review round 2 returned SHIP with three P3 findings, all applied in b8e0284bdc: the `horizon` spellings left in the Go verification package and in `tests/testcore/testpilot`, the now-dead `model/Umpire/Case/ProtoJSON.lean` negative fixture (and its test case), and a garbled sentence in `temporal/profile.go`. Completing the review's path respelling surfaced a real defect the linter caught: `endpoint_agrees` had its binder renamed to `ending` while the body still said `endpoint`, which Lean silently auto-bound as an implicit. Fixed; `Umpire.Lint` is clean again.
+
+Carried debt: `model/Umpire/Core.lean`'s finite-domain record still names its model-fact type parameter `Observation`. `tools/umpire/CONTEXT.md` still carries a `**Horizon**` glossary entry whose `_Avoid_` list now names the live term `Deadline`; that document is task .10's to rewrite.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 31b179ac67, 5dd0d12328, 6a5df0c8df, bd92e4e447, b8e0284bdc
+- Tests: make umpire-check-regression, make lint-model, make lint-code GOLANGCI_LINT_FIX=false, make buf-breaking, CC=/usr/bin/cc go vet -tags test_dep ./..., CC=/usr/bin/cc go test -tags test_dep -count=1 ./common/testing/testpilot/... ./tools/umpire/... ./tests/testcore/testpilot/..., go run ./tools/planindex
 - PRs:
+stage: plan-sync - skipped(config: planSync.enabled != true)
