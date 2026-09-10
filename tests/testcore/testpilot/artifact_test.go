@@ -320,7 +320,7 @@ func TestLeanAsyncNexusCasePreparesWithCheckedNexus3Provenance(t *testing.T) {
 	}, definitionIDs(provenance.Definitions))
 	require.Equal(t, []string{
 		"CASE_DEFINITION_KIND_TARGET",
-		"CASE_DEFINITION_KIND_BEHAVIOR",
+		"CASE_DEFINITION_KIND_SCENARIO",
 		"CASE_DEFINITION_KIND_QUERY",
 		"CASE_DEFINITION_KIND_PROPERTY",
 	}, definitionKinds(provenance.Definitions))

@@ -150,6 +150,7 @@ def defaultPolicy : Policy := {
   testConsumerModules := #[
     `Temporal.Lint,
     `Temporal.Tool.GenerateTestsIOTestsMain,
+    `Temporal.Tool.Goldens,
     `Umpire.Lint
   ],
   semanticRoots := #[

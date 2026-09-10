@@ -56,22 +56,22 @@ inductive Fact where
   | succeeded
   deriving BEq, DecidableEq, Repr
 
-def startedResult : TransitionResult State Outcome Fact := {
-  modelOutcome := .started
-  resultingState := .started
-  observations := [.started]
+def startedResult : Step State Outcome Fact := {
+  outcome := .started
+  state := .started
+  facts := [.started]
 }
 
-def canceledResult : TransitionResult State Outcome Fact := {
-  modelOutcome := .canceled
-  resultingState := .canceled
-  observations := [.canceled]
+def canceledResult : Step State Outcome Fact := {
+  outcome := .canceled
+  state := .canceled
+  facts := [.canceled]
 }
 
-def succeededResult : TransitionResult State Outcome Fact := {
-  modelOutcome := .succeeded
-  resultingState := .succeeded
-  observations := [.succeeded]
+def succeededResult : Step State Outcome Fact := {
+  outcome := .succeeded
+  state := .succeeded
+  facts := [.succeeded]
 }
 
 /-- The complete authored model. Catalog order is the explicit deterministic planning order. -/
@@ -133,7 +133,7 @@ private def hasExactTransition
     (rows : List (FiniteTransitionRow State Action Outcome Fact))
     (source : State)
     (action : Action)
-    (result : TransitionResult State Outcome Fact) : Bool :=
+    (result : Step State Outcome Fact) : Bool :=
   rows.any fun row =>
     row.source == source && row.action == action && row.results == [result]
 
@@ -141,19 +141,19 @@ private def hasExactTransition
 def satisfiesLifecycleRequirement
     (rows : List (FiniteTransitionRow State Action Outcome Fact)) : Bool :=
   hasExactTransition rows .started .cancel {
-    modelOutcome := .canceled
-    resultingState := .canceled
-    observations := [.canceled]
+    outcome := .canceled
+    state := .canceled
+    facts := [.canceled]
   } &&
   hasExactTransition rows .scheduled .start {
-    modelOutcome := .started
-    resultingState := .started
-    observations := [.started]
+    outcome := .started
+    state := .started
+    facts := [.started]
   } &&
   hasExactTransition rows .started .reportSuccess {
-    modelOutcome := .succeeded
-    resultingState := .succeeded
-    observations := [.succeeded]
+    outcome := .succeeded
+    state := .succeeded
+    facts := [.succeeded]
   }
 
 /-- The capability law binds provider metadata to the independently authored lifecycle requirement. -/
@@ -194,7 +194,7 @@ def lifecycleProvider : CapabilityProvider LawStatement := {
       canonicalBehavior := "temporal-nexus2-basic-lifecycle-report-success/v1" },
     { definitionId := transitionOutcomeId, kind := .outcome,
       canonicalBehavior := "temporal-nexus2-basic-lifecycle-outcome/v1" },
-    { definitionId := lifecycleFactId, kind := .observation,
+    { definitionId := lifecycleFactId, kind := .fact,
       canonicalBehavior := "temporal-nexus2-basic-lifecycle-fact/v1" }
   ]
   lawWitnesses := [{ definition := lifecycleLaw, proof := lifecycleLawProof }]
@@ -202,7 +202,7 @@ def lifecycleProvider : CapabilityProvider LawStatement := {
 
 def definitions : List DefinitionMetadata := [
   metadata targetId .target "temporal-nexus2-basic-lifecycle-target/v1",
-  metadata kernelId .kernel "temporal-nexus2-basic-lifecycle-kernel/v1",
+  metadata kernelId .machine "temporal-nexus2-basic-lifecycle-kernel/v1",
   metadata lifecycleCapabilityId .capability "temporal-nexus2-basic-lifecycle/v1",
   metadata lifecycleProviderId .provider "temporal-nexus2-basic-lifecycle-provider/v1",
   metadata lifecycleLawId .law lifecycleLaw.body,
@@ -211,7 +211,7 @@ def definitions : List DefinitionMetadata := [
   metadata cancelActionId .action "temporal-nexus2-basic-lifecycle-cancel/v1",
   metadata reportSuccessActionId .action "temporal-nexus2-basic-lifecycle-report-success/v1",
   metadata transitionOutcomeId .outcome "temporal-nexus2-basic-lifecycle-outcome/v1",
-  metadata lifecycleFactId .observation "temporal-nexus2-basic-lifecycle-fact/v1"
+  metadata lifecycleFactId .fact "temporal-nexus2-basic-lifecycle-fact/v1"
 ]
 
 def targetDefinition : FiniteTargetDefinition := {

@@ -199,7 +199,7 @@ regenerate in this documentation-only task.
 
 | Managed identity | Source/output SHA-256 |
 | --- | --- |
-| Switch Experiment `switch.query.exact-action`, artifact checksum `sha256:ac3fde668a79ff0433106e28f8ec9579a36f9f7d0ab09845d01b563289b560fd` | source `model/Umpire/Examples/testdata/switch-experiment-spec.json`: `55f0961e02761ed6ec3718ef6d22fa4284e70e729dba7f21fabb0a3e8798bac0` |
+| Switch Experiment `switch.query.exact-action`, artifact checksum `sha256:fa701806df655fa9cebc9b7d94f36b74176890c96bb535c7a3f6629afe64ff41` | source `model/Umpire/Examples/testdata/switch-experiment-spec.json`: `806e3f1b35e1665717b1ef6a05226d9fcf38cdee3d87ffae84334df24c49e7c2` |
 | Switch generated Go view | `8a23cdc22e53a2a9d2860522d3f1353898336f5758830ffb32d42948125300a5` |
 | Switch generated Markdown view | `33608f42fccedfe34309a429506778f0272eeec8acd2a136b8310c8936e46747` |
 | Testpilot conformance tree, six named classes / 12 files | SHA-256 of its sorted `sha256sum` manifest: `7809b6829822c097dccb76a07e4abdba233f3a552cb553c5ab019ca1888dddb9` |

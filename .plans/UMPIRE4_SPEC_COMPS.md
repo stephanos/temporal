@@ -204,8 +204,8 @@ catalog.
 The ordinary and expert Target authoring routes are:
 
 ```text
-FiniteMachine ──▶ kernelAvailability + authoredPlanning ────────────┐
-direct TransitionKernel + explicit planning availability ──────────┤
+FiniteMachine ──▶ machineAvailability + authoredPlanning ────────────┐
+direct Machine + explicit planning availability ──────────┤
 TargetDefinition + TargetComposition ───────────────────────────────┴──▶ AuthoredTarget
                                                                            │
                                                                            ▼

@@ -28,13 +28,13 @@
       },
       {
         "id": "test.kernel.transition",
-        "kind": "kernel",
+        "kind": "machine",
         "version": 1,
         "canonicalBehavior": "contract-v1"
       },
       {
         "id": "test.observation.completed",
-        "kind": "observation",
+        "kind": "fact",
         "version": 1,
         "canonicalBehavior": "contract-v1"
       },
@@ -276,7 +276,7 @@
     },
     {
       "id": "test.kernel.transition",
-      "kind": "kernel",
+      "kind": "machine",
       "version": 1,
       "canonicalBehavior": "contract-v1",
       "source": {
@@ -289,7 +289,7 @@
     },
     {
       "id": "test.observation.completed",
-      "kind": "observation",
+      "kind": "fact",
       "version": 1,
       "canonicalBehavior": "contract-v1",
       "source": {
@@ -379,7 +379,7 @@
       "documentation": ""
     }
   ],
-  "kernelMetadata": {
+  "machineMetadata": {
     "id": "test.kernel.transition",
     "version": 1,
     "source": {

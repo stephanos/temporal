@@ -117,7 +117,7 @@ def literalClosure : List EvidenceClosureFact := [{
 
 /-- Literal canonical mapping identity; no expected Evidence Link field is implementation-derived. -/
 def literalMappingDigest : String :=
-  "sha256:9b8e76bdd7b9490b3bd28c70820bf78e4648a65378eba1dbcff74bbe5306d40a"
+  "sha256:ec942a617aebb787e4368e03da04969489eaafd847b2fc291556cf5cf0edcd8b"
 
 def literalEvidenceLink
     (mappingDigest : String)
@@ -162,17 +162,17 @@ def literalEvidenceLinks (mappingDigest : String) : List EvidenceLink := [
       field := { kind := id "test.evidence.kind.event", field := id "test.evidence.field.role" }
       evidence := .retained "step"
     }] "test.action.start/meaning-v1",
-  literalEvidenceLink mappingDigest (.modelOutcome 1)
+  literalEvidenceLink mappingDigest (.outcome 1)
     (id "test.evidence.record.step-1") (id "test.rule.step-outcome") [] literalStepOrdering [{
       field := { kind := id "test.evidence.kind.event", field := id "test.evidence.field.role" }
       evidence := .retained "step"
     }] "test.outcome.success/meaning-v1",
-  literalEvidenceLink mappingDigest (.resultingState 1)
+  literalEvidenceLink mappingDigest (.state 1)
     (id "test.evidence.record.step-1") (id "test.rule.step-state") [] literalStepOrdering [{
       field := { kind := id "test.evidence.kind.event", field := id "test.evidence.field.role" }
       evidence := .retained "step"
     }] "test.state.completed/meaning-v1",
-  literalEvidenceLink mappingDigest (.observation 1 1)
+  literalEvidenceLink mappingDigest (.fact 1 1)
     (id "test.evidence.record.step-1") (id "test.rule.contribution") [] literalStepOrdering [
       {
         field := { kind := id "test.evidence.kind.event", field := id "test.evidence.field.role" }
@@ -183,7 +183,7 @@ def literalEvidenceLinks (mappingDigest : String) : List EvidenceLink := [
         evidence := .redactedContribution
       }
     ] "test.observation.contribution/meaning-v1",
-  literalEvidenceLink mappingDigest (.observation 1 2)
+  literalEvidenceLink mappingDigest (.fact 1 2)
     (id "test.evidence.record.step-1") (id "test.rule.digest") [] literalStepOrdering [
       {
         field := { kind := id "test.evidence.kind.event", field := id "test.evidence.field.hashed" }
@@ -224,8 +224,8 @@ def duplicateModelCoordinateMutation : UncheckedEvidenceBackedTrace := {
 def shiftedCoordinateMutation : UncheckedEvidenceBackedTrace := {
   literalUncheckedEvidenceBackedTrace with
   evidenceLinks := literalUncheckedEvidenceBackedTrace.evidenceLinks.map fun evidenceLink =>
-    if evidenceLink.coordinate == .observation 1 2 then
-      { evidenceLink with coordinate := .observation 1 3 }
+    if evidenceLink.coordinate == .fact 1 2 then
+      { evidenceLink with coordinate := .fact 1 3 }
     else
       evidenceLink
 }

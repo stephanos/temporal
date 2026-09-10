@@ -175,7 +175,7 @@ theorem checkedWitnessIsExact : admitted.bind (fun checked =>
     (selected.setup,
       selected.trace.initialState,
       selected.trace.steps.map fun step =>
-        (step.selectedAction, step.modelOutcome, step.resultingState))) =
+        (step.selectedAction, step.outcome, step.state))) =
     admitted.map (fun checked =>
       ([⟨lifecycle.operationRoleId, (checked.vocabulary.stateAt 0)⟩],
         (checked.vocabulary.stateAt 0),

@@ -17,7 +17,7 @@ open Temporal.Feature.Nexus.Lifecycle
 #check (Temporal.Feature.Nexus.Lifecycle.authoritativeInitial :
   List RoleBinding → ModelValue → Prop)
 #check (Temporal.Feature.Nexus.Lifecycle.authoritativeStep : ModelValue → ModelValue →
-  TransitionResult ModelValue ModelValue ModelValue → Prop)
+  Step ModelValue ModelValue ModelValue → Prop)
 #check (Temporal.Feature.Nexus.Lifecycle.target : QueryTarget LawStatement)
 
 end Temporal.Feature.Nexus.LifecycleTests

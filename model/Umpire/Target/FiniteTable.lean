@@ -54,7 +54,7 @@ structure FiniteTransitionRow (State Action Outcome Fact : Type) where
   key : String
   source : State
   action : Action
-  results : List (TransitionResult State Outcome Fact)
+  results : List (Step State Outcome Fact)
   deriving BEq, DecidableEq, Repr
 
 /-- The authoritative finite data; absent source/Action pairs are disabled. -/
@@ -109,11 +109,11 @@ structure ValidatedFiniteTable (Setup State Action Outcome Fact : Type) where
   source_coverage : ∀ row ∈ table.transitions, row.source ∈ table.states.values
   action_coverage : ∀ row ∈ table.transitions, row.action ∈ table.actions.values
   result_state_coverage : ∀ row ∈ table.transitions, ∀ result ∈ row.results,
-    result.resultingState ∈ table.states.values
+    result.state ∈ table.states.values
   outcome_coverage : ∀ row ∈ table.transitions, ∀ result ∈ row.results,
-    result.modelOutcome ∈ table.outcomes.values
+    result.outcome ∈ table.outcomes.values
   fact_coverage : ∀ row ∈ table.transitions, ∀ result ∈ row.results,
-    ∀ fact ∈ result.observations, fact ∈ table.facts.values
+    ∀ fact ∈ result.facts, fact ∈ table.facts.values
   results_nonempty : ∀ row ∈ table.transitions, row.results ≠ []
   action_executable : ∀ action ∈ table.actions.values,
     ∃ row ∈ table.transitions, row.action = action
@@ -163,13 +163,13 @@ def validate [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
     (∀ row ∈ table.transitions, row.action ∈ table.actions.values) (.outOfDomain .action)
   let resultCoverage ← requireProof
     (∀ row ∈ table.transitions, ∀ result ∈ row.results,
-      result.resultingState ∈ table.states.values) (.outOfDomain .resultState)
+      result.state ∈ table.states.values) (.outOfDomain .resultState)
   let outcomeCoverage ← requireProof
     (∀ row ∈ table.transitions, ∀ result ∈ row.results,
-      result.modelOutcome ∈ table.outcomes.values) (.outOfDomain .outcome)
+      result.outcome ∈ table.outcomes.values) (.outOfDomain .outcome)
   let factCoverage ← requireProof
     (∀ row ∈ table.transitions, ∀ result ∈ row.results,
-      ∀ fact ∈ result.observations, fact ∈ table.facts.values) (.outOfDomain .fact)
+      ∀ fact ∈ result.facts, fact ∈ table.facts.values) (.outOfDomain .fact)
   let resultsNonempty ← requireProof
     (∀ row ∈ table.transitions, row.results ≠ []) (.emptyAlternatives .transition)
   let _ ← requireProof

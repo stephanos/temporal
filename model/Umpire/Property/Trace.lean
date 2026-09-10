@@ -17,12 +17,12 @@ def PropertyTraceField.valueAt?
         coordinate.definitionKind == field.definitionKind
     | .priorState => match coordinate with
         | .initialState => !trace.steps.isEmpty
-        | .resultingState step => decide (step < trace.steps.length)
+        | .state step => decide (step < trace.steps.length)
         | _ => false
     | .resultingState => match coordinate with
-        | .resultingState _ => true
+        | .state _ => true
         | _ => false
-    | .relation => coordinate.definitionKind == .observation
+    | .relation => coordinate.definitionKind == .fact
   if compatible then some value else none
 
 structure PropertyTraceStep where
@@ -73,13 +73,13 @@ private def buildTraceSteps
       List PropertyTraceStep
   | [] => []
   | step :: rest =>
-      let observations := step.observations.filter fun observation => access.allows observation
+      let observations := step.facts.filter fun observation => access.allows observation
       let logicalTime := logicalTimeOf access.logicalTimeSource observations previousTime
-      let resultingState := access.admit step.resultingState
+      let resultingState := access.admit step.state
       {
         priorState
         selectedAction := access.admit step.selectedAction
-        modelOutcome := access.admit step.modelOutcome
+        modelOutcome := access.admit step.outcome
         resultingState
         observations
         logicalTime

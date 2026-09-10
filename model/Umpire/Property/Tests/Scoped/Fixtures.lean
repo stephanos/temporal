@@ -19,16 +19,16 @@ def reply := value "test.reply" "reply"
 def quiet := value "test.outcome" "quiet"
 def response := value "test.outcome" "response"
 def fact := value "test.fact" "response"
-def result (responded : Bool) : TransitionResult ModelValue ModelValue ModelValue := {
-  resultingState := state
-  modelOutcome := if responded then response else quiet
-  observations := if responded then [fact, fact] else []
+def result (responded : Bool) : Step ModelValue ModelValue ModelValue := {
+  state := state
+  outcome := if responded then response else quiet
+  facts := if responded then [fact, fact] else []
 }
 
 def kinds : List (String × DefinitionKind) := [
-  ("test.target", .target), ("test.kernel", .kernel), ("test.provider", .provider),
+  ("test.target", .target), ("test.kernel", .machine), ("test.provider", .provider),
   ("test.capability", .capability), ("test.state", .state), ("test.trigger", .action),
-  ("test.tick", .action), ("test.reply", .action), ("test.outcome", .outcome), ("test.fact", .observation)]
+  ("test.tick", .action), ("test.reply", .action), ("test.outcome", .outcome), ("test.fact", .fact)]
 def definitions : List DefinitionMetadata := kinds.map fun (name, kind) =>
   Shared.Test.definitionMetadata name kind source (name ++ "/v1")
 def provider : CapabilityProvider (fun _ => True) := {

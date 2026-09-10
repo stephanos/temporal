@@ -12,9 +12,9 @@ def exactTrace : ModelTrace Bool Bool Bool ModelValue := {
   initialState := false
   steps := [{
     selectedAction := true
-    modelOutcome := true
-    resultingState := true
-    observations := [{
+    outcome := true
+    state := true
+    facts := [{
       definitionId := id "switch.observation.enabled"
       value := "enabled"
     }]
@@ -23,9 +23,9 @@ def exactTrace : ModelTrace Bool Bool Bool ModelValue := {
 
 example : exactTrace.initialState = false ∧
     exactTrace.steps.map ModelTraceStep.selectedAction = [true] ∧
-    exactTrace.steps.map ModelTraceStep.modelOutcome = [true] ∧
-    exactTrace.steps.map ModelTraceStep.resultingState = [true] ∧
-    exactTrace.steps.flatMap ModelTraceStep.observations = [{
+    exactTrace.steps.map ModelTraceStep.outcome = [true] ∧
+    exactTrace.steps.map ModelTraceStep.state = [true] ∧
+    exactTrace.steps.flatMap ModelTraceStep.facts = [{
       definitionId := id "switch.observation.enabled"
       value := "enabled"
     }] := by
@@ -70,9 +70,9 @@ def oneStepTrace : ModelTrace ModelValue ModelValue ModelValue ModelValue := {
   initialState := initialValue
   steps := [{
     selectedAction := actionValue
-    modelOutcome := outcomeValue
-    resultingState := resultingValue
-    observations := [firstObservationValue, secondObservationValue]
+    outcome := outcomeValue
+    state := resultingValue
+    facts := [firstObservationValue, secondObservationValue]
   }]
 }
 
@@ -83,10 +83,10 @@ example : emptyTrace.coordinates = [.initialState] ∧
 example : oneStepTrace.coordinates = [
     .initialState,
     .selectedAction 1,
-    .modelOutcome 1,
-    .resultingState 1,
-    .observation 1 1,
-    .observation 1 2
+    .outcome 1,
+    .state 1,
+    .fact 1 1,
+    .fact 1 2
   ] := by
   decide
 
@@ -102,15 +102,15 @@ example : oneStepTrace.coordinates.map oneStepTrace.valueAt? = [
 
 example : [
     oneStepTrace.valueAt? (.selectedAction 0),
-    oneStepTrace.valueAt? (.modelOutcome 0),
-    oneStepTrace.valueAt? (.resultingState 0),
-    oneStepTrace.valueAt? (.observation 0 1),
-    oneStepTrace.valueAt? (.observation 1 0),
+    oneStepTrace.valueAt? (.outcome 0),
+    oneStepTrace.valueAt? (.state 0),
+    oneStepTrace.valueAt? (.fact 0 1),
+    oneStepTrace.valueAt? (.fact 1 0),
     oneStepTrace.valueAt? (.selectedAction 2),
-    oneStepTrace.valueAt? (.modelOutcome 2),
-    oneStepTrace.valueAt? (.resultingState 2),
-    oneStepTrace.valueAt? (.observation 2 1),
-    oneStepTrace.valueAt? (.observation 1 3)
+    oneStepTrace.valueAt? (.outcome 2),
+    oneStepTrace.valueAt? (.state 2),
+    oneStepTrace.valueAt? (.fact 2 1),
+    oneStepTrace.valueAt? (.fact 1 3)
   ] = List.replicate 10 none := by
   decide
 
@@ -119,8 +119,8 @@ example : oneStepTrace.coordinates.map ModelCoordinate.definitionKind = [
     .action,
     .outcome,
     .state,
-    .observation,
-    .observation
+    .fact,
+    .fact
   ] := by
   decide
 
@@ -129,15 +129,15 @@ def repeatedValueTrace : ModelTrace ModelValue ModelValue ModelValue ModelValue 
   steps := [
     {
       selectedAction := actionValue
-      modelOutcome := outcomeValue
-      resultingState := resultingValue
-      observations := [firstObservationValue]
+      outcome := outcomeValue
+      state := resultingValue
+      facts := [firstObservationValue]
     },
     {
       selectedAction := actionValue
-      modelOutcome := outcomeValue
-      resultingState := resultingValue
-      observations := [firstObservationValue]
+      outcome := outcomeValue
+      state := resultingValue
+      facts := [firstObservationValue]
     }
   ]
 }
@@ -145,13 +145,13 @@ def repeatedValueTrace : ModelTrace ModelValue ModelValue ModelValue ModelValue 
 example : repeatedValueTrace.coordinates = [
     .initialState,
     .selectedAction 1,
-    .modelOutcome 1,
-    .resultingState 1,
-    .observation 1 1,
+    .outcome 1,
+    .state 1,
+    .fact 1 1,
     .selectedAction 2,
-    .modelOutcome 2,
-    .resultingState 2,
-    .observation 2 1
+    .outcome 2,
+    .state 2,
+    .fact 2 1
   ] ∧ repeatedValueTrace.coordinates.map repeatedValueTrace.valueAt? = [
     some initialValue,
     some actionValue,

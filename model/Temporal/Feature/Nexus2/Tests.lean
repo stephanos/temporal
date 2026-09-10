@@ -59,12 +59,12 @@ private def normalizeResult
     (model : ModelVocabulary)
     (source : ModelValue)
     (action : ModelValue)
-    (result : TransitionResult ModelValue ModelValue ModelValue) : Option TransitionShape := do
+    (result : Step ModelValue ModelValue ModelValue) : Option TransitionShape := do
   let source ← stateOf model source
   let action ← actionOf model action
-  let resultingState ← stateOf model result.resultingState
-  let outcome ← outcomeOf model result.modelOutcome
-  let facts ← result.observations.mapM (factOf model)
+  let resultingState ← stateOf model result.state
+  let outcome ← outcomeOf model result.outcome
+  let facts ← result.facts.mapM (factOf model)
   pure (source, action, resultingState, outcome, facts)
 
 private def normalizeTarget
@@ -138,12 +138,12 @@ private def establishedSetupOf (value : List RoleBinding) : Option Setup :=
 
 private def normalizeEstablishedResult
     (source action : ModelValue)
-    (result : TransitionResult ModelValue ModelValue ModelValue) : Option TransitionShape := do
+    (result : Step ModelValue ModelValue ModelValue) : Option TransitionShape := do
   let source ← establishedStateOf source
   let action ← establishedActionOf action
-  let resultingState ← establishedStateOf result.resultingState
-  let outcome ← establishedOutcomeOf result.modelOutcome
-  let facts ← result.observations.mapM establishedFactOf
+  let resultingState ← establishedStateOf result.state
+  let outcome ← establishedOutcomeOf result.outcome
+  let facts ← result.facts.mapM establishedFactOf
   pure (source, action, resultingState, outcome, facts)
 
 private def establishedTransitions : Option (List TransitionShape) := do
@@ -240,15 +240,15 @@ theorem completeInitialStatesMatchEstablished :
 
 private def unknownNormalizationFailures : Option (Bool × Bool) := do
   let baseline ← checkBaseline.toOption
-  let unknownStateResult : TransitionResult ModelValue ModelValue ModelValue := {
-    modelOutcome := baseline.model.canceledOutcome
-    resultingState := Temporal.Feature.Nexus.Lifecycle.scheduledState
-    observations := [baseline.model.canceledFact]
+  let unknownStateResult : Step ModelValue ModelValue ModelValue := {
+    outcome := baseline.model.canceledOutcome
+    state := Temporal.Feature.Nexus.Lifecycle.scheduledState
+    facts := [baseline.model.canceledFact]
   }
-  let unknownFactResult : TransitionResult ModelValue ModelValue ModelValue := {
-    modelOutcome := baseline.model.canceledOutcome
-    resultingState := baseline.model.canceledState
-    observations := [Temporal.Feature.Nexus.Lifecycle.startedObservation]
+  let unknownFactResult : Step ModelValue ModelValue ModelValue := {
+    outcome := baseline.model.canceledOutcome
+    state := baseline.model.canceledState
+    facts := [Temporal.Feature.Nexus.Lifecycle.startedObservation]
   }
   pure (
     (normalizeResult baseline.model baseline.model.startedState baseline.model.cancelAction
@@ -663,7 +663,7 @@ theorem noncanonicalAuthoredResultSequenceIsRejected :
 
 private def admittedPlannerSequence : Option
     (List ModelValue × List ModelValue ×
-      List (TransitionResult ModelValue ModelValue ModelValue)) := do
+      List (Step ModelValue ModelValue ModelValue)) := do
   let baseline ← checkBaseline.toOption
   let kernel ← (IncrementalPlannerKernel.ofCheckedQuery baseline.target.id baseline.cancel.query).toOption
   pure (
@@ -675,10 +675,10 @@ private def admittedPlannerSequence : Option
 
 theorem admittedPlannerPreservesExactAuthoredSequences :
     admittedPlannerSequence = checkBaseline.toOption.map (fun baseline =>
-      let result : TransitionResult ModelValue ModelValue ModelValue := {
-        modelOutcome := baseline.model.canceledOutcome
-        resultingState := baseline.model.canceledState
-        observations := [baseline.model.canceledFact]
+      let result : Step ModelValue ModelValue ModelValue := {
+        outcome := baseline.model.canceledOutcome
+        state := baseline.model.canceledState
+        facts := [baseline.model.canceledFact]
       }
       ([baseline.model.cancelAction, baseline.model.startAction,
           baseline.model.reportSuccessAction],
@@ -762,9 +762,9 @@ theorem requestAndResolutionHaveDistinctNonterminalAndTerminalFacts :
       { key := "resolve", source := State.cancelRequested, action := Action.resolve,
         results := [canceledResult, succeededResult] }
     ] ∧
-    cancelRequestedResult.observations = [Fact.cancelRequested] ∧
-    canceledResult.observations = [Fact.lifecycleCanceled, Fact.terminal] ∧
-    succeededResult.observations = [Fact.lifecycleSucceeded, Fact.terminal] ∧
+    cancelRequestedResult.facts = [Fact.cancelRequested] ∧
+    canceledResult.facts = [Fact.lifecycleCanceled, Fact.terminal] ∧
+    succeededResult.facts = [Fact.lifecycleSucceeded, Fact.terminal] ∧
     table.transitions.all (fun row =>
       row.source != State.canceled && row.source != State.succeeded) = true := by
   native_decide
@@ -779,10 +779,10 @@ theorem scenarioStatusesRemainDistinct :
 
 private def conditionalPropertyEvaluations : Option (Bool × Bool) := do
   let checked ← checkRace.toOption
-  let requestResult : TransitionResult ModelValue ModelValue ModelValue := {
-    modelOutcome := checked.model.cancellationRequestedOutcome
-    resultingState := checked.model.cancelRequestedState
-    observations := [checked.model.cancelRequestedFact]
+  let requestResult : Step ModelValue ModelValue ModelValue := {
+    outcome := checked.model.cancellationRequestedOutcome
+    state := checked.model.cancelRequestedState
+    facts := [checked.model.cancelRequestedFact]
   }
   let noTrigger : ModelTrace ModelValue ModelValue ModelValue ModelValue := {
     initialState := checked.model.startedState

@@ -39,6 +39,7 @@ convention.
 - The `#guard_msgs` re-baseline must come from running the modules, not from editing text.
 - `lint-model` stays because MOD-11 and the `lint` aggregate cite it; the `Makefile:1421` diagnostic string names `Umpire.Core` and is unchanged.
 - Retire `Temporal.Feature.Nexus2`, `Temporal.Feature.Nexus3`, `temporal.nexus2`, `temporal.nexus3`, `temporal-model-inspect`, `temporal-testpilot`, `umpire-list-nexus`, `umpire-explain-nexus`, `selected_actions`, `candidate_evaluations`, `resultingState`; never the bare keywords.
+- Carried from .2: the retired gate still has no `resultingState` rule because `resultingState` is a live Nexus3 `require` keyword. Add it to the gate in the same commit that respells the keyword to `state`.
 ## Acceptance
 - [ ] No module, directory, or identity root named `Nexus2`/`Nexus3` remains; `Nexus/Race/**` and `Nexus/Success/**` build; the Implementation Link imports `Nexus.Race.Terminal`
 - [ ] The five commands accept the R6 keyword set and each retired keyword produces a located macro error naming its replacement, asserted by one `#guard_msgs` block per keyword

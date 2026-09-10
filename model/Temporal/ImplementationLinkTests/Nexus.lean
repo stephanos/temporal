@@ -27,13 +27,13 @@ theorem checked_link_retains_migrated_target_identity_and_fingerprints :
     checked.sourceTarget.behaviorFingerprint =
       Temporal.System.Nexus.target.behaviorFingerprint ∧
     checked.sourceTarget.behaviorFingerprint.render =
-      "sha256:54d0b7ed28698c0db28e7c9de00f3c0c0998db889a50de917d100173b37cf374" ∧
+      "sha256:136b39d84af2978b3937ecf390d6a6cf4a5fdf45142d29aafa378ee4c84a121e" ∧
     checked.destinationTarget.id = Temporal.Feature.Nexus.Lifecycle.target.id ∧
     checked.destinationTarget.source = Temporal.Feature.Nexus.Lifecycle.target.source ∧
     checked.destinationTarget.behaviorFingerprint =
       Temporal.Feature.Nexus.Lifecycle.target.behaviorFingerprint ∧
     checked.destinationTarget.behaviorFingerprint.render =
-      "sha256:2dffda3904f7425aa7ef89876393dc1648edcca0a944139672b6e35dd1651d93" := by
+      "sha256:a2c2da875534f76f9531e1d08614601b291bfc0115d9c4eb1f769fbf37d35daa" := by
   native_decide
 
 theorem migrated_targets_keep_their_named_authority_seams :
@@ -163,7 +163,7 @@ def observationDeclaration
     {
       id := observationRuleId
       output := Temporal.System.Nexus.lifecycleObservationId
-      outputKind := .observation
+      outputKind := .fact
       value := .portable (field observationField)
       condition := some stepCondition
     }
@@ -334,9 +334,9 @@ private def applicationShape
 private def expectedCoordinates : List ModelCoordinate := [
   .initialState,
   .selectedAction 1,
-  .modelOutcome 1,
-  .resultingState 1,
-  .observation 1 1
+  .outcome 1,
+  .state 1,
+  .fact 1 1
 ]
 
 /-- Start, cancel, and successful completion translate completely with positional Evidence Links. -/
@@ -401,7 +401,7 @@ def impossibleTransitionEvidence : EvidenceBundle := oneStepEvidence
   Temporal.System.Nexus.completionRecordedState
   Temporal.System.Nexus.completionRecordedObservation
 
-def impossibleTransitionResult : FeaturePropertyResult := evaluateFeatureProperty
+def impossibleStep : FeaturePropertyResult := evaluateFeatureProperty
   Temporal.System.Nexus.queuedSetup
   Temporal.Feature.Nexus.Operations.SuccessfulCompletion.property
   (evaluateEvidence successfulCompletionPlan impossibleTransitionEvidence)
@@ -514,7 +514,7 @@ def propertyFailureResult : FeaturePropertyResult := evaluateFeatureProperty
 example : [
     observationFailureResult.layer,
     wrongSetupResult.layer,
-    impossibleTransitionResult.layer,
+    impossibleStep.layer,
     missingCoordinateResult.layer,
     behaviorFingerprintDriftResult.layer,
     propertyFailureResult.layer
@@ -532,7 +532,7 @@ example : [
     some .absentModelCoordinate ∧
   [
     wrongSetupResult.implementationLinkDiagnostic?.map ImplementationLinkDiagnostic.kind,
-    impossibleTransitionResult.implementationLinkDiagnostic?.map
+    impossibleStep.implementationLinkDiagnostic?.map
       ImplementationLinkDiagnostic.kind,
     behaviorFingerprintDriftResult.implementationLinkDiagnostic?.map
       ImplementationLinkDiagnostic.kind
@@ -563,7 +563,7 @@ example :
 /-- An Implementation Link failure exposes neither unknown Observation evidence nor a Property. -/
 example : [
     wrongSetupResult,
-    impossibleTransitionResult,
+    impossibleStep,
     behaviorFingerprintDriftResult
   ].all fun result =>
     result.observationDiagnostic?.isNone &&

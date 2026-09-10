@@ -113,9 +113,9 @@ def exactTrace (outcome : ModelValue := acceptedValue) : BehaviorTrace := {
     initialState := initial
     steps := [{
       selectedAction := requestValue
-      modelOutcome := outcome
-      resultingState := completed
-      observations := [observedValue]
+      outcome := outcome
+      state := completed
+      facts := [observedValue]
     }]
   }
 }

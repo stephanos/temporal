@@ -58,9 +58,9 @@ def expectedTrace : ModelTrace ModelValue ModelValue ModelValue ModelValue := {
   initialState := scheduledState
   steps := [{
     selectedAction := startAction
-    modelOutcome := startedOutcome
-    resultingState := startedState
-    observations := [startedObservation]
+    outcome := startedOutcome
+    state := startedState
+    facts := [startedObservation]
   }]
 }
 
@@ -161,7 +161,7 @@ private def rawMappingDeclaration : ObservationMappingDeclaration := {
       (rawEqualsAny Profile.outcomeField [
         startedOutcome.value, canceledOutcome.value, succeededOutcome.value
       ]),
-    rawRule Mapping.observationRuleId lifecycleObservationId .observation Profile.observationField
+    rawRule Mapping.observationRuleId lifecycleObservationId .fact Profile.observationField
       (rawEqualsAny Profile.observationField [
         startedObservation.value, canceledObservation.value, succeededObservation.value
       ])
@@ -222,7 +222,7 @@ example :
     }] ∧
     checkedPlan.source = Temporal.Feature.Nexus.Observation.source ∧
     checkedPlan.behaviorFingerprint.render =
-      "sha256:608e4db6c3a29d0f953640621ee34d34e16b0090309e85804e21f0cb21be30a2" := by
+      "sha256:8a70d124869b2653f693682fe799f6b46f1f79361cc2c415c51638c877be5fbd" := by
   native_decide
 
 /-- The checked mapping admits exactly the target-owned BasicLifecycle vocabulary. -/
@@ -233,7 +233,7 @@ example : checkedPlanResult.isOk = true ∧ checkedPlan.meanings = [
       canonicalBehavior := "temporal-nexus-basic-lifecycle-start/v1" },
     { definitionId := reportSuccessActionId, kind := .action,
       canonicalBehavior := "temporal-nexus-basic-lifecycle-report-success/v1" },
-    { definitionId := lifecycleObservationId, kind := .observation,
+    { definitionId := lifecycleObservationId, kind := .fact,
       canonicalBehavior := "temporal-nexus-basic-lifecycle-observation/v2" },
     { definitionId := transitionOutcomeId, kind := .outcome,
       canonicalBehavior := "temporal-nexus-basic-lifecycle-outcome/v2" },
@@ -296,7 +296,7 @@ example : (acceptedOf completeObservation.evaluation).map (fun trace =>
     appliedBound := { value := 2, unit := .evidenceRecords }
     meaningDigest := "temporal-nexus-basic-lifecycle-start/v1"
   }, {
-    coordinate := .modelOutcome 1
+    coordinate := .outcome 1
     mappingId := Mapping.id
     mappingVersion := 1
     mappingDigest := checkedPlan.behaviorFingerprint.render
@@ -319,7 +319,7 @@ example : (acceptedOf completeObservation.evaluation).map (fun trace =>
     appliedBound := { value := 2, unit := .evidenceRecords }
     meaningDigest := "temporal-nexus-basic-lifecycle-outcome/v2"
   }, {
-    coordinate := .resultingState 1
+    coordinate := .state 1
     mappingId := Mapping.id
     mappingVersion := 1
     mappingDigest := checkedPlan.behaviorFingerprint.render
@@ -342,7 +342,7 @@ example : (acceptedOf completeObservation.evaluation).map (fun trace =>
     appliedBound := { value := 2, unit := .evidenceRecords }
     meaningDigest := "temporal-nexus-basic-lifecycle-state/v2"
   }, {
-    coordinate := .observation 1 1
+    coordinate := .fact 1 1
     mappingId := Mapping.id
     mappingVersion := 1
     mappingDigest := checkedPlan.behaviorFingerprint.render
@@ -375,9 +375,9 @@ example :
         verdict.clauses.map SemanticClauseVerdict.coordinates),
       completeObservation.summary.status) =
     ([.satisfied], [[
-      [.selectedAction 1, .observation 1 1],
-      [.selectedAction 1, .modelOutcome 1],
-      [.selectedAction 1, .resultingState 1]
+      [.selectedAction 1, .fact 1 1],
+      [.selectedAction 1, .outcome 1],
+      [.selectedAction 1, .state 1]
     ]], .satisfied) := by
   native_decide
 

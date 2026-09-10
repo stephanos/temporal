@@ -25,7 +25,7 @@ private def observedCountTwoTrace : BehaviorTrace := {
   trace := {
     targetOwnedCountOneTrace.trace with
     steps := targetOwnedCountOneTrace.trace.steps.map fun step => {
-      step with observations := step.observations ++ step.observations
+      step with facts := step.facts ++ step.facts
     }
   }
 }
@@ -63,7 +63,7 @@ private def sourceExpectation : PromotionSourceExpectation :=
   let bytes := include_str "Promotion/Tests/Fixtures/CompiledSource.lean"
   {
     bytes
-    sha256 := "sha256:66230be5a4b04ea5fd8b552212c2cf3c0eb7692bc23bacbc032274e1c3a133e9"
+    sha256 := "sha256:6d1dda9d3a6368f874edbae6585d183c106e5cc224fef0c0cda1dad65ea821bc"
   }
 
 private def errorKindOf
@@ -112,8 +112,8 @@ The target-owned trace contains one delivered observation. A runtime-observed du
 two, but that observation cannot replace the expected trace retained by the unchanged Query plan.
 -/
 example :
-    (targetOwnedCountOneTrace.trace.steps.flatMap (fun step => step.observations)).length = 1 ∧
-      (observedCountTwoTrace.trace.steps.flatMap (fun step => step.observations)).length = 2 ∧
+    (targetOwnedCountOneTrace.trace.steps.flatMap (fun step => step.facts)).length = 1 ∧
+      (observedCountTwoTrace.trace.steps.flatMap (fun step => step.facts)).length = 2 ∧
       errorKindOf (compileWith
         (anchor := { baseAnchor with expectedTrace := observedCountTwoTrace })) =
         some .traceDrift := by

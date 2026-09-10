@@ -6,16 +6,16 @@ namespace Umpire.TargetTests.FiniteMachine
 
 open Umpire
 
-def transition (state action : Bool) : TransitionResult Bool Bool Bool := {
-  modelOutcome := action
-  resultingState := action
-  observations := [state]
+def transition (state action : Bool) : Step Bool Bool Bool := {
+  outcome := action
+  state := action
+  facts := [state]
 }
 
-def alternateTransition (state action : Bool) : TransitionResult Bool Bool Bool := {
-  modelOutcome := !action
-  resultingState := state
-  observations := [action]
+def alternateTransition (state action : Bool) : Step Bool Bool Bool := {
+  outcome := !action
+  state := state
+  facts := [action]
 }
 
 def machine : FiniteMachine Unit Bool Bool Bool Bool := {
@@ -36,8 +36,8 @@ def machine : FiniteMachine Unit Bool Bool Bool Bool := {
   initialStateCoverage := by intro _ state _; cases state <;> simp
   transitionSourceCoverage := by intro state _ _ _; cases state <;> simp
   actionCoverage := by intro _ action _ _; cases action <;> simp
-  resultingStateCoverage := by intro _ _ result _; cases result.resultingState <;> simp
-  outcomeCoverage := by intro _ _ result _; cases result.modelOutcome <;> simp
+  resultingStateCoverage := by intro _ _ result _; cases result.state <;> simp
+  outcomeCoverage := by intro _ _ result _; cases result.outcome <;> simp
   observationCoverage := by intro _ _ _ value _ _; cases value <;> simp
   actionExecutable := by
     intro action _
@@ -50,7 +50,7 @@ def definition : TargetDefinition Unit Bool Bool Bool Bool := {
   definitions := TargetTests.testTarget.definitions
   requiredCapabilities := []
   resolvedSetups := [()]
-  kernel := machine.kernelAvailability
+  kernel := machine.machineAvailability
 }
 
 def authored : AuthoredTarget TargetTests.TestLawStatement Unit Bool Bool Bool Bool :=
@@ -78,7 +78,7 @@ def explicitAssemblyDefinition : TargetDefinition Unit Bool Bool Bool Bool := {
   definitions := TargetTests.testTarget.definitions
   requiredCapabilities := TargetTests.testTarget.requiredCapabilities
   resolvedSetups := machine.setups
-  kernel := machine.kernelAvailability
+  kernel := machine.machineAvailability
 }
 
 def explicitAssembly : AuthoredTarget TargetTests.TestLawStatement Unit Bool Bool Bool Bool :=
@@ -120,7 +120,7 @@ example : machine.kernel.initialStates () = [false] := rfl
 
 /-- Stable public rewrites expose membership authority without private adapter unfolding. -/
 example (setup : Unit) (state action outcome observation : Bool)
-    (result : TransitionResult Bool Bool Bool) :
+    (result : Step Bool Bool Bool) :
     (machine.kernel.setupDomain setup ↔ setup ∈ machine.setups) ∧
     (machine.kernel.stateDomain state ↔ state ∈ machine.states) ∧
     (machine.kernel.actionDomain action ↔ action ∈ machine.actions) ∧
@@ -162,7 +162,7 @@ def emptyMachine : FiniteMachine Empty Empty Empty Empty Empty := {
 }
 
 /-- Empty proof-valid domains produce a complete checked kernel and vacuous planning. -/
-example : emptyMachine.kernelAvailability = .checked emptyMachine.kernel := rfl
+example : emptyMachine.machineAvailability = .checked emptyMachine.kernel := rfl
 
 example : emptyMachine.planning.actions = [] := rfl
 
@@ -172,8 +172,8 @@ example : ¬ (∀ state : Bool, state ∈ [true] → state ∈ [false]) := by
 
 /-- Advertising an unreachable action leaves an unsatisfiable executable-action obligation. -/
 example : ¬ (∀ action : Bool, action ∈ [true] →
-    ∃ (_state : Bool) (result : TransitionResult Bool Bool Bool),
-      result ∈ ([] : List (TransitionResult Bool Bool Bool))) := by
+    ∃ (_state : Bool) (result : Step Bool Bool Bool),
+      result ∈ ([] : List (Step Bool Bool Bool))) := by
   simp
 
 #guard_msgs (error, substring := true) in
@@ -243,7 +243,7 @@ def collidingEncodingMachine : FiniteMachine Unit Bool Bool Bool Bool := {
 }
 
 def collidingEncodingDefinition : TargetDefinition Unit Bool Bool Bool Bool := {
-  definition with kernel := collidingEncodingMachine.kernelAvailability
+  definition with kernel := collidingEncodingMachine.machineAvailability
 }
 
 def collidingEncodingAuthoring :
@@ -277,22 +277,22 @@ inductive Fact where
   | completed
   deriving BEq, DecidableEq, Repr
 
-def startResult : TransitionResult State Outcome Fact := {
-  modelOutcome := .started
-  resultingState := .running
-  observations := [.started]
+def startResult : Step State Outcome Fact := {
+  outcome := .started
+  state := .running
+  facts := [.started]
 }
 
-def completeResult : TransitionResult State Outcome Fact := {
-  modelOutcome := .completed
-  resultingState := .completed
-  observations := [.completed]
+def completeResult : Step State Outcome Fact := {
+  outcome := .completed
+  state := .completed
+  facts := [.completed]
 }
 
-def retryResult : TransitionResult State Outcome Fact := {
-  modelOutcome := .started
-  resultingState := .running
-  observations := [.started]
+def retryResult : Step State Outcome Fact := {
+  outcome := .started
+  state := .running
+  facts := [.started]
 }
 
 def baseTable : FiniteTable Unit State Bool Outcome Fact := {
@@ -354,9 +354,9 @@ structure CheckedEnumeration where
   outcomes : List Outcome
   facts : List Fact
   initial : List State
-  idleResults : List (TransitionResult State Outcome Fact)
-  runningResults : List (TransitionResult State Outcome Fact)
-  completedResults : List (TransitionResult State Outcome Fact)
+  idleResults : List (Step State Outcome Fact)
+  runningResults : List (Step State Outcome Fact)
+  completedResults : List (Step State Outcome Fact)
   plannedActions : List Bool
   encodedSetups : List String
   encodedStates : List String

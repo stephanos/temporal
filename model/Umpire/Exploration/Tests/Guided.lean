@@ -37,7 +37,7 @@ private def authoredRequest
 }
 
 private def checkedRequestResult :=
-  checkExplorationRequest (authoredRequest (.observation 1 1))
+  checkExplorationRequest (authoredRequest (.fact 1 1))
 
 private def checkedRequest := checkedRequestResult.toOption.get (by native_decide)
 
@@ -71,7 +71,7 @@ private def projection
   coordinates
 }
 
-private def requestedCoordinate : ModelCoordinate := .observation 1 1
+private def requestedCoordinate : ModelCoordinate := .fact 1 1
 
 private def projectedCandidates : List CandidateProjection := [
   projection "a-nonmatching" [.initialState],

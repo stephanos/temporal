@@ -30,7 +30,7 @@ def PropertyTraceField.definitionKind : PropertyTraceField → DefinitionKind
   | .state | .priorState | .resultingState => .state
   | .selectedAction => .action
   | .modelOutcome => .outcome
-  | .observation => .observation
+  | .observation => .fact
   | .relation => .relation
 
 inductive ValueConstraint where
@@ -91,7 +91,7 @@ def PropertyPredicateField.definitionKind : PropertyPredicateField → Definitio
   | .priorState | .resultingState => .state
   | .selectedAction => .action
   | .modelOutcome => .outcome
-  | .expectationFact => .observation
+  | .expectationFact => .fact
 
 /-- Whether a field belongs to the context at the same trace step. -/
 def PropertyPredicateContext.allows

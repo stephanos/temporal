@@ -31,7 +31,7 @@ def propertySpec : PropertySpec := {
   key := "cancellation"
   source
   requires := [lifecycleCapabilityId]
-  clauses := Internal.operationTransitionResultClauses "cancellation"
+  clauses := Internal.operationStepClauses "cancellation"
     cancelAction canceledState canceledOutcome canceledObservation
   documentation := "Canceling a started Nexus operation produces the target-owned canceled result."
 }

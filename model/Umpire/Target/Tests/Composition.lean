@@ -9,7 +9,7 @@ open Umpire
 example : (composeTarget testTarget).isOk = true := by
   native_decide
 
-def switchKernel : TransitionKernel Unit Bool Bool Bool Bool := {
+def switchKernel : Machine Unit Bool Bool Bool Bool := {
   testKernel with
   metadata := {
     id := id "switch.kernel.transition"
@@ -38,7 +38,7 @@ def switchTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool :
   source := source "SwitchSemantic.lean"
   definitions := [
     metadata "switch.target.two-state" .target,
-    metadata "switch.kernel.transition" .kernel,
+    metadata "switch.kernel.transition" .machine,
     metadata "switch.capability.toggle" .capability,
     metadata "switch.provider.toggle" .provider,
     metadata "switch.action.toggle" .action,

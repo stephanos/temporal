@@ -29,7 +29,7 @@ def queryLimitSpec : QueryLimitSpec := {
 /-- Preserve the established observation-clause identities while reusing the shared transition
 result constructor. The shared constructor names the fact clause with a `fact` suffix, whereas
 these declarations predate it and publish `observation` in their canonical metadata. -/
-def operationTransitionResultClauses
+def operationStepClauses
     (propertyKey : String)
     (action state outcome fact : ModelValue) : List PropertyClause :=
   (transitionResultClauses family propertyKey action state outcome fact).map fun clause =>

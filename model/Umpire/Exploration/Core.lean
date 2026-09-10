@@ -67,8 +67,8 @@ structure ExplorationError where
 def ModelCoordinate.name : ModelCoordinate → String
   | .initialState => "initial-state"
   | .selectedAction step => "selected-action:" ++ toString step
-  | .modelOutcome step => "model-outcome:" ++ toString step
-  | .resultingState step => "resulting-state:" ++ toString step
-  | .observation step position => "observation:" ++ toString step ++ ":" ++ toString position
+  | .outcome step => "model-outcome:" ++ toString step
+  | .state step => "resulting-state:" ++ toString step
+  | .fact step position => "observation:" ++ toString step ++ ":" ++ toString position
 
 end Umpire

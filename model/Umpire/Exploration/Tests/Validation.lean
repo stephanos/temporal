@@ -81,11 +81,11 @@ example :
 
 /-! A checked request retains one exact Space and canonicalizes valid pinned Artifacts. -/
 example : (checkExplorationRequest <| request
-    (.uncoveredCoordinate (.observation 1 1))
+    (.uncoveredCoordinate (.fact 1 1))
     { value := 2, unit := .experimentSpecs }
     [compatiblePinned]).toOption.map (fun checked =>
       checked.space == SpaceTests.checked &&
-        checked.policy == .uncoveredCoordinate (.observation 1 1) &&
+        checked.policy == .uncoveredCoordinate (.fact 1 1) &&
         checked.limit == { value := 2, unit := .experimentSpecs } &&
         checked.pinned.map (fun pinned => pinned.experimentSpec.artifactChecksum) ==
           [compatiblePinned.artifactChecksum]) = some true := by
@@ -104,7 +104,7 @@ example : [
     errorKindOf (checkExplorationRequest <| request
       (.uncoveredCoordinate (.selectedAction 2))),
     errorKindOf (checkExplorationRequest <| request
-      (.uncoveredCoordinate (.observation 1 2)))
+      (.uncoveredCoordinate (.fact 1 2)))
   ] = [
     some .invalidLimitValue,
     some .invalidLimitValue,

@@ -93,9 +93,9 @@ example : universeResult.toOption.map (fun result =>
           candidate.coverage.modelCoordinates == [
             .initialState,
             .selectedAction 1,
-            .modelOutcome 1,
-            .resultingState 1,
-            .observation 1 1
+            .outcome 1,
+            .state 1,
+            .fact 1 1
           ]) = some true := by
   native_decide
 

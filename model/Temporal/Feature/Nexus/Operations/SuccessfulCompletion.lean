@@ -31,7 +31,7 @@ def propertySpec : PropertySpec := {
   key := "successful-completion"
   source
   requires := [lifecycleCapabilityId]
-  clauses := Internal.operationTransitionResultClauses "successful-completion"
+  clauses := Internal.operationStepClauses "successful-completion"
     reportSuccessAction succeededState succeededOutcome succeededObservation
   documentation := "Reporting success for a started Nexus operation produces the target-owned succeeded result."
 }

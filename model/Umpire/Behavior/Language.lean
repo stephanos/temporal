@@ -141,7 +141,7 @@ def BehaviorTrace.singleStep
     (setup : List RoleBinding)
     (initialState : ModelValue)
     (selectedAction : ModelValue)
-    (result : TransitionResult ModelValue ModelValue ModelValue) : BehaviorTrace := {
+    (result : Step ModelValue ModelValue ModelValue) : BehaviorTrace := {
   setup
   trace := {
     initialState
@@ -274,10 +274,6 @@ private def canonicalIdLists (lists : List (List DefinitionId)) : List (List Def
   lists.mergeSort idListLe |>.eraseDups
 
 private def maxRequiredOccurrences : Nat := 12
-
-private def isSpaceMetadataKind : DefinitionKind → Bool
-  | .experimentSpace | .variationAxis | .choice | .fault | .coverageGoal => true
-  | _ => false
 
 private def operandSortKey : SetupOperand → String
   | .role id => "role:" ++ quote id.value
@@ -475,7 +471,7 @@ private def checkExactTrace
       | none =>
           throw (behaviorError .incompleteExactTrace owner.id owner.source
             ("step-" ++ toString index ++ ":resulting-state") [])
-    let observations ← match authoredStep.observations with
+    let facts ← match authoredStep.observations with
       | some values => pure values
       | none =>
           throw (behaviorError .incompleteExactTrace owner.id owner.source
@@ -483,13 +479,13 @@ private def checkExactTrace
     requireModelValueKind context owner .action action
     requireModelValueKind context owner .outcome outcome
     requireModelValueKind context owner .state state
-    for observation in observations do
-      requireModelValueKind context owner .observation observation
+    for fact in facts do
+      requireModelValueKind context owner .fact fact
     steps := steps ++ [{
       selectedAction := action
-      modelOutcome := outcome
-      resultingState := state
-      observations
+      outcome := outcome
+      state := state
+      facts
     }]
   pure {
     setup := authored.setup.mergeSort bindingLe
@@ -690,9 +686,9 @@ private def bindingJson (binding : RoleBinding) : String :=
 private def traceStepJson
     (step : ModelTraceStep ModelValue ModelValue ModelValue ModelValue) : String :=
   "{\"selectedAction\":" ++ valueJson step.selectedAction ++
-    ",\"modelOutcome\":" ++ valueJson step.modelOutcome ++
-    ",\"resultingState\":" ++ valueJson step.resultingState ++
-    ",\"observations\":" ++ array (step.observations.map valueJson) ++ "}"
+    ",\"modelOutcome\":" ++ valueJson step.outcome ++
+    ",\"resultingState\":" ++ valueJson step.state ++
+    ",\"observations\":" ++ array (step.facts.map valueJson) ++ "}"
 
 private def behaviorTraceJson (trace : BehaviorTrace) : String :=
   "{\"setup\":" ++ array (trace.setup.mergeSort bindingLe |>.map bindingJson) ++
@@ -824,9 +820,6 @@ def checkBehavior
   let roles := declaration.roles.mergeSort roleLe
   for role in roles do
     requireDefinitionId declaration.id declaration.source role.id
-    if isSpaceMetadataKind role.valueKind then
-      throw (behaviorError .invalidBinding declaration.id declaration.source
-        (role.id.value ++ ": " ++ role.valueKind.name) [role.id])
   let setup := declaration.setup.map canonicalSetupConstraint |>.mergeSort constraintLe
   for constraint in setup do
     validateSetupConstraint context declaration roles constraint

@@ -10,7 +10,7 @@ import Umpire.Target
 #check Umpire.FiniteMachine.initialStateCoverage
 #check Umpire.FiniteMachine.actionExecutable
 #check Umpire.FiniteMachine.kernel
-#check Umpire.FiniteMachine.kernelAvailability
+#check Umpire.FiniteMachine.machineAvailability
 #check Umpire.FiniteMachine.planning
 #check Umpire.FiniteMachine.authoredPlanning
 #check Umpire.FiniteMachine.targetDefinition

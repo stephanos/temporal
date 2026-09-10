@@ -356,7 +356,7 @@ def structuralFailures : List (Option ObservationErrorKind) := [
     rules := [{
       initialRule with
       output := unauthorizedObservation
-      outputKind := .observation
+      outputKind := .fact
     }]
     ordering := []
   }),
@@ -423,17 +423,17 @@ def cycleOutput (ruleId : DefinitionId) : DefinitionId :=
 def cycleRule (ruleId : DefinitionId) : ObservationRule := {
   id := ruleId
   output := cycleOutput ruleId
-  outputKind := .observation
+  outputKind := .fact
   value := .portable (.text ruleId.value)
 }
 
 def divergentCycleContext : ObservationCheckContext := {
   context with
   definitions := context.definitions ++ [cycleA, cycleB, cycleC, cycleD].map fun ruleId =>
-    metadata (cycleOutput ruleId).value .observation
+    metadata (cycleOutput ruleId).value .fact
   meanings := context.meanings ++ [cycleA, cycleB, cycleC, cycleD].map fun ruleId => {
     definitionId := cycleOutput ruleId
-    kind := .observation
+    kind := .fact
     canonicalBehavior := (cycleOutput ruleId).value ++ "/meaning-v1"
   }
 }

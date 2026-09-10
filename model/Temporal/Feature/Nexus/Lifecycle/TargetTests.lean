@@ -16,7 +16,7 @@ theorem sourceRemainsAnchoredToLifecycleFacade : source = {
 theorem definitionsRetainCanonicalMetadata : definitions = [
     { id := targetId, kind := .target, source, version := 1,
       canonicalBehavior := "temporal-nexus-basic-lifecycle-target/v2", documentation := "" },
-    { id := kernelId, kind := .kernel, source, version := 1,
+    { id := kernelId, kind := .machine, source, version := 1,
       canonicalBehavior := "temporal-nexus-basic-lifecycle-kernel/v2", documentation := "" },
     { id := lifecycleCapabilityId, kind := .capability, source, version := 1,
       canonicalBehavior := "temporal-nexus-basic-lifecycle/v2", documentation := "" },
@@ -35,7 +35,7 @@ theorem definitionsRetainCanonicalMetadata : definitions = [
       canonicalBehavior := "temporal-nexus-basic-lifecycle-report-success/v1", documentation := "" },
     { id := transitionOutcomeId, kind := .outcome, source, version := 1,
       canonicalBehavior := "temporal-nexus-basic-lifecycle-outcome/v2", documentation := "" },
-    { id := lifecycleObservationId, kind := .observation, source, version := 1,
+    { id := lifecycleObservationId, kind := .fact, source, version := 1,
       canonicalBehavior := "temporal-nexus-basic-lifecycle-observation/v2", documentation := "" }
   ] := by
   native_decide
@@ -63,13 +63,13 @@ private def baselineTargetDefinition : TargetDefinition
   definitions
   requiredCapabilities := [lifecycleCapabilityId]
   resolvedSetups := roleAssignments
-  kernel := finiteMachine.kernelAvailability
+  kernel := finiteMachine.machineAvailability
 }
 
 private def baselineTargetAuthoring : AuthoredTarget LawStatement
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue :=
   AuthoredTarget.make baselineTargetDefinition targetComposition
-    (.available transitionKernel rfl finitePlanning)
+    (.available machine rfl finitePlanning)
 
 theorem migratedTargetMatchesIndependentBaseline :
     targetDefinition = baselineTargetDefinition ∧
@@ -85,13 +85,13 @@ theorem migratedTargetMatchesIndependentBaseline :
         checked.behaviorFingerprint)) := by
   exact ⟨rfl, rfl⟩
 
-theorem targetMachineryUsesFiniteMachineCapabilities : transitionKernel = finiteMachine.kernel ∧
+theorem targetMachineryUsesFiniteMachineCapabilities : machine = finiteMachine.kernel ∧
     finitePlanning = finiteMachine.planning ∧
-    targetDefinition.kernel = finiteMachine.kernelAvailability := by
+    targetDefinition.kernel = finiteMachine.machineAvailability := by
   exact ⟨rfl, rfl, rfl⟩
 
 theorem targetBehaviorFingerprintRemainsStable : target.behaviorFingerprint.render =
-    "sha256:2dffda3904f7425aa7ef89876393dc1648edcca0a944139672b6e35dd1651d93" := by
+    "sha256:a2c2da875534f76f9531e1d08614601b291bfc0115d9c4eb1f769fbf37d35daa" := by
   native_decide
 
 theorem targetAndActionDefinitionIdsRemainStable :

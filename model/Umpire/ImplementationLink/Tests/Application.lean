@@ -78,7 +78,7 @@ def observationDeclaration : ObservationMappingDeclaration := {
     {
       id := observationRuleId
       output := Umpire.Examples.Switch.powerObservationId
-      outputKind := .observation
+      outputKind := .fact
       value := .portable (field observationField)
       condition := some stepCondition
     }
@@ -295,7 +295,7 @@ def linkWitness : ImplementationLinkWitness linkDeclaration Umpire.Examples.Swit
     stepForward := by
       intro _ _ result admitted
       cases result
-      simpa [KernelMorphism.mapTransitionResult, TransitionResult.map] using admitted
+      simpa [KernelMorphism.mapStep, Step.map] using admitted
   }
   requiredCoverage := linkCoverage
 }
@@ -615,20 +615,20 @@ example : completeApplication.applied?.map (fun application =>
         .initialState),
       (.selectedAction 1, Umpire.Examples.Switch.flipAction, Umpire.Examples.Switch.flipAction,
         .selectedAction 1),
-      (.modelOutcome 1, Umpire.Examples.Switch.deferredOutcome,
-        Umpire.Examples.Switch.deferredOutcome, .modelOutcome 1),
-      (.resultingState 1, Umpire.Examples.Switch.offState, Umpire.Examples.Switch.offState,
-        .resultingState 1),
-      (.observation 1 1, Umpire.Examples.Switch.powerOffObservation,
-        Umpire.Examples.Switch.powerOffObservation, .observation 1 1),
+      (.outcome 1, Umpire.Examples.Switch.deferredOutcome,
+        Umpire.Examples.Switch.deferredOutcome, .outcome 1),
+      (.state 1, Umpire.Examples.Switch.offState, Umpire.Examples.Switch.offState,
+        .state 1),
+      (.fact 1 1, Umpire.Examples.Switch.powerOffObservation,
+        Umpire.Examples.Switch.powerOffObservation, .fact 1 1),
       (.selectedAction 2, Umpire.Examples.Switch.flipAction, Umpire.Examples.Switch.flipAction,
         .selectedAction 2),
-      (.modelOutcome 2, Umpire.Examples.Switch.deferredOutcome,
-        Umpire.Examples.Switch.deferredOutcome, .modelOutcome 2),
-      (.resultingState 2, Umpire.Examples.Switch.offState, Umpire.Examples.Switch.offState,
-        .resultingState 2),
-      (.observation 2 1, Umpire.Examples.Switch.powerOffObservation,
-        Umpire.Examples.Switch.powerOffObservation, .observation 2 1)
+      (.outcome 2, Umpire.Examples.Switch.deferredOutcome,
+        Umpire.Examples.Switch.deferredOutcome, .outcome 2),
+      (.state 2, Umpire.Examples.Switch.offState, Umpire.Examples.Switch.offState,
+        .state 2),
+      (.fact 2 1, Umpire.Examples.Switch.powerOffObservation,
+        Umpire.Examples.Switch.powerOffObservation, .fact 2 1)
     ]) := by
   native_decide
 

@@ -381,7 +381,7 @@ def OperationCase.completedOutcome (entry : OperationCase) : Except Field.Error 
 /-! ### The Target -/
 
 private def structuralKinds : List (DefinitionId × DefinitionKind) := [
-  (targetId, .target), (kernelId, .kernel), (providerId, .provider), (capabilityId, .capability)]
+  (targetId, .target), (kernelId, .machine), (providerId, .provider), (capabilityId, .capability)]
 
 /-- The modeled vocabulary a Property clause may name. -/
 private def vocabularyKinds : List (DefinitionId × DefinitionKind) := [
@@ -540,7 +540,7 @@ def projectionDeclaration : Except AdmissionError
     pure ({ kind := entry.scheduledEvidenceKindId
             fields := retainedOperationIdentity
             meaning := .confirmed none [(scheduleAction command,
-              { resultingState := state, modelOutcome := outcome, observations := [] })] } :
+              { state := state, outcome := outcome, facts := [] })] } :
       Observation.Projection.Rule ModelValue ModelValue ModelValue ModelValue)
   let completedOutcome ← firstCase.completedOutcome.mapError AdmissionError.field
   pure {
@@ -551,8 +551,8 @@ def projectionDeclaration : Except AdmissionError
     rules := scheduled ++ [{
       kind := completedEvidenceKindId
       meaning := .confirmed none [(awaitAction,
-        { resultingState := completedState, modelOutcome := completedOutcome
-          observations := [] })] }]
+        { state := completedState, outcome := completedOutcome
+          facts := [] })] }]
     limits := projectionLimits }
 
 /-- The one covered coordinate: the operation identity the scheduled evidence records is the value
@@ -601,19 +601,19 @@ def checked : Except AdmissionError Model := do
     fun (((command, state), outcome), index) =>
       ({ key := "schedule-" ++ toString index, source := pendingState
          action := scheduleAction command
-         results := [{ resultingState := state, modelOutcome := outcome, observations := [] }] } :
+         results := [{ state := state, outcome := outcome, facts := [] }] } :
         FiniteTransitionRow ModelValue ModelValue ModelValue ModelValue)
   let pollRows := scheduledStates.zipIdx.map fun (state, index) =>
     ({ key := "poll-" ++ toString index, source := state, action := pollAction
-       results := [{ resultingState := state, modelOutcome := noProgressOutcome
-                     observations := [] }] } :
+       results := [{ state := state, outcome := noProgressOutcome
+                     facts := [] }] } :
       FiniteTransitionRow ModelValue ModelValue ModelValue ModelValue)
   -- The Target owns both completions: selecting the await Action never selects which scheduled
   -- event the completion that arrives references, so the crossed one is a clause violation.
   let awaitRows := scheduledStates.zipIdx.map fun (state, index) =>
     ({ key := "await-" ++ toString index, source := state, action := awaitAction
        results := (completedOutcomes.drop index ++ completedOutcomes.take index).map fun outcome =>
-         { resultingState := completedState, modelOutcome := outcome, observations := [] } } :
+         { state := completedState, outcome := outcome, facts := [] } } :
       FiniteTransitionRow ModelValue ModelValue ModelValue ModelValue)
   let table : FiniteTable Unit ModelValue ModelValue ModelValue ModelValue := {
     setups := [⟨(), "operation"⟩]

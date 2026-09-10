@@ -97,15 +97,15 @@ private def trace
   steps := [
     {
       selectedAction := value requestCancel "request"
-      modelOutcome := value deliveredOutcome "delivered"
-      resultingState := value pendingCount (toString afterFirst)
-      observations := firstObservations
+      outcome := value deliveredOutcome "delivered"
+      state := value pendingCount (toString afterFirst)
+      facts := firstObservations
     },
     {
       selectedAction := value tick "tick"
-      modelOutcome := value deliveredOutcome "delivered"
-      resultingState := value pendingCount (toString afterFirst)
-      observations := secondObservations
+      outcome := value deliveredOutcome "delivered"
+      state := value pendingCount (toString afterFirst)
+      facts := secondObservations
     }
   ]
 }
@@ -224,15 +224,15 @@ private def twoTriggerTrace : ModelTrace ModelValue ModelValue ModelValue ModelV
   steps := [
     {
       selectedAction := value requestCancel "request"
-      modelOutcome := value deliveredOutcome "delivered"
-      resultingState := value pendingCount "0"
-      observations := [trigger]
+      outcome := value deliveredOutcome "delivered"
+      state := value pendingCount "0"
+      facts := [trigger]
     },
     {
       selectedAction := value requestCancel "request"
-      modelOutcome := value deliveredOutcome "delivered"
-      resultingState := value pendingCount "0"
-      observations := [trigger, response]
+      outcome := value deliveredOutcome "delivered"
+      state := value pendingCount "0"
+      facts := [trigger, response]
     }
   ]
 }
@@ -286,9 +286,9 @@ private def parentExcludedTrace : ModelTrace ModelValue ModelValue ModelValue Mo
   initialState := value pendingCount "0"
   steps := [{
     selectedAction := value tick "tick"
-    modelOutcome := value deliveredOutcome "delivered"
-    resultingState := value pendingCount "1"
-    observations := [trigger]
+    outcome := value deliveredOutcome "delivered"
+    state := value pendingCount "1"
+    facts := [trigger]
   }]
 }
 
@@ -360,9 +360,9 @@ private def unknownPriorTrace : ModelTrace ModelValue ModelValue ModelValue Mode
   initialState := value hiddenObservation "0"
   steps := [{
     selectedAction := value requestCancel "request"
-    modelOutcome := value deliveredOutcome "delivered"
-    resultingState := value pendingCount "1"
-    observations := [trigger]
+    outcome := value deliveredOutcome "delivered"
+    state := value pendingCount "1"
+    facts := [trigger]
   }]
 }
 

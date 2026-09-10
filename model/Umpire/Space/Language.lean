@@ -643,10 +643,6 @@ private def targetAllowsBinding
   query.target.resolvedSetups.any fun setup =>
     setup.contains binding && query.behavior.setup.all (setupConstraintHolds setup)
 
-private def isSpaceMetadataKind : DefinitionKind → Bool
-  | .experimentSpace | .variationAxis | .choice | .fault | .coverageGoal => true
-  | _ => false
-
 private def checkedChoiceEffectKey (choice : CheckedChoice) : String :=
   (choice.binding.map bindingJson |>.getD "null") ++ ":" ++
     array (choice.faults.map (quote ∘ DefinitionId.value))
@@ -720,8 +716,7 @@ private def checkAxis
         match findRole query roleId with
         | none => throw (spaceError .unknownRole axis.id axis.source roleId.value [roleId])
         | some role =>
-            if role.valueKind == .outcome || role.valueKind == .observation ||
-                isSpaceMetadataKind role.valueKind then
+            if role.valueKind == .outcome || role.valueKind == .fact then
               throw (spaceError .unwritableRole axis.id axis.source
                 (role.id.value ++ ": " ++ role.valueKind.name) [role.id])
             pure (some role)
@@ -907,7 +902,7 @@ private def checkGoal
     | .state id => findSemanticSubject query declaration id .state
     | .action id => findSemanticSubject query declaration id .action
     | .outcome id => findSemanticSubject query declaration id .outcome
-    | .observation id => findSemanticSubject query declaration id .observation
+    | .observation id => findSemanticSubject query declaration id .fact
     | .relation id => findSemanticSubject query declaration id .relation
     | .property propertyId =>
         match query.form.properties.find? fun property => property.id == propertyId with

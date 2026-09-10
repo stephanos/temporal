@@ -134,7 +134,7 @@ def changedCompositionTargetDefinition : TargetDefinition
 def changedCompositionTarget : QueryTarget (fun _ => True) :=
   checkedTarget (AuthoredTarget.make changedCompositionTargetDefinition targetComposition)
 
-def changedKernel : TransitionKernel
+def changedKernel : Machine
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := kernel
 
 def changedKernelTargetDefinition : TargetDefinition

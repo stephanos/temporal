@@ -25,7 +25,7 @@ structure CheckedTarget
   resolvedSetups : List Setup
   /-- One eligible-state set per constituent; every set must match. Empty metadata never closes. -/
   terminalConditions : List (List State) := []
-  kernel : TransitionKernel Setup State Action Outcome Observation
+  kernel : Machine Setup State Action Outcome Observation
   behaviorDescription : TargetBehaviorDescription
   isTerminal : State → Bool := fun _ => false
   planning : FinitePlanningAvailability kernel.authoritativeStep := .unavailable
@@ -367,11 +367,11 @@ private def composeTargetDetailed
   let kernel ← match target.kernel with
     | .checked kernel => pure kernel
     | .incomplete metadata missingProofs =>
-        requireDefinition definitions target.id target.source metadata.id .kernel
+        requireDefinition definitions target.id target.source metadata.id .machine
           (occurrencePath .kernel target.id)
         throw (validationError .incompleteKernel target.id metadata.source
           (occurrencePath .kernel target.id) metadata.id metadata.id.value missingProofs)
-  requireDefinition definitions target.id target.source kernel.metadata.id .kernel
+  requireDefinition definitions target.id target.source kernel.metadata.id .machine
     (occurrencePath .kernel target.id)
   let behaviorDomain ← match kernel.behaviorDomain with
     | .missing =>
@@ -523,7 +523,7 @@ def checkedTarget
 /-- Rebind implementation enumerators while proving the checked semantic kernel is unchanged. -/
 def CheckedTarget.withEquivalentKernel
     (target : CheckedTarget LawStatement Setup State Action Outcome Observation)
-    (kernel : TransitionKernel Setup State Action Outcome Observation)
+    (kernel : Machine Setup State Action Outcome Observation)
     (_metadata : kernel.metadata = target.kernel.metadata)
     (_domains : kernel.setupDomain = target.kernel.setupDomain ∧
       kernel.stateDomain = target.kernel.stateDomain ∧

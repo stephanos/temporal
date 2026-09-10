@@ -175,9 +175,9 @@ example :
     repeatedRunEvaluation.querySummary.verdicts.flatMap (fun verdict =>
       verdict.clauses.flatMap SemanticClauseVerdict.coordinates) = [
         .selectedAction 1,
-        .resultingState 1,
+        .state 1,
         .selectedAction 2,
-        .resultingState 2
+        .state 2
       ] := by
   native_decide
 
@@ -300,7 +300,7 @@ def otherTargetDefinition : TargetDefinition
 def otherTargetAuthoring : AuthoredTarget Umpire.Examples.Switch.LawStatement
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue :=
   AuthoredTarget.make otherTargetDefinition Umpire.Examples.Switch.targetComposition
-    (.available Umpire.Examples.Switch.transitionKernel rfl Umpire.Examples.Switch.finitePlanning)
+    (.available Umpire.Examples.Switch.machine rfl Umpire.Examples.Switch.finitePlanning)
 
 def otherTarget : QueryTarget Umpire.Examples.Switch.LawStatement :=
   checkedTarget otherTargetAuthoring

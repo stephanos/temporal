@@ -286,7 +286,7 @@ structure Transition where
   operation : String
   priorState : ModelValue
   action : ModelValue
-  result : TransitionResult ModelValue ModelValue ModelValue
+  result : Step ModelValue ModelValue ModelValue
   deriving BEq, DecidableEq, Repr
 
 private def predicateInput (context : PropertyPredicateContext) (step : Transition) :
@@ -294,9 +294,9 @@ private def predicateInput (context : PropertyPredicateContext) (step : Transiti
   context
   priorState := some step.priorState
   selectedAction := some step.action
-  resultingState := some step.result.resultingState
-  modelOutcome := some step.result.modelOutcome
-  facts := some step.result.observations
+  resultingState := some step.result.state
+  modelOutcome := some step.result.outcome
+  facts := some step.result.facts
 }
 
 private def validateCoordinate (clause : ResolvedPropertyScopedClause) (step : Transition) :
@@ -366,7 +366,7 @@ def Run.consume {compiled : Compiled target} (run : Run compiled) (step : Transi
   -- correlation can read the occurrence its own step creates.
   let (captures, charged) ← (operation.captures.record declarations evidence).mapError Error.capture
   if payload.capturedValues + charged > compiled.limits.captures then throw .capturesExhausted
-  let next := { operation with state := step.result.resultingState, executions, captures }
+  let next := { operation with state := step.result.state, executions, captures }
   let operations := if payload.operations.any (·.key == step.operation) then
     payload.operations.map fun current => if current.key == step.operation then next else current
     else payload.operations ++ [next]

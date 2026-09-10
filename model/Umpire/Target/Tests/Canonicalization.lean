@@ -68,17 +68,17 @@ example : (composeTarget changedConnectorTarget).toOption.map CheckedTarget.beha
     (composeTarget testTarget).toOption.map CheckedTarget.behaviorFingerprint := by
   native_decide
 
-def changedKernel : TransitionKernel Unit Bool Bool Bool Bool := {
+def changedKernel : Machine Unit Bool Bool Bool Bool := {
   testKernel with
   steps := fun state action => [{
-    modelOutcome := action
-    resultingState := action
-    observations := [!state]
+    outcome := action
+    state := action
+    facts := [!state]
   }]
   authoritativeStep := fun state action result => result = {
-    modelOutcome := action
-    resultingState := action
-    observations := [!state]
+    outcome := action
+    state := action
+    facts := [!state]
   }
   stepSound := by simp
   stepComplete := by simp
@@ -109,8 +109,8 @@ def changedKernel : TransitionKernel Unit Bool Bool Bool Bool := {
     actionCoverage := by intro state action result member; cases action <;> simp
     resultingStateCoverage := by
       intro state action result member
-      cases result.resultingState <;> simp
-    outcomeCoverage := by intro state action result member; cases result.modelOutcome <;> simp
+      cases result.state <;> simp
+    outcomeCoverage := by intro state action result member; cases result.outcome <;> simp
     observationCoverage := by
       intro state action result value member observationMember
       cases value <;> simp

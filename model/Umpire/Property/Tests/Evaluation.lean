@@ -9,7 +9,7 @@ open Umpire
 def negativeTrace : ModelTrace ModelValue ModelValue ModelValue ModelValue := {
   positiveTrace with
   steps := positiveTrace.steps.mapIdx fun index step =>
-    if index == 0 then { step with resultingState := value pendingCount "2" } else step
+    if index == 0 then { step with state := value pendingCount "2" } else step
 }
 
 def uniquenessProperty : PropertyDeclaration := {
@@ -75,7 +75,7 @@ def traceWithoutHidden : ModelTrace ModelValue ModelValue ModelValue ModelValue 
   positiveTrace with
   steps := positiveTrace.steps.map fun step => {
     step with
-    observations := step.observations.filter fun observation =>
+    facts := step.facts.filter fun observation =>
       observation.definitionId != hiddenObservation
   }
 }

@@ -153,7 +153,7 @@ elab "model" name:ident "role" role:ident
           { key := $keyLiteral
             source := $sourceState
             action := $selectedAction
-            results := [Authoring.transitionResult $modelOutcome $targetState
+            results := [Authoring.step $modelOutcome $targetState
               [$(observedFacts.toArray),*]] })
         pure ({ key, sourceState, selectedAction, targetState, rowTerm : ResolvedRow })
     | _ => throwErrorAt row "unsupported Nexus3 transition"

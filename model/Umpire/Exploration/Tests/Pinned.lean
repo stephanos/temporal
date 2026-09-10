@@ -53,7 +53,7 @@ example :
 /-! Guided selection also removes pinned overlap before applying its exploration Limit. -/
 example :
     let result :=
-      (engineRun (.uncoveredCoordinate (.observation 1 1)) 1 [firstPinned]).toOption
+      (engineRun (.uncoveredCoordinate (.fact 1 1)) 1 [firstPinned]).toOption
     result.any (fun result =>
       result.pinned.length == 1 && result.exploratory.length == 1 &&
         !(result.exploratory.map ExplorationCandidate.identity).contains
@@ -66,7 +66,7 @@ example :
 example :
     let pinned := unpinnedCandidates.map ExplorationCandidate.experimentSpec
     let result :=
-      (engineRun (.uncoveredCoordinate (.observation 1 1)) 1 pinned).toOption
+      (engineRun (.uncoveredCoordinate (.fact 1 1)) 1 pinned).toOption
     result.any (fun result =>
       result.pinned.length == 4 && result.exploratory.isEmpty &&
         result.coordinateOutcome == some .coordinateSelected &&

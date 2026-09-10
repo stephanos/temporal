@@ -123,7 +123,7 @@ example :
         satisfiedProperty.access with
         meanings := satisfiedProperty.access.meanings ++ [{
           definitionId := id "test.observation.missing"
-          kind := .observation
+          kind := .fact
           canonicalBehavior := "test-observation-missing/v1"
         }]
       }
@@ -207,9 +207,9 @@ example :
       repeatedProperty trace
     verdict.clauses.map (fun clause => clause.coordinates) = [[
       .selectedAction 1,
-      .modelOutcome 1,
+      .outcome 1,
       .selectedAction 2,
-      .modelOutcome 2
+      .outcome 2
     ]] := by
   native_decide
 
@@ -224,19 +224,19 @@ example :
       (PropertyTraceField.valueAt? .priorState emptyTrace .initialState).isSome,
       (PropertyTraceField.valueAt? .resultingState emptyTrace .initialState).isSome,
       (PropertyTraceField.valueAt? .priorState oneStepTrace .initialState).isSome,
-      (PropertyTraceField.valueAt? .priorState oneStepTrace (.resultingState 1)).isSome,
-      (PropertyTraceField.valueAt? .resultingState oneStepTrace (.resultingState 1)).isSome,
-      (PropertyTraceField.valueAt? .priorState twoStepTrace (.resultingState 1)).isSome,
-      (PropertyTraceField.valueAt? .priorState twoStepTrace (.resultingState 2)).isSome,
-      (PropertyTraceField.valueAt? .observation twoStepTrace (.observation 1 1)).isSome,
-      (PropertyTraceField.valueAt? .relation twoStepTrace (.observation 1 1)).isSome,
+      (PropertyTraceField.valueAt? .priorState oneStepTrace (.state 1)).isSome,
+      (PropertyTraceField.valueAt? .resultingState oneStepTrace (.state 1)).isSome,
+      (PropertyTraceField.valueAt? .priorState twoStepTrace (.state 1)).isSome,
+      (PropertyTraceField.valueAt? .priorState twoStepTrace (.state 2)).isSome,
+      (PropertyTraceField.valueAt? .observation twoStepTrace (.fact 1 1)).isSome,
+      (PropertyTraceField.valueAt? .relation twoStepTrace (.fact 1 1)).isSome,
       (PropertyTraceField.valueAt? .selectedAction twoStepTrace (.selectedAction 0)).isSome,
-      (PropertyTraceField.valueAt? .modelOutcome twoStepTrace (.modelOutcome 0)).isSome,
-      (PropertyTraceField.valueAt? .state twoStepTrace (.resultingState 0)).isSome,
-      (PropertyTraceField.valueAt? .observation twoStepTrace (.observation 0 1)).isSome,
-      (PropertyTraceField.valueAt? .relation twoStepTrace (.observation 1 0)).isSome,
+      (PropertyTraceField.valueAt? .modelOutcome twoStepTrace (.outcome 0)).isSome,
+      (PropertyTraceField.valueAt? .state twoStepTrace (.state 0)).isSome,
+      (PropertyTraceField.valueAt? .observation twoStepTrace (.fact 0 1)).isSome,
+      (PropertyTraceField.valueAt? .relation twoStepTrace (.fact 1 0)).isSome,
       (PropertyTraceField.valueAt? .selectedAction twoStepTrace (.selectedAction 3)).isSome,
-      (PropertyTraceField.valueAt? .observation twoStepTrace (.observation 1 99)).isSome
+      (PropertyTraceField.valueAt? .observation twoStepTrace (.fact 1 99)).isSome
     ] = [
       true, false, false,
       true, false, true,

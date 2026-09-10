@@ -41,8 +41,8 @@ def context : BehaviorCheckContext := {
     metadata noop.value .action,
     metadata accepted.value .outcome,
     metadata rejected.value .outcome,
-    metadata cancelRequested.value .observation,
-    metadata callerClosed.value .observation
+    metadata cancelRequested.value .fact,
+    metadata callerClosed.value .fact
   ]
 }
 
@@ -65,23 +65,23 @@ def observationValue (observation : DefinitionId) : ModelValue :=
 def cancelStep (outcome : DefinitionId) :
     ModelTraceStep ModelValue ModelValue ModelValue ModelValue := {
   selectedAction := actionValue requestCancel
-  modelOutcome := outcomeValue outcome
-  resultingState := cancelling
-  observations := [observationValue cancelRequested]
+  outcome := outcomeValue outcome
+  state := cancelling
+  facts := [observationValue cancelRequested]
 }
 
 def closeStep : ModelTraceStep ModelValue ModelValue ModelValue ModelValue := {
   selectedAction := actionValue callerClose
-  modelOutcome := outcomeValue accepted
-  resultingState := closed
-  observations := [observationValue callerClosed]
+  outcome := outcomeValue accepted
+  state := closed
+  facts := [observationValue callerClosed]
 }
 
 def tickStep : ModelTraceStep ModelValue ModelValue ModelValue ModelValue := {
   selectedAction := actionValue tick
-  modelOutcome := outcomeValue accepted
-  resultingState := cancelling
-  observations := []
+  outcome := outcomeValue accepted
+  state := cancelling
+  facts := []
 }
 
 def traceWith
@@ -122,9 +122,9 @@ def exactWitness : AuthoredExactTrace := {
   initialState := some acceptedTrace.trace.initialState
   steps := acceptedTrace.trace.steps.map fun step => {
     selectedAction := some step.selectedAction
-    modelOutcome := some step.modelOutcome
-    resultingState := some step.resultingState
-    observations := some step.observations
+    modelOutcome := some step.outcome
+    resultingState := some step.state
+    observations := some step.facts
   }
 }
 

@@ -109,7 +109,7 @@ private def stepOf (entry : OperationCase) (control : Control)
     Option (Property.Scoped.Transition × List PropertyFieldEvidence) := do
   let scheduledState ← entry.scheduledState.toOption
   let step (priorState : ModelValue) (action : ModelValue)
-      (result : TransitionResult ModelValue ModelValue ModelValue)
+      (result : Step ModelValue ModelValue ModelValue)
       (evidence : List PropertyFieldEvidence) :
       Property.Scoped.Transition × List PropertyFieldEvidence :=
     ({ scope, operationField := operationFieldId, operation := entry.operation
@@ -120,18 +120,18 @@ private def stepOf (entry : OperationCase) (control : Control)
       let outcome ← entry.scheduledOutcome.toOption
       let evidence ← scheduledEvidenceOf entry recorded
       pure (step pendingState (scheduleAction command)
-        { resultingState := scheduledState, modelOutcome := outcome, observations := [] } evidence)
+        { state := scheduledState, outcome := outcome, facts := [] } evidence)
   | .poll => do
       let evidence ← scheduledEvidenceOf entry recorded
       pure (step scheduledState pollAction
-        { resultingState := scheduledState, modelOutcome := noProgressOutcome
-          observations := [] } evidence)
+        { state := scheduledState, outcome := noProgressOutcome
+          facts := [] } evidence)
   | .complete => do
       let outcome ← completing.completedOutcome.toOption
       let state ← stateEvidenceOf entry
       let completed ← completedEvidenceOf completing
       pure (step scheduledState awaitAction
-        { resultingState := completedState, modelOutcome := outcome, observations := [] }
+        { state := completedState, outcome := outcome, facts := [] }
         (state ++ completed))
 
 /-- A poll step that carries no evidence at all, so nothing is retained and nothing is read. -/
@@ -225,8 +225,8 @@ private def completionSatisfies (entry completing : OperationCase)
   let completed ← completedEvidenceOf completing
   let trace : ModelTrace ModelValue ModelValue ModelValue ModelValue := {
     initialState := scheduledState
-    steps := [{ selectedAction := awaitAction, modelOutcome := outcome
-                resultingState := completedState, observations := [] }] }
+    steps := [{ selectedAction := awaitAction, outcome := outcome
+                state := completedState, facts := [] }] }
   let evidence := state ++ (if withCompletion then completed else [])
   let input ← (model.fieldProperty.checkInput trace [evidence]).toOption
   pure (evaluateProperty model.fieldProperty.property input).satisfied

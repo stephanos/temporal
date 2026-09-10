@@ -241,7 +241,7 @@ horizon.
   authoritative behavior. The adapter derives membership relations, completeness support, and
   exact finite planning. Authors MUST still provide ordered semantic domains, encoders, enumerators,
   evidence that enumerated values stay within those domains, and evidence that every enumerated
-  Action is executable. As an expert alternative, authors MAY construct `Umpire.TransitionKernel`
+  Action is executable. As an expert alternative, authors MAY construct `Umpire.Machine`
   directly for Targets whose authority is specified independently. Both paths MUST produce an
   `Umpire.AuthoredTarget` and pass it to `Umpire.checkTarget`. `Umpire.FiniteMachine` MUST NOT
   introduce another Behavior, Property, Query, Scenario, or macro language.

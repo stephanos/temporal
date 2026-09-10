@@ -59,7 +59,7 @@ private def guardedLogicalResponse : PropertyClause :=
 
 #guard ([none, some "not-a-time"] : List (Option String)).all fun coordinate =>
   let trace := { selectedPrefix with steps := selectedPrefix.steps.map fun step =>
-    { step with observations := step.observations ++
+    { step with facts := step.facts ++
       (coordinate.toList.map fun time => value logicalTime time) } }
   endpointAnswer guardedLogicalResponse trace true (some logicalTime) == some .unresolved
 

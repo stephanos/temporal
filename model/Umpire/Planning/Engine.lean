@@ -11,10 +11,10 @@ def modelValueOrderKey (value : ModelValue) : String :=
   value.definitionId.value ++ "\u001f" ++ value.value
 
 def transitionResultOrderKey
-    (result : TransitionResult ModelValue ModelValue ModelValue) : String :=
-  modelValueOrderKey result.modelOutcome ++ "\u001e" ++
-    modelValueOrderKey result.resultingState ++ "\u001e" ++
-    String.intercalate "\u001d" (result.observations.map modelValueOrderKey)
+    (result : Step ModelValue ModelValue ModelValue) : String :=
+  modelValueOrderKey result.outcome ++ "\u001e" ++
+    modelValueOrderKey result.state ++ "\u001e" ++
+    String.intercalate "\u001d" (result.facts.map modelValueOrderKey)
 
 /-- A backend exposes a single candidate and continuation per pull; Query owns policy and result
 semantics, while implementations own only incremental enumeration state. -/
@@ -39,7 +39,7 @@ structure IncrementalPlannerKernel (target : QueryTarget LawStatement) where
   initialAt : List RoleBinding → Nat → Option ModelValue
   stepLimit : ModelValue → ModelValue → Nat
   stepAt : ModelValue → ModelValue → Nat →
-    Option (TransitionResult ModelValue ModelValue ModelValue)
+    Option (Step ModelValue ModelValue ModelValue)
   actionSound : ∀ index action, index < actionLimit → actionAt index = some action →
     ∃ state result, target.kernel.authoritativeStep state action result
   actionComplete : ∀ state action result,
@@ -187,7 +187,7 @@ private def modelValueLe (left right : ModelValue) : Bool :=
   decide (modelValueOrderKey left ≤ modelValueOrderKey right)
 
 private def transitionResultLe
-    (left right : TransitionResult ModelValue ModelValue ModelValue) : Bool :=
+    (left right : Step ModelValue ModelValue ModelValue) : Bool :=
   decide (transitionResultOrderKey left ≤ transitionResultOrderKey right)
 
 private theorem modelValueLe_trans (a b c : ModelValue) :
@@ -201,13 +201,13 @@ private theorem modelValueLe_total (a b : ModelValue) :
   exact String.le_total _ _
 
 private theorem transitionResultLe_trans
-    (a b c : TransitionResult ModelValue ModelValue ModelValue) :
+    (a b c : Step ModelValue ModelValue ModelValue) :
     transitionResultLe a b → transitionResultLe b c → transitionResultLe a c := by
   simp only [transitionResultLe, decide_eq_true_eq]
   exact fun ab bc => String.le_trans ab bc
 
 private theorem transitionResultLe_total
-    (a b : TransitionResult ModelValue ModelValue ModelValue) :
+    (a b : Step ModelValue ModelValue ModelValue) :
     transitionResultLe a b || transitionResultLe b a := by
   simp only [transitionResultLe, Bool.or_eq_true, decide_eq_true_eq]
   exact String.le_total _ _
@@ -230,7 +230,7 @@ private theorem modelValueListBeqSelf (values : List ModelValue) :
     rfl
 
 private theorem transitionResultBeqSelf
-    (result : TransitionResult ModelValue ModelValue ModelValue) :
+    (result : Step ModelValue ModelValue ModelValue) :
     (result == result) = true := by
   cases result with
   | mk outcome state observations =>
@@ -239,7 +239,7 @@ private theorem transitionResultBeqSelf
     rfl
 
 private theorem transitionResultListBeqSelf
-    (results : List (TransitionResult ModelValue ModelValue ModelValue)) :
+    (results : List (Step ModelValue ModelValue ModelValue)) :
     (results == results) = true := by
   induction results with
   | nil => rfl
@@ -609,9 +609,9 @@ private def receiptTrace (trace : BehaviorTrace) : Lean.Json :=
     ("initialState", receiptValue trace.trace.initialState),
     ("steps", .arr (trace.trace.steps.map fun step => .mkObj [
       ("selectedAction", receiptValue step.selectedAction),
-      ("modelOutcome", receiptValue step.modelOutcome),
-      ("resultingState", receiptValue step.resultingState),
-      ("observations", .arr (step.observations.map receiptValue).toArray)]).toArray)]
+      ("modelOutcome", receiptValue step.outcome),
+      ("resultingState", receiptValue step.state),
+      ("observations", .arr (step.facts.map receiptValue).toArray)]).toArray)]
 
 /-- Canonical endpoint receipt binds independent claims, all Query limits and policies, the
 assurance method, and exact model paths supporting realized trigger coverage. -/
@@ -791,21 +791,21 @@ private def rootTrace (setup : List RoleBinding) (initialState : ModelValue) : B
 private def appendStep
     (candidate : BehaviorTrace)
     (action : ModelValue)
-    (result : TransitionResult ModelValue ModelValue ModelValue) : BehaviorTrace := {
+    (result : Step ModelValue ModelValue ModelValue) : BehaviorTrace := {
   candidate with trace := {
     candidate.trace with
     steps := candidate.trace.steps ++ [{
       selectedAction := action
-      modelOutcome := result.modelOutcome
-      resultingState := result.resultingState
-      observations := result.observations
+      outcome := result.outcome
+      state := result.state
+      facts := result.facts
     }]
   }
 }
 
 private def currentState (candidate : BehaviorTrace) : ModelValue :=
   match candidate.trace.steps.getLast? with
-  | some step => step.resultingState
+  | some step => step.state
   | none => candidate.trace.initialState
 
 private partial def nextRoot?

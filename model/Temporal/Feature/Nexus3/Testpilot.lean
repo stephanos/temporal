@@ -221,9 +221,9 @@ private def patternHolds
       | _ => false
   match pattern.field with
   | .selectedAction => carries step.selectedAction
-  | .resultingState => carries step.resultingState
-  | .modelOutcome => carries step.modelOutcome
-  | .observation => step.observations.any carries
+  | .resultingState => carries step.state
+  | .modelOutcome => carries step.outcome
+  | .observation => step.facts.any carries
   | _ => false
 
 /-- One `require` clause as an operation-scoped clause, placed by the checked Behavior. A same-step
@@ -287,12 +287,12 @@ private def projectionDeclaration
   rules := [
     { kind := startedEvidenceKindId
       meaning := .confirmed none [(vocabulary.actionAt 0,
-        { «resultingState» := vocabulary.stateAt 1, modelOutcome := vocabulary.outcomeAt 0
-          observations := [vocabulary.factAt 0] })] },
+        { «state» := vocabulary.stateAt 1, «outcome» := vocabulary.outcomeAt 0
+          «facts» := [vocabulary.factAt 0] })] },
     { kind := completedEvidenceKindId
       meaning := .confirmed none [(vocabulary.actionAt 1,
-        { «resultingState» := vocabulary.stateAt 2, modelOutcome := vocabulary.outcomeAt 1
-          observations := [vocabulary.factAt 1] })] }]
+        { «state» := vocabulary.stateAt 2, «outcome» := vocabulary.outcomeAt 1
+          «facts» := [vocabulary.factAt 1] })] }]
   «limits» := projectionLimits }
 
 /-- Lower one checked Nexus3 model into a Case. The checked values are carried, never compared
@@ -353,7 +353,7 @@ def produce {Setup State Action Outcome Fact : Type}
     producerVersion := "1"
     definitions := [
       binding checked.target.id.value checked.target.behaviorFingerprint.render .target,
-      binding checked.behavior.id.value checked.behavior.behaviorFingerprint.render .«behavior»,
+      binding checked.behavior.id.value checked.behavior.behaviorFingerprint.render .«scenario»,
       binding checked.query.id.value checked.query.behaviorFingerprint.render .«query»,
       binding scopedProperty.id.value scopedProperty.behaviorFingerprint.render .«property»]
     sources := [checked.target.source, checked.behavior.source, checked.query.source,

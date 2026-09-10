@@ -39,16 +39,16 @@ def acceptedValue : ModelValue := value accepted "accepted"
 def observedValue : ModelValue := value observed "accepted"
 def setup : List RoleBinding := [{ role, value := value phase "operation-a" }]
 
-def transition (_index : Nat) : TransitionResult ModelValue ModelValue ModelValue := {
-  modelOutcome := acceptedValue
-  resultingState := completed
-  observations := [observedValue]
+def transition (_index : Nat) : Step ModelValue ModelValue ModelValue := {
+  outcome := acceptedValue
+  state := completed
+  facts := [observedValue]
 }
 
-def transitions (width : Nat) : List (TransitionResult ModelValue ModelValue ModelValue) :=
+def transitions (width : Nat) : List (Step ModelValue ModelValue ModelValue) :=
   (List.range (width + 1)).map transition
 
-def kernel (width : Nat) : TransitionKernel
+def kernel (width : Nat) : Machine
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
   metadata := {
     id := kernelId
@@ -182,7 +182,7 @@ def targetDefinition (width : Nat) : TargetDefinition
   source
   definitions := [
     metadata targetId .target "planner-target/v1",
-    metadata kernelId .kernel "planner-kernel/v1"
+    metadata kernelId .machine "planner-kernel/v1"
   ]
   requiredCapabilities := []
   resolvedSetups := [setup]
@@ -209,7 +209,7 @@ private theorem kernelBehaviorDescription_eq (width : Nat) :
   induction width with
   | zero => rfl
   | succ width ih =>
-      simp [TransitionKernel.behaviorDescription?, TransitionKernel.describeBehavior, kernel,
+      simp [Machine.behaviorDescription?, Machine.describeBehavior, kernel,
         transitions, transition, completed_ne_initial, Function.comp_def, List.map_const',
         List.range_succ]
       rw [eraseDups_replicate_append_two _ _ (by native_decide)]

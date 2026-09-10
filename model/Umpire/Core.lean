@@ -62,38 +62,28 @@ inductive DefinitionKind where
   | state
   | action
   | outcome
-  | observation
+  | fact
   | relation
   | capability
   | provider
   | law
   | connector
   | target
-  | kernel
-  | experimentSpace
-  | variationAxis
-  | choice
-  | fault
-  | coverageGoal
+  | machine
   deriving BEq, DecidableEq, Ord, Repr
 
 def DefinitionKind.name : DefinitionKind → String
   | .state => "state"
   | .action => "action"
   | .outcome => "outcome"
-  | .observation => "observation"
+  | .fact => "fact"
   | .relation => "relation"
   | .capability => "capability"
   | .provider => "provider"
   | .law => "law"
   | .connector => "connector"
   | .target => "target"
-  | .kernel => "kernel"
-  | .experimentSpace => "experiment-space"
-  | .variationAxis => "variation-axis"
-  | .choice => "choice"
-  | .fault => "fault"
-  | .coverageGoal => "coverage-goal"
+  | .machine => "machine"
 
 structure SourceLocation where
   path : String
@@ -153,20 +143,20 @@ structure RoleBinding where
   value : ModelValue
   deriving BEq, DecidableEq, Ord, Repr
 
-structure ModelTraceStep (State Action Outcome Observation : Type) where
+structure ModelTraceStep (State Action Outcome Fact : Type) where
   selectedAction : Action
-  modelOutcome : Outcome
-  resultingState : State
-  observations : List Observation
+  outcome : Outcome
+  state : State
+  facts : List Fact
   deriving BEq, DecidableEq, Repr
 
 /-- One stable, one-based location of a Model Fact in a Model Trace. -/
 inductive ModelCoordinate where
   | initialState
   | selectedAction (step : Nat)
-  | modelOutcome (step : Nat)
-  | resultingState (step : Nat)
-  | observation (step position : Nat)
+  | outcome (step : Nat)
+  | state (step : Nat)
+  | fact (step position : Nat)
   deriving BEq, DecidableEq, Ord, Repr
 
 /-- Pure model data only. Execution Evidence and Claim Assessment are deliberately absent. -/
@@ -177,10 +167,10 @@ structure ModelTrace (State Action Outcome Observation : Type) where
 
 /-- Return the Definition kind selected by a Model Trace coordinate. -/
 def ModelCoordinate.definitionKind : ModelCoordinate → DefinitionKind
-  | .initialState | .resultingState _ => .state
+  | .initialState | .state _ => .state
   | .selectedAction _ => .action
-  | .modelOutcome _ => .outcome
-  | .observation _ _ => .observation
+  | .outcome _ => .outcome
+  | .fact _ _ => .fact
 
 /-- Enumerate every Model Trace coordinate in canonical source order. -/
 def ModelTrace.coordinates
@@ -188,9 +178,9 @@ def ModelTrace.coordinates
     (trace : ModelTrace State Action Outcome Observation) : List ModelCoordinate :=
   .initialState :: (trace.steps.mapIdx fun index step =>
     let stepPosition := index + 1
-    [.selectedAction stepPosition, .modelOutcome stepPosition, .resultingState stepPosition] ++
-      step.observations.mapIdx fun observationIndex _ =>
-        .observation stepPosition (observationIndex + 1)).flatten
+    [.selectedAction stepPosition, .outcome stepPosition, .state stepPosition] ++
+      step.facts.mapIdx fun factIndex _ =>
+        .fact stepPosition (factIndex + 1)).flatten
 
 /-- Look up a Model Value at a strict one-based coordinate, rejecting zero and out-of-range
 positions. -/
@@ -203,111 +193,111 @@ def ModelTrace.valueAt?
       if step == 0 then none else
         let traceStep ← trace.steps[step - 1]?
         pure traceStep.selectedAction
-  | .modelOutcome step => do
+  | .outcome step => do
       if step == 0 then none else
         let traceStep ← trace.steps[step - 1]?
-        pure traceStep.modelOutcome
-  | .resultingState step => do
+        pure traceStep.outcome
+  | .state step => do
       if step == 0 then none else
         let traceStep ← trace.steps[step - 1]?
-        pure traceStep.resultingState
-  | .observation step position => do
+        pure traceStep.state
+  | .fact step position => do
       if step == 0 || position == 0 then none else
         let traceStep ← trace.steps[step - 1]?
-        traceStep.observations[position - 1]?
+        traceStep.facts[position - 1]?
 
-abbrev TransitionResult := Shared.SemanticData.Result
-abbrev TransitionResult.mk := @Shared.SemanticData.Result.mk
-@[simp] abbrev TransitionResult.modelOutcome {State Outcome Observation : Type}
-    (result : TransitionResult State Outcome Observation) : Outcome :=
-  Shared.SemanticData.Result.modelOutcome result
-@[simp] abbrev TransitionResult.resultingState {State Outcome Observation : Type}
-    (result : TransitionResult State Outcome Observation) : State :=
-  Shared.SemanticData.Result.resultingState result
-@[simp] abbrev TransitionResult.observations {State Outcome Observation : Type}
-    (result : TransitionResult State Outcome Observation) : List Observation :=
-  Shared.SemanticData.Result.observations result
+abbrev Step := Shared.SemanticData.Result
+abbrev Step.mk := @Shared.SemanticData.Result.mk
+@[simp] abbrev Step.outcome {State Outcome Fact : Type}
+    (step : Step State Outcome Fact) : Outcome :=
+  Shared.SemanticData.Result.outcome step
+@[simp] abbrev Step.state {State Outcome Fact : Type}
+    (step : Step State Outcome Fact) : State :=
+  Shared.SemanticData.Result.state step
+@[simp] abbrev Step.facts {State Outcome Fact : Type}
+    (step : Step State Outcome Fact) : List Fact :=
+  Shared.SemanticData.Result.facts step
 
-/-- Build one Model Trace step from its selected Action and model-owned transition result. -/
+/-- Build one Model Trace step from its selected Action and model-owned Step. -/
 def ModelTraceStep.result
-    {State Action Outcome Observation : Type}
+    {State Action Outcome Fact : Type}
     (selectedAction : Action)
-    (result : TransitionResult State Outcome Observation) :
-    ModelTraceStep State Action Outcome Observation := {
+    (step : Step State Outcome Fact) :
+    ModelTraceStep State Action Outcome Fact := {
   selectedAction
-  modelOutcome := result.modelOutcome
-  resultingState := result.resultingState
-  observations := result.observations
+  outcome := step.outcome
+  state := step.state
+  facts := step.facts
 }
 
 /-- A step built from a transition result retains the selected Action. -/
 @[simp] theorem ModelTraceStep.result_selectedAction
     {State Action Outcome Observation : Type}
     (selectedAction : Action)
-    (result : TransitionResult State Outcome Observation) :
+    (result : Step State Outcome Observation) :
     (ModelTraceStep.result selectedAction result).selectedAction = selectedAction := rfl
 
 /-- A step built from a transition result retains its Model Outcome. -/
 @[simp] theorem ModelTraceStep.result_modelOutcome
     {State Action Outcome Observation : Type}
     (selectedAction : Action)
-    (result : TransitionResult State Outcome Observation) :
-    (ModelTraceStep.result selectedAction result).modelOutcome = result.modelOutcome := rfl
+    (result : Step State Outcome Observation) :
+    (ModelTraceStep.result selectedAction result).outcome = result.outcome := rfl
 
 /-- A step built from a transition result retains its resulting state. -/
 @[simp] theorem ModelTraceStep.result_resultingState
     {State Action Outcome Observation : Type}
     (selectedAction : Action)
-    (result : TransitionResult State Outcome Observation) :
-    (ModelTraceStep.result selectedAction result).resultingState = result.resultingState := rfl
+    (result : Step State Outcome Observation) :
+    (ModelTraceStep.result selectedAction result).state = result.state := rfl
 
 /-- A step built from a transition result retains its observations. -/
 @[simp] theorem ModelTraceStep.result_observations
     {State Action Outcome Observation : Type}
     (selectedAction : Action)
-    (result : TransitionResult State Outcome Observation) :
-    (ModelTraceStep.result selectedAction result).observations = result.observations := rfl
+    (result : Step State Outcome Observation) :
+    (ModelTraceStep.result selectedAction result).facts = result.facts := rfl
 
 /-- Map each semantic component of a transition result without changing its structure. -/
-def TransitionResult.map
+def Step.map
     {State Outcome Observation MappedState MappedOutcome MappedObservation : Type}
-    (result : TransitionResult State Outcome Observation)
+    (result : Step State Outcome Observation)
     (mapState : State → MappedState)
     (mapOutcome : Outcome → MappedOutcome)
     (mapObservation : Observation → MappedObservation) :
-    TransitionResult MappedState MappedOutcome MappedObservation :=
+    Step MappedState MappedOutcome MappedObservation :=
   match result with
   | ⟨outcome, state, observations⟩ => ⟨mapOutcome outcome, mapState state, observations.map mapObservation⟩
 
 /-- Mapping a transition result maps its Model Outcome. -/
-@[simp] theorem TransitionResult.map_modelOutcome
+@[simp] theorem Step.map_modelOutcome
     {State Outcome Observation MappedState MappedOutcome MappedObservation : Type}
-    (result : TransitionResult State Outcome Observation)
+    (result : Step State Outcome Observation)
     (mapState : State → MappedState)
     (mapOutcome : Outcome → MappedOutcome)
     (mapObservation : Observation → MappedObservation) :
-    (result.map mapState mapOutcome mapObservation).modelOutcome =
-      mapOutcome result.modelOutcome := rfl
+    (result.map mapState mapOutcome mapObservation).outcome =
+      mapOutcome result.outcome := rfl
 
 /-- Mapping a transition result maps its resulting state. -/
-@[simp] theorem TransitionResult.map_resultingState
+@[simp] theorem Step.map_resultingState
     {State Outcome Observation MappedState MappedOutcome MappedObservation : Type}
-    (result : TransitionResult State Outcome Observation)
+    (result : Step State Outcome Observation)
     (mapState : State → MappedState)
     (mapOutcome : Outcome → MappedOutcome)
     (mapObservation : Observation → MappedObservation) :
-    (result.map mapState mapOutcome mapObservation).resultingState =
-      mapState result.resultingState := rfl
+    (result.map mapState mapOutcome mapObservation).state =
+      mapState result.state := rfl
 
 /-- Mapping a transition result maps its observations in their existing order. -/
-@[simp] theorem TransitionResult.map_observations
+@[simp] theorem Step.map_observations
     {State Outcome Observation MappedState MappedOutcome MappedObservation : Type}
-    (result : TransitionResult State Outcome Observation)
+    (result : Step State Outcome Observation)
     (mapState : State → MappedState)
     (mapOutcome : Outcome → MappedOutcome)
     (mapObservation : Observation → MappedObservation) :
-    (result.map mapState mapOutcome mapObservation).observations =
-      result.observations.map mapObservation := rfl
+    (result.map mapState mapOutcome mapObservation).facts =
+      result.facts.map mapObservation := rfl
 
 /-- Authoritative finite-domain predicates, exhaustive enumerators, and canonical encoders for one Target. -/
 structure TargetBehaviorDomain
@@ -318,7 +308,7 @@ structure TargetBehaviorDomain
     (outcomeDomain : Outcome → Prop)
     (observationDomain : Observation → Prop)
     (initialStates : Setup → List State)
-    (steps : State → Action → List (TransitionResult State Outcome Observation)) where
+    (steps : State → Action → List (Step State Outcome Observation)) where
   setups : List Setup
   states : List State
   actions : List Action
@@ -345,11 +335,11 @@ structure TargetBehaviorDomain
     result ∈ steps state action → state ∈ states
   actionCoverage : ∀ state action result, result ∈ steps state action → action ∈ actions
   resultingStateCoverage : ∀ state action result,
-    result ∈ steps state action → result.resultingState ∈ states
+    result ∈ steps state action → result.state ∈ states
   outcomeCoverage : ∀ state action result,
-    result ∈ steps state action → result.modelOutcome ∈ outcomes
+    result ∈ steps state action → result.outcome ∈ outcomes
   observationCoverage : ∀ state action result value,
-    result ∈ steps state action → value ∈ result.observations → value ∈ observations
+    result ∈ steps state action → value ∈ result.facts → value ∈ observations
 
 /-- Missing or incomplete finite coverage remains representable until Target checking. -/
 inductive TargetBehaviorDomainAvailability
@@ -360,13 +350,13 @@ inductive TargetBehaviorDomainAvailability
     (outcomeDomain : Outcome → Prop)
     (observationDomain : Observation → Prop)
     (initialStates : Setup → List State)
-    (steps : State → Action → List (TransitionResult State Outcome Observation)) where
+    (steps : State → Action → List (Step State Outcome Observation)) where
   | missing
   | incomplete (missingCoverage : List DefinitionId)
   | complete (domain : TargetBehaviorDomain setupDomain stateDomain actionDomain outcomeDomain
       observationDomain initialStates steps)
 
-structure KernelMetadata where
+structure MachineMetadata where
   id : DefinitionId
   version : Nat := 1
   source : SourceLocation
@@ -376,8 +366,8 @@ structure KernelMetadata where
 The target-owned finite transition kernel. The proof fields make every admitted domain value and
 emitted initial state or step sound, and make the authoritative relations exhaustively enumerable.
 -/
-structure TransitionKernel (Setup State Action Outcome Observation : Type) where
-  metadata : KernelMetadata
+structure Machine (Setup State Action Outcome Observation : Type) where
+  metadata : MachineMetadata
   setupDomain : Setup → Prop
   stateDomain : State → Prop
   actionDomain : Action → Prop
@@ -387,9 +377,9 @@ structure TransitionKernel (Setup State Action Outcome Observation : Type) where
   authoritativeInitial : Setup → State → Prop
   initialSound : ∀ setup state, state ∈ initialStates setup → authoritativeInitial setup state
   initialComplete : ∀ setup state, authoritativeInitial setup state → state ∈ initialStates setup
-  steps : State → Action → List (TransitionResult State Outcome Observation)
+  steps : State → Action → List (Step State Outcome Observation)
   authoritativeStep :
-    State → Action → TransitionResult State Outcome Observation → Prop
+    State → Action → Step State Outcome Observation → Prop
   stepSound : ∀ state action result,
     result ∈ steps state action → authoritativeStep state action result
   stepComplete : ∀ state action result,
@@ -400,20 +390,20 @@ structure TransitionKernel (Setup State Action Outcome Observation : Type) where
 /-- Complete behavior domains prove that every enumerated kernel result remains in-domain. -/
 structure TargetBehaviorClosure
     {Setup State Action Outcome Observation : Type}
-    (kernel : TransitionKernel Setup State Action Outcome Observation)
+    (kernel : Machine Setup State Action Outcome Observation)
     (domain : TargetBehaviorDomain kernel.setupDomain kernel.stateDomain kernel.actionDomain
       kernel.outcomeDomain kernel.observationDomain kernel.initialStates kernel.steps) : Prop where
   initialState : ∀ setup state,
     state ∈ kernel.initialStates setup → state ∈ domain.states
   resultingState : ∀ state action result,
-    result ∈ kernel.steps state action → result.resultingState ∈ domain.states
+    result ∈ kernel.steps state action → result.state ∈ domain.states
   outcome : ∀ state action result,
-    result ∈ kernel.steps state action → result.modelOutcome ∈ domain.outcomes
+    result ∈ kernel.steps state action → result.outcome ∈ domain.outcomes
   observation : ∀ state action result value,
-    result ∈ kernel.steps state action → value ∈ result.observations → value ∈ domain.observations
+    result ∈ kernel.steps state action → value ∈ result.facts → value ∈ domain.observations
 
 theorem TargetBehaviorDomain.closure
-    (kernel : TransitionKernel Setup State Action Outcome Observation)
+    (kernel : Machine Setup State Action Outcome Observation)
     (domain : TargetBehaviorDomain kernel.setupDomain kernel.stateDomain kernel.actionDomain
       kernel.outcomeDomain kernel.observationDomain kernel.initialStates kernel.steps) :
     TargetBehaviorClosure kernel domain := {
@@ -424,9 +414,9 @@ theorem TargetBehaviorDomain.closure
 }
 
 /-- Missing proof obligations are representable only before target composition. -/
-inductive KernelAvailability (Setup State Action Outcome Observation : Type) where
-  | checked (kernel : TransitionKernel Setup State Action Outcome Observation)
-  | incomplete (metadata : KernelMetadata) (missingProofs : List DefinitionId)
+inductive MachineAvailability (Setup State Action Outcome Observation : Type) where
+  | checked (kernel : Machine Setup State Action Outcome Observation)
+  | incomplete (metadata : MachineMetadata) (missingProofs : List DefinitionId)
 
 structure LawDefinition where
   id : DefinitionId

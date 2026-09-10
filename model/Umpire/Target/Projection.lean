@@ -42,8 +42,8 @@ def TargetProjection.invalidBehaviorDomainEncoding?
   else
     none
 
-def TransitionKernel.describeBehavior
-    (kernel : TransitionKernel Setup State Action Outcome Observation)
+def Machine.describeBehavior
+    (kernel : Machine Setup State Action Outcome Observation)
     (domain : TargetBehaviorDomain kernel.setupDomain kernel.stateDomain kernel.actionDomain
       kernel.outcomeDomain kernel.observationDomain kernel.initialStates kernel.steps) :
     TargetBehaviorDescription :=
@@ -57,9 +57,9 @@ def TransitionKernel.describeBehavior
       (kernel.steps state action).map fun result => {
         state := domain.encodeState state
         action := domain.encodeAction action
-        modelOutcome := domain.encodeOutcome result.modelOutcome
-        resultingState := domain.encodeState result.resultingState
-        observations := result.observations.map domain.encodeObservation
+        modelOutcome := domain.encodeOutcome result.outcome
+        resultingState := domain.encodeState result.state
+        observations := result.facts.map domain.encodeObservation
       }
   {
     setups := canonicalStrings (domain.setups.map domain.encodeSetup)
@@ -72,8 +72,8 @@ def TransitionKernel.describeBehavior
   }
 
 /-- Project the canonical behavior sealed by a complete finite kernel domain. -/
-def TransitionKernel.behaviorDescription?
-    (kernel : TransitionKernel Setup State Action Outcome Observation) :
+def Machine.behaviorDescription?
+    (kernel : Machine Setup State Action Outcome Observation) :
     Option TargetBehaviorDescription :=
   match kernel.behaviorDomain with
   | .complete domain => some (kernel.describeBehavior domain)
@@ -180,11 +180,11 @@ def canonicalCapabilityConnectorJson (connector : CapabilityConnector LawStateme
   withoutClosingBrace (connectorSemanticJson connector) ++
     ",\"source\":" ++ sourceJson connector.source ++ "}"
 
-private def kernelSemanticJson (metadata : KernelMetadata) : String :=
+private def kernelSemanticJson (metadata : MachineMetadata) : String :=
   "{\"id\":" ++ quote metadata.id.value ++
     ",\"version\":" ++ toString metadata.version ++ "}"
 
-def canonicalKernelMetadataJson (metadata : KernelMetadata) : String :=
+def canonicalMachineMetadataJson (metadata : MachineMetadata) : String :=
   withoutClosingBrace (kernelSemanticJson metadata) ++
     ",\"source\":" ++ sourceJson metadata.source ++ "}"
 
@@ -249,7 +249,7 @@ def TargetProjection.targetSemanticJson
     (requiredCapabilities : List DefinitionId)
     (providers : List (CapabilityProvider LawStatement))
     (connectors : List (CapabilityConnector LawStatement))
-    (kernel : KernelMetadata)
+    (kernel : MachineMetadata)
     (behavior : TargetBehaviorDescription) : String :=
   "{\"id\":" ++ quote id.value ++
     ",\"declarations\":" ++
@@ -263,13 +263,13 @@ def TargetProjection.targetSemanticJson
 
 def TargetProjection.targetMetadataJson
     (target : TargetDeclaration LawStatement Setup State Action Outcome Observation)
-    (kernel : KernelMetadata)
+    (kernel : MachineMetadata)
     (behavior : TargetBehaviorDescription) : String :=
   "{\"semantic\":" ++ targetSemanticJson target.id target.definitions
       target.requiredCapabilities target.providers target.connectors kernel behavior ++
     ",\"source\":" ++ sourceJson target.source ++
     ",\"definitionMetadata\":" ++
       array (target.definitions.mergeSort definitionLe |>.map canonicalDefinitionMetadataJson) ++
-    ",\"kernelMetadata\":" ++ canonicalKernelMetadataJson kernel ++ "}"
+    ",\"machineMetadata\":" ++ canonicalMachineMetadataJson kernel ++ "}"
 
 end Umpire

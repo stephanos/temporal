@@ -269,8 +269,8 @@ private def wholeProperty (prior response : Int) := do
   let trace : ModelTrace ModelValue ModelValue ModelValue ModelValue := {
     initialState := b.modelValue
     steps := [{
-      selectedAction := a.modelValue, modelOutcome := c.modelValue,
-      resultingState := b.modelValue, observations := [] }] }
+      selectedAction := a.modelValue, outcome := c.modelValue,
+      state := b.modelValue, facts := [] }] }
   let input ← (checked.checkInput trace [[a.evidence, b.evidence, c.evidence]]).toOption
   pure (evaluateProperty checked.property input).satisfied
 #guard wholeProperty 1 1 == some true

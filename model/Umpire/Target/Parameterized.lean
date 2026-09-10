@@ -44,14 +44,14 @@ def ParameterDomain.validateTable [DecidableEq Setup] [DecidableEq State]
 
 /-- Derive the authoritative machine without filtering or selecting any row's result alternatives. -/
 def ParameterTable.machine (table : ParameterTable domain Setup State Outcome Fact)
-    (metadata : KernelMetadata) [DecidableEq Setup] [DecidableEq State]
+    (metadata : MachineMetadata) [DecidableEq Setup] [DecidableEq State]
     [DecidableEq Outcome] [DecidableEq Fact] :
     FiniteMachine Setup State (ActionInstance template limits) Outcome Fact :=
   table.validated.machine metadata
 
 /-- Finite kernel membership proves exactly the authored parameter sample, not full schema coverage. -/
 theorem ParameterTable.actionDomain_iff (table : ParameterTable domain Setup State Outcome Fact)
-    (metadata : KernelMetadata) [DecidableEq Setup] [DecidableEq State]
+    (metadata : MachineMetadata) [DecidableEq Setup] [DecidableEq State]
     [DecidableEq Outcome] [DecidableEq Fact]
     (action : ActionInstance template limits) :
     (table.machine metadata).kernel.actionDomain action ↔ action ∈ domain.actions := by
@@ -60,10 +60,10 @@ theorem ParameterTable.actionDomain_iff (table : ParameterTable domain Setup Sta
 
 /-- Every authoritative step is exactly an authored row alternative at the prior state and arguments. -/
 theorem ParameterTable.step_iff (table : ParameterTable domain Setup State Outcome Fact)
-    (metadata : KernelMetadata) [DecidableEq Setup] [DecidableEq State]
+    (metadata : MachineMetadata) [DecidableEq Setup] [DecidableEq State]
     [DecidableEq Outcome] [DecidableEq Fact]
     (state : State) (action : ActionInstance template limits)
-    (result : TransitionResult State Outcome Fact) :
+    (result : Step State Outcome Fact) :
     (table.machine metadata).kernel.authoritativeStep state action result ↔
       ∃ row ∈ table.validated.table.transitions,
         row.source = state ∧ row.action = action ∧ result ∈ row.results := by

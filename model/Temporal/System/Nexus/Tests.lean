@@ -9,7 +9,7 @@ open Temporal.System.Nexus
   ExecutionSetup ModelValue ModelValue ModelValue ModelValue)
 #check (Temporal.System.Nexus.authoritativeInitial : ExecutionSetup → ModelValue → Prop)
 #check (Temporal.System.Nexus.authoritativeStep : ModelValue → ModelValue →
-  TransitionResult ModelValue ModelValue ModelValue → Prop)
+  Step ModelValue ModelValue ModelValue → Prop)
 #check (Temporal.System.Nexus.target : CheckedTarget LawStatement
   ExecutionSetup ModelValue ModelValue ModelValue ModelValue)
 
@@ -49,21 +49,21 @@ example : (checkTarget targetAuthoring).toOption.map (fun checked =>
     some (targetId, source, canonicalCheckedTargetJson target, target.behaviorFingerprint) := by
   native_decide
 
-example : transitionKernel.metadata = finiteMachine.kernel.metadata ∧
-    transitionKernel.initialStates = finiteMachine.kernel.initialStates ∧
-    transitionKernel.steps = finiteMachine.kernel.steps ∧
+example : machine.metadata = finiteMachine.kernel.metadata ∧
+    machine.initialStates = finiteMachine.kernel.initialStates ∧
+    machine.steps = finiteMachine.kernel.steps ∧
     finitePlanning = finiteMachine.planning ∧
-    targetDefinition.kernel = .checked transitionKernel ∧
+    targetDefinition.kernel = .checked machine ∧
     finitePlanning.actions = actions ∧
     actions = [dispatchAction, recordCancellationAction, recordCompletionAction] := by
   exact ⟨rfl, rfl, rfl, rfl, rfl, rfl, rfl⟩
 
-example : transitionKernel.behaviorDescription? =
+example : machine.behaviorDescription? =
     finiteMachine.kernel.behaviorDescription? := by
   native_decide
 
 example : target.behaviorFingerprint.render =
-    "sha256:54d0b7ed28698c0db28e7c9de00f3c0c0998db889a50de917d100173b37cf374" := by
+    "sha256:136b39d84af2978b3937ecf390d6a6cf4a5fdf45142d29aafa378ee4c84a121e" := by
   native_decide
 
 example : target.kernel.authoritativeInitial queuedSetup queuedState ∧

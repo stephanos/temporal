@@ -162,9 +162,9 @@ private def optionalJson (value : Option String) : String :=
 private def coordinateName : ModelCoordinate → String
   | .initialState => "initial-state"
   | .selectedAction step => "selected-action:" ++ toString step
-  | .modelOutcome step => "model-outcome:" ++ toString step
-  | .resultingState step => "resulting-state:" ++ toString step
-  | .observation step position => "observation:" ++ toString step ++ ":" ++ toString position
+  | .outcome step => "model-outcome:" ++ toString step
+  | .state step => "resulting-state:" ++ toString step
+  | .fact step position => "observation:" ++ toString step ++ ":" ++ toString position
 
 private def targetReferenceIdentityJson (reference : ImplementationTargetReference) : String :=
   "{\"id\":" ++ quote reference.id.value ++
@@ -465,7 +465,7 @@ private def implementationLinkEvidenceLink
     sourceValue destinationValue sourceEvidenceLink
 
 private def supportedVocabularyKind : DefinitionKind → Bool
-  | .state | .action | .outcome | .observation | .relation | .capability => true
+  | .state | .action | .outcome | .fact | .relation | .capability => true
   | _ => false
 
 private def validateSemanticMapping
@@ -588,24 +588,24 @@ private def admittedSourceSteps
   match steps with
   | [] => .ok ⟨True.intro⟩
   | step :: rest =>
-      let result : TransitionResult ModelValue ModelValue ModelValue := {
-        modelOutcome := step.modelOutcome
-        resultingState := step.resultingState
-        observations := step.observations
+      let result : Step ModelValue ModelValue ModelValue := {
+        outcome := step.outcome
+        state := step.state
+        facts := step.facts
       }
       match exactListMember? result
           (checked.sourceTarget.kernel.steps state step.selectedAction) with
       | some admitted =>
-        match admittedSourceSteps checked step.resultingState (position + 1) rest with
+        match admittedSourceSteps checked step.state (position + 1) rest with
         | .ok admittedRest => .ok ⟨⟨checked.sourceTarget.kernel.stepSound
             state step.selectedAction result admitted.down, admittedRest.down⟩⟩
         | .error failure => .error failure
       | none =>
         .error <| implementationLinkDiagnostic checked .nonAuthoritativeSourceStep
           (some (.selectedAction position))
-          (step.selectedAction.definitionId :: step.modelOutcome.definitionId ::
-            step.resultingState.definitionId ::
-            step.observations.map ModelValue.definitionId)
+          (step.selectedAction.definitionId :: step.outcome.definitionId ::
+            step.state.definitionId ::
+            step.facts.map ModelValue.definitionId)
 
 private abbrev AdmittedSourceTrace
     (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
@@ -671,16 +671,16 @@ private def mappedValueAt
     (coordinate : ModelCoordinate)
     (sourceValue : ModelValue) : Except ImplementationLinkDiagnostic ModelValue :=
   match coordinate with
-  | .initialState | .resultingState _ => mappedValue checked coordinate sourceValue
+  | .initialState | .state _ => mappedValue checked coordinate sourceValue
       checked.declaration.stateMappings checked.declaration.stateKnownGaps
       checked.forwardSimulation.morphism.mapState
   | .selectedAction _ => mappedValue checked coordinate sourceValue
       checked.declaration.actionMappings checked.declaration.actionKnownGaps
       checked.forwardSimulation.morphism.mapAction
-  | .modelOutcome _ => mappedValue checked coordinate sourceValue
+  | .outcome _ => mappedValue checked coordinate sourceValue
       checked.declaration.outcomeMappings checked.declaration.outcomeKnownGaps
       checked.forwardSimulation.morphism.mapOutcome
-  | .observation _ _ => mappedValue checked coordinate sourceValue
+  | .fact _ _ => mappedValue checked coordinate sourceValue
       checked.declaration.observationMappings checked.declaration.observationKnownGaps
       checked.forwardSimulation.morphism.mapObservation
 
@@ -874,7 +874,7 @@ private def observedMappedValueAt
     (coordinate : ModelCoordinate)
     (sourceValue : ModelValue) : Except ImplementationLinkDiagnostic ModelValue :=
   match coordinate with
-  | .observation _ _ =>
+  | .fact _ _ =>
       match translation.declaration.observationMappings.filter fun mapping =>
           mapping.source == sourceValue with
       | [mapping] => pure mapping.destination
@@ -898,7 +898,7 @@ private def translateObservedValues
   | [] => pure []
   | value :: rest => do
       let destination ← observedMappedValueAt checked translation
-        (.observation step position) value
+        (.fact step position) value
       let destinations ← translateObservedValues checked translation step (position + 1) rest
       pure (destination :: destinations)
 
@@ -914,13 +914,13 @@ private def translateObservedSteps
   | step :: rest => do
       let selectedAction ← observedMappedValueAt checked translation
         (.selectedAction position) step.selectedAction
-      let modelOutcome ← observedMappedValueAt checked translation
-        (.modelOutcome position) step.modelOutcome
-      let resultingState ← observedMappedValueAt checked translation
-        (.resultingState position) step.resultingState
-      let observations ← translateObservedValues checked translation position 1 step.observations
+      let outcome ← observedMappedValueAt checked translation
+        (.outcome position) step.outcome
+      let state ← observedMappedValueAt checked translation
+        (.state position) step.state
+      let facts ← translateObservedValues checked translation position 1 step.facts
       let translatedRest ← translateObservedSteps checked translation (position + 1) rest
-      pure ({ selectedAction, modelOutcome, resultingState, observations } :: translatedRest)
+      pure ({ selectedAction, outcome, state, facts } :: translatedRest)
 
 private def translateObservedTrace
     (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
