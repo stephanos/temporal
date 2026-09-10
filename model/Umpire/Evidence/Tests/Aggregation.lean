@@ -1,8 +1,8 @@
-import Umpire.Observation.Tests.Verdict
+import Umpire.Evidence.Tests.PropertyStatus
 
 /-! Strict query aggregation preserves every result and fails closed. -/
 
-namespace Umpire.ObservationTests
+namespace Umpire.EvidenceTests
 
 open Umpire
 
@@ -11,7 +11,7 @@ def aggregationQuery : CheckedQuery Umpire.Examples.Switch.LawStatement :=
 
 def verdictAs
     (propertyId : DefinitionId)
-    (status : SemanticVerdictStatus)
+    (status : Evidence.PropertyStatus)
     (traceId : Option String := some completeEvidenceBackedTrace.traceId) : SemanticPropertyVerdict := {
   satisfiedVerdict with
   queryId := aggregationQuery.id
@@ -23,7 +23,7 @@ def verdictAs
   status
 }
 
-def aggregateStatus (verdicts : List SemanticPropertyVerdict) : StrictQueryStatus :=
+def aggregateStatus (verdicts : List SemanticPropertyVerdict) : QueryStatus :=
   (summarizeQueryVerdicts aggregationQuery verdicts).status
 
 /-- Complete resolved inputs distinguish all-satisfied from at-least-one-violation. -/
@@ -125,4 +125,4 @@ example :
       (.incomplete, [violatedProperty.id]) := by
   native_decide
 
-end Umpire.ObservationTests
+end Umpire.EvidenceTests

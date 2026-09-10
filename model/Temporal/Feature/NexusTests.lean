@@ -130,14 +130,14 @@ theorem incompleteRawTargetRemainsTyped : targetErrorOf (checkModel incompleteTa
   } := by
   native_decide
 
-private def invalidObservationResult : Except ObservationError CheckedObservationPlan :=
+private def invalidObservationResult : Except Evidence.ReadingError Evidence.CheckedReading :=
   ({ Temporal.Feature.Nexus.Observation.Mapping.spec with
       evidenceBound := { value := 0, unit := .evidenceRecords } }).check
-    (ObservationCheckContext.ofTarget target
+    (Evidence.ReadingContext.ofTarget target
       [Temporal.Feature.Nexus.Observation.Profile.declaration])
 
 private def observationErrorOf
-    (result : Except ObservationError CheckedObservationPlan) : Option ObservationError :=
+    (result : Except Evidence.ReadingError Evidence.CheckedReading) : Option Evidence.ReadingError :=
   match result with
   | .error error => some error
   | .ok _ => none
@@ -152,7 +152,7 @@ theorem invalidObservationRemainsTyped : observationErrorOf invalidObservationRe
   } := by
   native_decide
 
-def emptySyntheticEvidence : EvidenceBundle := {
+def emptySyntheticEvidence : SyntheticEvidence := {
   profile := Temporal.Feature.Nexus.Observation.Profile.id
   profileVersion := 1
   records := []

@@ -1,5 +1,5 @@
 import Umpire.ImplementationLink.Application
-import Umpire.Observation.Verdict
+import Umpire.Evidence.PropertyStatus
 
 /-! Semantic-stage constructor catalogs retain their owner-local vocabularies. -/
 
@@ -22,19 +22,19 @@ example :
     OutcomeConstructorClassifiers.ExactlyOne ImplementationLinkStatus.constructorClassifiers :=
   ImplementationLinkStatus.constructorClassifiers_exactlyOne
 
-example : OutcomeConstructorClassifiers.names SemanticVerdictStatus.constructorClassifiers =
+example : OutcomeConstructorClassifiers.names Evidence.PropertyStatus.constructorClassifiers =
     ["satisfied", "violated", "unknown", "conflict", "unsupported"] := by
   native_decide
 
-example : OutcomeConstructorClassifiers.ExactlyOne SemanticVerdictStatus.constructorClassifiers :=
-  SemanticVerdictStatus.constructorClassifiers_exactlyOne
+example : OutcomeConstructorClassifiers.ExactlyOne Evidence.PropertyStatus.constructorClassifiers :=
+  Evidence.PropertyStatus.constructorClassifiers_exactlyOne
 
-example : OutcomeConstructorClassifiers.names StrictQueryStatus.constructorClassifiers =
+example : OutcomeConstructorClassifiers.names QueryStatus.constructorClassifiers =
     ["satisfied", "violated", "incomplete"] := by
   native_decide
 
-example : OutcomeConstructorClassifiers.ExactlyOne StrictQueryStatus.constructorClassifiers :=
-  StrictQueryStatus.constructorClassifiers_exactlyOne
+example : OutcomeConstructorClassifiers.ExactlyOne QueryStatus.constructorClassifiers :=
+  QueryStatus.constructorClassifiers_exactlyOne
 
 example :
     [ObservationStatus.accepted, .unknown, .conflict, .unsupported].map ObservationStatus.name =
@@ -42,11 +42,11 @@ example :
     [ImplementationLinkStatus.applied, .invalid, .unknown, .conflict, .unsupported].map
         ImplementationLinkStatus.name =
       OutcomeConstructorClassifiers.names ImplementationLinkStatus.constructorClassifiers ∧
-    [SemanticVerdictStatus.satisfied, .violated, .unknown, .conflict, .unsupported].map
-        SemanticVerdictStatus.name =
-      OutcomeConstructorClassifiers.names SemanticVerdictStatus.constructorClassifiers ∧
-    [StrictQueryStatus.satisfied, .violated, .incomplete].map StrictQueryStatus.name =
-      OutcomeConstructorClassifiers.names StrictQueryStatus.constructorClassifiers := by
+    [Evidence.PropertyStatus.satisfied, .violated, .unknown, .conflict, .unsupported].map
+        Evidence.PropertyStatus.name =
+      OutcomeConstructorClassifiers.names Evidence.PropertyStatus.constructorClassifiers ∧
+    [QueryStatus.satisfied, .violated, .incomplete].map QueryStatus.name =
+      OutcomeConstructorClassifiers.names QueryStatus.constructorClassifiers := by
   native_decide
 
 private def qualifiedNames
@@ -57,8 +57,8 @@ private def qualifiedNames
 private def semanticStageConstructorRows : List (String × String) :=
   qualifiedNames "observation" ObservationStatus.constructorClassifiers ++
   qualifiedNames "implementation-link" ImplementationLinkStatus.constructorClassifiers ++
-  qualifiedNames "semantic-property" SemanticVerdictStatus.constructorClassifiers ++
-  qualifiedNames "strict-query" StrictQueryStatus.constructorClassifiers
+  qualifiedNames "semantic-property" Evidence.PropertyStatus.constructorClassifiers ++
+  qualifiedNames "strict-query" QueryStatus.constructorClassifiers
 
 example : semanticStageConstructorRows.filter (fun row => row.2 == "unknown") = [
     ("observation", "unknown"),

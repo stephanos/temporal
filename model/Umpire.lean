@@ -11,7 +11,9 @@ import Umpire.Search.Branches
 import Umpire.Promotion
 import Umpire.Space
 import Umpire.Exploration
-import Umpire.Observation
+import Umpire.Evidence
+import Umpire.Case.Projection
+import Umpire.Case.Projection.Scoped
 import Umpire.ImplementationLink
 import Umpire.Case
 import Umpire.Case.Compiler

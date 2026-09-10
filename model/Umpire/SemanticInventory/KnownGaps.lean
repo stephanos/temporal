@@ -1,7 +1,7 @@
 import Umpire.Artifact.Types
 import Umpire.Artifact.Result
 import Umpire.ImplementationLink.Language
-import Umpire.Observation.Evaluation
+import Umpire.Evidence.Evaluate
 import Umpire.SemanticInventory.Types
 
 /-!
@@ -248,7 +248,7 @@ def observationKnownGapSuffixes : List String := [
 /-- The generated Observation diagnostic family emitted by Run Evaluation. -/
 def observationKnownGapSource : KnownGapSourceDescriptor := {
   id := DefinitionId.of "umpire.semantic-inventory.known-gap-source.09-observation-diagnostic"
-  owner := "Umpire.Observation"
+  owner := "Umpire.Evidence"
   lineage := .synthesized
   scope := .production
   source := .namespacedPrefix .interpretation (DefinitionId.of "umpire.observation")
@@ -295,7 +295,7 @@ def observationKnownGapAdmissionCatalogRow
     (requestRawKnownGapInputCatalogRow : KnownGapCatalogDescriptor) :
     KnownGapCatalogDescriptor := {
   id := "umpire.semantic-inventory.known-gap-source.18-observation-known-gap-admission"
-  owner := "Umpire.Observation"
+  owner := "Umpire.Evidence"
   lineage := .carried
   scope := .production
   shape := .evidenceGapAdmissionProjection
@@ -530,7 +530,7 @@ def observationFailureKnownGapSuffix : ObservationFailureKind → String
   | .absentModelCoordinate => "absent-model-coordinate"
   | .duplicateModelCoordinate => "duplicate-model-coordinate"
   | .extraModelCoordinate => "extra-model-coordinate"
-  | .inconsistentEvidenceLink => "inconsistent-evidence-link"
+  | .inconsistentEvidenceSupport => "inconsistent-evidence-link"
   | .unconsumedReference => "unconsumed-reference"
   | .missingClosureSupport => "missing-closure-support"
   | .missingOrderSupport => "missing-order-support"

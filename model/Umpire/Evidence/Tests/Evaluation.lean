@@ -1,21 +1,21 @@
-import Umpire.Observation.Evaluation.Raw
-import Umpire.Observation.Tests.Structure
+import Umpire.Evidence.Evaluate.Raw
+import Umpire.Evidence.Tests.Structure
 
 /-! Pure evaluation behavior and exact R2/R4 status boundaries. -/
 
-namespace Umpire.ObservationTests
+namespace Umpire.EvidenceTests
 
 open Umpire
 
 def completeEvaluation : ObservationResult :=
   evaluateFixture completeEvidence
 
-def tenfoldEvaluationPlan : CheckedObservationPlan :=
-  (checkObservation evaluationContext {
+def tenfoldEvaluationPlan : Evidence.CheckedReading :=
+  (Evidence.checkReading evaluationContext {
     evaluationDeclaration with evidenceBound := { value := 20, unit := .evidenceRecords }
   }).toOption.get (by native_decide)
 
-def tenfoldEvaluationEvidence : EvidenceBundle := {
+def tenfoldEvaluationEvidence : SyntheticEvidence := {
   completeEvidence with
   records := initialEvidence :: (List.range 19).map fun offset =>
     let sequence := offset + 2
@@ -30,13 +30,13 @@ def tenfoldEvaluationEvidence : EvidenceBundle := {
 example :
     let result := evaluateEvidence tenfoldEvaluationPlan tenfoldEvaluationEvidence
     (result.status, (acceptedOf result).map fun trace =>
-      (trace.evidenceIdentities.length, trace.evidenceLinks.length)) =
+      (trace.evidenceIdentities.length, trace.evidenceSupports.length)) =
       (.accepted, some (20, 96)) := by
   native_decide
 
 def zeroRecordKind : DefinitionId := id "test.evidence.kind.zero-record"
 
-def zeroRecordEvaluationContext : ObservationCheckContext :=
+def zeroRecordEvaluationContext : Evidence.ReadingContext :=
   let profile := evaluationContext.profiles.head?.get (by native_decide)
   {
     evaluationContext with profiles := [{
@@ -44,12 +44,12 @@ def zeroRecordEvaluationContext : ObservationCheckContext :=
     }]
   }
 
-def zeroRecordEvaluationDeclaration : ObservationMappingDeclaration := {
+def zeroRecordEvaluationDeclaration : Evidence.Reading := {
   evaluationDeclaration with closures := [{ kind := eventKind }, { kind := zeroRecordKind }]
 }
 
-def zeroRecordEvaluationPlan : CheckedObservationPlan :=
-  (checkObservation zeroRecordEvaluationContext zeroRecordEvaluationDeclaration).toOption.get
+def zeroRecordEvaluationPlan : Evidence.CheckedReading :=
+  (Evidence.checkReading zeroRecordEvaluationContext zeroRecordEvaluationDeclaration).toOption.get
     (by native_decide)
 
 def zeroRecordClosure : EvidenceClosureFact := {
@@ -57,7 +57,7 @@ def zeroRecordClosure : EvidenceClosureFact := {
   lastSequence := 0
 }
 
-def zeroRecordEvidence : EvidenceBundle := {
+def zeroRecordEvidence : SyntheticEvidence := {
   completeEvidence with closures := completeEvidence.closures ++ [zeroRecordClosure]
 }
 
@@ -320,7 +320,7 @@ example : rawFailurePrecedenceCases.map (fun result => (result.diagnostic?, acce
 ] := by
   native_decide
 
-def ambiguousEvidence : EvidenceBundle := {
+def ambiguousEvidence : SyntheticEvidence := {
   completeEvidence with
   compatibleAlternatives := [
     { id := id "test.interpretation.b", evidenceIdentities := [stepEvidenceId] },
@@ -352,7 +352,7 @@ example :
     (result.status, resultKindOf result) = (.unknown, some .unresolvedBinding) := by
   native_decide
 
-def contradictoryAlternativeEvidence : EvidenceBundle := {
+def contradictoryAlternativeEvidence : SyntheticEvidence := {
   ambiguousEvidence with
   compatibleAlternatives := [
     { id := id "test.interpretation.same", evidenceIdentities := [initialEvidenceId] },
@@ -433,4 +433,4 @@ example :
     ] := by
   native_decide
 
-end Umpire.ObservationTests
+end Umpire.EvidenceTests
