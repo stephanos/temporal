@@ -589,11 +589,11 @@ private def frontendCheckedProperty : CheckedProperty :=
 private def frontendCheckedScenario : CheckedScenario :=
   frontendGuardedBehavior.toOption.get (by native_decide)
 
-private def frontendGuardedQueryDeclaration : Query :=
+private def frontendGuardedAuthoredQuery : Query :=
   Authoring.GuardedRace.authoredQuery frontendCheckedProperty frontendCheckedScenario
 
 def frontendGuardedQuery : Except QueryError (CheckedQuery Race.LawStatement) :=
-  query% frontendGuardedQueryDeclaration against frontendRaceTarget tracking [
+  query% frontendGuardedAuthoredQuery against frontendRaceTarget tracking [
     queryParent (Authoring.GuardedRace.family.id "query" "case-analysis"),
     targetAnchor Race.targetId,
     propertyAnchor (Authoring.GuardedRace.family.id "property" "cases"),
@@ -694,27 +694,27 @@ private def otherTargetId : DefinitionId :=
   DefinitionId.of "temporal.nexus2.other.target"
 
 private def mismatchedTargetQuery : Query :=
-  { frontendGuardedQueryDeclaration with target := otherTargetId }
+  { frontendGuardedAuthoredQuery with target := otherTargetId }
 
 private def emptyQuery : Query :=
-  { frontendGuardedQueryDeclaration with form := .pick [] }
+  { frontendGuardedAuthoredQuery with form := .pick [] }
 
 private def missingCapabilityQuery : Query :=
-  { frontendGuardedQueryDeclaration with
+  { frontendGuardedAuthoredQuery with
     form := .pick [{ frontendCheckedProperty with requires := [unknownActionId] }] }
 
 private def invalidLimitQuery : Query :=
-  { frontendGuardedQueryDeclaration with limits := Limits.bounded 2 2 0 }
+  { frontendGuardedAuthoredQuery with limits := Limits.bounded 2 2 0 }
 
 private def mismatchedUnitQuery : Query :=
-  { frontendGuardedQueryDeclaration with limits := {
+  { frontendGuardedAuthoredQuery with limits := {
     steps := { value := 2, unit := .actions }
     actions := { value := 2, unit := .actions }
     search := { value := 32, unit := .search }
   } }
 
 private def duplicatePropertyQuery : Query :=
-  { frontendGuardedQueryDeclaration with
+  { frontendGuardedAuthoredQuery with
     form := .pick [frontendCheckedProperty, frontendCheckedProperty] }
 
 /--
@@ -811,7 +811,7 @@ error: property authoring failed: {"error":{"kind":"unknown-reference","definiti
   clauseAnchor (DefinitionId.of "temporal.nexus2.unknown.result")]
 
 private def incompatibleStrategyQuery : Query :=
-  { frontendGuardedQueryDeclaration with
+  { frontendGuardedAuthoredQuery with
     form := .verify frontendCheckedProperty
     policy := .shortest }
 
@@ -855,7 +855,7 @@ private def behaviorSourceMetadataDifference : Option Bool := do
 #guard behaviorSourceMetadataDifference == some true
 
 private def movedQuery : Query :=
-  { frontendGuardedQueryDeclaration with
+  { frontendGuardedAuthoredQuery with
     source := { path := "Moved/Query.lean", line := 902, column := 5 } }
 
 private def movedQueryFrontend : Except QueryError (CheckedQuery Race.LawStatement) :=
@@ -864,7 +864,7 @@ private def movedQueryFrontend : Except QueryError (CheckedQuery Race.LawStateme
 
 private def querySourceMetadataDifference : Option Bool := do
   let constructor ← (Query.check (.ofTarget frontendRaceTarget)
-    frontendGuardedQueryDeclaration).toOption
+    frontendGuardedAuthoredQuery).toOption
   let moved ← movedQueryFrontend.toOption
   pure (moved.id == constructor.id && moved.source != constructor.source &&
     moved.canonicalMetadata == constructor.canonicalMetadata &&
@@ -905,7 +905,7 @@ error: Tactic `decide` failed for proposition
 -/
 #guard_msgs (error, substring := true) in
 example : (Query.check (.ofTarget frontendRaceTarget)
-    frontendGuardedQueryDeclaration).toOption.isSome = true := by
+    frontendGuardedAuthoredQuery).toOption.isSome = true := by
   decide +kernel
 
 private def frontendCancelSpec : Property :=
@@ -1152,22 +1152,22 @@ def frontendTenBehaviors : List (Except ScenarioError CheckedScenario) := [
 #guard frontendTenBehaviors.all (fun result => result.toOption.isSome)
 
 def constructorOneQuery : Except QueryError (CheckedQuery Race.LawStatement) :=
-  Query.check (.ofTarget frontendRaceTarget) frontendGuardedQueryDeclaration
+  Query.check (.ofTarget frontendRaceTarget) frontendGuardedAuthoredQuery
 
 def constructorTenQueries : List (Except QueryError (CheckedQuery Race.LawStatement)) := [
-  Query.check (.ofTarget frontendRaceTarget) frontendGuardedQueryDeclaration,
-  Query.check (.ofTarget frontendRaceTarget) frontendGuardedQueryDeclaration,
-  Query.check (.ofTarget frontendRaceTarget) frontendGuardedQueryDeclaration,
-  Query.check (.ofTarget frontendRaceTarget) frontendGuardedQueryDeclaration,
-  Query.check (.ofTarget frontendRaceTarget) frontendGuardedQueryDeclaration,
-  Query.check (.ofTarget frontendRaceTarget) frontendGuardedQueryDeclaration,
-  Query.check (.ofTarget frontendRaceTarget) frontendGuardedQueryDeclaration,
-  Query.check (.ofTarget frontendRaceTarget) frontendGuardedQueryDeclaration,
-  Query.check (.ofTarget frontendRaceTarget) frontendGuardedQueryDeclaration,
-  Query.check (.ofTarget frontendRaceTarget) frontendGuardedQueryDeclaration]
+  Query.check (.ofTarget frontendRaceTarget) frontendGuardedAuthoredQuery,
+  Query.check (.ofTarget frontendRaceTarget) frontendGuardedAuthoredQuery,
+  Query.check (.ofTarget frontendRaceTarget) frontendGuardedAuthoredQuery,
+  Query.check (.ofTarget frontendRaceTarget) frontendGuardedAuthoredQuery,
+  Query.check (.ofTarget frontendRaceTarget) frontendGuardedAuthoredQuery,
+  Query.check (.ofTarget frontendRaceTarget) frontendGuardedAuthoredQuery,
+  Query.check (.ofTarget frontendRaceTarget) frontendGuardedAuthoredQuery,
+  Query.check (.ofTarget frontendRaceTarget) frontendGuardedAuthoredQuery,
+  Query.check (.ofTarget frontendRaceTarget) frontendGuardedAuthoredQuery,
+  Query.check (.ofTarget frontendRaceTarget) frontendGuardedAuthoredQuery]
 
 def frontendOneQuery : Except QueryError (CheckedQuery Race.LawStatement) :=
-  query% frontendGuardedQueryDeclaration against frontendRaceTarget tracking [
+  query% frontendGuardedAuthoredQuery against frontendRaceTarget tracking [
     queryParent (Authoring.GuardedRace.family.id "query" "case-analysis"),
     targetAnchor Race.targetId,
     propertyAnchor (Authoring.GuardedRace.family.id "property" "cases"),
@@ -1175,16 +1175,16 @@ def frontendOneQuery : Except QueryError (CheckedQuery Race.LawStatement) :=
     limitsAnchor (Authoring.GuardedRace.family.id "query" "case-analysis")]
 
 def frontendTenQueries : List (Except QueryError (CheckedQuery Race.LawStatement)) := [
-  query% frontendGuardedQueryDeclaration against frontendRaceTarget tracking [queryParent (Authoring.GuardedRace.family.id "query" "case-analysis")],
-  query% frontendGuardedQueryDeclaration against frontendRaceTarget tracking [queryParent (Authoring.GuardedRace.family.id "query" "case-analysis")],
-  query% frontendGuardedQueryDeclaration against frontendRaceTarget tracking [queryParent (Authoring.GuardedRace.family.id "query" "case-analysis")],
-  query% frontendGuardedQueryDeclaration against frontendRaceTarget tracking [queryParent (Authoring.GuardedRace.family.id "query" "case-analysis")],
-  query% frontendGuardedQueryDeclaration against frontendRaceTarget tracking [queryParent (Authoring.GuardedRace.family.id "query" "case-analysis")],
-  query% frontendGuardedQueryDeclaration against frontendRaceTarget tracking [queryParent (Authoring.GuardedRace.family.id "query" "case-analysis")],
-  query% frontendGuardedQueryDeclaration against frontendRaceTarget tracking [queryParent (Authoring.GuardedRace.family.id "query" "case-analysis")],
-  query% frontendGuardedQueryDeclaration against frontendRaceTarget tracking [queryParent (Authoring.GuardedRace.family.id "query" "case-analysis")],
-  query% frontendGuardedQueryDeclaration against frontendRaceTarget tracking [queryParent (Authoring.GuardedRace.family.id "query" "case-analysis")],
-  query% frontendGuardedQueryDeclaration against frontendRaceTarget tracking [queryParent (Authoring.GuardedRace.family.id "query" "case-analysis")]]
+  query% frontendGuardedAuthoredQuery against frontendRaceTarget tracking [queryParent (Authoring.GuardedRace.family.id "query" "case-analysis")],
+  query% frontendGuardedAuthoredQuery against frontendRaceTarget tracking [queryParent (Authoring.GuardedRace.family.id "query" "case-analysis")],
+  query% frontendGuardedAuthoredQuery against frontendRaceTarget tracking [queryParent (Authoring.GuardedRace.family.id "query" "case-analysis")],
+  query% frontendGuardedAuthoredQuery against frontendRaceTarget tracking [queryParent (Authoring.GuardedRace.family.id "query" "case-analysis")],
+  query% frontendGuardedAuthoredQuery against frontendRaceTarget tracking [queryParent (Authoring.GuardedRace.family.id "query" "case-analysis")],
+  query% frontendGuardedAuthoredQuery against frontendRaceTarget tracking [queryParent (Authoring.GuardedRace.family.id "query" "case-analysis")],
+  query% frontendGuardedAuthoredQuery against frontendRaceTarget tracking [queryParent (Authoring.GuardedRace.family.id "query" "case-analysis")],
+  query% frontendGuardedAuthoredQuery against frontendRaceTarget tracking [queryParent (Authoring.GuardedRace.family.id "query" "case-analysis")],
+  query% frontendGuardedAuthoredQuery against frontendRaceTarget tracking [queryParent (Authoring.GuardedRace.family.id "query" "case-analysis")],
+  query% frontendGuardedAuthoredQuery against frontendRaceTarget tracking [queryParent (Authoring.GuardedRace.family.id "query" "case-analysis")]]
 
 private def queryAdmissionSucceeded
     (result : Except QueryError (CheckedQuery Race.LawStatement)) : Bool :=

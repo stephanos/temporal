@@ -60,9 +60,8 @@ in a trigger or exception remain rejected by the existing Property checker.
 For terms containing local variables, compiler evaluation is skipped and the frontend returns the
 ordinary typed checker expression. Invalid open-term Behavior and Query fixtures evaluate to their
 typed error variants and cannot produce a partial checked value. The successful-branch Query form
-accepts one authored `Query` and the Model it asks it of: a failing prerequisite Target/Property/
-Behavior construction did not produce an input, while `some (.error error)` is the Query checker's
-typed rejection. Closed diagnostic fixtures always use the latter path.
+accepts one authored `Query` and the Model it asks it of and returns the Query checker's typed
+`Except`; closed diagnostic fixtures exercise its `.error` branch.
 
 ## Conditions, exceptions, and bounded analysis
 
