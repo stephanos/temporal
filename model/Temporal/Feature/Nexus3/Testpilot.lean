@@ -2,7 +2,7 @@ import Temporal.Feature.Nexus3.Nexus
 import Temporal.Testpilot.CaseSupport
 import Umpire.Case.Scoped
 import Umpire.Case.Compiler
-import Umpire.Observation.Projection.Coverage
+import Umpire.Case.Projection.Coverage
 
 /-!
 # Nexus3 Testpilot producer
@@ -270,7 +270,7 @@ def asyncNexusContractLimits : ContractLimits :=
 def runLimits : Property.Scoped.Limits :=
   { «transitions» := 16, obligations := 16, work := 100000000, captures := 0 }
 
-def projectionLimits : Observation.Projection.Limits := {
+def projectionLimits : Case.Projection.Limits := {
   events := 32, buffered := 16, keys := 8, support := 128
   work := 1000000000, eventSize := 512 }
 
@@ -279,7 +279,7 @@ completed one confirms its `awaitSuccess` step; the scheduled event names no ste
 model's operation is already scheduled when it starts. -/
 private def projectionDeclaration
     (vocabulary : Authoring.ModelVocabulary) :
-    Observation.Projection.Declaration ModelValue ModelValue ModelValue ModelValue := {
+    Case.Projection.Declaration ModelValue ModelValue ModelValue ModelValue := {
   id := projectionId
   scopeFields := [runFieldId]
   operationField := operationFieldId
@@ -341,11 +341,11 @@ def produce {Setup State Action Outcome Fact : Type}
     loweringError checked.property.id.value "property.scoped-compile"
   let setup : List RoleBinding :=
     [{ «role» := «model».operationRoleId, value := checked.vocabulary.stateAt 0 }]
-  let plan ← (Observation.Projection.check checked.target
+  let plan ← (Case.Projection.check checked.target
     (projectionDeclaration checked.vocabulary) setup (checked.vocabulary.stateAt 0)).mapError
     fun _ => loweringError projectionId.value "projection.admission"
   let lowered ← Umpire.Case.Scoped.lower plan compiled scopedObservation
-    (Observation.Projection.Coverage.empty plan)
+    (Case.Projection.Coverage.empty plan)
   compile {
     version := { major := 1 }
     caseId := "temporal.case.async-nexus-success"

@@ -102,7 +102,7 @@ private def wrongStepContext : PropertyScopedClause := { written with trigger :=
 
 /-- error: Type mismatch -/
 #guard_msgs (error, substring := true) in
-example (raw : Observation.Projection.Event) : PropertyScopedClause :=
+example (raw : Case.Projection.Event) : PropertyScopedClause :=
   correlated_response% (id "test.scoped.response") at source
     whenever raw eventually (.outcomeIs response)
     within 1 scoped [id "test.run"] by (id "test.operation") closing .«partial»

@@ -7,7 +7,7 @@ namespace Umpire.Property.ScopedTests
 open Property.Scoped
 namespace Evidence
 
-private def plan (target : TestTarget) := Observation.Projection.check target {
+private def plan (target : TestTarget) := Case.Projection.check target {
   id := id "test.projection"
   scopeFields := [id "test.run"]
   operationField := id "test.operation"
@@ -29,7 +29,7 @@ private def plan (target : TestTarget) := Observation.Projection.check target {
 } () state
 
 private def event (ordinal : Nat) (kind : String) (parents : List Nat := [])
-    (operation : String := "a") : Observation.Projection.Event := {
+    (operation : String := "a") : Case.Projection.Event := {
   identity := { scope, source := id "test.source", ordinal }
   operation
   kind := id ("test." ++ kind)
@@ -37,13 +37,13 @@ private def event (ordinal : Nat) (kind : String) (parents : List Nat := [])
   parents := parents.map fun ordinal => { scope, source := id "test.source", ordinal }
 }
 
-private def evaluateEvidence (bound : Nat) (events : List Observation.Projection.Event)
+private def evaluateEvidence (bound : Nat) (events : List Case.Projection.Event)
     (endpoint : PropertyScopedEndpoint := .«partial») : Option (List PropertyEndpointAnswer) := do
   let target ← targetResult.toOption
   let property ← (property target bound endpoint).toOption
   let plan ← (plan target).toOption
-  let compiled ← (Observation.Scoped.compile plan property limits).toOption
-  let initial ← (Observation.Scoped.start plan compiled () scope).toOption
+  let compiled ← (Case.Projection.Scoped.compile plan property limits).toOption
+  let initial ← (Case.Projection.Scoped.start plan compiled () scope).toOption
   let run ← (initial.admitMany events).toOption
   pure (run.close.answers.map Prod.snd)
 
@@ -60,15 +60,15 @@ private def evaluateEvidence (bound : Nat) (events : List Observation.Projection
 #guard evaluateEvidence 1 [event 0 "request", event 1 "tick" [] "b",
   event 2 "tick" [] "b", event 3 "reply" [0]] == some [.satisfied]
 
-private def partialEvents : List Observation.Projection.Event := [
+private def partialEvents : List Case.Projection.Event := [
   event 2 "reply" [1], event 1 "request" [0], event 0 "poll", event 2 "reply" [1]]
 
 #guard (do
   let target ← targetResult.toOption
   let property ← (property target 1).toOption
   let plan ← (plan target).toOption
-  let compiled ← (Observation.Scoped.compile plan property limits).toOption
-  let initial ← (Observation.Scoped.start plan compiled () scope).toOption
+  let compiled ← (Case.Projection.Scoped.compile plan property limits).toOption
+  let initial ← (Case.Projection.Scoped.start plan compiled () scope).toOption
   let whole ← (initial.admitMany partialEvents).toOption
   pure ((List.range (partialEvents.length + 1)).all fun split =>
     ((initial.admitMany (partialEvents.take split) >>= fun before =>
@@ -79,8 +79,8 @@ private def partialEvents : List Observation.Projection.Event := [
   let target ← targetResult.toOption
   let property ← (property target 0).toOption
   let plan ← (plan target).toOption
-  let compiled ← (Observation.Scoped.compile plan property limits).toOption
-  let initial ← (Observation.Scoped.start plan compiled () scope).toOption
+  let compiled ← (Case.Projection.Scoped.compile plan property limits).toOption
+  let initial ← (Case.Projection.Scoped.start plan compiled () scope).toOption
   let violated ← (initial.admit (event 0 "request")).toOption
   pure ((violated.admit (event 0 "both")).isOk,
     violated.answers.map Prod.snd, (violated.close.admit (event 1 "reply")).isOk)) ==

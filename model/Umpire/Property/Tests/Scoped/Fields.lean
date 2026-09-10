@@ -1,5 +1,5 @@
 import Umpire.Property.Scoped
-import Umpire.Observation.Evaluation.Scoped
+import Umpire.Case.Projection.Scoped
 import Umpire.Model.Table
 import Umpire.Property.Elab
 import Umpire.Operation.Action
@@ -343,7 +343,7 @@ private def interleaved : List (Scoped.Transition × List PropertyFieldEvidence)
 
 -- The admitted-evidence adapter supplies no typed field values, so a clause that declares keyed
 -- captures is rejected there rather than admitted into a run whose captures could never bind.
-private def plan (target : TestTarget) := Observation.Projection.check target {
+private def plan (target : TestTarget) := Case.Projection.check target {
   id := id "test.projection"
   scopeFields := [id "test.run"]
   operationField := id "test.operation"
@@ -362,10 +362,10 @@ private def plan (target : TestTarget) := Observation.Projection.check target {
   let keyed ← (Property.check (context target) ((declaration (clause 1)))).toOption
   let bare ← (Property.check (context target)
     ((declaration (clause 1 (captures := []) (requirement := none))))).toOption
-  pure ((match Observation.Scoped.compile projection keyed runLimits with
+  pure ((match Case.Projection.Scoped.compile projection keyed runLimits with
       | .error (.property (.unsupported clauseId _)) => clauseId == id "test.scoped.fields"
       | _ => false) &&
-    (Observation.Scoped.compile projection bare runLimits).isOk)) == some true
+    (Case.Projection.Scoped.compile projection bare runLimits).isOk)) == some true
 
 -- A retained occurrence's presence was decided by the cursor that admitted it, so optional and
 -- oneof-selected coordinates can be captured and read back. The same coordinates read as this
