@@ -70,7 +70,7 @@ private def request
     (pinned : List Plan := []) : ExplorationRequest LawStatement := {
   space := prepared.space
   policy
-  limit := { value := limit, unit := .experimentSpecs }
+  limit := { value := limit, unit := .plans }
   pinned
 }
 

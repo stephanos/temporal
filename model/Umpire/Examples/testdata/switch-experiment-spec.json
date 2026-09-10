@@ -1,10 +1,10 @@
 {
   "formatVersion": "umpire-experiment/v2",
-  "queryBehaviorFingerprint": "sha256:d2506a9871cdd94bf7c157c99eb0cb69ac0e831cf3a9f0d28e3d819fdaa8ef9a",
+  "queryBehaviorFingerprint": "sha256:e1dbd1235040c4d1c640be52dc73f8db94351796400f5d32248fe7736903e1c9",
   "plan": {
     "formatVersion": "umpire-drive-plan/v2",
     "queryDefinitionId": "switch.query.exact-action",
-    "queryBehaviorFingerprint": "sha256:d2506a9871cdd94bf7c157c99eb0cb69ac0e831cf3a9f0d28e3d819fdaa8ef9a",
+    "queryBehaviorFingerprint": "sha256:e1dbd1235040c4d1c640be52dc73f8db94351796400f5d32248fe7736903e1c9",
     "behaviorDefinitionId": "switch.behavior.exact-action",
     "behaviorFingerprint": "sha256:6d8401f9c207c29194594a9338797214ae11d223509c88c33be19f380f3174e6",
     "targetDefinitionId": "switch.target.two-state",
@@ -78,16 +78,16 @@
       "behavior": {
         "transitions": {
           "value": 1,
-          "unit": "semantic-transitions"
+          "unit": "steps"
         },
         "selectedActions": {
           "value": 1,
-          "unit": "selected-actions"
+          "unit": "actions"
         }
       },
       "search": {
         "value": 8,
-        "unit": "candidate-evaluations"
+        "unit": "search"
       }
     },
     "checkpoints": [
@@ -175,7 +175,7 @@
         }
       ]
     },
-    "artifactChecksum": "sha256:2036ce80c7c93dd19d0acb03fa6ebceb678f909684ca17bac413f254954ddbbd"
+    "artifactChecksum": "sha256:84736945a7e129a9d2b60ee9c7fefa458dba579c7167e03c35fc43d0cfdb5347"
   },
   "properties": [
     {
@@ -206,5 +206,5 @@
       }
     ]
   },
-  "artifactChecksum": "sha256:9fa327849c3d0a48290bb16fec73a00be4cc1b6234862ee506a547f29b6d3b12"
+  "artifactChecksum": "sha256:0b745cd509a28f18f9d721d5d151892cd85cb688a4f9e025fe90055ea0f56f5a"
 }

@@ -105,11 +105,11 @@ def invalidKnownGapDeclaration := {
 }
 
 def zeroLimitDeclaration := {
-  baseDeclaration with applicationLimit := { value := 0, unit := .semanticTransitions }
+  baseDeclaration with applicationLimit := { value := 0, unit := .steps }
 }
 
 def wrongLimitUnitDeclaration := {
-  baseDeclaration with applicationLimit := { value := 10, unit := .selectedActions }
+  baseDeclaration with applicationLimit := { value := 10, unit := .actions }
 }
 
 def declarationFailures : List (Option ImplementationLinkErrorKind) := [

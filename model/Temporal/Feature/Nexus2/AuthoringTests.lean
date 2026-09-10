@@ -272,7 +272,7 @@ private def invalidUnitProperty : Property := {
   clauses := [.eventuallyWithin
     (Authoring.GuardedRace.family.id "property" "invalid-unit.clause")
     (.selectedAction frontendRaceModel.resolveAction) (.fact frontendRaceModel.terminalFact)
-    { value := 1, unit := .candidateEvaluations }]
+    { value := 1, unit := .search }]
 }
 
 private def wrongKindProperty : Property := {
@@ -356,7 +356,7 @@ error: property authoring failed: {"error":{"kind":"empty-boolean-group","defini
   clauseAnchor (Authoring.GuardedRace.family.id "case-group" "empty-boolean")]
 
 /--
-error: property authoring failed: {"error":{"kind":"unit-mismatch","definitionId":"temporal.nexus2.cancellation-race.property.invalid-unit","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"candidate-evaluations is not a Property position unit","relatedDefinitionIds":["temporal.nexus2.cancellation-race.action.resolve","temporal.nexus2.cancellation-race.fact.terminal"]},"role":"parent","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":363,"column":15,"endLine":363,"endColumn":37}}
+error: property authoring failed: {"error":{"kind":"unit-mismatch","definitionId":"temporal.nexus2.cancellation-race.property.invalid-unit","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"search is not a Property position unit","relatedDefinitionIds":["temporal.nexus2.cancellation-race.action.resolve","temporal.nexus2.cancellation-race.fact.terminal"]},"role":"parent","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":363,"column":15,"endLine":363,"endColumn":37}}
 -/
 #guard_msgs (error) in
 #check property% invalidUnitProperty against frontendRaceContext tracking [
@@ -480,10 +480,10 @@ private def wrongUnitQuery : Option QueryErrorKind := do
   let declaration := { (Authoring.GuardedRace.querySpec property behavior).declaration with
     limits := {
       behavior := {
-        transitions := { value := 2, unit := .selectedActions }
-        selectedActions := { value := 2, unit := .selectedActions }
+        transitions := { value := 2, unit := .actions }
+        selectedActions := { value := 2, unit := .actions }
       }
-      search := { value := 32, unit := .candidateEvaluations }
+      search := { value := 32, unit := .search }
     }
   }
   match checkQuery (.ofTarget target) declaration with
@@ -718,10 +718,10 @@ private def invalidLimitQueryInput : Option (QueryAuthoringInput Race.LawStateme
 private def wrongUnitQueryInput : Option (QueryAuthoringInput Race.LawStatement) :=
   mapGuardedQueryInput fun declaration => { declaration with limits := {
     behavior := {
-      transitions := { value := 2, unit := .selectedActions }
-      selectedActions := { value := 2, unit := .selectedActions }
+      transitions := { value := 2, unit := .actions }
+      selectedActions := { value := 2, unit := .actions }
     }
-    search := { value := 32, unit := .candidateEvaluations }
+    search := { value := 32, unit := .search }
   } }
 
 private def duplicatePropertyQueryInput : Option (QueryAuthoringInput Race.LawStatement) := do
@@ -762,7 +762,7 @@ error: query authoring failed: {"error":{"kind":"invalid-limit","definitionId":"
   limitsAnchor (Authoring.GuardedRace.family.id "query" "case-analysis")]
 
 /--
-error: query authoring failed: {"error":{"kind":"unit-mismatch","definitionId":"temporal.nexus2.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"behavior.transitions:selected-actions","relatedDefinitionIds":[]},"role":"limits","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":770,"column":15,"endLine":770,"endColumn":72}}
+error: query authoring failed: {"error":{"kind":"unit-mismatch","definitionId":"temporal.nexus2.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"behavior.transitions:actions","relatedDefinitionIds":[]},"role":"limits","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":770,"column":15,"endLine":770,"endColumn":72}}
 -/
 #guard_msgs (error) in
 #check query% wrongUnitQueryInput tracking [

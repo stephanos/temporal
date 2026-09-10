@@ -189,7 +189,7 @@ def declaration : ImplementationLinkDeclaration
   ]
   relationMappings := []
   capabilityMappings := [lifecycleCapabilityMapping]
-  applicationLimit := { value := 3, unit := .semanticTransitions }
+  applicationLimit := { value := 3, unit := .steps }
   documentation := "The pure Nexus System lifecycle forward-simulates Feature lifecycle meaning."
 }
 

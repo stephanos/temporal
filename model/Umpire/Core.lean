@@ -106,21 +106,19 @@ structure DefinitionMetadata where
   deriving BEq, DecidableEq, Repr
 
 inductive LimitUnit where
-  | semanticTransitions
-  | selectedActions
-  | observationPositions
+  | steps
+  | actions
   | logicalTime
-  | candidateEvaluations
-  | experimentSpecs
+  | search
+  | plans
   deriving BEq, DecidableEq, Ord, Repr
 
 def LimitUnit.name : LimitUnit → String
-  | .semanticTransitions => "semantic-transitions"
-  | .selectedActions => "selected-actions"
-  | .observationPositions => "observation-positions"
+  | .steps => "steps"
+  | .actions => "actions"
   | .logicalTime => "logical-time"
-  | .candidateEvaluations => "candidate-evaluations"
-  | .experimentSpecs => "experiment-specs"
+  | .search => "search"
+  | .plans => "plans"
 
 structure Limit where
   value : Nat

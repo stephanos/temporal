@@ -80,7 +80,7 @@ private def wrongUnitLimits : QueryLimits := {
   Internal.queryLimitSpec.toQueryLimits with
   behavior := {
     Internal.queryLimitSpec.toQueryLimits.behavior with
-    transitions := { value := 1, unit := .selectedActions }
+    transitions := { value := 1, unit := .actions }
   }
 }
 
@@ -104,7 +104,7 @@ example : limitErrors = [
     some (.invalidLimit, "Temporal/Feature/Nexus/Operations.lean",
       "search.candidateEvaluations=0"),
     some (.unitMismatch, "Temporal/Feature/Nexus/Operations.lean",
-      "behavior.transitions:selected-actions")
+      "behavior.transitions:actions")
   ] := by
   native_decide
 

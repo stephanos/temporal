@@ -576,7 +576,7 @@ inductive PropertyClause where
   | ordered
       (id : DefinitionId)
       (before after : PropertyPattern)
-      (unit : LimitUnit := .semanticTransitions)
+      (unit : LimitUnit := .steps)
   | eventuallyWithin
       (id : DefinitionId)
       (trigger response : PropertyPattern)

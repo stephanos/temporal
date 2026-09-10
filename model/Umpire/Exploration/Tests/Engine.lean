@@ -35,7 +35,7 @@ def engineRequest
     ExplorationRequest Umpire.Examples.Switch.LawStatement := {
   space := SpaceTests.checked
   policy
-  limit := { value, unit := .experimentSpecs }
+  limit := { value, unit := .plans }
   pinned
 }
 

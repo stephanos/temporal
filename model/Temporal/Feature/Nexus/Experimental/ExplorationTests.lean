@@ -23,10 +23,10 @@ guidance selects from that same universe and reports its bounded outcome separat
 -/
 example :
     exhaustiveCandidates.map (ArtifactChecksum.render ∘ ExplorationCandidate.identity) == [
-      "sha256:1272a5861a0a491cca53cd228dc8d72c1bcc970fd0c77b8eeee4eadcb3f2641e",
-      "sha256:873abde394db383b2a9a750c6ecddebe1dedcf20faaea9ed75c9e623f3bca4cb",
-      "sha256:ac24d6bac3eb7ac03b1bee26374c8a84bc06b211163d5c3f0169f7e2a6aa9ed4",
-      "sha256:b38b568baaaea2bf7e1d9aa6ca1b24e26f161c65c3fa3234e4f52ab741efc720"
+      "sha256:34b04499cc9163e1a5abb39963d9ce215f82fe41e355967ceeb33b07419dd1be",
+      "sha256:79aa2d3b71be2ea76aadb3692e5e60258e1c590c6628a8c5cc0acda4f8fae555",
+      "sha256:8a7e1f0f32b24b3b30024e3c6efe06274abf1726f4bf422f46dfb4112803186d",
+      "sha256:916a2cc537c6c35066ad8a147cf139e00c661612594e80a59d90e1fc585d6221"
     ] &&
       exhaustiveResult.completion == .exhausted &&
       (run (.uncoveredCoordinate (.fact 1 1)) 1).toOption.any (fun result =>

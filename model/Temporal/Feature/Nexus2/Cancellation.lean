@@ -95,10 +95,10 @@ def queryDeclaration
   behavior
   limits := {
     behavior := {
-      transitions := { value := 1, unit := .semanticTransitions }
-      selectedActions := { value := 1, unit := .selectedActions }
+      transitions := { value := 1, unit := .steps }
+      selectedActions := { value := 1, unit := .actions }
     }
-    search := { value := 8, unit := .candidateEvaluations }
+    search := { value := 8, unit := .search }
   }
   policy := { strategy := .shortest, seed := 17, tieBreak := .definitionId }
 }
@@ -147,10 +147,10 @@ def queryDeclaration
   behavior
   limits := {
     behavior := {
-      transitions := { value := 1, unit := .semanticTransitions }
-      selectedActions := { value := 1, unit := .selectedActions }
+      transitions := { value := 1, unit := .steps }
+      selectedActions := { value := 1, unit := .actions }
     }
-    search := { value := 8, unit := .candidateEvaluations }
+    search := { value := 8, unit := .search }
   }
   policy := { strategy := .shortest, seed := 17, tieBreak := .definitionId }
 }
@@ -199,10 +199,10 @@ def queryDeclaration
   behavior
   limits := {
     behavior := {
-      transitions := { value := 1, unit := .semanticTransitions }
-      selectedActions := { value := 1, unit := .selectedActions }
+      transitions := { value := 1, unit := .steps }
+      selectedActions := { value := 1, unit := .actions }
     }
-    search := { value := 8, unit := .candidateEvaluations }
+    search := { value := 8, unit := .search }
   }
   policy := { strategy := .shortest, seed := 17, tieBreak := .definitionId }
 }

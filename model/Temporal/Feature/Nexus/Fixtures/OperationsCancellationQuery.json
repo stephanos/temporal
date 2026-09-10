@@ -18,16 +18,16 @@
     "behavior": {
       "transitions": {
         "value": 1,
-        "unit": "semantic-transitions"
+        "unit": "steps"
       },
       "selectedActions": {
         "value": 1,
-        "unit": "selected-actions"
+        "unit": "actions"
       }
     },
     "search": {
       "value": 8,
-      "unit": "candidate-evaluations"
+      "unit": "search"
     }
   },
   "policy": {

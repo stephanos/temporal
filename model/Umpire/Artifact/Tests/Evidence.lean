@@ -130,7 +130,7 @@ example : rawEvidence.hasValidChecksums &&
     rawEvidence.provenanceChecksum.render =
       "sha256:58874d22fb498df81f0ad4a5812183031af5827e3f528d963d147cb760ee5bb7" &&
     rawEvidence.artifactChecksum.render =
-      "sha256:ef2201cca474114c9cb288b63d98548ed240bb86c2d82de20bfb3f57ff835386" := by
+      "sha256:bd6518896da23b11cc9e461e17a8a02e77052f17d8a84686adafb8c46eec93bc" := by
   native_decide
 
 /-! Nonempty checked Known Gaps preserve their exact canonical JSON projection. -/

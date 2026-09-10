@@ -592,15 +592,18 @@ func validatePlanSteps(plan PlanSteps) error {
 	return validateKnownGaps(plan.KnownGaps)
 }
 
-// knownGapKinds and definitionKinds mirror `Umpire.KnownGapKind.name` and
-// `Umpire.DefinitionKind.name`. Lean emits these strings; a rename on that side that does not
-// reach here decodes as invalid, so vocabulary_test.go reads both Lean sources and pins them.
+// knownGapKinds, definitionKinds and limitUnits mirror `Umpire.KnownGapKind.name`,
+// `Umpire.DefinitionKind.name` and `Umpire.LimitUnit.name`. Lean emits these strings; a rename on
+// that side that does not reach here decodes as invalid, so vocabulary_test.go reads the Lean
+// sources and pins them.
 var knownGapKinds = []string{"capability", "input", "interpretation", "claim"}
 
 var definitionKinds = []string{
 	"state", "action", "outcome", "fact", "relation", "capability",
 	"provider", "law", "connector", "target", "machine",
 }
+
+var limitUnits = []string{"steps", "actions", "logical-time", "search", "plans"}
 
 func validateKnownGaps(knownGaps []KnownGap) error {
 	for _, gap := range knownGaps {
@@ -727,12 +730,7 @@ func validateLimits(limits Limits) error {
 }
 
 func validLimitUnit(unit string) bool {
-	switch unit {
-	case "semantic-transitions", "selected-actions", "observation-positions", "logical-time", "candidate-evaluations":
-		return true
-	default:
-		return false
-	}
+	return slices.Contains(limitUnits, unit)
 }
 
 func validateModelValues(label string, values []ModelValue) error {

@@ -65,7 +65,7 @@ def cancellationMeanings : List Meaning := [
   meaning ownsOperation .relation
 ]
 
-def cancelBudget : Limit := { value := 2, unit := .observationPositions }
+def cancelBudget : Limit := { value := 2, unit := .steps }
 
 def context : PropertyCheckContext := {
   definitions
@@ -109,7 +109,7 @@ def requestPrecedesDelivery : PropertyClause :=
   .ordered (id "test.property.request-precedes-delivery")
     (pattern .observation cancelRequested)
     (pattern .observation cancelDelivered)
-    .observationPositions
+    .steps
 
 def honoredDelivery : PropertyClause :=
   .eventuallyWithin (id "test.property.honored-delivery")
@@ -121,7 +121,7 @@ def deliveryIsQuiescent : PropertyClause :=
   .neverWithin (id "test.property.delivery-is-quiescent")
     (pattern .observation cancelDelivered)
     (pattern .observation cancelRequested)
-    { value := 0, unit := .observationPositions }
+    { value := 0, unit := .steps }
 
 def portableProperty : Property := {
   id := id "test.property.cancellation-contract"

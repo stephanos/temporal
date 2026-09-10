@@ -7,7 +7,7 @@ namespace Umpire.ExplorationTests
 
 open Umpire
 
-def validLimit : Limit := { value := 4, unit := .experimentSpecs }
+def validLimit : Limit := { value := 4, unit := .plans }
 
 def request
     (policy : ExplorationPolicy := .exhaustive)
@@ -82,11 +82,11 @@ example :
 /-! A checked request retains one exact Space and canonicalizes valid pinned Artifacts. -/
 example : (checkExplorationRequest <| request
     (.uncoveredCoordinate (.fact 1 1))
-    { value := 2, unit := .experimentSpecs }
+    { value := 2, unit := .plans }
     [compatiblePinned]).toOption.map (fun checked =>
       checked.space == SpaceTests.checked &&
         checked.policy == .uncoveredCoordinate (.fact 1 1) &&
-        checked.limit == { value := 2, unit := .experimentSpecs } &&
+        checked.limit == { value := 2, unit := .plans } &&
         checked.pinned.map (fun pinned => pinned.plan.artifactChecksum) ==
           [compatiblePinned.artifactChecksum]) = some true := by
   native_decide
@@ -94,11 +94,11 @@ example : (checkExplorationRequest <| request
 /-! Invalid value/unit Limits and coordinates reject before any selection can begin. -/
 example : [
     errorKindOf (checkExplorationRequest <| request .exhaustive
-      { value := 0, unit := .experimentSpecs }),
+      { value := 0, unit := .plans }),
     errorKindOf (checkExplorationRequest <| request .exhaustive
-      { value := 257, unit := .experimentSpecs }),
+      { value := 257, unit := .plans }),
     errorKindOf (checkExplorationRequest <| request .exhaustive
-      { value := 1, unit := .candidateEvaluations }),
+      { value := 1, unit := .search }),
     errorKindOf (checkExplorationRequest <| request
       (.uncoveredCoordinate (.selectedAction 0))),
     errorKindOf (checkExplorationRequest <| request

@@ -31,6 +31,12 @@ func TestKindVocabulariesMatchLean(t *testing.T) {
 			function: "DefinitionKind",
 			want:     definitionKinds,
 		},
+		{
+			name:     "limit units",
+			relative: "model/Umpire/Core.lean",
+			function: "LimitUnit",
+			want:     limitUnits,
+		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			require.Equal(t, test.want, leanNameArms(t, test.relative, test.function))

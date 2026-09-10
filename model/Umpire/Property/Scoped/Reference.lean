@@ -120,7 +120,7 @@ theorem checked_eventuallyWithin_agrees
     (property : CheckedProperty) (input : CheckedPropertyEvaluationInput property)
     (clause : { clause // clause ∈ property.clauses })
     (id : DefinitionId) (trigger response : PropertyPattern) (bound : Nat)
-    (shape : clause.val = .eventuallyWithin id trigger response ⟨bound, .semanticTransitions⟩)
+    (shape : clause.val = .eventuallyWithin id trigger response ⟨bound, .steps⟩)
     (triggerAligned : trigger.field = .selectedAction)
     (responseAligned : response.field = .outcome ∨ response.field = .resultingState ∨
       response.field = .observation) :
