@@ -1,7 +1,7 @@
-import Umpire.Observation.Evaluation.Types
-import Umpire.Observation.Evaluation.Structure
-import Umpire.Observation.Evaluation.Raw
-import Umpire.Observation.Evaluation.Admission
+import Umpire.Evidence.Evaluate.Types
+import Umpire.Evidence.Evaluate.Structure
+import Umpire.Evidence.Evaluate.Raw
+import Umpire.Evidence.Evaluate.Admission
 
 /-!
 Pure Observation Evaluation of bounded synthetic Evidence. The boundary consumes a complete
@@ -22,9 +22,9 @@ private def resultOfDiagnostic (failure : ObservationDiagnostic) : ObservationRe
 
 /-- Evaluate Evidence without exposing an intermediate or partially constructed Model Trace. -/
 def evaluateEvidence
-    (plan : CheckedObservationPlan)
-    (bundle : EvidenceBundle) : ObservationResult :=
-  match Observation.Internal.evaluateUnchecked plan bundle with
+    (plan : Evidence.CheckedReading)
+    (bundle : SyntheticEvidence) : ObservationResult :=
+  match Evidence.Internal.evaluateUnchecked plan bundle with
   | .ok unchecked =>
       match validateEvidenceBackedTrace unchecked with
       | .ok trace => .accepted trace

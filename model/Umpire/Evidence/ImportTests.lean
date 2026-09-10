@@ -1,8 +1,8 @@
-import Umpire.Observation
+import Umpire.Evidence
 
 /-! Focused import contract for Observation authoring, checking, and evaluation. -/
 
-#check Umpire.ObservationMappingDeclaration
+#check Umpire.Evidence.Reading
 #check Umpire.ObservationFieldSpec
 #check Umpire.ObservationFieldSpec.declaration
 #check Umpire.ObservationFieldSpec.reference
@@ -14,41 +14,41 @@ import Umpire.Observation
 #check Umpire.ObservationProfileSpec.declaration
 #check Umpire.ObservationRuleSpec
 #check Umpire.ObservationRuleSpec.declaration
-#check Umpire.ObservationMappingSpec
-#check Umpire.ObservationMappingSpec.declaration
-#check Umpire.ObservationMappingSpec.check
-#check Umpire.ObservationMappingSpec.checked
-#check Umpire.ObservationCheckContext
-#check Umpire.ObservationCheckContext.ofTarget
-#check Umpire.ObservationErrorKind
-#check Umpire.ObservationError
+#check Umpire.Evidence.ReadingSpec
+#check Umpire.Evidence.ReadingSpec.declaration
+#check Umpire.Evidence.ReadingSpec.check
+#check Umpire.Evidence.ReadingSpec.checked
+#check Umpire.Evidence.ReadingContext
+#check Umpire.Evidence.ReadingContext.ofTarget
+#check Umpire.Evidence.ReadingErrorKind
+#check Umpire.Evidence.ReadingError
 #check Umpire.CheckedObservationExpression
-#check Umpire.CheckedObservationPlan
-#check Umpire.canonicalObservationPlanJson
-#check Umpire.canonicalObservationErrorJson
-#check Umpire.checkObservation
-#check Umpire.checkedObservation
+#check Umpire.Evidence.CheckedReading
+#check Umpire.Evidence.canonicalReadingJson
+#check Umpire.Evidence.canonicalReadingErrorJson
+#check Umpire.Evidence.checkReading
+#check Umpire.Evidence.checkedReading
 #check Umpire.EvidenceBound
 #check Umpire.EvidenceValue.text
 #check Umpire.EvidenceValue.valueType
 #check Umpire.EvidenceValue.render
-#check Umpire.EvidenceBundle
-#check Umpire.EvidenceBundle.profile
+#check Umpire.SyntheticEvidence
+#check Umpire.SyntheticEvidence.profile
 #check Umpire.ObservationStatus
 #check Umpire.ObservationFailureKind
 #check Umpire.ObservationFailureKind.status
 #check Umpire.ObservationDiagnostic
 #check Umpire.ObservationDiagnostic.status
 #check Umpire.ModelCoordinate
-#check Umpire.EvidenceLink
-#check Umpire.EvidenceLink.coordinate
+#check Umpire.EvidenceSupport
+#check Umpire.EvidenceSupport.coordinate
 #check Umpire.UncheckedEvidenceBackedTrace
 #synth BEq Umpire.UncheckedEvidenceBackedTrace
 #synth DecidableEq Umpire.UncheckedEvidenceBackedTrace
 #synth Repr Umpire.UncheckedEvidenceBackedTrace
-#synth BEq Umpire.EvidenceBundle
-#synth DecidableEq Umpire.EvidenceBundle
-#synth Repr Umpire.EvidenceBundle
+#synth BEq Umpire.SyntheticEvidence
+#synth DecidableEq Umpire.SyntheticEvidence
+#synth Repr Umpire.SyntheticEvidence
 #synth BEq Umpire.ObservationDiagnostic
 #synth DecidableEq Umpire.ObservationDiagnostic
 #synth Repr Umpire.ObservationDiagnostic
@@ -68,19 +68,19 @@ import Umpire.Observation
 #check Umpire.EvidenceBackedTrace.evidenceIdentities
 #check Umpire.EvidenceBackedTrace.recordSupport
 #check Umpire.EvidenceBackedTrace.trace
-#check Umpire.EvidenceBackedTrace.evidenceLinks
+#check Umpire.EvidenceBackedTrace.evidenceSupports
 #synth BEq Umpire.EvidenceBackedTrace
 #synth DecidableEq Umpire.EvidenceBackedTrace
 #synth Repr Umpire.EvidenceBackedTrace
 
-private def representativeEvidenceBundle : Umpire.EvidenceBundle := {
+private def representativeSyntheticEvidence : Umpire.SyntheticEvidence := {
   profile := Umpire.DefinitionId.of "test.evidence.profile"
   profileVersion := 1
   records := []
   closures := []
 }
 
-example : representativeEvidenceBundle.sourceClosed = true := rfl
+example : representativeSyntheticEvidence.sourceClosed = true := rfl
 example : Umpire.EvidenceValue.render (.boolean true) = "true" := rfl
 
 private def representativeDiagnostic : Umpire.ObservationDiagnostic := {
@@ -121,7 +121,7 @@ def replaceAcceptedTraceId
 #check Umpire.evaluateEvidence
 #check Umpire.SemanticPropertyVerdict
 #check Umpire.evaluateObservationProperty
-#check Umpire.StrictQuerySummary
+#check Umpire.QueryStatusSummary
 #check Umpire.summarizeQueryVerdicts
 #check Umpire.RunEvaluation
 #check Umpire.checkRunEvaluation

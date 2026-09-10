@@ -28,7 +28,7 @@ Focused public imports are available by responsibility:
 | `Umpire.Query` | Bounded questions over a checked Model, Properties, and Scenarios. |
 | `Umpire.Space` | Checked finite axes, fault intents and their lowering, and atomic point compilation. |
 | `Umpire.Exploration` | Bounded finite selection, pinned precedence, and process-local sessions. |
-| `Umpire.Observation` | Offline evidence mappings and accepted semantic traces. |
+| `Umpire.Evidence` | Offline evidence mappings and accepted semantic traces. |
 | `Umpire.ImplementationLink` | Checked correspondence between independent semantic Models. |
 | `Umpire.Search` | Deterministic incremental planning over checked Queries. |
 | `Umpire.Promotion` | Exact review-only source compilation from an unchanged planned Query. |

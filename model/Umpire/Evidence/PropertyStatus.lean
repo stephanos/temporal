@@ -1,4 +1,4 @@
-import Umpire.Observation.Evaluation
+import Umpire.Evidence.Evaluate
 import Umpire.Query.Check
 import Umpire.OutcomeClassification
 
@@ -9,7 +9,7 @@ offline verdicts do not perform Run Evaluation or Claim Assessment.
 
 namespace Umpire
 
-inductive SemanticVerdictStatus where
+inductive Evidence.PropertyStatus where
   | satisfied
   | violated
   | unknown
@@ -17,7 +17,7 @@ inductive SemanticVerdictStatus where
   | unsupported
   deriving BEq, DecidableEq, Ord, Repr
 
-def SemanticVerdictStatus.name : SemanticVerdictStatus → String
+def Evidence.PropertyStatus.name : Evidence.PropertyStatus → String
   | .satisfied => "satisfied"
   | .violated => "violated"
   | .unknown => "unknown"
@@ -25,8 +25,8 @@ def SemanticVerdictStatus.name : SemanticVerdictStatus → String
   | .unsupported => "unsupported"
 
 /-- Canonical documentation and exact constructor matchers for semantic Property outcomes. -/
-def SemanticVerdictStatus.constructorClassifiers :
-    List (OutcomeConstructorClassifier SemanticVerdictStatus) := [
+def Evidence.PropertyStatus.constructorClassifiers :
+    List (OutcomeConstructorClassifier Evidence.PropertyStatus) := [
   .ofValue .satisfied {
     name := "satisfied"
     description := "The semantic Property is satisfied."
@@ -50,12 +50,12 @@ def SemanticVerdictStatus.constructorClassifiers :
 ]
 
 /-- Every semantic Property outcome matches exactly one descriptor. -/
-theorem SemanticVerdictStatus.constructorClassifiers_exactlyOne :
-    OutcomeConstructorClassifiers.ExactlyOne SemanticVerdictStatus.constructorClassifiers := by
+theorem Evidence.PropertyStatus.constructorClassifiers_exactlyOne :
+    OutcomeConstructorClassifiers.ExactlyOne Evidence.PropertyStatus.constructorClassifiers := by
   intro status
   cases status <;> rfl
 
-inductive SemanticVerdictFailureKind where
+inductive Evidence.PropertyStatusFailureKind where
   | observationEvaluationFailure (kind : ObservationFailureKind)
   | semanticTraceUnavailable
   | queryPropertyMismatch
@@ -69,8 +69,8 @@ inductive SemanticVerdictFailureKind where
   | unsupportedPropertyClause
   deriving BEq, DecidableEq, Ord, Repr
 
-structure SemanticVerdictDiagnostic where
-  kind : SemanticVerdictFailureKind
+structure Evidence.PropertyStatusDiagnostic where
+  kind : Evidence.PropertyStatusFailureKind
   relatedDefinitionIds : List DefinitionId := []
   observationEvaluation : Option ObservationDiagnostic := none
   deriving BEq, DecidableEq, Repr
@@ -78,13 +78,13 @@ structure SemanticVerdictDiagnostic where
 structure SemanticClauseVerdict where
   propertyId : DefinitionId
   clauseId : DefinitionId
-  status : SemanticVerdictStatus
+  status : Evidence.PropertyStatus
   coordinates : List ModelCoordinate
   queryLimits : Limits
   propertyLimit : Option Limit
   evidenceBound : EvidenceBound
   provenance : List DefinitionId
-  evidenceLinks : List EvidenceLink
+  evidenceSupports : List EvidenceSupport
   deriving BEq, DecidableEq, Repr
 
 structure SemanticPropertyVerdict where
@@ -92,28 +92,28 @@ structure SemanticPropertyVerdict where
   propertyId : DefinitionId
   propertyDigest : String
   traceId : Option String
-  status : SemanticVerdictStatus
+  status : Evidence.PropertyStatus
   queryLimits : Limits
   evidenceBound : Option EvidenceBound
   provenance : List DefinitionId
   clauses : List SemanticClauseVerdict
-  diagnostic : Option SemanticVerdictDiagnostic := none
+  diagnostic : Option Evidence.PropertyStatusDiagnostic := none
   deriving BEq, DecidableEq, Repr
 
-inductive StrictQueryStatus where
+inductive QueryStatus where
   | satisfied
   | violated
   | incomplete
   deriving BEq, DecidableEq, Ord, Repr
 
-def StrictQueryStatus.name : StrictQueryStatus → String
+def QueryStatus.name : QueryStatus → String
   | .satisfied => "satisfied"
   | .violated => "violated"
   | .incomplete => "incomplete"
 
 /-- Canonical documentation and exact constructor matchers for strict Query outcomes. -/
-def StrictQueryStatus.constructorClassifiers :
-    List (OutcomeConstructorClassifier StrictQueryStatus) := [
+def QueryStatus.constructorClassifiers :
+    List (OutcomeConstructorClassifier QueryStatus) := [
   .ofValue .satisfied {
     name := "satisfied"
     description := "Every required semantic Property is satisfied."
@@ -129,14 +129,14 @@ def StrictQueryStatus.constructorClassifiers :
 ]
 
 /-- Every strict Query outcome matches exactly one descriptor. -/
-theorem StrictQueryStatus.constructorClassifiers_exactlyOne :
-    OutcomeConstructorClassifiers.ExactlyOne StrictQueryStatus.constructorClassifiers := by
+theorem QueryStatus.constructorClassifiers_exactlyOne :
+    OutcomeConstructorClassifiers.ExactlyOne QueryStatus.constructorClassifiers := by
   intro status
   cases status <;> rfl
 
-structure StrictQuerySummary where
+structure QueryStatusSummary where
   queryId : DefinitionId
-  status : StrictQueryStatus
+  status : QueryStatus
   queryLimits : Limits
   requiredProperties : List DefinitionId
   verdicts : List SemanticPropertyVerdict
@@ -159,7 +159,7 @@ private def stringLe (left right : String) : Bool := decide (left ≤ right)
 private def canonicalStrings (values : List String) : List String :=
   values.mergeSort stringLe |>.eraseDups
 
-private def statusOfObservationEvaluation : ObservationStatus → SemanticVerdictStatus
+private def statusOfObservationEvaluation : ObservationStatus → Evidence.PropertyStatus
   | .accepted => .unknown
   | .unknown => .unknown
   | .conflict => .conflict
@@ -168,8 +168,8 @@ private def statusOfObservationEvaluation : ObservationStatus → SemanticVerdic
 private def failureVerdict
     (query : CheckedQuery LawStatement)
     (property : CheckedProperty)
-    (status : SemanticVerdictStatus)
-    (diagnostic : SemanticVerdictDiagnostic)
+    (status : Evidence.PropertyStatus)
+    (diagnostic : Evidence.PropertyStatusDiagnostic)
     (traceId : Option String := none)
     (evidenceBound : Option EvidenceBound := none) : SemanticPropertyVerdict := {
   queryId := query.id
@@ -262,8 +262,8 @@ private def capabilityMismatch (property : CheckedProperty) : List DefinitionId 
 
 private def vocabularyFailure
     (property : CheckedProperty)
-    (trace : EvidenceBackedTrace) : Option SemanticVerdictDiagnostic :=
-  let rec check : List Meaning → Option SemanticVerdictDiagnostic
+    (trace : EvidenceBackedTrace) : Option Evidence.PropertyStatusDiagnostic :=
+  let rec check : List Meaning → Option Evidence.PropertyStatusDiagnostic
     | [] => none
     | required :: rest =>
         let candidates := (trace.vocabulary.filter fun available =>
@@ -300,13 +300,13 @@ private def clausePatterns : CheckedPropertyClause → List PropertyPattern
   | .guardedEventuallyWithin guarded | .guardedNeverWithin guarded =>
       [guarded.trigger, guarded.response]
 
-private def relevantEvidenceLinks
+private def relevantEvidenceSupports
     (trace : EvidenceBackedTrace)
-    (clause : CheckedPropertyClause) : List EvidenceLink :=
+    (clause : CheckedPropertyClause) : List EvidenceSupport :=
   let patterns := clausePatterns clause
-  trace.evidenceLinks.filter fun evidenceLink =>
+  trace.evidenceSupports.filter fun evidenceSupport =>
     patterns.any fun pattern =>
-      match PropertyTraceField.valueAt? pattern.field trace.trace evidenceLink.coordinate with
+      match PropertyTraceField.valueAt? pattern.field trace.trace evidenceSupport.coordinate with
       | none => false
       | some value => value.definitionId == pattern.reference
 
@@ -315,17 +315,17 @@ private def clauseVerdict
     (trace : EvidenceBackedTrace)
     (clause : CheckedPropertyClause)
     (result : PropertyClauseResult) : SemanticClauseVerdict :=
-  let evidenceLinks := relevantEvidenceLinks trace clause
+  let evidenceSupports := relevantEvidenceSupports trace clause
   {
     propertyId := result.propertyId
     clauseId := result.clauseId
     status := if result.satisfied then .satisfied else .violated
-    coordinates := evidenceLinks.map EvidenceLink.coordinate
+    coordinates := evidenceSupports.map EvidenceSupport.coordinate
     queryLimits := query.limits
     propertyLimit := result.evaluatedLimit
     evidenceBound := trace.appliedBound
     provenance := result.semanticProvenance
-    evidenceLinks
+    evidenceSupports
   }
 
 private def resolvedVerdict
@@ -398,7 +398,7 @@ private def verdictLe (left right : SemanticPropertyVerdict) : Bool :=
 entries. Success requires one resolved result per required property for one trace. -/
 def summarizeQueryVerdicts
     (query : CheckedQuery LawStatement)
-    (verdicts : List SemanticPropertyVerdict) : StrictQuerySummary :=
+    (verdicts : List SemanticPropertyVerdict) : QueryStatusSummary :=
   let required := canonicalIds (query.form.properties.map CheckedProperty.id)
   let ordered := verdicts.mergeSort verdictLe
   let missing := required.filter fun propertyId =>
@@ -428,7 +428,7 @@ def summarizeQueryVerdicts
     verdict.status == .satisfied || verdict.status == .violated
   let status :=
     if !structurallyComplete || !resolved then
-      StrictQueryStatus.incomplete
+      QueryStatus.incomplete
     else if ordered.all fun verdict => verdict.status == .satisfied then
       .satisfied
     else

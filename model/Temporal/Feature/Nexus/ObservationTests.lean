@@ -47,7 +47,7 @@ def startEvidence : SyntheticEvidenceRecord := {
   ]
 }
 
-def completeEvidence : EvidenceBundle := {
+def completeEvidence : SyntheticEvidence := {
   profile := Profile.id
   profileVersion := 1
   records := [startEvidence, initialEvidence]
@@ -72,7 +72,7 @@ private def acceptedOf (result : ObservationResult) : Option EvidenceBackedTrace
 def completeObservation : OfflineObservation :=
   evaluateSyntheticEvidence completeEvidence
 
-private structure EvidenceLinkShape where
+private structure EvidenceSupportShape where
   coordinate : ModelCoordinate
   mappingId : DefinitionId
   mappingVersion : Nat
@@ -89,21 +89,21 @@ private structure EvidenceLinkShape where
   meaningDigest : String
   deriving BEq, DecidableEq, Repr
 
-private def evidenceLinkShape (evidenceLink : EvidenceLink) : EvidenceLinkShape := {
-  coordinate := evidenceLink.coordinate
-  mappingId := evidenceLink.mappingId
-  mappingVersion := evidenceLink.mappingVersion
-  mappingDigest := evidenceLink.mappingDigest
-  profileId := evidenceLink.profileId
-  profileVersion := evidenceLink.profileVersion
-  ruleId := evidenceLink.ruleId
-  evidenceIdentities := evidenceLink.evidenceIdentities
-  bindingIds := evidenceLink.bindingIds
-  orderingSupport := evidenceLink.orderingSupport
-  closureSupport := evidenceLink.closureSupport
-  appliedDispositions := evidenceLink.appliedDispositions
-  appliedBound := evidenceLink.appliedBound
-  meaningDigest := evidenceLink.meaningDigest
+private def evidenceSupportShape (evidenceSupport : EvidenceSupport) : EvidenceSupportShape := {
+  coordinate := evidenceSupport.coordinate
+  mappingId := evidenceSupport.mappingId
+  mappingVersion := evidenceSupport.mappingVersion
+  mappingDigest := evidenceSupport.mappingDigest
+  profileId := evidenceSupport.profileId
+  profileVersion := evidenceSupport.profileVersion
+  ruleId := evidenceSupport.ruleId
+  evidenceIdentities := evidenceSupport.evidenceIdentities
+  bindingIds := evidenceSupport.bindingIds
+  orderingSupport := evidenceSupport.orderingSupport
+  closureSupport := evidenceSupport.closureSupport
+  appliedDispositions := evidenceSupport.appliedDispositions
+  appliedBound := evidenceSupport.appliedBound
+  meaningDigest := evidenceSupport.meaningDigest
 }
 
 private def rawProfileDeclaration : EvidenceProfileDeclaration := {
@@ -142,7 +142,7 @@ private def rawEqualsAny (fieldId : DefinitionId) : List String → ObservationE
       values.foldl (fun condition candidate =>
         .or condition (rawEqualsText fieldId candidate)) (rawEqualsText fieldId value)
 
-private def rawMappingDeclaration : ObservationMappingDeclaration := {
+private def rawMappingDeclaration : Evidence.Reading := {
   id := Mapping.id
   source := Temporal.Feature.Nexus.Observation.source
   profile := Profile.id
@@ -190,9 +190,9 @@ private def rawMappingDeclaration : ObservationMappingDeclaration := {
   documentation := "Synthetic scheduled-to-terminal evidence for the ordinary Nexus lifecycle."
 }
 
-private def rawCheckedPlanResult : Except ObservationError CheckedObservationPlan :=
-  checkObservation
-    (ObservationCheckContext.ofTarget target [rawProfileDeclaration]) rawMappingDeclaration
+private def rawCheckedPlanResult : Except Evidence.ReadingError Evidence.CheckedReading :=
+  Evidence.checkReading
+    (Evidence.ReadingContext.ofTarget target [rawProfileDeclaration]) rawMappingDeclaration
 
 /-- Typed construction reproduces the established raw profile, mapping, and checked plan exactly. -/
 example : Profile.spec.declaration = rawProfileDeclaration := by
@@ -249,7 +249,7 @@ example : (acceptedOf completeObservation.evaluation).map EvidenceBackedTrace.tr
 
 /-- Every Model Trace slot has one independently expected Evidence record and rule Evidence Link. -/
 example : (acceptedOf completeObservation.evaluation).map (fun trace =>
-    trace.evidenceLinks.map evidenceLinkShape) = some [{
+    trace.evidenceSupports.map evidenceSupportShape) = some [{
     coordinate := .initialState
     mappingId := Mapping.id
     mappingVersion := 1
@@ -383,15 +383,15 @@ example :
 
 private def outcomeShape (observation : OfflineObservation) :
     ObservationStatus × Option ObservationFailureKind ×
-      List SemanticVerdictStatus × StrictQueryStatus :=
+      List Evidence.PropertyStatus × QueryStatus :=
   (observation.evaluation.status,
     observation.evaluation.diagnostic?.map ObservationDiagnostic.kind,
     observation.verdicts.map SemanticPropertyVerdict.status,
     observation.summary.status)
 
-def incompleteEvidence : EvidenceBundle := { completeEvidence with closures := [] }
+def incompleteEvidence : SyntheticEvidence := { completeEvidence with closures := [] }
 
-def ambiguousEvidence : EvidenceBundle := {
+def ambiguousEvidence : SyntheticEvidence := {
   completeEvidence with
   compatibleAlternatives := [
     { id := id "temporal.nexus.synthetic.interpretation.b",
@@ -402,23 +402,23 @@ def ambiguousEvidence : EvidenceBundle := {
   missingDiscriminator := some (id "temporal.nexus.synthetic.field.discriminator")
 }
 
-def conflictingEvidence : EvidenceBundle := {
+def conflictingEvidence : SyntheticEvidence := {
   completeEvidence with
   records := [initialEvidence, { startEvidence with id := initialEvidenceId }]
 }
 
-def unsupportedEvidence : EvidenceBundle := {
+def unsupportedEvidence : SyntheticEvidence := {
   completeEvidence with profile := id "temporal.nexus.synthetic.profile.other"
 }
 
-def rejectedFieldEvidence : EvidenceBundle := {
+def rejectedFieldEvidence : SyntheticEvidence := {
   completeEvidence with
   records := [initialEvidence, { startEvidence with fields := startEvidence.fields ++ [
     textField Profile.rejectedField "must-not-cross-the-boundary"
   ] }]
 }
 
-def emptyStateEvidence : EvidenceBundle := {
+def emptyStateEvidence : SyntheticEvidence := {
   completeEvidence with
   records := [{ initialEvidence with fields := [
     textField Profile.stateField "",
@@ -429,7 +429,7 @@ def emptyStateEvidence : EvidenceBundle := {
   closures := [{ kind := Profile.lifecycleKind, lastSequence := 1 }]
 }
 
-def unknownOutcomeEvidence : EvidenceBundle := {
+def unknownOutcomeEvidence : SyntheticEvidence := {
   completeEvidence with
   records := [initialEvidence, { startEvidence with fields := [
     textField Profile.stateField "started",

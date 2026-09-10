@@ -1,10 +1,10 @@
 import Temporal.Feature.Nexus.Operations
 import Temporal.Shared
-import Umpire.Observation
+import Umpire.Evidence
 
 /-!
 One synthetic Evidence profile for the ordinary Nexus lifecycle. This module performs only the
-offline handoff from a finite typed `EvidenceBundle` to Observation Evaluation and semantic
+offline handoff from a finite typed `SyntheticEvidence` to Observation Evaluation and semantic
 verdicts; it does not start Temporal, collect live evidence, persist raw records, or promote a
 result.
 -/
@@ -117,7 +117,7 @@ private def rule
 }
 
 /-- Explicit typed mapping input for the synthetic Basic Lifecycle Evidence. -/
-def Mapping.spec : ObservationMappingSpec := {
+def Mapping.spec : Evidence.ReadingSpec := {
   id := Mapping.id
   source
   profile := Profile.id
@@ -161,29 +161,29 @@ def Mapping.spec : ObservationMappingSpec := {
 }
 
 /-- Existing mapping declaration projected without changing checker authority. -/
-def Mapping.declaration : ObservationMappingDeclaration :=
+def Mapping.declaration : Evidence.Reading :=
   Mapping.spec.declaration
 
-def checkedPlanResult : Except ObservationError CheckedObservationPlan :=
-  Mapping.spec.check (ObservationCheckContext.ofTarget target [Profile.declaration])
+def checkedPlanResult : Except Evidence.ReadingError Evidence.CheckedReading :=
+  Mapping.spec.check (Evidence.ReadingContext.ofTarget target [Profile.declaration])
 
 private theorem checkedPlanResult_isSome : checkedPlanResult.toOption.isSome = true := by
   native_decide
 
-def checkedPlan : CheckedObservationPlan :=
+def checkedPlan : Evidence.CheckedReading :=
   Mapping.spec.checked
-    (ObservationCheckContext.ofTarget target [Profile.declaration])
+    (Evidence.ReadingContext.ofTarget target [Profile.declaration])
     checkedPlanResult_isSome
 
 /-- Typed offline output; no raw evidence is retained in any field. -/
 structure OfflineObservation where
   evaluation : ObservationResult
   verdicts : List SemanticPropertyVerdict
-  summary : StrictQuerySummary
+  summary : QueryStatusSummary
   deriving BEq, DecidableEq, Repr
 
-/-- The complete typed handoff available to a future adapter that can produce an `EvidenceBundle`. -/
-def evaluateSyntheticEvidence (bundle : EvidenceBundle) : OfflineObservation :=
+/-- The complete typed handoff available to a future adapter that can produce an `SyntheticEvidence`. -/
+def evaluateSyntheticEvidence (bundle : SyntheticEvidence) : OfflineObservation :=
   let evaluation := evaluateEvidence checkedPlan bundle
   let verdict := match evaluation with
     | .accepted trace => evaluateObservationProperty

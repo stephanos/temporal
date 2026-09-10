@@ -1,9 +1,9 @@
-import Umpire.Observation.Evaluation.Structure
-import Umpire.Observation.Tests.Fixtures
+import Umpire.Evidence.Evaluate.Structure
+import Umpire.Evidence.Tests.Fixtures
 
 /-! Normalized Observation structural-analysis behavior and exact finding order. -/
 
-namespace Umpire.ObservationTests
+namespace Umpire.EvidenceTests
 
 open Umpire
 
@@ -28,7 +28,7 @@ def structuralFact
 
 /-- Empty structural input retains the required-kind closure failure without inventing facts. -/
 example :
-    let analysis := Observation.Internal.analyzeStructure [] [] [structuralKind]
+    let analysis := Evidence.Internal.analyzeStructure [] [] [structuralKind]
     (analysis.facts, analysis.originMode, analysis.closureExpectations, analysis.findings) =
       ([], .globalSequence, [], [.missingRequiredKind structuralKind]) := by
   native_decide
@@ -37,7 +37,7 @@ example :
 example :
     let firstId := id "test.evidence.record.structural-1"
     let secondId := id "test.evidence.record.structural-2"
-    let analysis := Observation.Internal.analyzeStructure
+    let analysis := Evidence.Internal.analyzeStructure
       [structuralFact secondId 2 none [firstId], structuralFact firstId 1]
       [{ kind := structuralKind, lastSequence := 2 }]
       [structuralKind]
@@ -58,7 +58,7 @@ example :
 /-- Structural closure coverage follows normalized facts without a separate required-kind list. -/
 example :
     let recordId := id "test.evidence.record.unclosed"
-    let analysis := Observation.Internal.analyzeStructure [structuralFact recordId 1] []
+    let analysis := Evidence.Internal.analyzeStructure [structuralFact recordId 1] []
     analysis.findings = [.missingClosure [recordId] none structuralKind] := by
   native_decide
 
@@ -67,7 +67,7 @@ example :
     let a0 := id "test.evidence.record.a-0"
     let a1 := id "test.evidence.record.a-1"
     let b0 := id "test.evidence.record.b-0"
-    let analysis := Observation.Internal.analyzeStructure [
+    let analysis := Evidence.Internal.analyzeStructure [
       structuralFact b0 1 (some { source := structuralSourceB, ordinal := 0 }),
       structuralFact a1 2 (some { source := structuralSourceA, ordinal := 1 }) [a0],
       structuralFact a0 1 (some { source := structuralSourceA, ordinal := 0 })
@@ -103,7 +103,7 @@ example :
 example :
     let firstId := id "test.evidence.record.cycle-1"
     let secondId := id "test.evidence.record.cycle-2"
-    let analysis := Observation.Internal.analyzeStructure
+    let analysis := Evidence.Internal.analyzeStructure
       [structuralFact firstId 1 none [secondId], structuralFact secondId 2 none [firstId]]
       [{ kind := structuralKind, lastSequence := 2 }]
       [structuralKind]
@@ -117,7 +117,7 @@ example :
 example :
     let globalId := id "test.evidence.record.global"
     let sourcedId := id "test.evidence.record.sourced"
-    let analysis := Observation.Internal.analyzeStructure [
+    let analysis := Evidence.Internal.analyzeStructure [
       structuralFact sourcedId 2 (some { source := structuralSourceA, ordinal := 0 }),
       structuralFact globalId 1
     ] [] [structuralKind]
@@ -129,7 +129,7 @@ example :
 example :
     let firstId := id "test.evidence.record.count-1"
     let secondId := id "test.evidence.record.count-2"
-    let analysis := Observation.Internal.analyzeStructure [
+    let analysis := Evidence.Internal.analyzeStructure [
       structuralFact firstId 1 (some { source := structuralSourceA, ordinal := 0 }),
       structuralFact secondId 2 (some { source := structuralSourceA, ordinal := 1 }) [firstId]
     ] [{
@@ -144,25 +144,25 @@ example :
     ] := by
   native_decide
 
-def structuralFailureOrderCases : List (List Observation.Internal.StructuralFinding) := [
+def structuralFailureOrderCases : List (List Evidence.Internal.StructuralFinding) := [
   let recordId := id "test.evidence.record.duplicate"
   let fact := structuralFact recordId 1
-  (Observation.Internal.analyzeStructure [fact, fact]
+  (Evidence.Internal.analyzeStructure [fact, fact]
     [{ kind := structuralKind, lastSequence := 1 }] [structuralKind]).findings,
   let firstId := id "test.evidence.record.duplicate-sequence-a"
   let secondId := id "test.evidence.record.duplicate-sequence-b"
-  (Observation.Internal.analyzeStructure
+  (Evidence.Internal.analyzeStructure
     [structuralFact firstId 1, structuralFact secondId 1]
     [{ kind := structuralKind, lastSequence := 1 }] [structuralKind]).findings,
   let firstId := id "test.evidence.record.gap-a"
   let secondId := id "test.evidence.record.gap-b"
   let missingId := id "test.evidence.record.missing"
-  (Observation.Internal.analyzeStructure
+  (Evidence.Internal.analyzeStructure
     [structuralFact firstId 1, structuralFact secondId 3 none [missingId]]
     [{ kind := structuralKind, lastSequence := 3 }] [structuralKind]).findings,
   let firstId := id "test.evidence.record.reverse-a"
   let secondId := id "test.evidence.record.reverse-b"
-  (Observation.Internal.analyzeStructure [
+  (Evidence.Internal.analyzeStructure [
     structuralFact firstId 1
       (some { source := structuralSourceA, ordinal := 0 }) [secondId],
     structuralFact secondId 2
@@ -176,13 +176,13 @@ def structuralFailureOrderCases : List (List Observation.Internal.StructuralFind
   }] [structuralKind]).findings,
   let recordId := id "test.evidence.record.duplicate-closure"
   let closure : EvidenceClosureFact := { kind := structuralKind, lastSequence := 1 }
-  (Observation.Internal.analyzeStructure [structuralFact recordId 1]
+  (Evidence.Internal.analyzeStructure [structuralFact recordId 1]
     [closure, closure] [structuralKind]).findings,
   let recordId := id "test.evidence.record.closure-sequence"
-  (Observation.Internal.analyzeStructure [structuralFact recordId 1]
+  (Evidence.Internal.analyzeStructure [structuralFact recordId 1]
     [{ kind := structuralKind, lastSequence := 2 }] [structuralKind]).findings,
   let recordId := id "test.evidence.record.closure-byte"
-  (Observation.Internal.analyzeStructure [
+  (Evidence.Internal.analyzeStructure [
     structuralFact recordId 1 (some { source := structuralSourceA, ordinal := 0 })
   ] [{
     kind := structuralKind
@@ -227,7 +227,7 @@ def tenfoldStructuralFacts : List EvidenceOrderingFact :=
 
 /-- Ten times the ordinary two-record fixture stays within one normalized analysis result. -/
 example :
-    let analysis := Observation.Internal.analyzeStructure tenfoldStructuralFacts [{
+    let analysis := Evidence.Internal.analyzeStructure tenfoldStructuralFacts [{
       kind := structuralKind
       lastSequence := 20
       source := some structuralSourceA
@@ -271,7 +271,7 @@ def linkedStructuralClosures : List EvidenceClosureFact := [
 ]
 
 def linkedStructuralSupport
-    (ruleId : DefinitionId) : Observation.Internal.StructuralLinkSupport := {
+    (ruleId : DefinitionId) : Evidence.Internal.StructuralLinkSupport := {
   ruleId
   evidenceIdentities := [linkedStructuralFirstId, linkedStructuralSecondId]
   orderingSupport := linkedStructuralFacts
@@ -282,22 +282,22 @@ def linkedStructuralSupport
 example :
     let first := linkedStructuralSupport structuralRuleA
     let duplicate := first.closureSupport.head?.get (by native_decide)
-    let withinLink := Observation.Internal.analyzeStructure [] []
+    let withinLink := Evidence.Internal.analyzeStructure [] []
       [structuralKind, structuralAuxiliaryKind] [{
         first with closureSupport := duplicate :: first.closureSupport
       }]
     let second := linkedStructuralSupport structuralRuleB
-    let laterLink := Observation.Internal.analyzeStructure [] []
+    let laterLink := Evidence.Internal.analyzeStructure [] []
       [structuralKind, structuralAuxiliaryKind] [
         first,
         { second with closureSupport := duplicate :: second.closureSupport }
       ]
-    let acrossLinks := Observation.Internal.analyzeStructure [] []
+    let acrossLinks := Evidence.Internal.analyzeStructure [] []
       [structuralKind, structuralAuxiliaryKind] [
         first,
         second
       ]
-    (withinLink.links.map Observation.Internal.NormalizedStructuralLinkSupport.closures,
+    (withinLink.links.map Evidence.Internal.NormalizedStructuralLinkSupport.closures,
       withinLink.findings,
       laterLink.findings,
       acrossLinks.findings) = ([linkedStructuralClosures], [
@@ -312,7 +312,7 @@ example :
 /-- Missing support on one link identifies that link without re-analyzing the shared union. -/
 example :
     let second := linkedStructuralSupport structuralRuleB
-    let analysis := Observation.Internal.analyzeStructure [] []
+    let analysis := Evidence.Internal.analyzeStructure [] []
       [structuralKind, structuralAuxiliaryKind] [
         linkedStructuralSupport structuralRuleA,
         {
@@ -332,7 +332,7 @@ example :
 /-- Reordered link support is normalized once and retained under the responsible rule identity. -/
 example :
     let second := linkedStructuralSupport structuralRuleB
-    let analysis := Observation.Internal.analyzeStructure [] []
+    let analysis := Evidence.Internal.analyzeStructure [] []
       [structuralKind, structuralAuxiliaryKind] [
         linkedStructuralSupport structuralRuleA,
         {
@@ -357,4 +357,4 @@ example :
     ], []) := by
   native_decide
 
-end Umpire.ObservationTests
+end Umpire.EvidenceTests

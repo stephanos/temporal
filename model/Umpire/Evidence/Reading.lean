@@ -4,7 +4,7 @@ import Umpire.Core
 Inert authored Observation vocabulary for mapping typed evidence into Model Values.
 
 These declarations intentionally perform no checking, normalization, registration, or default
-selection. `Umpire.Observation.Compiler` owns the checker boundary that interprets them.
+selection. `Umpire.Evidence.Reading.Check` owns the checker boundary that interprets them.
 -/
 
 namespace Umpire
@@ -216,7 +216,7 @@ structure EvidenceClosureDeclaration where
   deriving BEq, DecidableEq, Repr
 
 /-- One authored profile mapping, including every compile-time structural and retention policy. -/
-structure ObservationMappingDeclaration where
+structure Evidence.Reading where
   id : DefinitionId
   source : SourceLocation
   version : Nat := 1
@@ -232,7 +232,7 @@ structure ObservationMappingDeclaration where
   deriving BEq, DecidableEq, Repr
 
 /-- Inert typed input for one explicit Observation mapping. -/
-structure ObservationMappingSpec where
+structure Evidence.ReadingSpec where
   id : DefinitionId
   source : SourceLocation
   version : Nat := 1
@@ -248,8 +248,8 @@ structure ObservationMappingSpec where
   deriving BEq, DecidableEq, Repr
 
 /-- Project the existing mapping declaration with one pass over explicit disposition choices. -/
-def ObservationMappingSpec.declaration (spec : ObservationMappingSpec) :
-    ObservationMappingDeclaration := {
+def Evidence.ReadingSpec.declaration (spec : Evidence.ReadingSpec) :
+    Evidence.Reading := {
   id := spec.id
   source := spec.source
   version := spec.version

@@ -1,4 +1,4 @@
-import Umpire.Observation.Evaluation.Types
+import Umpire.Evidence.Evaluate.Types
 
 /-!
 Internal normalized structural analysis for Observation Evidence facts, closures, and per-link
@@ -19,7 +19,7 @@ private def closureLe (left right : EvidenceClosureFact) : Bool :=
   | none, some _ => true
   | some _, none => false
 
-namespace Observation.Internal
+namespace Evidence.Internal
 
 inductive StructuralOriginMode where
   | globalSequence
@@ -390,6 +390,6 @@ def analyzeStructure
       linkFindings
   }
 
-end Observation.Internal
+end Evidence.Internal
 
 end Umpire

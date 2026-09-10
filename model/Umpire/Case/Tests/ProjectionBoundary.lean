@@ -1,4 +1,5 @@
-import Umpire.Observation
+import Umpire.Case.Projection
+import Umpire.Evidence
 
 /-! Projection seals raw evidence and authority; its kernel path adds no compiler-trust axiom. -/
 

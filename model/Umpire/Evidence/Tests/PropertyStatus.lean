@@ -1,9 +1,9 @@
-import Umpire.Observation.Verdict
-import Umpire.Observation.Tests.EvidenceLink
+import Umpire.Evidence.PropertyStatus
+import Umpire.Evidence.Tests.EvidenceSupport
 
 /-! Property verdict preflight, semantic preservation, and coordinate provenance. -/
 
-namespace Umpire.ObservationTests
+namespace Umpire.EvidenceTests
 
 open Umpire
 
@@ -69,7 +69,7 @@ example : [
       } : ObservationResult),
     observationResultOfAdmission <| validateEvidenceBackedTrace {
         completeUncheckedEvidenceBackedTrace with
-        evidenceLinks := completeUncheckedEvidenceBackedTrace.evidenceLinks.tail
+        evidenceSupports := completeUncheckedEvidenceBackedTrace.evidenceSupports.tail
       }
   ].map (fun result => (result.status, resultKindOf result)) = [
     (.unknown, some .evidenceBoundExhausted),
@@ -95,7 +95,7 @@ example :
     let verdict := evaluateObservationProperty (verdictQuery [logicalTimeProperty])
       logicalTimeProperty trace
     (evaluation.status, verdict.status,
-      verdict.diagnostic.map SemanticVerdictDiagnostic.kind) =
+      verdict.diagnostic.map Evidence.PropertyStatusDiagnostic.kind) =
       (.accepted, .unknown, some .missingLogicalTime) := by
   native_decide
 
@@ -107,7 +107,7 @@ example :
     let verdict := evaluateObservationProperty (verdictQuery [satisfiedProperty])
       substituted completeEvidenceBackedTrace
     (verdict.status, verdict.clauses.isEmpty,
-      verdict.diagnostic.map SemanticVerdictDiagnostic.kind) =
+      verdict.diagnostic.map Evidence.PropertyStatusDiagnostic.kind) =
       (.unsupported, true, some .queryPropertyMismatch) := by
   native_decide
 
@@ -162,7 +162,7 @@ example :
 example :
     satisfiedVerdict.clauses.map (fun clause =>
       (clause.queryLimits, clause.evidenceBound,
-        clause.evidenceLinks.map EvidenceLink.coordinate)) = [(
+        clause.evidenceSupports.map EvidenceSupport.coordinate)) = [(
       (verdictQuery [satisfiedProperty]).limits,
       completeEvidenceBackedTrace.appliedBound,
       [.initialState]
@@ -176,7 +176,7 @@ example : satisfiedVerdict.clauses.all fun clause => !clause.provenance.isEmpty 
 example :
     violatedVerdict.clauses.map (fun clause =>
       (clause.status, clause.coordinates,
-        clause.evidenceLinks.map EvidenceLink.coordinate)) = [(
+        clause.evidenceSupports.map EvidenceSupport.coordinate)) = [(
       .violated,
       [.initialState],
       [.initialState]
@@ -194,8 +194,8 @@ example :
         vocabulary := completeUncheckedEvidenceBackedTrace.vocabulary ++ [conflicting] }
     ].map (fun trace =>
       admissionStatusAndKind (validateEvidenceBackedTrace trace)) = [
-      (.conflict, some .inconsistentEvidenceLink),
-      (.conflict, some .inconsistentEvidenceLink)
+      (.conflict, some .inconsistentEvidenceSupport),
+      (.conflict, some .inconsistentEvidenceSupport)
     ] := by
   native_decide
 
@@ -246,4 +246,4 @@ example :
     ] := by
   native_decide
 
-end Umpire.ObservationTests
+end Umpire.EvidenceTests
