@@ -140,7 +140,7 @@ def compile (target : CheckedModel Law Setup ModelValue ModelValue ModelValue Mo
       source := clause.declaration.source
       requires := property.requires
       clauses := [.eventuallyWithin clause.declaration.id clause.triggerPattern clause.responsePattern
-        (.exact ⟨clause.declaration.bound, .semanticTransitions⟩)] })).mapError Error.property
+        ⟨clause.declaration.bound, .semanticTransitions⟩] })).mapError Error.property
     if shape : reference.clauses = [referenceClause clause] then
       if triggerAligned : clause.triggerPattern.field = .selectedAction then
         if responseAligned : clause.responsePattern.field = .outcome ∨

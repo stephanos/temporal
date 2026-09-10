@@ -79,7 +79,7 @@ private def temporalClause : PropertyTemporalClause :=
   .eventuallyWithin (id "planner.property.analysis.case.normal.temporal") source
     (PropertyPattern.exact .selectedAction request requestValue.value)
     (PropertyPattern.exact .observation observed observedValue.value)
-    (.exact { value := 0, unit := .semanticTransitions })
+    { value := 0, unit := .semanticTransitions }
 
 private def normalCase : PropertyBranch := {
   id := id "planner.property.analysis.case.normal"

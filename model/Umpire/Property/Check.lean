@@ -84,7 +84,6 @@ structure PropertyCheckContext where
   definitions : List DefinitionMetadata
   providers : List PropertyCapability
   meanings : List (DefinitionId × Meaning)
-  limitProfiles : List PropertyLimitProfile := []
   fieldBindings : List PropertyFieldBinding := []
   deriving BEq, DecidableEq, Repr
 
@@ -146,7 +145,7 @@ structure CheckedPropertyBranches where
 
 def PropertyCheckContext.ofTarget
     (target : CheckedModel LawStatement Setup State Action Outcome Observation)
-    (limitProfiles : List PropertyLimitProfile := []) : PropertyCheckContext := {
+    : PropertyCheckContext := {
   definitions := target.definitions
   providers := target.providers.map fun provider => {
     id := provider.contract.id
@@ -155,7 +154,6 @@ def PropertyCheckContext.ofTarget
   }
   meanings := target.providers.flatMap fun provider =>
     provider.meanings.map fun meaning => (provider.contract.id, meaning)
-  limitProfiles
 }
 
 inductive CheckedPropertyClause where
@@ -296,9 +294,6 @@ private def caseLe (left right : CheckedPropertyBranch) : Bool :=
 
 private def sameStepClauseLe
     (left right : CheckedPropertySameStepClause) : Bool :=
-  decide (left.id.value ≤ right.id.value)
-
-private def profileLe (left right : PropertyLimitProfile) : Bool :=
   decide (left.id.value ≤ right.id.value)
 
 private def canonicalCapabilities
@@ -666,26 +661,6 @@ private def validateLogicalTime
         reference := id
       }
 
-private def resolveLimit
-    (context : PropertyCheckContext)
-    (owner : Property)
-    (limit : PropertyLimit) : Except PropertyError Limit :=
-  match limit with
-  | .exact limit => pure limit
-  | .named profileId expectedUnit => do
-      requireDefinitionId owner.id owner.source profileId
-      match (context.limitProfiles.mergeSort profileLe).find? fun profile => profile.id == profileId with
-      | none =>
-          throw (propertyError .unknownLimitProfile owner.id owner.source
-            profileId.value [profileId])
-      | some profile =>
-          if profile.limit.unit != expectedUnit then
-            throw (propertyError .unitMismatch owner.id owner.source
-              (profileId.value ++ ": expected " ++ expectedUnit.name ++
-                ", found " ++ profile.limit.unit.name)
-              [profileId])
-          pure profile.limit
-
 private def requirePositionUnit
     (owner : Property)
     (access : PropertyCapabilityView)
@@ -750,13 +725,13 @@ private def checkClause
   | .eventuallyWithin id trigger response authoredBound =>
       validatePattern context owner access trigger
       validatePattern context owner access response
-      let limit ← resolveLimit context owner authoredBound
+      let limit := authoredBound
       requirePositionUnit owner access limit.unit [trigger, response]
       pure (.eventuallyWithin id trigger response limit)
   | .neverWithin id trigger forbidden authoredBound =>
       validatePattern context owner access trigger
       validatePattern context owner access forbidden
-      let limit ← resolveLimit context owner authoredBound
+      let limit := authoredBound
       requirePositionUnit owner access limit.unit [trigger, forbidden]
       pure (.neverWithin id trigger forbidden limit)
   | .branches group =>
@@ -826,8 +801,7 @@ private def checkClause
           withNestedSource clause.source <| requireField
             { owner with source := clause.source } clause.id trigger.field
             [.priorState, .selectedAction, .resultingState, .outcome, .observation, .relation]
-          let limit ← withNestedSource clause.source <| resolveLimit context
-            { owner with source := clause.source } authoredBound
+          let limit := authoredBound
           withNestedSource clause.source <| requirePositionUnit
             { owner with source := clause.source } access limit.unit [trigger, response]
           temporalClauses := temporalClauses ++ [{
@@ -878,7 +852,7 @@ private def checkClause
       withNestedSource source <| validatePattern context { owner with source } access response
       withNestedSource source <| requireField { owner with source } id trigger.field
         [.priorState, .selectedAction, .resultingState, .outcome, .observation, .relation]
-      let limit ← withNestedSource source <| resolveLimit context { owner with source } authoredBound
+      let limit := authoredBound
       withNestedSource source <| requirePositionUnit { owner with source } access limit.unit
         [trigger, response]
       pure (.guardedEventuallyWithin {
@@ -909,7 +883,7 @@ private def checkClause
       withNestedSource source <| validatePattern context { owner with source } access forbidden
       withNestedSource source <| requireField { owner with source } id trigger.field
         [.priorState, .selectedAction, .resultingState, .outcome, .observation, .relation]
-      let limit ← withNestedSource source <| resolveLimit context { owner with source } authoredBound
+      let limit := authoredBound
       withNestedSource source <| requirePositionUnit { owner with source } access limit.unit
         [trigger, forbidden]
       pure (.guardedNeverWithin {
@@ -1211,8 +1185,6 @@ def Property.check
   requireUniqueIds declaration.id declaration.source
     (declaration.clauses.map PropertyClause.id ++ declaration.scopedClauses.map (·.id) ++
       declaration.scopedClauses.flatMap (·.captures.map PropertyScopedCapture.name))
-  requireUniqueIds declaration.id declaration.source
-    (context.limitProfiles.map PropertyLimitProfile.id)
   let hasVersionTwoForm := declaration.clauses.any fun clause => match clause with
     | .branches _ | .guardedEventuallyWithin _ _ _ _ _ _ _
     | .guardedNeverWithin _ _ _ _ _ _ _ => true

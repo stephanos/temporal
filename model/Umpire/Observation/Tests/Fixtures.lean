@@ -488,7 +488,7 @@ def guardedTemporalPropertyDeclaration : Property := {
     }) none
     (verdictPattern .selectedAction startAction)
     (verdictPattern .outcome successOutcome)
-    (.exact { value := 0, unit := .semanticTransitions })]
+    { value := 0, unit := .semanticTransitions }]
 }
 
 def checkedQueryTemplate : CheckedQuery Umpire.Examples.Switch.LawStatement :=

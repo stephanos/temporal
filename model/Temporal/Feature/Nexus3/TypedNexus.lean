@@ -490,7 +490,6 @@ def boundedCompletion : PropertyScopedClause := {
   response := .atom { field := .outcome, reference := completedOutcomeId }
   scope := [runFieldId]
   key := operationFieldId
-  clock := .operationTransitions
   bound := 2
   endpoint := .«partial»
   captures := [scheduledOperationCapture]

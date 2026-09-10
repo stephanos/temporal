@@ -34,7 +34,7 @@ def samePositionBoundary : Property := {
     .eventuallyWithin (id "test.property.same-position-boundary.clause")
       (pattern .observation cancelDelivered)
       (pattern .observation cancelDelivered)
-      (.exact { value := 0, unit := .observationPositions })
+      { value := 0, unit := .observationPositions }
   ]
 }
 
@@ -88,7 +88,7 @@ def focusedClauseResult : Option PropertyClauseResult := do
   evaluation.clauses.find? fun result => result.clauseId == honoredDelivery.id
 
 example : focusedClauseResult.map PropertyClauseResult.evaluatedLimit =
-    some (some cancelBudget.limit) := by
+    some (some cancelBudget) := by
   native_decide
 
 example : focusedClauseResult.map (fun result =>
