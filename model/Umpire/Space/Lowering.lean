@@ -4,16 +4,16 @@ import Umpire.Case.Compiler
 /-!
 Lowering one checked fault intent to the generated instruction a Driver realizes.
 
-A `FaultIntentDeclaration` says *what* outage is requested and *where in the model* it is requested:
-the occurrence it attaches to, the Action that occurrence selects, and the capability it targets. It
-says nothing about a Program, because the Space language has no Program: it has no instruction
-identity, no role, no bounds and no outcome schema. Those are realization, and this module takes
-them as a separate argument rather than inventing them.
+What a `FaultIntentDeclaration` decides here is the outage itself: the capability a fault intent
+targets is the one the Driver realizes, so the version-one vocabulary below maps that capability onto
+a `FaultKind`, and a capability outside it rejects by name. That keeps the requested outage a
+property of the declaration rather than a value the caller could pick freely beside it.
 
-What the declaration does decide is the outage itself. The capability a fault intent targets is the
-one the Driver realizes, so the version-one vocabulary below maps that capability onto a `FaultKind`
-and a capability outside it rejects by name. That keeps the requested outage a property of the
-declaration rather than a value the caller could pick freely beside it.
+Everything else is realization. The declaration's occurrence and Action name a model coordinate, and
+nothing in the Space language turns a model coordinate into an instruction identity, a role, a bound
+or a dependency edge -- there is no Program there to name one in. So placement arrives as a separate
+argument, and this lowering does not read the occurrence. Deriving the dependency edge from the
+occurrence would need an occurrence-to-instruction map the caller owns; no caller has one yet.
 
 `Umpire.Exploration.Coverage` keeps its wording: a requested fault is intent until the Run carries a
 `FAULT_INJECTED` event for it. Lowering produces the instruction that can realize one; it does not
@@ -38,8 +38,8 @@ def faultKindOf (capability : DefinitionId) : Option FaultKind :=
   else if capability == workerResumeCapabilityId then some .FAULT_KIND_WORKER_RESUME
   else none
 
-/-- Where a lowered fault intent lands in a Program. The declaration cannot carry any of this: the
-Space language has no Program to name an instruction, a role or a bound in. -/
+/-- Where a lowered fault intent lands in a Program. The declaration carries none of it: the Space
+language has no Program to name an instruction, a role or a bound in. -/
 structure FaultRealization where
   instructionId : String
   /-- The `ROLE_KIND_TASK_QUEUE` role whose resource binding identifies the affected queue. -/
@@ -50,9 +50,9 @@ structure FaultRealization where
   outcome : Option InstructionOutcomeDefinition := none
 
 /-- Lower one fault intent to the instruction definition a Driver realizes it through. The outage
-comes from the declaration's capability; the placement comes from the realization. A capability
-outside the version-one vocabulary, or a placement missing an instruction identity or a role,
-rejects rather than producing an instruction no Driver could dispatch. -/
+comes from the declaration's capability; the placement comes entirely from the realization. A
+capability outside the version-one vocabulary, or a placement missing an instruction identity or a
+role, rejects rather than producing an instruction no Driver could dispatch. -/
 def FaultIntentDeclaration.lower
     (declaration : FaultIntentDeclaration)
     (realization : FaultRealization) :

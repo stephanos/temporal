@@ -1,8 +1,8 @@
 import Umpire.Space.Lowering
 
-/-! Exact fault-intent lowering. The identity between what this produces and the instruction the
-shipped worker-outage Case carries is pinned in `Temporal.TestpilotTests`, which is the side of the
-boundary allowed to name both. -/
+/-! Exact fault-intent lowering. The identity between what this produces and the instruction a
+shipped Case carries is pinned on the consumer's side of the boundary, which is the side allowed to
+name both. -/
 
 namespace Umpire.SpaceLoweringTests
 
@@ -21,8 +21,10 @@ private def limits : InstructionLimits := Program.instructionLimits 1000 1 1 102
 private def realization : FaultRealization :=
   { instructionId := "stop", roleId := "queue", limits }
 
-/-- Everything a lowered fault instruction carries, compared field for field: the generated
-protocol types derive no equality, so the comparison is written out rather than assumed. -/
+/-- Everything a lowered fault instruction carries, compared field for field: the generated protocol
+types derive no equality, so the comparison is written out rather than assumed. The guard is the one
+exception -- a `ProgramExpression` is a mutual inductive with no equality and no rendering, so it is
+compared by presence, which is exact for the two realizations here because neither declares one. -/
 def sameFaultNode (left right : InstructionDefinition) : Bool :=
   let faultOf := fun (node : InstructionDefinition) =>
     node.instruction.bind fun instruction => match instruction.instruction with
@@ -33,9 +35,14 @@ def sameFaultNode (left right : InstructionDefinition) : Bool :=
       value.max_emitted_events, value.max_response_bytes)
   let references := fun (node : InstructionDefinition) =>
     node.dependencies.map fun reference => (reference.entrypoint_id, reference.instruction_id)
+  let declared := fun (node : InstructionDefinition) =>
+    node.outcome.map fun outcome => outcome.fields.map fun declaration => declaration.field
+  let reservations := fun (node : InstructionDefinition) =>
+    node.activation_reservations.map fun reservation => (reservation.entrypoint_id, reservation.count)
   left.instruction_id == right.instruction_id && faultOf left == faultOf right &&
     bounds left == bounds right && references left == references right &&
-    left.guard.isSome == right.guard.isSome && left.outcome.isSome == right.outcome.isSome
+    declared left == declared right && reservations left == reservations right &&
+    left.guard.isSome == right.guard.isSome
 
 private def lowered (capability : DefinitionId) : Option InstructionDefinition :=
   ((intent capability).lower realization).toOption
