@@ -6,7 +6,7 @@ open Umpire
 
 /-!
 This focused System test root stays below Feature. The checked correspondence and its forward
-witness are exercised from `TemporalModelTests.Nexus.ImplementationLink`, the exact composed-test root.
+witness are exercised from `TemporalModelTests.Nexus.ImplementationLink`, the composed-test root.
 -/
 
 example : Temporal.System.Nexus.target.machine.steps

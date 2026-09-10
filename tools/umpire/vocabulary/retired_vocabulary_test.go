@@ -68,6 +68,30 @@ func TestRetiredVocabularyCommandRejectsRetiredPublicTokens(t *testing.T) {
 			content: "structure " + "Refinement" + "ResultV3 where\n  accepted : Bool\n",
 			token:   "Refinement" + "Result",
 		},
+		{
+			name:    "generation-numbered module root",
+			path:    "model/Temporal/Feature/Fixture.lean",
+			content: "import Temporal.Feature." + "Nexus" + "3.Model\n",
+			token:   "Nexus" + "3",
+		},
+		{
+			name:    "generation-numbered identity root",
+			path:    "model/Temporal/Feature/Fixture.lean",
+			content: "def id := \"temporal." + "nexus" + "2.target\"\n",
+			token:   "Nexus" + "2",
+		},
+		{
+			name:    "renderer executable",
+			path:    "tools/umpire/fixture.md",
+			content: "Run `lake exe " + "temporal-" + "testpilot` to render.\n",
+			token:   "temporal-" + "testpilot",
+		},
+		{
+			name:    "Nexus require keyword",
+			path:    "model/Temporal/Feature/Fixture.lean",
+			content: "  require successState: " + "resultingState" + " succeeded\n",
+			token:   "resultingState",
+		},
 	}
 
 	for _, test := range tests {
@@ -98,6 +122,44 @@ func TestRetiredVocabularyCommandAllowsOrdinaryEnglishAndExcludedHistory(t *test
 	output, err := command.CombinedOutput()
 	require.NoError(t, err, string(output))
 	require.Empty(t, output)
+}
+
+// TestRetiredVocabularyCommandAllowsTheThreeNarrowedBoundaries pins the carve-outs three rules
+// need. Each is a live spelling the shared compound pattern would otherwise reject, so a later
+// regex edit that widens any of them fails here rather than in the repository scan.
+func TestRetiredVocabularyCommandAllowsTheThreeNarrowedBoundaries(t *testing.T) {
+	t.Parallel()
+
+	for _, test := range []struct {
+		name    string
+		path    string
+		content string
+	}{
+		{
+			name:    "Flow spec slug naming a closed record",
+			path:    ".plans/UMPIRE4_SPEC.md",
+			content: "See `fn-68-minimal-" + "nexus" + "3-success-demonstration`.\n",
+		},
+		{
+			name:    "reservation carrier wire header",
+			path:    "common/testing/testpilot/temporal/fixture.go",
+			content: "package temporal\nconst header = \"" + "temporal-" + "testpilot-reserved-nexus-v1\"\n",
+		},
+		{
+			name:    "Property trace field constructor",
+			path:    "model/Umpire/Fixture.lean",
+			content: "def field := PropertyTraceField." + "resultingState" + "\n",
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			repositoryRoot := seedScannedSurface(t)
+			writeFixture(t, repositoryRoot, test.path, test.content)
+
+			output, err := retiredVocabularyCommand(t, repositoryRoot).CombinedOutput()
+			require.NoError(t, err, string(output))
+			require.Empty(t, output)
+		})
+	}
 }
 
 func TestRetiredVocabularyCommandAllowsOnlyCaseBoundsAndCatalogQualifiedLiteral(t *testing.T) {

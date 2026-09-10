@@ -617,9 +617,9 @@ func buildRetiredRules() ([]tokenRule, error) {
 			pattern: regexp.MustCompile(`(^|[^A-Za-z0-9_-])[Nn]exus` + generation + `([^A-Za-z0-9_]|$)`),
 		})
 	}
-	// The Lake executable is `temporal-testpilot`; the Driver's reservation carriers spell three
-	// unrelated wire constants that begin with it. Requiring a non-hyphen boundary holds the
-	// executable name without reaching into headers this task does not rename.
+	// The Lake executable this spec renamed to `umpire-case`. The Driver's reservation carriers
+	// spell three unrelated wire constants that begin with the retired name, and Flow spec slugs end
+	// with it, so a non-hyphen boundary on both sides holds the executable name alone.
 	rules = append(rules, tokenRule{
 		name:    "temporal-testpilot",
 		pattern: regexp.MustCompile(`(^|[^A-Za-z0-9_-])temporal-testpilot([^A-Za-z0-9_-]|$)`),
