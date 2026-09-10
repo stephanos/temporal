@@ -8,6 +8,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	"go.temporal.io/server/tools/umpire/internal/retiredvocabulary"
 )
 
 func TestRetiredVocabularyCommandRejectsRetiredPublicTokens(t *testing.T) {
@@ -71,7 +73,7 @@ func TestRetiredVocabularyCommandRejectsRetiredPublicTokens(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			repositoryRoot := t.TempDir()
+			repositoryRoot := seedScannedSurface(t)
 			writeFixture(t, repositoryRoot, test.path, test.content)
 
 			command := retiredVocabularyCommand(t, repositoryRoot)
@@ -86,7 +88,7 @@ func TestRetiredVocabularyCommandRejectsRetiredPublicTokens(t *testing.T) {
 func TestRetiredVocabularyCommandAllowsOrdinaryEnglishAndExcludedHistory(t *testing.T) {
 	t.Parallel()
 
-	repositoryRoot := t.TempDir()
+	repositoryRoot := seedScannedSurface(t)
 	writeFixture(t, repositoryRoot, "model/README.md", "A projection can refine a bounded engineering approximation without claiming conformance or qualification.\n")
 	writeFixture(t, repositoryRoot, "tools/legacy/history.go", "package legacy\nconst old = \""+"semantic"+"Identity\"\n")
 	writeFixture(t, repositoryRoot, ".flow/memory/history.md", "The old API used "+"Declaration"+"Id.\n")
@@ -113,7 +115,7 @@ func TestRetiredVocabularyCommandAllowsOnlyCaseBoundsAndCatalogQualifiedLiteral(
 		{name: "catalog validation literal", path: "common/testing/testpilot/internal/ir/catalog.go", content: "package ir\nconst suffix = \"." + "qualified\"\n"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			repositoryRoot := t.TempDir()
+			repositoryRoot := seedScannedSurface(t)
 			writeFixture(t, repositoryRoot, test.path, test.content)
 			output, err := retiredVocabularyCommand(t, repositoryRoot).CombinedOutput()
 			require.NoError(t, err, string(output))
@@ -130,11 +132,50 @@ func TestRetiredVocabularyCommandAllowsOnlyCaseBoundsAndCatalogQualifiedLiteral(
 		{name: "qualified outside validation", path: "tools/umpire/fixture.go", content: "package umpire\nconst suffix = \"." + "qualified\"\n"},
 	} {
 		t.Run("reject "+test.name, func(t *testing.T) {
-			repositoryRoot := t.TempDir()
+			repositoryRoot := seedScannedSurface(t)
 			writeFixture(t, repositoryRoot, test.path, test.content)
 			output, err := retiredVocabularyCommand(t, repositoryRoot).CombinedOutput()
 			require.Error(t, err)
 			require.Contains(t, string(output), filepath.ToSlash(test.path))
+		})
+	}
+}
+
+func TestRetiredVocabularyCommandFailsOnAMissingScannedPath(t *testing.T) {
+	t.Parallel()
+
+	for _, test := range []struct {
+		name    string
+		removed string
+	}{
+		{name: "required file", removed: "model/Umpire/ARCHITECTURE.md"},
+		{name: "scan root", removed: "model/Shared"},
+		{name: "open spec record", removed: ".flow/specs/" + retiredvocabulary.DownstreamSpecs()[0] + ".json"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			repositoryRoot := seedScannedSurface(t)
+			require.NoError(t, os.RemoveAll(filepath.Join(repositoryRoot, filepath.FromSlash(test.removed))))
+
+			output, err := retiredVocabularyCommand(t, repositoryRoot).CombinedOutput()
+			require.Error(t, err)
+			require.Contains(t, string(output), test.removed)
+			require.Contains(t, string(output), "does not exist")
+		})
+	}
+}
+
+func TestRetiredVocabularyCommandScansTestpilotAndSharedTrees(t *testing.T) {
+	t.Parallel()
+
+	for _, path := range []string{"model/Testpilot/Fixture.lean", "model/Shared/Fixture.lean"} {
+		t.Run(path, func(t *testing.T) {
+			repositoryRoot := seedScannedSurface(t)
+			writeFixture(t, repositoryRoot, path, "structure "+"Projection"+"Record where\n  id : String\n")
+
+			output, err := retiredVocabularyCommand(t, repositoryRoot).CombinedOutput()
+			require.Error(t, err)
+			require.Contains(t, string(output), path)
+			require.Contains(t, string(output), "Projection"+"Record")
 		})
 	}
 }
@@ -152,6 +193,26 @@ func retiredVocabularyCommand(t *testing.T, repositoryRoot string) *exec.Cmd {
 	)
 	command.Dir = checkoutRoot
 	return command
+}
+
+// seedScannedSurface builds a temporary repository root that holds every path
+// the scan requires, so a test asserts on the token it plants rather than on a
+// missing-path error.
+func seedScannedSurface(t *testing.T) string {
+	t.Helper()
+
+	repositoryRoot := t.TempDir()
+	for _, root := range retiredvocabulary.ScanRoots() {
+		require.NoError(t, os.MkdirAll(filepath.Join(repositoryRoot, filepath.FromSlash(root)), 0o755))
+	}
+	for _, path := range retiredvocabulary.RequiredFiles() {
+		writeFixture(t, repositoryRoot, path, "")
+	}
+	for _, specID := range retiredvocabulary.DownstreamSpecs() {
+		writeFixture(t, repositoryRoot, ".flow/specs/"+specID+".json", `{"id":"`+specID+`","status":"closed"}`+"\n")
+	}
+	writeFixture(t, repositoryRoot, ".plans/UMPIRE4_SPEC.md", "# Umpire4\n")
+	return repositoryRoot
 }
 
 func writeFixture(t *testing.T, repositoryRoot, relativePath, content string) {

@@ -6,128 +6,7 @@ this document records delivery order. Architecture and terminology live in the
 
 ## Current work
 
-### 1. Close the model-to-Case seam — fn-80
-
-[fn-80 — Close the model-to-Case seam and harden](../.flow/specs/fn-80-close-the-model-to-case-seam-and-harden.md),
-derived from the 2026-09-08 assessment against [UMPIRE4_VISION](UMPIRE4_VISION.md). The assessment
-found the substrate rigorous and the product-facing seams thin: the shipped Nexus3 Producer
-hand-writes its Program and monitor and rejects any Property not clause-for-clause equal to one
-expected value, so a model edit yields a lowering error instead of a different Case. The
-proof-carrying scoped lowering in `Umpire.Case.Scoped` is the only path where wire bytes provably
-mean the checked model, and no shipped Case uses it.
-
-Eight requirements: general checked lowering replacing the equality gate (R1), generalized command
-syntax and the always-erroring `query ... all ...` form (R2, R8), an event-count liveness horizon
-replacing the one the recorder derives from the test host's clock (R3), one realizable worker fault
-where today only labeled intent exists (R4), Profile derivation and a runner helper for the 60-to-80
-line cost of running a Case from Go (R5), the discarded recorder close error (R6), and gates plus
-the axiom baseline (R7).
-
-Originally nine tasks with a SHIP plan review; re-planned to fifteen after four escalations.
-**14 of 15 done.** The fifteenth, `.5`, is the superseded record of why R2 was split into `.10`–`.13`
-and is not work.
-
-**R2 and R8 are fully covered.** Task .5 escalated SCOPE_EXCEEDED — R2 looked like deleting four
-identifier whitelists, but `Authoring.successModel` was arity-fixed at three states, two actions, two
-outcomes, two facts and two transitions, and that shape was load-bearing across ~30 reads in
-`Tests.lean`, several inside `native_decide` theorems. It was split into four steps that each land
-green, and all four shipped: **.10** turned the 14 + 22 named fields into parallel ordered lists with
-positional accessors and made the canonical-table law range over any number of rows, with zero syntax
-change so conformance proved byte-identity by itself; **.11** replaced the whitelists with a
-`Lean.Elab.Command` elaborator reading each inductive's constructors, generalizing the grammar to N
-initial/terminal states, N transitions, N facts per row and N occurrences; **.12** added five located
-diagnostics at the author's own coordinates, each pinned by `#guard_msgs`; **.13** added a genuinely
-second lifecycle (`RaceSyntaxTests.lean` — role `handler`, five states, four Actions, two terminals, a
-losing row with no Fact) which forced generalizing `property` to N `require` clauses and surfaced two
-more diagnostics the planner had previously rejected late. **.6** then landed the `query ... all ...`
-verify form through `QueryForm.verify`, making `CheckedModel.witness` optional and splitting
-`AdmissionError.noWitness` into `notSelected (outcome)` so an unsatisfiable Behavior and a violating
-counterexample are distinguishable.
-
-**R1's user-visible half is delivered.** Task **.15** deleted the clause-for-clause equality gate in
-the Nexus3 Producer: the correlated-history monitor is now derived from the Facts the selected witness
-records, through declared per-Fact history evidence projections. A model edit now produces different
-Case bytes instead of a lowering error, which was the Goal section's first defect. Output is
-byte-identical, so no fixtures moved and live behaviour is unchanged by construction.
-
-Also done earlier: **.1** the `rule_events` Contract horizon, **.2** the `InjectFault` wire plus `Run`
-returning the recorder close error, **.3** worker stop/resume in the Driver, **.7** `DeriveProfile`
-with the hand-written fixture Profiles as oracles.
-
-**The scoped route, the fault Case and R7 have since landed.** Four more tasks shipped after that
-completion review, and none of them was the environment problem the earlier escalations claimed.
-
-**.14** added the missing evidence path both R1 and fn-77 were stuck behind: `ProjectionTarget`
-gained a `ScopedEvidenceProjection` variant whose guarded rules lift a recorded value into the
-declared `ScopedEvidence` Observation a scoped capability decodes. It also closed the
-vacuous-satisfaction hole on both sides — a capability that admitted no evidence now answers
-unresolved rather than reading silence as the empty-obligation satisfaction a total model trace has
-— and routed the typed-nexus Case's bounded-response clause through it, satisfying it live. fn-77's
-Known Gap `bounded-completion-is-model-only` is therefore gone, replaced by
-`completion-identity-is-unrecorded`, which names what history still does not say: a completed Nexus
-event records no operation identity, so the operation key is the scheduled event it references.
-
-**.4** then routed the shipped async-nexus Case through the same path. Its Contract now carries no
-monitor rule at all; each `require` clause becomes one operation-scoped bounded-response clause
-placed by the Action order the Behavior fixes, and `Umpire.Case.Scoped.lower` certifies the
-correspondence. The Case is satisfied live in both environments, and a history with no completion is
-now inconclusive rather than green — the discriminating power the old hand-written rule had, without
-the hand-written rule.
-
-**.8** delivered R4 end to end and R3's checked-in Case: a Producer-neutral fault Case stops the SDK
-worker of its own activation queue before starting the workflow, resumes it after, and requires both
-the ordered `FAULT_INJECTED` events and a workflow that completed anyway. Its liveness rule carries
-the `rule_events` horizon, so a slow host cannot turn a healthy outage into a violated verdict.
-`FaultIntentDeclaration.lower` resolves the open signature question: the declaration's capability
-names the outage through a closed version-one vocabulary, and the placement — which the Space
-language has no Program to express — arrives separately. Two acceptance bullets are recorded as
-deferred in the task rather than dropped: a live resume-timeout case, which no test can reach while
-the live environment supplies the real SDK worker factory, and the "same queue" concurrent Run,
-which runs on a different queue because a pooled peer worker on the same physical queue keeps
-polling through the outage.
-
-**.9** reconciled the documents this spec falsified and drafted three rules for human approval under
-GOV-02: **EVD-20** (Driver-realized faults), **EVD-21** (horizon units), and **AUT-09**
-(macro-derived finite domains count as author-provided). None is approved yet.
-
-**One task remains, and it is not work.** Task .5 stays blocked as the superseded record of why R2
-was split into .10–.13. fn-80 R4 owns the vision's "inject one fault" acceptance criterion, and that
-criterion is now met by a Case that runs live.
-
-#### How it got here
-
-The three paragraphs below describe the wall as it stood before `.14` and `.4`, and are kept because
-the reasoning outlived the blockage. Both tasks have since shipped; the delivered state is above.
-
-**Task .4, the early proof point, was blocked — and the finding mattered beyond this spec.** R1
-wanted the shipped async-nexus Case to carry `contract.scoped`, drop its hand-written
-correlated-history monitor rule, and still be satisfied live. Those three could not hold together
-then: `bindScoped`
-refuses any Case whose `Contract.scoped` names an `evidence_observation_id` that is not a Program
-Observation typed exactly `ScopedEvidence`, no version-one `Instruction` can produce that value
-(`run.proto:125` states it is supplied only through the capability's declared typed Observation),
-and a scoped clause receiving zero evidence answers SATISFIED **vacuously** — so forcing it through
-would convert a real regression test into a hollow one.
-
-The spec's stop-condition asked whether the scoped clause form can carry state, outcome, and fact
-predicates. It can: the three success clauses are expressible as `bounded_response%` clauses sharing
-an `awaitSuccess` trigger. The blocker is the evidence path, not the clause form, so R2 and R8 are
-unaffected and stay startable. This is the same gap fn-77 closed out as
-`bounded-completion-is-model-only`, now reached from the other side.
-
-Both halves of R1 became tasks. **.14** was to add the `ScopedEvidence`-emitting projection both
-specs were stuck behind — a Program-declared source lifting recorded history into `ScopedEvidence`
-with `identity`, `operation`, `kind` and `fields` — and to close the vacuous-satisfaction hole, since
-a clause receiving no evidence answering SATISFIED is the defect that makes the naive fix dangerous.
-Task .4 depended on it. Both shipped; what they delivered is described above. **.15** carried R1's separable product defect — the clause-for-clause equality
-gate that turned a model edit into a lowering error — and needed no evidence path, so it did not
-wait on .14. The producer it edited has since been replaced wholesale by `.4`'s `produce`.
-
-Boundaries worth carrying forward: no canary Profile or production authorization (fn-70, fn-29 own
-those), no Nexus cancellation lowering (fn-79, deferred), no second fault kind, and no removal of
-`elapsed_milliseconds`.
-
-### 2. Unify the Umpire and Testpilot vocabulary — fn-82
+### 1. Unify the Umpire and Testpilot vocabulary — fn-82
 
 [fn-82 — Unify the Umpire and Testpilot vocabulary](../.flow/specs/fn-82-unify-the-umpire-and-testpilot.md),
 from the 2026-09-08 vocabulary investigation of `model/`, the Testpilot protocol, and the Go facade.
@@ -155,11 +34,8 @@ versioned, aliased, or deprecated, old names are retired, and a hardened retired
 rejects them. The spec rewrites `UMPIRE4_SPEC.md` under GOV-02, and its task .10 owns the roadmap
 reconciliation, so it will edit this document.
 
-**Only fn-80 still blocks this spec; fn-77, fn-81, and fn-67 have all closed.** The dependency is
-byte conflict, not semantics: fn-80 tasks .4, .6, .7 and .8 edited `Umpire/Target`,
-`Umpire/Property`, `Umpire/Query`, `Umpire/Space`, and `Umpire/Case`, so no area of this spec could
-land while those were open. All four have now shipped, and fn-80's only remaining task is the
-superseded `.5` record, so this spec's byte conflict is cleared. fn-81's deletion of the legacy Go trees and their Makefile blocks shrinks this spec's Go
+**Nothing blocks this spec any more.** fn-77, fn-80, fn-81 and fn-67 have all closed, and this is
+the last item in the delivery queue. fn-81's deletion of the legacy Go trees and their Makefile blocks shrinks this spec's Go
 surface considerably. One seam fn-67 left deliberately for this spec to sweep: it added
 "Semantic fingerprints — the Behavior Fingerprint named above is the same value —" to reconcile a
 pre-existing loose term against the UMPIRE4_SPEC one; collapse that to a single term and delete the
@@ -207,6 +83,41 @@ leases, recovery, and publication stay outside Testpilot and Umpire.
 
 ## Completed cutovers
 
+- [fn-80](../.flow/specs/fn-80-close-the-model-to-case-seam-and-harden.md): closed the
+  model-to-Case seam. **14 of 15 tasks done** (the fifteenth is the superseded record of why R2 was
+  split) and the completion review is SHIP with all eight R-IDs met. The Nexus3 Producer no longer
+  compares a checked Property clause-for-clause against one expected value: the correlated-history
+  monitor is derived from the Facts the selected witness records, so a model edit produces different
+  Case bytes instead of a lowering error, and the async-nexus Contract now carries no monitor rule at
+  all — each `require` becomes an operation-scoped bounded response placed by the Behavior's Action
+  order, live-satisfied in both environments. The command syntax was generalized from four spelling
+  whitelists to a `Lean.Elab.Command` elaborator reading each inductive's constructors, admitting N
+  states, transitions, facts and occurrences, with five located diagnostics pinned by `#guard_msgs`
+  and a genuinely second lifecycle proving it; `query ... all ...` now elaborates through
+  `QueryForm.verify`. Liveness is bounded by a `rule_events` horizon instead of the test host's
+  clock, `Run` returns the recorder close error it used to discard, and `DeriveProfile` replaced the
+  hand-written Profiles in every live test. R4's worker outage is realizable end to end, and the live
+  gate now reports six passing identities rather than four.
+
+  Two consequences worth carrying forward. **fn-77's Known Gap `bounded-completion-is-model-only` is
+  closed** — the typed-nexus Case runs its bounded-response clause live and satisfied — and the
+  vacuous-satisfaction hole behind it is fixed in both the Lean portable interpreter and the Go
+  runtime, kept in lockstep so the conformance corpus still agrees; it is replaced by the narrower
+  `completion-identity-is-unrecorded`. And **`hardLimits().MaxWorkPerEvent` was raised 100,000 ->
+  100,000,000**: the scoped stage charges a reservation cubic in accepted evidence into the per-event
+  bucket, which rejected every multi-operation scoped Case at its own first evidence event. This is
+  the Driver ceiling only — each Case still declares its own smaller value, and a test pins that a
+  plain Contract rejects at its modest one — but it papers over the cubic recomputation rather than
+  fixing it. `CONSIDER(umpire)` at `internal/verification/prepare.go:68` records the real fix: charge
+  the per-event increment, then restore a ceiling that means expression evaluation again.
+
+  Two items need a human. Three drafted spec rules — **EVD-20, EVD-21 and AUT-09** — are written
+  under fresh IDs and marked pending GOV-02; none is approved. And the spec's own Architecture and
+  API Contracts blocks are stale against what shipped: `FaultIntentDeclaration.lower` takes a
+  realization argument, and a changed *witness* no longer produces different bytes but rejects when
+  inconsistent with clause placement. Two `.8` acceptance bullets are deferred with a record rather
+  than dropped: a live resume-timeout has no Driver seam to fail through, and a same-queue assertion
+  would assert the outage is not real, because a pooled peer on the same physical queue keeps polling.
 - [fn-67](../.flow/specs/fn-67-refine-simple-nexus3-authoring-draft.md): reconciled the broader
   Nexus3 authoring draft with the delivered success slice. The optional per-declaration compatibility
   ID is now documented beside the success slice's derivation-only identity — declaration-local,

@@ -9,6 +9,10 @@ deps:
 breaking:
   use:
     - WIRE
+  ignore:
+    # The testpilot protocol is an internal test-only wire with no compatibility
+    # promise; its messages are renamed wholesale rather than versioned.
+    - temporal/server/api/testpilot
 lint:
   use:
     - DEFAULT
