@@ -55,7 +55,7 @@ private def catalogAt (index : Nat) : KnownGapCatalogDescriptor :=
     scope := .production
     shape := .carriedCatalogEntry
     source := "umpire.semantic-inventory.known-gap-source.unknown"
-    fieldMapping := some .exact
+    fieldMapping := some .full
     description := "Unknown catalog row."
   }
 
@@ -197,21 +197,21 @@ example :
       projection.lineage = .carried ∧
       projection.scope = .production ∧
       projection.source = admitted.id ∧
-      projection.fieldMapping = some .observationAdmission ∧
+      projection.fieldMapping = some .lossy ∧
     let requestCarry := catalogAt 18
     requestCarry.shape = .carriedCatalogEntry ∧
       requestCarry.lineage = .carried ∧
       requestCarry.scope = .production ∧
       requestCarry.source = admitted.id ∧
       requestCarry.source != projection.id ∧
-      requestCarry.fieldMapping = some .exact ∧
+      requestCarry.fieldMapping = some .full ∧
     let observationCarry := catalogAt 19
     observationCarry.shape = .carriedCatalogEntry ∧
       observationCarry.lineage = .carried ∧
       observationCarry.scope = .production ∧
       observationCarry.source = (catalogAt 8).id ∧
       observationCarry.source != projection.id ∧
-      observationCarry.fieldMapping = some .exact := by
+      observationCarry.fieldMapping = some .full := by
   native_decide
 
 example :
@@ -220,12 +220,12 @@ example :
       claimReference.shape = .carriedCatalogEntry ∧
         claimReference.lineage = .carried ∧
         claimReference.source = (catalogAt 7).id ∧
-        claimReference.fieldMapping = some .exact := by
+        claimReference.fieldMapping = some .full := by
   native_decide
 
 example :
     let projection := catalogAt 17
-    let invalid := { projection with fieldMapping := some .exact }
+    let invalid := { projection with fieldMapping := some .full }
     catalogValidationErrorKind? (knownGapCatalog.take 17 ++ invalid :: knownGapCatalog.drop 18) =
       some .invalidProjectionMapping := by
   native_decide

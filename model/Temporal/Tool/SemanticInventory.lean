@@ -1,4 +1,4 @@
-import Umpire.Artifact.Runtime
+import Umpire.Artifact.RunRecord
 import Umpire.ImplementationLink.Application
 import Umpire.Evidence.PropertyStatus
 import Umpire.Search

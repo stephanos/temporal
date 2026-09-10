@@ -1,9 +1,9 @@
-import Umpire.Artifact.Runtime
+import Umpire.Artifact.RunRecord
 import Umpire.Examples.Switch
 
 /-! RuntimeConfiguration and ExperimentRun exact v2 bytes, checksums, matrices, and closures. -/
 
-namespace Umpire.Artifact.Tests.Runtime
+namespace Umpire.Artifact.Tests.RunRecord
 
 open Umpire
 open Umpire.Examples.Switch
@@ -346,4 +346,4 @@ example :
     }} : RuntimeConfiguration).seal.isValidTransport := by
   native_decide
 
-end Umpire.Artifact.Tests.Runtime
+end Umpire.Artifact.Tests.RunRecord
