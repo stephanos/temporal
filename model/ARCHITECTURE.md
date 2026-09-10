@@ -224,7 +224,7 @@ late completion and Driver diagnostics cannot mutate returned data.
 
 Semantic owners depend on `Umpire.OutcomeClassification` for neutral classifier and projection
 vocabulary and on `Umpire.KnownGap` for carry contracts. Concrete stage classifiers, exhaustive
-proofs, the Implementation Link projection sentinel, Observation's lossy admission mapping, and
+proofs, the Implementation Link stage not-run marker, Observation's lossy admission mapping, and
 Result Artifact's exact carry mapping stay with their semantic owners. The inventory consumes those
 contracts and owns its catalogs; the Temporal inventory tool assembles, validates, and renders them.
 
