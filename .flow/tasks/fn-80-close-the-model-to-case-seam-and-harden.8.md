@@ -32,6 +32,28 @@ Implements the acceptance Case for R4 and the checked-in `rule_events` horizon f
 - The stop precedes `start-workflow` so no workflow task is in flight when the worker stops; the reservation ledger mints handles independently of SDK polling (verify; adjust ordering if not).
 - EVD-18's six conformance classes stay exact; this fixture is functional, like `get-system-info`.
 
+## Deferred acceptance
+
+**"Negative live case: resume timeout yields cleanup `failed` with the Verdict unchanged" is
+deferred, and this is the record of that decision.** The shipped outage Case always resumes, and the
+live environment supplies the real SDK worker factory to the Driver's registry, so nothing a test
+can reach makes a live resume fail. Reaching it live would need either a worker-factory seam on the
+live test environment, or a second functional fixture that stops and never resumes -- a Case whose
+own Contract could not be satisfied.
+
+Both halves are pinned where they are reachable today:
+- the Driver surfacing a failed resume from `Session.Close`, and releasing the hold either way:
+  `common/testing/testpilot/temporal/worker/fault_test.go`
+  (`TestSessionCloseResumesAndAlwaysReleasesTheHold`, task .3);
+- a failed cleanup leaving an already-reached Verdict alone: the
+  `cleanup-failure-after-proved-violation` conformance class (EVD-18).
+
+Follow-up: a worker-factory override on the live test environment would close it live.
+
+Also deferred, with the same reasoning recorded in the done summary: the acceptance's "concurrent
+plain async-nexus Run on the same queue" is run on a *different* queue, because a pooled peer worker
+on the same physical queue keeps polling through the outage.
+
 ## Acceptance
 - [ ] `worker-outage-case.json` is generated deterministically and `make umpire-check-case-runtime-conformance` passes on both trees
 - [ ] Live test (integration tag): Run completed, cleanup succeeded, Verdict satisfied, two `FAULT_INJECTED` events in stop-then-resume order referenced by the Contract's supporting sequences, correlated history evidence present

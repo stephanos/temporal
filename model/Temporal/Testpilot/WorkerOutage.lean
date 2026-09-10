@@ -150,19 +150,25 @@ private def faultRoleIs : ContractExpression :=
     (ContractExpr.literal (Value.text workerOutageQueueRole))
 
 /-- The wire number one fault kind carries. The generated Lean enum is a bare inductive with no
-number accessor, so the constructor and its number are paired here once and read from here twice. -/
+number accessor, so the constructor and its number are paired here once and read from here twice.
+The match names every declared kind: a vocabulary addition is a Lean error here rather than a
+predicate silently comparing against zero. -/
 private def faultKindNumber : FaultKind → Int32
   | .FAULT_KIND_WORKER_STOP => 1
   | .FAULT_KIND_WORKER_RESUME => 2
-  | _ => 0
+  | .FAULT_KIND_UNSPECIFIED => 0
+  | .«Unknown.Value» number => number
 
 private def faultKindIs (kind : FaultKind) : ContractExpression :=
   ContractExpr.equals (ContractExpr.runEvent .RUN_EVENT_FIELD_FAULT_KIND)
     (ContractExpr.literal (Value.enumeration (faultKindNumber kind)))
 
-/-- The outage window, counted in evaluated Run Events rather than on the host's clock. Sixteen is
-the whole recorded distance between the stop and the resume this Program can produce: the start,
-its activation records, and the fault events themselves. -/
+/-- The outage window, counted in evaluated Run Events rather than on the host's clock. The counter
+restarts when the stop transitions the rule, so what it bounds is the distance from the stop to the
+resume: `start-workflow` started and completed, the resumed workflow activation's own records, and
+`resume-worker` started, completed and its fault event. That is about ten on the traced path, and
+expiry outranks the satisfying event, so the real requirement is a resume within fifteen. Sixteen is
+that bound with deliberate slack, not a measured maximum. -/
 def workerOutageHorizon : Int64 := 16
 
 private def outageOrderRule : ContractRuleDefinition :=
