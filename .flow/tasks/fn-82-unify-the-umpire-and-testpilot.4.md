@@ -43,47 +43,71 @@ name here; task .7 renames it to `Correlated` across the whole tree in one pass.
 - [ ] `make lint-model`, the Makefile layout check, `lake build Umpire UmpireTests Temporal TemporalModelTests`, and regenerated goldens pass
 - [ ] The gate rejects the retired compounds and passes on the tree
 ## Done summary
-Blocked:
-Not started. No code was changed for this task: the file moves I began were reverted and the tree
-is green at the `.3` receipt. This is a session-budget stop after `.1`, `.2` and `.3`, not a
-technical blocker — the task is startable exactly as written.
+`Umpire.Behavior` is `Umpire.Scenario` and the Property language is one authored record.
 
-Sequencing notes for whoever picks it up, from the survey done before stopping:
+`Property/{Language,Fields,Authoring,Trace,Evaluation}.lean` collapsed into `Umpire/Property.lean`
+(types, fields, sugar) plus `Property/{Check,Evaluate,Elab}.lean`; `Behavior/{Language,Authoring}.lean`
+became `Umpire/Scenario.lean` plus `Scenario/{Check,Elab}.lean` and the tests moved with them.
+`PropertyDeclaration` + `PropertySpec` collapsed into one `Property`; `BehaviorDeclaration` +
+`BehaviorSpec` + `ExactSequenceSpec` collapsed into one `Scenario` whose sugar is now the functions
+`Scenario.exactly` and `Scenario.constrained`. `check` and `checked` are the construction operations
+on both; `PropertyAuthoring` is deleted and `opaqueDeclaration` survives as a plain error kind with
+its own test. The occurrence types are namespaced under `Scenario` (`Step`, `Count`, `Order`, `Role`,
+`Slot`) because `Umpire.Step` has been the model step since `.2`.
 
-- The Scenario record merge is the expensive part. `BehaviorDeclaration`, `BehaviorSpec` and
-  `ExactSequenceSpec` must collapse into one `Scenario` record whose only construction operations
-  are `check` and `checked`. The two sugar records are consumed as record literals at 74 references
-  across 11 files (`Nexus2/Authoring.lean`, `Nexus3/Authoring.lean`, `Nexus3/Syntax.lean`,
-  `Nexus3/Tests.lean`, `Nexus2/AuthoringTests.lean`, the three `Nexus/Operations` walkthroughs,
-  `Operations/PlanningTests.lean`, `Umpire/Behavior/ImportTests.lean`,
-  `Umpire/Behavior/Tests/Authoring.lean`), so each `def x : ExactSequenceSpec := { ... }` becomes a
-  named-argument call to `Scenario.exactly` (or its constraint counterpart for `BehaviorSpec`).
-- `model/Umpire/Behavior/Language.lean` splits cleanly at its first `private def quote` line:
-  everything above is the `Umpire/Scenario.lean` types module (through `CheckedBehavior`, which has
-  no private constructor), everything below is `Umpire/Scenario/Check.lean`.
-- `NamedOccurrence`/`OccurrenceBound`/`OccurrenceOrder`/`ResourceRole` cannot take the bare names
-  `Step`/`Count`/`Order`/`Role`: `Umpire.Step` is the model step since `.2`. Namespace them under
-  `Scenario`.
-- `BehaviorTrace` should become `Scenario.Trace`, not the bare `Trace` the R2 table reserves:
-  neither `.2` nor `.3` renamed `ModelTrace`/`ModelCoordinate`, so `Trace`/`TraceAddress` are still
-  owed by an R2 sweep and would collide.
-- Carried from `.2`: `modelOutcome` can enter the retired gate in this task once
-  `PropertyTraceField` and `PropertyPredicateField` are respelled. `PropertyTraceField` already
-  owns a `.state` constructor, so `.resultingState` needs a name this task chooses.
+Clause vocabulary: `PropertyCase`/`PropertyCaseGroup`/`PropertyException` are `PropertyBranch`/
+`PropertyBranches`/`PropertyUnless`, the `Resolved*` carriers folded into `Checked*`, `sameStepCases`
+is `branches`, `quiescentWithin` is `neverWithin`, and `eventuallyWithin`/`neverWithin` absorbed the
+two `guarded*` constructors by taking an optional guard, an optional Unless and a clause source.
+`PropertyPredicateContext` is `before`/`after`. `PropertyLimit`, `PropertyLimitProfile` and
+`PropertyScopedClock` are deleted: clauses carry a plain `Limit`, and `correlated_response%` (was
+`bounded_response%`) lost its `on <clock>` phrase. The correlated endpoints are `.final` and
+`.«partial»` (guillemets because `partial` is a Lean keyword; the repo already spells `«property»`
+that way). `modelOutcome` is `outcome` everywhere in the Property surface and its canonical JSON.
+
+The gate now rejects `BehaviorDeclaration`, `CheckedBehavior`, `BehaviorSpec`, `ExactSequenceSpec`,
+`Umpire.Behavior`, `behavior%`, `PropertyDeclaration`, `PropertySpec`, `PropertyAuthoring`,
+`PropertyCase(Group)`, `PropertyException`, `sameStepCases`, `quiescentWithin`, `modelOutcome`,
+`bounded_response%`, the five deleted `Umpire.Property.*` module paths, and the occurrence,
+`Resolved*`, `checkProperty`/`checkBehavior` and `guardedQuiescentWithin` compounds.
+
+Method: goldens, Nexus fixtures and the Case conformance trees regenerated through `umpire-gen-goldens`
+and `umpire-gen-case-runtime-conformance`; every inline fingerprint, checksum and expected-JSON pin
+was re-baselined by running the owning module and reading the computed value, never by inventing one.
+The review's P1 (an `unless` without a guard silently dropped at admission) was fixed with two clause
+checks that were shown red before they landed.
+
+Deviations, all recorded here:
+- `Property.check`/`Scenario.check` take `(context) (declaration)` rather than the spec sketch's
+  `Property -> CheckContext`; dot notation gives authors exactly `property.check context`, and the
+  order keeps ~40 free-function call sites unchanged.
+- `PropertyTraceField`/`PropertyPredicateField.resultingState` were NOT respelled: `resultingState`
+  is still a live Nexus3 `require` keyword (task .8) and the proto `json=resultingState` in scanned
+  generated Go (task .7), so it cannot enter the gate here and a half-rename would be worse. The
+  `.state` collision the task flagged is therefore still open for whichever task retires the keyword.
+- `Umpire.Property` is the types module, so it is no longer a facade. The Makefile package-layout
+  check was rewritten to assert that each package's `Check.lean` builds on its types module; the
+  Query arm keeps the old `Language.lean` shape until task .5.
+- The checked clause carriers keep `guardedEventuallyWithin`/`guardedNeverWithin`: on that side
+  `guarded` names a real distinction (trigger-frozen applicability), not authoring sugar, so the
+  spec's "constructors lose the guarded prefix" was applied to the authored `PropertyClause` only.
+- The Scenario canonical JSON keys and the `"behavior"` Definition-ID segment were kept, so Scenario
+  fingerprints are byte-stable. The task text expected the keys to "follow"; none of them contained
+  a retired name.
+- `modelOutcomes` and `propertyLimit` stay: both are artifact wire keys with a Go decoder, which
+  task .6 owns. `PropertyLimit` is therefore not in the gate yet.
+- `.plans/UMPIRE4_{DSL,SPEC_COMPS}.md` were respelled (one line each) against the "no historical
+  .plans edits" boundary, because the gate's `UMPIRE4_*.md` glob scans them - the same deviation `.2`
+  recorded for `UMPIRE4_SPEC_COMPS.md` and `UMPIRE4_SPEC_MODEL_ARCH.md`.
+
+Swept in, not authored here: the fn-67/fn-77/fn-80/fn-81 spec status flips and the fn-80.5 task
+record a parallel session left uncommitted in this checkout.
+
+stage: impl-review - ran (model: claude-fable-5-1) - NEEDS_WORK then SHIP; 1 P1, 2 P2 and 5 P3
+findings, all addressed
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 747d83daabf449be43027df46849318e13380d40, 55e48bd5eb1ee16ae749c6411894d0f321f16648, a7b7af236c4d0177916495216ff1028834b56c4a, a02b1d2ab9acde8845e4eb6274b19c7700d380b6, 23d674849f8586772f6fb858e335220105e89f6a
+- Tests: cd model && lake build Umpire UmpireTests Temporal TemporalModelTests TestpilotTests Testpilot TemporalExperimentalTests +Umpire.PromotionTests (pass, 405 jobs), make lint-model (169 diagnostics, all in generated Temporal/API/{Types,Proto}.lean; equals baseline; modelLintTests, modelLint and the import-graph check pass), make umpire-check-goldens (pass), make umpire-check-regression-views (pass), make umpire-check-case-runtime-conformance (pass), make umpire-check-semantic-inventory (pass), make umpire-check-retired-vocabulary (pass, with 42 new retired compounds), make umpire-check-lean-api / -testpilot-protocol / -testpilot-authoring (pass), make umpire-check-live-tests (pass, 6 passing identities), make buf-breaking (pass), TMPDIR=<physical> CGO_ENABLED=0 go test -count=1 -tags test_dep ./tools/umpire/... ./common/testing/testpilot/... ./tests/testcore/testpilot/... (pass), make lint-code GOLANGCI_LINT_FIX=false (128 findings: errcheck 1, govet 4, revive 106, staticcheck 17; equals baseline), CC=/usr/bin/cc go vet -tags test_dep ./... (15 diagnostics, equals baseline), lake build Umpire.Property.Tests.GuardedTemporal with the two new clause checks disabled: proven red before the fix
 - PRs:
-
-### R2 debt carried out of .2 and .3 (found by the spec completion review)
-
-Both tasks shipped without three renames the R2 table names. They are byte-neutral (type names and
-type parameters, not canonical JSON keys), so they need no golden regeneration:
-
-- `ModelTrace` -> `Trace` and `ModelCoordinate` -> `TraceAddress` (`model/Umpire/Core.lean:154,163`).
-  `ModelTraceStep` also retires into Step per the table, but `Umpire.Step` is already the
-  transition result, so it wants a namespaced name such as `Trace.Step`.
-- The `Fact` type parameter is still spelled `Observation` on `Machine`, `MaybeVocabulary`,
-  `Vocabulary`, `ModelTrace` and `FiniteMachine` (`Core.lean:163,304,346,369,391`,
-  `Model/Table.lean:194`). Renaming it collides textually with the `Umpire.Observation` module
-  namespace that R5 (task .6) owns, so sequence it with that task or rename binders only.
+stage: plan-sync - skipped(config: planSync.enabled != true)
