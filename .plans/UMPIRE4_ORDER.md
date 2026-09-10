@@ -94,7 +94,7 @@ names AUT-09 does not cover, so task .8 drafts one amendment for approval. Bound
 exploration or fuzzing (fn-33), no canary (fn-70, fn-29), no Program surface syntax, no new fault
 or instruction kinds, no clock model, no change to the typed examples, no new CI workflow.
 
-### 2. Deepen five shallow module clusters in Umpire and Testpilot — fn-84
+### 3. Deepen five shallow module clusters in Umpire and Testpilot — fn-84
 
 [fn-84 — Deepen five shallow module clusters in Umpire and Testpilot](../.flow/specs/fn-84-deepen-five-shallow-module-clusters-in.md),
 from the 2026-09-09 architecture review of `model/Umpire`, `model/Testpilot`, `common/testing/testpilot`,

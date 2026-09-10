@@ -43,8 +43,33 @@ name here; task .7 renames it to `Correlated` across the whole tree in one pass.
 - [ ] `make lint-model`, the Makefile layout check, `lake build Umpire UmpireTests Temporal TemporalModelTests`, and regenerated goldens pass
 - [ ] The gate rejects the retired compounds and passes on the tree
 ## Done summary
-TBD
+Blocked:
+Not started. No code was changed for this task: the file moves I began were reverted and the tree
+is green at the `.3` receipt. This is a session-budget stop after `.1`, `.2` and `.3`, not a
+technical blocker — the task is startable exactly as written.
 
+Sequencing notes for whoever picks it up, from the survey done before stopping:
+
+- The Scenario record merge is the expensive part. `BehaviorDeclaration`, `BehaviorSpec` and
+  `ExactSequenceSpec` must collapse into one `Scenario` record whose only construction operations
+  are `check` and `checked`. The two sugar records are consumed as record literals at 74 references
+  across 11 files (`Nexus2/Authoring.lean`, `Nexus3/Authoring.lean`, `Nexus3/Syntax.lean`,
+  `Nexus3/Tests.lean`, `Nexus2/AuthoringTests.lean`, the three `Nexus/Operations` walkthroughs,
+  `Operations/PlanningTests.lean`, `Umpire/Behavior/ImportTests.lean`,
+  `Umpire/Behavior/Tests/Authoring.lean`), so each `def x : ExactSequenceSpec := { ... }` becomes a
+  named-argument call to `Scenario.exactly` (or its constraint counterpart for `BehaviorSpec`).
+- `model/Umpire/Behavior/Language.lean` splits cleanly at its first `private def quote` line:
+  everything above is the `Umpire/Scenario.lean` types module (through `CheckedBehavior`, which has
+  no private constructor), everything below is `Umpire/Scenario/Check.lean`.
+- `NamedOccurrence`/`OccurrenceBound`/`OccurrenceOrder`/`ResourceRole` cannot take the bare names
+  `Step`/`Count`/`Order`/`Role`: `Umpire.Step` is the model step since `.2`. Namespace them under
+  `Scenario`.
+- `BehaviorTrace` should become `Scenario.Trace`, not the bare `Trace` the R2 table reserves:
+  neither `.2` nor `.3` renamed `ModelTrace`/`ModelCoordinate`, so `Trace`/`TraceAddress` are still
+  owed by an R2 sweep and would collide.
+- Carried from `.2`: `modelOutcome` can enter the retired gate in this task once
+  `PropertyTraceField` and `PropertyPredicateField` are respelled. `PropertyTraceField` already
+  owns a `.state` constructor, so `.resultingState` needs a name this task chooses.
 ## Evidence
 - Commits:
 - Tests:
