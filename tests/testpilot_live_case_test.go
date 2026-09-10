@@ -102,3 +102,12 @@ func newTestpilotLiveCase(
 	}
 	return testpilotLiveCase{profile: expectedProfile, prepared: prepared, client: caseClient, driver: driver}
 }
+
+// runEventAt resolves one recorded Run Event by its one-based sequence, which is the only place
+// that assumption lives.
+func runEventAt(t testing.TB, run *testpilotpb.Run, sequence int64) *testpilotpb.RunEvent {
+	t.Helper()
+	require.Positive(t, sequence)
+	require.LessOrEqual(t, sequence, int64(len(run.GetEvents())))
+	return run.GetEvents()[sequence-1]
+}

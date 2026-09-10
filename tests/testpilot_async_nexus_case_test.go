@@ -130,9 +130,7 @@ func requireCorrelatedNexusHistoryEvidence(t testing.TB, run *testpilotpb.Run, s
 	t.Helper()
 	events := make([]*historypb.HistoryEvent, 0, len(sequences))
 	for _, sequence := range sequences {
-		require.Positive(t, sequence)
-		require.LessOrEqual(t, sequence, int64(len(run.GetEvents())))
-		event := run.GetEvents()[sequence-1]
+		event := runEventAt(t, run, sequence)
 		require.Equal(t, "controller", event.GetCoordinates().GetEntrypointId())
 		require.Equal(t, "history", event.GetCoordinates().GetInstructionId())
 		require.Len(t, event.GetObservations(), 1)
