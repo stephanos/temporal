@@ -51,7 +51,7 @@ def modelVocabulary : Except FiniteTableError ModelVocabulary := do
     startedSetup := ← model.setupValue .started
   }
 
-def operationRole : ResourceRole := { id := operationRoleId, valueKind := .state }
+def operationRole : Scenario.Role := { id := operationRoleId, valueKind := .state }
 
 namespace Start
 
@@ -61,7 +61,7 @@ def queryId : DefinitionId := id "temporal.nexus2.basic-lifecycle.query.start"
 def occurrenceId : DefinitionId := id "temporal.nexus2.basic-lifecycle.occurrence.start"
 def setupConstraintId : DefinitionId := id "temporal.nexus2.basic-lifecycle.setup.scheduled"
 
-def propertyDeclaration (model : ModelVocabulary) : PropertyDeclaration := {
+def authoredProperty (model : ModelVocabulary) : Property := {
   id := propertyId
   source
   requires := [lifecycleCapabilityId]
@@ -79,15 +79,15 @@ def propertyDeclaration (model : ModelVocabulary) : PropertyDeclaration := {
   documentation := "Starting a scheduled operation yields the started lifecycle result."
 }
 
-def behaviorDeclaration (model : ModelVocabulary) : BehaviorDeclaration :=
-  BehaviorDeclaration.exactlyOneAction behaviorId source
+def authoredScenario (model : ModelVocabulary) : Scenario :=
+  Scenario.exactlyOneAction behaviorId source
     { id := occurrenceId, action := startActionId }
     (requires := [lifecycleCapabilityId])
     (roles := [operationRole])
     (setup := [SetupConstraint.roleEquals setupConstraintId operationRoleId model.scheduledState])
 
 def queryDeclaration
-    (property : CheckedProperty) (behavior : CheckedBehavior) : QueryDeclaration := {
+    (property : CheckedProperty) (behavior : CheckedScenario) : QueryDeclaration := {
   id := queryId
   source
   target := targetId
@@ -113,7 +113,7 @@ def queryId : DefinitionId := id "temporal.nexus2.basic-lifecycle.query.cancel"
 def occurrenceId : DefinitionId := id "temporal.nexus2.basic-lifecycle.occurrence.cancel"
 def setupConstraintId : DefinitionId := id "temporal.nexus2.basic-lifecycle.setup.started-cancel"
 
-def propertyDeclaration (model : ModelVocabulary) : PropertyDeclaration := {
+def authoredProperty (model : ModelVocabulary) : Property := {
   id := propertyId
   source
   requires := [lifecycleCapabilityId]
@@ -131,15 +131,15 @@ def propertyDeclaration (model : ModelVocabulary) : PropertyDeclaration := {
   documentation := "Canceling a started operation yields the canceled lifecycle result."
 }
 
-def behaviorDeclaration (model : ModelVocabulary) : BehaviorDeclaration :=
-  BehaviorDeclaration.exactlyOneAction behaviorId source
+def authoredScenario (model : ModelVocabulary) : Scenario :=
+  Scenario.exactlyOneAction behaviorId source
     { id := occurrenceId, action := cancelActionId }
     (requires := [lifecycleCapabilityId])
     (roles := [operationRole])
     (setup := [SetupConstraint.roleEquals setupConstraintId operationRoleId model.startedState])
 
 def queryDeclaration
-    (property : CheckedProperty) (behavior : CheckedBehavior) : QueryDeclaration := {
+    (property : CheckedProperty) (behavior : CheckedScenario) : QueryDeclaration := {
   id := queryId
   source
   target := targetId
@@ -165,7 +165,7 @@ def queryId : DefinitionId := id "temporal.nexus2.basic-lifecycle.query.success"
 def occurrenceId : DefinitionId := id "temporal.nexus2.basic-lifecycle.occurrence.success"
 def setupConstraintId : DefinitionId := id "temporal.nexus2.basic-lifecycle.setup.started-success"
 
-def propertyDeclaration (model : ModelVocabulary) : PropertyDeclaration := {
+def authoredProperty (model : ModelVocabulary) : Property := {
   id := propertyId
   source
   requires := [lifecycleCapabilityId]
@@ -183,15 +183,15 @@ def propertyDeclaration (model : ModelVocabulary) : PropertyDeclaration := {
   documentation := "Reporting success yields the succeeded lifecycle result."
 }
 
-def behaviorDeclaration (model : ModelVocabulary) : BehaviorDeclaration :=
-  BehaviorDeclaration.exactlyOneAction behaviorId source
+def authoredScenario (model : ModelVocabulary) : Scenario :=
+  Scenario.exactlyOneAction behaviorId source
     { id := occurrenceId, action := reportSuccessActionId }
     (requires := [lifecycleCapabilityId])
     (roles := [operationRole])
     (setup := [SetupConstraint.roleEquals setupConstraintId operationRoleId model.startedState])
 
 def queryDeclaration
-    (property : CheckedProperty) (behavior : CheckedBehavior) : QueryDeclaration := {
+    (property : CheckedProperty) (behavior : CheckedScenario) : QueryDeclaration := {
   id := queryId
   source
   target := targetId
@@ -213,14 +213,14 @@ inductive BaselineAdmissionError where
   | invalidTarget (error : TableAdmissionError)
   | invalidVocabulary (error : FiniteTableError)
   | invalidProperty (error : PropertyError)
-  | invalidBehavior (error : BehaviorError)
+  | invalidBehavior (error : ScenarioError)
   | invalidQuery (error : QueryError)
   | invalidPlanner (error : FinitePlannerAdmissionError)
   | invalidKnownGap (error : KnownGapError)
 
 structure CheckedOperation where
   property : CheckedProperty
-  behavior : CheckedBehavior
+  behavior : CheckedScenario
   query : CheckedQuery LawStatement
   run : PlannerRun
 
@@ -233,13 +233,13 @@ structure CheckedBaseline where
 
 private def checkOperation
     (target : QueryModel LawStatement)
-    (propertyDeclaration : PropertyDeclaration)
-    (behaviorDeclaration : BehaviorDeclaration)
-    (queryDeclaration : CheckedProperty → CheckedBehavior → QueryDeclaration) :
+    (authoredProperty : Property)
+    (authoredScenario : Scenario)
+    (queryDeclaration : CheckedProperty → CheckedScenario → QueryDeclaration) :
     Except BaselineAdmissionError CheckedOperation := do
-  let property ← checkProperty (PropertyCheckContext.ofTarget target) (.portable propertyDeclaration)
+  let property ← Property.check (PropertyCheckContext.ofTarget target) (authoredProperty)
     |>.mapError BaselineAdmissionError.invalidProperty
-  let behavior ← checkBehavior (.ofTarget target) behaviorDeclaration
+  let behavior ← Scenario.check (.ofTarget target) authoredScenario
     |>.mapError BaselineAdmissionError.invalidBehavior
   let query ← checkQuery (.ofTarget target) (queryDeclaration property behavior)
     |>.mapError BaselineAdmissionError.invalidQuery
@@ -252,12 +252,12 @@ private def checkOperation
 def checkBaseline : Except BaselineAdmissionError CheckedBaseline := do
   let target ← targetResult.mapError BaselineAdmissionError.invalidTarget
   let model ← modelVocabulary.mapError BaselineAdmissionError.invalidVocabulary
-  let start ← checkOperation target (Start.propertyDeclaration model)
-    (Start.behaviorDeclaration model) Start.queryDeclaration
-  let cancel ← checkOperation target (Cancel.propertyDeclaration model)
-    (Cancel.behaviorDeclaration model) Cancel.queryDeclaration
-  let success ← checkOperation target (Success.propertyDeclaration model)
-    (Success.behaviorDeclaration model) Success.queryDeclaration
+  let start ← checkOperation target (Start.authoredProperty model)
+    (Start.authoredScenario model) Start.queryDeclaration
+  let cancel ← checkOperation target (Cancel.authoredProperty model)
+    (Cancel.authoredScenario model) Cancel.queryDeclaration
+  let success ← checkOperation target (Success.authoredProperty model)
+    (Success.authoredScenario model) Success.queryDeclaration
   pure { target, model, start, cancel, success }
 
 end Temporal.Feature.Nexus2.Cancellation

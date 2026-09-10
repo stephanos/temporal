@@ -1,6 +1,6 @@
 import Temporal.Feature.Nexus.Lifecycle
 import Temporal.Shared
-import Umpire.Property.Authoring
+import Umpire.Property.Elab
 import Umpire.Query.Authoring
 
 /-! Shared declaration mechanics behind the ordinary Nexus operation walkthroughs. -/
@@ -43,14 +43,14 @@ end Internal
 def source : SourceLocation :=
   Temporal.Shared.sourceLocation "Temporal/Feature/Nexus/Operations.lean"
 
-def operationRole : ResourceRole := { id := operationRoleId, valueKind := .state }
+def operationRole : Scenario.Role := { id := operationRoleId, valueKind := .state }
 
 namespace Internal
 
 def queryDeclaration
     (queryId : DefinitionId)
     (property : CheckedProperty)
-    (behavior : CheckedBehavior) : QueryDeclaration := {
+    (behavior : CheckedScenario) : QueryDeclaration := {
   id := queryId
   source
   target := target.id
@@ -63,7 +63,7 @@ def queryDeclaration
 def querySpec
     (key : String)
     (property : CheckedProperty)
-    (behavior : CheckedBehavior) : QuerySpec := {
+    (behavior : CheckedScenario) : QuerySpec := {
   family
   key
   source

@@ -63,7 +63,7 @@ def JointCompatibilityStatus.name : JointCompatibilityStatus → String
 /-- Exact reachable trigger scope shared by jointly applicable obligations. The prefix ends before
 the triggering transition; each temporal expectation separately retains its own coordinate. -/
 structure JointTriggerScope where
-  modeledPrefix : BehaviorTrace
+  modeledPrefix : Scenario.Trace
   transitionPosition : Nat
   occurrence : JointTriggerOccurrence
   priorState : Option ModelValue
@@ -99,7 +99,7 @@ satisfies it. This is Target-relative evidence, not a logical contradiction. -/
 structure JointModelIncompatibility where
   trigger : JointTriggerScope
   expectations : List JointExpectationEvidence
-  admittedContinuations : List BehaviorTrace
+  admittedContinuations : List Scenario.Trace
   deriving BEq, DecidableEq, Repr
 
 inductive JointUnsupportedFormulaClass where
@@ -124,8 +124,8 @@ structure UnsupportedJointFormula where
 structure JointTriggerAnalysis where
   trigger : JointTriggerScope
   expectations : List JointExpectationEvidence
-  admittedContinuations : List BehaviorTrace
-  satisfyingContinuations : List BehaviorTrace
+  admittedContinuations : List Scenario.Trace
+  satisfyingContinuations : List Scenario.Trace
   deriving BEq, DecidableEq, Repr
 
 structure JointCompatibilityResult where
@@ -152,7 +152,7 @@ inductive CaseFindingKind where
 
 /-- One admitted trace and its exact evaluator-owned same-step applicability. -/
 structure CaseObservation extends CaseGroupApplicability where
-  trace : BehaviorTrace
+  trace : Scenario.Trace
   deriving BEq, DecidableEq, Repr
 
 /-- A reachable failure or exclusion with source, identity, trigger, and effective-guard evidence. -/
@@ -164,7 +164,7 @@ structure CaseFinding where
   caseIds : List DefinitionId
   caseSources : List SourceLocation
   clauses : List PropertyClauseIdentity
-  trace : BehaviorTrace
+  trace : Scenario.Trace
   transitionPosition : Nat
   priorState : Option ModelValue
   selectedAction : Option ModelValue
@@ -187,7 +187,7 @@ structure CaseRequirement where
 
 /-- Ordinary Property truth remains separate from coverage and exclusivity obligations. -/
 structure CasePropertyEvaluation where
-  trace : BehaviorTrace
+  trace : Scenario.Trace
   evaluation : PropertyEvaluation
   endpointAnswer : PropertyEndpointAnswer := .satisfied
   deriving BEq, DecidableEq, Repr
@@ -258,13 +258,13 @@ private def queryEvaluationError
 private structure AnalysisState where
   observations : List CaseObservation := []
   propertyEvaluations : List CasePropertyEvaluation := []
-  jointObservations : List (BehaviorTrace × JointObligationObservation) := []
-  admittedTraces : List BehaviorTrace := []
+  jointObservations : List (Scenario.Trace × JointObligationObservation) := []
+  admittedTraces : List Scenario.Trace := []
   unresolvedPrefixes : Bool := false
 
 private def observeProperty
     (query : CheckedQuery LawStatement)
-    (trace : BehaviorTrace)
+    (trace : Scenario.Trace)
     (state : AnalysisState)
     (property : CheckedProperty) : Except QueryError AnalysisState := do
   let input ← checkPropertyEvaluationInput property trace.trace
@@ -289,7 +289,7 @@ private def observeCandidate
     (query : CheckedQuery LawStatement)
     (properties : List CheckedProperty)
     (state : AnalysisState)
-    (trace : BehaviorTrace) : Except QueryError (BoundedTraversalStep AnalysisState) := do
+    (trace : Scenario.Trace) : Except QueryError (BoundedTraversalStep AnalysisState) := do
   let mut next := state
   for property in properties do
     next ← observeProperty query trace next property
@@ -401,10 +401,10 @@ private def expectationKey (expectation : JointExpectationEvidence) : String :=
 private def expectationLe (left right : JointExpectationEvidence) : Bool :=
   decide (expectationKey left ≤ expectationKey right)
 
-private def traceLe (left right : BehaviorTrace) : Bool :=
+private def traceLe (left right : Scenario.Trace) : Bool :=
   decide (reprStr left ≤ reprStr right)
 
-private def prefixAt (trace : BehaviorTrace) (transitionPosition : Nat) : BehaviorTrace := {
+private def prefixAt (trace : Scenario.Trace) (transitionPosition : Nat) : Scenario.Trace := {
   trace with trace := {
     trace.trace with
     steps := trace.trace.steps.take (transitionPosition - 1)
@@ -413,7 +413,7 @@ private def prefixAt (trace : BehaviorTrace) (transitionPosition : Nat) : Behavi
 
 private def triggerScopeOf
     (limits : QueryLimits)
-    (trace : BehaviorTrace)
+    (trace : Scenario.Trace)
     (observation : JointObligationObservation) : JointTriggerScope := {
   modeledPrefix := prefixAt trace observation.transitionPosition
   transitionPosition := observation.transitionPosition
@@ -433,7 +433,7 @@ private def triggerLe (left right : JointTriggerScope) : Bool :=
 
 private def observationAt
     (trigger : JointTriggerScope)
-    (item : BehaviorTrace × JointObligationObservation) : Bool :=
+    (item : Scenario.Trace × JointObligationObservation) : Bool :=
   let (trace, observation) := item
   observation.transitionPosition == trigger.transitionPosition &&
     observation.triggerOccurrence == trigger.occurrence &&
@@ -444,8 +444,8 @@ private def observationAt
 private def traceContinuesTrigger
     (trigger : JointTriggerScope)
     (expectations : List JointExpectationEvidence)
-    (observations : List (BehaviorTrace × JointObligationObservation))
-    (trace : BehaviorTrace) : Bool :=
+    (observations : List (Scenario.Trace × JointObligationObservation))
+    (trace : Scenario.Trace) : Bool :=
   expectations.all fun expectation => observations.any fun item =>
     item.1 == trace && observationAt trigger item && expectationOf item.2 == expectation
 
@@ -549,7 +549,7 @@ private def unsupportedLe (left right : UnsupportedJointFormula) : Bool :=
 
 private def expectationsAt
     (trigger : JointTriggerScope)
-    (observations : List (BehaviorTrace × JointObligationObservation)) :
+    (observations : List (Scenario.Trace × JointObligationObservation)) :
     List JointExpectationEvidence :=
   ((observations.filter (observationAt trigger)).map (expectationOf ·.2)).mergeSort expectationLe
     |>.eraseDups
@@ -557,8 +557,8 @@ private def expectationsAt
 private def continuationSatisfies
     (trigger : JointTriggerScope)
     (expectations : List JointExpectationEvidence)
-    (observations : List (BehaviorTrace × JointObligationObservation))
-    (trace : BehaviorTrace) : Bool :=
+    (observations : List (Scenario.Trace × JointObligationObservation))
+    (trace : Scenario.Trace) : Bool :=
   expectations.all fun expectation => observations.any fun item =>
     item.1 == trace && observationAt trigger item &&
       expectationOf item.2 == expectation && item.2.satisfied

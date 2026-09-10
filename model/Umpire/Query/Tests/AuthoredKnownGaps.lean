@@ -17,7 +17,7 @@ private def authoredGaps : KnownGapSet :=
   (KnownGapSet.checkCanonical [authoredGap]).toOption.get (by native_decide)
 
 private def declarationWithAuthoredGaps : QueryDeclaration := {
-  declaration (.witness checkedProperty) with authoredKnownGaps := authoredGaps
+  declaration (.witness Property.checked) with authoredKnownGaps := authoredGaps
 }
 
 private def checkedWithAuthoredGaps : CheckedQuery (fun _ => True) :=
@@ -28,8 +28,8 @@ private def specWithAuthoredGaps : QuerySpec := {
   key := "authored-gaps"
   source
   target := target.id
-  form := .witness checkedProperty
-  behavior := checkedBehavior
+  form := .witness Property.checked
+  behavior := Scenario.checked
   limits := { transitions := 1, selectedActions := 1, candidateEvaluations := 8 }
   policy := searchPolicy
   authoredKnownGaps := authoredGaps
@@ -43,7 +43,7 @@ example : declarationWithAuthoredGaps.authoredKnownGaps = authoredGaps ∧
   native_decide
 
 example :
-    let emptyDeclaration := declaration (.witness checkedProperty)
+    let emptyDeclaration := declaration (.witness Property.checked)
     let explicitEmpty := { emptyDeclaration with authoredKnownGaps := KnownGapSet.empty }
     let checkedMetadata (owner : QueryDeclaration) :=
       (checkQuery context owner).toOption.map CheckedQuery.canonicalMetadata

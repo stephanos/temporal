@@ -17,7 +17,7 @@ def violatedVerdict : SemanticPropertyVerdict :=
 
 /- Guarded clauses are rejected before Observation can emit a semantic success. -/
 #guard
-  (checkProperty verdictPropertyContext (.portable guardedPropertyDeclaration)).toOption.map
+  (Property.check verdictPropertyContext (guardedPropertyDeclaration)).toOption.map
     (fun property =>
       let verdict := evaluateObservationProperty (verdictQuery [property]) property
         completeEvidenceBackedTrace
@@ -29,7 +29,7 @@ def violatedVerdict : SemanticPropertyVerdict :=
 
 /- Guarded temporal clauses are also rejected before Observation can omit their trigger guard. -/
 #guard
-  (checkProperty verdictPropertyContext (.portable guardedTemporalPropertyDeclaration)).toOption.map
+  (Property.check verdictPropertyContext (guardedTemporalPropertyDeclaration)).toOption.map
     (fun property =>
       let verdict := evaluateObservationProperty (verdictQuery [property]) property
         completeEvidenceBackedTrace

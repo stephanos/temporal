@@ -6,7 +6,7 @@ namespace Umpire.ParameterizedPlanningTests
 open Umpire Operation Value ModelTests.Parameterized
 
 private def queryDeclaration (t : QueryModel (fun _ => True)) (budget : Nat)
-    (exact : Option BehaviorTrace := none) : QueryDeclaration := {
+    (exact : Option Scenario.Trace := none) : QueryDeclaration := {
   id := .of "example.query.call", source, target := t.id
   form := .verify PlanningTests.property
   limits := QueryLimits.bounded 1 1 budget
@@ -32,7 +32,7 @@ private def run (budget : Nat) := do
   let step : ModelTraceStep ModelValue ModelValue ModelValue ModelValue := {
     selectedAction := a.modelValue, outcome := value "example.outcome.call" "accepted",
     state := value "example.state.phase" "done", facts := [] }
-  let trace : BehaviorTrace := {
+  let trace : Scenario.Trace := {
     setup := [], trace := { initialState := value "example.state.phase" "idle", steps := [step] } }
   let bad := { trace with trace := { trace.trace with steps := [
     { step with state := value "example.state.phase" "idle" }] } }

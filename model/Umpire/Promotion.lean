@@ -50,7 +50,7 @@ structure PromotionBaseAnchor where
   kernelBehaviorFingerprint : BehaviorFingerprint
   plannerRun : PlannerRun
   experimentSpec : ExperimentSpec
-  expectedTrace : BehaviorTrace
+  expectedTrace : Scenario.Trace
   selectionReason : SelectionReason
   deriving BEq, DecidableEq, Repr
 
@@ -86,7 +86,7 @@ structure CompiledPromotionSource where
   baseKernelDefinitionId : DefinitionId
   baseKernelBehaviorFingerprint : BehaviorFingerprint
   baseExperimentSpecChecksum : ArtifactChecksum
-  expectedTrace : BehaviorTrace
+  expectedTrace : Scenario.Trace
   selectionReason : SelectionReason
   promotedBehaviorDefinitionId : DefinitionId
   promotedQueryDefinitionId : DefinitionId
@@ -131,7 +131,7 @@ private def renderTraceStep
     ", state := " ++ renderModelValue step.state ++
     ", facts := " ++ array (step.facts.map renderModelValue) ++ " }"
 
-private def renderBehaviorTrace (trace : BehaviorTrace) : String :=
+private def renderBehaviorTrace (trace : Scenario.Trace) : String :=
   "{ setup := " ++ array (trace.setup.map renderRoleBinding) ++
     ", trace := { initialState := " ++ renderModelValue trace.trace.initialState ++
     ", steps := " ++ array (trace.trace.steps.map renderTraceStep) ++ " } }"
@@ -143,7 +143,7 @@ private def renderSourceLocation (source : SourceLocation) : String :=
     ", provenance := " ++ quote source.provenance ++ " }"
 
 /-- Render the closed promotion template with exact literal trace data and one terminal LF. -/
-def renderPromotionSource (spec : PromotionSourceSpec) (trace : BehaviorTrace) : String :=
+def renderPromotionSource (spec : PromotionSourceSpec) (trace : Scenario.Trace) : String :=
   String.intercalate "\n" [
       "import Umpire.Promotion",
       "",
@@ -158,7 +158,7 @@ def renderPromotionSource (spec : PromotionSourceSpec) (trace : BehaviorTrace) :
       "",
       "def source : SourceLocation := " ++ renderSourceLocation spec.sourceLocation,
       "",
-      "def expectedTrace : BehaviorTrace := " ++ renderBehaviorTrace trace,
+      "def expectedTrace : Scenario.Trace := " ++ renderBehaviorTrace trace,
       "",
       "def promotedQueryResult",
       "    {LawStatement : Law → Prop}",
@@ -176,7 +176,7 @@ def renderPromotionSource (spec : PromotionSourceSpec) (trace : BehaviorTrace) :
 def promotionSourceSha256 (bytes : String) : String :=
   "sha256:" ++ Fingerprint.sha256Hex bytes
 
-private def authoredExactTrace (trace : BehaviorTrace) : AuthoredExactTrace := {
+private def authoredExactTrace (trace : Scenario.Trace) : AuthoredExactTrace := {
   setup := trace.setup
   initialState := some trace.trace.initialState
   steps := trace.trace.steps.map fun step => {
@@ -214,11 +214,11 @@ entry point; it reuses the ordinary Behavior and Query authoring checkers.
 -/
 def checkPromotedQuery
     (baseQuery : CheckedQuery LawStatement)
-    (expectedTrace : BehaviorTrace)
+    (expectedTrace : Scenario.Trace)
     (promotedBehaviorId promotedQueryId : DefinitionId)
     (source : SourceLocation) : Except PromotionError (CheckedQuery LawStatement) := do
   validatePromotedIdentities baseQuery promotedBehaviorId promotedQueryId
-  let behaviorDeclaration : BehaviorDeclaration := {
+  let authoredScenario : Scenario := {
     id := promotedBehaviorId
     source
     version := baseQuery.behavior.version
@@ -236,7 +236,7 @@ def checkPromotedQuery
     traceExactly := some (authoredExactTrace expectedTrace)
     documentation := "Checked exact-trace Regression proposed from " ++ baseQuery.id.value ++ "."
   }
-  let behavior ← match checkBehavior (.ofTarget baseQuery.target) behaviorDeclaration with
+  let behavior ← match Scenario.check (.ofTarget baseQuery.target) authoredScenario with
     | .ok behavior => pure behavior
     | .error error =>
         throw (promotionError .promotedBehaviorInvalid promotedBehaviorId error.kind.name)

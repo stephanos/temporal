@@ -55,7 +55,7 @@ private def declaration
     (constraints : List PropertyAtomConstraint)
     (field : PropertyPredicateField := .resultingState)
     (reference : DefinitionId := phase)
-    (caseGuard : PropertyPredicate := initialGuard) : PropertyDeclaration := {
+    (caseGuard : PropertyPredicate := initialGuard) : Property := {
   id := id ("planner.property.joint." ++ key)
   source
   version := 2
@@ -77,14 +77,14 @@ private def declaration
   }]
 }
 
-private def checkedProperties? (declarations : List PropertyDeclaration) : Option (List CheckedProperty) :=
+private def checkedProperties? (declarations : List Property) : Option (List CheckedProperty) :=
   declarations.mapM fun selected =>
-    (checkProperty propertyContext (.portable selected)).toOption
+    (Property.check propertyContext (selected)).toOption
 
 private def jointQuery
     (properties : List CheckedProperty)
     (budget : Nat := 8)
-    (selectedBehavior : CheckedBehavior := behavior) : CheckedQuery (fun _ => True) :=
+    (selectedBehavior : CheckedScenario := behavior) : CheckedQuery (fun _ => True) :=
   let form := QueryForm.select properties
   { PlanningTests.checkedQuery 0 form .exhaustive budget 17 true selectedBehavior with
     form
@@ -93,9 +93,9 @@ private def jointQuery
   }
 
 private def analyze?
-    (declarations : List PropertyDeclaration)
+    (declarations : List Property)
     (budget : Nat := 8)
-    (selectedBehavior : CheckedBehavior := behavior) : Option CaseAnalysisResult := do
+    (selectedBehavior : CheckedScenario := behavior) : Option CaseAnalysisResult := do
   let properties ← checkedProperties? declarations
   let query := jointQuery properties budget selectedBehavior
   let kernel ← (IncrementalPlannerKernel.ofCheckedQuery query.target.id query).toOption
@@ -169,7 +169,7 @@ private def textSet (values : List String) : PropertyAtomConstraint :=
     (caseGuard := completedGuard)]).map (fun result => result.joint.status.name) ==
   some "unexercised"
 
-private def deadEndBehavior : CheckedBehavior := {
+private def deadEndBehavior : CheckedScenario := {
   behavior with
   actionsExactly := some [request, request]
   behaviorFingerprint := behaviorFingerprintOf "behavior/joint-dead-end-v1"
@@ -180,7 +180,7 @@ private def deadEndBehavior : CheckedBehavior := {
       result.joint.logicalConflicts.isEmpty, result.joint.modelIncompatibilities.isEmpty)) ==
   some ("unsatisfiable", "dead-end", true, true)
 
-private def unsatisfiableBehavior : CheckedBehavior := {
+private def unsatisfiableBehavior : CheckedScenario := {
   deadEndBehavior with
   spaceStatus := .unsatisfiable
   behaviorFingerprint := behaviorFingerprintOf "behavior/joint-unsatisfiable-v1"
@@ -198,7 +198,7 @@ private def unsatisfiableBehavior : CheckedBehavior := {
   some ("limit-reached", false, true)
 
 /-! Unsupported Boolean formula classes are explicit while bounded Property evaluation remains. -/
-private def withUnsupportedAny : PropertyDeclaration :=
+private def withUnsupportedAny : Property :=
   let base := declaration "unsupported" [.present]
   { base with clauses := base.clauses.map fun clause => match clause with
     | .sameStepCases group => .sameStepCases { group with cases := group.cases.map fun item =>
@@ -216,16 +216,16 @@ private def withUnsupportedAny : PropertyDeclaration :=
   some ("unsupported", ["any"], true)
 
 /-! Property declaration order cannot select a winner or change canonical joint evidence. -/
-private def leftDeclaration : PropertyDeclaration :=
+private def leftDeclaration : Property :=
   declaration "order-left" [textSet [completed.value, "left"]]
 
-private def rightDeclaration : PropertyDeclaration :=
+private def rightDeclaration : Property :=
   declaration "order-right" [textSet [completed.value, "right"]]
 
 #guard (analyze? [leftDeclaration, rightDeclaration]).map (fun result => result.joint) ==
   (analyze? [rightDeclaration, leftDeclaration]).map (fun result => result.joint)
 
-private def caseOrderDeclaration (reverse : Bool) : PropertyDeclaration :=
+private def caseOrderDeclaration (reverse : Bool) : Property :=
   let base := declaration "case-order" [.equals (.text completed.value)]
   { base with clauses := base.clauses.map fun clause => match clause with
     | .sameStepCases group =>

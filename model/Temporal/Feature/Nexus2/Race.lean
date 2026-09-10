@@ -262,7 +262,7 @@ def modelVocabulary : Except FiniteTableError ModelVocabulary := do
     startedSetup := ← model.setupValue .started
   }
 
-def operationRole : ResourceRole := { id := operationRoleId, valueKind := .state }
+def operationRole : Scenario.Role := { id := operationRoleId, valueKind := .state }
 
 def terminalResponsePropertyId : DefinitionId :=
   id "temporal.nexus2.cancellation-race.property.terminal-response"
@@ -271,7 +271,7 @@ def canceledResolutionPropertyId : DefinitionId :=
 def succeededResolutionPropertyId : DefinitionId :=
   id "temporal.nexus2.cancellation-race.property.succeeded-resolution"
 
-def terminalResponsePropertyDeclaration (model : ModelVocabulary) : PropertyDeclaration := {
+def terminalResponsePropertyDeclaration (model : ModelVocabulary) : Property := {
   id := terminalResponsePropertyId
   source
   requires := [capabilityId]
@@ -287,7 +287,7 @@ private def resolutionPropertyDeclaration
     (propertyId clauseId : DefinitionId)
     (model : ModelVocabulary)
     (outcome : ModelValue)
-    (documentation : String) : PropertyDeclaration := {
+    (documentation : String) : Property := {
   id := propertyId
   source
   requires := [capabilityId]
@@ -297,12 +297,12 @@ private def resolutionPropertyDeclaration
   documentation
 }
 
-def canceledResolutionPropertyDeclaration (model : ModelVocabulary) : PropertyDeclaration :=
+def canceledResolutionPropertyDeclaration (model : ModelVocabulary) : Property :=
   resolutionPropertyDeclaration canceledResolutionPropertyId
     (id "temporal.nexus2.cancellation-race.property.canceled-resolution.clause")
     model model.canceledOutcome "The abstract resolution may select the canceled outcome."
 
-def succeededResolutionPropertyDeclaration (model : ModelVocabulary) : PropertyDeclaration :=
+def succeededResolutionPropertyDeclaration (model : ModelVocabulary) : Property :=
   resolutionPropertyDeclaration succeededResolutionPropertyId
     (id "temporal.nexus2.cancellation-race.property.succeeded-resolution.clause")
     model model.succeededOutcome "The abstract resolution may select the succeeded outcome."
@@ -318,7 +318,7 @@ private def startedSetupConstraint (model : ModelVocabulary) : SetupConstraint :
   SetupConstraint.roleEquals setupConstraintId operationRoleId model.startedState
 
 /-- Select exactly request then abstract resolution; neither Action chooses the terminal outcome. -/
-def exactBehaviorDeclaration (model : ModelVocabulary) : BehaviorDeclaration := {
+def exactBehaviorDeclaration (model : ModelVocabulary) : Scenario := {
   id := id "temporal.nexus2.cancellation-race.behavior.request-then-resolve"
   source
   requires := [capabilityId]
@@ -330,15 +330,15 @@ def exactBehaviorDeclaration (model : ModelVocabulary) : BehaviorDeclaration := 
     { id := resolutionOccurrenceId, action := resolveActionId }
   ]
   occurrenceBounds := [
-    OccurrenceBound.exactly requestCancelActionId 1,
-    OccurrenceBound.exactly resolveActionId 1
+    Scenario.Count.exactly requestCancelActionId 1,
+    Scenario.Count.exactly resolveActionId 1
   ]
   ordering := [{ before := requestOccurrenceId, after := resolutionOccurrenceId }]
   actionsExactly := some [requestCancelActionId, resolveActionId]
   documentation := "Select one cancellation request followed by one abstract resolution."
 }
 
-private def requestOnlyBehaviorDeclaration (model : ModelVocabulary) : BehaviorDeclaration := {
+private def requestOnlyBehaviorDeclaration (model : ModelVocabulary) : Scenario := {
   id := id "temporal.nexus2.cancellation-race.behavior.request-only"
   source
   requires := [capabilityId]
@@ -346,12 +346,12 @@ private def requestOnlyBehaviorDeclaration (model : ModelVocabulary) : BehaviorD
   setup := [startedSetupConstraint model]
   allowedActions := [requestCancelActionId]
   requiredOccurrences := [{ id := requestOccurrenceId, action := requestCancelActionId }]
-  occurrenceBounds := [OccurrenceBound.exactly requestCancelActionId 1]
+  occurrenceBounds := [Scenario.Count.exactly requestCancelActionId 1]
   actionsExactly := some [requestCancelActionId]
   documentation := "Stop the finite trace after the nonterminal cancellation request."
 }
 
-private def noTriggerBehaviorDeclaration (model : ModelVocabulary) : BehaviorDeclaration := {
+private def noTriggerBehaviorDeclaration (model : ModelVocabulary) : Scenario := {
   id := id "temporal.nexus2.cancellation-race.behavior.no-trigger"
   source
   requires := [capabilityId]
@@ -361,7 +361,7 @@ private def noTriggerBehaviorDeclaration (model : ModelVocabulary) : BehaviorDec
   documentation := "Select the initial state without exercising the conditional request trigger."
 }
 
-private def unsatisfiableBehaviorDeclaration (model : ModelVocabulary) : BehaviorDeclaration := {
+private def unsatisfiableBehaviorDeclaration (model : ModelVocabulary) : Scenario := {
   exactBehaviorDeclaration model with
   id := id "temporal.nexus2.cancellation-race.behavior.unsatisfiable"
   setup := (exactBehaviorDeclaration model).setup ++ [{
@@ -377,14 +377,14 @@ inductive RaceAdmissionError where
   | invalidTarget (error : TableAdmissionError)
   | invalidVocabulary (error : FiniteTableError)
   | invalidProperty (error : PropertyError)
-  | invalidBehavior (error : BehaviorError)
+  | invalidBehavior (error : ScenarioError)
   | invalidQuery (error : QueryError)
   | invalidPlanner (error : FinitePlannerAdmissionError)
   | invalidKnownGap (error : KnownGapError)
 
 structure CheckedQuestion where
   property : CheckedProperty
-  behavior : CheckedBehavior
+  behavior : CheckedScenario
   query : CheckedQuery LawStatement
   run : PlannerRun
 
@@ -404,14 +404,14 @@ structure CheckedRace where
 private def checkQuestion
     (target : QueryModel LawStatement)
     (queryId : DefinitionId)
-    (propertyDeclaration : PropertyDeclaration)
-    (behaviorDeclaration : BehaviorDeclaration)
+    (authoredProperty : Property)
+    (authoredScenario : Scenario)
     (form : CheckedProperty → QueryForm)
     (policy : PlannerPolicy)
     (candidateBudget : Nat) : Except RaceAdmissionError CheckedQuestion := do
-  let property ← checkProperty (PropertyCheckContext.ofTarget target) (.portable propertyDeclaration)
+  let property ← Property.check (PropertyCheckContext.ofTarget target) (authoredProperty)
     |>.mapError RaceAdmissionError.invalidProperty
-  let behavior ← checkBehavior (.ofTarget target) behaviorDeclaration
+  let behavior ← Scenario.check (.ofTarget target) authoredScenario
     |>.mapError RaceAdmissionError.invalidBehavior
   let declaration : QueryDeclaration := {
     id := queryId

@@ -1,5 +1,5 @@
 import Umpire.Observation.Projection
-import Umpire.Property.Evaluation
+import Umpire.Property.Evaluate
 
 /-!
 The modeled-fields to declared-Observations coverage map.

@@ -160,7 +160,7 @@ Project one checked Property, Behavior, Query, and optional planned Artifact int
 def candidateOf
     {LawStatement : Law → Prop}
     (property : CheckedProperty)
-    (behavior : CheckedBehavior)
+    (behavior : CheckedScenario)
     (query : CheckedQuery LawStatement)
     (plan : Option ExperimentSpec) : NexusDiscoveryCandidate := {
   property := declaration .property property.id property.source property.behaviorFingerprint

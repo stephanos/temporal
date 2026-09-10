@@ -1,17 +1,17 @@
-import Umpire.Behavior.Tests.Fixtures
+import Umpire.Scenario.Tests.Fixtures
 import Umpire.Shared.DefinitionGraph
 
 /-! Authoring errors, unsatisfiability, schedule contradictions, and occurrence guards. -/
 
-namespace Umpire.BehaviorTests
+namespace Umpire.ScenarioTests
 
 open Umpire
 
-def actualErrorKind : Except BehaviorError CheckedBehavior → Option BehaviorErrorKind
+def actualErrorKind : Except ScenarioError CheckedScenario → Option ScenarioErrorKind
   | .ok _ => none
   | .error error => some error.kind
 
-def cyclicDeclaration : BehaviorDeclaration := {
+def cyclicDeclaration : Scenario := {
   constrainedDeclaration with
   ordering := [
     { before := closeOccurrence.id, after := cancelOccurrence.id },
@@ -102,12 +102,12 @@ example : (DefinitionGraph.analyze denseNodes denseCycleEdges).cycleEvidence.map
     (fun evidence => evidence.canonicalWitness) = some (denseNode 0) := by
   native_decide
 
-def graphOccurrence (occurrenceId : DefinitionId) : NamedOccurrence := {
+def graphOccurrence (occurrenceId : DefinitionId) : Scenario.Step := {
   id := occurrenceId
   action := requestCancel
 }
 
-def divergentCycleDeclaration : BehaviorDeclaration := {
+def divergentCycleDeclaration : Scenario := {
   id := id "test.behavior.divergent-cycle"
   source
   allowedActions := [requestCancel]
@@ -123,7 +123,7 @@ def divergentCycleDeclaration : BehaviorDeclaration := {
   }
 }
 
-def mixedGraphAndBindingFaultDeclaration : BehaviorDeclaration := {
+def mixedGraphAndBindingFaultDeclaration : Scenario := {
   divergentCycleDeclaration with
   setup := [{
     id := id "test.setup.missing-role"
@@ -133,7 +133,7 @@ def mixedGraphAndBindingFaultDeclaration : BehaviorDeclaration := {
   }]
 }
 
-def multipleGraphFaultDeclaration : BehaviorDeclaration := {
+def multipleGraphFaultDeclaration : Scenario := {
   constrainedDeclaration with
   ordering := [
     { before := closeOccurrence.id, after := closeOccurrence.id },
@@ -144,23 +144,23 @@ def multipleGraphFaultDeclaration : BehaviorDeclaration := {
   ]
 }
 
-def errorJson (result : Except BehaviorError CheckedBehavior) : Option String :=
+def errorJson (result : Except ScenarioError CheckedScenario) : Option String :=
   match result with
   | .ok _ => none
-  | .error failure => some (canonicalBehaviorErrorJson failure)
+  | .error failure => some (canonicalScenarioErrorJson failure)
 
 example : (
-    errorJson (checkBehavior context mixedGraphAndBindingFaultDeclaration),
-    errorJson (checkBehavior context multipleGraphFaultDeclaration),
-    errorJson (checkBehavior context divergentCycleDeclaration)
+    errorJson (Scenario.check context mixedGraphAndBindingFaultDeclaration),
+    errorJson (Scenario.check context multipleGraphFaultDeclaration),
+    errorJson (Scenario.check context divergentCycleDeclaration)
   ) = (
-    some "{\"kind\":\"invalid-binding\",\"definitionId\":\"test.behavior.divergent-cycle\",\"sourcePath\":\"Umpire/Behavior/Tests.lean\",\"offendingValue\":\"test.role.missing\",\"relatedDefinitionIds\":[\"test.role.missing\"]}",
-    some "{\"kind\":\"duplicate-ordering\",\"definitionId\":\"test.behavior.constrained\",\"sourcePath\":\"Umpire/Behavior/Tests.lean\",\"offendingValue\":\"test.occurrence.cancel->test.occurrence.close\",\"relatedDefinitionIds\":[\"test.occurrence.cancel\",\"test.occurrence.close\"]}",
-    some "{\"kind\":\"cyclic-ordering\",\"definitionId\":\"test.behavior.divergent-cycle\",\"sourcePath\":\"Umpire/Behavior/Tests.lean\",\"offendingValue\":\"test.occurrence.c-cycle\",\"relatedDefinitionIds\":[\"test.occurrence.c-cycle\"]}"
+    some "{\"kind\":\"invalid-binding\",\"definitionId\":\"test.behavior.divergent-cycle\",\"sourcePath\":\"Umpire/Scenario/Tests.lean\",\"offendingValue\":\"test.role.missing\",\"relatedDefinitionIds\":[\"test.role.missing\"]}",
+    some "{\"kind\":\"duplicate-ordering\",\"definitionId\":\"test.behavior.constrained\",\"sourcePath\":\"Umpire/Scenario/Tests.lean\",\"offendingValue\":\"test.occurrence.cancel->test.occurrence.close\",\"relatedDefinitionIds\":[\"test.occurrence.cancel\",\"test.occurrence.close\"]}",
+    some "{\"kind\":\"cyclic-ordering\",\"definitionId\":\"test.behavior.divergent-cycle\",\"sourcePath\":\"Umpire/Scenario/Tests.lean\",\"offendingValue\":\"test.occurrence.c-cycle\",\"relatedDefinitionIds\":[\"test.occurrence.c-cycle\"]}"
   ) := by
   native_decide
 
-def invalidBindingDeclaration : BehaviorDeclaration := {
+def invalidBindingDeclaration : Scenario := {
   constrainedDeclaration with
   setup := [{
     id := id "test.setup.missing-role"
@@ -170,18 +170,18 @@ def invalidBindingDeclaration : BehaviorDeclaration := {
   }]
 }
 
-def contradictoryCountDeclaration : BehaviorDeclaration := {
+def contradictoryCountDeclaration : Scenario := {
   constrainedDeclaration with
   occurrenceBounds := [{ action := requestCancel, minimum := 2, maximum := some 1 }]
 }
 
-def forbiddenRequiredDeclaration : BehaviorDeclaration := {
+def forbiddenRequiredDeclaration : Scenario := {
   constrainedDeclaration with
   allowedActions := [callerClose, tick]
   forbiddenActions := [requestCancel]
 }
 
-def incompleteExactDeclaration : BehaviorDeclaration := {
+def incompleteExactDeclaration : Scenario := {
   constrainedDeclaration with
   traceExactly := some {
     exactWitness with
@@ -190,11 +190,11 @@ def incompleteExactDeclaration : BehaviorDeclaration := {
 }
 
 example : [
-    actualErrorKind (checkBehavior context cyclicDeclaration),
-    actualErrorKind (checkBehavior context invalidBindingDeclaration),
-    actualErrorKind (checkBehavior context contradictoryCountDeclaration),
-    actualErrorKind (checkBehavior context forbiddenRequiredDeclaration),
-    actualErrorKind (checkBehavior context incompleteExactDeclaration)
+    actualErrorKind (Scenario.check context cyclicDeclaration),
+    actualErrorKind (Scenario.check context invalidBindingDeclaration),
+    actualErrorKind (Scenario.check context contradictoryCountDeclaration),
+    actualErrorKind (Scenario.check context forbiddenRequiredDeclaration),
+    actualErrorKind (Scenario.check context incompleteExactDeclaration)
   ] = [
     some .cyclicOrdering,
     some .invalidBinding,
@@ -204,10 +204,10 @@ example : [
   ] := by
   native_decide
 
-def canonicalError (declaration : BehaviorDeclaration) : Option String :=
-  match checkBehavior context declaration with
+def canonicalError (declaration : Scenario) : Option String :=
+  match Scenario.check context declaration with
   | .ok _ => none
-  | .error error => some (canonicalBehaviorErrorJson error)
+  | .error error => some (canonicalScenarioErrorJson error)
 
 example : canonicalError cyclicDeclaration = canonicalError {
     cyclicDeclaration with ordering := cyclicDeclaration.ordering.reverse
@@ -215,7 +215,7 @@ example : canonicalError cyclicDeclaration = canonicalError {
   native_decide
 
 /-- An empty semantic space is a checked result, distinct from invalid authoring. -/
-def unsatisfiableDeclaration : BehaviorDeclaration := {
+def unsatisfiableDeclaration : Scenario := {
   constrainedDeclaration with
   setup := [{
     id := id "test.setup.impossible"
@@ -225,13 +225,13 @@ def unsatisfiableDeclaration : BehaviorDeclaration := {
   }]
 }
 
-example : (checkBehavior context unsatisfiableDeclaration).toOption.map
-    CheckedBehavior.isUnsatisfiable = some true := by
+example : (Scenario.check context unsatisfiableDeclaration).toOption.map
+    CheckedScenario.isUnsatisfiable = some true := by
   native_decide
 
 example : !checkedAdmits unsatisfiableDeclaration acceptedTrace := by native_decide
 
-def pairedSetupConflict : BehaviorDeclaration := {
+def pairedSetupConflict : Scenario := {
   constrainedDeclaration with
   setup := [
     setupEqualsA,
@@ -244,11 +244,11 @@ def pairedSetupConflict : BehaviorDeclaration := {
   ]
 }
 
-example : (checkBehavior context pairedSetupConflict).toOption.map
-    CheckedBehavior.isUnsatisfiable = some true := by
+example : (Scenario.check context pairedSetupConflict).toOption.map
+    CheckedScenario.isUnsatisfiable = some true := by
   native_decide
 
-def exactSequenceConflict : BehaviorDeclaration := {
+def exactSequenceConflict : Scenario := {
   id := id "test.behavior.exact-sequence-conflict"
   source
   roles := [operationRole]
@@ -256,13 +256,13 @@ def exactSequenceConflict : BehaviorDeclaration := {
   sequences := [[callerClose]]
 }
 
-def exactAdjacencyConflict : BehaviorDeclaration := {
+def exactAdjacencyConflict : Scenario := {
   exactSequenceConflict with
   sequences := []
   adjacencies := [[requestCancel, callerClose]]
 }
 
-def exactOrderingConflict : BehaviorDeclaration := {
+def exactOrderingConflict : Scenario := {
   exactSequenceConflict with
   requiredOccurrences := [cancelOccurrence, closeOccurrence]
   ordering := [{ before := cancelOccurrence.id, after := closeOccurrence.id }]
@@ -270,7 +270,7 @@ def exactOrderingConflict : BehaviorDeclaration := {
   sequences := []
 }
 
-def exactTraceSequenceConflict : BehaviorDeclaration := {
+def exactTraceSequenceConflict : Scenario := {
   constrainedDeclaration with
   traceExactly := some exactWitness
   sequences := [[callerClose, requestCancel]]
@@ -278,26 +278,26 @@ def exactTraceSequenceConflict : BehaviorDeclaration := {
 
 /-! Mechanically contradictory exact schedules and traces fail during Behavior checking. -/
 example : [
-    actualErrorKind (checkBehavior context exactSequenceConflict),
-    actualErrorKind (checkBehavior context exactAdjacencyConflict),
-    actualErrorKind (checkBehavior context exactOrderingConflict),
-    actualErrorKind (checkBehavior context exactTraceSequenceConflict)
+    actualErrorKind (Scenario.check context exactSequenceConflict),
+    actualErrorKind (Scenario.check context exactAdjacencyConflict),
+    actualErrorKind (Scenario.check context exactOrderingConflict),
+    actualErrorKind (Scenario.check context exactTraceSequenceConflict)
   ] = List.replicate 4 (some .contradictoryConstraint) := by
   native_decide
 
-def manyCancelOccurrences : List NamedOccurrence :=
+def manyCancelOccurrences : List Scenario.Step :=
   (List.range 15).map fun index => {
     id := id ("test.occurrence.cancel-" ++ toString index)
     action := requestCancel
   }
 
-def countDeficitDeclaration : BehaviorDeclaration := {
+def countDeficitDeclaration : Scenario := {
   constrainedDeclaration with requiredOccurrences := manyCancelOccurrences
 }
 
 /-- The checked authoring bound fails closed before occurrence-state exploration can explode. -/
-example : actualErrorKind (checkBehavior context countDeficitDeclaration) =
+example : actualErrorKind (Scenario.check context countDeficitDeclaration) =
     some .occurrenceLimitExceeded := by
   native_decide
 
-end Umpire.BehaviorTests
+end Umpire.ScenarioTests

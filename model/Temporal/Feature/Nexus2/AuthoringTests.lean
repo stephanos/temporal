@@ -22,14 +22,14 @@ private def frontendBaselineContext : PropertyCheckContext := {
 private def frontendBaselineModel : Cancellation.ModelVocabulary :=
   Cancellation.modelVocabulary.toOption.get (by decide)
 
-private def frontendStartSpec : PropertySpec :=
-  Authoring.Baseline.propertySpec "start" frontendBaselineModel.startAction
+private def frontendStartSpec : Property :=
+  Authoring.Baseline.authoredProperty "start" frontendBaselineModel.startAction
     frontendBaselineModel.startedState frontendBaselineModel.startedOutcome
     frontendBaselineModel.startedFact
 
 def frontendStartProperty : Except PropertyError CheckedProperty :=
   property% frontendStartSpec against frontendBaselineContext
-    tracking [parentAnchor frontendStartSpec.declaration.id]
+    tracking [parentAnchor frontendStartSpec.id]
 
 private def frontendStartEquivalence : Bool :=
   match frontendStartProperty, Authoring.Baseline.checkBaseline with
@@ -54,7 +54,7 @@ private def frontendRaceModel : Race.ModelVocabulary :=
   Race.modelVocabulary.toOption.get (by decide)
 
 def frontendGuardedProperty : Except PropertyError CheckedProperty :=
-  property% Authoring.GuardedRace.propertySpec frontendRaceModel against frontendRaceContext
+  property% Authoring.GuardedRace.authoredProperty frontendRaceModel against frontendRaceContext
     tracking [
       parentAnchor (Authoring.GuardedRace.family.id "property" "cases"),
       clauseAnchor (Authoring.GuardedRace.family.id "case-group" "lifecycle"),
@@ -67,7 +67,7 @@ def frontendGuardedProperty : Except PropertyError CheckedProperty :=
 
 private def frontendGuardedEquivalence : Bool :=
   match frontendGuardedProperty,
-      (Authoring.GuardedRace.propertySpec frontendRaceModel).check frontendRaceContext with
+      (Authoring.GuardedRace.authoredProperty frontendRaceModel).check frontendRaceContext with
   | .ok frontend, .ok constructor =>
       frontend.id == constructor.id && frontend.clauses == constructor.clauses &&
         frontend.behaviorFingerprint == constructor.behaviorFingerprint
@@ -109,12 +109,12 @@ private def constructorRunNames : Option (String × String × String) := do
 
 #guard constructorRunNames == some ("found", "found", "found")
 
-private def guardedAdmission : Option (CheckedProperty × CheckedBehavior × CheckedQuery Race.LawStatement) := do
+private def guardedAdmission : Option (CheckedProperty × CheckedScenario × CheckedQuery Race.LawStatement) := do
   let target ← Race.targetResult.toOption
   let model ← Race.modelVocabulary.toOption
-  let property ← (Authoring.GuardedRace.propertySpec model).check
+  let property ← (Authoring.GuardedRace.authoredProperty model).check
     (PropertyCheckContext.ofTarget target) |>.toOption
-  let behavior ← (Authoring.GuardedRace.behaviorSpec model).check (.ofTarget target) |>.toOption
+  let behavior ← (Authoring.GuardedRace.authoredScenario model).check (.ofTarget target) |>.toOption
   let query ← (Authoring.GuardedRace.querySpec property behavior).check target |>.toOption
   pure (property, behavior, query)
 
@@ -123,8 +123,8 @@ private def guardedAdmission : Option (CheckedProperty × CheckedBehavior × Che
 private def guardedBehaviorEquivalence : Option Bool := do
   let target ← Race.targetResult.toOption
   let model ← Race.modelVocabulary.toOption
-  let authored ← (Authoring.GuardedRace.behaviorSpec model).check (.ofTarget target) |>.toOption
-  let established ← checkBehavior (.ofTarget target) (Race.exactBehaviorDeclaration model) |>.toOption
+  let authored ← (Authoring.GuardedRace.authoredScenario model).check (.ofTarget target) |>.toOption
+  let established ← Scenario.check (.ofTarget target) (Race.exactBehaviorDeclaration model) |>.toOption
   pure (authored.id == established.id &&
     authored.requiredOccurrences == established.requiredOccurrences &&
     authored.actionsExactly == established.actionsExactly &&
@@ -145,7 +145,7 @@ private def inspectedGuardedSurface : Option
     (DefinitionId × List DefinitionId × List DefinitionId × QueryForm × QueryLimits × PlannerPolicy) := do
   let (property, behavior, query) ← guardedAdmission
   pure (property.id, property.guardedClauseIds,
-    behavior.requiredOccurrences.map NamedOccurrence.id, query.form, query.limits, query.policy)
+    behavior.requiredOccurrences.map Scenario.Step.id, query.form, query.limits, query.policy)
 
 #guard inspectedGuardedSurface.map (fun (propertyId, clauses, occurrences, form, limits, policy) =>
   propertyId == Authoring.GuardedRace.family.id "property" "cases" &&
@@ -157,15 +157,14 @@ private def inspectedGuardedSurface : Option
     (match form with | .select [_] => true | _ => false) &&
     limits == QueryLimits.bounded 2 2 32 && policy == PlannerPolicy.exhaustive) == some true
 
-private def propertyErrorKind (spec : PropertySpec) : Option PropertyErrorKind := do
+private def propertyErrorKind (spec : Property) : Option PropertyErrorKind := do
   let target ← Race.targetResult.toOption
   match spec.check (PropertyCheckContext.ofTarget target) with
   | .error error => some error.kind
   | .ok _ => none
 
-private def malformedProperty : PropertySpec := {
-  family := { root := DefinitionId.of "temporal.nexus2." }
-  key := "malformed"
+private def malformedProperty : Property := {
+  id := (DefinitionFamily.mk (DefinitionId.of "temporal.nexus2.")).id "property" "malformed"
   source := Race.source
   requires := []
   clauses := []
@@ -173,13 +172,12 @@ private def malformedProperty : PropertySpec := {
 
 #guard propertyErrorKind malformedProperty == some .invalidDefinitionId
 
-private def duplicateClauseProperty (model : Race.ModelVocabulary) : PropertySpec :=
+private def duplicateClauseProperty (model : Race.ModelVocabulary) : Property :=
   let clause := PropertyClause.transitionContract
     (Authoring.GuardedRace.family.id "property" "duplicate.clause")
     (.selectedAction model.resolveAction) (.modelOutcome model.canceledOutcome)
   {
-    family := Authoring.GuardedRace.family
-    key := "duplicate"
+    id := (Authoring.GuardedRace.family).id "property" "duplicate"
     source := Race.source
     requires := [Race.capabilityId]
     clauses := [clause, clause]
@@ -188,9 +186,8 @@ private def duplicateClauseProperty (model : Race.ModelVocabulary) : PropertySpe
 #guard Race.modelVocabulary.toOption.bind (fun model =>
   propertyErrorKind (duplicateClauseProperty model)) == some .duplicateDefinitionId
 
-private def unknownReferenceProperty (model : Race.ModelVocabulary) : PropertySpec := {
-  family := Authoring.GuardedRace.family
-  key := "unknown-reference"
+private def unknownReferenceProperty (model : Race.ModelVocabulary) : Property := {
+  id := (Authoring.GuardedRace.family).id "property" "unknown-reference"
   source := Race.source
   requires := [Race.capabilityId]
   clauses := [.transitionContract
@@ -213,9 +210,8 @@ private def unknownReferenceDiagnostic : Option (PropertyErrorKind × List Defin
 #guard unknownReferenceDiagnostic == some (
   .unknownReference, [DefinitionId.of "temporal.nexus2.unknown.action"])
 
-private def missingCapabilityProperty (model : Race.ModelVocabulary) : PropertySpec := {
-  family := Authoring.GuardedRace.family
-  key := "missing-capability"
+private def missingCapabilityProperty (model : Race.ModelVocabulary) : Property := {
+  id := (Authoring.GuardedRace.family).id "property" "missing-capability"
   source := Race.source
   requires := []
   clauses := [.transitionContract
@@ -226,9 +222,8 @@ private def missingCapabilityProperty (model : Race.ModelVocabulary) : PropertyS
 #guard Race.modelVocabulary.toOption.bind (fun model =>
   propertyErrorKind (missingCapabilityProperty model)) == some .undeclaredReference
 
-private def unsupportedGuardProperty (model : Race.ModelVocabulary) : PropertySpec := {
-  family := Authoring.GuardedRace.family
-  key := "unsupported-guard"
+private def unsupportedGuardProperty (model : Race.ModelVocabulary) : Property := {
+  id := (Authoring.GuardedRace.family).id "property" "unsupported-guard"
   source := Race.source
   version := 2
   requires := [Race.capabilityId]
@@ -243,9 +238,8 @@ private def unsupportedGuardProperty (model : Race.ModelVocabulary) : PropertySp
 #guard Race.modelVocabulary.toOption.bind (fun model =>
   propertyErrorKind (unsupportedGuardProperty model)) == some .invalidPredicateContext
 
-private def emptyGroupProperty : PropertySpec := {
-  family := Authoring.GuardedRace.family
-  key := "empty-group"
+private def emptyGroupProperty : Property := {
+  id := (Authoring.GuardedRace.family).id "property" "empty-group"
   source := Race.source
   version := 2
   requires := [Race.capabilityId]
@@ -257,9 +251,8 @@ private def emptyGroupProperty : PropertySpec := {
   }]
 }
 
-private def emptyBooleanProperty : PropertySpec := {
-  family := Authoring.GuardedRace.family
-  key := "empty-boolean"
+private def emptyBooleanProperty : Property := {
+  id := (Authoring.GuardedRace.family).id "property" "empty-boolean"
   source := Race.source
   version := 2
   requires := [Race.capabilityId]
@@ -271,9 +264,8 @@ private def emptyBooleanProperty : PropertySpec := {
   }]
 }
 
-private def invalidUnitProperty : PropertySpec := {
-  family := Authoring.GuardedRace.family
-  key := "invalid-unit"
+private def invalidUnitProperty : Property := {
+  id := (Authoring.GuardedRace.family).id "property" "invalid-unit"
   source := Race.source
   requires := [Race.capabilityId]
   clauses := [.eventuallyWithin
@@ -282,9 +274,8 @@ private def invalidUnitProperty : PropertySpec := {
     (.exact { value := 1, unit := .candidateEvaluations })]
 }
 
-private def wrongKindProperty : PropertySpec := {
-  family := Authoring.GuardedRace.family
-  key := "wrong-kind"
+private def wrongKindProperty : Property := {
+  id := (Authoring.GuardedRace.family).id "property" "wrong-kind"
   source := Race.source
   requires := [Race.capabilityId]
   clauses := [.transitionContract
@@ -292,9 +283,9 @@ private def wrongKindProperty : PropertySpec := {
     (.selectedAction frontendRaceModel.startedState) (.modelOutcome frontendRaceModel.canceledOutcome)]
 }
 
-private def invalidExceptionProperty : PropertySpec :=
+private def invalidExceptionProperty : Property :=
   let request := Authoring.GuardedRace.requestCase frontendRaceModel
-  { Authoring.GuardedRace.propertySpec frontendRaceModel with clauses := [.sameStepCases {
+  { Authoring.GuardedRace.authoredProperty frontendRaceModel with clauses := [.sameStepCases {
       id := Authoring.GuardedRace.family.id "case-group" "invalid-exception"
       source := Race.source
       guard := .selectedActionIs frontendRaceModel.requestCancelAction
@@ -309,82 +300,82 @@ private def missingProviderContext : PropertyCheckContext :=
   { frontendRaceContext with providers := [] }
 
 /--
-error: property authoring failed: {"error":{"kind":"invalid-definition-id","definitionId":"temporal.nexus2..property.malformed","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2..property.malformed","relatedDefinitionIds":["temporal.nexus2..property.malformed"]},"role":"parent","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":316,"column":15,"endLine":316,"endColumn":47}}
+error: property authoring failed: {"error":{"kind":"invalid-definition-id","definitionId":"temporal.nexus2..property.malformed","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2..property.malformed","relatedDefinitionIds":["temporal.nexus2..property.malformed"]},"role":"parent","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":307,"column":15,"endLine":307,"endColumn":35}}
 -/
 #guard_msgs (error) in
 #check property% malformedProperty against frontendRaceContext tracking [
-  parentAnchor malformedProperty.declaration.id]
+  parentAnchor malformedProperty.id]
 
 /--
-error: property authoring failed: {"error":{"kind":"duplicate-definition-id","definitionId":"temporal.nexus2.cancellation-race.property.duplicate","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.cancellation-race.property.duplicate.clause","relatedDefinitionIds":["temporal.nexus2.cancellation-race.property.duplicate.clause"]},"role":"clause","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":325,"column":15,"endLine":325,"endColumn":78}}
+error: property authoring failed: {"error":{"kind":"duplicate-definition-id","definitionId":"temporal.nexus2.cancellation-race.property.duplicate","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.cancellation-race.property.duplicate.clause","relatedDefinitionIds":["temporal.nexus2.cancellation-race.property.duplicate.clause"]},"role":"clause","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":316,"column":15,"endLine":316,"endColumn":78}}
 -/
 #guard_msgs (error) in
 #check property% duplicateClauseProperty frontendRaceModel against frontendRaceContext tracking [
-  parentAnchor (duplicateClauseProperty frontendRaceModel).declaration.id,
+  parentAnchor (duplicateClauseProperty frontendRaceModel).id,
   clauseAnchor (Authoring.GuardedRace.family.id "property" "duplicate.clause"),
   clauseAnchor (Authoring.GuardedRace.family.id "property" "duplicate.clause")]
 
 /--
-error: property authoring failed: {"error":{"kind":"unknown-reference","definitionId":"temporal.nexus2.cancellation-race.property.unknown-reference","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.unknown.action","relatedDefinitionIds":["temporal.nexus2.unknown.action"]},"role":"clause","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":333,"column":15,"endLine":333,"endColumn":65}}
+error: property authoring failed: {"error":{"kind":"unknown-reference","definitionId":"temporal.nexus2.cancellation-race.property.unknown-reference","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.unknown.action","relatedDefinitionIds":["temporal.nexus2.unknown.action"]},"role":"clause","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":324,"column":15,"endLine":324,"endColumn":65}}
 -/
 #guard_msgs (error) in
 #check property% unknownReferenceProperty frontendRaceModel against frontendRaceContext tracking [
-  parentAnchor (unknownReferenceProperty frontendRaceModel).declaration.id,
+  parentAnchor (unknownReferenceProperty frontendRaceModel).id,
   clauseAnchor (DefinitionId.of "temporal.nexus2.unknown.action")]
 
 /--
-error: property authoring failed: {"error":{"kind":"missing-capability","definitionId":"temporal.nexus2.cancellation-race.property.cases","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.cancellation-race.capability","relatedDefinitionIds":["temporal.nexus2.cancellation-race.capability"]},"role":"parent","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":340,"column":15,"endLine":340,"endColumn":32}}
+error: property authoring failed: {"error":{"kind":"missing-capability","definitionId":"temporal.nexus2.cancellation-race.property.cases","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.cancellation-race.capability","relatedDefinitionIds":["temporal.nexus2.cancellation-race.capability"]},"role":"parent","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":331,"column":15,"endLine":331,"endColumn":32}}
 -/
 #guard_msgs (error) in
-#check property% Authoring.GuardedRace.propertySpec frontendRaceModel against missingProviderContext tracking [
+#check property% Authoring.GuardedRace.authoredProperty frontendRaceModel against missingProviderContext tracking [
   parentAnchor Race.capabilityId]
 
 /--
-error: property authoring failed: {"error":{"kind":"invalid-predicate-context","definitionId":"temporal.nexus2.cancellation-race.property.unsupported-guard","sourcePath":"Temporal/Feature/Nexus2/Race.lean","source":{"path":"Temporal/Feature/Nexus2/Race.lean","line":1,"column":1,"provenance":"lean-model"},"offendingValue":"guard: resulting-state","relatedDefinitionIds":["temporal.nexus2.cancellation-race.state.operation"]},"role":"case","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":348,"column":13,"endLine":348,"endColumn":64}}
+error: property authoring failed: {"error":{"kind":"invalid-predicate-context","definitionId":"temporal.nexus2.cancellation-race.property.unsupported-guard","sourcePath":"Temporal/Feature/Nexus2/Race.lean","source":{"path":"Temporal/Feature/Nexus2/Race.lean","line":1,"column":1,"provenance":"lean-model"},"offendingValue":"guard: resulting-state","relatedDefinitionIds":["temporal.nexus2.cancellation-race.state.operation"]},"role":"case","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":339,"column":13,"endLine":339,"endColumn":64}}
 -/
 #guard_msgs (error) in
 #check property% unsupportedGuardProperty frontendRaceModel against frontendRaceContext tracking [
-  parentAnchor (unsupportedGuardProperty frontendRaceModel).declaration.id,
+  parentAnchor (unsupportedGuardProperty frontendRaceModel).id,
   caseAnchor frontendRaceModel.cancelRequestedState.definitionId]
 
 /--
-error: property authoring failed: {"error":{"kind":"empty-case-group","definitionId":"temporal.nexus2.cancellation-race.property.empty-group","sourcePath":"Temporal/Feature/Nexus2/Race.lean","source":{"path":"Temporal/Feature/Nexus2/Race.lean","line":1,"column":1,"provenance":"lean-model"},"offendingValue":"temporal.nexus2.cancellation-race.case-group.empty","relatedDefinitionIds":["temporal.nexus2.cancellation-race.case-group.empty"]},"role":"clause","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":356,"column":15,"endLine":356,"endColumn":69}}
+error: property authoring failed: {"error":{"kind":"empty-case-group","definitionId":"temporal.nexus2.cancellation-race.property.empty-group","sourcePath":"Temporal/Feature/Nexus2/Race.lean","source":{"path":"Temporal/Feature/Nexus2/Race.lean","line":1,"column":1,"provenance":"lean-model"},"offendingValue":"temporal.nexus2.cancellation-race.case-group.empty","relatedDefinitionIds":["temporal.nexus2.cancellation-race.case-group.empty"]},"role":"clause","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":347,"column":15,"endLine":347,"endColumn":69}}
 -/
 #guard_msgs (error) in
 #check property% emptyGroupProperty against frontendRaceContext tracking [
-  parentAnchor emptyGroupProperty.declaration.id,
+  parentAnchor emptyGroupProperty.id,
   clauseAnchor (Authoring.GuardedRace.family.id "case-group" "empty")]
 
 /--
-error: property authoring failed: {"error":{"kind":"empty-boolean-group","definitionId":"temporal.nexus2.cancellation-race.property.empty-boolean","sourcePath":"Temporal/Feature/Nexus2/Race.lean","source":{"path":"Temporal/Feature/Nexus2/Race.lean","line":1,"column":1,"provenance":"lean-model"},"offendingValue":"all","relatedDefinitionIds":[]},"role":"parent","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":363,"column":15,"endLine":363,"endColumn":50}}
+error: property authoring failed: {"error":{"kind":"empty-boolean-group","definitionId":"temporal.nexus2.cancellation-race.property.empty-boolean","sourcePath":"Temporal/Feature/Nexus2/Race.lean","source":{"path":"Temporal/Feature/Nexus2/Race.lean","line":1,"column":1,"provenance":"lean-model"},"offendingValue":"all","relatedDefinitionIds":[]},"role":"parent","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":354,"column":15,"endLine":354,"endColumn":38}}
 -/
 #guard_msgs (error) in
 #check property% emptyBooleanProperty against frontendRaceContext tracking [
-  parentAnchor emptyBooleanProperty.declaration.id,
+  parentAnchor emptyBooleanProperty.id,
   clauseAnchor (Authoring.GuardedRace.family.id "case-group" "empty-boolean")]
 
 /--
-error: property authoring failed: {"error":{"kind":"unit-mismatch","definitionId":"temporal.nexus2.cancellation-race.property.invalid-unit","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"candidate-evaluations is not a Property position unit","relatedDefinitionIds":["temporal.nexus2.cancellation-race.action.resolve","temporal.nexus2.cancellation-race.fact.terminal"]},"role":"parent","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":371,"column":15,"endLine":371,"endColumn":49}}
+error: property authoring failed: {"error":{"kind":"unit-mismatch","definitionId":"temporal.nexus2.cancellation-race.property.invalid-unit","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"candidate-evaluations is not a Property position unit","relatedDefinitionIds":["temporal.nexus2.cancellation-race.action.resolve","temporal.nexus2.cancellation-race.fact.terminal"]},"role":"parent","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":362,"column":15,"endLine":362,"endColumn":37}}
 -/
 #guard_msgs (error) in
 #check property% invalidUnitProperty against frontendRaceContext tracking [
-  parentAnchor invalidUnitProperty.declaration.id,
+  parentAnchor invalidUnitProperty.id,
   clauseAnchor (Authoring.GuardedRace.family.id "property" "invalid-unit.clause")]
 
 /--
-error: property authoring failed: {"error":{"kind":"wrong-reference-kind","definitionId":"temporal.nexus2.cancellation-race.property.wrong-kind","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.cancellation-race.state.operation: expected action, found state","relatedDefinitionIds":["temporal.nexus2.cancellation-race.state.operation"]},"role":"clause","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":380,"column":15,"endLine":380,"endColumn":58}}
+error: property authoring failed: {"error":{"kind":"wrong-reference-kind","definitionId":"temporal.nexus2.cancellation-race.property.wrong-kind","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.cancellation-race.state.operation: expected action, found state","relatedDefinitionIds":["temporal.nexus2.cancellation-race.state.operation"]},"role":"clause","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":371,"column":15,"endLine":371,"endColumn":58}}
 -/
 #guard_msgs (error) in
 #check property% wrongKindProperty against frontendRaceContext tracking [
-  parentAnchor wrongKindProperty.declaration.id,
+  parentAnchor wrongKindProperty.id,
   clauseAnchor frontendRaceModel.startedState.definitionId]
 
 /--
-error: property authoring failed: {"error":{"kind":"invalid-predicate-context","definitionId":"temporal.nexus2.cancellation-race.property.cases","sourcePath":"Temporal/Feature/Nexus2/Race.lean","source":{"path":"Temporal/Feature/Nexus2/Race.lean","line":1,"column":1,"provenance":"lean-model"},"offendingValue":"guard: resulting-state","relatedDefinitionIds":["temporal.nexus2.cancellation-race.state.operation"]},"role":"exception","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":389,"column":18,"endLine":389,"endColumn":69}}
+error: property authoring failed: {"error":{"kind":"invalid-predicate-context","definitionId":"temporal.nexus2.cancellation-race.property.cases","sourcePath":"Temporal/Feature/Nexus2/Race.lean","source":{"path":"Temporal/Feature/Nexus2/Race.lean","line":1,"column":1,"provenance":"lean-model"},"offendingValue":"guard: resulting-state","relatedDefinitionIds":["temporal.nexus2.cancellation-race.state.operation"]},"role":"exception","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":380,"column":18,"endLine":380,"endColumn":69}}
 -/
 #guard_msgs (error) in
 #check property% invalidExceptionProperty against frontendRaceContext tracking [
-  parentAnchor invalidExceptionProperty.declaration.id,
+  parentAnchor invalidExceptionProperty.id,
   caseAnchor (Authoring.GuardedRace.family.id "case" "request"),
   exceptionAnchor frontendRaceModel.cancelRequestedState.definitionId]
 
@@ -393,11 +384,11 @@ error: expected parentAnchor, caseAnchor, exceptionAnchor, or clauseAnchor
 -/
 #guard_msgs (error) in
 #check property% malformedProperty against frontendRaceContext tracking [
-  unsupportedOperator malformedProperty.declaration.id]
+  unsupportedOperator malformedProperty.id]
 
-private def emptyCaseProperty (model : Race.ModelVocabulary) : PropertySpec :=
+private def emptyCaseProperty (model : Race.ModelVocabulary) : Property :=
   let request := Authoring.GuardedRace.requestCase model
-  { Authoring.GuardedRace.propertySpec model with clauses := [.sameStepCases {
+  { Authoring.GuardedRace.authoredProperty model with clauses := [.sameStepCases {
       id := Authoring.GuardedRace.family.id "case-group" "empty-case"
       source := Race.source
       guard := .selectedActionIs model.requestCancelAction
@@ -409,36 +400,35 @@ private def emptyCaseProperty (model : Race.ModelVocabulary) : PropertySpec :=
     }] }
 
 /--
-error: property authoring failed: {"error":{"kind":"empty-case","definitionId":"temporal.nexus2.cancellation-race.property.cases","sourcePath":"Temporal/Feature/Nexus2/Race.lean","source":{"path":"Temporal/Feature/Nexus2/Race.lean","line":1,"column":1,"provenance":"lean-model"},"offendingValue":"temporal.nexus2.cancellation-race.case.empty","relatedDefinitionIds":["temporal.nexus2.cancellation-race.case-group.empty-case","temporal.nexus2.cancellation-race.case.empty"]},"role":"case","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":418,"column":13,"endLine":418,"endColumn":61}}
+error: property authoring failed: {"error":{"kind":"empty-case","definitionId":"temporal.nexus2.cancellation-race.property.cases","sourcePath":"Temporal/Feature/Nexus2/Race.lean","source":{"path":"Temporal/Feature/Nexus2/Race.lean","line":1,"column":1,"provenance":"lean-model"},"offendingValue":"temporal.nexus2.cancellation-race.case.empty","relatedDefinitionIds":["temporal.nexus2.cancellation-race.case-group.empty-case","temporal.nexus2.cancellation-race.case.empty"]},"role":"case","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":409,"column":13,"endLine":409,"endColumn":61}}
 -/
 #guard_msgs (error) in
 #check property% emptyCaseProperty frontendRaceModel against frontendRaceContext tracking [
-  parentAnchor (emptyCaseProperty frontendRaceModel).declaration.id,
+  parentAnchor (emptyCaseProperty frontendRaceModel).id,
   clauseAnchor (Authoring.GuardedRace.family.id "case-group" "empty-case"),
   caseAnchor (Authoring.GuardedRace.family.id "case" "empty")]
 
-private def behaviorErrorKind (spec : ExactSequenceSpec) : Option BehaviorErrorKind := do
+private def scenarioErrorKind (spec : Scenario) : Option ScenarioErrorKind := do
   let target ← Race.targetResult.toOption
   match spec.check (.ofTarget target) with
   | .error error => some error.kind
   | .ok _ => none
 
-private def duplicateOccurrenceBehavior (model : Race.ModelVocabulary) : ExactSequenceSpec := {
-  Authoring.GuardedRace.behaviorSpec model with
-  key := "duplicate-occurrence"
-  occurrences := [
-    { key := "same", action := model.requestCancelAction.definitionId },
-    { key := "same", action := model.resolveAction.definitionId }
-  ]
-}
+private def duplicateOccurrenceBehavior (model : Race.ModelVocabulary) : Scenario :=
+  { (Authoring.GuardedRace.authoredScenario model).withSteps [
+      { id := Authoring.GuardedRace.family.id "occurrence" "same",
+        action := model.requestCancelAction.definitionId },
+      { id := Authoring.GuardedRace.family.id "occurrence" "same",
+        action := model.resolveAction.definitionId }
+    ] with id := Authoring.GuardedRace.family.id "behavior" "duplicate-occurrence" }
 
 #guard Race.modelVocabulary.toOption.bind (fun model =>
-  behaviorErrorKind (duplicateOccurrenceBehavior model)) == some .duplicateDefinitionId
+  scenarioErrorKind (duplicateOccurrenceBehavior model)) == some .duplicateDefinitionId
 
-private def contradictoryBehavior (model : Race.ModelVocabulary) : ExactSequenceSpec := {
-  Authoring.GuardedRace.behaviorSpec model with
-  key := "contradictory"
-  setup := (Authoring.GuardedRace.behaviorSpec model).setup ++ [{
+private def contradictoryBehavior (model : Race.ModelVocabulary) : Scenario := {
+  Authoring.GuardedRace.authoredScenario model with
+  id := Authoring.GuardedRace.family.id "behavior" "contradictory"
+  setup := (Authoring.GuardedRace.authoredScenario model).setup ++ [{
     id := Authoring.GuardedRace.family.id "setup" "not-started"
     relation := .different
     left := .role Race.operationRoleId
@@ -447,7 +437,7 @@ private def contradictoryBehavior (model : Race.ModelVocabulary) : ExactSequence
 }
 
 #guard Race.modelVocabulary.toOption.bind (fun model =>
-  behaviorErrorKind (contradictoryBehavior model)) == none
+  scenarioErrorKind (contradictoryBehavior model)) == none
 
 #guard Race.modelVocabulary.toOption.bind (fun model => do
   let target ← Race.targetResult.toOption
@@ -518,7 +508,7 @@ private def missingReplacementAnalysis : Option
   let model ← Race.modelVocabulary.toOption
   let spec := Authoring.GuardedRace.withoutReplacement model
   let property ← spec.check (PropertyCheckContext.ofTarget target) |>.toOption
-  let behavior ← (Authoring.GuardedRace.behaviorSpec model).check (.ofTarget target) |>.toOption
+  let behavior ← (Authoring.GuardedRace.authoredScenario model).check (.ofTarget target) |>.toOption
   let query ← (Authoring.GuardedRace.querySpec property behavior).check target |>.toOption
   let kernel ← IncrementalPlannerKernel.ofCheckedQuery query.target.id query |>.toOption
   let result := analyzeCases query kernel
@@ -538,7 +528,7 @@ private def missingReplacementAnalysis : Option
 
 private def sourceIndependentIdentity : Option Bool := do
   let checked ← Authoring.Baseline.checkBaseline.toOption
-  let moved := { Authoring.Baseline.propertySpec "start" checked.model.startAction
+  let moved := { Authoring.Baseline.authoredProperty "start" checked.model.startAction
     checked.model.startedState checked.model.startedOutcome checked.model.startedFact with
     source := { path := "Moved/Without/Semantic/Change.lean", line := 900, column := 3 }
     documentation := "Renamed Lean declaration and edited prose only."
@@ -551,7 +541,7 @@ private def sourceIndependentIdentity : Option Bool := do
 
 private def changedBehaviorFingerprint : Option Bool := do
   let checked ← Authoring.Baseline.checkBaseline.toOption
-  let changed := Authoring.Baseline.propertySpec "start" checked.model.startAction
+  let changed := Authoring.Baseline.authoredProperty "start" checked.model.startAction
     checked.model.canceledState checked.model.startedOutcome checked.model.startedFact
   let changed ← changed.check (PropertyCheckContext.ofTarget checked.target) |>.toOption
   pure (changed.behaviorFingerprint != checked.start.property.behaviorFingerprint)
@@ -569,21 +559,21 @@ private def allQueryForms : Option (List QueryClaim) := do
 #guard allQueryForms == some [
   .verifiedWithinLimits, .satisfyingWitness, .violatingCounterexample, .limitedSelection]
 
-private def frontendRaceBehaviorContext : BehaviorCheckContext := {
+private def frontendRaceBehaviorContext : ScenarioCheckContext := {
   definitions := Race.definitions
 }
 
-def frontendGuardedBehavior : Except BehaviorError CheckedBehavior :=
-  behavior% Authoring.GuardedRace.behaviorSpec frontendRaceModel
+def frontendGuardedBehavior : Except ScenarioError CheckedScenario :=
+  scenario% Authoring.GuardedRace.authoredScenario frontendRaceModel
     against frontendRaceBehaviorContext tracking [
-      behaviorParent (Authoring.GuardedRace.behaviorSpec frontendRaceModel).declaration.id,
+      scenarioParent (Authoring.GuardedRace.authoredScenario frontendRaceModel).id,
       setupAnchor (Authoring.GuardedRace.family.id "setup" "started"),
       occurrenceAnchor (Authoring.GuardedRace.family.id "occurrence" "request"),
       occurrenceAnchor (Authoring.GuardedRace.family.id "occurrence" "resolution")]
 
 private def frontendGuardedBehaviorEquivalence : Bool :=
   match frontendGuardedBehavior,
-      (Authoring.GuardedRace.behaviorSpec frontendRaceModel).check frontendRaceBehaviorContext with
+      (Authoring.GuardedRace.authoredScenario frontendRaceModel).check frontendRaceBehaviorContext with
   | .ok frontend, .ok constructor =>
       frontend.id == constructor.id &&
         frontend.canonicalMetadata == constructor.canonicalMetadata &&
@@ -603,11 +593,11 @@ def frontendGuardedQuery : Option (Except QueryError (CheckedQuery Race.LawState
     queryParent (Authoring.GuardedRace.family.id "query" "case-analysis"),
     targetAnchor Race.targetId,
     propertyAnchor (Authoring.GuardedRace.family.id "property" "cases"),
-    behaviorAnchor (Authoring.GuardedRace.family.id "behavior" "request-then-resolve"),
+    scenarioAnchor (Authoring.GuardedRace.family.id "behavior" "request-then-resolve"),
     limitsAnchor (Authoring.GuardedRace.family.id "query" "case-analysis")]
 
 private def frontendGuardedAdmission : Option
-    (CheckedProperty × CheckedBehavior × CheckedQuery Race.LawStatement) := do
+    (CheckedProperty × CheckedScenario × CheckedQuery Race.LawStatement) := do
   let input ← frontendGuardedQueryInput
   let queryResult ← frontendGuardedQuery
   let query ← queryResult.toOption
@@ -639,66 +629,65 @@ private def frontendGuardedQueryOutcome : Option (String × String) := do
 
 #guard frontendGuardedQueryOutcome == some ("found", "found")
 
-private def malformedBehavior : ExactSequenceSpec := {
-  Authoring.GuardedRace.behaviorSpec frontendRaceModel with
-  family := { root := DefinitionId.of "temporal.nexus2." }
-  key := "malformed"
+private def malformedBehavior : Scenario := {
+  Authoring.GuardedRace.authoredScenario frontendRaceModel with
+  id := (DefinitionFamily.mk (DefinitionId.of "temporal.nexus2.")).id "behavior" "malformed"
 }
 
 private def unknownActionId : DefinitionId :=
   DefinitionId.of "temporal.nexus2.unknown.action"
 
-private def unknownActionBehavior : ExactSequenceSpec := {
-  Authoring.GuardedRace.behaviorSpec frontendRaceModel with
-  key := "unknown-action"
-  occurrences := [{ key := "unknown", action := unknownActionId }]
-}
+private def unknownActionBehavior : Scenario :=
+  { (Authoring.GuardedRace.authoredScenario frontendRaceModel).withSteps
+      [{ id := Authoring.GuardedRace.family.id "occurrence" "unknown",
+         action := unknownActionId }] with
+    id := Authoring.GuardedRace.family.id "behavior" "unknown-action" }
 
-private def wrongKindBehavior : ExactSequenceSpec := {
-  Authoring.GuardedRace.behaviorSpec frontendRaceModel with
-  key := "wrong-kind"
-  occurrences := [{ key := "wrong-kind", action := frontendRaceModel.startedState.definitionId }]
-}
-
-/--
-error: behavior authoring failed: {"error":{"kind":"invalid-definition-id","definitionId":"temporal.nexus2..behavior.malformed","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2..behavior.malformed","relatedDefinitionIds":["temporal.nexus2..behavior.malformed"]},"role":"parent","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":668,"column":17,"endLine":668,"endColumn":49}}
--/
-#guard_msgs (error) in
-#check behavior% malformedBehavior against frontendRaceBehaviorContext tracking [
-  behaviorParent malformedBehavior.declaration.id]
+private def wrongKindBehavior : Scenario :=
+  { (Authoring.GuardedRace.authoredScenario frontendRaceModel).withSteps
+      [{ id := Authoring.GuardedRace.family.id "occurrence" "wrong-kind",
+         action := frontendRaceModel.startedState.definitionId }] with
+    id := Authoring.GuardedRace.family.id "behavior" "wrong-kind" }
 
 /--
-error: behavior authoring failed: {"error":{"kind":"duplicate-definition-id","definitionId":"temporal.nexus2.cancellation-race.behavior.duplicate-occurrence","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.cancellation-race.occurrence.same","relatedDefinitionIds":["temporal.nexus2.cancellation-race.occurrence.same"]},"role":"occurrence","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":678,"column":19,"endLine":678,"endColumn":72}}
+error: scenario authoring failed: {"error":{"kind":"invalid-definition-id","definitionId":"temporal.nexus2..behavior.malformed","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2..behavior.malformed","relatedDefinitionIds":["temporal.nexus2..behavior.malformed"]},"role":"parent","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":657,"column":17,"endLine":657,"endColumn":37}}
 -/
 #guard_msgs (error) in
-#check behavior% duplicateOccurrenceBehavior frontendRaceModel
+#check scenario% malformedBehavior against frontendRaceBehaviorContext tracking [
+  scenarioParent malformedBehavior.id]
+
+/--
+error: scenario authoring failed: {"error":{"kind":"duplicate-definition-id","definitionId":"temporal.nexus2.cancellation-race.behavior.duplicate-occurrence","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.cancellation-race.occurrence.same","relatedDefinitionIds":["temporal.nexus2.cancellation-race.occurrence.same"]},"role":"occurrence","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":667,"column":19,"endLine":667,"endColumn":72}}
+-/
+#guard_msgs (error) in
+#check scenario% duplicateOccurrenceBehavior frontendRaceModel
     against frontendRaceBehaviorContext tracking [
-  behaviorParent (duplicateOccurrenceBehavior frontendRaceModel).declaration.id,
+  scenarioParent (duplicateOccurrenceBehavior frontendRaceModel).id,
   occurrenceAnchor (Authoring.GuardedRace.family.id "occurrence" "same"),
   occurrenceAnchor (Authoring.GuardedRace.family.id "occurrence" "same")]
 
 /--
-error: behavior authoring failed: {"error":{"kind":"unknown-reference","definitionId":"temporal.nexus2.cancellation-race.behavior.unknown-action","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.unknown.action","relatedDefinitionIds":["temporal.nexus2.unknown.action"]},"role":"action","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":686,"column":15,"endLine":686,"endColumn":30}}
+error: scenario authoring failed: {"error":{"kind":"unknown-reference","definitionId":"temporal.nexus2.cancellation-race.behavior.unknown-action","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.unknown.action","relatedDefinitionIds":["temporal.nexus2.unknown.action"]},"role":"action","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":675,"column":15,"endLine":675,"endColumn":30}}
 -/
 #guard_msgs (error) in
-#check behavior% unknownActionBehavior against frontendRaceBehaviorContext tracking [
-  behaviorParent unknownActionBehavior.declaration.id,
+#check scenario% unknownActionBehavior against frontendRaceBehaviorContext tracking [
+  scenarioParent unknownActionBehavior.id,
   actionAnchor unknownActionId]
 
 /--
-error: behavior authoring failed: {"error":{"kind":"wrong-reference-kind","definitionId":"temporal.nexus2.cancellation-race.behavior.wrong-kind","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.cancellation-race.state.operation: expected action, found state","relatedDefinitionIds":["temporal.nexus2.cancellation-race.state.operation"]},"role":"action","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":694,"column":15,"endLine":694,"endColumn":58}}
+error: scenario authoring failed: {"error":{"kind":"wrong-reference-kind","definitionId":"temporal.nexus2.cancellation-race.behavior.wrong-kind","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.cancellation-race.state.operation: expected action, found state","relatedDefinitionIds":["temporal.nexus2.cancellation-race.state.operation"]},"role":"action","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":683,"column":15,"endLine":683,"endColumn":58}}
 -/
 #guard_msgs (error) in
-#check behavior% wrongKindBehavior against frontendRaceBehaviorContext tracking [
-  behaviorParent wrongKindBehavior.declaration.id,
+#check scenario% wrongKindBehavior against frontendRaceBehaviorContext tracking [
+  scenarioParent wrongKindBehavior.id,
   actionAnchor frontendRaceModel.startedState.definitionId]
 
 /--
-error: expected behaviorParent, setupAnchor, occurrenceAnchor, or actionAnchor
+error: expected scenarioParent, setupAnchor, occurrenceAnchor, or actionAnchor
 -/
 #guard_msgs (error) in
-#check behavior% malformedBehavior against frontendRaceBehaviorContext tracking [
-  unsupportedBehaviorRole malformedBehavior.declaration.id]
+#check scenario% malformedBehavior against frontendRaceBehaviorContext tracking [
+  unsupportedBehaviorRole malformedBehavior.id]
 
 private def mapGuardedQueryInput
     (change : QueryDeclaration → QueryDeclaration) :
@@ -740,7 +729,7 @@ private def duplicatePropertyQueryInput : Option (QueryAuthoringInput Race.LawSt
   pure { input with declaration := { input.declaration with form := .select [property, property] } }
 
 /--
-error: query authoring failed: {"error":{"kind":"target-mismatch","definitionId":"temporal.nexus2.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.other.target != temporal.nexus2.cancellation-race.target","relatedDefinitionIds":["temporal.nexus2.cancellation-race.target","temporal.nexus2.other.target"]},"role":"target","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":748,"column":15,"endLine":748,"endColumn":28}}
+error: query authoring failed: {"error":{"kind":"target-mismatch","definitionId":"temporal.nexus2.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.other.target != temporal.nexus2.cancellation-race.target","relatedDefinitionIds":["temporal.nexus2.cancellation-race.target","temporal.nexus2.other.target"]},"role":"target","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":737,"column":15,"endLine":737,"endColumn":28}}
 -/
 #guard_msgs (error) in
 #check query% wrongTargetQueryInput tracking [
@@ -748,7 +737,7 @@ error: query authoring failed: {"error":{"kind":"target-mismatch","definitionId"
   targetAnchor otherTargetId]
 
 /--
-error: query authoring failed: {"error":{"kind":"missing-property","definitionId":"temporal.nexus2.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"properties","relatedDefinitionIds":[]},"role":"property","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":756,"column":17,"endLine":756,"endColumn":69}}
+error: query authoring failed: {"error":{"kind":"missing-property","definitionId":"temporal.nexus2.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"properties","relatedDefinitionIds":[]},"role":"property","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":745,"column":17,"endLine":745,"endColumn":69}}
 -/
 #guard_msgs (error) in
 #check query% emptyQueryInput tracking [
@@ -756,7 +745,7 @@ error: query authoring failed: {"error":{"kind":"missing-property","definitionId
   propertyAnchor (Authoring.GuardedRace.family.id "property" "cases")]
 
 /--
-error: query authoring failed: {"error":{"kind":"missing-capability","definitionId":"temporal.nexus2.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.unknown.action","relatedDefinitionIds":["temporal.nexus2.cancellation-race.target","temporal.nexus2.unknown.action"]},"role":"property","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":764,"column":17,"endLine":764,"endColumn":69}}
+error: query authoring failed: {"error":{"kind":"missing-capability","definitionId":"temporal.nexus2.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.unknown.action","relatedDefinitionIds":["temporal.nexus2.cancellation-race.target","temporal.nexus2.unknown.action"]},"role":"property","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":753,"column":17,"endLine":753,"endColumn":69}}
 -/
 #guard_msgs (error) in
 #check query% missingCapabilityQueryInput tracking [
@@ -764,7 +753,7 @@ error: query authoring failed: {"error":{"kind":"missing-capability","definition
   propertyAnchor (Authoring.GuardedRace.family.id "property" "cases")]
 
 /--
-error: query authoring failed: {"error":{"kind":"invalid-limit","definitionId":"temporal.nexus2.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"search.candidateEvaluations=0","relatedDefinitionIds":[]},"role":"limits","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":772,"column":15,"endLine":772,"endColumn":72}}
+error: query authoring failed: {"error":{"kind":"invalid-limit","definitionId":"temporal.nexus2.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"search.candidateEvaluations=0","relatedDefinitionIds":[]},"role":"limits","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":761,"column":15,"endLine":761,"endColumn":72}}
 -/
 #guard_msgs (error) in
 #check query% invalidLimitQueryInput tracking [
@@ -772,7 +761,7 @@ error: query authoring failed: {"error":{"kind":"invalid-limit","definitionId":"
   limitsAnchor (Authoring.GuardedRace.family.id "query" "case-analysis")]
 
 /--
-error: query authoring failed: {"error":{"kind":"unit-mismatch","definitionId":"temporal.nexus2.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"behavior.transitions:selected-actions","relatedDefinitionIds":[]},"role":"limits","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":780,"column":15,"endLine":780,"endColumn":72}}
+error: query authoring failed: {"error":{"kind":"unit-mismatch","definitionId":"temporal.nexus2.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"behavior.transitions:selected-actions","relatedDefinitionIds":[]},"role":"limits","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":769,"column":15,"endLine":769,"endColumn":72}}
 -/
 #guard_msgs (error) in
 #check query% wrongUnitQueryInput tracking [
@@ -780,7 +769,7 @@ error: query authoring failed: {"error":{"kind":"unit-mismatch","definitionId":"
   limitsAnchor (Authoring.GuardedRace.family.id "query" "case-analysis")]
 
 /--
-error: query authoring failed: {"error":{"kind":"duplicate-property","definitionId":"temporal.nexus2.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.cancellation-race.property.cases","relatedDefinitionIds":["temporal.nexus2.cancellation-race.property.cases"]},"role":"property","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":788,"column":17,"endLine":788,"endColumn":69}}
+error: query authoring failed: {"error":{"kind":"duplicate-property","definitionId":"temporal.nexus2.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.cancellation-race.property.cases","relatedDefinitionIds":["temporal.nexus2.cancellation-race.property.cases"]},"role":"property","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":777,"column":17,"endLine":777,"endColumn":69}}
 -/
 #guard_msgs (error) in
 #check query% duplicatePropertyQueryInput tracking [
@@ -788,15 +777,14 @@ error: query authoring failed: {"error":{"kind":"duplicate-property","definition
   propertyAnchor (Authoring.GuardedRace.family.id "property" "cases")]
 
 /--
-error: expected queryParent, targetAnchor, propertyAnchor, behaviorAnchor, limitsAnchor, or policyAnchor
+error: expected queryParent, targetAnchor, propertyAnchor, scenarioAnchor, limitsAnchor, or policyAnchor
 -/
 #guard_msgs (error) in
 #check query% wrongTargetQueryInput tracking [
   unsupportedQueryRole (Authoring.GuardedRace.family.id "query" "case-analysis")]
 
-private def unknownStateProperty : PropertySpec := {
-  family := Authoring.GuardedRace.family
-  key := "unknown-state"
+private def unknownStateProperty : Property := {
+  id := (Authoring.GuardedRace.family).id "property" "unknown-state"
   source := Race.source
   requires := [Race.capabilityId]
   clauses := [.transitionContract
@@ -806,9 +794,8 @@ private def unknownStateProperty : PropertySpec := {
       definitionId := DefinitionId.of "temporal.nexus2.unknown.state" })]
 }
 
-private def unknownResultProperty : PropertySpec := {
-  family := Authoring.GuardedRace.family
-  key := "unknown-result"
+private def unknownResultProperty : Property := {
+  id := (Authoring.GuardedRace.family).id "property" "unknown-result"
   source := Race.source
   requires := [Race.capabilityId]
   clauses := [.transitionContract
@@ -819,19 +806,19 @@ private def unknownResultProperty : PropertySpec := {
 }
 
 /--
-error: property authoring failed: {"error":{"kind":"unknown-reference","definitionId":"temporal.nexus2.cancellation-race.property.unknown-state","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.unknown.state","relatedDefinitionIds":["temporal.nexus2.unknown.state"]},"role":"clause","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":827,"column":15,"endLine":827,"endColumn":64}}
+error: property authoring failed: {"error":{"kind":"unknown-reference","definitionId":"temporal.nexus2.cancellation-race.property.unknown-state","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.unknown.state","relatedDefinitionIds":["temporal.nexus2.unknown.state"]},"role":"clause","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":814,"column":15,"endLine":814,"endColumn":64}}
 -/
 #guard_msgs (error) in
 #check property% unknownStateProperty against frontendRaceContext tracking [
-  parentAnchor unknownStateProperty.declaration.id,
+  parentAnchor unknownStateProperty.id,
   clauseAnchor (DefinitionId.of "temporal.nexus2.unknown.state")]
 
 /--
-error: property authoring failed: {"error":{"kind":"unknown-reference","definitionId":"temporal.nexus2.cancellation-race.property.unknown-result","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.unknown.result","relatedDefinitionIds":["temporal.nexus2.unknown.result"]},"role":"clause","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":835,"column":15,"endLine":835,"endColumn":65}}
+error: property authoring failed: {"error":{"kind":"unknown-reference","definitionId":"temporal.nexus2.cancellation-race.property.unknown-result","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"temporal.nexus2.unknown.result","relatedDefinitionIds":["temporal.nexus2.unknown.result"]},"role":"clause","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":822,"column":15,"endLine":822,"endColumn":65}}
 -/
 #guard_msgs (error) in
 #check property% unknownResultProperty against frontendRaceContext tracking [
-  parentAnchor unknownResultProperty.declaration.id,
+  parentAnchor unknownResultProperty.id,
   clauseAnchor (DefinitionId.of "temporal.nexus2.unknown.result")]
 
 private def incompatibleStrategyQueryInput : Option (QueryAuthoringInput Race.LawStatement) := do
@@ -843,19 +830,19 @@ private def incompatibleStrategyQueryInput : Option (QueryAuthoringInput Race.La
   } }
 
 /--
-error: query authoring failed: {"error":{"kind":"incompatible-strategy","definitionId":"temporal.nexus2.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"shortest","relatedDefinitionIds":[]},"role":"policy","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":851,"column":15,"endLine":851,"endColumn":72}}
+error: query authoring failed: {"error":{"kind":"incompatible-strategy","definitionId":"temporal.nexus2.cancellation-race.query.case-analysis","sourcePath":"Temporal/Feature/Nexus2/Race.lean","offendingValue":"shortest","relatedDefinitionIds":[]},"role":"policy","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":838,"column":15,"endLine":838,"endColumn":72}}
 -/
 #guard_msgs (error) in
 #check query% incompatibleStrategyQueryInput tracking [
   queryParent (Authoring.GuardedRace.family.id "query" "case-analysis"),
   policyAnchor (Authoring.GuardedRace.family.id "query" "case-analysis")]
 
-private def frontendContradictoryBehavior : Except BehaviorError CheckedBehavior :=
-  behavior% contradictoryBehavior frontendRaceModel against frontendRaceBehaviorContext tracking [
-    behaviorParent (contradictoryBehavior frontendRaceModel).declaration.id,
+private def frontendContradictoryBehavior : Except ScenarioError CheckedScenario :=
+  scenario% contradictoryBehavior frontendRaceModel against frontendRaceBehaviorContext tracking [
+    scenarioParent (contradictoryBehavior frontendRaceModel).id,
     setupAnchor (Authoring.GuardedRace.family.id "setup" "not-started")]
 
-#guard frontendContradictoryBehavior.toOption.map CheckedBehavior.isUnsatisfiable == some true
+#guard frontendContradictoryBehavior.toOption.map CheckedScenario.isUnsatisfiable == some true
 
 private def invalidQueryHasNoCheckedValue : Option QueryErrorKind := do
   let input ← wrongTargetQueryInput
@@ -865,17 +852,17 @@ private def invalidQueryHasNoCheckedValue : Option QueryErrorKind := do
 
 #guard invalidQueryHasNoCheckedValue == some .targetMismatch
 
-private def movedBehaviorSpec : ExactSequenceSpec := {
-  Authoring.GuardedRace.behaviorSpec frontendRaceModel with
+private def movedBehaviorSpec : Scenario := {
+  Authoring.GuardedRace.authoredScenario frontendRaceModel with
   source := { path := "Moved/Behavior.lean", line := 901, column := 4 }
 }
 
-private def movedBehaviorFrontend : Except BehaviorError CheckedBehavior :=
-  behavior% movedBehaviorSpec against frontendRaceBehaviorContext tracking [
-    behaviorParent movedBehaviorSpec.declaration.id]
+private def movedBehaviorFrontend : Except ScenarioError CheckedScenario :=
+  scenario% movedBehaviorSpec against frontendRaceBehaviorContext tracking [
+    scenarioParent movedBehaviorSpec.id]
 
 private def behaviorSourceMetadataDifference : Option Bool := do
-  let constructor ← (Authoring.GuardedRace.behaviorSpec frontendRaceModel).check
+  let constructor ← (Authoring.GuardedRace.authoredScenario frontendRaceModel).check
     frontendRaceBehaviorContext |>.toOption
   let moved ← movedBehaviorFrontend.toOption
   pure (moved.id == constructor.id && moved.source != constructor.source &&
@@ -906,11 +893,11 @@ private def querySourceMetadataDifference : Option Bool := do
 #guard querySourceMetadataDifference == some true
 
 private def openBehaviorFrontend
-    (spec : ExactSequenceSpec)
-    (context : BehaviorCheckContext) : Except BehaviorError CheckedBehavior :=
-  behavior% spec against context tracking [behaviorParent spec.declaration.id]
+    (spec : Scenario)
+    (context : ScenarioCheckContext) : Except ScenarioError CheckedScenario :=
+  scenario% spec against context tracking [scenarioParent spec.id]
 
-private def invalidOpenBehaviorHasNoCheckedValue : Option BehaviorErrorKind :=
+private def invalidOpenBehaviorHasNoCheckedValue : Option ScenarioErrorKind :=
   match openBehaviorFrontend malformedBehavior frontendRaceBehaviorContext with
   | .error error => some error.kind
   | .ok _ => none
@@ -941,67 +928,67 @@ example : frontendGuardedQueryInput.map
     (fun input => input.check.toOption.isSome) = some true := by
   decide +kernel
 
-private def frontendCancelSpec : PropertySpec :=
-  Authoring.Baseline.propertySpec "cancel" frontendBaselineModel.cancelAction
+private def frontendCancelSpec : Property :=
+  Authoring.Baseline.authoredProperty "cancel" frontendBaselineModel.cancelAction
     frontendBaselineModel.canceledState frontendBaselineModel.canceledOutcome
     frontendBaselineModel.canceledFact
 
-private def frontendSuccessSpec : PropertySpec :=
-  Authoring.Baseline.propertySpec "success" frontendBaselineModel.reportSuccessAction
+private def frontendSuccessSpec : Property :=
+  Authoring.Baseline.authoredProperty "success" frontendBaselineModel.reportSuccessAction
     frontendBaselineModel.succeededState frontendBaselineModel.succeededOutcome
     frontendBaselineModel.succeededFact
 
 def frontendCancelProperty : Except PropertyError CheckedProperty :=
   property% frontendCancelSpec against frontendBaselineContext tracking [
-    parentAnchor frontendCancelSpec.declaration.id]
+    parentAnchor frontendCancelSpec.id]
 
 def frontendSuccessProperty : Except PropertyError CheckedProperty :=
   property% frontendSuccessSpec against frontendBaselineContext tracking [
-    parentAnchor frontendSuccessSpec.declaration.id]
+    parentAnchor frontendSuccessSpec.id]
 
-private def frontendBaselineBehaviorContext : BehaviorCheckContext := {
+private def frontendBaselineBehaviorContext : ScenarioCheckContext := {
   definitions := Lifecycle.definitions
 }
 
-private def frontendStartBehaviorSpec : ExactSequenceSpec :=
-  Authoring.Baseline.behaviorSpec "start" "scheduled" "start"
+private def frontendStartBehaviorSpec : Scenario :=
+  Authoring.Baseline.authoredScenario "start" "scheduled" "start"
     frontendBaselineModel.scheduledState frontendBaselineModel.startAction
 
-private def frontendCancelBehaviorSpec : ExactSequenceSpec :=
-  Authoring.Baseline.behaviorSpec "cancel" "started-cancel" "cancel"
+private def frontendCancelBehaviorSpec : Scenario :=
+  Authoring.Baseline.authoredScenario "cancel" "started-cancel" "cancel"
     frontendBaselineModel.startedState frontendBaselineModel.cancelAction
 
-private def frontendSuccessBehaviorSpec : ExactSequenceSpec :=
-  Authoring.Baseline.behaviorSpec "success" "started-success" "success"
+private def frontendSuccessBehaviorSpec : Scenario :=
+  Authoring.Baseline.authoredScenario "success" "started-success" "success"
     frontendBaselineModel.startedState frontendBaselineModel.reportSuccessAction
 
-def frontendStartBehavior : Except BehaviorError CheckedBehavior :=
-  behavior% frontendStartBehaviorSpec against frontendBaselineBehaviorContext tracking [
-    behaviorParent frontendStartBehaviorSpec.declaration.id,
+def frontendStartBehavior : Except ScenarioError CheckedScenario :=
+  scenario% frontendStartBehaviorSpec against frontendBaselineBehaviorContext tracking [
+    scenarioParent frontendStartBehaviorSpec.id,
     setupAnchor (Authoring.Baseline.family.id "setup" "scheduled"),
     occurrenceAnchor (Authoring.Baseline.family.id "occurrence" "start")]
 
-def frontendCancelBehavior : Except BehaviorError CheckedBehavior :=
-  behavior% frontendCancelBehaviorSpec against frontendBaselineBehaviorContext tracking [
-    behaviorParent frontendCancelBehaviorSpec.declaration.id,
+def frontendCancelBehavior : Except ScenarioError CheckedScenario :=
+  scenario% frontendCancelBehaviorSpec against frontendBaselineBehaviorContext tracking [
+    scenarioParent frontendCancelBehaviorSpec.id,
     setupAnchor (Authoring.Baseline.family.id "setup" "started-cancel"),
     occurrenceAnchor (Authoring.Baseline.family.id "occurrence" "cancel")]
 
-def frontendSuccessBehavior : Except BehaviorError CheckedBehavior :=
-  behavior% frontendSuccessBehaviorSpec against frontendBaselineBehaviorContext tracking [
-    behaviorParent frontendSuccessBehaviorSpec.declaration.id,
+def frontendSuccessBehavior : Except ScenarioError CheckedScenario :=
+  scenario% frontendSuccessBehaviorSpec against frontendBaselineBehaviorContext tracking [
+    scenarioParent frontendSuccessBehaviorSpec.id,
     setupAnchor (Authoring.Baseline.family.id "setup" "started-success"),
     occurrenceAnchor (Authoring.Baseline.family.id "occurrence" "success")]
 
 private structure FrontendBaseline where
   startProperty : CheckedProperty
-  startBehavior : CheckedBehavior
+  startBehavior : CheckedScenario
   startQuery : CheckedQuery Lifecycle.LawStatement
   cancelProperty : CheckedProperty
-  cancelBehavior : CheckedBehavior
+  cancelBehavior : CheckedScenario
   cancelQuery : CheckedQuery Lifecycle.LawStatement
   successProperty : CheckedProperty
-  successBehavior : CheckedBehavior
+  successBehavior : CheckedScenario
   successQuery : CheckedQuery Lifecycle.LawStatement
 
 private def frontendBaselineAdmission : Option FrontendBaseline := do
@@ -1013,7 +1000,7 @@ private def frontendBaselineAdmission : Option FrontendBaseline := do
     queryParent startSpec.declaration.id,
     targetAnchor startSpec.target,
     propertyAnchor startProperty.id,
-    behaviorAnchor startBehavior.id,
+    scenarioAnchor startBehavior.id,
     limitsAnchor startSpec.declaration.id]) |>.toOption
   let cancelProperty ← frontendCancelProperty.toOption
   let cancelBehavior ← frontendCancelBehavior.toOption
@@ -1022,7 +1009,7 @@ private def frontendBaselineAdmission : Option FrontendBaseline := do
     queryParent cancelSpec.declaration.id,
     targetAnchor cancelSpec.target,
     propertyAnchor cancelProperty.id,
-    behaviorAnchor cancelBehavior.id,
+    scenarioAnchor cancelBehavior.id,
     limitsAnchor cancelSpec.declaration.id]) |>.toOption
   let successProperty ← frontendSuccessProperty.toOption
   let successBehavior ← frontendSuccessBehavior.toOption
@@ -1031,7 +1018,7 @@ private def frontendBaselineAdmission : Option FrontendBaseline := do
     queryParent successSpec.declaration.id,
     targetAnchor successSpec.target,
     propertyAnchor successProperty.id,
-    behaviorAnchor successBehavior.id,
+    scenarioAnchor successBehavior.id,
     limitsAnchor successSpec.declaration.id]) |>.toOption
   pure {
     startProperty := startProperty
@@ -1101,7 +1088,7 @@ private def constructorBaselineTraces : Option
 error: Tactic `decide` failed
 -/
 #guard_msgs (error, substring := true) in
-example : ((Authoring.GuardedRace.behaviorSpec frontendRaceModel).check
+example : ((Authoring.GuardedRace.authoredScenario frontendRaceModel).check
     frontendRaceBehaviorContext).toOption.isSome = true := by
   decide +kernel
 
@@ -1122,19 +1109,19 @@ def constructorTenProperties : List (Except PropertyError CheckedProperty) :=
 
 def frontendOneProperty : Except PropertyError CheckedProperty :=
   property% frontendStartSpec against frontendBaselineContext tracking [
-    parentAnchor frontendStartSpec.declaration.id]
+    parentAnchor frontendStartSpec.id]
 
 def frontendTenProperties : List (Except PropertyError CheckedProperty) := [
-  property% frontendStartSpec against frontendBaselineContext tracking [parentAnchor frontendStartSpec.declaration.id],
-  property% frontendStartSpec against frontendBaselineContext tracking [parentAnchor frontendStartSpec.declaration.id],
-  property% frontendStartSpec against frontendBaselineContext tracking [parentAnchor frontendStartSpec.declaration.id],
-  property% frontendStartSpec against frontendBaselineContext tracking [parentAnchor frontendStartSpec.declaration.id],
-  property% frontendStartSpec against frontendBaselineContext tracking [parentAnchor frontendStartSpec.declaration.id],
-  property% frontendStartSpec against frontendBaselineContext tracking [parentAnchor frontendStartSpec.declaration.id],
-  property% frontendStartSpec against frontendBaselineContext tracking [parentAnchor frontendStartSpec.declaration.id],
-  property% frontendStartSpec against frontendBaselineContext tracking [parentAnchor frontendStartSpec.declaration.id],
-  property% frontendStartSpec against frontendBaselineContext tracking [parentAnchor frontendStartSpec.declaration.id],
-  property% frontendStartSpec against frontendBaselineContext tracking [parentAnchor frontendStartSpec.declaration.id]
+  property% frontendStartSpec against frontendBaselineContext tracking [parentAnchor frontendStartSpec.id],
+  property% frontendStartSpec against frontendBaselineContext tracking [parentAnchor frontendStartSpec.id],
+  property% frontendStartSpec against frontendBaselineContext tracking [parentAnchor frontendStartSpec.id],
+  property% frontendStartSpec against frontendBaselineContext tracking [parentAnchor frontendStartSpec.id],
+  property% frontendStartSpec against frontendBaselineContext tracking [parentAnchor frontendStartSpec.id],
+  property% frontendStartSpec against frontendBaselineContext tracking [parentAnchor frontendStartSpec.id],
+  property% frontendStartSpec against frontendBaselineContext tracking [parentAnchor frontendStartSpec.id],
+  property% frontendStartSpec against frontendBaselineContext tracking [parentAnchor frontendStartSpec.id],
+  property% frontendStartSpec against frontendBaselineContext tracking [parentAnchor frontendStartSpec.id],
+  property% frontendStartSpec against frontendBaselineContext tracking [parentAnchor frontendStartSpec.id]
 ]
 
 #guard frontendTenProperties.all fun result =>
@@ -1146,10 +1133,10 @@ def frontendTenProperties : List (Except PropertyError CheckedProperty) := [
 #guard frontendOneProperty.toOption.isSome
 #guard frontendTenProperties.all (fun result => result.toOption.isSome)
 
-def constructorOneBehavior : Except BehaviorError CheckedBehavior :=
+def constructorOneBehavior : Except ScenarioError CheckedScenario :=
   frontendStartBehaviorSpec.check frontendBaselineBehaviorContext
 
-def constructorTenBehaviors : List (Except BehaviorError CheckedBehavior) := [
+def constructorTenBehaviors : List (Except ScenarioError CheckedScenario) := [
   frontendStartBehaviorSpec.check frontendBaselineBehaviorContext,
   frontendStartBehaviorSpec.check frontendBaselineBehaviorContext,
   frontendStartBehaviorSpec.check frontendBaselineBehaviorContext,
@@ -1161,23 +1148,23 @@ def constructorTenBehaviors : List (Except BehaviorError CheckedBehavior) := [
   frontendStartBehaviorSpec.check frontendBaselineBehaviorContext,
   frontendStartBehaviorSpec.check frontendBaselineBehaviorContext]
 
-def frontendOneBehavior : Except BehaviorError CheckedBehavior :=
-  behavior% frontendStartBehaviorSpec against frontendBaselineBehaviorContext tracking [
-    behaviorParent frontendStartBehaviorSpec.declaration.id,
+def frontendOneBehavior : Except ScenarioError CheckedScenario :=
+  scenario% frontendStartBehaviorSpec against frontendBaselineBehaviorContext tracking [
+    scenarioParent frontendStartBehaviorSpec.id,
     setupAnchor (Authoring.Baseline.family.id "setup" "scheduled"),
     occurrenceAnchor (Authoring.Baseline.family.id "occurrence" "start")]
 
-def frontendTenBehaviors : List (Except BehaviorError CheckedBehavior) := [
-  behavior% frontendStartBehaviorSpec against frontendBaselineBehaviorContext tracking [behaviorParent frontendStartBehaviorSpec.declaration.id],
-  behavior% frontendStartBehaviorSpec against frontendBaselineBehaviorContext tracking [behaviorParent frontendStartBehaviorSpec.declaration.id],
-  behavior% frontendStartBehaviorSpec against frontendBaselineBehaviorContext tracking [behaviorParent frontendStartBehaviorSpec.declaration.id],
-  behavior% frontendStartBehaviorSpec against frontendBaselineBehaviorContext tracking [behaviorParent frontendStartBehaviorSpec.declaration.id],
-  behavior% frontendStartBehaviorSpec against frontendBaselineBehaviorContext tracking [behaviorParent frontendStartBehaviorSpec.declaration.id],
-  behavior% frontendStartBehaviorSpec against frontendBaselineBehaviorContext tracking [behaviorParent frontendStartBehaviorSpec.declaration.id],
-  behavior% frontendStartBehaviorSpec against frontendBaselineBehaviorContext tracking [behaviorParent frontendStartBehaviorSpec.declaration.id],
-  behavior% frontendStartBehaviorSpec against frontendBaselineBehaviorContext tracking [behaviorParent frontendStartBehaviorSpec.declaration.id],
-  behavior% frontendStartBehaviorSpec against frontendBaselineBehaviorContext tracking [behaviorParent frontendStartBehaviorSpec.declaration.id],
-  behavior% frontendStartBehaviorSpec against frontendBaselineBehaviorContext tracking [behaviorParent frontendStartBehaviorSpec.declaration.id]]
+def frontendTenBehaviors : List (Except ScenarioError CheckedScenario) := [
+  scenario% frontendStartBehaviorSpec against frontendBaselineBehaviorContext tracking [scenarioParent frontendStartBehaviorSpec.id],
+  scenario% frontendStartBehaviorSpec against frontendBaselineBehaviorContext tracking [scenarioParent frontendStartBehaviorSpec.id],
+  scenario% frontendStartBehaviorSpec against frontendBaselineBehaviorContext tracking [scenarioParent frontendStartBehaviorSpec.id],
+  scenario% frontendStartBehaviorSpec against frontendBaselineBehaviorContext tracking [scenarioParent frontendStartBehaviorSpec.id],
+  scenario% frontendStartBehaviorSpec against frontendBaselineBehaviorContext tracking [scenarioParent frontendStartBehaviorSpec.id],
+  scenario% frontendStartBehaviorSpec against frontendBaselineBehaviorContext tracking [scenarioParent frontendStartBehaviorSpec.id],
+  scenario% frontendStartBehaviorSpec against frontendBaselineBehaviorContext tracking [scenarioParent frontendStartBehaviorSpec.id],
+  scenario% frontendStartBehaviorSpec against frontendBaselineBehaviorContext tracking [scenarioParent frontendStartBehaviorSpec.id],
+  scenario% frontendStartBehaviorSpec against frontendBaselineBehaviorContext tracking [scenarioParent frontendStartBehaviorSpec.id],
+  scenario% frontendStartBehaviorSpec against frontendBaselineBehaviorContext tracking [scenarioParent frontendStartBehaviorSpec.id]]
 
 #guard constructorOneBehavior.toOption.isSome
 #guard constructorTenBehaviors.all (fun result => result.toOption.isSome)
@@ -1204,7 +1191,7 @@ def frontendOneQuery : Option (Except QueryError (CheckedQuery Race.LawStatement
     queryParent (Authoring.GuardedRace.family.id "query" "case-analysis"),
     targetAnchor Race.targetId,
     propertyAnchor (Authoring.GuardedRace.family.id "property" "cases"),
-    behaviorAnchor (Authoring.GuardedRace.family.id "behavior" "request-then-resolve"),
+    scenarioAnchor (Authoring.GuardedRace.family.id "behavior" "request-then-resolve"),
     limitsAnchor (Authoring.GuardedRace.family.id "query" "case-analysis")]
 
 def frontendTenQueries : List (Option (Except QueryError (CheckedQuery Race.LawStatement))) := [
@@ -1228,9 +1215,8 @@ private def queryAdmissionSucceeded
 #guard queryAdmissionSucceeded frontendOneQuery
 #guard frontendTenQueries.all queryAdmissionSucceeded
 
-private def minimalPropertySpec : PropertySpec := {
-  family := { root := DefinitionId.of "test.frontend" }
-  key := "minimal"
+private def minimalPropertySpec : Property := {
+  id := (DefinitionFamily.mk (DefinitionId.of "test.frontend")).id "property" "minimal"
   source := Race.source
   requires := []
   clauses := []
@@ -1240,24 +1226,22 @@ private def minimalPropertySpec : PropertySpec := {
 error: Tactic `decide` failed
 -/
 #guard_msgs (error, substring := true) in
-example : (PropertySpec.check {
-    family := { root := DefinitionId.of "test.frontend" }
-    key := "minimal"
-    source := Race.source
-    requires := []
-    clauses := []
-  } {
-    definitions := [], providers := [], meanings := [] }).toOption.isSome = true := by
+example : (Property.check
+    { definitions := [], providers := [], meanings := [] }
+    { id := (DefinitionFamily.mk (DefinitionId.of "test.frontend")).id "property" "minimal"
+      source := Race.source
+      requires := []
+      clauses := [] }).toOption.isSome = true := by
   decide +kernel
 
 #print axioms Authoring.Baseline.checkBaseline
-#print axioms Authoring.GuardedRace.propertySpec
-#print axioms Authoring.GuardedRace.behaviorSpec
+#print axioms Authoring.GuardedRace.authoredProperty
+#print axioms Authoring.GuardedRace.authoredScenario
 #print axioms Authoring.GuardedRace.querySpec
-#print axioms PropertySpec.check
-#print axioms PropertySpec.checked
-#print axioms ExactSequenceSpec.check
-#print axioms ExactSequenceSpec.checked
+#print axioms Property.check
+#print axioms Property.checked
+#print axioms Scenario.check
+#print axioms Scenario.checked
 #print axioms QuerySpec.check
 #print axioms QuerySpec.checked
 #print axioms frontendGuardedBehavior

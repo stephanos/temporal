@@ -17,9 +17,9 @@ import Umpire
 #check Umpire.DraftModel.make
 #check Umpire.checkModel
 #check Umpire.model
-#check Umpire.PropertyDeclaration
-#check Umpire.BehaviorDeclaration
-#check Umpire.BehaviorCheckContext.ofTarget
+#check Umpire.Property
+#check Umpire.Scenario
+#check Umpire.ScenarioCheckContext.ofTarget
 #check Umpire.QueryDeclaration
 #check Umpire.IncrementalPlannerKernel
 #check Umpire.ExperimentSpec

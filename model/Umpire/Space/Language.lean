@@ -262,7 +262,7 @@ structure CheckedVariationAxis where
   id : DefinitionId
   source : SourceLocation
   version : Nat
-  role : Option ResourceRole
+  role : Option Scenario.Role
   choices : List CheckedChoice
   documentation : String
   canonicalMetadata : String
@@ -274,7 +274,7 @@ structure CheckedFaultIntent where
   id : DefinitionId
   source : SourceLocation
   version : Nat
-  occurrence : NamedOccurrence
+  occurrence : Scenario.Step
   capability : DefinitionMetadata
   incompatibleWith : List DefinitionId
   documentation : String
@@ -447,7 +447,7 @@ private def bindingJson (binding : RoleBinding) : String :=
   "{\"role\":" ++ quote binding.role.value ++
     ",\"value\":" ++ valueJson binding.value ++ "}"
 
-private def roleJson (role : ResourceRole) : String :=
+private def roleJson (role : Scenario.Role) : String :=
   "{\"id\":" ++ quote role.id.value ++ ",\"valueKind\":" ++ quote role.valueKind.name ++ "}"
 
 private def choiceSemanticJson
@@ -471,7 +471,7 @@ private def canonicalChoiceJson (choice : CheckedChoice) : String :=
 private def axisSemanticJson
     (id : DefinitionId)
     (version : Nat)
-    (role : Option ResourceRole)
+    (role : Option Scenario.Role)
     (choices : List CheckedChoice) : String :=
   "{\"id\":" ++ quote id.value ++
     ",\"version\":" ++ toString version ++
@@ -488,7 +488,7 @@ private def canonicalAxisJson (axis : CheckedVariationAxis) : String :=
 private def faultSemanticJson
     (id : DefinitionId)
     (version : Nat)
-    (occurrence : NamedOccurrence)
+    (occurrence : Scenario.Step)
     (capability : DefinitionMetadata)
     (incompatibleWith : List DefinitionId) : String :=
   "{\"id\":" ++ quote id.value ++
@@ -617,7 +617,7 @@ private def findDefinition
 
 private def findRole
     (query : CheckedQuery LawStatement)
-    (candidate : DefinitionId) : Option ResourceRole :=
+    (candidate : DefinitionId) : Option Scenario.Role :=
   query.behavior.roles.find? fun role => role.id == candidate
 
 private def bindingFor (bindings : List RoleBinding) (role : DefinitionId) : Option ModelValue :=
@@ -656,7 +656,7 @@ private def firstDuplicateChoiceEffect : List CheckedChoice → Option (Definiti
 
 private def checkChoice
     (query : CheckedQuery LawStatement)
-    (role : Option ResourceRole)
+    (role : Option Scenario.Role)
     (declaredFaults : List FaultIntentDeclaration)
     (choice : ChoiceDeclaration) : Except SpaceError CheckedChoice := do
   requireUniqueIdsAs .duplicateFaultSelection choice.id choice.source choice.faults

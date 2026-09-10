@@ -128,7 +128,7 @@ private def group
   exclusive
 }
 
-private def propertyDeclaration (selectedGroup : PropertyCaseGroup) : PropertyDeclaration := {
+private def authoredProperty (selectedGroup : PropertyCaseGroup) : Property := {
   id := id "planner.property.analysis"
   source
   version := 2
@@ -136,8 +136,8 @@ private def propertyDeclaration (selectedGroup : PropertyCaseGroup) : PropertyDe
   clauses := [.sameStepCases selectedGroup]
 }
 
-private def checkedProperty? (selectedGroup : PropertyCaseGroup) : Option CheckedProperty :=
-  (checkProperty analysisContext (.portable (propertyDeclaration selectedGroup))).toOption
+private def Property.checked? (selectedGroup : PropertyCaseGroup) : Option CheckedProperty :=
+  (Property.check analysisContext ((authoredProperty selectedGroup))).toOption
 
 private def analysisTarget : QueryModel (fun _ => True) := target 0
 
@@ -157,17 +157,17 @@ private def analysisQuery
 private def analyzed?
     (selectedGroup : PropertyCaseGroup)
     (budget : Nat := 8) : Option CaseAnalysisResult := do
-  let property ← checkedProperty? selectedGroup
+  let property ← Property.checked? selectedGroup
   let query := analysisQuery property budget
   let kernel ← (IncrementalPlannerKernel.ofCheckedQuery query.target.id query).toOption
   pure (analyzeCases query kernel)
 
 private def analyzedAbsentInput? : Option CaseAnalysisResult := do
   let declaration := {
-    propertyDeclaration (group [absentInputCase] (guard := absentActionGuard)) with
+    authoredProperty (group [absentInputCase] (guard := absentActionGuard)) with
     requires := [absentCapability]
   }
-  let property ← (checkProperty analysisContext (.portable declaration)).toOption
+  let property ← (Property.check analysisContext (declaration)).toOption
   let query := analysisQuery property
   let kernel ← (IncrementalPlannerKernel.ofCheckedQuery query.target.id query).toOption
   pure (analyzeCases query kernel)

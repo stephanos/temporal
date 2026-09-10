@@ -1,4 +1,4 @@
-import Umpire.Behavior.Tests.Fixtures
+import Umpire.Scenario.Tests.Fixtures
 import Umpire.Examples.Switch
 import Umpire.Examples.SwitchTests
 import Umpire.Observation.Tests.Fixtures
@@ -25,7 +25,7 @@ open Umpire.Examples.Switch
 
 example : [
     Umpire.ModelTests.source "Parameterized/TargetFixture.lean",
-    Umpire.BehaviorTests.source,
+    Umpire.ScenarioTests.source,
     Umpire.PropertyTests.source,
     Umpire.QueryTests.source,
     Umpire.PlanningTests.source,
@@ -33,7 +33,7 @@ example : [
   ] = [
     { path := "Parameterized/TargetFixture.lean", line := 1, column := 1,
       provenance := "lean-test" },
-    { path := "Umpire/Behavior/Tests.lean", line := 1, column := 1,
+    { path := "Umpire/Scenario/Tests.lean", line := 1, column := 1,
       provenance := "lean-test" },
     { path := "Umpire/Property/Tests.lean", line := 1, column := 1,
       provenance := "lean-test" },
@@ -49,7 +49,7 @@ example : [
 example : [
     Umpire.ModelTests.metadata "fixture.action.default" .action,
     Umpire.ModelTests.metadata "fixture.law.explicit" .law "explicit-contract/v2",
-    Umpire.BehaviorTests.metadata "fixture.behavior.state" .state,
+    Umpire.ScenarioTests.metadata "fixture.behavior.state" .state,
     Umpire.PropertyTests.metadata "fixture.property.observation" .fact,
     Umpire.QueryTests.metadata (DefinitionId.of "fixture.query.target") .target
       "query-target/v1",
@@ -75,7 +75,7 @@ example : [
       version := 1, behaviorVersion := "explicit-contract/v2", documentation := "" },
     { id := DefinitionId.of "fixture.behavior.state", kind := .state,
       source := {
-        path := "Umpire/Behavior/Tests.lean"
+        path := "Umpire/Scenario/Tests.lean"
         line := 1
         column := 1
         provenance := "lean-test"
@@ -451,7 +451,7 @@ private def exhaustiveDeclaration : QueryDeclaration := {
 private def noFinitePlanningTarget : QueryModel LawStatement :=
   model targetAuthoring.withoutPlanning
 
-private def mismatchedTrace : BehaviorTrace := {
+private def mismatchedTrace : Scenario.Trace := {
   setup := switchSetup
   trace := {
     initialState := offState
@@ -464,7 +464,7 @@ private def mismatchedTrace : BehaviorTrace := {
   }
 }
 
-private def mismatchedBehavior : CheckedBehavior := {
+private def mismatchedBehavior : CheckedScenario := {
   exactTraceBehavior with
   traceExactly := some mismatchedTrace
   behaviorFingerprint := behaviorFingerprintOf "switch-behavior-target-kernel-mismatch/v1"

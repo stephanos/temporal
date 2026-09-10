@@ -1,5 +1,5 @@
 import Umpire.Property.Tests.Scoped.Fixtures
-import Umpire.Property.Authoring
+import Umpire.Property.Elab
 import Umpire.Property.Scoped.Reference
 
 /-! Scoped admission, independent deadlines, per-operation ticks, and resource failure boundaries. -/
@@ -65,7 +65,7 @@ private def error? (value : Except Error α) : Option Error :=
 
 private def admissionError (changed : PropertyScopedClause) : Option PropertyError := do
   let target ← targetResult.toOption
-  match checkProperty (context target) (.portable { declaration 1 with scopedClauses := [changed] }) with
+  match Property.check (context target) ({ declaration 1 with scopedClauses := [changed] }) with
   | .ok _ => none
   | .error error => some error
 
@@ -85,10 +85,10 @@ private def admissionError (changed : PropertyScopedClause) : Option PropertyErr
   let target ← targetResult.toOption
   let first := clause 1
   let second := { clause 2 with id := id "test.scoped.second" }
-  let a ← (checkProperty (context target)
-    (.portable { declaration 1 with scopedClauses := [first, second] })).toOption
-  let b ← (checkProperty (context target)
-    (.portable { declaration 1 with scopedClauses := [second, first] })).toOption
+  let a ← (Property.check (context target)
+    ({ declaration 1 with scopedClauses := [first, second] })).toOption
+  let b ← (Property.check (context target)
+    ({ declaration 1 with scopedClauses := [second, first] })).toOption
   pure (a.behaviorFingerprint == b.behaviorFingerprint && a.canonicalMetadata == b.canonicalMetadata)) == some true
 
 #guard (do
@@ -116,7 +116,7 @@ private def independent (bound : Nat) (points : List Coordinate) : Bool :=
   let target ← targetResult.toOption
   pure ([PropertyPredicate.resultingStateIs state, PropertyPredicate.factIs fact].all fun responsePredicate =>
     let result := do
-      let property ← (checkProperty (context target) (.portable {
+      let property ← (Property.check (context target) ({
         declaration 0 with scopedClauses := [{ clause 0 with response := responsePredicate }] })).toOption
       let compiled ← (compile target property [id "test.run"] (id "test.operation") limits).toOption
       let initial ← (compiled.start () state scope).toOption

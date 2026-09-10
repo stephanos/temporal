@@ -14,10 +14,10 @@ def summaryOf
 /-! Every public form fixes its quantifier and claim before planning. -/
 example : [
     summaryOf (checkQuery exhaustiveContext
-      (declaration (.verify checkedProperty) exhaustivePolicy)),
-    summaryOf (checkQuery context (declaration (.witness checkedProperty))),
-    summaryOf (checkQuery context (declaration (.counterexample checkedProperty))),
-    summaryOf (checkQuery context (declaration (.select [checkedProperty])))
+      (declaration (.verify Property.checked) exhaustivePolicy)),
+    summaryOf (checkQuery context (declaration (.witness Property.checked))),
+    summaryOf (checkQuery context (declaration (.counterexample Property.checked))),
+    summaryOf (checkQuery context (declaration (.select [Property.checked])))
   ] = [
     some (.universal, .verifiedWithinLimits),
     some (.existential, .satisfyingWitness),

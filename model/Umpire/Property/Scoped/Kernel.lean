@@ -1,4 +1,4 @@
-import Umpire.Property.Evaluation
+import Umpire.Property.Evaluate
 import Shared.ScopedObligation
 
 /-! Property facade for the shared passive obligation kernel and its checked window theorems. -/

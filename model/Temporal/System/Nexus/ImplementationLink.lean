@@ -3,7 +3,9 @@ import Temporal.Feature.Nexus3.Cancellation
 import Temporal.System.Nexus.Evidence
 import Temporal.System.Nexus.Core
 import Umpire.ImplementationLink
-import Umpire.Property
+import Umpire.Property.Elab
+import Umpire.Property.Evaluate
+import Umpire.Property.Scoped
 
 /-!
 # Nexus lifecycle Implementation Link

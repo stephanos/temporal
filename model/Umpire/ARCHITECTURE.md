@@ -98,7 +98,7 @@ shape; no constructor infers Model outcomes or checker success.
 
 `FiniteTable` keeps ordered typed catalogs, setup alternatives, transition alternatives, Model
 Outcomes, and Model Facts explicit, then validates domain closure before constructing the ordinary
-finite Model. `DefinitionFamily`, `PropertySpec`, `ExactSequenceSpec`, `QuerySpec`, and
+finite Model. `DefinitionFamily`, `Property`, `Scenario`, `QuerySpec`, and
 `QueryLimitSpec` reduce repeated structure while delegating to the existing language-owned checkers.
 Their `checked` operations require explicit proof of checker success; the ordinary `check`
 operations return the existing typed `Except` results.
@@ -111,7 +111,7 @@ pending temporal obligation. Case analysis reports coverage, overlap, logical co
 incompatibility, exhaustive completion, and limit exhaustion as separate bounded results.
 
 `bounded_response%` is a readable spelling of `PropertyScopedClause`, admitted through the same
-`property%`/`checkProperty` boundary. Scoped clauses declare execution fields, an operation key,
+`property%`/`Property.check` boundary. Scoped clauses declare execution fields, an operation key,
 operation-transition clock, natural bound, and runtime-prefix or deliberately-closed endpoint.
 Projection admits causally supported, Model-authorized steps before obligation execution;
 submissions and duplicate observations contribute no transition. Independent trigger windows count
@@ -131,7 +131,7 @@ cancellation Case or supply an operation cancellation capability.
 Query validity reports satisfiability, trigger exercise, answer, and search completeness separately.
 An impossible scenario, an unexercised nonempty scenario, an unresolved prefix, and exhausted search
 cannot become universal verification. Finite Model terminal declarations are conjunctive and never
-inferred from deadlock. `BehaviorSpec` adds typed allow/forbid, occurrence, ordering, and adjacency
+inferred from deadlock. `Scenario` adds typed allow/forbid, occurrence, ordering, and adjacency
 constraints through the existing canonical checker; ordering permits intervening allowed actions,
 while adjacency and exactness deliberately impose stronger constraints.
 

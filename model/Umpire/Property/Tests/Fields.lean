@@ -1,4 +1,6 @@
-import Umpire.Property
+import Umpire.Property.Elab
+import Umpire.Property.Evaluate
+import Umpire.Property.Scoped
 import Umpire.Property.Tests.Fixtures
 import Umpire.Operation.Action
 import Umpire.Value.Field
@@ -253,7 +255,7 @@ example (value : ModelValue) : PropertyFieldProjection owner (Request := Unit) (
 example (value : ModelValue) : PropertyFieldEvidence := ⟨value⟩
 
 private def truePredicate := compare (.literal (.boolean true) source) (.literal (.boolean true) source)
-private def declaration : PropertyDeclaration := { PropertyTests.portableProperty with
+private def declaration : Property := { PropertyTests.portableProperty with
   version := 2
   clauses := [.sameStepCases {
     id := .of "test.property.fields.group", source, guard := truePredicate,

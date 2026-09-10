@@ -87,10 +87,10 @@ private def propertyErrorOf
 
 /-- Malformed identity and missing capability references stay at the Property checker boundary. -/
 theorem malformedIdentityAndReferenceRemainTyped :
-    (propertyErrorOf ({ AsyncStart.propertySpec with key := "bad id" }.check
+    (propertyErrorOf ({ AsyncStart.authoredProperty with id := Internal.family.id "property" "bad id" }.check
       (PropertyCheckContext.ofTarget target))).map PropertyError.kind =
         some .invalidDefinitionId ∧
-    (propertyErrorOf ({ AsyncStart.propertySpec with requires := [] }.check
+    (propertyErrorOf ({ AsyncStart.authoredProperty with requires := [] }.check
       (PropertyCheckContext.ofTarget target))).map PropertyError.kind =
         some .undeclaredReference := by
   native_decide

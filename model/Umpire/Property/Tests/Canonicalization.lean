@@ -13,7 +13,7 @@ def reorderedContext : PropertyCheckContext := {
   meanings := context.meanings.reverse
 }
 
-def reorderedProperty : PropertyDeclaration := {
+def reorderedProperty : Property := {
   portableProperty with
   clauses := portableProperty.clauses.reverse
 }
@@ -26,39 +26,39 @@ def fingerprintOf
     (check : Except PropertyError CheckedProperty) : Option BehaviorFingerprint :=
   check.toOption.map CheckedProperty.behaviorFingerprint
 
-example : canonicalOf (checkProperty context authoredProperty) =
-      canonicalOf (checkProperty reorderedContext (.portable reorderedProperty)) ∧
-    fingerprintOf (checkProperty context authoredProperty) =
-      fingerprintOf (checkProperty reorderedContext (.portable reorderedProperty)) := by
+example : canonicalOf (Property.check context authoredProperty) =
+      canonicalOf (Property.check reorderedContext (reorderedProperty)) ∧
+    fingerprintOf (Property.check context authoredProperty) =
+      fingerprintOf (Property.check reorderedContext (reorderedProperty)) := by
   native_decide
 
-def changedSourceProperty : PropertyDeclaration := {
+def changedSourceProperty : Property := {
   portableProperty with
   source := { source with line := source.line + 1 }
 }
 
-def changedDocumentationProperty : PropertyDeclaration := {
+def changedDocumentationProperty : Property := {
   portableProperty with
   documentation := "Updated Property documentation."
 }
 
 example : [
-    fingerprintOf (checkProperty context (.portable changedSourceProperty)),
-    fingerprintOf (checkProperty context (.portable changedDocumentationProperty))
+    fingerprintOf (Property.check context (changedSourceProperty)),
+    fingerprintOf (Property.check context (changedDocumentationProperty))
   ] = [
-    fingerprintOf (checkProperty context authoredProperty),
-    fingerprintOf (checkProperty context authoredProperty)
+    fingerprintOf (Property.check context authoredProperty),
+    fingerprintOf (Property.check context authoredProperty)
   ] := by
   native_decide
 
 example : [
-    canonicalOf (checkProperty context (.portable changedSourceProperty)),
-    canonicalOf (checkProperty context (.portable changedDocumentationProperty))
-  ].all fun changed => changed.isSome && changed != canonicalOf (checkProperty context authoredProperty) := by
+    canonicalOf (Property.check context (changedSourceProperty)),
+    canonicalOf (Property.check context (changedDocumentationProperty))
+  ].all fun changed => changed.isSome && changed != canonicalOf (Property.check context authoredProperty) := by
   native_decide
 
 /- The legacy semantic identity remains an exact compatibility boundary. -/
-#guard (fingerprintOf (checkProperty context authoredProperty)).map BehaviorFingerprint.render ==
+#guard (fingerprintOf (Property.check context authoredProperty)).map BehaviorFingerprint.render ==
   some "sha256:d60c739ab4f09cfe36ed622f466edddda0b02d81aa7ef48288f1aa448c515bab"
 
 def changedCapabilityContext : PropertyCheckContext := {
@@ -70,11 +70,11 @@ def changedCapabilityContext : PropertyCheckContext := {
       capability
 }
 
-example : fingerprintOf (checkProperty context authoredProperty) ≠
-    fingerprintOf (checkProperty changedCapabilityContext authoredProperty) := by
+example : fingerprintOf (Property.check context authoredProperty) ≠
+    fingerprintOf (Property.check changedCapabilityContext authoredProperty) := by
   native_decide
 
-def changedConstructor : PropertyDeclaration := {
+def changedConstructor : Property := {
   portableProperty with
   clauses := portableProperty.clauses.map fun clause =>
     if clause.id == honoredDelivery.id then
@@ -86,7 +86,7 @@ def changedConstructor : PropertyDeclaration := {
       clause
 }
 
-def changedReference : PropertyDeclaration := {
+def changedReference : Property := {
   portableProperty with
   clauses := portableProperty.clauses.map fun clause =>
     if clause.id == cancelIsUnique.id then
@@ -96,7 +96,7 @@ def changedReference : PropertyDeclaration := {
       clause
 }
 
-def changedBound : PropertyDeclaration := {
+def changedBound : Property := {
   portableProperty with
   clauses := portableProperty.clauses.map fun clause =>
     if clause.id == honoredDelivery.id then
@@ -108,30 +108,30 @@ def changedBound : PropertyDeclaration := {
       clause
 }
 
-example : fingerprintOf (checkProperty context authoredProperty) ≠
-    fingerprintOf (checkProperty context (.portable changedConstructor)) := by
+example : fingerprintOf (Property.check context authoredProperty) ≠
+    fingerprintOf (Property.check context (changedConstructor)) := by
   native_decide
 
-example : fingerprintOf (checkProperty context authoredProperty) ≠
-    fingerprintOf (checkProperty context (.portable changedReference)) := by
+example : fingerprintOf (Property.check context authoredProperty) ≠
+    fingerprintOf (Property.check context (changedReference)) := by
   native_decide
 
-example : fingerprintOf (checkProperty context authoredProperty) ≠
-    fingerprintOf (checkProperty context (.portable changedBound)) := by
+example : fingerprintOf (Property.check context authoredProperty) ≠
+    fingerprintOf (Property.check context (changedBound)) := by
   native_decide
 
-def unsupportedMajorProperty : PropertyDeclaration := {
+def unsupportedMajorProperty : Property := {
   portableProperty with
   version := 3
 }
 
-def unsupportedMajorWithInvalidBody : PropertyDeclaration := {
+def unsupportedMajorWithInvalidBody : Property := {
   unsupportedMajorProperty with
   clauses := [cancelIsUnique, cancelIsUnique]
 }
 
 /- Unknown Property majors fail before an old reader can accept their clauses as version one. -/
-#guard match checkProperty context (.portable unsupportedMajorProperty) with
+#guard match Property.check context (unsupportedMajorProperty) with
   | .error error =>
       error.kind == .unsupportedPropertyVersion &&
       error.definitionId == portableProperty.id &&
@@ -142,7 +142,7 @@ def unsupportedMajorWithInvalidBody : PropertyDeclaration := {
 
 /- Version classification precedes an unknown major's body without changing supported-version
 diagnostic order. -/
-#guard match checkProperty context (.portable unsupportedMajorWithInvalidBody) with
+#guard match Property.check context (unsupportedMajorWithInvalidBody) with
   | .error error => error.kind == .unsupportedPropertyVersion
   | .ok _ => false
 

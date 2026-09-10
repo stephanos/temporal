@@ -1,5 +1,5 @@
 import Temporal.Feature.Nexus.Operations.Planning
-import Umpire.Behavior.Authoring
+import Umpire.Scenario.Elab
 
 /-!
 # Asynchronous Nexus operation start
@@ -25,9 +25,8 @@ def setupConstraintId : DefinitionId :=
 def occurrenceId : DefinitionId :=
   Internal.id "temporal.nexus.basic-lifecycle.occurrence.start"
 
-def propertySpec : PropertySpec := {
-  family := Internal.family
-  key := "async-start"
+def authoredProperty : Property := {
+  id := (Internal.family).id "property" "async-start"
   source
   requires := [lifecycleCapabilityId]
   clauses := Internal.operationStepClauses "async-start"
@@ -35,48 +34,44 @@ def propertySpec : PropertySpec := {
   documentation := "Starting a scheduled Nexus operation produces the target-owned started result."
 }
 
-def propertyDeclaration : PropertyDeclaration := propertySpec.declaration
-
 def propertyResult : Except PropertyError CheckedProperty :=
-  propertySpec.check (PropertyCheckContext.ofTarget target)
+  authoredProperty.check (PropertyCheckContext.ofTarget target)
 
 private theorem propertyResult_isSome : propertyResult.toOption.isSome = true := by
   native_decide
 
 def property : CheckedProperty :=
-  propertySpec.checked (PropertyCheckContext.ofTarget target) propertyResult_isSome
+  authoredProperty.checked (PropertyCheckContext.ofTarget target) propertyResult_isSome
 
-def behaviorSpec : ExactSequenceSpec := {
-  family := Internal.family
-  key := "async-start"
-  source
-  requires := [lifecycleCapabilityId]
-  roles := [operationRole]
-  setup := [SetupConstraint.roleEquals setupConstraintId operationRoleId scheduledState]
-  occurrences := [{ key := "start", action := startActionId }]
-  documentation := "Select exactly one start action and leave its result to the Nexus model."
-}
+def authoredScenario : Scenario :=
+  Scenario.exactly
+    (family := Internal.family)
+    (key := "async-start")
+    (source := source)
+    (requires := [lifecycleCapabilityId])
+    (roles := [operationRole])
+    (setup := [SetupConstraint.roleEquals setupConstraintId operationRoleId scheduledState])
+    (occurrences := [{ key := "start", action := startActionId }])
+    (documentation := "Select exactly one start action and leave its result to the Nexus model.")
 
-def behaviorDeclaration : BehaviorDeclaration := behaviorSpec.declaration
-
-def behaviorResult : Except BehaviorError CheckedBehavior :=
-  behaviorSpec.check (.ofTarget target)
+def behaviorResult : Except ScenarioError CheckedScenario :=
+  authoredScenario.check (.ofTarget target)
 
 private theorem behaviorResult_isSome : behaviorResult.toOption.isSome = true := by
   native_decide
 
-def behavior : CheckedBehavior :=
-  behaviorSpec.checked (.ofTarget target) behaviorResult_isSome
+def behavior : CheckedScenario :=
+  authoredScenario.checked (.ofTarget target) behaviorResult_isSome
 
-def intendedTrace : BehaviorTrace :=
-  BehaviorTrace.singleStep scheduledSetup scheduledState startAction startedResult
+def intendedTrace : Scenario.Trace :=
+  Scenario.Trace.singleStep scheduledSetup scheduledState startAction startedResult
 
 /-- This target-inconsistent trace shows that Property, not Behavior, checks the model result. -/
-def wrongOutcomeTrace : BehaviorTrace :=
-  BehaviorTrace.singleStep scheduledSetup scheduledState startAction succeededResult
+def wrongOutcomeTrace : Scenario.Trace :=
+  Scenario.Trace.singleStep scheduledSetup scheduledState startAction succeededResult
 
-def wrongActionTrace : BehaviorTrace :=
-  BehaviorTrace.singleStep scheduledSetup scheduledState reportSuccessAction succeededResult
+def wrongActionTrace : Scenario.Trace :=
+  Scenario.Trace.singleStep scheduledSetup scheduledState reportSuccessAction succeededResult
 
 def querySpec : QuerySpec := Internal.querySpec "async-start" property behavior
 

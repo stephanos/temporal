@@ -3,7 +3,9 @@ import Temporal.Shared
 import Temporal.Testpilot.CaseSupport
 import Umpire.Case.Compiler
 import Umpire.Case.Observed
-import Umpire.Property
+import Umpire.Property.Elab
+import Umpire.Property.Evaluate
+import Umpire.Property.Scoped
 import Umpire.Operation.Parameterized
 
 /-!
@@ -345,7 +347,7 @@ private def alwaysApplies : PropertyPredicate :=
     (.literal (.boolean true) source) source
 
 /-- The authored Property declaration; its one clause is the independent field requirement. -/
-def declaration : PropertyDeclaration := {
+def declaration : Property := {
   id := propertyId
   source
   version := 2

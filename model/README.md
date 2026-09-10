@@ -107,7 +107,7 @@ publication. Gaps describe limits and missing evidence; they cannot make a Prope
 that an omitted limitation was detected.
 
 Operation-scoped response Properties can use `bounded_response%` inside
-`PropertySpec.scopedClauses`. For example, with Model-owned `request` and `response` values:
+`Property.scopedClauses`. For example, with Model-owned `request` and `response` values:
 
 ```lean
 bounded_response% (family.id "property" "response") at source

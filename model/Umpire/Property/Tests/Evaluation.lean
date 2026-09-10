@@ -12,13 +12,13 @@ def negativeTrace : ModelTrace ModelValue ModelValue ModelValue ModelValue := {
     if index == 0 then { step with state := value pendingCount "2" } else step
 }
 
-def uniquenessProperty : PropertyDeclaration := {
+def uniquenessProperty : Property := {
   portableProperty with
   id := id "test.property.uniqueness-only"
   clauses := [cancelIsUnique]
 }
 
-example : errorKindOf (checkProperty context authoredProperty) = none := by
+example : errorKindOf (Property.check context authoredProperty) = none := by
   native_decide
 
 example : (evaluationOf portableProperty positiveTrace).map PropertyEvaluation.satisfied = some true := by
@@ -27,7 +27,7 @@ example : (evaluationOf portableProperty positiveTrace).map PropertyEvaluation.s
 example : (evaluationOf uniquenessProperty negativeTrace).map PropertyEvaluation.satisfied = some false := by
   native_decide
 
-def samePositionBoundary : PropertyDeclaration := {
+def samePositionBoundary : Property := {
   portableProperty with
   id := id "test.property.same-position-boundary"
   clauses := [
@@ -50,7 +50,7 @@ example
     (clause : { clause // clause ∈ property.clauses }) :=
   evaluatePropertyClause_agrees property input clause
 
-def hiddenReference : PropertyDeclaration := {
+def hiddenReference : Property := {
   portableProperty with
   id := id "test.property.hidden-reference"
   clauses := [
@@ -60,11 +60,11 @@ def hiddenReference : PropertyDeclaration := {
 }
 
 example :
-    errorKindOf (checkProperty context (.portable hiddenReference)) = some .undeclaredReference := by
+    errorKindOf (Property.check context (hiddenReference)) = some .undeclaredReference := by
   native_decide
 
 def admittedObservationIds : Option (List DefinitionId) :=
-  (checkProperty context authoredProperty).toOption.map fun property =>
+  (Property.check context authoredProperty).toOption.map fun property =>
     (property.traceView positiveTrace).steps.flatMap fun step =>
       step.observations.map ModelValue.definitionId
 

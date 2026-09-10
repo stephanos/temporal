@@ -220,7 +220,7 @@ def missingRoleAxis : VariationAxisDeclaration := {
 }
 
 def outcomeRoleId : DefinitionId := id "space.test.role.outcome"
-def outcomeRole : ResourceRole := {
+def outcomeRole : Scenario.Role := {
   id := outcomeRoleId
   valueKind := .outcome
 }

@@ -179,7 +179,7 @@ def predicateMissingCapabilityContext : PropertyCheckContext := {
     provider.id != cancellationCapability
 }
 
-def predicateWrongCapabilityOwner : PropertyDeclaration := {
+def predicateWrongCapabilityOwner : Property := {
   portableProperty with requires := [pendingCount]
 }
 

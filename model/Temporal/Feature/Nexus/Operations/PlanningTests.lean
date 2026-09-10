@@ -70,20 +70,20 @@ theorem operationQueriesRetainExplicitEmptyAuthoredKnownGaps : [
   native_decide
 
 theorem constructorDeclarationsRetainPublishedIdentities : [
-    (AsyncStart.propertyDeclaration.id,
-      AsyncStart.propertyDeclaration.clauses.map PropertyClause.id,
-      AsyncStart.behaviorDeclaration.id,
-      AsyncStart.behaviorDeclaration.requiredOccurrences.map NamedOccurrence.id,
+    (AsyncStart.authoredProperty.id,
+      AsyncStart.authoredProperty.clauses.map PropertyClause.id,
+      AsyncStart.authoredScenario.id,
+      AsyncStart.authoredScenario.requiredOccurrences.map Scenario.Step.id,
       AsyncStart.queryDeclaration.id),
-    (Cancellation.propertyDeclaration.id,
-      Cancellation.propertyDeclaration.clauses.map PropertyClause.id,
-      Cancellation.behaviorDeclaration.id,
-      Cancellation.behaviorDeclaration.requiredOccurrences.map NamedOccurrence.id,
+    (Cancellation.authoredProperty.id,
+      Cancellation.authoredProperty.clauses.map PropertyClause.id,
+      Cancellation.authoredScenario.id,
+      Cancellation.authoredScenario.requiredOccurrences.map Scenario.Step.id,
       Cancellation.queryDeclaration.id),
-    (SuccessfulCompletion.propertyDeclaration.id,
-      SuccessfulCompletion.propertyDeclaration.clauses.map PropertyClause.id,
-      SuccessfulCompletion.behaviorDeclaration.id,
-      SuccessfulCompletion.behaviorDeclaration.requiredOccurrences.map NamedOccurrence.id,
+    (SuccessfulCompletion.authoredProperty.id,
+      SuccessfulCompletion.authoredProperty.clauses.map PropertyClause.id,
+      SuccessfulCompletion.authoredScenario.id,
+      SuccessfulCompletion.authoredScenario.requiredOccurrences.map Scenario.Step.id,
       SuccessfulCompletion.queryDeclaration.id)
   ] = [
     (AsyncStart.propertyId, [
@@ -110,12 +110,12 @@ theorem rawQueryDeclarationCompatibility :
       AsyncStart.queryDeclaration := by
   native_decide
 
-private def propertyErrorKind (spec : PropertySpec) : Option PropertyErrorKind :=
+private def propertyErrorKind (spec : Property) : Option PropertyErrorKind :=
   match spec.check (PropertyCheckContext.ofTarget target) with
   | .error error => some error.kind
   | .ok _ => none
 
-private def behaviorSpaceStatus (spec : ExactSequenceSpec) : Option BehaviorSpaceStatus := do
+private def scenarioStatus (spec : Scenario) : Option ScenarioStatus := do
   let checked ← spec.check (.ofTarget target) |>.toOption
   pure checked.spaceStatus
 
@@ -126,25 +126,25 @@ private def queryErrorKind (spec : QuerySpec) : Option QueryErrorKind :=
 
 theorem duplicateOperationClausesRetainTypedFailure :
     propertyErrorKind {
-      AsyncStart.propertySpec with
-      key := "async-start-duplicate-clause"
-      clauses := AsyncStart.propertySpec.clauses ++ AsyncStart.propertySpec.clauses
+      AsyncStart.authoredProperty with
+      id := Internal.family.id "property" "async-start-duplicate-clause"
+      clauses := AsyncStart.authoredProperty.clauses ++ AsyncStart.authoredProperty.clauses
     } = some .duplicateDefinitionId := by
   native_decide
 
 theorem missingOperationCapabilityRetainsTypedFailure :
     propertyErrorKind {
-      AsyncStart.propertySpec with
-      key := "async-start-missing-capability"
+      AsyncStart.authoredProperty with
+      id := Internal.family.id "property" "async-start-missing-capability"
       requires := []
     } = some .undeclaredReference := by
   native_decide
 
 theorem contradictoryOperationBehaviorRemainsUnsatisfiable :
-    behaviorSpaceStatus {
-      AsyncStart.behaviorSpec with
-      key := "async-start-contradictory"
-      setup := AsyncStart.behaviorSpec.setup ++ [
+    scenarioStatus {
+      AsyncStart.authoredScenario with
+      id := Internal.family.id "behavior" "async-start-contradictory"
+      setup := AsyncStart.authoredScenario.setup ++ [
         {
           id := Internal.family.id "setup" "scheduled-contradiction"
           relation := .different
@@ -175,14 +175,14 @@ error: type mismatch
 -/
 #guard_msgs (error, substring := true) in
 def omittedPropertyEvidence : CheckedProperty :=
-  AsyncStart.propertySpec.checked (PropertyCheckContext.ofTarget target)
+  AsyncStart.authoredProperty.checked (PropertyCheckContext.ofTarget target)
 
 /-
 error: type mismatch
 -/
 #guard_msgs (error, substring := true) in
-def omittedBehaviorEvidence : CheckedBehavior :=
-  AsyncStart.behaviorSpec.checked (.ofTarget target)
+def omittedBehaviorEvidence : CheckedScenario :=
+  AsyncStart.authoredScenario.checked (.ofTarget target)
 
 /-
 error: type mismatch

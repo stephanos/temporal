@@ -314,14 +314,14 @@ private def testTargetIsolation : IO Unit := do
 private def testSemanticTargetIsolation : IO Unit := do
   let roots := #[
     `Umpire.Model.Check,
-    `Umpire.Property.Language,
+    `Umpire.Property,
     `Umpire.Property.Check,
-    `Umpire.Property.Trace,
-    `Umpire.Property.Evaluation,
+    `Umpire.Property.Evaluate,
     `Umpire.Property.Scoped,
     `Umpire.Property.Scoped.Kernel,
     `Umpire.Property.Scoped.Reference,
-    `Umpire.Behavior.Language,
+    `Umpire.Scenario,
+    `Umpire.Scenario.Check,
     `Umpire.Query.Language,
     `Umpire.Planning,
     `Umpire.Planning.Types,
@@ -345,7 +345,7 @@ private def testSemanticTargetIsolation : IO Unit := do
         requireEqual s!"{root} rejects {bridge} to {destination}"
           ((check defaultPolicy modules).map (·.path)) #[#[root, bridge, destination]]
   let allowed := #[
-    moduleRecord `Umpire.Property.Evaluation #[`Umpire.Model.Check],
+    moduleRecord `Umpire.Property.Evaluate #[`Umpire.Model.Check],
     moduleRecord `Umpire.Model.Check #[`External.Pure],
     moduleRecord `External.Pure #[`Lean.Data.Json],
     moduleRecord `Lean.Data.Json,
@@ -353,11 +353,11 @@ private def testSemanticTargetIsolation : IO Unit := do
     moduleRecord `Umpire.Model.Types #[`Umpire.Model.Elab],
     moduleRecord `Umpire.Model.Elab #[`Lean.Elab.Term],
     moduleRecord `Lean.Elab.Term,
-    moduleRecord `Umpire.Property.Authoring #[`Umpire.Model],
-    moduleRecord `Umpire.Property #[`Umpire.Property.Authoring],
-    moduleRecord `Umpire.Property.Tests.Fixtures #[`Umpire.Property],
-    moduleRecord `Umpire.Behavior.Authoring #[`Umpire.Model],
-    moduleRecord `Umpire.Behavior #[`Umpire.Behavior.Authoring],
+    moduleRecord `Umpire.Property #[`External.Pure],
+    moduleRecord `Umpire.Property.Elab #[`Umpire.Model, `Umpire.Property],
+    moduleRecord `Umpire.Property.Tests.Fixtures #[`Umpire.Property.Elab],
+    moduleRecord `Umpire.Scenario #[`External.Pure],
+    moduleRecord `Umpire.Scenario.Elab #[`Umpire.Model, `Umpire.Scenario],
     moduleRecord `Umpire.Query.Authoring #[`Umpire.Model],
     moduleRecord `Umpire.Query #[`Umpire.Query.Authoring]
   ]
@@ -496,9 +496,9 @@ private def testInventoryBoundaryPaths : IO Unit := do
     requireEqual s!"{source} direct path wins" (paths direct) #[#[source, destination]]
 
 private def testExternalMetadataReconciliation : IO Unit := do
-  let sources := #[sourceRecord `Umpire.Property.Language]
+  let sources := #[sourceRecord `Umpire.Property]
   let modules := #[
-    moduleRecord `Umpire.Property.Language #[`External.Wrapper],
+    moduleRecord `Umpire.Property #[`External.Wrapper],
     moduleRecord `External.Wrapper #[`Umpire.Model.Missing]
   ]
   requireEqual "external metadata keeps unknown owned imports visible"
@@ -640,7 +640,7 @@ private unsafe def testExternalMetadataClosure : IO Unit := do
   let (modules, regions) ← Tools.LeanImportGraph.Metadata.load #[`Lean.Elab.Command]
   requireEqual "actual external wrapper loads transitive Term metadata"
     (modules.any (·.name == `Lean.Elab.Term)) true
-  let root := moduleRecord `Umpire.Property.Language #[`Lean.Elab.Command]
+  let root := moduleRecord `Umpire.Property #[`Lean.Elab.Command]
   let violations := check defaultPolicy (modules.push root)
   requireEqual "actual external wrapper is rejected"
     (violations.map (·.destination)) #[`Lean.Elab.Term]

@@ -12,7 +12,7 @@ private def prepared : PreparedVariationSpace :=
 private def checked : CheckedExperimentSpace LawStatement := prepared.checked
 private def metadata : CheckedSpaceMetadata := prepared.metadata
 private def specs : List ExperimentSpec := prepared.specs
-private def behavior : CheckedBehavior := checked.baseQuery.behavior
+private def behavior : CheckedScenario := checked.baseQuery.behavior
 private def context : SpaceCheckContext LawStatement := .ofQuery checked.baseQuery
 
 example : behaviorResult.isOk = true ∧ queryResult.isOk = true ∧

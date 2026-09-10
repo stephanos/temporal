@@ -3,139 +3,9 @@ import Umpire.Id
 import Lean.Elab.Term
 import Lean.Meta.Eval
 
-/-! Narrow ordinary-Lean constructors over the existing checked Property language. -/
+/-! Located-diagnostic elaboration of authored Properties. -/
 
 namespace Umpire
-
-namespace PropertyPattern
-
-def selectedAction (value : ModelValue) : PropertyPattern :=
-  .exact .selectedAction value.definitionId value.value
-
-def resultingState (value : ModelValue) : PropertyPattern :=
-  .exact .resultingState value.definitionId value.value
-
-def modelOutcome (value : ModelValue) : PropertyPattern :=
-  .exact .modelOutcome value.definitionId value.value
-
-def fact (value : ModelValue) : PropertyPattern :=
-  .exact .observation value.definitionId value.value
-
-end PropertyPattern
-
-namespace PropertyPredicate
-
-/-- Author an independent field relationship in the existing closed Boolean language. -/
-def compareFields (operator : PropertyFieldOperator) (left right : PropertyFieldOperand)
-    (source : SourceLocation) : PropertyPredicate := .atom {
-  field := .selectedAction
-  reference := .of "umpire.property.fields"
-  constraint := .fields ⟨operator, left, right, source⟩ }
-
-/-- Surface spelling elaborates to exactly the ordinary typed field comparison constructor. -/
-syntax "field_compare%" term:max "with" term:max term:max "at" term:max : term
-
-macro_rules
-  | `(field_compare% $left with $operator $right at $source) =>
-    `(PropertyPredicate.compareFields $operator $left $right $source)
-
-def priorStateIs (value : ModelValue) : PropertyPredicate :=
-  .atom {
-    field := .priorState
-    reference := value.definitionId
-    constraint := .equals (.text value.value)
-  }
-
-def selectedActionIs (value : ModelValue) : PropertyPredicate :=
-  .atom {
-    field := .selectedAction
-    reference := value.definitionId
-    constraint := .equals (.text value.value)
-  }
-
-def resultingStateIs (value : ModelValue) : PropertyPredicate :=
-  .atom {
-    field := .resultingState
-    reference := value.definitionId
-    constraint := .equals (.text value.value)
-  }
-
-def modelOutcomeIs (value : ModelValue) : PropertyPredicate :=
-  .atom {
-    field := .modelOutcome
-    reference := value.definitionId
-    constraint := .equals (.text value.value)
-  }
-
-def factIs (value : ModelValue) : PropertyPredicate :=
-  .atom {
-    field := .expectationFact
-    reference := value.definitionId
-    constraint := .equals (.text value.value)
-  }
-
-end PropertyPredicate
-
-/-- Build the three independent baseline obligations for one Target-owned transition result. -/
-def stepClauses
-    (family : DefinitionFamily)
-    (propertyKey : String)
-    (action state outcome fact : ModelValue) : List PropertyClause := [
-  .transitionContract (family.id "property" (propertyKey ++ ".state"))
-    (.selectedAction action) (.resultingState state),
-  .transitionContract (family.id "property" (propertyKey ++ ".outcome"))
-    (.selectedAction action) (.modelOutcome outcome),
-  .inputOutput (family.id "property" (propertyKey ++ ".fact"))
-    (.selectedAction action) (.fact fact)
-]
-
-/-- Readable bounded response clauses elaborate directly to the typed declaration. Admission,
-reference resolution, and canonicalization remain owned by `property%` and `checkProperty`. -/
-syntax (name := boundedResponseSyntax)
-  "bounded_response%" term:max "at" term:max &"whenever" term:max &"eventually" term:max
-  &"within" term:max &"on" term:max "scoped" term:max "by" term:max &"closing" term:max : term
-
-macro_rules
-  | `(bounded_response% $id at $source whenever $trigger eventually $response
-      within $bound on $clock scoped $scope by $key closing $endpoint) =>
-      `(({ id := $id, source := $source, trigger := $trigger, response := $response,
-           bound := $bound, clock := $clock, scope := $scope, key := $key,
-           endpoint := $endpoint } : PropertyScopedClause))
-
-structure PropertySpec where
-  family : DefinitionFamily
-  key : String
-  source : SourceLocation
-  version : Nat := 1
-  requires : List DefinitionId
-  clauses : List PropertyClause
-  scopedClauses : List PropertyScopedClause := []
-  logicalTimeSource : Option DefinitionId := none
-  documentation : String := ""
-
-def PropertySpec.declaration (spec : PropertySpec) : PropertyDeclaration := {
-  id := spec.family.id "property" spec.key
-  source := spec.source
-  version := spec.version
-  requires := spec.requires
-  clauses := spec.clauses
-  scopedClauses := spec.scopedClauses
-  logicalTimeSource := spec.logicalTimeSource
-  documentation := spec.documentation
-}
-
-/-- Admit a constructor-authored Property only through the existing language checker. -/
-def PropertySpec.check
-    (spec : PropertySpec)
-    (context : PropertyCheckContext) : Except PropertyError CheckedProperty :=
-  checkProperty context (.portable spec.declaration)
-
-/-- Produce the checked value after the kernel verifies that the existing checker succeeds. -/
-def PropertySpec.checked
-    (spec : PropertySpec)
-    (context : PropertyCheckContext)
-    (valid : (spec.check context).toOption.isSome = true) : CheckedProperty :=
-  checkedProperty context (.portable spec.declaration) valid
 
 inductive PropertyAuthoringRole where
   | parent
@@ -207,12 +77,12 @@ private unsafe def evalDefinitionIdUnsafe (expression : Lean.Expr) :
 private opaque evalDefinitionId (expression : Lean.Expr) :
     Lean.Elab.Term.TermElabM DefinitionId
 
-private unsafe def evalPropertySpecUnsafe (expression : Lean.Expr) :
-    Lean.Elab.Term.TermElabM PropertySpec :=
-  Lean.Meta.evalExpr PropertySpec (.const ``PropertySpec []) expression
+private unsafe def evalPropertyUnsafe (expression : Lean.Expr) :
+    Lean.Elab.Term.TermElabM Property :=
+  Lean.Meta.evalExpr Property (.const ``Property []) expression
 
-@[implemented_by evalPropertySpecUnsafe]
-private opaque evalPropertySpec (expression : Lean.Expr) : Lean.Elab.Term.TermElabM PropertySpec
+@[implemented_by evalPropertyUnsafe]
+private opaque evalProperty (expression : Lean.Expr) : Lean.Elab.Term.TermElabM Property
 
 private unsafe def evalPropertyCheckContextUnsafe (expression : Lean.Expr) :
     Lean.Elab.Term.TermElabM PropertyCheckContext :=
@@ -248,10 +118,10 @@ private def elaborateProperty
     (specSyntax contextSyntax : Lean.TSyntax `term)
     (occurrences : List CapturedPropertySourceRef)
     (expectedType : Option Lean.Expr) : Lean.Elab.Term.TermElabM Lean.Expr := do
-  let specExpression ← Lean.Elab.Term.elabTerm specSyntax (some (.const ``PropertySpec []))
+  let specExpression ← Lean.Elab.Term.elabTerm specSyntax (some (.const ``Property []))
   let contextExpression ←
     Lean.Elab.Term.elabTerm contextSyntax (some (.const ``PropertyCheckContext []))
-  let spec ← evalPropertySpec specExpression
+  let spec ← evalProperty specExpression
   let context ← evalPropertyCheckContext contextExpression
   match spec.check context with
   | .error error =>
@@ -265,7 +135,7 @@ private def elaborateProperty
           Lean.throwErrorAt specSyntax.raw s!"property authoring failed: {
             canonicalPropertyLocatedErrorJson { error, role := .parent, anchor }}"
   | .ok _ =>
-      Lean.Elab.Term.elabTerm (← `(PropertySpec.check $specSyntax $contextSyntax)) expectedType
+      Lean.Elab.Term.elabTerm (← `(Property.check $contextSyntax $specSyntax)) expectedType
 
 declare_syntax_cat propertySourceRef
 syntax ident term : propertySourceRef

@@ -1,5 +1,5 @@
 import Umpire.Case.Scoped
-import Umpire.Property.Authoring
+import Umpire.Property.Elab
 import Umpire.Model.Table
 import Umpire.Shared.Test
 
@@ -198,7 +198,7 @@ private def clause (bound : Nat := 1) (endpoint : PropertyScopedEndpoint := .run
 }
 
 private def property (target : TestTarget) (temporal : PropertyScopedClause) :=
-  checkProperty (context target) (.portable {
+  Property.check (context target) ({
     id := id "test.property.fields"
     source
     requires := [id "test.capability"]

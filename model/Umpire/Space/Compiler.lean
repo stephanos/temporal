@@ -160,7 +160,7 @@ private def selectedChoices
     result := result ++ [(axis, choice)]
   pure (pointId, assignment, result)
 
-private def authoredExactTrace (trace : BehaviorTrace) : AuthoredExactTrace := {
+private def authoredExactTrace (trace : Scenario.Trace) : AuthoredExactTrace := {
   setup := trace.setup
   initialState := some trace.trace.initialState
   steps := trace.trace.steps.map fun step => {
@@ -229,10 +229,10 @@ private def bindingConstraint
   right := .value binding.value
 }
 
-private def behaviorDeclaration
+private def authoredScenario
     (space : CheckedExperimentSpace LawStatement)
     (pointId : DefinitionId)
-    (bindings : List RoleBinding) : BehaviorDeclaration :=
+    (bindings : List RoleBinding) : Scenario :=
   let base := space.baseQuery.behavior
   {
     id := derivedBehaviorId pointId
@@ -256,7 +256,7 @@ private def behaviorDeclaration
 private def queryDeclaration
     (space : CheckedExperimentSpace LawStatement)
     (pointId : DefinitionId)
-    (behavior : CheckedBehavior) : QueryDeclaration :=
+    (behavior : CheckedScenario) : QueryDeclaration :=
   let base := space.baseQuery
   {
     id := derivedQueryId pointId
@@ -331,8 +331,8 @@ def lowerSpacePoint
   SpaceCompiler.Internal.rejectDerivedIdentityCollisions space pointId
     (visibleDefinitionIds space)
   let bindings := choices.filterMap fun selected => selected.2.binding
-  let behavior ← match checkBehavior (.ofTarget space.baseQuery.target)
-      (behaviorDeclaration space pointId bindings) with
+  let behavior ← match Scenario.check (.ofTarget space.baseQuery.target)
+      (authoredScenario space pointId bindings) with
     | .ok behavior => pure behavior
     | .error error => throw (compilationError space .behaviorCheckFailed pointId
         error.offendingValue error.relatedDefinitionIds)

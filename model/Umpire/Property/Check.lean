@@ -1,7 +1,8 @@
-import Umpire.Property.Language
+import Umpire.Property
 
 /-!
-Typed Property checking and canonicalization behind the `Umpire.Property` public facade.
+Typed Property checking and canonicalization, with the Property-specific Model Trace coordinate
+adaptation and capability-limited projection the checked evaluator reads.
 -/
 
 namespace Umpire
@@ -388,7 +389,7 @@ private def findDefinition
 
 private def buildCapabilityView
     (context : PropertyCheckContext)
-    (declaration : PropertyDeclaration) : Except PropertyError PropertyCapabilityView := do
+    (declaration : Property) : Except PropertyError PropertyCapabilityView := do
   requireUniqueIds declaration.id declaration.source declaration.requires
   let required := DefinitionId.canonicalSet declaration.requires
   for capabilityId in required do
@@ -413,7 +414,7 @@ private def buildCapabilityView
 
 private def validatePattern
     (context : PropertyCheckContext)
-    (owner : PropertyDeclaration)
+    (owner : Property)
     (access : PropertyCapabilityView)
     (pattern : PropertyPattern) : Except PropertyError Unit := do
   requireDefinitionId owner.id owner.source pattern.reference
@@ -441,7 +442,7 @@ private def predicateTraceField : PropertyPredicateField → PropertyTraceField
   | .expectationFact => .observation
 
 private def validateAtomConstraint
-    (owner : PropertyDeclaration)
+    (owner : Property)
     (atom : PropertyAtom) : Except PropertyError Unit := do
   match atom.constraint with
   | .present | .equals _ | .fields _ => pure ()
@@ -461,7 +462,7 @@ private def fieldPredicateField : PropertyFieldRoot → PropertyPredicateField
   | .outcome => .modelOutcome
   | .event => .expectationFact
 
-private def validateFieldComparison (context : PropertyCheckContext) (owner : PropertyDeclaration)
+private def validateFieldComparison (context : PropertyCheckContext) (owner : Property)
     (access : PropertyCapabilityView) (contextKind : PropertyPredicateContext)
     (comparison : PropertyFieldComparison) (facts : List PropertyFieldPath)
     (captures : List PropertyScopedCapture) : Except PropertyError Unit := do
@@ -512,7 +513,7 @@ private def establishedFields : PropertyPredicate → List PropertyFieldPath
 
 private def validatePropertyPredicate
     (context : PropertyCheckContext)
-    (owner : PropertyDeclaration)
+    (owner : Property)
     (access : PropertyCapabilityView)
     (contextKind : PropertyPredicateContext)
     (predicate : PropertyPredicate) (facts : List PropertyFieldPath := [])
@@ -548,7 +549,7 @@ private def validatePropertyPredicate
 
 private def resolvePropertyPredicate
     (context : PropertyCheckContext)
-    (owner : PropertyDeclaration)
+    (owner : Property)
     (access : PropertyCapabilityView)
     (source : SourceLocation)
     (contextKind : PropertyPredicateContext)
@@ -562,7 +563,7 @@ private def resolvePropertyPredicate
 /-- Check every Boolean child against one explicit same-step context before it can be evaluated. -/
 def checkPropertyPredicate
     (context : PropertyCheckContext)
-    (owner : PropertyDeclaration)
+    (owner : Property)
     (contextKind : PropertyPredicateContext)
     (predicate : PropertyPredicate) :
     Except PropertyError (CheckedPropertyPredicate contextKind) := do
@@ -573,7 +574,7 @@ def checkPropertyPredicate
 /-- Produce a checked Boolean predicate from an explicit kernel-checked admission proof. -/
 def checkedPropertyPredicate
     (context : PropertyCheckContext)
-    (owner : PropertyDeclaration)
+    (owner : Property)
     (contextKind : PropertyPredicateContext)
     (predicate : PropertyPredicate)
     (valid : (checkPropertyPredicate context owner contextKind predicate).toOption.isSome = true) :
@@ -655,7 +656,7 @@ def validatePropertyPredicateInput
 
 private def validateLogicalTime
     (context : PropertyCheckContext)
-    (owner : PropertyDeclaration)
+    (owner : Property)
     (access : PropertyCapabilityView) : Except PropertyError Unit := do
   match access.logicalTimeSource with
   | none => pure ()
@@ -667,7 +668,7 @@ private def validateLogicalTime
 
 private def resolveLimit
     (context : PropertyCheckContext)
-    (owner : PropertyDeclaration)
+    (owner : Property)
     (limit : PropertyLimit) : Except PropertyError Limit :=
   match limit with
   | .exact limit => pure limit
@@ -686,7 +687,7 @@ private def resolveLimit
           pure profile.limit
 
 private def requirePositionUnit
-    (owner : PropertyDeclaration)
+    (owner : Property)
     (access : PropertyCapabilityView)
     (unit : LimitUnit)
     (patterns : List PropertyPattern) : Except PropertyError Unit := do
@@ -703,7 +704,7 @@ private def requirePositionUnit
     throw (propertyError .missingLogicalTimeSource owner.id owner.source unit.name)
 
 private def requireField
-    (owner : PropertyDeclaration)
+    (owner : Property)
     (clauseId : DefinitionId)
     (actual : PropertyTraceField)
     (allowed : List PropertyTraceField) : Except PropertyError Unit :=
@@ -715,7 +716,7 @@ private def requireField
 
 private def checkClause
     (context : PropertyCheckContext)
-    (owner : PropertyDeclaration)
+    (owner : Property)
     (access : PropertyCapabilityView)
     (clause : PropertyClause) : Except PropertyError ResolvedPropertyClause := do
   requireDefinitionId owner.id owner.source clause.id
@@ -1151,7 +1152,7 @@ selected operation binding, and its lifetime must retain at least one occurrence
 carry their own presence facts: a retained occurrence's presence was decided at the step that
 admitted it, not in the Boolean branch that later reads it, so an optional or oneof-selected field
 can be captured. -/
-private def checkScopedCapture (context : PropertyCheckContext) (owner : PropertyDeclaration)
+private def checkScopedCapture (context : PropertyCheckContext) (owner : Property)
     (access : PropertyCapabilityView) (clause : PropertyScopedClause)
     (capture : PropertyScopedCapture) : Except PropertyError Unit := do
   requireDefinitionId clause.id clause.source capture.name
@@ -1175,7 +1176,7 @@ private def checkScopedCapture (context : PropertyCheckContext) (owner : Propert
     nestedPropertyError .invalidClause clause.id error.source error.reason [capture.path.reference]
 
 private def checkScopedClause (context : PropertyCheckContext)
-    (owner : PropertyDeclaration) (access : PropertyCapabilityView)
+    (owner : Property) (access : PropertyCapabilityView)
     (clause : PropertyScopedClause) : Except PropertyError ResolvedPropertyScopedClause := do
   requireDefinitionId clause.id clause.source clause.id
   requireDefinitionId clause.id clause.source clause.key
@@ -1197,13 +1198,9 @@ private def checkScopedClause (context : PropertyCheckContext)
     trigger, response, triggerPattern, responsePattern, correlation⟩
 
 /-- Check an authored property, expand named limits, and freeze its capability view before planning. -/
-def checkProperty
+def Property.check
     (context : PropertyCheckContext)
-    (authoring : PropertyAuthoring) : Except PropertyError CheckedProperty := do
-  let declaration ← match authoring with
-    | .portable declaration => pure declaration
-    | .opaque id source =>
-        throw (propertyError .opaqueDeclaration id source id.value [id])
+    (declaration : Property) : Except PropertyError CheckedProperty := do
   requireDefinitionId declaration.id declaration.source declaration.id
   if declaration.version != 1 && declaration.version != 2 then
     throw (propertyError .unsupportedPropertyVersion declaration.id declaration.source
@@ -1248,11 +1245,105 @@ def checkProperty
   pure { checked with canonicalMetadata := canonicalPropertyJson checked }
 
 /-- Produce a checked Property directly from an explicit proof that the typed checker succeeds.
-Use `checkProperty` when an invalid declaration's typed diagnostic is needed. -/
-def checkedProperty
+Use `Property.check` when an invalid declaration's typed diagnostic is needed. -/
+def Property.checked
     (context : PropertyCheckContext)
-    (authoring : PropertyAuthoring)
-    (valid : (checkProperty context authoring).toOption.isSome = true) : CheckedProperty :=
-  (checkProperty context authoring).toOption.get valid
+    (declaration : Property)
+    (valid : (Property.check context declaration).toOption.isSome = true) : CheckedProperty :=
+  (Property.check context declaration).toOption.get valid
+
+
+/-! Property-specific Model Trace coordinate adaptation and capability-limited projection. -/
+
+/-- Look up a strict Model Trace coordinate only when it is compatible with this Property field.
+Initial state is prior state only for a nonempty trace, and a resulting state is prior state only
+when another step follows it. -/
+def PropertyTraceField.valueAt?
+    (field : PropertyTraceField)
+    (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue)
+    (coordinate : ModelCoordinate) : Option ModelValue := do
+  let value ← trace.valueAt? coordinate
+  let compatible : Bool := match field with
+    | .state | .selectedAction | .modelOutcome | .observation =>
+        coordinate.definitionKind == field.definitionKind
+    | .priorState => match coordinate with
+        | .initialState => !trace.steps.isEmpty
+        | .state step => decide (step < trace.steps.length)
+        | _ => false
+    | .resultingState => match coordinate with
+        | .state _ => true
+        | _ => false
+    | .relation => coordinate.definitionKind == .fact
+  if compatible then some value else none
+
+structure PropertyTraceStep where
+  priorState : Option ModelValue
+  selectedAction : Option ModelValue
+  modelOutcome : Option ModelValue
+  resultingState : Option ModelValue
+  observations : List ModelValue
+  logicalTime : Option Nat
+  deriving BEq, DecidableEq, Repr
+
+/-- The evaluator's input contains only values admitted by the checked capability requirements. -/
+structure PropertyTraceView where
+  initialState : Option ModelValue
+  steps : List PropertyTraceStep
+  deriving BEq, DecidableEq, Repr
+
+private def PropertyCapabilityView.allows
+    (access : PropertyCapabilityView)
+    (value : ModelValue) : Bool :=
+  access.meanings.any fun meaning => meaning.definitionId == value.definitionId
+
+private def PropertyCapabilityView.admit
+    (access : PropertyCapabilityView)
+    (value : ModelValue) : Option ModelValue :=
+  if access.allows value then some value else none
+
+private def logicalTimeOf
+    (source : Option DefinitionId)
+    (observations : List ModelValue)
+    (previous : Option Nat) : Option Nat :=
+  match source with
+  | none => none
+  | some id =>
+      match observations.find? fun observation => observation.definitionId == id with
+      | some observation =>
+          match observation.value.toNat? with
+          | some current =>
+              if previous.any fun prior => current < prior then none else some current
+          | none => none
+      | none => previous
+
+private def buildTraceSteps
+    (access : PropertyCapabilityView)
+    (priorState : Option ModelValue)
+    (previousTime : Option Nat) :
+    List (ModelTraceStep ModelValue ModelValue ModelValue ModelValue) →
+      List PropertyTraceStep
+  | [] => []
+  | step :: rest =>
+      let observations := step.facts.filter fun observation => access.allows observation
+      let logicalTime := logicalTimeOf access.logicalTimeSource observations previousTime
+      let resultingState := access.admit step.state
+      {
+        priorState
+        selectedAction := access.admit step.selectedAction
+        modelOutcome := access.admit step.outcome
+        resultingState
+        observations
+        logicalTime
+      } :: buildTraceSteps access resultingState logicalTime rest
+
+def CheckedProperty.traceView
+    (property : CheckedProperty)
+    (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue) :
+    PropertyTraceView :=
+  let initialState := property.access.admit trace.initialState
+  {
+    initialState
+    steps := buildTraceSteps property.access initialState none trace.steps
+  }
 
 end Umpire

@@ -383,7 +383,7 @@ def verdictPattern
   constraint
 }
 
-def satisfiedPropertyDeclaration : PropertyDeclaration := {
+def satisfiedPropertyDeclaration : Property := {
   id := id "test.property.observation.satisfied"
   source
   requires := [verdictCapability]
@@ -393,7 +393,7 @@ def satisfiedPropertyDeclaration : PropertyDeclaration := {
   ]
 }
 
-def violatedPropertyDeclaration : PropertyDeclaration := {
+def violatedPropertyDeclaration : Property := {
   satisfiedPropertyDeclaration with
   id := id "test.property.observation.violated"
   clauses := [
@@ -402,7 +402,7 @@ def violatedPropertyDeclaration : PropertyDeclaration := {
   ]
 }
 
-def repeatedPropertyDeclaration : PropertyDeclaration := {
+def repeatedPropertyDeclaration : Property := {
   satisfiedPropertyDeclaration with
   id := id "test.property.observation.repeated"
   clauses := [
@@ -412,7 +412,7 @@ def repeatedPropertyDeclaration : PropertyDeclaration := {
   ]
 }
 
-def logicalTimePropertyDeclaration : PropertyDeclaration := {
+def logicalTimePropertyDeclaration : Property := {
   satisfiedPropertyDeclaration with
   id := id "test.property.observation.logical-time"
   logicalTimeSource := some contributionObservation
@@ -425,22 +425,22 @@ def logicalTimePropertyDeclaration : PropertyDeclaration := {
 }
 
 def satisfiedProperty : CheckedProperty :=
-  (checkProperty verdictPropertyContext (.portable satisfiedPropertyDeclaration))
+  (Property.check verdictPropertyContext (satisfiedPropertyDeclaration))
     |>.toOption.get (by native_decide)
 
 def violatedProperty : CheckedProperty :=
-  (checkProperty verdictPropertyContext (.portable violatedPropertyDeclaration))
+  (Property.check verdictPropertyContext (violatedPropertyDeclaration))
     |>.toOption.get (by native_decide)
 
 def repeatedProperty : CheckedProperty :=
-  (checkProperty verdictPropertyContext (.portable repeatedPropertyDeclaration))
+  (Property.check verdictPropertyContext (repeatedPropertyDeclaration))
     |>.toOption.get (by native_decide)
 
 def logicalTimeProperty : CheckedProperty :=
-  (checkProperty verdictPropertyContext (.portable logicalTimePropertyDeclaration))
+  (Property.check verdictPropertyContext (logicalTimePropertyDeclaration))
     |>.toOption.get (by native_decide)
 
-def guardedPropertyDeclaration : PropertyDeclaration := {
+def guardedPropertyDeclaration : Property := {
   satisfiedPropertyDeclaration with
   id := id "test.property.observation.guarded"
   version := 2
@@ -475,7 +475,7 @@ def guardedPropertyDeclaration : PropertyDeclaration := {
   }]
 }
 
-def guardedTemporalPropertyDeclaration : PropertyDeclaration := {
+def guardedTemporalPropertyDeclaration : Property := {
   satisfiedPropertyDeclaration with
   id := id "test.property.observation.guarded-temporal"
   version := 2

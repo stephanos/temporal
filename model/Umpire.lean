@@ -1,7 +1,9 @@
 import Umpire.Core
 import Umpire.Model
-import Umpire.Property
-import Umpire.Behavior
+import Umpire.Property.Elab
+import Umpire.Property.Evaluate
+import Umpire.Property.Scoped
+import Umpire.Scenario.Elab
 import Umpire.Query
 import Umpire.ExecutionHandoff
 import Umpire.Artifact

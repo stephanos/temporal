@@ -1,15 +1,15 @@
-import Umpire.Behavior
+import Umpire.Scenario.Elab
 import Umpire.Shared.Test
 
 /-! Shared semantic vocabulary, traces, and helpers for the Behavior concern tests. -/
 
-namespace Umpire.BehaviorTests
+namespace Umpire.ScenarioTests
 
 open Umpire
 
 def id (value : String) : DefinitionId := Shared.Test.definitionId value
 
-def source : SourceLocation := Shared.Test.sourceLocation "Umpire/Behavior/Tests.lean"
+def source : SourceLocation := Shared.Test.sourceLocation "Umpire/Scenario/Tests.lean"
 
 def metadata (value : String) (kind : DefinitionKind) : DefinitionMetadata :=
   Shared.Test.definitionMetadata value kind source (value ++ "/v1")
@@ -28,7 +28,7 @@ def rejected : DefinitionId := id "test.outcome.rejected"
 def cancelRequested : DefinitionId := id "test.observation.cancel-requested"
 def callerClosed : DefinitionId := id "test.observation.closed"
 
-def context : BehaviorCheckContext := {
+def context : ScenarioCheckContext := {
   definitions := [
     metadata cancellationCapability.value .capability,
     metadata operationState.value .state,
@@ -46,7 +46,7 @@ def context : BehaviorCheckContext := {
   ]
 }
 
-def operationRole : ResourceRole := {
+def operationRole : Scenario.Role := {
   id := id "test.role.resource"
   valueKind := .state
 }
@@ -87,25 +87,25 @@ def tickStep : ModelTraceStep ModelValue ModelValue ModelValue ModelValue := {
 def traceWith
     (setupValue : ModelValue)
     (steps : List (ModelTraceStep ModelValue ModelValue ModelValue ModelValue)) :
-    BehaviorTrace := {
+    Scenario.Trace := {
   setup := [{ role := operationRole.id, value := setupValue }]
   trace := { initialState := initial, steps }
 }
 
-def acceptedTrace : BehaviorTrace := traceWith operationA [cancelStep accepted, closeStep]
-def rejectedTrace : BehaviorTrace := traceWith operationA [cancelStep rejected, closeStep]
-def interleavedTrace : BehaviorTrace := traceWith operationA [cancelStep accepted, tickStep, closeStep]
-def reversedTrace : BehaviorTrace := traceWith operationA [closeStep, cancelStep accepted]
-def repeatedCancelTrace : BehaviorTrace :=
+def acceptedTrace : Scenario.Trace := traceWith operationA [cancelStep accepted, closeStep]
+def rejectedTrace : Scenario.Trace := traceWith operationA [cancelStep rejected, closeStep]
+def interleavedTrace : Scenario.Trace := traceWith operationA [cancelStep accepted, tickStep, closeStep]
+def reversedTrace : Scenario.Trace := traceWith operationA [closeStep, cancelStep accepted]
+def repeatedCancelTrace : Scenario.Trace :=
   traceWith operationA [cancelStep accepted, cancelStep rejected, closeStep]
-def otherSetupTrace : BehaviorTrace := traceWith operationB [cancelStep accepted, closeStep]
+def otherSetupTrace : Scenario.Trace := traceWith operationB [cancelStep accepted, closeStep]
 
-def cancelOccurrence : NamedOccurrence := {
+def cancelOccurrence : Scenario.Step := {
   id := id "test.occurrence.cancel"
   action := requestCancel
 }
 
-def closeOccurrence : NamedOccurrence := {
+def closeOccurrence : Scenario.Step := {
   id := id "test.occurrence.close"
   action := callerClose
 }
@@ -128,7 +128,7 @@ def exactWitness : AuthoredExactTrace := {
   }
 }
 
-def constrainedDeclaration : BehaviorDeclaration := {
+def constrainedDeclaration : Scenario := {
   id := id "test.behavior.constrained"
   source
   requires := [cancellationCapability]
@@ -137,15 +137,15 @@ def constrainedDeclaration : BehaviorDeclaration := {
   allowedActions := [requestCancel, callerClose, tick]
   requiredOccurrences := [cancelOccurrence, closeOccurrence]
   occurrenceBounds := [
-    OccurrenceBound.exactly requestCancel 1,
-    OccurrenceBound.exactly callerClose 1,
-    OccurrenceBound.atMost tick 1
+    Scenario.Count.exactly requestCancel 1,
+    Scenario.Count.exactly callerClose 1,
+    Scenario.Count.atMost tick 1
   ]
   ordering := [{ before := cancelOccurrence.id, after := closeOccurrence.id }]
   sequences := [[requestCancel, callerClose]]
 }
 
-def checkedAdmits (declaration : BehaviorDeclaration) (trace : BehaviorTrace) : Bool :=
-  (checkBehavior context declaration).toOption.any fun checked => checked.admits trace
+def checkedAdmits (declaration : Scenario) (trace : Scenario.Trace) : Bool :=
+  (Scenario.check context declaration).toOption.any fun checked => checked.admits trace
 
-end Umpire.BehaviorTests
+end Umpire.ScenarioTests

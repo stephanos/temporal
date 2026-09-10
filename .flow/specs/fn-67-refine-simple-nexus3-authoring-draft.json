@@ -228,7 +228,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-67-refine-simple-nexus3-authoring-draft.md",
-  "status": "open",
+  "status": "done",
   "title": "Refine simple Nexus3 authoring draft",
   "tracker": {
     "baseHashFlow": null,
@@ -241,5 +241,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-09T20:21:38.906313Z"
+  "updated_at": "2026-09-10T06:35:11.727150Z"
 }

@@ -1,5 +1,5 @@
-import Umpire.Property.Evaluation
-import Umpire.Behavior.Language
+import Umpire.Property.Evaluate
+import Umpire.Scenario.Check
 import Umpire.KnownGap
 
 /-! Implementation behind the `Umpire.Query` public facade. -/
@@ -283,7 +283,7 @@ structure QueryDeclaration where
   version : Nat := 1
   target : DefinitionId
   form : QueryForm
-  behavior : CheckedBehavior
+  behavior : CheckedScenario
   limits : QueryLimits
   policy : PlannerPolicy
   endpoint : QueryEndpoint := .deliberatelyClosed
@@ -338,7 +338,7 @@ structure CheckedQuery (LawStatement : Law → Prop) where
   form : QueryForm
   quantifier : QueryQuantifier
   claim : QueryClaim
-  behavior : CheckedBehavior
+  behavior : CheckedScenario
   target : QueryModel LawStatement
   limits : QueryLimits
   policy : PlannerPolicy
@@ -513,7 +513,7 @@ private def querySemanticJson
     (id : DefinitionId)
     (version : Nat)
     (form : QueryForm)
-    (behavior : CheckedBehavior)
+    (behavior : CheckedScenario)
     (target : QueryModel LawStatement)
     (composition : List DefinitionId)
     (limits : QueryLimits)

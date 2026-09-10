@@ -1,22 +1,22 @@
-import Umpire.Behavior.Tests.Fixtures
+import Umpire.Scenario.Tests.Fixtures
 
 /-! Canonical ordering, symmetric setup, and Behavior Fingerprint sensitivity checks. -/
 
-namespace Umpire.BehaviorTests
+namespace Umpire.ScenarioTests
 
 open Umpire
 
-def peerRole : ResourceRole := {
+def peerRole : Scenario.Role := {
   id := id "test.role.peer-resource"
   valueKind := .state
 }
 
-def tickOccurrence : NamedOccurrence := {
+def tickOccurrence : Scenario.Step := {
   id := id "test.occurrence.tick"
   action := tick
 }
 
-def canonicalDeclaration : BehaviorDeclaration := {
+def canonicalDeclaration : Scenario := {
   id := id "test.behavior.canonical"
   source
   requires := [cancellationCapability]
@@ -34,9 +34,9 @@ def canonicalDeclaration : BehaviorDeclaration := {
   requiredOccurrences := [cancelOccurrence, closeOccurrence, tickOccurrence]
   forbiddenActions := [abort, noop]
   occurrenceBounds := [
-    OccurrenceBound.exactly requestCancel 1,
-    OccurrenceBound.atLeast callerClose 1,
-    OccurrenceBound.atMost tick 2
+    Scenario.Count.exactly requestCancel 1,
+    Scenario.Count.atLeast callerClose 1,
+    Scenario.Count.atMost tick 2
   ]
   ordering := [
     { before := cancelOccurrence.id, after := closeOccurrence.id },
@@ -46,7 +46,7 @@ def canonicalDeclaration : BehaviorDeclaration := {
   adjacencies := [[requestCancel, callerClose], [tick, callerClose]]
 }
 
-def reorderedCanonicalDeclaration : BehaviorDeclaration := {
+def reorderedCanonicalDeclaration : Scenario := {
   canonicalDeclaration with
   roles := canonicalDeclaration.roles.reverse
   setup := canonicalDeclaration.setup.reverse
@@ -59,16 +59,16 @@ def reorderedCanonicalDeclaration : BehaviorDeclaration := {
   adjacencies := canonicalDeclaration.adjacencies.reverse
 }
 
-def canonicalOf (declaration : BehaviorDeclaration) : Option String :=
-  (checkBehavior context declaration).toOption.map canonicalBehaviorJson
+def canonicalOf (declaration : Scenario) : Option String :=
+  (Scenario.check context declaration).toOption.map canonicalScenarioJson
 
-def fingerprintOf (declaration : BehaviorDeclaration) : Option BehaviorFingerprint :=
-  (checkBehavior context declaration).toOption.map CheckedBehavior.behaviorFingerprint
+def fingerprintOf (declaration : Scenario) : Option BehaviorFingerprint :=
+  (Scenario.check context declaration).toOption.map CheckedScenario.behaviorFingerprint
 
 example : canonicalOf canonicalDeclaration = canonicalOf reorderedCanonicalDeclaration := by
   native_decide
 
-def reversedSetupOperands : BehaviorDeclaration := {
+def reversedSetupOperands : Scenario := {
   constrainedDeclaration with
   setup := [{ setupEqualsA with left := setupEqualsA.right, right := setupEqualsA.left }]
 }
@@ -76,34 +76,34 @@ def reversedSetupOperands : BehaviorDeclaration := {
 example : canonicalOf constrainedDeclaration = canonicalOf reversedSetupOperands := by
   native_decide
 
-def setupMutation : BehaviorDeclaration := {
+def setupMutation : Scenario := {
   constrainedDeclaration with
   setup := [{ setupEqualsA with relation := .different }]
 }
 
-def actionMutation : BehaviorDeclaration := {
+def actionMutation : Scenario := {
   constrainedDeclaration with allowedActions := [requestCancel, callerClose, tick, retry]
 }
 
-def occurrenceMutation : BehaviorDeclaration := {
+def occurrenceMutation : Scenario := {
   constrainedDeclaration with requiredOccurrences := [cancelOccurrence, closeOccurrence, tickOccurrence]
 }
 
-def orderMutation : BehaviorDeclaration := {
+def orderMutation : Scenario := {
   constrainedDeclaration with
   ordering := [{ before := closeOccurrence.id, after := cancelOccurrence.id }]
 }
 
-def boundMutation : BehaviorDeclaration := {
+def boundMutation : Scenario := {
   constrainedDeclaration with
   occurrenceBounds := [
-    OccurrenceBound.atMost requestCancel 2,
-    OccurrenceBound.exactly callerClose 1,
-    OccurrenceBound.atMost tick 1
+    Scenario.Count.atMost requestCancel 2,
+    Scenario.Count.exactly callerClose 1,
+    Scenario.Count.atMost tick 1
   ]
 }
 
-def traceMutation : BehaviorDeclaration := {
+def traceMutation : Scenario := {
   constrainedDeclaration with traceExactly := some exactWitness
 }
 
@@ -118,4 +118,4 @@ example : [
     fingerprint.isSome && fingerprint != fingerprintOf constrainedDeclaration) := by
   native_decide
 
-end Umpire.BehaviorTests
+end Umpire.ScenarioTests

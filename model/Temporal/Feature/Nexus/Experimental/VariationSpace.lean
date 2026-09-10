@@ -67,7 +67,7 @@ def setupConstraint : SetupConstraint := {
   right := .value scheduledState
 }
 
-def behaviorDeclaration : BehaviorDeclaration := {
+def authoredScenario : Scenario := {
   id := behaviorId
   source
   requires := [lifecycleCapabilityId]
@@ -79,29 +79,29 @@ def behaviorDeclaration : BehaviorDeclaration := {
     { id := successOccurrenceId, action := reportSuccessActionId }
   ]
   occurrenceBounds := [
-    OccurrenceBound.exactly startActionId 1,
-    OccurrenceBound.exactly reportSuccessActionId 1
+    Scenario.Count.exactly startActionId 1,
+    Scenario.Count.exactly reportSuccessActionId 1
   ]
   ordering := [{ before := startOccurrenceId, after := successOccurrenceId }]
   actionsExactly := some [startActionId, reportSuccessActionId]
   documentation := "Select the ordinary Nexus start and success transitions in lifecycle order."
 }
 
-def behaviorResult : Except BehaviorError CheckedBehavior :=
-  checkBehavior (.ofTarget target) behaviorDeclaration
+def behaviorResult : Except ScenarioError CheckedScenario :=
+  Scenario.check (.ofTarget target) authoredScenario
 
 def queryLimits : QueryLimits := QueryLimits.bounded 2 2 32
 
 /-- Typed failure from any stage of preparing the checked experimental Space. -/
 inductive VariationSpacePreparationError where
-  | behavior (error : BehaviorError)
+  | behavior (error : ScenarioError)
   | query (error : QueryError)
   | space (error : SpaceError)
   | metadata (error : SpaceMetadataError)
   | compilation (error : SpaceCompilationError)
   deriving Repr
 
-private def queryDeclaration (behavior : CheckedBehavior) : QueryDeclaration := {
+private def queryDeclaration (behavior : CheckedScenario) : QueryDeclaration := {
   id := queryId
   source
   target := target.id

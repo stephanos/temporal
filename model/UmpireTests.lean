@@ -7,9 +7,9 @@ import Umpire.CoreTests
 import Umpire.Operation.Tests
 import Umpire.ModelTests
 import Umpire.Property.Tests
-import Umpire.Behavior.Tests
+import Umpire.Scenario.Tests
 import Umpire.Property.ImportTests
-import Umpire.Behavior.ImportTests
+import Umpire.Scenario.ImportTests
 import Umpire.Query.Tests
 import Umpire.Planning.Tests
 import Umpire.Planning.VisibilityTests

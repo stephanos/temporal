@@ -1,4 +1,6 @@
-import Umpire.Property
+import Umpire.Property.Elab
+import Umpire.Property.Evaluate
+import Umpire.Property.Scoped
 import Umpire.Shared.Test
 
 /-! Shared semantic vocabulary, context, clauses, traces, and helpers for the Property concern tests. -/
@@ -126,7 +128,7 @@ def deliveryIsQuiescent : PropertyClause :=
     (pattern .observation cancelRequested)
     (.exact { value := 0, unit := .observationPositions })
 
-def portableProperty : PropertyDeclaration := {
+def portableProperty : Property := {
   id := id "test.property.cancellation-contract"
   source
   requires := [cancellationCapability]
@@ -142,7 +144,7 @@ def portableProperty : PropertyDeclaration := {
   documentation := "Portable cancellation clauses."
 }
 
-def authoredProperty : PropertyAuthoring := .portable portableProperty
+def authoredProperty : Property := portableProperty
 
 def value (definitionId : DefinitionId) (payload : String) : ModelValue :=
   ModelValue.named definitionId payload
@@ -170,10 +172,10 @@ def positiveTrace : ModelTrace ModelValue ModelValue ModelValue ModelValue := {
 }
 
 def evaluationOf
-    (declaration : PropertyDeclaration)
+    (declaration : Property)
     (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue) :
   Option PropertyEvaluation :=
-  (checkProperty context (.portable declaration)).toOption.bind fun property =>
+  (Property.check context (declaration)).toOption.bind fun property =>
     (evaluatePropertyOnTrace property trace).toOption
 
 def errorKindOf

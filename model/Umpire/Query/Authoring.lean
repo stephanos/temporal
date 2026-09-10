@@ -23,7 +23,7 @@ structure QuerySpec where
   source : SourceLocation
   target : DefinitionId
   form : QueryForm
-  behavior : CheckedBehavior
+  behavior : CheckedScenario
   limits : QueryLimitSpec
   policy : PlannerPolicy
   endpoint : QueryEndpoint := .deliberatelyClosed
@@ -254,11 +254,11 @@ elab_rules : term
                 | "queryParent" => pure QueryAuthoringRole.parent
                 | "targetAnchor" => pure QueryAuthoringRole.target
                 | "propertyAnchor" => pure QueryAuthoringRole.property
-                | "behaviorAnchor" => pure QueryAuthoringRole.behavior
+                | "scenarioAnchor" => pure QueryAuthoringRole.behavior
                 | "limitsAnchor" => pure QueryAuthoringRole.limits
                 | "policyAnchor" => pure QueryAuthoringRole.policy
                 | _ => Lean.throwErrorAt role.raw ("expected queryParent, targetAnchor, " ++
-                    "propertyAnchor, behaviorAnchor, limitsAnchor, or policyAnchor")
+                    "propertyAnchor, scenarioAnchor, limitsAnchor, or policyAnchor")
               captureQuerySourceRef role reference
           | _ => Lean.Elab.throwUnsupportedSyntax
         captured := captured ++ [item]
@@ -302,11 +302,11 @@ elab_rules : term
                 | "queryParent" => pure QueryAuthoringRole.parent
                 | "targetAnchor" => pure QueryAuthoringRole.target
                 | "propertyAnchor" => pure QueryAuthoringRole.property
-                | "behaviorAnchor" => pure QueryAuthoringRole.behavior
+                | "scenarioAnchor" => pure QueryAuthoringRole.behavior
                 | "limitsAnchor" => pure QueryAuthoringRole.limits
                 | "policyAnchor" => pure QueryAuthoringRole.policy
                 | _ => Lean.throwErrorAt role.raw ("expected queryParent, targetAnchor, " ++
-                    "propertyAnchor, behaviorAnchor, limitsAnchor, or policyAnchor")
+                    "propertyAnchor, scenarioAnchor, limitsAnchor, or policyAnchor")
               captureQuerySourceRef role reference
           | _ => Lean.Elab.throwUnsupportedSyntax
         captured := captured ++ [item]

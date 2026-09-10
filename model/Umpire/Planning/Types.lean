@@ -1,5 +1,5 @@
 import Umpire.Query.Language
-import Umpire.Property.Evaluation
+import Umpire.Property.Evaluate
 
 /-! Result metadata shared by artifact construction and the Planning implementation. -/
 
@@ -33,7 +33,7 @@ inductive PlanningAnswer where
 
 /-- A realized trigger retains the model path, not merely its final Target state. -/
 structure PlanningTriggerEvidence where
-  trace : BehaviorTrace
+  trace : Scenario.Trace
   trigger : PropertyTriggerEvidence
   deriving BEq, DecidableEq, Repr
 

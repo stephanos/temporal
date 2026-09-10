@@ -383,12 +383,12 @@ theorem competingProvidersAreTargetFailure :
 private def propertyErrorKind : Option PropertyErrorKind := do
   let baseline ← checkBaseline.toOption
   let unknown := Temporal.Shared.definitionId "temporal.nexus2.basic-lifecycle.action.unknown"
-  let declaration := { Start.propertyDeclaration baseline.model with
+  let declaration := { Start.authoredProperty baseline.model with
     clauses := [.transitionContract
       (Temporal.Shared.definitionId "temporal.nexus2.basic-lifecycle.property.bad-reference")
       (PropertyPattern.exact .selectedAction unknown "unknown")
       (PropertyPattern.exact .resultingState operationStateId baseline.model.startedState.value)] }
-  match checkProperty (PropertyCheckContext.ofTarget baseline.target) (.portable declaration) with
+  match Property.check (PropertyCheckContext.ofTarget baseline.target) (declaration) with
   | .error error => some error.kind
   | .ok _ => none
 
@@ -398,7 +398,7 @@ theorem invalidReferenceIsPropertyFailure : propertyErrorKind = some .unknownRef
 private def missingCapabilityErrorKind : Option PropertyErrorKind := do
   let baseline ← checkBaseline.toOption
   let context := { PropertyCheckContext.ofTarget baseline.target with providers := [] }
-  match checkProperty context (.portable (Start.propertyDeclaration baseline.model)) with
+  match Property.check context ((Start.authoredProperty baseline.model)) with
   | .error error => some error.kind
   | .ok _ => none
 
@@ -406,11 +406,11 @@ theorem undeclaredCapabilityUseIsPropertyFailure :
     missingCapabilityErrorKind = some .missingCapability := by
   native_decide
 
-private def contradictoryBehaviorErrorKind : Option BehaviorErrorKind := do
+private def contradictoryBehaviorErrorKind : Option ScenarioErrorKind := do
   let baseline ← checkBaseline.toOption
-  let declaration := { Cancel.behaviorDeclaration baseline.model with
+  let declaration := { Cancel.authoredScenario baseline.model with
     forbiddenActions := [cancelActionId] }
-  match checkBehavior (.ofTarget baseline.target) declaration with
+  match Scenario.check (.ofTarget baseline.target) declaration with
   | .error error => some error.kind
   | .ok _ => none
 
@@ -451,18 +451,18 @@ def omittedQueryLimits (baseline : CheckedBaseline) : QueryDeclaration := {
   policy := { strategy := .shortest, seed := 17, tieBreak := .definitionId }
 }
 
-private def unsatisfiablePlannerStatus : Option (BehaviorSpaceStatus × String) := do
+private def unsatisfiablePlannerStatus : Option (ScenarioStatus × String) := do
   let baseline ← checkBaseline.toOption
   let differentId :=
     Temporal.Shared.definitionId "temporal.nexus2.basic-lifecycle.setup.started-different"
-  let declaration := { Cancel.behaviorDeclaration baseline.model with
-    setup := (Cancel.behaviorDeclaration baseline.model).setup ++ [{
+  let declaration := { Cancel.authoredScenario baseline.model with
+    setup := (Cancel.authoredScenario baseline.model).setup ++ [{
       id := differentId
       relation := .different
       left := .role operationRoleId
       right := .value baseline.model.startedState
     }] }
-  let behavior ← (checkBehavior (.ofTarget baseline.target) declaration).toOption
+  let behavior ← (Scenario.check (.ofTarget baseline.target) declaration).toOption
   let query ← (checkQuery (.ofTarget baseline.target)
     (Cancel.queryDeclaration baseline.cancel.property behavior)).toOption
   let kernel ← (IncrementalPlannerKernel.ofCheckedQuery baseline.target.id query).toOption
@@ -476,8 +476,8 @@ theorem unsatisfiableScenarioRemainsPlannerStatus :
 private def guardedCancelDeclaration
     (model : ModelVocabulary)
     (guardAction : DefinitionId := cancelActionId)
-    (guardValue : String := model.cancelAction.value) : PropertyDeclaration := {
-  Cancel.propertyDeclaration model with
+    (guardValue : String := model.cancelAction.value) : Property := {
+  Cancel.authoredProperty model with
   version := 2
   clauses := [.sameStepCases {
     id := Temporal.Shared.definitionId
@@ -547,7 +547,7 @@ private def guardedPlannerOutcome
     propertyContext with meanings := propertyContext.meanings.filter fun entry =>
       entry.2.definitionId != cancelActionId
   } else propertyContext
-  let property ← (checkProperty propertyContext (.portable declaration)).toOption
+  let property ← (Property.check propertyContext (declaration)).toOption
   let query ← (checkQuery (.ofTarget baseline.target)
     (Cancel.queryDeclaration property baseline.cancel.behavior)).toOption
   let kernel ← (IncrementalPlannerKernel.ofCheckedQuery baseline.target.id query).toOption
@@ -566,8 +566,8 @@ theorem guardedPlannerPreservesSuccessAndTypedInputFailure :
 private def guardedTemporalCancelDeclaration
     (model : ModelVocabulary)
     (guardAction : DefinitionId := cancelActionId)
-    (guardValue : String := model.cancelAction.value) : PropertyDeclaration := {
-  Cancel.propertyDeclaration model with
+    (guardValue : String := model.cancelAction.value) : Property := {
+  Cancel.authoredProperty model with
   version := 2
   clauses := [.guardedEventuallyWithin
     (Temporal.Shared.definitionId
@@ -603,7 +603,7 @@ private def guardedTemporalPlannerOutcome
     propertyContext with meanings := propertyContext.meanings.filter fun entry =>
       entry.2.definitionId != cancelActionId
   } else propertyContext
-  let property ← (checkProperty propertyContext (.portable declaration)).toOption
+  let property ← (Property.check propertyContext (declaration)).toOption
   let query ← (checkQuery (.ofTarget baseline.target)
     (Cancel.queryDeclaration property baseline.cancel.behavior)).toOption
   let kernel ← (IncrementalPlannerKernel.ofCheckedQuery baseline.target.id query).toOption
@@ -627,9 +627,9 @@ private def noncanonicalPlannerError : Option FinitePlannerAdmissionErrorKind :=
   ] }
   let target ← (noncanonicalTable.checkModel identity modelSpec modelProviders).toOption
   let model ← modelVocabulary.toOption
-  let property ← (checkProperty (PropertyCheckContext.ofTarget target)
-    (.portable (Cancel.propertyDeclaration model))).toOption
-  let behavior ← (checkBehavior (.ofTarget target) (Cancel.behaviorDeclaration model)).toOption
+  let property ← (Property.check (PropertyCheckContext.ofTarget target)
+    ((Cancel.authoredProperty model))).toOption
+  let behavior ← (Scenario.check (.ofTarget target) (Cancel.authoredScenario model)).toOption
   let query ← (checkQuery (.ofTarget target) (Cancel.queryDeclaration property behavior)).toOption
   match IncrementalPlannerKernel.ofCheckedQuery target.id query with
   | .error error => some error.kind
@@ -649,9 +649,9 @@ private def noncanonicalStepPlannerError : Option FinitePlannerAdmissionErrorKin
   }
   let target ← (noncanonicalTable.checkModel identity modelSpec modelProviders).toOption
   let model ← modelVocabulary.toOption
-  let property ← (checkProperty (PropertyCheckContext.ofTarget target)
-    (.portable (Cancel.propertyDeclaration model))).toOption
-  let behavior ← (checkBehavior (.ofTarget target) (Cancel.behaviorDeclaration model)).toOption
+  let property ← (Property.check (PropertyCheckContext.ofTarget target)
+    ((Cancel.authoredProperty model))).toOption
+  let behavior ← (Scenario.check (.ofTarget target) (Cancel.authoredScenario model)).toOption
   let query ← (checkQuery (.ofTarget target) (Cancel.queryDeclaration property behavior)).toOption
   match IncrementalPlannerKernel.ofCheckedQuery target.id query with
   | .error error => some error.kind
@@ -829,12 +829,12 @@ theorem unsupportedScopeHasNoInventedTransitionsOrVocabulary :
       row.source == State.cancelRequested && row.action == Action.requestCancel) = false := by
   native_decide
 
-private def unsupportedActionError : Option BehaviorErrorKind := do
+private def unsupportedActionError : Option ScenarioErrorKind := do
   let checked ← checkRace.toOption
   let unknown := Temporal.Shared.definitionId "temporal.nexus2.race.action.caller-close"
   let declaration := { exactBehaviorDeclaration checked.model with
     allowedActions := (exactBehaviorDeclaration checked.model).allowedActions ++ [unknown] }
-  match checkBehavior (.ofTarget checked.target) declaration with
+  match Scenario.check (.ofTarget checked.target) declaration with
   | .error error => some error.kind
   | .ok _ => none
 
@@ -897,7 +897,7 @@ private def raceCaseGroup
 
 private def raceCasePropertyDeclaration
     (model : ModelVocabulary)
-    (cases : List PropertyCase) : PropertyDeclaration := {
+    (cases : List PropertyCase) : Property := {
   id := raceId "temporal.nexus2.cancellation-race.property.cases"
   source
   version := 2
@@ -909,9 +909,9 @@ private def caseAnalysisFor?
     (cases : List PropertyCase)
     (budget : Nat := 32) : Option CaseAnalysisResult := do
   let checked ← checkRace.toOption
-  let property ← (checkProperty (PropertyCheckContext.ofTarget checked.target)
-    (.portable (raceCasePropertyDeclaration checked.model cases))).toOption
-  let behavior ← (checkBehavior (.ofTarget checked.target)
+  let property ← (Property.check (PropertyCheckContext.ofTarget checked.target)
+    ((raceCasePropertyDeclaration checked.model cases))).toOption
+  let behavior ← (Scenario.check (.ofTarget checked.target)
     (exactBehaviorDeclaration checked.model)).toOption
   let query ← (checkQuery (.ofTarget checked.target) {
     id := raceId "temporal.nexus2.cancellation-race.query.case-analysis"
@@ -1042,7 +1042,7 @@ theorem finiteRaceLaterExceptionCannotWithdrawTemporalObligation :
 private def jointPropertyDeclaration
     (key : String)
     (action : ModelValue)
-    (expectation : PropertyPredicate) : PropertyDeclaration := {
+    (expectation : PropertyPredicate) : Property := {
   id := raceId ("temporal.nexus2.cancellation-race.property.joint." ++ key)
   source
   version := 2
@@ -1065,12 +1065,12 @@ private def jointPropertyDeclaration
 }
 
 private def jointRaceAnalysis?
-    (declarations : List PropertyDeclaration) : Option CaseAnalysisResult := do
+    (declarations : List Property) : Option CaseAnalysisResult := do
   let checked ← checkRace.toOption
   let properties ← declarations.mapM fun declaration =>
-    (checkProperty (PropertyCheckContext.ofTarget checked.target)
-      (.portable declaration)).toOption
-  let behavior ← (checkBehavior (.ofTarget checked.target)
+    (Property.check (PropertyCheckContext.ofTarget checked.target)
+      (declaration)).toOption
+  let behavior ← (Scenario.check (.ofTarget checked.target)
     (exactBehaviorDeclaration checked.model)).toOption
   let form := QueryForm.select properties
   let query ← (checkQuery (.ofTarget checked.target) {
@@ -1088,7 +1088,7 @@ private def jointRaceAnalysis?
 private def observationTriggerPropertyDeclaration
     (key : String)
     (action : ModelValue)
-    (trigger response : ModelValue) : PropertyDeclaration := {
+    (trigger response : ModelValue) : Property := {
   id := raceId ("temporal.nexus2.cancellation-race.property.observation-trigger." ++ key)
   source
   version := 2
@@ -1217,16 +1217,16 @@ theorem finiteRaceSeparatesModelRelativeFromLogicalIncompatibility :
 private def malformedCasePropertyError : Option PropertyErrorKind := do
   let checked ← checkRace.toOption
   let malformed := raceCasePropertyDeclaration checked.model []
-  match checkProperty (PropertyCheckContext.ofTarget checked.target) (.portable malformed) with
+  match Property.check (PropertyCheckContext.ofTarget checked.target) (malformed) with
   | .error error => some error.kind
   | .ok _ => none
 
 private def mismatchedAnalysisTargetError : Option QueryErrorKind := do
   let checked ← checkRace.toOption
-  let property ← (checkProperty (PropertyCheckContext.ofTarget checked.target)
-    (.portable (raceCasePropertyDeclaration checked.model
+  let property ← (Property.check (PropertyCheckContext.ofTarget checked.target)
+    ((raceCasePropertyDeclaration checked.model
       [requestCase checked.model, resolveCase checked.model]))).toOption
-  let behavior ← (checkBehavior (.ofTarget checked.target)
+  let behavior ← (Scenario.check (.ofTarget checked.target)
     (exactBehaviorDeclaration checked.model)).toOption
   match checkQuery (.ofTarget checked.target) {
     id := raceId "temporal.nexus2.cancellation-race.query.case-analysis.bad-target"

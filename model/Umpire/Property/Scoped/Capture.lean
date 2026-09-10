@@ -1,4 +1,4 @@
-import Umpire.Property.Evaluation
+import Umpire.Property.Evaluate
 
 /-!
 Operation-local keyed field captures.

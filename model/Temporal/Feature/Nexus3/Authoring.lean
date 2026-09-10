@@ -1,8 +1,8 @@
 import Temporal.Shared
 import Umpire.Planning
 import Umpire.Model.Table
-import Umpire.Property.Authoring
-import Umpire.Behavior.Authoring
+import Umpire.Property.Elab
+import Umpire.Scenario.Elab
 import Umpire.Query.Authoring
 
 /-!
@@ -344,12 +344,11 @@ def modelVocabulary [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact
     facts := ← model.facts.mapM checked.factValue
   }
 
-def propertySpec [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
+def authoredProperty [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     (model : SuccessModel Setup State Action Outcome Fact)
     (values : ModelVocabulary)
-    (names : SuccessPropertyNames) : PropertySpec := {
-  family
-  key := names.declaration
+    (names : SuccessPropertyNames) : Property := {
+  id := (family).id "property" names.declaration
   source
   requires := [model.roleCapability names.roleName]
   clauses :=
@@ -367,21 +366,21 @@ def propertySpec [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
           (.fact (values.namedFact spelling))
 }
 
-def behaviorSpec [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
+def authoredScenario [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     (model : SuccessModel Setup State Action Outcome Fact)
     (values : ModelVocabulary)
-    (names : SuccessBehaviorNames) : ExactSequenceSpec := {
-  family
-  key := names.declaration
-  source
-  requires := [model.roleCapability names.roleName]
-  roles := [{ id := model.namedRole names.roleName, valueKind := .state }]
-  setup := [SetupConstraint.roleEquals (ownedId "setup" names.declaration names.roleName)
-    (model.namedRole names.roleName) (values.namedState names.setupState)]
-  occurrences := names.occurrences.map fun occurrence =>
-    { key := names.declaration ++ "." ++ occurrence.1,
-      action := (values.namedAction occurrence.2).definitionId }
-}
+    (names : SuccessBehaviorNames) : Scenario :=
+  Scenario.exactly
+    (family := family)
+    (key := names.declaration)
+    (source := source)
+    (requires := [model.roleCapability names.roleName])
+    (roles := [{ id := model.namedRole names.roleName, valueKind := .state }])
+    (setup := [SetupConstraint.roleEquals (ownedId "setup" names.declaration names.roleName)
+      (model.namedRole names.roleName) (values.namedState names.setupState)])
+    (occurrences := names.occurrences.map fun occurrence =>
+      { key := names.declaration ++ "." ++ occurrence.1,
+        action := (values.namedAction occurrence.2).definitionId })
 
 def withStates
     (table : FiniteTable Setup State Action Outcome Fact)
@@ -402,17 +401,16 @@ def transitionRow
     FiniteTransitionRow State Action Outcome Fact :=
   { key, source, action := selectedAction, results }
 
-def withOccurrences (spec : ExactSequenceSpec) (occurrences : List SequenceOccurrence) :
-    ExactSequenceSpec :=
-  { spec with occurrences }
+def withOccurrences (spec : Scenario) (occurrences : List Scenario.Step) : Scenario :=
+  spec.withSteps occurrences
 
-def occurrence (key : String) (selectedAction : DefinitionId) : SequenceOccurrence :=
-  { key, action := selectedAction }
+def occurrence (key : String) (selectedAction : DefinitionId) : Scenario.Step :=
+  { id := family.id "occurrence" key, action := selectedAction }
 
-def withClauses (spec : PropertySpec) (clauses : List PropertyClause) : PropertySpec :=
+def withClauses (spec : Property) (clauses : List PropertyClause) : Property :=
   { spec with clauses }
 
-def reorderedAndDocumented (spec : PropertySpec) (documentation : String) : PropertySpec :=
+def reorderedAndDocumented (spec : Property) (documentation : String) : Property :=
   { spec with clauses := spec.clauses.reverse, documentation }
 
 def cancellationKnownGap : KnownGap := {
@@ -436,7 +434,7 @@ inductive AdmissionError where
   | invalidTarget (error : FiniteAdmissionError)
   | invalidVocabulary (error : FiniteTableError)
   | invalidProperty (error : PropertyError)
-  | invalidBehavior (error : BehaviorError)
+  | invalidBehavior (error : ScenarioError)
   | invalidKnownGaps (error : KnownGapError)
   | invalidQuery (error : QueryError)
   | invalidPlanner (error : FinitePlannerAdmissionError)
@@ -456,13 +454,13 @@ structure CheckedModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq F
   target : QueryModel model.lawStatement
   vocabulary : ModelVocabulary
   property : CheckedProperty
-  behavior : CheckedBehavior
+  behavior : CheckedScenario
   query : CheckedQuery model.lawStatement
   kernel : IncrementalPlannerKernel query.target
   run : PlannerRun
   /-- The selected trace, present only for a witness Query. A verify Query establishes its claim
   over every admitted trace and selects none. -/
-  witness : Option BehaviorTrace
+  witness : Option Scenario.Trace
 
 def check [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
@@ -470,8 +468,8 @@ def check [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     (model : SuccessModel Setup State Action Outcome Fact)
     (queryKey : String)
     (limits : QueryLimitSpec)
-    (propertyAuthor : ModelVocabulary → PropertySpec)
-    (behaviorAuthor : ModelVocabulary → ExactSequenceSpec)
+    (propertyAuthor : ModelVocabulary → Property)
+    (behaviorAuthor : ModelVocabulary → Scenario)
     (form : QueryFormKind := .selectWitness)
     (authoredTable : FiniteTable Setup State Action Outcome Fact := model.table)
     (authoredDefinition : TableModelSpec := model.modelSpec) :

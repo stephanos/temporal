@@ -542,7 +542,7 @@ example : [
 
 /-! Property mutations change only the semantic verdict over the same accepted evidence. -/
 
-def propertyMutationDeclaration : PropertyDeclaration := {
+def propertyMutationDeclaration : Property := {
   satisfiedPropertyDeclaration with
   clauses := [
     .stateInvariant (id "test.property.observation.satisfied.initial")
@@ -551,7 +551,7 @@ def propertyMutationDeclaration : PropertyDeclaration := {
 }
 
 def propertyMutation : CheckedProperty :=
-  (checkProperty verdictPropertyContext (.portable propertyMutationDeclaration))
+  (Property.check verdictPropertyContext (propertyMutationDeclaration))
     |>.toOption.get (by native_decide)
 
 /-- The unchanged evaluation stays valid; only the independently checked Property verdict moves. -/

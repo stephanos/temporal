@@ -237,7 +237,7 @@ private def exhaustedPlannerRun : Except KnownGapError PlannerRun :=
 private def absentPlannerRun : Except KnownGapError PlannerRun :=
   Umpire.PlanningTests.run 0 (.counterexample Umpire.PlanningTests.property) .exhaustive
 
-private def staticallyUnsatisfiableBehavior : CheckedBehavior := {
+private def staticallyUnsatisfiableBehavior : CheckedScenario := {
   Umpire.PlanningTests.behavior with
   spaceStatus := .unsatisfiable
   behaviorFingerprint := behaviorFingerprintOf "space-compiler-test/unsatisfiable"

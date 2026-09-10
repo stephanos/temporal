@@ -216,7 +216,7 @@ def target : QueryModel (fun _ => True) := model targetAuthoring
 def targetWithoutPlanning : QueryModel (fun _ => True) :=
   model targetAuthoring.withoutPlanning
 
-def checkedProperty : CheckedProperty := {
+def Property.checked : CheckedProperty := {
   id := id "query.property.fixture"
   source
   version := 1
@@ -228,7 +228,7 @@ def checkedProperty : CheckedProperty := {
   behaviorFingerprint := behaviorFingerprintOf "property/v1"
 }
 
-def checkedBehavior : CheckedBehavior := {
+def Scenario.checked : CheckedScenario := {
   id := id "query.behavior.fixture"
   source
   version := 1
@@ -264,7 +264,7 @@ def exhaustiveContext : QueryCheckContext (fun _ => True) := .ofTarget target
 def declaration
     (form : QueryForm)
     (policy : PlannerPolicy := searchPolicy)
-    (behavior : CheckedBehavior := checkedBehavior) : QueryDeclaration := {
+    (behavior : CheckedScenario := Scenario.checked) : QueryDeclaration := {
   id := id "query.declaration.fixture"
   source
   target := target.id
