@@ -207,7 +207,7 @@ private def validateDefinitions
         [duplicate.id])
   | none => pure definitions
 
-private def validateLawWitnesses
+private def validateLawProofs
     (definitions : List DefinitionMetadata)
     (owner : DefinitionId)
     (source : SourceLocation)
@@ -252,7 +252,7 @@ private def validateProvider
     (occurrencePath .providerDefinition targetId)
   requireDefinition definitions provider.id provider.source provider.contract.id .capability
     (occurrencePath .capabilityRequirement provider.id)
-  validateLawWitnesses definitions provider.id provider.source
+  validateLawProofs definitions provider.id provider.source
     provider.contract.requiredLaws provider.lawProofs
   requireUniqueIds provider.id provider.source (occurrencePath .meaning provider.id)
     (provider.meanings.map Meaning.definitionId)
@@ -267,7 +267,7 @@ private def validateConnector
     (connector : Connector LawStatement) : Except LocatedDefinitionError Unit := do
   requireDefinition definitions connector.id connector.source connector.id .connector
     (occurrencePath .connectorDefinition targetId)
-  validateLawWitnesses definitions connector.id connector.source
+  validateLawProofs definitions connector.id connector.source
     connector.requiredLaws connector.lawProofs
   requireUniqueIds connector.id connector.source (occurrencePath .reconciliation connector.id)
     (connector.reconciliations.map Reconciliation.definitionId)

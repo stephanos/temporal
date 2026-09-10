@@ -8,7 +8,8 @@
   "default_sync": null,
   "depends_on_epics": [
     "fn-45-index-and-reconcile-umpire-plan",
-    "fn-82-unify-the-umpire-and-testpilot"
+    "fn-82-unify-the-umpire-and-testpilot",
+    "fn-83-author-a-live-case-from-a-model-file"
   ],
   "id": "fn-46-export-lean-model-module-impact-index",
   "impl_review_rounds": {},
@@ -246,5 +247,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-09T05:23:38.972326Z"
+  "updated_at": "2026-09-10T06:03:25.679363Z"
 }

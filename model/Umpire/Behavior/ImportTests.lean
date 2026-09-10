@@ -8,7 +8,7 @@ namespace Umpire.BehaviorImportTests
 #check Umpire.ExactSequenceSpec
 #check Umpire.ExactSequenceSpec.checked
 #check Umpire.BehaviorLocatedError
-#check Umpire.canonicalBehaviorAuthoringDiagnosticJson
+#check Umpire.canonicalBehaviorLocatedErrorJson
 #check Umpire.BehaviorCheckContext.ofTarget
 #check Umpire.RoleBinding
 

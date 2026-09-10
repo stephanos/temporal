@@ -11,7 +11,7 @@ open Umpire
 #check QuerySpec.checked
 #check QueryLimitSpec
 #check QueryLocatedError
-#check canonicalQueryAuthoringDiagnosticJson
+#check canonicalQueryLocatedErrorJson
 #check QueryAuthoringInput
 #check QueryAuthoringInput.ofSpec
 #check QueryAuthoringInput.check

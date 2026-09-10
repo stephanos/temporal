@@ -1,17 +1,17 @@
 {
-  "branch_name": "fn-79-deferred-nexus-operation-cancellation",
-  "created_at": "2026-09-08T04:52:03.181217Z",
+  "branch_name": "fn-84-deepen-five-shallow-module-clusters-in",
+  "created_at": "2026-09-10T06:03:11.310266Z",
   "depends_on_epics": [
     "fn-82-unify-the-umpire-and-testpilot",
     "fn-83-author-a-live-case-from-a-model-file"
   ],
-  "id": "fn-79-deferred-nexus-operation-cancellation",
+  "id": "fn-84-deepen-five-shallow-module-clusters-in",
   "next_task": 1,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
-  "spec_path": ".flow/specs/fn-79-deferred-nexus-operation-cancellation.md",
+  "spec_path": ".flow/specs/fn-84-deepen-five-shallow-module-clusters-in.md",
   "status": "open",
-  "title": "Deferred Nexus operation cancellation",
+  "title": "Deepen five shallow module clusters in Umpire and Testpilot",
   "tracker": {
     "baseHashFlow": null,
     "baseHashTracker": null,
@@ -23,5 +23,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-10T06:03:25.126512Z"
+  "updated_at": "2026-09-10T06:03:20.182590Z"
 }

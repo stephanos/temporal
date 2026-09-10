@@ -244,7 +244,7 @@ structure ModelVocabulary where
   deriving BEq, DecidableEq, Repr
 
 def modelVocabulary : Except FiniteTableError ModelVocabulary := do
-  let model ← table.checkIdentity identity
+  let model ← (table.validate.map (·.withIdentity identity))
   pure {
     startedState := ← model.stateValue .started
     cancelRequestedState := ← model.stateValue .cancelRequested

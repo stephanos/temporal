@@ -40,3 +40,18 @@ import Umpire
 #check Umpire.Case.Contract
 #check Umpire.Case.Run
 #check Umpire.Case.ValueType
+
+/-! Neutral outcome-classification constructor contracts stay usable without inventory imports. -/
+#check Umpire.OutcomeConstructorDescriptor
+#check Umpire.OutcomeConstructorClassifier.ofValue
+#check Umpire.OutcomeConstructorClassifiers.descriptors
+#check Umpire.OutcomeConstructorClassifiers.names
+#check Umpire.OutcomeConstructorClassifiers.HasUniqueNames
+#check Umpire.ProjectionSentinelDescriptor
+
+example (Outcome : Type) (descriptor : Umpire.OutcomeConstructorDescriptor) :
+    Umpire.OutcomeConstructorClassifiers.ExactlyOne
+      ([{ descriptor, accepts := fun (_ : Outcome) => true }] :
+        List (Umpire.OutcomeConstructorClassifier Outcome)) := by
+  intro outcome
+  rfl
