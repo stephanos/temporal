@@ -32,7 +32,7 @@ these declarations predate it and publish `observation` in their canonical metad
 def operationStepClauses
     (propertyKey : String)
     (action state outcome fact : ModelValue) : List PropertyClause :=
-  (transitionResultClauses family propertyKey action state outcome fact).map fun clause =>
+  (stepClauses family propertyKey action state outcome fact).map fun clause =>
     match clause with
     | .inputOutput _ input output =>
         .inputOutput (family.id "property" (propertyKey ++ ".observation")) input output

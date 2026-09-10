@@ -91,7 +91,7 @@ theorem targetMachineryUsesFiniteMachineCapabilities : machine = finiteMachine.k
   exact ⟨rfl, rfl, rfl⟩
 
 theorem targetBehaviorFingerprintRemainsStable : target.behaviorFingerprint.render =
-    "sha256:a2c2da875534f76f9531e1d08614601b291bfc0115d9c4eb1f769fbf37d35daa" := by
+    "sha256:8a55f0d5c46e705fe3f06ca9a16381104380f55be83b633c2208f433a5eba58c" := by
   native_decide
 
 theorem targetAndActionDefinitionIdsRemainStable :

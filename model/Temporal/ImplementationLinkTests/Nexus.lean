@@ -27,13 +27,13 @@ theorem checked_link_retains_migrated_target_identity_and_fingerprints :
     checked.sourceTarget.behaviorFingerprint =
       Temporal.System.Nexus.target.behaviorFingerprint ∧
     checked.sourceTarget.behaviorFingerprint.render =
-      "sha256:136b39d84af2978b3937ecf390d6a6cf4a5fdf45142d29aafa378ee4c84a121e" ∧
+      "sha256:dc03735bdbd093c181a5bfcbcb1dfae083b47278caa3394bbc14666487b3736d" ∧
     checked.destinationTarget.id = Temporal.Feature.Nexus.Lifecycle.target.id ∧
     checked.destinationTarget.source = Temporal.Feature.Nexus.Lifecycle.target.source ∧
     checked.destinationTarget.behaviorFingerprint =
       Temporal.Feature.Nexus.Lifecycle.target.behaviorFingerprint ∧
     checked.destinationTarget.behaviorFingerprint.render =
-      "sha256:a2c2da875534f76f9531e1d08614601b291bfc0115d9c4eb1f769fbf37d35daa" := by
+      "sha256:8a55f0d5c46e705fe3f06ca9a16381104380f55be83b633c2208f433a5eba58c" := by
   native_decide
 
 theorem migrated_targets_keep_their_named_authority_seams :

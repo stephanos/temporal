@@ -340,7 +340,7 @@ def Run.consume {compiled : Compiled target} (run : Run compiled) (step : Transi
   let declarations := compiled.clauses.flatMap (·.original.declaration.captures)
   let work := payload.work + payload.retainedObligations +
     16 * compiled.property.scopedClauses.length * (payload.transitions + 1) *
-      (1 + target.behaviorDescription.transitions.foldl (fun maximum row => max maximum row.observations.length) 0) +
+      (1 + target.behaviorDescription.transitions.foldl (fun maximum row => max maximum row.facts.length) 0) +
       payload.operations.length +
     (target.kernel.steps operation.state step.action).length +
     payload.capturedValues + (1 + declarations.length) * evidence.length

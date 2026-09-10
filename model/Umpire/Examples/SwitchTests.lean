@@ -249,7 +249,7 @@ theorem direct_kernel_keeps_independent_authority_and_two_results :
 
 theorem direct_kernel_golden_behavior_fingerprint :
     target.behaviorFingerprint.render =
-      "sha256:afbe90c52786e55a6c2d36e64c95df2764f29d38dcb67ea8c8e4358a5bef8100" := by
+      "sha256:607a0ef59ce2e76db02675bc6bbf625da9ea2e1f7927fde2064083bc1bf05edb" := by
   native_decide
 
 example : target.requiredCapabilities = [switchCapabilityId] ∧

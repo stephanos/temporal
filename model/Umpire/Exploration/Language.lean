@@ -60,7 +60,7 @@ private def maximumTraceSteps (space : CheckedExperimentSpace LawStatement) : Na
 
 private def maximumObservationPositions (space : CheckedExperimentSpace LawStatement) : Nat :=
   space.baseQuery.target.behaviorDescription.transitions.foldl
-    (fun maximum transition => Nat.max maximum transition.observations.length) 0
+    (fun maximum transition => Nat.max maximum transition.facts.length) 0
 
 private def coordinateKnown
     (space : CheckedExperimentSpace LawStatement) : ModelCoordinate → Bool
