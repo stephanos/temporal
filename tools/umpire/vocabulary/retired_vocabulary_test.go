@@ -158,8 +158,7 @@ func TestRetiredVocabularyCommandFailsOnAMissingScannedPath(t *testing.T) {
 
 			output, err := retiredVocabularyCommand(t, repositoryRoot).CombinedOutput()
 			require.Error(t, err)
-			require.Contains(t, string(output), test.removed)
-			require.Contains(t, string(output), "does not exist")
+			require.Contains(t, string(output), "scanned path "+test.removed+" does not exist")
 		})
 	}
 }
