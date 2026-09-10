@@ -193,7 +193,7 @@ horizon.
   Known Gap limits what an Artifact or Result can prove.
 - **Behavior (`Umpire.Behavior`).** Lean data that defines the Model Traces a Scenario allows. It
   neither evaluates Properties nor determines whether a trace occurred at runtime.
-- **Target (`Umpire.CheckedTarget`).** A validated Behavior Model shared by Properties, Behaviors,
+- **Target (`Umpire.CheckedModel`).** A validated Behavior Model shared by Properties, Behaviors,
   and Queries. It is ready for planning and evaluation.
 - **Property (`Umpire.Property`).** A reusable pass/fail rule over Model Traces. For example, closing
   a Workflow cancels its running Nexus operation at most once.
@@ -210,7 +210,7 @@ horizon.
   Capability Contracts. They MUST NOT depend on implementation Evidence.
 - **SEM-06 — Declarative `Umpire.Behavior`.** `Umpire.Behavior` declarations MUST constrain
   allowed Model Traces. They MUST NOT become step-by-step RPC or runtime scripts.
-- **SEM-07 — Model-owned outcomes.** Authors MUST request Actions, while `Umpire.CheckedTarget`
+- **SEM-07 — Model-owned outcomes.** Authors MUST request Actions, while `Umpire.CheckedModel`
   determines their Model Outcomes and resulting states.
 - **SEM-09 — Bounded progress.** A Property claiming that something eventually happens MUST state a
   Limit and unit. A finite Execution MUST NOT prove an unlimited “eventually” claim.
@@ -234,7 +234,7 @@ horizon.
   instance search MUST NOT choose behavior.
 - **AUT-07 — Single authoring path.** `Umpire.Property`, `Umpire.Behavior`, and `Umpire.Query` MUST
   be the only public languages for declaring Properties, Scenarios, and Queries.
-  `Umpire.CheckedTarget` is their shared model representation, not an authoring language. Wrappers
+  `Umpire.CheckedModel` is their shared model representation, not an authoring language. Wrappers
   MUST NOT provide another way to define behavior.
 - **AUT-08 — Finite Target adapter.** Authors SHOULD use the proof-carrying
   `Umpire.FiniteMachine` adapter when a complete finite Target has enumerators that define its
@@ -243,7 +243,7 @@ horizon.
   evidence that enumerated values stay within those domains, and evidence that every enumerated
   Action is executable. As an expert alternative, authors MAY construct `Umpire.Machine`
   directly for Targets whose authority is specified independently. Both paths MUST produce an
-  `Umpire.AuthoredTarget` and pass it to `Umpire.checkTarget`. `Umpire.FiniteMachine` MUST NOT
+  `Umpire.DraftModel` and pass it to `Umpire.checkModel`. `Umpire.FiniteMachine` MUST NOT
   introduce another Behavior, Property, Query, Scenario, or macro language.
 - **AUT-09 — Macro-derived finite domains.** *(drafted by fn-80, pending human approval under
   GOV-02.)* AUT-08's "author-provided" includes a domain a command macro derives from the author's
@@ -484,7 +484,7 @@ horizon.
 - **VER-02 — Explicit opt-in.** Each model family and each `Umpire.Property` declaration MUST opt in
   explicitly to optional checker integration.
 - **VER-03 — Checked link.** Every representation used by an optional checker MUST have an explicit,
-  checked link to an `Umpire.CheckedTarget` and an `Umpire.Property` declaration.
+  checked link to an `Umpire.CheckedModel` and an `Umpire.Property` declaration.
 - **VER-04 — Complete verification receipts.** Verification receipts MUST expose source
   information, Definition IDs, Behavior Fingerprints, assumptions, Limits, Known Gaps, and an
   Assurance Method.

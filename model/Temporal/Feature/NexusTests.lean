@@ -32,7 +32,7 @@ path rather than an Internal, Experimental, runtime, or verification surface.
 
 def readerOrder : List String := [
   "Lifecycle.Semantics",
-  "Lifecycle.Target",
+  "Lifecycle.Model",
   "Operations.AsyncStart",
   "Operations.Cancellation",
   "Operations.SuccessfulCompletion",
@@ -95,23 +95,23 @@ theorem malformedIdentityAndReferenceRemainTyped :
         some .undeclaredReference := by
   native_decide
 
-private def incompleteTarget : AuthoredTarget LawStatement
+private def incompleteTarget : DraftModel LawStatement
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue :=
-  AuthoredTarget.make {
-    targetDefinition with kernel := .incomplete finiteMachine.metadata [kernelId]
-  } targetComposition
+  DraftModel.make {
+    modelSpec with machine := .incomplete finiteMachine.metadata [kernelId]
+  } modelProviders
 
 private def targetErrorOf
-    (result : Except AuthoringDiagnostic (CheckedTarget LawStatement
-      (List RoleBinding) ModelValue ModelValue ModelValue ModelValue)) : Option AuthoringDiagnostic :=
+    (result : Except LocatedError (CheckedModel LawStatement
+      (List RoleBinding) ModelValue ModelValue ModelValue ModelValue)) : Option LocatedError :=
   match result with
   | .error error => some error
   | .ok _ => none
 
 /-- A raw Target without its checked kernel returns the complete established diagnostic. -/
-theorem incompleteRawTargetRemainsTyped : targetErrorOf (checkTarget incompleteTarget) = some {
+theorem incompleteRawTargetRemainsTyped : targetErrorOf (checkModel incompleteTarget) = some {
     error := {
-      kind := .incompleteKernel
+      kind := .incompleteMachine
       definitionId := targetId
       sourcePath := "Temporal/Feature/Nexus/Lifecycle.lean"
       offendingValue := kernelId.value

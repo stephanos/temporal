@@ -72,13 +72,13 @@ def duplicateActionPlanning : FinitePlanningCapability kernel.authoritativeStep 
     simp [admitted.2.1]
 }
 
-def duplicateActionAuthoring : AuthoredTarget (fun _ => True)
+def duplicateActionAuthoring : DraftModel (fun _ => True)
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue :=
-  AuthoredTarget.make targetDefinition targetComposition
+  DraftModel.make modelSpec modelProviders
     (.available kernel rfl duplicateActionPlanning)
 
 def duplicateActionContext : QueryCheckContext (fun _ => True) :=
-  .ofTarget (checkedTarget duplicateActionAuthoring)
+  .ofTarget (model duplicateActionAuthoring)
 
 /-- Duplicate finite actions reject before Planning can enumerate a different candidate domain. -/
 example : errorKindOf (checkQuery duplicateActionContext

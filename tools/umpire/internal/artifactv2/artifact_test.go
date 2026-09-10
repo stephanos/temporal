@@ -93,14 +93,14 @@ func TestExpectedChecksumsUseExactPrettyPreimages(t *testing.T) {
 	planChecksum, err := ExpectedDrivePlanChecksum(document.Plan)
 	require.NoError(t, err)
 	require.Equal(t,
-		"sha256:7f6aa675d57491e968736829a643fd9a5662d52c38c1a493be096b60495f5f8b",
+		"sha256:2036ce80c7c93dd19d0acb03fa6ebceb678f909684ca17bac413f254954ddbbd",
 		planChecksum,
 	)
 	document.Plan.ArtifactChecksum = planChecksum
 	experimentChecksum, err := ExpectedExperimentChecksum(document)
 	require.NoError(t, err)
 	require.Equal(t,
-		"sha256:8af20c6a12bbe9c468ed22743fbfcdf9ae1a546492c245e9146e26c2a1518a47",
+		"sha256:9fa327849c3d0a48290bb16fec73a00be4cc1b6234862ee506a547f29b6d3b12",
 		experimentChecksum,
 	)
 }
@@ -152,7 +152,7 @@ func TestDecodeExperimentRejectsNoncanonicalEncodings(t *testing.T) {
 		1,
 	)
 	malformedFingerprint := uppercaseFirstDigest(t, withoutTerminalLF)
-	malformedChecksum := bytes.Replace(withoutTerminalLF, []byte("sha256:8af20c6a12bbe9c468ed22743fbfcdf9ae1a546492c245e9146e26c2a1518a47"), []byte("sha256:1234"), 1)
+	malformedChecksum := bytes.Replace(withoutTerminalLF, []byte("sha256:9fa327849c3d0a48290bb16fec73a00be4cc1b6234862ee506a547f29b6d3b12"), []byte("sha256:1234"), 1)
 
 	cases := map[string][]byte{
 		"reordered object fields":        append(reordered, '\n'),
@@ -189,10 +189,10 @@ func TestDecodeExperimentVerifiesNestedAndOuterChecksumsIndependently(t *testing
 		want    string
 	}{
 		"nested": {encoded: bytes.Replace(canonical,
-			[]byte("sha256:7f6aa675d57491e968736829a643fd9a5662d52c38c1a493be096b60495f5f8b"),
+			[]byte("sha256:2036ce80c7c93dd19d0acb03fa6ebceb678f909684ca17bac413f254954ddbbd"),
 			[]byte("sha256:2caad30cc09a2006600917465e4f9223529afbba7acf734c3a629b0e3723ba7d"), 1), want: "nested"},
 		"outer": {encoded: bytes.Replace(canonical,
-			[]byte("sha256:8af20c6a12bbe9c468ed22743fbfcdf9ae1a546492c245e9146e26c2a1518a47"),
+			[]byte("sha256:9fa327849c3d0a48290bb16fec73a00be4cc1b6234862ee506a547f29b6d3b12"),
 			[]byte("sha256:d7fc19d59b8b97922df475596bc45022e97c19d051149aa0c9aabe82dff18179"), 1), want: "ExperimentSpec"},
 	}
 	for name, test := range cases {

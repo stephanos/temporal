@@ -68,9 +68,9 @@ private def normalizeResult
   pure (source, action, resultingState, outcome, facts)
 
 private def normalizeTarget
-    (target : QueryTarget LawStatement)
+    (target : QueryModel LawStatement)
     (model : ModelVocabulary) : Option (List TransitionShape) := do
-  let domain ← match target.kernel.behaviorDomain with
+  let domain ← match target.machine.vocabulary with
     | .complete domain => some domain
     | _ => none
   let setups ← domain.setups.mapM (setupOf model)
@@ -84,7 +84,7 @@ private def normalizeTarget
     none
   else
     let rows := domain.states.flatMap fun state => domain.actions.flatMap fun action =>
-      target.kernel.steps state action |>.map fun result => (state, action, result)
+      target.machine.steps state action |>.map fun result => (state, action, result)
     rows.mapM fun row => normalizeResult model row.1 row.2.1 row.2.2
 
 private def admittedTransitions : Option (List TransitionShape) := do
@@ -92,9 +92,9 @@ private def admittedTransitions : Option (List TransitionShape) := do
   normalizeTarget baseline.target baseline.model
 
 private def normalizeInitialStates
-    (target : QueryTarget LawStatement)
+    (target : QueryModel LawStatement)
     (model : ModelVocabulary) : Option (List InitialShape) := do
-  let domain ← match target.kernel.behaviorDomain with
+  let domain ← match target.machine.vocabulary with
     | .complete domain => some domain
     | _ => none
   let setups ← domain.setups.mapM (setupOf model)
@@ -103,7 +103,7 @@ private def normalizeInitialStates
     none
   else
     domain.setups.flatMap (fun setup =>
-      target.kernel.initialStates setup |>.map fun state => (setup, state)) |>.mapM fun row => do
+      target.machine.initialStates setup |>.map fun state => (setup, state)) |>.mapM fun row => do
         pure (← setupOf model row.1, ← stateOf model row.2)
 
 private def establishedStateOf (value : ModelValue) : Option State :=
@@ -148,7 +148,7 @@ private def normalizeEstablishedResult
 
 private def establishedTransitions : Option (List TransitionShape) := do
   let target := Temporal.Feature.Nexus.Lifecycle.target
-  let domain ← match target.kernel.behaviorDomain with
+  let domain ← match target.machine.vocabulary with
     | .complete domain => some domain
     | _ => none
   let setups ← domain.setups.mapM establishedSetupOf
@@ -162,12 +162,12 @@ private def establishedTransitions : Option (List TransitionShape) := do
     none
   else
     let rows := domain.states.flatMap fun state => domain.actions.flatMap fun action =>
-      target.kernel.steps state action |>.map fun result => (state, action, result)
+      target.machine.steps state action |>.map fun result => (state, action, result)
     rows.mapM fun row => normalizeEstablishedResult row.1 row.2.1 row.2.2
 
 private def normalizeEstablishedInitialStates : Option (List InitialShape) := do
   let target := Temporal.Feature.Nexus.Lifecycle.target
-  let domain ← match target.kernel.behaviorDomain with
+  let domain ← match target.machine.vocabulary with
     | .complete domain => some domain
     | _ => none
   let setups ← domain.setups.mapM establishedSetupOf
@@ -176,7 +176,7 @@ private def normalizeEstablishedInitialStates : Option (List InitialShape) := do
     none
   else
     domain.setups.flatMap (fun setup =>
-      target.kernel.initialStates setup |>.map fun state => (setup, state)) |>.mapM fun row => do
+      target.machine.initialStates setup |>.map fun state => (setup, state)) |>.mapM fun row => do
         pure (← establishedSetupOf row.1, ← establishedStateOf row.2)
 
 private def expectedTransitions : List TransitionShape := [
@@ -264,7 +264,7 @@ private def extraTransitionCannotCompareEqual : Option Bool := do
     results := [canceledResult]
   }
   let extraTable := { table with transitions := table.transitions ++ [extraRow] }
-  let target ← (extraTable.checkModelTarget identity targetDefinition targetComposition).toOption
+  let target ← (extraTable.checkModel identity modelSpec modelProviders).toOption
   let model ← modelVocabulary.toOption
   pure (normalizeTarget target model != some expectedTransitions)
 
@@ -276,7 +276,7 @@ private def extraInitialAlternativeCannotCompareEqual : Option Bool := do
     else
       row
   }
-  let target ← (extraInitialTable.checkModelTarget identity targetDefinition targetComposition).toOption
+  let target ← (extraInitialTable.checkModel identity modelSpec modelProviders).toOption
   let model ← modelVocabulary.toOption
   pure (normalizeInitialStates target model != some expectedInitialStates)
 
@@ -340,43 +340,43 @@ theorem declarationsAdmitAndRunWithExplicitInputs :
   native_decide
 
 private def targetErrorKind
-    (result : Except FiniteTargetAdmissionError (QueryTarget LawStatement)) :
+    (result : Except TableAdmissionError (QueryModel LawStatement)) :
     Option DefinitionErrorKind :=
   match result with
   | .error (.invalidTarget diagnostic) => some diagnostic.error.kind
   | _ => none
 
 theorem missingProviderIsTargetFailure :
-    targetErrorKind (table.checkModelTarget identity targetDefinition TargetComposition.empty) =
+    targetErrorKind (table.checkModel identity modelSpec Providers.empty) =
       some .missingProvider := by
   native_decide
 
 private def competingProviderId : DefinitionId :=
   Temporal.Shared.definitionId "temporal.nexus2.basic-lifecycle.provider.competing"
 
-private def competingProvider : CapabilityProvider LawStatement :=
+private def competingProvider : Provider LawStatement :=
   { lifecycleProvider with
     id := competingProviderId
     meanings := lifecycleProvider.meanings.map fun meaning =>
       if meaning.definitionId = operationStateId then
-        { meaning with canonicalBehavior := "temporal-nexus2-conflicting-state/v1" }
+        { meaning with behaviorVersion := "temporal-nexus2-conflicting-state/v1" }
       else
         meaning
   }
 
-private def competingDefinition : FiniteTargetDefinition := {
-  targetDefinition with
-  definitions := targetDefinition.definitions ++ [
+private def competingDefinition : TableModelSpec := {
+  modelSpec with
+  definitions := modelSpec.definitions ++ [
     Temporal.Shared.definitionMetadata competingProviderId .provider Lifecycle.source
       "temporal-nexus2-basic-lifecycle-provider/v1"
   ]
 }
 
-private def competingComposition : TargetComposition LawStatement :=
-  TargetComposition.empty |>.provide lifecycleProvider |>.provide competingProvider
+private def competingComposition : Providers LawStatement :=
+  Providers.empty |>.provide lifecycleProvider |>.provide competingProvider
 
 theorem competingProvidersAreTargetFailure :
-    targetErrorKind (table.checkModelTarget identity competingDefinition competingComposition) =
+    targetErrorKind (table.checkModel identity competingDefinition competingComposition) =
       some .conflictingProviders := by
   native_decide
 
@@ -625,7 +625,7 @@ private def noncanonicalPlannerError : Option FinitePlannerAdmissionErrorKind :=
     { value := Action.cancel, key := "cancel" },
     { value := Action.reportSuccess, key := "handler-reports-success" }
   ] }
-  let target ← (noncanonicalTable.checkModelTarget identity targetDefinition targetComposition).toOption
+  let target ← (noncanonicalTable.checkModel identity modelSpec modelProviders).toOption
   let model ← modelVocabulary.toOption
   let property ← (checkProperty (PropertyCheckContext.ofTarget target)
     (.portable (Cancel.propertyDeclaration model))).toOption
@@ -647,7 +647,7 @@ private def noncanonicalStepPlannerError : Option FinitePlannerAdmissionErrorKin
       else
         row
   }
-  let target ← (noncanonicalTable.checkModelTarget identity targetDefinition targetComposition).toOption
+  let target ← (noncanonicalTable.checkModel identity modelSpec modelProviders).toOption
   let model ← modelVocabulary.toOption
   let property ← (checkProperty (PropertyCheckContext.ofTarget target)
     (.portable (Cancel.propertyDeclaration model))).toOption
@@ -689,7 +689,7 @@ theorem admittedPlannerPreservesExactAuthoredSequences :
 private def malformedModelValidation : Option FiniteTableError :=
   let malformed := { table with states :=
     { value := State.scheduled, key := "scheduled" } :: table.states }
-  match malformed.validateModel identity with
+  match malformed.checkIdentity identity with
   | .error error => some error
   | .ok _ => none
 
@@ -698,7 +698,7 @@ private def undeclaredSetupResolution : Option FiniteTableError := do
     setups := [{ value := Setup.scheduled, key := "scheduled" }]
     initial := [{ setup := Setup.scheduled, states := [State.scheduled] }]
   }
-  let model ← (reduced.validateModel identity).toOption
+  let model ← (reduced.checkIdentity identity).toOption
   match model.setupValue .started with
   | .error error => some error
   | .ok _ => none

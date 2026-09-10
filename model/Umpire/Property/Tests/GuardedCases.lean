@@ -347,7 +347,7 @@ private def fingerprintOf (declaration : PropertyDeclaration) : Option BehaviorF
 #guard (checkProperty context (.portable guardedDeclaration)).toOption.map
     (fun property => !property.canonicalMetadata.contains "temporalClauses") == some true
 #guard (fingerprintOf guardedDeclaration).map BehaviorFingerprint.render ==
-  some "sha256:6438696451dff4d28d3f4bb9ba05b4a9f9b0f6c8f0e1b012496dd5899ad0e8df"
+  some "sha256:2bdf8bbc4a76122f44ba9b5bb6254bcc6924b99830871bbeead8e7c70a92271c"
 
 private def checkError?
     (declaration : PropertyDeclaration) : Option PropertyError :=

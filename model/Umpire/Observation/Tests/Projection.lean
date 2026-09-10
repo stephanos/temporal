@@ -1,5 +1,5 @@
 import Umpire.Observation.Projection
-import Umpire.Target.Tests.Validation
+import Umpire.Model.Tests.Validation
 
 /-! Transactional evidence projection, independent of product-specific history. -/
 
@@ -7,7 +7,7 @@ namespace Umpire.Observation.ProjectionTests
 
 open Projection
 
-private def target := TargetTests.checkedTestTarget
+private def target := ModelTests.checkedTestTarget
 private def id := DefinitionId.of
 private def scope : List (DefinitionId × String) := [(id "test.run", "run-1")]
 private def declaration : Declaration Bool Bool Bool Bool := {
@@ -18,9 +18,9 @@ private def declaration : Declaration Bool Bool Bool Bool := {
   rules := [
     { kind := id "test.submit", meaning := .submission true },
     { kind := id "test.confirm", meaning := .confirmed (some true)
-        [(true, TargetTests.transition false true)] },
+        [(true, ModelTests.transition false true)] },
     { kind := id "test.finish", meaning := .confirmed none
-        [(false, TargetTests.transition true false)] },
+        [(false, ModelTests.transition true false)] },
     { kind := id "test.irrelevant", meaning := .irrelevant }]
   limits := {
     events := 100
@@ -52,7 +52,7 @@ private def error? (result : Except Error α) : Option Error :=
   | .error error => some error
   | .ok _ => none
 
-private def feed {target : CheckedTarget TargetTests.TestLawStatement Unit Bool Bool Bool Bool}
+private def feed {target : CheckedModel ModelTests.TestLawStatement Unit Bool Bool Bool Bool}
     {checked : Checked target} (run : Run checked) (events : List Event) :
     Except Error (Run checked) := events.foldlM (fun run event => do
       let (next, _) ← run.admit event
@@ -207,9 +207,8 @@ private def loadEvents (count : Nat) : List Event := (List.range count).map fun 
   let (duplicate, _) ← first.admit (event 0 "test.submit")
   pure (decide (duplicate.work > first.work))).toOption == some true
 
-private def terminalTarget := checkedTarget (AuthoredTarget.make
-  { TargetTests.targetDefinitionOf TargetTests.testTarget with terminalConditions := [[true]] }
-  (TargetTests.targetCompositionOf TargetTests.testTarget))
+private def terminalTarget := model (DraftModel.make
+  { ModelTests.testTarget with terminalConditions := [[true]] })
 
 #guard (do
   let checked ← check terminalTarget declaration () false
@@ -250,7 +249,7 @@ private def terminalTarget := checkedTarget (AuthoredTarget.make
   let checked ← check target { declaration with rules := declaration.rules ++ [({
     kind := id "test.bundle"
     meaning := .confirmed (some true)
-      [(true, TargetTests.transition false true), (false, TargetTests.transition true false)] } :
+      [(true, ModelTests.transition false true), (false, ModelTests.transition true false)] } :
       Rule Bool Bool Bool Bool)] }
     () false
   let initial ← checked.start scope

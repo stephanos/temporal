@@ -124,7 +124,7 @@ example :
         meanings := satisfiedProperty.access.meanings ++ [{
           definitionId := id "test.observation.missing"
           kind := .fact
-          canonicalBehavior := "test-observation-missing/v1"
+          behaviorVersion := "test-observation-missing/v1"
         }]
       }
     }
@@ -134,7 +134,7 @@ example :
         satisfiedProperty.access with
         meanings := satisfiedProperty.access.meanings.map fun meaning =>
           if meaning.definitionId == operationState then
-            { meaning with canonicalBehavior := "test-operation-state/mismatched" }
+            { meaning with behaviorVersion := "test-operation-state/mismatched" }
           else
             meaning
       }
@@ -186,7 +186,7 @@ example :
 /-- Conflicting duplicate vocabulary fails at admission independent of source order. -/
 example :
     let original := completeUncheckedEvidenceBackedTrace.vocabulary.head?.get (by native_decide)
-    let conflicting := { original with canonicalBehavior := original.canonicalBehavior ++ "/other" }
+    let conflicting := { original with behaviorVersion := original.behaviorVersion ++ "/other" }
     [
       { completeUncheckedEvidenceBackedTrace with
         vocabulary := conflicting :: completeUncheckedEvidenceBackedTrace.vocabulary },

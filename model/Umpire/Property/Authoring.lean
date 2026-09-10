@@ -1,5 +1,6 @@
 import Umpire.Property.Check
-import Umpire.Target.Authoring
+import Umpire.Id
+import Lean.Elab.Term
 import Lean.Meta.Eval
 
 /-! Narrow ordinary-Lean constructors over the existing checked Property language. -/
@@ -157,7 +158,7 @@ structure PropertyAuthoringSpan where
   endColumn : Nat
   deriving BEq, DecidableEq, Repr
 
-structure PropertyAuthoringDiagnostic where
+structure PropertyLocatedError where
   error : PropertyError
   role : PropertyAuthoringRole
   anchor : PropertyAuthoringSpan
@@ -166,7 +167,7 @@ structure PropertyAuthoringDiagnostic where
 private def quoteJson (value : String) : String :=
   Lean.Json.compress (.str value)
 
-def canonicalPropertyAuthoringDiagnosticJson (diagnostic : PropertyAuthoringDiagnostic) : String :=
+def canonicalPropertyAuthoringDiagnosticJson (diagnostic : PropertyLocatedError) : String :=
   "{\"error\":" ++ canonicalPropertyErrorJson diagnostic.error ++
     ",\"role\":" ++ quoteJson diagnostic.role.name ++
     ",\"anchor\":{\"sourcePath\":" ++ quoteJson diagnostic.anchor.sourcePath ++
@@ -192,7 +193,7 @@ private def propertyAuthoringSpan
     endColumn := endPosition.column
   }
 
-private structure CapturedPropertyAuthoringOccurrence where
+private structure CapturedPropertySourceRef where
   role : PropertyAuthoringRole
   definitionId : DefinitionId
   reference : Lean.Syntax
@@ -221,10 +222,10 @@ private unsafe def evalPropertyCheckContextUnsafe (expression : Lean.Expr) :
 private opaque evalPropertyCheckContext (expression : Lean.Expr) :
     Lean.Elab.Term.TermElabM PropertyCheckContext
 
-private def capturePropertyAuthoringOccurrence
+private def capturePropertySourceRef
     (role : PropertyAuthoringRole)
     (reference : Lean.TSyntax `term) :
-    Lean.Elab.Term.TermElabM CapturedPropertyAuthoringOccurrence := do
+    Lean.Elab.Term.TermElabM CapturedPropertySourceRef := do
   let expression ← Lean.Elab.Term.elabTerm reference (some (.const ``DefinitionId []))
   let definitionId ← evalDefinitionId expression
   pure {
@@ -233,10 +234,10 @@ private def capturePropertyAuthoringOccurrence
     reference := reference.raw
     anchor := ← propertyAuthoringSpan reference.raw }
 
-private def selectPropertyAuthoringOccurrence
+private def selectPropertySourceRef
     (error : PropertyError)
-    (occurrences : List CapturedPropertyAuthoringOccurrence) :
-    Option CapturedPropertyAuthoringOccurrence :=
+    (occurrences : List CapturedPropertySourceRef) :
+    Option CapturedPropertySourceRef :=
   let related := occurrences.filter fun occurrence =>
     error.relatedDefinitionIds.contains occurrence.definitionId
   related.getLast? <|>
@@ -245,7 +246,7 @@ private def selectPropertyAuthoringOccurrence
 
 private def elaborateProperty
     (specSyntax contextSyntax : Lean.TSyntax `term)
-    (occurrences : List CapturedPropertyAuthoringOccurrence)
+    (occurrences : List CapturedPropertySourceRef)
     (expectedType : Option Lean.Expr) : Lean.Elab.Term.TermElabM Lean.Expr := do
   let specExpression ← Lean.Elab.Term.elabTerm specSyntax (some (.const ``PropertySpec []))
   let contextExpression ←
@@ -254,7 +255,7 @@ private def elaborateProperty
   let context ← evalPropertyCheckContext contextExpression
   match spec.check context with
   | .error error =>
-      match selectPropertyAuthoringOccurrence error occurrences with
+      match selectPropertySourceRef error occurrences with
       | some occurrence =>
           Lean.throwErrorAt occurrence.reference s!"property authoring failed: {
             canonicalPropertyAuthoringDiagnosticJson {
@@ -266,24 +267,24 @@ private def elaborateProperty
   | .ok _ =>
       Lean.Elab.Term.elabTerm (← `(PropertySpec.check $specSyntax $contextSyntax)) expectedType
 
-declare_syntax_cat propertyAuthoringOccurrence
-syntax ident term : propertyAuthoringOccurrence
+declare_syntax_cat propertySourceRef
+syntax ident term : propertySourceRef
 syntax (name := checkedPropertySyntax)
-  "property%" term "against" term "tracking" "[" propertyAuthoringOccurrence,* "]" : term
+  "property%" term "against" term "tracking" "[" propertySourceRef,* "]" : term
 
 elab_rules : term
   | `(property% $spec against $context tracking [$occurrences,*]) => do
       let mut captured := []
       for occurrence in occurrences.getElems do
         let item ← match occurrence with
-          | `(propertyAuthoringOccurrence| $role:ident $reference) =>
+          | `(propertySourceRef| $role:ident $reference) =>
               let role ← match role.getId.toString with
                 | "parentAnchor" => pure PropertyAuthoringRole.parent
                 | "caseAnchor" => pure PropertyAuthoringRole.case
                 | "exceptionAnchor" => pure PropertyAuthoringRole.exception
                 | "clauseAnchor" => pure PropertyAuthoringRole.clause
                 | _ => Lean.throwErrorAt role.raw "expected parentAnchor, caseAnchor, exceptionAnchor, or clauseAnchor"
-              capturePropertyAuthoringOccurrence role reference
+              capturePropertySourceRef role reference
           | _ => Lean.Elab.throwUnsupportedSyntax
         captured := captured ++ [item]
       elaborateProperty spec context captured none

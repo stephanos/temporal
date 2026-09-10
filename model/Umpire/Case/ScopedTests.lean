@@ -52,7 +52,7 @@ private def boundary (projectionWork obligationWork support : Int64) (eventSize 
 #guard (do
   let target ← targetResult.toOption
   let projection ← (plan target).toOption
-  pure (projection.canonicalBehavior.startsWith "[\"checked-projection/v2\"")) == some true
+  pure (projection.behaviorVersion.startsWith "[\"checked-projection/v2\"")) == some true
 
 /-- info: 'Umpire.Case.Scoped.Lowered.window_property' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in

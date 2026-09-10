@@ -5,12 +5,12 @@ import Umpire.Observation.Tests.Fixtures
 import Umpire.Planning.Tests.Fixtures
 import Umpire.Property.Tests.Fixtures
 import Umpire.Query.Tests.Fixtures
-import Umpire.Target.Tests.Fixtures
+import Umpire.Model.Tests.Fixtures
 
 /-!
 Executable compatibility matrix for the domain-neutral Switch migration.
 
-This cross-layer fixture intentionally lives outside `Umpire.Target.*`: it exercises the checked
+This cross-layer fixture intentionally lives outside `Umpire.Model.*`: it exercises the checked
 Target through Query, Planning, and Artifact while the focused Target suite stays import-pure.
 -/
 
@@ -21,10 +21,10 @@ open Umpire.Examples.Switch
 
 #check (Umpire.Examples.Switch.source : SourceLocation)
 #check (Umpire.Examples.Switch.definitions : List DefinitionMetadata)
-#check (Umpire.Examples.Switch.target : QueryTarget Umpire.Examples.Switch.LawStatement)
+#check (Umpire.Examples.Switch.target : QueryModel Umpire.Examples.Switch.LawStatement)
 
 example : [
-    Umpire.TargetTests.source "Parameterized/TargetFixture.lean",
+    Umpire.ModelTests.source "Parameterized/TargetFixture.lean",
     Umpire.BehaviorTests.source,
     Umpire.PropertyTests.source,
     Umpire.QueryTests.source,
@@ -47,8 +47,8 @@ example : [
   native_decide
 
 example : [
-    Umpire.TargetTests.metadata "fixture.action.default" .action,
-    Umpire.TargetTests.metadata "fixture.law.explicit" .law "explicit-contract/v2",
+    Umpire.ModelTests.metadata "fixture.action.default" .action,
+    Umpire.ModelTests.metadata "fixture.law.explicit" .law "explicit-contract/v2",
     Umpire.BehaviorTests.metadata "fixture.behavior.state" .state,
     Umpire.PropertyTests.metadata "fixture.property.observation" .fact,
     Umpire.QueryTests.metadata (DefinitionId.of "fixture.query.target") .target
@@ -59,20 +59,20 @@ example : [
   ] = [
     { id := DefinitionId.of "fixture.action.default", kind := .action,
       source := {
-        path := "Umpire/TargetTests.lean"
+        path := "Umpire/ModelTests.lean"
         line := 1
         column := 1
         provenance := "lean-test"
       },
-      version := 1, canonicalBehavior := "contract-v1", documentation := "" },
+      version := 1, behaviorVersion := "contract-v1", documentation := "" },
     { id := DefinitionId.of "fixture.law.explicit", kind := .law,
       source := {
-        path := "Umpire/TargetTests.lean"
+        path := "Umpire/ModelTests.lean"
         line := 1
         column := 1
         provenance := "lean-test"
       },
-      version := 1, canonicalBehavior := "explicit-contract/v2", documentation := "" },
+      version := 1, behaviorVersion := "explicit-contract/v2", documentation := "" },
     { id := DefinitionId.of "fixture.behavior.state", kind := .state,
       source := {
         path := "Umpire/Behavior/Tests.lean"
@@ -80,7 +80,7 @@ example : [
         column := 1
         provenance := "lean-test"
       },
-      version := 1, canonicalBehavior := "fixture.behavior.state/v1", documentation := "" },
+      version := 1, behaviorVersion := "fixture.behavior.state/v1", documentation := "" },
     { id := DefinitionId.of "fixture.property.observation", kind := .fact,
       source := {
         path := "Umpire/Property/Tests.lean"
@@ -88,7 +88,7 @@ example : [
         column := 1
         provenance := "lean-test"
       },
-      version := 1, canonicalBehavior := "fixture.property.observation/v1", documentation := "" },
+      version := 1, behaviorVersion := "fixture.property.observation/v1", documentation := "" },
     { id := DefinitionId.of "fixture.query.target", kind := .target,
       source := {
         path := "Umpire/Query/Tests.lean"
@@ -96,7 +96,7 @@ example : [
         column := 1
         provenance := "lean-test"
       },
-      version := 1, canonicalBehavior := "query-target/v1", documentation := "query fixture" },
+      version := 1, behaviorVersion := "query-target/v1", documentation := "query fixture" },
     { id := DefinitionId.of "fixture.planning.kernel", kind := .machine,
       source := {
         path := "Umpire/Planning/Tests.lean"
@@ -104,7 +104,7 @@ example : [
         column := 1
         provenance := "lean-test"
       },
-      version := 1, canonicalBehavior := "planning-kernel/v1",
+      version := 1, behaviorVersion := "planning-kernel/v1",
       documentation := "planning fixture" },
     { id := DefinitionId.of "fixture.observation.mapping", kind := .fact,
       source := {
@@ -113,7 +113,7 @@ example : [
         column := 1
         provenance := "lean-test"
       },
-      version := 1, canonicalBehavior := "fixture.observation.mapping/v1", documentation := "" }
+      version := 1, behaviorVersion := "fixture.observation.mapping/v1", documentation := "" }
   ] := by
   native_decide
 
@@ -122,8 +122,8 @@ def compatibilityFamilies : List String := ["switch"]
 
 private def occurrenceAt
     (definitionId owner : DefinitionId)
-    (role : AuthoringOccurrenceRole)
-    (line column : Nat) : AuthoringOccurrence := {
+    (role : SourceRefRole)
+    (line column : Nat) : SourceRef := {
   id := {
     sourcePath := "Umpire/Tests/MigrationCompatibility.lean"
     line
@@ -136,12 +136,12 @@ private def occurrenceAt
   path := { role, owner }
 }
 
-private def authoringAt (line column : Nat) : AuthoredTarget LawStatement
+private def authoringAt (line column : Nat) : DraftModel LawStatement
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue :=
-  targetAuthoring.withOccurrences [occurrenceAt targetId targetId .targetDefinition line column]
+  targetAuthoring.withOccurrences [occurrenceAt targetId targetId .modelSpec line column]
 
 private def checkedSummary
-    (result : Except AuthoringDiagnostic (QueryTarget LawStatement)) :
+    (result : Except LocatedError (QueryModel LawStatement)) :
     Option (String × BehaviorFingerprint × Option (List ModelValue)) :=
   result.toOption.map fun checked =>
     (checked.canonicalMetadata, checked.behaviorFingerprint,
@@ -151,25 +151,25 @@ private def checkedSummary
 
 /-! Moving a compiler-only occurrence cannot change any checked semantic product. -/
 example : [
-    checkedSummary (checkTarget (authoringAt 12 3)),
-    checkedSummary (checkTarget (authoringAt 420 19))
+    checkedSummary (checkModel (authoringAt 12 3)),
+    checkedSummary (checkModel (authoringAt 420 19))
   ] == [
-    some (canonicalCheckedTargetJson target, target.behaviorFingerprint,
+    some (canonicalCheckedModelJson target, target.behaviorFingerprint,
       some [flipAction]),
-    some (canonicalCheckedTargetJson target, target.behaviorFingerprint,
+    some (canonicalCheckedModelJson target, target.behaviorFingerprint,
       some [flipAction])
   ] := by
   native_decide
 
 example : target.source = source ∧
-    (checkTarget (authoringAt 420 19)).toOption.map CheckedTarget.source = some source := by
+    (checkModel (authoringAt 420 19)).toOption.map CheckedModel.source = some source := by
   native_decide
 
-private def earlyTarget : QueryTarget LawStatement :=
-  checkedTarget (authoringAt 12 3)
+private def earlyTarget : QueryModel LawStatement :=
+  model (authoringAt 12 3)
 
-private def relocatedTarget : QueryTarget LawStatement :=
-  checkedTarget (authoringAt 420 19)
+private def relocatedTarget : QueryModel LawStatement :=
+  model (authoringAt 420 19)
 
 private def exactActionDeclaration : QueryDeclaration := {
   id := exactActionQueryId
@@ -200,7 +200,7 @@ private def materializeEarlyQuery
     (checked : CheckedQuery LawStatement) : CheckedQuery LawStatement := {
   checked with
   target := earlyTarget
-  completeness := (CheckedQueryTarget.ofTarget earlyTarget).completeness
+  completeness := (CheckedQueryModel.ofTarget earlyTarget).completeness
 }
 
 private def earlyQuery : CheckedQuery LawStatement :=
@@ -210,15 +210,15 @@ private def earlyKernel? : Option (IncrementalPlannerKernel earlyQuery.target) :
   IncrementalPlannerKernel.ofCheckedQuery? earlyQuery
     (by
       intro evidence evidenceEq
-      simp [earlyQuery, materializeEarlyQuery, CheckedQueryTarget.ofTarget, earlyTarget,
-        checkedTarget, authoringAt, AuthoredTarget.withOccurrences, targetAuthoring,
-        AuthoredTarget.make, targetDefinition] at evidenceEq
+      simp [earlyQuery, materializeEarlyQuery, CheckedQueryModel.ofTarget, earlyTarget,
+        model, authoringAt, DraftModel.withOccurrences, targetAuthoring,
+        DraftModel.make, modelSpec] at evidenceEq
       cases Option.some.inj evidenceEq
       simp [finitePlanning])
     (by
       intro _ _ setup
-      simp only [earlyQuery, materializeEarlyQuery, earlyTarget, checkedTarget, authoringAt,
-        AuthoredTarget.withOccurrences, targetAuthoring, AuthoredTarget.make, targetDefinition,
+      simp only [earlyQuery, materializeEarlyQuery, earlyTarget, model, authoringAt,
+        DraftModel.withOccurrences, targetAuthoring, DraftModel.make, modelSpec,
         machine, initialStates]
       split <;> simp)
     (by
@@ -227,21 +227,21 @@ private def earlyKernel? : Option (IncrementalPlannerKernel earlyQuery.target) :
       · subst action
         by_cases selectedOff : state = offState
         · subst state
-          simpa [earlyQuery, materializeEarlyQuery, earlyTarget, checkedTarget, authoringAt,
-            AuthoredTarget.withOccurrences, targetAuthoring, AuthoredTarget.make,
-            targetDefinition, machine, stepResults] using appliedResult_ordered
+          simpa [earlyQuery, materializeEarlyQuery, earlyTarget, model, authoringAt,
+            DraftModel.withOccurrences, targetAuthoring, DraftModel.make,
+            modelSpec, machine, stepResults] using appliedResult_ordered
         · by_cases selectedOn : state = onState
           · subst state
-            simpa [earlyQuery, materializeEarlyQuery, earlyTarget, checkedTarget, authoringAt,
-              AuthoredTarget.withOccurrences, targetAuthoring, AuthoredTarget.make,
-              targetDefinition, machine, stepResults, onState_ne_offState] using
+            simpa [earlyQuery, materializeEarlyQuery, earlyTarget, model, authoringAt,
+              DraftModel.withOccurrences, targetAuthoring, DraftModel.make,
+              modelSpec, machine, stepResults, onState_ne_offState] using
                 appliedFromOnResult_ordered
-          · simp [earlyQuery, materializeEarlyQuery, earlyTarget, checkedTarget, authoringAt,
-              AuthoredTarget.withOccurrences, targetAuthoring, AuthoredTarget.make,
-              targetDefinition, machine, stepResults, selectedOff, selectedOn]
-      · simp [earlyQuery, materializeEarlyQuery, earlyTarget, checkedTarget, authoringAt,
-          AuthoredTarget.withOccurrences, targetAuthoring, AuthoredTarget.make,
-          targetDefinition, machine, stepResults, selectedAction])
+          · simp [earlyQuery, materializeEarlyQuery, earlyTarget, model, authoringAt,
+              DraftModel.withOccurrences, targetAuthoring, DraftModel.make,
+              modelSpec, machine, stepResults, selectedOff, selectedOn]
+      · simp [earlyQuery, materializeEarlyQuery, earlyTarget, model, authoringAt,
+          DraftModel.withOccurrences, targetAuthoring, DraftModel.make,
+          modelSpec, machine, stepResults, selectedAction])
 
 private theorem earlyKernel?_isSome : earlyKernel?.isSome = true := by
   rfl
@@ -262,7 +262,7 @@ private def materializeRelocatedQuery
     (checked : CheckedQuery LawStatement) : CheckedQuery LawStatement := {
   checked with
   target := relocatedTarget
-  completeness := (CheckedQueryTarget.ofTarget relocatedTarget).completeness
+  completeness := (CheckedQueryModel.ofTarget relocatedTarget).completeness
 }
 
 private def relocatedQuery : CheckedQuery LawStatement :=
@@ -273,16 +273,16 @@ private def relocatedKernel? : Option (IncrementalPlannerKernel relocatedQuery.t
   IncrementalPlannerKernel.ofCheckedQuery? relocatedQuery
     (by
       intro evidence evidenceEq
-      simp [relocatedQuery, materializeRelocatedQuery, CheckedQueryTarget.ofTarget,
-        relocatedTarget, checkedTarget, authoringAt, AuthoredTarget.withOccurrences,
-        targetAuthoring, AuthoredTarget.make, targetDefinition] at evidenceEq
+      simp [relocatedQuery, materializeRelocatedQuery, CheckedQueryModel.ofTarget,
+        relocatedTarget, model, authoringAt, DraftModel.withOccurrences,
+        targetAuthoring, DraftModel.make, modelSpec] at evidenceEq
       cases Option.some.inj evidenceEq
       simp [finitePlanning])
     (by
       intro _ _ setup
-      simp only [relocatedQuery, materializeRelocatedQuery, relocatedTarget, checkedTarget,
-        authoringAt, AuthoredTarget.withOccurrences, targetAuthoring, AuthoredTarget.make,
-        targetDefinition, machine, initialStates]
+      simp only [relocatedQuery, materializeRelocatedQuery, relocatedTarget, model,
+        authoringAt, DraftModel.withOccurrences, targetAuthoring, DraftModel.make,
+        modelSpec, machine, initialStates]
       split <;> simp)
     (by
       intro _ _ state action
@@ -290,23 +290,23 @@ private def relocatedKernel? : Option (IncrementalPlannerKernel relocatedQuery.t
       · subst action
         by_cases selectedOff : state = offState
         · subst state
-          simpa [relocatedQuery, materializeRelocatedQuery, relocatedTarget, checkedTarget,
-            authoringAt, AuthoredTarget.withOccurrences, targetAuthoring, AuthoredTarget.make,
-            targetDefinition, machine, stepResults] using
+          simpa [relocatedQuery, materializeRelocatedQuery, relocatedTarget, model,
+            authoringAt, DraftModel.withOccurrences, targetAuthoring, DraftModel.make,
+            modelSpec, machine, stepResults] using
               appliedResult_ordered
         · by_cases selectedOn : state = onState
           · subst state
-            simpa [relocatedQuery, materializeRelocatedQuery, relocatedTarget, checkedTarget,
-              authoringAt, AuthoredTarget.withOccurrences, targetAuthoring,
-              AuthoredTarget.make, targetDefinition, machine, stepResults,
+            simpa [relocatedQuery, materializeRelocatedQuery, relocatedTarget, model,
+              authoringAt, DraftModel.withOccurrences, targetAuthoring,
+              DraftModel.make, modelSpec, machine, stepResults,
               onState_ne_offState] using appliedFromOnResult_ordered
-          · simp [relocatedQuery, materializeRelocatedQuery, relocatedTarget, checkedTarget,
-              authoringAt, AuthoredTarget.withOccurrences, targetAuthoring,
-              AuthoredTarget.make, targetDefinition, machine, stepResults,
+          · simp [relocatedQuery, materializeRelocatedQuery, relocatedTarget, model,
+              authoringAt, DraftModel.withOccurrences, targetAuthoring,
+              DraftModel.make, modelSpec, machine, stepResults,
               selectedOff, selectedOn]
-      · simp [relocatedQuery, materializeRelocatedQuery, relocatedTarget, checkedTarget,
-          authoringAt, AuthoredTarget.withOccurrences, targetAuthoring, AuthoredTarget.make,
-          targetDefinition, machine, stepResults, selectedAction])
+      · simp [relocatedQuery, materializeRelocatedQuery, relocatedTarget, model,
+          authoringAt, DraftModel.withOccurrences, targetAuthoring, DraftModel.make,
+          modelSpec, machine, stepResults, selectedAction])
 
 private theorem relocatedKernel?_isSome : relocatedKernel?.isSome = true := by
   rfl
@@ -331,20 +331,20 @@ example : earlyRun.toOption.map PlannerRun.result = some exactActionRun.result �
     relocatedRun.toOption.map PlannerRun.result = some exactActionRun.result := by
   native_decide
 
-private def wrongKindDefinition : TargetDefinition
+private def wrongKindDefinition : ModelSpec LawStatement
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
-  targetDefinition with requiredCapabilities := [flipActionId]
+  modelSpec with requiredCapabilities := [flipActionId]
 }
 
-private def wrongKindAuthoringAt (line column : Nat) : AuthoredTarget LawStatement
+private def wrongKindAuthoringAt (line column : Nat) : DraftModel LawStatement
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue :=
-  AuthoredTarget.make wrongKindDefinition targetComposition (occurrences := [
+  DraftModel.make wrongKindDefinition modelProviders (occurrences := [
     occurrenceAt flipActionId targetId .capabilityRequirement line column
   ])
 
 private def diagnosticSummary
-    (result : Except AuthoringDiagnostic (QueryTarget LawStatement)) :
-    Option (DefinitionErrorKind × AuthoringOccurrenceRole × String × Nat × Nat) :=
+    (result : Except LocatedError (QueryModel LawStatement)) :
+    Option (DefinitionErrorKind × SourceRefRole × String × Nat × Nat) :=
   match result with
   | .ok _ => none
   | .error diagnostic => some
@@ -353,8 +353,8 @@ private def diagnosticSummary
 
 /-! The diagnostic follows the authored occurrence while stable provenance remains unchanged. -/
 example : [
-    diagnosticSummary (checkTarget (wrongKindAuthoringAt 31 4)),
-    diagnosticSummary (checkTarget (wrongKindAuthoringAt 503 27))
+    diagnosticSummary (checkModel (wrongKindAuthoringAt 31 4)),
+    diagnosticSummary (checkModel (wrongKindAuthoringAt 503 27))
   ] = [
     some (.wrongKind, .capabilityRequirement,
       "Umpire/Tests/MigrationCompatibility.lean", 31, 4),
@@ -366,65 +366,65 @@ example : [
 example : wrongKindDefinition.source = source := by
   rfl
 
-private def expertTargetDeclaration : TargetDeclaration LawStatement
+private def expertModelSpec : ModelSpec LawStatement
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
-  id := targetDefinition.id
-  source := targetDefinition.source
-  definitions := targetDefinition.definitions
-  requiredCapabilities := targetDefinition.requiredCapabilities
+  id := modelSpec.id
+  source := modelSpec.source
+  definitions := modelSpec.definitions
+  requiredCapabilities := modelSpec.requiredCapabilities
   providers := [switchProvider]
   connectors := []
-  resolvedSetups := targetDefinition.resolvedSetups
-  kernel := targetDefinition.kernel
+  resolvedSetups := modelSpec.resolvedSetups
+  machine := modelSpec.machine
 }
 
 private def invalidDefinitionIdMetadata : DefinitionMetadata := {
   id := DefinitionId.of "action"
   kind := .action
   source
-  canonicalBehavior := "invalid-definition-id/v1"
+  behaviorVersion := "invalid-definition-id/v1"
 }
 
-private def invalidDefinitionIdTarget : TargetDeclaration LawStatement
+private def invalidDefinitionIdTarget : ModelSpec LawStatement
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
-  expertTargetDeclaration with
-  definitions := invalidDefinitionIdMetadata :: expertTargetDeclaration.definitions
+  expertModelSpec with
+  definitions := invalidDefinitionIdMetadata :: expertModelSpec.definitions
 }
 
-private def missingProviderDeclaration : TargetDeclaration LawStatement
+private def missingProviderDeclaration : ModelSpec LawStatement
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
-  expertTargetDeclaration with providers := []
+  expertModelSpec with providers := []
 }
 
-private def providerWithoutLaw : CapabilityProvider LawStatement := {
-  switchProvider with lawWitnesses := []
+private def providerWithoutLaw : Provider LawStatement := {
+  switchProvider with lawProofs := []
 }
 
-private def missingLawDeclaration : TargetDeclaration LawStatement
+private def missingLawDeclaration : ModelSpec LawStatement
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
-  expertTargetDeclaration with providers := [providerWithoutLaw]
+  expertModelSpec with providers := [providerWithoutLaw]
 }
 
-private def incompleteKernelDeclaration : TargetDeclaration LawStatement
+private def incompleteKernelDeclaration : ModelSpec LawStatement
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
-  expertTargetDeclaration with
-  kernel := .incomplete machine.metadata
+  expertModelSpec with
+  machine := .incomplete machine.metadata
     [DefinitionId.of "umpire.kernel-proof.step-complete"]
 }
 
 private def targetErrorKind
-    (result : Except DefinitionError (QueryTarget LawStatement)) : Option DefinitionErrorKind :=
+    (result : Except DefinitionError (QueryModel LawStatement)) : Option DefinitionErrorKind :=
   match result with
   | .ok _ => none
   | .error failure => some failure.kind
 
 /-! Target-owned invalid Definition IDs, providers, laws, and kernel availability stay typed at Target. -/
 example : [
-    targetErrorKind (composeTarget invalidDefinitionIdTarget),
-    targetErrorKind (composeTarget missingProviderDeclaration),
-    targetErrorKind (composeTarget missingLawDeclaration),
-    targetErrorKind (composeTarget incompleteKernelDeclaration)
-  ] = [some .invalidDefinitionId, some .missingProvider, some .missingLaw, some .incompleteKernel] := by
+    targetErrorKind ((checkModel (DraftModel.make invalidDefinitionIdTarget) |>.mapError LocatedError.error)),
+    targetErrorKind ((checkModel (DraftModel.make missingProviderDeclaration) |>.mapError LocatedError.error)),
+    targetErrorKind ((checkModel (DraftModel.make missingLawDeclaration) |>.mapError LocatedError.error)),
+    targetErrorKind ((checkModel (DraftModel.make incompleteKernelDeclaration) |>.mapError LocatedError.error))
+  ] = [some .invalidDefinitionId, some .missingProvider, some .missingLaw, some .incompleteMachine] := by
   native_decide
 
 private def queryErrorKind
@@ -448,8 +448,8 @@ private def exhaustiveDeclaration : QueryDeclaration := {
   exactActionDeclaration with policy := { shortestPolicy with strategy := .exhaustive }
 }
 
-private def noFinitePlanningTarget : QueryTarget LawStatement :=
-  checkedTarget targetAuthoring.withoutPlanning
+private def noFinitePlanningTarget : QueryModel LawStatement :=
+  model targetAuthoring.withoutPlanning
 
 private def mismatchedTrace : BehaviorTrace := {
   setup := switchSetup

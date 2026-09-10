@@ -31,13 +31,13 @@ def kinds : List (String × DefinitionKind) := [
   ("test.tick", .action), ("test.reply", .action), ("test.outcome", .outcome), ("test.fact", .fact)]
 def definitions : List DefinitionMetadata := kinds.map fun (name, kind) =>
   Shared.Test.definitionMetadata name kind source (name ++ "/v1")
-def provider : CapabilityProvider (fun _ => True) := {
+def provider : Provider (fun _ => True) := {
   id := id "test.provider"
   source
-  contract := { id := id "test.capability", canonicalBehavior := "scoped-test/v1", requiredLaws := [] }
+  contract := { id := id "test.capability", behaviorVersion := "scoped-test/v1", requiredLaws := [] }
   meanings := (kinds.drop 4).map fun (name, kind) =>
-    { definitionId := id name, kind, canonicalBehavior := name ++ "/meaning-v1" }
-  lawWitnesses := []
+    { definitionId := id name, kind, behaviorVersion := name ++ "/meaning-v1" }
+  lawProofs := []
 }
 
 def table : FiniteTable Unit ModelValue ModelValue ModelValue ModelValue := {
@@ -54,17 +54,17 @@ def table : FiniteTable Unit ModelValue ModelValue ModelValue ModelValue := {
     ⟨"reply", state, reply, [result true]⟩]
 }
 
-def targetResult := table.checkTarget {
+def targetResult := table.checkTypedModel {
   id := id "test.target"
   source
   definitions
   requiredCapabilities := [id "test.capability"]
   metadata := { id := id "test.kernel", source }
-} (TargetComposition.empty.provide provider)
+} (Providers.empty.provide provider)
 
 #guard targetResult.isOk
 
-abbrev TestTarget := CheckedTarget (fun _ => True) Unit ModelValue ModelValue ModelValue ModelValue
+abbrev TestTarget := CheckedModel (fun _ => True) Unit ModelValue ModelValue ModelValue ModelValue
 def context (target : TestTarget) := PropertyCheckContext.ofTarget target
 
 def clause (bound : Nat) (endpoint : PropertyScopedEndpoint := .runtimePrefix) : PropertyScopedClause := {

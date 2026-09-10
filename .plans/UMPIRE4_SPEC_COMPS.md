@@ -188,8 +188,7 @@ Temporal
 
 | Module | Interface | Status and direction |
 | --- | --- | --- |
-| `Shared.Transition` | Neutral transition systems, reachability, finite runs, observations, and trace steps. | Present. Keep independent of Umpire and Temporal. |
-| `Shared.TraceReplay` | Replay named actions through a transition function. | Present but shallow. Deepen into canonical replay as verification and promotion need it, or fold it into `Shared.Transition` if it remains trivial. |
+| Two neutral transition-system modules (a transition/reachability module and a named-action replay module) | Neutral transition systems, reachability, finite runs, observations, trace steps, and replay. | Deleted: nothing outside the `Shared` facade ever imported them. |
 
 `Shared` is neutral infrastructure. It must not become an alternate authoring language or semantic
 catalog.
@@ -199,21 +198,21 @@ catalog.
 | Module | Interface | Status and direction |
 | --- | --- | --- |
 | `Umpire.Core` | Stable identities, kinds, metadata, sources, typed Limits, Model Values, and trace vocabulary. | Present but over-broad. Reduce it to stable shared vocabulary. |
-| `Umpire.Target` | Ordinary finite-machine and expert kernel authoring, capabilities, laws, providers, connectors, target checking, and canonical target identity. | Deepen here before adding more authoring languages. |
+| `Umpire.Model` | Ordinary finite-machine and expert kernel authoring, capabilities, laws, providers, connectors, target checking, and canonical target identity. | Deepen here before adding more authoring languages. |
 
 The ordinary and expert Target authoring routes are:
 
 ```text
 FiniteMachine ──▶ machineAvailability + authoredPlanning ────────────┐
 direct Machine + explicit planning availability ──────────┤
-TargetDefinition + TargetComposition ───────────────────────────────┴──▶ AuthoredTarget
+ModelSpec + Providers ───────────────────────────────┴──▶ DraftModel
                                                                            │
                                                                            ▼
-                                                                     checkTarget
+                                                                     checkModel
                                                                            │
                                                     ┌──────────────────────┴─────────────┐
                                                     ▼                                    ▼
-                                              CheckedTarget                  AuthoringDiagnostic
+                                              CheckedModel                  LocatedError
 ```
 
 Ordinary Temporal authors should not assemble metadata digests, provider lists, connector plumbing,
@@ -386,7 +385,7 @@ Temporal.Feature.<Family>
 | Module | Responsibility |
 | --- | --- |
 | `Model` | Canonical product states, actions, outcomes, observations, relations, and transitions. |
-| `Target` | Adapt the family model into a checked `Umpire.Target`. |
+| `Target` | Adapt the family model into a checked `Umpire.Model`. |
 | `Properties` | Portable product-visible claims. |
 | `Scenarios` | Behaviors, spaces, queries, regressions, named Limits, and policies. |
 | `Examples` | Teaching paths and small executable model examples. |
@@ -442,7 +441,7 @@ CallerClosure
 └── Scenarios        behaviors, spaces, queries, Limits, and selected artifacts
 ```
 
-Deepen `Umpire.Target` before physically splitting CallerClosure. The goal is to remove repeated
+Deepen `Umpire.Model` before physically splitting CallerClosure. The goal is to remove repeated
 plumbing rather than distribute it across more files.
 
 The root `Temporal.Feature.Nexus.Lifecycle` and `Temporal.Feature.Nexus.Operations` modules remain
@@ -933,7 +932,7 @@ Priorities follow module dependencies and proof-of-value rather than task-tracke
 
 ### Priority 1: deepen Lean authoring
 
-- Extract and deepen `Umpire.Target`.
+- Extract and deepen `Umpire.Model`.
 - Simplify Temporal family target declarations.
 - Hide routine identity, source, provider, connector, digest, checked-result, and planner plumbing.
 - Preserve semantic behavior and canonical artifacts.

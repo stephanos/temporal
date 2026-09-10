@@ -4,7 +4,7 @@ import Temporal.Testpilot.CaseSupport
 import Umpire.Case.Compiler
 import Umpire.Case.Observed
 import Umpire.Property
-import Umpire.Target.Parameterized
+import Umpire.Operation.Parameterized
 
 /-!
 # A generated unary operation qualified by independent field requirements
@@ -285,17 +285,17 @@ private def definitions : List DefinitionMetadata :=
   (structuralKinds ++ vocabularyKinds).map fun (id, kind) =>
     Temporal.Shared.definitionMetadata id kind source id.value
 
-private def provider : CapabilityProvider (fun _ => True) := {
+private def provider : Provider (fun _ => True) := {
   id := providerId
   source
-  contract := { id := capabilityId, canonicalBehavior := "temporal-nexus3-typed-unary/v1"
+  contract := { id := capabilityId, behaviorVersion := "temporal-nexus3-typed-unary/v1"
                 requiredLaws := [] }
   meanings := ((startActionId, DefinitionKind.action) :: vocabularyKinds).map
-    fun (id, kind) => { definitionId := id, kind, canonicalBehavior := id.value ++ "/meaning-v1" }
-  lawWitnesses := []
+    fun (id, kind) => { definitionId := id, kind, behaviorVersion := id.value ++ "/meaning-v1" }
+  lawProofs := []
 }
 
-private def targetDefinition : FiniteTargetDefinition := {
+private def modelSpec : TableModelSpec := {
   id := targetId
   source
   definitions
@@ -311,7 +311,7 @@ structure Model where
     Temporal.Api.Workflowservice.V1.StartWorkflowExecutionRequest
     Temporal.Api.Workflowservice.V1.StartWorkflowExecutionResponse Empty
   domain : ParameterDomain template valueLimits
-  target : CheckedTarget (fun _ => True) (List RoleBinding) ModelValue ModelValue ModelValue
+  target : CheckedModel (fun _ => True) (List RoleBinding) ModelValue ModelValue ModelValue
     ModelValue
   property : CheckedFieldProperty
 
@@ -320,7 +320,7 @@ inductive AdmissionError where
   | operation (error : Operation.Error)
   | parameter (error : ParameterError)
   | field (error : Field.Error)
-  | target (error : FiniteTargetAdmissionError)
+  | target (error : TableAdmissionError)
   | property (error : PropertyError)
   | inconsistent (reason : String)
 
@@ -401,8 +401,8 @@ def checked : Except AdmissionError Model := do
     outcomeId := (·.definitionId)
     factId := (·.definitionId)
   }
-  let target ← (domain.checkTarget table identity targetDefinition
-    (TargetComposition.empty.provide provider)).mapError AdmissionError.target
+  let target ← (domain.checkModel table identity modelSpec
+    (Providers.empty.provide provider)).mapError AdmissionError.target
   let context := { PropertyCheckContext.ofTarget target with
     fieldBindings := fieldBindings template }
   let property ← (CheckedFieldProperty.check context declaration).mapError AdmissionError.property

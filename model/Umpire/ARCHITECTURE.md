@@ -17,15 +17,15 @@ Focused public imports are available by responsibility:
 | Import | Public responsibility |
 | --- | --- |
 | `Umpire.Core` | Stable definitions, traces, capabilities, laws, and finite kernels. |
-| `Umpire.Target` | Finite-machine and expert Target authoring plus checked composition. |
-| `Umpire.Target.Semantics` | Checked Target/kernel access, pure admission, and relation-indexed finite planning. |
+| `Umpire.Model` | Finite-machine and expert Model authoring plus checked composition. |
+| `Umpire.Model.Check` | Checked Model/Machine access, pure admission, and relation-indexed finite planning. |
 | `Umpire.Property` | Property authoring, validation, and pure trace evaluation. |
 | `Umpire.Behavior` | Setup and trace-shape authoring and validation. |
-| `Umpire.Query` | Bounded questions over a checked Target, Properties, and Behavior. |
+| `Umpire.Query` | Bounded questions over a checked Model, Properties, and Behavior. |
 | `Umpire.Space` | Checked finite axes, fault intents and their lowering, and atomic point compilation. |
 | `Umpire.Exploration` | Bounded finite selection, pinned precedence, and process-local sessions. |
 | `Umpire.Observation` | Offline evidence mappings and accepted semantic traces. |
-| `Umpire.ImplementationLink` | Checked correspondence between independent semantic Targets. |
+| `Umpire.ImplementationLink` | Checked correspondence between independent semantic Models. |
 | `Umpire.Planning` | Deterministic incremental planning over checked Queries. |
 | `Umpire.Promotion` | Exact review-only source compilation from an unchanged planned Query. |
 | `Umpire.Artifact` | Retained model-planning and offline-analysis artifact codecs. |
@@ -37,69 +37,68 @@ Focused public imports are available by responsibility:
 Implementation modules remain behind these facades. Reusable Umpire modules cannot import the
 domain-specific Temporal modules; the complete import graph is enforced by `make lint-model`.
 
-## Target ownership and semantic imports
+## Model ownership and semantic imports
 
-Ordinary authors keep `import Umpire.Target` (or `import Umpire`). The Target facade includes
-finite-table/machine adapters and syntax-aware authoring. `Umpire.Target.Language` remains a
-compatibility facade for existing authoring imports. Authors of Properties, Behaviors, and Queries
-likewise keep their public `Umpire.Property`, `Umpire.Behavior`, and `Umpire.Query` facades.
+Ordinary authors keep `import Umpire.Model` (or `import Umpire`). The Model facade includes
+finite-table/machine adapters and syntax-aware authoring. Authors of Properties, Behaviors, and
+Queries likewise keep their public `Umpire.Property`, `Umpire.Behavior`, and `Umpire.Query` facades.
 
-Library code that consumes checked semantics imports `Umpire.Target.Semantics`. Property and
+Library code that consumes checked semantics imports `Umpire.Model.Check`. Property and
 Behavior semantic implementations use that surface; Query uses their semantic modules, and
-Planning uses Query's semantic module. Their complete import closures exclude `Umpire.Target.Frontend`
+Planning uses Query's semantic module. Their complete import closures exclude `Umpire.Model.Elab`
 and `Lean.Elab.Term`, including paths through external modules. `make lint-model` enforces this
 boundary from compiled imports as well as the source inventory.
 
-| Target owner | Responsibility |
+| Model owner | Responsibility |
 | --- | --- |
-| `Data` | Target declarations, behavior descriptions, and inert occurrence/diagnostic data. |
-| `Projection` | Pure behavior-description construction, canonical encodings, and fingerprint inputs. |
-| `Semantics` | Private checked/authored construction, composition validation, typed diagnostic selection, and checked kernel/planning access. |
-| `Frontend` | Syntax occurrence capture and mapping the same admission diagnostic to a located elaboration error. |
-| `FiniteMachine` | Existing finite-table/machine validation and proof-carrying adapters. |
+| `Types` | Model specs, behavior tables, and inert source-reference/diagnostic data. |
+| `Canonical` | Pure behavior-table construction, canonical encodings, and fingerprint inputs. |
+| `Check` | Private checked/draft construction, composition validation, typed diagnostic selection, and checked Machine/planning access. |
+| `Elab` | Syntax source-reference capture and mapping the same admission diagnostic to a located elaboration error. |
+| `Table` | Finite-table/machine validation and proof-carrying adapters. |
 
-`composeTarget` returns `Except DefinitionError CheckedTarget`; `checkTarget` returns
-`Except AuthoringDiagnostic CheckedTarget`; `checkedTarget` extracts using checker-success evidence,
-retaining its existing default proof. `elaborateTarget` invokes the same pure admission authority
+`checkModel` returns
+`Except LocatedError CheckedModel`; `model` extracts using checker-success evidence,
+retaining its existing default proof. `elabModel` invokes the same pure admission authority
 and reports its diagnostic in `TermElabM`. No unchecked constructor is exposed. Occurrence data
 selects diagnostic locations, including the fallback when no captured syntax matches, without
 entering semantic identity or fingerprint inputs.
 
-Expert consumers can use `CheckedTarget.kernel` directly. `CheckedTarget.withEquivalentKernel`
+Expert consumers can use `CheckedModel.machine` directly. `CheckedModel.withEquivalentMachine`
 requires matching metadata and domains, equal authoritative initial/step relations, and unchanged
 behavior description. Its optional planning evidence belongs to the replacement step relation;
-omitting it leaves planning unavailable even if the original Target had finite planning. A finite
-behavior description alone supplies no action-completeness proof. Enumeration order and duplicate
+omitting it leaves planning unavailable even if the original Model had finite planning. A finite
+behavior table alone supplies no action-completeness proof. Enumeration order and duplicate
 results remain the enumerator's responsibility, independently of canonical behavior identity.
 
 ## Semantic model lifecycle
 
-A model maintainer defines a checked Target once. Ordinary authors then define independent
+A model maintainer defines a checked Model once. Ordinary authors then define independent
 Properties and Behaviors, combine them in a bounded Query, and plan or explore only through that
-checked Target. Target-owned transitions decide outcomes; authoring order and instance search do
+checked Model. Model-owned steps decide outcomes; authoring order and instance search do
 not select behavior.
 
 ```text
-AuthoredTarget ── checkTarget ──▶ CheckedTarget
+DraftModel ── checkModel ──▶ CheckedModel
                                      ├── Property
                                      ├── Behavior
                                      └── Query ──▶ Planning / Space / Exploration
 ```
 
-The finite-machine adapter is the ordinary route for fully enumerable Targets. Direct
+The finite-machine adapter is the ordinary route for fully enumerable Models. Direct
 `Machine` construction remains the expert route when authoritative propositions are
 specified independently. Both routes converge before Property, Behavior, or Query checking.
 
-`FiniteMachine.targetDefinition` and `FiniteMachine.authoredTarget` assemble the ordinary finite
-Target without deriving its evidence. The author still owns every ordered domain, encoder,
+`FiniteMachine.modelSpec` and `FiniteMachine.draftModel` assemble the ordinary finite
+Model without deriving its evidence. The author still owns every ordered domain, encoder,
 enumerator, closure proof, Action-executability proof, provider, connector, source, and stable ID.
-`checkTarget` remains the semantic admission boundary. Property, Behavior, Query, and Observation
+`checkModel` remains the semantic admission boundary. Property, Behavior, Query, and Observation
 constructors follow the same raw input → typed `check` result → explicitly proof-backed `checked`
-shape; no constructor infers Target outcomes or checker success.
+shape; no constructor infers Model outcomes or checker success.
 
 `FiniteTable` keeps ordered typed catalogs, setup alternatives, transition alternatives, Model
 Outcomes, and Model Facts explicit, then validates domain closure before constructing the ordinary
-finite Target. `DefinitionFamily`, `PropertySpec`, `ExactSequenceSpec`, `QuerySpec`, and
+finite Model. `DefinitionFamily`, `PropertySpec`, `ExactSequenceSpec`, `QuerySpec`, and
 `QueryLimitSpec` reduce repeated structure while delegating to the existing language-owned checkers.
 Their `checked` operations require explicit proof of checker success; the ordinary `check`
 operations return the existing typed `Except` results.
@@ -114,7 +113,7 @@ incompatibility, exhaustive completion, and limit exhaustion as separate bounded
 `bounded_response%` is a readable spelling of `PropertyScopedClause`, admitted through the same
 `property%`/`checkProperty` boundary. Scoped clauses declare execution fields, an operation key,
 operation-transition clock, natural bound, and runtime-prefix or deliberately-closed endpoint.
-Projection admits causally supported, Target-authorized transitions before obligation execution;
+Projection admits causally supported, Model-authorized steps before obligation execution;
 submissions and duplicate observations contribute no transition. Independent trigger windows count
 only their operation's transitions, including self-loops. Runtime incompleteness leaves unresolved
 windows inconclusive; a known violation remains proved.
@@ -131,7 +130,7 @@ cancellation Case or supply an operation cancellation capability.
 
 Query validity reports satisfiability, trigger exercise, answer, and search completeness separately.
 An impossible scenario, an unexercised nonempty scenario, an unresolved prefix, and exhausted search
-cannot become universal verification. Finite Target terminal declarations are conjunctive and never
+cannot become universal verification. Finite Model terminal declarations are conjunctive and never
 inferred from deadlock. `BehaviorSpec` adds typed allow/forbid, occurrence, ordering, and adjacency
 constraints through the existing canonical checker; ordering permits intervening allowed actions,
 while adjacency and exactness deliberately impose stronger constraints.

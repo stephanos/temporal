@@ -20,8 +20,8 @@ namespace Umpire.Case.Scoped
 open temporal.server.api.testpilot.v1
 open Umpire.Observation
 
-variable {Law : LawDefinition → Prop} {Setup : Type}
-variable {target : CheckedTarget Law Setup ModelValue ModelValue ModelValue ModelValue}
+variable {Law : Law → Prop} {Setup : Type}
+variable {target : CheckedModel Law Setup ModelValue ModelValue ModelValue ModelValue}
 
 private def number (value : Nat) : Except String Int64 :=
   if value ≤ 9223372036854775807 then .ok (Int64.ofInt value) else .error "protobuf signed overflow"
@@ -231,10 +231,10 @@ structure Lowered (plan : Projection.Checked target) (compiled : Property.Scoped
   decoding : Testpilot.Scoped.decode wire = .ok decoded
   meaning : decoded = Scoped.meaning plan compiled keyed
   maximumFacts : plan.executable.transitions.foldl (fun maximum row => max maximum row.2.2.facts.length) 0 =
-    target.behaviorDescription.transitions.foldl (fun maximum row => max maximum row.facts.length) 0
+    target.behaviorTable.transitions.foldl (fun maximum row => max maximum row.facts.length) 0
   candidateCounts : ∀ row ∈ plan.executable.transitions,
     (plan.executable.transitions.filter (fun candidate => candidate.1 == row.1 && candidate.2.1 == row.2.1)).length =
-      (target.kernel.steps row.1 row.2.1).length
+      (target.machine.steps row.1 row.2.1).length
   certificates : ∀ binding ∈ compiled.portableReferences,
     ScopedProofs.Certificate binding plan.executable.transitions plan.initialState
 
@@ -295,11 +295,11 @@ def lower (plan : Projection.Checked target) (compiled : Property.Scoped.Compile
           plan.executable.transitions plan.initialState).mapError failed
         if maximumFacts : plan.executable.transitions.foldl
             (fun maximum row => max maximum row.2.2.facts.length) 0 =
-            target.behaviorDescription.transitions.foldl (fun maximum row => max maximum row.facts.length) 0 then
+            target.behaviorTable.transitions.foldl (fun maximum row => max maximum row.facts.length) 0 then
           if candidateCounts : ∀ row ∈ plan.executable.transitions,
               (plan.executable.transitions.filter (fun candidate =>
                 candidate.1 == row.1 && candidate.2.1 == row.2.1)).length =
-                  (target.kernel.steps row.1 row.2.1).length then
+                  (target.machine.steps row.1 row.2.1).length then
             pure ⟨wire, decoded, keyed, decoding, agreement, maximumFacts, candidateCounts, certificates.down⟩
           else throw (failed "portable work candidate multiplicity differs from checked kernel")
         else throw (failed "portable work maximum fact count differs from checked description")
@@ -319,7 +319,7 @@ def Lowered.contractLowering {plan : Projection.Checked target} {compiled : Prop
 /-- Any row executable by the actual decoded Contract is authorized by the original Target. -/
 theorem Lowered.table_authorized {plan : Projection.Checked target} {compiled : Property.Scoped.Compiled target} (lowered : Lowered plan compiled)
     (row) (member : row ∈ lowered.decoded.plan.transitions) :
-    target.kernel.authoritativeStep row.1 row.2.1 row.2.2 := by
+    target.machine.authoritativeStep row.1 row.2.1 row.2.2 := by
   rw [lowered.meaning] at member
   exact plan.table_authorized row member
 

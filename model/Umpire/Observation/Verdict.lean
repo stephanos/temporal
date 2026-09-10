@@ -263,7 +263,7 @@ private def capabilityMismatch (property : CheckedProperty) : List DefinitionId 
 private def vocabularyFailure
     (property : CheckedProperty)
     (trace : EvidenceBackedTrace) : Option SemanticVerdictDiagnostic :=
-  let rec check : List MeaningProvision → Option SemanticVerdictDiagnostic
+  let rec check : List Meaning → Option SemanticVerdictDiagnostic
     | [] => none
     | required :: rest =>
         let candidates := (trace.vocabulary.filter fun available =>
@@ -275,7 +275,7 @@ private def vocabularyFailure
             relatedDefinitionIds := [required.definitionId]
           }
         | [available] =>
-            if available.canonicalBehavior != required.canonicalBehavior then
+            if available.behaviorVersion != required.behaviorVersion then
               some {
                 kind := .digestMismatch
                 relatedDefinitionIds := [required.definitionId]

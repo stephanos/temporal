@@ -108,7 +108,7 @@ private def evidenceDraft : EvidenceArtifact := {
     vocabulary := [{
       definitionId := compiledArtifact.plan.initialState.definitionId
       kind := .state
-      canonicalBehavior := "switch.state.off/v1"
+      behaviorVersion := "switch.state.off/v1"
     }]
     appliedLimit := evidenceLimit
     evidenceDefinitionIds := [id "switch.evidence.history.1"]

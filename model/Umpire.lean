@@ -1,5 +1,5 @@
 import Umpire.Core
-import Umpire.Target
+import Umpire.Model
 import Umpire.Property
 import Umpire.Behavior
 import Umpire.Query

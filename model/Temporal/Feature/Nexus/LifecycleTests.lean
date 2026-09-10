@@ -1,6 +1,6 @@
 import Temporal.Feature.Nexus.Lifecycle
 import Temporal.Feature.Nexus.Lifecycle.SemanticsTests
-import Temporal.Feature.Nexus.Lifecycle.TargetTests
+import Temporal.Feature.Nexus.Lifecycle.ModelTests
 
 namespace Temporal.Feature.Nexus.LifecycleTests
 
@@ -18,6 +18,6 @@ open Temporal.Feature.Nexus.Lifecycle
   List RoleBinding → ModelValue → Prop)
 #check (Temporal.Feature.Nexus.Lifecycle.authoritativeStep : ModelValue → ModelValue →
   Step ModelValue ModelValue ModelValue → Prop)
-#check (Temporal.Feature.Nexus.Lifecycle.target : QueryTarget LawStatement)
+#check (Temporal.Feature.Nexus.Lifecycle.target : QueryModel LawStatement)
 
 end Temporal.Feature.Nexus.LifecycleTests

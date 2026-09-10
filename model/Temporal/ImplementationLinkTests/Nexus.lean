@@ -27,33 +27,33 @@ theorem checked_link_retains_migrated_target_identity_and_fingerprints :
     checked.sourceTarget.behaviorFingerprint =
       Temporal.System.Nexus.target.behaviorFingerprint ∧
     checked.sourceTarget.behaviorFingerprint.render =
-      "sha256:dc03735bdbd093c181a5bfcbcb1dfae083b47278caa3394bbc14666487b3736d" ∧
+      "sha256:9a131c48af0f15669b5f414754389046129da313f07774abbab76eaab25372b4" ∧
     checked.destinationTarget.id = Temporal.Feature.Nexus.Lifecycle.target.id ∧
     checked.destinationTarget.source = Temporal.Feature.Nexus.Lifecycle.target.source ∧
     checked.destinationTarget.behaviorFingerprint =
       Temporal.Feature.Nexus.Lifecycle.target.behaviorFingerprint ∧
     checked.destinationTarget.behaviorFingerprint.render =
-      "sha256:8a55f0d5c46e705fe3f06ca9a16381104380f55be83b633c2208f433a5eba58c" := by
+      "sha256:bf81a3382115f48aa4f04d2668b9c587a47b95f50dbad00abb10b2d2ad806dc6" := by
   native_decide
 
 theorem migrated_targets_keep_their_named_authority_seams :
-    Temporal.System.Nexus.target.kernel.authoritativeInitial
+    Temporal.System.Nexus.target.machine.authoritativeInitial
       Temporal.System.Nexus.queuedSetup Temporal.System.Nexus.queuedState ∧
-    Temporal.System.Nexus.target.kernel.authoritativeStep
+    Temporal.System.Nexus.target.machine.authoritativeStep
       Temporal.System.Nexus.queuedState Temporal.System.Nexus.dispatchAction
       Temporal.System.Nexus.dispatchedResult ∧
-    Temporal.Feature.Nexus.Lifecycle.target.kernel.authoritativeInitial
+    Temporal.Feature.Nexus.Lifecycle.target.machine.authoritativeInitial
       Temporal.Feature.Nexus.Lifecycle.scheduledSetup
       Temporal.Feature.Nexus.Lifecycle.scheduledState ∧
-    Temporal.Feature.Nexus.Lifecycle.target.kernel.authoritativeStep
+    Temporal.Feature.Nexus.Lifecycle.target.machine.authoritativeStep
       Temporal.Feature.Nexus.Lifecycle.scheduledState
       Temporal.Feature.Nexus.Lifecycle.startAction
       Temporal.Feature.Nexus.Lifecycle.startedResult ∧
-    Temporal.Feature.Nexus.Lifecycle.target.kernel.authoritativeStep
+    Temporal.Feature.Nexus.Lifecycle.target.machine.authoritativeStep
       Temporal.Feature.Nexus.Lifecycle.startedState
       Temporal.Feature.Nexus.Lifecycle.cancelAction
       Temporal.Feature.Nexus.Lifecycle.canceledResult ∧
-    Temporal.Feature.Nexus.Lifecycle.target.kernel.authoritativeStep
+    Temporal.Feature.Nexus.Lifecycle.target.machine.authoritativeStep
       Temporal.Feature.Nexus.Lifecycle.startedState
       Temporal.Feature.Nexus.Lifecycle.reportSuccessAction
       Temporal.Feature.Nexus.Lifecycle.succeededResult := by
@@ -64,14 +64,14 @@ theorem migrated_targets_keep_their_named_authority_seams :
     Temporal.Feature.Nexus.Lifecycle.target_started_cancel_authoritative,
     Temporal.Feature.Nexus.Lifecycle.target_started_reportSuccess_authoritative⟩
 
-example : Temporal.Feature.Nexus.Lifecycle.target.kernel.authoritativeInitial
+example : Temporal.Feature.Nexus.Lifecycle.target.machine.authoritativeInitial
     Temporal.Feature.Nexus.Lifecycle.scheduledSetup
     Temporal.Feature.Nexus.Lifecycle.scheduledState := by
   simpa [witness] using witness.initialForward Temporal.System.Nexus.queuedSetup
     Temporal.System.Nexus.queuedState
     Temporal.System.Nexus.target_queued_initial_authoritative
 
-example : Temporal.Feature.Nexus.Lifecycle.target.kernel.authoritativeStep
+example : Temporal.Feature.Nexus.Lifecycle.target.machine.authoritativeStep
     Temporal.Feature.Nexus.Lifecycle.startedState
     Temporal.Feature.Nexus.Lifecycle.cancelAction
     Temporal.Feature.Nexus.Lifecycle.canceledResult := by
@@ -454,9 +454,9 @@ def missingCoordinateResult : FeaturePropertyResult := evaluateFeatureProperty
   Temporal.Feature.Nexus.Operations.AsyncStart.property
   missingCoordinateObservation
 
-private def driftMeaning (meaning : MeaningProvision) : MeaningProvision :=
+private def driftMeaning (meaning : Meaning) : Meaning :=
   if meaning.definitionId == Temporal.System.Nexus.operationStateId then
-    { meaning with canonicalBehavior := "temporal-system-nexus-lifecycle-state/drift" }
+    { meaning with behaviorVersion := "temporal-system-nexus-lifecycle-state/drift" }
   else
     meaning
 

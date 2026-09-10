@@ -62,13 +62,13 @@ example : PlannerPolicy.seeded 0 = {
   } := by
   rfl
 
-def reorderedTargetDefinition : TargetDefinition
+def reorderedModelSpec : ModelSpec (fun _ => True)
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
-  targetDefinition with definitions := targetDefinition.definitions.reverse
+  modelSpec with definitions := modelSpec.definitions.reverse
 }
 
-def reorderedTarget : QueryTarget (fun _ => True) :=
-  checkedTarget (AuthoredTarget.make reorderedTargetDefinition targetComposition)
+def reorderedTarget : QueryModel (fun _ => True) :=
+  model (DraftModel.make reorderedModelSpec modelProviders)
 
 def incidentalContext : QueryCheckContext (fun _ => True) := .ofTarget reorderedTarget
 
@@ -82,18 +82,18 @@ example : canonicalOf context (declaration (.witness checkedProperty)) =
     canonicalOf incidentalContext incidentalDeclaration := by
   native_decide
 
-def noSetupTargetDefinition : TargetDefinition
+def noSetupModelSpec : ModelSpec (fun _ => True)
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
-  targetDefinition with resolvedSetups := []
+  modelSpec with resolvedSetups := []
 }
 
-def noSetupTargetAuthoring : AuthoredTarget (fun _ => True)
+def noSetupTargetAuthoring : DraftModel (fun _ => True)
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue :=
-  AuthoredTarget.make noSetupTargetDefinition targetComposition
+  DraftModel.make noSetupModelSpec modelProviders
     (.available kernel rfl finitePlanning)
 
 def noSetupContext : QueryCheckContext (fun _ => True) :=
-  .ofTarget (checkedTarget noSetupTargetAuthoring)
+  .ofTarget (model noSetupTargetAuthoring)
 
 /-- Query fingerprints bind the exact finite role assignments Planning will enumerate. -/
 example : fingerprintOf context (declaration (.witness checkedProperty)) !=
@@ -115,39 +115,39 @@ def definitionsWithCanonicalBehavior
     (definitionId : DefinitionId)
     (digest : String) : List DefinitionMetadata :=
   targetDefinitions.map fun definition =>
-    if definition.id == definitionId then { definition with canonicalBehavior := digest }
+    if definition.id == definitionId then { definition with behaviorVersion := digest }
     else definition
 
-def changedSemanticTargetDefinition : TargetDefinition
+def changedSemanticModelSpec : ModelSpec (fun _ => True)
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
-  targetDefinition with definitions := definitionsWithCanonicalBehavior targetId "query-target/v2"
+  modelSpec with definitions := definitionsWithCanonicalBehavior targetId "query-target/v2"
 }
 
-def changedSemanticTarget : QueryTarget (fun _ => True) :=
-  checkedTarget (AuthoredTarget.make changedSemanticTargetDefinition targetComposition)
+def changedSemanticTarget : QueryModel (fun _ => True) :=
+  model (DraftModel.make changedSemanticModelSpec modelProviders)
 
-def changedCompositionTargetDefinition : TargetDefinition
+def changedCompositionModelSpec : ModelSpec (fun _ => True)
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
-  targetDefinition with requiredCapabilities := [extraCapabilityId]
+  modelSpec with requiredCapabilities := [extraCapabilityId]
 }
 
-def changedCompositionTarget : QueryTarget (fun _ => True) :=
-  checkedTarget (AuthoredTarget.make changedCompositionTargetDefinition targetComposition)
+def changedCompositionTarget : QueryModel (fun _ => True) :=
+  model (DraftModel.make changedCompositionModelSpec modelProviders)
 
 def changedKernel : Machine
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := kernel
 
-def changedKernelTargetDefinition : TargetDefinition
+def changedKernelModelSpec : ModelSpec (fun _ => True)
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
-  targetDefinition with
+  modelSpec with
   definitions := definitionsWithCanonicalBehavior kernelId "query-kernel/v2"
-  kernel := .checked changedKernel
+  machine := .checked changedKernel
 }
 
-def changedKernelTarget : QueryTarget (fun _ => True) :=
-  checkedTarget (AuthoredTarget.make changedKernelTargetDefinition targetComposition)
+def changedKernelTarget : QueryModel (fun _ => True) :=
+  model (DraftModel.make changedKernelModelSpec modelProviders)
 
-def contextFor (candidate : QueryTarget (fun _ => True)) : QueryCheckContext (fun _ => True) := {
+def contextFor (candidate : QueryModel (fun _ => True)) : QueryCheckContext (fun _ => True) := {
   target := .checked { target := candidate, completeness := none }
 }
 

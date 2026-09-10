@@ -105,11 +105,6 @@ def validateEvidence {Id Value : Type} [BEq Id] (kind : Value → Nat)
     if disposition != 3 && !(event.fields.any fun value => value.id == id) then
       throw (.unauthorizedField id)
 
-inductive Progress (Step : Type) where
-  | pending (unused : Unit)
-  | stutter
-  | emitted (steps : List Step)
-
 /-- Table membership is the only authority this generic interpreter can establish. -/
 structure Step (plan : Plan Id State Action Result) where
   operation : String
