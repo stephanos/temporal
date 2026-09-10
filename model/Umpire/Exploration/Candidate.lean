@@ -131,7 +131,7 @@ end CandidateUniverse.Internal
 /-- Compile one checked Space through the caller's exact kernel into its canonical finite universe. -/
 def buildCandidateUniverse
     (request : CheckedExplorationRequest LawStatement)
-    (kernel : IncrementalPlannerKernel request.space.baseQuery.target) :
+    (kernel : SearchView request.space.baseQuery.target) :
     Except ExplorationError CandidateUniverse :=
   CandidateUniverse.Internal.fromCompilationResult request
     (compileBatch request.space kernel)

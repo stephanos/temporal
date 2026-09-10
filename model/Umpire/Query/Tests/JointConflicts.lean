@@ -1,11 +1,11 @@
-import Umpire.Planning.Tests.CaseAnalysis
+import Umpire.Search.Tests.CaseAnalysis
 
 /-! Bounded joint-Property conflict analysis over checked Query inputs. -/
 
 namespace Umpire.QueryTests.JointConflicts
 
 open Umpire
-open Umpire.PlanningTests
+open Umpire.SearchTests
 
 private def capability : DefinitionId := id "planner.capability.joint-analysis"
 
@@ -86,7 +86,7 @@ private def jointQuery
     (budget : Nat := 8)
     (selectedBehavior : CheckedScenario := behavior) : CheckedQuery (fun _ => True) :=
   let form := QueryForm.select properties
-  { PlanningTests.checkedQuery 0 form .exhaustive budget 17 true selectedBehavior with
+  { SearchTests.checkedQuery 0 form .exhaustive budget 17 true selectedBehavior with
     form
     quantifier := form.quantifier
     claim := form.claim
@@ -95,11 +95,11 @@ private def jointQuery
 private def analyze?
     (declarations : List Property)
     (budget : Nat := 8)
-    (selectedBehavior : CheckedScenario := behavior) : Option CaseAnalysisResult := do
+    (selectedBehavior : CheckedScenario := behavior) : Option BranchAnalysisResult := do
   let properties ← checkedProperties? declarations
   let query := jointQuery properties budget selectedBehavior
-  let kernel ← (IncrementalPlannerKernel.ofCheckedQuery query.target.id query).toOption
-  pure (analyzeCases query kernel)
+  let kernel ← (SearchView.ofCheckedQuery query.target.id query).toOption
+  pure (analyzeBranches query kernel)
 
 private def textSet (values : List String) : PropertyAtomConstraint :=
   .oneOf (values.map PropertyLiteral.text)
@@ -131,14 +131,14 @@ private def textSet (values : List String) : PropertyAtomConstraint :=
       (result.joint.status.name,
         result.joint.logicalConflicts.head?.map fun conflict =>
           (conflict.field, conflict.reference, conflict.constraints.length,
-            conflict.expectations.map JointExpectationEvidence.clauseId))) ==
+            conflict.expectations.map OverlapExpectationEvidence.clauseId))) ==
   some ("logical-conflict", some (
     PropertyPredicateField.resultingState,
     phase,
     3,
-    [PlanningTests.id "planner.property.joint.three-way.clause-0",
-      PlanningTests.id "planner.property.joint.three-way.clause-1",
-      PlanningTests.id "planner.property.joint.three-way.clause-2"]))
+    [SearchTests.id "planner.property.joint.three-way.clause-0",
+      SearchTests.id "planner.property.joint.three-way.clause-1",
+      SearchTests.id "planner.property.joint.three-way.clause-2"]))
 
 /-! Set-valued fact projections can satisfy distinct equalities and are not scalar contradictions. -/
 #guard (analyze? [declaration "set-valued-facts" [

@@ -1,4 +1,5 @@
-import Umpire.Planning
+import Umpire.Search
+import Umpire.Search.Branches
 import Umpire.Shared
 
 namespace Umpire.Examples.Switch
@@ -583,8 +584,8 @@ theorem stepResults_length_le_two (state action : ModelValue) :
       · simp [stepResults, selectedOff, selectedOn]
   · simp [stepResults, selectedAction]
 
-private def incrementalKernel? : Option (IncrementalPlannerKernel exactActionQuery.target) :=
-  IncrementalPlannerKernel.ofCheckedQuery? exactActionQuery
+private def incrementalKernel? : Option (SearchView exactActionQuery.target) :=
+  SearchView.ofCheckedQuery? exactActionQuery
     (by
       intro evidence evidenceEq
       simp [exactActionQuery, checkedQuery, CheckedQueryModel.ofTarget, target,
@@ -622,23 +623,23 @@ private def incrementalKernel? : Option (IncrementalPlannerKernel exactActionQue
 private theorem incrementalKernel?_isSome : incrementalKernel?.isSome = true := by
   rfl
 
-def incrementalKernel : IncrementalPlannerKernel target :=
+def incrementalKernel : SearchView target :=
   incrementalKernel?.get incrementalKernel?_isSome
 
 theorem exploratoryQuery_target : exploratoryQuery.target = target := by rfl
 theorem exactActionQuery_target : exactActionQuery.target = target := by rfl
 theorem exactTraceQuery_target : exactTraceQuery.target = target := by rfl
 
-def exploratoryRun : Except KnownGapError PlannerRun :=
+def exploratoryRun : Except KnownGapError PlanResult :=
   plan exploratoryQuery incrementalKernel
 
-def exactActionRunResult : Except KnownGapError PlannerRun :=
+def exactActionRunResult : Except KnownGapError PlanResult :=
   plan exactActionQuery incrementalKernel
 
-def exactTraceRun : Except KnownGapError PlannerRun :=
+def exactTraceRun : Except KnownGapError PlanResult :=
   plan exactTraceQuery incrementalKernel
 
-def artifact : Option ExperimentSpec := exactActionRunResult.toOption.bind PlannerRun.artifact
+def artifact : Option ExperimentSpec := exactActionRunResult.toOption.bind PlanResult.artifact
 
 private theorem artifact_isSome : artifact.isSome = true := by
   native_decide
@@ -651,7 +652,7 @@ private theorem exactActionRunResult_isSome : exactActionRunResult.toOption.isSo
       contradiction
   | ok run => rfl
 
-def exactActionRun : PlannerRun :=
+def exactActionRun : PlanResult :=
   exactActionRunResult.toOption.get exactActionRunResult_isSome
 
 def compiledArtifact : ExperimentSpec := artifact.get artifact_isSome

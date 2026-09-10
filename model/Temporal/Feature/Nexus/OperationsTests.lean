@@ -1,7 +1,7 @@
 import Temporal.Feature.Nexus.Operations
 import Temporal.Feature.Nexus.Operations.AsyncStartTests
 import Temporal.Feature.Nexus.Operations.CancellationTests
-import Temporal.Feature.Nexus.Operations.PlanningTests
+import Temporal.Feature.Nexus.Operations.SearchTests
 import Temporal.Feature.Nexus.Operations.SuccessfulCompletionTests
 
 namespace Temporal.Feature.Nexus.OperationsTests

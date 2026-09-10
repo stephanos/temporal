@@ -2,7 +2,7 @@ import Umpire.Property.Evaluate
 import Umpire.Property.Scoped
 import Umpire.Scenario.Check
 import Umpire.Query.Language
-import Umpire.Planning.CaseAnalysis
+import Umpire.Search.Branches
 
 /-! Semantic consumers retain their checked types without exposing Target elaboration. -/
 

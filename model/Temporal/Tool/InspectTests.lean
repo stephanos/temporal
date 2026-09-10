@@ -99,11 +99,11 @@ example : repeatedSwitchOutput = List.replicate 2 expectedSwitchStdout := by
 
 def operationScenarios : List (String × Option ExperimentSpec) := [
   (Temporal.Feature.Nexus.Operations.AsyncStart.query.id.value,
-    Temporal.Feature.Nexus.Operations.AsyncStart.run.toOption.bind PlannerRun.artifact),
+    Temporal.Feature.Nexus.Operations.AsyncStart.run.toOption.bind PlanResult.artifact),
   (Temporal.Feature.Nexus.Operations.Cancellation.query.id.value,
-    Temporal.Feature.Nexus.Operations.Cancellation.run.toOption.bind PlannerRun.artifact),
+    Temporal.Feature.Nexus.Operations.Cancellation.run.toOption.bind PlanResult.artifact),
   (Temporal.Feature.Nexus.Operations.SuccessfulCompletion.query.id.value,
-    Temporal.Feature.Nexus.Operations.SuccessfulCompletion.run.toOption.bind PlannerRun.artifact)
+    Temporal.Feature.Nexus.Operations.SuccessfulCompletion.run.toOption.bind PlanResult.artifact)
 ]
 
 /-! Every ordinary Nexus Artifact producer is available through the authoritative inspector. -/

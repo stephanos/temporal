@@ -197,8 +197,8 @@ private def prepareCheckedQuery
       have checkedTargetEq : checked.baseQuery.target = target :=
         (congrArg (fun candidate => candidate.target) <|
           checkExperimentSpace_baseQuery checkedResultEq).trans queryTargetEq
-      let checkedKernel : IncrementalPlannerKernel checked.baseQuery.target :=
-        Eq.mpr (congrArg IncrementalPlannerKernel checkedTargetEq) incrementalKernel
+      let checkedKernel : SearchView checked.baseQuery.target :=
+        Eq.mpr (congrArg SearchView checkedTargetEq) incrementalKernel
       let specs ← (compileBatch checked checkedKernel).mapError
         VariationSpacePreparationError.compilation
       pure { checked, metadata, specs }

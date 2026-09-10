@@ -1,20 +1,21 @@
-import Umpire.Planning
+import Umpire.Search
+import Umpire.Search.Branches
 
-/-! Visibility regression for the `Umpire.Planning` public facade. -/
+/-! Visibility regression for the `Umpire.Search` public facade. -/
 
 namespace Umpire.PlanningVisibilityTests
 
-#check IncrementalPlannerKernel.ofCheckedQuery?
-#check IncrementalPlannerKernel.ofCheckedQuery
-#check FinitePlannerAdmissionError
+#check SearchView.ofCheckedQuery?
+#check SearchView.ofCheckedQuery
+#check FiniteSearchAdmissionError
 #check FinitePlannerAdmissionErrorKind
 #check traverseBoundedCandidates
-#check analyzeCases
-#check CaseAnalysisResult
-#check JointCompatibilityStatus
-#check JointConflictEvidence
-#check JointModelIncompatibility
-#check JointUnsupportedFormulaClass
+#check analyzeBranches
+#check BranchAnalysisResult
+#check OverlapStatus
+#check OverlapConflictEvidence
+#check OverlapModelIncompatibility
+#check OverlapUnsupportedFormulaClass
 #check composePlanningKnownGaps
 #check artifactOfSelection
 #check plan

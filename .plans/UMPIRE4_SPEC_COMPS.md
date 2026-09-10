@@ -256,7 +256,7 @@ property. Implementation Link relates meanings but cannot silently select a prov
 | Module | Responsibility | Status and direction |
 | --- | --- | --- |
 | `Umpire.Query` | Combine a checked target, properties, behavior, quantifier, Limits, completeness evidence, and policy. | Present and deep. Remains the first semantic composition point. |
-| `Umpire.Planning` | Deterministic bounded selection or verification over a checked query and finite kernel. | Present and deep. Keep planning outcomes explicit. |
+| `Umpire.Search` | Deterministic bounded selection or verification over a checked query and finite kernel. | Present and deep. Keep planning outcomes explicit. |
 | `Umpire.Exploration` | Checked finite-universe selection through exhaustive or one uncovered-coordinate policy, pinned precedence, and process-local one-candidate sequencing. | Present for the retained bounded slice. Symmetry, persisted resume, adaptive corpora, and generalized coverage reporting remain deferred. |
 | `Umpire.Artifact` | Construct canonical `DrivePlan` and `ExperimentSpec` values from checked selections. | Present but partial. Deepen by controlling construction, anti-forgery, versioning, and canonical serialization. |
 

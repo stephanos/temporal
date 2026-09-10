@@ -1,6 +1,7 @@
 import Temporal.Feature.Nexus.Lifecycle.Model
 import Temporal.Shared
-import Umpire.Planning
+import Umpire.Search
+import Umpire.Search.Branches
 
 /-! Typed finite authoring of the focused Nexus lifecycle under an independent identity root. -/
 

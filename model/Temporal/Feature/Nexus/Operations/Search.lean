@@ -4,7 +4,7 @@ import Temporal.Feature.Nexus.Operations.Internal
 # Shared deterministic Nexus operation planning evidence
 
 Operation-specific modules derive their planner kernels directly from their checked Queries through
-`IncrementalPlannerKernel.ofCheckedQuery`. This module retains the established lower import seam and
+`SearchView.ofCheckedQuery`. This module retains the established lower import seam and
 shares the Lifecycle domain-completeness and canonical-order evidence used to prove admission.
 -/
 
@@ -48,13 +48,13 @@ theorem lifecycleIncrementalKernelResult_isSome
     (evidence : FiniteCompletenessEvidence LawStatement query.target)
     (queryCompleteness : query.completeness = some evidence)
     (evidenceActions : evidence.actions = actionDomain) :
-    (IncrementalPlannerKernel.ofCheckedQuery target.id query).toOption.isSome = true := by
+    (SearchView.ofCheckedQuery target.id query).toOption.isSome = true := by
   have targetBneSelf : (target.id != target.id) = false := by
     cases target.id with
     | mk value =>
       change (value != value) = false
       exact bne_self_eq_false value
-  apply IncrementalPlannerKernel.ofCheckedQuery_isSome target.id query evidence
+  apply SearchView.ofCheckedQuery_isSome target.id query evidence
   · simpa [queryModel] using targetBneSelf
   · exact queryCompleteness
   · rw [queryModel]

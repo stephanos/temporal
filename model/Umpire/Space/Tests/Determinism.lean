@@ -23,8 +23,8 @@ private theorem originalTargetEq :
   congrArg (fun query => query.target) <|
     checkExperimentSpace_baseQuery originalResultEq
 
-private def originalKernel : IncrementalPlannerKernel checked.baseQuery.target :=
-  Eq.mpr (congrArg IncrementalPlannerKernel originalTargetEq)
+private def originalKernel : SearchView checked.baseQuery.target :=
+  Eq.mpr (congrArg SearchView originalTargetEq)
     Umpire.Examples.Switch.incrementalKernel
 
 private def reorderedDeclaration : ExperimentSpaceDeclaration := {
@@ -49,8 +49,8 @@ private theorem reorderedTargetEq :
   congrArg (fun query => query.target) <|
     checkExperimentSpace_baseQuery reorderedResultEq
 
-private def reorderedKernel : IncrementalPlannerKernel reordered.baseQuery.target :=
-  Eq.mpr (congrArg IncrementalPlannerKernel reorderedTargetEq)
+private def reorderedKernel : SearchView reordered.baseQuery.target :=
+  Eq.mpr (congrArg SearchView reorderedTargetEq)
     Umpire.Examples.Switch.incrementalKernel
 
 private def compiledProjection

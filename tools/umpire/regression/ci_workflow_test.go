@@ -624,5 +624,5 @@ func TestMigrationLedgerAndGenericPromotionRemainClosed(t *testing.T) {
 	combined := string(promotion) + string(promotionTests)
 	require.NotContains(t, combined, "Caller"+"Closure")
 	require.NotContains(t, combined, "Temporal"+".System")
-	require.Contains(t, string(promotion), "import Umpire.Planning.Engine")
+	require.Contains(t, string(promotion), "import Umpire.Search")
 }

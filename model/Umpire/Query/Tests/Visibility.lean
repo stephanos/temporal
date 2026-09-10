@@ -24,10 +24,10 @@ open Umpire
 
 /-! Case analysis remains owned by Planning and does not create a Query-to-Planning cycle. -/
 /--
-error: Unknown identifier `Umpire.analyzeCases`
+error: Unknown identifier `Umpire.analyzeBranches`
 -/
 #guard_msgs (error, substring := true) in
-#check Umpire.analyzeCases
+#check Umpire.analyzeBranches
 
 /-! A backend completion signal cannot manufacture proof through the public Query surface. -/
 /--

@@ -12,7 +12,7 @@ language diagnostics.
 | Finite Target | `Umpire.ModelTests.FiniteMachine` compares old/new complete authored values, preserves all author proofs, and compiles missing-proof specimens. `Temporal.Feature.Nexus.LifecycleTests` compares the migrated Lifecycle to independent old-shape assembly and exact provider errors. |
 | Property, Behavior, Query, plan | `Temporal.Feature.Nexus.OperationsTests` preserves every ID, source, fingerprint, metadata field, selected trace, outcome, Limit, planner admission, and golden artifact byte. Its malformed clauses/references, missing capabilities, unsatisfiable Behavior, Target mismatch, invalid Limits, and omitted-proof specimens retain the owning boundary. |
 | Observation | `Umpire.ObservationTests.Compilation` covers the complete typed compile-error matrix and structural cost fixture. `Temporal.Feature.Nexus.ObservationTests` compares raw and helper-built profile/mapping/checked values exactly and exercises accepted, missing, ambiguous, conflicting, over-limit, profile, ordering, closure, and causal Evidence paths. |
-| Authored Known Gaps | `Umpire.Query.Tests.AuthoredKnownGaps` proves exact attachment through check, Space, Promotion, and record update. `Umpire.PlanningTests.Artifacts` proves exact union, overlap, conflict precedence, unchanged default bytes and selected plans. `Umpire.Case.CompilerTests` proves exact ordered conversion into generated Case provenance bytes. |
+| Authored Known Gaps | `Umpire.Query.Tests.AuthoredKnownGaps` proves exact attachment through check, Space, Promotion, and record update. `Umpire.SearchTests.Artifacts` proves exact union, overlap, conflict precedence, unchanged default bytes and selected plans. `Umpire.Case.CompilerTests` proves exact ordered conversion into generated Case provenance bytes. |
 | Public facade | `Temporal.Feature.NexusTests` follows Target → Property → Behavior → Query → plan → Observation, publishes a checked authored gap through a real selected artifact, evaluates empty Evidence fail-closed, and runs representative malformed ID/reference, missing proof, incomplete raw Target, invalid transition, and invalid Observation specimens. |
 
 No established production ID, source, metadata, fingerprint, provider choice, selected trace/plan,
@@ -35,7 +35,7 @@ was fully covered by fn-65 and is intentionally absent from the residual plan.
 
 The facade test prints the transitive axiom sets of the named load-bearing declarations
 `Lifecycle.targetAuthoring`, `AsyncStart.run`, `Observation.checkedPlan`, and its test-only
-`authoredRun`. `IncrementalPlannerKernel.ofCheckedQuery_isSome` remains separately printed by
+`authoredRun`. `SearchView.ofCheckedQuery_isSome` remains separately printed by
 `OperationsTests`; it uses only `propext`, `Classical.choice`, and `Quot.sound`. The established
 Lifecycle Model and checked Property/Behavior/Query/Observation values retain their historical
 native witnesses. Task 7 adds no production `native_decide`, `axiom`, `implemented_by`, `sorry`, or
@@ -47,8 +47,8 @@ The follow-up quality pass prints
 the established `propext`, `Classical.choice`, `Quot.sound`, Lifecycle step-result native witnesses,
 and checked Target native witness; it adds no native, compiler, custom axiom, or placeholder. The
 helper takes explicit Query Target equality, completeness evidence, and canonical Lifecycle action
-evidence, then applies the existing `IncrementalPlannerKernel.ofCheckedQuery_isSome` theorem. Each
-operation still calls `IncrementalPlannerKernel.ofCheckedQuery` directly.
+evidence, then applies the existing `SearchView.ofCheckedQuery_isSome` theorem. Each
+operation still calls `SearchView.ofCheckedQuery` directly.
 
 ## Structural cost audit
 
@@ -76,7 +76,7 @@ runtime behavior, so the already-green full regression and model-build gates wer
 | Command | Terminal result | Captured output |
 | --- | --- | --- |
 | Focused spec Quick command | Exit 0; 130 jobs | `/tmp/fn62-task7-baseline.log` |
-| `lake build Temporal.Feature.NexusTests Umpire.Query.Tests Umpire.Planning.Tests Temporal.Feature.Nexus.ObservationTests Temporal.Feature.Nexus.OperationsTests` | Exit 0; 86 jobs | `/tmp/fn62-task7-focused-final.log` |
+| `lake build Temporal.Feature.NexusTests Umpire.Query.Tests Umpire.Search.Tests Temporal.Feature.Nexus.ObservationTests Temporal.Feature.Nexus.OperationsTests` | Exit 0; 86 jobs | `/tmp/fn62-task7-focused-final.log` |
 | `(cd model && mise exec -- lake build UmpireTests TemporalModelTests TemporalExperimentalTests)` | Exit 0; 254 jobs | `/tmp/fn62-task7-final-aggregate.log` |
 | `make umpire-build-model` | Exit 0; 329 jobs | `/tmp/fn62-task7-final-umpire-build-model.log` |
 | `TMPDIR=/private/tmp/fn62-task7-regression.a6A6VH make umpire-check-regression` | Exit 0; tagged Go packages, exact inherited live identities, and 324-job Lean build passed | `/tmp/fn62-task7-final-regression.log` |
@@ -88,7 +88,7 @@ Follow-up quality verification:
 | Command | Terminal result | Captured output |
 | --- | --- | --- |
 | `lake build Umpire.ModelTests Temporal.Feature.Nexus.OperationsTests Temporal.Feature.NexusTests` | Exit 0; 80 jobs; includes named transitive trust output | `/tmp/fn62-task7-quality-focused.log` |
-| `lake build Temporal.Feature.Nexus.Operations.Planning Temporal.Feature.NexusTests` | Exit 0; 59 jobs after the theorem documentation addition | `/tmp/fn62-task7-quality-doc-focused.log` |
+| `lake build Temporal.Feature.Nexus.Operations.Search Temporal.Feature.NexusTests` | Exit 0; 59 jobs after the theorem documentation addition | `/tmp/fn62-task7-quality-doc-focused.log` |
 | `make lint-model` | Exit 0; 260 targets and complete import graph | `/tmp/fn62-task7-quality-lint-model-rc.log` and `/tmp/fn62-task7-quality-lint-model.rc` |
 | `make lint-code GOLANGCI_LINT_FIX=false` | Inherited exit 2; exactly 1,316 sorted diagnostic headers, byte-identical to the prior task-7 signature, SHA-256 `aee7770bec1fe01dab8826427cc89e9ffa7e764fbac25ce6b68bf5f2e3c0b077` | `/tmp/fn62-task7-quality-lint-code.log` and `/tmp/fn62-task7-quality-diagnostic-headers.txt` |
 

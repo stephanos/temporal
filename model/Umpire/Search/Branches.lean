@@ -1,4 +1,4 @@
-import Umpire.Planning.Engine
+import Umpire.Search
 
 /-!
 # Finite guarded-case coverage
@@ -17,7 +17,7 @@ structure AnalyzedProperty where
   deriving BEq, DecidableEq, Repr
 
 /-- The exact checked Query inputs bounded by one case analysis. -/
-structure CaseAnalysisScope where
+structure BranchScope where
   queryId : DefinitionId
   queryFingerprint : BehaviorFingerprint
   targetId : DefinitionId
@@ -30,14 +30,14 @@ structure CaseAnalysisScope where
   exercise : QueryExercisePolicy := .allowVacuous
   deriving BEq, DecidableEq, Repr
 
-inductive CaseAnalysisStatus where
+inductive BranchStatus where
   | exhaustive
   | limitReached
   | unsatisfiable
   | invalid (error : QueryError)
   deriving BEq, DecidableEq, Repr
 
-inductive JointCompatibilityStatus where
+inductive OverlapStatus where
   | compatibleWithinLimits
   | logicalConflict
   | modelIncompatible
@@ -49,7 +49,7 @@ inductive JointCompatibilityStatus where
   | invalid (error : QueryError)
   deriving BEq, DecidableEq, Repr
 
-def JointCompatibilityStatus.name : JointCompatibilityStatus → String
+def OverlapStatus.name : OverlapStatus → String
   | .compatibleWithinLimits => "compatible-within-limits"
   | .logicalConflict => "logical-conflict"
   | .modelIncompatible => "model-incompatible"
@@ -62,7 +62,7 @@ def JointCompatibilityStatus.name : JointCompatibilityStatus → String
 
 /-- Exact reachable trigger scope shared by jointly applicable obligations. The prefix ends before
 the triggering transition; each temporal expectation separately retains its own coordinate. -/
-structure JointTriggerScope where
+structure OverlapTriggerScope where
   modeledPrefix : Scenario.Trace
   transitionPosition : Nat
   occurrence : JointTriggerOccurrence
@@ -72,7 +72,7 @@ structure JointTriggerScope where
   deriving BEq, DecidableEq, Repr
 
 /-- One source-linked expectation selected at a common trigger. -/
-structure JointExpectationEvidence where
+structure OverlapExpectationEvidence where
   propertyId : DefinitionId
   parentId : DefinitionId
   caseId : Option DefinitionId
@@ -86,63 +86,63 @@ structure JointExpectationEvidence where
   deriving BEq, DecidableEq, Repr
 
 /-- A finite logical contradiction over one typed field/reference intersection. -/
-structure JointConflictEvidence where
-  trigger : JointTriggerScope
+structure OverlapConflictEvidence where
+  trigger : OverlapTriggerScope
   field : PropertyPredicateField
   reference : DefinitionId
   constraints : List PropertyAtomConstraint
-  expectations : List JointExpectationEvidence
+  expectations : List OverlapExpectationEvidence
   deriving BEq, DecidableEq, Repr
 
 /-- Exhaustive bounded evidence that the selected conjunction has modeled continuations but none
 satisfies it. This is Target-relative evidence, not a logical contradiction. -/
-structure JointModelIncompatibility where
-  trigger : JointTriggerScope
-  expectations : List JointExpectationEvidence
+structure OverlapModelIncompatibility where
+  trigger : OverlapTriggerScope
+  expectations : List OverlapExpectationEvidence
   admittedContinuations : List Scenario.Trace
   deriving BEq, DecidableEq, Repr
 
-inductive JointUnsupportedFormulaClass where
+inductive OverlapUnsupportedFormulaClass where
   | disjunction
   | negation
   | propertyClause
   deriving BEq, DecidableEq, Ord, Repr
 
-def JointUnsupportedFormulaClass.name : JointUnsupportedFormulaClass → String
+def OverlapUnsupportedFormulaClass.name : OverlapUnsupportedFormulaClass → String
   | .disjunction => "any"
   | .negation => "not"
   | .propertyClause => "unsupported-clause"
 
-structure UnsupportedJointFormula where
+structure UnsupportedOverlapFormula where
   propertyId : DefinitionId
   clauseId : DefinitionId
   source : SourceLocation
-  formulaClass : JointUnsupportedFormulaClass
+  formulaClass : OverlapUnsupportedFormulaClass
   formula : Option PropertyPredicate
   deriving BEq, DecidableEq, Repr
 
-structure JointTriggerAnalysis where
-  trigger : JointTriggerScope
-  expectations : List JointExpectationEvidence
+structure OverlapTriggerAnalysis where
+  trigger : OverlapTriggerScope
+  expectations : List OverlapExpectationEvidence
   admittedContinuations : List Scenario.Trace
   satisfyingContinuations : List Scenario.Trace
   deriving BEq, DecidableEq, Repr
 
-structure JointCompatibilityResult where
-  status : JointCompatibilityStatus
-  triggers : List JointTriggerAnalysis
-  logicalConflicts : List JointConflictEvidence
-  modelIncompatibilities : List JointModelIncompatibility
-  unsupported : List UnsupportedJointFormula
+structure OverlapResult where
+  status : OverlapStatus
+  triggers : List OverlapTriggerAnalysis
+  logicalConflicts : List OverlapConflictEvidence
+  modelIncompatibilities : List OverlapModelIncompatibility
+  unsupported : List UnsupportedOverlapFormula
   deriving BEq, DecidableEq, Repr
 
-def CaseAnalysisStatus.name : CaseAnalysisStatus → String
+def BranchStatus.name : BranchStatus → String
   | .exhaustive => "exhaustive"
   | .limitReached => "limit-reached"
   | .unsatisfiable => "unsatisfiable"
   | .invalid _ => "invalid"
 
-inductive CaseFindingKind where
+inductive BranchFindingKind where
   | caseExcluded
   | missingReplacement
   | uncoveredCompleteGroup
@@ -151,13 +151,13 @@ inductive CaseFindingKind where
   deriving BEq, DecidableEq, Ord, Repr
 
 /-- One admitted trace and its exact evaluator-owned same-step applicability. -/
-structure CaseObservation extends CaseGroupApplicability where
+structure BranchObservation extends BranchApplicability where
   trace : Scenario.Trace
   deriving BEq, DecidableEq, Repr
 
 /-- A reachable failure or exclusion with source, identity, trigger, and effective-guard evidence. -/
-structure CaseFinding where
-  kind : CaseFindingKind
+structure BranchFinding where
+  kind : BranchFindingKind
   propertyId : DefinitionId
   parentId : DefinitionId
   parentSource : SourceLocation
@@ -173,7 +173,7 @@ structure CaseFinding where
   deriving BEq, DecidableEq, Repr
 
 /-- Exercise status for one declared completeness/exclusivity obligation. -/
-structure CaseRequirement where
+structure BranchRequirement where
   propertyId : DefinitionId
   parentId : DefinitionId
   source : SourceLocation
@@ -186,26 +186,26 @@ structure CaseRequirement where
   deriving BEq, DecidableEq, Repr
 
 /-- Ordinary Property truth remains separate from coverage and exclusivity obligations. -/
-structure CasePropertyEvaluation where
+structure BranchPropertyEvaluation where
   trace : Scenario.Trace
   evaluation : PropertyEvaluation
   endpointAnswer : PropertyEndpointAnswer := .satisfied
   deriving BEq, DecidableEq, Repr
 
-structure CaseAnalysisResult where
-  scope : CaseAnalysisScope
-  status : CaseAnalysisStatus
-  findings : List CaseFinding
-  requirements : List CaseRequirement
-  observations : List CaseObservation
-  propertyEvaluations : List CasePropertyEvaluation
-  joint : JointCompatibilityResult
+structure BranchAnalysisResult where
+  scope : BranchScope
+  status : BranchStatus
+  findings : List BranchFinding
+  requirements : List BranchRequirement
+  observations : List BranchObservation
+  propertyEvaluations : List BranchPropertyEvaluation
+  joint : OverlapResult
   metadata : PlanningMetadata
-  instrumentation : PlannerInstrumentation
+  instrumentation : SearchStats
   deriving BEq, DecidableEq, Repr
 
 /-- The result is already normalized by stable Property, group, case, and finding identities. -/
-def CaseAnalysisResult.canonicalView (result : CaseAnalysisResult) : CaseAnalysisResult := result
+def BranchAnalysisResult.canonicalView (result : BranchAnalysisResult) : BranchAnalysisResult := result
 
 private def propertyLe (left right : CheckedProperty) : Bool :=
   decide (left.id.value ≤ right.id.value)
@@ -213,27 +213,27 @@ private def propertyLe (left right : CheckedProperty) : Bool :=
 private def caseLe (left right : CaseApplicability) : Bool :=
   decide (left.caseId.value ≤ right.caseId.value)
 
-private def observationKey (observation : CaseObservation) : String :=
+private def observationKey (observation : BranchObservation) : String :=
   observation.propertyId.value ++ "\u001f" ++ observation.parentId.value ++ "\u001f" ++
     toString observation.transitionPosition ++ "\u001f" ++ reprStr observation.trace
 
-private def observationLe (left right : CaseObservation) : Bool :=
+private def observationLe (left right : BranchObservation) : Bool :=
   decide (observationKey left ≤ observationKey right)
 
-private def findingKindIndex : CaseFindingKind → Nat
+private def findingKindIndex : BranchFindingKind → Nat
   | .caseExcluded => 0
   | .missingReplacement => 1
   | .uncoveredCompleteGroup => 2
   | .overlappingExclusiveCases => 3
   | .parentExcluded => 4
 
-private def findingKey (finding : CaseFinding) : String :=
+private def findingKey (finding : BranchFinding) : String :=
   finding.propertyId.value ++ "\u001f" ++ finding.parentId.value ++ "\u001f" ++
     toString finding.transitionPosition ++ "\u001f" ++ toString (findingKindIndex finding.kind) ++
     "\u001f" ++ String.intercalate "\u001e" (finding.caseIds.map DefinitionId.value) ++
     "\u001f" ++ reprStr finding.trace
 
-private def findingLe (left right : CaseFinding) : Bool :=
+private def findingLe (left right : BranchFinding) : Bool :=
   decide (findingKey left ≤ findingKey right)
 
 private def clauseKey (clause : PropertyClauseIdentity) : String :=
@@ -256,8 +256,8 @@ private def queryEvaluationError
 }
 
 private structure AnalysisState where
-  observations : List CaseObservation := []
-  propertyEvaluations : List CasePropertyEvaluation := []
+  observations : List BranchObservation := []
+  propertyEvaluations : List BranchPropertyEvaluation := []
   jointObservations : List (Scenario.Trace × JointObligationObservation) := []
   admittedTraces : List Scenario.Trace := []
   unresolvedPrefixes : Bool := false
@@ -280,7 +280,7 @@ private def observeProperty
     observations := state.observations ++ observations
     propertyEvaluations := state.propertyEvaluations ++ [{ trace, evaluation, endpointAnswer := endpoint.answer }]
     jointObservations := state.jointObservations ++
-      (analyzeJointObligations property input).map fun observation => (trace, observation)
+      (analyzeOverlapObligations property input).map fun observation => (trace, observation)
     admittedTraces := state.admittedTraces
     unresolvedPrefixes := state.unresolvedPrefixes || endpoint.answer == .unresolved
   }
@@ -296,9 +296,9 @@ private def observeCandidate
   pure (.continue { next with admittedTraces := next.admittedTraces ++ [trace] })
 
 private def findingBase
-    (kind : CaseFindingKind)
-    (observation : CaseObservation)
-    (cases : List CaseApplicability) : CaseFinding := {
+    (kind : BranchFindingKind)
+    (observation : BranchObservation)
+    (cases : List CaseApplicability) : BranchFinding := {
   kind
   propertyId := observation.propertyId
   parentId := observation.parentId
@@ -316,7 +316,7 @@ private def findingBase
     cases.flatMap CaseApplicability.exceptions
 }
 
-private def findingsAt (observation : CaseObservation) : List CaseFinding :=
+private def findingsAt (observation : BranchObservation) : List BranchFinding :=
   let applicable := observation.cases.filter CaseApplicability.applies
   let excluded := observation.cases.filter CaseApplicability.excluded
   let caseExclusions := excluded.map fun item => findingBase .caseExcluded observation [item]
@@ -342,7 +342,7 @@ private def findingsAt (observation : CaseObservation) : List CaseFinding :=
 private def requirementOf
     (property : CheckedProperty)
     (group : CheckedPropertyBranches)
-    (observations : List CaseObservation) : CaseRequirement :=
+    (observations : List BranchObservation) : BranchRequirement :=
   let matching := observations.filter fun observation =>
     observation.propertyId == property.id && observation.parentId == group.id
   let cases := matching.flatMap fun observation => observation.cases
@@ -362,13 +362,13 @@ private def requirementOf
 
 private def requirementsOf
     (properties : List CheckedProperty)
-    (observations : List CaseObservation) : List CaseRequirement :=
+    (observations : List BranchObservation) : List BranchRequirement :=
   properties.flatMap fun property => property.clauses.filterMap fun clause => match clause with
     | .branches group => some (requirementOf property group observations)
     | _ => none
 
 private def statusOf
-    (traversed : BoundedTraversalResult AnalysisState) : CaseAnalysisStatus :=
+    (traversed : BoundedTraversalResult AnalysisState) : BranchStatus :=
   match traversed.termination with
   | .complete false => .unsatisfiable
   | .complete true => if traversed.metadata.completeness.established then
@@ -379,7 +379,7 @@ private def statusOf
   | .invalid error => .invalid error
 
 private def expectationOf
-    (observation : JointObligationObservation) : JointExpectationEvidence := {
+    (observation : JointObligationObservation) : OverlapExpectationEvidence := {
   propertyId := observation.propertyId
   parentId := observation.parentId
   caseId := observation.caseId
@@ -392,13 +392,13 @@ private def expectationOf
   formula := observation.formula
 }
 
-private def expectationKey (expectation : JointExpectationEvidence) : String :=
+private def expectationKey (expectation : OverlapExpectationEvidence) : String :=
   expectation.propertyId.value ++ "\u001f" ++ expectation.parentId.value ++ "\u001f" ++
     (expectation.caseId.map DefinitionId.value).getD "" ++ "\u001f" ++
     expectation.clauseId.value ++ "\u001f" ++ toString expectation.transitionPosition ++
     "\u001f" ++ toString expectation.triggerCoordinate ++ "\u001f" ++ reprStr expectation.formula
 
-private def expectationLe (left right : JointExpectationEvidence) : Bool :=
+private def expectationLe (left right : OverlapExpectationEvidence) : Bool :=
   decide (expectationKey left ≤ expectationKey right)
 
 private def traceLe (left right : Scenario.Trace) : Bool :=
@@ -414,7 +414,7 @@ private def prefixAt (trace : Scenario.Trace) (transitionPosition : Nat) : Scena
 private def triggerScopeOf
     (limits : QueryLimits)
     (trace : Scenario.Trace)
-    (observation : JointObligationObservation) : JointTriggerScope := {
+    (observation : JointObligationObservation) : OverlapTriggerScope := {
   modeledPrefix := prefixAt trace observation.transitionPosition
   transitionPosition := observation.transitionPosition
   occurrence := observation.triggerOccurrence
@@ -423,16 +423,16 @@ private def triggerScopeOf
   limits
 }
 
-private def triggerKey (trigger : JointTriggerScope) : String :=
+private def triggerKey (trigger : OverlapTriggerScope) : String :=
   toString trigger.transitionPosition ++ "\u001f" ++ reprStr trigger.modeledPrefix ++ "\u001f" ++
     reprStr trigger.occurrence ++ "\u001f" ++ reprStr trigger.priorState ++ "\u001f" ++
     reprStr trigger.selectedAction
 
-private def triggerLe (left right : JointTriggerScope) : Bool :=
+private def triggerLe (left right : OverlapTriggerScope) : Bool :=
   decide (triggerKey left ≤ triggerKey right)
 
 private def observationAt
-    (trigger : JointTriggerScope)
+    (trigger : OverlapTriggerScope)
     (item : Scenario.Trace × JointObligationObservation) : Bool :=
   let (trace, observation) := item
   observation.transitionPosition == trigger.transitionPosition &&
@@ -442,8 +442,8 @@ private def observationAt
     prefixAt trace observation.transitionPosition == trigger.modeledPrefix
 
 private def traceContinuesTrigger
-    (trigger : JointTriggerScope)
-    (expectations : List JointExpectationEvidence)
+    (trigger : OverlapTriggerScope)
+    (expectations : List OverlapExpectationEvidence)
     (observations : List (Scenario.Trace × JointObligationObservation))
     (trace : Scenario.Trace) : Bool :=
   expectations.all fun expectation => observations.any fun item =>
@@ -467,18 +467,18 @@ private def constraintIntersection
     | values, none => values
     | some left, some right => some (intersectValues left right)) none
 
-private def atomsOfPredicate : PropertyPredicate → Except JointUnsupportedFormulaClass (List PropertyAtom)
+private def atomsOfPredicate : PropertyPredicate → Except OverlapUnsupportedFormulaClass (List PropertyAtom)
   | .atom atom => if atom.fieldComparison.isSome then throw .propertyClause else pure [atom]
   | .all items => items.flatMapM atomsOfPredicate
   | .any _ => throw .disjunction
   | .not _ => throw .negation
 
 private structure ExpectationAtom where
-  expectation : JointExpectationEvidence
+  expectation : OverlapExpectationEvidence
   atom : PropertyAtom
 
 private def sameStepAtoms
-    (expectations : List JointExpectationEvidence) : List ExpectationAtom :=
+    (expectations : List OverlapExpectationEvidence) : List ExpectationAtom :=
   expectations.flatMap fun expectation => match expectation.formula with
     | .sameStep predicate => match atomsOfPredicate predicate.expression with
         | .ok atoms => atoms.map fun atom => { expectation, atom }
@@ -493,8 +493,8 @@ private def scalarExpectationField : PropertyPredicateField → Bool
   | .priorState | .selectedAction | .expectationFact => false
 
 private def logicalConflictsAt
-    (trigger : JointTriggerScope)
-    (expectations : List JointExpectationEvidence) : List JointConflictEvidence :=
+    (trigger : OverlapTriggerScope)
+    (expectations : List OverlapExpectationEvidence) : List OverlapConflictEvidence :=
   let atoms := (sameStepAtoms expectations).filter fun item =>
     scalarExpectationField item.atom.field
   let domains := atoms.map (atomDomainKey ·.atom) |>.mergeSort (fun left right => decide (left ≤ right))
@@ -513,14 +513,14 @@ private def logicalConflictsAt
     | _ => none
 
 private def unsupportedPredicateClasses
-    (predicate : PropertyPredicate) : List JointUnsupportedFormulaClass :=
+    (predicate : PropertyPredicate) : List OverlapUnsupportedFormulaClass :=
   match predicate with
   | .atom atom => if atom.fieldComparison.isSome then [.propertyClause] else []
   | .all items => items.flatMap unsupportedPredicateClasses
   | .any items => .disjunction :: items.flatMap unsupportedPredicateClasses
   | .not item => .negation :: unsupportedPredicateClasses item
 
-private def unsupportedOfProperty (property : CheckedProperty) : List UnsupportedJointFormula :=
+private def unsupportedOfProperty (property : CheckedProperty) : List UnsupportedOverlapFormula :=
   property.clauses.flatMap fun clause => match clause with
   | .branches group => group.cases.flatMap fun item =>
       item.clauses.flatMap fun sameStep =>
@@ -540,36 +540,36 @@ private def unsupportedOfProperty (property : CheckedProperty) : List Unsupporte
       formula := none
     }]
 
-private def unsupportedKey (unsupported : UnsupportedJointFormula) : String :=
+private def unsupportedKey (unsupported : UnsupportedOverlapFormula) : String :=
   unsupported.propertyId.value ++ "\u001f" ++ unsupported.clauseId.value ++ "\u001f" ++
     unsupported.formulaClass.name
 
-private def unsupportedLe (left right : UnsupportedJointFormula) : Bool :=
+private def unsupportedLe (left right : UnsupportedOverlapFormula) : Bool :=
   decide (unsupportedKey left ≤ unsupportedKey right)
 
 private def expectationsAt
-    (trigger : JointTriggerScope)
+    (trigger : OverlapTriggerScope)
     (observations : List (Scenario.Trace × JointObligationObservation)) :
-    List JointExpectationEvidence :=
+    List OverlapExpectationEvidence :=
   ((observations.filter (observationAt trigger)).map (expectationOf ·.2)).mergeSort expectationLe
     |>.eraseDups
 
 private def continuationSatisfies
-    (trigger : JointTriggerScope)
-    (expectations : List JointExpectationEvidence)
+    (trigger : OverlapTriggerScope)
+    (expectations : List OverlapExpectationEvidence)
     (observations : List (Scenario.Trace × JointObligationObservation))
     (trace : Scenario.Trace) : Bool :=
   expectations.all fun expectation => observations.any fun item =>
     item.1 == trace && observationAt trigger item &&
       expectationOf item.2 == expectation && item.2.satisfied
 
-private def selectedAtTrigger (expectations : List JointExpectationEvidence) : Bool :=
+private def selectedAtTrigger (expectations : List OverlapExpectationEvidence) : Bool :=
   expectations.length > 1
 
 private def jointResult
     (query : CheckedQuery LawStatement)
     (properties : List CheckedProperty)
-    (traversed : BoundedTraversalResult AnalysisState) : JointCompatibilityResult :=
+    (traversed : BoundedTraversalResult AnalysisState) : OverlapResult :=
   let observations := traversed.state.jointObservations
   let unsupported := (properties.flatMap unsupportedOfProperty).mergeSort unsupportedLe |>.eraseDups
   let scopes := (observations.map fun item => triggerScopeOf query.limits item.1 item.2)
@@ -587,7 +587,7 @@ private def jointResult
         expectations := expectations
         admittedContinuations := continuations
         satisfyingContinuations := satisfying
-      } : JointTriggerAnalysis)
+      } : OverlapTriggerAnalysis)
     else
       none
   let logicalConflicts := triggers.flatMap fun trigger =>
@@ -607,7 +607,7 @@ private def jointResult
     else
       []
   let status := match traversed.termination with
-    | .invalid error => JointCompatibilityStatus.invalid error
+    | .invalid error => OverlapStatus.invalid error
     | .limitReached | .stopped _ _ => .limitReached
     | .complete false => if query.behavior.isUnsatisfiable then .unsatisfiable else .deadEnd
     | .complete true =>
@@ -620,9 +620,9 @@ private def jointResult
   { status, triggers, logicalConflicts, modelIncompatibilities, unsupported }
 
 /-- Analyze guarded cases over exactly one checked Query and its admitted finite planner kernel. -/
-def analyzeCases
+def analyzeBranches
     (query : CheckedQuery LawStatement)
-    (kernel : IncrementalPlannerKernel query.target) : CaseAnalysisResult :=
+    (kernel : SearchView query.target) : BranchAnalysisResult :=
   let properties := query.form.properties.mergeSort propertyLe
   let traversed := traverseBoundedCandidates query kernel {} (observeCandidate query properties)
   let observations := traversed.state.observations.mergeSort observationLe

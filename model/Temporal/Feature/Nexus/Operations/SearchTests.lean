@@ -222,7 +222,7 @@ theorem incrementalKernelRetainsFiniteLifecycleDomain : incrementalKernel.action
 
 private def plannerAdmissionErrorKind
     {model : QueryModel LawStatement}
-    (result : Except FinitePlannerAdmissionError (IncrementalPlannerKernel model)) :
+    (result : Except FiniteSearchAdmissionError (SearchView model)) :
     Option FinitePlannerAdmissionErrorKind :=
   match result with
   | .ok _ => none
@@ -233,12 +233,12 @@ theorem checkedQueryPlannerAdmissionsPreserveFailures :
     Cancellation.incrementalKernelResult.isOk = true ∧
     SuccessfulCompletion.incrementalKernelResult.isOk = true ∧
     plannerAdmissionErrorKind
-        (IncrementalPlannerKernel.ofCheckedQuery
+        (SearchView.ofCheckedQuery
           (Internal.id "temporal.nexus.basic-lifecycle.target.other") AsyncStart.query) =
       some .targetMismatch ∧
     let incomplete := { AsyncStart.query with completeness := none }
     plannerAdmissionErrorKind
-        (IncrementalPlannerKernel.ofCheckedQuery incomplete.target.id incomplete) =
+        (SearchView.ofCheckedQuery incomplete.target.id incomplete) =
       some .missingFiniteCompleteness := by
   native_decide
 
@@ -285,7 +285,7 @@ theorem compatibilityConsumersRetainMigrationBoundary : compatibilityConsumers =
   ] := by
   rfl
 
-#print axioms IncrementalPlannerKernel.ofCheckedQuery_isSome
+#print axioms SearchView.ofCheckedQuery_isSome
 #print axioms AsyncStart.property
 #print axioms AsyncStart.behavior
 #print axioms AsyncStart.query

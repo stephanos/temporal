@@ -1,8 +1,8 @@
-import Umpire.Planning.Tests.Fixtures
+import Umpire.Search.Tests.Fixtures
 
 /-! Inspectability, optional occurrences, byte stability, and semantic identity checks. -/
 
-namespace Umpire.PlanningTests
+namespace Umpire.SearchTests
 
 open Umpire
 
@@ -11,10 +11,10 @@ open Umpire
 #check (artifactOfSelection : CheckedQuery (fun _ => True) → Scenario.Trace → SelectionReason →
   ExploredCounts → Except KnownGapError ExperimentSpec)
 #check (plan : (query : CheckedQuery (fun _ => True)) →
-  IncrementalPlannerKernel query.target → Except KnownGapError PlannerRun)
+  SearchView query.target → Except KnownGapError PlanResult)
 #check (planWithArtifactIntent : (query : CheckedQuery (fun _ => True)) →
-  IncrementalPlannerKernel query.target → ArtifactIntent →
-    Except PlanningRequestError PlannerRun)
+  SearchView query.target → ArtifactIntent →
+    Except PlanningRequestError PlanResult)
 
 private def authoredPlanningGap : KnownGap := {
   kind := .capability
@@ -80,13 +80,13 @@ example :
   native_decide
 
 def witnessSpec (seed : Nat := 17) : Option ExperimentSpec :=
-  (run 2 (.witness property) .shortest 10 seed false).toOption.bind PlannerRun.artifact
+  (run 2 (.witness property) .shortest 10 seed false).toOption.bind PlanResult.artifact
 
-private def authoredWitnessRun : Except KnownGapError PlannerRun :=
+private def authoredWitnessRun : Except KnownGapError PlanResult :=
   plan (queryWithKnownGaps authoredPlanningGaps) (incrementalKernel 2)
 
 private def authoredWitnessSpec : Option ExperimentSpec :=
-  authoredWitnessRun.toOption.bind PlannerRun.artifact
+  authoredWitnessRun.toOption.bind PlanResult.artifact
 
 def incidentalWitnessSpec : Option ExperimentSpec :=
   let query := checkedQuery 2 (.witness property) .shortest 10 17 false
@@ -96,7 +96,7 @@ def incidentalWitnessSpec : Option ExperimentSpec :=
     behavior := { query.behavior with documentation := "changed behavior documentation" }
     form := .witness { property with documentation := "changed property documentation" }
   }
-  (plan incidental (incrementalKernel 2)).toOption.bind PlannerRun.artifact
+  (plan incidental (incrementalKernel 2)).toOption.bind PlanResult.artifact
 
 def selectedArtifactIsInspectable : Bool :=
   match witnessSpec with
@@ -124,8 +124,8 @@ example : selectedArtifactIsInspectable := by
 example :
     let ordinary := witnessSpec
     let authored := authoredWitnessSpec
-    authoredWitnessRun.toOption.map PlannerRun.result =
-        (run 2 (.witness property) .shortest).toOption.map PlannerRun.result ∧
+    authoredWitnessRun.toOption.map PlanResult.result =
+        (run 2 (.witness property) .shortest).toOption.map PlanResult.result ∧
       authored.map (fun spec => spec.plan.knownGaps.toList) =
         some (authoredPlanningGap :: canonicalPlannerKnownGaps.toList) ∧
       authored.map (fun spec => spec.artifactChecksum) !=
@@ -386,4 +386,4 @@ example :
       include_str "Fixtures/NaturalAboveUint64.json" := by
   native_decide
 
-end Umpire.PlanningTests
+end Umpire.SearchTests

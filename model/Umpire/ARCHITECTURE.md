@@ -30,7 +30,7 @@ Focused public imports are available by responsibility:
 | `Umpire.Exploration` | Bounded finite selection, pinned precedence, and process-local sessions. |
 | `Umpire.Observation` | Offline evidence mappings and accepted semantic traces. |
 | `Umpire.ImplementationLink` | Checked correspondence between independent semantic Models. |
-| `Umpire.Planning` | Deterministic incremental planning over checked Queries. |
+| `Umpire.Search` | Deterministic incremental planning over checked Queries. |
 | `Umpire.Promotion` | Exact review-only source compilation from an unchanged planned Query. |
 | `Umpire.Artifact` | Retained model-planning and offline-analysis artifact codecs. |
 | `Umpire.Json` | Ordered JSON construction for codec owners. |

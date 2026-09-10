@@ -21,7 +21,7 @@ Read and build these files in order:
 
 The authoring sequence is `FiniteTable.validate` / `checkModel`, then `Property.check`,
 `Scenario.check`, and `QuerySpec.check`, followed by planning with
-`IncrementalPlannerKernel.ofCheckedQuery`. Raw declarations remain available for negative tests.
+`SearchView.ofCheckedQuery`. Raw declarations remain available for negative tests.
 A checked value exists only on the successful checker branch; the frontend alternatives do not
 create kernel-checked constants automatically.
 

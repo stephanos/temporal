@@ -96,13 +96,13 @@ Nexus, or promotion behavior.
 -/
 def explore
     (request : ExplorationRequest LawStatement)
-    (kernel : IncrementalPlannerKernel request.space.baseQuery.target) :
+    (kernel : SearchView request.space.baseQuery.target) :
     Except ExplorationError ExplorationResult :=
   match checkedEq : checkExplorationRequest request with
   | .error error => .error error
   | .ok checked =>
-      let checkedKernel : IncrementalPlannerKernel checked.space.baseQuery.target :=
-        Eq.mpr (congrArg (fun space => IncrementalPlannerKernel space.baseQuery.target)
+      let checkedKernel : SearchView checked.space.baseQuery.target :=
+        Eq.mpr (congrArg (fun space => SearchView space.baseQuery.target)
           (checkExplorationRequest_space checkedEq)) kernel
       match buildCandidateUniverse checked checkedKernel with
       | .error error => .error error

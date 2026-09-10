@@ -11,8 +11,8 @@ import Umpire.Scenario.Tests
 import Umpire.Property.ImportTests
 import Umpire.Scenario.ImportTests
 import Umpire.Query.Tests
-import Umpire.Planning.Tests
-import Umpire.Planning.VisibilityTests
+import Umpire.Search.Tests
+import Umpire.Search.VisibilityTests
 import Umpire.PromotionTests
 import Umpire.Artifact.Tests.Codecs
 import Umpire.Artifact.Tests.Runtime
@@ -20,7 +20,6 @@ import Umpire.Artifact.Tests.Evidence
 import Umpire.Artifact.Tests.Result
 import Umpire.Artifact.Tests.Goldens
 import Umpire.Artifact.Tests.Set
-import Umpire.ExecutionHandoffTests
 import Umpire.Tests.MigrationCompatibility
 import Umpire.Observation.Tests
 import Umpire.Observation.Tests.Mutations

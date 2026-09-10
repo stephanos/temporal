@@ -1,6 +1,6 @@
 import Umpire.Space.Compiler
 import Umpire.Space.Tests.Fixtures
-import Umpire.Planning.Tests.Fixtures
+import Umpire.Search.Tests.Fixtures
 
 /-! Exact assignment lowering and atomic checked-Space compilation. -/
 
@@ -83,17 +83,17 @@ private theorem checkedTargetEq :
   exact congrArg (fun query => query.target)
     (checkExperimentSpace_baseQuery checkedResultEq)
 
-private def baseKernel : IncrementalPlannerKernel checked.baseQuery.target :=
-  Eq.mpr (congrArg IncrementalPlannerKernel checkedTargetEq)
+private def baseKernel : SearchView checked.baseQuery.target :=
+  Eq.mpr (congrArg SearchView checkedTargetEq)
     Umpire.Examples.Switch.incrementalKernel
 
 private def conflictingBaseKernel :
-    IncrementalPlannerKernel checkedWithConflictingGaps.baseQuery.target :=
-  Eq.mpr (congrArg IncrementalPlannerKernel (congrArg (fun query => query.target)
+    SearchView checkedWithConflictingGaps.baseQuery.target :=
+  Eq.mpr (congrArg SearchView (congrArg (fun query => query.target)
     (checkExperimentSpace_baseQuery checkedWithConflictingGapsResultEq))) baseKernel
 
-private def transportedKernel : IncrementalPlannerKernel lowered.query.target :=
-  Eq.mpr (congrArg IncrementalPlannerKernel lowered.targetEq)
+private def transportedKernel : SearchView lowered.query.target :=
+  Eq.mpr (congrArg SearchView lowered.targetEq)
     baseKernel
 
 private def transportedRun :=
@@ -149,7 +149,7 @@ example : [lowered.query.id, lowered.query.behavior.id].map (fun collision =>
   native_decide
 
 /-! The target-equality proof transports the one caller-owned kernel into ordinary planning. -/
-example : (transportedRun.toOption.bind PlannerRun.artifact).isSome = true := by
+example : (transportedRun.toOption.bind PlanResult.artifact).isSome = true := by
   native_decide
 
 /-! The complete two-by-two product compiles atomically in canonical assignment order. -/
@@ -212,8 +212,8 @@ example :
     first.map SpaceCompilationError.pointId = second.map SpaceCompilationError.pointId := by
   native_decide
 
-private def verifiedPlannerRun : Except KnownGapError PlannerRun :=
-  Umpire.PlanningTests.run 2 (.verify Umpire.PlanningTests.property) .exhaustive
+private def verifiedPlannerRun : Except KnownGapError PlanResult :=
+  Umpire.SearchTests.run 2 (.verify Umpire.SearchTests.property) .exhaustive
 
 private def verifiedPointRejection :=
   verifiedPlannerRun.toOption.map fun run =>
@@ -230,24 +230,24 @@ example :
     some (none, some (.verifiedWithoutArtifact, lowered.id)) := by
   native_decide
 
-private def exhaustedPlannerRun : Except KnownGapError PlannerRun :=
-  Umpire.PlanningTests.run 64 (.counterexample Umpire.PlanningTests.property)
+private def exhaustedPlannerRun : Except KnownGapError PlanResult :=
+  Umpire.SearchTests.run 64 (.counterexample Umpire.SearchTests.property)
     .shortest 1 17 false
 
-private def absentPlannerRun : Except KnownGapError PlannerRun :=
-  Umpire.PlanningTests.run 0 (.counterexample Umpire.PlanningTests.property) .exhaustive
+private def absentPlannerRun : Except KnownGapError PlanResult :=
+  Umpire.SearchTests.run 0 (.counterexample Umpire.SearchTests.property) .exhaustive
 
 private def staticallyUnsatisfiableBehavior : CheckedScenario := {
-  Umpire.PlanningTests.behavior with
+  Umpire.SearchTests.behavior with
   spaceStatus := .unsatisfiable
   behaviorFingerprint := behaviorFingerprintOf "space-compiler-test/unsatisfiable"
 }
 
-private def unsatisfiablePlannerRun : Except KnownGapError PlannerRun :=
-  Umpire.PlanningTests.run 0 (.verify Umpire.PlanningTests.property) .exhaustive
+private def unsatisfiablePlannerRun : Except KnownGapError PlanResult :=
+  Umpire.SearchTests.run 0 (.verify Umpire.SearchTests.property) .exhaustive
     10 17 true staticallyUnsatisfiableBehavior
 
-private def rejectedPlannerKind (result : Except KnownGapError PlannerRun) :
+private def rejectedPlannerKind (result : Except KnownGapError PlanResult) :
     Option (SpaceCompilationErrorKind × DefinitionId) :=
   match result with
   | .error _ => none
@@ -271,8 +271,8 @@ example : [
   ] := by
   native_decide
 
-private def foundPlannerRun : Except KnownGapError PlannerRun :=
-  Umpire.PlanningTests.run 2 (.witness Umpire.PlanningTests.property) .shortest
+private def foundPlannerRun : Except KnownGapError PlanResult :=
+  Umpire.SearchTests.run 2 (.witness Umpire.SearchTests.property) .shortest
 
 private def duplicateSpecRejection :=
   foundPlannerRun.toOption.bind fun run =>

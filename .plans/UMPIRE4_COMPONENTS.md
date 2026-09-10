@@ -220,7 +220,7 @@ These artifacts are the seams between components:
 | Result | Accepted, violated, unknown, conflict, or unsupported Run Evaluation outcomes | The v2 Lean model transport remains as historical implementation evidence. Its Go codecs, fixtures, and caller workflow are retired. |
 | Replay bundle | ExperimentSpec, ExperimentRun, evidence, result, Limits, and provenance | Campaign/replay artifacts exist in the Go Umpire baselines; they do not accept `umpire-experiment/v2`. |
 | Veil binding | Source-bound correspondence between an explicit canonical first-order view and family-authored Veil declarations | Umpire3 exports `umpire3/veil-binding/v1` with declaration mappings, source/view digests, backend revision, semantic relation, and trust data. The current model has no corresponding checker view or binding. |
-| Verification receipt | Checker target, Limits, trust mode, proof/counterexample, and provenance | Umpire3 has checker receipts and release evidence. The current `model/` produces `PlannerRun` results, not a verification receipt. |
+| Verification receipt | Checker target, Limits, trust mode, proof/counterexample, and provenance | Umpire3 has checker receipts and release evidence. The current `model/` produces `PlanResult` results, not a verification receipt. |
 
 The retained Go boundary is the strict `umpire-experiment/v2` reader used by generated regression
 views. The public multi-family admission, complete-set publication, command, and orphaned internal
@@ -338,7 +338,7 @@ bounded `ExperimentSpec`s without requiring Temporal.
 
 **Status: implemented for one selected Model Trace, one atomic bounded Space batch, and two exact
 portable caller-closure contracts.**
-`Umpire.Planning.plan` consumes a checked Query and proof-carrying incremental kernel, distinguishes
+`Umpire.Search.plan` consumes a checked Query and proof-carrying incremental kernel, distinguishes
 verified, selected, absent, budget-exhausted, unsatisfiable, and invalid outcomes, and may produce a
 canonical `umpire-experiment/v2`. `Umpire.Space.compileBatch` canonically lowers every point through
 that same target-indexed kernel and returns the complete batch or one typed error with no partial

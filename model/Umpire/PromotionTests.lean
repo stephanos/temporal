@@ -152,7 +152,7 @@ private def nonFoundQuery : CheckedQuery LawStatement := {
   behaviorFingerprint := behaviorFingerprintOf "switch-promotion-unsatisfiable-query/v1"
 }
 
-private def nonFoundRun : Except KnownGapError PlannerRun :=
+private def nonFoundRun : Except KnownGapError PlanResult :=
   plan nonFoundQuery incrementalKernel
 
 private def nonFoundAnchor : Option PromotionBaseAnchor := do

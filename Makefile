@@ -773,12 +773,12 @@ umpire-check-regression: umpire-check-lean-api umpire-check-goldens umpire-check
 			echo "Umpire Query facade does not expose its package" >&2; \
 			exit 1; \
 		}; \
-		test -f model/Umpire/Planning/Engine.lean || { \
-			echo "missing physical Umpire Planning package" >&2; \
+		test -f model/Umpire/Search/Branches.lean || { \
+			echo "missing physical Umpire Search package" >&2; \
 			exit 1; \
 		}; \
-		grep -qx 'import Umpire.Planning.Engine' model/Umpire/Planning.lean || { \
-			echo "Umpire Planning facade does not expose its package" >&2; \
+		grep -qx 'import Umpire.Search' model/Umpire/Search/Branches.lean || { \
+			echo "Umpire Search package does not build on its engine module" >&2; \
 			exit 1; \
 		}
 	@cd model && $(LEAN_LAKE) build Temporal UmpireTests TemporalModelTests TemporalExperimentalTests +Umpire.PromotionTests $(UMPIRE_REGRESSION_INSPECTOR) $(UMPIRE_TESTPILOT_RENDERER)

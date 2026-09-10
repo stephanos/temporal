@@ -333,7 +333,7 @@ def resultObservationKnownGapCarryCatalogRow : KnownGapCatalogDescriptor := {
 private def testKnownGapCatalogRow
     (ordinal slug source description : String) : KnownGapCatalogDescriptor := {
   id := "umpire.semantic-inventory.known-gap-source." ++ ordinal ++ "-test-" ++ slug
-  owner := "Umpire.PlanningTests.KnownGaps"
+  owner := "Umpire.SearchTests.KnownGaps"
   lineage := .authored
   scope := .testOnly
   shape := .exactKnownGap
@@ -352,7 +352,7 @@ def testKnownGapCatalog : List KnownGapCatalogDescriptor := [
     "Test-only interpretation Known Gap fixture.",
   {
     id := "umpire.semantic-inventory.known-gap-source.24-test-claim-reference"
-    owner := "Umpire.PlanningTests.KnownGaps"
+    owner := "Umpire.SearchTests.KnownGaps"
     lineage := .carried
     scope := .testOnly
     shape := .carriedCatalogEntry
@@ -422,7 +422,7 @@ private def catalogScopeIsValid (row : KnownGapCatalogDescriptor) : Bool :=
   let expected := if row.shape == .exactKnownGap &&
       testExactCatalogSources.contains row.source then .testOnly
     else if row.shape == .carriedCatalogEntry &&
-      row.owner == "Umpire.PlanningTests.KnownGaps" &&
+      row.owner == "Umpire.SearchTests.KnownGaps" &&
       row.source == plannerPromotionKnownGapSource.id.value then .testOnly
     else KnownGapScope.production
   row.scope == expected
@@ -448,7 +448,7 @@ private def catalogSourceIsValid
         requestRawKnownGapInputCatalogRow.id,
         observationKnownGapSource.id.value
       ].contains row.source) ||
-      (row.owner == "Umpire.PlanningTests.KnownGaps" &&
+      (row.owner == "Umpire.SearchTests.KnownGaps" &&
         row.source == plannerPromotionKnownGapSource.id.value)
 
 private def catalogMappingIsValid (row : KnownGapCatalogDescriptor) : Bool :=

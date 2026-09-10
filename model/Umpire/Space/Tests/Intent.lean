@@ -44,12 +44,12 @@ private theorem checkedIntentResult_isSome : checkedIntentResult.toOption.isSome
 private def checkedIntent : ArtifactIntent :=
   checkedIntentResult.toOption.get checkedIntentResult_isSome
 
-private def projectedRunResult : Except PlanningRequestError PlannerRun :=
+private def projectedRunResult : Except PlanningRequestError PlanResult :=
   planWithArtifactIntent Umpire.Examples.Switch.exactActionQuery
     Umpire.Examples.Switch.incrementalKernel checkedIntent
 
 private def projectedSpec : Option ExperimentSpec :=
-  projectedRunResult.toOption.bind PlannerRun.artifact
+  projectedRunResult.toOption.bind PlanResult.artifact
 
 private def intentErrorKindOf
     (result : Except ArtifactIntentError α) : Option ArtifactIntentErrorKind :=

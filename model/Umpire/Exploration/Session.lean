@@ -35,7 +35,7 @@ private def sessionCandidateOfExploratory
 /-- Check and select one Exploration request before opening its process-local candidate session. -/
 def beginSession
     (request : ExplorationRequest LawStatement)
-    (kernel : IncrementalPlannerKernel request.space.baseQuery.target) :
+    (kernel : SearchView request.space.baseQuery.target) :
     Except ExplorationError ExplorationSession := do
   let result ← explore request kernel
   pure {

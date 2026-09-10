@@ -1,5 +1,5 @@
 import Umpire.Model.Tests.Parameterized
-import Umpire.Planning.Tests.Fixtures
+import Umpire.Search.Tests.Fixtures
 
 /-! Parameterized finite completeness, bounded search, and exact checked Query replay. -/
 namespace Umpire.ParameterizedPlanningTests
@@ -8,17 +8,17 @@ open Umpire Operation Value ModelTests.Parameterized
 private def queryDeclaration (t : QueryModel (fun _ => True)) (budget : Nat)
     (exact : Option Scenario.Trace := none) : QueryDeclaration := {
   id := .of "example.query.call", source, target := t.id
-  form := .verify PlanningTests.property
+  form := .verify SearchTests.property
   limits := QueryLimits.bounded 1 1 budget
   policy := .exhaustive
-  behavior := { PlanningTests.behavior with
+  behavior := { SearchTests.behavior with
     roles := [], allowedActions := [actionId],
     requiredOccurrences := [], actionsExactly := none, traceExactly := exact }
 }
 private def run (budget : Nat) := do
   let t ← target .samplesOnly
   let q ← checkQuery (.ofTarget t) (queryDeclaration t budget) |>.mapError (fun _ => "query")
-  let k ← IncrementalPlannerKernel.ofCheckedQuery q.target.id q |>.mapError (fun _ => "planner")
+  let k ← SearchView.ofCheckedQuery q.target.id q |>.mapError (fun _ => "planner")
   plan q k |>.mapError (fun _ => "plan")
 #guard (run 1).toOption.map (fun r =>
   (r.result.outcome.name, r.result.metadata.completeness.established)) == some ("limit-reached", false)
