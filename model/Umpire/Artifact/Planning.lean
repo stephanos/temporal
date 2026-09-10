@@ -37,9 +37,9 @@ private def canonicalFaultIntents
   faults.mergeSort faultIntentLe
 
 private def artifactIntentError
-    (kind : ArtifactIntentErrorKind)
+    (kind : PlanRequestErrorKind)
     (definitionId : DefinitionId)
-    (relatedDefinitionIds : List DefinitionId := []) : ArtifactIntentError := {
+    (relatedDefinitionIds : List DefinitionId := []) : PlanRequestError := {
   kind
   definitionId
   relatedDefinitionIds := canonicalIds relatedDefinitionIds
@@ -98,7 +98,7 @@ def selectedVariantValues (intent : PlanRequest) : List ModelValue :=
 /-- Recheck that intent still belongs to the exact Query closure that will be planned. -/
 def validateFor
     (intent : PlanRequest)
-    (query : CheckedQuery LawStatement) : Except ArtifactIntentError Unit := do
+    (query : CheckedQuery LawStatement) : Except PlanRequestError Unit := do
   if !intentIdentityMatches query intent then
     throw (artifactIntentError .identityDrift intent.queryDefinitionId [query.id])
   for choice in intent.selectedChoices do
@@ -180,10 +180,10 @@ private def artifactMatchesQuery
     spec.plan.kernelBehaviorFingerprint == query.target.behaviorFingerprint
 
 /-- Canonically project checked intent onto an ordinary target-owned planner Artifact. -/
-def Plan.withArtifactIntent
+def Plan.withPlanRequest
     (spec : Plan)
     (query : CheckedQuery LawStatement)
-    (intent : PlanRequest) : Except ArtifactIntentError Plan := do
+    (intent : PlanRequest) : Except PlanRequestError Plan := do
   intent.validateFor query
   if !spec.plan.hasValidArtifactChecksum || !spec.hasValidArtifactChecksum then
     throw (artifactIntentError .identityDrift spec.plan.queryDefinitionId

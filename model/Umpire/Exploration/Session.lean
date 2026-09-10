@@ -23,7 +23,7 @@ structure CandidateCursor where
   deriving BEq, DecidableEq, Repr
 
 private def sessionCandidateOfPinned
-    (pinned : PinnedPlan) : CandidateCursorCandidate := {
+    (pinned : PinnedRegression) : CandidateCursorCandidate := {
   plan := pinned.plan
 }
 

@@ -26,7 +26,7 @@ private def selectedFault : RequestedFault := {
   capabilityDefinitionId := Umpire.Examples.Switch.switchCapabilityId
 }
 
-private def intentDeclaration : ArtifactIntentDeclaration := {
+private def intentDeclaration : PlanRequestDeclaration := {
   selectedChoices
   selectedVariants := [selectedVariant]
   requestedFaults := [selectedFault]
@@ -35,8 +35,8 @@ private def intentDeclaration : ArtifactIntentDeclaration := {
   ]
 }
 
-private def checkedIntentResult : Except ArtifactIntentError PlanRequest :=
-  checkArtifactIntent Umpire.Examples.Switch.exactActionQuery intentDeclaration
+private def checkedIntentResult : Except PlanRequestError PlanRequest :=
+  checkPlanRequest Umpire.Examples.Switch.exactActionQuery intentDeclaration
 
 private theorem checkedIntentResult_isSome : checkedIntentResult.toOption.isSome = true := by
   native_decide
@@ -52,7 +52,7 @@ private def projectedSpec : Option Plan :=
   projectedRunResult.toOption.bind PlanResult.artifact
 
 private def intentErrorKindOf
-    (result : Except ArtifactIntentError α) : Option ArtifactIntentErrorKind :=
+    (result : Except PlanRequestError α) : Option PlanRequestErrorKind :=
   match result with
   | .ok _ => none
   | .error error => some error.kind
@@ -140,7 +140,7 @@ private def targetSemanticMutations (spec : Plan) : List Plan := [
 
 /-! Projection never legitimizes stale-checksum mutations of target-owned trace semantics. -/
 example : (targetSemanticMutations Umpire.Examples.Switch.compiledArtifact).all fun mutated =>
-    intentErrorKindOf (mutated.withArtifactIntent Umpire.Examples.Switch.exactActionQuery
+    intentErrorKindOf (mutated.withPlanRequest Umpire.Examples.Switch.exactActionQuery
       checkedIntent) == some .identityDrift := by
   native_decide
 
@@ -149,7 +149,7 @@ private def withValidChecksums (spec : Plan) : Plan :=
   let spec := { spec with plan }
   { spec with artifactChecksum := spec.expectedArtifactChecksum }
 
-private def duplicateDeclarations : List ArtifactIntentDeclaration := [
+private def duplicateDeclarations : List PlanRequestDeclaration := [
   { intentDeclaration with selectedChoices := selectedChoices ++ [{
       definitionId := stateAxisId
       value := stateOffId.value
@@ -160,7 +160,7 @@ private def duplicateDeclarations : List ArtifactIntentDeclaration := [
 
 /-! Duplicate axis, role, and fault intent entries fail before planning. -/
 example : duplicateDeclarations.map (fun declaration =>
-    intentErrorKindOf (checkArtifactIntent Umpire.Examples.Switch.exactActionQuery declaration)) =
+    intentErrorKindOf (checkPlanRequest Umpire.Examples.Switch.exactActionQuery declaration)) =
     [some .duplicateEntry, some .duplicateEntry, some .duplicateEntry] := by
   native_decide
 
@@ -168,7 +168,7 @@ example : duplicateDeclarations.map (fun declaration =>
 example : [
     { selectedFault with occurrenceDefinitionId := id "switch.occurrence.stale" },
     { selectedFault with actionDefinitionId := id "switch.action.stale" }
-  ].map (fun fault => intentErrorKindOf <| checkArtifactIntent
+  ].map (fun fault => intentErrorKindOf <| checkPlanRequest
     Umpire.Examples.Switch.exactActionQuery { intentDeclaration with requestedFaults := [fault] }) =
     [some .missingOccurrence, some .occurrenceMismatch] := by
   native_decide
@@ -177,7 +177,7 @@ example : [
 example : [
     { selectedFault with capabilityDefinitionId := id "switch.capability.stale" },
     { selectedFault with capabilityDefinitionId := Umpire.Examples.Switch.flipActionId }
-  ].map (fun fault => intentErrorKindOf <| checkArtifactIntent
+  ].map (fun fault => intentErrorKindOf <| checkPlanRequest
     Umpire.Examples.Switch.exactActionQuery {
       intentDeclaration with requestedFaults := [fault]
     }) = [some .invalidCapability, some .invalidCapability] := by
@@ -185,12 +185,12 @@ example : [
 
 /-! A selected role variant must agree with the kernel-produced setup. -/
 example :
-    let mismatched : ArtifactIntentDeclaration := {
+    let mismatched : PlanRequestDeclaration := {
       intentDeclaration with selectedVariants := [{
         selectedVariant with value := Umpire.Examples.Switch.onState
       }]
     }
-    intentErrorKindOf (checkArtifactIntent Umpire.Examples.Switch.exactActionQuery mismatched) =
+    intentErrorKindOf (checkPlanRequest Umpire.Examples.Switch.exactActionQuery mismatched) =
       some .variantMismatch := by
   native_decide
 
@@ -209,7 +209,7 @@ example :
       ordinary with plan := { ordinary.plan with linearExtension := mismatchedOccurrence }
     }
     [missing, mismatched].map (fun spec =>
-      intentErrorKindOf (spec.withArtifactIntent Umpire.Examples.Switch.exactActionQuery
+      intentErrorKindOf (spec.withPlanRequest Umpire.Examples.Switch.exactActionQuery
         checkedIntent)) = [some .missingOccurrence, some .occurrenceMismatch] := by
   native_decide
 
@@ -231,7 +231,7 @@ example :
         definitionId := checkedIntent.queryDefinitionId
         relatedDefinitionIds := [drifted.id]
       }) &&
-      intentErrorKindOf (driftedArtifact.withArtifactIntent
+      intentErrorKindOf (driftedArtifact.withPlanRequest
         Umpire.Examples.Switch.exactActionQuery checkedIntent) = some .identityDrift := by
   native_decide
 
