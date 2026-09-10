@@ -19,7 +19,7 @@ private def run (budget : Nat) := do
   let t ← target .samplesOnly
   let q ← checkQuery (.ofTarget t) (queryDeclaration t budget) |>.mapError (fun _ => "query")
   let k ← SearchView.ofCheckedQuery q.target.id q |>.mapError (fun _ => "planner")
-  plan q k |>.mapError (fun _ => "plan")
+  search q k |>.mapError (fun _ => "plan")
 #guard (run 1).toOption.map (fun r =>
   (r.result.outcome.name, r.result.metadata.completeness.established)) == some ("limit-reached", false)
 #guard (run 100).toOption.map (fun r =>

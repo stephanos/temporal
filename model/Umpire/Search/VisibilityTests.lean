@@ -16,18 +16,18 @@ namespace Umpire.PlanningVisibilityTests
 #check OverlapConflictEvidence
 #check OverlapModelIncompatibility
 #check OverlapUnsupportedFormulaClass
-#check composePlanningKnownGaps
+#check composeSearchKnownGaps
 #check artifactOfSelection
-#check plan
+#check search
 
-/-! Importing Planning does not expose its private completion finalizer. -/
+/-! Importing Search does not expose its private completion finalizer. -/
 /--
 error: Unknown identifier `Umpire.finalizePlanning`
 -/
 #guard_msgs (error, substring := true) in
 #check Umpire.finalizePlanning
 
-/-! Importing Planning does not expose the private PlanningResult constructor. -/
+/-! Importing Search does not expose the private PlanningResult constructor. -/
 /--
 error: Unknown constant `Umpire.PlanningResult.mk`
 -/

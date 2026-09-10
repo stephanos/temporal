@@ -499,7 +499,7 @@ def check [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
   }
   let query ← querySpec.check target |>.mapError .invalidQuery
   let kernel ← SearchView.ofCheckedQuery target.id query |>.mapError .invalidPlanner
-  let run ← plan query kernel |>.mapError .invalidKnownGaps
+  let run ← search query kernel |>.mapError .invalidKnownGaps
   match form, run.result.outcome with
   | .selectWitness, .found witness .satisfyingWitness =>
       pure { target, vocabulary, property, behavior, query, kernel, run, witness := some witness }
