@@ -1,11 +1,11 @@
-import Umpire.Planning.Tests.Fixtures
+import Umpire.Search.Tests.Fixtures
 
 /-! Bounded guarded-case analysis over a generic finite Planning fixture. -/
 
-namespace Umpire.PlanningTests.CaseAnalysis
+namespace Umpire.SearchTests.CaseAnalysis
 
 open Umpire
-open Umpire.PlanningTests
+open Umpire.SearchTests
 
 private def analysisCapability : DefinitionId := id "planner.capability.analysis"
 private def absentCapability : DefinitionId := id "planner.capability.absent-input"
@@ -156,24 +156,24 @@ private def analysisQuery
 
 private def analyzed?
     (selectedGroup : PropertyBranches)
-    (budget : Nat := 8) : Option CaseAnalysisResult := do
+    (budget : Nat := 8) : Option BranchAnalysisResult := do
   let property ← Property.checked? selectedGroup
   let query := analysisQuery property budget
-  let kernel ← (IncrementalPlannerKernel.ofCheckedQuery query.target.id query).toOption
-  pure (analyzeCases query kernel)
+  let kernel ← (SearchView.ofCheckedQuery query.target.id query).toOption
+  pure (analyzeBranches query kernel)
 
-private def analyzedAbsentInput? : Option CaseAnalysisResult := do
+private def analyzedAbsentInput? : Option BranchAnalysisResult := do
   let declaration := {
     authoredProperty (group [absentInputCase] (guard := absentActionGuard)) with
     requires := [absentCapability]
   }
   let property ← (Property.check analysisContext (declaration)).toOption
   let query := analysisQuery property
-  let kernel ← (IncrementalPlannerKernel.ofCheckedQuery query.target.id query).toOption
-  pure (analyzeCases query kernel)
+  let kernel ← (SearchView.ofCheckedQuery query.target.id query).toOption
+  pure (analyzeBranches query kernel)
 
-private def findingKinds? (selectedGroup : PropertyBranches) : Option (List CaseFindingKind) :=
-  (analyzed? selectedGroup).map fun result => result.findings.map CaseFinding.kind
+private def findingKinds? (selectedGroup : PropertyBranches) : Option (List BranchFindingKind) :=
+  (analyzed? selectedGroup).map fun result => result.findings.map BranchFinding.kind
 
 /-! Complete/exclusive failures are source-linked obligations; temporal clauses remain in scope. -/
 #guard ((analyzed? (group [normalCase, overlappingCase])).map fun result =>
@@ -181,7 +181,7 @@ private def findingKinds? (selectedGroup : PropertyBranches) : Option (List Case
       result.scope.behaviorId,
       result.scope.properties.map AnalyzedProperty.id,
       result.status,
-      result.findings.map CaseFinding.kind,
+      result.findings.map BranchFinding.kind,
       result.observations.head?.map fun observation =>
         (observation.parentId,
           observation.cases.map CaseApplicability.caseId,
@@ -189,8 +189,8 @@ private def findingKinds? (selectedGroup : PropertyBranches) : Option (List Case
   some (targetId,
     behavior.id,
     [id "planner.property.analysis"],
-    CaseAnalysisStatus.exhaustive,
-    [CaseFindingKind.overlappingExclusiveCases],
+    BranchStatus.exhaustive,
+    [BranchFindingKind.overlappingExclusiveCases],
     some (id "planner.property.analysis.group",
       [id "planner.property.analysis.case.normal", id "planner.property.analysis.case.overlap"],
       some [
@@ -241,8 +241,8 @@ private def findingKinds? (selectedGroup : PropertyBranches) : Option (List Case
 #guard ((analyzed? (group [normalCase] (guard := completedGuard))).map fun result =>
     (result.status,
       result.findings.isEmpty,
-      result.requirements.head?.map CaseRequirement.parentExercised)) ==
-  some (CaseAnalysisStatus.exhaustive, true, some false)
+      result.requirements.head?.map BranchRequirement.parentExercised)) ==
+  some (BranchStatus.exhaustive, true, some false)
 
 /-! Exhausted analysis retains partial scope and witnesses but cannot claim exhaustive absence. -/
 #guard ((analyzed? (group [normalCase]) 1).map fun result =>
@@ -250,7 +250,7 @@ private def findingKinds? (selectedGroup : PropertyBranches) : Option (List Case
       result.scope.limits.search,
       result.metadata.completeness.established,
       result.observations.isEmpty)) ==
-  some (CaseAnalysisStatus.limitReached,
+  some (BranchStatus.limitReached,
     ({ value := 1, unit := .candidateEvaluations } : Limit), false, true)
 
 /-! A checked predicate input that the selected Target cannot supply rejects the analysis. -/
@@ -261,7 +261,7 @@ private def findingKinds? (selectedGroup : PropertyBranches) : Option (List Case
       result.observations.isEmpty)) == some ("invalid", false, true, true)
 
 /-! Case source order cannot choose a winner or change canonical analysis results. -/
-#guard (analyzed? (group [normalCase, overlappingCase])).map CaseAnalysisResult.canonicalView ==
-  (analyzed? (group [overlappingCase, normalCase])).map CaseAnalysisResult.canonicalView
+#guard (analyzed? (group [normalCase, overlappingCase])).map BranchAnalysisResult.canonicalView ==
+  (analyzed? (group [overlappingCase, normalCase])).map BranchAnalysisResult.canonicalView
 
-end Umpire.PlanningTests.CaseAnalysis
+end Umpire.SearchTests.CaseAnalysis

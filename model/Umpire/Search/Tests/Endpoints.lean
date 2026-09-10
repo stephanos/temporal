@@ -1,9 +1,9 @@
-import Umpire.Planning.Tests.Fixtures
+import Umpire.Search.Tests.Fixtures
 import Umpire.Model.Table
 
 /-! Endpoint interpretation and exact candidate-budget boundaries. -/
 
-namespace Umpire.PlanningTests
+namespace Umpire.SearchTests
 
 #guard (run 0 (.verify property) .exhaustive 2).toOption.map
   (fun run => run.result.outcome.name) == some "verified-within-limits"
@@ -23,7 +23,7 @@ private def temporalProperty (triggered responds : Bool) (bound : Nat := 1) : Ch
 
 private def endpointRun
     (endpoint : QueryEndpoint) (exercise : QueryExercisePolicy)
-    (form : QueryForm) (width : Nat := 0) (budget : Nat := 10) : Option PlannerRun :=
+    (form : QueryForm) (width : Nat := 0) (budget : Nat := 10) : Option PlanResult :=
   (plan { checkedQuery width form .exhaustive budget with endpoint, exercise }
     (incrementalKernel width)).toOption
 
@@ -99,13 +99,13 @@ private def terminalTarget (conditions : List (List ModelValue)) : Option (Query
 #guard (terminalTarget []).map (·.behaviorFingerprint) == some baseTarget.behaviorFingerprint
 #guard (terminalTarget [[completed]]).map (·.behaviorFingerprint) != some baseTarget.behaviorFingerprint
 
-private def terminalRun : Option PlannerRun := do
+private def terminalRun : Option PlanResult := do
   let target ← terminalTarget [[completed], [completed, initial]]
   let query := { checkedQuery 0 (.verify property) .exhaustive with
     target
     completeness := (CheckedQueryModel.ofTarget target).completeness
     endpoint := .terminalModel }
-  let kernel ← (IncrementalPlannerKernel.ofCheckedQuery target.id query).toOption
+  let kernel ← (SearchView.ofCheckedQuery target.id query).toOption
   (plan query kernel).toOption
 
 #guard terminalRun.map (·.result.outcome.name) == some "verified-within-limits"
@@ -153,12 +153,12 @@ private def convergingTarget : Option (QueryModel (fun _ => True)) :=
     metadata := (kernel 0).metadata
   } Providers.empty).toOption
 
-private def convergingRun : Option PlannerRun := do
+private def convergingRun : Option PlanResult := do
   let target ← convergingTarget
   let query := { checkedQuery 0 (.verify (temporalProperty true true)) .exhaustive with
     target
     completeness := (CheckedQueryModel.ofTarget target).completeness }
-  let kernel ← (IncrementalPlannerKernel.ofCheckedQuery target.id query).toOption
+  let kernel ← (SearchView.ofCheckedQuery target.id query).toOption
   (plan query kernel).toOption
 
 #guard convergingRun.map (fun run =>
@@ -178,14 +178,14 @@ private def convergingRun : Option PlannerRun := do
     let query ← (checkQuery (.ofTarget target) { queryDeclaration with
       form := .counterexample (temporalProperty true true)
       behavior := { behavior with traceExactly := some selected } }).toOption
-    let kernel ← (IncrementalPlannerKernel.ofCheckedQuery target.id query).toOption
+    let kernel ← (SearchView.ofCheckedQuery target.id query).toOption
     let replayed ← (plan query kernel).toOption
     pure (replayed.artifact.map (·.plan.requestedActions),
       replayed.result.metadata.validity.answer)) == some (some [requestValue], .counterexample)
 
 #guard (let query := { checkedQuery 0 (.select [temporalProperty true false]) .exhaustive with
     endpoint := .«partial» }
-  let analysis := analyzeCases query (incrementalKernel 0)
+  let analysis := analyzeBranches query (incrementalKernel 0)
   (analysis.joint.status, analysis.propertyEvaluations.map (·.endpointAnswer))) ==
     (.limitReached, [.unresolved])
 
@@ -197,4 +197,4 @@ private def convergingRun : Option PlannerRun := do
   (.verify (temporalProperty true false)) 10 2).map
     (·.result.metadata.validity.searchTermination) == some "limit-reached"
 
-end Umpire.PlanningTests
+end Umpire.SearchTests

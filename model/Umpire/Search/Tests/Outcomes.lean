@@ -1,8 +1,8 @@
-import Umpire.Planning.Tests.Fixtures
+import Umpire.Search.Tests.Fixtures
 
 /-! Query outcomes, invalid input, completion, exhaustion, and unsatisfiable behavior checks. -/
 
-namespace Umpire.PlanningTests
+namespace Umpire.SearchTests
 
 open Umpire
 
@@ -83,4 +83,4 @@ example :
       (some ("unsatisfiable", false), some ("limit-reached", false)) := by
   native_decide
 
-end Umpire.PlanningTests
+end Umpire.SearchTests

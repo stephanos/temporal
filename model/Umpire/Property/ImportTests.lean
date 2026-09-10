@@ -86,7 +86,7 @@ private def escapedDiagnosticJson : String :=
   Umpire.CheckedProperty → List Umpire.DefinitionId)
 #check (Umpire.JointObligationObservation : Type)
 #check (Umpire.JointTriggerOccurrence : Type)
-#check (Umpire.analyzeJointObligations :
+#check (Umpire.analyzeOverlapObligations :
   (property : Umpire.CheckedProperty) →
     Umpire.CheckedPropertyEvaluationInput property →
       List Umpire.JointObligationObservation)

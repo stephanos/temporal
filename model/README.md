@@ -75,7 +75,7 @@ For ordinary authoring, use `import Umpire` or the focused `Umpire.Model`, `Umpi
 syntax-aware checkers.
 When implementing evaluation or planning over an already checked Model, use
 `Umpire.Model.Check`; it exposes the authoritative Machine and finite planning contracts without
-loading the model elaborator. `Umpire.Planning` consumes checked Queries and does not supply the
+loading the model elaborator. `Umpire.Search` consumes checked Queries and does not supply the
 authoring conveniences of the other facades. The
 [ownership guide](Umpire/ARCHITECTURE.md#model-ownership-and-semantic-imports) explains how pure
 admission and serialization support both paths.
@@ -101,7 +101,7 @@ Property, Scenario, Query, and Observation inputs remain ordinary values. Call e
 `check` operation to inspect its typed `Except` error, then supply explicit checker-success evidence
 to its `checked` operation. Stable `DefinitionId` suffixes, source locations, providers/connectors,
 Model-owned outcomes, and stage-specific `QueryLimitSpec` values are authored choices; declaration
-order and instance search choose none of them. Planning returns `Except KnownGapError PlannerRun`.
+order and instance search choose none of them. Planning returns `Except KnownGapError PlanResult`.
 An optional checked `authoredKnownGaps` set is composed with phase gaps before search or artifact
 publication. Gaps describe limits and missing evidence; they cannot make a Property pass or imply
 that an omitted limitation was detected.

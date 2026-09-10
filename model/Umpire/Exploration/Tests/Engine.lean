@@ -24,8 +24,8 @@ private theorem checkedSpaceTargetEq :
   exact congrArg (fun query => query.target)
     (checkExperimentSpace_baseQuery checkedSpaceResultEq)
 
-def engineKernel : IncrementalPlannerKernel SpaceTests.checked.baseQuery.target :=
-  Eq.mpr (congrArg IncrementalPlannerKernel checkedSpaceTargetEq)
+def engineKernel : SearchView SpaceTests.checked.baseQuery.target :=
+  Eq.mpr (congrArg SearchView checkedSpaceTargetEq)
     Umpire.Examples.Switch.incrementalKernel
 
 def engineRequest

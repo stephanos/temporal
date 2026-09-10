@@ -286,7 +286,7 @@ theorem comparisonNormalizationFailsClosed :
       extraInitialAlternativeCannotCompareEqual = some true := by
   native_decide
 
-private def planSemantics (run : PlannerRun) : Option (List String × List String × List String ×
+private def planSemantics (run : PlanResult) : Option (List String × List String × List String ×
     List (List String)) :=
   run.artifact.map fun artifact =>
     (artifact.plan.requestedActions.map ModelValue.value,
@@ -465,7 +465,7 @@ private def unsatisfiablePlannerStatus : Option (ScenarioStatus × String) := do
   let behavior ← (Scenario.check (.ofTarget baseline.target) declaration).toOption
   let query ← (checkQuery (.ofTarget baseline.target)
     (Cancel.queryDeclaration baseline.cancel.property behavior)).toOption
-  let kernel ← (IncrementalPlannerKernel.ofCheckedQuery baseline.target.id query).toOption
+  let kernel ← (SearchView.ofCheckedQuery baseline.target.id query).toOption
   let run ← (plan query kernel).toOption
   pure (behavior.spaceStatus, run.result.outcome.name)
 
@@ -550,7 +550,7 @@ private def guardedPlannerOutcome
   let property ← (Property.check propertyContext (declaration)).toOption
   let query ← (checkQuery (.ofTarget baseline.target)
     (Cancel.queryDeclaration property baseline.cancel.behavior)).toOption
-  let kernel ← (IncrementalPlannerKernel.ofCheckedQuery baseline.target.id query).toOption
+  let kernel ← (SearchView.ofCheckedQuery baseline.target.id query).toOption
   let run ← (plan query kernel).toOption
   let outcome := run.result.outcome
   pure (outcome.name, match outcome with
@@ -607,7 +607,7 @@ private def guardedTemporalPlannerOutcome
   let property ← (Property.check propertyContext (declaration)).toOption
   let query ← (checkQuery (.ofTarget baseline.target)
     (Cancel.queryDeclaration property baseline.cancel.behavior)).toOption
-  let kernel ← (IncrementalPlannerKernel.ofCheckedQuery baseline.target.id query).toOption
+  let kernel ← (SearchView.ofCheckedQuery baseline.target.id query).toOption
   let run ← (plan query kernel).toOption
   let outcome := run.result.outcome
   pure (outcome.name, match outcome with
@@ -632,7 +632,7 @@ private def noncanonicalPlannerError : Option FinitePlannerAdmissionErrorKind :=
     ((Cancel.authoredProperty model))).toOption
   let behavior ← (Scenario.check (.ofTarget target) (Cancel.authoredScenario model)).toOption
   let query ← (checkQuery (.ofTarget target) (Cancel.queryDeclaration property behavior)).toOption
-  match IncrementalPlannerKernel.ofCheckedQuery target.id query with
+  match SearchView.ofCheckedQuery target.id query with
   | .error error => some error.kind
   | .ok _ => none
 
@@ -654,7 +654,7 @@ private def noncanonicalStepPlannerError : Option FinitePlannerAdmissionErrorKin
     ((Cancel.authoredProperty model))).toOption
   let behavior ← (Scenario.check (.ofTarget target) (Cancel.authoredScenario model)).toOption
   let query ← (checkQuery (.ofTarget target) (Cancel.queryDeclaration property behavior)).toOption
-  match IncrementalPlannerKernel.ofCheckedQuery target.id query with
+  match SearchView.ofCheckedQuery target.id query with
   | .error error => some error.kind
   | .ok _ => none
 
@@ -666,7 +666,7 @@ private def admittedPlannerSequence : Option
     (List ModelValue × List ModelValue ×
       List (Step ModelValue ModelValue ModelValue)) := do
   let baseline ← checkBaseline.toOption
-  let kernel ← (IncrementalPlannerKernel.ofCheckedQuery baseline.target.id baseline.cancel.query).toOption
+  let kernel ← (SearchView.ofCheckedQuery baseline.target.id baseline.cancel.query).toOption
   pure (
     (List.range kernel.actionLimit).filterMap kernel.actionAt,
     (List.range (kernel.initialLimit baseline.model.startedSetup)).filterMap
@@ -908,7 +908,7 @@ private def raceCasePropertyDeclaration
 
 private def caseAnalysisFor?
     (cases : List PropertyBranch)
-    (budget : Nat := 32) : Option CaseAnalysisResult := do
+    (budget : Nat := 32) : Option BranchAnalysisResult := do
   let checked ← checkRace.toOption
   let property ← (Property.check (PropertyCheckContext.ofTarget checked.target)
     ((raceCasePropertyDeclaration checked.model cases))).toOption
@@ -923,10 +923,10 @@ private def caseAnalysisFor?
     limits := QueryLimits.bounded 2 2 budget
     policy := .exhaustive
   }).toOption
-  let kernel ← (IncrementalPlannerKernel.ofCheckedQuery query.target.id query).toOption
-  pure (analyzeCases query kernel)
+  let kernel ← (SearchView.ofCheckedQuery query.target.id query).toOption
+  pure (analyzeBranches query kernel)
 
-private def caseAnalysis? (budget : Nat := 32) : Option CaseAnalysisResult := do
+private def caseAnalysis? (budget : Nat := 32) : Option BranchAnalysisResult := do
   let checked ← checkRace.toOption
   caseAnalysisFor? [requestCase checked.model, resolveCase checked.model] budget
 
@@ -1007,7 +1007,7 @@ private def laterExceptionSummary := do
   let result ← caseAnalysisFor?
     [requestCaseWithLaterException checked.model, resolveCase checked.model]
   let trigger ← result.joint.triggers.head?
-  let expectation ← trigger.expectations.find? fun (expectation : JointExpectationEvidence) =>
+  let expectation ← trigger.expectations.find? fun (expectation : OverlapExpectationEvidence) =>
     match expectation.formula with
     | JointObligationFormula.guardedTemporal .. => true
     | JointObligationFormula.sameStep _ => false
@@ -1066,7 +1066,7 @@ private def jointPropertyDeclaration
 }
 
 private def jointRaceAnalysis?
-    (declarations : List Property) : Option CaseAnalysisResult := do
+    (declarations : List Property) : Option BranchAnalysisResult := do
   let checked ← checkRace.toOption
   let properties ← declarations.mapM fun declaration =>
     (Property.check (PropertyCheckContext.ofTarget checked.target)
@@ -1083,8 +1083,8 @@ private def jointRaceAnalysis?
     limits := QueryLimits.bounded 2 2 32
     policy := .exhaustive
   }).toOption
-  let kernel ← (IncrementalPlannerKernel.ofCheckedQuery query.target.id query).toOption
-  pure (analyzeCases query kernel)
+  let kernel ← (SearchView.ofCheckedQuery query.target.id query).toOption
+  pure (analyzeBranches query kernel)
 
 private def observationTriggerPropertyDeclaration
     (key : String)
@@ -1104,7 +1104,7 @@ private def observationTriggerPropertyDeclaration
       (limit := { value := 1, unit := .observationPositions })]
 }
 
-private def distinctObservationTriggerAnalysis? : Option CaseAnalysisResult := do
+private def distinctObservationTriggerAnalysis? : Option BranchAnalysisResult := do
   let checked ← checkRace.toOption
   jointRaceAnalysis? [
     observationTriggerPropertyDeclaration "canceled-left"
@@ -1148,7 +1148,7 @@ theorem finiteRaceSeparatesObservationTriggerOccurrences :
       ]))) = true := by
   native_decide
 
-private def logicalRaceConflict? : Option CaseAnalysisResult := do
+private def logicalRaceConflict? : Option BranchAnalysisResult := do
   let checked ← checkRace.toOption
   jointRaceAnalysis? [
     jointPropertyDeclaration "request-cancel-requested" checked.model.requestCancelAction
@@ -1166,8 +1166,8 @@ private def logicalRaceConflictSummary :=
         (conflict.trigger.transitionPosition,
           conflict.trigger.priorState,
           conflict.trigger.selectedAction,
-          conflict.expectations.map JointExpectationEvidence.clauseId,
-          conflict.expectations.map JointExpectationEvidence.source))
+          conflict.expectations.map OverlapExpectationEvidence.clauseId,
+          conflict.expectations.map OverlapExpectationEvidence.source))
 
 theorem finiteRaceReportsSourceLinkedLogicalContradiction :
     (logicalRaceConflictSummary == modelVocabulary.toOption.map (fun model =>
@@ -1182,7 +1182,7 @@ theorem finiteRaceReportsSourceLinkedLogicalContradiction :
           [source, source])))) = true := by
   native_decide
 
-private def modelRelativeRaceConflict? : Option CaseAnalysisResult := do
+private def modelRelativeRaceConflict? : Option BranchAnalysisResult := do
   let checked ← checkRace.toOption
   jointRaceAnalysis? [
     jointPropertyDeclaration "resolve-canceled-state" checked.model.resolveAction
@@ -1201,7 +1201,7 @@ private def modelRelativeRaceConflictSummary :=
           conflict.trigger.transitionPosition,
           conflict.trigger.limits,
           conflict.admittedContinuations.length,
-          conflict.expectations.map JointExpectationEvidence.clauseId))
+          conflict.expectations.map OverlapExpectationEvidence.clauseId))
 
 theorem finiteRaceSeparatesModelRelativeFromLogicalIncompatibility :
     (modelRelativeRaceConflictSummary == some ("model-incompatible", true, some (

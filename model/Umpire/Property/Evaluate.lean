@@ -1747,7 +1747,7 @@ structure CaseApplicability where
   deriving BEq, DecidableEq, Repr
 
 /-- Evaluator-owned parent and case applicability at one validated trigger step. -/
-structure CaseGroupApplicability where
+structure BranchApplicability where
   propertyId : DefinitionId
   parentId : DefinitionId
   source : SourceLocation
@@ -1854,7 +1854,7 @@ private def caseGroupApplicabilityAt
     (property : CheckedProperty)
     (group : CheckedPropertyBranches)
     (transitionPosition : Nat)
-    (step : PropertyEvaluationStep) : CaseGroupApplicability :=
+    (step : PropertyEvaluationStep) : BranchApplicability :=
   let input := guardInput step
   let guardMatched := evaluateCheckedPredicate group.guard input
   let exceptionAllows := exceptionAllowsEvaluate group.exception input
@@ -1880,7 +1880,7 @@ private def caseGroupApplicabilityAt
 This is the shared checked seam for coverage analysis; it does not reinterpret raw predicates. -/
 def analyzeCaseApplicability
     (property : CheckedProperty)
-    (input : CheckedPropertyEvaluationInput property) : List CaseGroupApplicability :=
+    (input : CheckedPropertyEvaluationInput property) : List BranchApplicability :=
   property.clauses.flatMap fun clause => match clause with
     | .branches group => input.view.steps.zipIdx.map fun (step, index) =>
         caseGroupApplicabilityAt property group (index + 1) step
@@ -1969,7 +1969,7 @@ private def guardedTemporalJointObservations
 
 /-- Observe jointly analyzable obligations only through the same checked input and evaluator used
 for ordinary Property truth. Later trace steps cannot change trigger-time guards or exceptions. -/
-def analyzeJointObligations
+def analyzeOverlapObligations
     (property : CheckedProperty)
     (input : CheckedPropertyEvaluationInput property) : List JointObligationObservation :=
   property.clauses.flatMap fun clause => match clause with
@@ -2273,7 +2273,7 @@ def evaluatePropertyEndpoint
     (property : CheckedProperty)
     (input : CheckedPropertyEvaluationInput property)
     (partialTrace : Bool) : PropertyEndpointEvaluation :=
-  let joint := (analyzeJointObligations property input).map fun observation => ({
+  let joint := (analyzeOverlapObligations property input).map fun observation => ({
     propertyId := property.id
     clauseId := observation.clauseId
     transitionPosition := observation.transitionPosition

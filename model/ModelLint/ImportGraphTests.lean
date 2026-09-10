@@ -292,7 +292,7 @@ private def testTargetIsolation : IO Unit := do
   requireEqual "Target-owned imports" (check defaultPolicy allowed) #[]
   let destinations := #[
     `Umpire.Query.Language,
-    `Umpire.Planning.Engine,
+    `Umpire.Search,
     `Umpire.Artifact,
     `Umpire.Runtime.Driver,
     `Umpire.Verify.Core,
@@ -323,10 +323,9 @@ private def testSemanticTargetIsolation : IO Unit := do
     `Umpire.Scenario,
     `Umpire.Scenario.Check,
     `Umpire.Query.Language,
-    `Umpire.Planning,
-    `Umpire.Planning.Types,
-    `Umpire.Planning.Engine,
-    `Umpire.Planning.CaseAnalysis,
+    `Umpire.Search,
+    `Umpire.Search.Types,
+    `Umpire.Search.Branches,
     `Umpire.Artifact.Types,
     `Umpire.Artifact.Codecs,
     `Umpire.Artifact.Planning
@@ -364,11 +363,11 @@ private def testSemanticTargetIsolation : IO Unit := do
   requireEqual "pure imports and explicit authoring remain allowed"
     (check defaultPolicy allowed) #[]
   let cyclic := #[
-    moduleRecord `Umpire.Planning.Engine #[`External.Zed, `External.Alpha],
+    moduleRecord `Umpire.Search #[`External.Zed, `External.Alpha],
     moduleRecord `External.Zed #[`Lean.Elab.Term],
-    moduleRecord `External.Alpha #[`External.Zed, `Umpire.Planning.Engine, `Lean.Elab.Term]
+    moduleRecord `External.Alpha #[`External.Zed, `Umpire.Search, `Lean.Elab.Term]
   ]
-  let expected := #[#[`Umpire.Planning.Engine, `External.Alpha, `Lean.Elab.Term]]
+  let expected := #[#[`Umpire.Search, `External.Alpha, `Lean.Elab.Term]]
   requireEqual "external cycles retain stable shortest path"
     ((check defaultPolicy cyclic).map (·.path)) expected
   requireEqual "metadata order does not select the path"
@@ -379,7 +378,7 @@ private def testSemanticInventoryIsolation : IO Unit := do
     `Umpire,
     `Umpire.NewHelper,
     `Umpire.SemanticInventoryHelper,
-    `Umpire.Planning.Engine,
+    `Umpire.Search,
     `Umpire.Observation.Evaluation.Types,
     `Umpire.Observation.Verdict,
     `Umpire.Artifact.Runtime,
@@ -399,7 +398,7 @@ private def testSemanticInventoryIsolation : IO Unit := do
         `Umpire.ImplementationLink,
         `ModelLint.Bridge,
         `External.Wrapper,
-        `Umpire.Planning.Tests.KnownGaps,
+        `Umpire.Search.Tests.KnownGaps,
         `Umpire.Shared.Test
       ] do
         if source == bridge then continue
@@ -413,19 +412,19 @@ private def testSemanticInventoryIsolation : IO Unit := do
   let allowed := #[
     moduleRecord `Umpire.SemanticInventory #[
       `Umpire.SemanticInventory.Types, `Umpire.SemanticInventory.KnownGaps,
-      `Umpire.Planning.Engine, `Umpire.Artifact.Runtime, `Umpire.Artifact.Result,
+      `Umpire.Search, `Umpire.Artifact.Runtime, `Umpire.Artifact.Result,
       `Umpire.Observation.Verdict, `Umpire.ImplementationLink.Application
     ],
     moduleRecord `Umpire.SemanticInventory.Types #[`Umpire.OutcomeClassification],
     moduleRecord `Umpire.SemanticInventory.KnownGaps #[`Umpire.KnownGap],
-    moduleRecord `Umpire.Planning.Tests.KnownGaps #[`Umpire.SemanticInventory.KnownGaps],
+    moduleRecord `Umpire.Search.Tests.KnownGaps #[`Umpire.SemanticInventory.KnownGaps],
     moduleRecord `Umpire.InventoryTests #[`Umpire.SemanticInventory],
     moduleRecord `Umpire.SemanticInventory.Tests.PlanningRuntime #[`Umpire.SemanticInventory],
     moduleRecord `Umpire.Shared.Test #[`Umpire.SemanticInventory],
-    moduleRecord `UmpireTests #[`Umpire.Planning.Tests.KnownGaps],
+    moduleRecord `UmpireTests #[`Umpire.Search.Tests.KnownGaps],
     moduleRecord `Umpire.Lint #[`UmpireTests],
     moduleRecord `Temporal.Tool.SemanticInventory #[`Umpire.SemanticInventory],
-    moduleRecord `Umpire.Planning.Engine #[`Umpire.OutcomeClassification],
+    moduleRecord `Umpire.Search #[`Umpire.OutcomeClassification],
     moduleRecord `Umpire.Artifact.Runtime #[`Umpire.OutcomeClassification],
     moduleRecord `Umpire.Artifact.Result #[`Umpire.KnownGap],
     moduleRecord `Umpire.Observation.Verdict #[`Umpire.OutcomeClassification],
@@ -439,7 +438,7 @@ private def testSemanticInventoryIsolation : IO Unit := do
 private def testOutcomeClassificationIsolation : IO Unit := do
   let source := `Umpire.OutcomeClassification
   for destination in #[
-    `Umpire, `Umpire.Core, `Umpire.KnownGap, `Umpire.Planning.Engine,
+    `Umpire, `Umpire.Core, `Umpire.KnownGap, `Umpire.Search,
     `Umpire.Artifact.Runtime, `Umpire.Artifact.Result,
     `Umpire.Observation.Evaluation.Types, `Umpire.Observation.Verdict,
     `Umpire.ImplementationLink.Application,

@@ -2,7 +2,7 @@ import Umpire.SemanticInventory.KnownGaps
 
 /-! Closed Known Gap validation and canonical encoding. -/
 
-namespace Umpire.PlanningTests.KnownGaps
+namespace Umpire.SearchTests.KnownGaps
 
 open Umpire
 
@@ -182,4 +182,4 @@ example : [
       claimReference.fieldMapping = some .exact := by
   native_decide
 
-end Umpire.PlanningTests.KnownGaps
+end Umpire.SearchTests.KnownGaps

@@ -2,7 +2,7 @@ import Umpire.Scenario.Tests.Fixtures
 import Umpire.Examples.Switch
 import Umpire.Examples.SwitchTests
 import Umpire.Observation.Tests.Fixtures
-import Umpire.Planning.Tests.Fixtures
+import Umpire.Search.Tests.Fixtures
 import Umpire.Property.Tests.Fixtures
 import Umpire.Query.Tests.Fixtures
 import Umpire.Model.Tests.Fixtures
@@ -28,7 +28,7 @@ example : [
     Umpire.ScenarioTests.source,
     Umpire.PropertyTests.source,
     Umpire.QueryTests.source,
-    Umpire.PlanningTests.source,
+    Umpire.SearchTests.source,
     Umpire.ObservationTests.source
   ] = [
     { path := "Parameterized/TargetFixture.lean", line := 1, column := 1,
@@ -53,7 +53,7 @@ example : [
     Umpire.PropertyTests.metadata "fixture.property.observation" .fact,
     Umpire.QueryTests.metadata (DefinitionId.of "fixture.query.target") .target
       "query-target/v1",
-    Umpire.PlanningTests.metadata (DefinitionId.of "fixture.planning.kernel") .machine
+    Umpire.SearchTests.metadata (DefinitionId.of "fixture.planning.kernel") .machine
       "planning-kernel/v1",
     Umpire.ObservationTests.metadata "fixture.observation.mapping" .fact
   ] = [
@@ -206,8 +206,8 @@ private def materializeEarlyQuery
 private def earlyQuery : CheckedQuery LawStatement :=
   materializeEarlyQuery (earlyQueryResult.toOption.get earlyQueryResult_isSome)
 
-private def earlyKernel? : Option (IncrementalPlannerKernel earlyQuery.target) :=
-  IncrementalPlannerKernel.ofCheckedQuery? earlyQuery
+private def earlyKernel? : Option (SearchView earlyQuery.target) :=
+  SearchView.ofCheckedQuery? earlyQuery
     (by
       intro evidence evidenceEq
       simp [earlyQuery, materializeEarlyQuery, CheckedQueryModel.ofTarget, earlyTarget,
@@ -246,10 +246,10 @@ private def earlyKernel? : Option (IncrementalPlannerKernel earlyQuery.target) :
 private theorem earlyKernel?_isSome : earlyKernel?.isSome = true := by
   rfl
 
-private def earlyKernel : IncrementalPlannerKernel earlyQuery.target :=
+private def earlyKernel : SearchView earlyQuery.target :=
   earlyKernel?.get earlyKernel?_isSome
 
-private def earlyRun : Except KnownGapError PlannerRun := plan earlyQuery earlyKernel
+private def earlyRun : Except KnownGapError PlanResult := plan earlyQuery earlyKernel
 
 private def relocatedQueryResult : Except QueryError (CheckedQuery LawStatement) :=
   checkQuery (.ofTarget relocatedTarget) exactActionDeclaration
@@ -269,8 +269,8 @@ private def relocatedQuery : CheckedQuery LawStatement :=
   materializeRelocatedQuery
     (relocatedQueryResult.toOption.get relocatedQueryResult_isSome)
 
-private def relocatedKernel? : Option (IncrementalPlannerKernel relocatedQuery.target) :=
-  IncrementalPlannerKernel.ofCheckedQuery? relocatedQuery
+private def relocatedKernel? : Option (SearchView relocatedQuery.target) :=
+  SearchView.ofCheckedQuery? relocatedQuery
     (by
       intro evidence evidenceEq
       simp [relocatedQuery, materializeRelocatedQuery, CheckedQueryModel.ofTarget,
@@ -311,10 +311,10 @@ private def relocatedKernel? : Option (IncrementalPlannerKernel relocatedQuery.t
 private theorem relocatedKernel?_isSome : relocatedKernel?.isSome = true := by
   rfl
 
-private def relocatedKernel : IncrementalPlannerKernel relocatedQuery.target :=
+private def relocatedKernel : SearchView relocatedQuery.target :=
   relocatedKernel?.get relocatedKernel?_isSome
 
-private def relocatedRun : Except KnownGapError PlannerRun := plan relocatedQuery relocatedKernel
+private def relocatedRun : Except KnownGapError PlanResult := plan relocatedQuery relocatedKernel
 
 private def expectedSwitchArtifactJson : String :=
   include_str "../Examples/Fixtures/SwitchCompiledArtifact.json"
@@ -327,8 +327,8 @@ example : [
   native_decide
 
 /-! The expert route preserves the exact planner result as well as the golden Artifact bytes. -/
-example : earlyRun.toOption.map PlannerRun.result = some exactActionRun.result ∧
-    relocatedRun.toOption.map PlannerRun.result = some exactActionRun.result := by
+example : earlyRun.toOption.map PlanResult.result = some exactActionRun.result ∧
+    relocatedRun.toOption.map PlanResult.result = some exactActionRun.result := by
   native_decide
 
 private def wrongKindDefinition : ModelSpec LawStatement

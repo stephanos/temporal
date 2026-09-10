@@ -1,4 +1,4 @@
-import Temporal.Feature.Nexus.Operations.Planning
+import Temporal.Feature.Nexus.Operations.Search
 import Umpire.Scenario.Elab
 
 /-!
@@ -90,8 +90,8 @@ theorem query_target : query.target = target := by
   rfl
 
 def incrementalKernelResult :
-    Except FinitePlannerAdmissionError (IncrementalPlannerKernel query.target) :=
-  IncrementalPlannerKernel.ofCheckedQuery target.id query
+    Except FiniteSearchAdmissionError (SearchView query.target) :=
+  SearchView.ofCheckedQuery target.id query
 
 private theorem incrementalKernelResult_isSome :
     incrementalKernelResult.toOption.isSome = true := by
@@ -101,13 +101,13 @@ private theorem incrementalKernelResult_isSome :
   · exact (Option.some_get completenessIsSome).symm
   · rfl
 
-def incrementalKernel : IncrementalPlannerKernel query.target :=
+def incrementalKernel : SearchView query.target :=
   incrementalKernelResult.toOption.get incrementalKernelResult_isSome
 
-def run : Except KnownGapError PlannerRun :=
+def run : Except KnownGapError PlanResult :=
   plan query incrementalKernel
 
-def repeatedRun : Except KnownGapError PlannerRun :=
+def repeatedRun : Except KnownGapError PlanResult :=
   plan query incrementalKernel
 
 end SuccessfulCompletion

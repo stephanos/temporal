@@ -164,10 +164,9 @@ def defaultPolicy : Policy := {
     `Umpire.Scenario,
     `Umpire.Scenario.Check,
     `Umpire.Query.Language,
-    `Umpire.Planning,
-    `Umpire.Planning.Types,
-    `Umpire.Planning.Engine,
-    `Umpire.Planning.CaseAnalysis,
+    `Umpire.Search,
+    `Umpire.Search.Types,
+    `Umpire.Search.Branches,
     `Umpire.Artifact.Types,
     `Umpire.Artifact.Codecs,
     `Umpire.Artifact.Planning
@@ -253,7 +252,7 @@ private def isModelModule (name : Lean.Name) : Bool :=
 private def isModelForbiddenDestination (name : Lean.Name) : Bool :=
   #[
     `Umpire.Query,
-    `Umpire.Planning,
+    `Umpire.Search,
     `Umpire.Artifact,
     `Umpire.Runtime,
     `Umpire.Verify,

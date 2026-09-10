@@ -1,4 +1,5 @@
-import Umpire.Planning
+import Umpire.Search
+import Umpire.Search.Branches
 import Umpire.Space.Intent
 
 /-! Exact checked-Space point lowering and atomic target-owned batch compilation. -/
@@ -366,10 +367,10 @@ private def cartesianAssignments :
 
 private def planPoint
     (space : CheckedExperimentSpace LawStatement)
-    (kernel : IncrementalPlannerKernel space.baseQuery.target)
-    (point : LoweredSpacePoint space) : Except SpaceCompilationError PlannerRun := do
-  let pointKernel : IncrementalPlannerKernel point.query.target :=
-    Eq.mpr (congrArg IncrementalPlannerKernel point.targetEq) kernel
+    (kernel : SearchView space.baseQuery.target)
+    (point : LoweredSpacePoint space) : Except SpaceCompilationError PlanResult := do
+  let pointKernel : SearchView point.query.target :=
+    Eq.mpr (congrArg SearchView point.targetEq) kernel
   match planWithArtifactIntent point.query pointKernel point.intent with
     | .ok run => pure run
     | .error (.knownGap error) => throw (knownGapCompilationError space point.id error)
@@ -396,7 +397,7 @@ def appendPlannerRun
     (space : CheckedExperimentSpace LawStatement)
     (pointId : DefinitionId)
     (specs : List ExperimentSpec)
-    (run : PlannerRun) : Except SpaceCompilationError (List ExperimentSpec) := do
+    (run : PlanResult) : Except SpaceCompilationError (List ExperimentSpec) := do
   match run.result.outcome with
   | .invalid error =>
       throw (compilationError space .plannerInvalid pointId error.offendingValue
@@ -423,7 +424,7 @@ end SpaceCompiler.Internal
 /-- Compile every canonical point through one transported caller-owned kernel, or return no batch. -/
 def compileBatch
     (space : CheckedExperimentSpace LawStatement)
-    (kernel : IncrementalPlannerKernel space.baseQuery.target) :
+    (kernel : SearchView space.baseQuery.target) :
     Except SpaceCompilationError (List ExperimentSpec) := do
   let assignments := cartesianAssignments space.axes
   let mut pointIds := []
