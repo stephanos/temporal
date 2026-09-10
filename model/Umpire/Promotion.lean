@@ -161,7 +161,7 @@ def renderPromotionSource (spec : PromotionSourceSpec) (trace : BehaviorTrace) :
       "def expectedTrace : BehaviorTrace := " ++ renderBehaviorTrace trace,
       "",
       "def promotedQueryResult",
-      "    {LawStatement : LawDefinition → Prop}",
+      "    {LawStatement : Law → Prop}",
       "    (baseQuery : CheckedQuery LawStatement) :",
       "    Except PromotionError (CheckedQuery LawStatement) :=",
       "  checkPromotedQuery baseQuery expectedTrace",
@@ -193,8 +193,8 @@ private def baseDefinitionIds
     query.id,
     query.behavior.id,
     query.target.id,
-    query.target.kernel.metadata.id
-  ] ++ query.form.properties.map CheckedProperty.id ++ query.targetComposition
+    query.target.machine.metadata.id
+  ] ++ query.form.properties.map CheckedProperty.id ++ query.modelProviders
 
 private def validatePromotedIdentities
     (query : CheckedQuery LawStatement)
@@ -286,7 +286,7 @@ private def validateBaseAnchor
       anchor.behaviorFingerprint == query.behavior.behaviorFingerprint &&
       anchor.targetDefinitionId == query.target.id &&
       anchor.targetBehaviorFingerprint == query.target.behaviorFingerprint &&
-      anchor.kernelDefinitionId == query.target.kernel.metadata.id &&
+      anchor.kernelDefinitionId == query.target.machine.metadata.id &&
       anchor.kernelBehaviorFingerprint == query.target.behaviorFingerprint
   if !matchesBase then
     throw (promotionError .baseIdentityDrift anchor.queryDefinitionId

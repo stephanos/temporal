@@ -7,7 +7,7 @@ import Umpire.Case.Observed
 import Umpire.Property
 import Umpire.Property.Scoped
 import Umpire.Observation.Projection.Coverage
-import Umpire.Target.FiniteMachine
+import Umpire.Model.Table
 
 /-!
 # Two workflow-owned Nexus operations qualified by captured field relations
@@ -393,17 +393,17 @@ private def definitions : List DefinitionMetadata :=
   (structuralKinds ++ vocabularyKinds).map fun (id, kind) =>
     Temporal.Shared.definitionMetadata id kind source id.value
 
-private def provider : CapabilityProvider (fun _ => True) := {
+private def provider : Provider (fun _ => True) := {
   id := providerId
   source
-  contract := { id := capabilityId, canonicalBehavior := "temporal-nexus3-typed-nexus/v1"
+  contract := { id := capabilityId, behaviorVersion := "temporal-nexus3-typed-nexus/v1"
                 requiredLaws := [] }
   meanings := vocabularyKinds.map fun (id, kind) =>
-    { definitionId := id, kind, canonicalBehavior := id.value ++ "/meaning-v1" }
-  lawWitnesses := []
+    { definitionId := id, kind, behaviorVersion := id.value ++ "/meaning-v1" }
+  lawProofs := []
 }
 
-private def targetDefinition : FiniteTargetDefinition := {
+private def modelSpec : TableModelSpec := {
   id := targetId
   source
   definitions
@@ -415,7 +415,7 @@ private def targetDefinition : FiniteTargetDefinition := {
 inductive AdmissionError where
   | operation (error : Operation.Error)
   | field (error : Field.Error)
-  | target (error : FiniteTargetAdmissionError)
+  | target (error : TableAdmissionError)
   | property (error : PropertyError)
   | scoped (error : Property.Scoped.Error)
   | projection (error : Observation.Projection.Error)
@@ -423,7 +423,7 @@ inductive AdmissionError where
   | inconsistent (reason : String)
 
 private abbrev TypedTarget :=
-  CheckedTarget (fun _ => True) Unit ModelValue ModelValue ModelValue ModelValue
+  CheckedModel (fun _ => True) Unit ModelValue ModelValue ModelValue ModelValue
 
 /-! ### The independent field requirement -/
 
@@ -633,8 +633,8 @@ def checked : Except AdmissionError Model := do
     transitions := scheduleRows ++ pollRows ++ awaitRows
     terminalConditions := [[completedState]]
   }
-  let target ← (table.checkTarget targetDefinition
-    (TargetComposition.empty.provide provider)).mapError AdmissionError.target
+  let target ← (table.checkTypedModel modelSpec
+    (Providers.empty.provide provider)).mapError AdmissionError.target
   let context := { PropertyCheckContext.ofTarget target with fieldBindings }
   let fieldProperty ← (CheckedFieldProperty.check context fieldDeclaration).mapError
     AdmissionError.property

@@ -1,6 +1,6 @@
 import Umpire.Observation.Compiler
 import Umpire.Observation.Tests.Fixtures
-import Umpire.Target.Tests.Fixtures
+import Umpire.Model.Tests.Fixtures
 
 /-! Deterministic checked-plan identity and exact structural compilation failures. -/
 
@@ -142,7 +142,7 @@ example : checkedNormalizedNameIsTyped = some true := by
   native_decide
 
 def connectedContext : Option ObservationCheckContext :=
-  (composeTarget Umpire.TargetTests.testTarget).toOption.map fun target =>
+  ((checkModel (DraftModel.make Umpire.ModelTests.testTarget) |>.mapError LocatedError.error)).toOption.map fun target =>
     ObservationCheckContext.ofTarget target [evidenceProfile]
 
 def reconciledMappingSpec : ObservationMappingSpec := {
@@ -167,7 +167,7 @@ def reconciledMeaningDigest : Option String := do
   let checkContext ← connectedContext
   let plan ← (checkObservation checkContext reconciledMapping).toOption
   let rule ← plan.rules.find? fun rule => rule.id == id "test.rule.reconciled"
-  pure rule.meaning.canonicalBehavior
+  pure rule.meaning.behaviorVersion
 
 /-- Connected target meanings compile under the connector's reconciled semantic identity. -/
 example : reconciledMeaningDigest = some "test-shared-connector/reconciled-v1" := by
@@ -175,7 +175,7 @@ example : reconciledMeaningDigest = some "test-shared-connector/reconciled-v1" :
 
 def providerResolutionFailures :
     Option DefinitionErrorKind × Option ObservationErrorKind :=
-  (Umpire.TargetTests.errorOf (composeTarget Umpire.TargetTests.conflictingTarget)
+  (Umpire.ModelTests.errorOf ((checkModel (DraftModel.make Umpire.ModelTests.conflictingTarget) |>.mapError LocatedError.error))
       |>.map DefinitionError.kind,
     errorKindOf (checkObservation { context with meanings := [] } reconciledMapping))
 
@@ -434,7 +434,7 @@ def divergentCycleContext : ObservationCheckContext := {
   meanings := context.meanings ++ [cycleA, cycleB, cycleC, cycleD].map fun ruleId => {
     definitionId := cycleOutput ruleId
     kind := .fact
-    canonicalBehavior := (cycleOutput ruleId).value ++ "/meaning-v1"
+    behaviorVersion := (cycleOutput ruleId).value ++ "/meaning-v1"
   }
 }
 

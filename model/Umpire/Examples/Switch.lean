@@ -36,11 +36,11 @@ def Position.flip : Position → Position
   | .off => .on
   | .on => .off
 
-def LawStatement (law : LawDefinition) : Prop :=
+def LawStatement (law : Law) : Prop :=
   law.id = flipLawId ∧ law.body = "switch-flip-preserves-domain-law/v1" ∧
     Position.flip (Position.flip .off) = .off
 
-def flipLaw : LawDefinition := {
+def flipLaw : Law := {
   id := flipLawId
   body := "switch-flip-preserves-domain-law/v1"
 }
@@ -51,8 +51,8 @@ theorem flipLawProof : LawStatement flipLaw := by
 private def metadata
     (definitionId : DefinitionId)
     (kind : DefinitionKind)
-    (canonicalBehavior : String) : DefinitionMetadata :=
-  Shared.definitionMetadata definitionId kind source 1 canonicalBehavior ""
+    (behaviorVersion : String) : DefinitionMetadata :=
+  Shared.definitionMetadata definitionId kind source 1 behaviorVersion ""
 
 def offState : ModelValue := ModelValue.named powerStateId "off"
 def onState : ModelValue := ModelValue.named powerStateId "on"
@@ -197,7 +197,7 @@ def machine : Machine
   authoritativeStep
   stepSound := stepResults_sound
   stepComplete := stepResults_complete
-  behaviorDomain := .complete {
+  vocabulary := .complete {
     setups := [switchSetup]
     states := [offState, onState]
     actions := [flipAction]
@@ -323,25 +323,25 @@ def machine : Machine
   }
 }
 
-def switchProvider : CapabilityProvider LawStatement := {
+def switchProvider : Provider LawStatement := {
   id := switchProviderId
   source
   contract := {
     id := switchCapabilityId
-    canonicalBehavior := "switch-state/v1"
+    behaviorVersion := "switch-state/v1"
     requiredLaws := [flipLaw]
   }
   meanings := [
-    { definitionId := powerStateId, kind := .state, canonicalBehavior := "switch-power-state/v1" },
-    { definitionId := flipActionId, kind := .action, canonicalBehavior := "switch-flip-action/v1" },
+    { definitionId := powerStateId, kind := .state, behaviorVersion := "switch-power-state/v1" },
+    { definitionId := flipActionId, kind := .action, behaviorVersion := "switch-flip-action/v1" },
     { definitionId := appliedOutcomeId, kind := .outcome,
-      canonicalBehavior := "switch-applied-outcome/v1" },
+      behaviorVersion := "switch-applied-outcome/v1" },
     { definitionId := deferredOutcomeId, kind := .outcome,
-      canonicalBehavior := "switch-deferred-outcome/v1" },
+      behaviorVersion := "switch-deferred-outcome/v1" },
     { definitionId := powerObservationId, kind := .fact,
-      canonicalBehavior := "switch-power-observation/v1" }
+      behaviorVersion := "switch-power-observation/v1" }
   ]
-  lawWitnesses := [{ definition := flipLaw, proof := flipLawProof }]
+  lawProofs := [{ definition := flipLaw, proof := flipLawProof }]
 }
 
 def definitions : List DefinitionMetadata := [
@@ -369,26 +369,26 @@ def finitePlanning : FinitePlanningCapability machine.authoritativeStep := {
     simp [admitted.1]
 }
 
-def targetDefinition : TargetDefinition
+def modelSpec : ModelSpec LawStatement
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
   id := targetId
   source
   definitions
   requiredCapabilities := [switchCapabilityId]
   resolvedSetups := [switchSetup]
-  kernel := .checked machine
+  machine := .checked machine
 }
 
-def targetComposition : TargetComposition LawStatement :=
-  TargetComposition.empty |>.provide switchProvider
+def modelProviders : Providers LawStatement :=
+  Providers.empty |>.provide switchProvider
 
-def targetAuthoring : AuthoredTarget LawStatement
+def targetAuthoring : DraftModel LawStatement
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue :=
-  AuthoredTarget.make targetDefinition targetComposition
+  DraftModel.make modelSpec modelProviders
     (.available machine rfl finitePlanning)
 
 /-- Re-ascribe the source kernel after checked composition so its proof relation remains reducible. -/
-def target : QueryTarget LawStatement := checkedTarget targetAuthoring
+def target : QueryModel LawStatement := model targetAuthoring
 
 theorem target_resolvedSetups : target.resolvedSetups = [switchSetup] := by
   native_decide
@@ -396,19 +396,19 @@ theorem target_resolvedSetups : target.resolvedSetups = [switchSetup] := by
 theorem target_initial
     (setup : List RoleBinding)
     (state : ModelValue)
-    (admitted : target.kernel.authoritativeInitial setup state) :
+    (admitted : target.machine.authoritativeInitial setup state) :
     setup = switchSetup ∧ state = offState := by
   exact admitted
 
 theorem target_step
     (state action : ModelValue)
     (result : Step ModelValue ModelValue ModelValue)
-    (admitted : target.kernel.authoritativeStep state action result) :
+    (admitted : target.machine.authoritativeStep state action result) :
     authoritativeStep state action result := by
   exact admitted
 
 theorem target_off_flip_applied_authoritative :
-    target.kernel.authoritativeStep offState flipAction appliedResult := by
+    target.machine.authoritativeStep offState flipAction appliedResult := by
   change authoritativeStep offState flipAction appliedResult
   exact ⟨rfl, .inl ⟨rfl, .inl rfl⟩⟩
 
@@ -587,14 +587,14 @@ private def incrementalKernel? : Option (IncrementalPlannerKernel exactActionQue
   IncrementalPlannerKernel.ofCheckedQuery? exactActionQuery
     (by
       intro evidence evidenceEq
-      simp [exactActionQuery, checkedQuery, CheckedQueryTarget.ofTarget, target,
-        checkedTarget, targetAuthoring, AuthoredTarget.make, targetDefinition] at evidenceEq
+      simp [exactActionQuery, checkedQuery, CheckedQueryModel.ofTarget, target,
+        model, targetAuthoring, DraftModel.make, modelSpec] at evidenceEq
       cases Option.some.inj evidenceEq
       simp [finitePlanning])
     (by
       intro _ _ setup
-      simp only [exactActionQuery, checkedQuery, target, checkedTarget, targetAuthoring,
-        AuthoredTarget.make, targetDefinition,
+      simp only [exactActionQuery, checkedQuery, target, model, targetAuthoring,
+        DraftModel.make, modelSpec,
         machine, initialStates]
       split <;> simp)
     (by
@@ -603,20 +603,20 @@ private def incrementalKernel? : Option (IncrementalPlannerKernel exactActionQue
       · subst action
         by_cases selectedOff : state = offState
         · subst state
-          simpa [exactActionQuery, checkedQuery, target, checkedTarget, targetAuthoring,
-            AuthoredTarget.make, targetDefinition,
+          simpa [exactActionQuery, checkedQuery, target, model, targetAuthoring,
+            DraftModel.make, modelSpec,
             machine, stepResults] using appliedResult_ordered
         · by_cases selectedOn : state = onState
           · subst state
-            simpa [exactActionQuery, checkedQuery, target, checkedTarget, targetAuthoring,
-              AuthoredTarget.make, targetDefinition,
+            simpa [exactActionQuery, checkedQuery, target, model, targetAuthoring,
+              DraftModel.make, modelSpec,
               machine, stepResults, onState_ne_offState] using
               appliedFromOnResult_ordered
-          · simp [exactActionQuery, checkedQuery, target, checkedTarget, targetAuthoring,
-              AuthoredTarget.make, targetDefinition,
+          · simp [exactActionQuery, checkedQuery, target, model, targetAuthoring,
+              DraftModel.make, modelSpec,
               machine, stepResults, selectedOff, selectedOn]
-      · simp [exactActionQuery, checkedQuery, target, checkedTarget, targetAuthoring,
-          AuthoredTarget.make, targetDefinition,
+      · simp [exactActionQuery, checkedQuery, target, model, targetAuthoring,
+          DraftModel.make, modelSpec,
           machine, stepResults, selectedAction])
 
 private theorem incrementalKernel?_isSome : incrementalKernel?.isSome = true := by

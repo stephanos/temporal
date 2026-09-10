@@ -101,7 +101,7 @@ structure DefinitionMetadata where
   kind : DefinitionKind
   source : SourceLocation
   version : Nat := 1
-  canonicalBehavior : String
+  behaviorVersion : String
   documentation : String := ""
   deriving BEq, DecidableEq, Repr
 
@@ -300,7 +300,7 @@ def Step.map
       result.facts.map mapObservation := rfl
 
 /-- Authoritative finite-domain predicates, exhaustive enumerators, and canonical encoders for one Target. -/
-structure TargetBehaviorDomain
+structure Vocabulary
     {Setup State Action Outcome Observation : Type}
     (setupDomain : Setup → Prop)
     (stateDomain : State → Prop)
@@ -342,7 +342,7 @@ structure TargetBehaviorDomain
     result ∈ steps state action → value ∈ result.facts → value ∈ observations
 
 /-- Missing or incomplete finite coverage remains representable until Target checking. -/
-inductive TargetBehaviorDomainAvailability
+inductive MaybeVocabulary
     {Setup State Action Outcome Observation : Type}
     (setupDomain : Setup → Prop)
     (stateDomain : State → Prop)
@@ -353,7 +353,7 @@ inductive TargetBehaviorDomainAvailability
     (steps : State → Action → List (Step State Outcome Observation)) where
   | missing
   | incomplete (missingCoverage : List DefinitionId)
-  | complete (domain : TargetBehaviorDomain setupDomain stateDomain actionDomain outcomeDomain
+  | complete (domain : Vocabulary setupDomain stateDomain actionDomain outcomeDomain
       observationDomain initialStates steps)
 
 structure MachineMetadata where
@@ -384,85 +384,59 @@ structure Machine (Setup State Action Outcome Observation : Type) where
     result ∈ steps state action → authoritativeStep state action result
   stepComplete : ∀ state action result,
     authoritativeStep state action result → result ∈ steps state action
-  behaviorDomain : TargetBehaviorDomainAvailability setupDomain stateDomain actionDomain
+  vocabulary : MaybeVocabulary setupDomain stateDomain actionDomain
     outcomeDomain observationDomain initialStates steps := .missing
-
-/-- Complete behavior domains prove that every enumerated kernel result remains in-domain. -/
-structure TargetBehaviorClosure
-    {Setup State Action Outcome Observation : Type}
-    (kernel : Machine Setup State Action Outcome Observation)
-    (domain : TargetBehaviorDomain kernel.setupDomain kernel.stateDomain kernel.actionDomain
-      kernel.outcomeDomain kernel.observationDomain kernel.initialStates kernel.steps) : Prop where
-  initialState : ∀ setup state,
-    state ∈ kernel.initialStates setup → state ∈ domain.states
-  resultingState : ∀ state action result,
-    result ∈ kernel.steps state action → result.state ∈ domain.states
-  outcome : ∀ state action result,
-    result ∈ kernel.steps state action → result.outcome ∈ domain.outcomes
-  observation : ∀ state action result value,
-    result ∈ kernel.steps state action → value ∈ result.facts → value ∈ domain.observations
-
-theorem TargetBehaviorDomain.closure
-    (kernel : Machine Setup State Action Outcome Observation)
-    (domain : TargetBehaviorDomain kernel.setupDomain kernel.stateDomain kernel.actionDomain
-      kernel.outcomeDomain kernel.observationDomain kernel.initialStates kernel.steps) :
-    TargetBehaviorClosure kernel domain := {
-  initialState := domain.initialStateCoverage
-  resultingState := domain.resultingStateCoverage
-  outcome := domain.outcomeCoverage
-  observation := domain.observationCoverage
-}
 
 /-- Missing proof obligations are representable only before target composition. -/
 inductive MachineAvailability (Setup State Action Outcome Observation : Type) where
-  | checked (kernel : Machine Setup State Action Outcome Observation)
+  | checked (machine : Machine Setup State Action Outcome Observation)
   | incomplete (metadata : MachineMetadata) (missingProofs : List DefinitionId)
 
-structure LawDefinition where
+structure Law where
   id : DefinitionId
   body : String
   deriving BEq, DecidableEq, Ord, Repr
 
 /-- A law witness retains its portable definition while proving the proposition interpreted from its body. -/
-structure LawWitness (LawStatement : LawDefinition → Prop) where
-  definition : LawDefinition
+structure LawProof (LawStatement : Law → Prop) where
+  definition : Law
   proof : LawStatement definition
 
-structure CapabilityContract where
+structure Capability where
   id : DefinitionId
   version : Nat := 1
-  canonicalBehavior : String
-  requiredLaws : List LawDefinition
+  behaviorVersion : String
+  requiredLaws : List Law
   deriving BEq, DecidableEq, Repr
 
-structure MeaningProvision where
+structure Meaning where
   definitionId : DefinitionId
   kind : DefinitionKind
-  canonicalBehavior : String
+  behaviorVersion : String
   deriving BEq, DecidableEq, Repr
 
-structure CapabilityProvider (LawStatement : LawDefinition → Prop) where
+structure Provider (LawStatement : Law → Prop) where
   id : DefinitionId
   source : SourceLocation
-  contract : CapabilityContract
-  meanings : List MeaningProvision
-  lawWitnesses : List (LawWitness LawStatement)
+  contract : Capability
+  meanings : List Meaning
+  lawProofs : List (LawProof LawStatement)
 
 structure Reconciliation where
   definitionId : DefinitionId
   kind : DefinitionKind
   providers : List DefinitionId
-  canonicalBehavior : String
+  behaviorVersion : String
   deriving BEq, DecidableEq, Repr
 
-structure CapabilityConnector (LawStatement : LawDefinition → Prop) where
+structure Connector (LawStatement : Law → Prop) where
   id : DefinitionId
   source : SourceLocation
   version : Nat := 1
-  canonicalBehavior : String
+  behaviorVersion : String
   reconciliations : List Reconciliation
-  requiredLaws : List LawDefinition
-  lawWitnesses : List (LawWitness LawStatement)
+  requiredLaws : List Law
+  lawProofs : List (LawProof LawStatement)
 
 inductive DefinitionErrorKind where
   | emptyDefinitionId
@@ -476,9 +450,9 @@ inductive DefinitionErrorKind where
   | missingProvider
   | conflictingProviders
   | ambiguousConnector
-  | incompleteKernel
-  | missingBehaviorDomain
-  | incompleteBehaviorDomain
+  | incompleteMachine
+  | missingVocabulary
+  | incompleteVocabulary
   deriving BEq, DecidableEq, Ord, Repr
 
 def DefinitionErrorKind.name : DefinitionErrorKind → String
@@ -493,9 +467,9 @@ def DefinitionErrorKind.name : DefinitionErrorKind → String
   | .missingProvider => "missing-provider"
   | .conflictingProviders => "conflicting-providers"
   | .ambiguousConnector => "ambiguous-connector"
-  | .incompleteKernel => "incomplete-kernel"
-  | .missingBehaviorDomain => "missing-behavior-domain"
-  | .incompleteBehaviorDomain => "incomplete-behavior-domain"
+  | .incompleteMachine => "incomplete-machine"
+  | .missingVocabulary => "missing-vocabulary"
+  | .incompleteVocabulary => "incomplete-vocabulary"
 
 structure DefinitionError where
   kind : DefinitionErrorKind

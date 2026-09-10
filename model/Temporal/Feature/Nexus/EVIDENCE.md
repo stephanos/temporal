@@ -9,7 +9,7 @@ language diagnostics.
 
 | Boundary | Executable evidence |
 | --- | --- |
-| Finite Target | `Umpire.TargetTests.FiniteMachine` compares old/new complete authored values, preserves all author proofs, and compiles missing-proof specimens. `Temporal.Feature.Nexus.LifecycleTests` compares the migrated Lifecycle to independent old-shape assembly and exact provider errors. |
+| Finite Target | `Umpire.ModelTests.FiniteMachine` compares old/new complete authored values, preserves all author proofs, and compiles missing-proof specimens. `Temporal.Feature.Nexus.LifecycleTests` compares the migrated Lifecycle to independent old-shape assembly and exact provider errors. |
 | Property, Behavior, Query, plan | `Temporal.Feature.Nexus.OperationsTests` preserves every ID, source, fingerprint, metadata field, selected trace, outcome, Limit, planner admission, and golden artifact byte. Its malformed clauses/references, missing capabilities, unsatisfiable Behavior, Target mismatch, invalid Limits, and omitted-proof specimens retain the owning boundary. |
 | Observation | `Umpire.ObservationTests.Compilation` covers the complete typed compile-error matrix and structural cost fixture. `Temporal.Feature.Nexus.ObservationTests` compares raw and helper-built profile/mapping/checked values exactly and exercises accepted, missing, ambiguous, conflicting, over-limit, profile, ordering, closure, and causal Evidence paths. |
 | Authored Known Gaps | `Umpire.Query.Tests.AuthoredKnownGaps` proves exact attachment through check, Space, Promotion, and record update. `Umpire.PlanningTests.Artifacts` proves exact union, overlap, conflict precedence, unchanged default bytes and selected plans. `Umpire.Case.CompilerTests` proves exact ordered conversion into generated Case provenance bytes. |
@@ -37,7 +37,7 @@ The facade test prints the transitive axiom sets of the named load-bearing decla
 `Lifecycle.targetAuthoring`, `AsyncStart.run`, `Observation.checkedPlan`, and its test-only
 `authoredRun`. `IncrementalPlannerKernel.ofCheckedQuery_isSome` remains separately printed by
 `OperationsTests`; it uses only `propext`, `Classical.choice`, and `Quot.sound`. The established
-Lifecycle Target and checked Property/Behavior/Query/Observation values retain their historical
+Lifecycle Model and checked Property/Behavior/Query/Observation values retain their historical
 native witnesses. Task 7 adds no production `native_decide`, `axiom`, `implemented_by`, `sorry`, or
 `admit`. Its `authoredGapSet_isSome` is a test-only extraction witness and is disclosed by the
 `authoredRun` printout.
@@ -54,7 +54,7 @@ operation still calls `IncrementalPlannerKernel.ofCheckedQuery` directly.
 
 | Added seam | Calls and traversals | 1×/10× pass condition |
 | --- | --- | --- |
-| Finite Target assembly | `targetDefinition` calls `machineAvailability` → `kernel` and projects `setups`; `authoredTarget` also calls `AuthoredTarget.make` and `authoredPlanning` → `machineAvailability`, `kernel`, and `planning`. All are record assembly/projection: zero added traversal, normalization, validation, nested scan, or checker call. | The independent fixtures contain exactly 1 and 10 assemblies. Existing `checkTarget` work is excluded. |
+| Finite Target assembly | `modelSpec` calls `machineAvailability` → `kernel` and projects `setups`; `draftModel` also calls `DraftModel.make` and `authoredPlanning` → `machineAvailability`, `kernel`, and `planning`. All are record assembly/projection: zero added traversal, normalization, validation, nested scan, or checker call. | The independent fixtures contain exactly 1 and 10 assemblies. Existing `checkModel` work is excluded. |
 | Temporal identity/source/Limits | Each declaration adds one `Temporal.Shared.definitionFamily`, one `DefinitionFamily.id`, one `sourceLocation`, and one `QueryLimitSpec.toQueryLimits` record assembly. No registry or declaration scan is introduced. | The fixtures contain exactly 1 and 10 independent identities; language checker work is excluded. |
 | Observation construction | `ObservationKindSpec.declaration` maps fields once; `ObservationProfileSpec.declaration` maps kinds once and calls that helper per kind; a rule projects one field; `ObservationMappingSpec.declaration` maps dispositions once. `check` and `checked` each delegate to one existing checker call and add no normalization or rescan. | The fixtures contain exactly 1 and 10 independent profile/rule/mapping constructions, so wrapper work is at most 10×; unchanged checker work is excluded. |
 | Query Known Gap attachment | Query, Space, Promotion, and record-update paths copy the checked set directly with zero validation or traversal. Existing identifier validation scans rows, canonical validation scans adjacent rows, and canonicalization/union retain `mergeSort`/`eraseDups`; no linear claim is made for those unchanged algorithms. | Ten independent attachments add exactly ten field copies; set work is not attributed to attachment. |
@@ -87,7 +87,7 @@ Follow-up quality verification:
 
 | Command | Terminal result | Captured output |
 | --- | --- | --- |
-| `lake build Umpire.TargetTests Temporal.Feature.Nexus.OperationsTests Temporal.Feature.NexusTests` | Exit 0; 80 jobs; includes named transitive trust output | `/tmp/fn62-task7-quality-focused.log` |
+| `lake build Umpire.ModelTests Temporal.Feature.Nexus.OperationsTests Temporal.Feature.NexusTests` | Exit 0; 80 jobs; includes named transitive trust output | `/tmp/fn62-task7-quality-focused.log` |
 | `lake build Temporal.Feature.Nexus.Operations.Planning Temporal.Feature.NexusTests` | Exit 0; 59 jobs after the theorem documentation addition | `/tmp/fn62-task7-quality-doc-focused.log` |
 | `make lint-model` | Exit 0; 260 targets and complete import graph | `/tmp/fn62-task7-quality-lint-model-rc.log` and `/tmp/fn62-task7-quality-lint-model.rc` |
 | `make lint-code GOLANGCI_LINT_FIX=false` | Inherited exit 2; exactly 1,316 sorted diagnostic headers, byte-identical to the prior task-7 signature, SHA-256 `aee7770bec1fe01dab8826427cc89e9ffa7e764fbac25ce6b68bf5f2e3c0b077` | `/tmp/fn62-task7-quality-lint-code.log` and `/tmp/fn62-task7-quality-diagnostic-headers.txt` |

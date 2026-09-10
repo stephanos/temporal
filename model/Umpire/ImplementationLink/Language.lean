@@ -1,4 +1,4 @@
-import Umpire.Target
+import Umpire.Model
 
 /-!
 The Implementation Link language relates two independently checked Targets without importing either
@@ -92,7 +92,7 @@ structure ImplementationTargetReference where
   deriving BEq, DecidableEq, Repr
 
 def ImplementationTargetReference.ofTarget
-    (target : CheckedTarget LawStatement Setup State Action Outcome Observation) :
+    (target : CheckedModel LawStatement Setup State Action Outcome Observation) :
     ImplementationTargetReference := {
   id := target.id
   kind := .target
@@ -102,37 +102,37 @@ def ImplementationTargetReference.ofTarget
 /-- Fingerprint one resolved target-owned semantic definition exactly as checking does. -/
 def implementationSemanticFingerprint
     (definition : DefinitionMetadata)
-    (canonicalBehavior : String) : BehaviorFingerprint :=
+    (behaviorVersion : String) : BehaviorFingerprint :=
   behaviorFingerprintOf <|
     "{\"id\":" ++ Lean.Json.compress (.str definition.id.value) ++
     ",\"kind\":" ++ Lean.Json.compress (.str definition.kind.name) ++
     ",\"version\":" ++ toString definition.version ++
-    ",\"canonicalBehavior\":" ++ Lean.Json.compress (.str canonicalBehavior) ++ "}"
+    ",\"behaviorVersion\":" ++ Lean.Json.compress (.str behaviorVersion) ++ "}"
 
-private def implementationLawLe (left right : LawDefinition) : Bool :=
+private def implementationLawLe (left right : Law) : Bool :=
   decide (left.id.value < right.id.value) ||
     (left.id == right.id && decide (left.body ≤ right.body))
 
-private def implementationLawJson (law : LawDefinition) : String :=
+private def implementationLawJson (law : Law) : String :=
   "{\"id\":" ++ Lean.Json.compress (.str law.id.value) ++
     ",\"body\":" ++ Lean.Json.compress (.str law.body) ++ "}"
 
 private def implementationCapabilityFingerprint
     (definition : DefinitionMetadata)
-    (contract : CapabilityContract) : BehaviorFingerprint :=
+    (contract : Capability) : BehaviorFingerprint :=
   let laws := contract.requiredLaws.mergeSort implementationLawLe
   behaviorFingerprintOf <|
     "{\"id\":" ++ Lean.Json.compress (.str definition.id.value) ++
     ",\"kind\":" ++ Lean.Json.compress (.str definition.kind.name) ++
     ",\"definitionVersion\":" ++ toString definition.version ++
     ",\"contractVersion\":" ++ toString contract.version ++
-    ",\"canonicalBehavior\":" ++ Lean.Json.compress (.str contract.canonicalBehavior) ++
+    ",\"behaviorVersion\":" ++ Lean.Json.compress (.str contract.behaviorVersion) ++
     ",\"requiredLaws\":[" ++
       String.intercalate "," (laws.map implementationLawJson) ++ "]}"
 
 private structure ImplementationProvidedMeaning where
   provider : DefinitionId
-  meaning : MeaningProvision
+  meaning : Meaning
 
 private def implementationProvidedMeaningLe
     (left right : ImplementationProvidedMeaning) : Bool :=
@@ -151,14 +151,14 @@ private def implementationProviderIds (ids : List DefinitionId) : List Definitio
   ids.mergeSort (fun left right => decide (left.value ≤ right.value)) |>.eraseDups
 
 private def resolvedImplementationMeanings
-    (target : CheckedTarget LawStatement Setup State Action Outcome Observation) :
-    List MeaningProvision :=
+    (target : CheckedModel LawStatement Setup State Action Outcome Observation) :
+    List Meaning :=
   let provided := target.providers.flatMap fun provider =>
     provider.meanings.map fun meaning => { provider := provider.id, meaning }
   let canonicalProvided := provided.mergeSort implementationProvidedMeaningLe
   let keys := canonicalProvided.map (fun item => (item.meaning.definitionId, item.meaning.kind))
     |>.mergeSort implementationMeaningKeyLe |>.eraseDups
-  let reconciliations := target.connectors.flatMap CapabilityConnector.reconciliations
+  let reconciliations := target.connectors.flatMap Connector.reconciliations
   keys.flatMap fun key =>
     let candidates := canonicalProvided.filter fun item =>
       item.meaning.definitionId == key.1 && item.meaning.kind == key.2
@@ -166,7 +166,7 @@ private def resolvedImplementationMeanings
     | [] => []
     | first :: _ =>
         if candidates.all fun item =>
-            item.meaning.canonicalBehavior == first.meaning.canonicalBehavior then
+            item.meaning.behaviorVersion == first.meaning.behaviorVersion then
           [first.meaning]
         else
           let providers := implementationProviderIds
@@ -177,12 +177,12 @@ private def resolvedImplementationMeanings
           | some reconciliation => [{
               definitionId := reconciliation.definitionId
               kind := reconciliation.kind
-              canonicalBehavior := reconciliation.canonicalBehavior
+              behaviorVersion := reconciliation.behaviorVersion
             }]
           | none => []
 
 private def implementationSemanticReferences
-    (target : CheckedTarget LawStatement Setup State Action Outcome Observation) :
+    (target : CheckedModel LawStatement Setup State Action Outcome Observation) :
     List ImplementationSemanticReference :=
   let relationReferences := resolvedImplementationMeanings target |>.filterMap fun meaning => do
     if meaning.kind != .relation then none
@@ -191,7 +191,7 @@ private def implementationSemanticReferences
     pure {
       id := definition.id
       kind := definition.kind
-      behaviorFingerprint := implementationSemanticFingerprint definition meaning.canonicalBehavior
+      behaviorFingerprint := implementationSemanticFingerprint definition meaning.behaviorVersion
     }
   let capabilityIds := target.providers.map (fun provider => provider.contract.id)
     |>.mergeSort (fun left right => decide (left.value ≤ right.value)) |>.eraseDups
@@ -216,14 +216,14 @@ private def implementationSemanticReferences
 
 /-- Resolve one relation or capability reference from a checked Target's authoritative semantics. -/
 def implementationSemanticReference?
-    (target : CheckedTarget LawStatement Setup State Action Outcome Observation)
+    (target : CheckedModel LawStatement Setup State Action Outcome Observation)
     (id : DefinitionId)
     (kind : DefinitionKind) : Option ImplementationSemanticReference :=
   (implementationSemanticReferences target).find? fun reference =>
     reference.id == id && reference.kind == kind
 
 private def conflictingCapabilityId?
-    (target : CheckedTarget LawStatement Setup State Action Outcome Observation) : Option DefinitionId :=
+    (target : CheckedModel LawStatement Setup State Action Outcome Observation) : Option DefinitionId :=
   let ids := target.requiredCapabilities
   ids.find? fun id =>
     let providers := target.providers.filter fun provider => provider.contract.id == id
@@ -469,9 +469,9 @@ def implementationLinkWitnessIndex
     (declaration : ImplementationLinkDeclaration
       SourceSetup SourceState SourceAction SourceOutcome SourceObservation
       DestinationSetup DestinationState DestinationAction DestinationOutcome DestinationObservation)
-    (source : CheckedTarget SourceLawStatement SourceSetup SourceState SourceAction
+    (source : CheckedModel SourceLawStatement SourceSetup SourceState SourceAction
       SourceOutcome SourceObservation)
-    (destination : CheckedTarget DestinationLawStatement DestinationSetup DestinationState
+    (destination : CheckedModel DestinationLawStatement DestinationSetup DestinationState
       DestinationAction DestinationOutcome DestinationObservation) :
     ImplementationLinkWitnessIndex := {
   definitionId := declaration.id
@@ -485,26 +485,26 @@ structure ImplementationLinkRequiredCoverage
     (declaration : ImplementationLinkDeclaration
       SourceSetup SourceState SourceAction SourceOutcome SourceObservation
       DestinationSetup DestinationState DestinationAction DestinationOutcome DestinationObservation)
-    (source : CheckedTarget SourceLawStatement SourceSetup SourceState SourceAction
+    (source : CheckedModel SourceLawStatement SourceSetup SourceState SourceAction
       SourceOutcome SourceObservation)
     (mapSetup : SourceSetup → DestinationSetup)
     (mapState : SourceState → DestinationState)
     (mapAction : SourceAction → DestinationAction)
     (mapOutcome : SourceOutcome → DestinationOutcome)
     (mapObservation : SourceObservation → DestinationObservation) : Prop where
-  setup : ∀ value, source.kernel.setupDomain value →
+  setup : ∀ value, source.machine.setupDomain value →
     ({ source := value, destination := mapSetup value } ∈ declaration.setupMappings) ∨
       ∃ gap, gap ∈ declaration.setupKnownGaps ∧ gap.source = value
-  state : ∀ value, source.kernel.stateDomain value →
+  state : ∀ value, source.machine.stateDomain value →
     ({ source := value, destination := mapState value } ∈ declaration.stateMappings) ∨
       ∃ gap, gap ∈ declaration.stateKnownGaps ∧ gap.source = value
-  action : ∀ value, source.kernel.actionDomain value →
+  action : ∀ value, source.machine.actionDomain value →
     ({ source := value, destination := mapAction value } ∈ declaration.actionMappings) ∨
       ∃ gap, gap ∈ declaration.actionKnownGaps ∧ gap.source = value
-  outcome : ∀ value, source.kernel.outcomeDomain value →
+  outcome : ∀ value, source.machine.outcomeDomain value →
     ({ source := value, destination := mapOutcome value } ∈ declaration.outcomeMappings) ∨
       ∃ gap, gap ∈ declaration.outcomeKnownGaps ∧ gap.source = value
-  observation : ∀ value, source.kernel.observationDomain value →
+  observation : ∀ value, source.machine.observationDomain value →
     ({ source := value, destination := mapObservation value } ∈ declaration.observationMappings) ∨
       ∃ gap, gap ∈ declaration.observationKnownGaps ∧ gap.source = value
   relation : List.Perm
@@ -522,12 +522,12 @@ structure ImplementationLinkWitness
     (declaration : ImplementationLinkDeclaration
       SourceSetup SourceState SourceAction SourceOutcome SourceObservation
       DestinationSetup DestinationState DestinationAction DestinationOutcome DestinationObservation)
-    (source : CheckedTarget SourceLawStatement SourceSetup SourceState SourceAction
+    (source : CheckedModel SourceLawStatement SourceSetup SourceState SourceAction
       SourceOutcome SourceObservation)
-    (destination : CheckedTarget DestinationLawStatement DestinationSetup DestinationState
+    (destination : CheckedModel DestinationLawStatement DestinationSetup DestinationState
       DestinationAction DestinationOutcome DestinationObservation) where
   index : ImplementationLinkWitnessIndex
-  forwardSimulation : ForwardSimulation source.kernel destination.kernel
+  forwardSimulation : ForwardSimulation source.machine destination.machine
   requiredCoverage : ImplementationLinkRequiredCoverage declaration source
     forwardSimulation.morphism.mapSetup forwardSimulation.morphism.mapState
     forwardSimulation.morphism.mapAction forwardSimulation.morphism.mapOutcome
@@ -538,9 +538,9 @@ inductive ImplementationLinkWitnessAuthoring
     (declaration : ImplementationLinkDeclaration
       SourceSetup SourceState SourceAction SourceOutcome SourceObservation
       DestinationSetup DestinationState DestinationAction DestinationOutcome DestinationObservation)
-    (source : CheckedTarget SourceLawStatement SourceSetup SourceState SourceAction
+    (source : CheckedModel SourceLawStatement SourceSetup SourceState SourceAction
       SourceOutcome SourceObservation)
-    (destination : CheckedTarget DestinationLawStatement DestinationSetup DestinationState
+    (destination : CheckedModel DestinationLawStatement DestinationSetup DestinationState
       DestinationAction DestinationOutcome DestinationObservation) where
   | complete (witness : ImplementationLinkWitness declaration source destination)
   | incomplete (index : ImplementationLinkWitnessIndex)
@@ -560,8 +560,8 @@ theorem ImplementationLinkWitness.initialForward
       (DestinationObservation := DestinationObservation) declaration source destination)
     (setup : SourceSetup)
     (state : SourceState)
-    (admitted : source.kernel.authoritativeInitial setup state) :
-    destination.kernel.authoritativeInitial
+    (admitted : source.machine.authoritativeInitial setup state) :
+    destination.machine.authoritativeInitial
       (witness.forwardSimulation.morphism.mapSetup setup)
       (witness.forwardSimulation.morphism.mapState state) :=
   witness.forwardSimulation.initialForward setup state admitted
@@ -577,8 +577,8 @@ theorem ImplementationLinkWitness.stepForward
     (state : SourceState)
     (action : SourceAction)
     (result : Step SourceState SourceOutcome SourceObservation)
-    (admitted : source.kernel.authoritativeStep state action result) :
-    destination.kernel.authoritativeStep
+    (admitted : source.machine.authoritativeStep state action result) :
+    destination.machine.authoritativeStep
       (witness.forwardSimulation.morphism.mapState state)
       (witness.forwardSimulation.morphism.mapAction action)
       {
@@ -626,8 +626,8 @@ theorem ImplementationLinkWitness.traceForward
       (DestinationObservation := DestinationObservation) declaration source destination)
     (setup : SourceSetup)
     (trace : ModelTrace SourceState SourceAction SourceOutcome SourceObservation)
-    (admitted : AuthoritativeModelTrace source.kernel setup trace) :
-    AuthoritativeModelTrace destination.kernel
+    (admitted : AuthoritativeModelTrace source.machine setup trace) :
+    AuthoritativeModelTrace destination.machine
       (witness.forwardSimulation.morphism.mapSetup setup)
       (witness.translateTrace trace) :=
   witness.forwardSimulation.traceForward setup trace admitted
@@ -695,8 +695,8 @@ structure ImplementationLinkError where
 
 /-- A checked link retains the shared simulation while Link metadata remains separately owned. -/
 structure CheckedImplementationLink
-    (SourceLawStatement : LawDefinition → Prop)
-    (DestinationLawStatement : LawDefinition → Prop)
+    (SourceLawStatement : Law → Prop)
+    (DestinationLawStatement : Law → Prop)
     (SourceSetup SourceState SourceAction SourceOutcome SourceObservation : Type)
     (DestinationSetup DestinationState DestinationAction DestinationOutcome
       DestinationObservation : Type) where
@@ -704,11 +704,11 @@ structure CheckedImplementationLink
   declaration : ImplementationLinkDeclaration
     SourceSetup SourceState SourceAction SourceOutcome SourceObservation
     DestinationSetup DestinationState DestinationAction DestinationOutcome DestinationObservation
-  sourceTarget : CheckedTarget SourceLawStatement SourceSetup SourceState SourceAction
+  sourceTarget : CheckedModel SourceLawStatement SourceSetup SourceState SourceAction
     SourceOutcome SourceObservation
-  destinationTarget : CheckedTarget DestinationLawStatement DestinationSetup DestinationState
+  destinationTarget : CheckedModel DestinationLawStatement DestinationSetup DestinationState
     DestinationAction DestinationOutcome DestinationObservation
-  forwardSimulation : ForwardSimulation sourceTarget.kernel destinationTarget.kernel
+  forwardSimulation : ForwardSimulation sourceTarget.machine destinationTarget.machine
   canonicalMetadata : String
   behaviorFingerprint : BehaviorFingerprint
 
@@ -802,12 +802,12 @@ private def canonicalizeDeclaration
     (declaration : ImplementationLinkDeclaration
       SourceSetup SourceState SourceAction SourceOutcome SourceObservation
       DestinationSetup DestinationState DestinationAction DestinationOutcome DestinationObservation)
-    (sourceDomain : TargetBehaviorDomain
+    (sourceDomain : Vocabulary
       (Setup := SourceSetup) (State := SourceState) (Action := SourceAction)
       (Outcome := SourceOutcome) (Observation := SourceObservation)
       sourceSetupDomain sourceStateDomain sourceActionDomain sourceOutcomeDomain
       sourceObservationDomain sourceInitialStates sourceSteps)
-    (destinationDomain : TargetBehaviorDomain
+    (destinationDomain : Vocabulary
       (Setup := DestinationSetup) (State := DestinationState) (Action := DestinationAction)
       (Outcome := DestinationOutcome) (Observation := DestinationObservation)
       destinationSetupDomain destinationStateDomain destinationActionDomain destinationOutcomeDomain
@@ -839,12 +839,12 @@ private def implementationLinkSemanticJson
     (declaration : ImplementationLinkDeclaration
       SourceSetup SourceState SourceAction SourceOutcome SourceObservation
       DestinationSetup DestinationState DestinationAction DestinationOutcome DestinationObservation)
-    (sourceDomain : TargetBehaviorDomain
+    (sourceDomain : Vocabulary
       (Setup := SourceSetup) (State := SourceState) (Action := SourceAction)
       (Outcome := SourceOutcome) (Observation := SourceObservation)
       sourceSetupDomain sourceStateDomain sourceActionDomain sourceOutcomeDomain
       sourceObservationDomain sourceInitialStates sourceSteps)
-    (destinationDomain : TargetBehaviorDomain
+    (destinationDomain : Vocabulary
       (Setup := DestinationSetup) (State := DestinationState) (Action := DestinationAction)
       (Outcome := DestinationOutcome) (Observation := DestinationObservation)
       destinationSetupDomain destinationStateDomain destinationActionDomain destinationOutcomeDomain
@@ -1069,16 +1069,16 @@ private def checkImplementationLinkWithDomains
     (declaration : ImplementationLinkDeclaration
       SourceSetup SourceState SourceAction SourceOutcome SourceObservation
       DestinationSetup DestinationState DestinationAction DestinationOutcome DestinationObservation)
-    (source : CheckedTarget SourceLawStatement SourceSetup SourceState SourceAction
+    (source : CheckedModel SourceLawStatement SourceSetup SourceState SourceAction
       SourceOutcome SourceObservation)
-    (destination : CheckedTarget DestinationLawStatement DestinationSetup DestinationState
+    (destination : CheckedModel DestinationLawStatement DestinationSetup DestinationState
       DestinationAction DestinationOutcome DestinationObservation)
-    (sourceDomain : TargetBehaviorDomain source.kernel.setupDomain source.kernel.stateDomain
-      source.kernel.actionDomain source.kernel.outcomeDomain source.kernel.observationDomain
-      source.kernel.initialStates source.kernel.steps)
-    (destinationDomain : TargetBehaviorDomain destination.kernel.setupDomain
-      destination.kernel.stateDomain destination.kernel.actionDomain destination.kernel.outcomeDomain
-      destination.kernel.observationDomain destination.kernel.initialStates destination.kernel.steps)
+    (sourceDomain : Vocabulary source.machine.setupDomain source.machine.stateDomain
+      source.machine.actionDomain source.machine.outcomeDomain source.machine.observationDomain
+      source.machine.initialStates source.machine.steps)
+    (destinationDomain : Vocabulary destination.machine.setupDomain
+      destination.machine.stateDomain destination.machine.actionDomain destination.machine.outcomeDomain
+      destination.machine.observationDomain destination.machine.initialStates destination.machine.steps)
     (authoredWitness : ImplementationLinkWitnessAuthoring declaration source destination) :
     Except ImplementationLinkError (CheckedImplementationLink SourceLawStatement
       DestinationLawStatement SourceSetup SourceState SourceAction SourceOutcome SourceObservation
@@ -1164,15 +1164,15 @@ def checkImplementationLink
     (declaration : ImplementationLinkDeclaration
       SourceSetup SourceState SourceAction SourceOutcome SourceObservation
       DestinationSetup DestinationState DestinationAction DestinationOutcome DestinationObservation)
-    (source : CheckedTarget SourceLawStatement SourceSetup SourceState SourceAction
+    (source : CheckedModel SourceLawStatement SourceSetup SourceState SourceAction
       SourceOutcome SourceObservation)
-    (destination : CheckedTarget DestinationLawStatement DestinationSetup DestinationState
+    (destination : CheckedModel DestinationLawStatement DestinationSetup DestinationState
       DestinationAction DestinationOutcome DestinationObservation)
     (witness : ImplementationLinkWitnessAuthoring declaration source destination) :
     Except ImplementationLinkError (CheckedImplementationLink SourceLawStatement
       DestinationLawStatement SourceSetup SourceState SourceAction SourceOutcome SourceObservation
       DestinationSetup DestinationState DestinationAction DestinationOutcome DestinationObservation) :=
-  match source.kernel.behaviorDomain, destination.kernel.behaviorDomain with
+  match source.machine.vocabulary, destination.machine.vocabulary with
   | .complete sourceDomain, .complete destinationDomain =>
       checkImplementationLinkWithDomains declaration source destination sourceDomain destinationDomain
         witness
@@ -1194,8 +1194,8 @@ def CheckedImplementationLink.hasCanonicalIdentity
       SourceSetup SourceState SourceAction SourceOutcome SourceObservation
       DestinationSetup DestinationState DestinationAction DestinationOutcome
       DestinationObservation) : Bool :=
-  match checked.sourceTarget.kernel.behaviorDomain,
-      checked.destinationTarget.kernel.behaviorDomain with
+  match checked.sourceTarget.machine.vocabulary,
+      checked.destinationTarget.machine.vocabulary with
   | .complete sourceDomain, .complete destinationDomain =>
       let declaration := canonicalizeDeclaration checked.declaration sourceDomain destinationDomain
       let semantic := implementationLinkSemanticJson declaration sourceDomain destinationDomain

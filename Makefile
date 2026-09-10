@@ -83,7 +83,7 @@ endif
 
 UMPIRE_GEN_LEAN_API_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-gen-lean-api
 UMPIRE_GOLDEN_DIRECTORIES := \
-	Umpire/Target/Tests/Compatibility/Fixtures \
+	Umpire/Model/Tests/Compatibility/Fixtures \
 	Temporal/Feature/Nexus/Fixtures \
 	Umpire/Examples/Fixtures \
 	Umpire/Artifact/Tests/Fixtures
@@ -747,7 +747,15 @@ umpire-check-regression: umpire-check-lean-api umpire-check-goldens umpire-check
 			scan_status=$$?; \
 			test "$$scan_status" -eq 1; \
 		fi; \
-		for package in Target Property Behavior Query; do \
+		test -f model/Umpire/Model/Check.lean || { \
+			echo "missing physical Umpire Model package" >&2; \
+			exit 1; \
+		}; \
+		grep -qx 'import Umpire.Model.Elab' model/Umpire/Model.lean || { \
+			echo "Umpire Model facade does not expose its package" >&2; \
+			exit 1; \
+		}; \
+		for package in Property Behavior Query; do \
 			test -f "model/Umpire/$$package/Language.lean" || { \
 				echo "missing physical Umpire $$package package" >&2; \
 				exit 1; \

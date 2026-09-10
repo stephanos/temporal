@@ -1,4 +1,4 @@
-import Umpire.Target
+import Umpire.Model
 
 /-!
 # Temporal Nexus system lifecycle
@@ -64,13 +64,13 @@ def step : ExecutionState → ExecutionEvent → Option ExecutionState
   | .running, .recordCompletion => some .completionRecorded
   | _, _ => none
 
-def lifecycleLaw : LawDefinition := {
+def lifecycleLaw : Law := {
   id := lifecycleLawId
   body := "temporal-system-nexus-lifecycle-authoritative-step/v1"
 }
 
 /-- The provider law binds checked System meaning to the pure mechanism transition relation. -/
-def LawStatement (law : LawDefinition) : Prop :=
+def LawStatement (law : Law) : Prop :=
   law = lifecycleLaw ∧
     step .queued .dispatch = some .running ∧
     step .running .recordCancellation = some .cancellationRecorded ∧
@@ -82,11 +82,11 @@ theorem lifecycleLawProof : LawStatement lifecycleLaw := by
 private def metadata
     (definitionId : DefinitionId)
     (kind : DefinitionKind)
-    (canonicalBehavior : String) : DefinitionMetadata := {
+    (behaviorVersion : String) : DefinitionMetadata := {
   id := definitionId
   kind
   source
-  canonicalBehavior
+  behaviorVersion
 }
 
 def queuedState : ModelValue := ModelValue.named operationStateId "queued"
@@ -456,10 +456,10 @@ def machine : Machine
   authoritativeStep := finiteMachine.kernel.authoritativeStep
   stepSound := finiteMachine.kernel.stepSound
   stepComplete := finiteMachine.kernel.stepComplete
-  behaviorDomain := by
+  vocabulary := by
     rw [setupDomain_eq, stateDomain_eq, actionDomain_eq, outcomeDomain_eq,
       observationDomain_eq]
-    exact finiteMachine.kernel.behaviorDomain
+    exact finiteMachine.kernel.vocabulary
 }
 
 @[simp] private theorem finiteMachine_kernel_initialStates (setup : ExecutionSetup) :
@@ -470,29 +470,29 @@ def machine : Machine
     finiteMachine.kernel.steps state action = stepResults state action :=
   rfl
 
-def lifecycleProvider : CapabilityProvider LawStatement := {
+def lifecycleProvider : Provider LawStatement := {
   id := lifecycleProviderId
   source
   contract := {
     id := lifecycleCapabilityId
-    canonicalBehavior := "temporal-system-nexus-lifecycle/v1"
+    behaviorVersion := "temporal-system-nexus-lifecycle/v1"
     requiredLaws := [lifecycleLaw]
   }
   meanings := [
     { definitionId := operationStateId, kind := .state,
-      canonicalBehavior := "temporal-system-nexus-lifecycle-state/v1" },
+      behaviorVersion := "temporal-system-nexus-lifecycle-state/v1" },
     { definitionId := dispatchActionId, kind := .action,
-      canonicalBehavior := "temporal-system-nexus-lifecycle-dispatch/v1" },
+      behaviorVersion := "temporal-system-nexus-lifecycle-dispatch/v1" },
     { definitionId := recordCancellationActionId, kind := .action,
-      canonicalBehavior := "temporal-system-nexus-lifecycle-record-cancellation/v1" },
+      behaviorVersion := "temporal-system-nexus-lifecycle-record-cancellation/v1" },
     { definitionId := recordCompletionActionId, kind := .action,
-      canonicalBehavior := "temporal-system-nexus-lifecycle-record-completion/v1" },
+      behaviorVersion := "temporal-system-nexus-lifecycle-record-completion/v1" },
     { definitionId := transitionOutcomeId, kind := .outcome,
-      canonicalBehavior := "temporal-system-nexus-lifecycle-outcome/v1" },
+      behaviorVersion := "temporal-system-nexus-lifecycle-outcome/v1" },
     { definitionId := lifecycleObservationId, kind := .fact,
-      canonicalBehavior := "temporal-system-nexus-lifecycle-observation/v1" }
+      behaviorVersion := "temporal-system-nexus-lifecycle-observation/v1" }
   ]
-  lawWitnesses := [{ definition := lifecycleLaw, proof := lifecycleLawProof }]
+  lawProofs := [{ definition := lifecycleLaw, proof := lifecycleLawProof }]
 }
 
 def definitions : List DefinitionMetadata := [
@@ -519,49 +519,49 @@ def finitePlanning : FinitePlanningCapability machine.authoritativeStep :=
     finiteMachine.planning.actions = actions :=
   rfl
 
-def targetDefinition : TargetDefinition
+def modelSpec : ModelSpec LawStatement
     ExecutionSetup ModelValue ModelValue ModelValue ModelValue := {
   id := targetId
   source
   definitions
   requiredCapabilities := [lifecycleCapabilityId]
   resolvedSetups := setups
-  kernel := .checked machine
+  machine := .checked machine
 }
 
-def targetComposition : TargetComposition LawStatement :=
-  TargetComposition.empty |>.provide lifecycleProvider
+def modelProviders : Providers LawStatement :=
+  Providers.empty |>.provide lifecycleProvider
 
-def targetAuthoring : AuthoredTarget LawStatement
+def targetAuthoring : DraftModel LawStatement
     ExecutionSetup ModelValue ModelValue ModelValue ModelValue :=
-  AuthoredTarget.make targetDefinition targetComposition
+  DraftModel.make modelSpec modelProviders
     (.available machine rfl finitePlanning)
 
 /-- The independently checked pure Nexus System target. -/
-def target : CheckedTarget LawStatement
+def target : CheckedModel LawStatement
     ExecutionSetup ModelValue ModelValue ModelValue ModelValue :=
-  checkedTarget targetAuthoring
+  model targetAuthoring
 
 theorem target_queued_initial_authoritative :
-    target.kernel.authoritativeInitial queuedSetup queuedState := by
+    target.machine.authoritativeInitial queuedSetup queuedState := by
   change queuedState ∈ initialStates queuedSetup
   simp [initialStates, initialState?]
 
 theorem target_queued_dispatch_authoritative :
-    target.kernel.authoritativeStep queuedState dispatchAction dispatchedResult := by
+    target.machine.authoritativeStep queuedState dispatchAction dispatchedResult := by
   change dispatchedResult ∈ stepResults queuedState dispatchAction
   simp [stepResults, stepResult?, executionState?, executionEvent?, modelStep?, step,
     queuedState, dispatchAction]
 
 theorem target_running_cancellation_authoritative :
-    target.kernel.authoritativeStep runningState recordCancellationAction
+    target.machine.authoritativeStep runningState recordCancellationAction
       cancellationRecordedResult := by
   change cancellationRecordedResult ∈ stepResults runningState recordCancellationAction
   simp [stepResults, stepResult?, executionState?, executionEvent?, modelStep?, step,
     queuedState, runningState, dispatchAction, recordCancellationAction, ModelValue.named]
 
 theorem target_running_completion_authoritative :
-    target.kernel.authoritativeStep runningState recordCompletionAction
+    target.machine.authoritativeStep runningState recordCompletionAction
       completionRecordedResult := by
   change completionRecordedResult ∈ stepResults runningState recordCompletionAction
   simp [stepResults, stepResult?, executionState?, executionEvent?, modelStep?, step,

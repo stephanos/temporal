@@ -21,7 +21,7 @@ several ideas. Measured on the current tree:
 | Observation | 6 | Capability | 5 |
 
 The reverse is as common: the transition relation is a `Machine`, a `FiniteMachine`, a
-`FiniteTable`, or a `ValidatedFiniteModel` depending on the file; something that must hold is a
+`FiniteTable`, or a `CheckedTableModel` depending on the file; something that must hold is a
 Property, Clause, Obligation, Requirement, Claim, Law, or Rule; a budget is a Limit, Bound, Ceiling,
 Horizon, or `bounds`. `Scoped` prefixes 24 proto names and 40 Lean files with nothing stating that it
 means "tracked per operation, correlated by a key". Some vocabulary is simply dead — a 142-structure

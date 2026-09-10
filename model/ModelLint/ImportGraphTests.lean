@@ -268,10 +268,10 @@ private def testTestSupportIsolation : IO Unit := do
       #[moduleRecord source #[`Umpire.Shared.Test], moduleRecord `Umpire.Shared.Test]
       .testSupportIsolation #[source, `Umpire.Shared.Test]
   let allowed := #[
-    moduleRecord `Umpire.Target.Tests.Fixtures #[`Umpire.Shared.Test],
-    moduleRecord `Umpire.Target.Tests.Validation #[`Umpire.Target.Tests.Fixtures],
-    moduleRecord `Umpire.TargetTests #[`Umpire.Target.Tests.Validation],
-    moduleRecord `UmpireTests #[`Umpire.TargetTests],
+    moduleRecord `Umpire.Model.Tests.Fixtures #[`Umpire.Shared.Test],
+    moduleRecord `Umpire.Model.Tests.Validation #[`Umpire.Model.Tests.Fixtures],
+    moduleRecord `Umpire.ModelTests #[`Umpire.Model.Tests.Validation],
+    moduleRecord `UmpireTests #[`Umpire.ModelTests],
     moduleRecord `Umpire.Lint #[`UmpireTests],
     moduleRecord `Temporal.Feature.Nexus.LifecycleTests #[`Umpire.Shared.Test],
     moduleRecord `Temporal.Tool.GenerateTestsTests #[`Umpire.Shared.Test],
@@ -284,9 +284,9 @@ private def testTestSupportIsolation : IO Unit := do
 
 private def testTargetIsolation : IO Unit := do
   let allowed := #[
-    moduleRecord `Umpire.Target.Tests.Validation #[`Umpire.Target],
-    moduleRecord `Umpire.Target #[`Umpire.Target.Language],
-    moduleRecord `Umpire.Target.Language #[`Umpire.Core],
+    moduleRecord `Umpire.Model.Tests.Validation #[`Umpire.Model],
+    moduleRecord `Umpire.Model #[`Umpire.Model.Types],
+    moduleRecord `Umpire.Model.Types #[`Umpire.Core],
     moduleRecord `Umpire.Core
   ]
   requireEqual "Target-owned imports" (check defaultPolicy allowed) #[]
@@ -298,22 +298,22 @@ private def testTargetIsolation : IO Unit := do
     `Umpire.Verify.Core,
     `Temporal.Feature.Nexus.Lifecycle
   ]
-  for source in #[`Umpire.Target, `Umpire.Target.Tests.Validation] do
+  for source in #[`Umpire.Model, `Umpire.Model.Tests.Validation] do
     for destination in destinations do
       requireViolation s!"{source} to {destination} direct"
         #[moduleRecord source #[destination], moduleRecord destination]
-        .targetIsolation #[source, destination]
+        .modelIsolation #[source, destination]
       requireViolation s!"{source} to {destination} transitive"
         #[
           moduleRecord source #[`ModelLint.Bridge],
           moduleRecord `ModelLint.Bridge #[destination],
           moduleRecord destination
         ]
-        .targetIsolation #[source, `ModelLint.Bridge, destination]
+        .modelIsolation #[source, `ModelLint.Bridge, destination]
 
 private def testSemanticTargetIsolation : IO Unit := do
   let roots := #[
-    `Umpire.Target.Semantics,
+    `Umpire.Model.Check,
     `Umpire.Property.Language,
     `Umpire.Property.Check,
     `Umpire.Property.Trace,
@@ -332,7 +332,7 @@ private def testSemanticTargetIsolation : IO Unit := do
     `Umpire.Artifact.Planning
   ]
   for root in roots do
-    for destination in #[`Umpire.Target.Frontend, `Lean.Elab.Term] do
+    for destination in #[`Umpire.Model.Elab, `Lean.Elab.Term] do
       let direct := check defaultPolicy #[moduleRecord root #[destination]]
       requireEqual s!"{root} rejects missing-record endpoint {destination}"
         (direct.map (·.path)) #[#[root, destination]]
@@ -345,20 +345,20 @@ private def testSemanticTargetIsolation : IO Unit := do
         requireEqual s!"{root} rejects {bridge} to {destination}"
           ((check defaultPolicy modules).map (·.path)) #[#[root, bridge, destination]]
   let allowed := #[
-    moduleRecord `Umpire.Property.Evaluation #[`Umpire.Target.Semantics],
-    moduleRecord `Umpire.Target.Semantics #[`External.Pure],
+    moduleRecord `Umpire.Property.Evaluation #[`Umpire.Model.Check],
+    moduleRecord `Umpire.Model.Check #[`External.Pure],
     moduleRecord `External.Pure #[`Lean.Data.Json],
     moduleRecord `Lean.Data.Json,
-    moduleRecord `Umpire.Target #[`Umpire.Target.Language],
-    moduleRecord `Umpire.Target.Language #[`Umpire.Target.Frontend],
-    moduleRecord `Umpire.Target.Frontend #[`Lean.Elab.Term],
+    moduleRecord `Umpire.Model #[`Umpire.Model.Types],
+    moduleRecord `Umpire.Model.Types #[`Umpire.Model.Elab],
+    moduleRecord `Umpire.Model.Elab #[`Lean.Elab.Term],
     moduleRecord `Lean.Elab.Term,
-    moduleRecord `Umpire.Property.Authoring #[`Umpire.Target],
+    moduleRecord `Umpire.Property.Authoring #[`Umpire.Model],
     moduleRecord `Umpire.Property #[`Umpire.Property.Authoring],
     moduleRecord `Umpire.Property.Tests.Fixtures #[`Umpire.Property],
-    moduleRecord `Umpire.Behavior.Authoring #[`Umpire.Target],
+    moduleRecord `Umpire.Behavior.Authoring #[`Umpire.Model],
     moduleRecord `Umpire.Behavior #[`Umpire.Behavior.Authoring],
-    moduleRecord `Umpire.Query.Authoring #[`Umpire.Target],
+    moduleRecord `Umpire.Query.Authoring #[`Umpire.Model],
     moduleRecord `Umpire.Query #[`Umpire.Query.Authoring]
   ]
   requireEqual "pure imports and explicit authoring remain allowed"
@@ -499,16 +499,16 @@ private def testExternalMetadataReconciliation : IO Unit := do
   let sources := #[sourceRecord `Umpire.Property.Language]
   let modules := #[
     moduleRecord `Umpire.Property.Language #[`External.Wrapper],
-    moduleRecord `External.Wrapper #[`Umpire.Target.Missing]
+    moduleRecord `External.Wrapper #[`Umpire.Model.Missing]
   ]
   requireEqual "external metadata keeps unknown owned imports visible"
     (reconcile defaultPolicy sources modules)
-    #[.unknownFirstPartyImport `External.Wrapper `Umpire.Target.Missing]
+    #[.unknownFirstPartyImport `External.Wrapper `Umpire.Model.Missing]
   requireEqual "external metadata cannot supply a missing owned record"
-    (reconcile defaultPolicy (sources.push (sourceRecord `Umpire.Target.Missing)) modules)
+    (reconcile defaultPolicy (sources.push (sourceRecord `Umpire.Model.Missing)) modules)
     #[
-      .uncoveredSource `Umpire.Target.Missing "Umpire.Target.Missing.lean",
-      .unknownFirstPartyImport `External.Wrapper `Umpire.Target.Missing
+      .uncoveredSource `Umpire.Model.Missing "Umpire.Model.Missing.lean",
+      .unknownFirstPartyImport `External.Wrapper `Umpire.Model.Missing
     ]
 
 private def testExactImplementationLinkExceptions : IO Unit := do

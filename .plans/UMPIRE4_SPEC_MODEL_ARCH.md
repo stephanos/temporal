@@ -135,7 +135,7 @@ Umpire owns the complexity shared across Temporal models:
 
 Ordinary Temporal authoring should not require direct manipulation of:
 
-- `CapabilityProvider` or `CapabilityConnector` records;
+- `Provider` or `Connector` records;
 - raw proof-carrying planner kernels;
 - canonical metadata or Behavior Fingerprint strings;
 - manual `ModelSource` records when source location can be captured;
@@ -153,15 +153,15 @@ without hiding any semantic choice. Direct `Machine` construction remains the ex
 route when authoritative propositions are specified independently of enumeration. Both routes
 enter the same authored-to-checked boundary.
 
-The implemented Target facade packages a maintainer's `Umpire.TargetDefinition`, explicit provider
-and connector additions through the sealed `Umpire.TargetComposition` builder, and optional finite
-planning capability as one sealed `Umpire.AuthoredTarget`. `Umpire.checkTarget` returns either one
-complete sealed `Umpire.CheckedTarget` or one source-located `Umpire.AuthoringDiagnostic`;
-`Umpire.checkedTarget` keeps extraction and proof-relation re-ascription inside the Target boundary
-for declarations that compile as valid. The lower-level `Umpire.composeTarget` remains the typed
+The implemented Target facade packages a maintainer's `Umpire.ModelDefinition`, explicit provider
+and connector additions through the sealed `Umpire.ModelComposition` builder, and optional finite
+planning capability as one sealed `Umpire.DraftModel`. `Umpire.checkModel` returns either one
+complete sealed `Umpire.CheckedModel` or one source-located `Umpire.LocatedError`;
+`Umpire.model` keeps extraction and proof-relation re-ascription inside the Target boundary
+for declarations that compile as valid. The lower-level `Umpire.composeModel` remains the typed
 expert seam and is not a second ordinary authoring path.
 
-`FiniteMachine` belongs inside `Umpire.Target`, below Query, Planning, Artifact, Temporal, runtime,
+`FiniteMachine` belongs inside `Umpire.Model`, below Query, Planning, Artifact, Temporal, runtime,
 and optional verification modules. It is not neutral `Shared` infrastructure, a Temporal-family
 helper, or a verifier integration, and it adds no new dependency direction.
 
@@ -207,8 +207,8 @@ proof-carrying `FiniteMachine`; Umpire derives the routine membership, completen
 planning assembly while the maintainer retains the domain, encoder, transition, closure, and
 executability choices. Independently specified authority uses direct `Machine`
 construction instead. The maintainer states provider and connector choices through
-`TargetComposition`, then combines either route with one `TargetDefinition` and its proof
-obligations through `AuthoredTarget.make`. Umpire owns collection, checking, canonicalization,
+`Providers`, then combines either route with one `ModelSpec` and its proof
+obligations through `DraftModel.make`. Umpire owns collection, checking, canonicalization,
 checked-value extraction, the Query completeness view, and Planning derivation while keeping those
 semantic choices explicit.
 

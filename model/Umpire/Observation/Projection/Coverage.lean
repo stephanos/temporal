@@ -40,8 +40,8 @@ them would have to carry sibling data no declared Observation reported.
 
 namespace Umpire.Observation.Projection
 
-variable {Law : LawDefinition → Prop} {Setup State Action Outcome Fact : Type}
-variable {target : CheckedTarget Law Setup State Action Outcome Fact}
+variable {Law : Law → Prop} {Setup State Action Outcome Fact : Type}
+variable {target : CheckedModel Law Setup State Action Outcome Fact}
 
 /-- One requested mapping from modeled field coordinates onto a declared Observation field. -/
 structure FieldMapping where

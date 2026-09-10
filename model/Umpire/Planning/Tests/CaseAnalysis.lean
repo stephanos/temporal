@@ -13,10 +13,10 @@ private def absentAction : DefinitionId := id "planner.action.absent"
 
 private def analysisMeaning
     (definitionId : DefinitionId)
-    (kind : DefinitionKind) : MeaningProvision := {
+    (kind : DefinitionKind) : Meaning := {
   definitionId
   kind
-  canonicalBehavior := definitionId.value ++ "/analysis-v1"
+  behaviorVersion := definitionId.value ++ "/analysis-v1"
 }
 
 private def analysisContext : PropertyCheckContext := {
@@ -32,11 +32,11 @@ private def analysisContext : PropertyCheckContext := {
   providers := [{
     id := analysisCapability
     version := 1
-    canonicalBehavior := "planner-analysis/v1"
+    behaviorVersion := "planner-analysis/v1"
   }, {
     id := absentCapability
     version := 1
-    canonicalBehavior := "planner-absent-input/v1"
+    behaviorVersion := "planner-absent-input/v1"
   }]
   meanings := [
     (analysisCapability, analysisMeaning phase .state),
@@ -139,7 +139,7 @@ private def propertyDeclaration (selectedGroup : PropertyCaseGroup) : PropertyDe
 private def checkedProperty? (selectedGroup : PropertyCaseGroup) : Option CheckedProperty :=
   (checkProperty analysisContext (.portable (propertyDeclaration selectedGroup))).toOption
 
-private def analysisTarget : QueryTarget (fun _ => True) := target 0
+private def analysisTarget : QueryModel (fun _ => True) := target 0
 
 private def analysisQuery
     (property : CheckedProperty)
@@ -151,7 +151,7 @@ private def analysisQuery
     quantifier := form.quantifier
     claim := form.claim
     target := analysisTarget
-    completeness := (CheckedQueryTarget.ofTarget analysisTarget).completeness
+    completeness := (CheckedQueryModel.ofTarget analysisTarget).completeness
   }
 
 private def analyzed?

@@ -7,7 +7,7 @@
   "properties": [
     {
       "id": "temporal.nexus.basic-lifecycle.property.async-start",
-      "behaviorFingerprint": "sha256:80efab94c3a268961eb804a6f09fb08845c3f7ddcff7a36d720e0bc75480336f"
+      "behaviorFingerprint": "sha256:f768c9a0df86e37d7dc6ff57edb348830a617dd9954143611204c139a0cc4d12"
     }
   ],
   "behavior": {
@@ -37,7 +37,7 @@
   },
   "target": {
     "id": "temporal.nexus.basic-lifecycle.target",
-    "behaviorFingerprint": "sha256:8a55f0d5c46e705fe3f06ca9a16381104380f55be83b633c2208f433a5eba58c",
+    "behaviorFingerprint": "sha256:bf81a3382115f48aa4f04d2668b9c587a47b95f50dbad00abb10b2d2ad806dc6",
     "composition": [
       "temporal.nexus.basic-lifecycle.capability",
       "temporal.nexus.basic-lifecycle.provider"

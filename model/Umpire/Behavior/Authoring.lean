@@ -1,5 +1,6 @@
 import Umpire.Behavior.Language
-import Umpire.Target.Authoring
+import Umpire.Id
+import Lean.Elab.Term
 import Lean.Meta.Eval
 
 /-! Narrow exact-sequence construction over the existing checked Behavior language. -/
@@ -172,7 +173,7 @@ structure BehaviorAuthoringSpan where
   endColumn : Nat
   deriving BEq, DecidableEq, Repr
 
-structure BehaviorAuthoringDiagnostic where
+structure BehaviorLocatedError where
   error : BehaviorError
   role : BehaviorAuthoringRole
   anchor : BehaviorAuthoringSpan
@@ -182,7 +183,7 @@ private def quoteJson (value : String) : String :=
   Lean.Json.compress (.str value)
 
 def canonicalBehaviorAuthoringDiagnosticJson
-    (diagnostic : BehaviorAuthoringDiagnostic) : String :=
+    (diagnostic : BehaviorLocatedError) : String :=
   "{\"error\":" ++ canonicalBehaviorErrorJson diagnostic.error ++
     ",\"role\":" ++ quoteJson diagnostic.role.name ++
     ",\"anchor\":{\"sourcePath\":" ++ quoteJson diagnostic.anchor.sourcePath ++
@@ -208,7 +209,7 @@ private def behaviorAuthoringSpan
     endColumn := endPosition.column
   }
 
-private structure CapturedBehaviorAuthoringOccurrence where
+private structure CapturedBehaviorSourceRef where
   role : BehaviorAuthoringRole
   definitionId : DefinitionId
   reference : Lean.Syntax
@@ -231,10 +232,10 @@ private unsafe def evalBehaviorErrorUnsafe (expression : Lean.Expr) :
 private opaque evalBehaviorError (expression : Lean.Expr) :
     Lean.Elab.Term.TermElabM (Option BehaviorError)
 
-private def captureBehaviorAuthoringOccurrence
+private def captureBehaviorSourceRef
     (role : BehaviorAuthoringRole)
     (reference : Lean.TSyntax `term) :
-    Lean.Elab.Term.TermElabM CapturedBehaviorAuthoringOccurrence := do
+    Lean.Elab.Term.TermElabM CapturedBehaviorSourceRef := do
   let expression ← Lean.Elab.Term.elabTerm reference (some (.const ``DefinitionId []))
   let definitionId ← if expression.hasFVar || expression.hasMVar then
     pure (DefinitionId.of "umpire.authoring.local")
@@ -247,17 +248,17 @@ private def captureBehaviorAuthoringOccurrence
     anchor := ← behaviorAuthoringSpan reference.raw
   }
 
-private def selectBehaviorAuthoringOccurrence
+private def selectBehaviorSourceRef
     (error : BehaviorError)
-    (occurrences : List CapturedBehaviorAuthoringOccurrence) :
-    Option CapturedBehaviorAuthoringOccurrence :=
+    (occurrences : List CapturedBehaviorSourceRef) :
+    Option CapturedBehaviorSourceRef :=
   let related := occurrences.filter fun occurrence =>
     error.relatedDefinitionIds.contains occurrence.definitionId
   related.getLast? <|> occurrences.find? (fun occurrence => occurrence.role == .parent)
 
 private def elaborateBehavior
     (specSyntax contextSyntax : Lean.TSyntax `term)
-    (occurrences : List CapturedBehaviorAuthoringOccurrence)
+    (occurrences : List CapturedBehaviorSourceRef)
     (expectedType : Option Lean.Expr) : Lean.Elab.Term.TermElabM Lean.Expr := do
   let exactSpec ← Lean.Elab.Term.observing <| Lean.Elab.Term.withoutErrToSorry <|
     Lean.Elab.Term.elabTermEnsuringType specSyntax (some (.const ``ExactSequenceSpec []))
@@ -277,7 +278,7 @@ private def elaborateBehavior
       checkSyntax expectedType
   match ← evalBehaviorError errorExpression with
   | some error =>
-      match selectBehaviorAuthoringOccurrence error occurrences with
+      match selectBehaviorSourceRef error occurrences with
       | some occurrence =>
           Lean.throwErrorAt occurrence.reference s!"behavior authoring failed: {
             canonicalBehaviorAuthoringDiagnosticJson {
@@ -289,17 +290,17 @@ private def elaborateBehavior
   | none =>
       Lean.Elab.Term.elabTerm checkSyntax expectedType
 
-declare_syntax_cat behaviorAuthoringOccurrence
-syntax ident term : behaviorAuthoringOccurrence
+declare_syntax_cat behaviorSourceRef
+syntax ident term : behaviorSourceRef
 syntax (name := checkedBehaviorSyntax)
-  "behavior%" term "against" term "tracking" "[" behaviorAuthoringOccurrence,* "]" : term
+  "behavior%" term "against" term "tracking" "[" behaviorSourceRef,* "]" : term
 
 elab_rules : term
   | `(behavior% $spec against $context tracking [$occurrences,*]) => do
       let mut captured := []
       for occurrence in occurrences.getElems do
         let item ← match occurrence with
-          | `(behaviorAuthoringOccurrence| $role:ident $reference) =>
+          | `(behaviorSourceRef| $role:ident $reference) =>
               let role ← match role.getId.toString with
                 | "behaviorParent" => pure BehaviorAuthoringRole.parent
                 | "setupAnchor" => pure BehaviorAuthoringRole.setup
@@ -307,7 +308,7 @@ elab_rules : term
                 | "actionAnchor" => pure BehaviorAuthoringRole.action
                 | _ => Lean.throwErrorAt role.raw ("expected behaviorParent, setupAnchor, " ++
                     "occurrenceAnchor, or actionAnchor")
-              captureBehaviorAuthoringOccurrence role reference
+              captureBehaviorSourceRef role reference
           | _ => Lean.Elab.throwUnsupportedSyntax
         captured := captured ++ [item]
       elaborateBehavior spec context captured none

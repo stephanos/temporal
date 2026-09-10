@@ -7,7 +7,7 @@
   "properties": [
     {
       "id": "switch.property.flip-turns-on",
-      "behaviorFingerprint": "sha256:36363f56897cbe9353c171c204295dbfe78fa2ff6377932e13de27f114a518c1"
+      "behaviorFingerprint": "sha256:7cda79f775847515a57bb4ce4988d501f775b675c39a89f49e77b8cdf46f0b9e"
     }
   ],
   "behavior": {
@@ -37,7 +37,7 @@
   },
   "target": {
     "id": "switch.target.two-state",
-    "behaviorFingerprint": "sha256:607a0ef59ce2e76db02675bc6bbf625da9ea2e1f7927fde2064083bc1bf05edb",
+    "behaviorFingerprint": "sha256:dd15faf7be2de6646dbf65eca30c27bdc2829e29b35158c575ec3245d28ebd3c",
     "composition": [
       "switch.capability.state",
       "switch.provider.state"
