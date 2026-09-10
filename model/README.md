@@ -269,8 +269,8 @@ physical Driver inputs.
 ## Generated artifacts
 
 The checked semantic inventory is the generated navigation view
-[`SEMANTIC_INVENTORY.md`](SEMANTIC_INVENTORY.md). Catalog consumers explicitly import
-`Umpire.SemanticInventory` or a focused inventory module; `import Umpire` does not include it.
+[`INVENTORY.md`](INVENTORY.md). Catalog consumers explicitly import
+`Umpire.Inventory` or a focused inventory module; `import Umpire` does not include it.
 Semantic owners publish classifiers through neutral `Umpire.OutcomeClassification` contracts and
 carry mappings through `Umpire.KnownGap`. The inventory consumes their declarations without owning
 stage behavior. `make lint-model` enforces this dependency direction, including transitive paths,
@@ -281,8 +281,8 @@ exhaustive classifiers, stage not-run marker, and exact versus lossy carry contr
 Its owner commands are:
 
 ```sh
-make umpire-gen-semantic-inventory
-make umpire-check-semantic-inventory
+make umpire-gen-inventory
+make umpire-check-inventory
 ```
 
 The retained planning Generated Views are owned transactionally:

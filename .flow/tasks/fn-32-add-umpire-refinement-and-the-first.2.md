@@ -22,8 +22,8 @@ Implement total checked trace correspondence and Evidence Links for R2 and R3.
 
 ### Investigation targets
 **Required** (read before coding):
-- `model/Umpire/Observation/Evaluation.lean` — Observation Evaluation and no-partial-trace precedent
-- `model/Umpire/Observation/Tests/EvidenceLink.lean` — coordinate Evidence Link pattern
+- `model/Umpire/Evidence/Evaluation.lean` — Observation Evaluation and no-partial-trace precedent
+- `model/Umpire/Evidence/Tests/EvidenceSupport.lean` — coordinate Evidence Link pattern
 - `model/Umpire/Property/Language.lean` — downstream pure trace consumer
 
 ### Acceptance

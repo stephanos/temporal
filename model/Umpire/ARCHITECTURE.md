@@ -36,7 +36,7 @@ Focused public imports are available by responsibility:
 | `Umpire.Json` | Ordered JSON construction for codec owners. |
 | `Umpire.Case` | Umpire provenance and temporary aliases for generated Testpilot protocol types. |
 | `Umpire.Case.Compiler` | Generated Case assembly, source-bound producer diagnostics, and Umpire provenance. |
-| `Umpire.SemanticInventory` | Explicit opt-in catalogs consuming semantic-owner contracts for documentation. |
+| `Umpire.Inventory` | Explicit opt-in catalogs consuming semantic-owner contracts for documentation. |
 
 Implementation modules remain behind these facades. Reusable Umpire modules cannot import the
 domain-specific Temporal modules; the complete import graph is enforced by `make lint-model`.
@@ -299,8 +299,8 @@ from code and optional subject to an Evidence Gap; kind and detail are absent. R
 exact carry of kind, code, subject, and detail. The inventory consumes these owner declarations and
 owns only catalog descriptors, lineage, scope, source shapes, and catalog validation.
 
-Catalog consumers explicitly import `Umpire.SemanticInventory` or its focused modules; `import
-Umpire` does not aggregate the inventory. `Umpire.SemanticInventory.Types` retains relocated
+Catalog consumers explicitly import `Umpire.Inventory` or its focused modules; `import
+Umpire` does not aggregate the inventory. `Umpire.Inventory.Types` retains relocated
 qualified names through ordinary imports for explicit inventory consumers. Production Umpire
 modules outside the inventory cannot reach it directly or transitively, including through facades,
 helpers, external modules, or test fixtures. `make lint-model` enforces this direction and the

@@ -340,7 +340,7 @@ bounded `Plan`s without requiring Temporal.
 portable caller-closure contracts.**
 `Umpire.Search.plan` consumes a checked Query and proof-carrying incremental kernel, distinguishes
 verified, selected, absent, budget-exhausted, unsatisfiable, and invalid outcomes, and may produce a
-canonical `umpire-experiment/v2`. `Umpire.Space.compileBatch` canonically lowers every point through
+canonical `umpire-experiment/v2`. `Umpire.Variations.compileBatch` canonically lowers every point through
 that same target-indexed kernel and returns the complete batch or one typed error with no partial
 list. `Temporal.Tool.Inspect` still exposes only the checked-in Switch and caller-closure scenarios
 and emits deterministic JSON with structured diagnostics.
