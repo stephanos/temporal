@@ -662,7 +662,7 @@ private def coordinateIdentityName (coordinate : ArtifactModelCoordinate) : Opti
   match coordinate.kind, coordinate.step, coordinate.position with
   | "initial-state", none, none => some "initial-state"
   | kind, some step, none =>
-      if step > 0 && ["selected-action", "model-outcome", "resulting-state"].contains kind then
+      if step > 0 && ["selected-action", "outcome", "resulting-state"].contains kind then
         some (kind ++ ":" ++ toString step)
       else none
   | "observation", some step, some position =>

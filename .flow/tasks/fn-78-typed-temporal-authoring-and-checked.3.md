@@ -61,5 +61,5 @@ stage: impl-review - passed(gpt-6-astra at medium; verdict SHIP; no findings)
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: make -f Makefile -f /tmp/fn78-task3.mk fn78-behavior-tests (passed; uses repository LEAN_LAKE to build Umpire.Behavior.Tests), git diff --check (passed), make lint-code (baseline failed pre-edit), GOLANGCI_LINT_FIX=false make lint-code (inherited failure; /tmp/fn78-task3-lint-code.log), make umpire-build-model (passed; /tmp/fn78-task3-build-final.log), LEAN_NUM_THREADS=2 make lint-model (passed; /tmp/fn78-task3-lint-model-final.log), flowctl codex impl-review fn-78.3 (gpt-6-astra at medium; verdict SHIP; no findings)
+- Tests: make -f Makefile -f /tmp/fn78-task3.mk fn78-behavior-tests (passed; uses repository LEAN_LAKE to build Umpire.Scenario.Tests), git diff --check (passed), make lint-code (baseline failed pre-edit), GOLANGCI_LINT_FIX=false make lint-code (inherited failure; /tmp/fn78-task3-lint-code.log), make umpire-build-model (passed; /tmp/fn78-task3-build-final.log), LEAN_NUM_THREADS=2 make lint-model (passed; /tmp/fn78-task3-lint-model-final.log), flowctl codex impl-review fn-78.3 (gpt-6-astra at medium; verdict SHIP; no findings)
 - PRs:

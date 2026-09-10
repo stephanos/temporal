@@ -6,10 +6,10 @@ namespace Umpire.PropertyTests
 
 private def endpointAnswer (clause : PropertyClause)
     (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue)
-    (runtimePrefix : Bool) (logicalTimeSource : Option DefinitionId := none) : Option PropertyEndpointAnswer := do
+    (partialTrace : Bool) (logicalTimeSource : Option DefinitionId := none) : Option PropertyEndpointAnswer := do
   let property ← (Property.check context ({ portableProperty with version := 2, clauses := [clause], logicalTimeSource })).toOption
   let input ← (checkPropertyEvaluationInput property trace).toOption
-  pure (evaluatePropertyEndpoint property input runtimePrefix).answer
+  pure (evaluatePropertyEndpoint property input partialTrace).answer
 
 private def response (bound : Nat) : PropertyClause :=
   .eventuallyWithin (id "test.property.endpoint.response")
@@ -26,7 +26,7 @@ private def selectedPrefix : ModelTrace ModelValue ModelValue ModelValue ModelVa
 #guard endpointAnswer (response 0) positiveTrace true == some .violated
 
 private def quiescent : PropertyClause :=
-  .quiescentWithin (id "test.property.endpoint.quiet")
+  .neverWithin (id "test.property.endpoint.quiet")
     (pattern .observation cancelRequested) (pattern .observation cancelDelivered)
     (.exact { value := 1, unit := .semanticTransitions })
 

@@ -944,7 +944,7 @@ private def observeCandidate
       relatedDefinitionIds := DefinitionId.canonicalSet
         (property.id :: property.guardedClauseIds ++ error.relatedDefinitionIds)
     }
-    let evaluation := evaluatePropertyEndpoint property input (query.endpoint == .runtimePrefix)
+    let evaluation := evaluatePropertyEndpoint property input (query.endpoint == .«partial»)
     answers := answers ++ [evaluation.answer]
     current := { current with
       required := current.required ++ evaluation.requestedTriggers.map (property.id, ·)

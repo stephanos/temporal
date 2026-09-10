@@ -50,7 +50,7 @@ private def fieldPolicy (field : EvidenceFieldDeclaration × FieldDisposition) :
 private def pattern (value : PropertyPattern) : Except String ScopedPredicate := do
   let field ← match value.field with
     | .selectedAction => pure ScopedPredicateField.SCOPED_PREDICATE_FIELD_ACTION
-    | .modelOutcome => pure .SCOPED_PREDICATE_FIELD_OUTCOME
+    | .outcome => pure .SCOPED_PREDICATE_FIELD_OUTCOME
     | .resultingState => pure .SCOPED_PREDICATE_FIELD_RESULTING_STATE
     | .observation => pure .SCOPED_PREDICATE_FIELD_FACT
     | _ => throw "unsupported predicate projection"
@@ -130,14 +130,14 @@ private def operand (coverage : Projection.Coverage plan)
 
 private def predicateField : PropertyPredicateField → Except String ScopedPredicateField
   | .selectedAction => .ok .SCOPED_PREDICATE_FIELD_ACTION
-  | .modelOutcome => .ok .SCOPED_PREDICATE_FIELD_OUTCOME
+  | .outcome => .ok .SCOPED_PREDICATE_FIELD_OUTCOME
   | .resultingState => .ok .SCOPED_PREDICATE_FIELD_RESULTING_STATE
   | .expectationFact => .ok .SCOPED_PREDICATE_FIELD_FACT
   | .priorState => .error "unsupported correlation predicate field"
 
 private def predicateCode : PropertyPredicateField → Nat
   | .selectedAction => 1
-  | .modelOutcome => 2
+  | .outcome => 2
   | .resultingState => 3
   | .expectationFact => 4
   | .priorState => 0
@@ -207,7 +207,7 @@ private structure LoweredClause where
   depth : Nat
 
 private def clause (coverage : Projection.Coverage plan)
-    (source : ResolvedPropertyScopedClause) : Except String LoweredClause := do
+    (source : CheckedPropertyScopedClause) : Except String LoweredClause := do
   let captures ← source.declaration.captures.mapM (capture coverage)
   let declared := captures.map Prod.snd
   let correlated ← source.correlation.mapM fun checked =>
@@ -216,8 +216,8 @@ private def clause (coverage : Projection.Coverage plan)
     wire := ScopedClause.mk source.declaration.id.value .SCOPED_CLOCK_OPERATION_TRANSITIONS
       (← number source.declaration.bound)
       (match source.declaration.endpoint with
-        | .runtimePrefix => .SCOPED_ENDPOINT_RUNTIME_PREFIX
-        | .deliberatelyClosed => .SCOPED_ENDPOINT_DELIBERATELY_CLOSED)
+        | .«partial» => .SCOPED_ENDPOINT_RUNTIME_PREFIX
+        | .final => .SCOPED_ENDPOINT_DELIBERATELY_CLOSED)
       (some (← pattern source.triggerPattern)) (some (← pattern source.responsePattern))
       (captures.map Prod.fst).toArray (correlated.map (·.1)) default
     keyed := (source.declaration.id.value, ⟨declared, correlated.map (·.2.1)⟩)

@@ -356,21 +356,21 @@ def CheckedPropertyPredicateInput.valuesAt
   | .priorState => input.input.priorState.toList
   | .selectedAction => input.input.selectedAction.toList
   | .resultingState => input.input.resultingState.toList
-  | .modelOutcome => input.input.modelOutcome.toList
+  | .outcome => input.input.outcome.toList
   | .expectationFact => input.input.facts.getD []
 
 private def inputFieldValues (input : PropertyPredicateInput) : PropertyPredicateField → List ModelValue
   | .priorState => input.priorState.toList
   | .selectedAction => input.selectedAction.toList
   | .resultingState => input.resultingState.toList
-  | .modelOutcome => input.modelOutcome.toList
+  | .outcome => input.outcome.toList
   | .expectationFact => input.facts.getD []
 
 private def operandModelValues (input : PropertyPredicateInput) : PropertyFieldRoot → List ModelValue
   | .request => input.selectedAction.toList
   | .priorState => input.priorState.toList
   | .resultingState => input.resultingState.toList
-  | .outcome => input.modelOutcome.toList
+  | .outcome => input.outcome.toList
   | .event => input.facts.getD []
 
 private def validateFieldOperands (predicate : CheckedPropertyPredicate context)
@@ -598,7 +598,7 @@ private def expectationInput (step : PropertyEvaluationStep) : PropertyEvaluatio
   selectedAction := step.selectedAction
   fieldValues := step.fieldValues
   resultingState := step.resultingState
-  modelOutcome := step.modelOutcome
+  outcome := step.outcome
   facts := some step.observations
 }
 
@@ -609,7 +609,7 @@ private def valuesInStep
   | .state | .resultingState => step.resultingState.toList
   | .priorState => step.priorState.toList
   | .selectedAction => step.selectedAction.toList
-  | .modelOutcome => step.modelOutcome.toList
+  | .outcome => step.outcome.toList
   | .observation | .relation => step.observations
 
 private def patternHoldsInStep
@@ -618,7 +618,7 @@ private def patternHoldsInStep
   (valuesInStep pattern.field step).any pattern.evaluate
 
 private def validateResolvedExceptionInput
-    (exception : Option ResolvedPropertyException)
+    (exception : Option CheckedPropertyUnless)
     (input : PropertyEvaluationPredicateInput) : Except PropertyError Unit := do
   match exception with
   | none => pure ()
@@ -627,7 +627,7 @@ private def validateResolvedExceptionInput
       pure ()
 
 private def validateCaseGroupStep
-    (group : ResolvedPropertyCaseGroup)
+    (group : CheckedPropertyBranches)
     (step : PropertyEvaluationStep) : Except PropertyError Unit := do
   let guardValues := guardInput step
   let expectationValues := expectationInput step
@@ -641,7 +641,7 @@ private def validateCaseGroupStep
       pure ()
 
 private def validateGuardedTemporalStep
-    (clause : ResolvedGuardedTemporalClause)
+    (clause : CheckedPropertyTemporalClause)
     (step : PropertyEvaluationStep) : Except PropertyError Unit := do
   if patternHoldsInStep clause.trigger step then
     let input := guardInput step
@@ -667,7 +667,7 @@ private def validatePropertyEvaluationView
       relatedDefinitionIds := [clause.declaration.id] }
   for clause in property.clauses do
     match clause with
-    | .sameStepCases group =>
+    | .branches group =>
         if group.complete || group.exclusive || group.cases.any (fun item => !item.clauses.isEmpty) then
           for step in view.steps do
             validateCaseGroupStep group step
@@ -675,7 +675,7 @@ private def validatePropertyEvaluationView
           for temporal in item.temporalClauses do
             for step in view.steps do
               validateGuardedTemporalStep temporal step
-    | .guardedEventuallyWithin guarded | .guardedQuiescentWithin guarded =>
+    | .guardedEventuallyWithin guarded | .guardedNeverWithin guarded =>
         for step in view.steps do
           validateGuardedTemporalStep guarded step
     | _ => pure ()
@@ -727,7 +727,7 @@ private def predicateValues
   | .priorState => input.priorState.toList
   | .selectedAction => input.selectedAction.toList
   | .resultingState => input.resultingState.toList
-  | .modelOutcome => input.modelOutcome.toList
+  | .outcome => input.outcome.toList
   | .expectationFact => input.facts.getD []
 
 private def evaluateCheckedPredicate
@@ -811,9 +811,9 @@ private def stepOccurrences
   | .selectedAction =>
       optionalOccurrence pattern transitionPosition transitionPosition observationOffset
         step.logicalTime step.selectedAction
-  | .modelOutcome =>
+  | .outcome =>
       optionalOccurrence pattern transitionPosition transitionPosition observationOffset
-        step.logicalTime step.modelOutcome
+        step.logicalTime step.outcome
   | .observation | .relation =>
       observationOccurrences pattern transitionPosition transitionPosition observationOffset
         step.logicalTime step.observations
@@ -891,7 +891,7 @@ private theorem observation_positions_mem (pattern : PropertyPattern)
       split <;> simp_all
 
 private theorem step_positions_mem (pattern : PropertyPattern)
-    (aligned : pattern.field = .selectedAction ∨ pattern.field = .modelOutcome ∨
+    (aligned : pattern.field = .selectedAction ∨ pattern.field = .outcome ∨
       pattern.field = .resultingState ∨ pattern.field = .observation)
     (start offset position : Nat) (step : PropertyEvaluationStep) :
     position ∈ (stepOccurrences pattern start offset step).map (·.transitionPosition) ↔
@@ -901,7 +901,7 @@ private theorem step_positions_mem (pattern : PropertyPattern)
     | none => simp [stepOccurrences, action, optionalOccurrence, value, patternHoldsInStep, valuesInStep]
     | some item => cases hit : pattern.evaluate item <;>
         simp [stepOccurrences, action, optionalOccurrence, value, patternHoldsInStep, valuesInStep, hit]
-  · cases value : step.modelOutcome with
+  · cases value : step.outcome with
     | none => simp [stepOccurrences, outcome, optionalOccurrence, value, patternHoldsInStep, valuesInStep]
     | some item => cases hit : pattern.evaluate item <;>
         simp [stepOccurrences, outcome, optionalOccurrence, value, patternHoldsInStep, valuesInStep, hit]
@@ -914,7 +914,7 @@ private theorem step_positions_mem (pattern : PropertyPattern)
       observation_positions_mem pattern start start offset step.logicalTime step.observations position
 
 private theorem scoped_step_positions_mem (pattern : PropertyPattern)
-    (aligned : pattern.field = .selectedAction ∨ pattern.field = .modelOutcome ∨
+    (aligned : pattern.field = .selectedAction ∨ pattern.field = .outcome ∨
       pattern.field = .resultingState ∨ pattern.field = .observation)
     (start offset position : Nat) (steps : List PropertyEvaluationStep) :
     position ∈ (traceStepOccurrences pattern start offset steps).map (·.transitionPosition) ↔
@@ -927,7 +927,7 @@ private theorem scoped_step_positions_mem (pattern : PropertyPattern)
       cases patternHoldsInStep pattern step <;> simp
 
 private theorem semantic_positions_mem (pattern : PropertyPattern)
-    (aligned : pattern.field = .selectedAction ∨ pattern.field = .modelOutcome ∨
+    (aligned : pattern.field = .selectedAction ∨ pattern.field = .outcome ∨
       pattern.field = .resultingState ∨ pattern.field = .observation)
     (view : PropertyEvaluationView) (position : Nat) :
     position ∈ (occurrences pattern view).map (·.transitionPosition) ↔
@@ -952,7 +952,7 @@ private def valuesAtField
     | .state | .resultingState => step.resultingState.toList
     | .priorState => step.priorState.toList
     | .selectedAction => step.selectedAction.toList
-    | .modelOutcome => step.modelOutcome.toList
+    | .outcome => step.outcome.toList
     | .observation | .relation => step.observations
   initial ++ fromSteps
 
@@ -1182,21 +1182,21 @@ private theorem evaluateQuiescentWithin_agrees
             triggerResult, forbiddenResult] using triggerAgreement
 
 private def exceptionAllowsEvaluate
-    (exception : Option ResolvedPropertyException)
+    (exception : Option CheckedPropertyUnless)
     (input : PropertyEvaluationPredicateInput) : Bool :=
   match exception with
   | none => true
   | some exception => !(evaluateCheckedPredicate exception.condition input)
 
 private def exceptionAllowsDenote
-    (exception : Option ResolvedPropertyException)
+    (exception : Option CheckedPropertyUnless)
     (input : PropertyEvaluationPredicateInput) : Prop :=
   match exception with
   | none => True
   | some exception => ¬checkedPredicateDenotes exception.condition input
 
 private theorem exceptionAllows_agrees
-    (exception : Option ResolvedPropertyException)
+    (exception : Option CheckedPropertyUnless)
     (input : PropertyEvaluationPredicateInput) :
     exceptionAllowsEvaluate exception input = true ↔ exceptionAllowsDenote exception input := by
   cases exception with
@@ -1205,7 +1205,7 @@ private theorem exceptionAllows_agrees
       exact booleanNot_agrees _ _ (evaluateCheckedPredicate_agrees exception.condition input)
 
 private def guardedTemporalAppliesEvaluate
-    (clause : ResolvedGuardedTemporalClause)
+    (clause : CheckedPropertyTemporalClause)
     (input : PropertyEvaluationPredicateInput) : Bool :=
   evaluateCheckedPredicate clause.guard input &&
     exceptionAllowsEvaluate clause.exception input &&
@@ -1213,7 +1213,7 @@ private def guardedTemporalAppliesEvaluate
     exceptionAllowsEvaluate clause.caseException input
 
 private def guardedTemporalAppliesDenote
-    (clause : ResolvedGuardedTemporalClause)
+    (clause : CheckedPropertyTemporalClause)
     (input : PropertyEvaluationPredicateInput) : Prop :=
   checkedPredicateDenotes clause.guard input ∧
     exceptionAllowsDenote clause.exception input ∧
@@ -1221,7 +1221,7 @@ private def guardedTemporalAppliesDenote
     exceptionAllowsDenote clause.caseException input
 
 private theorem guardedTemporalApplies_agrees
-    (clause : ResolvedGuardedTemporalClause)
+    (clause : CheckedPropertyTemporalClause)
     (input : PropertyEvaluationPredicateInput) :
     guardedTemporalAppliesEvaluate clause input = true ↔
       guardedTemporalAppliesDenote clause input := by
@@ -1230,7 +1230,7 @@ private theorem guardedTemporalApplies_agrees
       caseGuard, evaluateCheckedPredicate_agrees, exceptionAllows_agrees, and_assoc]
 
 private def triggerPositionsInStep
-    (clause : ResolvedGuardedTemporalClause)
+    (clause : CheckedPropertyTemporalClause)
     (transitionPosition observationOffset : Nat)
     (step : PropertyEvaluationStep) : Option (List Nat) :=
   collectPositions ((stepOccurrences clause.trigger transitionPosition observationOffset step).map
@@ -1274,7 +1274,7 @@ private theorem responseWithin_agrees
 
 private def evaluateGuardedTemporalSteps
     (forbidden : Bool)
-    (clause : ResolvedGuardedTemporalClause)
+    (clause : CheckedPropertyTemporalClause)
     (responsePositions : List Nat) :
     Nat → Nat → List PropertyEvaluationStep → Bool
   | _, _, [] => true
@@ -1291,7 +1291,7 @@ private def evaluateGuardedTemporalSteps
 
 private def guardedTemporalStepsDenote
     (forbidden : Bool)
-    (clause : ResolvedGuardedTemporalClause)
+    (clause : CheckedPropertyTemporalClause)
     (responsePositions : List Nat) :
     Nat → Nat → List PropertyEvaluationStep → Prop
   | _, _, [] => True
@@ -1307,7 +1307,7 @@ private def guardedTemporalStepsDenote
 
 private theorem evaluateGuardedTemporalSteps_agrees
     (forbidden : Bool)
-    (clause : ResolvedGuardedTemporalClause)
+    (clause : CheckedPropertyTemporalClause)
     (responsePositions : List Nat)
     (transitionPosition observationOffset : Nat)
     (steps : List PropertyEvaluationStep) :
@@ -1342,7 +1342,7 @@ private theorem evaluateGuardedTemporalSteps_agrees
 
 private def evaluateGuardedTemporal
     (forbidden : Bool)
-    (clause : ResolvedGuardedTemporalClause)
+    (clause : CheckedPropertyTemporalClause)
     (view : PropertyEvaluationView) : Bool :=
   match checkedPositions clause.response clause.limit.unit view with
   | none => false
@@ -1351,7 +1351,7 @@ private def evaluateGuardedTemporal
 
 private def guardedTemporalDenotes
     (forbidden : Bool)
-    (clause : ResolvedGuardedTemporalClause)
+    (clause : CheckedPropertyTemporalClause)
     (view : PropertyEvaluationView) : Prop :=
   match checkedPositions clause.response clause.limit.unit view with
   | none => False
@@ -1360,7 +1360,7 @@ private def guardedTemporalDenotes
 
 private theorem evaluateGuardedTemporal_agrees
     (forbidden : Bool)
-    (clause : ResolvedGuardedTemporalClause)
+    (clause : CheckedPropertyTemporalClause)
     (view : PropertyEvaluationView) :
     evaluateGuardedTemporal forbidden clause view = true ↔
       guardedTemporalDenotes forbidden clause view := by
@@ -1371,17 +1371,17 @@ private theorem evaluateGuardedTemporal_agrees
         evaluateGuardedTemporalSteps_agrees forbidden clause responsePositions 1 0 view.steps
 
 private def parentAppliesEvaluate
-    (group : ResolvedPropertyCaseGroup)
+    (group : CheckedPropertyBranches)
     (input : PropertyEvaluationPredicateInput) : Bool :=
   evaluateCheckedPredicate group.guard input && exceptionAllowsEvaluate group.exception input
 
 private def parentAppliesDenote
-    (group : ResolvedPropertyCaseGroup)
+    (group : CheckedPropertyBranches)
     (input : PropertyEvaluationPredicateInput) : Prop :=
   checkedPredicateDenotes group.guard input ∧ exceptionAllowsDenote group.exception input
 
 private theorem parentApplies_agrees
-    (group : ResolvedPropertyCaseGroup)
+    (group : CheckedPropertyBranches)
     (input : PropertyEvaluationPredicateInput) :
     parentAppliesEvaluate group input = true ↔ parentAppliesDenote group input := by
   simp [parentAppliesEvaluate, parentAppliesDenote,
@@ -1389,14 +1389,14 @@ private theorem parentApplies_agrees
 
 private def caseAppliesEvaluate
     (parentApplies : Bool)
-    (item : ResolvedPropertyCase)
+    (item : CheckedPropertyBranch)
     (input : PropertyEvaluationPredicateInput) : Bool :=
   parentApplies && evaluateCheckedPredicate item.guard input &&
     exceptionAllowsEvaluate item.exception input
 
 private def caseAppliesDenote
     (parentApplies : Prop)
-    (item : ResolvedPropertyCase)
+    (item : CheckedPropertyBranch)
     (input : PropertyEvaluationPredicateInput) : Prop :=
   (parentApplies ∧ checkedPredicateDenotes item.guard input) ∧
     exceptionAllowsDenote item.exception input
@@ -1405,7 +1405,7 @@ private theorem caseApplies_agrees
     (parentEvaluate : Bool)
     (parentDenote : Prop)
     (parentAgreement : parentEvaluate = true ↔ parentDenote)
-    (item : ResolvedPropertyCase)
+    (item : CheckedPropertyBranch)
     (input : PropertyEvaluationPredicateInput) :
     caseAppliesEvaluate parentEvaluate item input = true ↔
       caseAppliesDenote parentDenote item input := by
@@ -1414,7 +1414,7 @@ private theorem caseApplies_agrees
 
 private def exclusiveCasesEvaluate
     (parentApplies : Bool)
-    (input : PropertyEvaluationPredicateInput) : List ResolvedPropertyCase → Bool
+    (input : PropertyEvaluationPredicateInput) : List CheckedPropertyBranch → Bool
   | [] => true
   | item :: rest =>
       (!caseAppliesEvaluate parentApplies item input ||
@@ -1423,7 +1423,7 @@ private def exclusiveCasesEvaluate
 
 private def exclusiveCasesDenote
     (parentApplies : Prop)
-    (input : PropertyEvaluationPredicateInput) : List ResolvedPropertyCase → Prop
+    (input : PropertyEvaluationPredicateInput) : List CheckedPropertyBranch → Prop
   | [] => True
   | item :: rest =>
       (caseAppliesDenote parentApplies item input →
@@ -1435,7 +1435,7 @@ private theorem exclusiveCases_agrees
     (parentDenote : Prop)
     (parentAgreement : parentEvaluate = true ↔ parentDenote)
     (input : PropertyEvaluationPredicateInput)
-    (items : List ResolvedPropertyCase) :
+    (items : List CheckedPropertyBranch) :
     exclusiveCasesEvaluate parentEvaluate input items = true ↔
       exclusiveCasesDenote parentDenote input items := by
   induction items with
@@ -1461,14 +1461,14 @@ private theorem exclusiveCases_agrees
 private def caseClausesEvaluate
     (applies : Bool)
     (input : PropertyEvaluationPredicateInput)
-    (item : ResolvedPropertyCase) : Bool :=
+    (item : CheckedPropertyBranch) : Bool :=
   item.clauses.all fun clause =>
     !applies || evaluateCheckedPredicate clause.expectation input
 
 private def caseClausesDenote
     (applies : Prop)
     (input : PropertyEvaluationPredicateInput)
-    (item : ResolvedPropertyCase) : Prop :=
+    (item : CheckedPropertyBranch) : Prop :=
   allHolds item.clauses fun clause =>
     applies → checkedPredicateDenotes clause.expectation input
 
@@ -1477,7 +1477,7 @@ private theorem caseClauses_agrees
     (appliesDenote : Prop)
     (appliesAgreement : appliesEvaluate = true ↔ appliesDenote)
     (input : PropertyEvaluationPredicateInput)
-    (item : ResolvedPropertyCase) :
+    (item : CheckedPropertyBranch) :
     caseClausesEvaluate appliesEvaluate input item = true ↔
       caseClausesDenote appliesDenote input item :=
   allHolds_agrees _ _ _ fun clause =>
@@ -1485,7 +1485,7 @@ private theorem caseClauses_agrees
       (evaluateCheckedPredicate_agrees clause.expectation input)
 
 private def evaluateCaseGroupStep
-    (group : ResolvedPropertyCaseGroup)
+    (group : CheckedPropertyBranches)
     (step : PropertyEvaluationStep) : Bool :=
   let guardValues := guardInput step
   let expectationValues := expectationInput step
@@ -1498,7 +1498,7 @@ private def evaluateCaseGroupStep
       caseClausesEvaluate (caseAppliesEvaluate parent item guardValues) expectationValues item
 
 private def caseGroupStepDenotes
-    (group : ResolvedPropertyCaseGroup)
+    (group : CheckedPropertyBranches)
     (step : PropertyEvaluationStep) : Prop :=
   let guardValues := guardInput step
   let expectationValues := expectationInput step
@@ -1510,7 +1510,7 @@ private def caseGroupStepDenotes
     caseClausesDenote (caseAppliesDenote parent item guardValues) expectationValues item
 
 private theorem evaluateCaseGroupStep_agrees
-    (group : ResolvedPropertyCaseGroup)
+    (group : CheckedPropertyBranches)
     (step : PropertyEvaluationStep) :
     evaluateCaseGroupStep group step = true ↔ caseGroupStepDenotes group step := by
   let guardValues := guardInput step
@@ -1546,7 +1546,7 @@ private theorem evaluateCaseGroupStep_agrees
       exclusiveAgreement, clausesAgreement]
 
 private def evaluateCaseGroup
-    (group : ResolvedPropertyCaseGroup)
+    (group : CheckedPropertyBranches)
     (view : PropertyEvaluationView) : Bool :=
   view.steps.all (evaluateCaseGroupStep group) &&
     group.cases.all fun item =>
@@ -1554,7 +1554,7 @@ private def evaluateCaseGroup
         evaluateGuardedTemporal clause.forbidden clause view
 
 private def caseGroupDenotes
-    (group : ResolvedPropertyCaseGroup)
+    (group : CheckedPropertyBranches)
     (view : PropertyEvaluationView) : Prop :=
   allHolds view.steps (caseGroupStepDenotes group) ∧
     allHolds group.cases fun item =>
@@ -1562,7 +1562,7 @@ private def caseGroupDenotes
         guardedTemporalDenotes clause.forbidden clause view
 
 private theorem evaluateCaseGroup_agrees
-    (group : ResolvedPropertyCaseGroup)
+    (group : CheckedPropertyBranches)
     (view : PropertyEvaluationView) :
     evaluateCaseGroup group view = true ↔ caseGroupDenotes group view :=
 by
@@ -1581,7 +1581,7 @@ by
   simp [evaluateCaseGroup, caseGroupDenotes, stepsAgreement, temporalAgreement]
 
 private def resolvedPropertyClauseDenotes
-    (clause : ResolvedPropertyClause)
+    (clause : CheckedPropertyClause)
     (view : PropertyEvaluationView) : Prop :=
   match clause with
   | .stateInvariant _ state => stateInvariantDenotes state view
@@ -1592,16 +1592,16 @@ private def resolvedPropertyClauseDenotes
   | .ordered _ before after unit => orderedDenotes before after unit view
   | .eventuallyWithin _ trigger response limit =>
       eventuallyWithinDenotes trigger response limit view
-  | .quiescentWithin _ trigger forbidden limit =>
+  | .neverWithin _ trigger forbidden limit =>
       quiescentWithinDenotes trigger forbidden limit view
-  | .sameStepCases group => caseGroupDenotes group view
+  | .branches group => caseGroupDenotes group view
   | .guardedEventuallyWithin guarded =>
       guardedTemporalDenotes false guarded view
-  | .guardedQuiescentWithin guarded =>
+  | .guardedNeverWithin guarded =>
       guardedTemporalDenotes true guarded view
 
 private def evaluateResolvedPropertyClause
-    (clause : ResolvedPropertyClause)
+    (clause : CheckedPropertyClause)
     (view : PropertyEvaluationView) : Bool :=
   match clause with
   | .stateInvariant _ state => evaluateStateInvariant state view
@@ -1612,12 +1612,12 @@ private def evaluateResolvedPropertyClause
   | .ordered _ before after unit => evaluateOrdered before after unit view
   | .eventuallyWithin _ trigger response limit =>
       evaluateEventuallyWithin trigger response limit view
-  | .quiescentWithin _ trigger forbidden limit =>
+  | .neverWithin _ trigger forbidden limit =>
       evaluateQuiescentWithin trigger forbidden limit view
-  | .sameStepCases group => evaluateCaseGroup group view
+  | .branches group => evaluateCaseGroup group view
   | .guardedEventuallyWithin guarded =>
       evaluateGuardedTemporal false guarded view
-  | .guardedQuiescentWithin guarded =>
+  | .guardedNeverWithin guarded =>
       evaluateGuardedTemporal true guarded view
 
 /-- Denotation of one clause proven to belong to the exact checked Property and input. -/
@@ -1667,7 +1667,7 @@ theorem evaluatePropertyClause_scoped_positions
     (id : DefinitionId) (trigger response : PropertyPattern) (bound : Nat)
     (shape : clause.val = .eventuallyWithin id trigger response ⟨bound, .semanticTransitions⟩)
     (triggerAligned : trigger.field = .selectedAction)
-    (responseAligned : response.field = .modelOutcome ∨ response.field = .resultingState ∨
+    (responseAligned : response.field = .outcome ∨ response.field = .resultingState ∨
       response.field = .observation) :
     evaluatePropertyClause property input clause =
       (Property.Scoped.positions 1 ((input.scopedCoordinates trigger response).map Prod.fst)).all
@@ -1703,13 +1703,13 @@ theorem evaluatePropertyClause_agrees
       exact evaluateOrdered_agrees before after unit input.view
   | eventuallyWithin _ trigger response limit =>
       exact evaluateEventuallyWithin_agrees trigger response limit input.view
-  | quiescentWithin _ trigger forbidden limit =>
+  | neverWithin _ trigger forbidden limit =>
       exact evaluateQuiescentWithin_agrees trigger forbidden limit input.view
-  | sameStepCases group =>
+  | branches group =>
       exact evaluateCaseGroup_agrees group input.view
   | guardedEventuallyWithin guarded =>
       exact evaluateGuardedTemporal_agrees false guarded input.view
-  | guardedQuiescentWithin guarded =>
+  | guardedNeverWithin guarded =>
       exact evaluateGuardedTemporal_agrees true guarded input.view
 
 structure PropertyTraceSpan where
@@ -1739,7 +1739,7 @@ structure CaseApplicability where
   caseId : DefinitionId
   source : SourceLocation
   effectiveGuards : List (CheckedPropertyPredicate .guard)
-  exceptions : List ResolvedPropertyException
+  exceptions : List CheckedPropertyUnless
   guardMatched : Bool
   excluded : Bool
   applies : Bool
@@ -1755,7 +1755,7 @@ structure CaseGroupApplicability where
   priorState : Option ModelValue
   selectedAction : Option ModelValue
   effectiveGuards : List (CheckedPropertyPredicate .guard)
-  exceptions : List ResolvedPropertyException
+  exceptions : List CheckedPropertyUnless
   parentGuardMatched : Bool
   parentExcluded : Bool
   parentApplies : Bool
@@ -1795,25 +1795,25 @@ structure JointObligationObservation where
   priorState : Option ModelValue
   selectedAction : Option ModelValue
   effectiveGuards : List (CheckedPropertyPredicate .guard)
-  exceptions : List ResolvedPropertyException
+  exceptions : List CheckedPropertyUnless
   formula : JointObligationFormula
   satisfied : Bool
   deriving BEq, DecidableEq, Repr
 
 private def sameStepClauseIdentity
-    (group : ResolvedPropertyCaseGroup)
-    (item : ResolvedPropertyCase)
-    (clause : ResolvedPropertySameStepClause) : PropertyClauseIdentity := {
+    (group : CheckedPropertyBranches)
+    (item : CheckedPropertyBranch)
+    (clause : CheckedPropertySameStepClause) : PropertyClauseIdentity := {
   parentId := group.id
   caseId := some item.id
   clauseId := clause.id
   kind := .clause
   source := clause.source
-  relatedDefinitionIds := item.exception.toList.map ResolvedPropertyException.id
+  relatedDefinitionIds := item.exception.toList.map CheckedPropertyUnless.id
 }
 
 private def temporalClauseIdentity
-    (clause : ResolvedGuardedTemporalClause) : PropertyClauseIdentity := {
+    (clause : CheckedPropertyTemporalClause) : PropertyClauseIdentity := {
   parentId := clause.parentId
   caseId := clause.caseId
   clauseId := clause.id
@@ -1821,22 +1821,22 @@ private def temporalClauseIdentity
   source := clause.source
   evaluatedLimit := some clause.limit
   relatedDefinitionIds :=
-    clause.exception.toList.map ResolvedPropertyException.id ++
-      clause.caseException.toList.map ResolvedPropertyException.id
+    clause.exception.toList.map CheckedPropertyUnless.id ++
+      clause.caseException.toList.map CheckedPropertyUnless.id
 }
 
 /-- Exact same-step and temporal obligation identities declared by one checked named case. -/
-def ResolvedPropertyCase.clauseIdentities
-    (group : ResolvedPropertyCaseGroup)
-    (item : ResolvedPropertyCase) : List PropertyClauseIdentity :=
+def CheckedPropertyBranch.clauseIdentities
+    (group : CheckedPropertyBranches)
+    (item : CheckedPropertyBranch) : List PropertyClauseIdentity :=
   item.clauses.map (sameStepClauseIdentity group item) ++
     item.temporalClauses.map temporalClauseIdentity
 
 private def caseApplicabilityAt
-    (group : ResolvedPropertyCaseGroup)
+    (group : CheckedPropertyBranches)
     (parentApplies : Bool)
     (input : PropertyEvaluationPredicateInput)
-    (item : ResolvedPropertyCase) : CaseApplicability :=
+    (item : CheckedPropertyBranch) : CaseApplicability :=
   let guardMatched := evaluateCheckedPredicate item.guard input
   let exceptionAllows := exceptionAllowsEvaluate item.exception input
   {
@@ -1852,7 +1852,7 @@ private def caseApplicabilityAt
 
 private def caseGroupApplicabilityAt
     (property : CheckedProperty)
-    (group : ResolvedPropertyCaseGroup)
+    (group : CheckedPropertyBranches)
     (transitionPosition : Nat)
     (step : PropertyEvaluationStep) : CaseGroupApplicability :=
   let input := guardInput step
@@ -1882,13 +1882,13 @@ def analyzeCaseApplicability
     (property : CheckedProperty)
     (input : CheckedPropertyEvaluationInput property) : List CaseGroupApplicability :=
   property.clauses.flatMap fun clause => match clause with
-    | .sameStepCases group => input.view.steps.zipIdx.map fun (step, index) =>
+    | .branches group => input.view.steps.zipIdx.map fun (step, index) =>
         caseGroupApplicabilityAt property group (index + 1) step
     | _ => []
 
 private def sameStepJointObservationsAt
     (property : CheckedProperty)
-    (group : ResolvedPropertyCaseGroup)
+    (group : CheckedPropertyBranches)
     (transitionPosition : Nat)
     (step : PropertyEvaluationStep) : List JointObligationObservation :=
   let applicability := caseGroupApplicabilityAt property group transitionPosition step
@@ -1922,7 +1922,7 @@ private def sameStepJointObservationsAt
 
 private def guardedTemporalJointObservations
     (property : CheckedProperty)
-    (clause : ResolvedGuardedTemporalClause)
+    (clause : CheckedPropertyTemporalClause)
     (view : PropertyEvaluationView) : List JointObligationObservation :=
   match checkedPositions clause.response clause.limit.unit view with
   | none => []
@@ -1973,13 +1973,13 @@ def analyzeJointObligations
     (property : CheckedProperty)
     (input : CheckedPropertyEvaluationInput property) : List JointObligationObservation :=
   property.clauses.flatMap fun clause => match clause with
-    | .sameStepCases group =>
+    | .branches group =>
         (input.view.steps.zipIdx.flatMap fun (step, index) =>
           sameStepJointObservationsAt property group (index + 1) step) ++
         (group.cases.flatMap fun item =>
           item.temporalClauses.flatMap fun temporal =>
             guardedTemporalJointObservations property temporal input.view)
-    | .guardedEventuallyWithin temporal | .guardedQuiescentWithin temporal =>
+    | .guardedEventuallyWithin temporal | .guardedNeverWithin temporal =>
         guardedTemporalJointObservations property temporal input.view
     | _ => []
 
@@ -1999,22 +1999,22 @@ structure PropertyEvaluation where
   clauses : List PropertyClauseResult
   deriving BEq, DecidableEq, Repr
 
-private def clausePatterns : ResolvedPropertyClause → List PropertyPattern
+private def clausePatterns : CheckedPropertyClause → List PropertyPattern
   | .stateInvariant _ state => [state]
   | .transitionContract _ precondition postcondition => [precondition, postcondition]
   | .identityRelation _ relation => [relation]
   | .inputOutput _ input output => [input, output]
   | .ordered _ before after _ => [before, after]
   | .eventuallyWithin _ trigger response _ => [trigger, response]
-  | .quiescentWithin _ trigger forbidden _ => [trigger, forbidden]
-  | .sameStepCases group => group.cases.flatMap fun item =>
+  | .neverWithin _ trigger forbidden _ => [trigger, forbidden]
+  | .branches group => group.cases.flatMap fun item =>
       item.temporalClauses.flatMap fun clause => [clause.trigger, clause.response]
-  | .guardedEventuallyWithin guarded | .guardedQuiescentWithin guarded =>
+  | .guardedEventuallyWithin guarded | .guardedNeverWithin guarded =>
       [guarded.trigger, guarded.response]
 
-private def clauseLimit : ResolvedPropertyClause → Option Limit
-  | .eventuallyWithin _ _ _ limit | .quiescentWithin _ _ _ limit => some limit
-  | .guardedEventuallyWithin guarded | .guardedQuiescentWithin guarded =>
+private def clauseLimit : CheckedPropertyClause → Option Limit
+  | .eventuallyWithin _ _ _ limit | .neverWithin _ _ _ limit => some limit
+  | .guardedEventuallyWithin guarded | .guardedNeverWithin guarded =>
       some guarded.limit
   | _ => none
 
@@ -2031,7 +2031,7 @@ private def resolvedPredicateReferences
     (predicate : CheckedPropertyPredicate context) : List DefinitionId :=
   predicateReferences predicate.expression
 
-private def caseGroupProvenance (group : ResolvedPropertyCaseGroup) : List DefinitionId :=
+private def caseGroupProvenance (group : CheckedPropertyBranches) : List DefinitionId :=
   [group.id] ++ resolvedPredicateReferences group.guard ++
     group.exception.toList.flatMap fun exception =>
       exception.id :: resolvedPredicateReferences exception.condition ++
@@ -2045,13 +2045,13 @@ private def caseGroupProvenance (group : ResolvedPropertyCaseGroup) : List Defin
           [clause.id, clause.trigger.reference, clause.response.reference])
 
 private def guardedTemporalProvenance
-    (clause : ResolvedGuardedTemporalClause) : List DefinitionId :=
+    (clause : CheckedPropertyTemporalClause) : List DefinitionId :=
   clause.id :: resolvedPredicateReferences clause.guard ++
     clause.exception.toList.flatMap fun exception =>
       exception.id :: resolvedPredicateReferences exception.condition
 
 private def guardedTemporalFailures
-    (clause : ResolvedGuardedTemporalClause)
+    (clause : CheckedPropertyTemporalClause)
     (satisfied : Bool) : List PropertyClauseIdentity :=
   if satisfied then [] else [{
     parentId := clause.parentId
@@ -2061,12 +2061,12 @@ private def guardedTemporalFailures
     source := clause.source
     evaluatedLimit := some clause.limit
     relatedDefinitionIds :=
-      clause.exception.toList.map ResolvedPropertyException.id ++
-        clause.caseException.toList.map ResolvedPropertyException.id
+      clause.exception.toList.map CheckedPropertyUnless.id ++
+        clause.caseException.toList.map CheckedPropertyUnless.id
   }]
 
 private def caseGroupFailures
-    (group : ResolvedPropertyCaseGroup)
+    (group : CheckedPropertyBranches)
     (view : PropertyEvaluationView) : List PropertyClauseIdentity :=
   let stepFailures := view.steps.flatMap fun step =>
     let guardValues := guardInput step
@@ -2087,7 +2087,7 @@ private def caseGroupFailures
       clauseId := group.id
       kind := .exclusive
       source := group.source
-      relatedDefinitionIds := applicable.map ResolvedPropertyCase.id
+      relatedDefinitionIds := applicable.map CheckedPropertyBranch.id
     }] else []
     let clauseFailures := applicable.flatMap fun item =>
       item.clauses.filterMap fun clause =>
@@ -2100,7 +2100,7 @@ private def caseGroupFailures
             clauseId := clause.id
             kind := .clause
             source := clause.source
-            relatedDefinitionIds := item.exception.toList.map ResolvedPropertyException.id
+            relatedDefinitionIds := item.exception.toList.map CheckedPropertyUnless.id
           }
     completeFailure ++ exclusiveFailure ++ clauseFailures
   let temporalFailures := group.cases.flatMap fun item =>
@@ -2109,7 +2109,7 @@ private def caseGroupFailures
   (stepFailures ++ temporalFailures).eraseDups
 
 private def spanOf
-    (clause : ResolvedPropertyClause)
+    (clause : CheckedPropertyClause)
     (view : PropertyEvaluationView) : Option PropertyTraceSpan :=
   let found := (clausePatterns clause).flatMap fun pattern =>
     (occurrences pattern view).map PropertyOccurrence.transitionPosition
@@ -2123,7 +2123,7 @@ private def spanOf
 private def resultOf
     (property : CheckedProperty)
     (view : PropertyEvaluationView)
-    (clause : ResolvedPropertyClause) : PropertyClauseResult :=
+    (clause : CheckedPropertyClause) : PropertyClauseResult :=
   let satisfied := evaluateResolvedPropertyClause clause view
   {
   propertyId := property.id
@@ -2133,13 +2133,13 @@ private def resultOf
   evaluatedLimit := clauseLimit clause
   semanticProvenance := DefinitionId.canonicalSet
     (property.requires ++ (clausePatterns clause).map PropertyPattern.reference ++ match clause with
-      | .sameStepCases group => caseGroupProvenance group
-      | .guardedEventuallyWithin guarded | .guardedQuiescentWithin guarded =>
+      | .branches group => caseGroupProvenance group
+      | .guardedEventuallyWithin guarded | .guardedNeverWithin guarded =>
           guardedTemporalProvenance guarded
       | _ => [])
   failedObligations := match clause with
-    | .sameStepCases group => caseGroupFailures group view
-    | .guardedEventuallyWithin guarded | .guardedQuiescentWithin guarded =>
+    | .branches group => caseGroupFailures group view
+    | .guardedEventuallyWithin guarded | .guardedNeverWithin guarded =>
         guardedTemporalFailures guarded satisfied
     | _ => []
   }
@@ -2214,7 +2214,7 @@ private def plainTemporalEndpointAnswer
   | _, _ => .unresolved
 
 private def guardedEndpointAnswer
-    (clause : ResolvedGuardedTemporalClause)
+    (clause : CheckedPropertyTemporalClause)
     (view : PropertyEvaluationView) : PropertyEndpointAnswer :=
   match checkedPositions clause.response clause.limit.unit view with
   | none => .unresolved
@@ -2235,7 +2235,7 @@ private def guardedEndpointAnswer
       combineEndpointAnswers (visit 1 0 view.steps)
 
 private def clauseEndpointAnswer
-    (clause : ResolvedPropertyClause)
+    (clause : CheckedPropertyClause)
     (view : PropertyEvaluationView) : PropertyEndpointAnswer :=
   match clause with
   | .stateInvariant _ pattern =>
@@ -2244,11 +2244,11 @@ private def clauseEndpointAnswer
       else if evaluateStateInvariant pattern view then .satisfied else .violated
   | .eventuallyWithin _ trigger response limit =>
       plainTemporalEndpointAnswer false trigger response limit view
-  | .quiescentWithin _ trigger response limit =>
+  | .neverWithin _ trigger response limit =>
       plainTemporalEndpointAnswer true trigger response limit view
-  | .guardedEventuallyWithin clause | .guardedQuiescentWithin clause =>
+  | .guardedEventuallyWithin clause | .guardedNeverWithin clause =>
       guardedEndpointAnswer clause view
-  | .sameStepCases group =>
+  | .branches group =>
       if !(view.steps.all (evaluateCaseGroupStep group)) then .violated else
         combineEndpointAnswers (group.cases.flatMap fun item =>
           item.temporalClauses.map fun clause => guardedEndpointAnswer clause view)
@@ -2256,15 +2256,15 @@ private def clauseEndpointAnswer
       if evaluateResolvedPropertyClause clause view then .satisfied else .unresolved
   | _ => if evaluateResolvedPropertyClause clause view then .satisfied else .violated
 
-private def plainTriggerPattern : ResolvedPropertyClause → Option PropertyPattern
+private def plainTriggerPattern : CheckedPropertyClause → Option PropertyPattern
   | .transitionContract _ trigger _ | .inputOutput _ trigger _ => some trigger
-  | .eventuallyWithin _ trigger _ _ | .quiescentWithin _ trigger _ _ => some trigger
+  | .eventuallyWithin _ trigger _ _ | .neverWithin _ trigger _ _ => some trigger
   | _ => none
 
-private def requestedClauseTriggers : ResolvedPropertyClause → List DefinitionId
-  | .sameStepCases group => group.cases.flatMap fun item =>
+private def requestedClauseTriggers : CheckedPropertyClause → List DefinitionId
+  | .branches group => group.cases.flatMap fun item =>
       item.clauses.map (·.id) ++ item.temporalClauses.map (·.id)
-  | .guardedEventuallyWithin clause | .guardedQuiescentWithin clause => [clause.id]
+  | .guardedEventuallyWithin clause | .guardedNeverWithin clause => [clause.id]
   | clause => if (plainTriggerPattern clause).isSome then [clause.id] else []
 
 /-- Interpret the exact admitted view as closed or still open, preserving ordinary closed truth
@@ -2272,7 +2272,7 @@ and reporting conditional exercise separately from that truth. -/
 def evaluatePropertyEndpoint
     (property : CheckedProperty)
     (input : CheckedPropertyEvaluationInput property)
-    (runtimePrefix : Bool) : PropertyEndpointEvaluation :=
+    (partialTrace : Bool) : PropertyEndpointEvaluation :=
   let joint := (analyzeJointObligations property input).map fun observation => ({
     propertyId := property.id
     clauseId := observation.clauseId
@@ -2294,7 +2294,7 @@ def evaluatePropertyEndpoint
         }
       } : PropertyTriggerEvidence)
   {
-    answer := if runtimePrefix then
+    answer := if partialTrace then
       combineEndpointAnswers (property.clauses.map fun clause =>
         clauseEndpointAnswer clause input.view)
       else if (evaluateProperty property input).satisfied then .satisfied else .violated

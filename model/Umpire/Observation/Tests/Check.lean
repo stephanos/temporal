@@ -50,7 +50,7 @@ def guardedSwitchPropertyDeclaration : Property := {
   Umpire.Examples.Switch.authoredProperty with
   id := DefinitionId.of "test.run-evaluation.property.guarded"
   version := 2
-  clauses := [.sameStepCases {
+  clauses := [.branches {
     id := DefinitionId.of "test.run-evaluation.property.guarded.group"
     source := Umpire.Examples.Switch.source
     guard := .atom {
@@ -99,7 +99,7 @@ def guardedTemporalSwitchPropertyDeclaration : Property := {
       constraint := .present
     }
     {
-      field := .modelOutcome
+      field := .outcome
       reference := Umpire.Examples.Switch.appliedOutcomeId
       constraint := .present
     }

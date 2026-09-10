@@ -77,8 +77,8 @@ private def escapedDiagnosticJson : String :=
     (predicate : Umpire.CheckedPropertyPredicate contextKind)
     (input : Umpire.CheckedPropertyPredicateInput predicate),
       Umpire.evaluatePropertyPredicate predicate input = true ↔ predicate.denote input)
-#check (Umpire.ResolvedGuardedTemporalClause : Type)
-#check (Umpire.PropertyCaseTemporalClause : Type)
+#check (Umpire.CheckedPropertyTemporalClause : Type)
+#check (Umpire.PropertyTemporalClause : Type)
 #check (Umpire.CheckedProperty.hasGuardedTemporalClauses : Umpire.CheckedProperty → Bool)
 #check (Umpire.CheckedProperty.guardedTemporalClauseIds :
   Umpire.CheckedProperty → List Umpire.DefinitionId)

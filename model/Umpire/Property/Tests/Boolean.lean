@@ -252,7 +252,7 @@ def expectationPredicate : CheckedPropertyPredicate .expectation :=
         constraint := .oneOf [.natural 0, .natural 1]
       },
       .atom {
-        field := .modelOutcome
+        field := .outcome
         reference := deliveredOutcome
         constraint := .equals (.text "delivered")
       },
@@ -266,7 +266,7 @@ def expectationPredicate : CheckedPropertyPredicate .expectation :=
 def completeExpectationInput : PropertyPredicateInput := {
   context := .expectation
   resultingState := some (value pendingCount "1")
-  modelOutcome := some (value deliveredOutcome "delivered")
+  outcome := some (value deliveredOutcome "delivered")
   facts := some [value cancelRequested "request-1"]
 }
 
