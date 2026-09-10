@@ -306,7 +306,7 @@ def startNexusOperation (endpointRoleId serviceName operationName : String)
   { instruction := some (.start_nexus_operation
       (StartNexusOperation.mk endpointRoleId serviceName operationName (some input) default)) }
 
-def awaitOutcome (instruction : InstructionRef) : Instruction :=
+def awaitInstruction (instruction : InstructionRef) : Instruction :=
   { instruction := some (.await_instruction { instruction := some instruction }) }
 
 def finish (result : ProgramExpression) : Instruction :=

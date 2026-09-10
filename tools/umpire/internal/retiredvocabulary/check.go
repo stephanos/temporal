@@ -539,16 +539,16 @@ func buildRetiredRules() ([]tokenRule, error) {
 		"Scoped" + "FieldDisposition",
 		"Scoped" + "CaptureDeclaration",
 		"Scoped" + "CaptureRef",
-		"SCOPED_" + "ENDPOINT",
-		"SCOPED_" + "CLOCK",
-		"SCOPED_" + "PREDICATE_FIELD",
-		"SCOPED_" + "EVIDENCE_MEANING",
-		"SCOPED_" + "FIELD_DISPOSITION",
-		"SCOPED_" + "COMPARISON_OPERATOR",
+		"Scoped" + "EvidenceBinding",
+		"Scoped" + "EvidenceRule",
+		"Scoped" + "EvidenceProjection",
+		"Scoped" + "EvidenceField",
+		"Scoped" + "EvidenceMeaning",
+		"Scoped" + "CorrelationGroup",
+		"Scoped" + "ComparisonOperator",
+		"Scoped" + "PredicateField",
 		"runtime" + "Prefix",
-		"RUNTIME_" + "PREFIX",
 		"deliberately" + "Closed",
-		"DELIBERATELY_" + "CLOSED",
 		"ContractHorizon" + "Definition",
 		"await_" + "outcome",
 		"resulting_" + "state",
@@ -591,6 +591,14 @@ func buildRetiredRules() ([]tokenRule, error) {
 			pattern: regexp.MustCompile(`(^|[^A-Za-z0-9_])(?:` + strings.Join(variants, "|") + `)(?:V[0-9]+)?([^A-Za-z0-9_]|$)`),
 		})
 	}
+	// The retired protocol enum values only ever occur as whole SCREAMING_SNAKE constants, where the
+	// compound rules' identifier boundary is an underscore on both sides and can never match. One
+	// prefix rule covers the whole family, so a stale fixture carrying SCOPED_ENDPOINT_RUNTIME_PREFIX
+	// is rejected.
+	rules = append(rules, tokenRule{
+		name:    "SCOPED_*",
+		pattern: regexp.MustCompile(`(^|[^A-Za-z0-9_])SCOPED_[A-Z0-9_]+`),
+	})
 	for _, token := range []string{"bounds", "omissions", "qualification", "qualified"} {
 		rules = append(rules, tokenRule{
 			name:    `"` + token + `"`,

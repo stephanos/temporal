@@ -345,7 +345,7 @@ func buildLeanDeclarationNames(projection projection, packageNames map[string]le
 	if err != nil {
 		return nil, err
 	}
-	localNames, err := allocateCorrelatedLeanNames(requestsByScope, leanPackageReservations(packageNames))
+	localNames, err := allocateLeanNamesByScope(requestsByScope, leanPackageReservations(packageNames))
 	if err != nil {
 		return nil, err
 	}

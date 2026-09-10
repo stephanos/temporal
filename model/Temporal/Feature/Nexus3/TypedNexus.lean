@@ -733,7 +733,7 @@ private def workflowInstructions (entry : OperationCase) : Array InstructionDefi
     (Program.startNexusOperation nexusEndpointRole nexusService entry.operation (text "request"))
     (bounds 10000) #[] none (some statusOutcome),
   Program.node entry.awaitInstructionId
-    (Program.awaitOutcome (Ref.instruction workflowEntrypointId entry.startInstructionId))
+    (Program.awaitInstruction (Ref.instruction workflowEntrypointId entry.startInstructionId))
     (bounds 10000) #[Ref.instruction workflowEntrypointId entry.startInstructionId]
     none (some textOutcome)]
 

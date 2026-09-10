@@ -152,7 +152,7 @@ private def program : Program :=
             (text "request"))
           (bounds 10000) #[] none (some statusOutcome),
         Program.node "await-nexus-operation"
-          (Program.awaitOutcome (Ref.instruction "workflow" "start-nexus-operation"))
+          (Program.awaitInstruction (Ref.instruction "workflow" "start-nexus-operation"))
           (bounds 10000) #[Ref.instruction "workflow" "start-nexus-operation"]
           none (some textOutcome),
         Program.node "finish-workflow"
