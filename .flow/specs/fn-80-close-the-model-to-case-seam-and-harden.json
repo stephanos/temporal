@@ -18,6 +18,7 @@
     "fn-80-close-the-model-to-case-seam-and-harden.15": 0,
     "fn-80-close-the-model-to-case-seam-and-harden.2": 0,
     "fn-80-close-the-model-to-case-seam-and-harden.3": 0,
+    "fn-80-close-the-model-to-case-seam-and-harden.4": 1,
     "fn-80-close-the-model-to-case-seam-and-harden.6": 0,
     "fn-80-close-the-model-to-case-seam-and-harden.7": 0,
     "fn-80-close-the-model-to-case-seam-and-harden.8": 0
@@ -1424,9 +1425,18 @@
     "plan#completion": 0
   },
   "review_pending_rounds": {
-    "impl:fn-80-close-the-model-to-case-seam-and-harden.14": 1
+    "impl:fn-80-close-the-model-to-case-seam-and-harden.14": 1,
+    "impl:fn-80-close-the-model-to-case-seam-and-harden.4": 1
   },
   "review_reservations": {
+    "4ba5b45d058b453f8df55623083adb7e": {
+      "artifact_sha256": "eee85eeb3e4035ce39ad328f519a394dbb89ea8acddf4bcbbff13c980d80251a",
+      "counter_scope": "impl:fn-80-close-the-model-to-case-seam-and-harden.4",
+      "epoch": 0,
+      "exclusive": false,
+      "forced": false,
+      "review_type": "impl"
+    },
     "5d04a45090c74039be45230288267479": {
       "artifact_sha256": "4a894ee62d47042800d271b39d4f944d635b54cb96d3cba9b6764790e1a5fba7",
       "counter_scope": "impl:fn-80-close-the-model-to-case-seam-and-harden.14",
@@ -1468,5 +1478,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-10T01:20:13.295058Z"
+  "updated_at": "2026-09-10T01:58:30.093498Z"
 }
