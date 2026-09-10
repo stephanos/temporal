@@ -44,7 +44,7 @@ def KnownGapScope.name : KnownGapScope → String
 inductive KnownGapSourceShape where
   | exactKnownGap
   | generatedKnownGapFamily
-  | authoredImplementationLinkKnownGapFamily
+  | authoredUnmappedSourceFamily
   | admittedKnownGapInput
   | evidenceGapAdmissionProjection
   | carriedCatalogEntry
@@ -53,7 +53,7 @@ inductive KnownGapSourceShape where
 def KnownGapSourceShape.name : KnownGapSourceShape → String
   | .exactKnownGap => "exact-known-gap"
   | .generatedKnownGapFamily => "generated-known-gap-family"
-  | .authoredImplementationLinkKnownGapFamily =>
+  | .authoredUnmappedSourceFamily =>
       "authored-implementation-link-known-gap-family"
   | .admittedKnownGapInput => "admitted-known-gap-input"
   | .evidenceGapAdmissionProjection => "evidence-gap-admission-projection"

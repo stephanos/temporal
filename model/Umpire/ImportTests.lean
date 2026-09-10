@@ -45,7 +45,7 @@ import Umpire
 #check Umpire.OutcomeConstructorClassifiers.descriptors
 #check Umpire.OutcomeConstructorClassifiers.names
 #check Umpire.OutcomeConstructorClassifiers.HasUniqueNames
-#check Umpire.ProjectionSentinelDescriptor
+#check Umpire.NotRunMarker
 
 example (Outcome : Type) (descriptor : Umpire.OutcomeConstructorDescriptor) :
     Umpire.OutcomeConstructorClassifiers.ExactlyOne
