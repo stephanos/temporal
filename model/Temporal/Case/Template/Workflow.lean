@@ -1,5 +1,5 @@
 import Temporal.Case.Evidence
-import Temporal.Case.EventKind
+import Temporal.Case.Support
 
 /-!
 # The `workflow` realization
@@ -20,25 +20,15 @@ therefore the event's own id: a stable path on the single close event, because
 namespace Temporal.Case.Template
 
 open Umpire
+open Temporal.Case.Support
 open Temporal.Testpilot.CaseSupport
 open Testpilot.Authoring
 open temporal.server.api.testpilot.v1
 
 namespace Workflow
 
-def workflowServiceRole := "temporal.workflow-service"
-def workerRole := "temporal.worker"
-def taskQueueRole := "temporal.task-queue"
 def namespaceBinding := "temporal.workflow.namespace"
 def taskQueueBinding := "temporal.workflow.task-queue"
-
-private def startWorkflowMethod :=
-  "/temporal.api.workflowservice.v1.WorkflowService/StartWorkflowExecution"
-private def getHistoryMethod :=
-  "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory"
-
-def historyObservation := "history-event"
-def correlatedObservation := "correlated-evidence"
 
 def projectionId : DefinitionId := .of "temporal.case.workflow.projection"
 def evidenceSourceId : DefinitionId := .of "temporal.case.workflow.source.history"
@@ -56,10 +46,6 @@ def completedSource : Umpire.Case.Producer.EvidenceSource :=
     operationKeyPath := eventKey
     kindId := completedEvidenceKindId
     sourceId := evidenceSourceId }
-
-/-- `HISTORY_EVENT_FILTER_TYPE_CLOSE_EVENT`. -/
-private def closeEventFilter : ProgramExpression :=
-  ProgramExpr.literal (Value.enumeration 2)
 
 private def historyAssignments : Array RequestAssignment := #[
   Program.environmentAssignment (field "namespace") namespaceBinding,
@@ -82,8 +68,7 @@ private def program
         (resourceBindingId := taskQueueBinding)]
     #[]
     #[Program.observation historyObservation historyEventType,
-      Program.observation correlatedObservation (Types.singular
-        (Types.messageType "temporal.server.api.testpilot.v1.CorrelatedEvidence"))]
+      Program.observation correlatedObservation correlatedEvidenceType]
     #[Program.controller "controller" #[
         Program.node "start-workflow"
           (Program.invokeRPC workflowServiceRole startWorkflowMethod #[
@@ -122,9 +107,9 @@ def workflow (workflowType : String) : Umpire.Case.Producer.Realization := {
   projectionId := Workflow.projectionId
   scopeField := Workflow.runFieldId
   operationKey := Workflow.operationFieldId
-  historyObservation := Workflow.historyObservation
-  correlatedObservation := Workflow.correlatedObservation
-  taskQueueRole := Workflow.taskQueueRole
+  historyObservation := Support.historyObservation
+  correlatedObservation := Support.correlatedObservation
+  taskQueueRole := Support.taskQueueRole
   faultRuleId := "worker-outage-order"
   hooks := [
     { name := "start", instruction := Ref.instruction "controller" "start-workflow" },

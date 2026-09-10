@@ -11,7 +11,8 @@
   ],
   "id": "fn-83-author-a-live-case-from-a-model-file",
   "impl_review_rounds": {
-    "fn-83-author-a-live-case-from-a-model-file.1": 0
+    "fn-83-author-a-live-case-from-a-model-file.1": 0,
+    "fn-83-author-a-live-case-from-a-model-file.2": 2
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -363,6 +364,93 @@
       "task": "fn-83-author-a-live-case-from-a-model-file.1",
       "timestamp": "2026-09-10T23:36:28.928509Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "7fe58325adcbbdd82bc8d1aab6de1715245b0ea5a985acb2e6846ba7a630c325",
+      "backend": "claude",
+      "base_sha": "1375ba9df30f211c4a786267b3703abed9f786a9",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": "nonzero_exit",
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "341035084607c4acff45eaa60b9251123719ba35",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "transport_failure",
+      "output_bytes": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "reservation_id": "7cac1fd71e3b47e7b511516a7d154426",
+      "round_consumed": false,
+      "scope": "impl:fn-83-author-a-live-case-from-a-model-file.2",
+      "superseded_by": null,
+      "task": "fn-83-author-a-live-case-from-a-model-file.2",
+      "timestamp": "2026-09-10T23:47:05.255585Z",
+      "verdict": null
+    },
+    {
+      "artifact_sha256": "7fe58325adcbbdd82bc8d1aab6de1715245b0ea5a985acb2e6846ba7a630c325",
+      "backend": "claude",
+      "base_sha": "1375ba9df30f211c4a786267b3703abed9f786a9",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "341035084607c4acff45eaa60b9251123719ba35",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-sonnet-4-5",
+      "outcome": "verdict",
+      "output_bytes": 3522,
+      "output_sha256": "5cc94e2c907724f8142bbb85e887746eee261de6a5b1462d938b1426dc2557bf",
+      "reservation_id": "c955902751804629931a2d1fcadf5356",
+      "round_consumed": true,
+      "scope": "impl:fn-83-author-a-live-case-from-a-model-file.2",
+      "superseded_by": null,
+      "task": "fn-83-author-a-live-case-from-a-model-file.2",
+      "timestamp": "2026-09-10T23:51:53.701616Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "7fe58325adcbbdd82bc8d1aab6de1715245b0ea5a985acb2e6846ba7a630c325",
+      "backend": "claude",
+      "base_sha": "1375ba9df30f211c4a786267b3703abed9f786a9",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": true,
+      "hash_epoch": 0,
+      "head_sha": "341035084607c4acff45eaa60b9251123719ba35",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-sonnet-4-5",
+      "outcome": "verdict",
+      "output_bytes": 2395,
+      "output_sha256": "23a8b03f8c8e359bd0786f36170b78b4d2fa17f7b4e2bb7e9ec6e2ba7eb5bdae",
+      "reservation_id": "c457e748658642cebbf25c064d9b8533",
+      "round_consumed": true,
+      "scope": "impl:fn-83-author-a-live-case-from-a-model-file.2",
+      "superseded_by": null,
+      "task": "fn-83-author-a-live-case-from-a-model-file.2",
+      "timestamp": "2026-09-10T23:56:47.741713Z",
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
@@ -374,6 +462,7 @@
   "review_reservations": {},
   "review_transport_failures": {
     "impl:fn-83-author-a-live-case-from-a-model-file.1": 0,
+    "impl:fn-83-author-a-live-case-from-a-model-file.2": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-83-author-a-live-case-from-a-model-file.md",
@@ -390,5 +479,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-10T23:36:28.929099Z"
+  "updated_at": "2026-09-10T23:56:47.742453Z"
 }
