@@ -1254,7 +1254,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-82-unify-the-umpire-and-testpilot.md",
-  "status": "open",
+  "status": "done",
   "title": "Unify the Umpire and Testpilot vocabulary",
   "tracker": {
     "baseHashFlow": null,
@@ -1267,5 +1267,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-10T19:02:05.554791Z"
+  "updated_at": "2026-09-10T23:05:14.610374Z"
 }
