@@ -131,6 +131,9 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   execution and MUST use the same transition semantics for offline evaluation. Expiry is evaluated
   before transitions at every event, bounded captures are rule-local and Run-local, and a proven
   violation MUST remain authoritative despite later cleanup or operational failure.
+- **SEM-18 — Producer neutrality.** Lean MUST produce deterministic Cases for model-owned behavior,
+  but any conforming client MAY author a Case. A non-Lean Case is not thereby a Behavior Model
+  declaration or a claim about any other Case.
 - **SEM-19 — One word per concept.** *(drafted by fn-82; awaiting GOV-02 approval.)* Each concept in
   this document MUST have exactly one word, and that word MUST be spelled the same in Lean, in the
   Testpilot protobuf schema, in Go, in the command syntax, and in prose. A second word for a concept
@@ -143,9 +146,6 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   matches their lowercase form and would reject ordinary prose. A retired bare keyword MUST instead
   be rejected by the command macro that used to accept it, with a located error naming its
   replacement.
-- **SEM-18 — Producer neutrality.** Lean MUST produce deterministic Cases for model-owned behavior,
-  but any conforming client MAY author a Case. A non-Lean Case is not thereby a Behavior Model
-  declaration or a claim about any other Case.
 
 ### Enforced module boundaries
 
@@ -173,15 +173,15 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   responses and protocol status. `common/testing/testpilot/temporal/worker` MUST own SDK workflow, activity, and
   Nexus-handler execution plus reserved activation delivery. Neither side may assume the other's
   authority; internal execution owns request construction and response projection.
+- **MOD-14 — Internal execution boundary.** Production packages outside Testpilot and its private
+  verification package MUST NOT import `common/testing/testpilot/internal/execution`; Driver adapters
+  depend only on the public Testpilot facade.
 - **MOD-15 — Resolvable glossary.** *(drafted by fn-82; awaiting GOV-02 approval.)* Every dotted
   Lean name this document cites in backticks MUST name a module, a namespace, or a declaration that
   exists in `model/`, unless the rule citing it is marked planned and the Flow spec that owns
   delivering it is open. A Go test under `tools/umpire` MUST enforce this against an index built by
   scanning the model tree. Whether each term is defined once and used consistently remains a review
   judgment; the test covers only the mechanical half.
-- **MOD-14 — Internal execution boundary.** Production packages outside Testpilot and its private
-  verification package MUST NOT import `common/testing/testpilot/internal/execution`; Driver adapters
-  depend only on the public Testpilot facade.
 
 ### Module design
 
@@ -221,7 +221,8 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   cancellation.” Logs, spans, RPCs, and records are Evidence used to decide whether the claim held
   during a Run. Facts are the `facts` of a `Umpire.Step`; the Fact domain is a Model's own type.
 - **Trace (`Umpire.Scenario.Trace`).** A starting state and a sequence of Steps. It contains no
-  runtime Evidence. `Umpire.Scenario.TraceAddress` names one position inside one.
+  runtime Evidence. One position inside a Trace is a `Umpire.ModelCoordinate`; SEM-19 retires that
+  name to `TraceAddress`, which the tree has not taken yet.
 - **Scenario (`Umpire.Scenario`).** A named, constrained set of Traces. It defines available
   variations and faults but selects no single Trace, and it neither evaluates Properties nor
   determines whether a Trace occurred at runtime. `Umpire.CheckedScenario` is an admitted one.
