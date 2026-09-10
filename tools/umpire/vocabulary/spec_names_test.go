@@ -1,11 +1,9 @@
 package vocabulary_test
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
-	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -37,31 +35,9 @@ func TestUmpireSpecNamesResolveAgainstTheModelTree(t *testing.T) {
 	names := leannames.ExtractSpecNames(string(document))
 	require.NotEmpty(t, names)
 
-	specsDirectory := filepath.Join(repositoryRoot, ".flow", "specs")
-	openSpec := map[string]bool{}
-	var unresolved []string
-	for _, name := range names {
-		if name.PlannedSpec != "" {
-			open, ok := openSpec[name.PlannedSpec]
-			if !ok {
-				open, err = leannames.SpecIsOpen(specsDirectory, name.PlannedSpec)
-				require.NoError(t, err)
-				openSpec[name.PlannedSpec] = open
-			}
-			if !open {
-				unresolved = append(unresolved, fmt.Sprintf(
-					"UMPIRE4_SPEC.md:%d: %s is marked planned under %s, which is not open",
-					name.Line, name.Name, name.PlannedSpec))
-			}
-			continue
-		}
-		if !index.Resolve(name.Name) {
-			unresolved = append(unresolved, fmt.Sprintf(
-				"UMPIRE4_SPEC.md:%d: %s names no module, namespace, or declaration",
-				name.Line, name.Name))
-		}
-	}
-	slices.Sort(unresolved)
+	unresolved, err := leannames.Unresolved(
+		index, names, "UMPIRE4_SPEC.md", filepath.Join(repositoryRoot, ".flow", "specs"))
+	require.NoError(t, err)
 	require.Empty(t, unresolved)
 }
 

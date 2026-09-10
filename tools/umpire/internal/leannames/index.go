@@ -79,10 +79,9 @@ func Build(modelRoot string) (*Index, error) {
 		if walkErr != nil {
 			return walkErr
 		}
+		// WalkDir never descends a symlink, and never reports one as a directory, so
+		// skipping the entry is the whole of it.
 		if entry.Type()&os.ModeSymlink != 0 {
-			if entry.IsDir() {
-				return filepath.SkipDir
-			}
 			return nil
 		}
 		if entry.IsDir() {
@@ -170,9 +169,21 @@ func (index *Index) addFile(content string) {
 		return named
 	}
 	var members memberBlock
+	// Lean block comments nest, and a docstring is one. Lines inside a comment name
+	// nothing, so a fenced example holding column-zero Lean cannot add a phantom name or
+	// close a namespace the code did not close.
+	commentDepth := 0
 	for _, raw := range strings.Split(content, "\n") {
 		line := strings.TrimRight(raw, " \t\r")
 		trimmed := strings.TrimLeft(line, " \t")
+		inComment := commentDepth > 0
+		commentDepth += strings.Count(line, "/-") - strings.Count(line, "-/")
+		if commentDepth < 0 {
+			commentDepth = 0
+		}
+		if inComment {
+			continue
+		}
 		if members.owner != "" && !members.consume(index, line, trimmed) {
 			members = memberBlock{}
 		}
@@ -218,10 +229,6 @@ func qualify(open []string, name string) string {
 // constructors are indexed as declarations under their owner, so an invented segment
 // under a real structure does not resolve just because its parent does.
 func (index *Index) Resolve(name string) bool {
-	return index.has(name)
-}
-
-func (index *Index) has(name string) bool {
 	if _, ok := index.modules[name]; ok {
 		return true
 	}
