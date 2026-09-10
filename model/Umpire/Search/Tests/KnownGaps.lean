@@ -1,4 +1,4 @@
-import Umpire.SemanticInventory.KnownGaps
+import Umpire.Inventory.KnownGaps
 
 /-! Closed Known Gap validation and canonical encoding. -/
 
@@ -155,9 +155,9 @@ example : canonicalKnownGapJson inputGap =
   native_decide
 
 private def catalogRow (catalogId : String) : KnownGapCatalogDescriptor :=
-  SemanticInventory.testKnownGapCatalog.find? (fun row => row.id == catalogId) |>.getD {
+  Inventory.testKnownGapCatalog.find? (fun row => row.id == catalogId) |>.getD {
     id := "umpire.semantic-inventory.known-gap-source.unknown"
-    owner := "Umpire.SemanticInventory"
+    owner := "Umpire.Inventory"
     lineage := .authored
     scope := .testOnly
     shape := .exactKnownGap

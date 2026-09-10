@@ -2,7 +2,7 @@ import Umpire.Artifact.Types
 import Umpire.Artifact.Result
 import Umpire.ImplementationLink.Language
 import Umpire.Evidence.Evaluate
-import Umpire.SemanticInventory.Types
+import Umpire.Inventory.Types
 
 /-!
 The production Known Gap source registry names fixed planner gaps and the closed Observation
@@ -11,7 +11,7 @@ without turning request-provided codes into semantic definitions.
 -/
 
 namespace Umpire
-namespace SemanticInventory
+namespace Inventory
 
 /-- A closed production source is either one exact Known Gap or one generated namespaced family. -/
 inductive KnownGapSource where
@@ -162,7 +162,7 @@ def validateProductionKnownGapSources
   if sources.mergeSort sourceLe != sources then
     let descriptor := sources.getD 0 {
       id := DefinitionId.of "umpire.semantic-inventory.known-gap-source.unknown"
-      owner := "Umpire.SemanticInventory"
+      owner := "Umpire.Inventory"
       lineage := .authored
       scope := .production
       source := .exact plannerExecutionEvidenceKnownGap
@@ -549,5 +549,5 @@ def observationKnownGap
   observationKnownGapSource.source.materialize (observationFailureKnownGapSuffix kind)
     (some subject)
 
-end SemanticInventory
+end Inventory
 end Umpire
