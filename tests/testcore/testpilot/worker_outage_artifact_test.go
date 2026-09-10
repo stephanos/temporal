@@ -14,12 +14,12 @@ const (
 	workerOutageArtifactTaskQueue = "worker-outage-task-queue"
 )
 
-// TestWorkerOutageCaseDeclaresAnEventCountHorizon prepares the unchanged outage Case bytes offline.
+// TestWorkerOutageCaseDeclaresAnEventCountDeadline prepares the unchanged outage Case bytes offline.
 // The bound the liveness rule carries is an event count and nothing else: an elapsed-time bound
 // would let a slow host decide the outage window, which is what this Case exists to avoid. Whether
 // that counter agrees online and offline is owned by the one helper both paths reach it through
-// (`TestEvaluatorEventCountHorizon`); this pins that the shipped Case is the shape it counts for.
-func TestWorkerOutageCaseDeclaresAnEventCountHorizon(t *testing.T) {
+// (`TestEvaluatorEventCountDeadline`); this pins that the shipped Case is the shape it counts for.
+func TestWorkerOutageCaseDeclaresAnEventCountDeadline(t *testing.T) {
 	source := loadLeanCase(t, "worker-outage")
 	catalog, err := temporal.NewWorkflowServiceCatalog()
 	require.NoError(t, err)

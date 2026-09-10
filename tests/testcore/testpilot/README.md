@@ -28,7 +28,7 @@ resource call `bindCase` directly. Both are test helpers outside the public faca
 
 The worker-outage fixture is the fault Case: its controller stops the SDK worker of its own
 activation queue before starting the workflow, resumes it after, and reads the closing history event
-back. Its Contract carries the checked-in `rule_events` horizon -- the outage window is counted in
+back. Its Contract carries the checked-in `rule_events` deadline -- the outage window is counted in
 what the Run recorded, never on the host's clock -- and a safety rule over the completed workflow,
 so the Run proves the queued task survived the outage. `worker_outage_artifact_test.go` prepares its
 unchanged bytes and pins that bound offline; the tagged live tests run it, and run it beside a plain
