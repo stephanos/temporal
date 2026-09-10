@@ -65,9 +65,9 @@ Testpilot terms have precise boundaries:
 
 ## Semantic authoring and planning
 
-The retained semantic model uses separate `Model`, `Property`, `Behavior`, `Query`, `Space`,
+The retained semantic model uses separate `Model`, `Property`, `Scenario`, `Query`, `Space`,
 `Exploration`, and `Promotion` APIs. A checked Model owns behavior; Properties state trace claims;
-Behaviors constrain trace shape; Queries ask bounded questions; Spaces and Exploration select
+Scenarios constrain trace shape; Queries ask bounded questions; Spaces and Exploration select
 finite candidates. These packages do not perform runtime I/O.
 
 For ordinary authoring, use `import Umpire` or the focused `Umpire.Model`, `Umpire.Property`,
@@ -97,7 +97,7 @@ ordered domains, encoders, enumerators, closure proofs, and Action-executability
 `modelSpec` and `draftModel` remove repeated record and planning transport. Authors who
 need an independently specified authoritative relation can use the expert `Machine` path.
 
-Property, Behavior, Query, and Observation inputs remain ordinary values. Call each language's
+Property, Scenario, Query, and Observation inputs remain ordinary values. Call each language's
 `check` operation to inspect its typed `Except` error, then supply explicit checker-success evidence
 to its `checked` operation. Stable `DefinitionId` suffixes, source locations, providers/connectors,
 Model-owned outcomes, and stage-specific `QueryLimitSpec` values are authored choices; declaration

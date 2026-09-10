@@ -569,26 +569,27 @@ private def guardedTemporalCancelDeclaration
     (guardValue : String := model.cancelAction.value) : Property := {
   Cancel.authoredProperty model with
   version := 2
-  clauses := [.guardedEventuallyWithin
-    (Temporal.Shared.definitionId
-      "temporal.nexus2.basic-lifecycle.property.cancel.guarded-temporal")
-    Cancellation.source
-    (.atom {
+  clauses := [.eventuallyWithin
+      (id := (Temporal.Shared.definitionId
+      "temporal.nexus2.basic-lifecycle.property.cancel.guarded-temporal"))
+      (source := Cancellation.source)
+      (guard := some (.atom {
       field := .selectedAction
       reference := guardAction
       constraint := .equals (.text guardValue)
-    }) none
-    {
+    }))
+      («unless» := none)
+      (trigger := {
       field := .observation
       reference := lifecycleFactId
       constraint := .equals model.canceledFact.value
-    }
-    {
+    })
+      (response := {
       field := .outcome
       reference := transitionOutcomeId
       constraint := .equals model.canceledOutcome.value
-    }
-    { value := 0, unit := .semanticTransitions }]
+    })
+      (limit := { value := 0, unit := .semanticTransitions })]
 }
 
 private def guardedTemporalPlannerOutcome
@@ -1012,7 +1013,7 @@ private def laterExceptionSummary := do
     | JointObligationFormula.sameStep _ => false
   let exception ← expectation.exceptions.head?
   let input ← (checkPropertyPredicateInput exception.condition {
-    context := .guard
+    context := .before
     priorState := some checked.model.cancelRequestedState
     selectedAction := some checked.model.resolveAction
   }).toOption
@@ -1093,14 +1094,14 @@ private def observationTriggerPropertyDeclaration
   source
   version := 2
   requires := [capabilityId]
-  clauses := [.guardedEventuallyWithin
-    (raceId ("temporal.nexus2.cancellation-race.property.observation-trigger." ++ key ++ ".clause"))
-    source
-    (raceAtom .selectedAction action.definitionId (.text action.value))
-    none
-    (PropertyPattern.exact .observation trigger.definitionId trigger.value)
-    (PropertyPattern.exact .observation response.definitionId response.value)
-    { value := 1, unit := .observationPositions }]
+  clauses := [.eventuallyWithin
+      (id := (raceId ("temporal.nexus2.cancellation-race.property.observation-trigger." ++ key ++ ".clause")))
+      (source := source)
+      (guard := some (raceAtom .selectedAction action.definitionId (.text action.value)))
+      («unless» := none)
+      (trigger := (PropertyPattern.exact .observation trigger.definitionId trigger.value))
+      (response := (PropertyPattern.exact .observation response.definitionId response.value))
+      (limit := { value := 1, unit := .observationPositions })]
 }
 
 private def distinctObservationTriggerAnalysis? : Option CaseAnalysisResult := do
