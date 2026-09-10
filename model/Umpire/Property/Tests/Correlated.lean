@@ -135,14 +135,14 @@ private def independent (bound : Nat) (points : List Coordinate) : Bool :=
 /-- info: 'Umpire.Property.Correlated.checked_eventuallyWithin_agrees' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms Umpire.Property.Correlated.checked_eventuallyWithin_agrees
-/-- info: 'Umpire.Property.Correlated.Run.consume' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+/-- info: 'Umpire.Property.Correlated.Monitor.consume' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
-#print axioms Umpire.Property.Correlated.Run.consume
-/-- info: 'Umpire.Property.Correlated.Run.consumeMany_append' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#print axioms Umpire.Property.Correlated.Monitor.consume
+/-- info: 'Umpire.Property.Correlated.Monitor.consumeMany_append' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
-#print axioms Umpire.Property.Correlated.Run.consumeMany_append
-/-- info: 'Umpire.Case.Projection.Correlated.Run.admitMany_append' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#print axioms Umpire.Property.Correlated.Monitor.consumeMany_append
+/-- info: 'Umpire.Case.Projection.Correlated.Monitor.admitMany_append' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
-#print axioms Umpire.Case.Projection.Correlated.Run.admitMany_append
+#print axioms Umpire.Case.Projection.Correlated.Monitor.admitMany_append
 
 end Umpire.Property.CorrelatedTests

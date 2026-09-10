@@ -11,7 +11,7 @@ immutable. `consumeMany` is the common finite, incremental and offline fold.
 namespace Shared.CorrelatedObligation
 
 /-- The semantic predicate results at one admitted operation transition. -/
-structure Coordinate where
+structure Match where
   trigger : Bool
   response : Bool
   deriving BEq, DecidableEq, Repr
@@ -39,18 +39,18 @@ def Obligation.consumeMany (obligation : Obligation) : List Bool → Obligation
 
 /-- Each trigger creates a distinct obligation even when its predecessor remains live. -/
 def consume (bound : Nat) (obligations : List Obligation)
-    (coordinate : Coordinate) : List Obligation :=
+    (coordinate : Match) : List Obligation :=
   (obligations ++ if coordinate.trigger then [Obligation.pending bound] else []).map
     (Obligation.consume coordinate.response)
 
 /-- Shared stream execution. Chunking does not create or close semantic coordinates. -/
 def consumeMany (bound : Nat) (obligations : List Obligation)
-    (coordinates : List Coordinate) : List Obligation :=
+    (coordinates : List Match) : List Obligation :=
   coordinates.foldl (consume bound) obligations
 
 /-- Every chunk split gives exactly the same obligations, including empty chunks. -/
 theorem consumeMany_append (bound : Nat) (obligations : List Obligation)
-    (first second : List Coordinate) :
+    (first second : List Match) :
     consumeMany bound obligations (first ++ second) =
       consumeMany bound (consumeMany bound obligations first) second := by
   simp [consumeMany, List.foldl_append]
@@ -82,7 +82,7 @@ theorem Obligation.pending_satisfied (bound : Nat) (responses : List Bool) :
 
 /-- Existing obligations evolve independently of every trigger born in the remaining stream. -/
 theorem consumeMany_distributes (bound : Nat) (obligations : List Obligation)
-    (coordinates : List Coordinate) :
+    (coordinates : List Match) :
     consumeMany bound obligations coordinates =
       obligations.map (fun obligation => obligation.consumeMany (coordinates.map (·.response))) ++
         consumeMany bound [] coordinates := by
@@ -98,7 +98,7 @@ theorem consumeMany_distributes (bound : Nat) (obligations : List Obligation)
 
 /-- Independent finite-trace reference: each triggered suffix must contain a response in its
 inclusive window. No monitor state or countdown is consulted. -/
-def closedReference (bound : Nat) : List Coordinate → Bool
+def closedReference (bound : Nat) : List Match → Bool
   | [] => true
   | coordinate :: rest =>
       (!coordinate.trigger || ((coordinate :: rest).take (bound + 1)).any (·.response)) &&
@@ -106,7 +106,7 @@ def closedReference (bound : Nat) : List Coordinate → Bool
 
 /-- All spawned countdowns agree with independent bounded suffix windows on deliberately closed
 traces. Repeated triggers are quantified separately rather than coalesced. -/
-theorem closed_agrees (bound : Nat) (coordinates : List Coordinate) :
+theorem closed_agrees (bound : Nat) (coordinates : List Match) :
     (consumeMany bound [] coordinates).all (fun obligation => decide (obligation = .satisfied)) = closedReference bound coordinates := by
   induction coordinates with
   | nil => rfl
@@ -158,7 +158,7 @@ def Predicate.holds (predicate : Predicate) (action : Atom) (result : Shared.Sem
 
 /-- One admitted table row determines each clause's trigger and response coordinate. -/
 def Clause.coordinate (clause : Clause) (action : Atom) (result : Shared.SemanticData.Result Atom Atom Atom) :
-    Coordinate :=
+    Match :=
   ⟨clause.trigger.holds action result, clause.response.holds action result⟩
 
 
@@ -242,19 +242,19 @@ def Monitor.consume (limits : MonitorLimits) (monitor : Monitor table clauses)
     obligations := monitor.obligations + created
     work := monitor.work + cost }
 
-inductive Answer where
+inductive Verdict where
   | satisfied | violated | unresolved
   deriving BEq, DecidableEq, Repr
 
 /-- Endpoint policy preserves established violations and never promotes missing evidence. -/
-def answer (obligations : List Obligation) (closed incomplete final : Bool) : Answer :=
+def answer (obligations : List Obligation) (closed incomplete final : Bool) : Verdict :=
   if obligations.contains .violated then .violated
   else if incomplete then .unresolved
   else if obligations.all (fun obligation => decide (obligation = .satisfied)) then .satisfied
   else if closed && final then .violated else .unresolved
 
 /-- Closing is a semantic endpoint choice; incomplete evidence never supplies a deadline. -/
-def Monitor.answers (monitor : Monitor table clauses) (closed incomplete : Bool) : List Answer :=
+def Monitor.answers (monitor : Monitor table clauses) (closed incomplete : Bool) : List Verdict :=
   clauses.map fun clause =>
     let obligations := monitor.operations.flatMap fun operation => operation.windows.flatMap fun window =>
       if window.clause.val.id == clause.id then window.obligations else []

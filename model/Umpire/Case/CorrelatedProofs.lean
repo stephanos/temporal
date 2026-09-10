@@ -18,7 +18,7 @@ private def trace (row : Row) : ModelTrace ModelValue ModelValue ModelValue Mode
 
 /-- The applicable source predicates projected from one checked reference input. -/
 def coordinates (binding : PortableReference) (input : CheckedPropertyEvaluationInput binding.reference) :
-    List Shared.CorrelatedObligation.Coordinate :=
+    List Shared.CorrelatedObligation.Match :=
   (input.correlatedCoordinates binding.original.triggerPattern binding.original.responsePattern).map
     (fun point => ⟨point.1, point.2⟩)
 
@@ -144,7 +144,7 @@ theorem Certificate.closed_property {binding : PortableReference} {table : List 
     binding.original.declaration.id binding.original.triggerPattern binding.original.responsePattern
     binding.original.declaration.bound rfl binding.triggerAligned binding.responseAligned
 
-private def endpointAnswer : Shared.CorrelatedObligation.Answer → PropertyEndpointAnswer
+private def endpointAnswer : Shared.CorrelatedObligation.Verdict → PropertyEndpointAnswer
   | .satisfied => .satisfied | .violated => .violated | .unresolved => .unresolved
 
 /-- The actual portable endpoint decision agrees with task 6 for both close modes and incomplete

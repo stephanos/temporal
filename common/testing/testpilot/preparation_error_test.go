@@ -79,15 +79,15 @@ func TestPreparationErrorCase(t *testing.T) {
 		}, testpilot.PreparationUnsupported, strings.Repeat("e", 256), "unsupported instruction context or Driver capability", ""},
 		{"contract missing rules", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) { c.Contract.Rules = nil }, testpilot.PreparationMalformed, "contract", "Contract identity and rules are required", ""},
 		{"contract limit", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) { c.Contract.Limits.MaxRules++ }, testpilot.PreparationLimitExceeded, "contract", "limit outside positive Driver ceiling: max_rules", ""},
-		{"scoped version", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) {
+		{"correlated version", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) {
 			c.Contract.Correlated = &testpilotspb.CorrelatedContract{Version: 2}
-		}, testpilot.PreparationUnknown, "contract", "unsupported scoped capability version", ""},
-		{"scoped binding", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) {
+		}, testpilot.PreparationUnknown, "contract", "unsupported correlated capability version", ""},
+		{"correlated binding", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) {
 			c.Contract.Correlated = &testpilotspb.CorrelatedContract{Version: 1}
-		}, testpilot.PreparationMalformed, "contract", "invalid scoped projection binding", ""},
-		{"scoped evidence", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) {
+		}, testpilot.PreparationMalformed, "contract", "invalid correlated projection binding", ""},
+		{"correlated evidence", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) {
 			c.Contract.Correlated = diagnosticCorrelatedContract()
-		}, testpilot.PreparationTypeMismatch, "contract", "scoped evidence requires exact declared CorrelatedEvidence Observation", ""},
+		}, testpilot.PreparationTypeMismatch, "contract", "correlated evidence requires exact declared CorrelatedEvidence Observation", ""},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			source, profile := proofFixture(t)
@@ -126,7 +126,7 @@ func TestPreparationErrorCorrelatedLimits(t *testing.T) {
 	source.Contract.Correlated = diagnosticCorrelatedContract()
 	prepared, err := testpilot.Prepare(source, profile)
 	require.Nil(t, prepared)
-	requirePreparationError(t, err, testpilot.PreparationLimitExceeded, "contract", "scoped limits must be positive", "limit_exceeded at contract: scoped limits must be positive")
+	requirePreparationError(t, err, testpilot.PreparationLimitExceeded, "contract", "correlated limits must be positive", "limit_exceeded at contract: correlated limits must be positive")
 }
 
 type nilMapProfile map[string]string

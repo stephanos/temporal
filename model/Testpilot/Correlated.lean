@@ -341,7 +341,7 @@ structure Retained where
   deriving BEq, DecidableEq
 
 /-- Immutable state allocated independently for each decoded Contract execution. -/
-structure Run (compiled : Compiled) where
+structure Monitor (compiled : Compiled) where
   projection : CorrelatedProjection.Run compiled.plan Field
   monitor : CorrelatedObligation.Monitor compiled.plan.transitions compiled.clauses
   captures : List Retained := []
@@ -349,7 +349,7 @@ structure Run (compiled : Compiled) where
   closed : Bool := false
 
 /-- Bind a fresh execution scope without observing or dispatching any work. -/
-def Compiled.start (compiled : Compiled) (scope : List (Name × String)) : Except String (Run compiled) := do
+def Compiled.start (compiled : Compiled) (scope : List (Name × String)) : Except String (Monitor compiled) := do
   if scope.map Prod.fst != compiled.scopeFields || scope.any (·.2.isEmpty) then throw "wrong scope"
   pure { projection := { scope }, monitor := { initial := compiled.plan.initial } }
 
@@ -433,8 +433,8 @@ A declared correlation decides which emitted steps are the operation's semantic 
 reads this step's own evidence together with what the operation already retained, so an occurrence
 binds only after an earlier step admitted it, and this step's occurrences are retained only once
 the whole append was admitted. -/
-def Run.admit {compiled : Compiled} (run : Run compiled) (event : Event) :
-    Except String (Run compiled) := do
+def Monitor.admit {compiled : Compiled} (run : Monitor compiled) (event : Event) :
+    Except String (Monitor compiled) := do
   if run.closed then throw "closed"
   compiled.validateEvent run.projection.scope event
   let projection ← (run.projection.admit Name.value (·.state) eventSize event).mapError
@@ -471,8 +471,8 @@ private def wireIdentity (wire : CorrelatedIdentity) : Except String (Correlated
   pure ⟨scope, ⟨wire.source⟩, ← natural wire.ordinal⟩
 
 /-- Decode one typed Observation and attach recorder-owned support, retaining first support on duplicates. -/
-def Run.observe {compiled : Compiled} (run : Run compiled) (sequence : Nat) (wire : CorrelatedEvidence) :
-    Except String (Run compiled) := do
+def Monitor.observe {compiled : Compiled} (run : Monitor compiled) (sequence : Nat) (wire : CorrelatedEvidence) :
+    Except String (Monitor compiled) := do
   if sequence == 0 || !wire.«Unknown.Fields».isEmpty then throw "invalid evidence envelope"
   let identity ← wireIdentity (← required wire.identity)
   let parents ← wire.parents.toList.mapM wireIdentity
@@ -485,11 +485,11 @@ def Run.observe {compiled : Compiled} (run : Run compiled) (sequence : Nat) (wir
   run.admit ⟨identity, wire.operation, ⟨wire.kind⟩, parents, sequences, fields⟩
 
 /-- Chunk boundaries do not create semantic coordinates or close pending evidence. -/
-def Run.admitMany {compiled : Compiled} (run : Run compiled) (events : List Event) :
-    Except String (Run compiled) := events.foldlM Run.admit run
+def Monitor.admitMany {compiled : Compiled} (run : Monitor compiled) (events : List Event) :
+    Except String (Monitor compiled) := events.foldlM Monitor.admit run
 
 /-- Exact incremental/offline identity, including the first rejected chunk. -/
-theorem Run.admitMany_append {compiled : Compiled} (run : Run compiled) (first second : List Event) :
+theorem Monitor.admitMany_append {compiled : Compiled} (run : Monitor compiled) (first second : List Event) :
     run.admitMany (first ++ second) =
       (run.admitMany first >>= fun next => next.admitMany second) := by
   simp [admitMany, List.foldlM_append]
@@ -501,12 +501,12 @@ obligation list as vacuous satisfaction because a model trace is total: no trigg
 runtime evidence stream is not total -- an empty one is indistinguishable from a projector that
 never fired -- so this interpreter reports unresolved rather than manufacturing a satisfied answer
 from silence. -/
-def Run.answers {compiled : Compiled} (run : Run compiled) (incomplete : Bool := false) : List Nat :=
+def Monitor.answers {compiled : Compiled} (run : Monitor compiled) (incomplete : Bool := false) : List Nat :=
   (run.monitor.answers run.closed
       (incomplete || run.projection.accepted.isEmpty || !run.projection.pending.isEmpty)).map
     fun answer => match answer with | .satisfied => 2 | .violated => 3 | .unresolved => 0
 
 /-- Close without inventing a semantic transition or a wall-clock deadline. -/
-def Run.close {compiled : Compiled} (run : Run compiled) : Run compiled := { run with closed := true }
+def Monitor.close {compiled : Compiled} (run : Monitor compiled) : Monitor compiled := { run with closed := true }
 
 end Testpilot.Correlated

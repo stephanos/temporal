@@ -60,7 +60,7 @@ Direct and reverse dependencies contain first-party modules only. V1 `publicFaca
 V1 `focusedTests` roots are exactly `ModelLint.ImportGraphTests`,
 `Temporal.Tool.InventoryMainTests`, `Temporal.Tool.InventoryMakeTestsMain`,
 `Temporal.Tool.InventoryTests`, `TemporalExperimentalTests`, `TemporalModelTests`,
-`Testpilot.Tests`, `Testpilot.Tests.ProtoJSONMain`, `Umpire.Case.ScopedTests`,
+`Testpilot.Tests`, `Testpilot.Tests.ProtoJSONMain`, `Umpire.Case.CorrelatedTests`,
 `Umpire.Evidence.Tests`, `Umpire.OutcomeClassification.ImportTests`,
 `Umpire.Search.SemanticsImportTests`, `Umpire.Property.Tests.Scoped`,
 `Umpire.Model.CheckImportTests`, and `UmpireTests`. Reachability is reflexive: a configured root

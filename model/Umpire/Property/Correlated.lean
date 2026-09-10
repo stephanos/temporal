@@ -263,15 +263,15 @@ private structure Payload where
   work : Nat := 0
   closed : Bool := false
 
-/-- Run state has no public constructor; replacement states come only from successful admission. -/
-structure Run (compiled : Compiled target) where
+/-- Monitor state has no public constructor; replacement states come only from successful admission. -/
+structure Monitor (compiled : Compiled target) where
   private mk ::
   private payload : Payload
 
 /-- Start a fresh independent run only from a Target-admitted setup and initial state. -/
 def Compiled.start [DecidableEq Setup] (compiled : Compiled target)
     (setup : Setup) (initial : ModelValue) (scope : List (DefinitionId × String)) :
-    Except Error (Run compiled) := do
+    Except Error (Monitor compiled) := do
   if !(setup ∈ target.resolvedSetups) || !(target.machine.initialStates setup).contains initial then
     throw .invalidInitialState
   let scope := scope.mergeSort fun a b => decide (a.1.value ≤ b.1.value)
@@ -322,8 +322,8 @@ private def validateCorrelation (clause : CheckedPropertyCorrelatedClause) (step
 
 /-- Validate transition authority and continuity before processing every clause atomically. No
 poll, duplicate read, acknowledgement or unrelated operation can spend this operation's window. -/
-def Run.consume {compiled : Compiled target} (run : Run compiled) (step : Transition)
-    (evidence : List PropertyFieldEvidence := []) : Except Error (Run compiled) := do
+def Monitor.consume {compiled : Compiled target} (run : Monitor compiled) (step : Transition)
+    (evidence : List PropertyFieldEvidence := []) : Except Error (Monitor compiled) := do
   let payload := run.payload
   if payload.closed then throw .closed
   if step.scope != payload.scope || step.operationField != compiled.operationField ||
@@ -378,23 +378,23 @@ def Run.consume {compiled : Compiled target} (run : Run compiled) (step : Transi
     work }⟩
 
 /-- Whole-stream, incremental and offline evaluation share this exact checked transition fold. -/
-def Run.consumeMany {compiled : Compiled target} (run : Run compiled)
-    (steps : List Transition) : Except Error (Run compiled) :=
+def Monitor.consumeMany {compiled : Compiled target} (run : Monitor compiled)
+    (steps : List Transition) : Except Error (Monitor compiled) :=
   steps.foldlM (fun run step => run.consume step) run
 
 /-- Field-bearing streams use the exact same atomic append; each step carries the same-step
 projections its clause operands read and its declared captures retain. -/
-def Run.consumeEvidence {compiled : Compiled target} (run : Run compiled)
-    (steps : List (Transition × List PropertyFieldEvidence)) : Except Error (Run compiled) :=
+def Monitor.consumeEvidence {compiled : Compiled target} (run : Monitor compiled)
+    (steps : List (Transition × List PropertyFieldEvidence)) : Except Error (Monitor compiled) :=
   steps.foldlM (fun run step => run.consume step.1 step.2) run
 
 /-- The operation-correlated histories of successful admissions, with their checked fold invariants. -/
-def Run.executions {compiled : Compiled target} (run : Run compiled) : List (String × Execution) :=
+def Monitor.executions {compiled : Compiled target} (run : Monitor compiled) : List (String × Execution) :=
   run.payload.operations.flatMap fun operation =>
     operation.executions.map fun execution => (operation.key, execution)
 
 /-- Inspect the current per-clause answer without closing or fabricating a transition. -/
-def Run.answers {compiled : Compiled target} (run : Run compiled) (incomplete : Bool := false) :
+def Monitor.answers {compiled : Compiled target} (run : Monitor compiled) (incomplete : Bool := false) :
     List (DefinitionId × PropertyEndpointAnswer) :=
   compiled.property.correlatedRules.map fun clause =>
     let obligations := run.payload.operations.flatMap fun operation =>
@@ -404,12 +404,12 @@ def Run.answers {compiled : Compiled target} (run : Run compiled) (incomplete : 
     let answer := close ending obligations
     (clause.declaration.id, if incomplete && answer != .violated then .unresolved else answer)
 
-/-- Closing freezes the Run; its ending policy distinguishes selected finite traces from prefixes. -/
-def Run.close {compiled : Compiled target} (run : Run compiled) : Run compiled :=
+/-- Closing freezes the Monitor; its ending policy distinguishes selected finite traces from prefixes. -/
+def Monitor.close {compiled : Compiled target} (run : Monitor compiled) : Monitor compiled :=
   ⟨{ run.payload with closed := true }⟩
 
 /-- Chunk boundaries preserve the exact successful state and the exact first rejection. -/
-theorem Run.consumeMany_append {compiled : Compiled target} (run : Run compiled)
+theorem Monitor.consumeMany_append {compiled : Compiled target} (run : Monitor compiled)
     (first second : List Transition) :
     run.consumeMany (first ++ second) =
       (run.consumeMany first >>= fun next => next.consumeMany second) := by
@@ -417,7 +417,7 @@ theorem Run.consumeMany_append {compiled : Compiled target} (run : Run compiled)
 
 /-- Splitting a field-bearing stream at any chunk boundary retains the same captures, the same
 obligations and the same first rejection. -/
-theorem Run.consumeEvidence_append {compiled : Compiled target} (run : Run compiled)
+theorem Monitor.consumeEvidence_append {compiled : Compiled target} (run : Monitor compiled)
     (first second : List (Transition × List PropertyFieldEvidence)) :
     run.consumeEvidence (first ++ second) =
       (run.consumeEvidence first >>= fun next => next.consumeEvidence second) := by
@@ -425,7 +425,7 @@ theorem Run.consumeEvidence_append {compiled : Compiled target} (run : Run compi
 
 /-- Closing twice preserves the same immutable state. Finite-close answers may resolve previously
 pending obligations; incomplete runtime prefixes retain their explicit unresolved interpretation. -/
-theorem Run.close_idempotent {compiled : Compiled target} (run : Run compiled) :
+theorem Monitor.close_idempotent {compiled : Compiled target} (run : Monitor compiled) :
     run.close.close = run.close := rfl
 
 end Umpire.Property.Correlated
