@@ -331,7 +331,7 @@ error: property authoring failed: {"error":{"kind":"missing-capability","definit
   parentAnchor Race.capabilityId]
 
 /--
-error: property authoring failed: {"error":{"kind":"invalid-predicate-context","definitionId":"temporal.nexus2.cancellation-race.property.unsupported-guard","sourcePath":"Temporal/Feature/Nexus2/Race.lean","source":{"path":"Temporal/Feature/Nexus2/Race.lean","line":1,"column":1,"provenance":"lean-model"},"offendingValue":"guard: resulting-state","relatedDefinitionIds":["temporal.nexus2.cancellation-race.state.operation"]},"role":"case","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":339,"column":13,"endLine":339,"endColumn":64}}
+error: property authoring failed: {"error":{"kind":"invalid-predicate-context","definitionId":"temporal.nexus2.cancellation-race.property.unsupported-guard","sourcePath":"Temporal/Feature/Nexus2/Race.lean","source":{"path":"Temporal/Feature/Nexus2/Race.lean","line":1,"column":1,"provenance":"lean-model"},"offendingValue":"before: resulting-state","relatedDefinitionIds":["temporal.nexus2.cancellation-race.state.operation"]},"role":"case","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":339,"column":13,"endLine":339,"endColumn":64}}
 -/
 #guard_msgs (error) in
 #check property% unsupportedGuardProperty frontendRaceModel against frontendRaceContext tracking [
@@ -371,7 +371,7 @@ error: property authoring failed: {"error":{"kind":"wrong-reference-kind","defin
   clauseAnchor frontendRaceModel.startedState.definitionId]
 
 /--
-error: property authoring failed: {"error":{"kind":"invalid-predicate-context","definitionId":"temporal.nexus2.cancellation-race.property.cases","sourcePath":"Temporal/Feature/Nexus2/Race.lean","source":{"path":"Temporal/Feature/Nexus2/Race.lean","line":1,"column":1,"provenance":"lean-model"},"offendingValue":"guard: resulting-state","relatedDefinitionIds":["temporal.nexus2.cancellation-race.state.operation"]},"role":"exception","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":380,"column":18,"endLine":380,"endColumn":69}}
+error: property authoring failed: {"error":{"kind":"invalid-predicate-context","definitionId":"temporal.nexus2.cancellation-race.property.cases","sourcePath":"Temporal/Feature/Nexus2/Race.lean","source":{"path":"Temporal/Feature/Nexus2/Race.lean","line":1,"column":1,"provenance":"lean-model"},"offendingValue":"before: resulting-state","relatedDefinitionIds":["temporal.nexus2.cancellation-race.state.operation"]},"role":"exception","anchor":{"sourcePath":"Temporal/Feature/Nexus2/AuthoringTests.lean","line":380,"column":18,"endLine":380,"endColumn":69}}
 -/
 #guard_msgs (error) in
 #check property% invalidExceptionProperty against frontendRaceContext tracking [

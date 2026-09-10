@@ -586,14 +586,14 @@ structure CheckedPropertyEvaluationInput (property : CheckedProperty) where
   deriving Repr
 
 private def guardInput (step : PropertyEvaluationStep) : PropertyEvaluationPredicateInput := {
-  context := .guard
+  context := .before
   priorState := step.priorState
   selectedAction := step.selectedAction
   fieldValues := step.fieldValues
 }
 
 private def expectationInput (step : PropertyEvaluationStep) : PropertyEvaluationPredicateInput := {
-  context := .expectation
+  context := .after
   priorState := step.priorState
   selectedAction := step.selectedAction
   fieldValues := step.fieldValues
@@ -1738,7 +1738,7 @@ structure PropertyClauseIdentity where
 structure CaseApplicability where
   caseId : DefinitionId
   source : SourceLocation
-  effectiveGuards : List (CheckedPropertyPredicate .guard)
+  effectiveGuards : List (CheckedPropertyPredicate .before)
   exceptions : List CheckedPropertyUnless
   guardMatched : Bool
   excluded : Bool
@@ -1754,7 +1754,7 @@ structure CaseGroupApplicability where
   transitionPosition : Nat
   priorState : Option ModelValue
   selectedAction : Option ModelValue
-  effectiveGuards : List (CheckedPropertyPredicate .guard)
+  effectiveGuards : List (CheckedPropertyPredicate .before)
   exceptions : List CheckedPropertyUnless
   parentGuardMatched : Bool
   parentExcluded : Bool
@@ -1767,7 +1767,7 @@ structure CaseGroupApplicability where
 /-- The checked formula carried by one jointly analyzed obligation. Temporal applicability remains
 fixed at its original trigger, together with the coordinate system used by its declared Limit. -/
 inductive JointObligationFormula where
-  | sameStep (expectation : CheckedPropertyPredicate .expectation)
+  | sameStep (expectation : CheckedPropertyPredicate .after)
   | guardedTemporal
       (forbidden : Bool)
       (trigger response : PropertyPattern)
@@ -1794,7 +1794,7 @@ structure JointObligationObservation where
   triggerOccurrence : JointTriggerOccurrence
   priorState : Option ModelValue
   selectedAction : Option ModelValue
-  effectiveGuards : List (CheckedPropertyPredicate .guard)
+  effectiveGuards : List (CheckedPropertyPredicate .before)
   exceptions : List CheckedPropertyUnless
   formula : JointObligationFormula
   satisfied : Bool

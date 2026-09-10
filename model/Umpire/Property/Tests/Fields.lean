@@ -29,8 +29,8 @@ private def compareBytes : PropertyPredicate := .atom {
     .literal (.bytes [255, 0]) source, source⟩ }
 private def evaluateBytes := do
   let predicate ← checkPropertyPredicate PropertyTests.context PropertyTests.portableProperty
-    .guard compareBytes
-  let input ← checkPropertyPredicateInput predicate { context := .guard }
+    .before compareBytes
+  let input ← checkPropertyPredicateInput predicate { context := .before }
   pure (evaluatePropertyPredicate predicate input)
 #guard evaluateBytes.toOption == some false
 
@@ -124,11 +124,11 @@ private def result (expression : PropertyPredicate) (kind : PropertyPredicateCon
     selectedAction := some a.modelValue, priorState := some b.modelValue,
     outcome := some c.modelValue } [a.evidence, b.evidence, c.evidence]).toOption
   pure (evaluatePropertyPredicate predicate.predicate input)
-#guard result (relation requestPath priorPath) .guard 1 1 9 == some true
-#guard result (relation requestPath priorPath) .guard 1 2 9 == some false
-#guard result (relation requestPath resultPath) .expectation 1 9 1 == some true
-#guard result (relation requestPath resultPath) .expectation 1 9 2 == some false
-#guard result (relation requestPath resultPath) .guard 1 9 1 == none
+#guard result (relation requestPath priorPath) .before 1 1 9 == some true
+#guard result (relation requestPath priorPath) .before 1 2 9 == some false
+#guard result (relation requestPath resultPath) .after 1 9 1 == some true
+#guard result (relation requestPath resultPath) .after 1 9 2 == some false
+#guard result (relation requestPath resultPath) .before 1 9 1 == none
 
 private def compare (left right : PropertyFieldOperand) (operator : PropertyFieldOperator := .equal) :
     PropertyPredicate := PropertyPredicate.compareFields operator left right source
@@ -141,7 +141,7 @@ private def isPresent (number : Nat := 2) :=
 private def bytesEqual := compare (.field bytesPath source) (.literal (.bytes [0, 255]) source)
 private def admission (expression : PropertyPredicate) :=
   (CheckedFieldPredicate.check context
-    PropertyTests.portableProperty .guard expression).toOption.isSome
+    PropertyTests.portableProperty .before expression).toOption.isSome
 #guard !admission bytesEqual
 #guard admission (.all [isPresent, bytesEqual])
 #guard !admission (.any [isPresent, bytesEqual])
@@ -204,8 +204,8 @@ private def payloadResult (raw : Raw) (expression : PropertyPredicate)
     (number : Nat := 2) (valueType : Singular := .bytes) (selection : Option String := none) := do
   let (modelValue, projections) ← payloadProjections raw number valueType selection
   let predicate ← (CheckedFieldPredicate.check context
-    PropertyTests.portableProperty .guard expression).toOption
-  let input ← (predicate.checkInput { context := .guard, selectedAction := some modelValue } projections).toOption
+    PropertyTests.portableProperty .before expression).toOption
+  let input ← (predicate.checkInput { context := .before, selectedAction := some modelValue } projections).toOption
   pure (evaluatePropertyPredicate predicate.predicate input)
 private def payloadRequirement := PropertyPredicate.all [isPresent, bytesEqual]
 #guard payloadResult (message "M" [(2, literal (.bytes [0, 255]))]) payloadRequirement == some true
@@ -221,31 +221,31 @@ private def selectedRequirement := PropertyPredicate.all [isPresent 3,
 
 private def inputError (expression : PropertyPredicate) (raw : PropertyPredicateInput)
     (evidence : List PropertyFieldEvidence) :=
-  match CheckedFieldPredicate.check context PropertyTests.portableProperty .guard expression with
+  match CheckedFieldPredicate.check context PropertyTests.portableProperty .before expression with
   | .error error => some error
   | .ok predicate => match predicate.checkInput raw evidence with
     | .error error => some error
     | .ok _ => none
 private def countIsZero := compare (.field requestPath { source with line := 91, column := 8 })
   (.literal (.integer .int32 0) source)
-#guard (inputError countIsZero { context := .guard } []).map (·.sourceLocation) ==
+#guard (inputError countIsZero { context := .before } []).map (·.sourceLocation) ==
   some (some { source with line := 91, column := 8 })
-#guard (inputError (.not countIsZero) { context := .guard } []).map (·.kind) == some .missingPredicateInput
-#guard (inputError countIsZero { context := .expectation } []).map (·.kind) == some .invalidPredicateContext
+#guard (inputError (.not countIsZero) { context := .before } []).map (·.kind) == some .missingPredicateInput
+#guard (inputError countIsZero { context := .after } []).map (·.kind) == some .invalidPredicateContext
 #guard (do
   let a ← (checkedValue requestPath 0).toOption
   let b ← (checkedValue requestPath 1).toOption
-  pure ((inputError countIsZero { context := .guard, selectedAction := some a.modelValue }
+  pure ((inputError countIsZero { context := .before, selectedAction := some a.modelValue }
     [b.evidence]).isSome)) == some true
 #guard (do
   let a ← (checkedValue requestPath 0).toOption
-  pure ((inputError countIsZero { context := .guard, selectedAction := some a.modelValue }
+  pure ((inputError countIsZero { context := .before, selectedAction := some a.modelValue }
     [a.evidence, a.evidence]).isSome)) == some true
 
 #guard (do
   let a ← (checkedValue requestPath 0).toOption
   let b ← (stateValue priorPath 0).toOption
-  pure ((inputError countIsZero { context := .guard, selectedAction := some a.modelValue }
+  pure ((inputError countIsZero { context := .before, selectedAction := some a.modelValue }
     [b.evidence]).isSome)) == some true
 #guard_msgs (error, substring := true) in
 #check PropertyFieldValue.ofCursor
@@ -281,15 +281,15 @@ private def wholeProperty (prior response : Int) := do
 #guard (do
   let a ← (checkedValue requestPath 0).toOption
   let predicate ← (CheckedFieldPredicate.check context
-    PropertyTests.portableProperty .guard countIsZero).toOption
-  let input ← (predicate.checkInput { context := .guard, selectedAction := some a.modelValue }
+    PropertyTests.portableProperty .before countIsZero).toOption
+  let input ← (predicate.checkInput { context := .before, selectedAction := some a.modelValue }
     [a.evidence]).toOption
   pure (input.operandValue (.field requestPath { source with line := 91, column := 8 }))) == some (some (.integer .int32 0))
 
 #guard (do
   let predicate ← (CheckedFieldPredicate.check context
-    PropertyTests.portableProperty .guard truePredicate).toOption
-  let input ← (predicate.checkInput { context := .guard } []).toOption
+    PropertyTests.portableProperty .before truePredicate).toOption
+  let input ← (predicate.checkInput { context := .before } []).toOption
   pure (input.operandValue (.literal (.bytes [99]) source))) == some none
 
 example (predicate : CheckedPropertyPredicate kind) (input : CheckedPropertyPredicateInput predicate)
@@ -297,9 +297,9 @@ example (predicate : CheckedPropertyPredicate kind) (input : CheckedPropertyPred
     input.denotesOperand operand value := input.operandValue_denotes operand value h
 
 private def literalResult (operator : PropertyFieldOperator) (left right : Scalar) := do
-  let predicate ← (checkPropertyPredicate context PropertyTests.portableProperty .guard
+  let predicate ← (checkPropertyPredicate context PropertyTests.portableProperty .before
     (compare (.literal left source) (.literal right source) operator)).toOption
-  let input ← (checkPropertyPredicateInput predicate { context := .guard }).toOption
+  let input ← (checkPropertyPredicateInput predicate { context := .before }).toOption
   pure (evaluatePropertyPredicate predicate input)
 #guard literalResult .equal (.bytes [0, 255]) (.bytes [0, 255]) == some true
 #guard literalResult .notEqual (.bytes [0, 255]) (.bytes [255, 0]) == some true
@@ -316,9 +316,9 @@ private def resultingEvent (state event : Int) := do
   let a ← (stateValue statePath state).toOption
   let b ← (stateValue eventPath event).toOption
   let checked ← (CheckedFieldPredicate.check context
-    PropertyTests.portableProperty .expectation (relation statePath eventPath)).toOption
+    PropertyTests.portableProperty .after (relation statePath eventPath)).toOption
   let input ← (checked.checkInput {
-    context := .expectation
+    context := .after
     resultingState := some a.modelValue, facts := some [b.modelValue] }
     [a.evidence, b.evidence]).toOption
   pure (evaluatePropertyPredicate checked.predicate input)
@@ -327,7 +327,7 @@ private def resultingEvent (state event : Int) := do
 
 #guard payloadResult (message "M" [(1, literal (.integer .int32 99)),
   (2, literal (.bytes [0, 255])), (4, literal (.text "unconstrained"))]) payloadRequirement == some true
-#guard (match CheckedFieldPredicate.check context PropertyTests.portableProperty .guard
+#guard (match CheckedFieldPredicate.check context PropertyTests.portableProperty .before
     (compare (.field { requestPath with type := .integer .int64 } { source with line := 81, column := 6 })
       (.literal (.integer .int64 0) source)) with
   | .error e => e.sourceLocation == some { source with line := 81, column := 6 }

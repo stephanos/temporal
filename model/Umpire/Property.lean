@@ -353,14 +353,14 @@ def PropertyPattern.exact
 /-- The two same-step environments supported by portable Boolean Property predicates. Guards read
 the triggering prior state and selected Action; expectations read that transition's result. -/
 inductive PropertyPredicateContext where
-  | guard
-  | expectation
+  | before
+  | after
   deriving BEq, DecidableEq, Ord, Repr
 
 /-- Stable diagnostic name for a predicate context. -/
 def PropertyPredicateContext.name : PropertyPredicateContext → String
-  | .guard => "guard"
-  | .expectation => "expectation"
+  | .before => "before"
+  | .after => "after"
 
 /-- A field in one explicit same-step predicate environment. -/
 inductive PropertyPredicateField where
@@ -391,9 +391,9 @@ def PropertyPredicateContext.allows
     (context : PropertyPredicateContext)
     (field : PropertyPredicateField) : Bool :=
   match context, field with
-  | .guard, .priorState | .guard, .selectedAction => true
-  | .expectation, .resultingState | .expectation, .outcome
-  | .expectation, .expectationFact => true
+  | .before, .priorState | .before, .selectedAction => true
+  | .after, .resultingState | .after, .outcome
+  | .after, .expectationFact => true
   | _, _ => false
 
 /-- A typed literal in the closed portable Property predicate vocabulary. -/
@@ -581,25 +581,17 @@ inductive PropertyClause where
       (id : DefinitionId)
       (trigger response : PropertyPattern)
       (limit : Limit)
+      (guard : Option PropertyPredicate := none)
+      («unless» : Option PropertyUnless := none)
+      (source : SourceLocation := { path := "" })
   | neverWithin
       (id : DefinitionId)
       (trigger forbidden : PropertyPattern)
       (limit : Limit)
+      (guard : Option PropertyPredicate := none)
+      («unless» : Option PropertyUnless := none)
+      (source : SourceLocation := { path := "" })
   | branches (group : PropertyBranches)
-  | guardedEventuallyWithin
-      (id : DefinitionId)
-      (source : SourceLocation)
-      (guard : PropertyPredicate)
-      (exception : Option PropertyUnless)
-      (trigger response : PropertyPattern)
-      (limit : Limit)
-  | guardedNeverWithin
-      (id : DefinitionId)
-      (source : SourceLocation)
-      (guard : PropertyPredicate)
-      (exception : Option PropertyUnless)
-      (trigger forbidden : PropertyPattern)
-      (limit : Limit)
   deriving BEq, DecidableEq, Repr
 
 def PropertyClause.id : PropertyClause → DefinitionId
@@ -608,10 +600,8 @@ def PropertyClause.id : PropertyClause → DefinitionId
   | .identityRelation id _
   | .inputOutput id _ _
   | .ordered id _ _ _
-  | .eventuallyWithin id _ _ _
-  | .neverWithin id _ _ _
-  | .guardedEventuallyWithin id _ _ _ _ _ _
-  | .guardedNeverWithin id _ _ _ _ _ _ => id
+  | .eventuallyWithin id _ _ _ _ _ _
+  | .neverWithin id _ _ _ _ _ _ => id
   | .branches group => group.id
 
 /-- Closing an incomplete prefix does not invent missing deadline evidence. -/
