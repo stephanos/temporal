@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestDecodeExperimentAcceptsCanonicalSwitchAndNexusV2(t *testing.T) {
+func TestDecodePlanAcceptsCanonicalSwitchAndNexusV2(t *testing.T) {
 	for _, relative := range []string{
 		"model/Umpire/Artifact/Tests/Fixtures/SwitchPlanV2.json",
 		"model/Umpire/Examples/Fixtures/SwitchCompiledArtifact.json",
@@ -22,15 +22,15 @@ func TestDecodeExperimentAcceptsCanonicalSwitchAndNexusV2(t *testing.T) {
 		"model/Temporal/Feature/Nexus/Fixtures/OperationsSuccessfulCompletionArtifact.json",
 	} {
 		t.Run(filepath.Base(relative), func(t *testing.T) {
-			document, err := DecodeExperiment(readRepositoryFile(t, relative))
+			document, err := DecodePlan(readRepositoryFile(t, relative))
 			require.NoError(t, err)
-			require.Equal(t, ExperimentFormat, document.FormatVersion)
+			require.Equal(t, PlanFormat, document.FormatVersion)
 			require.Equal(t, PlanStepsFormat, document.Plan.FormatVersion)
 		})
 	}
 }
 
-func TestDecodeExperimentAcceptsLeanNaturalAboveUint64(t *testing.T) {
+func TestDecodePlanAcceptsLeanNaturalAboveUint64(t *testing.T) {
 	encodedNatural := readRepositoryFile(t, "model/Umpire/Search/Tests/Fixtures/NaturalAboveUint64.json")
 	var natural Natural
 	require.NoError(t, json.Unmarshal(bytes.TrimSuffix(encodedNatural, []byte{'\n'}), &natural))
@@ -40,26 +40,26 @@ func TestDecodeExperimentAcceptsLeanNaturalAboveUint64(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, bytes.TrimSuffix(encodedNatural, []byte{'\n'}), encoded)
 
-	document, err := DecodeExperiment(readRepositoryFile(t,
+	document, err := DecodePlan(readRepositoryFile(t,
 		"model/Umpire/Examples/testdata/switch-experiment-spec.json"))
 	require.NoError(t, err)
 	document.Plan.ExpandedLimits.Steps.Value = natural
-	document, err = SealExperiment(document)
+	document, err = SealPlan(document)
 	require.NoError(t, err)
-	canonical, err := CanonicalExperimentBytes(document)
+	canonical, err := CanonicalPlanBytes(document)
 	require.NoError(t, err)
 
-	decoded, err := DecodeExperiment(canonical)
+	decoded, err := DecodePlan(canonical)
 	require.NoError(t, err)
 	require.Equal(t, natural, decoded.Plan.ExpandedLimits.Steps.Value)
 }
 
-func TestCanonicalExperimentBytesUsesStablePrettyJSON(t *testing.T) {
-	var document Experiment
+func TestCanonicalPlanBytesUsesStablePrettyJSON(t *testing.T) {
+	var document Plan
 	require.NoError(t, json.Unmarshal(readRepositoryFile(t,
 		"model/Umpire/Examples/testdata/switch-experiment-spec.json"), &document))
 
-	canonical, err := CanonicalExperimentBytes(document)
+	canonical, err := CanonicalPlanBytes(document)
 	require.NoError(t, err)
 	require.True(t, bytes.HasPrefix(canonical,
 		[]byte("{\n  \"formatVersion\": \"umpire-experiment/v2\",\n")))
@@ -86,7 +86,7 @@ func TestCanonicalJSONEscapingMatchesLean(t *testing.T) {
 }
 
 func TestExpectedChecksumsUseExactPrettyPreimages(t *testing.T) {
-	var document Experiment
+	var document Plan
 	require.NoError(t, json.Unmarshal(readRepositoryFile(t,
 		"model/Umpire/Examples/testdata/switch-experiment-spec.json"), &document))
 
@@ -97,7 +97,7 @@ func TestExpectedChecksumsUseExactPrettyPreimages(t *testing.T) {
 		planChecksum,
 	)
 	document.Plan.ArtifactChecksum = planChecksum
-	experimentChecksum, err := ExpectedExperimentChecksum(document)
+	experimentChecksum, err := ExpectedPlanChecksum(document)
 	require.NoError(t, err)
 	require.Equal(t,
 		"sha256:38833797faa2b888e72082c679c81d0ae6a3bbe6683ae942715087c4b351a32a",
@@ -105,9 +105,9 @@ func TestExpectedChecksumsUseExactPrettyPreimages(t *testing.T) {
 	)
 }
 
-func TestDecodeExperimentClassifiesV1BeforeV2Fields(t *testing.T) {
+func TestDecodePlanClassifiesV1BeforeV2Fields(t *testing.T) {
 	encoded := []byte(`{"formatVersion":"umpire-experiment/v1","semanticIdentity":"legacy","plan":null}` + "\n")
-	_, err := DecodeExperiment(encoded)
+	_, err := DecodePlan(encoded)
 	require.EqualError(t, err, `unsupported format "umpire-experiment/v1"`)
 }
 
@@ -126,7 +126,7 @@ func uppercaseFirstDigest(t *testing.T, encoded []byte) []byte {
 	return corrupted
 }
 
-func TestDecodeExperimentRejectsNoncanonicalEncodings(t *testing.T) {
+func TestDecodePlanRejectsNoncanonicalEncodings(t *testing.T) {
 	canonical := readRepositoryFile(t, "model/Umpire/Examples/testdata/switch-experiment-spec.json")
 	withoutTerminalLF := bytes.TrimSuffix(canonical, []byte{'\n'})
 	lines := bytes.Split(withoutTerminalLF, []byte{'\n'})
@@ -176,13 +176,13 @@ func TestDecodeExperimentRejectsNoncanonicalEncodings(t *testing.T) {
 	}
 	for name, encoded := range cases {
 		t.Run(name, func(t *testing.T) {
-			_, err := DecodeExperiment(encoded)
+			_, err := DecodePlan(encoded)
 			require.Error(t, err)
 		})
 	}
 }
 
-func TestDecodeExperimentVerifiesNestedAndOuterChecksumsIndependently(t *testing.T) {
+func TestDecodePlanVerifiesNestedAndOuterChecksumsIndependently(t *testing.T) {
 	canonical := readRepositoryFile(t, "model/Umpire/Examples/testdata/switch-experiment-spec.json")
 	cases := map[string]struct {
 		encoded []byte
@@ -197,21 +197,21 @@ func TestDecodeExperimentVerifiesNestedAndOuterChecksumsIndependently(t *testing
 	}
 	for name, test := range cases {
 		t.Run(name, func(t *testing.T) {
-			_, err := DecodeExperiment(test.encoded)
+			_, err := DecodePlan(test.encoded)
 			require.ErrorContains(t, err, test.want)
 		})
 	}
 }
 
-func TestDecodeExperimentRejectsInvalidPersistedKnownGaps(t *testing.T) {
+func TestDecodePlanRejectsInvalidPersistedKnownGaps(t *testing.T) {
 	canonical := readRepositoryFile(t, "model/Umpire/Examples/testdata/switch-experiment-spec.json")
 	cases := map[string]struct {
-		mutate func(*Experiment)
+		mutate func(*Plan)
 		reseal bool
 		want   string
 	}{
 		"malformed": {
-			mutate: func(document *Experiment) {
+			mutate: func(document *Plan) {
 				invalid := "unnamespaced"
 				document.Plan.KnownGaps[0].Subject = &invalid
 			},
@@ -219,7 +219,7 @@ func TestDecodeExperimentRejectsInvalidPersistedKnownGaps(t *testing.T) {
 			want:   "known gap subject",
 		},
 		"reordered": {
-			mutate: func(document *Experiment) {
+			mutate: func(document *Plan) {
 				document.Plan.KnownGaps[0], document.Plan.KnownGaps[1] =
 					document.Plan.KnownGaps[1], document.Plan.KnownGaps[0]
 			},
@@ -227,7 +227,7 @@ func TestDecodeExperimentRejectsInvalidPersistedKnownGaps(t *testing.T) {
 			want:   "known gaps are not in canonical order",
 		},
 		"duplicate": {
-			mutate: func(document *Experiment) {
+			mutate: func(document *Plan) {
 				gaps := document.Plan.KnownGaps
 				document.Plan.KnownGaps = append([]KnownGap{gaps[0], gaps[0]}, gaps[1:]...)
 			},
@@ -235,7 +235,7 @@ func TestDecodeExperimentRejectsInvalidPersistedKnownGaps(t *testing.T) {
 			want:   "duplicate or conflicting known gap",
 		},
 		"conflicting": {
-			mutate: func(document *Experiment) {
+			mutate: func(document *Plan) {
 				gaps := document.Plan.KnownGaps
 				conflicting := gaps[0]
 				detail := "changed"
@@ -246,7 +246,7 @@ func TestDecodeExperimentRejectsInvalidPersistedKnownGaps(t *testing.T) {
 			want:   "duplicate or conflicting known gap",
 		},
 		"stale": {
-			mutate: func(document *Experiment) {
+			mutate: func(document *Plan) {
 				document.QueryBehaviorFingerprint =
 					"sha256:0000000000000000000000000000000000000000000000000000000000000000"
 			},
@@ -254,7 +254,7 @@ func TestDecodeExperimentRejectsInvalidPersistedKnownGaps(t *testing.T) {
 			want:   "query behavior fingerprint differs from nested plan",
 		},
 		"checksum inconsistent": {
-			mutate: func(document *Experiment) {
+			mutate: func(document *Plan) {
 				detail := "changed"
 				document.Plan.KnownGaps[0].Detail = &detail
 			},
@@ -264,139 +264,139 @@ func TestDecodeExperimentRejectsInvalidPersistedKnownGaps(t *testing.T) {
 
 	for name, test := range cases {
 		t.Run(name, func(t *testing.T) {
-			document, err := DecodeExperiment(canonical)
+			document, err := DecodePlan(canonical)
 			require.NoError(t, err)
 			test.mutate(&document)
 			if test.reseal {
-				document, err = SealExperiment(document)
+				document, err = SealPlan(document)
 				require.NoError(t, err)
 			}
-			encoded, err := CanonicalExperimentBytes(document)
+			encoded, err := CanonicalPlanBytes(document)
 			require.NoError(t, err)
 
-			_, err = DecodeExperiment(encoded)
+			_, err = DecodePlan(encoded)
 			require.ErrorContains(t, err, test.want)
 		})
 	}
 }
 
-func TestExperimentV2HooksPreserveDecodeExperimentContract(t *testing.T) {
+func TestPlanV2HooksPreserveDecodePlanContract(t *testing.T) {
 	canonical := readRepositoryFile(t, "model/Umpire/Examples/testdata/switch-experiment-spec.json")
-	document, err := DecodeExperiment(canonical)
+	document, err := DecodePlan(canonical)
 	require.NoError(t, err)
-	require.NoError(t, ValidateExperiment(document))
-	require.NoError(t, ValidateExperimentClosure(document))
-	require.NoError(t, VerifyExperimentChecksums(document))
+	require.NoError(t, ValidatePlan(document))
+	require.NoError(t, ValidatePlanClosure(document))
+	require.NoError(t, VerifyPlanChecksums(document))
 
 	document.ArtifactChecksum = "sha256:d7fc19d59b8b97922df475596bc45022e97c19d051149aa0c9aabe82dff18179"
-	hookErr := VerifyExperimentChecksums(document)
+	hookErr := VerifyPlanChecksums(document)
 	require.Error(t, hookErr)
-	mutated, err := CanonicalExperimentBytes(document)
+	mutated, err := CanonicalPlanBytes(document)
 	require.NoError(t, err)
-	_, decodeErr := DecodeExperiment(mutated)
+	_, decodeErr := DecodePlan(mutated)
 	require.EqualError(t, decodeErr, hookErr.Error())
 }
 
-func TestDecodeExperimentRejectsResealedMalformedV2Values(t *testing.T) {
+func TestDecodePlanRejectsResealedMalformedV2Values(t *testing.T) {
 	value := ModelValue{DefinitionID: "switch.state.power", Value: "off"}
 	cases := map[string]struct {
-		mutate func(*Experiment)
+		mutate func(*Plan)
 		want   string
 	}{
 		"selection reason enum": {
-			mutate: func(document *Experiment) { document.Plan.SelectionReason = "arbitrary" },
+			mutate: func(document *Plan) { document.Plan.SelectionReason = "arbitrary" },
 			want:   "selection reason",
 		},
 		"steps limit unit": {
-			mutate: func(document *Experiment) { document.Plan.ExpandedLimits.Steps.Unit = "arbitrary" },
+			mutate: func(document *Plan) { document.Plan.ExpandedLimits.Steps.Unit = "arbitrary" },
 			want:   "steps limit unit",
 		},
 		"actions limit unit": {
-			mutate: func(document *Experiment) { document.Plan.ExpandedLimits.Actions.Unit = "arbitrary" },
+			mutate: func(document *Plan) { document.Plan.ExpandedLimits.Actions.Unit = "arbitrary" },
 			want:   "actions limit unit",
 		},
 		"search limit unit": {
-			mutate: func(document *Experiment) { document.Plan.ExpandedLimits.Search.Unit = "arbitrary" },
+			mutate: func(document *Plan) { document.Plan.ExpandedLimits.Search.Unit = "arbitrary" },
 			want:   "search limit unit",
 		},
 		"operand kind enum": {
-			mutate: func(document *Experiment) { document.Plan.ModelPreconditions[0].Left.Kind = "arbitrary" },
+			mutate: func(document *Plan) { document.Plan.ModelPreconditions[0].Left.Kind = "arbitrary" },
 			want:   "operand kind",
 		},
 		"role operand carries value": {
-			mutate: func(document *Experiment) { document.Plan.ModelPreconditions[0].Left.Value = &value },
+			mutate: func(document *Plan) { document.Plan.ModelPreconditions[0].Left.Value = &value },
 			want:   "role operand is malformed",
 		},
 		"value operand carries role": {
-			mutate: func(document *Experiment) {
+			mutate: func(document *Plan) {
 				document.Plan.ModelPreconditions[0].Right.DefinitionID = "switch.role.subject"
 			},
 			want: "value operand is malformed",
 		},
 		"value operand missing payload": {
-			mutate: func(document *Experiment) { document.Plan.ModelPreconditions[0].Right.Value = nil },
+			mutate: func(document *Plan) { document.Plan.ModelPreconditions[0].Right.Value = nil },
 			want:   "value operand is malformed",
 		},
 		"property requirements null": {
-			mutate: func(document *Experiment) { document.Properties[0].RequirementDefinitionIDs = nil },
+			mutate: func(document *Plan) { document.Properties[0].RequirementDefinitionIDs = nil },
 			want:   "requirement definition IDs must not be null",
 		},
 		"checkpoint observations null": {
-			mutate: func(document *Experiment) { document.Plan.Checkpoints[0].Observations = nil },
+			mutate: func(document *Plan) { document.Plan.Checkpoints[0].Observations = nil },
 			want:   "observations must not be null",
 		},
 		"symbolic role value kind enum": {
-			mutate: func(document *Experiment) {
+			mutate: func(document *Plan) {
 				document.Plan.SymbolicRoles = []Role{{DefinitionID: "switch.role.pending", ValueKind: "arbitrary"}}
 			},
 			want: "symbolic role value kind",
 		},
 		"precondition relation enum": {
-			mutate: func(document *Experiment) { document.Plan.ModelPreconditions[0].Relation = "arbitrary" },
+			mutate: func(document *Plan) { document.Plan.ModelPreconditions[0].Relation = "arbitrary" },
 			want:   "model precondition relation",
 		},
 		"required definition ID": {
-			mutate: func(document *Experiment) { document.Plan.InitialState.DefinitionID = "unnamespaced" },
+			mutate: func(document *Plan) { document.Plan.InitialState.DefinitionID = "unnamespaced" },
 			want:   "initial state definition ID",
 		},
 		"noncanonical bindings": {
-			mutate: func(document *Experiment) {
+			mutate: func(document *Plan) {
 				document.Plan.Bindings = append(document.Plan.Bindings, Binding{RoleDefinitionID: "aaa.role", Value: value})
 			},
 			want: "bindings are not in canonical order",
 		},
 		"noncanonical property requirements": {
-			mutate: func(document *Experiment) {
+			mutate: func(document *Plan) {
 				document.Properties[0].RequirementDefinitionIDs = []string{"z.requirement", "a.requirement"}
 			},
 			want: "property requirement definition IDs are not in canonical order",
 		},
 		"noncanonical observation requirements": {
-			mutate: func(document *Experiment) {
+			mutate: func(document *Plan) {
 				document.ObservationRequirementDefinitionIDs = []string{"z.observation", "a.observation"}
 			},
 			want: "observation requirement definition IDs are not in canonical order",
 		},
 		"duplicate capability requirements": {
-			mutate: func(document *Experiment) {
+			mutate: func(document *Plan) {
 				document.Plan.CapabilityRequirementDefinitionIDs = []string{"a.capability", "a.capability"}
 			},
 			want: "duplicate capability requirement definition ID",
 		},
 		"unnamespaced capability requirement": {
-			mutate: func(document *Experiment) {
+			mutate: func(document *Plan) {
 				document.Plan.CapabilityRequirementDefinitionIDs = []string{"unnamespaced"}
 			},
 			want: "capability requirement definition ID",
 		},
 		"non-ASCII property requirement": {
-			mutate: func(document *Experiment) {
+			mutate: func(document *Plan) {
 				document.Properties[0].RequirementDefinitionIDs = []string{"switch.réquirement"}
 			},
 			want: "property requirement definition ID",
 		},
 		"unnamespaced observation requirement": {
-			mutate: func(document *Experiment) {
+			mutate: func(document *Plan) {
 				document.ObservationRequirementDefinitionIDs = []string{"unnamespaced"}
 			},
 			want: "observation requirement definition ID",
@@ -406,23 +406,23 @@ func TestDecodeExperimentRejectsResealedMalformedV2Values(t *testing.T) {
 	for name, test := range cases {
 		t.Run(name, func(t *testing.T) {
 			canonical := readRepositoryFile(t, "model/Umpire/Examples/testdata/switch-experiment-spec.json")
-			document, err := DecodeExperiment(canonical)
+			document, err := DecodePlan(canonical)
 			require.NoError(t, err)
 			test.mutate(&document)
-			sealed, err := SealExperiment(document)
+			sealed, err := SealPlan(document)
 			require.NoError(t, err)
-			encoded, err := CanonicalExperimentBytes(sealed)
+			encoded, err := CanonicalPlanBytes(sealed)
 			require.NoError(t, err)
 
-			_, err = DecodeExperiment(encoded)
+			_, err = DecodePlan(encoded)
 			require.ErrorContains(t, err, test.want)
 		})
 	}
 }
 
-func TestDecodeExperimentAcceptsResealedLeanRecordValues(t *testing.T) {
-	cases := map[string]func(*Experiment){
-		"zero limits and independent trace lists": func(document *Experiment) {
+func TestDecodePlanAcceptsResealedLeanRecordValues(t *testing.T) {
+	cases := map[string]func(*Plan){
+		"zero limits and independent trace lists": func(document *Plan) {
 			document.Plan.ExpandedLimits.Steps.Value = Natural("0")
 			document.Plan.ExpandedLimits.Actions.Value = Natural("0")
 			document.Plan.ExpandedLimits.Search.Value = Natural("0")
@@ -430,7 +430,7 @@ func TestDecodeExperimentAcceptsResealedLeanRecordValues(t *testing.T) {
 			document.Plan.LinearExtension[0].Position = Natural("0")
 			document.Plan.Checkpoints[0].Transition = Natural("0")
 		},
-		"record ordered roles and preconditions": func(document *Experiment) {
+		"record ordered roles and preconditions": func(document *Plan) {
 			document.Plan.SymbolicRoles = []Role{
 				{DefinitionID: "z.role", ValueKind: "state"},
 				{DefinitionID: "a.role", ValueKind: "action"},
@@ -441,7 +441,7 @@ func TestDecodeExperimentAcceptsResealedLeanRecordValues(t *testing.T) {
 			second.DefinitionID = "a.precondition"
 			document.Plan.ModelPreconditions = []Precondition{first, second}
 		},
-		"sorted bindings and properties retain duplicates": func(document *Experiment) {
+		"sorted bindings and properties retain duplicates": func(document *Plan) {
 			document.Plan.Bindings = append(document.Plan.Bindings, document.Plan.Bindings[0])
 			document.Properties = append(document.Properties, document.Properties[0])
 		},
@@ -450,15 +450,15 @@ func TestDecodeExperimentAcceptsResealedLeanRecordValues(t *testing.T) {
 	for name, mutate := range cases {
 		t.Run(name, func(t *testing.T) {
 			canonical := readRepositoryFile(t, "model/Umpire/Examples/testdata/switch-experiment-spec.json")
-			document, err := DecodeExperiment(canonical)
+			document, err := DecodePlan(canonical)
 			require.NoError(t, err)
 			mutate(&document)
-			sealed, err := SealExperiment(document)
+			sealed, err := SealPlan(document)
 			require.NoError(t, err)
-			encoded, err := CanonicalExperimentBytes(sealed)
+			encoded, err := CanonicalPlanBytes(sealed)
 			require.NoError(t, err)
 
-			_, err = DecodeExperiment(encoded)
+			_, err = DecodePlan(encoded)
 			require.NoError(t, err)
 		})
 	}

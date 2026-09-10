@@ -43,7 +43,7 @@ func TestProductionFixtureCarriesCanonicalMetadata(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, generatedViewRecord{
 		Identity:           switchIdentity,
-		Format:             supportedExperimentFormat,
+		Format:             supportedPlanFormat,
 		FixturePath:        entry.FixturePath,
 		GoOutputPath:       entry.GoOutputPath,
 		MarkdownOutputPath: entry.MarkdownOutputPath,
@@ -93,10 +93,10 @@ func TestProductionGeneratedViewSetOwnsExactlyTwoCompleteOutputs(t *testing.T) {
 	require.Error(t, validateGeneratedArtifacts(productionManifest(), records, stale))
 }
 
-func TestGeneratedViewRejectsInvalidExperimentMetadata(t *testing.T) {
+func TestGeneratedViewRejectsInvalidPlanMetadata(t *testing.T) {
 	modelRoot := t.TempDir()
 	writeLeanSource(t, modelRoot, "One.lean")
-	valid := syntheticExperiment(t, syntheticOptions{})
+	valid := syntheticPlan(t, syntheticOptions{})
 	cases := map[string]struct {
 		encoded []byte
 		want    string
@@ -104,23 +104,23 @@ func TestGeneratedViewRejectsInvalidExperimentMetadata(t *testing.T) {
 		"empty JSON":              {encoded: nil, want: "JSON is empty"},
 		"malformed JSON":          {encoded: []byte("{"), want: "decode canonical Plan JSON"},
 		"trailing JSON":           {encoded: append(append([]byte(nil), valid...), []byte("{}")...), want: "trailing JSON value"},
-		"unsupported version":     {encoded: syntheticExperiment(t, syntheticOptions{format: "umpire-experiment/v1"}), want: "unsupported format"},
-		"identity mismatch":       {encoded: syntheticExperiment(t, syntheticOptions{identity: "another.query"}), want: "query definition ID mismatch"},
-		"empty artifact checksum": {encoded: syntheticExperiment(t, syntheticOptions{emptyArtifactChecksum: true}), want: "artifact checksum"},
-		"missing provenance":      {encoded: syntheticExperiment(t, syntheticOptions{sources: []string{}}), want: "at least one source location"},
-		"empty provenance":        {encoded: syntheticExperiment(t, syntheticOptions{sources: []string{""}}), want: "source location is malformed"},
-		"duplicate provenance":    {encoded: syntheticExperiment(t, syntheticOptions{sources: []string{"One.lean", "One.lean"}}), want: "duplicate source location"},
-		"absolute provenance":     {encoded: syntheticExperiment(t, syntheticOptions{sources: []string{"/One.lean"}}), want: "unsafe"},
-		"traversing provenance":   {encoded: syntheticExperiment(t, syntheticOptions{sources: []string{"../One.lean"}}), want: "unsafe"},
-		"noncanonical provenance": {encoded: syntheticExperiment(t, syntheticOptions{sources: []string{"Dir/../One.lean"}}), want: "unsafe"},
-		"non-Lean provenance":     {encoded: syntheticExperiment(t, syntheticOptions{sources: []string{"One.txt"}}), want: "not a Lean source"},
-		"nonexistent provenance":  {encoded: syntheticExperiment(t, syntheticOptions{sources: []string{"Missing.lean"}}), want: "resolve provenance source"},
-		"missing properties":      {encoded: syntheticExperiment(t, syntheticOptions{properties: []string{}}), want: "at least one property identity"},
-		"empty property":          {encoded: syntheticExperiment(t, syntheticOptions{properties: []string{""}}), want: "malformed definition ID"},
-		"duplicate property":      {encoded: syntheticExperiment(t, syntheticOptions{properties: []string{"property.one", "property.one"}}), want: "duplicate property identity"},
-		"missing observations":    {encoded: syntheticExperiment(t, syntheticOptions{requirements: []string{}}), want: "at least one observation requirement identity"},
-		"empty observation":       {encoded: syntheticExperiment(t, syntheticOptions{requirements: []string{""}}), want: "observation requirement definition ID is empty"},
-		"duplicate observation":   {encoded: syntheticExperiment(t, syntheticOptions{requirements: []string{"observation.one", "observation.one"}}), want: "duplicate observation requirement definition ID"},
+		"unsupported version":     {encoded: syntheticPlan(t, syntheticOptions{format: "umpire-experiment/v1"}), want: "unsupported format"},
+		"identity mismatch":       {encoded: syntheticPlan(t, syntheticOptions{identity: "another.query"}), want: "query definition ID mismatch"},
+		"empty artifact checksum": {encoded: syntheticPlan(t, syntheticOptions{emptyArtifactChecksum: true}), want: "artifact checksum"},
+		"missing provenance":      {encoded: syntheticPlan(t, syntheticOptions{sources: []string{}}), want: "at least one source location"},
+		"empty provenance":        {encoded: syntheticPlan(t, syntheticOptions{sources: []string{""}}), want: "source location is malformed"},
+		"duplicate provenance":    {encoded: syntheticPlan(t, syntheticOptions{sources: []string{"One.lean", "One.lean"}}), want: "duplicate source location"},
+		"absolute provenance":     {encoded: syntheticPlan(t, syntheticOptions{sources: []string{"/One.lean"}}), want: "unsafe"},
+		"traversing provenance":   {encoded: syntheticPlan(t, syntheticOptions{sources: []string{"../One.lean"}}), want: "unsafe"},
+		"noncanonical provenance": {encoded: syntheticPlan(t, syntheticOptions{sources: []string{"Dir/../One.lean"}}), want: "unsafe"},
+		"non-Lean provenance":     {encoded: syntheticPlan(t, syntheticOptions{sources: []string{"One.txt"}}), want: "not a Lean source"},
+		"nonexistent provenance":  {encoded: syntheticPlan(t, syntheticOptions{sources: []string{"Missing.lean"}}), want: "resolve provenance source"},
+		"missing properties":      {encoded: syntheticPlan(t, syntheticOptions{properties: []string{}}), want: "at least one property identity"},
+		"empty property":          {encoded: syntheticPlan(t, syntheticOptions{properties: []string{""}}), want: "malformed definition ID"},
+		"duplicate property":      {encoded: syntheticPlan(t, syntheticOptions{properties: []string{"property.one", "property.one"}}), want: "duplicate property identity"},
+		"missing observations":    {encoded: syntheticPlan(t, syntheticOptions{requirements: []string{}}), want: "at least one observation requirement identity"},
+		"empty observation":       {encoded: syntheticPlan(t, syntheticOptions{requirements: []string{""}}), want: "observation requirement definition ID is empty"},
+		"duplicate observation":   {encoded: syntheticPlan(t, syntheticOptions{requirements: []string{"observation.one", "observation.one"}}), want: "duplicate observation requirement definition ID"},
 	}
 	for name, test := range cases {
 		t.Run(name, func(t *testing.T) {
@@ -133,7 +133,7 @@ func TestGeneratedViewRejectsInvalidExperimentMetadata(t *testing.T) {
 func TestGeneratedViewRejectsContradictoryJSONObjectKeys(t *testing.T) {
 	modelRoot := t.TempDir()
 	writeLeanSource(t, modelRoot, "One.lean")
-	valid := string(syntheticExperiment(t, syntheticOptions{}))
+	valid := string(syntheticPlan(t, syntheticOptions{}))
 	cases := []struct {
 		name    string
 		encoded string
@@ -189,7 +189,7 @@ func TestGeneratedViewRejectsProvenanceSymlinkEscapeAndWrongKind(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			_, err := extractGeneratedView(
 				syntheticEntry(syntheticIdentity),
-				syntheticExperiment(t, syntheticOptions{sources: []string{test.source}}),
+				syntheticPlan(t, syntheticOptions{sources: []string{test.source}}),
 				modelRoot,
 			)
 			require.ErrorContains(t, err, test.want)
@@ -306,7 +306,7 @@ func TestRenderingIsDeterministic(t *testing.T) {
 	modelRoot := t.TempDir()
 	writeLeanSource(t, modelRoot, "One.lean")
 	writeLeanSource(t, modelRoot, "Two.lean")
-	firstJSON := syntheticExperiment(t, syntheticOptions{
+	firstJSON := syntheticPlan(t, syntheticOptions{
 		sources:      []string{"Two.lean", "One.lean"},
 		properties:   []string{"property.two", "property.one"},
 		requirements: []string{"observation.two", "observation.one"},
@@ -348,10 +348,10 @@ type syntheticOptions struct {
 	requirements          []string
 }
 
-func syntheticExperiment(t *testing.T, options syntheticOptions) []byte {
+func syntheticPlan(t *testing.T, options syntheticOptions) []byte {
 	t.Helper()
 	if options.format == "" {
-		options.format = supportedExperimentFormat
+		options.format = supportedPlanFormat
 	}
 	if options.identity == "" {
 		options.identity = syntheticIdentity
@@ -382,7 +382,7 @@ func syntheticExperiment(t *testing.T, options syntheticOptions) []byte {
 		})
 	}
 	provenance := artifactv2.Provenance{SourceDefinitionIDs: []string{"synthetic.source"}, SourceLocations: sources}
-	document, err := artifactv2.SealExperiment(artifactv2.Experiment{
+	document, err := artifactv2.SealPlan(artifactv2.Plan{
 		FormatVersion:            options.format,
 		QueryBehaviorFingerprint: fingerprint,
 		Plan: artifactv2.PlanSteps{
@@ -416,7 +416,7 @@ func syntheticExperiment(t *testing.T, options syntheticOptions) []byte {
 	if options.emptyArtifactChecksum {
 		document.ArtifactChecksum = ""
 	}
-	encoded, err := artifactv2.CanonicalExperimentBytes(document)
+	encoded, err := artifactv2.CanonicalPlanBytes(document)
 	require.NoError(t, err)
 	return encoded
 }
@@ -433,7 +433,7 @@ func syntheticEntry(identity string) manifestEntry {
 func syntheticGeneratedView() generatedViewRecord {
 	return generatedViewRecord{
 		Identity:           syntheticIdentity,
-		Format:             supportedExperimentFormat,
+		Format:             supportedPlanFormat,
 		FixturePath:        "model/fixture.json",
 		GoOutputPath:       "tools/umpire/regression/catalog_generated_test.go",
 		MarkdownOutputPath: "model/Generated.md",

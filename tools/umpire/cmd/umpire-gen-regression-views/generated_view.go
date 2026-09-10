@@ -12,7 +12,7 @@ import (
 	"go.temporal.io/server/tools/umpire/internal/artifactv2"
 )
 
-const supportedExperimentFormat = artifactv2.ExperimentFormat
+const supportedPlanFormat = artifactv2.PlanFormat
 
 type sourceView struct {
 	CanonicalPath  string
@@ -32,7 +32,7 @@ type generatedViewRecord struct {
 	ArtifactChecksum        string
 }
 
-type experimentEnvelope = artifactv2.Experiment
+type experimentEnvelope = artifactv2.Plan
 type experimentPlan = artifactv2.PlanSteps
 type experimentProperty = artifactv2.Property
 type experimentProvenance = artifactv2.Provenance
@@ -42,11 +42,11 @@ func extractGeneratedView(entry manifestEntry, encoded []byte, modelRoot string)
 	if err := validateManifest([]manifestEntry{entry}); err != nil {
 		return generatedViewRecord{}, err
 	}
-	document, err := decodeExperiment(encoded)
+	document, err := decodePlan(encoded)
 	if err != nil {
 		return generatedViewRecord{}, fmt.Errorf("extract generated view %q: %w", entry.Identity, err)
 	}
-	if document.FormatVersion != supportedExperimentFormat {
+	if document.FormatVersion != supportedPlanFormat {
 		return generatedViewRecord{}, fmt.Errorf(
 			"extract generated view %q: unsupported format %q",
 			entry.Identity,
@@ -94,8 +94,8 @@ func extractGeneratedView(entry manifestEntry, encoded []byte, modelRoot string)
 	}, nil
 }
 
-func decodeExperiment(encoded []byte) (experimentEnvelope, error) {
-	document, err := artifactv2.DecodeExperiment(encoded)
+func decodePlan(encoded []byte) (experimentEnvelope, error) {
+	document, err := artifactv2.DecodePlan(encoded)
 	if err != nil {
 		return experimentEnvelope{}, fmt.Errorf("decode canonical Plan JSON: %w", err)
 	}
