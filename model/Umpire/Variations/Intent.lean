@@ -6,7 +6,7 @@ import Umpire.Variations.Language
 namespace Umpire
 
 /-- Candidate semantic intent produced while lowering one checked Space point. -/
-structure ArtifactIntentDeclaration where
+structure PlanRequestDeclaration where
   selectedChoices : List ModelValue
   selectedVariants : List RoleBinding
   requestedFaults : List RequestedFault
@@ -28,9 +28,9 @@ private def idLe (left right : DefinitionId) : Bool :=
   decide (left.value ≤ right.value)
 
 /-- Check and canonically bind one intent declaration to the exact Query closure it targets. -/
-def checkArtifactIntent
+def checkPlanRequest
     (query : CheckedQuery LawStatement)
-    (declaration : ArtifactIntentDeclaration) : Except ArtifactIntentError PlanRequest := do
+    (declaration : PlanRequestDeclaration) : Except PlanRequestError PlanRequest := do
   let intent : PlanRequest := {
     queryDefinitionId := query.id
     queryBehaviorFingerprint := query.behaviorFingerprint

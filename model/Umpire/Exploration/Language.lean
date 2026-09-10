@@ -5,7 +5,7 @@ import Umpire.Exploration.Core
 namespace Umpire
 
 /-- One pinned canonical Plan checked independently of the exploration budget. -/
-structure PinnedPlan where
+structure PinnedRegression where
   private mk ::
   plan : Plan
   canonicalBytes : String
@@ -20,7 +20,7 @@ structure CheckedExplorationRequest (LawStatement : Law → Prop) where
   space : CheckedVariationSpace LawStatement
   policy : ExplorationPolicy
   limit : Limit
-  pinned : List PinnedPlan
+  pinned : List PinnedRegression
 
 private def quote (value : String) : String := Lean.Json.compress (.str value)
 
@@ -91,7 +91,7 @@ private def pinnedMatchesContract
 
 private def checkPinned
     (request : ExplorationRequest LawStatement) :
-    Except ExplorationError (List PinnedPlan) := do
+    Except ExplorationError (List PinnedRegression) := do
   let pinned := request.pinned.mergeSort pinnedLe
   match firstDuplicatePinned pinned with
   | some duplicate =>
@@ -118,7 +118,7 @@ private def checkPinned
 
 private def checkExplorationRequestInputs
     (request : ExplorationRequest LawStatement) :
-    Except ExplorationError (List PinnedPlan) := do
+    Except ExplorationError (List PinnedRegression) := do
   if request.space.pointCount == 0 then
     throw (requestError request .emptySpace "0")
   if request.space.pointCount > SpaceLimits.v1.maximumPoints then

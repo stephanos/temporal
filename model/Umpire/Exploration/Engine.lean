@@ -25,7 +25,7 @@ structure DroppedCandidate where
 /-- The exact pinned-first partitions and truthful outcomes from one bounded Exploration. -/
 structure ExplorationResult where
   private mk ::
-  pinned : List PinnedPlan
+  pinned : List PinnedRegression
   exploratory : List ExplorationCandidate
   omissions : List DroppedCandidate
   coordinateOutcome : Option GuidedSelectionOutcome
