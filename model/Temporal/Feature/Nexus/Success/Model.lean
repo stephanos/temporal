@@ -1,5 +1,5 @@
-import Temporal.Feature.Nexus3.Syntax
-import Temporal.Feature.Nexus3.Cancellation
+import Temporal.Feature.Nexus.Success.Syntax
+import Temporal.Feature.Nexus.Race.Terminal
 
 /-!
 # Compact Nexus success model
@@ -14,11 +14,11 @@ below and the Action order the Behavior fixes, so the same-step requirement writ
 runtime capability reads.
 
 Read from top to bottom: vocabulary → allowed behavior → requirement → scenario → question.
-The five blocks are the intentionally small Nexus3 success authoring surface. Their elaborator
+The five blocks are the intentionally small Nexus.Success success authoring surface. Their elaborator
 expands into the existing Umpire Target, Property, Behavior, and Query owners.
 -/
 
-namespace Temporal.Feature.Nexus3
+namespace Temporal.Feature.Nexus.Success
 
 /-- The operation has one scheduled setup and three success-lifecycle states. -/
 inductive Setup where
@@ -92,5 +92,5 @@ query completion on lifecycle
   in successfulCompletion
   limits shortTrace
 
-end Temporal.Feature.Nexus3
+end Temporal.Feature.Nexus.Success
 

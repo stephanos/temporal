@@ -1,4 +1,4 @@
-import Temporal.Feature.Nexus3.TypedNexus
+import Temporal.Feature.Nexus.Success.TypedNexus
 
 /-!
 Executable checks for the two-operation Nexus example.
@@ -10,12 +10,12 @@ operation-local and immutable across repeated and interleaved control; and the C
 carries is derived from the model Property's own coordinates rather than restated beside them.
 -/
 
-namespace Temporal.Feature.Nexus3.Tests.TypedNexus
+namespace Temporal.Feature.Nexus.Success.Tests.TypedNexus
 
 open Umpire
 open Umpire.Operation
 open Umpire.Value
-open Temporal.Feature.Nexus3.TypedNexus
+open Temporal.Feature.Nexus.Success.TypedNexus
 open temporal.server.api.testpilot.v1
 
 /-! ### Distinct operation kinds, and one generated reference -/
@@ -339,4 +339,4 @@ private def segmentsOf (path : Except String FieldPath) : Option (List (String Ã
 #guard_msgs in
 #print axioms Umpire.Operation.CheckedRpc.schema_eq
 
-end Temporal.Feature.Nexus3.Tests.TypedNexus
+end Temporal.Feature.Nexus.Success.Tests.TypedNexus

@@ -1,5 +1,5 @@
 /-!
-# Nexus3 — user-facing authoring draft
+# Nexus.Success — user-facing authoring draft
 
 Proposed syntax for discussion; this file does not compile and is not imported by the model.
 The declarations below describe the desired authoring surface, not an implemented Umpire API.
@@ -69,8 +69,8 @@ forms above, broader cancellation model admission, and cancellation Case integra
 work.
 -/
 
--- A namespace groups related names; the full type name is `Temporal.Feature.Nexus3.State`.
-namespace Temporal.Feature.Nexus3
+-- A namespace groups related names; the full type name is `Temporal.Feature.Nexus.Success.State`.
+namespace Temporal.Feature.Nexus.Success
 
 /-- An `inductive` declaration introduces a type with exactly the listed alternatives.
 This model follows one operation, so a single state value is enough; it has no IDs or collection
@@ -120,8 +120,8 @@ inductive Fact where
 
 /-
 `on lifecycle` below refers to this model. Its derived Target ID is
-`temporal.nexus3.target.lifecycle`.
-Likewise, `cancellationResolves` gets `temporal.nexus3.property.cancellationResolves`. IDs survive
+`temporal.nexus.success.target.lifecycle`.
+Likewise, `cancellationResolves` gets `temporal.nexus.success.property.cancellationResolves`. IDs survive
 builds, comment edits, and declaration reordering. Renaming a declaration changes its ID and the
 IDs of its owned members; affected generated fixtures must be regenerated. A declaration that must
 keep its old ID across a rename may instead carry an explicit compatibility ID. That override is
@@ -187,7 +187,7 @@ response on the triggering step; our request row does not produce one, so resolu
 step. This is a bound in model steps, not seconds. The Behavior below explicitly includes progress.
 `for operation` binds the trigger and response to one operation; other operations do not consume
 its bound. Operation-correlated counting is now a delivered generic capability, qualified through
-non-cancellation fixtures; it was never Nexus2 functionality, which counts global transitions.
+non-cancellation fixtures; it was never Nexus.Race functionality, which counts global transitions.
 What stays unsupported is this cancellation-specific use of it, which `Integration.md` rejects at
 Case production. A trace ending immediately after the request cannot demonstrate the required
 response. -/
@@ -278,4 +278,4 @@ query completionCanWin on lifecycle
   in cancellationRace
   limits shortTrace
 
-end Temporal.Feature.Nexus3
+end Temporal.Feature.Nexus.Success
