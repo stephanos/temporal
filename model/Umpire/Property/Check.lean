@@ -676,6 +676,30 @@ private def requirePositionUnit
   if unit == .logicalTime && access.logicalTimeSource.isNone then
     throw (propertyError .missingLogicalTimeSource owner.id owner.source unit.name)
 
+/-- An `unless` condition removes an applicability context a guard established, so it is only
+meaningful on a guarded clause. Accepting it without a guard would drop the author's condition
+silently at admission. -/
+private def requireGuardedExtras
+    (owner : Property)
+    (clauseId : DefinitionId)
+    (exception : Option PropertyUnless) : Except PropertyError Unit :=
+  if exception.isSome then
+    throw (propertyError .invalidClause owner.id owner.source
+      (clauseId.value ++ ": unless requires a guard") [clauseId])
+  else
+    pure ()
+
+/-- A guarded clause anchors its own nested diagnostics, so its source must name a real path. -/
+private def requireClauseSource
+    (owner : Property)
+    (clauseId : DefinitionId)
+    (source : SourceLocation) : Except PropertyError Unit :=
+  if source.path == "" then
+    throw (propertyError .invalidClause owner.id owner.source
+      (clauseId.value ++ ": guarded clause has no source path") [clauseId])
+  else
+    pure ()
+
 private def requireField
     (owner : Property)
     (clauseId : DefinitionId)
@@ -720,13 +744,15 @@ private def checkClause
       validatePattern context owner access after
       requirePositionUnit owner access unit [before, after]
       pure (.ordered id before after unit)
-  | .eventuallyWithin id trigger response authoredBound none _ _ =>
+  | .eventuallyWithin id trigger response authoredBound none exception _ =>
+      requireGuardedExtras owner id exception
       validatePattern context owner access trigger
       validatePattern context owner access response
       let limit := authoredBound
       requirePositionUnit owner access limit.unit [trigger, response]
       pure (.eventuallyWithin id trigger response limit)
-  | .neverWithin id trigger forbidden authoredBound none _ _ =>
+  | .neverWithin id trigger forbidden authoredBound none exception _ =>
+      requireGuardedExtras owner id exception
       validatePattern context owner access trigger
       validatePattern context owner access forbidden
       let limit := authoredBound
@@ -835,6 +861,7 @@ private def checkClause
         exclusive := group.exclusive
       })
   | .eventuallyWithin id trigger response authoredBound (some guard) exception source =>
+      requireClauseSource owner id source
       requireNestedDefinitionId owner.id source id
       requireUniqueNestedIds owner.id
         ((id, source) :: exception.toList.map fun item => (item.id, item.source))
@@ -866,6 +893,7 @@ private def checkClause
         limit
       })
   | .neverWithin id trigger forbidden authoredBound (some guard) exception source =>
+      requireClauseSource owner id source
       requireNestedDefinitionId owner.id source id
       requireUniqueNestedIds owner.id
         ((id, source) :: exception.toList.map fun item => (item.id, item.source))

@@ -93,7 +93,7 @@ def guardedTemporalSwitchPropertyDeclaration : Property := {
       reference := Umpire.Examples.Switch.flipActionId
       constraint := .equals (.text "flip")
     }))
-      («unless» := none)
+      (exception := none)
       (trigger := {
       field := .selectedAction
       reference := Umpire.Examples.Switch.flipActionId

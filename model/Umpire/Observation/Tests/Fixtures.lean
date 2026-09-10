@@ -487,7 +487,7 @@ def guardedTemporalPropertyDeclaration : Property := {
       reference := startAction
       constraint := .equals (.text "start")
     }))
-      («unless» := none)
+      (exception := none)
       (trigger := (verdictPattern .selectedAction startAction))
       (response := (verdictPattern .outcome successOutcome))
       (limit := { value := 0, unit := .semanticTransitions })]
