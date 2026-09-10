@@ -29,56 +29,49 @@ Add that projection so a scoped capability can run on the real Driver. **A claus
 - [ ] Regenerated fixture bytes are produced through owning targets and accounted for; conformance gates green.
 
 ## Done summary
-Blocked:
-BLOCKED: EXTERNAL_BLOCKED — acceptance item 4 is only observable against a live Temporal cluster,
-and this environment has none. Deferred in favour of the fully offline-verifiable R2 chain
-(.11 -> .12 -> .13); reset this task to `todo` and take it in an environment with a cluster.
+A Program can now declare a source that lifts recorded history into a `ScopedEvidence` Observation:
+`ProjectionTarget` gains a `ScopedEvidenceProjection` variant whose guarded rules build `identity`,
+`operation`, `kind` and `fields` from the projected value, with declared literals for the Run
+coordinates a recorded fact does not carry and a dense per-Run source ordinal only the emitting
+instruction can count. The typed-nexus Case routes its bounded-response clause through
+`Umpire.Case.Scoped.lower` and satisfies it live on the real Driver, which closes fn-77's Known Gap
+`bounded-completion-is-model-only`; the record is replaced by `completion-identity-is-unrecorded`,
+which names what the lift still cannot say (a completed Nexus event records no operation identity,
+so the operation key is the scheduled event it references and one representative completed step is
+released).
 
-Why acceptance 4 is live-gated
-- "The scoped bounded-response clause runs on the real Driver, closing fn-77's Known Gap
-  `temporal.nexus3.typed-nexus.bounded-completion-is-model-only`". That Known Gap is carried by the
-  typed-nexus Case (`model/Temporal/Feature/Nexus3/TypedNexus.lean:759-768`), and the only thing
-  that runs that Case against the real Driver is `tests/testpilot_typed_nexus_case_test.go`, an
-  `integration`-tagged live test. The offline conformance runner uses the facade Driver, so a green
-  conformance gate would not close the gap.
-- The task this one unblocks (.4) is live-gated for the same reason (its own acceptance requires
-  `TestTestpilotAsyncNexusCase` satisfied in both environments), so the whole chain terminates in a
-  cluster requirement. Nothing is lost by taking it where the cluster is.
+Vacuous satisfaction is closed on both sides: a scoped capability that admitted no evidence answers
+unresolved rather than reading silence as the empty-obligation satisfaction a total model trace has.
+The Lean portable interpreter (`Testpilot.Scoped.Run.answers`), the Go runtime
+(`scopedRun.answer`) and a new `unobserved` fixture scenario agree; the model kernel's own
+`Umpire.Property.Scoped` semantics are untouched, because a model trace is total and a recorded
+evidence stream is not.
 
-Design worked out this session — do not re-derive it
-1. The mechanism already exists end to end; only the *source* of the value is missing.
-   `common/testing/testpilot/scoped_facade_test.go:52-107` shows a scoped Case that Prepares and Runs
-   today: it declares an Observation typed `ScopedEvidence`, and an `InvokeRPC` whose method
-   *response type is `ScopedEvidence`* projects straight into it. `bindScoped`
-   (`internal/verification/scoped_prepare.go:71-73`) is satisfied by that shape. So a Program CAN
-   declare and fill a ScopedEvidence Observation — what no real Temporal RPC can do is *return* one.
-2. Therefore the additive wire change is a lift, not a new instruction. `ProjectionTarget`
-   (`proto/internal/temporal/server/api/testpilot/v1/instruction.proto:20-24`, a oneof over
-   `slot_id` / `observation_id`) gains a third variant that names the ScopedEvidence Observation and
-   carries the bindings that build the message from the projected value:
-     - a guard `FieldPath` that must be present for the rule to fire (for Nexus history this is the
-       `attributes` oneof selector, so `kind` is a literal per rule and the oneof case selects it —
-       `CaseSupport.historyAttribute` already builds exactly that path shape);
-     - `identity.scope` bindings (field_id + FieldPath, text), `identity.source` (literal),
-       `identity.ordinal` (FieldPath to `event_id`);
-     - `operation` (FieldPath), `kind` (literal), and `fields` bindings (field_id + FieldPath).
-   One rule per history event kind (scheduled / started / completed) gives the whole lifecycle.
-3. Go work: `internal/execution/dataflow.go:282-310` (`bindProjectionSinks`) type-checks the new
-   variant at Prepare — target Observation must be singular `ScopedEvidence`, every bound path must
-   type-check against the projected message; `internal/execution/projection.go` builds the message
-   at run time and skips the rule when the guard path is absent.
-4. Vacuous satisfaction (acceptance item 3) is a small, separable fix and does NOT need a cluster:
-   `scopedRun.answer` (`internal/verification/scoped.go:622-642`) falls through to SATISFIED when
-   `r.operations` is empty, so a clause that received zero evidence answers green. The fix is to
-   return INCONCLUSIVE when no evidence was accepted at all. Check `scoped_test.go` for an existing
-   expectation on the empty run before changing it. If a future run wants a landable slice of this
-   task, that is the one to take first.
+Two changes outside the immediate surface, both load-bearing and argued in place:
+- `Umpire.Observation.Projection.Coverage` now rebuilds the first element of a repeated field, as it
+  already rebuilds an established optional one; a later index still rejects. The shipped capture
+  path walks `history.events[0]`, so without this no real Case could request coverage. The
+  `FieldLowering` pin moves to `.index 1` and gains a positive `.index 0` case.
+- The Driver's hard `max_work_per_event` ceiling is sized for a scoped capability. The scoped
+  stage's reservation is cubic in the accepted evidence count and is charged into the same
+  per-event bucket, so the expression-evaluation ceiling it carried rejected every multi-operation
+  scoped Case at its own first evidence event. A `CONSIDER` records the better fix (charge the
+  reservation's increment).
 
-Impact: task .4 stays blocked behind this one.
-Suggested resolution: run this task where `go test -tags 'test_dep integration' ./tests -run
-TestTestpilot` can reach a cluster; implement (2)+(3)+(4) above, regenerate fixtures through their
-owning targets, and update the Known Gap record rather than deleting it.
+Reviewer findings addressed in a second commit: a declared evidence source belongs to one
+instruction on a controller entrypoint (dense ordinals cannot restart), a presence-terminal guard
+rejects at Prepare (it answers false rather than absent, so it could never select a rule), and the
+two-operation Case is now Prepared offline in `tests/testcore/testpilot/typed_nexus_artifact_test.go`.
+
+Second-round reviewer P3s also addressed: `ScopedEvidenceRule` renumbers to 1..7 with no hole, one
+shared limits check replaces the two copies that overwrote the work ceiling before validating it, a
+plain Contract still rejects at its own modest per-event value so the raised Driver ceiling stays
+visible, and the plan narrative records that this task closed both halves it described as open.
+
+stage: impl-review - ran [33df4e80..b80786fc] SHIP
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 90d2cf3f60827afdbec357a9919cda022a0ec13f, 0ca7bcaa9d9f1a3a9d94aea14769871269ddc65c, b80786fcf2bf68f56f670e33b5739e8f539c7ad9
+- Tests: cd model && lake build Temporal TemporalModelTests UmpireTests TestpilotTests, make lint-model (169 errors, unchanged baseline, all in generated Temporal/API), make umpire-check-case-runtime-conformance, CGO_ENABLED=0 go test -tags test_dep ./common/testing/testpilot/... ./tests/testcore/testpilot/..., go test -tags 'test_dep integration' ./tests -run '^TestTestpilotTypedNexusOperationsCase$' (scoped bounded-completion clause SATISFIED live), make umpire-check-live-tests (empty failure set across 4 passing identities), make umpire-check-regression, make lint-code GOLANGCI_LINT_FIX=false (128: errcheck 1, govet 4, revive 106, staticcheck 17 - unchanged baseline), go vet -tags test_dep ./... (15 pre-existing diagnostics, unchanged)
 - PRs:
+stage: plan-sync - skipped(config: planSync.enabled != true)
