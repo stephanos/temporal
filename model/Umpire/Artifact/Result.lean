@@ -1,7 +1,7 @@
 import Umpire.Artifact.Evidence
 import Umpire.ImplementationLink.Application
 import Umpire.KnownGap
-import Umpire.Observation.Verdict
+import Umpire.Evidence.PropertyStatus
 
 namespace Umpire
 
@@ -86,7 +86,7 @@ structure ArtifactAppliedFieldDisposition where
   deriving BEq, DecidableEq, Repr
 
 /-- Why one already-established Model Fact is backed by exact Evidence. -/
-structure ArtifactEvidenceLink where
+structure ArtifactEvidenceSupport where
   coordinate : ArtifactModelCoordinate
   mappingDefinitionId : DefinitionId
   mappingVersion : Nat
@@ -144,7 +144,7 @@ structure EvidenceArtifact where
   mapping : ArtifactDefinitionReference
   observationEvaluationStatus : String
   evidenceBackedModelTrace : Option ArtifactEvidenceBackedModelTrace
-  evidenceLinks : List ArtifactEvidenceLink
+  evidenceSupports : List ArtifactEvidenceSupport
   dispositions : List ArtifactFieldDispositionRecord
   diagnostics : List ArtifactObservationDiagnostic
   knownGaps : KnownGapSet
@@ -171,7 +171,7 @@ structure ArtifactImplementationLinkDiagnostic where
   knownGapCode : Option DefinitionId
   knownGapReason : Option String
   unsupportedVocabularyKind : Option DefinitionKind
-  evidenceLinkBehaviorFingerprint : Option BehaviorFingerprint
+  evidenceSupportBehaviorFingerprint : Option BehaviorFingerprint
   identity : BehaviorFingerprint
   deriving BEq, DecidableEq, Repr
 
@@ -185,7 +185,7 @@ structure ArtifactImplementationLinkRecord where
   deriving BEq, DecidableEq, Repr
 
 /-- Closed projection of one semantic verdict diagnostic. -/
-structure ArtifactSemanticVerdictDiagnostic where
+structure ArtifactEvidence.PropertyStatusDiagnostic where
   kind : String
   relatedDefinitionIds : List DefinitionId
   observationDiagnostic : Option ArtifactObservationDiagnostic
@@ -201,7 +201,7 @@ structure ArtifactSemanticClauseVerdict where
   propertyLimit : Option ArtifactLimit
   evidenceLimit : ArtifactLimit
   provenanceDefinitionIds : List DefinitionId
-  evidenceLinks : List ArtifactEvidenceLink
+  evidenceSupports : List ArtifactEvidenceSupport
   deriving BEq, DecidableEq, Repr
 
 /-- One already-produced semantic Property verdict. -/
@@ -215,7 +215,7 @@ structure ArtifactPropertyVerdict where
   evidenceLimit : Option ArtifactLimit
   provenanceDefinitionIds : List DefinitionId
   clauses : List ArtifactSemanticClauseVerdict
-  diagnostic : Option ArtifactSemanticVerdictDiagnostic
+  diagnostic : Option ArtifactEvidence.PropertyStatusDiagnostic
   deriving BEq, DecidableEq, Repr
 
 /-- Exact strict Query aggregation, including byte-identical embedded verdicts. -/
@@ -370,7 +370,7 @@ private def appliedFieldDispositionJson (disposition : ArtifactAppliedFieldDispo
       optionalIdResultJson disposition.digestPolicyDefinitionId ++
     ",\"digestToken\":" ++ optionalStringJson disposition.digestToken ++ "}"
 
-private def evidenceLinkJson (link : ArtifactEvidenceLink) : String :=
+private def evidenceSupportJson (link : ArtifactEvidenceSupport) : String :=
   "{\"coordinate\":" ++ modelCoordinateJson link.coordinate ++
     ",\"mappingDefinitionId\":" ++ quoteResult link.mappingDefinitionId.value ++
     ",\"mappingVersion\":" ++ toString link.mappingVersion ++
@@ -435,7 +435,7 @@ private def evidenceArtifactContentJson (evidence : EvidenceArtifact) : String :
     ",\"observationEvaluationStatus\":" ++ quoteResult evidence.observationEvaluationStatus ++
     ",\"evidenceBackedModelTrace\":" ++
       optionalEvidenceBackedModelTraceJson evidence.evidenceBackedModelTrace ++
-    ",\"evidenceLinks\":" ++ resultArray (evidence.evidenceLinks.map evidenceLinkJson) ++
+    ",\"evidenceSupports\":" ++ resultArray (evidence.evidenceSupports.map evidenceSupportJson) ++
     ",\"dispositions\":" ++ resultArray
       (evidence.dispositions.map fieldDispositionRecordJson) ++
     ",\"diagnostics\":" ++ resultArray (evidence.diagnostics.map observationDiagnosticJson) ++
@@ -486,8 +486,8 @@ private def implementationLinkDiagnosticJson
     ",\"knownGapReason\":" ++ optionalStringJson diagnostic.knownGapReason ++
     ",\"unsupportedVocabularyKind\":" ++ optionalStringJson
       (diagnostic.unsupportedVocabularyKind.map DefinitionKind.name) ++
-    ",\"evidenceLinkBehaviorFingerprint\":" ++
-      optionalFingerprintResultJson diagnostic.evidenceLinkBehaviorFingerprint ++
+    ",\"evidenceSupportBehaviorFingerprint\":" ++
+      optionalFingerprintResultJson diagnostic.evidenceSupportBehaviorFingerprint ++
     ",\"identity\":" ++ quoteResult diagnostic.identity.render ++ "}"
 
 private def optionalImplementationLinkDiagnosticJson
@@ -501,17 +501,17 @@ private def implementationLinkRecordJson (record : ArtifactImplementationLinkRec
     ",\"destinationTarget\":" ++ implementationTargetReferenceJson record.destinationTarget ++
     ",\"diagnostic\":" ++ optionalImplementationLinkDiagnosticJson record.diagnostic ++ "}"
 
-private def semanticVerdictDiagnosticJson
-    (diagnostic : ArtifactSemanticVerdictDiagnostic) : String :=
+private def propertyStatusDiagnosticJson
+    (diagnostic : ArtifactEvidence.PropertyStatusDiagnostic) : String :=
   "{\"kind\":" ++ quoteResult diagnostic.kind ++
     ",\"relatedDefinitionIds\":" ++ resultArray
       (diagnostic.relatedDefinitionIds.map (quoteResult ∘ DefinitionId.value)) ++
     ",\"observationDiagnostic\":" ++ optionalResultJson
       (diagnostic.observationDiagnostic.map observationDiagnosticJson) ++ "}"
 
-private def optionalSemanticVerdictDiagnosticJson
-    (diagnostic : Option ArtifactSemanticVerdictDiagnostic) : String :=
-  optionalResultJson (diagnostic.map semanticVerdictDiagnosticJson)
+private def optionalPropertyStatusDiagnosticJson
+    (diagnostic : Option ArtifactEvidence.PropertyStatusDiagnostic) : String :=
+  optionalResultJson (diagnostic.map propertyStatusDiagnosticJson)
 
 private def semanticClauseVerdictJson (verdict : ArtifactSemanticClauseVerdict) : String :=
   "{\"propertyDefinitionId\":" ++ quoteResult verdict.propertyDefinitionId.value ++
@@ -523,7 +523,7 @@ private def semanticClauseVerdictJson (verdict : ArtifactSemanticClauseVerdict) 
     ",\"evidenceLimit\":" ++ artifactLimitJson verdict.evidenceLimit ++
     ",\"provenanceDefinitionIds\":" ++ resultArray
       (verdict.provenanceDefinitionIds.map (quoteResult ∘ DefinitionId.value)) ++
-    ",\"evidenceLinks\":" ++ resultArray (verdict.evidenceLinks.map evidenceLinkJson) ++ "}"
+    ",\"evidenceSupports\":" ++ resultArray (verdict.evidenceSupports.map evidenceSupportJson) ++ "}"
 
 private def propertyVerdictJson (verdict : ArtifactPropertyVerdict) : String :=
   "{\"queryDefinitionId\":" ++ quoteResult verdict.queryDefinitionId.value ++
@@ -536,7 +536,7 @@ private def propertyVerdictJson (verdict : ArtifactPropertyVerdict) : String :=
     ",\"provenanceDefinitionIds\":" ++ resultArray
       (verdict.provenanceDefinitionIds.map (quoteResult ∘ DefinitionId.value)) ++
     ",\"clauses\":" ++ resultArray (verdict.clauses.map semanticClauseVerdictJson) ++
-    ",\"diagnostic\":" ++ optionalSemanticVerdictDiagnosticJson verdict.diagnostic ++ "}"
+    ",\"diagnostic\":" ++ optionalPropertyStatusDiagnosticJson verdict.diagnostic ++ "}"
 
 private def querySummaryJson (summary : ArtifactQuerySummary) : String :=
   "{\"queryDefinitionId\":" ++ quoteResult summary.queryDefinitionId.value ++
@@ -613,7 +613,7 @@ private def portablePropertyResultJson (property : PortableProperty) : String :=
 private def evaluationOutcomeJson
     (plan : Plan.Steps)
     (trace : ArtifactEvidenceBackedModelTrace)
-    (evidenceLinks : List ArtifactEvidenceLink)
+    (evidenceSupports : List ArtifactEvidenceSupport)
     (observationProgram mapping : ArtifactDefinitionReference)
     (implementationLink : ArtifactImplementationLinkRecord)
     (querySummary : ArtifactQuerySummary)
@@ -622,7 +622,7 @@ private def evaluationOutcomeJson
     (limits : List ArtifactStagedLimit) : String :=
   "{\"plan\":" ++ canonicalDrivePlanJson plan ++
     ",\"evidenceBackedModelTrace\":" ++ evidenceBackedModelTraceJson trace ++
-    ",\"evidenceLinks\":" ++ resultArray (evidenceLinks.map evidenceLinkJson) ++
+    ",\"evidenceSupports\":" ++ resultArray (evidenceSupports.map evidenceSupportJson) ++
     ",\"observationProgram\":" ++ definitionReferenceJson observationProgram ++
     ",\"mapping\":" ++ definitionReferenceJson mapping ++
     ",\"implementationLink\":" ++ implementationLinkRecordJson implementationLink ++
@@ -639,7 +639,7 @@ def ResultArtifact.expectedEvaluationOutcomeChecksum
   if result.semanticStatus == "satisfied" || result.semanticStatus == "violated" then do
     let trace ← evidence.evidenceBackedModelTrace
     some <| evaluationOutcomeChecksumOf <| Json.prettyBytes <|
-      evaluationOutcomeJson experiment.plan trace evidence.evidenceLinks evidence.observationProgram
+      evaluationOutcomeJson experiment.plan trace evidence.evidenceSupports evidence.observationProgram
         evidence.mapping result.implementationLink result.querySummary experiment.properties
         result.propertyVerdicts result.limits
   else none
@@ -698,8 +698,8 @@ private def implementationDiagnosticIdentityJson
     ",\"knownGapReason\":" ++ optionalStringJson diagnostic.knownGapReason ++
     ",\"unsupportedVocabularyKind\":" ++ optionalStringJson
       (diagnostic.unsupportedVocabularyKind.map DefinitionKind.name) ++
-    ",\"evidenceLinkBehaviorFingerprint\":" ++
-      optionalFingerprintResultJson diagnostic.evidenceLinkBehaviorFingerprint ++ "}"
+    ",\"evidenceSupportBehaviorFingerprint\":" ++
+      optionalFingerprintResultJson diagnostic.evidenceSupportBehaviorFingerprint ++ "}"
 
 /-- Fingerprint only the frozen pretty diagnostic projection; no link application occurs. -/
 def ArtifactImplementationLinkRecord.expectedDiagnosticIdentity
@@ -725,9 +725,9 @@ def EvidenceArtifact.artifactBinding (evidence : EvidenceArtifact) : ArtifactBin
 
 private def observationStatusMatrixValid (evidence : EvidenceArtifact) : Bool :=
   if evidence.observationEvaluationStatus == "accepted" then
-    evidence.evidenceBackedModelTrace.isSome && evidence.evidenceLinks != [] && evidence.diagnostics == []
+    evidence.evidenceBackedModelTrace.isSome && evidence.evidenceSupports != [] && evidence.diagnostics == []
   else if ["unknown", "conflict", "unsupported"].contains evidence.observationEvaluationStatus then
-    evidence.evidenceBackedModelTrace.isNone && evidence.evidenceLinks == [] && evidence.diagnostics.length == 1
+    evidence.evidenceBackedModelTrace.isNone && evidence.evidenceSupports == [] && evidence.diagnostics.length == 1
   else false
 
 /-- Structural transport validation only; it does not interpret RawEvidence. -/

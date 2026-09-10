@@ -135,7 +135,7 @@ def outcomeRuleId : DefinitionId := id "temporal.test.nexus.system.rule.outcome"
 def observationRuleId : DefinitionId := id "temporal.test.nexus.system.rule.observation"
 
 def observationDeclaration
-    (mappingId actionRuleId actionDefinitionId : DefinitionId) : ObservationMappingDeclaration := {
+    (mappingId actionRuleId actionDefinitionId : DefinitionId) : Evidence.Reading := {
   id := mappingId
   source
   profile := profileId
@@ -184,38 +184,38 @@ def observationDeclaration
   evidenceBound := { value := 2, unit := .evidenceRecords }
 }
 
-def observationContext : ObservationCheckContext :=
-  ObservationCheckContext.ofTarget Temporal.System.Nexus.target [evidenceProfile]
+def observationContext : Evidence.ReadingContext :=
+  Evidence.ReadingContext.ofTarget Temporal.System.Nexus.target [evidenceProfile]
 
-def startPlanResult : Except ObservationError CheckedObservationPlan :=
-  checkObservation observationContext <|
+def startPlanResult : Except Evidence.ReadingError Evidence.CheckedReading :=
+  Evidence.checkReading observationContext <|
     observationDeclaration startMappingId dispatchRuleId Temporal.System.Nexus.dispatchActionId
 
 private theorem startPlanResult_isSome : startPlanResult.toOption.isSome = true := by
   native_decide
 
-def startPlan : CheckedObservationPlan :=
+def startPlan : Evidence.CheckedReading :=
   startPlanResult.toOption.get startPlanResult_isSome
 
-def cancellationPlanResult : Except ObservationError CheckedObservationPlan :=
-  checkObservation observationContext <| observationDeclaration cancellationMappingId
+def cancellationPlanResult : Except Evidence.ReadingError Evidence.CheckedReading :=
+  Evidence.checkReading observationContext <| observationDeclaration cancellationMappingId
     cancellationRuleId Temporal.System.Nexus.recordCancellationActionId
 
 private theorem cancellationPlanResult_isSome : cancellationPlanResult.toOption.isSome = true := by
   native_decide
 
-def cancellationPlan : CheckedObservationPlan :=
+def cancellationPlan : Evidence.CheckedReading :=
   cancellationPlanResult.toOption.get cancellationPlanResult_isSome
 
-def successfulCompletionPlanResult : Except ObservationError CheckedObservationPlan :=
-  checkObservation observationContext <| observationDeclaration successfulCompletionMappingId
+def successfulCompletionPlanResult : Except Evidence.ReadingError Evidence.CheckedReading :=
+  Evidence.checkReading observationContext <| observationDeclaration successfulCompletionMappingId
     completionRuleId Temporal.System.Nexus.recordCompletionActionId
 
 private theorem successfulCompletionPlanResult_isSome :
     successfulCompletionPlanResult.toOption.isSome = true := by
   native_decide
 
-def successfulCompletionPlan : CheckedObservationPlan :=
+def successfulCompletionPlan : Evidence.CheckedReading :=
   successfulCompletionPlanResult.toOption.get successfulCompletionPlanResult_isSome
 
 private def textField (fieldId : DefinitionId) (value : String) : EvidenceFieldValue := {
@@ -254,7 +254,7 @@ private def stepRecord
 
 private def oneStepEvidence
     (initialId stepId : DefinitionId)
-    (initialState action outcome resultingState observation : ModelValue) : EvidenceBundle := {
+    (initialState action outcome resultingState observation : ModelValue) : SyntheticEvidence := {
   profile := profileId
   profileVersion := 1
   records := [
@@ -264,7 +264,7 @@ private def oneStepEvidence
   closures := [{ kind := evidenceKind, lastSequence := 2 }]
 }
 
-def startEvidence : EvidenceBundle := oneStepEvidence
+def startEvidence : SyntheticEvidence := oneStepEvidence
   (id "temporal.test.nexus.system.start.initial")
   (id "temporal.test.nexus.system.start.step")
   Temporal.System.Nexus.queuedState
@@ -273,7 +273,7 @@ def startEvidence : EvidenceBundle := oneStepEvidence
   Temporal.System.Nexus.runningState
   Temporal.System.Nexus.runningObservation
 
-def cancellationEvidence : EvidenceBundle := oneStepEvidence
+def cancellationEvidence : SyntheticEvidence := oneStepEvidence
   (id "temporal.test.nexus.system.cancellation.initial")
   (id "temporal.test.nexus.system.cancellation.step")
   Temporal.System.Nexus.runningState
@@ -282,7 +282,7 @@ def cancellationEvidence : EvidenceBundle := oneStepEvidence
   Temporal.System.Nexus.cancellationRecordedState
   Temporal.System.Nexus.cancellationRecordedObservation
 
-def successfulCompletionEvidence : EvidenceBundle := oneStepEvidence
+def successfulCompletionEvidence : SyntheticEvidence := oneStepEvidence
   (id "temporal.test.nexus.system.successful-completion.initial")
   (id "temporal.test.nexus.system.successful-completion.step")
   Temporal.System.Nexus.runningState
@@ -322,14 +322,14 @@ private def applicationShape
     (application.sourceSetup,
       application.destinationSetup,
       application.trace,
-      application.evidenceLinks.map ImplementationLinkEvidenceLink.coordinate,
-      application.evidenceLinks.all fun evidenceLink =>
-        evidenceLink.implementationLinkId == implementationLinkId &&
-          evidenceLink.implementationLinkBehaviorFingerprint == checked.behaviorFingerprint &&
-          evidenceLink.sourceTarget == .ofTarget Temporal.System.Nexus.target &&
-          evidenceLink.destinationTarget ==
+      application.evidenceSupports.map ImplementationLinkEvidenceSupport.coordinate,
+      application.evidenceSupports.all fun evidenceSupport =>
+        evidenceSupport.implementationLinkId == implementationLinkId &&
+          evidenceSupport.implementationLinkBehaviorFingerprint == checked.behaviorFingerprint &&
+          evidenceSupport.sourceTarget == .ofTarget Temporal.System.Nexus.target &&
+          evidenceSupport.destinationTarget ==
             .ofTarget Temporal.Feature.Nexus.Lifecycle.target &&
-          evidenceLink.identity != behaviorFingerprintOf "")
+          evidenceSupport.identity != behaviorFingerprintOf "")
 
 private def expectedCoordinates : List ModelCoordinate := [
   .initialState,
@@ -392,7 +392,7 @@ def wrongSetupResult : FeaturePropertyResult := evaluateFeatureProperty
   Temporal.Feature.Nexus.Operations.AsyncStart.property
   startObservation
 
-def impossibleTransitionEvidence : EvidenceBundle := oneStepEvidence
+def impossibleTransitionEvidence : SyntheticEvidence := oneStepEvidence
   (id "temporal.test.nexus.system.impossible.initial")
   (id "temporal.test.nexus.system.impossible.step")
   Temporal.System.Nexus.queuedState
@@ -429,7 +429,7 @@ private def uncheckedTraceOf (trace : EvidenceBackedTrace) : UncheckedEvidenceBa
   evidenceIdentities := trace.evidenceIdentities
   recordSupport := trace.recordSupport
   trace := trace.trace
-  evidenceLinks := trace.evidenceLinks
+  evidenceSupports := trace.evidenceSupports
 }
 
 private def observationResultOfAdmission
@@ -446,7 +446,7 @@ private def observationResultOfAdmission
 def missingCoordinateObservation : ObservationResult :=
   let unchecked := uncheckedTraceOf startTrace
   observationResultOfAdmission <| validateEvidenceBackedTrace {
-    unchecked with evidenceLinks := unchecked.evidenceLinks.tail
+    unchecked with evidenceSupports := unchecked.evidenceSupports.tail
   }
 
 def missingCoordinateResult : FeaturePropertyResult := evaluateFeatureProperty
@@ -460,18 +460,18 @@ private def driftMeaning (meaning : Meaning) : Meaning :=
   else
     meaning
 
-def driftContext : ObservationCheckContext := {
+def driftContext : Evidence.ReadingContext := {
   observationContext with meanings := observationContext.meanings.map driftMeaning
 }
 
-def driftPlanResult : Except ObservationError CheckedObservationPlan :=
-  checkObservation driftContext <|
+def driftPlanResult : Except Evidence.ReadingError Evidence.CheckedReading :=
+  Evidence.checkReading driftContext <|
     observationDeclaration startMappingId dispatchRuleId Temporal.System.Nexus.dispatchActionId
 
 private theorem driftPlanResult_isSome : driftPlanResult.toOption.isSome = true := by
   native_decide
 
-def driftPlan : CheckedObservationPlan :=
+def driftPlan : Evidence.CheckedReading :=
   driftPlanResult.toOption.get driftPlanResult_isSome
 
 def behaviorFingerprintDriftResult : FeaturePropertyResult := evaluateFeatureProperty

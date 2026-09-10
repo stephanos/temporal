@@ -28,7 +28,7 @@
   },
   "evidence": {
     "formatVersion": "umpire-evidence/v2",
-    "artifactChecksum": "sha256:bc64a42da388cd7d8d597060d658b8036fe315d824c0e971dbacba29eca5b913",
+    "artifactChecksum": "sha256:0c1f82751d6db350dc2cc05a9467f14e015b1280e0dd4bfac9ce0b38eb4a0253",
     "behaviorFingerprint": "sha256:0aa42f873839132836c028886c9be5ad63e5dc66dbc967182ae139159501c8ab",
     "provenanceChecksum": "sha256:b84f046f2250d5718d6d135ad1a6e7b2059b221ddd30ce6c3a6ac08baaff5310"
   },
@@ -116,7 +116,7 @@
           "provenanceDefinitionIds": [
             "switch.property.flip-turns-on"
           ],
-          "evidenceLinks": [
+          "evidenceSupports": [
             {
               "coordinate": {
                 "kind": "initial-state",
@@ -257,7 +257,7 @@
             "provenanceDefinitionIds": [
               "switch.property.flip-turns-on"
             ],
-            "evidenceLinks": [
+            "evidenceSupports": [
               {
                 "coordinate": {
                   "kind": "initial-state",
@@ -340,7 +340,7 @@
   ],
   "knownGaps": [],
   "cleanupStatus": "complete",
-  "evaluationOutcomeChecksum": "sha256:b8655bad3a3ba21c2d99e7a227063328849dd97384d618f0d644a87e6e620c74",
+  "evaluationOutcomeChecksum": "sha256:e0a78b48db1e1c3e8bac21dabd3325723655ab42c3bdc2027f51a942c404b9b0",
   "provenance": {
     "sourceDefinitionIds": [
       "switch.result.interpreted"
@@ -355,5 +355,5 @@
     ]
   },
   "provenanceChecksum": "sha256:45dc784e74ecf8f34b9acd5e050da1943b882f782030211bb3f9a3bceef6f795",
-  "artifactChecksum": "sha256:4f80068ff7cd72505b89fdabcf126e3371c601e89953ffefc607fbe7aacf0bba"
+  "artifactChecksum": "sha256:a1f1eb0f0e79e24a4d7efbdb1dd8a2295730867b79baf3db3e83a64244bb6378"
 }

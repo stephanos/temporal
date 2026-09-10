@@ -1,6 +1,6 @@
 import Umpire.Artifact.Runtime
 import Umpire.ImplementationLink.Application
-import Umpire.Observation.Verdict
+import Umpire.Evidence.PropertyStatus
 import Umpire.Search
 import Umpire.SemanticInventory.KnownGaps
 
@@ -58,11 +58,11 @@ def outcomeFamilies : List OutcomeFamilyDescriptor := [
     "Umpire.ImplementationLinkStatus" "Implementation Link application outcomes."
     ImplementationLinkStatus.constructorClassifiers,
   outcomeFamily "umpire.semantic-inventory.outcome-family.09-semantic-property"
-    "Umpire.SemanticVerdictStatus" "Semantic Property evaluation outcomes."
-    SemanticVerdictStatus.constructorClassifiers,
+    "Umpire.Evidence.PropertyStatus" "Semantic Property evaluation outcomes."
+    Evidence.PropertyStatus.constructorClassifiers,
   outcomeFamily "umpire.semantic-inventory.outcome-family.10-strict-query"
-    "Umpire.StrictQueryStatus" "Strict Query projection outcomes."
-    StrictQueryStatus.constructorClassifiers
+    "Umpire.QueryStatus" "Strict Query projection outcomes."
+    QueryStatus.constructorClassifiers
 ]
 
 /-- Canonical projection-only values that are not constructors of their owning outcome type. -/

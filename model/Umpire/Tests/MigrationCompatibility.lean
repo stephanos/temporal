@@ -1,7 +1,7 @@
 import Umpire.Scenario.Tests.Fixtures
 import Umpire.Examples.Switch
 import Umpire.Examples.SwitchTests
-import Umpire.Observation.Tests.Fixtures
+import Umpire.Evidence.Tests.Fixtures
 import Umpire.Search.Tests.Fixtures
 import Umpire.Property.Tests.Fixtures
 import Umpire.Query.Tests.Fixtures
@@ -29,7 +29,7 @@ example : [
     Umpire.PropertyTests.source,
     Umpire.QueryTests.source,
     Umpire.SearchTests.source,
-    Umpire.ObservationTests.source
+    Umpire.EvidenceTests.source
   ] = [
     { path := "Parameterized/TargetFixture.lean", line := 1, column := 1,
       provenance := "lean-test" },
@@ -55,7 +55,7 @@ example : [
       "query-target/v1",
     Umpire.SearchTests.metadata (DefinitionId.of "fixture.planning.kernel") .machine
       "planning-kernel/v1",
-    Umpire.ObservationTests.metadata "fixture.observation.mapping" .fact
+    Umpire.EvidenceTests.metadata "fixture.observation.mapping" .fact
   ] = [
     { id := DefinitionId.of "fixture.action.default", kind := .action,
       source := {

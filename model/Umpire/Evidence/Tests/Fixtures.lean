@@ -1,10 +1,10 @@
-import Umpire.Observation
+import Umpire.Evidence
 import Umpire.Examples.Switch
 import Umpire.Shared.Test
 
 /-! Shared profile, mapping, and target vocabulary for Observation compilation tests. -/
 
-namespace Umpire.ObservationTests
+namespace Umpire.EvidenceTests
 
 open Umpire
 
@@ -111,7 +111,7 @@ def digestRule : ObservationRule := {
   value := .portable (.digestToken digestPolicyId hashedFieldSpec.expression)
 }
 
-def baseSpec : ObservationMappingSpec := {
+def baseSpec : Evidence.ReadingSpec := {
   id := id "test.mapping.lifecycle"
   source
   profile := profileId
@@ -132,10 +132,10 @@ def baseSpec : ObservationMappingSpec := {
   evidenceBound := { value := 10, unit := .evidenceRecords }
 }
 
-def baseDeclaration : ObservationMappingDeclaration :=
+def baseDeclaration : Evidence.Reading :=
   baseSpec.declaration
 
-def context : ObservationCheckContext := {
+def context : Evidence.ReadingContext := {
   definitions := [
     metadata operationState.value .state,
     metadata contributionObservation.value .fact,
@@ -154,22 +154,22 @@ def context : ObservationCheckContext := {
 }
 
 def errorKindOf
-    (result : Except ObservationError CheckedObservationPlan) : Option ObservationErrorKind :=
+    (result : Except Evidence.ReadingError Evidence.CheckedReading) : Option Evidence.ReadingErrorKind :=
   match result with
   | .ok _ => none
   | .error error => some error.kind
 
 def planIdentityOf
-    (checkContext : ObservationCheckContext)
-    (declaration : ObservationMappingDeclaration) : Option BehaviorFingerprint :=
-  (checkObservation checkContext declaration).toOption.map CheckedObservationPlan.behaviorFingerprint
+    (checkContext : Evidence.ReadingContext)
+    (declaration : Evidence.Reading) : Option BehaviorFingerprint :=
+  (Evidence.checkReading checkContext declaration).toOption.map Evidence.CheckedReading.behaviorFingerprint
 
 /-! Independently authored evaluation fixture; it does not derive its expected trace from rules. -/
 
 def stepCondition : ObservationExpressionAuthoring :=
   .portable (.equals roleFieldSpec.expression (.text "step"))
 
-def evaluationSpec : ObservationMappingSpec := {
+def evaluationSpec : Evidence.ReadingSpec := {
   baseSpec with
   id := id "test.mapping.observation-evaluation"
   rules := [
@@ -212,10 +212,10 @@ def evaluationSpec : ObservationMappingSpec := {
   evidenceBound := { value := 3, unit := .evidenceRecords }
 }
 
-def evaluationDeclaration : ObservationMappingDeclaration :=
+def evaluationDeclaration : Evidence.Reading :=
   evaluationSpec.declaration
 
-def evaluationContext : ObservationCheckContext := {
+def evaluationContext : Evidence.ReadingContext := {
   context with
   definitions := context.definitions ++ [
     metadata completedState.value .state,
@@ -238,8 +238,8 @@ def evaluationContext : ObservationCheckContext := {
   }] }]
 }
 
-def evaluateFixture (bundle : EvidenceBundle) : ObservationResult :=
-  match checkObservation evaluationContext evaluationDeclaration with
+def evaluateFixture (bundle : SyntheticEvidence) : ObservationResult :=
+  match Evidence.checkReading evaluationContext evaluationDeclaration with
   | .ok plan => evaluateEvidence plan bundle
   | .error _ => .unknown {
       kind := .zeroUsableInterpretations
@@ -285,7 +285,7 @@ def stepEvidence : SyntheticEvidenceRecord := {
   ]
 }
 
-def completeEvidence : EvidenceBundle := {
+def completeEvidence : SyntheticEvidence := {
   profile := profileId
   profileVersion := 1
   records := [stepEvidence, initialEvidence]
@@ -331,7 +331,7 @@ def uncheckedTraceOf (trace : EvidenceBackedTrace) : UncheckedEvidenceBackedTrac
   evidenceIdentities := trace.evidenceIdentities
   recordSupport := trace.recordSupport
   trace := trace.trace
-  evidenceLinks := trace.evidenceLinks
+  evidenceSupports := trace.evidenceSupports
 }
 
 def diagnosticKindOf
@@ -506,4 +506,4 @@ def evaluationDiagnostic (kind : ObservationFailureKind) : ObservationDiagnostic
   planId := evaluationDeclaration.id
 }
 
-end Umpire.ObservationTests
+end Umpire.EvidenceTests

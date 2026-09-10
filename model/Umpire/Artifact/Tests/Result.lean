@@ -47,7 +47,7 @@ private def initialCoordinate : ArtifactModelCoordinate := {
   position := none
 }
 
-private def initialEvidenceLink : ArtifactEvidenceLink := {
+private def initialEvidenceSupport : ArtifactEvidenceSupport := {
   coordinate := initialCoordinate
   mappingDefinitionId := mapping.definitionId
   mappingVersion := 1
@@ -118,7 +118,7 @@ private def evidenceDraft : EvidenceArtifact := {
       steps := []
     }
   }
-  evidenceLinks := [initialEvidenceLink]
+  evidenceSupports := [initialEvidenceSupport]
   dispositions := [{
     field := fieldReference
     disposition := "retain"
@@ -166,7 +166,7 @@ private def propertyVerdict (property : PortableProperty) : ArtifactPropertyVerd
     propertyLimit := some { value := 1, unit := "steps" }
     evidenceLimit
     provenanceDefinitionIds := [property.definitionId]
-    evidenceLinks := [initialEvidenceLink]
+    evidenceSupports := [initialEvidenceSupport]
   }]
   diagnostic := none
 }

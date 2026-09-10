@@ -1,9 +1,9 @@
 import Umpire.ImplementationLink.Tests.Application
-import Umpire.Observation.Check
+import Umpire.Evidence.Check
 
 /-! Domain-neutral Run Evaluation composition over checked Observation and Implementation Link inputs. -/
 
-namespace Umpire.ObservationCheckTests
+namespace Umpire.EvidenceCheckTests
 
 open Umpire
 open Umpire.ImplementationLinkApplicationTests
@@ -12,7 +12,7 @@ def repeatedRunEvaluation := checkRunEvaluation observationPlan repeatedEvidence
   Umpire.Examples.Switch.switchSetup Umpire.Examples.Switch.exploratoryQuery
   [Umpire.Examples.Switch.flipProperty]
 
-def satisfiedObservationDeclaration : ObservationMappingDeclaration := {
+def satisfiedObservationDeclaration : Evidence.Reading := {
   observationDeclaration with
   id := DefinitionId.of "test.run-evaluation.observation.satisfied"
   rules := observationDeclaration.rules.map fun rule =>
@@ -22,9 +22,9 @@ def satisfiedObservationDeclaration : ObservationMappingDeclaration := {
       rule
 }
 
-def satisfiedObservationPlan : CheckedObservationPlan :=
-  (checkObservation
-    (ObservationCheckContext.ofTarget Umpire.Examples.Switch.target [evidenceProfile])
+def satisfiedObservationPlan : Evidence.CheckedReading :=
+  (Evidence.checkReading
+    (Evidence.ReadingContext.ofTarget Umpire.Examples.Switch.target [evidenceProfile])
     satisfiedObservationDeclaration).toOption.get (by native_decide)
 
 def satisfiedStepRecord : SyntheticEvidenceRecord :=
@@ -35,7 +35,7 @@ def satisfiedStepRecord : SyntheticEvidenceRecord :=
       else
         fieldValue }
 
-def satisfiedEvidence : EvidenceBundle := {
+def satisfiedEvidence : SyntheticEvidence := {
   profile := profileId
   profileVersion := 1
   records := [satisfiedStepRecord, initialRecord]
@@ -108,7 +108,7 @@ def guardedTemporalSwitchPropertyDeclaration : Property := {
 }
 
 private def guardedRunEvaluationResult : Option
-    (StrictQueryStatus × SemanticVerdictStatus × Option SemanticVerdictFailureKind) := do
+    (QueryStatus × Evidence.PropertyStatus × Option Evidence.PropertyStatusFailureKind) := do
   let property ← (Property.check
     (PropertyCheckContext.ofTarget Umpire.Examples.Switch.target)
     (guardedSwitchPropertyDeclaration)).toOption
@@ -119,15 +119,15 @@ private def guardedRunEvaluationResult : Option
     Umpire.Examples.Switch.switchSetup query [property]
   let verdict ← evaluation.querySummary.verdicts.head?
   pure (evaluation.querySummary.status, verdict.status,
-    verdict.diagnostic.map SemanticVerdictDiagnostic.kind)
+    verdict.diagnostic.map Evidence.PropertyStatusDiagnostic.kind)
 
 /- Checked guarded Properties cannot pass through translated Observation success. -/
 #guard guardedRunEvaluationResult ==
   some (.incomplete, .unsupported, some .unsupportedPropertyClause)
 
 private def guardedTemporalRunEvaluationResult : Option
-    (StrictQueryStatus × SemanticVerdictStatus ×
-      Option (SemanticVerdictFailureKind × List DefinitionId)) := do
+    (QueryStatus × Evidence.PropertyStatus ×
+      Option (Evidence.PropertyStatusFailureKind × List DefinitionId)) := do
   let property ← (Property.check
     (PropertyCheckContext.ofTarget Umpire.Examples.Switch.target)
     (guardedTemporalSwitchPropertyDeclaration)).toOption
@@ -214,11 +214,11 @@ example :
     ((divergentObservationFailureRunEvaluation.implementationLink.map
         ImplementationLinkResult.status,
       divergentObservationFailureRunEvaluation.querySummary.verdicts.map fun verdict =>
-        (verdict.status, verdict.diagnostic.map SemanticVerdictDiagnostic.kind)),
+        (verdict.status, verdict.diagnostic.map Evidence.PropertyStatusDiagnostic.kind)),
       (divergentObservedRunEvaluation.implementationLink.map
         ObservedTraceTranslationResult.status,
       divergentObservedRunEvaluation.querySummary.verdicts.map fun verdict =>
-        (verdict.status, verdict.diagnostic.map SemanticVerdictDiagnostic.kind))) =
+        (verdict.status, verdict.diagnostic.map Evidence.PropertyStatusDiagnostic.kind))) =
       ((none, [(.unsupported, some .queryPropertyMismatch)]),
         (none, [(.unsupported, some .queryPropertyMismatch)])) := by
   native_decide
@@ -232,7 +232,7 @@ example :
       implementationLinkFailureRunEvaluation.querySummary.status,
       implementationLinkFailureRunEvaluation.querySummary.verdicts.map fun verdict =>
         (verdict.status, verdict.clauses.isEmpty,
-          verdict.diagnostic.map SemanticVerdictDiagnostic.kind)) =
+          verdict.diagnostic.map Evidence.PropertyStatusDiagnostic.kind)) =
       (some .invalid, .incomplete,
         [(.unsupported, true, some .semanticTraceUnavailable)]) := by
   native_decide
@@ -281,7 +281,7 @@ example :
       missingLogicalTimeRunEvaluation.querySummary.status,
       missingLogicalTimeRunEvaluation.querySummary.verdicts.map fun verdict =>
         (verdict.status, verdict.clauses.isEmpty,
-          verdict.diagnostic.map SemanticVerdictDiagnostic.kind)) =
+          verdict.diagnostic.map Evidence.PropertyStatusDiagnostic.kind)) =
       (some .applied, .incomplete, [(.unknown, true, some .missingLogicalTime)]) := by
   native_decide
 
@@ -330,7 +330,7 @@ example :
       mismatchedTargetRunEvaluation.querySummary.status,
       mismatchedTargetRunEvaluation.querySummary.verdicts.map fun verdict =>
         (verdict.status, verdict.clauses.isEmpty,
-          verdict.diagnostic.map SemanticVerdictDiagnostic.kind)) =
+          verdict.diagnostic.map Evidence.PropertyStatusDiagnostic.kind)) =
       (some .applied, .incomplete,
         [(.unsupported, true, some .semanticTraceUnavailable)]) := by
   native_decide
@@ -371,7 +371,7 @@ def orderedRunEvaluation (properties : List CheckedProperty) :=
   checkRunEvaluation observationPlan repeatedEvidence checkedLink
     Umpire.Examples.Switch.switchSetup twoPropertyQuery properties
 
-def overBoundEvidence : EvidenceBundle := {
+def overBoundEvidence : SyntheticEvidence := {
   repeatedEvidence with
   records := repeatedEvidence.records ++ [{
     stepRecord (DefinitionId.of "test.run-evaluation.evidence.step-3") 4 secondStepRecordId with
@@ -426,4 +426,4 @@ example :
       repeatedRunEvaluation.querySummary.status) = (.accepted, some .applied, .violated) := by
   native_decide
 
-end Umpire.ObservationCheckTests
+end Umpire.EvidenceCheckTests

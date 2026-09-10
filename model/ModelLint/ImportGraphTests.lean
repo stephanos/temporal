@@ -380,8 +380,8 @@ private def testSemanticInventoryIsolation : IO Unit := do
     `Umpire.NewHelper,
     `Umpire.SemanticInventoryHelper,
     `Umpire.Search,
-    `Umpire.Observation.Evaluation.Types,
-    `Umpire.Observation.Verdict,
+    `Umpire.Evidence.Evaluate.Types,
+    `Umpire.Evidence.PropertyStatus,
     `Umpire.Artifact.Runtime,
     `Umpire.Artifact.Result,
     `Umpire.ImplementationLink.Application,
@@ -414,7 +414,7 @@ private def testSemanticInventoryIsolation : IO Unit := do
     moduleRecord `Umpire.SemanticInventory #[
       `Umpire.SemanticInventory.Types, `Umpire.SemanticInventory.KnownGaps,
       `Umpire.Search, `Umpire.Artifact.Runtime, `Umpire.Artifact.Result,
-      `Umpire.Observation.Verdict, `Umpire.ImplementationLink.Application
+      `Umpire.Evidence.PropertyStatus, `Umpire.ImplementationLink.Application
     ],
     moduleRecord `Umpire.SemanticInventory.Types #[`Umpire.OutcomeClassification],
     moduleRecord `Umpire.SemanticInventory.KnownGaps #[`Umpire.KnownGap],
@@ -428,7 +428,7 @@ private def testSemanticInventoryIsolation : IO Unit := do
     moduleRecord `Umpire.Search #[`Umpire.OutcomeClassification],
     moduleRecord `Umpire.Artifact.Runtime #[`Umpire.OutcomeClassification],
     moduleRecord `Umpire.Artifact.Result #[`Umpire.KnownGap],
-    moduleRecord `Umpire.Observation.Verdict #[`Umpire.OutcomeClassification],
+    moduleRecord `Umpire.Evidence.PropertyStatus #[`Umpire.OutcomeClassification],
     moduleRecord `Umpire.ImplementationLink.Application #[`Umpire.OutcomeClassification],
     moduleRecord `Umpire.KnownGap,
     moduleRecord `Umpire.OutcomeClassification #[`Init.Data.List.Basic]
@@ -441,7 +441,7 @@ private def testOutcomeClassificationIsolation : IO Unit := do
   for destination in #[
     `Umpire, `Umpire.Core, `Umpire.KnownGap, `Umpire.Search,
     `Umpire.Artifact.Runtime, `Umpire.Artifact.Result,
-    `Umpire.Observation.Evaluation.Types, `Umpire.Observation.Verdict,
+    `Umpire.Evidence.Evaluate.Types, `Umpire.Evidence.PropertyStatus,
     `Umpire.ImplementationLink.Application,
     `Umpire.SemanticInventory, `Umpire.SemanticInventory.Types,
     `Umpire.OutcomeClassification.Helper, `Shared.Root,
