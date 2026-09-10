@@ -119,8 +119,8 @@ def compile (input : Input) : Except Error temporal.server.api.testpilot.v1.Case
     correlatedRules
   }
   pure (Testpilot.Authoring.case input.version.major input.caseId input.program
-    { Testpilot.Authoring.Contract.contract input.contractId rules.toArray input.contractLimits with
-      «correlated» := capability }
+    (Testpilot.Authoring.Contract.contract input.contractId rules.toArray input.contractLimits
+      capability)
     (Provenance.make metadata) input.version.minor)
 
 end Umpire.Case.Compiler

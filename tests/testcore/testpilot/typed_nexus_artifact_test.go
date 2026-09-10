@@ -19,7 +19,7 @@ const (
 
 // TestTypedNexusCaseAdmitsItsCorrelatedCapability prepares the unchanged two-operation Case bytes
 // offline. The Case declares a CorrelatedEvidence Observation its own history read lifts into, so
-// admitting the Program's evidence lift and the Contract's scoped opcode against each other is
+// admitting the Program's evidence lift and the Contract's correlated capability against each other is
 // what this asserts; the live test then runs the clause the opcode carries.
 func TestTypedNexusCaseAdmitsItsCorrelatedCapability(t *testing.T) {
 	source := loadLeanCase(t, "typed-nexus")

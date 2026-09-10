@@ -67,3 +67,4 @@ testdata/
 
 # Ignoring AI agent files
 .agents/
+/umpire-gen-lean-api

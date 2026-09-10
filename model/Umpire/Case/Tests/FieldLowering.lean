@@ -366,7 +366,7 @@ private def portableAnswers (temporal : PropertyCorrelatedClause) (reports : Lis
   let capability ← (capabilityOf temporal).toOption
   let compiled ← (Testpilot.Correlated.decode capability).toOption
   let initial ← (compiled.start [(⟨"test.run"⟩, "run-1")]).toOption
-  let observe := fun (run : Testpilot.Correlated.Run compiled) (report : Report) =>
+  let observe := fun (run : Testpilot.Correlated.Monitor compiled) (report : Report) =>
     run.observe (report.ordinal + 2) (wireEvent report)
   let run ← (((reports.take split).foldlM observe initial) >>= fun next =>
     (reports.drop split).foldlM observe next).toOption
@@ -592,8 +592,8 @@ private def coverageRejects (mappings : List Case.Projection.FieldMapping)
 /-- info: 'Umpire.Case.Correlated.Lowered.evidence_validation' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms Umpire.Case.Correlated.Lowered.evidence_validation
-/-- info: 'Umpire.Case.Projection.Correlated.Run.admitMany_append' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+/-- info: 'Umpire.Case.Projection.Correlated.Monitor.admitMany_append' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
-#print axioms Umpire.Case.Projection.Correlated.Run.admitMany_append
+#print axioms Umpire.Case.Projection.Correlated.Monitor.admitMany_append
 
 end Umpire.Case.FieldLoweringTests
