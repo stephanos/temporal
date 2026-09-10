@@ -426,7 +426,7 @@ private def checkQuestion
     |>.mapError RaceAdmissionError.invalidQuery
   let kernel ← SearchView.ofCheckedQuery target.id query
     |>.mapError RaceAdmissionError.invalidPlanner
-  let run ← plan query kernel |>.mapError RaceAdmissionError.invalidKnownGap
+  let run ← search query kernel |>.mapError RaceAdmissionError.invalidKnownGap
   pure { property, behavior, query, run }
 
 /-- Admit the race and its separate bounded questions only through successful checked branches. -/

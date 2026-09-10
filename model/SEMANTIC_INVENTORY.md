@@ -14,12 +14,12 @@ Bounded planning outcomes.
 | --- | --- |
 | `found` | Planning selected one Model Trace. |
 | `verified-within-limits` | Planning verified the requested universal claim within complete Limits. |
-| `no-such-trace-within-complete-limits` | Complete bounded search found no matching Model Trace. |
+| `none-found` | Complete bounded search found no matching Model Trace. |
 | `limit-reached` | Planning reached its search Limit before completing the Query. |
 | `unsatisfiable` | The checked Behavior admits no Model Traces. |
 | `invalid` | Planning rejected the Query. |
-| `nonempty-unexercised` | Admissible traces leave requested triggers unexercised. |
-| `unresolved-prefix` | An admitted runtime prefix retains unresolved obligations. |
+| `never-triggered` | Admissible traces leave requested triggers unexercised. |
+| `still-pending` | An admitted runtime prefix retains unresolved obligations. |
 
 ### `umpire.semantic-inventory.outcome-family.02-execution-phase`
 

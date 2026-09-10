@@ -249,7 +249,7 @@ private theorem earlyKernel?_isSome : earlyKernel?.isSome = true := by
 private def earlyKernel : SearchView earlyQuery.target :=
   earlyKernel?.get earlyKernel?_isSome
 
-private def earlyRun : Except KnownGapError PlanResult := plan earlyQuery earlyKernel
+private def earlyRun : Except KnownGapError PlanResult := search earlyQuery earlyKernel
 
 private def relocatedQueryResult : Except QueryError (CheckedQuery LawStatement) :=
   checkQuery (.ofTarget relocatedTarget) exactActionDeclaration
@@ -314,7 +314,7 @@ private theorem relocatedKernel?_isSome : relocatedKernel?.isSome = true := by
 private def relocatedKernel : SearchView relocatedQuery.target :=
   relocatedKernel?.get relocatedKernel?_isSome
 
-private def relocatedRun : Except KnownGapError PlanResult := plan relocatedQuery relocatedKernel
+private def relocatedRun : Except KnownGapError PlanResult := search relocatedQuery relocatedKernel
 
 private def expectedSwitchArtifactJson : String :=
   include_str "../Examples/Fixtures/SwitchCompiledArtifact.json"
