@@ -10,7 +10,8 @@
     "fn-5-umpire-discovery-promotion-and-artifact",
     "fn-64-umpire-case-runtime",
     "fn-69-extract-testpilot-from-umpire",
-    "fn-82-unify-the-umpire-and-testpilot"
+    "fn-82-unify-the-umpire-and-testpilot",
+    "fn-84-deepen-five-shallow-module-clusters-in"
   ],
   "id": "fn-22-deterministic-replay-semantic",
   "impl_review_rounds": {},
@@ -383,5 +384,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-09T05:23:35.632103Z"
+  "updated_at": "2026-09-10T06:03:21.319931Z"
 }

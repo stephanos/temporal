@@ -689,7 +689,7 @@ theorem admittedPlannerPreservesExactAuthoredSequences :
 private def malformedModelValidation : Option FiniteTableError :=
   let malformed := { table with states :=
     { value := State.scheduled, key := "scheduled" } :: table.states }
-  match malformed.checkIdentity identity with
+  match (malformed.validate.map (·.withIdentity identity)) with
   | .error error => some error
   | .ok _ => none
 
@@ -698,7 +698,7 @@ private def undeclaredSetupResolution : Option FiniteTableError := do
     setups := [{ value := Setup.scheduled, key := "scheduled" }]
     initial := [{ setup := Setup.scheduled, states := [State.scheduled] }]
   }
-  let model ← (reduced.checkIdentity identity).toOption
+  let model ← ((reduced.validate.map (·.withIdentity identity))).toOption
   match model.setupValue .started with
   | .error error => some error
   | .ok _ => none

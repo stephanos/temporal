@@ -32,7 +32,7 @@ structure ModelVocabulary where
 
 /-- Vocabulary lowering stays behind the generic finite identity owner. -/
 def modelVocabulary : Except FiniteTableError ModelVocabulary := do
-  let model ← table.checkIdentity identity
+  let model ← (table.validate.map (·.withIdentity identity))
   pure {
     scheduledState := ← model.stateValue .scheduled
     startedState := ← model.stateValue .started

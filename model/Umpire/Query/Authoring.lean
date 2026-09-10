@@ -127,7 +127,7 @@ structure QueryLocatedError where
 private def quoteJson (value : String) : String :=
   Lean.Json.compress (.str value)
 
-def canonicalQueryAuthoringDiagnosticJson
+def canonicalQueryLocatedErrorJson
     (diagnostic : QueryLocatedError) : String :=
   "{\"error\":" ++ canonicalQueryErrorJson diagnostic.error ++
     ",\"role\":" ++ quoteJson diagnostic.role.name ++
@@ -230,12 +230,12 @@ private def elaborateQuery
       match selectQuerySourceRef error occurrences with
       | some occurrence =>
           Lean.throwErrorAt occurrence.reference s!"query authoring failed: {
-            canonicalQueryAuthoringDiagnosticJson {
+            canonicalQueryLocatedErrorJson {
               error, role := occurrence.role, anchor := occurrence.anchor }}"
       | none =>
           let anchor ← queryAuthoringSpan specSyntax.raw
           Lean.throwErrorAt specSyntax.raw s!"query authoring failed: {
-            canonicalQueryAuthoringDiagnosticJson { error, role := .parent, anchor }}"
+            canonicalQueryLocatedErrorJson { error, role := .parent, anchor }}"
   | none =>
       Lean.Elab.Term.elabTerm (← `(QuerySpec.check $specSyntax $targetSyntax)) expectedType
 
@@ -280,12 +280,12 @@ private def elaborateQueryInput
       match selectQuerySourceRef error occurrences with
       | some occurrence =>
           Lean.throwErrorAt occurrence.reference s!"query authoring failed: {
-            canonicalQueryAuthoringDiagnosticJson {
+            canonicalQueryLocatedErrorJson {
               error, role := occurrence.role, anchor := occurrence.anchor }}"
       | none =>
           let anchor ← queryAuthoringSpan inputSyntax.raw
           Lean.throwErrorAt inputSyntax.raw s!"query authoring failed: {
-            canonicalQueryAuthoringDiagnosticJson { error, role := .parent, anchor }}"
+            canonicalQueryLocatedErrorJson { error, role := .parent, anchor }}"
   | none =>
       Lean.Elab.Term.elabTerm (← `(QueryAuthoringInput.check? $inputSyntax)) expectedType
 
