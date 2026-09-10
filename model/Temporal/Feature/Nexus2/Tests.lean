@@ -588,7 +588,7 @@ private def guardedTemporalCancelDeclaration
       reference := transitionOutcomeId
       constraint := .equals model.canceledOutcome.value
     }
-    (.exact { value := 0, unit := .semanticTransitions })]
+    { value := 0, unit := .semanticTransitions }]
 }
 
 private def guardedTemporalPlannerOutcome
@@ -870,7 +870,7 @@ private def requestCase (model : ModelVocabulary) : PropertyBranch := {
     (raceId "temporal.nexus2.cancellation-race.case.request.terminal") source
     (PropertyPattern.exact .selectedAction requestCancelActionId model.requestCancelAction.value)
     (PropertyPattern.exact .observation terminalFactId model.terminalFact.value)
-    (.exact { value := 1, unit := .semanticTransitions })]
+    { value := 1, unit := .semanticTransitions }]
 }
 
 private def resolveCase (model : ModelVocabulary) : PropertyBranch := {
@@ -1100,7 +1100,7 @@ private def observationTriggerPropertyDeclaration
     none
     (PropertyPattern.exact .observation trigger.definitionId trigger.value)
     (PropertyPattern.exact .observation response.definitionId response.value)
-    (.exact { value := 1, unit := .observationPositions })]
+    { value := 1, unit := .observationPositions }]
 }
 
 private def distinctObservationTriggerAnalysis? : Option CaseAnalysisResult := do

@@ -279,7 +279,7 @@ def terminalResponsePropertyDeclaration (model : ModelVocabulary) : Property := 
     (id "temporal.nexus2.cancellation-race.property.terminal-response.clause")
     (PropertyPattern.exact .selectedAction requestCancelActionId model.requestCancelAction.value)
     (PropertyPattern.exact .observation terminalFactId model.terminalFact.value)
-    (.exact { value := 1, unit := .semanticTransitions })]
+    { value := 1, unit := .semanticTransitions }]
   documentation := "A cancellation request receives a terminal model response within one additional semantic transition."
 }
 

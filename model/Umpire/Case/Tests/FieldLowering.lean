@@ -190,7 +190,6 @@ private def clause (bound : Nat := 1) (endpoint : PropertyScopedEndpoint := .«p
   response := .atom { field := .outcome, reference := id "test.outcome" }
   scope := [id "test.run"]
   key := id "test.operation"
-  clock := .operationTransitions
   bound
   endpoint
   captures
