@@ -21,7 +21,7 @@ Focused public imports are available by responsibility:
 | `Umpire.Model.Check` | Checked Model/Machine access, pure admission, and relation-indexed finite planning. |
 | `Umpire.Property` | Property authoring, validation, and pure trace evaluation. |
 | `Umpire.Scenario` | Setup and trace-shape authoring and validation. |
-| `Umpire.Query` | Bounded questions over a checked Model, Properties, and Behavior. |
+| `Umpire.Query` | Bounded questions over a checked Model, Properties, and Scenarios. |
 | `Umpire.Space` | Checked finite axes, fault intents and their lowering, and atomic point compilation. |
 | `Umpire.Exploration` | Bounded finite selection, pinned precedence, and process-local sessions. |
 | `Umpire.Observation` | Offline evidence mappings and accepted semantic traces. |
@@ -40,11 +40,11 @@ domain-specific Temporal modules; the complete import graph is enforced by `make
 ## Model ownership and semantic imports
 
 Ordinary authors keep `import Umpire.Model` (or `import Umpire`). The Model facade includes
-finite-table/machine adapters and syntax-aware authoring. Authors of Properties, Behaviors, and
+finite-table/machine adapters and syntax-aware authoring. Authors of Properties, Scenarios, and
 Queries likewise keep their public `Umpire.Property`, `Umpire.Scenario`, and `Umpire.Query` facades.
 
 Library code that consumes checked semantics imports `Umpire.Model.Check`. Property and
-Behavior semantic implementations use that surface; Query uses their semantic modules, and
+Scenario semantic implementations use that surface; Query uses their semantic modules, and
 Planning uses Query's semantic module. Their complete import closures exclude `Umpire.Model.Elab`
 and `Lean.Elab.Term`, including paths through external modules. `make lint-model` enforces this
 boundary from compiled imports as well as the source inventory.
@@ -74,25 +74,25 @@ results remain the enumerator's responsibility, independently of canonical behav
 ## Semantic model lifecycle
 
 A model maintainer defines a checked Model once. Ordinary authors then define independent
-Properties and Behaviors, combine them in a bounded Query, and plan or explore only through that
+Properties and Scenarios, combine them in a bounded Query, and plan or explore only through that
 checked Model. Model-owned steps decide outcomes; authoring order and instance search do
 not select behavior.
 
 ```text
 DraftModel ── checkModel ──▶ CheckedModel
                                      ├── Property
-                                     ├── Behavior
+                                     ├── Scenario
                                      └── Query ──▶ Planning / Space / Exploration
 ```
 
 The finite-machine adapter is the ordinary route for fully enumerable Models. Direct
 `Machine` construction remains the expert route when authoritative propositions are
-specified independently. Both routes converge before Property, Behavior, or Query checking.
+specified independently. Both routes converge before Property, Scenario, or Query checking.
 
 `FiniteMachine.modelSpec` and `FiniteMachine.draftModel` assemble the ordinary finite
 Model without deriving its evidence. The author still owns every ordered domain, encoder,
 enumerator, closure proof, Action-executability proof, provider, connector, source, and stable ID.
-`checkModel` remains the semantic admission boundary. Property, Behavior, Query, and Observation
+`checkModel` remains the semantic admission boundary. Property, Scenario, Query, and Observation
 constructors follow the same raw input → typed `check` result → explicitly proof-backed `checked`
 shape; no constructor infers Model outcomes or checker success.
 
@@ -103,8 +103,9 @@ finite Model. `DefinitionFamily`, `Property`, `Scenario`, `QuerySpec`, and
 Their `checked` operations require explicit proof of checker success; the ordinary `check`
 operations return the existing typed `Except` results.
 
-Version-two Property data adds typed Boolean predicates, same-step case groups, and guarded bounded
-temporal clauses. Boolean composition is limited to `atom`, `all`, `any`, `not`, and `oneOf` over
+Version-two Property data adds typed Boolean predicates, same-step branch groups, and guarded bounded
+temporal clauses. A branch group is the `branches` clause; a bounded clause becomes guarded by
+carrying an optional guard on `eventuallyWithin` or `neverWithin`. Boolean composition is limited to `atom`, `all`, `any`, `not`, and `oneOf` over
 the field contexts admitted by the Property checker. Every applicable obligation is conjoined.
 Exceptions are trigger-time applicability conditions and do not select a winning case or retract a
 pending temporal obligation. Case analysis reports coverage, overlap, logical conflict, modeled
@@ -245,7 +246,7 @@ payload signature roots and streaming shape, and reaches the descriptor closure 
 message names but changes the descriptor closure changes the identity. That encoding is versioned
 `parameterized-v2-` under the named migration `parameterized-operation-identity-v2`; the digest is
 bounded, so it retains what `Canonical.rpcSchema_inj` states rather than claiming injectivity over
-an unbounded schema space. Parameter values belong to canonical Action instances and enter Behavior
+an unbounded schema space. Parameter values belong to canonical Action instances and enter Scenario
 Fingerprints through the domain's canonical meaning, which records the explored dimension, the
 coverage claim, every sample, and the declared runtime scope.
 

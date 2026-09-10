@@ -17,7 +17,6 @@ inductive PropertyErrorKind where
   | missingCapability
   | unknownReference
   | undeclaredReference
-  | unknownLimitProfile
   | unitMismatch
   | invalidClause
   | missingLogicalTimeSource
@@ -43,7 +42,6 @@ def PropertyErrorKind.name : PropertyErrorKind → String
   | .missingCapability => "missing-capability"
   | .unknownReference => "unknown-reference"
   | .undeclaredReference => "undeclared-reference"
-  | .unknownLimitProfile => "unknown-limit-profile"
   | .unitMismatch => "unit-mismatch"
   | .invalidClause => "invalid-clause"
   | .missingLogicalTimeSource => "missing-logical-time-source"
@@ -99,13 +97,13 @@ structure CheckedPropertyPredicate (context : PropertyPredicateContext) where
 structure CheckedPropertyUnless where
   id : DefinitionId
   source : SourceLocation
-  condition : CheckedPropertyPredicate .guard
+  condition : CheckedPropertyPredicate .before
   deriving BEq, DecidableEq, Repr
 
 structure CheckedPropertySameStepClause where
   id : DefinitionId
   source : SourceLocation
-  expectation : CheckedPropertyPredicate .expectation
+  expectation : CheckedPropertyPredicate .after
   deriving BEq, DecidableEq, Repr
 
 /-- One admitted bounded clause whose applicability is fixed at each matching trigger step. -/
@@ -114,9 +112,9 @@ structure CheckedPropertyTemporalClause where
   source : SourceLocation
   parentId : DefinitionId
   caseId : Option DefinitionId
-  guard : CheckedPropertyPredicate .guard
+  guard : CheckedPropertyPredicate .before
   exception : Option CheckedPropertyUnless
-  caseGuard : Option (CheckedPropertyPredicate .guard) := none
+  caseGuard : Option (CheckedPropertyPredicate .before) := none
   caseException : Option CheckedPropertyUnless := none
   forbidden : Bool := false
   trigger : PropertyPattern
@@ -127,7 +125,7 @@ structure CheckedPropertyTemporalClause where
 structure CheckedPropertyBranch where
   id : DefinitionId
   source : SourceLocation
-  guard : CheckedPropertyPredicate .guard
+  guard : CheckedPropertyPredicate .before
   exception : Option CheckedPropertyUnless
   clauses : List CheckedPropertySameStepClause
   temporalClauses : List CheckedPropertyTemporalClause
@@ -136,7 +134,7 @@ structure CheckedPropertyBranch where
 structure CheckedPropertyBranches where
   id : DefinitionId
   source : SourceLocation
-  guard : CheckedPropertyPredicate .guard
+  guard : CheckedPropertyPredicate .before
   exception : Option CheckedPropertyUnless
   cases : List CheckedPropertyBranch
   complete : Bool
@@ -196,11 +194,11 @@ different operation. Construction is confined to Property admission. -/
 structure CheckedPropertyScopedClause where
   private mk ::
   declaration : PropertyScopedClause
-  trigger : CheckedPropertyPredicate .guard
-  response : CheckedPropertyPredicate .expectation
+  trigger : CheckedPropertyPredicate .before
+  response : CheckedPropertyPredicate .after
   triggerPattern : PropertyPattern
   responsePattern : PropertyPattern
-  correlation : Option (CheckedPropertyPredicate .guard) := none
+  correlation : Option (CheckedPropertyPredicate .before) := none
   deriving BEq, DecidableEq, Repr
 
 structure CheckedProperty where
@@ -486,7 +484,7 @@ private def validateFieldComparison (context : PropertyCheckContext) (owner : Pr
           -- reading branch inherits those facts instead of having to establish them again.
           pure (facts ++ path.retainedFacts)
       | none => do
-          if contextKind == .guard && field != .priorState && field != .selectedAction then
+          if contextKind == .before && field != .priorState && field != .selectedAction then
             throw (nestedPropertyError .invalidPredicateContext owner.id source field.name [path.reference])
           pure facts
       validatePattern context { owner with source } access {
@@ -722,13 +720,13 @@ private def checkClause
       validatePattern context owner access after
       requirePositionUnit owner access unit [before, after]
       pure (.ordered id before after unit)
-  | .eventuallyWithin id trigger response authoredBound =>
+  | .eventuallyWithin id trigger response authoredBound none _ _ =>
       validatePattern context owner access trigger
       validatePattern context owner access response
       let limit := authoredBound
       requirePositionUnit owner access limit.unit [trigger, response]
       pure (.eventuallyWithin id trigger response limit)
-  | .neverWithin id trigger forbidden authoredBound =>
+  | .neverWithin id trigger forbidden authoredBound none _ _ =>
       validatePattern context owner access trigger
       validatePattern context owner access forbidden
       let limit := authoredBound
@@ -739,12 +737,12 @@ private def checkClause
       if group.cases.isEmpty then
         throw (nestedPropertyError .emptyCaseGroup owner.id group.source group.id.value [group.id])
       requireUniqueNestedIds owner.id (group.cases.map fun item => (item.id, item.source))
-      let parentGuard ← resolvePropertyPredicate context owner access group.source .guard group.guard
+      let parentGuard ← resolvePropertyPredicate context owner access group.source .before group.guard
       let parentException ← match group.exception with
         | none => pure none
         | some exception => do
             requireNestedDefinitionId owner.id exception.source exception.id
-            let condition ← resolvePropertyPredicate context owner access exception.source .guard
+            let condition ← resolvePropertyPredicate context owner access exception.source .before
               exception.condition
             pure (some {
               id := exception.id
@@ -766,12 +764,12 @@ private def checkClause
         requireUniqueNestedIds owner.id
           (item.clauses.map (fun clause => (clause.id, clause.source)) ++
             item.temporalClauses.map fun clause => (clause.id, clause.source))
-        let itemGuard ← resolvePropertyPredicate context owner access item.source .guard item.guard
+        let itemGuard ← resolvePropertyPredicate context owner access item.source .before item.guard
         let itemException ← match item.exception with
           | none => pure none
           | some exception => do
               requireNestedDefinitionId owner.id exception.source exception.id
-              let condition ← resolvePropertyPredicate context owner access exception.source .guard
+              let condition ← resolvePropertyPredicate context owner access exception.source .before
                 exception.condition
               pure (some {
                 id := exception.id
@@ -782,7 +780,7 @@ private def checkClause
         for clause in item.clauses do
           requireNestedDefinitionId owner.id clause.source clause.id
           let checkedExpectation ←
-            resolvePropertyPredicate context owner access clause.source .expectation clause.expectation
+            resolvePropertyPredicate context owner access clause.source .after clause.expectation
           clauses := clauses ++ [{
             id := clause.id
             source := clause.source
@@ -836,16 +834,16 @@ private def checkClause
         complete := group.complete
         exclusive := group.exclusive
       })
-  | .guardedEventuallyWithin id source guard exception trigger response authoredBound =>
+  | .eventuallyWithin id trigger response authoredBound (some guard) exception source =>
       requireNestedDefinitionId owner.id source id
       requireUniqueNestedIds owner.id
         ((id, source) :: exception.toList.map fun item => (item.id, item.source))
-      let checkedGuard ← resolvePropertyPredicate context owner access source .guard guard
+      let checkedGuard ← resolvePropertyPredicate context owner access source .before guard
       let checkedException ← match exception with
       | none => pure none
       | some exception =>
           requireNestedDefinitionId owner.id exception.source exception.id
-          let condition ← resolvePropertyPredicate context owner access exception.source .guard
+          let condition ← resolvePropertyPredicate context owner access exception.source .before
             exception.condition
           pure (some { id := exception.id, source := exception.source, condition })
       withNestedSource source <| validatePattern context { owner with source } access trigger
@@ -867,16 +865,16 @@ private def checkClause
         response
         limit
       })
-  | .guardedNeverWithin id source guard exception trigger forbidden authoredBound =>
+  | .neverWithin id trigger forbidden authoredBound (some guard) exception source =>
       requireNestedDefinitionId owner.id source id
       requireUniqueNestedIds owner.id
         ((id, source) :: exception.toList.map fun item => (item.id, item.source))
-      let checkedGuard ← resolvePropertyPredicate context owner access source .guard guard
+      let checkedGuard ← resolvePropertyPredicate context owner access source .before guard
       let checkedException ← match exception with
       | none => pure none
       | some exception =>
           requireNestedDefinitionId owner.id exception.source exception.id
-          let condition ← resolvePropertyPredicate context owner access exception.source .guard
+          let condition ← resolvePropertyPredicate context owner access exception.source .before
             exception.condition
           pure (some { id := exception.id, source := exception.source, condition })
       withNestedSource source <| validatePattern context { owner with source } access trigger
@@ -1162,12 +1160,12 @@ private def checkScopedClause (context : PropertyCheckContext)
   requireUniqueIds clause.id clause.source (clause.captures.map PropertyScopedCapture.name)
   for capture in clause.captures do checkScopedCapture context owner access clause capture
   let owner := { owner with id := clause.id, source := clause.source }
-  let trigger ← resolvePropertyPredicate context owner access clause.source .guard clause.trigger
-  let response ← resolvePropertyPredicate context owner access clause.source .expectation clause.response
+  let trigger ← resolvePropertyPredicate context owner access clause.source .before clause.trigger
+  let response ← resolvePropertyPredicate context owner access clause.source .after clause.response
   let triggerPattern ← scopedPattern clause clause.trigger true
   let responsePattern ← scopedPattern clause clause.response false
   let correlation ← clause.correlation.mapM fun predicate =>
-    resolvePropertyPredicate context owner access clause.source .guard predicate clause.captures
+    resolvePropertyPredicate context owner access clause.source .before predicate clause.captures
   pure ⟨{ clause with scope := DefinitionId.canonicalSet clause.scope },
     trigger, response, triggerPattern, responsePattern, correlation⟩
 
@@ -1186,8 +1184,8 @@ def Property.check
     (declaration.clauses.map PropertyClause.id ++ declaration.scopedClauses.map (·.id) ++
       declaration.scopedClauses.flatMap (·.captures.map PropertyScopedCapture.name))
   let hasVersionTwoForm := declaration.clauses.any fun clause => match clause with
-    | .branches _ | .guardedEventuallyWithin _ _ _ _ _ _ _
-    | .guardedNeverWithin _ _ _ _ _ _ _ => true
+    | .branches _ | .eventuallyWithin _ _ _ _ (some _) _ _
+    | .neverWithin _ _ _ _ (some _) _ _ => true
     | _ => false
   if hasVersionTwoForm && declaration.version != 2 then
     throw (propertyError .unsupportedPropertyVersion declaration.id declaration.source

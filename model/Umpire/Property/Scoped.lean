@@ -301,9 +301,9 @@ private def predicateInput (context : PropertyPredicateContext) (step : Transiti
 
 private def validateCoordinate (clause : CheckedPropertyScopedClause) (step : Transition) :
     Except Error Unit := do
-  let _ ← (checkPropertyPredicateInput clause.trigger (predicateInput .guard step)).mapError
+  let _ ← (checkPropertyPredicateInput clause.trigger (predicateInput .before step)).mapError
     Error.property
-  let _ ← (checkPropertyPredicateInput clause.response (predicateInput .expectation step)).mapError
+  let _ ← (checkPropertyPredicateInput clause.response (predicateInput .after step)).mapError
     Error.property
   pure ()
 
@@ -316,7 +316,7 @@ private def validateCorrelation (clause : CheckedPropertyScopedClause) (step : T
     (evidence : List PropertyFieldEvidence) : Except Error Unit := do
   let some correlation := clause.correlation | pure ()
   let input ← (checkPropertyPredicateInputWithEvidence correlation
-    (predicateInput .guard step) evidence).mapError Error.property
+    (predicateInput .before step) evidence).mapError Error.property
   if !evaluatePropertyPredicate correlation input then
     throw (.invalidTransition step.operation)
 

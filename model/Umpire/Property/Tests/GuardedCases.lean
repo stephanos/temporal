@@ -244,11 +244,14 @@ private def guardedTemporalDeclaration : Property := {
   guardedDeclaration with
   id := id "test.property.guarded-temporal"
   clauses := [
-    .guardedEventuallyWithin (id "test.property.guarded-temporal.clause") source
-      requestGuard none
-      (pattern .observation cancelRequested)
-      (pattern .observation cancelDelivered)
-      { value := 1, unit := .semanticTransitions }
+    .eventuallyWithin
+      (id := (id "test.property.guarded-temporal.clause"))
+      (source := source)
+      (guard := some requestGuard)
+      («unless» := none)
+      (trigger := (pattern .observation cancelRequested))
+      (response := (pattern .observation cancelDelivered))
+      (limit := { value := 1, unit := .semanticTransitions })
   ]
 }
 
@@ -256,11 +259,14 @@ private def guardedQuiescentDeclaration : Property := {
   guardedTemporalDeclaration with
   id := id "test.property.guarded-quiescent"
   clauses := [
-    .guardedNeverWithin (id "test.property.guarded-quiescent.clause") source
-      requestGuard none
-      (pattern .observation cancelDelivered)
-      (pattern .observation cancelRequested)
-      { value := 1, unit := .semanticTransitions }
+    .neverWithin
+      (id := (id "test.property.guarded-quiescent.clause"))
+      (source := source)
+      (guard := some requestGuard)
+      («unless» := none)
+      (trigger := (pattern .observation cancelDelivered))
+      (forbidden := (pattern .observation cancelRequested))
+      (limit := { value := 1, unit := .semanticTransitions })
   ]
 }
 
@@ -434,11 +440,14 @@ private def mixedLiteralTypes : Property :=
 
 private def wrongTemporalUnit : Property := {
   guardedTemporalDeclaration with clauses := [
-    .guardedEventuallyWithin (id "test.property.guarded-temporal.bad-unit") source
-      requestGuard none
-      (pattern .observation cancelRequested)
-      (pattern .observation cancelDelivered)
-      { value := 1, unit := .candidateEvaluations }
+    .eventuallyWithin
+      (id := (id "test.property.guarded-temporal.bad-unit"))
+      (source := source)
+      (guard := some requestGuard)
+      («unless» := none)
+      (trigger := (pattern .observation cancelRequested))
+      (response := (pattern .observation cancelDelivered))
+      (limit := { value := 1, unit := .candidateEvaluations })
   ]
 }
 

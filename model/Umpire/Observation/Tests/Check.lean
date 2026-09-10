@@ -85,25 +85,26 @@ def guardedTemporalSwitchPropertyDeclaration : Property := {
   Umpire.Examples.Switch.authoredProperty with
   id := DefinitionId.of "test.run-evaluation.property.guarded-temporal"
   version := 2
-  clauses := [.guardedEventuallyWithin
-    (DefinitionId.of "test.run-evaluation.property.guarded-temporal.clause")
-    Umpire.Examples.Switch.source
-    (.atom {
+  clauses := [.eventuallyWithin
+      (id := (DefinitionId.of "test.run-evaluation.property.guarded-temporal.clause"))
+      (source := Umpire.Examples.Switch.source)
+      (guard := some (.atom {
       field := .selectedAction
       reference := Umpire.Examples.Switch.flipActionId
       constraint := .equals (.text "flip")
-    }) none
-    {
+    }))
+      («unless» := none)
+      (trigger := {
       field := .selectedAction
       reference := Umpire.Examples.Switch.flipActionId
       constraint := .present
-    }
-    {
+    })
+      (response := {
       field := .outcome
       reference := Umpire.Examples.Switch.appliedOutcomeId
       constraint := .present
-    }
-    { value := 0, unit := .semanticTransitions }]
+    })
+      (limit := { value := 0, unit := .semanticTransitions })]
 }
 
 private def guardedRunEvaluationResult : Option

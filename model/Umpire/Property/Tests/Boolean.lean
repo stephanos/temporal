@@ -49,11 +49,11 @@ def guardPredicate : PropertyPredicate :=
     ]
   ]
 
-def checkedGuardPredicate : CheckedPropertyPredicate .guard :=
-  checkedPropertyPredicate context portableProperty .guard guardPredicate (by native_decide)
+def checkedGuardPredicate : CheckedPropertyPredicate .before :=
+  checkedPropertyPredicate context portableProperty .before guardPredicate (by native_decide)
 
 def completeGuardInput : PropertyPredicateInput := {
-  context := .guard
+  context := .before
   priorState := some (value pendingCount "0")
   selectedAction := some (value requestCancel "request")
 }
@@ -76,8 +76,8 @@ def sameFieldOneOf : PropertyPredicate :=
     constraint := .oneOf [.text "defer", .text "request"]
   }
 
-def checkedSameFieldOneOf : CheckedPropertyPredicate .guard :=
-  checkedPropertyPredicate context portableProperty .guard sameFieldOneOf (by native_decide)
+def checkedSameFieldOneOf : CheckedPropertyPredicate .before :=
+  checkedPropertyPredicate context portableProperty .before sameFieldOneOf (by native_decide)
 
 example :
     (checkPropertyPredicateInput checkedSameFieldOneOf completeGuardInput).toOption.map
@@ -95,9 +95,9 @@ example :
   native_decide
 
 example : [
-    predicateErrorKind (predicateCheck .guard (.all [])),
-    predicateErrorKind (predicateCheck .guard (.any [])),
-    predicateErrorKind (predicateCheck .guard (.atom {
+    predicateErrorKind (predicateCheck .before (.all [])),
+    predicateErrorKind (predicateCheck .before (.any [])),
+    predicateErrorKind (predicateCheck .before (.atom {
       field := .selectedAction
       reference := requestCancel
       constraint := .oneOf []
@@ -112,7 +112,7 @@ def mixedLiteralTypes : PropertyPredicate :=
     constraint := .oneOf [.text "request", .natural 1]
   }
 
-example : predicateErrorKind (predicateCheck .guard mixedLiteralTypes) = some .typeMismatch := by
+example : predicateErrorKind (predicateCheck .before mixedLiteralTypes) = some .typeMismatch := by
   native_decide
 
 def resultingStateGuard : PropertyPredicate :=
@@ -130,8 +130,8 @@ def priorStateExpectation : PropertyPredicate :=
   }
 
 example : [
-    predicateErrorKind (predicateCheck .guard resultingStateGuard),
-    predicateErrorKind (predicateCheck .expectation priorStateExpectation)
+    predicateErrorKind (predicateCheck .before resultingStateGuard),
+    predicateErrorKind (predicateCheck .after priorStateExpectation)
   ] = [some .invalidPredicateContext, some .invalidPredicateContext] := by
   native_decide
 
@@ -154,9 +154,9 @@ def undeclaredPredicateReference : PropertyPredicate :=
   }
 
 example : [
-    predicateErrorKind (predicateCheck .guard unknownPredicateReference),
-    predicateErrorKind (predicateCheck .guard wrongKindPredicateReference),
-    predicateErrorKind (predicateCheck .expectation undeclaredPredicateReference)
+    predicateErrorKind (predicateCheck .before unknownPredicateReference),
+    predicateErrorKind (predicateCheck .before wrongKindPredicateReference),
+    predicateErrorKind (predicateCheck .after undeclaredPredicateReference)
   ] = [some .unknownReference, some .wrongReferenceKind, some .undeclaredReference] := by
   native_decide
 
@@ -170,7 +170,7 @@ def eagerUnknownPredicate : PropertyPredicate :=
     unknownPredicateReference
   ]
 
-example : predicateErrorKind (predicateCheck .guard eagerUnknownPredicate) =
+example : predicateErrorKind (predicateCheck .before eagerUnknownPredicate) =
     some .unknownReference := by
   native_decide
 
@@ -185,9 +185,9 @@ def predicateWrongCapabilityOwner : Property := {
 
 example : [
     predicateErrorKind (checkPropertyPredicate predicateMissingCapabilityContext portableProperty
-      .guard guardPredicate),
+      .before guardPredicate),
     predicateErrorKind (checkPropertyPredicate context predicateWrongCapabilityOwner
-      .guard guardPredicate)
+      .before guardPredicate)
   ] = [some .missingCapability, some .wrongReferenceKind] := by
   native_decide
 
@@ -196,8 +196,8 @@ def missingActionInput : PropertyPredicateInput := {
 }
 
 /-- Missing input remains a diagnostic beneath nested negation and disjunction. -/
-def nestedMissingPredicate : CheckedPropertyPredicate .guard :=
-  checkedPropertyPredicate context portableProperty .guard
+def nestedMissingPredicate : CheckedPropertyPredicate .before :=
+  checkedPropertyPredicate context portableProperty .before
     (.not (.any [
       .atom {
         field := .priorState
@@ -216,8 +216,8 @@ example : predicateInputErrorKind nestedMissingPredicate missingActionInput =
   native_decide
 
 /-- A true disjunct cannot mask a malformed payload in another child. -/
-def eagerPayloadPredicate : CheckedPropertyPredicate .guard :=
-  checkedPropertyPredicate context portableProperty .guard
+def eagerPayloadPredicate : CheckedPropertyPredicate .before :=
+  checkedPropertyPredicate context portableProperty .before
     (.any [
       .atom {
         field := .priorState
@@ -243,8 +243,8 @@ example : predicateInputErrorKind checkedSameFieldOneOf unsupportedSelectedActio
     some .unsupportedPredicateInput := by
   native_decide
 
-def expectationPredicate : CheckedPropertyPredicate .expectation :=
-  checkedPropertyPredicate context portableProperty .expectation
+def expectationPredicate : CheckedPropertyPredicate .after :=
+  checkedPropertyPredicate context portableProperty .after
     (.all [
       .atom {
         field := .resultingState
@@ -264,7 +264,7 @@ def expectationPredicate : CheckedPropertyPredicate .expectation :=
     ]) (by native_decide)
 
 def completeExpectationInput : PropertyPredicateInput := {
-  context := .expectation
+  context := .after
   resultingState := some (value pendingCount "1")
   outcome := some (value deliveredOutcome "delivered")
   facts := some [value cancelRequested "request-1"]
@@ -294,7 +294,7 @@ example :
   native_decide
 
 def wrongContextInput : PropertyPredicateInput := {
-  completeExpectationInput with context := .guard
+  completeExpectationInput with context := .before
 }
 
 example : predicateInputErrorKind expectationPredicate wrongContextInput =
@@ -331,7 +331,7 @@ def forgedCheckedInput : CheckedPropertyPredicateInput checkedGuardPredicate := 
 }
 
 #guard_msgs (error, substring := true) in
-def forgedCheckedPredicate : CheckedPropertyPredicate .guard := {
+def forgedCheckedPredicate : CheckedPropertyPredicate .before := {
   ownerId := portableProperty.id
   source := portableProperty.source
   predicate := guardPredicate

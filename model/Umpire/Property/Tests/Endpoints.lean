@@ -35,27 +35,35 @@ private def quiescent : PropertyClause :=
 #guard endpointAnswer quiescent positiveTrace true == some .violated
 
 private def guardedResponse : PropertyClause :=
-  .guardedEventuallyWithin (id "test.property.endpoint.guarded") source
-    (.atom {
+  .eventuallyWithin
+      (id := (id "test.property.endpoint.guarded"))
+      (source := source)
+      (guard := some (.atom {
       field := .selectedAction
       reference := requestCancel
       constraint := .equals (.text "request")
-    }) none
-    (pattern .observation cancelRequested) (pattern .observation cancelDelivered)
-    { value := 1, unit := .semanticTransitions }
+    }))
+      («unless» := none)
+      (trigger := (pattern .observation cancelRequested))
+      (response := (pattern .observation cancelDelivered))
+      (limit := { value := 1, unit := .semanticTransitions })
 
 #guard endpointAnswer guardedResponse selectedPrefix true == some .unresolved
 #guard endpointAnswer guardedResponse positiveTrace true == some .satisfied
 
 private def guardedLogicalResponse : PropertyClause :=
-  .guardedEventuallyWithin (id "test.property.endpoint.guarded-logical") source
-    (.atom {
+  .eventuallyWithin
+      (id := (id "test.property.endpoint.guarded-logical"))
+      (source := source)
+      (guard := some (.atom {
       field := .selectedAction
       reference := requestCancel
       constraint := .equals (.text "request")
-    }) none
-    (pattern .observation cancelRequested) (pattern .observation cancelDelivered)
-    { value := 1, unit := .logicalTime }
+    }))
+      («unless» := none)
+      (trigger := (pattern .observation cancelRequested))
+      (response := (pattern .observation cancelDelivered))
+      (limit := { value := 1, unit := .logicalTime })
 
 #guard ([none, some "not-a-time"] : List (Option String)).all fun coordinate =>
   let trace := { selectedPrefix with steps := selectedPrefix.steps.map fun step =>

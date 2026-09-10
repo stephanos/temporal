@@ -22,7 +22,7 @@ Shared
   └── correlated projection and obligation, inert named values
 
 Umpire.Core ──▶ Model.Types ──▶ Model.Canonical ──▶ Model.Check
-                                                       ├──▶ Property / Behavior semantics
+                                                       ├──▶ Property / Scenario semantics
                                                        │       └──▶ Query semantics ──▶ Planning
                                                        ├──▶ Model.Elab ──▶ Model authoring facade
                                                        └──▶ Model.Table ──▶ Model authoring facade
@@ -47,7 +47,7 @@ source inventory and compiled module metadata.
 
 `Umpire.Model.Check` is the narrow checked-model import. It owns pure admission together with
 private checked construction; `Model.Canonical` owns pure canonicalization, and `Model.Elab`
-owns syntax capture and located elaboration. Property, Behavior, Query, and Planning semantic
+owns syntax capture and located elaboration. Property, Scenario, Query, and Planning semantic
 modules cannot transitively import the model elaborator or `Lean.Elab.Term`. The ordinary authoring
 facades remain `Umpire.Model`, `Umpire.Property`, `Umpire.Scenario`, and `Umpire.Query`; importing
 Planning alone does not provide their authoring conveniences. See the
@@ -74,7 +74,7 @@ The retained semantic APIs keep these responsibilities separate:
 
 - The Model owns valid setup, state, Action, outcome, observation, transition, and capability domains.
 - Property states a claim over model traces.
-- Behavior constrains allowed trace shape without choosing target-owned outcomes.
+- A Scenario constrains allowed trace shape without choosing target-owned outcomes.
 - Query asks one bounded planning question.
 - Space and Exploration select from a finite checked universe without performing runtime I/O.
 - Observation and Implementation Link retain the offline semantic mapping path for model analysis.
