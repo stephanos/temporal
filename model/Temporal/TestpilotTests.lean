@@ -33,23 +33,28 @@ private def activationKind : EntrypointDefinition → Option Nat
       | _, _ => false
   | .error _ => false
 
+-- The async-nexus Case carries no monitor rule: everything its Contract says is the scoped
+-- capability the checked model lowered into, reading the evidence this Program's history read
+-- lifts.
 #guard match Temporal.Feature.Nexus3.Testpilot.completionCase with
   | .ok output =>
       output.program.map (fun program => program.entrypoints.map activationKind) ==
         some #[some 0, some 1, some 2] &&
-      match output.contract.map (·.rules.toList) with
-      | some [rule] =>
-          rule.kind == .CONTRACT_RULE_KIND_SAFETY && rule.horizon.isNone &&
-          rule.captures.map (·.capture_id) == #["scheduled-event"] &&
-          rule.transitions.map (·.transition_id) == #[
-            "capture-scheduled-event",
-            "match-started-reference",
-            "match-completed-event"
-          ] && rule.transitions.map (·.support_kind) == #[
-            .CONTRACT_SUPPORT_KIND_MATCHING_EVENT,
-            .CONTRACT_SUPPORT_KIND_MATCHING_EVENT,
-            .CONTRACT_SUPPORT_KIND_MATCHING_EVENT]
-      | _ => false
+      output.contract.map (·.rules.isEmpty) == some true &&
+      (match output.contract.bind (·.«scoped») with
+        | some capability =>
+            capability.evidence_observation_id == Temporal.Feature.Nexus3.Testpilot.scopedObservation &&
+            capability.projection_id == Temporal.Feature.Nexus3.Testpilot.projectionId.value &&
+            capability.clauses.size == 3 &&
+            -- The Behavior places the required Action one semantic transition after the
+            -- operation's opening one, so that is the window each clause carries.
+            capability.clauses.all (fun clause =>
+              clause.clock == .SCOPED_CLOCK_OPERATION_TRANSITIONS && clause.bound == 1 &&
+              clause.endpoint == .SCOPED_ENDPOINT_RUNTIME_PREFIX) &&
+            capability.projection_rules.map (·.kind) == #[
+              Temporal.Feature.Nexus3.Testpilot.completedEvidenceKindId.value,
+              Temporal.Feature.Nexus3.Testpilot.startedEvidenceKindId.value]
+        | none => false)
   | .error _ => false
 
 -- The worker-outage Case's stop instruction is the lowered fault intent itself, not a hand-written
