@@ -283,7 +283,7 @@ def linkWitness : ImplementationLinkWitness linkDeclaration Umpire.Examples.Swit
     Umpire.Examples.Switch.target := {
   index := implementationLinkWitnessIndex linkDeclaration Umpire.Examples.Switch.target
     Umpire.Examples.Switch.target
-  forwardSimulation := {
+  stepPreservation := {
     morphism := {
       mapSetup := fun value => value
       mapState := fun value => value
@@ -295,7 +295,7 @@ def linkWitness : ImplementationLinkWitness linkDeclaration Umpire.Examples.Swit
     stepForward := by
       intro _ _ result admitted
       cases result
-      simpa [KernelMorphism.mapStep, Step.map] using admitted
+      simpa [ValueTranslation.mapStep, Step.map] using admitted
   }
   requiredCoverage := linkCoverage
 }
@@ -465,7 +465,7 @@ def limitedWitness : ImplementationLinkWitness limitedDeclaration Umpire.Example
     Umpire.Examples.Switch.target := {
   index := implementationLinkWitnessIndex limitedDeclaration Umpire.Examples.Switch.target
     Umpire.Examples.Switch.target
-  forwardSimulation := linkWitness.forwardSimulation
+  stepPreservation := linkWitness.stepPreservation
   requiredCoverage := limitedCoverage
 }
 
@@ -522,7 +522,7 @@ def gapWitness : ImplementationLinkWitness gapDeclaration Umpire.Examples.Switch
     Umpire.Examples.Switch.target := {
   index := implementationLinkWitnessIndex gapDeclaration Umpire.Examples.Switch.target
     Umpire.Examples.Switch.target
-  forwardSimulation := linkWitness.forwardSimulation
+  stepPreservation := linkWitness.stepPreservation
   requiredCoverage := gapCoverage
 }
 

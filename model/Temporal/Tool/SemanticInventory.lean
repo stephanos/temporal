@@ -19,7 +19,7 @@ open Umpire
 /-- The typed catalogs required to render one semantic inventory. -/
 structure Inventory where
   outcomeFamilies : List OutcomeFamilyDescriptor
-  projectionSentinels : List ProjectionSentinelDescriptor
+  notRunMarkers : List NotRunMarker
   knownGaps : List KnownGapCatalogDescriptor
   deriving BEq, DecidableEq, Repr
 
@@ -66,8 +66,8 @@ def outcomeFamilies : List OutcomeFamilyDescriptor := [
 ]
 
 /-- Canonical projection-only values that are not constructors of their owning outcome type. -/
-def projectionSentinels : List ProjectionSentinelDescriptor := [
-  ImplementationLinkStatus.notEvaluatedProjectionSentinel
+def notRunMarkers : List NotRunMarker := [
+  ImplementationLinkStatus.stageNotRunMarker
 ]
 
 /-- The non-semantic Case input carrying arbitrary validated Known Gaps. -/
@@ -89,14 +89,14 @@ def knownGapCatalog : List KnownGapCatalogDescriptor :=
 /-- The repository's complete typed semantic inventory. -/
 def currentInventory : Inventory := {
   outcomeFamilies
-  projectionSentinels
+  notRunMarkers
   knownGaps := knownGapCatalog
 }
 
 /-- Atomic aggregate-validation failures. -/
 inductive InventoryErrorKind where
   | invalidOutcomeFamily
-  | invalidProjectionSentinel
+  | invalidNotRunMarker
   | invalidKnownGapCatalog
   deriving BEq, DecidableEq, Repr
 
@@ -109,7 +109,7 @@ structure InventoryError where
 def InventoryError.message (failure : InventoryError) : String :=
   match failure.kind with
   | .invalidOutcomeFamily => "invalid outcome family: " ++ failure.detail
-  | .invalidProjectionSentinel => "invalid projection sentinel: " ++ failure.detail
+  | .invalidNotRunMarker => "invalid stage not-run marker: " ++ failure.detail
   | .invalidKnownGapCatalog => "invalid Known Gap catalog: " ++ failure.detail
 
 instance : ToString InventoryError where
@@ -118,7 +118,7 @@ instance : ToString InventoryError where
 private def familyLe (left right : OutcomeFamilyDescriptor) : Bool :=
   decide (left.id ≤ right.id)
 
-private def sentinelLe (left right : ProjectionSentinelDescriptor) : Bool :=
+private def notRunMarkerLe (left right : NotRunMarker) : Bool :=
   decide (left.id ≤ right.id)
 
 private def knownGapLe (left right : KnownGapCatalogDescriptor) : Bool :=
@@ -126,7 +126,7 @@ private def knownGapLe (left right : KnownGapCatalogDescriptor) : Bool :=
 
 private def normalize (inventory : Inventory) : Inventory := {
   outcomeFamilies := inventory.outcomeFamilies.mergeSort familyLe
-  projectionSentinels := inventory.projectionSentinels.mergeSort sentinelLe
+  notRunMarkers := inventory.notRunMarkers.mergeSort notRunMarkerLe
   knownGaps := inventory.knownGaps.mergeSort knownGapLe
 }
 
@@ -140,25 +140,25 @@ private def outcomeFamiliesAreValid (families : List OutcomeFamilyDescriptor) : 
         family.constructors.all fun constructor =>
           !constructor.name.trimAscii.isEmpty && !constructor.description.trimAscii.isEmpty
 
-private def projectionSentinelsAreValid
-    (sentinels : List ProjectionSentinelDescriptor)
+private def notRunMarkersAreValid
+    (markers : List NotRunMarker)
     (families : List OutcomeFamilyDescriptor) : Bool :=
-  sentinels == projectionSentinels &&
-    (sentinels.map ProjectionSentinelDescriptor.id).Nodup &&
-    sentinels.all fun sentinel =>
-      (DefinitionId.of sentinel.id).isNamespaced && !sentinel.owner.trimAscii.isEmpty &&
-        !sentinel.name.trimAscii.isEmpty && !sentinel.description.trimAscii.isEmpty &&
+  markers == notRunMarkers &&
+    (markers.map NotRunMarker.id).Nodup &&
+    markers.all fun marker =>
+      (DefinitionId.of marker.id).isNamespaced && !marker.owner.trimAscii.isEmpty &&
+        !marker.name.trimAscii.isEmpty && !marker.description.trimAscii.isEmpty &&
         families.all fun family =>
-          family.owner != sentinel.owner ||
-            !(family.constructors.map OutcomeConstructorDescriptor.name).contains sentinel.name
+          family.owner != marker.owner ||
+            !(family.constructors.map OutcomeConstructorDescriptor.name).contains marker.name
 
 /-- Validate the complete aggregate and return its canonical outer order. -/
 def validate (inventory : Inventory) : Except InventoryError Inventory := do
   let canonical := normalize inventory
   unless outcomeFamiliesAreValid canonical.outcomeFamilies do
     throw { kind := .invalidOutcomeFamily, detail := "catalog or owner-local order drift" }
-  unless projectionSentinelsAreValid canonical.projectionSentinels canonical.outcomeFamilies do
-    throw { kind := .invalidProjectionSentinel, detail := "catalog or owning family drift" }
+  unless notRunMarkersAreValid canonical.notRunMarkers canonical.outcomeFamilies do
+    throw { kind := .invalidNotRunMarker, detail := "catalog or owning family drift" }
   match Umpire.SemanticInventory.validateKnownGapCatalog
       caseKnownGapInputCatalogRow canonical.knownGaps with
   | .error failure =>
@@ -187,17 +187,17 @@ private def outcomeFamilyLines (family : OutcomeFamilyDescriptor) : List String 
   ] ++ family.constructors.map fun constructor =>
     s!"| `{markdownCell constructor.name}` | {markdownCell constructor.description} |"
 
-private def sentinelLines (sentinels : List ProjectionSentinelDescriptor) : List String :=
+private def notRunMarkerLines (markers : List NotRunMarker) : List String :=
   [
-    "## Projection sentinels",
+    "## Stage not-run markers",
     "",
     "These rendered values represent an unevaluated projection; they are not outcome constructors.",
     "",
     "| ID | Owner | Value | Meaning |",
     "| --- | --- | --- | --- |"
-  ] ++ sentinels.map fun sentinel =>
-    s!"| `{markdownCell sentinel.id}` | `{markdownCell sentinel.owner}` | " ++
-      s!"`{markdownCell sentinel.name}` | {markdownCell sentinel.description} |"
+  ] ++ markers.map fun marker =>
+    s!"| `{markdownCell marker.id}` | `{markdownCell marker.owner}` | " ++
+      s!"`{markdownCell marker.name}` | {markdownCell marker.description} |"
 
 private def knownGapLines (catalog : List KnownGapCatalogDescriptor) : List String :=
   [
@@ -224,7 +224,7 @@ def render (inventory : Inventory) : String :=
     "",
     "## Outcome families",
     ""
-  ] ++ familyLines ++ sentinelLines inventory.projectionSentinels ++ [""] ++
+  ] ++ familyLines ++ notRunMarkerLines inventory.notRunMarkers ++ [""] ++
     knownGapLines inventory.knownGaps ++ [""]
 
 /-- Validate the full aggregate before exposing any Markdown bytes. -/

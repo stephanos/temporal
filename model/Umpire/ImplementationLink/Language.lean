@@ -3,8 +3,8 @@ import Umpire.Model
 /-!
 The Implementation Link language relates two independently checked Targets without importing either
 Target family. Authored declarations are inert finite tables. A separately supplied witness carries
-the Link-owned declaration index and coverage around a reusable `KernelMorphism` and
-`ForwardSimulation`, while `checkImplementationLink` validates and canonicalizes every serializable
+the Link-owned declaration index and coverage around a reusable `ValueTranslation` and
+`StepPreservation`, while `checkImplementationLink` validates and canonicalizes every serializable
 part before returning a checked value. Proofs and mapping functions never participate in canonical
 identity bytes.
 -/
@@ -27,14 +27,14 @@ def ImplementationValueMapping.forward
 }
 
 /-- One explicit omission from the prototype's supported source domain. -/
-structure ImplementationLinkKnownGap (Source : Type) where
+structure UnmappedSource (Source : Type) where
   source : Source
   code : DefinitionId
   reason : String
   deriving BEq, DecidableEq, Repr
 
 /-- The seven typed source domains that may own authored Implementation Link Known Gaps. -/
-inductive ImplementationLinkKnownGapFamily where
+inductive UnmappedSourceFamily where
   | setup
   | state
   | action
@@ -44,7 +44,7 @@ inductive ImplementationLinkKnownGapFamily where
   | capability
   deriving BEq, DecidableEq, Ord, Repr
 
-def ImplementationLinkKnownGapFamily.name : ImplementationLinkKnownGapFamily → String
+def UnmappedSourceFamily.name : UnmappedSourceFamily → String
   | .setup => "setup"
   | .state => "state"
   | .action => "action"
@@ -54,7 +54,7 @@ def ImplementationLinkKnownGapFamily.name : ImplementationLinkKnownGapFamily →
   | .capability => "capability"
 
 /-- Canonical declaration-field order for polymorphic authored Known Gap families. -/
-def ImplementationLinkKnownGapFamily.all : List ImplementationLinkKnownGapFamily := [
+def UnmappedSourceFamily.all : List UnmappedSourceFamily := [
   .setup,
   .state,
   .action,
@@ -252,13 +252,13 @@ structure ImplementationLinkDeclaration
   observationMappings : List (ImplementationValueMapping SourceObservation DestinationObservation)
   relationMappings : List ImplementationSemanticMapping
   capabilityMappings : List ImplementationSemanticMapping
-  setupKnownGaps : List (ImplementationLinkKnownGap SourceSetup) := []
-  stateKnownGaps : List (ImplementationLinkKnownGap SourceState) := []
-  actionKnownGaps : List (ImplementationLinkKnownGap SourceAction) := []
-  outcomeKnownGaps : List (ImplementationLinkKnownGap SourceOutcome) := []
-  observationKnownGaps : List (ImplementationLinkKnownGap SourceObservation) := []
-  relationKnownGaps : List (ImplementationLinkKnownGap DefinitionId) := []
-  capabilityKnownGaps : List (ImplementationLinkKnownGap DefinitionId) := []
+  setupKnownGaps : List (UnmappedSource SourceSetup) := []
+  stateKnownGaps : List (UnmappedSource SourceState) := []
+  actionKnownGaps : List (UnmappedSource SourceAction) := []
+  outcomeKnownGaps : List (UnmappedSource SourceOutcome) := []
+  observationKnownGaps : List (UnmappedSource SourceObservation) := []
+  relationKnownGaps : List (UnmappedSource DefinitionId) := []
+  capabilityKnownGaps : List (UnmappedSource DefinitionId) := []
   applicationLimit : Limit
   documentation : String := ""
 
@@ -274,7 +274,7 @@ def ImplementationLinkObligation.name : ImplementationLinkObligation → String
   | .requiredCoverage => "required-coverage"
 
 /-- The exact Umpire kernel values mapped by the current Implementation Link paths. -/
-structure KernelMorphism
+structure ValueTranslation
     (SourceSetup SourceState SourceAction SourceOutcome SourceObservation : Type)
     (DestinationSetup DestinationState DestinationAction DestinationOutcome
       DestinationObservation : Type) where
@@ -285,8 +285,8 @@ structure KernelMorphism
   mapObservation : SourceObservation → DestinationObservation
 
 /-- Translate one kernel transition result through the Core-owned mapping combinator. -/
-def KernelMorphism.mapStep
-    (morphism : KernelMorphism
+def ValueTranslation.mapStep
+    (morphism : ValueTranslation
       SourceSetup SourceState SourceAction SourceOutcome SourceObservation
       DestinationSetup DestinationState DestinationAction DestinationOutcome
       DestinationObservation)
@@ -295,8 +295,8 @@ def KernelMorphism.mapStep
   result.map morphism.mapState morphism.mapOutcome morphism.mapObservation
 
 /-- Transition-result translation is exactly Core `Step.map`. -/
-theorem KernelMorphism.mapStep_eq
-    (morphism : KernelMorphism
+theorem ValueTranslation.mapStep_eq
+    (morphism : ValueTranslation
       SourceSetup SourceState SourceAction SourceOutcome SourceObservation
       DestinationSetup DestinationState DestinationAction DestinationOutcome
       DestinationObservation)
@@ -305,8 +305,8 @@ theorem KernelMorphism.mapStep_eq
       result.map morphism.mapState morphism.mapOutcome morphism.mapObservation := rfl
 
 /-- Translate one Model Trace step without changing its shape or observation order. -/
-def KernelMorphism.mapTraceStep
-    (morphism : KernelMorphism
+def ValueTranslation.mapTraceStep
+    (morphism : ValueTranslation
       SourceSetup SourceState SourceAction SourceOutcome SourceObservation
       DestinationSetup DestinationState DestinationAction DestinationOutcome
       DestinationObservation)
@@ -320,8 +320,8 @@ def KernelMorphism.mapTraceStep
     }
 
 /-- Step translation maps the selected Action. -/
-@[simp] theorem KernelMorphism.mapTraceStep_selectedAction
-    (morphism : KernelMorphism
+@[simp] theorem ValueTranslation.mapTraceStep_selectedAction
+    (morphism : ValueTranslation
       SourceSetup SourceState SourceAction SourceOutcome SourceObservation
       DestinationSetup DestinationState DestinationAction DestinationOutcome
       DestinationObservation)
@@ -329,8 +329,8 @@ def KernelMorphism.mapTraceStep
     (morphism.mapTraceStep step).selectedAction = morphism.mapAction step.selectedAction := rfl
 
 /-- Step translation maps the Model Outcome. -/
-@[simp] theorem KernelMorphism.mapTraceStep_outcome
-    (morphism : KernelMorphism
+@[simp] theorem ValueTranslation.mapTraceStep_outcome
+    (morphism : ValueTranslation
       SourceSetup SourceState SourceAction SourceOutcome SourceObservation
       DestinationSetup DestinationState DestinationAction DestinationOutcome
       DestinationObservation)
@@ -338,8 +338,8 @@ def KernelMorphism.mapTraceStep
     (morphism.mapTraceStep step).outcome = morphism.mapOutcome step.outcome := rfl
 
 /-- Step translation maps the resulting state. -/
-@[simp] theorem KernelMorphism.mapTraceStep_state
-    (morphism : KernelMorphism
+@[simp] theorem ValueTranslation.mapTraceStep_state
+    (morphism : ValueTranslation
       SourceSetup SourceState SourceAction SourceOutcome SourceObservation
       DestinationSetup DestinationState DestinationAction DestinationOutcome
       DestinationObservation)
@@ -347,8 +347,8 @@ def KernelMorphism.mapTraceStep
     (morphism.mapTraceStep step).state = morphism.mapState step.state := rfl
 
 /-- Step translation maps observations in their existing order. -/
-@[simp] theorem KernelMorphism.mapTraceStep_facts
-    (morphism : KernelMorphism
+@[simp] theorem ValueTranslation.mapTraceStep_facts
+    (morphism : ValueTranslation
       SourceSetup SourceState SourceAction SourceOutcome SourceObservation
       DestinationSetup DestinationState DestinationAction DestinationOutcome
       DestinationObservation)
@@ -356,8 +356,8 @@ def KernelMorphism.mapTraceStep
     (morphism.mapTraceStep step).facts = step.facts.map morphism.mapObservation := rfl
 
 /-- Translate one complete Model Trace through the same kernel mappings. -/
-def KernelMorphism.mapTrace
-    (morphism : KernelMorphism
+def ValueTranslation.mapTrace
+    (morphism : ValueTranslation
       SourceSetup SourceState SourceAction SourceOutcome SourceObservation
       DestinationSetup DestinationState DestinationAction DestinationOutcome
       DestinationObservation)
@@ -368,8 +368,8 @@ def KernelMorphism.mapTrace
 }
 
 /-- Trace translation maps the initial state. -/
-@[simp] theorem KernelMorphism.mapTrace_initialState
-    (morphism : KernelMorphism
+@[simp] theorem ValueTranslation.mapTrace_initialState
+    (morphism : ValueTranslation
       SourceSetup SourceState SourceAction SourceOutcome SourceObservation
       DestinationSetup DestinationState DestinationAction DestinationOutcome
       DestinationObservation)
@@ -377,8 +377,8 @@ def KernelMorphism.mapTrace
     (morphism.mapTrace trace).initialState = morphism.mapState trace.initialState := rfl
 
 /-- Trace translation maps every step in its existing order. -/
-@[simp] theorem KernelMorphism.mapTrace_steps
-    (morphism : KernelMorphism
+@[simp] theorem ValueTranslation.mapTrace_steps
+    (morphism : ValueTranslation
       SourceSetup SourceState SourceAction SourceOutcome SourceObservation
       DestinationSetup DestinationState DestinationAction DestinationOutcome
       DestinationObservation)
@@ -405,11 +405,11 @@ structure AuthoritativeModelTrace
   steps : AuthoritativeTraceSteps kernel trace.initialState trace.steps
 
 /-- Initial and step preservation for one exact pair of Umpire transition kernels. -/
-structure ForwardSimulation
+structure StepPreservation
     (source : Machine SourceSetup SourceState SourceAction SourceOutcome SourceObservation)
     (destination : Machine DestinationSetup DestinationState DestinationAction
       DestinationOutcome DestinationObservation) where
-  morphism : KernelMorphism
+  morphism : ValueTranslation
     SourceSetup SourceState SourceAction SourceOutcome SourceObservation
     DestinationSetup DestinationState DestinationAction DestinationOutcome DestinationObservation
   initialForward : ∀ setup state,
@@ -420,11 +420,11 @@ structure ForwardSimulation
       destination.authoritativeStep (morphism.mapState state) (morphism.mapAction action)
         (morphism.mapStep result)
 
-private theorem ForwardSimulation.stepsForward
+private theorem StepPreservation.stepsForward
     {source : Machine SourceSetup SourceState SourceAction SourceOutcome SourceObservation}
     {destination : Machine DestinationSetup DestinationState DestinationAction
       DestinationOutcome DestinationObservation}
-    (simulation : ForwardSimulation source destination)
+    (simulation : StepPreservation source destination)
     (state : SourceState)
     (steps : List (ModelTraceStep SourceState SourceAction SourceOutcome SourceObservation))
     (admitted : AuthoritativeTraceSteps source state steps) :
@@ -442,11 +442,11 @@ private theorem ForwardSimulation.stepsForward
         induction step.state admitted.2⟩
 
 /-- Trace preservation is derived from the simulation's initial and step laws. -/
-theorem ForwardSimulation.traceForward
+theorem StepPreservation.traceForward
     {source : Machine SourceSetup SourceState SourceAction SourceOutcome SourceObservation}
     {destination : Machine DestinationSetup DestinationState DestinationAction
       DestinationOutcome DestinationObservation}
-    (simulation : ForwardSimulation source destination)
+    (simulation : StepPreservation source destination)
     (setup : SourceSetup)
     (trace : ModelTrace SourceState SourceAction SourceOutcome SourceObservation)
     (admitted : AuthoritativeModelTrace source setup trace) :
@@ -509,12 +509,12 @@ structure ImplementationLinkRequiredCoverage
       ∃ gap, gap ∈ declaration.observationKnownGaps ∧ gap.source = value
   relation : List.Perm
     (declaration.relationMappings.map (fun mapping => mapping.source.id) ++
-      declaration.relationKnownGaps.map ImplementationLinkKnownGap.source)
+      declaration.relationKnownGaps.map UnmappedSource.source)
     (source.definitions.filter (fun definition => definition.kind == .relation) |>.map
       DefinitionMetadata.id)
   capability : List.Perm
     (declaration.capabilityMappings.map (fun mapping => mapping.source.id) ++
-      declaration.capabilityKnownGaps.map ImplementationLinkKnownGap.source)
+      declaration.capabilityKnownGaps.map UnmappedSource.source)
     source.requiredCapabilities
 
 /-- Exact proof-carrying bounded forward simulation for one declaration and two checked Targets. -/
@@ -527,11 +527,11 @@ structure ImplementationLinkWitness
     (destination : CheckedModel DestinationLawStatement DestinationSetup DestinationState
       DestinationAction DestinationOutcome DestinationObservation) where
   index : ImplementationLinkWitnessIndex
-  forwardSimulation : ForwardSimulation source.machine destination.machine
+  stepPreservation : StepPreservation source.machine destination.machine
   requiredCoverage : ImplementationLinkRequiredCoverage declaration source
-    forwardSimulation.morphism.mapSetup forwardSimulation.morphism.mapState
-    forwardSimulation.morphism.mapAction forwardSimulation.morphism.mapOutcome
-    forwardSimulation.morphism.mapObservation
+    stepPreservation.morphism.mapSetup stepPreservation.morphism.mapState
+    stepPreservation.morphism.mapAction stepPreservation.morphism.mapOutcome
+    stepPreservation.morphism.mapObservation
 
 /-- Missing proof obligations remain representable only at the authored checking boundary. -/
 inductive ImplementationLinkWitnessAuthoring
@@ -562,9 +562,9 @@ theorem ImplementationLinkWitness.initialForward
     (state : SourceState)
     (admitted : source.machine.authoritativeInitial setup state) :
     destination.machine.authoritativeInitial
-      (witness.forwardSimulation.morphism.mapSetup setup)
-      (witness.forwardSimulation.morphism.mapState state) :=
-  witness.forwardSimulation.initialForward setup state admitted
+      (witness.stepPreservation.morphism.mapSetup setup)
+      (witness.stepPreservation.morphism.mapState state) :=
+  witness.stepPreservation.initialForward setup state admitted
 
 /-- Preserve one authoritative transition through the witness's shared simulation. -/
 theorem ImplementationLinkWitness.stepForward
@@ -579,16 +579,16 @@ theorem ImplementationLinkWitness.stepForward
     (result : Step SourceState SourceOutcome SourceObservation)
     (admitted : source.machine.authoritativeStep state action result) :
     destination.machine.authoritativeStep
-      (witness.forwardSimulation.morphism.mapState state)
-      (witness.forwardSimulation.morphism.mapAction action)
+      (witness.stepPreservation.morphism.mapState state)
+      (witness.stepPreservation.morphism.mapAction action)
       {
-        outcome := witness.forwardSimulation.morphism.mapOutcome result.outcome
-        state := witness.forwardSimulation.morphism.mapState result.state
+        outcome := witness.stepPreservation.morphism.mapOutcome result.outcome
+        state := witness.stepPreservation.morphism.mapState result.state
         facts := result.facts.map
-          witness.forwardSimulation.morphism.mapObservation
+          witness.stepPreservation.morphism.mapObservation
       } := by
-  simpa [KernelMorphism.mapStep, Step.map] using
-    witness.forwardSimulation.stepForward state action result admitted
+  simpa [ValueTranslation.mapStep, Step.map] using
+    witness.stepPreservation.stepForward state action result admitted
 
 /-- Translate one step through the witness's shared kernel morphism. -/
 def ImplementationLinkWitness.translateStep
@@ -600,7 +600,7 @@ def ImplementationLinkWitness.translateStep
       (DestinationObservation := DestinationObservation) declaration source destination)
     (step : ModelTraceStep SourceState SourceAction SourceOutcome SourceObservation) :
     ModelTraceStep DestinationState DestinationAction DestinationOutcome DestinationObservation :=
-  witness.forwardSimulation.morphism.mapTraceStep
+  witness.stepPreservation.morphism.mapTraceStep
     (SourceSetup := SourceSetup) (DestinationSetup := DestinationSetup) step
 
 /-- Translate one trace through the witness's shared kernel morphism. -/
@@ -613,7 +613,7 @@ def ImplementationLinkWitness.translateTrace
       (DestinationObservation := DestinationObservation) declaration source destination)
     (trace : ModelTrace SourceState SourceAction SourceOutcome SourceObservation) :
     ModelTrace DestinationState DestinationAction DestinationOutcome DestinationObservation :=
-  witness.forwardSimulation.morphism.mapTrace
+  witness.stepPreservation.morphism.mapTrace
     (SourceSetup := SourceSetup) (DestinationSetup := DestinationSetup) trace
 
 /-- The trace theorem delegates to the shared simulation; authors supply no trace proof. -/
@@ -628,9 +628,9 @@ theorem ImplementationLinkWitness.traceForward
     (trace : ModelTrace SourceState SourceAction SourceOutcome SourceObservation)
     (admitted : AuthoritativeModelTrace source.machine setup trace) :
     AuthoritativeModelTrace destination.machine
-      (witness.forwardSimulation.morphism.mapSetup setup)
+      (witness.stepPreservation.morphism.mapSetup setup)
       (witness.translateTrace trace) :=
-  witness.forwardSimulation.traceForward setup trace admitted
+  witness.stepPreservation.traceForward setup trace admitted
 
 inductive ImplementationLinkErrorKind where
   | emptyDefinitionId
@@ -708,7 +708,7 @@ structure CheckedImplementationLink
     SourceOutcome SourceObservation
   destinationTarget : CheckedModel DestinationLawStatement DestinationSetup DestinationState
     DestinationAction DestinationOutcome DestinationObservation
-  forwardSimulation : ForwardSimulation sourceTarget.machine destinationTarget.machine
+  stepPreservation : StepPreservation sourceTarget.machine destinationTarget.machine
   canonicalMetadata : String
   behaviorFingerprint : BehaviorFingerprint
 
@@ -775,21 +775,21 @@ private def valueMappingLe
 
 private def knownGapJson
     (encodeSource : Source → String)
-    (gap : ImplementationLinkKnownGap Source) : String :=
+    (gap : UnmappedSource Source) : String :=
   "{\"source\":" ++ quote (encodeSource gap.source) ++
     ",\"code\":" ++ quote gap.code.value ++
     ",\"reason\":" ++ quote gap.reason ++ "}"
 
 private def knownGapLe
     (encodeSource : Source → String)
-    (left right : ImplementationLinkKnownGap Source) : Bool :=
+    (left right : UnmappedSource Source) : Bool :=
   decide (knownGapJson encodeSource left ≤ knownGapJson encodeSource right)
 
-private def semanticGapJson (gap : ImplementationLinkKnownGap DefinitionId) : String :=
+private def semanticGapJson (gap : UnmappedSource DefinitionId) : String :=
   knownGapJson DefinitionId.value gap
 
 private def semanticGapLe
-    (left right : ImplementationLinkKnownGap DefinitionId) : Bool :=
+    (left right : UnmappedSource DefinitionId) : Bool :=
   knownGapLe DefinitionId.value left right
 
 private def sourceLocationJson (source : SourceLocation) : String :=
@@ -909,7 +909,7 @@ private def validateKnownGap
     (definitionId : DefinitionId)
     (source : SourceLocation)
     (label : String)
-    (gap : ImplementationLinkKnownGap Value) : Except ImplementationLinkError Unit := do
+    (gap : UnmappedSource Value) : Except ImplementationLinkError Unit := do
   if !gap.code.isNamespaced || gap.reason == "" then
     throw (implementationLinkError .invalidKnownGap definitionId source
       (label ++ ":" ++ gap.code.value) [gap.code])
@@ -923,7 +923,7 @@ private def validateValueTable
     (sourceValues : List Source)
     (destinationValues : List Destination)
     (mappings : List (ImplementationValueMapping Source Destination))
-    (knownGaps : List (ImplementationLinkKnownGap Source)) : Except ImplementationLinkError Unit := do
+    (knownGaps : List (UnmappedSource Source)) : Except ImplementationLinkError Unit := do
   for mapping in mappings do
     if (mappings.filter fun other => other == mapping).length > 1 then
       throw (implementationLinkError .duplicateMapping definitionId source
@@ -1001,7 +1001,7 @@ private def validateSemanticTable
     (requiredSourceIds : List DefinitionId)
     (allowedDestinationIds : List DefinitionId)
     (mappings : List ImplementationSemanticMapping)
-    (knownGaps : List (ImplementationLinkKnownGap DefinitionId)) :
+    (knownGaps : List (UnmappedSource DefinitionId)) :
     Except ImplementationLinkError Unit := do
   for mapping in mappings do
     if (mappings.filter fun other => other == mapping).length > 1 then
@@ -1151,7 +1151,7 @@ private def checkImplementationLinkWithDomains
         declaration := canonical
         sourceTarget := source
         destinationTarget := destination
-        forwardSimulation := witness.forwardSimulation
+        stepPreservation := witness.stepPreservation
         canonicalMetadata := metadata
         behaviorFingerprint := behaviorFingerprintOf semantic
       }

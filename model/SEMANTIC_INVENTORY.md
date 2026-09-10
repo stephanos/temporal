@@ -139,7 +139,7 @@ Strict Query projection outcomes.
 | `violated` | At least one required semantic Property is violated. |
 | `incomplete` | The strict Query does not have one complete consistent verdict set. |
 
-## Projection sentinels
+## Stage not-run markers
 
 These rendered values represent an unevaluated projection; they are not outcome constructors.
 
