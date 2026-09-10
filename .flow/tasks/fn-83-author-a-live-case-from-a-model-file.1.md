@@ -41,9 +41,43 @@ Paths below are the tree before fn-82's moves; after fn-82 the success Producer 
 - [ ] Existing `#guard` and `#guard_msgs` blocks in the success tests pass, with the part-substitution helper adapted
 - [ ] `make umpire-check-case-runtime-conformance` passes
 ## Done summary
-TBD
+Extracted the Producer-neutral half of the Nexus success Producer into `Umpire.Case.Producer`.
 
+- `model/Umpire/Case/Producer.lean` (new): `Vocabulary`, `Input`, `Identity`, `HookPlacement`,
+  `Hook`, `EvidenceSource`, `EvidenceRule`, `EvidenceMapping`, `FaultKind`, `FaultLine`,
+  `Realization`, and `produce`. The correlated-clause derivation (`predicateField`, `predicateOf`,
+  `patternHolds`, `scopedClauseOf` incl. the `property.clause-early-response` vacuity rule),
+  the projection declaration, provenance, and coverage moved unchanged. It names no protocol,
+  history attribute, or role, so it holds under SCP-02/MOD-01.
+- `model/Temporal/Feature/Nexus/Success/Producer.lean`: reduced to a `Realization` value, an
+  `Input` conversion (`producerInput`), the evidence mapping, and one `Case.Producer.produce` call.
+  No lowering logic remains.
+- `model/Umpire/Case/Tests/Producer.lean` (new) + `model/UmpireTests.lean`: pins for the identity
+  derivation and vocabulary spelling resolution.
+- `model/Umpire/Case.lean`: facade export.
+
+Deliberate deviations from the spec's API Contracts block, both to keep this task byte-neutral:
+- `Input.witness` is `Option Trace`, not `Trace` — the "no witness" rejection is a production-time
+  diagnostic per Edge Cases, so the Producer must see the absence.
+- `Input` additionally carries `operationRole`, `queryFingerprint`, and `source`; `Realization`
+  carries `projectionId`, `producerId`, `correlatedObservation`, and the three limit records
+  instead of the spec's `roles`/`environment` (which `Realization.program` already supplies).
+- `Identity` carries `programId`/`contractId`/`runScope` with the fixture-derived values as field
+  defaults, so the success Case can state the one identity (`temporal.case.async-nexus.program`)
+  that predates the convention while `.3` gets the derivation for free.
+
+Early proof point holds: `async-nexus-case.json` regenerates byte-identical
+(`git diff --exit-code tests/testcore/testpilot/testdata/` clean after
+`make umpire-gen-case-runtime-conformance`). No Nexus-specific branch was needed inside
+`Umpire.Case.Producer`.
+
+Review: SHIP. The pinned reviewer `claude:claude-fable-5-1:high` returned an account limit
+("You've reached your Fable limit"), so the review ran on `claude:claude-sonnet-4-5:high`.
+This is a same-family fallback, not an equivalent cross-family review.
+
+stage: impl-review - ran (model: claude-sonnet-4-5, high; fable pinned but account-limited)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: bcfe3f5c40
+- Tests: cd model && mise exec -- lake build, make umpire-gen-case-runtime-conformance && git diff --exit-code tests/testcore/testpilot/testdata/, make umpire-check-case-runtime-conformance, make lint-model (0 findings outside generated Temporal/API/Proto.lean)
 - PRs:
