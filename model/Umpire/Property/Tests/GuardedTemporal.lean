@@ -47,7 +47,7 @@ private def guardedEventually
       (id := (id "test.property.guarded-temporal.eventually"))
       (source := source)
       (guard := some requestGuard)
-      («unless» := exception)
+      (exception := exception)
       (trigger := (pattern .observation cancelRequested))
       (response := (pattern .observation cancelDelivered))
       (limit := limit)
@@ -58,7 +58,7 @@ private def guardedQuiescent
       (id := (id "test.property.guarded-temporal.quiescent"))
       (source := source)
       (guard := some requestGuard)
-      («unless» := exception)
+      (exception := exception)
       (trigger := (pattern .observation cancelRequested))
       (forbidden := (pattern .observation cancelDelivered))
       (limit := { value := 1, unit := .semanticTransitions })
@@ -163,7 +163,7 @@ private def changedTriggerDeclaration :=
       (id := (id "test.property.guarded-temporal.eventually"))
       (source := source)
       (guard := some requestGuard)
-      («unless» := none)
+      (exception := none)
       (trigger := (pattern .observation cancelDelivered))
       (response := (pattern .observation cancelRequested))
       (limit := { value := 1, unit := .semanticTransitions })]
@@ -192,7 +192,7 @@ private def changedClauseSourceDeclaration :=
       (id := (id "test.property.guarded-temporal.eventually"))
       (source := { source with line := source.line + 1 })
       (guard := some requestGuard)
-      («unless» := none)
+      (exception := none)
       (trigger := (pattern .observation cancelRequested))
       (response := (pattern .observation cancelDelivered))
       (limit := { value := 1, unit := .semanticTransitions })]
@@ -355,7 +355,7 @@ private def unknownThroughNegation :=
       (id := (id "test.property.guarded-temporal.unknown-negation"))
       (source := source)
       (guard := some (.not pendingOne))
-      («unless» := none)
+      (exception := none)
       (trigger := (pattern .observation cancelRequested))
       (response := (pattern .observation cancelDelivered))
       (limit := { value := 1, unit := .semanticTransitions })]
@@ -374,7 +374,7 @@ private def invalidFutureGuard :=
       (id := (id "test.property.guarded-temporal.future-guard"))
       (source := source)
       (guard := some (guardAtom .resultingState pendingCount (.natural 1)))
-      («unless» := none)
+      (exception := none)
       (trigger := (pattern .observation cancelRequested))
       (response := (pattern .observation cancelDelivered))
       (limit := { value := 1, unit := .semanticTransitions })]
@@ -393,7 +393,7 @@ def compoundTemporalResponse : PropertyClause :=
       (id := (id "test.property.guarded-temporal.compound"))
       (source := source)
       (guard := some requestGuard)
-      («unless» := none)
+      (exception := none)
       (trigger := (pattern .observation cancelRequested))
       (response := (.all [guardAtom .resultingState pendingCount (.natural 1)]))
       (limit := { value := 1, unit := .semanticTransitions })
@@ -438,5 +438,34 @@ example (property : CheckedProperty) (input : CheckedPropertyEvaluationInput pro
 
 #print axioms Umpire.evaluatePropertyClause_agrees
 #print axioms Umpire.evaluateProperty_agrees
+
+/-! The optional guard is what makes the extra clause data meaningful: an `unless` without one, or
+a guarded clause with no source path, is rejected rather than silently dropped at admission. -/
+
+private def clauseErrorKind (clause : PropertyClause) : Option PropertyErrorKind :=
+  match Property.check context (declaration [clause]) with
+  | .error error => some error.kind
+  | .ok _ => none
+
+private def bareTemporal
+    (guard : Option PropertyPredicate := none)
+    (exception : Option PropertyUnless := none)
+    (source : SourceLocation := PropertyTests.source) : PropertyClause :=
+  .eventuallyWithin
+      (id := id "test.property.guarded-temporal.eventually")
+      (source := source)
+      (guard := guard)
+      (exception := exception)
+      (trigger := pattern .observation cancelRequested)
+      (response := pattern .observation cancelDelivered)
+      (limit := { value := 1, unit := .semanticTransitions })
+
+#guard clauseErrorKind (bareTemporal) == none
+#guard clauseErrorKind (bareTemporal (guard := some requestGuard)) == none
+#guard clauseErrorKind (bareTemporal (exception := some temporalException)) == some .invalidClause
+#guard clauseErrorKind
+  (bareTemporal (guard := some requestGuard) (exception := some temporalException)) == none
+#guard clauseErrorKind
+  (bareTemporal (guard := some requestGuard) (source := { path := "" })) == some .invalidClause
 
 end Umpire.PropertyTests

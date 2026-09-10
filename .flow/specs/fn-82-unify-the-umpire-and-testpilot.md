@@ -69,9 +69,9 @@ table is normative for the whole spec; the per-area sections below say where eac
 | The enumerated finite vocabulary of a Model | **Vocabulary** | `TargetBehaviorDomain`, `TargetBehaviorDomainAvailability`, `TargetBehaviorDescription` (becomes `BehaviorTable`), `TargetBehaviorClosure` (deleted) |
 | One model step and what it produced | **Step** with `outcome`, `state`, `facts` | `TransitionResult` with `modelOutcome`, `resultingState`, `observations`; `ModelTraceStep` |
 | A claim the model makes at a step | **Fact** | the `Observation` type parameter, `facts`/`observations`/`expectationFact` spellings, `DefinitionKind.observation` (becomes `.fact`) |
-| A sequence of steps | **Trace**, `TraceAddress` | `ModelTrace`, `Scenario.Trace`, `ModelCoordinate` |
-| A constrained set of traces | **Scenario** | `Umpire.Behavior`, `Scenario`, `CheckedScenario`, `Scenario`, `Scenario` (becomes `Scenario.exactly`) |
-| A pass/fail rule over traces | **Property** with **Clauses**; guarded alternatives are **Branches** | `Property`, `Property`, `PropertyAuthoring`, `Resolved*`, `PropertyCase`, `PropertyCaseGroup`, `PropertyException` (becomes `Unless`), Obligation, Requirement, Claim, Law as synonyms |
+| A sequence of steps | **Trace**, `TraceAddress` | `ModelTrace`, `BehaviorTrace`, `ModelCoordinate` |
+| A constrained set of traces | **Scenario** | `Umpire.Behavior`, `BehaviorDeclaration`, `CheckedBehavior`, `BehaviorSpec`, `ExactSequenceSpec` (becomes `Scenario.exactly`) |
+| A pass/fail rule over traces | **Property** with **Clauses**; guarded alternatives are **Branches** | `PropertyDeclaration`, `PropertySpec`, `PropertyAuthoring`, `Resolved*`, `PropertyCase`, `PropertyCaseGroup`, `PropertyException` (becomes `Unless`), Obligation, Requirement, Claim, Law as synonyms |
 | A rule tracked separately per operation, correlated by a key | **Correlated** | the `Scoped` prefix in Lean, proto, and Go |
 | A bounded-time ceiling on a rule | **Deadline** | `ContractHorizonDefinition`, "horizon" |
 | A ceiling on any stage | **Limit** with units `steps`, `actions`, `logicalTime`, `search`, `plans` | Bound, Ceiling, Budget, `bounds`, `semanticTransitions`, `selectedActions`, `candidateEvaluations`, `experimentSpecs`; `observationPositions` is deleted |
@@ -174,11 +174,11 @@ only construction operations:
 
 | Language | Authored | Checked | Module layout |
 | --- | --- | --- | --- |
-| Property | `Property` (was `Property` + `Property`) | `CheckedProperty` | `Umpire/Property.lean` (types, fields, sugar), `Property/Check.lean` (absorbs `Trace.lean`), `Property/Evaluate.lean`, `Property/Elab.lean`, `Property/Correlated/` (was `Scoped/`) |
-| Scenario | `Scenario` (was `Scenario`, `Scenario`, `Scenario`) | `CheckedScenario` | `Umpire/Scenario.lean`, `Scenario/Check.lean`, `Scenario/Elab.lean` |
+| Property | `Property` (was `PropertyDeclaration` + `PropertySpec`) | `CheckedProperty` | `Umpire/Property.lean` (types, fields, sugar), `Property/Check.lean` (absorbs `Trace.lean`), `Property/Evaluate.lean`, `Property/Elab.lean`, `Property/Correlated/` (was `Scoped/`) |
+| Scenario | `Scenario` (was `BehaviorDeclaration`, `BehaviorSpec`, `ExactSequenceSpec`) | `CheckedScenario` | `Umpire/Scenario.lean`, `Scenario/Check.lean`, `Scenario/Elab.lean` |
 | Query | `Query` (was `QueryDeclaration`, `QuerySpec`, `QueryAuthoringInput`) | `CheckedQuery` | `Umpire/Query.lean`, `Query/Check.lean`, `Query/Elab.lean` |
 
-The `property%`, `scenario%` (now `scenario%`), and `query%` elaborators stay because fn-80 R2
+The `property%`, `behavior%` (now `scenario%`), and `query%` elaborators stay because fn-80 R2
 routes the generalized command syntax through their located-diagnostic path. `bounded_response%`
 becomes `correlated_response%`; its `closing .runtimePrefix` and `.deliberatelyClosed` endpoints
 become `.partial` and `.final` in every enum that carries them. `PropertyClause` keeps its name;
@@ -511,7 +511,7 @@ go test -tags 'test_dep integration' ./tests -run 'TestTestpilot|TestUmpire'
   `ExperimentSpec` and `DrivePlan` while the wire identifiers are byte-identical;
   `ExecutionHandoff`, `QueryQuantifier`, `QueryClaim`, `TieBreakPolicy`, `QueryAuthoringInput`,
   and `PropertyScopedClock` no longer exist; `Umpire.Provenance.DefinitionKind.behavior` is
-  `scenario`. Errors: `bounded_response%`, `scenario%`, `Scenario`, and
+  `scenario`. Errors: `bounded_response%`, `behavior%`, `BehaviorDeclaration`, and
   `QueryDeclaration` are rejected by the retired gate; a Property with an ambiguous branch group
   still reports the same `Overlap*` finding under its new name.
 - **R4:** the proto package has no `Scoped*` name, `ContractDeadline` replaces the horizon message,

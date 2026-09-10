@@ -43,7 +43,7 @@ private def guardedResponse : PropertyClause :=
       reference := requestCancel
       constraint := .equals (.text "request")
     }))
-      («unless» := none)
+      (exception := none)
       (trigger := (pattern .observation cancelRequested))
       (response := (pattern .observation cancelDelivered))
       (limit := { value := 1, unit := .semanticTransitions })
@@ -60,7 +60,7 @@ private def guardedLogicalResponse : PropertyClause :=
       reference := requestCancel
       constraint := .equals (.text "request")
     }))
-      («unless» := none)
+      (exception := none)
       (trigger := (pattern .observation cancelRequested))
       (response := (pattern .observation cancelDelivered))
       (limit := { value := 1, unit := .logicalTime })

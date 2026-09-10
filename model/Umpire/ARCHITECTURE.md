@@ -19,8 +19,12 @@ Focused public imports are available by responsibility:
 | `Umpire.Core` | Stable definitions, traces, capabilities, laws, and finite kernels. |
 | `Umpire.Model` | Finite-machine and expert Model authoring plus checked composition. |
 | `Umpire.Model.Check` | Checked Model/Machine access, pure admission, and relation-indexed finite planning. |
-| `Umpire.Property` | Property authoring, validation, and pure trace evaluation. |
-| `Umpire.Scenario` | Setup and trace-shape authoring and validation. |
+| `Umpire.Property` | The authored Property language: fields, clauses, and their ordinary-Lean constructors. |
+| `Umpire.Property.Check` | Property admission, canonicalization, and the checked trace view. |
+| `Umpire.Property.Evaluate` | Pure evaluation of a checked Property over an admitted trace view. |
+| `Umpire.Property.Elab` | Located-diagnostic elaboration of an authored Property. |
+| `Umpire.Scenario` | The authored Scenario language: setup roles, occurrences, and trace shape. |
+| `Umpire.Scenario.Check` | Scenario admission, canonicalization, and trace admission. |
 | `Umpire.Query` | Bounded questions over a checked Model, Properties, and Scenarios. |
 | `Umpire.Space` | Checked finite axes, fault intents and their lowering, and atomic point compilation. |
 | `Umpire.Exploration` | Bounded finite selection, pinned precedence, and process-local sessions. |
@@ -40,8 +44,10 @@ domain-specific Temporal modules; the complete import graph is enforced by `make
 ## Model ownership and semantic imports
 
 Ordinary authors keep `import Umpire.Model` (or `import Umpire`). The Model facade includes
-finite-table/machine adapters and syntax-aware authoring. Authors of Properties, Scenarios, and
-Queries likewise keep their public `Umpire.Property`, `Umpire.Scenario`, and `Umpire.Query` facades.
+finite-table/machine adapters and syntax-aware authoring. `Umpire.Property` and `Umpire.Scenario`
+are the authored language modules themselves rather than facades: an author who elaborates imports
+`Umpire.Property.Elab` or `Umpire.Scenario.Elab`, and one who evaluates imports
+`Umpire.Property.Evaluate`. Query keeps its `Umpire.Query` facade.
 
 Library code that consumes checked semantics imports `Umpire.Model.Check`. Property and
 Scenario semantic implementations use that surface; Query uses their semantic modules, and
@@ -113,7 +119,7 @@ incompatibility, exhaustive completion, and limit exhaustion as separate bounded
 
 `correlated_response%` is a readable spelling of `PropertyScopedClause`, admitted through the same
 `property%`/`Property.check` boundary. Scoped clauses declare execution fields, an operation key,
-operation-transition clock, natural bound, and runtime-prefix or deliberately-closed endpoint.
+natural bound, and a partial or final endpoint.
 Projection admits causally supported, Model-authorized steps before obligation execution;
 submissions and duplicate observations contribute no transition. Independent trigger windows count
 only their operation's transitions, including self-loops. Runtime incompleteness leaves unresolved

@@ -578,7 +578,7 @@ private def guardedTemporalCancelDeclaration
       reference := guardAction
       constraint := .equals (.text guardValue)
     }))
-      («unless» := none)
+      (exception := none)
       (trigger := {
       field := .observation
       reference := lifecycleFactId
@@ -1098,7 +1098,7 @@ private def observationTriggerPropertyDeclaration
       (id := (raceId ("temporal.nexus2.cancellation-race.property.observation-trigger." ++ key ++ ".clause")))
       (source := source)
       (guard := some (raceAtom .selectedAction action.definitionId (.text action.value)))
-      («unless» := none)
+      (exception := none)
       (trigger := (PropertyPattern.exact .observation trigger.definitionId trigger.value))
       (response := (PropertyPattern.exact .observation response.definitionId response.value))
       (limit := { value := 1, unit := .observationPositions })]

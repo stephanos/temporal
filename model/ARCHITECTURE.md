@@ -85,7 +85,7 @@ and do not establish that a runtime action occurred.
 
 Operation-scoped bounded response authoring lowers through the existing Property checker.
 `correlated_response%` and typed `PropertyScopedClause` values share canonical meaning and fingerprints;
-key, scope, operation-transition clock, bound, and endpoint remain explicit semantic choices.
+key, scope, bound, and endpoint remain explicit semantic choices.
 Checked projection, source Property, and portable Contract are connected by `Umpire.Case.Scoped`
 certificates. Shared table/projection/obligation modules contain no feature callback; generic
 Testpilot interprets the admitted versioned capability and maintains fresh state for each Run.
