@@ -9,7 +9,7 @@ satisfies: [R3, R7, R8, R9]
 Adapt the generic D3 projection kernel to correlated Temporal Nexus history. The adapter establishes cancellation confirmation and either terminal resolution from declared causal evidence while leaving SDK transport in `common/testing/testpilot/temporal/worker` and all generic Testpilot packages free of Nexus semantics.
 
 **Size:** M
-**Files:** `model/Temporal/System/Nexus/{Core,ImplementationLink,ImplementationLinkTests}.lean`, focused Nexus evidence modules/tests under `model/Temporal/System/Nexus/`, `model/TemporalModelTests/Nexus/ImplementationLink.lean`, `model/Temporal/Feature/Nexus/Success/{Nexus,Tests}.lean`
+**Files:** `model/Temporal/System/Nexus/{Core,ImplementationLink,ImplementationLinkTests}.lean`, focused Nexus evidence modules/tests under `model/Temporal/System/Nexus/`, `model/TemporalModelTests/Nexus/ImplementationLink.lean`, `model/Temporal/Feature/Nexus/Success/{Model,Tests}.lean`
 **Touches:** [model/Temporal/System/Nexus/**, model/TemporalModelTests/Nexus/ImplementationLink.lean, model/Temporal/Feature/Nexus/Success/Model.lean, model/Temporal/Feature/Nexus/Success/Tests.lean]
 
 ### Approach

@@ -28,7 +28,7 @@ satisfies: [R3, R7, R8, R9]
 Adapt the generic D3 projection kernel to correlated Temporal Nexus history. The adapter establishes cancellation confirmation and either terminal resolution from declared causal evidence while leaving SDK transport in `common/testing/testpilot/temporal/worker` and all generic Testpilot packages free of Nexus semantics.
 
 **Size:** M
-**Files:** `model/Temporal/System/Nexus/{Core,ImplementationLink,ImplementationLinkTests}.lean`, focused Nexus evidence modules/tests under `model/Temporal/System/Nexus/`, `model/TemporalModelTests/Nexus/ImplementationLink.lean`, `model/Temporal/Feature/Nexus/Success/{Nexus,Tests}.lean`
+**Files:** `model/Temporal/System/Nexus/{Core,ImplementationLink,ImplementationLinkTests}.lean`, focused Nexus evidence modules/tests under `model/Temporal/System/Nexus/`, `model/TemporalModelTests/Nexus/ImplementationLink.lean`, `model/Temporal/Feature/Nexus/Success/{Model,Tests}.lean`
 **Touches:** [model/Temporal/System/Nexus/**, model/TemporalModelTests/Nexus/ImplementationLink.lean, model/Temporal/Feature/Nexus/Success/Model.lean, model/Temporal/Feature/Nexus/Success/Tests.lean]
 
 ### Approach
@@ -75,7 +75,7 @@ satisfies: [R6, R7, R8, R9]
 Expose D5's readable bounded temporal syntax over the checked scoped clause and qualify a complete authored Nexus cancellation Case through the existing public Testpilot Prepare/Run facade. Keep Nexus syntax and lowering next to the feature adapter while reusable temporal constructors remain in `Umpire.Property`.
 
 **Size:** L
-**Files:** `model/Umpire/Property/{Authoring,Syntax,Tests/**}.lean`, `model/Temporal/Feature/Nexus/Success/{Authoring,Syntax,Nexus,Testpilot,Tests,Integration.md}`, `model/Temporal/Tool/Testpilot.lean`, managed Testpilot fixtures/generator tests, `tests/testpilot_async_nexus_case_test.go`, `model/{README,ARCHITECTURE}.md`, `model/Umpire/ARCHITECTURE.md`
+**Files:** `model/Umpire/Property/{Authoring,Syntax,Tests/**}.lean`, `model/Temporal/Feature/Nexus/Success/{Authoring,Syntax,Model,Producer,Tests,Integration.md}`, `model/Temporal/Tool/Testpilot.lean`, managed Testpilot fixtures/generator tests, `tests/testpilot_async_nexus_case_test.go`, `model/{README,ARCHITECTURE}.md`, `model/Umpire/ARCHITECTURE.md`
 **Touches:** [model/Umpire/Property/**, model/Temporal/Feature/Nexus/Success/**, model/Temporal/Tool/Testpilot.lean, tools/umpire/cmd/umpire-gen-case-runtime-conformance/**, tests/testcore/testpilot/**, tests/testpilot_async_nexus_case_test.go, model/README.md, model/ARCHITECTURE.md, model/Umpire/ARCHITECTURE.md]
 
 ### Approach

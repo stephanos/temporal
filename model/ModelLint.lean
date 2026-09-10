@@ -18,7 +18,7 @@ private def buildOwnedSources (sources : Array SourceRecord) : IO Unit := do
   let ordinaryModules := sources.filterMap fun source =>
     if source.module == `ModelLint || source.module == `ModelLint.ImportGraphTests then none
     else some s!"+{source.module}"
-  let args := #["build", "modelLintTests"] ++ ordinaryModules
+  let args := #["build", "umpire-lint-tests"] ++ ordinaryModules
   let child ← IO.Process.spawn {
     cmd := (← IO.getEnv "LAKE").getD "lake"
     args
