@@ -8,8 +8,8 @@ import Temporal.Feature.Nexus.Operations
 This is the single ordinary Nexus entry import. Read the model in this order:
 
 1. `Temporal.Feature.Nexus.Lifecycle.Semantics` for states, events, and transitions.
-2. `Temporal.Feature.Nexus.Lifecycle.Target` for the proof-carrying finite Target, explicit
-   composition, and `checkTarget` boundary.
+2. `Temporal.Feature.Nexus.Lifecycle.Model` for the proof-carrying finite Target, explicit
+   composition, and `checkModel` boundary.
 3. `Temporal.Feature.Nexus.Operations.AsyncStart` for its checked Property, Behavior, Query, named
    Limits, and deterministic plan.
 4. `Temporal.Feature.Nexus.Operations.Cancellation` and

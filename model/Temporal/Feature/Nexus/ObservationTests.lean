@@ -222,23 +222,23 @@ example :
     }] ∧
     checkedPlan.source = Temporal.Feature.Nexus.Observation.source ∧
     checkedPlan.behaviorFingerprint.render =
-      "sha256:8a70d124869b2653f693682fe799f6b46f1f79361cc2c415c51638c877be5fbd" := by
+      "sha256:efbeb9aac712c8fe820ccdcd7c46f22824e2459fdafed48ee68101cdbfca55e2" := by
   native_decide
 
 /-- The checked mapping admits exactly the target-owned BasicLifecycle vocabulary. -/
 example : checkedPlanResult.isOk = true ∧ checkedPlan.meanings = [
     { definitionId := cancelActionId, kind := .action,
-      canonicalBehavior := "temporal-nexus-basic-lifecycle-cancel/v1" },
+      behaviorVersion := "temporal-nexus-basic-lifecycle-cancel/v1" },
     { definitionId := startActionId, kind := .action,
-      canonicalBehavior := "temporal-nexus-basic-lifecycle-start/v1" },
+      behaviorVersion := "temporal-nexus-basic-lifecycle-start/v1" },
     { definitionId := reportSuccessActionId, kind := .action,
-      canonicalBehavior := "temporal-nexus-basic-lifecycle-report-success/v1" },
+      behaviorVersion := "temporal-nexus-basic-lifecycle-report-success/v1" },
     { definitionId := lifecycleObservationId, kind := .fact,
-      canonicalBehavior := "temporal-nexus-basic-lifecycle-observation/v2" },
+      behaviorVersion := "temporal-nexus-basic-lifecycle-observation/v2" },
     { definitionId := transitionOutcomeId, kind := .outcome,
-      canonicalBehavior := "temporal-nexus-basic-lifecycle-outcome/v2" },
+      behaviorVersion := "temporal-nexus-basic-lifecycle-outcome/v2" },
     { definitionId := operationStateId, kind := .state,
-      canonicalBehavior := "temporal-nexus-basic-lifecycle-state/v2" }
+      behaviorVersion := "temporal-nexus-basic-lifecycle-state/v2" }
   ] := by
   native_decide
 

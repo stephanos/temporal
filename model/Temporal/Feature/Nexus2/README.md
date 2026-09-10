@@ -19,7 +19,7 @@ Read and build these files in order:
 4. `EVIDENCE.md` maps every prototype requirement to executable declarations and records the
    exact residual differences from the deferred ordinary-authoring specification.
 
-The authoring sequence is `FiniteTable.validate` / `checkModelTarget`, then `PropertySpec.check`,
+The authoring sequence is `FiniteTable.validate` / `checkModel`, then `PropertySpec.check`,
 `ExactSequenceSpec.check`, and `QuerySpec.check`, followed by planning with
 `IncrementalPlannerKernel.ofCheckedQuery`. Raw declarations remain available for negative tests.
 A checked value exists only on the successful checker branch; the frontend alternatives do not
@@ -97,7 +97,7 @@ unidentified.
 The practical frontend therefore returns and recomputes the existing successful checker branch. It
 does not turn elaborator evaluation into a `CheckedProperty`, `CheckedBehavior`, or `CheckedQuery`
 constant. The successful-branch Query input is assembled only from existing checked constructor
-results. No new native extraction, `checkedTarget` default, `sorry`, `admit`, or custom axiom is used.
+results. No new native extraction, `model` default, `sorry`, `admit`, or custom axiom is used.
 `#print axioms` audits the constructor families, each check and explicit-proof seam, the guarded and
 baseline frontend admissions, the measured Query frontend, and `Race.targetResult`. The trust-bearing
 results match the established baseline exactly: `propext`, `Classical.choice`, and `Quot.sound`.

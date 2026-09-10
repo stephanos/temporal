@@ -1,16 +1,16 @@
 {
   "formatVersion": "umpire-experiment/v2",
-  "queryBehaviorFingerprint": "sha256:071d7e31114d3a33d6b97a9c5a05a2ff605b6138e47e580bfa30a0e5abcd2455",
+  "queryBehaviorFingerprint": "sha256:d2506a9871cdd94bf7c157c99eb0cb69ac0e831cf3a9f0d28e3d819fdaa8ef9a",
   "plan": {
     "formatVersion": "umpire-drive-plan/v2",
     "queryDefinitionId": "switch.query.exact-action",
-    "queryBehaviorFingerprint": "sha256:071d7e31114d3a33d6b97a9c5a05a2ff605b6138e47e580bfa30a0e5abcd2455",
+    "queryBehaviorFingerprint": "sha256:d2506a9871cdd94bf7c157c99eb0cb69ac0e831cf3a9f0d28e3d819fdaa8ef9a",
     "behaviorDefinitionId": "switch.behavior.exact-action",
     "behaviorFingerprint": "sha256:6d8401f9c207c29194594a9338797214ae11d223509c88c33be19f380f3174e6",
     "targetDefinitionId": "switch.target.two-state",
-    "targetBehaviorFingerprint": "sha256:607a0ef59ce2e76db02675bc6bbf625da9ea2e1f7927fde2064083bc1bf05edb",
+    "targetBehaviorFingerprint": "sha256:dd15faf7be2de6646dbf65eca30c27bdc2829e29b35158c575ec3245d28ebd3c",
     "kernelDefinitionId": "switch.kernel.two-state",
-    "kernelBehaviorFingerprint": "sha256:607a0ef59ce2e76db02675bc6bbf625da9ea2e1f7927fde2064083bc1bf05edb",
+    "kernelBehaviorFingerprint": "sha256:dd15faf7be2de6646dbf65eca30c27bdc2829e29b35158c575ec3245d28ebd3c",
     "bindings": [
       {
         "roleDefinitionId": "switch.role.subject",
@@ -175,12 +175,12 @@
         }
       ]
     },
-    "artifactChecksum": "sha256:7f6aa675d57491e968736829a643fd9a5662d52c38c1a493be096b60495f5f8b"
+    "artifactChecksum": "sha256:2036ce80c7c93dd19d0acb03fa6ebceb678f909684ca17bac413f254954ddbbd"
   },
   "properties": [
     {
       "definitionId": "switch.property.flip-turns-on",
-      "behaviorFingerprint": "sha256:36363f56897cbe9353c171c204295dbfe78fa2ff6377932e13de27f114a518c1",
+      "behaviorFingerprint": "sha256:7cda79f775847515a57bb4ce4988d501f775b675c39a89f49e77b8cdf46f0b9e",
       "requirementDefinitionIds": [
         "switch.capability.state"
       ]
@@ -206,5 +206,5 @@
       }
     ]
   },
-  "artifactChecksum": "sha256:8af20c6a12bbe9c468ed22743fbfcdf9ae1a546492c245e9146e26c2a1518a47"
+  "artifactChecksum": "sha256:9fa327849c3d0a48290bb16fec73a00be4cc1b6234862ee506a547f29b6d3b12"
 }

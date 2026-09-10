@@ -1,6 +1,6 @@
 import Umpire.Property.Scoped
 import Umpire.Observation.Evaluation.Scoped
-import Umpire.Target.FiniteMachine
+import Umpire.Model.Table
 import Umpire.Property.Authoring
 import Umpire.Operation.Action
 import Umpire.Value.Field
@@ -100,13 +100,13 @@ private def kinds : List (String × DefinitionKind) := [
   ("test.reply", .action), ("test.outcome", .outcome)]
 private def definitions : List DefinitionMetadata := kinds.map fun (name, kind) =>
   Shared.Test.definitionMetadata name kind source (name ++ "/v1")
-private def provider : CapabilityProvider (fun _ => True) := {
+private def provider : Provider (fun _ => True) := {
   id := id "test.provider"
   source
-  contract := { id := id "test.capability", canonicalBehavior := "scoped-fields-test/v1", requiredLaws := [] }
+  contract := { id := id "test.capability", behaviorVersion := "scoped-fields-test/v1", requiredLaws := [] }
   meanings := (kinds.drop 4).map fun (name, kind) =>
-    { definitionId := id name, kind, canonicalBehavior := name ++ "/meaning-v1" }
-  lawWitnesses := []
+    { definitionId := id name, kind, behaviorVersion := name ++ "/meaning-v1" }
+  lawProofs := []
 }
 
 private def counts : List Int := [1, 2]
@@ -124,17 +124,17 @@ private def table : FiniteTable Unit ModelValue ModelValue ModelValue ModelValue
       ⟨"reply-" ++ toString count, state, payload replied count, [result true]⟩])
 }
 
-private def targetResult := table.checkTarget {
+private def targetResult := table.checkTypedModel {
   id := id "test.target"
   source
   definitions
   requiredCapabilities := [id "test.capability"]
   metadata := { id := id "test.kernel", source }
-} (TargetComposition.empty.provide provider)
+} (Providers.empty.provide provider)
 
 #guard targetResult.isOk
 
-private abbrev TestTarget := CheckedTarget (fun _ => True) Unit ModelValue ModelValue ModelValue ModelValue
+private abbrev TestTarget := CheckedModel (fun _ => True) Unit ModelValue ModelValue ModelValue ModelValue
 private def bindings : List PropertyFieldBinding :=
   [trigger, replied].map (PropertyFieldBinding.ofWitness owner (Request := Unit) (Response := Unit) ())
 private def context (target : TestTarget) : PropertyCheckContext :=

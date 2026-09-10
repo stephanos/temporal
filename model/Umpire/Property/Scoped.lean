@@ -10,8 +10,8 @@ Every append is immutable and atomic. Whole-stream and offline consumers use `co
 
 namespace Umpire.Property.Scoped
 
-variable {Law : LawDefinition → Prop} {Setup : Type}
-variable {target : CheckedTarget Law Setup ModelValue ModelValue ModelValue ModelValue}
+variable {Law : Law → Prop} {Setup : Type}
+variable {target : CheckedModel Law Setup ModelValue ModelValue ModelValue ModelValue}
 
 /-- Evaluation limits bound retained transitions, independent triggers, retained capture values
 and charged work. A consumer that declares no captures needs no capture budget. -/
@@ -67,7 +67,7 @@ private structure CompiledClause where
     original.responsePattern.field = .resultingState ∨ original.responsePattern.field = .observation
 
 /-- The compiled consumer retains the exact checked Property and producer scope binding. -/
-structure Compiled (target : CheckedTarget Law Setup ModelValue ModelValue ModelValue ModelValue) where
+structure Compiled (target : CheckedModel Law Setup ModelValue ModelValue ModelValue ModelValue) where
   private mk ::
   property : CheckedProperty
   private clauses : List CompiledClause
@@ -117,7 +117,7 @@ def Compiled.portableClauses (compiled : Compiled target) : List Shared.ScopedOb
   compiled.portableReferences.map PortableReference.portable
 
 /-- Reject a whole requested consumer when any clause or producer binding is unsupported. -/
-def compile (target : CheckedTarget Law Setup ModelValue ModelValue ModelValue ModelValue)
+def compile (target : CheckedModel Law Setup ModelValue ModelValue ModelValue ModelValue)
     (property : CheckedProperty) (scopeFields : List DefinitionId)
     (operationField : DefinitionId) (limits : Limits) : Except Error (Compiled target) := do
   if let some clause := property.clauses.head? then
@@ -130,7 +130,7 @@ def compile (target : CheckedTarget Law Setup ModelValue ModelValue ModelValue M
     if property.access.meanings.any (fun required => !meanings.contains required) ||
         property.access.capabilities.any (fun required => !target.providers.any (fun provider =>
           provider.contract.id == required.id && provider.contract.version == required.version &&
-          provider.contract.canonicalBehavior == required.canonicalBehavior)) then
+          provider.contract.behaviorVersion == required.behaviorVersion)) then
       throw (.unsupported clause.declaration.id "Target capability/meaning mismatch")
     if clause.declaration.scope != DefinitionId.canonicalSet scopeFields ||
         clause.declaration.key != operationField then
@@ -272,7 +272,7 @@ structure Run (compiled : Compiled target) where
 def Compiled.start [DecidableEq Setup] (compiled : Compiled target)
     (setup : Setup) (initial : ModelValue) (scope : List (DefinitionId × String)) :
     Except Error (Run compiled) := do
-  if !(setup ∈ target.resolvedSetups) || !(target.kernel.initialStates setup).contains initial then
+  if !(setup ∈ target.resolvedSetups) || !(target.machine.initialStates setup).contains initial then
     throw .invalidInitialState
   let scope := scope.mergeSort fun a b => decide (a.1.value ≤ b.1.value)
   if scope.map Prod.fst != compiled.scopeFields || scope.any (·.2.isEmpty) then
@@ -334,15 +334,15 @@ def Run.consume {compiled : Compiled target} (run : Run compiled) (step : Transi
         let executions ← compiled.clauses.mapM (fun clause => Execution.start clause payload.initial)
         pure { key := step.operation, state := payload.initial, executions }
   if step.priorState != operation.state ||
-      !(target.kernel.steps operation.state step.action).contains step.result then
+      !(target.machine.steps operation.state step.action).contains step.result then
     throw (.invalidTransition step.operation)
   if payload.transitions ≥ compiled.limits.transitions then throw .transitionsExhausted
   let declarations := compiled.clauses.flatMap (·.original.declaration.captures)
   let work := payload.work + payload.retainedObligations +
     16 * compiled.property.scopedClauses.length * (payload.transitions + 1) *
-      (1 + target.behaviorDescription.transitions.foldl (fun maximum row => max maximum row.facts.length) 0) +
+      (1 + target.behaviorTable.transitions.foldl (fun maximum row => max maximum row.facts.length) 0) +
       payload.operations.length +
-    (target.kernel.steps operation.state step.action).length +
+    (target.machine.steps operation.state step.action).length +
     payload.capturedValues + (1 + declarations.length) * evidence.length
   if work > compiled.limits.work then throw .workExhausted
   -- Correlation reads this step's own evidence together with what the operation already retained,

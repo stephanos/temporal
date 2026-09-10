@@ -169,7 +169,7 @@ private def semanticReference
 
 private def definitionReference (metadata : DefinitionMetadata) : SpaceDefinitionReference := {
   toSpaceSemanticReference := semanticReference metadata.id metadata.source metadata.version
-    (behaviorFingerprintOf metadata.canonicalBehavior)
+    (behaviorFingerprintOf metadata.behaviorVersion)
   kind := metadata.kind
 }
 

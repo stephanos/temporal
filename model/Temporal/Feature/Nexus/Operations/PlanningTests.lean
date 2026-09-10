@@ -221,8 +221,8 @@ theorem incrementalKernelRetainsFiniteLifecycleDomain : incrementalKernel.action
   native_decide
 
 private def plannerAdmissionErrorKind
-    {checkedTarget : QueryTarget LawStatement}
-    (result : Except FinitePlannerAdmissionError (IncrementalPlannerKernel checkedTarget)) :
+    {model : QueryModel LawStatement}
+    (result : Except FinitePlannerAdmissionError (IncrementalPlannerKernel model)) :
     Option FinitePlannerAdmissionErrorKind :=
   match result with
   | .ok _ => none
@@ -243,7 +243,7 @@ theorem checkedQueryPlannerAdmissionsPreserveFailures :
   native_decide
 
 theorem queryIdentitiesAndFingerprintsRemainShared :
-  let domainFingerprints := (CheckedQueryTarget.ofTarget target).completeness.map fun evidence =>
+  let domainFingerprints := (CheckedQueryModel.ofTarget target).completeness.map fun evidence =>
     (evidence.roleDomainFingerprint, evidence.actionDomainFingerprint)
   [
     AsyncStart.query,

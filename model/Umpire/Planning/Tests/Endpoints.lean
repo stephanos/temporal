@@ -1,5 +1,5 @@
 import Umpire.Planning.Tests.Fixtures
-import Umpire.Target.FiniteMachine
+import Umpire.Model.Table
 
 /-! Endpoint interpretation and exact candidate-budget boundaries. -/
 
@@ -17,8 +17,8 @@ private def temporalProperty (triggered responds : Bool) (bound : Nat := 1) : Ch
       constraint := .equals (if responds then "accepted" else "absent") }
     { value := bound, unit := .semanticTransitions }]
   access := { capabilities := [], logicalTimeSource := none, meanings := [
-    { definitionId := request, kind := .action, canonicalBehavior := "request" },
-    { definitionId := observed, kind := .fact, canonicalBehavior := "observed" }] }
+    { definitionId := request, kind := .action, behaviorVersion := "request" },
+    { definitionId := observed, kind := .fact, behaviorVersion := "observed" }] }
 }
 
 private def endpointRun
@@ -83,9 +83,9 @@ private def endpointRun
 #print axioms evaluatePropertyEndpoint_closed
 #print axioms PlanningOutcome.constructorClassifiers_exactlyOne
 
-private def terminalTarget (conditions : List (List ModelValue)) : Option (QueryTarget (fun _ => True)) :=
-  (checkTarget (AuthoredTarget.make { targetDefinition 0 with terminalConditions := conditions }
-    TargetComposition.empty (.available (kernel 0) rfl (finitePlanning 0)))).toOption
+private def terminalTarget (conditions : List (List ModelValue)) : Option (QueryModel (fun _ => True)) :=
+  (checkModel (DraftModel.make { modelSpec 0 with terminalConditions := conditions }
+    Providers.empty (.available (kernel 0) rfl (finitePlanning 0)))).toOption
 
 #guard (terminalTarget [[completed], [initial, completed]]).map (fun target =>
     (target.isTerminal initial, target.isTerminal completed)) == some (false, true)
@@ -103,7 +103,7 @@ private def terminalRun : Option PlannerRun := do
   let target ← terminalTarget [[completed], [completed, initial]]
   let query := { checkedQuery 0 (.verify property) .exhaustive with
     target
-    completeness := (CheckedQueryTarget.ofTarget target).completeness
+    completeness := (CheckedQueryModel.ofTarget target).completeness
     endpoint := .terminalModel }
   let kernel ← (IncrementalPlannerKernel.ofCheckedQuery target.id query).toOption
   (plan query kernel).toOption
@@ -132,7 +132,7 @@ private def admittedQuery (endpoint : QueryEndpoint) (exercise : QueryExercisePo
 #guard (admittedQuery .runtimePrefix .requireAllTriggers).map (·.behaviorFingerprint) !=
   (admittedQuery .terminalModel .requireAllTriggers).map (·.behaviorFingerprint)
 
-private def convergingTarget : Option (QueryTarget (fun _ => True)) :=
+private def convergingTarget : Option (QueryModel (fun _ => True)) :=
   let other := value request "other"
   let table : FiniteTable (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
     setups := [⟨setup, "setup"⟩]
@@ -145,19 +145,19 @@ private def convergingTarget : Option (QueryTarget (fun _ => True)) :=
       ⟨"other", initial, other, [transition 0]⟩,
       ⟨"request", initial, requestValue, [{ transition 0 with facts := [] }]⟩]
   }
-  (FiniteTable.checkTarget table {
+  (FiniteTable.checkTypedModel table {
     id := targetId
     source
-    definitions := (targetDefinition 0).definitions
+    definitions := (modelSpec 0).definitions
     requiredCapabilities := []
     metadata := (kernel 0).metadata
-  } TargetComposition.empty).toOption
+  } Providers.empty).toOption
 
 private def convergingRun : Option PlannerRun := do
   let target ← convergingTarget
   let query := { checkedQuery 0 (.verify (temporalProperty true true)) .exhaustive with
     target
-    completeness := (CheckedQueryTarget.ofTarget target).completeness }
+    completeness := (CheckedQueryModel.ofTarget target).completeness }
   let kernel ← (IncrementalPlannerKernel.ofCheckedQuery target.id query).toOption
   (plan query kernel).toOption
 
@@ -190,9 +190,9 @@ private def convergingRun : Option PlannerRun := do
     (.limitReached, [.unresolved])
 
 #guard (terminalTarget [[completed]]).map (·.behaviorFingerprint.render) ==
-  some "sha256:c82cf457e851b60b999b413cab51d48f6cf6878c3244a8d25a3ddef5c36da1c0"
+  some "sha256:0359b9a0d4340f3d4c04b85b6ac0950c2a563076febbacffddfaac2e506f42b5"
 #guard (admittedQuery .deliberatelyClosed .allowVacuous).map (·.behaviorFingerprint.render) ==
-  some "sha256:97c95ff6a534e221dc0c9bdad1f00555087cc07a320a954f0c9213a556a94f68"
+  some "sha256:be5535ef4d07080095b565f71a70233db180f95447d86414ae57330d27a9e43f"
 #guard (endpointRun .deliberatelyClosed .requireAllTriggers
   (.verify (temporalProperty true false)) 10 2).map
     (·.result.metadata.validity.searchTermination) == some "limit-reached"

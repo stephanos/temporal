@@ -152,12 +152,12 @@ def satisfiesRaceRequirement
     facts := [.lifecycleSucceeded, .terminal]
   }]
 
-def LawStatement (law : LawDefinition) : Prop :=
+def LawStatement (law : Law) : Prop :=
   law.id = lawId ∧
     law.body = "temporal-nexus2-cancellation-race-authoritative-table/v1" ∧
     satisfiesRaceRequirement table.transitions = true
 
-def raceLaw : LawDefinition := {
+def raceLaw : Law := {
   id := lawId
   body := "temporal-nexus2-cancellation-race-authoritative-table/v1"
 }
@@ -167,34 +167,34 @@ theorem raceLawProof : LawStatement raceLaw := ⟨rfl, rfl, rfl⟩
 private def metadata
     (definitionId : DefinitionId)
     (kind : DefinitionKind)
-    (canonicalBehavior : String) : DefinitionMetadata :=
-  Temporal.Shared.definitionMetadata definitionId kind source canonicalBehavior
+    (behaviorVersion : String) : DefinitionMetadata :=
+  Temporal.Shared.definitionMetadata definitionId kind source behaviorVersion
 
-def provider : CapabilityProvider LawStatement := {
+def provider : Provider LawStatement := {
   id := providerId
   source
   contract := {
     id := capabilityId
-    canonicalBehavior := "temporal-nexus2-cancellation-race/v1"
+    behaviorVersion := "temporal-nexus2-cancellation-race/v1"
     requiredLaws := [raceLaw]
   }
   meanings := [
     { definitionId := operationStateId, kind := .state,
-      canonicalBehavior := "temporal-nexus2-cancellation-race-state/v1" },
+      behaviorVersion := "temporal-nexus2-cancellation-race-state/v1" },
     { definitionId := requestCancelActionId, kind := .action,
-      canonicalBehavior := "temporal-nexus2-cancellation-race-request-cancel/v1" },
+      behaviorVersion := "temporal-nexus2-cancellation-race-request-cancel/v1" },
     { definitionId := resolveActionId, kind := .action,
-      canonicalBehavior := "temporal-nexus2-cancellation-race-resolve/v1" },
+      behaviorVersion := "temporal-nexus2-cancellation-race-resolve/v1" },
     { definitionId := transitionOutcomeId, kind := .outcome,
-      canonicalBehavior := "temporal-nexus2-cancellation-race-outcome/v1" },
+      behaviorVersion := "temporal-nexus2-cancellation-race-outcome/v1" },
     { definitionId := cancelRequestedFactId, kind := .fact,
-      canonicalBehavior := "temporal-nexus2-cancellation-race-request-fact/v1" },
+      behaviorVersion := "temporal-nexus2-cancellation-race-request-fact/v1" },
     { definitionId := lifecycleFactId, kind := .fact,
-      canonicalBehavior := "temporal-nexus2-cancellation-race-lifecycle-fact/v1" },
+      behaviorVersion := "temporal-nexus2-cancellation-race-lifecycle-fact/v1" },
     { definitionId := terminalFactId, kind := .fact,
-      canonicalBehavior := "temporal-nexus2-cancellation-race-terminal-fact/v1" }
+      behaviorVersion := "temporal-nexus2-cancellation-race-terminal-fact/v1" }
   ]
-  lawWitnesses := [{ definition := raceLaw, proof := raceLawProof }]
+  lawProofs := [{ definition := raceLaw, proof := raceLawProof }]
 }
 
 def definitions : List DefinitionMetadata := [
@@ -212,7 +212,7 @@ def definitions : List DefinitionMetadata := [
   metadata terminalFactId .fact "temporal-nexus2-cancellation-race-terminal-fact/v1"
 ]
 
-def targetDefinition : FiniteTargetDefinition := {
+def modelSpec : TableModelSpec := {
   id := targetId
   source
   definitions
@@ -220,11 +220,11 @@ def targetDefinition : FiniteTargetDefinition := {
   metadata := { id := kernelId, source }
 }
 
-def targetComposition : TargetComposition LawStatement :=
-  TargetComposition.empty |>.provide provider
+def modelProviders : Providers LawStatement :=
+  Providers.empty |>.provide provider
 
-def targetResult : Except FiniteTargetAdmissionError (QueryTarget LawStatement) :=
-  table.checkModelTarget identity targetDefinition targetComposition
+def targetResult : Except TableAdmissionError (QueryModel LawStatement) :=
+  table.checkModel identity modelSpec modelProviders
 
 structure ModelVocabulary where
   startedState : ModelValue
@@ -244,7 +244,7 @@ structure ModelVocabulary where
   deriving BEq, DecidableEq, Repr
 
 def modelVocabulary : Except FiniteTableError ModelVocabulary := do
-  let model ← table.validateModel identity
+  let model ← table.checkIdentity identity
   pure {
     startedState := ← model.stateValue .started
     cancelRequestedState := ← model.stateValue .cancelRequested
@@ -374,7 +374,7 @@ private def unsatisfiableBehaviorDeclaration (model : ModelVocabulary) : Behavio
 }
 
 inductive RaceAdmissionError where
-  | invalidTarget (error : FiniteTargetAdmissionError)
+  | invalidTarget (error : TableAdmissionError)
   | invalidVocabulary (error : FiniteTableError)
   | invalidProperty (error : PropertyError)
   | invalidBehavior (error : BehaviorError)
@@ -389,7 +389,7 @@ structure CheckedQuestion where
   run : PlannerRun
 
 structure CheckedRace where
-  target : QueryTarget LawStatement
+  target : QueryModel LawStatement
   model : ModelVocabulary
   verify : CheckedQuestion
   canceledWitness : CheckedQuestion
@@ -402,7 +402,7 @@ structure CheckedRace where
   limitReached : CheckedQuestion
 
 private def checkQuestion
-    (target : QueryTarget LawStatement)
+    (target : QueryModel LawStatement)
     (queryId : DefinitionId)
     (propertyDeclaration : PropertyDeclaration)
     (behaviorDeclaration : BehaviorDeclaration)

@@ -1,5 +1,6 @@
 import Umpire.Query.Language
-import Umpire.Target.Authoring
+import Umpire.Id
+import Lean.Elab.Term
 import Lean.Meta.Eval
 
 /-! Explicit bounded Query construction over the existing checked Query language. -/
@@ -47,31 +48,31 @@ def QuerySpec.declaration (spec : QuerySpec) : QueryDeclaration := {
 /-- Admit a constructor-authored Query only through the existing language checker. -/
 def QuerySpec.check
     (spec : QuerySpec)
-    (target : QueryTarget LawStatement) : Except QueryError (CheckedQuery LawStatement) :=
+    (target : QueryModel LawStatement) : Except QueryError (CheckedQuery LawStatement) :=
   checkQuery (.ofTarget target) spec.declaration
 
 /-- Produce the checked value after the kernel verifies that the existing checker succeeds. -/
 def QuerySpec.checked
     (spec : QuerySpec)
-    (target : QueryTarget LawStatement)
+    (target : QueryModel LawStatement)
     (valid : (spec.check target).toOption.isSome = true) : CheckedQuery LawStatement :=
   checkedQuery target spec.declaration valid
 
 def QuerySpec.error?
     (spec : QuerySpec)
-    (target : QueryTarget LawStatement) : Option QueryError :=
+    (target : QueryModel LawStatement) : Option QueryError :=
   match spec.check target with
   | .error error => some error
   | .ok _ => none
 
 /-- A successful-branch Query input keeps Target extraction explicit without trusting it as a proof. -/
-structure QueryAuthoringInput (LawStatement : LawDefinition → Prop) where
+structure QueryAuthoringInput (LawStatement : Law → Prop) where
   declaration : QueryDeclaration
-  target : QueryTarget LawStatement
+  target : QueryModel LawStatement
 
 def QueryAuthoringInput.ofSpec
     (spec : QuerySpec)
-    (target : QueryTarget LawStatement) : QueryAuthoringInput LawStatement := {
+    (target : QueryModel LawStatement) : QueryAuthoringInput LawStatement := {
   declaration := spec.declaration
   target
 }
@@ -117,7 +118,7 @@ structure QueryAuthoringSpan where
   endColumn : Nat
   deriving BEq, DecidableEq, Repr
 
-structure QueryAuthoringDiagnostic where
+structure QueryLocatedError where
   error : QueryError
   role : QueryAuthoringRole
   anchor : QueryAuthoringSpan
@@ -127,7 +128,7 @@ private def quoteJson (value : String) : String :=
   Lean.Json.compress (.str value)
 
 def canonicalQueryAuthoringDiagnosticJson
-    (diagnostic : QueryAuthoringDiagnostic) : String :=
+    (diagnostic : QueryLocatedError) : String :=
   "{\"error\":" ++ canonicalQueryErrorJson diagnostic.error ++
     ",\"role\":" ++ quoteJson diagnostic.role.name ++
     ",\"anchor\":{\"sourcePath\":" ++ quoteJson diagnostic.anchor.sourcePath ++
@@ -153,7 +154,7 @@ private def queryAuthoringSpan
     endColumn := endPosition.column
   }
 
-private structure CapturedQueryAuthoringOccurrence where
+private structure CapturedQuerySourceRef where
   role : QueryAuthoringRole
   definitionId : DefinitionId
   reference : Lean.Syntax
@@ -176,10 +177,10 @@ private unsafe def evalQueryErrorUnsafe (expression : Lean.Expr) :
 private opaque evalQueryError (expression : Lean.Expr) :
     Lean.Elab.Term.TermElabM (Option QueryError)
 
-private def captureQueryAuthoringOccurrence
+private def captureQuerySourceRef
     (role : QueryAuthoringRole)
     (reference : Lean.TSyntax `term) :
-    Lean.Elab.Term.TermElabM CapturedQueryAuthoringOccurrence := do
+    Lean.Elab.Term.TermElabM CapturedQuerySourceRef := do
   let expression ← Lean.Elab.Term.elabTerm reference (some (.const ``DefinitionId []))
   let definitionId ← if expression.hasFVar || expression.hasMVar then
     pure (DefinitionId.of "umpire.authoring.local")
@@ -203,10 +204,10 @@ private def selectRoleFallback
   | .incompatibleStrategy => .policy
   | .emptyDefinitionId | .invalidDefinitionId => .parent
 
-private def selectQueryAuthoringOccurrence
+private def selectQuerySourceRef
     (error : QueryError)
-    (occurrences : List CapturedQueryAuthoringOccurrence) :
-    Option CapturedQueryAuthoringOccurrence :=
+    (occurrences : List CapturedQuerySourceRef) :
+    Option CapturedQuerySourceRef :=
   let related := occurrences.filter fun occurrence =>
     error.relatedDefinitionIds.contains occurrence.definitionId
   related.getLast? <|>
@@ -215,7 +216,7 @@ private def selectQueryAuthoringOccurrence
 
 private def elaborateQuery
     (specSyntax targetSyntax : Lean.TSyntax `term)
-    (occurrences : List CapturedQueryAuthoringOccurrence)
+    (occurrences : List CapturedQuerySourceRef)
     (expectedType : Option Lean.Expr) : Lean.Elab.Term.TermElabM Lean.Expr := do
   let errorExpression ← Lean.Elab.Term.elabTerm
     (← `(QuerySpec.error? $specSyntax $targetSyntax))
@@ -226,7 +227,7 @@ private def elaborateQuery
       (← `(QuerySpec.check $specSyntax $targetSyntax)) expectedType
   match ← evalQueryError errorExpression with
   | some error =>
-      match selectQueryAuthoringOccurrence error occurrences with
+      match selectQuerySourceRef error occurrences with
       | some occurrence =>
           Lean.throwErrorAt occurrence.reference s!"query authoring failed: {
             canonicalQueryAuthoringDiagnosticJson {
@@ -238,17 +239,17 @@ private def elaborateQuery
   | none =>
       Lean.Elab.Term.elabTerm (← `(QuerySpec.check $specSyntax $targetSyntax)) expectedType
 
-declare_syntax_cat queryAuthoringOccurrence
-syntax ident term : queryAuthoringOccurrence
+declare_syntax_cat querySourceRef
+syntax ident term : querySourceRef
 syntax (name := checkedQuerySyntax)
-  "query%" term "against" term "tracking" "[" queryAuthoringOccurrence,* "]" : term
+  "query%" term "against" term "tracking" "[" querySourceRef,* "]" : term
 
 elab_rules : term
   | `(query% $spec against $target tracking [$occurrences,*]) => do
       let mut captured := []
       for occurrence in occurrences.getElems do
         let item ← match occurrence with
-          | `(queryAuthoringOccurrence| $role:ident $reference) =>
+          | `(querySourceRef| $role:ident $reference) =>
               let role ← match role.getId.toString with
                 | "queryParent" => pure QueryAuthoringRole.parent
                 | "targetAnchor" => pure QueryAuthoringRole.target
@@ -258,14 +259,14 @@ elab_rules : term
                 | "policyAnchor" => pure QueryAuthoringRole.policy
                 | _ => Lean.throwErrorAt role.raw ("expected queryParent, targetAnchor, " ++
                     "propertyAnchor, behaviorAnchor, limitsAnchor, or policyAnchor")
-              captureQueryAuthoringOccurrence role reference
+              captureQuerySourceRef role reference
           | _ => Lean.Elab.throwUnsupportedSyntax
         captured := captured ++ [item]
       elaborateQuery spec target captured none
 
 private def elaborateQueryInput
     (inputSyntax : Lean.TSyntax `term)
-    (occurrences : List CapturedQueryAuthoringOccurrence)
+    (occurrences : List CapturedQuerySourceRef)
     (expectedType : Option Lean.Expr) : Lean.Elab.Term.TermElabM Lean.Expr := do
   let errorExpression ← Lean.Elab.Term.elabTerm
     (← `(QueryAuthoringInput.error? $inputSyntax))
@@ -276,7 +277,7 @@ private def elaborateQueryInput
       (← `(QueryAuthoringInput.check? $inputSyntax)) expectedType
   match ← evalQueryError errorExpression with
   | some error =>
-      match selectQueryAuthoringOccurrence error occurrences with
+      match selectQuerySourceRef error occurrences with
       | some occurrence =>
           Lean.throwErrorAt occurrence.reference s!"query authoring failed: {
             canonicalQueryAuthoringDiagnosticJson {
@@ -289,14 +290,14 @@ private def elaborateQueryInput
       Lean.Elab.Term.elabTerm (← `(QueryAuthoringInput.check? $inputSyntax)) expectedType
 
 syntax (name := checkedQueryInputSyntax)
-  "query%" term "tracking" "[" queryAuthoringOccurrence,* "]" : term
+  "query%" term "tracking" "[" querySourceRef,* "]" : term
 
 elab_rules : term
   | `(query% $input tracking [$occurrences,*]) => do
       let mut captured := []
       for occurrence in occurrences.getElems do
         let item ← match occurrence with
-          | `(queryAuthoringOccurrence| $role:ident $reference) =>
+          | `(querySourceRef| $role:ident $reference) =>
               let role ← match role.getId.toString with
                 | "queryParent" => pure QueryAuthoringRole.parent
                 | "targetAnchor" => pure QueryAuthoringRole.target
@@ -306,7 +307,7 @@ elab_rules : term
                 | "policyAnchor" => pure QueryAuthoringRole.policy
                 | _ => Lean.throwErrorAt role.raw ("expected queryParent, targetAnchor, " ++
                     "propertyAnchor, behaviorAnchor, limitsAnchor, or policyAnchor")
-              captureQueryAuthoringOccurrence role reference
+              captureQuerySourceRef role reference
           | _ => Lean.Elab.throwUnsupportedSyntax
         captured := captured ++ [item]
       elaborateQueryInput input captured none

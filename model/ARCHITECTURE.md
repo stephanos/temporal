@@ -19,15 +19,15 @@ owner boundaries below:
 
 ```text
 Shared
-  └── transition and trace replay
+  └── correlated projection and obligation, inert named values
 
-Umpire.Core ──▶ Target.Data ──▶ Target.Projection ──▶ Target.Semantics
-                                                         ├──▶ Property / Behavior semantics
-                                                         │       └──▶ Query semantics ──▶ Planning
-                                                         ├──▶ Target.Frontend ──▶ Target authoring facade
-                                                         └──▶ Target.FiniteMachine ──▶ Target authoring facade
+Umpire.Core ──▶ Model.Types ──▶ Model.Canonical ──▶ Model.Check
+                                                       ├──▶ Property / Behavior semantics
+                                                       │       └──▶ Query semantics ──▶ Planning
+                                                       ├──▶ Model.Elab ──▶ Model authoring facade
+                                                       └──▶ Model.Table ──▶ Model authoring facade
 
-Checked Targets ──▶ Observation / ImplementationLink / Space / Exploration / Promotion
+Checked Models ──▶ Observation / ImplementationLink / Space / Exploration / Promotion
 
 Testpilot.Protocol ──▶ Testpilot.Authoring ──▶ Temporal.Testpilot
          │                       ▲                       ▲
@@ -45,13 +45,13 @@ except for the exact checked Implementation Link leaf. `Temporal.Tool.*` owns de
 is not imported by the production aggregate. `make lint-model` checks these edges against the full
 source inventory and compiled module metadata.
 
-`Umpire.Target.Semantics` is the narrow checked-model import. It owns pure admission together with
-private checked construction; `Target.Projection` owns pure canonicalization, and `Target.Frontend`
+`Umpire.Model.Check` is the narrow checked-model import. It owns pure admission together with
+private checked construction; `Model.Canonical` owns pure canonicalization, and `Model.Elab`
 owns syntax capture and located elaboration. Property, Behavior, Query, and Planning semantic
-modules cannot transitively import the Target frontend or `Lean.Elab.Term`. The ordinary authoring
-facades remain `Umpire.Target`, `Umpire.Property`, `Umpire.Behavior`, and `Umpire.Query`; importing
+modules cannot transitively import the model elaborator or `Lean.Elab.Term`. The ordinary authoring
+facades remain `Umpire.Model`, `Umpire.Property`, `Umpire.Behavior`, and `Umpire.Query`; importing
 Planning alone does not provide their authoring conveniences. See the
-[Target ownership table](Umpire/ARCHITECTURE.md#target-ownership-and-semantic-imports) for the checked
+[Model ownership table](Umpire/ARCHITECTURE.md#model-ownership-and-semantic-imports) for the checked
 API and replacement-proof contracts.
 
 ## Generated structure
@@ -72,7 +72,7 @@ make umpire-gen-lean-dynamic-config-catalog
 
 The retained semantic APIs keep these responsibilities separate:
 
-- Target owns valid setup, state, Action, outcome, observation, transition, and capability domains.
+- The Model owns valid setup, state, Action, outcome, observation, transition, and capability domains.
 - Property states a claim over model traces.
 - Behavior constrains allowed trace shape without choosing target-owned outcomes.
 - Query asks one bounded planning question.
@@ -93,7 +93,7 @@ Testpilot interprets the admitted versioned capability and maintains fresh state
 The non-cancellation scoped corpus now includes RPC Programs that emit typed observations through
 the public Prepare/Run path. It qualifies correlation, inclusive deadlines, preserved violation
 proof, incomplete/lost execution, cleanup failure, and bounded tenfold loads. The existing Nexus3
-success Case remains the live Driver integration. Cancellation Targets, evidence adapters, operation
+success Case remains the live Driver integration. Cancellation Models, evidence adapters, operation
 capabilities, and authored Cases are deferred to fn-79, independently of Run-context cancellation
 and bounded cleanup.
 

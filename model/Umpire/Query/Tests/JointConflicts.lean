@@ -9,10 +9,10 @@ open Umpire.PlanningTests
 
 private def capability : DefinitionId := id "planner.capability.joint-analysis"
 
-private def meaning (definitionId : DefinitionId) (kind : DefinitionKind) : MeaningProvision := {
+private def meaning (definitionId : DefinitionId) (kind : DefinitionKind) : Meaning := {
   definitionId
   kind
-  canonicalBehavior := definitionId.value ++ "/joint-analysis-v1"
+  behaviorVersion := definitionId.value ++ "/joint-analysis-v1"
 }
 
 private def propertyContext : PropertyCheckContext := {
@@ -26,7 +26,7 @@ private def propertyContext : PropertyCheckContext := {
   providers := [{
     id := capability
     version := 1
-    canonicalBehavior := "planner-joint-analysis/v1" }]
+    behaviorVersion := "planner-joint-analysis/v1" }]
   meanings := [
     (capability, meaning phase .state),
     (capability, meaning request .action),

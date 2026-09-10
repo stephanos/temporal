@@ -258,7 +258,7 @@ structure UncheckedEvidenceBackedTrace where
   profileId : DefinitionId
   profileVersion : Nat
   sourceClosed : Bool
-  vocabulary : List MeaningProvision
+  vocabulary : List Meaning
   dispositions : List FieldDispositionDeclaration
   appliedBound : EvidenceBound
   evidenceIdentities : List DefinitionId

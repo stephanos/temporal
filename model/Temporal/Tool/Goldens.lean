@@ -1,4 +1,4 @@
-import Umpire.Target.Tests.Fixtures
+import Umpire.Model.Tests.Fixtures
 import Umpire.Artifact.Tests.Set
 import Umpire.Examples.Switch
 import Temporal.Feature.Nexus.Operations.AsyncStart
@@ -27,16 +27,16 @@ private def required (path : String) : Option String → IO String
   | none => throw (IO.userError s!"no value to render for golden {path}")
 
 private def compatibilityGoldens : IO (List Golden) := do
-  let composed := (composeTarget Umpire.TargetTests.testTarget).toOption
-  let fingerprintPath := "Umpire/Target/Tests/Compatibility/Fixtures/TestTargetBehaviorFingerprint.txt"
-  let metadataPath := "Umpire/Target/Tests/Compatibility/Fixtures/TestTargetCanonicalMetadata.json"
+  let composed := ((checkModel (DraftModel.make Umpire.ModelTests.testTarget) |>.mapError LocatedError.error)).toOption
+  let fingerprintPath := "Umpire/Model/Tests/Compatibility/Fixtures/TestTargetBehaviorFingerprint.txt"
+  let metadataPath := "Umpire/Model/Tests/Compatibility/Fixtures/TestTargetCanonicalMetadata.json"
   pure [
     { path := fingerprintPath,
       contents := ← required fingerprintPath
         (composed.map fun target => target.behaviorFingerprint.render ++ "\n") },
     { path := metadataPath,
       contents := ← required metadataPath
-        (composed.map (Json.prettyBytes ∘ CheckedTarget.canonicalMetadata)) }
+        (composed.map (Json.prettyBytes ∘ CheckedModel.canonicalMetadata)) }
   ]
 
 private def nexusOperationGoldens : IO (List Golden) := do

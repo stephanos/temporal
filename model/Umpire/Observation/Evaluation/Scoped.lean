@@ -20,8 +20,8 @@ namespace Umpire.Observation.Scoped
 
 open Property.Scoped
 
-variable {Law : LawDefinition → Prop} {Setup : Type}
-variable {target : CheckedTarget Law Setup ModelValue ModelValue ModelValue ModelValue}
+variable {Law : Law → Prop} {Setup : Type}
+variable {target : CheckedModel Law Setup ModelValue ModelValue ModelValue ModelValue}
 
 /-- Failures retain which checked boundary rejected the append. -/
 inductive Error where
@@ -97,7 +97,7 @@ def semanticStep (step : Projection.Step target) : Transition := {
 
 /-- Each adapted step retains the projector's exact authoritative transition. -/
 theorem semanticStep_authorized (step : Projection.Step target) :
-    target.kernel.authoritativeStep (semanticStep step).priorState (semanticStep step).action
+    target.machine.authoritativeStep (semanticStep step).priorState (semanticStep step).action
       (semanticStep step).result := step.authorized
 
 /-- Consume only the append's new emissions, together with the covered projections this event's

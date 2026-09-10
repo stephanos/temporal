@@ -14,20 +14,20 @@ it is charged before staging, independently of the buffer, key, and retained-sup
 
 namespace Umpire.Observation.Projection
 
-variable {Law : LawDefinition → Prop} {Setup State Action Outcome Fact : Type}
-variable {target : CheckedTarget Law Setup State Action Outcome Fact}
+variable {Law : Law → Prop} {Setup State Action Outcome Fact : Type}
+variable {target : CheckedModel Law Setup State Action Outcome Fact}
 
 /-- A checked projection is tied to its Target and an admitted initial state. -/
-structure Checked (target : CheckedTarget Law Setup State Action Outcome Fact) where
+structure Checked (target : CheckedModel Law Setup State Action Outcome Fact) where
   private mk ::
   private declaration : Declaration State Action Outcome Fact
   private initial : State
   private machine : Shared.ScopedProjection.Plan DefinitionId State Action
     (Step State Outcome Fact)
   private tableSound : ∀ row ∈ machine.transitions,
-    target.kernel.authoritativeStep row.1 row.2.1 row.2.2
+    target.machine.authoritativeStep row.1 row.2.1 row.2.2
   private limitsMatch : machine.limits = declaration.limits
-  canonicalBehavior : String
+  behaviorVersion : String
   behaviorFingerprint : BehaviorFingerprint
 
 /-- Execution fields admitted by the projector, available to checked semantic consumers. -/
@@ -48,11 +48,11 @@ def Checked.sourceDeclaration (plan : Checked target) := plan.declaration
 /-- Every encoded-table row retains the checked Target's transition authority. -/
 theorem Checked.table_authorized (plan : Checked target) (row)
     (member : row ∈ plan.executable.transitions) :
-    target.kernel.authoritativeStep row.1 row.2.1 row.2.2 :=
+    target.machine.authoritativeStep row.1 row.2.1 row.2.2 :=
   plan.tableSound row member
 
 /-- A confirmed step carries kernel authority and exact direct/transitive source support. -/
-structure Step (target : CheckedTarget Law Setup State Action Outcome Fact) where
+structure Step (target : CheckedModel Law Setup State Action Outcome Fact) where
   private mk ::
   scope : List (DefinitionId × String)
   operationField : DefinitionId
@@ -64,7 +64,7 @@ structure Step (target : CheckedTarget Law Setup State Action Outcome Fact) wher
   support : List Identity
   directRunSequences : List Nat
   runSequences : List Nat
-  authorized : target.kernel.authoritativeStep priorState action result
+  authorized : target.machine.authoritativeStep priorState action result
 
 /-- Forget only evidence, retaining the Target-owned semantic step for checked consumers. -/
 def Step.semantic (step : Step target) : ModelTraceStep State Action Outcome Fact :=
@@ -91,7 +91,7 @@ private def meaningJson
 /-- Validate declarations before allocating Run state; no semantic result is inferred from submission. -/
 def check [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
     [DecidableEq Outcome] [DecidableEq Fact]
-    (target : CheckedTarget Law Setup State Action Outcome Fact)
+    (target : CheckedModel Law Setup State Action Outcome Fact)
     (declaration : Declaration State Action Outcome Fact) (setup : Setup) (initial : State) :
     Except Error (Checked target) := do
   if declaration.version != 1 then throw .unsupportedVersion
@@ -105,9 +105,9 @@ def check [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
       declaration.sources.eraseDups != declaration.sources ||
       (declaration.rules.map Rule.kind).eraseDups != declaration.rules.map Rule.kind then
     throw .invalidDeclaration
-  if !(setup ∈ target.resolvedSetups) || !(initial ∈ target.kernel.initialStates setup) then
+  if !(setup ∈ target.resolvedSetups) || !(initial ∈ target.machine.initialStates setup) then
     throw .invalidInitialState
-  let .complete domain := target.kernel.behaviorDomain | throw .invalidDeclaration
+  let .complete domain := target.machine.vocabulary | throw .invalidDeclaration
   for rule in declaration.rules do
     if (rule.fields.map fun field => field.1.id).eraseDups != rule.fields.map (fun field => field.1.id)
       then throw .invalidDeclaration
@@ -122,7 +122,7 @@ def check [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
         if required.any (fun action => !(action ∈ domain.actions)) then throw .invalidDeclaration
         for (action, result) in steps do
           if !(domain.states.any fun state =>
-              (target.kernel.steps state action).any (fun candidate => decide (candidate = result))) then
+              (target.machine.steps state action).any (fun candidate => decide (candidate = result))) then
             throw .invalidDeclaration
         if required.any (fun action => !(declaration.rules.any fun candidate =>
             match candidate.meaning with
@@ -153,14 +153,14 @@ def check [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
     initial
     rules := declaration.rules.map fun rule => ⟨rule.kind, rule.fields.length, rule.meaning⟩
     transitions := domain.states.flatMap fun prior => domain.actions.flatMap fun action =>
-      (target.kernel.steps prior action).map fun result => (prior, action, result)
+      (target.machine.steps prior action).map fun result => (prior, action, result)
     limits := declaration.limits }
   have sound : ∀ row ∈ machine.transitions,
-      target.kernel.authoritativeStep row.1 row.2.1 row.2.2 := by
+      target.machine.authoritativeStep row.1 row.2.1 row.2.2 := by
     intro row member
     simp only [machine, List.mem_flatMap, List.mem_map] at member
     obtain ⟨prior, _, action, _, result, member, rfl⟩ := member
-    exact target.kernel.stepSound prior action result member
+    exact target.machine.stepSound prior action result member
   pure ⟨declaration, initial, machine, sound,
     rfl, canonical, behaviorFingerprintOf canonical⟩
 

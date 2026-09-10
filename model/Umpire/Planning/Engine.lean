@@ -32,7 +32,7 @@ The planner-specific kernel view is indexed rather than List-valued. Its proof f
 incremental value to the selected target relation, establish completeness independently of Query's
 claim-bearing evidence, and require canonical identity order for unseeded traversal.
 -/
-structure IncrementalPlannerKernel (target : QueryTarget LawStatement) where
+structure IncrementalPlannerKernel (target : QueryModel LawStatement) where
   actionLimit : Nat
   actionAt : Nat → Option ModelValue
   initialLimit : List RoleBinding → Nat
@@ -41,18 +41,18 @@ structure IncrementalPlannerKernel (target : QueryTarget LawStatement) where
   stepAt : ModelValue → ModelValue → Nat →
     Option (Step ModelValue ModelValue ModelValue)
   actionSound : ∀ index action, index < actionLimit → actionAt index = some action →
-    ∃ state result, target.kernel.authoritativeStep state action result
+    ∃ state result, target.machine.authoritativeStep state action result
   actionComplete : ∀ state action result,
-    target.kernel.authoritativeStep state action result →
+    target.machine.authoritativeStep state action result →
       ∃ index, index < actionLimit ∧ actionAt index = some action
   initialSound : ∀ setup index state, index < initialLimit setup →
-    initialAt setup index = some state → target.kernel.authoritativeInitial setup state
-  initialComplete : ∀ setup state, target.kernel.authoritativeInitial setup state →
+    initialAt setup index = some state → target.machine.authoritativeInitial setup state
+  initialComplete : ∀ setup state, target.machine.authoritativeInitial setup state →
     ∃ index, index < initialLimit setup ∧ initialAt setup index = some state
   stepSound : ∀ state action index result, index < stepLimit state action →
     stepAt state action index = some result →
-      target.kernel.authoritativeStep state action result
-  stepComplete : ∀ state action result, target.kernel.authoritativeStep state action result →
+      target.machine.authoritativeStep state action result
+  stepComplete : ∀ state action result, target.machine.authoritativeStep state action result →
     ∃ index, index < stepLimit state action ∧ stepAt state action index = some result
   actionOrdered : ∀ first second left right, first < second →
     actionAt first = some left → actionAt second = some right →
@@ -66,13 +66,13 @@ structure IncrementalPlannerKernel (target : QueryTarget LawStatement) where
 
 /-- Canonical ordering obligations for the finite lists already owned by a checked target. -/
 structure FiniteKernelOrder
-    (target : QueryTarget LawStatement)
+    (target : QueryModel LawStatement)
     (evidence : FiniteCompletenessEvidence LawStatement target) where
   action : evidence.actions.Pairwise fun left right =>
     modelValueOrderKey left ≤ modelValueOrderKey right
-  initial : ∀ setup, (target.kernel.initialStates setup).Pairwise fun left right =>
+  initial : ∀ setup, (target.machine.initialStates setup).Pairwise fun left right =>
     modelValueOrderKey left ≤ modelValueOrderKey right
-  step : ∀ state action, (target.kernel.steps state action).Pairwise fun left right =>
+  step : ∀ state action, (target.machine.steps state action).Pairwise fun left right =>
     stepOrderKey left ≤ stepOrderKey right
 
 /-- Derive indexed planning from the target's sound and complete finite list interface. -/
@@ -81,10 +81,10 @@ def IncrementalPlannerKernel.ofFinite
     (order : FiniteKernelOrder target evidence) : IncrementalPlannerKernel target := {
   actionLimit := evidence.actions.length
   actionAt := fun index => evidence.actions[index]?
-  initialLimit := fun setup => (target.kernel.initialStates setup).length
-  initialAt := fun setup index => (target.kernel.initialStates setup)[index]?
-  stepLimit := fun state action => (target.kernel.steps state action).length
-  stepAt := fun state action index => (target.kernel.steps state action)[index]?
+  initialLimit := fun setup => (target.machine.initialStates setup).length
+  initialAt := fun setup index => (target.machine.initialStates setup)[index]?
+  stepLimit := fun state action => (target.machine.steps state action).length
+  stepAt := fun state action index => (target.machine.steps state action)[index]?
   actionSound := by
     intro index action _ emitted
     apply evidence.actionSound action
@@ -99,25 +99,25 @@ def IncrementalPlannerKernel.ofFinite
     exact ⟨index, inBounds, List.getElem?_eq_some_iff.mpr ⟨inBounds, selected⟩⟩
   initialSound := by
     intro setup index state _ emitted
-    apply target.kernel.initialSound
+    apply target.machine.initialSound
     rcases List.getElem?_eq_some_iff.mp emitted with ⟨inBounds, selected⟩
     rw [List.mem_iff_getElem]
     exact ⟨index, inBounds, selected⟩
   initialComplete := by
     intro setup state admitted
-    have member := target.kernel.initialComplete setup state admitted
+    have member := target.machine.initialComplete setup state admitted
     rw [List.mem_iff_getElem] at member
     rcases member with ⟨index, inBounds, selected⟩
     exact ⟨index, inBounds, List.getElem?_eq_some_iff.mpr ⟨inBounds, selected⟩⟩
   stepSound := by
     intro state action index result _ emitted
-    apply target.kernel.stepSound
+    apply target.machine.stepSound
     rcases List.getElem?_eq_some_iff.mp emitted with ⟨inBounds, selected⟩
     rw [List.mem_iff_getElem]
     exact ⟨index, inBounds, selected⟩
   stepComplete := by
     intro state action result admitted
-    have member := target.kernel.stepComplete state action result admitted
+    have member := target.machine.stepComplete state action result admitted
     rw [List.mem_iff_getElem] at member
     rcases member with ⟨index, inBounds, selected⟩
     exact ⟨index, inBounds, List.getElem?_eq_some_iff.mpr ⟨inBounds, selected⟩⟩
@@ -152,10 +152,10 @@ def IncrementalPlannerKernel.ofCheckedQuery?
       evidence.actions.Pairwise fun left right =>
         modelValueOrderKey left ≤ modelValueOrderKey right)
     (initialOrdered : ∀ evidence, query.completeness = some evidence → ∀ setup,
-      (query.target.kernel.initialStates setup).Pairwise fun left right =>
+      (query.target.machine.initialStates setup).Pairwise fun left right =>
         modelValueOrderKey left ≤ modelValueOrderKey right)
     (stepOrdered : ∀ evidence, query.completeness = some evidence → ∀ state action,
-      (query.target.kernel.steps state action).Pairwise fun left right =>
+      (query.target.machine.steps state action).Pairwise fun left right =>
         stepOrderKey left ≤ stepOrderKey right) :
     Option (IncrementalPlannerKernel query.target) :=
   match evidenceEq : query.completeness with
@@ -257,12 +257,12 @@ private def IncrementalPlannerKernel.ofCanonicalFinite
   {
   actionLimit := actions.length
   actionAt := fun index => actions[index]?
-  initialLimit := fun setup => (target.kernel.initialStates setup).length
+  initialLimit := fun setup => (target.machine.initialStates setup).length
   initialAt := fun setup index =>
-    (target.kernel.initialStates setup |>.mergeSort modelValueLe)[index]?
-  stepLimit := fun state action => (target.kernel.steps state action).length
+    (target.machine.initialStates setup |>.mergeSort modelValueLe)[index]?
+  stepLimit := fun state action => (target.machine.steps state action).length
   stepAt := fun state action index =>
-    (target.kernel.steps state action |>.mergeSort stepLe)[index]?
+    (target.machine.steps state action |>.mergeSort stepLe)[index]?
   actionSound := by
     intro index action _ emitted
     apply evidence.actionSound action
@@ -280,38 +280,38 @@ private def IncrementalPlannerKernel.ofCanonicalFinite
     exact ⟨index, inBounds, List.getElem?_eq_some_iff.mpr ⟨inBounds, selected⟩⟩
   initialSound := by
     intro setup index state _ emitted
-    apply target.kernel.initialSound
+    apply target.machine.initialSound
     rcases List.getElem?_eq_some_iff.mp emitted with ⟨inBounds, selected⟩
-    have member : state ∈ (target.kernel.initialStates setup |>.mergeSort modelValueLe) := by
+    have member : state ∈ (target.machine.initialStates setup |>.mergeSort modelValueLe) := by
       rw [List.mem_iff_getElem]
       exact ⟨index, inBounds, selected⟩
     exact List.mem_mergeSort.mp member
   initialComplete := by
     intro setup state admitted
-    have member : state ∈ (target.kernel.initialStates setup |>.mergeSort modelValueLe) :=
-      List.mem_mergeSort.mpr (target.kernel.initialComplete setup state admitted)
+    have member : state ∈ (target.machine.initialStates setup |>.mergeSort modelValueLe) :=
+      List.mem_mergeSort.mpr (target.machine.initialComplete setup state admitted)
     rw [List.mem_iff_getElem] at member
     rcases member with ⟨index, inBounds, selected⟩
-    have originalBound : index < (target.kernel.initialStates setup).length := by
+    have originalBound : index < (target.machine.initialStates setup).length := by
       simpa using inBounds
     exact ⟨index, originalBound, List.getElem?_eq_some_iff.mpr ⟨inBounds, selected⟩⟩
   stepSound := by
     intro state action index result _ emitted
-    apply target.kernel.stepSound
+    apply target.machine.stepSound
     rcases List.getElem?_eq_some_iff.mp emitted with ⟨inBounds, selected⟩
     have member : result ∈
-        (target.kernel.steps state action |>.mergeSort stepLe) := by
+        (target.machine.steps state action |>.mergeSort stepLe) := by
       rw [List.mem_iff_getElem]
       exact ⟨index, inBounds, selected⟩
     exact List.mem_mergeSort.mp member
   stepComplete := by
     intro state action result admitted
     have member : result ∈
-        (target.kernel.steps state action |>.mergeSort stepLe) :=
-      List.mem_mergeSort.mpr (target.kernel.stepComplete state action result admitted)
+        (target.machine.steps state action |>.mergeSort stepLe) :=
+      List.mem_mergeSort.mpr (target.machine.stepComplete state action result admitted)
     rw [List.mem_iff_getElem] at member
     rcases member with ⟨index, inBounds, selected⟩
-    have originalBound : index < (target.kernel.steps state action).length := by
+    have originalBound : index < (target.machine.steps state action).length := by
       simpa using inBounds
     exact ⟨index, originalBound, List.getElem?_eq_some_iff.mpr ⟨inBounds, selected⟩⟩
   actionOrdered := by
@@ -328,7 +328,7 @@ private def IncrementalPlannerKernel.ofCanonicalFinite
     rcases List.getElem?_eq_some_iff.mp emittedRight with ⟨secondBound, selectedRight⟩
     have ordered := List.pairwise_iff_getElem.mp
       (List.pairwise_mergeSort modelValueLe_trans modelValueLe_total
-        (target.kernel.initialStates setup))
+        (target.machine.initialStates setup))
       first second firstBound secondBound earlier
     simpa [modelValueLe, selectedLeft, selectedRight] using ordered
   stepOrdered := by
@@ -337,7 +337,7 @@ private def IncrementalPlannerKernel.ofCanonicalFinite
     rcases List.getElem?_eq_some_iff.mp emittedRight with ⟨secondBound, selectedRight⟩
     have ordered := List.pairwise_iff_getElem.mp
       (List.pairwise_mergeSort transitionResultLe_trans transitionResultLe_total
-        (target.kernel.steps state action))
+        (target.machine.steps state action))
       first second firstBound secondBound earlier
     simpa [stepLe, selectedLeft, selectedRight] using ordered
 }
@@ -350,7 +350,7 @@ private def finiteOrderError?
   if evidence.actions.mergeSort modelValueLe != evidence.actions then
     some { kind := .noncanonicalActionOrder, expectedTarget := targetId, actualTarget := targetId }
   else
-    match query.target.kernel.behaviorDomain with
+    match query.target.machine.vocabulary with
     | .missing | .incomplete _ => some {
         kind := .missingFiniteCompleteness
         expectedTarget := targetId
@@ -358,8 +358,8 @@ private def finiteOrderError?
       }
     | .complete domain =>
         match domain.setups.find? fun setup =>
-            (query.target.kernel.initialStates setup |>.mergeSort modelValueLe) !=
-              query.target.kernel.initialStates setup with
+            (query.target.machine.initialStates setup |>.mergeSort modelValueLe) !=
+              query.target.machine.initialStates setup with
         | some setup => some {
             kind := .noncanonicalInitialOrder
             expectedTarget := targetId
@@ -370,8 +370,8 @@ private def finiteOrderError?
             let pairs := domain.states.flatMap fun state => domain.actions.map fun action =>
               (state, action)
             match pairs.find? fun pair =>
-                (query.target.kernel.steps pair.1 pair.2 |>.mergeSort stepLe) !=
-                  query.target.kernel.steps pair.1 pair.2 with
+                (query.target.machine.steps pair.1 pair.2 |>.mergeSort stepLe) !=
+                  query.target.machine.steps pair.1 pair.2 with
             | some (state, action) => some {
                 kind := .noncanonicalStepOrder
                 expectedTarget := targetId
@@ -398,7 +398,7 @@ def IncrementalPlannerKernel.ofCheckedQuery
         kind := .missingFiniteCompleteness
         expectedTarget
         actualTarget := query.target.id
-        relatedDefinitionIds := [query.target.id, query.target.kernel.metadata.id]
+        relatedDefinitionIds := [query.target.id, query.target.machine.metadata.id]
       }
     | some evidence =>
         match finiteOrderError? query evidence with
@@ -415,24 +415,24 @@ theorem IncrementalPlannerKernel.ofCheckedQuery_isSome
     (targetMatches : (expectedTarget != query.target.id) = false)
     (completeness : query.completeness = some evidence)
     (behaviorDomainComplete : ∃ domain,
-      query.target.kernel.behaviorDomain = .complete domain)
+      query.target.machine.vocabulary = .complete domain)
     (actionCanonical : evidence.actions.mergeSort (fun left right =>
       decide (modelValueOrderKey left ≤ modelValueOrderKey right)) = evidence.actions)
     (initialCanonical : ∀ setup,
-      (query.target.kernel.initialStates setup).mergeSort (fun left right =>
+      (query.target.machine.initialStates setup).mergeSort (fun left right =>
         decide (modelValueOrderKey left ≤ modelValueOrderKey right)) =
-      query.target.kernel.initialStates setup)
+      query.target.machine.initialStates setup)
     (stepCanonical : ∀ state action,
-      (query.target.kernel.steps state action).mergeSort (fun left right =>
+      (query.target.machine.steps state action).mergeSort (fun left right =>
         decide (stepOrderKey left ≤ stepOrderKey right)) =
-      query.target.kernel.steps state action) :
+      query.target.machine.steps state action) :
     (IncrementalPlannerKernel.ofCheckedQuery expectedTarget query).toOption.isSome = true := by
-  rcases behaviorDomainComplete with ⟨domain, behaviorDomain⟩
+  rcases behaviorDomainComplete with ⟨domain, vocabulary⟩
   change evidence.actions.mergeSort modelValueLe = evidence.actions at actionCanonical
-  change ∀ setup, (query.target.kernel.initialStates setup).mergeSort modelValueLe =
-    query.target.kernel.initialStates setup at initialCanonical
-  change ∀ state action, (query.target.kernel.steps state action).mergeSort stepLe =
-    query.target.kernel.steps state action at stepCanonical
+  change ∀ setup, (query.target.machine.initialStates setup).mergeSort modelValueLe =
+    query.target.machine.initialStates setup at initialCanonical
+  change ∀ state action, (query.target.machine.steps state action).mergeSort stepLe =
+    query.target.machine.steps state action at stepCanonical
   have actionCanonicalBool :
       (evidence.actions.mergeSort modelValueLe != evidence.actions) = false := by
     rw [actionCanonical]
@@ -440,21 +440,21 @@ theorem IncrementalPlannerKernel.ofCheckedQuery_isSome
     rw [modelValueListBeqSelf]
     rfl
   have initialCanonicalBool : ∀ setup,
-      ((query.target.kernel.initialStates setup).mergeSort modelValueLe !=
-        query.target.kernel.initialStates setup) = false := by
+      ((query.target.machine.initialStates setup).mergeSort modelValueLe !=
+        query.target.machine.initialStates setup) = false := by
     intro setup
     rw [initialCanonical]
-    change (!(query.target.kernel.initialStates setup ==
-      query.target.kernel.initialStates setup)) = false
+    change (!(query.target.machine.initialStates setup ==
+      query.target.machine.initialStates setup)) = false
     rw [modelValueListBeqSelf]
     rfl
   have stepCanonicalBool : ∀ state action,
-      ((query.target.kernel.steps state action).mergeSort stepLe !=
-        query.target.kernel.steps state action) = false := by
+      ((query.target.machine.steps state action).mergeSort stepLe !=
+        query.target.machine.steps state action) = false := by
     intro state action
     rw [stepCanonical]
-    change (!(query.target.kernel.steps state action ==
-      query.target.kernel.steps state action)) = false
+    change (!(query.target.machine.steps state action ==
+      query.target.machine.steps state action)) = false
     rw [stepListBeqSelf]
     rfl
   have findFalse : ∀ {α : Type} (items : List α),
@@ -462,7 +462,7 @@ theorem IncrementalPlannerKernel.ofCheckedQuery_isSome
     intro α items
     induction items <;> simp_all
   simp [IncrementalPlannerKernel.ofCheckedQuery, targetMatches, completeness, finiteOrderError?,
-    behaviorDomain, actionCanonicalBool, initialCanonicalBool, stepCanonicalBool, findFalse]
+    vocabulary, actionCanonicalBool, initialCanonicalBool, stepCanonicalBool, findFalse]
   rfl
 
 private structure PlannerCursor where

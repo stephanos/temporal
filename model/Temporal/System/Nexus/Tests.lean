@@ -10,7 +10,7 @@ open Temporal.System.Nexus
 #check (Temporal.System.Nexus.authoritativeInitial : ExecutionSetup → ModelValue → Prop)
 #check (Temporal.System.Nexus.authoritativeStep : ModelValue → ModelValue →
   Step ModelValue ModelValue ModelValue → Prop)
-#check (Temporal.System.Nexus.target : CheckedTarget LawStatement
+#check (Temporal.System.Nexus.target : CheckedModel LawStatement
   ExecutionSetup ModelValue ModelValue ModelValue ModelValue)
 
 example : step .queued .dispatch = some .running ∧
@@ -29,48 +29,48 @@ example : step .queued .recordCancellation = none ∧
     step .completionRecorded .recordCompletion = none := by
   exact ⟨rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl⟩
 
-example : (checkTarget targetAuthoring).isOk = true ∧
+example : (checkModel targetAuthoring).isOk = true ∧
     target.requiredCapabilities = [lifecycleCapabilityId] ∧
-    target.providers.map CapabilityProvider.id = [lifecycleProviderId] ∧
+    target.providers.map Provider.id = [lifecycleProviderId] ∧
     target.connectors = [] := by
   native_decide
 
-example : target.kernel.initialStates queuedSetup = [queuedState] ∧
-    target.kernel.initialStates runningSetup = [runningState] ∧
-    target.kernel.steps queuedState dispatchAction = [dispatchedResult] ∧
-    target.kernel.steps runningState recordCancellationAction = [cancellationRecordedResult] ∧
-    target.kernel.steps runningState recordCompletionAction = [completionRecordedResult] ∧
-    target.kernel.steps queuedState recordCancellationAction = [] ∧
-    target.kernel.steps cancellationRecordedState dispatchAction = [] := by
+example : target.machine.initialStates queuedSetup = [queuedState] ∧
+    target.machine.initialStates runningSetup = [runningState] ∧
+    target.machine.steps queuedState dispatchAction = [dispatchedResult] ∧
+    target.machine.steps runningState recordCancellationAction = [cancellationRecordedResult] ∧
+    target.machine.steps runningState recordCompletionAction = [completionRecordedResult] ∧
+    target.machine.steps queuedState recordCancellationAction = [] ∧
+    target.machine.steps cancellationRecordedState dispatchAction = [] := by
   native_decide
 
-example : (checkTarget targetAuthoring).toOption.map (fun checked =>
-    (checked.id, checked.source, canonicalCheckedTargetJson checked, checked.behaviorFingerprint)) =
-    some (targetId, source, canonicalCheckedTargetJson target, target.behaviorFingerprint) := by
+example : (checkModel targetAuthoring).toOption.map (fun checked =>
+    (checked.id, checked.source, canonicalCheckedModelJson checked, checked.behaviorFingerprint)) =
+    some (targetId, source, canonicalCheckedModelJson target, target.behaviorFingerprint) := by
   native_decide
 
 example : machine.metadata = finiteMachine.kernel.metadata ∧
     machine.initialStates = finiteMachine.kernel.initialStates ∧
     machine.steps = finiteMachine.kernel.steps ∧
     finitePlanning = finiteMachine.planning ∧
-    targetDefinition.kernel = .checked machine ∧
+    modelSpec.machine = .checked machine ∧
     finitePlanning.actions = actions ∧
     actions = [dispatchAction, recordCancellationAction, recordCompletionAction] := by
   exact ⟨rfl, rfl, rfl, rfl, rfl, rfl, rfl⟩
 
-example : machine.behaviorDescription? =
-    finiteMachine.kernel.behaviorDescription? := by
+example : machine.behaviorTable? =
+    finiteMachine.kernel.behaviorTable? := by
   native_decide
 
 example : target.behaviorFingerprint.render =
-    "sha256:dc03735bdbd093c181a5bfcbcb1dfae083b47278caa3394bbc14666487b3736d" := by
+    "sha256:9a131c48af0f15669b5f414754389046129da313f07774abbab76eaab25372b4" := by
   native_decide
 
-example : target.kernel.authoritativeInitial queuedSetup queuedState ∧
-    target.kernel.authoritativeStep queuedState dispatchAction dispatchedResult ∧
-    target.kernel.authoritativeStep runningState recordCancellationAction
+example : target.machine.authoritativeInitial queuedSetup queuedState ∧
+    target.machine.authoritativeStep queuedState dispatchAction dispatchedResult ∧
+    target.machine.authoritativeStep runningState recordCancellationAction
       cancellationRecordedResult ∧
-    target.kernel.authoritativeStep runningState recordCompletionAction
+    target.machine.authoritativeStep runningState recordCompletionAction
       completionRecordedResult := by
   exact ⟨target_queued_initial_authoritative, target_queued_dispatch_authoritative,
     target_running_cancellation_authoritative, target_running_completion_authoritative⟩

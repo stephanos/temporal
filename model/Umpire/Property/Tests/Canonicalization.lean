@@ -59,13 +59,13 @@ example : [
 
 /- The legacy semantic identity remains an exact compatibility boundary. -/
 #guard (fingerprintOf (checkProperty context authoredProperty)).map BehaviorFingerprint.render ==
-  some "sha256:475e2e447421bc4b4c41ac2c6900cda23fd4b0e3eb274b076c10a1250b40fb04"
+  some "sha256:d60c739ab4f09cfe36ed622f466edddda0b02d81aa7ef48288f1aa448c515bab"
 
 def changedCapabilityContext : PropertyCheckContext := {
   context with
   providers := context.providers.map fun capability =>
     if capability.id == cancellationCapability then
-      { capability with canonicalBehavior := "test-cancellation/v2" }
+      { capability with behaviorVersion := "test-cancellation/v2" }
     else
       capability
 }

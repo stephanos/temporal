@@ -9,25 +9,25 @@ This focused System test root stays below Feature. The checked correspondence an
 witness are exercised from `Temporal.ImplementationLinkTests.Nexus`, the exact composed-test root.
 -/
 
-example : Temporal.System.Nexus.target.kernel.steps
+example : Temporal.System.Nexus.target.machine.steps
     Temporal.System.Nexus.queuedState
     Temporal.System.Nexus.dispatchAction =
     [Temporal.System.Nexus.dispatchedResult] := by
   native_decide
 
 theorem named_system_authority_remains_available_for_correspondence :
-    Temporal.System.Nexus.target.kernel.authoritativeInitial
+    Temporal.System.Nexus.target.machine.authoritativeInitial
       Temporal.System.Nexus.queuedSetup
       Temporal.System.Nexus.queuedState ∧
-    Temporal.System.Nexus.target.kernel.authoritativeStep
+    Temporal.System.Nexus.target.machine.authoritativeStep
       Temporal.System.Nexus.queuedState
       Temporal.System.Nexus.dispatchAction
       Temporal.System.Nexus.dispatchedResult ∧
-    Temporal.System.Nexus.target.kernel.authoritativeStep
+    Temporal.System.Nexus.target.machine.authoritativeStep
       Temporal.System.Nexus.runningState
       Temporal.System.Nexus.recordCancellationAction
       Temporal.System.Nexus.cancellationRecordedResult ∧
-    Temporal.System.Nexus.target.kernel.authoritativeStep
+    Temporal.System.Nexus.target.machine.authoritativeStep
       Temporal.System.Nexus.runningState
       Temporal.System.Nexus.recordCompletionAction
       Temporal.System.Nexus.completionRecordedResult := by

@@ -22,10 +22,10 @@ def editedTable : FiniteTable Race.Setup Race.State Race.Action Race.Outcome Rac
 
 private def editedTransitionFingerprintDiffers : Option Bool := do
   let original ← Race.targetResult.toOption
-  let edited ← editedTable.checkModelTarget Race.identity Race.targetDefinition Race.targetComposition
+  let edited ← editedTable.checkModel Race.identity Race.modelSpec Race.modelProviders
     |>.toOption
   pure (edited.id == original.id &&
-    (edited.kernel.steps (ModelValue.named Race.operationStateId "started")
+    (edited.machine.steps (ModelValue.named Race.operationStateId "started")
       (ModelValue.named Race.resolveActionId "resolve")).length == 1 &&
     edited.behaviorFingerprint != original.behaviorFingerprint)
 

@@ -1,6 +1,6 @@
 import Umpire.Case.Scoped
 import Umpire.Property.Authoring
-import Umpire.Target.FiniteMachine
+import Umpire.Model.Table
 import Umpire.Shared.Test
 
 /-!
@@ -76,13 +76,13 @@ private def kinds : List (String × DefinitionKind) := [
   ("test.reply", .action), ("test.accepted", .outcome), ("test.outcome", .outcome)]
 private def definitions : List DefinitionMetadata := kinds.map fun (name, kind) =>
   Shared.Test.definitionMetadata name kind source (name ++ "/v1")
-private def provider : CapabilityProvider (fun _ => True) := {
+private def provider : Provider (fun _ => True) := {
   id := id "test.provider"
   source
-  contract := { id := id "test.capability", canonicalBehavior := "case-fields-test/v1", requiredLaws := [] }
+  contract := { id := id "test.capability", behaviorVersion := "case-fields-test/v1", requiredLaws := [] }
   meanings := (kinds.drop 4).map fun (name, kind) =>
-    { definitionId := id name, kind, canonicalBehavior := name ++ "/meaning-v1" }
-  lawWitnesses := []
+    { definitionId := id name, kind, behaviorVersion := name ++ "/meaning-v1" }
+  lawProofs := []
 }
 
 /-- Selecting the trigger never selects its outcome: the Target owns both admitted counts. -/
@@ -98,17 +98,17 @@ private def table : FiniteTable Unit ModelValue ModelValue ModelValue ModelValue
     ⟨"reply", state, replied, [result responded]⟩]
 }
 
-private def targetResult := table.checkTarget {
+private def targetResult := table.checkTypedModel {
   id := id "test.target"
   source
   definitions
   requiredCapabilities := [id "test.capability"]
   metadata := { id := id "test.kernel", source }
-} (TargetComposition.empty.provide provider)
+} (Providers.empty.provide provider)
 
 #guard targetResult.isOk
 
-private abbrev TestTarget := CheckedTarget (fun _ => True) Unit ModelValue ModelValue ModelValue ModelValue
+private abbrev TestTarget := CheckedModel (fun _ => True) Unit ModelValue ModelValue ModelValue ModelValue
 private def context (target : TestTarget) : PropertyCheckContext :=
   { PropertyCheckContext.ofTarget target with
     fieldBindings := [accepted, id "test.trigger"].map

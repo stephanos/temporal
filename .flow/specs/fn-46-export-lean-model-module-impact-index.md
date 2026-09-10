@@ -55,7 +55,7 @@ Direct and reverse dependencies contain first-party modules only. V1 `publicFaca
 `Umpire.ExecutionHandoff`, `Umpire.Exploration`, `Umpire.ImplementationLink`, `Umpire.Json`,
 `Umpire.KnownGap`, `Umpire.Observation`, `Umpire.OutcomeClassification`, `Umpire.Planning`,
 `Umpire.Promotion`, `Umpire.Property`, `Umpire.Query`, `Umpire.SemanticInventory`, `Umpire.Space`,
-`Umpire.Target`, and `Umpire.Target.Semantics`.
+`Umpire.Model`, and `Umpire.Model.Semantics`.
 
 V1 `focusedTests` roots are exactly `ModelLint.ImportGraphTests`,
 `Temporal.Tool.SemanticInventoryMainTests`, `Temporal.Tool.SemanticInventoryMakeTestsMain`,
@@ -63,7 +63,7 @@ V1 `focusedTests` roots are exactly `ModelLint.ImportGraphTests`,
 `Testpilot.Tests`, `Testpilot.Tests.ProtoJSONMain`, `Umpire.Case.ScopedTests`,
 `Umpire.Observation.Tests`, `Umpire.OutcomeClassification.ImportTests`,
 `Umpire.Planning.SemanticsImportTests`, `Umpire.Property.Tests.Scoped`,
-`Umpire.Target.SemanticsImportTests`, and `UmpireTests`. Reachability is reflexive: a configured root
+`Umpire.Model.SemanticsImportTests`, and `UmpireTests`. Reachability is reflexive: a configured root
 appears in its own row and in every imported descendant row. These sets are explicit policy, never
 filename heuristics. The 34 facade roots and 15 test roots are module names, not Lake target names;
 compilation impact does not itself prove an executable test suite ran.

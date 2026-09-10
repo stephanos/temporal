@@ -87,8 +87,8 @@ def seeded (seed : Nat := 17) : PlannerPolicy := {
 end PlannerPolicy
 
 /-- Query planning consumes the target-owned semantic kernel directly. -/
-abbrev QueryTarget (LawStatement : LawDefinition → Prop) : Type :=
-  CheckedTarget LawStatement (List RoleBinding)
+abbrev QueryModel (LawStatement : Law → Prop) : Type :=
+  CheckedModel LawStatement (List RoleBinding)
     ModelValue ModelValue ModelValue ModelValue
 
 inductive QueryQuantifier where
@@ -141,8 +141,8 @@ def QueryForm.properties : QueryForm → List CheckedProperty
 /-- Exhaustive evidence is propositionally tied to the selected target's setup enumeration and
 authoritative step relation; it cannot certify an unrelated author-supplied predicate. -/
 structure FiniteCompletenessEvidence
-    (LawStatement : LawDefinition → Prop)
-    (target : QueryTarget LawStatement) where
+    (LawStatement : Law → Prop)
+    (target : QueryModel LawStatement) where
   roleAssignments : List (List RoleBinding)
   actions : List ModelValue
   roleDomainFingerprint : BehaviorFingerprint
@@ -150,9 +150,9 @@ structure FiniteCompletenessEvidence
   roleSound : ∀ setup, setup ∈ roleAssignments → setup ∈ target.resolvedSetups
   roleComplete : ∀ setup, setup ∈ target.resolvedSetups → setup ∈ roleAssignments
   actionSound : ∀ action, action ∈ actions →
-    ∃ state result, target.kernel.authoritativeStep state action result
+    ∃ state result, target.machine.authoritativeStep state action result
   actionComplete : ∀ state action result,
-    target.kernel.authoritativeStep state action result → action ∈ actions
+    target.machine.authoritativeStep state action result → action ∈ actions
 
 inductive CompletenessRequirement where
   | roleDomain
@@ -208,14 +208,14 @@ private def actionDomainFingerprintOf (actions : List ModelValue) : BehaviorFing
 
 /-- An incomplete target remains representable at the Query boundary only so checking can reject
 it before any backend is initialized. -/
-structure CheckedQueryTarget (LawStatement : LawDefinition → Prop) where
-  target : QueryTarget LawStatement
+structure CheckedQueryModel (LawStatement : Law → Prop) where
+  target : QueryModel LawStatement
   completeness : Option (FiniteCompletenessEvidence LawStatement target) := none
 
 /-- Derive Query's finite-completeness view from the checked Target without introducing another
 finite-domain authority. Planning-unavailable targets remain valid Query targets. -/
-def CheckedQueryTarget.ofTarget
-    (target : QueryTarget LawStatement) : CheckedQueryTarget LawStatement := {
+def CheckedQueryModel.ofTarget
+    (target : QueryModel LawStatement) : CheckedQueryModel LawStatement := {
   target
   completeness := match target.planning with
     | .unavailable => none
@@ -239,19 +239,19 @@ def CheckedQueryTarget.ofTarget
       }
 }
 
-inductive QueryTargetAvailability (LawStatement : LawDefinition → Prop) where
-  | checked (target : CheckedQueryTarget LawStatement)
+inductive QueryModelAvailability (LawStatement : Law → Prop) where
+  | checked (target : CheckedQueryModel LawStatement)
   | incomplete
       (targetId : DefinitionId)
       (source : SourceLocation)
       (missing : List CompletenessRequirement)
 
-structure QueryCheckContext (LawStatement : LawDefinition → Prop) where
-  target : QueryTargetAvailability LawStatement
+structure QueryCheckContext (LawStatement : Law → Prop) where
+  target : QueryModelAvailability LawStatement
 
 /-- The ordinary Query boundary consumes one checked Target and derives any available finite view. -/
 def QueryCheckContext.ofTarget
-    (target : QueryTarget LawStatement) : QueryCheckContext LawStatement := {
+    (target : QueryModel LawStatement) : QueryCheckContext LawStatement := {
   target := .checked (.ofTarget target)
 }
 
@@ -331,7 +331,7 @@ structure QueryError where
   relatedDefinitionIds : List DefinitionId
   deriving BEq, DecidableEq, Repr
 
-structure CheckedQuery (LawStatement : LawDefinition → Prop) where
+structure CheckedQuery (LawStatement : Law → Prop) where
   id : DefinitionId
   source : SourceLocation
   version : Nat
@@ -339,13 +339,13 @@ structure CheckedQuery (LawStatement : LawDefinition → Prop) where
   quantifier : QueryQuantifier
   claim : QueryClaim
   behavior : CheckedBehavior
-  target : QueryTarget LawStatement
+  target : QueryModel LawStatement
   limits : QueryLimits
   policy : PlannerPolicy
   endpoint : QueryEndpoint := .deliberatelyClosed
   exercise : QueryExercisePolicy := .allowVacuous
   authoredKnownGaps : KnownGapSet := KnownGapSet.empty
-  targetComposition : List DefinitionId
+  modelProviders : List DefinitionId
   completeness : Option (FiniteCompletenessEvidence LawStatement target)
   documentation : String
   canonicalMetadata : String
@@ -411,7 +411,7 @@ private def validateDefinitionId (declaration : QueryDeclaration) : Except Query
 
 private def validateProperties
     (declaration : QueryDeclaration)
-    (target : QueryTarget LawStatement) : Except QueryError Unit := do
+    (target : QueryModel LawStatement) : Except QueryError Unit := do
   let properties := declaration.form.properties.mergeSort propertyLe
   if properties.isEmpty then
     throw (queryError .missingProperty declaration "properties")
@@ -448,22 +448,22 @@ private def validateStrategy (declaration : QueryDeclaration) : Except QueryErro
       .error (queryError .incompatibleStrategy declaration strategy.name)
   | _, _ => .ok ()
 
-private def targetComposition (target : QueryTarget LawStatement) : List DefinitionId :=
+private def modelProviders (target : QueryModel LawStatement) : List DefinitionId :=
   DefinitionId.canonicalSet (target.requiredCapabilities ++
-    target.providers.map CapabilityProvider.id ++
-    target.connectors.map CapabilityConnector.id)
+    target.providers.map Provider.id ++
+    target.connectors.map Connector.id)
 
 private def validateExactTrace
     (declaration : QueryDeclaration)
-    (target : QueryTarget LawStatement) : Except QueryError Unit := do
+    (target : QueryModel LawStatement) : Except QueryError Unit := do
   match declaration.behavior.traceExactly with
   | none => pure ()
   | some exact =>
       if !target.resolvedSetups.contains exact.setup then
         throw (queryError .targetKernelMismatch declaration "setup" [target.id])
-      if !((target.kernel.initialStates exact.setup).contains exact.trace.initialState) then
+      if !((target.machine.initialStates exact.setup).contains exact.trace.initialState) then
         throw (queryError .targetKernelMismatch declaration "initial-state"
-          [target.id, target.kernel.metadata.id])
+          [target.id, target.machine.metadata.id])
       let mut current := exact.trace.initialState
       for (step, index) in exact.trace.steps.zipIdx do
         let expected : Step ModelValue ModelValue ModelValue := {
@@ -471,10 +471,10 @@ private def validateExactTrace
           state := step.state
           facts := step.facts
         }
-        if !((target.kernel.steps current step.selectedAction).contains expected) then
+        if !((target.machine.steps current step.selectedAction).contains expected) then
           throw (queryError .targetKernelMismatch declaration
             ("step-" ++ toString index)
-            [target.id, target.kernel.metadata.id, step.selectedAction.definitionId])
+            [target.id, target.machine.metadata.id, step.selectedAction.definitionId])
         current := step.state
 
 private def stringListJson (items : List String) : String :=
@@ -514,7 +514,7 @@ private def querySemanticJson
     (version : Nat)
     (form : QueryForm)
     (behavior : CheckedBehavior)
-    (target : QueryTarget LawStatement)
+    (target : QueryModel LawStatement)
     (composition : List DefinitionId)
     (limits : QueryLimits)
     (policy : PlannerPolicy)
@@ -534,7 +534,7 @@ private def querySemanticJson
       ",\"behaviorFingerprint\":" ++ quote target.behaviorFingerprint.render ++
       ",\"composition\":" ++
         stringListJson (composition.map DefinitionId.value) ++
-      ",\"kernel\":{\"id\":" ++ quote target.kernel.metadata.id.value ++ "}}" ++
+      ",\"kernel\":{\"id\":" ++ quote target.machine.metadata.id.value ++ "}}" ++
     ",\"finiteCompleteness\":" ++ completenessJson completeness ++ "}"
 
 /-- Query JSON is the canonical semantic projection; source order and documentation stay outside
@@ -557,13 +557,13 @@ def checkQuery
     (context : QueryCheckContext LawStatement)
     (declaration : QueryDeclaration) : Except QueryError (CheckedQuery LawStatement) := do
   validateDefinitionId declaration
-  let checkedTarget ← match context.target with
+  let model ← match context.target with
     | .checked target => pure target
     | .incomplete targetId _ missing =>
         throw (queryError .missingFiniteCompleteness declaration
           (String.intercalate "," (missing.map CompletenessRequirement.name))
           (targetId :: requirementIds missing))
-  let target := checkedTarget.target
+  let target := model.target
   if declaration.target != target.id then
     throw (queryError .targetMismatch declaration
       (declaration.target.value ++ " != " ++ target.id.value)
@@ -572,12 +572,12 @@ def checkQuery
   validateStrategy declaration
   validateProperties declaration target
   validateExactTrace declaration target
-  validateFiniteDomains declaration checkedTarget.completeness
-  if declaration.policy.strategy == .exhaustive && checkedTarget.completeness.isNone then
+  validateFiniteDomains declaration model.completeness
+  if declaration.policy.strategy == .exhaustive && model.completeness.isNone then
     throw (queryError .missingFiniteCompleteness declaration "finite role/action domains"
-      [target.id, target.kernel.metadata.id])
-  let completeness := checkedTarget.completeness
-  let composition := targetComposition target
+      [target.id, target.machine.metadata.id])
+  let completeness := model.completeness
+  let composition := modelProviders target
   let legacySemantic := querySemanticJson declaration.id declaration.version declaration.form
     declaration.behavior target composition declaration.limits declaration.policy completeness
   let semantic := if declaration.endpoint == .deliberatelyClosed &&
@@ -599,7 +599,7 @@ def checkQuery
     endpoint := declaration.endpoint
     exercise := declaration.exercise
     authoredKnownGaps := declaration.authoredKnownGaps
-    targetComposition := composition
+    modelProviders := composition
     completeness
     documentation := declaration.documentation
     canonicalMetadata := semantic
@@ -610,7 +610,7 @@ def checkQuery
 Target re-ascription stays inside this boundary so dependent planner APIs see the selected Target.
 Use `checkQuery` when an invalid declaration's typed diagnostic is needed. -/
 def checkedQuery
-    (target : QueryTarget LawStatement)
+    (target : QueryModel LawStatement)
     (declaration : QueryDeclaration)
     (valid : (checkQuery (.ofTarget target) declaration).toOption.isSome = true) :
     CheckedQuery LawStatement :=
@@ -618,7 +618,7 @@ def checkedQuery
   {
     checked with
     target
-    completeness := (CheckedQueryTarget.ofTarget target).completeness
+    completeness := (CheckedQueryModel.ofTarget target).completeness
   }
 
 end Umpire

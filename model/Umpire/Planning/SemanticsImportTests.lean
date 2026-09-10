@@ -6,7 +6,7 @@ import Umpire.Planning.CaseAnalysis
 
 /-! Semantic consumers retain their checked types without exposing Target elaboration. -/
 
-#check Umpire.CheckedTarget
+#check Umpire.CheckedModel
 #check Umpire.FinitePlanningCapability
 #check Umpire.CheckedProperty
 #check Umpire.CheckedBehavior
@@ -16,7 +16,7 @@ import Umpire.Planning.CaseAnalysis
 
 /-- error: Unknown identifier -/
 #guard_msgs (error, substring := true) in
-#check Umpire.elaborateTarget
+#check Umpire.elabModel
 
 /-- error: Unknown identifier -/
 #guard_msgs (error, substring := true) in
