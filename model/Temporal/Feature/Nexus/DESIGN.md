@@ -1,7 +1,7 @@
 # Nexus: connecting side effects to the behavioral model
 
 Design specimen. Nothing here compiles, and no module imports it. The spec that implements it is
-fn-85 ("Model side effects as typed interfaces and run query sets").
+fn-85 ("Model side effects as typed actions and run query sets").
 
 The Nexus success Model has two Actions, `awaitStart` and `awaitSuccess`, and both only wait. Every
 real side effect (the workflow command that schedules the operation, the handler's reply, the
@@ -220,24 +220,36 @@ Queries once per switch value; a verdict that differs between the runs is a dive
 Incidental differences (attempt numbering in log tags) stay outside the Model, and internal storage
 layout read through `DescribeMutableState` is a white-box Known Gap.
 
-### 3.8 Two machines and a link
+### 3.8 Two machines and a refinement
 
 A **machine** is a block of step rows: the transition relation the glossary calls a Machine. The
 Model is the checked behavior built from a feature's machines, entities, actions and observations.
 
 A **product machine** says what Nexus means to a user: an operation is scheduled, may start, and
-ends succeeded, failed, canceled or timed out. A **mechanism machine** spells out attempts, backoff,
-reply forms, callbacks, cancel delivery and timers. `Umpire.ImplementationLink` already relates two
-independently checked Models by value mappings and a forward simulation, and
-`Temporal/System/Nexus/ImplementationLink.lean` uses it for a small Nexus pair. Properties go on the
-level where they are natural, and the link carries product properties to every mechanism-level
-trace.
+ends succeeded, failed, canceled or timed out. A **protocol machine** spells out what is observable
+at the API in more detail: attempts, backoff, reply forms, callbacks, cancel delivery and timers.
+Both describe behavior visible through RPC responses, history events and describe output, so both
+belong to `Temporal.Feature` under MOD-02; neither describes server internals.
+
+A **refinement** relates them. The protocol machine declares `refines:` and a state `map:` that says
+how each of its states looks at the product level; a field the product machine does not have maps
+to `hidden`. The checker walks every protocol step through the map: a step whose mapped before and
+after states are a product step is allowed, a step whose mapped states are equal is a stutter
+(nothing visible happened, such as a retry), and anything else rejects the refinement. The step
+mapping is therefore derived, never written. A Property on the product machine then holds on every
+protocol-machine trace, and so on every Case built from it.
+
+The check reuses the forward simulation of `Umpire.ImplementationLink`, which
+`Temporal/System/Nexus/ImplementationLink.lean` uses for a small Nexus pair. A refinement is not an
+Implementation Link: SEM-08 reserves that word for connecting `Temporal.Feature` product behavior to
+`Temporal.System` implementation behavior in a dedicated module, while a refinement relates two
+machines of the same Feature in the same file.
 
 A feature starts with one machine, which serves as its product machine. It adds a separate product
-machine when a product property would otherwise mention mechanism (attempts, backoff, cancel delivery), or
-when several realizations share one product meaning. Nexus meets both: an operation is created by
-a workflow command, by an external HTTP caller, or by the standalone API, and two implementations
-run it. Both machines and the link live in one file.
+machine when a product property would otherwise mention protocol detail (attempts, backoff, cancel
+delivery), or when several realizations share one product meaning. Nexus meets both: an operation
+is created by a workflow command, by an external HTTP caller, or by the standalone API, and two
+implementations run it.
 
 ### 3.9 Realization
 
@@ -355,7 +367,12 @@ environment
   timer: backoff, scheduleToClose, scheduleToStart, startToClose
 
 -- system steps, checked against observations
-machine nexusMechanism
+machine nexusProtocol
+  refines: nexusProduct
+  map:
+    phase: backingOff → scheduled
+    cancel → hidden
+    attempts → hidden
   entity: operation
   setup:
     concurrencyLimit: [atLimit, belowLimit]
@@ -416,27 +433,18 @@ machine nexusProduct
     scheduled → started | succeeded | failed | canceled | timedOut
     started → succeeded | failed | canceled | timedOut
 
-link nexusMechanism refines nexusProduct
-  state:
-    phase: backingOff → scheduled
-    cancel: any → hidden
-  steps:
-    handlerReply(reply: handlerError, retryable: yes) → stutter
-    fault(transport) → stutter
-    timer(backoff) → stutter
-
 property operationEnds on nexusProduct
   for: operation
   require: eventually phase in [succeeded, failed, canceled, timedOut]
     when scheduleToClose: expires
 
-property retryWritesNoEvent on nexusMechanism
+property retryWritesNoEvent on nexusProtocol
   when: handlerReply(reply: handlerError, retryable: yes)
   require:
     no history event on operation
     pendingAttempts = previous pendingAttempts + 1
 
-property deliveredCancelDoesNotEnd on nexusMechanism
+property deliveredCancelDoesNotEnd on nexusProtocol
   when: cancelReply(reply: delivered)
   require:
     phase = previous phase
@@ -469,7 +477,7 @@ set canary nexusCaller
 | update-, query- and activity-backed handlers (`nexus_workflow_update_test.go`, `nexus_workflow_query_test.go:20`, `nexus_workflow_test.go:695,831`) | a handler reply composed from another entity's actions; observation on another entity | needs composition |
 | `TestNexusCallbackAfterCallerComplete` (`:2582`), `TestWorkflowNexusCallbacks_CarriedOver` (`callbacks_test.go:323`) | callback entity reusing the same attempt and backoff structure; caller close as a step | needs entities and a reusable retry structure |
 | `TestNexusOperationAsyncCompletionErrors` (`:1680`), `nexus_api_validation_test.go` | input rules on the callback and start actions; token validity as a dimension | needs input rules |
-| `TestNexusStartOperation_Outcomes` (`nexus_api_test.go:64`), `TestNexusCancelOperation_Outcomes` (`:461`) | the same operation from an external caller: a different creating interface, same entity | specimen plus a second creator |
+| `TestNexusStartOperation_Outcomes` (`nexus_api_test.go:64`), `TestNexusCancelOperation_Outcomes` (`:461`) | the same operation from an external caller: a different creating action, same entity | specimen plus a second creator |
 | `nexus_standalone_test.go` | operation entity without a caller workflow; conflict policy and request-ID dimensions; describe and poll as read observations; list and count as eventually consistent queries | needs eventual observation |
 | `TestNexusOperationCallerMetrics` (`:637`), `nexus_otel_test.go`, metric assertions elsewhere | metrics and spans as observations | later, or Known Gap |
 | `TestNexusOperationAsyncCompletionAfterReset` (`:2078`), reset cases in `callbacks_test.go` and `nexus_workflow_update_test.go` | an action that rewrites history, with reapply rules | later |
@@ -489,12 +497,12 @@ set canary nexusCaller
 | 6 | Environment steps for timers, faults and interleavings, bounded by Limits | none in Models; faults exist only as Program instructions |
 | 7 | Setup parameters bound by the Profile | none |
 | 8 | Guards, alternatives and wildcards in rows, with precedence or a disjointness check | exact state and Action pairs, one row each |
-| 9 | Refinement between a product and a mechanism machine with an authoring surface | `Umpire.ImplementationLink`, expert Lean only |
+| 9 | Refinement of a product machine by a protocol machine with an authoring surface | the forward simulation inside `Umpire.ImplementationLink`, expert Lean only |
 | 10 | Composition: a reply or step built from another entity's actions; reusable sub-structures such as attempt and backoff | none |
 | 11 | History-rewriting actions (reset) with reapply rules | none; later |
 
 Needs 1 to 8 are required before the specimen's own test rows can run. Need 9 decides whether the
-product and mechanism machines stay separate. Needs 10 and 11 cover the remaining groups.
+product and protocol machines stay separate. Needs 10 and 11 cover the remaining groups.
 
 ## 7. Decisions
 
@@ -513,9 +521,10 @@ Recorded 2026-09-10 with the user.
    `command`, `reply` is added, and `event` becomes the observation declaration. An action whose
    payload has no protobuf message declares its classes as names. A schema interface waits for a
    second schema source.
-4. **One machine by default; Nexus uses two.** A product machine is added when product properties would
-   mention mechanism, or when several realizations share one product meaning. Nexus meets both
-   (section 3.8).
+4. **One machine by default; Nexus uses two.** A product machine is added when product properties
+   would mention protocol detail, or when several realizations share one product meaning. Nexus
+   meets both. The protocol machine declares `refines:` and a state `map:`; the step mapping is
+   derived, and the relation is a refinement, not an Implementation Link (section 3.8).
 5. **One Model for HSM and CHASM, run under both.** The implementation switch is a rollout flag,
    not behavior. Deliberate config-controlled differences are setup parameters named after the
    setting; incidental differences stay outside the Model; storage layout is a white-box Known Gap.
@@ -526,4 +535,8 @@ Recorded 2026-09-10 with the user.
    Observation, extended with an entity and a key), and the block of step rows is `machine` (the
    glossary's Machine). `interface` was rejected because it reads as a method-set contract type and
    would duplicate Action; `model` and `statemachine` were rejected because Model is the checked
-   behavior and Machine is already the glossary's word for a transition relation.
+   behavior and Machine is already the glossary's word for a transition relation. The detailed
+   machine is a protocol machine, not a mechanism machine, because MOD-02 gives "implementation
+   mechanisms" to `Temporal.System`. The relation between the two machines is a refinement declared
+   on the protocol machine; a top-level `link` was rejected because SEM-08 reserves Implementation
+   Link for Feature-to-System connections and its step list was derivable from the state map.
