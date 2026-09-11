@@ -12,7 +12,7 @@
   "id": "fn-83-author-a-live-case-from-a-model-file",
   "impl_review_rounds": {
     "fn-83-author-a-live-case-from-a-model-file.1": 0,
-    "fn-83-author-a-live-case-from-a-model-file.2": 3
+    "fn-83-author-a-live-case-from-a-model-file.2": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -495,10 +495,40 @@
       "task": "fn-83-author-a-live-case-from-a-model-file.2",
       "timestamp": "2026-09-11T00:03:05.247467Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "676cd3459a3a80dcd8b6421f01714886798ae57a5530f17f046f256f4da8b421",
+      "backend": "claude",
+      "base_sha": "1375ba9df30f211c4a786267b3703abed9f786a9",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "ff344b20ff44f5cd6474b0a78d934f7cbe1900d7",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-sonnet-4-5",
+      "outcome": "verdict",
+      "output_bytes": 1965,
+      "output_sha256": "ed7863789202f31115bb8a5416934136e6d9623a9475cdfc7000ea6020e89a9c",
+      "reservation_id": "ca167d81b2d04ca580e933b251db764b",
+      "round_consumed": true,
+      "scope": "impl:fn-83-author-a-live-case-from-a-model-file.2",
+      "superseded_by": null,
+      "task": "fn-83-author-a-live-case-from-a-model-file.2",
+      "timestamp": "2026-09-11T00:07:21.490316Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-83-author-a-live-case-from-a-model-file.1": 1,
+    "impl:fn-83-author-a-live-case-from-a-model-file.2": 1,
     "plan": 1,
     "plan#completion": 0
   },
@@ -523,5 +553,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-11T00:03:05.248534Z"
+  "updated_at": "2026-09-11T00:07:21.491205Z"
 }

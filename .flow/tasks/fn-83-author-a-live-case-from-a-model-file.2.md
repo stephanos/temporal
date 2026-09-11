@@ -36,9 +36,54 @@ Create `Temporal.Case.Template` with `nexusOperation service operation responds 
 - [ ] The success Producer uses `nexusOperation "umpire.case.service" "complete" .async`; async-Nexus fixture bytes unchanged
 - [ ] `make lint-model` passes with the new modules classified
 ## Done summary
-TBD
+`Temporal.Case.Template` now owns the Temporal-specific Programs as plain `Realization` values.
 
+- `model/Temporal/Case/Template/NexusOperation.lean` (new): `nexusOperation service operation
+  responds sync|async`. The async form is the previous success Program verbatim. The sync form
+  drops the completion-authority slot and the controller's await/complete pair, answers the
+  operation synchronously in the handler, and orders the full history read behind a close-event
+  read -- nothing in that controller observes the workflow, and `wait_new_event` returns the first
+  page as soon as any event exists.
+- `model/Temporal/Case/Template/Workflow.lean` (new): `workflow type`, the worker-outage Program
+  without its two fault instructions, keyed on the single close event's `event_id` because a
+  completed-workflow event names no operation. `faultRuleId` stays `worker-outage-order`.
+- `model/Temporal/Case/EventKind.lean` (new): the admitted evidence kinds read off the generated
+  `HistoryEvent.Attributes` oneof (60 kinds), with `resolve` producing the located diagnostic .3
+  reports. No kind is listed by hand.
+- `model/Temporal/Case/Support.lean` (new): role IDs, the two method paths, observation IDs, the
+  correlated evidence type, and the close-event filter (read off the generated
+  `HistoryEventFilterType` enum) shared by both templates.
+- `model/Temporal/Case/Evidence.lean` (new): resolved `EvidenceRule`s to the Program's lift rules.
+- `model/Temporal/Case/Template.lean`, `model/Temporal.lean`: facade and aggregator.
+- `model/Temporal/Case/Tests/Template.lean` (new) + `model/TemporalModelTests.lean`: hooks,
+  evidence sources, the sync ordering and its close filter, the async instruction list, and event
+  kind resolution incl. the rejection listing.
+- `model/Temporal/Feature/Nexus/Success/Producer.lean` is now three decisions: the template, the
+  fixture name, and the evidence mapping. `model/Temporal/TestpilotTests.lean` reads the
+  coordinates off the template.
+
+Blocker check: `NEXUS_RESPONSE_KIND_SYNCHRONOUS` exists in `instruction.proto` and is exercised
+throughout `common/testing/testpilot/temporal/worker` -- no blocker recorded.
+
+Behaviour pin: `async-nexus-case.json` unchanged from .1's bytes
+(`make umpire-check-case-runtime-conformance` green after every step).
+
+Review: SHIP after two NEEDS_WORK rounds on `claude:claude-sonnet-4-5:high`.
+- Round 1 P2/P3 (magic close-filter number, constants duplicated between templates) were valid and
+  fixed by `Temporal.Case.Support` plus the generated-enum read.
+- Round 1+2 P0 claimed the template's `faultRuleId` changes the async fixture bytes. That premise
+  is false and was verified empirically: `faultRuleId` reaches a Case only through the ordering
+  rule the Producer adds when a Scenario carries `fault` lines, the async Case carries none, and
+  the byte-exact conformance diff was green on every round. The suggestion itself was harmless, so
+  the per-response naming was adopted and the field's doc comment now states when it is read.
+- The pinned reviewer `claude:claude-fable-5-1:high` returned an account limit on this task too, so
+  every round ran on `claude:claude-sonnet-4-5:high`. Same-family fallback, not an equivalent
+  cross-family review. The failed fable dispatch had already consumed the review artifact, so the
+  first sonnet round needed `--force` to get past the unchanged-artifact guard.
+
+stage: impl-review - ran, 3 rounds (model: claude-sonnet-4-5, high; fable pinned but account-limited)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 3410350846, 0c88a1ff00, HEAD
+- Tests: cd model && mise exec -- lake build, make umpire-check-case-runtime-conformance, make lint-model (0 findings outside generated Temporal/API/Proto.lean)
 - PRs:
