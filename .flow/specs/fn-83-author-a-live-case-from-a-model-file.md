@@ -164,11 +164,12 @@ The typed examples (`TypedUnary`, `TypedNexus`) stay on the expert path unchange
 A Scenario may carry fault lines:
 
 ```lean
-scenario completionSurvivesOutage on lifecycle
-  operation starts pending
-  actions exactly [completion: awaitCompletion]
-  fault workerStop before start
-  fault workerResume after start
+scenario completionSurvivesOutage
+  model: lifecycle
+  starts: pending
+  actions: [awaitCompletion]
+  fault: workerStop before start
+  fault: workerResume after start
 ```
 
 `fault <kind> before|after <hook>` names one of the two existing fault kinds and one hook of the
@@ -361,7 +362,7 @@ case <name> fixture "<fixture-name>"
   evidence
     (<action> ← history <eventKind>)+
 
-scenario ... (fault <workerStop|workerResume> <before|after> <hook>)*
+scenario ... (fault: <workerStop|workerResume> <before|after> <hook>)*
 ```
 
 The registry stores `(declaration name, case ID, fixture name)` per registered Case; the

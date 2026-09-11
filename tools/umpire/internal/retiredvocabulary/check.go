@@ -673,18 +673,6 @@ func allowedNegativeFixture(relativePath, token string) bool {
 		"common/testing/testpilot/internal/ir/catalog.go": {
 			"." + "qualified": true,
 		},
-		// The retired command keywords still parse so the elaborator can reject them by name.
-		// The grammar that admits them and the blocks that assert each rejection are the only
-		// places the old spellings may appear.
-		"model/Umpire/Command/Syntax.lean": {
-			"selected_" + "actions":      true,
-			"candidate_" + "evaluations": true,
-		},
-		"model/Temporal/Feature/Nexus/Success/Tests.lean": {
-			"selected_" + "actions":                true,
-			"candidate_" + "evaluations":           true,
-			"require <label>: " + "resultingState": true,
-		},
 		"tests/testcore/testpilot/testdata/async-nexus-case.json": {
 			`"bounds"`: true,
 		},

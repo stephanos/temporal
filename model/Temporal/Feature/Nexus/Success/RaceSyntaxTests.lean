@@ -47,50 +47,49 @@ inductive Fact where
 /- A cancellation request can lose: both `canceled` and `completed` are terminal, and the losing
 row records no Fact at all. -/
 model raceLifecycle
-  role handler
-  states State
-  actions Action
-  outcomes Outcome
-  facts Fact
-  starts [queued]
-  ends [canceled, completed]
-
-  steps
-    begin: queued + initiate →
-      { state := running, outcome := accepted, facts := [running] }
-    request: running + requestCancel →
-      { state := cancelRequested, outcome := cancellationRequested, facts := [cancelRequested] }
-    settle: cancelRequested + resolve →
-      { state := canceled, outcome := canceled, facts := [settled] }
-    lose: cancelRequested + complete →
-      { state := completed, outcome := completed, facts := [] }
+  role: handler
+  states: State
+  actions: Action
+  outcomes: Outcome
+  facts: Fact
+  starts: [queued]
+  ends: [canceled, completed]
+  steps:
+    queued + initiate → running, outcome: accepted, facts: [running]
+    running + requestCancel → cancelRequested, outcome: cancellationRequested,
+      facts: [cancelRequested]
+    cancelRequested + resolve → canceled, outcome: canceled, facts: [settled]
+    cancelRequested + complete → completed, outcome: completed, facts: []
 
 /- Two `require` clauses, not the success slice's three. -/
-property cancellationSettles on raceLifecycle
-  for handler
-  when resolve
-  require settledState: state canceled
-  require settledFact: fact settled
+property cancellationSettles
+  model: raceLifecycle
+  when: resolve
+  require:
+    state: canceled
+    fact: settled
 
-scenario cancellationRace on raceLifecycle handler starts queued
-  actions exactly [begin: initiate, request: requestCancel, settle: resolve]
+scenario cancellationRace
+  model: raceLifecycle
+  starts: queued
+  actions: [initiate, requestCancel, resolve]
 
 limits raceTrace
-  steps 4
-  actions 3
-  search 32
+  steps: 4
+  actions: 3
+  search: 32
 
-query cancellation on raceLifecycle
-  find cancellationSettles
-  in cancellationRace
-  limits raceTrace
+query cancellation
+  find: cancellationSettles
+  in: cancellationRace
+  limits: raceTrace
 
 /- The same second lifecycle also carries the verify form, which claims the requirement over every
 trace the Behavior admits instead of selecting one. -/
-query cancellationVerified on raceLifecycle
-  verify cancellationSettles
-  in cancellationRace
-  limits raceTrace
+query cancellationVerified
+  verify: cancellationSettles
+  in: cancellationRace
+  limits: raceTrace
 
 #guard (do
   let checked ← cancellationVerified.toOption
@@ -122,8 +121,8 @@ read in sorted-ID order rather than declaration order. -/
     checked.behavior.allowedActions ==
       [raceLifecycle.actionIdAt 1, raceLifecycle.actionIdAt 2, raceLifecycle.actionIdAt 3] &&
     checked.property.clauses.map (·.id.value) ==
-      ["temporal.nexus.success.raceSyntax.property.cancellationSettles.settledFact",
-        "temporal.nexus.success.raceSyntax.property.cancellationSettles.settledState"])) == some true
+      ["temporal.nexus.success.raceSyntax.property.cancellationSettles.fact-settled",
+        "temporal.nexus.success.raceSyntax.property.cancellationSettles.state-canceled"])) == some true
 
 /- Nothing is shared with the success slice: the two Targets are different declarations. -/
 #guard raceLifecycle.targetId != lifecycle.targetId

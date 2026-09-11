@@ -271,46 +271,47 @@ theorem unsatisfiedSuccessPropertyHasNoWitness :
     (runCheck (propertyAuthor := noWitnessProperty)).toOption.isNone := by
   native_decide
 
-property renamedResult on lifecycle
-  for operation
-  when awaitSuccess
-  require successState: state succeeded
-  require successOutcome: outcome completed
+property renamedResult
+  model: lifecycle
+  when: awaitSuccess
+  require:
+    state: succeeded
+    outcome: completed
 
 model renamedLifecycle
-  role operation
-  states State
-  actions Action
-  outcomes Outcome
-  facts Fact
-  starts [scheduled]
-  ends [succeeded]
-  steps
-    start: scheduled + awaitStart →
-      { state := started, outcome := acknowledged, facts := [started] }
-    success: started + awaitSuccess →
-      { state := succeeded, outcome := completed, facts := [succeeded] }
+  role: operation
+  states: State
+  actions: Action
+  outcomes: Outcome
+  facts: Fact
+  starts: [scheduled]
+  ends: [succeeded]
+  steps:
+    scheduled + awaitStart → started, outcome: acknowledged, facts: [started]
+    started + awaitSuccess → succeeded, outcome: completed, facts: [succeeded]
 
-property renamedModelResult on renamedLifecycle
-  for operation
-  when awaitSuccess
-  require successState: state succeeded
-  require successOutcome: outcome completed
-  require successFact: fact succeeded
+property renamedModelResult
+  model: renamedLifecycle
+  when: awaitSuccess
+  require:
+    state: succeeded
+    outcome: completed
+    fact: succeeded
 
-scenario renamedCompletion on renamedLifecycle
-  operation starts scheduled
-  actions exactly [start: awaitStart, completion: awaitSuccess]
+scenario renamedCompletion
+  model: renamedLifecycle
+  starts: scheduled
+  actions: [awaitStart, awaitSuccess]
 
 limits renamedTrace
-  steps 2
-  actions 2
-  search 16
+  steps: 2
+  actions: 2
+  search: 16
 
-query renamedQuery on renamedLifecycle
-  find renamedModelResult
-  in renamedCompletion
-  limits renamedTrace
+query renamedQuery
+  find: renamedModelResult
+  in: renamedCompletion
+  limits: renamedTrace
 
 private def renamedCheckedModel :
     Except Compiler.Error (Umpire.Command.CheckedModel renamedLifecycle) :=
@@ -513,47 +514,48 @@ theorem queryGapsDoNotChangeSuccessProperty : admitted.map (fun checked =>
 adds a third transition, selects the start Action rather than the completion one, and states its
 own limits — every spelling a whitelist used to reject. -/
 model probeLifecycle
-  role worker
-  states State
-  actions Action
-  outcomes Outcome
-  facts Fact
-  starts [scheduled]
-  ends [succeeded]
-  steps
-    start: scheduled + awaitStart →
-      { state := started, outcome := acknowledged, facts := [started] }
-    retry: started + awaitStart →
-      { state := started, outcome := acknowledged, facts := [started] }
-    success: started + awaitSuccess →
-      { state := succeeded, outcome := completed, facts := [succeeded] }
+  role: worker
+  states: State
+  actions: Action
+  outcomes: Outcome
+  facts: Fact
+  starts: [scheduled]
+  ends: [succeeded]
+  steps:
+    scheduled + awaitStart → started, outcome: acknowledged, facts: [started]
+    started + awaitStart → started, outcome: acknowledged, facts: [started]
+    started + awaitSuccess → succeeded, outcome: completed, facts: [succeeded]
 
-property probeStart on probeLifecycle
-  for worker
-  when awaitStart
-  require startState: state started
-  require startOutcome: outcome acknowledged
-  require startFact: fact started
+property probeStart
+  model: probeLifecycle
+  when: awaitStart
+  require:
+    state: started
+    outcome: acknowledged
+    fact: started
 
-scenario probeRun on probeLifecycle worker starts scheduled
-  actions exactly [first: awaitStart, second: awaitSuccess]
+scenario probeRun
+  model: probeLifecycle
+  starts: scheduled
+  actions: [awaitStart, awaitSuccess]
 
 limits probeLimits
-  steps 3
-  actions 2
-  search 32
+  steps: 3
+  actions: 2
+  search: 32
 
-query probeQuery on probeLifecycle
-  find probeStart
-  in probeRun
-  limits probeLimits
+query probeQuery
+  find: probeStart
+  in: probeRun
+  limits: probeLimits
 
 /- The added transition reaches the derived model, and the renamed role and reselected members
 reach the derived Property and Behavior. -/
+-- The relation key is the row's own coordinates, so an author writes no label for it.
 #guard probeLifecycle.relationIds.map (·.value) ==
-  ["temporal.nexus.success.tests.relation.probeLifecycle.start",
-    "temporal.nexus.success.tests.relation.probeLifecycle.retry",
-    "temporal.nexus.success.tests.relation.probeLifecycle.success"]
+  ["temporal.nexus.success.tests.relation.probeLifecycle.scheduled-awaitStart",
+    "temporal.nexus.success.tests.relation.probeLifecycle.started-awaitStart",
+    "temporal.nexus.success.tests.relation.probeLifecycle.started-awaitSuccess"]
 
 #guard probeLifecycle.operationRoleId.value == "temporal.nexus.success.tests.role.probeLifecycle.worker"
 
@@ -590,39 +592,37 @@ error: unknown Model action 'awaitFinish'; declared: awaitStart, awaitSuccess
 -/
 #guard_msgs (error) in
 model unknownActionLifecycle
-  role operation
-  states State
-  actions Action
-  outcomes Outcome
-  facts Fact
-  starts [scheduled]
-  ends [succeeded]
-  steps
-    start: scheduled + awaitFinish →
-      { state := started, outcome := acknowledged, facts := [started] }
+  role: operation
+  states: State
+  actions: Action
+  outcomes: Outcome
+  facts: Fact
+  starts: [scheduled]
+  ends: [succeeded]
+  steps:
+    scheduled + awaitFinish → started, outcome: acknowledged, facts: [started]
 
 /--
 error: unknown Model state 'missing'; declared: scheduled, started, succeeded
 -/
 #guard_msgs (error) in
 model unknownStateLifecycle
-  role operation
-  states State
-  actions Action
-  outcomes Outcome
-  facts Fact
-  starts [missing]
-  ends [succeeded]
-  steps
-    start: scheduled + awaitStart →
-      { state := started, outcome := acknowledged, facts := [started] }
+  role: operation
+  states: State
+  actions: Action
+  outcomes: Outcome
+  facts: Fact
+  starts: [missing]
+  ends: [succeeded]
+  steps:
+    scheduled + awaitStart → started, outcome: acknowledged, facts: [started]
 
 /- The verify form elaborates through the same owner and claims the requirement over every trace
 the Behavior admits, so it selects no witness. -/
-query verifiedCompletion on lifecycle
-  verify successfulResult
-  in successfulCompletion
-  limits shortTrace
+query verifiedCompletion
+  verify: successfulResult
+  in: successfulCompletion
+  limits: shortTrace
 
 #guard (do
   let checked ← verifiedCompletion.toOption
@@ -639,13 +639,15 @@ witness-absent rather than lowering a Contract nothing selected. -/
 
 /- An unsatisfiable Behavior reports what planning actually delivered, so an impossible scenario is
 distinguishable from an exhausted limit (PLN-05). -/
-scenario impossibleCompletion on lifecycle operation starts scheduled
-  actions exactly [completion: awaitSuccess, start: awaitStart]
+scenario impossibleCompletion
+  model: lifecycle
+  starts: scheduled
+  actions: [awaitSuccess, awaitStart]
 
-query unsatisfiableCompletion on lifecycle
-  verify successfulResult
-  in impossibleCompletion
-  limits shortTrace
+query unsatisfiableCompletion
+  verify: successfulResult
+  in: impossibleCompletion
+  limits: shortTrace
 
 #guard match unsatisfiableCompletion with
   | .error (.notSelected planned) => planned == .unsatisfiable
@@ -662,16 +664,15 @@ error: Model start states must be declared in sorted order, because the planner 
 -/
 #guard_msgs (error) in
 model unsortedInitialLifecycle
-  role operation
-  states State
-  actions Action
-  outcomes Outcome
-  facts Fact
-  starts [succeeded, scheduled]
-  ends [succeeded]
-  steps
-    start: scheduled + awaitStart →
-      { state := started, outcome := acknowledged, facts := [started] }
+  role: operation
+  states: State
+  actions: Action
+  outcomes: Outcome
+  facts: Fact
+  starts: [succeeded, scheduled]
+  ends: [succeeded]
+  steps:
+    scheduled + awaitStart → started, outcome: acknowledged, facts: [started]
 
 /-! ### Known Gaps are the Query's own
 
@@ -681,28 +682,34 @@ A Query carries exactly the gaps its own Model file declares; nothing is attache
 error: unknown Known Gap kind 'whiteBox'; declared: capability, input, interpretation, claim
 -/
 #guard_msgs (error) in
-query unknownGapKind on lifecycle
-  find successfulResult
-  in successfulCompletion
-  limits shortTrace
-  gap whiteBox "mutable-state" detail "Reading mutable state needs the admin service."
+query unknownGapKind
+  find: successfulResult
+  in: successfulCompletion
+  limits: shortTrace
+  gap: whiteBox
+    code: "mutable-state"
+    detail: "Reading mutable state needs the admin service."
 
 /--
 error: Known Gap 'cancellation' is already declared by this Query
 -/
 #guard_msgs (error) in
-query duplicateGapCode on lifecycle
-  find successfulResult
-  in successfulCompletion
-  limits shortTrace
-  gap capability "cancellation" detail "One."
-  gap input "cancellation" detail "Two."
+query duplicateGapCode
+  find: successfulResult
+  in: successfulCompletion
+  limits: shortTrace
+  gap: capability
+    code: "cancellation"
+    detail: "One."
+  gap: input
+    code: "cancellation"
+    detail: "Two."
 
 /- A Query that declares no gap carries none. -/
-query ungappedCompletion on lifecycle
-  find successfulResult
-  in successfulCompletion
-  limits shortTrace
+query ungappedCompletion
+  find: successfulResult
+  in: successfulCompletion
+  limits: shortTrace
 
 #guard (do
   let checked ← ungappedCompletion.toOption
@@ -733,24 +740,24 @@ error: this Model declares no facts, so 'started' names nothing
 -/
 #guard_msgs (error) in
 model factlessRowLifecycle
-  role operation
-  states State
-  actions Action
-  outcomes Outcome
-  starts [scheduled]
-  ends [succeeded]
-  steps
-    start: scheduled + awaitStart →
-      { state := started, outcome := acknowledged, facts := [started] }
+  role: operation
+  states: State
+  actions: Action
+  outcomes: Outcome
+  starts: [scheduled]
+  ends: [succeeded]
+  steps:
+    scheduled + awaitStart → started, outcome: acknowledged, facts: [started]
 
 /--
 error: this Model declares no facts, so 'succeeded' names nothing
 -/
 #guard_msgs (error) in
-property factlessClause on lifecycle
-  for operation
-  when awaitSuccess
-  require successFact: fact succeeded
+property factlessClause
+  model: lifecycle
+  when: awaitSuccess
+  require:
+    fact: succeeded
 
 /- The success Model's Property is two clauses, and its vocabulary declares no Fact. -/
 #guard (do
@@ -785,16 +792,15 @@ error: Model action constructors must be declared in sorted order, because the p
 -/
 #guard_msgs (error) in
 model unsortedEnumActionLifecycle
-  role operation
-  states State
-  actions UnsortedEnumAction
-  outcomes Outcome
-  facts Fact
-  starts [scheduled]
-  ends [succeeded]
-  steps
-    start: scheduled + cancel →
-      { state := started, outcome := acknowledged, facts := [started] }
+  role: operation
+  states: State
+  actions: UnsortedEnumAction
+  outcomes: Outcome
+  facts: Fact
+  starts: [scheduled]
+  ends: [succeeded]
+  steps:
+    scheduled + cancel → started, outcome: acknowledged, facts: [started]
 
 /-! Two Models in one namespace each generate their own setup domain, so neither can collide with
 the other's. -/
@@ -818,18 +824,16 @@ inductive Setup where
   deriving BEq, DecidableEq, Repr
 
 model coexistingLifecycle
-  role operation
-  states State
-  actions Action
-  outcomes Outcome
-  facts Fact
-  starts [scheduled]
-  ends [succeeded]
-  steps
-    start: scheduled + awaitStart →
-      { state := started, outcome := acknowledged, facts := [started] }
-    success: started + awaitSuccess →
-      { state := succeeded, outcome := completed, facts := [succeeded] }
+  role: operation
+  states: State
+  actions: Action
+  outcomes: Outcome
+  facts: Fact
+  starts: [scheduled]
+  ends: [succeeded]
+  steps:
+    scheduled + awaitStart → started, outcome: acknowledged, facts: [started]
+    started + awaitSuccess → succeeded, outcome: completed, facts: [succeeded]
 
 /- The generated setup domain is the Model's own, and its constructor is named after the Model's
 first start state, which is what keeps the canonical setup key stable. -/
@@ -848,16 +852,15 @@ error: Model action constructors must be declared in sorted order, because the p
 -/
 #guard_msgs (error) in
 model unsortedActionLifecycle
-  role operation
-  states State
-  actions UnsortedAction
-  outcomes Outcome
-  facts Fact
-  starts [scheduled]
-  ends [succeeded]
-  steps
-    start: scheduled + cancel →
-      { state := started, outcome := acknowledged, facts := [started] }
+  role: operation
+  states: State
+  actions: UnsortedAction
+  outcomes: Outcome
+  facts: Fact
+  starts: [scheduled]
+  ends: [succeeded]
+  steps:
+    scheduled + cancel → started, outcome: acknowledged, facts: [started]
 
 inductive ParameterizedState where
   | queued
@@ -869,67 +872,62 @@ error: Model state 'running' takes arguments; a state domain must be an enum-lik
 -/
 #guard_msgs (error) in
 model parameterizedLifecycle
-  role operation
-  states ParameterizedState
-  actions Action
-  outcomes Outcome
-  facts Fact
-  starts [queued]
-  ends [running]
-  steps
-    start: queued + awaitStart →
-      { state := running, outcome := acknowledged, facts := [started] }
+  role: operation
+  states: ParameterizedState
+  actions: Action
+  outcomes: Outcome
+  facts: Fact
+  starts: [queued]
+  ends: [running]
+  steps:
+    queued + awaitStart → running, outcome: acknowledged, facts: [started]
 
 /--
-error: duplicate Model step 'again': 'scheduled + awaitStart' is already declared by 'start'
+error: duplicate Model step: 'scheduled + awaitStart' is already declared
 -/
 #guard_msgs (error) in
 model duplicateTransitionLifecycle
-  role operation
-  states State
-  actions Action
-  outcomes Outcome
-  facts Fact
-  starts [scheduled]
-  ends [succeeded]
-  steps
-    start: scheduled + awaitStart →
-      { state := started, outcome := acknowledged, facts := [started] }
-    again: scheduled + awaitStart →
-      { state := succeeded, outcome := completed, facts := [succeeded] }
+  role: operation
+  states: State
+  actions: Action
+  outcomes: Outcome
+  facts: Fact
+  starts: [scheduled]
+  ends: [succeeded]
+  steps:
+    scheduled + awaitStart → started, outcome: acknowledged, facts: [started]
+    scheduled + awaitStart → succeeded, outcome: completed, facts: [succeeded]
 
 /--
 error: Model end state 'succeeded' is unreachable from every start state
 -/
 #guard_msgs (error) in
 model unreachableTerminalLifecycle
-  role operation
-  states State
-  actions Action
-  outcomes Outcome
-  facts Fact
-  starts [scheduled]
-  ends [succeeded]
-  steps
-    start: scheduled + awaitStart →
-      { state := started, outcome := acknowledged, facts := [started] }
+  role: operation
+  states: State
+  actions: Action
+  outcomes: Outcome
+  facts: Fact
+  starts: [scheduled]
+  ends: [succeeded]
+  steps:
+    scheduled + awaitStart → started, outcome: acknowledged, facts: [started]
 
 /-- Declare a model with `count` identical step rows, so the elaboration bound is reachable
 without writing the rows out. The bound is checked before duplicate rows are, so identical rows
 reach it. -/
 local macro "boundedStepModel" modelName:ident count:num : command => do
   let rows ← (List.replicate count.getNat ()).toArray.mapM fun _ =>
-    `(successStep| step: scheduled + awaitStart →
-        { state := started, outcome := acknowledged, facts := [started] })
+    `(modelStep| scheduled + awaitStart → started, outcome: acknowledged, facts: [started])
   `(command| model $modelName
-      role operation
-      states State
-      actions Action
-      outcomes Outcome
-      facts Fact
-      starts [scheduled]
-      ends [succeeded]
-      steps $rows*)
+      role: operation
+      states: State
+      actions: Action
+      outcomes: Outcome
+      facts: Fact
+      starts: [scheduled]
+      ends: [succeeded]
+      steps: $rows*)
 
 /--
 error: the Model declares 257 steps; the elaboration bound is 256
@@ -937,144 +935,48 @@ error: the Model declares 257 steps; the elaboration bound is 256
 #guard_msgs (error) in
 boundedStepModel overBoundLifecycle 257
 
-/-
-Every keyword the R6 rewrite retired still parses, so an author who writes the old spelling gets a
-located error naming the replacement instead of a parse failure that names neither. One block per
-retired keyword.
--/
+/-! ### The respelled surface rejects in place
+
+A missing key, a key that belongs to another declaration, a Query whose Property and Scenario name
+different Models, and a repeated requirement each land on what the author wrote. -/
+
+/- A missing key and a key on the wrong line are parse errors, located on the offending token:
+
+     model missingKeyLifecycle
+       role: operation
+       states State            -- unexpected identifier; expected 'states:'
+
+     model misplacedKeyLifecycle
+       ...
+       outcomes: Outcome       -- unexpected token 'outcomes:'; expected 'actions:'
+       actions: Action
+
+   They are not pinned with `#guard_msgs`, which cannot capture them: the command it wraps never
+   parses, so the whole `#guard_msgs` block fails to parse with it. The two messages above were
+   read off the elaborator. -/
 
 /--
-error: the Model command keyword 'initial' is retired; write 'starts'
+error: duplicate requirement 'state-succeeded': this Property already requires it
 -/
 #guard_msgs (error) in
-model retiredInitialLifecycle
-  role operation
-  states State
-  actions Action
-  outcomes Outcome
-  facts Fact
-  initial [scheduled]
-  ends [succeeded]
-  steps
-    start: scheduled + awaitStart →
-      { state := started, outcome := acknowledged, facts := [started] }
+property duplicateRequirement
+  model: lifecycle
+  when: awaitSuccess
+  require:
+    state: succeeded
+    state: succeeded
 
 /--
-error: the Model command keyword 'terminal' is retired; write 'ends'
+error: the Property runs on Model 'Temporal.Feature.Nexus.Success.Tests.probeLifecycle' and the Scenario on 'Temporal.Feature.Nexus.Success.lifecycle'; a Query asks one question of one Model
 -/
 #guard_msgs (error) in
-model retiredTerminalLifecycle
-  role operation
-  states State
-  actions Action
-  outcomes Outcome
-  facts Fact
-  starts [scheduled]
-  terminal [succeeded]
-  steps
-    start: scheduled + awaitStart →
-      { state := started, outcome := acknowledged, facts := [started] }
+query mismatchedModels
+  find: probeStart
+  in: successfulCompletion
+  limits: shortTrace
 
-/--
-error: the Model command keyword 'transitions' is retired; write 'steps'
--/
-#guard_msgs (error) in
-model retiredTransitionsLifecycle
-  role operation
-  states State
-  actions Action
-  outcomes Outcome
-  facts Fact
-  starts [scheduled]
-  ends [succeeded]
-  transitions
-    start: scheduled + awaitStart →
-      { state := started, outcome := acknowledged, facts := [started] }
-
-/--
-error: the Model command keyword 'when action' is retired; write 'when'
--/
-#guard_msgs (error) in
-property retiredWhenAction on lifecycle
-  for operation
-  when action awaitSuccess
-  require successState: state succeeded
-
-/--
-error: the Model command keyword 'resultingState' is retired; write 'state'
--/
-#guard_msgs (error) in
-property retiredResultingState on lifecycle
-  for operation
-  when awaitSuccess
-  require successState: resultingState succeeded
-
-/--
-error: the Model command keyword 'behavior' is retired; write 'scenario'
--/
-#guard_msgs (error) in
-behavior retiredBehavior on lifecycle
-  operation starts scheduled
-  actions exactly [start: awaitStart, completion: awaitSuccess]
-
-/--
-error: the Model command keyword 'transitions' is retired; write 'steps'
--/
-#guard_msgs (error) in
-limits retiredTransitionsLimit
-  transitions 2
-  actions 2
-  search 16
-
-/--
-error: the Model command keyword 'selected_actions' is retired; write 'actions'
--/
-#guard_msgs (error) in
-limits retiredSelectedActionsLimit
-  steps 2
-  selected_actions 2
-  search 16
-
-/--
-error: the Model command keyword 'candidate_evaluations' is retired; write 'search'
--/
-#guard_msgs (error) in
-limits retiredCandidateEvaluationsLimit
-  steps 2
-  actions 2
-  candidate_evaluations 16
-
-/--
-error: the Model command keyword 'witness' is retired; write 'find'
--/
-#guard_msgs (error) in
-query retiredWitnessQuery on lifecycle
-  witness successfulResult
-  in successfulCompletion
-  limits shortTrace
-
-/--
-error: the Model command keyword 'all' is retired; write 'verify'
--/
-#guard_msgs (error) in
-query retiredAllQuery on lifecycle
-  all successfulResult
-  in successfulCompletion
-  limits shortTrace
-
-/-! ### Definition families and sources are per file
-
-The family comes from the enclosing namespace and the source from the elaborating file, so a Model
-declared in this test file shares no Definition ID and no Provenance source with the Model in
-`Model.lean` -- even though both are Nexus success Models. -/
-
-#guard probeLifecycle.targetId != lifecycle.targetId
-#guard probeLifecycle.origin.family != lifecycle.origin.family
-#guard probeLifecycle.origin.source != lifecycle.origin.source
-#guard lifecycle.origin.source.path == "Temporal/Feature/Nexus/Success/Model.lean"
-#guard probeLifecycle.origin.source.path == "Temporal/Feature/Nexus/Success/Tests.lean"
-#guard lifecycle.targetId.value == "temporal.nexus.success.target.lifecycle"
-#guard probeLifecycle.targetId.value == "temporal.nexus.success.tests.target.probeLifecycle"
+/-! The pre-respell spellings are gone rather than retired: every call site is in this repository
+and migrated in the same commit, so nothing outside it could be holding one. -/
 
 /-! ### The `case` block
 

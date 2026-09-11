@@ -43,40 +43,32 @@ macro doc?:(docComment)? &"enum" name:ident
       $declared:ctor*
       deriving BEq, DecidableEq, Repr)
 
-/-- One `before + action → result` row of a declared model. -/
-declare_syntax_cat successStep
+/-! ### The shapes a command's value can take
 
-syntax ident ":" ident "+" ident "→"
-  "{" "state" ":=" ident "," "outcome" ":=" ident "," "facts" ":=" "[" ident,* "]" "}" :
-  successStep
+One rule governs a Model file: a column-0 word is a declaration kind followed by the author's name,
+an indented `word:` is a framework key introducing a value, and everything else is an author name, a
+declared member, a number, or an operator. Nothing an author writes is a label the framework only
+carries back to them. -/
 
-/-- The same row for a Model that records no Fact on it. -/
-syntax ident ":" ident "+" ident "→"
-  "{" "state" ":=" ident "," "outcome" ":=" ident "}" :
-  successStep
+/-- One `before + action → after` Step row. Its relation key is derived from the row itself. -/
+declare_syntax_cat modelStep
 
-/-- One `require` clause of a declared Property. -/
-declare_syntax_cat successRequire
+syntax ident "+" ident "→" ident "," "outcome:" ident : modelStep
+syntax ident "+" ident "→" ident "," "outcome:" ident "," "facts:" "[" ident,* "]" : modelStep
 
-syntax "require" ident ":" &"state" ident : successRequire
-syntax "require" ident ":" "outcome" ident : successRequire
-syntax "require" ident ":" "fact" ident : successRequire
+/-- One `require:` line of a declared Property. Its clause key is derived from the line itself. -/
+declare_syntax_cat modelRequirement
 
-/-- The retired `resultingState` spelling still parses, so the macro can reject it in place and
-name its replacement instead of failing as an unexplained parse error. -/
-syntax "require" ident ":" "resultingState" ident : successRequire
+syntax "state:" ident : modelRequirement
+syntax "outcome:" ident : modelRequirement
+syntax "fact:" ident : modelRequirement
 
 /-- One Known Gap a Query carries: what kind of thing is missing, the name its code derives from,
 optionally the Property it limits, and why. -/
 declare_syntax_cat modelGap
 
-syntax "gap" ident str &"subject" str &"detail" str : modelGap
-syntax "gap" ident str &"detail" str : modelGap
-
-/-- One labelled occurrence of a declared Action in a Behavior sequence. -/
-declare_syntax_cat successOccurrence
-
-syntax ident ":" ident : successOccurrence
+syntax "gap:" ident "code:" str "subject:" str "detail:" str : modelGap
+syntax "gap:" ident "code:" str "detail:" str : modelGap
 
 /-- The elaboration bound on declared transition rows. The tested scale is far smaller; this is a
 ceiling on how large a table the elaborator will build, not a modelling recommendation. -/
@@ -99,9 +91,13 @@ private def unknownMemberMessage (domain spelling : String) (constructors : List
 private def parameterizedConstructorMessage (domain spelling : String) : String :=
   s!"Model {domain} '{spelling}' takes arguments; a {domain} domain must be an enum-like inductive"
 
-private def duplicateTransitionMessage (key priorKey source selected : String) : String :=
-  s!"duplicate Model step '{key}': '{source} + {selected}' is already declared by " ++
-    s!"'{priorKey}'"
+private def duplicateTransitionMessage (source selected : String) : String :=
+  s!"duplicate Model step: '{source} + {selected}' is already declared"
+
+/-- A Step row's relation key. It is the row's own coordinates, because those are what make it
+unique -- the command rejects a second row leaving the same state on the same Action. -/
+private def relationKey (sourceState selectedAction : Ident) : String :=
+  (shortName sourceState.getId).toString ++ "-" ++ (shortName selectedAction.getId).toString
 
 private def unreachableTerminalMessage (spelling : String) : String :=
   s!"Model end state '{spelling}' is unreachable from every start state"
@@ -139,7 +135,7 @@ private def resolveMember (domain : String) (constructors : List Name) (member :
 
 /-- One transition row with every member resolved once, before the table is built from it. -/
 private structure ResolvedRow where
-  key : Ident
+  key : TSyntax `modelStep
   sourceState : Ident
   selectedAction : Ident
   targetState : Ident
@@ -155,26 +151,6 @@ private def reachableStates (edges : List (Name × Name)) : Nat → List Name �
 
 private def memberKeys (constructors : List Name) : Array Term :=
   constructors.toArray.map fun constructor => Lean.quote (shortName constructor).toString
-
-/-- The keyword one alternation position actually matched. A retired spelling parses alongside its
-replacement so the elaborator can point at the retired token, rather than reporting a parse error
-that names neither spelling. -/
-private def keywordSpelling : Syntax → String
-  | .atom _ value => value
-  | keyword => (keyword.getArg 0).getAtomVal
-
-private def retiredKeywordMessage (retired replacement : String) : String :=
-  s!"the Model command keyword '{retired}' is retired; write '{replacement}'"
-
-private def rejectRetiredKeyword (keyword : Syntax) (retired replacement : String) :
-    CommandElabM Unit := do
-  if keywordSpelling keyword == retired then
-    throwErrorAt keyword (retiredKeywordMessage retired replacement)
-
-private def rejectRetiredMacroKeyword (keyword : Syntax) (retired replacement : String) :
-    MacroM Unit := do
-  if keywordSpelling keyword == retired then
-    Lean.Macro.throwErrorAt keyword (retiredKeywordMessage retired replacement)
 
 /-! ### Where a declaration comes from
 
@@ -222,12 +198,8 @@ bind. -/
 private def elabModel
     (name role stateType actionType outcomeType : Ident)
     (factDomain : Option Ident)
-    (startsKeyword endsKeyword stepsKeyword : Syntax)
     (initialRefs terminalRefs : Array Ident)
-    (rows : Array (TSyntax `successStep)) : CommandElabM Unit := do
-  rejectRetiredKeyword startsKeyword "initial" "starts"
-  rejectRetiredKeyword endsKeyword "terminal" "ends"
-  rejectRetiredKeyword stepsKeyword "transitions" "steps"
+    (rows : Array (TSyntax `modelStep)) : CommandElabM Unit := do
   let stateCtors ← domainConstructors "state" stateType
   let actionCtors ← domainConstructors "action" actionType
   let outcomeCtors ← domainConstructors "outcome" outcomeType
@@ -256,46 +228,40 @@ private def elabModel
       throwErrorAt pair.2.2 (unsortedInitialMessage later earlier)
   if rows.size > transitionBound then
     throwErrorAt rows[transitionBound]! (transitionBoundMessage rows.size)
-  let resolvedRows ← rows.toList.mapM fun (row : TSyntax `successStep) => do
+  let resolvedRows ← rows.toList.mapM fun (row : TSyntax `modelStep) => do
+    let resolve := fun (source selected resulting outcomeRef : Ident)
+        (observed : List Ident) => do
+      let sourceState ← resolveMember "state" stateCtors source
+      let selectedAction ← resolveMember "action" actionCtors selected
+      let targetState ← resolveMember "state" stateCtors resulting
+      let resolvedOutcome ← resolveMember "outcome" outcomeCtors outcomeRef
+      let observedFacts ← observed.mapM (resolveMember "fact" factCtors)
+      -- The relation key is the row: which state it leaves and which Action it takes. The command
+      -- already rejects two rows with that pair, so the key is unique without an author label.
+      let keyLiteral := Lean.quote (relationKey sourceState selectedAction)
+      let rowTerm ← `(term|
+        { key := $keyLiteral
+          source := $sourceState
+          action := $selectedAction
+          results := [step $resolvedOutcome $targetState
+            [$(observedFacts.toArray),*]] })
+      pure ({ key := row, sourceState, selectedAction, targetState, rowTerm : ResolvedRow })
     match row with
-    | `(successStep| $key:ident : $source:ident + $selected:ident →
-        { state := $resulting:ident , outcome := $outcomeRef:ident ,
-          facts := [$observed,*] }) => do
-        let sourceState ← resolveMember "state" stateCtors source
-        let selectedAction ← resolveMember "action" actionCtors selected
-        let targetState ← resolveMember "state" stateCtors resulting
-        let resolvedOutcome ← resolveMember "outcome" outcomeCtors outcomeRef
-        let observedFacts ← observed.getElems.toList.mapM (resolveMember "fact" factCtors)
-        let keyLiteral := Lean.quote key.getId.eraseMacroScopes.toString
-        let rowTerm ← `(term|
-          { key := $keyLiteral
-            source := $sourceState
-            action := $selectedAction
-            results := [step $resolvedOutcome $targetState
-              [$(observedFacts.toArray),*]] })
-        pure ({ key, sourceState, selectedAction, targetState, rowTerm : ResolvedRow })
-    | `(successStep| $key:ident : $source:ident + $selected:ident →
-        { state := $resulting:ident , outcome := $outcomeRef:ident }) => do
-        let sourceState ← resolveMember "state" stateCtors source
-        let selectedAction ← resolveMember "action" actionCtors selected
-        let targetState ← resolveMember "state" stateCtors resulting
-        let resolvedOutcome ← resolveMember "outcome" outcomeCtors outcomeRef
-        let keyLiteral := Lean.quote key.getId.eraseMacroScopes.toString
-        let rowTerm ← `(term|
-          { key := $keyLiteral
-            source := $sourceState
-            action := $selectedAction
-            results := [step $resolvedOutcome $targetState []] })
-        pure ({ key, sourceState, selectedAction, targetState, rowTerm : ResolvedRow })
+    | `(modelStep| $source:ident + $selected:ident → $resulting:ident ,
+        outcome: $outcomeRef:ident) =>
+        resolve source selected resulting outcomeRef []
+    | `(modelStep| $source:ident + $selected:ident → $resulting:ident ,
+        outcome: $outcomeRef:ident , facts: [$observed,*]) =>
+        resolve source selected resulting outcomeRef observed.getElems.toList
     | _ => throwErrorAt row "unsupported Model step"
   let mut declared : List ResolvedRow := []
   for resolved in resolvedRows do
     if let some prior := declared.find? fun candidate =>
         candidate.sourceState.getId == resolved.sourceState.getId &&
           candidate.selectedAction.getId == resolved.selectedAction.getId then
+      let _ := prior
       throwErrorAt resolved.key
-        (duplicateTransitionMessage resolved.key.getId.eraseMacroScopes.toString
-          prior.key.getId.eraseMacroScopes.toString
+        (duplicateTransitionMessage
           (shortName resolved.sourceState.getId).toString
           (shortName resolved.selectedAction.getId).toString)
     declared := declared ++ [resolved]
@@ -333,6 +299,7 @@ private def elabModel
       deriving BEq, DecidableEq, Repr))
   liftCoreM (Registry.recordModel {
     declName := (← getCurrNamespace) ++ name.getId
+    role := role.getId.eraseMacroScopes.toString
     «facts» := (factCtors.map fun constructor => (shortName constructor).toString).toArray })
   elabCommand (← `(command|
     def $name := declareModel $origin $names ($setupName)
@@ -346,60 +313,78 @@ private def elabModel
 
 Two spellings, one body: a Model that declares a Fact domain, and one that declares none. -/
 
-elab "model" name:ident "role" roleRef:ident
-    "states" stateType:ident
-    "actions" actionType:ident "outcomes" outcomeType:ident "facts" factType:ident
-    startsKeyword:(&"starts" <|> "initial") "[" initialRefs:ident,+ "]"
-    endsKeyword:(&"ends" <|> "terminal") "[" terminalRefs:ident,+ "]"
-    stepsKeyword:(&"steps" <|> "transitions")
-    rows:successStep+ : command =>
+elab "model" name:ident
+    "role:" roleRef:ident
+    "states:" stateType:ident
+    "actions:" actionType:ident
+    "outcomes:" outcomeType:ident
+    "facts:" factType:ident
+    "starts:" "[" initialRefs:ident,+ "]"
+    "ends:" "[" terminalRefs:ident,+ "]"
+    "steps:" rows:modelStep+ : command =>
   elabModel name roleRef stateType actionType outcomeType (some factType)
-    startsKeyword endsKeyword stepsKeyword
     initialRefs.getElems terminalRefs.getElems rows
 
-elab "model" name:ident "role" roleRef:ident
-    "states" stateType:ident
-    "actions" actionType:ident "outcomes" outcomeType:ident
-    startsKeyword:(&"starts" <|> "initial") "[" initialRefs:ident,+ "]"
-    endsKeyword:(&"ends" <|> "terminal") "[" terminalRefs:ident,+ "]"
-    stepsKeyword:(&"steps" <|> "transitions")
-    rows:successStep+ : command =>
+elab "model" name:ident
+    "role:" roleRef:ident
+    "states:" stateType:ident
+    "actions:" actionType:ident
+    "outcomes:" outcomeType:ident
+    "starts:" "[" initialRefs:ident,+ "]"
+    "ends:" "[" terminalRefs:ident,+ "]"
+    "steps:" rows:modelStep+ : command =>
   elabModel name roleRef stateType actionType outcomeType none
-    startsKeyword endsKeyword stepsKeyword
     initialRefs.getElems terminalRefs.getElems rows
 
-elab "property" name:ident "on" modelRef:ident "for" roleRef:ident
-    "when" actionKeyword:("action")? actionRef:ident
-    requirements:successRequire+ : command => do
-    if let some retired := actionKeyword then
-      throwErrorAt retired (retiredKeywordMessage "when action" "when")
+/-! ### The `property` command
+
+A Property names its Model and the Action every clause is about, then one `require:` line per
+requirement. The clause key is the requirement -- its kind and the member it names -- so a duplicate
+requirement is a duplicate key, and rejects on the line that repeats it. -/
+
+private def duplicateRequirementMessage (key : String) : String :=
+  s!"duplicate requirement '{key}': this Property already requires it"
+
+elab "property" name:ident
+    "model:" modelRef:ident
+    "when:" actionRef:ident
+    "require:" requirements:modelRequirement+ : command => do
     let ownerKey := Lean.quote name.getId.toString
-    let roleKey := Lean.quote roleRef.getId.toString
     let actionKey := Lean.quote actionRef.getId.toString
     let modelName ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo modelRef)
     let declaredFacts := match Registry.model? (← getEnv) modelName with
       | some declared => declared.facts
       | none => #[]
-    let clauses ← requirements.mapM fun requirement => do
-      match requirement with
-      | `(successRequire| require $label:ident : state $member:ident) =>
-          `(term| PropertyRequirement.stateClause
-              $(Lean.quote label.getId.toString) $(Lean.quote member.getId.toString))
-      | `(successRequire| require $_:ident : resultingState $_:ident) =>
-          throwErrorAt requirement (retiredKeywordMessage "resultingState" "state")
-      | `(successRequire| require $label:ident : outcome $member:ident) =>
-          `(term| PropertyRequirement.outcomeClause
-              $(Lean.quote label.getId.toString) $(Lean.quote member.getId.toString))
-      | `(successRequire| require $label:ident : fact $member:ident) => do
-          -- A Model that declares no Fact domain has nothing for a `fact` clause to name, and the
-          -- clause is what the author wrote, so it is where the rejection belongs.
-          unless declaredFacts.contains member.getId.eraseMacroScopes.toString do
-            throwErrorAt member (unknownMemberMessage "fact"
-              member.getId.eraseMacroScopes.toString
-              (declaredFacts.toList.map fun spelling => Name.mkSimple spelling))
-          `(term| PropertyRequirement.factClause
-              $(Lean.quote label.getId.toString) $(Lean.quote member.getId.toString))
-      | _ => throwErrorAt requirement "unsupported require clause"
+    let roleKey := Lean.quote (match Registry.model? (← getEnv) modelName with
+      | some declared => declared.role
+      | none => "")
+    let mut keys : Array String := #[]
+    let mut clauses : Array Term := #[]
+    for requirement in requirements do
+      let (kind, member) ← match requirement with
+        | `(modelRequirement| state: $member:ident) => pure ("state", member)
+        | `(modelRequirement| outcome: $member:ident) => pure ("outcome", member)
+        | `(modelRequirement| fact: $member:ident) => do
+            -- A Model that declares no Fact domain has nothing for a `fact:` line to name, and the
+            -- line is what the author wrote, so it is where the rejection belongs.
+            unless declaredFacts.contains member.getId.eraseMacroScopes.toString do
+              throwErrorAt member (unknownMemberMessage "fact"
+                member.getId.eraseMacroScopes.toString
+                (declaredFacts.toList.map fun spelling => Name.mkSimple spelling))
+            pure ("fact", member)
+        | _ => throwErrorAt requirement "unsupported requirement"
+      let spelling := member.getId.eraseMacroScopes.toString
+      let key := kind ++ "-" ++ spelling
+      if keys.contains key then
+        throwErrorAt requirement (duplicateRequirementMessage key)
+      keys := keys.push key
+      let constructor := match kind with
+        | "state" => `stateClause
+        | "outcome" => `outcomeClause
+        | _ => `factClause
+      clauses := clauses.push (← `(term|
+        $(mkIdent (`Umpire.Command.PropertyRequirement ++ constructor))
+          $(Lean.quote key) $(Lean.quote spelling)))
     elabCommand (← `(command|
       def $name (values : ModelVocabulary) : Property :=
         authoredProperty ($modelRef) values {
@@ -408,23 +393,27 @@ elab "property" name:ident "on" modelRef:ident "for" roleRef:ident
           actionSpelling := $actionKey
           requirements := [$clauses,*]
         }))
+    liftCoreM (Registry.recordProperty {
+      declName := (← getCurrNamespace) ++ name.getId, «model» := modelName })
 
-elab scenarioKeyword:("scenario" <|> "behavior") name:ident "on" modelRef:ident roleRef:ident
-    "starts" setupRef:ident
-    "actions" "exactly" "[" occurrences:successOccurrence,+ "]" : command => do
-    rejectRetiredKeyword scenarioKeyword "behavior" "scenario"
+/-! ### The `scenario` command
+
+`actions:` is the exact sequence the operation selects. Each occurrence's key is its position in
+that sequence, because that is what distinguishes two occurrences of the same Action. -/
+
+elab "scenario" name:ident
+    "model:" modelRef:ident
+    "starts:" setupRef:ident
+    "actions:" "[" selected:ident,+ "]" : command => do
     let ownerKey := Lean.quote name.getId.toString
-    let roleKey := Lean.quote roleRef.getId.toString
     let setupKey := Lean.quote setupRef.getId.toString
-    let mut selectedSpellings : Array String := #[]
-    let mut entries : Array Term := #[]
-    for occurrence in occurrences.getElems do
-      match occurrence with
-      | `(successOccurrence| $label:ident : $selected:ident) =>
-          selectedSpellings := selectedSpellings.push selected.getId.eraseMacroScopes.toString
-          entries := entries.push (← `(term|
-            ($(Lean.quote label.getId.toString), $(Lean.quote selected.getId.toString))))
-      | _ => throwErrorAt occurrence "unsupported Scenario occurrence"
+    let modelName ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo modelRef)
+    let roleKey := Lean.quote (match Registry.model? (← getEnv) modelName with
+      | some declared => declared.role
+      | none => "")
+    let spellings := selected.getElems.map fun action => action.getId.eraseMacroScopes.toString
+    let entries ← spellings.mapIdxM fun position spelling =>
+      `(term| ($(Lean.quote (toString (position + 1))), $(Lean.quote spelling)))
     elabCommand (← `(command|
       def $name (values : ModelVocabulary) : Scenario :=
         authoredScenario ($modelRef) values {
@@ -433,30 +422,17 @@ elab scenarioKeyword:("scenario" <|> "behavior") name:ident "on" modelRef:ident 
           setupState := $setupKey
           occurrences := [$entries,*]
         }))
-    -- A `case` block resolves its `evidence` lines against this list, so the Action order the
-    -- Scenario fixes is recorded beside the declaration rather than re-derived from the term.
     liftCoreM (Registry.recordScenario {
-      declName := (← getCurrNamespace) ++ name.getId, «actions» := selectedSpellings })
+      declName := (← getCurrNamespace) ++ name.getId
+      «model» := modelName
+      «actions» := spellings })
 
 macro "limits" name:ident
-    stepsKeyword:(&"steps" <|> "transitions") stepCount:num
-    actionsKeyword:(&"actions" <|> "selected_actions") actionCount:num
-    searchKeyword:(&"search" <|> "candidate_evaluations") searchCount:num : command => do
-    rejectRetiredMacroKeyword stepsKeyword "transitions" "steps"
-    rejectRetiredMacroKeyword actionsKeyword "selected_actions" "actions"
-    rejectRetiredMacroKeyword searchKeyword "candidate_evaluations" "search"
+    "steps:" stepCount:num
+    "actions:" actionCount:num
+    "search:" searchCount:num : command =>
     `(command| def $name : Limits :=
         Limits.bounded $stepCount $actionCount $searchCount)
-
-/-- Record what a `case` block needs to know about a Query: whether it selects a witness, and the
-Scenario whose Action order its evidence lines resolve against. -/
-private def recordQueryDeclaration
-    (name scenarioRef : Ident) (selectsWitness : Bool) : CommandElabM Unit := do
-  let scenarioName ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo scenarioRef)
-  liftCoreM (Registry.recordQuery {
-    declName := (← getCurrNamespace) ++ name.getId
-    selectsWitness
-    «scenario» := scenarioName })
 
 private def unknownGapKindMessage (spelling : String) : String :=
   s!"unknown Known Gap kind '{spelling}'; declared: capability, input, interpretation, claim"
@@ -480,25 +456,65 @@ private def knownGapsTerm (origin : Term) (gaps : Array (TSyntax `modelGap)) :
   let mut terms : Array Term := #[]
   for declared? in gaps do
     match declared? with
-    | `(modelGap| gap $kind:ident $name:str subject $subject:str detail $detail:str) =>
-        if declared.contains name.getString then
-          throwErrorAt name (duplicateGapMessage name.getString)
-        declared := declared.push name.getString
+    | `(modelGap| gap: $kindRef:ident code: $codeRef:str subject: $subjectRef:str
+        detail: $detailRef:str) =>
+        if declared.contains codeRef.getString then
+          throwErrorAt codeRef (duplicateGapMessage codeRef.getString)
+        declared := declared.push codeRef.getString
         terms := terms.push (← `(term|
-          Origin.knownGap $origin $(← gapKindTerm kind) $name (some $subject) $detail))
-    | `(modelGap| gap $kind:ident $name:str detail $detail:str) =>
-        if declared.contains name.getString then
-          throwErrorAt name (duplicateGapMessage name.getString)
-        declared := declared.push name.getString
+          Origin.knownGap $origin $(← gapKindTerm kindRef) $codeRef (some $subjectRef) $detailRef))
+    | `(modelGap| gap: $kindRef:ident code: $codeRef:str detail: $detailRef:str) =>
+        if declared.contains codeRef.getString then
+          throwErrorAt codeRef (duplicateGapMessage codeRef.getString)
+        declared := declared.push codeRef.getString
         terms := terms.push (← `(term|
-          Origin.knownGap $origin $(← gapKindTerm kind) $name none $detail))
+          Origin.knownGap $origin $(← gapKindTerm kindRef) $codeRef none $detailRef))
     | _ => throwErrorAt declared? "unsupported Known Gap"
   `(term| Umpire.KnownGapSet.checkCanonical [$terms,*])
 
-elab "query" name:ident "on" modelRef:ident
-    findKeyword:(&"find" <|> "witness") propertyRef:ident "in" scenarioRef:ident
-    "limits" limitsRef:ident gaps:modelGap* : command => do
-    rejectRetiredKeyword findKeyword "witness" "find"
+/-- Record what a `case` block needs to know about a Query: whether it selects a witness, and the
+Scenario whose Action order its evidence lines resolve against. -/
+private def recordQueryDeclaration
+    (name scenarioRef : Ident) (selectsWitness : Bool) : CommandElabM Unit := do
+  let scenarioName ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo scenarioRef)
+  liftCoreM (Registry.recordQuery {
+    declName := (← getCurrNamespace) ++ name.getId
+    selectsWitness
+    «scenario» := scenarioName })
+
+/-! ### The `query` command
+
+A Query names no Model: its Property and its Scenario each name one, and they must be the same. -/
+
+private def mismatchedModelMessage (declaredProperty declaredScenario : Name) : String :=
+  s!"the Property runs on Model '{declaredProperty}' and the Scenario on " ++
+    s!"'{declaredScenario}'; a Query asks one question of one Model"
+
+private def undeclaredMessage (kind : String) (spelling : Name) : String :=
+  s!"'{spelling}' is not a {kind} declared by a `{kind}` command"
+
+/-- The Model a Query runs on, resolved from its Property and its Scenario rather than named again.
+-/
+private def queryModelName (propertyRef scenarioRef : Ident) : CommandElabM Name := do
+  let propertyName ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo propertyRef)
+  let scenarioName ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo scenarioRef)
+  let environment ← getEnv
+  let declaredProperty ← match Registry.property? environment propertyName with
+    | some declared => pure declared
+    | none => throwErrorAt propertyRef (undeclaredMessage "property" propertyName)
+  let declaredScenario ← match Registry.scenario? environment scenarioName with
+    | some declared => pure declared
+    | none => throwErrorAt scenarioRef (undeclaredMessage "scenario" scenarioName)
+  unless declaredProperty.model == declaredScenario.model do
+    throwErrorAt scenarioRef
+      (mismatchedModelMessage declaredProperty.model declaredScenario.model)
+  pure declaredProperty.model
+
+elab "query" name:ident
+    "find:" propertyRef:ident
+    "in:" scenarioRef:ident
+    "limits:" limitsRef:ident gaps:modelGap* : command => do
+    let modelRef := mkIdent (← queryModelName propertyRef scenarioRef)
     let queryKey := Lean.quote name.getId.toString
     let knownGaps ← knownGapsTerm (← originTerm) gaps
     elabCommand (← `(command|
@@ -507,10 +523,11 @@ elab "query" name:ident "on" modelRef:ident
           (knownGaps := $knownGaps)))
     recordQueryDeclaration name scenarioRef (selectsWitness := true)
 
-elab "query" name:ident "on" modelRef:ident
-    verifyKeyword:(&"verify" <|> "all") propertyRef:ident "in" scenarioRef:ident
-    "limits" limitsRef:ident gaps:modelGap* : command => do
-    rejectRetiredKeyword verifyKeyword "all" "verify"
+elab "query" name:ident
+    "verify:" propertyRef:ident
+    "in:" scenarioRef:ident
+    "limits:" limitsRef:ident gaps:modelGap* : command => do
+    let modelRef := mkIdent (← queryModelName propertyRef scenarioRef)
     let queryKey := Lean.quote name.getId.toString
     let knownGaps ← knownGapsTerm (← originTerm) gaps
     elabCommand (← `(command|
@@ -518,6 +535,5 @@ elab "query" name:ident "on" modelRef:ident
         check ($modelRef) $queryKey ($limitsRef) ($propertyRef) ($scenarioRef)
           (knownGaps := $knownGaps) (form := QueryFormKind.verifyClaim)))
     recordQueryDeclaration name scenarioRef (selectsWitness := false)
-
 
 end Umpire.Command

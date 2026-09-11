@@ -39,54 +39,57 @@ enum Outcome
   | completed
 
 model lifecycle
-  role operation
-  states State
-  actions Action
-  outcomes Outcome
-  starts [scheduled]
-  ends [succeeded]
-
-  -- Read `before + action → result` as one permitted model step, not an execution instruction.
-  steps
-    start: scheduled + awaitStart →
-      { state := started, outcome := acknowledged }
-    success: started + awaitSuccess →
-      { state := succeeded, outcome := completed }
+  role: operation
+  states: State
+  actions: Action
+  outcomes: Outcome
+  starts: [scheduled]
+  ends: [succeeded]
+  -- Read `before + action → after` as one permitted model step, not an execution instruction.
+  steps:
+    scheduled + awaitStart → started, outcome: acknowledged
+    started + awaitSuccess → succeeded, outcome: completed
 
 /- `awaitSuccess` must expose the complete Target-owned success result. -/
-property successfulResult on lifecycle
-  for operation
-  when awaitSuccess
-  require successState: state succeeded
-  require successOutcome: outcome completed
+property successfulResult
+  model: lifecycle
+  when: awaitSuccess
+  require:
+    state: succeeded
+    outcome: completed
 
-/- `exactly` fixes both the selected Action sequence and its length. -/
-scenario successfulCompletion on lifecycle
-  operation starts scheduled
-  actions exactly [start: awaitStart, completion: awaitSuccess]
+/- `actions:` is the exact sequence the operation selects, and its length. -/
+scenario successfulCompletion
+  model: lifecycle
+  starts: scheduled
+  actions: [awaitStart, awaitSuccess]
 
 /-
 The three limits bound different quantities. Steps count model steps, actions count occurrences,
 and search bounds the work the planner may spend. The start state is not a step.
 -/
 limits shortTrace
-  steps 2
-  actions 2
-  search 16
+  steps: 2
+  actions: 2
+  search: 16
 
 /- Finding this trace establishes possibility within the declared bounds.
 
 The two Known Gaps below limit what any Case realizing this Query can prove. Both name a Property
 this slice cannot declare, which is the gap: a cancellation requirement has no operation-correlated
 shape here, so there is nothing to write a `require` line about. -/
-query completion on lifecycle
-  find successfulResult
-  in successfulCompletion
-  limits shortTrace
-  gap capability "cancellation" subject "cancellationResolves"
-    detail "Operation-correlated Nexus cancellation is unsupported by the success slice."
-  gap capability "operation-correlated-progress" subject "cancellationResolves"
-    detail "Operation-correlated progress counting is unsupported by the success slice."
+query completion
+  find: successfulResult
+  in: successfulCompletion
+  limits: shortTrace
+  gap: capability
+    code: "cancellation"
+    subject: "cancellationResolves"
+    detail: "Operation-correlated Nexus cancellation is unsupported by the success slice."
+  gap: capability
+    code: "operation-correlated-progress"
+    subject: "cancellationResolves"
+    detail: "Operation-correlated progress counting is unsupported by the success slice."
 
 /-
 The Case the selected trace realizes. `fixture` is the only identity slot: the Case ID is
