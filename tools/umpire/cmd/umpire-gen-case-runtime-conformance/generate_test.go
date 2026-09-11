@@ -41,7 +41,9 @@ func TestRunGenerationPublishesExactlySixCompleteClasses(t *testing.T) {
 	for _, entry := range entries {
 		caseBytes, err := os.ReadFile(filepath.Join(configuration.OutputRoot, filepath.FromSlash(casePath(entry.Class))))
 		require.NoError(t, err)
-		require.Equal(t, rendered[entry.RendererArg], caseBytes)
+		stored, err := persistedForm(rendered[entry.RendererArg])
+		require.NoError(t, err)
+		require.Equal(t, stored, caseBytes)
 		expectedBytes, err := os.ReadFile(filepath.Join(configuration.OutputRoot, filepath.FromSlash(expectedPath(entry.Class))))
 		require.NoError(t, err)
 		canonical, err := marshalExpected(entry.Expected)
@@ -78,7 +80,9 @@ func TestRunFunctionalGenerationPublishesOnlyCanonicalTestpilotCases(t *testing.
 	for _, entry := range entries {
 		encoded, err := os.ReadFile(filepath.Join(configuration.OutputRoot, filepath.FromSlash(functionalCasePath(entry))))
 		require.NoError(t, err)
-		require.Equal(t, rendered[entry.RendererArg], encoded)
+		stored, err := persistedForm(rendered[entry.RendererArg])
+		require.NoError(t, err)
+		require.Equal(t, stored, encoded)
 	}
 }
 
@@ -246,4 +250,61 @@ func TestRunGenerationRejectsNondeterministicRenderingBeforePublication(t *testi
 	)
 	require.ErrorContains(t, err, "non-deterministic bytes")
 	require.False(t, published)
+}
+
+// The persisted form is what every generated Testpilot JSON file is stored as: two-space
+// indentation and exactly one trailing newline, with key order and string escapes untouched.
+func TestPersistedFormIndentsWithoutReorderingOrReescaping(t *testing.T) {
+	compact := []byte(`{"zeta":"a\u0041b\n","alpha":[1,{"inner":"x/y"}],"empty":{}}`)
+
+	stored, err := persistedForm(compact)
+	require.NoError(t, err)
+
+	require.Equal(t, "{\n"+
+		"  \"zeta\": \"a\\u0041b\\n\",\n"+
+		"  \"alpha\": [\n"+
+		"    1,\n"+
+		"    {\n"+
+		"      \"inner\": \"x/y\"\n"+
+		"    }\n"+
+		"  ],\n"+
+		"  \"empty\": {}\n"+
+		"}\n", string(stored))
+
+	repeated, err := persistedForm(stored)
+	require.NoError(t, err)
+	require.Equal(t, stored, repeated, "the persisted form is idempotent")
+
+	require.Equal(t, byte('\n'), stored[len(stored)-1])
+	require.NotEqual(t, byte('\n'), stored[len(stored)-2])
+}
+
+func TestRequirePersistedFormRejectsCompactButValidJSONNamingTheFile(t *testing.T) {
+	err := requirePersistedForm("tests/testcore/testpilot/testdata/async-nexus-case.json",
+		[]byte(`{"caseId":"temporal.case.async-nexus"}`))
+
+	require.ErrorContains(t, err, "tests/testcore/testpilot/testdata/async-nexus-case.json")
+	require.ErrorContains(t, err, "not in persisted form")
+}
+
+// A staged fixture that is valid JSON but stored compact fails validation by name, rather than
+// surfacing only as an unexplained `diff -ru` hunk.
+func TestValidateFunctionalArtifactsRejectsCompactStagedFixture(t *testing.T) {
+	entries := functionalManifest()
+	artifacts := make(map[string][]byte, len(entries))
+	for _, entry := range entries {
+		encoded, err := protojson.Marshal(&testpilotspb.Case{CaseId: entry.CaseID})
+		require.NoError(t, err)
+		stored, err := persistedForm(encoded)
+		require.NoError(t, err)
+		artifacts[functionalCasePath(entry)] = stored
+	}
+	compact, err := protojson.Marshal(&testpilotspb.Case{CaseId: entries[0].CaseID})
+	require.NoError(t, err)
+	artifacts[functionalCasePath(entries[0])] = compact
+
+	err = validateFunctionalArtifacts(entries, artifacts)
+
+	require.ErrorContains(t, err, entries[0].Filename)
+	require.ErrorContains(t, err, "not in persisted form")
 }
