@@ -296,10 +296,21 @@ private def elabModel
     inductive $setupType where
       | $(mkIdent setupConstructorName):ident
       deriving BEq, DecidableEq, Repr))
+  let spellingsOf := fun (constructors : List Name) =>
+    (constructors.map fun constructor => (shortName constructor).toString).toArray
   liftCoreM (Registry.recordModel {
     declName := (← getCurrNamespace) ++ name.getId
     role := role.getId.eraseMacroScopes.toString
-    «facts» := (factCtors.map fun constructor => (shortName constructor).toString).toArray })
+    stateType := ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo stateType)
+    actionType := ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo actionType)
+    outcomeType := ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo outcomeType)
+    factType := ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo factType)
+    «states» := spellingsOf stateCtors
+    «actions» := spellingsOf actionCtors
+    «outcomes» := spellingsOf outcomeCtors
+    «facts» := spellingsOf factCtors
+    «starts» := (initialStates.map fun declared =>
+      (shortName declared.getId).toString).toArray })
   elabCommand (← `(command|
     def $name := declareModel $origin $names ($setupName)
       ([$(memberIdents stateCtors),*]) ([$(memberIdents actionCtors),*])
@@ -344,32 +355,53 @@ requirement is a duplicate key, and rejects on the line that repeats it. -/
 private def duplicateRequirementMessage (key : String) : String :=
   s!"duplicate requirement '{key}': this Property already requires it"
 
+private def undeclaredModelMessage (spelling : Name) : String :=
+  s!"'{spelling}' is not a Model declared by a `model` command"
+
+/-- Resolve one spelling against a Model's declared domain, reporting an unknown one in place. The
+message shape is the `model` command's, so an author sees one vocabulary wherever they are. -/
+private def resolveDeclared (domain : String) (declared : Array String) (declaringType : Name)
+    (member : Ident) : CommandElabM String := do
+  let spelling := member.getId.eraseMacroScopes.toString
+  unless declared.contains spelling do
+    throwErrorAt member (unknownMemberMessage domain spelling
+      (declared.toList.map Name.mkSimple))
+  -- Give the spelling the constructor it names, so the editor hovers it and goes to its
+  -- definition. The emitted records keep the spelling, so no Definition ID moves.
+  liftTermElabM (Lean.Elab.addConstInfo member (declaringType ++ Name.mkSimple spelling))
+  pure spelling
+
+/-- The Model a `model:` key names, resolved to what the `model` command recorded about it. -/
+private def resolveDeclaredModel (modelRef : Ident) : CommandElabM Registry.ModelEntry := do
+  let modelName ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo modelRef)
+  match Registry.model? (← getEnv) modelName with
+  | some declared => pure declared
+  | none => throwErrorAt modelRef (undeclaredModelMessage modelName)
+
 elab "property" name:ident
     "model:" modelRef:ident
     "when:" actionRef:ident
     "require:" requirements:modelRequirement+ : command => do
     let ownerKey := Lean.quote name.getId.toString
     let actionKey := Lean.quote actionRef.getId.toString
-    let modelName ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo modelRef)
-    let declaredFacts := match Registry.model? (← getEnv) modelName with
-      | some declared => declared.facts
-      | none => #[]
-    let roleKey := Lean.quote (match Registry.model? (← getEnv) modelName with
-      | some declared => declared.role
-      | none => "")
+    let declaredModel ← resolveDeclaredModel modelRef
+    let roleKey := Lean.quote declaredModel.role
+    let _ ← resolveDeclared "action" declaredModel.actions declaredModel.actionType actionRef
     let mut keys : Array String := #[]
     let mut clauses : Array Term := #[]
     for requirement in requirements do
+      -- Every member a requirement names is resolved here, against the Model's own domain, so a
+      -- misspelling is a located error while the Model file compiles rather than a `#guard` failure
+      -- in some other module.
       let (kind, member) ← match requirement with
-        | `(modelRequirement| state: $member:ident) => pure ("state", member)
-        | `(modelRequirement| outcome: $member:ident) => pure ("outcome", member)
+        | `(modelRequirement| state: $member:ident) => do
+            let _ ← resolveDeclared "state" declaredModel.states declaredModel.stateType member
+            pure ("state", member)
+        | `(modelRequirement| outcome: $member:ident) => do
+            let _ ← resolveDeclared "outcome" declaredModel.outcomes declaredModel.outcomeType member
+            pure ("outcome", member)
         | `(modelRequirement| fact: $member:ident) => do
-            -- A Model that declares no Fact domain has nothing for a `fact:` line to name, and the
-            -- line is what the author wrote, so it is where the rejection belongs.
-            unless declaredFacts.contains member.getId.eraseMacroScopes.toString do
-              throwErrorAt member (unknownMemberMessage "fact"
-                member.getId.eraseMacroScopes.toString
-                (declaredFacts.toList.map fun spelling => Name.mkSimple spelling))
+            let _ ← resolveDeclared "fact" declaredModel.facts declaredModel.factType member
             pure ("fact", member)
         | _ => throwErrorAt requirement "unsupported requirement"
       let spelling := member.getId.eraseMacroScopes.toString
@@ -393,7 +425,7 @@ elab "property" name:ident
           requirements := [$clauses,*]
         }))
     liftCoreM (Registry.recordProperty {
-      declName := (← getCurrNamespace) ++ name.getId, «model» := modelName })
+      declName := (← getCurrNamespace) ++ name.getId, «model» := declaredModel.declName })
 
 /-! ### The `scenario` command
 
@@ -406,11 +438,12 @@ elab "scenario" name:ident
     "actions:" "[" selected:ident,+ "]" : command => do
     let ownerKey := Lean.quote name.getId.toString
     let setupKey := Lean.quote setupRef.getId.toString
-    let modelName ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo modelRef)
-    let roleKey := Lean.quote (match Registry.model? (← getEnv) modelName with
-      | some declared => declared.role
-      | none => "")
-    let spellings := selected.getElems.map fun action => action.getId.eraseMacroScopes.toString
+    let declaredModel ← resolveDeclaredModel modelRef
+    let roleKey := Lean.quote declaredModel.role
+    -- The setup state must be one the Model can start in, not merely one it declares.
+    let _ ← resolveDeclared "start state" declaredModel.starts declaredModel.stateType setupRef
+    let spellings ← selected.getElems.mapM
+      (resolveDeclared "action" declaredModel.actions declaredModel.actionType)
     let entries ← spellings.mapIdxM fun position spelling =>
       `(term| ($(Lean.quote (toString (position + 1))), $(Lean.quote spelling)))
     elabCommand (← `(command|
@@ -423,7 +456,7 @@ elab "scenario" name:ident
         }))
     liftCoreM (Registry.recordScenario {
       declName := (← getCurrNamespace) ++ name.getId
-      «model» := modelName
+      «model» := declaredModel.declName
       «actions» := spellings })
 
 macro "limits" name:ident
@@ -509,8 +542,52 @@ private def queryModelName (propertyRef scenarioRef : Ident) : CommandElabM Name
       (mismatchedModelMessage declaredProperty.model declaredScenario.model)
   pure declaredProperty.model
 
+/-! ### Admission runs while the Model file compiles
+
+A `query` block defines a value nothing in the Model file evaluates, so every authoring mistake
+below the command surface -- a Property no admitted trace satisfies, a Scenario the Model cannot
+take, limits too small to reach the trace the author means -- used to leave the file green and
+surface somewhere else. The command evaluates its own admission here and reports what comes back at
+the part of the block it belongs to. -/
+
+private unsafe def evalDiagnosticUnsafe (diagnosticName : Name) :
+    Elab.Term.TermElabM (Option (String × String)) :=
+  let pair := mkApp2 (.const ``Prod [levelZero, levelZero]) (.const ``String []) (.const ``String [])
+  Meta.evalExpr (Option (String × String)) (.app (.const ``Option [levelZero]) pair)
+    (.const diagnosticName [])
+
+@[implemented_by evalDiagnosticUnsafe]
+private opaque evalDiagnostic (diagnosticName : Name) :
+    Elab.Term.TermElabM (Option (String × String))
+
+/-- Report whatever admission said, on the part of the `query` block it belongs to. -/
+private def reportAdmission
+    (name propertyRef scenarioRef limitsRef modelRef formKeyword : Syntax)
+    (diagnosticName : Name) : CommandElabM Unit := do
+  match ← liftTermElabM (evalDiagnostic diagnosticName) with
+  | none => pure ()
+  | some (anchorName, reported) =>
+      let reference :=
+        if anchorName == Diagnostic.anchorModel then modelRef
+        else if anchorName == Diagnostic.anchorProperty then propertyRef
+        else if anchorName == Diagnostic.anchorScenario then scenarioRef
+        else if anchorName == Diagnostic.anchorLimits then limitsRef
+        else if anchorName == Diagnostic.anchorForm then formKeyword
+        else name
+      throwErrorAt reference reported
+
+/-- Emit the Query's own diagnostic beside it, then evaluate and report it. -/
+private def elabQueryAdmission
+    (name propertyRef scenarioRef limitsRef modelRef formKeyword : Syntax)
+    (queryName : Ident) : CommandElabM Unit := do
+  let diagnosticName := mkIdentFrom queryName (queryName.getId ++ `diagnostic)
+  elabCommand (← `(command|
+    def $diagnosticName : Option (String × String) := Umpire.Command.diagnose $queryName))
+  reportAdmission name propertyRef scenarioRef limitsRef modelRef formKeyword
+    ((← getCurrNamespace) ++ diagnosticName.getId)
+
 elab "query" name:ident
-    "find:" propertyRef:ident
+    findKeyword:"find:" propertyRef:ident
     "in:" scenarioRef:ident
     "limits:" limitsRef:ident gaps:modelGap* : command => do
     let modelRef := mkIdent (← queryModelName propertyRef scenarioRef)
@@ -521,9 +598,10 @@ elab "query" name:ident
         check ($modelRef) $queryKey ($limitsRef) ($propertyRef) ($scenarioRef)
           (knownGaps := $knownGaps)))
     recordQueryDeclaration name scenarioRef (selectsWitness := true)
+    elabQueryAdmission name propertyRef scenarioRef limitsRef modelRef findKeyword name
 
 elab "query" name:ident
-    "verify:" propertyRef:ident
+    verifyKeyword:"verify:" propertyRef:ident
     "in:" scenarioRef:ident
     "limits:" limitsRef:ident gaps:modelGap* : command => do
     let modelRef := mkIdent (← queryModelName propertyRef scenarioRef)
@@ -534,5 +612,6 @@ elab "query" name:ident
         check ($modelRef) $queryKey ($limitsRef) ($propertyRef) ($scenarioRef)
           (knownGaps := $knownGaps) (form := QueryFormKind.verifyClaim)))
     recordQueryDeclaration name scenarioRef (selectsWitness := false)
+    elabQueryAdmission name propertyRef scenarioRef limitsRef modelRef verifyKeyword name
 
 end Umpire.Command
