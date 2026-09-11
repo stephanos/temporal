@@ -202,7 +202,7 @@ triggered on its own Action would answer satisfied for an operation that never r
 at all, because nothing triggered; triggering on the operation's first Action instead leaves the
 obligation open until the operation either reaches the required value or the window closes. -/
 
-private def loweringError (source : SourceLocation) (definitionId construct : String) : Error := {
+private def productionError (source : SourceLocation) (definitionId construct : String) : Error := {
   sourceDefinitionId := definitionId
   source
   construct
@@ -259,7 +259,7 @@ private def scopedClauseOf
     (steps : List (ModelTraceStep ModelValue ModelValue ModelValue ModelValue))
     (clause : CheckedPropertyClause) : Except Error PropertyCorrelatedClause :=
   let unexpressible := fun construct =>
-    Except.error (loweringError source clause.id.value construct)
+    Except.error (productionError source clause.id.value construct)
   match clause with
   | .transitionContract id trigger response
   | .inputOutput id trigger response =>
@@ -321,18 +321,18 @@ private def resolveEvidence
   let resolved ← evidence.mapM fun mapping => do
     let admitted ← match realization.sources.find? (·.eventKind == mapping.eventKind) with
       | some admitted => pure admitted
-      | none => throw (loweringError source mapping.eventKind "evidence.kind-unknown")
+      | none => throw (productionError source mapping.eventKind "evidence.kind-unknown")
     unless selected.any (· == mapping.action) do
-      throw (loweringError source mapping.action.definitionId.value
+      throw (productionError source mapping.action.definitionId.value
         "evidence.action-unselected")
     match stepOf steps mapping.action with
     | some step => pure (({ action := mapping.action, source := admitted } : EvidenceRule), step)
     | none =>
-        throw (loweringError source mapping.action.definitionId.value
+        throw (productionError source mapping.action.definitionId.value
           "evidence.action-unwitnessed")
   for action in selected do
     unless evidence.any (·.action == action) do
-      throw (loweringError source action.definitionId.value "evidence.action-unmapped")
+      throw (productionError source action.definitionId.value "evidence.action-unmapped")
   pure resolved
 
 /-! ### Production -/
@@ -350,7 +350,7 @@ def produce {LawStatement : Law → Prop}
     (evidence : List EvidenceMapping)
     (required : List DefinitionId := []) :
     Except Error temporal.server.api.testpilot.v1.Case := do
-  let rejects := loweringError input.source
+  let rejects := productionError input.source
   -- A Case realizes one selected trace, so a Query that verifies rather than selects has no
   -- witness to realize and rejects here. A Known Gap does not admit it.
   let selected ← match input.witness with
@@ -362,7 +362,7 @@ def produce {LawStatement : Law → Prop}
   let occurrences ← match input.scenario.actionsExactly with
     | some occurrences => pure occurrences
     | none => throw (rejects input.scenario.id.value "behavior.sequence.absent")
-  let selectedActions := occurrences.filterMap fun occurrence =>
+  let selectedValues := occurrences.filterMap fun occurrence =>
     input.vocabulary.actions.find? fun value => value.definitionId == occurrence
   let opening ← match occurrences.head? with
     | some first =>
@@ -370,7 +370,7 @@ def produce {LawStatement : Law → Prop}
         | some opening => pure opening
         | none => throw (rejects first.value "behavior.action.undeclared")
     | none => throw (rejects input.scenario.id.value "behavior.sequence.absent")
-  let evidenceRules ← resolveEvidence input.source realization selectedActions
+  let evidenceRules ← resolveEvidence input.source realization selectedValues
     selected.trace.steps evidence
   let correlatedRules ← input.property.clauses.mapM
     (scopedClauseOf input.source realization.scopeField realization.operationKey

@@ -5,6 +5,7 @@ import Umpire.Model.Table
 import Umpire.Property.Elab
 import Umpire.Scenario.Elab
 import Umpire.Query.Elab
+import Umpire.Case.Producer
 
 /-!
 The Nexus success-slice construction and admission layer. `Syntax` emits ordinary declarations
@@ -17,18 +18,33 @@ namespace Temporal.Feature.Nexus.Success.Authoring
 
 open Umpire
 
-def family : DefinitionFamily := Temporal.Shared.definitionFamily "nexus.success"
+/-- Where one declaration comes from: the semantic family its Definition IDs hang off, and the file
+that elaborated it. Both are derived per file by the commands -- the family from the enclosing
+namespace, the source from the elaborating file -- so two Models that name the same declaration in
+different files carry distinct Definition IDs and distinct Provenance sources. -/
+structure Origin where
+  family : DefinitionFamily
+  source : SourceLocation
+  deriving BEq, Repr
 
-def source : SourceLocation :=
-  Temporal.Shared.sourceLocation "Temporal/Feature/Nexus/Success/Model.lean"
+namespace Origin
 
-def ownedId (kind owner member : String) : DefinitionId :=
-  family.id kind (owner ++ "." ++ member)
+/-- The origin of a declaration in `semanticFamily`, elaborated from `path`. -/
+def of (semanticFamily path : String) : Origin := {
+  family := Temporal.Shared.definitionFamily semanticFamily
+  source := Temporal.Shared.sourceLocation path
+}
+
+def ownedId (origin : Origin) (kind owner member : String) : DefinitionId :=
+  origin.family.id kind (owner ++ "." ++ member)
 
 def metadata
+    (origin : Origin)
     (id : DefinitionId)
     (kind : DefinitionKind) : DefinitionMetadata :=
-  Temporal.Shared.definitionMetadata id kind source id.value
+  Temporal.Shared.definitionMetadata id kind origin.source id.value
+
+end Origin
 
 def meaning (id : DefinitionId) (kind : DefinitionKind) : Meaning := {
   definitionId := id
@@ -86,6 +102,7 @@ def SuccessLawStatement [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
 member list is parallel to the matching name and Definition ID list. -/
 structure SuccessModel (Setup State Action Outcome Fact : Type)
     [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact] where
+  origin : Origin
   key : String
   roleName : String
   setupValue : Setup
@@ -151,13 +168,13 @@ declare yields an ID no Target provides, so the declaration is rejected at admis
 def namedRole (model : SuccessModel Setup State Action Outcome Fact) (spelling : String) :
     DefinitionId :=
   if spelling == model.roleName then model.operationRoleId
-  else ownedId "role" model.key spelling
+  else model.origin.ownedId "role" model.key spelling
 
 /-- The capability a declaration naming this role requires, resolved the same way. -/
 def roleCapability (model : SuccessModel Setup State Action Outcome Fact) (spelling : String) :
     DefinitionId :=
   if spelling == model.roleName then model.capabilityId
-  else ownedId "capability" model.key spelling
+  else model.origin.ownedId "capability" model.key spelling
 
 /-- The declared results of one transition row, by declaration position. -/
 def resultsAt (model : SuccessModel Setup State Action Outcome Fact) (index : Nat) :
@@ -196,6 +213,7 @@ def successTable
 }
 
 def successModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
+    (origin : Origin)
     (names : SuccessModelNames)
     (setupValue : Setup)
     (states : List State)
@@ -205,24 +223,24 @@ def successModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     (initial terminal : List State)
     (transitions : List (FiniteTransitionRow State Action Outcome Fact))
     (lawProof :
-      SuccessLawStatement (ownedId "law" names.declaration "canonical-table")
+      SuccessLawStatement (origin.ownedId "law" names.declaration "canonical-table")
         (successTable names setupValue states actions outcomes facts initial transitions)
         transitions
-        { id := ownedId "law" names.declaration "canonical-table",
-          body := (ownedId "law" names.declaration "canonical-table").value }) :
+        { id := origin.ownedId "law" names.declaration "canonical-table",
+          body := (origin.ownedId "law" names.declaration "canonical-table").value }) :
     SuccessModel Setup State Action Outcome Fact := by
   let ownerKey := names.declaration
-  let targetId := family.id "target" ownerKey
-  let kernelId := ownedId "kernel" ownerKey "planner"
-  let capabilityId := ownedId "capability" ownerKey "transitions"
-  let providerId := ownedId "provider" ownerKey "finite-table"
-  let lawId := ownedId "law" ownerKey "canonical-table"
-  let operationRoleId := ownedId "role" ownerKey names.roleName
-  let stateIds := names.stateKeys.map (ownedId "state" ownerKey)
-  let actionIds := names.actionKeys.map (ownedId "action" ownerKey)
-  let outcomeIds := names.outcomeKeys.map (ownedId "outcome" ownerKey)
-  let factIds := names.factKeys.map (ownedId "fact" ownerKey)
-  let relationIds := transitions.map fun row => ownedId "relation" ownerKey row.key
+  let targetId := origin.family.id "target" ownerKey
+  let kernelId := origin.ownedId "kernel" ownerKey "planner"
+  let capabilityId := origin.ownedId "capability" ownerKey "transitions"
+  let providerId := origin.ownedId "provider" ownerKey "finite-table"
+  let lawId := origin.ownedId "law" ownerKey "canonical-table"
+  let operationRoleId := origin.ownedId "role" ownerKey names.roleName
+  let stateIds := names.stateKeys.map (origin.ownedId "state" ownerKey)
+  let actionIds := names.actionKeys.map (origin.ownedId "action" ownerKey)
+  let outcomeIds := names.outcomeKeys.map (origin.ownedId "outcome" ownerKey)
+  let factIds := names.factKeys.map (origin.ownedId "fact" ownerKey)
+  let relationIds := transitions.map fun row => origin.ownedId "relation" ownerKey row.key
   let table := successTable names setupValue states actions outcomes facts initial transitions
   let identity : FiniteModelIdentity Setup State Action Outcome Fact := {
     setupBindings := fun _ => initial.map fun value => { roleId := operationRoleId, state := value }
@@ -245,25 +263,27 @@ def successModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     table.facts.map (fun entry => meaning (identity.factId entry.value) .fact)
   let provider : Provider lawStatement := {
     id := providerId
-    source
+    source := origin.source
     contract
     meanings
     lawProofs := [{ definition := law, proof := lawProof }]
   }
   let definitions :=
-    [metadata targetId .target, metadata kernelId .machine, metadata capabilityId .capability,
-      metadata providerId .provider, metadata lawId .law] ++
-    (meanings.map fun provided => metadata provided.definitionId provided.kind) ++
-    table.transitions.map fun row => metadata (ownedId "relation" ownerKey row.key) .relation
+    [origin.metadata targetId .target, origin.metadata kernelId .machine,
+      origin.metadata capabilityId .capability,
+      origin.metadata providerId .provider, origin.metadata lawId .law] ++
+    (meanings.map fun provided => origin.metadata provided.definitionId provided.kind) ++
+    table.transitions.map fun row =>
+      origin.metadata (origin.ownedId "relation" ownerKey row.key) .relation
   let modelSpec : TableModelSpec := {
     id := targetId
-    source
+    source := origin.source
     definitions
     requiredCapabilities := [capabilityId]
-    metadata := { id := kernelId, source }
+    metadata := { id := kernelId, source := origin.source }
   }
   exact {
-    key := ownerKey, roleName := names.roleName, setupValue,
+    origin, key := ownerKey, roleName := names.roleName, setupValue,
     states, actions, outcomes, facts, initial, terminal,
     targetId, kernelId, capabilityId, providerId, lawId, operationRoleId,
     stateIds, actionIds, outcomeIds, factIds, relationIds,
@@ -349,21 +369,21 @@ def authoredProperty [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fac
     (model : SuccessModel Setup State Action Outcome Fact)
     (values : ModelVocabulary)
     (names : SuccessPropertyNames) : Property := {
-  id := (family).id "property" names.declaration
-  source
+  id := model.origin.family.id "property" names.declaration
+  source := model.origin.source
   requires := [model.roleCapability names.roleName]
   clauses :=
     let selected := PropertyPattern.selectedAction (values.namedAction names.actionSpelling)
     names.requirements.map fun requirement =>
     match requirement with
     | .stateClause label spelling =>
-        .transitionContract (ownedId "property" names.declaration label) selected
+        .transitionContract (model.origin.ownedId "property" names.declaration label) selected
           (.resultingState (values.namedState spelling))
     | .outcomeClause label spelling =>
-        .transitionContract (ownedId "property" names.declaration label) selected
+        .transitionContract (model.origin.ownedId "property" names.declaration label) selected
           (.outcome (values.namedOutcome spelling))
     | .factClause label spelling =>
-        .inputOutput (ownedId "property" names.declaration label) selected
+        .inputOutput (model.origin.ownedId "property" names.declaration label) selected
           (.fact (values.namedFact spelling))
 }
 
@@ -372,12 +392,13 @@ def authoredScenario [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fac
     (values : ModelVocabulary)
     (names : SuccessBehaviorNames) : Scenario :=
   Scenario.exactly
-    (family := family)
+    (family := model.origin.family)
     (key := names.declaration)
-    (source := source)
+    (source := model.origin.source)
     (requires := [model.roleCapability names.roleName])
     (roles := [{ id := model.namedRole names.roleName, valueKind := .state }])
-    (setup := [SetupConstraint.roleEquals (ownedId "setup" names.declaration names.roleName)
+    (setup := [SetupConstraint.roleEquals
+      (model.origin.ownedId "setup" names.declaration names.roleName)
       (model.namedRole names.roleName) (values.namedState names.setupState)])
     (occurrences := names.occurrences.map fun occurrence =>
       { key := names.declaration ++ "." ++ occurrence.1,
@@ -405,8 +426,9 @@ def transitionRow
 def withOccurrences (spec : Scenario) (occurrences : List Scenario.Step) : Scenario :=
   spec.withSteps occurrences
 
-def occurrence (key : String) (selectedAction : DefinitionId) : Scenario.Step :=
-  { id := family.id "occurrence" key, action := selectedAction }
+def Origin.occurrence (origin : Origin) (key : String) (selectedAction : DefinitionId) :
+    Scenario.Step :=
+  { id := origin.family.id "occurrence" key, action := selectedAction }
 
 def withClauses (spec : Property) (clauses : List PropertyClause) : Property :=
   { spec with clauses }
@@ -483,8 +505,8 @@ def check [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
   let behavior ← (behaviorAuthor vocabulary).check (.ofTarget target) |>.mapError .invalidBehavior
   let gaps ← completionKnownGaps |>.mapError .invalidKnownGaps
   let authoredQuery : Query := {
-    id := family.id "query" queryKey
-    source
+    id := model.origin.family.id "query" queryKey
+    source := model.origin.source
     target := model.targetId
     form := match form with
       | .selectWitness => .find property
@@ -505,5 +527,67 @@ def check [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
   | .verifyClaim, .verified =>
       pure { target, vocabulary, property, behavior, query, kernel, run, witness := none }
   | _, outcome => throw (.notSelected outcome)
+
+
+/-! ### Producing a Case
+
+A `.umpire` module may not import this namespace, so the conversion from the checked authoring
+bundle to the Umpire-owned Producer input lives here. The `case` command emits one call to
+`produceCase`; everything it decides -- the template, the fixture name, the evidence mapping -- is
+an argument. -/
+
+def producerInput [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
+    {«model» : SuccessModel Setup State Action Outcome Fact}
+    (checked : CheckedModel «model») :
+    Umpire.Case.Producer.Input «model».lawStatement := {
+  target := checked.target
+  vocabulary := {
+    «states» := checked.vocabulary.states
+    «actions» := checked.vocabulary.actions
+    «outcomes» := checked.vocabulary.outcomes
+    «facts» := checked.vocabulary.facts }
+  «property» := checked.property
+  «scenario» := checked.behavior
+  «witness» := checked.witness
+  operationRole := «model».operationRoleId
+  queryId := checked.query.id
+  querySource := checked.query.source
+  queryFingerprint := checked.query.behaviorFingerprint.render
+  knownGaps := checked.query.authoredKnownGaps
+  source := «model».origin.source }
+
+/-- Lower one checked Model into a Case through a named realization. The checked values are carried,
+never compared against an expected Model: a different Machine, Scenario, Query or Property produces
+different Case bytes.
+
+`required` names clauses the caller requires the Case to carry, beyond the ones the checked Property
+already names. Coverage is always requested explicitly, never left to a default. -/
+def produce [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
+    {«model» : SuccessModel Setup State Action Outcome Fact}
+    (checked : CheckedModel «model»)
+    (identity : Umpire.Case.Producer.Identity)
+    (realization : Umpire.Case.Producer.Realization)
+    (evidence : Umpire.Case.Producer.Vocabulary → List Umpire.Case.Producer.EvidenceMapping)
+    (required : List DefinitionId := []) :
+    Except Umpire.Case.Compiler.Error temporal.server.api.testpilot.v1.Case :=
+  let input := producerInput checked
+  Umpire.Case.Producer.produce input identity realization (evidence input.vocabulary) required
+
+/-- The same, starting from the Query's own admission result. A Model the Query did not admit
+rejects as `checked-model` against the Case's own identity, because there is nothing else to name
+at that point. -/
+def produceCase [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
+    {«model» : SuccessModel Setup State Action Outcome Fact}
+    (admitted : Except AdmissionError (CheckedModel «model»))
+    (identity : Umpire.Case.Producer.Identity)
+    (realization : Umpire.Case.Producer.Realization)
+    (evidence : Umpire.Case.Producer.Vocabulary → List Umpire.Case.Producer.EvidenceMapping)
+    (required : List DefinitionId := []) :
+    Except Umpire.Case.Compiler.Error temporal.server.api.testpilot.v1.Case := do
+  let checked ← admitted.mapError fun _ => {
+    sourceDefinitionId := identity.caseId
+    source := «model».origin.source
+    construct := "checked-model" }
+  produce checked identity realization evidence required
 
 end Temporal.Feature.Nexus.Success.Authoring
