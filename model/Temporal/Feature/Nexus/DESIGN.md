@@ -19,9 +19,12 @@ This design moves those side effects into the Model while keeping Umpire free of
 start: scheduled + awaitStart → started
 
 -- with this design: the side effect, its classes, and what confirms each result
-phase: scheduled + handlerReply(async)                          → phase: started, evidence: nexusOperationStarted
-phase: scheduled + handlerReply(handlerError(retryable: false)) → phase: failed, evidence: nexusOperationFailed
-phase: scheduled + handlerReply(handlerError(retryable: true))  → phase: backingOff, attempts: +1, evidence: pendingAttempts
+phase: scheduled + handlerReply (async)
+  → phase: started, evidence: nexusOperationStarted
+phase: scheduled + handlerReply (handlerError (retryable := false))
+  → phase: failed, evidence: nexusOperationFailed
+phase: scheduled + handlerReply (handlerError (retryable := true))
+  → phase: backingOff, attempts: +1, evidence: pendingAttempts
 ```
 
 Seven concepts carry it. Every one is Umpire-generic except the realization.
@@ -83,7 +86,7 @@ action handlerReply
     handlerError (retryable := true) → Internal
 ```
 
-**Parties.** A feature declares its parties by using them (`caller`, `handler`, `network`). One party
+**Parties.** A feature declares its parties by using them (`caller`, `handler`, `network`, `worker`). One party
 is reserved: `system`, the server under test, which never performs a declared action; its steps are
 the machine's rows.
 
@@ -102,12 +105,15 @@ callback) omits it, and its classes are names the realization interprets.
 `accepted` and `notFound`), and rows state which result each case produces.
 
 Timers and faults need no separate concept. A timer is part of the `system` party's behavior and
-appears in rows as `after(<timer>)` (section 2.3). A fault is an ordinary action of a declared party:
+appears in rows as `after (<timer>)` (section 2.3). A fault is an ordinary action of a declared party:
 
 ```lean
 action transportFault
   party: network
   on: operation
+
+action workerStop
+  party: worker
 ```
 
 ### 2.3 Machine
@@ -118,6 +124,7 @@ the state it keeps per instance, the setup parameters it reads, its timers, and 
 ```lean
 machine nexusProtocol
   for: operation
+  ends: [succeeded, failed, canceled, timedOut]
   state:
     phase: Phase
     attempts: count
@@ -134,20 +141,24 @@ machine nexusProtocol
       → phase: scheduled
 ```
 
-A row reads: **guard** `+` **what happens** `→` **state changes**, **evidence**.
+A row reads: **guard** `+` **what happens** `→` **state changes**, **evidence**. `ends:` names the
+`phase` values that end an instance.
 
 | Part | Forms |
 | --- | --- |
-| guard | state fields and setup parameters (`phase: scheduled | backingOff`, `recordCancelCompletion: true`); `none` before an instance exists; `not terminal`; omitted fields match anything |
-| what happens | an action with a class pattern (`handlerReply (async)`), alternatives across actions (`handlerReply (handlerError (retryable := true)) | transportFault`), a timer (`after (backoff)`), or nothing: a `system` step the server takes on its own when the guard holds |
+| guard | state fields and setup parameters (`phase: scheduled \| backingOff`, `recordCancelCompletion: true`); `none` before an instance exists; `terminal` and `not terminal` for the machine's `ends:` values; omitted fields match anything |
+| what happens | an action with a class pattern (`handlerReply (async)`), alternatives across actions (`handlerReply (handlerError (retryable := true)) \| transportFault`), a timer (`after (backoff)`), or nothing: a `system` step the server takes on its own when the guard holds |
 | state changes | field updates (`phase: started`, `attempts: +1`); a lowercase name bound in the pattern may be stored into a field of the same type (`scheduleToStart: t`); `reject` when the action changes nothing; `result: <value>` for an action with results |
 | evidence | one or more observations (section 2.4), each optionally guarded by `when` over the state before the step; `unobservable` becomes a Known Gap in every Case whose path uses the row |
 
 Rows are ordered and the first matching row applies, so rejections go first. A row no input can
 reach is rejected as shadowed.
 
+A row with no guard (`+ workerStop`) matches in every state; `faultInjected` is a Testpilot Run
+Event in the observation catalog.
+
 **Setup parameters** are configuration that changes behavior on purpose, named after the setting
-(`recordCancelCompletion`, `concurrencyLimit`). The Profile binds them; a Case that needs a value its
+(`recordCancelCompletion`, `atConcurrencyLimit`). The Profile binds them; a Case that needs a value its
 environment cannot set carries a Known Gap. A rollout switch between two implementations of the same
 behavior (HSM or CHASM Nexus operations) is not a setup parameter; a set repeats its Queries once per
 switch value instead (section 2.6).
@@ -212,7 +223,9 @@ party other than `system` is **bound**:
 | `driven` | the Case's own Program: the controller, a pre-programmed workflow or handler | chooses the class the Query's path needs, using the class's example |
 | `observed` | a real deployment or the world | lets it happen, reads which class occurred, and checks the machine allows it |
 
-The machine is the same for every set; only the bindings differ.
+The machine is the same for every set; only the bindings differ. A Scenario lists the actions of
+non-`system` parties in order: under `driven` the Case performs them, under `observed` the verifier
+expects them. `system` rows follow from the machine.
 
 | Purpose | Contains | Produces |
 | --- | --- | --- |
@@ -246,7 +259,7 @@ entity operation
   key: scheduledEvent
 
 enum Timeout
-  | none
+  | unset
   | expires
 
 enum Reply
@@ -269,7 +282,7 @@ enum CancelReply
   | delivered
   | handlerError (retryable : Bool)
 
--- Parties: caller, handler, network. The reserved party `system` is the server.
+-- Parties: caller, handler, network, worker. The reserved party `system` is the server.
 action schedule
   party: caller
   creates: operation
@@ -300,6 +313,9 @@ action transportFault
   party: network
   on: operation
 
+action workerStop                                 -- the handler's worker stops polling
+  party: worker
+
 action requestCancel                              -- fn-79
   party: caller
   on: operation
@@ -326,6 +342,7 @@ enum ProductPhase
 
 machine nexusProduct
   for: operation
+  ends: [succeeded, failed, canceled, timedOut]
   state:
     phase: ProductPhase
   steps:
@@ -343,7 +360,7 @@ enum Phase
   | timedOut
 
 enum CancelPhase
-  | none
+  | notRequested
   | requested
   | delivering
   | delivered
@@ -355,6 +372,7 @@ machine nexusProtocol
   map:
     phase: backingOff → scheduled
     attempts, cancel, scheduleToClose, scheduleToStart, startToClose → hidden
+  ends: [succeeded, failed, canceled, timedOut]
   state:
     phase: Phase
     cancel: CancelPhase
@@ -363,15 +381,15 @@ machine nexusProtocol
     scheduleToStart: Timeout
     startToClose: Timeout
   setup:
-    concurrencyLimit: Bool                        -- true when the caller is at the limit
+    atConcurrencyLimit: Bool
     recordCancelCompletion: Bool
   timers: [backoff, scheduleToClose, scheduleToStart, startToClose]
   steps:
     -- rejection first: the first matching row applies
-    concurrencyLimit: true + schedule
+    atConcurrencyLimit: true + schedule
       → reject, evidence: workflowTaskFailed
     none + schedule (scheduleToClose := c, scheduleToStart := s, startToClose := t)
-      → phase: scheduled, cancel: none, attempts: 0,
+      → phase: scheduled, cancel: notRequested, attempts: 0,
         scheduleToClose: c, scheduleToStart: s, startToClose: t,
         evidence: nexusOperationScheduled
 
@@ -388,6 +406,8 @@ machine nexusProtocol
       → phase: backingOff, attempts: +1, evidence: pendingAttempts
     phase: backingOff + after (backoff)
       → phase: scheduled
+    + workerStop
+      → evidence: faultInjected
 
     -- an async completion; before a start, the server records a Started event first
     phase: scheduled | backingOff | started + complete (succeeded)
@@ -399,19 +419,19 @@ machine nexusProtocol
     phase: scheduled | backingOff | started + complete (canceled)
       → phase: canceled, result: accepted,
         evidence: nexusOperationStarted when phase: scheduled | backingOff, nexusOperationCanceled
-    phase: succeeded | failed | canceled | timedOut + complete
+    terminal + complete
       → result: notFound
 
     -- timers fire only when the schedule command set them
     phase: scheduled | backingOff | started, scheduleToClose: expires + after (scheduleToClose)
-      → phase: timedOut, evidence: nexusOperationTimedOut
+      → phase: timedOut, evidence: nexusOperationTimedOut (timeoutType := scheduleToClose)
     phase: scheduled | backingOff, scheduleToStart: expires + after (scheduleToStart)
-      → phase: timedOut, evidence: nexusOperationTimedOut
+      → phase: timedOut, evidence: nexusOperationTimedOut (timeoutType := scheduleToStart)
     phase: started, startToClose: expires + after (startToClose)
-      → phase: timedOut, evidence: nexusOperationTimedOut
+      → phase: timedOut, evidence: nexusOperationTimedOut (timeoutType := startToClose)
 
     -- cancellation (fn-79)
-    phase: not terminal, cancel: none + requestCancel
+    not terminal, cancel: notRequested + requestCancel
       → cancel: requested, evidence: nexusOperationCancelRequested
     phase: started, cancel: requested
       → cancel: delivering
@@ -425,14 +445,14 @@ machine nexusProtocol
 -- A product Property, carried to every protocol path by the refinement.
 property terminalIsFinal
   machine: nexusProduct
-  when: phase: succeeded | failed | canceled | timedOut
+  when: terminal
   require: phase unchanged
 
 -- A bounded-progress Property (SEM-09): the bound is the timer the schedule command set.
 property endsBySchedulingDeadline
   machine: nexusProtocol
   when: schedule (scheduleToClose := expires)
-  require: phase: succeeded | failed | canceled | timedOut
+  require: terminal
   within: after (scheduleToClose)
 
 scenario asyncThenSucceeded
@@ -455,6 +475,7 @@ set nexusCallerTests
     caller: driven
     handler: driven
     network: observed
+    worker: driven
   repeat: implementation
   queries: [syncCompletion, asyncCompletion, retryAfterHandlerError, scheduleToStartTimeout]
 
@@ -464,6 +485,7 @@ set nexusCallerCanary
     caller: driven
     handler: observed
     network: observed
+    worker: observed
   queries: [syncCompletion, asyncCompletion]
 ```
 
@@ -474,10 +496,12 @@ realization nexusCaller
   machine: nexusProtocol
   actions:
     schedule → workflow instruction StartNexusOperation
+    handlerReply (syncSuccess) → handler instruction RespondNexus (kind: synchronous)
     handlerReply (async) → handler instruction RespondNexus (kind: asynchronous)
     handlerReply (handlerError (retryable := r)) → handler instruction RespondNexus (kind: error, retry: r)
     complete (resolution) → controller instruction CompleteNexusOperation (outcome: resolution)
     transportFault → none                                  -- cannot be driven; Known Gap when bound driven
+    workerStop → controller instruction InjectFault (kind: workerStop, role: handler task queue)
   observations:
     catalog: history events from GetWorkflowExecutionHistory, key scheduled_event_id
     pendingAttempts: DescribeWorkflowExecution pending_nexus_operations.attempt
@@ -509,7 +533,7 @@ with one named addition.
 | cross-cluster failover | setup parameters for topology and a failover action | no |
 | HSM/CHASM storage layout | not modeled; a white-box Known Gap | no |
 
-Section 5 in the appendix maps each functional test file to these rows.
+Appendix B maps each functional test file to these rows.
 
 ## 5. What Umpire needs
 
@@ -559,7 +583,7 @@ not yet reflected in fn-85.
    catalog; only derived observations such as reads are declared.
 9. *New:* **Validation is rows, not a separate `rules:` block.** Rejections are the first rows of a
    machine, using the existing first-match order. Constant entity traits (`vary:`) are setup
-   parameters.
+   parameters. A machine names its `ends:`, which rows and Properties read as `terminal`.
 10. *New, needs a rule amendment:* **The realization lives in `Temporal.Case`**, beside the templates
     it replaces, because MOD-10 forbids `Temporal.System` from importing Feature machines; MOD-02
     lists Evidence mappings under `Temporal.System` and needs amending to allow it.
