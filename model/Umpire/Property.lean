@@ -728,14 +728,16 @@ end PropertyPredicate
 def stepClauses
     (family : DefinitionFamily)
     (propertyKey : String)
-    (action state outcome fact : ModelValue) : List PropertyClause := [
-  .transitionContract (family.id "property" (propertyKey ++ ".state"))
-    (.selectedAction action) (.resultingState state),
-  .transitionContract (family.id "property" (propertyKey ++ ".outcome"))
-    (.selectedAction action) (.outcome outcome),
-  .inputOutput (family.id "property" (propertyKey ++ ".fact"))
-    (.selectedAction action) (.fact fact)
-]
+    (action state outcome : ModelValue)
+    (fact : Option ModelValue := none) : List PropertyClause :=
+  [.transitionContract (family.id "property" (propertyKey ++ ".state"))
+      (.selectedAction action) (.resultingState state),
+    .transitionContract (family.id "property" (propertyKey ++ ".outcome"))
+      (.selectedAction action) (.outcome outcome)] ++
+  -- A Model that records no Fact has no Fact clause to write; one that does gets the third clause.
+  (fact.map fun declared =>
+    .inputOutput (family.id "property" (propertyKey ++ ".fact"))
+      (.selectedAction action) (.fact declared)).toList
 
 /-- Readable bounded response clauses elaborate directly to the typed declaration. Admission,
 reference resolution, and canonicalization remain owned by `property%` and `Property.check`. -/

@@ -187,7 +187,7 @@ Scenario carries faults (fn-80 R4, a `rule_events` Deadline over the recorded `F
 events in declared order) answers an unpaired stop at Run time.
 
 Proof of R3: the worker-outage Case file is deleted and re-authored as a Model (`pending →
-completed` on `awaitCompletion`, one Fact `completed`), a Property requiring the completed state
+completed` on `awaitCompletion`, and no Fact: the state already says what happened), a Property requiring the completed state
 and fact, the Scenario above, and a `case` block on the `workflow` template. The fixture changes
 bytes: its Provenance carries Model bindings, and its completion requirement is now Correlated
 clauses rather than the hand-written safety rule, so the Verdict carries the outage-order rule

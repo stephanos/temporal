@@ -23,6 +23,13 @@ namespace Umpire.Command.Registry
 
 open Lean
 
+/-- One Model declaration and the member spellings it declares, in declaration order. A later
+command resolves a spelling against these rather than re-reading the inductives. -/
+structure ModelEntry where
+  declName : Name
+  facts : Array String
+  deriving Inhabited, Repr, BEq
+
 /-- One Scenario declaration and the Action spellings it selects, in declaration order. -/
 structure ScenarioEntry where
   declName : Name
@@ -47,6 +54,12 @@ structure Conventions where
 def collect {α : Type} (imported : Array (Array α)) : Array α :=
   imported.foldl (init := #[]) (· ++ ·)
 
+initialize modelExtension : SimplePersistentEnvExtension ModelEntry (Array ModelEntry) ←
+  registerSimplePersistentEnvExtension {
+    addEntryFn := Array.push
+    addImportedFn := collect
+  }
+
 initialize scenarioExtension :
     SimplePersistentEnvExtension ScenarioEntry (Array ScenarioEntry) ←
   registerSimplePersistentEnvExtension {
@@ -67,14 +80,21 @@ initialize conventionsExtension :
     addImportedFn := collect
   }
 
+def recordModel (entry : ModelEntry) : CoreM Unit :=
+  modifyEnv fun env => modelExtension.addEntry env entry
+
 def recordScenario (entry : ScenarioEntry) : CoreM Unit :=
   modifyEnv fun env => scenarioExtension.addEntry env entry
 
 def recordQuery (entry : QueryEntry) : CoreM Unit :=
   modifyEnv fun env => queryExtension.addEntry env entry
 
+def models (env : Environment) : Array ModelEntry := modelExtension.getState env
 def scenarios (env : Environment) : Array ScenarioEntry := scenarioExtension.getState env
 def queries (env : Environment) : Array QueryEntry := queryExtension.getState env
+
+def model? (env : Environment) (declName : Name) : Option ModelEntry :=
+  (models env).find? (·.declName == declName)
 
 def scenario? (env : Environment) (declName : Name) : Option ScenarioEntry :=
   (scenarios env).find? (·.declName == declName)
