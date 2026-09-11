@@ -1,5 +1,7 @@
 import Lean.Elab.Command
 import Lean.Elab.ElabRules
+import Temporal.Case.Registry
+import Temporal.Case.Template
 import Temporal.Feature.Nexus.Success.Authoring
 
 /-! The success-slice command grammar and its expansion into typed Authoring declarations.
@@ -132,6 +134,38 @@ private def rejectRetiredMacroKeyword (keyword : Syntax) (retired replacement : 
   if keywordSpelling keyword == retired then
     Lean.Macro.throwErrorAt keyword (retiredKeywordMessage retired replacement)
 
+/-! ### Where a declaration comes from
+
+The semantic family is the enclosing namespace below `Temporal.Feature`, and the source is the file
+being elaborated. Two Models that name the same declaration in different files therefore carry
+distinct Definition IDs and distinct Provenance sources, without either file saying so. -/
+
+private def decapitalize (segment : String) : String :=
+  match segment.toList with
+  | [] => segment
+  | first :: rest => String.ofList (first.toLower :: rest)
+
+private def semanticFamilyOf (enclosing : Name) : String :=
+  let components := enclosing.components.map (·.toString)
+  let owned := match components with
+    | "Temporal" :: "Feature" :: rest => rest
+    | "Temporal" :: rest => rest
+    | rest => rest
+  ".".intercalate (owned.map decapitalize)
+
+/-- The elaborating file, relative to the Lean package root. Lake elaborates with package-relative
+paths already; an absolute one is trimmed so the recorded source does not depend on the checkout. -/
+private def packageRelativePath (raw : String) : String :=
+  let normalized := raw.replace "\\" "/"
+  match normalized.splitOn "/model/" with
+  | [_, owned] => owned
+  | _ => normalized
+
+private def originTerm : CommandElabM Term := do
+  let family := semanticFamilyOf (← getCurrNamespace)
+  let path := packageRelativePath (← getFileName)
+  `(term| Authoring.Origin.of $(Lean.quote family) $(Lean.quote path))
+
 private def memberIdents (constructors : List Name) : Array Term :=
   constructors.toArray.map fun constructor => mkIdent constructor
 
@@ -217,8 +251,9 @@ elab "model" name:ident "role" role:ident
       actionKeys := [$(memberKeys actionCtors),*]
       outcomeKeys := [$(memberKeys outcomeCtors),*]
       factKeys := [$(memberKeys factCtors),*] })
+  let origin ← originTerm
   elabCommand (← `(command|
-    def $name := Authoring.successModel $names ($setupConstructor)
+    def $name := Authoring.successModel $origin $names ($setupConstructor)
       ([$(memberIdents stateCtors),*]) ([$(memberIdents actionCtors),*])
       ([$(memberIdents outcomeCtors),*]) ([$(memberIdents factCtors),*])
       ([$(initialStates.toArray),*]) ([$(terminalStates.toArray),*])
@@ -255,25 +290,34 @@ macro "property" name:ident "on" modelRef:ident "for" roleRef:ident
           requirements := [$clauses,*]
         })
 
-macro scenarioKeyword:("scenario" <|> "behavior") name:ident "on" modelRef:ident roleRef:ident
+elab scenarioKeyword:("scenario" <|> "behavior") name:ident "on" modelRef:ident roleRef:ident
     "starts" setupRef:ident
     "actions" "exactly" "[" occurrences:successOccurrence,+ "]" : command => do
-    rejectRetiredMacroKeyword scenarioKeyword "behavior" "scenario"
+    rejectRetiredKeyword scenarioKeyword "behavior" "scenario"
     let ownerKey := Lean.quote name.getId.toString
     let roleKey := Lean.quote roleRef.getId.toString
     let setupKey := Lean.quote setupRef.getId.toString
-    let entries ← occurrences.getElems.mapM fun occurrence => do
+    let mut selectedSpellings : Array String := #[]
+    let mut entries : Array Term := #[]
+    for occurrence in occurrences.getElems do
       match occurrence with
       | `(successOccurrence| $label:ident : $selected:ident) =>
-          `(term| ($(Lean.quote label.getId.toString), $(Lean.quote selected.getId.toString)))
-      | _ => Lean.Macro.throwErrorAt occurrence "unsupported Nexus Scenario occurrence"
-    `(command| def $name (values : Authoring.ModelVocabulary) : Scenario :=
+          selectedSpellings := selectedSpellings.push selected.getId.eraseMacroScopes.toString
+          entries := entries.push (← `(term|
+            ($(Lean.quote label.getId.toString), $(Lean.quote selected.getId.toString))))
+      | _ => throwErrorAt occurrence "unsupported Nexus Scenario occurrence"
+    elabCommand (← `(command|
+      def $name (values : Authoring.ModelVocabulary) : Scenario :=
         Authoring.authoredScenario ($modelRef) values {
           declaration := $ownerKey
           roleName := $roleKey
           setupState := $setupKey
           occurrences := [$entries,*]
-        })
+        }))
+    -- A `case` block resolves its `evidence` lines against this list, so the Action order the
+    -- Scenario fixes is recorded beside the declaration rather than re-derived from the term.
+    liftCoreM (Temporal.Case.Registry.recordScenario {
+      declName := (← getCurrNamespace) ++ name.getId, «actions» := selectedSpellings })
 
 macro "limits" name:ident
     stepsKeyword:(&"steps" <|> "transitions") stepCount:num
@@ -285,21 +329,163 @@ macro "limits" name:ident
     `(command| def $name : Limits :=
         Limits.bounded $stepCount $actionCount $searchCount)
 
-macro "query" name:ident "on" modelRef:ident
+/-- Record what a `case` block needs to know about a Query: whether it selects a witness, and the
+Scenario whose Action order its evidence lines resolve against. -/
+private def recordQueryDeclaration
+    (name scenarioRef : Ident) (selectsWitness : Bool) : CommandElabM Unit := do
+  let scenarioName ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo scenarioRef)
+  liftCoreM (Temporal.Case.Registry.recordQuery {
+    declName := (← getCurrNamespace) ++ name.getId
+    selectsWitness
+    «scenario» := scenarioName })
+
+elab "query" name:ident "on" modelRef:ident
     findKeyword:(&"find" <|> "witness") propertyRef:ident "in" scenarioRef:ident
     "limits" limitsRef:ident : command => do
-    rejectRetiredMacroKeyword findKeyword "witness" "find"
+    rejectRetiredKeyword findKeyword "witness" "find"
     let queryKey := Lean.quote name.getId.toString
-    `(command| def $name : Except Authoring.AdmissionError (Authoring.CheckedModel ($modelRef)) :=
-        Authoring.check ($modelRef) $queryKey ($limitsRef) ($propertyRef) ($scenarioRef))
+    elabCommand (← `(command|
+      def $name : Except Authoring.AdmissionError (Authoring.CheckedModel ($modelRef)) :=
+        Authoring.check ($modelRef) $queryKey ($limitsRef) ($propertyRef) ($scenarioRef)))
+    recordQueryDeclaration name scenarioRef (selectsWitness := true)
 
-macro "query" name:ident "on" modelRef:ident
+elab "query" name:ident "on" modelRef:ident
     verifyKeyword:(&"verify" <|> "all") propertyRef:ident "in" scenarioRef:ident
     "limits" limitsRef:ident : command => do
-    rejectRetiredMacroKeyword verifyKeyword "all" "verify"
+    rejectRetiredKeyword verifyKeyword "all" "verify"
     let queryKey := Lean.quote name.getId.toString
-    `(command| def $name : Except Authoring.AdmissionError (Authoring.CheckedModel ($modelRef)) :=
+    elabCommand (← `(command|
+      def $name : Except Authoring.AdmissionError (Authoring.CheckedModel ($modelRef)) :=
         Authoring.check ($modelRef) $queryKey ($limitsRef) ($propertyRef) ($scenarioRef)
-          (form := Authoring.QueryFormKind.verifyClaim))
+          (form := Authoring.QueryFormKind.verifyClaim)))
+    recordQueryDeclaration name scenarioRef (selectsWitness := false)
+
+
+/-! ### The `case` command
+
+A Model file's last block. It names the `find` Query whose selected trace the Case realizes, the
+realization template that runs it, and the recorded history event that confirms each Action the
+Scenario selects. `fixture` is the only identity slot: the Case ID is `temporal.case.<fixture>`,
+the Program and Contract IDs derive from it, and the Run scope is the fixture name.
+
+It is an elaborator rather than a macro because it resolves names -- the Query's form, the
+Scenario's Action order, the admitted history event kinds -- and registers the Case it declares. -/
+
+declare_syntax_cat caseTemplate
+
+syntax ident &"service" str &"operation" str &"responds" ident : caseTemplate
+syntax ident &"type" str : caseTemplate
+
+/-- One `evidence` line: the Action the Scenario selects, and the recorded event that confirms it. -/
+declare_syntax_cat caseEvidence
+
+syntax ident "←" &"history" ident : caseEvidence
+
+private def spellingList (spellings : Array String) : String :=
+  ", ".intercalate spellings.toList
+
+private def unregisteredQueryMessage (spelling : String) : String :=
+  s!"'{spelling}' is not a Query declared by a `query` command; a `case` block realizes one"
+
+private def verifyQueryMessage (spelling : String) : String :=
+  s!"Query '{spelling}' verifies rather than finds; a Case realizes one selected trace, so its " ++
+    "`realizes` Query must be a `find` form"
+
+private def unselectedActionMessage (spelling : String) (selected : Array String) : String :=
+  s!"the Scenario never selects Action '{spelling}'; it selects: {spellingList selected}"
+
+private def unmappedActionMessage (spelling : String) : String :=
+  s!"the Scenario selects Action '{spelling}' but no `evidence` line says which recorded event " ++
+    "confirms it"
+
+private def duplicateEvidenceMessage (spelling : String) : String :=
+  s!"Action '{spelling}' already has an `evidence` line"
+
+private def duplicateFixtureMessage (fixture priorCase : String) : String :=
+  s!"fixture '{fixture}' is already registered by Case '{priorCase}'"
+
+private def unknownEventKindMessage (spelling : String) : String :=
+  match Temporal.Case.EventKind.resolve spelling with
+  | .error reported => reported
+  | .ok _ => ""
+
+private def unknownTemplateMessage (spelling : String) : String :=
+  s!"unknown realization template '{spelling}'; declared: nexusOperation, workflow"
+
+private def unknownResponseMessage (spelling : String) : String :=
+  s!"unknown Nexus response form '{spelling}'; declared: sync, async"
+
+private def templateTerm : TSyntax `caseTemplate → CommandElabM Term
+  | `(caseTemplate| $named:ident service $service:str operation $operation:str
+      responds $responds:ident) => do
+      unless named.getId.eraseMacroScopes.toString == "nexusOperation" do
+        throwErrorAt named (unknownTemplateMessage named.getId.eraseMacroScopes.toString)
+      match responds.getId.eraseMacroScopes.toString with
+      | "sync" => `(term| Temporal.Case.Template.nexusOperation $service $operation .sync)
+      | "async" => `(term| Temporal.Case.Template.nexusOperation $service $operation .async)
+      | spelling => throwErrorAt responds (unknownResponseMessage spelling)
+  | `(caseTemplate| $named:ident type $workflowType:str) => do
+      unless named.getId.eraseMacroScopes.toString == "workflow" do
+        throwErrorAt named (unknownTemplateMessage named.getId.eraseMacroScopes.toString)
+      `(term| Temporal.Case.Template.workflow $workflowType)
+  | template => throwErrorAt template "unsupported realization template"
+
+elab "case" name:ident &"fixture" fixture:str
+    &"realizes" queryRef:ident
+    &"as" template:caseTemplate
+    &"evidence" lines:caseEvidence+ : command => do
+  let queryName ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo queryRef)
+  let environment ← getEnv
+  let declaredQuery ← match Temporal.Case.Registry.query? environment queryName with
+    | some declared => pure declared
+    | none => throwErrorAt queryRef (unregisteredQueryMessage queryName.toString)
+  unless declaredQuery.selectsWitness do
+    throwErrorAt queryRef (verifyQueryMessage queryName.toString)
+  let selected := match Temporal.Case.Registry.scenario? environment declaredQuery.scenario with
+    | some declared => declared.actions
+    | none => #[]
+  let mut mapped : Array (String × String) := #[]
+  for line in lines do
+    match line with
+    | `(caseEvidence| $selectedAction:ident ← history $eventKind:ident) =>
+        let spelling := selectedAction.getId.eraseMacroScopes.toString
+        unless selected.contains spelling do
+          throwErrorAt selectedAction (unselectedActionMessage spelling selected)
+        if mapped.any (·.1 == spelling) then
+          throwErrorAt selectedAction (duplicateEvidenceMessage spelling)
+        let kind := eventKind.getId.eraseMacroScopes.toString
+        if (Temporal.Case.EventKind.attributesField? kind).isNone then
+          throwErrorAt eventKind (unknownEventKindMessage kind)
+        mapped := mapped.push (spelling, kind)
+    | _ => throwErrorAt line "unsupported Nexus evidence line"
+  for spelling in selected do
+    unless mapped.any (·.1 == spelling) do
+      throwErrorAt name (unmappedActionMessage spelling)
+  let fixtureName := fixture.getString
+  if let some prior := (Temporal.Case.Registry.cases environment).find? (·.fixture == fixtureName)
+    then throwErrorAt fixture (duplicateFixtureMessage fixtureName prior.caseId)
+  let caseId := "temporal.case." ++ fixtureName
+  let realization ← templateTerm template
+  let mappings ← mapped.mapM fun entry => `(term|
+    Umpire.Case.Producer.EvidenceMapping.mk
+      (vocabulary.namedAction $(Lean.quote entry.1)) $(Lean.quote entry.2))
+  let identityName := mkIdentFrom name (name.getId ++ `identity)
+  let realizationName := mkIdentFrom name (name.getId ++ `realization)
+  let evidenceName := mkIdentFrom name (name.getId ++ `evidence)
+  elabCommand (← `(command|
+    def $identityName : Umpire.Case.Producer.Identity :=
+      { caseId := $(Lean.quote caseId), fixture := $(Lean.quote fixtureName) }))
+  elabCommand (← `(command|
+    def $realizationName : Umpire.Case.Producer.Realization := $realization))
+  elabCommand (← `(command|
+    def $evidenceName : Umpire.Case.Producer.Vocabulary →
+        List Umpire.Case.Producer.EvidenceMapping :=
+      fun vocabulary => [$mappings,*]))
+  elabCommand (← `(command|
+    def $name : Except Umpire.Case.Compiler.Error
+        temporal.server.api.testpilot.v1.Case :=
+      Authoring.produceCase $queryRef $identityName $realizationName $evidenceName))
+  liftCoreM (Temporal.Case.Registry.recordCase {
+    declName := (← getCurrNamespace) ++ name.getId, caseId, fixture := fixtureName })
 
 end Temporal.Feature.Nexus.Success

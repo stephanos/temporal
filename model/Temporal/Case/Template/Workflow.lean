@@ -13,8 +13,8 @@ which, with no worker polling the queue until the resume, is what proves the que
 the outage rather than being lost with the worker.
 
 One Run runs one workflow, so a completed-workflow event names no operation. The operation key is
-therefore the event's own id: a stable path on the single close event, because
-`ScopedEvidenceRule.operation` is always a path and never a literal.
+therefore the event's own id: a stable path on the single close event, because a correlated
+evidence rule's operation key is always a field path and never a literal.
 -/
 
 namespace Temporal.Case.Template

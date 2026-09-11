@@ -368,7 +368,7 @@ func functionalManifest() []functionalEntry {
 	return []functionalEntry{
 		{RendererArg: "get-system-info", CaseID: "temporal.case.get-system-info", Filename: "get-system-info-case.json"},
 		{RendererArg: "worker-outage", CaseID: "temporal.case.worker-outage", Filename: "worker-outage-case.json"},
-		{RendererArg: "async-nexus", CaseID: "temporal.case.async-nexus-success", Filename: "async-nexus-case.json"},
+		{RendererArg: "async-nexus", CaseID: "temporal.case.async-nexus", Filename: "async-nexus-case.json"},
 		{RendererArg: "typed-unary", CaseID: "temporal.case.typed-unary", Filename: "typed-unary-case.json"},
 		{RendererArg: "typed-nexus", CaseID: "temporal.case.typed-nexus", Filename: "typed-nexus-case.json"},
 		{RendererArg: "synthetic", CaseID: "testpilot.synthetic.case", Filename: "synthetic-case.json"},
