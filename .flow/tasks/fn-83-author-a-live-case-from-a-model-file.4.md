@@ -48,3 +48,32 @@ This task builds on the `case` block, whole-Program templates, per-Case evidence
 - Commits:
 - Tests:
 - PRs:
+
+## Work that landed before the block
+
+This task was claimed and implemented before the `case`-abstraction block was recorded, and its
+Go-side half is committed in `dda17feda8`. It is left `blocked` rather than `done`, because the
+block is a human decision and the redesign may still change what `--list` enumerates.
+
+What is already in the tree, and what the redesign has to reckon with:
+
+- `tools/umpire/cmd/umpire-gen-case-runtime-conformance/generate.go` no longer carries a functional
+  Case table or a fixed entry count. It calls the renderer's `--list`, reads it twice and compares
+  (the same determinism discipline it already applied per fixture), and renders each entry by Case
+  ID. **This depends only on `--list` printing `<case-id> <fixture-name>` -- not on the `case`
+  block, the templates, or per-Case evidence.** A set-per-purpose design that still enumerates the
+  Cases it compiles keeps this half unchanged.
+- The one functional fixture the registry does not model (`synthetic`) stays named by its own
+  renderer argument, in `syntheticEntry()`.
+- `tests/testcore/testpilot/fixture_table_test.go` (new) enumerates `testdata/*-case.json` and
+  checks decode, identity, Case-ID uniqueness, preparation over unchanged bytes where
+  `DeriveProfile` reads the Profile, and rejection of a mutated role. It names no Case, so it
+  survives any change to how Cases are authored. The per-Case semantic tests are untouched.
+- `runCase(t, env, "async-nexus")` derives its binding from the fixture name and creates a Nexus
+  endpoint only when the Case declares one; `runCaseWithBinding` keeps the explicit form. The
+  async-Nexus evidence helpers moved to `tests/testpilot_live_case_test.go`.
+
+Verified at that commit: `make umpire-check-case-runtime-conformance` reproduces every checked-in
+fixture, `go test -tags test_dep ./tools/umpire/... ./tests/testcore/testpilot/...` is green, and
+`make umpire-check-live-tests` passes across 9 identities. An impl-review of the same diff on
+`claude:claude-sonnet-4-5:high` returned SHIP with no introduced findings.
