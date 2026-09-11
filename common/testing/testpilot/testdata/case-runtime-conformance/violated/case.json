@@ -1,1 +1,122 @@
-{"caseId":"temporal.case.conformance.violated","contract":{"contractId":"temporal.case.conformance.violated.contract","limits":{"maxCaptureBytes":"8192","maxCaptures":"4","maxExpressionDepth":"12","maxRules":"4","maxStates":"16","maxTotalWork":"1000000000","maxTransitions":"16","maxWorkPerEvent":"100000"},"rules":[{"initialStateId":"pending","kind":"CONTRACT_RULE_KIND_SAFETY","ruleId":"result","states":[{"stateId":"pending","status":"CONTRACT_STATE_STATUS_NONTERMINAL"},{"stateId":"terminal","status":"CONTRACT_STATE_STATUS_VIOLATED"}],"transitions":[{"eventFilter":{"kinds":["RUN_EVENT_KIND_INSTRUCTION_COMPLETED"]},"predicate":{"literal":{"boolValue":true}},"sourceStateId":"pending","supportKind":"CONTRACT_SUPPORT_KIND_MATCHING_EVENT","targetStateId":"terminal","transitionId":"complete"}]}]},"program":{"cleanup":{"entrypointId":"cleanup"},"entrypoints":[{"controller":{},"entrypointId":"controller","instructions":[{"instruction":{"invokeRpc":{"endpointRoleId":"temporal.workflow-service","method":"/temporal.api.workflowservice.v1.WorkflowService/GetSystemInfo"}},"instructionId":"execute","limits":{"maxAttempts":"1","maxEmittedEvents":"8","maxResponseBytes":"4096","timeoutMilliseconds":"5000"},"outcome":{"fields":[{"field":"INSTRUCTION_OUTCOME_FIELD_STATUS","type":{"singular":{"enumeration":{"protobufType":"temporal.server.api.testpilot.v1.InstructionOutcomeStatus"}}}}]}}]}],"limits":{"maxActivations":"8","maxAttempts":"16","maxCleanupDurationMilliseconds":"5000","maxEdges":"24","maxEntrypoints":"4","maxExpressionDepth":"12","maxNodes":"16","maxPathFanout":"32","maxRequestBytes":"32768","maxResponseBytes":"4096","maxRunEvents":"256","maxTotalDurationMilliseconds":"30000"},"programId":"temporal.case.conformance.violated.program","roles":[{"kind":"ROLE_KIND_ENDPOINT","roleId":"temporal.workflow-service"}]},"provenance":{"producerData":"ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZW1wb3JhbC53b3JrZmxvdy1zZXJ2aWNlIiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAidGVtcG9yYWwtd29ya2Zsb3ctc2VydmljZS92MSIsCiAgICAgICJraW5kIjogIkNBU0VfREVGSU5JVElPTl9LSU5EX1RBUkdFVCIKICAgIH0sCiAgICB7CiAgICAgICJkZWZpbml0aW9uSWQiOiAidGVtcG9yYWwuY2FzZS5jb25mb3JtYW5jZS52aW9sYXRlZC5wcm9wZXJ0eSIsCiAgICAgICJiZWhhdmlvckZpbmdlcnByaW50IjogInRlbXBvcmFsLmNhc2UuY29uZm9ybWFuY2UudmlvbGF0ZWQvcHJvcGVydHkvdjEiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJUZW1wb3JhbC9UZXN0cGlsb3QubGVhbiIsCiAgICAgICJsaW5lIjogIjEiLAogICAgICAiY29sdW1uIjogIjEiLAogICAgICAicHJvdmVuYW5jZSI6ICJjaGVja2VkLW1vZGVsIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdCn0K","producerId":"temporal.case.compiler","producerVersion":"1"},"version":{"major":1}}
+{
+  "caseId": "temporal.case.conformance.violated",
+  "contract": {
+    "contractId": "temporal.case.conformance.violated.contract",
+    "limits": {
+      "maxCaptureBytes": "8192",
+      "maxCaptures": "4",
+      "maxExpressionDepth": "12",
+      "maxRules": "4",
+      "maxStates": "16",
+      "maxTotalWork": "1000000000",
+      "maxTransitions": "16",
+      "maxWorkPerEvent": "100000"
+    },
+    "rules": [
+      {
+        "initialStateId": "pending",
+        "kind": "CONTRACT_RULE_KIND_SAFETY",
+        "ruleId": "result",
+        "states": [
+          {
+            "stateId": "pending",
+            "status": "CONTRACT_STATE_STATUS_NONTERMINAL"
+          },
+          {
+            "stateId": "terminal",
+            "status": "CONTRACT_STATE_STATUS_VIOLATED"
+          }
+        ],
+        "transitions": [
+          {
+            "eventFilter": {
+              "kinds": [
+                "RUN_EVENT_KIND_INSTRUCTION_COMPLETED"
+              ]
+            },
+            "predicate": {
+              "literal": {
+                "boolValue": true
+              }
+            },
+            "sourceStateId": "pending",
+            "supportKind": "CONTRACT_SUPPORT_KIND_MATCHING_EVENT",
+            "targetStateId": "terminal",
+            "transitionId": "complete"
+          }
+        ]
+      }
+    ]
+  },
+  "program": {
+    "cleanup": {
+      "entrypointId": "cleanup"
+    },
+    "entrypoints": [
+      {
+        "controller": {},
+        "entrypointId": "controller",
+        "instructions": [
+          {
+            "instruction": {
+              "invokeRpc": {
+                "endpointRoleId": "temporal.workflow-service",
+                "method": "/temporal.api.workflowservice.v1.WorkflowService/GetSystemInfo"
+              }
+            },
+            "instructionId": "execute",
+            "limits": {
+              "maxAttempts": "1",
+              "maxEmittedEvents": "8",
+              "maxResponseBytes": "4096",
+              "timeoutMilliseconds": "5000"
+            },
+            "outcome": {
+              "fields": [
+                {
+                  "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
+                  "type": {
+                    "singular": {
+                      "enumeration": {
+                        "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "limits": {
+      "maxActivations": "8",
+      "maxAttempts": "16",
+      "maxCleanupDurationMilliseconds": "5000",
+      "maxEdges": "24",
+      "maxEntrypoints": "4",
+      "maxExpressionDepth": "12",
+      "maxNodes": "16",
+      "maxPathFanout": "32",
+      "maxRequestBytes": "32768",
+      "maxResponseBytes": "4096",
+      "maxRunEvents": "256",
+      "maxTotalDurationMilliseconds": "30000"
+    },
+    "programId": "temporal.case.conformance.violated.program",
+    "roles": [
+      {
+        "kind": "ROLE_KIND_ENDPOINT",
+        "roleId": "temporal.workflow-service"
+      }
+    ]
+  },
+  "provenance": {
+    "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZW1wb3JhbC53b3JrZmxvdy1zZXJ2aWNlIiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAidGVtcG9yYWwtd29ya2Zsb3ctc2VydmljZS92MSIsCiAgICAgICJraW5kIjogIkNBU0VfREVGSU5JVElPTl9LSU5EX1RBUkdFVCIKICAgIH0sCiAgICB7CiAgICAgICJkZWZpbml0aW9uSWQiOiAidGVtcG9yYWwuY2FzZS5jb25mb3JtYW5jZS52aW9sYXRlZC5wcm9wZXJ0eSIsCiAgICAgICJiZWhhdmlvckZpbmdlcnByaW50IjogInRlbXBvcmFsLmNhc2UuY29uZm9ybWFuY2UudmlvbGF0ZWQvcHJvcGVydHkvdjEiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJUZW1wb3JhbC9UZXN0cGlsb3QubGVhbiIsCiAgICAgICJsaW5lIjogIjEiLAogICAgICAiY29sdW1uIjogIjEiLAogICAgICAicHJvdmVuYW5jZSI6ICJjaGVja2VkLW1vZGVsIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdCn0K",
+    "producerId": "temporal.case.compiler",
+    "producerVersion": "1"
+  },
+  "version": {
+    "major": 1
+  }
+}
