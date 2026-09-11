@@ -26,7 +26,7 @@ func TestTestpilotTypedUnaryCase(t *testing.T) {
 	}
 	// The single-shot happy path: runCase loads the fixture, derives the Profile, provisions,
 	// prepares and runs once.
-	run, verdict := runCase(t, env, "typed-unary", binding)
+	run, verdict := runCaseWithBinding(t, env, "typed-unary", binding)
 	require.Equal(t, testpilotpb.RUN_STATUS_COMPLETED, run.GetStatus())
 	require.Equal(t, testpilotpb.VERDICT_STATUS_SATISFIED, verdict.GetStatus())
 	requireSubmittedWorkflowTypeEvidence(t, run, verdict.GetSupportingEventSequences(), binding.TaskQueue)

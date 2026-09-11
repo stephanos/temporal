@@ -35,3 +35,9 @@ so the Run proves the queued task survived the outage. `worker_outage_artifact_t
 unchanged bytes and pins that bound offline; the tagged live tests run it, and run it beside a plain
 Nexus Case on a *different* queue, because a pooled peer worker on the same physical queue would
 keep polling through the outage.
+
+Admission is checked once for every fixture rather than once per Case: `fixture_table_test.go`
+enumerates `testdata/*-case.json`, decodes each strictly, pins its identity, and -- where
+`DeriveProfile` can read the Case's Profile -- prepares it over unchanged bytes and rejects a
+mutated role. The per-Case tests beside it keep what that table cannot say: the outage Deadline, the
+typed tenfold load, Run isolation, and the checked Provenance the async Nexus Case carries.
