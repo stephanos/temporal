@@ -28,7 +28,18 @@ command resolves a spelling against these rather than re-reading the inductives.
 structure ModelEntry where
   declName : Name
   role : String
+  /-- The declaring types, so a resolved member reference can be given the constructor it names and
+  the editor can hover it and go to its definition. -/
+  stateType : Name
+  actionType : Name
+  outcomeType : Name
+  factType : Name
+  states : Array String
+  actions : Array String
+  outcomes : Array String
   facts : Array String
+  /-- The states the Model may start in, a subset of `states`. -/
+  starts : Array String
   deriving Inhabited, Repr, BEq
 
 /-- One Property declaration and the Model it runs on, so a Query need not name the Model again. -/
