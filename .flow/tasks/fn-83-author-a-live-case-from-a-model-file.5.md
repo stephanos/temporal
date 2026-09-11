@@ -40,15 +40,15 @@ Paths are pre-fn-82; `Umpire.Space` is `Umpire.Variations` afterwards.
 - [ ] `make umpire-check-regression` passes
 ## Done summary
 Blocked:
-Blocked 2026-09-10 pending a redesign of the `case` abstraction (decided with the user, not yet a spec).
+Blocked 2026-09-10; superseded by fn-85 ("Model side effects as typed interfaces and run query sets").
 
-The per-Case `case` block (one Query, one hand-picked realization template, per-Case evidence lines) is being replaced by:
+The per-Case `case` block (one Query, one hand-picked whole-Program template, per-Case evidence lines) is replaced by:
 
-- **Sets per purpose.** A developer declares query sets by kind: functional and canary sets list Queries explicitly; exploratory sets state a coverage goal and a budget over a variation space.
-- **One Case per Query.** A set compiles to many Cases run together; "Case = one Program + one Contract" stays.
-- **A separate Temporal binding.** Runtime metadata (how an Action is caused, which recorded event confirms a step result, which resources a role needs) lives in a Temporal-owned binding declaration beside the behavioral Model, so Programs and Contracts are assembled from the Model plus its binding rather than from a whole-Program template chosen per Case.
+- **Side effects in the Model.** Entities with structured state, and interfaces with a kind (`call`, `command`, `reply`, `observation`), a party, input classes with representatives, and result classes. Request fields that decide the outcome are Model behavior, not binding detail.
+- **A Temporal Realization** that binds interfaces, result classes, observations, setup parameters and parties to RPCs, workflow commands, handler replies, history events and dynamic config. The Producer assembles Program and Contract from the witness; whole-Program templates and the `case` command are removed.
+- **Query sets per purpose.** A set binds each party to test or environment; a functional set compiles to one Case per Query; canary and exploratory sets are admitted for fn-70/fn-29 and fn-33.
 
-This task builds on the `case` block, whole-Program templates, per-Case evidence, or the Case-registry shape that redesign replaces. Unblock or rewrite it once the redesign spec exists.
+fn-85's final task closes this task as superseded and names where its concern went. Design record: `model/Temporal/Feature/Nexus/DESIGN.md`.
 ## Evidence
 - Commits:
 - Tests:

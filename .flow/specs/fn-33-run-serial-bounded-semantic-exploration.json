@@ -11,7 +11,7 @@
     "fn-64-umpire-case-runtime",
     "fn-69-extract-testpilot-from-umpire",
     "fn-84-deepen-five-shallow-module-clusters-in",
-    "fn-83-author-a-live-case-from-a-model-file"
+    "fn-85-model-side-effects-as-typed-interfaces"
   ],
   "id": "fn-33-run-serial-bounded-semantic-exploration",
   "impl_review_rounds": {},
@@ -738,5 +738,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-10T06:03:24.115648Z"
+  "updated_at": "2026-09-11T03:53:22.953030Z"
 }
