@@ -146,6 +146,31 @@ Testpilot conformance and synthetic Cases stay, since they test the runtime.
 a field relation that lowers to the same Contract field reads before any deletion. Needs a plan
 review and a task breakdown.
 
+### 5. Tighten the Testpilot protocol — fn-87
+
+[fn-87 — Tighten the Testpilot protocol: glossary names, one expression language, structure by concept](../.flow/specs/fn-87-tighten-the-testpilot-protocol-glossary.md),
+from the 2026-09-11 review of the Testpilot protocol (855 lines in seven files). The review found
+thirty issues: three expression languages for the same operators (fourteen duplicated Program and
+Contract messages plus a correlated predicate language), names that break SEM-19 (`RunStatus` for
+Run disposition, correlated `clauses` of type `CorrelatedRule`, "projection" and "capability" each
+naming two concepts), per-kind Run Event fields for faults, duplicate encodings (opaque handles,
+`natural`, capture types, three binding shapes, a nested `version`), an enum no wire message
+references, a layout that spreads the correlated capability over three files, and no written
+checklist for extending the protocol.
+
+The spec renames to glossary words, restructures into one file per concept with every message
+documented, replaces the three expression languages with one `Expression` checked per context at
+preparation, gives Run Events a payload oneof, removes the duplicates, and adds an extension
+checklist. It changes no runtime semantics: R1 and R2 land first as mechanical changes, proven by a
+field-mapping equivalence test over every pre-migration fixture, before any structural change. The
+wire has no compatibility promise (`buf` breaking ignores the package), so there is no `v2` and no
+shim. New capabilities stay with their owners: Nexus timeouts and reply forms with fn-85 R10, cancel
+with fn-79, correlated transitions over structured machine state with fn-85.
+
+**Depends on fn-84** (recorded in Flow). **Recommended position: before fn-85**, so fn-85's Nexus
+instruction additions and fn-86's migrated Cases are authored on the final shapes; Flow does not
+yet record fn-85 depending on fn-87. Needs a plan review and a task breakdown.
+
 ### Additional open specs
 
 These remain open in Flow and are outside the first-canary critical path.
