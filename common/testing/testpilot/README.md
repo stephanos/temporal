@@ -52,3 +52,20 @@ changing its rejection limits. Program and Contract limit violations retain thei
 These diagnostics cover static admission, including correlated Contracts. ProtoJSON decoding errors
 and runtime Run/Driver failures keep their own error contracts. No diagnostic wire format is added.
 See [the public error contract](preparation_error.go) and [Temporal Driver ownership](temporal/README.md).
+
+## Running a Case from the command line
+
+`tools/umpire/cmd/umpire-run` is the black-box consumer of these bytes. Given a fixture path, a gRPC
+address, an HTTP address, and the namespace, task queue and optional Nexus endpoint the Case binds
+to, it derives the Profile the Case implies through `temporal.DeriveProfile`, prepares the unchanged
+bytes, opens a composite Driver with its own SDK worker, runs once, and prints the Run status, the
+cleanup status, the Verdict status, and one line per rule Verdict.
+
+Its exit codes separate the answer from the infrastructure: `0` satisfied, `1` violated, `2`
+inconclusive, `3` preparation, infrastructure, or Run error. That is why a CI caller can tell an
+unreachable server from a Run that really was inconclusive.
+
+With `--create` it provisions the resources it names and deletes them on exit; without it they must
+already exist and none is ever deleted. Only Cases whose Profile `DeriveProfile` derives are
+runnable; a typed fixture rejects with its admission category on stderr. It links the Driver and the
+SDK, never the functional test cluster.
