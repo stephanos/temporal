@@ -39,6 +39,10 @@ Focused public imports are available by responsibility:
 | `Umpire.Case.Coverage` | The whole-Case field and Rule coverage a Case requests. |
 | `Umpire.Case.Correlated` | Lowering checked Correlated rules into the portable Contract capability. |
 | `Umpire.Case.Projection` | Reading declared Run values into model Steps and fields. |
+| `Umpire.Case.Producer` | One checked Model, one selected witness and one realization into one Case. |
+| `Umpire.Command` | The Model command surface: `model`, `property`, `scenario`, `limits`, `query`. |
+| `Umpire.Command.Authoring` | What a declared Model is before any command: construction and admission. |
+| `Umpire.Command.Registry` | What the commands record for each other, and one project's conventions. |
 | `Umpire.Provenance` | Producer-owned definition bindings, Known Gaps, and the opaque `producerData` bytes. |
 | `Umpire.Inventory` | Explicit opt-in catalogs consuming semantic-owner contracts for documentation. |
 
@@ -340,3 +344,15 @@ normalization or ignored-field registry.
 The pre-fn-64 portable plan, resident executor, caller-specific adapter, and separate Run Evaluation
 path were removed. Historical documents label those interfaces explicitly as superseded. They are
 not compatibility surfaces of `Umpire.Case`.
+
+## The Model command surface
+
+`Umpire.Command` owns the five commands a Model file is written in, and the construction and
+admission layer behind them. Nothing in it names a feature: the semantic family of a declaration is
+its enclosing namespace with the project's scaffolding prefix removed, and its Provenance source is
+the module being elaborated. A project declares those conventions once, with `model_conventions`,
+and every declaration in it inherits them.
+
+What stays outside is everything about turning a checked Model into something a runtime executes:
+the realization templates, which recorded event confirms which Action, and what a Case ID is rooted
+at. Those belong to whoever owns the runtime, which declares its own `case` command beside them.
