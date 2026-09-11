@@ -39,9 +39,61 @@ Add the sixth command `case` to the success syntax module as an elaborator that 
 - [ ] Five `#guard_msgs` blocks pin the diagnostics listed in Approach; one `#guard` pins distinct IDs and sources across files
 - [ ] `make umpire-check-case-runtime-conformance` and `make lint-model` pass
 ## Done summary
-TBD
+The sixth command lands. A Model file plus one `case` block is a Case.
 
+- `model/Temporal/Feature/Nexus/Success/Syntax.lean`: the `case` elaborator (`fixture`, `realizes`,
+  `as <template>`, `evidence <action> ← history <kind>`), the per-file origin derivation for all
+  five existing commands, and `scenario`/`query` converted from macros to elaborators so they
+  record their surface.
+- `model/Temporal/Case/Registry.lean` (new): three environment extensions holding names and plain
+  data only (a Scenario's selected Action order, a Query's form and Scenario, each registered
+  Case), plus `register_case` for Cases that carry their identities in Lean, and the
+  `registeredCases%` term elaborator that materializes the sorted list and rejects a duplicate
+  fixture or Case ID.
+- `model/Temporal/Feature/Nexus/Success/Authoring.lean`: `Origin` (family + source) threaded through
+  `SuccessModel`; `producerInput`, `produce`, `produceCase` moved here from the deleted Producer.
+- `model/Temporal/Feature/Nexus/Success/Model.lean` ends in `case asyncNexusSuccess fixture
+  "async-nexus"`; `Producer.lean` is deleted.
+- `model/Temporal/Tool/Testpilot.lean`: `--list` / `--render <case-id>` over the registry; the
+  functional dispatch table is gone. Fixture-name arguments still resolve (through the registry),
+  which is what keeps the Go generator green until .4 deletes its table.
+- `tools/umpire/cmd/umpire-gen-case-runtime-conformance/generate.go`: the async-nexus manifest
+  entry's expected Case ID follows the derivation.
+
+Fixture diff, exactly two fields, both derived from `fixture`:
+  caseId              temporal.case.async-nexus-success           -> temporal.case.async-nexus
+  contract.contractId temporal.case.async-nexus-success.contract  -> temporal.case.async-nexus.contract
+The Program ID was already the derived value, the run-scope literal is the fixture name, and the
+Provenance is unchanged. A `#guard_msgs (info)` masked comparison on the canonical ProtoJSON pins
+that the same Model under the previously stated identity is byte-identical once those two fields
+are masked.
+
+Identity derivation moved two test-file Models to their own families, which is the derivation
+working: `RaceSyntaxTests` is now `temporal.nexus.success.raceSyntax.*` and `Tests`' probe Model is
+`temporal.nexus.success.tests.*`. No fixture carries either.
+
+Five `#guard_msgs (error)` pins: `verify` Query, unmapped selected Action, evidence for an
+unselected Action, unknown history event kind (listing all 60 admitted kinds), duplicate fixture.
+Plus `#guard`s that two Models in different files get distinct target IDs, families and sources.
+
+Deviation: the duplicate-fixture diagnostic fires in the `case` command (a located error on the
+`fixture` string) as well as in the materializing elaborator; the spec placed it only in the
+latter. The command's is the one pinned, because it is the one an author sees.
+
+Verified: `umpire-case --render <id>` is byte-equal to each of the five checked-in fixtures, an
+unknown ID exits 1 naming the known IDs, and `make umpire-check-regression` is exit 0 end to end
+(562 Lean jobs, all eight conformance checks, 6 passing live identities).
+
+Review: SHIP, 2 non-blocking findings. The P2 (`packageRelativePath` splitting on the first
+`/model/`) was valid and fixed by taking the last segment. The P3 (O(n^2) duplicate scan over five
+registry entries) was not taken.
+Pinned reviewer `claude:claude-fable-5-1:high` is account-limited for this session, so the review
+ran on `claude:claude-sonnet-4-5:high` -- a same-family fallback, not an equivalent cross-family
+review.
+
+stage: impl-review - ran (model: claude-sonnet-4-5, high; fable pinned but account-limited)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 508cc86636
+- Tests: make umpire-check-regression (exit 0), cd model && mise exec -- lake build, make umpire-check-case-runtime-conformance, make lint-model (0 findings outside generated Temporal/API/Proto.lean), umpire-case --render <id> byte-equal to all five checked-in fixtures
 - PRs:
