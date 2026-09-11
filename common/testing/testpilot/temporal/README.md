@@ -47,3 +47,18 @@ declared binding no role claims. The Profile is an authorization snapshot, so th
 returned for the caller to review and tighten before `Prepare`; canary callers keep hand-authored
 Profiles, and the hand-written async-nexus Profile stays the derivation oracle. MOD-12's `Prepare`
 then `Run` sequence is unchanged: derivation only decides what the Profile says.
+
+## Provisioning
+
+`provision` creates and removes the physical resources one Case's symbolic bindings resolve to: a
+namespace, and the Nexus endpoint that routes to its task queue. It reaches the server over the
+public workflow and operator services only -- no test environment, no `*testing.T`, no
+server-internal package -- which is what lets a live test, the `umpire-run` CLI, and a future canary
+provision the same way.
+
+Registering a namespace through the frontend is asynchronous in the namespace cache, so `Create`
+does not return until a `DescribeNamespace` call actually serves it. `Create` rolls back whatever it
+had already created if a later step fails, and the cleanup it returns releases in reverse order,
+reporting every resource it could not remove rather than stopping at the first. A caller whose
+cluster is discarded wholesale sets `RetainNamespace`, because deleting a namespace is a
+server-side workflow that takes tens of seconds and buys nothing there.

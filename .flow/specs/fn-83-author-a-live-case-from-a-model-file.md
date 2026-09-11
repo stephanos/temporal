@@ -477,6 +477,16 @@ make umpire-check-regression                    # the full gate
   Definition ID and fingerprint is byte-identical. Errors: unsorted Actions keep their located
   message; a hand-declared Setup that collides with the generated one rejects in place; both pinned
   by `#guard_msgs`.
+- **R13:** a `model` block may omit its Fact domain and a step row may omit `facts`; the Nexus
+  success Model declares no Fact and no `fact` clause, and its regenerated fixture diff is listed
+  in the receipt; the Models R3 and R6 add author a Fact only where it claims more than a state.
+  Errors: a Fact or `fact` clause on a Model without a Fact domain rejects with a located message
+  pinned by `#guard_msgs`.
+- **R14:** compiling a Model file resolves every name in `property`, `scenario` and `query`,
+  evaluates each `query` and `case`, and reports every admission and production failure at the
+  line that causes it; resolved references carry hover and go-to-definition information; fixtures
+  and IDs are byte-identical. Errors: the diagnostics listed in task .14, each pinned by
+  `#guard_msgs`.
 
 ## Early proof point
 
@@ -501,6 +511,8 @@ generic, and R2 through R7 build on it.
 | R10 | Model commands and authoring core owned by `Umpire` | .10 | — |
 | R11 | Known Gaps authored in the Model file | .11 | — |
 | R12 | `enum` vocabulary declarations and a generated Setup | .12 | — |
+| R13 | optional Facts; no Fact that restates a state | .13 | — |
+| R14 | located compile-time diagnostics and name resolution for every command | .14 | — |
 
 ## Boundaries
 

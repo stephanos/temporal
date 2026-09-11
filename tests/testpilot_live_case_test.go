@@ -8,14 +8,11 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	enumspb "go.temporal.io/api/enums/v1"
-	"go.temporal.io/api/nexus/v1"
-	"go.temporal.io/api/operatorservice/v1"
 	"go.temporal.io/sdk/client"
 	testpilotpb "go.temporal.io/server/api/testpilot/v1"
-	"go.temporal.io/server/common/namespace"
 	"go.temporal.io/server/common/testing/testpilot"
 	testpilotdriver "go.temporal.io/server/common/testing/testpilot/temporal"
+	"go.temporal.io/server/common/testing/testpilot/temporal/provision"
 	"go.temporal.io/server/tests/testcore"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -37,10 +34,12 @@ type testpilotLiveCase struct {
 	driver   *testpilotdriver.Driver
 }
 
-// newTestpilotLiveCase performs the binding every live Case needs: register the namespace, create
-// the Nexus endpoint when one is named, freeze the Profile, prepare the unchanged Case bytes, and
-// open one Driver over the frozen Profile. Every resource it creates is released by a registered
-// cleanup, all under the one cleanupTimeout the caller chose. After the Driver exists it mutates
+// newTestpilotLiveCase performs the binding every live Case needs: provision the namespace and the
+// Nexus endpoint when one is named, freeze the Profile, prepare the unchanged Case bytes, and open
+// one Driver over the frozen Profile. Provisioning is the shared package, over the public workflow
+// and operator services only, so a live test and the umpire-run CLI create the same resources the
+// same way. Every resource it creates is released by a registered cleanup, all under the one
+// cleanupTimeout the caller chose. After the Driver exists it mutates
 // the frozen bindings, so a Driver that read its environment lazily rather than from its own
 // snapshot fails in each caller's binding assertion.
 func newTestpilotLiveCase(
@@ -52,27 +51,22 @@ func newTestpilotLiveCase(
 	cleanupTimeout time.Duration,
 ) testpilotLiveCase {
 	t.Helper()
-	_, err := env.RegisterNamespace(env.Context(), namespace.Name(resources.Namespace), 1, enumspb.ARCHIVAL_STATE_DISABLED, "", "")
+	release, err := provision.Create(env.Context(), provision.Clients{
+		Workflow: env.FrontendClient(), Operator: env.OperatorClient(),
+	}, provision.Resources{
+		Namespace:     resources.Namespace,
+		TaskQueue:     resources.TaskQueue,
+		NexusEndpoint: resources.NexusEndpoint,
+		// The functional cluster is discarded wholesale after the suite, and deleting a namespace
+		// is a server-side workflow that takes tens of seconds; waiting for it here buys nothing.
+		RetainNamespace: true,
+	})
 	require.NoError(t, err)
-	if resources.NexusEndpoint != "" {
-		created, err := env.OperatorClient().CreateNexusEndpoint(env.Context(), &operatorservice.CreateNexusEndpointRequest{
-			Spec: &nexus.EndpointSpec{
-				Name: resources.NexusEndpoint,
-				Target: &nexus.EndpointTarget{Variant: &nexus.EndpointTarget_Worker_{
-					Worker: &nexus.EndpointTarget_Worker{Namespace: resources.Namespace, TaskQueue: resources.TaskQueue},
-				}},
-			},
-		})
-		require.NoError(t, err)
-		t.Cleanup(func() {
-			ctx, cancel := context.WithTimeout(context.Background(), cleanupTimeout)
-			defer cancel()
-			_, err := env.OperatorClient().DeleteNexusEndpoint(ctx, &operatorservice.DeleteNexusEndpointRequest{
-				Id: created.GetEndpoint().GetId(), Version: created.GetEndpoint().GetVersion(),
-			})
-			require.NoError(t, err)
-		})
-	}
+	t.Cleanup(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), cleanupTimeout)
+		defer cancel()
+		require.NoError(t, release(ctx))
+	})
 
 	frozen := profile.Snapshot()
 	expectedProfile := frozen.Snapshot()

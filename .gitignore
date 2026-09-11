@@ -70,3 +70,6 @@ testdata/
 
 # Locally built Umpire tool binaries; `go build ./tools/umpire/cmd/<name>` drops them here.
 /umpire-*
+
+# Locally built tool binaries
+/.build/

@@ -173,34 +173,9 @@ func runGeneration(configuration generationConfig, entries []manifestEntry, depe
 		return fmt.Errorf("resolve repository root: %w", err)
 	}
 	modelRoot := filepath.Join(repositoryRoot, "model")
-	artifacts := make(map[string][]byte, len(entries)*2)
-	for _, entry := range entries {
-		encoded, err := renderStable(entry.Class, func() (rendererOutput, error) {
-			return dependencies.Render(modelRoot, entry.RendererArg)
-		})
-		if err != nil {
-			return err
-		}
-		decoded, err := testpilot.DecodeCaseProtoJSON(encoded)
-		if err != nil {
-			return fmt.Errorf("decode %q Case fixture: %w", entry.Class, err)
-		}
-		if decoded.GetCaseId() != entry.CaseID {
-			return fmt.Errorf("decode %q Case fixture: got Case ID %q, want %q", entry.Class, decoded.GetCaseId(), entry.CaseID)
-		}
-		if _, err := testpilot.PackCaseProtoJSON(encoded); err != nil {
-			return fmt.Errorf("pack %q Case fixture: %w", entry.Class, err)
-		}
-		expected, err := marshalExpected(entry.Expected)
-		if err != nil {
-			return fmt.Errorf("encode %q expected result: %w", entry.Class, err)
-		}
-		stored, err := persistedForm(encoded)
-		if err != nil {
-			return fmt.Errorf("store %q Case fixture: %w", entry.Class, err)
-		}
-		artifacts[casePath(entry.Class)] = stored
-		artifacts[expectedPath(entry.Class)] = expected
+	artifacts, err := renderConformanceArtifacts(entries, modelRoot, dependencies)
+	if err != nil {
+		return err
 	}
 	if err := validateArtifacts(entries, artifacts); err != nil {
 		return err
@@ -231,6 +206,49 @@ func runGeneration(configuration generationConfig, entries []manifestEntry, depe
 	}
 	if err := dependencies.Publish(set, outputRoot, artifacts, validate); err != nil {
 		return fmt.Errorf("publish Testpilot conformance fixtures: %w", err)
+	}
+	return nil
+}
+
+// renderConformanceArtifacts renders each conformance class twice, checks what it decoded to, and
+// stores it in the persisted form.
+func renderConformanceArtifacts(entries []manifestEntry, modelRoot string, dependencies generationDependencies) (map[string][]byte, error) {
+	artifacts := make(map[string][]byte, len(entries)*2)
+	for _, entry := range entries {
+		encoded, err := renderStable(entry.Class, func() (rendererOutput, error) {
+			return dependencies.Render(modelRoot, entry.RendererArg)
+		})
+		if err != nil {
+			return nil, err
+		}
+		if err := requireRenderedCase(entry.Class, entry.CaseID, encoded); err != nil {
+			return nil, err
+		}
+		expected, err := marshalExpected(entry.Expected)
+		if err != nil {
+			return nil, fmt.Errorf("encode %q expected result: %w", entry.Class, err)
+		}
+		stored, err := persistedForm(encoded)
+		if err != nil {
+			return nil, fmt.Errorf("store %q Case fixture: %w", entry.Class, err)
+		}
+		artifacts[casePath(entry.Class)] = stored
+		artifacts[expectedPath(entry.Class)] = expected
+	}
+	return artifacts, nil
+}
+
+// requireRenderedCase confirms the renderer produced the Case the manifest names, and that it packs.
+func requireRenderedCase(class, caseID string, encoded []byte) error {
+	decoded, err := testpilot.DecodeCaseProtoJSON(encoded)
+	if err != nil {
+		return fmt.Errorf("decode %q Case fixture: %w", class, err)
+	}
+	if decoded.GetCaseId() != caseID {
+		return fmt.Errorf("decode %q Case fixture: got Case ID %q, want %q", class, decoded.GetCaseId(), caseID)
+	}
+	if _, err := testpilot.PackCaseProtoJSON(encoded); err != nil {
+		return fmt.Errorf("pack %q Case fixture: %w", class, err)
 	}
 	return nil
 }
@@ -297,36 +315,9 @@ func runFunctionalGeneration(configuration generationConfig, entries []functiona
 		return fmt.Errorf("resolve repository root: %w", err)
 	}
 	modelRoot := filepath.Join(repositoryRoot, "model")
-	artifacts := make(map[string][]byte, len(entries))
-	for _, entry := range entries {
-		output, renderErr := dependencies.Render(modelRoot, entry.RendererArg)
-		encoded, err := requireRendererArtifact(entry.Filename, output, renderErr)
-		if err != nil {
-			return err
-		}
-		repeatedOutput, repeatedRenderErr := dependencies.Render(modelRoot, entry.RendererArg)
-		repeated, err := requireRendererArtifact(entry.Filename, repeatedOutput, repeatedRenderErr)
-		if err != nil {
-			return err
-		}
-		if !bytes.Equal(encoded, repeated) {
-			return fmt.Errorf("render %q Testpilot Case fixture: non-deterministic bytes", entry.Filename)
-		}
-		decoded, err := testpilot.DecodeCaseProtoJSON(encoded)
-		if err != nil {
-			return fmt.Errorf("decode %q Testpilot Case fixture: %w", entry.Filename, err)
-		}
-		if decoded.GetCaseId() != entry.CaseID {
-			return fmt.Errorf("decode %q Testpilot Case fixture: got Case ID %q, want %q", entry.Filename, decoded.GetCaseId(), entry.CaseID)
-		}
-		if _, err := testpilot.PackCaseProtoJSON(encoded); err != nil {
-			return fmt.Errorf("pack %q Testpilot Case fixture: %w", entry.Filename, err)
-		}
-		stored, err := persistedForm(encoded)
-		if err != nil {
-			return fmt.Errorf("store %q Testpilot Case fixture: %w", entry.Filename, err)
-		}
-		artifacts[functionalCasePath(entry)] = stored
+	artifacts, err := renderFunctionalArtifacts(entries, modelRoot, dependencies)
+	if err != nil {
+		return err
 	}
 	paths := make([]string, 0, len(entries))
 	for _, entry := range entries {
@@ -356,6 +347,29 @@ func runFunctionalGeneration(configuration generationConfig, entries []functiona
 		return fmt.Errorf("publish functional Testpilot Case fixtures: %w", err)
 	}
 	return nil
+}
+
+// renderFunctionalArtifacts renders each functional Case twice, checks what it decoded to, and
+// stores it in the persisted form.
+func renderFunctionalArtifacts(entries []functionalEntry, modelRoot string, dependencies generationDependencies) (map[string][]byte, error) {
+	artifacts := make(map[string][]byte, len(entries))
+	for _, entry := range entries {
+		encoded, err := renderStable(entry.Filename, func() (rendererOutput, error) {
+			return dependencies.Render(modelRoot, entry.RendererArg)
+		})
+		if err != nil {
+			return nil, err
+		}
+		if err := requireRenderedCase(entry.Filename, entry.CaseID, encoded); err != nil {
+			return nil, err
+		}
+		stored, err := persistedForm(encoded)
+		if err != nil {
+			return nil, fmt.Errorf("store %q Testpilot Case fixture: %w", entry.Filename, err)
+		}
+		artifacts[functionalCasePath(entry)] = stored
+	}
+	return artifacts, nil
 }
 
 func validateFunctionalArtifacts(entries []functionalEntry, artifacts map[string][]byte) error {
