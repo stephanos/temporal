@@ -20,33 +20,25 @@ expands into the existing Umpire Target, Property, Scenario, and Query owners.
 
 namespace Temporal.Feature.Nexus.Success
 
-/-- The operation has one scheduled setup and three success-lifecycle states. -/
-inductive Setup where
-  | scheduled
-  deriving BEq, DecidableEq, Repr
-
-inductive State where
+/-- The operation has three success-lifecycle states. -/
+enum State
   | scheduled
   | started
   | succeeded
-  deriving BEq, DecidableEq, Repr
 
 /-- Waiting recognizes an observed change; it does not cause the operation to change. -/
-inductive Action where
+enum Action
   | awaitStart
   | awaitSuccess
-  deriving BEq, DecidableEq, Repr
 
-inductive Outcome where
+enum Outcome
   | acknowledged
   | completed
-  deriving BEq, DecidableEq, Repr
 
 /-- Facts are model claims. Runtime evidence must establish them through later integration. -/
-inductive Fact where
+enum Fact
   | started
   | succeeded
-  deriving BEq, DecidableEq, Repr
 
 model lifecycle
   role operation

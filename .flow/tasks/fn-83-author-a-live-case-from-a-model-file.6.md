@@ -4,7 +4,7 @@ satisfies: [R6, R2]
 # fn-83-author-a-live-case-from-a-model-file.6 Translate the upstream synchronous Nexus completion test
 
 ## Description
-Re-author `TestNexusOperationSyncCompletion` as a Model file using only the six commands and its `inductive` declarations, on the `nexusOperation ... responds sync` template (R6, R2). Write `COVERAGE.md` beside it mapping every upstream assertion to a Property clause, a Contract rule, or a Known Gap, and add the one live Go test. The commit is the spec's two-authored-files measurement, so keep every other change out of it. Depends on .5 so the aggregator import and the syntax are final.
+Re-author `TestNexusOperationSyncCompletion` as a Model file using only the six commands and its `enum` (or `inductive`) declarations, and no `Setup`, on the `nexusOperation ... responds sync` template (R6, R2). Write `COVERAGE.md` beside it mapping every upstream assertion to a Property clause, a Contract rule, or a Known Gap, and add the one live Go test. The commit is the spec's two-authored-files measurement, so keep every other change out of it. Depends on .5 so the aggregator import and the syntax are final.
 
 **Size:** M
 **Files:** `model/Temporal/Feature/Nexus/Sync/Model.lean` (new; final path a task decision), `model/Temporal/Feature/Nexus/Sync/COVERAGE.md` (new), `tests/testpilot_sync_nexus_case_test.go` (new), generated `tests/testcore/testpilot/testdata/sync-nexus-case.json`, plus the aggregator import if `Temporal.lean` needs one (land that import in a separate preparatory commit so the measurement commit stays at two authored files)

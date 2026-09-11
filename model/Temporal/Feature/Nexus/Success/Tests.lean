@@ -352,8 +352,9 @@ Producer no longer compares them against one expected model. -/
 order, so every clause still places, and its own identity still reaches the bytes. -/
 #guard differsFromCompletionCase renamedBehaviorResult
 
-private def modelMemberIds
-    (candidate : Umpire.Command.DeclaredModel Setup State Action Outcome Fact) : List DefinitionId :=
+private def modelMemberIds {DeclaredSetup : Type} [BEq DeclaredSetup]
+    (candidate : Umpire.Command.DeclaredModel DeclaredSetup State Action Outcome Fact) :
+    List DefinitionId :=
   candidate.operationRoleId :: (candidate.stateIds ++ candidate.actionIds ++
     candidate.outcomeIds ++ candidate.factIds ++ candidate.relationIds)
 
@@ -715,22 +716,71 @@ query ungappedCompletion on lifecycle
    ("temporal.nexus.success.known-gap.operation-correlated-progress",
      "temporal.nexus.success.property.cancellationResolves")]
 
-/-! The three requirements the grammar does not spell -- the setup domain is the type named `Setup`
-in the declaring namespace, a Model declares exactly one role, and Action constructors are declared
-in sorted order -- are named by the diagnostic that enforces them. -/
+enum UnsortedEnumAction
+  | resolve
+  | cancel
 
-namespace AmbiguousSetup
+/-! ### `enum` declares a domain
+
+`enum` is shorthand for exactly the `inductive` an author would otherwise write, including the
+`deriving` clause the `model` command requires. It resolves nothing and reorders nothing. -/
+
+/-- A probe domain declared through `enum`. -/
+enum ProbeDomain
+  | /-- The first member. -/ first
+  | second
+
+inductive ProbeDomainByHand where
+  /-- The first member. -/
+  | first
+  | second
+  deriving BEq, DecidableEq, Repr
+
+#guard (ProbeDomain.first == ProbeDomain.first) && !(ProbeDomain.first == ProbeDomain.second)
+#guard decide (ProbeDomain.first ≠ ProbeDomain.second)
+-- `enum` derives what the `model` command requires: equality, decidable equality, and Repr.
+#guard (reprStr ProbeDomain.second).endsWith "second"
+#guard (reprStr ProbeDomain.second) == (reprStr ProbeDomainByHand.second).replace
+  "ProbeDomainByHand" "ProbeDomain"
+
+/--
+error: Model action constructors must be declared in sorted order, because the planner admits only a canonically ordered Action catalog; 'resolve' precedes 'cancel'
+-/
+#guard_msgs (error) in
+model unsortedEnumActionLifecycle
+  role operation
+  states State
+  actions UnsortedEnumAction
+  outcomes Outcome
+  facts Fact
+  starts [scheduled]
+  ends [succeeded]
+  steps
+    start: scheduled + cancel →
+      { state := started, outcome := acknowledged, facts := [started] }
+
+/-! Two Models in one namespace each generate their own setup domain, so neither can collide with
+the other's. -/
+
+#guard probeLifecycle.table.setups.map (·.key) == ["scheduled"]
+#guard renamedLifecycle.table.setups.map (·.key) == ["scheduled"]
+#guard lifecycle.table.setups.map (·.key) == ["scheduled"]
+
+/-! The two requirements the grammar does not spell -- Action constructors and start states are
+declared in sorted order -- are named by the diagnostic that enforces them. The setup domain is no
+longer one of them: the `model` command generates it, scoped to the Model, so nothing about it is
+the author's to get wrong.
+
+A file that declares its own `Setup` is harmless, because the generated one is `<model>.Setup`. -/
+
+namespace OwnSetup
 
 inductive Setup where
   | queued
   | running
   deriving BEq, DecidableEq, Repr
 
-/--
-error: a Model takes its setup domain from a type named `Setup` in the declaring namespace, with exactly one constructor
--/
-#guard_msgs (error) in
-model ambiguousSetupLifecycle
+model coexistingLifecycle
   role operation
   states State
   actions Action
@@ -741,8 +791,15 @@ model ambiguousSetupLifecycle
   steps
     start: scheduled + awaitStart →
       { state := started, outcome := acknowledged, facts := [started] }
+    success: started + awaitSuccess →
+      { state := succeeded, outcome := completed, facts := [succeeded] }
 
-end AmbiguousSetup
+/- The generated setup domain is the Model's own, and its constructor is named after the Model's
+first start state, which is what keeps the canonical setup key stable. -/
+#guard coexistingLifecycle.setupValue == coexistingLifecycle.Setup.scheduled
+#guard coexistingLifecycle.table.setups.map (·.key) == ["scheduled"]
+
+end OwnSetup
 
 inductive UnsortedAction where
   | resolve

@@ -20,6 +20,29 @@ namespace Umpire.Command
 open Umpire
 open Lean Elab Command
 
+/-! ### Declaring a domain
+
+`enum` is the four vocabulary declarations a Model file makes, without the `deriving` clause the
+`model` command requires and the author has no reason to think about. It resolves nothing and
+reorders nothing: the constructors in declaration order are the ordered domain, which is what AUT-09
+means by author-provided. A plain `inductive` is still admitted; `enum` is shorthand for exactly the
+one it would have written. -/
+
+-- A member's own doc comment goes after its bar, not before it. Before the bar it would be
+-- indistinguishable from the doc comment of whatever declaration follows the `enum`, and the
+-- repetition would swallow it.
+macro doc?:(docComment)? &"enum" name:ident
+    constructors:("|" (docComment)? ident)+ : command => do
+  let declared ← constructors.mapM fun constructor => do
+    let parts := constructor.raw
+    let constructorDoc : Option (TSyntax ``Lean.Parser.Command.docComment) :=
+      if parts[1].isNone then none else some (TSyntax.mk parts[1][0])
+    let constructorName : Ident := TSyntax.mk parts[2]
+    `(Lean.Parser.Command.ctor| $[$constructorDoc:docComment]? | $constructorName:ident)
+  `(command| $[$doc?:docComment]? inductive $name where
+      $declared:ctor*
+      deriving BEq, DecidableEq, Repr)
+
 /-- One `before + action → result` row of a declared model. -/
 declare_syntax_cat successStep
 
@@ -209,12 +232,11 @@ elab "model" name:ident "role" role:ident
   for pair in actionSpellings.zip actionSpellings.tail do
     unless pair.1 < pair.2 do
       throwErrorAt actionType (unsortedActionsMessage pair.2 pair.1)
-  let setupConstructors ← domainConstructors "setup" (mkIdentFrom name `Setup)
-  let setupConstructor ← match setupConstructors with
-    | [only] => pure (mkIdent only)
-    | _ => throwErrorAt name setupDomainMessage
   let initialStates ← initialRefs.getElems.toList.mapM (resolveMember "state" stateCtors)
   let terminalStates ← terminalRefs.getElems.toList.mapM (resolveMember "state" stateCtors)
+  let setupConstructorName : Name := match initialStates.head? with
+    | some first => shortName first.getId
+    | none => `setup
   let initialPairs := initialStates.zip initialRefs.getElems.toList
   for pair in initialPairs.zip initialPairs.tail do
     let earlier := (shortName pair.1.1.getId).toString
@@ -264,7 +286,7 @@ elab "model" name:ident "role" role:ident
   let transitionTerms := resolvedRows.map fun resolved => resolved.rowTerm
   let declarationKey := Lean.quote name.getId.toString
   let roleKey := Lean.quote role.getId.toString
-  let setupKey := Lean.quote (shortName setupConstructor.getId).toString
+  let setupKey := Lean.quote setupConstructorName.toString
   let names ← `(term|
     { declaration := $declarationKey
       roleName := $roleKey
@@ -274,8 +296,19 @@ elab "model" name:ident "role" role:ident
       outcomeKeys := [$(memberKeys outcomeCtors),*]
       factKeys := [$(memberKeys factCtors),*] })
   let origin ← originTerm
+  -- The setup domain is the command's, not the author's: nothing else in a Model file mentions it,
+  -- and a file that had to declare one would be declaring scaffolding. It is scoped under the
+  -- Model's own name, so two Models in one namespace never collide, and its single constructor is
+  -- named after the Model's first start state, which is what keeps the canonical setup key -- and
+  -- every fingerprint built on it -- the value the author's own declaration produced.
+  let setupType := mkIdentFrom name (name.getId ++ `Setup)
+  let setupName := mkIdentFrom name (name.getId ++ `Setup ++ setupConstructorName)
   elabCommand (← `(command|
-    def $name := declareModel $origin $names ($setupConstructor)
+    inductive $setupType where
+      | $(mkIdent setupConstructorName):ident
+      deriving BEq, DecidableEq, Repr))
+  elabCommand (← `(command|
+    def $name := declareModel $origin $names ($setupName)
       ([$(memberIdents stateCtors),*]) ([$(memberIdents actionCtors),*])
       ([$(memberIdents outcomeCtors),*]) ([$(memberIdents factCtors),*])
       ([$(initialStates.toArray),*]) ([$(terminalStates.toArray),*])
