@@ -106,17 +106,19 @@ belongs to an operation), and references are compared, never interpreted.
 The current Model has one role with one instance and a flat state enum. The five-operations test
 and the two-callers test cannot be written without this.
 
-### 3.2 Interface, party and binding
+### 3.2 Action, party and binding
 
-A named side effect with a typed input, typed results, a **kind** and a **party**.
+An **action** is a named side effect with a typed input, typed results, a **kind** and a **party**.
+It extends the glossary's Action ("something an author asks the Model to do"); today's actions such
+as `awaitStart` had none of these parts.
 
 The kind is structural: *call* (request with a result), *command* (issued inside an entity,
-answered later by events), *reply* (an answer to a call another party made), or *observation*
-(recorded data with no request). Which RPC, workflow command, handler response or history event
-realizes each one is decided in the realization.
+answered later by events), or *reply* (an answer to a call another party made). Recorded data with
+no request is not an action but an observation, declared separately (section 3.5). Which RPC,
+workflow command or handler response realizes each action is decided in the realization.
 
-The party names the side that performs the interface: `caller`, `handler`, `system` or
-`environment` for Nexus. The interface fixes its party. A **set** binds each party other than
+The party names the side that performs the action: `caller`, `handler`, `system` or `environment`
+for Nexus. The action fixes its party. A **set** binds each party other than
 `system` to a source of decisions:
 
 | Bound to | Who performs it | What the verifier does |
@@ -136,8 +138,13 @@ test, and `system` steps follow from the Model.
 
 ### 3.3 Abstract input
 
-An interface instance is its interface plus an abstract argument:
+An action instance is its action plus an abstract argument:
 
+- **schema**: the protobuf message type, or alternatives, that types the action's input and results
+  (`temporal.api.nexus.v1.StartOperationResponse | temporal.api.nexus.v1.HandlerError` for a handler
+  reply); class members and representatives are checked against it while the file compiles, and an
+  action whose payload has no protobuf message (the Nexus HTTP completion callback) declares its
+  classes as names the realization interprets;
 - **dimensions**: finite partitions of input fields, where each class is claimed to behave alike
   (`reply: [syncSuccess, async, operationFailed, operationCanceled, handlerError]`);
 - **references** to entities (`operation`, `caller`);
@@ -163,21 +170,29 @@ A class is a claim, and exploration owns its evidence:
 
 ### 3.4 Result classification
 
-The results of an interface are classes of its typed result: the handler error types the Nexus SDK
+The results of an action are classes of its typed result: the handler error types the Nexus SDK
 treats as non-retryable (BadRequest, Unauthenticated, Unauthorized, NotFound, NotImplemented,
 Conflict, unless an explicit retry behavior overrides them) form one class, the rest another. The
-classification function belongs to the interface's realization; the Model only sees classes. This
+classification function belongs to the action's realization; the Model only sees classes. This
 is how `TestNexusSyncOperationErrorRehydration` (`nexus_workflow_test.go:2242`) becomes five rows
 over two result classes instead of five hand-written Programs.
 
 ### 3.5 Observation and correlation
 
-An observation kind carries typed data and a key that names the entity it belongs to (the scheduled
-event ID for a Nexus operation, a request ID for an attached start). An observation confirms a
-Model step. Two extensions are needed:
+An **observation** is its own declaration, extending the glossary's Observation. It carries typed
+data and a key that names the entity instance it belongs to (the scheduled event ID for a Nexus
+operation, a request ID for an attached start), and it confirms a step:
 
-- **observation by query**: steps that write no event are observed through a read interface
-  (describe the operation's attempt count and last failure);
+```lean
+observation nexusOperationStarted
+  on: operation
+  key: scheduledEventId
+```
+
+Two extensions are needed:
+
+- **observation by read**: steps that write no event are observed through a read call (describe the
+  operation's attempt count and last failure);
 - **observation on another entity**: a step on the operation can confirm through an event on a
   different entity (the handler workflow's callback state in
   `TestNexusCallbackAfterCallerComplete`, `nexus_workflow_test.go:2582`).
@@ -205,27 +220,30 @@ Queries once per switch value; a verdict that differs between the runs is a dive
 Incidental differences (attempt numbering in log tags) stay outside the Model, and internal storage
 layout read through `DescribeMutableState` is a white-box Known Gap.
 
-### 3.8 Two levels and a link
+### 3.8 Two machines and a link
 
-A **product model** says what Nexus means to a user: an operation is scheduled, may start, and ends
-succeeded, failed, canceled or timed out. An **interface model** spells out attempts, backoff, reply
-forms, callbacks, cancel delivery and timers. `Umpire.ImplementationLink` already relates two
+A **machine** is a block of step rows: the transition relation the glossary calls a Machine. The
+Model is the checked behavior built from a feature's machines, entities, actions and observations.
+
+A **product machine** says what Nexus means to a user: an operation is scheduled, may start, and
+ends succeeded, failed, canceled or timed out. A **mechanism machine** spells out attempts, backoff,
+reply forms, callbacks, cancel delivery and timers. `Umpire.ImplementationLink` already relates two
 independently checked Models by value mappings and a forward simulation, and
 `Temporal/System/Nexus/ImplementationLink.lean` uses it for a small Nexus pair. Properties go on the
-level where they are natural, and the link carries product properties to every interface-level
+level where they are natural, and the link carries product properties to every mechanism-level
 trace.
 
-A feature starts with one level: its interface model is its product model. It adds a product model
-when a product property would otherwise mention mechanism (attempts, backoff, cancel delivery), or
+A feature starts with one machine, which serves as its product machine. It adds a separate product
+machine when a product property would otherwise mention mechanism (attempts, backoff, cancel delivery), or
 when several realizations share one product meaning. Nexus meets both: an operation is created by
 a workflow command, by an external HTTP caller, or by the standalone API, and two implementations
-run it. Both levels and the link live in one file.
+run it. Both machines and the link live in one file.
 
 ### 3.9 Realization
 
-The only Temporal-owned layer. It binds each interface to its concrete transport (an RPC method, a
-workflow command, a handler reply instruction, a history event field), each result class to its
-classification function, each observation key to a field path, each setup parameter to a dynamic
+The only Temporal-owned layer. It binds each action to its concrete transport (an RPC method, a
+workflow command, a handler reply instruction), each observation to its source (a history event, a
+read response) and its key to a field path, each result class to its classification function, each setup parameter to a dynamic
 config key, and each entity reference to runtime identifiers.
 
 ## 4. Specimen
@@ -269,9 +287,10 @@ enum CancelPhase
   | rejected
 
 -- caller and handler parties: a set binds each to test or environment
-interface schedule
+action schedule
   kind: command
   party: caller
+  schema: temporal.api.command.v1.ScheduleNexusOperationCommandAttributes
   creates: operation
   input:
     scheduleToClose: [none, expires]
@@ -281,9 +300,10 @@ interface schedule
     endpoint missing → reject: workflowTaskFailed
     concurrencyLimit: atLimit → reject: workflowTaskFailed
 
-interface handlerReply
+action handlerReply
   kind: reply
   party: handler
+  schema: temporal.api.nexus.v1.StartOperationResponse | temporal.api.nexus.v1.HandlerError
   on: operation
   input:
     reply: [syncSuccess, async, operationFailed, operationCanceled, handlerError]
@@ -292,9 +312,9 @@ interface handlerReply
     handlerError, retryable: no → BadRequest   -- one of several members; an unverified claim
     handlerError, retryable: yes → Internal
 
-interface completeCallback
+action completeCallback
   kind: call
-  party: handler
+  party: handler                               -- no protobuf message: an HTTP completion
   on: operation
   input:
     result: [succeeded, failed, canceled]
@@ -302,18 +322,32 @@ interface completeCallback
     accepted
     notFound
 
-interface requestCancel
+action requestCancel
   kind: command
   party: caller
+  schema: temporal.api.command.v1.RequestCancelNexusOperationCommandAttributes
   on: operation
 
-interface cancelReply
+action cancelReply
   kind: reply
   party: handler
+  schema: temporal.api.nexus.v1.CancelOperationResponse | temporal.api.nexus.v1.HandlerError
   on: operation
   input:
     reply: [delivered, handlerError]
     retryable: [yes, no]
+
+-- what confirms a step
+observation nexusOperationScheduled, nexusOperationStarted, nexusOperationCompleted,
+            nexusOperationFailed, nexusOperationCanceled, nexusOperationTimedOut,
+            nexusOperationCancelRequested, nexusOperationCancelRequestCompleted,
+            nexusOperationCancelRequestFailed
+  on: operation
+  key: scheduledEventId
+
+observation pendingAttempts
+  on: operation
+  read: attempts
 
 -- environment party: explored within Limits
 environment
@@ -321,7 +355,7 @@ environment
   timer: backoff, scheduleToClose, scheduleToStart, startToClose
 
 -- system steps, checked against observations
-model nexusOperation
+machine nexusMechanism
   entity: operation
   setup:
     concurrencyLimit: [atLimit, belowLimit]
@@ -342,9 +376,9 @@ model nexusOperation
     phase: scheduled + handlerReply(reply: operationCanceled)
       → phase: canceled, evidence: nexusOperationCanceled
     phase: scheduled + handlerReply(reply: handlerError, retryable: yes)
-      → phase: backingOff, attempts: +1, evidence: query attempts
+      → phase: backingOff, attempts: +1, evidence: pendingAttempts
     phase: scheduled + fault(transport)
-      → phase: backingOff, attempts: +1, evidence: query attempts
+      → phase: backingOff, attempts: +1, evidence: pendingAttempts
     phase: backingOff + timer(backoff)
       → phase: scheduled
 
@@ -373,7 +407,7 @@ model nexusOperation
       → cancel: rejected,
         evidence: nexusOperationCancelRequestFailed when recordCancelCompletion: yes
 
-model nexusProduct
+machine nexusProduct
   entity: operation
   state:
     phase: [scheduled, started, succeeded, failed, canceled, timedOut]
@@ -382,7 +416,7 @@ model nexusProduct
     scheduled → started | succeeded | failed | canceled | timedOut
     started → succeeded | failed | canceled | timedOut
 
-link nexusOperation refines nexusProduct
+link nexusMechanism refines nexusProduct
   state:
     phase: backingOff → scheduled
     cancel: any → hidden
@@ -396,13 +430,13 @@ property operationEnds on nexusProduct
   require: eventually phase in [succeeded, failed, canceled, timedOut]
     when scheduleToClose: expires
 
-property retryWritesNoEvent on nexusOperation
+property retryWritesNoEvent on nexusMechanism
   when: handlerReply(reply: handlerError, retryable: yes)
   require:
     no history event on operation
-    query attempts = previous attempts + 1
+    pendingAttempts = previous pendingAttempts + 1
 
-property deliveredCancelDoesNotEnd on nexusOperation
+property deliveredCancelDoesNotEnd on nexusMechanism
   when: cancelReply(reply: delivered)
   require:
     phase = previous phase
@@ -426,21 +460,21 @@ set canary nexusCaller
 
 | Test | Abstractions it needs | Status |
 | --- | --- | --- |
-| `TestNexusOperationSyncCompletion` (`nexus_workflow_test.go:512`), `TestNexusOperationAsyncCompletion` (`:1024`), `TestNexusOperationAsyncFailure` (`:1617`) | interfaces, reply dimension, observations | specimen |
+| `TestNexusOperationSyncCompletion` (`nexus_workflow_test.go:512`), `TestNexusOperationAsyncCompletion` (`:1024`), `TestNexusOperationAsyncFailure` (`:1617`) | actions, reply dimension, observations | specimen |
 | `TestNexusSyncOperationErrorRehydration` (`:2242`), `TestNexusOperationSyncNexusFailure` (`:2667`) | result classification over handler error types | specimen |
-| `TestNexusOperationRetriesAfterHTTPFault` (`:579`) | environment fault, observation by query | specimen |
+| `TestNexusOperationRetriesAfterHTTPFault` (`:579`) | environment fault, observation by read | specimen |
 | `TestNexusOperationScheduleToCloseTimeout` (`:2988`), `...ScheduleToStartTimeout` (`:3061`), `...StartToCloseTimeout` (`:3155`) | environment timers | specimen |
 | `TestNexusOperationCancelation` (`:89`), `TestNexusOperationCancelBeforeStarted_CancelationEventuallyDelivered` (`:2006`) | cancel sub-state, interleaving | specimen |
-| `TestNexusOperationAsyncCompletionBeforeStart` (`:1358`), `TestNexusAsyncOperationWithMultipleCallers` (`:2763`) | several entity instances with references; the handler's workflow start as its own interface with a conflict policy dimension | needs entities and composition |
-| update-, query- and activity-backed handlers (`nexus_workflow_update_test.go`, `nexus_workflow_query_test.go:20`, `nexus_workflow_test.go:695,831`) | a handler reply composed from another entity's interfaces; observation on another entity | needs composition |
+| `TestNexusOperationAsyncCompletionBeforeStart` (`:1358`), `TestNexusAsyncOperationWithMultipleCallers` (`:2763`) | several entity instances with references; the handler's workflow start as its own action with a conflict policy dimension | needs entities and composition |
+| update-, query- and activity-backed handlers (`nexus_workflow_update_test.go`, `nexus_workflow_query_test.go:20`, `nexus_workflow_test.go:695,831`) | a handler reply composed from another entity's actions; observation on another entity | needs composition |
 | `TestNexusCallbackAfterCallerComplete` (`:2582`), `TestWorkflowNexusCallbacks_CarriedOver` (`callbacks_test.go:323`) | callback entity reusing the same attempt and backoff structure; caller close as a step | needs entities and a reusable retry structure |
-| `TestNexusOperationAsyncCompletionErrors` (`:1680`), `nexus_api_validation_test.go` | input rules on the callback and start interfaces; token validity as a dimension | needs input rules |
+| `TestNexusOperationAsyncCompletionErrors` (`:1680`), `nexus_api_validation_test.go` | input rules on the callback and start actions; token validity as a dimension | needs input rules |
 | `TestNexusStartOperation_Outcomes` (`nexus_api_test.go:64`), `TestNexusCancelOperation_Outcomes` (`:461`) | the same operation from an external caller: a different creating interface, same entity | specimen plus a second creator |
-| `nexus_standalone_test.go` | operation entity without a caller workflow; conflict policy and request-ID dimensions; describe and poll as query observations; list and count as eventually consistent queries | needs eventual observation |
+| `nexus_standalone_test.go` | operation entity without a caller workflow; conflict policy and request-ID dimensions; describe and poll as read observations; list and count as eventually consistent queries | needs eventual observation |
 | `TestNexusOperationCallerMetrics` (`:637`), `nexus_otel_test.go`, metric assertions elsewhere | metrics and spans as observations | later, or Known Gap |
 | `TestNexusOperationAsyncCompletionAfterReset` (`:2078`), reset cases in `callbacks_test.go` and `nexus_workflow_update_test.go` | an action that rewrites history, with reapply rules | later |
 | `TestNexusOperationCancellationCrossTree` (`:290`), `callbacks_migration_test.go`, `TestNexusOperationChasmReplicatedWithMixedFlag` (`xdc/nexus_state_replication_test.go:723`) | configuration changing mid-trace; internal storage layout read through `DescribeMutableState` | white-box Known Gap for the storage check; config change as an environment step |
-| `nexus_endpoint_test.go` | endpoint entity with versioned CRUD interfaces | separate registry model |
+| `nexus_endpoint_test.go` | endpoint entity with versioned CRUD actions | separate registry model |
 | `nexus_matching_test.go`, `xdc/*` | partition and cluster topology as environment | later |
 
 ## 6. What Umpire needs
@@ -448,25 +482,25 @@ set canary nexusCaller
 | # | Need | Today |
 | --- | --- | --- |
 | 1 | Entities with structured state, several instances, and references | one role, one instance, flat state enum |
-| 2 | Interfaces with a kind (`call`, `command`, `reply`, `observation`) and a party; sets that bind parties to test or environment | `Umpire.Operation.Declaration` has kinds `unaryRpc`, `sdkCommand`, `event`, no party, and a protobuf-descriptor schema |
+| 2 | Actions with a kind (`call`, `command`, `reply`), a party and an optional schema; observations declared separately; sets that bind parties to test or environment | `Umpire.Operation.Declaration` has kinds `unaryRpc`, `sdkCommand`, `event`, no party, and a protobuf-descriptor schema |
 | 3 | Abstract inputs: dimensions, references, defaults, input rules, representatives, and class claims recorded in Provenance | exact request lists; abstraction rejected |
 | 4 | Result classification | Response and Failure types on the declaration, no classes |
-| 5 | Observations by event, by query, on another entity, and eventually consistent | event projection only, keys inside templates |
+| 5 | Observations by event, by read, on another entity, and eventually consistent | event projection only, keys inside templates |
 | 6 | Environment steps for timers, faults and interleavings, bounded by Limits | none in Models; faults exist only as Program instructions |
 | 7 | Setup parameters bound by the Profile | none |
 | 8 | Guards, alternatives and wildcards in rows, with precedence or a disjointness check | exact state and Action pairs, one row each |
-| 9 | Refinement between a product and an interface model with an authoring surface | `Umpire.ImplementationLink`, expert Lean only |
-| 10 | Composition: a reply or step built from another entity's interfaces; reusable sub-structures such as attempt and backoff | none |
+| 9 | Refinement between a product and a mechanism machine with an authoring surface | `Umpire.ImplementationLink`, expert Lean only |
+| 10 | Composition: a reply or step built from another entity's actions; reusable sub-structures such as attempt and backoff | none |
 | 11 | History-rewriting actions (reset) with reapply rules | none; later |
 
 Needs 1 to 8 are required before the specimen's own test rows can run. Need 9 decides whether the
-product and interface models stay separate. Needs 10 and 11 cover the remaining groups.
+product and mechanism machines stay separate. Needs 10 and 11 cover the remaining groups.
 
 ## 7. Decisions
 
 Recorded 2026-09-10 with the user.
 
-1. **A reply's party is fixed; a set binds it.** An interface declares its party (`caller`,
+1. **A reply's party is fixed; a set binds it.** An action declares its party (`caller`,
    `handler`, `system`, `environment`). A set binds each party except `system` to test or
    environment. The Model is the same for every set (section 3.2).
 2. **The author claims classes; exploration owns the evidence.** Single-member classes need none.
@@ -475,9 +509,11 @@ Recorded 2026-09-10 with the user.
    splits the class and promotes the counterexample (section 3.3).
 3. **Protobuf descriptors stay Umpire's only schema.** Testpilot's wire format and `Umpire.Value`
    are built on them, and SCP-01 admits no capability without a use case. The Temporal-flavored
-   kind names are renamed: `unaryRpc`, `sdkCommand` and `event` become `call`, `command` and
-   `observation`, and `reply` is added. A schema interface waits for a second schema source.
-4. **One level by default; Nexus uses two.** A product model is added when product properties would
+   kind names are renamed: `unaryRpc` and `sdkCommand` become the action kinds `call` and
+   `command`, `reply` is added, and `event` becomes the observation declaration. An action whose
+   payload has no protobuf message declares its classes as names. A schema interface waits for a
+   second schema source.
+4. **One machine by default; Nexus uses two.** A product machine is added when product properties would
    mention mechanism, or when several realizations share one product meaning. Nexus meets both
    (section 3.8).
 5. **One Model for HSM and CHASM, run under both.** The implementation switch is a rollout flag,
@@ -485,3 +521,9 @@ Recorded 2026-09-10 with the user.
    setting; incidental differences stay outside the Model; storage layout is a white-box Known Gap.
    A set repeats its Queries per switch value, and a differing verdict is a divergence
    (section 3.7).
+6. **Words.** The side-effect declaration is `action` (the glossary's Action, extended with kind,
+   party, schema, classes and representatives), recorded data is `observation` (the glossary's
+   Observation, extended with an entity and a key), and the block of step rows is `machine` (the
+   glossary's Machine). `interface` was rejected because it reads as a method-set contract type and
+   would duplicate Action; `model` and `statemachine` were rejected because Model is the checked
+   behavior and Machine is already the glossary's word for a transition relation.
