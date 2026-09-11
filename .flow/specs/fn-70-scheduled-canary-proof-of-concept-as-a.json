@@ -12,7 +12,7 @@
     "fn-73-explicit-environment-binding-for",
     "fn-78-typed-temporal-authoring-and-checked",
     "fn-82-unify-the-umpire-and-testpilot",
-    "fn-83-author-a-live-case-from-a-model-file"
+    "fn-85-model-side-effects-as-typed-interfaces"
   ],
   "id": "fn-70-scheduled-canary-proof-of-concept-as-a",
   "impl_review_rounds": {},
@@ -81,5 +81,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-10T06:03:24.619686Z"
+  "updated_at": "2026-09-11T03:53:24.449041Z"
 }
