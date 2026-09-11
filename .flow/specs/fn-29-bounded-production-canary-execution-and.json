@@ -12,7 +12,7 @@
     "fn-64-umpire-case-runtime",
     "fn-69-extract-testpilot-from-umpire",
     "fn-82-unify-the-umpire-and-testpilot",
-    "fn-85-model-side-effects-as-typed-interfaces"
+    "fn-85-model-side-effects-as-typed-actions-and"
   ],
   "id": "fn-29-bounded-production-canary-execution-and",
   "impl_review_rounds": {},
@@ -163,5 +163,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-11T03:53:23.695584Z"
+  "updated_at": "2026-09-11T04:48:34.126612Z"
 }
