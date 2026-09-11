@@ -489,17 +489,22 @@ set nexusCallerCanary
   queries: [syncCompletion, asyncCompletion]
 ```
 
-The realization, in sketch syntax (fn-85 makes it a Lean value in `Temporal.Case`):
+The realization, in sketch syntax (fn-85 makes it a Lean value in `Temporal.Case`). A worker
+instruction carries the Temporal API message the action's `schema:` names, so a class example fills
+that message and the Driver maps it to the SDK call that produces it. Each observation is declared
+once in the Case and read by both the Program and the Contract.
 
 ```lean
 realization nexusCaller
   machine: nexusProtocol
   actions:
-    schedule → workflow instruction StartNexusOperation
-    handlerReply (syncSuccess) → handler instruction RespondNexus (kind: synchronous)
-    handlerReply (async) → handler instruction RespondNexus (kind: asynchronous)
-    handlerReply (handlerError (retryable := r)) → handler instruction RespondNexus (kind: error, retry: r)
-    complete (resolution) → controller instruction CompleteNexusOperation (outcome: resolution)
+    schedule → workflow command ScheduleNexusOperationCommandAttributes
+    handlerReply (syncSuccess) → handler reply StartOperationResponse (sync_success)
+    handlerReply (async) → handler reply StartOperationResponse (async_success)
+    handlerReply (operationFailed) → handler reply StartOperationResponse (operation_error)
+    handlerReply (handlerError (retryable := r)) → handler reply HandlerError (retry_behavior: r)
+    complete (succeeded) → controller completion Payload
+    complete (failed) → controller completion Failure
     transportFault → none                                  -- cannot be driven; Known Gap when bound driven
     workerStop → controller instruction InjectFault (kind: workerStop, role: handler task queue)
   observations:
@@ -546,8 +551,9 @@ Appendix B maps each functional test file to these rows.
 | 5 | Refinement with a name-default state map and derived steps | the forward simulation inside `Umpire.ImplementationLink`, expert Lean only |
 | 6 | Sets with a purpose, `driven`/`observed` bindings, `repeat` switches, and class claims with their examples recorded in Provenance | one `case` block per Query |
 | 7 | A realization binding actions, observations, timers, setup parameters, switches and references | whole-Program templates |
+| 8 | Worker instructions that carry Temporal API messages, and one observation declaration per Case read by Program and Contract | bespoke instruction fields (`StartNexusOperation`, `RespondNexus` kinds); observations named separately by Program and Contract |
 
-Needs 1 to 7 cover the specimen. Section 4's three "yes" rows are later additions.
+Needs 1 to 8 cover the specimen; need 8 is Testpilot's, on top of fn-87's protocol. Section 4's three "yes" rows are later additions.
 
 ## 6. Decisions
 
@@ -587,6 +593,10 @@ not yet reflected in fn-85.
 10. *New, needs a rule amendment:* **The realization lives in `Temporal.Case`**, beside the templates
     it replaces, because MOD-10 forbids `Temporal.System` from importing Feature machines; MOD-02
     lists Evidence mappings under `Temporal.System` and needs amending to allow it.
+11. *New:* **Worker instructions carry API messages.** A workflow command carries its
+    `temporal.api.command.v1` attributes and a handler reply its `temporal.api.nexus.v1` message, so
+    the action's schema and its instruction are the same type and no Testpilot field is added per
+    server option. SDK-only options go in an extension field beside the message.
 
 ## Appendix A. What the server does
 
