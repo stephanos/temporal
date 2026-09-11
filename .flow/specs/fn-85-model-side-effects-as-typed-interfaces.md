@@ -22,7 +22,7 @@ This spec makes three things true:
 2. **Queries are grouped into sets by purpose.** A set binds each party to the test or to the
    environment and names its Queries or its coverage goal. A functional set compiles to one Case
    per Query.
-3. **The Nexus caller-side operation is expressed this way end to end**, with eight functional
+3. **The Nexus caller-side operation is expressed this way end to end**, with seven functional
    Queries translated from the Nexus functional tests, each run under both Nexus implementations.
 
 The design record, including the server behavior and the survey of all Nexus functional tests this
@@ -172,10 +172,8 @@ additive protobuf changes.
 | Addition | Why |
 | --- | --- |
 | schedule-to-close, schedule-to-start and start-to-close durations on `StartNexusOperation` | timeout Queries |
-| `RespondNexus` reply forms for operation failed and operation canceled; a handler error type and retry behavior on the error form | reply classes and retry Queries |
-| an outcome (succeeded, failed, canceled) on `CompleteNexusOperation` | async failure and cancel Queries |
-| a workflow instruction that requests cancellation of a started Nexus operation | cancel Query |
-| a handler cancel activation and a reply instruction for it (delivered, or handler error with retry behavior) | cancel Query |
+| a `RespondNexus` reply form for operation failed; a handler error type and retry behavior on the error form | reply classes and retry Queries |
+| an outcome (succeeded, failed) on `CompleteNexusOperation` | async failure Query |
 | a read-response evidence source for the correlated projection, only if the existing projection cannot carry a describe response | retry Query's attempt-count observation |
 
 ## API Contracts
@@ -321,11 +319,10 @@ umpire-case --render <id> # canonical ProtoJSON on stdout
   setup parameter the Realization does not bind rejects at Case production naming it.
 - **R10:** The Testpilot protocol, Lean generated declarations and Go runtime support the Nexus
   additions in the Architecture table that the Queries of R11 use; each has a Driver conformance case; buf breaking
-  passes. Errors: an invalid duration, a reply form the handler activation does not admit, a cancel
-  instruction referencing a non-Nexus instruction, and a cancel reply outside a cancel activation
+  passes. Errors: an invalid duration and a reply form the handler activation does not admit
   reject at Case preparation with the existing preparation error categories.
 - **R11:** The Nexus caller-side operation is re-authored as the interface model, product model and
-  link of `DESIGN.md` section 4; a functional set `nexusCaller` with `repeat` over the HSM and CHASM
+  link of `DESIGN.md` section 4, without its cancel interfaces and cancel rows; a functional set `nexusCaller` with `repeat` over the HSM and CHASM
   switch contains exactly these Queries, each with a generated fixture and a passing live test under
   both switch values:
   1. sync success reply completes the operation;
@@ -335,15 +332,13 @@ umpire-case --render <id> # canonical ProtoJSON on stdout
   5. retryable handler error then sync success completes it after one backoff, with the attempt
      count observed through a query observation;
   6. schedule-to-start timeout while the handler's worker is stopped times it out;
-  7. async reply with start-to-close timeout times it out;
-  8. async reply, cancel request, delivered cancel reply, canceled callback cancels it with the
-     cancel request events recorded.
+  7. async reply with start-to-close timeout times it out.
 
   A `COVERAGE.md` beside the Model maps each assertion of the corresponding upstream tests
   (`TestNexusOperationSyncCompletion`, `TestNexusOperationAsyncCompletion`,
   `TestNexusOperationAsyncFailure`, `TestNexusSyncOperationErrorRehydration`,
   `TestNexusOperationRetriesAfterHTTPFault`, `TestNexusOperationScheduleToStartTimeout`,
-  `TestNexusOperationStartToCloseTimeout`, `TestNexusOperationCancelation`) to a Property, an
+  `TestNexusOperationStartToCloseTimeout`) to a Property, an
   observation, or a Known Gap. The async-Nexus fixture is replaced by Query 2's fixture and the
   receipt lists the Program and Contract diff against it. Errors: no error surface beyond R1 to
   R10.
@@ -389,8 +384,12 @@ R12 build on it.
 - **No schema interface**; protobuf descriptors remain the only schema.
 - **No edits to historical `.plans` documents** other than `UMPIRE4_ORDER.md` and the
   `UMPIRE4_SPEC.md` concept entries and drafted rules in R13.
-- **Depends on** fn-83 tasks .13 (optional Facts), .14 (located compile-time diagnostics) and .15
-  (respelled command surface) closing first.
+- **Nexus operation cancellation** (the cancel request, cancel delivery and canceled resolution,
+  with their Testpilot instructions) stays in fn-79, which is deferred until the user asks to
+  resume it and then re-plans on this spec's entities, interfaces and sets.
+- **Depends on** fn-84 (recorded in Flow) and on fn-83 tasks .13 (optional Facts), .14 (located
+  compile-time diagnostics) and .15 (respelled command surface), which Flow cannot record as a
+  cross-spec task dependency; the first task of this spec starts only after fn-83 .15 is done.
 
 ## Decision Context
 <!-- scope: both — conditionally substructured -->
@@ -412,6 +411,8 @@ Rejected:
   specified behavior instead of a conformance dimension.
 - **Hand-listed concrete requests per Action** (`ParameterDomain` today): one Action per concrete
   request multiplies rows without adding meaning.
+- **A cancel Query in this slice**: it and its two Testpilot instructions are fn-79's deferred
+  scope, which resumes only on an explicit user request.
 - **Transport fault injection for Query 5**: it needs a server test hook the black-box Driver does
   not have; the retryable handler error exercises the same server path.
 

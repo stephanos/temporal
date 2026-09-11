@@ -7,8 +7,7 @@
   "default_review": null,
   "default_sync": null,
   "depends_on_epics": [
-    "fn-82-unify-the-umpire-and-testpilot",
-    "fn-83-author-a-live-case-from-a-model-file"
+    "fn-82-unify-the-umpire-and-testpilot"
   ],
   "id": "fn-84-deepen-five-shallow-module-clusters-in",
   "impl_review_rounds": {},
@@ -289,5 +288,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-10T06:20:24.446434Z"
+  "updated_at": "2026-09-11T03:53:21.843417Z"
 }
