@@ -7,7 +7,9 @@ import (
 	"go/parser"
 	"go/token"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -357,6 +359,37 @@ func packageImports(t *testing.T) map[string][]string {
 	}
 	require.NotEmpty(t, declared)
 	return declared
+}
+
+// The transitive closure carries no functional test cluster at all, and only the server services
+// the Driver's own Nexus support already pulled in through `common/dynamicconfig`,
+// `common/persistence` and `chasm`. A new one appearing here is a new coupling, which is exactly
+// what the fn-70 deferral note was about.
+var transitiveServicePackages = []string{
+	"go.temporal.io/server/service/history/consts",
+	"go.temporal.io/server/service/history/tasks",
+	"go.temporal.io/server/service/matching/counter",
+}
+
+func TestUmpireRunLinksNoTestClusterAndNoNewServerService(t *testing.T) {
+	if _, err := exec.LookPath("go"); err != nil {
+		t.Skipf("the Go toolchain is not on PATH: %v", err)
+	}
+	listed, err := exec.Command("go", "list", "-deps", ".").Output()
+	require.NoError(t, err)
+
+	var services []string
+	for _, dependency := range strings.Split(strings.TrimSpace(string(listed)), "\n") {
+		require.NotEqual(t, "go.temporal.io/server/tests/testcore", dependency)
+		require.False(t, strings.HasPrefix(dependency, "go.temporal.io/server/tests/testcore/"),
+			"the CLI must not link the functional test cluster: %s", dependency)
+		if strings.HasPrefix(dependency, "go.temporal.io/server/service/") {
+			services = append(services, dependency)
+		}
+	}
+
+	slices.Sort(services)
+	require.Equal(t, transitiveServicePackages, services)
 }
 
 var _ testpilot.Driver = refusingDriver{}
