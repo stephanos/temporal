@@ -256,10 +256,9 @@ private def elabModel
     | _ => throwErrorAt row "unsupported Model step"
   let mut declared : List ResolvedRow := []
   for resolved in resolvedRows do
-    if let some prior := declared.find? fun candidate =>
+    if declared.any fun candidate =>
         candidate.sourceState.getId == resolved.sourceState.getId &&
           candidate.selectedAction.getId == resolved.selectedAction.getId then
-      let _ := prior
       throwErrorAt resolved.key
         (duplicateTransitionMessage
           (shortName resolved.sourceState.getId).toString
