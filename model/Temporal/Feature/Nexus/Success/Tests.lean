@@ -109,8 +109,8 @@ private def rejected : Except Compiler.Error temporal.server.api.testpilot.v1.Ca
       !checked.query.authoredKnownGaps.toList.isEmpty &&
       (output.provenance.map fun provenance =>
         (String.fromUTF8? provenance.producer_data).any fun payload =>
-          checked.query.authoredKnownGaps.toList.all fun gap =>
-            (payload.splitOn gap.code.value).length ≥ 2) == some true
+          checked.query.authoredKnownGaps.toList.all fun declared =>
+            (payload.splitOn declared.code.value).length ≥ 2) == some true
   | _, _ => false
 
 -- A clause form the correlated capability cannot carry rejects by name.
@@ -669,6 +669,51 @@ model unsortedInitialLifecycle
   steps
     start: scheduled + awaitStart →
       { state := started, outcome := acknowledged, facts := [started] }
+
+/-! ### Known Gaps are the Query's own
+
+A Query carries exactly the gaps its own Model file declares; nothing is attached on its behalf. -/
+
+/--
+error: unknown Known Gap kind 'whiteBox'; declared: capability, input, interpretation, claim
+-/
+#guard_msgs (error) in
+query unknownGapKind on lifecycle
+  find successfulResult
+  in successfulCompletion
+  limits shortTrace
+  gap whiteBox "mutable-state" detail "Reading mutable state needs the admin service."
+
+/--
+error: Known Gap 'cancellation' is already declared by this Query
+-/
+#guard_msgs (error) in
+query duplicateGapCode on lifecycle
+  find successfulResult
+  in successfulCompletion
+  limits shortTrace
+  gap capability "cancellation" detail "One."
+  gap input "cancellation" detail "Two."
+
+/- A Query that declares no gap carries none. -/
+query ungappedCompletion on lifecycle
+  find successfulResult
+  in successfulCompletion
+  limits shortTrace
+
+#guard (do
+  let checked ← ungappedCompletion.toOption
+  pure checked.query.authoredKnownGaps.toList.isEmpty) == some true
+
+/- The success Model's own two gaps, with the codes and subjects its family derives. -/
+#guard (do
+  let checked ← admitted
+  pure (checked.query.authoredKnownGaps.toList.map fun declared =>
+    (declared.code.value, (declared.subject.map (·.value)).getD ""))) == some
+  [("temporal.nexus.success.known-gap.cancellation",
+     "temporal.nexus.success.property.cancellationResolves"),
+   ("temporal.nexus.success.known-gap.operation-correlated-progress",
+     "temporal.nexus.success.property.cancellationResolves")]
 
 /-! The three requirements the grammar does not spell -- the setup domain is the type named `Setup`
 in the declaring namespace, a Model declares exactly one role, and Action constructors are declared

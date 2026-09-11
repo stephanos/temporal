@@ -38,6 +38,13 @@ syntax "require" ident ":" "fact" ident : successRequire
 name its replacement instead of failing as an unexplained parse error. -/
 syntax "require" ident ":" "resultingState" ident : successRequire
 
+/-- One Known Gap a Query carries: what kind of thing is missing, the name its code derives from,
+optionally the Property it limits, and why. -/
+declare_syntax_cat modelGap
+
+syntax "gap" ident str &"subject" str &"detail" str : modelGap
+syntax "gap" ident str &"detail" str : modelGap
+
 /-- One labelled occurrence of a declared Action in a Behavior sequence. -/
 declare_syntax_cat successOccurrence
 
@@ -354,19 +361,49 @@ private def recordQueryDeclaration
     selectsWitness
     «scenario» := scenarioName })
 
-/-- The Known Gaps every Query in this project carries, as a term. A project that declared none
-carries an empty set. -/
-private def knownGapsTerm : CommandElabM Term := do
-  match (Registry.conventions (← getEnv)).knownGaps with
-  | .anonymous => `(term| Except.ok Umpire.KnownGapSet.empty)
-  | declared => `(term| $(mkIdent declared))
+private def unknownGapKindMessage (spelling : String) : String :=
+  s!"unknown Known Gap kind '{spelling}'; declared: capability, input, interpretation, claim"
+
+private def duplicateGapMessage (name : String) : String :=
+  s!"Known Gap '{name}' is already declared by this Query"
+
+private def gapKindTerm (kind : Ident) : CommandElabM Term :=
+  match kind.getId.eraseMacroScopes.toString with
+  | "capability" => `(term| Umpire.KnownGapKind.capability)
+  | "input" => `(term| Umpire.KnownGapKind.input)
+  | "interpretation" => `(term| Umpire.KnownGapKind.interpretation)
+  | "claim" => `(term| Umpire.KnownGapKind.claim)
+  | spelling => throwErrorAt kind (unknownGapKindMessage spelling)
+
+/-- The Known Gaps this Query declared, as a checked set. A Query that declares none carries none:
+nothing is attached on its behalf. -/
+private def knownGapsTerm (origin : Term) (gaps : Array (TSyntax `modelGap)) :
+    CommandElabM Term := do
+  let mut declared : Array String := #[]
+  let mut terms : Array Term := #[]
+  for declared? in gaps do
+    match declared? with
+    | `(modelGap| gap $kind:ident $name:str subject $subject:str detail $detail:str) =>
+        if declared.contains name.getString then
+          throwErrorAt name (duplicateGapMessage name.getString)
+        declared := declared.push name.getString
+        terms := terms.push (← `(term|
+          Origin.knownGap $origin $(← gapKindTerm kind) $name (some $subject) $detail))
+    | `(modelGap| gap $kind:ident $name:str detail $detail:str) =>
+        if declared.contains name.getString then
+          throwErrorAt name (duplicateGapMessage name.getString)
+        declared := declared.push name.getString
+        terms := terms.push (← `(term|
+          Origin.knownGap $origin $(← gapKindTerm kind) $name none $detail))
+    | _ => throwErrorAt declared? "unsupported Known Gap"
+  `(term| Umpire.KnownGapSet.checkCanonical [$terms,*])
 
 elab "query" name:ident "on" modelRef:ident
     findKeyword:(&"find" <|> "witness") propertyRef:ident "in" scenarioRef:ident
-    "limits" limitsRef:ident : command => do
+    "limits" limitsRef:ident gaps:modelGap* : command => do
     rejectRetiredKeyword findKeyword "witness" "find"
     let queryKey := Lean.quote name.getId.toString
-    let knownGaps ← knownGapsTerm
+    let knownGaps ← knownGapsTerm (← originTerm) gaps
     elabCommand (← `(command|
       def $name : Except AdmissionError (CheckedModel ($modelRef)) :=
         check ($modelRef) $queryKey ($limitsRef) ($propertyRef) ($scenarioRef)
@@ -375,10 +412,10 @@ elab "query" name:ident "on" modelRef:ident
 
 elab "query" name:ident "on" modelRef:ident
     verifyKeyword:(&"verify" <|> "all") propertyRef:ident "in" scenarioRef:ident
-    "limits" limitsRef:ident : command => do
+    "limits" limitsRef:ident gaps:modelGap* : command => do
     rejectRetiredKeyword verifyKeyword "all" "verify"
     let queryKey := Lean.quote name.getId.toString
-    let knownGaps ← knownGapsTerm
+    let knownGaps ← knownGapsTerm (← originTerm) gaps
     elabCommand (← `(command|
       def $name : Except AdmissionError (CheckedModel ($modelRef)) :=
         check ($modelRef) $queryKey ($limitsRef) ($propertyRef) ($scenarioRef)

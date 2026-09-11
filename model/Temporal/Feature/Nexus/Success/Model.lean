@@ -86,11 +86,19 @@ limits shortTrace
   actions 2
   search 16
 
-/- Finding this trace establishes possibility within the declared bounds. -/
+/- Finding this trace establishes possibility within the declared bounds.
+
+The two Known Gaps below limit what any Case realizing this Query can prove. Both name a Property
+this slice cannot declare, which is the gap: a cancellation requirement has no operation-correlated
+shape here, so there is nothing to write a `require` line about. -/
 query completion on lifecycle
   find successfulResult
   in successfulCompletion
   limits shortTrace
+  gap capability "cancellation" subject "cancellationResolves"
+    detail "Operation-correlated Nexus cancellation is unsupported by the success slice."
+  gap capability "operation-correlated-progress" subject "cancellationResolves"
+    detail "Operation-correlated progress counting is unsupported by the success slice."
 
 /-
 The Case the selected trace realizes. `fixture` is the only identity slot: the Case ID is

@@ -46,3 +46,21 @@ This task builds on the `case` block, whole-Program templates, per-Case evidence
 - Commits:
 - Tests:
 - PRs:
+
+## The white-box Known Gap representation (decided by .11)
+
+**No new kind.** `UMPIRE4_SPEC.md` enumerates the four Known Gap kinds normatively ("A missing or
+unsupported Capability, input, interpretation, or claim"), so a `whiteBox` kind would need a GOV-02
+amendment for something the existing vocabulary already carries.
+
+The admin-service mutable-state assertion is `interpretation`: the Run records what the Case can
+observe, and nothing in it interprets the server's internal mutable state. Write it as
+
+```
+gap interpretation "white-box-mutable-state"
+  detail "The upstream assertion reads mutable state through the admin service; a Case observes only
+    what its Program records, so no black-box Run can establish it."
+```
+
+which produces the code `<family>.known-gap.white-box-mutable-state`. The detail is the place that
+says "white-box", and `COVERAGE.md` names the same code in its row.
