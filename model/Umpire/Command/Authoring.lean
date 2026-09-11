@@ -1,4 +1,4 @@
-import Temporal.Shared
+import Umpire.Shared
 import Umpire.Search
 import Umpire.Search.Branches
 import Umpire.Model.Table
@@ -8,13 +8,18 @@ import Umpire.Query.Elab
 import Umpire.Case.Producer
 
 /-!
-The Nexus success-slice construction and admission layer. `Syntax` emits ordinary declarations
-that call this module, which owns all Umpire records and checked planning. Every model member is
-held in an ordered list parallel to its name and Definition ID list, so the declared arity is the
-declaration's, not this module's.
+# What a declared Model is, before any command
+
+The construction and admission layer behind the Model commands. `Umpire.Command.Syntax` emits
+ordinary declarations that call this module, which owns all Umpire records and checked planning.
+Every member is held in an ordered list parallel to its name and Definition ID list, so the declared
+arity is the declaration's, not this module's.
+
+Nothing here names a feature. A declaration's semantic family and source come from its `Origin`,
+which the commands derive from where it was written.
 -/
 
-namespace Temporal.Feature.Nexus.Success.Authoring
+namespace Umpire.Command
 
 open Umpire
 
@@ -27,12 +32,20 @@ structure Origin where
   source : SourceLocation
   deriving BEq, Repr
 
+/-- Join a definition root to a semantic family. -/
+private def qualify (root semanticFamily : String) : String :=
+  if root.isEmpty then semanticFamily
+  else if semanticFamily.isEmpty then root
+  else root ++ "." ++ semanticFamily
+
 namespace Origin
 
-/-- The origin of a declaration in `semanticFamily`, elaborated from `path`. -/
-def of (semanticFamily path : String) : Origin := {
-  family := Temporal.Shared.definitionFamily semanticFamily
-  source := Temporal.Shared.sourceLocation path
+/-- The origin of a declaration whose Definition IDs hang off `root.semanticFamily`, elaborated
+from `path`. An empty root leaves the family as the semantic family alone, which is what a
+declaration outside any owning namespace gets. -/
+def of (root semanticFamily path : String) : Origin := {
+  family := { root := Umpire.Shared.definitionId (qualify root semanticFamily) }
+  source := Umpire.Shared.sourceLocation path 1 1 "lean-model"
 }
 
 def ownedId (origin : Origin) (kind owner member : String) : DefinitionId :=
@@ -42,7 +55,7 @@ def metadata
     (origin : Origin)
     (id : DefinitionId)
     (kind : DefinitionKind) : DefinitionMetadata :=
-  Temporal.Shared.definitionMetadata id kind origin.source id.value
+  Umpire.Shared.definitionMetadata id kind origin.source 1 id.value ""
 
 end Origin
 
@@ -53,7 +66,7 @@ def meaning (id : DefinitionId) (kind : DefinitionKind) : Meaning := {
 }
 
 /-- The ordered member names of one declared success model, in declaration order. -/
-structure SuccessModelNames where
+structure DeclaredNames where
   declaration : String
   roleName : String
   setup : String
@@ -83,14 +96,14 @@ def checkFiniteTarget [DecidableEq Setup] [DecidableEq State] [DecidableEq Actio
     throw .noncanonicalTable
   table.checkModel identity definition composition |>.mapError .finite
 
-/-- Every declared transition row must appear in the authored table exactly as declared. -/
+/-- Every declared Step row must appear in the authored table exactly as declared. -/
 def satisfiesTransitionRequirement [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     (rows required : List (FiniteTransitionRow State Action Outcome Fact)) : Bool :=
   required.all fun declared => rows.any fun row =>
     row.source == declared.source && row.action == declared.action &&
       row.results == declared.results
 
-def SuccessLawStatement [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
+def TableLawStatement [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     (lawId : DefinitionId)
     (table : FiniteTable Setup State Action Outcome Fact)
     (required : List (FiniteTransitionRow State Action Outcome Fact))
@@ -98,9 +111,9 @@ def SuccessLawStatement [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
   law.id = lawId ∧ law.body = lawId.value ∧
     satisfiesTransitionRequirement table.transitions required = true
 
-/-- The declared success model, held as ordered member lists rather than fixed-arity fields. Every
+/-- One declared Model, held as ordered member lists rather than fixed-arity fields. Every
 member list is parallel to the matching name and Definition ID list. -/
-structure SuccessModel (Setup State Action Outcome Fact : Type)
+structure DeclaredModel (Setup State Action Outcome Fact : Type)
     [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact] where
   origin : Origin
   key : String
@@ -141,47 +154,39 @@ def catalogId [BEq α] (values : List α) (ids : List DefinitionId) (value : α)
   | some index => (ids[index]?).getD fallback
   | none => fallback
 
-namespace SuccessModel
+namespace DeclaredModel
 
 variable [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
 
-def stateIdAt (model : SuccessModel Setup State Action Outcome Fact) (index : Nat) : DefinitionId :=
+def stateIdAt (model : DeclaredModel Setup State Action Outcome Fact) (index : Nat) : DefinitionId :=
   (model.stateIds[index]?).getD unknownId
 
-def actionIdAt (model : SuccessModel Setup State Action Outcome Fact) (index : Nat) :
+def actionIdAt (model : DeclaredModel Setup State Action Outcome Fact) (index : Nat) :
     DefinitionId :=
   (model.actionIds[index]?).getD unknownId
 
-def outcomeIdAt (model : SuccessModel Setup State Action Outcome Fact) (index : Nat) :
-    DefinitionId :=
-  (model.outcomeIds[index]?).getD unknownId
 
-def factIdAt (model : SuccessModel Setup State Action Outcome Fact) (index : Nat) : DefinitionId :=
-  (model.factIds[index]?).getD unknownId
 
-def relationIdAt (model : SuccessModel Setup State Action Outcome Fact) (index : Nat) :
-    DefinitionId :=
-  (model.relationIds[index]?).getD unknownId
 
 /-- The role Definition ID a declaration naming this role addresses. A role the model does not
 declare yields an ID no Target provides, so the declaration is rejected at admission naming it. -/
-def namedRole (model : SuccessModel Setup State Action Outcome Fact) (spelling : String) :
+def namedRole (model : DeclaredModel Setup State Action Outcome Fact) (spelling : String) :
     DefinitionId :=
   if spelling == model.roleName then model.operationRoleId
   else model.origin.ownedId "role" model.key spelling
 
 /-- The capability a declaration naming this role requires, resolved the same way. -/
-def roleCapability (model : SuccessModel Setup State Action Outcome Fact) (spelling : String) :
+def roleCapability (model : DeclaredModel Setup State Action Outcome Fact) (spelling : String) :
     DefinitionId :=
   if spelling == model.roleName then model.capabilityId
   else model.origin.ownedId "capability" model.key spelling
 
 /-- The declared results of one transition row, by declaration position. -/
-def resultsAt (model : SuccessModel Setup State Action Outcome Fact) (index : Nat) :
+def resultsAt (model : DeclaredModel Setup State Action Outcome Fact) (index : Nat) :
     List (Step State Outcome Fact) :=
   ((model.table.transitions[index]?).map (·.results)).getD []
 
-end SuccessModel
+end DeclaredModel
 
 /-- One declared transition result: the reached state, its Model Outcome, and the Facts it
 records. -/
@@ -192,8 +197,8 @@ def step (outcome : Outcome) (state : State) (facts : List Fact) :
   facts := facts
 }
 
-def successTable
-    (names : SuccessModelNames)
+def declaredTable
+    (names : DeclaredNames)
     (setupValue : Setup)
     (states : List State)
     (actions : List Action)
@@ -212,9 +217,9 @@ def successTable
   transitions
 }
 
-def successModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
+def declareModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     (origin : Origin)
-    (names : SuccessModelNames)
+    (names : DeclaredNames)
     (setupValue : Setup)
     (states : List State)
     (actions : List Action)
@@ -223,12 +228,12 @@ def successModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     (initial terminal : List State)
     (transitions : List (FiniteTransitionRow State Action Outcome Fact))
     (lawProof :
-      SuccessLawStatement (origin.ownedId "law" names.declaration "canonical-table")
-        (successTable names setupValue states actions outcomes facts initial transitions)
+      TableLawStatement (origin.ownedId "law" names.declaration "canonical-table")
+        (declaredTable names setupValue states actions outcomes facts initial transitions)
         transitions
         { id := origin.ownedId "law" names.declaration "canonical-table",
           body := (origin.ownedId "law" names.declaration "canonical-table").value }) :
-    SuccessModel Setup State Action Outcome Fact := by
+    DeclaredModel Setup State Action Outcome Fact := by
   let ownerKey := names.declaration
   let targetId := origin.family.id "target" ownerKey
   let kernelId := origin.ownedId "kernel" ownerKey "planner"
@@ -241,7 +246,7 @@ def successModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
   let outcomeIds := names.outcomeKeys.map (origin.ownedId "outcome" ownerKey)
   let factIds := names.factKeys.map (origin.ownedId "fact" ownerKey)
   let relationIds := transitions.map fun row => origin.ownedId "relation" ownerKey row.key
-  let table := successTable names setupValue states actions outcomes facts initial transitions
+  let table := declaredTable names setupValue states actions outcomes facts initial transitions
   let identity : FiniteModelIdentity Setup State Action Outcome Fact := {
     setupBindings := fun _ => initial.map fun value => { roleId := operationRoleId, state := value }
     stateId := catalogId states stateIds
@@ -249,7 +254,7 @@ def successModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     outcomeId := catalogId outcomes outcomeIds
     factId := catalogId facts factIds
   }
-  let lawStatement := SuccessLawStatement lawId table transitions
+  let lawStatement := TableLawStatement lawId table transitions
   let law : Law := { id := lawId, body := lawId.value }
   let contract : Capability := {
     id := capabilityId
@@ -291,46 +296,14 @@ def successModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     composition := Providers.empty |>.provide provider, modelSpec
   }
 
-/-- The checked member values of one model, in declaration order. -/
-structure ModelVocabulary where
-  states : List ModelValue
-  actions : List ModelValue
-  outcomes : List ModelValue
-  facts : List ModelValue
+/-- The checked member values of one Model, in declaration order. It is the Producer's own
+vocabulary record: the Producer reads exactly these four lists, so a second copy of them would only
+be a conversion waiting to drift. -/
+abbrev ModelVocabulary := Umpire.Case.Producer.Vocabulary
 
 /-- The Model Value an out-of-catalog member resolves to; a declared member never reaches it. -/
-def unknownValue : ModelValue := ModelValue.named unknownId ""
+abbrev unknownValue := Umpire.Case.Producer.unknownValue
 
-namespace ModelVocabulary
-
-def stateAt (values : ModelVocabulary) (index : Nat) : ModelValue :=
-  (values.states[index]?).getD unknownValue
-
-def actionAt (values : ModelVocabulary) (index : Nat) : ModelValue :=
-  (values.actions[index]?).getD unknownValue
-
-def outcomeAt (values : ModelVocabulary) (index : Nat) : ModelValue :=
-  (values.outcomes[index]?).getD unknownValue
-
-def factAt (values : ModelVocabulary) (index : Nat) : ModelValue :=
-  (values.facts[index]?).getD unknownValue
-
-/-! Selection by declared spelling. An unknown spelling resolves to the unknown Model Value, whose
-Definition ID no Target provides, so the clause referencing it is rejected at Property admission. -/
-
-def named (values : List ModelValue) (spelling : String) : ModelValue :=
-  (values.find? (·.value == spelling)).getD unknownValue
-
-def namedState (values : ModelVocabulary) (spelling : String) : ModelValue :=
-  named values.states spelling
-def namedAction (values : ModelVocabulary) (spelling : String) : ModelValue :=
-  named values.actions spelling
-def namedOutcome (values : ModelVocabulary) (spelling : String) : ModelValue :=
-  named values.outcomes spelling
-def namedFact (values : ModelVocabulary) (spelling : String) : ModelValue :=
-  named values.facts spelling
-
-end ModelVocabulary
 
 /-- One `require` clause: its label and the member spelling it selects. -/
 inductive PropertyRequirement where
@@ -339,14 +312,14 @@ inductive PropertyRequirement where
   | factClause (label spelling : String)
 
 /-- The declared role, the Action every clause is about, and the ordered `require` clauses. -/
-structure SuccessPropertyNames where
+structure PropertyNames where
   declaration : String
   roleName : String
   actionSpelling : String
   requirements : List PropertyRequirement
 
 /-- The setup state and the ordered occurrence labels with the Action each one selects. -/
-structure SuccessBehaviorNames where
+structure ScenarioNames where
   declaration : String
   roleName : String
   setupState : String
@@ -355,7 +328,7 @@ structure SuccessBehaviorNames where
 def modelVocabulary [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
     [DecidableEq Outcome] [DecidableEq Fact]
-    (model : SuccessModel Setup State Action Outcome Fact)
+    (model : DeclaredModel Setup State Action Outcome Fact)
     (table : FiniteTable Setup State Action Outcome Fact) : Except FiniteTableError ModelVocabulary := do
   let checked ← (table.validate.map (·.withIdentity model.identity))
   pure {
@@ -366,9 +339,9 @@ def modelVocabulary [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact
   }
 
 def authoredProperty [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
-    (model : SuccessModel Setup State Action Outcome Fact)
+    (model : DeclaredModel Setup State Action Outcome Fact)
     (values : ModelVocabulary)
-    (names : SuccessPropertyNames) : Property := {
+    (names : PropertyNames) : Property := {
   id := model.origin.family.id "property" names.declaration
   source := model.origin.source
   requires := [model.roleCapability names.roleName]
@@ -388,9 +361,9 @@ def authoredProperty [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fac
 }
 
 def authoredScenario [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
-    (model : SuccessModel Setup State Action Outcome Fact)
+    (model : DeclaredModel Setup State Action Outcome Fact)
     (values : ModelVocabulary)
-    (names : SuccessBehaviorNames) : Scenario :=
+    (names : ScenarioNames) : Scenario :=
   Scenario.exactly
     (family := model.origin.family)
     (key := names.declaration)
@@ -404,54 +377,10 @@ def authoredScenario [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fac
       { key := names.declaration ++ "." ++ occurrence.1,
         action := (values.namedAction occurrence.2).definitionId })
 
-def withStates
-    (table : FiniteTable Setup State Action Outcome Fact)
-    (states : List (FiniteCatalogEntry State)) : FiniteTable Setup State Action Outcome Fact :=
-  { table with states }
 
-def withTransitions
-    (table : FiniteTable Setup State Action Outcome Fact)
-    (transitions : List (FiniteTransitionRow State Action Outcome Fact)) :
-    FiniteTable Setup State Action Outcome Fact :=
-  { table with transitions }
 
-def transitionRow
-    (key : String)
-    (source : State)
-    (selectedAction : Action)
-    (results : List (Step State Outcome Fact)) :
-    FiniteTransitionRow State Action Outcome Fact :=
-  { key, source, action := selectedAction, results }
 
-def withOccurrences (spec : Scenario) (occurrences : List Scenario.Step) : Scenario :=
-  spec.withSteps occurrences
 
-def Origin.occurrence (origin : Origin) (key : String) (selectedAction : DefinitionId) :
-    Scenario.Step :=
-  { id := origin.family.id "occurrence" key, action := selectedAction }
-
-def withClauses (spec : Property) (clauses : List PropertyClause) : Property :=
-  { spec with clauses }
-
-def reorderedAndDocumented (spec : Property) (documentation : String) : Property :=
-  { spec with clauses := spec.clauses.reverse, documentation }
-
-def cancellationKnownGap : KnownGap := {
-  kind := .capability
-  code := DefinitionId.of "temporal.nexus.success.known-gap.cancellation"
-  subject := some (DefinitionId.of "temporal.nexus.success.property.cancellationResolves")
-  detail := some "Operation-correlated Nexus cancellation is unsupported by the success slice."
-}
-
-def operationCorrelatedProgressKnownGap : KnownGap := {
-  kind := .capability
-  code := DefinitionId.of "temporal.nexus.success.known-gap.operation-correlated-progress"
-  subject := some (DefinitionId.of "temporal.nexus.success.property.cancellationResolves")
-  detail := some "Operation-correlated progress counting is unsupported by the success slice."
-}
-
-def completionKnownGaps : Except KnownGapError KnownGapSet :=
-  KnownGapSet.checkCanonical [cancellationKnownGap, operationCorrelatedProgressKnownGap]
 
 inductive AdmissionError where
   | invalidTarget (error : FiniteAdmissionError)
@@ -473,7 +402,7 @@ inductive QueryFormKind where
   deriving BEq, DecidableEq, Repr
 
 structure CheckedModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
-    (model : SuccessModel Setup State Action Outcome Fact) where
+    (model : DeclaredModel Setup State Action Outcome Fact) where
   target : QueryModel model.lawStatement
   vocabulary : ModelVocabulary
   property : CheckedProperty
@@ -488,11 +417,12 @@ structure CheckedModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq F
 def check [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
     [DecidableEq Outcome] [DecidableEq Fact]
-    (model : SuccessModel Setup State Action Outcome Fact)
+    (model : DeclaredModel Setup State Action Outcome Fact)
     (queryKey : String)
     (limits : Limits)
     (propertyAuthor : ModelVocabulary → Property)
     (behaviorAuthor : ModelVocabulary → Scenario)
+    (knownGaps : Except KnownGapError KnownGapSet := .ok KnownGapSet.empty)
     (form : QueryFormKind := .selectWitness)
     (authoredTable : FiniteTable Setup State Action Outcome Fact := model.table)
     (authoredDefinition : TableModelSpec := model.modelSpec) :
@@ -503,7 +433,7 @@ def check [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
   let property ← (propertyAuthor vocabulary).check (PropertyCheckContext.ofTarget target)
     |>.mapError .invalidProperty
   let behavior ← (behaviorAuthor vocabulary).check (.ofTarget target) |>.mapError .invalidBehavior
-  let gaps ← completionKnownGaps |>.mapError .invalidKnownGaps
+  let gaps ← knownGaps.mapError .invalidKnownGaps
   let authoredQuery : Query := {
     id := model.origin.family.id "query" queryKey
     source := model.origin.source
@@ -531,21 +461,19 @@ def check [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
 
 /-! ### Producing a Case
 
-A `.umpire` module may not import this namespace, so the conversion from the checked authoring
-bundle to the Umpire-owned Producer input lives here. The `case` command emits one call to
-`produceCase`; everything it decides -- the template, the fixture name, the evidence mapping -- is
-an argument. -/
+`producerInput` is what the checked declaration cannot be: the Producer needs the operation role and
+the declaring file's source, which belong to the declaration rather than to the check, and it needs
+the Query flattened to the three fields it actually reads. The vocabulary is shared outright.
+
+The `case` command emits one call to `produceCase`; everything it decides -- the template, the
+fixture name, the evidence mapping -- is an argument. -/
 
 def producerInput [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
-    {«model» : SuccessModel Setup State Action Outcome Fact}
+    {«model» : DeclaredModel Setup State Action Outcome Fact}
     (checked : CheckedModel «model») :
     Umpire.Case.Producer.Input «model».lawStatement := {
   target := checked.target
-  vocabulary := {
-    «states» := checked.vocabulary.states
-    «actions» := checked.vocabulary.actions
-    «outcomes» := checked.vocabulary.outcomes
-    «facts» := checked.vocabulary.facts }
+  vocabulary := checked.vocabulary
   «property» := checked.property
   «scenario» := checked.behavior
   «witness» := checked.witness
@@ -563,7 +491,7 @@ different Case bytes.
 `required` names clauses the caller requires the Case to carry, beyond the ones the checked Property
 already names. Coverage is always requested explicitly, never left to a default. -/
 def produce [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
-    {«model» : SuccessModel Setup State Action Outcome Fact}
+    {«model» : DeclaredModel Setup State Action Outcome Fact}
     (checked : CheckedModel «model»)
     (identity : Umpire.Case.Producer.Identity)
     (realization : Umpire.Case.Producer.Realization)
@@ -577,7 +505,7 @@ def produce [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
 rejects as `checked-model` against the Case's own identity, because there is nothing else to name
 at that point. -/
 def produceCase [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
-    {«model» : SuccessModel Setup State Action Outcome Fact}
+    {«model» : DeclaredModel Setup State Action Outcome Fact}
     (admitted : Except AdmissionError (CheckedModel «model»))
     (identity : Umpire.Case.Producer.Identity)
     (realization : Umpire.Case.Producer.Realization)
@@ -590,4 +518,4 @@ def produceCase [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     construct := "checked-model" }
   produce checked identity realization evidence required
 
-end Temporal.Feature.Nexus.Success.Authoring
+end Umpire.Command

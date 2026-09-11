@@ -33,6 +33,8 @@ Testpilot.Protocol ──▶ Testpilot.Authoring ──▶ Temporal.Testpilot
          │                       ▲                       ▲
          └────▶ Testpilot.ProtoJSON       Umpire.Case ──▶ Umpire.Provenance
 
+Umpire.Command ──▶ Temporal.Case ──▶ Temporal.Feature.* Model files
+
 Temporal.API ───────────────────────────┐
 Temporal.DynamicConfig ────────────────┤
 Temporal.Feature ──────────────────────┼──▶ Temporal

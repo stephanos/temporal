@@ -1,5 +1,6 @@
 import Temporal.Feature.Nexus.Success.Model
 import Testpilot.ProtoJSON
+import Umpire.Command.Tests.Authoring
 
 /-! Executable checks for the compact Nexus success command surface and checked meaning. -/
 
@@ -30,11 +31,11 @@ substituted part is the only difference from the checked-in Case. -/
 private def produceFromChecked
     {Setup State Action Outcome Fact : Type}
     [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
-    {«model» : Authoring.SuccessModel Setup State Action Outcome Fact}
-    (checked : Authoring.CheckedModel «model»)
+    {«model» : Umpire.Command.DeclaredModel Setup State Action Outcome Fact}
+    (checked : Umpire.Command.CheckedModel «model»)
     (required : List DefinitionId := []) :
     Except Compiler.Error temporal.server.api.testpilot.v1.Case :=
-  Authoring.produce checked asyncNexusSuccess.identity asyncNexusSuccess.realization
+  Umpire.Command.produce checked asyncNexusSuccess.identity asyncNexusSuccess.realization
     asyncNexusSuccess.evidence required
 
 /-- Produce a Case from the checked model with one part replaced. Every part is carried into the
@@ -200,41 +201,41 @@ theorem checkedWitnessIsExact : admitted.bind (fun checked =>
 private def runCheck
     (authoredTable := lifecycle.table)
     (authoredDefinition := lifecycle.modelSpec)
-    (propertyAuthor : Authoring.ModelVocabulary → Property := successfulResult)
-    (behaviorAuthor : Authoring.ModelVocabulary → Scenario := successfulCompletion)
-    (form : Authoring.QueryFormKind := .selectWitness) :=
-  Authoring.check lifecycle "completion" shortTrace propertyAuthor behaviorAuthor (form := form)
+    (propertyAuthor : Umpire.Command.ModelVocabulary → Property := successfulResult)
+    (behaviorAuthor : Umpire.Command.ModelVocabulary → Scenario := successfulCompletion)
+    (form : Umpire.Command.QueryFormKind := .selectWitness) :=
+  Umpire.Command.check lifecycle "completion" shortTrace propertyAuthor behaviorAuthor (form := form)
     (authoredTable := authoredTable) (authoredDefinition := authoredDefinition)
 
 private def invalidResultTable :=
-  Authoring.withStates lifecycle.table <|
+  Umpire.Command.Tests.withStates lifecycle.table <|
     lifecycle.table.states.filter fun entry => entry.value != State.succeeded
 
 private def outgoingTerminalTable :=
-  Authoring.withTransitions lifecycle.table <| lifecycle.table.transitions ++
-    [Authoring.transitionRow "restart-after-success" State.succeeded Action.awaitStart
+  Umpire.Command.Tests.withTransitions lifecycle.table <| lifecycle.table.transitions ++
+    [Umpire.Command.Tests.transitionRow "restart-after-success" State.succeeded Action.awaitStart
       (lifecycle.resultsAt 0)]
 
 private def extraSuccessResultTable :=
-  Authoring.withTransitions lifecycle.table <| lifecycle.table.transitions.map fun row =>
+  Umpire.Command.Tests.withTransitions lifecycle.table <| lifecycle.table.transitions.map fun row =>
       if row.action == Action.awaitSuccess then
-        Authoring.transitionRow row.key row.source row.action
+        Umpire.Command.Tests.transitionRow row.key row.source row.action
           (lifecycle.resultsAt 1 ++ (lifecycle.resultsAt 0))
       else row
 
-private def shortenedSuccess (values : Authoring.ModelVocabulary) : Scenario :=
-  Authoring.withOccurrences (successfulCompletion values)
-    [lifecycle.origin.occurrence "successfulCompletion.completion"
+private def shortenedSuccess (values : Umpire.Command.ModelVocabulary) : Scenario :=
+  Umpire.Command.Tests.withOccurrences (successfulCompletion values)
+    [Umpire.Command.Tests.occurrence lifecycle.origin "successfulCompletion.completion"
       (values.actionAt 1).definitionId]
 
-private def impossibleSuccess (values : Authoring.ModelVocabulary) : Scenario :=
-  Authoring.withOccurrences (successfulCompletion values) [
-    lifecycle.origin.occurrence "successfulCompletion.completion" (values.actionAt 1).definitionId,
-    lifecycle.origin.occurrence "successfulCompletion.start" (values.actionAt 0).definitionId
+private def impossibleSuccess (values : Umpire.Command.ModelVocabulary) : Scenario :=
+  Umpire.Command.Tests.withOccurrences (successfulCompletion values) [
+    Umpire.Command.Tests.occurrence lifecycle.origin "successfulCompletion.completion" (values.actionAt 1).definitionId,
+    Umpire.Command.Tests.occurrence lifecycle.origin "successfulCompletion.start" (values.actionAt 0).definitionId
   ]
 
-private def noWitnessProperty (values : Authoring.ModelVocabulary) : Property :=
-  Authoring.withClauses (successfulResult values) <| stepClauses lifecycle.origin.family
+private def noWitnessProperty (values : Umpire.Command.ModelVocabulary) : Property :=
+  Umpire.Command.Tests.withClauses (successfulResult values) <| stepClauses lifecycle.origin.family
       "successfulResult" (values.actionAt 1) (values.stateAt 1) (values.outcomeAt 1)
       (values.factAt 1)
 
@@ -247,7 +248,7 @@ theorem outgoingTerminalTransitionIsRejected :
   native_decide
 
 theorem changedSuccessRelationIsRejected :
-    Authoring.satisfiesTransitionRequirement extraSuccessResultTable.transitions
+    Umpire.Command.satisfiesTransitionRequirement extraSuccessResultTable.transitions
       lifecycle.table.transitions = false ∧
       (runCheck (authoredTable := extraSuccessResultTable)).toOption.isNone := by
   native_decide
@@ -307,7 +308,7 @@ query renamedQuery on renamedLifecycle
   limits renamedTrace
 
 private def renamedCheckedModel :
-    Except Compiler.Error (Authoring.CheckedModel renamedLifecycle) :=
+    Except Compiler.Error (Umpire.Command.CheckedModel renamedLifecycle) :=
   renamedQuery.mapError fun _ => {
     sourceDefinitionId := "temporal.nexus.success.query.renamedQuery"
     source := lifecycle.origin.source
@@ -315,7 +316,7 @@ private def renamedCheckedModel :
   }
 
 private def originalCheckedModel :
-    Except Compiler.Error (Authoring.CheckedModel lifecycle) :=
+    Except Compiler.Error (Umpire.Command.CheckedModel lifecycle) :=
   completion.mapError fun _ => {
     sourceDefinitionId := "temporal.nexus.success.query.completion"
     source := lifecycle.origin.source
@@ -330,10 +331,10 @@ private def renamedTargetResult :
 
 /-- The same Actions in the same order under different occurrence names: a different checked
 Behavior that still places every clause. -/
-private def renamedOccurrences (values : Authoring.ModelVocabulary) : Scenario :=
-  Authoring.withOccurrences (successfulCompletion values) [
-    lifecycle.origin.occurrence "successfulCompletion.begin" (values.actionAt 0).definitionId,
-    lifecycle.origin.occurrence "successfulCompletion.finish" (values.actionAt 1).definitionId]
+private def renamedOccurrences (values : Umpire.Command.ModelVocabulary) : Scenario :=
+  Umpire.Command.Tests.withOccurrences (successfulCompletion values) [
+    Umpire.Command.Tests.occurrence lifecycle.origin "successfulCompletion.begin" (values.actionAt 0).definitionId,
+    Umpire.Command.Tests.occurrence lifecycle.origin "successfulCompletion.finish" (values.actionAt 1).definitionId]
 
 private def renamedBehaviorResult :
     Except Compiler.Error temporal.server.api.testpilot.v1.Case := do
@@ -352,7 +353,7 @@ order, so every clause still places, and its own identity still reaches the byte
 #guard differsFromCompletionCase renamedBehaviorResult
 
 private def modelMemberIds
-    (candidate : Authoring.SuccessModel Setup State Action Outcome Fact) : List DefinitionId :=
+    (candidate : Umpire.Command.DeclaredModel Setup State Action Outcome Fact) : List DefinitionId :=
   candidate.operationRoleId :: (candidate.stateIds ++ candidate.actionIds ++
     candidate.outcomeIds ++ candidate.factIds ++ candidate.relationIds)
 
@@ -426,11 +427,11 @@ private def renamedIdentitiesAreCoherent : Option Bool := do
 theorem renameChangesDerivedIdentitiesCoherently : renamedIdentitiesAreCoherent = some true := by
   native_decide
 
-private def reorderedAndDocumented (values : Authoring.ModelVocabulary) : Property :=
-  Authoring.reorderedAndDocumented (successfulResult values) "Comment-only presentation."
+private def reorderedAndDocumented (values : Umpire.Command.ModelVocabulary) : Property :=
+  Umpire.Command.Tests.reorderedAndDocumented (successfulResult values) "Comment-only presentation."
 
-private def changedMeaning (values : Authoring.ModelVocabulary) : Property :=
-  Authoring.withClauses (successfulResult values) <| stepClauses lifecycle.origin.family
+private def changedMeaning (values : Umpire.Command.ModelVocabulary) : Property :=
+  Umpire.Command.Tests.withClauses (successfulResult values) <| stepClauses lifecycle.origin.family
       "successfulResult" (values.actionAt 1) (values.stateAt 1) (values.outcomeAt 1)
       (values.factAt 1)
 
@@ -448,8 +449,8 @@ theorem identityAndFingerprintStability : identityFingerprintCheck = some true :
 
 /-- Dropping one checked `require` clause leaves a Property every witness step still carries, so it
 lowers to different Case bytes rather than rejecting. -/
-private def fewerClauses (values : Authoring.ModelVocabulary) : Property :=
-  Authoring.withClauses (successfulResult values) (successfulResult values).clauses.tail
+private def fewerClauses (values : Umpire.Command.ModelVocabulary) : Property :=
+  Umpire.Command.Tests.withClauses (successfulResult values) (successfulResult values).clauses.tail
 
 #guard (do
   let checked ← admitted
@@ -458,8 +459,8 @@ private def fewerClauses (values : Authoring.ModelVocabulary) : Property :=
 
 /-- A Property about the start step lowers to clauses about the start step: the trigger each
 clause carries is the Action the `require` line named. -/
-private def startClauses (values : Authoring.ModelVocabulary) : Property :=
-  Authoring.withClauses (successfulResult values) <| stepClauses lifecycle.origin.family
+private def startClauses (values : Umpire.Command.ModelVocabulary) : Property :=
+  Umpire.Command.Tests.withClauses (successfulResult values) <| stepClauses lifecycle.origin.family
       "successfulResult" (values.actionAt 0) (values.stateAt 1) (values.outcomeAt 0)
       (values.factAt 0)
 
@@ -562,14 +563,14 @@ reach the derived Property and Behavior. -/
 
 /- A misspelled Property or Behavior member resolves to a value no Target provides, so admission
 rejects the declaration instead of silently checking a different one. -/
-private def misspelledProperty (values : Authoring.ModelVocabulary) : Property :=
-  Authoring.authoredProperty lifecycle values {
+private def misspelledProperty (values : Umpire.Command.ModelVocabulary) : Property :=
+  Umpire.Command.authoredProperty lifecycle values {
     declaration := "successfulResult", roleName := "operation"
     actionSpelling := "awaitSuccess"
     requirements := [.stateClause "successState" "suceeded"] }
 
-private def misspelledRole (values : Authoring.ModelVocabulary) : Scenario :=
-  Authoring.authoredScenario lifecycle values {
+private def misspelledRole (values : Umpire.Command.ModelVocabulary) : Scenario :=
+  Umpire.Command.authoredScenario lifecycle values {
     declaration := "successfulCompletion", roleName := "worker", setupState := "scheduled"
     occurrences := [("start", "awaitStart"), ("completion", "awaitSuccess")] }
 
@@ -582,7 +583,7 @@ private def misspelledRole (values : Authoring.ModelVocabulary) : Scenario :=
   | _ => false
 
 /--
-error: unknown Nexus model action 'awaitFinish'; declared: awaitStart, awaitSuccess
+error: unknown Model action 'awaitFinish'; declared: awaitStart, awaitSuccess
 -/
 #guard_msgs (error) in
 model unknownActionLifecycle
@@ -598,7 +599,7 @@ model unknownActionLifecycle
       { state := started, outcome := acknowledged, facts := [started] }
 
 /--
-error: unknown Nexus model state 'missing'; declared: scheduled, started, succeeded
+error: unknown Model state 'missing'; declared: scheduled, started, succeeded
 -/
 #guard_msgs (error) in
 model unknownStateLifecycle
@@ -654,7 +655,7 @@ is the reason to author the form at all. -/
   | _ => false
 
 /--
-error: Nexus model start states must be declared in sorted order, because the planner admits only a canonically ordered start-state list; 'succeeded' precedes 'scheduled'
+error: Model start states must be declared in sorted order, because the planner admits only a canonically ordered start-state list; 'succeeded' precedes 'scheduled'
 -/
 #guard_msgs (error) in
 model unsortedInitialLifecycle
@@ -669,13 +670,42 @@ model unsortedInitialLifecycle
     start: scheduled + awaitStart →
       { state := started, outcome := acknowledged, facts := [started] }
 
+/-! The three requirements the grammar does not spell -- the setup domain is the type named `Setup`
+in the declaring namespace, a Model declares exactly one role, and Action constructors are declared
+in sorted order -- are named by the diagnostic that enforces them. -/
+
+namespace AmbiguousSetup
+
+inductive Setup where
+  | queued
+  | running
+  deriving BEq, DecidableEq, Repr
+
+/--
+error: a Model takes its setup domain from a type named `Setup` in the declaring namespace, with exactly one constructor
+-/
+#guard_msgs (error) in
+model ambiguousSetupLifecycle
+  role operation
+  states State
+  actions Action
+  outcomes Outcome
+  facts Fact
+  starts [scheduled]
+  ends [succeeded]
+  steps
+    start: scheduled + awaitStart →
+      { state := started, outcome := acknowledged, facts := [started] }
+
+end AmbiguousSetup
+
 inductive UnsortedAction where
   | resolve
   | cancel
   deriving BEq, DecidableEq, Repr
 
 /--
-error: Nexus model action constructors must be declared in sorted order, because the planner admits only a canonically ordered Action catalog; 'resolve' precedes 'cancel'
+error: Model action constructors must be declared in sorted order, because the planner admits only a canonically ordered Action catalog; 'resolve' precedes 'cancel'
 -/
 #guard_msgs (error) in
 model unsortedActionLifecycle
@@ -696,7 +726,7 @@ inductive ParameterizedState where
   deriving BEq, DecidableEq, Repr
 
 /--
-error: Nexus model state 'running' takes arguments; a state domain must be an enum-like inductive
+error: Model state 'running' takes arguments; a state domain must be an enum-like inductive
 -/
 #guard_msgs (error) in
 model parameterizedLifecycle
@@ -712,7 +742,7 @@ model parameterizedLifecycle
       { state := running, outcome := acknowledged, facts := [started] }
 
 /--
-error: duplicate Nexus model step 'again': 'scheduled + awaitStart' is already declared by 'start'
+error: duplicate Model step 'again': 'scheduled + awaitStart' is already declared by 'start'
 -/
 #guard_msgs (error) in
 model duplicateTransitionLifecycle
@@ -730,7 +760,7 @@ model duplicateTransitionLifecycle
       { state := succeeded, outcome := completed, facts := [succeeded] }
 
 /--
-error: Nexus model end state 'succeeded' is unreachable from every start state
+error: Model end state 'succeeded' is unreachable from every start state
 -/
 #guard_msgs (error) in
 model unreachableTerminalLifecycle
@@ -763,7 +793,7 @@ local macro "boundedStepModel" modelName:ident count:num : command => do
       steps $rows*)
 
 /--
-error: Nexus model declares 257 steps; the elaboration bound is 256
+error: the Model declares 257 steps; the elaboration bound is 256
 -/
 #guard_msgs (error) in
 boundedStepModel overBoundLifecycle 257
@@ -775,7 +805,7 @@ retired keyword.
 -/
 
 /--
-error: the Nexus command keyword 'initial' is retired; write 'starts'
+error: the Model command keyword 'initial' is retired; write 'starts'
 -/
 #guard_msgs (error) in
 model retiredInitialLifecycle
@@ -791,7 +821,7 @@ model retiredInitialLifecycle
       { state := started, outcome := acknowledged, facts := [started] }
 
 /--
-error: the Nexus command keyword 'terminal' is retired; write 'ends'
+error: the Model command keyword 'terminal' is retired; write 'ends'
 -/
 #guard_msgs (error) in
 model retiredTerminalLifecycle
@@ -807,7 +837,7 @@ model retiredTerminalLifecycle
       { state := started, outcome := acknowledged, facts := [started] }
 
 /--
-error: the Nexus command keyword 'transitions' is retired; write 'steps'
+error: the Model command keyword 'transitions' is retired; write 'steps'
 -/
 #guard_msgs (error) in
 model retiredTransitionsLifecycle
@@ -823,7 +853,7 @@ model retiredTransitionsLifecycle
       { state := started, outcome := acknowledged, facts := [started] }
 
 /--
-error: the Nexus command keyword 'when action' is retired; write 'when'
+error: the Model command keyword 'when action' is retired; write 'when'
 -/
 #guard_msgs (error) in
 property retiredWhenAction on lifecycle
@@ -832,7 +862,7 @@ property retiredWhenAction on lifecycle
   require successState: state succeeded
 
 /--
-error: the Nexus command keyword 'resultingState' is retired; write 'state'
+error: the Model command keyword 'resultingState' is retired; write 'state'
 -/
 #guard_msgs (error) in
 property retiredResultingState on lifecycle
@@ -841,7 +871,7 @@ property retiredResultingState on lifecycle
   require successState: resultingState succeeded
 
 /--
-error: the Nexus command keyword 'behavior' is retired; write 'scenario'
+error: the Model command keyword 'behavior' is retired; write 'scenario'
 -/
 #guard_msgs (error) in
 behavior retiredBehavior on lifecycle
@@ -849,7 +879,7 @@ behavior retiredBehavior on lifecycle
   actions exactly [start: awaitStart, completion: awaitSuccess]
 
 /--
-error: the Nexus command keyword 'transitions' is retired; write 'steps'
+error: the Model command keyword 'transitions' is retired; write 'steps'
 -/
 #guard_msgs (error) in
 limits retiredTransitionsLimit
@@ -858,7 +888,7 @@ limits retiredTransitionsLimit
   search 16
 
 /--
-error: the Nexus command keyword 'selected_actions' is retired; write 'actions'
+error: the Model command keyword 'selected_actions' is retired; write 'actions'
 -/
 #guard_msgs (error) in
 limits retiredSelectedActionsLimit
@@ -867,7 +897,7 @@ limits retiredSelectedActionsLimit
   search 16
 
 /--
-error: the Nexus command keyword 'candidate_evaluations' is retired; write 'search'
+error: the Model command keyword 'candidate_evaluations' is retired; write 'search'
 -/
 #guard_msgs (error) in
 limits retiredCandidateEvaluationsLimit
@@ -876,7 +906,7 @@ limits retiredCandidateEvaluationsLimit
   candidate_evaluations 16
 
 /--
-error: the Nexus command keyword 'witness' is retired; write 'find'
+error: the Model command keyword 'witness' is retired; write 'find'
 -/
 #guard_msgs (error) in
 query retiredWitnessQuery on lifecycle
@@ -885,7 +915,7 @@ query retiredWitnessQuery on lifecycle
   limits shortTrace
 
 /--
-error: the Nexus command keyword 'all' is retired; write 'verify'
+error: the Model command keyword 'all' is retired; write 'verify'
 -/
 #guard_msgs (error) in
 query retiredAllQuery on lifecycle
@@ -925,7 +955,7 @@ private def statedIdentity : Umpire.Case.Producer.Identity := {
   programId := "temporal.case.async-nexus.program" }
 
 private def statedCase : Except Compiler.Error temporal.server.api.testpilot.v1.Case :=
-  Authoring.produceCase completion statedIdentity asyncNexusSuccess.realization
+  Umpire.Command.produceCase completion statedIdentity asyncNexusSuccess.realization
     asyncNexusSuccess.evidence
 
 /-- Every identity the derivation moved, masked out of the canonical bytes. The longer spelling is
@@ -1018,8 +1048,8 @@ case duplicateFixture fixture "async-nexus"
     awaitStart ← history nexusOperationStarted
     awaitSuccess ← history nexusOperationCompleted
 
-#print axioms Temporal.Feature.Nexus.Success.Authoring.successModel
-#print axioms Temporal.Feature.Nexus.Success.Authoring.check
+#print axioms Umpire.Command.declareModel
+#print axioms Umpire.Command.check
 #print axioms Temporal.Feature.Nexus.Success.lifecycle
 #print axioms Temporal.Feature.Nexus.Success.completion
 

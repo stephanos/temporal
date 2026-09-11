@@ -12,7 +12,7 @@ namespace Umpire.Case.Tests.Producer
 open Umpire.Case.Producer
 
 /-- The fixture name is the only identity slot: everything else derives from it. -/
-private def derived : Identity := Identity.ofFixture "async-nexus"
+private def derived : Identity := Identity.ofFixture "temporal.case" "async-nexus"
 
 #guard derived.caseId == "temporal.case.async-nexus"
 #guard derived.programId == "temporal.case.async-nexus.program"

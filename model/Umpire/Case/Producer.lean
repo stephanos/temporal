@@ -115,9 +115,10 @@ structure Identity where
   runScope : String := fixture
   deriving BEq, Repr
 
-/-- The Case ID a fixture name derives. -/
-def Identity.ofFixture (fixture : String) : Identity :=
-  { caseId := "temporal.case." ++ fixture, fixture }
+/-- The identity a fixture name derives under one project's Case ID root. The root is the caller's,
+because what a Case ID is rooted at is a project's convention, not Umpire's. -/
+def Identity.ofFixture (root fixture : String) : Identity :=
+  { caseId := root ++ "." ++ fixture, fixture }
 
 /-! ### Realization
 

@@ -2,36 +2,20 @@ import Lean
 import Umpire.Case.Compiler
 
 /-!
-# What the authoring commands know about each other
+# What the renderer knows about the Cases that exist
 
-Three environment extensions, written by the commands and read by the `case` command and by the
-renderer. They hold names and plain data only -- never a closure -- because they are written to the
-`.olean` and read back in another module's elaboration.
+One environment extension: a `case` block records the declaration that produces its Case, so the
+renderer enumerates every checked-in Case without a table anyone maintains. It holds names and plain
+data only -- never a closure -- because it is written to the `.olean` and read back in another
+module's elaboration.
 
-* A Scenario records the Action spellings it selects, so a `case` block can say which Action an
-  `evidence` line names that the Scenario never selects, on the line that names it.
-* A Query records whether it selects a witness and which Scenario it runs in, so a `case` block can
-  reject a `verify` Query -- a Case realizes one selected trace -- and reach the Scenario's Actions.
-* A `case` block records the declaration that produces its Case, so the renderer enumerates every
-  checked-in Case without a table anyone maintains.
+What a `case` block needs to know about the Scenario and Query it names lives in
+`Umpire.Command.Registry`, because those are the Model commands' own declarations.
 -/
 
 namespace Temporal.Case.Registry
 
 open Lean
-
-/-- One Scenario declaration and the Action spellings it selects, in declaration order. -/
-structure ScenarioEntry where
-  declName : Name
-  actions : Array String
-  deriving Inhabited, Repr, BEq
-
-/-- One Query declaration: whether it selects a witness, and the Scenario it runs in. -/
-structure QueryEntry where
-  declName : Name
-  selectsWitness : Bool
-  scenario : Name
-  deriving Inhabited, Repr, BEq
 
 /-- One registered Case: the declaration that produces it, and the identities it carries. -/
 structure CaseEntry where
@@ -40,21 +24,8 @@ structure CaseEntry where
   fixture : String
   deriving Inhabited, Repr, BEq
 
-private def collect {α : Type} (imported : Array (Array α)) : Array α :=
+private def collect (imported : Array (Array CaseEntry)) : Array CaseEntry :=
   imported.foldl (init := #[]) (· ++ ·)
-
-initialize scenarioExtension :
-    SimplePersistentEnvExtension ScenarioEntry (Array ScenarioEntry) ←
-  registerSimplePersistentEnvExtension {
-    addEntryFn := Array.push
-    addImportedFn := collect
-  }
-
-initialize queryExtension : SimplePersistentEnvExtension QueryEntry (Array QueryEntry) ←
-  registerSimplePersistentEnvExtension {
-    addEntryFn := Array.push
-    addImportedFn := collect
-  }
 
 initialize caseExtension : SimplePersistentEnvExtension CaseEntry (Array CaseEntry) ←
   registerSimplePersistentEnvExtension {
@@ -62,24 +33,10 @@ initialize caseExtension : SimplePersistentEnvExtension CaseEntry (Array CaseEnt
     addImportedFn := collect
   }
 
-def recordScenario (entry : ScenarioEntry) : CoreM Unit :=
-  modifyEnv fun env => scenarioExtension.addEntry env entry
-
-def recordQuery (entry : QueryEntry) : CoreM Unit :=
-  modifyEnv fun env => queryExtension.addEntry env entry
-
 def recordCase (entry : CaseEntry) : CoreM Unit :=
   modifyEnv fun env => caseExtension.addEntry env entry
 
-def scenarios (env : Environment) : Array ScenarioEntry := scenarioExtension.getState env
-def queries (env : Environment) : Array QueryEntry := queryExtension.getState env
 def cases (env : Environment) : Array CaseEntry := caseExtension.getState env
-
-def scenario? (env : Environment) (declName : Name) : Option ScenarioEntry :=
-  (scenarios env).find? (·.declName == declName)
-
-def query? (env : Environment) (declName : Name) : Option QueryEntry :=
-  (queries env).find? (·.declName == declName)
 
 /-- One registered Case as the renderer consumes it: its identities beside the compiled bytes. -/
 structure Materialized where

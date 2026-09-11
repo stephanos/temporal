@@ -274,6 +274,15 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   be the only public languages for declaring Properties, Scenarios, and Queries.
   `Umpire.CheckedModel` is their shared model representation, not an authoring language. Wrappers
   MUST NOT provide another way to define behavior.
+- **AUT-07a — The Model command surface.** *(drafted by fn-83; awaiting GOV-02 approval.)*
+  `Umpire.Command` MAY provide one command surface -- `model`, `property`, `scenario`, `limits`,
+  `query` -- over the AUT-07 languages, and it is the only such surface. Each command MUST elaborate
+  to the ordinary `Umpire.Property`, `Umpire.Scenario` and `Umpire.Query` declarations AUT-07 names,
+  MUST NOT admit anything those languages reject, and MUST NOT define behavior of its own. A
+  command surface that is not `Umpire.Command` is the "another way to define behavior" AUT-07
+  forbids. `Umpire.Command` MUST NOT name a feature, a protocol, or a runtime: which Definition ID
+  root a project hangs its families off, which namespace prefix is scaffolding, and what a Case ID
+  is rooted at are the project's declared conventions, not the surface's.
 - **AUT-08 — Finite Model adapter.** Authors SHOULD use the proof-carrying
   `Umpire.FiniteMachine` adapter when a complete finite Model has enumerators that define its
   authoritative behavior. The adapter derives membership relations, completeness support, and
