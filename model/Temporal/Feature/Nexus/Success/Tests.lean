@@ -637,26 +637,31 @@ witness-absent rather than lowering a Contract nothing selected. -/
   | .error error => error.construct == "witness.absent"
   | .ok _ => false
 
-/- An unsatisfiable Behavior reports what planning actually delivered, so an impossible scenario is
-distinguishable from an exhausted limit (PLN-05). -/
+/-! ### Admission runs while the Model file compiles
+
+Every mistake below the command surface is reported at the line that makes it, so a Model file that
+compiles is a Model file that was admitted. -/
+
 scenario impossibleCompletion
   model: lifecycle
   starts: scheduled
   actions: [awaitSuccess, awaitStart]
 
+/- An unsatisfiable Scenario says so, rather than being confused with a bound that stopped the
+search (PLN-05). -/
+/--
+error: the Scenario admits no trace at all: the Actions it names cannot be selected in that order
+-/
+#guard_msgs (error) in
 query unsatisfiableCompletion
   verify: successfulResult
   in: impossibleCompletion
   limits: shortTrace
 
-#guard match unsatisfiableCompletion with
-  | .error (.notSelected planned) => planned == .unsatisfiable
-  | _ => false
-
 /- A verify Query whose requirement an admitted trace violates reports that counterexample, which
 is the reason to author the form at all. -/
 #guard match runCheck (propertyAuthor := noWitnessProperty) (form := .verifyClaim) with
-  | .error (.notSelected (.found _ .violatingCounterexample)) => true
+  | .error (.notSelected (.found _ .violatingCounterexample) _ _) => true
   | _ => false
 
 /--
@@ -934,6 +939,101 @@ error: the Model declares 257 steps; the elaboration bound is 256
 -/
 #guard_msgs (error) in
 boundedStepModel overBoundLifecycle 257
+
+/-! ### Resolved references carry the constant they name
+
+Hover and go-to-definition on a member spelling work because the command gives that spelling the
+constructor it resolves to. This fails to elaborate if any recorded domain type or member spelling
+does not name a real constant -- which is exactly what would make the editor silent. -/
+
+open Lean in
+run_cmd do
+  let environment ← getEnv
+  let some declared := Umpire.Command.Registry.model? environment
+      ``Temporal.Feature.Nexus.Success.lifecycle
+    | throwError "the Nexus success Model is not recorded"
+  for (declaringType, members) in [
+      (declared.stateType, declared.states),
+      (declared.actionType, declared.actions),
+      (declared.outcomeType, declared.outcomes),
+      (declared.factType, declared.facts)] do
+    for spelling in members do
+      discard <| getConstInfo (declaringType ++ Name.mkSimple spelling)
+
+/-! ### Every name resolves, and every mistake lands where it was written -/
+
+/--
+error: unknown Model state 'suceeded'; declared: scheduled, started, succeeded
+-/
+#guard_msgs (error) in
+property misspelledState
+  model: lifecycle
+  when: awaitSuccess
+  require:
+    state: suceeded
+
+/--
+error: unknown Model outcome 'complete'; declared: acknowledged, completed
+-/
+#guard_msgs (error) in
+property misspelledOutcome
+  model: lifecycle
+  when: awaitSuccess
+  require:
+    outcome: complete
+
+/--
+error: unknown Model action 'awaitFinish'; declared: awaitStart, awaitSuccess
+-/
+#guard_msgs (error) in
+property misspelledWhen
+  model: lifecycle
+  when: awaitFinish
+  require:
+    state: succeeded
+
+/--
+error: 'Temporal.Feature.Nexus.Success.successfulResult' is not a Model declared by a `model` command
+-/
+#guard_msgs (error) in
+property notAModel
+  model: successfulResult
+  when: awaitSuccess
+  require:
+    state: succeeded
+
+/--
+error: unknown Model start state 'started'; declared: scheduled
+-/
+#guard_msgs (error) in
+scenario startsElsewhere
+  model: lifecycle
+  starts: started
+  actions: [awaitStart, awaitSuccess]
+
+/--
+error: unknown Model action 'awaitFinish'; declared: awaitStart, awaitSuccess
+-/
+#guard_msgs (error) in
+scenario unknownScenarioAction
+  model: lifecycle
+  starts: scheduled
+  actions: [awaitStart, awaitFinish]
+
+/- A bound that stops the search says a bound stopped it. -/
+limits tooFewSteps
+  steps: 1
+  actions: 1
+  search: 1
+
+/--
+error: the search stopped at a declared bound after 1 traces and 0 transitions; raise `limits` if the trace you mean is longer
+-/
+#guard_msgs (error) in
+query boundedCompletion
+  find: successfulResult
+  in: successfulCompletion
+  limits: tooFewSteps
 
 /-! ### The respelled surface rejects in place
 

@@ -411,9 +411,11 @@ inductive AdmissionError where
   | invalidKnownGaps (error : KnownGapError)
   | invalidQuery (error : QueryError)
   | invalidPlanner (error : FiniteSearchAdmissionError)
-  /-- Planning ran but did not deliver what the Query form claimed; the outcome says what it did
-  deliver, so an unsatisfiable Behavior is distinguishable from an exhausted limit. -/
-  | notSelected (outcome : PlanningOutcome)
+  /-- Planning ran but did not deliver what the Query form claimed. The outcome says what it did
+  deliver, and the counts it explored beside the Limits it was given say whether a bound stopped it
+  -- so "nothing here satisfies the Property" is distinguishable from "the search was cut short",
+  which are different mistakes with different fixes. -/
+  | notSelected (outcome : PlanningOutcome) (explored : ExploredCounts) (limits : Limits)
 
 /-- Which claim a Query makes: select one satisfying witness, or verify the requirement over every
 trace the Behavior admits within the declared limits. -/
@@ -477,7 +479,7 @@ def check [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
       pure { target, vocabulary, property, behavior, query, kernel, run, witness := some witness }
   | .verifyClaim, .verified =>
       pure { target, vocabulary, property, behavior, query, kernel, run, witness := none }
-  | _, outcome => throw (.notSelected outcome)
+  | _, outcome => throw (.notSelected outcome run.result.metadata.explored limits)
 
 
 /-! ### Producing a Case
@@ -538,5 +540,85 @@ def produceCase [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     source := «model».origin.source
     construct := "checked-model" }
   produce checked identity realization evidence required
+
+
+/-! ### What went wrong, where the author wrote it
+
+An authored mistake should be reported while the Model file compiles, at the line that makes it. The
+`query` command evaluates its own admission during elaboration and reports whatever comes back here,
+anchored at the part of the block it belongs to. -/
+
+/-- Which part of a `query` block a diagnostic belongs on. -/
+def Diagnostic.anchorModel : String := "model"
+def Diagnostic.anchorProperty : String := "property"
+def Diagnostic.anchorScenario : String := "scenario"
+def Diagnostic.anchorForm : String := "form"
+def Diagnostic.anchorLimits : String := "limits"
+def Diagnostic.anchorQuery : String := "query"
+
+private def finiteAdmissionDescription : FiniteAdmissionError → String
+  | .outgoingTerminalTransition => "an end state has an outgoing Step"
+  | .noncanonicalTable => "the declared Steps are not in canonical order"
+  | .finite _ => "the Step table was not admitted"
+
+private def traceActions (trace : Scenario.Trace) : String :=
+  ", ".intercalate (trace.trace.steps.map fun step => step.selectedAction.value)
+
+/-- Whether a declared bound actually stopped the search. Only then is "raise a limit" advice true;
+otherwise the Model simply has no trace that satisfies the Property. -/
+private def boundWasHit (explored : ExploredCounts) (limits : Limits) : Bool :=
+  explored.traces ≥ limits.search.value ||
+    explored.transitions ≥ limits.steps.value * (limits.search.value + 1)
+
+private def notSelectedMessage
+    (outcome : PlanningOutcome) (explored : ExploredCounts) (limits : Limits) : String :=
+  match outcome with
+  | .found trace .violatingCounterexample =>
+      s!"the Property does not hold: a trace the Scenario admits violates it, selecting " ++
+        s!"{traceActions trace}"
+  | .found _ reason => s!"planning selected a trace for '{reason.name}', which this form does not ask for"
+  | .verified => "planning verified the claim, which this form does not ask for"
+  | .unsatisfiable =>
+      "the Scenario admits no trace at all: the Actions it names cannot be selected in that order"
+  | .neverTriggered =>
+      "no admitted trace ever selects the Action the Property is about, so nothing triggers it"
+  | .stillPending =>
+      "a required value is still owed when the trace ends; the Scenario stops before the Property " ++
+        "can be answered"
+  | .invalid error => s!"the Query is not well formed: {reprStr error}"
+  | .noneFound | .limitReached =>
+      if boundWasHit explored limits then
+        s!"the search stopped at a declared bound after {explored.traces} traces and " ++
+          s!"{explored.transitions} transitions; raise `limits` if the trace you mean is longer"
+      else
+        s!"no trace the Scenario admits satisfies the Property; the search explored " ++
+          s!"{explored.traces} traces within the declared limits and no bound stopped it"
+
+/-- One authoring mistake, as the part of the `query` block it belongs on and what to say there.
+`none` means the Query was admitted.
+
+It is deliberately a plain `Option (String × String)`: the `query` command evaluates it during
+elaboration, and a value the elaborator has to evaluate must not depend on the Model's type. -/
+def diagnose [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
+    {«model» : DeclaredModel Setup State Action Outcome Fact}
+    (admitted : Except AdmissionError (CheckedModel «model»)) : Option (String × String) :=
+  match admitted with
+  | .ok _ => none
+  | .error (.invalidTarget error) =>
+      some (Diagnostic.anchorModel, s!"the Model was not admitted: {finiteAdmissionDescription error}")
+  | .error (.invalidVocabulary error) =>
+      some (Diagnostic.anchorModel, s!"the Model's vocabulary was not admitted: {reprStr error}")
+  | .error (.invalidProperty error) =>
+      some (Diagnostic.anchorProperty, s!"the Property was not admitted: {reprStr error}")
+  | .error (.invalidBehavior error) =>
+      some (Diagnostic.anchorScenario, s!"the Scenario was not admitted: {reprStr error}")
+  | .error (.invalidKnownGaps error) =>
+      some (Diagnostic.anchorQuery, s!"the Known Gaps were not admitted: {reprStr error}")
+  | .error (.invalidQuery error) =>
+      some (Diagnostic.anchorQuery, s!"the Query was not admitted: {reprStr error}")
+  | .error (.invalidPlanner error) =>
+      some (Diagnostic.anchorModel, s!"the Model admits no finite search: {reprStr error}")
+  | .error (.notSelected outcome explored limits) =>
+      some (Diagnostic.anchorForm, notSelectedMessage outcome explored limits)
 
 end Umpire.Command
