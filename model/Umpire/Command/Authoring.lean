@@ -59,6 +59,22 @@ def metadata
 
 end Origin
 
+/-- One authored Known Gap, addressed through the declaring file's own family. The code is
+`<family>.known-gap.<name>` and a subject, where one is named, is `<family>.property.<name>` -- so a
+gap says which Property it limits even when no Model file can declare that Property, which is often
+exactly why the gap exists. -/
+def Origin.knownGap
+    (origin : Origin)
+    (kind : KnownGapKind)
+    (name : String)
+    (subject : Option String)
+    (detail : String) : KnownGap := {
+  kind
+  code := origin.family.id "known-gap" name
+  subject := subject.map (origin.family.id "property")
+  detail := some detail
+}
+
 def meaning (id : DefinitionId) (kind : DefinitionKind) : Meaning := {
   definitionId := id
   kind
