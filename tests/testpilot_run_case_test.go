@@ -50,13 +50,52 @@ func bindCase(t *testing.T, env *testcore.TestEnv, source *testpilotpb.Case, bin
 	return newTestpilotLiveCase(t, env, source, profile, resources, cleanupTimeout)
 }
 
-// runCase is the happy path over bindCase: load the named fixture, create every resource it names,
-// run once, and fail the test on a Run error. Tests that vary the binding, run concurrently, or
-// deliberately omit a resource call bindCase directly.
-func runCase(t *testing.T, env *testcore.TestEnv, name string, binding CaseBinding) (*testpilotpb.Run, *testpilotpb.Verdict) {
+// defaultBinding is the binding a Case implies when the caller has nothing to say about it: one
+// namespace, queue and endpoint named after the fixture. A Case that binds no Nexus endpoint gets
+// none, because creating one it never references would authorize a resource the Case does not name.
+func defaultBinding(name string, source *testpilotpb.Case) CaseBinding {
+	binding := CaseBinding{
+		Identity:  "umpire-" + name + "-profile",
+		Namespace: "umpire-" + name,
+		TaskQueue: "umpire-" + name + "-queue",
+	}
+	if bindsNexusEndpoint(source) {
+		binding.NexusEndpoint = "umpire-" + name + "-endpoint"
+	}
+	return binding
+}
+
+// bindsNexusEndpoint reports whether the Case declares an endpoint role with its own resource
+// binding, which is the only thing a Nexus endpoint name resolves.
+func bindsNexusEndpoint(source *testpilotpb.Case) bool {
+	for _, role := range source.GetProgram().GetRoles() {
+		if role.GetKind() == testpilotpb.ROLE_KIND_ENDPOINT && role.GetResourceBindingId() != "" {
+			return true
+		}
+	}
+	return false
+}
+
+// runCase is the happy path: load the named fixture, create the resources its own name implies,
+// run once, and fail the test on a Run error. A new live test is this call plus its Verdict
+// assertions. Tests that vary the binding, run concurrently, or deliberately omit a resource call
+// runCaseWithBinding or bindCase directly.
+func runCase(t *testing.T, env *testcore.TestEnv, name string) (*testpilotpb.Run, *testpilotpb.Verdict) {
+	t.Helper()
+	source := loadTestpilotCase(t, name)
+	return runBoundCase(t, env, source, defaultBinding(name, source))
+}
+
+// runCaseWithBinding is runCase over a binding the caller chose.
+func runCaseWithBinding(t *testing.T, env *testcore.TestEnv, name string, binding CaseBinding) (*testpilotpb.Run, *testpilotpb.Verdict) {
+	t.Helper()
+	return runBoundCase(t, env, loadTestpilotCase(t, name), binding)
+}
+
+func runBoundCase(t *testing.T, env *testcore.TestEnv, source *testpilotpb.Case, binding CaseBinding) (*testpilotpb.Run, *testpilotpb.Verdict) {
 	t.Helper()
 	binding.CreateEndpoint = binding.NexusEndpoint != ""
-	live := bindCase(t, env, loadTestpilotCase(t, name), binding)
+	live := bindCase(t, env, source, binding)
 	run, verdict, err := live.prepared.Run(env.Context(), live.driver)
 	require.NoError(t, err)
 	return run, verdict

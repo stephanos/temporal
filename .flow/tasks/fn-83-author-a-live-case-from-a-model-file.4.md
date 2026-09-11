@@ -34,8 +34,16 @@ Delete the Go generator's functional Case table and its fixed-count guard and dr
 - [ ] `runCase(t, env, "async-nexus")` runs with no explicit binding; the async-Nexus live test uses lifted helpers
 - [ ] `go test -tags test_dep ./tools/umpire/... ./tests/testcore/testpilot/...` and `make umpire-check-live-tests` pass
 ## Done summary
-TBD
+Blocked:
+Blocked 2026-09-10 pending a redesign of the `case` abstraction (decided with the user, not yet a spec).
 
+The per-Case `case` block (one Query, one hand-picked realization template, per-Case evidence lines) is being replaced by:
+
+- **Sets per purpose.** A developer declares query sets by kind: functional and canary sets list Queries explicitly; exploratory sets state a coverage goal and a budget over a variation space.
+- **One Case per Query.** A set compiles to many Cases run together; "Case = one Program + one Contract" stays.
+- **A separate Temporal binding.** Runtime metadata (how an Action is caused, which recorded event confirms a step result, which resources a role needs) lives in a Temporal-owned binding declaration beside the behavioral Model, so Programs and Contracts are assembled from the Model plus its binding rather than from a whole-Program template chosen per Case.
+
+This task builds on the `case` block, whole-Program templates, per-Case evidence, or the Case-registry shape that redesign replaces. Unblock or rewrite it once the redesign spec exists.
 ## Evidence
 - Commits:
 - Tests:

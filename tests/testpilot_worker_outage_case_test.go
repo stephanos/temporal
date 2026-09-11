@@ -30,7 +30,7 @@ func workerOutageBinding() CaseBinding {
 // completed anyway, so the queued task surviving the outage is what the Run proves.
 func TestTestpilotWorkerOutageCase(t *testing.T) {
 	env := newTestpilotTestEnvironment(t)
-	run, verdict := runCase(t, env, "worker-outage", workerOutageBinding())
+	run, verdict := runCaseWithBinding(t, env, "worker-outage", workerOutageBinding())
 
 	require.Equal(t, testpilotpb.RUN_STATUS_COMPLETED, run.GetStatus())
 	require.Equal(t, testpilotpb.CLEANUP_STATUS_SUCCEEDED, run.GetCleanup().GetStatus())
