@@ -1020,6 +1020,34 @@ scenario unknownScenarioAction
   starts: scheduled
   actions: [awaitStart, awaitFinish]
 
+/- A Property no admitted trace satisfies says so, and says nothing about limits: the search
+completed, and raising a bound would not help. -/
+property unreachableResult
+  model: lifecycle
+  when: awaitSuccess
+  require:
+    state: scheduled
+
+/--
+error: no trace the Scenario admits satisfies the Property; the search explored 3 traces within the declared limits and no bound stopped it
+-/
+#guard_msgs (error) in
+query unreachableCompletion
+  find: unreachableResult
+  in: successfulCompletion
+  limits: shortTrace
+
+/- A misspelled Fact is resolved against the Model's own Fact domain. -/
+/--
+error: unknown Model fact 'succeeeded'; declared: started, succeeded
+-/
+#guard_msgs (error) in
+property misspelledFact
+  model: renamedLifecycle
+  when: awaitSuccess
+  require:
+    fact: succeeeded
+
 /- A bound that stops the search says a bound stopped it. -/
 limits tooFewSteps
   steps: 1
@@ -1027,7 +1055,7 @@ limits tooFewSteps
   search: 1
 
 /--
-error: the search stopped at a declared bound after 1 traces and 0 transitions; raise `limits` if the trace you mean is longer
+error: the search stopped at its declared bound after 1 traces; raise `limits` if the trace you mean is longer
 -/
 #guard_msgs (error) in
 query boundedCompletion
