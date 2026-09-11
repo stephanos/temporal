@@ -5,14 +5,11 @@ package tests
 import (
 	"os"
 	"path/filepath"
-	"strconv"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
-	enumspb "go.temporal.io/api/enums/v1"
-	historypb "go.temporal.io/api/history/v1"
 	"go.temporal.io/api/serviceerror"
 	testpilotpb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
@@ -122,6 +119,25 @@ func TestTestpilotAsyncNexusCaseMissingRemoteEndpoint(t *testing.T) {
 	require.NoError(t, err)
 }
 
+// TestTestpilotAsyncNexusCaseRunsFromItsFixtureNameAlone is what a new live test costs after this
+// spec: name the fixture, assert the Verdict. Everything else -- the namespace, the queue, the
+// Nexus endpoint, the derived Profile, the Driver -- follows from the Case's own bytes.
+func TestTestpilotAsyncNexusCaseRunsFromItsFixtureNameAlone(t *testing.T) {
+	env := newTestpilotTestEnvironment(t)
+
+	run, verdict := runCase(t, env, "async-nexus")
+
+	require.Equal(t, testpilotpb.RUN_STATUS_COMPLETED, run.GetStatus())
+	require.Equal(t, testpilotpb.CLEANUP_STATUS_SUCCEEDED, run.GetCleanup().GetStatus())
+	require.Equal(t, testpilotpb.VERDICT_STATUS_SATISFIED, verdict.GetStatus())
+	require.Len(t, verdict.GetRules(), 3)
+	for _, rule := range verdict.GetRules() {
+		require.Equal(t, testpilotpb.RULE_VERDICT_STATUS_SATISFIED, rule.GetStatus())
+	}
+	requireCorrelatedNexusHistoryEvidence(t, run, verdict.GetSupportingEventSequences(),
+		"umpire-async-nexus-endpoint")
+}
+
 func loadTestpilotCase(t testing.TB, name string) *testpilotpb.Case {
 	t.Helper()
 	encoded, err := os.ReadFile(filepath.Join("testcore", "testpilot", "testdata", name+"-case.json"))
@@ -129,78 +145,4 @@ func loadTestpilotCase(t testing.TB, name string) *testpilotpb.Case {
 	decoded, err := testpilot.DecodeCaseProtoJSON(encoded)
 	require.NoError(t, err)
 	return decoded
-}
-
-// requireCorrelatedNexusHistoryEvidence reads the supporting evidence back out of the Run. Each
-// supporting event carries both the history event it projected and the CorrelatedEvidence the same
-// projection lifted from it, and the two agree: the operation key every value carries is the
-// scheduled event both the started and the completed event name.
-func requireCorrelatedNexusHistoryEvidence(t testing.TB, run *testpilotpb.Run, sequences []int64, endpoint string) {
-	t.Helper()
-	require.Len(t, sequences, 2)
-	events := make([]*historypb.HistoryEvent, 0, len(sequences))
-	keys := make([]string, 0, len(sequences))
-	kinds := make([]string, 0, len(sequences))
-	for _, sequence := range sequences {
-		event := runEventAt(t, run, sequence)
-		require.Equal(t, "controller", event.GetCoordinates().GetEntrypointId())
-		require.Equal(t, "history", event.GetCoordinates().GetInstructionId())
-		var historyEvent historypb.HistoryEvent
-		require.NoError(t, observationValue(t, event, "history-event").GetMessageValue().UnmarshalTo(&historyEvent))
-		events = append(events, &historyEvent)
-		var evidence testpilotpb.CorrelatedEvidence
-		require.NoError(t, observationValue(t, event, "correlated-evidence").GetMessageValue().UnmarshalTo(&evidence))
-		keys = append(keys, evidence.GetOperation())
-		kinds = append(kinds, evidence.GetKind())
-	}
-	require.Equal(t, []enumspb.EventType{
-		enumspb.EVENT_TYPE_NEXUS_OPERATION_STARTED,
-		enumspb.EVENT_TYPE_NEXUS_OPERATION_COMPLETED,
-	}, []enumspb.EventType{events[0].GetEventType(), events[1].GetEventType()})
-	require.Equal(t, []string{
-		"temporal.nexus.success.evidence.started", "temporal.nexus.success.evidence.completed",
-	}, kinds)
-
-	scheduledID := events[0].GetNexusOperationStartedEventAttributes().GetScheduledEventId()
-	require.Positive(t, scheduledID)
-	require.Equal(t, scheduledID, events[1].GetNexusOperationCompletedEventAttributes().GetScheduledEventId())
-	require.Equal(t, []string{strconv.FormatInt(scheduledID, 10), strconv.FormatInt(scheduledID, 10)}, keys)
-	requestID := events[0].GetNexusOperationStartedEventAttributes().GetRequestId()
-	require.NotEmpty(t, requestID)
-	require.Equal(t, requestID, events[1].GetNexusOperationCompletedEventAttributes().GetRequestId())
-	requireScheduledNexusEndpoint(t, run, scheduledID, requestID, endpoint)
-}
-
-// requireScheduledNexusEndpoint finds the scheduled event the two supporting events name. It
-// supports no clause of its own -- the model's operation is already scheduled when it starts -- so
-// it is read from the Run rather than from the Verdict.
-func requireScheduledNexusEndpoint(t testing.TB, run *testpilotpb.Run, scheduledID int64, requestID, endpoint string) {
-	t.Helper()
-	for _, event := range run.GetEvents() {
-		for _, observation := range event.GetObservations() {
-			if observation.GetObservationId() != "history-event" {
-				continue
-			}
-			var historyEvent historypb.HistoryEvent
-			require.NoError(t, observation.GetValue().GetMessageValue().UnmarshalTo(&historyEvent))
-			if historyEvent.GetEventId() != scheduledID {
-				continue
-			}
-			scheduled := historyEvent.GetNexusOperationScheduledEventAttributes()
-			require.Equal(t, endpoint, scheduled.GetEndpoint())
-			require.Equal(t, requestID, scheduled.GetRequestId())
-			return
-		}
-	}
-	require.FailNow(t, "scheduled Nexus event not recorded")
-}
-
-func requireRunHasOutcome(t testing.TB, run *testpilotpb.Run, instructionID string, status testpilotpb.InstructionOutcomeStatus) {
-	t.Helper()
-	for _, event := range run.GetEvents() {
-		if event.GetCoordinates().GetInstructionId() == instructionID && event.GetOutcome().GetStatus() == status {
-			return
-		}
-	}
-	require.Fail(t, "Run does not contain expected instruction outcome", "instruction: %s, status: %s", instructionID, status)
 }

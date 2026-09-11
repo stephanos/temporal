@@ -88,6 +88,7 @@ case asyncNexusSuccess
 
 ### Key context
 - Depends on .11 (Known Gap lines on `query`) and .13 (optional Facts) so the grammar is respelled once, after it stops growing. .16, .17 and .14 follow it.
+- 2026-09-10: the `case` abstraction is under redesign (query sets per purpose, one Case per Query, a separate Temporal binding; see the block reason on .16 and .17). Respell only `enum`, `model`, `property`, `scenario`, `limits` and `query`; leave the `case` command and its fixture unchanged, and drop the `case` block from the acceptance evidence.
 
 ## Acceptance
 - [ ] Every indented framework word that introduces a value is spelled `word:`; no author-written label remains in `model`, `property` or `scenario`; `query` names no model; `property` and `scenario` name no role for a single-role model; step rows use `before + action → after, outcome: x[, facts: [...]]`; `evidence` lines have no `history`

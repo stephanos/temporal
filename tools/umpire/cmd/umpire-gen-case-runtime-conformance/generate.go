@@ -84,10 +84,13 @@ type manifestEntry struct {
 	Expected    expectedResult
 }
 
+// functionalEntry is one checked-in functional fixture: how to render it, what Case ID it must
+// carry, and where it is stored. Every entry but the synthetic one comes from the renderer's own
+// registry, so adding a Case never edits this file.
 type functionalEntry struct {
-	RendererArg string
-	CaseID      string
-	Filename    string
+	RendererArgs []string
+	CaseID       string
+	Filename     string
 }
 
 type rendererOutput struct {
@@ -97,7 +100,7 @@ type rendererOutput struct {
 
 type generationDependencies struct {
 	RenderCorrelated func(modelRoot string) (rendererOutput, error)
-	Render           func(modelRoot, argument string) (rendererOutput, error)
+	Render           func(modelRoot string, arguments ...string) (rendererOutput, error)
 	Publish          func(artifactio.Set, string, map[string][]byte, func(string) error) error
 }
 
@@ -110,7 +113,7 @@ func Run(arguments []string) error {
 	case generationModeConformance:
 		return runGeneration(configuration, productionManifest(), defaultGenerationDependencies())
 	case generationModeFunctional:
-		return runFunctionalGeneration(configuration, functionalManifest(), defaultGenerationDependencies())
+		return runFunctionalGeneration(configuration, defaultGenerationDependencies())
 	default:
 		return fmt.Errorf("unknown generation mode %q", configuration.Mode)
 	}
@@ -303,18 +306,19 @@ func validateGeneratedArtifacts(entries []manifestEntry, artifacts, candidate ma
 	return validateArtifacts(entries, candidate)
 }
 
-func runFunctionalGeneration(configuration generationConfig, entries []functionalEntry, dependencies generationDependencies) error {
+func runFunctionalGeneration(configuration generationConfig, dependencies generationDependencies) error {
 	if dependencies.Render == nil || dependencies.Publish == nil {
 		return errors.New("missing Case renderer or fixture publisher")
-	}
-	if len(entries) != 6 {
-		return fmt.Errorf("functional fixture manifest has %d entries, want exactly 6", len(entries))
 	}
 	repositoryRoot, err := filepath.Abs(configuration.RepositoryRoot)
 	if err != nil {
 		return fmt.Errorf("resolve repository root: %w", err)
 	}
 	modelRoot := filepath.Join(repositoryRoot, "model")
+	entries, err := functionalEntries(modelRoot, dependencies)
+	if err != nil {
+		return err
+	}
 	artifacts, err := renderFunctionalArtifacts(entries, modelRoot, dependencies)
 	if err != nil {
 		return err
@@ -355,7 +359,7 @@ func renderFunctionalArtifacts(entries []functionalEntry, modelRoot string, depe
 	artifacts := make(map[string][]byte, len(entries))
 	for _, entry := range entries {
 		encoded, err := renderStable(entry.Filename, func() (rendererOutput, error) {
-			return dependencies.Render(modelRoot, entry.RendererArg)
+			return dependencies.Render(modelRoot, entry.RendererArgs...)
 		})
 		if err != nil {
 			return nil, err
@@ -396,19 +400,50 @@ func functionalCasePath(entry functionalEntry) string {
 	return filepath.ToSlash(filepath.Join(functionalFixtureRoot, entry.Filename))
 }
 
-func functionalManifest() []functionalEntry {
-	return []functionalEntry{
-		{RendererArg: "get-system-info", CaseID: "temporal.case.get-system-info", Filename: "get-system-info-case.json"},
-		{RendererArg: "worker-outage", CaseID: "temporal.case.worker-outage", Filename: "worker-outage-case.json"},
-		{RendererArg: "async-nexus", CaseID: "temporal.case.async-nexus", Filename: "async-nexus-case.json"},
-		{RendererArg: "typed-unary", CaseID: "temporal.case.typed-unary", Filename: "typed-unary-case.json"},
-		{RendererArg: "typed-nexus", CaseID: "temporal.case.typed-nexus", Filename: "typed-nexus-case.json"},
-		{RendererArg: "synthetic", CaseID: "testpilot.synthetic.case", Filename: "synthetic-case.json"},
+// syntheticEntry is the one functional fixture the registry does not model: it carries no Case
+// value the renderer registers, so it keeps being named by its own renderer argument.
+func syntheticEntry() functionalEntry {
+	return functionalEntry{
+		RendererArgs: []string{"synthetic"},
+		CaseID:       "testpilot.synthetic.case",
+		Filename:     "synthetic-case.json",
 	}
 }
 
-func renderLeanCase(modelRoot, argument string) (rendererOutput, error) {
-	return renderExecutable(modelRoot, rendererExecutable, argument)
+// functionalEntries asks the renderer what Cases exist rather than being told. `--list` is read
+// twice and compared for the same reason every fixture is rendered twice: an unstable enumeration
+// would silently reorder or drop a checked-in file.
+func functionalEntries(modelRoot string, dependencies generationDependencies) ([]functionalEntry, error) {
+	listed, err := renderStable("--list", func() (rendererOutput, error) {
+		return dependencies.Render(modelRoot, "--list")
+	})
+	if err != nil {
+		return nil, err
+	}
+	entries := []functionalEntry{}
+	for _, line := range strings.Split(strings.TrimSpace(string(listed)), "\n") {
+		if strings.TrimSpace(line) == "" {
+			continue
+		}
+		fields := strings.Fields(line)
+		if len(fields) != 2 {
+			return nil, fmt.Errorf("list registered Cases: %q is not \"<case-id> <fixture-name>\"", line)
+		}
+		entries = append(entries, functionalEntry{
+			RendererArgs: []string{"--render", fields[0]},
+			CaseID:       fields[0],
+			Filename:     fields[1] + "-case.json",
+		})
+	}
+	if len(entries) == 0 {
+		return nil, errors.New("list registered Cases: the renderer registered none")
+	}
+	entries = append(entries, syntheticEntry())
+	return entries, nil
+}
+
+func renderLeanCase(modelRoot string, arguments ...string) (rendererOutput, error) {
+	return renderExecutable(modelRoot, rendererExecutable, arguments...)
 }
 
 func renderExecutable(modelRoot, executable string, arguments ...string) (rendererOutput, error) {

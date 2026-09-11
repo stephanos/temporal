@@ -131,7 +131,11 @@ func syntheticResult(source *testpilotspb.Case) *testpilotspb.Value {
 		GetFinish().GetResult().GetLiteral()
 }
 
-func TestLeanCasesDecodeAndGetSystemInfoPreparesWithoutDriverIO(t *testing.T) {
+// Decoding, preparing and identity for every fixture live in the shared table
+// (`fixture_table_test.go`). What is here is what that table cannot say: the two Contract shapes a
+// Case can carry, that a Profile is snapshotted exactly once, and that a Case mutated away from the
+// Profile it was derived from is rejected before any Driver I/O.
+func TestLeanCasesCarryTwoContractShapesAndPrepareWithoutDriverIO(t *testing.T) {
 	getSystemInfo := loadLeanCase(t, "get-system-info")
 	asyncNexus := loadLeanCase(t, "async-nexus")
 	require.NotEqual(t, getSystemInfo.GetProgram().GetProgramId(), asyncNexus.GetProgram().GetProgramId())
@@ -158,11 +162,6 @@ func TestLeanCasesDecodeAndGetSystemInfoPreparesWithoutDriverIO(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, profile.snapshots)
 	require.True(t, proto.Equal(getSystemInfo, prepared.Snapshot()))
-
-	asyncProfile := asyncNexusProfile(catalog, asyncNexus)
-	asyncPrepared, err := testpilot.Prepare(asyncNexus, asyncProfile)
-	require.NoError(t, err)
-	require.True(t, proto.Equal(asyncNexus, asyncPrepared.Snapshot()))
 
 	for _, mutate := range []func(*testpilotspb.Case){
 		func(candidate *testpilotspb.Case) {
