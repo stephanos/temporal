@@ -100,9 +100,67 @@ case asyncNexusSuccess
 
 
 ## Done summary
-TBD
+One rule now governs a Model file: a column-0 word is a declaration kind followed by the author's
+name, an indented `word:` is a framework key introducing a value, and everything else is an author
+name, a declared member, a number, or an operator.
 
+Derived keys, so nothing an author writes is a label the framework only hands back:
+- **relation** `<source>-<action>` (`scheduled-awaitStart`) -- the row's own coordinates, which the
+  command already proves unique by rejecting a second row leaving the same state on the same Action;
+- **clause** `<kind>-<member>` (`state-succeeded`) -- so a repeated requirement is a repeated key and
+  rejects on the line that repeats it;
+- **occurrence** the 1-based position in `actions:` -- what distinguishes two occurrences of the
+  same Action.
+All three pass `FiniteCatalog.validKey` (alphanumerics, `-`, `_`).
+
+Redundancy removed: a `query` names no Model (its Property and its Scenario each name one, and a
+disagreement rejects on the Scenario); `property` and `scenario` name no role while a Model declares
+exactly one; `actions:` is the exact sequence; a Step row is
+`before + action → after, outcome: x[, facts: [...]]` and the record form is gone. The Known Gap
+lines .11 added are respelled to keys (`gap:` / `code:` / `subject:` / `detail:`).
+
+`Umpire.Command.Registry` gained a `PropertyEntry`, a Model's `role`, and the Model each Scenario
+runs on, which is what lets `query` resolve the Model rather than be told it.
+
+Retirement: no retired arms were added for the pre-respell forms, and fn-82's retired arms
+(`initial`, `terminal`, `transitions`, `selected_actions`, `candidate_evaluations`, `behavior`,
+`witness`, `all`, `when action`, `resultingState`) went with the shapes that carried them -- every
+call site is in this repository and migrated in the same commit.
+`make umpire-check-retired-vocabulary` then needed no exemption at all, so both
+`model/Umpire/Command/Syntax.lean` and `model/Temporal/Feature/Nexus/Success/Tests.lean` were
+removed from `allowedNegativeFixture`, and the gate is green.
+
+Fixture diff, exactly the derived identities:
+  contract.correlated.clauses[0].clauseId   ...successfulResult.successOutcome -> ...outcome-completed
+  contract.correlated.clauses[1].clauseId   ...successfulResult.successState   -> ...state-succeeded
+  contract.correlated.projectionFingerprint moved, because the clause ids did
+  provenance.producerData                   moved, for the same reason
+Nothing else moved -- not the Program, not the projection rules, not the bounds.
+
+Scope note, per the 2026-09-10 line in the task: the `case` command is deliberately untouched, since
+the abstraction it belongs to is under redesign. Its `evidence ... ← history <kind>` lines therefore
+still carry `history`, and the acceptance line about them is not claimed.
+
+Deviation on pinning: a missing key and a key on the wrong line are **parse** errors, and
+`#guard_msgs` cannot capture those -- the command it wraps never parses, so the `#guard_msgs` block
+fails to parse with it. Both messages are located on the offending token
+(`unexpected identifier; expected 'states:'`, `unexpected token 'outcomes:'; expected 'actions:'`);
+they are recorded verbatim in a comment beside the pins that `#guard_msgs` can hold (the duplicate
+requirement and the Model mismatch, both pinned).
+
+`make umpire-check-regression` is exit 0 end to end (571 Lean jobs, 9 passing live identities);
+`make lint-model` reports 0 findings outside generated `Temporal/API/Proto.lean`;
+`make umpire-check-retired-vocabulary` passes.
+
+Review: SHIP, no introduced findings; the one observation (`let _ := prior`) was taken and the
+binding removed.
+Pinned reviewer `claude:claude-fable-5-1:high` is account-limited for this session, so the review
+ran on `claude:claude-sonnet-4-5:high` -- a same-family fallback, not an equivalent cross-family
+review.
+
+stage: impl-review - ran (model: claude-sonnet-4-5, high; fable pinned but account-limited)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: fd8420b270, bbb4b1a9e4
+- Tests: cd model && mise exec -- lake build, make umpire-gen-case-runtime-conformance (fixture diff listed in the summary), make umpire-check-case-runtime-conformance, make lint-model (0 findings outside generated Temporal/API/Proto.lean), make umpire-check-retired-vocabulary, make umpire-check-live-tests (9 passing identities), make umpire-check-regression (exit 0)
 - PRs:
