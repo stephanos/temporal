@@ -40,9 +40,62 @@ Extract namespace and Nexus endpoint provisioning from the live-test file into `
 - [ ] Unit tests cover exit 0, 1, 2, 3, timeout, SIGINT, `--create` collision, and a typed fixture rejection
 - [ ] The subprocess test passes under `make umpire-check-live-tests`; `make lint-code` is clean in touched files
 ## Done summary
-TBD
+Two seams, both of which the canary specs assume and neither of which existed.
 
+- `common/testing/testpilot/temporal/provision` (new): `Create(ctx, Clients, Resources) (Cleanup,
+  error)` over `WorkflowServiceClient.RegisterNamespace` + a bounded `DescribeNamespace` readiness
+  poll, `OperatorServiceClient.CreateNexusEndpoint`/`DeleteNexusEndpoint`, and
+  `OperatorServiceClient.DeleteNamespace`. No `testing`, no `testcore`, no `common/namespace`.
+  It rolls back what it created if a later step fails, and its cleanup releases in reverse order
+  reporting every resource it could not remove.
+- `tests/testpilot_live_case_test.go` binds through it; `newTestpilotLiveCase` lost its
+  `MetadataManager`-backed namespace registration and its hand-written endpoint cleanup.
+- `tools/umpire/cmd/umpire-run` (new): `--case --grpc --http --namespace --task-queue
+  [--nexus-endpoint] [--create] [--timeout]`, exit 0/1/2/3, SIGINT and timeout cancel the Run while
+  teardown runs on its own context with a per-resource budget.
+- `Makefile`: `umpire-run` build target (+ `.PHONY`); `common/testing/testpilot/README.md` and
+  `common/testing/testpilot/temporal/README.md` describe both.
+
+Deliberate design addition the spec did not name: `Resources.RetainNamespace`. Namespace deletion is
+a system-worker workflow; the functional cluster this repo runs live tests on does not start the
+worker service (the same reason `tests/namespace_test.go` asks for it explicitly), so waiting for it
+in every live test would cost tens of seconds per namespace and fail. The live tests set it; the CLI
+does not, so `--create` still deletes what it made against a real deployment.
+
+Spec acceptance on `go list -deps`: `tests/testcore` is absent from the transitive closure entirely.
+`service/` is NOT absent -- three packages (`service/history/consts`, `service/history/tasks`,
+`service/matching/counter`) are reached transitively through `common/dynamicconfig`,
+`common/persistence` and `chasm`, which the Driver's own Nexus support already pulled in before this
+task. The test pins that exact set, so a fourth is a failing test; the CLI itself imports neither.
+
+Tests: exit 0/1/2/3, a real `testpilot.Driver` fake failing through the real prepared-Case path,
+a typed fixture rejecting with its `PreparationError` category, missing flags, positional arguments,
+a non-positive timeout, an unreadable fixture, the binding timeout, a real SIGINT delivered to the
+test process, a `--create` collision, per-resource leak lines, and the transitive-closure gate.
+Provisioning: the readiness poll, endpoint skip, `RetainNamespace`, an existing namespace, rollback
+after an endpoint failure, a namespace the cache never serves, an unrelated describe failure,
+cleanup reporting both leaks, and three invalid requests.
+
+Live: `tests/testpilot_umpire_run_test.go` builds the binary and runs it as a subprocess with
+`--create` against the functional cluster -- exit 0, `run Completed`, `verdict Satisfied`, and the
+Nexus endpoint gone afterwards -- plus an unreachable-address case pinning exit 3.
+`make umpire-check-live-tests` is green across 8 passing identities (up from 6).
+
+`make lint-code GOLANGCI_LINT_FIX=false` reports 161 findings, none in a file this task touched.
+That is the tree's actual pre-existing count: the 128 recorded in this run's brief came from a pass
+that aborted early ("Issues before processing: 11800, after processing: 1" with a `no space left on
+device` typecheck failure), which is also what happened on my first attempt until I reclaimed the
+Go build cache.
+
+Review: SHIP after one round. The P2 (the import test read only declared imports, not the
+transitive closure) was valid and fixed by walking `go list -deps`.
+Pinned reviewer `claude:claude-fable-5-1:high` is account-limited for this session, so both rounds
+ran on `claude:claude-sonnet-4-5:high` -- a same-family fallback, not an equivalent cross-family
+review.
+
+stage: impl-review - ran, 2 rounds (model: claude-sonnet-4-5, high; fable pinned but account-limited)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: e752240daa, HEAD
+- Tests: CC=/usr/bin/cc go test -count=1 ./tools/umpire/cmd/umpire-run ./common/testing/testpilot/temporal/provision, make umpire-check-live-tests (8 passing identities), make lint-code GOLANGCI_LINT_FIX=false (161 findings, 0 in touched files), go build ./tools/umpire/cmd/umpire-run
 - PRs:
