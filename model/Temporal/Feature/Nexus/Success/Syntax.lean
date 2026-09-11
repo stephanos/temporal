@@ -157,9 +157,9 @@ private def semanticFamilyOf (enclosing : Name) : String :=
 paths already; an absolute one is trimmed so the recorded source does not depend on the checkout. -/
 private def packageRelativePath (raw : String) : String :=
   let normalized := raw.replace "\\" "/"
-  match normalized.splitOn "/model/" with
-  | [_, owned] => owned
-  | _ => normalized
+  -- The last segment, not the first: a checkout whose own path contains `/model/` must not shorten
+  -- the recorded source to something outside the package.
+  (normalized.splitOn "/model/").getLast!
 
 private def originTerm : CommandElabM Term := do
   let family := semanticFamilyOf (← getCurrNamespace)
