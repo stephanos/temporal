@@ -11,6 +11,13 @@ open Umpire.Case
 open Temporal.Feature.Nexus.Success
 open temporal.server.api.testpilot.v1
 
+/-- Facts the test Models declare. The Nexus success Model itself declares none, because every
+step there reaches a state named after what happened; these are here to keep the declared-Fact path
+pinned. -/
+enum Fact
+  | started
+  | succeeded
+
 private def admitted := completion.toOption
 
 -- The Case's Contract is the correlated capability and nothing else: no monitor rule, and one clause
@@ -149,7 +156,7 @@ private def fewerClausesProperty? : Option CheckedProperty := do
   let checked ← admitted
   let first ← (stepClauses lifecycle.origin.family "successfulResult"
     (checked.vocabulary.actionAt 1) (checked.vocabulary.stateAt 2)
-    (checked.vocabulary.outcomeAt 1) (checked.vocabulary.factAt 1)).head?
+    (checked.vocabulary.outcomeAt 1)).head?
   propertyWithClauses [first]
 
 -- Editing the Property changes the Case bytes rather than rejecting.
@@ -237,7 +244,6 @@ private def impossibleSuccess (values : Umpire.Command.ModelVocabulary) : Scenar
 private def noWitnessProperty (values : Umpire.Command.ModelVocabulary) : Property :=
   Umpire.Command.Tests.withClauses (successfulResult values) <| stepClauses lifecycle.origin.family
       "successfulResult" (values.actionAt 1) (values.stateAt 1) (values.outcomeAt 1)
-      (values.factAt 1)
 
 theorem undeclaredResultIsRejected :
     (runCheck (authoredTable := invalidResultTable)).toOption.isNone := by
@@ -270,7 +276,6 @@ property renamedResult on lifecycle
   when awaitSuccess
   require successState: state succeeded
   require successOutcome: outcome completed
-  require successFact: fact succeeded
 
 model renamedLifecycle
   role operation
@@ -352,8 +357,8 @@ Producer no longer compares them against one expected model. -/
 order, so every clause still places, and its own identity still reaches the bytes. -/
 #guard differsFromCompletionCase renamedBehaviorResult
 
-private def modelMemberIds {DeclaredSetup : Type} [BEq DeclaredSetup]
-    (candidate : Umpire.Command.DeclaredModel DeclaredSetup State Action Outcome Fact) :
+private def modelMemberIds {DeclaredSetup DeclaredFact : Type} [BEq DeclaredSetup] [BEq DeclaredFact]
+    (candidate : Umpire.Command.DeclaredModel DeclaredSetup State Action Outcome DeclaredFact) :
     List DefinitionId :=
   candidate.operationRoleId :: (candidate.stateIds ++ candidate.actionIds ++
     candidate.outcomeIds ++ candidate.factIds ++ candidate.relationIds)
@@ -434,7 +439,6 @@ private def reorderedAndDocumented (values : Umpire.Command.ModelVocabulary) : P
 private def changedMeaning (values : Umpire.Command.ModelVocabulary) : Property :=
   Umpire.Command.Tests.withClauses (successfulResult values) <| stepClauses lifecycle.origin.family
       "successfulResult" (values.actionAt 1) (values.stateAt 1) (values.outcomeAt 1)
-      (values.factAt 1)
 
 private def identityFingerprintCheck : Option Bool := do
   let checked ← admitted
@@ -463,7 +467,6 @@ clause carries is the Action the `require` line named. -/
 private def startClauses (values : Umpire.Command.ModelVocabulary) : Property :=
   Umpire.Command.Tests.withClauses (successfulResult values) <| stepClauses lifecycle.origin.family
       "successfulResult" (values.actionAt 0) (values.stateAt 1) (values.outcomeAt 0)
-      (values.factAt 0)
 
 #guard (do
   let checked ← admitted
@@ -473,14 +476,13 @@ private def startClauses (values : Umpire.Command.ModelVocabulary) : Property :=
       match output.contract.bind (·.«correlated») with
       | some capability =>
           pure (output.contract.map (·.rules.isEmpty) == some true &&
-            capability.clauses.size == 3 &&
+            capability.clauses.size == 2 &&
             capability.clauses.all (fun clause =>
               (clause.trigger.map (·.definition_id)) ==
                 some (checked.vocabulary.actionAt 0).definitionId.value) &&
-            -- Canonical clause order, so the three responses arrive by clause id.
+            -- Canonical clause order, so the responses arrive by clause id.
             (capability.clauses.map fun clause =>
               (clause.response.map (·.field)).getD .CORRELATED_PREDICATE_FIELD_UNSPECIFIED) == #[
-                .CORRELATED_PREDICATE_FIELD_FACT,
                 .CORRELATED_PREDICATE_FIELD_OUTCOME,
                 .CORRELATED_PREDICATE_FIELD_STATE])
       | none => pure false
@@ -719,6 +721,41 @@ query ungappedCompletion on lifecycle
 enum UnsortedEnumAction
   | resolve
   | cancel
+
+/-! ### A Model may record no Fact
+
+The Nexus success Model records none: every step reaches a state named after what happened, so a
+Fact would only restate it. A row that names one, or a `require ...: fact ...` clause, then has
+nothing to name. -/
+
+/--
+error: this Model declares no facts, so 'started' names nothing
+-/
+#guard_msgs (error) in
+model factlessRowLifecycle
+  role operation
+  states State
+  actions Action
+  outcomes Outcome
+  starts [scheduled]
+  ends [succeeded]
+  steps
+    start: scheduled + awaitStart →
+      { state := started, outcome := acknowledged, facts := [started] }
+
+/--
+error: this Model declares no facts, so 'succeeded' names nothing
+-/
+#guard_msgs (error) in
+property factlessClause on lifecycle
+  for operation
+  when awaitSuccess
+  require successFact: fact succeeded
+
+/- The success Model's Property is two clauses, and its vocabulary declares no Fact. -/
+#guard (do
+  let checked ← admitted
+  pure (checked.property.clauses.length == 2 && checked.vocabulary.facts.isEmpty)) == some true
 
 /-! ### `enum` declares a domain
 
