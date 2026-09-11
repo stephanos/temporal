@@ -16,6 +16,7 @@
     "fn-83-author-a-live-case-from-a-model-file.11": 0,
     "fn-83-author-a-live-case-from-a-model-file.12": 0,
     "fn-83-author-a-live-case-from-a-model-file.13": 0,
+    "fn-83-author-a-live-case-from-a-model-file.15": 0,
     "fn-83-author-a-live-case-from-a-model-file.2": 0,
     "fn-83-author-a-live-case-from-a-model-file.3": 0,
     "fn-83-author-a-live-case-from-a-model-file.4": 0,
@@ -904,6 +905,35 @@
       "task": "fn-83-author-a-live-case-from-a-model-file.13",
       "timestamp": "2026-09-11T03:55:14.082345Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "e187d8d135b3dfe791f71f75bae6f5024c20d0d7370db25aaa5ce3b00ad38455",
+      "backend": "claude",
+      "base_sha": "64f97ff3e15e799ba133ee29b148096e791e4e9a",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "fd8420b2707f0592db75ad6e0cf26be3ff66e248",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-sonnet-4-5",
+      "outcome": "verdict",
+      "output_bytes": 3221,
+      "output_sha256": "10712ea9c0b6afca486fd040b3bd8248ee01bdf2afc02989566cb70f2f8abe6b",
+      "reservation_id": "e08a3067c9c145e186e6d00b34a73035",
+      "round_consumed": true,
+      "scope": "impl:fn-83-author-a-live-case-from-a-model-file.15",
+      "superseded_by": null,
+      "task": "fn-83-author-a-live-case-from-a-model-file.15",
+      "timestamp": "2026-09-11T04:18:54.993580Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -912,6 +942,7 @@
     "impl:fn-83-author-a-live-case-from-a-model-file.11": 1,
     "impl:fn-83-author-a-live-case-from-a-model-file.12": 1,
     "impl:fn-83-author-a-live-case-from-a-model-file.13": 1,
+    "impl:fn-83-author-a-live-case-from-a-model-file.15": 1,
     "impl:fn-83-author-a-live-case-from-a-model-file.2": 1,
     "impl:fn-83-author-a-live-case-from-a-model-file.3": 1,
     "impl:fn-83-author-a-live-case-from-a-model-file.4": 1,
@@ -928,6 +959,7 @@
     "impl:fn-83-author-a-live-case-from-a-model-file.11": 0,
     "impl:fn-83-author-a-live-case-from-a-model-file.12": 0,
     "impl:fn-83-author-a-live-case-from-a-model-file.13": 0,
+    "impl:fn-83-author-a-live-case-from-a-model-file.15": 0,
     "impl:fn-83-author-a-live-case-from-a-model-file.2": 0,
     "impl:fn-83-author-a-live-case-from-a-model-file.3": 0,
     "impl:fn-83-author-a-live-case-from-a-model-file.4": 0,
@@ -949,5 +981,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-11T03:55:14.082983Z"
+  "updated_at": "2026-09-11T04:18:54.994520Z"
 }
