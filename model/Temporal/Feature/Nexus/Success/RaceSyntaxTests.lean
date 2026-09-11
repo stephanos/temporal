@@ -14,10 +14,6 @@ namespace Temporal.Feature.Nexus.Success.RaceSyntax
 
 open Umpire
 
-inductive Setup where
-  | queued
-  deriving BEq, DecidableEq, Repr
-
 /- Only the Action catalog is order-checked, and the `model` command rejects an unsorted one in
 place. The other domains are declared in lifecycle order to keep that distinction visible. -/
 inductive State where
