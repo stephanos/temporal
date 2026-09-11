@@ -37,9 +37,9 @@ Blocked 2026-09-10; superseded by fn-85 ("Model side effects as typed actions an
 
 The per-Case `case` block (one Query, one hand-picked whole-Program template, per-Case evidence lines) is replaced by:
 
-- **Side effects in the Model.** Entities with structured state; actions with a kind (`call`, `command`, `reply`), a party, a schema, input classes with representatives, and result classes; observations that confirm steps; machines of step rows. Request fields that decide the outcome are Model behavior, not binding detail.
-- **A Temporal Realization** that binds actions, result classes, observations, setup parameters and parties to RPCs, workflow commands, handler replies, history events and dynamic config. The Producer assembles Program and Contract from the witness; whole-Program templates and the `case` command are removed.
-- **Query sets per purpose.** A set binds each party to test or environment; a functional set compiles to one Case per Query; canary and exploratory sets are admitted for fn-70/fn-29 and fn-33.
+- **Side effects in the Model.** Entities with identity; actions a party performs, with input classes, examples, an optional schema and results; machines that keep each entity's state and rows; observations that confirm rows. Request fields that decide the outcome are Model behavior, not binding detail.
+- **A Temporal realization** in `Temporal.Case` that binds actions, results, observations, timers, setup parameters, switches and parties to RPCs, Testpilot instructions, history events and dynamic config. The Producer assembles Program and Contract from a Query's path; whole-Program templates and the `case` command are removed.
+- **Query sets per purpose.** A set binds each party to `driven` or `observed`; a functional set compiles to one Case per Query; canary and exploratory sets are admitted for fn-70/fn-29 and fn-33.
 
 fn-85's final task closes this task as superseded and names where its concern went. Design record: `model/Temporal/Feature/Nexus/DESIGN.md`.
 ## Evidence
