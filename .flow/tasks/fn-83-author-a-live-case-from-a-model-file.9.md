@@ -42,9 +42,44 @@ Store every generated Testpilot JSON artifact indented, so a reviewer can read a
 
 
 ## Done summary
-TBD
+All thirteen generated Testpilot JSON artifacts are stored indented.
 
+- `tools/umpire/cmd/umpire-gen-case-runtime-conformance/json.go`: `persistedForm` compacts then
+  re-indents with two spaces and appends exactly one LF. Compacting first makes the form idempotent
+  whatever whitespace the input carried, and both passes keep key order and string escapes exactly.
+  `requirePersistedForm` rejects a staged file that is valid JSON but stored otherwise, naming it.
+- `generate.go`: every published artifact goes through the one helper -- conformance `case.json`,
+  `correlated.json`, and the functional Case fixtures -- and all three validators
+  (`validateArtifacts`, `validateFunctionalArtifacts`, `validateGeneratedArtifacts`) enforce it.
+  The determinism check still compares the renderer's compact bytes before the file is stored;
+  `Testpilot.ProtoJSON.canonical` is untouched and stays the single encoding policy.
+- `generate_test.go`: the persisted form is pinned (key order kept, `A` and `\n` escapes
+  untouched, `x/y` unescaped, idempotent, exactly one trailing LF), and a compact-but-valid staged
+  fixture is rejected by filename.
+- `tests/testcore/testpilot/README.md` records the stored form and its single writer.
+- 13 regenerated files: 6 functional (`async-nexus` 1004 lines, `typed-nexus` 2025, `worker-outage`
+  752, `typed-unary` 585, `get-system-info` 155, `synthetic` 148), 6 conformance `case.json`
+  (122-153 lines each), and `correlated.json` (10924 lines, previously one line of 188 KB).
+
+No renderer-versus-fixture byte comparison from .3 exists in code (it was a manual verification
+recorded in that task's evidence), so nothing needed normalizing.
+
+Verified: `make umpire-gen-case-runtime-conformance` is idempotent (second run leaves the tree
+clean), `make umpire-check-case-runtime-conformance` passes,
+`go test -tags test_dep ./tools/umpire/... ./tests/testcore/testpilot/... ./common/testing/testpilot/...`
+is green, and `make umpire-check-live-tests` passes across 6 identities.
+
+Review: SHIP after one NEEDS_WORK round. The P0 was real and mine: `go build
+./tools/umpire/cmd/umpire-gen-case-runtime-conformance` drops its executable in the working
+directory and `git add -A` swept a 10 MB binary into the first commit. It is removed and `/umpire-*`
+is now ignored.
+Pinned reviewer `claude:claude-fable-5-1:high` is account-limited for this session, so both rounds
+ran on `claude:claude-sonnet-4-5:high` -- a same-family fallback, not an equivalent cross-family
+review.
+
+stage: impl-review - ran, 2 rounds (model: claude-sonnet-4-5, high; fable pinned but account-limited)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 4c7676d859, ba7d223eda
+- Tests: make umpire-gen-case-runtime-conformance (idempotent), make umpire-check-case-runtime-conformance, CC=/usr/bin/cc go test -count=1 -tags test_dep ./tools/umpire/... ./tests/testcore/testpilot/... ./common/testing/testpilot/..., make umpire-check-live-tests (6 passing identities)
 - PRs:

@@ -14,7 +14,7 @@
     "fn-83-author-a-live-case-from-a-model-file.1": 0,
     "fn-83-author-a-live-case-from-a-model-file.2": 0,
     "fn-83-author-a-live-case-from-a-model-file.3": 0,
-    "fn-83-author-a-live-case-from-a-model-file.9": 1
+    "fn-83-author-a-live-case-from-a-model-file.9": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -599,12 +599,42 @@
       "task": "fn-83-author-a-live-case-from-a-model-file.9",
       "timestamp": "2026-09-11T00:56:03.712848Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "ce2719de22798acc77b29b102c06df4d1db8b1b63e5c6e289e679fb0fdc10dd0",
+      "backend": "claude",
+      "base_sha": "508cc866366ae29a2ab8c5aea97b339b1034fdf1",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "ba7d223edaf86f45e5a6bef76ae62ad3e8c7847f",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-sonnet-4-5",
+      "outcome": "verdict",
+      "output_bytes": 2355,
+      "output_sha256": "b25e8695e49ce8cf7a80f5c0ed43b0052ebeec1b37807930a1ef50fdb7542715",
+      "reservation_id": "b60ffe6f0d92420e9b47c47b82c633e3",
+      "round_consumed": true,
+      "scope": "impl:fn-83-author-a-live-case-from-a-model-file.9",
+      "superseded_by": null,
+      "task": "fn-83-author-a-live-case-from-a-model-file.9",
+      "timestamp": "2026-09-11T01:00:28.160322Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-83-author-a-live-case-from-a-model-file.1": 1,
     "impl:fn-83-author-a-live-case-from-a-model-file.2": 1,
     "impl:fn-83-author-a-live-case-from-a-model-file.3": 1,
+    "impl:fn-83-author-a-live-case-from-a-model-file.9": 1,
     "plan": 1,
     "plan#completion": 0
   },
@@ -631,5 +661,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-11T00:56:03.713716Z"
+  "updated_at": "2026-09-11T01:00:28.161268Z"
 }
