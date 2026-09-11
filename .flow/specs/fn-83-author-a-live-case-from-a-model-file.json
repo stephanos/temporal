@@ -12,7 +12,8 @@
   "id": "fn-83-author-a-live-case-from-a-model-file",
   "impl_review_rounds": {
     "fn-83-author-a-live-case-from-a-model-file.1": 0,
-    "fn-83-author-a-live-case-from-a-model-file.2": 0
+    "fn-83-author-a-live-case-from-a-model-file.2": 0,
+    "fn-83-author-a-live-case-from-a-model-file.3": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -524,11 +525,41 @@
       "task": "fn-83-author-a-live-case-from-a-model-file.2",
       "timestamp": "2026-09-11T00:07:21.490316Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "cf523e4f528b42b46e6574c87ab13c5655d42a4b7447384514f4028dfa305374",
+      "backend": "claude",
+      "base_sha": "fb279d8523bfb95e7dff9f4619a24f2090233d64",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "508cc866366ae29a2ab8c5aea97b339b1034fdf1",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-sonnet-4-5",
+      "outcome": "verdict",
+      "output_bytes": 3413,
+      "output_sha256": "d3fabe8a91d434ace2b9f2eb1b88659f6462bb5bb580f7f68e3df7f4630a764f",
+      "reservation_id": "ef2c7af6b56447a68da0820c290836fe",
+      "round_consumed": true,
+      "scope": "impl:fn-83-author-a-live-case-from-a-model-file.3",
+      "superseded_by": null,
+      "task": "fn-83-author-a-live-case-from-a-model-file.3",
+      "timestamp": "2026-09-11T00:45:53.099018Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-83-author-a-live-case-from-a-model-file.1": 1,
     "impl:fn-83-author-a-live-case-from-a-model-file.2": 1,
+    "impl:fn-83-author-a-live-case-from-a-model-file.3": 1,
     "plan": 1,
     "plan#completion": 0
   },
@@ -537,6 +568,7 @@
   "review_transport_failures": {
     "impl:fn-83-author-a-live-case-from-a-model-file.1": 0,
     "impl:fn-83-author-a-live-case-from-a-model-file.2": 0,
+    "impl:fn-83-author-a-live-case-from-a-model-file.3": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-83-author-a-live-case-from-a-model-file.md",
@@ -553,5 +585,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-11T00:36:29.897640Z"
+  "updated_at": "2026-09-11T00:45:53.100020Z"
 }
