@@ -67,3 +67,6 @@ testdata/
 
 # Ignoring AI agent files
 .agents/
+
+# Locally built Umpire tool binaries; `go build ./tools/umpire/cmd/<name>` drops them here.
+/umpire-*
