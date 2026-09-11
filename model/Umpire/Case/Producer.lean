@@ -180,6 +180,8 @@ structure Realization where
   correlatedObservation : String
   /-- The role a fault line's outage is injected against. -/
   taskQueueRole : String
+  /-- The Contract rule the Producer adds to order a Scenario's `fault` lines. It is read only when
+  the Scenario carries some, so a Case with no fault line never carries this ID. -/
   faultRuleId : String
   hooks : List Hook := []
   sources : List EvidenceSource

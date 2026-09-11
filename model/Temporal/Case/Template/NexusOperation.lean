@@ -234,7 +234,11 @@ def nexusOperation (service operation : String) (responds : Response) :
     historyObservation := Support.historyObservation
     correlatedObservation := Support.correlatedObservation
     taskQueueRole := Support.taskQueueRole
-    faultRuleId := "nexus-operation-order"
+    -- Named per response form. It reaches a Case only through the ordering rule the Producer adds
+    -- when a Scenario carries `fault` lines; a Case with none never carries it.
+    faultRuleId := match responds with
+      | .async => "async-nexus-order"
+      | .sync => "sync-nexus-order"
     hooks := [
       { name := "start", instruction := Ref.instruction "controller" "start-workflow" },
       { name := "completion", instruction := Ref.instruction "controller" completionHook }]

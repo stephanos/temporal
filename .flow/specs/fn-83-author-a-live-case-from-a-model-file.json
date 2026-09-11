@@ -12,7 +12,7 @@
   "id": "fn-83-author-a-live-case-from-a-model-file",
   "impl_review_rounds": {
     "fn-83-author-a-live-case-from-a-model-file.1": 0,
-    "fn-83-author-a-live-case-from-a-model-file.2": 2
+    "fn-83-author-a-live-case-from-a-model-file.2": 3
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -451,6 +451,50 @@
       "task": "fn-83-author-a-live-case-from-a-model-file.2",
       "timestamp": "2026-09-10T23:56:47.741713Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "778d8b1a5aeed6419bf7ab02f1a331de8ba1eb7e2793e8bb3d074e0f0d442fa6",
+      "backend": "claude",
+      "base_sha": "1375ba9df30f211c4a786267b3703abed9f786a9",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-f5027158f4594e03960e77aecfc0e6e5",
+            "classification": "introduced",
+            "findingId": "finding-f5027158f4594e03960e77aecfc0e6e5",
+            "firstSeenThisRound": true,
+            "severity": "P0",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "0da55dc8215f1d4133808b22ce9009a8c126d529",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-sonnet-4-5",
+      "outcome": "verdict",
+      "output_bytes": 1314,
+      "output_sha256": "4e3fb6ea0b01f19f05cbf596e6ba6d4e2a4d47da8039e89048037e33de36fba9",
+      "reservation_id": "16cff83020eb47ffbebd0cf2c7e5f222",
+      "round_consumed": true,
+      "scope": "impl:fn-83-author-a-live-case-from-a-model-file.2",
+      "superseded_by": null,
+      "task": "fn-83-author-a-live-case-from-a-model-file.2",
+      "timestamp": "2026-09-11T00:03:05.247467Z",
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
@@ -479,5 +523,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-10T23:56:47.742453Z"
+  "updated_at": "2026-09-11T00:03:05.248534Z"
 }
