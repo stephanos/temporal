@@ -14,9 +14,9 @@ closure -- because they are written to the `.olean` and read back in another mod
   needs one selected trace can reject a `verify` Query and reach the Scenario's Actions.
 
 `Conventions` is the one thing these commands cannot derive: which definition root a project hangs
-its Definition IDs off, which namespace prefix is scaffolding rather than semantic family, and which
-Known Gaps its Queries carry. A project declares it once with `model_conventions`; a file that
-declares none gets an empty root, the whole namespace as its family, and no Known Gaps.
+its Definition IDs off, and which namespace prefix is scaffolding rather than semantic family. A
+project declares it once with `model_conventions`; a file that declares none gets an empty root and
+the whole namespace as its family.
 -/
 
 namespace Umpire.Command.Registry
@@ -42,9 +42,6 @@ structure Conventions where
   root : String := ""
   /-- The leading namespace components that are scaffolding, not semantic family. -/
   namespacePrefix : Name := .anonymous
-  /-- A declaration of type `Except KnownGapError KnownGapSet` every Query carries; anonymous for
-  none. -/
-  knownGaps : Name := .anonymous
   deriving Inhabited, Repr, BEq
 
 def collect {α : Type} (imported : Array (Array α)) : Array α :=
@@ -90,21 +87,10 @@ a project that declares them once gets them everywhere. -/
 def conventions (env : Environment) : Conventions :=
   ((conventionsExtension.getState env).back?).getD {}
 
-/-- Record one project's conventions. -/
-private def declareConventions (root : String) (namespacePrefix knownGaps : Name) :
-    Elab.Command.CommandElabM Unit :=
+/-- Declare a project's conventions once. -/
+elab "model_conventions" &"root" root:str &"under" namespacePrefix:ident : command =>
   Elab.Command.liftCoreM (modifyEnv fun env =>
-    conventionsExtension.addEntry env { root, namespacePrefix, knownGaps })
-
-/-- Declare a project's conventions once, with the Known Gaps every Query carries. -/
-elab "model_conventions" &"root" root:str &"under" namespacePrefix:ident
-    &"gaps" gapsRef:ident : command => do
-  let knownGaps ← Elab.Command.liftTermElabM
-    (Lean.Elab.realizeGlobalConstNoOverloadWithInfo gapsRef)
-  declareConventions root.getString namespacePrefix.getId knownGaps
-
-/-- The same, for a project whose Queries carry no Known Gaps. -/
-elab "model_conventions" &"root" root:str &"under" namespacePrefix:ident : command => do
-  declareConventions root.getString namespacePrefix.getId .anonymous
+    conventionsExtension.addEntry env {
+      root := root.getString, namespacePrefix := namespacePrefix.getId })
 
 end Umpire.Command.Registry
