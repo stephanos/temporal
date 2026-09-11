@@ -31,9 +31,19 @@ repository is a generated fixture, and fn-85 is about to add Nexus instructions 
 every hand-written Case. Cleaning the protocol now means those specs author against the final shapes
 instead of adding to the current ones.
 
-This spec makes the protocol consistent with the glossary, structured by concept, and smaller, and
-documents how it is extended. It changes no runtime semantics: every migrated Case means exactly
-what the fixture it replaces meant.
+The generated fixtures are also hard to review. `typed-nexus-case.json` is 2,025 lines and 316 KB:
+21 parameterized model values of about 11,000 characters each make up 77% of its bytes; 34 distinct
+dotted Definition IDs appear 104 times; guards, outcome declarations, instruction limits and
+dependency lists take 660 lines, and every one of the 14 instruction guards across the six
+checked-in Cases is "every dependency succeeded"; fields appear in alphabetical order, so an
+instruction's id sits after its guard; field paths are nested objects; enum literals are numbers;
+and each Case carries 24 to 83 limit fields, none of which takes more than four distinct values
+across the six Cases.
+
+This spec makes the protocol consistent with the glossary, structured by concept, smaller, and
+readable as a reviewed artifact, and documents how it is extended. Breaking changes are allowed.
+Verdicts do not change: every migrated Case reaches the same Verdict on the same Run as the fixture
+it replaces.
 
 ## Architecture & Data Models
 <!-- scope: technical -->
@@ -88,6 +98,7 @@ One file per concept, each message documented, field numbers dense:
 | `instruction.proto` | the instruction graph node, `Instruction` and every instruction message, outcomes, response reads, `InstructionLimits`, fault kinds |
 | `contract.proto` | `Contract`, rules, states, transitions, captures, `Deadline`, `ContractLimits` |
 | `correlated.proto` | the correlated contract, its rules, projection, evidence lift and evidence (`CorrelatedEvidence`) |
+| `event.proto` | Run Event kinds and filters, shared by Contract and Run |
 | `run.proto` | `Run`, Run Events and their payloads (R4), diagnostics, cleanup, `Verdict` |
 
 ### One expression language
@@ -130,6 +141,52 @@ injected, diagnostic reference) instead of per-kind optional fields. Contract ex
 payload fields through a `FieldPath` from a `run_event` reference, so `RunEventField` keeps only the
 coordinates every event has (sequence, elapsed milliseconds, kind, entrypoint, activation,
 instruction, attempt, source, run) and loses `FAULT_ROLE_ID` and `FAULT_KIND`.
+
+### Defaults and derived fields
+
+- **Order by default.** An instruction depends on the previous instruction of its entrypoint and
+  runs only when every dependency succeeded. `after:` names a dependency on another entrypoint, and
+  an explicit guard is written only for any other condition.
+- **Derived declarations.** The environment binding list is the set of bindings roles and
+  expressions reference; activation reservations follow from the instructions that start
+  activations; an instruction's outcome fields follow from its kind. None is written in a Case.
+- **Omitted defaults.** Instruction limits equal to the Profile's defaults are omitted.
+
+### Resource ceilings in the Profile
+
+A Case declares only bounds that carry meaning: instruction timeout and attempts, Contract deadlines,
+and correlated windows. Node, edge, byte, work, capture and depth ceilings move to the Profile, which
+admission already checks every Case against. This amends SEM-16, which today makes the Case
+authoritative for all its bounds.
+
+### Readable provenance and identity
+
+- **Structured provenance.** `CaseProvenance` holds typed rows: Definition IDs with fingerprints and
+  sources, Known Gaps, and abstraction claims (fn-85 R8). The runtime still reads none of it. The
+  glossary's "generic opaque provenance" is amended.
+- **Case-local identifiers.** Program and Contract refer to states, actions, outcomes, facts, fields
+  and rules by short Case-local names (`operation-identity`, not
+  `temporal.nexus.success.typed-nexus.evidence.operation-identity`); provenance maps each local name
+  to its Definition ID.
+- **Short model values.** A model value is its declared spelling. A parameterized value's canonical
+  encoding moves into provenance as a fingerprint, so a Case carries `completed`, not an
+  11,000-character key.
+
+### Presentation
+
+- **Declaration order.** `Testpilot.ProtoJSON` emits fields in declaration order, and each message
+  declares its identity first, then what it does, then when it runs.
+- **Readable paths and enums.** A field path is a string in a documented grammar
+  (`attributes<nexus_operation_completed_event_attributes>.scheduled_event_id`, `history.events[*]`),
+  parsed at preparation; enum literals carry the value name.
+- **Absent operands.** A comparison with an absent operand is false, so Producers stop emitting
+  presence checks beside every comparison on the same path. This is a semantic change and applies to
+  every expression context.
+
+### Case closure
+
+The Case's import closure excludes `Run`, `Verdict` and the Run-only messages: Run Event kinds and
+filters move to a file both `contract.proto` and `run.proto` import.
 
 ### Renames
 
@@ -197,10 +254,17 @@ message Deadline {
 ## Edge Cases & Constraints
 <!-- scope: technical -->
 
-- **No semantic change.** Every migrated Case, conformance corpus entry and expected Verdict means
-  what it meant; a Go test decodes each pre-migration fixture through a snapshot of today's
-  descriptors, maps it field by field to the new protocol, and compares it with the regenerated
-  fixture. A difference that is not a declared rename fails.
+- **No Verdict change.** Every migrated Case, conformance corpus entry and expected Verdict reaches
+  the same Verdict on the same Run; a Go test decodes each pre-migration fixture through a snapshot
+  of today's descriptors, maps it to the new protocol under an explicit mapping (renames, derived
+  fields, defaults, local identifiers, moved ceilings), and compares it with the regenerated
+  fixture. A difference the mapping does not declare fails.
+- **Absent operands.** Changing comparisons on absent operands to false is checked against every
+  conformance class and live test; any Verdict that moves is a finding to explain before the change
+  lands.
+- **Ceilings.** A Case whose former ceiling was tighter than the Profile's keeps that bound only if
+  it carried meaning (a timeout, attempts, a deadline, a window); otherwise the Profile's ceiling
+  applies and the receipt lists the loosened bound.
 - **Context checks replace types.** An expression reference outside its admitted context rejects at
   preparation with the existing static-preparation error category and the offending path; the
   conformance corpus gains one such rejection.
@@ -253,19 +317,47 @@ message Deadline {
 - **R7:** `common/testing/testpilot/README.md` gains an extension section listing, for a new
   instruction, fault kind, Run Event payload and expression reference, every place that must change
   (protocol, generated Lean, `Testpilot.Authoring`, Go interpreter or evaluator, Profile Opcode,
-  conformance class, retired-vocabulary gate), with the Nexus instruction additions of fn-85 R10 as
-  the worked example. Errors: no error surface.
+  conformance class, retired-vocabulary gate), with the worker-stop fault kind traced through every
+  place as the worked example; fn-85 R10 is its first use. Errors: no error surface.
 - **R8:** Every fixture and conformance corpus entry regenerates through its generator; the
   field-mapping equivalence test passes for every pre-migration fixture; `make
   umpire-check-testpilot-protocol`, `make umpire-check-case-runtime-conformance`,
   `make umpire-check-live-tests`, `make lint-model` and `make umpire-check-regression` pass. Errors:
-  a fixture whose migrated form differs beyond declared renames fails the equivalence test naming
+  a fixture whose migrated form differs beyond the declared mapping fails the equivalence test naming
   the fixture and the field.
+- **R9:** Instructions run in entrypoint order by default and only when their dependencies
+  succeeded; `after:` names cross-entrypoint dependencies; explicit guards remain only for other
+  conditions. Errors: an `after:` naming an unknown instruction or forming a cycle rejects at
+  preparation.
+- **R10:** The environment binding list, activation reservations and instruction outcome fields are
+  derived at preparation and no longer written in a Case; instruction limits equal to the Profile
+  defaults are omitted. Errors: a Case that still writes a derived field rejects at preparation
+  naming it.
+- **R11:** A Case's import closure excludes `Run`, `Verdict`, diagnostics and Run Event payloads,
+  checked by a Go test over the descriptor set. Errors: an import that pulls a Run-only message into
+  the Case closure fails that test naming the file.
+- **R12:** Node, edge, byte, work, capture and depth ceilings live in the Profile; a Case declares
+  only instruction timeouts and attempts, deadlines and correlated windows; an SEM-16 amendment is
+  drafted under GOV-02. Errors: a Case bound outside the Profile's ceiling rejects at preparation as
+  today.
+- **R13:** `CaseProvenance` is structured (Definition IDs with fingerprints and sources, Known Gaps,
+  abstraction claims) and readable in fixture diffs; the glossary's Case and Provenance entries are
+  amended under GOV-02. Errors: no error surface; the runtime does not read provenance.
+- **R14:** Program and Contract use Case-local names, and provenance maps each to its Definition ID;
+  a model value is its declared spelling, with a parameterized value's canonical encoding recorded
+  as a fingerprint in provenance; `typed-nexus-case.json` shrinks by at least its 244 KB of encoded
+  values. Errors: a Case-local name used twice for different Definition IDs rejects at production
+  naming both.
+- **R15:** `Testpilot.ProtoJSON` emits fields in declaration order with identity first; field paths
+  are strings in a documented grammar parsed at preparation; enum literals carry names; a comparison
+  with an absent operand is false and Producers emit no presence check beside a comparison on the
+  same path. Errors: a path string outside the grammar and an enum name the descriptor does not
+  declare reject at preparation with the offending text.
 
 ## Early proof point
 
 Land R1 and R2 first, purely mechanical: renames, file moves, comments and renumbering, with the
-equivalence test proving every fixture unchanged in meaning. Only then start R3 to R6. If the
+equivalence test proving every fixture unchanged in meaning. Only then start R3 to R6 and R9 to R15. If the
 equivalence test cannot be written against a descriptor snapshot, stop: the "no semantic change"
 guarantee needs another oracle before any structural change.
 
@@ -276,19 +368,18 @@ guarantee needs another oracle before any structural change.
 
   | Gap | Owner |
   | --- | --- |
-  | Nexus operation timeouts, operation-failed reply, handler error type and retry behavior, completion outcome | fn-85 R10, authored on the new shapes |
+  | worker instructions carrying Temporal API messages (Nexus timeouts, operation-failed reply, handler error type and retry behavior, completion outcome) and one observation declaration per Case | fn-85 R10, authored on the new shapes |
   | Nexus cancel request and handler cancel reply | fn-79 |
   | correlated transitions over structured machine state (a record of fields per entity instance, not one `state` value and a fact list) | fn-85, whose machines need it |
   | a wait-for-duration instruction, if fn-85's timer realization needs one | fn-85 |
   | signals, updates, queries, child workflows, continue-as-new, activity scheduling and an activity interpreter, HTTP invocation for external Nexus callers | the first Model that needs each |
   | fault kinds beyond worker stop and resume | the first Model that needs each |
 
-- **No change to runtime semantics**, Verdict computation, admission ceilings or the Profile.
-- **Limits stay.** The four Limits messages and their ceilings are kept: SEM-16 makes a Case
-  authoritative for its bounds.
+- **No change to Verdict computation** beyond R15's absent-operand rule, which is checked against
+  every conformance class and live test.
 - **No versioning scheme.** `FormatVersion` stays `1.0`; no compatibility shim for old Cases.
-- **No edits to historical `.plans` documents** other than `UMPIRE4_ORDER.md`; glossary words the
-  renames align with already exist, and approved rule text keeps the names it cites.
+- **No edits to historical `.plans` documents** other than `UMPIRE4_ORDER.md` and the drafted
+  SEM-16 and glossary amendments in R12 and R13; approved rule text keeps the names it cites.
 - **Depends on fn-84**, whose Driver contract and projection lowering tasks touch the same code.
 
 ## Decision Context
@@ -309,6 +400,16 @@ migrate those additions a second time.
 - **Mechanical changes first**, proven by a field-mapping equivalence test, so structural
   simplifications are reviewed against an unchanged baseline.
 
+- **Defaults over repetition**: every instruction guard in the checked-in Cases is "every
+  dependency succeeded", and no limit field takes more than four values across the six Cases, so the
+  wire states the exception, not the rule.
+- **Resource ceilings in the Profile** (amending SEM-16): they bound the environment, not the
+  behavior, and admission already checks Cases against the Profile.
+- **Readable fixtures**: the user reviews fixtures as artifacts; local names, short values,
+  declaration order, string paths and named enums make a Case readable without changing what the
+  runtime checks.
+
 Rejected: a `v2` package beside `v1` (no consumer needs both, and the generator and runtime would
-carry two protocols); moving resource ceilings from the Case into the Profile (SEM-16); splitting
-the correlated capability into its own package (it is part of one Contract).
+carry two protocols); splitting the correlated capability into its own package (it is part of one
+Contract); a generated prose summary beside each fixture instead of a readable fixture (it would be a
+second artifact to review and keep in step).
