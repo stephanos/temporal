@@ -48,7 +48,7 @@ Report every authoring mistake in the Model file, at the line that makes it, whi
 ### Key context
 - Depends on .11 and .13 so the `query` gap lines and the optional-Facts grammar exist before diagnostics are written against them. .5 (fault lines on `scenario`), .6 (new Model) and .8 (the tutorial lists every located diagnostic) depend on this task.
 - AUT-03 already asks for failures at the relevant source location; no spec amendment.
-- 2026-09-10: the `case` abstraction is under redesign (query sets per purpose, one Case per Query, a separate Temporal binding; see the block reason on .16 and .17). Skip the `case`-command part of this task (production evaluation and `produceCase` error preservation) and the template-key diagnostics; cover `property`, `scenario` and `query` only. This task now follows .15 instead of .17.
+- 2026-09-10: the `case` abstraction is superseded by fn-85 (actions and observations in the Model, a Temporal Realization, query sets, one Case per Query; see the block reason on .16 and .17). Skip the `case`-command part of this task (production evaluation and `produceCase` error preservation) and the template-key diagnostics; cover `property`, `scenario` and `query` only. This task now follows .15 instead of .17.
 
 ## Acceptance
 - [ ] Every name in `property`, `scenario` and `query` resolves while the Model file compiles; an unknown Model, role, Action or member rejects at that name listing the declared spellings
@@ -61,9 +61,69 @@ Report every authoring mistake in the Model file, at the line that makes it, whi
 
 
 ## Done summary
-TBD
+A Model file that compiles is now a Model file that was admitted, and every mistake lands on the
+line that makes it.
 
+**Names resolve while compiling.** `model` records its role, its domain types and their ordered
+member spellings, and its start states. `property` and `scenario` resolve the `model:` key to a
+recorded Model (unknown -> located error), then resolve `when:`, every `state:`/`outcome:`/`fact:`
+line, `starts:` (against the Model's start states, not merely its states) and every Action in
+`actions:` against that Model's own domains. Each rejection uses the `model` command's message shape
+(`unknown Model <domain> '<spelling>'; declared: ...`), so an author sees one vocabulary wherever
+they are. `query` already resolved its Model from its Property and Scenario in .15 and rejects a
+disagreement.
+
+**References carry the constant they name.** `resolveDeclared` calls `Lean.Elab.addConstInfo` with
+the constructor the spelling resolves to, which is what makes hover and go-to-definition work. The
+emitted records keep the spelling, so no Definition ID moves and no fixture changes. A `run_cmd`
+pins it: every recorded domain type and member spelling must name a real constant, and the module
+fails to build otherwise -- which is exactly the condition that would make the editor silent.
+
+**Admission runs while compiling.** `query` emits its own `Option (String × String)` diagnostic
+beside itself and evaluates it during elaboration, following the `Umpire.*.Elab` precedent
+(`evalExpr` behind `@[implemented_by]`) rather than `native_decide`. The pair is deliberately plain:
+a value the elaborator evaluates must not depend on the Model's type. The message is thrown at the
+part of the block it belongs to -- the Model reference, the Property, the Scenario, the `limits:`
+reference, or the `find:`/`verify:` keyword.
+
+`AdmissionError.notSelected` now carries the explored counts and the Limits, because "no admitted
+trace satisfies the Property" and "a bound stopped the search" are different mistakes with different
+fixes and the `shortest` strategy reports both as `limitReached`. `boundWasHit` compares only the
+explored trace total against the search bound -- the one bound the planner keeps a total against;
+the step and action bounds are per trace, so an explored total says nothing about them. Advice to
+raise a limit is printed only when a bound was actually reached.
+
+Pinned with `#guard_msgs (error)`: misspelled state, outcome, fact and `when:` Action; a `model:`
+that is not a Model; a start state the Model cannot start in; an unknown Action in `actions:`; a
+Query whose Property and Scenario name different Models; an unsatisfiable Scenario; a bound that
+stopped the search; a `find` whose search completed with no witness and therefore says nothing about
+limits; and a `verify` counterexample (value level, since the counterexample trace is matched on).
+
+Build cost: the two Model-bearing modules, six queries between them, take 3.59s with evaluation
+against 3.19s without -- 0.40s, about 65 ms per query. Three runs each, after warming
+`Umpire.Command`; the three readings were within 0.02s.
+
+Scope note, per the 2026-09-10 line on the task: the `case` command's production evaluation, the
+`produceCase` error preservation and the template-key diagnostics are skipped, because the
+abstraction they belong to is under redesign. The corresponding acceptance lines are not claimed.
+
+Fixtures and goldens are unchanged; `make umpire-check-regression` is exit 0 end to end (571 Lean
+jobs, 9 passing live identities); `make lint-model` reports 0 findings outside generated
+`Temporal/API/Proto.lean`.
+
+Review: SHIP after one NEEDS_WORK round. Both P1s were real -- a missing misspelled-Fact case and a
+missing completed-search-without-witness case -- and are covered. The P2 was also real: `boundWasHit`
+compared explored transitions against `steps * (search + 1)`, a formula nothing justified; it is
+gone. The P3 (`reprStr` for the error payloads that carry no renderer) was not taken: those payloads
+have no `Repr`-free description today, and inventing one per error type is a larger change than this
+task.
+Pinned reviewer `claude:claude-fable-5-1:high` is account-limited for this session, so both rounds
+ran on `claude:claude-sonnet-4-5:high` -- a same-family fallback, not an equivalent cross-family
+review.
+
+stage: impl-review - ran, 2 rounds (model: claude-sonnet-4-5, high; fable pinned but account-limited)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 7b0e55f3cf, HEAD
+- Tests: cd model && mise exec -- lake build, make umpire-check-case-runtime-conformance (no regeneration needed), make lint-model (0 findings outside generated Temporal/API/Proto.lean), make umpire-check-regression (exit 0, 9 passing live identities), build-time measurement: 3.59s with evaluation vs 3.19s without, three runs each
 - PRs:

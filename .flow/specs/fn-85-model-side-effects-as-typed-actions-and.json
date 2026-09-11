@@ -1,16 +1,23 @@
 {
   "branch_name": "stephanos/umpire",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-09-11T03:30:54.073727Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-84-deepen-five-shallow-module-clusters-in"
   ],
-  "id": "fn-85-model-side-effects-as-typed-interfaces",
+  "id": "fn-85-model-side-effects-as-typed-actions-and",
+  "impl_review_rounds": {},
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
-  "spec_path": ".flow/specs/fn-85-model-side-effects-as-typed-interfaces.md",
+  "spec_path": ".flow/specs/fn-85-model-side-effects-as-typed-actions-and.md",
   "status": "open",
-  "title": "Model side effects as typed interfaces and run query sets",
+  "title": "Model side effects as typed actions and run query sets",
   "tracker": {
     "baseHashFlow": null,
     "baseHashTracker": null,
@@ -22,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-11T04:47:29.226501Z"
+  "updated_at": "2026-09-11T04:48:34.115918Z"
 }
