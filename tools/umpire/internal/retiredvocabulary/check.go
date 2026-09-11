@@ -676,7 +676,7 @@ func allowedNegativeFixture(relativePath, token string) bool {
 		// The retired command keywords still parse so the elaborator can reject them by name.
 		// The grammar that admits them and the blocks that assert each rejection are the only
 		// places the old spellings may appear.
-		"model/Temporal/Feature/Nexus/Success/Syntax.lean": {
+		"model/Umpire/Command/Syntax.lean": {
 			"selected_" + "actions":      true,
 			"candidate_" + "evaluations": true,
 		},

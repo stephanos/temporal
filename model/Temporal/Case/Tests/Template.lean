@@ -1,4 +1,4 @@
-import Temporal.Case.Template
+import Temporal.Case.Syntax
 
 /-!
 Pins for the realization templates: the hooks and evidence sources each declares, the ordering the
@@ -11,7 +11,7 @@ open Temporal.Case
 open temporal.server.api.testpilot.v1
 
 private def identity : Umpire.Case.Producer.Identity :=
-  Umpire.Case.Producer.Identity.ofFixture "example"
+  Umpire.Case.Producer.Identity.ofFixture Case.caseIdRoot "example"
 
 private def hookNames (realization : Umpire.Case.Producer.Realization) : List String :=
   realization.hooks.map (·.name)
