@@ -48,9 +48,69 @@ Move the five Model commands (`model`, `property`, `scenario`, `limits`, `query`
 
 
 ## Done summary
-TBD
+The five Model commands and the authoring core behind them are now `Umpire.Command`.
 
+- `model/Umpire/Command/Authoring.lean` (moved from `Temporal/Feature/Nexus/Success/Authoring.lean`),
+  `Syntax.lean` (the five commands, moved from the same directory), `Registry.lean` (new: the
+  Scenario and Query entries plus one project's `Conventions`), `Command.lean` (facade),
+  `Command/Tests/Authoring.lean` (new: the test-only mutation helpers).
+- `model/Temporal/Case/Syntax.lean` (new): the `case` command and the `caseTemplate` grammar, which
+  stay Temporal-owned. `Temporal/Case/Conventions.lean` (new) declares the project's conventions
+  once. `Temporal/Case/Registry.lean` keeps only the Case entry.
+- `Temporal/Feature/Nexus/Success/{Syntax,Authoring}.lean` are deleted; `Model.lean` imports
+  `Temporal.Case.Syntax` and nothing else from the old pair.
+
+Four Temporal couplings replaced rather than moved:
+- The `temporal.` Definition ID root and the `Temporal.Feature` namespace prefix are a project's
+  declared conventions (`model_conventions root "temporal" under Temporal.Feature gaps ...`), held
+  in an environment extension. A file that declares none gets an empty root and its whole namespace
+  as the semantic family.
+- `packageRelativePath` split the file path on `/model/`. The source now derives from the module
+  name (`Temporal.Feature.Nexus.Success.Model` -> `Temporal/Feature/Nexus/Success/Model.lean`), so
+  it depends on neither the checkout nor the package directory's name -- and the recorded values are
+  unchanged, which is why Provenance is byte-identical.
+- The hard-coded Known Gaps were Nexus constants inside the authoring core. They ride the same
+  conventions declaration (`Temporal.Case.completionKnownGaps`) until .11 lets a Model file author
+  its own. Deviation from the task's "move unchanged": they could not move into `Umpire.Command`
+  without carrying `temporal.nexus.success.*` literals, which the SCP-02 acceptance forbids.
+- `Umpire.Case.Producer.Identity.ofFixture` hard-coded `"temporal.case."`. It takes the root now,
+  and `Temporal.Case.caseIdRoot` owns the value.
+
+Also: `ModelVocabulary` is now an abbreviation of `Umpire.Case.Producer.Vocabulary` rather than a
+second copy, so `producerInput` no longer converts it. `producerInput` itself stays, and the reason
+is recorded in its docstring: the Producer needs the operation role and the declaring file's source,
+which belong to the declaration rather than to the check, and the Query flattened to the three
+fields it reads. Diagnostics lost their "Nexus model" prefix; the setup-domain, sorted-Action and
+sorted-start-state requirements each say what they require, with `#guard_msgs` pins (the setup one
+is new). `Origin.occurrence` and `outcomeIdAt`/`factIdAt`/`relationIdAt` are deleted.
+`tools/umpire/internal/retiredvocabulary/check.go` moves the retired-keyword exemption to the new
+path.
+
+Byte pin: `make umpire-check-case-runtime-conformance` and `make umpire-check-goldens` are clean
+with no regeneration, so every fixture, golden, `CheckedQuery.id` and fingerprint is unchanged and
+the Nexus success family is still `temporal.nexus.success`.
+
+`make umpire-check-regression` is exit 0 end to end (571 Lean jobs, all eight conformance checks,
+9 passing live identities). `make lint-model` reports 0 findings outside generated
+`Temporal/API/Proto.lean`; `git grep` for a Temporal namespace, import or semantic prefix under
+`model/Umpire` is empty, which is what `umpire-check-regression`'s own scan enforces.
+
+AUT-07a is drafted in `.plans/UMPIRE4_SPEC.md` marked "*(drafted by fn-83; awaiting GOV-02
+approval.)*". It is NOT approved.
+
+Swept in, not mine: `model/Temporal/Feature/Workflow/Start/DESIGN.md` (271 lines), a design specimen
+the parallel session left untracked in the shared checkout. `git add -A` staged it; per this run's
+instructions it was not reverted. The impl-review flagged it as the one P2, correctly, as
+out-of-scope for this commit.
+
+Review: SHIP, 1 finding, which is that swept file.
+Pinned reviewer `claude:claude-fable-5-1:high` is account-limited for this session, so the review
+ran on `claude:claude-sonnet-4-5:high` -- a same-family fallback, not an equivalent cross-family
+review.
+
+stage: impl-review - ran (model: claude-sonnet-4-5, high; fable pinned but account-limited)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 7c42dec82c
+- Tests: make umpire-check-regression (exit 0), make umpire-check-case-runtime-conformance (no regeneration needed), make umpire-check-goldens, make lint-model (0 findings outside generated Temporal/API/Proto.lean), make umpire-check-retired-vocabulary
 - PRs:
