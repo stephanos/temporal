@@ -106,12 +106,6 @@ private def unsortedInitialMessage (earlier later : String) : String :=
   "Model start states must be declared in sorted order, because the planner admits " ++
     s!"only a canonically ordered start-state list; '{later}' precedes '{earlier}'"
 
-/-- The setup domain is not named by the grammar: it is the type literally called `Setup` in the
-declaring namespace, and it must have exactly one constructor. Saying so is the whole diagnostic. -/
-private def setupDomainMessage : String :=
-  "a Model takes its setup domain from a type named `Setup` in the declaring namespace, with " ++
-    "exactly one constructor"
-
 private def transitionBoundMessage (declared : Nat) : String :=
   s!"the Model declares {declared} steps; the elaboration bound is {transitionBound}"
 
