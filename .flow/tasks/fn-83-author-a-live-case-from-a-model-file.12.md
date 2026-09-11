@@ -57,9 +57,60 @@ Shrink a Model file's vocabulary declarations to the names an author means (R12)
 - [ ] `.6` and `.8` task wording admits `enum` declarations and no longer mentions a `Setup` declaration
 - [ ] `cd model && lake build`, `make lint-model`, `make umpire-check-goldens`, `make umpire-check-case-runtime-conformance` pass
 ## Done summary
-TBD
+Two shrinkings of what a Model file writes before the five commands start.
 
+**`enum`** (`model/Umpire/Command/Syntax.lean`): a macro, not an elaborator, expanding to exactly the
+`inductive ... deriving BEq, DecidableEq, Repr` a Model file wrote four times. It resolves nothing
+and reorders nothing, so unsorted Actions still fail in the `model` command with the same located
+message (pinned with an `enum`-declared domain as well as the existing `inductive` one). A plain
+`inductive` is still admitted, and `RaceSyntaxTests.lean` keeps that spelling so both stay pinned.
+
+Grammar deviation, recorded: a member's own doc comment goes **after** its bar
+(`| /-- ... -/ awaitStart`), not before it. Before the bar it cannot be distinguished from the doc
+comment of whatever declaration follows the `enum` -- the repetition swallows it and the next
+command fails to parse. Both `atomic((docComment)? "|")` and the bare
+`((docComment)? "|" ident)+` form were tried and neither backtracks correctly. The type's own doc
+comment is in the conventional place.
+
+**No `Setup` in a Model file.** Nothing else in one mentioned it -- `operation starts scheduled`
+names the State -- so an author was declaring scaffolding whose only requirement was to exist with
+one constructor. The `model` command generates `<model>.Setup`, scoped under the Model's own name so
+two Models in one namespace cannot collide, with one constructor named after the Model's **first
+start state**.
+
+That rule is what keeps bytes: the canonical setup key feeds `Umpire/Model/Canonical.lean`'s
+`setups` and every fingerprint built on it, and both command-authored Models already named their
+Setup constructor after their start state (`Setup.scheduled` for `starts [scheduled]`,
+`Setup.queued` for `starts [queued]`). A fixed name such as `Setup.setup` would have moved both.
+With several start states the rule is still "the first in the declared `starts` list", which the
+`model` command already requires to be sorted, so it is deterministic.
+
+A file that declares its own `Setup` is harmless, because the generated one is `<model>.Setup`; a
+`#guard`-backed test declares one alongside a Model. The unreachable
+"a Model takes its setup domain from a type named `Setup`" diagnostic is deleted.
+
+Byte pin: `make umpire-check-case-runtime-conformance` and `make umpire-check-goldens` are clean
+with no regeneration.
+
+`make umpire-check-regression` is exit 0 end to end (571 Lean jobs, 9 passing live identities);
+`make lint-model` reports 0 findings outside generated `Temporal/API/Proto.lean`.
+
+Task wording for `.6` and `.8` now admits `enum` declarations and no `Setup`.
+
+Swept in, not mine: `model/Temporal/Feature/Nexus/DESIGN.md` (425 lines, a design specimen headed
+"Nothing here compiles, and no module imports it"), left untracked in the shared checkout by the
+parallel session and staged by `git add -A`.
+
+Review: SHIP after one NEEDS_WORK round. The P0 was real and mine -- task `.8`'s tutorial outline
+still said `inductive`s -- and is fixed. The P3 dead `setupDomainMessage` was valid and is deleted.
+The remaining P3 is the swept DESIGN.md.
+Pinned reviewer `claude:claude-fable-5-1:high` is account-limited for this session, so both rounds
+ran on `claude:claude-sonnet-4-5:high` -- a same-family fallback, not an equivalent cross-family
+review.
+
+stage: impl-review - ran, 2 rounds (model: claude-sonnet-4-5, high; fable pinned but account-limited)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: f126f41a94, 1d96b80031
+- Tests: cd model && mise exec -- lake build, make umpire-check-case-runtime-conformance (no regeneration needed), make umpire-check-goldens, make lint-model (0 findings outside generated Temporal/API/Proto.lean), make umpire-check-regression (exit 0)
 - PRs:
