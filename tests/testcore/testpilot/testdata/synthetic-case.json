@@ -1,1 +1,148 @@
-{"caseId":"testpilot.synthetic.case","contract":{"contractId":"testpilot.synthetic.contract","limits":{"maxCaptureBytes":"1024","maxCaptures":"1","maxExpressionDepth":"8","maxRules":"1","maxStates":"2","maxTotalWork":"64","maxTransitions":"1","maxWorkPerEvent":"32"},"rules":[{"initialStateId":"open","kind":"CONTRACT_RULE_KIND_SAFETY","ruleId":"completion","states":[{"stateId":"open","status":"CONTRACT_STATE_STATUS_NONTERMINAL"},{"stateId":"done","status":"CONTRACT_STATE_STATUS_SATISFIED"}],"transitions":[{"eventFilter":{"kinds":["RUN_EVENT_KIND_RUN_CLOSED"]},"predicate":{"literal":{"boolValue":true}},"sourceStateId":"open","supportKind":"CONTRACT_SUPPORT_KIND_NONE","targetStateId":"done","transitionId":"complete"}]}]},"program":{"cleanup":{"entrypointId":"cleanup"},"entrypoints":[{"entrypointId":"workflow","instructions":[{"instruction":{"finish":{"result":{"literal":{"messageValue":{"@type":"type.googleapis.com/temporal.server.api.testpilot.v1.FormatVersion","major":1,"minor":2}}}}},"instructionId":"finish","limits":{"maxAttempts":"1","maxEmittedEvents":"1","maxResponseBytes":"1024","timeoutMilliseconds":"1000"},"outcome":{"fields":[{"field":"INSTRUCTION_OUTCOME_FIELD_VALUE","type":{"singular":{"message":{"protobufType":"temporal.server.api.testpilot.v1.FormatVersion"}}}}]}}],"workflow":{"taskQueueRoleId":"task.queue","workerRoleId":"worker","workflowType":"SyntheticWorkflow"}}],"environment":[{"bindingId":"namespace"},{"bindingId":"task.queue"}],"limits":{"maxActivations":"1","maxAttempts":"1","maxCleanupDurationMilliseconds":"1000","maxEdges":"1","maxEntrypoints":"1","maxExpressionDepth":"8","maxNodes":"1","maxPathFanout":"4","maxRequestBytes":"1024","maxResponseBytes":"1024","maxRunEvents":"8","maxTotalDurationMilliseconds":"1000"},"programId":"testpilot.synthetic.program","roles":[{"kind":"ROLE_KIND_WORKER","namespaceBindingId":"namespace","roleId":"worker"},{"kind":"ROLE_KIND_TASK_QUEUE","namespaceBindingId":"namespace","resourceBindingId":"task.queue","roleId":"task.queue"}]},"provenance":{"producerData":"AP+A","producerId":"standalone.lean.testpilot","producerVersion":"1"},"version":{"major":1}}
+{
+  "caseId": "testpilot.synthetic.case",
+  "contract": {
+    "contractId": "testpilot.synthetic.contract",
+    "limits": {
+      "maxCaptureBytes": "1024",
+      "maxCaptures": "1",
+      "maxExpressionDepth": "8",
+      "maxRules": "1",
+      "maxStates": "2",
+      "maxTotalWork": "64",
+      "maxTransitions": "1",
+      "maxWorkPerEvent": "32"
+    },
+    "rules": [
+      {
+        "initialStateId": "open",
+        "kind": "CONTRACT_RULE_KIND_SAFETY",
+        "ruleId": "completion",
+        "states": [
+          {
+            "stateId": "open",
+            "status": "CONTRACT_STATE_STATUS_NONTERMINAL"
+          },
+          {
+            "stateId": "done",
+            "status": "CONTRACT_STATE_STATUS_SATISFIED"
+          }
+        ],
+        "transitions": [
+          {
+            "eventFilter": {
+              "kinds": [
+                "RUN_EVENT_KIND_RUN_CLOSED"
+              ]
+            },
+            "predicate": {
+              "literal": {
+                "boolValue": true
+              }
+            },
+            "sourceStateId": "open",
+            "supportKind": "CONTRACT_SUPPORT_KIND_NONE",
+            "targetStateId": "done",
+            "transitionId": "complete"
+          }
+        ]
+      }
+    ]
+  },
+  "program": {
+    "cleanup": {
+      "entrypointId": "cleanup"
+    },
+    "entrypoints": [
+      {
+        "entrypointId": "workflow",
+        "instructions": [
+          {
+            "instruction": {
+              "finish": {
+                "result": {
+                  "literal": {
+                    "messageValue": {
+                      "@type": "type.googleapis.com/temporal.server.api.testpilot.v1.FormatVersion",
+                      "major": 1,
+                      "minor": 2
+                    }
+                  }
+                }
+              }
+            },
+            "instructionId": "finish",
+            "limits": {
+              "maxAttempts": "1",
+              "maxEmittedEvents": "1",
+              "maxResponseBytes": "1024",
+              "timeoutMilliseconds": "1000"
+            },
+            "outcome": {
+              "fields": [
+                {
+                  "field": "INSTRUCTION_OUTCOME_FIELD_VALUE",
+                  "type": {
+                    "singular": {
+                      "message": {
+                        "protobufType": "temporal.server.api.testpilot.v1.FormatVersion"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ],
+        "workflow": {
+          "taskQueueRoleId": "task.queue",
+          "workerRoleId": "worker",
+          "workflowType": "SyntheticWorkflow"
+        }
+      }
+    ],
+    "environment": [
+      {
+        "bindingId": "namespace"
+      },
+      {
+        "bindingId": "task.queue"
+      }
+    ],
+    "limits": {
+      "maxActivations": "1",
+      "maxAttempts": "1",
+      "maxCleanupDurationMilliseconds": "1000",
+      "maxEdges": "1",
+      "maxEntrypoints": "1",
+      "maxExpressionDepth": "8",
+      "maxNodes": "1",
+      "maxPathFanout": "4",
+      "maxRequestBytes": "1024",
+      "maxResponseBytes": "1024",
+      "maxRunEvents": "8",
+      "maxTotalDurationMilliseconds": "1000"
+    },
+    "programId": "testpilot.synthetic.program",
+    "roles": [
+      {
+        "kind": "ROLE_KIND_WORKER",
+        "namespaceBindingId": "namespace",
+        "roleId": "worker"
+      },
+      {
+        "kind": "ROLE_KIND_TASK_QUEUE",
+        "namespaceBindingId": "namespace",
+        "resourceBindingId": "task.queue",
+        "roleId": "task.queue"
+      }
+    ]
+  },
+  "provenance": {
+    "producerData": "AP+A",
+    "producerId": "standalone.lean.testpilot",
+    "producerVersion": "1"
+  },
+  "version": {
+    "major": 1
+  }
+}
