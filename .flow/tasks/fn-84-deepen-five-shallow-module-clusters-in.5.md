@@ -40,6 +40,7 @@ Give the monitor-rule path the module the correlated path already has (R5): `Ump
 - fn-82 renames `Compiler.LoweringError` to `Compiler.Error`, moves the projection coverage walker into `Umpire/Case/Projection/`, and moves the typed Producers to `Nexus/Success/`; use the landed paths.
 - Avoid retired tokens `TargetProjection`, `Projection{Record,Manifest}` in new names.
 - The retired-vocabulary scan fails closed on a moved path; mirror any relocation in its registry in the same change.
+- 2026-09-10: start only after fn-83 .15 is done (Flow cannot express the cross-spec task dependency). fn-85 later replaces the Producer's Program assembly; keep this task's change inside the projection lowering so fn-85 inherits it unchanged.
 ## Acceptance
 - [ ] `Umpire.Case.Projection.lower` takes the Property, the Observation, the root and a `Realization` (literals, rule suffix, capture policy) and returns `Lowered` with `contract`, `coverage` and `certificate`; `Compiler.compile` admits it beside the correlated lowering with an unchanged signature
 - [ ] the typed unary Producer holds no `readPathOf`, hand-written rule, coverage request or lowering-error helper; the typed Nexus Producer likewise, or its capture rule is left in place under a `CONSIDER(umpire)` with the narrowing reported in the summary; the history root is declared once

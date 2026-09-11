@@ -29,9 +29,12 @@ compiles; .15 respells the commands under one reading rule (column-0 declaration
 
 **Blocked 2026-09-10, superseded by fn-85.** .4's remainder, .5 (fault lines against template
 hooks), .6 (sync Nexus translation), .8 (tutorial), .16 (fixture name from the `case` name) and .17
-(template arguments). fn-85's final task closes them and names where each concern went. Until then
-fn-83 cannot close, so its spec-level dependents (fn-84, fn-33, fn-29, fn-46, fn-70, fn-79) wait on
-fn-85 as well; each needs its Flow dependency re-anchored on fn-83's open tasks or on fn-85.
+(template arguments). fn-85's final task closes them and names where each concern went, so fn-83
+itself closes only after fn-85. Its former spec-level dependents were re-anchored on 2026-09-10:
+fn-33, fn-29, fn-70 and fn-79 now depend on fn-85, whose sets and Realization replace the `case`
+block they consumed; fn-84 and fn-46 dropped the dependency, and the tasks that touch fn-83's open
+work carry a dated note to start after fn-83 .15, because Flow cannot record a cross-spec task
+dependency.
 
 AUT-07a (.10) and the AUT-09 amendment .8 would have drafted are the GOV-02 items fn-83 leaves; the
 amendment moves to fn-85's rule drafts.
@@ -61,12 +64,12 @@ all five areas have landed. Task .5 shares its seam with `Umpire.Case.Producer`,
 chain now sits in `Umpire.Command` after fn-83 .10 moved it; both tasks re-read those owners before
 starting. fn-84 goes before fn-85 because every task is behavior-preserving with byte-identical
 fixture and golden pins, which are cheapest to hold before fn-85 replaces the async-Nexus fixture
-and the Producer's Program assembly, and because fn-85 builds on `Umpire.Search.admit` (.3). Flow
-still records a spec-level dependency on all of fn-83; re-anchor it on fn-83 .15 so fn-84 does not
-wait for fn-85. fn-22 and fn-33 depend on this spec in turn: fn-33's exploration bridge sits on the
-search-view transport sites .3 replaces, and fn-22's promotion path consumes `search`, which .3
-keeps public. Dispatch is serial in task order because every pair of tasks shares a documentation
-or test-root file.
+and the Producer's Program assembly, and because fn-85 builds on `Umpire.Search.admit` (.3). The
+spec-level dependency on fn-83 was removed on 2026-09-10; .3 and .5 carry a note to start after
+fn-83 .15, and .1, .2 and .4 touch nothing fn-83's open tasks edit. fn-22 and fn-33 depend on this
+spec in turn: fn-33's exploration bridge sits on the search-view transport sites .3 replaces, and
+fn-22's promotion path consumes `search`, which .3 keeps public. Dispatch is serial in task order
+because every pair of tasks shares a documentation or test-root file.
 
 Boundaries: no renames beyond what the new modules need, no change to the evaluation budget
 (`CONSIDER(umpire)` on the cubic reservation stays separate), to delivery routing, to the
@@ -90,24 +93,23 @@ classes with representatives, and result classes, while a Temporal-owned Realiza
 RPCs, workflow commands, handler replies, history events and dynamic config. Queries are grouped
 into sets by purpose: a set binds each party to the test or the environment, and a functional set
 compiles to one Case per Query. And the Nexus caller-side operation runs this way end to end: a
-product model, an interface model and a link, with a functional set of eight Queries translated
+product model, an interface model and a link, with a functional set of seven Queries translated
 from the Nexus functional tests, each run under both the HSM and CHASM implementations.
 
 The early proof point rebuilds today's async-Nexus Case from the new abstractions and must match
 its fixture with identities masked before any Testpilot protocol addition. The protocol additions
-are additive: Nexus operation timeouts, reply forms for operation failure and cancellation and for
-handler errors with retry behavior, a completion outcome, a cancel request, and a handler cancel
-reply. Canary and exploratory sets are admitted with their coverage targets enumerated; running
-them stays in fn-70, fn-29 and fn-33. Whole-Program templates and the `case` command are removed.
+are additive: Nexus operation timeouts, a reply form for operation failure, handler errors with
+retry behavior, and a completion outcome. Canary and exploratory sets are admitted with their
+coverage targets enumerated; running them stays in fn-70, fn-29 and fn-33. Whole-Program templates
+and the `case` command are removed.
 
-**Needs a plan review and a task breakdown**; the spec has no tasks yet. Depends on fn-83 .13, .14
-and .15 and, by the order above, on fn-84. It closes fn-83's six blocked tasks as superseded.
+**Needs a plan review and a task breakdown**; the spec has no tasks yet. Flow records its
+dependency on fn-84; its first task starts after fn-83 .15, which Flow cannot record across specs.
+It closes fn-83's six blocked tasks as superseded.
 
-**Needs a user decision before planning:** Query 8 (async reply, cancel request, delivered cancel
-reply, canceled callback) and its two cancel instructions overlap fn-79's deferred scope: a
-per-operation cancellation capability and an authored cancellation Case. fn-79 resumes only on an
-explicit user request. Either confirm Query 8 as that request for this slice, or move it and the
-cancel instructions to fn-79.
+**Cancellation stays deferred.** The design's cancel Query and its Testpilot instructions overlap
+fn-79, which resumes only on an explicit user request, so on 2026-09-10 they moved out of fn-85 into
+fn-79's re-planning note.
 
 Boundaries: no composition (update-, query- or activity-backed handlers, several callers), no
 reset, no visibility or standalone operations, no metrics or spans as observations, no endpoint
@@ -120,7 +122,7 @@ These remain open in Flow and are outside the first-canary critical path.
 
 | Spec                                                                                              | Dependencies | Next action                                                                                                                                                                                                                  |
 | ------------------------------------------------------------------------------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [fn-46 — Lean module impact index](../.flow/specs/fn-46-export-lean-model-module-impact-index.md) | fn-45, fn-83 | Refreshed three-task plan is SHIP against current model owners. Re-anchor the fn-83 dependency on fn-83 .15 and refresh the module rows for `Umpire.Command` (fn-83 .10) and, once planned, fn-85's new modules. Deliver the shared loader, pure dependency/facade/test index, and opt-in export/check commands. |
+| [fn-46 — Lean module impact index](../.flow/specs/fn-46-export-lean-model-module-impact-index.md) | fn-45 | Refreshed three-task plan is SHIP against current model owners. Task .1 starts after fn-83 .15 (dated note in Flow); refresh the module rows for `Umpire.Command` (fn-83 .10) and, once planned, fn-85's new modules. Deliver the shared loader, pure dependency/facade/test index, and opt-in export/check commands. |
 
 ## Downstream delivery
 
@@ -145,8 +147,9 @@ leases, recovery, and publication stay outside Testpilot and Umpire.
 Includes former fn-78.5/.8/.9 cancellation scope and fn-77’s cancellation qualification. Resume only
 on an explicit user request; autonomous delivery approval does not override this deferral. Generic
 fn-78 syntax/monitoring/qualification and fn-70 remain deliverable without it. Existing shutdown
-and bounded cleanup cancellation behavior stays in scope. fn-85's Query 8 overlaps this scope and
-waits on the user decision recorded under fn-85.
+and bounded cleanup cancellation behavior stays in scope. On resume it re-plans on fn-85
+(entities, interfaces, sets) and takes the cancel Query and the Testpilot cancel instructions that
+fn-85 left out; its re-planning note in Flow lists them.
 
 
 **fn-70 — Scheduled canary proof of concept:** deferred by user decision; it was previously

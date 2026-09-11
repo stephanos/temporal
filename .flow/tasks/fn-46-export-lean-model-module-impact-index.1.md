@@ -29,6 +29,8 @@ Extract the current effectful package inventory/build/OLean/reconciliation pipel
 ### Key context
 Lean 4.33.1 compiled environments/OLean metadata are the authority; do not parse source imports or OLean bytes directly.
 
+2026-09-10: start only after fn-83 .15 is done (Flow cannot express the cross-spec task dependency). fn-83 .10 added `Umpire.Command` and moved the success authoring modules; refresh module rows against the tree at that point, and again for fn-85's new modules once they land.
+
 Capture exact original lint success/controlled-violation diagnostics and source/build/metadata phase ordering before edits. Preserve external bridge, stale-owned skip, uniqueness and missing-OLean regressions. Use injected phase counters and lifetime ownership assertions for independent failure and region-release tests. No no-op region-count check as the sole lifetime proof.
 
 ### Quick commands
