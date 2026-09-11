@@ -8,7 +8,9 @@
     "fn-83-author-a-live-case-from-a-model-file.5",
     "fn-83-author-a-live-case-from-a-model-file.10",
     "fn-83-author-a-live-case-from-a-model-file.11",
-    "fn-83-author-a-live-case-from-a-model-file.12"
+    "fn-83-author-a-live-case-from-a-model-file.12",
+    "fn-83-author-a-live-case-from-a-model-file.13",
+    "fn-83-author-a-live-case-from-a-model-file.14"
   ],
   "id": "fn-83-author-a-live-case-from-a-model-file.6",
   "priority": null,
@@ -16,5 +18,5 @@
   "spec_path": ".flow/tasks/fn-83-author-a-live-case-from-a-model-file.6.md",
   "status": "todo",
   "title": "Translate the upstream synchronous Nexus completion test",
-  "updated_at": "2026-09-11T00:56:36.287718Z"
+  "updated_at": "2026-09-11T01:27:20.017851Z"
 }
