@@ -2,8 +2,9 @@
 
 This package owns the retained generated functional fixtures in `testdata`, plus their fixture
 admission and prepared-Case reuse tests. The fixtures remain canonical ProtoJSON generated from
-`Temporal.Testpilot`; `umpire-gen-case-runtime-conformance` continues to write its functional output
-to this package.
+`Temporal.Testpilot`, stored indented for review -- two spaces and one trailing newline -- so a Case
+change reads as a line diff; `umpire-gen-case-runtime-conformance` continues to write its functional
+output to this package and is the only writer of that form.
 
 Cluster provisioning, namespace and Nexus endpoint creation, SDK client ownership, environment
 configuration, assertions, and cleanup registration remain under `tests/`. The reusable composite

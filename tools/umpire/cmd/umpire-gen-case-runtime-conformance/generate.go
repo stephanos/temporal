@@ -195,7 +195,11 @@ func runGeneration(configuration generationConfig, entries []manifestEntry, depe
 		if err != nil {
 			return fmt.Errorf("encode %q expected result: %w", entry.Class, err)
 		}
-		artifacts[casePath(entry.Class)] = slices.Clone(encoded)
+		stored, err := persistedForm(encoded)
+		if err != nil {
+			return fmt.Errorf("store %q Case fixture: %w", entry.Class, err)
+		}
+		artifacts[casePath(entry.Class)] = stored
 		artifacts[expectedPath(entry.Class)] = expected
 	}
 	if err := validateArtifacts(entries, artifacts); err != nil {
@@ -259,14 +263,21 @@ func renderCorrelatedArtifacts(dependencies generationDependencies, modelRoot st
 	if !json.Valid(encoded) {
 		return errors.New("invalid correlated fixtures")
 	}
-	artifacts[fixtureRoot+"/correlated.json"] = encoded
+	stored, err := persistedForm(encoded)
+	if err != nil {
+		return fmt.Errorf("store correlated fixtures: %w", err)
+	}
+	artifacts[fixtureRoot+"/correlated.json"] = stored
 	return nil
 }
 
 func validateGeneratedArtifacts(entries []manifestEntry, artifacts, candidate map[string][]byte) error {
 	if expected, ok := artifacts[fixtureRoot+"/correlated.json"]; ok {
 		encoded := candidate[fixtureRoot+"/correlated.json"]
-		if !json.Valid(encoded) || !bytes.Equal(encoded, expected) {
+		if err := requirePersistedForm(fixtureRoot+"/correlated.json", encoded); err != nil {
+			return err
+		}
+		if !bytes.Equal(encoded, expected) {
 			return errors.New("invalid staged correlated fixtures")
 		}
 		delete(candidate, fixtureRoot+"/correlated.json")
@@ -311,7 +322,11 @@ func runFunctionalGeneration(configuration generationConfig, entries []functiona
 		if _, err := testpilot.PackCaseProtoJSON(encoded); err != nil {
 			return fmt.Errorf("pack %q Testpilot Case fixture: %w", entry.Filename, err)
 		}
-		artifacts[functionalCasePath(entry)] = slices.Clone(encoded)
+		stored, err := persistedForm(encoded)
+		if err != nil {
+			return fmt.Errorf("store %q Testpilot Case fixture: %w", entry.Filename, err)
+		}
+		artifacts[functionalCasePath(entry)] = stored
 	}
 	paths := make([]string, 0, len(entries))
 	for _, entry := range entries {
@@ -351,6 +366,9 @@ func validateFunctionalArtifacts(entries []functionalEntry, artifacts map[string
 		encoded, ok := artifacts[functionalCasePath(entry)]
 		if !ok {
 			return fmt.Errorf("missing functional Case fixture %q", entry.Filename)
+		}
+		if err := requirePersistedForm(functionalCasePath(entry), encoded); err != nil {
+			return err
 		}
 		decoded, err := testpilot.DecodeCaseProtoJSON(encoded)
 		if err != nil || decoded.GetCaseId() != entry.CaseID {
@@ -437,6 +455,9 @@ func validateArtifacts(entries []manifestEntry, artifacts map[string][]byte) err
 		encoded, ok := artifacts[casePath(entry.Class)]
 		if !ok {
 			return fmt.Errorf("missing Case fixture for %q", entry.Class)
+		}
+		if err := requirePersistedForm(casePath(entry.Class), encoded); err != nil {
+			return err
 		}
 		decoded, err := testpilot.DecodeCaseProtoJSON(encoded)
 		if err != nil || decoded.GetCaseId() != entry.CaseID {
