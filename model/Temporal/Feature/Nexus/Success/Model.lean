@@ -1,4 +1,4 @@
-import Temporal.Feature.Nexus.Success.Syntax
+import Temporal.Case.Syntax
 import Temporal.Feature.Nexus.Race.Terminal
 
 /-!
