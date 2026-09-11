@@ -471,6 +471,12 @@ make umpire-check-regression                    # the full gate
 - **R11:** a Model file declares its Query's Known Gaps in command syntax and the authoring layer
   hard-codes none; the white-box representation R6 needs is decided and recorded. Errors: an
   unknown gap kind and a duplicate gap code reject with located messages pinned by `#guard_msgs`.
+- **R12:** a Model file declares its domains with `enum` (plain `inductive` stays admitted) and
+  declares no `Setup`: the `model` command generates a model-scoped Setup under a recorded naming
+  rule; `enum` counts as the vocabulary declarations R5 and R6 name; every fixture, golden,
+  Definition ID and fingerprint is byte-identical. Errors: unsorted Actions keep their located
+  message; a hand-declared Setup that collides with the generated one rejects in place; both pinned
+  by `#guard_msgs`.
 
 ## Early proof point
 
@@ -494,6 +500,7 @@ generic, and R2 through R7 build on it.
 | R9 | stored Testpilot JSON indented for human review | .9 | — |
 | R10 | Model commands and authoring core owned by `Umpire` | .10 | — |
 | R11 | Known Gaps authored in the Model file | .11 | — |
+| R12 | `enum` vocabulary declarations and a generated Setup | .12 | — |
 
 ## Boundaries
 
