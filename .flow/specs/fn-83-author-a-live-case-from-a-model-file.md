@@ -487,6 +487,19 @@ make umpire-check-regression                    # the full gate
   line that causes it; resolved references carry hover and go-to-definition information; fixtures
   and IDs are byte-identical. Errors: the diagnostics listed in task .14, each pinned by
   `#guard_msgs`.
+- **R15:** the commands follow one reading rule (column-0 declaration kind, indented `word:`
+  framework key, everything else an author name or value); no author-written labels remain;
+  `query` names no model and single-role `property`/`scenario` name no role; the async-Nexus
+  fixture diff is limited to derived IDs and fingerprints. Errors: missing or misplaced key,
+  mismatched query model, duplicate derived clause, each pinned by `#guard_msgs`. This supersedes
+  the command forms under API Contracts where they differ.
+- **R16:** a `case` block has no fixture slot; its fixture name is the kebab-case of the `case`
+  name; the async-Nexus fixture is byte-identical. Errors: an underivable name and a duplicate
+  derived fixture reject in place, pinned by `#guard_msgs`.
+- **R17:** a `case` block names only template arguments a test depends on (`nexusOperation`:
+  `responds`; `workflow`: none); a template admits only the evidence kinds its Program can record;
+  the async-Nexus fixture is byte-identical. Errors: undeclared, missing or unknown template keys
+  and values, and inadmissible evidence for the chosen form, pinned by `#guard_msgs`.
 
 ## Early proof point
 
@@ -513,6 +526,9 @@ generic, and R2 through R7 build on it.
 | R12 | `enum` vocabulary declarations and a generated Setup | .12 | — |
 | R13 | optional Facts; no Fact that restates a state | .13 | — |
 | R14 | located compile-time diagnostics and name resolution for every command | .14 | — |
+| R15 | minimal command syntax under one reading rule | .15 | — |
+| R16 | fixture name derived from the `case` name | .16 | — |
+| R17 | template arguments reduced; evidence admitted per response form | .17 | — |
 
 ## Boundaries
 
