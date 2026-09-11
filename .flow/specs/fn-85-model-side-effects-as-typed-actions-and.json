@@ -7,7 +7,8 @@
   "default_review": null,
   "default_sync": null,
   "depends_on_epics": [
-    "fn-84-deepen-five-shallow-module-clusters-in"
+    "fn-84-deepen-five-shallow-module-clusters-in",
+    "fn-87-tighten-the-testpilot-protocol-glossary"
   ],
   "id": "fn-85-model-side-effects-as-typed-actions-and",
   "impl_review_rounds": {},
@@ -29,5 +30,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-11T06:03:50.143145Z"
+  "updated_at": "2026-09-11T15:31:14.916454Z"
 }

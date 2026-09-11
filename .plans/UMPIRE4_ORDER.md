@@ -60,7 +60,7 @@ cross. The spec carries exactly those five, one task each, in the order the scan
 No behavior changes; every task records an equivalence pin before it moves code and closes with
 `make umpire-check-regression`. The plan review is SHIP after one fix round.
 
-**Next to run, before fn-85; nothing blocks it.** fn-82 closed on 2026-09-10 and its renames in
+**Next to run, before fn-87 and fn-85; nothing blocks it.** fn-82 closed on 2026-09-10 and its renames in
 all five areas have landed. Task .5 shares its seam with `Umpire.Case.Producer`, and .3's admission
 chain now sits in `Umpire.Command` after fn-83 .10 moved it; both tasks re-read those owners before
 starting. fn-84 goes before fn-85 because every task is behavior-preserving with byte-identical
@@ -78,7 +78,46 @@ generators' publication tooling, to Property evaluation combinators, or to `Umpi
 EVD-20 is approved (2026-09-10, GOV-02); the MOD-14 restatement .2 drafts stays pending.
 Candidates the scans surfaced and the spec declined are listed in its Decision Context.
 
-### 3. Model side effects as typed actions and run query sets — fn-85
+### 3. Tighten the Testpilot protocol — fn-87
+
+[fn-87 — Tighten the Testpilot protocol: glossary names, one expression language, structure by concept](../.flow/specs/fn-87-tighten-the-testpilot-protocol-glossary.md),
+from the 2026-09-11 review of the Testpilot protocol (855 lines in seven files). The review found
+thirty issues: three expression languages for the same operators (fourteen duplicated Program and
+Contract messages plus a correlated predicate language), names that break SEM-19 (`RunStatus` for
+Run disposition, correlated `clauses` of type `CorrelatedRule`, "projection" and "capability" each
+naming two concepts), per-kind Run Event fields for faults, duplicate encodings (opaque handles,
+`natural`, capture types, three binding shapes, a nested `version`), an enum no wire message
+references, a layout that spreads the correlated capability over three files, and no written
+checklist for extending the protocol.
+
+The spec renames to glossary words, restructures into one file per concept with every message
+documented, replaces the three expression languages with one `Expression` checked per context at
+preparation, gives Run Events a payload oneof, removes the duplicates, and adds an extension
+checklist.
+
+On 2026-09-11, with breaking changes allowed, it also took on the defaults and readability the
+review of `typed-nexus-case.json` called for. That fixture is 2,025 lines, and 77% of its bytes are
+21 parameterized model values of about 11,000 characters each; every instruction guard in the six
+checked-in Cases is "every dependency succeeded"; each Case writes 24 to 83 limit fields. So
+instructions run in entrypoint order unless `after:` or a guard says otherwise; the environment
+bindings, activation reservations and outcome fields are derived; resource ceilings move to the
+Profile, keeping only meaningful bounds in the Case (an SEM-16 amendment); provenance becomes
+structured rows, with Case-local names and short model values mapped to Definition IDs and
+fingerprints there; fixtures print fields in declaration order with string field paths and named
+enums; a comparison with an absent operand is false, so presence checks disappear; and Run-only
+messages leave the Case's import closure.
+
+Verdicts do not change, except where the absent-operand rule is checked against every conformance
+class and live test: R1 and R2 land first as mechanical changes, proven by an equivalence test that
+maps every pre-migration fixture to the new protocol under a declared mapping. The wire has no
+compatibility promise (`buf` breaking ignores the package), so there is no `v2` and no shim. New
+capabilities stay with their owners: typed worker instructions and per-Case observation declarations
+with fn-85 R10, cancel with fn-79, correlated transitions over structured machine state with fn-85.
+
+**Depends on fn-84**; **fn-85 depends on it** (both recorded in Flow), so fn-85's instructions and
+fn-86's migrated Cases are authored on the final shapes. Needs a plan review and a task breakdown.
+
+### 4. Model side effects as typed actions and run query sets — fn-85
 
 [fn-85 — Model side effects as typed actions and run query sets](../.flow/specs/fn-85-model-side-effects-as-typed-actions-and.md),
 from the 2026-09-10 design session recorded in
@@ -99,14 +138,17 @@ functional set of seven Queries translated from the Nexus functional tests, each
 HSM and CHASM implementations.
 
 The early proof point rebuilds today's async-Nexus Case from the new abstractions and must match
-its fixture with identities masked before any Testpilot protocol addition. The protocol additions
-are additive: Nexus operation timeouts, a reply form for operation failure, handler errors with
-retry behavior, and a completion outcome. Canary and exploratory sets are admitted with their
+its fixture with identities masked before any Testpilot protocol change. Worker instructions then
+carry the Temporal API messages the actions' schemas name (the Nexus schedule command's attributes
+with its three timeouts, a `StartOperationResponse` or `HandlerError` reply, a completion payload or
+failure) instead of a Testpilot field per server option, and a Case declares each observation once
+for both its Program and its Contract, which gives the retry Query's attempt count its read source.
+Canary and exploratory sets are admitted with their
 coverage targets enumerated; running them stays in fn-70, fn-29 and fn-33. Whole-Program templates
 and the `case` command are removed.
 
 **Needs a plan review and a task breakdown**; the spec has no tasks yet. Flow records its
-dependency on fn-84; the fn-83 tasks it builds on (.13, .14, .15) are done. It closes fn-83's six
+dependencies on fn-84 and fn-87; the fn-83 tasks it builds on (.13, .14, .15) are done. It closes fn-83's six
 blocked tasks as superseded.
 
 **Cancellation stays deferred.** The design's cancel Query and its Testpilot instructions overlap
@@ -118,7 +160,7 @@ reset, no visibility or standalone operations, no metrics or spans as observatio
 registry, matching or cross-cluster topology, no HTTP transport fault kind, no schema interface, no
 change to the hand-written Models (fn-86 retires them).
 
-### 4. Retire hand-written Models: one authoring path through the commands — fn-86
+### 5. Retire hand-written Models: one authoring path through the commands — fn-86
 
 [fn-86 — Retire hand-written Models: one authoring path through the commands](../.flow/specs/fn-86-retire-hand-written-models-one.md),
 from the 2026-09-10 decision to align completely on the developer-facing commands. After fn-85 the
@@ -146,30 +188,10 @@ Testpilot conformance and synthetic Cases stay, since they test the runtime.
 a field relation that lowers to the same Contract field reads before any deletion. Needs a plan
 review and a task breakdown.
 
-### 5. Tighten the Testpilot protocol — fn-87
-
-[fn-87 — Tighten the Testpilot protocol: glossary names, one expression language, structure by concept](../.flow/specs/fn-87-tighten-the-testpilot-protocol-glossary.md),
-from the 2026-09-11 review of the Testpilot protocol (855 lines in seven files). The review found
-thirty issues: three expression languages for the same operators (fourteen duplicated Program and
-Contract messages plus a correlated predicate language), names that break SEM-19 (`RunStatus` for
-Run disposition, correlated `clauses` of type `CorrelatedRule`, "projection" and "capability" each
-naming two concepts), per-kind Run Event fields for faults, duplicate encodings (opaque handles,
-`natural`, capture types, three binding shapes, a nested `version`), an enum no wire message
-references, a layout that spreads the correlated capability over three files, and no written
-checklist for extending the protocol.
-
-The spec renames to glossary words, restructures into one file per concept with every message
-documented, replaces the three expression languages with one `Expression` checked per context at
-preparation, gives Run Events a payload oneof, removes the duplicates, and adds an extension
-checklist. It changes no runtime semantics: R1 and R2 land first as mechanical changes, proven by a
-field-mapping equivalence test over every pre-migration fixture, before any structural change. The
-wire has no compatibility promise (`buf` breaking ignores the package), so there is no `v2` and no
-shim. New capabilities stay with their owners: Nexus timeouts and reply forms with fn-85 R10, cancel
-with fn-79, correlated transitions over structured machine state with fn-85.
-
-**Depends on fn-84** (recorded in Flow). **Recommended position: before fn-85**, so fn-85's Nexus
-instruction additions and fn-86's migrated Cases are authored on the final shapes; Flow does not
-yet record fn-85 depending on fn-87. Needs a plan review and a task breakdown.
+**Follow-up after fn-86, not yet a spec:** one Contract monitor declared per entity and instantiated
+per instance, replacing the per-instance rule copies Producers emit today (the typed Nexus Case
+carries its operation rules twice). It changes how the runtime evaluates rules, so it gets its own
+spec once every Case comes from the commands.
 
 ### Additional open specs
 

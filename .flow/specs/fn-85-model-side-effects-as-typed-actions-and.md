@@ -177,8 +177,7 @@ replaces, binds:
 - each result value to a classification of the concrete result;
 - the observation catalog, each observation's correlation key path, and each derived observation
   to its read; for Nexus, `pendingAttempts` is `DescribeWorkflowExecution`'s
-  `pending_nexus_operations.attempt`, and when the existing projection cannot carry a read response,
-  R10 adds that evidence source shape to the protocol;
+  `pending_nexus_operations.attempt`, declared once in the Case (R10);
 - each timer to a concrete duration;
 - each setup parameter and switch value to a dynamic config key and value;
 - each entity reference to a runtime identifier (slot, run reference, operation key).
@@ -188,22 +187,40 @@ Feature machines it names; MOD-02 lists Evidence mappings under `Temporal.System
 amendment.
 
 The Producer assembles the Program from a Query's path: actions of `driven` parties become
-instructions in path order; actions of `observed` parties and `system` rows become Contract
+instructions in path order, each carrying the API message its class example fills; actions of `observed` parties and `system` rows become Contract
 expectations through the projection; timers become waits bounded by the realized durations; a
 `driven` fault action becomes the Testpilot fault instruction the realization names. Whole-Program
 templates and the `case` block are removed.
 
-### Testpilot additions for Nexus
+### Typed worker instructions
 
-The functional Queries need Program instructions the runtime does not have. All additions are
-additive protobuf changes.
+The functional Queries need side effects the runtime cannot express: timeouts on the schedule
+command, a failed reply, a handler error's type and retry behavior, a failed completion. Instead of
+a Testpilot field for each, a worker instruction carries the Temporal API message that already names
+those fields, the same message the action's `schema:` names:
 
-| Addition | Why |
-| --- | --- |
-| schedule-to-close, schedule-to-start and start-to-close durations on `StartNexusOperation` | timeout Queries |
-| a `RespondNexus` reply form for operation failed; a handler error type and retry behavior on the error form | reply classes and retry Queries |
-| an outcome (succeeded, failed) on `CompleteNexusOperation` | async failure Query |
-| a read-response evidence source for the correlated projection, only if the existing projection cannot carry a describe response | retry Query's attempt-count observation |
+| Instruction | Carries | Replaces |
+| --- | --- | --- |
+| workflow command | a `temporal.api.command.v1.Command` attributes message; for Nexus, `ScheduleNexusOperationCommandAttributes`, which has schedule-to-close, schedule-to-start and start-to-close timeouts | `StartNexusOperation` |
+| handler reply | `temporal.api.nexus.v1.StartOperationResponse` (sync success, async success, operation error) or `temporal.api.nexus.v1.HandlerError` (error type, failure, retry behavior) | `RespondNexus` and `NexusResponseKind` |
+| operation completion | a `temporal.api.common.v1.Payload` result or a `temporal.api.failure.v1.Failure` | `CompleteNexusOperation`'s untyped result |
+
+The Driver maps each message to the SDK call that produces it: a workflow command to the workflow
+SDK call with its options, a reply to the handler's return value or error. The Profile admits
+workflow commands per command type. An SDK option with no API field (Nexus `CancellationType`) would
+go in an extension field beside the message; this spec adds none, because cancellation stays in
+fn-79. Other command types (timers, activities, child workflows) take the same shape when a feature
+needs them.
+
+### One observation declaration per Case
+
+A Case today names what it reads twice: Program waits filter history by event type, and the
+Contract names the same event kinds, key paths and fields again. A Case instead declares each
+observation once, with its source (a history event kind, a Run Event kind, or a read such as
+`DescribeWorkflowExecution`), its correlation key path and the fields it exposes. Program waits and
+Contract rules refer to it by name. The Producer emits the declarations from the Model's evidence
+and the realization's catalog, so `pendingAttempts` gets its read source without a separate
+projection shape.
 
 ## API Contracts
 <!-- scope: technical -->
@@ -298,8 +315,12 @@ umpire-case --render <id> # canonical ProtoJSON on stdout
 - **Umpire independence.** `Umpire.*` names no Temporal RPC, instruction, event, config key or
   party; `lint-model` enforces MOD-01 and SCP-02 on every new module.
 - **Fixtures** are generated only; hand edits fail the conformance check (ART-11, ART-12).
-- **Protocol compatibility.** Every Testpilot proto change is additive and passes the buf breaking
-  check.
+- **Protocol changes** build on fn-87's protocol and need not be additive; the buf breaking check
+  ignores the Testpilot package. Every changed instruction keeps a Driver conformance case.
+- **SDK reach.** A field of a carried API message that the Driver cannot set through the SDK rejects
+  at preparation naming the field, never silently dropped.
+- **One observation, two readers.** A Program wait and a Contract rule that read the same recorded
+  data refer to one declaration; a Case that declares the same source and key path twice rejects.
 
 ## Acceptance Criteria
 <!-- scope: both -->
@@ -354,10 +375,17 @@ umpire-case --render <id> # canonical ProtoJSON on stdout
   under MOD-01 and SCP-02. Errors: an action class, result value, observation, timer, setup parameter
   or switch the realization does not bind, and a `driven` fault action with no Testpilot fault kind,
   reject at Case production naming it.
-- **R10:** The Testpilot protocol, Lean generated declarations and Go runtime support the Nexus
-  additions in the Architecture table that the Queries of R11 use; each has a Driver conformance
-  case; buf breaking passes. Errors: an invalid duration and a reply form the handler activation
-  does not admit reject at Case preparation with the existing preparation error categories.
+- **R10:** Worker instructions carry the Temporal API messages under Typed worker instructions (a
+  workflow command's attributes, a Nexus `StartOperationResponse` or `HandlerError` reply, a
+  completion payload or failure), and `StartNexusOperation`, `RespondNexus`, `NexusResponseKind` and
+  `CompleteNexusOperation`'s untyped result are removed; a Case declares each observation once and
+  Program waits and Contract rules refer to it by name; the Lean generated declarations and the Go
+  Driver support both, with a Driver conformance case per carried message and per observation
+  source; the Profile admits workflow commands per command type. Errors: an invalid duration, a
+  message field the Driver cannot set through the SDK, a reply the handler activation does not
+  admit, a command type the Profile does not admit, a reference to an undeclared observation, and a
+  duplicate observation declaration reject at Case preparation with the existing preparation error
+  categories.
 - **R11:** The Nexus caller-side operation is re-authored as the product machine and the protocol
   machine that refines it in `DESIGN.md` section 3, without its cancel actions and cancel rows; a
   functional set with `repeat` over the HSM and CHASM switch contains exactly these Queries, each
@@ -395,7 +423,7 @@ umpire-case --render <id> # canonical ProtoJSON on stdout
 
 ## Early proof point
 
-Before any Testpilot addition (R10), re-author today's async-Nexus Case as Query 2 on entities,
+Before the typed instructions and observation declarations (R10), re-author today's async-Nexus Case as Query 2 on entities,
 actions, a machine, observations and a realization (R1 to R3, R9). Its assembled Program and
 Contract must be equivalent to the checked-in async-Nexus fixture with identities masked. If the
 assembled Program needs a Nexus-specific branch in `Umpire.Case.Producer`, or cannot reproduce the
@@ -431,7 +459,9 @@ R4 to R12 build on it.
 - **Nexus operation cancellation** (the cancel request, cancel delivery and canceled resolution,
   with their Testpilot instructions) stays in fn-79, which is deferred until the user asks to resume
   it and then re-plans on this spec's entities, actions, machines and sets.
-- **Depends on** fn-84 (recorded in Flow) and builds on fn-83 tasks .13 (optional Facts), .14
+- **The Testpilot protocol's names, structure, expressions and defaults** are fn-87's; this spec
+  adds typed worker instructions and Case observation declarations on top of it.
+- **Depends on** fn-84 and fn-87 (both recorded in Flow) and builds on fn-83 tasks .13 (optional Facts), .14
   (located compile-time diagnostics) and .15 (respelled command surface), all done on 2026-09-10.
 
 ## Decision Context
@@ -473,6 +503,11 @@ Rejected:
   entity.
 - **A cancel Query in this slice**: it and its two Testpilot instructions are fn-79's deferred
   scope, which resumes only on an explicit user request.
+- **A Testpilot field per server option** (timeouts on `StartNexusOperation`, a reply-kind enum):
+  every feature would grow a parallel vocabulary for fields the API messages already name, and the
+  action's schema and its instruction would type the same thing twice.
+- **Program and Contract declaring observations separately**: the same event kind, key path and
+  fields were written twice and could drift.
 - **Transport fault injection for Query 5**: it needs a server test hook the black-box Driver does
   not have; the retryable handler error exercises the same server path.
 

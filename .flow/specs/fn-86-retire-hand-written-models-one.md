@@ -180,6 +180,10 @@ revisiting before anything is removed.
 - **No Testpilot protocol changes** beyond what the workflow and RPC realizations of R4 need, which
   use existing instructions and fault kinds.
 - **No new command concepts** beyond field relations.
+- **One monitor per entity** is a follow-up after this spec: a Contract today repeats each rule per
+  entity instance (the typed Nexus Case carries its operation rules twice), and once every Case comes
+  from the commands, one Contract monitor declared per entity and instantiated per instance can
+  replace the copies. It needs its own spec because it changes how the runtime evaluates rules.
 - **No edits to historical `.plans` documents** other than `UMPIRE4_ORDER.md` and the drafted rules
   in R8.
 - **Depends on fn-85**, whose commands and realization this spec migrates onto.
