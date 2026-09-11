@@ -27,12 +27,20 @@ open Lean
 command resolves a spelling against these rather than re-reading the inductives. -/
 structure ModelEntry where
   declName : Name
+  role : String
   facts : Array String
+  deriving Inhabited, Repr, BEq
+
+/-- One Property declaration and the Model it runs on, so a Query need not name the Model again. -/
+structure PropertyEntry where
+  declName : Name
+  model : Name
   deriving Inhabited, Repr, BEq
 
 /-- One Scenario declaration and the Action spellings it selects, in declaration order. -/
 structure ScenarioEntry where
   declName : Name
+  model : Name
   actions : Array String
   deriving Inhabited, Repr, BEq
 
@@ -55,6 +63,12 @@ def collect {α : Type} (imported : Array (Array α)) : Array α :=
   imported.foldl (init := #[]) (· ++ ·)
 
 initialize modelExtension : SimplePersistentEnvExtension ModelEntry (Array ModelEntry) ←
+  registerSimplePersistentEnvExtension {
+    addEntryFn := Array.push
+    addImportedFn := collect
+  }
+
+initialize propertyExtension : SimplePersistentEnvExtension PropertyEntry (Array PropertyEntry) ←
   registerSimplePersistentEnvExtension {
     addEntryFn := Array.push
     addImportedFn := collect
@@ -83,6 +97,9 @@ initialize conventionsExtension :
 def recordModel (entry : ModelEntry) : CoreM Unit :=
   modifyEnv fun env => modelExtension.addEntry env entry
 
+def recordProperty (entry : PropertyEntry) : CoreM Unit :=
+  modifyEnv fun env => propertyExtension.addEntry env entry
+
 def recordScenario (entry : ScenarioEntry) : CoreM Unit :=
   modifyEnv fun env => scenarioExtension.addEntry env entry
 
@@ -90,11 +107,15 @@ def recordQuery (entry : QueryEntry) : CoreM Unit :=
   modifyEnv fun env => queryExtension.addEntry env entry
 
 def models (env : Environment) : Array ModelEntry := modelExtension.getState env
+def properties (env : Environment) : Array PropertyEntry := propertyExtension.getState env
 def scenarios (env : Environment) : Array ScenarioEntry := scenarioExtension.getState env
 def queries (env : Environment) : Array QueryEntry := queryExtension.getState env
 
 def model? (env : Environment) (declName : Name) : Option ModelEntry :=
   (models env).find? (·.declName == declName)
+
+def property? (env : Environment) (declName : Name) : Option PropertyEntry :=
+  (properties env).find? (·.declName == declName)
 
 def scenario? (env : Environment) (declName : Name) : Option ScenarioEntry :=
   (scenarios env).find? (·.declName == declName)
