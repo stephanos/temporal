@@ -12,6 +12,7 @@
   "id": "fn-83-author-a-live-case-from-a-model-file",
   "impl_review_rounds": {
     "fn-83-author-a-live-case-from-a-model-file.1": 0,
+    "fn-83-author-a-live-case-from-a-model-file.10": 0,
     "fn-83-author-a-live-case-from-a-model-file.2": 0,
     "fn-83-author-a-live-case-from-a-model-file.3": 0,
     "fn-83-author-a-live-case-from-a-model-file.4": 0,
@@ -732,10 +733,40 @@
       "task": "fn-83-author-a-live-case-from-a-model-file.4",
       "timestamp": "2026-09-11T02:10:11.678559Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "f8a47cf01652d367b19664d4c3c895ed2ce66bd77156182ee5f922390dfb5087",
+      "backend": "claude",
+      "base_sha": "b53900549026b5ff1f71dd8c6a766f2a0931d8d6",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "7c42dec82cc051d80adcbaf7176b8f0529d9c0ca",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-sonnet-4-5",
+      "outcome": "verdict",
+      "output_bytes": 1948,
+      "output_sha256": "99766a59ee43fef5ec6fe635c3dc013814589a64bbc8fe5105f026142e1255bc",
+      "reservation_id": "f89c5fb63479419fabbb1952ce7ed4b5",
+      "round_consumed": true,
+      "scope": "impl:fn-83-author-a-live-case-from-a-model-file.10",
+      "superseded_by": null,
+      "task": "fn-83-author-a-live-case-from-a-model-file.10",
+      "timestamp": "2026-09-11T02:43:40.962405Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-83-author-a-live-case-from-a-model-file.1": 1,
+    "impl:fn-83-author-a-live-case-from-a-model-file.10": 1,
     "impl:fn-83-author-a-live-case-from-a-model-file.2": 1,
     "impl:fn-83-author-a-live-case-from-a-model-file.3": 1,
     "impl:fn-83-author-a-live-case-from-a-model-file.4": 1,
@@ -748,6 +779,7 @@
   "review_reservations": {},
   "review_transport_failures": {
     "impl:fn-83-author-a-live-case-from-a-model-file.1": 0,
+    "impl:fn-83-author-a-live-case-from-a-model-file.10": 0,
     "impl:fn-83-author-a-live-case-from-a-model-file.2": 0,
     "impl:fn-83-author-a-live-case-from-a-model-file.3": 0,
     "impl:fn-83-author-a-live-case-from-a-model-file.4": 0,
@@ -769,5 +801,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-11T02:10:11.679010Z"
+  "updated_at": "2026-09-11T02:43:40.963325Z"
 }
