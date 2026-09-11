@@ -48,6 +48,7 @@ Report every authoring mistake in the Model file, at the line that makes it, whi
 ### Key context
 - Depends on .11 and .13 so the `query` gap lines and the optional-Facts grammar exist before diagnostics are written against them. .5 (fault lines on `scenario`), .6 (new Model) and .8 (the tutorial lists every located diagnostic) depend on this task.
 - AUT-03 already asks for failures at the relevant source location; no spec amendment.
+- 2026-09-10: the `case` abstraction is under redesign (query sets per purpose, one Case per Query, a separate Temporal binding; see the block reason on .16 and .17). Skip the `case`-command part of this task (production evaluation and `produceCase` error preservation) and the template-key diagnostics; cover `property`, `scenario` and `query` only. This task now follows .15 instead of .17.
 
 ## Acceptance
 - [ ] Every name in `property`, `scenario` and `query` resolves while the Model file compiles; an unknown Model, role, Action or member rejects at that name listing the declared spellings
