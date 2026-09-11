@@ -22,19 +22,20 @@ Testpilot JSON fixture stored indented for review (.9); the five Model commands 
 `Umpire.Command`, with AUT-07a drafted (.10); Query-declared Known Gaps replacing the hard-coded
 ones (.11); the `enum` command and a generated Setup (.12).
 
-**Open, in order.** .13 makes Facts optional so a Model stops restating its states; .14 reports
-authoring mistakes in `property`, `scenario` and `query` at their line while the Model file
-compiles; .15 respells the commands under one reading rule (column-0 declaration, indented
-`word:` key, derived labels). .14 and .15 skip the `case` command.
+**Also landed (2026-09-10).** .13 made Facts optional so a Model stops restating its states; .14
+reports authoring mistakes in `property`, `scenario` and `query` at their line while the Model file
+compiles; .15 respelled the commands under one reading rule (column-0 declaration, indented
+`word:` key, derived labels). .14 and .15 skip the `case` command. **Eleven of seventeen tasks are
+done and nothing is open** — the six below are blocked, so fn-83 is paused on fn-85, not stalled.
 
 **Blocked 2026-09-10, superseded by fn-85.** .4's remainder, .5 (fault lines against template
 hooks), .6 (sync Nexus translation), .8 (tutorial), .16 (fixture name from the `case` name) and .17
 (template arguments). fn-85's final task closes them and names where each concern went, so fn-83
 itself closes only after fn-85. Its former spec-level dependents were re-anchored on 2026-09-10:
 fn-33, fn-29, fn-70 and fn-79 now depend on fn-85, whose sets and Realization replace the `case`
-block they consumed; fn-84 and fn-46 dropped the dependency, and the tasks that touch fn-83's open
-work carry a dated note to start after fn-83 .15, because Flow cannot record a cross-spec task
-dependency.
+block they consumed; fn-84 and fn-46 dropped the dependency. Their tasks that touched fn-83's open
+work carried a dated note to start after fn-83 .15, because Flow cannot record a cross-spec task
+dependency; .15 is done, so those notes are satisfied.
 
 AUT-07a (.10) and the AUT-09 amendment .8 would have drafted are the GOV-02 items fn-83 leaves; the
 amendment moves to fn-85's rule drafts.
@@ -59,14 +60,14 @@ cross. The spec carries exactly those five, one task each, in the order the scan
 No behavior changes; every task records an equivalence pin before it moves code and closes with
 `make umpire-check-regression`. The plan review is SHIP after one fix round.
 
-**Runs after fn-83's open tasks and before fn-85.** fn-82 closed on 2026-09-10 and its renames in
+**Next to run, before fn-85; nothing blocks it.** fn-82 closed on 2026-09-10 and its renames in
 all five areas have landed. Task .5 shares its seam with `Umpire.Case.Producer`, and .3's admission
 chain now sits in `Umpire.Command` after fn-83 .10 moved it; both tasks re-read those owners before
 starting. fn-84 goes before fn-85 because every task is behavior-preserving with byte-identical
 fixture and golden pins, which are cheapest to hold before fn-85 replaces the async-Nexus fixture
 and the Producer's Program assembly, and because fn-85 builds on `Umpire.Search.admit` (.3). The
-spec-level dependency on fn-83 was removed on 2026-09-10; .3 and .5 carry a note to start after
-fn-83 .15, and .1, .2 and .4 touch nothing fn-83's open tasks edit. fn-22 and fn-33 depend on this
+spec-level dependency on fn-83 was removed on 2026-09-10, and the note on .3 and .5 to start after
+fn-83 .15 is satisfied now that .15 is done. fn-22 and fn-33 depend on this
 spec in turn: fn-33's exploration bridge sits on the search-view transport sites .3 replaces, and
 fn-22's promotion path consumes `search`, which .3 keeps public. Dispatch is serial in task order
 because every pair of tasks shares a documentation or test-root file.
@@ -87,15 +88,15 @@ Program template, so a Model could not tell a retryable handler error from a non
 Property could not read the fields that make the difference. The design surveyed the server's Nexus
 operation behavior and all 16 Nexus functional test files, which the Model must eventually express.
 
-The spec makes three things true. Side effects are part of the Model: entities with structured
-state; actions with a kind (`call`, `command`, `reply`), a party, a schema, input classes with
-representatives, and result classes; and observations that confirm steps. A Temporal-owned
-Realization binds them to RPCs, workflow commands, handler replies, history events and dynamic
-config. Queries are grouped
-into sets by purpose: a set binds each party to the test or the environment, and a functional set
-compiles to one Case per Query. And the Nexus caller-side operation runs this way end to end: a
-product machine and a protocol machine that refines it, with a functional set of seven Queries
-translated from the Nexus functional tests, each run under both the HSM and CHASM implementations.
+The spec makes three things true. Side effects are part of the Model: entities with identity,
+actions a party performs with typed inputs grouped into classes and an example per class, machines
+that keep each entity's state and rows, and observations that confirm each row. A Temporal-owned
+realization in `Temporal.Case` binds them to RPCs, Testpilot instructions, history events and
+dynamic config. Queries are grouped into sets by purpose: a set binds each party to `driven` or
+`observed`, and a functional set compiles to one Case per Query. And the Nexus caller-side operation
+runs this way end to end: a product machine and a protocol machine that refines it, with a
+functional set of seven Queries translated from the Nexus functional tests, each run under both the
+HSM and CHASM implementations.
 
 The early proof point rebuilds today's async-Nexus Case from the new abstractions and must match
 its fixture with identities masked before any Testpilot protocol addition. The protocol additions
@@ -105,8 +106,8 @@ coverage targets enumerated; running them stays in fn-70, fn-29 and fn-33. Whole
 and the `case` command are removed.
 
 **Needs a plan review and a task breakdown**; the spec has no tasks yet. Flow records its
-dependency on fn-84; its first task starts after fn-83 .15, which Flow cannot record across specs.
-It closes fn-83's six blocked tasks as superseded.
+dependency on fn-84; the fn-83 tasks it builds on (.13, .14, .15) are done. It closes fn-83's six
+blocked tasks as superseded.
 
 **Cancellation stays deferred.** The design's cancel Query and its Testpilot instructions overlap
 fn-79, which resumes only on an explicit user request, so on 2026-09-10 they moved out of fn-85 into
@@ -115,7 +116,35 @@ fn-79's re-planning note.
 Boundaries: no composition (update-, query- or activity-backed handlers, several callers), no
 reset, no visibility or standalone operations, no metrics or spans as observations, no endpoint
 registry, matching or cross-cluster topology, no HTTP transport fault kind, no schema interface, no
-change to the typed examples.
+change to the hand-written Models (fn-86 retires them).
+
+### 4. Retire hand-written Models: one authoring path through the commands — fn-86
+
+[fn-86 — Retire hand-written Models: one authoring path through the commands](../.flow/specs/fn-86-retire-hand-written-models-one.md),
+from the 2026-09-10 decision to align completely on the developer-facing commands. After fn-85 the
+tree still carries about 7,000 lines that build Umpire records or Testpilot Cases directly in Lean:
+the two typed Nexus examples, the Race, Lifecycle, Operations and Experimental Nexus models, the
+worker-outage and get-system-info Cases with no Model, and Umpire's Switch example. AUT-08 still
+names that path as an expert alternative.
+
+The spec makes the commands the only authoring path for feature Models and gives every piece of
+covered behavior a destination before anything is deleted. An inventory lists each hand-written
+module with the Properties, goldens, fixtures, live tests and tools that read it. The commands gain
+field relations (a Property comparing action input, action result and observation fields through
+their schemas), and the typed examples migrate onto them with their crossed-pairing mutations
+intact. The worker-outage and get-system-info Cases become command Models, the Switch example is
+re-authored, and the Race and Experimental models are deleted with their behavior written into fn-79
+and fn-33. A `lint-model` import rule then keeps feature Models from importing Umpire's authoring
+owners except through `Umpire.Command`, and GOV-02 drafts remove AUT-08's expert alternative.
+
+Two decisions frame it: the typed examples migrate rather than being deleted first, because they
+carry the only field-level Property coverage; and `Temporal.System.Nexus` stays as the single
+exception, because it is the spec's only Feature-to-System Implementation Link (SEM-08, MOD-04).
+Testpilot conformance and synthetic Cases stay, since they test the runtime.
+
+**Depends on fn-85** (recorded in Flow). The early proof point expresses the typed unary Property as
+a field relation that lowers to the same Contract field reads before any deletion. Needs a plan
+review and a task breakdown.
 
 ### Additional open specs
 
@@ -123,7 +152,30 @@ These remain open in Flow and are outside the first-canary critical path.
 
 | Spec                                                                                              | Dependencies | Next action                                                                                                                                                                                                                  |
 | ------------------------------------------------------------------------------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [fn-46 — Lean module impact index](../.flow/specs/fn-46-export-lean-model-module-impact-index.md) | fn-45 | Refreshed three-task plan is SHIP against current model owners. Task .1 starts after fn-83 .15 (dated note in Flow); refresh the module rows for `Umpire.Command` (fn-83 .10) and, once planned, fn-85's new modules. Deliver the shared loader, pure dependency/facade/test index, and opt-in export/check commands. |
+| [fn-46 — Lean module impact index](../.flow/specs/fn-46-export-lean-model-module-impact-index.md) | fn-45 | Refreshed three-task plan is SHIP against current model owners. fn-83 .15 is done, so task .1 is free to start; refresh the module rows for `Umpire.Command` (fn-83 .10) and, once planned, fn-85's new modules. Deliver the shared loader, pure dependency/facade/test index, and opt-in export/check commands. |
+
+## Gate baselines
+
+Measured 2026-09-10 after the upstream merge, on a host with disk headroom:
+
+| Gate | Baseline |
+| ---- | -------- |
+| `make umpire-check-regression` | exit 0 — 571 Lean jobs, eight conformance checks, nine passing live identities |
+| `make lint-model` | 163, all in generated `Temporal/API/Proto.lean`; `Umpire.Lint` and `Shared` clean |
+| `make lint-code GOLANGCI_LINT_FIX=false` | **161** (exit 2, inherited red) |
+| `go vet -tags test_dep ./...` | 15 pre-existing diagnostics |
+| `go run ./tools/planindex` | ~49, pre-existing `.plans` registration drift |
+
+**`make lint-code` under-reports when the disk is low.** Earlier runs recorded 128 and were believed
+for several specs. golangci-lint aborts with `no space left on device (typecheck)` and still exits
+with a count — `Issues before processing: 11800, after processing: 1` in the failing case against
+`14507 -> 161` in a healthy one. Run `go clean -cache` before trusting this gate, and treat any
+number below 161 as a truncated run rather than an improvement.
+
+Live tests need `CC=/usr/bin/cc` (mise's lean4 clang shadows the toolchain; cgo fails with
+`stddef.h not found`) and a physical `TMPDIR` (`TMPDIR=$(cd "${TMPDIR:-/tmp}" && pwd -P)`; the
+default macOS path traverses the `/var` symlink). `go vet -tags test_dep` is NOT the gate — the live
+suite builds with `-tags 'test_dep integration'`, which compiles strictly more files.
 
 ## Downstream delivery
 
