@@ -14,11 +14,11 @@ Today the only unit is a `case` block per Query.
 
 This spec makes three things true:
 
-1. **Side effects are part of the Model.** A Model declares the interfaces its entities interact
-   through (calls, commands, replies, observations), with typed inputs grouped into behavior
-   classes, typed results grouped into classes, and the party that performs each. Umpire stays
-   free of Temporal; a Temporal realization binds each interface to RPCs, workflow commands,
-   handler replies and history events.
+1. **Side effects are part of the Model.** A Model declares the actions its entities take part in
+   (calls, commands, replies) and the observations that confirm them, with typed inputs grouped
+   into behavior classes, typed results grouped into classes, and the party that performs each
+   action. Umpire stays free of Temporal; a Temporal realization binds each action and observation
+   to RPCs, workflow commands, handler replies and history events.
 2. **Queries are grouped into sets by purpose.** A set binds each party to the test or to the
    environment and names its Queries or its coverage goal. A functional set compiles to one Case
    per Query.
@@ -40,16 +40,17 @@ each concern went.
 
 ```text
 Model file (Temporal.Feature.<Feature>)
-  enum / entity / interface / environment / model / link / property / scenario / limits / query / set
+  enum / entity / action / observation / environment / machine / link / property / scenario /
+  limits / query / set
         |  elaborates into Umpire records (Temporal-free)
         v
-Umpire.Command ── Entity, Interface, Party, Dimension, ResultClass, Row, EnvironmentStep,
-                  SetupParameter, Link, Set
+Umpire.Command ── Entity, Action, Observation, Party, Dimension, ResultClass, Machine, Row,
+                  EnvironmentStep, SetupParameter, Link, Set
         |  checked model + witness trace per Query
         v
 Umpire.Case.Producer ── assembles Program and Contract from the witness and a Realization
         ^
-        |  binds interfaces, results, observations, setup parameters and parties
+        |  binds actions, results, observations, setup parameters and parties
 Temporal.Realization.<Feature> ── Temporal-owned; the only place RPC methods, workflow commands,
                                   handler replies, history event kinds and dynamic config keys appear
         |
@@ -69,11 +70,15 @@ entities. A Model's state is a finite collection of entity instances; Limits bou
 count. Search stays finite and the existing admission, Search and checked-witness machinery apply
 to the product state.
 
-### Interfaces, parties and kinds
+### Actions, observations, parties and kinds
 
-An **interface** is a named side effect with:
+An **action** is a named side effect a party performs. It extends the glossary's Action, which had
+none of the following, with:
 
-- a **kind**: `call`, `command`, `reply` or `observation`;
+- a **kind**: `call`, `command` or `reply`;
+- an optional **schema**: the protobuf message type, or alternatives, that types its input and
+  results; an action whose payload has no protobuf message declares its classes as names the
+  Realization interprets, and carries no member check;
 - a **party**: the side that performs it, from a party list the feature declares (`caller`,
   `handler` for Nexus), plus the reserved parties `system` and `environment`;
 - an **input**: *dimensions* (finite classes over input fields), *references* to entities,
@@ -83,17 +88,23 @@ An **interface** is a named side effect with:
 - **representatives**: for each multi-member input class, the one concrete member a functional
   realization uses.
 
-`Umpire.Operation`'s kinds are renamed to the structural ones (`unaryRpc` → `call`, `sdkCommand` →
-`command`, `event` → `observation`) and `reply` is added. Schemas stay protobuf descriptors.
+An **observation** is recorded data that confirms a step: it names the entity it belongs to and the
+key that identifies the instance, and it is read either from a recorded event or through a read
+call. It extends the glossary's Observation with that entity and key.
+
+`Umpire.Operation`'s kinds become `call` and `command` (from `unaryRpc` and `sdkCommand`), `reply`
+is added, and `event` becomes the observation declaration. Schemas stay protobuf descriptors.
 
 ### Rows
 
-A `model` block's step rows match on entity state fields, interface arguments and results, and
+A **machine** block holds step rows, the transition relation the glossary calls a Machine; the
+Model is the checked behavior built from its machines, entities, actions and observations. Rows
+match on entity state fields, action arguments and results, and
 setup parameters, with alternatives (`a | b`), negation (`not terminal`) and omitted fields as
 wildcards. Rows are ordered; the first matching row applies, and a row no input can reach is
 rejected as shadowed. Each row that a `system` or `environment` party takes names its evidence: a
-history-style observation keyed to the entity, a query observation (read through a declared read
-interface), or an explicit `unobservable` that becomes a Known Gap in every Case whose witness uses
+recorded-event observation keyed to the entity, a read observation (confirmed through a read
+call), or an explicit `unobservable` that becomes a Known Gap in every Case whose witness uses
 the row.
 
 ### Environment
@@ -105,7 +116,7 @@ environment steps per trace.
 
 ### Setup parameters and switches
 
-Model `setup` parameters are finite, named after the behavior they control
+Machine `setup` parameters are finite, named after the behavior they control
 (`concurrencyLimit: [atLimit, belowLimit]`), and bound by the Profile. A **switch** is a rollout
 flag between implementations of the same behavior (Nexus HSM or CHASM); it is not a Model
 parameter. A set's `repeat` names switch values; each Query's Case runs once per value under a
@@ -113,11 +124,11 @@ Profile that sets it, and a verdict that differs between values is reported as a
 
 ### Two levels and a link
 
-A feature may declare a product model and an interface model and a `link` between them. The link
-maps interface-model state to product-model state and interface steps to product steps or to
+A feature may declare a product machine, a mechanism machine and a `link` between them. The link
+maps mechanism-machine state to product-machine state and mechanism steps to product steps or to
 `stutter`; unmapped values become Known Gaps. It elaborates to `Umpire.ImplementationLink` and is
-checked by its forward simulation. A Property declared on the product model is carried to the
-interface model through the link.
+checked by its forward simulation. A Property declared on the product machine is carried to the
+mechanism machine through the link.
 
 ### Sets
 
@@ -148,10 +159,10 @@ Single-member classes carry no claim.
 
 A Temporal-owned `Realization` value per feature binds:
 
-- each interface to a Testpilot instruction or RPC and the party to a Program entrypoint
+- each action to a Testpilot instruction or RPC and each party to a Program entrypoint
   (controller, workflow, handler);
 - each result class to a classification of the concrete result;
-- each observation to an observation source, a correlation key path and a kind; a query
+- each observation to an observation source, a correlation key path and a kind; a read
   observation is a read RPC (for Nexus, describing the caller workflow's pending operations) whose
   response feeds the correlated evidence, and when the existing projection cannot carry a read
   response, R10 adds that evidence source shape to the protocol;
@@ -189,9 +200,10 @@ entity <name>
   key:    <observation key name>
   state:  (<field>: <enum> | bool | count | optional <slotPool> | set <slotPool>)+
 
-interface <name>
-  kind:    call | command | reply | observation
+action <name>
+  kind:    call | command | reply
   party:   <party>
+  schema:  <protobuf message> (| <protobuf message>)*   -- optional
   on:      <entity>                        -- or creates: <entity>
   input:   (<field>: [<class>, ...])*
   refer:   (<field>: <entity>)*
@@ -199,20 +211,24 @@ interface <name>
   results: (<class>)*
   representatives: (<class pattern> → <concrete member>)*
 
+observation <name> (, <name>)*
+  on:   <entity>
+  key:  <entity key>                       -- or read: <read call result field>
+
 environment
-  fault: (<fault class> on <interface>)*
+  fault: (<fault class> on <action>)*
   timer: <name>, ...
 
-model <name>
+machine <name>
   entity: <entity>
   setup:  (<parameter>: [<value>, ...])*
   steps:
-    <state guard> + <interface>(<argument pattern>)[ → <result class>]
-      → <state update>, evidence: <observation> | query <read> | unobservable
+    <state guard> + <action>(<argument pattern>)[ → <result class>]
+      → <state update>, evidence: <observation> | unobservable
 
-link <interface model> refines <product model>
+link <mechanism machine> refines <product machine>
   state: (<field>: <value> → <value> | hidden)*
-  steps: (<interface pattern> → <product step> | stutter)*
+  steps: (<action pattern> → <product step> | stutter)*
 
 set functional | canary <name>
   bind:    (<party>: test | environment)+
@@ -229,11 +245,11 @@ Umpire records (Temporal-free; names are contracts):
 
 ```lean
 namespace Umpire.Command
-inductive InterfaceKind | call | command | reply | observation
+inductive ActionKind | call | command | reply
 inductive PartyBinding | test | environment
 structure Dimension where field : String; classes : List ClassDecl
 structure ClassDecl where name : String; members : List Value.Raw   -- one member: no claim
-structure AbstractionClaim where interface : DefinitionId; dimension : String; className : String;
+structure AbstractionClaim where action : DefinitionId; dimension : String; className : String;
   representative : Value.Raw
 inductive SetKind | functional | canary | exploratory
 end Umpire.Command
@@ -280,26 +296,29 @@ umpire-case --render <id> # canonical ProtoJSON on stdout
   over the product state. Errors: a field type outside the finite kinds, an unbounded count, a
   reference to an undeclared entity, and an instance bound of zero reject in place, pinned by
   `#guard_msgs`.
-- **R2:** A Model file declares interfaces with kind, party, input dimensions, references,
-  defaults, input rules, result classes and representatives; `Umpire.Operation` kinds are `call`,
-  `command`, `reply`, `observation`. Errors: unknown party, duplicate class, a class member outside
-  the field's schema, a representative that is not a member of its class, and a rule on an
-  undeclared field reject in place, pinned by `#guard_msgs`.
-- **R3:** Step rows guard on state fields, interface arguments, results and setup parameters with
+- **R2:** A Model file declares actions with kind, party, optional schema, input dimensions,
+  references, defaults, input rules, result classes and representatives, and observations with the
+  entity and key they confirm; `Umpire.Operation` kinds are `call`, `command` and `reply`, and
+  events are observations; the transition block is spelled `machine`. Errors: unknown party,
+  duplicate class, a schema that does not resolve to a protobuf message, a class member outside the
+  field's schema, a representative that is not a member of its class, a rule on an undeclared
+  field, and an observation on an undeclared entity or key reject in place, pinned by
+  `#guard_msgs`.
+- **R3:** Step rows guard on state fields, action arguments, results and setup parameters with
   alternatives, negation and wildcards; the first matching row applies; every `system` and
   `environment` row names evidence or `unobservable`. Errors: shadowed row, unreachable row, a
   `system` row without evidence, and evidence naming an undeclared observation reject in place,
   pinned by `#guard_msgs`.
 - **R4:** The `environment` party declares timers and faults; timers fire only while their guard
   holds; interleavings across entity instances are traces; Limits bound environment steps. Errors:
-  a fault on a non-`call` interface and a timer no row guards reject in place; an exhausted
+  a fault on a non-`call` action and a timer no row guards reject in place; an exhausted
   environment bound reports `limitReached`.
 - **R5:** Setup parameters are bound by the Profile and guard rows; a functional set's `repeat`
   runs each Query's Case once per switch value; a differing verdict fails the live test naming both
   values and verdicts. Errors: an unbindable setup parameter yields a Known Gap in the Case; an
   unknown switch value rejects at the set.
 - **R6:** `link A refines B` elaborates to a checked `Umpire.ImplementationLink`; a Property on the
-  product model is checked on interface-model traces through the link. Errors: a state mapping to an
+  product machine is checked on mechanism-machine traces through the link. Errors: a state mapping to an
   undeclared product value, a step mapping that breaks forward simulation, and an unmapped
   reachable value without a Known Gap reject, each pinned by `#guard_msgs` or a `#guard` on the
   checked link.
@@ -309,20 +328,20 @@ umpire-case --render <id> # canonical ProtoJSON on stdout
   in a functional or canary set, a canary Query whose Case carries a white-box Known Gap, a
   duplicate derived fixture, and an exploratory set without a coverage goal reject in place.
 - **R8:** Every Case that realizes a multi-member input class carries an abstraction claim naming
-  the interface, dimension, class and representative in its Provenance; single-member classes carry
+  the action, dimension, class and representative in its Provenance; single-member classes carry
   none. Errors: a missing representative for a realized multi-member class rejects at Case
   production naming the class.
-- **R9:** A Temporal `Realization` binds interfaces, parties, result classes, observations, setup
+- **R9:** A Temporal `Realization` binds actions, parties, result classes, observations, setup
   parameters, switches and references; the Producer assembles Program and Contract from the witness
   and the Realization; whole-Program templates and the `case` command no longer exist; `Umpire.*`
-  passes `lint-model` under MOD-01 and SCP-02. Errors: an interface, result class, observation or
+  passes `lint-model` under MOD-01 and SCP-02. Errors: an action, result class, observation or
   setup parameter the Realization does not bind rejects at Case production naming it.
 - **R10:** The Testpilot protocol, Lean generated declarations and Go runtime support the Nexus
   additions in the Architecture table that the Queries of R11 use; each has a Driver conformance case; buf breaking
   passes. Errors: an invalid duration and a reply form the handler activation does not admit
   reject at Case preparation with the existing preparation error categories.
-- **R11:** The Nexus caller-side operation is re-authored as the interface model, product model and
-  link of `DESIGN.md` section 4, without its cancel interfaces and cancel rows; a functional set `nexusCaller` with `repeat` over the HSM and CHASM
+- **R11:** The Nexus caller-side operation is re-authored as the mechanism machine, product machine
+  and link of `DESIGN.md` section 4, without its cancel actions and cancel rows; a functional set `nexusCaller` with `repeat` over the HSM and CHASM
   switch contains exactly these Queries, each with a generated fixture and a passing live test under
   both switch values:
   1. sync success reply completes the operation;
@@ -330,7 +349,7 @@ umpire-case --render <id> # canonical ProtoJSON on stdout
   3. async reply then failed callback fails it;
   4. non-retryable handler error fails it;
   5. retryable handler error then sync success completes it after one backoff, with the attempt
-     count observed through a query observation;
+     count observed through a read observation;
   6. schedule-to-start timeout while the handler's worker is stopped times it out;
   7. async reply with start-to-close timeout times it out.
 
@@ -348,8 +367,10 @@ umpire-case --render <id> # canonical ProtoJSON on stdout
   R7.
 - **R13:** `model/AUTHORING.md` walks from an empty file to a green live test using the Nexus
   Model, with every Lean block equal to a marked region of the Model file, enforced by a Go drift
-  test; `UMPIRE4_SPEC.md` gains concept entries for Entity, Interface, Party, Set, Realization and
-  Abstraction Claim and drafted rules under GOV-02; `DESIGN.md` points at the spec and the Model;
+  test; `UMPIRE4_SPEC.md` gains concept entries for Entity, Party, Set, Realization and Abstraction
+  Claim, amends the Action, Observation and Machine entries, and drafts rules under GOV-02,
+  including an AUT-07a amendment that names the `entity`, `action`, `observation`, `environment`,
+  `machine`, `link` and `set` commands and retires `model` as a command; `DESIGN.md` points at the spec and the Model;
   fn-83 tasks .4, .5, .6, .8, .16 and .17 are closed as superseded with the destination of each
   concern; `make umpire-check-regression` passes. Errors: a missing or duplicate drift marker fails
   the drift test naming the marker.
@@ -357,7 +378,7 @@ umpire-case --render <id> # canonical ProtoJSON on stdout
 ## Early proof point
 
 Before any Testpilot addition (R10), re-author today's async-Nexus Case as Query 2 on entities,
-interfaces, rows and a Realization (R1 to R3, R9). Its assembled Program and Contract must be
+actions, observations, rows and a Realization (R1 to R3, R9). Its assembled Program and Contract must be
 equivalent to the checked-in async-Nexus fixture with identities masked. If the assembled Program
 needs a Nexus-specific branch in `Umpire.Case.Producer`, or cannot reproduce the template's
 dependency edges from the witness order, stop: the party-to-entrypoint binding is wrong and R4 to
@@ -366,7 +387,7 @@ R12 build on it.
 ## Boundaries
 <!-- scope: business -->
 
-- **Composition** (a handler reply built from another entity's interfaces: update-, query- or
+- **Composition** (a handler reply built from another entity's actions: update-, query- or
   activity-backed handlers; several callers sharing one handler workflow) is a follow-up spec.
 - **History-rewriting actions** (reset and its reapply rules) are out of scope.
 - **Eventually consistent observations** (visibility list and count) and **standalone Nexus
@@ -386,7 +407,7 @@ R12 build on it.
   `UMPIRE4_SPEC.md` concept entries and drafted rules in R13.
 - **Nexus operation cancellation** (the cancel request, cancel delivery and canceled resolution,
   with their Testpilot instructions) stays in fn-79, which is deferred until the user asks to
-  resume it and then re-plans on this spec's entities, interfaces and sets.
+  resume it and then re-plans on this spec's entities, actions and sets.
 - **Depends on** fn-84 (recorded in Flow) and on fn-83 tasks .13 (optional Facts), .14 (located
   compile-time diagnostics) and .15 (respelled command surface), which Flow cannot record as a
   cross-spec task dependency; the first task of this spec starts only after fn-83 .15 is done.
@@ -394,7 +415,7 @@ R12 build on it.
 ## Decision Context
 <!-- scope: both — conditionally substructured -->
 
-The five design decisions are recorded in `DESIGN.md` section 7: a party is fixed on the interface
+The five design decisions are recorded in `DESIGN.md` section 7: a party is fixed on the action
 and bound per set; the author claims classes and exploration owns their evidence; protobuf
 descriptors stay the only schema with structural kind names; one level by default with a product
 model when mechanism or several realizations call for it; one Model for HSM and CHASM, repeated per
@@ -411,6 +432,12 @@ Rejected:
   specified behavior instead of a conformance dimension.
 - **Hand-listed concrete requests per Action** (`ParameterDomain` today): one Action per concrete
   request multiplies rows without adding meaning.
+- **`interface` as the declaration word**: it reads as a method-set contract type to Go and Java
+  readers, collides with the design's own "interface model", and duplicates the glossary's Action,
+  which SEM-19 forbids.
+- **`model` or `statemachine` for the transition block**: the glossary's word for a transition
+  relation is Machine, and Model stays the checked behavior every Property, Scenario and Query
+  shares.
 - **A cancel Query in this slice**: it and its two Testpilot instructions are fn-79's deferred
   scope, which resumes only on an explicit user request.
 - **Transport fault injection for Query 5**: it needs a server test hook the black-box Driver does

@@ -565,10 +565,13 @@ private def traceActions (trace : Scenario.Trace) : String :=
   ", ".intercalate (trace.trace.steps.map fun step => step.selectedAction.value)
 
 /-- Whether a declared bound actually stopped the search. Only then is "raise a limit" advice true;
-otherwise the Model simply has no trace that satisfies the Property. -/
+otherwise the Model simply has no trace that satisfies the Property.
+
+The comparison is against the search bound alone, because that is the one the planner counts a
+total against. The step and action bounds are per trace, so an explored total says nothing about
+whether either was reached. -/
 private def boundWasHit (explored : ExploredCounts) (limits : Limits) : Bool :=
-  explored.traces ≥ limits.search.value ||
-    explored.transitions ≥ limits.steps.value * (limits.search.value + 1)
+  explored.traces ≥ limits.search.value
 
 private def notSelectedMessage
     (outcome : PlanningOutcome) (explored : ExploredCounts) (limits : Limits) : String :=
@@ -588,8 +591,8 @@ private def notSelectedMessage
   | .invalid error => s!"the Query is not well formed: {reprStr error}"
   | .noneFound | .limitReached =>
       if boundWasHit explored limits then
-        s!"the search stopped at a declared bound after {explored.traces} traces and " ++
-          s!"{explored.transitions} transitions; raise `limits` if the trace you mean is longer"
+        s!"the search stopped at its declared bound after {explored.traces} traces; raise " ++
+          "`limits` if the trace you mean is longer"
       else
         s!"no trace the Scenario admits satisfies the Property; the search explored " ++
           s!"{explored.traces} traces within the declared limits and no bound stopped it"
