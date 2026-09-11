@@ -77,9 +77,9 @@ generators' publication tooling, to Property evaluation combinators, or to `Umpi
 EVD-20 is approved (2026-09-10, GOV-02); the MOD-14 restatement .2 drafts stays pending.
 Candidates the scans surfaced and the spec declined are listed in its Decision Context.
 
-### 3. Model side effects as typed interfaces and run query sets — fn-85
+### 3. Model side effects as typed actions and run query sets — fn-85
 
-[fn-85 — Model side effects as typed interfaces and run query sets](../.flow/specs/fn-85-model-side-effects-as-typed-interfaces.md),
+[fn-85 — Model side effects as typed actions and run query sets](../.flow/specs/fn-85-model-side-effects-as-typed-actions-and.md),
 from the 2026-09-10 design session recorded in
 [the Nexus design specimen](../model/Temporal/Feature/Nexus/DESIGN.md). The `case` block kept every
 side effect (the RPC, its request fields, the handler's reply, timeouts, cancel) in a hand-written
@@ -88,13 +88,14 @@ Property could not read the fields that make the difference. The design surveyed
 operation behavior and all 16 Nexus functional test files, which the Model must eventually express.
 
 The spec makes three things true. Side effects are part of the Model: entities with structured
-state, and interfaces with a kind (`call`, `command`, `reply`, `observation`), a party, input
-classes with representatives, and result classes, while a Temporal-owned Realization binds them to
-RPCs, workflow commands, handler replies, history events and dynamic config. Queries are grouped
+state; actions with a kind (`call`, `command`, `reply`), a party, a schema, input classes with
+representatives, and result classes; and observations that confirm steps. A Temporal-owned
+Realization binds them to RPCs, workflow commands, handler replies, history events and dynamic
+config. Queries are grouped
 into sets by purpose: a set binds each party to the test or the environment, and a functional set
 compiles to one Case per Query. And the Nexus caller-side operation runs this way end to end: a
-product model, an interface model and a link, with a functional set of seven Queries translated
-from the Nexus functional tests, each run under both the HSM and CHASM implementations.
+product machine and a protocol machine that refines it, with a functional set of seven Queries
+translated from the Nexus functional tests, each run under both the HSM and CHASM implementations.
 
 The early proof point rebuilds today's async-Nexus Case from the new abstractions and must match
 its fixture with identities masked before any Testpilot protocol addition. The protocol additions
@@ -148,7 +149,7 @@ Includes former fn-78.5/.8/.9 cancellation scope and fn-77’s cancellation qual
 on an explicit user request; autonomous delivery approval does not override this deferral. Generic
 fn-78 syntax/monitoring/qualification and fn-70 remain deliverable without it. Existing shutdown
 and bounded cleanup cancellation behavior stays in scope. On resume it re-plans on fn-85
-(entities, interfaces, sets) and takes the cancel Query and the Testpilot cancel instructions that
+(entities, actions, sets) and takes the cancel Query and the Testpilot cancel instructions that
 fn-85 left out; its re-planning note in Flow lists them.
 
 

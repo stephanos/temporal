@@ -3,7 +3,7 @@
   "created_at": "2026-09-08T04:52:03.181217Z",
   "depends_on_epics": [
     "fn-82-unify-the-umpire-and-testpilot",
-    "fn-85-model-side-effects-as-typed-interfaces"
+    "fn-85-model-side-effects-as-typed-actions-and"
   ],
   "id": "fn-79-deferred-nexus-operation-cancellation",
   "next_task": 1,
@@ -23,5 +23,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-11T03:54:22.992207Z"
+  "updated_at": "2026-09-11T04:48:34.141501Z"
 }

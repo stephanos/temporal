@@ -40,12 +40,12 @@ each concern went.
 
 ```text
 Model file (Temporal.Feature.<Feature>)
-  enum / entity / action / observation / environment / machine / link / property / scenario /
-  limits / query / set
+  enum / entity / action / observation / environment / machine / property / scenario / limits /
+  query / set
         |  elaborates into Umpire records (Temporal-free)
         v
 Umpire.Command ── Entity, Action, Observation, Party, Dimension, ResultClass, Machine, Row,
-                  EnvironmentStep, SetupParameter, Link, Set
+                  EnvironmentStep, SetupParameter, Refinement, Set
         |  checked model + witness trace per Query
         v
 Umpire.Case.Producer ── assembles Program and Contract from the witness and a Realization
@@ -122,13 +122,17 @@ flag between implementations of the same behavior (Nexus HSM or CHASM); it is no
 parameter. A set's `repeat` names switch values; each Query's Case runs once per value under a
 Profile that sets it, and a verdict that differs between values is reported as a divergence.
 
-### Two levels and a link
+### Two machines and a refinement
 
-A feature may declare a product machine, a mechanism machine and a `link` between them. The link
-maps mechanism-machine state to product-machine state and mechanism steps to product steps or to
-`stutter`; unmapped values become Known Gaps. It elaborates to `Umpire.ImplementationLink` and is
-checked by its forward simulation. A Property declared on the product machine is carried to the
-mechanism machine through the link.
+A feature may declare a product machine and a protocol machine that refines it. Both describe
+behavior observable at the API, so both belong to `Temporal.Feature`. The protocol machine declares
+`refines:` and a state `map:` from its state fields to the product machine's, with `hidden` for
+fields the product machine does not have; unmapped reachable values become Known Gaps. The step
+mapping is derived: a protocol step whose mapped states form a product step is allowed, one whose
+mapped states are equal is a stutter, and any other step rejects the refinement. The check reuses
+the forward simulation of `Umpire.ImplementationLink`; a refinement is not an Implementation Link,
+which SEM-08 reserves for Feature-to-System connections. A Property declared on the product machine
+is carried to every protocol-machine trace through the refinement.
 
 ### Sets
 
@@ -220,15 +224,14 @@ environment
   timer: <name>, ...
 
 machine <name>
+  refines: <product machine>               -- optional
+  map:     (<field>: <value> → <value> | <field> → hidden)*   -- with refines
   entity: <entity>
   setup:  (<parameter>: [<value>, ...])*
   steps:
     <state guard> + <action>(<argument pattern>)[ → <result class>]
       → <state update>, evidence: <observation> | unobservable
 
-link <mechanism machine> refines <product machine>
-  state: (<field>: <value> → <value> | hidden)*
-  steps: (<action pattern> → <product step> | stutter)*
 
 set functional | canary <name>
   bind:    (<party>: test | environment)+
@@ -317,11 +320,12 @@ umpire-case --render <id> # canonical ProtoJSON on stdout
   runs each Query's Case once per switch value; a differing verdict fails the live test naming both
   values and verdicts. Errors: an unbindable setup parameter yields a Known Gap in the Case; an
   unknown switch value rejects at the set.
-- **R6:** `link A refines B` elaborates to a checked `Umpire.ImplementationLink`; a Property on the
-  product machine is checked on mechanism-machine traces through the link. Errors: a state mapping to an
-  undeclared product value, a step mapping that breaks forward simulation, and an unmapped
-  reachable value without a Known Gap reject, each pinned by `#guard_msgs` or a `#guard` on the
-  checked link.
+- **R6:** A machine that declares `refines:` and `map:` is checked by the forward simulation of
+  `Umpire.ImplementationLink` with its step mapping derived from the state map; a Property on the
+  product machine is checked on the protocol machine's traces through the refinement. Errors: a
+  mapping to an undeclared product value, a protocol step whose mapped states are neither a product
+  step nor equal, an unmapped reachable value without a Known Gap, and `map:` without `refines:`
+  reject, each pinned by `#guard_msgs` or a `#guard` on the checked refinement.
 - **R7:** `set functional`, `set canary` and `set exploratory` are admitted as described under
   Sets; `umpire-case --list` lists exactly the Queries of functional sets; Case IDs and fixture names
   derive from set and Query names. Errors: an unbound party in a functional set, a `verify` Query
@@ -340,8 +344,8 @@ umpire-case --render <id> # canonical ProtoJSON on stdout
   additions in the Architecture table that the Queries of R11 use; each has a Driver conformance case; buf breaking
   passes. Errors: an invalid duration and a reply form the handler activation does not admit
   reject at Case preparation with the existing preparation error categories.
-- **R11:** The Nexus caller-side operation is re-authored as the mechanism machine, product machine
-  and link of `DESIGN.md` section 4, without its cancel actions and cancel rows; a functional set `nexusCaller` with `repeat` over the HSM and CHASM
+- **R11:** The Nexus caller-side operation is re-authored as the product machine and the protocol
+  machine that refines it in `DESIGN.md` section 4, without its cancel actions and cancel rows; a functional set `nexusCaller` with `repeat` over the HSM and CHASM
   switch contains exactly these Queries, each with a generated fixture and a passing live test under
   both switch values:
   1. sync success reply completes the operation;
@@ -370,7 +374,7 @@ umpire-case --render <id> # canonical ProtoJSON on stdout
   test; `UMPIRE4_SPEC.md` gains concept entries for Entity, Party, Set, Realization and Abstraction
   Claim, amends the Action, Observation and Machine entries, and drafts rules under GOV-02,
   including an AUT-07a amendment that names the `entity`, `action`, `observation`, `environment`,
-  `machine`, `link` and `set` commands and retires `model` as a command; `DESIGN.md` points at the spec and the Model;
+  `machine` and `set` commands and retires `model` as a command, and a Refinement concept entry; `DESIGN.md` points at the spec and the Model;
   fn-83 tasks .4, .5, .6, .8, .16 and .17 are closed as superseded with the destination of each
   concern; `make umpire-check-regression` passes. Errors: a missing or duplicate drift marker fails
   the drift test naming the marker.
@@ -417,8 +421,8 @@ R12 build on it.
 
 The five design decisions are recorded in `DESIGN.md` section 7: a party is fixed on the action
 and bound per set; the author claims classes and exploration owns their evidence; protobuf
-descriptors stay the only schema with structural kind names; one level by default with a product
-model when mechanism or several realizations call for it; one Model for HSM and CHASM, repeated per
+descriptors stay the only schema with structural kind names; one machine by default with a product
+machine when protocol detail or several realizations call for it; one Model for HSM and CHASM, repeated per
 switch value.
 
 Rejected:
@@ -438,6 +442,9 @@ Rejected:
 - **`model` or `statemachine` for the transition block**: the glossary's word for a transition
   relation is Machine, and Model stays the checked behavior every Property, Scenario and Query
   shares.
+- **A top-level `link` declaration and a "mechanism machine"**: SEM-08 reserves Implementation Link
+  for Feature-to-System connections, MOD-02 gives "implementation mechanisms" to `Temporal.System`,
+  and a written step mapping duplicated what the state map determines.
 - **A cancel Query in this slice**: it and its two Testpilot instructions are fn-79's deferred
   scope, which resumes only on an explicit user request.
 - **Transport fault injection for Query 5**: it needs a server test hook the black-box Driver does

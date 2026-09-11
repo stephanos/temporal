@@ -35,12 +35,12 @@ Delete the Go generator's functional Case table and its fixed-count guard and dr
 - [ ] `go test -tags test_dep ./tools/umpire/... ./tests/testcore/testpilot/...` and `make umpire-check-live-tests` pass
 ## Done summary
 Blocked:
-Blocked 2026-09-10; superseded by fn-85 ("Model side effects as typed interfaces and run query sets").
+Blocked 2026-09-10; superseded by fn-85 ("Model side effects as typed actions and run query sets").
 
 The per-Case `case` block (one Query, one hand-picked whole-Program template, per-Case evidence lines) is replaced by:
 
-- **Side effects in the Model.** Entities with structured state, and interfaces with a kind (`call`, `command`, `reply`, `observation`), a party, input classes with representatives, and result classes. Request fields that decide the outcome are Model behavior, not binding detail.
-- **A Temporal Realization** that binds interfaces, result classes, observations, setup parameters and parties to RPCs, workflow commands, handler replies, history events and dynamic config. The Producer assembles Program and Contract from the witness; whole-Program templates and the `case` command are removed.
+- **Side effects in the Model.** Entities with structured state; actions with a kind (`call`, `command`, `reply`), a party, a schema, input classes with representatives, and result classes; observations that confirm steps; machines of step rows. Request fields that decide the outcome are Model behavior, not binding detail.
+- **A Temporal Realization** that binds actions, result classes, observations, setup parameters and parties to RPCs, workflow commands, handler replies, history events and dynamic config. The Producer assembles Program and Contract from the witness; whole-Program templates and the `case` command are removed.
 - **Query sets per purpose.** A set binds each party to test or environment; a functional set compiles to one Case per Query; canary and exploratory sets are admitted for fn-70/fn-29 and fn-33.
 
 fn-85's final task closes this task as superseded and names where its concern went. Design record: `model/Temporal/Feature/Nexus/DESIGN.md`.

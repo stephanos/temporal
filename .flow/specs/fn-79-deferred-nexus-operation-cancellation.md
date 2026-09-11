@@ -6,7 +6,7 @@ User decision: defer Nexus operation cancellation until explicitly requested aga
 
 Preserve correlated cancellation evidence, per-operation SDK cancellation capability, and authored Nexus cancellation qualification. Re-plan against completed generic scoped monitoring before resuming. Existing Run/context shutdown, bounded cleanup, and regression protection are not deferred.
 
-2026-09-10: the `case` block this spec was to re-anchor on is replaced by fn-85 (entities, interfaces with parties, query sets, one Case per Query). On resume, re-plan on fn-85 instead: the cancel interfaces and rows of `model/Temporal/Feature/Nexus/DESIGN.md` section 4, a functional Query for async reply, cancel request, delivered cancel reply and canceled callback translated from `TestNexusOperationCancelation`, a workflow instruction that requests cancellation of a started Nexus operation, a handler cancel activation with its reply instruction, and a canceled outcome on `RespondNexus` and `CompleteNexusOperation`. fn-85 deliberately leaves all of these out.
+2026-09-10: the `case` block this spec was to re-anchor on is replaced by fn-85 (entities, actions with parties, observations, machines, query sets, one Case per Query). On resume, re-plan on fn-85 instead: the cancel actions and rows of `model/Temporal/Feature/Nexus/DESIGN.md` section 4, a functional Query for async reply, cancel request, delivered cancel reply and canceled callback translated from `TestNexusOperationCancelation`, a workflow instruction that requests cancellation of a started Nexus operation, a handler cancel activation with its reply instruction, and a canceled outcome on `RespondNexus` and `CompleteNexusOperation`. fn-85 deliberately leaves all of these out.
 
 ## Requirements
 
