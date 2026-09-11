@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-11T01:27:19.293301Z",
+  "depends_on": [
+    "fn-83-author-a-live-case-from-a-model-file.11",
+    "fn-83-author-a-live-case-from-a-model-file.13"
+  ],
+  "id": "fn-83-author-a-live-case-from-a-model-file.14",
+  "priority": null,
+  "spec": "fn-83-author-a-live-case-from-a-model-file",
+  "spec_path": ".flow/tasks/fn-83-author-a-live-case-from-a-model-file.14.md",
+  "status": "todo",
+  "title": "Report authoring mistakes at their line while the Model file compiles",
+  "updated_at": "2026-09-11T01:27:19.293301Z"
+}

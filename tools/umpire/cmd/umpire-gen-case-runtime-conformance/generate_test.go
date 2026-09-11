@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -260,16 +261,18 @@ func TestPersistedFormIndentsWithoutReorderingOrReescaping(t *testing.T) {
 	stored, err := persistedForm(compact)
 	require.NoError(t, err)
 
-	require.Equal(t, "{\n"+
-		"  \"zeta\": \"a\\u0041b\\n\",\n"+
-		"  \"alpha\": [\n"+
-		"    1,\n"+
-		"    {\n"+
-		"      \"inner\": \"x/y\"\n"+
-		"    }\n"+
-		"  ],\n"+
-		"  \"empty\": {}\n"+
-		"}\n", string(stored))
+	require.Equal(t, []string{
+		"{",
+		`  "zeta": "a\u0041b\n",`,
+		`  "alpha": [`,
+		"    1,",
+		"    {",
+		`      "inner": "x/y"`,
+		"    }",
+		"  ],",
+		`  "empty": {}`,
+		"}",
+	}, strings.Split(strings.TrimSuffix(string(stored), "\n"), "\n"))
 
 	repeated, err := persistedForm(stored)
 	require.NoError(t, err)
