@@ -6,7 +6,8 @@
   "depends_on": [
     "fn-83-author-a-live-case-from-a-model-file.5",
     "fn-83-author-a-live-case-from-a-model-file.6",
-    "fn-83-author-a-live-case-from-a-model-file.7"
+    "fn-83-author-a-live-case-from-a-model-file.7",
+    "fn-83-author-a-live-case-from-a-model-file.9"
   ],
   "id": "fn-83-author-a-live-case-from-a-model-file.8",
   "priority": null,
@@ -14,5 +15,5 @@
   "spec_path": ".flow/tasks/fn-83-author-a-live-case-from-a-model-file.8.md",
   "status": "todo",
   "title": "Authoring walkthrough, drift test, documents, roadmap, and full gate",
-  "updated_at": "2026-09-10T06:06:08.649661Z"
+  "updated_at": "2026-09-11T00:36:03.015495Z"
 }

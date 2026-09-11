@@ -1,5 +1,5 @@
 import Temporal.Feature.Nexus.Success.Model
-import Temporal.Feature.Nexus.Success.Producer
+import Testpilot.ProtoJSON
 
 /-! Executable checks for the compact Nexus success command surface and checked meaning. -/
 
@@ -14,9 +14,9 @@ private def admitted := completion.toOption
 
 -- The Case's Contract is the correlated capability and nothing else: no monitor rule, and one clause
 -- per `require` line the model wrote.
-#guard match Temporal.Feature.Nexus.Success.Producer.completionCase, admitted with
+#guard match Temporal.Feature.Nexus.Success.asyncNexusSuccess, admitted with
   | .ok output, some checked =>
-      output.case_id == "temporal.case.async-nexus-success" &&
+      output.case_id == "temporal.case.async-nexus" &&
       output.contract.map (·.rules.isEmpty) == some true &&
       (match output.contract.bind (·.«correlated») with
         | some capability =>
@@ -24,6 +24,18 @@ private def admitted := completion.toOption
               (checked.property.clauses.map (·.id.value)).toArray
         | none => false)
   | _, _ => false
+
+/-- Produce a Case through the `case` block's own realization, identity and evidence mapping, so a
+substituted part is the only difference from the checked-in Case. -/
+private def produceFromChecked
+    {Setup State Action Outcome Fact : Type}
+    [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
+    {«model» : Authoring.SuccessModel Setup State Action Outcome Fact}
+    (checked : Authoring.CheckedModel «model»)
+    (required : List DefinitionId := []) :
+    Except Compiler.Error temporal.server.api.testpilot.v1.Case :=
+  Authoring.produce checked asyncNexusSuccess.identity asyncNexusSuccess.realization
+    asyncNexusSuccess.evidence required
 
 /-- Produce a Case from the checked model with one part replaced. Every part is carried into the
 Case; none is compared against an expected one. -/
@@ -34,10 +46,10 @@ private def produceWith
     Except Compiler.Error temporal.server.api.testpilot.v1.Case := do
   let checked ← completion.mapError fun _ => {
     sourceDefinitionId := "temporal.nexus.success.query.completion"
-    source := Authoring.source
+    source := lifecycle.origin.source
     construct := "checked-completion"
   }
-  Temporal.Feature.Nexus.Success.Producer.produce { checked with
+  produceFromChecked { checked with
     «property» := property?.getD checked.property
     «behavior» := behavior?.getD checked.behavior
     «witness» := witness? }
@@ -80,8 +92,8 @@ private def rejected : Except Compiler.Error temporal.server.api.testpilot.v1.Ca
 -- I/O could observe anything.
 #guard match (do
     let checked ← completion.mapError fun _ => Compiler.Error.mk
-      "temporal.nexus.success.query.completion" Authoring.source "checked-completion"
-    Temporal.Feature.Nexus.Success.Producer.produce checked
+      "temporal.nexus.success.query.completion" lifecycle.origin.source "checked-completion"
+    produceFromChecked checked
       [DefinitionId.of "temporal.nexus.success.property.absent"]) with
   | .error error => error.sourceDefinitionId == "temporal.nexus.success.property.absent"
   | .ok _ => false
@@ -91,7 +103,7 @@ private def rejected : Except Compiler.Error temporal.server.api.testpilot.v1.Ca
 
 -- Known Gaps are carried into the Case, never consulted while lowering: the Case's recorded gaps
 -- are exactly the Query's, and the rejections below happen with those gaps in hand.
-#guard match admitted, Temporal.Feature.Nexus.Success.Producer.completionCase with
+#guard match admitted, Temporal.Feature.Nexus.Success.asyncNexusSuccess with
   | some checked, .ok output =>
       !checked.query.authoredKnownGaps.toList.isEmpty &&
       (output.provenance.map fun provenance =>
@@ -129,12 +141,12 @@ private def caseShape
 private def differsFromCompletionCase
     (produced : Except Compiler.Error temporal.server.api.testpilot.v1.Case) : Bool :=
   (caseShape produced).isSome &&
-    caseShape produced != caseShape Temporal.Feature.Nexus.Success.Producer.completionCase
+    caseShape produced != caseShape Temporal.Feature.Nexus.Success.asyncNexusSuccess
 
 /-- One authored `require` clause dropped: a smaller Property is a smaller Contract, not an error. -/
 private def fewerClausesProperty? : Option CheckedProperty := do
   let checked ← admitted
-  let first ← (stepClauses Authoring.family "successfulResult"
+  let first ← (stepClauses lifecycle.origin.family "successfulResult"
     (checked.vocabulary.actionAt 1) (checked.vocabulary.stateAt 2)
     (checked.vocabulary.outcomeAt 1) (checked.vocabulary.factAt 1)).head?
   propertyWithClauses [first]
@@ -154,7 +166,7 @@ private def changedWitness? : Option Scenario.Trace := admitted.bind fun checked
   | .ok _ => false
 
 private def checkedBindings : Bool :=
-  match admitted, Temporal.Feature.Nexus.Success.Producer.completionCase with
+  match admitted, Temporal.Feature.Nexus.Success.asyncNexusSuccess with
   | some checked, .ok output =>
       -- The Property binding carries the derived correlated Property: the Case records the Property it
       -- actually lowered, whose fingerprint differs from the authored same-step one.
@@ -212,17 +224,17 @@ private def extraSuccessResultTable :=
 
 private def shortenedSuccess (values : Authoring.ModelVocabulary) : Scenario :=
   Authoring.withOccurrences (successfulCompletion values)
-    [Authoring.occurrence "successfulCompletion.completion"
+    [lifecycle.origin.occurrence "successfulCompletion.completion"
       (values.actionAt 1).definitionId]
 
 private def impossibleSuccess (values : Authoring.ModelVocabulary) : Scenario :=
   Authoring.withOccurrences (successfulCompletion values) [
-    Authoring.occurrence "successfulCompletion.completion" (values.actionAt 1).definitionId,
-    Authoring.occurrence "successfulCompletion.start" (values.actionAt 0).definitionId
+    lifecycle.origin.occurrence "successfulCompletion.completion" (values.actionAt 1).definitionId,
+    lifecycle.origin.occurrence "successfulCompletion.start" (values.actionAt 0).definitionId
   ]
 
 private def noWitnessProperty (values : Authoring.ModelVocabulary) : Property :=
-  Authoring.withClauses (successfulResult values) <| stepClauses Authoring.family
+  Authoring.withClauses (successfulResult values) <| stepClauses lifecycle.origin.family
       "successfulResult" (values.actionAt 1) (values.stateAt 1) (values.outcomeAt 1)
       (values.factAt 1)
 
@@ -298,7 +310,7 @@ private def renamedCheckedModel :
     Except Compiler.Error (Authoring.CheckedModel renamedLifecycle) :=
   renamedQuery.mapError fun _ => {
     sourceDefinitionId := "temporal.nexus.success.query.renamedQuery"
-    source := Authoring.source
+    source := lifecycle.origin.source
     construct := "checked-renamed-query"
   }
 
@@ -306,7 +318,7 @@ private def originalCheckedModel :
     Except Compiler.Error (Authoring.CheckedModel lifecycle) :=
   completion.mapError fun _ => {
     sourceDefinitionId := "temporal.nexus.success.query.completion"
-    source := Authoring.source
+    source := lifecycle.origin.source
     construct := "checked-completion"
   }
 
@@ -314,22 +326,22 @@ private def renamedTargetResult :
     Except Compiler.Error temporal.server.api.testpilot.v1.Case := do
   let _ ← originalCheckedModel
   let renamed ← renamedCheckedModel
-  Temporal.Feature.Nexus.Success.Producer.produce renamed
+  produceFromChecked renamed
 
 /-- The same Actions in the same order under different occurrence names: a different checked
 Behavior that still places every clause. -/
 private def renamedOccurrences (values : Authoring.ModelVocabulary) : Scenario :=
   Authoring.withOccurrences (successfulCompletion values) [
-    Authoring.occurrence "successfulCompletion.begin" (values.actionAt 0).definitionId,
-    Authoring.occurrence "successfulCompletion.finish" (values.actionAt 1).definitionId]
+    lifecycle.origin.occurrence "successfulCompletion.begin" (values.actionAt 0).definitionId,
+    lifecycle.origin.occurrence "successfulCompletion.finish" (values.actionAt 1).definitionId]
 
 private def renamedBehaviorResult :
     Except Compiler.Error temporal.server.api.testpilot.v1.Case := do
   let checked ← originalCheckedModel
   let renamedBehavior ← ((renamedOccurrences checked.vocabulary).check
     (.ofTarget checked.target)).mapError fun _ => Compiler.Error.mk
-      checked.behavior.id.value Authoring.source "checked-behavior"
-  Temporal.Feature.Nexus.Success.Producer.produce { checked with «behavior» := renamedBehavior }
+      checked.behavior.id.value lifecycle.origin.source "checked-behavior"
+  produceFromChecked { checked with «behavior» := renamedBehavior }
 
 /- A renamed model carries its own Target, Query and Property identities into the Case bytes; the
 Producer no longer compares them against one expected model. -/
@@ -349,7 +361,7 @@ private def checkedPropertyOf (spec : Property) : Option CheckedProperty := do
   spec.check (PropertyCheckContext.ofTarget checked.target) |>.toOption
 
 private def metadataMatchesDeclaration (definition : DefinitionMetadata) : Bool :=
-  definition.source == Authoring.source && definition.behaviorVersion == definition.id.value
+  definition.source == lifecycle.origin.source && definition.behaviorVersion == definition.id.value
 
 theorem metadataIsDerivedFromDeclarations :
     lifecycle.modelSpec.definitions.all metadataMatchesDeclaration := by
@@ -418,7 +430,7 @@ private def reorderedAndDocumented (values : Authoring.ModelVocabulary) : Proper
   Authoring.reorderedAndDocumented (successfulResult values) "Comment-only presentation."
 
 private def changedMeaning (values : Authoring.ModelVocabulary) : Property :=
-  Authoring.withClauses (successfulResult values) <| stepClauses Authoring.family
+  Authoring.withClauses (successfulResult values) <| stepClauses lifecycle.origin.family
       "successfulResult" (values.actionAt 1) (values.stateAt 1) (values.outcomeAt 1)
       (values.factAt 1)
 
@@ -447,7 +459,7 @@ private def fewerClauses (values : Authoring.ModelVocabulary) : Property :=
 /-- A Property about the start step lowers to clauses about the start step: the trigger each
 clause carries is the Action the `require` line named. -/
 private def startClauses (values : Authoring.ModelVocabulary) : Property :=
-  Authoring.withClauses (successfulResult values) <| stepClauses Authoring.family
+  Authoring.withClauses (successfulResult values) <| stepClauses lifecycle.origin.family
       "successfulResult" (values.actionAt 0) (values.stateAt 1) (values.outcomeAt 0)
       (values.factAt 0)
 
@@ -535,11 +547,11 @@ query probeQuery on probeLifecycle
 /- The added transition reaches the derived model, and the renamed role and reselected members
 reach the derived Property and Behavior. -/
 #guard probeLifecycle.relationIds.map (·.value) ==
-  ["temporal.nexus.success.relation.probeLifecycle.start",
-    "temporal.nexus.success.relation.probeLifecycle.retry",
-    "temporal.nexus.success.relation.probeLifecycle.success"]
+  ["temporal.nexus.success.tests.relation.probeLifecycle.start",
+    "temporal.nexus.success.tests.relation.probeLifecycle.retry",
+    "temporal.nexus.success.tests.relation.probeLifecycle.success"]
 
-#guard probeLifecycle.operationRoleId.value == "temporal.nexus.success.role.probeLifecycle.worker"
+#guard probeLifecycle.operationRoleId.value == "temporal.nexus.success.tests.role.probeLifecycle.worker"
 
 #guard (do
   let checked ← probeQuery.toOption
@@ -616,8 +628,8 @@ query verifiedCompletion on lifecycle
 witness-absent rather than lowering a Contract nothing selected. -/
 #guard match (do
     let checked ← verifiedCompletion.mapError fun _ => Compiler.Error.mk
-      "temporal.nexus.success.query.verifiedCompletion" Authoring.source "checked-verified"
-    Temporal.Feature.Nexus.Success.Producer.produce checked) with
+      "temporal.nexus.success.query.verifiedCompletion" lifecycle.origin.source "checked-verified"
+    produceFromChecked checked) with
   | .error error => error.construct == "witness.absent"
   | .ok _ => false
 
@@ -880,6 +892,131 @@ query retiredAllQuery on lifecycle
   all successfulResult
   in successfulCompletion
   limits shortTrace
+
+/-! ### Definition families and sources are per file
+
+The family comes from the enclosing namespace and the source from the elaborating file, so a Model
+declared in this test file shares no Definition ID and no Provenance source with the Model in
+`Model.lean` -- even though both are Nexus success Models. -/
+
+#guard probeLifecycle.targetId != lifecycle.targetId
+#guard probeLifecycle.origin.family != lifecycle.origin.family
+#guard probeLifecycle.origin.source != lifecycle.origin.source
+#guard lifecycle.origin.source.path == "Temporal/Feature/Nexus/Success/Model.lean"
+#guard probeLifecycle.origin.source.path == "Temporal/Feature/Nexus/Success/Tests.lean"
+#guard lifecycle.targetId.value == "temporal.nexus.success.target.lifecycle"
+#guard probeLifecycle.targetId.value == "temporal.nexus.success.tests.target.probeLifecycle"
+
+/-! ### The `case` block
+
+`fixture` is the only identity slot the grammar has, so the derivation is what moves the Case ID and
+the Contract ID; everything else the Case carries is unchanged by it. -/
+
+#guard asyncNexusSuccess.identity.caseId == "temporal.case.async-nexus"
+#guard asyncNexusSuccess.identity.programId == "temporal.case.async-nexus.program"
+#guard asyncNexusSuccess.identity.contractId == "temporal.case.async-nexus.contract"
+#guard asyncNexusSuccess.identity.runScope == "async-nexus"
+
+/-- The identity the fixture carried before the derivation: the same Model under it must produce a
+byte-identical Program and Contract, so the receipt's diff is complete. -/
+private def statedIdentity : Umpire.Case.Producer.Identity := {
+  caseId := "temporal.case.async-nexus-success"
+  fixture := "async-nexus"
+  programId := "temporal.case.async-nexus.program" }
+
+private def statedCase : Except Compiler.Error temporal.server.api.testpilot.v1.Case :=
+  Authoring.produceCase completion statedIdentity asyncNexusSuccess.realization
+    asyncNexusSuccess.evidence
+
+/-- Every identity the derivation moved, masked out of the canonical bytes. The longer spelling is
+replaced first, because it contains the shorter one. -/
+private def maskIdentities (encoded : String) : String :=
+  (encoded.replace "temporal.case.async-nexus-success" "MASKED").replace
+    "temporal.case.async-nexus" "MASKED"
+
+private def maskedBytes
+    (produced : Except Compiler.Error temporal.server.api.testpilot.v1.Case) : IO String := do
+  match produced with
+  | .ok output =>
+      match ← Testpilot.ProtoJSON.canonical output with
+      | .ok encoded => pure (maskIdentities encoded)
+      | .error failure => throw (IO.userError (toString failure))
+  | .error failure => throw (IO.userError (reprStr failure))
+
+/- Masked comparison on the canonical bytes: with the Case ID and the Contract ID masked out, the
+derived Case and the same Model under the stated identity are byte-identical, so the receipt's diff
+of those two fields is the whole diff. -/
+/-- info: true -/
+#guard_msgs (info) in
+#eval do
+  let derived ← maskedBytes asyncNexusSuccess
+  let stated ← maskedBytes statedCase
+  pure (derived == stated)
+
+#guard match asyncNexusSuccess, statedCase with
+  | .ok derived, .ok stated =>
+      derived.case_id == "temporal.case.async-nexus" &&
+        stated.case_id == "temporal.case.async-nexus-success"
+  | _, _ => false
+
+/-! ### Located diagnostics
+
+Every rejection lands on the syntax that caused it. -/
+
+/--
+error: Query 'Temporal.Feature.Nexus.Success.Tests.verifiedCompletion' verifies rather than finds; a Case realizes one selected trace, so its `realizes` Query must be a `find` form
+-/
+#guard_msgs (error) in
+case verifyRealizes fixture "verify-realizes"
+  realizes verifiedCompletion
+  as nexusOperation service "umpire.case.service" operation "complete" responds async
+  evidence
+    awaitStart ← history nexusOperationStarted
+    awaitSuccess ← history nexusOperationCompleted
+
+/--
+error: the Scenario selects Action 'awaitSuccess' but no `evidence` line says which recorded event confirms it
+-/
+#guard_msgs (error) in
+case unmappedAction fixture "unmapped-action"
+  realizes completion
+  as nexusOperation service "umpire.case.service" operation "complete" responds async
+  evidence
+    awaitStart ← history nexusOperationStarted
+
+/--
+error: the Scenario never selects Action 'awaitCancel'; it selects: awaitStart, awaitSuccess
+-/
+#guard_msgs (error) in
+case unselectedAction fixture "unselected-action"
+  realizes completion
+  as nexusOperation service "umpire.case.service" operation "complete" responds async
+  evidence
+    awaitStart ← history nexusOperationStarted
+    awaitSuccess ← history nexusOperationCompleted
+    awaitCancel ← history nexusOperationCanceled
+
+/--
+error: unknown history event kind 'nexusOperationSucceeded'; admitted: workflowExecutionStarted, workflowExecutionCompleted, workflowExecutionFailed, workflowExecutionTimedOut, workflowTaskScheduled, workflowTaskStarted, workflowTaskCompleted, workflowTaskTimedOut, workflowTaskFailed, activityTaskScheduled, activityTaskStarted, activityTaskCompleted, activityTaskFailed, activityTaskTimedOut, timerStarted, timerFired, activityTaskCancelRequested, activityTaskCanceled, timerCanceled, markerRecorded, workflowExecutionSignaled, workflowExecutionTerminated, workflowExecutionCancelRequested, workflowExecutionCanceled, requestCancelExternalWorkflowExecutionInitiated, requestCancelExternalWorkflowExecutionFailed, externalWorkflowExecutionCancelRequested, workflowExecutionContinuedAsNew, startChildWorkflowExecutionInitiated, startChildWorkflowExecutionFailed, childWorkflowExecutionStarted, childWorkflowExecutionCompleted, childWorkflowExecutionFailed, childWorkflowExecutionCanceled, childWorkflowExecutionTimedOut, childWorkflowExecutionTerminated, signalExternalWorkflowExecutionInitiated, signalExternalWorkflowExecutionFailed, externalWorkflowExecutionSignaled, upsertWorkflowSearchAttributes, workflowExecutionUpdateAccepted, workflowExecutionUpdateRejected, workflowExecutionUpdateCompleted, workflowPropertiesModifiedExternally, activityPropertiesModifiedExternally, workflowPropertiesModified, workflowExecutionUpdateAdmitted, nexusOperationScheduled, nexusOperationStarted, nexusOperationCompleted, nexusOperationFailed, nexusOperationCanceled, nexusOperationTimedOut, nexusOperationCancelRequested, workflowExecutionOptionsUpdated, nexusOperationCancelRequestCompleted, nexusOperationCancelRequestFailed, workflowExecutionPaused, workflowExecutionUnpaused, workflowExecutionTimeSkippingTransitioned
+-/
+#guard_msgs (error) in
+case unknownEventKind fixture "unknown-event-kind"
+  realizes completion
+  as nexusOperation service "umpire.case.service" operation "complete" responds async
+  evidence
+    awaitStart ← history nexusOperationSucceeded
+    awaitSuccess ← history nexusOperationCompleted
+
+/--
+error: fixture 'async-nexus' is already registered by Case 'temporal.case.async-nexus'
+-/
+#guard_msgs (error) in
+case duplicateFixture fixture "async-nexus"
+  realizes completion
+  as nexusOperation service "umpire.case.service" operation "complete" responds async
+  evidence
+    awaitStart ← history nexusOperationStarted
+    awaitSuccess ← history nexusOperationCompleted
 
 #print axioms Temporal.Feature.Nexus.Success.Authoring.successModel
 #print axioms Temporal.Feature.Nexus.Success.Authoring.check

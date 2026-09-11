@@ -457,6 +457,20 @@ make umpire-check-regression                    # the full gate
 - **R8:** `make umpire-check-regression` passes; `make lint-code` reports no finding in a file
   this spec touched; `lint-model` stays at or below its inherited count; the roadmap and the
   documents the docs-gap scan named are updated. Errors: no error surface.
+- **R9:** every generated Testpilot JSON file the repository stores (the functional Case
+  fixtures, the conformance `case.json` files, and `correlated.json`) is indented with two spaces
+  and ends in one LF, produced by one generator helper; `Testpilot.ProtoJSON.canonical` stays
+  compact. Errors: a staged fixture that is valid JSON but not in the persisted form fails
+  `make umpire-check-case-runtime-conformance` naming the file.
+- **R10:** the five Model commands, their authoring core, and the Scenario and Query registry
+  entries live under `Umpire` and pass `lint-model` under MOD-01 and SCP-02; Temporal supplies the
+  definition root and namespace convention and keeps the `case` command and the templates; every
+  fixture, golden, Query ID and fingerprint is byte-identical; an AUT-07 amendment is drafted under
+  GOV-02. Errors: the implicit `Setup`, single-role and sorted-Action requirements are named in
+  located messages pinned by `#guard_msgs`.
+- **R11:** a Model file declares its Query's Known Gaps in command syntax and the authoring layer
+  hard-codes none; the white-box representation R6 needs is decided and recorded. Errors: an
+  unknown gap kind and a duplicate gap code reject with located messages pinned by `#guard_msgs`.
 
 ## Early proof point
 
@@ -477,6 +491,9 @@ generic, and R2 through R7 build on it.
 | R6 | translated upstream test with coverage record | .6 | — |
 | R7 | provisioning package and `umpire-run` | .7 | — |
 | R8 | full gate, documents, roadmap | .8 | — |
+| R9 | stored Testpilot JSON indented for human review | .9 | — |
+| R10 | Model commands and authoring core owned by `Umpire` | .10 | — |
+| R11 | Known Gaps authored in the Model file | .11 | — |
 
 ## Boundaries
 
@@ -494,7 +511,8 @@ generic, and R2 through R7 build on it.
 - **No TLS or authentication flags** on `umpire-run`.
 - **No new CI workflow** and no generated-API drift gate (declined ledger).
 - **No edits to historical `.plans` documents** other than `UMPIRE4_ORDER.md`, and
-  `UMPIRE4_SPEC.md` only for a `case` concept entry and one drafted rule under GOV-02.
+  `UMPIRE4_SPEC.md` only for a `case` concept entry, the drafted AUT-09 amendment (.8), and the
+  drafted AUT-07 amendment (R10), each under GOV-02.
 - **Depends on fn-82 closing first.** The command syntax, module paths, and executable names used
   here are fn-82's. fn-82's task that respells the old tutorial can keep that respell minimal,
   because R5 deletes the file.

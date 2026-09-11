@@ -92,5 +92,18 @@ query completion on lifecycle
   in successfulCompletion
   limits shortTrace
 
+/-
+The Case the selected trace realizes. `fixture` is the only identity slot: the Case ID is
+`temporal.case.async-nexus`, the Program and Contract IDs derive from it, and the Run scope is the
+fixture name. Each `evidence` line says which recorded history event confirms one Action; the Step
+it confirms is read from the `steps` block above, along the witness trace.
+-/
+case asyncNexusSuccess fixture "async-nexus"
+  realizes completion
+  as nexusOperation service "umpire.case.service" operation "complete" responds async
+  evidence
+    awaitStart ← history nexusOperationStarted
+    awaitSuccess ← history nexusOperationCompleted
+
 end Temporal.Feature.Nexus.Success
 

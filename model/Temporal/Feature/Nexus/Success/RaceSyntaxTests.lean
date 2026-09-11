@@ -105,13 +105,13 @@ three-step trace against a two-clause Property, and the Behavior admits only the
 names while the model declares four. Admission canonicalizes clause order, so the checked clauses
 read in sorted-ID order rather than declaration order. -/
 #guard raceLifecycle.stateIds.map (·.value) ==
-  ["temporal.nexus.success.state.raceLifecycle.queued",
-    "temporal.nexus.success.state.raceLifecycle.running",
-    "temporal.nexus.success.state.raceLifecycle.cancelRequested",
-    "temporal.nexus.success.state.raceLifecycle.canceled",
-    "temporal.nexus.success.state.raceLifecycle.completed"]
+  ["temporal.nexus.success.raceSyntax.state.raceLifecycle.queued",
+    "temporal.nexus.success.raceSyntax.state.raceLifecycle.running",
+    "temporal.nexus.success.raceSyntax.state.raceLifecycle.cancelRequested",
+    "temporal.nexus.success.raceSyntax.state.raceLifecycle.canceled",
+    "temporal.nexus.success.raceSyntax.state.raceLifecycle.completed"]
 
-#guard raceLifecycle.operationRoleId.value == "temporal.nexus.success.role.raceLifecycle.handler"
+#guard raceLifecycle.operationRoleId.value == "temporal.nexus.success.raceSyntax.role.raceLifecycle.handler"
 
 #guard raceLifecycle.terminal == [State.canceled, State.completed]
 
@@ -126,8 +126,8 @@ read in sorted-ID order rather than declaration order. -/
     checked.behavior.allowedActions ==
       [raceLifecycle.actionIdAt 1, raceLifecycle.actionIdAt 2, raceLifecycle.actionIdAt 3] &&
     checked.property.clauses.map (·.id.value) ==
-      ["temporal.nexus.success.property.cancellationSettles.settledFact",
-        "temporal.nexus.success.property.cancellationSettles.settledState"])) == some true
+      ["temporal.nexus.success.raceSyntax.property.cancellationSettles.settledFact",
+        "temporal.nexus.success.raceSyntax.property.cancellationSettles.settledState"])) == some true
 
 /- Nothing is shared with the success slice: the two Targets are different declarations. -/
 #guard raceLifecycle.targetId != lifecycle.targetId

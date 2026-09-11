@@ -1,6 +1,6 @@
 import Temporal.Testpilot
 import Temporal.Case.Template
-import Temporal.Feature.Nexus.Success.Producer
+import Temporal.Feature.Nexus.Success.Model
 import Umpire.Variations.Tests.Lowering
 
 namespace Temporal.TestpilotTests
@@ -37,7 +37,7 @@ private def activationKind : EntrypointDefinition → Option Nat
 -- The async-nexus Case carries no monitor rule: everything its Contract says is the correlated
 -- capability the checked model lowered into, reading the evidence this Program's history read
 -- lifts.
-#guard match Temporal.Feature.Nexus.Success.Producer.completionCase with
+#guard match Temporal.Feature.Nexus.Success.asyncNexusSuccess with
   | .ok output =>
       output.program.map (fun program => program.entrypoints.map activationKind) ==
         some #[some 0, some 1, some 2] &&
