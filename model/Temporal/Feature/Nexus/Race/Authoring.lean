@@ -24,7 +24,7 @@ def authoredProperty
   id := family.id "property" key
   source := Cancellation.source
   requires := [lifecycleCapabilityId]
-  clauses := stepClauses family key action state outcome fact
+  clauses := stepClauses family key action state outcome (some fact)
 }
 
 def authoredScenario

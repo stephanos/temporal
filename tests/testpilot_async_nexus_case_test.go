@@ -76,7 +76,9 @@ func TestTestpilotAsyncNexusCase(t *testing.T) {
 		require.True(t, proto.Equal(result.verdict, result.run.GetVerdict()))
 		// One rule verdict per scoped clause the checked Property lowered into, each answered by the
 		// two recorded Nexus events the projection admitted as this operation's semantic steps.
-		require.Len(t, result.verdict.GetRules(), 3)
+		// Two clauses: the Model records no Fact, because every step reaches a state named
+		// after what happened.
+		require.Len(t, result.verdict.GetRules(), 2)
 		for _, rule := range result.verdict.GetRules() {
 			require.Equal(t, testpilotpb.RULE_VERDICT_STATUS_SATISFIED, rule.GetStatus())
 			require.Equal(t, result.verdict.GetSupportingEventSequences(), rule.GetSupportingEventSequences())
@@ -130,7 +132,7 @@ func TestTestpilotAsyncNexusCaseRunsFromItsFixtureNameAlone(t *testing.T) {
 	require.Equal(t, testpilotpb.RUN_STATUS_COMPLETED, run.GetStatus())
 	require.Equal(t, testpilotpb.CLEANUP_STATUS_SUCCEEDED, run.GetCleanup().GetStatus())
 	require.Equal(t, testpilotpb.VERDICT_STATUS_SATISFIED, verdict.GetStatus())
-	require.Len(t, verdict.GetRules(), 3)
+	require.Len(t, verdict.GetRules(), 2)
 	for _, rule := range verdict.GetRules() {
 		require.Equal(t, testpilotpb.RULE_VERDICT_STATUS_SATISFIED, rule.GetStatus())
 	}

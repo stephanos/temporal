@@ -81,6 +81,11 @@ def meaning (id : DefinitionId) (kind : DefinitionKind) : Meaning := {
   behaviorVersion := id.value
 }
 
+/-- The Fact domain of a Model that declares none. It has no constructors, so its catalog is empty,
+no Step row can record a Fact, and no `require` clause can name one. -/
+inductive NoFact where
+  deriving BEq, DecidableEq, Repr
+
 /-- The ordered member names of one declared success model, in declaration order. -/
 structure DeclaredNames where
   declaration : String

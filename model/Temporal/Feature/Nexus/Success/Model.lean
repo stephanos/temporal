@@ -5,7 +5,10 @@ import Temporal.Feature.Nexus.Race.Terminal
 # Compact Nexus success model
 
 This executable slice models only `scheduled → started → succeeded`. `awaitStart` and
-`awaitSuccess` wait for recorded Temporal outcomes; they do not manufacture those outcomes.
+`awaitSuccess` wait for recorded Temporal outcomes; they do not manufacture those outcomes. It
+records no Fact: every step here reaches a state named after what happened, so a Fact would only
+restate it. A Model declares Facts where one carries a claim its state does not -- two paths into
+the same state, something that happened without a state change, or several claims in one step.
 Cancellation remains an unsupported design sketch in `Nexus.md`; the imported `Terminal` module
 is the historical already-started Target described in `Integration.md`, not this slice's.
 This slice authors no correlated Property of its own. It does not need one: the Producer in
@@ -35,26 +38,20 @@ enum Outcome
   | acknowledged
   | completed
 
-/-- Facts are model claims. Runtime evidence must establish them through later integration. -/
-enum Fact
-  | started
-  | succeeded
-
 model lifecycle
   role operation
   states State
   actions Action
   outcomes Outcome
-  facts Fact
   starts [scheduled]
   ends [succeeded]
 
   -- Read `before + action → result` as one permitted model step, not an execution instruction.
   steps
     start: scheduled + awaitStart →
-      { state := started, outcome := acknowledged, facts := [started] }
+      { state := started, outcome := acknowledged }
     success: started + awaitSuccess →
-      { state := succeeded, outcome := completed, facts := [succeeded] }
+      { state := succeeded, outcome := completed }
 
 /- `awaitSuccess` must expose the complete Target-owned success result. -/
 property successfulResult on lifecycle
@@ -62,7 +59,6 @@ property successfulResult on lifecycle
   when awaitSuccess
   require successState: state succeeded
   require successOutcome: outcome completed
-  require successFact: fact succeeded
 
 /- `exactly` fixes both the selected Action sequence and its length. -/
 scenario successfulCompletion on lifecycle

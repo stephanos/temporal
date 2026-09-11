@@ -50,6 +50,11 @@ syntax ident ":" ident "+" ident "→"
   "{" "state" ":=" ident "," "outcome" ":=" ident "," "facts" ":=" "[" ident,* "]" "}" :
   successStep
 
+/-- The same row for a Model that records no Fact on it. -/
+syntax ident ":" ident "+" ident "→"
+  "{" "state" ":=" ident "," "outcome" ":=" ident "}" :
+  successStep
+
 /-- One `require` clause of a declared Property. -/
 declare_syntax_cat successRequire
 
@@ -86,7 +91,10 @@ private def spellings (constructors : List Name) : String :=
   ", ".intercalate (constructors.map fun constructor => (shortName constructor).toString)
 
 private def unknownMemberMessage (domain spelling : String) (constructors : List Name) : String :=
-  s!"unknown Model {domain} '{spelling}'; declared: {spellings constructors}"
+  if constructors.isEmpty then
+    s!"this Model declares no {domain}s, so '{spelling}' names nothing"
+  else
+    s!"unknown Model {domain} '{spelling}'; declared: {spellings constructors}"
 
 private def parameterizedConstructorMessage (domain spelling : String) : String :=
   s!"Model {domain} '{spelling}' takes arguments; a {domain} domain must be an enum-like inductive"
@@ -208,30 +216,39 @@ private def originTerm : CommandElabM Term := do
 private def memberIdents (constructors : List Name) : Array Term :=
   constructors.toArray.map fun constructor => mkIdent constructor
 
-elab "model" name:ident "role" role:ident
-    "states" stateType:ident
-    "actions" actionType:ident "outcomes" outcomeType:ident "facts" factType:ident
-    startsKeyword:(&"starts" <|> "initial") "[" initialRefs:ident,+ "]"
-    endsKeyword:(&"ends" <|> "terminal") "[" terminalRefs:ident,+ "]"
-    stepsKeyword:(&"steps" <|> "transitions")
-    rows:successStep+ : command => do
+/-- The `model` command's whole body. Two command spellings share it -- one that declares a Fact
+domain and one that declares none -- because an optional group in a command signature does not
+bind. -/
+private def elabModel
+    (name role stateType actionType outcomeType : Ident)
+    (factDomain : Option Ident)
+    (startsKeyword endsKeyword stepsKeyword : Syntax)
+    (initialRefs terminalRefs : Array Ident)
+    (rows : Array (TSyntax `successStep)) : CommandElabM Unit := do
   rejectRetiredKeyword startsKeyword "initial" "starts"
   rejectRetiredKeyword endsKeyword "terminal" "ends"
   rejectRetiredKeyword stepsKeyword "transitions" "steps"
   let stateCtors ← domainConstructors "state" stateType
   let actionCtors ← domainConstructors "action" actionType
   let outcomeCtors ← domainConstructors "outcome" outcomeType
-  let factCtors ← domainConstructors "fact" factType
+  -- A Model that declares no Fact domain gets the empty one: no row can name a Fact, and no
+  -- `require ...: fact ...` clause can either, because there is nothing to name.
+  let factType : Ident := match factDomain with
+    | some declared => declared
+    | none => mkIdentFrom name ``NoFact
+  let factCtors ← match factDomain with
+    | some _ => domainConstructors "fact" factType
+    | none => pure []
   let actionSpellings := actionCtors.map fun constructor => (shortName constructor).toString
   for pair in actionSpellings.zip actionSpellings.tail do
     unless pair.1 < pair.2 do
       throwErrorAt actionType (unsortedActionsMessage pair.2 pair.1)
-  let initialStates ← initialRefs.getElems.toList.mapM (resolveMember "state" stateCtors)
-  let terminalStates ← terminalRefs.getElems.toList.mapM (resolveMember "state" stateCtors)
+  let initialStates ← initialRefs.toList.mapM (resolveMember "state" stateCtors)
+  let terminalStates ← terminalRefs.toList.mapM (resolveMember "state" stateCtors)
   let setupConstructorName : Name := match initialStates.head? with
     | some first => shortName first.getId
     | none => `setup
-  let initialPairs := initialStates.zip initialRefs.getElems.toList
+  let initialPairs := initialStates.zip initialRefs.toList
   for pair in initialPairs.zip initialPairs.tail do
     let earlier := (shortName pair.1.1.getId).toString
     let later := (shortName pair.2.1.getId).toString
@@ -256,6 +273,19 @@ elab "model" name:ident "role" role:ident
             action := $selectedAction
             results := [step $resolvedOutcome $targetState
               [$(observedFacts.toArray),*]] })
+        pure ({ key, sourceState, selectedAction, targetState, rowTerm : ResolvedRow })
+    | `(successStep| $key:ident : $source:ident + $selected:ident →
+        { state := $resulting:ident , outcome := $outcomeRef:ident }) => do
+        let sourceState ← resolveMember "state" stateCtors source
+        let selectedAction ← resolveMember "action" actionCtors selected
+        let targetState ← resolveMember "state" stateCtors resulting
+        let resolvedOutcome ← resolveMember "outcome" outcomeCtors outcomeRef
+        let keyLiteral := Lean.quote key.getId.eraseMacroScopes.toString
+        let rowTerm ← `(term|
+          { key := $keyLiteral
+            source := $sourceState
+            action := $selectedAction
+            results := [step $resolvedOutcome $targetState []] })
         pure ({ key, sourceState, selectedAction, targetState, rowTerm : ResolvedRow })
     | _ => throwErrorAt row "unsupported Model step"
   let mut declared : List ResolvedRow := []
@@ -301,43 +331,83 @@ elab "model" name:ident "role" role:ident
     inductive $setupType where
       | $(mkIdent setupConstructorName):ident
       deriving BEq, DecidableEq, Repr))
+  liftCoreM (Registry.recordModel {
+    declName := (← getCurrNamespace) ++ name.getId
+    «facts» := (factCtors.map fun constructor => (shortName constructor).toString).toArray })
   elabCommand (← `(command|
     def $name := declareModel $origin $names ($setupName)
       ([$(memberIdents stateCtors),*]) ([$(memberIdents actionCtors),*])
-      ([$(memberIdents outcomeCtors),*]) ([$(memberIdents factCtors),*])
+      ([$(memberIdents outcomeCtors),*]) (([$(memberIdents factCtors),*] : List $factType))
       ([$(initialStates.toArray),*]) ([$(terminalStates.toArray),*])
       ([$(transitionTerms.toArray),*])
       (by exact ⟨rfl, rfl, rfl⟩)))
 
-macro "property" name:ident "on" modelRef:ident "for" roleRef:ident
+/-! ### The `model` command
+
+Two spellings, one body: a Model that declares a Fact domain, and one that declares none. -/
+
+elab "model" name:ident "role" roleRef:ident
+    "states" stateType:ident
+    "actions" actionType:ident "outcomes" outcomeType:ident "facts" factType:ident
+    startsKeyword:(&"starts" <|> "initial") "[" initialRefs:ident,+ "]"
+    endsKeyword:(&"ends" <|> "terminal") "[" terminalRefs:ident,+ "]"
+    stepsKeyword:(&"steps" <|> "transitions")
+    rows:successStep+ : command =>
+  elabModel name roleRef stateType actionType outcomeType (some factType)
+    startsKeyword endsKeyword stepsKeyword
+    initialRefs.getElems terminalRefs.getElems rows
+
+elab "model" name:ident "role" roleRef:ident
+    "states" stateType:ident
+    "actions" actionType:ident "outcomes" outcomeType:ident
+    startsKeyword:(&"starts" <|> "initial") "[" initialRefs:ident,+ "]"
+    endsKeyword:(&"ends" <|> "terminal") "[" terminalRefs:ident,+ "]"
+    stepsKeyword:(&"steps" <|> "transitions")
+    rows:successStep+ : command =>
+  elabModel name roleRef stateType actionType outcomeType none
+    startsKeyword endsKeyword stepsKeyword
+    initialRefs.getElems terminalRefs.getElems rows
+
+elab "property" name:ident "on" modelRef:ident "for" roleRef:ident
     "when" actionKeyword:("action")? actionRef:ident
     requirements:successRequire+ : command => do
     if let some retired := actionKeyword then
-      Lean.Macro.throwErrorAt retired (retiredKeywordMessage "when action" "when")
+      throwErrorAt retired (retiredKeywordMessage "when action" "when")
     let ownerKey := Lean.quote name.getId.toString
     let roleKey := Lean.quote roleRef.getId.toString
     let actionKey := Lean.quote actionRef.getId.toString
+    let modelName ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo modelRef)
+    let declaredFacts := match Registry.model? (← getEnv) modelName with
+      | some declared => declared.facts
+      | none => #[]
     let clauses ← requirements.mapM fun requirement => do
       match requirement with
       | `(successRequire| require $label:ident : state $member:ident) =>
           `(term| PropertyRequirement.stateClause
               $(Lean.quote label.getId.toString) $(Lean.quote member.getId.toString))
       | `(successRequire| require $_:ident : resultingState $_:ident) =>
-          Lean.Macro.throwErrorAt requirement (retiredKeywordMessage "resultingState" "state")
+          throwErrorAt requirement (retiredKeywordMessage "resultingState" "state")
       | `(successRequire| require $label:ident : outcome $member:ident) =>
           `(term| PropertyRequirement.outcomeClause
               $(Lean.quote label.getId.toString) $(Lean.quote member.getId.toString))
-      | `(successRequire| require $label:ident : fact $member:ident) =>
+      | `(successRequire| require $label:ident : fact $member:ident) => do
+          -- A Model that declares no Fact domain has nothing for a `fact` clause to name, and the
+          -- clause is what the author wrote, so it is where the rejection belongs.
+          unless declaredFacts.contains member.getId.eraseMacroScopes.toString do
+            throwErrorAt member (unknownMemberMessage "fact"
+              member.getId.eraseMacroScopes.toString
+              (declaredFacts.toList.map fun spelling => Name.mkSimple spelling))
           `(term| PropertyRequirement.factClause
               $(Lean.quote label.getId.toString) $(Lean.quote member.getId.toString))
-      | _ => Lean.Macro.throwErrorAt requirement "unsupported require clause"
-    `(command| def $name (values : ModelVocabulary) : Property :=
+      | _ => throwErrorAt requirement "unsupported require clause"
+    elabCommand (← `(command|
+      def $name (values : ModelVocabulary) : Property :=
         authoredProperty ($modelRef) values {
           declaration := $ownerKey
           roleName := $roleKey
           actionSpelling := $actionKey
           requirements := [$clauses,*]
-        })
+        }))
 
 elab scenarioKeyword:("scenario" <|> "behavior") name:ident "on" modelRef:ident roleRef:ident
     "starts" setupRef:ident

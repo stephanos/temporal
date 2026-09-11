@@ -1,6 +1,7 @@
 # Nexus: connecting side effects to the behavioral model
 
-Design specimen. Nothing here compiles, and no module imports it.
+Design specimen. Nothing here compiles, and no module imports it. The spec that implements it is
+fn-85 ("Model side effects as typed interfaces and run query sets").
 
 The Nexus success Model has two Actions, `awaitStart` and `awaitSuccess`, and both only wait. Every
 real side effect (the workflow command that schedules the operation, the handler's reply, the
@@ -37,7 +38,7 @@ Four properties of this set drive the design more than any single test:
    operations sharing one handler workflow. `TestNexusOperationAsyncCompletionBeforeStart`
    (`:1358`) has two callers attached to one handler run. Update-backed handlers relate an operation
    to an update on another workflow.
-2. **Three kinds of initiative.** The test decides some steps (which reply the handler gives, when
+2. **Three sources of decisions.** The test decides some steps (which reply the handler gives, when
    the caller cancels). The server decides others (writing `NexusOperationStarted`, retrying). The
    environment decides the rest (a timeout elapses, an HTTP call fails, two completions race).
 3. **Steps without events.** A retryable attempt failure writes no history event; only
@@ -105,24 +106,33 @@ belongs to an operation), and references are compared, never interpreted.
 The current Model has one role with one instance and a flat state enum. The five-operations test
 and the two-callers test cannot be written without this.
 
-### 3.2 Interface and initiative
+### 3.2 Interface, party and binding
 
-A named side effect with a typed input, typed results, and a declared **initiative**:
+A named side effect with a typed input, typed results, a **kind** and a **party**.
 
-| Initiative | Who performs it | What the verifier does |
-| --- | --- | --- |
-| test | the Case's own Program (the controller, a pre-programmed workflow or handler) | chooses it from the Scenario |
-| system | the system under test | checks that the step it takes is one the Model allows |
-| environment | time, faults, concurrency | explores the allowed choices within Limits |
-
-And a **kind**: *call* (request with a result), *command* (issued inside an entity, answered later
-by events), *reply* (an answer to a call made to the test), or *observation* (recorded data with no
-request). The kinds are structural; which RPC, workflow command, handler response or history event
+The kind is structural: *call* (request with a result), *command* (issued inside an entity,
+answered later by events), *reply* (an answer to a call another party made), or *observation*
+(recorded data with no request). Which RPC, workflow command, handler response or history event
 realizes each one is decided in the realization.
 
-Today `awaitStart` is written as if the test performs it. It is really an observation of a system
-step. With initiative declared, a Scenario selects only test and environment choices, and system
-steps follow from the Model.
+The party names the side that performs the interface: `caller`, `handler`, `system` or
+`environment` for Nexus. The interface fixes its party. A **set** binds each party other than
+`system` to a source of decisions:
+
+| Bound to | Who performs it | What the verifier does |
+| --- | --- | --- |
+| test | the Case's own Program (the controller, a pre-programmed workflow or handler) | chooses it from the Scenario |
+| environment | a real deployment, time, faults, concurrency | observes or explores the choice and checks the Model allows it |
+| (`system`, never bound) | the system under test | checks that the step it takes is one the Model allows |
+
+A functional set binds `handler` to test: the Case's handler replies what the Scenario selects. A
+canary set binds `handler` to environment: a real deployed handler replies, and the verifier checks
+the observed reply class against the Model. The Model is the same for both sets; only the
+verifier's treatment of the choice differs.
+
+Today `awaitStart` is written as if the test performs it. It is really an observation of a
+`system` step. With parties declared, a Scenario selects only choices whose party its set binds to
+test, and `system` steps follow from the Model.
 
 ### 3.3 Abstract input
 
@@ -137,8 +147,19 @@ An interface instance is its interface plus an abstract argument:
 
 `Umpire.Operation.ParameterDomain` today lists whole concrete requests and rejects abstraction
 (`ParameterCoverage.abstracted` throws `unsupportedAbstraction`). A dimension is the missing
-abstraction, and the claim that a class behaves alike needs evidence: an exploratory set can run
-several concrete values per class and compare verdicts.
+abstraction.
+
+A class is a claim, and exploration owns its evidence:
+
+- a class with exactly one concrete member (one generated enum value, one literal) needs no
+  evidence;
+- a class with several members (`handlerError, retryable: no` covers BadRequest, Unauthenticated,
+  NotFound and more) is recorded in Provenance as an unverified abstraction claim;
+- a functional set realizes one declared representative per class, so its fixtures stay
+  deterministic;
+- an exploratory set's coverage goal includes the members of each claimed class; two members with
+  different verdicts are a counterexample, the class is split, and Promotion keeps the
+  counterexample as a Regression.
 
 ### 3.4 Result classification
 
@@ -173,10 +194,16 @@ Wall-clock durations stay in the realization.
 
 ### 3.7 Configuration as setup
 
-Dynamic config values that change behavior are setup parameters of the Model (for example
-`operationImplementation: [hsm, chasm]` or `concurrencyLimit: atLimit | belowLimit`). Rows may guard
-on them. The Profile binds them to concrete values, and a Case that needs a value its environment
-cannot set carries a Known Gap.
+Dynamic config values that change behavior on purpose are setup parameters of the Model, named
+after the setting rather than after an implementation (`concurrencyLimit: [atLimit, belowLimit]`,
+`recordCancelCompletion: [yes, no]`). Rows may guard on them. The Profile binds them to concrete
+values, and a Case that needs a value its environment cannot set carries a Known Gap.
+
+A rollout switch between two implementations of the same behavior (HSM or CHASM Nexus operations)
+is not a setup parameter. The Model states the behavior both must satisfy, and a set runs its
+Queries once per switch value; a verdict that differs between the runs is a divergence to explain.
+Incidental differences (attempt numbering in log tags) stay outside the Model, and internal storage
+layout read through `DescribeMutableState` is a white-box Known Gap.
 
 ### 3.8 Two levels and a link
 
@@ -187,6 +214,12 @@ independently checked Models by value mappings and a forward simulation, and
 `Temporal/System/Nexus/ImplementationLink.lean` uses it for a small Nexus pair. Properties go on the
 level where they are natural, and the link carries product properties to every interface-level
 trace.
+
+A feature starts with one level: its interface model is its product model. It adds a product model
+when a product property would otherwise mention mechanism (attempts, backoff, cancel delivery), or
+when several realizations share one product meaning. Nexus meets both: an operation is created by
+a workflow command, by an external HTTP caller, or by the standalone API, and two implementations
+run it. Both levels and the link live in one file.
 
 ### 3.9 Realization
 
@@ -235,10 +268,10 @@ enum CancelPhase
   | delivered
   | rejected
 
--- test initiative: what the Case's Program does
+-- caller and handler parties: a set binds each to test or environment
 interface schedule
   kind: command
-  initiative: test
+  party: caller
   creates: operation
   input:
     scheduleToClose: [none, expires]
@@ -246,19 +279,22 @@ interface schedule
     startToClose: [none, expires]
   rules:
     endpoint missing → reject: workflowTaskFailed
-    pending operations at limit → reject: workflowTaskFailed
+    concurrencyLimit: atLimit → reject: workflowTaskFailed
 
 interface handlerReply
   kind: reply
-  initiative: test
+  party: handler
   on: operation
   input:
     reply: [syncSuccess, async, operationFailed, operationCanceled, handlerError]
     retryable: [yes, no]                       -- read only when reply is handlerError
+  representatives:
+    handlerError, retryable: no → BadRequest   -- one of several members; an unverified claim
+    handlerError, retryable: yes → Internal
 
 interface completeCallback
   kind: call
-  initiative: test
+  party: handler
   on: operation
   input:
     result: [succeeded, failed, canceled]
@@ -268,18 +304,18 @@ interface completeCallback
 
 interface requestCancel
   kind: command
-  initiative: test
+  party: caller
   on: operation
 
 interface cancelReply
   kind: reply
-  initiative: test
+  party: handler
   on: operation
   input:
     reply: [delivered, handlerError]
     retryable: [yes, no]
 
--- environment initiative: explored within Limits
+-- environment party: explored within Limits
 environment
   fault: transport on handlerReply
   timer: backoff, scheduleToClose, scheduleToStart, startToClose
@@ -288,7 +324,8 @@ environment
 model nexusOperation
   entity: operation
   setup:
-    operationImplementation: [hsm, chasm]
+    concurrencyLimit: [atLimit, belowLimit]
+    recordCancelCompletion: [yes, no]
   steps:
     none + schedule
       → phase: scheduled, cancel: none, attempts: 0,
@@ -330,9 +367,11 @@ model nexusOperation
     phase: started, cancel: waitingForStart
       → cancel: delivering
     cancel: delivering + cancelReply(reply: delivered)
-      → cancel: delivered, evidence: nexusOperationCancelRequestCompleted
+      → cancel: delivered,
+        evidence: nexusOperationCancelRequestCompleted when recordCancelCompletion: yes
     cancel: delivering + cancelReply(reply: handlerError, retryable: no)
-      → cancel: rejected, evidence: nexusOperationCancelRequestFailed
+      → cancel: rejected,
+        evidence: nexusOperationCancelRequestFailed when recordCancelCompletion: yes
 
 model nexusProduct
   entity: operation
@@ -367,6 +406,20 @@ property deliveredCancelDoesNotEnd on nexusOperation
   when: cancelReply(reply: delivered)
   require:
     phase = previous phase
+
+-- One Model, two sets. The functional set runs every Query once per implementation switch value.
+set functional nexusCaller
+  bind:
+    caller: test
+    handler: test
+  repeat: implementation [hsm, chasm]
+  queries: [syncCompletion, asyncCompletion, retryAfterFault, cancelAfterStart]
+
+set canary nexusCaller
+  bind:
+    caller: test
+    handler: environment
+  queries: [syncCompletion, asyncCompletion]
 ```
 
 ## 5. How the tests map onto the abstractions
@@ -395,8 +448,8 @@ property deliveredCancelDoesNotEnd on nexusOperation
 | # | Need | Today |
 | --- | --- | --- |
 | 1 | Entities with structured state, several instances, and references | one role, one instance, flat state enum |
-| 2 | Interfaces with a kind and an initiative | `Umpire.Operation.Declaration` has kinds `unaryRpc`, `sdkCommand`, `event`, no initiative, and a protobuf-descriptor schema |
-| 3 | Abstract inputs: dimensions, references, defaults, input rules | exact request lists; abstraction rejected |
+| 2 | Interfaces with a kind (`call`, `command`, `reply`, `observation`) and a party; sets that bind parties to test or environment | `Umpire.Operation.Declaration` has kinds `unaryRpc`, `sdkCommand`, `event`, no party, and a protobuf-descriptor schema |
+| 3 | Abstract inputs: dimensions, references, defaults, input rules, representatives, and class claims recorded in Provenance | exact request lists; abstraction rejected |
 | 4 | Result classification | Response and Failure types on the declaration, no classes |
 | 5 | Observations by event, by query, on another entity, and eventually consistent | event projection only, keys inside templates |
 | 6 | Environment steps for timers, faults and interleavings, bounded by Limits | none in Models; faults exist only as Program instructions |
@@ -409,17 +462,26 @@ property deliveredCancelDoesNotEnd on nexusOperation
 Needs 1 to 8 are required before the specimen's own test rows can run. Need 9 decides whether the
 product and interface models stay separate. Needs 10 and 11 cover the remaining groups.
 
-## 7. Open questions
+## 7. Decisions
 
-1. **Initiative of a reply.** In a Case the handler is pre-programmed, so its reply is a test
-   choice. Against a real external handler it is an environment choice. Should initiative be fixed
-   on the interface, or bound per set?
-2. **Class evidence.** Who owns the evidence that a dimension's classes behave alike: the Model
-   author, an exploratory set, or both?
-3. **Schema.** Umpire's operation schemas are protobuf descriptors today. That is generic but not
-   neutral. Keep it, or put a schema interface in front of it?
-4. **One level or two for Nexus.** The specimen uses both. A single interface-level model would be
-   simpler but puts attempts and backoff next to product meaning.
-5. **Both implementations.** HSM and CHASM differ in visible ways (concurrency limit, attempt
-   numbering, cancel event gating). Model them as one Model with a setup parameter, or as two
-   realizations of one Model with Known Gaps where they differ?
+Recorded 2026-09-10 with the user.
+
+1. **A reply's party is fixed; a set binds it.** An interface declares its party (`caller`,
+   `handler`, `system`, `environment`). A set binds each party except `system` to test or
+   environment. The Model is the same for every set (section 3.2).
+2. **The author claims classes; exploration owns the evidence.** Single-member classes need none.
+   Multi-member classes are recorded in Provenance as unverified claims, functional sets realize one
+   declared representative, and an exploratory set that finds members with different verdicts
+   splits the class and promotes the counterexample (section 3.3).
+3. **Protobuf descriptors stay Umpire's only schema.** Testpilot's wire format and `Umpire.Value`
+   are built on them, and SCP-01 admits no capability without a use case. The Temporal-flavored
+   kind names are renamed: `unaryRpc`, `sdkCommand` and `event` become `call`, `command` and
+   `observation`, and `reply` is added. A schema interface waits for a second schema source.
+4. **One level by default; Nexus uses two.** A product model is added when product properties would
+   mention mechanism, or when several realizations share one product meaning. Nexus meets both
+   (section 3.8).
+5. **One Model for HSM and CHASM, run under both.** The implementation switch is a rollout flag,
+   not behavior. Deliberate config-controlled differences are setup parameters named after the
+   setting; incidental differences stay outside the Model; storage layout is a white-box Known Gap.
+   A set repeats its Queries per switch value, and a differing verdict is a divergence
+   (section 3.7).

@@ -1,0 +1,24 @@
+{
+  "branch_name": "stephanos/umpire",
+  "created_at": "2026-09-11T03:30:54.073727Z",
+  "depends_on_epics": [],
+  "id": "fn-85-model-side-effects-as-typed-interfaces",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-85-model-side-effects-as-typed-interfaces.md",
+  "status": "open",
+  "title": "Model side effects as typed interfaces and run query sets",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-11T03:30:54.080266Z"
+}
