@@ -69,3 +69,8 @@ With `--create` it provisions the resources it names and deletes them on exit; w
 already exist and none is ever deleted. Only Cases whose Profile `DeriveProfile` derives are
 runnable; a typed fixture rejects with its admission category on stderr. It links the Driver and the
 SDK, never the functional test cluster.
+
+It links no functional test cluster at all, and the only server packages in its transitive closure
+are the three the Driver's own Nexus support already pulled in through `common/dynamicconfig`,
+`common/persistence` and `chasm`. A unit test pins both halves of that, so a new coupling is a
+failing test rather than a silent regression.

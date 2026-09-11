@@ -14,6 +14,7 @@
     "fn-83-author-a-live-case-from-a-model-file.1": 0,
     "fn-83-author-a-live-case-from-a-model-file.2": 0,
     "fn-83-author-a-live-case-from-a-model-file.3": 0,
+    "fn-83-author-a-live-case-from-a-model-file.7": 0,
     "fn-83-author-a-live-case-from-a-model-file.9": 0
   },
   "next_task": 1,
@@ -628,12 +629,57 @@
       "task": "fn-83-author-a-live-case-from-a-model-file.9",
       "timestamp": "2026-09-11T01:00:28.160322Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "a9f418639b32192d4b629610ca3a0cb3c2761b230d629bc09c73c36a77ac5fe7",
+      "backend": "claude",
+      "base_sha": "ba7d223edaf86f45e5a6bef76ae62ad3e8c7847f",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-ac43ca2f593a25357cd11de213e6f6c5",
+            "classification": "introduced",
+            "findingId": "finding-ac43ca2f593a25357cd11de213e6f6c5",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e752240daabc5bd9cd0c1f4104d14969bc6c2ccd",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-sonnet-4-5",
+      "outcome": "verdict",
+      "output_bytes": 2750,
+      "output_sha256": "e0ffbd1b2fedaf32758efb99265a3c68dc78830d1ff1f5f79c351893640d1fa6",
+      "reservation_id": "b4e153a7612942b9bc3a2bbdca13d452",
+      "round_consumed": true,
+      "scope": "impl:fn-83-author-a-live-case-from-a-model-file.7",
+      "superseded_by": null,
+      "task": "fn-83-author-a-live-case-from-a-model-file.7",
+      "timestamp": "2026-09-11T01:50:19.183389Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-83-author-a-live-case-from-a-model-file.1": 1,
     "impl:fn-83-author-a-live-case-from-a-model-file.2": 1,
     "impl:fn-83-author-a-live-case-from-a-model-file.3": 1,
+    "impl:fn-83-author-a-live-case-from-a-model-file.7": 1,
     "impl:fn-83-author-a-live-case-from-a-model-file.9": 1,
     "plan": 1,
     "plan#completion": 0
@@ -644,6 +690,7 @@
     "impl:fn-83-author-a-live-case-from-a-model-file.1": 0,
     "impl:fn-83-author-a-live-case-from-a-model-file.2": 0,
     "impl:fn-83-author-a-live-case-from-a-model-file.3": 0,
+    "impl:fn-83-author-a-live-case-from-a-model-file.7": 0,
     "impl:fn-83-author-a-live-case-from-a-model-file.9": 0,
     "plan": 0
   },
@@ -661,5 +708,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-11T01:27:33.827665Z"
+  "updated_at": "2026-09-11T01:50:19.184520Z"
 }
