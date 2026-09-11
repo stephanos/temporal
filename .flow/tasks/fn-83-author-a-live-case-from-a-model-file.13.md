@@ -42,9 +42,64 @@ A Fact carries information a state cannot when it distinguishes two paths into t
 
 
 ## Done summary
-TBD
+The Nexus success Model records no Fact, and a Model command no longer requires one.
 
+Why the clause was empty: every step of that Model recorded one Fact named after the state it
+reached, so `require successFact: fact succeeded` restated `require successState: state succeeded`.
+It added no runtime check either -- `Umpire.Case.Producer` confirms a whole Step (state, outcome,
+facts) from the one history event mapped to its Action, so both clauses were answered by the same
+`nexusOperationCompleted` event.
+
+- `model/Umpire/Command/Syntax.lean`: `facts <Type>` may be omitted from the `model` header (two
+  command spellings sharing one `elabModel` body, because an optional group in a command signature
+  does not bind -- the same Lean behaviour .12 hit), and a Step row may omit `, facts := [...]`
+  (two `successStep` spellings). `unknownMemberMessage` says "this Model declares no facts, so 'x'
+  names nothing" when the catalog is empty.
+- `model/Umpire/Command/Authoring.lean`: `NoFact`, an inductive with no constructors, is the Fact
+  domain of a Model that declares none. It is never a type the author writes.
+- The `property` command became an elaborator, and the `model` command records its declared Fact
+  spellings in the registry, so a `require ...: fact ...` clause on a factless Model rejects **on
+  the clause** rather than at admission.
+- `model/Umpire/Property.lean`: `stepClauses` takes its Fact as an `Option`, so a helper over a
+  factless Model builds the two clauses that exist. The two feature callers pass `some`.
+- `model/Temporal/Feature/Nexus/Success/Model.lean`: no `enum Fact`, no `facts` header line, no row
+  `facts`, no `successFact` clause, and a comment saying when a Model should declare Facts.
+- `RaceSyntaxTests.lean` is untouched: its Facts, its `facts := []` row and its `fact` clause keep
+  the declared-Fact path pinned. `Tests.lean` declares its own `enum Fact` for the Models there that
+  keep Facts.
+
+End-to-end check of the empty domain: it passes vocabulary construction, Property and Scenario
+admission, Search (the Query still finds its witness), the Producer's projection (`stepOf` returns
+`facts := []`), coverage, and Case compilation. No stage needed a change and none is recorded as
+unable.
+
+Fixture diff, all of it Facts:
+  contract.correlated.clauses                3 -> 2   (the successFact clause is gone)
+  contract.correlated.projectionRules[0,1]   the `facts` output of each rule removed
+  contract.correlated.transitions[0,1]       the `facts` of each transition removed
+  contract.correlated.projectionFingerprint  moved, because the projection did
+  provenance.producerData                    moved, because the Property did
+Nothing else in the Case moved -- not the Program, not the Case/Program/Contract IDs.
+
+Both live async-Nexus tests now assert two rule Verdicts. `make umpire-check-live-tests` passes
+across 9 identities; `make umpire-check-regression` is exit 0 end to end; `make lint-model` reports
+0 findings outside generated `Temporal/API/Proto.lean`.
+
+`.5` and `.6` task wording and the fn-83 R3 parenthetical no longer author a Fact that only mirrors
+a state.
+
+Swept in, not mine: `.flow/specs/fn-85-model-side-effects-as-typed-interfaces.{json,md}` and further
+edits to `model/Temporal/Feature/Nexus/DESIGN.md`, all from the parallel session, staged by
+`git add -A`.
+
+Review: SHIP, no introduced findings.
+Pinned reviewer `claude:claude-fable-5-1:high` is account-limited for this session, so the review
+ran on `claude:claude-sonnet-4-5:high` -- a same-family fallback, not an equivalent cross-family
+review.
+
+stage: impl-review - ran (model: claude-sonnet-4-5, high; fable pinned but account-limited)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 64f97ff3e1
+- Tests: cd model && mise exec -- lake build, make umpire-gen-case-runtime-conformance (fixture diff listed in the summary), make umpire-check-case-runtime-conformance, make umpire-check-goldens, make lint-model (0 findings outside generated Temporal/API/Proto.lean), make umpire-check-live-tests (9 passing identities), make umpire-check-regression (exit 0)
 - PRs:
