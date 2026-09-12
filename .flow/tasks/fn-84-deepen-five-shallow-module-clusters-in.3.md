@@ -52,9 +52,35 @@ Give Umpire one `admit` operation (R3) that owns the Property, Scenario, Query, 
 - [ ] focused: `lake build Umpire.Query.Tests Umpire.Search.Tests Umpire.Search.VisibilityTests` (fn-82's names) and `lake build UmpireTests` green; `make lint-model` green
 - [ ] architecture documents, model README (walkthrough and live selector), facade rows and `CONTEXT.md` updated; documentation gate passes; `make umpire-check-regression` green
 ## Done summary
-TBD
+`Umpire.Search.admit` (new module `Umpire/Search/Admission.lean`) now runs the whole check chain: Property, optional Scenario, Known Gaps, Query, then search view. It returns either one `AdmissionDiagnostic`, with one constructor per stage and that stage's typed error unchanged, or an `AdmittedQuery` indexed by the checked Model. The Command success chain, Race, Race.Cancellation, Race.Authoring and the Switch example admit through it. The Variations compiler, Exploration engine, candidate set, session and Promotion take an `AdmittedQuery` and re-pair Queries with `withQuery`. `Property`/`Scenario`/`Query.checked` default their proof to `native_decide`.
 
+stage: impl-review - ran (claude backend, SHIP first round; receipt /tmp/impl-review-receipt-3684356e61f5-fn-84-deepen-five-shallow-module-clusters-in.3.json)
+
+Equivalence pin (R6): a before/after capture was taken at base and after the change. It covered query ids, canonical metadata, fingerprints, `PlanResult` reprs and branch-analysis scopes for Switch, the Command success Model, Race (9 questions), Race.Cancellation, Race.Authoring, the three Operations, and the experimental VariationSpace batch/metadata and Exploration runs/session. The two captures are byte-identical (`.flow/tmp/fn84.3-pin-{base,after}.txt`). Goldens, Case fixtures and Variations goldens are unchanged under `make umpire-check-regression`.
+
+Gates: `make lint-model` 163 (same inherited count); `make lint-code` 161 after `go clean -cache` (14505 → 161, no Go changes); `make umpire-check-regression` exit 0 (nine passing live identities); retired-vocabulary gate clean. `grep 'Eq.mpr (congrArg'` matches only `SearchView.retarget`.
+
+Build time (`lake env lean`, 3 runs, base → after): Switch 2.57-2.60s → 2.58-2.60s; AsyncStart 1.14-1.15 → 1.14-1.16; Operations Cancellation/SuccessfulCompletion, Race, Race.Cancellation and Success.Model are unchanged within ±0.02s. The noise floor is about 0.04s.
+
+Decisions taken autonomously / deviations:
+- TypedNexus and TypedUnary are not migrated, and their `AdmissionError` unions stay. They check a field or correlated Property through `CheckedFieldProperty.check` with field bindings, among Operation/Parameter/Field/Projection stages. They never form a Query or search, so routing them through `admit` would add stricter checks (memory: behavior-neutral refactors must not strengthen validation).
+- Model-stage errors stay outside `admit`, because `admit` takes an already checked Model. The Command, Race, Race.Cancellation and Race.Authoring unions shrink to `invalidTarget`, `invalidVocabulary` and one `AdmissionDiagnostic` constructor rather than disappearing. A search Known Gap composition error maps to `.knownGaps`, so Command's diagnostic text is byte-identical.
+- The real API differs from the spec's sketch. `admit` takes a `Query.Shape` (authored Query fields minus the Property and Scenario, with `form : CheckedProperty → Query.Form`) and `knownGaps : List KnownGap`. Gap canonicalization is a stage, which keeps Command's check precedence. `AdmittedQuery.search`/`searchWithIntent` return `Except` like `search`/`searchWithPlanRequest`. `located` returns an `AdmissionLocation` (stage, definition id, optional source path), since `LocatedError` is Model-specific. `AdmittedQuery.retarget` was added for the Exploration space-equality transport; it delegates to `SearchView.retarget`.
+- Property-only admission searches `Query.Shape.unconstrainedScenario`, named `<query id>.scenario`. It declares the Model's setup roles, because a role-less Scenario admits no candidates.
+- `Switch.incrementalKernel` and its simp scripts are deleted. Switch admits `exactActionAdmitted` once and runs the exploratory and exact-trace Queries through `withQuery`, which keeps elaboration time at base. Every Switch-kernel fixture now uses that admission.
+- The experimental VariationSpace and Exploration modules admit the AsyncStart Query inside their fallible preparation (`baseAdmission`, new `VariationSpacePreparationError.admission`). This avoids a new production `native_decide` witness and its roughly 0.06s elaboration cost. COVERAGE.md records the trust change.
+- Specimens whose contract the auto-param changed were rewritten to pin the new behavior: an invalid declaration now fails the default proof. The earlier specimens had vacuous `#guard_msgs` and passed without any error. Affected: SwitchTests property/behavior, Query/Tests/Validation, and Operations/SearchTests (three specimens merged into one).
+- The `CheckedModel.kernel` field was deleted; it had no reader.
+
+Touches extensions: `model/Umpire/Command/Authoring.lean` and `model/Umpire/Command/Syntax.lean` (post-fn-83 home of the success chain; the `query` command now passes the authored gap list), `model/Umpire/Examples/SwitchTests.lean` (auto-param pin), `model/Umpire/PromotionTests.lean` (Promotion signature), `model/Temporal/Feature/Nexus/Success/Tests.lean` (constructor matches), `model/Temporal/Feature/Nexus/COVERAGE.md` (trust inventory). `model/Umpire.lean` was not edited; `Search.Admission` is reachable through Promotion and Variations.
+
+Follow-ups (not done):
+- Retiring the deleted public names (`invalidPlanner` family, `Switch.incrementalKernel`) needs the vocabulary list in `tools/umpire/internal/retiredvocabulary`, which is outside Touches.
+- Review P3s left open after SHIP:
+  - `AdmittedQuery.property` is kept, not re-derived, under `withQuery`.
+  - `baseAdmission` copies AsyncStart's query fields; an `AsyncStart.queryShape` would remove the copy.
+  - `Query.Shape` could move into `Umpire.Query`.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 714200935a784c11ddfd0000d4638868c84c38e3
+- Tests: cd model && mise exec -- lake build Temporal UmpireTests TemporalModelTests TemporalExperimentalTests +Umpire.PromotionTests (includes Umpire.Query.Tests, Umpire.Search.Tests, Umpire.Search.VisibilityTests), make lint-model (163, inherited, all in Temporal/API/Proto.lean), go clean -cache && make lint-code GOLANGCI_LINT_FIX=false (161 issues, inherited baseline; no Go files touched), make umpire-check-regression (exit 0; 574 Lean jobs; nine passing live TestTestpilot identities), equivalence pin: lake env lean Pin.lean before/after, byte-identical (.flow/tmp/fn84.3-pin-base.txt vs fn84.3-pin-after.txt), baseline: green (regression via receipt eabc8bfc; lint-model 163 measured pre-edit)
 - PRs:
