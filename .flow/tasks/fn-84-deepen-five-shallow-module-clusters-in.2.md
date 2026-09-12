@@ -46,9 +46,20 @@ Move the Driver-facing vocabulary (R2) into one leaf package both the facade and
 - [ ] `.plans/UMPIRE4_SPEC.md` MOD-14 restatement drafted and marked pending GOV-02; execution README, Testpilot README, components plan and model README updated; documentation gate passes
 - [ ] `make lint-code` clean; `make umpire-check-regression` green
 ## Done summary
-TBD
+The Driver-facing Testpilot vocabulary (coordinates, reservation identity/request, effect result, opaque capability and CapabilityEffect, EffectHandle, ReservationHandle, CapabilityBridge, Session, PreparedRole, ValueReference/ReferenceKind, OutcomeSnapshot, reservation carrier plan/topology/route, RolePolicy, carrier policy/shape, EnvironmentBinding, Opcode and MaxOpcode) now lives once in the new leaf `common/testing/testpilot/contract`, which imports only the proto package. Internal execution uses it directly (type-checked rewrite to `contract.X`); the facade re-exports every type and constant by alias in `contract.go`. `driver.go` keeps only Driver, PreparedProgram, EntrypointPlan, InstructionPlan, Expression and one thin `driverAdapter`; the session/effect/reservation/bridge adapters, both coordinate converters and `ProfileSpec.policy` are deleted. MOD-14 restatement drafted pending GOV-02; Testpilot, execution, components and model docs point at the leaf.
 
+Equivalence pins (R6): `conformance_test.go` and `facade_external_test.go` unedited and green; `TestCaseRuntimePublicFacadeConformance` green; foreign-handle refusal stays in each Driver Session, pinned by `TestParallelSessionsAndQuarantineCapacity` (server) and `TestQuarantineKeepsReservationOwnershipAndUnwrapsExactHandle` (delivery ledger). `go list -deps ./...`: no package outside Testpilot imports internal/execution. `make lint-code`: 161 (inherited baseline, healthy 14505 -> 161, no touched-file finding). `make umpire-check-regression`: exit 0 with nine live identities.
+
+Decisions taken autonomously:
+- Also moved `CapabilityEffect`, `ReferenceKind`/`ValueReference` into the leaf so driver.go holds only the five named types; aliases live in a new facade file `contract.go`.
+- Deleted `TestCapabilitiesMatchExecutionOpcodes` alongside `TestSessionAdapterReturnsReservationEffectsToTheirDriver`: with one Opcode declaration it compared a type to itself. The oneof-to-opcode pin in `internal/execution/fault_test.go` remains; its comment was corrected.
+- Nil Session/handle/bridge returns are now rejected by execution's existing checks (runtime.go, scheduler.go) instead of the deleted adapters; messages differ but no test or doc pins the old strings, and partial reservation handles are now retained rather than dropped.
+- `model/ARCHITECTURE.md` left untouched: it is outside the task's Touches and its sentence stays true.
+- Baseline taken from the handoff at the same HEAD (f3f8c625) rather than re-running full gates pre-edit.
+- Applied the review's two P3 doc findings (rewrap, "Testpilot's private execution package") after SHIP.
+
+stage: impl-review - ran [2026-09-12T20:05Z..2026-09-12T20:11:53Z] SHIP (claude backend, receipt /tmp/impl-review-receipt-3684356e61f5-fn-84-deepen-five-shallow-module-clusters-in.2.json)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 9ddddf5469760005dc8e42df4d773e7efbd1e0f7, eabc8bfc2488e513f7914dea84a0e652966ec47e
+- Tests: go test -count=1 -tags test_dep ./common/testing/testpilot/..., go test -count=1 -tags test_dep ./common/testing/testpilot -run '^TestCaseRuntimePublicFacadeConformance$', go test -count=1 -tags test_dep ./common/testing/testpilot/temporal/worker/ -run '^TestFault|^TestSession|^TestPreparedDefinition|^TestWorkerProfile', go test -count=1 -tags test_dep ./common/testing/testpilot/temporal/internal/delivery/ -run '^TestQuarantineKeepsReservationOwnershipAndUnwrapsExactHandle$', go list -deps ./... (no package outside common/testing/testpilot imports internal/execution; leaf imports only api/testpilot/v1), go clean -cache && make lint-code GOLANGCI_LINT_FIX=false (161 issues, exit 2, inherited baseline; 14505 -> 161; none in touched files), make umpire-check-regression (exit 0; 571 Lean jobs; nine live TestTestpilot identities pass), baseline: green via handoff (verified at f3f8c625 by fn-84-deepen-five-shallow-module-clusters-in.1)
 - PRs:
