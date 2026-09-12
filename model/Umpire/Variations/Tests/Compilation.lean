@@ -83,27 +83,27 @@ private theorem checkedTargetEq :
   exact congrArg (fun query => query.target)
     (checkVariationSpace_baseQuery checkedResultEq)
 
-private def baseKernel : SearchView checked.baseQuery.target :=
-  Eq.mpr (congrArg SearchView checkedTargetEq)
-    Umpire.Examples.Switch.incrementalKernel
+private def base : AdmittedQuery checked.baseQuery.target :=
+  (Umpire.Examples.Switch.exactActionAdmitted.withQuery checked.baseQuery checkedTargetEq).retarget
+    checkedTargetEq.symm
 
-private def conflictingBaseKernel :
-    SearchView checkedWithConflictingGaps.baseQuery.target :=
-  Eq.mpr (congrArg SearchView (congrArg (fun query => query.target)
-    (checkVariationSpace_baseQuery checkedWithConflictingGapsResultEq))) baseKernel
+private theorem conflictingBaseTargetEq :
+    checkedWithConflictingGaps.baseQuery.target = checked.baseQuery.target :=
+  congrArg (fun query => query.target)
+    (checkVariationSpace_baseQuery checkedWithConflictingGapsResultEq)
 
-private def transportedKernel : SearchView lowered.query.target :=
-  Eq.mpr (congrArg SearchView lowered.targetEq)
-    baseKernel
+private def conflictingBase : AdmittedQuery checkedWithConflictingGaps.baseQuery.target :=
+  (base.withQuery checkedWithConflictingGaps.baseQuery conflictingBaseTargetEq).retarget
+    conflictingBaseTargetEq.symm
 
 private def transportedRun :=
-  searchWithPlanRequest lowered.query transportedKernel lowered.intent
+  (base.withQuery lowered.query lowered.targetEq).searchWithIntent lowered.intent
 
 private def batchResult :=
-  compileBatch checked baseKernel
+  compileBatch checked base
 
 private def conflictingBatchResult :=
-  compileBatch checkedWithConflictingGaps conflictingBaseKernel
+  compileBatch checkedWithConflictingGaps conflictingBase
 
 private def compileErrorOf
     (result : Except SpaceCompilationError α) : Option SpaceCompilationError :=

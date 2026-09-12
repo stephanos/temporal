@@ -50,6 +50,12 @@ helper takes explicit Query Target equality, completeness evidence, and canonica
 evidence, then applies the existing `SearchView.ofCheckedQuery_isSome` theorem. Each
 operation still calls `SearchView.ofCheckedQuery` directly.
 
+The admission pass (fn-84 .3) leaves those inventories in kind: the checked Property, Behavior, and
+Query values take their native witnesses from the `checked` operations' default `native_decide`
+instead of named `_isSome` theorems. It adds no native witness: the experimental variation and
+exploration modules admit the start Query inside their own fallible preparation and search their
+derived Queries through that admission's view rather than transporting the kernel.
+
 ## Structural cost audit
 
 | Added seam | Calls and traversals | 1×/10× pass condition |

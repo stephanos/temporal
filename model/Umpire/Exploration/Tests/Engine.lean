@@ -24,9 +24,9 @@ private theorem checkedSpaceTargetEq :
   exact congrArg (fun query => query.target)
     (checkVariationSpace_baseQuery checkedSpaceResultEq)
 
-def engineKernel : SearchView VariationsTests.checked.baseQuery.target :=
-  Eq.mpr (congrArg SearchView checkedSpaceTargetEq)
-    Umpire.Examples.Switch.incrementalKernel
+def engineBase : AdmittedQuery VariationsTests.checked.baseQuery.target :=
+  (Umpire.Examples.Switch.exactActionAdmitted.withQuery VariationsTests.checked.baseQuery
+    checkedSpaceTargetEq).retarget checkedSpaceTargetEq.symm
 
 def engineRequest
     (policy : ExplorationPolicy)
@@ -43,7 +43,7 @@ def engineRun
     (policy : ExplorationPolicy)
     (value : Nat)
     (pinned : List Plan := []) :=
-  explore (engineRequest policy value pinned) engineKernel
+  explore (engineRequest policy value pinned) engineBase
 
 /-!
 The public engine composes both retained policies while keeping their coordinate and completion
