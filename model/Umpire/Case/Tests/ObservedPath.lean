@@ -1,20 +1,22 @@
-import Umpire.Case.Observed
+import Umpire.Case.Projection.Coordinates
 
 /-!
-Derived Observation read paths.
+Derived Observation read paths, and the step kinds each coordinate walk refuses.
 
 One small schema stands in for a real operation payload: a response that wraps a repeated `event`
 message, and an event whose `body` oneof selects one of two members. The Observation the runtime
 declares carries the `Event` message, so a derived read path starts there and the steps that reach
 it from the response contribute nothing.
 
-The expected paths are written out here as segments rather than read back from the derivation.
+The expected paths are written out here as segments rather than read back from the derivation. The
+derived rules that read them are exercised through `Projection.lower` in `Tests/FieldLowering.lean`,
+where a checked Property supplies the coordinates; the inputs below are ones Property admission never
+lets reach the lowering.
 -/
 
 namespace Umpire.Case.ObservedPathTests
 
 open Umpire Operation Value
-open temporal.server.api.testpilot.v1
 
 private def eventNode := "Event"
 private def bodyNode := "Body"
@@ -45,14 +47,13 @@ private def toEvent : List Field.Step :=
 /-- One derived read path as its segments: each field name, with the oneof member a selector names
 or the empty string when the segment selects no oneof. -/
 private def segmentsOf (steps : List Field.Step) : Option (List (String × String)) :=
-  (Observed.readPath schema eventNode steps).toOption.map fun path =>
-    path.segments.toList.map fun segment =>
-      (segment.field, match segment.selector with
-        | some (.oneof selection) => selection.selected_field
-        | _ => "")
+  (Projection.readPath schema eventNode steps).toOption.map fun segments =>
+    segments.map fun segment => match segment with
+      | .field name => (name, "")
+      | .oneof group member => (group, member)
 
 private def reasonOf (steps : List Field.Step) : Option String :=
-  match Observed.readPath schema eventNode steps with
+  match Projection.readPath schema eventNode steps with
   | .error reason => some reason
   | .ok _ => none
 
@@ -95,5 +96,53 @@ private def reasonOf (steps : List Field.Step) : Option String :=
 
 -- A field the schema does not declare at those coordinates is a source-owned rejection.
 #guard reasonOf (toEvent ++ [.field eventNode 9]) == some "unknown containing schema or field Event"
+
+/-! ### Each refused step kind rejects by name, once per side
+
+The three walks share one step-kind table. The construct side accepts a keyed map lookup; the rebuild
+side accepts a keyed map lookup and the first repeated element; the read side accepts neither. Every
+other refused kind rejects by name on every side. -/
+
+private def rpcSchema : Operation.RpcSchema := ⟨"example.Call", schema, schema, [], false, false⟩
+
+private def constructReason (steps : List Field.Step) : Option String :=
+  match Coverage.targetPath schema (fun key => .ok key) steps with
+  | .error reason => some reason
+  | .ok _ => none
+
+private def rebuildReason (steps : List Field.Step) : Option String :=
+  let path : PropertyFieldPath := {
+    root := .outcome, reference := DefinitionId.of "test.outcome", schema := rpcSchema
+    side := .response, steps := steps, type := .text }
+  match Projection.rebuild ⟨8, 10000, 1024, 100⟩ path nofun (.text "") { path := "" } with
+  | .error reason => some reason
+  | .ok _ => none
+
+/-- Each side, one refused step, and the reason it names. -/
+private def refusals : List (Option String × String) := [
+  (constructReason [.field eventNode 2, .present],
+    "a presence read is not a request assignment target"),
+  (constructReason [.field responseNode 1, .index 0], "a repeated element is not a request assignment target"),
+  (constructReason [.field eventNode 4, .cardinality], "a cardinality is not a request assignment target"),
+  (reasonOf (toEvent ++ [.field eventNode 2, .present]), "a presence read is not an Observation read path"),
+  (reasonOf (toEvent ++ [.field eventNode 1, .index 0]), "a repeated element is not an Observation read path"),
+  (reasonOf (toEvent ++ [.field eventNode 4, .key (.text "k")]),
+    "a keyed map lookup is not an Observation read path"),
+  (reasonOf (toEvent ++ [.field eventNode 4, .cardinality]), "a cardinality is not an Observation read path"),
+  (rebuildReason [.field responseNode 2, .present],
+    "a presence read reports data no declared Observation supplies"),
+  (rebuildReason [.field responseNode 1, .index 1, .field eventNode 1],
+    "a repeated element after the first reports data no declared Observation supplies"),
+  (rebuildReason [.field responseNode 1, .cardinality],
+    "a cardinality reports data no declared Observation supplies")]
+
+#guard refusals.all fun (actual, expected) => actual == some expected
+
+-- The per-side exceptions: a keyed map lookup constructs, and the first repeated element rebuilds.
+#guard constructReason [.field eventNode 4, .key (.text "k")] == none
+#guard (Coverage.targetPath schema (fun key => .ok key)
+  [.field eventNode 4, .key (.text "k")]).toOption == some [("labels", some (.text "k"))]
+#guard rebuildReason [.field responseNode 1, .index 0, .field eventNode 2, .select "body",
+  .field bodyNode 1] == none
 
 end Umpire.Case.ObservedPathTests

@@ -3,7 +3,7 @@ import Temporal.Shared
 import Temporal.Testpilot.CaseSupport
 import Umpire.Case.Compiler
 import Umpire.Case.Correlated
-import Umpire.Case.Observed
+import Umpire.Case.Projection.Lowering
 import Umpire.Property.Elab
 import Umpire.Property.Evaluate
 import Umpire.Property.Correlated
@@ -43,13 +43,13 @@ declared window of semantic transitions. A run that has only been scheduled is u
 completion that arrives after the window closes is violated -- neither answer is manufactured from
 a synthetic deadline.
 
-The Contract the Case carries reads exactly the fields the authored requirement names: every field
-path in a monitor rule is `Umpire.Case.Observed.pathOf` applied to the same `PropertyFieldPath` the
-model Property compares, so editing a coordinate moves the runtime read with it. The rule structure
-around those paths -- its states, its capture, the presence checks over the derived value paths and
-the operation literal each rule matches -- is authored here. The declared Observation carries one
-history event, so a model coordinate that only walks the response wrapper around that event has no
-derived read path at all.
+The Contract the Case carries reads exactly the fields the authored requirement names: each monitor
+rule is `Umpire.Case.Projection.lower` applied to the checked requirement, so every field path it
+reads is derived from the same `PropertyFieldPath` the model Property compares and editing a
+coordinate moves the runtime read with it. What the Property does not state -- the operation literal
+each rule captures its scheduled event by, and the rule's per-operation identity -- is the
+realization declared here. The declared Observation carries one history event, so a model
+coordinate that only walks the response wrapper around that event has no derived read path at all.
 
 The bounded-response clause has no runtime counterpart in this Case: the Driver evaluates a correlated
 capability only from declared `CorrelatedEvidence` Observations, which no instruction of this Program
@@ -96,7 +96,6 @@ def valueLimits : Limits := ⟨16, 20000000, 262144, 512⟩
 
 def historyResponseRoot := "temporal.api.workflowservice.v1.GetWorkflowExecutionHistoryResponse"
 def historyNode := "temporal.api.history.v1.History"
-def historyEventNode := "temporal.api.history.v1.HistoryEvent"
 def scheduledAttributesNode := "temporal.api.history.v1.NexusOperationScheduledEventAttributes"
 def completedAttributesNode := "temporal.api.history.v1.NexusOperationCompletedEventAttributes"
 
@@ -683,6 +682,10 @@ def workflowEntrypointId := "workflow"
 def observationId := "history-event"
 def correlatedObservationId := "correlated-evidence"
 
+/-- The declared Observation each history event is projected into, and the one the derived rules
+read. -/
+def observation : ObservationDefinition := Program.observation observationId historyEventType
+
 /-- The protobuf oneof members of `HistoryEvent.attributes` this Case lifts. -/
 def scheduledAttributesField := "nexus_operation_scheduled_event_attributes"
 def completedAttributesField := "nexus_operation_completed_event_attributes"
@@ -769,7 +772,7 @@ private def program (startPath historyPath : String) : Program :=
       Program.role nexusEndpointRole .ROLE_KIND_ENDPOINT
         (resourceBindingId := nexusEndpointBindingId)]
     (operationCases.map (fun entry => Program.capabilitySlot entry.slotId)).toArray
-    #[Program.observation observationId (Types.singular (Types.messageType historyEventNode)),
+    #[observation,
       Program.observation correlatedObservationId (Types.singular
         (Types.messageType "temporal.server.api.testpilot.v1.CorrelatedEvidence"))]
     (#[Program.controller controllerId (
@@ -818,47 +821,18 @@ private def program (startPath historyPath : String) : Program :=
 
 /-! ### The derived Contract
 
-Every field the runtime reads is `Umpire.Case.Observed.pathOf` applied to the same
+Every field the runtime reads is derived by `Umpire.Case.Projection.lower` from the same
 `PropertyFieldPath` the model Property compares, so a Property edit that moves a field moves the
 Contract's read with it and a field the Property stops naming stops being read. -/
 
-/-- The runtime read path of one modeled operand, from the declared Observation's own message. -/
-def readPathOf (path : PropertyFieldPath) : Except String FieldPath :=
-  Umpire.Case.Observed.pathOf path historyEventNode
-
-/-- The Contract rule for one operation. Its first transition is the Link: an event belongs to this
-operation only when the operation identity it records is this operation's declared one, and the
-event it retains is the scheduled event the model captures. Its second transition is the authored
-product requirement: the completion references exactly that scheduled event. -/
-def operationRule (entry : OperationCase) (property : CheckedProperty) :
-    Except String ContractRuleDefinition := do
-  let operationPath ← readPathOf scheduledOperationPath
-  let eventIdPath ← readPathOf scheduledEventIdPath
-  let referencedPath ← readPathOf completedScheduledEventIdPath
-  let capture := "scheduled-" ++ entry.operation
-  pure (Contract.rule (property.id.value ++ "." ++ entry.operation)
-    .CONTRACT_RULE_KIND_SAFETY "pending"
-    #[Contract.state "pending" .CONTRACT_STATE_STATUS_NONTERMINAL,
-      Contract.state "scheduled" .CONTRACT_STATE_STATUS_NONTERMINAL,
-      Contract.state "satisfied" .CONTRACT_STATE_STATUS_SATISFIED]
-    #[Contract.transition ("capture-scheduled-" ++ entry.operation) "pending" "scheduled"
-        #[.RUN_EVENT_KIND_INSTRUCTION_COMPLETED]
-        (ContractExpr.all #[
-          ContractExpr.present (observed observationId),
-          ContractExpr.present (projected (observed observationId) operationPath),
-          ContractExpr.equals (projected (observed observationId) operationPath)
-            (ContractExpr.literal (Value.text entry.operation))])
-        .CONTRACT_SUPPORT_KIND_MATCHING_EVENT
-        #[Contract.captureAssignment capture observationId],
-      Contract.transition ("match-completion-" ++ entry.operation) "scheduled" "satisfied"
-        #[.RUN_EVENT_KIND_INSTRUCTION_COMPLETED]
-        (ContractExpr.all #[
-          ContractExpr.present (captured capture),
-          ContractExpr.present (projected (observed observationId) referencedPath),
-          ContractExpr.equals (projected (captured capture) eventIdPath)
-            (projected (observed observationId) referencedPath)])
-        .CONTRACT_SUPPORT_KIND_MATCHING_EVENT]
-    (captures := #[Contract.capture capture (Contract.messageCapture historyEventNode)]))
+/-- The realization of the Contract rule for one operation. Its first transition is the Link: an
+event belongs to this operation only when the operation identity it records is this operation's
+declared one, and the event it retains is the scheduled event the model captures. Its second
+transition is the authored product requirement: the completion references exactly that scheduled
+event. -/
+def OperationCase.realization (entry : OperationCase) : Umpire.Case.Projection.Realization := {
+  ruleSuffix := entry.operation
+  capture := .crossEvent ⟨scheduledOperationPath, .text entry.operation⟩ "scheduled" "completion" }
 
 /-- This Case retains one history event per operation, so it declares its own capture-byte ceiling
 rather than the shared single-capture one; every other bound is the shared Contract ceiling. -/
@@ -901,22 +875,19 @@ private def crossedCompletionIsInconclusive (requirement : CheckedProperty) :
       "another scheduled event leaves the rule pending rather than violated; the model Property " ++
       "still distinguishes the two") }
 
-private def compilerError (definitionId construct : String) : Umpire.Case.Compiler.Error :=
-  { sourceDefinitionId := definitionId, source, construct }
-
 /-- The checked two-operation declaration lowered to the closed Case format. -/
 def typedNexusCase : Except Umpire.Case.Compiler.Error
     temporal.server.api.testpilot.v1.Case := do
-  let model ← checked.mapError fun _ => compilerError fieldPropertyId.value "checked-typed-nexus"
+  let model ← checked.mapError fun _ =>
+    { sourceDefinitionId := fieldPropertyId.value, source, construct := "checked-typed-nexus" }
   let history ← historyBinding.mapError fun _ =>
-    compilerError historyMethod.fullName "checked-history-binding"
+    { sourceDefinitionId := historyMethod.fullName, source, construct := "checked-history-binding" }
   let start ← startBinding.mapError fun _ =>
-    compilerError startMethod.fullName "checked-start-binding"
+    { sourceDefinitionId := startMethod.fullName, source, construct := "checked-start-binding" }
   let requirement := model.fieldProperty.property
-  let requirementBinding := binding requirement.id.value
-    requirement.behaviorFingerprint.render .«property»
-  let rules ← operationCases.mapM fun entry =>
-    (operationRule entry requirement).mapError fun reason => compilerError clauseId.value reason
+  let rules ← operationCases.mapM fun entry => do
+    let derived ← Umpire.Case.Projection.lower model.fieldProperty observation entry.realization
+    pure (derived.contractLowering, derived.coverage)
   let lowered ← Umpire.Case.Correlated.lower model.plan model.compiled correlatedObservationId
     model.coverage
   Umpire.Case.Compiler.compile {
@@ -926,15 +897,16 @@ def typedNexusCase : Except Umpire.Case.Compiler.Error
     producerVersion := "1"
     definitions := [
       binding model.target.id.value model.target.behaviorFingerprint.render .target,
-      requirementBinding,
+      binding requirement.id.value requirement.behaviorFingerprint.render .«property»,
       binding model.link.id.value model.link.behaviorFingerprint.render .«property»]
     sources := [source]
     knownGaps := [completionIdentityIsUnrecorded model.link,
       crossedCompletionIsInconclusive requirement]
     program := program (methodPath start.schema) (methodPath history.schema)
     contractId := "temporal.case.typed-nexus.contract"
-    properties := rules.map (.monitor requirementBinding) ++ [lowered.contractLowering]
+    properties := rules.filterMap (·.1) ++ [lowered.contractLowering]
     contractLimits := typedNexusContractLimits
+    coverage := { inputs := rules.flatMap (·.2.inputs) }
   }
 
 end Temporal.Feature.Nexus.Success.TypedNexus

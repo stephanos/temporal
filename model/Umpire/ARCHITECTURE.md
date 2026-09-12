@@ -38,7 +38,7 @@ Focused public imports are available by responsibility:
 | `Umpire.Case.Compiler` | Generated Case assembly and source-bound producer diagnostics. |
 | `Umpire.Case.Coverage` | The whole-Case field and Rule coverage a Case requests. |
 | `Umpire.Case.Correlated` | Lowering checked Correlated rules into the portable Contract capability. |
-| `Umpire.Case.Projection` | Reading declared Run values into model Steps and fields. |
+| `Umpire.Case.Projection` | Reading declared Run values into model Steps and fields, and `Projection.lower`: the monitor rule derived from a checked field Property. |
 | `Umpire.Case.Producer` | One checked Model, one selected witness and one realization into one Case. |
 | `Umpire.Command` | The Model command surface: `model`, `property`, `scenario`, `limits`, `query`. |
 | `Umpire.Command.Authoring` | What a declared Model is before any command: construction and admission. |
@@ -233,7 +233,11 @@ operational and cleanup failures.
 ## Case production
 
 Each Lean Producer owns its checked semantic lowering into generated protocol values through
-`Testpilot.Authoring`. Umpire-backed Producers pass those values to `Umpire.Case.Compiler`, which
+`Testpilot.Authoring`. The Contract rules come from the checked Properties rather than from the
+Producer: `Umpire.Case.Correlated.lower` lowers a correlated Property to the portable capability and
+`Umpire.Case.Projection.lower` derives the monitor rule of a field Property, and each returns its
+correspondence certificate beside the lowering. Umpire-backed Producers pass those values to
+`Umpire.Case.Compiler`, which admits both lowerings side by side and
 validates source-bound property rows, preserves typed unsupported-lowering errors, converts Known
 Gaps in order, attaches exact opaque provenance, and performs final generated Case assembly. Its
 input contains generated protocol values and introduces no parallel wire representation. A
@@ -252,14 +256,27 @@ Program never constructs from an exact value, a different value than the model d
 read (which describes a payload rather than constructing one), or result coordinates, which are
 covered by declared Observations and never by a request assignment.
 
-`Umpire.Case.Observed` owns the evidence side. `Observed.pathOf` derives the runtime read path a
-modeled operand's coordinates describe, rooted at the declared Observation's own message, mirroring
-`Coverage.targetPath` in the other direction. Because every field path in a derived Contract rule is
-`Observed.pathOf` applied to the same `PropertyFieldPath` the Property compares, moving a coordinate
-in the Property moves the runtime read with it, and a field the Property stops naming stops being
-read. Reads it cannot derive — a wrong oneof group, an unselected member, a presence read, a
-repeated element, a keyed map lookup, a cardinality — reject by name rather than resolving to an
-approximate path.
+`Umpire.Case.Projection.lower` owns the evidence side. It takes the checked field Property, the
+declared Observation, and a realization carrying only what the Property does not state: the request
+literals the Program assigns, the rule's identity suffix, and a capture policy. From the Property's
+closed predicate vocabulary it derives the whole monitor rule: the read path of every observed
+operand, rooted at the declared Observation's own message; the comparison operator; the presence
+checks; the literal a request operand is realized as; and whether a prior-state operand is captured
+from an earlier event. It also returns the request coverage the same comparison implies, so
+`Coverage.check` confirms the Program constructs every realized literal. Its `DerivedRule` is the
+correspondence certificate: every coordinate the rule reads is one the Property compares or the
+selector the realization names, and every literal is one the realization assigns. Moving a
+coordinate in the Property therefore moves the runtime read with it, and a field the Property stops
+naming stops being read. A Property with no field comparison lowers to no rule; a shape the policy
+does not realize, a literal the realization does not assign, and a read it cannot derive (a wrong
+oneof group, an unselected member, a presence read, a repeated element, a keyed map lookup, a
+cardinality) reject by name rather than resolving to an approximate rule.
+
+Both sides, and the rebuild of covered evidence in `Projection.Coverage`, walk modeled coordinates
+through one private walker in `Umpire.Case.Projection.Coordinates`. Its one step-kind table carries
+the per-side exceptions: the request side accepts a keyed map entry, the rebuild side accepts a
+keyed map entry and the first repeated element, and the read side accepts neither once it reaches
+the Observation's message.
 
 Operation identity is versioned separately from the model values it carries.
 `Umpire.Operation.Canonical.rpcSchema` names the selected operation by method full name, both

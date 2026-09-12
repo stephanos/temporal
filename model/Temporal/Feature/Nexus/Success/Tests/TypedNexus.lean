@@ -245,38 +245,59 @@ private def completionSatisfies (entry completing : OperationCase)
 
 /-! ### The derived Contract
 
-Every field the runtime reads is derived from the same `PropertyFieldPath` the model compares. The
+Each operation's rule is `Umpire.Case.Projection.lower` applied to the checked requirement, so every
+field the runtime reads is derived from the same `PropertyFieldPath` the model compares. The
 expected paths here are written out rather than read back from the derivation. -/
 
 /-- One derived read path as its segments: each field name, with the oneof member a selector names
 or the empty string when the segment selects no oneof. -/
-private def segmentsOf (path : Except String FieldPath) : Option (List (String × String)) :=
-  path.toOption.map fun value => value.segments.toList.map fun segment =>
+private def segmentsOf (path : FieldPath) : List (String × String) :=
+  path.segments.toList.map fun segment =>
     (segment.field, match segment.selector with
       | some (.oneof selection) => selection.selected_field
       | _ => "")
 
-#guard segmentsOf (readPathOf scheduledOperationPath) ==
-  some [(attributesGroup, "nexus_operation_scheduled_event_attributes"), ("operation", "")]
-#guard segmentsOf (readPathOf completedScheduledEventIdPath) ==
-  some [(attributesGroup, "nexus_operation_completed_event_attributes"),
-    ("scheduled_event_id", "")]
+/-- The derived rule shape of one operation. -/
+private def derivedShape (entry : OperationCase) : Option Umpire.Case.Projection.Shape := do
+  let model ← checked.toOption
+  let result ← (Umpire.Case.Projection.lower model.fieldProperty observation
+    entry.realization).toOption
+  pure (← result.rule).shape
 
--- The declared Observation carries one history event, so the steps that reach that event from the
--- whole response payload contribute nothing to the read path.
-#guard segmentsOf (readPathOf scheduledEventIdPath) == some [("event_id", "")]
+-- Each rule captures the scheduled event that records its own operation identity, reading the
+-- scheduled event's own id there, and matches the completion's referenced scheduled event against
+-- it. The declared Observation carries one history event, so the steps that reach that event from
+-- the whole response payload contribute nothing to any read path.
+#guard operationCases.all fun entry => match derivedShape entry with
+  | some (.capture false captured observed selector literal "scheduled" "completion") =>
+      captured.path == scheduledEventIdPath && segmentsOf captured.segments == [("event_id", "")] &&
+        observed.path == completedScheduledEventIdPath &&
+        segmentsOf observed.segments ==
+          [(attributesGroup, "nexus_operation_completed_event_attributes"),
+            ("scheduled_event_id", "")] &&
+        selector.path == scheduledOperationPath &&
+        segmentsOf selector.segments ==
+          [(attributesGroup, "nexus_operation_scheduled_event_attributes"), ("operation", "")] &&
+        literal.scalar == .text entry.operation
+  | _ => false
+
+private def readSegments (steps : List Field.Step) : Option (List (String × String)) :=
+  (Umpire.Case.Projection.readPath historySchema.response
+    Temporal.Testpilot.CaseSupport.historyEventNode steps).toOption.map fun segments =>
+    segments.map fun segment => match segment with
+      | .field name => (name, "")
+      | .oneof group member => (group, member)
 
 -- Editing the Property's coordinates moves the Contract's read with them: nothing about the
 -- completion's request field is written down beside the rule.
-#guard segmentsOf (readPathOf { completedScheduledEventIdPath with
-    steps := completedSteps 3, type := .text }) ==
+#guard readSegments (completedSteps 3) ==
   some [(attributesGroup, "nexus_operation_completed_event_attributes"), ("request_id", "")]
 
 -- The presence facts that describe the response wrapper rather than the observed event have no
 -- read path, which is why the derived rule carries exactly the oneof presence checks the model
 -- declares inside the event.
-#guard (readPathOf scheduledHistoryPresencePath).isOk == false
-#guard (readPathOf completedHistoryPresencePath).isOk == false
+#guard (readSegments scheduledHistoryPresencePath.steps).isNone
+#guard (readSegments completedHistoryPresencePath.steps).isNone
 
 /-! ### The Case -/
 

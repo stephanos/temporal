@@ -336,38 +336,56 @@ private def presence (raw : Raw) (number : Nat) : Option Bool := do
 
 /-! ### The derived Contract
 
-The field the runtime reads is derived from the same `PropertyFieldPath` the model compares. The
-expected path here is written out rather than read back from the derivation. -/
+The rule the runtime runs is `Umpire.Case.Projection.lower` applied to the checked Property, so the
+field it reads is derived from the same `PropertyFieldPath` the model compares. The expected path
+here is written out rather than read back from the derivation. -/
 
 /-- One derived read path as its segments: each field name, with the oneof member a selector names
 or the empty string when the segment selects no oneof. -/
-private def segmentsOf (path : Except String FieldPath) : Option (List (String × String)) :=
-  path.toOption.map fun value => value.segments.toList.map fun segment =>
+private def segmentsOf (path : FieldPath) : List (String × String) :=
+  path.segments.toList.map fun segment =>
     (segment.field, match segment.selector with
       | some (.oneof selection) => selection.selected_field
       | _ => "")
 
-#guard segmentsOf (readPathOf startedTypePath) ==
-  some [("attributes", "workflow_execution_started_event_attributes"), ("workflow_type", ""),
-    ("name", "")]
+/-- The Property lowered through this Case's realization. -/
+private def lowered : Option (Option Umpire.Case.Projection.Shape × Umpire.Case.Coverage.Request) := do
+  let model ← checked.toOption
+  let result ← (Umpire.Case.Projection.lower model.property observation realization).toOption
+  pure (result.rule.map (·.shape), result.coverage)
+
+-- The derived rule is the safety rule over the recorded workflow type the Property compares,
+-- matched against the workflow type the Program submits.
+#guard match lowered with
+  | some (some (.safety false read literal), _) =>
+      read.path == startedTypePath && literal.scalar == .text submittedWorkflowType &&
+        segmentsOf read.segments ==
+          [("attributes", "workflow_execution_started_event_attributes"), ("workflow_type", ""),
+            ("name", "")]
+  | _ => false
+
+private def readSegments (steps : List Field.Step) : Option (List (String × String)) :=
+  (Umpire.Case.Projection.readPath historySchema.response
+    Temporal.Testpilot.CaseSupport.historyEventNode steps).toOption.map fun segments =>
+    segments.map fun segment => match segment with
+      | .field name => (name, "")
+      | .oneof group member => (group, member)
 
 -- Editing the Property's coordinates moves the Contract's read with them: nothing about the
 -- recorded workflow type is written down beside the rule. Dropping the nested read leaves the
 -- derived path one segment shorter, and a sibling attribute derives its own field name.
-#guard segmentsOf (readPathOf { startedTypePath with
-    steps := startedTypePresencePath.steps.dropLast }) ==
+#guard readSegments startedTypePresencePath.steps.dropLast ==
   some [("attributes", "workflow_execution_started_event_attributes"), ("workflow_type", "")]
-#guard segmentsOf (readPathOf { startedTypePath with
-    steps := attributesPresencePath.steps.dropLast ++
-      [.select "attributes", .field startedAttributesNode 2] }) ==
+#guard readSegments (attributesPresencePath.steps.dropLast ++
+    [.select "attributes", .field startedAttributesNode 2]) ==
   some [("attributes", "workflow_execution_started_event_attributes"),
     ("parent_workflow_namespace", "")]
 
 -- The presence facts that describe the response wrapper rather than the observed event have no
 -- read path, which is why the derived rule carries exactly the presence checks it declares.
-#guard (readPathOf historyPresencePath).isOk == false
-#guard (readPathOf attributesPresencePath).isOk == false
-#guard (readPathOf startedTypePresencePath).isOk == false
+#guard (readSegments historyPresencePath.steps).isNone
+#guard (readSegments attributesPresencePath.steps).isNone
+#guard (readSegments startedTypePresencePath.steps).isNone
 
 /-! ### The Case, and the coverage admitted before any Driver I/O -/
 
@@ -411,7 +429,11 @@ private def inputMapping : Umpire.Case.Coverage.InputMapping :=
   { path := submittedTypePath, value := .text submittedWorkflowType
     entrypointId := controllerId, instructionId := startInstructionId }
 
--- The Program constructs the covered nested input field with exactly the modeled value.
+private def coverage : Umpire.Case.Coverage.Request := { inputs := [inputMapping] }
+
+-- The coverage the Property implies is exactly the submitted field the realization assigns, and
+-- the Program constructs that nested input field with exactly the modeled value.
+#guard lowered.map (·.2) == some coverage
 #guard coverageResult coverage == none
 
 -- Mutating the modeled value the clause reads breaks the coverage, not the Program.

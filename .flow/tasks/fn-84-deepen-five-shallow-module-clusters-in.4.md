@@ -68,6 +68,7 @@ Decisions taken autonomously:
 Review follow-up (P3, not landed): the four-constructor closure-mismatch matcher repeats in the raw and accepted closure tables and could share a private helper.
 
 stage: impl-review - ran [2026-09-12..2026-09-12] (claude backend, SHIP first round)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 6b3ff2a92a2c290502cf6b8abba14f4b362fd41d
 - Tests: cd model && mise exec -- lake build Umpire.Evidence.Tests Umpire.Evidence.Tests.Mutations UmpireTests Testpilot TestpilotTests (green; mutation suite unchanged), differential diagnostic corpus: 24000 raw bundles x 2 plans and 12000 accepted-envelope mutations, repr of every diagnostic byte-identical before/after (scratch Corpus.lean; sensitivity confirmed by two deliberate precedence mutations), make lint-model (163, baseline 163, all Temporal/API/Proto.lean; import graph, Shared, Umpire.Lint clean), make umpire-check-regression (exit 0; 576 Lean jobs; 9 passing live identities), go clean -cache && make lint-code GOLANGCI_LINT_FIX=false (161 issues, exit 2, inherited baseline 161; no Go files touched)

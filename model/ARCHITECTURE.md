@@ -106,8 +106,9 @@ Typed operation authoring adds parameterized Actions over generated RPC and SDK-
 declarations, exact field operands over the declared schema, and separately declared finite and
 runtime claims. The generator and `Temporal.API` own structural declarations and supported exact
 value representations; `Umpire` owns admission, canonical meaning and Property semantics;
-`Temporal.Feature` owns the product requirements. `Umpire.Case.Coverage` and `Umpire.Case.Observed`
-own the two directions of the checked lowering. The
+`Temporal.Feature` owns the product requirements. `Umpire.Case.Coverage` owns the request direction
+of the checked lowering, and `Umpire.Case.Projection.lower` derives the evidence direction, the
+monitor rule itself, from the checked field Property. The
 [authoring walkthrough](README.md#typed-operation-authoring) records the supported and unsupported
 value forms, and the [Umpire architecture](Umpire/ARCHITECTURE.md#typed-field-lowering) records the
 lowering and identity ownership.

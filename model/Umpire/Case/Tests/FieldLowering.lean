@@ -1,4 +1,5 @@
 import Umpire.Case.Correlated
+import Umpire.Case.Projection.Lowering
 import Umpire.Property.Elab
 import Umpire.Model.Table
 import Umpire.Shared.Test
@@ -35,7 +36,8 @@ private def schema : Schema := ⟨"M", [{
     ⟨1, "count", .integer .int32, .singular, .implicit (.integer .int32 0), none⟩,
     ⟨2, "tags", .text, .map .text, .implicit (.text ""), none⟩,
     ⟨3, "counts", .integer .int32, .repeated, .implicit (.integer .int32 0), none⟩,
-    ⟨4, "label", .text, .singular, .optional, none⟩]) }]⟩
+    ⟨4, "label", .text, .singular, .optional, none⟩,
+    ⟨5, "total", .integer .int32, .singular, .implicit (.integer .int32 0), none⟩]) }]⟩
 private def owner : RpcOwner where
   Witness _ _ := Unit
   schema _ := ⟨"example.Call", schema, schema, [], false, false⟩
@@ -584,6 +586,178 @@ private def coverageRejects (mappings : List Case.Projection.FieldMapping)
     value := .boolean true }] }))
   "a presence read is not a request assignment target"
 
+/-! ### The monitor arm: a rule derived from the checked field Property
+
+A same-step field Property compares the request `count` the Program constructs with the `count` an
+Observation of message `M` carries. `Projection.lower` derives the monitor rule, its read path and
+the request coverage from that Property; the expected read segments, literals and rule identities
+are written out here rather than read back from the derivation. -/
+
+private def alwaysTrue : PropertyPredicate :=
+  PropertyPredicate.compareFields .equal (.literal (.boolean true) source)
+    (.literal (.boolean true) source) source
+
+private def compares (left right : PropertyFieldPath) (operator := PropertyFieldOperator.equal) :
+    PropertyPredicate :=
+  PropertyPredicate.compareFields operator (.field left source) (.field right source) source
+
+private def presenceHolds (path : PropertyFieldPath) : PropertyPredicate :=
+  PropertyPredicate.compareFields .equal (.field path source) (.literal (.boolean true) source) source
+
+private def priorCountPath : PropertyFieldPath :=
+  { acceptedPath with root := .priorState, reference := id "test.state" }
+
+/-- One same-step field Property with a single guarded expectation. -/
+private def fieldProperty (target : TestTarget) (expectation : PropertyPredicate)
+    (guard : PropertyPredicate := alwaysTrue) : Except PropertyError CheckedFieldProperty :=
+  CheckedFieldProperty.check
+    { context target with
+      fieldBindings := [accepted, id "test.trigger", id "test.state"].map
+        (PropertyFieldBinding.ofWitness owner (Request := Unit) (Response := Unit) ()) }
+    { id := id "test.property.monitor"
+      source
+      version := 2
+      requires := [id "test.capability"]
+      clauses := [.branches {
+        id := id "test.property.monitor.group"
+        source
+        guard
+        cases := [{
+          id := id "test.property.monitor.case"
+          source
+          guard := alwaysTrue
+          clauses := [⟨id "test.property.monitor.clause", source, expectation⟩] }] }] }
+
+private def monitorObservation : ObservationDefinition :=
+  Testpilot.Authoring.Program.observation "event"
+    (Testpilot.Authoring.Types.singular (Testpilot.Authoring.Types.messageType "M"))
+
+private def safety (literals : List Coverage.InputMapping := [inputCoverage]) :
+    Projection.Realization :=
+  { literals, ruleSuffix := "count" }
+
+private def selector : Projection.Selector := ⟨acceptedPath, .integer .int32 1⟩
+
+private def capturing : Projection.Realization :=
+  { ruleSuffix := "count", capture := .crossEvent selector "requested" "reply" }
+
+/-- Lower one Property; a rejection is its construct name. -/
+private def lowered (expectation : PropertyPredicate) (realization : Projection.Realization := safety)
+    (guard : PropertyPredicate := alwaysTrue) (observation := monitorObservation) :
+    Except String (Option Projection.Shape × Coverage.Request) := do
+  let target ← targetResult.mapError fun _ => "target"
+  let property ← (fieldProperty target expectation guard).mapError fun _ => "property"
+  let result ← (Projection.lower property observation realization).mapError (·.construct)
+  pure (result.rule.map (·.shape), result.coverage)
+
+private def segments (path : FieldPath) : List String :=
+  path.segments.toList.map (·.field)
+
+/-- The coordinates a derived safety rule reads, with their segments, and the literal it matches. -/
+private def safetyReads (expectation : PropertyPredicate) :
+    Option (Bool × PropertyFieldPath × List String × Operation.Scalar) :=
+  match lowered expectation with
+  | .ok (some (.safety negated read literal), _) =>
+      some (negated, read.path, segments read.segments, literal.scalar)
+  | _ => none
+
+-- The rule reads exactly the observed coordinate the Property compares, matched against the literal
+-- the Program assigns, and the coverage names exactly that request literal.
+#guard safetyReads (compares requestPath acceptedPath) ==
+  some (false, acceptedPath, ["count"], .integer .int32 7)
+#guard (lowered (compares requestPath acceptedPath)).toOption.map (·.2) ==
+  some { inputs := [inputCoverage] }
+#guard safetyReads (compares acceptedPath requestPath .notEqual) ==
+  some (true, acceptedPath, ["count"], .integer .int32 7)
+
+-- A Property whose compared coordinate moves moves the rule's read with it.
+#guard safetyReads (compares requestPath { acceptedPath with steps := [.field "M" 5] }) ==
+  some (false, { acceptedPath with steps := [.field "M" 5] }, ["total"], .integer .int32 7)
+
+-- A presence atom establishes a read rather than being read; dropping the comparison leaves no
+-- coordinate the rule reads, so no rule is derived and no request literal is covered.
+#guard safetyReads (.all [presenceHolds presencePath, compares requestPath acceptedPath]) ==
+  some (false, acceptedPath, ["count"], .integer .int32 7)
+#guard ((lowered (.all [presenceHolds presencePath])).toOption.map fun (rule, coverage) =>
+    (rule.isNone, coverage)) == some (true, {})
+
+-- A Property with no field atom lowers to no rule, and that is not an error.
+#guard ((lowered (.atom { field := .outcome, reference := id "test.outcome" })).toOption.map
+    fun (rule, coverage) => (rule.isNone, coverage)) == some (true, {})
+
+-- The capture shape captures the earlier event its selector names and matches the prior-state read
+-- against the later event's.
+#guard match lowered (compares priorCountPath acceptedPath) capturing with
+  | .ok (some (.capture false captured observed chosen literal "requested" "reply"), coverage) =>
+      captured.path == priorCountPath && observed.path == acceptedPath &&
+        chosen.path == acceptedPath && segments captured.segments == ["count"] &&
+        literal.scalar == .integer .int32 1 && coverage == {}
+  | _ => false
+
+private def lowerRejects (expectation : PropertyPredicate) (construct : String)
+    (realization : Projection.Realization := safety) (guard : PropertyPredicate := alwaysTrue)
+    (observation := monitorObservation) : Bool :=
+  match lowered expectation realization guard observation with
+  | .error actual => actual == construct
+  | .ok _ => false
+
+-- A literal the realization does not assign rejects by name, whether the Property compares a
+-- request field no realized literal constructs or a literal of its own.
+#guard lowerRejects (compares requestPath acceptedPath) "rule.literal-unassigned" (safety [])
+#guard lowerRejects (PropertyPredicate.compareFields .equal (.field acceptedPath source)
+  (.literal (.integer .int32 7) source) source) "rule.literal-unassigned"
+
+-- A rule the Property does not imply rejects by name: the capture policy over a request operand, the
+-- safety policy over a prior-state operand, and a field compared in an applicability guard.
+#guard lowerRejects (compares requestPath acceptedPath) "rule.unimplied"
+  { capturing with literals := [inputCoverage] }
+#guard lowerRejects (compares priorCountPath acceptedPath) "rule.unimplied"
+#guard lowerRejects (compares requestPath acceptedPath) "rule.unimplied"
+  (guard := compares priorCountPath requestPath)
+
+-- The remaining shapes no single monitor rule carries reject by name too.
+#guard lowerRejects (compares requestPath acceptedPath .less) "rule.operator"
+#guard lowerRejects (.all [compares requestPath acceptedPath, compares requestPath acceptedPath])
+  "rule.comparisons"
+#guard lowerRejects (.any [compares requestPath acceptedPath, alwaysTrue]) "rule.clause-shape"
+#guard lowerRejects (compares requestPath acceptedPath) "rule.observation-type"
+  (observation := Testpilot.Authoring.Program.observation "event"
+    (Testpilot.Authoring.Types.singular (Testpilot.Authoring.Types.scalar .SCALAR_KIND_TEXT)))
+
+-- A compared coordinate with no read path rejects with the reason the read walk names.
+#guard lowerRejects (compares requestPath { acceptedPath with steps := [.field "M" 3, .index 1] })
+  "a repeated element is not an Observation read path"
+
+-- The Compiler admits the derived rule and checks the coverage it implies against the Program.
+private def monitorCase (assigned : Int := 7) : Except String CaseArtifact := do
+  let target ← targetResult.mapError fun _ => "target"
+  let property ← (fieldProperty target (compares requestPath acceptedPath)).mapError
+    fun _ => "property"
+  let result ← (Projection.lower property monitorObservation safety).mapError (·.construct)
+  (Compiler.compile {
+    version := { major := 1 }
+    caseId := "fields.monitor"
+    producerId := "umpire.case.fields"
+    definitions := [⟨property.property.id.value, property.property.behaviorFingerprint.render,
+      .property⟩]
+    sources := [source]
+    knownGaps := []
+    program := program assigned
+    contractId := "fields.monitor"
+    properties := result.contractLowering.toList
+    contractLimits := Testpilot.Authoring.Contract.limits 16 32 64 16 100000 1000000000 32 65536
+    coverage := result.coverage
+  }).mapError (·.construct)
+
+#guard match monitorCase with
+  | .ok artifact => match artifact.contract.map (·.rules.toList) with
+    | some [rule] => rule.rule_id == "test.property.monitor.count" &&
+        rule.transitions.toList.map (·.transition_id) == ["match-count", "reject-count"]
+    | _ => false
+  | .error _ => false
+#guard rejects (monitorCase (assigned := 8))
+  "request assignment constructs a different value than the modeled field"
+
 /-! ### Trust -/
 
 /-- info: 'Umpire.Case.Correlated.Lowered.window_property' depends on axioms: [propext, Classical.choice, Quot.sound] -/
@@ -595,5 +769,8 @@ private def coverageRejects (mappings : List Case.Projection.FieldMapping)
 /-- info: 'Umpire.Case.Projection.Correlated.Monitor.admitMany_append' depends on axioms: [propext, Classical.choice, Quot.sound] -/
 #guard_msgs in
 #print axioms Umpire.Case.Projection.Correlated.Monitor.admitMany_append
+/-- info: 'Umpire.Case.Projection.lower' depends on axioms: [propext, Quot.sound] -/
+#guard_msgs in
+#print axioms Umpire.Case.Projection.lower
 
 end Umpire.Case.FieldLoweringTests
