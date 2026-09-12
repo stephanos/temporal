@@ -81,6 +81,7 @@ Tests:
 Touches extensions: `model/Umpire.lean` (facade import), `model/Temporal/Feature/Nexus/Success/Tests/{TypedUnary,TypedNexus}.lean` (under Success/**), `model/Umpire/Case/Tests/ObservedPath.lean`.
 
 Follow-ups (not done): none required. A generic Producer that authors field Properties would call `lower` the same way.
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: ddaaf809a984464738ead753af39b15585e798f7, 19d1c1ba626a82ff3771d700a435c66fb1916a2d
 - Tests: cd model && mise exec -- lake build (all default targets, 591 jobs, incl. UmpireTests, Umpire.Case.Tests.FieldLowering, Umpire.Case.Tests.ObservedPath, Temporal.Feature.Nexus.Success.Tests.TypedUnary/TypedNexus, umpire-case, umpire-correlated-fixtures), make umpire-check-case-runtime-conformance, make umpire-check-regression (exit 0, nine passing live identities), make lint-model (163, all in generated Temporal/API/Proto.lean), go clean -cache && make lint-code GOLANGCI_LINT_FIX=false (161, inherited; none in touched files), fixture sha256 of common/testing/testpilot/testdata/case-runtime-conformance and tests/testcore/testpilot/testdata identical to baseline
