@@ -246,6 +246,11 @@ func TestNewFreezesSymbolicProfile(t *testing.T) {
 
 func preparedSymbolicRuntimeFixture(t *testing.T, modifiers ...any) testpilot.PreparedProgram {
 	t.Helper()
+	return capturePreparedProgram(t, preparedSymbolicRuntimeCase(t, modifiers...))
+}
+
+func preparedSymbolicRuntimeCase(t *testing.T, modifiers ...any) *testpilot.PreparedCase {
+	t.Helper()
 	var programModifiers []func(*testpilotspb.Program)
 	var profileModifiers []func(*testpilot.ProfileSpec)
 	for _, modifier := range modifiers {
@@ -268,7 +273,7 @@ func preparedSymbolicRuntimeFixture(t *testing.T, modifiers ...any) testpilot.Pr
 			modify(profile)
 		}
 	}
-	return preparedRuntimeFixtureWithProfile(t, testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS, configureProfile, configureProgram)
+	return preparedRuntimeCase(t, testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS, configureProfile, configureProgram)
 }
 
 func symbolicRuntimeDriver(t *testing.T, limits *testpilotspb.ProgramLimits) *Driver {

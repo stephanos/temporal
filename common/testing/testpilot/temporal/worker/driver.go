@@ -213,7 +213,7 @@ func (h *Driver) OpenSession(ctx context.Context, runID string, program testpilo
 	h.sessions[runID] = session
 	h.mu.unlock()
 
-	lease, err := h.registry.acquire(ctx, runID, definition.registrations, definition.hasFault, func(queue string, failure error) {
+	outage, err := h.registry.acquireOutage(ctx, runID, definition.registrations, definition.outages, func(queue string, failure error) {
 		session.workerFailed(queue, failure)
 	})
 	if err != nil {
@@ -222,7 +222,7 @@ func (h *Driver) OpenSession(ctx context.Context, runID string, program testpilo
 		cancel()
 		return nil, errors.Join(err, cleanupErr)
 	}
-	session.workers = lease
+	session.outage = outage
 	return session, nil
 }
 
@@ -258,7 +258,7 @@ func (h *Driver) prepareDefinitionResources(snapshot *testpilotspb.Program, plan
 		return programDefinition{}, ErrInvalid
 	}
 	roles := preparedRolesByID(preparedRoles)
-	definition := programDefinition{snapshot: snapshot, entries: make(map[string]entryDefinition), endpoints: make(map[string]string), queueWorkflows: make(map[string]map[string]struct{}), faultQueues: make(map[string]string)}
+	definition := programDefinition{snapshot: snapshot, entries: make(map[string]entryDefinition), endpoints: make(map[string]string), queueWorkflows: make(map[string]map[string]struct{})}
 	if err := h.validateSymbolicRoles(roles, requireWorker); err != nil {
 		return programDefinition{}, err
 	}
@@ -281,14 +281,15 @@ func (h *Driver) prepareDefinitionResources(snapshot *testpilotspb.Program, plan
 	if err := definition.addRegistrations(queueNexus); err != nil {
 		return programDefinition{}, err
 	}
-	// A fault can only reach a queue this Program registers a worker on. Admitting one that names
-	// any other task-queue role would defer the refusal to dispatch, where a rejected instruction
-	// aborts the Run instead of failing on its own.
-	for _, queue := range definition.faultQueues {
-		if !slices.ContainsFunc(definition.registrations, func(registration queueRegistration) bool { return registration.queue == queue }) {
-			return programDefinition{}, ErrInvalid
-		}
+	registered := make(map[string]bool, len(definition.registrations))
+	for _, registration := range definition.registrations {
+		registered[registration.queue] = true
 	}
+	outages, err := PlanOutages(plans, roles, registered)
+	if err != nil {
+		return programDefinition{}, err
+	}
+	definition.outages = outages
 	if requireWorker && (len(definition.entries) == 0 || len(definition.registrations) == 0) {
 		return programDefinition{}, ErrInvalid
 	}
@@ -377,14 +378,6 @@ func (h *Driver) addInstructionBindings(definition *programDefinition, plan test
 		}
 		if response := source.GetRespondNexus(); response != nil && response.GetKind() == testpilotspb.NEXUS_RESPONSE_KIND_ASYNCHRONOUS {
 			definition.hasAsync = true
-		}
-		if fault := source.GetInjectFault(); fault != nil {
-			role, ok := roles[fault.GetRoleId()]
-			if !ok || role.Kind != testpilotspb.ROLE_KIND_TASK_QUEUE || role.Resource == "" {
-				return ErrInvalid
-			}
-			definition.faultQueues[fault.GetRoleId()] = role.Resource
-			definition.hasFault = true
 		}
 	}
 	return nil

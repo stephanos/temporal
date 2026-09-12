@@ -3,7 +3,6 @@ package worker
 import (
 	"context"
 	"errors"
-	"fmt"
 	"testing"
 	"time"
 
@@ -11,156 +10,6 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 )
-
-func faultRequirements() []queueRegistration {
-	return []queueRegistration{{queue: "queue", workflows: []string{"workflow"}}}
-}
-
-// A dedicated group is the whole isolation mechanism: two Runs on the same task queue share one
-// pooled worker, and the Run that injects faults must not be sharing the worker it stops.
-func TestFaultRunHoldsItsOwnWorkerGroup(t *testing.T) {
-	built := 0
-	registry := newWorkerRegistry(4, func(string, string, queueRegistration) (managedWorker, error) {
-		built++
-		return &fakeManagedWorker{start: func() error { return nil }}, nil
-	})
-	pooledOne, err := registry.acquire(t.Context(), "plain-1", faultRequirements(), false, nil)
-	require.NoError(t, err)
-	pooledTwo, err := registry.acquire(t.Context(), "plain-2", faultRequirements(), false, nil)
-	require.NoError(t, err)
-	fault, err := registry.acquire(t.Context(), "fault", faultRequirements(), true, nil)
-	require.NoError(t, err)
-
-	// Two pooled Runs share one worker; the fault Run built its own.
-	require.Equal(t, 2, built)
-	require.Len(t, registry.groups, 2)
-	require.NotNil(t, registry.groups["queue"])
-	require.NotNil(t, registry.groups[groupKey("fault", "queue", true)])
-
-	pooled := registry.groups["queue"].worker.(*fakeManagedWorker)
-	require.NoError(t, fault.stopWorker(t.Context(), "queue"))
-	// The stop reached only the fault Run's own worker.
-	require.Equal(t, 1, registry.groups[groupKey("fault", "queue", true)].worker.(*fakeManagedWorker).stops)
-	require.Zero(t, pooled.stops)
-	require.True(t, registry.groups[groupKey("fault", "queue", true)].stopped)
-
-	require.NoError(t, pooledOne.release(t.Context()))
-	require.NoError(t, pooledTwo.release(t.Context()))
-	require.NoError(t, fault.release(t.Context()))
-	// The dedicated group leaves with its Run; the pooled group survives its last release.
-	require.Nil(t, registry.groups[groupKey("fault", "queue", true)])
-	require.NotNil(t, registry.groups["queue"])
-}
-
-func TestFaultStopAndResumeKeepTheSameRegistration(t *testing.T) {
-	var registrations []queueRegistration
-	registry := newWorkerRegistry(2, func(_, _ string, registration queueRegistration) (managedWorker, error) {
-		registrations = append(registrations, registration)
-		return &fakeManagedWorker{start: func() error { return nil }}, nil
-	})
-	lease, err := registry.acquire(t.Context(), "fault", faultRequirements(), true, nil)
-	require.NoError(t, err)
-	group := registry.groups[groupKey("fault", "queue", true)]
-	first := group.worker
-
-	require.NoError(t, lease.stopWorker(t.Context(), "queue"))
-	require.NoError(t, lease.resumeWorker(t.Context(), "queue"))
-	require.False(t, group.stopped)
-	require.NotSame(t, first, group.worker)
-	require.Len(t, registrations, 2)
-	require.True(t, registrations[0].compatible(registrations[1]))
-
-	// Both transitions are invariants, not idempotent requests.
-	require.ErrorIs(t, lease.resumeWorker(t.Context(), "queue"), ErrRegistrationConflict)
-	require.NoError(t, lease.stopWorker(t.Context(), "queue"))
-	require.ErrorIs(t, lease.stopWorker(t.Context(), "queue"), ErrRegistrationConflict)
-	require.NoError(t, lease.release(t.Context()))
-}
-
-// A stop the Run asked for is not a Run failure, so the SDK's fatal path stays suppressed for the
-// whole window rather than only for the instant the worker was stopping.
-func TestFaultStopSuppressesTheFatalPath(t *testing.T) {
-	failures := make(chan string, 4)
-	registry := newWorkerRegistry(2, func(string, string, queueRegistration) (managedWorker, error) {
-		return &fakeManagedWorker{start: func() error { return nil }}, nil
-	})
-	lease, err := registry.acquire(t.Context(), "fault", faultRequirements(), true, func(queue string, _ error) { failures <- queue })
-	require.NoError(t, err)
-	key := groupKey("fault", "queue", true)
-
-	require.NoError(t, lease.stopWorker(t.Context(), "queue"))
-	registry.fail(key, errors.New("worker stopped"))
-	require.Empty(t, failures)
-	require.NoError(t, registry.groups[key].failure)
-
-	require.NoError(t, lease.resumeWorker(t.Context(), "queue"))
-	registry.fail(key, errors.New("real failure"))
-	require.Equal(t, "queue", <-failures)
-	require.NoError(t, lease.release(t.Context()))
-}
-
-func TestFaultStopHonorsTheInstructionDeadline(t *testing.T) {
-	release := make(chan struct{})
-	t.Cleanup(func() { close(release) })
-	registry := newWorkerRegistry(2, func(string, string, queueRegistration) (managedWorker, error) {
-		return &blockingManagedWorker{release: release}, nil
-	})
-	lease, err := registry.acquire(t.Context(), "fault", faultRequirements(), true, nil)
-	require.NoError(t, err)
-	ctx, cancel := context.WithTimeout(t.Context(), 20*time.Millisecond)
-	defer cancel()
-	require.ErrorIs(t, lease.stopWorker(ctx, "queue"), context.DeadlineExceeded)
-}
-
-// Release is the cleanup boundary: a stopped worker is resumed before the group goes away, and a
-// resume that cannot complete is reported rather than swallowed.
-func TestFaultReleaseResumesBeforeReleasing(t *testing.T) {
-	for _, tc := range []struct {
-		name      string
-		startErr  error
-		wantError bool
-	}{
-		{"resumed", nil, false},
-		{"resume failed", errors.New("cannot re-register"), true},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
-			starts := 0
-			registry := newWorkerRegistry(2, func(string, string, queueRegistration) (managedWorker, error) {
-				return &fakeManagedWorker{start: func() error {
-					starts++
-					if starts > 1 {
-						return tc.startErr
-					}
-					return nil
-				}}, nil
-			})
-			lease, err := registry.acquire(t.Context(), "fault", faultRequirements(), true, nil)
-			require.NoError(t, err)
-			require.NoError(t, lease.stopWorker(t.Context(), "queue"))
-
-			err = lease.release(t.Context())
-			if tc.wantError {
-				require.ErrorIs(t, err, tc.startErr)
-				return
-			}
-			require.NoError(t, err)
-			require.Equal(t, 2, starts)
-			require.Nil(t, registry.groups[groupKey("fault", "queue", true)])
-		})
-	}
-}
-
-// A pooled lease is not a fault handle at all: nothing outside a dedicated group may be stopped.
-func TestFaultTransitionsRequireADedicatedGroup(t *testing.T) {
-	registry := newWorkerRegistry(2, func(string, string, queueRegistration) (managedWorker, error) {
-		return &fakeManagedWorker{start: func() error { return nil }}, nil
-	})
-	lease, err := registry.acquire(t.Context(), "plain", faultRequirements(), false, nil)
-	require.NoError(t, err)
-	require.ErrorIs(t, lease.stopWorker(t.Context(), "queue"), ErrUnsupportedOperation)
-	require.ErrorIs(t, lease.resumeWorker(t.Context(), "queue"), ErrUnsupportedOperation)
-	require.NoError(t, lease.release(t.Context()))
-}
 
 // The worker Driver's own Profile validation is what admits the new capability; a Profile that
 // authorizes every capability including InjectFault must still build a Driver.
@@ -181,59 +30,38 @@ type blockingManagedWorker struct{ release <-chan struct{} }
 func (w *blockingManagedWorker) Start() error { return nil }
 func (w *blockingManagedWorker) Stop()        { <-w.release }
 
-// A Program that requests a fault is what makes the Run's group dedicated, so the definition has
-// to carry both the flag and the queue the named role resolves to.
-func TestPreparedDefinitionCarriesTheDeclaredFaultQueue(t *testing.T) {
-	plain := preparedSymbolicRuntimeFixture(t)
-	host := symbolicRuntimeDriver(t, plain.Snapshot().GetLimits())
-	definition, err := host.prepareDefinition(plain)
+// openFaultSession opens a Session over a fault-declaring Program through the Driver's own Open
+// path, with the registry building workers from factory.
+func openFaultSession(t *testing.T, factory workerFactory, runID string, options SessionOptions) (*Driver, *Session, testpilot.PreparedProgram) {
+	t.Helper()
+	program := preparedSymbolicRuntimeFixture(t, faultModifiers()...)
+	host := symbolicRuntimeDriver(t, program.Snapshot().GetLimits())
+	host.registry = newWorkerRegistry(4, factory)
+	if options.Bridge == nil {
+		options.Bridge = newTestBridge()
+	}
+	session, err := host.OpenSession(t.Context(), runID, program, options)
 	require.NoError(t, err)
-	require.False(t, definition.hasFault)
-	require.Empty(t, definition.faultQueues)
+	return host, session, program
+}
 
-	withFault := preparedSymbolicRuntimeFixture(t, func(program *testpilotspb.Program) {
-		program.Entrypoints[0].Instructions = append(program.Entrypoints[0].Instructions, &testpilotspb.InstructionDefinition{
-			InstructionId: "stop",
-			Instruction:   &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InjectFault{InjectFault: &testpilotspb.InjectFault{RoleId: "queue", Kind: testpilotspb.FAULT_KIND_WORKER_STOP}}},
-			Outcome:       runtimeStatusSchema(), Limits: runtimeBounds(),
-		})
-	}, func(profile *testpilot.ProfileSpec) {
-		profile.Opcodes = append(profile.Opcodes, testpilot.InjectFault)
-	})
-	definition, err = host.prepareDefinition(withFault)
-	require.NoError(t, err)
-	require.True(t, definition.hasFault)
-	require.Equal(t, map[string]string{"queue": "task-queue"}, definition.faultQueues)
+func faultCoordinate(instructionID string) testpilot.Coordinate {
+	return testpilot.Coordinate{RunID: "run", EntrypointID: "controller", ActivationID: "controller-1", InstructionID: instructionID, Attempt: 1}
 }
 
 // The Session is where a fault becomes a Run fact. A transition the Driver cannot make settles as
 // a failed instruction outcome plus a Driver invariant diagnostic, so the Run records that the
 // fault was requested and not realized and the Verdict is left to the Contract.
 func TestSessionInjectFaultReportsUnrealizedTransitions(t *testing.T) {
-	prepared := preparedSymbolicRuntimeFixture(t)
-	host := symbolicRuntimeDriver(t, prepared.Snapshot().GetLimits())
-	registry := newWorkerRegistry(4, func(string, string, queueRegistration) (managedWorker, error) {
-		return &fakeManagedWorker{start: func() error { return nil }}, nil
-	})
-	host.registry = registry
-	definition, err := host.prepareDefinition(prepared)
-	require.NoError(t, err)
-	definition.faultQueues = map[string]string{"queue": "task-queue"}
-	definition.hasFault = true
-
 	var diagnostics []*testpilotspb.RunDiagnostic
-	session, err := newSession(host, "run", "session-run", definition, SessionOptions{
-		Bridge: newTestBridge(),
+	factory := &recordingFactory{}
+	_, session, _ := openFaultSession(t, factory.build, "run", SessionOptions{
 		Diagnose: func(_ context.Context, _ string, diagnostic *testpilotspb.RunDiagnostic) error {
 			diagnostics = append(diagnostics, diagnostic)
 			return nil
 		},
 	})
-	require.NoError(t, err)
-	lease, err := registry.acquire(t.Context(), "run", definition.registrations, true, nil)
-	require.NoError(t, err)
-	session.workers = lease
-	at := testpilot.Coordinate{RunID: "run", EntrypointID: "controller", ActivationID: "controller-1", InstructionID: "stop", Attempt: 1}
+	at := faultCoordinate("stop")
 
 	// A resume with no prior stop is an invariant failure, not a rejected dispatch. The Run
 	// carries the reason on the outcome; the Driver's own sink also hears about it.
@@ -263,88 +91,7 @@ func TestSessionInjectFaultReportsUnrealizedTransitions(t *testing.T) {
 	require.ErrorIs(t, err, ErrInvalid)
 	_, err = session.InjectFault(t.Context(), at, "queue", testpilotspb.FAULT_KIND_UNSPECIFIED)
 	require.ErrorIs(t, err, ErrInvalid)
-	require.NoError(t, lease.release(t.Context()))
-}
-
-// The instruction names the queue, so a Run holding several dedicated groups transitions the one
-// it asked for and leaves the others running.
-func TestFaultTransitionsTheNamedQueue(t *testing.T) {
-	registry := newWorkerRegistry(4, func(string, string, queueRegistration) (managedWorker, error) {
-		return &fakeManagedWorker{start: func() error { return nil }}, nil
-	})
-	requirements := []queueRegistration{
-		{queue: "queue", workflows: []string{"workflow"}},
-		{queue: "other", nexus: []nexusRegistration{{service: "service", operation: "operation"}}},
-	}
-	lease, err := registry.acquire(t.Context(), "fault", requirements, true, nil)
-	require.NoError(t, err)
-	require.NoError(t, lease.stopWorker(t.Context(), "other"))
-	require.False(t, registry.groups[groupKey("fault", "queue", true)].stopped)
-	require.True(t, registry.groups[groupKey("fault", "other", true)].stopped)
-	require.ErrorIs(t, lease.stopWorker(t.Context(), "absent"), ErrInvalid)
-
-	// Release resumes every queue it left stopped before the groups go away.
-	require.NoError(t, lease.release(t.Context()))
-	require.Empty(t, registry.groups)
-}
-
-// A resume whose deadline expires after the SDK worker already started must still record the
-// worker it started: a group whose recorded state disagrees with its worker would silently lose
-// fatal suppression and skip the resume-before-release step for the rest of the Run.
-func TestFaultResumeRecordsTheStartedWorkerEvenWhenTheDeadlinePasses(t *testing.T) {
-	starts := 0
-	slow := make(chan struct{})
-	registry := newWorkerRegistry(2, func(string, string, queueRegistration) (managedWorker, error) {
-		return &fakeManagedWorker{start: func() error {
-			starts++
-			if starts > 1 {
-				<-slow
-			}
-			return nil
-		}}, nil
-	})
-	lease, err := registry.acquire(t.Context(), "fault", faultRequirements(), true, nil)
-	require.NoError(t, err)
-	require.NoError(t, lease.stopWorker(t.Context(), "queue"))
-	group := registry.groups[groupKey("fault", "queue", true)]
-	stoppedWorker := group.worker
-
-	ctx, cancel := context.WithTimeout(t.Context(), 20*time.Millisecond)
-	defer cancel()
-	go func() { <-ctx.Done(); close(slow) }()
-	require.ErrorIs(t, lease.resumeWorker(ctx, "queue"), context.DeadlineExceeded)
-	require.False(t, group.stopped)
-	require.NotSame(t, stoppedWorker, group.worker)
-	require.NoError(t, lease.release(t.Context()))
-}
-
-// The registry is shared by every Session of a Driver, so a fault instruction runs concurrently
-// with peer Runs opening and closing. Under -race this is the guard on unlocked map access.
-func TestFaultTransitionsAreSafeBesidePeerAcquisitions(t *testing.T) {
-	registry := newWorkerRegistry(64, func(string, string, queueRegistration) (managedWorker, error) {
-		return &fakeManagedWorker{start: func() error { return nil }}, nil
-	})
-	lease, err := registry.acquire(t.Context(), "fault", faultRequirements(), true, nil)
-	require.NoError(t, err)
-	peers := make(chan error, 8)
-	for peer := range 8 {
-		go func() {
-			held, err := registry.acquire(context.Background(), fmt.Sprintf("peer-%d", peer), faultRequirements(), false, nil)
-			if err != nil {
-				peers <- err
-				return
-			}
-			peers <- held.release(context.Background())
-		}()
-	}
-	for range 4 {
-		require.NoError(t, lease.stopWorker(t.Context(), "queue"))
-		require.NoError(t, lease.resumeWorker(t.Context(), "queue"))
-	}
-	for range 8 {
-		require.NoError(t, <-peers)
-	}
-	require.NoError(t, lease.release(t.Context()))
+	require.NoError(t, session.Close(t.Context()))
 }
 
 // Closing the Session is the cleanup boundary the runtime turns into a cleanup status. It resumes
@@ -359,33 +106,16 @@ func TestSessionCloseResumesAndAlwaysReleasesTheHold(t *testing.T) {
 		{"resume failed", errors.New("cannot re-register")},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			prepared := preparedSymbolicRuntimeFixture(t)
-			host := symbolicRuntimeDriver(t, prepared.Snapshot().GetLimits())
-			starts := 0
-			host.registry = newWorkerRegistry(4, func(string, string, queueRegistration) (managedWorker, error) {
-				return &fakeManagedWorker{start: func() error {
-					starts++
-					if starts > 1 {
-						return tc.startErr
-					}
-					return nil
-				}}, nil
-			})
-			definition, err := host.prepareDefinition(prepared)
-			require.NoError(t, err)
-			definition.faultQueues = map[string]string{"queue": "task-queue"}
-			definition.hasFault = true
-			session, err := newSession(host, "run", "session-run", definition, SessionOptions{Bridge: newTestBridge()})
-			require.NoError(t, err)
-			require.NoError(t, host.mu.lock(t.Context()))
-			host.sessions["run"] = session
-			host.mu.unlock()
-			lease, err := host.registry.acquire(t.Context(), "run", definition.registrations, true, nil)
-			require.NoError(t, err)
-			session.workers = lease
+			failing := tc.startErr != nil
+			factory := &recordingFactory{start: func(built int) error {
+				if failing && built > 1 {
+					return tc.startErr
+				}
+				return nil
+			}}
+			host, session, program := openFaultSession(t, factory.build, "run", SessionOptions{})
 
-			at := testpilot.Coordinate{RunID: "run", EntrypointID: "controller", ActivationID: "controller-1", InstructionID: "stop", Attempt: 1}
-			handle, err := session.InjectFault(t.Context(), at, "queue", testpilotspb.FAULT_KIND_WORKER_STOP)
+			handle, err := session.InjectFault(t.Context(), faultCoordinate("stop"), "queue", testpilotspb.FAULT_KIND_WORKER_STOP)
 			require.NoError(t, err)
 			result, err := handle.Wait(t.Context())
 			require.NoError(t, err)
@@ -397,129 +127,91 @@ func TestSessionCloseResumesAndAlwaysReleasesTheHold(t *testing.T) {
 			} else {
 				require.NoError(t, err)
 			}
-			// The hold is gone either way; a retained hold could never be retried.
-			require.Empty(t, host.registry.runIDs)
-			require.Empty(t, host.registry.groups)
+			// The hold is gone either way; a retained hold could never be retried. Reopening the
+			// same Run succeeds and builds a fresh dedicated worker.
+			failing = false
+			built := factory.count()
+			reopened, err := host.OpenSession(t.Context(), "run", program, SessionOptions{Bridge: newTestBridge()})
+			require.NoError(t, err)
+			require.Equal(t, built+1, factory.count())
+			require.NoError(t, reopened.Close(t.Context()))
 		})
 	}
-}
-
-// A resume that is still starting when the Run is released must not record its fresh worker in a
-// group that no longer exists: nothing would ever stop it and it would keep polling the queue.
-func TestFaultResumeRacingReleaseStopsTheOrphanedWorker(t *testing.T) {
-	starting := make(chan struct{})
-	proceed := make(chan struct{})
-	orphan := &fakeManagedWorker{start: func() error {
-		close(starting)
-		<-proceed
-		return nil
-	}}
-	built := 0
-	registry := newWorkerRegistry(2, func(string, string, queueRegistration) (managedWorker, error) {
-		built++
-		if built == 1 {
-			return &fakeManagedWorker{start: func() error { return nil }}, nil
-		}
-		return orphan, nil
-	})
-	lease, err := registry.acquire(t.Context(), "fault", faultRequirements(), true, nil)
-	require.NoError(t, err)
-	require.NoError(t, lease.stopWorker(t.Context(), "queue"))
-
-	resumed := make(chan error, 1)
-	go func() { resumed <- lease.resumeWorker(context.Background(), "queue") }()
-	<-starting
-	require.NoError(t, registry.release(t.Context(), "fault", lease.requirements, true))
-	close(proceed)
-
-	require.ErrorIs(t, <-resumed, ErrClosed)
-	require.Equal(t, 1, orphan.stops)
-	require.Empty(t, registry.groups)
-}
-
-// Validate and Open must agree about what a fault needs. A Program whose only worker use is a
-// fault brings no worker to stop, so both refuse it; a fault declared in cleanup binds the same
-// queue at Open that Validate saw.
-func TestFaultValidationAgreesWithOpen(t *testing.T) {
-	host := symbolicRuntimeDriver(t, preparedSymbolicRuntimeFixture(t).Snapshot().GetLimits())
-
-	cleanupFault := preparedSymbolicRuntimeFixture(t, func(program *testpilotspb.Program) {
-		program.Cleanup.Instructions = append(program.Cleanup.Instructions, &testpilotspb.InstructionDefinition{
-			InstructionId: "resume",
-			Instruction:   &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InjectFault{InjectFault: &testpilotspb.InjectFault{RoleId: "queue", Kind: testpilotspb.FAULT_KIND_WORKER_RESUME}}},
-			Outcome:       runtimeStatusSchema(), Limits: runtimeBounds(),
-		})
-	}, func(profile *testpilot.ProfileSpec) {
-		profile.Opcodes = append(profile.Opcodes, testpilot.InjectFault)
-	})
-	require.NoError(t, host.Validate(t.Context(), cleanupFault))
-	definition, err := host.prepareDefinition(cleanupFault)
-	require.NoError(t, err)
-	require.True(t, definition.hasFault)
-	require.Equal(t, map[string]string{"queue": "task-queue"}, definition.faultQueues)
-
-	workerless := preparedSymbolicRuntimeFixture(t, func(program *testpilotspb.Program) {
-		program.Entrypoints = program.Entrypoints[:1]
-		program.Entrypoints[0].Instructions = []*testpilotspb.InstructionDefinition{{
-			InstructionId: "stop",
-			Instruction:   &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InjectFault{InjectFault: &testpilotspb.InjectFault{RoleId: "queue", Kind: testpilotspb.FAULT_KIND_WORKER_STOP}}},
-			Outcome:       runtimeStatusSchema(), Limits: runtimeBounds(),
-		}}
-	}, func(profile *testpilot.ProfileSpec) {
-		profile.Opcodes = append(profile.Opcodes, testpilot.InjectFault)
-	})
-	require.ErrorIs(t, host.Validate(t.Context(), workerless), ErrInvalid)
-	_, err = host.prepareDefinition(workerless)
-	require.ErrorIs(t, err, ErrInvalid)
-
-	// A fault on a task-queue role no worker registers on has nothing to stop, so it is refused
-	// here rather than at dispatch, where a rejected instruction would abort the whole Run.
-	unregistered := preparedSymbolicRuntimeFixture(t, func(program *testpilotspb.Program) {
-		program.Environment = append(program.Environment, &testpilotspb.EnvironmentDefinition{BindingId: "other-queue"})
-		program.Roles = append(program.Roles, &testpilotspb.RoleDefinition{RoleId: "idle-queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE, NamespaceBindingId: "namespace", ResourceBindingId: "other-queue"})
-		program.Entrypoints[0].Instructions = append(program.Entrypoints[0].Instructions, &testpilotspb.InstructionDefinition{
-			InstructionId: "stop",
-			Instruction:   &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InjectFault{InjectFault: &testpilotspb.InjectFault{RoleId: "idle-queue", Kind: testpilotspb.FAULT_KIND_WORKER_STOP}}},
-			Outcome:       runtimeStatusSchema(), Limits: runtimeBounds(),
-		})
-	}, func(profile *testpilot.ProfileSpec) {
-		profile.Opcodes = append(profile.Opcodes, testpilot.InjectFault)
-		profile.Roles = append(profile.Roles, testpilot.RolePolicy{ID: "idle-queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE})
-		profile.EnvironmentBindings = append(profile.EnvironmentBindings, testpilot.EnvironmentBinding{ID: "other-queue", Value: "other-queue"})
-	})
-	require.ErrorIs(t, host.Validate(t.Context(), unregistered), ErrInvalid)
-	_, err = host.prepareDefinition(unregistered)
-	require.ErrorIs(t, err, ErrInvalid)
 }
 
 // The blocking part of a fault runs in Wait, not on the dispatch path: an SDK stop that outlives
 // the instruction bound has to reach the scheduler as a deadline, which it maps to a timed-out
 // instruction, rather than as a failed dispatch that would mark the whole Run incomplete.
 func TestSessionInjectFaultDefersBlockingWorkToWait(t *testing.T) {
-	prepared := preparedSymbolicRuntimeFixture(t)
-	host := symbolicRuntimeDriver(t, prepared.Snapshot().GetLimits())
 	release := make(chan struct{})
 	t.Cleanup(func() { close(release) })
-	host.registry = newWorkerRegistry(4, func(string, string, queueRegistration) (managedWorker, error) {
+	_, session, _ := openFaultSession(t, func(string, string, queueRegistration) (managedWorker, error) {
 		return &blockingManagedWorker{release: release}, nil
-	})
-	definition, err := host.prepareDefinition(prepared)
-	require.NoError(t, err)
-	definition.faultQueues = map[string]string{"queue": "task-queue"}
-	definition.hasFault = true
-	session, err := newSession(host, "run", "session-run", definition, SessionOptions{Bridge: newTestBridge()})
-	require.NoError(t, err)
-	lease, err := host.registry.acquire(t.Context(), "run", definition.registrations, true, nil)
-	require.NoError(t, err)
-	session.workers = lease
+	}, "run", SessionOptions{})
 
-	at := testpilot.Coordinate{RunID: "run", EntrypointID: "controller", ActivationID: "controller-1", InstructionID: "stop", Attempt: 1}
 	ctx, cancel := context.WithTimeout(t.Context(), 20*time.Millisecond)
 	defer cancel()
 	// The dispatch itself succeeds even though the stop will outlive the bound.
-	handle, err := session.InjectFault(ctx, at, "queue", testpilotspb.FAULT_KIND_WORKER_STOP)
+	handle, err := session.InjectFault(ctx, faultCoordinate("stop"), "queue", testpilotspb.FAULT_KIND_WORKER_STOP)
 	require.NoError(t, err)
-	require.True(t, host.registry.groups[groupKey("run", "task-queue", true)].stopped)
+	requireStopped(t, session.outage, faultQueue)
 	_, err = handle.Wait(ctx)
 	require.ErrorIs(t, err, context.DeadlineExceeded)
+}
+
+// faultRunDriver runs a prepared Case against the worker Driver alone: the controller entrypoint
+// holds nothing but faults, which the worker Session realizes.
+type faultRunDriver struct {
+	*Driver
+	identity testpilot.DriverIdentity
+}
+
+func (d *faultRunDriver) Identity(context.Context) (testpilot.DriverIdentity, error) {
+	return d.identity, nil
+}
+
+func (d *faultRunDriver) Open(ctx context.Context, runID string, program testpilot.PreparedProgram) (testpilot.Session, error) {
+	return d.OpenSession(ctx, runID, program, SessionOptions{Bridge: newTestBridge()})
+}
+
+// A Settle that fails is a fault the Driver could not realize. The scheduler records a fault event
+// only for a succeeded outcome, so the failed resume leaves the Run carrying the stop it realized
+// and nothing for the resume it did not.
+func TestFaultSettleErrorRecordsNoFaultEvent(t *testing.T) {
+	prepared := preparedSymbolicRuntimeCase(t, func(program *testpilotspb.Program) {
+		resume := faultInstruction("resume", "queue", testpilotspb.FAULT_KIND_WORKER_RESUME)
+		resume.Dependencies = []*testpilotspb.InstructionRef{{EntrypointId: "controller", InstructionId: "stop"}}
+		program.Entrypoints[0].Instructions = []*testpilotspb.InstructionDefinition{faultInstruction("stop", "queue", testpilotspb.FAULT_KIND_WORKER_STOP), resume}
+	}, authorizeFaults)
+	program := capturePreparedProgram(t, prepared)
+	host := symbolicRuntimeDriver(t, program.Snapshot().GetLimits())
+	startErr := errors.New("cannot re-register")
+	factory := &recordingFactory{start: func(built int) error {
+		if built > 1 {
+			return startErr
+		}
+		return nil
+	}}
+	host.registry = newWorkerRegistry(4, factory.build)
+
+	run, _, err := prepared.Run(t.Context(), &faultRunDriver{Driver: host, identity: prepared.Identity()})
+	require.NoError(t, err)
+
+	outcomes := map[string]testpilotspb.InstructionOutcomeStatus{}
+	faults := map[string][]testpilotspb.FaultKind{}
+	for _, event := range run.GetEvents() {
+		instruction := event.GetCoordinates().GetInstructionId()
+		switch event.GetKind() {
+		case testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED:
+			outcomes[instruction] = event.GetOutcome().GetStatus()
+		case testpilotspb.RUN_EVENT_KIND_FAULT_INJECTED:
+			faults[instruction] = append(faults[instruction], event.GetFaultInjected().GetKind())
+		default:
+		}
+	}
+	require.Equal(t, map[string]testpilotspb.InstructionOutcomeStatus{
+		"stop":   testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED,
+		"resume": testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS,
+	}, outcomes)
+	require.Equal(t, map[string][]testpilotspb.FaultKind{"stop": {testpilotspb.FAULT_KIND_WORKER_STOP}}, faults)
 }

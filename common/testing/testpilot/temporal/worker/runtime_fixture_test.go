@@ -31,6 +31,11 @@ func preparedRuntimeFixtureForNamespace(t *testing.T, namespace string, response
 
 func preparedRuntimeFixtureWithProfile(t *testing.T, responseKind testpilotspb.NexusResponseKind, modifyProfile func(*testpilot.ProfileSpec), modify ...func(*testpilotspb.Program)) testpilot.PreparedProgram {
 	t.Helper()
+	return capturePreparedProgram(t, preparedRuntimeCase(t, responseKind, modifyProfile, modify...))
+}
+
+func preparedRuntimeCase(t *testing.T, responseKind testpilotspb.NexusResponseKind, modifyProfile func(*testpilot.ProfileSpec), modify ...func(*testpilotspb.Program)) *testpilot.PreparedCase {
+	t.Helper()
 	file := workflowservice.File_temporal_api_workflowservice_v1_service_proto
 	catalog, err := testpilot.NewCatalog(descriptorClosure(file))
 	require.NoError(t, err)
@@ -127,8 +132,13 @@ func preparedRuntimeFixtureWithProfile(t *testing.T, responseKind testpilotspb.N
 	}
 	prepared, err := testpilot.Prepare(&testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: 1}, CaseId: "case", Program: program, Contract: contract}, profile)
 	require.NoError(t, err)
+	return prepared
+}
+
+func capturePreparedProgram(t *testing.T, prepared *testpilot.PreparedCase) testpilot.PreparedProgram {
+	t.Helper()
 	driver := &programCaptureDriver{identity: prepared.Identity()}
-	_, _, err = prepared.Run(t.Context(), driver)
+	_, _, err := prepared.Run(t.Context(), driver)
 	require.ErrorIs(t, err, errProgramCaptured)
 	return driver.program
 }

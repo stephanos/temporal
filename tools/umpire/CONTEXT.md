@@ -55,6 +55,10 @@ _Avoid_: Variable, evidence
 A declared typed field on a Run Event that a Contract is allowed to inspect.
 _Avoid_: Raw payload, Slot, log entry
 
+**Outage plan**:
+The worker Driver's internal admission answer for the Faults one Program declares: the task queue each named role resolves to, and whether the Run needs worker groups no other Run shares. It is neither the Fault instruction the Program declares nor the Run Event recorded once a Fault is realized, and it never leaves the Driver.
+_Avoid_: Plan, fault plan, outage schedule
+
 ## Testpilot verification
 
 **Evaluator**:

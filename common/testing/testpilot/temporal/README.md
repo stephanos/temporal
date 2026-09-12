@@ -17,6 +17,8 @@ Session only when the prepared Program contains workflow, activity, or Nexus-han
 capability bridge and generic capability factory. The SDK worker Session owns reservations, SDK
 routes, callback validation, and Nexus completion transport. The server Session owns RPC effects and
 generic opaque capability claims. Composite Close and quarantine preserve that split.
+`InjectFault` routes to the SDK worker Session, which `Open` also creates for a Program that declares
+a fault; the server Session refuses every fault the way it refuses worker reservations.
 
 Reserved `StartWorkflowExecution` calls pass through an SDK worker `Carrier` before server dispatch. The
 Carrier validates the prepared reservation topology and physical workflow binding, injects only the

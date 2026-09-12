@@ -307,8 +307,8 @@ func stopWorkers(workers []managedWorker) {
 	}
 }
 
-// workerLease is one Run's hold on its worker groups. It is also the only handle that can stop or
-// resume a group, and it refuses both unless the Run was granted a dedicated group.
+// workerLease is one Run's hold on its worker groups. Stopping or resuming a group goes through
+// the Run's Outage, which refuses both unless the Run was granted a dedicated group.
 type workerLease struct {
 	registry     *workerRegistry
 	runID        string
@@ -322,155 +322,7 @@ func (r *workerRegistry) newLease(runID string, requirements []queueRegistration
 	return &workerLease{registry: r, runID: runID, requirements: requirements, dedicated: dedicated, mu: newContextMutex()}
 }
 
-// group resolves one of this lease's dedicated groups. The registry lock must already be held:
-// r.groups is shared by every Session of the Driver, so an unlocked read races a peer Run's
-// acquire or release.
-func (l *workerLease) group(queue string) (*workerGroup, error) {
-	if l == nil || !l.dedicated {
-		return nil, ErrUnsupportedOperation
-	}
-	if !slices.ContainsFunc(l.requirements, func(requirement queueRegistration) bool { return requirement.queue == queue }) {
-		return nil, ErrInvalid
-	}
-	group := l.registry.groups[groupKey(l.runID, queue, true)]
-	if group == nil {
-		return nil, ErrClosed
-	}
-	if group.failure != nil {
-		return nil, errors.Join(ErrClosed, group.failure)
-	}
-	return group, nil
-}
-
-// stopWorker realizes one deliberate outage on the queue the instruction named, blocking until the
-// SDK worker has stopped or the caller's deadline passes.
-func (l *workerLease) stopWorker(ctx context.Context, queue string) error {
-	return l.transition(ctx, queue, true)
-}
-
-// resumeWorker re-registers the queue's worker with the same structural signature it had before
-// the outage; nothing about the registration changes across a stop and resume.
-func (l *workerLease) resumeWorker(ctx context.Context, queue string) error {
-	return l.transition(ctx, queue, false)
-}
-
-func (l *workerLease) transition(ctx context.Context, queue string, stop bool) error {
-	work, err := l.beginTransition(ctx, queue, stop)
-	if err != nil {
-		return err
-	}
-	return work(ctx)
-}
-
-// beginTransition flips the group's recorded state under the registry lock and returns the
-// blocking work that makes it true. Splitting the two puts fatal suppression in place, and
-// refuses an invariant violation, on the dispatch path; the blocking part then runs where the
-// scheduler's own deadline handling turns an expired instruction bound into a timed-out
-// instruction rather than a failed dispatch, and without holding the recorder across the outage.
-func (l *workerLease) beginTransition(ctx context.Context, queue string, stop bool) (func(context.Context) error, error) {
-	if ctx == nil {
-		return nil, ErrInvalid
-	}
-	if err := l.registry.mu.lock(ctx); err != nil {
-		return nil, err
-	}
-	group, err := l.group(queue)
-	if err != nil {
-		l.registry.mu.unlock()
-		return nil, err
-	}
-	if group.stopped == stop {
-		l.registry.mu.unlock()
-		return nil, ErrRegistrationConflict
-	}
-	group.stopped = stop
-	worker := group.worker
-	l.registry.mu.unlock()
-
-	if stop {
-		return func(ctx context.Context) error { return stopBounded(ctx, worker) }, nil
-	}
-	return func(ctx context.Context) error { return l.finishResume(ctx, group) }, nil
-}
-
-// A group's key and registration are immutable after creation, so finishResume reads them from
-// the group rather than carrying copies taken under the lock.
-func (l *workerLease) finishResume(ctx context.Context, group *workerGroup) error {
-	resumed, err := l.registry.factory(group.key, group.registration.queue, group.registration)
-	if err == nil && resumed == nil {
-		err = ErrInvalid
-	}
-	if err == nil {
-		err = resumed.Start()
-	}
-	// The state write lands whatever happened to the caller's deadline: a group whose recorded
-	// state disagrees with its worker would silently drop fatal suppression and skip the
-	// resume-before-release step for the rest of the Run.
-	settle, cancel := context.WithTimeout(context.WithoutCancel(ctx), defaultCleanupTimeout)
-	defer cancel()
-	if lockErr := l.registry.mu.lock(settle); lockErr != nil {
-		if resumed != nil && err == nil {
-			resumed.Stop()
-		}
-		return errors.Join(err, lockErr)
-	}
-	// The Run may have been released while the worker was starting. Recording the fresh worker in
-	// a retired group would leave it polling the queue with nothing left to stop it.
-	if l.registry.groups[group.key] != group {
-		l.registry.mu.unlock()
-		if resumed != nil && err == nil {
-			resumed.Stop()
-		}
-		return errors.Join(err, ErrClosed)
-	}
-	if err != nil {
-		group.stopped = true
-		l.registry.mu.unlock()
-		return err
-	}
-	group.worker = resumed
-	l.registry.mu.unlock()
-	return ctx.Err()
-}
-
-// stopBounded honors the caller's deadline. The SDK's own Stop has no context, so an expired
-// deadline reports the timeout while the stop continues under the Driver's worker stop timeout.
-func stopBounded(ctx context.Context, worker managedWorker) error {
-	if worker == nil {
-		return ErrInvalid
-	}
-	done := make(chan struct{})
-	go func() {
-		defer close(done)
-		worker.Stop()
-	}()
-	select {
-	case <-done:
-		return nil
-	case <-ctx.Done():
-		return ctx.Err()
-	}
-}
-
-// stoppedQueues names the queues this lease left stopped, read under the registry lock.
-func (l *workerLease) stoppedQueues(ctx context.Context) ([]string, error) {
-	if err := l.registry.mu.lock(ctx); err != nil {
-		return nil, err
-	}
-	defer l.registry.mu.unlock()
-	var stopped []string
-	for _, requirement := range l.requirements {
-		if group := l.registry.groups[groupKey(l.runID, requirement.queue, true)]; group != nil && group.stopped {
-			stopped = append(stopped, requirement.queue)
-		}
-	}
-	return stopped, nil
-}
-
-// release ends the Run's hold. A stopped worker is resumed first so cleanup never hands the group
-// back mid-outage, and the registry removal then runs on a cleanup-bounded context of its own: a
-// resume that ran out of time must still leave the registry clean, or the group would count
-// against the ceiling forever with no way to retry.
+// release ends a hold that has no outage to restore.
 func (l *workerLease) release(ctx context.Context) error {
 	if l == nil || ctx == nil {
 		return ErrInvalid
@@ -482,21 +334,19 @@ func (l *workerLease) release(ctx context.Context) error {
 	if l.released {
 		return nil
 	}
-	var resumeErr error
-	if l.dedicated {
-		stopped, err := l.stoppedQueues(ctx)
-		resumeErr = err
-		for _, queue := range stopped {
-			resumeErr = errors.Join(resumeErr, l.resumeWorker(ctx, queue))
-		}
-	}
+	return l.releaseLocked(ctx, nil)
+}
+
+// releaseLocked removes the hold from the registry on a cleanup-bounded context of its own, and
+// reports prior alongside any removal failure. The lease lock must already be held.
+func (l *workerLease) releaseLocked(ctx context.Context, prior error) error {
 	settle, cancel := context.WithTimeout(context.WithoutCancel(ctx), defaultCleanupTimeout)
 	defer cancel()
 	if err := l.registry.release(settle, l.runID, l.requirements, l.dedicated); err != nil {
-		return errors.Join(resumeErr, err)
+		return errors.Join(prior, err)
 	}
 	l.released = true
-	return resumeErr
+	return prior
 }
 
 func canonicalRequirements(requirements []queueRegistration) ([]queueRegistration, error) {
