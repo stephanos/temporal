@@ -1,5 +1,5 @@
 import Umpire.Case.Projection
-import Umpire.Property.Evaluate
+import Umpire.Case.Projection.Coordinates
 
 /-!
 The modeled-fields to declared-Observations coverage map.
@@ -35,7 +35,9 @@ reads one.
 The rebuildable step vocabulary is field selection, optional presence, oneof selection and keyed map
 lookup: each reaches the reported value without supplying anything else. A presence read, a repeated
 element and a cardinality are outside it and reject with that reason, because the payload witnessing
-them would have to carry sibling data no declared Observation reported.
+them would have to carry sibling data no declared Observation reported. The rebuild itself is
+`Projection.rebuild`, the rebuild use of the one coordinate walker in
+`Umpire.Case.Projection.Coordinates`.
 -/
 
 namespace Umpire.Case.Projection
@@ -60,84 +62,6 @@ structure CoverageError where
   reason : String
   deriving BEq, DecidableEq, Repr
 
-/-- Structural authority for a covered path. The modeled coordinates already retain the complete
-selected operation schema, so rebuilding a payload under them needs no second generated index. -/
-private def coverageOwner (schema : Operation.RpcSchema) : Operation.RpcOwner where
-  Witness _ _ := Unit
-  schema _ := schema
-
-private def coverageWitness (schema : Operation.RpcSchema) :
-    (coverageOwner schema).Witness Unit Unit := ()
-
-/-- Why a structural step has no rebuild from a declared Observation. A presence read, a repeated
-element after the first and a cardinality all describe values *besides* the one the Observation
-reports, so any payload supplying them would carry data no Observation supplied. The first element
-is the exception: a one-element repeated field supplies exactly the reported value and no sibling,
-exactly as an established optional field supplies exactly the value that made it present. -/
-private def unreportable : Value.Field.Step → Option String
-  | .present => some "a presence read reports data no declared Observation supplies"
-  | .index index =>
-      if index == 0 then none
-      else some "a repeated element after the first reports data no declared Observation supplies"
-  | .cardinality => some "a cardinality reports data no declared Observation supplies"
-  | _ => none
-
-/-- The smallest value tree that supplies `value` at these coordinates, and nothing else. Presence
-steps construct nothing: an optional field is present because it was supplied, a oneof member is
-selected because it is the one supplied, and a map holds exactly the looked-up entry. -/
-private def coveragePayload : List Value.Field.Step → Value.Raw → Except String Value.Raw
-  | [], value => .ok value
-  | .field containing number :: rest, value => do
-      pure (Value.message containing [(number, ← coveragePayload rest value)])
-  | .key key :: rest, value => do
-      pure (Value.map [(key, ← coveragePayload rest value)])
-  | .establish :: rest, value => coveragePayload rest value
-  | .select _ :: rest, value => coveragePayload rest value
-  | .index 0 :: rest, value => do pure (Value.repeated [← coveragePayload rest value])
-  | step :: _, _ => .error ((unreportable step).getD ("unsupported coverage step " ++ reprStr step))
-
-/-- One selection under the covered path's own schema, with its descriptor indices erased so a
-whole step list can be walked in one pass. -/
-private structure Selection (schema : Operation.RpcSchema) (side : Value.Side)
-    (limits : Value.Limits) where
-  type : Operation.Singular
-  cardinality : Operation.Cardinality
-  availability : Value.Field.Availability
-  cursor : Value.Field.Cursor (coverageOwner schema) (coverageWitness schema) side limits
-    type cardinality availability
-
-private def Selection.advance {schema : Operation.RpcSchema} {side : Value.Side}
-    {limits : Value.Limits} (selection : Selection schema side limits)
-    (source : SourceLocation) : Value.Field.Step → Except Value.Field.Error (Selection schema side limits)
-  | .field containing number => do
-      let cursor ← selection.cursor.refine (.message containing) .singular .available source
-      let reference ← Value.Field.reference (coverageOwner schema) (coverageWitness schema) side
-        containing number source
-      pure ⟨_, _, _, ← cursor.field reference source⟩
-  | .establish => do
-      let cursor ← selection.cursor.refine selection.type selection.cardinality .optional source
-      pure ⟨_, _, _, ← cursor.establish source⟩
-  | .select group => do
-      let cursor ← selection.cursor.refine selection.type selection.cardinality (.oneof group) source
-      pure ⟨_, _, _, ← cursor.select group source⟩
-  | .key key =>
-      match selection.cardinality with
-      | .map keyType => do
-          let cursor ← selection.cursor.refine selection.type (.map keyType) .available source
-          pure ⟨_, _, _, ← cursor.lookup key source⟩
-      | _ => .error ⟨source, reprStr key, "map lookup requires an available map field"⟩
-  | .index 0 => do
-      let cursor ← selection.cursor.refine selection.type .repeated .available source
-      pure ⟨_, _, _, ← cursor.index 0 source⟩
-  | step => .error ⟨source, reprStr step,
-      (unreportable step).getD ("unsupported coverage step " ++ reprStr step)⟩
-
-private def Selection.walk {schema : Operation.RpcSchema} {side : Value.Side}
-    {limits : Value.Limits} (selection : Selection schema side limits) (source : SourceLocation) :
-    List Value.Field.Step → Except Value.Field.Error (Selection schema side limits)
-  | [] => .ok selection
-  | step :: rest => do (← selection.advance source step).walk source rest
-
 /-- The exact scalar a declared evidence value denotes at these modeled coordinates. Only the three
 scalar kinds a projected Observation can carry are covered; the modeled integer kind decides the
 admitted range, so an out-of-range natural rejects rather than narrowing. -/
@@ -159,17 +83,7 @@ private def coverageEvidence (limits : Value.Limits) (path : PropertyFieldPath)
     throw "a request operand denotes the selected Action, not projected evidence"
   else
     let scalar ← coverageScalar path value
-    let raw ← coveragePayload path.steps (Value.literal scalar)
-    let admitted ← (Value.check (coverageOwner path.schema) (coverageWitness path.schema)
-      path.side limits raw).mapError (·.reason)
-    let start : Selection path.schema path.side limits := ⟨_, _, _, Value.Field.root admitted⟩
-    let selected ← (start.walk source path.steps).mapError (·.reason)
-    let cursor ← (selected.cursor.refine path.type .singular .available source).mapError (·.reason)
-    let projected ← (PropertyFieldProjection.ofCursor path.root path.reference cursor request
-      source).mapError (·.reason)
-    let evidence := projected.evidence
-    if evidence.path == path then pure evidence
-    else throw "rebuilt coordinates differ from the covered field path"
+    rebuild limits path request scalar source
 
 /-- A checked correspondence between modeled field coordinates and declared Observation fields,
 bound to the projection declaration whose evidence supplies them. -/

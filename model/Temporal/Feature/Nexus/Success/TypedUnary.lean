@@ -2,7 +2,7 @@ import Temporal.API
 import Temporal.Shared
 import Temporal.Testpilot.CaseSupport
 import Umpire.Case.Compiler
-import Umpire.Case.Observed
+import Umpire.Case.Projection.Lowering
 import Umpire.Property.Elab
 import Umpire.Property.Evaluate
 import Umpire.Property.Correlated
@@ -76,7 +76,6 @@ def historyResponseRoot := "temporal.api.workflowservice.v1.GetWorkflowExecution
 def workflowTypeNode := "temporal.api.common.v1.WorkflowType"
 def taskQueueNode := "temporal.api.taskqueue.v1.TaskQueue"
 def historyNode := "temporal.api.history.v1.History"
-def historyEventNode := "temporal.api.history.v1.HistoryEvent"
 def startedAttributesNode := "temporal.api.history.v1.WorkflowExecutionStartedEventAttributes"
 def payloadsNode := "temporal.api.common.v1.Payloads"
 def payloadNode := "temporal.api.common.v1.Payload"
@@ -436,6 +435,10 @@ monitor rule reads back out of the started history event are derived from the Pr
 below. -/
 private def submittedTypeTarget : FieldPath := nested ["workflow_type", "name"]
 
+/-- The declared Observation each history event is projected into, and the one the derived rule
+reads. -/
+def observation : ObservationDefinition := Program.observation observationId historyEventType
+
 private def program (startPath historyPath : String) : Program :=
   Program.make "temporal.case.typed-unary.program"
     #[Program.role workflowServiceRole .ROLE_KIND_ENDPOINT,
@@ -443,7 +446,7 @@ private def program (startPath historyPath : String) : Program :=
       Program.role taskQueueRole .ROLE_KIND_TASK_QUEUE
         (namespaceBindingId := namespaceBindingId) (resourceBindingId := taskQueueBindingId)]
     #[]
-    #[Program.observation observationId historyEventType]
+    #[observation]
     #[Program.controller controllerId #[
       Program.node startInstructionId
         (Program.invokeRPC workflowServiceRole startPath #[
@@ -472,66 +475,27 @@ private def program (startPath historyPath : String) : Program :=
 
 /-! ### The derived Contract
 
-The field the runtime reads is `Umpire.Case.Observed.pathOf` applied to the same
-`PropertyFieldPath` the model Property compares, so a Property edit that moves the recorded
-coordinate moves the Contract's read with it. The rule structure around that path -- its states,
-its presence checks and the submitted-type literal it matches -- is authored here. -/
+`Umpire.Case.Projection.lower` derives the monitor rule from the checked Property itself: the field
+it reads is the Property's own recorded coordinate, so a Property edit that moves the recorded
+coordinate moves the Contract's read with it, and the literal it matches is the submitted workflow
+type the Program assigns. The realization states only what the Property does not. -/
 
-/-- The runtime read path of one modeled operand, from the declared Observation's own message. -/
-def readPathOf (path : PropertyFieldPath) : Except String FieldPath :=
-  Umpire.Case.Observed.pathOf path historyEventNode
-
-/-- The runtime reading of the one checked clause: the workflow type the started event recorded is
-the one the Program submitted. The rule distinguishes the same three answers the model Property
-does. An event that establishes the recorded type and disagrees with it is a violation, not an
-absence; an event that never establishes the field leaves the rule pending, so a Run that produced
-no started event still closes inconclusive. -/
-private def startedRule (checkedProperty : CheckedProperty) :
-    Except String ContractRuleDefinition := do
-  let recordedTypePath ← readPathOf startedTypePath
-  pure (Contract.rule (checkedProperty.id.value ++ ".recorded-workflow-type")
-    .CONTRACT_RULE_KIND_SAFETY "pending"
-    #[Contract.state "pending" .CONTRACT_STATE_STATUS_NONTERMINAL,
-      Contract.state "satisfied" .CONTRACT_STATE_STATUS_SATISFIED,
-      Contract.state "violated" .CONTRACT_STATE_STATUS_VIOLATED]
-    #[Contract.transition "match-recorded-workflow-type" "pending" "satisfied"
-      #[.RUN_EVENT_KIND_INSTRUCTION_COMPLETED]
-      (ContractExpr.all #[
-        ContractExpr.present (observed observationId),
-        ContractExpr.present (projected (observed observationId) recordedTypePath),
-        ContractExpr.equals (projected (observed observationId) recordedTypePath)
-          (ContractExpr.literal (Value.text submittedWorkflowType))])
-      .CONTRACT_SUPPORT_KIND_MATCHING_EVENT,
-      Contract.transition "reject-recorded-workflow-type" "pending" "violated"
-      #[.RUN_EVENT_KIND_INSTRUCTION_COMPLETED]
-      (ContractExpr.all #[
-        ContractExpr.present (observed observationId),
-        ContractExpr.present (projected (observed observationId) recordedTypePath),
-        ContractExpr.negation (ContractExpr.equals
-          (projected (observed observationId) recordedTypePath)
-          (ContractExpr.literal (Value.text submittedWorkflowType)))])
-      .CONTRACT_SUPPORT_KIND_MATCHING_EVENT])
-
-/-- The modeled input field this Case must construct, and the exact instruction that constructs it. -/
-def coverage : Umpire.Case.Coverage.Request := {
-  inputs := [{ path := submittedTypePath, value := .text submittedWorkflowType
-               entrypointId := controllerId, instructionId := startInstructionId }] }
-
-private def compilerError (definitionId construct : String) : Umpire.Case.Compiler.Error :=
-  { sourceDefinitionId := definitionId, source, construct }
+/-- The request literal the Program assigns, and the rule identity the Case names. The rule is the
+two-transition safety rule: a started event that records another workflow type is a violation. -/
+def realization : Umpire.Case.Projection.Realization := {
+  literals := [{ path := submittedTypePath, value := .text submittedWorkflowType
+                 entrypointId := controllerId, instructionId := startInstructionId }]
+  ruleSuffix := "recorded-workflow-type" }
 
 /-- The checked typed unary declaration lowered to the closed Case format. -/
 def typedUnaryCase : Except Umpire.Case.Compiler.Error
     temporal.server.api.testpilot.v1.Case := do
   let model ← checked.mapError fun _ =>
-    compilerError propertyId.value "checked-typed-unary"
+    { sourceDefinitionId := propertyId.value, source, construct := "checked-typed-unary" }
   let history ← historyBinding.mapError fun _ =>
-    compilerError historyMethod.fullName "checked-history-binding"
+    { sourceDefinitionId := historyMethod.fullName, source, construct := "checked-history-binding" }
   let checkedProperty := model.property.property
-  let propertyBinding := binding checkedProperty.id.value
-    checkedProperty.behaviorFingerprint.render .«property»
-  let rule ← (startedRule checkedProperty).mapError fun reason =>
-    compilerError clauseId.value reason
+  let lowered ← Umpire.Case.Projection.lower model.property observation realization
   Umpire.Case.Compiler.compile {
     version := { major := 1 }
     caseId := "temporal.case.typed-unary"
@@ -539,14 +503,14 @@ def typedUnaryCase : Except Umpire.Case.Compiler.Error
     producerVersion := "1"
     definitions := [
       binding model.target.id.value model.target.behaviorFingerprint.render .target,
-      propertyBinding]
+      binding checkedProperty.id.value checkedProperty.behaviorFingerprint.render .«property»]
     sources := [source]
     knownGaps := []
     program := program (methodPath model.template.declaration.schema) (methodPath history.schema)
     contractId := "temporal.case.typed-unary.contract"
-    properties := [.monitor propertyBinding rule]
+    properties := lowered.contractLowering.toList
     contractLimits
-    coverage
+    coverage := lowered.coverage
   }
 
 end Temporal.Feature.Nexus.Success.TypedUnary

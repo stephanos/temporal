@@ -38,6 +38,10 @@ _Avoid_: Checked Query (that is only the Query stage), planned Query, kernel
 The ordering facts, closures, and per-link support of one offline Evidence bundle or accepted trace, analyzed once and judged for one audience, the raw bundle or the accepted trace, which each report the first fault in their own precedence. It belongs to Umpire's offline Evidence, not to the Testpilot Observation a Contract inspects, and its faults say whether evidence can be ordered and closed, never whether a Property holds.
 _Avoid_: Findings, structural analysis, Observation structure
 
+**Derived rule**:
+One monitor Rule a Case carries whose read paths, comparison, presence checks and literal are derived from a checked field Property, together with the certificate that every field it reads is one the Property compares and every literal is one the Case's realization assigns. It is a single Rule of a Contract, not the Contract itself, and it lives on the model side of the seam: Testpilot evaluates it like any other Rule and never sees the Property it came from.
+_Avoid_: Authored rule, Contract (that is the set of Rules), monitor Property
+
 ## Testpilot execution
 
 **Driver**:

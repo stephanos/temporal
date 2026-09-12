@@ -1,6 +1,6 @@
 import Testpilot.Authoring
 import Umpire.Provenance
-import Umpire.Property
+import Umpire.Case.Projection.Coordinates
 
 /-!
 Whole-Case coverage: the checked map from selected modeled fields and requested clauses onto the
@@ -17,6 +17,9 @@ Case's compiled correlated rule bindings.
 assembles anything. A requested input field with no assignment, an assignment that constructs a
 different value, an unsupported coordinate, and a requested clause that was not lowered are all
 whole-Case source-owned rejections, so no unsupported mapping can reach Driver I/O.
+
+The coordinates a mapping names are walked by `Coverage.targetPath`, the construct use of the one
+coordinate walker in `Umpire.Case.Projection.Coordinates`.
 -/
 
 namespace Umpire.Case.Coverage
@@ -69,31 +72,6 @@ def scalarValue : Operation.Scalar → Except String temporal.server.api.testpil
 exact key it is written under. -/
 abbrev Segment := String × Option temporal.server.api.testpilot.v1.Value
 
-/-- The Program field path a modeled operand's structural steps construct. Presence steps construct
-nothing: an optional field is present because the assignment supplied it, and a oneof member is
-selected because it is the one supplied. A presence read, a repeated element and a cardinality are
-readings rather than construction targets, so each rejects with that reason. -/
-def targetPath (schema : Operation.Schema) (steps : List Value.Field.Step) :
-    Except String (List Segment) := do
-  let mut segments : List Segment := []
-  for step in steps do
-    match step with
-    | .field containing number =>
-        let some field := (Value.Field.schemaFields schema).find? fun item =>
-          item.1 == containing && item.2.number == number
-          | throw ("unknown containing schema or field " ++ containing)
-        segments := segments ++ [(field.2.name, none)]
-    | .establish | .select _ => pure ()
-    | .key key =>
-        let some last := segments.getLast?
-          | throw "a map key has no containing request field"
-        if last.2.isSome then throw "duplicate map key selector"
-        segments := segments.dropLast ++ [(last.1, some (← scalarValue key))]
-    | .present => throw "a presence read is not a request assignment target"
-    | .index _ => throw "a repeated element is not a request assignment target"
-    | .cardinality => throw "a cardinality is not a request assignment target"
-  pure segments
-
 /-- Exact equality of the two constructible value forms. A value form this coverage cannot
 construct is never equal to a covered field's value. -/
 private def sameValue (left right : temporal.server.api.testpilot.v1.Value) : Bool :=
@@ -128,7 +106,7 @@ private def checkInput (program : Program) (mapping : InputMapping) : Except Str
   if mapping.path.root != .request then
     throw "input coverage names request coordinates; results and events are covered by Observations"
   if mapping.path.side != .request then throw "input coverage names the request payload"
-  let expected ← targetPath mapping.path.schema.request mapping.path.steps
+  let expected : List Segment ← targetPath mapping.path.schema.request scalarValue mapping.path.steps
   let value ← scalarValue mapping.value
   let some entrypoint := program.entrypoints.toList.find? (·.entrypoint_id == mapping.entrypointId)
     | throw ("unknown entrypoint " ++ mapping.entrypointId)

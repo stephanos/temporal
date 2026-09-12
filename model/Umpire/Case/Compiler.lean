@@ -7,7 +7,10 @@ import Umpire.KnownGap
 Umpire producer assembly for generated Testpilot Cases.
 
 Producers lower their checked semantics into generated Program and Contract values before this
-boundary. The compiler validates source-bound property rows, admits the requested whole-Case field
+boundary. A checked field Property's monitor rule arrives as `.monitor`, derived by
+`Umpire.Case.Projection.lower` together with the request coverage it implies, and a correlated
+Property arrives as `.correlated` from `Umpire.Case.Correlated.lower`; the compiler admits both side
+by side. The compiler validates source-bound property rows, admits the requested whole-Case field
 and clause coverage, preserves unsupported-lowering diagnostics, attaches exact Umpire provenance,
 and returns the generated Case without introducing a parallel protocol representation.
 -/
