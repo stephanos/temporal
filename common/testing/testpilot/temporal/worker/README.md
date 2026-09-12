@@ -13,15 +13,21 @@ worker lifecycle configuration remain caller-owned physical inputs.
 Task-queue registrations are complete before a worker starts. A registration consists of the
 allowlisted workflow types and Nexus service/operation pairs assigned to that physical queue.
 
-A Program that declares no `InjectFault` shares compatible registrations across Runs, as above. One
-that declares an `InjectFault` instruction opens a dedicated worker group keyed by its Run instead,
-so an outage this Run asks for can never reach another Run's workers. `Session.InjectFault` realizes
-`FAULT_KIND_WORKER_STOP` by stopping that group's SDK worker and suppressing its fatal-failure
-callback for the stop window, and `FAULT_KIND_WORKER_RESUME` by re-registering with the same
-structural signature; both are bounded by the instruction's own timeout. Releasing the group resumes
-a worker still stopped, and always reaches the registry, so a resume that cannot finish is reported
-as a failed cleanup rather than leaving the Run's hold behind. Tasks queued during the stop window
-wait in matching and dispatch after the resume. A transition the Driver refuses outright, or cannot
+A Program that declares no `InjectFault` shares compatible registrations across Runs, as above.
+Deliberate outages belong to the registry's `outage` module. Definition preparation calls
+`PlanOutages` once, and `Validate` and `Open` read the same `OutagePlan`: it resolves each fault's
+task-queue role to its queue and refuses a fault on a queue no entrypoint of the Program registers a
+worker on. A plan that declares a fault `Requires` a dedicated worker group keyed by its Run instead,
+so an outage this Run asks for can never reach another Run's workers. `Session.InjectFault` asks the
+Run's `Outage` to `Begin` the transition, which records it under the registry lock and returns the
+`Settle` the effect handle's `Wait` runs: `FAULT_KIND_WORKER_STOP` stops that group's SDK worker and
+suppresses its fatal-failure callback for the stop window, and `FAULT_KIND_WORKER_RESUME`
+re-registers with the same structural signature; both are bounded by the instruction's own timeout.
+A second transition in the same direction conflicts, and a fault on a group that is not dedicated is
+an unsupported operation. Closing the Session calls `Restore`, which refuses any transition it did
+not start, resumes a worker still stopped, and always reaches the registry, so a resume that cannot
+finish is reported as a failed cleanup rather than leaving the Run's hold behind. Tasks queued
+during the stop window wait in matching and dispatch after the resume. A transition the Driver refuses outright, or cannot
 complete, is a failed instruction outcome plus a Driver invariant diagnostic: the Run records that
 the fault was requested and not realized, and the Verdict is left to the Contract.
 The workflow implementation receives arbitrary SDK arguments through `converter.EncodedValues`,
