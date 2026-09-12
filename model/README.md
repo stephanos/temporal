@@ -181,7 +181,7 @@ Lowering is checked in both directions before any Driver I/O. `Umpire.Case.Cover
 modeled input field to the exact request assignment that constructs it, so a Program that stopped
 constructing a covered field rejects the whole Case; `Umpire.Case.Projection.lower` derives the
 monitor rule from the checked Property -- the read path of each observed operand from the declared
-Observation's own message, the comparison, the presence checks and the literal the Program assigns
+Observation's own message, the comparison and the literal the Program assigns
 -- so moving a coordinate in the Property moves the runtime read with it.
 
 Two authored examples carry this end to end:
