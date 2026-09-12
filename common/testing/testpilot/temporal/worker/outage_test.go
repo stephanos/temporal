@@ -85,7 +85,7 @@ func programDefinitionFor(t *testing.T, program testpilot.PreparedProgram) progr
 	return definition
 }
 
-func transition(ctx context.Context, outage *Outage, roleID string, kind testpilotspb.FaultKind) error {
+func beginAndSettle(ctx context.Context, outage *Outage, roleID string, kind testpilotspb.FaultKind) error {
 	settle, err := outage.Begin(ctx, roleID, kind)
 	if err != nil {
 		return err
@@ -149,7 +149,7 @@ func TestPreparedDefinitionPlansOutages(t *testing.T) {
 			// The declared role binds the queue the prepared role resolves to.
 			factory := &recordingFactory{}
 			outage := openOutage(t, newWorkerRegistry(2, factory.build), "run", program, nil)
-			require.NoError(t, transition(t.Context(), outage, "queue", testpilotspb.FAULT_KIND_WORKER_STOP))
+			require.NoError(t, beginAndSettle(t.Context(), outage, "queue", testpilotspb.FAULT_KIND_WORKER_STOP))
 			requireStopped(t, outage, faultQueue)
 			require.NoError(t, outage.Restore(t.Context()))
 		})
@@ -184,7 +184,7 @@ func TestFaultRunHoldsItsOwnWorkerGroup(t *testing.T) {
 
 	// Two pooled Runs share one worker; the fault Run built its own.
 	require.Equal(t, 2, factory.count())
-	require.NoError(t, transition(t.Context(), fault, "queue", testpilotspb.FAULT_KIND_WORKER_STOP))
+	require.NoError(t, beginAndSettle(t.Context(), fault, "queue", testpilotspb.FAULT_KIND_WORKER_STOP))
 	// The stop reached only the fault Run's own worker.
 	require.Equal(t, 1, factory.workers[groupKey("fault", faultQueue, true)][0].stops)
 	require.Zero(t, factory.workers[faultQueue][0].stops)
@@ -209,8 +209,8 @@ func TestFaultStopAndResumeKeepTheSameRegistration(t *testing.T) {
 	})
 	outage := openOutage(t, registry, "fault", preparedSymbolicRuntimeFixture(t, faultModifiers()...), nil)
 
-	require.NoError(t, transition(t.Context(), outage, "queue", testpilotspb.FAULT_KIND_WORKER_STOP))
-	require.NoError(t, transition(t.Context(), outage, "queue", testpilotspb.FAULT_KIND_WORKER_RESUME))
+	require.NoError(t, beginAndSettle(t.Context(), outage, "queue", testpilotspb.FAULT_KIND_WORKER_STOP))
+	require.NoError(t, beginAndSettle(t.Context(), outage, "queue", testpilotspb.FAULT_KIND_WORKER_RESUME))
 	requireStopped(t, outage)
 	require.Len(t, registrations, 2)
 	require.True(t, registrations[0].compatible(registrations[1]))
@@ -218,7 +218,7 @@ func TestFaultStopAndResumeKeepTheSameRegistration(t *testing.T) {
 	// Both transitions are invariants, not idempotent requests.
 	_, err := outage.Begin(t.Context(), "queue", testpilotspb.FAULT_KIND_WORKER_RESUME)
 	require.ErrorIs(t, err, ErrRegistrationConflict)
-	require.NoError(t, transition(t.Context(), outage, "queue", testpilotspb.FAULT_KIND_WORKER_STOP))
+	require.NoError(t, beginAndSettle(t.Context(), outage, "queue", testpilotspb.FAULT_KIND_WORKER_STOP))
 	_, err = outage.Begin(t.Context(), "queue", testpilotspb.FAULT_KIND_WORKER_STOP)
 	require.ErrorIs(t, err, ErrRegistrationConflict)
 	requireStopped(t, outage, faultQueue)
@@ -236,12 +236,12 @@ func TestFaultStopSuppressesTheFatalPath(t *testing.T) {
 	})
 	outage := openOutage(t, registry, "fault", preparedSymbolicRuntimeFixture(t, faultModifiers()...), func(queue string, _ error) { failures <- queue })
 
-	require.NoError(t, transition(t.Context(), outage, "queue", testpilotspb.FAULT_KIND_WORKER_STOP))
+	require.NoError(t, beginAndSettle(t.Context(), outage, "queue", testpilotspb.FAULT_KIND_WORKER_STOP))
 	registry.fail(keys[0], errors.New("worker stopped"))
 	require.Empty(t, failures)
 
 	// The swallowed failure was not recorded either, or this one would be dropped as a repeat.
-	require.NoError(t, transition(t.Context(), outage, "queue", testpilotspb.FAULT_KIND_WORKER_RESUME))
+	require.NoError(t, beginAndSettle(t.Context(), outage, "queue", testpilotspb.FAULT_KIND_WORKER_RESUME))
 	registry.fail(keys[1], errors.New("real failure"))
 	require.Equal(t, faultQueue, <-failures)
 	require.NoError(t, outage.Restore(t.Context()))
@@ -256,7 +256,7 @@ func TestFaultStopHonorsTheInstructionDeadline(t *testing.T) {
 	outage := openOutage(t, registry, "fault", preparedSymbolicRuntimeFixture(t, faultModifiers()...), nil)
 	ctx, cancel := context.WithTimeout(t.Context(), 20*time.Millisecond)
 	defer cancel()
-	require.ErrorIs(t, transition(ctx, outage, "queue", testpilotspb.FAULT_KIND_WORKER_STOP), context.DeadlineExceeded)
+	require.ErrorIs(t, beginAndSettle(ctx, outage, "queue", testpilotspb.FAULT_KIND_WORKER_STOP), context.DeadlineExceeded)
 }
 
 // Restore is the cleanup boundary: a stopped worker is resumed before the group goes away, a resume
@@ -286,9 +286,9 @@ func TestFaultRestoreResumesBeforeReleasing(t *testing.T) {
 			}}
 			registry := newWorkerRegistry(2, factory.build)
 			outage := openOutage(t, registry, "fault", program, nil)
-			require.NoError(t, transition(t.Context(), outage, "queue", testpilotspb.FAULT_KIND_WORKER_STOP))
+			require.NoError(t, beginAndSettle(t.Context(), outage, "queue", testpilotspb.FAULT_KIND_WORKER_STOP))
 			if tc.failedFirst {
-				require.ErrorIs(t, transition(t.Context(), outage, "queue", testpilotspb.FAULT_KIND_WORKER_RESUME), startErr)
+				require.ErrorIs(t, beginAndSettle(t.Context(), outage, "queue", testpilotspb.FAULT_KIND_WORKER_RESUME), startErr)
 				requireStopped(t, outage, faultQueue)
 			}
 
@@ -326,7 +326,7 @@ func TestFaultTransitionsTheNamedQueue(t *testing.T) {
 	factory := &recordingFactory{}
 	outage := openOutage(t, newWorkerRegistry(4, factory.build), "fault", program, nil)
 	require.Equal(t, 2, factory.count())
-	require.NoError(t, transition(t.Context(), outage, "other", testpilotspb.FAULT_KIND_WORKER_STOP))
+	require.NoError(t, beginAndSettle(t.Context(), outage, "other", testpilotspb.FAULT_KIND_WORKER_STOP))
 	requireStopped(t, outage, "other-queue")
 	require.Equal(t, 1, factory.workers[groupKey("fault", "other-queue", true)][0].stops)
 	require.Zero(t, factory.workers[groupKey("fault", faultQueue, true)][0].stops)
@@ -352,16 +352,16 @@ func TestFaultResumeRecordsTheStartedWorkerEvenWhenTheDeadlinePasses(t *testing.
 		return nil
 	}}
 	outage := openOutage(t, newWorkerRegistry(2, factory.build), "fault", preparedSymbolicRuntimeFixture(t, faultModifiers()...), nil)
-	require.NoError(t, transition(t.Context(), outage, "queue", testpilotspb.FAULT_KIND_WORKER_STOP))
+	require.NoError(t, beginAndSettle(t.Context(), outage, "queue", testpilotspb.FAULT_KIND_WORKER_STOP))
 
 	ctx, cancel := context.WithTimeout(t.Context(), 20*time.Millisecond)
 	defer cancel()
 	go func() { <-ctx.Done(); close(slow) }()
-	require.ErrorIs(t, transition(ctx, outage, "queue", testpilotspb.FAULT_KIND_WORKER_RESUME), context.DeadlineExceeded)
+	require.ErrorIs(t, beginAndSettle(ctx, outage, "queue", testpilotspb.FAULT_KIND_WORKER_RESUME), context.DeadlineExceeded)
 	requireStopped(t, outage)
 
 	// The next stop reaches the worker the resume started, not the one it replaced.
-	require.NoError(t, transition(t.Context(), outage, "queue", testpilotspb.FAULT_KIND_WORKER_STOP))
+	require.NoError(t, beginAndSettle(t.Context(), outage, "queue", testpilotspb.FAULT_KIND_WORKER_STOP))
 	workers := factory.workers[groupKey("fault", faultQueue, true)]
 	require.Len(t, workers, 2)
 	require.Equal(t, 1, workers[0].stops)
@@ -388,8 +388,8 @@ func TestFaultTransitionsAreSafeBesidePeerAcquisitions(t *testing.T) {
 		}()
 	}
 	for range 4 {
-		require.NoError(t, transition(t.Context(), outage, "queue", testpilotspb.FAULT_KIND_WORKER_STOP))
-		require.NoError(t, transition(t.Context(), outage, "queue", testpilotspb.FAULT_KIND_WORKER_RESUME))
+		require.NoError(t, beginAndSettle(t.Context(), outage, "queue", testpilotspb.FAULT_KIND_WORKER_STOP))
+		require.NoError(t, beginAndSettle(t.Context(), outage, "queue", testpilotspb.FAULT_KIND_WORKER_RESUME))
 	}
 	for range 8 {
 		require.NoError(t, <-peers)
@@ -410,11 +410,11 @@ func TestFaultResumeRacingRestoreStopsTheOrphanedWorker(t *testing.T) {
 		return nil
 	}}
 	outage := openOutage(t, newWorkerRegistry(2, factory.build), "fault", preparedSymbolicRuntimeFixture(t, faultModifiers()...), nil)
-	require.NoError(t, transition(t.Context(), outage, "queue", testpilotspb.FAULT_KIND_WORKER_STOP))
+	require.NoError(t, beginAndSettle(t.Context(), outage, "queue", testpilotspb.FAULT_KIND_WORKER_STOP))
 
 	resumed := make(chan error, 1)
 	go func() {
-		resumed <- transition(context.Background(), outage, "queue", testpilotspb.FAULT_KIND_WORKER_RESUME)
+		resumed <- beginAndSettle(context.Background(), outage, "queue", testpilotspb.FAULT_KIND_WORKER_RESUME)
 	}()
 	<-starting
 	require.NoError(t, outage.Restore(t.Context()))
@@ -438,7 +438,7 @@ func TestFaultBeginAfterRestoreBeganFlipsNothing(t *testing.T) {
 		return nil
 	}}
 	outage := openOutage(t, newWorkerRegistry(2, factory.build), "fault", preparedSymbolicRuntimeFixture(t, faultModifiers()...), nil)
-	require.NoError(t, transition(t.Context(), outage, "queue", testpilotspb.FAULT_KIND_WORKER_STOP))
+	require.NoError(t, beginAndSettle(t.Context(), outage, "queue", testpilotspb.FAULT_KIND_WORKER_STOP))
 
 	restored := make(chan error, 1)
 	go func() { restored <- outage.Restore(context.Background()) }()

@@ -27,9 +27,10 @@ A second transition in the same direction conflicts, and a fault on a group that
 an unsupported operation. Closing the Session calls `Restore`, which refuses any transition it did
 not start, resumes a worker still stopped, and always reaches the registry, so a resume that cannot
 finish is reported as a failed cleanup rather than leaving the Run's hold behind. Tasks queued
-during the stop window wait in matching and dispatch after the resume. A transition the Driver refuses outright, or cannot
-complete, is a failed instruction outcome plus a Driver invariant diagnostic: the Run records that
-the fault was requested and not realized, and the Verdict is left to the Contract.
+during the stop window wait in matching and dispatch after the resume. A transition the Driver
+refuses outright, or cannot complete, is a failed instruction outcome plus a Driver invariant
+diagnostic: the Run records that the fault was requested and not realized, and the Verdict is left
+to the Contract.
 The workflow implementation receives arbitrary SDK arguments through `converter.EncodedValues`,
 then rejects workflow types outside that allowlist before reservation admission.
 
