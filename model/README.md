@@ -243,7 +243,7 @@ The Testpilot `.proto` files own the Case protocol. `common/testing/testpilot` o
 Profile, Driver, and two-call facade. The Session, handle, coordinate, role-policy, and Opcode types
 that facade exposes are aliases of its `common/testing/testpilot/contract` leaf, which private execution
 shares, so no translated copy of the Driver contract exists.
-Its private execution package owns scheduling, recording, effect lifecycle, private Slot state,
+Testpilot's private execution package owns scheduling, recording, effect lifecycle, private Slot state,
 and bounded cleanup. Its private verification package owns Contract preparation, fresh Run-local
 Monitors, and offline evaluation. Umpire owns its semantic model and opaque provenance payload;
 each Lean Producer owns its checked lowering, the shared compiler completes Umpire-backed Case

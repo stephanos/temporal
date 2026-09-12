@@ -122,8 +122,8 @@ node order, then workflow ordinal; handler ordinals count within the declared ha
 Missing, ambiguous, crossed or count-mismatched routes reject before Driver I/O.
 
 `PreparedProgram.ReservationCarrier` is the immutable Driver seam and returns a
-`contract.ReservationCarrierPlan` from the `common/testing/testpilot/contract` leaf. Its exact reservation topology lets
-the Driver bind returned reservation identities by entrypoint and ordinal without scanning source
+`contract.ReservationCarrierPlan` from the `common/testing/testpilot/contract` leaf. Its exact
+reservation topology lets the Driver bind returned reservation identities by entrypoint and ordinal without scanning source
 instructions per Run. Its routes bind workflow entrypoint and ordinal plus the prepared SDK source to
 the corresponding handler entrypoint and ordinal. Both returned slices are independent copies; the
 compiled lookup remains shared and read-only across Runs.
@@ -139,8 +139,8 @@ without a consumer, while uncooperative Driver waits require quarantine and cann
 
 Worker adapters use the root `EntrypointPlan.RuntimeWorkLimit` and `InstructionPlan` methods
 `OutcomeType`, `EvaluateInput` and `ValidateOutcome`. `OutcomeType` returns a cloned declared schema;
-`ValidateOutcome` returns an activation-owned `contract.OutcomeSnapshot` with independently copied outcome and
-declared fields. Mutating those results cannot mutate the plan or a subsequent validation result.
+`ValidateOutcome` returns an activation-owned `contract.OutcomeSnapshot` with independently copied
+outcome and declared fields. Mutating those results cannot mutate the plan or a subsequent validation result.
 StartNexusOperation cannot declare VALUE because its SDK future is an opaque runtime handle; Await
 validates the target result against its declared VALUE type. Finish and every RespondNexus variant
 retain their evaluated result expressions and may declare their typed VALUE.
