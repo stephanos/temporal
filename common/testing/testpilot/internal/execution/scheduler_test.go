@@ -9,26 +9,27 @@ import (
 
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/testing/testpilot/contract"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 type schedulerHost struct {
-	Session
-	bridge   CapabilityBridge
-	complete func(context.Context, Coordinate, OpaqueCapability, *testpilotspb.Value) (EffectHandle, error)
-	invoke   func(context.Context, Coordinate, proto.Message) (EffectHandle, error)
-	reserve  func(context.Context, ReservationRequest) ([]ReservationHandle, error)
-	fault    func(context.Context, Coordinate, string, testpilotspb.FaultKind) (EffectHandle, error)
+	contract.Session
+	bridge   contract.CapabilityBridge
+	complete func(context.Context, contract.Coordinate, contract.OpaqueCapability, *testpilotspb.Value) (contract.EffectHandle, error)
+	invoke   func(context.Context, contract.Coordinate, proto.Message) (contract.EffectHandle, error)
+	reserve  func(context.Context, contract.ReservationRequest) ([]contract.ReservationHandle, error)
+	fault    func(context.Context, contract.Coordinate, string, testpilotspb.FaultKind) (contract.EffectHandle, error)
 }
 
-func (h *schedulerHost) InvokeRPC(ctx context.Context, c Coordinate, _ string, _ protoreflect.MethodDescriptor, m proto.Message) (EffectHandle, error) {
+func (h *schedulerHost) InvokeRPC(ctx context.Context, c contract.Coordinate, _ string, _ protoreflect.MethodDescriptor, m proto.Message) (contract.EffectHandle, error) {
 	return h.invoke(ctx, c, m)
 }
-func (h *schedulerHost) Reserve(ctx context.Context, r ReservationRequest) ([]ReservationHandle, error) {
+func (h *schedulerHost) Reserve(ctx context.Context, r contract.ReservationRequest) ([]contract.ReservationHandle, error) {
 	return h.reserve(ctx, r)
 }
-func (h *schedulerHost) InjectFault(ctx context.Context, c Coordinate, roleID string, kind testpilotspb.FaultKind) (EffectHandle, error) {
+func (h *schedulerHost) InjectFault(ctx context.Context, c contract.Coordinate, roleID string, kind testpilotspb.FaultKind) (contract.EffectHandle, error) {
 	return h.fault(ctx, c, roleID, kind)
 }
 func (*schedulerHost) Diagnose(context.Context, string, *testpilotspb.RunDiagnostic) error {
@@ -36,11 +37,13 @@ func (*schedulerHost) Diagnose(context.Context, string, *testpilotspb.RunDiagnos
 }
 
 type schedulerEffect struct {
-	EffectHandle
-	wait func(context.Context) (EffectResult, error)
+	contract.EffectHandle
+	wait func(context.Context) (contract.EffectResult, error)
 }
 
-func (h *schedulerEffect) Wait(ctx context.Context) (EffectResult, error) { return h.wait(ctx) }
+func (h *schedulerEffect) Wait(ctx context.Context) (contract.EffectResult, error) {
+	return h.wait(ctx)
+}
 
 type schedulerMonitor struct {
 	Monitor
@@ -55,9 +58,9 @@ func (m schedulerMonitor) Observe(_ context.Context, e *testpilotspb.RunEvent) (
 }
 func TestSchedulerProjectsActualValues(t *testing.T) {
 	p, _, _ := dataFixture(t)
-	h := &schedulerHost{invoke: func(_ context.Context, c Coordinate, _ proto.Message) (EffectHandle, error) {
+	h := &schedulerHost{invoke: func(_ context.Context, c contract.Coordinate, _ proto.Message) (contract.EffectHandle, error) {
 		require.Equal(t, int64(1), c.Attempt)
-		return &schedulerEffect{wait: func(context.Context) (EffectResult, error) { return effectResponse(p, "kept"), nil }}, nil
+		return &schedulerEffect{wait: func(context.Context) (contract.EffectResult, error) { return effectResponse(p, "kept"), nil }}, nil
 	}}
 	s, err := newScheduler(p, "run", "case", h, schedulerMonitor{}, time.Now)
 	require.NoError(t, err)
@@ -83,16 +86,16 @@ func TestSchedulerDependencyConcurrencyGuardsAndIsolation(t *testing.T) {
 	require.NoError(t, err)
 	for _, run := range []string{"one", "two"} {
 		t.Run(run, func(t *testing.T) {
-			calls := make(chan Coordinate, 3)
+			calls := make(chan contract.Coordinate, 3)
 			release := make(chan struct{})
-			host := &schedulerHost{invoke: func(_ context.Context, c Coordinate, _ proto.Message) (EffectHandle, error) {
+			host := &schedulerHost{invoke: func(_ context.Context, c contract.Coordinate, _ proto.Message) (contract.EffectHandle, error) {
 				calls <- c
-				return &schedulerEffect{wait: func(ctx context.Context) (EffectResult, error) {
+				return &schedulerEffect{wait: func(ctx context.Context) (contract.EffectResult, error) {
 					select {
 					case <-release:
 						return effectResponse(p, "ok"), nil
 					case <-ctx.Done():
-						return EffectResult{}, ctx.Err()
+						return contract.EffectResult{}, ctx.Err()
 					}
 				}}, nil
 			}}
@@ -115,12 +118,14 @@ func TestSchedulerDependencyConcurrencyGuardsAndIsolation(t *testing.T) {
 
 type schedulerReservation struct {
 	schedulerEffect
-	identity   ReservationIdentity
-	activation Coordinate
+	identity   contract.ReservationIdentity
+	activation contract.Coordinate
 }
 
-func (h *schedulerReservation) Identity() ReservationIdentity               { return h.identity }
-func (h *schedulerReservation) Consume(context.Context) (Coordinate, error) { return h.activation, nil }
+func (h *schedulerReservation) Identity() contract.ReservationIdentity { return h.identity }
+func (h *schedulerReservation) Consume(context.Context) (contract.Coordinate, error) {
+	return h.activation, nil
+}
 func TestSchedulerReservationsRetainEveryHandle(t *testing.T) {
 	for _, mode := range []string{"exact", "partial", "error", "nil", "duplicate-id", "duplicate-ordinal", "crossed", "effect-error"} {
 		t.Run(mode, func(t *testing.T) {
@@ -129,14 +134,14 @@ func TestSchedulerReservationsRetainEveryHandle(t *testing.T) {
 			c.Program.Entrypoints[0].Instructions[0].ActivationReservations = []*testpilotspb.ActivationReservationDefinition{{EntrypointId: "workflow", Count: 2}}
 			p, err := Prepare(c, catalog, policy)
 			require.NoError(t, err)
-			accepted := []EffectHandle{}
+			accepted := []contract.EffectHandle{}
 			calls := 0
 			host := &schedulerHost{}
-			host.reserve = func(_ context.Context, r ReservationRequest) ([]ReservationHandle, error) {
-				result := []ReservationHandle{}
+			host.reserve = func(_ context.Context, r contract.ReservationRequest) ([]contract.ReservationHandle, error) {
+				result := []contract.ReservationHandle{}
 				for i := int64(0); i < 2; i++ {
-					h := &schedulerReservation{identity: ReservationIdentity{Origin: r.Origin, EntrypointID: r.EntrypointID, Ordinal: i, ID: fmt.Sprintf("reservation.%d", i)}, activation: Coordinate{RunID: r.Origin.RunID, EntrypointID: r.EntrypointID, ActivationID: fmt.Sprintf("actual-worker.%d", i)}, schedulerEffect: schedulerEffect{wait: func(context.Context) (EffectResult, error) {
-						return EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}}, nil
+					h := &schedulerReservation{identity: contract.ReservationIdentity{Origin: r.Origin, EntrypointID: r.EntrypointID, Ordinal: i, ID: fmt.Sprintf("reservation.%d", i)}, activation: contract.Coordinate{RunID: r.Origin.RunID, EntrypointID: r.EntrypointID, ActivationID: fmt.Sprintf("actual-worker.%d", i)}, schedulerEffect: schedulerEffect{wait: func(context.Context) (contract.EffectResult, error) {
+						return contract.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}}, nil
 					}}}
 					if i == 1 {
 						switch mode {
@@ -161,9 +166,9 @@ func TestSchedulerReservationsRetainEveryHandle(t *testing.T) {
 				}
 				return result, nil
 			}
-			host.invoke = func(context.Context, Coordinate, proto.Message) (EffectHandle, error) {
+			host.invoke = func(context.Context, contract.Coordinate, proto.Message) (contract.EffectHandle, error) {
 				calls++
-				h := &schedulerEffect{wait: func(context.Context) (EffectResult, error) { return effectResponse(p, "ok"), nil }}
+				h := &schedulerEffect{wait: func(context.Context) (contract.EffectResult, error) { return effectResponse(p, "ok"), nil }}
 				accepted = append(accepted, h)
 				if mode == "effect-error" {
 					return h, errors.New("partial effect")
@@ -209,16 +214,16 @@ func TestSchedulerTimeoutAndProtocolBranches(t *testing.T) {
 			p, err := Prepare(c, catalog, policy)
 			require.NoError(t, err)
 			calls := 0
-			host := &schedulerHost{invoke: func(_ context.Context, c Coordinate, _ proto.Message) (EffectHandle, error) {
+			host := &schedulerHost{invoke: func(_ context.Context, c contract.Coordinate, _ proto.Message) (contract.EffectHandle, error) {
 				calls++
-				return &schedulerEffect{wait: func(context.Context) (EffectResult, error) {
+				return &schedulerEffect{wait: func(context.Context) (contract.EffectResult, error) {
 					if c.InstructionID == "branch" {
 						return effectResponse(p, "ok"), nil
 					}
 					if status == testpilotspb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT {
-						return EffectResult{}, context.DeadlineExceeded
+						return contract.EffectResult{}, context.DeadlineExceeded
 					}
-					return EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: status, ProtocolCode: "unavailable"}}, nil
+					return contract.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: status, ProtocolCode: "unavailable"}}, nil
 				}}, nil
 			}}
 			s, err := newScheduler(p, "run", "case", host, schedulerMonitor{}, time.Now)
@@ -234,12 +239,12 @@ func TestSchedulerStopDuringAcceptanceRetainsBeforePublication(t *testing.T) {
 	accepted := make(chan struct{})
 	release := make(chan struct{})
 	waiting := make(chan struct{})
-	handle := &schedulerEffect{wait: func(ctx context.Context) (EffectResult, error) {
+	handle := &schedulerEffect{wait: func(ctx context.Context) (contract.EffectResult, error) {
 		close(waiting)
 		<-ctx.Done()
-		return EffectResult{}, ctx.Err()
+		return contract.EffectResult{}, ctx.Err()
 	}}
-	host := &schedulerHost{invoke: func(context.Context, Coordinate, proto.Message) (EffectHandle, error) {
+	host := &schedulerHost{invoke: func(context.Context, contract.Coordinate, proto.Message) (contract.EffectHandle, error) {
 		close(accepted)
 		<-release
 		return handle, nil
@@ -266,9 +271,9 @@ func TestSchedulerStopDuringAcceptanceRetainsBeforePublication(t *testing.T) {
 	}()
 	close(release)
 	<-stopped
-	require.Equal(t, []EffectHandle{handle}, s.outstanding())
+	require.Equal(t, []contract.EffectHandle{handle}, s.outstanding())
 	<-waiting
-	require.Error(t, s.recorder.admit(ctx, func(context.Context) ([]EffectHandle, error) { panic("post Stop admission") }, s.retain))
+	require.Error(t, s.recorder.admit(ctx, func(context.Context) ([]contract.EffectHandle, error) { panic("post Stop admission") }, s.retain))
 	require.NoError(t, <-done)
 	cancel()
 	s.waits.Wait()
@@ -290,9 +295,9 @@ func TestSchedulerRequestsSlotsFanoutAndClosure(t *testing.T) {
 	c.Program.Entrypoints[0].Instructions = append(c.Program.Entrypoints[0].Instructions, wait)
 	p, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
-	h := &schedulerHost{invoke: func(_ context.Context, _ Coordinate, m proto.Message) (EffectHandle, error) {
+	h := &schedulerHost{invoke: func(_ context.Context, _ contract.Coordinate, m proto.Message) (contract.EffectHandle, error) {
 		require.Equal(t, "constructed", m.ProtoReflect().Get(m.ProtoReflect().Descriptor().Fields().ByName("text")).String())
-		return &schedulerEffect{wait: func(context.Context) (EffectResult, error) {
+		return &schedulerEffect{wait: func(context.Context) (contract.EffectResult, error) {
 			r := effectResponse(p, "slot")
 			message := r.Response.ProtoReflect()
 			items := message.Mutable(message.Descriptor().Fields().ByName("items")).List()
@@ -397,15 +402,17 @@ func TestSchedulerMalformedAndLimitFailures(t *testing.T) {
 			}
 			p, err := Prepare(c, catalog, policy)
 			require.NoError(t, err)
-			h := &schedulerHost{invoke: func(context.Context, Coordinate, proto.Message) (EffectHandle, error) {
-				return &schedulerEffect{wait: func(context.Context) (EffectResult, error) {
+			h := &schedulerHost{invoke: func(context.Context, contract.Coordinate, proto.Message) (contract.EffectHandle, error) {
+				return &schedulerEffect{wait: func(context.Context) (contract.EffectResult, error) {
 					if mode == "malformed" {
-						return EffectResult{}, nil
+						return contract.EffectResult{}, nil
 					}
 					return effectResponse(p, "ok"), nil
 				}}, nil
-			}, reserve: func(_ context.Context, r ReservationRequest) ([]ReservationHandle, error) {
-				return []ReservationHandle{&schedulerReservation{identity: ReservationIdentity{Origin: r.Origin, EntrypointID: r.EntrypointID, ID: "reservation"}, schedulerEffect: schedulerEffect{wait: func(context.Context) (EffectResult, error) { return EffectResult{}, errors.New("shared worker failed") }}}}, nil
+			}, reserve: func(_ context.Context, r contract.ReservationRequest) ([]contract.ReservationHandle, error) {
+				return []contract.ReservationHandle{&schedulerReservation{identity: contract.ReservationIdentity{Origin: r.Origin, EntrypointID: r.EntrypointID, ID: "reservation"}, schedulerEffect: schedulerEffect{wait: func(context.Context) (contract.EffectResult, error) {
+					return contract.EffectResult{}, errors.New("shared worker failed")
+				}}}}, nil
 			}}
 			s, err := newScheduler(p, "run", "case", h, schedulerMonitor{}, time.Now)
 			require.NoError(t, err)
@@ -424,15 +431,17 @@ func TestSchedulerMalformedAndLimitFailures(t *testing.T) {
 	}
 }
 
-func (h *schedulerHost) Bridge(context.Context) (CapabilityBridge, error) { return h.bridge, nil }
-func (h *schedulerHost) InvokeCapability(ctx context.Context, c Coordinate, capability OpaqueCapability, input proto.Message) (EffectHandle, error) {
+func (h *schedulerHost) Bridge(context.Context) (contract.CapabilityBridge, error) {
+	return h.bridge, nil
+}
+func (h *schedulerHost) InvokeCapability(ctx context.Context, c contract.Coordinate, capability contract.OpaqueCapability, input proto.Message) (contract.EffectHandle, error) {
 	return h.complete(ctx, c, capability, input.(*testpilotspb.Value))
 }
 
 type schedulerBridge struct {
-	CapabilityBridge
+	contract.CapabilityBridge
 	ready      chan struct{}
-	capability OpaqueCapability
+	capability contract.OpaqueCapability
 }
 
 func (b *schedulerBridge) Await(ctx context.Context, _ string) error {
@@ -443,7 +452,7 @@ func (b *schedulerBridge) Await(ctx context.Context, _ string) error {
 		return nil
 	}
 }
-func (b *schedulerBridge) Consume(context.Context, string) (OpaqueCapability, error) {
+func (b *schedulerBridge) Consume(context.Context, string) (contract.OpaqueCapability, error) {
 	return b.capability, nil
 }
 func TestSchedulerOpaqueReadinessAndCompletion(t *testing.T) {
@@ -462,23 +471,23 @@ func TestSchedulerOpaqueReadinessAndCompletion(t *testing.T) {
 			if mode == "nil-capability" {
 				bridge.capability = (*struct{})(nil)
 			}
-			h.reserve = func(_ context.Context, r ReservationRequest) ([]ReservationHandle, error) {
-				return []ReservationHandle{&schedulerReservation{identity: ReservationIdentity{Origin: r.Origin, EntrypointID: r.EntrypointID, ID: r.EntrypointID}, schedulerEffect: schedulerEffect{wait: func(context.Context) (EffectResult, error) {
-					return EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}}, nil
+			h.reserve = func(_ context.Context, r contract.ReservationRequest) ([]contract.ReservationHandle, error) {
+				return []contract.ReservationHandle{&schedulerReservation{identity: contract.ReservationIdentity{Origin: r.Origin, EntrypointID: r.EntrypointID, ID: r.EntrypointID}, schedulerEffect: schedulerEffect{wait: func(context.Context) (contract.EffectResult, error) {
+					return contract.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}}, nil
 				}}}}, nil
 			}
-			h.invoke = func(context.Context, Coordinate, proto.Message) (EffectHandle, error) {
+			h.invoke = func(context.Context, contract.Coordinate, proto.Message) (contract.EffectHandle, error) {
 				close(ready)
-				return &schedulerEffect{wait: func(context.Context) (EffectResult, error) { return effectResponse(p, "ok"), nil }}, nil
+				return &schedulerEffect{wait: func(context.Context) (contract.EffectResult, error) { return effectResponse(p, "ok"), nil }}, nil
 			}
 			completed := false
-			h.complete = func(_ context.Context, c Coordinate, got OpaqueCapability, input *testpilotspb.Value) (EffectHandle, error) {
+			h.complete = func(_ context.Context, c contract.Coordinate, got contract.OpaqueCapability, input *testpilotspb.Value) (contract.EffectHandle, error) {
 				require.Equal(t, capability, got)
 				require.Equal(t, "done", input.GetText())
 				require.Equal(t, "complete", c.InstructionID)
 				completed = true
-				return &schedulerEffect{wait: func(context.Context) (EffectResult, error) {
-					return EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}}, nil
+				return &schedulerEffect{wait: func(context.Context) (contract.EffectResult, error) {
+					return contract.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}}, nil
 				}}, nil
 			}
 			s, err := newScheduler(p, "run", "case", h, schedulerMonitor{}, time.Now)
@@ -503,7 +512,9 @@ func TestSchedulerStopPreventsTriggerAndReservations(t *testing.T) {
 	c.Program.Entrypoints[0].Instructions[0].ActivationReservations = []*testpilotspb.ActivationReservationDefinition{{EntrypointId: "workflow", Count: 1}}
 	p, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
-	h := &schedulerHost{invoke: func(context.Context, Coordinate, proto.Message) (EffectHandle, error) { panic("effect crossed Stop") }, reserve: func(context.Context, ReservationRequest) ([]ReservationHandle, error) {
+	h := &schedulerHost{invoke: func(context.Context, contract.Coordinate, proto.Message) (contract.EffectHandle, error) {
+		panic("effect crossed Stop")
+	}, reserve: func(context.Context, contract.ReservationRequest) ([]contract.ReservationHandle, error) {
 		panic("reservation crossed Stop")
 	}}
 	s, err := newScheduler(p, "run", "case", h, schedulerMonitor{observe: func(e *testpilotspb.RunEvent) Decision {

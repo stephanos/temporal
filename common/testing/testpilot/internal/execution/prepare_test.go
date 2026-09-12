@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -18,7 +19,7 @@ func fixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Profile) {
 	catalog, err := ir.NewCatalog(&descriptorpb.FileDescriptorSet{File: []*descriptorpb.FileDescriptorProto{{Name: proto.String("admission.proto"), Package: proto.String("example"), Syntax: proto.String("proto3"), MessageType: []*descriptorpb.DescriptorProto{{Name: proto.String("Payload"), Field: []*descriptorpb.FieldDescriptorProto{{Name: proto.String("text"), Number: proto.Int32(1), Type: descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(), Label: descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum()}, {Name: proto.String("items"), Number: proto.Int32(2), Type: descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(), Label: descriptorpb.FieldDescriptorProto_LABEL_REPEATED.Enum()}}}}, Service: []*descriptorpb.ServiceDescriptorProto{{Name: proto.String("Service"), Method: []*descriptorpb.MethodDescriptorProto{{Name: proto.String("Call"), InputType: proto.String(".example.Payload"), OutputType: proto.String(".example.Payload")}, {Name: proto.String("Stream"), InputType: proto.String(".example.Payload"), OutputType: proto.String(".example.Payload"), ServerStreaming: proto.Bool(true)}}}}}}})
 	require.NoError(t, err)
 	limits := &testpilotspb.ProgramLimits{MaxEntrypoints: 8, MaxNodes: 32, MaxEdges: 64, MaxActivations: 64, MaxAttempts: 32, MaxRunEvents: 256, MaxExpressionDepth: 16, MaxPathFanout: 128, MaxRequestBytes: 4096, MaxResponseBytes: 4096, MaxTotalDurationMilliseconds: 30000, MaxCleanupDurationMilliseconds: 5000}
-	policy := Profile{Identity: "host", CatalogIdentity: catalog.Identity(), Roles: []RolePolicy{{ID: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT, Methods: []string{"/example.Service/Call"}, ReservationCarriers: []ReservationCarrierPolicy{{Method: "/example.Service/Call", Shapes: []ReservationCarrierShape{{Kind: testpilotspb.ENTRYPOINT_KIND_WORKFLOW, MaximumCount: 32}, {Kind: testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER, MaximumCount: 32}}}}}, {ID: "worker", Kind: testpilotspb.ROLE_KIND_WORKER}, {ID: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE}}, Opcodes: []Opcode{InvokeRPC, AwaitSlot, CompleteNexusOperation, StartNexusOperation, Await, Finish, RespondNexus}, Limits: proto.CloneOf(limits)}
+	policy := Profile{Identity: "host", CatalogIdentity: catalog.Identity(), Roles: []contract.RolePolicy{{ID: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT, Methods: []string{"/example.Service/Call"}, ReservationCarriers: []contract.ReservationCarrierPolicy{{Method: "/example.Service/Call", Shapes: []contract.ReservationCarrierShape{{Kind: testpilotspb.ENTRYPOINT_KIND_WORKFLOW, MaximumCount: 32}, {Kind: testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER, MaximumCount: 32}}}}}, {ID: "worker", Kind: testpilotspb.ROLE_KIND_WORKER}, {ID: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE}}, Opcodes: []contract.Opcode{contract.InvokeRPC, contract.AwaitSlot, contract.CompleteNexusOperation, contract.StartNexusOperation, contract.Await, contract.Finish, contract.RespondNexus}, Limits: proto.CloneOf(limits)}
 	source := &testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: 1}, CaseId: "case", Program: &testpilotspb.Program{ProgramId: "program", Roles: []*testpilotspb.RoleDefinition{{RoleId: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT}}, Entrypoints: []*testpilotspb.EntrypointDefinition{{EntrypointId: "controller", Activation: &testpilotspb.EntrypointDefinition_Controller{Controller: &testpilotspb.ControllerActivation{}}, Instructions: []*testpilotspb.InstructionDefinition{rpcNode("call")}}}, Cleanup: &testpilotspb.CleanupDefinition{EntrypointId: "cleanup"}, Limits: limits}, Contract: &testpilotspb.Contract{ContractId: "contract"}}
 	return source, catalog, policy
 }
@@ -56,7 +57,7 @@ func runIDExpression() *testpilotspb.ProgramExpression {
 }
 func addWorker(source *testpilotspb.Case, policy *Profile) {
 	source.Program.Environment = append(source.Program.Environment, &testpilotspb.EnvironmentDefinition{BindingId: "namespace"}, &testpilotspb.EnvironmentDefinition{BindingId: "queue"})
-	policy.EnvironmentBindings = append(policy.EnvironmentBindings, EnvironmentBinding{ID: "namespace", Value: "namespace"}, EnvironmentBinding{ID: "queue", Value: "queue"})
+	policy.EnvironmentBindings = append(policy.EnvironmentBindings, contract.EnvironmentBinding{ID: "namespace", Value: "namespace"}, contract.EnvironmentBinding{ID: "queue", Value: "queue"})
 	source.Program.Roles = append(source.Program.Roles, &testpilotspb.RoleDefinition{RoleId: "worker", Kind: testpilotspb.ROLE_KIND_WORKER, NamespaceBindingId: "namespace"}, &testpilotspb.RoleDefinition{RoleId: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE, NamespaceBindingId: "namespace", ResourceBindingId: "queue"})
 	source.Program.Entrypoints = append(source.Program.Entrypoints, &testpilotspb.EntrypointDefinition{EntrypointId: "workflow", Activation: &testpilotspb.EntrypointDefinition_Workflow{Workflow: &testpilotspb.WorkflowActivation{WorkflowType: "flow", WorkerRoleId: "worker", TaskQueueRoleId: "queue"}}})
 }
@@ -145,7 +146,7 @@ func TestRunIDIntrinsicIsOnlyAvailableToProgramInputs(t *testing.T) {
 		require.NoError(t, err)
 		values, err := store.activate("controller", "activation")
 		require.NoError(t, err)
-		request, enabled, _, err := values.request(t.Context(), Coordinate{
+		request, enabled, _, err := values.request(t.Context(), contract.Coordinate{
 			RunID: runID, EntrypointID: "controller", ActivationID: "activation",
 			InstructionID: "call", Attempt: 1,
 		}, prepared.graphs[0].runtimeWork)
@@ -332,7 +333,7 @@ func TestPrepareResolvesClosedEnvironmentGraph(t *testing.T) {
 		&testpilotspb.RoleDefinition{RoleId: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE, NamespaceBindingId: "namespace", ResourceBindingId: "queue"},
 	)
 	c.Program.Roles[0].ResourceBindingId = "queue"
-	policy.EnvironmentBindings = []EnvironmentBinding{{ID: "namespace", Value: "namespace-a"}, {ID: "queue", Value: "queue-a"}, {ID: "unused", Value: "allowed"}}
+	policy.EnvironmentBindings = []contract.EnvironmentBinding{{ID: "namespace", Value: "namespace-a"}, {ID: "queue", Value: "queue-a"}, {ID: "unused", Value: "allowed"}}
 	policy.EnvironmentFingerprint = "fingerprint"
 	c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{{Target: field("text"), Value: environment("namespace")}}
 
@@ -347,7 +348,7 @@ func TestPrepareResolvesClosedEnvironmentGraph(t *testing.T) {
 	require.NoError(t, err)
 	values, err := store.activate("controller", "activation")
 	require.NoError(t, err)
-	request, dispatched, _, err := values.request(t.Context(), Coordinate{RunID: "run", EntrypointID: "controller", ActivationID: "activation", InstructionID: "call", Attempt: 1}, prepared.graphs[0].runtimeWork)
+	request, dispatched, _, err := values.request(t.Context(), contract.Coordinate{RunID: "run", EntrypointID: "controller", ActivationID: "activation", InstructionID: "call", Attempt: 1}, prepared.graphs[0].runtimeWork)
 	require.NoError(t, err)
 	require.True(t, dispatched)
 	textField := request.ProtoReflect().Descriptor().Fields().ByName("text")
@@ -373,7 +374,7 @@ func TestPrepareEnvironmentVersionAndClosure(t *testing.T) {
 		"unused definition": func(c *testpilotspb.Case, p *Profile) {
 			configureEnvironmentCase(c, p)
 			c.Program.Environment = append(c.Program.Environment, &testpilotspb.EnvironmentDefinition{BindingId: "unused"})
-			p.EnvironmentBindings = append(p.EnvironmentBindings, EnvironmentBinding{ID: "unused", Value: "value"})
+			p.EnvironmentBindings = append(p.EnvironmentBindings, contract.EnvironmentBinding{ID: "unused", Value: "value"})
 		},
 		"undeclared reference": func(c *testpilotspb.Case, p *Profile) {
 			configureEnvironmentCase(c, p)
@@ -417,7 +418,7 @@ func TestPrepareEnvironmentVersionAndClosure(t *testing.T) {
 		},
 		"1.1 participant with resource": func(c *testpilotspb.Case, p *Profile) {
 			configureEnvironmentCase(c, p)
-			p.Roles = append(p.Roles, RolePolicy{ID: "participant", Kind: testpilotspb.ROLE_KIND_PARTICIPANT})
+			p.Roles = append(p.Roles, contract.RolePolicy{ID: "participant", Kind: testpilotspb.ROLE_KIND_PARTICIPANT})
 			c.Program.Roles = append(c.Program.Roles, &testpilotspb.RoleDefinition{RoleId: "participant", Kind: testpilotspb.ROLE_KIND_PARTICIPANT, ResourceBindingId: "binding"})
 		},
 	} {
@@ -431,7 +432,7 @@ func TestPrepareEnvironmentVersionAndClosure(t *testing.T) {
 }
 
 func TestPrepareRejectsMalformedEnvironmentPolicy(t *testing.T) {
-	for name, bindings := range map[string][]EnvironmentBinding{
+	for name, bindings := range map[string][]contract.EnvironmentBinding{
 		"invalid id":    {{ID: "bad id", Value: "value"}},
 		"invalid value": {{ID: "id", Value: string([]byte{0xff})}},
 		"empty value":   {{ID: "id"}},
@@ -446,21 +447,21 @@ func TestPrepareRejectsMalformedEnvironmentPolicy(t *testing.T) {
 	}
 
 	c, catalog, policy := fixture(t)
-	policy.EnvironmentBindings = make([]EnvironmentBinding, 10001)
+	policy.EnvironmentBindings = make([]contract.EnvironmentBinding, 10001)
 	_, err := Prepare(c, catalog, policy)
 	require.Error(t, err)
 
 	c, catalog, policy = fixture(t)
 	policy.Limits.MaxRequestBytes = 8
 	c.Program.Limits.MaxRequestBytes = 8
-	policy.EnvironmentBindings = []EnvironmentBinding{{ID: "id", Value: "1234567"}}
+	policy.EnvironmentBindings = []contract.EnvironmentBinding{{ID: "id", Value: "1234567"}}
 	_, err = Prepare(c, catalog, policy)
 	require.Error(t, err)
 }
 
 func configureEnvironmentCase(c *testpilotspb.Case, policy *Profile) {
 	c.Program.Environment = []*testpilotspb.EnvironmentDefinition{{BindingId: "binding"}}
-	policy.EnvironmentBindings = []EnvironmentBinding{{ID: "binding", Value: "value"}}
+	policy.EnvironmentBindings = []contract.EnvironmentBinding{{ID: "binding", Value: "value"}}
 	c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{{Target: field("text"), Value: environment("binding")}}
 }
 
@@ -473,14 +474,14 @@ func TestConcurrentEnvironmentPreparationsResolveIndependently(t *testing.T) {
 			t.Parallel()
 			policy := base
 			value := fmt.Sprintf("environment-%d", i)
-			policy.EnvironmentBindings = []EnvironmentBinding{{ID: "binding", Value: value}}
+			policy.EnvironmentBindings = []contract.EnvironmentBinding{{ID: "binding", Value: value}}
 			prepared, err := Prepare(c, catalog, policy)
 			require.NoError(t, err)
 			store, err := newValueStore(prepared, "run")
 			require.NoError(t, err)
 			values, err := store.activate("controller", "activation")
 			require.NoError(t, err)
-			request, dispatched, _, err := values.request(t.Context(), Coordinate{RunID: "run", EntrypointID: "controller", ActivationID: "activation", InstructionID: "call", Attempt: 1}, prepared.graphs[0].runtimeWork)
+			request, dispatched, _, err := values.request(t.Context(), contract.Coordinate{RunID: "run", EntrypointID: "controller", ActivationID: "activation", InstructionID: "call", Attempt: 1}, prepared.graphs[0].runtimeWork)
 			require.NoError(t, err)
 			require.True(t, dispatched)
 			textField := request.ProtoReflect().Descriptor().Fields().ByName("text")
@@ -505,7 +506,7 @@ func TestConcurrentEnvironmentRequestsUsePreparedSnapshot(t *testing.T) {
 			require.NoError(t, err)
 			values, err := store.activate("controller", "activation")
 			require.NoError(t, err)
-			request, dispatched, _, err := values.request(t.Context(), Coordinate{RunID: fmt.Sprintf("run-%d", i), EntrypointID: "controller", ActivationID: "activation", InstructionID: "call", Attempt: 1}, prepared.graphs[0].runtimeWork)
+			request, dispatched, _, err := values.request(t.Context(), contract.Coordinate{RunID: fmt.Sprintf("run-%d", i), EntrypointID: "controller", ActivationID: "activation", InstructionID: "call", Attempt: 1}, prepared.graphs[0].runtimeWork)
 			require.NoError(t, err)
 			require.True(t, dispatched)
 			textField := request.ProtoReflect().Descriptor().Fields().ByName("text")

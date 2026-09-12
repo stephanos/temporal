@@ -8,6 +8,7 @@ import (
 	"unicode/utf8"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -16,10 +17,10 @@ import (
 type admission struct {
 	prepared               *PreparedProgram
 	roles                  map[string]testpilotspb.RoleKind
-	allowed                map[string]RolePolicy
+	allowed                map[string]contract.RolePolicy
 	methods                map[string]map[string]bool
-	carriers               map[string]map[string]ReservationCarrierPolicy
-	opcodes                map[Opcode]bool
+	carriers               map[string]map[string]contract.ReservationCarrierPolicy
+	opcodes                map[contract.Opcode]bool
 	bindingsRequired       bool
 	environment            map[string]string
 	environmentDefinitions map[string]bool
@@ -28,7 +29,7 @@ type admission struct {
 	runID                  ir.Type
 	writers                map[string]slotWriter
 	// Each declared evidence source, and the one instruction that may lift under it.
-	evidenceSources map[string]Coordinate
+	evidenceSources map[string]contract.Coordinate
 	graphIndex      map[string]*graph
 	work            int64
 }
@@ -80,8 +81,8 @@ func Prepare(source *testpilotspb.Case, catalog *ir.Catalog, policy Profile) (*P
 	if err := validateProvenance(source.Provenance); err != nil {
 		return nil, err
 	}
-	prepared := &PreparedProgram{source: proto.CloneOf(source.Program), catalog: catalog, slots: map[string]ir.Type{}, carriers: map[carrierCoordinate]ReservationCarrierPlan{}, roles: map[string]resolvedRole{}}
-	a := &admission{prepared: prepared, roles: map[string]testpilotspb.RoleKind{}, allowed: map[string]RolePolicy{}, methods: map[string]map[string]bool{}, carriers: map[string]map[string]ReservationCarrierPolicy{}, opcodes: map[Opcode]bool{}, bindingsRequired: true, environment: map[string]string{}, environmentDefinitions: map[string]bool{}, environmentUsed: map[string]bool{}, observations: map[string]ir.Type{}, writers: map[string]slotWriter{}, evidenceSources: map[string]Coordinate{}, graphIndex: map[string]*graph{}}
+	prepared := &PreparedProgram{source: proto.CloneOf(source.Program), catalog: catalog, slots: map[string]ir.Type{}, carriers: map[carrierCoordinate]contract.ReservationCarrierPlan{}, roles: map[string]resolvedRole{}}
+	a := &admission{prepared: prepared, roles: map[string]testpilotspb.RoleKind{}, allowed: map[string]contract.RolePolicy{}, methods: map[string]map[string]bool{}, carriers: map[string]map[string]contract.ReservationCarrierPolicy{}, opcodes: map[contract.Opcode]bool{}, bindingsRequired: true, environment: map[string]string{}, environmentDefinitions: map[string]bool{}, environmentUsed: map[string]bool{}, observations: map[string]ir.Type{}, writers: map[string]slotWriter{}, evidenceSources: map[string]contract.Coordinate{}, graphIndex: map[string]*graph{}}
 	for _, check := range []func() error{func() error { return a.bindPolicy(policy) }, a.bindSchemas, a.bindGraphs, a.bindInstructions, a.bindDataflow, a.bindReservations, a.bindReservationCarriers} {
 		if err := check(); err != nil {
 			return nil, err
@@ -130,7 +131,7 @@ func (a *admission) bindPolicy(policy Profile) error {
 	if err := checkLimits(a.prepared.source.Limits, policy.Limits); err != nil {
 		return err
 	}
-	if len(policy.Roles) > 10000 || len(policy.Opcodes) > int(MaxOpcode) || len(policy.EnvironmentBindings) > 10000 {
+	if len(policy.Roles) > 10000 || len(policy.Opcodes) > int(contract.MaxOpcode) || len(policy.EnvironmentBindings) > 10000 {
 		return invalid(ir.LimitExceeded, "policy", "policy collection ceiling exceeded")
 	}
 	var environmentBytes int64
@@ -167,7 +168,7 @@ func (a *admission) bindPolicy(policy Profile) error {
 		snapshot.Roles[i] = bound
 	}
 	for _, capability := range snapshot.Opcodes {
-		if capability < InvokeRPC || capability > MaxOpcode || a.opcodes[capability] {
+		if capability < contract.InvokeRPC || capability > contract.MaxOpcode || a.opcodes[capability] {
 			return invalid(ir.Malformed, "policy.capabilities", "invalid or duplicate capability")
 		}
 		a.opcodes[capability] = true
@@ -176,41 +177,41 @@ func (a *admission) bindPolicy(policy Profile) error {
 	a.prepared.environmentFingerprint = policy.EnvironmentFingerprint
 	return nil
 }
-func (a *admission) bindRolePolicy(role RolePolicy, limits *testpilotspb.ProgramLimits) (RolePolicy, error) {
+func (a *admission) bindRolePolicy(role contract.RolePolicy, limits *testpilotspb.ProgramLimits) (contract.RolePolicy, error) {
 	if !validID(role.ID) || role.Kind < testpilotspb.ROLE_KIND_ENDPOINT || role.Kind > testpilotspb.ROLE_KIND_PARTICIPANT {
-		return RolePolicy{}, invalid(ir.Malformed, "policy.roles", "invalid role")
+		return contract.RolePolicy{}, invalid(ir.Malformed, "policy.roles", "invalid role")
 	}
 	if _, exists := a.allowed[role.ID]; exists {
-		return RolePolicy{}, invalid(ir.Malformed, "policy.roles", "duplicate role")
+		return contract.RolePolicy{}, invalid(ir.Malformed, "policy.roles", "duplicate role")
 	}
 	if len(role.Methods) > 10000 || len(role.ReservationCarriers) > 10000 || role.Kind != testpilotspb.ROLE_KIND_ENDPOINT && (len(role.Methods) > 0 || len(role.ReservationCarriers) > 0) {
-		return RolePolicy{}, invalid(ir.Malformed, "policy.roles", "invalid endpoint methods")
+		return contract.RolePolicy{}, invalid(ir.Malformed, "policy.roles", "invalid endpoint methods")
 	}
 	methods := make(map[string]bool, len(role.Methods))
 	for _, method := range role.Methods {
 		if len(method) > 256 {
-			return RolePolicy{}, invalid(ir.LimitExceeded, "policy.methods", "method identity ceiling exceeded")
+			return contract.RolePolicy{}, invalid(ir.LimitExceeded, "policy.methods", "method identity ceiling exceeded")
 		}
 		if err := a.charge(1); err != nil {
-			return RolePolicy{}, err
+			return contract.RolePolicy{}, err
 		}
 		if methods[method] {
-			return RolePolicy{}, invalid(ir.Malformed, "policy.methods", "duplicate method")
+			return contract.RolePolicy{}, invalid(ir.Malformed, "policy.methods", "duplicate method")
 		}
 		methods[method] = true
 		if _, err := a.prepared.catalog.Method(method); err != nil {
-			return RolePolicy{}, err
+			return contract.RolePolicy{}, err
 		}
 	}
-	carriers := make(map[string]ReservationCarrierPolicy, len(role.ReservationCarriers))
+	carriers := make(map[string]contract.ReservationCarrierPolicy, len(role.ReservationCarriers))
 	for _, carrier := range role.ReservationCarriers {
 		if err := a.bindCarrierPolicy(carrier, methods, limits, carriers); err != nil {
-			return RolePolicy{}, err
+			return contract.RolePolicy{}, err
 		}
 	}
 	bound := role
 	bound.Methods = slices.Clone(role.Methods)
-	bound.ReservationCarriers = make([]ReservationCarrierPolicy, len(role.ReservationCarriers))
+	bound.ReservationCarriers = make([]contract.ReservationCarrierPolicy, len(role.ReservationCarriers))
 	for i, carrier := range role.ReservationCarriers {
 		bound.ReservationCarriers[i] = carrier
 		bound.ReservationCarriers[i].Shapes = slices.Clone(carrier.Shapes)
@@ -221,7 +222,7 @@ func (a *admission) bindRolePolicy(role RolePolicy, limits *testpilotspb.Program
 	return bound, nil
 }
 
-func (a *admission) bindCarrierPolicy(carrier ReservationCarrierPolicy, methods map[string]bool, limits *testpilotspb.ProgramLimits, carriers map[string]ReservationCarrierPolicy) error {
+func (a *admission) bindCarrierPolicy(carrier contract.ReservationCarrierPolicy, methods map[string]bool, limits *testpilotspb.ProgramLimits, carriers map[string]contract.ReservationCarrierPolicy) error {
 	if !methods[carrier.Method] {
 		return invalid(ir.Unsupported, "policy.reservation_carriers", "carrier method requires ordinary authorization on the same endpoint")
 	}

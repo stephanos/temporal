@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
@@ -60,7 +61,7 @@ func liftFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Profile) {
 	require.NoError(t, err)
 
 	limits := &testpilotspb.ProgramLimits{MaxEntrypoints: 8, MaxNodes: 32, MaxEdges: 64, MaxActivations: 64, MaxAttempts: 32, MaxRunEvents: 256, MaxExpressionDepth: 16, MaxPathFanout: 128, MaxRequestBytes: 4096, MaxResponseBytes: 4096, MaxTotalDurationMilliseconds: 30000, MaxCleanupDurationMilliseconds: 5000}
-	policy := Profile{Identity: "host", CatalogIdentity: catalog.Identity(), Roles: []RolePolicy{{ID: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT, Methods: []string{"/lift.Source/Read"}}}, Opcodes: []Opcode{InvokeRPC}, Limits: proto.CloneOf(limits)}
+	policy := Profile{Identity: "host", CatalogIdentity: catalog.Identity(), Roles: []contract.RolePolicy{{ID: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT, Methods: []string{"/lift.Source/Read"}}}, Opcodes: []contract.Opcode{contract.InvokeRPC}, Limits: proto.CloneOf(limits)}
 	node := &testpilotspb.InstructionDefinition{InstructionId: "read", Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRPC{EndpointRoleId: "endpoint", Method: "/lift.Source/Read"}}}, Outcome: statusSchema(), Limits: &testpilotspb.InstructionLimits{TimeoutMilliseconds: 1000, MaxAttempts: 1, MaxEmittedEvents: 8, MaxResponseBytes: 4096}}
 	artifact := &testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: 1}, CaseId: "lift", Program: &testpilotspb.Program{
 		ProgramId: "program", Roles: []*testpilotspb.RoleDefinition{{RoleId: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT}},
@@ -104,11 +105,11 @@ func liftProjection() *testpilotspb.CorrelatedEvidenceProjection {
 	}}
 }
 
-func liftResponse(t *testing.T, prepared *PreparedProgram, mutate func(protoreflect.Message)) EffectResult {
+func liftResponse(t *testing.T, prepared *PreparedProgram, mutate func(protoreflect.Message)) contract.EffectResult {
 	t.Helper()
 	response := dynamicpb.NewMessage(prepared.graphs[0].nodes[0].method.Output())
 	mutate(response)
-	return EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}, Response: response}
+	return contract.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}, Response: response}
 }
 func setScheduled(operation string) func(protoreflect.Message) {
 	return func(m protoreflect.Message) {
@@ -129,7 +130,7 @@ func setCompleted(referenced int64) func(protoreflect.Message) {
 
 func stagedEvidence(t *testing.T, values *activationValues, prepared *PreparedProgram, mutate func(protoreflect.Message)) []*testpilotspb.CorrelatedEvidence {
 	t.Helper()
-	coordinate := Coordinate{RunID: "run", EntrypointID: "controller", ActivationID: "activation", InstructionID: "read", Attempt: 1}
+	coordinate := contract.Coordinate{RunID: "run", EntrypointID: "controller", ActivationID: "activation", InstructionID: "read", Attempt: 1}
 	batch, _, err := values.stage(context.Background(), coordinate, liftResponse(t, prepared, mutate), values.workLimit())
 	require.NoError(t, err)
 	staged := []*testpilotspb.CorrelatedEvidence{}
@@ -245,7 +246,7 @@ func TestEvidenceLiftRejectsPartialEvidence(t *testing.T) {
 	require.NoError(t, err)
 	values, err := store.activate("controller", "activation")
 	require.NoError(t, err)
-	coordinate := Coordinate{RunID: "run", EntrypointID: "controller", ActivationID: "activation", InstructionID: "read", Attempt: 1}
+	coordinate := contract.Coordinate{RunID: "run", EntrypointID: "controller", ActivationID: "activation", InstructionID: "read", Attempt: 1}
 	_, _, err = values.stage(context.Background(), coordinate, liftResponse(t, prepared, setCompleted(3)), values.workLimit())
 	require.Error(t, err)
 }
@@ -259,7 +260,7 @@ func TestEvidenceLiftRejectsNegativeKey(t *testing.T) {
 	require.NoError(t, err)
 	values, err := store.activate("controller", "activation")
 	require.NoError(t, err)
-	coordinate := Coordinate{RunID: "run", EntrypointID: "controller", ActivationID: "activation", InstructionID: "read", Attempt: 1}
+	coordinate := contract.Coordinate{RunID: "run", EntrypointID: "controller", ActivationID: "activation", InstructionID: "read", Attempt: 1}
 	_, _, err = values.stage(context.Background(), coordinate, liftResponse(t, prepared, setCompleted(-1)), values.workLimit())
 	require.Error(t, err)
 }
@@ -286,8 +287,8 @@ func TestEvidenceLiftRejectsSharedSourcesAndWorkerEntrypoints(t *testing.T) {
 			&testpilotspb.RoleDefinition{RoleId: "worker", Kind: testpilotspb.ROLE_KIND_WORKER, NamespaceBindingId: "namespace"},
 			&testpilotspb.RoleDefinition{RoleId: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE, NamespaceBindingId: "namespace", ResourceBindingId: "queue"})
 		artifact.Program.Environment = []*testpilotspb.EnvironmentDefinition{{BindingId: "namespace"}, {BindingId: "queue"}}
-		policy.Roles = append(policy.Roles, RolePolicy{ID: "worker", Kind: testpilotspb.ROLE_KIND_WORKER}, RolePolicy{ID: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE})
-		policy.EnvironmentBindings = append(policy.EnvironmentBindings, EnvironmentBinding{ID: "namespace", Value: "namespace"}, EnvironmentBinding{ID: "queue", Value: "queue"})
+		policy.Roles = append(policy.Roles, contract.RolePolicy{ID: "worker", Kind: testpilotspb.ROLE_KIND_WORKER}, contract.RolePolicy{ID: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE})
+		policy.EnvironmentBindings = append(policy.EnvironmentBindings, contract.EnvironmentBinding{ID: "namespace", Value: "namespace"}, contract.EnvironmentBinding{ID: "queue", Value: "queue"})
 		_, err := Prepare(artifact, catalog, policy)
 		require.Error(t, err)
 	})

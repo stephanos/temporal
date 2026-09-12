@@ -8,6 +8,7 @@ import (
 	"time"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
 )
@@ -15,10 +16,10 @@ import (
 type scheduler struct {
 	values           *valueStore
 	recorder         *recorder
-	session          Session
+	session          contract.Session
 	mu               sync.Mutex
 	started          bool
-	owned            []EffectHandle
+	owned            []contract.EffectHandle
 	cancellations    []context.CancelFunc
 	reservations     map[string]bool
 	attempts         int64
@@ -44,20 +45,20 @@ type scheduledNode struct {
 	index      int
 }
 type scheduledReservation struct {
-	handle   ReservationHandle
-	identity ReservationIdentity
+	handle   contract.ReservationHandle
+	identity contract.ReservationIdentity
 	source   string
 	cause    string
 }
 type schedulerCompletion struct {
 	node        *scheduledNode
 	reservation *scheduledReservation
-	result      EffectResult
+	result      contract.EffectResult
 	err         error
 	cleanup     bool
 }
 
-func newScheduler(p *PreparedProgram, runID, caseID string, session Session, monitor Monitor, now func() time.Time) (*scheduler, error) {
+func newScheduler(p *PreparedProgram, runID, caseID string, session contract.Session, monitor Monitor, now func() time.Time) (*scheduler, error) {
 	if isNil(session) {
 		return nil, invalid(ir.Malformed, "scheduler", "Session required")
 	}
@@ -71,12 +72,12 @@ func newScheduler(p *PreparedProgram, runID, caseID string, session Session, mon
 	}
 	return &scheduler{values: values, recorder: recorder, session: session, reservations: map[string]bool{}, completions: make(chan schedulerCompletion, int(p.source.Limits.MaxNodes+p.source.Limits.MaxActivations)), closed: make(chan struct{}), lateTimeout: time.Duration(p.source.Limits.MaxCleanupDurationMilliseconds) * time.Millisecond}, nil
 }
-func (s *scheduler) outstanding() []EffectHandle {
+func (s *scheduler) outstanding() []contract.EffectHandle {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return append([]EffectHandle(nil), s.owned...)
+	return append([]contract.EffectHandle(nil), s.owned...)
 }
-func (s *scheduler) retain(handles []EffectHandle) {
+func (s *scheduler) retain(handles []contract.EffectHandle) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	for _, h := range handles {
@@ -202,13 +203,13 @@ func (s *scheduler) ownedCount() int {
 	return len(s.owned)
 }
 
-func (s *scheduler) outstandingSince(index int) []EffectHandle {
+func (s *scheduler) outstandingSince(index int) []contract.EffectHandle {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if index < 0 || index > len(s.owned) {
 		return nil
 	}
-	return append([]EffectHandle(nil), s.owned[index:]...)
+	return append([]contract.EffectHandle(nil), s.owned[index:]...)
 }
 
 func (s *scheduler) cancelWaits() {
@@ -220,7 +221,7 @@ func (s *scheduler) cancelWaits() {
 	}
 }
 
-func (s *scheduler) settle(ctx context.Context, handles []EffectHandle, cleanup, cancelHandles bool) error {
+func (s *scheduler) settle(ctx context.Context, handles []contract.EffectHandle, cleanup, cancelHandles bool) error {
 	var result error
 	if cancelHandles {
 		s.markCanceled(cleanup)
@@ -243,7 +244,7 @@ func (s *scheduler) markCanceled(cleanup bool) {
 	}
 }
 
-func (s *scheduler) cancelOwned(ctx context.Context, handles []EffectHandle) error {
+func (s *scheduler) cancelOwned(ctx context.Context, handles []contract.EffectHandle) error {
 	var result error
 	for _, handle := range handles {
 		err := handle.Cancel(ctx)
@@ -260,7 +261,7 @@ func (s *scheduler) cancelOwned(ctx context.Context, handles []EffectHandle) err
 	return result
 }
 
-func (s *scheduler) drainOwned(ctx context.Context, handles []EffectHandle) error {
+func (s *scheduler) drainOwned(ctx context.Context, handles []contract.EffectHandle) error {
 	var result error
 	for _, handle := range handles {
 		drainErr := handle.Drain(ctx)
@@ -276,7 +277,7 @@ func (s *scheduler) drainOwned(ctx context.Context, handles []EffectHandle) erro
 	return result
 }
 
-func (s *scheduler) quarantine(handle EffectHandle, drainErr error) error {
+func (s *scheduler) quarantine(handle contract.EffectHandle, drainErr error) error {
 	ctx, cancel := context.WithTimeout(context.Background(), s.lateTimeout)
 	defer cancel()
 	err := s.session.Quarantine(ctx, handle)
@@ -465,10 +466,10 @@ func (s *scheduler) nodeSource(task scheduledNode) string {
 	}
 	return fmt.Sprintf("scheduler.g%d.n%d.a1", task.activation.ordinal, task.index)
 }
-func (s *scheduler) coordinate(task scheduledNode) Coordinate {
-	return Coordinate{RunID: s.values.runID, EntrypointID: task.activation.values.graph.id, ActivationID: task.activation.values.id, InstructionID: task.activation.values.graph.nodes[task.index].source.InstructionId, Attempt: 1}
+func (s *scheduler) coordinate(task scheduledNode) contract.Coordinate {
+	return contract.Coordinate{RunID: s.values.runID, EntrypointID: task.activation.values.graph.id, ActivationID: task.activation.values.id, InstructionID: task.activation.values.graph.nodes[task.index].source.InstructionId, Attempt: 1}
 }
-func eventCoordinates(c Coordinate) *testpilotspb.RunEventCoordinates {
+func eventCoordinates(c contract.Coordinate) *testpilotspb.RunEventCoordinates {
 	return &testpilotspb.RunEventCoordinates{EntrypointId: c.EntrypointID, ActivationId: c.ActivationID, InstructionId: c.InstructionID, Attempt: c.Attempt}
 }
 func (s *scheduler) completeNode(ctx context.Context, task scheduledNode, source string) ([]scheduledNode, Decision, error) {
@@ -527,7 +528,7 @@ func (s *scheduler) dispatchFailure(cleanup bool, code string, err error) error 
 	return s.fail(code, err)
 }
 
-func (s *scheduler) publishInstructionStart(ctx context.Context, task scheduledNode, coordinate Coordinate, cleanup bool) (Decision, error) {
+func (s *scheduler) publishInstructionStart(ctx context.Context, task scheduledNode, coordinate contract.Coordinate, cleanup bool) (Decision, error) {
 	n := task.activation.values.graph.nodes[task.index]
 	causes := []string{fmt.Sprintf("scheduler.g%d.open", task.activation.ordinal)}
 	if cleanup {
@@ -545,16 +546,16 @@ func (s *scheduler) publishInstructionStart(ctx context.Context, task scheduledN
 	return publish(ctx, []*testpilotspb.RunEvent{{Kind: testpilotspb.RUN_EVENT_KIND_INSTRUCTION_STARTED, SourceId: s.nodeSource(task) + ".started", Coordinates: eventCoordinates(coordinate), CausalSourceIds: causes}}, nil)
 }
 
-func (s *scheduler) admitDispatch(ctx context.Context, task scheduledNode, request proto.Message, input *testpilotspb.Value, cleanup bool) (EffectHandle, []scheduledReservation, CapabilityBridge, error) {
+func (s *scheduler) admitDispatch(ctx context.Context, task scheduledNode, request proto.Message, input *testpilotspb.Value, cleanup bool) (contract.EffectHandle, []scheduledReservation, contract.CapabilityBridge, error) {
 	n := task.activation.values.graph.nodes[task.index]
-	var effect EffectHandle
+	var effect contract.EffectHandle
 	var reservations []scheduledReservation
-	var bridge CapabilityBridge
+	var bridge contract.CapabilityBridge
 	admit := s.recorder.admit
 	if cleanup {
 		admit = s.recorder.admitCleanup
 	}
-	err := admit(ctx, func(ctx context.Context) ([]EffectHandle, error) {
+	err := admit(ctx, func(ctx context.Context) ([]contract.EffectHandle, error) {
 		if s.attempts >= s.values.program.source.Limits.MaxAttempts {
 			return nil, invalid(ir.LimitExceeded, "scheduler", "attempt ceiling exceeded")
 		}
@@ -570,7 +571,7 @@ func (s *scheduler) admitDispatch(ctx context.Context, task scheduledNode, reque
 		effect, bridge, err = s.acceptEffect(ctx, task, request, input)
 		if !isNil(effect) {
 			accepted = append(accepted, effect)
-		} else if err == nil && n.opcode != AwaitSlot {
+		} else if err == nil && n.opcode != contract.AwaitSlot {
 			err = invalid(ir.Malformed, "effect", "nil effect handle")
 		}
 		return accepted, err
@@ -578,7 +579,7 @@ func (s *scheduler) admitDispatch(ctx context.Context, task scheduledNode, reque
 	return effect, reservations, bridge, err
 }
 
-func (s *scheduler) startWaits(ctx, operationCtx context.Context, cancel context.CancelFunc, task scheduledNode, effect EffectHandle, bridge CapabilityBridge, reservations []scheduledReservation, cleanup bool) {
+func (s *scheduler) startWaits(ctx, operationCtx context.Context, cancel context.CancelFunc, task scheduledNode, effect contract.EffectHandle, bridge contract.CapabilityBridge, reservations []scheduledReservation, cleanup bool) {
 	for _, reservation := range reservations {
 		s.waits.Add(1)
 		go func() {
@@ -593,7 +594,7 @@ func (s *scheduler) startWaits(ctx, operationCtx context.Context, cancel context
 		defer cancel()
 		result, err := s.waitNode(operationCtx, task, effect, bridge)
 		if errors.Is(err, context.DeadlineExceeded) && ctx.Err() == nil {
-			result = EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT}}
+			result = contract.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT}}
 			err = nil
 		}
 		s.deliverCompletion(schedulerCompletion{node: &task, result: result, err: err, cleanup: cleanup})
@@ -605,7 +606,7 @@ func (s *scheduler) prepareInput(ctx context.Context, task scheduledNode) (proto
 	c := s.coordinate(task)
 	var request proto.Message
 	var input *testpilotspb.Value
-	if n.opcode == InvokeRPC {
+	if n.opcode == contract.InvokeRPC {
 		var enabled bool
 		var err error
 		request, enabled, _, err = a.request(ctx, c, a.workLimit())
@@ -639,13 +640,13 @@ func (s *scheduler) prepareInput(ctx context.Context, task scheduledNode) (proto
 
 	return request, input, true, nil
 }
-func (s *scheduler) reserve(ctx context.Context, task scheduledNode) ([]EffectHandle, []scheduledReservation, error) {
-	var accepted []EffectHandle
+func (s *scheduler) reserve(ctx context.Context, task scheduledNode) ([]contract.EffectHandle, []scheduledReservation, error) {
+	var accepted []contract.EffectHandle
 	var reservations []scheduledReservation
 	n := task.activation.values.graph.nodes[task.index]
 	c := s.coordinate(task)
 	for declarationIndex, declaration := range n.source.ActivationReservations {
-		request := ReservationRequest{Origin: c, EntrypointID: declaration.EntrypointId, Count: declaration.Count}
+		request := contract.ReservationRequest{Origin: c, EntrypointID: declaration.EntrypointId, Count: declaration.Count}
 		acquired, err := s.session.Reserve(ctx, request)
 		for _, h := range acquired {
 			if !isNil(h) {
@@ -664,7 +665,7 @@ func (s *scheduler) reserve(ctx context.Context, task scheduledNode) ([]EffectHa
 
 	return accepted, reservations, nil
 }
-func (s *scheduler) validateReservations(task scheduledNode, declarationIndex int, request ReservationRequest, acquired []ReservationHandle) ([]scheduledReservation, error) {
+func (s *scheduler) validateReservations(task scheduledNode, declarationIndex int, request contract.ReservationRequest, acquired []contract.ReservationHandle) ([]scheduledReservation, error) {
 	var reservations []scheduledReservation
 	if int64(len(acquired)) != request.Count {
 		return nil, invalid(ir.Malformed, "reservation", "wrong reservation count")
@@ -684,21 +685,21 @@ func (s *scheduler) validateReservations(task scheduledNode, declarationIndex in
 	}
 	return reservations, nil
 }
-func (s *scheduler) acceptEffect(ctx context.Context, task scheduledNode, request proto.Message, input *testpilotspb.Value) (EffectHandle, CapabilityBridge, error) {
+func (s *scheduler) acceptEffect(ctx context.Context, task scheduledNode, request proto.Message, input *testpilotspb.Value) (contract.EffectHandle, contract.CapabilityBridge, error) {
 	n := task.activation.values.graph.nodes[task.index]
 	c := s.coordinate(task)
-	var effect EffectHandle
-	var bridge CapabilityBridge
+	var effect contract.EffectHandle
+	var bridge contract.CapabilityBridge
 	var err error
 	switch n.opcode {
-	case InvokeRPC:
+	case contract.InvokeRPC:
 		effect, err = s.session.InvokeRPC(ctx, c, n.source.Instruction.GetInvokeRpc().EndpointRoleId, n.method, request)
-	case InjectFault:
+	case contract.InjectFault:
 		fault := n.source.Instruction.GetInjectFault()
 		effect, err = s.session.InjectFault(ctx, c, fault.GetRoleId(), fault.GetKind())
-	case AwaitSlot, CompleteNexusOperation:
+	case contract.AwaitSlot, contract.CompleteNexusOperation:
 		slot := n.source.Instruction.GetAwaitSlot().GetSlotId()
-		if n.opcode == CompleteNexusOperation {
+		if n.opcode == contract.CompleteNexusOperation {
 			slot = n.source.Instruction.GetCompleteNexusOperation().CapabilitySlotId
 		}
 		if s.values.program.slots[slot].Opaque() {
@@ -707,8 +708,8 @@ func (s *scheduler) acceptEffect(ctx context.Context, task scheduledNode, reques
 				err = invalid(ir.Malformed, "bridge", "nil bridge")
 			}
 		}
-		if err == nil && n.opcode == CompleteNexusOperation {
-			var capability OpaqueCapability
+		if err == nil && n.opcode == contract.CompleteNexusOperation {
+			var capability contract.OpaqueCapability
 			capability, err = bridge.Consume(ctx, slot)
 			if err == nil && isNil(capability) {
 				err = invalid(ir.Malformed, "bridge", "nil capability")
@@ -723,12 +724,12 @@ func (s *scheduler) acceptEffect(ctx context.Context, task scheduledNode, reques
 
 	return effect, bridge, err
 }
-func (s *scheduler) waitNode(ctx context.Context, task scheduledNode, effect EffectHandle, bridge CapabilityBridge) (EffectResult, error) {
+func (s *scheduler) waitNode(ctx context.Context, task scheduledNode, effect contract.EffectHandle, bridge contract.CapabilityBridge) (contract.EffectResult, error) {
 	a := task.activation.values
 	n := a.graph.nodes[task.index]
-	var result EffectResult
+	var result contract.EffectResult
 	var err error
-	if n.opcode == AwaitSlot {
+	if n.opcode == contract.AwaitSlot {
 		slot := n.source.Instruction.GetAwaitSlot().SlotId
 		if bridge != nil {
 			err = bridge.Await(ctx, slot)
@@ -781,7 +782,7 @@ func (s *scheduler) publishCompletion(ctx context.Context, completion schedulerC
 	// A realized fault is recorded as its own fact, so a Contract can reference the outage rather
 	// than infer it from the instruction that requested it. A requested-but-unrealized fault
 	// never reaches here, which is what keeps intent distinguishable from evidence.
-	if n := task.activation.values.graph.nodes[task.index]; n.opcode == InjectFault && batch.outcome.GetStatus() == testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED {
+	if n := task.activation.values.graph.nodes[task.index]; n.opcode == contract.InjectFault && batch.outcome.GetStatus() == testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED {
 		fault := n.source.Instruction.GetInjectFault()
 		facts = append(facts, &testpilotspb.RunEvent{
 			Kind:            testpilotspb.RUN_EVENT_KIND_FAULT_INJECTED,

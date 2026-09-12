@@ -7,60 +7,21 @@ import (
 	"slices"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-type Opcode uint8
-
-const (
-	InvokeRPC Opcode = iota + 1
-	AwaitSlot
-	CompleteNexusOperation
-	StartNexusOperation
-	Await
-	Finish
-	RespondNexus
-	InjectFault
-)
-
-// MaxOpcode is the highest declared capability. A Profile authorizes each capability at most once, so it
-// is also the ceiling on an authorized capability list; Driver profile validation reuses it
-// instead of restating a literal that a new instruction would silently invalidate.
-const MaxOpcode = InjectFault
-
-type RolePolicy struct {
-	ID                  string
-	Kind                testpilotspb.RoleKind
-	Methods             []string
-	ReservationCarriers []ReservationCarrierPolicy
-}
-
-type ReservationCarrierPolicy struct {
-	Method string
-	Shapes []ReservationCarrierShape
-}
-
-type ReservationCarrierShape struct {
-	Kind         testpilotspb.EntrypointKind
-	MaximumCount int64
-}
-
 // Profile is a static Driver snapshot. Prepare freezes its collections and resource ceilings.
 type Profile struct {
 	Identity               string
 	CatalogIdentity        string
-	Roles                  []RolePolicy
-	Opcodes                []Opcode
-	EnvironmentBindings    []EnvironmentBinding
+	Roles                  []contract.RolePolicy
+	Opcodes                []contract.Opcode
+	EnvironmentBindings    []contract.EnvironmentBinding
 	EnvironmentFingerprint string
 	Limits                 *testpilotspb.ProgramLimits
-}
-
-type EnvironmentBinding struct {
-	ID    string
-	Value string
 }
 
 type Observation struct {
@@ -89,7 +50,7 @@ type PreparedProgram struct {
 	view                   ProgramView
 	graphs                 []*graph
 	slots                  map[string]ir.Type
-	carriers               map[carrierCoordinate]ReservationCarrierPlan
+	carriers               map[carrierCoordinate]contract.ReservationCarrierPlan
 	roles                  map[string]resolvedRole
 	environmentFingerprint string
 }
@@ -103,55 +64,25 @@ type resolvedRole struct {
 	Resource           string
 }
 
-type PreparedRole struct {
-	ID                 string
-	Kind               testpilotspb.RoleKind
-	NamespaceBindingID string
-	Namespace          string
-	ResourceBindingID  string
-	Resource           string
-}
-
 func (p *PreparedProgram) Snapshot() *testpilotspb.Program { return proto.CloneOf(p.source) }
 func (p *PreparedProgram) View() ProgramView               { return p.view }
 func (p *PreparedProgram) PolicyIdentity() string          { return p.policy.Identity }
 
-func (p *PreparedProgram) Roles() []PreparedRole {
-	result := make([]PreparedRole, 0, len(p.roles))
+func (p *PreparedProgram) Roles() []contract.PreparedRole {
+	result := make([]contract.PreparedRole, 0, len(p.roles))
 	for _, role := range p.roles {
-		result = append(result, PreparedRole(role))
+		result = append(result, contract.PreparedRole(role))
 	}
-	slices.SortFunc(result, func(a, b PreparedRole) int { return cmp.Compare(a.ID, b.ID) })
+	slices.SortFunc(result, func(a, b contract.PreparedRole) int { return cmp.Compare(a.ID, b.ID) })
 	return result
 }
 
 type carrierCoordinate struct{ entrypointID, instructionID string }
 
-type ReservationCarrierPlan struct {
-	EndpointRoleID string
-	Method         string
-	Reservations   []ReservationTopology
-	Routes         []ReservationRoute
-}
-
-type ReservationTopology struct {
-	EntrypointID string
-	Kind         testpilotspb.EntrypointKind
-	Count        int64
-}
-
-type ReservationRoute struct {
-	WorkflowEntrypointID string
-	WorkflowOrdinal      int64
-	SourceInstructionID  string
-	HandlerEntrypointID  string
-	HandlerOrdinal       int64
-}
-
-func (p *PreparedProgram) ReservationCarrier(entrypointID, instructionID string) (ReservationCarrierPlan, bool) {
+func (p *PreparedProgram) ReservationCarrier(entrypointID, instructionID string) (contract.ReservationCarrierPlan, bool) {
 	plan, ok := p.carriers[carrierCoordinate{entrypointID: entrypointID, instructionID: instructionID}]
 	if !ok {
-		return ReservationCarrierPlan{}, false
+		return contract.ReservationCarrierPlan{}, false
 	}
 	plan.Reservations = slices.Clone(plan.Reservations)
 	plan.Routes = slices.Clone(plan.Routes)
@@ -170,7 +101,7 @@ type graph struct {
 }
 type node struct {
 	source                   *testpilotspb.InstructionDefinition
-	opcode                   Opcode
+	opcode                   contract.Opcode
 	dependencies, successors []int
 	ancestors                map[int]bool
 	guard                    *ir.Expression
@@ -277,7 +208,7 @@ func (p EntrypointPlan) Instructions() []InstructionPlan {
 func (p InstructionPlan) Source() *testpilotspb.InstructionDefinition {
 	return proto.CloneOf(p.node.source)
 }
-func (p InstructionPlan) Opcode() Opcode                        { return p.node.opcode }
+func (p InstructionPlan) Opcode() contract.Opcode               { return p.node.opcode }
 func (p InstructionPlan) Dependencies() []int                   { return slices.Clone(p.node.dependencies) }
 func (p InstructionPlan) Guard() *ir.Expression                 { return p.node.guard }
 func (p InstructionPlan) Input() *ir.Expression                 { return p.node.input }
@@ -301,12 +232,6 @@ func (p InstructionPlan) Projections() []ProjectionPlan {
 	return result
 }
 
-// OutcomeSnapshot transfers independent outcome and declared-field values to one activation.
-type OutcomeSnapshot struct {
-	Outcome *testpilotspb.InstructionOutcome
-	Fields  map[testpilotspb.InstructionOutcomeField]*testpilotspb.Value
-}
-
 func (p EntrypointPlan) RuntimeWorkLimit() int64 { return p.graph.runtimeWork }
 func (p InstructionPlan) OutcomeType(field testpilotspb.InstructionOutcomeField) (*testpilotspb.ValueType, bool) {
 	typ, ok := p.node.outcomes[field]
@@ -315,7 +240,7 @@ func (p InstructionPlan) OutcomeType(field testpilotspb.InstructionOutcomeField)
 	}
 	return typ.Schema(), true
 }
-func (p InstructionPlan) ValidateOutcome(ctx context.Context, outcome *testpilotspb.InstructionOutcome, limit int64) (*OutcomeSnapshot, int64, error) {
+func (p InstructionPlan) ValidateOutcome(ctx context.Context, outcome *testpilotspb.InstructionOutcome, limit int64) (*contract.OutcomeSnapshot, int64, error) {
 	w, err := newValueWork(ctx, p.entry.program.source.Limits, p.entry.RuntimeWorkLimit(), limit)
 	if err != nil {
 		return nil, 0, err
@@ -340,7 +265,7 @@ func (p InstructionPlan) EvaluateInput(ctx context.Context, lookup func(ir.Refer
 	if lookup == nil {
 		return nil, false, 0, invalid(ir.Malformed, "values", "activation lookup required")
 	}
-	if p.node.opcode == InvokeRPC {
+	if p.node.opcode == contract.InvokeRPC {
 		return nil, false, 0, invalid(ir.TypeMismatch, "values", "RPC requires request construction")
 	}
 	evaluate := func(e *ir.Expression) (*testpilotspb.Value, error) {

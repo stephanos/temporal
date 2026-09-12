@@ -9,6 +9,12 @@ with different fields, nested messages or enum definitions is rejected. Exact de
 skips this compatibility walk, and cyclic type graphs terminate through a per-call visited set.
 Opaque capabilities belong to the Driver bridge and never enter this store.
 
+The Driver-facing vocabulary this package schedules against (`Session`, effect and reservation
+handles, `Coordinate`, the capability bridge, Profile role policy and `Opcode`) is declared in the
+`common/testing/testpilot/contract` leaf and used here directly. This package keeps `Driver`,
+`Profile` and the prepared plans, whose methods expose IR, and the public facade re-exports the leaf
+by alias, so the handles a Session returns reach execution and come back to it unwrapped.
+
 A `valueStore` owns one Run. Controller activations share its ordinary Slots; worker activations
 have separate Slots and outcome references. Activation IDs are unique across the store and each
 controller entrypoint activates once. Each accepted attempt keeps an independent outcome snapshot.
@@ -115,7 +121,8 @@ one explicitly reserved handler by service and operation. Route order follows th
 node order, then workflow ordinal; handler ordinals count within the declared handler reservation.
 Missing, ambiguous, crossed or count-mismatched routes reject before Driver I/O.
 
-`PreparedProgram.ReservationCarrier` is the immutable Driver seam. Its exact reservation topology lets
+`PreparedProgram.ReservationCarrier` is the immutable Driver seam and returns a
+`contract.ReservationCarrierPlan` from the `common/testing/testpilot/contract` leaf. Its exact reservation topology lets
 the Driver bind returned reservation identities by entrypoint and ordinal without scanning source
 instructions per Run. Its routes bind workflow entrypoint and ordinal plus the prepared SDK source to
 the corresponding handler entrypoint and ordinal. Both returned slices are independent copies; the
@@ -132,7 +139,7 @@ without a consumer, while uncooperative Driver waits require quarantine and cann
 
 Worker adapters use the root `EntrypointPlan.RuntimeWorkLimit` and `InstructionPlan` methods
 `OutcomeType`, `EvaluateInput` and `ValidateOutcome`. `OutcomeType` returns a cloned declared schema;
-`ValidateOutcome` returns an activation-owned `OutcomeSnapshot` with independently copied outcome and
+`ValidateOutcome` returns an activation-owned `contract.OutcomeSnapshot` with independently copied outcome and
 declared fields. Mutating those results cannot mutate the plan or a subsequent validation result.
 StartNexusOperation cannot declare VALUE because its SDK future is an opaque runtime handle; Await
 validates the target result against its declared VALUE type. Finish and every RespondNexus variant
