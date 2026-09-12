@@ -1,8 +1,23 @@
 import Umpire.Evidence.Evaluate.Types
+import Shared.Reachability
 
 /-!
-Internal normalized structural analysis for Observation Evidence facts, closures, and per-link
-support.
+The Evidence structure: the ordering facts, closures, and per-link support of one offline Evidence
+bundle or accepted trace, normalized once and judged for one audience.
+
+`EvidenceStructure.analyze` normalizes facts and closures a raw bundle supplies directly, or the ones
+an accepted trace's Evidence Links carry. `orderingFault?` and `closureFault?` return the first fault
+in the audience's precedence table, with the related identities that audience reports:
+
+* `raw` judges a bundle. Identity and origin faults come first; fault receipts and causal parents are
+  judged per record in canonical order, and closures per required kind (global sequences) or per
+  closure and then per record in bundle order (source sequences).
+* `accepted` judges an admitted envelope. Conflicting identities and uncovered evidence come first,
+  then the first ordering fault and link order; closures are judged per link, per fact in canonical
+  order, per closure, and then per required kind.
+
+Both audiences judge ordering before closures. The findings, closure expectations, and origin-mode
+branch behind these tables are private; callers only name their own failure kind for a fault.
 -/
 
 namespace Umpire
@@ -19,15 +34,75 @@ private def closureLe (left right : EvidenceClosureFact) : Bool :=
   | none, some _ => true
   | some _, none => false
 
-namespace Evidence.Internal
+namespace EvidenceStructure
 
-inductive StructuralOriginMode where
+/-- Who judges an Evidence structure: a raw Evidence bundle, or an accepted trace's envelope. -/
+inductive Audience where
+  | raw
+  | accepted
+  deriving BEq, DecidableEq, Repr
+
+/-- A raw record's claim to receive the fault injected into `target`. -/
+structure FaultReceipt where
+  recordId : DefinitionId
+  target : DefinitionId
+  deriving BEq, DecidableEq, Repr
+
+/-- One Evidence Link's ordering and closure support, as an accepted trace carries it. -/
+structure LinkSupport where
+  ruleId : DefinitionId
+  evidenceIdentities : List DefinitionId
+  orderingSupport : List EvidenceOrderingFact
+  closureSupport : List EvidenceClosureFact
+  deriving BEq, DecidableEq, Repr
+
+/-- Every Evidence Link of an accepted trace, with the evidence identities its envelope claims. -/
+structure LinkedSupport where
+  evidenceIdentities : List DefinitionId
+  links : List LinkSupport
+  deriving BEq, DecidableEq, Repr
+
+/-- One Evidence Link's support after canonical ordering and closure normalization. -/
+structure NormalizedLinkSupport where
+  ruleId : DefinitionId
+  evidenceIdentities : List DefinitionId
+  facts : List EvidenceOrderingFact
+  closures : List EvidenceClosureFact
+  deriving BEq, DecidableEq, Repr
+
+/--
+The kind of an ordering fault. Fault receipts exist only in raw bundles, and uncovered evidence and
+link order only in accepted envelopes, so the audience index rules them out for the other audience.
+-/
+inductive OrderingFaultKind : Audience → Type where
+  | duplicateIdentity : OrderingFaultKind audience
+  | incomparableOrder : OrderingFaultKind audience
+  | sequenceGap : OrderingFaultKind audience
+  | missingCausalParent : OrderingFaultKind audience
+  | contradictoryOrder : OrderingFaultKind audience
+  | misdirectedFaultReceipt : OrderingFaultKind .raw
+  | uncoveredEvidence : OrderingFaultKind .accepted
+  | inconsistentLinkOrder : OrderingFaultKind .accepted
+  deriving BEq, DecidableEq, Repr
+
+/-- The first ordering fault for one audience and the identities that audience reports with it. -/
+structure OrderingFault (audience : Audience) where
+  kind : OrderingFaultKind audience
+  related : List DefinitionId
+  deriving BEq, DecidableEq, Repr
+
+/-- The first closure fault for one audience and the identities that audience reports with it. -/
+structure ClosureFault where
+  related : List DefinitionId
+  deriving BEq, DecidableEq, Repr
+
+private inductive OriginMode where
   | globalSequence
   | sourceSequence
   | mixed
   deriving BEq, DecidableEq, Repr
 
-inductive StructuralFinding where
+private inductive Finding where
   | duplicateIdentity (recordId : DefinitionId) (conflicting : Bool)
   | mixedOrigins (recordIds : List DefinitionId)
   | duplicateSequence (firstId secondId : DefinitionId) (sequence : Nat)
@@ -71,7 +146,7 @@ inductive StructuralFinding where
       (conflicting : Bool)
   deriving BEq, DecidableEq, Repr
 
-structure ClosureExpectation where
+private structure ClosureExpectation where
   source : Option DefinitionId
   kind : DefinitionId
   recordIds : List DefinitionId
@@ -79,28 +154,28 @@ structure ClosureExpectation where
   recordCount : Nat
   deriving BEq, DecidableEq, Repr
 
-structure StructuralLinkSupport where
-  ruleId : DefinitionId
-  evidenceIdentities : List DefinitionId
-  orderingSupport : List EvidenceOrderingFact
-  closureSupport : List EvidenceClosureFact
-  deriving BEq, DecidableEq, Repr
+end EvidenceStructure
 
-structure NormalizedStructuralLinkSupport where
-  ruleId : DefinitionId
-  evidenceIdentities : List DefinitionId
-  facts : List EvidenceOrderingFact
-  closures : List EvidenceClosureFact
-  deriving BEq, DecidableEq, Repr
+open EvidenceStructure in
+/--
+An analyzed Evidence structure. Its constructor and fields are private: callers analyze it with
+`EvidenceStructure.analyze`, judge it with `orderingFault?` and `closureFault?`, and read it only
+through `factsInOrder` and `linkSupport`.
+-/
+structure EvidenceStructure where
+  private mk ::
+  private facts : List EvidenceOrderingFact
+  private suppliedFacts : List EvidenceOrderingFact
+  private closures : List EvidenceClosureFact
+  private requiredKinds : List DefinitionId
+  private evidenceIdentities : List DefinitionId
+  private faultReceipts : List FaultReceipt
+  private originMode : OriginMode
+  private closureExpectations : List ClosureExpectation
+  private links : List NormalizedLinkSupport
+  private findings : List Finding
 
-structure StructuralAnalysis where
-  facts : List EvidenceOrderingFact
-  closures : List EvidenceClosureFact
-  originMode : StructuralOriginMode
-  closureExpectations : List ClosureExpectation
-  links : List NormalizedStructuralLinkSupport
-  findings : List StructuralFinding
-  deriving BEq, DecidableEq, Repr
+namespace EvidenceStructure
 
 private def factByRecordLe (left right : EvidenceOrderingFact) : Bool :=
   idLe left.recordId right.recordId
@@ -118,7 +193,7 @@ private def factBySequenceLe (left right : EvidenceOrderingFact) : Bool :=
   | some _, none => false
 
 private def canonicalFacts :
-    List EvidenceOrderingFact → List EvidenceOrderingFact × List StructuralFinding
+    List EvidenceOrderingFact → List EvidenceOrderingFact × List Finding
   | [] => ([], [])
   | [fact] => ([fact], [])
   | first :: second :: rest =>
@@ -130,7 +205,7 @@ private def canonicalFacts :
         (first :: facts, findings)
 
 private def canonicalClosures :
-    List EvidenceClosureFact → List EvidenceClosureFact × List StructuralFinding
+    List EvidenceClosureFact → List EvidenceClosureFact × List Finding
   | [] => ([], [])
   | [closure] => ([closure], [])
   | first :: second :: rest =>
@@ -141,20 +216,15 @@ private def canonicalClosures :
         let (closures, findings) := canonicalClosures (second :: rest)
         (first :: closures, findings)
 
-private partial def factDependsOn
+/-- `ancestor` is `recordId` or reaches it through causal parents; facts carry unique identities. -/
+private def factDescendsFrom
     (facts : List EvidenceOrderingFact)
-    (recordId target : DefinitionId)
-    (visited : List DefinitionId := []) : Bool :=
-  if recordId == target then true
-  else if visited.contains recordId then false
-  else
-    match facts.find? fun fact => fact.recordId == recordId with
-    | none => false
-    | some fact => fact.causalParents.any fun parent =>
-        factDependsOn facts parent target (recordId :: visited)
+    (recordId ancestor : DefinitionId) : Bool :=
+  Shared.Reachability.reaches facts EvidenceOrderingFact.recordId
+    (fun current candidate => candidate.causalParents.contains current) ancestor recordId
 
 private def globalSequenceFindings
-    (facts : List EvidenceOrderingFact) : List StructuralFinding := Id.run do
+    (facts : List EvidenceOrderingFact) : List Finding := Id.run do
   let mut findings := []
   let mut expectedSequence := 1
   let mut previous : Option EvidenceOrderingFact := none
@@ -172,14 +242,14 @@ private def globalSequenceFindings
       match facts.find? fun candidate => candidate.recordId == parent with
       | none => findings := findings ++ [.missingCausalParent fact.recordId (some parent)]
       | some parentFact =>
-          if factDependsOn facts parent fact.recordId || parentFact.sequence >= fact.sequence then
+          if factDescendsFrom facts parent fact.recordId || parentFact.sequence >= fact.sequence then
             findings := findings ++ [.contradictoryOrder fact.recordId parent]
     previous := some fact
     expectedSequence := expectedSequence + 1
   pure findings
 
 private def sourceSequenceFindings
-    (facts : List EvidenceOrderingFact) : List StructuralFinding := Id.run do
+    (facts : List EvidenceOrderingFact) : List Finding := Id.run do
   let mut findings := []
   let sources := DefinitionId.canonicalSet <|
     facts.filterMap fun fact => fact.origin.map EvidenceOrigin.source
@@ -205,7 +275,7 @@ private def sourceSequenceFindings
                 factOrigin.source == parentOrigin.source &&
                   parentOrigin.ordinal >= factOrigin.ordinal
             | _, _ => false
-          if factDependsOn facts parent fact.recordId || reversesSourceOrder then
+          if factDescendsFrom facts parent fact.recordId || reversesSourceOrder then
             findings := findings ++ [.contradictoryOrder fact.recordId parent]
   pure findings
 
@@ -223,8 +293,8 @@ private def closureKeyLe (left right : ClosureKey) : Bool :=
   | none, some _ => true
   | some _, none => false
 
-private def closureExpectations
-    (originMode : StructuralOriginMode)
+private def expectationsFor
+    (originMode : OriginMode)
     (facts : List EvidenceOrderingFact) : List ClosureExpectation :=
   let keys := facts.map fun fact => {
     source := if originMode == .sourceSequence then fact.origin.map EvidenceOrigin.source else none
@@ -251,7 +321,7 @@ private def closureExpectations
 private def globalClosureFindings
     (requiredKinds : List DefinitionId)
     (closures : List EvidenceClosureFact)
-    (expectations : List ClosureExpectation) : List StructuralFinding := Id.run do
+    (expectations : List ClosureExpectation) : List Finding := Id.run do
   let mut findings := []
   for closure in closures do
     match expectations.find? fun expectation => expectation.kind == closure.kind with
@@ -273,7 +343,7 @@ private def globalClosureFindings
 private def sourceClosureFindings
     (requiredKinds : List DefinitionId)
     (closures : List EvidenceClosureFact)
-    (expectations : List ClosureExpectation) : List StructuralFinding := Id.run do
+    (expectations : List ClosureExpectation) : List Finding := Id.run do
   let mut findings := []
   for closure in closures do
     match expectations.find? fun expectation =>
@@ -302,11 +372,11 @@ private def sourceClosureFindings
 
 private def normalizeLinkSupport
     (linkIndex : Nat)
-    (originMode : StructuralOriginMode)
+    (originMode : OriginMode)
     (sharedFacts : List EvidenceOrderingFact)
     (sharedClosures : List EvidenceClosureFact)
-    (support : StructuralLinkSupport) :
-    NormalizedStructuralLinkSupport × List StructuralFinding :=
+    (support : LinkSupport) :
+    NormalizedLinkSupport × List Finding :=
   let facts := match originMode with
     | .globalSequence => support.orderingSupport.mergeSort factByRecordLe
     | .sourceSequence | .mixed => support.orderingSupport.mergeSort factBySequenceLe
@@ -341,48 +411,61 @@ private def normalizeLinkSupport
     closures
   }, findings)
 
-def analyzeStructure
-    (directFacts : List EvidenceOrderingFact)
-    (directClosures : List EvidenceClosureFact)
+/--
+Normalize one Evidence structure. A raw bundle supplies `facts` in bundle order with each record's
+causal parents as written, its `closures`, and its `faultReceipts`; an accepted trace supplies its
+Evidence Links in `linked`, whose ordering and closure support replace `facts` and `closures`
+whenever at least one link is present. `requiredKinds` are the closure kinds the checked Reading
+declares, in declaration order.
+-/
+def analyze
+    (facts : List EvidenceOrderingFact)
+    (closures : List EvidenceClosureFact)
     (requiredKinds : List DefinitionId := [])
-    (linkSupport : List StructuralLinkSupport := []) : StructuralAnalysis :=
-  let suppliedFacts := if linkSupport.isEmpty then directFacts
-    else linkSupport.flatMap StructuralLinkSupport.orderingSupport
-  let suppliedClosures := if linkSupport.isEmpty then directClosures
-    else linkSupport.flatMap StructuralLinkSupport.closureSupport
+    (linked : Option LinkedSupport := none)
+    (faultReceipts : List FaultReceipt := []) : EvidenceStructure :=
+  let linkSupport := linked.map LinkedSupport.links |>.getD []
+  let suppliedFacts := if linkSupport.isEmpty then facts
+    else linkSupport.flatMap LinkSupport.orderingSupport
+  let suppliedClosures := if linkSupport.isEmpty then closures
+    else linkSupport.flatMap LinkSupport.closureSupport
   let factsById := suppliedFacts.mergeSort factByRecordLe
-  let (facts, identityFindings) := canonicalFacts factsById
+  let (canonical, identityFindings) := canonicalFacts factsById
   let identityFindings := if linkSupport.isEmpty then identityFindings else
     identityFindings.filter fun finding => match finding with
       | .duplicateIdentity _ true => true
       | _ => false
-  let facts := facts.mergeSort factBySequenceLe
-  let originMode := if facts.isEmpty then .globalSequence
-    else if facts.all fun fact => fact.origin.isSome then .sourceSequence
-    else if facts.any fun fact => fact.origin.isSome then .mixed
+  let canonical := canonical.mergeSort factBySequenceLe
+  let originMode := if canonical.isEmpty then .globalSequence
+    else if canonical.all fun fact => fact.origin.isSome then .sourceSequence
+    else if canonical.any fun fact => fact.origin.isSome then .mixed
     else .globalSequence
   let orderingFindings := match originMode with
-    | .globalSequence => globalSequenceFindings facts
-    | .sourceSequence => sourceSequenceFindings facts
-    | .mixed => [.mixedOrigins (facts.map EvidenceOrderingFact.recordId)]
+    | .globalSequence => globalSequenceFindings canonical
+    | .sourceSequence => sourceSequenceFindings canonical
+    | .mixed => [.mixedOrigins (canonical.map EvidenceOrderingFact.recordId)]
   let sortedClosures := suppliedClosures.mergeSort closureLe
-  let (closures, duplicateClosureFindings) := canonicalClosures sortedClosures
+  let (normalizedClosures, duplicateClosureFindings) := canonicalClosures sortedClosures
   let duplicateClosureFindings := if linkSupport.isEmpty then duplicateClosureFindings else
     duplicateClosureFindings.filter fun finding => match finding with
       | .duplicateClosure _ _ true => true
       | _ => false
-  let closureExpectations := closureExpectations originMode facts
+  let closureExpectations := expectationsFor originMode canonical
   let closureFindings := match originMode with
-    | .globalSequence => globalClosureFindings requiredKinds closures closureExpectations
-    | .sourceSequence => sourceClosureFindings requiredKinds closures closureExpectations
+    | .globalSequence => globalClosureFindings requiredKinds normalizedClosures closureExpectations
+    | .sourceSequence => sourceClosureFindings requiredKinds normalizedClosures closureExpectations
     | .mixed => []
   let normalizedLinks := linkSupport.mapIdx fun linkIndex support =>
-    normalizeLinkSupport linkIndex originMode facts closures support
+    normalizeLinkSupport linkIndex originMode canonical normalizedClosures support
   let links := normalizedLinks.map Prod.fst
   let linkFindings := normalizedLinks.flatMap Prod.snd
   {
-    facts
-    closures
+    facts := canonical
+    suppliedFacts
+    closures := normalizedClosures
+    requiredKinds
+    evidenceIdentities := linked.map LinkedSupport.evidenceIdentities |>.getD []
+    faultReceipts
     originMode
     closureExpectations
     links
@@ -390,6 +473,242 @@ def analyzeStructure
       linkFindings
   }
 
-end Evidence.Internal
+/-- The canonical facts: one per record identity, in source-local or global sequence order. -/
+def factsInOrder (evidence : EvidenceStructure) : List EvidenceOrderingFact :=
+  evidence.facts
+
+/-- Each supplied Evidence Link's support after normalization, in link order. -/
+def linkSupport (evidence : EvidenceStructure) : List NormalizedLinkSupport :=
+  evidence.links
+
+private def firstFault (check : Except α Unit) : Option α :=
+  match check with
+  | .ok () => none
+  | .error fault => some fault
+
+private def throwFirst (fault : Option α) : Except α Unit :=
+  match fault with
+  | some fault => throw fault
+  | none => pure ()
+
+private def rawFaultReceipt
+    (evidence : EvidenceStructure)
+    (fact : EvidenceOrderingFact) : Except (OrderingFault .raw) Unit := do
+  let some receipt := evidence.faultReceipts.find? fun receipt => receipt.recordId == fact.recordId
+    | return
+  let misdirected : OrderingFault .raw := {
+    kind := .misdirectedFaultReceipt
+    related := [fact.recordId, receipt.target]
+  }
+  let targetFact ← match evidence.facts.find? fun candidate => candidate.recordId == receipt.target with
+    | some candidate => pure candidate
+    | none => throw misdirected
+  match evidence.originMode with
+  | .globalSequence =>
+      if targetFact.sequence >= fact.sequence then
+        throw misdirected
+  | .sourceSequence =>
+      let sameSourceBefore := match targetFact.origin, fact.origin with
+        | some targetOrigin, some factOrigin =>
+            targetOrigin.source == factOrigin.source &&
+              targetOrigin.ordinal < factOrigin.ordinal
+        | _, _ => false
+      if !sameSourceBefore && !factDescendsFrom evidence.facts fact.recordId receipt.target then
+        throw misdirected
+  | .mixed => pure ()
+
+private def rawParentFault
+    (evidence : EvidenceStructure)
+    (fact : EvidenceOrderingFact)
+    (parentId : DefinitionId) : Except (OrderingFault .raw) Unit :=
+  throwFirst <| evidence.findings.findSome? fun
+    | .missingCausalParent candidate (some candidateParent) =>
+        if candidate == fact.recordId && candidateParent == parentId then
+          some { kind := .missingCausalParent, related := [candidate, candidateParent] }
+        else none
+    | .contradictoryOrder candidate candidateParent =>
+        if candidate == fact.recordId && candidateParent == parentId then
+          some { kind := .contradictoryOrder, related := [candidate, candidateParent] }
+        else none
+    | _ => none
+
+private def rawOrdering (evidence : EvidenceStructure) : Except (OrderingFault .raw) Unit := do
+  throwFirst <| evidence.findings.findSome? fun
+    | .duplicateIdentity recordId _ => some { kind := .duplicateIdentity, related := [recordId] }
+    | _ => none
+  throwFirst <| evidence.findings.findSome? fun
+    | .mixedOrigins recordIds => some { kind := .incomparableOrder, related := recordIds }
+    | _ => none
+  match evidence.originMode with
+  | .globalSequence =>
+      for fact in evidence.facts do
+        rawFaultReceipt evidence fact
+      for fact in evidence.facts do
+        throwFirst <| evidence.findings.findSome? fun
+          | .duplicateSequence firstId secondId _ =>
+              if secondId == fact.recordId then
+                some { kind := .incomparableOrder, related := [firstId, secondId] }
+              else none
+          | .sequenceGap candidate source _ _ =>
+              if candidate == fact.recordId then
+                some { kind := .sequenceGap, related := candidate :: source.toList }
+              else none
+          | .missingCausalParent candidate none =>
+              if candidate == fact.recordId then
+                some { kind := .missingCausalParent, related := [candidate] }
+              else none
+          | _ => none
+        for parent in fact.causalParents do
+          rawParentFault evidence fact parent
+  | .sourceSequence =>
+      throwFirst <| evidence.findings.findSome? fun
+        | .duplicateSequence firstId secondId _ =>
+            some { kind := .incomparableOrder, related := [firstId, secondId] }
+        | .sequenceGap recordId source _ _ =>
+            some { kind := .sequenceGap, related := recordId :: source.toList }
+        | _ => none
+      for fact in evidence.facts do
+        for parent in fact.causalParents do
+          rawParentFault evidence fact parent
+        rawFaultReceipt evidence fact
+  | .mixed => pure ()
+
+private def rawClosures (evidence : EvidenceStructure) : Except ClosureFault Unit := do
+  let firstDuplicateClosure : Option ClosureFault := evidence.findings.findSome? fun
+    | .duplicateClosure _ kind _ => some { related := [kind] }
+    | _ => none
+  match evidence.originMode with
+  | .globalSequence =>
+      for required in evidence.requiredKinds do
+        throwFirst <| evidence.findings.findSome? fun
+          | .duplicateClosure _ candidate _ =>
+              if candidate == required then some { related := [required] } else none
+          | _ => none
+        let closure ← match evidence.closures.find? fun closure => closure.kind == required with
+          | some closure => pure closure
+          | none => throw { related := [required] }
+        let lastSequence := evidence.closureExpectations.find?
+          (fun expectation => expectation.kind == required)
+          |>.map ClosureExpectation.lastSequence
+          |>.getD 0
+        if closure.lastSequence != lastSequence then
+          throw { related := [required] }
+      throwFirst firstDuplicateClosure
+  | .sourceSequence =>
+      throwFirst firstDuplicateClosure
+      for closure in evidence.closures do
+        if closure.source.isNone ||
+            !(evidence.requiredKinds.any fun required => required == closure.kind) then
+          throw { related := [closure.kind] }
+        throwFirst <| evidence.findings.findSome? fun
+          | .closureWithoutFacts source kind | .closureSequenceMismatch source kind _ _ |
+              .closureCountMismatch source kind _ _ | .closureByteCountMissing source kind =>
+              if source == closure.source && kind == closure.kind then
+                some { related := source.toList ++ [kind] }
+              else none
+          | _ => none
+      -- Bundle order decides which record of a missing closure is reported.
+      for fact in evidence.suppliedFacts do
+        throwFirst <| evidence.findings.findSome? fun
+          | .missingClosure recordIds source kind =>
+              if recordIds.contains fact.recordId &&
+                  source == fact.origin.map EvidenceOrigin.source && kind == fact.kind then
+                some { related := fact.recordId :: source.toList ++ [kind] }
+              else none
+          | _ => none
+      throwFirst <| evidence.findings.findSome? fun
+        | .missingRequiredKind kind => some { related := [kind] }
+        | _ => none
+  | .mixed => pure ()
+
+private def acceptedOrdering
+    (evidence : EvidenceStructure) : Except (OrderingFault .accepted) Unit := do
+  throwFirst <| evidence.findings.findSome? fun
+    | .duplicateIdentity recordId true => some { kind := .duplicateIdentity, related := [recordId] }
+    | _ => none
+  if evidence.facts.map EvidenceOrderingFact.recordId != evidence.evidenceIdentities then
+    throw { kind := .uncoveredEvidence, related := [] }
+  throwFirst <| evidence.findings.findSome? fun
+    | .mixedOrigins _ => some { kind := .incomparableOrder, related := [] }
+    | .duplicateSequence _ secondId _ => some { kind := .incomparableOrder, related := [secondId] }
+    | .sequenceGap recordId source _ _ =>
+        some { kind := .sequenceGap, related := recordId :: source.toList }
+    | .missingCausalParent recordId parentId =>
+        some { kind := .missingCausalParent, related := recordId :: parentId.toList }
+    | .contradictoryOrder recordId parentId =>
+        some { kind := .contradictoryOrder, related := [recordId, parentId] }
+    | _ => none
+  throwFirst <| evidence.findings.findSome? fun
+    | .inconsistentOrderingSupport ruleId _ _ =>
+        some { kind := .inconsistentLinkOrder, related := [ruleId] }
+    | _ => none
+
+private def acceptedClosures (evidence : EvidenceStructure) : Except ClosureFault Unit := do
+  let firstClosures := evidence.links.head?.map NormalizedLinkSupport.closures |>.getD []
+  if firstClosures.isEmpty then
+    throw { related := [] }
+  throwFirst <| evidence.findings.findSome? fun
+    | .duplicateClosureSupport ruleId linkIndex _ kind _ =>
+        some { related := if linkIndex == 0 then [kind] else [ruleId] }
+    | .inconsistentClosureSupport ruleId _ _ => some { related := [ruleId] }
+    | _ => none
+  let sourced := evidence.originMode == .sourceSequence
+  for fact in evidence.facts do
+    throwFirst <| evidence.findings.findSome? fun
+      | .missingClosure recordIds source kind =>
+          if recordIds.contains fact.recordId && kind == fact.kind &&
+              source == if sourced then fact.origin.map EvidenceOrigin.source else none then
+            some { related := match evidence.originMode, fact.origin with
+              | .sourceSequence, some origin => [fact.recordId, origin.source, fact.kind]
+              | _, _ => [fact.recordId, fact.kind] }
+          else none
+      | _ => none
+  let closureRelated (source : Option DefinitionId) (kind : DefinitionId) : ClosureFault := {
+    related := match evidence.originMode, source with
+      | .sourceSequence, some sourceId => [sourceId, kind]
+      | _, _ => [kind]
+  }
+  for closure in evidence.closures do
+    throwFirst <| evidence.findings.findSome? fun
+      | .closureWithoutFacts source kind =>
+          if source == closure.source && kind == closure.kind then
+            -- An explicit zero-record global closure is satisfied without facts.
+            if evidence.originMode == .globalSequence && closure.lastSequence == 0 then none
+            else some (closureRelated source kind)
+          else none
+      | .closureSequenceMismatch source kind _ _ | .closureCountMismatch source kind _ _ |
+          .closureByteCountMissing source kind =>
+          if source == closure.source && kind == closure.kind then
+            some (closureRelated source kind)
+          else none
+      | _ => none
+  match evidence.originMode with
+  | .globalSequence =>
+      for required in evidence.requiredKinds do
+        match evidence.closures.find? fun closure => closure.kind == required with
+        | some closure =>
+            if !(evidence.closureExpectations.any fun expectation =>
+                expectation.kind == required) && closure.lastSequence != 0 then
+              throw { related := [required] }
+        | none => throw { related := [required] }
+  | .sourceSequence | .mixed =>
+      throwFirst <| evidence.findings.findSome? fun
+        | .missingRequiredKind kind => some { related := [kind] }
+        | _ => none
+
+/--
+The first ordering fault in the audience's precedence table, or `none` when the facts order.
+Ordering faults precede every closure fault for both audiences.
+-/
+def orderingFault? (evidence : EvidenceStructure) : (audience : Audience) → Option (OrderingFault audience)
+  | .raw => firstFault (rawOrdering evidence)
+  | .accepted => firstFault (acceptedOrdering evidence)
+
+/-- The first closure fault in the audience's precedence table, or `none` when closures cover the facts. -/
+def closureFault? (evidence : EvidenceStructure) : Audience → Option ClosureFault
+  | .raw => firstFault (rawClosures evidence)
+  | .accepted => firstFault (acceptedClosures evidence)
+
+end EvidenceStructure
 
 end Umpire
