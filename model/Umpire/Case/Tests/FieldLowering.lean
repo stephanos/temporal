@@ -701,11 +701,11 @@ private def lowerRejects (expectation : PropertyPredicate) (construct : String)
   | .error actual => actual == construct
   | .ok _ => false
 
--- A literal the realization does not assign rejects by name, whether the Property compares a
--- request field no realized literal constructs or a literal of its own.
+-- A literal the realization does not assign rejects by name: a request field no realized literal
+-- constructs, and a literal the Property writes itself rather than the Program assigning it.
 #guard lowerRejects (compares requestPath acceptedPath) "rule.literal-unassigned" (safety [])
 #guard lowerRejects (PropertyPredicate.compareFields .equal (.field acceptedPath source)
-  (.literal (.integer .int32 7) source) source) "rule.literal-unassigned"
+  (.literal (.integer .int32 7) source) source) "rule.property-literal"
 
 -- A rule the Property does not imply rejects by name: the capture policy over a request operand, the
 -- safety policy over a prior-state operand, and a field compared in an applicability guard.
