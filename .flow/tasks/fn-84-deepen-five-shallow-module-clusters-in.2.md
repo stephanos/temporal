@@ -59,6 +59,7 @@ Decisions taken autonomously:
 - Applied the review's two P3 doc findings (rewrap, "Testpilot's private execution package") after SHIP.
 
 stage: impl-review - ran [2026-09-12T20:05Z..2026-09-12T20:11:53Z] SHIP (claude backend, receipt /tmp/impl-review-receipt-3684356e61f5-fn-84-deepen-five-shallow-module-clusters-in.2.json)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 9ddddf5469760005dc8e42df4d773e7efbd1e0f7, eabc8bfc2488e513f7914dea84a0e652966ec47e
 - Tests: go test -count=1 -tags test_dep ./common/testing/testpilot/..., go test -count=1 -tags test_dep ./common/testing/testpilot -run '^TestCaseRuntimePublicFacadeConformance$', go test -count=1 -tags test_dep ./common/testing/testpilot/temporal/worker/ -run '^TestFault|^TestSession|^TestPreparedDefinition|^TestWorkerProfile', go test -count=1 -tags test_dep ./common/testing/testpilot/temporal/internal/delivery/ -run '^TestQuarantineKeepsReservationOwnershipAndUnwrapsExactHandle$', go list -deps ./... (no package outside common/testing/testpilot imports internal/execution; leaf imports only api/testpilot/v1), go clean -cache && make lint-code GOLANGCI_LINT_FIX=false (161 issues, exit 2, inherited baseline; 14505 -> 161; none in touched files), make umpire-check-regression (exit 0; 571 Lean jobs; nine live TestTestpilot identities pass), baseline: green via handoff (verified at f3f8c625 by fn-84-deepen-five-shallow-module-clusters-in.1)

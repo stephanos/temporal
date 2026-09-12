@@ -96,15 +96,15 @@ Nexus, or promotion behavior.
 -/
 def explore
     (request : ExplorationRequest LawStatement)
-    (kernel : SearchView request.space.baseQuery.target) :
+    (base : AdmittedQuery request.space.baseQuery.target) :
     Except ExplorationError ExplorationResult :=
   match checkedEq : checkExplorationRequest request with
   | .error error => .error error
   | .ok checked =>
-      let checkedKernel : SearchView checked.space.baseQuery.target :=
-        Eq.mpr (congrArg (fun space => SearchView space.baseQuery.target)
-          (checkExplorationRequest_space checkedEq)) kernel
-      match buildCandidateSet checked checkedKernel with
+      let checkedBase := base.retarget
+        (congrArg (fun space => space.baseQuery.target)
+          (checkExplorationRequest_space checkedEq)).symm
+      match buildCandidateSet checked checkedBase with
       | .error error => .error error
       | .ok candidateSet =>
           .ok (exploreChecked checked candidateSet)

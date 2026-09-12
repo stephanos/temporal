@@ -77,11 +77,13 @@ syntax-aware checkers.
 When implementing evaluation or Search over an already checked Model, use
 `Umpire.Model.Check`; it exposes the authoritative Machine and finite Search contracts without
 loading the model elaborator. `Umpire.Search` consumes checked Queries and does not supply the
-authoring conveniences of the other facades. The
+authoring conveniences of the other facades. `Search.admit` checks a Property, an optional
+Scenario, Known Gaps, and a Query against one checked Model and returns an `AdmittedQuery`, whose
+search view only its own `search`, `searchWithIntent`, and `analyzeBranches` use. The
 [ownership guide](Umpire/ARCHITECTURE.md#model-ownership-and-semantic-imports) explains how pure
 admission and serialization support both paths.
 
-`Umpire.Promotion` remains scenario-neutral. It re-answers an unchanged checked Query, validates
+`Umpire.Promotion` remains scenario-neutral. It re-answers an unchanged admitted Query, validates
 the complete Plan anchor and exact source bytes, and returns an opaque review-only source value.
 It has no Case execution authority and imports no Temporal scenario.
 
@@ -99,10 +101,14 @@ ordered domains, encoders, enumerators, closure proofs, and Action-executability
 need an independently specified authoritative relation can use the expert `Machine` path.
 
 Property, Scenario, Query, and Evidence inputs remain ordinary values. Call each language's
-`check` operation to inspect its typed `Except` error, then supply explicit checker-success evidence
-to its `checked` operation. Stable `DefinitionId` suffixes, source locations, providers/connectors,
-Model-owned outcomes, and stage-specific `Limits` values are authored choices; declaration
-order and instance search choose none of them. Search returns `Except KnownGapError PlanResult`.
+`check` operation to inspect its typed `Except` error. Property, Scenario, and Query `checked`
+operations take checker-success evidence that defaults to `native_decide`, so a closed valid
+declaration names no proof and an invalid one fails where it is written; Evidence's `checked` still
+takes the evidence explicitly. To search, `Search.admit` runs the Property, Scenario, Known Gap,
+Query, and search-view checks in order and reports the first that rejected. Stable `DefinitionId`
+suffixes, source locations, providers/connectors, Model-owned outcomes, and stage-specific `Limits`
+values are authored choices; declaration order and instance search choose none of them. Search
+returns `Except KnownGapError PlanResult`.
 An optional checked `authoredKnownGaps` set is composed with phase gaps before search or artifact
 publication. Gaps describe limits and missing evidence; they cannot make a Property pass or imply
 that an omitted limitation was detected.
@@ -207,7 +213,8 @@ Lean syntax used by the walkthrough:
 - `:=` defines a value; `{ base with field := value }` makes a record update.
 - `.case` selects an inferred enum or structure constructor.
 - `Except Error Value` is either `.error error` or `.ok value`; `do` and `←` stop on the first error.
-- `by` starts a proof, and the explicit proof argument to `checked` is the raw/check/checked seam.
+- `by` starts a proof; `checked`'s proof argument defaults to `by native_decide`, the raw/check/checked
+  seam.
 - `#guard_msgs` compiles an expected elaboration failure; `#print axioms` reports transitive trust.
 
 `Temporal.Feature.NexusTests` compiles this facade-only path, including an authored gap reaching a
@@ -343,7 +350,7 @@ make lint-code
 The aggregate regression check regenerates owner-managed artifacts into temporary roots, checks the
 active vocabulary and semantic inventory, runs every package under `tools/umpire` with
 `-tags test_dep`, builds the complete Lean roots including generic promotion and the Case renderer,
-and runs the complete live selector with `-tags 'test_dep integration' -run '^TestUmpire'`. The live
+and runs the complete live selector with `-tags 'test_dep integration' -run '^TestTestpilot'`. The live
 gate compares the entire inherited failure-identity set, so both additions and deletions fail.
 
 `make lint-model` runs Lean declaration linting and validates the complete first-party import graph.

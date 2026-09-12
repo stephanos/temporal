@@ -6,3 +6,4 @@ import Umpire.Search.Tests.Outcomes
 import Umpire.Search.Tests.Endpoints
 import Umpire.Search.SemanticsImportTests
 import Umpire.Search.Tests.Parameterized
+import Umpire.Search.Tests.Admission

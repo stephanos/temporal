@@ -24,9 +24,9 @@ private theorem checkedSpaceTargetEq :
   exact congrArg (fun query => query.target)
     (checkVariationSpace_baseQuery checkedSpaceResultEq)
 
-private def kernel : SearchView VariationsTests.checked.baseQuery.target :=
-  Eq.mpr (congrArg SearchView checkedSpaceTargetEq)
-    Umpire.Examples.Switch.incrementalKernel
+private def base : AdmittedQuery VariationsTests.checked.baseQuery.target :=
+  (Umpire.Examples.Switch.exactActionAdmitted.withQuery VariationsTests.checked.baseQuery
+    checkedSpaceTargetEq).retarget checkedSpaceTargetEq.symm
 
 private def authoredRequest
     (coordinate : ModelCoordinate)
@@ -52,12 +52,12 @@ private theorem checkedRequestTargetEq :
         (checkExplorationRequest_space checkedRequestResultEq)
     _ = Umpire.Examples.Switch.target := checkedSpaceTargetEq
 
-private def candidateKernel : SearchView checkedRequest.space.baseQuery.target :=
-  Eq.mpr (congrArg SearchView checkedRequestTargetEq)
-    Umpire.Examples.Switch.incrementalKernel
+private def candidateBase : AdmittedQuery checkedRequest.space.baseQuery.target :=
+  (Umpire.Examples.Switch.exactActionAdmitted.withQuery checkedRequest.space.baseQuery
+    checkedRequestTargetEq).retarget checkedRequestTargetEq.symm
 
 private def candidateSet :=
-  (buildCandidateSet checkedRequest candidateKernel).toOption.get (by native_decide)
+  (buildCandidateSet checkedRequest candidateBase).toOption.get (by native_decide)
 
 private structure CandidateProjection where
   identity : String

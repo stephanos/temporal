@@ -23,11 +23,12 @@ Shared
 
 Umpire.Core ──▶ Model.Types ──▶ Model.Canonical ──▶ Model.Check
                                                        ├──▶ Property / Scenario semantics
-                                                       │       └──▶ Query semantics ──▶ Search
+                                                       │       └──▶ Query semantics ──▶ Search ──▶ Search.Admission
                                                        ├──▶ Model.Elab ──▶ Model authoring facade
                                                        └──▶ Model.Table ──▶ Model authoring facade
 
-Checked Models ──▶ Evidence / ImplementationLink / Variations / Exploration / Promotion
+Checked Models ──▶ Evidence / ImplementationLink
+Admitted Queries ──▶ Variations / Exploration / Promotion
 
 Testpilot.Protocol ──▶ Testpilot.Authoring ──▶ Temporal.Testpilot
          │                       ▲                       ▲
@@ -77,7 +78,9 @@ The retained semantic APIs keep these responsibilities separate:
 - The Model owns valid setup, state, Action, Model Outcome, Fact, Step, and Capability domains.
 - Property states a claim over Traces.
 - A Scenario constrains allowed Trace shape without choosing Model-owned outcomes.
-- Query asks one bounded question, and Search answers it.
+- Query asks one bounded question, and Search answers it. `Search.admit` checks the Property,
+  Scenario, Known Gaps, Query, and search view in one order and returns an `AdmittedQuery` or the
+  first stage that rejected.
 - Variations and Exploration select from a finite checked universe without performing runtime I/O.
 - Evidence and Implementation Link retain the offline mapping path for model analysis.
 - Promotion validates one exact scenario-neutral Plan source for human review.

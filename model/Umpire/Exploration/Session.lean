@@ -35,9 +35,9 @@ private def sessionCandidateOfExploratory
 /-- Check and select one Exploration request before opening its process-local candidate session. -/
 def beginSession
     (request : ExplorationRequest LawStatement)
-    (kernel : SearchView request.space.baseQuery.target) :
+    (base : AdmittedQuery request.space.baseQuery.target) :
     Except ExplorationError CandidateCursor := do
-  let result ← explore request kernel
+  let result ← explore request base
   pure {
     remaining := result.pinned.map sessionCandidateOfPinned ++
       result.exploratory.map sessionCandidateOfExploratory

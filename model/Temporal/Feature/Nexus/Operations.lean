@@ -22,6 +22,6 @@ open Umpire
 open Temporal.Feature.Nexus.Lifecycle
 
 def incrementalKernel : SearchView target :=
-  Eq.mpr (congrArg SearchView AsyncStart.query_target) AsyncStart.incrementalKernel
+  AsyncStart.incrementalKernel.retarget AsyncStart.query_target
 
 end Temporal.Feature.Nexus.Operations

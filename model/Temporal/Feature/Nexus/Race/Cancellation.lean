@@ -1,4 +1,5 @@
 import Temporal.Feature.Nexus.Race.Lifecycle
+import Umpire.Search.Admission
 
 /-! Independently authored start, cancellation, and successful-completion checks. -/
 
@@ -86,16 +87,18 @@ def authoredScenario (model : ModelVocabulary) : Scenario :=
     (roles := [operationRole])
     (setup := [SetupConstraint.roleEquals setupConstraintId operationRoleId model.scheduledState])
 
-def authoredQuery
-    (property : CheckedProperty) (behavior : CheckedScenario) : Query := {
+def queryShape : Query.Shape := {
   id := queryId
   source
   target := targetId
-  form := .find property
-  behavior
+  form := .find
   limits := Limits.bounded 1 1 8
   policy := { strategy := .shortest, seed := 17 }
 }
+
+def authoredQuery
+    (property : CheckedProperty) (behavior : CheckedScenario) : Query :=
+  queryShape.toQuery property behavior
 
 end Start
 
@@ -132,16 +135,18 @@ def authoredScenario (model : ModelVocabulary) : Scenario :=
     (roles := [operationRole])
     (setup := [SetupConstraint.roleEquals setupConstraintId operationRoleId model.startedState])
 
-def authoredQuery
-    (property : CheckedProperty) (behavior : CheckedScenario) : Query := {
+def queryShape : Query.Shape := {
   id := queryId
   source
   target := targetId
-  form := .find property
-  behavior
+  form := .find
   limits := Limits.bounded 1 1 8
   policy := { strategy := .shortest, seed := 17 }
 }
+
+def authoredQuery
+    (property : CheckedProperty) (behavior : CheckedScenario) : Query :=
+  queryShape.toQuery property behavior
 
 end Cancel
 
@@ -178,27 +183,27 @@ def authoredScenario (model : ModelVocabulary) : Scenario :=
     (roles := [operationRole])
     (setup := [SetupConstraint.roleEquals setupConstraintId operationRoleId model.startedState])
 
-def authoredQuery
-    (property : CheckedProperty) (behavior : CheckedScenario) : Query := {
+def queryShape : Query.Shape := {
   id := queryId
   source
   target := targetId
-  form := .find property
-  behavior
+  form := .find
   limits := Limits.bounded 1 1 8
   policy := { strategy := .shortest, seed := 17 }
 }
 
+def authoredQuery
+    (property : CheckedProperty) (behavior : CheckedScenario) : Query :=
+  queryShape.toQuery property behavior
+
 end Success
 
+/-- The lifecycle Model's own table and vocabulary are admitted here; every journey after that is
+`Search.admit`'s, reported as the stage that rejected. -/
 inductive BaselineAdmissionError where
   | invalidTarget (error : TableAdmissionError)
   | invalidVocabulary (error : FiniteTableError)
-  | invalidProperty (error : PropertyError)
-  | invalidBehavior (error : ScenarioError)
-  | invalidQuery (error : QueryError)
-  | invalidPlanner (error : FiniteSearchAdmissionError)
-  | invalidKnownGap (error : KnownGapError)
+  | invalidOperation (diagnostic : AdmissionDiagnostic)
 
 structure CheckedOperation where
   property : CheckedProperty
@@ -217,29 +222,24 @@ private def checkOperation
     (target : QueryModel LawStatement)
     (authoredProperty : Property)
     (authoredScenario : Scenario)
-    (authoredQuery : CheckedProperty → CheckedScenario → Query) :
+    (queryShape : Query.Shape) :
     Except BaselineAdmissionError CheckedOperation := do
-  let property ← Property.check (PropertyCheckContext.ofTarget target) (authoredProperty)
-    |>.mapError BaselineAdmissionError.invalidProperty
-  let behavior ← Scenario.check (.ofTarget target) authoredScenario
-    |>.mapError BaselineAdmissionError.invalidBehavior
-  let query ← Query.check (.ofTarget target) (authoredQuery property behavior)
-    |>.mapError BaselineAdmissionError.invalidQuery
-  let kernel ← SearchView.ofCheckedQuery target.id query
-    |>.mapError BaselineAdmissionError.invalidPlanner
-  let run ← search query kernel |>.mapError BaselineAdmissionError.invalidKnownGap
-  pure { property, behavior, query, run }
+  let admitted ← Search.admit target authoredProperty (some authoredScenario) queryShape
+    |>.mapError BaselineAdmissionError.invalidOperation
+  let run ← admitted.search |>.mapError (BaselineAdmissionError.invalidOperation ∘ .knownGaps)
+  pure {
+    property := admitted.property, behavior := admitted.scenario, query := admitted.query, run }
 
 /-- All three journeys proceed only through successful Target and declaration admission branches. -/
 def checkBaseline : Except BaselineAdmissionError CheckedBaseline := do
   let target ← targetResult.mapError BaselineAdmissionError.invalidTarget
   let model ← modelVocabulary.mapError BaselineAdmissionError.invalidVocabulary
   let start ← checkOperation target (Start.authoredProperty model)
-    (Start.authoredScenario model) Start.authoredQuery
+    (Start.authoredScenario model) Start.queryShape
   let cancel ← checkOperation target (Cancel.authoredProperty model)
-    (Cancel.authoredScenario model) Cancel.authoredQuery
+    (Cancel.authoredScenario model) Cancel.queryShape
   let success ← checkOperation target (Success.authoredProperty model)
-    (Success.authoredScenario model) Success.authoredQuery
+    (Success.authoredScenario model) Success.queryShape
   pure { target, model, start, cancel, success }
 
 end Temporal.Feature.Nexus.Race.Cancellation

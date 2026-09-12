@@ -24,9 +24,9 @@ private theorem checkedSpaceTargetEq :
   exact congrArg (fun query => query.target)
     (checkVariationSpace_baseQuery checkedSpaceResultEq)
 
-private def kernel : SearchView VariationsTests.checked.baseQuery.target :=
-  Eq.mpr (congrArg SearchView checkedSpaceTargetEq)
-    Umpire.Examples.Switch.incrementalKernel
+private def base : AdmittedQuery VariationsTests.checked.baseQuery.target :=
+  (Umpire.Examples.Switch.exactActionAdmitted.withQuery VariationsTests.checked.baseQuery
+    checkedSpaceTargetEq).retarget checkedSpaceTargetEq.symm
 
 private def authoredRequest (value : Nat) :
     ExplorationRequest Umpire.Examples.Switch.LawStatement := {
@@ -52,12 +52,12 @@ private theorem checkedRequestTargetEq :
         (checkExplorationRequest_space checkedRequestResultEq)
     _ = Umpire.Examples.Switch.target := checkedSpaceTargetEq
 
-private def candidateKernel :
-    SearchView checkedRequest.space.baseQuery.target :=
-  Eq.mpr (congrArg SearchView checkedRequestTargetEq)
-    Umpire.Examples.Switch.incrementalKernel
+private def candidateBase :
+    AdmittedQuery checkedRequest.space.baseQuery.target :=
+  (Umpire.Examples.Switch.exactActionAdmitted.withQuery checkedRequest.space.baseQuery
+    checkedRequestTargetEq).retarget checkedRequestTargetEq.symm
 
-private def universeResult := buildCandidateSet checkedRequest candidateKernel
+private def universeResult := buildCandidateSet checkedRequest candidateBase
 
 private def requestResult (value : Nat) := checkExplorationRequest (authoredRequest value)
 
@@ -201,13 +201,13 @@ private theorem checkedReorderedTargetEq :
         (checkExplorationRequest_space checkedReorderedResultEq)
     _ = Umpire.Examples.Switch.target := reorderedSpaceTargetEq
 
-private def reorderedKernel :
-    SearchView checkedReordered.space.baseQuery.target :=
-  Eq.mpr (congrArg SearchView checkedReorderedTargetEq)
-    Umpire.Examples.Switch.incrementalKernel
+private def reorderedBase :
+    AdmittedQuery checkedReordered.space.baseQuery.target :=
+  (Umpire.Examples.Switch.exactActionAdmitted.withQuery checkedReordered.space.baseQuery
+    checkedReorderedTargetEq).retarget checkedReorderedTargetEq.symm
 
 private def reorderedSelection : Option ExhaustiveSelection := do
-  let candidateSet ← (buildCandidateSet checkedReordered reorderedKernel).toOption
+  let candidateSet ← (buildCandidateSet checkedReordered reorderedBase).toOption
   selectExhaustive checkedReordered candidateSet
 
 private def canonicalSelectionProjection (selection : ExhaustiveSelection) :=

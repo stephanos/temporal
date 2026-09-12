@@ -128,12 +128,13 @@ private def fromCompilationResult
 
 end CandidateSet.Internal
 
-/-- Compile one checked Space through the caller's exact kernel into its canonical finite universe. -/
+/-- Compile one checked Space through the caller's admitted base Query into its canonical finite
+universe. -/
 def buildCandidateSet
     (request : CheckedExplorationRequest LawStatement)
-    (kernel : SearchView request.space.baseQuery.target) :
+    (base : AdmittedQuery request.space.baseQuery.target) :
     Except ExplorationError CandidateSet :=
   CandidateSet.Internal.fromCompilationResult request
-    (compileBatch request.space kernel)
+    (compileBatch request.space base)
 
 end Umpire

@@ -1,5 +1,6 @@
 import Umpire.Search
 import Umpire.Search.Branches
+import Umpire.Search.Admission
 import Umpire.Shared
 
 namespace Umpire.Examples.Switch
@@ -428,12 +429,8 @@ def authoredProperty : Property := {
 def propertyResult : Except PropertyError CheckedProperty :=
   Property.check (PropertyCheckContext.ofTarget target) (authoredProperty)
 
-private theorem propertyResult_isSome : propertyResult.toOption.isSome = true := by
-  native_decide
-
 def flipProperty : CheckedProperty :=
   Property.checked (PropertyCheckContext.ofTarget target) (authoredProperty)
-    propertyResult_isSome
 
 def switchRole : Scenario.Role := { id := switchRoleId, valueKind := .state }
 
@@ -489,26 +486,14 @@ def exactActionBehaviorResult : Except ScenarioError CheckedScenario :=
 def exactTraceBehaviorResult : Except ScenarioError CheckedScenario :=
   checkBehaviorDeclaration exactTraceBehaviorDeclaration
 
-private theorem exploratoryBehaviorResult_isSome :
-    exploratoryBehaviorResult.toOption.isSome = true := by native_decide
-
-private theorem exactActionBehaviorResult_isSome :
-    exactActionBehaviorResult.toOption.isSome = true := by native_decide
-
-private theorem exactTraceBehaviorResult_isSome :
-    exactTraceBehaviorResult.toOption.isSome = true := by native_decide
-
 def exploratoryBehavior : CheckedScenario :=
   Scenario.checked (.ofTarget target) exploratoryBehaviorDeclaration
-    exploratoryBehaviorResult_isSome
 
 def exactActionBehavior : CheckedScenario :=
   Scenario.checked (.ofTarget target) exactActionBehaviorDeclaration
-    exactActionBehaviorResult_isSome
 
 def exactTraceBehavior : CheckedScenario :=
   Scenario.checked (.ofTarget target) exactTraceBehaviorDeclaration
-    exactTraceBehaviorResult_isSome
 
 def appliedTrace : Scenario.Trace :=
   Scenario.Trace.singleStep switchSetup offState flipAction appliedResult
@@ -547,29 +532,17 @@ def exactTraceQueryResult : Except QueryError (CheckedQuery LawStatement) :=
   Query.check queryContext
     (authoredQuery exactTraceQueryId (.find flipProperty) exactTraceBehavior)
 
-private theorem exploratoryQueryResult_isSome :
-    exploratoryQueryResult.toOption.isSome = true := by native_decide
-
-private theorem exactActionQueryResult_isSome :
-    exactActionQueryResult.toOption.isSome = true := by native_decide
-
-private theorem exactTraceQueryResult_isSome :
-    exactTraceQueryResult.toOption.isSome = true := by native_decide
-
 def exploratoryQuery : CheckedQuery LawStatement :=
   Query.checked target
     (authoredQuery exploratoryQueryId (.pick [flipProperty]) exploratoryBehavior)
-    exploratoryQueryResult_isSome
 
 def exactActionQuery : CheckedQuery LawStatement :=
   Query.checked target
     (authoredQuery exactActionQueryId (.find flipProperty) exactActionBehavior)
-    exactActionQueryResult_isSome
 
 def exactTraceQuery : CheckedQuery LawStatement :=
   Query.checked target
     (authoredQuery exactTraceQueryId (.find flipProperty) exactTraceBehavior)
-    exactTraceQueryResult_isSome
 
 theorem stepResults_length_le_two (state action : ModelValue) :
     (stepResults state action).length ≤ 2 := by
@@ -584,60 +557,30 @@ theorem stepResults_length_le_two (state action : ModelValue) :
       · simp [stepResults, selectedOff, selectedOn]
   · simp [stepResults, selectedAction]
 
-private def incrementalKernel? : Option (SearchView exactActionQuery.target) :=
-  SearchView.ofCheckedQuery? exactActionQuery
-    (by
-      intro evidence evidenceEq
-      simp [exactActionQuery, Query.checked, ModelCompleteness.ofTarget, target,
-        model, targetAuthoring, DraftModel.make, modelSpec] at evidenceEq
-      cases Option.some.inj evidenceEq
-      simp [finitePlanning])
-    (by
-      intro _ _ setup
-      simp only [exactActionQuery, Query.checked, target, model, targetAuthoring,
-        DraftModel.make, modelSpec,
-        machine, initialStates]
-      split <;> simp)
-    (by
-      intro _ _ state action
-      by_cases selectedAction : action = flipAction
-      · subst action
-        by_cases selectedOff : state = offState
-        · subst state
-          simpa [exactActionQuery, Query.checked, target, model, targetAuthoring,
-            DraftModel.make, modelSpec,
-            machine, stepResults] using appliedResult_ordered
-        · by_cases selectedOn : state = onState
-          · subst state
-            simpa [exactActionQuery, Query.checked, target, model, targetAuthoring,
-              DraftModel.make, modelSpec,
-              machine, stepResults, onState_ne_offState] using
-              appliedFromOnResult_ordered
-          · simp [exactActionQuery, Query.checked, target, model, targetAuthoring,
-              DraftModel.make, modelSpec,
-              machine, stepResults, selectedOff, selectedOn]
-      · simp [exactActionQuery, Query.checked, target, model, targetAuthoring,
-          DraftModel.make, modelSpec,
-          machine, stepResults, selectedAction])
-
-private theorem incrementalKernel?_isSome : incrementalKernel?.isSome = true := by
-  rfl
-
-def incrementalKernel : SearchView target :=
-  incrementalKernel?.get incrementalKernel?_isSome
+/-- The exact-action Query admitted against the switch Model, with its search view. The exploratory
+and exact-trace Queries search through the same view. -/
+def exactActionAdmitted : AdmittedQuery target :=
+  (Search.admit target authoredProperty (some exactActionBehaviorDeclaration) {
+    id := exactActionQueryId
+    source
+    target := target.id
+    form := .find
+    limits
+    policy := shortestPolicy
+  }).toOption.get (by native_decide)
 
 theorem exploratoryQuery_target : exploratoryQuery.target = target := by rfl
 theorem exactActionQuery_target : exactActionQuery.target = target := by rfl
 theorem exactTraceQuery_target : exactTraceQuery.target = target := by rfl
 
 def exploratoryRun : Except KnownGapError PlanResult :=
-  search exploratoryQuery incrementalKernel
+  (exactActionAdmitted.withQuery exploratoryQuery exploratoryQuery_target).search
 
 def exactActionRunResult : Except KnownGapError PlanResult :=
-  search exactActionQuery incrementalKernel
+  exactActionAdmitted.search
 
 def exactTraceRun : Except KnownGapError PlanResult :=
-  search exactTraceQuery incrementalKernel
+  (exactActionAdmitted.withQuery exactTraceQuery exactTraceQuery_target).search
 
 def artifact : Option Plan := exactActionRunResult.toOption.bind PlanResult.artifact
 

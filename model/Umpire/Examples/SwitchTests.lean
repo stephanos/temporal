@@ -104,20 +104,29 @@ example :
       } := by
   exact ⟨rfl, rfl, rfl, rfl⟩
 
+/-! A closed valid declaration needs no proof of its own: the default `native_decide` supplies it. -/
 example :
-    Property.checked (PropertyCheckContext.ofTarget target) (authoredProperty)
-      (by native_decide) = propertyResult.toOption.get (by native_decide) ∧
-    Scenario.checked (.ofTarget target) exactActionBehaviorDeclaration
-      (by native_decide) = exactActionBehaviorResult.toOption.get (by native_decide) := by
+    Property.checked (PropertyCheckContext.ofTarget target) (authoredProperty) =
+      propertyResult.toOption.get (by native_decide) ∧
+    Scenario.checked (.ofTarget target) exactActionBehaviorDeclaration =
+      exactActionBehaviorResult.toOption.get (by native_decide) := by
   native_decide
 
+/-! An invalid declaration is rejected where it is written, by the same default proof. -/
+/--
+error: could not synthesize default value for parameter 'valid' using tactics
+-/
 #guard_msgs (error, substring := true) in
 def propertyWithoutValidityProof : CheckedProperty :=
-  Property.checked (PropertyCheckContext.ofTarget target) (authoredProperty)
+  Property.checked (PropertyCheckContext.ofTarget target)
+    { authoredProperty with id := DefinitionId.of "" }
 
+/--
+error: could not synthesize default value for parameter 'valid' using tactics
+-/
 #guard_msgs (error, substring := true) in
 def behaviorWithoutValidityProof : CheckedScenario :=
-  Scenario.checked (.ofTarget target) exactActionBehaviorDeclaration
+  Scenario.checked (.ofTarget target) { exactActionBehaviorDeclaration with id := DefinitionId.of "" }
 
 example : [
     propertyErrorOf (Property.check (PropertyCheckContext.ofTarget target) ({

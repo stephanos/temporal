@@ -39,7 +39,7 @@ private theorem queryResult_target
 
 private structure PreparedExploration where
   space : CheckedVariationSpace LawStatement
-  kernel : SearchView space.baseQuery.target
+  base : AdmittedQuery space.baseQuery.target
 
 private def prepare : Except VariationSpacePreparationError PreparedExploration :=
   match queryEq : queryResult with
@@ -52,10 +52,13 @@ private def prepare : Except VariationSpacePreparationError PreparedExploration 
           let checkedTargetEq : checked.baseQuery.target = target :=
             (congrArg (fun candidate => candidate.target) <|
               checkVariationSpace_baseQuery checkedEq).trans queryTargetEq
-          .ok {
-            space := checked
-            kernel := Eq.mpr (congrArg SearchView checkedTargetEq) incrementalKernel
-          }
+          match baseAdmission with
+          | .error error => .error error
+          | .ok admitted => .ok {
+              space := checked
+              base := (admitted.withQuery checked.baseQuery checkedTargetEq).retarget
+                checkedTargetEq.symm
+            }
 
 /-- Typed failure from preparing or selecting the checked Nexus exploration Space. -/
 inductive NexusExplorationError where
@@ -80,7 +83,7 @@ def run
     (limit : Nat)
     (pinned : List Plan := []) : Except NexusExplorationError ExplorationResult := do
   let prepared ← prepare.mapError NexusExplorationError.preparation
-  (explore (request prepared policy limit pinned) prepared.kernel).mapError
+  (explore (request prepared policy limit pinned) prepared.base).mapError
     NexusExplorationError.exploration
 
 /-- Open a process-local one-candidate session over one fixed Nexus selection. -/
@@ -89,7 +92,7 @@ def startSession
     (limit : Nat)
     (pinned : List Plan := []) : Except NexusExplorationError CandidateCursor := do
   let prepared ← prepare.mapError NexusExplorationError.preparation
-  (beginSession (request prepared policy limit pinned) prepared.kernel).mapError
+  (beginSession (request prepared policy limit pinned) prepared.base).mapError
     NexusExplorationError.exploration
 
 end Temporal.Feature.Nexus.Experimental.Exploration

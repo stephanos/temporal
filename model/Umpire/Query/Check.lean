@@ -246,13 +246,15 @@ def Query.check
     behaviorFingerprint := behaviorFingerprintOf semantic
   }
 
-/-- Produce a checked Query directly from an explicit proof that the typed checker succeeds. Model
-re-ascription stays inside this boundary so dependent search APIs see the selected Model. Use
-`Query.check` when an invalid declaration's typed diagnostic is needed. -/
+/-- Produce a checked Query directly from a proof that the typed checker succeeds. The proof
+defaults to `native_decide`, evaluated where the caller elaborates, so a closed declaration names no
+proof of its own. Model re-ascription stays inside this boundary so dependent search APIs see the
+selected Model. Use `Query.check` when an invalid declaration's typed diagnostic is needed. -/
 def Query.checked
     (target : QueryModel LawStatement)
     (declaration : Query)
-    (valid : (Query.check (.ofTarget target) declaration).toOption.isSome = true) :
+    (valid : (Query.check (.ofTarget target) declaration).toOption.isSome = true := by
+      native_decide) :
     CheckedQuery LawStatement :=
   let checked := (Query.check (.ofTarget target) declaration).toOption.get valid
   {

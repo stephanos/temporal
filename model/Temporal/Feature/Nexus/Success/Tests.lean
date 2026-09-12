@@ -580,11 +580,11 @@ private def misspelledRole (values : Umpire.Command.ModelVocabulary) : Scenario 
     occurrences := [("start", "awaitStart"), ("completion", "awaitSuccess")] }
 
 #guard match runCheck (propertyAuthor := misspelledProperty) with
-  | .error (.invalidProperty _) => true
+  | .error (.admission (.property _)) => true
   | _ => false
 
 #guard match runCheck (behaviorAuthor := misspelledRole) with
-  | .error (.invalidBehavior _) => true
+  | .error (.admission (.scenario _)) => true
   | _ => false
 
 /--

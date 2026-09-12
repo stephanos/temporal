@@ -45,8 +45,7 @@ private def checkedIntent : PlanRequest :=
   checkedIntentResult.toOption.get checkedIntentResult_isSome
 
 private def projectedRunResult : Except PlanningRequestError PlanResult :=
-  searchWithPlanRequest Umpire.Examples.Switch.exactActionQuery
-    Umpire.Examples.Switch.incrementalKernel checkedIntent
+  Umpire.Examples.Switch.exactActionAdmitted.searchWithIntent checkedIntent
 
 private def projectedSpec : Option Plan :=
   projectedRunResult.toOption.bind PlanResult.artifact
@@ -89,7 +88,7 @@ example :
     let staleIntent := {
       checkedIntent with queryDefinitionId := id "switch.query.stale"
     }
-    requestErrorOf (searchWithPlanRequest query Umpire.Examples.Switch.incrementalKernel
+    requestErrorOf ((Umpire.Examples.Switch.exactActionAdmitted.withQuery query rfl).searchWithIntent
       staleIntent) = some (.planRequest {
         kind := .identityDrift
         definitionId := staleIntent.queryDefinitionId
@@ -225,7 +224,7 @@ example :
         ordinary.plan with kernelDefinitionId := id "switch.kernel.stale"
       }
     }
-    requestErrorOf (searchWithPlanRequest drifted Umpire.Examples.Switch.incrementalKernel
+    requestErrorOf ((Umpire.Examples.Switch.exactActionAdmitted.withQuery drifted rfl).searchWithIntent
       checkedIntent) = some (.planRequest {
         kind := .identityDrift
         definitionId := checkedIntent.queryDefinitionId

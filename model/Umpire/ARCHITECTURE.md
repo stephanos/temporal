@@ -25,12 +25,12 @@ Focused public imports are available by responsibility:
 | `Umpire.Property.Elab` | Located-diagnostic elaboration of an authored Property. |
 | `Umpire.Scenario` | The authored Scenario language: setup roles, occurrences, and trace shape. |
 | `Umpire.Scenario.Check` | Scenario admission, canonicalization, and trace admission. |
-| `Umpire.Query` | Bounded questions over a checked Model, Properties, and Scenarios. |
+| `Umpire.Query` | Bounded questions over a checked Model, Properties, and Scenarios; `Search.admit` admits one for search. |
 | `Umpire.Variations` | Checked finite axes, fault intents and their lowering, and atomic point compilation. |
 | `Umpire.Exploration` | Bounded finite selection, pinned precedence, and process-local sessions. |
 | `Umpire.Evidence` | Offline evidence mappings and accepted semantic traces. |
 | `Umpire.ImplementationLink` | Checked correspondence between independent semantic Models. |
-| `Umpire.Search` | Deterministic incremental planning over checked Queries. |
+| `Umpire.Search` | Deterministic incremental planning over checked Queries; `Search.admit` owns the Property, Scenario, Known Gap, Query, and search-view chain and returns an `AdmittedQuery`. |
 | `Umpire.Promotion` | Exact review-only source compilation from an unchanged planned Query. |
 | `Umpire.Artifact` | Retained model-planning and offline-analysis artifact codecs. |
 | `Umpire.Json` | Ordered JSON construction for codec owners. |
@@ -94,9 +94,10 @@ not select behavior.
 
 ```text
 DraftModel ── checkModel ──▶ CheckedModel
-                                     ├── Property
-                                     ├── Scenario
-                                     └── Query ──▶ Planning / Space / Exploration
+                                     ├── Property ─┐
+                                     ├── Scenario ─┼── Search.admit ──▶ AdmittedQuery
+                                     └── Query ────┘                        │
+                                                    Planning / Space / Exploration / Promotion
 ```
 
 The finite-machine adapter is the ordinary route for fully enumerable Models. Direct
@@ -107,15 +108,23 @@ specified independently. Both routes converge before Property, Scenario, or Quer
 Model without deriving its evidence. The author still owns every ordered domain, encoder,
 enumerator, closure proof, Action-executability proof, provider, connector, source, and stable ID.
 `checkModel` remains the semantic admission boundary. Property, Scenario, Query, and Observation
-constructors follow the same raw input → typed `check` result → explicitly proof-backed `checked`
-shape; no constructor infers Model outcomes or checker success.
+constructors follow the same raw input → typed `check` result → proof-backed `checked` shape; no
+constructor infers Model outcomes or checker success. `Search.admit` composes the Property, Scenario,
+Known Gap, Query, and search-view checks in that order against one checked Model. It returns the
+first stage that rejected as one `AdmissionDiagnostic`, carrying that stage's own typed error, or an
+`AdmittedQuery` indexed by the Model. The admitted search view is private: `AdmittedQuery.search`,
+`searchWithIntent`, and `analyzeBranches` use it, and `AdmittedQuery.withQuery` re-pairs it with
+another checked Query over the same Model. `SearchView.retarget` is the one transport of a view
+across a proved Model equality. A Property-only Query admits against an unconstrained Scenario that
+binds the Model's setup roles.
 
 `FiniteTable` keeps ordered typed catalogs, setup alternatives, transition alternatives, Model
 Outcomes, and Model Facts explicit, then validates domain closure before constructing the ordinary
 finite Model. `DefinitionFamily`, `Property`, `Scenario`, `Query`, and
 `Limits` reduce repeated structure while delegating to the existing language-owned checkers.
-Their `checked` operations require explicit proof of checker success; the ordinary `check`
-operations return the existing typed `Except` results.
+Their `checked` operations take a proof of checker success that defaults to `native_decide`,
+evaluated where the caller elaborates, as `Umpire.model` does; the ordinary `check` operations return
+the existing typed `Except` results.
 
 Version-two Property data adds typed Boolean predicates, same-step branch groups, and guarded bounded
 temporal clauses. A branch group is the `branches` clause; a bounded clause becomes guarded by
@@ -162,9 +171,9 @@ runtime interpretation remains outside the semantic authoring path.
 
 ## Promotion API
 
-`Umpire.Promotion` is scenario-neutral. `compilePromotionSource` accepts an unchanged checked Query,
-its target-indexed planner kernel, a complete planning anchor, fresh source identities, and exact
-expected bytes. It replans and rechecks the target-owned trace before returning one opaque
+`Umpire.Promotion` is scenario-neutral. `compilePromotionSource` accepts an `AdmittedQuery` (an
+unchanged checked Query with its Model-indexed search view), a complete planning anchor, fresh source
+identities, and exact expected bytes. It replans and rechecks the target-owned trace before returning one opaque
 `CompiledPromotionSource`.
 
 The module performs no runtime reproduction, reduction, replay, publication, or installation. Its
