@@ -260,9 +260,10 @@ covered by declared Observations and never by a request assignment.
 declared Observation, and a realization carrying only what the Property does not state: the request
 literals the Program assigns, the rule's identity suffix, and a capture policy. From the Property's
 closed predicate vocabulary it derives the whole monitor rule: the read path of every observed
-operand, rooted at the declared Observation's own message; the comparison operator; the presence
-checks; the literal a request operand is realized as; and whether a prior-state operand is captured
-from an earlier event. It also returns the request coverage the same comparison implies, so
+operand, rooted at the declared Observation's own message; the comparison operator; the literal a
+request operand is realized as; and whether a prior-state operand is captured from an earlier event.
+The Property's presence atoms are consumed rather than compared, and the rule guards each derived
+read with its own presence checks. It also returns the request coverage the same comparison implies, so
 `Coverage.check` confirms the Program constructs every realized literal. Its `DerivedRule` is the
 correspondence certificate: every coordinate the rule reads is one the Property compares or the
 selector the realization names, and every literal is one the realization assigns. Moving a

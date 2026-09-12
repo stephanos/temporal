@@ -10,7 +10,9 @@ the rule reads, which comparison it makes, where each operand comes from and whi
 the Program must construct, so a Property edit that moves a coordinate moves the rule, and a field
 the Property stops comparing is no longer read.
 
-What the Property does not state is carried by a `Realization`: the request-side literal
+What the Property does not state is carried by a `Realization` (the rule-level one, distinct from
+`Umpire.Case.Producer.Realization`, which is a whole Program and its read-back coordinates): the
+request-side literal
 assignments the Program makes, the rule's identity suffix, and a `CapturePolicy`. The policy picks
 one of the two rule shapes:
 
@@ -23,8 +25,9 @@ one of the two rule shapes:
 
 Every operand root resolves the same way under either shape: a request operand is a realized
 literal, a prior-state operand is captured, and an outcome or event operand is observed. Presence
-atoms (an optional or oneof read compared with `true`) establish the steps a read traverses; they
-derive the rule's presence checks rather than a comparison of their own.
+atoms (an optional or oneof read compared with `true`) establish the steps a read traverses and are
+consumed rather than compared; the rule guards its derived read with its own presence checks, the
+Observation or capture it reads from and the read path itself.
 
 The result is a `Lowered` value. Its `DerivedRule` is the correspondence certificate: every
 coordinate the rule reads is one the Property compares or the selector the realization names, and
@@ -35,7 +38,9 @@ Program constructs each of them. A Property with no field comparison lowers to n
 Each rejection names its construct: `rule.clause-shape` for a field atom no conjunction of
 comparisons carries, `rule.comparisons` for more than one comparison, `rule.operator` for an
 ordering, `rule.unimplied` for an operand pair or field guard the policy does not realize,
-`rule.literal-unassigned` for a literal the realization does not assign, and
+`rule.literal-unassigned` for a request operand the realization assigns no literal,
+`rule.property-literal` for a literal the Property writes itself rather than the Program assigning
+it, and
 `rule.observation-type` for an Observation that carries no single message. A coordinate with no
 read path rejects with the reason `Projection.readPath` gives. `rule.certificate` names a lowering
 that failed its own correspondence check, which the derivation never produces.
@@ -284,7 +289,7 @@ private inductive Source where
   | observed (path : PropertyFieldPath)
 
 private def Source.of (realization : Realization) : PropertyFieldOperand → Except String Source
-  | .literal _ _ => throw "rule.literal-unassigned"
+  | .literal _ _ => throw "rule.property-literal"
   | .field path _ =>
       if path.capture.isSome then throw "rule.unimplied"
       else match path.root with
