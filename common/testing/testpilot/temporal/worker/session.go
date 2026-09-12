@@ -21,11 +21,8 @@ type programDefinition struct {
 	registrations  []queueRegistration
 	endpoints      map[string]string
 	queueWorkflows map[string]map[string]struct{}
-	// faultQueues maps each task-queue role a fault instruction names to the queue that role
-	// resolves to, so realizing a fault never re-reads the Program.
-	faultQueues map[string]string
-	hasAsync    bool
-	hasFault    bool
+	outages        OutagePlan
+	hasAsync       bool
 }
 
 type entryDefinition struct {
@@ -56,7 +53,7 @@ type Session struct {
 	diagnostics        int
 	closed             bool
 	failure            error
-	workers            *workerLease
+	outage             *Outage
 	stopComplete       bool
 	released           bool
 	removed            bool
@@ -132,14 +129,14 @@ func (*Session) InvokeCapability(context.Context, testpilot.Coordinate, testpilo
 // path; the blocking stop or resume runs here, where the scheduler's own deadline handling turns
 // an expired instruction bound into a timed-out instruction.
 type faultEffect struct {
-	work   func(context.Context) error
+	work   Settle
 	result testpilot.EffectResult
 	once   sync.Once
 	done   chan struct{}
 	err    error
 }
 
-func newFaultEffect(work func(context.Context) error, result testpilot.EffectResult) *faultEffect {
+func newFaultEffect(work Settle, result testpilot.EffectResult) *faultEffect {
 	return &faultEffect{work: work, result: result, done: make(chan struct{})}
 }
 
@@ -165,6 +162,8 @@ func (e *faultEffect) Wait(ctx context.Context) (testpilot.EffectResult, error) 
 	if ctx.Err() != nil {
 		return testpilot.EffectResult{}, e.err
 	}
+	// CONSIDER(umpire): a transition that cannot complete records no Driver invariant diagnostic
+	// here, unlike one refused at dispatch, although the package README states both do.
 	return testpilot.EffectResult{Outcome: unrealizedFault(e.err)}, nil
 }
 
@@ -213,33 +212,24 @@ func (s *Session) InjectFault(ctx context.Context, at testpilot.Coordinate, role
 	if s == nil || ctx == nil || at.RunID != s.runID || roleID == "" {
 		return nil, ErrInvalid
 	}
-	var stop bool
-	switch kind {
-	case testpilotspb.FAULT_KIND_WORKER_STOP:
-		stop = true
-	case testpilotspb.FAULT_KIND_WORKER_RESUME:
-		stop = false
-	default:
-		return nil, ErrInvalid
-	}
-	queue, declared := s.definition.faultQueues[roleID]
-	if !declared {
-		return nil, ErrInvalid
+	queue, _, err := s.definition.outages.resolve(roleID, kind)
+	if err != nil {
+		return nil, err
 	}
 	if err := s.mu.lock(ctx); err != nil {
 		return nil, err
 	}
-	closed, failure, workers := s.closed, s.failure, s.workers
+	closed, failure, outage := s.closed, s.failure, s.outage
 	s.mu.unlock()
 	if closed || failure != nil {
 		return nil, errors.Join(ErrClosed, failure)
 	}
-	if workers == nil {
+	if outage == nil {
 		return nil, ErrInvalid
 	}
-	work, err := workers.beginTransition(ctx, queue, stop)
+	settle, err := outage.Begin(ctx, roleID, kind)
 	if err == nil {
-		return newFaultEffect(work, testpilot.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}}), nil
+		return newFaultEffect(settle, testpilot.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}}), nil
 	}
 	// A queue this lease does not hold is a rejected dispatch, never a recorded outage.
 	if errors.Is(err, ErrInvalid) || errors.Is(err, ErrUnsupportedOperation) || ctx.Err() != nil {
@@ -297,7 +287,7 @@ func (s *Session) Close(ctx context.Context) error {
 		return err
 	}
 	s.closed = true
-	workers := s.workers
+	outage := s.outage
 	s.mu.unlock()
 	if !s.stopComplete {
 		if _, err := s.ledger.Stop(ctx); err != nil {
@@ -305,12 +295,12 @@ func (s *Session) Close(ctx context.Context) error {
 		}
 		s.stopComplete = true
 	}
-	// release always reaches the registry, so the hold is gone even when the resume it attempted
+	// Restore always reaches the registry, so the hold is gone even when the resume it attempted
 	// first could not finish; the session is removed either way and the failure is returned, so
 	// cleanup is reported failed rather than leaving the session registered behind an error.
 	var releaseErr error
-	if !s.released && workers != nil {
-		releaseErr = workers.release(ctx)
+	if !s.released && outage != nil {
+		releaseErr = outage.Restore(ctx)
 		s.released = true
 	}
 	if !s.removed {
