@@ -16,6 +16,12 @@ or effect. Scheduling, recording, expression admission, and Contract evaluation 
 package. The reusable Temporal Driver lives in `common/testing/testpilot/temporal`; functional
 fixtures and provisioning remain under `tests/`. Drivers cannot replace the prepared Contract evaluator.
 
+Driver authors import this package. Its `Session`, handle, `Coordinate`, role-policy and `Opcode` types
+are aliases of the `common/testing/testpilot/contract` leaf, which imports neither private execution nor
+the IR, so a package that needs only that vocabulary may import the leaf instead. Execution hands every
+effect and reservation handle back to the Session that issued it; refusing a handle it did not issue is
+that Session's decision.
+
 A Case may ask its Driver for a deliberate outage. `InjectFault` is a declared instruction like any
 other: the Profile must authorize it, the role it names must be a task-queue role, and the Run
 records one `FAULT_INJECTED` event per realized outage. Nothing about a requested fault is evidence

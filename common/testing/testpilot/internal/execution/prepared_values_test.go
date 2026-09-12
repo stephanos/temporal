@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
 )
@@ -35,7 +36,7 @@ func TestPreparedOutcomeParity(t *testing.T) {
 		require.NoError(t, err)
 		a, err := store.activate(entry.ID(), "activation")
 		require.NoError(t, err)
-		coord := Coordinate{RunID: "run", EntrypointID: entry.ID(), ActivationID: "activation", InstructionID: plan.Source().InstructionId, Attempt: 1}
+		coord := contract.Coordinate{RunID: "run", EntrypointID: entry.ID(), ActivationID: "activation", InstructionID: plan.Source().InstructionId, Attempt: 1}
 		for name, raw := range map[string]*testpilotspb.InstructionOutcome{
 			"success":    {Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Detail: "detail"},
 			"value":      {Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: textValue("owned")},
@@ -48,7 +49,7 @@ func TestPreparedOutcomeParity(t *testing.T) {
 		} {
 			t.Run(entry.ID()+"/"+coord.InstructionID+"/"+name, func(t *testing.T) {
 				for _, limit := range []int64{entry.RuntimeWorkLimit(), 1, 20, 40, 80} {
-					batch, work, err := a.stage(ctx, coord, EffectResult{Outcome: raw}, limit)
+					batch, work, err := a.stage(ctx, coord, contract.EffectResult{Outcome: raw}, limit)
 					snapshot, sharedWork, sharedErr := plan.ValidateOutcome(ctx, raw, limit)
 					require.Equal(t, err, sharedErr)
 					require.Equal(t, work, sharedWork)

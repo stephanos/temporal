@@ -37,29 +37,11 @@ func (c *Catalog) Identity() string {
 	return c.catalog.Identity()
 }
 
-type Opcode uint8
-
-const (
-	InvokeRPC Opcode = iota + 1
-	AwaitSlot
-	CompleteNexusOperation
-	StartNexusOperation
-	Await
-	Finish
-	RespondNexus
-	InjectFault
-)
-
-// MaxOpcode is the highest declared capability. A Profile authorizes each capability at most
-// once, so it is also the ceiling on an authorized capability list; Driver profile validation
-// reuses it rather than restating a literal a new instruction would silently invalidate.
-const MaxOpcode = InjectFault
-
 // InstructionCapability is the capability one declared instruction requires, or zero when the
 // instruction is unset or outside the version-one table. Callers deriving a Profile from a Case
 // read it rather than restating the mapping.
 func InstructionCapability(instruction *testpilotspb.Instruction) Opcode {
-	return Opcode(execution.InstructionOpcode(instruction))
+	return execution.InstructionOpcode(instruction)
 }
 
 // CheckMethod reports whether this catalog admits one unary gRPC method by its full path.
@@ -72,23 +54,6 @@ func (c *Catalog) CheckMethod(name string) error {
 		return preparationError(err, "catalog")
 	}
 	return nil
-}
-
-type RolePolicy struct {
-	ID                  string
-	Kind                testpilotspb.RoleKind
-	Methods             []string
-	ReservationCarriers []ReservationCarrierPolicy
-}
-
-type ReservationCarrierPolicy struct {
-	Method string
-	Shapes []ReservationCarrierShape
-}
-
-type ReservationCarrierShape struct {
-	Kind         testpilotspb.EntrypointKind
-	MaximumCount int64
 }
 
 // Profile supplies static authorization only. Snapshot must not perform target I/O.
@@ -104,35 +69,6 @@ type ProfileSpec struct {
 	EnvironmentBindings []EnvironmentBinding
 	ProgramLimits       *testpilotspb.ProgramLimits
 	ContractLimits      *testpilotspb.ContractLimits
-}
-
-type EnvironmentBinding struct {
-	ID    string
-	Value string
-}
-
-func (p ProfileSpec) policy() execution.Profile {
-	roles := make([]execution.RolePolicy, len(p.Roles))
-	for i, role := range p.Roles {
-		carriers := make([]execution.ReservationCarrierPolicy, len(role.ReservationCarriers))
-		for j, carrier := range role.ReservationCarriers {
-			shapes := make([]execution.ReservationCarrierShape, len(carrier.Shapes))
-			for k, shape := range carrier.Shapes {
-				shapes[k] = execution.ReservationCarrierShape{Kind: shape.Kind, MaximumCount: shape.MaximumCount}
-			}
-			carriers[j] = execution.ReservationCarrierPolicy{Method: carrier.Method, Shapes: shapes}
-		}
-		roles[i] = execution.RolePolicy{ID: role.ID, Kind: role.Kind, Methods: slices.Clone(role.Methods), ReservationCarriers: carriers}
-	}
-	capabilities := make([]execution.Opcode, len(p.Opcodes))
-	for i, capability := range p.Opcodes {
-		capabilities[i] = execution.Opcode(capability)
-	}
-	bindings := make([]execution.EnvironmentBinding, len(p.EnvironmentBindings))
-	for i, binding := range p.EnvironmentBindings {
-		bindings[i] = execution.EnvironmentBinding{ID: binding.ID, Value: binding.Value}
-	}
-	return execution.Profile{Identity: p.Identity, CatalogIdentity: p.Catalog.Identity(), Roles: roles, Opcodes: capabilities, EnvironmentBindings: bindings, Limits: proto.CloneOf(p.ProgramLimits)}
 }
 
 func (p ProfileSpec) Snapshot() ProfileSpec {

@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
 )
@@ -23,7 +24,7 @@ func faultNode(id, role string, kind testpilotspb.FaultKind) *testpilotspb.Instr
 func faultFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Profile) {
 	t.Helper()
 	c, catalog, policy := fixture(t)
-	policy.Opcodes = append(policy.Opcodes, InjectFault)
+	policy.Opcodes = append(policy.Opcodes, contract.InjectFault)
 	addWorker(c, &policy)
 	c.Program.Entrypoints[0].Instructions = []*testpilotspb.InstructionDefinition{
 		faultNode("stop", "queue", testpilotspb.FAULT_KIND_WORKER_STOP),
@@ -35,13 +36,14 @@ func faultFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Profile) {
 
 // The Opcode list, the instruction-to-capability switch and the Instruction oneof are three
 // hand-maintained lists. Pinning them to each other is what stops a new instruction from landing
-// in only one of them; Opcode alignment is asserted from the facade package, which owns it.
+// in only one of them; the facade re-exports the contract leaf's Opcode by alias, so it adds no
+// fourth list to pin.
 func TestInstructionOpcodesCoverTheInstructionTable(t *testing.T) {
 	oneof := (&testpilotspb.Instruction{}).ProtoReflect().Descriptor().Oneofs().ByName("instruction")
 	require.NotNil(t, oneof)
-	require.Equal(t, int(MaxOpcode), oneof.Fields().Len())
+	require.Equal(t, int(contract.MaxOpcode), oneof.Fields().Len())
 
-	seen := map[Opcode]bool{}
+	seen := map[contract.Opcode]bool{}
 	for i := range oneof.Fields().Len() {
 		field := oneof.Fields().Get(i)
 		t.Run(string(field.Name()), func(t *testing.T) {
@@ -49,7 +51,7 @@ func TestInstructionOpcodesCoverTheInstructionTable(t *testing.T) {
 			instruction.ProtoReflect().Mutable(field)
 			capability := InstructionOpcode(instruction)
 			// The oneof field number is the opcode: the two lists cannot be reordered apart.
-			require.Equal(t, Opcode(field.Number()), capability)
+			require.Equal(t, contract.Opcode(field.Number()), capability)
 			require.False(t, seen[capability])
 			seen[capability] = true
 			require.NotEqual(t, testpilotspb.ENTRYPOINT_KIND_UNSPECIFIED, opcodeContext(capability))
@@ -116,10 +118,10 @@ func TestSchedulerRecordsOneFaultEventPerInstruction(t *testing.T) {
 			prepared, err := Prepare(c, catalog, policy)
 			require.NoError(t, err)
 			var dispatched []string
-			host := &schedulerHost{fault: func(_ context.Context, _ Coordinate, roleID string, kind testpilotspb.FaultKind) (EffectHandle, error) {
+			host := &schedulerHost{fault: func(_ context.Context, _ contract.Coordinate, roleID string, kind testpilotspb.FaultKind) (contract.EffectHandle, error) {
 				dispatched = append(dispatched, roleID+"/"+kind.String())
-				return &schedulerEffect{wait: func(context.Context) (EffectResult, error) {
-					return EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: tc.status}}, nil
+				return &schedulerEffect{wait: func(context.Context) (contract.EffectResult, error) {
+					return contract.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: tc.status}}, nil
 				}}, nil
 			}}
 			s, err := newScheduler(prepared, "run", "case", host, schedulerMonitor{}, time.Now)
