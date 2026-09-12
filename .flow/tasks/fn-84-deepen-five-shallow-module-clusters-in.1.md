@@ -47,9 +47,36 @@ Move the deliberate-outage decision (R1) out of the worker Driver's definition p
 - [ ] worker README outage paragraph, composite README fault-routing sentence and `CONTEXT.md` `Outage plan` entry updated; the documentation gate in `tools/umpire/regression/ci_workflow_test.go` passes
 - [ ] `make lint-code` clean; `make umpire-check-regression` green; task summary records the baseline comparison
 ## Done summary
-TBD
+Worker outages now live in one `outage` module (`common/testing/testpilot/temporal/worker/outage.go`) that the registry owns. `PlanOutages` runs once inside definition preparation, so `Validate` and `Open` read the same `OutagePlan`. `OutagePlan.Requires` feeds the registry's dedicated input. `Outage.Begin`/`Settle`/`Restore`/`Stopped` replace the lease transition facade, the Session's resolution of queues and directions, and the resume-then-release ordering in `Session.Close`. `faultQueues`/`hasFault` are gone from the program definition. `stopWorker`/`resumeWorker`/`transition` and `TestFaultValidationAgreesWithOpen` are deleted. The fault tests (`fault_test.go`, new `outage_test.go`) drive only the module interface and never read `registry.groups`, `.stopped` or `.failure`. The worker README, the composite README and the `Outage plan` glossary entry were updated.
 
+Tests for each AC error case:
+- unregistered fault queue and workerless Program: `TestPreparedDefinitionPlansOutages`
+- non-dedicated lease: `TestFaultTransitionsRequireADedicatedGroup`
+- Begin after Restore began: `TestFaultBeginAfterRestoreBeganFlipsNothing`
+- same-direction conflict: `TestFaultStopAndResumeKeepTheSameRegistration`
+- Restore after a failed resume: `TestFaultRestoreResumesBeforeReleasing`
+- fail inside and outside the stop window: `TestFaultStopSuppressesTheFatalPath`
+- Settle error gives a non-succeeded outcome and no FAULT_INJECTED, run end to end through the scheduler: `TestFaultSettleErrorRecordsNoFaultEvent`
+
+`TestFaultBeginAfterRestoreBeganFlipsNothing` and `TestFaultSettleErrorRecordsNoFaultEvent` were checked red against a deliberately broken implementation, then restored.
+
+Baseline comparison (R6): before any edit, the two live worker-outage tests were run with a `go test -overlay` that logs the Run status, cleanup, Verdict, rule terminal states, diagnostics and the full ordered Run Event kind/source-id list. The same overlay after the change produced a byte-identical dump: Completed, cleanup Succeeded, Satisfied (worker-outage-order resumed, workflow-completed completed), no diagnostics, FaultInjected at n0 and n2. Logs are in `.flow/tmp/fn-84.1-baseline-live-outage.log` and `.flow/tmp/fn-84.1-after-live-outage.log`.
+
+Gates:
+- `make lint-code`: 161 issues, the inherited baseline, from a clean-cache run (14506 before processing), none in touched files.
+- `make umpire-check-regression`: exit 0, 571 Lean jobs, 9 passing live identities. The first attempt failed because the Lean `Protobuf` dependency had never been built on this host (`unknown module prefix 'Protobuf'` in `umpire-check-testpilot-protocol`). Running `lake build Protobuf`, which writes build artifacts only, fixed it.
+
+Decisions (autonomous):
+- `PlanOutages` takes the entrypoint plans, the roles map and a registered-queue set instead of the spec sketch's instruction plans and roles slice. These are the values `prepareDefinitionResources` already holds, and `DeclaresFault` takes the same list.
+- Moving fault-role resolution after registration assembly changes which error a Program with two independent defects returns first. Both errors are rejections at Validate/Open, and no test or fixture tells them apart.
+- `Begin` refuses with `ErrClosed` once `Restore` has begun (a `restoring` flag under the registry lock). This makes the spec's "Begin after Close began flips nothing" hold mid-Close and closes a narrow race where a concurrent stop could land after Restore chose which groups to resume.
+- `InjectFault` still calls `OutagePlan.resolve` before taking the Session lock, so the order of its dispatch-rejection errors and the queue named in the diagnostic detail stay as they were.
+- `workerLease.release` stays for pooled holds, which the runtime tests use.
+
+Follow-up (recorded as `CONSIDER(umpire)` in `session.go`): a Settle failure records no Driver invariant diagnostic, only the failed outcome, although the README says both refused and incomplete transitions do. This was already true before the change; a probe Run confirmed it.
+
+stage: impl-review - ran [2026-09-12T19:2x..2026-09-12T19:29:41Z] claude backend, SHIP first round (2 P3 polish findings: README rewrap applied; helper renamed; resolve-twice kept deliberately for error precedence)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: b2c0686e7708e02f4f5582f306f876793ee2858e, d0863f26f00cf740397b83c002cb934682d37914
+- Tests: go test -count=1 -race -tags test_dep ./common/testing/testpilot/temporal/..., go test -v -count=1 -tags 'test_dep integration' ./tests -run '^TestTestpilotWorkerOutage' (with a -overlay dump of Verdicts and Run Events; diff against pre-edit baseline: identical), make lint-code GOLANGCI_LINT_FIX=false (after go clean -cache): 161 issues, 14506 before processing, none in touched files, make umpire-check-regression: exit 0, 571 Lean jobs, 9 passing live TestTestpilot identities
 - PRs:
