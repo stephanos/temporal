@@ -43,9 +43,32 @@ Turn the offline Evidence structure module (R4) from a bag of findings into a ve
 - [ ] focused: `lake build Umpire.Evidence.Tests Umpire.Evidence.Tests.Mutations` (fn-82's names) and `lake build UmpireTests` green; `make lint-model` green
 - [ ] facade row and `CONTEXT.md` entry updated; documentation gate passes; `make umpire-check-regression` green
 ## Done summary
-TBD
+The offline Evidence structure module now returns verdicts: `EvidenceStructure.analyze` builds an opaque structure, and `orderingFault?` / `closureFault?` take an `Audience` (`raw` or `accepted`) and return the first fault with the related identities that audience reports. `factsInOrder` and `linkSupport` are the remaining projections. Raw and Admission only name their failure kind (Raw: one `OrderingFaultKind .raw → ObservationFailureKind` map; Admission: `missingOrderSupport` / `missingClosureSupport`). The finding enum, closure expectations, origin mode and both precedence tables are private and pinned as unexported in `ImportTests`. `Shared.Reachability.reaches` is the single reachability walker. The correlated projection's `reaches` became that walker; the structure (causal cycles, fault receipts) and Raw (record precedence, rule ordering via `rulePrecedes`, a two-line instantiation) call it; the three evaluator copies are deleted.
 
+Equivalence pin: the mutation suite is unchanged and green. A differential corpus of 36000 diagnostics (random raw bundles over two plans, random accepted-envelope mutations) is byte-identical before and after. Two deliberate precedence mutations were detected (canonical instead of written parent order: 175 diffs; supplied instead of bundle record order: test red).
+
+Precedence entries where the raw and accepted tables disagree (each pinned in `Tests/Structure.lean`, origin-mode matrix):
+- Global ordering: raw checks fault receipts before every order fault (receipt on a gap record gives `misdirectedFaultReceipt`, accepted gives `sequenceGap`). Accepted has no receipts.
+- Source ordering: raw judges a record's causal parents before its own receipt, and receipts after all gaps.
+- Accepted only: conflicting duplicate identity, then `uncoveredEvidence` (facts differ from envelope identities), then order faults, then `inconsistentLinkOrder`. Raw reports any duplicate identity, conflicting or not.
+- Mixed origins and duplicate sequence: same position, but raw names the records and accepted names none (mixed) or only the later record (duplicate sequence).
+- Global closures: raw judges only required kinds in declaration order, then any duplicate closure. Accepted reports an uncovered fact of any kind first (fixture global-closure-1/2: raw `[K]`, accepted `[record-2, Aux]`). An unrequired closure without facts passes raw, and passes accepted only when `lastSequence = 0`.
+- Source closures: raw judges duplicate closures, then supplied closures, then uncovered records in bundle order, then required kinds. Accepted judges link duplicates, then uncovered facts in canonical order, then closures, then required kinds (fixture source-closure-a/b: raw `[A, K]`, accepted `[b, B, K]`). Raw bundle order decides which record is named (a-0/a-1 fixture).
+- Both faults at once: both audiences judge ordering before closure, and each verdict still reports its own fault.
+
+Decisions taken autonomously:
+- `OrderingFaultKind` is indexed by `Audience`, so the raw map has no dead branch.
+- Admission keeps its `sourceClosed` check between the two verdicts. The diagnostic is identical to the old combined check.
+- Raw passes each record's parents as written, because written order decides the reported parent. A new Evaluation test pins this.
+- `analyze` takes `linked : Option LinkedSupport` (envelope identities plus links) and `faultReceipts`. These are beyond the spec sketch, because the accepted coverage check and raw receipts interleave with precedence.
+- The end-to-end origin examples stay in `Tests/Evaluation.lean` as regression pins. The per-audience matrix lives in `Tests/Structure.lean`.
+- Removed `Evidence.Internal` names are internal, so they are not added to the retired-vocabulary list. Prior fn-84 tasks followed the same practice.
+- Touches extension: `model/Shared.lean` (facade import of `Shared.Reachability`), within `model/Shared/**`.
+
+Review follow-up (P3, not landed): the four-constructor closure-mismatch matcher repeats in the raw and accepted closure tables and could share a private helper.
+
+stage: impl-review - ran [2026-09-12..2026-09-12] (claude backend, SHIP first round)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 6b3ff2a92a2c290502cf6b8abba14f4b362fd41d
+- Tests: cd model && mise exec -- lake build Umpire.Evidence.Tests Umpire.Evidence.Tests.Mutations UmpireTests Testpilot TestpilotTests (green; mutation suite unchanged), differential diagnostic corpus: 24000 raw bundles x 2 plans and 12000 accepted-envelope mutations, repr of every diagnostic byte-identical before/after (scratch Corpus.lean; sensitivity confirmed by two deliberate precedence mutations), make lint-model (163, baseline 163, all Temporal/API/Proto.lean; import graph, Shared, Umpire.Lint clean), make umpire-check-regression (exit 0; 576 Lean jobs; 9 passing live identities), go clean -cache && make lint-code GOLANGCI_LINT_FIX=false (161 issues, exit 2, inherited baseline 161; no Go files touched)
 - PRs:
