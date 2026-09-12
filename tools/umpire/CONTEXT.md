@@ -28,6 +28,12 @@ _Avoid_: Property (that is the model-side term), assertion, check
 A Rule tracked separately per operation and correlated by an explicit key, so one operation's obligations never discharge another's.
 _Avoid_: Scoped, per-instance, keyed
 
+## Umpire authoring
+
+**Admitted Query**:
+A Query that has passed every check it needs before it can be searched against one checked Model: its Property, its Scenario, its Known Gaps, the Query itself, and the search view over that Model. It is the model-side authoring sense of a Query, not a Case or a Run, and it makes no claim about what a search will find.
+_Avoid_: Checked Query (that is only the Query stage), planned Query, kernel
+
 ## Testpilot execution
 
 **Driver**:

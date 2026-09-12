@@ -64,6 +64,14 @@ structure SearchView (target : QueryModel LawStatement) where
     stepAt state action first = some left → stepAt state action second = some right →
       stepOrderKey left ≤ stepOrderKey right
 
+/-- Move a search view across a proved Model equality. This is the one transport of a view; callers
+that hold one view and several checked Queries over the same Model re-pair them through
+`AdmittedQuery.withQuery` instead. -/
+def SearchView.retarget
+    (view : SearchView target)
+    (targetEq : target = target') : SearchView target' :=
+  Eq.mpr (congrArg SearchView targetEq.symm) view
+
 /-- Canonical ordering obligations for the finite lists already owned by a checked target. -/
 structure FiniteKernelOrder
     (target : QueryModel LawStatement)

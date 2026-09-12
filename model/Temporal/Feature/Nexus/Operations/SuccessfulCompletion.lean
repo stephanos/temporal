@@ -38,11 +38,8 @@ def authoredProperty : Property := {
 def propertyResult : Except PropertyError CheckedProperty :=
   authoredProperty.check (PropertyCheckContext.ofTarget target)
 
-private theorem propertyResult_isSome : propertyResult.toOption.isSome = true := by
-  native_decide
-
 def property : CheckedProperty :=
-  authoredProperty.checked (PropertyCheckContext.ofTarget target) propertyResult_isSome
+  authoredProperty.checked (PropertyCheckContext.ofTarget target)
 
 def authoredScenario : Scenario :=
   Scenario.exactly
@@ -58,11 +55,8 @@ def authoredScenario : Scenario :=
 def behaviorResult : Except ScenarioError CheckedScenario :=
   authoredScenario.check (.ofTarget target)
 
-private theorem behaviorResult_isSome : behaviorResult.toOption.isSome = true := by
-  native_decide
-
 def behavior : CheckedScenario :=
-  authoredScenario.checked (.ofTarget target) behaviorResult_isSome
+  authoredScenario.checked (.ofTarget target)
 
 def intendedTrace : Scenario.Trace :=
   Scenario.Trace.singleStep startedSetup startedState reportSuccessAction succeededResult
@@ -79,11 +73,8 @@ def authoredQuery : Query :=
 
 def queryResult : Except QueryError (CheckedQuery LawStatement) := Query.check (.ofTarget target) authoredQuery
 
-private theorem queryResult_isSome : queryResult.toOption.isSome = true := by
-  native_decide
-
 def query : CheckedQuery LawStatement :=
-  Query.checked target authoredQuery queryResult_isSome
+  Query.checked target authoredQuery
 
 theorem query_target : query.target = target := by
   rfl

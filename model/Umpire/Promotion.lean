@@ -1,4 +1,5 @@
 import Umpire.Search
+import Umpire.Search.Admission
 
 /-!
 # Checked promotion sources
@@ -297,15 +298,15 @@ Replan and seal one deterministic review source. No source value is returned on 
 planning, rendering, or digest failure.
 -/
 def compilePromotionSource
-    (baseQuery : CheckedQuery LawStatement)
-    (kernel : SearchView baseQuery.target)
+    (base : AdmittedQuery target)
     (anchor : PromotionBaseAnchor)
     (spec : PromotionSourceSpec)
     (expectation : PromotionSourceExpectation) :
     Except PromotionError CompiledPromotionSource := do
+  let baseQuery := base.query
   validateSourceSpec baseQuery spec
   validateBaseAnchor baseQuery anchor
-  let replanned ← search baseQuery kernel |>.mapError (promotionKnownGapError baseQuery.id)
+  let replanned ← base.search |>.mapError (promotionKnownGapError baseQuery.id)
   if replanned != anchor.planResult then
     throw (promotionError .planResultDrift baseQuery.id
       "recomputed PlanResult does not match the fixed base run")

@@ -480,8 +480,8 @@ private def gapKindTerm (kind : Ident) : CommandElabM Term :=
   | "claim" => `(term| Umpire.KnownGapKind.claim)
   | spelling => throwErrorAt kind (unknownGapKindMessage spelling)
 
-/-- The Known Gaps this Query declared, as a checked set. A Query that declares none carries none:
-nothing is attached on its behalf. -/
+/-- The Known Gaps this Query declared, in declaration order; admission checks them as one canonical
+set. A Query that declares none carries none: nothing is attached on its behalf. -/
 private def knownGapsTerm (origin : Term) (gaps : Array (TSyntax `modelGap)) :
     CommandElabM Term := do
   let mut declared : Array String := #[]
@@ -502,7 +502,7 @@ private def knownGapsTerm (origin : Term) (gaps : Array (TSyntax `modelGap)) :
         terms := terms.push (← `(term|
           Origin.knownGap $origin $(← gapKindTerm kindRef) $codeRef none $detailRef))
     | _ => throwErrorAt declared? "unsupported Known Gap"
-  `(term| Umpire.KnownGapSet.checkCanonical [$terms,*])
+  `(term| [$terms,*])
 
 /-- Record what a `case` block needs to know about a Query: whether it selects a witness, and the
 Scenario whose Action order its evidence lines resolve against. -/

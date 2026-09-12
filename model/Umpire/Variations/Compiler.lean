@@ -1,5 +1,6 @@
 import Umpire.Search
 import Umpire.Search.Branches
+import Umpire.Search.Admission
 import Umpire.Variations.Intent
 
 /-! Exact checked-Space point lowering and atomic target-owned batch compilation. -/
@@ -367,11 +368,9 @@ private def cartesianAssignments :
 
 private def planPoint
     (space : CheckedVariationSpace LawStatement)
-    (kernel : SearchView space.baseQuery.target)
+    (base : AdmittedQuery space.baseQuery.target)
     (point : PlannedVariant space) : Except SpaceCompilationError PlanResult := do
-  let pointKernel : SearchView point.query.target :=
-    Eq.mpr (congrArg SearchView point.targetEq) kernel
-  match searchWithPlanRequest point.query pointKernel point.intent with
+  match (base.withQuery point.query point.targetEq).searchWithIntent point.intent with
     | .ok run => pure run
     | .error (.knownGap error) => throw (knownGapCompilationError space point.id error)
     | .error (.planRequest error) =>
@@ -421,10 +420,11 @@ def appendPlannerRun
 
 end SpaceCompiler.Internal
 
-/-- Compile every canonical point through one transported caller-owned kernel, or return no batch. -/
+/-- Compile every canonical point through the caller's admitted base Query, whose view each point
+re-pairs with its own checked Query, or return no batch. -/
 def compileBatch
     (space : CheckedVariationSpace LawStatement)
-    (kernel : SearchView space.baseQuery.target) :
+    (base : AdmittedQuery space.baseQuery.target) :
     Except SpaceCompilationError (List Plan) := do
   let assignments := cartesianAssignments space.axes
   let mut pointIds := []
@@ -432,7 +432,7 @@ def compileBatch
   for assignment in assignments do
     let point ← lowerSpacePoint space assignment
     pointIds ← SpaceCompiler.Internal.appendPointIdentity space pointIds point.id
-    let run ← planPoint space kernel point
+    let run ← planPoint space base point
     specs ← SpaceCompiler.Internal.appendPlannerRun space point.id specs run
   pure specs
 
