@@ -599,6 +599,9 @@ func buildRetiredRules() ([]tokenRule, error) {
 		"model" + "Lint",
 		"model" + "LintTests",
 		"testpilot" + "ProtoJSONFixture",
+		// The observed read path is one use of the Case coordinate walker, derived by
+		// `Umpire.Case.Projection.lower`.
+		"Umpire.Case." + "Observed",
 	}
 
 	rules := make([]tokenRule, 0, len(exactTokens)+5)
