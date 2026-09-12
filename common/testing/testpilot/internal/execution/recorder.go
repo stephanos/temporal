@@ -9,6 +9,7 @@ import (
 	"time"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
 )
@@ -196,7 +197,7 @@ func (r *recorder) append(ctx context.Context, event *testpilotspb.RunEvent, mon
 
 // admit keeps ownership registration in the same critical section as Driver acceptance, even on error.
 // Wait, cancellation, drain and quarantine operate on those registered handles outside this method.
-func (r *recorder) admit(ctx context.Context, operation func(context.Context) ([]EffectHandle, error), retain func([]EffectHandle)) error {
+func (r *recorder) admit(ctx context.Context, operation func(context.Context) ([]contract.EffectHandle, error), retain func([]contract.EffectHandle)) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if r.closed {
@@ -222,7 +223,7 @@ func (r *recorder) admit(ctx context.Context, operation func(context.Context) ([
 	return nil
 }
 
-func (r *recorder) admitCleanup(ctx context.Context, operation func(context.Context) ([]EffectHandle, error), retain func([]EffectHandle)) error {
+func (r *recorder) admitCleanup(ctx context.Context, operation func(context.Context) ([]contract.EffectHandle, error), retain func([]contract.EffectHandle)) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if r.closed {

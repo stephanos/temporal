@@ -11,28 +11,31 @@ import (
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/await"
+	"go.temporal.io/server/common/testing/testpilot/contract"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 type runtimeDriver struct {
-	identity DriverIdentity
+	identity contract.DriverIdentity
 	session  *runtimeSession
 }
 
-func (d *runtimeDriver) Identity(context.Context) (DriverIdentity, error) { return d.identity, nil }
+func (d *runtimeDriver) Identity(context.Context) (contract.DriverIdentity, error) {
+	return d.identity, nil
+}
 func (d *runtimeDriver) Validate(context.Context, *PreparedProgram) error { return nil }
-func (d *runtimeDriver) Open(context.Context, string, *PreparedProgram) (Session, error) {
+func (d *runtimeDriver) Open(context.Context, string, *PreparedProgram) (contract.Session, error) {
 	return d.session, nil
 }
 
 type runtimeSession struct {
-	Session
+	contract.Session
 	mu            sync.Mutex
 	effects       map[string]*runtimeEffect
 	invokeErr     map[string]error
 	invocations   []string
-	quarantined   []EffectHandle
+	quarantined   []contract.EffectHandle
 	diagnostics   []*testpilotspb.RunDiagnostic
 	quarantine    int
 	quarantineErr error
@@ -41,13 +44,13 @@ type runtimeSession struct {
 	closeTimeout  bool
 }
 
-func (s *runtimeSession) InvokeRPC(_ context.Context, c Coordinate, _ string, _ protoreflect.MethodDescriptor, _ proto.Message) (EffectHandle, error) {
+func (s *runtimeSession) InvokeRPC(_ context.Context, c contract.Coordinate, _ string, _ protoreflect.MethodDescriptor, _ proto.Message) (contract.EffectHandle, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.invocations = append(s.invocations, c.InstructionID)
 	return s.effects[c.InstructionID], s.invokeErr[c.InstructionID]
 }
-func (s *runtimeSession) Quarantine(_ context.Context, handle EffectHandle) error {
+func (s *runtimeSession) Quarantine(_ context.Context, handle contract.EffectHandle) error {
 	s.mu.Lock()
 	if s.quarantineErr != nil {
 		defer s.mu.Unlock()
@@ -85,7 +88,7 @@ func (s *runtimeSession) Diagnose(_ context.Context, _ string, diagnostic *testp
 
 type runtimeEffect struct {
 	done            chan struct{}
-	result          EffectResult
+	result          contract.EffectResult
 	completeOnce    sync.Once
 	cancelCompletes bool
 	canceled        atomic.Bool
@@ -94,14 +97,14 @@ type runtimeEffect struct {
 	cancelFn        func(context.Context) error
 }
 
-func newRuntimeEffect(result EffectResult, complete bool) *runtimeEffect {
+func newRuntimeEffect(result contract.EffectResult, complete bool) *runtimeEffect {
 	effect := &runtimeEffect{done: make(chan struct{}), result: result, cancelCompletes: true}
 	if complete {
 		effect.complete()
 	}
 	return effect
 }
-func (e *runtimeEffect) Wait(ctx context.Context) (EffectResult, error) {
+func (e *runtimeEffect) Wait(ctx context.Context) (contract.EffectResult, error) {
 	select {
 	case <-e.done:
 		return e.result, e.waitErr
@@ -110,7 +113,7 @@ func (e *runtimeEffect) Wait(ctx context.Context) (EffectResult, error) {
 		case <-e.done:
 			return e.result, e.waitErr
 		default:
-			return EffectResult{}, ctx.Err()
+			return contract.EffectResult{}, ctx.Err()
 		}
 	}
 }
@@ -189,7 +192,7 @@ func TestRunStopDrainsQuarantinesAndCannotSuppressFreshCleanup(t *testing.T) {
 	session := &runtimeSession{effects: map[string]*runtimeEffect{
 		"call": complete, "late": lateEffect, "quarantine": quarantined, "cleanup": cleanup,
 	}}
-	driver := &runtimeDriver{identity: DriverIdentity{Profile: policy.Identity, Catalog: policy.CatalogIdentity}, session: session}
+	driver := &runtimeDriver{identity: contract.DriverIdentity{Profile: policy.Identity, Catalog: policy.CatalogIdentity}, session: session}
 
 	run, verdict, err := Run(t.Context(), prepared, driver, &runtimeMonitor{stopSource: "scheduler.g0.n0.a1.completed"}, "run", c.CaseId)
 

@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 )
 
@@ -26,12 +27,12 @@ type activationValues struct {
 	graph    *graph
 	id       string
 	slots    map[string]*testpilotspb.Value
-	outcomes map[Coordinate]*valueBatch
+	outcomes map[contract.Coordinate]*valueBatch
 	latest   map[string]*valueBatch
 }
 type valueBatch struct {
 	owner      *activationValues
-	coordinate Coordinate
+	coordinate contract.Coordinate
 	outcome    *testpilotspb.InstructionOutcome
 	fields     map[testpilotspb.InstructionOutcomeField]*testpilotspb.Value
 	writes     map[string]*testpilotspb.Value
@@ -73,7 +74,7 @@ func (s *valueStore) activate(entrypoint, id string) (*activationValues, error) 
 	if selected.context == testpilotspb.ENTRYPOINT_KIND_CONTROLLER && s.controllers[entrypoint] {
 		return nil, invalid(ir.Malformed, "values", "controller already activated")
 	}
-	a := &activationValues{store: s, graph: selected, id: id, slots: map[string]*testpilotspb.Value{}, outcomes: map[Coordinate]*valueBatch{}, latest: map[string]*valueBatch{}}
+	a := &activationValues{store: s, graph: selected, id: id, slots: map[string]*testpilotspb.Value{}, outcomes: map[contract.Coordinate]*valueBatch{}, latest: map[string]*valueBatch{}}
 	if selected.context == testpilotspb.ENTRYPOINT_KIND_CONTROLLER {
 		a.slots = s.slots
 		s.controllers[entrypoint] = true
@@ -89,7 +90,7 @@ func (s *valueStore) seal() {
 		close(s.changed)
 	}
 }
-func (a *activationValues) instruction(c Coordinate) (*node, error) {
+func (a *activationValues) instruction(c contract.Coordinate) (*node, error) {
 	a.store.mu.Lock()
 	sealed := a.store.sealed
 	a.store.mu.Unlock()
