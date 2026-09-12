@@ -1,3 +1,5 @@
+import Shared.Reachability
+
 /-!
 Bounded causal projection over a closed finite transition table. Identities, evidence payloads,
 and model values are parameters; this module knows neither an authoring language nor a protocol.
@@ -145,23 +147,6 @@ private def sourceBefore (a b : Identity Id) : Bool :=
 private def orderingEdge (before : Identity Id) (after : Event Id Field) : Bool :=
   has after.parents before || sourceBefore before after.identity
 
-private def reaches (events : List (Event Id Field)) (before after : Identity Id) : Bool := _root_.Id.run do
-  if eqb before after then return true
-  let nodes := events.toArray
-  let mut visited := nodes.map fun event => eqb event.identity before
-  let mut frontier := [before]
-  for _ in [:nodes.size] do
-    let current :: rest := frontier | return false
-    frontier := rest
-    for index in [:nodes.size] do
-      if !(visited[index]?).getD false then
-        if let some candidate := nodes[index]? then
-          if orderingEdge current candidate then
-            if eqb candidate.identity after then return true
-            visited := visited.set! index true
-            frontier := frontier ++ [candidate.identity]
-  return false
-
 private def ready (events : List (Event Id Field)) (processed : List (Identity Id))
     (event : Event Id Field) : Bool :=
   event.parents.all (has processed) &&
@@ -206,7 +191,8 @@ private def release (stateOf : Result → State) (run : Run plan Field) (event :
   | .confirmed required outputs =>
       if let some previous := run.steps.reverse.find? (fun step => step.operation == event.operation) then
         if let some identity := previous.directSupport.head? then
-          if !reaches run.accepted identity event.identity then
+          if !Shared.Reachability.reaches run.accepted Event.identity orderingEdge identity
+              event.identity then
             throw (.incomparableOrder event.identity identity)
       if required.any (fun action => !(event.parents.any fun parent =>
           (run.accepted.find? fun candidate => eqb candidate.identity parent).any fun candidate =>

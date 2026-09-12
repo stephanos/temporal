@@ -139,33 +139,18 @@ private def validateRecord
     if matchingFacts.any fun other => other.value != fact.value then
       throw (diagnostic plan .contradictoryBinding [record.id, fact.binding])
 
-private partial def recordDependsOn
-    (records : List SyntheticEvidenceRecord)
-    (recordId target : DefinitionId)
-    (visited : List DefinitionId := []) : Bool :=
-  if recordId == target then true
-  else if visited.contains recordId then false
-  else
-    match records.find? fun record => record.id == recordId with
-    | none => false
-    | some record => record.causalParents.any fun parent =>
-        recordDependsOn records parent target (recordId :: visited)
-
-private partial def rulePathExists
-    (ordering : List ObservationOrdering)
-    (current target : DefinitionId)
-    (visited : List DefinitionId := []) : Bool :=
-  if current == target then true
-  else if visited.contains current then false
-  else
-    (ordering.filter fun edge => edge.before == current).any fun edge =>
-      rulePathExists ordering edge.after target (current :: visited)
+/-- `before` reaches `after` through the checked Reading's rule ordering edges. -/
+private def rulePrecedes
+    (plan : Evidence.CheckedReading)
+    (before after : DefinitionId) : Bool :=
+  Shared.Reachability.reaches plan.ordering ObservationOrdering.after
+    (fun current edge => edge.before == current) before after
 
 private def ruleLe
     (plan : Evidence.CheckedReading)
     (left right : CheckedObservationRule) : Bool :=
-  if rulePathExists plan.ordering left.id right.id then true
-  else if rulePathExists plan.ordering right.id left.id then false
+  if rulePrecedes plan left.id right.id then true
+  else if rulePrecedes plan right.id left.id then false
   else idLe left.id right.id
 
 partial def expressionBindingIds
@@ -487,209 +472,15 @@ private def orderingFact (record : SyntheticEvidenceRecord) : EvidenceOrderingFa
   causalParents := DefinitionId.canonicalSet record.causalParents
 }
 
-private def duplicateIdentityDiagnostic?
-    (plan : Evidence.CheckedReading) :
-    Evidence.Internal.StructuralFinding → Option ObservationDiagnostic
-  | .duplicateIdentity recordId _ =>
-      some (diagnostic plan .duplicateEvidenceIdentity [recordId])
-  | _ => none
-
-private def mixedOriginDiagnostic?
-    (plan : Evidence.CheckedReading) :
-    Evidence.Internal.StructuralFinding → Option ObservationDiagnostic
-  | .mixedOrigins recordIds => some (diagnostic plan .incomparableOrdering recordIds)
-  | _ => none
-
-private def rawSequenceDiagnostic?
-    (plan : Evidence.CheckedReading) :
-    Evidence.Internal.StructuralFinding → Option ObservationDiagnostic
-  | .duplicateSequence firstId secondId _ =>
-      some (diagnostic plan .incomparableOrdering [firstId, secondId])
-  | .sequenceGap recordId source _ _ =>
-      some (diagnostic plan .sequenceGap (recordId :: source.toList))
-  | _ => none
-
-private def rawRecordOrderingDiagnostic?
-    (plan : Evidence.CheckedReading)
-    (recordId : DefinitionId) :
-    Evidence.Internal.StructuralFinding → Option ObservationDiagnostic
-  | .duplicateSequence firstId secondId _ =>
-      if secondId == recordId then
-        some (diagnostic plan .incomparableOrdering [firstId, secondId])
-      else none
-  | .sequenceGap candidate source _ _ =>
-      if candidate == recordId then
-        some (diagnostic plan .sequenceGap (candidate :: source.toList))
-      else none
-  | .missingCausalParent candidate none =>
-      if candidate == recordId then
-        some (diagnostic plan .missingCausalParent [candidate])
-      else none
-  | _ => none
-
-private def rawParentDiagnosticFor?
-    (plan : Evidence.CheckedReading)
-    (recordId parentId : DefinitionId) :
-    Evidence.Internal.StructuralFinding → Option ObservationDiagnostic
-  | .missingCausalParent candidate (some candidateParent) =>
-      if candidate == recordId && candidateParent == parentId then
-        some (diagnostic plan .missingCausalParent [candidate, candidateParent])
-      else none
-  | .contradictoryOrder candidate candidateParent =>
-      if candidate == recordId && candidateParent == parentId then
-        some (diagnostic plan .contradictoryOrder [candidate, candidateParent])
-      else none
-  | _ => none
-
-private def validateFaultTarget
-    (plan : Evidence.CheckedReading)
-    (records : List SyntheticEvidenceRecord)
-    (originMode : Evidence.Internal.StructuralOriginMode)
-    (record : SyntheticEvidenceRecord) : Except ObservationDiagnostic Unit := do
-  let some target := record.faultTarget | return
-  let targetRecord ← match records.find? fun candidate => candidate.id == target with
-    | some candidate => pure candidate
-    | none => throw (diagnostic plan .misdirectedFaultReceipt [record.id, target])
-  match originMode with
-  | .globalSequence =>
-      if targetRecord.sequence >= record.sequence then
-        throw (diagnostic plan .misdirectedFaultReceipt [record.id, target])
-  | .sourceSequence =>
-      let sameSourceBefore := match targetRecord.origin, record.origin with
-        | some targetOrigin, some recordOrigin =>
-            targetOrigin.source == recordOrigin.source &&
-              targetOrigin.ordinal < recordOrigin.ordinal
-        | _, _ => false
-      if !sameSourceBefore && !recordDependsOn records record.id target then
-        throw (diagnostic plan .misdirectedFaultReceipt [record.id, target])
-  | .mixed => pure ()
-
-private def duplicateRawClosureDiagnosticFor?
-    (plan : Evidence.CheckedReading)
-    (kind : DefinitionId) :
-    Evidence.Internal.StructuralFinding → Option ObservationDiagnostic
-  | .duplicateClosure _ candidate _ =>
-      if candidate == kind then some (diagnostic plan .missingClosure [kind]) else none
-  | _ => none
-
-private def rawSourceClosureDiagnosticFor?
-    (plan : Evidence.CheckedReading)
-    (closure : EvidenceClosureFact) :
-    Evidence.Internal.StructuralFinding → Option ObservationDiagnostic
-  | .closureWithoutFacts source kind =>
-      if source == closure.source && kind == closure.kind then
-        some (diagnostic plan .missingClosure (source.toList ++ [kind]))
-      else none
-  | .closureSequenceMismatch source kind _ _ |
-      .closureCountMismatch source kind _ _ |
-      .closureByteCountMissing source kind =>
-        if source == closure.source && kind == closure.kind then
-          some (diagnostic plan .missingClosure (source.toList ++ [kind]))
-        else none
-  | _ => none
-
-private def missingRawSourceClosureFor?
-    (plan : Evidence.CheckedReading)
-    (record : SyntheticEvidenceRecord) :
-    Evidence.Internal.StructuralFinding → Option ObservationDiagnostic
-  | .missingClosure recordIds source kind =>
-      if recordIds.contains record.id &&
-          source == record.origin.map EvidenceOrigin.source && kind == record.kind then
-        some (diagnostic plan .missingClosure
-          (record.id :: source.toList ++ [kind]))
-      else none
-  | _ => none
-
-private def missingRequiredClosureDiagnostic?
-    (plan : Evidence.CheckedReading) :
-    Evidence.Internal.StructuralFinding → Option ObservationDiagnostic
-  | .missingRequiredKind kind => some (diagnostic plan .missingClosure [kind])
-  | _ => none
-
-private def validateRawClosures
-    (plan : Evidence.CheckedReading)
-    (records : List SyntheticEvidenceRecord)
-    (analysis : Evidence.Internal.StructuralAnalysis) :
-    Except ObservationDiagnostic Unit := do
-  match analysis.originMode with
-  | .globalSequence =>
-      for required in plan.closures do
-        match analysis.findings.findSome?
-            (duplicateRawClosureDiagnosticFor? plan required.kind) with
-        | some failure => throw failure
-        | none => pure ()
-        let closure ← match analysis.closures.find? fun closure => closure.kind == required.kind with
-          | some closure => pure closure
-          | none => throw (diagnostic plan .missingClosure [required.kind])
-        let lastSequence := analysis.closureExpectations.find?
-          (fun expectation => expectation.kind == required.kind)
-          |>.map Evidence.Internal.ClosureExpectation.lastSequence
-          |>.getD 0
-        if closure.lastSequence != lastSequence then
-          throw (diagnostic plan .missingClosure [required.kind])
-      match analysis.findings.findSome? fun finding => match finding with
-        | .duplicateClosure _ kind _ => some (diagnostic plan .missingClosure [kind])
-        | _ => none with
-      | some failure => throw failure
-      | none => pure ()
-  | .sourceSequence =>
-      match analysis.findings.findSome? fun finding => match finding with
-        | .duplicateClosure _ kind _ => some (diagnostic plan .missingClosure [kind])
-        | _ => none with
-      | some failure => throw failure
-      | none => pure ()
-      for closure in analysis.closures do
-        if closure.source.isNone ||
-            !(plan.closures.any fun required => required.kind == closure.kind) then
-          throw (diagnostic plan .missingClosure [closure.kind])
-        match analysis.findings.findSome? (rawSourceClosureDiagnosticFor? plan closure) with
-        | some failure => throw failure
-        | none => pure ()
-      for record in records do
-        match analysis.findings.findSome? (missingRawSourceClosureFor? plan record) with
-        | some failure => throw failure
-        | none => pure ()
-      match analysis.findings.findSome? (missingRequiredClosureDiagnostic? plan) with
-      | some failure => throw failure
-      | none => pure ()
-  | .mixed => pure ()
-
-private def validateRawStructure
-    (plan : Evidence.CheckedReading)
-    (records : List SyntheticEvidenceRecord)
-    (closureRecords : List SyntheticEvidenceRecord)
-    (analysis : Evidence.Internal.StructuralAnalysis) :
-    Except ObservationDiagnostic Unit := do
-  match analysis.findings.findSome? (duplicateIdentityDiagnostic? plan) with
-  | some failure => throw failure
-  | none => pure ()
-  match analysis.findings.findSome? (mixedOriginDiagnostic? plan) with
-  | some failure => throw failure
-  | none => pure ()
-  match analysis.originMode with
-  | .globalSequence =>
-      for record in records do
-        validateFaultTarget plan records analysis.originMode record
-      for record in records do
-        match analysis.findings.findSome? (rawRecordOrderingDiagnostic? plan record.id) with
-        | some failure => throw failure
-        | none => pure ()
-        for parent in record.causalParents do
-          match analysis.findings.findSome? (rawParentDiagnosticFor? plan record.id parent) with
-          | some failure => throw failure
-          | none => pure ()
-  | .sourceSequence =>
-      match analysis.findings.findSome? (rawSequenceDiagnostic? plan) with
-      | some failure => throw failure
-      | none => pure ()
-      for record in records do
-        for parent in record.causalParents do
-          match analysis.findings.findSome? (rawParentDiagnosticFor? plan record.id parent) with
-          | some failure => throw failure
-          | none => pure ()
-        validateFaultTarget plan records analysis.originMode record
-  | .mixed => pure ()
-  validateRawClosures plan closureRecords analysis
+/-- The raw failure kind for each ordering fault the Evidence structure identifies in a bundle. -/
+private def orderingFailureKind :
+    EvidenceStructure.OrderingFaultKind .raw → ObservationFailureKind
+  | .duplicateIdentity => .duplicateEvidenceIdentity
+  | .incomparableOrder => .incomparableOrdering
+  | .sequenceGap => .sequenceGap
+  | .missingCausalParent => .missingCausalParent
+  | .contradictoryOrder => .contradictoryOrder
+  | .misdirectedFaultReceipt => .misdirectedFaultReceipt
 
 private def evidenceSupportFor
     (plan : Evidence.CheckedReading)
@@ -732,8 +523,8 @@ private def ensureComparableEmissions
   for left in emissions do
     for right in emissions do
       if left.rule.id != right.rule.id &&
-          !rulePathExists plan.ordering left.rule.id right.rule.id &&
-          !rulePathExists plan.ordering right.rule.id left.rule.id then
+          !rulePrecedes plan left.rule.id right.rule.id &&
+          !rulePrecedes plan right.rule.id left.rule.id then
         throw (diagnostic plan .incomparableOrdering [record.id, left.rule.id, right.rule.id])
 
 def evidenceBackedTraceId
@@ -757,7 +548,8 @@ private def recordPrecedes
     | some leftOrigin, some rightOrigin =>
         leftOrigin.source == rightOrigin.source && leftOrigin.ordinal < rightOrigin.ordinal
     | _, _ => false
-  sourceLocal || recordDependsOn records right.id left.id
+  sourceLocal || Shared.Reachability.reaches records SyntheticEvidenceRecord.id
+    (fun current candidate => candidate.causalParents.contains current) left.id right.id
 
 def evaluateUnchecked
     (plan : Evidence.CheckedReading)
@@ -792,9 +584,16 @@ def evaluateUnchecked
         let actualFields := record.fields.map EvidenceFieldValue.field |>.mergeSort idLe
         if actualFields != expectedFields then
           throw (diagnostic plan .fieldMismatch [record.id, record.kind])
-  let structuralAnalysis := Evidence.Internal.analyzeStructure
-    (records.map orderingFact) bundle.closures (plan.closures.map fun closure => closure.kind)
-  validateRawStructure plan records bundle.records structuralAnalysis
+  let evidenceStructure := EvidenceStructure.analyze
+    (bundle.records.map fun record =>
+      { orderingFact record with causalParents := record.causalParents })
+    bundle.closures (plan.closures.map fun closure => closure.kind)
+    (faultReceipts := bundle.records.filterMap fun record =>
+      record.faultTarget.map fun target => { recordId := record.id, target })
+  if let some fault := evidenceStructure.orderingFault? .raw then
+    throw (diagnostic plan (orderingFailureKind fault.kind) fault.related)
+  if let some fault := evidenceStructure.closureFault? .raw then
+    throw (diagnostic plan .missingClosure fault.related)
   for record in records do
     validateBindingFacts plan record
   detectDigestIssues plan records
