@@ -80,6 +80,7 @@ Follow-ups (not done):
   - `AdmittedQuery.property` is kept, not re-derived, under `withQuery`.
   - `baseAdmission` copies AsyncStart's query fields; an `AsyncStart.queryShape` would remove the copy.
   - `Query.Shape` could move into `Umpire.Query`.
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 714200935a784c11ddfd0000d4638868c84c38e3
 - Tests: cd model && mise exec -- lake build Temporal UmpireTests TemporalModelTests TemporalExperimentalTests +Umpire.PromotionTests (includes Umpire.Query.Tests, Umpire.Search.Tests, Umpire.Search.VisibilityTests), make lint-model (163, inherited, all in Temporal/API/Proto.lean), go clean -cache && make lint-code GOLANGCI_LINT_FIX=false (161 issues, inherited baseline; no Go files touched), make umpire-check-regression (exit 0; 574 Lean jobs; nine passing live TestTestpilot identities), equivalence pin: lake env lean Pin.lean before/after, byte-identical (.flow/tmp/fn84.3-pin-base.txt vs fn84.3-pin-after.txt), baseline: green (regression via receipt eabc8bfc; lint-model 163 measured pre-edit)

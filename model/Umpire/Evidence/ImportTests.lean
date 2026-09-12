@@ -117,6 +117,32 @@ def replaceAcceptedTraceId
 #synth BEq Umpire.ObservationResult
 #synth DecidableEq Umpire.ObservationResult
 #synth Repr Umpire.ObservationResult
+#check Umpire.EvidenceStructure
+#check Umpire.EvidenceStructure.Audience
+#check Umpire.EvidenceStructure.analyze
+#check Umpire.EvidenceStructure.orderingFault?
+#check Umpire.EvidenceStructure.closureFault?
+#check Umpire.EvidenceStructure.factsInOrder
+#check Umpire.EvidenceStructure.linkSupport
+
+/--
+error: Unknown constant `Umpire.EvidenceStructure.mk`
+-/
+#guard_msgs in
+#check Umpire.EvidenceStructure.mk
+
+/--
+error: Unknown constant `Umpire.EvidenceStructure.Finding`
+-/
+#guard_msgs in
+#check Umpire.EvidenceStructure.Finding
+
+/--
+error: Unknown constant `Umpire.EvidenceStructure.ClosureExpectation`
+-/
+#guard_msgs in
+#check Umpire.EvidenceStructure.ClosureExpectation
+
 #check Umpire.validateEvidenceBackedTrace
 #check Umpire.evaluateEvidence
 #check Umpire.SemanticPropertyVerdict

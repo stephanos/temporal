@@ -74,179 +74,12 @@ private def evidenceSupportEvidenceIds (evidenceSupports : List EvidenceSupport)
   DefinitionId.canonicalSet (evidenceSupports.flatMap EvidenceSupport.evidenceIdentities)
 
 private def structuralLinkSupport
-    (evidenceSupport : EvidenceSupport) : Evidence.Internal.StructuralLinkSupport := {
+    (evidenceSupport : EvidenceSupport) : EvidenceStructure.LinkSupport := {
   ruleId := evidenceSupport.ruleId
   evidenceIdentities := evidenceSupport.evidenceIdentities
   orderingSupport := evidenceSupport.orderingSupport
   closureSupport := evidenceSupport.closureSupport
 }
-
-private def acceptedOrderingDiagnostic?
-    (mappingId : DefinitionId) :
-    Evidence.Internal.StructuralFinding → Option ObservationDiagnostic
-  | .mixedOrigins _ => some { kind := .missingOrderSupport, planId := mappingId }
-  | .duplicateSequence _ secondId _ => some {
-      kind := .missingOrderSupport
-      planId := mappingId
-      relatedDefinitionIds := [secondId]
-    }
-  | .sequenceGap recordId source _ _ => some {
-      kind := .missingOrderSupport
-      planId := mappingId
-      relatedDefinitionIds := recordId :: source.toList
-    }
-  | .missingCausalParent recordId parentId => some {
-      kind := .missingOrderSupport
-      planId := mappingId
-      relatedDefinitionIds := recordId :: parentId.toList
-    }
-  | .contradictoryOrder recordId parentId => some {
-      kind := .missingOrderSupport
-      planId := mappingId
-      relatedDefinitionIds := [recordId, parentId]
-    }
-  | _ => none
-
-private def acceptedMissingClosureFor?
-    (mappingId : DefinitionId)
-    (originMode : Evidence.Internal.StructuralOriginMode)
-    (fact : EvidenceOrderingFact) :
-    Evidence.Internal.StructuralFinding → Option ObservationDiagnostic
-  | .missingClosure recordIds source kind =>
-      if recordIds.contains fact.recordId && kind == fact.kind &&
-          source == if originMode == .sourceSequence then fact.origin.map EvidenceOrigin.source
-            else none then
-        some {
-          kind := .missingClosureSupport
-          planId := mappingId
-          relatedDefinitionIds := match originMode, fact.origin with
-            | .sourceSequence, some origin => [fact.recordId, origin.source, fact.kind]
-            | _, _ => [fact.recordId, fact.kind]
-        }
-      else none
-  | _ => none
-
-private def acceptedClosureDiagnosticFor?
-    (mappingId : DefinitionId)
-    (originMode : Evidence.Internal.StructuralOriginMode)
-    (closure : EvidenceClosureFact) :
-    Evidence.Internal.StructuralFinding → Option ObservationDiagnostic
-  | .closureWithoutFacts source kind =>
-      if source == closure.source && kind == closure.kind then
-        if originMode == .globalSequence && closure.lastSequence == 0 then none
-        else
-          some {
-            kind := .missingClosureSupport
-            planId := mappingId
-            relatedDefinitionIds := match originMode, source with
-              | .sourceSequence, some sourceId => [sourceId, kind]
-              | _, _ => [kind]
-          }
-      else none
-  | .closureSequenceMismatch source kind _ _ |
-      .closureCountMismatch source kind _ _ |
-      .closureByteCountMissing source kind =>
-        if source == closure.source && kind == closure.kind then
-          some {
-            kind := .missingClosureSupport
-            planId := mappingId
-            relatedDefinitionIds := match originMode, source with
-              | .sourceSequence, some sourceId => [sourceId, kind]
-              | _, _ => [kind]
-          }
-        else none
-  | _ => none
-
-private def acceptedMissingRequiredClosureDiagnostic?
-    (mappingId : DefinitionId) :
-    Evidence.Internal.StructuralFinding → Option ObservationDiagnostic
-  | .missingRequiredKind kind => some {
-      kind := .missingClosureSupport
-      planId := mappingId
-      relatedDefinitionIds := [kind]
-    }
-  | _ => none
-
-private def validateAcceptedOrdering
-    (trace : UncheckedEvidenceBackedTrace)
-    (analysis : Evidence.Internal.StructuralAnalysis) : Except ObservationDiagnostic Unit := do
-  match analysis.findings.findSome? fun finding => match finding with
-    | .duplicateIdentity recordId true => some {
-        kind := .missingOrderSupport
-        planId := trace.mappingId
-        relatedDefinitionIds := [recordId]
-      }
-    | _ => none with
-  | some failure => throw failure
-  | none => pure ()
-  if analysis.facts.map EvidenceOrderingFact.recordId != trace.evidenceIdentities then
-    throw { kind := .missingOrderSupport, planId := trace.mappingId }
-  match analysis.findings.findSome? (acceptedOrderingDiagnostic? trace.mappingId) with
-  | some failure => throw failure
-  | none => pure ()
-  match analysis.findings.findSome? fun finding => match finding with
-    | .inconsistentOrderingSupport ruleId _ _ => some {
-        kind := .missingOrderSupport
-        planId := trace.mappingId
-        relatedDefinitionIds := [ruleId]
-      }
-    | _ => none with
-  | some failure => throw failure
-  | none => pure ()
-
-private def validateAcceptedClosures
-    (trace : UncheckedEvidenceBackedTrace)
-    (analysis : Evidence.Internal.StructuralAnalysis) : Except ObservationDiagnostic Unit := do
-  let firstClosures := analysis.links.head?.map
-    Evidence.Internal.NormalizedStructuralLinkSupport.closures |>.getD []
-  if firstClosures.isEmpty || !trace.sourceClosed then
-    throw { kind := .missingClosureSupport, planId := trace.mappingId }
-  match analysis.findings.findSome? fun finding => match finding with
-    | .duplicateClosureSupport ruleId linkIndex _ kind _ => some {
-        kind := .missingClosureSupport
-        planId := trace.mappingId
-        relatedDefinitionIds := if linkIndex == 0 then [kind] else [ruleId]
-      }
-    | .inconsistentClosureSupport ruleId _ _ => some {
-        kind := .missingClosureSupport
-        planId := trace.mappingId
-        relatedDefinitionIds := [ruleId]
-      }
-    | _ => none with
-  | some failure => throw failure
-  | none => pure ()
-  for fact in analysis.facts do
-    match analysis.findings.findSome?
-        (acceptedMissingClosureFor? trace.mappingId analysis.originMode fact) with
-    | some failure => throw failure
-    | none => pure ()
-  for closure in analysis.closures do
-    match analysis.findings.findSome?
-        (acceptedClosureDiagnosticFor? trace.mappingId analysis.originMode closure) with
-    | some failure => throw failure
-    | none => pure ()
-  match analysis.originMode with
-  | .globalSequence =>
-      for required in trace.checkedPlan.closures do
-        match analysis.closures.find? fun closure => closure.kind == required.kind with
-        | some closure =>
-            if !(analysis.closureExpectations.any fun expectation =>
-                expectation.kind == required.kind) && closure.lastSequence != 0 then
-              throw {
-                kind := .missingClosureSupport
-                planId := trace.mappingId
-                relatedDefinitionIds := [required.kind]
-              }
-        | none => throw {
-            kind := .missingClosureSupport
-            planId := trace.mappingId
-            relatedDefinitionIds := [required.kind]
-          }
-  | .sourceSequence | .mixed =>
-      match analysis.findings.findSome?
-          (acceptedMissingRequiredClosureDiagnostic? trace.mappingId) with
-      | some failure => throw failure
-      | none => pure ()
 
 private def validateAppliedDisposition
     (trace : UncheckedEvidenceBackedTrace)
@@ -560,12 +393,27 @@ def validateEvidenceBackedTrace
     throw { kind := .unconsumedReference, planId := trace.mappingId }
   if trace.recordSupport.map EvidenceRecordSupport.recordId != trace.evidenceIdentities then
     throw { kind := .unconsumedReference, planId := trace.mappingId }
-  let structuralAnalysis := Evidence.Internal.analyzeStructure [] []
+  let evidenceStructure := EvidenceStructure.analyze [] []
     (plan.closures.map fun closure => closure.kind)
-    (trace.evidenceSupports.map structuralLinkSupport)
-  validateAcceptedOrdering trace structuralAnalysis
-  validateAcceptedClosures trace structuralAnalysis
-  validateRecordSupport trace structuralAnalysis.facts
+    (some {
+      evidenceIdentities := trace.evidenceIdentities
+      links := trace.evidenceSupports.map structuralLinkSupport
+    })
+  if let some fault := evidenceStructure.orderingFault? .accepted then
+    throw {
+      kind := .missingOrderSupport
+      planId := trace.mappingId
+      relatedDefinitionIds := fault.related
+    }
+  if !trace.sourceClosed then
+    throw { kind := .missingClosureSupport, planId := trace.mappingId }
+  if let some fault := evidenceStructure.closureFault? .accepted then
+    throw {
+      kind := .missingClosureSupport
+      planId := trace.mappingId
+      relatedDefinitionIds := fault.related
+    }
+  validateRecordSupport trace evidenceStructure.factsInOrder
   for evidenceSupport in trace.evidenceSupports do
     for applied in evidenceSupport.appliedDispositions do
       validateAppliedDisposition trace evidenceSupport applied

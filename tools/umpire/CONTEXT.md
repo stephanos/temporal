@@ -34,6 +34,10 @@ _Avoid_: Scoped, per-instance, keyed
 A Query that has passed every check it needs before it can be searched against one checked Model: its Property, its Scenario, its Known Gaps, the Query itself, and the search view over that Model. It is the model-side authoring sense of a Query, not a Case or a Run, and it makes no claim about what a search will find.
 _Avoid_: Checked Query (that is only the Query stage), planned Query, kernel
 
+**Evidence structure**:
+The ordering facts, closures, and per-link support of one offline Evidence bundle or accepted trace, analyzed once and judged for one audience, the raw bundle or the accepted trace, which each report the first fault in their own precedence. It belongs to Umpire's offline Evidence, not to the Testpilot Observation a Contract inspects, and its faults say whether evidence can be ordered and closed, never whether a Property holds.
+_Avoid_: Findings, structural analysis, Observation structure
+
 ## Testpilot execution
 
 **Driver**:

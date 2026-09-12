@@ -433,4 +433,17 @@ example :
     ] := by
   native_decide
 
+/-- A raw record's causal parents are judged in the order the record writes them. -/
+example :
+    let laterParentId := id "test.evidence.record.missing-z"
+    let earlierParentId := id "test.evidence.record.missing-a"
+    let result := evaluateFixture {
+      completeEvidence with records := [initialEvidence, {
+        stepEvidence with causalParents := [laterParentId, earlierParentId]
+      }]
+    }
+    result.diagnostic?.map (fun failure => (failure.kind, failure.relatedDefinitionIds)) =
+      some (.missingCausalParent, [laterParentId, stepEvidenceId]) := by
+  native_decide
+
 end Umpire.EvidenceTests
