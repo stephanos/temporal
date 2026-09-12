@@ -3,11 +3,12 @@ package execution
 import (
 	"context"
 
+	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
 )
 
-func (a *activationValues) request(ctx context.Context, c Coordinate, limit int64) (proto.Message, bool, int64, error) {
+func (a *activationValues) request(ctx context.Context, c contract.Coordinate, limit int64) (proto.Message, bool, int64, error) {
 	n, err := a.instruction(c)
 	if err != nil {
 		return nil, false, 0, err
@@ -16,7 +17,7 @@ func (a *activationValues) request(ctx context.Context, c Coordinate, limit int6
 	if err != nil {
 		return nil, false, 0, err
 	}
-	if n.opcode != InvokeRPC {
+	if n.opcode != contract.InvokeRPC {
 		return nil, false, 0, invalid(ir.TypeMismatch, "request", "RPC instruction required")
 	}
 	if n.guard != nil {

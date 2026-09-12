@@ -5,12 +5,13 @@ import (
 	"strings"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 )
 
-func (a *activationValues) stage(ctx context.Context, c Coordinate, result EffectResult, limit int64) (*valueBatch, int64, error) {
+func (a *activationValues) stage(ctx context.Context, c contract.Coordinate, result contract.EffectResult, limit int64) (*valueBatch, int64, error) {
 	n, err := a.instruction(c)
 	if err != nil {
 		return nil, 0, err
@@ -25,7 +26,7 @@ func (a *activationValues) stage(ctx context.Context, c Coordinate, result Effec
 		return nil, w.work, err
 	}
 	batch.outcome, batch.fields = snapshot.Outcome, snapshot.Fields
-	if n.opcode != InvokeRPC {
+	if n.opcode != contract.InvokeRPC {
 		if !isNil(result.Response) {
 			return nil, w.work, invalid(ir.Unsupported, "projection", "only RPCs return raw responses")
 		}
@@ -59,7 +60,7 @@ func (a *activationValues) stage(ctx context.Context, c Coordinate, result Effec
 	}
 	return finishBatch(w, batch)
 }
-func validateOutcome(w *valueWork, entryContext testpilotspb.EntrypointKind, n *node, outcome *testpilotspb.InstructionOutcome) (*OutcomeSnapshot, error) {
+func validateOutcome(w *valueWork, entryContext testpilotspb.EntrypointKind, n *node, outcome *testpilotspb.InstructionOutcome) (*contract.OutcomeSnapshot, error) {
 	if outcome == nil || outcome.Status == testpilotspb.INSTRUCTION_OUTCOME_STATUS_UNSPECIFIED {
 		return nil, invalid(ir.Malformed, "outcome", "typed outcome status required")
 	}
@@ -93,7 +94,7 @@ func validateOutcome(w *valueWork, entryContext testpilotspb.EntrypointKind, n *
 			return nil, err
 		}
 	}
-	result := &OutcomeSnapshot{Outcome: frozen, Fields: make(map[testpilotspb.InstructionOutcomeField]*testpilotspb.Value, len(n.outcomes))}
+	result := &contract.OutcomeSnapshot{Outcome: frozen, Fields: make(map[testpilotspb.InstructionOutcomeField]*testpilotspb.Value, len(n.outcomes))}
 	for _, declaration := range n.source.Outcome.Fields {
 		field := declaration.Field
 		typ := n.outcomes[field]

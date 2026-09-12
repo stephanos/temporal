@@ -182,6 +182,13 @@ a declared Nexus history Observation reaches a correlated completion within a bo
 - **MOD-14 — Internal execution boundary.** Production packages outside Testpilot and its private
   verification package MUST NOT import `common/testing/testpilot/internal/execution`; Driver adapters
   depend only on the public Testpilot facade.
+  *Restatement (drafted by fn-84; awaiting GOV-02 approval.)* Production packages outside Testpilot
+  and its private verification package MUST NOT import `common/testing/testpilot/internal/execution`.
+  Driver adapters depend only on the public Testpilot facade and on its Driver-contract leaf
+  `common/testing/testpilot/contract`. The leaf MUST import neither
+  `common/testing/testpilot/internal/execution` nor `common/testing/testpilot/internal/ir`, and the
+  facade MUST re-export every leaf type by alias, so the facade and internal execution share one
+  declaration of the Driver-facing vocabulary instead of a translated copy.
 - **MOD-15 — Resolvable glossary.** *(drafted by fn-82; awaiting GOV-02 approval.)* Every dotted
   Lean name this document cites in backticks MUST name a module, a namespace, or a declaration that
   exists in `model/`, unless the rule citing it is marked planned and the Flow spec that owns

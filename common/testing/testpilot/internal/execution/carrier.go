@@ -2,6 +2,7 @@ package execution
 
 import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 )
 
@@ -11,7 +12,7 @@ func (a *admission) bindReservationCarriers() error {
 			if len(node.source.ActivationReservations) == 0 {
 				continue
 			}
-			if node.opcode != InvokeRPC {
+			if node.opcode != contract.InvokeRPC {
 				return invalid(ir.Unsupported, nodePath(graph, node), "activation reservations require an authorized carrier RPC")
 			}
 			rpc := node.source.Instruction.GetInvokeRpc()
@@ -32,7 +33,7 @@ func (a *admission) bindReservationCarriers() error {
 	return nil
 }
 
-func (a *admission) checkCarrierShape(controller *graph, node *node, carrier ReservationCarrierPolicy) error {
+func (a *admission) checkCarrierShape(controller *graph, node *node, carrier contract.ReservationCarrierPolicy) error {
 	maximum := make(map[testpilotspb.EntrypointKind]int64, len(carrier.Shapes))
 	for _, shape := range carrier.Shapes {
 		maximum[shape.Kind] = shape.MaximumCount
@@ -52,13 +53,13 @@ func (a *admission) checkCarrierShape(controller *graph, node *node, carrier Res
 	return nil
 }
 
-func (a *admission) compileCarrierTopology(controller *graph, node *node) (ReservationCarrierPlan, error) {
+func (a *admission) compileCarrierTopology(controller *graph, node *node) (contract.ReservationCarrierPlan, error) {
 	rpc := node.source.Instruction.GetInvokeRpc()
 	reservations, handlers, handlerIndex, err := a.carrierReservations(controller, node)
 	if err != nil {
-		return ReservationCarrierPlan{}, err
+		return contract.ReservationCarrierPlan{}, err
 	}
-	plan := ReservationCarrierPlan{EndpointRoleID: rpc.EndpointRoleId, Method: rpc.Method, Reservations: reservations}
+	plan := contract.ReservationCarrierPlan{EndpointRoleID: rpc.EndpointRoleId, Method: rpc.Method, Reservations: reservations}
 	handlerOrdinals := make(map[string]int64, len(handlers))
 	for _, reservation := range node.source.ActivationReservations {
 		workflow := a.graphIndex[reservation.EntrypointId]
@@ -66,15 +67,15 @@ func (a *admission) compileCarrierTopology(controller *graph, node *node) (Reser
 			continue
 		}
 		if err := a.appendWorkflowRoutes(controller, node, workflow, reservation.Count, handlerIndex, handlerOrdinals, &plan); err != nil {
-			return ReservationCarrierPlan{}, err
+			return contract.ReservationCarrierPlan{}, err
 		}
 	}
 	for _, handler := range handlers {
 		if err := a.charge(1); err != nil {
-			return ReservationCarrierPlan{}, err
+			return contract.ReservationCarrierPlan{}, err
 		}
 		if handlerOrdinals[handler.graph.id] != handler.count {
-			return ReservationCarrierPlan{}, invalid(ir.Malformed, nodePath(controller, node), "reserved Nexus handler count does not match potential sources")
+			return contract.ReservationCarrierPlan{}, invalid(ir.Malformed, nodePath(controller, node), "reserved Nexus handler count does not match potential sources")
 		}
 	}
 	return plan, nil
@@ -90,8 +91,8 @@ type nexusOperation struct {
 	operation string
 }
 
-func (a *admission) carrierReservations(controller *graph, node *node) ([]ReservationTopology, []reservedHandler, map[nexusOperation]reservedHandler, error) {
-	reservations := make([]ReservationTopology, 0, len(node.source.ActivationReservations))
+func (a *admission) carrierReservations(controller *graph, node *node) ([]contract.ReservationTopology, []reservedHandler, map[nexusOperation]reservedHandler, error) {
+	reservations := make([]contract.ReservationTopology, 0, len(node.source.ActivationReservations))
 	var handlers []reservedHandler
 	handlerIndex := make(map[nexusOperation]reservedHandler)
 	for _, reservation := range node.source.ActivationReservations {
@@ -99,7 +100,7 @@ func (a *admission) carrierReservations(controller *graph, node *node) ([]Reserv
 			return nil, nil, nil, err
 		}
 		target := a.graphIndex[reservation.EntrypointId]
-		reservations = append(reservations, ReservationTopology{EntrypointID: target.id, Kind: target.context, Count: reservation.Count})
+		reservations = append(reservations, contract.ReservationTopology{EntrypointID: target.id, Kind: target.context, Count: reservation.Count})
 		if target.context == testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER {
 			if err := a.charge(1); err != nil {
 				return nil, nil, nil, err
@@ -117,10 +118,10 @@ func (a *admission) carrierReservations(controller *graph, node *node) ([]Reserv
 	return reservations, handlers, handlerIndex, nil
 }
 
-func (a *admission) appendWorkflowRoutes(controller *graph, node *node, workflow *graph, count int64, handlers map[nexusOperation]reservedHandler, ordinals map[string]int64, plan *ReservationCarrierPlan) error {
+func (a *admission) appendWorkflowRoutes(controller *graph, node *node, workflow *graph, count int64, handlers map[nexusOperation]reservedHandler, ordinals map[string]int64, plan *contract.ReservationCarrierPlan) error {
 	for _, index := range workflow.order {
 		source := workflow.nodes[index]
-		if source.opcode != StartNexusOperation {
+		if source.opcode != contract.StartNexusOperation {
 			continue
 		}
 		if err := a.charge(1); err != nil {
@@ -139,7 +140,7 @@ func (a *admission) appendWorkflowRoutes(controller *graph, node *node, workflow
 			if err := a.charge(1); err != nil {
 				return err
 			}
-			plan.Routes = append(plan.Routes, ReservationRoute{WorkflowEntrypointID: workflow.id, WorkflowOrdinal: workflowOrdinal, SourceInstructionID: source.source.InstructionId, HandlerEntrypointID: handler.graph.id, HandlerOrdinal: handlerOrdinal})
+			plan.Routes = append(plan.Routes, contract.ReservationRoute{WorkflowEntrypointID: workflow.id, WorkflowOrdinal: workflowOrdinal, SourceInstructionID: source.source.InstructionId, HandlerEntrypointID: handler.graph.id, HandlerOrdinal: handlerOrdinal})
 			ordinals[handler.graph.id] = handlerOrdinal + 1
 		}
 	}

@@ -5,6 +5,7 @@ import (
 	"slices"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
 )
@@ -12,38 +13,38 @@ import (
 // InstructionOpcode is the single mapping from a declared instruction to the capability a Profile must
 // authorize. Profile derivation reads it through the facade so a Case's instructions and the
 // capabilities that authorize them cannot drift apart.
-func InstructionOpcode(instruction *testpilotspb.Instruction) Opcode {
+func InstructionOpcode(instruction *testpilotspb.Instruction) contract.Opcode {
 	if instruction == nil || isNil(instruction.Instruction) {
 		return 0
 	}
 	switch instruction.Instruction.(type) {
 	case *testpilotspb.Instruction_InvokeRpc:
-		return InvokeRPC
+		return contract.InvokeRPC
 	case *testpilotspb.Instruction_AwaitSlot:
-		return AwaitSlot
+		return contract.AwaitSlot
 	case *testpilotspb.Instruction_CompleteNexusOperation:
-		return CompleteNexusOperation
+		return contract.CompleteNexusOperation
 	case *testpilotspb.Instruction_StartNexusOperation:
-		return StartNexusOperation
+		return contract.StartNexusOperation
 	case *testpilotspb.Instruction_AwaitInstruction:
-		return Await
+		return contract.Await
 	case *testpilotspb.Instruction_Finish:
-		return Finish
+		return contract.Finish
 	case *testpilotspb.Instruction_RespondNexus:
-		return RespondNexus
+		return contract.RespondNexus
 	case *testpilotspb.Instruction_InjectFault:
-		return InjectFault
+		return contract.InjectFault
 	default:
 		return 0
 	}
 }
-func opcodeContext(capability Opcode) testpilotspb.EntrypointKind {
+func opcodeContext(capability contract.Opcode) testpilotspb.EntrypointKind {
 	switch capability {
-	case InvokeRPC, AwaitSlot, CompleteNexusOperation, InjectFault:
+	case contract.InvokeRPC, contract.AwaitSlot, contract.CompleteNexusOperation, contract.InjectFault:
 		return testpilotspb.ENTRYPOINT_KIND_CONTROLLER
-	case StartNexusOperation, Await, Finish:
+	case contract.StartNexusOperation, contract.Await, contract.Finish:
 		return testpilotspb.ENTRYPOINT_KIND_WORKFLOW
-	case RespondNexus:
+	case contract.RespondNexus:
 		return testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER
 	default:
 		return testpilotspb.ENTRYPOINT_KIND_UNSPECIFIED
@@ -74,18 +75,18 @@ func (a *admission) bindInstruction(g *graph, i int, n *node) error {
 		return err
 	}
 	switch n.opcode {
-	case InvokeRPC:
+	case contract.InvokeRPC:
 		return a.bindRPC(g, i, n)
-	case AwaitSlot:
+	case contract.AwaitSlot:
 		if _, exists := a.prepared.slots[n.source.Instruction.GetAwaitSlot().GetSlotId()]; !exists {
 			return invalid(ir.Unknown, nodePath(g, n), "AwaitSlot requires a declared Slot")
 		}
-	case CompleteNexusOperation:
+	case contract.CompleteNexusOperation:
 		typ, exists := a.prepared.slots[n.source.Instruction.GetCompleteNexusOperation().GetCapabilitySlotId()]
 		if !exists || !typ.Opaque() {
 			return invalid(ir.TypeMismatch, nodePath(g, n), "completion requires a capability Slot")
 		}
-	case StartNexusOperation:
+	case contract.StartNexusOperation:
 		start := n.source.Instruction.GetStartNexusOperation()
 		if start == nil || !validID(start.Service) || !validID(start.Operation) {
 			return invalid(ir.Malformed, nodePath(g, n), "invalid Nexus start")
@@ -93,15 +94,15 @@ func (a *admission) bindInstruction(g *graph, i int, n *node) error {
 		if err := a.role(start.EndpointRoleId, testpilotspb.ROLE_KIND_ENDPOINT); err != nil {
 			return err
 		}
-	case Await:
+	case contract.Await:
 		return bindAwait(g, n)
-	case Finish:
+	case contract.Finish:
 		if n.source.Instruction.GetFinish() == nil {
 			return invalid(ir.Malformed, nodePath(g, n), "nil Finish")
 		}
-	case RespondNexus:
+	case contract.RespondNexus:
 		return a.bindNexusResponse(g, i, n)
-	case InjectFault:
+	case contract.InjectFault:
 		return a.bindFault(g, n)
 	default:
 		return invalid(ir.Unsupported, nodePath(g, n), "unknown capability")
@@ -114,7 +115,7 @@ func bindAwait(g *graph, n *node) error {
 	if !exists || reference.GetEntrypointId() != g.id || !n.ancestors[dependency] {
 		return invalid(ir.Unavailable, nodePath(g, n), "Await requires an earlier local instruction")
 	}
-	if InstructionOpcode(g.nodes[dependency].source.Instruction) != StartNexusOperation {
+	if InstructionOpcode(g.nodes[dependency].source.Instruction) != contract.StartNexusOperation {
 		return invalid(ir.TypeMismatch, nodePath(g, n), "Await requires StartNexusOperation")
 	}
 	return nil
@@ -126,7 +127,7 @@ func (a *admission) bindNodeBounds(g *graph, n *node) error {
 	if g.cleanup {
 		duration = limits.MaxCleanupDurationMilliseconds
 	}
-	if bounds == nil || bounds.TimeoutMilliseconds <= 0 || bounds.TimeoutMilliseconds > duration || bounds.MaxAttempts <= 0 || bounds.MaxAttempts > a.prepared.policy.Limits.MaxAttempts || bounds.MaxEmittedEvents < 0 || bounds.MaxEmittedEvents > limits.MaxRunEvents || bounds.MaxResponseBytes < 0 || bounds.MaxResponseBytes > limits.MaxResponseBytes || n.opcode == InvokeRPC && bounds.MaxResponseBytes == 0 {
+	if bounds == nil || bounds.TimeoutMilliseconds <= 0 || bounds.TimeoutMilliseconds > duration || bounds.MaxAttempts <= 0 || bounds.MaxAttempts > a.prepared.policy.Limits.MaxAttempts || bounds.MaxEmittedEvents < 0 || bounds.MaxEmittedEvents > limits.MaxRunEvents || bounds.MaxResponseBytes < 0 || bounds.MaxResponseBytes > limits.MaxResponseBytes || n.opcode == contract.InvokeRPC && bounds.MaxResponseBytes == 0 {
 		return invalid(ir.LimitExceeded, nodePath(g, n), "instruction bounds exceed Program limits")
 	}
 
@@ -205,7 +206,7 @@ func (a *admission) bindOutcomes(g *graph, n *node) error {
 		case testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS:
 			expected = &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Enumeration{Enumeration: &testpilotspb.NamedType{ProtobufType: "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"}}}}}
 		case testpilotspb.INSTRUCTION_OUTCOME_FIELD_PROTOCOL_CODE:
-			if n.opcode != InvokeRPC && n.opcode != CompleteNexusOperation {
+			if n.opcode != contract.InvokeRPC && n.opcode != contract.CompleteNexusOperation {
 				return invalid(ir.Unsupported, nodePath(g, n), "protocol code requires a controller protocol effect")
 			}
 			expected = scalarSchema(testpilotspb.SCALAR_KIND_TEXT)
@@ -218,7 +219,7 @@ func (a *admission) bindOutcomes(g *graph, n *node) error {
 			expected = scalarSchema(testpilotspb.SCALAR_KIND_TEXT)
 		case testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE:
 			// RPC payloads are available only through declared response projections.
-			if g.context == testpilotspb.ENTRYPOINT_KIND_CONTROLLER || typ.Opaque() || n.opcode == StartNexusOperation {
+			if g.context == testpilotspb.ENTRYPOINT_KIND_CONTROLLER || typ.Opaque() || n.opcode == contract.StartNexusOperation {
 				return invalid(ir.Unsupported, nodePath(g, n), "VALUE requires an SDK result, not a controller outcome, opaque capability or StartNexusOperation handle")
 			}
 		default:
@@ -354,7 +355,7 @@ func (a *admission) bindEvidenceLift(g *graph, n *node, source *testpilotspb.Cor
 		return nil, invalid(ir.Unsupported, nodePath(g, n), "evidence lift requires a controller entrypoint")
 	}
 	lift := &evidenceLift{observationID: source.GetObservationId(), element: typ}
-	owner := Coordinate{EntrypointID: g.id, InstructionID: n.source.InstructionId}
+	owner := contract.Coordinate{EntrypointID: g.id, InstructionID: n.source.InstructionId}
 	for _, rule := range source.GetRules() {
 		bound, err := a.bindEvidenceRule(g, n, rule, typ)
 		if err != nil {
@@ -494,7 +495,7 @@ func (a *admission) successScope(g *graph, n *node, guard *ir.Expression, scope 
 			}
 		}
 		previous := g.nodes[index]
-		if previous.opcode == AwaitSlot {
+		if previous.opcode == contract.AwaitSlot {
 			reference := ir.Reference{Kind: ir.SlotReference, ID: previous.source.Instruction.GetAwaitSlot().SlotId}
 			binding := scope[reference]
 			binding.Available = true
@@ -588,29 +589,29 @@ func (a *admission) bindNodeDataflow(g *graph, n *node, boolean ir.Type) error {
 		return bindIn(scope, value, expected)
 	}
 	switch n.opcode {
-	case InvokeRPC:
+	case contract.InvokeRPC:
 		inputScope := maps.Clone(scope)
 		inputScope[ir.Reference{Kind: ir.EventReference, Field: int32(testpilotspb.RUN_EVENT_FIELD_RUN_ID)}] = ir.Binding{Type: a.runID, Available: true}
 		err = a.bindAssignments(g, n, func(value *testpilotspb.ProgramExpression, expected *ir.Type) (*ir.Expression, error) {
 			return bindIn(inputScope, value, expected)
 		})
-	case AwaitSlot:
+	case contract.AwaitSlot:
 		if _, exists := a.writers[n.source.Instruction.GetAwaitSlot().SlotId]; !exists {
 			return invalid(ir.Unavailable, nodePath(g, n), "awaited Slot has no writer")
 		}
-	case CompleteNexusOperation:
+	case contract.CompleteNexusOperation:
 		instruction := n.source.Instruction.GetCompleteNexusOperation()
 		if !scope[ir.Reference{Kind: ir.SlotReference, ID: instruction.CapabilitySlotId}].Available {
 			return invalid(ir.Unavailable, nodePath(g, n), "completion requires successful AwaitSlot dependency")
 		}
 		n.input, err = bind(instruction.Result, nil)
-	case StartNexusOperation:
+	case contract.StartNexusOperation:
 		n.input, err = bind(n.source.Instruction.GetStartNexusOperation().Input, nil)
-	case Finish:
+	case contract.Finish:
 		n.input, err = bind(n.source.Instruction.GetFinish().Result, nil)
-	case RespondNexus:
+	case contract.RespondNexus:
 		n.input, err = bind(n.source.Instruction.GetRespondNexus().Result, nil)
-	case Await, InjectFault:
+	case contract.Await, contract.InjectFault:
 		// A fault names its target role statically; it binds no Program expression.
 	default:
 		return invalid(ir.Unsupported, nodePath(g, n), "unknown capability")

@@ -34,8 +34,7 @@ func Prepare(source *testpilotspb.Case, profile Profile) (*PreparedCase, error) 
 	if err != nil {
 		return nil, preparationError(err, "profile.environment_bindings")
 	}
-	policy := spec.policy()
-	policy.EnvironmentFingerprint = fingerprint
+	policy := execution.Profile{Identity: spec.Identity, CatalogIdentity: spec.Catalog.Identity(), Roles: spec.Roles, Opcodes: spec.Opcodes, EnvironmentBindings: spec.EnvironmentBindings, EnvironmentFingerprint: fingerprint, Limits: spec.ProgramLimits}
 	program, err := execution.Prepare(source, spec.Catalog.catalog, policy)
 	if err != nil {
 		return nil, preparationError(err, "program")

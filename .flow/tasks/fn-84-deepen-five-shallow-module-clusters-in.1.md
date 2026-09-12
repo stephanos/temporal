@@ -76,6 +76,7 @@ Decisions (autonomous):
 Follow-up (recorded as `CONSIDER(umpire)` in `session.go`): a Settle failure records no Driver invariant diagnostic, only the failed outcome, although the README says both refused and incomplete transitions do. This was already true before the change; a probe Run confirmed it.
 
 stage: impl-review - ran [2026-09-12T19:2x..2026-09-12T19:29:41Z] claude backend, SHIP first round (2 P3 polish findings: README rewrap applied; helper renamed; resolve-twice kept deliberately for error precedence)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: b2c0686e7708e02f4f5582f306f876793ee2858e, d0863f26f00cf740397b83c002cb934682d37914
 - Tests: go test -count=1 -race -tags test_dep ./common/testing/testpilot/temporal/..., go test -v -count=1 -tags 'test_dep integration' ./tests -run '^TestTestpilotWorkerOutage' (with a -overlay dump of Verdicts and Run Events; diff against pre-edit baseline: identical), make lint-code GOLANGCI_LINT_FIX=false (after go clean -cache): 161 issues, 14506 before processing, none in touched files, make umpire-check-regression: exit 0, 571 Lean jobs, 9 passing live TestTestpilot identities

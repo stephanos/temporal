@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/testing/testpilot/contract"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -170,7 +171,7 @@ func TestRecorderObserveExcludesAdmissionAndStop(t *testing.T) {
 			invoked := false
 			go func() {
 				close(attempted)
-				admitted <- r.admit(context.Background(), func(context.Context) ([]EffectHandle, error) { invoked = true; return nil, nil }, func([]EffectHandle) {})
+				admitted <- r.admit(context.Background(), func(context.Context) ([]contract.EffectHandle, error) { invoked = true; return nil, nil }, func([]contract.EffectHandle) {})
 			}()
 			<-attempted
 			require.False(t, r.mu.TryLock())
@@ -199,9 +200,9 @@ func TestRecorderAdmissionRetainsPartialHandlesBeforeUnlock(t *testing.T) {
 	done := make(chan error, 1)
 	handle := &recorderHandle{}
 	go func() {
-		done <- r.admit(context.Background(), func(context.Context) ([]EffectHandle, error) {
-			return []EffectHandle{handle}, errors.New("partial admission")
-		}, func(handles []EffectHandle) {
+		done <- r.admit(context.Background(), func(context.Context) ([]contract.EffectHandle, error) {
+			return []contract.EffectHandle{handle}, errors.New("partial admission")
+		}, func(handles []contract.EffectHandle) {
 			owned = len(handles) == 1 && handles[0] == handle
 			close(entered)
 			<-release
@@ -217,7 +218,7 @@ func TestRecorderAdmissionRetainsPartialHandlesBeforeUnlock(t *testing.T) {
 
 type recorderHandle struct{}
 
-func (*recorderHandle) Wait(context.Context) (EffectResult, error) {
+func (*recorderHandle) Wait(context.Context) (contract.EffectResult, error) {
 	panic("Wait must remain outside recorder")
 }
 func (*recorderHandle) Cancel(context.Context) error { panic("Cancel belongs to termination") }
@@ -272,7 +273,10 @@ func TestRecorderTerminalCloseAndPostCloseDiagnostics(t *testing.T) {
 			wg.Wait()
 			require.Positive(t, sinks)
 			require.LessOrEqual(t, sinks, 8)
-			require.Error(t, r.admit(context.Background(), func(context.Context) ([]EffectHandle, error) { t.Fatal("admitted after closure"); return nil, nil }, func([]EffectHandle) {}))
+			require.Error(t, r.admit(context.Background(), func(context.Context) ([]contract.EffectHandle, error) {
+				t.Fatal("admitted after closure")
+				return nil, nil
+			}, func([]contract.EffectHandle) {}))
 			again, againVerdict, err := r.close(context.Background(), testpilotspb.RUN_STATUS_COMPLETED, nil)
 			require.Error(t, err)
 			require.Nil(t, again)

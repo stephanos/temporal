@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/testing/testpilot/contract"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/dynamicpb"
 )
@@ -26,12 +27,12 @@ func TestProjectionStagesOrderedElementsAndRejectsLimitsAtomically(t *testing.T)
 	require.NoError(t, err)
 	values, err := store.activate("controller", "activation")
 	require.NoError(t, err)
-	coord := Coordinate{RunID: "run", EntrypointID: "controller", ActivationID: "activation", InstructionID: "call", Attempt: 1}
+	coord := contract.Coordinate{RunID: "run", EntrypointID: "controller", ActivationID: "activation", InstructionID: "call", Attempt: 1}
 	response := dynamicpb.NewMessage(p.graphs[0].nodes[0].method.Output())
 	list := response.Mutable(response.Descriptor().Fields().ByName("items")).List()
 	list.Append(protoreflect.ValueOfString("b"))
 	list.Append(protoreflect.ValueOfString("a"))
-	raw := EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}, Response: response}
+	raw := contract.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}, Response: response}
 	batch, work, err := values.stage(context.Background(), coord, raw, values.workLimit())
 	require.NoError(t, err)
 	require.Len(t, batch.facts, 2)

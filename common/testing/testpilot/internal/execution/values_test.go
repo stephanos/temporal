@@ -10,12 +10,13 @@ import (
 
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/testing/testpilot/contract"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/dynamicpb"
 )
 
-func dataFixture(t *testing.T) (*PreparedProgram, *activationValues, Coordinate) {
+func dataFixture(t *testing.T) (*PreparedProgram, *activationValues, contract.Coordinate) {
 	t.Helper()
 	c, catalog, policy := fixture(t)
 	c.Program.Slots = []*testpilotspb.SlotDefinition{valueSlot("text", scalar(testpilotspb.SCALAR_KIND_TEXT))}
@@ -27,12 +28,12 @@ func dataFixture(t *testing.T) (*PreparedProgram, *activationValues, Coordinate)
 	require.NoError(t, err)
 	values, err := store.activate("controller", "activation")
 	require.NoError(t, err)
-	return p, values, Coordinate{RunID: "run", EntrypointID: "controller", ActivationID: "activation", InstructionID: "call", Attempt: 1}
+	return p, values, contract.Coordinate{RunID: "run", EntrypointID: "controller", ActivationID: "activation", InstructionID: "call", Attempt: 1}
 }
-func effectResponse(p *PreparedProgram, text string) EffectResult {
+func effectResponse(p *PreparedProgram, text string) contract.EffectResult {
 	response := dynamicpb.NewMessage(p.graphs[0].nodes[0].method.Output())
 	response.Set(response.Descriptor().Fields().ByName("text"), protoreflect.ValueOfString(text))
-	return EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}, Response: response}
+	return contract.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}, Response: response}
 }
 func TestValuesStageAtomicallyAndOwnSnapshots(t *testing.T) {
 	p, values, coord := dataFixture(t)
@@ -59,11 +60,13 @@ func TestValuesStageAtomicallyAndOwnSnapshots(t *testing.T) {
 }
 func TestValuesRejectWrongOwnershipAndUnprojectedPayload(t *testing.T) {
 	p, values, coord := dataFixture(t)
-	for _, mutate := range []func(*Coordinate, *EffectResult){
-		func(c *Coordinate, _ *EffectResult) { c.RunID = "other" }, func(c *Coordinate, _ *EffectResult) { c.ActivationID = "other" }, func(c *Coordinate, _ *EffectResult) { c.Attempt = 2 },
-		func(_ *Coordinate, r *EffectResult) {
+	for _, mutate := range []func(*contract.Coordinate, *contract.EffectResult){
+		func(c *contract.Coordinate, _ *contract.EffectResult) { c.RunID = "other" }, func(c *contract.Coordinate, _ *contract.EffectResult) { c.ActivationID = "other" }, func(c *contract.Coordinate, _ *contract.EffectResult) { c.Attempt = 2 },
+		func(_ *contract.Coordinate, r *contract.EffectResult) {
 			r.Outcome.Value = &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: "secret"}}
-		}, func(_ *Coordinate, r *EffectResult) { r.Response = &testpilotspb.InstructionOutcome{} },
+		}, func(_ *contract.Coordinate, r *contract.EffectResult) {
+			r.Response = &testpilotspb.InstructionOutcome{}
+		},
 	} {
 		c := coord
 		r := effectResponse(p, "first")
@@ -84,7 +87,7 @@ func TestRequestReadsGuardedSlotsWithoutRebinding(t *testing.T) {
 	require.NoError(t, err)
 	values, err := store.activate("controller", "activation")
 	require.NoError(t, err)
-	coord := Coordinate{RunID: "run", EntrypointID: "controller", ActivationID: "activation", InstructionID: "call", Attempt: 1}
+	coord := contract.Coordinate{RunID: "run", EntrypointID: "controller", ActivationID: "activation", InstructionID: "call", Attempt: 1}
 	request, enabled, work, err := values.request(context.Background(), coord, values.workLimit())
 	require.NoError(t, err)
 	require.True(t, enabled)
@@ -125,7 +128,7 @@ func TestValuesGuardedMissingSlotsAndActivationIsolation(t *testing.T) {
 	require.NoError(t, err)
 	values, err := store.activate("controller", "activation")
 	require.NoError(t, err)
-	coord := Coordinate{RunID: "run", EntrypointID: "controller", ActivationID: "activation", InstructionID: "consumer", Attempt: 1}
+	coord := contract.Coordinate{RunID: "run", EntrypointID: "controller", ActivationID: "activation", InstructionID: "consumer", Attempt: 1}
 	request, enabled, _, err := values.request(context.Background(), coord, values.workLimit())
 	require.NoError(t, err)
 	require.False(t, enabled)
@@ -169,7 +172,7 @@ func TestValuesConcurrentRunIsolationAndSeal(t *testing.T) {
 				results <- err
 				return
 			}
-			coord := Coordinate{RunID: store.runID, EntrypointID: "controller", ActivationID: "activation", InstructionID: "call", Attempt: 1}
+			coord := contract.Coordinate{RunID: store.runID, EntrypointID: "controller", ActivationID: "activation", InstructionID: "call", Attempt: 1}
 			batch, _, err := values.stage(context.Background(), coord, effectResponse(p, store.runID), values.workLimit())
 			if err != nil {
 				results <- err
@@ -214,7 +217,7 @@ func TestOutcomeValidationAndIndependentAttemptSnapshots(t *testing.T) {
 		require.Nil(t, batch)
 	}
 	p.graphs[0].nodes[0].source.Limits.MaxAttempts = 2
-	raw := EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS, ProtocolCode: "first"}}
+	raw := contract.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS, ProtocolCode: "first"}}
 	first, _, err := values.stage(ctx, coord, raw, values.workLimit())
 	require.NoError(t, err)
 	require.NoError(t, values.commit(ctx, first))
@@ -245,8 +248,8 @@ func TestWorkerOutcomeValuesRemainActivationLocal(t *testing.T) {
 	require.NoError(t, err)
 	b, err := store.activate("workflow", "b")
 	require.NoError(t, err)
-	coord := Coordinate{RunID: "run", EntrypointID: "workflow", ActivationID: "a", InstructionID: "finish", Attempt: 1}
-	raw := EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: textValue("owned")}}
+	coord := contract.Coordinate{RunID: "run", EntrypointID: "workflow", ActivationID: "a", InstructionID: "finish", Attempt: 1}
+	raw := contract.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: textValue("owned")}}
 	batch, _, err := a.stage(context.Background(), coord, raw, a.workLimit())
 	require.NoError(t, err)
 	require.NoError(t, a.commit(context.Background(), batch))
@@ -275,7 +278,7 @@ func TestWideExpressionBudgetAndCeilingOverflow(t *testing.T) {
 	require.NoError(t, err)
 	values, err := store.activate("controller", "activation")
 	require.NoError(t, err)
-	coord := Coordinate{RunID: "run", EntrypointID: "controller", ActivationID: "activation", InstructionID: "call", Attempt: 1}
+	coord := contract.Coordinate{RunID: "run", EntrypointID: "controller", ActivationID: "activation", InstructionID: "call", Attempt: 1}
 	_, enabled, work, err := values.request(context.Background(), coord, values.workLimit())
 	require.NoError(t, err)
 	require.True(t, enabled)

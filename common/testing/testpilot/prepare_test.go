@@ -16,32 +16,6 @@ import (
 	"google.golang.org/protobuf/types/descriptorpb"
 )
 
-// Opcode, execution.Opcode and the instruction-to-capability switch are three hand-maintained
-// lists. The switch is pinned to the Instruction oneof inside the execution package; this pins
-// the public opcode vocabulary to the same numbering, so an opcode can never authorize a
-// different instruction than the one it is named for.
-func TestCapabilitiesMatchExecutionOpcodes(t *testing.T) {
-	for name, pair := range map[string]struct {
-		opcode          Opcode
-		executionOpcode execution.Opcode
-	}{
-		"InvokeRPC":              {InvokeRPC, execution.InvokeRPC},
-		"AwaitSlot":              {AwaitSlot, execution.AwaitSlot},
-		"CompleteNexusOperation": {CompleteNexusOperation, execution.CompleteNexusOperation},
-		"StartNexusOperation":    {StartNexusOperation, execution.StartNexusOperation},
-		"Await":                  {Await, execution.Await},
-		"Finish":                 {Finish, execution.Finish},
-		"RespondNexus":           {RespondNexus, execution.RespondNexus},
-		"InjectFault":            {InjectFault, execution.InjectFault},
-	} {
-		t.Run(name, func(t *testing.T) {
-			require.Equal(t, pair.executionOpcode, execution.Opcode(pair.opcode))
-			require.LessOrEqual(t, pair.opcode, MaxOpcode)
-		})
-	}
-	require.Equal(t, execution.MaxOpcode, execution.Opcode(MaxOpcode))
-}
-
 type nilProfileMap map[string]int
 
 func (nilProfileMap) Snapshot() ProfileSpec { panic("typed nil called") }
@@ -353,27 +327,6 @@ func TestRunCreatesMonitorBeforeOpen(t *testing.T) {
 }
 
 type facadeSession struct{ Session }
-
-type reservationEffect struct{ ReservationHandle }
-
-type quarantineSession struct {
-	Session
-	handle EffectHandle
-}
-
-func (s *quarantineSession) Quarantine(_ context.Context, handle EffectHandle) error {
-	s.handle = handle
-	return nil
-}
-
-func TestSessionAdapterReturnsReservationEffectsToTheirDriver(t *testing.T) {
-	handle := &reservationEffect{}
-	session := &quarantineSession{}
-	err := (sessionAdapter{session: session}).Quarantine(t.Context(), reservationAdapter{handle: handle})
-	require.NoError(t, err)
-	require.Same(t, handle, session.handle)
-	var _ execution.EffectHandle = reservationAdapter{}
-}
 
 func facadeFixture(t testing.TB) (*testpilotspb.Case, ProfileSpec) {
 	t.Helper()
