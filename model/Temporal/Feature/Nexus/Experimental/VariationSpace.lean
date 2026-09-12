@@ -99,7 +99,20 @@ inductive VariationSpacePreparationError where
   | space (error : SpaceError)
   | metadata (error : SpaceMetadataError)
   | compilation (error : SpaceCompilationError)
+  | admission (diagnostic : AdmissionDiagnostic)
   deriving Repr
+
+/-- The Lifecycle start Query admitted against the Model. Every Query the Space derives searches
+through its view, re-paired with `AdmittedQuery.withQuery`. -/
+def baseAdmission : Except VariationSpacePreparationError (AdmittedQuery target) :=
+  (Search.admit target AsyncStart.authoredProperty (some AsyncStart.authoredScenario) {
+    id := AsyncStart.authoredQuery.id
+    source := AsyncStart.authoredQuery.source
+    target := AsyncStart.authoredQuery.target
+    form := .find
+    limits := AsyncStart.authoredQuery.limits
+    policy := AsyncStart.authoredQuery.policy
+  }).mapError VariationSpacePreparationError.admission
 
 private def authoredQuery (behavior : CheckedScenario) : Query := {
   id := queryId
@@ -197,9 +210,10 @@ private def prepareCheckedQuery
       have checkedTargetEq : checked.baseQuery.target = target :=
         (congrArg (fun candidate => candidate.target) <|
           checkVariationSpace_baseQuery checkedResultEq).trans queryTargetEq
-      let checkedKernel : SearchView checked.baseQuery.target :=
-        Eq.mpr (congrArg SearchView checkedTargetEq) incrementalKernel
-      let specs ← (compileBatch checked checkedKernel).mapError
+      let admitted ← baseAdmission
+      let checkedBase : AdmittedQuery checked.baseQuery.target :=
+        (admitted.withQuery checked.baseQuery checkedTargetEq).retarget checkedTargetEq.symm
+      let specs ← (compileBatch checked checkedBase).mapError
         VariationSpacePreparationError.compilation
       pure { checked, metadata, specs }
 

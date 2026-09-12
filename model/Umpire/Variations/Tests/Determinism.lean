@@ -23,9 +23,9 @@ private theorem originalTargetEq :
   congrArg (fun query => query.target) <|
     checkVariationSpace_baseQuery originalResultEq
 
-private def originalKernel : SearchView checked.baseQuery.target :=
-  Eq.mpr (congrArg SearchView originalTargetEq)
-    Umpire.Examples.Switch.incrementalKernel
+private def originalBase : AdmittedQuery checked.baseQuery.target :=
+  (Umpire.Examples.Switch.exactActionAdmitted.withQuery checked.baseQuery originalTargetEq).retarget
+    originalTargetEq.symm
 
 private def reorderedDeclaration : VariationSpace := {
   declaration with
@@ -49,9 +49,9 @@ private theorem reorderedTargetEq :
   congrArg (fun query => query.target) <|
     checkVariationSpace_baseQuery reorderedResultEq
 
-private def reorderedKernel : SearchView reordered.baseQuery.target :=
-  Eq.mpr (congrArg SearchView reorderedTargetEq)
-    Umpire.Examples.Switch.incrementalKernel
+private def reorderedBase : AdmittedQuery reordered.baseQuery.target :=
+  (Umpire.Examples.Switch.exactActionAdmitted.withQuery reordered.baseQuery reorderedTargetEq).retarget
+    reorderedTargetEq.symm
 
 private def compiledProjection
     (result : Except SpaceCompilationError (List Plan)) :
@@ -63,8 +63,8 @@ private def compiledProjection
 Reordering axes, choices, faults, and goals preserves canonical point order and complete bytes.
 -/
 example :
-    compiledProjection (compileBatch checked originalKernel) =
-      compiledProjection (compileBatch reordered reorderedKernel) := by
+    compiledProjection (compileBatch checked originalBase) =
+      compiledProjection (compileBatch reordered reorderedBase) := by
   native_decide
 
 end Umpire.VariationsTests

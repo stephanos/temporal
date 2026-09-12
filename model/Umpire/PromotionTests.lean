@@ -83,7 +83,7 @@ private def compileWith
     (spec : PromotionSourceSpec := sourceSpec)
     (expectation : PromotionSourceExpectation := sourceExpectation) :
     Except PromotionError CompiledPromotionSource :=
-  compilePromotionSource exactActionQuery incrementalKernel anchor spec expectation
+  compilePromotionSource exactActionAdmitted anchor spec expectation
 
 private def conflictingGap : KnownGap := {
   plannerExecutionEvidenceKnownGap with detail := some "conflicting authored detail"
@@ -94,8 +94,9 @@ private def conflictingGaps : KnownGapSet :=
 
 /-! Promotion retains the complete typed gap failure before anchored-run comparison. -/
 example :
-    errorOf (compilePromotionSource { exactActionQuery with authoredKnownGaps := conflictingGaps }
-      incrementalKernel baseAnchor sourceSpec sourceExpectation) = some {
+    errorOf (compilePromotionSource
+      (exactActionAdmitted.withQuery { exactActionQuery with authoredKnownGaps := conflictingGaps } rfl)
+      baseAnchor sourceSpec sourceExpectation) = some {
         kind := .knownGapCheckFailed
         subject := exactActionQuery.id
         detail := KnownGapErrorKind.conflictingDetail.name
@@ -153,7 +154,7 @@ private def nonFoundQuery : CheckedQuery LawStatement := {
 }
 
 private def nonFoundRun : Except KnownGapError PlanResult :=
-  search nonFoundQuery incrementalKernel
+  (exactActionAdmitted.withQuery nonFoundQuery rfl).search
 
 private def nonFoundAnchor : Option PromotionBaseAnchor := do
   let planResult ← nonFoundRun.toOption
@@ -175,7 +176,7 @@ private def nonFoundAnchor : Option PromotionBaseAnchor := do
 
 private def nonFoundPromotionErrorKind : Option PromotionErrorKind := do
   let anchor ← nonFoundAnchor
-  errorKindOf (compilePromotionSource nonFoundQuery incrementalKernel anchor
+  errorKindOf (compilePromotionSource (exactActionAdmitted.withQuery nonFoundQuery rfl) anchor
     sourceSpec sourceExpectation)
 
 /-! Every meaning-bearing base or source mutation fails before a partial source is returned. -/

@@ -1,6 +1,7 @@
 import Umpire.Shared
 import Umpire.Search
 import Umpire.Search.Branches
+import Umpire.Search.Admission
 import Umpire.Model.Table
 import Umpire.Property.Elab
 import Umpire.Scenario.Elab
@@ -403,14 +404,13 @@ def authoredScenario [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fac
 
 
 
+/-- Every way a declared Model's Query can fail. The Model's own table and vocabulary are admitted
+here; everything from the Property to the search view is `Search.admit`'s, reported as the stage
+that rejected. -/
 inductive AdmissionError where
   | invalidTarget (error : FiniteAdmissionError)
   | invalidVocabulary (error : FiniteTableError)
-  | invalidProperty (error : PropertyError)
-  | invalidBehavior (error : ScenarioError)
-  | invalidKnownGaps (error : KnownGapError)
-  | invalidQuery (error : QueryError)
-  | invalidPlanner (error : FiniteSearchAdmissionError)
+  | admission (diagnostic : AdmissionDiagnostic)
   /-- Planning ran but did not deliver what the Query form claimed. The outcome says what it did
   deliver, and the counts it explored beside the Limits it was given say whether a bound stopped it
   -- so "nothing here satisfies the Property" is distinguishable from "the search was cut short",
@@ -431,7 +431,6 @@ structure CheckedModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq F
   property : CheckedProperty
   behavior : CheckedScenario
   query : CheckedQuery model.lawStatement
-  kernel : SearchView query.target
   run : PlanResult
   /-- The selected trace, present only for a witness Query. A verify Query establishes its claim
   over every admitted trace and selects none. -/
@@ -445,7 +444,7 @@ def check [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     (limits : Limits)
     (propertyAuthor : ModelVocabulary → Property)
     (behaviorAuthor : ModelVocabulary → Scenario)
-    (knownGaps : Except KnownGapError KnownGapSet := .ok KnownGapSet.empty)
+    (knownGaps : List KnownGap := [])
     (form : QueryFormKind := .selectWitness)
     (authoredTable : FiniteTable Setup State Action Outcome Fact := model.table)
     (authoredDefinition : TableModelSpec := model.modelSpec) :
@@ -453,32 +452,28 @@ def check [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
   let target ← checkFiniteTarget authoredTable model.table model.identity authoredDefinition
     model.composition (fun value => model.terminal.contains value) |>.mapError .invalidTarget
   let vocabulary ← modelVocabulary model authoredTable |>.mapError .invalidVocabulary
-  let property ← (propertyAuthor vocabulary).check (PropertyCheckContext.ofTarget target)
-    |>.mapError .invalidProperty
-  let behavior ← (behaviorAuthor vocabulary).check (.ofTarget target) |>.mapError .invalidBehavior
-  let gaps ← knownGaps.mapError .invalidKnownGaps
-  let authoredQuery : Query := {
+  let admitted ← Search.admit target (propertyAuthor vocabulary)
+      (some (behaviorAuthor vocabulary)) {
     id := model.origin.family.id "query" queryKey
     source := model.origin.source
     target := model.targetId
     form := match form with
-      | .selectWitness => .find property
-      | .verifyClaim => .verify property
-    behavior
+      | .selectWitness => .find
+      | .verifyClaim => .verify
     limits
     policy := match form with
       | .selectWitness => .shortest
       | .verifyClaim => .exhaustive
-    authoredKnownGaps := gaps
-  }
-  let query ← Query.check (.ofTarget target) authoredQuery |>.mapError .invalidQuery
-  let kernel ← SearchView.ofCheckedQuery target.id query |>.mapError .invalidPlanner
-  let run ← search query kernel |>.mapError .invalidKnownGaps
+  } knownGaps |>.mapError .admission
+  let run ← admitted.search |>.mapError (.admission ∘ .knownGaps)
+  let property := admitted.property
+  let behavior := admitted.scenario
+  let query := admitted.query
   match form, run.result.outcome with
   | .selectWitness, .found witness .satisfyingWitness =>
-      pure { target, vocabulary, property, behavior, query, kernel, run, witness := some witness }
+      pure { target, vocabulary, property, behavior, query, run, witness := some witness }
   | .verifyClaim, .verified =>
-      pure { target, vocabulary, property, behavior, query, kernel, run, witness := none }
+      pure { target, vocabulary, property, behavior, query, run, witness := none }
   | _, outcome => throw (.notSelected outcome run.result.metadata.explored limits)
 
 
@@ -611,15 +606,15 @@ def diagnose [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
       some (Diagnostic.anchorModel, s!"the Model was not admitted: {finiteAdmissionDescription error}")
   | .error (.invalidVocabulary error) =>
       some (Diagnostic.anchorModel, s!"the Model's vocabulary was not admitted: {reprStr error}")
-  | .error (.invalidProperty error) =>
+  | .error (.admission (.property error)) =>
       some (Diagnostic.anchorProperty, s!"the Property was not admitted: {reprStr error}")
-  | .error (.invalidBehavior error) =>
+  | .error (.admission (.scenario error)) =>
       some (Diagnostic.anchorScenario, s!"the Scenario was not admitted: {reprStr error}")
-  | .error (.invalidKnownGaps error) =>
+  | .error (.admission (.knownGaps error)) =>
       some (Diagnostic.anchorQuery, s!"the Known Gaps were not admitted: {reprStr error}")
-  | .error (.invalidQuery error) =>
+  | .error (.admission (.query error)) =>
       some (Diagnostic.anchorQuery, s!"the Query was not admitted: {reprStr error}")
-  | .error (.invalidPlanner error) =>
+  | .error (.admission (.searchView error)) =>
       some (Diagnostic.anchorModel, s!"the Model admits no finite search: {reprStr error}")
   | .error (.notSelected outcome explored limits) =>
       some (Diagnostic.anchorForm, notSelectedMessage outcome explored limits)

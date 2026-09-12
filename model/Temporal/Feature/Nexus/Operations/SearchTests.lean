@@ -170,26 +170,17 @@ theorem invalidOperationLimitsRetainTypedFailure :
     } = some .invalidLimit := by
   native_decide
 
-/-
-error: type mismatch
--/
-#guard_msgs (error, substring := true) in
-def omittedPropertyEvidence : CheckedProperty :=
-  AsyncStart.authoredProperty.checked (PropertyCheckContext.ofTarget target)
-
-/-
-error: type mismatch
--/
-#guard_msgs (error, substring := true) in
-def omittedBehaviorEvidence : CheckedScenario :=
-  AsyncStart.authoredScenario.checked (.ofTarget target)
-
-/-
-error: type mismatch
+/-! Omitted checker-success evidence defaults to `native_decide`, so an invalid operation Query is
+rejected where it is written rather than accepted. -/
+/--
+error: could not synthesize default value for parameter 'valid' using tactics
 -/
 #guard_msgs (error, substring := true) in
 def omittedQueryEvidence : CheckedQuery LawStatement :=
-  Query.checked target AsyncStart.authoredQuery
+  Query.checked target {
+    AsyncStart.authoredQuery with
+    limits := { Internal.queryLimits with steps := { value := 0, unit := .steps } }
+  }
 
 /-- Every live ordinary Nexus consumer of the shared Lifecycle target. -/
 def compatibilityConsumers : List String := [

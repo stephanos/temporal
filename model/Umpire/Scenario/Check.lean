@@ -662,12 +662,14 @@ def Scenario.check
   }
   pure { checked with canonicalMetadata := canonicalScenarioJson checked }
 
-/-- Produce a checked Behavior directly from an explicit proof that the typed checker succeeds.
-Use `Scenario.check` when an invalid declaration's typed diagnostic is needed. -/
+/-- Produce a checked Behavior directly from a proof that the typed checker succeeds. The proof
+defaults to `native_decide`, evaluated where the caller elaborates, so a closed declaration names no
+proof of its own. Use `Scenario.check` when an invalid declaration's typed diagnostic is needed. -/
 def Scenario.checked
     (context : ScenarioCheckContext)
     (declaration : Scenario)
-    (valid : (Scenario.check context declaration).toOption.isSome = true) : CheckedScenario :=
+    (valid : (Scenario.check context declaration).toOption.isSome = true := by native_decide) :
+    CheckedScenario :=
   (Scenario.check context declaration).toOption.get valid
 
 private def bindingFor (bindings : List RoleBinding) (role : DefinitionId) : Option ModelValue :=

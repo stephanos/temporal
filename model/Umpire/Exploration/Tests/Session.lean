@@ -7,7 +7,7 @@ namespace Umpire.ExplorationTests
 open Umpire
 
 private def sessionResult :=
-  beginSession (engineRequest .exhaustive 4) engineKernel
+  beginSession (engineRequest .exhaustive 4) engineBase
 
 private def session := sessionResult.toOption.get (by native_decide)
 
@@ -38,12 +38,12 @@ private def advancesFromFirst (candidate : CandidateCursor) : Bool :=
 
 private def pinnedOnlySession : CandidateCursor :=
   (beginSession (engineRequest .exhaustive 1
-    (selectedCandidates.map ExplorationCandidate.plan)) engineKernel).toOption.get
+    (selectedCandidates.map ExplorationCandidate.plan)) engineBase).toOption.get
       (by native_decide)
 
 private def pinnedOverlapSession : CandidateCursor :=
   (beginSession (engineRequest .exhaustive 1 [firstCandidate.plan])
-    engineKernel).toOption.get (by native_decide)
+    engineBase).toOption.get (by native_decide)
 
 /-! `next` preserves the checked selection order and cannot overlap outstanding candidates. -/
 example :

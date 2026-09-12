@@ -40,25 +40,27 @@ def authoredScenario
       operationRoleId initialState])
     (occurrences := [{ key := occurrenceKey, action := action.definitionId }])
 
-def authoredQuery
-    (key : String)
-    (property : CheckedProperty)
-    (behavior : CheckedScenario) : Query := {
+def queryShape (key : String) : Query.Shape := {
   id := family.id "query" key
   source := Cancellation.source
   target := targetId
-  form := .find property
-  behavior
+  form := .find
   limits := Limits.bounded 1 1 8
   policy := .shortest
 }
 
+def authoredQuery
+    (key : String)
+    (property : CheckedProperty)
+    (behavior : CheckedScenario) : Query :=
+  (queryShape key).toQuery property behavior
+
+/-- The Baseline Model's own table and vocabulary are admitted here; every operation after that is
+`Search.admit`'s, reported as the stage that rejected. -/
 inductive AdmissionError where
   | invalidTarget (error : TableAdmissionError)
   | invalidVocabulary (error : FiniteTableError)
-  | invalidProperty (error : PropertyError)
-  | invalidBehavior (error : ScenarioError)
-  | invalidQuery (error : QueryError)
+  | invalidOperation (diagnostic : AdmissionDiagnostic)
 
 structure CheckedOperation where
   property : CheckedProperty
@@ -77,13 +79,9 @@ private def checkOperation
     (property : Property)
     (behavior : Scenario)
     (queryKey : String) : Except AdmissionError CheckedOperation := do
-  let property ← property.check (PropertyCheckContext.ofTarget target)
-    |>.mapError AdmissionError.invalidProperty
-  let behavior ← behavior.check (.ofTarget target)
-    |>.mapError AdmissionError.invalidBehavior
-  let query ← Query.check (.ofTarget target) (authoredQuery queryKey property behavior)
-    |>.mapError AdmissionError.invalidQuery
-  pure { property, behavior, query }
+  let admitted ← Search.admit target property (some behavior) (queryShape queryKey)
+    |>.mapError AdmissionError.invalidOperation
+  pure { property := admitted.property, behavior := admitted.scenario, query := admitted.query }
 
 /-- Constructor values publish only after every existing language checker succeeds. -/
 def checkBaseline : Except AdmissionError CheckedBaseline := do

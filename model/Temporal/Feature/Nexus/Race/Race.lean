@@ -1,4 +1,5 @@
 import Temporal.Feature.Nexus.Race.Lifecycle
+import Umpire.Search.Admission
 
 /-!
 # Abstract cancellation/completion race
@@ -373,14 +374,12 @@ private def unsatisfiableBehaviorDeclaration (model : ModelVocabulary) : Scenari
   documentation := "Contradictory setup constraints admit no finite Model Trace."
 }
 
+/-- The race Model's own table and vocabulary are admitted here; every question after that is
+`Search.admit`'s, reported as the stage that rejected. -/
 inductive RaceAdmissionError where
   | invalidTarget (error : TableAdmissionError)
   | invalidVocabulary (error : FiniteTableError)
-  | invalidProperty (error : PropertyError)
-  | invalidBehavior (error : ScenarioError)
-  | invalidQuery (error : QueryError)
-  | invalidPlanner (error : FiniteSearchAdmissionError)
-  | invalidKnownGap (error : KnownGapError)
+  | invalidQuestion (diagnostic : AdmissionDiagnostic)
 
 structure CheckedQuestion where
   property : CheckedProperty
@@ -409,25 +408,17 @@ private def checkQuestion
     (form : CheckedProperty → Query.Form)
     (policy : PlannerPolicy)
     (candidateBudget : Nat) : Except RaceAdmissionError CheckedQuestion := do
-  let property ← Property.check (PropertyCheckContext.ofTarget target) (authoredProperty)
-    |>.mapError RaceAdmissionError.invalidProperty
-  let behavior ← Scenario.check (.ofTarget target) authoredScenario
-    |>.mapError RaceAdmissionError.invalidBehavior
-  let declaration : Query := {
+  let admitted ← Search.admit target authoredProperty (some authoredScenario) {
     id := queryId
     source
     target := targetId
-    form := form property
-    behavior
+    form
     limits := Limits.bounded 2 2 candidateBudget
     policy
-  }
-  let query ← Query.check (.ofTarget target) declaration
-    |>.mapError RaceAdmissionError.invalidQuery
-  let kernel ← SearchView.ofCheckedQuery target.id query
-    |>.mapError RaceAdmissionError.invalidPlanner
-  let run ← search query kernel |>.mapError RaceAdmissionError.invalidKnownGap
-  pure { property, behavior, query, run }
+  } |>.mapError RaceAdmissionError.invalidQuestion
+  let run ← admitted.search |>.mapError (RaceAdmissionError.invalidQuestion ∘ .knownGaps)
+  pure {
+    property := admitted.property, behavior := admitted.scenario, query := admitted.query, run }
 
 /-- Admit the race and its separate bounded questions only through successful checked branches. -/
 def checkRace : Except RaceAdmissionError CheckedRace := do

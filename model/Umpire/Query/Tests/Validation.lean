@@ -14,9 +14,14 @@ def checkedFixtureQuery : CheckedQuery (fun _ => True) :=
 example : checkedFixtureQuery.target = target := by
   rfl
 
+/-! Omitting the proof takes the default `native_decide`, which rejects an invalid declaration where
+it is written. -/
+/--
+error: could not synthesize default value for parameter 'valid' using tactics
+-/
 #guard_msgs (error, substring := true) in
 def queryWithoutValidityProof : CheckedQuery (fun _ => True) :=
-  Query.checked target (declaration (.verify Property.checked) exhaustivePolicy)
+  Query.checked target { declaration (.verify Property.checked) exhaustivePolicy with id := id "" }
 
 private def queryErrorOf
     (result : Except QueryError (CheckedQuery (fun _ => True))) : Option QueryError :=
