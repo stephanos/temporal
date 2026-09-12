@@ -18,4 +18,4 @@ import Umpire.ImplementationLink
 import Umpire.Provenance
 import Umpire.Case
 import Umpire.Case.Compiler
-import Umpire.Case.Observed
+import Umpire.Case.Projection.Lowering

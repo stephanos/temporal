@@ -40,8 +40,11 @@ def project
     (cardinality : ProjectionKind := .PROJECTION_KIND_ONE) : ResponseProjection :=
   Program.responseProjection source cardinality #[Program.observationTarget observationId]
 
+/-- The history event message a history read projects into one Observation per event. -/
+def historyEventNode := "temporal.api.history.v1.HistoryEvent"
+
 def historyEventType : ValueType :=
-  Types.singular (Types.messageType "temporal.api.history.v1.HistoryEvent")
+  Types.singular (Types.messageType historyEventNode)
 
 def nested (names : List String) : FieldPath :=
   Path.make (names.map Path.field).toArray
