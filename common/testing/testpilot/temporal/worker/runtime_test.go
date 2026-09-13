@@ -3,6 +3,7 @@ package worker
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -290,12 +291,8 @@ func symbolicEnvironment(id string) *testpilotspb.Expression {
 	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_EnvironmentBindingId{EnvironmentBindingId: id}}}}
 }
 
-func symbolicFieldPath(fields ...string) *testpilotspb.FieldPath {
-	path := &testpilotspb.FieldPath{Segments: make([]*testpilotspb.FieldPathSegment, len(fields))}
-	for i, field := range fields {
-		path.Segments[i] = &testpilotspb.FieldPathSegment{Field: field}
-	}
-	return path
+func symbolicFieldPath(fields ...string) string {
+	return strings.Join(fields, ".")
 }
 
 func TestRegistrationRejectsIncompatibleQueueBeforeStart(t *testing.T) {

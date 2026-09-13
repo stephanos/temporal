@@ -2,7 +2,6 @@ syntax = "proto3";
 package temporal.server.api.testpilot.v1;
 import "temporal/server/api/testpilot/v1/correlated.proto";
 import "temporal/server/api/testpilot/v1/expression.proto";
-import "temporal/server/api/testpilot/v1/value.proto";
 option go_package = "go.temporal.io/server/api/testpilot/v1;testpilot";
 
 // InstructionNode is one node of an entrypoint's instruction graph: the instruction and when it runs.
@@ -53,12 +52,17 @@ message InvokeRpc {
 
 // RequestAssignment sets the request field at target to its value, evaluated at dispatch. Targets
 // may not overlap, fan out or select presence.
-message RequestAssignment { FieldPath target = 1; Expression value = 2; }
+message RequestAssignment {
+  // A field path in the grammar PathExpression.path documents.
+  string target = 1;
+  Expression value = 2;
+}
 
 // ResponseRead reads the value at path in a successful RPC response into its targets. An absent value
 // is not read.
 message ResponseRead {
-  FieldPath path = 1;
+  // A field path in the grammar PathExpression.path documents.
+  string path = 1;
   ReadCardinality cardinality = 2;
   repeated ReadTarget targets = 3;
 }

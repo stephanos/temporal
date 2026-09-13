@@ -239,7 +239,7 @@ func (a *admission) bindProjections(g *graph, index int, n *node) error {
 		if source == nil || len(source.Targets) == 0 {
 			return invalid(ir.Malformed, nodePath(g, n), "projection requires a path and sinks")
 		}
-		path, err := a.prepared.catalog.BindPath(output, source.Path, a.expressionLimits())
+		path, err := a.prepared.catalog.BindPath(output, expressionPath(g, n, fmt.Sprintf("instruction.invoke_rpc.response_reads[%d].path", read)), source.Path, a.expressionLimits())
 		if err != nil {
 			return err
 		}
@@ -373,7 +373,7 @@ func (a *admission) bindEvidenceRule(g *graph, n *node, location string, source 
 	if err != nil {
 		return nil, err
 	}
-	operation, err := a.bindEvidencePath(g, n, typ, source.GetOperation(), evidenceKeyKinds...)
+	operation, err := a.bindEvidencePath(g, n, typ, location+".operation", source.GetOperation(), evidenceKeyKinds...)
 	if err != nil {
 		return nil, err
 	}
@@ -440,7 +440,7 @@ func (a *admission) bindEvidenceBindings(g *graph, n *node, location string, typ
 			if supply.Path.GetOperand().GetReference().GetProjectedValue() == nil {
 				return nil, invalid(ir.Malformed, nodePath(g, n), "evidence binding requires a path or a literal")
 			}
-			path, err := a.bindEvidencePath(g, n, typ, supply.Path.GetPath(), kinds...)
+			path, err := a.bindEvidencePath(g, n, typ, site.Path+".path.path", supply.Path.GetPath(), kinds...)
 			if err != nil {
 				return nil, err
 			}
@@ -451,8 +451,8 @@ func (a *admission) bindEvidenceBindings(g *graph, n *node, location string, typ
 	}
 	return bound, nil
 }
-func (a *admission) bindEvidencePath(g *graph, n *node, typ ir.Type, source *testpilotspb.FieldPath, kinds ...testpilotspb.ScalarKind) (*ir.Path, error) {
-	path, err := a.prepared.catalog.BindPath(typ, source, a.expressionLimits())
+func (a *admission) bindEvidencePath(g *graph, n *node, typ ir.Type, location, source string, kinds ...testpilotspb.ScalarKind) (*ir.Path, error) {
+	path, err := a.prepared.catalog.BindPath(typ, location, source, a.expressionLimits())
 	if err != nil {
 		return nil, err
 	}
@@ -523,7 +523,7 @@ func successFacts(expression *ir.Expression) map[string]bool {
 		for i := range 2 {
 			reference := children[i].Reference()
 			literal := children[1-i].Literal()
-			if reference.Kind == ir.OutcomeReference && reference.Field == int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS) && literal.GetEnumValue() != nil && literal.GetEnumValue().Number == int32(testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED) {
+			if reference.Kind == ir.OutcomeReference && reference.Field == int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS) && literal.GetEnumValue().GetName() == ir.EnumName(testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED) {
 				result[reference.ID] = true
 			}
 		}
@@ -646,7 +646,7 @@ func (a *admission) bindAssignments(g *graph, n *node, bind func(*testpilotspb.E
 		if source == nil {
 			return invalid(ir.Malformed, nodePath(g, n), "nil request assignment")
 		}
-		target, err := a.prepared.catalog.BindPath(input, source.Target, a.expressionLimits())
+		target, err := a.prepared.catalog.BindPath(input, expressionPath(g, n, fmt.Sprintf("instruction.invoke_rpc.request_assignments[%d].target", index)), source.Target, a.expressionLimits())
 		if err != nil {
 			return err
 		}

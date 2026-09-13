@@ -435,11 +435,20 @@ func (*Expression_All) isExpression_Expression() {}
 
 func (*Expression_Any) isExpression_Expression() {}
 
-// PathExpression reads a FieldPath out of its operand's value, absent when any segment is absent.
+// PathExpression reads the value at path out of its operand's value, absent when any segment is
+// absent.
 type PathExpression struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Operand       *Expression            `protobuf:"bytes,1,opt,name=operand,proto3" json:"operand,omitempty"`
-	Path          *FieldPath             `protobuf:"bytes,2,opt,name=path,proto3" json:"path,omitempty"`
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Operand *Expression            `protobuf:"bytes,1,opt,name=operand,proto3" json:"operand,omitempty"`
+	// A field path: dot-separated protobuf field names (not JSON names), each followed by at
+	// most one selector. `[*]` fans out over every element of a repeated field, so the path's value is a
+	// list; `["text"]`, `[42]` or `[true]` reads the map entry with that key, a JSON string for a text
+	// key, a base-10 integer for an integer key and true or false for a boolean key, and is absent
+	// when no entry has it; a final `?` reads whether a presence-tracking field is set, as a boolean;
+	// `<member>` after a oneof's name reads the member of that oneof it names. The empty path is the
+	// whole value. For example `attributes<nexus_operation_completed_event_attributes>.scheduled_event_id`
+	// or `history.events[*]`. Preparation rejects a path outside this grammar with its text.
+	Path          string `protobuf:"bytes,2,opt,name=path,proto3" json:"path,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -481,11 +490,11 @@ func (x *PathExpression) GetOperand() *Expression {
 	return nil
 }
 
-func (x *PathExpression) GetPath() *FieldPath {
+func (x *PathExpression) GetPath() string {
 	if x != nil {
 		return x.Path
 	}
-	return nil
+	return ""
 }
 
 // PresentExpression is true when its operand is not absent.
@@ -1414,10 +1423,10 @@ const file_temporal_server_api_testpilot_v1_expression_proto_rawDesc = "" +
 	"\x03all\x18\a \x01(\v2/.temporal.server.api.testpilot.v1.AllExpressionH\x00R\x03all\x12C\n" +
 	"\x03any\x18\b \x01(\v2/.temporal.server.api.testpilot.v1.AnyExpressionH\x00R\x03anyB\f\n" +
 	"\n" +
-	"expression\"\x99\x01\n" +
+	"expression\"l\n" +
 	"\x0ePathExpression\x12F\n" +
-	"\aoperand\x18\x01 \x01(\v2,.temporal.server.api.testpilot.v1.ExpressionR\aoperand\x12?\n" +
-	"\x04path\x18\x02 \x01(\v2+.temporal.server.api.testpilot.v1.FieldPathR\x04path\"[\n" +
+	"\aoperand\x18\x01 \x01(\v2,.temporal.server.api.testpilot.v1.ExpressionR\aoperand\x12\x12\n" +
+	"\x04path\x18\x02 \x01(\tR\x04path\"[\n" +
 	"\x11PresentExpression\x12F\n" +
 	"\aoperand\x18\x01 \x01(\v2,.temporal.server.api.testpilot.v1.ExpressionR\aoperand\"\xeb\x01\n" +
 	"\x11CompareExpression\x12P\n" +
@@ -1524,9 +1533,8 @@ var file_temporal_server_api_testpilot_v1_expression_proto_goTypes = []any{
 	(*CorrelatedStepReference)(nil),     // 17: temporal.server.api.testpilot.v1.CorrelatedStepReference
 	(*ProjectedValueReference)(nil),     // 18: temporal.server.api.testpilot.v1.ProjectedValueReference
 	(*Value)(nil),                       // 19: temporal.server.api.testpilot.v1.Value
-	(*FieldPath)(nil),                   // 20: temporal.server.api.testpilot.v1.FieldPath
-	(*ModelValue)(nil),                  // 21: temporal.server.api.testpilot.v1.ModelValue
-	(RunEventField)(0),                  // 22: temporal.server.api.testpilot.v1.RunEventField
+	(*ModelValue)(nil),                  // 20: temporal.server.api.testpilot.v1.ModelValue
+	(RunEventField)(0),                  // 21: temporal.server.api.testpilot.v1.RunEventField
 }
 var file_temporal_server_api_testpilot_v1_expression_proto_depIdxs = []int32{
 	19, // 0: temporal.server.api.testpilot.v1.Expression.literal:type_name -> temporal.server.api.testpilot.v1.Value
@@ -1538,31 +1546,30 @@ var file_temporal_server_api_testpilot_v1_expression_proto_depIdxs = []int32{
 	8,  // 6: temporal.server.api.testpilot.v1.Expression.all:type_name -> temporal.server.api.testpilot.v1.AllExpression
 	9,  // 7: temporal.server.api.testpilot.v1.Expression.any:type_name -> temporal.server.api.testpilot.v1.AnyExpression
 	3,  // 8: temporal.server.api.testpilot.v1.PathExpression.operand:type_name -> temporal.server.api.testpilot.v1.Expression
-	20, // 9: temporal.server.api.testpilot.v1.PathExpression.path:type_name -> temporal.server.api.testpilot.v1.FieldPath
-	3,  // 10: temporal.server.api.testpilot.v1.PresentExpression.operand:type_name -> temporal.server.api.testpilot.v1.Expression
-	0,  // 11: temporal.server.api.testpilot.v1.CompareExpression.operator:type_name -> temporal.server.api.testpilot.v1.ComparisonOperator
-	3,  // 12: temporal.server.api.testpilot.v1.CompareExpression.left:type_name -> temporal.server.api.testpilot.v1.Expression
-	3,  // 13: temporal.server.api.testpilot.v1.CompareExpression.right:type_name -> temporal.server.api.testpilot.v1.Expression
-	3,  // 14: temporal.server.api.testpilot.v1.NotExpression.operand:type_name -> temporal.server.api.testpilot.v1.Expression
-	3,  // 15: temporal.server.api.testpilot.v1.AllExpression.operands:type_name -> temporal.server.api.testpilot.v1.Expression
-	3,  // 16: temporal.server.api.testpilot.v1.AnyExpression.operands:type_name -> temporal.server.api.testpilot.v1.Expression
-	12, // 17: temporal.server.api.testpilot.v1.Reference.outcome:type_name -> temporal.server.api.testpilot.v1.InstructionOutcomeReference
-	13, // 18: temporal.server.api.testpilot.v1.Reference.run:type_name -> temporal.server.api.testpilot.v1.RunReference
-	14, // 19: temporal.server.api.testpilot.v1.Reference.run_event:type_name -> temporal.server.api.testpilot.v1.RunEventReference
-	16, // 20: temporal.server.api.testpilot.v1.Reference.correlated_capture:type_name -> temporal.server.api.testpilot.v1.CorrelatedCaptureReference
-	21, // 21: temporal.server.api.testpilot.v1.Reference.model_value:type_name -> temporal.server.api.testpilot.v1.ModelValue
-	17, // 22: temporal.server.api.testpilot.v1.Reference.correlated_step:type_name -> temporal.server.api.testpilot.v1.CorrelatedStepReference
-	18, // 23: temporal.server.api.testpilot.v1.Reference.projected_value:type_name -> temporal.server.api.testpilot.v1.ProjectedValueReference
-	11, // 24: temporal.server.api.testpilot.v1.InstructionOutcomeReference.instruction:type_name -> temporal.server.api.testpilot.v1.InstructionReference
-	1,  // 25: temporal.server.api.testpilot.v1.InstructionOutcomeReference.field:type_name -> temporal.server.api.testpilot.v1.InstructionOutcomeField
-	22, // 26: temporal.server.api.testpilot.v1.RunEventReference.field:type_name -> temporal.server.api.testpilot.v1.RunEventField
-	15, // 27: temporal.server.api.testpilot.v1.RunEventReference.payload:type_name -> temporal.server.api.testpilot.v1.RunEventPayloadReference
-	2,  // 28: temporal.server.api.testpilot.v1.CorrelatedStepReference.field:type_name -> temporal.server.api.testpilot.v1.CorrelatedStepField
-	29, // [29:29] is the sub-list for method output_type
-	29, // [29:29] is the sub-list for method input_type
-	29, // [29:29] is the sub-list for extension type_name
-	29, // [29:29] is the sub-list for extension extendee
-	0,  // [0:29] is the sub-list for field type_name
+	3,  // 9: temporal.server.api.testpilot.v1.PresentExpression.operand:type_name -> temporal.server.api.testpilot.v1.Expression
+	0,  // 10: temporal.server.api.testpilot.v1.CompareExpression.operator:type_name -> temporal.server.api.testpilot.v1.ComparisonOperator
+	3,  // 11: temporal.server.api.testpilot.v1.CompareExpression.left:type_name -> temporal.server.api.testpilot.v1.Expression
+	3,  // 12: temporal.server.api.testpilot.v1.CompareExpression.right:type_name -> temporal.server.api.testpilot.v1.Expression
+	3,  // 13: temporal.server.api.testpilot.v1.NotExpression.operand:type_name -> temporal.server.api.testpilot.v1.Expression
+	3,  // 14: temporal.server.api.testpilot.v1.AllExpression.operands:type_name -> temporal.server.api.testpilot.v1.Expression
+	3,  // 15: temporal.server.api.testpilot.v1.AnyExpression.operands:type_name -> temporal.server.api.testpilot.v1.Expression
+	12, // 16: temporal.server.api.testpilot.v1.Reference.outcome:type_name -> temporal.server.api.testpilot.v1.InstructionOutcomeReference
+	13, // 17: temporal.server.api.testpilot.v1.Reference.run:type_name -> temporal.server.api.testpilot.v1.RunReference
+	14, // 18: temporal.server.api.testpilot.v1.Reference.run_event:type_name -> temporal.server.api.testpilot.v1.RunEventReference
+	16, // 19: temporal.server.api.testpilot.v1.Reference.correlated_capture:type_name -> temporal.server.api.testpilot.v1.CorrelatedCaptureReference
+	20, // 20: temporal.server.api.testpilot.v1.Reference.model_value:type_name -> temporal.server.api.testpilot.v1.ModelValue
+	17, // 21: temporal.server.api.testpilot.v1.Reference.correlated_step:type_name -> temporal.server.api.testpilot.v1.CorrelatedStepReference
+	18, // 22: temporal.server.api.testpilot.v1.Reference.projected_value:type_name -> temporal.server.api.testpilot.v1.ProjectedValueReference
+	11, // 23: temporal.server.api.testpilot.v1.InstructionOutcomeReference.instruction:type_name -> temporal.server.api.testpilot.v1.InstructionReference
+	1,  // 24: temporal.server.api.testpilot.v1.InstructionOutcomeReference.field:type_name -> temporal.server.api.testpilot.v1.InstructionOutcomeField
+	21, // 25: temporal.server.api.testpilot.v1.RunEventReference.field:type_name -> temporal.server.api.testpilot.v1.RunEventField
+	15, // 26: temporal.server.api.testpilot.v1.RunEventReference.payload:type_name -> temporal.server.api.testpilot.v1.RunEventPayloadReference
+	2,  // 27: temporal.server.api.testpilot.v1.CorrelatedStepReference.field:type_name -> temporal.server.api.testpilot.v1.CorrelatedStepField
+	28, // [28:28] is the sub-list for method output_type
+	28, // [28:28] is the sub-list for method input_type
+	28, // [28:28] is the sub-list for extension type_name
+	28, // [28:28] is the sub-list for extension extendee
+	0,  // [0:28] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_testpilot_v1_expression_proto_init() }

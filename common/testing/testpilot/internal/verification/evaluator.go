@@ -346,7 +346,7 @@ func eventValue(event *testpilotspb.RunEvent, field testpilotspb.RunEventField) 
 	case testpilotspb.RUN_EVENT_FIELD_ATTEMPT:
 		number = event.Coordinates.GetAttempt()
 	case testpilotspb.RUN_EVENT_FIELD_KIND:
-		return &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Number: int32(event.Kind)}}}
+		return ir.EnumValue(event.Kind.Descriptor(), event.Kind.Number())
 	case testpilotspb.RUN_EVENT_FIELD_ENTRYPOINT_ID:
 		text = event.Coordinates.GetEntrypointId()
 	case testpilotspb.RUN_EVENT_FIELD_ACTIVATION_ID:

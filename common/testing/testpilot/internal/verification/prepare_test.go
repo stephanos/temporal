@@ -451,7 +451,7 @@ func TestAuthoredDepthAndSeparateAdmissionWork(t *testing.T) {
 func TestPreparedProjectionUsesProgramFanout(t *testing.T) {
 	c, catalog, view, policy := fixture(t)
 	source := &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/example.Empty"}}}}}
-	c.Rules[0].Transitions[0].Predicate = present(&testpilotspb.Expression{Expression: &testpilotspb.Expression_Path{Path: &testpilotspb.PathExpression{Operand: source, Path: &testpilotspb.FieldPath{Segments: []*testpilotspb.FieldPathSegment{{Field: "items", Selector: &testpilotspb.FieldPathSegment_Repeated{Repeated: &testpilotspb.RepeatedWildcard{}}}}}}}})
+	c.Rules[0].Transitions[0].Predicate = present(&testpilotspb.Expression{Expression: &testpilotspb.Expression_Path{Path: &testpilotspb.PathExpression{Operand: source, Path: "items[*]"}}})
 	prepared, err := Prepare(c, catalog, view, policy, nil)
 	require.NoError(t, err)
 	path := prepared.rules[0].transitions[0].Children()[0].Path()

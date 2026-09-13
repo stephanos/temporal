@@ -649,6 +649,33 @@ narrows or completes a requirement without changing its intent; tasks record the
   first-scenario boundaries move from 2960 and 36 to 1760 and 21. typed-nexus is 58,824 bytes: 257,090
   below the spec's 315,914-byte baseline and 242,239 below the pre-task 301,063 (the 243,946 bytes of
   encodings less 1.7 KB of new rows).
+- **Readable fixtures (decided in .15, 2026-09-13).** `Testpilot.ProtoJSON.canonical` (now over any
+  generated message) re-emits the library's key-sorted `Lean.Json` with every message object's keys in
+  declaration order; map fields keep the library's key order, an `Any` writes `@type` first, and
+  well-known types keep their JSON forms. The correlated corpus writes each row by hand (`name` first)
+  so its Cases and events keep that order, and the Go generator rejects a Case or corpus entry whose
+  keys differ, naming the file and JSON path. Every `FieldPath` field is a `string`, and the wire keeps
+  the field names `target` (a request assignment) and `operation` (an evidence-lift rule) rather than
+  renaming them `path`: each names what its path addresses, and a rule's `operation` beside its
+  `scope` and `fields` paths would read ambiguously as `path`. The grammar is documented on
+  `PathExpression.path` and in the Testpilot README; a segment takes at most one selector
+  (`<member>`, `[*]`, `[key]` or a final `?`); `ir` parses and prints it, and every path rejection
+  (grammar, unknown field or member, wrong key kind) is located at the path's field and quotes the
+  whole text, so a payload-arm rejection moves from `...path.path.segments[0].field` to
+  `...path.path`. A presence fact is keyed by the canonical spelling. The Lean printer is
+  `Testpilot.Authoring.Path.make` over `Path.Segment`; `Path.oneofSelector` becomes
+  `Path.oneofMember`, whose lower-camel form the retired `OneofSelector` would match. An enum literal is
+  `EnumValue { name }` (api-linter `core::0123::resource-annotation` suppressed); a runtime value read
+  from a message carries its name too, and a number its enum does not declare is spelled in decimal
+  (the ProtoJSON spelling), which no literal can name. Umpire lowering names an enum scalar from the
+  enum node's hex descriptor bytes (`Coverage.enumValueName`), because a value shape records only
+  numbers; that reader, and the path printer's JSON key escaping, walk bytes by hand so
+  `Umpire.Case.Projection.lower` keeps its `[propext, Quot.sound]` axiom inventory (the protobuf
+  decoder and `String.toList` depend on `Classical.choice`). The oracle gains a `Resolve` step kind that
+  receives the snapshot: the R15 enum step names each baseline number by the snapshot enum its context
+  expects and is declared before the R9 step, which recognizes the success guard by its current
+  `Expression`; the R15 path step spells baseline paths with its own printer. Retired:
+  `FieldPathSegment`, `RepeatedWildcard`, `MapKeySelector`, `PresenceSelector`, `OneofSelector`.
 
 ## Requirement coverage
 

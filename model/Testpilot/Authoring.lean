@@ -44,8 +44,10 @@ def unsignedInteger (value : Nat) : temporal.server.api.testpilot.v1.Value :=
 def floatingPoint (value : Float) : temporal.server.api.testpilot.v1.Value :=
   { value := some (.floating_point_value value) }
 
-def enumeration (number : Int32) : temporal.server.api.testpilot.v1.Value :=
-  { value := some (.enum_value { number }) }
+/-- Name one enum value. Preparation resolves the name against the enum the literal's context
+expects, and rejects a name that enum does not declare. -/
+def enumeration (name : String) : temporal.server.api.testpilot.v1.Value :=
+  { value := some (.enum_value { name }) }
 
 /-- Embed an already packed protobuf message value. -/
 def messageValue (value : google.protobuf.Any) : temporal.server.api.testpilot.v1.Value :=
@@ -91,25 +93,100 @@ end Types
 
 namespace Path
 
-/-! Constructors for generated field paths and selectors. -/
+/-! Field paths, spelled in the grammar `PathExpression.path` documents: dot-separated protobuf
+field names, each followed by at most one selector. `make` is the one printer, so a Producer builds a
+path from segments and never spells the grammar by hand. -/
 
-def field (name : String) : FieldPathSegment := { field := name }
+/-- A map key as a path writes it. Preparation types it by the kind of the map's keys. -/
+inductive Key where
+  | text (value : String)
+  | integer (value : Int)
+  | boolean (value : Bool)
+  deriving BEq, DecidableEq, Repr
 
-def repeated (name : String) : FieldPathSegment :=
-  { field := name, selector := some (.repeated {}) }
+/-- What a segment selects inside the field it names. -/
+inductive Selector where
+  | plain
+  | repeated
+  | mapKey (key : Key)
+  | presence
+  | oneofMember (member : String)
+  deriving BEq, DecidableEq, Repr
 
-/-- Select the map entry whose key equals the supplied generated value. -/
-def mapKey (name : String) (key : temporal.server.api.testpilot.v1.Value) : FieldPathSegment :=
-  { field := name, selector := some (.map_key { key := some key }) }
+/-- One path segment: a protobuf field name (a oneof's name for a `oneofMember` selector) and its
+selector. -/
+structure Segment where
+  field : String
+  selector : Selector := .plain
+  deriving BEq, DecidableEq, Repr
 
-def presence (name : String) : FieldPathSegment :=
-  { field := name, selector := some (.presence {}) }
+def field (name : String) : Segment := { field := name }
+
+/-- Fan out over every element of a repeated field. -/
+def repeated (name : String) : Segment := { field := name, selector := .repeated }
+
+/-- Select the map entry with this key. -/
+def mapKey (name : String) (key : Key) : Segment := { field := name, selector := .mapKey key }
+
+/-- Read whether a presence-tracking field is set; only a path's last segment may. -/
+def presence (name : String) : Segment := { field := name, selector := .presence }
 
 /-- Select a oneof only when its active field has the supplied protobuf field name. -/
-def oneofSelector (name selectedField : String) : FieldPathSegment :=
-  { field := name, selector := some (.oneof { selected_field := selectedField }) }
+def oneofMember (name selectedField : String) : Segment :=
+  { field := name, selector := .oneofMember selectedField }
 
-def make (segments : Array FieldPathSegment) : FieldPath := { segments }
+/-- The hexadecimal digit of a nibble, lowercase. -/
+private def hexDigit (nibble : Nat) : Char :=
+  if nibble < 10 then Char.ofNat (48 + nibble) else Char.ofNat (87 + nibble)
+
+/-- `text` as a JSON string escaping only the quote, the backslash and control characters, `\n` and
+`\r` by name. It walks the UTF-8 bytes and decodes each character itself rather than calling
+`String.toList`, which depends on `Classical.choice`, so a checked caller's axiom inventory stays as
+it was. -/
+private def jsonString (text : String) : String := Id.run do
+  let bytes := text.toUTF8
+  let byte (index : Nat) : Nat := (bytes.get! index).toNat
+  let mut out := "\""
+  let mut index := 0
+  for _ in [0:bytes.size] do
+    if index ≥ bytes.size then break
+    let lead := byte index
+    if lead < 128 then
+      out := if lead == 34 then out ++ "\\\""
+        else if lead == 92 then out ++ "\\\\"
+        else if lead == 10 then out ++ "\\n"
+        else if lead == 13 then out ++ "\\r"
+        else if lead < 32 then ((out ++ "\\u00").push (hexDigit (lead / 16))).push (hexDigit (lead % 16))
+        else out.push (Char.ofNat lead)
+      index := index + 1
+    else
+      -- The bytes come from a `String`, so every lead byte opens a well-formed sequence.
+      let width := if lead < 224 then 2 else if lead < 240 then 3 else 4
+      let mut point := lead % (if width == 2 then 32 else if width == 3 then 16 else 8)
+      for offset in [1:width] do
+        point := point * 64 + byte (index + offset) % 64
+      out := out.push (Char.ofNat point)
+      index := index + width
+  return out.push '"'
+
+/-- A key as a selector writes it: a text key as a JSON string, an integer in base 10, a boolean as
+`true` or `false`. -/
+def Key.render : Key → String
+  | .text value => jsonString value
+  | .integer value => toString value
+  | .boolean value => if value then "true" else "false"
+
+def Segment.render (segment : Segment) : String :=
+  segment.field ++ match segment.selector with
+    | .plain => ""
+    | .repeated => "[*]"
+    | .mapKey key => "[" ++ key.render ++ "]"
+    | .presence => "?"
+    | .oneofMember member => "<" ++ member ++ ">"
+
+/-- Spell segments as one field path. No segments spell the empty path, the whole value. -/
+def make (segments : Array Segment) : String :=
+  ".".intercalate (segments.toList.map Segment.render)
 
 end Path
 
@@ -183,8 +260,9 @@ def correlatedStep (field : CorrelatedStepField) (definitionId : String) : Expre
 /-- Read the value an evidence lift is projecting. -/
 def projectedValue : Expression := reference { reference := some (.projected_value {}) }
 
-def path (operand : Expression) (path : FieldPath) : Expression :=
-  { expression := some (.path { operand := some operand, path := some path }) }
+/-- Read the value at `path`, a string `Path.make` spelled, out of `operand`. -/
+def path (operand : Expression) (path : String) : Expression :=
+  { expression := some (.path { operand := some operand, path }) }
 
 def present (operand : Expression) : Expression :=
   { expression := some (.present { operand := some operand }) }
@@ -230,11 +308,11 @@ def handleSlot (slotId : String) : Slot :=
 def observation (observationId : String) (type : ValueType) : Observation :=
   { observation_id := observationId, type := some type }
 
-def requestAssignment (target : FieldPath) (value : Expression) : RequestAssignment :=
-  { target := some target, value := some value }
+def requestAssignment (target : String) (value : Expression) : RequestAssignment :=
+  { target, value := some value }
 
 /-- Assign one symbolic environment resource directly to a singular text request field. -/
-def environmentAssignment (target : FieldPath) (bindingId : String) : RequestAssignment :=
+def environmentAssignment (target : String) (bindingId : String) : RequestAssignment :=
   requestAssignment target (Expr.environment bindingId)
 
 def slotTarget (slotId : String) : ReadTarget :=
@@ -244,7 +322,7 @@ def observationTarget (observationId : String) : ReadTarget :=
   { target := some (.observation_id observationId) }
 
 /-- Supply one evidence field with the value `path` reads from the projected value. -/
-def evidencePath (fieldId : String) (path : FieldPath) : NamedExpression :=
+def evidencePath (fieldId : String) (path : String) : NamedExpression :=
   { field_id := fieldId, value := some (Expr.path Expr.projectedValue path) }
 
 /-- A Run coordinate the recorded fact does not itself carry is declared by the Case. -/
@@ -254,11 +332,11 @@ def evidenceLiteral (fieldId value : String) : NamedExpression :=
 /-- One evidence-lift rule. `guard` is what selects it: the rule fires only where that boolean
 expression over `Expr.projectedValue` is true. `kind` is therefore the literal the selected shape
 denotes rather than a value read from it. -/
-def correlatedEvidenceRule (guard : Expression) (evidenceSource kind : String) (operation : FieldPath)
+def correlatedEvidenceRule (guard : Expression) (evidenceSource kind : String) (operation : String)
     (scope : Array NamedExpression := #[])
     (fields : Array NamedExpression := #[]) : CorrelatedEvidenceRule :=
   { guard := some guard, scope, evidence_source := evidenceSource,
-    operation := some operation, kind, fields }
+    operation, kind, fields }
 
 /-- Lift a projected value into the declared `CorrelatedEvidence` Observation a correlated capability
 reads. Rules are tried in declaration order and a value no rule claims emits nothing. -/
@@ -266,9 +344,9 @@ def correlatedEvidenceTarget (observationId : String) (rules : Array CorrelatedE
     ReadTarget :=
   { target := some (.correlated_evidence { observation_id := observationId, rules }) }
 
-def responseRead (path : FieldPath) (cardinality : ReadCardinality)
+def responseRead (path : String) (cardinality : ReadCardinality)
     (targets : Array ReadTarget) : ResponseRead :=
-  { path := some path, cardinality, targets }
+  { path, cardinality, targets }
 
 /-- Write the bounds that carry one instruction's behavior where they differ from the Profile's
 instruction defaults: its dispatch timeout and its highest attempt. A bound left `none` takes the

@@ -7,6 +7,7 @@ import (
 	"maps"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -347,7 +348,7 @@ func TestDeclaredValueArmRenamesOnlyValueObjects(t *testing.T) {
 		"signedInteger": "kept",
 		"literal":       &Object{Message: protocol + "Value", Fields: map[string]any{"text": "renamed"}},
 	}}
-	mapped, err := Declared.apply("fixture.json", tree, nil)
+	mapped, err := Declared.apply(loadBaseline(t), "fixture.json", tree, nil)
 	require.NoError(t, err)
 	encoded, err := json.Marshal(mapped)
 	require.NoError(t, err)
@@ -385,7 +386,7 @@ func TestDeclaredExpressionStepRewritesReferencesAndEquality(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			mapped, err := Declared.apply("fixture.json", expression(tc.message, tc.fields), nil)
+			mapped, err := Declared.apply(loadBaseline(t), "fixture.json", expression(tc.message, tc.fields), nil)
 			if tc.wantErrorSubstr != "" {
 				require.ErrorContains(t, err, tc.wantErrorSubstr)
 				return
@@ -463,7 +464,7 @@ func TestDeclaredCorrelatedStepsRewriteConditionsAndGuards(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			mapped, err := Declared.apply("fixture.json", tc.tree, nil)
+			mapped, err := Declared.apply(loadBaseline(t), "fixture.json", tc.tree, nil)
 			if tc.wantErrorSubstr != "" {
 				require.ErrorContains(t, err, tc.wantErrorSubstr)
 				return
@@ -492,15 +493,15 @@ func TestDeclaredFaultCoordinatesBecomePayloadPaths(t *testing.T) {
 		want            string
 		wantErrorSubstr string
 	}{
-		{name: "role", tree: expression("RUN_EVENT_FIELD_"+"FAULT_ROLE_ID", nil), want: `{"path": {"operand": ` + payload + `, "path": {"segments": [{"field": "fault_injected"}, {"field": "role_id"}]}}}`},
-		{name: "kind by number", tree: expression(json.Number("11"), nil), want: `{"path": {"operand": ` + payload + `, "path": {"segments": [{"field": "fault_injected"}, {"field": "kind"}]}}}`},
+		{name: "role", tree: expression("RUN_EVENT_FIELD_"+"FAULT_ROLE_ID", nil), want: `{"path": {"operand": ` + payload + `, "path": "fault_injected.role_id"}}`},
+		{name: "kind by number", tree: expression(json.Number("11"), nil), want: `{"path": {"operand": ` + payload + `, "path": "fault_injected.kind"}}`},
 		{name: "common coordinate", tree: expression("RUN_EVENT_FIELD_KIND", nil), want: `{"reference": {"runEvent": {"field": "RUN_EVENT_FIELD_KIND"}}}`},
 		{name: "a second key", tree: expression("RUN_EVENT_FIELD_"+"FAULT_KIND", map[string]any{"extra": "x"}), wantErrorSubstr: "fault coordinate reference carries 2 keys, want 1"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			mapped, err := Declared.apply("fixture.json", tc.tree, nil)
+			mapped, err := Declared.apply(loadBaseline(t), "fixture.json", tc.tree, nil)
 			if tc.wantErrorSubstr != "" {
 				require.ErrorContains(t, err, tc.wantErrorSubstr)
 				return
@@ -554,7 +555,7 @@ func TestDeclaredDeadlineVersionNamedValueNaturalAndOpaqueSteps(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			mapped, err := Declared.apply("fixture.json", &Object{Message: protocol + protoreflect.FullName(tc.message), Fields: tc.fields}, nil)
+			mapped, err := Declared.apply(loadBaseline(t), "fixture.json", &Object{Message: protocol + protoreflect.FullName(tc.message), Fields: tc.fields}, nil)
 			if tc.wantErrorSubstr != "" {
 				require.ErrorContains(t, err, tc.wantErrorSubstr)
 				return
@@ -592,7 +593,7 @@ func TestDeclaredCeilingStepAdmitsOnlyBoundsWithinTheirProfile(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			mapped, err := Declared.apply(tc.fixture, &Object{Message: protocol + protoreflect.FullName(tc.message), Fields: tc.fields}, nil)
+			mapped, err := Declared.apply(loadBaseline(t), tc.fixture, &Object{Message: protocol + protoreflect.FullName(tc.message), Fields: tc.fields}, nil)
 			if tc.wantErrorSubstr != "" {
 				require.ErrorContains(t, err, tc.wantErrorSubstr)
 				return
@@ -668,7 +669,7 @@ func TestDeclaredDefaultOrderStepDropsOnlyTheDefault(t *testing.T) {
 			instructions: func(t *testing.T) []any {
 				return []any{node("a", map[string]any{"guard": guard(t, status("x"))}), node("b", map[string]any{"dependencies": []any{reference("controller", "a")}, "guard": guard(t, succeeded("x"))})}
 			},
-			want: `[{"instructionId": "a", "guard": ` + status("x") + `}, {"instructionId": "b", "guard": ` + succeeded("x") + `}]`,
+			want: `[{"instructionId": "a", "guard": ` + status("x") + `}, {"instructionId": "b", "guard": ` + strings.ReplaceAll(succeeded("x"), `{"number": 1}`, `{"name": "INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"}`) + `}]`,
 		},
 		{
 			name: "dependency on another entrypoint", message: "Entrypoint" + "Definition",
@@ -682,7 +683,7 @@ func TestDeclaredDefaultOrderStepDropsOnlyTheDefault(t *testing.T) {
 			t.Parallel()
 
 			entrypoint := &Object{Message: protocol + protoreflect.FullName(tc.message), Fields: map[string]any{"entrypointId": "controller", "instructions": tc.instructions(t)}}
-			mapped, err := Declared.apply("fixture.json", entrypoint, nil)
+			mapped, err := Declared.apply(loadBaseline(t), "fixture.json", entrypoint, nil)
 			if tc.wantErrorSubstr != "" {
 				require.ErrorContains(t, err, tc.wantErrorSubstr)
 				return
@@ -763,7 +764,7 @@ func TestDeclaredDerivedDeclarationsStepDropsOnlyWhatPreparationDerives(t *testi
 			root, ok := tree.(*Object)
 			require.True(t, ok)
 			root.Message = protocol + "Program"
-			mapped, err := Declared.apply(functionalFixture, root, nil)
+			mapped, err := Declared.apply(loadBaseline(t), functionalFixture, root, nil)
 			if tc.wantErrorSubstr != "" {
 				require.ErrorContains(t, err, tc.wantErrorSubstr)
 				return
@@ -853,7 +854,7 @@ func TestDeclaredProvenanceStepLiftsOnlyTheBaselinePayload(t *testing.T) {
 				"producerId":   "u",
 				opaqueBytesKey: base64.StdEncoding.EncodeToString([]byte(tc.payload)),
 			}}
-			mapped, err := Declared.apply(tc.fixture, root, nil)
+			mapped, err := Declared.apply(loadBaseline(t), tc.fixture, root, nil)
 			if tc.wantErrorSubstr != "" {
 				require.ErrorContains(t, err, tc.wantErrorSubstr)
 				return
@@ -909,6 +910,115 @@ func TestDeclaredLocalNameStepRelatesOnlyWhatTheBaselineNames(t *testing.T) {
 			err := baseline.Check(typedNexusFixture, old, setJSON(t, regenerated, tc.value, tc.path...), Declared)
 			require.ErrorContains(t, err, typedNexusFixture)
 			require.ErrorContains(t, err, tc.wantErrorSubstr)
+		})
+	}
+}
+
+// The enum step names a baseline number only where its context says which enum it belongs to, and
+// the path step spells each baseline selector in the path grammar; anything else fails.
+func TestDeclaredEnumLiteralAndFieldPathSteps(t *testing.T) {
+	t.Parallel()
+
+	tree := func(t *testing.T, encoded string) any {
+		decoded, err := decodeJSON([]byte(encoded))
+		require.NoError(t, err)
+		return decoded
+	}
+	fieldPath := func(segments ...*Object) *Object {
+		list := make([]any, len(segments))
+		for index, segment := range segments {
+			segment.Message = protocol + "FieldPath" + "Segment"
+			list[index] = segment
+		}
+		return &Object{Message: protocol + "FieldPath", Fields: map[string]any{"segments": list}}
+	}
+	segment := func(field string, selector map[string]any) *Object {
+		fields := map[string]any{"field": field}
+		maps.Copy(fields, selector)
+		return &Object{Fields: fields}
+	}
+	literal := func(number int) string { return `{"literal": {"enumValue": {"number": ` + strconv.Itoa(number) + `}}}` }
+	const status = `{"reference": {"outcome": {"instruction": {"entrypointId": "e", "instructionId": "i"}, "field": "INSTRUCTION_OUTCOME_FIELD_STATUS"}}}`
+	for _, tc := range []struct {
+		name            string
+		tree            func(t *testing.T) any
+		want            string
+		wantErrorSubstr string
+	}{
+		{
+			name: "a status comparison",
+			tree: func(t *testing.T) any { return tree(t, `{"compare": {"left": `+status+`, "right": `+literal(1)+`}}`) },
+			want: `{"compare": {"left": ` + status + `, "right": {"literal": {"enumValue": {"name": "INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"}}}}}`,
+		},
+		{
+			name: "a payload path comparison",
+			tree: func(t *testing.T) any {
+				compare := tree(t, `{"left": {"path": {"operand": {"reference": {"runEvent": {"payload": {}}}}}}, "right": `+literal(2)+`}`).(*Object)
+				compare.Fields["left"].(*Object).Fields["path"].(*Object).Fields["path"] = fieldPath(segment("fault_injected", nil), segment("kind", nil))
+				return &Object{Fields: map[string]any{"compare": compare}}
+			},
+			want: `{"compare": {"left": {"path": {"operand": {"reference": {"runEvent": {"payload": {}}}}, "path": "fault_injected.kind"}}, "right": {"literal": {"enumValue": {"name": "FAULT_KIND_WORKER_RESUME"}}}}}`,
+		},
+		{
+			name: "a request assignment",
+			tree: func(t *testing.T) any {
+				invoke := tree(t, `{"method": "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory", "requestAssignments": [{"value": `+literal(2)+`}]}`).(*Object)
+				invoke.Fields["requestAssignments"].([]any)[0].(*Object).Fields["target"] = fieldPath(segment("history_event_filter_type", nil))
+				return invoke
+			},
+			want: `{"method": "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory", "requestAssignments": [{"target": "history_event_filter_type", "value": {"literal": {"enumValue": {"name": "HISTORY_EVENT_FILTER_TYPE_CLOSE_EVENT"}}}}]}`,
+		},
+		{
+			name:            "an undeclared number",
+			tree:            func(t *testing.T) any { return tree(t, `{"compare": {"left": `+status+`, "right": `+literal(99)+`}}`) },
+			wantErrorSubstr: "InstructionOutcomeStatus declares no number 99",
+		},
+		{
+			name: "a literal compared with a literal",
+			tree: func(t *testing.T) any {
+				return tree(t, `{"compare": {"left": `+literal(1)+`, "right": `+literal(1)+`}}`)
+			},
+			wantErrorSubstr: "the other operand's enum is not one the step derives",
+		},
+		{
+			name:            "a literal with no context",
+			tree:            func(t *testing.T) any { return tree(t, `{"value": `+literal(1)+`}`) },
+			wantErrorSubstr: "has no context whose enum the step derives",
+		},
+		{
+			name: "every selector",
+			tree: func(*testing.T) any {
+				key := &Object{Message: protocol + "Value", Fields: map[string]any{"textValue": "a\"\n"}}
+				return &Object{Fields: map[string]any{"path": fieldPath(
+					segment("attributes", map[string]any{"oneof": &Object{Fields: map[string]any{"selectedField": "completed"}}}),
+					segment("events", map[string]any{"repeated": &Object{Fields: map[string]any{}}}),
+					segment("labels", map[string]any{"mapKey": &Object{Fields: map[string]any{"key": key}}}),
+					segment("counts", map[string]any{"mapKey": &Object{Fields: map[string]any{"key": &Object{Fields: map[string]any{"signedIntegerValue": "-4"}}}}}),
+					segment("optional", map[string]any{"presence": &Object{Fields: map[string]any{}}}),
+				)}}
+			},
+			want: `{"path": "attributes<completed>.events[*].labels[\"a\\\"\\n\"].counts[-4].optional?"}`,
+		},
+		{
+			name: "a name the grammar cannot spell",
+			tree: func(*testing.T) any {
+				return &Object{Fields: map[string]any{"path": fieldPath(segment("not-a-field", nil))}}
+			},
+			wantErrorSubstr: `field name "not-a-field" is not a path segment name`,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			mapped, err := Declared.apply(loadBaseline(t), "fixture.json", tc.tree(t), nil)
+			if tc.wantErrorSubstr != "" {
+				require.ErrorContains(t, err, tc.wantErrorSubstr)
+				return
+			}
+			require.NoError(t, err)
+			encoded, err := json.Marshal(mapped)
+			require.NoError(t, err)
+			require.JSONEq(t, tc.want, string(encoded))
 		})
 	}
 }

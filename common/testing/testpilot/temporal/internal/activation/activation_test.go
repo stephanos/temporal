@@ -172,18 +172,14 @@ func runtimeEnvironment(id string) *testpilotspb.Expression {
 	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_EnvironmentBindingId{EnvironmentBindingId: id}}}}
 }
 
-func runtimeField(fields ...string) *testpilotspb.FieldPath {
-	path := &testpilotspb.FieldPath{Segments: make([]*testpilotspb.FieldPathSegment, len(fields))}
-	for index, field := range fields {
-		path.Segments[index] = &testpilotspb.FieldPathSegment{Field: field}
-	}
-	return path
+func runtimeField(fields ...string) string {
+	return strings.Join(fields, ".")
 }
 
 func runtimeSucceeded(entrypoint, instruction string) *testpilotspb.Expression {
 	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Compare{Compare: &testpilotspb.CompareExpression{Operator: testpilotspb.COMPARISON_OPERATOR_EQUAL,
 		Left:  &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_Outcome{Outcome: &testpilotspb.InstructionOutcomeReference{Instruction: &testpilotspb.InstructionReference{EntrypointId: entrypoint, InstructionId: instruction}, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS}}}}},
-		Right: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Number: int32(testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED)}}}}},
+		Right: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Name: "INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"}}}}},
 	}}}
 }
 

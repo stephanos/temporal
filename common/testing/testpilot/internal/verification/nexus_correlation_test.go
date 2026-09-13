@@ -2,6 +2,7 @@ package verification
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -133,16 +134,16 @@ func nexusCapture() *testpilotspb.Expression {
 	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_CaptureId{CaptureId: "scheduled-event"}}}}
 }
 
-func nexusPath(source *testpilotspb.Expression, segments ...*testpilotspb.FieldPathSegment) *testpilotspb.Expression {
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Path{Path: &testpilotspb.PathExpression{Operand: source, Path: &testpilotspb.FieldPath{Segments: segments}}}}
+func nexusPath(source *testpilotspb.Expression, segments ...string) *testpilotspb.Expression {
+	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Path{Path: &testpilotspb.PathExpression{Operand: source, Path: strings.Join(segments, ".")}}}
 }
 
-func nexusField(field string) *testpilotspb.FieldPathSegment {
-	return &testpilotspb.FieldPathSegment{Field: field}
+func nexusField(field string) string {
+	return field
 }
 
-func nexusOneof(field, selected string) *testpilotspb.FieldPathSegment {
-	return &testpilotspb.FieldPathSegment{Field: field, Selector: &testpilotspb.FieldPathSegment_Oneof{Oneof: &testpilotspb.OneofSelector{SelectedField: selected}}}
+func nexusOneof(field, selected string) string {
+	return field + "<" + selected + ">"
 }
 
 func nexusMessageType(name string) *testpilotspb.ValueType {

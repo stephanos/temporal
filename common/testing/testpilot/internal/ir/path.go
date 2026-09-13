@@ -1,6 +1,8 @@
 package ir
 
 import (
+	"errors"
+	"fmt"
 	"slices"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
@@ -30,6 +32,8 @@ type Path struct {
 	typ            Type
 	absent, fanout bool
 	limit          int64
+	// text is the path's canonical spelling, which identifies it among equal reads.
+	text string
 }
 
 func (p *Path) Type() Type        { return p.typ }
@@ -51,31 +55,43 @@ func (p *Path) CheckFanout(current, count int64) (int64, error) {
 	return current * count, nil
 }
 
-func (c *Catalog) BindPath(source Type, path *testpilotspb.FieldPath, limits Limits) (*Path, error) {
+// BindPath parses text in the field path grammar and types it against source. location names where
+// text sits in the Case; every rejection is located there and quotes text.
+func (c *Catalog) BindPath(source Type, location, text string, limits Limits) (*Path, error) {
 	if err := limits.validate(); err != nil {
 		return nil, err
 	}
 	if !c.owns(source) {
-		return nil, invalid(TypeMismatch, "path", "source type does not belong to this catalog")
+		return nil, invalid(TypeMismatch, location, "source type does not belong to this catalog")
 	}
 	if source.opaque {
-		return nil, invalid(Unsupported, "path", "capabilities cannot be inspected")
-	}
-	if path == nil {
-		return nil, invalid(Malformed, "path", "path is required")
+		return nil, invalid(Unsupported, location, "capabilities cannot be inspected")
 	}
 	b := budget{limits: limits}
-	if err := inspectSurface(path.ProtoReflect(), &b, "path"); err != nil {
+	if err := b.charge(1, 1, int64(len(text)), location); err != nil {
 		return nil, err
 	}
-	result := &Path{source: source, typ: source, limit: limits.Fanout}
+	segments, err := parsePath(text)
+	if err != nil {
+		return nil, pathError(Malformed, location, text, err.Error())
+	}
+	return c.bindSegments(source, location, text, segments, &b)
+}
+
+// bindSegments types parsed segments of text against source; rejections quote the whole text.
+func (c *Catalog) bindSegments(source Type, location, text string, segments []pathSegment, b *budget) (*Path, error) {
+	result := &Path{source: source, typ: source, limit: b.limits.Fanout, text: formatPath(segments)}
 	current := source
-	for i, segment := range path.Segments {
-		if err := b.charge(int64(i)+1, 1, 0, "path"); err != nil {
+	for i, segment := range segments {
+		if err := b.charge(int64(i)+1, 1, 0, location); err != nil {
 			return nil, err
 		}
-		step, next, err := c.bindStep(current, segment, i == len(path.Segments)-1, &b)
+		step, next, err := c.bindStep(current, segment, i == len(segments)-1, b)
 		if err != nil {
+			var bound *Error
+			if errors.As(err, &bound) {
+				return nil, pathError(bound.Category, location, text, bound.Detail)
+			}
 			return nil, err
 		}
 		if step.Selector == Wildcard {
@@ -94,7 +110,7 @@ func (c *Catalog) BindPath(source Type, path *testpilotspb.FieldPath, limits Lim
 	}
 	if result.fanout {
 		if current.cardinality != Singular {
-			return nil, invalid(TypeMismatch, "path", "fan-out cannot produce nested collections")
+			return nil, pathError(TypeMismatch, location, text, "fan-out cannot produce nested collections")
 		}
 		current.schema = &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Repeated{Repeated: &testpilotspb.RepeatedType{Element: proto.CloneOf(current.schema.GetSingular())}}}
 		current.cardinality = Repeated
@@ -103,54 +119,62 @@ func (c *Catalog) BindPath(source Type, path *testpilotspb.FieldPath, limits Lim
 	return result, nil
 }
 
-func (c *Catalog) bindStep(current Type, segment *testpilotspb.FieldPathSegment, final bool, b *budget) (PathStep, Type, error) {
-	if segment == nil || (segment.Selector != nil && missing(segment.Selector)) {
-		return PathStep{}, Type{}, invalid(Malformed, "path", "nil path segment")
-	}
+func pathError(category ErrorCategory, location, text, detail string) error {
+	return invalid(category, location, fmt.Sprintf("path %q: %s", text, detail))
+}
+
+func (c *Catalog) bindStep(current Type, segment pathSegment, final bool, b *budget) (PathStep, Type, error) {
 	if current.cardinality != Singular || current.message == nil || current.any {
-		return PathStep{}, Type{}, invalid(TypeMismatch, "path", "traversal requires a singular unpacked message")
+		return PathStep{}, Type{}, invalid(TypeMismatch, "path", "traversal of "+segment.field+" requires a singular unpacked message")
 	}
 	var field protoreflect.FieldDescriptor
 	step := PathStep{}
-	if selected, ok := segment.Selector.(*testpilotspb.FieldPathSegment_Oneof); ok {
-		group := current.message.Oneofs().ByName(protoreflect.Name(segment.Field))
-		if group == nil || selected.Oneof == nil {
-			return PathStep{}, Type{}, invalid(Unknown, "path", "unknown oneof group")
+	if segment.selector == Oneof {
+		group := current.message.Oneofs().ByName(protoreflect.Name(segment.field))
+		if group == nil {
+			return PathStep{}, Type{}, invalid(Unknown, "path", "unknown oneof group "+segment.field)
 		}
-		field = group.Fields().ByName(protoreflect.Name(selected.Oneof.SelectedField))
-		step.Selector = Oneof
+		field = group.Fields().ByName(protoreflect.Name(segment.member))
+		if field == nil {
+			return PathStep{}, Type{}, invalid(Unknown, "path", "oneof "+segment.field+" has no member "+segment.member)
+		}
 	} else {
-		field = current.message.Fields().ByName(protoreflect.Name(segment.Field))
-	}
-	if field == nil {
-		return PathStep{}, Type{}, invalid(Unknown, "path", "unknown field or selected oneof member")
+		field = current.message.Fields().ByName(protoreflect.Name(segment.field))
+		if field == nil {
+			return PathStep{}, Type{}, invalid(Unknown, "path", "unknown field "+segment.field)
+		}
 	}
 	step.Field = field
+	step.Selector = segment.selector
 	next := c.fieldType(field)
-	switch selection := segment.Selector.(type) {
-	case nil:
-	case *testpilotspb.FieldPathSegment_Oneof:
-	case *testpilotspb.FieldPathSegment_Repeated:
+	switch segment.selector {
+	case Field, Oneof:
+	case Wildcard:
 		if !field.IsList() {
-			return PathStep{}, Type{}, invalid(TypeMismatch, "path", "wildcard requires a repeated field")
+			return PathStep{}, Type{}, invalid(TypeMismatch, "path", "wildcard requires a repeated field, not "+segment.field)
 		}
-		step.Selector = Wildcard
 		next = next.Element()
-	case *testpilotspb.FieldPathSegment_MapKey:
-		if !field.IsMap() || selection.MapKey == nil {
-			return PathStep{}, Type{}, invalid(TypeMismatch, "path", "map-key selector requires a map")
+	case MapKey:
+		if !field.IsMap() {
+			return PathStep{}, Type{}, invalid(TypeMismatch, "path", "map key selector requires a map, not "+segment.field)
 		}
-		if err := c.checkLiteral(selection.MapKey.Key, c.scalarType(next.key), b, 1); err != nil {
+		key, err := segment.key.value(next.key)
+		if err != nil {
 			return PathStep{}, Type{}, err
 		}
-		step.Selector = MapKey
-		step.Key = proto.CloneOf(selection.MapKey.Key)
-		next = next.Element()
-	case *testpilotspb.FieldPathSegment_Presence:
-		if !field.HasPresence() || !final {
-			return PathStep{}, Type{}, invalid(TypeMismatch, "path", "presence requires a final presence-bearing field")
+		if err := c.checkLiteral(key, c.scalarType(next.key), b, 1); err != nil {
+			var literal *Error
+			if errors.As(err, &literal) && literal.Category == LimitExceeded {
+				return PathStep{}, Type{}, err
+			}
+			return PathStep{}, Type{}, invalid(TypeMismatch, "path", "map key "+segment.key.String()+" is not a canonical "+EnumName(next.key)+" key")
 		}
-		step.Selector = Presence
+		step.Key = key
+		next = next.Element()
+	case Presence:
+		if !field.HasPresence() || !final {
+			return PathStep{}, Type{}, invalid(TypeMismatch, "path", "presence requires a final presence-bearing field, not "+segment.field)
+		}
 		next = c.scalarType(testpilotspb.SCALAR_KIND_BOOLEAN)
 	default:
 		return PathStep{}, Type{}, invalid(Unsupported, "path", "unknown selector")
