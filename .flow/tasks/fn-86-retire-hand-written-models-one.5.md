@@ -11,6 +11,13 @@ Remove every module the inventory marks for deletion (R6) with the goldens and f
 **Touches:** [model/Temporal/Feature/Nexus/**, model/Temporal/Tool/**, model/lakefile.lean, model/TemporalModelTests.lean, model/TemporalExperimentalTests.lean, model/Umpire/Tests/MigrationCompatibility.lean, model/UmpireTests.lean, Makefile, .flow/specs/fn-79-deferred-nexus-operation-cancellation.md, .flow/specs/fn-33-run-serial-bounded-semantic-exploration.md, model/HANDWRITTEN_INVENTORY.md]
 
 ### Approach
+- Plan review round 1 (F2), decided: **re-point the inspector, do not delete it.**
+  `make umpire-inspect`, `umpire-list` and `umpire-explain` are documented developer entry points
+  (`model/README.md:95`, `.plans/UMPIRE4_COMPONENTS.md:358-359`) and fn-85's
+  `umpire-case --list/--render` renders Cases, not Plans, so it replaces neither `inspect` nor
+  `explain`. `Temporal.Tool.Inspect`'s scenario registry loses its `Nexus.Operations` and
+  `NexusDiscovery` entries and gains the Caller Model's Queries, keeping `Umpire.Examples.Switch`;
+  the three Makefile targets stay and `umpire-list` prints the new registry.
 - Order: Experimental first (`AutoClose` has no importer), then Observation, then Race (its `Terminal` importers are gone after fn-85 and task .4), then Operations, then Lifecycle; build after each.
 - Tools: `NexusDiscovery` and `Inspect` exist only to serve Operations (their `productionRegistry` is Operations plus Switch). Default is deletion with the three Make targets and their tests, recorded in the inventory as a deliberate drop; if the user wants `umpire-inspect` kept, re-point `productionRegistry` at the Caller Model's Queries instead. Ask before deleting only if the receipt would otherwise remove a documented product surface the user named.
 - Compatibility families: `TemporalModelTests.compatibilityFamilies` derives from `LifecycleTests` and `OperationsTests`; collapse to the families that remain (`switch` until task .7 re-authors it) and update all three `rfl` pins in one commit; delete `TemporalExperimentalTests` and its `lean_lib` root (it aggregates nothing) and note it for fn-46's root list (already annotated on fn-46 .2).
