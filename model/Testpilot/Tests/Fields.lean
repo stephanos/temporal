@@ -143,11 +143,13 @@ private def rejection (wire : CorrelatedContract) (events : List CorrelatedEvide
   [evidence 0 "request" "1", evidence 1 "reply" "2"] == some [2]
 
 -- Only occurrences an earlier admitted step retained are bound: a future ordinal has no value, an
--- occurrence belongs to the operation that retained it, and a step supplying no value has none.
+-- occurrence belongs to the operation that retained it, and a step supplying no value has none. A
+-- comparison with an absent operand is false, so the step is not this operation's reply.
 #guard rejection (contract #[clause 1 (requirement := some (correlation 1))])
-  [evidence 0 "request" "1", evidence 1 "reply" "1"] == some "missing retained capture occurrence"
+  [evidence 0 "request" "1", evidence 1 "reply" "1"] == some "correlation rejected this operation's step"
 #guard rejection (contract #[clause 1])
-  [evidence 0 "request" "1", evidence 1 "reply" "1" "b"] == some "missing retained capture occurrence"
+  [evidence 0 "request" "1", evidence 1 "reply" "1" "b"] ==
+  some "correlation rejected this operation's step"
 
 -- Repeated triggers retain independent occurrences: ordinal zero keeps the value it was admitted
 -- with rather than being replaced by the latest match, and ordinal one is the second occurrence.
@@ -234,11 +236,19 @@ private def presentProjected : Expression :=
   [evidence 0 "request" "1", evidence 1 "reply" "1"] ==
   some "correlation rejected this operation's step"
 
--- Missing evidence never satisfies a comparison: a step that declares no field at all cannot bind
--- the operand its correlation reads.
+-- Missing evidence never satisfies a comparison: a step that declares no field at all compares
+-- false under either operator, while a disjunction can still admit it through another operand.
 #guard rejection (contract #[clause 1])
   [evidence 0 "request" "1", { evidence 1 "silent" "" with fields := #[] }] ==
-  some "missing correlation field operand"
+  some "correlation rejected this operation's step"
+#guard rejection (contract #[clause 1 (requirement := some
+  (anyOf #[triggered, comparison (field "replied") (retained 1) .COMPARISON_OPERATOR_NOT_EQUAL]))])
+  [evidence 0 "request" "1", evidence 1 "reply" "2"] ==
+  some "correlation rejected this operation's step"
+#guard answers (contract #[clause 1 (requirement := some
+  (anyOf #[triggered, comparison (field "replied") (retained 1),
+    comparison (field "replied") (retained 0)]))])
+  [evidence 0 "request" "1", evidence 1 "reply" "1"] == some [2]
 
 -- A malformed or incomplete evidence value keeps its declared meaning: the codec admits only the
 -- exact scalar forms this capability declares, and never approximates one.

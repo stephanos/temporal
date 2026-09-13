@@ -81,8 +81,9 @@ func TestExpressionsBindClosedVocabularyAndExplicitPresence(t *testing.T) {
 	}
 	_, err := c.BindExpression(programSite, slot("s"), &textType, scope, DefaultLimits())
 	require.Error(t, err)
+	// A comparison is false on an absent operand, so it needs no presence guard.
 	_, err = c.BindExpression(programSite, equal(slot("s"), literal(text("x"))), &boolType, scope, DefaultLimits())
-	require.Error(t, err)
+	require.NoError(t, err)
 	scope[Reference{Kind: SlotReference, ID: "s"}] = Binding{Type: textType, Available: true}
 	compiled, err := c.BindExpression(programSite, slot("s"), &textType, scope, DefaultLimits())
 	require.NoError(t, err)
@@ -150,18 +151,21 @@ func TestExpressionPresenceFactsStayOnTheirSource(t *testing.T) {
 	projected := func(source *testpilotspb.Expression) *testpilotspb.Expression {
 		return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Path{Path: &testpilotspb.PathExpression{Operand: source, Path: fieldPath("child", "text")}}}
 	}
-	_, err := c.BindExpression(programSite, all(present(projected(slot("m"))), equal(projected(slot("m")), literal(text("x")))), nil, scope, DefaultLimits())
-	require.NoError(t, err)
-	_, err = c.BindExpression(programSite, anyOf(present(projected(slot("m"))), equal(projected(slot("m")), literal(text("x")))), nil, scope, DefaultLimits())
-	require.Error(t, err)
+	// A comparison needs no fact, so the facts are observed through an input the guard conditions.
+	textType := boundType(t, c, scalar(testpilotspb.SCALAR_KIND_TEXT))
+	guarded := func(guard, input *testpilotspb.Expression, scope map[Reference]Binding) error {
+		_, _, err := c.BindGuardedExpression(Condition{Expression: guard}, programSite, input, &textType, scope, DefaultLimits())
+		return err
+	}
+	require.NoError(t, guarded(all(present(projected(slot("m"))), literal(boolean(true))), projected(slot("m")), scope))
+	require.Error(t, guarded(anyOf(present(projected(slot("m"))), literal(boolean(false))), projected(slot("m")), scope))
 	payload := func(wire []byte) *testpilotspb.Expression {
 		return literal(&testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/fixture.Payload", Value: wire}}})
 	}
-	_, err = c.BindExpression(programSite, all(present(projected(payload([]byte{0x12, 3, 0x0a, 1, 'x'}))), equal(projected(payload(nil)), literal(text("x")))), nil, nil, DefaultLimits())
-	require.Error(t, err)
+	require.Error(t, guarded(present(projected(payload([]byte{0x12, 3, 0x0a, 1, 'x'}))), projected(payload(nil)), nil))
 	limits := DefaultLimits()
 	limits.Depth = 3
-	_, err = c.BindExpression(programSite, negate(negate(literal(boolean(true)))), nil, nil, limits)
+	_, err := c.BindExpression(programSite, negate(negate(literal(boolean(true)))), nil, nil, limits)
 	require.NoError(t, err)
 }
 
@@ -311,7 +315,8 @@ func TestRunEventPayloadPathsBindThroughTheArmTheyName(t *testing.T) {
 	}{
 		{name: "declared arm", site: contractSite, expression: equal(payloadPath("fault_injected", "role_id"), queue), scope: declared},
 		{name: "guarded arm", site: contractSite, expression: &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: &testpilotspb.AllExpression{Operands: []*testpilotspb.Expression{present(payloadPath("fault_injected", "role_id")), equal(payloadPath("fault_injected", "role_id"), queue)}}}}, scope: unavailable},
-		{name: "unguarded arm", site: contractSite, expression: equal(payloadPath("fault_injected", "role_id"), queue), scope: unavailable, want: &Error{Category: Unavailable, Path: "expression", Detail: "reference or projection requires an explicit presence guard"}},
+		{name: "unguarded arm compared", site: contractSite, expression: equal(payloadPath("fault_injected", "role_id"), queue), scope: unavailable},
+		{name: "unguarded arm read", site: contractSite, expression: payloadPath("fault_injected", "role_id"), scope: unavailable, want: &Error{Category: Unavailable, Path: "expression", Detail: "reference or projection requires an explicit presence guard"}},
 		{name: "undeclared arm", site: contractSite, expression: equal(payloadPath("outcome", "detail"), queue), scope: declared, want: &Error{Category: Unknown, Path: located, Detail: `path "outcome.detail": no Run Event kind this expression evaluates can carry the payload arm outcome`}},
 		{name: "unknown arm", site: contractSite, expression: equal(payloadPath("source_id"), queue), scope: declared, want: &Error{Category: Unknown, Path: located, Detail: `path "source_id": unknown Run Event payload arm source_id`}},
 		{name: "empty path", site: contractSite, expression: equal(payloadPath(), queue), scope: declared, want: &Error{Category: Malformed, Path: located, Detail: `path "": a Run Event payload path starts with the plain name of a payload arm`}},

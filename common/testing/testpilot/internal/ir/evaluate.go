@@ -121,13 +121,15 @@ func (r *runtimeExpression) binary(e *Expression) (*testpilotspb.Value, error) {
 	if err != nil {
 		return nil, err
 	}
+	// Every operator is false on an absent operand, so NOT_EQUAL is the negation of EQUAL only
+	// between present operands.
 	if a == nil || b == nil {
-		return nil, invalid(Unavailable, "expression", "absent comparison operand")
+		return boolValue(false), nil
 	}
 	if err := r.charge(int64(proto.Size(a)) + int64(proto.Size(b))); err != nil {
 		return nil, err
 	}
-	// NOT_EQUAL is the negation of EQUAL, so the two share one equality.
+	// Between present operands NOT_EQUAL is the negation of EQUAL, so the two share one equality.
 	if e.comparison == testpilotspb.COMPARISON_OPERATOR_EQUAL || e.comparison == testpilotspb.COMPARISON_OPERATOR_NOT_EQUAL {
 		same, err := r.equal(a, b, e.children[0].typ)
 		return boolValue(same == (e.comparison == testpilotspb.COMPARISON_OPERATOR_EQUAL)), err
