@@ -11,6 +11,18 @@ Confirm the spec's "What is hand-written today" table file by file (R1): a commi
 **Touches:** [model/HANDWRITTEN_INVENTORY.md, model/ModelLint.lean, model/ModelLint/**, tests/testcore/testpilot/testdata/baseline/**, Makefile]
 
 ### Approach
+- Plan review round 1 (F5): this task touches nothing, so it is where the tree is re-read as fn-85
+  left it. fn-85 deletes `Temporal/Case/Template/**`, the `case` command in
+  `Temporal/Case/Syntax.lean` and `Nexus/Success/Model.lean`, and reshapes
+  `Umpire/Case/Producer.lean` and `Temporal/Case/Registry.lean`. Check in particular whether
+  `register_case` still exists and for which Cases, and correct the file lists of `.2`, `.3` and
+  `.6` before `.2` starts.
+- Plan review round 1 (F1): `testdata/baseline/typed-unary-contract.json` is a scaffold for `.2`'s
+  comparison, not a checked-in artifact. No generator writes it and no gate regenerates it, so `.2`
+  deletes it once the comparison has passed; say so in the file itself.
+- Plan review round 1 (F4): "kept, with the reason" is a fourth destination. `Temporal.Testpilot`'s
+  `Conformance.lean` and `CaseSupport.lean` build Cases by hand and stay, because they test the
+  runtime, and `Temporal.System.Nexus` is the kept SEM-08 exception.
 - Rows from the planning record's inventory (the scout table): the typed examples and their tests, fixtures, artifact and live tests; `WorkerOutage`, `GetSystemInfo`; `Umpire.Examples.Switch` and its 11 importers, 2 goldens, regression view and experiment fixture; Race (8 modules, `Terminal` imported by the kept Implementation Link); Lifecycle (imported by the Implementation Link and `Race/Lifecycle`); Operations (6 goldens, `Tool/Goldens`, `Tool/NexusDiscovery`, `Tool/Inspect`, `TemporalModelTests/Nexus/ImplementationLink`); `Observation` + `ObservationTests`; Experimental (`AutoClose` has no importer; `VariationSpace`, `Exploration`, `TemporalExperimentalTests`); the docs `Success/Nexus.md`, `Success/Integration.md`, `Race/{README,DESIGN,COVERAGE}.md`, `Nexus/COVERAGE.md`; and `Temporal.System.Nexus` as the kept exception with its two Feature imports.
 - Destinations per the spec table plus the planner's decisions: `Observation.lean`'s offline evaluation is a recorded drop with `Umpire/Evidence/Tests/Evaluation.lean` named as the remaining prover; `NexusDiscovery`/`Inspect` and the `umpire-inspect/list/explain` targets are deleted with Operations unless the user asks to re-point them at the Caller Model (record the open question in the row); Race docs fold into fn-79's text; `Nexus/COVERAGE.md` is deleted (its citations are deleted modules); the two design sketches are deleted with the typed examples.
 - Check: `ModelLint` already reconciles sources against loaded metadata (`reconcile`, `InventoryIssue.uncoveredSource`); add `handwrittenNotInventoried` raised for a production module under the three roots that imports `Umpire.Model`, `Umpire.Property`, `Umpire.Scenario`, `Umpire.Query`, `Umpire.Operation` or `Umpire.Case` directly and is not listed; a planted case in `ImportGraphTests` proves it fires.
@@ -32,7 +44,7 @@ Confirm the spec's "What is hand-written today" table file by file (R1): a commi
 - fn-85 replaced `Success/Model.lean` with the Caller Model; confirm what remains under `Success/` before listing.
 
 ## Acceptance
-- [ ] `model/HANDWRITTEN_INVENTORY.md` lists every module in the scout table with every reader and a destination (migrate to a named task, delete with the named spec that records its coverage, or drop with a reason); the kept exception is listed with its two Feature imports
+- [ ] `model/HANDWRITTEN_INVENTORY.md` lists every module in the scout table with every reader and a destination (migrate to a named task, delete with the named spec that records its coverage, keep with the reason, or drop with a reason); the kept exception is listed with its two Feature imports
 - [ ] `lint-model` raises `handwrittenNotInventoried` for a planted production module that builds records and is missing from the inventory, and is clean for the tree as inventoried; the planted case is pinned in `ImportGraphTests`
 - [ ] the typed-unary Contract baseline is checked in and equals the generator's current output
 - [ ] `make lint-model` green (LEAN_NUM_THREADS=1); `make umpire-check-regression` exit 0
