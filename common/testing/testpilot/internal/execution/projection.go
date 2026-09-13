@@ -190,7 +190,7 @@ func outcomeField(outcome *testpilotspb.InstructionOutcome, field testpilotspb.I
 	var value *testpilotspb.Value
 	switch field {
 	case testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS:
-		value = &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Number: int32(outcome.Status)}}}
+		value = ir.EnumValue(outcome.Status.Descriptor(), outcome.Status.Number())
 	case testpilotspb.INSTRUCTION_OUTCOME_FIELD_PROTOCOL_CODE:
 		value = textValue(outcome.ProtocolCode)
 	case testpilotspb.INSTRUCTION_OUTCOME_FIELD_SDK_FAILURE_CODE:

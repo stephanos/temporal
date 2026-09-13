@@ -312,7 +312,7 @@ private def program (assigned : Int := 7) : Program :=
               (Testpilot.Authoring.Expr.literal (requestValue assigned)),
             Testpilot.Authoring.Program.requestAssignment
               (Testpilot.Authoring.Path.make
-                #[Testpilot.Authoring.Path.mapKey "tags" { value := some (.text_value "k") }])
+                #[Testpilot.Authoring.Path.mapKey "tags" (.text "k")])
               (Testpilot.Authoring.Expr.literal { value := some (.text_value "v") })])
         (Testpilot.Authoring.Program.instructionLimits (some 1000) (some 1))]]
     (Testpilot.Authoring.Program.cleanup "cleanup" #[])
@@ -676,34 +676,31 @@ private def lowered (expectation : PropertyPredicate) (realization : Projection.
   let result ← (Projection.lower property observation realization).mapError (·.construct)
   pure (result.rule.map (·.shape), result.coverage)
 
-private def segments (path : FieldPath) : List String :=
-  path.segments.toList.map (·.field)
-
 /-- The coordinates a derived safety rule reads, with their segments, and the literal it matches. -/
 private def safetyReads (expectation : PropertyPredicate) :
-    Option (Bool × PropertyFieldPath × List String × Operation.Scalar) :=
+    Option (Bool × PropertyFieldPath × String × Operation.Scalar) :=
   match lowered expectation with
   | .ok (some (.safety negated read literal), _) =>
-      some (negated, read.path, segments read.segments, literal.scalar)
+      some (negated, read.path, read.segments, literal.scalar)
   | _ => none
 
 -- The rule reads exactly the observed coordinate the Property compares, matched against the literal
 -- the Program assigns, and the coverage names exactly that request literal.
 #guard safetyReads (compares requestPath acceptedPath) ==
-  some (false, acceptedPath, ["count"], .integer .int32 7)
+  some (false, acceptedPath, "count", .integer .int32 7)
 #guard (lowered (compares requestPath acceptedPath)).toOption.map (·.2) ==
   some { inputs := [inputCoverage] }
 #guard safetyReads (compares acceptedPath requestPath .notEqual) ==
-  some (true, acceptedPath, ["count"], .integer .int32 7)
+  some (true, acceptedPath, "count", .integer .int32 7)
 
 -- A Property whose compared coordinate moves moves the rule's read with it.
 #guard safetyReads (compares requestPath { acceptedPath with steps := [.field "M" 5] }) ==
-  some (false, { acceptedPath with steps := [.field "M" 5] }, ["total"], .integer .int32 7)
+  some (false, { acceptedPath with steps := [.field "M" 5] }, "total", .integer .int32 7)
 
 -- A presence atom establishes a read rather than being read; dropping the comparison leaves no
 -- coordinate the rule reads, so no rule is derived and no request literal is covered.
 #guard safetyReads (.all [presenceHolds presencePath, compares requestPath acceptedPath]) ==
-  some (false, acceptedPath, ["count"], .integer .int32 7)
+  some (false, acceptedPath, "count", .integer .int32 7)
 #guard ((lowered (.all [presenceHolds presencePath])).toOption.map fun (rule, coverage) =>
     (rule.isNone, coverage)) == some (true, {})
 
@@ -716,7 +713,7 @@ private def safetyReads (expectation : PropertyPredicate) :
 #guard match lowered (compares priorCountPath acceptedPath) capturing with
   | .ok (some (.capture false captured observed chosen literal "requested" "reply"), coverage) =>
       captured.path == priorCountPath && observed.path == acceptedPath &&
-        chosen.path == acceptedPath && segments captured.segments == ["count"] &&
+        chosen.path == acceptedPath && captured.segments == "count" &&
         literal.scalar == .integer .int32 1 && coverage == {}
   | _ => false
 

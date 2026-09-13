@@ -699,6 +699,13 @@ func buildRetiredRules() ([]tokenRule, error) {
 		"Producer" + "Data",
 		"Get" + "ProducerData",
 		"producer" + "_data",
+		// fn-87 spells a field path as a string in its grammar, so the structured path segment and its
+		// selector messages retire; FieldPath stays the concept's name.
+		"FieldPath" + "Segment",
+		"Repeated" + "Wildcard",
+		"MapKey" + "Selector",
+		"Presence" + "Selector",
+		"Oneof" + "Selector",
 	}
 
 	rules := make([]tokenRule, 0, len(exactTokens)+5)

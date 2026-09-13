@@ -1008,8 +1008,9 @@ type CorrelatedEvidenceRule struct {
 	// The scope field values of the evidence identity, each a text literal or a text path.
 	Scope          []*NamedExpression `protobuf:"bytes,1,rep,name=scope,proto3" json:"scope,omitempty"`
 	EvidenceSource string             `protobuf:"bytes,2,opt,name=evidence_source,json=evidenceSource,proto3" json:"evidence_source,omitempty"`
-	Operation      *FieldPath         `protobuf:"bytes,3,opt,name=operation,proto3" json:"operation,omitempty"`
-	Kind           string             `protobuf:"bytes,4,opt,name=kind,proto3" json:"kind,omitempty"`
+	// The field path of the operation key, in the grammar PathExpression.path documents.
+	Operation string `protobuf:"bytes,3,opt,name=operation,proto3" json:"operation,omitempty"`
+	Kind      string `protobuf:"bytes,4,opt,name=kind,proto3" json:"kind,omitempty"`
 	// The evidence field values, each a text literal or a path to a text, integer or boolean.
 	Fields        []*NamedExpression `protobuf:"bytes,5,rep,name=fields,proto3" json:"fields,omitempty"`
 	Guard         *Expression        `protobuf:"bytes,6,opt,name=guard,proto3" json:"guard,omitempty"`
@@ -1061,11 +1062,11 @@ func (x *CorrelatedEvidenceRule) GetEvidenceSource() string {
 	return ""
 }
 
-func (x *CorrelatedEvidenceRule) GetOperation() *FieldPath {
+func (x *CorrelatedEvidenceRule) GetOperation() string {
 	if x != nil {
 		return x.Operation
 	}
-	return nil
+	return ""
 }
 
 func (x *CorrelatedEvidenceRule) GetKind() string {
@@ -1409,11 +1410,11 @@ const file_temporal_server_api_testpilot_v1_correlated_proto_rawDesc = "" +
 	"\x15max_correlation_depth\x18\v \x01(\x03R\x13maxCorrelationDepth\"\x95\x01\n" +
 	"\x1cCorrelatedEvidenceProjection\x12%\n" +
 	"\x0eobservation_id\x18\x01 \x01(\tR\robservationId\x12N\n" +
-	"\x05rules\x18\x02 \x03(\v28.temporal.server.api.testpilot.v1.CorrelatedEvidenceRuleR\x05rules\"\xf8\x02\n" +
+	"\x05rules\x18\x02 \x03(\v28.temporal.server.api.testpilot.v1.CorrelatedEvidenceRuleR\x05rules\"\xcb\x02\n" +
 	"\x16CorrelatedEvidenceRule\x12G\n" +
 	"\x05scope\x18\x01 \x03(\v21.temporal.server.api.testpilot.v1.NamedExpressionR\x05scope\x12'\n" +
-	"\x0fevidence_source\x18\x02 \x01(\tR\x0eevidenceSource\x12I\n" +
-	"\toperation\x18\x03 \x01(\v2+.temporal.server.api.testpilot.v1.FieldPathR\toperation\x12\x12\n" +
+	"\x0fevidence_source\x18\x02 \x01(\tR\x0eevidenceSource\x12\x1c\n" +
+	"\toperation\x18\x03 \x01(\tR\toperation\x12\x12\n" +
 	"\x04kind\x18\x04 \x01(\tR\x04kind\x12I\n" +
 	"\x06fields\x18\x05 \x03(\v21.temporal.server.api.testpilot.v1.NamedExpressionR\x06fields\x12B\n" +
 	"\x05guard\x18\x06 \x01(\v2,.temporal.server.api.testpilot.v1.ExpressionR\x05guard\"p\n" +
@@ -1487,8 +1488,7 @@ var file_temporal_server_api_testpilot_v1_correlated_proto_goTypes = []any{
 	(*ModelValue)(nil),                   // 17: temporal.server.api.testpilot.v1.ModelValue
 	(*ScalarType)(nil),                   // 18: temporal.server.api.testpilot.v1.ScalarType
 	(*Expression)(nil),                   // 19: temporal.server.api.testpilot.v1.Expression
-	(*FieldPath)(nil),                    // 20: temporal.server.api.testpilot.v1.FieldPath
-	(*Value)(nil),                        // 21: temporal.server.api.testpilot.v1.Value
+	(*Value)(nil),                        // 20: temporal.server.api.testpilot.v1.Value
 }
 var file_temporal_server_api_testpilot_v1_correlated_proto_depIdxs = []int32{
 	17, // 0: temporal.server.api.testpilot.v1.CorrelatedContract.initial_state:type_name -> temporal.server.api.testpilot.v1.ModelValue
@@ -1514,20 +1514,19 @@ var file_temporal_server_api_testpilot_v1_correlated_proto_depIdxs = []int32{
 	3,  // 20: temporal.server.api.testpilot.v1.CorrelatedRule.ending:type_name -> temporal.server.api.testpilot.v1.TraceEnding
 	12, // 21: temporal.server.api.testpilot.v1.CorrelatedEvidenceProjection.rules:type_name -> temporal.server.api.testpilot.v1.CorrelatedEvidenceRule
 	13, // 22: temporal.server.api.testpilot.v1.CorrelatedEvidenceRule.scope:type_name -> temporal.server.api.testpilot.v1.NamedExpression
-	20, // 23: temporal.server.api.testpilot.v1.CorrelatedEvidenceRule.operation:type_name -> temporal.server.api.testpilot.v1.FieldPath
-	13, // 24: temporal.server.api.testpilot.v1.CorrelatedEvidenceRule.fields:type_name -> temporal.server.api.testpilot.v1.NamedExpression
-	19, // 25: temporal.server.api.testpilot.v1.CorrelatedEvidenceRule.guard:type_name -> temporal.server.api.testpilot.v1.Expression
-	19, // 26: temporal.server.api.testpilot.v1.NamedExpression.value:type_name -> temporal.server.api.testpilot.v1.Expression
-	15, // 27: temporal.server.api.testpilot.v1.CorrelatedEvidence.identity:type_name -> temporal.server.api.testpilot.v1.CorrelatedIdentity
-	15, // 28: temporal.server.api.testpilot.v1.CorrelatedEvidence.parents:type_name -> temporal.server.api.testpilot.v1.CorrelatedIdentity
-	16, // 29: temporal.server.api.testpilot.v1.CorrelatedEvidence.fields:type_name -> temporal.server.api.testpilot.v1.NamedValue
-	16, // 30: temporal.server.api.testpilot.v1.CorrelatedIdentity.scope:type_name -> temporal.server.api.testpilot.v1.NamedValue
-	21, // 31: temporal.server.api.testpilot.v1.NamedValue.value:type_name -> temporal.server.api.testpilot.v1.Value
-	32, // [32:32] is the sub-list for method output_type
-	32, // [32:32] is the sub-list for method input_type
-	32, // [32:32] is the sub-list for extension type_name
-	32, // [32:32] is the sub-list for extension extendee
-	0,  // [0:32] is the sub-list for field type_name
+	13, // 23: temporal.server.api.testpilot.v1.CorrelatedEvidenceRule.fields:type_name -> temporal.server.api.testpilot.v1.NamedExpression
+	19, // 24: temporal.server.api.testpilot.v1.CorrelatedEvidenceRule.guard:type_name -> temporal.server.api.testpilot.v1.Expression
+	19, // 25: temporal.server.api.testpilot.v1.NamedExpression.value:type_name -> temporal.server.api.testpilot.v1.Expression
+	15, // 26: temporal.server.api.testpilot.v1.CorrelatedEvidence.identity:type_name -> temporal.server.api.testpilot.v1.CorrelatedIdentity
+	15, // 27: temporal.server.api.testpilot.v1.CorrelatedEvidence.parents:type_name -> temporal.server.api.testpilot.v1.CorrelatedIdentity
+	16, // 28: temporal.server.api.testpilot.v1.CorrelatedEvidence.fields:type_name -> temporal.server.api.testpilot.v1.NamedValue
+	16, // 29: temporal.server.api.testpilot.v1.CorrelatedIdentity.scope:type_name -> temporal.server.api.testpilot.v1.NamedValue
+	20, // 30: temporal.server.api.testpilot.v1.NamedValue.value:type_name -> temporal.server.api.testpilot.v1.Value
+	31, // [31:31] is the sub-list for method output_type
+	31, // [31:31] is the sub-list for method input_type
+	31, // [31:31] is the sub-list for extension type_name
+	31, // [31:31] is the sub-list for extension extendee
+	0,  // [0:31] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_testpilot_v1_correlated_proto_init() }

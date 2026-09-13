@@ -23,8 +23,20 @@ message Expression {
   }
 }
 
-// PathExpression reads a FieldPath out of its operand's value, absent when any segment is absent.
-message PathExpression { Expression operand = 1; FieldPath path = 2; }
+// PathExpression reads the value at path out of its operand's value, absent when any segment is
+// absent.
+message PathExpression {
+  Expression operand = 1;
+  // A field path: dot-separated protobuf field names (not JSON names), each followed by at
+  // most one selector. `[*]` fans out over every element of a repeated field, so the path's value is a
+  // list; `["text"]`, `[42]` or `[true]` reads the map entry with that key, a JSON string for a text
+  // key, a base-10 integer for an integer key and true or false for a boolean key, and is absent
+  // when no entry has it; a final `?` reads whether a presence-tracking field is set, as a boolean;
+  // `<member>` after a oneof's name reads the member of that oneof it names. The empty path is the
+  // whole value. For example `attributes<nexus_operation_completed_event_attributes>.scheduled_event_id`
+  // or `history.events[*]`. Preparation rejects a path outside this grammar with its text.
+  string path = 2;
+}
 
 // PresentExpression is true when its operand is not absent.
 message PresentExpression { Expression operand = 1; }

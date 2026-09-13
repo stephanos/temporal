@@ -1,12 +1,210 @@
 {
   "caseId": "temporal.case.typed-unary",
+  "version": {
+    "major": 1
+  },
+  "provenance": {
+    "producerId": "temporal.nexus.success.typed-unary",
+    "producerVersion": "1",
+    "definitions": [
+      {
+        "definitionId": "temporal.nexus.success.typed-unary.target",
+        "behaviorFingerprint": "sha256:69f2429319adf6214bee62cdf1363912f5f90060dbc9682421dc5f6c3cc523b0",
+        "kind": "DEFINITION_KIND_TARGET"
+      },
+      {
+        "definitionId": "temporal.nexus.success.typed-unary.property.submitted-workflow-type",
+        "behaviorFingerprint": "sha256:350987a714cb0295fa3c34209751d11f1c9adb2442717834960f7827568520c5",
+        "kind": "DEFINITION_KIND_PROPERTY"
+      }
+    ],
+    "sources": [
+      {
+        "path": "Temporal/Feature/Nexus/Success/TypedUnary.lean",
+        "line": 1,
+        "column": 1,
+        "provenance": "lean-model"
+      }
+    ],
+    "localNames": [
+      {
+        "localName": "recorded-workflow-type",
+        "definitionId": "temporal.nexus.success.typed-unary.property.submitted-workflow-type.recorded-workflow-type"
+      }
+    ]
+  },
+  "program": {
+    "programId": "temporal.case.typed-unary.program",
+    "roles": [
+      {
+        "roleId": "temporal.workflow-service",
+        "kind": "ROLE_KIND_ENDPOINT"
+      },
+      {
+        "roleId": "temporal.worker",
+        "kind": "ROLE_KIND_WORKER",
+        "namespaceBindingId": "temporal.typed-unary.namespace"
+      },
+      {
+        "roleId": "temporal.task-queue",
+        "kind": "ROLE_KIND_TASK_QUEUE",
+        "namespaceBindingId": "temporal.typed-unary.namespace",
+        "resourceBindingId": "temporal.typed-unary.task-queue"
+      }
+    ],
+    "observations": [
+      {
+        "observationId": "history-event",
+        "type": {
+          "singular": {
+            "message": {
+              "protobufType": "temporal.api.history.v1.HistoryEvent"
+            }
+          }
+        }
+      }
+    ],
+    "entrypoints": [
+      {
+        "entrypointId": "controller",
+        "controller": {},
+        "instructions": [
+          {
+            "instructionId": "start-workflow",
+            "instruction": {
+              "invokeRpc": {
+                "endpointRoleId": "temporal.workflow-service",
+                "method": "/temporal.api.workflowservice.v1.WorkflowService/StartWorkflowExecution",
+                "requestAssignments": [
+                  {
+                    "target": "namespace",
+                    "value": {
+                      "reference": {
+                        "environmentBindingId": "temporal.typed-unary.namespace"
+                      }
+                    }
+                  },
+                  {
+                    "target": "workflow_id",
+                    "value": {
+                      "reference": {
+                        "run": {}
+                      }
+                    }
+                  },
+                  {
+                    "target": "workflow_type.name",
+                    "value": {
+                      "literal": {
+                        "textValue": "umpire-typed-unary-workflow"
+                      }
+                    }
+                  },
+                  {
+                    "target": "task_queue.name",
+                    "value": {
+                      "reference": {
+                        "environmentBindingId": "temporal.typed-unary.task-queue"
+                      }
+                    }
+                  },
+                  {
+                    "target": "request_id",
+                    "value": {
+                      "reference": {
+                        "run": {}
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "instructionId": "history",
+            "instruction": {
+              "invokeRpc": {
+                "endpointRoleId": "temporal.workflow-service",
+                "method": "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory",
+                "requestAssignments": [
+                  {
+                    "target": "namespace",
+                    "value": {
+                      "reference": {
+                        "environmentBindingId": "temporal.typed-unary.namespace"
+                      }
+                    }
+                  },
+                  {
+                    "target": "execution.workflow_id",
+                    "value": {
+                      "reference": {
+                        "run": {}
+                      }
+                    }
+                  },
+                  {
+                    "target": "maximum_page_size",
+                    "value": {
+                      "literal": {
+                        "signedIntegerValue": "64"
+                      }
+                    }
+                  }
+                ],
+                "responseReads": [
+                  {
+                    "path": "history.events[*]",
+                    "cardinality": "READ_CARDINALITY_EMIT_EACH",
+                    "targets": [
+                      {
+                        "observationId": "history-event"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      {
+        "entrypointId": "workflow",
+        "workflow": {
+          "workflowType": "umpire-typed-unary-workflow",
+          "workerRoleId": "temporal.worker",
+          "taskQueueRoleId": "temporal.task-queue"
+        },
+        "instructions": [
+          {
+            "instructionId": "finish-workflow",
+            "instruction": {
+              "finish": {
+                "result": {
+                  "literal": {
+                    "textValue": "started"
+                  }
+                }
+              }
+            },
+            "limits": {
+              "timeoutMilliseconds": "5000"
+            }
+          }
+        ]
+      }
+    ],
+    "cleanup": {
+      "entrypointId": "cleanup"
+    }
+  },
   "contract": {
     "contractId": "temporal.case.typed-unary.contract",
     "rules": [
       {
-        "initialStateId": "pending",
-        "kind": "CONTRACT_RULE_KIND_SAFETY",
         "ruleId": "recorded-workflow-type",
+        "kind": "CONTRACT_RULE_KIND_SAFETY",
+        "initialStateId": "pending",
         "states": [
           {
             "stateId": "pending",
@@ -23,6 +221,10 @@
         ],
         "transitions": [
           {
+            "transitionId": "match-recorded-workflow-type",
+            "sourceStateId": "pending",
+            "targetStateId": "satisfied",
+            "supportKind": "CONTRACT_SUPPORT_KIND_MATCHING_EVENT",
             "eventFilter": {
               "kinds": [
                 "RUN_EVENT_KIND_INSTRUCTION_COMPLETED"
@@ -49,28 +251,14 @@
                               "observationId": "history-event"
                             }
                           },
-                          "path": {
-                            "segments": [
-                              {
-                                "field": "attributes",
-                                "oneof": {
-                                  "selectedField": "workflow_execution_started_event_attributes"
-                                }
-                              },
-                              {
-                                "field": "workflow_type"
-                              },
-                              {
-                                "field": "name"
-                              }
-                            ]
-                          }
+                          "path": "attributes<workflow_execution_started_event_attributes>.workflow_type.name"
                         }
                       }
                     }
                   },
                   {
                     "compare": {
+                      "operator": "COMPARISON_OPERATOR_EQUAL",
                       "left": {
                         "path": {
                           "operand": {
@@ -78,25 +266,9 @@
                               "observationId": "history-event"
                             }
                           },
-                          "path": {
-                            "segments": [
-                              {
-                                "field": "attributes",
-                                "oneof": {
-                                  "selectedField": "workflow_execution_started_event_attributes"
-                                }
-                              },
-                              {
-                                "field": "workflow_type"
-                              },
-                              {
-                                "field": "name"
-                              }
-                            ]
-                          }
+                          "path": "attributes<workflow_execution_started_event_attributes>.workflow_type.name"
                         }
                       },
-                      "operator": "COMPARISON_OPERATOR_EQUAL",
                       "right": {
                         "literal": {
                           "textValue": "umpire-typed-unary-workflow"
@@ -106,13 +278,13 @@
                   }
                 ]
               }
-            },
-            "sourceStateId": "pending",
-            "supportKind": "CONTRACT_SUPPORT_KIND_MATCHING_EVENT",
-            "targetStateId": "satisfied",
-            "transitionId": "match-recorded-workflow-type"
+            }
           },
           {
+            "transitionId": "reject-recorded-workflow-type",
+            "sourceStateId": "pending",
+            "targetStateId": "violated",
+            "supportKind": "CONTRACT_SUPPORT_KIND_MATCHING_EVENT",
             "eventFilter": {
               "kinds": [
                 "RUN_EVENT_KIND_INSTRUCTION_COMPLETED"
@@ -139,22 +311,7 @@
                               "observationId": "history-event"
                             }
                           },
-                          "path": {
-                            "segments": [
-                              {
-                                "field": "attributes",
-                                "oneof": {
-                                  "selectedField": "workflow_execution_started_event_attributes"
-                                }
-                              },
-                              {
-                                "field": "workflow_type"
-                              },
-                              {
-                                "field": "name"
-                              }
-                            ]
-                          }
+                          "path": "attributes<workflow_execution_started_event_attributes>.workflow_type.name"
                         }
                       }
                     }
@@ -163,6 +320,7 @@
                     "not": {
                       "operand": {
                         "compare": {
+                          "operator": "COMPARISON_OPERATOR_EQUAL",
                           "left": {
                             "path": {
                               "operand": {
@@ -170,25 +328,9 @@
                                   "observationId": "history-event"
                                 }
                               },
-                              "path": {
-                                "segments": [
-                                  {
-                                    "field": "attributes",
-                                    "oneof": {
-                                      "selectedField": "workflow_execution_started_event_attributes"
-                                    }
-                                  },
-                                  {
-                                    "field": "workflow_type"
-                                  },
-                                  {
-                                    "field": "name"
-                                  }
-                                ]
-                              }
+                              "path": "attributes<workflow_execution_started_event_attributes>.workflow_type.name"
                             }
                           },
-                          "operator": "COMPARISON_OPERATOR_EQUAL",
                           "right": {
                             "literal": {
                               "textValue": "umpire-typed-unary-workflow"
@@ -200,279 +342,10 @@
                   }
                 ]
               }
-            },
-            "sourceStateId": "pending",
-            "supportKind": "CONTRACT_SUPPORT_KIND_MATCHING_EVENT",
-            "targetStateId": "violated",
-            "transitionId": "reject-recorded-workflow-type"
+            }
           }
         ]
       }
     ]
-  },
-  "program": {
-    "cleanup": {
-      "entrypointId": "cleanup"
-    },
-    "entrypoints": [
-      {
-        "controller": {},
-        "entrypointId": "controller",
-        "instructions": [
-          {
-            "instruction": {
-              "invokeRpc": {
-                "endpointRoleId": "temporal.workflow-service",
-                "method": "/temporal.api.workflowservice.v1.WorkflowService/StartWorkflowExecution",
-                "requestAssignments": [
-                  {
-                    "target": {
-                      "segments": [
-                        {
-                          "field": "namespace"
-                        }
-                      ]
-                    },
-                    "value": {
-                      "reference": {
-                        "environmentBindingId": "temporal.typed-unary.namespace"
-                      }
-                    }
-                  },
-                  {
-                    "target": {
-                      "segments": [
-                        {
-                          "field": "workflow_id"
-                        }
-                      ]
-                    },
-                    "value": {
-                      "reference": {
-                        "run": {}
-                      }
-                    }
-                  },
-                  {
-                    "target": {
-                      "segments": [
-                        {
-                          "field": "workflow_type"
-                        },
-                        {
-                          "field": "name"
-                        }
-                      ]
-                    },
-                    "value": {
-                      "literal": {
-                        "textValue": "umpire-typed-unary-workflow"
-                      }
-                    }
-                  },
-                  {
-                    "target": {
-                      "segments": [
-                        {
-                          "field": "task_queue"
-                        },
-                        {
-                          "field": "name"
-                        }
-                      ]
-                    },
-                    "value": {
-                      "reference": {
-                        "environmentBindingId": "temporal.typed-unary.task-queue"
-                      }
-                    }
-                  },
-                  {
-                    "target": {
-                      "segments": [
-                        {
-                          "field": "request_id"
-                        }
-                      ]
-                    },
-                    "value": {
-                      "reference": {
-                        "run": {}
-                      }
-                    }
-                  }
-                ]
-              }
-            },
-            "instructionId": "start-workflow"
-          },
-          {
-            "instruction": {
-              "invokeRpc": {
-                "endpointRoleId": "temporal.workflow-service",
-                "method": "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory",
-                "requestAssignments": [
-                  {
-                    "target": {
-                      "segments": [
-                        {
-                          "field": "namespace"
-                        }
-                      ]
-                    },
-                    "value": {
-                      "reference": {
-                        "environmentBindingId": "temporal.typed-unary.namespace"
-                      }
-                    }
-                  },
-                  {
-                    "target": {
-                      "segments": [
-                        {
-                          "field": "execution"
-                        },
-                        {
-                          "field": "workflow_id"
-                        }
-                      ]
-                    },
-                    "value": {
-                      "reference": {
-                        "run": {}
-                      }
-                    }
-                  },
-                  {
-                    "target": {
-                      "segments": [
-                        {
-                          "field": "maximum_page_size"
-                        }
-                      ]
-                    },
-                    "value": {
-                      "literal": {
-                        "signedIntegerValue": "64"
-                      }
-                    }
-                  }
-                ],
-                "responseReads": [
-                  {
-                    "cardinality": "READ_CARDINALITY_EMIT_EACH",
-                    "path": {
-                      "segments": [
-                        {
-                          "field": "history"
-                        },
-                        {
-                          "field": "events",
-                          "repeated": {}
-                        }
-                      ]
-                    },
-                    "targets": [
-                      {
-                        "observationId": "history-event"
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            "instructionId": "history"
-          }
-        ]
-      },
-      {
-        "entrypointId": "workflow",
-        "instructions": [
-          {
-            "instruction": {
-              "finish": {
-                "result": {
-                  "literal": {
-                    "textValue": "started"
-                  }
-                }
-              }
-            },
-            "instructionId": "finish-workflow",
-            "limits": {
-              "timeoutMilliseconds": "5000"
-            }
-          }
-        ],
-        "workflow": {
-          "taskQueueRoleId": "temporal.task-queue",
-          "workerRoleId": "temporal.worker",
-          "workflowType": "umpire-typed-unary-workflow"
-        }
-      }
-    ],
-    "observations": [
-      {
-        "observationId": "history-event",
-        "type": {
-          "singular": {
-            "message": {
-              "protobufType": "temporal.api.history.v1.HistoryEvent"
-            }
-          }
-        }
-      }
-    ],
-    "programId": "temporal.case.typed-unary.program",
-    "roles": [
-      {
-        "kind": "ROLE_KIND_ENDPOINT",
-        "roleId": "temporal.workflow-service"
-      },
-      {
-        "kind": "ROLE_KIND_WORKER",
-        "namespaceBindingId": "temporal.typed-unary.namespace",
-        "roleId": "temporal.worker"
-      },
-      {
-        "kind": "ROLE_KIND_TASK_QUEUE",
-        "namespaceBindingId": "temporal.typed-unary.namespace",
-        "resourceBindingId": "temporal.typed-unary.task-queue",
-        "roleId": "temporal.task-queue"
-      }
-    ]
-  },
-  "provenance": {
-    "definitions": [
-      {
-        "behaviorFingerprint": "sha256:69f2429319adf6214bee62cdf1363912f5f90060dbc9682421dc5f6c3cc523b0",
-        "definitionId": "temporal.nexus.success.typed-unary.target",
-        "kind": "DEFINITION_KIND_TARGET"
-      },
-      {
-        "behaviorFingerprint": "sha256:350987a714cb0295fa3c34209751d11f1c9adb2442717834960f7827568520c5",
-        "definitionId": "temporal.nexus.success.typed-unary.property.submitted-workflow-type",
-        "kind": "DEFINITION_KIND_PROPERTY"
-      }
-    ],
-    "localNames": [
-      {
-        "definitionId": "temporal.nexus.success.typed-unary.property.submitted-workflow-type.recorded-workflow-type",
-        "localName": "recorded-workflow-type"
-      }
-    ],
-    "producerId": "temporal.nexus.success.typed-unary",
-    "producerVersion": "1",
-    "sources": [
-      {
-        "column": 1,
-        "line": 1,
-        "path": "Temporal/Feature/Nexus/Success/TypedUnary.lean",
-        "provenance": "lean-model"
-      }
-    ]
-  },
-  "version": {
-    "major": 1
   }
 }

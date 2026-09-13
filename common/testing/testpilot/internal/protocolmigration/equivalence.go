@@ -63,7 +63,7 @@ func (b *Baseline) Check(fixture string, baseline, regenerated []byte, mapping M
 	name := path.Base(fixture)
 	switch {
 	case name == "expected.json":
-		return checkExpected(fixture, baseline, regenerated, mapping)
+		return b.checkExpected(fixture, baseline, regenerated, mapping)
 	case name == "correlated.json":
 		return b.checkCorrelated(fixture, baseline, regenerated, mapping)
 	case name == "case.json" || strings.HasSuffix(name, "-case.json"):
@@ -78,7 +78,7 @@ func (b *Baseline) checkCase(fixture string, baseline, regenerated []byte, mappi
 	if err != nil {
 		return err
 	}
-	mapped, err := mapping.apply(fixture, tree, regenerated)
+	mapped, err := mapping.apply(b, fixture, tree, regenerated)
 	if err != nil {
 		return err
 	}
@@ -87,7 +87,7 @@ func (b *Baseline) checkCase(fixture string, baseline, regenerated []byte, mappi
 
 // checkExpected treats expected.json as the Verdict pin: it must stay byte-identical unless a
 // declared step changed its JSON, in which case the regenerated JSON must equal the mapped JSON.
-func checkExpected(fixture string, baseline, regenerated []byte, mapping Mapping) error {
+func (b *Baseline) checkExpected(fixture string, baseline, regenerated []byte, mapping Mapping) error {
 	tree, err := decodeJSON(baseline)
 	if err != nil {
 		return fmt.Errorf("fixture %s: baseline: %w", fixture, err)
@@ -96,7 +96,7 @@ func checkExpected(fixture string, baseline, regenerated []byte, mapping Mapping
 	if err != nil {
 		return err
 	}
-	mapped, err := mapping.apply(fixture, tree, regenerated)
+	mapped, err := mapping.apply(b, fixture, tree, regenerated)
 	if err != nil {
 		return err
 	}
@@ -131,7 +131,7 @@ func (b *Baseline) checkCorrelated(fixture string, baseline, regenerated []byte,
 		}
 		tree[index] = typed
 	}
-	mapped, err := mapping.apply(fixture, tree, regenerated)
+	mapped, err := mapping.apply(b, fixture, tree, regenerated)
 	if err != nil {
 		return err
 	}

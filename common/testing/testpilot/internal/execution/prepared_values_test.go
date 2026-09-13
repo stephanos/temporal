@@ -110,7 +110,7 @@ func TestPreparedInputActivationIsolation(t *testing.T) {
 	for _, text := range []string{"first", "second", "third", "fourth"} {
 		t.Run(text, func(t *testing.T) {
 			t.Parallel()
-			fields := map[int32]*testpilotspb.Value{int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS): {Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Number: int32(testpilotspb.INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE)}}}}
+			fields := map[int32]*testpilotspb.Value{int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS): {Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Name: "INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE"}}}}
 			lookup := func(ref ir.Reference) *testpilotspb.Value {
 				require.Equal(t, "workflow", ref.Entrypoint)
 				require.Equal(t, "await", ref.ID)
@@ -120,7 +120,7 @@ func TestPreparedInputActivationIsolation(t *testing.T) {
 			require.NoError(t, err)
 			require.False(t, enabled)
 			require.Nil(t, value)
-			fields[int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS)].GetEnumValue().Number = int32(testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED)
+			fields[int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS)].GetEnumValue().Name = "INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"
 			_, _, _, err = plan.EvaluateInput(context.Background(), lookup, entry.RuntimeWorkLimit())
 			require.Error(t, err)
 			fields[int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE)] = textValue(text)
@@ -166,7 +166,7 @@ func TestPreparedTerminalResultsAndOutcomeTypes(t *testing.T) {
 		require.False(t, ok)
 		value, enabled, _, err := n.EvaluateInput(context.Background(), func(ref ir.Reference) *testpilotspb.Value {
 			if ref.Field == int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS) {
-				return &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Number: int32(testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED)}}}
+				return &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Name: "INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"}}}
 			}
 			return textValue("done")
 		}, entry.RuntimeWorkLimit())

@@ -77,9 +77,7 @@ what makes the ordering above meaningful: it carries the filter, and the full re
 private def assignsCloseFilter
     (realization : Umpire.Case.Producer.Realization) (instructionId : String) : Bool :=
   let assignsFilter := fun (assignment : RequestAssignment) =>
-    match assignment.target with
-    | some path => path.segments.any (·.field == "history_event_filter_type")
-    | none => false
+    assignment.target == "history_event_filter_type"
   match (controllerInstructions realization).find? (·.instruction_id == instructionId) with
   | some declared =>
       match declared.instruction with

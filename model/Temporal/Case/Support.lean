@@ -40,11 +40,11 @@ def correlatedObservation := "correlated-evidence"
 def correlatedEvidenceType : ValueType :=
   Types.singular (Types.messageType "temporal.server.api.testpilot.v1.CorrelatedEvidence")
 
-/-- `HISTORY_EVENT_FILTER_TYPE_CLOSE_EVENT`, read from the generated enum rather than spelled as a
-number here. A read carrying it blocks until the workflow closes and returns only the closing
-event, so it is what orders a later read after the work completed. -/
+/-- `HISTORY_EVENT_FILTER_TYPE_CLOSE_EVENT`. The generated Lean enum carries numbers only, so the
+name is spelled here, and preparation rejects it unless the request field's enum declares it. A read
+carrying it blocks until the workflow closes and returns only the closing event, so it is what
+orders a later read after the work completed. -/
 def closeEventFilter : Expression :=
-  Expr.literal (Value.enumeration
-    (Int32.ofInt Temporal.Api.Enums.V1.HistoryEventFilterType.historyEventFilterTypeCloseEvent.number))
+  Expr.literal (Value.enumeration "HISTORY_EVENT_FILTER_TYPE_CLOSE_EVENT")
 
 end Temporal.Case.Support

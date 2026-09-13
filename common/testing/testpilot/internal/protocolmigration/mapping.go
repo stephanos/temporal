@@ -44,14 +44,19 @@ type ApplyFunc func(fixture string, tree any) (any, error)
 // fixture is supplied, and then a relation declares nothing.
 type RelateFunc func(fixture string, tree any, regenerated []byte) (any, error)
 
+// ResolveFunc transforms one fixture's JSON tree through the baseline snapshot's descriptors, for a
+// difference that depends on what a baseline value meant, such as the name of an enum number.
+type ResolveFunc func(snapshot *Baseline, fixture string, tree any) (any, error)
+
 // Step is one declared difference between the baseline protocol and the current one. It sets exactly
-// one of Apply and Relate.
+// one of Apply, Relate and Resolve.
 type Step struct {
 	Name string
 	// Requirement is the fn-87 R-ID the step implements.
 	Requirement string
 	Apply       ApplyFunc
 	Relate      RelateFunc
+	Resolve     ResolveFunc
 }
 
 // Mapping is the ordered list of Steps from the frozen baseline to the current protocol.
@@ -310,6 +315,12 @@ var Declared = Mapping{
 		),
 	},
 	{
+		// Declared before the default-order step, which recognizes the success guard by its current
+		// Expression and so needs the status literal named.
+		Name: "enum literals carry the value name of the baseline enum their context expects", Requirement: "R15",
+		Resolve: nameEnumLiterals,
+	},
+	{
 		Name: "Instruction" + "Definition.dependencies becomes after, written only where it is not the previous instruction, and the success guard becomes the default", Requirement: "R9",
 		Apply: sequence(
 			RewriteMessages(protocol+"Entrypoint"+"Definition", defaultInstructionOrder),
@@ -327,6 +338,10 @@ var Declared = Mapping{
 	{
 		Name: "the Program and Contract name definitions by Case-local names and spell model values by their declared spellings, as the regenerated provenance's local name and model value fingerprint rows declare", Requirement: "R14",
 		Relate: localizeNames,
+	},
+	{
+		Name: "a field path becomes its string in the path grammar", Requirement: "R15",
+		Apply: RewriteMessages(protocol+"FieldPath", spellFieldPath),
 	},
 }
 
@@ -431,7 +446,7 @@ func isSuccessGuard(entrypointID string, dependencies []string, guard any) (bool
 			{Expression: &testpilotspb.Expression_Compare{Compare: &testpilotspb.CompareExpression{
 				Operator: testpilotspb.COMPARISON_OPERATOR_EQUAL,
 				Left:     status(),
-				Right:    &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Number: int32(testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED)}}}}},
+				Right:    &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Name: "INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"}}}}},
 			}}},
 		}}}}
 	}
@@ -597,10 +612,12 @@ func rewriteFaultCoordinate(_ string, object *Object) (any, error) {
 	if len(runEvent.Fields) != 1 {
 		return nil, fmt.Errorf("fault coordinate reference carries %d keys, want 1", len(runEvent.Fields))
 	}
-	segment := func(name string) *Object { return &Object{Fields: map[string]any{"field": name}} }
+	segment := func(name string) *Object {
+		return &Object{Message: protocol + "FieldPath" + "Segment", Fields: map[string]any{"field": name}}
+	}
 	object.Fields = map[string]any{"path": &Object{Fields: map[string]any{
 		"operand": &Object{Fields: map[string]any{"reference": &Object{Fields: map[string]any{"runEvent": &Object{Fields: map[string]any{"payload": &Object{Fields: map[string]any{}}}}}}}},
-		"path":    &Object{Fields: map[string]any{"segments": []any{segment("fault_injected"), segment(field)}}},
+		"path":    &Object{Message: protocol + "FieldPath", Fields: map[string]any{"segments": []any{segment("fault_injected"), segment(field)}}},
 	}}}
 	return object, nil
 }
@@ -763,13 +780,33 @@ func literalText(value any) string {
 	}
 }
 
-// cloneTree deep-copies a mapped JSON tree, so one baseline value can appear twice.
+// cloneTree deep-copies a mapped JSON tree with its snapshot annotations, so one baseline value can
+// appear twice and later steps still address the copy by its baseline message.
 func cloneTree(value any) (any, error) {
-	encoded, err := json.Marshal(value)
-	if err != nil {
-		return nil, err
+	switch node := value.(type) {
+	case *Object:
+		copied := &Object{Message: node.Message, Fields: make(map[string]any, len(node.Fields))}
+		for key, field := range node.Fields {
+			clone, err := cloneTree(field)
+			if err != nil {
+				return nil, err
+			}
+			copied.Fields[key] = clone
+		}
+		return copied, nil
+	case []any:
+		copied := make([]any, len(node))
+		for index, element := range node {
+			clone, err := cloneTree(element)
+			if err != nil {
+				return nil, err
+			}
+			copied[index] = clone
+		}
+		return copied, nil
+	default:
+		return value, nil
 	}
-	return decodeJSON(encoded)
 }
 
 // renumberComparisons moves the ordering operators two numbers up, highest first so no literal is
@@ -953,15 +990,18 @@ func renameCorrelatedRuleKey(from, to string) func(fixture string, object *Objec
 	}
 }
 
-func (m Mapping) apply(fixture string, tree any, regenerated []byte) (any, error) {
+func (m Mapping) apply(snapshot *Baseline, fixture string, tree any, regenerated []byte) (any, error) {
 	for _, step := range m {
 		var (
 			mapped any
 			err    error
 		)
-		if step.Relate != nil {
+		switch {
+		case step.Relate != nil:
 			mapped, err = step.Relate(fixture, tree, regenerated)
-		} else {
+		case step.Resolve != nil:
+			mapped, err = step.Resolve(snapshot, fixture, tree)
+		default:
 			mapped, err = step.Apply(fixture, tree)
 		}
 		if err != nil {

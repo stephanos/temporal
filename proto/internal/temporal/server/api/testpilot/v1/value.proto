@@ -22,8 +22,12 @@ message Value {
   }
 }
 
-// EnumValue is one enum value by number, which the enum its declared type names must define.
-message EnumValue { int32 number = 1; }
+// EnumValue is one enum value by name. A literal names a value the enum of its expected type
+// declares. A value read from a protobuf message whose number that enum does not declare is spelled
+// by the number in decimal, the ProtoJSON spelling, which no literal can name.
+// (-- api-linter: core::0123::resource-annotation=disabled
+//     aip.dev/not-precedent: name is an enum value name, not a resource name. --)
+message EnumValue { string name = 1; }
 
 // ValueList is an ordered list: the value of a repeated type, or of a path that fans out over a
 // repeated field.
@@ -113,32 +117,3 @@ message AnyType {}
 // OpaqueHandleType is an effect handle a Driver issued. Only a Slot holds one, so it cannot be a
 // literal, an Observation, a capture or a collection element, and no expression reads into it.
 message OpaqueHandleType {}
-
-// FieldPath addresses a value inside a protobuf message, one segment per field. An empty path
-// addresses the whole value.
-message FieldPath { repeated FieldPathSegment segments = 1; }
-
-// FieldPathSegment reads one field and optionally selects inside it.
-message FieldPathSegment {
-  // The protobuf field name, not its JSON name; with a oneof selector, the name of the oneof.
-  string field = 1;
-  oneof selector {
-    RepeatedWildcard repeated = 2;
-    MapKeySelector map_key = 3;
-    PresenceSelector presence = 4;
-    OneofSelector oneof = 5;
-  }
-}
-
-// RepeatedWildcard fans out over every element of a repeated field, so the path's value is a list.
-message RepeatedWildcard {}
-
-// MapKeySelector reads the entry of a map field with this key, absent when no entry has it.
-message MapKeySelector { Value key = 1; }
-
-// PresenceSelector reads whether a presence-tracking field is set, as a boolean. Only a path's last
-// segment may select presence.
-message PresenceSelector {}
-
-// OneofSelector reads the member selected_field of the oneof the segment names.
-message OneofSelector { string selected_field = 1; }

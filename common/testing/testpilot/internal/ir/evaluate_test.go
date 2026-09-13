@@ -75,20 +75,15 @@ func TestRuntimePathsAndPresence(t *testing.T) {
 	typ := boundType(t, c, named("fixture.Payload", false))
 	source := &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/fixture.Payload", Value: []byte{0x12, 3, 0x0a, 1, 'x', 0x1a, 3, 0x0a, 1, 'a', 0x1a, 3, 0x0a, 1, 'b', 0x22, 7, 0x0a, 3, 'k', 'e', 'y', 0x10, 7}}}}
 	require.NoError(t, c.CheckLiteral(source, typ, DefaultLimits()))
-	wildcard := fieldPath("items", "text")
-	wildcard.Segments[0].Selector = &testpilotspb.FieldPathSegment_Repeated{Repeated: &testpilotspb.RepeatedWildcard{}}
-	lookup := fieldPath("labels")
-	lookup.Segments[0].Selector = &testpilotspb.FieldPathSegment_MapKey{MapKey: &testpilotspb.MapKeySelector{Key: text("key")}}
-	absence := fieldPath("child", "optional_text")
-	absence.Segments[1].Selector = &testpilotspb.FieldPathSegment_Presence{Presence: &testpilotspb.PresenceSelector{}}
+	absence := "child.optional_text?"
 	for _, tc := range []struct {
 		name string
-		path *testpilotspb.FieldPath
+		path string
 		want *testpilotspb.Value
 	}{
-		{"nested", fieldPath("child", "text"), text("x")},
-		{"wildcard", wildcard, &testpilotspb.Value{Value: &testpilotspb.Value_ListValue{ListValue: &testpilotspb.ValueList{Values: []*testpilotspb.Value{text("a"), text("b")}}}}},
-		{"map", lookup, signed("7")},
+		{"nested", "child.text", text("x")},
+		{"wildcard", "items[*].text", &testpilotspb.Value{Value: &testpilotspb.Value_ListValue{ListValue: &testpilotspb.ValueList{Values: []*testpilotspb.Value{text("a"), text("b")}}}}},
+		{"map", `labels["key"]`, signed("7")},
 		{"presence", absence, boolean(false)},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -129,16 +124,14 @@ func TestRuntimeWildcardDoesNotFilterAbsentFields(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			source := &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/fixture.Payload", Value: tc.wire}}}
 			require.NoError(t, c.CheckLiteral(source, typ, DefaultLimits()))
-			path := fieldPath("items", "optional_text")
-			path.Segments[0].Selector = &testpilotspb.FieldPathSegment_Repeated{Repeated: &testpilotspb.RepeatedWildcard{}}
-			project := &testpilotspb.Expression{Expression: &testpilotspb.Expression_Path{Path: &testpilotspb.PathExpression{Operand: slot("source"), Path: path}}}
+			project := &testpilotspb.Expression{Expression: &testpilotspb.Expression_Path{Path: &testpilotspb.PathExpression{Operand: slot("source"), Path: "items[*].optional_text"}}}
 			scope := map[Reference]Binding{{Kind: SlotReference, ID: "source"}: {Type: typ, Available: true}}
 			e, err := c.BindExpression(programSite, present(project), nil, scope, DefaultLimits())
 			require.NoError(t, err)
 			value, _, err := e.Evaluate(context.Background(), func(Reference) *testpilotspb.Value { return source }, 1000)
 			require.NoError(t, err)
 			require.Equal(t, tc.present, value.GetBoolValue())
-			path.Segments[1].Selector = &testpilotspb.FieldPathSegment_Presence{Presence: &testpilotspb.PresenceSelector{}}
+			project.GetPath().Path = "items[*].optional_text?"
 			e, err = c.BindExpression(programSite, project, nil, scope, DefaultLimits())
 			require.NoError(t, err)
 			value, _, err = e.Evaluate(context.Background(), func(Reference) *testpilotspb.Value { return source }, 1000)
