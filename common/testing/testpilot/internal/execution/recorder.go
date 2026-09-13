@@ -73,6 +73,9 @@ func (r *recorder) publishWithMonitorPolicy(ctx context.Context, facts []*testpi
 	if err := ctx.Err(); err != nil {
 		return Stop, r.publicationFailure(monitorFailureFatal, testpilotspb.RUN_DIAGNOSTIC_KIND_EXECUTION, "publication_cancelled", err)
 	}
+	if err := checkPayloads(facts); err != nil {
+		return Stop, r.publicationFailure(monitorFailureFatal, testpilotspb.RUN_DIAGNOSTIC_KIND_INVARIANT, "payload_kind_mismatch", err)
+	}
 	staged, err := r.stage(facts)
 	if err != nil {
 		return Stop, r.publicationFailure(monitorFailureFatal, testpilotspb.RUN_DIAGNOSTIC_KIND_RECORDER, "recording_failed", err)
@@ -104,6 +107,21 @@ func (r *recorder) publicationFailure(fatal bool, kind testpilotspb.RunDiagnosti
 	r.diagnostic(kind, code, err.Error())
 	return err
 }
+
+// checkPayloads rejects a batch holding an event whose payload does not match its kind. Execution
+// builds every event, so a mismatch is an invariant failure rather than a recording failure. A nil
+// event is left to stage, which rejects it.
+func checkPayloads(facts []*testpilotspb.RunEvent) error {
+	for _, fact := range facts {
+		if fact == nil {
+			continue
+		}
+		if err := ir.CheckRunEventPayload(fact); err != nil {
+			return err
+		}
+	}
+	return nil
+}
 func (r *recorder) stage(facts []*testpilotspb.RunEvent) ([]*testpilotspb.RunEvent, error) {
 	if int64(len(facts)) > r.maxEvents {
 		return nil, invalid(ir.LimitExceeded, "recorder", "batch event ceiling exceeded")
@@ -130,7 +148,7 @@ func (r *recorder) stage(facts []*testpilotspb.RunEvent) ([]*testpilotspb.RunEve
 		snapshot.Sequence = 0
 		snapshot.ElapsedMilliseconds = 0
 		if previous, exists := r.sources[snapshot.SourceId]; exists {
-			semantic := testpilotspb.RunEvent{Kind: previous.event.Kind, Coordinates: previous.event.Coordinates, SourceId: previous.event.SourceId, CausalSourceIds: previous.event.CausalSourceIds, Outcome: previous.event.Outcome, Observations: previous.event.Observations, ExecutionIncomplete: previous.producerIncomplete, FaultInjected: previous.event.FaultInjected}
+			semantic := testpilotspb.RunEvent{Kind: previous.event.Kind, Coordinates: previous.event.Coordinates, SourceId: previous.event.SourceId, CausalSourceIds: previous.event.CausalSourceIds, Observations: previous.event.Observations, ExecutionIncomplete: previous.producerIncomplete, Payload: previous.event.Payload}
 			if !proto.Equal(&semantic, snapshot) {
 				return nil, invalid(ir.Malformed, "recorder", "conflicting source identity")
 			}

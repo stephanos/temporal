@@ -73,7 +73,8 @@ private def contractExpressions : Array Expression :=
     Expr.compare .COMPARISON_OPERATOR_GREATER_THAN runEvent literal,
     Expr.negate literal,
     Expr.all #[observation, capture],
-    Expr.any #[runEvent, literal]]
+    Expr.any #[runEvent, literal],
+    Expr.path Expr.runEventPayload (Path.make #[Path.field "fault_injected", Path.field "kind"])]
 
 private def instructionLimits := Program.instructionLimits 1000 2 3 4096
 private def assignment := Program.requestAssignment requestPath (Expr.literal (Value.text "x"))
@@ -187,8 +188,8 @@ private def verdict := Verdict.make .VERDICT_STATUS_SATISFIED #[
 private def run : temporal.server.api.testpilot.v1.Run := Run.make "run" "case" "program" #[
   Run.event 1 10 .RUN_EVENT_KIND_INSTRUCTION_COMPLETED
     (Run.coordinates "workflow" "activation" "start" 1 0) "source"
-    (outcome := some (Run.outcome .INSTRUCTION_OUTCOME_STATUS_SUCCEEDED
-      (value := some (Value.text "result"))))
+    (payload := some (.outcome (Run.outcome .INSTRUCTION_OUTCOME_STATUS_SUCCEEDED
+      (value := some (Value.text "result")))))
     (observations := #[Run.observation "observed" (Value.text "result")])
 ] .RUN_DISPOSITION_COMPLETED (Run.cleanup .CLEANUP_STATUS_SUCCEEDED) verdict
   #[Run.diagnostic "diagnostic" .RUN_DIAGNOSTIC_KIND_EXECUTION "code" "detail" (some 1)]
@@ -199,7 +200,7 @@ private def run : temporal.server.api.testpilot.v1.Run := Run.make "run" "case" 
 #guard paths.size == 5
 #guard programExpressions.size == 12
 #guard environmentAssignmentUsesBinding
-#guard contractExpressions.size == 11
+#guard contractExpressions.size == 12
 #guard instructions.size == 8
 #guard program.entrypoints.size == 4
 #guard program.environment.size == 3

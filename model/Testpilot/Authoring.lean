@@ -161,9 +161,14 @@ def run : Expression := reference { reference := some (.run {}) }
 def observation (observationId : String) : Expression :=
   reference { reference := some (.observation_id observationId) }
 
-/-- Read one declared field from the Run Event currently offered to a monitor. -/
+/-- Read one common coordinate of the Run Event currently offered to a monitor. -/
 def runEvent (field : RunEventField) : Expression :=
-  reference { reference := some (.run_event { field }) }
+  reference { reference := some (.run_event { selection := some (.field field) }) }
+
+/-- Refer to the payload of the Run Event currently offered to a monitor. It is read only as the
+operand of `path`, whose first segment names the payload arm, such as `fault_injected`. -/
+def runEventPayload : Expression :=
+  reference { reference := some (.run_event { selection := some (.payload {}) }) }
 
 def capture (captureId : String) : Expression :=
   reference { reference := some (.capture_id captureId) }
@@ -482,14 +487,14 @@ def outcome (status : InstructionOutcomeStatus) (protocolCode sdkFailureCode det
     (value : Option temporal.server.api.testpilot.v1.Value := none) : InstructionOutcome :=
   { status, protocol_code := protocolCode, sdk_failure_code := sdkFailureCode, detail, value }
 
-/-- Assemble one sequenced Run Event with optional outcome, observations, and causal sources. -/
+/-- Assemble one sequenced Run Event with an optional payload, observations, and causal sources. -/
 def event (sequence elapsedMilliseconds : Int64) (kind : RunEventKind)
     (coordinates : RunEventCoordinates) (sourceId : String)
-    (causalSourceIds : Array String := #[]) (outcome : Option InstructionOutcome := none)
+    (causalSourceIds : Array String := #[]) (payload : Option RunEvent.payload_Type := none)
     (observations : Array ObservationResult := #[]) (executionIncomplete : Bool := false) : RunEvent :=
   { sequence, elapsed_milliseconds := elapsedMilliseconds, kind, coordinates := some coordinates,
-    source_id := sourceId, causal_source_ids := causalSourceIds, outcome, observations,
-    execution_incomplete := executionIncomplete }
+    source_id := sourceId, causal_source_ids := causalSourceIds, observations,
+    execution_incomplete := executionIncomplete, payload }
 
 def cleanup (status : CleanupStatus) (diagnosticIds : Array String := #[]) : CleanupOutcome :=
   { status, diagnostic_ids := diagnosticIds }
