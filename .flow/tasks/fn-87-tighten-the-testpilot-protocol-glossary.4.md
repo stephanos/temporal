@@ -44,10 +44,51 @@ Restructure the protocol into the spec's Target structure (R2): move messages in
 
 
 ## Done summary
-TBD
+Restructured the Testpilot protocol into the nine files of the fn-87 Target structure: `case`, `value`, `expression`, `program`, `instruction`, `contract`, `correlated` (new), `event` (new) and `run`. Every message and enum now has a leading comment, and field numbers run densely from 1 in declaration order. Two new checks enforce this: the comment/numbering check (R2) and the Case import-closure check (R11). **Early proof point: holds.** The equivalence oracle passes with no new mapping step, and every fixture regenerates byte-identical.
 
+- Placement follows the spec table:
+  - `FormatVersion` is in `case.proto`; `Slot` and `Observation` are in `program.proto`.
+  - The evidence lift, the correlated contract and `CorrelatedEvidence` are in `correlated.proto`.
+  - `RunEventKind`, `RunEventFilter` and `RunEventField` are in `event.proto`.
+  - `FaultInjected` is in `run.proto`, and its "accessor stays in the file" comment is gone.
+  - `InstructionOutcomeDefinition` and `OutcomeFieldDefinition` are in `instruction.proto`.
+  - `contract.proto` no longer imports `run.proto`. `expression.proto` also imports `event.proto`, for `RunEventFieldRef`.
+- Declaration order is identity, then behavior, then when it runs. Reordered messages:
+  - `Case` (`case_id` first), `Program` (`environment` after `program_id`).
+  - `InstructionNode`: id, instruction, outcome, reservations, dependencies, guard, limits.
+  - `ContractTransition`: filter and predicate last. `ContractRule`: captures before transitions, deadline last. `Contract`: correlated before limits.
+  - `Deadline`: `violation_state_id`, `rule_events`, `elapsed_milliseconds`.
+  - `CorrelatedContract`: projection id and fingerprint first. `CorrelatedRule`: trigger, response, captures, correlation, then clock, bound, ending.
+  - `CorrelatedEvidenceRule`: guard last. `CorrelatedEvidence` goes from 1-4,6 to 1-5.
+  - The `Instruction` oneof numbers are unchanged, because `contract.Opcode` mirrors them.
+- R2 check: `TestProtocolMessagesCarryLeadingComments` in `common/testing/testpilot/protocol_comments_test.go`.
+  - It reads a `--include_source_info` descriptor set that `make umpire-check-testpilot-protocol` builds, and skips with a message naming that target when `TESTPILOT_PROTOCOL_DESCRIPTOR_SET` is unset.
+  - It names each message or enum without a leading comment (api-linter directives do not count), each non-dense message, and each message declared out of number order.
+  - `TestProtocolDocumentationProblemsNameEachViolation` covers each failure as a negative case. A mutated live descriptor also failed with the expected names.
+- R11 check: `TestCaseImportClosureExcludesRunOnlyMessages` in `protocol_test.go`. It walks `case.proto`'s imports, and the negative case imports `run.proto` from a synthetic file. It was red before the restructure, naming `contract.proto`. `protocolFiles` is shared with the vocabulary test.
+- **Decision: generator fix, outside the declared Touches.** `protogen` trims enum value prefixes only per file. A singular enum field that names an enum from another file of the same package therefore generated uncompilable Go, which is why `FaultInjected` had to sit beside `FaultKind`. No layout gives `RunEvent.kind` its enum while also keeping `RunEvent` out of the Case closure. `cmd/tools/protogen/enum_references.go` now rewrites those references after generation.
+  - Tests: `enum_references_test.go`, red then green.
+  - No other generated file in the repository changed.
+  - This is recorded in the fn-87 spec's Planning decisions.
+- **Decision: Lean loading.** A probe showed that a second `#load_proto_file` re-declares the shared closure (`google.protobuf.Any has already been declared`), and the library's `read_proto_files` is not public. `Testpilot/Protocol.lean` therefore uses a `run_cmd` that runs one `protoc` over `case.proto` and `run.proto` and feeds the library's `Versions.compile_proto`. `model/lakefile.lean` and `TESTPILOT_PROTOCOL_PROTOS` list the nine schemas, and the Lake stamp rebuilt `Testpilot.Protocol`.
+- Other edits outside Touches, each needed to keep a gate green:
+  - `common/testing/testpilot/temporal/catalog.go`: the Driver catalog now roots at both `case.proto` and `run.proto`, because `FormatVersion` left the run closure. The first regression run failed on `synthetic-case.json`.
+  - `tests/testcore/testpilot/protobuf_lean_authoring_test.go`: pins `Program.environment` at 2, the declared renumbering.
+  - `tools/umpire/cmd/umpire-gen-lean-api/case_schema_test.go`: its authority-field scan now covers the two new files.
+  - `correlated_facade_test.go` (in Touches) roots at `case.proto` and depends on `correlated.proto`.
+  - `retiredvocabulary/check.go` needed no change.
+- Follow-ups:
+  - Reviewer P3, not applied after SHIP: sort rewrite offsets explicitly and skip `SelectorExpr.Sel` in `rewriteEnumReferences`. It is safe today because `ast.Inspect` visits in source order and the map is package-local.
+  - Several comments state runtime facts that later tasks change (`EnvironmentRef` scope, `version` "Always 1"); .5 to .12 should update them with their shapes.
+- Gates:
+  - Baseline was green.
+  - Passing after the change: the oracle; the testpilot-protocol, testpilot-authoring, case-runtime-conformance and retired-vocabulary checks; and `make proto`.
+  - `make umpire-check-regression` ran three times. Run 1 failed on the catalog, which was then fixed. Runs 2 and 3 exited 0 with 9 passing live identities, and run 3 was on the committed tree. No known flake fired.
+  - `lint-code` shows 161 issues after `go clean -cache` and `lint-model` shows 163; both match the baselines.
+- The commit also sweeps another session's uncommitted `.flow` edits for fn-87 .5 and .17, and it carries the spec's Planning-decision edit.
+
+stage: impl-review - ran (claude backend, SHIP on first round, one P3)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: cc6868258ec76d60db14c699fce475974499ba3e
+- Tests: baseline: green (oracle, testpilot-protocol/authoring/conformance, retired-vocabulary run pre-edit; regression via honored receipt b36208a9), go test -count=1 -tags test_dep ./common/testing/testpilot/internal/protocolmigration/, make umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-check-case-runtime-conformance, make umpire-check-retired-vocabulary, go test -count=1 ./cmd/tools/protogen/, make proto (lint-protos, lint-api, regeneration byte-identical on rerun), CC=/usr/bin/cc TMPDIR=$(cd "${TMPDIR:-/tmp}" && pwd -P) make umpire-check-regression (exit 0, 9 passing live identities; run 1 failed on the Driver catalog missing FormatVersion, fixed; runs 2 and 3 green, no flakes), go clean -cache && make lint-code GOLANGCI_LINT_FIX=false (161 issues, baseline 161), make lint-model (163 errors, baseline 163)
 - PRs:
-
