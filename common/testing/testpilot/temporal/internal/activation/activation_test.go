@@ -33,7 +33,7 @@ func preparedRuntimeFixtureWithProfile(t *testing.T, responseKind testpilotspb.N
 	profile := testpilot.ProfileSpec{
 		Identity: "profile", Catalog: catalog,
 		Roles: []testpilot.RolePolicy{
-			{ID: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT, Methods: []string{method}, ReservationCarriers: []testpilot.ReservationCarrierPolicy{{Method: method, Shapes: []testpilot.ReservationCarrierShape{{Kind: testpilotspb.ENTRYPOINT_KIND_WORKFLOW, MaximumCount: 8}, {Kind: testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER, MaximumCount: 8}}}}},
+			{ID: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT, Methods: []string{method}, ReservationCarriers: []testpilot.ReservationCarrierPolicy{{Method: method, Shapes: []testpilot.ReservationCarrierShape{{Kind: testpilot.WorkflowEntrypoint, MaximumCount: 8}, {Kind: testpilot.NexusHandlerEntrypoint, MaximumCount: 8}}}}},
 			{ID: "worker", Kind: testpilotspb.ROLE_KIND_WORKER},
 			{ID: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE},
 			{ID: "nexus-endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT},

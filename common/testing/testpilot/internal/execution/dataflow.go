@@ -39,16 +39,16 @@ func InstructionOpcode(instruction *testpilotspb.Instruction) contract.Opcode {
 		return 0
 	}
 }
-func opcodeContext(capability contract.Opcode) testpilotspb.EntrypointKind {
+func opcodeContext(capability contract.Opcode) contract.EntrypointKind {
 	switch capability {
 	case contract.InvokeRPC, contract.AwaitSlot, contract.CompleteNexusOperation, contract.InjectFault:
-		return testpilotspb.ENTRYPOINT_KIND_CONTROLLER
+		return contract.ControllerEntrypoint
 	case contract.StartNexusOperation, contract.Await, contract.Finish:
-		return testpilotspb.ENTRYPOINT_KIND_WORKFLOW
+		return contract.WorkflowEntrypoint
 	case contract.RespondNexus:
-		return testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER
+		return contract.NexusHandlerEntrypoint
 	default:
-		return testpilotspb.ENTRYPOINT_KIND_UNSPECIFIED
+		return 0
 	}
 }
 func scalarSchema(kind testpilotspb.ScalarKind) *testpilotspb.ValueType {
@@ -212,7 +212,7 @@ func (a *admission) bindOutcomes(g *graph, n *node) error {
 			}
 			expected = scalarSchema(testpilotspb.SCALAR_KIND_TEXT)
 		case testpilotspb.INSTRUCTION_OUTCOME_FIELD_SDK_FAILURE_CODE:
-			if g.context == testpilotspb.ENTRYPOINT_KIND_CONTROLLER {
+			if g.context == contract.ControllerEntrypoint {
 				return invalid(ir.Unsupported, nodePath(g, n), "SDK failure code requires an SDK instruction")
 			}
 			expected = scalarSchema(testpilotspb.SCALAR_KIND_TEXT)
@@ -220,7 +220,7 @@ func (a *admission) bindOutcomes(g *graph, n *node) error {
 			expected = scalarSchema(testpilotspb.SCALAR_KIND_TEXT)
 		case testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE:
 			// RPC payloads are available only through declared response projections.
-			if g.context == testpilotspb.ENTRYPOINT_KIND_CONTROLLER || typ.Opaque() || n.opcode == contract.StartNexusOperation {
+			if g.context == contract.ControllerEntrypoint || typ.Opaque() || n.opcode == contract.StartNexusOperation {
 				return invalid(ir.Unsupported, nodePath(g, n), "VALUE requires an SDK result, not a controller outcome, opaque capability or StartNexusOperation handle")
 			}
 		default:
@@ -353,7 +353,7 @@ func (a *admission) bindEvidenceLift(g *graph, n *node, location string, source 
 	// belongs to one instruction on an entrypoint that activates exactly once. A worker entrypoint
 	// activates per task and a second instruction would restart the count, and either would be
 	// rejected by the verifier's ordering rather than here.
-	if g.context != testpilotspb.ENTRYPOINT_KIND_CONTROLLER {
+	if g.context != contract.ControllerEntrypoint {
 		return nil, invalid(ir.Unsupported, nodePath(g, n), "evidence lift requires a controller entrypoint")
 	}
 	lift := &evidenceLift{observationID: source.GetObservationId(), element: typ}
@@ -391,7 +391,7 @@ func (a *admission) bindEvidenceRule(g *graph, n *node, location string, source 
 	}
 	bound := &evidenceRule{guard: guard, source: source.GetEvidenceSource(), kind: source.GetKind(), operation: operation}
 	// A scope binding is a Run coordinate and carries plain text on the wire; an evidence field is
-	// a typed scalar the portable decoder reads as text, natural or boolean.
+	// a typed scalar the portable decoder reads as text, unsigned integer or boolean.
 	scope, err := a.bindEvidenceBindings(g, n, location+".scope", typ, source.GetScope(), testpilotspb.SCALAR_KIND_TEXT)
 	if err != nil {
 		return nil, err
@@ -409,14 +409,13 @@ func (a *admission) bindEvidenceRule(g *graph, n *node, location string, source 
 var evidenceKeyKinds = append([]testpilotspb.ScalarKind{testpilotspb.SCALAR_KIND_TEXT}, evidenceIntegerKinds...)
 
 // evidenceFieldKinds are the scalars a lifted evidence field may read; the portable evidence domain
-// admits text, natural and boolean, and every integer kind narrows into a natural.
+// admits text, unsigned integer and boolean, and every integer kind narrows into an unsigned integer.
 var evidenceFieldKinds = append([]testpilotspb.ScalarKind{
 	testpilotspb.SCALAR_KIND_TEXT, testpilotspb.SCALAR_KIND_BOOLEAN,
 }, evidenceIntegerKinds...)
 
-// evidenceIntegerKinds narrow into the portable evidence domain's natural.
+// evidenceIntegerKinds narrow into the portable evidence domain's unsigned integer.
 var evidenceIntegerKinds = []testpilotspb.ScalarKind{
-	testpilotspb.SCALAR_KIND_NATURAL,
 	testpilotspb.SCALAR_KIND_INT32, testpilotspb.SCALAR_KIND_INT64, testpilotspb.SCALAR_KIND_UINT32,
 	testpilotspb.SCALAR_KIND_UINT64, testpilotspb.SCALAR_KIND_SINT32, testpilotspb.SCALAR_KIND_SINT64,
 	testpilotspb.SCALAR_KIND_FIXED32, testpilotspb.SCALAR_KIND_FIXED64, testpilotspb.SCALAR_KIND_SFIXED32,
@@ -479,7 +478,7 @@ func (a *admission) scope(g *graph, n *node) map[ir.Reference]ir.Binding {
 	scope := map[ir.Reference]ir.Binding{}
 	for id, typ := range a.prepared.slots {
 		if writer, exists := a.writers[id]; exists && !typ.Opaque() && writer.graph != g &&
-			(writer.graph.context != testpilotspb.ENTRYPOINT_KIND_CONTROLLER || g.context != testpilotspb.ENTRYPOINT_KIND_CONTROLLER) {
+			(writer.graph.context != contract.ControllerEntrypoint || g.context != contract.ControllerEntrypoint) {
 			continue
 		}
 		scope[ir.Reference{Kind: ir.SlotReference, ID: id}] = ir.Binding{Type: typ}

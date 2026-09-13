@@ -159,7 +159,7 @@ func (c *Catalog) bindStep(current Type, segment *testpilotspb.FieldPathSegment,
 }
 
 func (c *Catalog) owns(typ Type) bool {
-	return typ.schema != nil && typ.catalog != nil && c != nil && c.identity == typ.catalog.identity
+	return (typ.schema != nil || typ.opaque) && typ.catalog != nil && c != nil && c.identity == typ.catalog.identity
 }
 
 func (c *Catalog) fieldType(field protoreflect.FieldDescriptor) Type {

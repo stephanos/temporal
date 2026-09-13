@@ -94,8 +94,7 @@ func TestPathsRejectInvalidSelectorsAndTraversal(t *testing.T) {
 	unknown.Segments[0].ProtoReflect().SetUnknown([]byte{0x78, 1})
 	_, err := c.BindPath(source, unknown, DefaultLimits())
 	require.Error(t, err)
-	opaque := &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_OpaqueHandle{OpaqueHandle: &testpilotspb.OpaqueHandleType{}}}}}
-	_, err = c.BindPath(boundType(t, c, opaque), &testpilotspb.FieldPath{}, DefaultLimits())
+	_, err = c.BindPath(c.OpaqueHandleType(), &testpilotspb.FieldPath{}, DefaultLimits())
 	require.Error(t, err)
 	p, err := c.BindPath(source, fieldPath("payload"), DefaultLimits())
 	require.NoError(t, err)

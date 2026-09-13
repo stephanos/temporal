@@ -19,7 +19,7 @@ func fixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Profile) {
 	catalog, err := ir.NewCatalog(&descriptorpb.FileDescriptorSet{File: []*descriptorpb.FileDescriptorProto{{Name: proto.String("admission.proto"), Package: proto.String("example"), Syntax: proto.String("proto3"), MessageType: []*descriptorpb.DescriptorProto{{Name: proto.String("Payload"), Field: []*descriptorpb.FieldDescriptorProto{{Name: proto.String("text"), Number: proto.Int32(1), Type: descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(), Label: descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum()}, {Name: proto.String("items"), Number: proto.Int32(2), Type: descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(), Label: descriptorpb.FieldDescriptorProto_LABEL_REPEATED.Enum()}}}}, Service: []*descriptorpb.ServiceDescriptorProto{{Name: proto.String("Service"), Method: []*descriptorpb.MethodDescriptorProto{{Name: proto.String("Call"), InputType: proto.String(".example.Payload"), OutputType: proto.String(".example.Payload")}, {Name: proto.String("Stream"), InputType: proto.String(".example.Payload"), OutputType: proto.String(".example.Payload"), ServerStreaming: proto.Bool(true)}}}}}}})
 	require.NoError(t, err)
 	limits := &testpilotspb.ProgramLimits{MaxEntrypoints: 8, MaxNodes: 32, MaxEdges: 64, MaxActivations: 64, MaxAttempts: 32, MaxRunEvents: 256, MaxExpressionDepth: 16, MaxPathFanout: 128, MaxRequestBytes: 4096, MaxResponseBytes: 4096, MaxTotalDurationMilliseconds: 30000, MaxCleanupDurationMilliseconds: 5000}
-	policy := Profile{Identity: "host", CatalogIdentity: catalog.Identity(), Roles: []contract.RolePolicy{{ID: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT, Methods: []string{"/example.Service/Call"}, ReservationCarriers: []contract.ReservationCarrierPolicy{{Method: "/example.Service/Call", Shapes: []contract.ReservationCarrierShape{{Kind: testpilotspb.ENTRYPOINT_KIND_WORKFLOW, MaximumCount: 32}, {Kind: testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER, MaximumCount: 32}}}}}, {ID: "worker", Kind: testpilotspb.ROLE_KIND_WORKER}, {ID: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE}}, Opcodes: []contract.Opcode{contract.InvokeRPC, contract.AwaitSlot, contract.CompleteNexusOperation, contract.StartNexusOperation, contract.Await, contract.Finish, contract.RespondNexus}, Limits: proto.CloneOf(limits)}
+	policy := Profile{Identity: "host", CatalogIdentity: catalog.Identity(), Roles: []contract.RolePolicy{{ID: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT, Methods: []string{"/example.Service/Call"}, ReservationCarriers: []contract.ReservationCarrierPolicy{{Method: "/example.Service/Call", Shapes: []contract.ReservationCarrierShape{{Kind: contract.WorkflowEntrypoint, MaximumCount: 32}, {Kind: contract.NexusHandlerEntrypoint, MaximumCount: 32}}}}}, {ID: "worker", Kind: testpilotspb.ROLE_KIND_WORKER}, {ID: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE}}, Opcodes: []contract.Opcode{contract.InvokeRPC, contract.AwaitSlot, contract.CompleteNexusOperation, contract.StartNexusOperation, contract.Await, contract.Finish, contract.RespondNexus}, Limits: proto.CloneOf(limits)}
 	source := &testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: 1}, CaseId: "case", Program: &testpilotspb.Program{ProgramId: "program", Roles: []*testpilotspb.Role{{RoleId: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT}}, Entrypoints: []*testpilotspb.Entrypoint{{EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}}, Instructions: []*testpilotspb.InstructionNode{rpcNode("call")}}}, Cleanup: &testpilotspb.Cleanup{EntrypointId: "cleanup"}, Limits: limits}, Contract: &testpilotspb.Contract{ContractId: "contract"}}
 	return source, catalog, policy
 }
@@ -560,21 +560,21 @@ func TestConcurrentEnvironmentRequestsUsePreparedSnapshot(t *testing.T) {
 }
 
 func TestInstructionContextMatrix(t *testing.T) {
-	for _, context := range []testpilotspb.EntrypointKind{testpilotspb.ENTRYPOINT_KIND_CONTROLLER, testpilotspb.ENTRYPOINT_KIND_WORKFLOW, testpilotspb.ENTRYPOINT_KIND_ACTIVITY, testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER} {
+	for _, context := range []contract.EntrypointKind{contract.ControllerEntrypoint, contract.WorkflowEntrypoint, contract.ActivityEntrypoint, contract.NexusHandlerEntrypoint} {
 		for _, test := range []struct {
 			name        string
 			instruction *testpilotspb.Instruction
-			expected    testpilotspb.EntrypointKind
+			expected    contract.EntrypointKind
 		}{
-			{"rpc", rpcNode("call").Instruction, testpilotspb.ENTRYPOINT_KIND_CONTROLLER},
-			{"await slot", &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitSlot{AwaitSlot: &testpilotspb.AwaitSlot{SlotId: "value"}}}, testpilotspb.ENTRYPOINT_KIND_CONTROLLER},
-			{"complete", &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_CompleteNexusOperation{CompleteNexusOperation: &testpilotspb.CompleteNexusOperation{HandleSlotId: "capability", Result: textLiteral("done")}}}, testpilotspb.ENTRYPOINT_KIND_CONTROLLER},
-			{"start", &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_StartNexusOperation{StartNexusOperation: &testpilotspb.StartNexusOperation{EndpointRoleId: "endpoint", Service: "service", Operation: "operation", Input: textLiteral("input")}}}, testpilotspb.ENTRYPOINT_KIND_WORKFLOW},
-			{"await", &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitInstruction{AwaitInstruction: &testpilotspb.AwaitInstruction{Instruction: &testpilotspb.InstructionReference{EntrypointId: "workflow", InstructionId: "prior"}}}}, testpilotspb.ENTRYPOINT_KIND_WORKFLOW},
-			{"finish", &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_Finish{Finish: &testpilotspb.Finish{Result: textLiteral("done")}}}, testpilotspb.ENTRYPOINT_KIND_WORKFLOW},
-			{"respond", &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_RespondNexus{RespondNexus: &testpilotspb.RespondNexus{Kind: testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS, Result: textLiteral("done")}}}, testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER},
+			{"rpc", rpcNode("call").Instruction, contract.ControllerEntrypoint},
+			{"await slot", &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitSlot{AwaitSlot: &testpilotspb.AwaitSlot{SlotId: "value"}}}, contract.ControllerEntrypoint},
+			{"complete", &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_CompleteNexusOperation{CompleteNexusOperation: &testpilotspb.CompleteNexusOperation{HandleSlotId: "capability", Result: textLiteral("done")}}}, contract.ControllerEntrypoint},
+			{"start", &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_StartNexusOperation{StartNexusOperation: &testpilotspb.StartNexusOperation{EndpointRoleId: "endpoint", Service: "service", Operation: "operation", Input: textLiteral("input")}}}, contract.WorkflowEntrypoint},
+			{"await", &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitInstruction{AwaitInstruction: &testpilotspb.AwaitInstruction{Instruction: &testpilotspb.InstructionReference{EntrypointId: "workflow", InstructionId: "prior"}}}}, contract.WorkflowEntrypoint},
+			{"finish", &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_Finish{Finish: &testpilotspb.Finish{Result: textLiteral("done")}}}, contract.WorkflowEntrypoint},
+			{"respond", &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_RespondNexus{RespondNexus: &testpilotspb.RespondNexus{Kind: testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS, Result: textLiteral("done")}}}, contract.NexusHandlerEntrypoint},
 		} {
-			t.Run(context.String()+"/"+test.name, func(t *testing.T) {
+			t.Run(fmt.Sprintf("kind %d/%s", context, test.name), func(t *testing.T) {
 				if context == test.expected {
 					return
 				}
@@ -582,11 +582,11 @@ func TestInstructionContextMatrix(t *testing.T) {
 				g := c.Program.Entrypoints[0]
 				g.Instructions[0].Instruction = test.instruction
 				switch context {
-				case testpilotspb.ENTRYPOINT_KIND_WORKFLOW:
+				case contract.WorkflowEntrypoint:
 					g.Activation = &testpilotspb.Entrypoint_Workflow{Workflow: &testpilotspb.WorkflowActivation{WorkflowType: "flow", WorkerRoleId: "worker", TaskQueueRoleId: "queue"}}
-				case testpilotspb.ENTRYPOINT_KIND_ACTIVITY:
+				case contract.ActivityEntrypoint:
 					g.Activation = &testpilotspb.Entrypoint_Activity{Activity: &testpilotspb.ActivityActivation{ActivityType: "activity", WorkerRoleId: "worker", TaskQueueRoleId: "queue"}}
-				case testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER:
+				case contract.NexusHandlerEntrypoint:
 					g.Activation = &testpilotspb.Entrypoint_NexusHandler{NexusHandler: &testpilotspb.NexusHandlerActivation{Service: "service", Operation: "operation", WorkerRoleId: "worker", TaskQueueRoleId: "queue"}}
 				default:
 				}

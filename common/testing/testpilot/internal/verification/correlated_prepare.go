@@ -3,6 +3,7 @@ package verification
 import (
 	"fmt"
 	"slices"
+	"strconv"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
@@ -197,7 +198,7 @@ func (a *admission) bindCorrelated(seen map[string]bool) error {
 		}
 		fields := map[string]bool{}
 		for _, f := range r.Fields {
-			if !validID(f.FieldId) || fields[f.FieldId] || f.GetType().GetKind() < testpilotspb.SCALAR_KIND_TEXT || f.GetType().GetKind() > testpilotspb.SCALAR_KIND_BOOLEAN || f.Disposition < testpilotspb.CORRELATED_FIELD_DISPOSITION_RETAIN || f.Disposition > testpilotspb.CORRELATED_FIELD_DISPOSITION_REJECT {
+			if !validID(f.FieldId) || fields[f.FieldId] || !correlatedFieldKind(f.GetType().GetKind()) || f.Disposition < testpilotspb.CORRELATED_FIELD_DISPOSITION_RETAIN || f.Disposition > testpilotspb.CORRELATED_FIELD_DISPOSITION_REJECT {
 				return invalid(ir.Malformed, "invalid field policy")
 			}
 			fields[f.FieldId] = true
@@ -259,20 +260,23 @@ func validCorrelatedLiteral(v *testpilotspb.Value) bool {
 	switch literal := v.GetValue().(type) {
 	case *testpilotspb.Value_TextValue, *testpilotspb.Value_BoolValue:
 		return true
-	case *testpilotspb.Value_NaturalValue:
-		text := literal.NaturalValue
-		if text != "0" && (len(text) == 0 || text[0] < '1' || text[0] > '9') {
-			return false
-		}
-		for _, c := range text {
-			if c < '0' || c > '9' {
-				return false
-			}
-		}
-		return true
+	case *testpilotspb.Value_UnsignedIntegerValue:
+		return canonicalUint64(literal.UnsignedIntegerValue)
 	default:
 		return false
 	}
+}
+
+// correlatedFieldKind reports whether kind is one the portable evidence domain declares: text,
+// unsigned integer or boolean.
+func correlatedFieldKind(kind testpilotspb.ScalarKind) bool {
+	return kind == testpilotspb.SCALAR_KIND_TEXT || kind == testpilotspb.SCALAR_KIND_UINT64 || kind == testpilotspb.SCALAR_KIND_BOOLEAN
+}
+
+// canonicalUint64 reports whether text is an unsigned 64-bit integer in canonical base-10 text.
+func canonicalUint64(text string) bool {
+	parsed, err := strconv.ParseUint(text, 10, 64)
+	return err == nil && strconv.FormatUint(parsed, 10) == text
 }
 
 // correlatedCapture is one clause's declared capture: how many occurrences an operation retains and the
@@ -286,8 +290,8 @@ func correlatedLiteralKind(v *testpilotspb.Value) testpilotspb.ScalarKind {
 	switch v.GetValue().(type) {
 	case *testpilotspb.Value_TextValue:
 		return testpilotspb.SCALAR_KIND_TEXT
-	case *testpilotspb.Value_NaturalValue:
-		return testpilotspb.SCALAR_KIND_NATURAL
+	case *testpilotspb.Value_UnsignedIntegerValue:
+		return testpilotspb.SCALAR_KIND_UINT64
 	case *testpilotspb.Value_BoolValue:
 		return testpilotspb.SCALAR_KIND_BOOLEAN
 	default:

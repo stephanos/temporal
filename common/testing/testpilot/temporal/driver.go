@@ -118,9 +118,9 @@ func hasFaultInstruction(program testpilot.PreparedProgram) bool {
 
 func hasWorkerEntrypoint(program testpilot.PreparedProgram) bool {
 	for _, entrypoint := range program.Entrypoints() {
-		if entrypoint.Kind() == testpilotspb.ENTRYPOINT_KIND_WORKFLOW ||
-			entrypoint.Kind() == testpilotspb.ENTRYPOINT_KIND_ACTIVITY ||
-			entrypoint.Kind() == testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER {
+		if entrypoint.Kind() == testpilot.WorkflowEntrypoint ||
+			entrypoint.Kind() == testpilot.ActivityEntrypoint ||
+			entrypoint.Kind() == testpilot.NexusHandlerEntrypoint {
 			return true
 		}
 	}

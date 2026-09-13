@@ -135,6 +135,14 @@ func TestRetiredRulesHoldTheGlossaryRenamedProtocolNames(t *testing.T) {
 		// The bound oneof, the singular type and the named values replace them; the correlated names
 		// that share a prefix stay.
 		{line: "pb.Deadline_RuleEvents{}, pb.SingularType_Message{}, pb.NamedValue{}, pb.NamedExpression{}, CorrelatedEvidenceRule, CorrelatedEvidenceProjection, CorrelatedRuleBinding"},
+		{line: "&pb.Value_Natural" + "Value{Natural" + "Value: text}", want: []string{"Natural" + "Value"}},
+		{line: `{"natural` + `Value": "1"}`, want: []string{"Natural" + "Value"}},
+		{line: "{ value := some (.natural" + "_value text) }", want: []string{"natural" + "_value"}},
+		{line: "pb.SCALAR_KIND_" + "NATURAL", want: []string{"SCALAR_KIND_" + "NATURAL"}},
+		{line: "testpilotspb.ENTRYPOINT_" + "KIND_WORKFLOW", want: []string{"ENTRYPOINT_" + "KIND_*"}},
+		// The unsigned integer arm and kind, the Go entrypoint classification and the model's natural
+		// evidence scalar stay.
+		{line: "pb.Value_UnsignedIntegerValue{}, pb.SCALAR_KIND_UINT64, contract.EntrypointKind, testpilot.WorkflowEntrypoint, EvidenceValue.natural"},
 	} {
 		require.Equal(t, tc.want, matched(tc.line), "line %q", tc.line)
 	}

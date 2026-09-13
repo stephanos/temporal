@@ -26,10 +26,6 @@ namespace Value
 def text (value : String) : temporal.server.api.testpilot.v1.Value :=
   { value := some (.text_value value) }
 
-/-- Encode a natural as the protocol's canonical decimal string representation. -/
-def natural (value : Nat) : temporal.server.api.testpilot.v1.Value :=
-  { value := some (.natural_value value.repr) }
-
 def boolean (value : Bool) : temporal.server.api.testpilot.v1.Value :=
   { value := some (.bool_value value) }
 
@@ -80,8 +76,6 @@ def messageType (protobufType : String) : SingularType :=
   { type := some (.message { protobuf_type := protobufType }) }
 
 def any : SingularType := { type := some (.any {}) }
-
-def opaqueHandle : SingularType := { type := some (.opaque_handle {}) }
 
 def singular (type : SingularType) : ValueType :=
   { shape := some (.singular type) }

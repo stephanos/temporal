@@ -92,7 +92,7 @@ func (p *PreparedProgram) ReservationCarrier(entrypointID, instructionID string)
 type graph struct {
 	runtimeWork int64
 	id          string
-	context     testpilotspb.EntrypointKind
+	context     contract.EntrypointKind
 	cleanup     bool
 	activation  *testpilotspb.Entrypoint
 	nodes       []*node
@@ -191,8 +191,8 @@ func (p *PreparedProgram) Cleanup() (EntrypointPlan, bool) {
 	}
 	return EntrypointPlan{graph: graph, program: p}, true
 }
-func (p EntrypointPlan) ID() string                        { return p.graph.id }
-func (p EntrypointPlan) Kind() testpilotspb.EntrypointKind { return p.graph.context }
+func (p EntrypointPlan) ID() string                    { return p.graph.id }
+func (p EntrypointPlan) Kind() contract.EntrypointKind { return p.graph.context }
 func (p EntrypointPlan) Activation() *testpilotspb.Entrypoint {
 	return proto.CloneOf(p.graph.activation)
 }

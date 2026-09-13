@@ -26,7 +26,7 @@ private def admitted (change : CorrelatedEvidence → CorrelatedEvidence) : Bool
 #guard !admitted (fun event => { event with identity := event.identity.map fun identity => { identity with evidence_source := "unknown" } })
 #guard !admitted (fun event => { event with identity := event.identity.map fun identity => { identity with scope := #[] } })
 #guard !admitted (fun event => { event with identity := event.identity.map fun identity => {
-  identity with scope := identity.scope.map fun binding => { binding with value := some { value := some (.natural_value "1") } } } })
+  identity with scope := identity.scope.map fun binding => { binding with value := some { value := some (.unsigned_integer_value "1") } } } })
 #guard admitted id
 #guard !admitted (fun event => { event with fields := #[{ field_id := "unknown" }] })
 #guard !admitted (fun event => { event with parents := event.identity.toArray })

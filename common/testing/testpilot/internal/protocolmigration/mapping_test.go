@@ -514,7 +514,7 @@ func TestDeclaredFaultCoordinatesBecomePayloadPaths(t *testing.T) {
 
 // The deadline, version and named-value steps rewrite the shapes the baseline admitted and refuse
 // any other, so no bound, version or supply is dropped silently.
-func TestDeclaredDeadlineVersionAndNamedValueSteps(t *testing.T) {
+func TestDeclaredDeadlineVersionNamedValueNaturalAndOpaqueSteps(t *testing.T) {
 	t.Parallel()
 
 	fieldPath := func() *Object {
@@ -539,6 +539,16 @@ func TestDeclaredDeadlineVersionAndNamedValueSteps(t *testing.T) {
 		{name: "path binding", message: "CorrelatedEvidence" + "Binding", fields: map[string]any{"fieldId": "id", "path": fieldPath()}, want: `{"fieldId": "id", "value": {"path": {"operand": {"reference": {"projectedValue": {}}}, "path": {"segments": [{"field": "id"}]}}}}`},
 		{name: "two supplies", message: "CorrelatedEvidence" + "Binding", fields: map[string]any{"fieldId": "id", "literal": "one", "path": fieldPath()}, wantErrorSubstr: "evidence binding carries no single supply"},
 		{name: "no supply", message: "CorrelatedEvidence" + "Binding", fields: map[string]any{"fieldId": "id"}, wantErrorSubstr: "evidence binding carries no single supply"},
+		{name: "natural value", message: "Value", fields: map[string]any{"natural": "18446744073709551615"}, want: `{"unsignedIntegerValue": "18446744073709551615"}`},
+		{name: "oversized natural value", message: "Value", fields: map[string]any{"natural": "18446744073709551616"}, wantErrorSubstr: "is not a canonical unsigned 64-bit integer"},
+		{name: "noncanonical natural value", message: "Value", fields: map[string]any{"natural": "01"}, wantErrorSubstr: "is not a canonical unsigned 64-bit integer"},
+		{name: "natural kind by name", message: "ScalarType", fields: map[string]any{"kind": "SCALAR_KIND_" + "NATURAL"}, want: `{"kind": "SCALAR_KIND_UINT64"}`},
+		{name: "natural kind by number", message: "ScalarType", fields: map[string]any{"kind": json.Number("2")}, want: `{"kind": "SCALAR_KIND_UINT64"}`},
+		{name: "later kind by number", message: "ScalarType", fields: map[string]any{"kind": json.Number("16")}, want: `{"kind": 15}`},
+		{name: "kind by name", message: "ScalarType", fields: map[string]any{"kind": "SCALAR_KIND_BOOLEAN"}, want: `{"kind": "SCALAR_KIND_BOOLEAN"}`},
+		{name: "text kind by number", message: "ScalarType", fields: map[string]any{"kind": json.Number("1")}, want: `{"kind": 1}`},
+		{name: "opaque singular type", message: "SingularType", fields: map[string]any{"opaqueCapability": map[string]any{}}, wantErrorSubstr: "only a Slot may hold"},
+		{name: "scalar singular type", message: "SingularType", fields: map[string]any{"scalar": &Object{Fields: map[string]any{}}}, want: `{"scalar": {}}`},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()

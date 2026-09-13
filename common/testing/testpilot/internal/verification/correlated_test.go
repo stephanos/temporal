@@ -312,7 +312,7 @@ func TestCorrelatedEvidenceScopeValuesAreText(t *testing.T) {
 	_, err = e.Observe(context.Background(), event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED))
 	require.NoError(t, err)
 	evidence := correlatedEvidence(0, "request", "a")
-	evidence.Identity.Scope[0].Value = &testpilotspb.Value{Value: &testpilotspb.Value_NaturalValue{NaturalValue: "1"}}
+	evidence.Identity.Scope[0].Value = &testpilotspb.Value{Value: &testpilotspb.Value_UnsignedIntegerValue{UnsignedIntegerValue: "1"}}
 	_, err = e.Observe(context.Background(), correlatedEvent(t, 2, evidence))
 	require.ErrorContains(t, err, "wrong correlated bindings")
 }

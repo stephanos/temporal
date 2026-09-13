@@ -156,7 +156,7 @@ var Declared = Mapping{
 		Apply: RenameMessage(protocol+"InvokeRPC", protocol+"InvokeRpc"),
 	},
 	valueArm("text", "textValue"),
-	valueArm("natural", "naturalValue"),
+	valueArm("natural", "natural"+"Value"),
 	valueArm("signedInteger", "signedIntegerValue"),
 	valueArm("unsignedInteger", "unsignedIntegerValue"),
 	valueArm("floatingPoint", "floatingPointValue"),
@@ -272,6 +272,62 @@ var Declared = Mapping{
 			RenameMessage(protocol+"CorrelatedEvidence"+"Binding", protocol+"NamedExpression"),
 		),
 	},
+	{
+		Name: "Value.natural" + "_value becomes unsigned_integer_value and SCALAR_KIND_" + "NATURAL becomes SCALAR_KIND_UINT64", Requirement: "R6",
+		Apply: sequence(
+			RewriteMessages(protocol+"Value", rewriteNaturalValue),
+			RewriteMessages(protocol+"ScalarType", rewriteScalarKind),
+		),
+	},
+	{
+		Name: "SingularType.opaque_handle is removed, so only a Slot holds an opaque handle", Requirement: "R6",
+		Apply: RewriteMessages(protocol+"SingularType", func(_ string, object *Object) (any, error) {
+			if _, opaque := object.Fields["opaqueHandle"]; opaque {
+				return nil, errors.New("a singular type carries an opaque handle, which only a Slot may hold")
+			}
+			return object, nil
+		}),
+	},
+}
+
+// rewriteNaturalValue moves a baseline natural into the unsigned integer arm, which spells it with
+// the same canonical base-10 text. The baseline natural was unbounded, so a value above the unsigned
+// 64-bit range fails rather than being carried into an arm that cannot hold it.
+func rewriteNaturalValue(_ string, object *Object) (any, error) {
+	value, ok := object.Fields["natural"+"Value"]
+	if !ok {
+		return object, nil
+	}
+	text, isText := value.(string)
+	parsed, err := strconv.ParseUint(text, 10, 64)
+	if !isText || err != nil || strconv.FormatUint(parsed, 10) != text {
+		return nil, fmt.Errorf("natural value %v is not a canonical unsigned 64-bit integer", value)
+	}
+	if _, clashes := object.Fields["unsignedIntegerValue"]; clashes {
+		return nil, errors.New("value carries a natural and an unsigned integer")
+	}
+	delete(object.Fields, "natural"+"Value")
+	object.Fields["unsignedIntegerValue"] = text
+	return object, nil
+}
+
+// rewriteScalarKind renames a baseline NATURAL kind, by name or number, to UINT64 and moves every
+// later baseline kind number one down, the numbering the removal leaves dense. A kind spelled by any
+// other name keeps its name.
+func rewriteScalarKind(_ string, object *Object) (any, error) {
+	kind, ok := object.Fields["kind"]
+	if !ok {
+		return object, nil
+	}
+	text := literalText(kind)
+	if text == "SCALAR_KIND_"+"NATURAL" || text == "2" {
+		object.Fields["kind"] = "SCALAR_KIND_UINT64"
+		return object, nil
+	}
+	if number, err := strconv.Atoi(text); err == nil && number > 2 {
+		object.Fields["kind"] = json.Number(strconv.Itoa(number - 1))
+	}
+	return object, nil
 }
 
 // rewriteDeadlineBound checks one baseline deadline against the bound oneof. The baseline admitted

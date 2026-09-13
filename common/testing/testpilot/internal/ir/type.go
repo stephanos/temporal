@@ -42,7 +42,13 @@ func (t Type) Opaque() bool                            { return t.opaque }
 func (t Type) Any() bool                               { return t.any }
 func (t Type) MapKey() testpilotspb.ScalarKind         { return t.key }
 func (t Type) Equal(other Type) bool {
-	return t.schema != nil && other.schema != nil && proto.Equal(t.schema, other.schema) && t.catalog.identity == other.catalog.identity
+	if t.catalog == nil || other.catalog == nil || t.catalog.identity != other.catalog.identity {
+		return false
+	}
+	if t.opaque || other.opaque {
+		return t.opaque && other.opaque
+	}
+	return t.schema != nil && other.schema != nil && proto.Equal(t.schema, other.schema)
 }
 func (t Type) Element() Type {
 	if t.cardinality == Singular || t.schema == nil {
@@ -94,10 +100,6 @@ func (c *Catalog) BindType(schema *testpilotspb.ValueType) (Type, error) {
 	if err := c.bindSingular(singular, &result); err != nil {
 		return Type{}, err
 	}
-
-	if result.opaque && result.cardinality != Singular {
-		return Type{}, invalid(TypeMismatch, "type", "capabilities cannot occupy collections")
-	}
 	return result, nil
 }
 
@@ -143,12 +145,16 @@ func (c *Catalog) bindSingular(singular *testpilotspb.SingularType, result *Type
 		}
 	case *testpilotspb.SingularType_Any:
 		result.any = true
-	case *testpilotspb.SingularType_OpaqueHandle:
-		result.opaque = true
 	default:
 		return invalid(Malformed, "type", "missing singular type variant")
 	}
 	return nil
+}
+
+// OpaqueHandleType is the type of a Slot that holds an effect handle. The protocol spells no
+// ValueType for it, so its schema is nil, and only a Slot declaration binds it.
+func (c *Catalog) OpaqueHandleType() Type {
+	return Type{catalog: c, cardinality: Singular, opaque: true}
 }
 
 func mapKeyKind(kind testpilotspb.ScalarKind) bool {
@@ -185,7 +191,7 @@ func (c *Catalog) CheckLiteral(value *testpilotspb.Value, typ Type, limits Limit
 }
 
 func (c *Catalog) checkLiteral(value *testpilotspb.Value, typ Type, b *budget, depth int64) error {
-	if value == nil || missing(value.Value) || typ.schema == nil {
+	if value == nil || missing(value.Value) || typ.schema == nil && !typ.opaque {
 		return invalid(Malformed, "literal", "missing literal or type")
 	}
 	if err := b.charge(depth, 1, 0, "literal"); err != nil {
@@ -309,11 +315,6 @@ func checkScalar(value *testpilotspb.Value, kind testpilotspb.ScalarKind) error 
 		if _, ok := value.Value.(*testpilotspb.Value_BoolValue); !ok {
 			return literalMismatch()
 		}
-	case testpilotspb.SCALAR_KIND_NATURAL:
-		item, ok := value.Value.(*testpilotspb.Value_NaturalValue)
-		if !ok || !canonicalUnsigned(item.NaturalValue) {
-			return literalMismatch()
-		}
 	case testpilotspb.SCALAR_KIND_INT32, testpilotspb.SCALAR_KIND_INT64, testpilotspb.SCALAR_KIND_SINT32, testpilotspb.SCALAR_KIND_SINT64, testpilotspb.SCALAR_KIND_SFIXED32, testpilotspb.SCALAR_KIND_SFIXED64, testpilotspb.SCALAR_KIND_UINT32, testpilotspb.SCALAR_KIND_UINT64, testpilotspb.SCALAR_KIND_FIXED32, testpilotspb.SCALAR_KIND_FIXED64:
 		return checkInteger(value, kind)
 	case testpilotspb.SCALAR_KIND_FLOAT, testpilotspb.SCALAR_KIND_DOUBLE:
@@ -362,18 +363,6 @@ func checkInteger(value *testpilotspb.Value, kind testpilotspb.ScalarKind) error
 		return literalMismatch()
 	}
 	return nil
-}
-
-func canonicalUnsigned(value string) bool {
-	if value == "" || (len(value) > 1 && value[0] == '0') {
-		return false
-	}
-	for _, digit := range value {
-		if digit < '0' || digit > '9' {
-			return false
-		}
-	}
-	return true
 }
 
 // Scan before unmarshaling so tiny repeated messages cannot allocate beyond the work ceiling.

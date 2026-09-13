@@ -71,11 +71,11 @@ func (s *valueStore) activate(entrypoint, id string) (*activationValues, error) 
 	if selected == nil {
 		return nil, invalid(ir.Unknown, "values", "unknown entrypoint")
 	}
-	if selected.context == testpilotspb.ENTRYPOINT_KIND_CONTROLLER && s.controllers[entrypoint] {
+	if selected.context == contract.ControllerEntrypoint && s.controllers[entrypoint] {
 		return nil, invalid(ir.Malformed, "values", "controller already activated")
 	}
 	a := &activationValues{store: s, graph: selected, id: id, slots: map[string]*testpilotspb.Value{}, outcomes: map[contract.Coordinate]*valueBatch{}, latest: map[string]*valueBatch{}}
-	if selected.context == testpilotspb.ENTRYPOINT_KIND_CONTROLLER {
+	if selected.context == contract.ControllerEntrypoint {
 		a.slots = s.slots
 		s.controllers[entrypoint] = true
 	}

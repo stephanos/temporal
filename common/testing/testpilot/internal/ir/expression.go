@@ -640,8 +640,6 @@ func (c *Catalog) literalType(value *testpilotspb.Value) (Type, error) {
 	switch literal := value.Value.(type) {
 	case *testpilotspb.Value_TextValue:
 		return c.scalarType(testpilotspb.SCALAR_KIND_TEXT), nil
-	case *testpilotspb.Value_NaturalValue:
-		return c.scalarType(testpilotspb.SCALAR_KIND_NATURAL), nil
 	case *testpilotspb.Value_BoolValue:
 		return c.scalarType(testpilotspb.SCALAR_KIND_BOOLEAN), nil
 	case *testpilotspb.Value_BytesValue:
@@ -656,5 +654,5 @@ func (c *Catalog) literalType(value *testpilotspb.Value) (Type, error) {
 }
 
 func ordered(typ Type) bool {
-	return typ.cardinality == Singular && (typ.scalar == testpilotspb.SCALAR_KIND_NATURAL || typ.scalar >= testpilotspb.SCALAR_KIND_INT32 && typ.scalar <= testpilotspb.SCALAR_KIND_DOUBLE)
+	return typ.cardinality == Singular && typ.scalar >= testpilotspb.SCALAR_KIND_INT32 && typ.scalar <= testpilotspb.SCALAR_KIND_DOUBLE
 }

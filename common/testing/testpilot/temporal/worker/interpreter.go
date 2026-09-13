@@ -33,7 +33,7 @@ type workflowInterpreter struct {
 
 func (s *Session) executeWorkflow(ctx workflow.Context, delivered delivery.Activation) (*testpilotspb.Value, error) {
 	entry, exists := s.definition.entries[delivered.Coordinate().EntrypointID]
-	if !exists || entry.plan.Kind() != testpilotspb.ENTRYPOINT_KIND_WORKFLOW {
+	if !exists || entry.plan.Kind() != testpilot.WorkflowEntrypoint {
 		return nil, ErrInvalid
 	}
 	state, err := activation.New(entry.plan)
@@ -185,7 +185,7 @@ func (s *Session) executeNexus(ctx context.Context, delivered delivery.Activatio
 
 func (s *Session) interpretNexus(ctx context.Context, delivered delivery.Activation, options nexus.StartOperationOptions) (testpilotspb.NexusResponseKind, *testpilotspb.Value, string, error) {
 	entry, exists := s.definition.entries[delivered.Coordinate().EntrypointID]
-	if !exists || entry.plan.Kind() != testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER {
+	if !exists || entry.plan.Kind() != testpilot.NexusHandlerEntrypoint {
 		return 0, nil, "", ErrInvalid
 	}
 	state, err := activation.New(entry.plan)

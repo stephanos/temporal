@@ -8,7 +8,6 @@ import (
 	"sync/atomic"
 
 	"go.temporal.io/api/workflowservice/v1"
-	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	"google.golang.org/protobuf/proto"
 )
@@ -249,7 +248,7 @@ func (l *Ledger) CreateBundle(ctx context.Context, origin testpilot.Coordinate, 
 		routeState := &routeState{bundle: state, identity: identity, retained: proxy.retained, authority: reserved}
 		proxy.retained.route = routeState
 		entrypointKind := validated[reservationKey{entrypoint: identity.EntrypointID, ordinal: identity.Ordinal}]
-		if entrypointKind == testpilotspb.ENTRYPOINT_KIND_WORKFLOW {
+		if entrypointKind == testpilot.WorkflowEntrypoint {
 			routeState.kind = workflowRoute
 			state.workflow = routeState
 		} else {
@@ -279,7 +278,7 @@ type reservationKey struct {
 	ordinal    int64
 }
 
-func validateBundle(runID string, origin testpilot.Coordinate, plan testpilot.ReservationCarrierPlan, workflowBinding binding, handles []testpilot.ReservationHandle, limits Limits) (map[reservationKey]testpilotspb.EntrypointKind, []testpilot.ReservationHandle, error) {
+func validateBundle(runID string, origin testpilot.Coordinate, plan testpilot.ReservationCarrierPlan, workflowBinding binding, handles []testpilot.ReservationHandle, limits Limits) (map[reservationKey]testpilot.EntrypointKind, []testpilot.ReservationHandle, error) {
 	if origin.RunID != runID || !validCoordinate(origin) || !validRouteText(plan.EndpointRoleID) || plan.Method != startWorkflowPath || !validBinding(workflowBinding) || len(plan.Reservations) > limits.MaxRoutes || len(plan.Routes) > limits.MaxRoutes {
 		return nil, nil, ErrInvalid
 	}
@@ -297,15 +296,15 @@ func validateBundle(runID string, origin testpilot.Coordinate, plan testpilot.Re
 	return expected, ordered, nil
 }
 
-func validateTopology(plan testpilot.ReservationCarrierPlan, limits Limits) (map[reservationKey]testpilotspb.EntrypointKind, int, error) {
-	expected := make(map[reservationKey]testpilotspb.EntrypointKind)
+func validateTopology(plan testpilot.ReservationCarrierPlan, limits Limits) (map[reservationKey]testpilot.EntrypointKind, int, error) {
+	expected := make(map[reservationKey]testpilot.EntrypointKind)
 	workflowCount := 0
 	handlerCount := 0
 	for _, topology := range plan.Reservations {
 		if !validRouteText(topology.EntrypointID) || topology.Count <= 0 || topology.Count > int64(limits.MaxRoutes-len(expected)) {
 			return nil, 0, ErrInvalid
 		}
-		if topology.Kind != testpilotspb.ENTRYPOINT_KIND_WORKFLOW && topology.Kind != testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER {
+		if topology.Kind != testpilot.WorkflowEntrypoint && topology.Kind != testpilot.NexusHandlerEntrypoint {
 			return nil, 0, ErrInvalid
 		}
 		for ordinal := int64(0); ordinal < topology.Count; ordinal++ {
@@ -315,7 +314,7 @@ func validateTopology(plan testpilot.ReservationCarrierPlan, limits Limits) (map
 			}
 			expected[key] = topology.Kind
 		}
-		if topology.Kind == testpilotspb.ENTRYPOINT_KIND_WORKFLOW {
+		if topology.Kind == testpilot.WorkflowEntrypoint {
 			workflowCount += int(topology.Count)
 		} else {
 			handlerCount += int(topology.Count)
@@ -327,7 +326,7 @@ func validateTopology(plan testpilot.ReservationCarrierPlan, limits Limits) (map
 	return expected, handlerCount, nil
 }
 
-func validateHandles(origin testpilot.Coordinate, expected map[reservationKey]testpilotspb.EntrypointKind, handles []testpilot.ReservationHandle) ([]testpilot.ReservationHandle, error) {
+func validateHandles(origin testpilot.Coordinate, expected map[reservationKey]testpilot.EntrypointKind, handles []testpilot.ReservationHandle) ([]testpilot.ReservationHandle, error) {
 	if len(handles) != len(expected) {
 		return nil, ErrInvalid
 	}
@@ -356,13 +355,13 @@ func validateHandles(origin testpilot.Coordinate, expected map[reservationKey]te
 	return ordered, nil
 }
 
-func validateRoutes(plan testpilot.ReservationCarrierPlan, expected map[reservationKey]testpilotspb.EntrypointKind, handlerCount int) error {
+func validateRoutes(plan testpilot.ReservationCarrierPlan, expected map[reservationKey]testpilot.EntrypointKind, handlerCount int) error {
 	seenSources := make(map[sourceKey]bool, len(plan.Routes))
 	seenHandlers := make(map[reservationKey]bool, len(plan.Routes))
 	for _, planned := range plan.Routes {
 		source := sourceKey{workflowEntrypoint: planned.WorkflowEntrypointID, workflowOrdinal: planned.WorkflowOrdinal, sourceInstruction: planned.SourceInstructionID}
 		handler := reservationKey{entrypoint: planned.HandlerEntrypointID, ordinal: planned.HandlerOrdinal}
-		if expected[reservationKey{entrypoint: planned.WorkflowEntrypointID, ordinal: planned.WorkflowOrdinal}] != testpilotspb.ENTRYPOINT_KIND_WORKFLOW || expected[handler] != testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER || !validRouteText(planned.SourceInstructionID) || seenSources[source] || seenHandlers[handler] {
+		if expected[reservationKey{entrypoint: planned.WorkflowEntrypointID, ordinal: planned.WorkflowOrdinal}] != testpilot.WorkflowEntrypoint || expected[handler] != testpilot.NexusHandlerEntrypoint || !validRouteText(planned.SourceInstructionID) || seenSources[source] || seenHandlers[handler] {
 			return ErrRouteConflict
 		}
 		seenSources[source] = true

@@ -15,7 +15,6 @@ private def instructionReference := Ref.instruction "workflow" "start"
 
 private def values : Array temporal.server.api.testpilot.v1.Value := #[
   Value.text "text",
-  Value.natural 18446744073709551615,
   Value.boolean true,
   Value.bytes (ByteArray.mk #[0, 255]),
   Value.signedInteger (-9223372036854775808),
@@ -35,7 +34,6 @@ private def types : Array ValueType := #[
   Types.singular (Types.enumeration "example.Enum"),
   Types.singular (Types.messageType "example.Message"),
   Types.singular Types.any,
-  Types.singular Types.opaqueHandle,
   Types.repeated (Types.scalar .SCALAR_KIND_TEXT),
   Types.map .SCALAR_KIND_TEXT (Types.scalar .SCALAR_KIND_BOOLEAN)
 ]
@@ -195,8 +193,8 @@ private def run : temporal.server.api.testpilot.v1.Run := Run.make "run" "case" 
   #[Run.diagnostic "diagnostic" .RUN_DIAGNOSTIC_KIND_EXECUTION "code" "detail" (some 1)]
   (some 1)
 
-#guard values.size == 11
-#guard types.size == 7
+#guard values.size == 10
+#guard types.size == 6
 #guard paths.size == 5
 #guard programExpressions.size == 12
 #guard environmentAssignmentUsesBinding

@@ -60,7 +60,7 @@ func (a *activationValues) stage(ctx context.Context, c contract.Coordinate, res
 	}
 	return finishBatch(w, batch)
 }
-func validateOutcome(w *valueWork, entryContext testpilotspb.EntrypointKind, n *node, outcome *testpilotspb.InstructionOutcome) (*contract.OutcomeSnapshot, error) {
+func validateOutcome(w *valueWork, entryContext contract.EntrypointKind, n *node, outcome *testpilotspb.InstructionOutcome) (*contract.OutcomeSnapshot, error) {
 	if outcome == nil || outcome.Status == testpilotspb.INSTRUCTION_OUTCOME_STATUS_UNSPECIFIED {
 		return nil, invalid(ir.Malformed, "outcome", "typed outcome status required")
 	}
@@ -74,7 +74,7 @@ func validateOutcome(w *valueWork, entryContext testpilotspb.EntrypointKind, n *
 	}
 	frozen := &testpilotspb.InstructionOutcome{}
 	proto.Merge(frozen, snapshot)
-	if entryContext == testpilotspb.ENTRYPOINT_KIND_CONTROLLER {
+	if entryContext == contract.ControllerEntrypoint {
 		if frozen.SdkFailureCode != "" || frozen.Status == testpilotspb.INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE {
 			return nil, invalid(ir.TypeMismatch, "outcome", "SDK outcome in controller")
 		}
@@ -265,18 +265,16 @@ func (a *activationValues) readLiftScalar(w *valueWork, lift *evidenceLift, path
 	if read == nil {
 		return nil, invalid(ir.Unavailable, "projection", "evidence lift read an absent declared coordinate")
 	}
-	// The portable evidence domain is text, natural and boolean; every admitted integer kind
-	// narrows into a natural and a negative one has no evidence scalar to narrow to.
+	// The portable evidence domain is text, unsigned integer and boolean; every admitted integer kind
+	// narrows into an unsigned integer and a negative one has no evidence scalar to narrow to.
 	switch item := read.Value.(type) {
-	case *testpilotspb.Value_TextValue, *testpilotspb.Value_BoolValue, *testpilotspb.Value_NaturalValue:
+	case *testpilotspb.Value_TextValue, *testpilotspb.Value_BoolValue, *testpilotspb.Value_UnsignedIntegerValue:
 		return read, nil
 	case *testpilotspb.Value_SignedIntegerValue:
 		if strings.HasPrefix(item.SignedIntegerValue, "-") {
 			return nil, invalid(ir.TypeMismatch, "projection", "evidence lift read a negative integer")
 		}
-		return &testpilotspb.Value{Value: &testpilotspb.Value_NaturalValue{NaturalValue: item.SignedIntegerValue}}, nil
-	case *testpilotspb.Value_UnsignedIntegerValue:
-		return &testpilotspb.Value{Value: &testpilotspb.Value_NaturalValue{NaturalValue: item.UnsignedIntegerValue}}, nil
+		return &testpilotspb.Value{Value: &testpilotspb.Value_UnsignedIntegerValue{UnsignedIntegerValue: item.SignedIntegerValue}}, nil
 	default:
 		return nil, invalid(ir.TypeMismatch, "projection", "evidence lift read an unsupported scalar")
 	}
@@ -300,8 +298,8 @@ func (a *activationValues) readLiftKey(w *valueWork, lift *evidenceLift, path *i
 	switch item := read.Value.(type) {
 	case *testpilotspb.Value_TextValue:
 		return item.TextValue, nil
-	case *testpilotspb.Value_NaturalValue:
-		return item.NaturalValue, nil
+	case *testpilotspb.Value_UnsignedIntegerValue:
+		return item.UnsignedIntegerValue, nil
 	default:
 		return "", invalid(ir.TypeMismatch, "projection", "evidence lift expected an operation key")
 	}

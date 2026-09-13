@@ -168,8 +168,8 @@ func evidenceSize(e *admittedCorrelatedEvidence) int64 {
 			switch v := f.Value.Value.(type) {
 			case *testpilotspb.Value_TextValue:
 				n += int64(utf8.RuneCountInString(v.TextValue))
-			case *testpilotspb.Value_NaturalValue:
-				n += int64(len(v.NaturalValue))
+			case *testpilotspb.Value_UnsignedIntegerValue:
+				n += int64(len(v.UnsignedIntegerValue))
 			case *testpilotspb.Value_BoolValue:
 				if v.BoolValue {
 					n += 4
@@ -246,11 +246,8 @@ func (r *correlatedMonitor) validate(s *testpilotspb.CorrelatedContract, e *admi
 				ok = p.GetType().GetKind() == testpilotspb.SCALAR_KIND_TEXT
 			case *testpilotspb.Value_BoolValue:
 				ok = p.GetType().GetKind() == testpilotspb.SCALAR_KIND_BOOLEAN
-			case *testpilotspb.Value_NaturalValue:
-				ok = p.GetType().GetKind() == testpilotspb.SCALAR_KIND_NATURAL && (v.NaturalValue == "0" || len(v.NaturalValue) > 0 && v.NaturalValue[0] >= '1' && v.NaturalValue[0] <= '9')
-				for _, c := range v.NaturalValue {
-					ok = ok && c >= '0' && c <= '9'
-				}
+			case *testpilotspb.Value_UnsignedIntegerValue:
+				ok = p.GetType().GetKind() == testpilotspb.SCALAR_KIND_UINT64 && canonicalUint64(v.UnsignedIntegerValue)
 			default:
 				return invalid(ir.TypeMismatch, "unsupported correlated scalar")
 			}

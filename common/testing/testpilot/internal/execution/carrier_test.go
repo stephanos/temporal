@@ -17,8 +17,8 @@ func carrierFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Profile) {
 	policy.Roles[0].ReservationCarriers = []contract.ReservationCarrierPolicy{{
 		Method: "/example.Service/Call",
 		Shapes: []contract.ReservationCarrierShape{
-			{Kind: testpilotspb.ENTRYPOINT_KIND_WORKFLOW, MaximumCount: 2},
-			{Kind: testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER, MaximumCount: 4},
+			{Kind: contract.WorkflowEntrypoint, MaximumCount: 2},
+			{Kind: contract.NexusHandlerEntrypoint, MaximumCount: 4},
 		},
 	}}
 	return source, catalog, policy
@@ -49,8 +49,8 @@ func TestPrepareCompilesDeterministicReservationCarrierTopology(t *testing.T) {
 		EndpointRoleID: "endpoint",
 		Method:         "/example.Service/Call",
 		Reservations: []contract.ReservationTopology{
-			{EntrypointID: "workflow", Kind: testpilotspb.ENTRYPOINT_KIND_WORKFLOW, Count: 2},
-			{EntrypointID: "handler", Kind: testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER, Count: 4},
+			{EntrypointID: "workflow", Kind: contract.WorkflowEntrypoint, Count: 2},
+			{EntrypointID: "handler", Kind: contract.NexusHandlerEntrypoint, Count: 4},
 		},
 		Routes: []contract.ReservationRoute{
 			{WorkflowEntrypointID: "workflow", WorkflowOrdinal: 0, SourceInstructionID: "start", HandlerEntrypointID: "handler", HandlerOrdinal: 0},
@@ -86,7 +86,7 @@ func TestPrepareExposesWorkflowOnlyCarrierReservations(t *testing.T) {
 	require.NoError(t, err)
 	plan, ok := prepared.ReservationCarrier("controller", "call")
 	require.True(t, ok)
-	require.Equal(t, []contract.ReservationTopology{{EntrypointID: "workflow", Kind: testpilotspb.ENTRYPOINT_KIND_WORKFLOW, Count: 1}}, plan.Reservations)
+	require.Equal(t, []contract.ReservationTopology{{EntrypointID: "workflow", Kind: contract.WorkflowEntrypoint, Count: 1}}, plan.Reservations)
 	require.Empty(t, plan.Routes)
 }
 
@@ -125,7 +125,7 @@ func TestPrepareRejectsReservationCarrierPolicyErrors(t *testing.T) {
 			policy.Roles[0].ReservationCarriers[0].Shapes = []contract.ReservationCarrierShape{shape, shape}
 		},
 		"unsupported context": func(_ *testpilotspb.Case, policy *Profile) {
-			policy.Roles[0].ReservationCarriers[0].Shapes[0].Kind = testpilotspb.ENTRYPOINT_KIND_ACTIVITY
+			policy.Roles[0].ReservationCarriers[0].Shapes[0].Kind = contract.ActivityEntrypoint
 		},
 		"zero cardinality": func(_ *testpilotspb.Case, policy *Profile) {
 			policy.Roles[0].ReservationCarriers[0].Shapes[0].MaximumCount = 0
@@ -196,7 +196,7 @@ func TestPrepareRejectsInvalidReservationCarrierTopology(t *testing.T) {
 
 func TestReservationCarrierAuthorityDoesNotRequireReservations(t *testing.T) {
 	source, catalog, policy := fixture(t)
-	policy.Roles[0].ReservationCarriers = []contract.ReservationCarrierPolicy{{Method: "/example.Service/Call", Shapes: []contract.ReservationCarrierShape{{Kind: testpilotspb.ENTRYPOINT_KIND_WORKFLOW, MaximumCount: 1}}}}
+	policy.Roles[0].ReservationCarriers = []contract.ReservationCarrierPolicy{{Method: "/example.Service/Call", Shapes: []contract.ReservationCarrierShape{{Kind: contract.WorkflowEntrypoint, MaximumCount: 1}}}}
 	prepared, err := Prepare(source, catalog, policy)
 	require.NoError(t, err)
 	_, ok := prepared.ReservationCarrier("controller", "call")

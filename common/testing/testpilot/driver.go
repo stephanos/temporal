@@ -57,8 +57,8 @@ func (p PreparedProgram) ReservationCarrier(entrypointID, instructionID string) 
 	return p.program.ReservationCarrier(entrypointID, instructionID)
 }
 
-func (p EntrypointPlan) ID() string                        { return p.plan.ID() }
-func (p EntrypointPlan) Kind() testpilotspb.EntrypointKind { return p.plan.Kind() }
+func (p EntrypointPlan) ID() string           { return p.plan.ID() }
+func (p EntrypointPlan) Kind() EntrypointKind { return p.plan.Kind() }
 func (p EntrypointPlan) Activation() *testpilotspb.Entrypoint {
 	return p.plan.Activation()
 }

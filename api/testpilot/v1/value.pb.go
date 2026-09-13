@@ -24,30 +24,32 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// ScalarKind names a scalar kind. Every kind except NATURAL is a protobuf scalar field type, and a
-// value read from or written to a field must have that field's kind. NATURAL is an unsigned integer
-// in canonical base-10 text that no protobuf field has.
+// ScalarKind names a scalar kind: a protobuf scalar field type, and a value read from or written to
+// a field must have that field's kind. The integer kinds keep the protobuf wire encodings apart
+// although every integer Value is the same canonical base-10 text, because descriptor admission
+// types a field read by the field's declared kind and requires it to equal the declared type of the
+// Slot, Observation or outcome field it meets; one folded kind would no longer name the field it
+// must match.
 // (-- api-linter: core::0191::file-layout=disabled --)
 type ScalarKind int32
 
 const (
 	SCALAR_KIND_UNSPECIFIED ScalarKind = 0
 	SCALAR_KIND_TEXT        ScalarKind = 1
-	SCALAR_KIND_NATURAL     ScalarKind = 2
-	SCALAR_KIND_BOOLEAN     ScalarKind = 3
-	SCALAR_KIND_BYTES       ScalarKind = 4
-	SCALAR_KIND_INT32       ScalarKind = 5
-	SCALAR_KIND_INT64       ScalarKind = 6
-	SCALAR_KIND_UINT32      ScalarKind = 7
-	SCALAR_KIND_UINT64      ScalarKind = 8
-	SCALAR_KIND_SINT32      ScalarKind = 9
-	SCALAR_KIND_SINT64      ScalarKind = 10
-	SCALAR_KIND_FIXED32     ScalarKind = 11
-	SCALAR_KIND_FIXED64     ScalarKind = 12
-	SCALAR_KIND_SFIXED32    ScalarKind = 13
-	SCALAR_KIND_SFIXED64    ScalarKind = 14
-	SCALAR_KIND_FLOAT       ScalarKind = 15
-	SCALAR_KIND_DOUBLE      ScalarKind = 16
+	SCALAR_KIND_BOOLEAN     ScalarKind = 2
+	SCALAR_KIND_BYTES       ScalarKind = 3
+	SCALAR_KIND_INT32       ScalarKind = 4
+	SCALAR_KIND_INT64       ScalarKind = 5
+	SCALAR_KIND_UINT32      ScalarKind = 6
+	SCALAR_KIND_UINT64      ScalarKind = 7
+	SCALAR_KIND_SINT32      ScalarKind = 8
+	SCALAR_KIND_SINT64      ScalarKind = 9
+	SCALAR_KIND_FIXED32     ScalarKind = 10
+	SCALAR_KIND_FIXED64     ScalarKind = 11
+	SCALAR_KIND_SFIXED32    ScalarKind = 12
+	SCALAR_KIND_SFIXED64    ScalarKind = 13
+	SCALAR_KIND_FLOAT       ScalarKind = 14
+	SCALAR_KIND_DOUBLE      ScalarKind = 15
 )
 
 // Enum value maps for ScalarKind.
@@ -55,40 +57,38 @@ var (
 	ScalarKind_name = map[int32]string{
 		0:  "SCALAR_KIND_UNSPECIFIED",
 		1:  "SCALAR_KIND_TEXT",
-		2:  "SCALAR_KIND_NATURAL",
-		3:  "SCALAR_KIND_BOOLEAN",
-		4:  "SCALAR_KIND_BYTES",
-		5:  "SCALAR_KIND_INT32",
-		6:  "SCALAR_KIND_INT64",
-		7:  "SCALAR_KIND_UINT32",
-		8:  "SCALAR_KIND_UINT64",
-		9:  "SCALAR_KIND_SINT32",
-		10: "SCALAR_KIND_SINT64",
-		11: "SCALAR_KIND_FIXED32",
-		12: "SCALAR_KIND_FIXED64",
-		13: "SCALAR_KIND_SFIXED32",
-		14: "SCALAR_KIND_SFIXED64",
-		15: "SCALAR_KIND_FLOAT",
-		16: "SCALAR_KIND_DOUBLE",
+		2:  "SCALAR_KIND_BOOLEAN",
+		3:  "SCALAR_KIND_BYTES",
+		4:  "SCALAR_KIND_INT32",
+		5:  "SCALAR_KIND_INT64",
+		6:  "SCALAR_KIND_UINT32",
+		7:  "SCALAR_KIND_UINT64",
+		8:  "SCALAR_KIND_SINT32",
+		9:  "SCALAR_KIND_SINT64",
+		10: "SCALAR_KIND_FIXED32",
+		11: "SCALAR_KIND_FIXED64",
+		12: "SCALAR_KIND_SFIXED32",
+		13: "SCALAR_KIND_SFIXED64",
+		14: "SCALAR_KIND_FLOAT",
+		15: "SCALAR_KIND_DOUBLE",
 	}
 	ScalarKind_value = map[string]int32{
 		"SCALAR_KIND_UNSPECIFIED": 0,
 		"SCALAR_KIND_TEXT":        1,
-		"SCALAR_KIND_NATURAL":     2,
-		"SCALAR_KIND_BOOLEAN":     3,
-		"SCALAR_KIND_BYTES":       4,
-		"SCALAR_KIND_INT32":       5,
-		"SCALAR_KIND_INT64":       6,
-		"SCALAR_KIND_UINT32":      7,
-		"SCALAR_KIND_UINT64":      8,
-		"SCALAR_KIND_SINT32":      9,
-		"SCALAR_KIND_SINT64":      10,
-		"SCALAR_KIND_FIXED32":     11,
-		"SCALAR_KIND_FIXED64":     12,
-		"SCALAR_KIND_SFIXED32":    13,
-		"SCALAR_KIND_SFIXED64":    14,
-		"SCALAR_KIND_FLOAT":       15,
-		"SCALAR_KIND_DOUBLE":      16,
+		"SCALAR_KIND_BOOLEAN":     2,
+		"SCALAR_KIND_BYTES":       3,
+		"SCALAR_KIND_INT32":       4,
+		"SCALAR_KIND_INT64":       5,
+		"SCALAR_KIND_UINT32":      6,
+		"SCALAR_KIND_UINT64":      7,
+		"SCALAR_KIND_SINT32":      8,
+		"SCALAR_KIND_SINT64":      9,
+		"SCALAR_KIND_FIXED32":     10,
+		"SCALAR_KIND_FIXED64":     11,
+		"SCALAR_KIND_SFIXED32":    12,
+		"SCALAR_KIND_SFIXED64":    13,
+		"SCALAR_KIND_FLOAT":       14,
+		"SCALAR_KIND_DOUBLE":      15,
 	}
 )
 
@@ -104,8 +104,6 @@ func (x ScalarKind) String() string {
 		return "Unspecified"
 	case SCALAR_KIND_TEXT:
 		return "Text"
-	case SCALAR_KIND_NATURAL:
-		return "Natural"
 	case SCALAR_KIND_BOOLEAN:
 		return "Boolean"
 	case SCALAR_KIND_BYTES:
@@ -124,10 +122,10 @@ func (x ScalarKind) String() string {
 		return "Sint64"
 	case SCALAR_KIND_FIXED32:
 		return "Fixed32"
-
-		// Deprecated: Use ScalarKind.Descriptor instead.
 	case SCALAR_KIND_FIXED64:
 		return "Fixed64"
+
+		// Deprecated: Use ScalarKind.Descriptor instead.
 	case SCALAR_KIND_SFIXED32:
 		return "Sfixed32"
 	case SCALAR_KIND_SFIXED64:
@@ -135,12 +133,13 @@ func (x ScalarKind) String() string {
 	case SCALAR_KIND_FLOAT:
 		return "Float"
 	case SCALAR_KIND_DOUBLE:
-
-		// Value is a tagged interpreter value. Naturals use canonical unsigned base-10 text.
-		// Signed and unsigned protobuf integers also use canonical base-10 text.
 		return "Double"
 	default:
-		return strconv.Itoa(int(x))
+		return strconv.Itoa(
+
+			// Value is a tagged interpreter value. Signed and unsigned protobuf integers use canonical base-10
+			// text.
+			int(x))
 	}
 
 }
@@ -166,7 +165,6 @@ type Value struct {
 	// Types that are valid to be assigned to Value:
 	//
 	//	*Value_TextValue
-	//	*Value_NaturalValue
 	//	*Value_BoolValue
 	//	*Value_BytesValue
 	//	*Value_SignedIntegerValue
@@ -222,15 +220,6 @@ func (x *Value) GetTextValue() string {
 	if x != nil {
 		if x, ok := x.Value.(*Value_TextValue); ok {
 			return x.TextValue
-		}
-	}
-	return ""
-}
-
-func (x *Value) GetNaturalValue() string {
-	if x != nil {
-		if x, ok := x.Value.(*Value_NaturalValue); ok {
-			return x.NaturalValue
 		}
 	}
 	return ""
@@ -325,51 +314,45 @@ type Value_TextValue struct {
 	TextValue string `protobuf:"bytes,1,opt,name=text_value,json=textValue,proto3,oneof"`
 }
 
-type Value_NaturalValue struct {
-	NaturalValue string `protobuf:"bytes,2,opt,name=natural_value,json=naturalValue,proto3,oneof"`
-}
-
 type Value_BoolValue struct {
-	BoolValue bool `protobuf:"varint,3,opt,name=bool_value,json=boolValue,proto3,oneof"`
+	BoolValue bool `protobuf:"varint,2,opt,name=bool_value,json=boolValue,proto3,oneof"`
 }
 
 type Value_BytesValue struct {
-	BytesValue []byte `protobuf:"bytes,4,opt,name=bytes_value,json=bytesValue,proto3,oneof"`
+	BytesValue []byte `protobuf:"bytes,3,opt,name=bytes_value,json=bytesValue,proto3,oneof"`
 }
 
 type Value_SignedIntegerValue struct {
-	SignedIntegerValue string `protobuf:"bytes,5,opt,name=signed_integer_value,json=signedIntegerValue,proto3,oneof"`
+	SignedIntegerValue string `protobuf:"bytes,4,opt,name=signed_integer_value,json=signedIntegerValue,proto3,oneof"`
 }
 
 type Value_UnsignedIntegerValue struct {
-	UnsignedIntegerValue string `protobuf:"bytes,6,opt,name=unsigned_integer_value,json=unsignedIntegerValue,proto3,oneof"`
+	UnsignedIntegerValue string `protobuf:"bytes,5,opt,name=unsigned_integer_value,json=unsignedIntegerValue,proto3,oneof"`
 }
 
 type Value_FloatingPointValue struct {
-	FloatingPointValue float64 `protobuf:"fixed64,7,opt,name=floating_point_value,json=floatingPointValue,proto3,oneof"`
+	FloatingPointValue float64 `protobuf:"fixed64,6,opt,name=floating_point_value,json=floatingPointValue,proto3,oneof"`
 }
 
 type Value_EnumValue struct {
-	EnumValue *EnumValue `protobuf:"bytes,8,opt,name=enum_value,json=enumValue,proto3,oneof"`
+	EnumValue *EnumValue `protobuf:"bytes,7,opt,name=enum_value,json=enumValue,proto3,oneof"`
 }
 
 type Value_MessageValue struct {
 	// (-- api-linter: core::0146::any=disabled
 	//     aip.dev/not-precedent: Whole typed Any values are an explicit closed IR capability. --)
-	MessageValue *anypb.Any `protobuf:"bytes,9,opt,name=message_value,json=messageValue,proto3,oneof"`
+	MessageValue *anypb.Any `protobuf:"bytes,8,opt,name=message_value,json=messageValue,proto3,oneof"`
 }
 
 type Value_ListValue struct {
-	ListValue *ValueList `protobuf:"bytes,10,opt,name=list_value,json=listValue,proto3,oneof"`
+	ListValue *ValueList `protobuf:"bytes,9,opt,name=list_value,json=listValue,proto3,oneof"`
 }
 
 type Value_MapValue struct {
-	MapValue *ValueMap `protobuf:"bytes,11,opt,name=map_value,json=mapValue,proto3,oneof"`
+	MapValue *ValueMap `protobuf:"bytes,10,opt,name=map_value,json=mapValue,proto3,oneof"`
 }
 
 func (*Value_TextValue) isValue_Value() {}
-
-func (*Value_NaturalValue) isValue_Value() {}
 
 func (*Value_BoolValue) isValue_Value() {}
 
@@ -739,7 +722,6 @@ type SingularType struct {
 	//	*SingularType_Enumeration
 	//	*SingularType_Message
 	//	*SingularType_Any
-	//	*SingularType_OpaqueHandle
 	Type          isSingularType_Type `protobuf_oneof:"type"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -818,15 +800,6 @@ func (x *SingularType) GetAny() *AnyType {
 	return nil
 }
 
-func (x *SingularType) GetOpaqueHandle() *OpaqueHandleType {
-	if x != nil {
-		if x, ok := x.Type.(*SingularType_OpaqueHandle); ok {
-			return x.OpaqueHandle
-		}
-	}
-	return nil
-}
-
 type isSingularType_Type interface {
 	isSingularType_Type()
 }
@@ -847,10 +820,6 @@ type SingularType_Any struct {
 	Any *AnyType `protobuf:"bytes,4,opt,name=any,proto3,oneof"`
 }
 
-type SingularType_OpaqueHandle struct {
-	OpaqueHandle *OpaqueHandleType `protobuf:"bytes,5,opt,name=opaque_handle,json=opaqueHandle,proto3,oneof"`
-}
-
 func (*SingularType_Scalar) isSingularType_Type() {}
 
 func (*SingularType_Enumeration) isSingularType_Type() {}
@@ -858,8 +827,6 @@ func (*SingularType_Enumeration) isSingularType_Type() {}
 func (*SingularType_Message) isSingularType_Type() {}
 
 func (*SingularType_Any) isSingularType_Type() {}
-
-func (*SingularType_OpaqueHandle) isSingularType_Type() {}
 
 // RepeatedType is a list whose elements all have one singular type.
 type RepeatedType struct {
@@ -906,8 +873,8 @@ func (x *RepeatedType) GetElement() *SingularType {
 	return nil
 }
 
-// MapType is a map to values of one singular type from scalar keys, which may not be NATURAL, BYTES,
-// FLOAT or DOUBLE.
+// MapType is a map to values of one singular type from scalar keys, which may not be BYTES, FLOAT or
+// DOUBLE.
 type MapType struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Key           *ScalarType            `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
@@ -1089,8 +1056,8 @@ func (*AnyType) Descriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{12}
 }
 
-// OpaqueHandleType is an effect handle a Driver issued. It cannot be a literal, an Observation or a
-// collection element, and no expression reads into it.
+// OpaqueHandleType is an effect handle a Driver issued. Only a Slot holds one, so it cannot be a
+// literal, an Observation, a capture or a collection element, and no expression reads into it.
 type OpaqueHandleType struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -1466,25 +1433,24 @@ var File_temporal_server_api_testpilot_v1_value_proto protoreflect.FileDescripto
 
 const file_temporal_server_api_testpilot_v1_value_proto_rawDesc = "" +
 	"\n" +
-	",temporal/server/api/testpilot/v1/value.proto\x12 temporal.server.api.testpilot.v1\x1a\x19google/protobuf/any.proto\"\xe0\x04\n" +
+	",temporal/server/api/testpilot/v1/value.proto\x12 temporal.server.api.testpilot.v1\x1a\x19google/protobuf/any.proto\"\xb9\x04\n" +
 	"\x05Value\x12\x1f\n" +
 	"\n" +
-	"text_value\x18\x01 \x01(\tH\x00R\ttextValue\x12%\n" +
-	"\rnatural_value\x18\x02 \x01(\tH\x00R\fnaturalValue\x12\x1f\n" +
+	"text_value\x18\x01 \x01(\tH\x00R\ttextValue\x12\x1f\n" +
 	"\n" +
-	"bool_value\x18\x03 \x01(\bH\x00R\tboolValue\x12!\n" +
-	"\vbytes_value\x18\x04 \x01(\fH\x00R\n" +
+	"bool_value\x18\x02 \x01(\bH\x00R\tboolValue\x12!\n" +
+	"\vbytes_value\x18\x03 \x01(\fH\x00R\n" +
 	"bytesValue\x122\n" +
-	"\x14signed_integer_value\x18\x05 \x01(\tH\x00R\x12signedIntegerValue\x126\n" +
-	"\x16unsigned_integer_value\x18\x06 \x01(\tH\x00R\x14unsignedIntegerValue\x122\n" +
-	"\x14floating_point_value\x18\a \x01(\x01H\x00R\x12floatingPointValue\x12L\n" +
+	"\x14signed_integer_value\x18\x04 \x01(\tH\x00R\x12signedIntegerValue\x126\n" +
+	"\x16unsigned_integer_value\x18\x05 \x01(\tH\x00R\x14unsignedIntegerValue\x122\n" +
+	"\x14floating_point_value\x18\x06 \x01(\x01H\x00R\x12floatingPointValue\x12L\n" +
 	"\n" +
-	"enum_value\x18\b \x01(\v2+.temporal.server.api.testpilot.v1.EnumValueH\x00R\tenumValue\x12;\n" +
-	"\rmessage_value\x18\t \x01(\v2\x14.google.protobuf.AnyH\x00R\fmessageValue\x12L\n" +
+	"enum_value\x18\a \x01(\v2+.temporal.server.api.testpilot.v1.EnumValueH\x00R\tenumValue\x12;\n" +
+	"\rmessage_value\x18\b \x01(\v2\x14.google.protobuf.AnyH\x00R\fmessageValue\x12L\n" +
 	"\n" +
-	"list_value\x18\n" +
-	" \x01(\v2+.temporal.server.api.testpilot.v1.ValueListH\x00R\tlistValue\x12I\n" +
-	"\tmap_value\x18\v \x01(\v2*.temporal.server.api.testpilot.v1.ValueMapH\x00R\bmapValueB\a\n" +
+	"list_value\x18\t \x01(\v2+.temporal.server.api.testpilot.v1.ValueListH\x00R\tlistValue\x12I\n" +
+	"\tmap_value\x18\n" +
+	" \x01(\v2*.temporal.server.api.testpilot.v1.ValueMapH\x00R\bmapValueB\a\n" +
 	"\x05value\"#\n" +
 	"\tEnumValue\x12\x16\n" +
 	"\x06number\x18\x01 \x01(\x05R\x06number\"L\n" +
@@ -1503,13 +1469,12 @@ const file_temporal_server_api_testpilot_v1_value_proto_rawDesc = "" +
 	"\bsingular\x18\x01 \x01(\v2..temporal.server.api.testpilot.v1.SingularTypeH\x00R\bsingular\x12L\n" +
 	"\brepeated\x18\x02 \x01(\v2..temporal.server.api.testpilot.v1.RepeatedTypeH\x00R\brepeated\x12=\n" +
 	"\x03map\x18\x03 \x01(\v2).temporal.server.api.testpilot.v1.MapTypeH\x00R\x03mapB\a\n" +
-	"\x05shape\"\x92\x03\n" +
+	"\x05shape\"\xb7\x02\n" +
 	"\fSingularType\x12F\n" +
 	"\x06scalar\x18\x01 \x01(\v2,.temporal.server.api.testpilot.v1.ScalarTypeH\x00R\x06scalar\x12O\n" +
 	"\venumeration\x18\x02 \x01(\v2+.temporal.server.api.testpilot.v1.NamedTypeH\x00R\venumeration\x12G\n" +
 	"\amessage\x18\x03 \x01(\v2+.temporal.server.api.testpilot.v1.NamedTypeH\x00R\amessage\x12=\n" +
-	"\x03any\x18\x04 \x01(\v2).temporal.server.api.testpilot.v1.AnyTypeH\x00R\x03any\x12Y\n" +
-	"\ropaque_handle\x18\x05 \x01(\v22.temporal.server.api.testpilot.v1.OpaqueHandleTypeH\x00R\fopaqueHandleB\x06\n" +
+	"\x03any\x18\x04 \x01(\v2).temporal.server.api.testpilot.v1.AnyTypeH\x00R\x03anyB\x06\n" +
 	"\x04type\"X\n" +
 	"\fRepeatedType\x12H\n" +
 	"\aelement\x18\x01 \x01(\v2..temporal.server.api.testpilot.v1.SingularTypeR\aelement\"\x8f\x01\n" +
@@ -1538,27 +1503,26 @@ const file_temporal_server_api_testpilot_v1_value_proto_rawDesc = "" +
 	"\x03key\x18\x01 \x01(\v2'.temporal.server.api.testpilot.v1.ValueR\x03key\"\x12\n" +
 	"\x10PresenceSelector\"6\n" +
 	"\rOneofSelector\x12%\n" +
-	"\x0eselected_field\x18\x01 \x01(\tR\rselectedField*\xab\x03\n" +
+	"\x0eselected_field\x18\x01 \x01(\tR\rselectedField*\x92\x03\n" +
 	"\n" +
 	"ScalarKind\x12\x1b\n" +
 	"\x17SCALAR_KIND_UNSPECIFIED\x10\x00\x12\x14\n" +
 	"\x10SCALAR_KIND_TEXT\x10\x01\x12\x17\n" +
-	"\x13SCALAR_KIND_NATURAL\x10\x02\x12\x17\n" +
-	"\x13SCALAR_KIND_BOOLEAN\x10\x03\x12\x15\n" +
-	"\x11SCALAR_KIND_BYTES\x10\x04\x12\x15\n" +
-	"\x11SCALAR_KIND_INT32\x10\x05\x12\x15\n" +
-	"\x11SCALAR_KIND_INT64\x10\x06\x12\x16\n" +
-	"\x12SCALAR_KIND_UINT32\x10\a\x12\x16\n" +
-	"\x12SCALAR_KIND_UINT64\x10\b\x12\x16\n" +
-	"\x12SCALAR_KIND_SINT32\x10\t\x12\x16\n" +
-	"\x12SCALAR_KIND_SINT64\x10\n" +
+	"\x13SCALAR_KIND_BOOLEAN\x10\x02\x12\x15\n" +
+	"\x11SCALAR_KIND_BYTES\x10\x03\x12\x15\n" +
+	"\x11SCALAR_KIND_INT32\x10\x04\x12\x15\n" +
+	"\x11SCALAR_KIND_INT64\x10\x05\x12\x16\n" +
+	"\x12SCALAR_KIND_UINT32\x10\x06\x12\x16\n" +
+	"\x12SCALAR_KIND_UINT64\x10\a\x12\x16\n" +
+	"\x12SCALAR_KIND_SINT32\x10\b\x12\x16\n" +
+	"\x12SCALAR_KIND_SINT64\x10\t\x12\x17\n" +
+	"\x13SCALAR_KIND_FIXED32\x10\n" +
 	"\x12\x17\n" +
-	"\x13SCALAR_KIND_FIXED32\x10\v\x12\x17\n" +
-	"\x13SCALAR_KIND_FIXED64\x10\f\x12\x18\n" +
-	"\x14SCALAR_KIND_SFIXED32\x10\r\x12\x18\n" +
-	"\x14SCALAR_KIND_SFIXED64\x10\x0e\x12\x15\n" +
-	"\x11SCALAR_KIND_FLOAT\x10\x0f\x12\x16\n" +
-	"\x12SCALAR_KIND_DOUBLE\x10\x10B2Z0go.temporal.io/server/api/testpilot/v1;testpilotb\x06proto3"
+	"\x13SCALAR_KIND_FIXED64\x10\v\x12\x18\n" +
+	"\x14SCALAR_KIND_SFIXED32\x10\f\x12\x18\n" +
+	"\x14SCALAR_KIND_SFIXED64\x10\r\x12\x15\n" +
+	"\x11SCALAR_KIND_FLOAT\x10\x0e\x12\x16\n" +
+	"\x12SCALAR_KIND_DOUBLE\x10\x0fB2Z0go.temporal.io/server/api/testpilot/v1;testpilotb\x06proto3"
 
 var (
 	file_temporal_server_api_testpilot_v1_value_proto_rawDescOnce sync.Once
@@ -1614,22 +1578,21 @@ var file_temporal_server_api_testpilot_v1_value_proto_depIdxs = []int32{
 	12, // 12: temporal.server.api.testpilot.v1.SingularType.enumeration:type_name -> temporal.server.api.testpilot.v1.NamedType
 	12, // 13: temporal.server.api.testpilot.v1.SingularType.message:type_name -> temporal.server.api.testpilot.v1.NamedType
 	13, // 14: temporal.server.api.testpilot.v1.SingularType.any:type_name -> temporal.server.api.testpilot.v1.AnyType
-	14, // 15: temporal.server.api.testpilot.v1.SingularType.opaque_handle:type_name -> temporal.server.api.testpilot.v1.OpaqueHandleType
-	8,  // 16: temporal.server.api.testpilot.v1.RepeatedType.element:type_name -> temporal.server.api.testpilot.v1.SingularType
-	11, // 17: temporal.server.api.testpilot.v1.MapType.key:type_name -> temporal.server.api.testpilot.v1.ScalarType
-	8,  // 18: temporal.server.api.testpilot.v1.MapType.value:type_name -> temporal.server.api.testpilot.v1.SingularType
-	0,  // 19: temporal.server.api.testpilot.v1.ScalarType.kind:type_name -> temporal.server.api.testpilot.v1.ScalarKind
-	16, // 20: temporal.server.api.testpilot.v1.FieldPath.segments:type_name -> temporal.server.api.testpilot.v1.FieldPathSegment
-	17, // 21: temporal.server.api.testpilot.v1.FieldPathSegment.repeated:type_name -> temporal.server.api.testpilot.v1.RepeatedWildcard
-	18, // 22: temporal.server.api.testpilot.v1.FieldPathSegment.map_key:type_name -> temporal.server.api.testpilot.v1.MapKeySelector
-	19, // 23: temporal.server.api.testpilot.v1.FieldPathSegment.presence:type_name -> temporal.server.api.testpilot.v1.PresenceSelector
-	20, // 24: temporal.server.api.testpilot.v1.FieldPathSegment.oneof:type_name -> temporal.server.api.testpilot.v1.OneofSelector
-	1,  // 25: temporal.server.api.testpilot.v1.MapKeySelector.key:type_name -> temporal.server.api.testpilot.v1.Value
-	26, // [26:26] is the sub-list for method output_type
-	26, // [26:26] is the sub-list for method input_type
-	26, // [26:26] is the sub-list for extension type_name
-	26, // [26:26] is the sub-list for extension extendee
-	0,  // [0:26] is the sub-list for field type_name
+	8,  // 15: temporal.server.api.testpilot.v1.RepeatedType.element:type_name -> temporal.server.api.testpilot.v1.SingularType
+	11, // 16: temporal.server.api.testpilot.v1.MapType.key:type_name -> temporal.server.api.testpilot.v1.ScalarType
+	8,  // 17: temporal.server.api.testpilot.v1.MapType.value:type_name -> temporal.server.api.testpilot.v1.SingularType
+	0,  // 18: temporal.server.api.testpilot.v1.ScalarType.kind:type_name -> temporal.server.api.testpilot.v1.ScalarKind
+	16, // 19: temporal.server.api.testpilot.v1.FieldPath.segments:type_name -> temporal.server.api.testpilot.v1.FieldPathSegment
+	17, // 20: temporal.server.api.testpilot.v1.FieldPathSegment.repeated:type_name -> temporal.server.api.testpilot.v1.RepeatedWildcard
+	18, // 21: temporal.server.api.testpilot.v1.FieldPathSegment.map_key:type_name -> temporal.server.api.testpilot.v1.MapKeySelector
+	19, // 22: temporal.server.api.testpilot.v1.FieldPathSegment.presence:type_name -> temporal.server.api.testpilot.v1.PresenceSelector
+	20, // 23: temporal.server.api.testpilot.v1.FieldPathSegment.oneof:type_name -> temporal.server.api.testpilot.v1.OneofSelector
+	1,  // 24: temporal.server.api.testpilot.v1.MapKeySelector.key:type_name -> temporal.server.api.testpilot.v1.Value
+	25, // [25:25] is the sub-list for method output_type
+	25, // [25:25] is the sub-list for method input_type
+	25, // [25:25] is the sub-list for extension type_name
+	25, // [25:25] is the sub-list for extension extendee
+	0,  // [0:25] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_testpilot_v1_value_proto_init() }
@@ -1639,7 +1602,6 @@ func file_temporal_server_api_testpilot_v1_value_proto_init() {
 	}
 	file_temporal_server_api_testpilot_v1_value_proto_msgTypes[0].OneofWrappers = []any{
 		(*Value_TextValue)(nil),
-		(*Value_NaturalValue)(nil),
 		(*Value_BoolValue)(nil),
 		(*Value_BytesValue)(nil),
 		(*Value_SignedIntegerValue)(nil),
@@ -1660,7 +1622,6 @@ func file_temporal_server_api_testpilot_v1_value_proto_init() {
 		(*SingularType_Enumeration)(nil),
 		(*SingularType_Message)(nil),
 		(*SingularType_Any)(nil),
-		(*SingularType_OpaqueHandle)(nil),
 	}
 	file_temporal_server_api_testpilot_v1_value_proto_msgTypes[15].OneofWrappers = []any{
 		(*FieldPathSegment_Repeated)(nil),

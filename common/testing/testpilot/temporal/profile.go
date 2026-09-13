@@ -55,20 +55,11 @@ func DeriveProfile(source *testpilotspb.Case, catalog *testpilot.Catalog, enviro
 	}, nil
 }
 
-func entrypointKinds(program *testpilotspb.Program) (map[string]testpilotspb.EntrypointKind, error) {
-	contexts := make(map[string]testpilotspb.EntrypointKind, len(program.GetEntrypoints()))
+func entrypointKinds(program *testpilotspb.Program) (map[string]testpilot.EntrypointKind, error) {
+	contexts := make(map[string]testpilot.EntrypointKind, len(program.GetEntrypoints()))
 	for _, entrypoint := range program.GetEntrypoints() {
-		var kind testpilotspb.EntrypointKind
-		switch entrypoint.GetActivation().(type) {
-		case *testpilotspb.Entrypoint_Controller:
-			kind = testpilotspb.ENTRYPOINT_KIND_CONTROLLER
-		case *testpilotspb.Entrypoint_Workflow:
-			kind = testpilotspb.ENTRYPOINT_KIND_WORKFLOW
-		case *testpilotspb.Entrypoint_Activity:
-			kind = testpilotspb.ENTRYPOINT_KIND_ACTIVITY
-		case *testpilotspb.Entrypoint_NexusHandler:
-			kind = testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER
-		default:
+		kind := testpilot.EntrypointKindOf(entrypoint)
+		if kind == 0 {
 			return nil, ErrInvalid
 		}
 		if _, duplicate := contexts[entrypoint.GetEntrypointId()]; duplicate {
@@ -89,7 +80,7 @@ type programUsage struct {
 	methods      map[string][]string
 	methodSeen   map[carrierKey]bool
 	carrierOrder map[string][]string
-	shapes       map[carrierKey]map[testpilotspb.EntrypointKind]int64
+	shapes       map[carrierKey]map[testpilot.EntrypointKind]int64
 	opcodes      map[testpilot.Opcode]bool
 }
 
@@ -103,12 +94,12 @@ func (u *programUsage) capabilities() []testpilot.Opcode {
 	return result
 }
 
-func deriveUsage(program *testpilotspb.Program, contexts map[string]testpilotspb.EntrypointKind, catalog *testpilot.Catalog) (*programUsage, error) {
+func deriveUsage(program *testpilotspb.Program, contexts map[string]testpilot.EntrypointKind, catalog *testpilot.Catalog) (*programUsage, error) {
 	usage := &programUsage{
 		methods:      map[string][]string{},
 		methodSeen:   map[carrierKey]bool{},
 		carrierOrder: map[string][]string{},
-		shapes:       map[carrierKey]map[testpilotspb.EntrypointKind]int64{},
+		shapes:       map[carrierKey]map[testpilot.EntrypointKind]int64{},
 		opcodes:      map[testpilot.Opcode]bool{},
 	}
 	for _, entrypoint := range program.GetEntrypoints() {
@@ -126,7 +117,7 @@ func deriveUsage(program *testpilotspb.Program, contexts map[string]testpilotspb
 	return usage, nil
 }
 
-func (u *programUsage) add(instruction *testpilotspb.InstructionNode, contexts map[string]testpilotspb.EntrypointKind, catalog *testpilot.Catalog) error {
+func (u *programUsage) add(instruction *testpilotspb.InstructionNode, contexts map[string]testpilot.EntrypointKind, catalog *testpilot.Catalog) error {
 	capability := testpilot.InstructionCapability(instruction.GetInstruction())
 	if capability == 0 {
 		return ErrInvalid
@@ -148,13 +139,13 @@ func (u *programUsage) add(instruction *testpilotspb.InstructionNode, contexts m
 		return nil
 	}
 	if u.shapes[key] == nil {
-		u.shapes[key] = map[testpilotspb.EntrypointKind]int64{}
+		u.shapes[key] = map[testpilot.EntrypointKind]int64{}
 		u.carrierOrder[key.role] = append(u.carrierOrder[key.role], key.method)
 	}
 	// Carrier shapes are checked per reserving node, so the ceiling one carrier needs is the
 	// largest single node's reservation of that context, never the sum across nodes: summing
 	// would authorize more than any one instruction can ask for.
-	node := map[testpilotspb.EntrypointKind]int64{}
+	node := map[testpilot.EntrypointKind]int64{}
 	for _, reservation := range instruction.GetActivationReservations() {
 		kind, declared := contexts[reservation.GetEntrypointId()]
 		if !declared || reservation.GetCount() <= 0 {
@@ -183,7 +174,7 @@ func deriveRoles(program *testpilotspb.Program, usage *programUsage) ([]testpilo
 		for _, method := range usage.carrierOrder[role.GetRoleId()] {
 			counts := usage.shapes[carrierKey{role: role.GetRoleId(), method: method}]
 			shapes := make([]testpilot.ReservationCarrierShape, 0, len(counts))
-			for kind := testpilotspb.ENTRYPOINT_KIND_CONTROLLER; kind <= testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER; kind++ {
+			for kind := testpilot.ControllerEntrypoint; kind <= testpilot.MaxEntrypointKind; kind++ {
 				if count := counts[kind]; count > 0 {
 					shapes = append(shapes, testpilot.ReservationCarrierShape{Kind: kind, MaximumCount: count})
 				}
