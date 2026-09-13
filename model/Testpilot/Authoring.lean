@@ -507,10 +507,13 @@ def knownGap (kind : KnownGapKind) (code : String) (subject detail : Option Stri
 each list in the caller's order. -/
 def provenance (producerId producerVersion : String)
     (definitions : Array DefinitionBinding := #[]) (sources : Array SourceLocation := #[])
-    (knownGaps : Array KnownGap := #[]) (correlatedRules : Array CorrelatedRuleBinding := #[]) :
+    (knownGaps : Array KnownGap := #[]) (correlatedRules : Array CorrelatedRuleBinding := #[])
+    (localNames : Array LocalName := #[])
+    (modelValueFingerprints : Array ModelValueFingerprint := #[]) :
     CaseProvenance :=
   { producer_id := producerId, producer_version := producerVersion, definitions, sources,
-    known_gaps := knownGaps, correlated_rules := correlatedRules }
+    known_gaps := knownGaps, correlated_rules := correlatedRules, local_names := localNames,
+    model_value_fingerprints := modelValueFingerprints }
 
 /-- Assemble one generated Case from its version, identity, Program, Contract, and provenance. -/
 def case (major : Int32) (caseId : String)

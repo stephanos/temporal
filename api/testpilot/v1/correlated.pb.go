@@ -277,7 +277,8 @@ type CorrelatedContract struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The model Projection the contract was produced from; the runtime only checks it is an id.
 	ProjectionId string `protobuf:"bytes,1,opt,name=projection_id,json=projectionId,proto3" json:"projection_id,omitempty"`
-	// The Projection's fingerprint; the runtime only checks it is set.
+	// The Projection's fingerprint, over its full canonical form (Definition IDs and canonical value
+	// encodings, not the Case-local names and spellings); the runtime only checks it is set.
 	ProjectionFingerprint string `protobuf:"bytes,2,opt,name=projection_fingerprint,json=projectionFingerprint,proto3" json:"projection_fingerprint,omitempty"`
 	// The Observation, of type CorrelatedEvidence, that supplies the evidence.
 	EvidenceObservationId string `protobuf:"bytes,3,opt,name=evidence_observation_id,json=evidenceObservationId,proto3" json:"evidence_observation_id,omitempty"`

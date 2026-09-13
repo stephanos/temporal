@@ -380,9 +380,15 @@ func TestCorrelatedCheckedLeanFixtures(t *testing.T) {
 			require.NoError(t, protojson.Unmarshal(fixture.Case, &artifact))
 			rules := artifact.GetProvenance().GetCorrelatedRules()
 			require.Len(t, rules, 1)
-			require.Equal(t, artifact.Contract.Correlated.Rules[0].RuleId, rules[0].GetRuleId())
+			// The Contract names the rule and projection by Case-local names, which provenance maps
+			// back to the Definition IDs the correlated rule binding records.
+			definitions := map[string]string{}
+			for _, row := range artifact.GetProvenance().GetLocalNames() {
+				definitions[row.GetLocalName()] = row.GetDefinitionId()
+			}
+			require.Equal(t, rules[0].GetRuleId(), definitions[artifact.Contract.Correlated.Rules[0].RuleId])
 			require.Equal(t, "test.property", rules[0].GetPropertyId())
-			require.Equal(t, artifact.Contract.Correlated.ProjectionId, rules[0].GetProjectionId())
+			require.Equal(t, rules[0].GetProjectionId(), definitions[artifact.Contract.Correlated.ProjectionId])
 			require.Equal(t, artifact.Contract.Correlated.ProjectionFingerprint, rules[0].GetProjectionFingerprint())
 			_, catalog, fixtureView, ceiling, correlated := correlatedFixture(t, 1)
 			program, err := execution.Prepare(&artifact, catalog, execution.Profile{Identity: "host", CatalogIdentity: catalog.Identity(), Limits: fixtureView.Limits()})

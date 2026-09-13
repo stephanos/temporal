@@ -26,6 +26,8 @@ message CaseProvenance {
   repeated SourceLocation sources = 4;
   repeated KnownGap known_gaps = 5;
   repeated CorrelatedRuleBinding correlated_rules = 6;
+  repeated LocalName local_names = 7;
+  repeated ModelValueFingerprint model_value_fingerprints = 8;
 }
 
 // DefinitionBinding names one source Model Definition a Case was produced from and the Behavior
@@ -72,6 +74,31 @@ message CorrelatedRuleBinding {
   string projection_id = 4;
   string projection_fingerprint = 5;
   SourceLocation source = 6;
+}
+
+// LocalName maps one Case-local name to the Definition ID it stands for. The Program and Contract name
+// states, actions, outcomes, facts, evidence kinds, sources and fields, captures, projections and
+// rules by Case-local names; a name no row maps is its own Definition ID. No two rows share a local
+// name or a Definition ID.
+message LocalName {
+  // (-- api-linter: core::0122::name-suffix=disabled
+  //     aip.dev/not-precedent: a Case-local name is the glossary term, not a resource name. --)
+  string local_name = 1;
+  string definition_id = 2;
+}
+
+// ModelValueFingerprint records one model value the Case spells differently from its canonical
+// encoding: a parameterized value, or a value whose spelling collides with another encoding of its
+// definition and so carries a fingerprint-derived disambiguator.
+message ModelValueFingerprint {
+  // The Case-local name of the definition that declares the value.
+  // (-- api-linter: core::0122::name-suffix=disabled
+  //     aip.dev/not-precedent: a Case-local name is the glossary term, not a resource name. --)
+  string local_name = 1;
+  // The value as the Case spells it.
+  string spelling = 2;
+  // The lowercase hexadecimal SHA-256 of the UTF-8 bytes of the value's canonical encoding.
+  string fingerprint = 3;
 }
 
 // DefinitionKind classifies the source Model Definition a DefinitionBinding names.

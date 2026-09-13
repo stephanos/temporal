@@ -39,12 +39,19 @@ func (o *Object) MarshalJSON() ([]byte, error) {
 // Scalars are json.Number, string, bool or nil; arrays are []any; objects are *Object.
 type ApplyFunc func(fixture string, tree any) (any, error)
 
-// Step is one declared difference between the baseline protocol and the current one.
+// RelateFunc transforms one fixture's JSON tree under what the regenerated fixture declares about
+// it, for a difference the baseline alone cannot determine. regenerated is nil when no regenerated
+// fixture is supplied, and then a relation declares nothing.
+type RelateFunc func(fixture string, tree any, regenerated []byte) (any, error)
+
+// Step is one declared difference between the baseline protocol and the current one. It sets exactly
+// one of Apply and Relate.
 type Step struct {
 	Name string
 	// Requirement is the fn-87 R-ID the step implements.
 	Requirement string
 	Apply       ApplyFunc
+	Relate      RelateFunc
 }
 
 // Mapping is the ordered list of Steps from the frozen baseline to the current protocol.
@@ -316,6 +323,10 @@ var Declared = Mapping{
 	{
 		Name: "the opaque provenance payload becomes typed Definition, source, Known Gap and correlated rule rows, and its CASE_ kind literals take their enums' prefixes", Requirement: "R13",
 		Apply: RewriteMessages(protocol+"CaseProvenance", liftProvenanceRows),
+	},
+	{
+		Name: "the Program and Contract name definitions by Case-local names and spell model values by their declared spellings, as the regenerated provenance's local name and model value fingerprint rows declare", Requirement: "R14",
+		Relate: localizeNames,
 	},
 }
 
@@ -942,9 +953,17 @@ func renameCorrelatedRuleKey(from, to string) func(fixture string, object *Objec
 	}
 }
 
-func (m Mapping) apply(fixture string, tree any) (any, error) {
+func (m Mapping) apply(fixture string, tree any, regenerated []byte) (any, error) {
 	for _, step := range m {
-		mapped, err := step.Apply(fixture, tree)
+		var (
+			mapped any
+			err    error
+		)
+		if step.Relate != nil {
+			mapped, err = step.Relate(fixture, tree, regenerated)
+		} else {
+			mapped, err = step.Apply(fixture, tree)
+		}
 		if err != nil {
 			return nil, fmt.Errorf("fixture %s: step %q (%s): %w", fixture, step.Name, step.Requirement, err)
 		}
