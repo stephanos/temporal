@@ -42,9 +42,92 @@ The presentation half of R15: `Testpilot.ProtoJSON` emits fields in declaration 
 
 
 ## Done summary
-TBD
+Fixtures now read as reviewed artifacts. Every message object is written in declaration order. Field paths are strings in a documented grammar, parsed at preparation. Enum literals carry value names. The equivalence oracle shows that only presentation moved, and the Verdict pins are unchanged.
 
+**Protocol**
+- The four `FieldPath` fields are now strings: `PathExpression.path`, `RequestAssignment.target`, `ResponseRead.path`, and `CorrelatedEvidenceRule.operation`.
+  - The names `target` and `operation` were kept rather than renamed `path`: each names what its path addresses.
+  - The grammar is documented on `PathExpression.path` and in `common/testing/testpilot/README.md`.
+- Deleted: `FieldPath`, `FieldPathSegment` and the four selector messages.
+- `EnumValue` is now `{ string name = 1; }`, with an api-linter `core::0123::resource-annotation` suppression.
+- `instruction.proto` no longer imports `value.proto`.
+
+**Go runtime**
+- `ir` parses and prints paths in one grammar (`path_syntax.go`). A segment takes at most one selector: `<member>`, `[*]`, `["text"]`, `[42]`, `[true]`, or a final `?`.
+- `BindPath(source, location, text, limits)` locates every rejection at the path's field and quotes the whole text. That covers grammar errors, unknown fields or members, and keys of the wrong kind.
+  - A payload-arm rejection moves from `...path.path.segments[0].field` to `...path.path`.
+- Presence facts are keyed by the path's canonical spelling.
+- Enum literals are resolved by name against the expected enum. Three cases reject, each quoting the name:
+  - an undeclared name (`unknown`);
+  - a name where the expected type is not an enum (`type_mismatch`);
+  - an untyped literal (`type_mismatch`).
+- Runtime values read from messages carry names too, via `ir.EnumValue` and `ir.EnumName`. A number the enum does not declare is spelled in decimal.
+  - Temporal's generated `String()` is camel-case, so descriptor names are used instead.
+- The worker Driver compares binding targets as strings.
+
+**Lean**
+- `Testpilot.ProtoJSON.canonical` now works over any generated message. It re-emits the library's key-sorted JSON in declaration order:
+  - map fields keep the library's key order;
+  - `Any` writes `@type` first;
+  - well-known types keep their own JSON forms.
+- The correlated corpus writes each row by hand, `name` first.
+- `Testpilot.Authoring.Path` has `Key`, `Selector` and `Segment`, and `make` is the one printer. `Path.oneofSelector` became `Path.oneofMember`. `Value.enumeration` takes a name.
+- `Coverage.scalarValue` and lowering read enum names from the schema's hex descriptor bytes (`Coverage.enumValueName`). `CaseSupport.succeeded` had already been removed by .11.
+  - That reader and the key escaping walk bytes by hand. The protobuf decoder and `String.toList` depend on `Classical.choice`, and `Umpire.Case.Projection.lower` keeps its pinned `[propext, Quot.sound]` inventory.
+- Producers spell `HISTORY_EVENT_FILTER_TYPE_CLOSE_EVENT` and the fault kind names.
+
+**Tests**
+- Go:
+  - `TestPathGrammarRoundTripsEverySegmentKind` round-trips every segment kind.
+  - `TestPathsOutsideTheGrammarRejectWithTheirText` covers an unterminated key, unterminated selector, unknown selector (bracket and character), a map key of the wrong kind, an empty segment, a trailing separator, and an unterminated oneof member.
+  - `TestPathKeysTakeTheirMapKeyKind` checks key typing.
+  - `TestEnumLiteralsNameADeclaredValue` covers the three enum rejections.
+- Lean:
+  - A `#guard` table in `Testpilot/Tests/Authoring.lean` prints each segment kind.
+  - ProtoJSON tests assert declaration order, `Any` order and enum names.
+  - `TypedUnary` guards pin enum naming and its rejection.
+- Generator: `requireDeclarationOrder` and `requireCorrelatedDeclarationOrder` reject reordered objects, naming the file and the JSON path. Tests cover a top-level field, a nested field, `Any`, an undeclared key, a map value, and a correlated event.
+
+**Oracle**
+- New `Resolve` step kind, which receives the baseline snapshot.
+- R15 enum step: names each baseline number by the snapshot enum its context expects. The contexts are request-assignment target fields, instruction-status comparisons, and payload-path comparisons. It requires the current enum to declare the name and fails on any other context. It is declared before the R9 step, which decodes the success guard into the current `Expression`.
+- R15 path step: spells baseline paths with its own printer.
+- `cloneTree` and the fault-coordinate builder keep snapshot annotations.
+- With either step disabled, the oracle goes red.
+- Key order needs no step.
+
+**Other**
+- Retired tokens: `FieldPathSegment`, `RepeatedWildcard`, `MapKeySelector`, `PresenceSelector`, `OneofSelector`.
+- The fn-87 Planning decisions record ".15".
+- Out-of-Touches edits: `tools/umpire/internal/retiredvocabulary/check.go` and the `.flow` spec.
+
+**Fixture sizes (bytes, before → after)**
+
+| Fixture | Before | After |
+|---|---|---|
+| typed-nexus | 58,824 | 47,519 |
+| async-nexus | 26,092 | 22,107 |
+| worker-outage | 17,706 | 13,801 |
+| typed-unary | 15,211 | 11,001 |
+| get-system-info | 3,458 | 3,287 |
+| synthetic | 2,311 | 2,311 |
+| correlated.json | 357,160 | 356,224 |
+
+- Conformance `case.json` sizes did not change (cleanup-failure 2,983; cross-run 2,601; inconclusive 2,567; satisfied 2,551; static-rejection 2,586; expression-context 2,814; violated 2,545). Their key order changed.
+- Every `expected.json` is byte-identical.
+
+**Gates**
+- Baseline: green via receipt c7255198.
+- `make umpire-check-regression`, at c8ab88ed:
+  - run 1 was red with known flake (c): `TestTestpilotAsyncNexusCase` was INCONCLUSIVE instead of SATISFIED;
+  - run 2 was green with 9 identities.
+- `make umpire-check-regression` at 34298eb8: green with 9 identities.
+- `lint-code` at 35234ca5: 161, the baseline. That commit only regroups one test file's imports; the generator package tests pass there.
+- `lint-model`: 163, the baseline.
+- Protocol, authoring, conformance and vocabulary checks passed.
+
+stage: impl-review - ran (claude backend, SHIP on the first round; P3s applied in 34298eb8: identity path shims inlined, generator order tests for map values, undeclared keys and correlated events, cross-reference comments)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: c8ab88edb9f5c94e037f1ffbb3b64b2e046c6472, 34298eb81671b580c22ad9a2dd816179370bf2cb, 35234ca537bf215f0f3498d0ea1c211430b16678
+- Tests: baseline: green via receipt c7255198 (regression), go test -count=1 -tags test_dep ./common/testing/testpilot/internal/protocolmigration/, CC=/usr/bin/cc TMPDIR=$(cd "${TMPDIR:-/tmp}" && pwd -P) make umpire-check-regression (c8ab88ed: run 1 red, known flake (c) TestTestpilotAsyncNexusCase SATISFIED expected got INCONCLUSIVE; run 2 green, 9 identities; 34298eb8: green, 9 identities), go clean -cache && make lint-code GOLANGCI_LINT_FIX=false (161 at 35234ca5), make lint-model (163), make umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-check-case-runtime-conformance, make umpire-check-retired-vocabulary, go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-gen-case-runtime-conformance/ (35234ca5, import regroup only)
 - PRs:
