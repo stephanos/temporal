@@ -568,6 +568,39 @@ narrows or completes a requirement without changing its intent; tasks record the
   `Umpire.FaultRealization.after` replaces its dependency list. The generated accessor
   `GetDependencies` is retired. Hand-built Go test Cases that relied on implicit roots or unconditional
   dependents now write an empty `after` or a `true` guard.
+- **Derived declarations and instruction defaults (decided in .12, 2026-09-13).** `Program.environment`,
+  `InstructionNode.activation_reservations` and `InstructionNode.outcome` are removed (fields renumbered
+  dense), and a Case that writes one fails strict decoding naming the field. The binding graph is
+  `EnvironmentBindingIDs`: each binding a role names (namespace, then resource, in role order), then each
+  other binding an expression references, each once; preparation resolves exactly that set, a binding the
+  Profile lacks rejecting `unknown` at `environment`, and `temporal.DeriveProfile` reads the same set. An
+  ordinary controller instruction invoking a Profile carrier method reserves one activation of each
+  workflow and Nexus-handler entrypoint whose kind the carrier's shapes admit, in declaration order; two
+  instructions that could carry one entrypoint reject `unsupported` naming both. A reservation therefore
+  always counts one: a multi-activation reservation, a partial one, and a handler-only carrier (which
+  topology rejects) are no longer expressible, and `DeriveProfile` makes every ordinary controller
+  `StartWorkflowExecution` a carrier whose shapes count the Program's workflow and handler entrypoints.
+  An instruction's outcome fields are the ones its instruction produces rather than the set each fixture
+  wrote (only the status): every instruction a status and a detail, `InvokeRpc` and
+  `CompleteNexusOperation` a protocol code, a worker instruction an SDK failure code, and
+  `AwaitInstruction` a text VALUE. No exact equality with every fixture exists, because the synthetic
+  Case's Finish declared a message VALUE that the async Finishes did not; a Finish or RespondNexus result
+  ends its activation, so neither derives VALUE, the worker no longer copies a terminal result into its
+  outcome, and the oracle drops such a declaration only where no expression reads it. The spec's "for
+  `InvokeRpc`, the method's response descriptor" is not used: an RPC response is read only through
+  response reads. An awaited Nexus result is typed text, which every version-one Nexus result is (fn-85
+  R10 redefines those instructions). `InstructionLimits` keeps presence through two single-arm oneofs
+  (proto3 `optional` stays unavailable, as .8 found); `ProfileSpec.InstructionDefaults` is a Go
+  `{TimeoutMilliseconds, MaxAttempts}` value whose zero field supplies no default, so an instruction that
+  omits that limit rejects `malformed`; `InstructionDefaults.Resolve` is the one resolution rule, shared by
+  preparation and the server Driver. `temporal.DefaultInstructionLimits` is 10000 ms and one attempt, the
+  synthetic and correlated test Profiles take 1000 ms and one attempt, and Producers write only a differing
+  limit (`Program.instructionLimits (timeoutMilliseconds := some 5000)`); `Program.node` drops its outcome
+  and reservation arguments and takes optional `limits`. Instruction defaults are part of the Profile
+  snapshot, and the Profile identity doc now names them; ART-14's binding fingerprint is unchanged and
+  existing Driver identity strings need not change, since every checked-in Case resolves to the limits it
+  wrote. The oracle's R10 step re-spells each rule and checks each dropped value against it. ART-13 is
+  restated under GOV-02.
 
 ## Requirement coverage
 

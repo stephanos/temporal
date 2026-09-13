@@ -76,22 +76,16 @@ private def program
             assign (field "workflow_id") runId,
             assign (nested ["workflow_type", "name"]) (text workflowType),
             Program.environmentAssignment (nested ["task_queue", "name"]) taskQueueBinding,
-            assign (field "request_id") runId])
-          (Program.instructionLimits 10000 1) (outcome := some statusOutcome)
-          (reservations := #[Program.reservation "workflow" 1]),
+            assign (field "request_id") runId]),
         Program.node "history"
           (Program.invokeRpc workflowServiceRole getHistoryMethod historyAssignments
             #[Program.responseRead historyEvents .READ_CARDINALITY_EMIT_EACH
               #[Program.observationTarget historyObservation,
                 Evidence.target runFieldId correlatedObservation identity resolved]])
-          (Program.instructionLimits 20000 1) (outcome := some statusOutcome)],
+          (Program.instructionLimits (timeoutMilliseconds := some 20000))],
       Program.workflow "workflow" workflowType workerRole taskQueueRole #[
-        Program.node "finish-workflow" (Program.finish (text "completed"))
-          (Program.instructionLimits 10000 1) (outcome := some statusOutcome)]]
+        Program.node "finish-workflow" (Program.finish (text "completed"))]]
     (Program.cleanup "cleanup" #[])
-    (environment := #[
-      Program.environment namespaceBinding,
-      Program.environment taskQueueBinding])
 
 end Workflow
 

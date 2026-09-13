@@ -23,7 +23,7 @@ private def conformanceRule
 private def conformanceNode (instructionId : String) (guard : Option Expression := none) :
     InstructionNode :=
   Program.node instructionId (Program.invokeRpc workflowServiceRole getSystemInfoMethod)
-    (Program.instructionLimits 5000 1) (guard := guard) (outcome := some statusOutcome)
+    (Program.instructionLimits (timeoutMilliseconds := some 5000)) (guard := guard)
 
 private def conformanceProgram (caseId : String) (cleanupFailure : Bool)
     (guard : Option Expression) : Program :=

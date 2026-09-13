@@ -40,14 +40,17 @@ two Profiles, runs both physical environments, and proves namespace isolation pl
 correlated satisfied Contract; the binding fingerprints and Driver identities differ.
 
 `DeriveProfile` reads one Case and returns the minimal `ProfileSpec` it implies: the roles it
-declares, the methods it invokes, the reservation carriers its own instructions use with the
-activation counts they reserve per entrypoint context, the capabilities its opcodes require, and
-the environment values its declared bindings resolve to through the roles that reference them. It
-never widens beyond what the Case references, and it rejects a method the catalog does not know, an
-undeclared role kind, an unset instruction, a reservation naming an undeclared entrypoint, or a
-declared binding no role claims. Its resource ceilings are `DefaultCeilings`, the one Temporal
-ceiling set: each is the largest value any checked-in Temporal Case declared when ceilings moved out
-of the Case, and the testcore Profiles use the same set. Drivers read ceilings from
+declares, the methods it invokes, a reservation carrier for each `StartWorkflowExecution` an ordinary
+controller invokes whose shapes admit one activation of each workflow and Nexus-handler entrypoint the
+Program declares (preparation derives the reservations from those shapes), the capabilities its
+opcodes require, and the environment values of the bindings it references
+(`testpilot.EnvironmentBindingIDs`) through the roles that name them. It never widens beyond what the
+Case references, and it rejects a method the catalog does not know, an undeclared role kind, an unset
+instruction, or a referenced binding no role claims. Its resource ceilings are `DefaultCeilings`, the
+one Temporal ceiling set: each is the largest value any checked-in Temporal Case declared when ceilings
+moved out of the Case, and the testcore Profiles use the same set. Its instruction defaults are
+`DefaultInstructionLimits` (a 10000 ms timeout and one attempt, the most common values across the
+Temporal Cases), so a Case writes only the instruction limits that differ. Drivers read ceilings from
 `PreparedProgram.Limits`, the prepared Profile snapshot, never from the Case. The Profile is an authorization snapshot, so the derived value is
 returned for the caller to review and tighten before `Prepare`; canary callers keep hand-authored
 Profiles, and the hand-written async-nexus Profile stays the derivation oracle. MOD-12's `Prepare`

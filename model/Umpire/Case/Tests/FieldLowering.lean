@@ -312,7 +312,7 @@ private def program (assigned : Int := 7) : Program :=
               (Testpilot.Authoring.Path.make
                 #[Testpilot.Authoring.Path.mapKey "tags" { value := some (.text_value "k") }])
               (Testpilot.Authoring.Expr.literal { value := some (.text_value "v") })])
-        (Testpilot.Authoring.Program.instructionLimits 1000 1)]]
+        (Testpilot.Authoring.Program.instructionLimits (some 1000) (some 1))]]
     (Testpilot.Authoring.Program.cleanup "cleanup" #[])
 
 private def inputCoverage (assigned : Int := 7) : Coverage.InputMapping :=

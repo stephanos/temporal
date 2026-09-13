@@ -62,7 +62,7 @@ func liftFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Profile) {
 
 	limits := &testpilotspb.ProgramLimits{MaxEntrypoints: 8, MaxNodes: 32, MaxEdges: 64, MaxActivations: 64, MaxAttempts: 32, MaxRunEvents: 256, MaxExpressionDepth: 16, MaxPathFanout: 128, MaxRequestBytes: 4096, MaxResponseBytes: 4096, MaxTotalDurationMilliseconds: 30000, MaxCleanupDurationMilliseconds: 5000, MaxInstructionEmittedEvents: 8, MaxInstructionResponseBytes: 4096}
 	policy := Profile{Identity: "host", CatalogIdentity: catalog.Identity(), Roles: []contract.RolePolicy{{ID: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT, Methods: []string{"/lift.Source/Read"}}}, Opcodes: []contract.Opcode{contract.InvokeRPC}, Limits: proto.CloneOf(limits)}
-	node := &testpilotspb.InstructionNode{InstructionId: "read", Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRpc{EndpointRoleId: "endpoint", Method: "/lift.Source/Read"}}}, Outcome: statusSchema(), Limits: &testpilotspb.InstructionLimits{TimeoutMilliseconds: 1000, MaxAttempts: 1}}
+	node := &testpilotspb.InstructionNode{InstructionId: "read", Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRpc{EndpointRoleId: "endpoint", Method: "/lift.Source/Read"}}}, Limits: &testpilotspb.InstructionLimits{Timeout: &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: 1000}, Attempts: &testpilotspb.InstructionLimits_MaxAttempts{MaxAttempts: 1}}}
 	artifact := &testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: 1}, CaseId: "lift", Program: &testpilotspb.Program{
 		ProgramId: "program", Roles: []*testpilotspb.Role{{RoleId: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT}},
 		Observations: []*testpilotspb.Observation{{ObservationId: "evidence", Type: messageValueType("temporal.server.api.testpilot.v1.CorrelatedEvidence")}, {ObservationId: "other", Type: scalar(testpilotspb.SCALAR_KIND_TEXT)}},
@@ -383,7 +383,6 @@ func TestEvidenceLiftRejectsSharedSourcesAndWorkerEntrypoints(t *testing.T) {
 		artifact.Program.Roles = append(artifact.Program.Roles,
 			&testpilotspb.Role{RoleId: "worker", Kind: testpilotspb.ROLE_KIND_WORKER, NamespaceBindingId: "namespace"},
 			&testpilotspb.Role{RoleId: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE, NamespaceBindingId: "namespace", ResourceBindingId: "queue"})
-		artifact.Program.Environment = []*testpilotspb.EnvironmentDefinition{{BindingId: "namespace"}, {BindingId: "queue"}}
 		policy.Roles = append(policy.Roles, contract.RolePolicy{ID: "worker", Kind: testpilotspb.ROLE_KIND_WORKER}, contract.RolePolicy{ID: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE})
 		policy.EnvironmentBindings = append(policy.EnvironmentBindings, contract.EnvironmentBinding{ID: "namespace", Value: "namespace"}, contract.EnvironmentBinding{ID: "queue", Value: "queue"})
 		_, err := Prepare(artifact, catalog, policy)

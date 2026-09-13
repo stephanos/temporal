@@ -21,10 +21,6 @@ def binding (id fingerprint : String) (kind : Umpire.Provenance.DefinitionKind) 
   { definitionId := id, behaviorFingerprint := fingerprint, kind }
 
 def textType : ValueType := Types.singular (Types.scalar .SCALAR_KIND_TEXT)
-def statusType : ValueType :=
-  Types.singular (Types.enumeration "temporal.server.api.testpilot.v1.InstructionOutcomeStatus")
-def statusOutcome : InstructionOutcomeDefinition :=
-  Program.outcome #[Program.outcomeField .INSTRUCTION_OUTCOME_FIELD_STATUS statusType]
 
 def field (name : String) : FieldPath := Path.make #[Path.field name]
 

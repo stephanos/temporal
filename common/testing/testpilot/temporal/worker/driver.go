@@ -437,7 +437,7 @@ func (h *Driver) validateRPCBindings(instruction testpilot.InstructionPlan, role
 	workerRole := roles[h.options.workerRoleID]
 	switch invoke.GetMethod() {
 	case startWorkflowMethod:
-		queueRole, ok := reservedWorkflowQueueRole(instruction.Source(), program)
+		queueRole, ok := reservedWorkflowQueueRole(instruction, program)
 		if !ok {
 			return ErrInvalid
 		}
@@ -459,14 +459,14 @@ func (h *Driver) validateRPCBindings(instruction testpilot.InstructionPlan, role
 	return nil
 }
 
-func reservedWorkflowQueueRole(instruction *testpilotspb.InstructionNode, program *testpilotspb.Program) (string, bool) {
+func reservedWorkflowQueueRole(instruction testpilot.InstructionPlan, program *testpilotspb.Program) (string, bool) {
 	entrypointID := ""
-	for _, reservation := range instruction.GetActivationReservations() {
-		if reservation.GetCount() != 1 {
+	for _, reservation := range instruction.Reservations() {
+		if reservation.Count != 1 {
 			continue
 		}
 		for _, entrypoint := range program.GetEntrypoints() {
-			if entrypoint.GetEntrypointId() == reservation.GetEntrypointId() && entrypoint.GetWorkflow() != nil {
+			if entrypoint.GetEntrypointId() == reservation.EntrypointID && entrypoint.GetWorkflow() != nil {
 				if entrypointID != "" {
 					return "", false
 				}

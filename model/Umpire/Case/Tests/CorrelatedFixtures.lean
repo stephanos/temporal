@@ -101,13 +101,8 @@ def runnableCase (scenario : Scenario) : Except String temporal.server.api.testp
       (Testpilot.Authoring.Program.invokeRpc "source" "/test.correlated.Source/Read" #[]
         #[Testpilot.Authoring.Program.responseRead (Testpilot.Authoring.Path.make #[])
           .READ_CARDINALITY_ONE #[Testpilot.Authoring.Program.observationTarget "evidence"]])
-      (Testpilot.Authoring.Program.instructionLimits 1000 1)
       (guard := if index == 0 then none else
         some (Testpilot.Authoring.Expr.literal (Testpilot.Authoring.Value.boolean true)))
-      (outcome := some (Testpilot.Authoring.Program.outcome #[
-        Testpilot.Authoring.Program.outcomeField .INSTRUCTION_OUTCOME_FIELD_STATUS
-          (Testpilot.Authoring.Types.singular (Testpilot.Authoring.Types.enumeration
-            "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"))]))
   pure { artifact with program := some { program with
     roles := #[Testpilot.Authoring.Program.role "source" .ROLE_KIND_ENDPOINT]
     entrypoints := #[Testpilot.Authoring.Program.controller "controller" nodes] } }
