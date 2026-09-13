@@ -94,6 +94,7 @@ func TestRetiredRulesHoldTheGlossaryRenamedProtocolNames(t *testing.T) {
 		{line: "(targets : Array Projection" + "Target)", want: []string{"Projection" + "Target"}},
 		{line: "(kind : Projection" + "Kind)", want: []string{"Projection" + "Kind"}},
 		{line: `"kind": "PROJECTION_` + `KIND_ONE"`, want: []string{"PROJECTION_" + "KIND_*"}},
+		{line: `"field": "RUN_EVENT_FIELD_` + `FAULT_KIND"`, want: []string{"RUN_EVENT_FIELD_" + "FAULT_*"}},
 		{line: "&pb.OpaqueCapability" + "Type{}", want: []string{"OpaqueCapability" + "Type"}},
 		{line: "string capability" + "_slot_id = 1;", want: []string{"capability" + "_slot_id"}},
 		{line: `"capability` + `SlotId": "authority"`, want: []string{"Capability" + "SlotId"}},
