@@ -33,22 +33,25 @@ func payloadField(arm, field string) *testpilotspb.Expression {
 
 // The whole evidence path in one pass: a Contract transition filtered on the fault event kind and
 // predicated on both fields of its payload is admitted, matches the recorded fault online, and the
-// offline replay produces the identical Verdict. A rule that only compiled would prove nothing.
+// offline replay produces the identical Verdict. A rule that only compiled would prove nothing. An
+// event of a kind that may lack the arm reads its fields as absent, which no comparison matches.
 func TestEvaluatorMatchesRecordedFaultPayload(t *testing.T) {
+	faulted := []testpilotspb.RunEventKind{testpilotspb.RUN_EVENT_KIND_FAULT_INJECTED}
 	for _, tc := range []struct {
-		name string
-		kind testpilotspb.FaultKind
-		role string
-		want testpilotspb.VerdictStatus
+		name     string
+		kinds    []testpilotspb.RunEventKind
+		recorded *testpilotspb.RunEvent
+		want     testpilotspb.VerdictStatus
 	}{
-		{"matching fault", testpilotspb.FAULT_KIND_WORKER_STOP, "queue", testpilotspb.VERDICT_STATUS_SATISFIED},
-		{"other kind", testpilotspb.FAULT_KIND_WORKER_RESUME, "queue", testpilotspb.VERDICT_STATUS_INCONCLUSIVE},
-		{"other role", testpilotspb.FAULT_KIND_WORKER_STOP, "other", testpilotspb.VERDICT_STATUS_INCONCLUSIVE},
+		{"matching fault", faulted, faultEvent(2, 10, "queue", testpilotspb.FAULT_KIND_WORKER_STOP), testpilotspb.VERDICT_STATUS_SATISFIED},
+		{"other kind", faulted, faultEvent(2, 10, "queue", testpilotspb.FAULT_KIND_WORKER_RESUME), testpilotspb.VERDICT_STATUS_INCONCLUSIVE},
+		{"other role", faulted, faultEvent(2, 10, "other", testpilotspb.FAULT_KIND_WORKER_STOP), testpilotspb.VERDICT_STATUS_INCONCLUSIVE},
+		{"absent arm", append([]testpilotspb.RunEventKind{testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED}, faulted...), event(2, 10, testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED), testpilotspb.VERDICT_STATUS_INCONCLUSIVE},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			c, cat, view, limits := fixture(t)
 			r := c.Rules[0]
-			r.Transitions[0].EventFilter.Kinds = []testpilotspb.RunEventKind{testpilotspb.RUN_EVENT_KIND_FAULT_INJECTED}
+			r.Transitions[0].EventFilter.Kinds = tc.kinds
 			r.Transitions[0].Predicate = all(
 				equal(payloadField("fault_injected", "role_id"), textLiteral("queue")),
 				equal(payloadField("fault_injected", "kind"), enumLiteral("FAULT_KIND_WORKER_STOP")),
@@ -58,7 +61,7 @@ func TestEvaluatorMatchesRecordedFaultPayload(t *testing.T) {
 
 			run := &testpilotspb.Run{RunId: "run", CaseId: "case", ProgramId: "program", Disposition: testpilotspb.RUN_DISPOSITION_COMPLETED, Events: []*testpilotspb.RunEvent{
 				event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED),
-				faultEvent(2, 10, tc.role, tc.kind),
+				tc.recorded,
 				event(3, 20, testpilotspb.RUN_EVENT_KIND_RUN_CLOSED),
 			}}
 			monitor, err := p.New(context.Background(), view)
@@ -84,9 +87,9 @@ func TestEvaluatorMatchesRecordedFaultPayload(t *testing.T) {
 }
 
 // A payload path is typed by the arm its first segment names. It rejects, located at that segment,
-// when no kind the transition considers can carry the arm; it is absent, and so needs a presence
-// guard, when some considered kind may lack the arm; and it needs no guard when every considered
-// kind requires the arm.
+// when no kind the transition considers can carry the arm; it is absent when some considered kind may
+// lack the arm, which a comparison reads without a presence guard; and it is present when every
+// considered kind requires the arm.
 func TestPrepareLocatesPayloadPathsTheFilterCannotCarry(t *testing.T) {
 	located := "contract.rules[rule].transitions[first].predicate.compare.left.path.path"
 	completed := testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED
@@ -101,9 +104,9 @@ func TestPrepareLocatesPayloadPathsTheFilterCannotCarry(t *testing.T) {
 	}{
 		{name: "an arm every kind requires", kinds: []testpilotspb.RunEventKind{faulted}, predicate: faultKind},
 		{name: "an arm no kind carries", kinds: []testpilotspb.RunEventKind{completed}, predicate: faultKind, category: ir.Unknown, path: located},
-		{name: "an arm some kind may lack", kinds: []testpilotspb.RunEventKind{completed, faulted}, predicate: faultKind, category: ir.Unavailable},
+		{name: "an arm some kind may lack", kinds: []testpilotspb.RunEventKind{completed, faulted}, predicate: faultKind},
 		{name: "a guarded arm some kind may lack", kinds: []testpilotspb.RunEventKind{completed, faulted}, predicate: all(present(payloadField("fault_injected", "kind")), faultKind)},
-		{name: "an optional arm", kinds: []testpilotspb.RunEventKind{completed}, predicate: equal(payloadField("outcome", "detail"), textLiteral("")), category: ir.Unavailable},
+		{name: "an optional arm", kinds: []testpilotspb.RunEventKind{completed}, predicate: equal(payloadField("outcome", "detail"), textLiteral(""))},
 		{name: "an unknown arm", kinds: []testpilotspb.RunEventKind{faulted}, predicate: equal(payloadField("observations", "observation_id"), textLiteral("")), category: ir.Unknown, path: located},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

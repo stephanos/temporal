@@ -319,26 +319,23 @@ func evidenceField(e *admittedCorrelatedEvidence, id string) *testpilotspb.Value
 	return e.Fields[i].Value
 }
 
-// operandValue reads only declared evidence. An occurrence the operation never retained -- a future
-// ordinal, or one belonging to a different operation -- has no value here, so admission fails rather
-// than binding the nearest match.
+// operandValue reads only declared evidence; nil is an absent operand. An occurrence the operation
+// never retained -- a future ordinal, or one belonging to a different operation -- has no value here,
+// so the comparison reading it is false rather than binding the nearest match.
 func operandValue(o *testpilotspb.Expression, e *admittedCorrelatedEvidence, op *correlatedOperation) (*testpilotspb.Value, error) {
 	if literal, ok := o.GetExpression().(*testpilotspb.Expression_Literal); ok {
 		return literal.Literal, nil
 	}
 	switch v := o.GetReference().GetReference().(type) {
 	case *testpilotspb.Reference_EvidenceFieldId:
-		if value := evidenceField(e, v.EvidenceFieldId); value != nil {
-			return value, nil
-		}
-		return nil, invalid(ir.Malformed, "missing correlation field operand")
+		return evidenceField(e, v.EvidenceFieldId), nil
 	case *testpilotspb.Reference_CorrelatedCapture:
 		for _, entry := range op.captures {
 			if entry.capture == v.CorrelatedCapture.GetCaptureId() && entry.ordinal == v.CorrelatedCapture.GetOrdinal() {
 				return entry.value, nil
 			}
 		}
-		return nil, invalid(ir.Malformed, "missing retained capture occurrence")
+		return nil, nil
 	default:
 		return nil, invalid(ir.Unknown, "unsupported correlation operand")
 	}
@@ -359,6 +356,9 @@ func correlationHolds(c *testpilotspb.Expression, out *testpilotspb.CorrelatedTr
 		right, err := operandValue(v.Compare.GetRight(), e, op)
 		if err != nil {
 			return false, err
+		}
+		if left == nil || right == nil {
+			return false, nil
 		}
 		return proto.Equal(left, right) == (v.Compare.GetOperator() == testpilotspb.COMPARISON_OPERATOR_EQUAL), nil
 	case *testpilotspb.Expression_All:

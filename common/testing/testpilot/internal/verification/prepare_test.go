@@ -22,7 +22,7 @@ func fixture(t *testing.T, responseBytes ...int64) (*testpilotspb.Contract, *ir.
 		limits.MaxResponseBytes = responseBytes[0]
 		limits.MaxInstructionResponseBytes = min(limits.MaxInstructionResponseBytes, responseBytes[0])
 	}
-	source := &testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: 1}, CaseId: "case", Contract: &testpilotspb.Contract{ContractId: "contract"}, Program: &testpilotspb.Program{ProgramId: "program", Observations: []*testpilotspb.Observation{{ObservationId: "id", Type: scalar(testpilotspb.SCALAR_KIND_INT64)}, {ObservationId: "text", Type: scalar(testpilotspb.SCALAR_KIND_TEXT)}, {ObservationId: "message", Type: messageType("example.Empty")}}, Entrypoints: []*testpilotspb.Entrypoint{{EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}}}}, Cleanup: &testpilotspb.Cleanup{EntrypointId: "cleanup"}}}
+	source := &testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: 1}, CaseId: "case", Contract: &testpilotspb.Contract{ContractId: "contract"}, Program: &testpilotspb.Program{ProgramId: "program", Observations: []*testpilotspb.Observation{{ObservationId: "id", Type: scalar(testpilotspb.SCALAR_KIND_INT64)}, {ObservationId: "text", Type: scalar(testpilotspb.SCALAR_KIND_TEXT)}, {ObservationId: "flag", Type: scalar(testpilotspb.SCALAR_KIND_BOOLEAN)}, {ObservationId: "message", Type: messageType("example.Empty")}}, Entrypoints: []*testpilotspb.Entrypoint{{EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}}}}, Cleanup: &testpilotspb.Cleanup{EntrypointId: "cleanup"}}}
 	prepared, err := execution.Prepare(source, catalog, execution.Profile{Identity: "host", CatalogIdentity: catalog.Identity(), Limits: proto.CloneOf(limits)})
 	require.NoError(t, err)
 	ceiling := &testpilotspb.ContractLimits{MaxRules: 16, MaxStates: 32, MaxTransitions: 64, MaxExpressionDepth: 16, MaxWorkPerEvent: 100000, MaxTotalWork: 1000000000, MaxCaptures: 8, MaxCaptureBytes: 65536}
@@ -62,6 +62,13 @@ func transition(id, from, to string, predicate *testpilotspb.Expression) *testpi
 func addCapture(rule *testpilotspb.ContractRule) {
 	rule.Captures = []*testpilotspb.ContractCapture{{CaptureId: "saved", Type: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Scalar{Scalar: &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_INT64}}}}}
 }
+// addFlag declares a boolean capture the save transition assigns from the flag Observation.
+func addFlag(rule *testpilotspb.ContractRule) {
+	rule.Captures = append(rule.Captures, &testpilotspb.ContractCapture{CaptureId: "flag", Type: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Scalar{Scalar: &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_BOOLEAN}}}})
+	save := rule.Transitions[0]
+	save.Predicate = all(save.Predicate, present(observation("flag")))
+	save.CaptureAssignments = append(save.CaptureAssignments, &testpilotspb.ContractCaptureAssignment{CaptureId: "flag", ObservationId: "flag"})
+}
 func assign(tr *testpilotspb.ContractTransition) {
 	tr.CaptureAssignments = []*testpilotspb.ContractCaptureAssignment{{CaptureId: "saved", ObservationId: "id"}}
 }
@@ -90,8 +97,14 @@ func TestPrepareCapturePaths(t *testing.T) {
 	}{
 		{"correlation", func(r *testpilotspb.ContractRule) {}, false},
 		{"missing observation guard", func(r *testpilotspb.ContractRule) { r.Transitions[0].Predicate = boolean(true) }, true},
-		{"pretransition read", func(r *testpilotspb.ContractRule) {
+		// A comparison with a capture its path may not have assigned is false rather than rejected, so
+		// definite assignment is observed through a bare boolean capture.
+		{"pretransition comparison", func(r *testpilotspb.ContractRule) {
 			r.Transitions[0].Predicate = all(present(observation("id")), equal(capture("saved"), observation("id")))
+		}, false},
+		{"pretransition read", func(r *testpilotspb.ContractRule) {
+			addFlag(r)
+			r.Transitions[0].Predicate = all(present(observation("id")), present(observation("flag")), capture("flag"))
 		}, true},
 		{"mismatched capture", func(r *testpilotspb.ContractRule) {
 			r.Captures[0].Type.GetScalar().Kind = testpilotspb.SCALAR_KIND_TEXT
@@ -104,9 +117,18 @@ func TestPrepareCapturePaths(t *testing.T) {
 			r.Transitions[0].TargetStateId = "start"
 			r.Transitions[0].Predicate = all(not(present(capture("saved"))), present(observation("id")))
 		}, false},
+		{"branch merge comparison", func(r *testpilotspb.ContractRule) {
+			r.Transitions = append(r.Transitions, transition("branch", "start", "middle", boolean(true)))
+		}, false},
 		{"branch merge", func(r *testpilotspb.ContractRule) {
+			addFlag(r)
+			r.Transitions[1].Predicate = all(present(observation("id")), capture("flag"))
 			r.Transitions = append(r.Transitions, transition("branch", "start", "middle", boolean(true)))
 		}, true},
+		{"guarded flag", func(r *testpilotspb.ContractRule) {
+			addFlag(r)
+			r.Transitions[1].Predicate = all(present(observation("id")), capture("flag"))
+		}, false},
 		{"guarded merge", func(r *testpilotspb.ContractRule) {
 			r.Transitions = append(r.Transitions, transition("branch", "start", "middle", boolean(true)))
 			r.Transitions[1].Predicate = all(present(capture("saved")), r.Transitions[1].Predicate)

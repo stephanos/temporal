@@ -148,12 +148,12 @@ func TestCorrelatedCapturesCorrelateOperationSteps(t *testing.T) {
 		{
 			name: "future-occurrence", bound: 1, lifetime: 2, correlation: keyedCorrelation(1),
 			steps:  []correlatedStep{{"request", "a", "1"}, {"reply", "a", "1"}},
-			reject: "missing retained capture occurrence",
+			reject: "correlation rejected this operation's step",
 		},
 		{
 			name: "foreign-operation", bound: 1, lifetime: 2, correlation: keyedCorrelation(0),
 			steps:  []correlatedStep{{"request", "a", "1"}, {"reply", "b", "1"}},
-			reject: "missing retained capture occurrence",
+			reject: "correlation rejected this operation's step",
 		},
 		{
 			name: "occurrence-zero-is-immutable", bound: 2, lifetime: 2, correlation: keyedCorrelation(0),
@@ -173,7 +173,22 @@ func TestCorrelatedCapturesCorrelateOperationSteps(t *testing.T) {
 		{
 			name: "missing-field-operand", bound: 1, lifetime: 2, correlation: keyedCorrelation(0),
 			steps:  []correlatedStep{{"request", "a", "1"}, {"tick", "a", ""}},
-			reject: "missing correlation field operand",
+			reject: "correlation rejected this operation's step",
+		},
+		{
+			name: "missing-operand-is-not-unequal", bound: 1, lifetime: 2,
+			correlation: correlatedAny(correlatedTriggered(),
+				correlationComparison(testpilotspb.COMPARISON_OPERATOR_NOT_EQUAL, correlatedFieldOperand(repliedField), correlatedCaptureOperand("seen", 1))),
+			steps:  []correlatedStep{{"request", "a", "1"}, {"reply", "a", "2"}},
+			reject: "correlation rejected this operation's step",
+		},
+		{
+			name: "missing-operand-leaves-a-disjunction-open", bound: 1, lifetime: 2,
+			correlation: correlatedAny(correlatedTriggered(),
+				correlationComparison(testpilotspb.COMPARISON_OPERATOR_EQUAL, correlatedFieldOperand(repliedField), correlatedCaptureOperand("seen", 1)),
+				correlationComparison(testpilotspb.COMPARISON_OPERATOR_EQUAL, correlatedFieldOperand(repliedField), correlatedCaptureOperand("seen", 0))),
+			steps: []correlatedStep{{"request", "a", "1"}, {"reply", "a", "1"}},
+			want:  testpilotspb.RULE_VERDICT_STATUS_SATISFIED,
 		},
 		{
 			name:     "conjunction-stops-at-its-first-false-operand",

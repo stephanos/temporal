@@ -58,7 +58,10 @@ Execution expressions use `Expression.EvaluateExecution`, which shares the evalu
 and semantics with `Evaluate` while charging intermediate decoding, encoding and ownership copies.
 Contract evaluation retains its existing admission accounting through `Evaluate`; bounded descriptor
 paths keep that existing work finite. Neither entry point rebinds expressions or changes presence,
-short-circuiting or comparison behavior.
+short-circuiting or comparison behavior. Binding admits an absent comparison operand without a
+presence guard, and both entry points evaluate a comparison with an absent operand to false under
+every operator, so `NOT_EQUAL` is false there while `not(EQUAL)` is true. An absent value used any
+other way (a bare boolean, an instruction input) still needs a guard.
 
 The private `recorder` serializes publication, synchronous Monitor callbacks, ordinary admission,
 and closure under one mutex. The scheduler creates it from the prepared view, supplies a monotonic clock

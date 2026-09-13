@@ -2,6 +2,7 @@ package ir
 
 import (
 	"context"
+	"fmt"
 	"math"
 	"testing"
 
@@ -70,6 +71,74 @@ func TestRuntimeOperatorsAndExactBudget(t *testing.T) {
 		require.False(t, value.GetBoolValue())
 	}
 }
+// TestComparisonsWithAnAbsentOperandAreFalse pins the absent-operand rule in the Program and Contract
+// contexts: every operator binds an absent operand without a presence guard and is false when either
+// operand is absent, so the negation of EQUAL is true there while NOT_EQUAL is false. A bare absent
+// predicate and an absent instruction input still require a guard.
+func TestComparisonsWithAnAbsentOperandAreFalse(t *testing.T) {
+	c := fixtureCatalog(t)
+	intType := boundType(t, c, scalar(testpilotspb.SCALAR_KIND_INT64))
+	boolType := boundType(t, c, scalar(testpilotspb.SCALAR_KIND_BOOLEAN))
+	observation := func(id string) *testpilotspb.Expression {
+		return reference(&testpilotspb.Reference{Reference: &testpilotspb.Reference_ObservationId{ObservationId: id}})
+	}
+	for _, tc := range []struct {
+		site      Site
+		reference func(string) *testpilotspb.Expression
+		kind      ReferenceKind
+	}{
+		{programSite, slot, SlotReference},
+		{contractSite, observation, ObservationReference},
+	} {
+		absent := Reference{Kind: tc.kind, ID: "absent"}
+		scope := map[Reference]Binding{
+			absent:                                {Type: intType},
+			{Kind: tc.kind, ID: "flag"}:      {Type: boolType},
+			{Kind: tc.kind, ID: "available"}: {Type: intType, Available: true},
+		}
+		resolve := func(ref Reference) *testpilotspb.Value {
+			if ref == absent || ref.ID == "flag" {
+				return nil
+			}
+			return signed("1")
+		}
+		evaluate := func(t *testing.T, source *testpilotspb.Expression) bool {
+			t.Helper()
+			e, err := c.BindExpression(tc.site, source, &boolType, scope, DefaultLimits())
+			require.NoError(t, err)
+			value, _, err := e.Evaluate(t.Context(), resolve, 10000)
+			require.NoError(t, err)
+			return value.GetBoolValue()
+		}
+		for _, operator := range []testpilotspb.ComparisonOperator{
+			testpilotspb.COMPARISON_OPERATOR_EQUAL,
+			testpilotspb.COMPARISON_OPERATOR_NOT_EQUAL,
+			testpilotspb.COMPARISON_OPERATOR_LESS_THAN,
+			testpilotspb.COMPARISON_OPERATOR_LESS_THAN_OR_EQUAL,
+			testpilotspb.COMPARISON_OPERATOR_GREATER_THAN,
+			testpilotspb.COMPARISON_OPERATOR_GREATER_THAN_OR_EQUAL,
+		} {
+			t.Run(fmt.Sprintf("%s/%s", tc.site.Path, operator), func(t *testing.T) {
+				require.False(t, evaluate(t, compare(operator, tc.reference("absent"), literal(signed("1")))))
+				require.False(t, evaluate(t, compare(operator, literal(signed("1")), tc.reference("absent"))))
+				require.False(t, evaluate(t, compare(operator, tc.reference("absent"), tc.reference("available"))))
+			})
+		}
+		t.Run(tc.site.Path+"/negation", func(t *testing.T) {
+			require.True(t, evaluate(t, negate(equal(tc.reference("absent"), literal(signed("1"))))))
+		})
+		t.Run(tc.site.Path+"/bare predicate", func(t *testing.T) {
+			_, err := c.BindExpression(tc.site, tc.reference("flag"), &boolType, scope, DefaultLimits())
+			require.Equal(t, &Error{Category: Unavailable, Path: "expression", Detail: "reference or projection requires an explicit presence guard"}, err)
+		})
+	}
+	t.Run("input", func(t *testing.T) {
+		scope := map[Reference]Binding{{Kind: SlotReference, ID: "absent"}: {Type: intType}}
+		_, _, err := c.BindGuardedExpression(Condition{Expression: compare(testpilotspb.COMPARISON_OPERATOR_EQUAL, slot("absent"), literal(signed("1")))}, programSite, slot("absent"), &intType, scope, DefaultLimits())
+		require.Equal(t, &Error{Category: Unavailable, Path: "expression", Detail: "reference or projection requires an explicit presence guard"}, err)
+	})
+}
+
 func TestRuntimePathsAndPresence(t *testing.T) {
 	c := fixtureCatalog(t)
 	typ := boundType(t, c, named("fixture.Payload", false))

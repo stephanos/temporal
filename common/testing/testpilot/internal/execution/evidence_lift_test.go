@@ -95,16 +95,14 @@ func resolves(path string) *testpilotspb.Expression {
 	return present(projected(path))
 }
 
-// readsText is the guard that fires where path reads exactly text.
+// readsText is the guard that fires where path reads exactly text. It needs no presence conjunct: a
+// comparison with an absent path is false.
 func readsText(path, text string) *testpilotspb.Expression {
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: &testpilotspb.AllExpression{Operands: []*testpilotspb.Expression{
-		resolves(path),
-		{Expression: &testpilotspb.Expression_Compare{Compare: &testpilotspb.CompareExpression{
-			Operator: testpilotspb.COMPARISON_OPERATOR_EQUAL,
-			Left:     projected(path),
-			Right:    &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: text}}}},
-		}}},
-	}}}}
+	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Compare{Compare: &testpilotspb.CompareExpression{
+		Operator: testpilotspb.COMPARISON_OPERATOR_EQUAL,
+		Left:     projected(path),
+		Right:    &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: text}}}},
+	}}}
 }
 
 // literalBinding supplies field with a declared text.
@@ -208,6 +206,8 @@ func TestEvidenceLiftSelectsOneRuleAndCountsItsOwnOrdinals(t *testing.T) {
 	require.Empty(t, other[0].GetFields())
 
 	// A completion names its operation by the record it references, narrowed to an unsigned integer key.
+	// The first rule's guard compares the absent scheduled operation, which is false rather than an
+	// evaluation failure.
 	completed := stagedEvidence(t, values, prepared, setCompleted(7))
 	require.Len(t, completed, 1)
 	require.Equal(t, "completed", completed[0].GetKind())
@@ -252,9 +252,6 @@ func TestEvidenceLiftRejectsUndeclarableRules(t *testing.T) {
 		},
 		"nonboolean guard": func(p *testpilotspb.CorrelatedEvidenceProjection) {
 			p.Rules[0].Guard = projected(nestedPath("scheduled", "operation"))
-		},
-		"unguarded absent read": func(p *testpilotspb.CorrelatedEvidenceProjection) {
-			p.Rules[0].Guard = readsText(nestedPath("scheduled", "operation"), "first").GetAll().GetOperands()[1]
 		},
 		"missing guard": func(p *testpilotspb.CorrelatedEvidenceProjection) { p.Rules[0].Guard = nil },
 	} {
