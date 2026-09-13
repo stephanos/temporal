@@ -97,14 +97,14 @@ private def budget (captures : Nat := 8) (depth : Nat := 4) : CorrelatedLimits :
   max_obligations := number 16, max_obligation_work := number 1000000000
   max_captures := number captures, max_correlation_depth := number depth }
 
-private def contract (correlatedRules : Array CorrelatedRule) (limits : CorrelatedLimits := budget)
+private def contract (correlatedRules : Array CorrelatedRule)
     (rules : Array CorrelatedProjectionRule := #[requestRule, replyRule, silentRule]) :
     CorrelatedContract := {
   projection_id := "projection", projection_fingerprint := "fingerprint"
   evidence_observation_id := "evidence", scope_fields := #["run"], operation_field := "operation"
   sources := #["source"], initial_state := some state
   transitions := #[transition request quiet, transition reply responded]
-  projection_rules := rules, rules := correlatedRules, limits := some limits }
+  projection_rules := rules, rules := correlatedRules }
 
 private def evidence (ordinal : Nat) (kind : String) (count : String) (operation := "a")
     (fieldId := if kind == "request" then "requested" else "replied") : CorrelatedEvidence := {
@@ -116,18 +116,21 @@ private def evidence (ordinal : Nat) (kind : String) (count : String) (operation
 
 private def scope : List (Name × String) := [(⟨"run"⟩, "run-1")]
 
-/-- Replay a stream offline and report the clause answer, or the exact first rejection. -/
+/-- Replay a stream offline under the correlated ceilings `limits` and report the clause answer, or
+the exact first rejection. -/
 private def replay (wire : CorrelatedContract) (events : List CorrelatedEvidence)
-    (incomplete : Bool := false) : Except String (List Nat) := do
-  let compiled ← Testpilot.Correlated.decode wire
+    (incomplete : Bool := false) (limits : CorrelatedLimits := budget) : Except String (List Nat) := do
+  let compiled ← Testpilot.Correlated.decode limits wire
   let initial ← compiled.start scope
   let run ← events.zipIdx.foldlM (fun run (event, index) => run.observe (index + 1) event) initial
   pure (run.close.answers incomplete)
 
 private def answers (wire : CorrelatedContract) (events : List CorrelatedEvidence)
-    (incomplete : Bool := false) : Option (List Nat) := (replay wire events incomplete).toOption
-private def rejection (wire : CorrelatedContract) (events : List CorrelatedEvidence) : Option String :=
-  match replay wire events with
+    (incomplete : Bool := false) (limits : CorrelatedLimits := budget) : Option (List Nat) :=
+  (replay wire events incomplete limits).toOption
+private def rejection (wire : CorrelatedContract) (events : List CorrelatedEvidence)
+    (limits : CorrelatedLimits := budget) : Option String :=
+  match replay wire events (limits := limits) with
   | .error reason => some reason
   | .ok _ => none
 
@@ -166,17 +169,19 @@ private def rejection (wire : CorrelatedContract) (events : List CorrelatedEvide
   some [0]
 
 -- Declared ceilings reject atomically rather than retaining beyond what was declared.
-#guard rejection (contract #[clause 2] (limits := budget (captures := 1)))
-  [evidence 0 "request" "1", evidence 1 "request" "2"] == some "captures exhausted"
+#guard rejection (contract #[clause 2])
+  [evidence 0 "request" "1", evidence 1 "request" "2"] (limits := budget (captures := 1)) ==
+  some "captures exhausted"
 #guard rejection (contract #[clause 2 (captures := #[capture (lifetime := 1)])])
   [evidence 0 "request" "1", evidence 1 "request" "2"] == some "capture lifetime exhausted"
 
 /-- Decoding alone rejects a capability whose declarations could never bind. -/
-private def decodeError (wire : CorrelatedContract) : Option String :=
-  match Testpilot.Correlated.decode wire with
+private def decodeError (wire : CorrelatedContract) (limits : CorrelatedLimits := budget) :
+    Option String :=
+  match Testpilot.Correlated.decode limits wire with
   | .error reason => some reason
   | .ok _ => none
-private def decodes (wire : CorrelatedContract) : Bool := (Testpilot.Correlated.decode wire).isOk
+private def decodes (wire : CorrelatedContract) : Bool := (Testpilot.Correlated.decode budget wire).isOk
 
 #guard decodes (contract #[clause 1])
 #guard decodeError (contract #[clause 1 (captures := #[capture (field := "absent")])]) ==
@@ -191,7 +196,7 @@ private def decodes (wire : CorrelatedContract) : Bool := (Testpilot.Correlated.
   (comparison (field "absent") (retained 0)))]) == some "unretained correlation field operand"
 #guard decodeError (contract #[clause 1 (requirement := some (anyOf #[]))]) ==
   some "empty correlation group"
-#guard decodeError (contract #[clause 1] (limits := budget (depth := 1))) ==
+#guard decodeError (contract #[clause 1]) (limits := budget (depth := 1)) ==
   some "correlation depth exhausted"
 
 -- A correlated condition shares the one expression language, so a reference that belongs to another
@@ -206,7 +211,7 @@ private def presentProjected : Expression :=
 #guard decodeError (contract #[{ clause 1 with
     trigger := some (step .CORRELATED_STEP_FIELD_OUTCOME "outcome" "response") }]) ==
   some "unsupported clause"
-#guard decodeError (contract #[clause 1] (limits := budget (captures := 0))) ==
+#guard decodeError (contract #[clause 1]) (limits := budget (captures := 0)) ==
   some "nonpositive resource limit"
 #guard decodes (contract #[clause 1 (requirement := some
   (comparison (literal "1") (retained 0)))])
@@ -282,13 +287,13 @@ private def unsignedReply : CorrelatedFieldPolicy :=
       type := some { kind := .SCALAR_KIND_UINT64 } }], silentRule])) ==
   some "ambiguous retained field type"
 
--- A capability that declares neither captures nor a correlation keeps its exact prior meaning, and
--- leaves both new ceilings unset.
+-- A capability that declares neither captures nor a correlation keeps its exact prior meaning under
+-- a Profile that leaves both capture ceilings unset.
 private def bare : CorrelatedContract :=
   contract #[clause 1 (captures := #[]) (requirement := none)]
-    (limits := { budget with max_captures := 0, max_correlation_depth := 0 })
-#guard answers bare [evidence 0 "request" "1", evidence 1 "reply" "2"] == some [2]
-#guard (Testpilot.Correlated.decode bare).toOption.map (fun compiled => compiled.captures == 0 &&
+private def bareBudget : CorrelatedLimits := { budget with max_captures := 0, max_correlation_depth := 0 }
+#guard answers bare [evidence 0 "request" "1", evidence 1 "reply" "2"] (limits := bareBudget) == some [2]
+#guard (Testpilot.Correlated.decode bareBudget bare).toOption.map (fun compiled => compiled.captures == 0 &&
   compiled.keyed == [("response", ⟨[], none⟩)]) == some true
 
 end Testpilot.Tests.Fields

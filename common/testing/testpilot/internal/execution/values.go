@@ -58,7 +58,7 @@ func (s *valueStore) activate(entrypoint, id string) (*activationValues, error) 
 	if _, exists := s.activations[id]; exists {
 		return nil, invalid(ir.Malformed, "values", "duplicate activation identity")
 	}
-	if int64(len(s.activations)) >= s.program.source.Limits.MaxActivations {
+	if int64(len(s.activations)) >= s.program.limits.MaxActivations {
 		return nil, invalid(ir.LimitExceeded, "values", "activation ceiling exceeded")
 	}
 	var selected *graph
@@ -132,7 +132,7 @@ func (a *activationValues) commit(ctx context.Context, batch *valueBatch) error 
 	if previous := a.latest[batch.coordinate.InstructionID]; previous != nil && previous.coordinate.Attempt >= batch.coordinate.Attempt {
 		return invalid(ir.Malformed, "values", "out-of-order attempt")
 	}
-	if s.attempts >= s.program.source.Limits.MaxAttempts {
+	if s.attempts >= s.program.limits.MaxAttempts {
 		return invalid(ir.LimitExceeded, "values", "attempt ceiling exceeded")
 	}
 	for id := range batch.writes {
@@ -197,7 +197,7 @@ type valueWork struct {
 }
 
 func (a *activationValues) newWork(ctx context.Context, limit int64) (*valueWork, error) {
-	return newValueWork(ctx, a.store.program.source.Limits, a.workLimit(), limit)
+	return newValueWork(ctx, a.store.program.limits, a.workLimit(), limit)
 }
 func newValueWork(ctx context.Context, p *testpilotspb.ProgramLimits, ceiling, limit int64) (*valueWork, error) {
 	if ctx == nil || limit <= 0 || limit > ceiling {

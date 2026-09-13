@@ -1389,19 +1389,17 @@ func (x *ActivationReservationDefinition) GetCount() int64 {
 	return 0
 }
 
-// InstructionLimits bound one instruction within the Program's limits.
+// InstructionLimits are the bounds that carry an instruction's behavior. Its resource ceilings are
+// the Profile's ProgramLimits.
 type InstructionLimits struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Deadline of each dispatch; when it expires the outcome is TIMED_OUT.
+	// Deadline of each dispatch, within the Profile's total duration; when it expires the outcome is
+	// TIMED_OUT.
 	TimeoutMilliseconds int64 `protobuf:"varint,1,opt,name=timeout_milliseconds,json=timeoutMilliseconds,proto3" json:"timeout_milliseconds,omitempty"`
-	// The highest attempt number the instruction may reach.
-	MaxAttempts int64 `protobuf:"varint,2,opt,name=max_attempts,json=maxAttempts,proto3" json:"max_attempts,omitempty"`
-	// Run Events the instruction's response reads may emit per completion.
-	MaxEmittedEvents int64 `protobuf:"varint,3,opt,name=max_emitted_events,json=maxEmittedEvents,proto3" json:"max_emitted_events,omitempty"`
-	// Size bound on the RPC response.
-	MaxResponseBytes int64 `protobuf:"varint,4,opt,name=max_response_bytes,json=maxResponseBytes,proto3" json:"max_response_bytes,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	// The highest attempt number the instruction may reach, within the Profile's attempts.
+	MaxAttempts   int64 `protobuf:"varint,2,opt,name=max_attempts,json=maxAttempts,proto3" json:"max_attempts,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *InstructionLimits) Reset() {
@@ -1444,20 +1442,6 @@ func (x *InstructionLimits) GetTimeoutMilliseconds() int64 {
 func (x *InstructionLimits) GetMaxAttempts() int64 {
 	if x != nil {
 		return x.MaxAttempts
-	}
-	return 0
-}
-
-func (x *InstructionLimits) GetMaxEmittedEvents() int64 {
-	if x != nil {
-		return x.MaxEmittedEvents
-	}
-	return 0
-}
-
-func (x *InstructionLimits) GetMaxResponseBytes() int64 {
-	if x != nil {
-		return x.MaxResponseBytes
 	}
 	return 0
 }
@@ -1533,12 +1517,10 @@ const file_temporal_server_api_testpilot_v1_instruction_proto_rawDesc = "" +
 	"\x04type\x18\x02 \x01(\v2+.temporal.server.api.testpilot.v1.ValueTypeR\x04type\"\\\n" +
 	"\x1fActivationReservationDefinition\x12#\n" +
 	"\rentrypoint_id\x18\x01 \x01(\tR\fentrypointId\x12\x14\n" +
-	"\x05count\x18\x02 \x01(\x03R\x05count\"\xc5\x01\n" +
+	"\x05count\x18\x02 \x01(\x03R\x05count\"i\n" +
 	"\x11InstructionLimits\x121\n" +
 	"\x14timeout_milliseconds\x18\x01 \x01(\x03R\x13timeoutMilliseconds\x12!\n" +
-	"\fmax_attempts\x18\x02 \x01(\x03R\vmaxAttempts\x12,\n" +
-	"\x12max_emitted_events\x18\x03 \x01(\x03R\x10maxEmittedEvents\x12,\n" +
-	"\x12max_response_bytes\x18\x04 \x01(\x03R\x10maxResponseBytes*m\n" +
+	"\fmax_attempts\x18\x02 \x01(\x03R\vmaxAttempts*m\n" +
 	"\x0fReadCardinality\x12 \n" +
 	"\x1cREAD_CARDINALITY_UNSPECIFIED\x10\x00\x12\x18\n" +
 	"\x14READ_CARDINALITY_ONE\x10\x01\x12\x1e\n" +

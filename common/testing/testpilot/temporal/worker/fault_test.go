@@ -15,7 +15,7 @@ import (
 // authorizes every capability including InjectFault must still build a Driver.
 func TestWorkerProfileAdmitsTheFaultCapability(t *testing.T) {
 	prepared := preparedSymbolicRuntimeFixture(t)
-	profile := symbolicRuntimeDriver(t, prepared.Snapshot().GetLimits()).options.profile
+	profile := symbolicRuntimeDriver(t, prepared.Limits()).options.profile
 	profile.Opcodes = make([]testpilot.Opcode, 0, testpilot.MaxOpcode)
 	for capability := testpilot.InvokeRPC; capability <= testpilot.MaxOpcode; capability++ {
 		profile.Opcodes = append(profile.Opcodes, capability)
@@ -35,7 +35,7 @@ func (w *blockingManagedWorker) Stop()        { <-w.release }
 func openFaultSession(t *testing.T, factory workerFactory, runID string, options SessionOptions) (*Driver, *Session, testpilot.PreparedProgram) {
 	t.Helper()
 	program := preparedSymbolicRuntimeFixture(t, faultModifiers()...)
-	host := symbolicRuntimeDriver(t, program.Snapshot().GetLimits())
+	host := symbolicRuntimeDriver(t, program.Limits())
 	host.registry = newWorkerRegistry(4, factory)
 	if options.Bridge == nil {
 		options.Bridge = newTestBridge()
@@ -184,7 +184,7 @@ func TestFaultSettleErrorRecordsNoFaultEvent(t *testing.T) {
 		program.Entrypoints[0].Instructions = []*testpilotspb.InstructionNode{faultInstruction("stop", "queue", testpilotspb.FAULT_KIND_WORKER_STOP), resume}
 	}, authorizeFaults)
 	program := capturePreparedProgram(t, prepared)
-	host := symbolicRuntimeDriver(t, program.Snapshot().GetLimits())
+	host := symbolicRuntimeDriver(t, program.Limits())
 	startErr := errors.New("cannot re-register")
 	factory := &recordingFactory{start: func(built int) error {
 		if built > 1 {

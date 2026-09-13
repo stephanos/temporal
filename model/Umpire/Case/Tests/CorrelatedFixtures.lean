@@ -58,7 +58,10 @@ def scenarios : List Scenario := [
   -- reports unresolved rather than the empty-obligation satisfaction the total model trace has.
   ⟨"unobserved", 1, [], 0, .«partial», false⟩]
 
-def compiledCase (scenario : Scenario) : Except String temporal.server.api.testpilot.v1.Case := do
+/-- Lower one scenario's Case beside the correlated ceilings its capability is decoded under, which
+the Case does not carry. -/
+def loweredCase (scenario : Scenario) :
+    Except String (temporal.server.api.testpilot.v1.Case × CorrelatedLimits) := do
   let target ← targetResult.mapError (fun _ => "target")
   let property ← (property target scenario.bound scenario.endpoint).mapError (fun _ => "property")
   let plan ← (plan target).mapError (fun _ => "projection")
@@ -72,8 +75,7 @@ def compiledCase (scenario : Scenario) : Except String temporal.server.api.testp
       (Testpilot.Authoring.Types.messageType "temporal.server.api.testpilot.v1.CorrelatedEvidence"))]
     #[Testpilot.Authoring.Program.controller "controller" #[]]
     (Testpilot.Authoring.Program.cleanup "cleanup" #[])
-    (Testpilot.Authoring.Program.limits 4 16 16 16 16 32 8 8 4096 4096 10000 1000)
-  (Compiler.compile {
+  let artifact ← (Compiler.compile {
     version := { major := 1 }
     caseId := "correlated." ++ scenario.name
     producerId := "umpire.correlated.fixtures"
@@ -83,8 +85,11 @@ def compiledCase (scenario : Scenario) : Except String temporal.server.api.testp
     program
     contractId := "correlated"
     properties := [lowered.contractLowering]
-    contractLimits := Testpilot.Authoring.Contract.limits 16 32 64 16 100000 1000000000 32 65536
   }).mapError (·.construct)
+  pure (artifact, lowered.limits)
+
+def compiledCase (scenario : Scenario) : Except String temporal.server.api.testpilot.v1.Case :=
+  (·.1) <$> loweredCase scenario
 
 /-- Exercise the same checked Contract through ordinary RPC response projection and Run recording.
 The test Driver supplies the declared typed evidence; this is qualification, not an Implementation Link. -/
@@ -96,7 +101,7 @@ def runnableCase (scenario : Scenario) : Except String temporal.server.api.testp
       (Testpilot.Authoring.Program.invokeRpc "source" "/test.correlated.Source/Read" #[]
         #[Testpilot.Authoring.Program.responseRead (Testpilot.Authoring.Path.make #[])
           .READ_CARDINALITY_ONE #[Testpilot.Authoring.Program.observationTarget "evidence"]])
-      (Testpilot.Authoring.Program.instructionLimits 1000 1 1 4096)
+      (Testpilot.Authoring.Program.instructionLimits 1000 1)
       (dependencies := if index == 0 then #[] else
         #[Testpilot.Authoring.Ref.instruction "controller" ("read." ++ toString (index - 1))])
       (outcome := some (Testpilot.Authoring.Program.outcome #[
@@ -105,8 +110,7 @@ def runnableCase (scenario : Scenario) : Except String temporal.server.api.testp
             "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"))]))
   pure { artifact with program := some { program with
     roles := #[Testpilot.Authoring.Program.role "source" .ROLE_KIND_ENDPOINT]
-    entrypoints := #[Testpilot.Authoring.Program.controller "controller" nodes]
-    limits := some (Testpilot.Authoring.Program.limits 4 256 256 256 256 2048 8 256 4096 4096 10000 1000) } }
+    entrypoints := #[Testpilot.Authoring.Program.controller "controller" nodes] } }
 
 def capability (scenario : Scenario) : Except String CorrelatedContract := do
   let artifact ← compiledCase scenario
@@ -114,8 +118,11 @@ def capability (scenario : Scenario) : Except String CorrelatedContract := do
   let some capability := contract.«correlated» | throw "missing capability"
   pure capability
 
+/-- The correlated ceilings the scenario's capability is decoded under. -/
+def ceilings (scenario : Scenario) : Except String CorrelatedLimits := (·.2) <$> loweredCase scenario
+
 def evaluate (scenario : Scenario) : Except String (List Nat) := do
-  let compiled ← Testpilot.Correlated.decode (← capability scenario)
+  let compiled ← Testpilot.Correlated.decode (← ceilings scenario) (← capability scenario)
   let initial ← compiled.start scope
   let run ← scenario.events.zipIdx.foldlM (fun run (event, index) => run.observe (index + 2) event) initial
   pure (run.close.answers scenario.incomplete)

@@ -93,7 +93,7 @@ func TestCaseRuntimePublicFacadeConformance(t *testing.T) {
 			source := loadFacadeCase(t, name)
 			expected := loadFacadeExpected(t, name)
 			require.Equal(t, expected.Class, class)
-			profile := facadeProfile(t, source)
+			profile := facadeProfile(t)
 			driver := &facadeDriver{failCleanup: class == "cleanup-failure-after-proved-violation"}
 			prepared, err := testpilot.Prepare(source, profile)
 			if expected.Preparation == "rejected" {
@@ -173,10 +173,25 @@ func loadFacadeExpected(t testing.TB, name string) facadeExpectedResult {
 	return expected
 }
 
-func facadeProfile(t testing.TB, source *testpilotspb.Case) testpilot.ProfileSpec {
+// facadeProfile authorizes the one method the conformance Cases invoke, under the resource ceilings
+// of the Temporal default Profile that produced them. The generic Testpilot tests may not import the
+// Temporal Driver, so the ceilings are spelled here; TestDefaultCeilingsAdmitTheConformanceCorpus in
+// the Temporal Driver prepares the same corpus under temporal.DefaultCeilings.
+func facadeProfile(t testing.TB) testpilot.ProfileSpec {
 	t.Helper()
 	catalog, err := testpilot.NewCatalog(facadeDescriptorClosure(workflowservice.File_temporal_api_workflowservice_v1_service_proto))
 	require.NoError(t, err)
+	programLimits := &testpilotspb.ProgramLimits{
+		MaxEntrypoints: 4, MaxNodes: 16, MaxEdges: 24, MaxActivations: 8, MaxAttempts: 16,
+		MaxRunEvents: 512, MaxExpressionDepth: 12, MaxPathFanout: 32,
+		MaxRequestBytes: 32768, MaxResponseBytes: 8192,
+		MaxTotalDurationMilliseconds: 30000, MaxCleanupDurationMilliseconds: 20000,
+		MaxInstructionEmittedEvents: 128, MaxInstructionResponseBytes: 8192,
+	}
+	contractLimits := &testpilotspb.ContractLimits{
+		MaxRules: 4, MaxStates: 16, MaxTransitions: 64, MaxExpressionDepth: 12,
+		MaxWorkPerEvent: 4000000, MaxTotalWork: 1000000000, MaxCaptures: 64, MaxCaptureBytes: 65536,
+	}
 	return testpilot.ProfileSpec{
 		Identity: "facade-conformance",
 		Catalog:  catalog,
@@ -185,8 +200,8 @@ func facadeProfile(t testing.TB, source *testpilotspb.Case) testpilot.ProfileSpe
 			Methods: []string{"/temporal.api.workflowservice.v1.WorkflowService/GetSystemInfo"},
 		}},
 		Opcodes:        []testpilot.Opcode{testpilot.InvokeRPC},
-		ProgramLimits:  proto.CloneOf(source.GetProgram().GetLimits()),
-		ContractLimits: proto.CloneOf(source.GetContract().GetLimits()),
+		ProgramLimits:  programLimits,
+		ContractLimits: contractLimits,
 	}
 }
 

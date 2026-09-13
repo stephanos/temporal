@@ -44,9 +44,11 @@ func (v ProgramView) Limits() *testpilotspb.ProgramLimits { return proto.CloneOf
 func (v ProgramView) MaximumActivations() int64           { return v.maximumActivations }
 
 type PreparedProgram struct {
-	source                 *testpilotspb.Program
-	catalog                *ir.Catalog
-	policy                 Profile
+	source  *testpilotspb.Program
+	catalog *ir.Catalog
+	policy  Profile
+	// limits is the Profile's Program ceiling snapshot; a Program declares no ceilings of its own.
+	limits                 *testpilotspb.ProgramLimits
 	view                   ProgramView
 	graphs                 []*graph
 	slots                  map[string]ir.Type
@@ -65,8 +67,11 @@ type resolvedRole struct {
 }
 
 func (p *PreparedProgram) Snapshot() *testpilotspb.Program { return proto.CloneOf(p.source) }
-func (p *PreparedProgram) View() ProgramView               { return p.view }
-func (p *PreparedProgram) PolicyIdentity() string          { return p.policy.Identity }
+func (p *PreparedProgram) Limits() *testpilotspb.ProgramLimits {
+	return proto.CloneOf(p.limits)
+}
+func (p *PreparedProgram) View() ProgramView      { return p.view }
+func (p *PreparedProgram) PolicyIdentity() string { return p.policy.Identity }
 
 func (p *PreparedProgram) Roles() []contract.PreparedRole {
 	result := make([]contract.PreparedRole, 0, len(p.roles))
@@ -153,7 +158,7 @@ type slotWriter struct {
 }
 
 func hardLimits() *testpilotspb.ProgramLimits {
-	return &testpilotspb.ProgramLimits{MaxEntrypoints: 10000, MaxNodes: 10000, MaxEdges: 100000, MaxActivations: 100000, MaxAttempts: 100000, MaxRunEvents: 100000, MaxExpressionDepth: 64, MaxPathFanout: 10000, MaxRequestBytes: 16 << 20, MaxResponseBytes: 16 << 20, MaxTotalDurationMilliseconds: 86400000, MaxCleanupDurationMilliseconds: 86400000}
+	return &testpilotspb.ProgramLimits{MaxEntrypoints: 10000, MaxNodes: 10000, MaxEdges: 100000, MaxActivations: 100000, MaxAttempts: 100000, MaxRunEvents: 100000, MaxExpressionDepth: 64, MaxPathFanout: 10000, MaxRequestBytes: 16 << 20, MaxResponseBytes: 16 << 20, MaxTotalDurationMilliseconds: 86400000, MaxCleanupDurationMilliseconds: 86400000, MaxInstructionEmittedEvents: 100000, MaxInstructionResponseBytes: 16 << 20}
 }
 
 // EntrypointPlan gives worker adapters the already-compiled DAG; activation never rebinds it.
@@ -240,7 +245,7 @@ func (p InstructionPlan) OutcomeType(field testpilotspb.InstructionOutcomeField)
 	return typ.Schema(), true
 }
 func (p InstructionPlan) ValidateOutcome(ctx context.Context, outcome *testpilotspb.InstructionOutcome, limit int64) (*contract.OutcomeSnapshot, int64, error) {
-	w, err := newValueWork(ctx, p.entry.program.source.Limits, p.entry.RuntimeWorkLimit(), limit)
+	w, err := newValueWork(ctx, p.entry.program.limits, p.entry.RuntimeWorkLimit(), limit)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -257,7 +262,7 @@ func (p InstructionPlan) ValidateOutcome(ctx context.Context, outcome *testpilot
 // EvaluateInput reads activation-local validated values; nil means absent. The lookup must be
 // deterministic, bounded and must not mutate its values during evaluation or perform SDK calls.
 func (p InstructionPlan) EvaluateInput(ctx context.Context, lookup func(ir.Reference) *testpilotspb.Value, limit int64) (*testpilotspb.Value, bool, int64, error) {
-	w, err := newValueWork(ctx, p.entry.program.source.Limits, p.entry.RuntimeWorkLimit(), limit)
+	w, err := newValueWork(ctx, p.entry.program.limits, p.entry.RuntimeWorkLimit(), limit)
 	if err != nil {
 		return nil, false, 0, err
 	}

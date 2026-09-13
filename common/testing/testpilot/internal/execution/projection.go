@@ -38,14 +38,14 @@ func (a *activationValues) stage(ctx context.Context, c contract.Coordinate, res
 		}
 		return finishBatch(w, batch)
 	}
-	response, work, err := ir.SnapshotMessage(ctx, result.Response, n.method.Output(), w.remaining(n.source.Limits.MaxResponseBytes))
+	response, work, err := ir.SnapshotMessage(ctx, result.Response, n.method.Output(), w.remaining(a.store.program.limits.MaxInstructionResponseBytes))
 	w.work += work
 	if err != nil {
 		return nil, w.work, err
 	}
 	if batch.outcome.Status == testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED {
 		for i, p := range n.projections {
-			value, work, err := p.path.Read(ctx, response, w.remaining(n.source.Limits.MaxResponseBytes))
+			value, work, err := p.path.Read(ctx, response, w.remaining(a.store.program.limits.MaxInstructionResponseBytes))
 			w.work += work
 			if err != nil {
 				return nil, w.work, err
@@ -158,7 +158,7 @@ func (a *activationValues) stageProjection(w *valueWork, n *node, batch *valueBa
 			}
 		}
 		if len(fact.observations) > 0 {
-			if int64(len(batch.facts)) >= n.source.Limits.MaxEmittedEvents {
+			if int64(len(batch.facts)) >= a.store.program.limits.MaxInstructionEmittedEvents {
 				return invalid(ir.LimitExceeded, "projection", "emitted event ceiling exceeded")
 			}
 			batch.facts = append(batch.facts, fact)

@@ -111,7 +111,7 @@ func TestCreateCarrierRejectsForeignPhysicalWorkflowBinding(t *testing.T) {
 func TestNewRejectsProfileLimitsBeforeRetainedStateAllocation(t *testing.T) {
 	catalog, err := testpilot.NewCatalog(descriptorClosure(workflowservice.File_temporal_api_workflowservice_v1_service_proto))
 	require.NoError(t, err)
-	limits := proto.CloneOf(preparedRuntimeFixture(t, testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS).Snapshot().GetLimits())
+	limits := proto.CloneOf(preparedRuntimeFixture(t, testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS).Limits())
 	limits.MaxRunEvents = 100001
 	_, err = New(Options{
 		Profile: testpilot.ProfileSpec{Identity: "profile", Catalog: catalog, ProgramLimits: limits},
@@ -164,7 +164,7 @@ func TestAsyncCompletionAuthorityIsOpaqueReplaySafeAndLateBounded(t *testing.T) 
 	require.NoError(t, session.Close(t.Context()))
 	_, err = host.admitNexus(t.Context(), "task-queue", delivery.NexusDelivery{Header: dispatchHeader, RequestID: "request-id"}, func() {})
 	require.ErrorIs(t, err, delivery.ErrRouteStale)
-	require.LessOrEqual(t, session.diagnostics, int(session.definition.snapshot.GetLimits().GetMaxRunEvents()))
+	require.LessOrEqual(t, session.diagnostics, int(session.definition.limits.GetMaxRunEvents()))
 }
 
 func TestAsyncCompletionCannotPublishAfterClose(t *testing.T) {
@@ -265,7 +265,7 @@ func TestStopRejectsDelayedAndUnreservedDelivery(t *testing.T) {
 
 func runtimeTestDriver(t *testing.T, prepared testpilot.PreparedProgram) (*Driver, programDefinition) {
 	t.Helper()
-	completion, err := newCompletionTransport(nil, "", prepared.Snapshot().GetLimits())
+	completion, err := newCompletionTransport(nil, "", prepared.Limits())
 	require.NoError(t, err)
 	host := &Driver{
 		mu: newContextMutex(), sessions: make(map[string]*Session),
@@ -279,7 +279,7 @@ func runtimeTestDriver(t *testing.T, prepared testpilot.PreparedProgram) (*Drive
 			workerRoleID: "worker", maximum: 16, diagnostics: 16, requestBytes: 64 << 10, now: time.Now, completion: completion,
 		},
 	}
-	definition, err := host.prepareDefinitionResources(prepared.Snapshot(), prepared.Entrypoints(), prepared.Roles(), true)
+	definition, err := host.prepareDefinitionResources(prepared.Snapshot(), prepared.Limits(), prepared.Entrypoints(), prepared.Roles(), true)
 	require.NoError(t, err)
 	return host, definition
 }

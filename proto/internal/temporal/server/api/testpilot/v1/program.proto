@@ -15,7 +15,6 @@ message Program {
   repeated Observation observations = 5;
   repeated Entrypoint entrypoints = 6;
   Cleanup cleanup = 7;
-  ProgramLimits limits = 8;
 }
 
 // EnvironmentDefinition declares one symbolic environment binding the Profile must supply.
@@ -104,7 +103,8 @@ message Cleanup {
   repeated InstructionNode instructions = 2;
 }
 
-// ProgramLimits bound one Program. Every limit is positive and within the Profile's ceiling.
+// ProgramLimits are a Profile's resource ceilings on every Program it admits. A Case declares none of
+// them; every limit is positive and within the Driver's hard ceiling.
 message ProgramLimits {
   // Entrypoints, not counting cleanup.
   int64 max_entrypoints = 1;
@@ -116,7 +116,7 @@ message ProgramLimits {
   int64 max_activations = 4;
   // Instruction attempts dispatched across the Run, and the ceiling of each instruction's attempts.
   int64 max_attempts = 5;
-  // Run Events recorded, RUN_CLOSED included, and the ceiling of each instruction's emitted events.
+  // Run Events recorded, RUN_CLOSED included, and the ceiling of max_instruction_emitted_events.
   int64 max_run_events = 6;
   // Nesting depth of any expression or path.
   int64 max_expression_depth = 7;
@@ -124,10 +124,14 @@ message ProgramLimits {
   int64 max_path_fanout = 8;
   // Encoded size of one request, and of the environment binding values together.
   int64 max_request_bytes = 9;
-  // The ceiling of each instruction's response bytes, and the size of one Observation value.
+  // The size of one Observation value, and the ceiling of max_instruction_response_bytes.
   int64 max_response_bytes = 10;
   // Wall-clock bound on opening the Driver session and ordinary execution.
   int64 max_total_duration_milliseconds = 11;
   // Wall-clock bound on each of settling, cleanup and closing the Driver session.
   int64 max_cleanup_duration_milliseconds = 12;
+  // Run Events one instruction's response reads may emit per completion.
+  int64 max_instruction_emitted_events = 13;
+  // Size bound on one instruction's RPC response.
+  int64 max_instruction_response_bytes = 14;
 }

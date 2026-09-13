@@ -54,7 +54,9 @@ The six stable categories are `malformed`, `unknown`, `type_mismatch`, `unavaila
 256-byte bound; `Detail` is human-readable, not a stable string API. Existing error messages,
 including Contract rule context, are retained. Missing or invalid Profile/Catalog preconditions
 are malformed; Profile binding validation, including binding ceilings, is also malformed without
-changing its rejection limits. Program and Contract limit violations retain their existing categories.
+changing its rejection limits. A Case declares no resource ceilings: Profile ceiling violations and a
+Case bound (an instruction timeout or attempt count) above its Profile ceiling retain their existing
+categories.
 
 These diagnostics cover static admission, including correlated Contracts. ProtoJSON decoding errors
 and runtime Run/Driver failures keep their own error contracts. No diagnostic wire format is added.

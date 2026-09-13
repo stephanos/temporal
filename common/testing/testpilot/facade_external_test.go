@@ -140,7 +140,7 @@ func proofFixture(t testing.TB) (*testpilotspb.Case, testpilot.ProfileSpec) {
 	t.Helper()
 	catalog, err := testpilot.NewCatalog(&descriptorpb.FileDescriptorSet{})
 	require.NoError(t, err)
-	programLimits := &testpilotspb.ProgramLimits{MaxEntrypoints: 8, MaxNodes: 32, MaxEdges: 64, MaxActivations: 64, MaxAttempts: 32, MaxRunEvents: 256, MaxExpressionDepth: 16, MaxPathFanout: 128, MaxRequestBytes: 4096, MaxResponseBytes: 4096, MaxTotalDurationMilliseconds: 30000, MaxCleanupDurationMilliseconds: 5000}
+	programLimits := &testpilotspb.ProgramLimits{MaxEntrypoints: 8, MaxNodes: 32, MaxEdges: 64, MaxActivations: 64, MaxAttempts: 32, MaxRunEvents: 256, MaxExpressionDepth: 16, MaxPathFanout: 128, MaxRequestBytes: 4096, MaxResponseBytes: 4096, MaxTotalDurationMilliseconds: 30000, MaxCleanupDurationMilliseconds: 5000, MaxInstructionEmittedEvents: 8, MaxInstructionResponseBytes: 4096}
 	contractLimits := &testpilotspb.ContractLimits{MaxRules: 16, MaxStates: 32, MaxTransitions: 64, MaxExpressionDepth: 16, MaxWorkPerEvent: 100000, MaxTotalWork: 1000000000, MaxCaptures: 8, MaxCaptureBytes: 65536}
 	source := &testpilotspb.Case{
 		Version: &testpilotspb.FormatVersion{Major: 1},
@@ -152,11 +152,9 @@ func proofFixture(t testing.TB) (*testpilotspb.Case, testpilot.ProfileSpec) {
 				Activation:   &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}},
 			}},
 			Cleanup: &testpilotspb.Cleanup{EntrypointId: "cleanup"},
-			Limits:  programLimits,
 		},
 		Contract: &testpilotspb.Contract{
 			ContractId: "contract",
-			Limits:     proto.CloneOf(contractLimits),
 			Rules: []*testpilotspb.ContractRule{{
 				RuleId:         "safety",
 				Kind:           testpilotspb.CONTRACT_RULE_KIND_SAFETY,

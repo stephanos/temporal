@@ -95,15 +95,18 @@ func (a *admission) bindCorrelated(seen map[string]bool) error {
 	if !ok || typ.Cardinality() != ir.Singular || !ir.SameMessage(typ.Message(), (&testpilotspb.CorrelatedEvidence{}).ProtoReflect().Descriptor()) {
 		return invalid(ir.TypeMismatch, "correlated evidence requires exact declared CorrelatedEvidence Observation")
 	}
-	l := s.Limits
+	l := a.prepared.correlatedLimits
 	if l == nil {
-		return invalid(ir.Malformed, "correlated limits required")
+		return invalid(ir.Malformed, "Profile correlated limits required")
+	}
+	if err := ir.CheckSurface(l, ir.DefaultLimits()); err != nil {
+		return err
 	}
 	fields := l.ProtoReflect().Descriptor().Fields()
 	for i := 0; i < fields.Len(); i++ {
 		f := fields.Get(i)
 		// The capture ceilings are required only by a capability that declares captures or a
-		// correlation; one that declares neither leaves both unset and keeps its exact encoding.
+		// correlation, so a Profile that admits neither may leave both unset.
 		if f.Name() == "max_captures" || f.Name() == "max_correlation_depth" {
 			continue
 		}
@@ -116,19 +119,25 @@ func (a *admission) bindCorrelated(seen map[string]bool) error {
 	if l.MaxCaptures < 0 || l.MaxCorrelationDepth < 0 || capturesDeclared && l.MaxCaptures <= 0 || correlationDeclared && l.MaxCorrelationDepth <= 0 {
 		return invalid(ir.LimitExceeded, "correlated capture limits must be positive when declared")
 	}
-	limits := a.prepared.source.Limits
+	limits := a.prepared.limits
 	if l.MaxEvents > a.prepared.program.Limits().MaxRunEvents || l.MaxBuffered > l.MaxEvents || l.MaxKeys > l.MaxEvents || l.MaxEventBytes > a.prepared.program.Limits().MaxResponseBytes || l.MaxProjectionWork > limits.MaxTotalWork || l.MaxObligationWork > limits.MaxTotalWork || l.MaxSemanticTransitions > limits.MaxTransitions {
 		return invalid(ir.LimitExceeded, "incompatible correlated limits")
 	}
 	if err := add(&a.captures, l.MaxObligations, limits.MaxCaptures); err != nil {
 		return err
 	}
-	if err := add(&a.captures, l.MaxCaptures, limits.MaxCaptures); err != nil {
+	// Only a correlated contract that declares captures can retain captured values, so only it
+	// reserves the Profile's capture ceiling.
+	captures := int64(0)
+	if capturesDeclared {
+		captures = l.MaxCaptures
+	}
+	if err := add(&a.captures, captures, limits.MaxCaptures); err != nil {
 		return err
 	}
 	// Retained evidence, support references and countdowns share the Contract's capture budget.
 	bytes := int64(0)
-	for _, pair := range [][2]int64{{l.MaxEvents, l.MaxEventBytes}, {l.MaxSupport, 8}, {l.MaxObligations, 16}, {l.MaxCaptures, l.MaxEventBytes}} {
+	for _, pair := range [][2]int64{{l.MaxEvents, l.MaxEventBytes}, {l.MaxSupport, 8}, {l.MaxObligations, 16}, {captures, l.MaxEventBytes}} {
 		if pair[0] == 0 {
 			continue
 		}

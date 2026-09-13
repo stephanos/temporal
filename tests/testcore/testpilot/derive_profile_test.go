@@ -27,7 +27,7 @@ func TestDeriveProfileEqualsTheHandWrittenAsyncNexusProfile(t *testing.T) {
 
 	derived, err := temporaldriver.DeriveProfile(source, catalog, environment)
 	require.NoError(t, err)
-	oracle := AsyncNexusProfile(catalog, source, AsyncNexusEnvironment{
+	oracle := AsyncNexusProfile(catalog, AsyncNexusEnvironment{
 		Namespace: environment.Namespace, TaskQueue: environment.TaskQueue, NexusEndpoint: environment.NexusEndpoint,
 	})
 	require.Equal(t, oracle.Identity, derived.Identity)
@@ -49,7 +49,7 @@ func TestDeriveProfileEqualsTheHandWrittenTypedProfiles(t *testing.T) {
 		Identity: "typed-nexus-profile", Namespace: "namespace", TaskQueue: "task-queue", NexusEndpoint: "nexus-endpoint",
 	})
 	require.NoError(t, err)
-	oracle := TypedNexusProfile(catalog, nexus, TypedNexusEnvironment{
+	oracle := TypedNexusProfile(catalog, TypedNexusEnvironment{
 		Namespace: "namespace", TaskQueue: "task-queue", NexusEndpoint: "nexus-endpoint",
 	})
 	require.Equal(t, oracle.Roles, derived.Roles)
@@ -61,7 +61,7 @@ func TestDeriveProfileEqualsTheHandWrittenTypedProfiles(t *testing.T) {
 		Identity: "typed-unary-profile", Namespace: "namespace", TaskQueue: "task-queue",
 	})
 	require.NoError(t, err)
-	unaryOracle := TypedUnaryProfile(catalog, unary, TypedUnaryEnvironment{
+	unaryOracle := TypedUnaryProfile(catalog, TypedUnaryEnvironment{
 		Namespace: "namespace", TaskQueue: "task-queue",
 	})
 	require.Equal(t, unaryOracle.Roles, derivedUnary.Roles)

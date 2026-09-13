@@ -70,7 +70,7 @@ func newScheduler(p *PreparedProgram, runID, caseID string, session contract.Ses
 	if err != nil {
 		return nil, err
 	}
-	return &scheduler{values: values, recorder: recorder, session: session, reservations: map[string]bool{}, completions: make(chan schedulerCompletion, int(p.source.Limits.MaxNodes+p.source.Limits.MaxActivations)), closed: make(chan struct{}), lateTimeout: time.Duration(p.source.Limits.MaxCleanupDurationMilliseconds) * time.Millisecond}, nil
+	return &scheduler{values: values, recorder: recorder, session: session, reservations: map[string]bool{}, completions: make(chan schedulerCompletion, int(p.limits.MaxNodes+p.limits.MaxActivations)), closed: make(chan struct{}), lateTimeout: time.Duration(p.limits.MaxCleanupDurationMilliseconds) * time.Millisecond}, nil
 }
 func (s *scheduler) outstanding() []contract.EffectHandle {
 	s.mu.Lock()
@@ -556,7 +556,7 @@ func (s *scheduler) admitDispatch(ctx context.Context, task scheduledNode, reque
 		admit = s.recorder.admitCleanup
 	}
 	err := admit(ctx, func(ctx context.Context) ([]contract.EffectHandle, error) {
-		if s.attempts >= s.values.program.source.Limits.MaxAttempts {
+		if s.attempts >= s.values.program.limits.MaxAttempts {
 			return nil, invalid(ir.LimitExceeded, "scheduler", "attempt ceiling exceeded")
 		}
 		s.attempts++

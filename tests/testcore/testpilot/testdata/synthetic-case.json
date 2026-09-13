@@ -2,16 +2,6 @@
   "caseId": "testpilot.synthetic.case",
   "contract": {
     "contractId": "testpilot.synthetic.contract",
-    "limits": {
-      "maxCaptureBytes": "1024",
-      "maxCaptures": "1",
-      "maxExpressionDepth": "8",
-      "maxRules": "1",
-      "maxStates": "2",
-      "maxTotalWork": "64",
-      "maxTransitions": "1",
-      "maxWorkPerEvent": "32"
-    },
     "rules": [
       {
         "initialStateId": "open",
@@ -73,8 +63,6 @@
             "instructionId": "finish",
             "limits": {
               "maxAttempts": "1",
-              "maxEmittedEvents": "1",
-              "maxResponseBytes": "1024",
               "timeoutMilliseconds": "1000"
             },
             "outcome": {
@@ -108,20 +96,6 @@
         "bindingId": "task.queue"
       }
     ],
-    "limits": {
-      "maxActivations": "1",
-      "maxAttempts": "1",
-      "maxCleanupDurationMilliseconds": "1000",
-      "maxEdges": "1",
-      "maxEntrypoints": "1",
-      "maxExpressionDepth": "8",
-      "maxNodes": "1",
-      "maxPathFanout": "4",
-      "maxRequestBytes": "1024",
-      "maxResponseBytes": "1024",
-      "maxRunEvents": "8",
-      "maxTotalDurationMilliseconds": "1000"
-    },
     "programId": "testpilot.synthetic.program",
     "roles": [
       {

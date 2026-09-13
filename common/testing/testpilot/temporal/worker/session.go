@@ -16,7 +16,9 @@ import (
 )
 
 type programDefinition struct {
-	snapshot       *testpilotspb.Program
+	snapshot *testpilotspb.Program
+	// limits is the Profile's Program ceilings the Program was prepared under.
+	limits         *testpilotspb.ProgramLimits
 	entries        map[string]entryDefinition
 	registrations  []queueRegistration
 	endpoints      map[string]string
@@ -60,10 +62,10 @@ type Session struct {
 }
 
 func newSession(host *Driver, runID, sessionID string, definition programDefinition, options SessionOptions) (*Session, error) {
-	if host == nil || definition.snapshot == nil || definition.snapshot.GetLimits() == nil {
+	if host == nil || definition.snapshot == nil || definition.limits == nil {
 		return nil, ErrInvalid
 	}
-	limits := definition.snapshot.GetLimits()
+	limits := definition.limits
 	ledger, err := delivery.New(delivery.Config{RunID: runID, SessionID: sessionID, Limits: delivery.Limits{
 		MaxRoutes: boundedInt(limits.GetMaxActivations()), MaxHandles: boundedInt(limits.GetMaxActivations()),
 		MaxHeaderBytes: boundedInt(limits.GetMaxRequestBytes()), MaxDiagnostics: boundedInt(limits.GetMaxRunEvents()),
@@ -92,7 +94,7 @@ func (s *Session) Reserve(ctx context.Context, request testpilot.ReservationRequ
 	if s.closed || s.failure != nil {
 		return nil, errors.Join(ErrClosed, s.failure)
 	}
-	maximum := boundedInt(s.definition.snapshot.GetLimits().GetMaxActivations())
+	maximum := boundedInt(s.definition.limits.GetMaxActivations())
 	if int(request.Count) > maximum-len(s.reservations) {
 		return nil, ErrCapacity
 	}
@@ -319,7 +321,7 @@ func (s *Session) Diagnose(ctx context.Context, runID string, diagnostic *testpi
 	if err := s.mu.lock(ctx); err != nil {
 		return err
 	}
-	if s.diagnostics >= boundedInt(s.definition.snapshot.GetLimits().GetMaxRunEvents()) {
+	if s.diagnostics >= boundedInt(s.definition.limits.GetMaxRunEvents()) {
 		s.mu.unlock()
 		return ErrCapacity
 	}

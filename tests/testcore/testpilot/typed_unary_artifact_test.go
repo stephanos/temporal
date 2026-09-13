@@ -35,7 +35,7 @@ func typedUnaryArtifactPrepared(t testing.TB) (*testpilot.PreparedCase, *testpil
 	source := loadLeanCase(t, "typed-unary")
 	catalog, err := temporal.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
-	prepared, err := testpilot.Prepare(source, TypedUnaryProfile(catalog, source, TypedUnaryEnvironment{
+	prepared, err := testpilot.Prepare(source, TypedUnaryProfile(catalog, TypedUnaryEnvironment{
 		Namespace: typedUnaryArtifactNamespace, TaskQueue: typedUnaryArtifactTaskQueue,
 	}))
 	require.NoError(t, err)
@@ -106,13 +106,14 @@ func TestTypedUnaryCaseMissingRecordedTypeStaysInconclusive(t *testing.T) {
 }
 
 // TestTypedUnaryCaseBoundedHistoryLoad grows the history the Case reads until it no longer fits
-// the response budget the Program declared. Inside the budget the clause is decided as before;
+// the response budget its Profile allows. Inside the budget the clause is decided as before;
 // past it the instruction reports its own resource failure and the Run closes inconclusive. No
 // load turns an unread field into a satisfied clause.
 func TestTypedUnaryCaseBoundedHistoryLoad(t *testing.T) {
-	prepared, source := typedUnaryArtifactPrepared(t)
-	payloadBudget := source.GetProgram().GetLimits().GetMaxResponseBytes()
-	collectionBudget := source.GetProgram().GetLimits().GetMaxPathFanout()
+	prepared, _ := typedUnaryArtifactPrepared(t)
+	limits, _, _ := temporal.DefaultCeilings()
+	payloadBudget := limits.GetMaxInstructionResponseBytes()
+	collectionBudget := limits.GetMaxPathFanout()
 	require.Positive(t, payloadBudget)
 	require.Positive(t, collectionBudget)
 

@@ -111,7 +111,7 @@ func (s *Session) InvokeCapability(ctx context.Context, c testpilot.Coordinate, 
 		return nil, errUnauthorized
 	}
 	handle, err := s.startLocked(ctx, c, n.Limits, func(ctx context.Context) testpilot.EffectResult {
-		return invoke.Invoke(ctx, input, min(n.Limits.MaxResponseBytes, s.host.profile.ProgramLimits.MaxResponseBytes))
+		return invoke.Invoke(ctx, input, s.host.profile.ProgramLimits.MaxInstructionResponseBytes)
 	})
 	if err != nil {
 		return nil, err

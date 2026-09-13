@@ -2,16 +2,6 @@
   "caseId": "temporal.case.conformance.inconclusive",
   "contract": {
     "contractId": "temporal.case.conformance.inconclusive.contract",
-    "limits": {
-      "maxCaptureBytes": "8192",
-      "maxCaptures": "4",
-      "maxExpressionDepth": "12",
-      "maxRules": "4",
-      "maxStates": "16",
-      "maxTotalWork": "1000000000",
-      "maxTransitions": "16",
-      "maxWorkPerEvent": "100000"
-    },
     "rules": [
       {
         "initialStateId": "pending",
@@ -67,8 +57,6 @@
             "instructionId": "execute",
             "limits": {
               "maxAttempts": "1",
-              "maxEmittedEvents": "8",
-              "maxResponseBytes": "4096",
               "timeoutMilliseconds": "5000"
             },
             "outcome": {
@@ -89,20 +77,6 @@
         ]
       }
     ],
-    "limits": {
-      "maxActivations": "8",
-      "maxAttempts": "16",
-      "maxCleanupDurationMilliseconds": "5000",
-      "maxEdges": "24",
-      "maxEntrypoints": "4",
-      "maxExpressionDepth": "12",
-      "maxNodes": "16",
-      "maxPathFanout": "32",
-      "maxRequestBytes": "32768",
-      "maxResponseBytes": "4096",
-      "maxRunEvents": "256",
-      "maxTotalDurationMilliseconds": "30000"
-    },
     "programId": "temporal.case.conformance.inconclusive.program",
     "roles": [
       {

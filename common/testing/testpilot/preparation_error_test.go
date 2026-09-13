@@ -63,7 +63,7 @@ func TestPreparationErrorCase(t *testing.T) {
 	}{
 		{"program missing", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) { c.Program = nil }, testpilot.PreparationMalformed, "case", "Case identity, Program and Contract are required", ""},
 		{"profile identity", func(_ *testpilotspb.Case, p *testpilot.ProfileSpec) { p.Identity = "" }, testpilot.PreparationMalformed, "policy", "Driver or catalog identity mismatch", ""},
-		{"program limit", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) { c.Program.Limits.MaxNodes++ }, testpilot.PreparationLimitExceeded, "max_nodes", "limit is outside the positive Driver ceiling", ""},
+		{"program ceiling", func(_ *testpilotspb.Case, p *testpilot.ProfileSpec) { p.ProgramLimits.MaxNodes = 0 }, testpilot.PreparationLimitExceeded, "max_nodes", "limit is outside the positive Driver ceiling", ""},
 		{"unknown declaration", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) { c.Contract.Rules[0].InitialStateId = "missing" }, testpilot.PreparationUnknown, "contract", "initial state is not declared", "rule safety: "},
 		{"type mismatch", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) {
 			c.Contract.Rules[0].Transitions[0].Predicate.GetLiteral().Value = &testpilotspb.Value_TextValue{TextValue: "text"}
@@ -78,7 +78,7 @@ func TestPreparationErrorCase(t *testing.T) {
 			c.Program.Entrypoints[0].Instructions = []*testpilotspb.InstructionNode{{InstructionId: strings.Repeat("i", 256), Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRpc{}}}}}
 		}, testpilot.PreparationUnsupported, strings.Repeat("e", 256), "unsupported instruction context or Driver capability", ""},
 		{"contract missing rules", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) { c.Contract.Rules = nil }, testpilot.PreparationMalformed, "contract", "Contract identity and rules are required", ""},
-		{"contract limit", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) { c.Contract.Limits.MaxRules++ }, testpilot.PreparationLimitExceeded, "contract", "limit outside positive Driver ceiling: max_rules", ""},
+		{"contract ceiling", func(_ *testpilotspb.Case, p *testpilot.ProfileSpec) { p.ContractLimits.MaxRules = 0 }, testpilot.PreparationLimitExceeded, "contract", "limit outside positive Driver ceiling: max_rules", ""},
 		{"correlated binding", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) {
 			c.Contract.Correlated = &testpilotspb.CorrelatedContract{}
 		}, testpilot.PreparationMalformed, "contract", "invalid correlated projection binding", ""},
@@ -97,7 +97,7 @@ func TestPreparationErrorCase(t *testing.T) {
 }
 
 func diagnosticCorrelatedContract() *testpilotspb.CorrelatedContract {
-	return &testpilotspb.CorrelatedContract{ProjectionId: "projection", ProjectionFingerprint: "fingerprint", ScopeFields: []string{"run"}, OperationField: "operation", Sources: []string{"source"}, InitialState: &testpilotspb.ModelValue{DefinitionId: "state"}, EvidenceObservationId: "evidence", Limits: &testpilotspb.CorrelatedLimits{}}
+	return &testpilotspb.CorrelatedContract{ProjectionId: "projection", ProjectionFingerprint: "fingerprint", ScopeFields: []string{"run"}, OperationField: "operation", Sources: []string{"source"}, InitialState: &testpilotspb.ModelValue{DefinitionId: "state"}, EvidenceObservationId: "evidence"}
 }
 
 func TestPreparationErrorCorrelatedLimits(t *testing.T) {
@@ -122,6 +122,10 @@ func TestPreparationErrorCorrelatedLimits(t *testing.T) {
 	source.Program.Observations = []*testpilotspb.Observation{{ObservationId: "evidence", Type: &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Message{Message: &testpilotspb.NamedType{ProtobufType: "temporal.server.api.testpilot.v1.CorrelatedEvidence"}}}}}}}
 	source.Contract.Correlated = diagnosticCorrelatedContract()
 	prepared, err := testpilot.Prepare(source, profile)
+	require.Nil(t, prepared)
+	requirePreparationError(t, err, testpilot.PreparationMalformed, "contract", "Profile correlated limits required", "malformed at contract: Profile correlated limits required")
+	profile.CorrelatedLimits = &testpilotspb.CorrelatedLimits{}
+	prepared, err = testpilot.Prepare(source, profile)
 	require.Nil(t, prepared)
 	requirePreparationError(t, err, testpilot.PreparationLimitExceeded, "contract", "correlated limits must be positive", "limit_exceeded at contract: correlated limits must be positive")
 }

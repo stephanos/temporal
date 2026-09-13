@@ -22,7 +22,7 @@ func TestDriverValidateRejectsEmptyPreparedProgram(t *testing.T) {
 
 func TestDriverSymbolicModeDerivesResourcesAndRejectsBindingIdentityMismatchBeforeRegistry(t *testing.T) {
 	prepared := preparedSymbolicRuntimeFixture(t)
-	host := symbolicRuntimeDriver(t, prepared.Snapshot().GetLimits())
+	host := symbolicRuntimeDriver(t, prepared.Limits())
 	rejected := preparedSymbolicRuntimeFixture(t, func(program *testpilotspb.Program) {
 		program.Environment = append(program.Environment, &testpilotspb.EnvironmentDefinition{BindingId: "other-namespace"})
 		for _, role := range program.Roles {
@@ -91,7 +91,7 @@ func TestDriverSymbolicModeComparesRequestBindingIDsRatherThanResolvedText(t *te
 	} {
 		t.Run(name, func(t *testing.T) {
 			prepared := preparedSymbolicRuntimeFixture(t, configure.program, configure.profile)
-			host := symbolicRuntimeDriver(t, prepared.Snapshot().GetLimits())
+			host := symbolicRuntimeDriver(t, prepared.Limits())
 			require.ErrorIs(t, host.Validate(t.Context(), prepared), ErrInvalid)
 		})
 	}
@@ -142,7 +142,7 @@ func TestDriverValidatesControllerOnlyTemporalResourceBindings(t *testing.T) {
 				modifiers = append(modifiers, configure.profile)
 			}
 			prepared := preparedSymbolicRuntimeFixture(t, modifiers...)
-			host := symbolicRuntimeDriver(t, prepared.Snapshot().GetLimits())
+			host := symbolicRuntimeDriver(t, prepared.Limits())
 			acquisitions := 0
 			host.registry = newWorkerRegistry(8, func(string, string, queueRegistration) (managedWorker, error) {
 				acquisitions++
@@ -170,7 +170,7 @@ func TestDriverRejectsInvalidCleanupResourceBindingBeforeOpen(t *testing.T) {
 			Limits:  runtimeBounds(),
 		}}
 	}, authorizeGetHistory)
-	host := symbolicRuntimeDriver(t, prepared.Snapshot().GetLimits())
+	host := symbolicRuntimeDriver(t, prepared.Limits())
 	acquisitions := 0
 	host.registry = newWorkerRegistry(8, func(string, string, queueRegistration) (managedWorker, error) {
 		acquisitions++
@@ -227,7 +227,7 @@ func TestDriverSymbolicModeRejectsUnsupportedEndpointResources(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			prepared := preparedSymbolicRuntimeFixture(t, mutate)
-			host := symbolicRuntimeDriver(t, prepared.Snapshot().GetLimits())
+			host := symbolicRuntimeDriver(t, prepared.Limits())
 			require.ErrorIs(t, host.Validate(t.Context(), prepared), ErrInvalid)
 		})
 	}
@@ -236,7 +236,7 @@ func TestDriverSymbolicModeRejectsUnsupportedEndpointResources(t *testing.T) {
 func TestNewFreezesSymbolicProfile(t *testing.T) {
 	catalog, err := testpilot.NewCatalog(descriptorClosure(workflowservice.File_temporal_api_workflowservice_v1_service_proto))
 	require.NoError(t, err)
-	limits := preparedRuntimeFixture(t, testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS).Snapshot().GetLimits()
+	limits := preparedRuntimeFixture(t, testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS).Limits()
 	base := Options{Profile: testpilot.ProfileSpec{Identity: "profile", Catalog: catalog, ProgramLimits: limits, EnvironmentBindings: []testpilot.EnvironmentBinding{{ID: "namespace", Value: "namespace"}}}, Client: &recordingClient{}, WorkerRoleID: "worker"}
 	host, err := New(base)
 	require.NoError(t, err)
