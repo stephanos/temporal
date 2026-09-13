@@ -7,12 +7,17 @@ Plan: 9 tasks, broken out 2026-09-12; R1 to R8 each have a task and every task d
 Reviewed against: the spec markdown, the nine task records, and the tree at
 `claude/umpire-order-spec-0ylk31`.
 
-**Verdict: REVISE.** No blocker: the ordering is right, the inventory-first shape is right, and the
+**Verdict: NEEDS_WORK.** No blocker: the ordering is right, the inventory-first shape is right, and the
 deletions are correctly gated behind `.4`'s re-anchoring. Three findings need a decision written into
 the plan before the tasks they touch, and two are wording.
 
-Conducted in-session, like fn-85's: `flowctl` is not installed in this cloud session, so this document
-is the verdict and no receipt sits in the spec record.
+Conducted in-session and recorded through `flowctl` (`review-rounds increment` then
+`record --review-type plan --status-target plan`), so the spec carries the receipt and
+`plan_review_status: needs_work`, and this document is the reviewer output it points at. The backend
+is recorded as `claude` because the reviewer is this session, not a separate model — read the verdict
+with that in mind. `flowctl` was missing when this session started and is installed now from GitHub
+through the plugin marketplace (`claude plugin marketplace add gmickel/flow-next`, then
+`claude plugin install flow-next@flow-next`).
 
 ## Findings
 

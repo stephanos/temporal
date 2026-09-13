@@ -1,7 +1,7 @@
 {
   "branch_name": "stephanos/umpire",
   "completion_review_status": "ship",
-  "completion_reviewed_at": "2026-09-13T12:00:00.000000Z",
+  "completion_reviewed_at": "2026-09-13T21:48:48.092866Z",
   "created_at": "2026-09-11T15:17:44.711623Z",
   "default_impl": null,
   "default_review": null,
@@ -1108,6 +1108,32 @@
       "task": "fn-87-tighten-the-testpilot-protocol-glossary.17",
       "timestamp": "2026-09-13T17:46:09.317376Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "997db301209862cf60f96ad0c8ded0887d02512cf061deaf516c1168c461ca3e",
+      "backend": "claude",
+      "counter_kind": "plan",
+      "failure_class": null,
+      "finalized": {
+        "digest": "not_applicable",
+        "receipt": "not_applicable",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e275dfea2ee854af2838be86a47b46a8cc842a56",
+      "head_sha_observed": false,
+      "kind": "completion",
+      "outcome": "verdict",
+      "output_bytes": 9564,
+      "output_sha256": "bba8188d41eaeb31c90959152e077416bd9596a7e4ec595d3eba3097c1f23295",
+      "reservation_id": "9be157c81729420d86eb37a83649e382",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-13T21:48:48.090025Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -1129,11 +1155,12 @@
     "impl:fn-87-tighten-the-testpilot-protocol-glossary.8": 1,
     "impl:fn-87-tighten-the-testpilot-protocol-glossary.9": 1,
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-87-tighten-the-testpilot-protocol-glossary.1": 0,
     "impl:fn-87-tighten-the-testpilot-protocol-glossary.10": 0,
     "impl:fn-87-tighten-the-testpilot-protocol-glossary.11": 0,
@@ -1154,7 +1181,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-87-tighten-the-testpilot-protocol-glossary.md",
-  "status": "done",
+  "status": "open",
   "title": "Tighten the Testpilot protocol: glossary names, one expression language, structure by concept",
   "tracker": {
     "baseHashFlow": null,
@@ -1167,5 +1194,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-13T17:46:09.324647Z"
+  "updated_at": "2026-09-13T21:48:48.092895Z"
 }

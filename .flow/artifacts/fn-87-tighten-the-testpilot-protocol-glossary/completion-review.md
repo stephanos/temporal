@@ -10,10 +10,20 @@ follow-up commit.
 rather than fixed.
 
 This review was conducted in-session by reading the spec's fifteen requirements against the tree and
-re-running every gate that does not need a live cluster. `flowctl` is not installed in this cloud
-session (no flow-next plugin install and no marketplace source recorded), so there is no
-`completion-review.json` receipt beside this file and no recorded review backend; the verdict is this
-document.
+re-running every gate that does not need a live cluster. It is recorded through `flowctl`
+(`review-rounds increment` then `record --review-type completion --status-target completion`), so the
+spec carries the receipt and `completion_review_status: ship`; this document is the reviewer output
+that receipt points at. The backend is recorded as `claude` because the reviewer is this session, not a
+separate model — read the verdict with that in mind.
+
+`flowctl` was missing when this session started; it is installed now from GitHub through the plugin
+marketplace (`claude plugin marketplace add gmickel/flow-next`, then
+`claude plugin install flow-next@flow-next`), which is how a cloud session gets it.
+
+The spec is not closed: `flowctl spec close` refuses because runtime task state lives in the clone's
+`.git` common-dir and a fresh cloud clone has none, so all 17 tasks read `todo` from the committed
+snapshot. Every historical spec in this store has the same shape. Closing is one command in a clone
+that carries the runtime state.
 
 ## Requirements coverage
 

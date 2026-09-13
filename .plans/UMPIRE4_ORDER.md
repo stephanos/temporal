@@ -148,9 +148,12 @@ second round, and every task landed serially in this checkout with its own revie
 - **Completion review, 2026-09-13:** SHIP, recorded in
   [`.flow/artifacts/fn-87-tighten-the-testpilot-protocol-glossary/completion-review.md`](../.flow/artifacts/fn-87-tighten-the-testpilot-protocol-glossary/completion-review.md).
   Every requirement R1 to R15 is met, with R5's presence deviation and R9's amendment recorded in the
-  spec. No `flowctl` receipt sits beside it: the flow-next plugin is not installed in the cloud
-  session that ran the review, so the document is the verdict and the receipt is owed to the next
-  session that has the CLI.
+  spec. The review is recorded through `flowctl`, so the spec carries the receipt and
+  `completion_review_status: ship`, with the backend recorded as `claude` because the reviewer was the
+  delivering session rather than a separate model. **The spec is not closed**: `flowctl spec close`
+  refuses because runtime task state lives in the clone's `.git` common-dir and a fresh cloud clone has
+  none, so all 17 tasks read `todo` from the committed snapshot — the shape every historical spec in
+  this store has. Closing is one command in a clone that carries the runtime state.
 - **The four deferred follow-ups landed with the review.** `ir` calls a path read a read (`ReadPath`,
   `readPath`, `readPayloadPath`, `readOperandPath`, `pathReadWork`, and a diagnostic that says "path
   read"); hand-written Go no longer calls an Opcode a capability (`InstructionOpcode`, `opcode`
@@ -211,7 +214,7 @@ machines are Lean step functions over a structure of finite fields, enumerated a
 same finite table, per [the FizzBee comparison](UMPIRE_CMP_FIZZBEE.md) section 4.1; the row grammar is
 not built.
 
-**Broken into 13 tasks on 2026-09-12. Plan review round 1, 2026-09-13: REVISE**, recorded in
+**Broken into 13 tasks on 2026-09-12. Plan review round 1, 2026-09-13: NEEDS_WORK**, recorded in
 [`.flow/artifacts/fn-85-model-side-effects-as-typed-actions-and/plan-review.md`](../.flow/artifacts/fn-85-model-side-effects-as-typed-actions-and/plan-review.md).
 Every requirement has a task and the ordering holds; the revisions are one blocker and four smaller
 findings, none of them a design change:
@@ -230,8 +233,12 @@ findings, none of them a design change:
 - `.3` is over-sized: split its three planned commits into three tasks, or at least move the
   `property`-predicate change out, so the step-function prototype's fallback stays actionable.
 - The `property`-predicate decision has no requirement row, so the coverage table cannot fail on it.
-- `.13` closes fn-83's six blocked tasks "through `flowctl`"; name the direct-edit fallback for
-  environments without the CLI.
+- `.13` closes fn-83's six blocked tasks "through `flowctl`", which needs runtime state a fresh clone
+  does not have; the fallback is named.
+
+The split moved dependencies with it: `.4` and `.6` need the `machine` command, so they depend on
+`.14` rather than on `.3` alone, and `.10` writes its Properties as predicates, so it depends on `.15`.
+`flowctl ready` now offers `.1` and `.3`, and blocks the rest correctly.
 
 Flow records its dependencies on fn-84 and fn-87, and fn-83 and fn-22 now depend on it; the fn-83
 tasks it builds on (.13, .14, .15) are done. It closes fn-83's six blocked tasks as superseded.
@@ -275,7 +282,7 @@ fn-87, fn-85, fn-86: fn-87 does not touch the Race, Lifecycle, Operations or Exp
 deleting them earlier buys nothing, and Lifecycle cannot go before fn-85 because the kept
 Implementation Link imports it until fn-86 .4 re-anchors it.
 
-**Broken into 9 tasks on 2026-09-12. Plan review round 1, 2026-09-13: REVISE**, recorded in
+**Broken into 9 tasks on 2026-09-12. Plan review round 1, 2026-09-13: NEEDS_WORK**, recorded in
 [`.flow/artifacts/fn-86-retire-hand-written-models-one/plan-review.md`](../.flow/artifacts/fn-86-retire-hand-written-models-one/plan-review.md).
 No blocker: inventory first, `.4` before `.5`, and a direct-import lint rule are all right. Five
 findings, applied:
@@ -319,6 +326,15 @@ pre-installed toolchain (`/opt/temporal-toolchain`) on `PATH`:
 | `make umpire-check-regression-views` | exit 0 only after the `go list` stderr fix below |
 | `make lint-model` | 163 in generated `Temporal/API/Proto.lean`, `Shared` and `Umpire.Lint` clean — the baseline exactly |
 | `make lint-code GOLANGCI_LINT_FIX=false` | **not measurable as cloned**: the gate passes `--new-from-rev=main`, the clone is shallow and carries only `umpire` and the working branch, and `git merge-base HEAD main` has no answer even after fetching `main`, so golangci-lint reports the whole tree (7,576 pre-existing diagnostics) instead of 161. Deepen the clone until `main` shares an ancestor to reproduce the number. What answers the gate's question meanwhile is the same config and build tags over the changed package trees with `--new-from-rev` at the pre-change commit: **0 issues** |
+
+**`flowctl` is not in a cloud session's image.** Install it from GitHub through the plugin
+marketplace — `claude plugin marketplace add gmickel/flow-next`, then
+`claude plugin install flow-next@flow-next` — which puts `scripts/flowctl` under
+`~/.claude/plugins/cache/flow-next/flow-next/<version>/`. The published 5.2.2 carries the same store
+`SCHEMA_VERSION` (3) as this repository's `.flow`, so it reads and writes the store without migrating
+it. What a fresh clone still cannot do is change task status: runtime state lives in the clone's `.git`
+common-dir, so every task reads `todo` from the committed snapshot and `start`, `done` and
+`spec close` refuse. Reviews, dependencies, spec status and validation all work.
 
 Three environment notes for a cloud session: `mise` is a passthrough shim, so `/opt/temporal-toolchain/*/bin`
 must be on `PATH` before any `make` target that uses `lake` or `protoc`; and warm the Go module cache
