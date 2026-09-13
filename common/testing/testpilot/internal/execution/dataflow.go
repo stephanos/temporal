@@ -11,9 +11,9 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-// InstructionOpcode is the single mapping from a declared instruction to the capability a Profile must
+// InstructionOpcode is the single mapping from a declared instruction to the Opcode a Profile must
 // authorize. Profile derivation reads it through the facade so a Case's instructions and the
-// capabilities that authorize them cannot drift apart.
+// Opcodes that authorize them cannot drift apart.
 func InstructionOpcode(instruction *testpilotspb.Instruction) contract.Opcode {
 	if instruction == nil || isNil(instruction.Instruction) {
 		return 0
@@ -39,8 +39,8 @@ func InstructionOpcode(instruction *testpilotspb.Instruction) contract.Opcode {
 		return 0
 	}
 }
-func opcodeContext(capability contract.Opcode) contract.EntrypointKind {
-	switch capability {
+func opcodeContext(opcode contract.Opcode) contract.EntrypointKind {
+	switch opcode {
 	case contract.InvokeRPC, contract.AwaitSlot, contract.CompleteNexusOperation, contract.InjectFault:
 		return contract.ControllerEntrypoint
 	case contract.StartNexusOperation, contract.Await, contract.Finish:
@@ -113,7 +113,7 @@ func (a *admission) bindInstruction(g *graph, i int, n *node) error {
 	case contract.InjectFault:
 		return a.bindFault(g, n)
 	default:
-		return invalid(ir.Unsupported, nodePath(g, n), "unknown capability")
+		return invalid(ir.Unsupported, nodePath(g, n), "unknown opcode")
 	}
 	return nil
 }
@@ -620,7 +620,7 @@ func (a *admission) bindNodeDataflow(g *graph, n *node, boolean ir.Type) error {
 	case contract.Await, contract.InjectFault:
 		// A fault names its target role statically; it binds no Program expression.
 	default:
-		return invalid(ir.Unsupported, nodePath(g, n), "unknown capability")
+		return invalid(ir.Unsupported, nodePath(g, n), "unknown opcode")
 	}
 	if err != nil {
 		return err

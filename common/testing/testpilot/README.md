@@ -35,8 +35,8 @@ that event exists.
 
 A Case may also declare where its operation-correlated evidence comes from. A response read can
 lift a projected value into a declared `CorrelatedEvidence` Observation through guarded rules, which is
-the only way a Program supplies the evidence a `Contract.correlated` capability reads. A capability that
-admits no evidence answers inconclusive: silence is not a satisfied property.
+the only way a Program supplies the evidence a `Contract.correlated` Correlated Contract reads. A
+Correlated Contract that admits no evidence answers inconclusive: silence is not a satisfied property.
 
 ## Field paths and enum literals
 
@@ -132,7 +132,7 @@ first planned use.
 5. `InstructionOpcode` is the table: `TestInstructionOpcodesCoverTheInstructionTable` requires every
    oneof arm to map to the Opcode of its field number.
 6. Append the Opcode to `contract.Opcode` and move `contract.MaxOpcode`; `temporal.DeriveProfile`
-   authorizes it through `testpilot.InstructionCapability`. A new Driver effect adds a
+   authorizes it through `testpilot.InstructionOpcode`. A new Driver effect adds a
    `contract.Session` method, implemented by the server, worker and composite Sessions and by every
    test Session.
 7. Focused tests beside the binder and the Driver; a Driver conformance case per carried message is
