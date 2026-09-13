@@ -60,17 +60,19 @@ cross. The spec carries exactly those five, one task each, in the order the scan
 No behavior changes; every task records an equivalence pin before it moves code and closes with
 `make umpire-check-regression`. The plan review is SHIP after one fix round.
 
-**Next to run, before fn-87 and fn-85; nothing blocks it.** fn-82 closed on 2026-09-10 and its renames in
-all five areas have landed. Task .5 shares its seam with `Umpire.Case.Producer`, and .3's admission
-chain now sits in `Umpire.Command` after fn-83 .10 moved it; both tasks re-read those owners before
-starting. fn-84 goes before fn-85 because every task is behavior-preserving with byte-identical
-fixture and golden pins, which are cheapest to hold before fn-85 replaces the async-Nexus fixture
-and the Producer's Program assembly, and because fn-85 builds on `Umpire.Search.admit` (.3). The
-spec-level dependency on fn-83 was removed on 2026-09-10, and the note on .3 and .5 to start after
-fn-83 .15 is satisfied now that .15 is done. fn-22 and fn-33 depend on this
-spec in turn: fn-33's exploration bridge sits on the search-view transport sites .3 replaces, and
-fn-22's promotion path consumes `search`, which .3 keeps public. Dispatch is serial in task order
-because every pair of tasks shares a documentation or test-root file.
+**Done 2026-09-12.** All five tasks landed serially with byte-identical pins: the worker `outage`
+module with one `OutagePlan` (live outage Verdicts and Run Events unchanged); the `contract` leaf
+package with facade aliases (conformance and facade tests unedited; MOD-14 restatement drafted,
+pending GOV-02); `Umpire.Search.admit` and `AdmittedQuery` (query ids, fingerprints and `PlanResult`
+bytes unchanged); per-audience Evidence structure verdicts over one `Shared` reachability walker
+(36,000 recorded diagnostics unchanged); and `Umpire.Case.Projection.lower` deriving both typed
+Producers' monitor rules, the capture rule included (Case fixtures unchanged). Every task closed with
+`make umpire-check-regression` exit 0 and nine live identities, `make lint-model` at 163 and `make
+lint-code` at 161; each impl-review and the completion review were SHIP. Deferred: the typed unary and
+typed Nexus Producers stay off `admit` because they never search; the Race unions shrink to their
+Model-stage arms plus an `AdmissionDiagnostic` carrier; the three Operations modules still build their
+view by hand, a candidate for fn-85; and a failed outage stop or resume still records no Driver
+invariant diagnostic, a pre-existing gap now under `CONSIDER(umpire)` in the worker Session.
 
 Boundaries: no renames beyond what the new modules need, no change to the evaluation budget
 (`CONSIDER(umpire)` on the cubic reservation stays separate), to delivery routing, to the
@@ -114,8 +116,9 @@ compatibility promise (`buf` breaking ignores the package), so there is no `v2` 
 capabilities stay with their owners: typed worker instructions and per-Case observation declarations
 with fn-85 R10, cancel with fn-79, correlated transitions over structured machine state with fn-85.
 
-**Depends on fn-84**; **fn-85 depends on it** (both recorded in Flow), so fn-85's instructions and
-fn-86's migrated Cases are authored on the final shapes. Needs a plan review and a task breakdown.
+**Next to run**: its dependency fn-84 finished on 2026-09-12. **fn-85 depends on it** (recorded in
+Flow), so fn-85's instructions and fn-86's migrated Cases are authored on the final shapes. Needs a
+plan review and a task breakdown.
 
 ### 4. Model side effects as typed actions and run query sets — fn-85
 
