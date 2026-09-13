@@ -11,7 +11,7 @@ boundary. A checked field Property's monitor rule arrives as `.monitor`, derived
 `Umpire.Case.Projection.lower` together with the request coverage it implies, and a correlated
 Property arrives as `.correlated` from `Umpire.Case.Correlated.lower`; the compiler admits both side
 by side. The compiler validates source-bound property rows, admits the requested whole-Case field
-and clause coverage, preserves unsupported-lowering diagnostics, attaches exact Umpire provenance,
+and clause coverage, preserves unsupported-lowering diagnostics, attaches exact Umpire provenance rows,
 and returns the generated Case without introducing a parallel protocol representation.
 -/
 
@@ -120,8 +120,10 @@ def compile (input : Input) : Except Error temporal.server.api.testpilot.v1.Case
     knownGaps := input.knownGaps
     correlatedRules
   }
+  let provenance ← (Provenance.make metadata).mapError fun source =>
+    Error.mk input.caseId source "provenance.source-position"
   pure (Testpilot.Authoring.case input.version.major input.caseId input.program
     (Testpilot.Authoring.Contract.contract input.contractId rules.toArray capability)
-    (Provenance.make metadata) input.version.minor)
+    provenance input.version.minor)
 
 end Umpire.Case.Compiler
