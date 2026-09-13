@@ -53,8 +53,8 @@ private def contract : Contract := Contract.contract "contract" #[
     #[Contract.transition "complete" "open" "done" #[.RUN_EVENT_KIND_RUN_CLOSED]
       predicateExpression .CONTRACT_SUPPORT_KIND_MATCHING_EVENT
       #[Contract.captureAssignment "captured" "result"]]
-    (deadline := some (Contract.deadline 9223372036854775807 "late"))
-    (captures := #[Contract.capture "captured" (Contract.messageCapture
+    (deadline := some (Contract.deadline (.elapsed_milliseconds 9223372036854775807) "late"))
+    (captures := #[Contract.capture "captured" (Types.messageType
       "temporal.server.api.testpilot.v1.FormatVersion")])
 ] (Contract.limits 1 3 1 16 32 64 1 1024)
 

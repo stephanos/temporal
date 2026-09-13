@@ -10,24 +10,22 @@ message CorrelatedContract {
   string projection_id = 1;
   // The Projection's fingerprint; the runtime only checks it is set.
   string projection_fingerprint = 2;
-  // Always 1.
-  int32 version = 3;
   // The Observation, of type CorrelatedEvidence, that supplies the evidence.
-  string evidence_observation_id = 4;
+  string evidence_observation_id = 3;
   // The field ids, in order, that every evidence identity's scope carries.
-  repeated string scope_fields = 5;
+  repeated string scope_fields = 4;
   // The evidence field naming the operation; it is not a scope field.
-  string operation_field = 6;
+  string operation_field = 5;
   // The evidence sources identities and parents may name.
-  repeated string sources = 7;
+  repeated string sources = 6;
   // The state every new operation starts in.
-  ModelValue initial_state = 8;
+  ModelValue initial_state = 7;
   // The complete transition table operations follow.
-  repeated CorrelatedTransition transitions = 9;
+  repeated CorrelatedTransition transitions = 8;
   // What evidence of each kind does to its operation.
-  repeated CorrelatedProjectionRule projection_rules = 10;
-  repeated CorrelatedRule rules = 11;
-  CorrelatedLimits limits = 12;
+  repeated CorrelatedProjectionRule projection_rules = 9;
+  repeated CorrelatedRule rules = 10;
+  CorrelatedLimits limits = 11;
 }
 
 // CorrelatedTransition is one row of the transition table: from prior_state, action leads to state
@@ -178,23 +176,22 @@ message CorrelatedEvidenceProjection {
 // literal the selected shape denotes. Every path is read from the projected value; no Run field, wall
 // clock or Driver state is reachable from here.
 message CorrelatedEvidenceRule {
-  repeated CorrelatedEvidenceBinding scope = 1;
+  // The scope field values of the evidence identity, each a text literal or a text path.
+  repeated NamedExpression scope = 1;
   string evidence_source = 2;
   FieldPath operation = 3;
   string kind = 4;
-  repeated CorrelatedEvidenceBinding fields = 5;
+  // The evidence field values, each a text literal or a path to a text, integer or boolean.
+  repeated NamedExpression fields = 5;
   Expression guard = 6;
 }
 
-// CorrelatedEvidenceBinding names one CorrelatedEvidence slot and what supplies it: a path read from the
-// projected value, or a literal the Case declares. A Run coordinate that the recorded fact does not
-// itself carry is declared, never invented from Driver state.
-message CorrelatedEvidenceBinding {
+// NamedExpression supplies one CorrelatedEvidence field of a lift: a text literal the Case declares,
+// or a path read from the projected value, `path(projected_value, p)`. A Run coordinate that the
+// recorded fact does not itself carry is declared, never invented from Driver state.
+message NamedExpression {
   string field_id = 1;
-  oneof value {
-    FieldPath path = 2;
-    string literal = 3;
-  }
+  Expression value = 2;
 }
 
 // CorrelatedEvidence is supplied only through the capability's declared typed Observation.
@@ -207,20 +204,18 @@ message CorrelatedEvidence {
   string kind = 3;
   // Identities of causal parents in the same operation, released before this evidence.
   repeated CorrelatedIdentity parents = 4;
-  repeated CorrelatedEvidenceField fields = 5;
+  // Each field's text, natural or boolean value, unset when the field is redacted.
+  repeated NamedValue fields = 5;
 }
 
 // CorrelatedIdentity names one evidence value: its scope, its source, and its zero-based ordinal in
 // that source's dense stream.
 message CorrelatedIdentity {
-  repeated CorrelatedBinding scope = 1;
+  // Each scope field's non-empty text value.
+  repeated NamedValue scope = 1;
   string evidence_source = 2;
   int64 ordinal = 3;
 }
 
-// CorrelatedBinding is one scope field and its non-empty text value.
-message CorrelatedBinding { string field_id = 1; string value = 2; }
-
-// CorrelatedEvidenceField is one evidence field and its text, natural or boolean value, unset when
-// the field is redacted.
-message CorrelatedEvidenceField { string field_id = 1; Value value = 2; }
+// NamedValue is the value of one evidence scope field or evidence field.
+message NamedValue { string field_id = 1; Value value = 2; }

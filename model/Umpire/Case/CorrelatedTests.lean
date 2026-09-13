@@ -9,8 +9,6 @@ private def first := scenarios[0]
 private def accepts (change : CorrelatedContract → CorrelatedContract) : Bool :=
   ((capability first).bind (fun wire => Testpilot.Correlated.decode (change wire))).isOk
 
-#guard !accepts (fun wire => { wire with version := 2 })
-#guard !accepts (fun wire => { wire with version := 0 })
 #guard !accepts (fun wire => { wire with rules := wire.rules.map fun clause => { clause with bound := -1 } })
 #guard !accepts (fun wire => { wire with rules := wire.rules.map fun clause => {
   clause with clock := .CORRELATED_CLOCK_UNSPECIFIED } })
@@ -27,6 +25,9 @@ private def admitted (change : CorrelatedEvidence → CorrelatedEvidence) : Bool
 
 #guard !admitted (fun event => { event with identity := event.identity.map fun identity => { identity with evidence_source := "unknown" } })
 #guard !admitted (fun event => { event with identity := event.identity.map fun identity => { identity with scope := #[] } })
+#guard !admitted (fun event => { event with identity := event.identity.map fun identity => {
+  identity with scope := identity.scope.map fun binding => { binding with value := some { value := some (.natural_value "1") } } } })
+#guard admitted id
 #guard !admitted (fun event => { event with fields := #[{ field_id := "unknown" }] })
 #guard !admitted (fun event => { event with parents := event.identity.toArray })
 

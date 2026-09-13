@@ -110,6 +110,8 @@ func TestProtocolUsesCohesivePublicVocabulary(t *testing.T) {
 		"Correlated" + "ComparisonOperator", "Correlated" + "Operand", "Correlated" + "Correlation",
 		"Correlated" + "CorrelationGroup",
 		"RUN_EVENT_FIELD_" + "FAULT_ROLE_ID", "RUN_EVENT_FIELD_" + "FAULT_KIND",
+		"Contract" + "Deadline", "Contract" + "CaptureType", "Correlated" + "Binding", "CorrelatedEvidence" + "Field",
+		"CorrelatedEvidence" + "Binding",
 		"Scoped" + "Binding", "Scoped" + "CaptureDeclaration", "ScopedCapture" + "Ref", "Scoped" + "Clause",
 		"Scoped" + "Clock", "Scoped" + "Comparison", "Scoped" + "ComparisonOperator", "Scoped" + "Contract",
 		"Scoped" + "Correlation", "Scoped" + "CorrelationGroup", "Scoped" + "Endpoint", "Scoped" + "Evidence",

@@ -301,16 +301,17 @@ func (e *Evaluator) nextChange(ctx context.Context, i int, event *testpilotspb.R
 // the counter: the online Evaluator.Observe path and the offline PreparedContract.Evaluate path
 // both reach it through nextChange, so neither can tick on its own terms. A rule that already
 // sits in a terminal state never reaches here, which is where counting stops. The elapsed bound
-// keeps its host-clock comparison; admission guarantees exactly one bound is positive.
-func deadlineReached(state *ruleState, deadline *testpilotspb.ContractDeadline, event *testpilotspb.RunEvent) bool {
-	if deadline == nil {
+// keeps its host-clock comparison; admission guarantees a liveness deadline sets one positive bound.
+func deadlineReached(state *ruleState, deadline *testpilotspb.Deadline, event *testpilotspb.RunEvent) bool {
+	switch bound := deadline.GetBound().(type) {
+	case *testpilotspb.Deadline_RuleEvents:
+		state.events++
+		return state.events >= bound.RuleEvents
+	case *testpilotspb.Deadline_ElapsedMilliseconds:
+		return event.ElapsedMilliseconds >= bound.ElapsedMilliseconds
+	default:
 		return false
 	}
-	if deadline.RuleEvents > 0 {
-		state.events++
-		return state.events >= deadline.RuleEvents
-	}
-	return event.ElapsedMilliseconds >= deadline.ElapsedMilliseconds
 }
 
 func (e *Evaluator) stageCaptures(state ruleState, tr *testpilotspb.ContractTransition, event *testpilotspb.RunEvent, observations map[string]*testpilotspb.Value, cost *eventEvaluation) (map[string]capturedValue, error) {

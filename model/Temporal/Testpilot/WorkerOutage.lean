@@ -191,7 +191,7 @@ private def outageOrderRule : ContractRule :=
         #[.RUN_EVENT_KIND_FAULT_INJECTED]
         (Expr.all #[faultRoleIs, faultKindIs .FAULT_KIND_WORKER_RESUME])
         .CONTRACT_SUPPORT_KIND_MATCHING_EVENT]
-    (deadline := some (Contract.deadlineEvents workerOutageDeadline "expired"))
+    (deadline := some (Contract.deadline (.rule_events workerOutageDeadline) "expired"))
 
 private def workflowCompletedRule : ContractRule :=
   Contract.rule "worker-outage-workflow-completed" .CONTRACT_RULE_KIND_SAFETY "pending"

@@ -237,6 +237,123 @@ var Declared = Mapping{
 		Name: "the Run Event fault coordinates become paths from the payload reference into fault_injected", Requirement: "R4",
 		Apply: RewriteMessages(protocol+"Contract"+"Expression", rewriteFaultCoordinate),
 	},
+	{
+		Name: "Contract" + "Deadline becomes Deadline, its one positive bound under the bound oneof", Requirement: "R5",
+		Apply: RewriteMessages(protocol+"Contract"+"Deadline", rewriteDeadlineBound),
+	},
+	{
+		Name: "Contract" + "CaptureType becomes SingularType", Requirement: "R6",
+		Apply: RenameMessage(protocol+"Contract"+"CaptureType", protocol+"SingularType"),
+	},
+	{
+		Name: "CorrelatedContract.version is removed", Requirement: "R6",
+		Apply: DropField(protocol+"CorrelatedContract", "version", func(_ string, object *Object) error {
+			if literalText(object.Fields["version"]) != "1" {
+				return fmt.Errorf("version is %v, want 1", object.Fields["version"])
+			}
+			return nil
+		}),
+	},
+	{
+		Name: "Correlated" + "Binding and CorrelatedEvidence" + "Field become NamedValue", Requirement: "R6",
+		Apply: sequence(
+			RewriteMessages(protocol+"Correlated"+"Binding", rewriteScopeValue),
+			RenameMessage(protocol+"Correlated"+"Binding", protocol+"NamedValue"),
+			RenameMessage(protocol+"CorrelatedEvidence"+"Field", protocol+"NamedValue"),
+		),
+	},
+	{
+		Name: "CorrelatedEvidence" + "Binding becomes NamedExpression over a text literal or a projected path", Requirement: "R6",
+		Apply: sequence(
+			RewriteMessages(protocol+"CorrelatedEvidence"+"Binding", rewriteEvidenceBinding),
+			RenameMessage(protocol+"CorrelatedEvidence"+"Binding", protocol+"NamedExpression"),
+		),
+	},
+}
+
+// rewriteDeadlineBound checks one baseline deadline against the bound oneof. The baseline admitted
+// exactly one positive bound, which ProtoJSON already spells as the oneof arm of the same name, so the
+// step drops a zero-valued bound and refuses a deadline with no positive bound or two.
+func rewriteDeadlineBound(_ string, object *Object) (any, error) {
+	bounds := 0
+	for key, value := range object.Fields {
+		switch key {
+		case "violationStateId":
+		case "ruleEvents", "elapsedMilliseconds":
+			bound, err := strconv.ParseInt(literalText(value), 10, 64)
+			if err != nil {
+				return nil, fmt.Errorf("deadline %s is %v: %w", key, value, err)
+			}
+			switch {
+			case bound == 0:
+				delete(object.Fields, key)
+			case bound > 0:
+				bounds++
+			default:
+				return nil, fmt.Errorf("deadline %s is negative", key)
+			}
+		default:
+			return nil, fmt.Errorf("deadline carries %q", key)
+		}
+	}
+	if bounds != 1 {
+		return nil, fmt.Errorf("deadline carries %d positive bounds, want 1", bounds)
+	}
+	return object, nil
+}
+
+// rewriteScopeValue turns the text of one baseline scope binding into a text Value. The baseline
+// admitted only a non-empty text, so an absent or non-string value fails rather than becoming an
+// absent Value.
+func rewriteScopeValue(_ string, object *Object) (any, error) {
+	for key := range object.Fields {
+		if key != "fieldId" && key != "value" {
+			return nil, fmt.Errorf("scope binding carries %q", key)
+		}
+	}
+	text, isText := object.Fields["value"].(string)
+	if !isText || text == "" {
+		return nil, fmt.Errorf("scope binding value is %v, want a non-empty string", object.Fields["value"])
+	}
+	object.Fields["value"] = &Object{Fields: map[string]any{"textValue": text}}
+	return object, nil
+}
+
+// rewriteEvidenceBinding turns one baseline lift binding into a NamedExpression: a literal becomes a
+// text literal and a path a path over the projected value. It requires exactly one supply.
+func rewriteEvidenceBinding(_ string, object *Object) (any, error) {
+	literal, hasLiteral := object.Fields["literal"]
+	path, hasPath := object.Fields["path"]
+	for key := range object.Fields {
+		if key != "fieldId" && key != "literal" && key != "path" {
+			return nil, fmt.Errorf("evidence binding carries %q", key)
+		}
+	}
+	var value *Object
+	switch {
+	case hasLiteral && !hasPath:
+		text, isText := literal.(string)
+		if !isText {
+			return nil, errors.New("evidence binding literal is not a string")
+		}
+		value = textLiteral(text)
+	case hasPath && !hasLiteral:
+		fieldPath, isObject := path.(*Object)
+		if !isObject {
+			return nil, errors.New("evidence binding path is not an object")
+		}
+		read, err := projectedPath(fieldPath)
+		if err != nil {
+			return nil, err
+		}
+		value = read
+	default:
+		return nil, errors.New("evidence binding carries no single supply")
+	}
+	delete(object.Fields, "literal")
+	delete(object.Fields, "path")
+	object.Fields["value"] = value
+	return object, nil
 }
 
 // faultCoordinates maps each baseline fault coordinate literal, by name or number, to the

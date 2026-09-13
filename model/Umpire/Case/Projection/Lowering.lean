@@ -229,7 +229,7 @@ def Shape.render (shape : Shape) (ruleId suffix observation root : String) :
                 (projected observed read.segments)])
             .CONTRACT_SUPPORT_KIND_MATCHING_EVENT]
         (captures := #[Testpilot.Authoring.Contract.capture captureId
-          (Testpilot.Authoring.Contract.messageCapture root)])
+          (Testpilot.Authoring.Types.messageType root)])
 
 /-! ### The certificate and the lowering -/
 

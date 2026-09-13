@@ -24,7 +24,7 @@ message ContractRule {
   repeated ContractCapture captures = 5;
   repeated ContractTransition transitions = 6;
   // A bounded-liveness rule has one deadline; a safety rule has none.
-  ContractDeadline deadline = 7;
+  Deadline deadline = 7;
 }
 
 // ContractRuleKind names whether a rule is a safety rule or a bounded-liveness rule.
@@ -51,16 +51,10 @@ enum ContractStateStatus {
 }
 
 // ContractCapture declares a rule-local value, assigned at most once from an Observation.
-message ContractCapture { string capture_id = 1; ContractCaptureType type = 2; }
-
-// ContractCaptureType is the type of a capture: a scalar, enum or message type equal to the type of
-// the Observation it captures.
-message ContractCaptureType {
-  oneof type {
-    ScalarType scalar = 1;
-    NamedType enumeration = 2;
-    NamedType message = 3;
-  }
+message ContractCapture {
+  string capture_id = 1;
+  // A scalar, enum or message type equal to the type of the Observation it captures.
+  SingularType type = 2;
 }
 
 // ContractTransition is evaluated in declaration order for its source state and event kind.
@@ -89,18 +83,20 @@ enum ContractSupportKind {
 // when its transition is taken.
 message ContractCaptureAssignment { string capture_id = 1; string observation_id = 2; }
 
-// ContractDeadline bounds one liveness rule. Exactly one bound is positive.
-// elapsed_milliseconds expires the rule at the first Run Event whose elapsed coordinate
-// reaches it; that coordinate is derived from the recording host's clock, so a bound
-// expressed in it is host-clock dependent.
-// rule_events expires the rule after that many Run Events were evaluated by the rule since
-// its last transition into a new state. The counter resets on each such transition and stops
-// once the rule reaches a terminal state. It also freezes, with every other rule effect, once
-// execution becomes incomplete, so no expiry is ever concluded from a truncated Run.
-message ContractDeadline {
+// Deadline bounds one liveness rule by one positive bound, and moves it to violation_state_id when
+// the bound is reached.
+message Deadline {
   string violation_state_id = 1;
-  int64 rule_events = 2;
-  int64 elapsed_milliseconds = 3;
+  oneof bound {
+    // Expires the rule after that many Run Events were evaluated by the rule since its last
+    // transition into a new state. The counter resets on each such transition and stops once the
+    // rule reaches a terminal state. It also freezes, with every other rule effect, once execution
+    // becomes incomplete, so no expiry is ever concluded from a truncated Run.
+    int64 rule_events = 2;
+    // Expires the rule at the first Run Event whose elapsed coordinate reaches it; that coordinate is
+    // derived from the recording host's clock, so a bound expressed in it is host-clock dependent.
+    int64 elapsed_milliseconds = 3;
+  }
 }
 
 // ContractLimits bound one Contract, its correlated contract included.

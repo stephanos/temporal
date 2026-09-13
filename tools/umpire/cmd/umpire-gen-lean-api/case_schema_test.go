@@ -94,11 +94,12 @@ func TestCaseSchemaProtoJSONRejectsCrossedClosedUnions(t *testing.T) {
 		},
 		{name: "instruction", input: `{"invokeRpc":{},"awaitSlot":{}}`, target: new(testpilotspb.Instruction)},
 		{
-			name: "capture type",
+			name: "singular type",
 			input: `{"scalar":{"kind":"SCALAR_KIND_NATURAL"},` +
 				`"enumeration":{"protobufType":"temporal.api.enums.v1.EventType"}}`,
-			target: new(testpilotspb.ContractCaptureType),
+			target: new(testpilotspb.SingularType),
 		},
+		{name: "deadline bound", input: `{"ruleEvents":"1","elapsedMilliseconds":"2"}`, target: new(testpilotspb.Deadline)},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

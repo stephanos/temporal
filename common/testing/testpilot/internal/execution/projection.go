@@ -226,7 +226,7 @@ func (a *activationValues) liftEvidence(w *valueWork, lift *evidenceLift, value 
 					return nil, err
 				}
 			}
-			evidence.Identity.Scope = append(evidence.Identity.Scope, &testpilotspb.CorrelatedBinding{FieldId: binding.fieldID, Value: text})
+			evidence.Identity.Scope = append(evidence.Identity.Scope, &testpilotspb.NamedValue{FieldId: binding.fieldID, Value: textValue(text)})
 		}
 		if evidence.Operation, err = a.readLiftKey(w, lift, rule.operation, value); err != nil {
 			return nil, err
@@ -238,7 +238,7 @@ func (a *activationValues) liftEvidence(w *valueWork, lift *evidenceLift, value 
 					return nil, err
 				}
 			}
-			evidence.Fields = append(evidence.Fields, &testpilotspb.CorrelatedEvidenceField{FieldId: binding.fieldID, Value: scalar})
+			evidence.Fields = append(evidence.Fields, &testpilotspb.NamedValue{FieldId: binding.fieldID, Value: scalar})
 		}
 		encoded, err := proto.Marshal(evidence)
 		if err != nil {

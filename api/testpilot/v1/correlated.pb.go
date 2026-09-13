@@ -279,24 +279,22 @@ type CorrelatedContract struct {
 	ProjectionId string `protobuf:"bytes,1,opt,name=projection_id,json=projectionId,proto3" json:"projection_id,omitempty"`
 	// The Projection's fingerprint; the runtime only checks it is set.
 	ProjectionFingerprint string `protobuf:"bytes,2,opt,name=projection_fingerprint,json=projectionFingerprint,proto3" json:"projection_fingerprint,omitempty"`
-	// Always 1.
-	Version int32 `protobuf:"varint,3,opt,name=version,proto3" json:"version,omitempty"`
 	// The Observation, of type CorrelatedEvidence, that supplies the evidence.
-	EvidenceObservationId string `protobuf:"bytes,4,opt,name=evidence_observation_id,json=evidenceObservationId,proto3" json:"evidence_observation_id,omitempty"`
+	EvidenceObservationId string `protobuf:"bytes,3,opt,name=evidence_observation_id,json=evidenceObservationId,proto3" json:"evidence_observation_id,omitempty"`
 	// The field ids, in order, that every evidence identity's scope carries.
-	ScopeFields []string `protobuf:"bytes,5,rep,name=scope_fields,json=scopeFields,proto3" json:"scope_fields,omitempty"`
+	ScopeFields []string `protobuf:"bytes,4,rep,name=scope_fields,json=scopeFields,proto3" json:"scope_fields,omitempty"`
 	// The evidence field naming the operation; it is not a scope field.
-	OperationField string `protobuf:"bytes,6,opt,name=operation_field,json=operationField,proto3" json:"operation_field,omitempty"`
+	OperationField string `protobuf:"bytes,5,opt,name=operation_field,json=operationField,proto3" json:"operation_field,omitempty"`
 	// The evidence sources identities and parents may name.
-	Sources []string `protobuf:"bytes,7,rep,name=sources,proto3" json:"sources,omitempty"`
+	Sources []string `protobuf:"bytes,6,rep,name=sources,proto3" json:"sources,omitempty"`
 	// The state every new operation starts in.
-	InitialState *ModelValue `protobuf:"bytes,8,opt,name=initial_state,json=initialState,proto3" json:"initial_state,omitempty"`
+	InitialState *ModelValue `protobuf:"bytes,7,opt,name=initial_state,json=initialState,proto3" json:"initial_state,omitempty"`
 	// The complete transition table operations follow.
-	Transitions []*CorrelatedTransition `protobuf:"bytes,9,rep,name=transitions,proto3" json:"transitions,omitempty"`
+	Transitions []*CorrelatedTransition `protobuf:"bytes,8,rep,name=transitions,proto3" json:"transitions,omitempty"`
 	// What evidence of each kind does to its operation.
-	ProjectionRules []*CorrelatedProjectionRule `protobuf:"bytes,10,rep,name=projection_rules,json=projectionRules,proto3" json:"projection_rules,omitempty"`
-	Rules           []*CorrelatedRule           `protobuf:"bytes,11,rep,name=rules,proto3" json:"rules,omitempty"`
-	Limits          *CorrelatedLimits           `protobuf:"bytes,12,opt,name=limits,proto3" json:"limits,omitempty"`
+	ProjectionRules []*CorrelatedProjectionRule `protobuf:"bytes,9,rep,name=projection_rules,json=projectionRules,proto3" json:"projection_rules,omitempty"`
+	Rules           []*CorrelatedRule           `protobuf:"bytes,10,rep,name=rules,proto3" json:"rules,omitempty"`
+	Limits          *CorrelatedLimits           `protobuf:"bytes,11,opt,name=limits,proto3" json:"limits,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -343,13 +341,6 @@ func (x *CorrelatedContract) GetProjectionFingerprint() string {
 		return x.ProjectionFingerprint
 	}
 	return ""
-}
-
-func (x *CorrelatedContract) GetVersion() int32 {
-	if x != nil {
-		return x.Version
-	}
-	return 0
 }
 
 func (x *CorrelatedContract) GetEvidenceObservationId() string {
@@ -1020,15 +1011,17 @@ func (x *CorrelatedEvidenceProjection) GetRules() []*CorrelatedEvidenceRule {
 // literal the selected shape denotes. Every path is read from the projected value; no Run field, wall
 // clock or Driver state is reachable from here.
 type CorrelatedEvidenceRule struct {
-	state          protoimpl.MessageState       `protogen:"open.v1"`
-	Scope          []*CorrelatedEvidenceBinding `protobuf:"bytes,1,rep,name=scope,proto3" json:"scope,omitempty"`
-	EvidenceSource string                       `protobuf:"bytes,2,opt,name=evidence_source,json=evidenceSource,proto3" json:"evidence_source,omitempty"`
-	Operation      *FieldPath                   `protobuf:"bytes,3,opt,name=operation,proto3" json:"operation,omitempty"`
-	Kind           string                       `protobuf:"bytes,4,opt,name=kind,proto3" json:"kind,omitempty"`
-	Fields         []*CorrelatedEvidenceBinding `protobuf:"bytes,5,rep,name=fields,proto3" json:"fields,omitempty"`
-	Guard          *Expression                  `protobuf:"bytes,6,opt,name=guard,proto3" json:"guard,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The scope field values of the evidence identity, each a text literal or a text path.
+	Scope          []*NamedExpression `protobuf:"bytes,1,rep,name=scope,proto3" json:"scope,omitempty"`
+	EvidenceSource string             `protobuf:"bytes,2,opt,name=evidence_source,json=evidenceSource,proto3" json:"evidence_source,omitempty"`
+	Operation      *FieldPath         `protobuf:"bytes,3,opt,name=operation,proto3" json:"operation,omitempty"`
+	Kind           string             `protobuf:"bytes,4,opt,name=kind,proto3" json:"kind,omitempty"`
+	// The evidence field values, each a text literal or a path to a text, integer or boolean.
+	Fields        []*NamedExpression `protobuf:"bytes,5,rep,name=fields,proto3" json:"fields,omitempty"`
+	Guard         *Expression        `protobuf:"bytes,6,opt,name=guard,proto3" json:"guard,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CorrelatedEvidenceRule) Reset() {
@@ -1061,7 +1054,7 @@ func (*CorrelatedEvidenceRule) Descriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_correlated_proto_rawDescGZIP(), []int{8}
 }
 
-func (x *CorrelatedEvidenceRule) GetScope() []*CorrelatedEvidenceBinding {
+func (x *CorrelatedEvidenceRule) GetScope() []*NamedExpression {
 	if x != nil {
 		return x.Scope
 	}
@@ -1089,7 +1082,7 @@ func (x *CorrelatedEvidenceRule) GetKind() string {
 	return ""
 }
 
-func (x *CorrelatedEvidenceRule) GetFields() []*CorrelatedEvidenceBinding {
+func (x *CorrelatedEvidenceRule) GetFields() []*NamedExpression {
 	if x != nil {
 		return x.Fields
 	}
@@ -1103,35 +1096,31 @@ func (x *CorrelatedEvidenceRule) GetGuard() *Expression {
 	return nil
 }
 
-// CorrelatedEvidenceBinding names one CorrelatedEvidence slot and what supplies it: a path read from the
-// projected value, or a literal the Case declares. A Run coordinate that the recorded fact does not
-// itself carry is declared, never invented from Driver state.
-type CorrelatedEvidenceBinding struct {
-	state   protoimpl.MessageState `protogen:"open.v1"`
-	FieldId string                 `protobuf:"bytes,1,opt,name=field_id,json=fieldId,proto3" json:"field_id,omitempty"`
-	// Types that are valid to be assigned to Value:
-	//
-	//	*CorrelatedEvidenceBinding_Path
-	//	*CorrelatedEvidenceBinding_Literal
-	Value         isCorrelatedEvidenceBinding_Value `protobuf_oneof:"value"`
+// NamedExpression supplies one CorrelatedEvidence field of a lift: a text literal the Case declares,
+// or a path read from the projected value, `path(projected_value, p)`. A Run coordinate that the
+// recorded fact does not itself carry is declared, never invented from Driver state.
+type NamedExpression struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	FieldId       string                 `protobuf:"bytes,1,opt,name=field_id,json=fieldId,proto3" json:"field_id,omitempty"`
+	Value         *Expression            `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *CorrelatedEvidenceBinding) Reset() {
-	*x = CorrelatedEvidenceBinding{}
+func (x *NamedExpression) Reset() {
+	*x = NamedExpression{}
 	mi := &file_temporal_server_api_testpilot_v1_correlated_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *CorrelatedEvidenceBinding) String() string {
+func (x *NamedExpression) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CorrelatedEvidenceBinding) ProtoMessage() {}
+func (*NamedExpression) ProtoMessage() {}
 
-func (x *CorrelatedEvidenceBinding) ProtoReflect() protoreflect.Message {
+func (x *NamedExpression) ProtoReflect() protoreflect.Message {
 	mi := &file_temporal_server_api_testpilot_v1_correlated_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1143,58 +1132,24 @@ func (x *CorrelatedEvidenceBinding) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use CorrelatedEvidenceBinding.ProtoReflect.Descriptor instead.
-func (*CorrelatedEvidenceBinding) Descriptor() ([]byte, []int) {
+// Deprecated: Use NamedExpression.ProtoReflect.Descriptor instead.
+func (*NamedExpression) Descriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_correlated_proto_rawDescGZIP(), []int{9}
 }
 
-func (x *CorrelatedEvidenceBinding) GetFieldId() string {
+func (x *NamedExpression) GetFieldId() string {
 	if x != nil {
 		return x.FieldId
 	}
 	return ""
 }
 
-func (x *CorrelatedEvidenceBinding) GetValue() isCorrelatedEvidenceBinding_Value {
+func (x *NamedExpression) GetValue() *Expression {
 	if x != nil {
 		return x.Value
 	}
 	return nil
 }
-
-func (x *CorrelatedEvidenceBinding) GetPath() *FieldPath {
-	if x != nil {
-		if x, ok := x.Value.(*CorrelatedEvidenceBinding_Path); ok {
-			return x.Path
-		}
-	}
-	return nil
-}
-
-func (x *CorrelatedEvidenceBinding) GetLiteral() string {
-	if x != nil {
-		if x, ok := x.Value.(*CorrelatedEvidenceBinding_Literal); ok {
-			return x.Literal
-		}
-	}
-	return ""
-}
-
-type isCorrelatedEvidenceBinding_Value interface {
-	isCorrelatedEvidenceBinding_Value()
-}
-
-type CorrelatedEvidenceBinding_Path struct {
-	Path *FieldPath `protobuf:"bytes,2,opt,name=path,proto3,oneof"`
-}
-
-type CorrelatedEvidenceBinding_Literal struct {
-	Literal string `protobuf:"bytes,3,opt,name=literal,proto3,oneof"`
-}
-
-func (*CorrelatedEvidenceBinding_Path) isCorrelatedEvidenceBinding_Value() {}
-
-func (*CorrelatedEvidenceBinding_Literal) isCorrelatedEvidenceBinding_Value() {}
 
 // CorrelatedEvidence is supplied only through the capability's declared typed Observation.
 // Source ordinals and parents carry semantic order; Run elapsed time never supplies a tick.
@@ -1206,8 +1161,9 @@ type CorrelatedEvidence struct {
 	// Selects the projection rule.
 	Kind string `protobuf:"bytes,3,opt,name=kind,proto3" json:"kind,omitempty"`
 	// Identities of causal parents in the same operation, released before this evidence.
-	Parents       []*CorrelatedIdentity      `protobuf:"bytes,4,rep,name=parents,proto3" json:"parents,omitempty"`
-	Fields        []*CorrelatedEvidenceField `protobuf:"bytes,5,rep,name=fields,proto3" json:"fields,omitempty"`
+	Parents []*CorrelatedIdentity `protobuf:"bytes,4,rep,name=parents,proto3" json:"parents,omitempty"`
+	// Each field's text, natural or boolean value, unset when the field is redacted.
+	Fields        []*NamedValue `protobuf:"bytes,5,rep,name=fields,proto3" json:"fields,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1270,7 +1226,7 @@ func (x *CorrelatedEvidence) GetParents() []*CorrelatedIdentity {
 	return nil
 }
 
-func (x *CorrelatedEvidence) GetFields() []*CorrelatedEvidenceField {
+func (x *CorrelatedEvidence) GetFields() []*NamedValue {
 	if x != nil {
 		return x.Fields
 	}
@@ -1280,10 +1236,11 @@ func (x *CorrelatedEvidence) GetFields() []*CorrelatedEvidenceField {
 // CorrelatedIdentity names one evidence value: its scope, its source, and its zero-based ordinal in
 // that source's dense stream.
 type CorrelatedIdentity struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	Scope          []*CorrelatedBinding   `protobuf:"bytes,1,rep,name=scope,proto3" json:"scope,omitempty"`
-	EvidenceSource string                 `protobuf:"bytes,2,opt,name=evidence_source,json=evidenceSource,proto3" json:"evidence_source,omitempty"`
-	Ordinal        int64                  `protobuf:"varint,3,opt,name=ordinal,proto3" json:"ordinal,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Each scope field's non-empty text value.
+	Scope          []*NamedValue `protobuf:"bytes,1,rep,name=scope,proto3" json:"scope,omitempty"`
+	EvidenceSource string        `protobuf:"bytes,2,opt,name=evidence_source,json=evidenceSource,proto3" json:"evidence_source,omitempty"`
+	Ordinal        int64         `protobuf:"varint,3,opt,name=ordinal,proto3" json:"ordinal,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -1318,7 +1275,7 @@ func (*CorrelatedIdentity) Descriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_correlated_proto_rawDescGZIP(), []int{11}
 }
 
-func (x *CorrelatedIdentity) GetScope() []*CorrelatedBinding {
+func (x *CorrelatedIdentity) GetScope() []*NamedValue {
 	if x != nil {
 		return x.Scope
 	}
@@ -1339,62 +1296,8 @@ func (x *CorrelatedIdentity) GetOrdinal() int64 {
 	return 0
 }
 
-// CorrelatedBinding is one scope field and its non-empty text value.
-type CorrelatedBinding struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	FieldId       string                 `protobuf:"bytes,1,opt,name=field_id,json=fieldId,proto3" json:"field_id,omitempty"`
-	Value         string                 `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *CorrelatedBinding) Reset() {
-	*x = CorrelatedBinding{}
-	mi := &file_temporal_server_api_testpilot_v1_correlated_proto_msgTypes[12]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *CorrelatedBinding) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*CorrelatedBinding) ProtoMessage() {}
-
-func (x *CorrelatedBinding) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_correlated_proto_msgTypes[12]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use CorrelatedBinding.ProtoReflect.Descriptor instead.
-func (*CorrelatedBinding) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_correlated_proto_rawDescGZIP(), []int{12}
-}
-
-func (x *CorrelatedBinding) GetFieldId() string {
-	if x != nil {
-		return x.FieldId
-	}
-	return ""
-}
-
-func (x *CorrelatedBinding) GetValue() string {
-	if x != nil {
-		return x.Value
-	}
-	return ""
-}
-
-// CorrelatedEvidenceField is one evidence field and its text, natural or boolean value, unset when
-// the field is redacted.
-type CorrelatedEvidenceField struct {
+// NamedValue is the value of one evidence scope field or evidence field.
+type NamedValue struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	FieldId       string                 `protobuf:"bytes,1,opt,name=field_id,json=fieldId,proto3" json:"field_id,omitempty"`
 	Value         *Value                 `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
@@ -1402,21 +1305,21 @@ type CorrelatedEvidenceField struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *CorrelatedEvidenceField) Reset() {
-	*x = CorrelatedEvidenceField{}
-	mi := &file_temporal_server_api_testpilot_v1_correlated_proto_msgTypes[13]
+func (x *NamedValue) Reset() {
+	*x = NamedValue{}
+	mi := &file_temporal_server_api_testpilot_v1_correlated_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *CorrelatedEvidenceField) String() string {
+func (x *NamedValue) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CorrelatedEvidenceField) ProtoMessage() {}
+func (*NamedValue) ProtoMessage() {}
 
-func (x *CorrelatedEvidenceField) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_correlated_proto_msgTypes[13]
+func (x *NamedValue) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_correlated_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1427,19 +1330,19 @@ func (x *CorrelatedEvidenceField) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use CorrelatedEvidenceField.ProtoReflect.Descriptor instead.
-func (*CorrelatedEvidenceField) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_correlated_proto_rawDescGZIP(), []int{13}
+// Deprecated: Use NamedValue.ProtoReflect.Descriptor instead.
+func (*NamedValue) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_correlated_proto_rawDescGZIP(), []int{12}
 }
 
-func (x *CorrelatedEvidenceField) GetFieldId() string {
+func (x *NamedValue) GetFieldId() string {
 	if x != nil {
 		return x.FieldId
 	}
 	return ""
 }
 
-func (x *CorrelatedEvidenceField) GetValue() *Value {
+func (x *NamedValue) GetValue() *Value {
 	if x != nil {
 		return x.Value
 	}
@@ -1450,21 +1353,20 @@ var File_temporal_server_api_testpilot_v1_correlated_proto protoreflect.FileDesc
 
 const file_temporal_server_api_testpilot_v1_correlated_proto_rawDesc = "" +
 	"\n" +
-	"1temporal/server/api/testpilot/v1/correlated.proto\x12 temporal.server.api.testpilot.v1\x1a1temporal/server/api/testpilot/v1/expression.proto\x1a,temporal/server/api/testpilot/v1/value.proto\"\xd0\x05\n" +
+	"1temporal/server/api/testpilot/v1/correlated.proto\x12 temporal.server.api.testpilot.v1\x1a1temporal/server/api/testpilot/v1/expression.proto\x1a,temporal/server/api/testpilot/v1/value.proto\"\xb6\x05\n" +
 	"\x12CorrelatedContract\x12#\n" +
 	"\rprojection_id\x18\x01 \x01(\tR\fprojectionId\x125\n" +
-	"\x16projection_fingerprint\x18\x02 \x01(\tR\x15projectionFingerprint\x12\x18\n" +
-	"\aversion\x18\x03 \x01(\x05R\aversion\x126\n" +
-	"\x17evidence_observation_id\x18\x04 \x01(\tR\x15evidenceObservationId\x12!\n" +
-	"\fscope_fields\x18\x05 \x03(\tR\vscopeFields\x12'\n" +
-	"\x0foperation_field\x18\x06 \x01(\tR\x0eoperationField\x12\x18\n" +
-	"\asources\x18\a \x03(\tR\asources\x12Q\n" +
-	"\rinitial_state\x18\b \x01(\v2,.temporal.server.api.testpilot.v1.ModelValueR\finitialState\x12X\n" +
-	"\vtransitions\x18\t \x03(\v26.temporal.server.api.testpilot.v1.CorrelatedTransitionR\vtransitions\x12e\n" +
-	"\x10projection_rules\x18\n" +
-	" \x03(\v2:.temporal.server.api.testpilot.v1.CorrelatedProjectionRuleR\x0fprojectionRules\x12F\n" +
-	"\x05rules\x18\v \x03(\v20.temporal.server.api.testpilot.v1.CorrelatedRuleR\x05rules\x12J\n" +
-	"\x06limits\x18\f \x01(\v22.temporal.server.api.testpilot.v1.CorrelatedLimitsR\x06limits\"\xfb\x02\n" +
+	"\x16projection_fingerprint\x18\x02 \x01(\tR\x15projectionFingerprint\x126\n" +
+	"\x17evidence_observation_id\x18\x03 \x01(\tR\x15evidenceObservationId\x12!\n" +
+	"\fscope_fields\x18\x04 \x03(\tR\vscopeFields\x12'\n" +
+	"\x0foperation_field\x18\x05 \x01(\tR\x0eoperationField\x12\x18\n" +
+	"\asources\x18\x06 \x03(\tR\asources\x12Q\n" +
+	"\rinitial_state\x18\a \x01(\v2,.temporal.server.api.testpilot.v1.ModelValueR\finitialState\x12X\n" +
+	"\vtransitions\x18\b \x03(\v26.temporal.server.api.testpilot.v1.CorrelatedTransitionR\vtransitions\x12e\n" +
+	"\x10projection_rules\x18\t \x03(\v2:.temporal.server.api.testpilot.v1.CorrelatedProjectionRuleR\x0fprojectionRules\x12F\n" +
+	"\x05rules\x18\n" +
+	" \x03(\v20.temporal.server.api.testpilot.v1.CorrelatedRuleR\x05rules\x12J\n" +
+	"\x06limits\x18\v \x01(\v22.temporal.server.api.testpilot.v1.CorrelatedLimitsR\x06limits\"\xfb\x02\n" +
 	"\x14CorrelatedTransition\x12M\n" +
 	"\vprior_state\x18\x01 \x01(\v2,.temporal.server.api.testpilot.v1.ModelValueR\n" +
 	"priorState\x12D\n" +
@@ -1515,33 +1417,29 @@ const file_temporal_server_api_testpilot_v1_correlated_proto_rawDesc = "" +
 	"\x15max_correlation_depth\x18\v \x01(\x03R\x13maxCorrelationDepth\"\x95\x01\n" +
 	"\x1cCorrelatedEvidenceProjection\x12%\n" +
 	"\x0eobservation_id\x18\x01 \x01(\tR\robservationId\x12N\n" +
-	"\x05rules\x18\x02 \x03(\v28.temporal.server.api.testpilot.v1.CorrelatedEvidenceRuleR\x05rules\"\x8c\x03\n" +
-	"\x16CorrelatedEvidenceRule\x12Q\n" +
-	"\x05scope\x18\x01 \x03(\v2;.temporal.server.api.testpilot.v1.CorrelatedEvidenceBindingR\x05scope\x12'\n" +
+	"\x05rules\x18\x02 \x03(\v28.temporal.server.api.testpilot.v1.CorrelatedEvidenceRuleR\x05rules\"\xf8\x02\n" +
+	"\x16CorrelatedEvidenceRule\x12G\n" +
+	"\x05scope\x18\x01 \x03(\v21.temporal.server.api.testpilot.v1.NamedExpressionR\x05scope\x12'\n" +
 	"\x0fevidence_source\x18\x02 \x01(\tR\x0eevidenceSource\x12I\n" +
 	"\toperation\x18\x03 \x01(\v2+.temporal.server.api.testpilot.v1.FieldPathR\toperation\x12\x12\n" +
-	"\x04kind\x18\x04 \x01(\tR\x04kind\x12S\n" +
-	"\x06fields\x18\x05 \x03(\v2;.temporal.server.api.testpilot.v1.CorrelatedEvidenceBindingR\x06fields\x12B\n" +
-	"\x05guard\x18\x06 \x01(\v2,.temporal.server.api.testpilot.v1.ExpressionR\x05guard\"\x9e\x01\n" +
-	"\x19CorrelatedEvidenceBinding\x12\x19\n" +
-	"\bfield_id\x18\x01 \x01(\tR\afieldId\x12A\n" +
-	"\x04path\x18\x02 \x01(\v2+.temporal.server.api.testpilot.v1.FieldPathH\x00R\x04path\x12\x1a\n" +
-	"\aliteral\x18\x03 \x01(\tH\x00R\aliteralB\a\n" +
-	"\x05value\"\xbb\x02\n" +
+	"\x04kind\x18\x04 \x01(\tR\x04kind\x12I\n" +
+	"\x06fields\x18\x05 \x03(\v21.temporal.server.api.testpilot.v1.NamedExpressionR\x06fields\x12B\n" +
+	"\x05guard\x18\x06 \x01(\v2,.temporal.server.api.testpilot.v1.ExpressionR\x05guard\"p\n" +
+	"\x0fNamedExpression\x12\x19\n" +
+	"\bfield_id\x18\x01 \x01(\tR\afieldId\x12B\n" +
+	"\x05value\x18\x02 \x01(\v2,.temporal.server.api.testpilot.v1.ExpressionR\x05value\"\xae\x02\n" +
 	"\x12CorrelatedEvidence\x12P\n" +
 	"\bidentity\x18\x01 \x01(\v24.temporal.server.api.testpilot.v1.CorrelatedIdentityR\bidentity\x12\x1c\n" +
 	"\toperation\x18\x02 \x01(\tR\toperation\x12\x12\n" +
 	"\x04kind\x18\x03 \x01(\tR\x04kind\x12N\n" +
-	"\aparents\x18\x04 \x03(\v24.temporal.server.api.testpilot.v1.CorrelatedIdentityR\aparents\x12Q\n" +
-	"\x06fields\x18\x05 \x03(\v29.temporal.server.api.testpilot.v1.CorrelatedEvidenceFieldR\x06fields\"\xa2\x01\n" +
-	"\x12CorrelatedIdentity\x12I\n" +
-	"\x05scope\x18\x01 \x03(\v23.temporal.server.api.testpilot.v1.CorrelatedBindingR\x05scope\x12'\n" +
+	"\aparents\x18\x04 \x03(\v24.temporal.server.api.testpilot.v1.CorrelatedIdentityR\aparents\x12D\n" +
+	"\x06fields\x18\x05 \x03(\v2,.temporal.server.api.testpilot.v1.NamedValueR\x06fields\"\x9b\x01\n" +
+	"\x12CorrelatedIdentity\x12B\n" +
+	"\x05scope\x18\x01 \x03(\v2,.temporal.server.api.testpilot.v1.NamedValueR\x05scope\x12'\n" +
 	"\x0fevidence_source\x18\x02 \x01(\tR\x0eevidenceSource\x12\x18\n" +
-	"\aordinal\x18\x03 \x01(\x03R\aordinal\"D\n" +
-	"\x11CorrelatedBinding\x12\x19\n" +
-	"\bfield_id\x18\x01 \x01(\tR\afieldId\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value\"s\n" +
-	"\x17CorrelatedEvidenceField\x12\x19\n" +
+	"\aordinal\x18\x03 \x01(\x03R\aordinal\"f\n" +
+	"\n" +
+	"NamedValue\x12\x19\n" +
 	"\bfield_id\x18\x01 \x01(\tR\afieldId\x12=\n" +
 	"\x05value\x18\x02 \x01(\v2'.temporal.server.api.testpilot.v1.ValueR\x05value*\xcb\x01\n" +
 	"\x19CorrelatedEvidenceMeaning\x12+\n" +
@@ -1575,7 +1473,7 @@ func file_temporal_server_api_testpilot_v1_correlated_proto_rawDescGZIP() []byte
 }
 
 var file_temporal_server_api_testpilot_v1_correlated_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
-var file_temporal_server_api_testpilot_v1_correlated_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
+var file_temporal_server_api_testpilot_v1_correlated_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_temporal_server_api_testpilot_v1_correlated_proto_goTypes = []any{
 	(CorrelatedEvidenceMeaning)(0),       // 0: temporal.server.api.testpilot.v1.CorrelatedEvidenceMeaning
 	(CorrelatedFieldDisposition)(0),      // 1: temporal.server.api.testpilot.v1.CorrelatedFieldDisposition
@@ -1590,51 +1488,50 @@ var file_temporal_server_api_testpilot_v1_correlated_proto_goTypes = []any{
 	(*CorrelatedLimits)(nil),             // 10: temporal.server.api.testpilot.v1.CorrelatedLimits
 	(*CorrelatedEvidenceProjection)(nil), // 11: temporal.server.api.testpilot.v1.CorrelatedEvidenceProjection
 	(*CorrelatedEvidenceRule)(nil),       // 12: temporal.server.api.testpilot.v1.CorrelatedEvidenceRule
-	(*CorrelatedEvidenceBinding)(nil),    // 13: temporal.server.api.testpilot.v1.CorrelatedEvidenceBinding
+	(*NamedExpression)(nil),              // 13: temporal.server.api.testpilot.v1.NamedExpression
 	(*CorrelatedEvidence)(nil),           // 14: temporal.server.api.testpilot.v1.CorrelatedEvidence
 	(*CorrelatedIdentity)(nil),           // 15: temporal.server.api.testpilot.v1.CorrelatedIdentity
-	(*CorrelatedBinding)(nil),            // 16: temporal.server.api.testpilot.v1.CorrelatedBinding
-	(*CorrelatedEvidenceField)(nil),      // 17: temporal.server.api.testpilot.v1.CorrelatedEvidenceField
-	(*ModelValue)(nil),                   // 18: temporal.server.api.testpilot.v1.ModelValue
-	(*ScalarType)(nil),                   // 19: temporal.server.api.testpilot.v1.ScalarType
-	(*Expression)(nil),                   // 20: temporal.server.api.testpilot.v1.Expression
-	(*FieldPath)(nil),                    // 21: temporal.server.api.testpilot.v1.FieldPath
-	(*Value)(nil),                        // 22: temporal.server.api.testpilot.v1.Value
+	(*NamedValue)(nil),                   // 16: temporal.server.api.testpilot.v1.NamedValue
+	(*ModelValue)(nil),                   // 17: temporal.server.api.testpilot.v1.ModelValue
+	(*ScalarType)(nil),                   // 18: temporal.server.api.testpilot.v1.ScalarType
+	(*Expression)(nil),                   // 19: temporal.server.api.testpilot.v1.Expression
+	(*FieldPath)(nil),                    // 20: temporal.server.api.testpilot.v1.FieldPath
+	(*Value)(nil),                        // 21: temporal.server.api.testpilot.v1.Value
 }
 var file_temporal_server_api_testpilot_v1_correlated_proto_depIdxs = []int32{
-	18, // 0: temporal.server.api.testpilot.v1.CorrelatedContract.initial_state:type_name -> temporal.server.api.testpilot.v1.ModelValue
+	17, // 0: temporal.server.api.testpilot.v1.CorrelatedContract.initial_state:type_name -> temporal.server.api.testpilot.v1.ModelValue
 	5,  // 1: temporal.server.api.testpilot.v1.CorrelatedContract.transitions:type_name -> temporal.server.api.testpilot.v1.CorrelatedTransition
 	6,  // 2: temporal.server.api.testpilot.v1.CorrelatedContract.projection_rules:type_name -> temporal.server.api.testpilot.v1.CorrelatedProjectionRule
 	8,  // 3: temporal.server.api.testpilot.v1.CorrelatedContract.rules:type_name -> temporal.server.api.testpilot.v1.CorrelatedRule
 	10, // 4: temporal.server.api.testpilot.v1.CorrelatedContract.limits:type_name -> temporal.server.api.testpilot.v1.CorrelatedLimits
-	18, // 5: temporal.server.api.testpilot.v1.CorrelatedTransition.prior_state:type_name -> temporal.server.api.testpilot.v1.ModelValue
-	18, // 6: temporal.server.api.testpilot.v1.CorrelatedTransition.action:type_name -> temporal.server.api.testpilot.v1.ModelValue
-	18, // 7: temporal.server.api.testpilot.v1.CorrelatedTransition.state:type_name -> temporal.server.api.testpilot.v1.ModelValue
-	18, // 8: temporal.server.api.testpilot.v1.CorrelatedTransition.outcome:type_name -> temporal.server.api.testpilot.v1.ModelValue
-	18, // 9: temporal.server.api.testpilot.v1.CorrelatedTransition.facts:type_name -> temporal.server.api.testpilot.v1.ModelValue
+	17, // 5: temporal.server.api.testpilot.v1.CorrelatedTransition.prior_state:type_name -> temporal.server.api.testpilot.v1.ModelValue
+	17, // 6: temporal.server.api.testpilot.v1.CorrelatedTransition.action:type_name -> temporal.server.api.testpilot.v1.ModelValue
+	17, // 7: temporal.server.api.testpilot.v1.CorrelatedTransition.state:type_name -> temporal.server.api.testpilot.v1.ModelValue
+	17, // 8: temporal.server.api.testpilot.v1.CorrelatedTransition.outcome:type_name -> temporal.server.api.testpilot.v1.ModelValue
+	17, // 9: temporal.server.api.testpilot.v1.CorrelatedTransition.facts:type_name -> temporal.server.api.testpilot.v1.ModelValue
 	0,  // 10: temporal.server.api.testpilot.v1.CorrelatedProjectionRule.meaning:type_name -> temporal.server.api.testpilot.v1.CorrelatedEvidenceMeaning
-	18, // 11: temporal.server.api.testpilot.v1.CorrelatedProjectionRule.submission:type_name -> temporal.server.api.testpilot.v1.ModelValue
+	17, // 11: temporal.server.api.testpilot.v1.CorrelatedProjectionRule.submission:type_name -> temporal.server.api.testpilot.v1.ModelValue
 	5,  // 12: temporal.server.api.testpilot.v1.CorrelatedProjectionRule.outputs:type_name -> temporal.server.api.testpilot.v1.CorrelatedTransition
 	7,  // 13: temporal.server.api.testpilot.v1.CorrelatedProjectionRule.fields:type_name -> temporal.server.api.testpilot.v1.CorrelatedFieldPolicy
-	19, // 14: temporal.server.api.testpilot.v1.CorrelatedFieldPolicy.type:type_name -> temporal.server.api.testpilot.v1.ScalarType
+	18, // 14: temporal.server.api.testpilot.v1.CorrelatedFieldPolicy.type:type_name -> temporal.server.api.testpilot.v1.ScalarType
 	1,  // 15: temporal.server.api.testpilot.v1.CorrelatedFieldPolicy.disposition:type_name -> temporal.server.api.testpilot.v1.CorrelatedFieldDisposition
-	20, // 16: temporal.server.api.testpilot.v1.CorrelatedRule.trigger:type_name -> temporal.server.api.testpilot.v1.Expression
-	20, // 17: temporal.server.api.testpilot.v1.CorrelatedRule.response:type_name -> temporal.server.api.testpilot.v1.Expression
+	19, // 16: temporal.server.api.testpilot.v1.CorrelatedRule.trigger:type_name -> temporal.server.api.testpilot.v1.Expression
+	19, // 17: temporal.server.api.testpilot.v1.CorrelatedRule.response:type_name -> temporal.server.api.testpilot.v1.Expression
 	9,  // 18: temporal.server.api.testpilot.v1.CorrelatedRule.captures:type_name -> temporal.server.api.testpilot.v1.CorrelatedCaptureDeclaration
-	20, // 19: temporal.server.api.testpilot.v1.CorrelatedRule.correlation:type_name -> temporal.server.api.testpilot.v1.Expression
+	19, // 19: temporal.server.api.testpilot.v1.CorrelatedRule.correlation:type_name -> temporal.server.api.testpilot.v1.Expression
 	2,  // 20: temporal.server.api.testpilot.v1.CorrelatedRule.clock:type_name -> temporal.server.api.testpilot.v1.CorrelatedClock
 	3,  // 21: temporal.server.api.testpilot.v1.CorrelatedRule.ending:type_name -> temporal.server.api.testpilot.v1.TraceEnding
 	12, // 22: temporal.server.api.testpilot.v1.CorrelatedEvidenceProjection.rules:type_name -> temporal.server.api.testpilot.v1.CorrelatedEvidenceRule
-	13, // 23: temporal.server.api.testpilot.v1.CorrelatedEvidenceRule.scope:type_name -> temporal.server.api.testpilot.v1.CorrelatedEvidenceBinding
-	21, // 24: temporal.server.api.testpilot.v1.CorrelatedEvidenceRule.operation:type_name -> temporal.server.api.testpilot.v1.FieldPath
-	13, // 25: temporal.server.api.testpilot.v1.CorrelatedEvidenceRule.fields:type_name -> temporal.server.api.testpilot.v1.CorrelatedEvidenceBinding
-	20, // 26: temporal.server.api.testpilot.v1.CorrelatedEvidenceRule.guard:type_name -> temporal.server.api.testpilot.v1.Expression
-	21, // 27: temporal.server.api.testpilot.v1.CorrelatedEvidenceBinding.path:type_name -> temporal.server.api.testpilot.v1.FieldPath
+	13, // 23: temporal.server.api.testpilot.v1.CorrelatedEvidenceRule.scope:type_name -> temporal.server.api.testpilot.v1.NamedExpression
+	20, // 24: temporal.server.api.testpilot.v1.CorrelatedEvidenceRule.operation:type_name -> temporal.server.api.testpilot.v1.FieldPath
+	13, // 25: temporal.server.api.testpilot.v1.CorrelatedEvidenceRule.fields:type_name -> temporal.server.api.testpilot.v1.NamedExpression
+	19, // 26: temporal.server.api.testpilot.v1.CorrelatedEvidenceRule.guard:type_name -> temporal.server.api.testpilot.v1.Expression
+	19, // 27: temporal.server.api.testpilot.v1.NamedExpression.value:type_name -> temporal.server.api.testpilot.v1.Expression
 	15, // 28: temporal.server.api.testpilot.v1.CorrelatedEvidence.identity:type_name -> temporal.server.api.testpilot.v1.CorrelatedIdentity
 	15, // 29: temporal.server.api.testpilot.v1.CorrelatedEvidence.parents:type_name -> temporal.server.api.testpilot.v1.CorrelatedIdentity
-	17, // 30: temporal.server.api.testpilot.v1.CorrelatedEvidence.fields:type_name -> temporal.server.api.testpilot.v1.CorrelatedEvidenceField
-	16, // 31: temporal.server.api.testpilot.v1.CorrelatedIdentity.scope:type_name -> temporal.server.api.testpilot.v1.CorrelatedBinding
-	22, // 32: temporal.server.api.testpilot.v1.CorrelatedEvidenceField.value:type_name -> temporal.server.api.testpilot.v1.Value
+	16, // 30: temporal.server.api.testpilot.v1.CorrelatedEvidence.fields:type_name -> temporal.server.api.testpilot.v1.NamedValue
+	16, // 31: temporal.server.api.testpilot.v1.CorrelatedIdentity.scope:type_name -> temporal.server.api.testpilot.v1.NamedValue
+	21, // 32: temporal.server.api.testpilot.v1.NamedValue.value:type_name -> temporal.server.api.testpilot.v1.Value
 	33, // [33:33] is the sub-list for method output_type
 	33, // [33:33] is the sub-list for method input_type
 	33, // [33:33] is the sub-list for extension type_name
@@ -1649,17 +1546,13 @@ func file_temporal_server_api_testpilot_v1_correlated_proto_init() {
 	}
 	file_temporal_server_api_testpilot_v1_expression_proto_init()
 	file_temporal_server_api_testpilot_v1_value_proto_init()
-	file_temporal_server_api_testpilot_v1_correlated_proto_msgTypes[9].OneofWrappers = []any{
-		(*CorrelatedEvidenceBinding_Path)(nil),
-		(*CorrelatedEvidenceBinding_Literal)(nil),
-	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_temporal_server_api_testpilot_v1_correlated_proto_rawDesc), len(file_temporal_server_api_testpilot_v1_correlated_proto_rawDesc)),
 			NumEnums:      4,
-			NumMessages:   14,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
