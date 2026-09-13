@@ -71,6 +71,7 @@ func TestRuntimeOperatorsAndExactBudget(t *testing.T) {
 		require.False(t, value.GetBoolValue())
 	}
 }
+
 // TestComparisonsWithAnAbsentOperandAreFalse pins the absent-operand rule in the Program and Contract
 // contexts: every operator binds an absent operand without a presence guard and is false when either
 // operand is absent, so the negation of EQUAL is true there while NOT_EQUAL is false. A bare absent
@@ -92,7 +93,7 @@ func TestComparisonsWithAnAbsentOperandAreFalse(t *testing.T) {
 	} {
 		absent := Reference{Kind: tc.kind, ID: "absent"}
 		scope := map[Reference]Binding{
-			absent:                                {Type: intType},
+			absent:                           {Type: intType},
 			{Kind: tc.kind, ID: "flag"}:      {Type: boolType},
 			{Kind: tc.kind, ID: "available"}: {Type: intType, Available: true},
 		}

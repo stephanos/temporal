@@ -732,10 +732,10 @@ private def workflowInstructions (index : Nat) (entry : OperationCase) : Array I
 private def resolves (path : String) : Expression :=
   Expr.present (Expr.path Expr.projectedValue path)
 
-/-- The lift guard that fires where `path` reads exactly `expected`. The presence conjunct is what
-lets the comparison read a path that may be absent. -/
+/-- The lift guard that fires where `path` reads exactly `expected`. A comparison with an absent path
+is false, so it needs no presence conjunct. -/
 private def readsText (path : String) (expected : String) : Expression :=
-  Expr.all #[resolves path, Expr.equal (Expr.path Expr.projectedValue path) (text expected)]
+  Expr.equal (Expr.path Expr.projectedValue path) (text expected)
 
 /-- The Program-declared source of the correlated capability's evidence. Each rule reads only the
 history event it guards: a scheduled event by the operation identity it records, a completion by its

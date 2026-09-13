@@ -63,7 +63,11 @@ is compared with), requires the current enum to declare that name, and fails on 
 other context. It is declared before the R9 default-order step, which recognizes the success guard
 by its current `Expression`. The R15 path step then spells every baseline `FieldPath` in the path
 grammar with its own printer, independent of the runtime parser. Key order is not a ProtoJSON value
-difference, so no step declares it.
+difference, so no step declares it. The last R15 step, declared after the path step so equal paths
+spell equally, drops from each `all` group exactly a `present(p)` beside a `compare` whose left or
+right operand is `p`, and collapses a group left with one operand; a presence check beside a negated
+comparison or any other operand stays, so a Producer that drops one the step does not remove, or
+keeps one it removes, fails the comparison.
 
 Reuse the helpers where they fit: `RenameField`, `RenameEnumLiteral`, `RenameMessage`, `DropField` and
 `RewriteMessages`. A step that is not a rename validates what it assumes (a derived field equals
