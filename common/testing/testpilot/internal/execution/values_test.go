@@ -121,6 +121,8 @@ func TestValuesGuardedMissingSlotsAndActivationIsolation(t *testing.T) {
 	consumer.Instruction.GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{{Target: field("text"), Value: slot("text")}}
 	c.Program.Entrypoints[0].Instructions = append(c.Program.Entrypoints[0].Instructions, consumer)
 	addWorker(c, &policy)
+	// Both calls invoke the carrier method, so without the carrier neither reserves the workflow.
+	policy.Roles[0].ReservationCarriers = nil
 	p, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
 	store, err := newValueStore(p, "run")
@@ -215,7 +217,7 @@ func TestOutcomeValidationAndIndependentAttemptSnapshots(t *testing.T) {
 		require.Error(t, err)
 		require.Nil(t, batch)
 	}
-	p.graphs[0].nodes[0].source.Limits.MaxAttempts = 2
+	p.graphs[0].nodes[0].maxAttempts = 2
 	raw := contract.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE, ProtocolCode: "first"}}
 	first, _, err := values.stage(ctx, coord, raw, values.workLimit())
 	require.NoError(t, err)
@@ -233,12 +235,7 @@ func TestOutcomeValidationAndIndependentAttemptSnapshots(t *testing.T) {
 }
 
 func TestWorkerOutcomeValuesRemainActivationLocal(t *testing.T) {
-	c, catalog, policy := fixture(t)
-	addWorker(c, &policy)
-	node := rpcNode("finish")
-	node.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_Finish{Finish: &testpilotspb.Finish{Result: textLiteral("done")}}}
-	node.Outcome.Fields = append(node.Outcome.Fields, &testpilotspb.OutcomeFieldDefinition{Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE, Type: scalar(testpilotspb.SCALAR_KIND_TEXT)})
-	c.Program.Entrypoints[1].Instructions = []*testpilotspb.InstructionNode{node}
+	c, catalog, policy := capabilityFixture(t)
 	p, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
 	store, err := newValueStore(p, "run")
@@ -247,13 +244,13 @@ func TestWorkerOutcomeValuesRemainActivationLocal(t *testing.T) {
 	require.NoError(t, err)
 	b, err := store.activate("workflow", "b")
 	require.NoError(t, err)
-	coord := contract.Coordinate{RunID: "run", EntrypointID: "workflow", ActivationID: "a", InstructionID: "finish", Attempt: 1}
+	coord := contract.Coordinate{RunID: "run", EntrypointID: "workflow", ActivationID: "a", InstructionID: "await", Attempt: 1}
 	raw := contract.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: textValue("owned")}}
 	batch, _, err := a.stage(context.Background(), coord, raw, a.workLimit())
 	require.NoError(t, err)
 	require.NoError(t, a.commit(context.Background(), batch))
 	raw.Outcome.Value.Value = &testpilotspb.Value_TextValue{TextValue: "changed"}
-	require.Equal(t, "owned", a.latest["finish"].fields[testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE].GetTextValue())
+	require.Equal(t, "owned", a.latest["await"].fields[testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE].GetTextValue())
 	require.Empty(t, b.latest)
 	for _, value := range []*testpilotspb.Value{nil, {Value: &testpilotspb.Value_BoolValue{BoolValue: true}}} {
 		coord.ActivationID = "b"

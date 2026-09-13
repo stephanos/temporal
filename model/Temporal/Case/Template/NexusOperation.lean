@@ -71,18 +71,11 @@ def completedSource : Umpire.Case.Producer.EvidenceSource :=
 
 /-! ### The Program -/
 
-private def textOutcome : InstructionOutcomeDefinition :=
-  Program.outcome #[
-    Program.outcomeField .INSTRUCTION_OUTCOME_FIELD_STATUS statusType,
-    Program.outcomeField .INSTRUCTION_OUTCOME_FIELD_VALUE textType]
-
 private def rpc
     (id method : String)
     (assignments : Array RequestAssignment)
-    (projections : Array ResponseRead)
-    (reservations : Array ActivationReservationDefinition := #[]) : InstructionNode :=
+    (projections : Array ResponseRead) : InstructionNode :=
   Program.node id (Program.invokeRpc workflowServiceRole method assignments projections)
-    (Program.instructionLimits 10000 1) (outcome := some statusOutcome) (reservations := reservations)
 
 private def historyAssignments : Array RequestAssignment := #[
   Program.environmentAssignment (field "namespace") workerNamespaceBinding,
@@ -101,10 +94,7 @@ private def startWorkflowNode (workflowType : String) : InstructionNode :=
     assign (nested ["workflow_type", "name"]) (text workflowType),
     Program.environmentAssignment (nested ["task_queue", "name"]) taskQueueBinding,
     assign (field "request_id") runId
-  ] #[] #[
-    Program.reservation "workflow" 1,
-    Program.reservation "handler" 1
-  ]
+  ] #[]
 
 /-- The full history read, run once the instruction before it succeeded. -/
 private def historyNode
@@ -120,17 +110,16 @@ private def workflowEntrypoint
     (workflowType service operation : String) : Entrypoint :=
   Program.workflow "workflow" workflowType workerRole taskQueueRole #[
     Program.node "start-nexus-operation"
-      (Program.startNexusOperation nexusEndpointRole service operation (text "request"))
-      (Program.instructionLimits 10000 1) (outcome := some statusOutcome),
+      (Program.startNexusOperation nexusEndpointRole service operation (text "request")),
     -- The await runs whether or not the start succeeded, so the operation's outcome is recorded.
     Program.node "await-nexus-operation"
       (Program.awaitInstruction (Ref.instruction "workflow" "start-nexus-operation"))
-      (Program.instructionLimits 10000 1) (guard := some (boolean true)) (outcome := some textOutcome),
+      (guard := some (boolean true)),
     Program.node "finish-workflow"
       (Program.finish (Expr.outcome
         (Ref.instruction "workflow" "await-nexus-operation")
         .INSTRUCTION_OUTCOME_FIELD_VALUE))
-      (Program.instructionLimits 5000 1) (outcome := some statusOutcome)]
+      (Program.instructionLimits (timeoutMilliseconds := some 5000))]
 
 private def asyncProgram
     (service operation : String)
@@ -152,23 +141,17 @@ private def asyncProgram
     #[
       Program.controller "controller" #[
         startWorkflowNode workflowType,
-        Program.node "await-completion-authority" (Program.awaitSlot "completion-authority")
-          (Program.instructionLimits 10000 1) (outcome := some statusOutcome),
+        Program.node "await-completion-authority" (Program.awaitSlot "completion-authority"),
         Program.node "complete-nexus-operation"
-          (Program.completeNexusOperation "completion-authority" (text "completed"))
-          (Program.instructionLimits 10000 1) (outcome := some statusOutcome),
+          (Program.completeNexusOperation "completion-authority" (text "completed")),
         historyNode identity resolved],
       workflowEntrypoint workflowType service operation,
       Program.nexusHandler "handler" service operation workerRole taskQueueRole #[
         Program.node "respond-async"
           (Program.respondNexus .NEXUS_RESPONSE_KIND_ASYNCHRONOUS
             (text "accepted") "completion-authority")
-          (Program.instructionLimits 5000 1) (outcome := some statusOutcome)]]
+          (Program.instructionLimits (timeoutMilliseconds := some 5000))]]
     (Program.cleanup "cleanup" #[])
-    (environment := #[
-      Program.environment workerNamespaceBinding,
-      Program.environment taskQueueBinding,
-      Program.environment nexusEndpointBinding])
 
 private def syncProgram
     (service operation : String)
@@ -198,12 +181,8 @@ private def syncProgram
       Program.nexusHandler "handler" service operation workerRole taskQueueRole #[
         Program.node "respond-sync"
           (Program.respondNexus .NEXUS_RESPONSE_KIND_SYNCHRONOUS (text "completed"))
-          (Program.instructionLimits 5000 1) (outcome := some statusOutcome)]]
+          (Program.instructionLimits (timeoutMilliseconds := some 5000))]]
     (Program.cleanup "cleanup" #[])
-    (environment := #[
-      Program.environment workerNamespaceBinding,
-      Program.environment taskQueueBinding,
-      Program.environment nexusEndpointBinding])
 
 end NexusOperation
 

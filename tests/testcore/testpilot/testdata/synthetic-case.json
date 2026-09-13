@@ -60,25 +60,7 @@
                 }
               }
             },
-            "instructionId": "finish",
-            "limits": {
-              "maxAttempts": "1",
-              "timeoutMilliseconds": "1000"
-            },
-            "outcome": {
-              "fields": [
-                {
-                  "field": "INSTRUCTION_OUTCOME_FIELD_VALUE",
-                  "type": {
-                    "singular": {
-                      "message": {
-                        "protobufType": "temporal.server.api.testpilot.v1.FormatVersion"
-                      }
-                    }
-                  }
-                }
-              ]
-            }
+            "instructionId": "finish"
           }
         ],
         "workflow": {
@@ -86,14 +68,6 @@
           "workerRoleId": "worker",
           "workflowType": "SyntheticWorkflow"
         }
-      }
-    ],
-    "environment": [
-      {
-        "bindingId": "namespace"
-      },
-      {
-        "bindingId": "task.queue"
       }
     ],
     "programId": "testpilot.synthetic.program",

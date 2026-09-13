@@ -84,7 +84,15 @@ func (p EntrypointPlan) RuntimeWorkLimit() int64 { return p.plan.RuntimeWorkLimi
 
 func (p InstructionPlan) Source() *testpilotspb.InstructionNode { return p.plan.Source() }
 func (p InstructionPlan) Opcode() Opcode                        { return p.plan.Opcode() }
-func (p InstructionPlan) Dependencies() []int                   { return p.plan.Dependencies() }
+
+// TimeoutMilliseconds and MaxAttempts are the instruction's limits: the ones its Case writes, or the
+// Profile's instruction defaults.
+func (p InstructionPlan) TimeoutMilliseconds() int64 { return p.plan.TimeoutMilliseconds() }
+func (p InstructionPlan) MaxAttempts() int64         { return p.plan.MaxAttempts() }
+
+// Reservations are the worker activations a reservation carrier reserves, derived at preparation.
+func (p InstructionPlan) Reservations() []ReservationTopology { return p.plan.Reservations() }
+func (p InstructionPlan) Dependencies() []int                 { return p.plan.Dependencies() }
 func (p InstructionPlan) Guard() *Expression {
 	if expression := p.plan.Guard(); expression != nil {
 		return &Expression{expression: expression}

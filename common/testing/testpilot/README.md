@@ -4,9 +4,14 @@ Testpilot runs behavior through Temporal and Workers using bounded Cases. Caller
 `testpilot/v1` Case, prepare it against an immutable `Profile`, then execute the
 returned `PreparedCase` through a caller-owned `Driver`.
 
-Exact Case 1.0 is the only admitted format. Resource-bearing Programs declare a complete closed graph
-of symbolic text resources; resource-free Programs may have an empty environment. The Case owns the IDs and relationships; the Profile owns their physical values.
-Symbolic endpoint IDs are not transport addresses, and bindings grant no capabilities.
+Exact Case 1.0 is the only admitted format. A Program's symbolic binding graph is the closed set of
+text binding IDs its roles and expressions reference, which `Prepare` derives and resolves against the
+Profile; a resource-free Program references none. The Case owns the IDs and relationships; the Profile
+owns their physical values. Symbolic endpoint IDs are not transport addresses, and bindings grant no
+capabilities. Preparation also derives what a Case no longer writes: an instruction's outcome fields
+follow from its instruction, the worker activations a reservation carrier reserves follow from the
+Profile's carriers, and an instruction limit the Case omits takes the Profile's
+`InstructionDefaults`.
 
 `Prepare` performs static admission without Driver I/O, snapshots the Case and Profile, resolves
 private prepared resources, and includes the complete binding fingerprint in Prepared Case identity.

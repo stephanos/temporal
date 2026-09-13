@@ -46,6 +46,7 @@ func TestSyntheticCaseStrictDecodeAndNoIOAdmission(t *testing.T) {
 		Opcodes:             []testpilot.Opcode{testpilot.Finish},
 		ProgramLimits:       syntheticProgramCeilings(),
 		ContractLimits:      syntheticContractCeilings(),
+		InstructionDefaults: testpilot.InstructionDefaults{TimeoutMilliseconds: 1000, MaxAttempts: 1},
 	}
 	prepared, err := testpilot.Prepare(source, profile)
 	require.NoError(t, err)
@@ -90,6 +91,7 @@ func TestSyntheticCaseGoAdmissionRejectsRawInvalidInputs(t *testing.T) {
 		Opcodes:             []testpilot.Opcode{testpilot.Finish},
 		ProgramLimits:       syntheticProgramCeilings(),
 		ContractLimits:      syntheticContractCeilings(),
+		InstructionDefaults: testpilot.InstructionDefaults{TimeoutMilliseconds: 1000, MaxAttempts: 1},
 	}
 
 	for _, test := range []struct {
@@ -104,7 +106,7 @@ func TestSyntheticCaseGoAdmissionRejectsRawInvalidInputs(t *testing.T) {
 			syntheticResult(candidate).GetMessageValue().TypeUrl = "type.googleapis.com/example.Missing"
 		}},
 		{name: "invalid bounds", want: "instruction bounds exceed Profile ceilings", mutate: func(candidate *testpilotspb.Case) {
-			candidate.Program.Entrypoints[0].Instructions[0].Limits.TimeoutMilliseconds = 0
+			candidate.Program.Entrypoints[0].Instructions[0].Limits = &testpilotspb.InstructionLimits{Timeout: &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: 0}}
 		}},
 		{name: "invalid identity", want: "invalid Program identity", mutate: func(candidate *testpilotspb.Case) {
 			candidate.Program.ProgramId = "invalid/program"
@@ -174,9 +176,10 @@ func TestLeanCasesCarryTwoContractShapesAndPrepareWithoutDriverIO(t *testing.T) 
 			Kind:    testpilotspb.ROLE_KIND_ENDPOINT,
 			Methods: []string{"/temporal.api.workflowservice.v1.WorkflowService/GetSystemInfo"},
 		}},
-		Opcodes:        []testpilot.Opcode{testpilot.InvokeRPC},
-		ProgramLimits:  programLimits,
-		ContractLimits: contractLimits,
+		Opcodes:             []testpilot.Opcode{testpilot.InvokeRPC},
+		ProgramLimits:       programLimits,
+		ContractLimits:      contractLimits,
+		InstructionDefaults: temporal.DefaultInstructionLimits(),
 	}}
 	prepared, err := testpilot.Prepare(getSystemInfo, profile)
 	require.NoError(t, err)
@@ -231,11 +234,7 @@ func TestLeanAsyncNexusBindingsPrepareAcrossProfilesAndRejectBeforeDispatch(t *t
 		AsyncNexusWorkerNamespaceBindingID,
 		AsyncNexusTaskQueueBindingID,
 		AsyncNexusEndpointBindingID,
-	}, []string{
-		source.GetProgram().GetEnvironment()[0].GetBindingId(),
-		source.GetProgram().GetEnvironment()[1].GetBindingId(),
-		source.GetProgram().GetEnvironment()[2].GetBindingId(),
-	})
+	}, testpilot.EnvironmentBindingIDs(source.GetProgram()))
 	require.Equal(t, AsyncNexusWorkerNamespaceBindingID,
 		source.GetProgram().GetRoles()[1].GetNamespaceBindingId())
 	require.Equal(t, AsyncNexusWorkerNamespaceBindingID,
@@ -278,8 +277,6 @@ func TestLeanAsyncNexusBindingsPrepareAcrossProfilesAndRejectBeforeDispatch(t *t
 	require.Nil(t, rejected)
 
 	inconsistentSource := proto.CloneOf(source)
-	inconsistentSource.Program.Environment = append(inconsistentSource.Program.Environment,
-		&testpilotspb.EnvironmentDefinition{BindingId: "temporal.other.namespace"})
 	for _, role := range inconsistentSource.Program.Roles {
 		if role.GetRoleId() == "temporal.task-queue" {
 			role.NamespaceBindingId = "temporal.other.namespace"

@@ -43,7 +43,7 @@ func nexusCapabilities() []testpilot.Opcode {
 }
 
 // caseProfile assembles one ProfileSpec from the parts a Case chose, under the Temporal default
-// resource ceilings every Temporal Profile shares.
+// resource ceilings and instruction limits every Temporal Profile shares.
 func caseProfile(
 	identity string,
 	catalog *testpilot.Catalog,
@@ -61,5 +61,6 @@ func caseProfile(
 		ProgramLimits:       programLimits,
 		ContractLimits:      contractLimits,
 		CorrelatedLimits:    correlatedLimits,
+		InstructionDefaults: temporal.DefaultInstructionLimits(),
 	}
 }

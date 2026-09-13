@@ -155,8 +155,9 @@ violated, inconclusive, static-rejection, cleanup-failure, and cross-Run classes
 `Temporal.Tool.Testpilot` is a build-time renderer only. Coordinates, credentials, clients,
 workers, capabilities, and live IDs remain Driver inputs.
 
-Exact Case 1.0 is the only admitted format. A resource-bearing Program declares a complete closed
-set of symbolic text IDs for namespaces, task queues, and named Nexus endpoints; a resource-free Program may have an empty environment. These declarations
+Exact Case 1.0 is the only admitted format. A resource-bearing Program's roles and expressions reference
+symbolic text IDs for namespaces, task queues, and named Nexus endpoints, and preparation derives the
+closed set they form; a resource-free Program references none. These references
 express resource relationships, not physical values; an endpoint role or binding ID is not a network
 address. The immutable Profile supplies physical values, while transport targets, credentials,
 callback authority, SDK clients, and lifecycle configuration remain environment-owned Driver inputs.
