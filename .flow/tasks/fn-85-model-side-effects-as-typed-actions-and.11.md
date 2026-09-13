@@ -11,6 +11,8 @@ Finish R11 with Queries 5 to 7: a retryable handler error then sync success comp
 **Touches:** [model/Temporal/Feature/Nexus/**, model/Temporal/Case/**, model/Umpire/Case/Producer.lean, tests/testcore/testpilot/**, tests/testpilot_*_test.go, tools/umpire/internal/retiredvocabulary/check.go]
 
 ### Approach
+- The protocol-migration oracle is retired in `.1`, so no declared mapping step is needed here; the
+  conformance `expected.json` pins are the Verdict net.
 - Query 6's `workerStop` must stop the handler's worker: the fault instruction's role is the handler task-queue role the realization binds, not the caller's; the outage Driver (`temporal/worker/outage.go`) already realizes stop and resume.
 - Timers: the realization sets schedule-to-start and start-to-close to a short duration (2 s in the design); the Program waits for `nexusOperationTimedOut` with the Case's elapsed deadline as the bound; the live test's wall-clock tolerance is a realization parameter. Measure three runs of Queries 6 and 7 and record the stability (the spec's parked unknown); a Query whose duration the Profile's limits reject fails at preparation.
 - Query 5's backoff: the handler returns a retryable `HandlerError` once, then sync success; `pendingAttempts` reads `attempt == 1` between them (task .9's read observation); the transport-fault assertion of the upstream test is a Known Gap in `COVERAGE.md`.
