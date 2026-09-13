@@ -273,14 +273,14 @@ func (a *admission) bindResponseReads(g *graph, index int, n *node) error {
 func (a *admission) bindReadTargets(g *graph, index int, n *node, read int, source *testpilotspb.ResponseRead, path *ir.Path, typ ir.Type, seen map[string]bool) ([]*evidenceLift, bool, error) {
 	emits := false
 	lifts := make([]*evidenceLift, len(source.Targets))
-	for i, target := range source.Targets {
-		if target == nil || isNil(target.Target) {
+	for i, readTarget := range source.Targets {
+		if readTarget == nil || isNil(readTarget.Target) {
 			return nil, false, invalid(ir.Malformed, nodePath(g, n), "missing response read target")
 		}
 		var target ir.Type
 		var exists bool
 		var key string
-		switch destination := target.Target.(type) {
+		switch destination := readTarget.Target.(type) {
 		case *testpilotspb.ReadTarget_SlotId:
 			key = "slot:" + destination.SlotId
 			target, exists = a.prepared.slots[destination.SlotId]
