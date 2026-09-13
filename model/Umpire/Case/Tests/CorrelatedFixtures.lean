@@ -97,7 +97,7 @@ def loweredCase (scenario : Scenario) :
 def compiledCase (scenario : Scenario) : Except String temporal.server.api.testpilot.v1.Case :=
   (·.1) <$> loweredCase scenario
 
-/-- Exercise the same checked Contract through ordinary RPC response projection and Run recording.
+/-- Exercise the same checked Contract through ordinary RPC response reads and Run recording.
 The test Driver supplies the declared typed evidence; this is qualification, not an Implementation Link. -/
 def runnableCase (scenario : Scenario) : Except String temporal.server.api.testpilot.v1.Case := do
   let artifact ← compiledCase scenario

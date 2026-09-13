@@ -39,14 +39,14 @@ prepared carrier plan. `Carrier` delegates route injection, start-response pinni
 terminal release, parent terminal release, and quarantine to the delivery ledger. The worker
 validates callback URLs, resolves the SDK system callback against the trusted configured base, and
 builds the protocol completion effect. Only that generic effect crosses the package boundary through
-`CapabilityFactory`; its callback data remains opaque and the resulting capability is published
-through the Run's bridge.
+`CapabilityFactory`; its callback data remains opaque and the resulting opaque handle is published
+through the Run's handle bridge.
 
 Each actual workflow or Nexus-handler interpretation constructs a fresh private
 `temporal/internal/activation.State` from its prepared entrypoint. `Evaluate` owns guard/input
 reference resolution; `Admit` validates and atomically retains owned outcome fields. Both operations
 consume the public plan methods' returned work, including failure charges, within the prepared
-runtime ceiling. The state contains no SDK objects or completion capabilities and is used serially.
+runtime ceiling. The state contains no SDK objects or completion handles and is used serially.
 
 The worker traverses the prepared DAG and owns SDK dispatch, Nexus futures, Await timeouts,
 cancellation and terminal responses. Workflow interpretation keeps SDK context checks and uses a

@@ -36,11 +36,11 @@ type valueBatch struct {
 	outcome    *testpilotspb.InstructionOutcome
 	fields     map[testpilotspb.InstructionOutcomeField]*testpilotspb.Value
 	writes     map[string]*testpilotspb.Value
-	facts      []projectionFact
+	facts      []readFact
 }
-type projectionFact struct {
-	projection, index int64
-	observations      []*testpilotspb.ObservationResult
+type readFact struct {
+	read, index  int64
+	observations []*testpilotspb.ObservationResult
 }
 
 func newValueStore(program *PreparedProgram, runID string) (*valueStore, error) {
@@ -161,7 +161,7 @@ func runtimeWorkLimit(g *graph, limits *testpilotspb.ProgramLimits) int64 {
 		for _, assignment := range n.assignments {
 			operations += expressionNodes(assignment.value)
 		}
-		for _, p := range n.projections {
+		for _, p := range n.responseReads {
 			operations += int64(len(p.sinks) + 1)
 		}
 	}

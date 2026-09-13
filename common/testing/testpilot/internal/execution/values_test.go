@@ -235,7 +235,7 @@ func TestOutcomeValidationAndIndependentAttemptSnapshots(t *testing.T) {
 }
 
 func TestWorkerOutcomeValuesRemainActivationLocal(t *testing.T) {
-	c, catalog, policy := capabilityFixture(t)
+	c, catalog, policy := handleFixture(t)
 	p, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
 	store, err := newValueStore(p, "run")

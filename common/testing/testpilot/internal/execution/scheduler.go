@@ -792,10 +792,10 @@ func (s *scheduler) publishCompletion(ctx context.Context, completion schedulerC
 			Payload:         &testpilotspb.RunEvent_FaultInjected{FaultInjected: &testpilotspb.FaultInjected{RoleId: fault.GetRoleId(), Kind: fault.GetKind()}},
 		})
 	}
-	for _, projection := range batch.facts {
+	for _, fact := range batch.facts {
 		coordinate := eventCoordinates(batch.coordinate)
-		coordinate.EmittedIndex = projection.index
-		facts = append(facts, &testpilotspb.RunEvent{Kind: testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED, SourceId: fmt.Sprintf("%s.p%d.i%d", source, projection.projection, projection.index), Coordinates: coordinate, CausalSourceIds: []string{source + ".completed"}, Observations: projection.observations})
+		coordinate.EmittedIndex = fact.index
+		facts = append(facts, &testpilotspb.RunEvent{Kind: testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED, SourceId: fmt.Sprintf("%s.p%d.i%d", source, fact.read, fact.index), Coordinates: coordinate, CausalSourceIds: []string{source + ".completed"}, Observations: fact.observations})
 	}
 	if completion.cleanup {
 		return s.recorder.publishCleanup(ctx, facts, func() error { return a.commit(ctx, batch) })

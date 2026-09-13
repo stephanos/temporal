@@ -33,7 +33,7 @@ type ReservationRequest struct {
 	Count        int64
 }
 
-// OpaqueCapability values are Driver-owned and never passed to expression or projection code.
+// OpaqueCapability values are Driver-owned and never passed to expression or response read code.
 type OpaqueCapability interface{}
 
 type EffectResult struct {

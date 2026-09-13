@@ -81,3 +81,29 @@ check; a declared addition that is not regenerated, or that has a baseline, fail
 A step spells the baseline names its change retires. Split those literals (`"Run" + "Status"`) as
 the other files the retired-vocabulary scan reads do, so the scan keeps holding the names everywhere
 else.
+
+## Final mapping
+
+fn-87's `Declared` holds 59 steps and `Added` two fixtures. In declaration order, by requirement:
+
+| Steps | Requirement | Change |
+| --- | --- | --- |
+| 1–13 | R1 | Contract, Run and correlated renames: `RunDisposition`, `rules` and `rule_id`, the provenance `ruleId`, `CONTRACT_STATE_STATUS_PENDING`, `ModelValue`, `PROTOCOL_FAILURE`, the unsuffixed rule, state, transition and capture messages, and `evidence_source` |
+| 14–34 | R1 | Program, instruction and value renames: `ResponseRead` and its `response_reads` and `path`, `ReadTarget`, `ReadCardinality`, `OpaqueHandleType` and `opaque_handle`, `handle_slot_id`, `InvokeRpc`, every `Value` arm's `_value` suffix, the unsuffixed Program declarations and `InstructionReference` |
+| 35–38 | R3 | `ComparisonOperator` gains `EQUAL` and `NOT_EQUAL`; one `Expression` over one `Reference`; a capture assignment's `observation_id`; `CorrelatedCaptureReference` |
+| 39 | R1 | `ResponseRead.cardinality` |
+| 40–43 | R3 (40 also R5, 43 also R6) | correlated step conditions, operands, comparisons and correlations, and the evidence-lift guard, become Expressions |
+| 44 | R4 | the fault coordinates become paths from the payload reference into `fault_injected` |
+| 45 | R5 | `Deadline` holds its bound in the `bound` oneof |
+| 46–49 | R6 | capture types become `SingularType`; the correlated contract's version is removed; `NamedValue` and `NamedExpression` replace the binding shapes |
+| 50–51 | R6 | naturals become `unsigned_integer_value` typed `SCALAR_KIND_UINT64`; a Slot is the one opaque-handle encoding |
+| 52 | R12 | resource ceilings move to the Profile |
+| 53 | R15 | enum literals carry names (`Resolve`, declared before the R9 step) |
+| 54 | R9 | instructions run in entrypoint order by default and `after` names any other set |
+| 55 | R10 | the environment binding list, activation reservations and outcome fields are derived, and default instruction limits are omitted |
+| 56 | R13 | provenance becomes typed rows |
+| 57 | R14 | Case-local names and model value spellings (`Relate`) |
+| 58–59 | R15 | field paths become strings; a presence check beside a comparison of the same operand is dropped |
+
+R2 and R11 need no step: the file restructure and the Case closure change no fixture value. `Added`
+declares the `static-preparation-rejection/expression-context` Case and its `expected.json` (R3).

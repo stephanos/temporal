@@ -12,7 +12,7 @@ import (
 	"google.golang.org/protobuf/types/dynamicpb"
 )
 
-func TestProjectionStagesOrderedElementsAndRejectsLimitsAtomically(t *testing.T) {
+func TestResponseReadStagesOrderedElementsAndRejectsLimitsAtomically(t *testing.T) {
 	c, catalog, policy := fixture(t)
 	policy.Limits.MaxPathFanout = 2
 	c.Program.Observations = []*testpilotspb.Observation{{ObservationId: "item", Type: scalar(testpilotspb.SCALAR_KIND_TEXT)}}

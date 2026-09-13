@@ -287,8 +287,8 @@ type RunEventPayload struct {
 
 // RunEventPayloadOf is the one kind-to-payload table. Recording rejects an event that disagrees
 // with it, and Contract preparation declares the arms a transition's kinds may carry from it.
-// Projection-emitted INSTRUCTION_COMPLETED events carry Observations and no outcome, so no outcome
-// arm is required.
+// The INSTRUCTION_COMPLETED events a response read emits carry Observations and no outcome, so no
+// outcome arm is required.
 func RunEventPayloadOf(kind testpilotspb.RunEventKind) RunEventPayload {
 	switch kind {
 	case testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED, testpilotspb.RUN_EVENT_KIND_INSTRUCTION_TIMED_OUT, testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC:

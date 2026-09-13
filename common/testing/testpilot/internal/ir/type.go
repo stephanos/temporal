@@ -199,7 +199,7 @@ func (c *Catalog) checkLiteral(value *testpilotspb.Value, typ Type, b *budget, d
 		return err
 	}
 	if typ.opaque {
-		return invalid(Unsupported, "literal", "capability literals are not representable")
+		return invalid(Unsupported, "literal", "opaque handle literals are not representable")
 	}
 	if item, ok := value.Value.(*testpilotspb.Value_EnumValue); ok && (typ.enumeration == nil || typ.cardinality != Singular) {
 		return invalid(TypeMismatch, "literal", fmt.Sprintf("enum literal %q where the expected type is not an enumeration", item.EnumValue.GetName()))

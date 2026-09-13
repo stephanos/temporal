@@ -458,7 +458,7 @@ func (b *schedulerBridge) Consume(context.Context, string) (contract.OpaqueCapab
 func TestSchedulerOpaqueReadinessAndCompletion(t *testing.T) {
 	for _, mode := range []string{"success", "nil-bridge", "nil-capability"} {
 		t.Run(mode, func(t *testing.T) {
-			c, catalog, policy := capabilityFixture(t)
+			c, catalog, policy := handleFixture(t)
 			p, err := Prepare(c, catalog, policy)
 			require.NoError(t, err)
 			ready := make(chan struct{})

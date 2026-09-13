@@ -152,8 +152,8 @@ def compile (target : CheckedModel Law Setup ModelValue ModelValue ModelValue Mo
                 triggerAligned, responseAligned⟩]
             else throw (.unsupported clause.declaration.id "typed response/pattern mismatch")
           else throw (.unsupported clause.declaration.id "typed trigger/pattern mismatch")
-        else throw (.unsupported clause.declaration.id "unsupported response projection")
-      else throw (.unsupported clause.declaration.id "unsupported trigger projection")
+        else throw (.unsupported clause.declaration.id "unsupported response pattern field")
+      else throw (.unsupported clause.declaration.id "unsupported trigger pattern field")
     else throw (.unsupported clause.declaration.id "unsupported reference clause")
   pure ⟨property, clauses, DefinitionId.canonicalSet scopeFields, operationField, limits⟩
 
