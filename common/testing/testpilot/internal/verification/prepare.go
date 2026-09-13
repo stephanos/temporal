@@ -44,6 +44,14 @@ func (p *PreparedContract) ProgramView() execution.ProgramView { return p.progra
 func invalid(category ir.ErrorCategory, detail string) error {
 	return &ir.Error{Category: category, Path: "contract", Detail: detail}
 }
+
+// invalidAt is invalid located at path, truncated to the bound every located path keeps.
+func invalidAt(category ir.ErrorCategory, path, detail string) error {
+	if len(path) > 256 {
+		path = path[:256]
+	}
+	return &ir.Error{Category: category, Path: path, Detail: detail}
+}
 func validID(id string) bool {
 	if len(id) == 0 || len(id) > 256 {
 		return false
@@ -310,10 +318,19 @@ func (a *admission) bindStates(m *machine) error {
 	}
 	if rule.Kind == testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS {
 		target, exists := m.states[rule.Deadline.GetViolationStateId()]
-		// Exactly one bound carries the deadline, so a rule never expires on two clocks at once.
-		elapsed, events := rule.Deadline.GetElapsedMilliseconds(), rule.Deadline.GetRuleEvents()
-		if elapsed < 0 || events < 0 || (elapsed > 0) == (events > 0) {
-			return invalid(ir.Malformed, "liveness requires exactly one positive deadline bound")
+		path := fmt.Sprintf("contract.rules[%s].deadline", rule.RuleId)
+		// The bound oneof carries one bound, so a rule never expires on two clocks at once.
+		switch bound := rule.Deadline.GetBound().(type) {
+		case *testpilotspb.Deadline_RuleEvents:
+			if bound.RuleEvents <= 0 {
+				return invalidAt(ir.Malformed, path+".rule_events", "liveness deadline bound must be positive")
+			}
+		case *testpilotspb.Deadline_ElapsedMilliseconds:
+			if bound.ElapsedMilliseconds <= 0 {
+				return invalidAt(ir.Malformed, path+".elapsed_milliseconds", "liveness deadline bound must be positive")
+			}
+		default:
+			return invalidAt(ir.Malformed, path, "liveness deadline requires a bound")
 		}
 		if !exists || rule.States[target].Status != testpilotspb.CONTRACT_STATE_STATUS_VIOLATED {
 			return invalid(ir.Malformed, "liveness requires a violated deadline target")

@@ -674,6 +674,13 @@ func buildRetiredRules() ([]tokenRule, error) {
 		"Correlated" + "CorrelationGroup",
 		"guard" + "_equals_text",
 		"Guard" + "EqualsText",
+		// fn-87 gives a deadline its bound oneof, types a capture as a SingularType, and folds the three
+		// binding shapes into one named value per side.
+		"Contract" + "Deadline",
+		"Contract" + "CaptureType",
+		"Correlated" + "Binding",
+		"CorrelatedEvidence" + "Field",
+		"CorrelatedEvidence" + "Binding",
 	}
 
 	rules := make([]tokenRule, 0, len(exactTokens)+5)

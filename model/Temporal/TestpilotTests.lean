@@ -75,8 +75,9 @@ private def activationKind : Entrypoint → Option Nat
       (artifact.contract.bind fun contract =>
         (contract.rules.find? fun rule => rule.rule_id == "worker-outage-order").bind
           (·.deadline)).any fun deadline =>
-            deadline.rule_events == Temporal.Testpilot.workerOutageDeadline &&
-              deadline.elapsed_milliseconds == 0 && deadline.violation_state_id == "expired"
+            (match deadline.bound with
+              | some (.rule_events events) => events == Temporal.Testpilot.workerOutageDeadline
+              | _ => false) && deadline.violation_state_id == "expired"
   | .error _ => false
 
 end Temporal.TestpilotTests
