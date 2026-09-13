@@ -23,8 +23,8 @@ type TypedNexusEnvironment struct {
 // TypedNexusProfile authorizes exactly what the two-operation Nexus Case needs: the two
 // WorkflowService methods on one endpoint role, one workflow and two Nexus handler activations
 // reserved by its StartWorkflowExecution, and nothing else.
-func TypedNexusProfile(catalog *testpilot.Catalog, source *testpilotspb.Case, environment TypedNexusEnvironment) testpilot.ProfileSpec {
-	return caseProfile("typed-nexus-profile", catalog, source,
+func TypedNexusProfile(catalog *testpilot.Catalog, environment TypedNexusEnvironment) testpilot.ProfileSpec {
+	return caseProfile("typed-nexus-profile", catalog,
 		[]testpilot.RolePolicy{
 			workflowServiceRole(2),
 			{ID: "temporal.worker", Kind: testpilotspb.ROLE_KIND_WORKER},

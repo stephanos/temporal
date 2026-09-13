@@ -19,8 +19,8 @@ type TypedUnaryEnvironment struct {
 // TypedUnaryProfile authorizes exactly what the typed unary Case needs: the two WorkflowService
 // methods on one endpoint role, the symbolic worker and task queue its StartWorkflowExecution
 // reserves, and nothing else.
-func TypedUnaryProfile(catalog *testpilot.Catalog, source *testpilotspb.Case, environment TypedUnaryEnvironment) testpilot.ProfileSpec {
-	return caseProfile("typed-unary-profile", catalog, source,
+func TypedUnaryProfile(catalog *testpilot.Catalog, environment TypedUnaryEnvironment) testpilot.ProfileSpec {
+	return caseProfile("typed-unary-profile", catalog,
 		[]testpilot.RolePolicy{
 			workflowServiceRole(0),
 			{ID: "temporal.worker", Kind: testpilotspb.ROLE_KIND_WORKER},

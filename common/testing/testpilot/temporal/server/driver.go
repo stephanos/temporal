@@ -93,7 +93,7 @@ func New(options Options) (*Driver, error) {
 
 func validProfile(p testpilot.ProfileSpec) bool {
 	l := p.ProgramLimits
-	if p.Identity == "" || len(p.Identity) > 256 || len(p.Opcodes) > int(testpilot.MaxOpcode) || p.Catalog.Identity() == "" || l == nil || l.MaxActivations <= 0 || l.MaxActivations > 100000 || l.MaxAttempts <= 0 || l.MaxAttempts > 100000 || l.MaxNodes <= 0 || l.MaxNodes > 10000 || l.MaxRequestBytes <= 0 || l.MaxRequestBytes > 16<<20 || l.MaxResponseBytes <= 0 || l.MaxResponseBytes > 16<<20 || l.MaxTotalDurationMilliseconds <= 0 || l.MaxTotalDurationMilliseconds > 86400000 || l.MaxCleanupDurationMilliseconds <= 0 || l.MaxCleanupDurationMilliseconds > 86400000 || len(p.Roles) > 10000 {
+	if p.Identity == "" || len(p.Identity) > 256 || len(p.Opcodes) > int(testpilot.MaxOpcode) || p.Catalog.Identity() == "" || l == nil || l.MaxActivations <= 0 || l.MaxActivations > 100000 || l.MaxAttempts <= 0 || l.MaxAttempts > 100000 || l.MaxNodes <= 0 || l.MaxNodes > 10000 || l.MaxRequestBytes <= 0 || l.MaxRequestBytes > 16<<20 || l.MaxResponseBytes <= 0 || l.MaxResponseBytes > 16<<20 || l.MaxInstructionResponseBytes <= 0 || l.MaxInstructionResponseBytes > 16<<20 || l.MaxTotalDurationMilliseconds <= 0 || l.MaxTotalDurationMilliseconds > 86400000 || l.MaxCleanupDurationMilliseconds <= 0 || l.MaxCleanupDurationMilliseconds > 86400000 || len(p.Roles) > 10000 {
 		return false
 	}
 	total := 0
@@ -147,7 +147,7 @@ func (h *Driver) Open(ctx context.Context, runID string, program testpilot.Prepa
 	if err := contextError(ctx); err != nil {
 		return nil, err
 	}
-	return h.open(ctx, runID, program.Snapshot())
+	return h.open(ctx, runID, program.Snapshot(), program.Limits())
 }
 
 // OpenSession retains the concrete server session for composite Driver wiring.
@@ -155,14 +155,14 @@ func (h *Driver) OpenSession(ctx context.Context, runID string, program testpilo
 	if err := contextError(ctx); err != nil {
 		return nil, err
 	}
-	return h.open(ctx, runID, program.Snapshot())
+	return h.open(ctx, runID, program.Snapshot(), program.Limits())
 }
 
-func (h *Driver) open(ctx context.Context, runID string, program *testpilotspb.Program) (*Session, error) {
+func (h *Driver) open(ctx context.Context, runID string, program *testpilotspb.Program, limits *testpilotspb.ProgramLimits) (*Session, error) {
 	if err := contextError(ctx); err != nil {
 		return nil, err
 	}
-	if runID == "" || len(runID) > 256 || program == nil || program.Limits == nil {
+	if runID == "" || len(runID) > 256 || program == nil || limits == nil {
 		return nil, errInvalid
 	}
 	if err := h.mu.LockContext(ctx); err != nil {

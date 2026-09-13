@@ -284,7 +284,7 @@ func (m schedulerMonitor) Close(context.Context, *testpilotspb.Run) (*testpilots
 }
 func TestSchedulerRequestsSlotsFanoutAndClosure(t *testing.T) {
 	c, catalog, policy := fixture(t)
-	c.Program.Limits.MaxPathFanout = 3
+	policy.Limits.MaxPathFanout = 3
 	c.Program.Slots = []*testpilotspb.Slot{valueSlot("text", scalar(testpilotspb.SCALAR_KIND_TEXT))}
 	c.Program.Observations = []*testpilotspb.Observation{{ObservationId: "item", Type: scalar(testpilotspb.SCALAR_KIND_TEXT)}}
 	rpc := c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc()
@@ -393,7 +393,7 @@ func TestSchedulerMalformedAndLimitFailures(t *testing.T) {
 		t.Run(mode, func(t *testing.T) {
 			c, catalog, policy := fixture(t)
 			if mode == "attempts" {
-				c.Program.Limits.MaxAttempts = 1
+				policy.Limits.MaxAttempts = 1
 				c.Program.Entrypoints[0].Instructions = append(c.Program.Entrypoints[0].Instructions, rpcNode("extra"))
 			}
 			if mode == "worker-error" {

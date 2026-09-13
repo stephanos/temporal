@@ -227,12 +227,15 @@ private def clause (coverage : Projection.Coverage plan)
     keyed := (source.declaration.id.value, ⟨declared, correlated.map (·.2.1)⟩)
     depth := (correlated.map (·.2.2)).getD 0 }
 
-/-- Successful lowering carries equality of the data actually decoded for portable execution. -/
+/-- Successful lowering carries equality of the data actually decoded for portable execution. `limits`
+are the correlated ceilings the checked declarations need; the wire carries none, so they are the
+Profile ceilings the capability is decoded under. -/
 structure Lowered (plan : Projection.Checked target) (compiled : Property.Correlated.Compiled target) where
   wire : CorrelatedContract
+  limits : CorrelatedLimits
   decoded : Testpilot.Correlated.Compiled
   keyed : List (String × Testpilot.Correlated.Keyed)
-  decoding : Testpilot.Correlated.decode wire = .ok decoded
+  decoding : Testpilot.Correlated.decode limits wire = .ok decoded
   meaning : decoded = Correlated.meaning plan compiled keyed
   maximumFacts : plan.executable.transitions.foldl (fun maximum row => max maximum row.2.2.facts.length) 0 =
     target.behaviorTable.transitions.foldl (fun maximum row => max maximum row.facts.length) 0
@@ -251,7 +254,7 @@ def lower (plan : Projection.Checked target) (compiled : Property.Correlated.Com
     compiled.property.source reason
   let lowered ← (compiled.property.correlatedRules.mapM (clause coverage)).mapError failed
   let keyed := lowered.map (·.keyed)
-  let build : Except String CorrelatedContract := do
+  let build : Except String (CorrelatedContract × CorrelatedLimits) := do
     let declaration := plan.sourceDeclaration
     let rules ← declaration.rules.mapM fun rule => do
       let fields ← rule.fields.mapM fieldPolicy
@@ -262,7 +265,7 @@ def lower (plan : Projection.Checked target) (compiled : Property.Correlated.Com
             required.map atom, steps.map fun (action, result) => output action result)
       pure (CorrelatedProjectionRule.mk rule.kind.value meaning submission outputs.toArray fields.toArray default)
     -- A capability that declares neither captures nor a correlation leaves both ceilings unset, so
-    -- its encoding and meaning are exactly the ones it had before the keyed capability existed.
+    -- its meaning is exactly the one it had before the keyed capability existed.
     let declaresCaptures := keyed.any fun entry => !entry.2.captures.isEmpty
     let limits : CorrelatedLimits := {
       max_events := ← number declaration.limits.events
@@ -283,9 +286,9 @@ def lower (plan : Projection.Checked target) (compiled : Property.Correlated.Com
       (atom plan.initialState)
       (plan.executable.transitions.toArray.map fun (prior, action, result) =>
         { output action result with prior_state := some (atom prior) })
-      rules.toArray (lowered.map (·.wire)).toArray limits)
-  let wire ← build.mapError failed
-  match decoding : Testpilot.Correlated.decode wire with
+      rules.toArray (lowered.map (·.wire)).toArray, limits)
+  let (wire, limits) ← build.mapError failed
+  match decoding : Testpilot.Correlated.decode limits wire with
   | .error reason => throw (failed reason)
   | .ok decoded =>
       if agreement : decoded = meaning plan compiled keyed then
@@ -298,7 +301,7 @@ def lower (plan : Projection.Checked target) (compiled : Property.Correlated.Com
               (plan.executable.transitions.filter (fun candidate =>
                 candidate.1 == row.1 && candidate.2.1 == row.2.1)).length =
                   (target.machine.steps row.1 row.2.1).length then
-            pure ⟨wire, decoded, keyed, decoding, agreement, maximumFacts, candidateCounts, certificates.down⟩
+            pure ⟨wire, limits, decoded, keyed, decoding, agreement, maximumFacts, candidateCounts, certificates.down⟩
           else throw (failed "portable work candidate multiplicity differs from checked kernel")
         else throw (failed "portable work maximum fact count differs from checked description")
       else throw (failed "portable correlated meaning roundtrip mismatch")

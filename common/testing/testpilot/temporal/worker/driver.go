@@ -83,6 +83,7 @@ func validWorkerProfile(profile testpilot.ProfileSpec) bool {
 		MaxAttempts: 100000, MaxRunEvents: 100000, MaxExpressionDepth: 64, MaxPathFanout: 10000,
 		MaxRequestBytes: 16 << 20, MaxResponseBytes: 16 << 20,
 		MaxTotalDurationMilliseconds: 86400000, MaxCleanupDurationMilliseconds: 86400000,
+		MaxInstructionEmittedEvents: 100000, MaxInstructionResponseBytes: 16 << 20,
 	}
 	if profile.Identity == "" || len(profile.Identity) > 256 || profile.Catalog == nil || profile.Catalog.Identity() == "" || limits == nil || len(profile.Opcodes) > int(testpilot.MaxOpcode) || len(profile.Roles) > 10000 {
 		return false
@@ -138,7 +139,7 @@ func (h *Driver) Validate(ctx context.Context, program testpilot.PreparedProgram
 	// also brings a worker. Validate applies the same rule Open does rather than admitting a
 	// Program that could only fail at dispatch.
 	requireWorker := hasWorkerEntrypoint(plans) || DeclaresFault(plans)
-	_, err := h.prepareDefinitionResources(program.Snapshot(), plans, program.Roles(), requireWorker)
+	_, err := h.prepareDefinitionResources(program.Snapshot(), program.Limits(), plans, program.Roles(), requireWorker)
 	return err
 }
 
@@ -246,19 +247,19 @@ func (h *Driver) Close(ctx context.Context) error {
 }
 
 func (h *Driver) prepareDefinition(program testpilot.PreparedProgram) (programDefinition, error) {
-	return h.prepareDefinitionResources(program.Snapshot(), ProgramPlans(program), program.Roles(), true)
+	return h.prepareDefinitionResources(program.Snapshot(), program.Limits(), ProgramPlans(program), program.Roles(), true)
 }
 
-func (h *Driver) prepareDefinitionPlans(snapshot *testpilotspb.Program, plans []testpilot.EntrypointPlan) (programDefinition, error) {
-	return h.prepareDefinitionResources(snapshot, plans, nil, true)
+func (h *Driver) prepareDefinitionPlans(snapshot *testpilotspb.Program, limits *testpilotspb.ProgramLimits, plans []testpilot.EntrypointPlan) (programDefinition, error) {
+	return h.prepareDefinitionResources(snapshot, limits, plans, nil, true)
 }
 
-func (h *Driver) prepareDefinitionResources(snapshot *testpilotspb.Program, plans []testpilot.EntrypointPlan, preparedRoles []testpilot.PreparedRole, requireWorker bool) (programDefinition, error) {
-	if snapshot == nil || snapshot.GetLimits() == nil {
+func (h *Driver) prepareDefinitionResources(snapshot *testpilotspb.Program, limits *testpilotspb.ProgramLimits, plans []testpilot.EntrypointPlan, preparedRoles []testpilot.PreparedRole, requireWorker bool) (programDefinition, error) {
+	if snapshot == nil || limits == nil {
 		return programDefinition{}, ErrInvalid
 	}
 	roles := preparedRolesByID(preparedRoles)
-	definition := programDefinition{snapshot: snapshot, entries: make(map[string]entryDefinition), endpoints: make(map[string]string), queueWorkflows: make(map[string]map[string]struct{})}
+	definition := programDefinition{snapshot: snapshot, limits: limits, entries: make(map[string]entryDefinition), endpoints: make(map[string]string), queueWorkflows: make(map[string]map[string]struct{})}
 	if err := h.validateSymbolicRoles(roles, requireWorker); err != nil {
 		return programDefinition{}, err
 	}

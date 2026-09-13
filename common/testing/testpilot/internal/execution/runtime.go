@@ -23,7 +23,7 @@ func Run(
 	if err := ctx.Err(); err != nil {
 		return nil, nil, err
 	}
-	limits := program.source.GetLimits()
+	limits := program.limits
 	runCtx, cancelRun := context.WithTimeout(ctx, time.Duration(limits.GetMaxTotalDurationMilliseconds())*time.Millisecond)
 	session, err := driver.Open(runCtx, runID, program)
 	if err != nil {

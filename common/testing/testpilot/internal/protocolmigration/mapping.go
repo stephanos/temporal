@@ -288,6 +288,16 @@ var Declared = Mapping{
 			return object, nil
 		}),
 	},
+	{
+		Name: "Program, Contract and correlated limits move to the Profile, and InstructionLimits keeps only its timeout and attempts", Requirement: "R12",
+		Apply: sequence(
+			DropField(protocol+"Program", "limits", checkMovedLimits),
+			DropField(protocol+"Contract", "limits", checkMovedLimits),
+			DropField(protocol+"CorrelatedContract", "limits", checkMovedLimits),
+			DropField(protocol+"InstructionLimits", "maxEmittedEvents", checkMovedBound("maxEmittedEvents")),
+			DropField(protocol+"InstructionLimits", "maxResponseBytes", checkMovedBound("maxResponseBytes")),
+		),
+	},
 }
 
 // rewriteNaturalValue moves a baseline natural into the unsigned integer arm, which spells it with

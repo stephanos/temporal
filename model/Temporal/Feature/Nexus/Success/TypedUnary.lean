@@ -455,7 +455,7 @@ private def program (startPath historyPath : String) : Program :=
           assign submittedTypeTarget (text submittedWorkflowType),
           Program.environmentAssignment (nested ["task_queue", "name"]) taskQueueBindingId,
           assign (field "request_id") runId])
-        (bounds 10000) #[] none (some statusOutcome)
+        (Program.instructionLimits 10000 1) #[] none (some statusOutcome)
         #[Program.reservation workflowEntrypointId 1],
       Program.node historyInstructionId
         (Program.invokeRpc workflowServiceRole historyPath #[
@@ -463,13 +463,12 @@ private def program (startPath historyPath : String) : Program :=
           assign (nested ["execution", "workflow_id"]) runId,
           assign (field "maximum_page_size") (signedInteger 64)]
           #[project historyEvents observationId .READ_CARDINALITY_EMIT_EACH])
-        (bounds 10000 128) #[Ref.instruction controllerId startInstructionId]
+        (Program.instructionLimits 10000 1) #[Ref.instruction controllerId startInstructionId]
         (some (succeeded controllerId startInstructionId)) (some statusOutcome)],
       Program.workflow workflowEntrypointId submittedWorkflowType workerRole taskQueueRole #[
-        Program.node "finish-workflow" (Program.finish (text "started")) bounds #[] none
+        Program.node "finish-workflow" (Program.finish (text "started")) (Program.instructionLimits 5000 1) #[] none
           (some statusOutcome)]]
     (Program.cleanup "cleanup" #[])
-    programLimits
     (environment := #[Program.environment namespaceBindingId,
       Program.environment taskQueueBindingId])
 
@@ -509,7 +508,6 @@ def typedUnaryCase : Except Umpire.Case.Compiler.Error
     program := program (methodPath model.template.declaration.schema) (methodPath history.schema)
     contractId := "temporal.case.typed-unary.contract"
     properties := lowered.contractLowering.toList
-    contractLimits
     coverage := lowered.coverage
   }
 

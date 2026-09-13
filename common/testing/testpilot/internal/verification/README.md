@@ -1,6 +1,7 @@
 # Contract evaluation
 
-`Prepare` binds a Contract to the immutable Program Observation/bounds view. The prepared
+`Prepare` binds a Contract to the immutable Program Observation/bounds view under the Profile's
+Contract and correlated ceilings; a Contract declares none of its own. The prepared
 Contract implements the internal execution MonitorFactory; `New` creates a fresh `Evaluator`
 for every Run. The public Case facade binds that factory and does not accept replacement monitors.
 
@@ -14,7 +15,7 @@ producing event sequences. Rules and Runs never share mutable state.
 Message captures retain one whole declared Observation when later predicates must correlate
 multiple fields from the same event. Separate scalar captures cannot preserve that pairing. The
 descriptor is bound exactly during preparation, and the same capture-count and byte ceilings bound
-the immutable runtime copy. A capture is typed by a `SingularType` that must be a scalar, enum or
+the immutable runtime copy; both are Profile ceilings. A capture is typed by a `SingularType` that must be a scalar, enum or
 message; preparation rejects any other at the capture.
 
 A bounded-liveness rule's `Deadline` sets one positive bound in its `bound` oneof; preparation rejects
@@ -42,8 +43,9 @@ No final disposition is retroactively applied to earlier events.
 
 Contract work counts indexed rule visits, expression operations/value bytes, projection traversal,
 and capture copies/references. Static preparation bounds that work per event and for the admitted
-Run event ceiling; runtime checks both ceilings and capture count/bytes before commit. Run input
-validation has separate bounded IR surface/type/fanout checks under Program response limits.
+Run event ceiling; runtime checks both ceilings and capture count/bytes before commit. Every one of
+these ceilings is the prepared Profile's snapshot. Run input validation has separate bounded IR
+surface/type/fanout checks under the Profile's Program response ceiling.
 The shared `internal/ir` interpreter only resolves values from its supplied typed environment;
 verification supplies declared Observations, captures, and the closed Run metadata fields.
 

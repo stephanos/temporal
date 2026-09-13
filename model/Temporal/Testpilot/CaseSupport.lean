@@ -26,9 +26,6 @@ def statusType : ValueType :=
 def statusOutcome : InstructionOutcomeDefinition :=
   Program.outcome #[Program.outcomeField .INSTRUCTION_OUTCOME_FIELD_STATUS statusType]
 
-def bounds (timeout : Int64 := 5000) (emitted : Int64 := 8) : InstructionLimits :=
-  Program.instructionLimits timeout 1 emitted 4096
-
 def field (name : String) : FieldPath := Path.make #[Path.field name]
 
 def boolean (value : Bool) : Expression :=
@@ -78,12 +75,6 @@ def succeeded (entrypoint instruction : String) : Expression :=
 
 def assign (target : FieldPath) (value : Expression) : RequestAssignment :=
   Program.requestAssignment target value
-
-def programLimits : ProgramLimits :=
-  Program.limits 4 16 24 8 16 256 12 32 32768 4096 30000 5000
-
-def contractLimits : ContractLimits :=
-  Contract.limits 4 16 16 12 100000 1000000000 4 8192
 
 def provenance (producerId producerVersion : String)
     (definitions : List Umpire.Provenance.DefinitionBinding)
