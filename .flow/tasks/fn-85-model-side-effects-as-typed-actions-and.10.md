@@ -11,6 +11,8 @@ Re-author the Nexus caller-side operation as the product machine and the protoco
 **Touches:** [model/Temporal/Feature/Nexus/Caller/**, model/Temporal/Feature/Nexus/DESIGN.md, model/Temporal/Case/**, model/Temporal.lean, model/TemporalModelTests.lean, tests/testcore/testpilot/**, tests/testpilot_*_test.go]
 
 ### Approach
+- The protocol-migration oracle is retired in `.1`, so no declared mapping step is needed here; the
+  conformance `expected.json` pins are the Verdict net.
 - The Model file uses only the commands (`enum`, `entity`, `action`, `observation`, `machine`, `property`, `scenario`, `limits`, `query`, `set`); mark the regions task .13's AUTHORING.md will quote with the drift markers now.
 - Query 2 replaces the async-Nexus fixture; list the Program and Contract diff against the old fixture in the receipt (the spec requires it) and keep the two-environment byte-identity assertion on the new fixture.
 - The existing `model/Temporal/Feature/Nexus/COVERAGE.md` is an unrelated evidence record fn-86 retires; do not overwrite it.
