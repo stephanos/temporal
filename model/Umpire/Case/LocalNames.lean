@@ -142,7 +142,9 @@ def nameIn (provenance : CaseProvenance) (definitionId : String) : String :=
 /-! ### Traversal
 
 One traversal visits every name and model value position of a Case. It runs twice: once to collect
-the namespace and each definition's encodings, and once to rewrite them through the derived table. -/
+the namespace and each definition's encodings, and once to rewrite them through the derived table.
+The equivalence oracle's R14 step (`common/testing/testpilot/internal/protocolmigration`) walks the
+same positions; a new Definition ID position is added to both. -/
 
 /-- What the traversal does at a name position and at a model value position. A value is visited
 with its definition's Definition ID before that ID is renamed. -/
