@@ -96,6 +96,8 @@ UMPIRE_TESTPILOT_RENDERER := umpire-case
 TESTPILOT_PROTOCOL_PROTOS := \
 	proto/internal/temporal/server/api/testpilot/v1/case.proto \
 	proto/internal/temporal/server/api/testpilot/v1/contract.proto \
+	proto/internal/temporal/server/api/testpilot/v1/correlated.proto \
+	proto/internal/temporal/server/api/testpilot/v1/event.proto \
 	proto/internal/temporal/server/api/testpilot/v1/expression.proto \
 	proto/internal/temporal/server/api/testpilot/v1/instruction.proto \
 	proto/internal/temporal/server/api/testpilot/v1/program.proto \
@@ -621,6 +623,13 @@ umpire-check-testpilot-protocol: $(TESTPILOT_PROTOCOL_PROTOS)
 	@printf $(COLOR) "Check generated Lean Testpilot protocol..."
 	@set -eu; protoc=$$(mise exec -- which protoc); \
 		test "$$($$protoc --version)" = "libprotoc 29.5"; \
+		temporary=$$(mktemp); \
+		trap 'rm -f "$$temporary"' EXIT HUP INT TERM; \
+		"$$protoc" --proto_path=proto/internal --include_source_info --descriptor_set_out="$$temporary" \
+			$(TESTPILOT_PROTOCOL_PROTOS:proto/internal/%=%); \
+		TESTPILOT_PROTOCOL_DESCRIPTOR_SET="$$temporary" \
+			mise exec -- go test -count=1 -tags test_dep ./common/testing/testpilot \
+			-run '^TestProtocolMessagesCarryLeadingComments$$'; \
 		cd model; \
 		PROTOC="$$protoc" $(LEAN_LAKE) env lean Testpilot/Protocol.lean; \
 		PROTOC="$$protoc" $(LEAN_LAKE) build Testpilot TestpilotTests

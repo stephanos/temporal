@@ -1,12 +1,34 @@
 package testpilot
 
 import (
+	"fmt"
+	"slices"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
+	"google.golang.org/protobuf/types/descriptorpb"
 )
+
+var protocolFiles = []string{
+	"temporal/server/api/testpilot/v1/case.proto",
+	"temporal/server/api/testpilot/v1/value.proto",
+	"temporal/server/api/testpilot/v1/expression.proto",
+	"temporal/server/api/testpilot/v1/program.proto",
+	"temporal/server/api/testpilot/v1/instruction.proto",
+	"temporal/server/api/testpilot/v1/contract.proto",
+	"temporal/server/api/testpilot/v1/correlated.proto",
+	"temporal/server/api/testpilot/v1/event.proto",
+	"temporal/server/api/testpilot/v1/run.proto",
+}
+
+// runOnlyMessages are declared for a Run and must stay outside the Case import closure.
+var runOnlyMessages = []protoreflect.Name{"Run", "Verdict", "RunDiagnostic", "RunEvent", "CleanupOutcome", "FaultInjected"}
 
 func TestProtocolEncodesExpressionAndStateScopes(t *testing.T) {
 	t.Parallel()
@@ -33,15 +55,7 @@ func TestProtocolEncodesExpressionAndStateScopes(t *testing.T) {
 
 func TestProtocolUsesCohesivePublicVocabulary(t *testing.T) {
 	t.Parallel()
-	for _, path := range []string{
-		"temporal/server/api/testpilot/v1/case.proto",
-		"temporal/server/api/testpilot/v1/value.proto",
-		"temporal/server/api/testpilot/v1/expression.proto",
-		"temporal/server/api/testpilot/v1/instruction.proto",
-		"temporal/server/api/testpilot/v1/program.proto",
-		"temporal/server/api/testpilot/v1/run.proto",
-		"temporal/server/api/testpilot/v1/contract.proto",
-	} {
+	for _, path := range protocolFiles {
 		_, err := protoregistry.GlobalFiles.FindFileByPath(path)
 		require.NoError(t, err, path)
 	}
@@ -68,6 +82,53 @@ func TestProtocolUsesCohesivePublicVocabulary(t *testing.T) {
 		_, err := protoregistry.GlobalFiles.FindDescriptorByName(protoreflect.FullName("temporal.server.api.testpilot.v1." + retired))
 		require.Error(t, err, retired)
 	}
+}
+
+func TestCaseImportClosureExcludesRunOnlyMessages(t *testing.T) {
+	t.Parallel()
+	require.Empty(t, runOnlyImports(testpilotspb.File_temporal_server_api_testpilot_v1_case_proto))
+
+	wrong, err := protodesc.NewFile(&descriptorpb.FileDescriptorProto{
+		Name: proto.String("test/case.proto"), Package: proto.String("test"), Syntax: proto.String("proto3"),
+		Dependency: []string{
+			testpilotspb.File_temporal_server_api_testpilot_v1_case_proto.Path(),
+			testpilotspb.File_temporal_server_api_testpilot_v1_run_proto.Path(),
+		},
+	}, protoregistry.GlobalFiles)
+	require.NoError(t, err)
+	require.Equal(t, []string{
+		"test/case.proto imports temporal/server/api/testpilot/v1/run.proto, which declares Run-only CleanupOutcome, FaultInjected, Run, RunDiagnostic, RunEvent, Verdict",
+	}, runOnlyImports(wrong))
+}
+
+// runOnlyImports walks root's transitive imports and names each file that pulls in a file
+// declaring a Run-only message.
+func runOnlyImports(root protoreflect.FileDescriptor) []string {
+	var problems []string
+	seen := map[string]bool{}
+	var walk func(file protoreflect.FileDescriptor)
+	walk = func(file protoreflect.FileDescriptor) {
+		imports := file.Imports()
+		for index := range imports.Len() {
+			imported := imports.Get(index).FileDescriptor
+			var declared []string
+			for _, name := range runOnlyMessages {
+				if imported.Messages().ByName(name) != nil {
+					declared = append(declared, string(name))
+				}
+			}
+			if len(declared) > 0 {
+				slices.Sort(declared)
+				problems = append(problems, fmt.Sprintf("%s imports %s, which declares Run-only %s", file.Path(), imported.Path(), strings.Join(declared, ", ")))
+			}
+			if !seen[imported.Path()] {
+				seen[imported.Path()] = true
+				walk(imported)
+			}
+		}
+	}
+	walk(root)
+	return problems
 }
 
 func messageDescriptor(t *testing.T, name protoreflect.Name) protoreflect.MessageDescriptor {

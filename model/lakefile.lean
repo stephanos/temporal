@@ -17,6 +17,12 @@ input_file testpilotCaseProto where
 input_file testpilotContractProto where
   path := "../proto/internal/temporal/server/api/testpilot/v1/contract.proto"
 
+input_file testpilotCorrelatedProto where
+  path := "../proto/internal/temporal/server/api/testpilot/v1/correlated.proto"
+
+input_file testpilotEventProto where
+  path := "../proto/internal/temporal/server/api/testpilot/v1/event.proto"
+
 input_file testpilotExpressionProto where
   path := "../proto/internal/temporal/server/api/testpilot/v1/expression.proto"
 
@@ -37,6 +43,8 @@ target testpilotProtocolSchemas (pkg : NPackage __name__) : FilePath := do
   for input in #[
     testpilotCaseProto,
     testpilotContractProto,
+    testpilotCorrelatedProto,
+    testpilotEventProto,
     testpilotExpressionProto,
     testpilotInstructionProto,
     testpilotProgramProto,

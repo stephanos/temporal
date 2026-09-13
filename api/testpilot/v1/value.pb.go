@@ -24,6 +24,9 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// ScalarKind names a scalar kind. Every kind except NATURAL is a protobuf scalar field type, and a
+// value read from or written to a field must have that field's kind. NATURAL is an unsigned integer
+// in canonical base-10 text that no protobuf field has.
 // (-- api-linter: core::0191::file-layout=disabled --)
 type ScalarKind int32
 
@@ -132,6 +135,9 @@ func (x ScalarKind) String() string {
 	case SCALAR_KIND_FLOAT:
 		return "Float"
 	case SCALAR_KIND_DOUBLE:
+
+		// Value is a tagged interpreter value. Naturals use canonical unsigned base-10 text.
+		// Signed and unsigned protobuf integers also use canonical base-10 text.
 		return "Double"
 	default:
 		return strconv.Itoa(int(x))
@@ -155,200 +161,6 @@ func (ScalarKind) EnumDescriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{0}
 }
 
-type FormatVersion struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Major         int32                  `protobuf:"varint,1,opt,name=major,proto3" json:"major,omitempty"`
-	Minor         int32                  `protobuf:"varint,2,opt,name=minor,proto3" json:"minor,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *FormatVersion) Reset() {
-	*x = FormatVersion{}
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[0]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *FormatVersion) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*FormatVersion) ProtoMessage() {}
-
-func (x *FormatVersion) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[0]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use FormatVersion.ProtoReflect.Descriptor instead.
-func (*FormatVersion) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{0}
-}
-
-func (x *FormatVersion) GetMajor() int32 {
-	if x != nil {
-		return x.Major
-	}
-	return 0
-}
-
-func (x *FormatVersion) GetMinor() int32 {
-	if x != nil {
-		return x.Minor
-	}
-	return 0
-}
-
-type EnumValue struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Number        int32                  `protobuf:"varint,1,opt,name=number,proto3" json:"number,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *EnumValue) Reset() {
-	*x = EnumValue{}
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[1]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *EnumValue) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*EnumValue) ProtoMessage() {}
-
-func (x *EnumValue) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[1]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use EnumValue.ProtoReflect.Descriptor instead.
-func (*EnumValue) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{1}
-}
-
-func (x *EnumValue) GetNumber() int32 {
-	if x != nil {
-		return x.Number
-	}
-	return 0
-}
-
-type ValueList struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Values        []*Value               `protobuf:"bytes,1,rep,name=values,proto3" json:"values,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ValueList) Reset() {
-	*x = ValueList{}
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[2]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ValueList) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ValueList) ProtoMessage() {}
-
-func (x *ValueList) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[2]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ValueList.ProtoReflect.Descriptor instead.
-func (*ValueList) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *ValueList) GetValues() []*Value {
-	if x != nil {
-		return x.Values
-	}
-	return nil
-}
-
-type ValueMapEntry struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Key           *Value                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	Value         *Value                 `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ValueMapEntry) Reset() {
-	*x = ValueMapEntry{}
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[3]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ValueMapEntry) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ValueMapEntry) ProtoMessage() {}
-
-func (x *ValueMapEntry) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[3]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ValueMapEntry.ProtoReflect.Descriptor instead.
-func (*ValueMapEntry) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{3}
-}
-
-func (x *ValueMapEntry) GetKey() *Value {
-	if x != nil {
-		return x.Key
-	}
-	return nil
-}
-
-func (x *ValueMapEntry) GetValue() *Value {
-	if x != nil {
-		return x.Value
-	}
-	return nil
-}
-
-// Value is a tagged interpreter value. Naturals use canonical unsigned base-10 text.
-// Signed and unsigned protobuf integers also use canonical base-10 text.
 type Value struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Types that are valid to be assigned to Value:
@@ -371,7 +183,7 @@ type Value struct {
 
 func (x *Value) Reset() {
 	*x = Value{}
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[4]
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -383,7 +195,7 @@ func (x *Value) String() string {
 func (*Value) ProtoMessage() {}
 
 func (x *Value) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[4]
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -396,7 +208,7 @@ func (x *Value) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Value.ProtoReflect.Descriptor instead.
 func (*Value) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{4}
+	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Value) GetValue() isValue_Value {
@@ -577,6 +389,98 @@ func (*Value_ListValue) isValue_Value() {}
 
 func (*Value_MapValue) isValue_Value() {}
 
+// EnumValue is one enum value by number, which the enum its declared type names must define.
+type EnumValue struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Number        int32                  `protobuf:"varint,1,opt,name=number,proto3" json:"number,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EnumValue) Reset() {
+	*x = EnumValue{}
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EnumValue) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EnumValue) ProtoMessage() {}
+
+func (x *EnumValue) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EnumValue.ProtoReflect.Descriptor instead.
+func (*EnumValue) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *EnumValue) GetNumber() int32 {
+	if x != nil {
+		return x.Number
+	}
+	return 0
+}
+
+// ValueList is an ordered list: the value of a repeated type, or of a path that fans out over a
+// repeated field.
+type ValueList struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Values        []*Value               `protobuf:"bytes,1,rep,name=values,proto3" json:"values,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ValueList) Reset() {
+	*x = ValueList{}
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ValueList) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ValueList) ProtoMessage() {}
+
+func (x *ValueList) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ValueList.ProtoReflect.Descriptor instead.
+func (*ValueList) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *ValueList) GetValues() []*Value {
+	if x != nil {
+		return x.Values
+	}
+	return nil
+}
+
+// ValueMap is the value of a map type. Keys are unique, and equality ignores entry order.
 type ValueMap struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Entries       []*ValueMapEntry       `protobuf:"bytes,1,rep,name=entries,proto3" json:"entries,omitempty"`
@@ -586,7 +490,7 @@ type ValueMap struct {
 
 func (x *ValueMap) Reset() {
 	*x = ValueMap{}
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[5]
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -598,7 +502,7 @@ func (x *ValueMap) String() string {
 func (*ValueMap) ProtoMessage() {}
 
 func (x *ValueMap) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[5]
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -611,7 +515,7 @@ func (x *ValueMap) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ValueMap.ProtoReflect.Descriptor instead.
 func (*ValueMap) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{5}
+	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *ValueMap) GetEntries() []*ValueMapEntry {
@@ -621,28 +525,30 @@ func (x *ValueMap) GetEntries() []*ValueMapEntry {
 	return nil
 }
 
-type ScalarType struct {
+// ValueMapEntry is one key and value of a ValueMap.
+type ValueMapEntry struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Kind          ScalarKind             `protobuf:"varint,1,opt,name=kind,proto3,enum=temporal.server.api.testpilot.v1.ScalarKind" json:"kind,omitempty"`
+	Key           *Value                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Value         *Value                 `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ScalarType) Reset() {
-	*x = ScalarType{}
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[6]
+func (x *ValueMapEntry) Reset() {
+	*x = ValueMapEntry{}
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ScalarType) String() string {
+func (x *ValueMapEntry) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ScalarType) ProtoMessage() {}
+func (*ValueMapEntry) ProtoMessage() {}
 
-func (x *ScalarType) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[6]
+func (x *ValueMapEntry) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -653,40 +559,53 @@ func (x *ScalarType) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ScalarType.ProtoReflect.Descriptor instead.
-func (*ScalarType) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{6}
+// Deprecated: Use ValueMapEntry.ProtoReflect.Descriptor instead.
+func (*ValueMapEntry) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *ScalarType) GetKind() ScalarKind {
+func (x *ValueMapEntry) GetKey() *Value {
 	if x != nil {
-		return x.Kind
+		return x.Key
 	}
-	return SCALAR_KIND_UNSPECIFIED
+	return nil
 }
 
-type NamedType struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	ProtobufType  string                 `protobuf:"bytes,1,opt,name=protobuf_type,json=protobufType,proto3" json:"protobuf_type,omitempty"`
+func (x *ValueMapEntry) GetValue() *Value {
+	if x != nil {
+		return x.Value
+	}
+	return nil
+}
+
+// ValueType is the declared type of a Slot, an Observation or an instruction outcome field.
+type ValueType struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Types that are valid to be assigned to Shape:
+	//
+	//	*ValueType_Singular
+	//	*ValueType_Repeated
+	//	*ValueType_Map
+	Shape         isValueType_Shape `protobuf_oneof:"shape"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *NamedType) Reset() {
-	*x = NamedType{}
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[7]
+func (x *ValueType) Reset() {
+	*x = ValueType{}
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *NamedType) String() string {
+func (x *ValueType) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*NamedType) ProtoMessage() {}
+func (*ValueType) ProtoMessage() {}
 
-func (x *NamedType) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[7]
+func (x *ValueType) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -697,90 +616,68 @@ func (x *NamedType) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use NamedType.ProtoReflect.Descriptor instead.
-func (*NamedType) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{7}
+// Deprecated: Use ValueType.ProtoReflect.Descriptor instead.
+func (*ValueType) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *NamedType) GetProtobufType() string {
+func (x *ValueType) GetShape() isValueType_Shape {
 	if x != nil {
-		return x.ProtobufType
+		return x.Shape
 	}
-	return ""
+	return nil
 }
 
-type AnyType struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *AnyType) Reset() {
-	*x = AnyType{}
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[8]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *AnyType) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*AnyType) ProtoMessage() {}
-
-func (x *AnyType) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[8]
+func (x *ValueType) GetSingular() *SingularType {
 	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
+		if x, ok := x.Shape.(*ValueType_Singular); ok {
+			return x.Singular
 		}
-		return ms
 	}
-	return mi.MessageOf(x)
+	return nil
 }
 
-// Deprecated: Use AnyType.ProtoReflect.Descriptor instead.
-func (*AnyType) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{8}
-}
-
-type OpaqueHandleType struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *OpaqueHandleType) Reset() {
-	*x = OpaqueHandleType{}
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[9]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *OpaqueHandleType) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*OpaqueHandleType) ProtoMessage() {}
-
-func (x *OpaqueHandleType) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[9]
+func (x *ValueType) GetRepeated() *RepeatedType {
 	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
+		if x, ok := x.Shape.(*ValueType_Repeated); ok {
+			return x.Repeated
 		}
-		return ms
 	}
-	return mi.MessageOf(x)
+	return nil
 }
 
-// Deprecated: Use OpaqueHandleType.ProtoReflect.Descriptor instead.
-func (*OpaqueHandleType) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{9}
+func (x *ValueType) GetMap() *MapType {
+	if x != nil {
+		if x, ok := x.Shape.(*ValueType_Map); ok {
+			return x.Map
+		}
+	}
+	return nil
 }
 
+type isValueType_Shape interface {
+	isValueType_Shape()
+}
+
+type ValueType_Singular struct {
+	Singular *SingularType `protobuf:"bytes,1,opt,name=singular,proto3,oneof"`
+}
+
+type ValueType_Repeated struct {
+	Repeated *RepeatedType `protobuf:"bytes,2,opt,name=repeated,proto3,oneof"`
+}
+
+type ValueType_Map struct {
+	Map *MapType `protobuf:"bytes,3,opt,name=map,proto3,oneof"`
+}
+
+func (*ValueType_Singular) isValueType_Shape() {}
+
+func (*ValueType_Repeated) isValueType_Shape() {}
+
+func (*ValueType_Map) isValueType_Shape() {}
+
+// SingularType is the type of one non-repeated value.
 type SingularType struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Types that are valid to be assigned to Type:
@@ -797,7 +694,7 @@ type SingularType struct {
 
 func (x *SingularType) Reset() {
 	*x = SingularType{}
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[10]
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -809,7 +706,7 @@ func (x *SingularType) String() string {
 func (*SingularType) ProtoMessage() {}
 
 func (x *SingularType) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[10]
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -822,7 +719,7 @@ func (x *SingularType) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SingularType.ProtoReflect.Descriptor instead.
 func (*SingularType) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{10}
+	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *SingularType) GetType() isSingularType_Type {
@@ -911,6 +808,7 @@ func (*SingularType_Any) isSingularType_Type() {}
 
 func (*SingularType_OpaqueHandle) isSingularType_Type() {}
 
+// RepeatedType is a list whose elements all have one singular type.
 type RepeatedType struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Element       *SingularType          `protobuf:"bytes,1,opt,name=element,proto3" json:"element,omitempty"`
@@ -920,7 +818,7 @@ type RepeatedType struct {
 
 func (x *RepeatedType) Reset() {
 	*x = RepeatedType{}
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[11]
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -932,7 +830,7 @@ func (x *RepeatedType) String() string {
 func (*RepeatedType) ProtoMessage() {}
 
 func (x *RepeatedType) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[11]
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -945,7 +843,7 @@ func (x *RepeatedType) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RepeatedType.ProtoReflect.Descriptor instead.
 func (*RepeatedType) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{11}
+	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *RepeatedType) GetElement() *SingularType {
@@ -955,6 +853,8 @@ func (x *RepeatedType) GetElement() *SingularType {
 	return nil
 }
 
+// MapType is a map to values of one singular type from scalar keys, which may not be NATURAL, BYTES,
+// FLOAT or DOUBLE.
 type MapType struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Key           *ScalarType            `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
@@ -965,7 +865,7 @@ type MapType struct {
 
 func (x *MapType) Reset() {
 	*x = MapType{}
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[12]
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -977,7 +877,7 @@ func (x *MapType) String() string {
 func (*MapType) ProtoMessage() {}
 
 func (x *MapType) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[12]
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -990,7 +890,7 @@ func (x *MapType) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MapType.ProtoReflect.Descriptor instead.
 func (*MapType) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{12}
+	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *MapType) GetKey() *ScalarType {
@@ -1007,33 +907,75 @@ func (x *MapType) GetValue() *SingularType {
 	return nil
 }
 
-type ValueType struct {
+// ScalarType is a value of one scalar kind.
+type ScalarType struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Kind          ScalarKind             `protobuf:"varint,1,opt,name=kind,proto3,enum=temporal.server.api.testpilot.v1.ScalarKind" json:"kind,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ScalarType) Reset() {
+	*x = ScalarType{}
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ScalarType) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ScalarType) ProtoMessage() {}
+
+func (x *ScalarType) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ScalarType.ProtoReflect.Descriptor instead.
+func (*ScalarType) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *ScalarType) GetKind() ScalarKind {
+	if x != nil {
+		return x.Kind
+	}
+	return SCALAR_KIND_UNSPECIFIED
+}
+
+// NamedType is a protobuf enum or message type in the Profile's descriptor Catalog.
+type NamedType struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Types that are valid to be assigned to Shape:
-	//
-	//	*ValueType_Singular
-	//	*ValueType_Repeated
-	//	*ValueType_Map
-	Shape         isValueType_Shape `protobuf_oneof:"shape"`
+	// The fully qualified protobuf name, without a leading dot.
+	ProtobufType  string `protobuf:"bytes,1,opt,name=protobuf_type,json=protobufType,proto3" json:"protobuf_type,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ValueType) Reset() {
-	*x = ValueType{}
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[13]
+func (x *NamedType) Reset() {
+	*x = NamedType{}
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ValueType) String() string {
+func (x *NamedType) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ValueType) ProtoMessage() {}
+func (*NamedType) ProtoMessage() {}
 
-func (x *ValueType) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[13]
+func (x *NamedType) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1044,230 +986,145 @@ func (x *ValueType) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ValueType.ProtoReflect.Descriptor instead.
-func (*ValueType) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{13}
+// Deprecated: Use NamedType.ProtoReflect.Descriptor instead.
+func (*NamedType) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{10}
 }
 
-func (x *ValueType) GetShape() isValueType_Shape {
+func (x *NamedType) GetProtobufType() string {
 	if x != nil {
-		return x.Shape
-	}
-	return nil
-}
-
-func (x *ValueType) GetSingular() *SingularType {
-	if x != nil {
-		if x, ok := x.Shape.(*ValueType_Singular); ok {
-			return x.Singular
-		}
-	}
-	return nil
-}
-
-func (x *ValueType) GetRepeated() *RepeatedType {
-	if x != nil {
-		if x, ok := x.Shape.(*ValueType_Repeated); ok {
-			return x.Repeated
-		}
-	}
-	return nil
-}
-
-func (x *ValueType) GetMap() *MapType {
-	if x != nil {
-		if x, ok := x.Shape.(*ValueType_Map); ok {
-			return x.Map
-		}
-	}
-	return nil
-}
-
-type isValueType_Shape interface {
-	isValueType_Shape()
-}
-
-type ValueType_Singular struct {
-	Singular *SingularType `protobuf:"bytes,1,opt,name=singular,proto3,oneof"`
-}
-
-type ValueType_Repeated struct {
-	Repeated *RepeatedType `protobuf:"bytes,2,opt,name=repeated,proto3,oneof"`
-}
-
-type ValueType_Map struct {
-	Map *MapType `protobuf:"bytes,3,opt,name=map,proto3,oneof"`
-}
-
-func (*ValueType_Singular) isValueType_Shape() {}
-
-func (*ValueType_Repeated) isValueType_Shape() {}
-
-func (*ValueType_Map) isValueType_Shape() {}
-
-type RepeatedWildcard struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *RepeatedWildcard) Reset() {
-	*x = RepeatedWildcard{}
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[14]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *RepeatedWildcard) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RepeatedWildcard) ProtoMessage() {}
-
-func (x *RepeatedWildcard) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[14]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RepeatedWildcard.ProtoReflect.Descriptor instead.
-func (*RepeatedWildcard) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{14}
-}
-
-type MapKeySelector struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Key           *Value                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *MapKeySelector) Reset() {
-	*x = MapKeySelector{}
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[15]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *MapKeySelector) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*MapKeySelector) ProtoMessage() {}
-
-func (x *MapKeySelector) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[15]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use MapKeySelector.ProtoReflect.Descriptor instead.
-func (*MapKeySelector) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{15}
-}
-
-func (x *MapKeySelector) GetKey() *Value {
-	if x != nil {
-		return x.Key
-	}
-	return nil
-}
-
-type PresenceSelector struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *PresenceSelector) Reset() {
-	*x = PresenceSelector{}
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[16]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *PresenceSelector) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*PresenceSelector) ProtoMessage() {}
-
-func (x *PresenceSelector) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[16]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use PresenceSelector.ProtoReflect.Descriptor instead.
-func (*PresenceSelector) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{16}
-}
-
-type OneofSelector struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	SelectedField string                 `protobuf:"bytes,1,opt,name=selected_field,json=selectedField,proto3" json:"selected_field,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *OneofSelector) Reset() {
-	*x = OneofSelector{}
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[17]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *OneofSelector) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*OneofSelector) ProtoMessage() {}
-
-func (x *OneofSelector) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[17]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use OneofSelector.ProtoReflect.Descriptor instead.
-func (*OneofSelector) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{17}
-}
-
-func (x *OneofSelector) GetSelectedField() string {
-	if x != nil {
-		return x.SelectedField
+		return x.ProtobufType
 	}
 	return ""
 }
 
+// AnyType is a whole google.protobuf.Any value of any type URL. Its payload is not checked, and no
+// path reads into it.
+type AnyType struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AnyType) Reset() {
+	*x = AnyType{}
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AnyType) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AnyType) ProtoMessage() {}
+
+func (x *AnyType) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AnyType.ProtoReflect.Descriptor instead.
+func (*AnyType) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{11}
+}
+
+// OpaqueHandleType is an effect handle a Driver issued. It cannot be a literal, an Observation or a
+// collection element, and no expression reads into it.
+type OpaqueHandleType struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *OpaqueHandleType) Reset() {
+	*x = OpaqueHandleType{}
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OpaqueHandleType) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OpaqueHandleType) ProtoMessage() {}
+
+func (x *OpaqueHandleType) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OpaqueHandleType.ProtoReflect.Descriptor instead.
+func (*OpaqueHandleType) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{12}
+}
+
+// FieldPath addresses a value inside a protobuf message, one segment per field. An empty path
+// addresses the whole value.
+type FieldPath struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Segments      []*FieldPathSegment    `protobuf:"bytes,1,rep,name=segments,proto3" json:"segments,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FieldPath) Reset() {
+	*x = FieldPath{}
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FieldPath) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FieldPath) ProtoMessage() {}
+
+func (x *FieldPath) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FieldPath.ProtoReflect.Descriptor instead.
+func (*FieldPath) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *FieldPath) GetSegments() []*FieldPathSegment {
+	if x != nil {
+		return x.Segments
+	}
+	return nil
+}
+
+// FieldPathSegment reads one field and optionally selects inside it.
 type FieldPathSegment struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	Field string                 `protobuf:"bytes,1,opt,name=field,proto3" json:"field,omitempty"`
+	// The protobuf field name, not its JSON name; with a oneof selector, the name of the oneof.
+	Field string `protobuf:"bytes,1,opt,name=field,proto3" json:"field,omitempty"`
 	// Types that are valid to be assigned to Selector:
 	//
 	//	*FieldPathSegment_Repeated
@@ -1281,7 +1138,7 @@ type FieldPathSegment struct {
 
 func (x *FieldPathSegment) Reset() {
 	*x = FieldPathSegment{}
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[18]
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1293,7 +1150,7 @@ func (x *FieldPathSegment) String() string {
 func (*FieldPathSegment) ProtoMessage() {}
 
 func (x *FieldPathSegment) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[18]
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1306,7 +1163,7 @@ func (x *FieldPathSegment) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FieldPathSegment.ProtoReflect.Descriptor instead.
 func (*FieldPathSegment) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{18}
+	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *FieldPathSegment) GetField() string {
@@ -1387,28 +1244,28 @@ func (*FieldPathSegment_Presence) isFieldPathSegment_Selector() {}
 
 func (*FieldPathSegment_Oneof) isFieldPathSegment_Selector() {}
 
-type FieldPath struct {
+// RepeatedWildcard fans out over every element of a repeated field, so the path's value is a list.
+type RepeatedWildcard struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Segments      []*FieldPathSegment    `protobuf:"bytes,1,rep,name=segments,proto3" json:"segments,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *FieldPath) Reset() {
-	*x = FieldPath{}
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[19]
+func (x *RepeatedWildcard) Reset() {
+	*x = RepeatedWildcard{}
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *FieldPath) String() string {
+func (x *RepeatedWildcard) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*FieldPath) ProtoMessage() {}
+func (*RepeatedWildcard) ProtoMessage() {}
 
-func (x *FieldPath) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[19]
+func (x *RepeatedWildcard) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1419,45 +1276,79 @@ func (x *FieldPath) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use FieldPath.ProtoReflect.Descriptor instead.
-func (*FieldPath) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{19}
+// Deprecated: Use RepeatedWildcard.ProtoReflect.Descriptor instead.
+func (*RepeatedWildcard) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{15}
 }
 
-func (x *FieldPath) GetSegments() []*FieldPathSegment {
+// MapKeySelector reads the entry of a map field with this key, absent when no entry has it.
+type MapKeySelector struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Key           *Value                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *MapKeySelector) Reset() {
+	*x = MapKeySelector{}
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MapKeySelector) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MapKeySelector) ProtoMessage() {}
+
+func (x *MapKeySelector) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[16]
 	if x != nil {
-		return x.Segments
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use MapKeySelector.ProtoReflect.Descriptor instead.
+func (*MapKeySelector) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *MapKeySelector) GetKey() *Value {
+	if x != nil {
+		return x.Key
 	}
 	return nil
 }
 
-type Slot struct {
-	state  protoimpl.MessageState `protogen:"open.v1"`
-	SlotId string                 `protobuf:"bytes,1,opt,name=slot_id,json=slotId,proto3" json:"slot_id,omitempty"`
-	// Types that are valid to be assigned to Content:
-	//
-	//	*Slot_Value
-	//	*Slot_OpaqueHandle
-	Content       isSlot_Content `protobuf_oneof:"content"`
+// PresenceSelector reads whether a presence-tracking field is set, as a boolean. Only a path's last
+// segment may select presence.
+type PresenceSelector struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *Slot) Reset() {
-	*x = Slot{}
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[20]
+func (x *PresenceSelector) Reset() {
+	*x = PresenceSelector{}
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *Slot) String() string {
+func (x *PresenceSelector) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Slot) ProtoMessage() {}
+func (*PresenceSelector) ProtoMessage() {}
 
-func (x *Slot) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[20]
+func (x *PresenceSelector) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1468,126 +1359,61 @@ func (x *Slot) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Slot.ProtoReflect.Descriptor instead.
-func (*Slot) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{20}
+// Deprecated: Use PresenceSelector.ProtoReflect.Descriptor instead.
+func (*PresenceSelector) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{17}
 }
 
-func (x *Slot) GetSlotId() string {
+// OneofSelector reads the member selected_field of the oneof the segment names.
+type OneofSelector struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SelectedField string                 `protobuf:"bytes,1,opt,name=selected_field,json=selectedField,proto3" json:"selected_field,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *OneofSelector) Reset() {
+	*x = OneofSelector{}
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OneofSelector) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OneofSelector) ProtoMessage() {}
+
+func (x *OneofSelector) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[18]
 	if x != nil {
-		return x.SlotId
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OneofSelector.ProtoReflect.Descriptor instead.
+func (*OneofSelector) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *OneofSelector) GetSelectedField() string {
+	if x != nil {
+		return x.SelectedField
 	}
 	return ""
-}
-
-func (x *Slot) GetContent() isSlot_Content {
-	if x != nil {
-		return x.Content
-	}
-	return nil
-}
-
-func (x *Slot) GetValue() *ValueType {
-	if x != nil {
-		if x, ok := x.Content.(*Slot_Value); ok {
-			return x.Value
-		}
-	}
-	return nil
-}
-
-func (x *Slot) GetOpaqueHandle() *OpaqueHandleType {
-	if x != nil {
-		if x, ok := x.Content.(*Slot_OpaqueHandle); ok {
-			return x.OpaqueHandle
-		}
-	}
-	return nil
-}
-
-type isSlot_Content interface {
-	isSlot_Content()
-}
-
-type Slot_Value struct {
-	Value *ValueType `protobuf:"bytes,2,opt,name=value,proto3,oneof"`
-}
-
-type Slot_OpaqueHandle struct {
-	OpaqueHandle *OpaqueHandleType `protobuf:"bytes,3,opt,name=opaque_handle,json=opaqueHandle,proto3,oneof"`
-}
-
-func (*Slot_Value) isSlot_Content() {}
-
-func (*Slot_OpaqueHandle) isSlot_Content() {}
-
-type Observation struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	ObservationId string                 `protobuf:"bytes,1,opt,name=observation_id,json=observationId,proto3" json:"observation_id,omitempty"`
-	Type          *ValueType             `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *Observation) Reset() {
-	*x = Observation{}
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[21]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *Observation) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Observation) ProtoMessage() {}
-
-func (x *Observation) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[21]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use Observation.ProtoReflect.Descriptor instead.
-func (*Observation) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{21}
-}
-
-func (x *Observation) GetObservationId() string {
-	if x != nil {
-		return x.ObservationId
-	}
-	return ""
-}
-
-func (x *Observation) GetType() *ValueType {
-	if x != nil {
-		return x.Type
-	}
-	return nil
 }
 
 var File_temporal_server_api_testpilot_v1_value_proto protoreflect.FileDescriptor
 
 const file_temporal_server_api_testpilot_v1_value_proto_rawDesc = "" +
 	"\n" +
-	",temporal/server/api/testpilot/v1/value.proto\x12 temporal.server.api.testpilot.v1\x1a\x19google/protobuf/any.proto\";\n" +
-	"\rFormatVersion\x12\x14\n" +
-	"\x05major\x18\x01 \x01(\x05R\x05major\x12\x14\n" +
-	"\x05minor\x18\x02 \x01(\x05R\x05minor\"#\n" +
-	"\tEnumValue\x12\x16\n" +
-	"\x06number\x18\x01 \x01(\x05R\x06number\"L\n" +
-	"\tValueList\x12?\n" +
-	"\x06values\x18\x01 \x03(\v2'.temporal.server.api.testpilot.v1.ValueR\x06values\"\x89\x01\n" +
-	"\rValueMapEntry\x129\n" +
-	"\x03key\x18\x01 \x01(\v2'.temporal.server.api.testpilot.v1.ValueR\x03key\x12=\n" +
-	"\x05value\x18\x02 \x01(\v2'.temporal.server.api.testpilot.v1.ValueR\x05value\"\xe0\x04\n" +
+	",temporal/server/api/testpilot/v1/value.proto\x12 temporal.server.api.testpilot.v1\x1a\x19google/protobuf/any.proto\"\xe0\x04\n" +
 	"\x05Value\x12\x1f\n" +
 	"\n" +
 	"text_value\x18\x01 \x01(\tH\x00R\ttextValue\x12%\n" +
@@ -1606,16 +1432,21 @@ const file_temporal_server_api_testpilot_v1_value_proto_rawDesc = "" +
 	"list_value\x18\n" +
 	" \x01(\v2+.temporal.server.api.testpilot.v1.ValueListH\x00R\tlistValue\x12I\n" +
 	"\tmap_value\x18\v \x01(\v2*.temporal.server.api.testpilot.v1.ValueMapH\x00R\bmapValueB\a\n" +
-	"\x05value\"U\n" +
+	"\x05value\"#\n" +
+	"\tEnumValue\x12\x16\n" +
+	"\x06number\x18\x01 \x01(\x05R\x06number\"L\n" +
+	"\tValueList\x12?\n" +
+	"\x06values\x18\x01 \x03(\v2'.temporal.server.api.testpilot.v1.ValueR\x06values\"U\n" +
 	"\bValueMap\x12I\n" +
-	"\aentries\x18\x01 \x03(\v2/.temporal.server.api.testpilot.v1.ValueMapEntryR\aentries\"N\n" +
-	"\n" +
-	"ScalarType\x12@\n" +
-	"\x04kind\x18\x01 \x01(\x0e2,.temporal.server.api.testpilot.v1.ScalarKindR\x04kind\"0\n" +
-	"\tNamedType\x12#\n" +
-	"\rprotobuf_type\x18\x01 \x01(\tR\fprotobufType\"\t\n" +
-	"\aAnyType\"\x12\n" +
-	"\x10OpaqueHandleType\"\x92\x03\n" +
+	"\aentries\x18\x01 \x03(\v2/.temporal.server.api.testpilot.v1.ValueMapEntryR\aentries\"\x89\x01\n" +
+	"\rValueMapEntry\x129\n" +
+	"\x03key\x18\x01 \x01(\v2'.temporal.server.api.testpilot.v1.ValueR\x03key\x12=\n" +
+	"\x05value\x18\x02 \x01(\v2'.temporal.server.api.testpilot.v1.ValueR\x05value\"\xef\x01\n" +
+	"\tValueType\x12L\n" +
+	"\bsingular\x18\x01 \x01(\v2..temporal.server.api.testpilot.v1.SingularTypeH\x00R\bsingular\x12L\n" +
+	"\brepeated\x18\x02 \x01(\v2..temporal.server.api.testpilot.v1.RepeatedTypeH\x00R\brepeated\x12=\n" +
+	"\x03map\x18\x03 \x01(\v2).temporal.server.api.testpilot.v1.MapTypeH\x00R\x03mapB\a\n" +
+	"\x05shape\"\x92\x03\n" +
 	"\fSingularType\x12F\n" +
 	"\x06scalar\x18\x01 \x01(\v2,.temporal.server.api.testpilot.v1.ScalarTypeH\x00R\x06scalar\x12O\n" +
 	"\venumeration\x18\x02 \x01(\v2+.temporal.server.api.testpilot.v1.NamedTypeH\x00R\venumeration\x12G\n" +
@@ -1627,18 +1458,16 @@ const file_temporal_server_api_testpilot_v1_value_proto_rawDesc = "" +
 	"\aelement\x18\x01 \x01(\v2..temporal.server.api.testpilot.v1.SingularTypeR\aelement\"\x8f\x01\n" +
 	"\aMapType\x12>\n" +
 	"\x03key\x18\x01 \x01(\v2,.temporal.server.api.testpilot.v1.ScalarTypeR\x03key\x12D\n" +
-	"\x05value\x18\x02 \x01(\v2..temporal.server.api.testpilot.v1.SingularTypeR\x05value\"\xef\x01\n" +
-	"\tValueType\x12L\n" +
-	"\bsingular\x18\x01 \x01(\v2..temporal.server.api.testpilot.v1.SingularTypeH\x00R\bsingular\x12L\n" +
-	"\brepeated\x18\x02 \x01(\v2..temporal.server.api.testpilot.v1.RepeatedTypeH\x00R\brepeated\x12=\n" +
-	"\x03map\x18\x03 \x01(\v2).temporal.server.api.testpilot.v1.MapTypeH\x00R\x03mapB\a\n" +
-	"\x05shape\"\x12\n" +
-	"\x10RepeatedWildcard\"K\n" +
-	"\x0eMapKeySelector\x129\n" +
-	"\x03key\x18\x01 \x01(\v2'.temporal.server.api.testpilot.v1.ValueR\x03key\"\x12\n" +
-	"\x10PresenceSelector\"6\n" +
-	"\rOneofSelector\x12%\n" +
-	"\x0eselected_field\x18\x01 \x01(\tR\rselectedField\"\xee\x02\n" +
+	"\x05value\x18\x02 \x01(\v2..temporal.server.api.testpilot.v1.SingularTypeR\x05value\"N\n" +
+	"\n" +
+	"ScalarType\x12@\n" +
+	"\x04kind\x18\x01 \x01(\x0e2,.temporal.server.api.testpilot.v1.ScalarKindR\x04kind\"0\n" +
+	"\tNamedType\x12#\n" +
+	"\rprotobuf_type\x18\x01 \x01(\tR\fprotobufType\"\t\n" +
+	"\aAnyType\"\x12\n" +
+	"\x10OpaqueHandleType\"[\n" +
+	"\tFieldPath\x12N\n" +
+	"\bsegments\x18\x01 \x03(\v22.temporal.server.api.testpilot.v1.FieldPathSegmentR\bsegments\"\xee\x02\n" +
 	"\x10FieldPathSegment\x12\x14\n" +
 	"\x05field\x18\x01 \x01(\tR\x05field\x12P\n" +
 	"\brepeated\x18\x02 \x01(\v22.temporal.server.api.testpilot.v1.RepeatedWildcardH\x00R\brepeated\x12K\n" +
@@ -1646,17 +1475,13 @@ const file_temporal_server_api_testpilot_v1_value_proto_rawDesc = "" +
 	"\bpresence\x18\x04 \x01(\v22.temporal.server.api.testpilot.v1.PresenceSelectorH\x00R\bpresence\x12G\n" +
 	"\x05oneof\x18\x05 \x01(\v2/.temporal.server.api.testpilot.v1.OneofSelectorH\x00R\x05oneofB\n" +
 	"\n" +
-	"\bselector\"[\n" +
-	"\tFieldPath\x12N\n" +
-	"\bsegments\x18\x01 \x03(\v22.temporal.server.api.testpilot.v1.FieldPathSegmentR\bsegments\"\xca\x01\n" +
-	"\x04Slot\x12\x17\n" +
-	"\aslot_id\x18\x01 \x01(\tR\x06slotId\x12C\n" +
-	"\x05value\x18\x02 \x01(\v2+.temporal.server.api.testpilot.v1.ValueTypeH\x00R\x05value\x12Y\n" +
-	"\ropaque_handle\x18\x03 \x01(\v22.temporal.server.api.testpilot.v1.OpaqueHandleTypeH\x00R\fopaqueHandleB\t\n" +
-	"\acontent\"u\n" +
-	"\vObservation\x12%\n" +
-	"\x0eobservation_id\x18\x01 \x01(\tR\robservationId\x12?\n" +
-	"\x04type\x18\x02 \x01(\v2+.temporal.server.api.testpilot.v1.ValueTypeR\x04type*\xab\x03\n" +
+	"\bselector\"\x12\n" +
+	"\x10RepeatedWildcard\"K\n" +
+	"\x0eMapKeySelector\x129\n" +
+	"\x03key\x18\x01 \x01(\v2'.temporal.server.api.testpilot.v1.ValueR\x03key\"\x12\n" +
+	"\x10PresenceSelector\"6\n" +
+	"\rOneofSelector\x12%\n" +
+	"\x0eselected_field\x18\x01 \x01(\tR\rselectedField*\xab\x03\n" +
 	"\n" +
 	"ScalarKind\x12\x1b\n" +
 	"\x17SCALAR_KIND_UNSPECIFIED\x10\x00\x12\x14\n" +
@@ -1691,68 +1516,62 @@ func file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP() []byte {
 }
 
 var file_temporal_server_api_testpilot_v1_value_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_temporal_server_api_testpilot_v1_value_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
+var file_temporal_server_api_testpilot_v1_value_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
 var file_temporal_server_api_testpilot_v1_value_proto_goTypes = []any{
 	(ScalarKind)(0),          // 0: temporal.server.api.testpilot.v1.ScalarKind
-	(*FormatVersion)(nil),    // 1: temporal.server.api.testpilot.v1.FormatVersion
+	(*Value)(nil),            // 1: temporal.server.api.testpilot.v1.Value
 	(*EnumValue)(nil),        // 2: temporal.server.api.testpilot.v1.EnumValue
 	(*ValueList)(nil),        // 3: temporal.server.api.testpilot.v1.ValueList
-	(*ValueMapEntry)(nil),    // 4: temporal.server.api.testpilot.v1.ValueMapEntry
-	(*Value)(nil),            // 5: temporal.server.api.testpilot.v1.Value
-	(*ValueMap)(nil),         // 6: temporal.server.api.testpilot.v1.ValueMap
-	(*ScalarType)(nil),       // 7: temporal.server.api.testpilot.v1.ScalarType
-	(*NamedType)(nil),        // 8: temporal.server.api.testpilot.v1.NamedType
-	(*AnyType)(nil),          // 9: temporal.server.api.testpilot.v1.AnyType
-	(*OpaqueHandleType)(nil), // 10: temporal.server.api.testpilot.v1.OpaqueHandleType
-	(*SingularType)(nil),     // 11: temporal.server.api.testpilot.v1.SingularType
-	(*RepeatedType)(nil),     // 12: temporal.server.api.testpilot.v1.RepeatedType
-	(*MapType)(nil),          // 13: temporal.server.api.testpilot.v1.MapType
-	(*ValueType)(nil),        // 14: temporal.server.api.testpilot.v1.ValueType
-	(*RepeatedWildcard)(nil), // 15: temporal.server.api.testpilot.v1.RepeatedWildcard
-	(*MapKeySelector)(nil),   // 16: temporal.server.api.testpilot.v1.MapKeySelector
-	(*PresenceSelector)(nil), // 17: temporal.server.api.testpilot.v1.PresenceSelector
-	(*OneofSelector)(nil),    // 18: temporal.server.api.testpilot.v1.OneofSelector
-	(*FieldPathSegment)(nil), // 19: temporal.server.api.testpilot.v1.FieldPathSegment
-	(*FieldPath)(nil),        // 20: temporal.server.api.testpilot.v1.FieldPath
-	(*Slot)(nil),             // 21: temporal.server.api.testpilot.v1.Slot
-	(*Observation)(nil),      // 22: temporal.server.api.testpilot.v1.Observation
-	(*anypb.Any)(nil),        // 23: google.protobuf.Any
+	(*ValueMap)(nil),         // 4: temporal.server.api.testpilot.v1.ValueMap
+	(*ValueMapEntry)(nil),    // 5: temporal.server.api.testpilot.v1.ValueMapEntry
+	(*ValueType)(nil),        // 6: temporal.server.api.testpilot.v1.ValueType
+	(*SingularType)(nil),     // 7: temporal.server.api.testpilot.v1.SingularType
+	(*RepeatedType)(nil),     // 8: temporal.server.api.testpilot.v1.RepeatedType
+	(*MapType)(nil),          // 9: temporal.server.api.testpilot.v1.MapType
+	(*ScalarType)(nil),       // 10: temporal.server.api.testpilot.v1.ScalarType
+	(*NamedType)(nil),        // 11: temporal.server.api.testpilot.v1.NamedType
+	(*AnyType)(nil),          // 12: temporal.server.api.testpilot.v1.AnyType
+	(*OpaqueHandleType)(nil), // 13: temporal.server.api.testpilot.v1.OpaqueHandleType
+	(*FieldPath)(nil),        // 14: temporal.server.api.testpilot.v1.FieldPath
+	(*FieldPathSegment)(nil), // 15: temporal.server.api.testpilot.v1.FieldPathSegment
+	(*RepeatedWildcard)(nil), // 16: temporal.server.api.testpilot.v1.RepeatedWildcard
+	(*MapKeySelector)(nil),   // 17: temporal.server.api.testpilot.v1.MapKeySelector
+	(*PresenceSelector)(nil), // 18: temporal.server.api.testpilot.v1.PresenceSelector
+	(*OneofSelector)(nil),    // 19: temporal.server.api.testpilot.v1.OneofSelector
+	(*anypb.Any)(nil),        // 20: google.protobuf.Any
 }
 var file_temporal_server_api_testpilot_v1_value_proto_depIdxs = []int32{
-	5,  // 0: temporal.server.api.testpilot.v1.ValueList.values:type_name -> temporal.server.api.testpilot.v1.Value
-	5,  // 1: temporal.server.api.testpilot.v1.ValueMapEntry.key:type_name -> temporal.server.api.testpilot.v1.Value
-	5,  // 2: temporal.server.api.testpilot.v1.ValueMapEntry.value:type_name -> temporal.server.api.testpilot.v1.Value
-	2,  // 3: temporal.server.api.testpilot.v1.Value.enum_value:type_name -> temporal.server.api.testpilot.v1.EnumValue
-	23, // 4: temporal.server.api.testpilot.v1.Value.message_value:type_name -> google.protobuf.Any
-	3,  // 5: temporal.server.api.testpilot.v1.Value.list_value:type_name -> temporal.server.api.testpilot.v1.ValueList
-	6,  // 6: temporal.server.api.testpilot.v1.Value.map_value:type_name -> temporal.server.api.testpilot.v1.ValueMap
-	4,  // 7: temporal.server.api.testpilot.v1.ValueMap.entries:type_name -> temporal.server.api.testpilot.v1.ValueMapEntry
-	0,  // 8: temporal.server.api.testpilot.v1.ScalarType.kind:type_name -> temporal.server.api.testpilot.v1.ScalarKind
-	7,  // 9: temporal.server.api.testpilot.v1.SingularType.scalar:type_name -> temporal.server.api.testpilot.v1.ScalarType
-	8,  // 10: temporal.server.api.testpilot.v1.SingularType.enumeration:type_name -> temporal.server.api.testpilot.v1.NamedType
-	8,  // 11: temporal.server.api.testpilot.v1.SingularType.message:type_name -> temporal.server.api.testpilot.v1.NamedType
-	9,  // 12: temporal.server.api.testpilot.v1.SingularType.any:type_name -> temporal.server.api.testpilot.v1.AnyType
-	10, // 13: temporal.server.api.testpilot.v1.SingularType.opaque_handle:type_name -> temporal.server.api.testpilot.v1.OpaqueHandleType
-	11, // 14: temporal.server.api.testpilot.v1.RepeatedType.element:type_name -> temporal.server.api.testpilot.v1.SingularType
-	7,  // 15: temporal.server.api.testpilot.v1.MapType.key:type_name -> temporal.server.api.testpilot.v1.ScalarType
-	11, // 16: temporal.server.api.testpilot.v1.MapType.value:type_name -> temporal.server.api.testpilot.v1.SingularType
-	11, // 17: temporal.server.api.testpilot.v1.ValueType.singular:type_name -> temporal.server.api.testpilot.v1.SingularType
-	12, // 18: temporal.server.api.testpilot.v1.ValueType.repeated:type_name -> temporal.server.api.testpilot.v1.RepeatedType
-	13, // 19: temporal.server.api.testpilot.v1.ValueType.map:type_name -> temporal.server.api.testpilot.v1.MapType
-	5,  // 20: temporal.server.api.testpilot.v1.MapKeySelector.key:type_name -> temporal.server.api.testpilot.v1.Value
-	15, // 21: temporal.server.api.testpilot.v1.FieldPathSegment.repeated:type_name -> temporal.server.api.testpilot.v1.RepeatedWildcard
-	16, // 22: temporal.server.api.testpilot.v1.FieldPathSegment.map_key:type_name -> temporal.server.api.testpilot.v1.MapKeySelector
-	17, // 23: temporal.server.api.testpilot.v1.FieldPathSegment.presence:type_name -> temporal.server.api.testpilot.v1.PresenceSelector
-	18, // 24: temporal.server.api.testpilot.v1.FieldPathSegment.oneof:type_name -> temporal.server.api.testpilot.v1.OneofSelector
-	19, // 25: temporal.server.api.testpilot.v1.FieldPath.segments:type_name -> temporal.server.api.testpilot.v1.FieldPathSegment
-	14, // 26: temporal.server.api.testpilot.v1.Slot.value:type_name -> temporal.server.api.testpilot.v1.ValueType
-	10, // 27: temporal.server.api.testpilot.v1.Slot.opaque_handle:type_name -> temporal.server.api.testpilot.v1.OpaqueHandleType
-	14, // 28: temporal.server.api.testpilot.v1.Observation.type:type_name -> temporal.server.api.testpilot.v1.ValueType
-	29, // [29:29] is the sub-list for method output_type
-	29, // [29:29] is the sub-list for method input_type
-	29, // [29:29] is the sub-list for extension type_name
-	29, // [29:29] is the sub-list for extension extendee
-	0,  // [0:29] is the sub-list for field type_name
+	2,  // 0: temporal.server.api.testpilot.v1.Value.enum_value:type_name -> temporal.server.api.testpilot.v1.EnumValue
+	20, // 1: temporal.server.api.testpilot.v1.Value.message_value:type_name -> google.protobuf.Any
+	3,  // 2: temporal.server.api.testpilot.v1.Value.list_value:type_name -> temporal.server.api.testpilot.v1.ValueList
+	4,  // 3: temporal.server.api.testpilot.v1.Value.map_value:type_name -> temporal.server.api.testpilot.v1.ValueMap
+	1,  // 4: temporal.server.api.testpilot.v1.ValueList.values:type_name -> temporal.server.api.testpilot.v1.Value
+	5,  // 5: temporal.server.api.testpilot.v1.ValueMap.entries:type_name -> temporal.server.api.testpilot.v1.ValueMapEntry
+	1,  // 6: temporal.server.api.testpilot.v1.ValueMapEntry.key:type_name -> temporal.server.api.testpilot.v1.Value
+	1,  // 7: temporal.server.api.testpilot.v1.ValueMapEntry.value:type_name -> temporal.server.api.testpilot.v1.Value
+	7,  // 8: temporal.server.api.testpilot.v1.ValueType.singular:type_name -> temporal.server.api.testpilot.v1.SingularType
+	8,  // 9: temporal.server.api.testpilot.v1.ValueType.repeated:type_name -> temporal.server.api.testpilot.v1.RepeatedType
+	9,  // 10: temporal.server.api.testpilot.v1.ValueType.map:type_name -> temporal.server.api.testpilot.v1.MapType
+	10, // 11: temporal.server.api.testpilot.v1.SingularType.scalar:type_name -> temporal.server.api.testpilot.v1.ScalarType
+	11, // 12: temporal.server.api.testpilot.v1.SingularType.enumeration:type_name -> temporal.server.api.testpilot.v1.NamedType
+	11, // 13: temporal.server.api.testpilot.v1.SingularType.message:type_name -> temporal.server.api.testpilot.v1.NamedType
+	12, // 14: temporal.server.api.testpilot.v1.SingularType.any:type_name -> temporal.server.api.testpilot.v1.AnyType
+	13, // 15: temporal.server.api.testpilot.v1.SingularType.opaque_handle:type_name -> temporal.server.api.testpilot.v1.OpaqueHandleType
+	7,  // 16: temporal.server.api.testpilot.v1.RepeatedType.element:type_name -> temporal.server.api.testpilot.v1.SingularType
+	10, // 17: temporal.server.api.testpilot.v1.MapType.key:type_name -> temporal.server.api.testpilot.v1.ScalarType
+	7,  // 18: temporal.server.api.testpilot.v1.MapType.value:type_name -> temporal.server.api.testpilot.v1.SingularType
+	0,  // 19: temporal.server.api.testpilot.v1.ScalarType.kind:type_name -> temporal.server.api.testpilot.v1.ScalarKind
+	15, // 20: temporal.server.api.testpilot.v1.FieldPath.segments:type_name -> temporal.server.api.testpilot.v1.FieldPathSegment
+	16, // 21: temporal.server.api.testpilot.v1.FieldPathSegment.repeated:type_name -> temporal.server.api.testpilot.v1.RepeatedWildcard
+	17, // 22: temporal.server.api.testpilot.v1.FieldPathSegment.map_key:type_name -> temporal.server.api.testpilot.v1.MapKeySelector
+	18, // 23: temporal.server.api.testpilot.v1.FieldPathSegment.presence:type_name -> temporal.server.api.testpilot.v1.PresenceSelector
+	19, // 24: temporal.server.api.testpilot.v1.FieldPathSegment.oneof:type_name -> temporal.server.api.testpilot.v1.OneofSelector
+	1,  // 25: temporal.server.api.testpilot.v1.MapKeySelector.key:type_name -> temporal.server.api.testpilot.v1.Value
+	26, // [26:26] is the sub-list for method output_type
+	26, // [26:26] is the sub-list for method input_type
+	26, // [26:26] is the sub-list for extension type_name
+	26, // [26:26] is the sub-list for extension extendee
+	0,  // [0:26] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_testpilot_v1_value_proto_init() }
@@ -1760,7 +1579,7 @@ func file_temporal_server_api_testpilot_v1_value_proto_init() {
 	if File_temporal_server_api_testpilot_v1_value_proto != nil {
 		return
 	}
-	file_temporal_server_api_testpilot_v1_value_proto_msgTypes[4].OneofWrappers = []any{
+	file_temporal_server_api_testpilot_v1_value_proto_msgTypes[0].OneofWrappers = []any{
 		(*Value_TextValue)(nil),
 		(*Value_NaturalValue)(nil),
 		(*Value_BoolValue)(nil),
@@ -1773,27 +1592,23 @@ func file_temporal_server_api_testpilot_v1_value_proto_init() {
 		(*Value_ListValue)(nil),
 		(*Value_MapValue)(nil),
 	}
-	file_temporal_server_api_testpilot_v1_value_proto_msgTypes[10].OneofWrappers = []any{
+	file_temporal_server_api_testpilot_v1_value_proto_msgTypes[5].OneofWrappers = []any{
+		(*ValueType_Singular)(nil),
+		(*ValueType_Repeated)(nil),
+		(*ValueType_Map)(nil),
+	}
+	file_temporal_server_api_testpilot_v1_value_proto_msgTypes[6].OneofWrappers = []any{
 		(*SingularType_Scalar)(nil),
 		(*SingularType_Enumeration)(nil),
 		(*SingularType_Message)(nil),
 		(*SingularType_Any)(nil),
 		(*SingularType_OpaqueHandle)(nil),
 	}
-	file_temporal_server_api_testpilot_v1_value_proto_msgTypes[13].OneofWrappers = []any{
-		(*ValueType_Singular)(nil),
-		(*ValueType_Repeated)(nil),
-		(*ValueType_Map)(nil),
-	}
-	file_temporal_server_api_testpilot_v1_value_proto_msgTypes[18].OneofWrappers = []any{
+	file_temporal_server_api_testpilot_v1_value_proto_msgTypes[14].OneofWrappers = []any{
 		(*FieldPathSegment_Repeated)(nil),
 		(*FieldPathSegment_MapKey)(nil),
 		(*FieldPathSegment_Presence)(nil),
 		(*FieldPathSegment_Oneof)(nil),
-	}
-	file_temporal_server_api_testpilot_v1_value_proto_msgTypes[20].OneofWrappers = []any{
-		(*Slot_Value)(nil),
-		(*Slot_OpaqueHandle)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -1801,7 +1616,7 @@ func file_temporal_server_api_testpilot_v1_value_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_temporal_server_api_testpilot_v1_value_proto_rawDesc), len(file_temporal_server_api_testpilot_v1_value_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   22,
+			NumMessages:   19,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

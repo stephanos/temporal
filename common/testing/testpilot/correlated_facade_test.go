@@ -50,10 +50,10 @@ func correlatedFacadeInputs(t testing.TB, fixture correlatedFacadeFixture) (*tes
 
 func correlatedFacadeProfile(t testing.TB, source *testpilotspb.Case) testpilot.ProfileSpec {
 	t.Helper()
-	descriptors := facadeDescriptorClosure(testpilotspb.File_temporal_server_api_testpilot_v1_run_proto)
+	descriptors := facadeDescriptorClosure(testpilotspb.File_temporal_server_api_testpilot_v1_case_proto)
 	descriptors.File = append(descriptors.File, &descriptorpb.FileDescriptorProto{
 		Name: proto.String("test/correlated/source.proto"), Package: proto.String("test.correlated"), Syntax: proto.String("proto3"),
-		Dependency: []string{testpilotspb.File_temporal_server_api_testpilot_v1_run_proto.Path()},
+		Dependency: []string{testpilotspb.File_temporal_server_api_testpilot_v1_correlated_proto.Path()},
 		Service: []*descriptorpb.ServiceDescriptorProto{{Name: proto.String("Source"), Method: []*descriptorpb.MethodDescriptorProto{{
 			Name: proto.String("Read"), InputType: proto.String(".temporal.server.api.testpilot.v1.CorrelatedEvidence"), OutputType: proto.String(".temporal.server.api.testpilot.v1.CorrelatedEvidence"),
 		}}}},
