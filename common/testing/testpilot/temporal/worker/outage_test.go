@@ -80,7 +80,7 @@ func openOutage(t *testing.T, registry *workerRegistry, runID string, program te
 
 func programDefinitionFor(t *testing.T, program testpilot.PreparedProgram) programDefinition {
 	t.Helper()
-	definition, err := symbolicRuntimeDriver(t, program.Snapshot().GetLimits()).prepareDefinition(program)
+	definition, err := symbolicRuntimeDriver(t, program.Limits()).prepareDefinition(program)
 	require.NoError(t, err)
 	return definition
 }
@@ -133,7 +133,7 @@ func TestPreparedDefinitionPlansOutages(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			program := preparedSymbolicRuntimeFixture(t, tc.modifiers...)
-			host := symbolicRuntimeDriver(t, program.Snapshot().GetLimits())
+			host := symbolicRuntimeDriver(t, program.Limits())
 			definition, err := host.prepareDefinition(program)
 			if tc.wantErr != nil {
 				require.ErrorIs(t, err, tc.wantErr)

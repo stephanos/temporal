@@ -23,7 +23,7 @@ private def conformanceRule
 private def conformanceNode (instructionId : String) (guard : Option Expression := none) :
     InstructionNode :=
   Program.node instructionId (Program.invokeRpc workflowServiceRole getSystemInfoMethod)
-    bounds (guard := guard) (outcome := some statusOutcome)
+    (Program.instructionLimits 5000 1) (guard := guard) (outcome := some statusOutcome)
 
 private def conformanceProgram (caseId : String) (cleanupFailure : Bool)
     (guard : Option Expression) : Program :=
@@ -33,7 +33,6 @@ private def conformanceProgram (caseId : String) (cleanupFailure : Bool)
     #[Program.controller "controller" #[conformanceNode "execute" guard]]
     (Program.cleanup "cleanup"
       (if cleanupFailure then #[conformanceNode "fail-cleanup"] else #[]))
-    programLimits
 
 private def conformanceCase
     (caseId : String)
@@ -57,7 +56,6 @@ private def conformanceCase
     program := conformanceProgram caseId cleanupFailure guard
     contractId := caseId ++ ".contract"
     properties := [.monitor property (conformanceRule terminal matchesEvent)]
-    contractLimits
   }
 
 /-- Deterministic public-facade fixtures kept small enough for exact cross-language comparison. -/

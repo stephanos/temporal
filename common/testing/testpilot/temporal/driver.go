@@ -203,7 +203,7 @@ func (s *compositeSession) InvokeRPC(ctx context.Context, coordinate testpilot.C
 	if err != nil {
 		return nil, err
 	}
-	maximum := s.program.Snapshot().GetLimits().GetMaxRequestBytes()
+	maximum := s.program.Limits().GetMaxRequestBytes()
 	prepared, err := carrier.PrepareRPC(ctx, role, method, request, maximum)
 	if err != nil {
 		_, terminalErr := carrier.TriggerTerminal(ctx, delivery.TriggerRejected)
@@ -217,7 +217,7 @@ func (s *compositeSession) InvokeRPC(ctx context.Context, coordinate testpilot.C
 	s.mu.Lock()
 	delete(s.reservations, coordinate)
 	s.mu.Unlock()
-	cleanupTimeout := time.Duration(s.program.Snapshot().GetLimits().GetMaxCleanupDurationMilliseconds()) * time.Millisecond
+	cleanupTimeout := time.Duration(s.program.Limits().GetMaxCleanupDurationMilliseconds()) * time.Millisecond
 	return &carrierEffect{EffectHandle: handle, carrier: carrier, cleanupTimeout: cleanupTimeout}, nil
 }
 

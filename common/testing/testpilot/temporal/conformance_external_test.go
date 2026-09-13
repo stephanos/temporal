@@ -1,6 +1,8 @@
 package temporal_test
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -33,4 +35,25 @@ func TestWorkflowServiceCatalogPublicAPI(t *testing.T) {
 	catalog, err := temporal.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
 	require.NotEmpty(t, catalog.Identity())
+}
+
+// TestDefaultCeilingsAdmitTheConformanceCorpus prepares every admitted Case of the generic conformance
+// corpus under the Profile DeriveProfile gives it. The generic facade conformance test may not import
+// this Driver, so it spells these ceilings itself; this is where the one default set is shown to admit
+// that corpus.
+func TestDefaultCeilingsAdmitTheConformanceCorpus(t *testing.T) {
+	catalog, err := temporal.NewWorkflowServiceCatalog()
+	require.NoError(t, err)
+	for _, class := range []string{"satisfied", "violated", "inconclusive", "cleanup-failure-after-proved-violation", "cross-run-isolation"} {
+		t.Run(class, func(t *testing.T) {
+			encoded, err := os.ReadFile(filepath.Join("..", "testdata", "case-runtime-conformance", class, "case.json"))
+			require.NoError(t, err)
+			source, err := testpilot.DecodeCaseProtoJSON(encoded)
+			require.NoError(t, err)
+			profile, err := temporal.DeriveProfile(source, catalog, temporal.Environment{Identity: "conformance"})
+			require.NoError(t, err)
+			_, err = testpilot.Prepare(source, profile)
+			require.NoError(t, err)
+		})
+	}
 }

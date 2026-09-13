@@ -128,8 +128,11 @@ func (a *admission) bindPolicy(policy Profile) error {
 	if err := checkLimits(policy.Limits, hardLimits()); err != nil {
 		return err
 	}
-	if err := checkLimits(a.prepared.source.Limits, policy.Limits); err != nil {
-		return err
+	if policy.Limits.MaxInstructionEmittedEvents > policy.Limits.MaxRunEvents {
+		return invalid(ir.LimitExceeded, "max_instruction_emitted_events", "instruction ceiling exceeds the Program ceiling")
+	}
+	if policy.Limits.MaxInstructionResponseBytes > policy.Limits.MaxResponseBytes {
+		return invalid(ir.LimitExceeded, "max_instruction_response_bytes", "instruction ceiling exceeds the Program ceiling")
 	}
 	if len(policy.Roles) > 10000 || len(policy.Opcodes) > int(contract.MaxOpcode) || len(policy.EnvironmentBindings) > 10000 {
 		return invalid(ir.LimitExceeded, "policy", "policy collection ceiling exceeded")
@@ -174,6 +177,7 @@ func (a *admission) bindPolicy(policy Profile) error {
 		a.opcodes[capability] = true
 	}
 	a.prepared.policy = snapshot
+	a.prepared.limits = snapshot.Limits
 	a.prepared.environmentFingerprint = policy.EnvironmentFingerprint
 	return nil
 }
@@ -283,7 +287,7 @@ func (a *admission) bindSchemas() error {
 			return invalid(ir.Unknown, "environment", "environment binding is not supplied by the Profile")
 		}
 		bytes := int64(len(definition.BindingId) + len(value))
-		if bytes > p.Limits.MaxRequestBytes-environmentBytes {
+		if bytes > a.prepared.limits.MaxRequestBytes-environmentBytes {
 			return invalid(ir.LimitExceeded, "environment", "resolved environment byte ceiling exceeded")
 		}
 		environmentBytes += bytes
@@ -322,7 +326,7 @@ func (a *admission) bindSchemas() error {
 		}
 		a.prepared.slots[slot.SlotId] = typ
 	}
-	a.prepared.view = ProgramView{programID: p.ProgramId, catalogIdentity: a.prepared.catalog.Identity(), limits: p.Limits}
+	a.prepared.view = ProgramView{programID: p.ProgramId, catalogIdentity: a.prepared.catalog.Identity(), limits: a.prepared.limits}
 	for _, observation := range p.Observations {
 		if !validID(observation.GetObservationId()) {
 			return invalid(ir.Malformed, "observations", "invalid Observation identity")
@@ -446,7 +450,7 @@ func (a *admission) bindActivation(g *graph) error {
 }
 func (a *admission) bindGraphs() error {
 	p := a.prepared.source
-	if len(p.Entrypoints) == 0 || int64(len(p.Entrypoints)) > p.Limits.MaxEntrypoints || p.Cleanup == nil {
+	if len(p.Entrypoints) == 0 || int64(len(p.Entrypoints)) > a.prepared.limits.MaxEntrypoints || p.Cleanup == nil {
 		return invalid(ir.LimitExceeded, "entrypoints", "entrypoints and cleanup must fit the declared bound")
 	}
 	for _, entry := range p.Entrypoints {
@@ -472,7 +476,7 @@ func (a *admission) bindGraphs() error {
 			edges += int64(len(n.dependencies))
 		}
 	}
-	if nodes > p.Limits.MaxNodes || edges > p.Limits.MaxEdges {
+	if nodes > a.prepared.limits.MaxNodes || edges > a.prepared.limits.MaxEdges {
 		return invalid(ir.LimitExceeded, "program", "node or edge ceiling exceeded")
 	}
 	return nil
@@ -543,16 +547,16 @@ func (a *admission) orderGraph(g *graph) error {
 }
 func (a *admission) expressionLimits() ir.Limits {
 	limits := ir.DefaultLimits()
-	limits.Depth = a.prepared.source.Limits.MaxExpressionDepth
-	limits.Bytes = a.prepared.source.Limits.MaxRequestBytes
-	limits.Fanout = a.prepared.source.Limits.MaxPathFanout
+	limits.Depth = a.prepared.limits.MaxExpressionDepth
+	limits.Bytes = a.prepared.limits.MaxRequestBytes
+	limits.Fanout = a.prepared.limits.MaxPathFanout
 	return limits
 }
 func (a *admission) bindReservations() error {
 	type weighted struct{ count, attempts int64 }
 	var weights []weighted
 	var controllers int64
-	limit := a.prepared.source.Limits.MaxActivations
+	limit := a.prepared.limits.MaxActivations
 	for _, g := range a.prepared.graphs {
 		if !g.cleanup && g.context == contract.ControllerEntrypoint {
 			controllers++
@@ -572,7 +576,7 @@ func (a *admission) bindReservations() error {
 	}
 	// Taking the largest reservation weight first maximizes the sum under both attempt caps.
 	slices.SortFunc(weights, func(a, b weighted) int { return cmp.Compare(b.count, a.count) })
-	remaining := a.prepared.source.Limits.MaxAttempts
+	remaining := a.prepared.limits.MaxAttempts
 	total := controllers
 	for _, weight := range weights {
 		attempts := min(remaining, weight.attempts)
@@ -586,7 +590,7 @@ func (a *admission) bindReservations() error {
 	return nil
 }
 func (a *admission) reservationCount(g *graph, n *node) (int64, error) {
-	limit := a.prepared.source.Limits.MaxActivations
+	limit := a.prepared.limits.MaxActivations
 	var count int64
 	seen := map[string]bool{}
 	for _, reservation := range n.source.ActivationReservations {

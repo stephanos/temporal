@@ -31,7 +31,7 @@ func (s *Session) CreateCarrier(ctx context.Context, origin testpilot.Coordinate
 	if s.closed || s.failure != nil {
 		return nil, errors.Join(ErrClosed, s.failure)
 	}
-	if len(s.carriers) >= boundedInt(s.definition.snapshot.GetLimits().GetMaxActivations()) || s.carriers[origin] != nil {
+	if len(s.carriers) >= boundedInt(s.definition.limits.GetMaxActivations()) || s.carriers[origin] != nil {
 		return nil, ErrCapacity
 	}
 	if err := s.host.mu.lock(ctx); err != nil {

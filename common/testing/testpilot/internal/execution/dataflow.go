@@ -123,13 +123,13 @@ func bindAwait(g *graph, n *node) error {
 }
 func (a *admission) bindNodeBounds(g *graph, n *node) error {
 	bounds := n.source.Limits
-	limits := a.prepared.source.Limits
+	limits := a.prepared.limits
 	duration := limits.MaxTotalDurationMilliseconds
 	if g.cleanup {
 		duration = limits.MaxCleanupDurationMilliseconds
 	}
-	if bounds == nil || bounds.TimeoutMilliseconds <= 0 || bounds.TimeoutMilliseconds > duration || bounds.MaxAttempts <= 0 || bounds.MaxAttempts > a.prepared.policy.Limits.MaxAttempts || bounds.MaxEmittedEvents < 0 || bounds.MaxEmittedEvents > limits.MaxRunEvents || bounds.MaxResponseBytes < 0 || bounds.MaxResponseBytes > limits.MaxResponseBytes || n.opcode == contract.InvokeRPC && bounds.MaxResponseBytes == 0 {
-		return invalid(ir.LimitExceeded, nodePath(g, n), "instruction bounds exceed Program limits")
+	if bounds == nil || bounds.TimeoutMilliseconds <= 0 || bounds.TimeoutMilliseconds > duration || bounds.MaxAttempts <= 0 || bounds.MaxAttempts > limits.MaxAttempts {
+		return invalid(ir.LimitExceeded, nodePath(g, n), "instruction bounds exceed Profile ceilings")
 	}
 
 	return nil
@@ -264,7 +264,7 @@ func (a *admission) bindProjections(g *graph, index int, n *node) error {
 				return invalid(ir.TypeMismatch, nodePath(g, n), "EmitEach requires repeated values")
 			}
 			typ = typ.Element()
-			count = a.prepared.source.Limits.MaxPathFanout
+			count = a.prepared.limits.MaxPathFanout
 		default:
 			return invalid(ir.Unknown, nodePath(g, n), "unknown projection cardinality")
 		}
@@ -273,7 +273,7 @@ func (a *admission) bindProjections(g *graph, index int, n *node) error {
 			return err
 		}
 		if emits {
-			if count > n.source.Limits.MaxEmittedEvents-events {
+			if count > a.prepared.limits.MaxInstructionEmittedEvents-events {
 				return invalid(ir.LimitExceeded, nodePath(g, n), "projection emission exceeds instruction bound")
 			}
 			events += count
@@ -571,7 +571,7 @@ func (a *admission) bindDataflow() error {
 				return err
 			}
 		}
-		g.runtimeWork = runtimeWorkLimit(g, a.prepared.source.Limits)
+		g.runtimeWork = runtimeWorkLimit(g, a.prepared.limits)
 	}
 	return nil
 }

@@ -68,7 +68,7 @@ func (p *PreparedContract) newEvaluator(ctx context.Context, view execution.Prog
 			return nil, invalid(ir.TypeMismatch, "Program observations differ")
 		}
 	}
-	e := &Evaluator{correlated: newCorrelated(p.source.Correlated), prepared: p, rules: make([]ruleState, len(p.rules)), result: &testpilotspb.Verdict{Rules: make([]*testpilotspb.RuleVerdict, len(p.rules))}}
+	e := &Evaluator{correlated: newCorrelated(p.source.Correlated, p.correlatedLimits), prepared: p, rules: make([]ruleState, len(p.rules)), result: &testpilotspb.Verdict{Rules: make([]*testpilotspb.RuleVerdict, len(p.rules))}}
 	for i, m := range p.rules {
 		e.rules[i] = ruleState{state: m.initial, captures: map[string]capturedValue{}}
 		e.result.Rules[i] = &testpilotspb.RuleVerdict{RuleId: m.source.RuleId, Status: testpilotspb.RULE_VERDICT_STATUS_INCONCLUSIVE}
@@ -121,7 +121,7 @@ func (e *Evaluator) Observe(ctx context.Context, event *testpilotspb.RunEvent) (
 		return e.decision(), nil
 	}
 	work := e.prepared.workPerEvent
-	if work > e.prepared.source.Limits.MaxTotalWork-e.totalWork {
+	if work > e.prepared.limits.MaxTotalWork-e.totalWork {
 		return e.fail(event.Sequence, invalid(ir.LimitExceeded, "total evaluation work exceeded"))
 	}
 	changes, count, bytes, err := e.changes(ctx, event, observations, incomplete)
@@ -147,10 +147,10 @@ func (e *Evaluator) Observe(ctx context.Context, event *testpilotspb.RunEvent) (
 			if err != nil {
 				return e.fail(event.Sequence, err)
 			}
-			if err := add(&work, used, e.prepared.source.Limits.MaxWorkPerEvent); err != nil {
+			if err := add(&work, used, e.prepared.limits.MaxWorkPerEvent); err != nil {
 				return e.fail(event.Sequence, err)
 			}
-			if work > e.prepared.source.Limits.MaxTotalWork-e.totalWork {
+			if work > e.prepared.limits.MaxTotalWork-e.totalWork {
 				return e.fail(event.Sequence, invalid(ir.LimitExceeded, "combined total evaluation work exceeded"))
 			}
 		}
@@ -278,7 +278,7 @@ func (e *Evaluator) nextChange(ctx context.Context, i int, event *testpilotspb.R
 		}
 	}
 	for _, index := range m.outgoing[state.state][event.Kind] {
-		matched, used, err := m.transitions[index].Evaluate(ctx, resolve, e.prepared.source.Limits.MaxWorkPerEvent-cost.work)
+		matched, used, err := m.transitions[index].Evaluate(ctx, resolve, e.prepared.limits.MaxWorkPerEvent-cost.work)
 		cost.work += used
 		if err != nil {
 			return nil, err
@@ -322,13 +322,13 @@ func (e *Evaluator) stageCaptures(state ruleState, tr *testpilotspb.ContractTran
 			return nil, invalid(ir.Malformed, "missing or repeated capture assignment")
 		}
 		size := int64(proto.Size(value)) + 8
-		if err := add(&cost.count, 1, e.prepared.source.Limits.MaxCaptures-e.captureCount); err != nil {
+		if err := add(&cost.count, 1, e.prepared.limits.MaxCaptures-e.captureCount); err != nil {
 			return nil, err
 		}
-		if err := add(&cost.bytes, size, e.prepared.source.Limits.MaxCaptureBytes-e.captureBytes); err != nil {
+		if err := add(&cost.bytes, size, e.prepared.limits.MaxCaptureBytes-e.captureBytes); err != nil {
 			return nil, err
 		}
-		if err := add(&cost.work, size, e.prepared.source.Limits.MaxWorkPerEvent); err != nil {
+		if err := add(&cost.work, size, e.prepared.limits.MaxWorkPerEvent); err != nil {
 			return nil, err
 		}
 		captures[assignment.CaptureId] = capturedValue{proto.CloneOf(value), event.Sequence}

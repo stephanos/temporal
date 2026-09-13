@@ -11,8 +11,9 @@ Every helper returns the generated protobuf value directly. This module performs
 assembly only: it preserves caller order and accepts the generated fixed-width numeric field types.
 Every expression context shares one `Expression` type, so a reference used outside its context is
 representable here and rejected by Go preparation. Go `testpilot.Prepare` owns semantic,
-closure, version, and resource-limit admission. Callers should use named arguments for high-arity
-limit records where positional meaning would otherwise be unclear.
+closure, version, and resource-limit admission. A Case carries no resource ceilings: only the
+bounds that carry behavior (instruction timeouts and attempts, deadlines, correlated windows), which
+preparation checks against the Profile's ceilings.
 -/
 
 namespace Testpilot.Authoring
@@ -270,11 +271,10 @@ def responseRead (path : FieldPath) (cardinality : ReadCardinality)
     (targets : Array ReadTarget) : ResponseRead :=
   { path := some path, cardinality, targets }
 
-/-- Attach the four fixed-width resource bounds enforced for one instruction. -/
-def instructionLimits (timeoutMilliseconds maxAttempts maxEmittedEvents maxResponseBytes : Int64) :
-    InstructionLimits :=
-  { timeout_milliseconds := timeoutMilliseconds, max_attempts := maxAttempts,
-    max_emitted_events := maxEmittedEvents, max_response_bytes := maxResponseBytes }
+/-- Attach the two bounds that carry one instruction's behavior: its dispatch timeout and its
+highest attempt. Its resource ceilings are the Profile's, so a Case declares none of them. -/
+def instructionLimits (timeoutMilliseconds maxAttempts : Int64) : InstructionLimits :=
+  { timeout_milliseconds := timeoutMilliseconds, max_attempts := maxAttempts }
 
 def invokeRpc (endpointRoleId methodName : String) (assignments : Array RequestAssignment := #[])
     (reads : Array ResponseRead := #[]) : Instruction :=
@@ -351,32 +351,21 @@ def nexusHandler (entrypointId serviceName operationName workerRoleId taskQueueR
 def cleanup (entrypointId : String) (instructions : Array InstructionNode) : Cleanup :=
   { entrypoint_id := entrypointId, instructions }
 
-/-- Construct Program-wide bounds; callers should name arguments where the positions are unclear. -/
-def limits (maxEntrypoints maxNodes maxEdges maxActivations maxAttempts maxRunEvents
-    maxExpressionDepth maxPathFanout maxRequestBytes maxResponseBytes
-    maxTotalDurationMilliseconds maxCleanupDurationMilliseconds : Int64) : ProgramLimits :=
-  { max_entrypoints := maxEntrypoints, max_nodes := maxNodes, max_edges := maxEdges,
-    max_activations := maxActivations, max_attempts := maxAttempts,
-    max_run_events := maxRunEvents, max_expression_depth := maxExpressionDepth,
-    max_path_fanout := maxPathFanout, max_request_bytes := maxRequestBytes,
-    max_response_bytes := maxResponseBytes,
-    max_total_duration_milliseconds := maxTotalDurationMilliseconds,
-    max_cleanup_duration_milliseconds := maxCleanupDurationMilliseconds }
-
-/-- Assemble a generated Program while preserving every supplied declaration order. -/
+/-- Assemble a generated Program while preserving every supplied declaration order. A Program
+declares no resource ceilings: the Profile it is admitted under supplies them. -/
 def make (programId : String) (roles : Array Role) (slots : Array Slot)
     (observations : Array Observation) (entrypoints : Array Entrypoint)
-    (cleanup : Cleanup) (limits : ProgramLimits)
+    (cleanup : Cleanup)
     (environment : Array EnvironmentDefinition := #[]) :
     temporal.server.api.testpilot.v1.Program :=
   { program_id := programId, roles, slots, observations, entrypoints,
-    cleanup := some cleanup, limits := some limits, environment }
+    cleanup := some cleanup, environment }
 
 end Program
 
 namespace Contract
 
-/-! Constructors for generated Contract monitor machines and their bounds. -/
+/-! Constructors for generated Contract monitor machines and their deadlines. -/
 
 /-- Declare a capture of a `Types.scalar`, `Types.enumeration` or `Types.messageType` value;
 preparation rejects any other singular type. -/
@@ -412,14 +401,6 @@ def rule (ruleId : String) (kind : ContractRuleKind) (initialStateId : String)
   { rule_id := ruleId, kind, initial_state_id := initialStateId, states, transitions,
     deadline, captures }
 
-/-- Construct Contract-wide bounds; callers should name arguments where the positions are unclear. -/
-def limits (maxRules maxStates maxTransitions maxExpressionDepth maxWorkPerEvent maxTotalWork
-    maxCaptures maxCaptureBytes : Int64) : ContractLimits :=
-  { max_rules := maxRules, max_states := maxStates, max_transitions := maxTransitions,
-    max_expression_depth := maxExpressionDepth, max_work_per_event := maxWorkPerEvent,
-    max_total_work := maxTotalWork, max_captures := maxCaptures,
-    max_capture_bytes := maxCaptureBytes }
-
 /-- Assemble one correlated rule: the operation-local window one checked clause lowers to. The
 clock is the only one version one admits, so callers never choose it. `trigger` and `response` are
 step conditions over `Expr.correlatedStep`. -/
@@ -430,23 +411,23 @@ def correlatedRule (ruleId : String) (bound : Int64) (ending : TraceEnding)
   { rule_id := ruleId, clock := .CORRELATED_CLOCK_OPERATION_TRANSITIONS, bound, ending,
     trigger := some trigger, response := some response, captures, correlation }
 
-/-- Assemble the correlated capability while preserving transition, projection-rule and rule order. -/
+/-- Assemble the correlated capability while preserving transition, projection-rule and rule order.
+Its resource ceilings are the Profile's; its rules keep the windows that carry their meaning. -/
 def correlated (projectionId projectionFingerprint evidenceObservationId operationField : String)
     (scopeFields sources : Array String) (initialState : ModelValue)
     (transitions : Array CorrelatedTransition) (projectionRules : Array CorrelatedProjectionRule)
-    (rules : Array CorrelatedRule) (limits : CorrelatedLimits) : CorrelatedContract :=
+    (rules : Array CorrelatedRule) : CorrelatedContract :=
   { projection_id := projectionId,
     projection_fingerprint := projectionFingerprint,
     evidence_observation_id := evidenceObservationId, scope_fields := scopeFields,
     operation_field := operationField, sources, initial_state := some initialState,
-    transitions, projection_rules := projectionRules, rules,
-    limits := some limits }
+    transitions, projection_rules := projectionRules, rules }
 
 /-- Assemble a generated Contract while preserving rule order. A Contract may carry deterministic
-monitor rules, one correlated capability, or both. -/
+monitor rules, one correlated capability, or both, and declares no resource ceilings. -/
 def contract (contractId : String) (rules : Array ContractRule)
-    (limits : ContractLimits) (capability : Option CorrelatedContract := none) : Contract :=
-  { contract_id := contractId, rules, limits := some limits, correlated := capability }
+    (capability : Option CorrelatedContract := none) : Contract :=
+  { contract_id := contractId, rules, correlated := capability }
 
 end Contract
 

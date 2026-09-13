@@ -186,7 +186,6 @@ structure Realization where
   faultRuleId : String
   hooks : List Hook := []
   sources : List EvidenceSource
-  contractLimits : ContractLimits
   projectionLimits : Case.Projection.Limits
   /-- Evaluation ceilings for the correlated consumer, separate from the semantic window. -/
   runLimits : Property.Correlated.Limits
@@ -417,7 +416,6 @@ def produce {LawStatement : Law → Prop}
     program := realization.program identity (evidenceRules.map (·.1))
     contractId := identity.contractId
     properties := [lowered.contractLowering]
-    contractLimits := realization.contractLimits
     -- Every clause the Model wrote must appear among the lowered ones, so a clause silently lost
     -- between the checked Property and the Contract rejects here, before any Driver I/O. A caller
     -- may name further clauses it requires; one this Case does not carry rejects the same way.

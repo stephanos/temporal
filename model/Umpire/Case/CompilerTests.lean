@@ -28,10 +28,6 @@ private def rule (id : String := "example.rule") : ContractRule :=
 
 private def program : Program :=
   Program.make "example.program" #[] #[] #[] #[] (Program.cleanup "cleanup" #[])
-    (Program.limits 1 1 1 1 1 16 4 1 1024 1024 1000 100)
-
-private def contractLimits : ContractLimits :=
-  Contract.limits 2 2 1 4 4 64 1 64
 
 private def input : Input := {
   version := { major := 1 }
@@ -43,7 +39,6 @@ private def input : Input := {
   program
   contractId := "example.contract"
   properties := [.monitor property rule]
-  contractLimits
 }
 
 private def planningGaps : KnownGapSet :=
@@ -127,9 +122,7 @@ private def expectedProducerData := String.intercalate "\n" [
       output.version.map (fun version => (version.major, version.minor)) == some (1, 2) &&
       output.program.map (·.program_id) == some input.program.program_id &&
       output.contract.map (fun contract => contract.rules.map (·.rule_id)) ==
-        some #["first", "second"] &&
-      (output.contract.bind (·.limits) |>.map (·.max_rules)) ==
-        some input.contractLimits.max_rules
+        some #["first", "second"]
   | .error _ => false
 
 private def rejectsAs (sourceDefinitionId : String) (expectedSource : SourceLocation)

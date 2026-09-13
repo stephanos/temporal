@@ -29,7 +29,7 @@ func TestCorrelatedContractCarriesNoVersion(t *testing.T) {
 	require.ErrorContains(t, protojson.Unmarshal([]byte(`{"contractId":"correlated","correlated":{"version":1}}`), &contract), `unknown field "version"`)
 }
 
-func correlatedFixture(t *testing.T, bound int64) (*testpilotspb.Contract, *ir.Catalog, execution.ProgramView, *testpilotspb.ContractLimits) {
+func correlatedFixture(t *testing.T, bound int64) (*testpilotspb.Contract, *ir.Catalog, execution.ProgramView, *testpilotspb.ContractLimits, *testpilotspb.CorrelatedLimits) {
 	t.Helper()
 	files := []*descriptorpb.FileDescriptorProto{}
 	seen := map[string]bool{}
@@ -51,7 +51,7 @@ func correlatedFixture(t *testing.T, bound int64) (*testpilotspb.Contract, *ir.C
 	limits := view.Limits()
 	limits.MaxRunEvents = 32
 	typ := messageType("temporal.server.api.testpilot.v1.CorrelatedEvidence")
-	program := &testpilotspb.Program{ProgramId: "correlated.program", Limits: limits, Observations: []*testpilotspb.Observation{{ObservationId: "evidence", Type: typ}}, Entrypoints: []*testpilotspb.Entrypoint{{EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}}}}, Cleanup: &testpilotspb.Cleanup{EntrypointId: "cleanup"}}
+	program := &testpilotspb.Program{ProgramId: "correlated.program", Observations: []*testpilotspb.Observation{{ObservationId: "evidence", Type: typ}}, Entrypoints: []*testpilotspb.Entrypoint{{EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}}}}, Cleanup: &testpilotspb.Cleanup{EntrypointId: "cleanup"}}
 	prepared, err := execution.Prepare(&testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: 1}, CaseId: "correlated.case", Program: program, Contract: &testpilotspb.Contract{ContractId: "correlated"}}, catalog, execution.Profile{Identity: "host", CatalogIdentity: catalog.Identity(), Limits: proto.CloneOf(limits)})
 	require.NoError(t, err)
 	ceiling.MaxCaptures = 32
@@ -62,7 +62,7 @@ func correlatedFixture(t *testing.T, bound int64) (*testpilotspb.Contract, *ir.C
 	}
 	trigger := stepPresent(testpilotspb.CORRELATED_STEP_FIELD_ACTION, "request")
 	response := stepEquals(testpilotspb.CORRELATED_STEP_FIELD_OUTCOME, "outcome", "response")
-	s := &testpilotspb.CorrelatedContract{ProjectionId: "projection", ProjectionFingerprint: "projection-v1", EvidenceObservationId: "evidence", ScopeFields: []string{"run"}, OperationField: "operation", Sources: []string{"source"}, InitialState: state, Limits: &testpilotspb.CorrelatedLimits{MaxEvents: 16, MaxBuffered: 8, MaxKeys: 8, MaxSupport: 256, MaxProjectionWork: 1000000000, MaxEventBytes: 512, MaxSemanticTransitions: 32, MaxObligations: 16, MaxObligationWork: 1000000000}, Rules: []*testpilotspb.CorrelatedRule{{RuleId: "response", Clock: testpilotspb.CORRELATED_CLOCK_OPERATION_TRANSITIONS, Bound: bound, Ending: testpilotspb.TRACE_ENDING_PARTIAL, Trigger: trigger, Response: response}}}
+	s := &testpilotspb.CorrelatedContract{ProjectionId: "projection", ProjectionFingerprint: "projection-v1", EvidenceObservationId: "evidence", ScopeFields: []string{"run"}, OperationField: "operation", Sources: []string{"source"}, InitialState: state, Rules: []*testpilotspb.CorrelatedRule{{RuleId: "response", Clock: testpilotspb.CORRELATED_CLOCK_OPERATION_TRANSITIONS, Bound: bound, Ending: testpilotspb.TRACE_ENDING_PARTIAL, Trigger: trigger, Response: response}}}
 	for _, kind := range []string{"request", "both", "tick", "reply"} {
 		action := kind
 		if kind == "both" {
@@ -79,7 +79,8 @@ func correlatedFixture(t *testing.T, bound int64) (*testpilotspb.Contract, *ir.C
 		s.ProjectionRules = append(s.ProjectionRules, &testpilotspb.CorrelatedProjectionRule{Kind: kind, Meaning: testpilotspb.CORRELATED_EVIDENCE_MEANING_CONFIRMED, Outputs: []*testpilotspb.CorrelatedTransition{out}})
 	}
 	s.ProjectionRules = append(s.ProjectionRules, &testpilotspb.CorrelatedProjectionRule{Kind: "poll", Meaning: testpilotspb.CORRELATED_EVIDENCE_MEANING_IRRELEVANT})
-	return &testpilotspb.Contract{ContractId: "correlated", Limits: proto.CloneOf(ceiling), Correlated: s}, catalog, prepared.View(), ceiling
+	correlated := &testpilotspb.CorrelatedLimits{MaxEvents: 16, MaxBuffered: 8, MaxKeys: 8, MaxSupport: 256, MaxProjectionWork: 1000000000, MaxEventBytes: 512, MaxSemanticTransitions: 32, MaxObligations: 16, MaxObligationWork: 1000000000}
+	return &testpilotspb.Contract{ContractId: "correlated", Correlated: s}, catalog, prepared.View(), ceiling, correlated
 }
 
 // stepPresent is the step condition matching a step that carries any value of definitionID at field.
@@ -131,8 +132,8 @@ func TestCorrelatedDeadlinesAndCausalAdmission(t *testing.T) {
 		{"poll-stutter", 1, []string{"request", "poll", "reply"}, nil, testpilotspb.RULE_VERDICT_STATUS_SATISFIED},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			c, catalog, view, ceiling := correlatedFixture(t, tc.bound)
-			p, err := Prepare(c, catalog, view, ceiling)
+			c, catalog, view, ceiling, correlated := correlatedFixture(t, tc.bound)
+			p, err := Prepare(c, catalog, view, ceiling, correlated)
 			require.NoError(t, err)
 			e, err := p.newEvaluator(context.Background(), view)
 			require.NoError(t, err)
@@ -171,13 +172,7 @@ func TestCorrelatedPrepareRejectsUnsupportedCapability(t *testing.T) {
 		"not-equal-condition": func(c *testpilotspb.Contract) {
 			c.Correlated.Rules[0].Response.GetCompare().Operator = testpilotspb.COMPARISON_OPERATOR_NOT_EQUAL
 		},
-		"zero-limit":          func(c *testpilotspb.Contract) { c.Correlated.Limits.MaxSupport = 0 },
-		"negative-limit":      func(c *testpilotspb.Contract) { c.Correlated.Limits.MaxProjectionWork = -1 },
-		"overflow-product":    func(c *testpilotspb.Contract) { c.Correlated.Limits.MaxSupport = 9223372036854775807 },
-		"program-event-limit": func(c *testpilotspb.Contract) { c.Correlated.Limits.MaxEvents = 10000 },
-		"capture-count":       func(c *testpilotspb.Contract) { c.Limits.MaxCaptures = 1 },
-		"capture-bytes":       func(c *testpilotspb.Contract) { c.Limits.MaxCaptureBytes = 1 },
-		"observation-type":    func(c *testpilotspb.Contract) { c.Correlated.EvidenceObservationId = "missing" },
+		"observation-type": func(c *testpilotspb.Contract) { c.Correlated.EvidenceObservationId = "missing" },
 		"prior-state-output": func(c *testpilotspb.Contract) {
 			c.Correlated.ProjectionRules[0].Outputs[0].PriorState = c.Correlated.InitialState
 		},
@@ -190,12 +185,35 @@ func TestCorrelatedPrepareRejectsUnsupportedCapability(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			c, catalog, view, ceiling := correlatedFixture(t, 1)
+			c, catalog, view, ceiling, correlated := correlatedFixture(t, 1)
 			mutate(c)
-			_, err := Prepare(c, catalog, view, ceiling)
+			_, err := Prepare(c, catalog, view, ceiling, correlated)
 			require.Error(t, err)
 		})
 	}
+	for name, constrain := range map[string]func(*testpilotspb.ContractLimits, *testpilotspb.CorrelatedLimits){
+		"zero-limit":     func(_ *testpilotspb.ContractLimits, l *testpilotspb.CorrelatedLimits) { l.MaxSupport = 0 },
+		"negative-limit": func(_ *testpilotspb.ContractLimits, l *testpilotspb.CorrelatedLimits) { l.MaxProjectionWork = -1 },
+		"overflow-product": func(_ *testpilotspb.ContractLimits, l *testpilotspb.CorrelatedLimits) {
+			l.MaxSupport = 9223372036854775807
+		},
+		"program-event-limit": func(_ *testpilotspb.ContractLimits, l *testpilotspb.CorrelatedLimits) { l.MaxEvents = 10000 },
+		"capture-count":       func(l *testpilotspb.ContractLimits, _ *testpilotspb.CorrelatedLimits) { l.MaxCaptures = 1 },
+		"capture-bytes":       func(l *testpilotspb.ContractLimits, _ *testpilotspb.CorrelatedLimits) { l.MaxCaptureBytes = 1 },
+		"missing": func(_ *testpilotspb.ContractLimits, l *testpilotspb.CorrelatedLimits) {
+			*l = testpilotspb.CorrelatedLimits{}
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			c, catalog, view, ceiling, correlated := correlatedFixture(t, 1)
+			constrain(ceiling, correlated)
+			_, err := Prepare(c, catalog, view, ceiling, correlated)
+			require.Error(t, err)
+		})
+	}
+	c, catalog, view, ceiling, _ := correlatedFixture(t, 1)
+	_, err := Prepare(c, catalog, view, ceiling, nil)
+	require.ErrorContains(t, err, "Profile correlated limits required")
 }
 
 // A correlated condition shares the one expression language, so every reference outside the
@@ -227,10 +245,10 @@ func TestCorrelatedPrepareLocatesConditionsOutsideTheCorrelatedContext(t *testin
 			},
 		} {
 			t.Run(site+"/"+name, func(t *testing.T) {
-				c, catalog, view, ceiling := correlatedFixture(t, 1)
-				c.Correlated.Limits.MaxCorrelationDepth = 4
+				c, catalog, view, ceiling, correlated := correlatedFixture(t, 1)
+				correlated.MaxCorrelationDepth = 4
 				mutate(c.Correlated.Rules[0])
-				_, err := Prepare(c, catalog, view, ceiling)
+				_, err := Prepare(c, catalog, view, ceiling, correlated)
 				var diagnostic *ir.Error
 				require.ErrorAs(t, err, &diagnostic)
 				require.Equal(t, &ir.Error{Category: ir.Unknown, Path: site + ".reference." + name, Detail: "reference is not admitted in this expression context"}, diagnostic)
@@ -255,9 +273,9 @@ func TestCorrelatedPrepareLocatesConditionsOutsideTheCorrelatedContext(t *testin
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			c, catalog, view, ceiling := correlatedFixture(t, 1)
+			c, catalog, view, ceiling, correlated := correlatedFixture(t, 1)
 			tc.mutate(c.Correlated.Rules[0])
-			_, err := Prepare(c, catalog, view, ceiling)
+			_, err := Prepare(c, catalog, view, ceiling, correlated)
 			var diagnostic *ir.Error
 			require.ErrorAs(t, err, &diagnostic)
 			require.Equal(t, tc.want, diagnostic)
@@ -280,8 +298,8 @@ func TestCorrelatedWireAdmissionIsAtomic(t *testing.T) {
 		"unknown-field": func(e *testpilotspb.CorrelatedEvidence) { e.ProtoReflect().SetUnknown([]byte{0xf8, 0x07, 1}) },
 	} {
 		t.Run(name, func(t *testing.T) {
-			c, catalog, view, ceiling := correlatedFixture(t, 1)
-			p, err := Prepare(c, catalog, view, ceiling)
+			c, catalog, view, ceiling, correlated := correlatedFixture(t, 1)
+			p, err := Prepare(c, catalog, view, ceiling, correlated)
 			require.NoError(t, err)
 			e, err := p.newEvaluator(context.Background(), view)
 			require.NoError(t, err)
@@ -304,8 +322,8 @@ func TestCorrelatedWireAdmissionIsAtomic(t *testing.T) {
 // A scope value is text: the first evidence of a Run fixes the scope, so one spelling it as any other
 // value rejects before anything is compared with it.
 func TestCorrelatedEvidenceScopeValuesAreText(t *testing.T) {
-	c, catalog, view, ceiling := correlatedFixture(t, 1)
-	p, err := Prepare(c, catalog, view, ceiling)
+	c, catalog, view, ceiling, correlated := correlatedFixture(t, 1)
+	p, err := Prepare(c, catalog, view, ceiling, correlated)
 	require.NoError(t, err)
 	e, err := p.newEvaluator(context.Background(), view)
 	require.NoError(t, err)
@@ -318,8 +336,8 @@ func TestCorrelatedEvidenceScopeValuesAreText(t *testing.T) {
 }
 
 func TestCorrelatedCausalChunksDuplicatesAndIsolation(t *testing.T) {
-	c, catalog, view, ceiling := correlatedFixture(t, 1)
-	p, err := Prepare(c, catalog, view, ceiling)
+	c, catalog, view, ceiling, correlated := correlatedFixture(t, 1)
+	p, err := Prepare(c, catalog, view, ceiling, correlated)
 	require.NoError(t, err)
 	for split := 0; split <= 4; split++ {
 		e, err := p.newEvaluator(context.Background(), view)
@@ -374,11 +392,11 @@ func TestCorrelatedCheckedLeanFixtures(t *testing.T) {
 			require.Equal(t, "test.property", provenance.CorrelatedRules[0].PropertyID)
 			require.Equal(t, artifact.Contract.Correlated.ProjectionId, provenance.CorrelatedRules[0].ProjectionID)
 			require.Equal(t, artifact.Contract.Correlated.ProjectionFingerprint, provenance.CorrelatedRules[0].ProjectionFingerprint)
-			_, catalog, _, ceiling := correlatedFixture(t, 1)
-			program, err := execution.Prepare(&artifact, catalog, execution.Profile{Identity: "host", CatalogIdentity: catalog.Identity(), Limits: proto.CloneOf(artifact.Program.Limits)})
+			_, catalog, fixtureView, ceiling, correlated := correlatedFixture(t, 1)
+			program, err := execution.Prepare(&artifact, catalog, execution.Profile{Identity: "host", CatalogIdentity: catalog.Identity(), Limits: fixtureView.Limits()})
 			require.NoError(t, err)
 			view := program.View()
-			prepared, err := Prepare(artifact.Contract, catalog, view, ceiling)
+			prepared, err := Prepare(artifact.Contract, catalog, view, ceiling, correlated)
 			require.NoError(t, err)
 			for split := 0; split <= len(fixture.Events); split++ {
 				monitor, err := prepared.New(context.Background(), view)
@@ -440,9 +458,9 @@ func TestCorrelatedResourceBoundaries(t *testing.T) {
 	} {
 		for _, delta := range []int64{-1, 0} {
 			t.Run(fmt.Sprintf("%s/%d", tc.name, delta), func(t *testing.T) {
-				c, catalog, view, ceiling := correlatedFixture(t, 0)
-				tc.limit(c.Correlated.Limits, tc.boundary+delta)
-				p, err := Prepare(c, catalog, view, ceiling)
+				c, catalog, view, ceiling, correlated := correlatedFixture(t, 0)
+				tc.limit(correlated, tc.boundary+delta)
+				p, err := Prepare(c, catalog, view, ceiling, correlated)
 				require.NoError(t, err)
 				e, err := p.newEvaluator(context.Background(), view)
 				require.NoError(t, err)
@@ -471,13 +489,13 @@ func TestCorrelatedCombinedStaticLimits(t *testing.T) {
 		"capture-bytes": func(l *testpilotspb.ContractLimits) { l.MaxCaptureBytes = 10496 },
 	} {
 		t.Run(name, func(t *testing.T) {
-			c, catalog, view, ceiling := correlatedFixture(t, 1)
+			c, catalog, view, ceiling, correlated := correlatedFixture(t, 1)
 			ordinary, _, _, _ := fixture(t)
 			addCapture(ordinary.Rules[0])
 			c.Rules = ordinary.Rules
-			c.Correlated.Limits.MaxSemanticTransitions = 4
-			constrain(c.Limits)
-			_, err := Prepare(c, catalog, view, ceiling)
+			correlated.MaxSemanticTransitions = 4
+			constrain(ceiling)
+			_, err := Prepare(c, catalog, view, ceiling, correlated)
 			require.Error(t, err)
 		})
 	}
@@ -495,9 +513,9 @@ func TestCorrelatedRunCeilingsAreAtomic(t *testing.T) {
 		{"transitions", func(l *testpilotspb.CorrelatedLimits) { l.MaxSemanticTransitions = 1 }, correlatedEvidence(0, "request", "a"), correlatedEvidence(1, "tick", "a")},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			c, catalog, view, ceiling := correlatedFixture(t, 5)
-			tc.configure(c.Correlated.Limits)
-			p, err := Prepare(c, catalog, view, ceiling)
+			c, catalog, view, ceiling, correlated := correlatedFixture(t, 5)
+			tc.configure(correlated)
+			p, err := Prepare(c, catalog, view, ceiling, correlated)
 			require.NoError(t, err)
 			e, err := p.newEvaluator(context.Background(), view)
 			require.NoError(t, err)
@@ -515,13 +533,13 @@ func TestCorrelatedRunCeilingsAreAtomic(t *testing.T) {
 }
 
 func TestCorrelatedMigrationRejectsStaleReader(t *testing.T) {
-	c, _, _, _ := correlatedFixture(t, 1)
+	c, _, _, _, _ := correlatedFixture(t, 1)
 	wire, err := protojson.Marshal(c)
 	require.NoError(t, err)
 	file := protodesc.ToFileDescriptorProto(testpilotspb.File_temporal_server_api_testpilot_v1_contract_proto)
 	for _, message := range file.MessageType {
 		if message.GetName() == "Contract" {
-			message.Field = message.Field[:3]
+			message.Field = message.Field[:2]
 		}
 	}
 	stale, err := protodesc.NewFile(file, protoregistry.GlobalFiles)
@@ -531,8 +549,8 @@ func TestCorrelatedMigrationRejectsStaleReader(t *testing.T) {
 }
 
 func TestCorrelatedViolationSurvivesEvaluatorAndCleanupFailure(t *testing.T) {
-	c, catalog, view, ceiling := correlatedFixture(t, 0)
-	p, err := Prepare(c, catalog, view, ceiling)
+	c, catalog, view, ceiling, correlated := correlatedFixture(t, 0)
+	p, err := Prepare(c, catalog, view, ceiling, correlated)
 	require.NoError(t, err)
 	e, err := p.newEvaluator(context.Background(), view)
 	require.NoError(t, err)
@@ -560,8 +578,8 @@ func TestCorrelatedViolationSurvivesEvaluatorAndCleanupFailure(t *testing.T) {
 }
 
 func TestCorrelatedPreparedConcurrentIsolation(t *testing.T) {
-	c, catalog, view, ceiling := correlatedFixture(t, 1)
-	p, err := Prepare(c, catalog, view, ceiling)
+	c, catalog, view, ceiling, correlated := correlatedFixture(t, 1)
+	p, err := Prepare(c, catalog, view, ceiling, correlated)
 	require.NoError(t, err)
 	c.Correlated.Rules[0].Bound = 0
 	for _, kind := range []string{"both", "request"} {
@@ -585,12 +603,12 @@ func TestCorrelatedPreparedConcurrentIsolation(t *testing.T) {
 func TestCorrelatedConfirmedSubmissionAndFieldPolicies(t *testing.T) {
 	for _, valid := range []bool{false, true} {
 		t.Run(fmt.Sprint(valid), func(t *testing.T) {
-			c, catalog, view, ceiling := correlatedFixture(t, 1)
+			c, catalog, view, ceiling, correlated := correlatedFixture(t, 1)
 			request := c.Correlated.ProjectionRules[0]
 			request.Submission = c.Correlated.Transitions[0].Action
 			request.Fields = []*testpilotspb.CorrelatedFieldPolicy{{FieldId: "payload", Type: &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_TEXT}, Disposition: testpilotspb.CORRELATED_FIELD_DISPOSITION_RETAIN}}
 			c.Correlated.ProjectionRules = append(c.Correlated.ProjectionRules, &testpilotspb.CorrelatedProjectionRule{Kind: "submit", Meaning: testpilotspb.CORRELATED_EVIDENCE_MEANING_SUBMISSION, Submission: request.Submission})
-			p, err := Prepare(c, catalog, view, ceiling)
+			p, err := Prepare(c, catalog, view, ceiling, correlated)
 			require.NoError(t, err)
 			e, err := p.newEvaluator(context.Background(), view)
 			require.NoError(t, err)
@@ -618,12 +636,12 @@ func TestCorrelatedConfirmedSubmissionAndFieldPolicies(t *testing.T) {
 }
 
 func TestCorrelatedPhysicalObservationSizeRemainsBounded(t *testing.T) {
-	c, catalog, view, ceiling := correlatedFixture(t, 1)
-	c.Correlated.Limits.MaxEventBytes = view.Limits().MaxResponseBytes
-	c.Limits.MaxCaptureBytes = 131072
+	c, catalog, view, ceiling, correlated := correlatedFixture(t, 1)
+	correlated.MaxEventBytes = view.Limits().MaxResponseBytes
+	ceiling.MaxCaptureBytes = 131072
 	ceiling.MaxCaptureBytes = 131072
 	c.Correlated.ProjectionRules[1].Fields = []*testpilotspb.CorrelatedFieldPolicy{{FieldId: "payload", Type: &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_TEXT}, Disposition: testpilotspb.CORRELATED_FIELD_DISPOSITION_RETAIN}}
-	p, err := Prepare(c, catalog, view, ceiling)
+	p, err := Prepare(c, catalog, view, ceiling, correlated)
 	require.NoError(t, err)
 	e, err := p.newEvaluator(context.Background(), view)
 	require.NoError(t, err)
@@ -631,7 +649,7 @@ func TestCorrelatedPhysicalObservationSizeRemainsBounded(t *testing.T) {
 	require.NoError(t, err)
 	evidence := correlatedEvidence(0, "both", "a")
 	evidence.Fields = []*testpilotspb.NamedValue{{FieldId: "payload", Value: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: strings.Repeat("💡", 2000)}}}}
-	require.Less(t, evidenceSize(&admittedCorrelatedEvidence{CorrelatedEvidence: evidence, supportingEventSequences: []int64{2}}), c.Correlated.Limits.MaxEventBytes)
+	require.Less(t, evidenceSize(&admittedCorrelatedEvidence{CorrelatedEvidence: evidence, supportingEventSequences: []int64{2}}), correlated.MaxEventBytes)
 	_, err = e.Observe(context.Background(), correlatedEvent(t, 2, evidence))
 	require.Error(t, err)
 	require.Empty(t, e.correlated.accepted)
