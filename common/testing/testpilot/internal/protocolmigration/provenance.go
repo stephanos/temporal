@@ -19,7 +19,8 @@ const syntheticFixture = "tests/testcore/testpilot/testdata/synthetic-case.json"
 var syntheticPayload = []byte{0, 255, 128}
 
 // legacyDefinitionKinds and legacyKnownGapKinds are the value names the baseline Umpire payload
-// spelled, each without the prefix its enum now takes.
+// spelled, each without the prefix its enum now takes. They are frozen apart from the live enums, so a
+// kind added later does not widen what a baseline payload may have spelled.
 var (
 	legacyDefinitionKinds = []string{
 		"SETUP", "STATE", "ACTION", "OUTCOME", "FACT", "RELATION", "CAPABILITY", "PROPERTY", "QUERY",
