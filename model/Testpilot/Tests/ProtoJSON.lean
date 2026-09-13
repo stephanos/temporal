@@ -58,7 +58,24 @@ private def contract : Contract := Contract.contract "contract" #[
 ]
 
 def literalCase : Case := Testpilot.Authoring.case 1 "case" literalProgram contract
-  (provenance "testpilot-tests" "1" (ByteArray.mk #[0, 255, 128]))
+  (provenance "testpilot-tests" "1")
+
+private def provenanceSource : SourceLocation :=
+  { path := "Testpilot/Tests/ProtoJSON.lean", line := 2147483647, provenance := "authored" }
+
+/-- One row of every provenance kind, with a Known Gap whose subject is absent and one whose detail
+is present but empty, so the rendering keeps presence apart from the empty string. -/
+private def representativeProvenance : CaseProvenance :=
+  provenance "testpilot-tests" "1"
+    #[{ definition_id := "test.property", behavior_fingerprint := "test-property/v1",
+        kind := .DEFINITION_KIND_PROPERTY }]
+    #[provenanceSource]
+    #[knownGap .KNOWN_GAP_KIND_INPUT "test.gap.input" (detail := some "needs input"),
+      knownGap .KNOWN_GAP_KIND_CLAIM "test.gap.claim" (subject := some "test.property")
+        (detail := some "")]
+    #[{ rule_id := "test.rule", property_id := "test.property", property_fingerprint := "test-property/v1",
+        projection_id := "test.projection", projection_fingerprint := "test-projection/v1",
+        source := some provenanceSource }]
 
 private def bindingProgram : temporal.server.api.testpilot.v1.Program := Program.make "program"
   #[Program.role "endpoint" .ROLE_KIND_ENDPOINT (resourceBindingId := "nexus.endpoint"),
@@ -70,7 +87,7 @@ private def bindingProgram : temporal.server.api.testpilot.v1.Program := Program
   (Program.cleanup "cleanup" #[])
 
 def representativeCase : Case := Testpilot.Authoring.case 1 "binding-case" bindingProgram contract
-  (provenance "testpilot-tests" "1" (ByteArray.mk #[0, 255, 128]))
+  representativeProvenance
 
 private def unknownAnyCase : Case :=
   let expression := Expr.literal (Value.messageValue {
@@ -136,7 +153,12 @@ private def tests : IO Unit := do
     "int64 upper bound was not rendered as a ProtoJSON string"
   assert (first.contains "\"elapsedMilliseconds\":\"9223372036854775807\"")
     "monitor deadline was dropped"
-  assert (first.contains "AP+A") "opaque non-UTF-8 provenance bytes were not rendered"
+  assert (first.contains "\"kind\":\"DEFINITION_KIND_PROPERTY\"") "a provenance definition was dropped"
+  assert (first.contains "\"line\":2147483647") "a provenance source line was not rendered as a number"
+  assert (first.contains "{\"code\":\"test.gap.input\",\"detail\":\"needs input\",\"kind\":\"KNOWN_GAP_KIND_INPUT\"}")
+    "an absent Known Gap subject was rendered"
+  assert (first.contains "\"detail\":\"\"") "a present empty Known Gap detail was dropped"
+  assert (first.contains "\"ruleId\":\"test.rule\"") "a correlated rule binding was dropped"
   assert (first.contains "\"floatingPointValue\":1.5") "floating value was dropped"
   assert (first.contains "\"enumValue\":{\"number\":1}") "enum value was dropped"
   assert (first.contains "\"boolValue\":false") "present false oneof value was dropped"

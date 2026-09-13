@@ -313,6 +313,10 @@ var Declared = Mapping{
 		Name: "Program.environment, activation reservations and instruction outcomes are derived, and instruction limits equal to the Profile defaults are omitted", Requirement: "R10",
 		Apply: RewriteMessages(protocol+"Program", deriveProgramDeclarations),
 	},
+	{
+		Name: "the opaque provenance payload becomes typed Definition, source, Known Gap and correlated rule rows, and its CASE_ kind literals take their enums' prefixes", Requirement: "R13",
+		Apply: RewriteMessages(protocol+"CaseProvenance", liftProvenanceRows),
+	},
 }
 
 // defaultInstructionOrder rewrites one entrypoint's instructions against the default order: an
@@ -898,13 +902,13 @@ func sequence(applies ...ApplyFunc) ApplyFunc {
 // in place, and the result must decode to the original payload with only that key moved.
 func renameCorrelatedRuleKey(from, to string) func(fixture string, object *Object) (any, error) {
 	return func(_ string, object *Object) (any, error) {
-		encoded, ok := object.Fields["producerData"].(string)
+		encoded, ok := object.Fields[opaqueBytesKey].(string)
 		if !ok {
 			return object, nil
 		}
 		payload, err := base64.StdEncoding.DecodeString(encoded)
 		if err != nil {
-			return nil, fmt.Errorf("producerData: %w", err)
+			return nil, fmt.Errorf("%s: %w", opaqueBytesKey, err)
 		}
 		key, renamedKey := []byte(`"`+from+`":`), []byte(`"`+to+`":`)
 		// Producers other than Umpire write payloads that need not be JSON.
@@ -913,14 +917,14 @@ func renameCorrelatedRuleKey(from, to string) func(fixture string, object *Objec
 		}
 		var want map[string]any
 		if err := json.Unmarshal(payload, &want); err != nil {
-			return nil, fmt.Errorf("producerData: %w", err)
+			return nil, fmt.Errorf("%s: %w", opaqueBytesKey, err)
 		}
 		rules, _ := want["correlatedRules"].([]any)
 		for index, entry := range rules {
 			rule, isObject := entry.(map[string]any)
 			value, found := rule[from]
 			if _, clashes := rule[to]; !isObject || !found || clashes {
-				return nil, fmt.Errorf("producerData correlatedRules[%d] does not carry %q alone", index, from)
+				return nil, fmt.Errorf("%s correlatedRules[%d] does not carry %q alone", opaqueBytesKey, index, from)
 			}
 			delete(rule, from)
 			rule[to] = value
@@ -928,12 +932,12 @@ func renameCorrelatedRuleKey(from, to string) func(fixture string, object *Objec
 		renamed := bytes.ReplaceAll(payload, key, renamedKey)
 		var got map[string]any
 		if err := json.Unmarshal(renamed, &got); err != nil {
-			return nil, fmt.Errorf("producerData after renaming %q: %w", from, err)
+			return nil, fmt.Errorf("%s after renaming %q: %w", opaqueBytesKey, from, err)
 		}
 		if !reflect.DeepEqual(want, got) {
-			return nil, fmt.Errorf("producerData spells %q outside its correlatedRules entries", from)
+			return nil, fmt.Errorf("%s spells %q outside its correlatedRules entries", opaqueBytesKey, from)
 		}
-		object.Fields["producerData"] = base64.StdEncoding.EncodeToString(renamed)
+		object.Fields[opaqueBytesKey] = base64.StdEncoding.EncodeToString(renamed)
 		return object, nil
 	}
 }

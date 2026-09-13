@@ -2,6 +2,8 @@
 package testpilot
 
 import (
+	"fmt"
+
 	"google.golang.org/protobuf/proto"
 )
 
@@ -114,4 +116,206 @@ func (this *CaseProvenance) Equal(that interface{}) bool {
 	}
 
 	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type DefinitionBinding to the protobuf v3 wire format
+func (val *DefinitionBinding) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type DefinitionBinding from the protobuf v3 wire format
+func (val *DefinitionBinding) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *DefinitionBinding) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two DefinitionBinding values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *DefinitionBinding) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *DefinitionBinding
+	switch t := that.(type) {
+	case *DefinitionBinding:
+		that1 = t
+	case DefinitionBinding:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type SourceLocation to the protobuf v3 wire format
+func (val *SourceLocation) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type SourceLocation from the protobuf v3 wire format
+func (val *SourceLocation) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *SourceLocation) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two SourceLocation values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *SourceLocation) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *SourceLocation
+	switch t := that.(type) {
+	case *SourceLocation:
+		that1 = t
+	case SourceLocation:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type KnownGap to the protobuf v3 wire format
+func (val *KnownGap) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type KnownGap from the protobuf v3 wire format
+func (val *KnownGap) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *KnownGap) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two KnownGap values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *KnownGap) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *KnownGap
+	switch t := that.(type) {
+	case *KnownGap:
+		that1 = t
+	case KnownGap:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type CorrelatedRuleBinding to the protobuf v3 wire format
+func (val *CorrelatedRuleBinding) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type CorrelatedRuleBinding from the protobuf v3 wire format
+func (val *CorrelatedRuleBinding) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *CorrelatedRuleBinding) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two CorrelatedRuleBinding values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *CorrelatedRuleBinding) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *CorrelatedRuleBinding
+	switch t := that.(type) {
+	case *CorrelatedRuleBinding:
+		that1 = t
+	case CorrelatedRuleBinding:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+var (
+	DefinitionKind_shorthandValue = map[string]int32{
+		"Unspecified": 0,
+		"Setup":       1,
+		"State":       2,
+		"Action":      3,
+		"Outcome":     4,
+		"Fact":        5,
+		"Relation":    6,
+		"Capability":  7,
+		"Property":    8,
+		"Query":       9,
+		"Scenario":    10,
+		"Target":      11,
+		"Compiler":    12,
+		"Provider":    13,
+		"Law":         14,
+		"Connector":   15,
+		"Machine":     16,
+	}
+)
+
+// DefinitionKindFromString parses a DefinitionKind value from  either the protojson
+// canonical SCREAMING_CASE enum or the traditional temporal PascalCase enum to DefinitionKind
+func DefinitionKindFromString(s string) (DefinitionKind, error) {
+	if v, ok := DefinitionKind_value[s]; ok {
+		return DefinitionKind(v), nil
+	} else if v, ok := DefinitionKind_shorthandValue[s]; ok {
+		return DefinitionKind(v), nil
+	}
+	return DefinitionKind(0), fmt.Errorf("%s is not a valid DefinitionKind", s)
+}
+
+var (
+	KnownGapKind_shorthandValue = map[string]int32{
+		"Unspecified":    0,
+		"Capability":     1,
+		"Input":          2,
+		"Interpretation": 3,
+		"Claim":          4,
+	}
+)
+
+// KnownGapKindFromString parses a KnownGapKind value from  either the protojson
+// canonical SCREAMING_CASE enum or the traditional temporal PascalCase enum to KnownGapKind
+func KnownGapKindFromString(s string) (KnownGapKind, error) {
+	if v, ok := KnownGapKind_value[s]; ok {
+		return KnownGapKind(v), nil
+	} else if v, ok := KnownGapKind_shorthandValue[s]; ok {
+		return KnownGapKind(v), nil
+	}
+	return KnownGapKind(0), fmt.Errorf("%s is not a valid KnownGapKind", s)
 }

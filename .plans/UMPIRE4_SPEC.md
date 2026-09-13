@@ -53,9 +53,18 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   Umpire's own Producer surface.
 - **Case.** Exactly one Program and one Contract, with version, stable identity, and generic opaque
   provenance.
+  *Restatement (drafted by fn-87; awaiting GOV-02 approval.)* Exactly one Program and one Contract,
+  with version, stable identity, and structured provenance the runtime does not read.
 - **Provenance (`Umpire.Provenance`).** The producer-owned identity bytes inside a Case:
   `Umpire.Provenance.DefinitionBinding` rows and `Umpire.Provenance.KnownGap` rows that tie the Case
   back to the Model Definitions it came from. The runtime reads none of it.
+  *Restatement (drafted by fn-87; awaiting GOV-02 approval.)* The typed provenance rows inside a
+  Case: Definition bindings with their Behavior Fingerprints and kinds, sources, Known Gaps, and
+  correlated rule bindings that tie the Case back to the Model Definitions and Properties it came
+  from. Each kind of row is its own list, in the order the Producer lists them, so a fixture diff
+  shows each row. `Umpire.Provenance.make` lowers `Umpire.Provenance.DefinitionBinding`,
+  `Umpire.Provenance.KnownGap`, and `Umpire.Provenance.CorrelatedRuleBinding` values into those rows.
+  The runtime reads none of it.
 - **Program.** A bounded acyclic graph of typed instructions in controller, workflow, activity, or
   Nexus-handler entrypoints.
 - **Opcode.** The kind of one Program instruction. A Profile authorizes a set of Opcodes; nothing
@@ -67,6 +76,11 @@ a declared Nexus history Observation reaches a correlated completion within a bo
 - **Profile.** An immutable authorization and environment snapshot containing a descriptor Catalog,
   symbolic role policy, physical environment bindings, Opcodes, and independent Program and
   Contract ceilings. A binding authorizes no Opcode by itself.
+  *Restatement (drafted by fn-87; awaiting GOV-02 approval.)* An immutable authorization and
+  environment snapshot containing a descriptor Catalog, symbolic role policy, physical environment
+  bindings, Opcodes, instruction defaults, and the Program, Contract, and correlated resource
+  ceilings every Case is admitted against; a Case declares none of those ceilings. A binding
+  authorizes no Opcode by itself.
 - **Driver.** The environment-owned implementation of authorized side effects. Server and worker
   authority remain separate even when composed behind one Driver.
 - **Prepared Case.** The immutable result of static Case, Program, Contract, descriptor, and Profile
@@ -384,6 +398,14 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   Producers MUST retain their explicit Known Gaps in producer-owned provenance bytes.
   Unknown versions, fields, enum values, instructions, paths, types, crossed references, or
   out-of-policy resources MUST reject before Driver I/O.
+  *Restatement (drafted by fn-87; awaiting GOV-02 approval.)* A Case MUST contain exactly one
+  versioned Program and one Contract, stable IDs, structured provenance rows, typed roles, paths,
+  Slots, Observations, the bounds that carry its behavior (instruction timeouts and attempts,
+  Contract deadlines, and correlated windows), and no resource ceiling, callback, client,
+  credential, endpoint, or executable. Umpire Producers MUST retain their explicit Known Gaps as
+  Known Gap rows of that provenance, and the runtime MUST NOT read provenance. Unknown versions,
+  fields, enum values, instructions, paths, types, crossed references, or out-of-policy resources
+  MUST reject before Driver I/O.
 - **ART-10 — Immutable preparation.** `testpilot.Prepare` MUST snapshot all admitted Case, Catalog,
   Profile, Program, and Contract data. A Prepared Case MUST be safe for isolated sequential and
   concurrent Runs and MUST expose no mutation path into prepared state.

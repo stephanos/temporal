@@ -8,6 +8,7 @@ package testpilot
 
 import (
 	reflect "reflect"
+	"strconv"
 	sync "sync"
 	unsafe "unsafe"
 
@@ -21,6 +22,208 @@ const (
 	// Verify that runtime/protoimpl is sufficiently up-to-date.
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
+
+// DefinitionKind classifies the source Model Definition a DefinitionBinding names.
+type DefinitionKind int32
+
+const (
+	DEFINITION_KIND_UNSPECIFIED DefinitionKind = 0
+	DEFINITION_KIND_SETUP       DefinitionKind = 1
+	DEFINITION_KIND_STATE       DefinitionKind = 2
+	DEFINITION_KIND_ACTION      DefinitionKind = 3
+	DEFINITION_KIND_OUTCOME     DefinitionKind = 4
+	DEFINITION_KIND_FACT        DefinitionKind = 5
+	DEFINITION_KIND_RELATION    DefinitionKind = 6
+	DEFINITION_KIND_CAPABILITY  DefinitionKind = 7
+	DEFINITION_KIND_PROPERTY    DefinitionKind = 8
+	DEFINITION_KIND_QUERY       DefinitionKind = 9
+	DEFINITION_KIND_SCENARIO    DefinitionKind = 10
+	DEFINITION_KIND_TARGET      DefinitionKind = 11
+	DEFINITION_KIND_COMPILER    DefinitionKind = 12
+	DEFINITION_KIND_PROVIDER    DefinitionKind = 13
+	DEFINITION_KIND_LAW         DefinitionKind = 14
+	DEFINITION_KIND_CONNECTOR   DefinitionKind = 15
+	DEFINITION_KIND_MACHINE     DefinitionKind = 16
+)
+
+// Enum value maps for DefinitionKind.
+var (
+	DefinitionKind_name = map[int32]string{
+		0:  "DEFINITION_KIND_UNSPECIFIED",
+		1:  "DEFINITION_KIND_SETUP",
+		2:  "DEFINITION_KIND_STATE",
+		3:  "DEFINITION_KIND_ACTION",
+		4:  "DEFINITION_KIND_OUTCOME",
+		5:  "DEFINITION_KIND_FACT",
+		6:  "DEFINITION_KIND_RELATION",
+		7:  "DEFINITION_KIND_CAPABILITY",
+		8:  "DEFINITION_KIND_PROPERTY",
+		9:  "DEFINITION_KIND_QUERY",
+		10: "DEFINITION_KIND_SCENARIO",
+		11: "DEFINITION_KIND_TARGET",
+		12: "DEFINITION_KIND_COMPILER",
+		13: "DEFINITION_KIND_PROVIDER",
+		14: "DEFINITION_KIND_LAW",
+		15: "DEFINITION_KIND_CONNECTOR",
+		16: "DEFINITION_KIND_MACHINE",
+	}
+	DefinitionKind_value = map[string]int32{
+		"DEFINITION_KIND_UNSPECIFIED": 0,
+		"DEFINITION_KIND_SETUP":       1,
+		"DEFINITION_KIND_STATE":       2,
+		"DEFINITION_KIND_ACTION":      3,
+		"DEFINITION_KIND_OUTCOME":     4,
+		"DEFINITION_KIND_FACT":        5,
+		"DEFINITION_KIND_RELATION":    6,
+		"DEFINITION_KIND_CAPABILITY":  7,
+		"DEFINITION_KIND_PROPERTY":    8,
+		"DEFINITION_KIND_QUERY":       9,
+		"DEFINITION_KIND_SCENARIO":    10,
+		"DEFINITION_KIND_TARGET":      11,
+		"DEFINITION_KIND_COMPILER":    12,
+		"DEFINITION_KIND_PROVIDER":    13,
+		"DEFINITION_KIND_LAW":         14,
+		"DEFINITION_KIND_CONNECTOR":   15,
+		"DEFINITION_KIND_MACHINE":     16,
+	}
+)
+
+func (x DefinitionKind) Enum() *DefinitionKind {
+	p := new(DefinitionKind)
+	*p = x
+	return p
+}
+
+func (x DefinitionKind) String() string {
+	switch x {
+	case DEFINITION_KIND_UNSPECIFIED:
+		return "Unspecified"
+	case DEFINITION_KIND_SETUP:
+		return "Setup"
+	case DEFINITION_KIND_STATE:
+		return "State"
+	case DEFINITION_KIND_ACTION:
+		return "Action"
+	case DEFINITION_KIND_OUTCOME:
+		return "Outcome"
+	case DEFINITION_KIND_FACT:
+		return "Fact"
+	case DEFINITION_KIND_RELATION:
+		return "Relation"
+	case DEFINITION_KIND_CAPABILITY:
+		return "Capability"
+	case DEFINITION_KIND_PROPERTY:
+		return "Property"
+	case DEFINITION_KIND_QUERY:
+		return "Query"
+	case DEFINITION_KIND_SCENARIO:
+
+		// Deprecated: Use DefinitionKind.Descriptor instead.
+		return "Scenario"
+	case DEFINITION_KIND_TARGET:
+		return "Target"
+	case DEFINITION_KIND_COMPILER:
+		return "Compiler"
+	case DEFINITION_KIND_PROVIDER:
+		return "Provider"
+	case DEFINITION_KIND_LAW:
+		return "Law"
+	case DEFINITION_KIND_CONNECTOR:
+
+		// KnownGapKind classifies what a KnownGap is missing.
+		return "Connector"
+	case DEFINITION_KIND_MACHINE:
+		return "Machine"
+	default:
+		return strconv.Itoa(int(x))
+	}
+
+}
+
+func (DefinitionKind) Descriptor() protoreflect.EnumDescriptor {
+	return file_temporal_server_api_testpilot_v1_case_proto_enumTypes[0].Descriptor()
+}
+
+func (DefinitionKind) Type() protoreflect.EnumType {
+	return &file_temporal_server_api_testpilot_v1_case_proto_enumTypes[0]
+}
+
+func (x DefinitionKind) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+func (DefinitionKind) EnumDescriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_case_proto_rawDescGZIP(), []int{0}
+}
+
+type KnownGapKind int32
+
+const (
+	KNOWN_GAP_KIND_UNSPECIFIED    KnownGapKind = 0
+	KNOWN_GAP_KIND_CAPABILITY     KnownGapKind = 1
+	KNOWN_GAP_KIND_INPUT          KnownGapKind = 2
+	KNOWN_GAP_KIND_INTERPRETATION KnownGapKind = 3
+	KNOWN_GAP_KIND_CLAIM          KnownGapKind = 4
+)
+
+// Enum value maps for KnownGapKind.
+var (
+	KnownGapKind_name = map[int32]string{
+		0: "KNOWN_GAP_KIND_UNSPECIFIED",
+		1: "KNOWN_GAP_KIND_CAPABILITY",
+		2: "KNOWN_GAP_KIND_INPUT",
+		3: "KNOWN_GAP_KIND_INTERPRETATION",
+		4: "KNOWN_GAP_KIND_CLAIM",
+	}
+	KnownGapKind_value = map[string]int32{
+		"KNOWN_GAP_KIND_UNSPECIFIED":    0,
+		"KNOWN_GAP_KIND_CAPABILITY":     1,
+		"KNOWN_GAP_KIND_INPUT":          2,
+		"KNOWN_GAP_KIND_INTERPRETATION": 3,
+		"KNOWN_GAP_KIND_CLAIM":          4,
+	}
+)
+
+func (x KnownGapKind) Enum() *KnownGapKind {
+	p := new(KnownGapKind)
+	*p = x
+	return p
+}
+
+func (x KnownGapKind) String() string {
+	switch x {
+	case KNOWN_GAP_KIND_UNSPECIFIED:
+		return "Unspecified"
+	case KNOWN_GAP_KIND_CAPABILITY:
+		return "Capability"
+	case KNOWN_GAP_KIND_INPUT:
+		return "Input"
+	case KNOWN_GAP_KIND_INTERPRETATION:
+		return "Interpretation"
+	case KNOWN_GAP_KIND_CLAIM:
+		return "Claim"
+	default:
+		return strconv.Itoa(int(x))
+	}
+
+}
+
+func (KnownGapKind) Descriptor() protoreflect.EnumDescriptor {
+	return file_temporal_server_api_testpilot_v1_case_proto_enumTypes[1].Descriptor()
+}
+
+func (KnownGapKind) Type() protoreflect.EnumType {
+	return &file_temporal_server_api_testpilot_v1_case_proto_enumTypes[1]
+}
+
+func (x KnownGapKind) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use KnownGapKind.Descriptor instead.
+func (KnownGapKind) EnumDescriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_case_proto_rawDescGZIP(), []int{1}
+}
 
 // Case is the versioned standalone pairing of exactly one bounded Program and one Contract.
 type Case struct {
@@ -152,15 +355,19 @@ func (x *FormatVersion) GetMinor() int32 {
 	return 0
 }
 
-// CaseProvenance keeps producer-owned metadata opaque to Testpilot.
+// CaseProvenance records where a Case came from as typed rows. Testpilot reads none of it: it
+// changes no preparation, Run or Verdict, although it is part of the Case's canonical bytes. Each
+// kind of row is its own list, in the order the Producer lists them.
 type CaseProvenance struct {
-	state           protoimpl.MessageState `protogen:"open.v1"`
-	ProducerId      string                 `protobuf:"bytes,1,opt,name=producer_id,json=producerId,proto3" json:"producer_id,omitempty"`
-	ProducerVersion string                 `protobuf:"bytes,2,opt,name=producer_version,json=producerVersion,proto3" json:"producer_version,omitempty"`
-	// Producer-defined bytes Testpilot never reads.
-	ProducerData  []byte `protobuf:"bytes,3,opt,name=producer_data,json=producerData,proto3" json:"producer_data,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state           protoimpl.MessageState   `protogen:"open.v1"`
+	ProducerId      string                   `protobuf:"bytes,1,opt,name=producer_id,json=producerId,proto3" json:"producer_id,omitempty"`
+	ProducerVersion string                   `protobuf:"bytes,2,opt,name=producer_version,json=producerVersion,proto3" json:"producer_version,omitempty"`
+	Definitions     []*DefinitionBinding     `protobuf:"bytes,3,rep,name=definitions,proto3" json:"definitions,omitempty"`
+	Sources         []*SourceLocation        `protobuf:"bytes,4,rep,name=sources,proto3" json:"sources,omitempty"`
+	KnownGaps       []*KnownGap              `protobuf:"bytes,5,rep,name=known_gaps,json=knownGaps,proto3" json:"known_gaps,omitempty"`
+	CorrelatedRules []*CorrelatedRuleBinding `protobuf:"bytes,6,rep,name=correlated_rules,json=correlatedRules,proto3" json:"correlated_rules,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *CaseProvenance) Reset() {
@@ -207,9 +414,367 @@ func (x *CaseProvenance) GetProducerVersion() string {
 	return ""
 }
 
-func (x *CaseProvenance) GetProducerData() []byte {
+func (x *CaseProvenance) GetDefinitions() []*DefinitionBinding {
 	if x != nil {
-		return x.ProducerData
+		return x.Definitions
+	}
+	return nil
+}
+
+func (x *CaseProvenance) GetSources() []*SourceLocation {
+	if x != nil {
+		return x.Sources
+	}
+	return nil
+}
+
+func (x *CaseProvenance) GetKnownGaps() []*KnownGap {
+	if x != nil {
+		return x.KnownGaps
+	}
+	return nil
+}
+
+func (x *CaseProvenance) GetCorrelatedRules() []*CorrelatedRuleBinding {
+	if x != nil {
+		return x.CorrelatedRules
+	}
+	return nil
+}
+
+// DefinitionBinding names one source Model Definition a Case was produced from and the Behavior
+// Fingerprint it had.
+type DefinitionBinding struct {
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	DefinitionId        string                 `protobuf:"bytes,1,opt,name=definition_id,json=definitionId,proto3" json:"definition_id,omitempty"`
+	BehaviorFingerprint string                 `protobuf:"bytes,2,opt,name=behavior_fingerprint,json=behaviorFingerprint,proto3" json:"behavior_fingerprint,omitempty"`
+	Kind                DefinitionKind         `protobuf:"varint,3,opt,name=kind,proto3,enum=temporal.server.api.testpilot.v1.DefinitionKind" json:"kind,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *DefinitionBinding) Reset() {
+	*x = DefinitionBinding{}
+	mi := &file_temporal_server_api_testpilot_v1_case_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DefinitionBinding) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DefinitionBinding) ProtoMessage() {}
+
+func (x *DefinitionBinding) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_case_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DefinitionBinding.ProtoReflect.Descriptor instead.
+func (*DefinitionBinding) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_case_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *DefinitionBinding) GetDefinitionId() string {
+	if x != nil {
+		return x.DefinitionId
+	}
+	return ""
+}
+
+func (x *DefinitionBinding) GetBehaviorFingerprint() string {
+	if x != nil {
+		return x.BehaviorFingerprint
+	}
+	return ""
+}
+
+func (x *DefinitionBinding) GetKind() DefinitionKind {
+	if x != nil {
+		return x.Kind
+	}
+	return DEFINITION_KIND_UNSPECIFIED
+}
+
+// SourceLocation is a position in the Producer's source.
+type SourceLocation struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Relative to the Producer's source root.
+	Path string `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
+	// One-based; zero when the Producer knows no position.
+	Line int32 `protobuf:"varint,2,opt,name=line,proto3" json:"line,omitempty"`
+	// One-based; zero when the Producer knows no position.
+	Column int32 `protobuf:"varint,3,opt,name=column,proto3" json:"column,omitempty"`
+	// How the source was obtained, such as authored or checked-model.
+	Provenance    string `protobuf:"bytes,4,opt,name=provenance,proto3" json:"provenance,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SourceLocation) Reset() {
+	*x = SourceLocation{}
+	mi := &file_temporal_server_api_testpilot_v1_case_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SourceLocation) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SourceLocation) ProtoMessage() {}
+
+func (x *SourceLocation) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_case_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SourceLocation.ProtoReflect.Descriptor instead.
+func (*SourceLocation) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_case_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *SourceLocation) GetPath() string {
+	if x != nil {
+		return x.Path
+	}
+	return ""
+}
+
+func (x *SourceLocation) GetLine() int32 {
+	if x != nil {
+		return x.Line
+	}
+	return 0
+}
+
+func (x *SourceLocation) GetColumn() int32 {
+	if x != nil {
+		return x.Column
+	}
+	return 0
+}
+
+func (x *SourceLocation) GetProvenance() string {
+	if x != nil {
+		return x.Provenance
+	}
+	return ""
+}
+
+// KnownGap is one missing or unsupported capability, input, interpretation or claim that limits what
+// the Case can prove.
+type KnownGap struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Kind  KnownGapKind           `protobuf:"varint,1,opt,name=kind,proto3,enum=temporal.server.api.testpilot.v1.KnownGapKind" json:"kind,omitempty"`
+	// The Known Gap's Definition ID.
+	Code string `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty"`
+	// Types that are valid to be assigned to SubjectPresence:
+	//
+	//	*KnownGap_Subject
+	SubjectPresence isKnownGap_SubjectPresence `protobuf_oneof:"subject_presence"`
+	// Types that are valid to be assigned to DetailPresence:
+	//
+	//	*KnownGap_Detail
+	DetailPresence isKnownGap_DetailPresence `protobuf_oneof:"detail_presence"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *KnownGap) Reset() {
+	*x = KnownGap{}
+	mi := &file_temporal_server_api_testpilot_v1_case_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *KnownGap) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*KnownGap) ProtoMessage() {}
+
+func (x *KnownGap) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_case_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use KnownGap.ProtoReflect.Descriptor instead.
+func (*KnownGap) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_case_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *KnownGap) GetKind() KnownGapKind {
+	if x != nil {
+		return x.Kind
+	}
+	return KNOWN_GAP_KIND_UNSPECIFIED
+}
+
+func (x *KnownGap) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+func (x *KnownGap) GetSubjectPresence() isKnownGap_SubjectPresence {
+	if x != nil {
+		return x.SubjectPresence
+	}
+	return nil
+}
+
+func (x *KnownGap) GetSubject() string {
+	if x != nil {
+		if x, ok := x.SubjectPresence.(*KnownGap_Subject); ok {
+			return x.Subject
+		}
+	}
+	return ""
+}
+
+func (x *KnownGap) GetDetailPresence() isKnownGap_DetailPresence {
+	if x != nil {
+		return x.DetailPresence
+	}
+	return nil
+}
+
+func (x *KnownGap) GetDetail() string {
+	if x != nil {
+		if x, ok := x.DetailPresence.(*KnownGap_Detail); ok {
+			return x.Detail
+		}
+	}
+	return ""
+}
+
+type isKnownGap_SubjectPresence interface {
+	isKnownGap_SubjectPresence()
+}
+
+type KnownGap_Subject struct {
+	// The Definition ID of the definition the gap limits.
+	Subject string `protobuf:"bytes,3,opt,name=subject,proto3,oneof"`
+}
+
+func (*KnownGap_Subject) isKnownGap_SubjectPresence() {}
+
+type isKnownGap_DetailPresence interface {
+	isKnownGap_DetailPresence()
+}
+
+type KnownGap_Detail struct {
+	Detail string `protobuf:"bytes,4,opt,name=detail,proto3,oneof"`
+}
+
+func (*KnownGap_Detail) isKnownGap_DetailPresence() {}
+
+// CorrelatedRuleBinding ties one Correlated Rule of the Contract to the Property and Projection it
+// was compiled from.
+type CorrelatedRuleBinding struct {
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	RuleId                string                 `protobuf:"bytes,1,opt,name=rule_id,json=ruleId,proto3" json:"rule_id,omitempty"`
+	PropertyId            string                 `protobuf:"bytes,2,opt,name=property_id,json=propertyId,proto3" json:"property_id,omitempty"`
+	PropertyFingerprint   string                 `protobuf:"bytes,3,opt,name=property_fingerprint,json=propertyFingerprint,proto3" json:"property_fingerprint,omitempty"`
+	ProjectionId          string                 `protobuf:"bytes,4,opt,name=projection_id,json=projectionId,proto3" json:"projection_id,omitempty"`
+	ProjectionFingerprint string                 `protobuf:"bytes,5,opt,name=projection_fingerprint,json=projectionFingerprint,proto3" json:"projection_fingerprint,omitempty"`
+	Source                *SourceLocation        `protobuf:"bytes,6,opt,name=source,proto3" json:"source,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
+}
+
+func (x *CorrelatedRuleBinding) Reset() {
+	*x = CorrelatedRuleBinding{}
+	mi := &file_temporal_server_api_testpilot_v1_case_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CorrelatedRuleBinding) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CorrelatedRuleBinding) ProtoMessage() {}
+
+func (x *CorrelatedRuleBinding) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_case_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CorrelatedRuleBinding.ProtoReflect.Descriptor instead.
+func (*CorrelatedRuleBinding) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_case_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *CorrelatedRuleBinding) GetRuleId() string {
+	if x != nil {
+		return x.RuleId
+	}
+	return ""
+}
+
+func (x *CorrelatedRuleBinding) GetPropertyId() string {
+	if x != nil {
+		return x.PropertyId
+	}
+	return ""
+}
+
+func (x *CorrelatedRuleBinding) GetPropertyFingerprint() string {
+	if x != nil {
+		return x.PropertyFingerprint
+	}
+	return ""
+}
+
+func (x *CorrelatedRuleBinding) GetProjectionId() string {
+	if x != nil {
+		return x.ProjectionId
+	}
+	return ""
+}
+
+func (x *CorrelatedRuleBinding) GetProjectionFingerprint() string {
+	if x != nil {
+		return x.ProjectionFingerprint
+	}
+	return ""
+}
+
+func (x *CorrelatedRuleBinding) GetSource() *SourceLocation {
+	if x != nil {
+		return x.Source
 	}
 	return nil
 }
@@ -229,12 +794,67 @@ const file_temporal_server_api_testpilot_v1_case_proto_rawDesc = "" +
 	"\bcontract\x18\x05 \x01(\v2*.temporal.server.api.testpilot.v1.ContractR\bcontract\";\n" +
 	"\rFormatVersion\x12\x14\n" +
 	"\x05major\x18\x01 \x01(\x05R\x05major\x12\x14\n" +
-	"\x05minor\x18\x02 \x01(\x05R\x05minor\"\x81\x01\n" +
+	"\x05minor\x18\x02 \x01(\x05R\x05minor\"\xae\x03\n" +
 	"\x0eCaseProvenance\x12\x1f\n" +
 	"\vproducer_id\x18\x01 \x01(\tR\n" +
 	"producerId\x12)\n" +
-	"\x10producer_version\x18\x02 \x01(\tR\x0fproducerVersion\x12#\n" +
-	"\rproducer_data\x18\x03 \x01(\fR\fproducerDataB2Z0go.temporal.io/server/api/testpilot/v1;testpilotb\x06proto3"
+	"\x10producer_version\x18\x02 \x01(\tR\x0fproducerVersion\x12U\n" +
+	"\vdefinitions\x18\x03 \x03(\v23.temporal.server.api.testpilot.v1.DefinitionBindingR\vdefinitions\x12J\n" +
+	"\asources\x18\x04 \x03(\v20.temporal.server.api.testpilot.v1.SourceLocationR\asources\x12I\n" +
+	"\n" +
+	"known_gaps\x18\x05 \x03(\v2*.temporal.server.api.testpilot.v1.KnownGapR\tknownGaps\x12b\n" +
+	"\x10correlated_rules\x18\x06 \x03(\v27.temporal.server.api.testpilot.v1.CorrelatedRuleBindingR\x0fcorrelatedRules\"\xb1\x01\n" +
+	"\x11DefinitionBinding\x12#\n" +
+	"\rdefinition_id\x18\x01 \x01(\tR\fdefinitionId\x121\n" +
+	"\x14behavior_fingerprint\x18\x02 \x01(\tR\x13behaviorFingerprint\x12D\n" +
+	"\x04kind\x18\x03 \x01(\x0e20.temporal.server.api.testpilot.v1.DefinitionKindR\x04kind\"p\n" +
+	"\x0eSourceLocation\x12\x12\n" +
+	"\x04path\x18\x01 \x01(\tR\x04path\x12\x12\n" +
+	"\x04line\x18\x02 \x01(\x05R\x04line\x12\x16\n" +
+	"\x06column\x18\x03 \x01(\x05R\x06column\x12\x1e\n" +
+	"\n" +
+	"provenance\x18\x04 \x01(\tR\n" +
+	"provenance\"\xbf\x01\n" +
+	"\bKnownGap\x12B\n" +
+	"\x04kind\x18\x01 \x01(\x0e2..temporal.server.api.testpilot.v1.KnownGapKindR\x04kind\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\tR\x04code\x12\x1a\n" +
+	"\asubject\x18\x03 \x01(\tH\x00R\asubject\x12\x18\n" +
+	"\x06detail\x18\x04 \x01(\tH\x01R\x06detailB\x12\n" +
+	"\x10subject_presenceB\x11\n" +
+	"\x0fdetail_presence\"\xaa\x02\n" +
+	"\x15CorrelatedRuleBinding\x12\x17\n" +
+	"\arule_id\x18\x01 \x01(\tR\x06ruleId\x12\x1f\n" +
+	"\vproperty_id\x18\x02 \x01(\tR\n" +
+	"propertyId\x121\n" +
+	"\x14property_fingerprint\x18\x03 \x01(\tR\x13propertyFingerprint\x12#\n" +
+	"\rprojection_id\x18\x04 \x01(\tR\fprojectionId\x125\n" +
+	"\x16projection_fingerprint\x18\x05 \x01(\tR\x15projectionFingerprint\x12H\n" +
+	"\x06source\x18\x06 \x01(\v20.temporal.server.api.testpilot.v1.SourceLocationR\x06source*\xfc\x03\n" +
+	"\x0eDefinitionKind\x12\x1f\n" +
+	"\x1bDEFINITION_KIND_UNSPECIFIED\x10\x00\x12\x19\n" +
+	"\x15DEFINITION_KIND_SETUP\x10\x01\x12\x19\n" +
+	"\x15DEFINITION_KIND_STATE\x10\x02\x12\x1a\n" +
+	"\x16DEFINITION_KIND_ACTION\x10\x03\x12\x1b\n" +
+	"\x17DEFINITION_KIND_OUTCOME\x10\x04\x12\x18\n" +
+	"\x14DEFINITION_KIND_FACT\x10\x05\x12\x1c\n" +
+	"\x18DEFINITION_KIND_RELATION\x10\x06\x12\x1e\n" +
+	"\x1aDEFINITION_KIND_CAPABILITY\x10\a\x12\x1c\n" +
+	"\x18DEFINITION_KIND_PROPERTY\x10\b\x12\x19\n" +
+	"\x15DEFINITION_KIND_QUERY\x10\t\x12\x1c\n" +
+	"\x18DEFINITION_KIND_SCENARIO\x10\n" +
+	"\x12\x1a\n" +
+	"\x16DEFINITION_KIND_TARGET\x10\v\x12\x1c\n" +
+	"\x18DEFINITION_KIND_COMPILER\x10\f\x12\x1c\n" +
+	"\x18DEFINITION_KIND_PROVIDER\x10\r\x12\x17\n" +
+	"\x13DEFINITION_KIND_LAW\x10\x0e\x12\x1d\n" +
+	"\x19DEFINITION_KIND_CONNECTOR\x10\x0f\x12\x1b\n" +
+	"\x17DEFINITION_KIND_MACHINE\x10\x10*\xa4\x01\n" +
+	"\fKnownGapKind\x12\x1e\n" +
+	"\x1aKNOWN_GAP_KIND_UNSPECIFIED\x10\x00\x12\x1d\n" +
+	"\x19KNOWN_GAP_KIND_CAPABILITY\x10\x01\x12\x18\n" +
+	"\x14KNOWN_GAP_KIND_INPUT\x10\x02\x12!\n" +
+	"\x1dKNOWN_GAP_KIND_INTERPRETATION\x10\x03\x12\x18\n" +
+	"\x14KNOWN_GAP_KIND_CLAIM\x10\x04B2Z0go.temporal.io/server/api/testpilot/v1;testpilotb\x06proto3"
 
 var (
 	file_temporal_server_api_testpilot_v1_case_proto_rawDescOnce sync.Once
@@ -248,24 +868,38 @@ func file_temporal_server_api_testpilot_v1_case_proto_rawDescGZIP() []byte {
 	return file_temporal_server_api_testpilot_v1_case_proto_rawDescData
 }
 
-var file_temporal_server_api_testpilot_v1_case_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_temporal_server_api_testpilot_v1_case_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_temporal_server_api_testpilot_v1_case_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_temporal_server_api_testpilot_v1_case_proto_goTypes = []any{
-	(*Case)(nil),           // 0: temporal.server.api.testpilot.v1.Case
-	(*FormatVersion)(nil),  // 1: temporal.server.api.testpilot.v1.FormatVersion
-	(*CaseProvenance)(nil), // 2: temporal.server.api.testpilot.v1.CaseProvenance
-	(*Program)(nil),        // 3: temporal.server.api.testpilot.v1.Program
-	(*Contract)(nil),       // 4: temporal.server.api.testpilot.v1.Contract
+	(DefinitionKind)(0),           // 0: temporal.server.api.testpilot.v1.DefinitionKind
+	(KnownGapKind)(0),             // 1: temporal.server.api.testpilot.v1.KnownGapKind
+	(*Case)(nil),                  // 2: temporal.server.api.testpilot.v1.Case
+	(*FormatVersion)(nil),         // 3: temporal.server.api.testpilot.v1.FormatVersion
+	(*CaseProvenance)(nil),        // 4: temporal.server.api.testpilot.v1.CaseProvenance
+	(*DefinitionBinding)(nil),     // 5: temporal.server.api.testpilot.v1.DefinitionBinding
+	(*SourceLocation)(nil),        // 6: temporal.server.api.testpilot.v1.SourceLocation
+	(*KnownGap)(nil),              // 7: temporal.server.api.testpilot.v1.KnownGap
+	(*CorrelatedRuleBinding)(nil), // 8: temporal.server.api.testpilot.v1.CorrelatedRuleBinding
+	(*Program)(nil),               // 9: temporal.server.api.testpilot.v1.Program
+	(*Contract)(nil),              // 10: temporal.server.api.testpilot.v1.Contract
 }
 var file_temporal_server_api_testpilot_v1_case_proto_depIdxs = []int32{
-	1, // 0: temporal.server.api.testpilot.v1.Case.version:type_name -> temporal.server.api.testpilot.v1.FormatVersion
-	2, // 1: temporal.server.api.testpilot.v1.Case.provenance:type_name -> temporal.server.api.testpilot.v1.CaseProvenance
-	3, // 2: temporal.server.api.testpilot.v1.Case.program:type_name -> temporal.server.api.testpilot.v1.Program
-	4, // 3: temporal.server.api.testpilot.v1.Case.contract:type_name -> temporal.server.api.testpilot.v1.Contract
-	4, // [4:4] is the sub-list for method output_type
-	4, // [4:4] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	3,  // 0: temporal.server.api.testpilot.v1.Case.version:type_name -> temporal.server.api.testpilot.v1.FormatVersion
+	4,  // 1: temporal.server.api.testpilot.v1.Case.provenance:type_name -> temporal.server.api.testpilot.v1.CaseProvenance
+	9,  // 2: temporal.server.api.testpilot.v1.Case.program:type_name -> temporal.server.api.testpilot.v1.Program
+	10, // 3: temporal.server.api.testpilot.v1.Case.contract:type_name -> temporal.server.api.testpilot.v1.Contract
+	5,  // 4: temporal.server.api.testpilot.v1.CaseProvenance.definitions:type_name -> temporal.server.api.testpilot.v1.DefinitionBinding
+	6,  // 5: temporal.server.api.testpilot.v1.CaseProvenance.sources:type_name -> temporal.server.api.testpilot.v1.SourceLocation
+	7,  // 6: temporal.server.api.testpilot.v1.CaseProvenance.known_gaps:type_name -> temporal.server.api.testpilot.v1.KnownGap
+	8,  // 7: temporal.server.api.testpilot.v1.CaseProvenance.correlated_rules:type_name -> temporal.server.api.testpilot.v1.CorrelatedRuleBinding
+	0,  // 8: temporal.server.api.testpilot.v1.DefinitionBinding.kind:type_name -> temporal.server.api.testpilot.v1.DefinitionKind
+	1,  // 9: temporal.server.api.testpilot.v1.KnownGap.kind:type_name -> temporal.server.api.testpilot.v1.KnownGapKind
+	6,  // 10: temporal.server.api.testpilot.v1.CorrelatedRuleBinding.source:type_name -> temporal.server.api.testpilot.v1.SourceLocation
+	11, // [11:11] is the sub-list for method output_type
+	11, // [11:11] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_testpilot_v1_case_proto_init() }
@@ -275,18 +909,23 @@ func file_temporal_server_api_testpilot_v1_case_proto_init() {
 	}
 	file_temporal_server_api_testpilot_v1_contract_proto_init()
 	file_temporal_server_api_testpilot_v1_program_proto_init()
+	file_temporal_server_api_testpilot_v1_case_proto_msgTypes[5].OneofWrappers = []any{
+		(*KnownGap_Subject)(nil),
+		(*KnownGap_Detail)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_temporal_server_api_testpilot_v1_case_proto_rawDesc), len(file_temporal_server_api_testpilot_v1_case_proto_rawDesc)),
-			NumEnums:      0,
-			NumMessages:   3,
+			NumEnums:      2,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
 		GoTypes:           file_temporal_server_api_testpilot_v1_case_proto_goTypes,
 		DependencyIndexes: file_temporal_server_api_testpilot_v1_case_proto_depIdxs,
+		EnumInfos:         file_temporal_server_api_testpilot_v1_case_proto_enumTypes,
 		MessageInfos:      file_temporal_server_api_testpilot_v1_case_proto_msgTypes,
 	}.Build()
 	File_temporal_server_api_testpilot_v1_case_proto = out.File

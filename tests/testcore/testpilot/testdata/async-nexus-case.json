@@ -646,9 +646,98 @@
     ]
   },
   "provenance": {
-    "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZW1wb3JhbC5uZXh1cy5zdWNjZXNzLnRhcmdldC5saWZlY3ljbGUiLAogICAgICAiYmVoYXZpb3JGaW5nZXJwcmludCI6ICJzaGEyNTY6ZGMxNmNkNjNiMTk3NjEyYWM5MmMxZTcxMDI4MTYxMTkzYWNjMGM5NzczZjg2OTU1MjA3ZWVhZWY3MjIxZTIwMSIsCiAgICAgICJraW5kIjogIkNBU0VfREVGSU5JVElPTl9LSU5EX1RBUkdFVCIKICAgIH0sCiAgICB7CiAgICAgICJkZWZpbml0aW9uSWQiOiAidGVtcG9yYWwubmV4dXMuc3VjY2Vzcy5iZWhhdmlvci5zdWNjZXNzZnVsQ29tcGxldGlvbiIsCiAgICAgICJiZWhhdmlvckZpbmdlcnByaW50IjogInNoYTI1Njo2MzAxNWY5ODIyMTVmODJkMGE1MjRjYWI5MTQ4YTkzNjI0NzU1MTQ3YTIwZWNkM2FhM2U4MGNmYmJiOGVhZGQ1IiwKICAgICAgImtpbmQiOiAiQ0FTRV9ERUZJTklUSU9OX0tJTkRfU0NFTkFSSU8iCiAgICB9LAogICAgewogICAgICAiZGVmaW5pdGlvbklkIjogInRlbXBvcmFsLm5leHVzLnN1Y2Nlc3MucXVlcnkuY29tcGxldGlvbiIsCiAgICAgICJiZWhhdmlvckZpbmdlcnByaW50IjogInNoYTI1NjowNDU4NTg1ZTQyNTdiNTk4YzE5YTg2NDhlMjNmYmY2OTFlN2YyZWFjZDBiN2Y1MGM3Nzc3YzBkM2QxNThmY2M3IiwKICAgICAgImtpbmQiOiAiQ0FTRV9ERUZJTklUSU9OX0tJTkRfUVVFUlkiCiAgICB9LAogICAgewogICAgICAiZGVmaW5pdGlvbklkIjogInRlbXBvcmFsLm5leHVzLnN1Y2Nlc3MucHJvcGVydHkuc3VjY2Vzc2Z1bFJlc3VsdCIsCiAgICAgICJiZWhhdmlvckZpbmdlcnByaW50IjogInNoYTI1Njo5MTNhNDY4YzI3MmVmMThjZTc2NjU1ZjU4MmJkNGMzYzQyN2QxNDAwYjZkZGRkZTk5MjVkOGZjODBmZDc3N2RjIiwKICAgICAgImtpbmQiOiAiQ0FTRV9ERUZJTklUSU9OX0tJTkRfUFJPUEVSVFkiCiAgICB9CiAgXSwKICAic291cmNlcyI6IFsKICAgIHsKICAgICAgInBhdGgiOiAiVGVtcG9yYWwvRmVhdHVyZS9OZXh1cy9TdWNjZXNzL01vZGVsLmxlYW4iLAogICAgICAibGluZSI6ICIxIiwKICAgICAgImNvbHVtbiI6ICIxIiwKICAgICAgInByb3ZlbmFuY2UiOiAibGVhbi1tb2RlbCIKICAgIH0sCiAgICB7CiAgICAgICJwYXRoIjogIlRlbXBvcmFsL0ZlYXR1cmUvTmV4dXMvU3VjY2Vzcy9Nb2RlbC5sZWFuIiwKICAgICAgImxpbmUiOiAiMSIsCiAgICAgICJjb2x1bW4iOiAiMSIsCiAgICAgICJwcm92ZW5hbmNlIjogImxlYW4tbW9kZWwiCiAgICB9LAogICAgewogICAgICAicGF0aCI6ICJUZW1wb3JhbC9GZWF0dXJlL05leHVzL1N1Y2Nlc3MvTW9kZWwubGVhbiIsCiAgICAgICJsaW5lIjogIjEiLAogICAgICAiY29sdW1uIjogIjEiLAogICAgICAicHJvdmVuYW5jZSI6ICJsZWFuLW1vZGVsIgogICAgfSwKICAgIHsKICAgICAgInBhdGgiOiAiVGVtcG9yYWwvRmVhdHVyZS9OZXh1cy9TdWNjZXNzL01vZGVsLmxlYW4iLAogICAgICAibGluZSI6ICIxIiwKICAgICAgImNvbHVtbiI6ICIxIiwKICAgICAgInByb3ZlbmFuY2UiOiAibGVhbi1tb2RlbCIKICAgIH0KICBdLAogICJrbm93bkdhcHMiOiBbCiAgICB7CiAgICAgICJraW5kIjogIkNBU0VfS05PV05fR0FQX0tJTkRfQ0FQQUJJTElUWSIsCiAgICAgICJjb2RlIjogInRlbXBvcmFsLm5leHVzLnN1Y2Nlc3Mua25vd24tZ2FwLmNhbmNlbGxhdGlvbiIsCiAgICAgICJzdWJqZWN0IjogInRlbXBvcmFsLm5leHVzLnN1Y2Nlc3MucHJvcGVydHkuY2FuY2VsbGF0aW9uUmVzb2x2ZXMiLAogICAgICAiZGV0YWlsIjogIk9wZXJhdGlvbi1jb3JyZWxhdGVkIE5leHVzIGNhbmNlbGxhdGlvbiBpcyB1bnN1cHBvcnRlZCBieSB0aGUgc3VjY2VzcyBzbGljZS4iCiAgICB9LAogICAgewogICAgICAia2luZCI6ICJDQVNFX0tOT1dOX0dBUF9LSU5EX0NBUEFCSUxJVFkiLAogICAgICAiY29kZSI6ICJ0ZW1wb3JhbC5uZXh1cy5zdWNjZXNzLmtub3duLWdhcC5vcGVyYXRpb24tY29ycmVsYXRlZC1wcm9ncmVzcyIsCiAgICAgICJzdWJqZWN0IjogInRlbXBvcmFsLm5leHVzLnN1Y2Nlc3MucHJvcGVydHkuY2FuY2VsbGF0aW9uUmVzb2x2ZXMiLAogICAgICAiZGV0YWlsIjogIk9wZXJhdGlvbi1jb3JyZWxhdGVkIHByb2dyZXNzIGNvdW50aW5nIGlzIHVuc3VwcG9ydGVkIGJ5IHRoZSBzdWNjZXNzIHNsaWNlLiIKICAgIH0KICBdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVtcG9yYWwubmV4dXMuc3VjY2Vzcy5wcm9wZXJ0eS5zdWNjZXNzZnVsUmVzdWx0Lm91dGNvbWUtY29tcGxldGVkIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVtcG9yYWwubmV4dXMuc3VjY2Vzcy5wcm9wZXJ0eS5zdWNjZXNzZnVsUmVzdWx0IiwKICAgICAgInByb3BlcnR5RmluZ2VycHJpbnQiOiAic2hhMjU2OjkxM2E0NjhjMjcyZWYxOGNlNzY2NTVmNTgyYmQ0YzNjNDI3ZDE0MDBiNmRkZGRlOTkyNWQ4ZmM4MGZkNzc3ZGMiLAogICAgICAicHJvamVjdGlvbklkIjogInRlbXBvcmFsLm5leHVzLnN1Y2Nlc3MucHJvamVjdGlvbiIsCiAgICAgICJwcm9qZWN0aW9uRmluZ2VycHJpbnQiOiAic2hhMjU2OmJmMDc2OTAwZWU3YzVkMjFkNjNkOTNlODJlZWZiYTU0MTg5NGE2MDRhZGMwODczZGUyNmE5NTczOTEzZTM1NWUiLAogICAgICAic291cmNlIjogewogICAgICAgICJwYXRoIjogIlRlbXBvcmFsL0ZlYXR1cmUvTmV4dXMvU3VjY2Vzcy9Nb2RlbC5sZWFuIiwKICAgICAgICAibGluZSI6ICIxIiwKICAgICAgICAiY29sdW1uIjogIjEiLAogICAgICAgICJwcm92ZW5hbmNlIjogImxlYW4tbW9kZWwiCiAgICAgIH0KICAgIH0sCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVtcG9yYWwubmV4dXMuc3VjY2Vzcy5wcm9wZXJ0eS5zdWNjZXNzZnVsUmVzdWx0LnN0YXRlLXN1Y2NlZWRlZCIsCiAgICAgICJwcm9wZXJ0eUlkIjogInRlbXBvcmFsLm5leHVzLnN1Y2Nlc3MucHJvcGVydHkuc3VjY2Vzc2Z1bFJlc3VsdCIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1Njo5MTNhNDY4YzI3MmVmMThjZTc2NjU1ZjU4MmJkNGMzYzQyN2QxNDAwYjZkZGRkZTk5MjVkOGZjODBmZDc3N2RjIiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZW1wb3JhbC5uZXh1cy5zdWNjZXNzLnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1NjpiZjA3NjkwMGVlN2M1ZDIxZDYzZDkzZTgyZWVmYmE1NDE4OTRhNjA0YWRjMDg3M2RlMjZhOTU3MzkxM2UzNTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJUZW1wb3JhbC9GZWF0dXJlL05leHVzL1N1Y2Nlc3MvTW9kZWwubGVhbiIsCiAgICAgICAgImxpbmUiOiAiMSIsCiAgICAgICAgImNvbHVtbiI6ICIxIiwKICAgICAgICAicHJvdmVuYW5jZSI6ICJsZWFuLW1vZGVsIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
+    "correlatedRules": [
+      {
+        "projectionFingerprint": "sha256:bf076900ee7c5d21d63d93e82eefba541894a604adc0873de26a9573913e355e",
+        "projectionId": "temporal.nexus.success.projection",
+        "propertyFingerprint": "sha256:913a468c272ef18ce76655f582bd4c3c427d1400b6dddde9925d8fc80fd777dc",
+        "propertyId": "temporal.nexus.success.property.successfulResult",
+        "ruleId": "temporal.nexus.success.property.successfulResult.outcome-completed",
+        "source": {
+          "column": 1,
+          "line": 1,
+          "path": "Temporal/Feature/Nexus/Success/Model.lean",
+          "provenance": "lean-model"
+        }
+      },
+      {
+        "projectionFingerprint": "sha256:bf076900ee7c5d21d63d93e82eefba541894a604adc0873de26a9573913e355e",
+        "projectionId": "temporal.nexus.success.projection",
+        "propertyFingerprint": "sha256:913a468c272ef18ce76655f582bd4c3c427d1400b6dddde9925d8fc80fd777dc",
+        "propertyId": "temporal.nexus.success.property.successfulResult",
+        "ruleId": "temporal.nexus.success.property.successfulResult.state-succeeded",
+        "source": {
+          "column": 1,
+          "line": 1,
+          "path": "Temporal/Feature/Nexus/Success/Model.lean",
+          "provenance": "lean-model"
+        }
+      }
+    ],
+    "definitions": [
+      {
+        "behaviorFingerprint": "sha256:dc16cd63b197612ac92c1e71028161193acc0c9773f86955207eeaef7221e201",
+        "definitionId": "temporal.nexus.success.target.lifecycle",
+        "kind": "DEFINITION_KIND_TARGET"
+      },
+      {
+        "behaviorFingerprint": "sha256:63015f982215f82d0a524cab9148a93624755147a20ecd3aa3e80cfbbb8eadd5",
+        "definitionId": "temporal.nexus.success.behavior.successfulCompletion",
+        "kind": "DEFINITION_KIND_SCENARIO"
+      },
+      {
+        "behaviorFingerprint": "sha256:0458585e4257b598c19a8648e23fbf691e7f2eacd0b7f50c7777c0d3d158fcc7",
+        "definitionId": "temporal.nexus.success.query.completion",
+        "kind": "DEFINITION_KIND_QUERY"
+      },
+      {
+        "behaviorFingerprint": "sha256:913a468c272ef18ce76655f582bd4c3c427d1400b6dddde9925d8fc80fd777dc",
+        "definitionId": "temporal.nexus.success.property.successfulResult",
+        "kind": "DEFINITION_KIND_PROPERTY"
+      }
+    ],
+    "knownGaps": [
+      {
+        "code": "temporal.nexus.success.known-gap.cancellation",
+        "detail": "Operation-correlated Nexus cancellation is unsupported by the success slice.",
+        "kind": "KNOWN_GAP_KIND_CAPABILITY",
+        "subject": "temporal.nexus.success.property.cancellationResolves"
+      },
+      {
+        "code": "temporal.nexus.success.known-gap.operation-correlated-progress",
+        "detail": "Operation-correlated progress counting is unsupported by the success slice.",
+        "kind": "KNOWN_GAP_KIND_CAPABILITY",
+        "subject": "temporal.nexus.success.property.cancellationResolves"
+      }
+    ],
     "producerId": "temporal.nexus.success.testpilot",
-    "producerVersion": "1"
+    "producerVersion": "1",
+    "sources": [
+      {
+        "column": 1,
+        "line": 1,
+        "path": "Temporal/Feature/Nexus/Success/Model.lean",
+        "provenance": "lean-model"
+      },
+      {
+        "column": 1,
+        "line": 1,
+        "path": "Temporal/Feature/Nexus/Success/Model.lean",
+        "provenance": "lean-model"
+      },
+      {
+        "column": 1,
+        "line": 1,
+        "path": "Temporal/Feature/Nexus/Success/Model.lean",
+        "provenance": "lean-model"
+      },
+      {
+        "column": 1,
+        "line": 1,
+        "path": "Temporal/Feature/Nexus/Success/Model.lean",
+        "provenance": "lean-model"
+      }
+    ]
   },
   "version": {
     "major": 1

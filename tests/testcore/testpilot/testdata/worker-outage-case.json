@@ -546,9 +546,34 @@
     ]
   },
   "provenance": {
-    "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZW1wb3JhbC53b3JrZmxvdy1zZXJ2aWNlIiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAidGVtcG9yYWwtd29ya2Zsb3ctc2VydmljZS92MSIsCiAgICAgICJraW5kIjogIkNBU0VfREVGSU5JVElPTl9LSU5EX1RBUkdFVCIKICAgIH0sCiAgICB7CiAgICAgICJkZWZpbml0aW9uSWQiOiAidGVtcG9yYWwuY2FzZS53b3JrZXItb3V0YWdlLnByb3BlcnR5Lm91dGFnZS1zdXJ2aXZlZCIsCiAgICAgICJiZWhhdmlvckZpbmdlcnByaW50IjogInRlbXBvcmFsLWNhc2Utd29ya2VyLW91dGFnZS1wcm9wZXJ0eS92MSIsCiAgICAgICJraW5kIjogIkNBU0VfREVGSU5JVElPTl9LSU5EX1BST1BFUlRZIgogICAgfQogIF0sCiAgInNvdXJjZXMiOiBbCiAgICB7CiAgICAgICJwYXRoIjogIlRlbXBvcmFsL1Rlc3RwaWxvdC5sZWFuIiwKICAgICAgImxpbmUiOiAiMSIsCiAgICAgICJjb2x1bW4iOiAiMSIsCiAgICAgICJwcm92ZW5hbmNlIjogImNoZWNrZWQtbW9kZWwiCiAgICB9LAogICAgewogICAgICAicGF0aCI6ICJUZW1wb3JhbC9UZXN0cGlsb3QvV29ya2VyT3V0YWdlLmxlYW4iLAogICAgICAibGluZSI6ICIxIiwKICAgICAgImNvbHVtbiI6ICIxIiwKICAgICAgInByb3ZlbmFuY2UiOiAid29ya2VyLW91dGFnZS1mYXVsdCIKICAgIH0KICBdLAogICJrbm93bkdhcHMiOiBbXQp9Cg==",
+    "definitions": [
+      {
+        "behaviorFingerprint": "temporal-workflow-service/v1",
+        "definitionId": "temporal.workflow-service",
+        "kind": "DEFINITION_KIND_TARGET"
+      },
+      {
+        "behaviorFingerprint": "temporal-case-worker-outage-property/v1",
+        "definitionId": "temporal.case.worker-outage.property.outage-survived",
+        "kind": "DEFINITION_KIND_PROPERTY"
+      }
+    ],
     "producerId": "temporal.case.compiler",
-    "producerVersion": "1"
+    "producerVersion": "1",
+    "sources": [
+      {
+        "column": 1,
+        "line": 1,
+        "path": "Temporal/Testpilot.lean",
+        "provenance": "checked-model"
+      },
+      {
+        "column": 1,
+        "line": 1,
+        "path": "Temporal/Testpilot/WorkerOutage.lean",
+        "provenance": "worker-outage-fault"
+      }
+    ]
   },
   "version": {
     "major": 1

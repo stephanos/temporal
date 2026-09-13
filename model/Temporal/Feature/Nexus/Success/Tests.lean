@@ -115,9 +115,8 @@ private def rejected : Except Compiler.Error temporal.server.api.testpilot.v1.Ca
   | some checked, .ok output =>
       !checked.query.authoredKnownGaps.toList.isEmpty &&
       (output.provenance.map fun provenance =>
-        (String.fromUTF8? provenance.producer_data).any fun payload =>
-          checked.query.authoredKnownGaps.toList.all fun declared =>
-            (payload.splitOn declared.code.value).length ≥ 2) == some true
+        checked.query.authoredKnownGaps.toList.all fun declared =>
+          provenance.known_gaps.any (·.code == declared.code.value)) == some true
   | _, _ => false
 
 -- A clause form the correlated capability cannot carry rejects by name.
@@ -134,14 +133,28 @@ private def rejected : Except Compiler.Error temporal.server.api.testpilot.v1.Ca
         error.construct == "property.clause-shape"
   | .ok _ => false
 
-/-- The identity-bearing shape of a produced Case: its provenance payload and the clause ids of the
+/-- Every text a Case's provenance rows record, row by row in the order they are listed. -/
+private def provenanceTexts (provenance : CaseProvenance) : List String :=
+  let source := fun (location : Option temporal.server.api.testpilot.v1.SourceLocation) =>
+    (location.map fun location => [location.path, location.provenance]).getD []
+  provenance.definitions.toList.flatMap (fun definition =>
+      [definition.definition_id, definition.behavior_fingerprint]) ++
+    provenance.sources.toList.flatMap (source ∘ some) ++
+    provenance.known_gaps.toList.flatMap (fun gap =>
+      gap.code :: (gap.subject_presence.map (fun | .subject subject => subject)).toList ++
+        (gap.detail_presence.map (fun | .detail detail => detail)).toList) ++
+    provenance.correlated_rules.toList.flatMap fun rule =>
+      [rule.rule_id, rule.property_id, rule.property_fingerprint, rule.projection_id,
+        rule.projection_fingerprint] ++ source rule.source
+
+/-- The identity-bearing shape of a produced Case: its provenance rows and the clause ids of the
 correlated capability it carries. -/
 private def caseShape
     (produced : Except Compiler.Error temporal.server.api.testpilot.v1.Case) :
-    Option (List UInt8 × List String) :=
+    Option (List String × List String) :=
   match produced with
   | .ok output =>
-      some ((output.provenance.map (·.producer_data.toList)).getD [],
+      some ((output.provenance.map provenanceTexts).getD [],
         ((output.contract.bind (·.«correlated»)).map fun capability =>
           capability.rules.toList.map (·.rule_id)).getD [])
   | .error _ => none
@@ -179,12 +192,12 @@ private def checkedBindings : Bool :=
       -- The Property binding carries the derived correlated Property: the Case records the Property it
       -- actually lowered, whose fingerprint differs from the authored same-step one.
       (output.provenance.map fun provenance =>
-        (String.fromUTF8? provenance.producer_data).any fun payload =>
-          (payload.splitOn checked.target.behaviorFingerprint.render).length == 2 &&
-          (payload.splitOn checked.behavior.behaviorFingerprint.render).length == 2 &&
-          (payload.splitOn checked.query.behaviorFingerprint.render).length == 2 &&
-          (payload.splitOn checked.property.id.value).length ≥ 2 &&
-          (payload.splitOn checked.property.behaviorFingerprint.render).length == 1) == some true
+        let texts := provenanceTexts provenance
+        texts.count checked.target.behaviorFingerprint.render == 1 &&
+          texts.count checked.behavior.behaviorFingerprint.render == 1 &&
+          texts.count checked.query.behaviorFingerprint.render == 1 &&
+          texts.contains checked.property.id.value &&
+          !texts.contains checked.property.behaviorFingerprint.render) == some true
   | _, _ => false
 
 #guard checkedBindings

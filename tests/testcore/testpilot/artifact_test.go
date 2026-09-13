@@ -2,7 +2,6 @@ package testpilot
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -59,7 +58,7 @@ func TestSyntheticCaseStrictDecodeAndNoIOAdmission(t *testing.T) {
 	message := syntheticResult(source).GetMessageValue()
 	require.Equal(t, "type.googleapis.com/temporal.server.api.testpilot.v1.FormatVersion", message.GetTypeUrl())
 	require.Equal(t, []byte{8, 1, 16, 2}, message.GetValue())
-	require.Equal(t, []byte{0, 255, 128}, source.GetProvenance().GetProducerData())
+	require.True(t, proto.Equal(&testpilotspb.CaseProvenance{ProducerId: "standalone.lean.testpilot", ProducerVersion: "1"}, source.GetProvenance()))
 
 	wire, err := testpilot.PackCaseProtoJSON(encoded)
 	require.NoError(t, err)
@@ -67,13 +66,23 @@ func TestSyntheticCaseStrictDecodeAndNoIOAdmission(t *testing.T) {
 	require.NoError(t, proto.Unmarshal(wire, roundTrip))
 	require.True(t, proto.Equal(source, roundTrip))
 
-	empty := proto.CloneOf(source)
-	empty.Provenance.ProducerData = nil
-	emptyJSON, err := protojson.Marshal(empty)
+	location := &testpilotspb.SourceLocation{Path: "A.lean", Line: 2147483647, Provenance: "authored"}
+	typed := proto.CloneOf(source)
+	typed.Provenance.Definitions = []*testpilotspb.DefinitionBinding{{DefinitionId: "p", BehaviorFingerprint: "f", Kind: testpilotspb.DEFINITION_KIND_PROPERTY}}
+	typed.Provenance.Sources = []*testpilotspb.SourceLocation{location}
+	typed.Provenance.KnownGaps = []*testpilotspb.KnownGap{
+		{Kind: testpilotspb.KNOWN_GAP_KIND_INPUT, Code: "g"},
+		{Kind: testpilotspb.KNOWN_GAP_KIND_CLAIM, Code: "h", SubjectPresence: &testpilotspb.KnownGap_Subject{Subject: "p"}, DetailPresence: &testpilotspb.KnownGap_Detail{}},
+	}
+	typed.Provenance.CorrelatedRules = []*testpilotspb.CorrelatedRuleBinding{{RuleId: "r", PropertyId: "p", PropertyFingerprint: "f", ProjectionId: "j", ProjectionFingerprint: "h", Source: location}}
+	typedJSON, err := protojson.Marshal(typed)
 	require.NoError(t, err)
-	emptyRoundTrip, err := testpilot.DecodeCaseProtoJSON(emptyJSON)
+	typedRoundTrip, err := testpilot.DecodeCaseProtoJSON(typedJSON)
 	require.NoError(t, err)
-	require.Empty(t, emptyRoundTrip.GetProvenance().GetProducerData())
+	require.True(t, proto.Equal(typed, typedRoundTrip))
+	// An empty detail stays present, so it is not an absent one.
+	require.NotNil(t, typedRoundTrip.GetProvenance().GetKnownGaps()[1].GetDetailPresence())
+	require.Nil(t, typedRoundTrip.GetProvenance().GetKnownGaps()[0].GetDetailPresence())
 }
 
 func TestSyntheticCaseGoAdmissionRejectsRawInvalidInputs(t *testing.T) {
@@ -304,16 +313,6 @@ func TestLeanAsyncNexusBindingsPrepareAcrossProfilesAndRejectBeforeDispatch(t *t
 	require.Zero(t, validating.opens)
 }
 
-type provenanceDefinitionBinding struct {
-	DefinitionID        string `json:"definitionId"`
-	BehaviorFingerprint string `json:"behaviorFingerprint"`
-	Kind                string `json:"kind"`
-}
-
-type provenanceKnownGap struct {
-	Code string `json:"code"`
-}
-
 func TestLeanAsyncNexusCasePreparesWithCheckedSuccessProvenance(t *testing.T) {
 	source := loadLeanCase(t, "async-nexus")
 	catalog, err := temporal.NewWorkflowServiceCatalog()
@@ -323,30 +322,26 @@ func TestLeanAsyncNexusCasePreparesWithCheckedSuccessProvenance(t *testing.T) {
 	require.Equal(t, "temporal.nexus.success.testpilot", source.GetProvenance().GetProducerId())
 	require.Equal(t, "1", source.GetProvenance().GetProducerVersion())
 
-	var provenance struct {
-		Definitions []provenanceDefinitionBinding `json:"definitions"`
-		KnownGaps   []provenanceKnownGap          `json:"knownGaps"`
-	}
-	require.NoError(t, json.Unmarshal(source.GetProvenance().GetProducerData(), &provenance))
+	provenance := source.GetProvenance()
 	require.Equal(t, []string{
 		"temporal.nexus.success.target.lifecycle",
 		"temporal.nexus.success.behavior.successfulCompletion",
 		"temporal.nexus.success.query.completion",
 		"temporal.nexus.success.property.successfulResult",
-	}, definitionIDs(provenance.Definitions))
-	require.Equal(t, []string{
-		"CASE_DEFINITION_KIND_TARGET",
-		"CASE_DEFINITION_KIND_SCENARIO",
-		"CASE_DEFINITION_KIND_QUERY",
-		"CASE_DEFINITION_KIND_PROPERTY",
-	}, definitionKinds(provenance.Definitions))
-	for _, definition := range provenance.Definitions {
-		require.Regexp(t, `^sha256:[0-9a-f]{64}$`, definition.BehaviorFingerprint)
+	}, definitionIDs(provenance.GetDefinitions()))
+	require.Equal(t, []testpilotspb.DefinitionKind{
+		testpilotspb.DEFINITION_KIND_TARGET,
+		testpilotspb.DEFINITION_KIND_SCENARIO,
+		testpilotspb.DEFINITION_KIND_QUERY,
+		testpilotspb.DEFINITION_KIND_PROPERTY,
+	}, definitionKinds(provenance.GetDefinitions()))
+	for _, definition := range provenance.GetDefinitions() {
+		require.Regexp(t, `^sha256:[0-9a-f]{64}$`, definition.GetBehaviorFingerprint())
 	}
 	require.Equal(t, []string{
 		"temporal.nexus.success.known-gap.cancellation",
 		"temporal.nexus.success.known-gap.operation-correlated-progress",
-	}, knownGapCodes(provenance.KnownGaps))
+	}, knownGapCodes(provenance.GetKnownGaps()))
 }
 
 func TestLeanAsyncNexusPreparedCaseReuseAndCorrelation(t *testing.T) {
@@ -429,26 +424,26 @@ func TestLeanAsyncNexusPreparedCaseReuseAndCorrelation(t *testing.T) {
 	}
 }
 
-func definitionIDs(definitions []provenanceDefinitionBinding) []string {
+func definitionIDs(definitions []*testpilotspb.DefinitionBinding) []string {
 	result := make([]string, len(definitions))
 	for index, definition := range definitions {
-		result[index] = definition.DefinitionID
+		result[index] = definition.GetDefinitionId()
 	}
 	return result
 }
 
-func definitionKinds(definitions []provenanceDefinitionBinding) []string {
-	result := make([]string, len(definitions))
+func definitionKinds(definitions []*testpilotspb.DefinitionBinding) []testpilotspb.DefinitionKind {
+	result := make([]testpilotspb.DefinitionKind, len(definitions))
 	for index, definition := range definitions {
-		result[index] = definition.Kind
+		result[index] = definition.GetKind()
 	}
 	return result
 }
 
-func knownGapCodes(knownGaps []provenanceKnownGap) []string {
+func knownGapCodes(knownGaps []*testpilotspb.KnownGap) []string {
 	result := make([]string, len(knownGaps))
 	for index, knownGap := range knownGaps {
-		result[index] = knownGap.Code
+		result[index] = knownGap.GetCode()
 	}
 	return result
 }

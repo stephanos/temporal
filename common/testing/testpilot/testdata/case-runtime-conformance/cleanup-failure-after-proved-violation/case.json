@@ -85,9 +85,28 @@
     ]
   },
   "provenance": {
-    "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZW1wb3JhbC53b3JrZmxvdy1zZXJ2aWNlIiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAidGVtcG9yYWwtd29ya2Zsb3ctc2VydmljZS92MSIsCiAgICAgICJraW5kIjogIkNBU0VfREVGSU5JVElPTl9LSU5EX1RBUkdFVCIKICAgIH0sCiAgICB7CiAgICAgICJkZWZpbml0aW9uSWQiOiAidGVtcG9yYWwuY2FzZS5jb25mb3JtYW5jZS5jbGVhbnVwLWZhaWx1cmUucHJvcGVydHkiLAogICAgICAiYmVoYXZpb3JGaW5nZXJwcmludCI6ICJ0ZW1wb3JhbC5jYXNlLmNvbmZvcm1hbmNlLmNsZWFudXAtZmFpbHVyZS9wcm9wZXJ0eS92MSIsCiAgICAgICJraW5kIjogIkNBU0VfREVGSU5JVElPTl9LSU5EX1BST1BFUlRZIgogICAgfQogIF0sCiAgInNvdXJjZXMiOiBbCiAgICB7CiAgICAgICJwYXRoIjogIlRlbXBvcmFsL1Rlc3RwaWxvdC5sZWFuIiwKICAgICAgImxpbmUiOiAiMSIsCiAgICAgICJjb2x1bW4iOiAiMSIsCiAgICAgICJwcm92ZW5hbmNlIjogImNoZWNrZWQtbW9kZWwiCiAgICB9CiAgXSwKICAia25vd25HYXBzIjogW10KfQo=",
+    "definitions": [
+      {
+        "behaviorFingerprint": "temporal-workflow-service/v1",
+        "definitionId": "temporal.workflow-service",
+        "kind": "DEFINITION_KIND_TARGET"
+      },
+      {
+        "behaviorFingerprint": "temporal.case.conformance.cleanup-failure/property/v1",
+        "definitionId": "temporal.case.conformance.cleanup-failure.property",
+        "kind": "DEFINITION_KIND_PROPERTY"
+      }
+    ],
     "producerId": "temporal.case.compiler",
-    "producerVersion": "1"
+    "producerVersion": "1",
+    "sources": [
+      {
+        "column": 1,
+        "line": 1,
+        "path": "Temporal/Testpilot.lean",
+        "provenance": "checked-model"
+      }
+    ]
   },
   "version": {
     "major": 1

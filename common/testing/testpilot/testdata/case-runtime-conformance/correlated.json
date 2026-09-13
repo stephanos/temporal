@@ -283,8 +283,33 @@
         "programId": "correlated.program"
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjlmZTBhM2ExMjU2ZDI4YTdkMDk4NmExOWQ2Njc4MzJiNDZjZDY4ZjIyYmQ5N2ZlZGNjMDgzZWUxNjc3M2M0OGEiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1Njo5ZmUwYTNhMTI1NmQyOGE3ZDA5ODZhMTlkNjY3ODMyYjQ2Y2Q2OGYyMmJkOTdmZWRjYzA4M2VlMTY3NzNjNDhhIiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
-        "producerId": "umpire.correlated.fixtures"
+        "correlatedRules": [
+          {
+            "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
+            "projectionId": "test.projection",
+            "propertyFingerprint": "sha256:9fe0a3a1256d28a7d0986a19d667832b46cd68f22bd97fedcc083ee16773c48a",
+            "propertyId": "test.property",
+            "ruleId": "test.correlated.response",
+            "source": {
+              "path": "Umpire/Property/Tests/Correlated.lean",
+              "provenance": "authored"
+            }
+          }
+        ],
+        "definitions": [
+          {
+            "behaviorFingerprint": "sha256:9fe0a3a1256d28a7d0986a19d667832b46cd68f22bd97fedcc083ee16773c48a",
+            "definitionId": "test.property",
+            "kind": "DEFINITION_KIND_PROPERTY"
+          }
+        ],
+        "producerId": "umpire.correlated.fixtures",
+        "sources": [
+          {
+            "path": "Umpire/Property/Tests/Correlated.lean",
+            "provenance": "authored"
+          }
+        ]
       },
       "version": {
         "major": 1
@@ -621,8 +646,33 @@
         ]
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjlmZTBhM2ExMjU2ZDI4YTdkMDk4NmExOWQ2Njc4MzJiNDZjZDY4ZjIyYmQ5N2ZlZGNjMDgzZWUxNjc3M2M0OGEiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1Njo5ZmUwYTNhMTI1NmQyOGE3ZDA5ODZhMTlkNjY3ODMyYjQ2Y2Q2OGYyMmJkOTdmZWRjYzA4M2VlMTY3NzNjNDhhIiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
-        "producerId": "umpire.correlated.fixtures"
+        "correlatedRules": [
+          {
+            "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
+            "projectionId": "test.projection",
+            "propertyFingerprint": "sha256:9fe0a3a1256d28a7d0986a19d667832b46cd68f22bd97fedcc083ee16773c48a",
+            "propertyId": "test.property",
+            "ruleId": "test.correlated.response",
+            "source": {
+              "path": "Umpire/Property/Tests/Correlated.lean",
+              "provenance": "authored"
+            }
+          }
+        ],
+        "definitions": [
+          {
+            "behaviorFingerprint": "sha256:9fe0a3a1256d28a7d0986a19d667832b46cd68f22bd97fedcc083ee16773c48a",
+            "definitionId": "test.property",
+            "kind": "DEFINITION_KIND_PROPERTY"
+          }
+        ],
+        "producerId": "umpire.correlated.fixtures",
+        "sources": [
+          {
+            "path": "Umpire/Property/Tests/Correlated.lean",
+            "provenance": "authored"
+          }
+        ]
       },
       "version": {
         "major": 1
@@ -913,8 +963,33 @@
         "programId": "correlated.program"
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjlmZTBhM2ExMjU2ZDI4YTdkMDk4NmExOWQ2Njc4MzJiNDZjZDY4ZjIyYmQ5N2ZlZGNjMDgzZWUxNjc3M2M0OGEiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1Njo5ZmUwYTNhMTI1NmQyOGE3ZDA5ODZhMTlkNjY3ODMyYjQ2Y2Q2OGYyMmJkOTdmZWRjYzA4M2VlMTY3NzNjNDhhIiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
-        "producerId": "umpire.correlated.fixtures"
+        "correlatedRules": [
+          {
+            "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
+            "projectionId": "test.projection",
+            "propertyFingerprint": "sha256:9fe0a3a1256d28a7d0986a19d667832b46cd68f22bd97fedcc083ee16773c48a",
+            "propertyId": "test.property",
+            "ruleId": "test.correlated.response",
+            "source": {
+              "path": "Umpire/Property/Tests/Correlated.lean",
+              "provenance": "authored"
+            }
+          }
+        ],
+        "definitions": [
+          {
+            "behaviorFingerprint": "sha256:9fe0a3a1256d28a7d0986a19d667832b46cd68f22bd97fedcc083ee16773c48a",
+            "definitionId": "test.property",
+            "kind": "DEFINITION_KIND_PROPERTY"
+          }
+        ],
+        "producerId": "umpire.correlated.fixtures",
+        "sources": [
+          {
+            "path": "Umpire/Property/Tests/Correlated.lean",
+            "provenance": "authored"
+          }
+        ]
       },
       "version": {
         "major": 1
@@ -1251,8 +1326,33 @@
         ]
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjlmZTBhM2ExMjU2ZDI4YTdkMDk4NmExOWQ2Njc4MzJiNDZjZDY4ZjIyYmQ5N2ZlZGNjMDgzZWUxNjc3M2M0OGEiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1Njo5ZmUwYTNhMTI1NmQyOGE3ZDA5ODZhMTlkNjY3ODMyYjQ2Y2Q2OGYyMmJkOTdmZWRjYzA4M2VlMTY3NzNjNDhhIiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
-        "producerId": "umpire.correlated.fixtures"
+        "correlatedRules": [
+          {
+            "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
+            "projectionId": "test.projection",
+            "propertyFingerprint": "sha256:9fe0a3a1256d28a7d0986a19d667832b46cd68f22bd97fedcc083ee16773c48a",
+            "propertyId": "test.property",
+            "ruleId": "test.correlated.response",
+            "source": {
+              "path": "Umpire/Property/Tests/Correlated.lean",
+              "provenance": "authored"
+            }
+          }
+        ],
+        "definitions": [
+          {
+            "behaviorFingerprint": "sha256:9fe0a3a1256d28a7d0986a19d667832b46cd68f22bd97fedcc083ee16773c48a",
+            "definitionId": "test.property",
+            "kind": "DEFINITION_KIND_PROPERTY"
+          }
+        ],
+        "producerId": "umpire.correlated.fixtures",
+        "sources": [
+          {
+            "path": "Umpire/Property/Tests/Correlated.lean",
+            "provenance": "authored"
+          }
+        ]
       },
       "version": {
         "major": 1
@@ -1544,8 +1644,33 @@
         "programId": "correlated.program"
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjhiZjEyOTgzNzUzOWM3Yjg2ZTk0OTVhNzEwYzc3ODAxYWM0N2Q2ZTBiZDI2ZWU3MTdjOWNjNzk3MjlhOTQyZDUiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1Njo4YmYxMjk4Mzc1MzljN2I4NmU5NDk1YTcxMGM3NzgwMWFjNDdkNmUwYmQyNmVlNzE3YzljYzc5NzI5YTk0MmQ1IiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
-        "producerId": "umpire.correlated.fixtures"
+        "correlatedRules": [
+          {
+            "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
+            "projectionId": "test.projection",
+            "propertyFingerprint": "sha256:8bf129837539c7b86e9495a710c77801ac47d6e0bd26ee717c9cc79729a942d5",
+            "propertyId": "test.property",
+            "ruleId": "test.correlated.response",
+            "source": {
+              "path": "Umpire/Property/Tests/Correlated.lean",
+              "provenance": "authored"
+            }
+          }
+        ],
+        "definitions": [
+          {
+            "behaviorFingerprint": "sha256:8bf129837539c7b86e9495a710c77801ac47d6e0bd26ee717c9cc79729a942d5",
+            "definitionId": "test.property",
+            "kind": "DEFINITION_KIND_PROPERTY"
+          }
+        ],
+        "producerId": "umpire.correlated.fixtures",
+        "sources": [
+          {
+            "path": "Umpire/Property/Tests/Correlated.lean",
+            "provenance": "authored"
+          }
+        ]
       },
       "version": {
         "major": 1
@@ -1883,8 +2008,33 @@
         ]
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjhiZjEyOTgzNzUzOWM3Yjg2ZTk0OTVhNzEwYzc3ODAxYWM0N2Q2ZTBiZDI2ZWU3MTdjOWNjNzk3MjlhOTQyZDUiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1Njo4YmYxMjk4Mzc1MzljN2I4NmU5NDk1YTcxMGM3NzgwMWFjNDdkNmUwYmQyNmVlNzE3YzljYzc5NzI5YTk0MmQ1IiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
-        "producerId": "umpire.correlated.fixtures"
+        "correlatedRules": [
+          {
+            "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
+            "projectionId": "test.projection",
+            "propertyFingerprint": "sha256:8bf129837539c7b86e9495a710c77801ac47d6e0bd26ee717c9cc79729a942d5",
+            "propertyId": "test.property",
+            "ruleId": "test.correlated.response",
+            "source": {
+              "path": "Umpire/Property/Tests/Correlated.lean",
+              "provenance": "authored"
+            }
+          }
+        ],
+        "definitions": [
+          {
+            "behaviorFingerprint": "sha256:8bf129837539c7b86e9495a710c77801ac47d6e0bd26ee717c9cc79729a942d5",
+            "definitionId": "test.property",
+            "kind": "DEFINITION_KIND_PROPERTY"
+          }
+        ],
+        "producerId": "umpire.correlated.fixtures",
+        "sources": [
+          {
+            "path": "Umpire/Property/Tests/Correlated.lean",
+            "provenance": "authored"
+          }
+        ]
       },
       "version": {
         "major": 1
@@ -2176,8 +2326,33 @@
         "programId": "correlated.program"
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1NjozOTE2MDU0Y2IyOTMxNmRlMjIzYjM4NWI4ZmNjY2QwMWFhNmJkMDk0NGU1MDhmMTYxMzVmZjczYTM3OTNhNTY3IiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
-        "producerId": "umpire.correlated.fixtures"
+        "correlatedRules": [
+          {
+            "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
+            "projectionId": "test.projection",
+            "propertyFingerprint": "sha256:3916054cb29316de223b385b8fcccd01aa6bd0944e508f16135ff73a3793a567",
+            "propertyId": "test.property",
+            "ruleId": "test.correlated.response",
+            "source": {
+              "path": "Umpire/Property/Tests/Correlated.lean",
+              "provenance": "authored"
+            }
+          }
+        ],
+        "definitions": [
+          {
+            "behaviorFingerprint": "sha256:3916054cb29316de223b385b8fcccd01aa6bd0944e508f16135ff73a3793a567",
+            "definitionId": "test.property",
+            "kind": "DEFINITION_KIND_PROPERTY"
+          }
+        ],
+        "producerId": "umpire.correlated.fixtures",
+        "sources": [
+          {
+            "path": "Umpire/Property/Tests/Correlated.lean",
+            "provenance": "authored"
+          }
+        ]
       },
       "version": {
         "major": 1
@@ -2556,8 +2731,33 @@
         ]
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1NjozOTE2MDU0Y2IyOTMxNmRlMjIzYjM4NWI4ZmNjY2QwMWFhNmJkMDk0NGU1MDhmMTYxMzVmZjczYTM3OTNhNTY3IiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
-        "producerId": "umpire.correlated.fixtures"
+        "correlatedRules": [
+          {
+            "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
+            "projectionId": "test.projection",
+            "propertyFingerprint": "sha256:3916054cb29316de223b385b8fcccd01aa6bd0944e508f16135ff73a3793a567",
+            "propertyId": "test.property",
+            "ruleId": "test.correlated.response",
+            "source": {
+              "path": "Umpire/Property/Tests/Correlated.lean",
+              "provenance": "authored"
+            }
+          }
+        ],
+        "definitions": [
+          {
+            "behaviorFingerprint": "sha256:3916054cb29316de223b385b8fcccd01aa6bd0944e508f16135ff73a3793a567",
+            "definitionId": "test.property",
+            "kind": "DEFINITION_KIND_PROPERTY"
+          }
+        ],
+        "producerId": "umpire.correlated.fixtures",
+        "sources": [
+          {
+            "path": "Umpire/Property/Tests/Correlated.lean",
+            "provenance": "authored"
+          }
+        ]
       },
       "version": {
         "major": 1
@@ -2849,8 +3049,33 @@
         "programId": "correlated.program"
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1NjozOTE2MDU0Y2IyOTMxNmRlMjIzYjM4NWI4ZmNjY2QwMWFhNmJkMDk0NGU1MDhmMTYxMzVmZjczYTM3OTNhNTY3IiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
-        "producerId": "umpire.correlated.fixtures"
+        "correlatedRules": [
+          {
+            "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
+            "projectionId": "test.projection",
+            "propertyFingerprint": "sha256:3916054cb29316de223b385b8fcccd01aa6bd0944e508f16135ff73a3793a567",
+            "propertyId": "test.property",
+            "ruleId": "test.correlated.response",
+            "source": {
+              "path": "Umpire/Property/Tests/Correlated.lean",
+              "provenance": "authored"
+            }
+          }
+        ],
+        "definitions": [
+          {
+            "behaviorFingerprint": "sha256:3916054cb29316de223b385b8fcccd01aa6bd0944e508f16135ff73a3793a567",
+            "definitionId": "test.property",
+            "kind": "DEFINITION_KIND_PROPERTY"
+          }
+        ],
+        "producerId": "umpire.correlated.fixtures",
+        "sources": [
+          {
+            "path": "Umpire/Property/Tests/Correlated.lean",
+            "provenance": "authored"
+          }
+        ]
       },
       "version": {
         "major": 1
@@ -3270,8 +3495,33 @@
         ]
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1NjozOTE2MDU0Y2IyOTMxNmRlMjIzYjM4NWI4ZmNjY2QwMWFhNmJkMDk0NGU1MDhmMTYxMzVmZjczYTM3OTNhNTY3IiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
-        "producerId": "umpire.correlated.fixtures"
+        "correlatedRules": [
+          {
+            "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
+            "projectionId": "test.projection",
+            "propertyFingerprint": "sha256:3916054cb29316de223b385b8fcccd01aa6bd0944e508f16135ff73a3793a567",
+            "propertyId": "test.property",
+            "ruleId": "test.correlated.response",
+            "source": {
+              "path": "Umpire/Property/Tests/Correlated.lean",
+              "provenance": "authored"
+            }
+          }
+        ],
+        "definitions": [
+          {
+            "behaviorFingerprint": "sha256:3916054cb29316de223b385b8fcccd01aa6bd0944e508f16135ff73a3793a567",
+            "definitionId": "test.property",
+            "kind": "DEFINITION_KIND_PROPERTY"
+          }
+        ],
+        "producerId": "umpire.correlated.fixtures",
+        "sources": [
+          {
+            "path": "Umpire/Property/Tests/Correlated.lean",
+            "provenance": "authored"
+          }
+        ]
       },
       "version": {
         "major": 1
@@ -3563,8 +3813,33 @@
         "programId": "correlated.program"
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjhiZjEyOTgzNzUzOWM3Yjg2ZTk0OTVhNzEwYzc3ODAxYWM0N2Q2ZTBiZDI2ZWU3MTdjOWNjNzk3MjlhOTQyZDUiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1Njo4YmYxMjk4Mzc1MzljN2I4NmU5NDk1YTcxMGM3NzgwMWFjNDdkNmUwYmQyNmVlNzE3YzljYzc5NzI5YTk0MmQ1IiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
-        "producerId": "umpire.correlated.fixtures"
+        "correlatedRules": [
+          {
+            "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
+            "projectionId": "test.projection",
+            "propertyFingerprint": "sha256:8bf129837539c7b86e9495a710c77801ac47d6e0bd26ee717c9cc79729a942d5",
+            "propertyId": "test.property",
+            "ruleId": "test.correlated.response",
+            "source": {
+              "path": "Umpire/Property/Tests/Correlated.lean",
+              "provenance": "authored"
+            }
+          }
+        ],
+        "definitions": [
+          {
+            "behaviorFingerprint": "sha256:8bf129837539c7b86e9495a710c77801ac47d6e0bd26ee717c9cc79729a942d5",
+            "definitionId": "test.property",
+            "kind": "DEFINITION_KIND_PROPERTY"
+          }
+        ],
+        "producerId": "umpire.correlated.fixtures",
+        "sources": [
+          {
+            "path": "Umpire/Property/Tests/Correlated.lean",
+            "provenance": "authored"
+          }
+        ]
       },
       "version": {
         "major": 1
@@ -3984,8 +4259,33 @@
         ]
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjhiZjEyOTgzNzUzOWM3Yjg2ZTk0OTVhNzEwYzc3ODAxYWM0N2Q2ZTBiZDI2ZWU3MTdjOWNjNzk3MjlhOTQyZDUiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1Njo4YmYxMjk4Mzc1MzljN2I4NmU5NDk1YTcxMGM3NzgwMWFjNDdkNmUwYmQyNmVlNzE3YzljYzc5NzI5YTk0MmQ1IiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
-        "producerId": "umpire.correlated.fixtures"
+        "correlatedRules": [
+          {
+            "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
+            "projectionId": "test.projection",
+            "propertyFingerprint": "sha256:8bf129837539c7b86e9495a710c77801ac47d6e0bd26ee717c9cc79729a942d5",
+            "propertyId": "test.property",
+            "ruleId": "test.correlated.response",
+            "source": {
+              "path": "Umpire/Property/Tests/Correlated.lean",
+              "provenance": "authored"
+            }
+          }
+        ],
+        "definitions": [
+          {
+            "behaviorFingerprint": "sha256:8bf129837539c7b86e9495a710c77801ac47d6e0bd26ee717c9cc79729a942d5",
+            "definitionId": "test.property",
+            "kind": "DEFINITION_KIND_PROPERTY"
+          }
+        ],
+        "producerId": "umpire.correlated.fixtures",
+        "sources": [
+          {
+            "path": "Umpire/Property/Tests/Correlated.lean",
+            "provenance": "authored"
+          }
+        ]
       },
       "version": {
         "major": 1
@@ -4277,8 +4577,33 @@
         "programId": "correlated.program"
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1NjozOTE2MDU0Y2IyOTMxNmRlMjIzYjM4NWI4ZmNjY2QwMWFhNmJkMDk0NGU1MDhmMTYxMzVmZjczYTM3OTNhNTY3IiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
-        "producerId": "umpire.correlated.fixtures"
+        "correlatedRules": [
+          {
+            "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
+            "projectionId": "test.projection",
+            "propertyFingerprint": "sha256:3916054cb29316de223b385b8fcccd01aa6bd0944e508f16135ff73a3793a567",
+            "propertyId": "test.property",
+            "ruleId": "test.correlated.response",
+            "source": {
+              "path": "Umpire/Property/Tests/Correlated.lean",
+              "provenance": "authored"
+            }
+          }
+        ],
+        "definitions": [
+          {
+            "behaviorFingerprint": "sha256:3916054cb29316de223b385b8fcccd01aa6bd0944e508f16135ff73a3793a567",
+            "definitionId": "test.property",
+            "kind": "DEFINITION_KIND_PROPERTY"
+          }
+        ],
+        "producerId": "umpire.correlated.fixtures",
+        "sources": [
+          {
+            "path": "Umpire/Property/Tests/Correlated.lean",
+            "provenance": "authored"
+          }
+        ]
       },
       "version": {
         "major": 1
@@ -4698,8 +5023,33 @@
         ]
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1NjozOTE2MDU0Y2IyOTMxNmRlMjIzYjM4NWI4ZmNjY2QwMWFhNmJkMDk0NGU1MDhmMTYxMzVmZjczYTM3OTNhNTY3IiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
-        "producerId": "umpire.correlated.fixtures"
+        "correlatedRules": [
+          {
+            "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
+            "projectionId": "test.projection",
+            "propertyFingerprint": "sha256:3916054cb29316de223b385b8fcccd01aa6bd0944e508f16135ff73a3793a567",
+            "propertyId": "test.property",
+            "ruleId": "test.correlated.response",
+            "source": {
+              "path": "Umpire/Property/Tests/Correlated.lean",
+              "provenance": "authored"
+            }
+          }
+        ],
+        "definitions": [
+          {
+            "behaviorFingerprint": "sha256:3916054cb29316de223b385b8fcccd01aa6bd0944e508f16135ff73a3793a567",
+            "definitionId": "test.property",
+            "kind": "DEFINITION_KIND_PROPERTY"
+          }
+        ],
+        "producerId": "umpire.correlated.fixtures",
+        "sources": [
+          {
+            "path": "Umpire/Property/Tests/Correlated.lean",
+            "provenance": "authored"
+          }
+        ]
       },
       "version": {
         "major": 1
@@ -4991,8 +5341,33 @@
         "programId": "correlated.program"
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1NjozOTE2MDU0Y2IyOTMxNmRlMjIzYjM4NWI4ZmNjY2QwMWFhNmJkMDk0NGU1MDhmMTYxMzVmZjczYTM3OTNhNTY3IiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
-        "producerId": "umpire.correlated.fixtures"
+        "correlatedRules": [
+          {
+            "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
+            "projectionId": "test.projection",
+            "propertyFingerprint": "sha256:3916054cb29316de223b385b8fcccd01aa6bd0944e508f16135ff73a3793a567",
+            "propertyId": "test.property",
+            "ruleId": "test.correlated.response",
+            "source": {
+              "path": "Umpire/Property/Tests/Correlated.lean",
+              "provenance": "authored"
+            }
+          }
+        ],
+        "definitions": [
+          {
+            "behaviorFingerprint": "sha256:3916054cb29316de223b385b8fcccd01aa6bd0944e508f16135ff73a3793a567",
+            "definitionId": "test.property",
+            "kind": "DEFINITION_KIND_PROPERTY"
+          }
+        ],
+        "producerId": "umpire.correlated.fixtures",
+        "sources": [
+          {
+            "path": "Umpire/Property/Tests/Correlated.lean",
+            "provenance": "authored"
+          }
+        ]
       },
       "version": {
         "major": 1
@@ -5371,8 +5746,33 @@
         ]
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1NjozOTE2MDU0Y2IyOTMxNmRlMjIzYjM4NWI4ZmNjY2QwMWFhNmJkMDk0NGU1MDhmMTYxMzVmZjczYTM3OTNhNTY3IiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
-        "producerId": "umpire.correlated.fixtures"
+        "correlatedRules": [
+          {
+            "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
+            "projectionId": "test.projection",
+            "propertyFingerprint": "sha256:3916054cb29316de223b385b8fcccd01aa6bd0944e508f16135ff73a3793a567",
+            "propertyId": "test.property",
+            "ruleId": "test.correlated.response",
+            "source": {
+              "path": "Umpire/Property/Tests/Correlated.lean",
+              "provenance": "authored"
+            }
+          }
+        ],
+        "definitions": [
+          {
+            "behaviorFingerprint": "sha256:3916054cb29316de223b385b8fcccd01aa6bd0944e508f16135ff73a3793a567",
+            "definitionId": "test.property",
+            "kind": "DEFINITION_KIND_PROPERTY"
+          }
+        ],
+        "producerId": "umpire.correlated.fixtures",
+        "sources": [
+          {
+            "path": "Umpire/Property/Tests/Correlated.lean",
+            "provenance": "authored"
+          }
+        ]
       },
       "version": {
         "major": 1
@@ -5664,8 +6064,33 @@
         "programId": "correlated.program"
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjI3N2JiMjRlMmRlZGNmZjhlYTMwNmNmMGYwZmE0YjQ3ZDA1MmI1YTkyZjhlODI5MTI3ZTYzNTczODg3NmFlOTEiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1NjoyNzdiYjI0ZTJkZWRjZmY4ZWEzMDZjZjBmMGZhNGI0N2QwNTJiNWE5MmY4ZTgyOTEyN2U2MzU3Mzg4NzZhZTkxIiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
-        "producerId": "umpire.correlated.fixtures"
+        "correlatedRules": [
+          {
+            "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
+            "projectionId": "test.projection",
+            "propertyFingerprint": "sha256:277bb24e2dedcff8ea306cf0f0fa4b47d052b5a92f8e829127e635738876ae91",
+            "propertyId": "test.property",
+            "ruleId": "test.correlated.response",
+            "source": {
+              "path": "Umpire/Property/Tests/Correlated.lean",
+              "provenance": "authored"
+            }
+          }
+        ],
+        "definitions": [
+          {
+            "behaviorFingerprint": "sha256:277bb24e2dedcff8ea306cf0f0fa4b47d052b5a92f8e829127e635738876ae91",
+            "definitionId": "test.property",
+            "kind": "DEFINITION_KIND_PROPERTY"
+          }
+        ],
+        "producerId": "umpire.correlated.fixtures",
+        "sources": [
+          {
+            "path": "Umpire/Property/Tests/Correlated.lean",
+            "provenance": "authored"
+          }
+        ]
       },
       "version": {
         "major": 1
@@ -6003,8 +6428,33 @@
         ]
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjI3N2JiMjRlMmRlZGNmZjhlYTMwNmNmMGYwZmE0YjQ3ZDA1MmI1YTkyZjhlODI5MTI3ZTYzNTczODg3NmFlOTEiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1NjoyNzdiYjI0ZTJkZWRjZmY4ZWEzMDZjZjBmMGZhNGI0N2QwNTJiNWE5MmY4ZTgyOTEyN2U2MzU3Mzg4NzZhZTkxIiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
-        "producerId": "umpire.correlated.fixtures"
+        "correlatedRules": [
+          {
+            "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
+            "projectionId": "test.projection",
+            "propertyFingerprint": "sha256:277bb24e2dedcff8ea306cf0f0fa4b47d052b5a92f8e829127e635738876ae91",
+            "propertyId": "test.property",
+            "ruleId": "test.correlated.response",
+            "source": {
+              "path": "Umpire/Property/Tests/Correlated.lean",
+              "provenance": "authored"
+            }
+          }
+        ],
+        "definitions": [
+          {
+            "behaviorFingerprint": "sha256:277bb24e2dedcff8ea306cf0f0fa4b47d052b5a92f8e829127e635738876ae91",
+            "definitionId": "test.property",
+            "kind": "DEFINITION_KIND_PROPERTY"
+          }
+        ],
+        "producerId": "umpire.correlated.fixtures",
+        "sources": [
+          {
+            "path": "Umpire/Property/Tests/Correlated.lean",
+            "provenance": "authored"
+          }
+        ]
       },
       "version": {
         "major": 1
@@ -6296,8 +6746,33 @@
         "programId": "correlated.program"
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjI3N2JiMjRlMmRlZGNmZjhlYTMwNmNmMGYwZmE0YjQ3ZDA1MmI1YTkyZjhlODI5MTI3ZTYzNTczODg3NmFlOTEiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1NjoyNzdiYjI0ZTJkZWRjZmY4ZWEzMDZjZjBmMGZhNGI0N2QwNTJiNWE5MmY4ZTgyOTEyN2U2MzU3Mzg4NzZhZTkxIiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
-        "producerId": "umpire.correlated.fixtures"
+        "correlatedRules": [
+          {
+            "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
+            "projectionId": "test.projection",
+            "propertyFingerprint": "sha256:277bb24e2dedcff8ea306cf0f0fa4b47d052b5a92f8e829127e635738876ae91",
+            "propertyId": "test.property",
+            "ruleId": "test.correlated.response",
+            "source": {
+              "path": "Umpire/Property/Tests/Correlated.lean",
+              "provenance": "authored"
+            }
+          }
+        ],
+        "definitions": [
+          {
+            "behaviorFingerprint": "sha256:277bb24e2dedcff8ea306cf0f0fa4b47d052b5a92f8e829127e635738876ae91",
+            "definitionId": "test.property",
+            "kind": "DEFINITION_KIND_PROPERTY"
+          }
+        ],
+        "producerId": "umpire.correlated.fixtures",
+        "sources": [
+          {
+            "path": "Umpire/Property/Tests/Correlated.lean",
+            "provenance": "authored"
+          }
+        ]
       },
       "version": {
         "major": 1
@@ -6635,8 +7110,33 @@
         ]
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjI3N2JiMjRlMmRlZGNmZjhlYTMwNmNmMGYwZmE0YjQ3ZDA1MmI1YTkyZjhlODI5MTI3ZTYzNTczODg3NmFlOTEiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1NjoyNzdiYjI0ZTJkZWRjZmY4ZWEzMDZjZjBmMGZhNGI0N2QwNTJiNWE5MmY4ZTgyOTEyN2U2MzU3Mzg4NzZhZTkxIiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
-        "producerId": "umpire.correlated.fixtures"
+        "correlatedRules": [
+          {
+            "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
+            "projectionId": "test.projection",
+            "propertyFingerprint": "sha256:277bb24e2dedcff8ea306cf0f0fa4b47d052b5a92f8e829127e635738876ae91",
+            "propertyId": "test.property",
+            "ruleId": "test.correlated.response",
+            "source": {
+              "path": "Umpire/Property/Tests/Correlated.lean",
+              "provenance": "authored"
+            }
+          }
+        ],
+        "definitions": [
+          {
+            "behaviorFingerprint": "sha256:277bb24e2dedcff8ea306cf0f0fa4b47d052b5a92f8e829127e635738876ae91",
+            "definitionId": "test.property",
+            "kind": "DEFINITION_KIND_PROPERTY"
+          }
+        ],
+        "producerId": "umpire.correlated.fixtures",
+        "sources": [
+          {
+            "path": "Umpire/Property/Tests/Correlated.lean",
+            "provenance": "authored"
+          }
+        ]
       },
       "version": {
         "major": 1
@@ -6928,8 +7428,33 @@
         "programId": "correlated.program"
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjYzOGIwOGRiZmE1MmNlZmU1NTU4ZWUyNGM3OTljMDYzNzA2NjdhMjcxNDVmY2IwOWZlYmJjOGUxMzFlMDFjNWQiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1Njo2MzhiMDhkYmZhNTJjZWZlNTU1OGVlMjRjNzk5YzA2MzcwNjY3YTI3MTQ1ZmNiMDlmZWJiYzhlMTMxZTAxYzVkIiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
-        "producerId": "umpire.correlated.fixtures"
+        "correlatedRules": [
+          {
+            "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
+            "projectionId": "test.projection",
+            "propertyFingerprint": "sha256:638b08dbfa52cefe5558ee24c799c06370667a27145fcb09febbc8e131e01c5d",
+            "propertyId": "test.property",
+            "ruleId": "test.correlated.response",
+            "source": {
+              "path": "Umpire/Property/Tests/Correlated.lean",
+              "provenance": "authored"
+            }
+          }
+        ],
+        "definitions": [
+          {
+            "behaviorFingerprint": "sha256:638b08dbfa52cefe5558ee24c799c06370667a27145fcb09febbc8e131e01c5d",
+            "definitionId": "test.property",
+            "kind": "DEFINITION_KIND_PROPERTY"
+          }
+        ],
+        "producerId": "umpire.correlated.fixtures",
+        "sources": [
+          {
+            "path": "Umpire/Property/Tests/Correlated.lean",
+            "provenance": "authored"
+          }
+        ]
       },
       "version": {
         "major": 1
@@ -7281,8 +7806,33 @@
         ]
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjYzOGIwOGRiZmE1MmNlZmU1NTU4ZWUyNGM3OTljMDYzNzA2NjdhMjcxNDVmY2IwOWZlYmJjOGUxMzFlMDFjNWQiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1Njo2MzhiMDhkYmZhNTJjZWZlNTU1OGVlMjRjNzk5YzA2MzcwNjY3YTI3MTQ1ZmNiMDlmZWJiYzhlMTMxZTAxYzVkIiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
-        "producerId": "umpire.correlated.fixtures"
+        "correlatedRules": [
+          {
+            "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
+            "projectionId": "test.projection",
+            "propertyFingerprint": "sha256:638b08dbfa52cefe5558ee24c799c06370667a27145fcb09febbc8e131e01c5d",
+            "propertyId": "test.property",
+            "ruleId": "test.correlated.response",
+            "source": {
+              "path": "Umpire/Property/Tests/Correlated.lean",
+              "provenance": "authored"
+            }
+          }
+        ],
+        "definitions": [
+          {
+            "behaviorFingerprint": "sha256:638b08dbfa52cefe5558ee24c799c06370667a27145fcb09febbc8e131e01c5d",
+            "definitionId": "test.property",
+            "kind": "DEFINITION_KIND_PROPERTY"
+          }
+        ],
+        "producerId": "umpire.correlated.fixtures",
+        "sources": [
+          {
+            "path": "Umpire/Property/Tests/Correlated.lean",
+            "provenance": "authored"
+          }
+        ]
       },
       "version": {
         "major": 1
@@ -7574,8 +8124,33 @@
         "programId": "correlated.program"
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1NjozOTE2MDU0Y2IyOTMxNmRlMjIzYjM4NWI4ZmNjY2QwMWFhNmJkMDk0NGU1MDhmMTYxMzVmZjczYTM3OTNhNTY3IiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
-        "producerId": "umpire.correlated.fixtures"
+        "correlatedRules": [
+          {
+            "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
+            "projectionId": "test.projection",
+            "propertyFingerprint": "sha256:3916054cb29316de223b385b8fcccd01aa6bd0944e508f16135ff73a3793a567",
+            "propertyId": "test.property",
+            "ruleId": "test.correlated.response",
+            "source": {
+              "path": "Umpire/Property/Tests/Correlated.lean",
+              "provenance": "authored"
+            }
+          }
+        ],
+        "definitions": [
+          {
+            "behaviorFingerprint": "sha256:3916054cb29316de223b385b8fcccd01aa6bd0944e508f16135ff73a3793a567",
+            "definitionId": "test.property",
+            "kind": "DEFINITION_KIND_PROPERTY"
+          }
+        ],
+        "producerId": "umpire.correlated.fixtures",
+        "sources": [
+          {
+            "path": "Umpire/Property/Tests/Correlated.lean",
+            "provenance": "authored"
+          }
+        ]
       },
       "version": {
         "major": 1
@@ -8021,8 +8596,33 @@
         ]
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1NjozOTE2MDU0Y2IyOTMxNmRlMjIzYjM4NWI4ZmNjY2QwMWFhNmJkMDk0NGU1MDhmMTYxMzVmZjczYTM3OTNhNTY3IiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
-        "producerId": "umpire.correlated.fixtures"
+        "correlatedRules": [
+          {
+            "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
+            "projectionId": "test.projection",
+            "propertyFingerprint": "sha256:3916054cb29316de223b385b8fcccd01aa6bd0944e508f16135ff73a3793a567",
+            "propertyId": "test.property",
+            "ruleId": "test.correlated.response",
+            "source": {
+              "path": "Umpire/Property/Tests/Correlated.lean",
+              "provenance": "authored"
+            }
+          }
+        ],
+        "definitions": [
+          {
+            "behaviorFingerprint": "sha256:3916054cb29316de223b385b8fcccd01aa6bd0944e508f16135ff73a3793a567",
+            "definitionId": "test.property",
+            "kind": "DEFINITION_KIND_PROPERTY"
+          }
+        ],
+        "producerId": "umpire.correlated.fixtures",
+        "sources": [
+          {
+            "path": "Umpire/Property/Tests/Correlated.lean",
+            "provenance": "authored"
+          }
+        ]
       },
       "version": {
         "major": 1
@@ -8314,8 +8914,33 @@
         "programId": "correlated.program"
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1NjozOTE2MDU0Y2IyOTMxNmRlMjIzYjM4NWI4ZmNjY2QwMWFhNmJkMDk0NGU1MDhmMTYxMzVmZjczYTM3OTNhNTY3IiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
-        "producerId": "umpire.correlated.fixtures"
+        "correlatedRules": [
+          {
+            "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
+            "projectionId": "test.projection",
+            "propertyFingerprint": "sha256:3916054cb29316de223b385b8fcccd01aa6bd0944e508f16135ff73a3793a567",
+            "propertyId": "test.property",
+            "ruleId": "test.correlated.response",
+            "source": {
+              "path": "Umpire/Property/Tests/Correlated.lean",
+              "provenance": "authored"
+            }
+          }
+        ],
+        "definitions": [
+          {
+            "behaviorFingerprint": "sha256:3916054cb29316de223b385b8fcccd01aa6bd0944e508f16135ff73a3793a567",
+            "definitionId": "test.property",
+            "kind": "DEFINITION_KIND_PROPERTY"
+          }
+        ],
+        "producerId": "umpire.correlated.fixtures",
+        "sources": [
+          {
+            "path": "Umpire/Property/Tests/Correlated.lean",
+            "provenance": "authored"
+          }
+        ]
       },
       "version": {
         "major": 1
@@ -8735,8 +9360,33 @@
         ]
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1NjozOTE2MDU0Y2IyOTMxNmRlMjIzYjM4NWI4ZmNjY2QwMWFhNmJkMDk0NGU1MDhmMTYxMzVmZjczYTM3OTNhNTY3IiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
-        "producerId": "umpire.correlated.fixtures"
+        "correlatedRules": [
+          {
+            "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
+            "projectionId": "test.projection",
+            "propertyFingerprint": "sha256:3916054cb29316de223b385b8fcccd01aa6bd0944e508f16135ff73a3793a567",
+            "propertyId": "test.property",
+            "ruleId": "test.correlated.response",
+            "source": {
+              "path": "Umpire/Property/Tests/Correlated.lean",
+              "provenance": "authored"
+            }
+          }
+        ],
+        "definitions": [
+          {
+            "behaviorFingerprint": "sha256:3916054cb29316de223b385b8fcccd01aa6bd0944e508f16135ff73a3793a567",
+            "definitionId": "test.property",
+            "kind": "DEFINITION_KIND_PROPERTY"
+          }
+        ],
+        "producerId": "umpire.correlated.fixtures",
+        "sources": [
+          {
+            "path": "Umpire/Property/Tests/Correlated.lean",
+            "provenance": "authored"
+          }
+        ]
       },
       "version": {
         "major": 1
@@ -9027,8 +9677,33 @@
         "programId": "correlated.program"
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjdkNDFhNGJkZDY0MjliYWI2ZjQxOTdhYjdlMmRmNjhhNjUwNjU2OTE5OTg0NzVmMWM3YmUzNzdlZDUzNWI5OGIiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1Njo3ZDQxYTRiZGQ2NDI5YmFiNmY0MTk3YWI3ZTJkZjY4YTY1MDY1NjkxOTk4NDc1ZjFjN2JlMzc3ZWQ1MzViOThiIiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
-        "producerId": "umpire.correlated.fixtures"
+        "correlatedRules": [
+          {
+            "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
+            "projectionId": "test.projection",
+            "propertyFingerprint": "sha256:7d41a4bdd6429bab6f4197ab7e2df68a65065691998475f1c7be377ed535b98b",
+            "propertyId": "test.property",
+            "ruleId": "test.correlated.response",
+            "source": {
+              "path": "Umpire/Property/Tests/Correlated.lean",
+              "provenance": "authored"
+            }
+          }
+        ],
+        "definitions": [
+          {
+            "behaviorFingerprint": "sha256:7d41a4bdd6429bab6f4197ab7e2df68a65065691998475f1c7be377ed535b98b",
+            "definitionId": "test.property",
+            "kind": "DEFINITION_KIND_PROPERTY"
+          }
+        ],
+        "producerId": "umpire.correlated.fixtures",
+        "sources": [
+          {
+            "path": "Umpire/Property/Tests/Correlated.lean",
+            "provenance": "authored"
+          }
+        ]
       },
       "version": {
         "major": 1
@@ -9365,8 +10040,33 @@
         ]
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjdkNDFhNGJkZDY0MjliYWI2ZjQxOTdhYjdlMmRmNjhhNjUwNjU2OTE5OTg0NzVmMWM3YmUzNzdlZDUzNWI5OGIiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1Njo3ZDQxYTRiZGQ2NDI5YmFiNmY0MTk3YWI3ZTJkZjY4YTY1MDY1NjkxOTk4NDc1ZjFjN2JlMzc3ZWQ1MzViOThiIiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
-        "producerId": "umpire.correlated.fixtures"
+        "correlatedRules": [
+          {
+            "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
+            "projectionId": "test.projection",
+            "propertyFingerprint": "sha256:7d41a4bdd6429bab6f4197ab7e2df68a65065691998475f1c7be377ed535b98b",
+            "propertyId": "test.property",
+            "ruleId": "test.correlated.response",
+            "source": {
+              "path": "Umpire/Property/Tests/Correlated.lean",
+              "provenance": "authored"
+            }
+          }
+        ],
+        "definitions": [
+          {
+            "behaviorFingerprint": "sha256:7d41a4bdd6429bab6f4197ab7e2df68a65065691998475f1c7be377ed535b98b",
+            "definitionId": "test.property",
+            "kind": "DEFINITION_KIND_PROPERTY"
+          }
+        ],
+        "producerId": "umpire.correlated.fixtures",
+        "sources": [
+          {
+            "path": "Umpire/Property/Tests/Correlated.lean",
+            "provenance": "authored"
+          }
+        ]
       },
       "version": {
         "major": 1
@@ -9658,8 +10358,33 @@
         "programId": "correlated.program"
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1NjozOTE2MDU0Y2IyOTMxNmRlMjIzYjM4NWI4ZmNjY2QwMWFhNmJkMDk0NGU1MDhmMTYxMzVmZjczYTM3OTNhNTY3IiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
-        "producerId": "umpire.correlated.fixtures"
+        "correlatedRules": [
+          {
+            "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
+            "projectionId": "test.projection",
+            "propertyFingerprint": "sha256:3916054cb29316de223b385b8fcccd01aa6bd0944e508f16135ff73a3793a567",
+            "propertyId": "test.property",
+            "ruleId": "test.correlated.response",
+            "source": {
+              "path": "Umpire/Property/Tests/Correlated.lean",
+              "provenance": "authored"
+            }
+          }
+        ],
+        "definitions": [
+          {
+            "behaviorFingerprint": "sha256:3916054cb29316de223b385b8fcccd01aa6bd0944e508f16135ff73a3793a567",
+            "definitionId": "test.property",
+            "kind": "DEFINITION_KIND_PROPERTY"
+          }
+        ],
+        "producerId": "umpire.correlated.fixtures",
+        "sources": [
+          {
+            "path": "Umpire/Property/Tests/Correlated.lean",
+            "provenance": "authored"
+          }
+        ]
       },
       "version": {
         "major": 1
@@ -9959,8 +10684,33 @@
         ]
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1NjozOTE2MDU0Y2IyOTMxNmRlMjIzYjM4NWI4ZmNjY2QwMWFhNmJkMDk0NGU1MDhmMTYxMzVmZjczYTM3OTNhNTY3IiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
-        "producerId": "umpire.correlated.fixtures"
+        "correlatedRules": [
+          {
+            "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
+            "projectionId": "test.projection",
+            "propertyFingerprint": "sha256:3916054cb29316de223b385b8fcccd01aa6bd0944e508f16135ff73a3793a567",
+            "propertyId": "test.property",
+            "ruleId": "test.correlated.response",
+            "source": {
+              "path": "Umpire/Property/Tests/Correlated.lean",
+              "provenance": "authored"
+            }
+          }
+        ],
+        "definitions": [
+          {
+            "behaviorFingerprint": "sha256:3916054cb29316de223b385b8fcccd01aa6bd0944e508f16135ff73a3793a567",
+            "definitionId": "test.property",
+            "kind": "DEFINITION_KIND_PROPERTY"
+          }
+        ],
+        "producerId": "umpire.correlated.fixtures",
+        "sources": [
+          {
+            "path": "Umpire/Property/Tests/Correlated.lean",
+            "provenance": "authored"
+          }
+        ]
       },
       "version": {
         "major": 1

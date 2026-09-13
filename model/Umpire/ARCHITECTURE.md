@@ -43,7 +43,7 @@ Focused public imports are available by responsibility:
 | `Umpire.Command` | The Model command surface: `model`, `property`, `scenario`, `limits`, `query`. |
 | `Umpire.Command.Authoring` | What a declared Model is before any command: construction and admission. |
 | `Umpire.Command.Registry` | What the commands record for each other, and one project's conventions. |
-| `Umpire.Provenance` | Producer-owned definition bindings, Known Gaps, and the opaque `producerData` bytes. |
+| `Umpire.Provenance` | Producer-owned definition bindings, Known Gaps, and Correlated Rule bindings, lowered into typed Case provenance rows. |
 | `Umpire.Inventory` | Explicit opt-in catalogs consuming semantic-owner contracts for documentation. |
 
 Implementation modules remain behind these facades. Reusable Umpire modules cannot import the
@@ -189,8 +189,9 @@ Run, values, paths, expressions, instructions, monitors, and Verdict data. Produ
 those generated values through the context-safe `Testpilot.Authoring` facade.
 
 `Umpire.Provenance` owns only Umpire-specific definition bindings, Behavior Fingerprints, sources,
-Known Gaps, and the Correlated Rule bindings a Case carries. `Umpire.Provenance.make` encodes that
-data into opaque `producerData`; Testpilot and Go do not interpret its contents. `Umpire.Case`
+Known Gaps, and the Correlated Rule bindings a Case carries. `Umpire.Provenance.make` lowers that
+data into the typed `CaseProvenance` rows in the order the Producer lists them, rejecting a source
+position the protocol's `int32` cannot hold; Testpilot and Go never read the rows. `Umpire.Case`
 carries no aliases for generated declarations: a consumer that needs one imports
 `Testpilot.Protocol`.
 
@@ -246,7 +247,7 @@ Producer: `Umpire.Case.Correlated.lower` lowers a correlated Property to the por
 correspondence certificate beside the lowering. Umpire-backed Producers pass those values to
 `Umpire.Case.Compiler`, which admits both lowerings side by side and
 validates source-bound property rows, preserves typed unsupported-lowering errors, converts Known
-Gaps in order, attaches exact opaque provenance, and performs final generated Case assembly. Its
+Gaps in order, attaches exact provenance rows, and performs final generated Case assembly. Its
 input contains generated protocol values and introduces no parallel wire representation. A
 Testpilot-only synthetic Producer can assemble a generated Case directly.
 

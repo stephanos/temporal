@@ -122,7 +122,7 @@ those generated values through context-safe helpers:
 
 ```text
 Case
-├── version, identity, opaque producer provenance
+├── version, identity, typed producer provenance rows the runtime never reads
 ├── Program
 │   ├── symbolic roles
 │   ├── Case 1.0 symbolic environment declarations and direct resource references
@@ -141,10 +141,10 @@ A Case carries no resource ceilings. Structural, runtime, work and storage ceili
 Profile, and `testpilot.Prepare` checks the Case's behavior bounds and structure against them.
 
 `Umpire.Case` retains only Umpire's producer-specific definitions, fingerprints, sources, and Known
-Gaps and encodes them into opaque provenance bytes. It does not own a parallel Program, Contract,
+Gaps and lowers them into the Case's typed provenance rows. It does not own a parallel Program, Contract,
 Run, or field serializer. Producers validate their semantic inputs and use `Testpilot.Authoring`.
-Umpire-backed Producers use `Umpire.Case.Compiler` for source-bound rule validation, exact opaque
-provenance, and final assembly from generated values. `Testpilot.ProtoJSON` delegates canonical
+Umpire-backed Producers use `Umpire.Case.Compiler` for source-bound rule validation, exact
+provenance rows, and final assembly from generated values. `Testpilot.ProtoJSON` delegates canonical
 encoding to `Protobuf.Json`.
 
 `Temporal.Testpilot` is the first Producer. Its `GetSystemInfo` Case proves that the IR is not tied
@@ -162,7 +162,7 @@ express resource relationships, not physical values; an endpoint role or binding
 address. The immutable Profile supplies physical values, while transport targets, credentials,
 callback authority, SDK clients, and lifecycle configuration remain environment-owned Driver inputs.
 Changing a Profile binding therefore changes prepared/Driver binding identity, not the source Case,
-its Contract, Behavior Fingerprints, or opaque producer provenance.
+its Contract, Behavior Fingerprints, or producer provenance rows.
 
 ## Go runtime boundary
 

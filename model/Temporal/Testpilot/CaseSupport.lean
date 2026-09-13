@@ -69,7 +69,7 @@ def assign (target : FieldPath) (value : Expression) : RequestAssignment :=
 def provenance (producerId producerVersion : String)
     (definitions : List Umpire.Provenance.DefinitionBinding)
     (sources : List Umpire.SourceLocation)
-    (knownGaps : List Umpire.Provenance.KnownGap) : CaseProvenance :=
+    (knownGaps : List Umpire.Provenance.KnownGap) : Except Umpire.SourceLocation CaseProvenance :=
   Umpire.Provenance.make { producerId, producerVersion, definitions, sources, knownGaps }
 
 end Temporal.Testpilot.CaseSupport

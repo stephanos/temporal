@@ -79,6 +79,11 @@ func TestProtocolEncodesExpressionAndStateScopes(t *testing.T) {
 	eventReference := messageDescriptor(t, "RunEventReference")
 	require.Equal(t, []protoreflect.Name{"field", "payload"}, oneofNames(eventReference.Oneofs().ByName("selection")))
 	require.EqualValues(t, testpilotspb.RUN_EVENT_FIELD_RUN_ID, testpilotspb.RunEventField(0).Descriptor().Values().Len()-1)
+	// Provenance is typed rows, one repeated field per kind so a later row kind is one more field,
+	// rather than bytes only their Producer can read.
+	require.Equal(t, []protoreflect.Name{
+		"producer_id", "producer_version", "definitions", "sources", "known_gaps", "correlated_rules",
+	}, fieldNames(messageDescriptor(t, "CaseProvenance")))
 }
 
 func oneofNames(oneof protoreflect.OneofDescriptor) []protoreflect.Name {

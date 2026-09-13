@@ -66,52 +66,51 @@ private def inputWithPlanningGaps : Input := {
   input with knownGaps := planningGaps.toProvenanceGaps
 }
 
-private def expectedProducerData := String.intercalate "\n" [
-  "{",
-  "  \"definitions\": [",
-  "    {",
-  "      \"definitionId\": \"example.property\",",
-  "      \"behaviorFingerprint\": \"example-property/v1\",",
-  "      \"kind\": \"CASE_DEFINITION_KIND_PROPERTY\"",
-  "    }",
-  "  ],",
-  "  \"sources\": [",
-  "    {",
-  "      \"path\": \"Example/Case.lean\",",
-  "      \"line\": \"11\",",
-  "      \"column\": \"3\",",
-  "      \"provenance\": \"checked-model\"",
-  "    }",
-  "  ],",
-  "  \"knownGaps\": [",
-  "    {",
-  "      \"kind\": \"CASE_KNOWN_GAP_KIND_CAPABILITY\",",
-  "      \"code\": \"example.gap.capability\"",
-  "    },",
-  "    {",
-  "      \"kind\": \"CASE_KNOWN_GAP_KIND_INPUT\",",
-  "      \"code\": \"example.gap.input\",",
-  "      \"subject\": \"example.target\"",
-  "    },",
-  "    {",
-  "      \"kind\": \"CASE_KNOWN_GAP_KIND_INTERPRETATION\",",
-  "      \"code\": \"example.gap.interpretation\",",
-  "      \"detail\": \"Interpretation remains model-owned.\"",
-  "    },",
-  "    {",
-  "      \"kind\": \"CASE_KNOWN_GAP_KIND_CLAIM\",",
-  "      \"code\": \"example.gap.claim\",",
-  "      \"subject\": \"example.property\",",
-  "      \"detail\": \"Claim requires runtime evidence.\"",
-  "    }",
-  "  ]",
-  "}"
-] ++ "\n"
+private def sourceRow (source : temporal.server.api.testpilot.v1.SourceLocation) :=
+  (source.path, source.line, source.column, source.provenance)
+
+private def gapRow (gap : temporal.server.api.testpilot.v1.KnownGap) :=
+  (gap.kind, gap.code, gap.subject_presence.map (fun | .subject subject => subject),
+    gap.detail_presence.map (fun | .detail detail => detail))
+
+/-- Every field of every provenance row, so the comparison pins each one. -/
+private def provenanceRows (provenance : CaseProvenance) :=
+  (provenance.definitions.toList.map (fun definition =>
+      (definition.definition_id, definition.behavior_fingerprint, definition.kind)),
+   provenance.sources.toList.map sourceRow,
+   provenance.known_gaps.toList.map gapRow)
+
+/-- The rows the input lowers to, in the input's order. -/
+private def expectedProvenance :=
+  ([("example.property", "example-property/v1", DefinitionKind.DEFINITION_KIND_PROPERTY)],
+   [("Example/Case.lean", (11 : Int32), (3 : Int32), "checked-model")],
+   [(KnownGapKind.KNOWN_GAP_KIND_CAPABILITY, "example.gap.capability", (none : Option String),
+       (none : Option String)),
+    (.KNOWN_GAP_KIND_INPUT, "example.gap.input", some "example.target", none),
+    (.KNOWN_GAP_KIND_INTERPRETATION, "example.gap.interpretation", none,
+       some "Interpretation remains model-owned."),
+    (.KNOWN_GAP_KIND_CLAIM, "example.gap.claim", some "example.property",
+       some "Claim requires runtime evidence.")])
 
 /-! The single checked conversion pass retains every row field in the compiled Case. -/
 #guard match compile inputWithPlanningGaps with
-  | .ok output => output.provenance.map (·.producer_data) == some expectedProducerData.toUTF8
+  | .ok output => output.provenance.map provenanceRows == some expectedProvenance
   | .error _ => false
+
+-- A source position lowers to the protocol's int32 line and column only when it fits; the next
+-- line rejects with the source rather than wrapping into another position.
+#guard match compile { input with sources := [{ source with line := 2147483647, column := 2147483647 }] } with
+  | .ok output => output.provenance.map (·.sources.toList.map sourceRow) ==
+      some [("Example/Case.lean", (2147483647 : Int32), (2147483647 : Int32), "checked-model")]
+  | .error _ => false
+
+#guard match compile { input with sources := [{ source with line := 2147483648 }] } with
+  | .error error => error.construct == "provenance.source-position" && error.source.line == 2147483648
+  | .ok _ => false
+
+#guard match compile { input with sources := [{ source with column := 2147483648 }] } with
+  | .error error => error.construct == "provenance.source-position" && error.source.column == 2147483648
+  | .ok _ => false
 
 #guard match compile { input with
     version := { major := 1, minor := 2 }

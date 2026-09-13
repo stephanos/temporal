@@ -18,7 +18,7 @@ func TestCaseSchemaRoundTripsRefinedValues(t *testing.T) {
 	input := &testpilotspb.Case{
 		Version:    &testpilotspb.FormatVersion{Major: 1},
 		CaseId:     "nexus.async-success",
-		Provenance: &testpilotspb.CaseProvenance{ProducerId: "lean.temporal.nexus", ProducerVersion: "1", ProducerData: []byte("definitions")},
+		Provenance: &testpilotspb.CaseProvenance{ProducerId: "lean.temporal.nexus", ProducerVersion: "1", Definitions: []*testpilotspb.DefinitionBinding{{DefinitionId: "nexus.async-success.property", BehaviorFingerprint: "sha256:0", Kind: testpilotspb.DEFINITION_KIND_PROPERTY}}},
 		Program: &testpilotspb.Program{
 			ProgramId: "nexus.async-success.program",
 			Roles:     []*testpilotspb.Role{{RoleId: "frontend", Kind: testpilotspb.ROLE_KIND_ENDPOINT}},

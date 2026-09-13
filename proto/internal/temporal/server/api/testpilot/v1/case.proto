@@ -16,10 +16,90 @@ message Case {
 // FormatVersion is the Case wire format version; preparation admits exactly 1.0.
 message FormatVersion { int32 major = 1; int32 minor = 2; }
 
-// CaseProvenance keeps producer-owned metadata opaque to Testpilot.
+// CaseProvenance records where a Case came from as typed rows. Testpilot reads none of it: it
+// changes no preparation, Run or Verdict, although it is part of the Case's canonical bytes. Each
+// kind of row is its own list, in the order the Producer lists them.
 message CaseProvenance {
   string producer_id = 1;
   string producer_version = 2;
-  // Producer-defined bytes Testpilot never reads.
-  bytes producer_data = 3;
+  repeated DefinitionBinding definitions = 3;
+  repeated SourceLocation sources = 4;
+  repeated KnownGap known_gaps = 5;
+  repeated CorrelatedRuleBinding correlated_rules = 6;
+}
+
+// DefinitionBinding names one source Model Definition a Case was produced from and the Behavior
+// Fingerprint it had.
+message DefinitionBinding {
+  string definition_id = 1;
+  string behavior_fingerprint = 2;
+  DefinitionKind kind = 3;
+}
+
+// SourceLocation is a position in the Producer's source.
+message SourceLocation {
+  // Relative to the Producer's source root.
+  string path = 1;
+  // One-based; zero when the Producer knows no position.
+  int32 line = 2;
+  // One-based; zero when the Producer knows no position.
+  int32 column = 3;
+  // How the source was obtained, such as authored or checked-model.
+  string provenance = 4;
+}
+
+// KnownGap is one missing or unsupported capability, input, interpretation or claim that limits what
+// the Case can prove.
+message KnownGap {
+  KnownGapKind kind = 1;
+  // The Known Gap's Definition ID.
+  string code = 2;
+  oneof subject_presence {
+    // The Definition ID of the definition the gap limits.
+    string subject = 3;
+  }
+  oneof detail_presence {
+    string detail = 4;
+  }
+}
+
+// CorrelatedRuleBinding ties one Correlated Rule of the Contract to the Property and Projection it
+// was compiled from.
+message CorrelatedRuleBinding {
+  string rule_id = 1;
+  string property_id = 2;
+  string property_fingerprint = 3;
+  string projection_id = 4;
+  string projection_fingerprint = 5;
+  SourceLocation source = 6;
+}
+
+// DefinitionKind classifies the source Model Definition a DefinitionBinding names.
+enum DefinitionKind {
+  DEFINITION_KIND_UNSPECIFIED = 0;
+  DEFINITION_KIND_SETUP = 1;
+  DEFINITION_KIND_STATE = 2;
+  DEFINITION_KIND_ACTION = 3;
+  DEFINITION_KIND_OUTCOME = 4;
+  DEFINITION_KIND_FACT = 5;
+  DEFINITION_KIND_RELATION = 6;
+  DEFINITION_KIND_CAPABILITY = 7;
+  DEFINITION_KIND_PROPERTY = 8;
+  DEFINITION_KIND_QUERY = 9;
+  DEFINITION_KIND_SCENARIO = 10;
+  DEFINITION_KIND_TARGET = 11;
+  DEFINITION_KIND_COMPILER = 12;
+  DEFINITION_KIND_PROVIDER = 13;
+  DEFINITION_KIND_LAW = 14;
+  DEFINITION_KIND_CONNECTOR = 15;
+  DEFINITION_KIND_MACHINE = 16;
+}
+
+// KnownGapKind classifies what a KnownGap is missing.
+enum KnownGapKind {
+  KNOWN_GAP_KIND_UNSPECIFIED = 0;
+  KNOWN_GAP_KIND_CAPABILITY = 1;
+  KNOWN_GAP_KIND_INPUT = 2;
+  KNOWN_GAP_KIND_INTERPRETATION = 3;
+  KNOWN_GAP_KIND_CLAIM = 4;
 }

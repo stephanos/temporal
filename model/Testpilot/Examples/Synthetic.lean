@@ -39,7 +39,7 @@ private def contract : Contract := Contract.contract "testpilot.synthetic.contra
 
 /-- A deterministic Case authored without an Umpire or Temporal dependency. -/
 def case : Case := Testpilot.Authoring.case 1 "testpilot.synthetic.case" program contract
-  (provenance "standalone.lean.testpilot" "1" (ByteArray.mk #[0, 255, 128]))
+  (provenance "standalone.lean.testpilot" "1")
 
 /-- Render the synthetic Case through Testpilot's canonical ProtoJSON policy. -/
 def canonical : IO (Except Testpilot.ProtoJSON.Error String) :=
