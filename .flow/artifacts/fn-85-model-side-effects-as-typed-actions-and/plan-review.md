@@ -7,13 +7,17 @@ its `satisfies`.
 Reviewed against: the spec markdown, the thirteen task records, and the tree at
 `claude/umpire-order-spec-0ylk31`.
 
-**Verdict: REVISE.** One blocker and one unachievable acceptance criterion; the rest of the plan is
+**Verdict: NEEDS_WORK.** One blocker and one unachievable acceptance criterion; the rest of the plan is
 sound, correctly ordered, and traceable. The blocker is not a design problem — it is a gate the plan
 does not mention that every protocol task will hit.
 
-Conducted in-session: `flowctl` is not installed in this cloud session, so there is no plan-review
-receipt in the spec record and no recorded review backend. Record the verdict from this document when
-a session with the CLI is available.
+Conducted in-session and recorded through `flowctl` (`review-rounds increment` then
+`record --review-type plan --status-target plan`), so the spec carries the receipt and
+`plan_review_status: needs_work`, and this document is the reviewer output it points at. The backend
+is recorded as `claude` because the reviewer is this session, not a separate model — read the verdict
+with that in mind. `flowctl` was missing when this session started and is installed now from GitHub
+through the plugin marketplace (`claude plugin marketplace add gmickel/flow-next`, then
+`claude plugin install flow-next@flow-next`).
 
 ## Blocker
 
@@ -77,9 +81,12 @@ its rows" in the coverage table and the spec's R3 text is about the machine comm
 of `property` appears only as a Planning decision and a `.3` acceptance bullet. Nothing in the coverage
 table fails if it is dropped. Amend R3's text to name it, or give it its own R-ID.
 
-**F4 (P3). `.13` closes fn-83's six blocked tasks "through `flowctl`".** The CLI is not installed in
-this environment. Name the fallback — edit the six task records in `.flow/tasks/` to the stored shape —
-or that acceptance bullet cannot be met here.
+**F4 (P3). `.13` closes fn-83's six blocked tasks "through `flowctl`", which needs runtime state a
+fresh clone does not have.** The CLI itself installs from GitHub in two commands, but task status lives
+in the clone's `.git` common-dir, so in a fresh cloud clone every task reads `todo` from the committed
+snapshot and the status-changing commands refuse. Say which surface `.13` must reach: the task records
+carry the receipts, and closing them as superseded is a `flowctl` operation in a clone that has the
+runtime state, or a direct edit to the stored shape anywhere else.
 
 **F5 (P3). `.5`'s acceptance rests on `tests/testpilot_async_nexus_case_test.go`, which `.10` deletes
 or re-points.** That is the right order, but say in `.5` that the async-Nexus live test is the
@@ -128,7 +135,7 @@ Round 1's findings were applied to the plan rather than left for a later session
 - **F3** the spec's R3 now names the predicate form of `property` with its own error surface, and the
   coverage table maps R3 to `.3`, `.14`, `.15` and R4 to `.14`, `.4`.
 
-- **F4** `.13` names the direct-edit fallback for closing fn-83's six tasks where `flowctl` is absent.
+- **F4** `.13` names the fallback for closing fn-83's six tasks where the runtime state a fresh clone lacks makes `flowctl`'s status commands refuse.
 
 - **F5** `.5` says the async-Nexus live test is the temporary carrier that `.10` replaces.
 

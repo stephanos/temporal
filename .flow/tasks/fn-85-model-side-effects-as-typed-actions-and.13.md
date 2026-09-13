@@ -11,10 +11,12 @@ Close the spec (R13): write `model/AUTHORING.md` as a walk from an empty file to
 **Touches:** [model/AUTHORING.md, tools/umpire/authoring/**, tools/umpire/internal/retiredvocabulary/check.go, .plans/UMPIRE4_SPEC.md, .plans/UMPIRE4_ORDER.md, model/Temporal/Feature/Nexus/DESIGN.md, model/README.md, model/ARCHITECTURE.md, model/Umpire/ARCHITECTURE.md, tools/umpire/CONTEXT.md, tests/testcore/testpilot/README.md, .flow/tasks/fn-83-author-a-live-case-from-a-model-file.*.md]
 
 ### Approach
-- Closing fn-83's six blocked tasks goes through `flowctl` where it is installed. Where it is not (the
-  cloud sessions have no flow-next plugin install), edit the six records in `.flow/tasks/` to the
-  stored shape — `status`, `updated_at`, and a done summary naming the destination of each concern —
-  and say in the receipt which route was taken.
+- Closing fn-83's six blocked tasks goes through `flowctl` in a clone that carries the runtime state
+  (it lives in the clone's `.git` common-dir, not in the repository). In a fresh clone every task reads
+  `todo` from the committed snapshot and the status commands refuse, so there edit the six records in
+  `.flow/tasks/` to the stored shape — `updated_at` and a done summary naming the destination of each
+  concern — and say in the receipt which route was taken. The CLI itself installs from GitHub with
+  `claude plugin marketplace add gmickel/flow-next` and `claude plugin install flow-next@flow-next`.
 - Drift test: parse `model/AUTHORING.md` for fenced Lean blocks tagged with a marker name, read the Model file's marked regions, compare byte for byte; a missing or duplicate marker fails naming it. No existing markdown-drift test to copy; the nearest shapes are `make umpire-check-inventory`'s regenerate-and-diff and `tools/umpire/vocabulary/spec_names_test.go`.
 - Destinations for fn-83's tasks (from the planning record): .4 to fn-85 .7; .5's fault grammar to this spec's actions and the outage Model to fn-86 R4 (with the outage-order rule); .6 to fn-85 .10 Query 1; .8 to this task; .16 to fn-85 .7's derived identity; .17 to the realization's binding checks. Use `flowctl` to close them and record the mapping in each summary.
 - MOD-15: every new backticked dotted name the concept entries cite must resolve in `model/`; run `go test ./tools/umpire/vocabulary/...`.

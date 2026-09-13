@@ -14,8 +14,42 @@
   "impl_review_rounds": {},
   "next_task": 1,
   "plan_review_rounds": 1,
-  "plan_review_status": "revise",
-  "plan_reviewed_at": "2026-09-13T12:00:00.000000Z",
+  "plan_review_status": "needs_work",
+  "plan_reviewed_at": "2026-09-13T21:48:57.085283Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "4291a35c260e7850aec721f07ac6f4f8229ed21fc80064b19fdd509590094b2b",
+      "backend": "claude",
+      "counter_kind": "plan",
+      "failure_class": null,
+      "finalized": {
+        "digest": "not_applicable",
+        "receipt": "not_applicable",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e275dfea2ee854af2838be86a47b46a8cc842a56",
+      "head_sha_observed": false,
+      "kind": "plan",
+      "outcome": "verdict",
+      "output_bytes": 9083,
+      "output_sha256": "9371098e0c2a8918e914bb387eda3d7f03385b96a7f273e5daf99601b04e5693",
+      "reservation_id": "443bb48f1b1d4d7fa76f9722a0111d0d",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-13T21:48:57.082176Z",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-85-model-side-effects-as-typed-actions-and.md",
   "status": "open",
   "title": "Model side effects as typed actions and run query sets",
@@ -30,5 +64,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-11T15:31:14.916454Z"
+  "updated_at": "2026-09-13T21:48:57.085293Z"
 }
