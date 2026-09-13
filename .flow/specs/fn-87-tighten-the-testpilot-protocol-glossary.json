@@ -11,7 +11,8 @@
   ],
   "id": "fn-87-tighten-the-testpilot-protocol-glossary",
   "impl_review_rounds": {
-    "fn-87-tighten-the-testpilot-protocol-glossary.1": 0
+    "fn-87-tighten-the-testpilot-protocol-glossary.1": 0,
+    "fn-87-tighten-the-testpilot-protocol-glossary.2": 1
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -269,6 +270,35 @@
       "task": "fn-87-tighten-the-testpilot-protocol-glossary.1",
       "timestamp": "2026-09-13T01:01:46.462405Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "76a7bca3dca1ab15911fb486b63150b37b2c32d6a52714ff35ba186b68a1c632",
+      "backend": "claude",
+      "base_sha": "20dd79dfc02f766217b1b16b0bcdca67d15a0a7b",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "66a54a73068fa39a35d65c59a92be6e311cbdc2d",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 4461,
+      "output_sha256": "c131adebce3f612b040f0501905d9d7d4ff750c516c23614158e09f5e55aef3b",
+      "reservation_id": "24dbf41f782643d9a69400296a4620c5",
+      "round_consumed": true,
+      "scope": "impl:fn-87-tighten-the-testpilot-protocol-glossary.2",
+      "superseded_by": null,
+      "task": "fn-87-tighten-the-testpilot-protocol-glossary.2",
+      "timestamp": "2026-09-13T02:06:34.194047Z",
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
@@ -280,6 +310,7 @@
   "review_reservations": {},
   "review_transport_failures": {
     "impl:fn-87-tighten-the-testpilot-protocol-glossary.1": 0,
+    "impl:fn-87-tighten-the-testpilot-protocol-glossary.2": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-87-tighten-the-testpilot-protocol-glossary.md",
@@ -296,5 +327,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-13T01:01:46.468177Z"
+  "updated_at": "2026-09-13T02:06:34.198543Z"
 }
