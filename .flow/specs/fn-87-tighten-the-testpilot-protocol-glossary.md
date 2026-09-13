@@ -512,6 +512,20 @@ narrows or completes a requirement without changing its intent; tasks record the
   and `Program.evidencePath`). `CorrelatedContract.version` is removed, and a Case that writes it fails
   strict decoding naming the field. Evidence sizes under `max_event_bytes` count text, so no bound moved;
   the encoded evidence a lift charges as runtime work grows by two bytes per scope value.
+- **Opaque handles, naturals, entrypoint kinds and scalar kinds (decided in .9, 2026-09-13).** A Slot is
+  the one opaque-handle encoding: `SingularType.opaque_handle` is removed and `ir` binds a handle Slot
+  through `Catalog.OpaqueHandleType()` (a schema-less type), so a capture, Observation or collection
+  cannot name a handle and the capture-type `opaque_handle` rejection no longer exists. `natural_value`
+  and `SCALAR_KIND_NATURAL` are removed: no Producer needs a value above 2^64-1 (every runtime natural
+  is read from a protobuf integer field, and the checked Property rejects an out-of-range integer
+  literal before lowering), so correlated evidence, lift reads and literals use `unsigned_integer_value`
+  typed `UINT64`, checked canonical and within 64 bits by Go, `Testpilot.Correlated` and the Umpire
+  Producer. `Value` arms and `ScalarKind` are renumbered dense. The wire `EntrypointKind` becomes
+  `contract.EntrypointKind` (`ControllerEntrypoint` ... `NexusHandlerEntrypoint`, `MaxEntrypointKind`)
+  with one classifier `EntrypointKindOf`, re-exported by the facade (types and constants by alias, the
+  classifier by a wrapper function). The wire-encoding scalar kinds are kept: admission types a field
+  read by its declared kind and requires it to equal the declared Slot, Observation or outcome type, as
+  the `ScalarKind` comment records.
 
 ## Requirement coverage
 
