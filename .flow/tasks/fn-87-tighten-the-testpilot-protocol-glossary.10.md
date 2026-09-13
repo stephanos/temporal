@@ -45,10 +45,78 @@ Move node, edge, byte, work, capture, depth, duration and count ceilings out of 
 
 
 ## Done summary
-TBD
+Resource ceilings now live in the Profile. A Case keeps only the bounds that carry behavior: instruction timeout and attempts, Contract deadlines, and correlated windows. Admission and runtime read every other ceiling from the prepared Profile snapshot, and the SEM-16 restatement is drafted under GOV-02.
 
+**Protocol and Go**
+- `Program.limits`, `Contract.limits` and `CorrelatedContract.limits` are removed, and `InstructionLimits` keeps `timeout_milliseconds` and `max_attempts`.
+- `ProgramLimits` gains `max_instruction_emitted_events` and `max_instruction_response_bytes`; `ProfileSpec` gains `CorrelatedLimits`, required only to admit a correlated contract.
+- Execution, verification and the correlated monitor read `PreparedProgram.limits` and `PreparedContract.limits` / `correlatedLimits`. Drivers read `testpilot.PreparedProgram.Limits()`: the worker's `programDefinition.limits`, and the server's own Profile for the instruction response size.
+- Worker and server Profile validation admit the two new fields.
+- `temporal.DefaultCeilings()` feeds `DeriveProfile`, and through it `umpire-run`, plus the testcore `caseProfile`. The exported testcore Profile helpers lost their now-unused `source` parameter.
+
+**Decisions** (recorded in the fn-87 Planning decisions as "decided in .10")
+- **Every bound moved, durations included.** The full regression passed on its first run with all nine live identities, and no fixture's `expected.json` or correlated `expected` changed. So no bound had to stay in the Case as a behavior bound.
+- **Remaining Case bounds are checked as before.** An instruction timeout must fit the total or cleanup duration, and its attempts the Profile's attempts. Because there is now one attempts ceiling, an instruction may no longer declare more attempts than the Program-wide ceiling. Deadlines and correlated windows get no new ceiling check, since none bounded them before.
+- **Profile consistency.** The two per-instruction ceilings must fit `max_run_events` and `max_response_bytes`; this replaces the old per-Case check. A correlated contract reserves the capture ceiling in its capture budget only when it declares captures.
+- **Facade conformance test (deviation).** The spec wanted it to use `temporal.DefaultCeilings`, but the enforced gate `TestTestpilotOwnsCaseProtocolAndRuntime` forbids generic Testpilot files from importing `common/testing/testpilot/temporal/**`. The test therefore spells the same ceiling set, and the Driver's new `TestDefaultCeilingsAdmitTheConformanceCorpus` prepares that corpus under `DefaultCeilings`.
+- **Separate test Profiles.** The synthetic Case and the correlated corpus keep their former bounds as their own Profiles. The corpus's runnable Cases need 256 nodes and 2048 Run Events.
+- **Lean.**
+  - `Testpilot.Authoring.instructionLimits` takes two values, and the `Program.limits` / `Contract.limits` constructors are removed along with the limits parameters of `Program.make`, `Contract.contract` and `Contract.correlated`.
+  - `CaseSupport.bounds` / `programLimits` / `contractLimits`, `Compiler.Input.contractLimits`, `Producer.Realization.contractLimits` and the TypedNexus ceiling defs are gone.
+  - `Testpilot.Correlated.decode` takes `(limits : CorrelatedLimits)`, and `Umpire.Case.Correlated.Lowered` carries the `limits` it decoded under, so the checked agreement and theorems are unchanged.
+  - The Lean narrowing check for correlated limits stays, because the lowering still computes them.
+
+**Tests**
+- `TestPrepareRejectsCaseBoundsAboveProfileCeilings`: one row per remaining bound kind (ordinary timeout, cleanup timeout, attempts), each admitted at the ceiling and rejected with `limit_exceeded` at the node path one above it.
+- `TestPreparationErrorCase`: the `max_rules` and `max_nodes` Case-limit rows became the Profile ceiling rows "program ceiling" and "contract ceiling".
+- `TestPreparationErrorCorrelatedLimits` now covers a missing correlated ceiling (malformed) and a non-positive one (limit_exceeded).
+- A new correlated "missing Profile correlated limits" test.
+- `TestDefaultCeilingsAdmitTheConformanceCorpus`.
+- `TestDeclaredCeilingStepAdmitsOnlyBoundsWithinTheirProfile`.
+- Reservation tests updated for the single attempts ceiling, with a new "local above global" rejection row.
+
+**Fixtures and oracle**
+- Fixtures were regenerated through the generators; the diff is limit deletions only (1516 lines across 14 files).
+- The oracle's new R12 step drops each limit block or bound only when it lies within its fixture's declared Profile ceiling (`protocolmigration/ceilings.go`). Lowering the Temporal `maxRunEvents` ceiling to 256 made the oracle fail on worker-outage.
+- Retired tokens: none. No message was renamed.
+
+**Loosened bounds per fixture** (baseline value -> Profile ceiling)
+- The five conformance Cases (satisfied, violated, inconclusive, cross-run-isolation, static-preparation-rejection), plus cleanup-failure-after-proved-violation and get-system-info, all loosen the same way:
+  - program: cleanupDuration 5000->20000, responseBytes 4096->8192, runEvents 256->512
+  - every instruction: emittedEvents 8->128, responseBytes 4096->8192
+  - contract: captureBytes 8192->65536, captures 4->64, transitions 16->64, workPerEvent 100000->4000000
+- **typed-unary:** the same program and contract loosening. Instructions: responseBytes 4096->8192 on all; emittedEvents 8->128 on all except history.
+- **async-nexus:**
+  - program: the same loosening as above
+  - instructions: responseBytes 4096->8192 on all; emittedEvents 8->128 on all except history and start-workflow
+  - contract: transitions 16->64, workPerEvent 100000->4000000
+  - correlated: events 32->64, buffered 16->32, support 128->256, semanticTransitions 16->32, captures 0->16, correlationDepth 0->2
+- **typed-nexus:** program runEvents 256->512; every short instruction emittedEvents 8->128 and responseBytes 4096->8192. Its contract and correlated bounds were already at the ceiling.
+- **worker-outage:**
+  - program: cleanupDuration 5000->20000
+  - instructions: emittedEvents 8->128 on the short ones and 64->128 on history; responseBytes 4096->8192 on the short ones
+  - contract: the same as the conformance Cases
+- **synthetic:** none.
+- **correlated.json, every entry:** `case` program activations, attempts, edges and nodes 16->256, pathFanout 8->256, runEvents 32->2048; `runnableCase` none.
+
+**Follow-ups**
+- ART-09's "independent limits" wording, and the Profile glossary entry's "independent Program and Contract ceilings", need a GOV-02 restatement. Neither was edited (.13 drafts ART-09).
+
+**Outside the declared Touches:** none. Only the `.flow` spec decision and its review JSON.
+
+**Gates**
+- Baseline was green: the oracle ran, and the regression receipt b32e9867 was honored.
+- Oracle and the focused Lean, protocol, conformance and vocabulary make targets: green.
+- `make umpire-check-regression`: run 1 at b90e5aab exited 0 with 9 live identities; no flake occurred. Receipt b90e5aab written.
+- `lint-code` after `go clean -cache` at 5a6a26c4 reported 163 issues, including 2 gci formatting hits in my two verification test files. Both were fixed by gofmt in b90e5aab. The remaining 161 is the baseline; I did not rerun lint after the fix.
+- `lint-model`: 163, the baseline.
+
+**Review** (Claude impl-review: SHIP on round 1). Two P3 findings were not applied:
+- (1) The facade test duplicates the ceiling numbers. The reviewer believed the import was allowed, but the regression gate forbids it, and equality cannot be pinned across the boundary without a new exported helper. The Driver-side admission test is the substitute.
+- (2) The server `open(..., limits)` parameter is only nil-checked. It keeps the prepared-Program guard; the server reads ceilings from its own Profile, whose identity preparation already matched.
+
+stage: impl-review - ran (claude backend, SHIP on first round)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 5a6a26c44e8f5779c1c2bcb1c6662bb8078e4b65, b90e5aab73942133a50a4063c66697bb8d0d4d48
+- Tests: go test -count=1 -tags test_dep ./common/testing/testpilot/internal/protocolmigration/, make umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-check-case-runtime-conformance umpire-check-retired-vocabulary, CC=/usr/bin/cc TMPDIR=$(cd "${TMPDIR:-/tmp}" && pwd -P) make umpire-check-regression (run 1 at b90e5aab: exit 0, 9 live identities), go clean -cache && make lint-code GOLANGCI_LINT_FIX=false at 5a6a26c4: 163 issues, 2 of them gci formatting in changed test files; both gofmt-fixed in b90e5aab (lint not rerun after that; 163 - 2 = baseline 161), make lint-model (163 = baseline), go test -count=1 -tags test_dep ./common/testing/testpilot/... ./tests/testcore/testpilot/... ./tools/umpire/...
 - PRs:
-
