@@ -9,6 +9,8 @@ import (
 	"strings"
 	"testing"
 
+	commonpb "go.temporal.io/api/common/v1"
+
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
@@ -421,6 +423,7 @@ func TestRequireDeclarationOrderRejectsReorderedObjectsNamingFileAndPath(t *test
 		{name: "declaration order", encoded: `{"caseId":"x","version":{"major":1},"program":{"entrypoints":[{"entrypointId":"e","instructions":[{"instructionId":"a","guard":{"literal":{"messageValue":{"@type":"type.googleapis.com/temporal.server.api.testpilot.v1.FormatVersion","major":1}}}}]}]}}`},
 		{name: "a top-level field", encoded: `{"version":{"major":1},"caseId":"x"}`, wantErrorSubstr: `$: field "caseId" follows "version"`},
 		{name: "a nested field", encoded: `{"caseId":"x","program":{"entrypoints":[{"entrypointId":"e","instructions":[{"guard":{},"instructionId":"a"}]}]}}`, wantErrorSubstr: `$.program.entrypoints[0].instructions[0]: field "instructionId" follows "guard"`},
+		{name: "an undeclared key", encoded: `{"caseId":"x","extra":1}`, wantErrorSubstr: `$: temporal.server.api.testpilot.v1.Case declares no field "extra"`},
 		{name: "an Any payload", encoded: `{"caseId":"x","program":{"entrypoints":[{"instructions":[{"guard":{"literal":{"messageValue":{"major":1,"@type":"type.googleapis.com/temporal.server.api.testpilot.v1.FormatVersion"}}}}]}]}}`, wantErrorSubstr: `$.program.entrypoints[0].instructions[0].guard.literal.messageValue: an Any lists "major" before @type`},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
@@ -433,6 +436,24 @@ func TestRequireDeclarationOrderRejectsReorderedObjectsNamingFileAndPath(t *test
 			require.ErrorContains(t, err, tt.wantErrorSubstr)
 		})
 	}
+}
+
+// The order check follows a map field into its message values, and walks the correlated corpus's
+// Cases and events.
+func TestDeclarationOrderFollowsMapValuesAndCorrelatedEvents(t *testing.T) {
+	header := (&commonpb.Header{}).ProtoReflect().Descriptor()
+	require.NoError(t, requireDeclarationOrder("header.json", []byte(`{"fields":{"k":{"metadata":{},"data":"AA=="}}}`), header))
+	require.ErrorContains(t, requireDeclarationOrder("header.json", []byte(`{"fields":{"k":{"data":"AA==","metadata":{}}}}`), header),
+		`$.fields.k: field "metadata" follows "data"`)
+
+	const corpus = fixtureRoot + "/correlated.json"
+	entry := func(event string) []byte {
+		return []byte(`[{"name":"n","case":{"caseId":"c"},"runnableCase":{"caseId":"r"},"events":[` + event + `],"expected":2,"incomplete":false}]`)
+	}
+	require.NoError(t, requireCorrelatedDeclarationOrder(corpus, entry(`{"identity":{"evidenceSource":"s"},"kind":"k"}`)))
+	err := requireCorrelatedDeclarationOrder(corpus, entry(`{"kind":"k","identity":{"evidenceSource":"s"}}`))
+	require.ErrorContains(t, err, corpus)
+	require.ErrorContains(t, err, `$[0].events[0]: field "identity" follows "kind"`)
 }
 
 // A staged fixture that is valid JSON but stored compact fails validation by name, rather than

@@ -21,7 +21,7 @@ func dataFixture(t *testing.T) (*PreparedProgram, *activationValues, contract.Co
 	c, catalog, policy := fixture(t)
 	c.Program.Slots = []*testpilotspb.Slot{valueSlot("text", scalar(testpilotspb.SCALAR_KIND_TEXT))}
 	c.Program.Observations = []*testpilotspb.Observation{{ObservationId: "text", Type: scalar(testpilotspb.SCALAR_KIND_TEXT)}}
-	c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: field("text"), Cardinality: testpilotspb.READ_CARDINALITY_ONE, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "text"}}, {Target: &testpilotspb.ReadTarget_ObservationId{ObservationId: "text"}}}}}
+	c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: "text", Cardinality: testpilotspb.READ_CARDINALITY_ONE, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "text"}}, {Target: &testpilotspb.ReadTarget_ObservationId{ObservationId: "text"}}}}}
 	p, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
 	store, err := newValueStore(p, "run")
@@ -80,7 +80,7 @@ func TestValuesRejectWrongOwnershipAndUnprojectedPayload(t *testing.T) {
 func TestRequestReadsGuardedSlotsWithoutRebinding(t *testing.T) {
 	c, catalog, policy := fixture(t)
 	node := c.Program.Entrypoints[0].Instructions[0]
-	node.Instruction.GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{{Target: field("text"), Value: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "request"}}}}}}
+	node.Instruction.GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{{Target: "text", Value: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "request"}}}}}}
 	p, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
 	store, err := newValueStore(p, "run")
@@ -115,10 +115,10 @@ func TestValuesSealRejectsFreshBatchAndReads(t *testing.T) {
 func TestValuesGuardedMissingSlotsAndActivationIsolation(t *testing.T) {
 	c, catalog, policy := fixture(t)
 	c.Program.Slots = []*testpilotspb.Slot{valueSlot("text", scalar(testpilotspb.SCALAR_KIND_TEXT))}
-	c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: field("text"), Cardinality: testpilotspb.READ_CARDINALITY_ONE, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "text"}}}}}
+	c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: "text", Cardinality: testpilotspb.READ_CARDINALITY_ONE, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "text"}}}}}
 	consumer := rpcNode("consumer")
 	consumer.Guard = present(slot("text"))
-	consumer.Instruction.GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{{Target: field("text"), Value: slot("text")}}
+	consumer.Instruction.GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{{Target: "text", Value: slot("text")}}
 	c.Program.Entrypoints[0].Instructions = append(c.Program.Entrypoints[0].Instructions, consumer)
 	addWorker(c, &policy)
 	// Both calls invoke the carrier method, so without the carrier neither reserves the workflow.

@@ -93,7 +93,8 @@ func requireCorrelatedDeclarationOrder(path string, encoded []byte) error {
 	return nil
 }
 
-// customJSON names the well-known types whose ProtoJSON form is not an object of their fields.
+// customJSON names the well-known types whose ProtoJSON form is not an object of their fields; it is
+// the list Testpilot.ProtoJSON writes the same way.
 var customJSON = map[protoreflect.FullName]bool{
 	"google.protobuf.Timestamp": true, "google.protobuf.Duration": true, "google.protobuf.FieldMask": true,
 	"google.protobuf.Struct": true, "google.protobuf.Value": true, "google.protobuf.ListValue": true,
