@@ -116,10 +116,47 @@ compatibility promise (`buf` breaking ignores the package), so there is no `v2` 
 capabilities stay with their owners: typed worker instructions and per-Case observation declarations
 with fn-85 R10, cancel with fn-79, correlated transitions over structured machine state with fn-85.
 
-**Next to run**: its dependency fn-84 finished on 2026-09-12. **fn-85 depends on it** (recorded in
-Flow), and fn-22 and fn-26 now depend on it too, so fn-85's instructions and fn-86's migrated Cases
-are authored on the final shapes. **In progress:** broken into 17 tasks on 2026-09-12; plan review and
-implementation are running.
+**All 17 tasks done 2026-09-13; the spec completion review has not run.** Delivery paused there on
+the user's request. The plan review was SHIP on its second round, and every task landed serially in
+this checkout with its own review SHIP:
+
+- **Landed:** the equivalence harness over a frozen descriptor snapshot (59 declared mapping steps);
+  glossary renames; one file per concept with documented messages and a closure test; one
+  `Expression`, which correlated conditions and evidence-lift guards also use; a Run Event payload
+  oneof; one opaque-handle encoding, unsigned integers instead of `natural`, and a wire
+  `EntrypointKind`; resource ceilings in the Profile; entrypoint order by default with `after`;
+  derived bindings, reservations and outcome fields; structured provenance with Case-local names and
+  short model values; declaration-order ProtoJSON with string field paths and named enums; the
+  absent-operand rule; and the extension checklist in `common/testing/testpilot/README.md`.
+- **Gates at .17:** `make umpire-check-regression` exit 0 with nine live identities, `make lint-code`
+  at 161 after `go clean -cache`, `make lint-model` at 163, and the protocol, authoring, conformance
+  and retired-vocabulary checks passing. Every conformance `expected.json` stayed byte-identical and
+  no live Verdict moved. `typed-nexus-case.json` shrank from 315,914 to 43,215 bytes.
+- **Decisions taken during delivery**, recorded in the spec's Planning decisions:
+  - R9 amended: `after:` names dependencies within one entrypoint only. Preparation already rejected
+    cross-entrypoint dependencies, no Case used one, and entrypoints coordinate through Temporal.
+  - Every comparison with an absent operand is false, `NOT_EQUAL` included, so a Producer keeps the
+    presence check beside a negated comparison.
+  - `Reference` gained a correlated step and a projected-value arm.
+  - Presence stays single-arm oneofs, because the pinned `protoc-gen-go-helpers` rejects proto3
+    `optional`.
+  - The wire scalar kinds stay, because admission compares a slot's kind to its field's.
+  - An instruction may not declare more attempts than the Profile's ceiling.
+  - `cmd/tools/protogen` rewrites cross-file enum references.
+- **Rule drafts pending GOV-02** in `UMPIRE4_SPEC.md`: SEM-16, ART-09 and ART-13 restatements and the
+  Case, Provenance and Profile glossary entries.
+- **Left open:**
+  - the completion review;
+  - regenerating the spec's local HTML lens;
+  - `ir` still says "projection" for path reads, and hand-written Go still calls Opcodes
+    "capability";
+  - the frozen baseline tree is committed with `git add -f` despite `.gitignore`.
+- **Intermittent live failures:** three tests also fail at base commits in about one or two runs in
+  ten. They are the umpire-run namespace-delete timeout, the typed Nexus evidence-ordering mismatch,
+  and an async-Nexus Run ending INCONCLUSIVE.
+
+**fn-85 depends on it** (recorded in Flow), and fn-22 and fn-26 now depend on it too, so fn-85's
+instructions and fn-86's migrated Cases are authored on the final shapes.
 
 ### 4. Model side effects as typed actions and run query sets — fn-85
 
@@ -153,7 +190,8 @@ Canary and exploratory sets are admitted with their
 coverage targets enumerated; running them stays in fn-70, fn-29 and fn-33. Whole-Program templates
 and the `case` command are removed.
 
-**R3 authoring form decided 2026-09-12:** machines are Lean step functions over a structure of
+**Next to run** once fn-87's completion review is SHIP; delivery is paused on the user's request
+(2026-09-13). **R3 authoring form decided 2026-09-12:** machines are Lean step functions over a structure of
 finite fields, enumerated at elaboration into the same finite table, per
 [the FizzBee comparison](UMPIRE_CMP_FIZZBEE.md) section 4.1; the row grammar is not built.
 
