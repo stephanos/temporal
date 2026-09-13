@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-84-deepen-five-shallow-module-clusters-in",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-09-12T23:34:22.264593Z",
   "created_at": "2026-09-10T06:03:11.310266Z",
   "default_impl": null,
   "default_review": null,
@@ -530,6 +530,66 @@
       "task": "fn-84-deepen-five-shallow-module-clusters-in.5",
       "timestamp": "2026-09-12T23:16:30.237599Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "e730a41d903fe24671eabc6018e078d361b759b1a0190ac508c456dff80ef553",
+      "backend": "claude",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-d0898ec7df4df59e085996965d34512e",
+            "classification": "introduced",
+            "findingId": "finding-d0898ec7df4df59e085996965d34512e",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-76ab0aeba426bde9a7938f9676bbd8c8",
+            "classification": "introduced",
+            "findingId": "finding-76ab0aeba426bde9a7938f9676bbd8c8",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-51a6a7783c3da74760cfee7808a96c86",
+            "classification": "introduced",
+            "findingId": "finding-51a6a7783c3da74760cfee7808a96c86",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "7b04645bad2d101432904ce1c0ec336e0f348d77",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 10593,
+      "output_sha256": "b31732f3c828642b2e1e131157ecc7b4f60214a6bfcf39c00688ca1ec101be31",
+      "reservation_id": "8d63faa13a0343a68d1ff4ff3c517b88",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-12T23:34:22.258297Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -539,11 +599,12 @@
     "impl:fn-84-deepen-five-shallow-module-clusters-in.4": 1,
     "impl:fn-84-deepen-five-shallow-module-clusters-in.5": 1,
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-84-deepen-five-shallow-module-clusters-in.1": 0,
     "impl:fn-84-deepen-five-shallow-module-clusters-in.2": 0,
     "impl:fn-84-deepen-five-shallow-module-clusters-in.3": 0,
@@ -565,5 +626,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-12T23:16:30.242418Z"
+  "updated_at": "2026-09-12T23:34:22.265640Z"
 }
