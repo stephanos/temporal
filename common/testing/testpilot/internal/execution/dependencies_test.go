@@ -29,20 +29,6 @@ func TestPrivateCoreImportBoundary(t *testing.T) {
 	}
 }
 
-// runsAfter names the instructions of entrypointID a node runs after; with no ids it makes the node
-// a root wherever it is declared.
-func runsAfter(entrypointID string, instructionIDs ...string) *testpilotspb.After {
-	after := &testpilotspb.After{Instructions: []*testpilotspb.InstructionReference{}}
-	for _, id := range instructionIDs {
-		after.Instructions = append(after.Instructions, &testpilotspb.InstructionReference{EntrypointId: entrypointID, InstructionId: id})
-	}
-	return after
-}
-
-func alwaysRuns() *testpilotspb.Expression {
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}}}
-}
-
 func TestInstructionsRunAfterTheirPredecessorUnlessAfterSaysOtherwise(t *testing.T) {
 	c, catalog, policy := fixture(t)
 	second := rpcNode("second")
