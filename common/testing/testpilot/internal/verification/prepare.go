@@ -21,7 +21,7 @@ type PreparedContract struct {
 	workPerEvent int64
 }
 type machine struct {
-	source       *testpilotspb.ContractRuleDefinition
+	source       *testpilotspb.ContractRule
 	initial      int
 	states       map[string]int
 	captures     map[string]int
@@ -155,7 +155,7 @@ func Prepare(source *testpilotspb.Contract, catalog *ir.Catalog, program executi
 func scalarType(kind testpilotspb.ScalarKind) *testpilotspb.ValueType {
 	return &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Scalar{Scalar: &testpilotspb.ScalarType{Kind: kind}}}}}
 }
-func (a *admission) bindMachine(rule *testpilotspb.ContractRuleDefinition) (*machine, error) {
+func (a *admission) bindMachine(rule *testpilotspb.ContractRule) (*machine, error) {
 	limits := a.prepared.source.Limits
 	if err := add(&a.states, int64(len(rule.States)), limits.MaxStates); err != nil {
 		return nil, err
@@ -250,7 +250,7 @@ func (a *admission) bindStates(m *machine) error {
 		if _, exists := m.states[state.StateId]; exists {
 			return invalid(ir.Malformed, "duplicate state")
 		}
-		if state.Status < testpilotspb.CONTRACT_STATE_STATUS_NONTERMINAL || state.Status > testpilotspb.CONTRACT_STATE_STATUS_VIOLATED {
+		if state.Status < testpilotspb.CONTRACT_STATE_STATUS_PENDING || state.Status > testpilotspb.CONTRACT_STATE_STATUS_VIOLATED {
 			return invalid(ir.Unknown, "invalid terminal state kind")
 		}
 		m.states[state.StateId] = i
@@ -261,7 +261,7 @@ func (a *admission) bindStates(m *machine) error {
 		return invalid(ir.Unknown, "initial state is not declared")
 	}
 	m.initial = initial
-	if rule.States[initial].Status != testpilotspb.CONTRACT_STATE_STATUS_NONTERMINAL {
+	if rule.States[initial].Status != testpilotspb.CONTRACT_STATE_STATUS_PENDING {
 		return invalid(ir.Malformed, "initial state must be nonterminal")
 	}
 	if rule.Kind == testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS {
@@ -293,7 +293,7 @@ func (a *admission) bindTransitions(m *machine, scope map[ir.Reference]ir.Bindin
 			return invalid(ir.Malformed, "invalid, duplicate, or undeclared transition identity/state")
 		}
 		seen[tr.TransitionId] = true
-		if rule.States[from].Status != testpilotspb.CONTRACT_STATE_STATUS_NONTERMINAL {
+		if rule.States[from].Status != testpilotspb.CONTRACT_STATE_STATUS_PENDING {
 			return invalid(ir.Malformed, "terminal states cannot have outgoing transitions")
 		}
 		if tr.SupportKind != testpilotspb.CONTRACT_SUPPORT_KIND_NONE && tr.SupportKind != testpilotspb.CONTRACT_SUPPORT_KIND_MATCHING_EVENT {

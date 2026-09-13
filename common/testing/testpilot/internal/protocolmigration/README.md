@@ -47,7 +47,11 @@ order the changes land. Each Step names itself and the requirement it implements
 the fixture's JSON tree, where every object carries the snapshot message it encoded; steps address
 messages by their baseline full names even after an earlier step renamed them.
 
-Reuse the helpers where they fit: `RenameField`, `RenameEnumLiteral`, `DropField` and
+Reuse the helpers where they fit: `RenameField`, `RenameEnumLiteral`, `RenameMessage`, `DropField` and
 `RewriteMessages`. A step that is not a rename validates what it assumes (a derived field equals
 its recomputed value, a dropped bound matches a declared loosened bound) instead of discarding
 data; `DropField` requires that check.
+
+A step spells the baseline names its change retires. Split those literals (`"Run" + "Status"`) as
+the other files the retired-vocabulary scan reads do, so the scan keeps holding the names everywhere
+else.

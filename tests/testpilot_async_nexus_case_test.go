@@ -70,7 +70,7 @@ func TestTestpilotAsyncNexusCase(t *testing.T) {
 	runIDs := make(map[string]struct{}, len(bindings)*2)
 	for result := range results {
 		require.NoError(t, result.err)
-		require.Equal(t, testpilotpb.RUN_STATUS_COMPLETED, result.run.GetStatus())
+		require.Equal(t, testpilotpb.RUN_DISPOSITION_COMPLETED, result.run.GetDisposition())
 		require.Equal(t, testpilotpb.CLEANUP_STATUS_SUCCEEDED, result.run.GetCleanup().GetStatus())
 		require.Equal(t, testpilotpb.VERDICT_STATUS_SATISFIED, result.verdict.GetStatus())
 		require.True(t, proto.Equal(result.verdict, result.run.GetVerdict()))
@@ -113,7 +113,7 @@ func TestTestpilotAsyncNexusCaseMissingRemoteEndpoint(t *testing.T) {
 
 	run, verdict, err := live.prepared.Run(env.Context(), live.driver)
 	require.NoError(t, err)
-	require.Equal(t, testpilotpb.RUN_STATUS_INCOMPLETE, run.GetStatus())
+	require.Equal(t, testpilotpb.RUN_DISPOSITION_INCOMPLETE, run.GetDisposition())
 	require.Equal(t, testpilotpb.CLEANUP_STATUS_SUCCEEDED, run.GetCleanup().GetStatus())
 	require.Equal(t, testpilotpb.VERDICT_STATUS_INCONCLUSIVE, verdict.GetStatus())
 	requireRunHasOutcome(t, run, "await-completion-authority", testpilotpb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT)
@@ -129,7 +129,7 @@ func TestTestpilotAsyncNexusCaseRunsFromItsFixtureNameAlone(t *testing.T) {
 
 	run, verdict := runCase(t, env, "async-nexus")
 
-	require.Equal(t, testpilotpb.RUN_STATUS_COMPLETED, run.GetStatus())
+	require.Equal(t, testpilotpb.RUN_DISPOSITION_COMPLETED, run.GetDisposition())
 	require.Equal(t, testpilotpb.CLEANUP_STATUS_SUCCEEDED, run.GetCleanup().GetStatus())
 	require.Equal(t, testpilotpb.VERDICT_STATUS_SATISFIED, verdict.GetStatus())
 	require.Len(t, verdict.GetRules(), 2)

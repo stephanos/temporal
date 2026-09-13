@@ -204,7 +204,7 @@ func flatten(err error) []string {
 }
 
 func report(stdout io.Writer, run *testpilotspb.Run, verdict *testpilotspb.Verdict) {
-	writeLine(stdout, "run %s", run.GetStatus())
+	writeLine(stdout, "run %s", run.GetDisposition())
 	writeLine(stdout, "cleanup %s", run.GetCleanup().GetStatus())
 	writeLine(stdout, "verdict %s", verdict.GetStatus())
 	for _, rule := range verdict.GetRules() {

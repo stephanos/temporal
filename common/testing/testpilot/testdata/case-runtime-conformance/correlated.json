@@ -5,23 +5,6 @@
       "contract": {
         "contractId": "correlated",
         "correlated": {
-          "clauses": [
-            {
-              "clauseId": "test.correlated.response",
-              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
-              "ending": "TRACE_ENDING_PARTIAL",
-              "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
-              },
-              "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
-              }
-            }
-          ],
           "evidenceObservationId": "evidence",
           "initialState": {
             "definitionId": "test.state",
@@ -145,6 +128,23 @@
                   }
                 }
               ]
+            }
+          ],
+          "rules": [
+            {
+              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+              "ending": "TRACE_ENDING_PARTIAL",
+              "response": {
+                "definitionId": "test.outcome",
+                "equalsText": "response",
+                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+              },
+              "ruleId": "test.correlated.response",
+              "trigger": {
+                "definitionId": "test.trigger",
+                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
+                "present": true
+              }
             }
           ],
           "scopeFields": [
@@ -299,7 +299,7 @@
         "programId": "correlated.program"
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjlmZTBhM2ExMjU2ZDI4YTdkMDk4NmExOWQ2Njc4MzJiNDZjZDY4ZjIyYmQ5N2ZlZGNjMDgzZWUxNjc3M2M0OGEiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJjbGF1c2VJZCI6ICJ0ZXN0LmNvcnJlbGF0ZWQucmVzcG9uc2UiLAogICAgICAicHJvcGVydHlJZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgInByb3BlcnR5RmluZ2VycHJpbnQiOiAic2hhMjU2OjlmZTBhM2ExMjU2ZDI4YTdkMDk4NmExOWQ2Njc4MzJiNDZjZDY4ZjIyYmQ5N2ZlZGNjMDgzZWUxNjc3M2M0OGEiLAogICAgICAicHJvamVjdGlvbklkIjogInRlc3QucHJvamVjdGlvbiIsCiAgICAgICJwcm9qZWN0aW9uRmluZ2VycHJpbnQiOiAic2hhMjU2OjZkNDc1NTk4OTlmOGJiYTdiNDA5YjU4MDM0NzU0NjY5OWM1MGQxODliYmE3ZGFkODczOTE2NDQwNmNkYjIxNWUiLAogICAgICAic291cmNlIjogewogICAgICAgICJwYXRoIjogIlVtcGlyZS9Qcm9wZXJ0eS9UZXN0cy9Db3JyZWxhdGVkLmxlYW4iLAogICAgICAgICJsaW5lIjogIjAiLAogICAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICAgInByb3ZlbmFuY2UiOiAiYXV0aG9yZWQiCiAgICAgIH0KICAgIH0KICBdCn0K",
+        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjlmZTBhM2ExMjU2ZDI4YTdkMDk4NmExOWQ2Njc4MzJiNDZjZDY4ZjIyYmQ5N2ZlZGNjMDgzZWUxNjc3M2M0OGEiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1Njo5ZmUwYTNhMTI1NmQyOGE3ZDA5ODZhMTlkNjY3ODMyYjQ2Y2Q2OGYyMmJkOTdmZWRjYzA4M2VlMTY3NzNjNDhhIiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
         "producerId": "umpire.correlated.fixtures"
       },
       "version": {
@@ -309,13 +309,13 @@
     "events": [
       {
         "identity": {
+          "evidenceSource": "test.source",
           "scope": [
             {
               "fieldId": "test.run",
               "value": "run-1"
             }
-          ],
-          "source": "test.source"
+          ]
         },
         "kind": "test.both",
         "operation": "a"
@@ -329,23 +329,6 @@
       "contract": {
         "contractId": "correlated",
         "correlated": {
-          "clauses": [
-            {
-              "clauseId": "test.correlated.response",
-              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
-              "ending": "TRACE_ENDING_PARTIAL",
-              "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
-              },
-              "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
-              }
-            }
-          ],
           "evidenceObservationId": "evidence",
           "initialState": {
             "definitionId": "test.state",
@@ -469,6 +452,23 @@
                   }
                 }
               ]
+            }
+          ],
+          "rules": [
+            {
+              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+              "ending": "TRACE_ENDING_PARTIAL",
+              "response": {
+                "definitionId": "test.outcome",
+                "equalsText": "response",
+                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+              },
+              "ruleId": "test.correlated.response",
+              "trigger": {
+                "definitionId": "test.trigger",
+                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
+                "present": true
+              }
             }
           ],
           "scopeFields": [
@@ -671,7 +671,7 @@
         ]
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjlmZTBhM2ExMjU2ZDI4YTdkMDk4NmExOWQ2Njc4MzJiNDZjZDY4ZjIyYmQ5N2ZlZGNjMDgzZWUxNjc3M2M0OGEiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJjbGF1c2VJZCI6ICJ0ZXN0LmNvcnJlbGF0ZWQucmVzcG9uc2UiLAogICAgICAicHJvcGVydHlJZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgInByb3BlcnR5RmluZ2VycHJpbnQiOiAic2hhMjU2OjlmZTBhM2ExMjU2ZDI4YTdkMDk4NmExOWQ2Njc4MzJiNDZjZDY4ZjIyYmQ5N2ZlZGNjMDgzZWUxNjc3M2M0OGEiLAogICAgICAicHJvamVjdGlvbklkIjogInRlc3QucHJvamVjdGlvbiIsCiAgICAgICJwcm9qZWN0aW9uRmluZ2VycHJpbnQiOiAic2hhMjU2OjZkNDc1NTk4OTlmOGJiYTdiNDA5YjU4MDM0NzU0NjY5OWM1MGQxODliYmE3ZGFkODczOTE2NDQwNmNkYjIxNWUiLAogICAgICAic291cmNlIjogewogICAgICAgICJwYXRoIjogIlVtcGlyZS9Qcm9wZXJ0eS9UZXN0cy9Db3JyZWxhdGVkLmxlYW4iLAogICAgICAgICJsaW5lIjogIjAiLAogICAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICAgInByb3ZlbmFuY2UiOiAiYXV0aG9yZWQiCiAgICAgIH0KICAgIH0KICBdCn0K",
+        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjlmZTBhM2ExMjU2ZDI4YTdkMDk4NmExOWQ2Njc4MzJiNDZjZDY4ZjIyYmQ5N2ZlZGNjMDgzZWUxNjc3M2M0OGEiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1Njo5ZmUwYTNhMTI1NmQyOGE3ZDA5ODZhMTlkNjY3ODMyYjQ2Y2Q2OGYyMmJkOTdmZWRjYzA4M2VlMTY3NzNjNDhhIiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
         "producerId": "umpire.correlated.fixtures"
       },
       "version": {
@@ -685,23 +685,6 @@
       "contract": {
         "contractId": "correlated",
         "correlated": {
-          "clauses": [
-            {
-              "clauseId": "test.correlated.response",
-              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
-              "ending": "TRACE_ENDING_PARTIAL",
-              "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
-              },
-              "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
-              }
-            }
-          ],
           "evidenceObservationId": "evidence",
           "initialState": {
             "definitionId": "test.state",
@@ -825,6 +808,23 @@
                   }
                 }
               ]
+            }
+          ],
+          "rules": [
+            {
+              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+              "ending": "TRACE_ENDING_PARTIAL",
+              "response": {
+                "definitionId": "test.outcome",
+                "equalsText": "response",
+                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+              },
+              "ruleId": "test.correlated.response",
+              "trigger": {
+                "definitionId": "test.trigger",
+                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
+                "present": true
+              }
             }
           ],
           "scopeFields": [
@@ -979,7 +979,7 @@
         "programId": "correlated.program"
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjlmZTBhM2ExMjU2ZDI4YTdkMDk4NmExOWQ2Njc4MzJiNDZjZDY4ZjIyYmQ5N2ZlZGNjMDgzZWUxNjc3M2M0OGEiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJjbGF1c2VJZCI6ICJ0ZXN0LmNvcnJlbGF0ZWQucmVzcG9uc2UiLAogICAgICAicHJvcGVydHlJZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgInByb3BlcnR5RmluZ2VycHJpbnQiOiAic2hhMjU2OjlmZTBhM2ExMjU2ZDI4YTdkMDk4NmExOWQ2Njc4MzJiNDZjZDY4ZjIyYmQ5N2ZlZGNjMDgzZWUxNjc3M2M0OGEiLAogICAgICAicHJvamVjdGlvbklkIjogInRlc3QucHJvamVjdGlvbiIsCiAgICAgICJwcm9qZWN0aW9uRmluZ2VycHJpbnQiOiAic2hhMjU2OjZkNDc1NTk4OTlmOGJiYTdiNDA5YjU4MDM0NzU0NjY5OWM1MGQxODliYmE3ZGFkODczOTE2NDQwNmNkYjIxNWUiLAogICAgICAic291cmNlIjogewogICAgICAgICJwYXRoIjogIlVtcGlyZS9Qcm9wZXJ0eS9UZXN0cy9Db3JyZWxhdGVkLmxlYW4iLAogICAgICAgICJsaW5lIjogIjAiLAogICAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICAgInByb3ZlbmFuY2UiOiAiYXV0aG9yZWQiCiAgICAgIH0KICAgIH0KICBdCn0K",
+        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjlmZTBhM2ExMjU2ZDI4YTdkMDk4NmExOWQ2Njc4MzJiNDZjZDY4ZjIyYmQ5N2ZlZGNjMDgzZWUxNjc3M2M0OGEiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1Njo5ZmUwYTNhMTI1NmQyOGE3ZDA5ODZhMTlkNjY3ODMyYjQ2Y2Q2OGYyMmJkOTdmZWRjYzA4M2VlMTY3NzNjNDhhIiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
         "producerId": "umpire.correlated.fixtures"
       },
       "version": {
@@ -989,13 +989,13 @@
     "events": [
       {
         "identity": {
+          "evidenceSource": "test.source",
           "scope": [
             {
               "fieldId": "test.run",
               "value": "run-1"
             }
-          ],
-          "source": "test.source"
+          ]
         },
         "kind": "test.request",
         "operation": "a"
@@ -1009,23 +1009,6 @@
       "contract": {
         "contractId": "correlated",
         "correlated": {
-          "clauses": [
-            {
-              "clauseId": "test.correlated.response",
-              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
-              "ending": "TRACE_ENDING_PARTIAL",
-              "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
-              },
-              "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
-              }
-            }
-          ],
           "evidenceObservationId": "evidence",
           "initialState": {
             "definitionId": "test.state",
@@ -1149,6 +1132,23 @@
                   }
                 }
               ]
+            }
+          ],
+          "rules": [
+            {
+              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+              "ending": "TRACE_ENDING_PARTIAL",
+              "response": {
+                "definitionId": "test.outcome",
+                "equalsText": "response",
+                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+              },
+              "ruleId": "test.correlated.response",
+              "trigger": {
+                "definitionId": "test.trigger",
+                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
+                "present": true
+              }
             }
           ],
           "scopeFields": [
@@ -1351,7 +1351,7 @@
         ]
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjlmZTBhM2ExMjU2ZDI4YTdkMDk4NmExOWQ2Njc4MzJiNDZjZDY4ZjIyYmQ5N2ZlZGNjMDgzZWUxNjc3M2M0OGEiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJjbGF1c2VJZCI6ICJ0ZXN0LmNvcnJlbGF0ZWQucmVzcG9uc2UiLAogICAgICAicHJvcGVydHlJZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgInByb3BlcnR5RmluZ2VycHJpbnQiOiAic2hhMjU2OjlmZTBhM2ExMjU2ZDI4YTdkMDk4NmExOWQ2Njc4MzJiNDZjZDY4ZjIyYmQ5N2ZlZGNjMDgzZWUxNjc3M2M0OGEiLAogICAgICAicHJvamVjdGlvbklkIjogInRlc3QucHJvamVjdGlvbiIsCiAgICAgICJwcm9qZWN0aW9uRmluZ2VycHJpbnQiOiAic2hhMjU2OjZkNDc1NTk4OTlmOGJiYTdiNDA5YjU4MDM0NzU0NjY5OWM1MGQxODliYmE3ZGFkODczOTE2NDQwNmNkYjIxNWUiLAogICAgICAic291cmNlIjogewogICAgICAgICJwYXRoIjogIlVtcGlyZS9Qcm9wZXJ0eS9UZXN0cy9Db3JyZWxhdGVkLmxlYW4iLAogICAgICAgICJsaW5lIjogIjAiLAogICAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICAgInByb3ZlbmFuY2UiOiAiYXV0aG9yZWQiCiAgICAgIH0KICAgIH0KICBdCn0K",
+        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjlmZTBhM2ExMjU2ZDI4YTdkMDk4NmExOWQ2Njc4MzJiNDZjZDY4ZjIyYmQ5N2ZlZGNjMDgzZWUxNjc3M2M0OGEiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1Njo5ZmUwYTNhMTI1NmQyOGE3ZDA5ODZhMTlkNjY3ODMyYjQ2Y2Q2OGYyMmJkOTdmZWRjYzA4M2VlMTY3NzNjNDhhIiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
         "producerId": "umpire.correlated.fixtures"
       },
       "version": {
@@ -1365,24 +1365,6 @@
       "contract": {
         "contractId": "correlated",
         "correlated": {
-          "clauses": [
-            {
-              "bound": "2",
-              "clauseId": "test.correlated.response",
-              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
-              "ending": "TRACE_ENDING_PARTIAL",
-              "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
-              },
-              "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
-              }
-            }
-          ],
           "evidenceObservationId": "evidence",
           "initialState": {
             "definitionId": "test.state",
@@ -1506,6 +1488,24 @@
                   }
                 }
               ]
+            }
+          ],
+          "rules": [
+            {
+              "bound": "2",
+              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+              "ending": "TRACE_ENDING_PARTIAL",
+              "response": {
+                "definitionId": "test.outcome",
+                "equalsText": "response",
+                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+              },
+              "ruleId": "test.correlated.response",
+              "trigger": {
+                "definitionId": "test.trigger",
+                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
+                "present": true
+              }
             }
           ],
           "scopeFields": [
@@ -1660,7 +1660,7 @@
         "programId": "correlated.program"
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjhiZjEyOTgzNzUzOWM3Yjg2ZTk0OTVhNzEwYzc3ODAxYWM0N2Q2ZTBiZDI2ZWU3MTdjOWNjNzk3MjlhOTQyZDUiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJjbGF1c2VJZCI6ICJ0ZXN0LmNvcnJlbGF0ZWQucmVzcG9uc2UiLAogICAgICAicHJvcGVydHlJZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgInByb3BlcnR5RmluZ2VycHJpbnQiOiAic2hhMjU2OjhiZjEyOTgzNzUzOWM3Yjg2ZTk0OTVhNzEwYzc3ODAxYWM0N2Q2ZTBiZDI2ZWU3MTdjOWNjNzk3MjlhOTQyZDUiLAogICAgICAicHJvamVjdGlvbklkIjogInRlc3QucHJvamVjdGlvbiIsCiAgICAgICJwcm9qZWN0aW9uRmluZ2VycHJpbnQiOiAic2hhMjU2OjZkNDc1NTk4OTlmOGJiYTdiNDA5YjU4MDM0NzU0NjY5OWM1MGQxODliYmE3ZGFkODczOTE2NDQwNmNkYjIxNWUiLAogICAgICAic291cmNlIjogewogICAgICAgICJwYXRoIjogIlVtcGlyZS9Qcm9wZXJ0eS9UZXN0cy9Db3JyZWxhdGVkLmxlYW4iLAogICAgICAgICJsaW5lIjogIjAiLAogICAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICAgInByb3ZlbmFuY2UiOiAiYXV0aG9yZWQiCiAgICAgIH0KICAgIH0KICBdCn0K",
+        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjhiZjEyOTgzNzUzOWM3Yjg2ZTk0OTVhNzEwYzc3ODAxYWM0N2Q2ZTBiZDI2ZWU3MTdjOWNjNzk3MjlhOTQyZDUiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1Njo4YmYxMjk4Mzc1MzljN2I4NmU5NDk1YTcxMGM3NzgwMWFjNDdkNmUwYmQyNmVlNzE3YzljYzc5NzI5YTk0MmQ1IiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
         "producerId": "umpire.correlated.fixtures"
       },
       "version": {
@@ -1670,13 +1670,13 @@
     "events": [
       {
         "identity": {
+          "evidenceSource": "test.source",
           "scope": [
             {
               "fieldId": "test.run",
               "value": "run-1"
             }
-          ],
-          "source": "test.source"
+          ]
         },
         "kind": "test.request",
         "operation": "a"
@@ -1690,24 +1690,6 @@
       "contract": {
         "contractId": "correlated",
         "correlated": {
-          "clauses": [
-            {
-              "bound": "2",
-              "clauseId": "test.correlated.response",
-              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
-              "ending": "TRACE_ENDING_PARTIAL",
-              "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
-              },
-              "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
-              }
-            }
-          ],
           "evidenceObservationId": "evidence",
           "initialState": {
             "definitionId": "test.state",
@@ -1831,6 +1813,24 @@
                   }
                 }
               ]
+            }
+          ],
+          "rules": [
+            {
+              "bound": "2",
+              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+              "ending": "TRACE_ENDING_PARTIAL",
+              "response": {
+                "definitionId": "test.outcome",
+                "equalsText": "response",
+                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+              },
+              "ruleId": "test.correlated.response",
+              "trigger": {
+                "definitionId": "test.trigger",
+                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
+                "present": true
+              }
             }
           ],
           "scopeFields": [
@@ -2033,7 +2033,7 @@
         ]
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjhiZjEyOTgzNzUzOWM3Yjg2ZTk0OTVhNzEwYzc3ODAxYWM0N2Q2ZTBiZDI2ZWU3MTdjOWNjNzk3MjlhOTQyZDUiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJjbGF1c2VJZCI6ICJ0ZXN0LmNvcnJlbGF0ZWQucmVzcG9uc2UiLAogICAgICAicHJvcGVydHlJZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgInByb3BlcnR5RmluZ2VycHJpbnQiOiAic2hhMjU2OjhiZjEyOTgzNzUzOWM3Yjg2ZTk0OTVhNzEwYzc3ODAxYWM0N2Q2ZTBiZDI2ZWU3MTdjOWNjNzk3MjlhOTQyZDUiLAogICAgICAicHJvamVjdGlvbklkIjogInRlc3QucHJvamVjdGlvbiIsCiAgICAgICJwcm9qZWN0aW9uRmluZ2VycHJpbnQiOiAic2hhMjU2OjZkNDc1NTk4OTlmOGJiYTdiNDA5YjU4MDM0NzU0NjY5OWM1MGQxODliYmE3ZGFkODczOTE2NDQwNmNkYjIxNWUiLAogICAgICAic291cmNlIjogewogICAgICAgICJwYXRoIjogIlVtcGlyZS9Qcm9wZXJ0eS9UZXN0cy9Db3JyZWxhdGVkLmxlYW4iLAogICAgICAgICJsaW5lIjogIjAiLAogICAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICAgInByb3ZlbmFuY2UiOiAiYXV0aG9yZWQiCiAgICAgIH0KICAgIH0KICBdCn0K",
+        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjhiZjEyOTgzNzUzOWM3Yjg2ZTk0OTVhNzEwYzc3ODAxYWM0N2Q2ZTBiZDI2ZWU3MTdjOWNjNzk3MjlhOTQyZDUiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1Njo4YmYxMjk4Mzc1MzljN2I4NmU5NDk1YTcxMGM3NzgwMWFjNDdkNmUwYmQyNmVlNzE3YzljYzc5NzI5YTk0MmQ1IiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
         "producerId": "umpire.correlated.fixtures"
       },
       "version": {
@@ -2047,24 +2047,6 @@
       "contract": {
         "contractId": "correlated",
         "correlated": {
-          "clauses": [
-            {
-              "bound": "1",
-              "clauseId": "test.correlated.response",
-              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
-              "ending": "TRACE_ENDING_PARTIAL",
-              "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
-              },
-              "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
-              }
-            }
-          ],
           "evidenceObservationId": "evidence",
           "initialState": {
             "definitionId": "test.state",
@@ -2188,6 +2170,24 @@
                   }
                 }
               ]
+            }
+          ],
+          "rules": [
+            {
+              "bound": "1",
+              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+              "ending": "TRACE_ENDING_PARTIAL",
+              "response": {
+                "definitionId": "test.outcome",
+                "equalsText": "response",
+                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+              },
+              "ruleId": "test.correlated.response",
+              "trigger": {
+                "definitionId": "test.trigger",
+                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
+                "present": true
+              }
             }
           ],
           "scopeFields": [
@@ -2342,7 +2342,7 @@
         "programId": "correlated.program"
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJjbGF1c2VJZCI6ICJ0ZXN0LmNvcnJlbGF0ZWQucmVzcG9uc2UiLAogICAgICAicHJvcGVydHlJZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgInByb3BlcnR5RmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAicHJvamVjdGlvbklkIjogInRlc3QucHJvamVjdGlvbiIsCiAgICAgICJwcm9qZWN0aW9uRmluZ2VycHJpbnQiOiAic2hhMjU2OjZkNDc1NTk4OTlmOGJiYTdiNDA5YjU4MDM0NzU0NjY5OWM1MGQxODliYmE3ZGFkODczOTE2NDQwNmNkYjIxNWUiLAogICAgICAic291cmNlIjogewogICAgICAgICJwYXRoIjogIlVtcGlyZS9Qcm9wZXJ0eS9UZXN0cy9Db3JyZWxhdGVkLmxlYW4iLAogICAgICAgICJsaW5lIjogIjAiLAogICAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICAgInByb3ZlbmFuY2UiOiAiYXV0aG9yZWQiCiAgICAgIH0KICAgIH0KICBdCn0K",
+        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1NjozOTE2MDU0Y2IyOTMxNmRlMjIzYjM4NWI4ZmNjY2QwMWFhNmJkMDk0NGU1MDhmMTYxMzVmZjczYTM3OTNhNTY3IiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
         "producerId": "umpire.correlated.fixtures"
       },
       "version": {
@@ -2352,27 +2352,27 @@
     "events": [
       {
         "identity": {
+          "evidenceSource": "test.source",
           "scope": [
             {
               "fieldId": "test.run",
               "value": "run-1"
             }
-          ],
-          "source": "test.source"
+          ]
         },
         "kind": "test.request",
         "operation": "a"
       },
       {
         "identity": {
+          "evidenceSource": "test.source",
           "ordinal": "1",
           "scope": [
             {
               "fieldId": "test.run",
               "value": "run-1"
             }
-          ],
-          "source": "test.source"
+          ]
         },
         "kind": "test.reply",
         "operation": "a"
@@ -2386,24 +2386,6 @@
       "contract": {
         "contractId": "correlated",
         "correlated": {
-          "clauses": [
-            {
-              "bound": "1",
-              "clauseId": "test.correlated.response",
-              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
-              "ending": "TRACE_ENDING_PARTIAL",
-              "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
-              },
-              "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
-              }
-            }
-          ],
           "evidenceObservationId": "evidence",
           "initialState": {
             "definitionId": "test.state",
@@ -2527,6 +2509,24 @@
                   }
                 }
               ]
+            }
+          ],
+          "rules": [
+            {
+              "bound": "1",
+              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+              "ending": "TRACE_ENDING_PARTIAL",
+              "response": {
+                "definitionId": "test.outcome",
+                "equalsText": "response",
+                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+              },
+              "ruleId": "test.correlated.response",
+              "trigger": {
+                "definitionId": "test.trigger",
+                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
+                "present": true
+              }
             }
           ],
           "scopeFields": [
@@ -2775,7 +2775,7 @@
         ]
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJjbGF1c2VJZCI6ICJ0ZXN0LmNvcnJlbGF0ZWQucmVzcG9uc2UiLAogICAgICAicHJvcGVydHlJZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgInByb3BlcnR5RmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAicHJvamVjdGlvbklkIjogInRlc3QucHJvamVjdGlvbiIsCiAgICAgICJwcm9qZWN0aW9uRmluZ2VycHJpbnQiOiAic2hhMjU2OjZkNDc1NTk4OTlmOGJiYTdiNDA5YjU4MDM0NzU0NjY5OWM1MGQxODliYmE3ZGFkODczOTE2NDQwNmNkYjIxNWUiLAogICAgICAic291cmNlIjogewogICAgICAgICJwYXRoIjogIlVtcGlyZS9Qcm9wZXJ0eS9UZXN0cy9Db3JyZWxhdGVkLmxlYW4iLAogICAgICAgICJsaW5lIjogIjAiLAogICAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICAgInByb3ZlbmFuY2UiOiAiYXV0aG9yZWQiCiAgICAgIH0KICAgIH0KICBdCn0K",
+        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1NjozOTE2MDU0Y2IyOTMxNmRlMjIzYjM4NWI4ZmNjY2QwMWFhNmJkMDk0NGU1MDhmMTYxMzVmZjczYTM3OTNhNTY3IiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
         "producerId": "umpire.correlated.fixtures"
       },
       "version": {
@@ -2789,24 +2789,6 @@
       "contract": {
         "contractId": "correlated",
         "correlated": {
-          "clauses": [
-            {
-              "bound": "1",
-              "clauseId": "test.correlated.response",
-              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
-              "ending": "TRACE_ENDING_PARTIAL",
-              "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
-              },
-              "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
-              }
-            }
-          ],
           "evidenceObservationId": "evidence",
           "initialState": {
             "definitionId": "test.state",
@@ -2930,6 +2912,24 @@
                   }
                 }
               ]
+            }
+          ],
+          "rules": [
+            {
+              "bound": "1",
+              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+              "ending": "TRACE_ENDING_PARTIAL",
+              "response": {
+                "definitionId": "test.outcome",
+                "equalsText": "response",
+                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+              },
+              "ruleId": "test.correlated.response",
+              "trigger": {
+                "definitionId": "test.trigger",
+                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
+                "present": true
+              }
             }
           ],
           "scopeFields": [
@@ -3084,7 +3084,7 @@
         "programId": "correlated.program"
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJjbGF1c2VJZCI6ICJ0ZXN0LmNvcnJlbGF0ZWQucmVzcG9uc2UiLAogICAgICAicHJvcGVydHlJZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgInByb3BlcnR5RmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAicHJvamVjdGlvbklkIjogInRlc3QucHJvamVjdGlvbiIsCiAgICAgICJwcm9qZWN0aW9uRmluZ2VycHJpbnQiOiAic2hhMjU2OjZkNDc1NTk4OTlmOGJiYTdiNDA5YjU4MDM0NzU0NjY5OWM1MGQxODliYmE3ZGFkODczOTE2NDQwNmNkYjIxNWUiLAogICAgICAic291cmNlIjogewogICAgICAgICJwYXRoIjogIlVtcGlyZS9Qcm9wZXJ0eS9UZXN0cy9Db3JyZWxhdGVkLmxlYW4iLAogICAgICAgICJsaW5lIjogIjAiLAogICAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICAgInByb3ZlbmFuY2UiOiAiYXV0aG9yZWQiCiAgICAgIH0KICAgIH0KICBdCn0K",
+        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1NjozOTE2MDU0Y2IyOTMxNmRlMjIzYjM4NWI4ZmNjY2QwMWFhNmJkMDk0NGU1MDhmMTYxMzVmZjczYTM3OTNhNTY3IiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
         "producerId": "umpire.correlated.fixtures"
       },
       "version": {
@@ -3094,41 +3094,41 @@
     "events": [
       {
         "identity": {
+          "evidenceSource": "test.source",
           "scope": [
             {
               "fieldId": "test.run",
               "value": "run-1"
             }
-          ],
-          "source": "test.source"
+          ]
         },
         "kind": "test.request",
         "operation": "a"
       },
       {
         "identity": {
+          "evidenceSource": "test.source",
           "ordinal": "1",
           "scope": [
             {
               "fieldId": "test.run",
               "value": "run-1"
             }
-          ],
-          "source": "test.source"
+          ]
         },
         "kind": "test.tick",
         "operation": "a"
       },
       {
         "identity": {
+          "evidenceSource": "test.source",
           "ordinal": "2",
           "scope": [
             {
               "fieldId": "test.run",
               "value": "run-1"
             }
-          ],
-          "source": "test.source"
+          ]
         },
         "kind": "test.reply",
         "operation": "a"
@@ -3142,24 +3142,6 @@
       "contract": {
         "contractId": "correlated",
         "correlated": {
-          "clauses": [
-            {
-              "bound": "1",
-              "clauseId": "test.correlated.response",
-              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
-              "ending": "TRACE_ENDING_PARTIAL",
-              "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
-              },
-              "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
-              }
-            }
-          ],
           "evidenceObservationId": "evidence",
           "initialState": {
             "definitionId": "test.state",
@@ -3283,6 +3265,24 @@
                   }
                 }
               ]
+            }
+          ],
+          "rules": [
+            {
+              "bound": "1",
+              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+              "ending": "TRACE_ENDING_PARTIAL",
+              "response": {
+                "definitionId": "test.outcome",
+                "equalsText": "response",
+                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+              },
+              "ruleId": "test.correlated.response",
+              "trigger": {
+                "definitionId": "test.trigger",
+                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
+                "present": true
+              }
             }
           ],
           "scopeFields": [
@@ -3577,7 +3577,7 @@
         ]
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJjbGF1c2VJZCI6ICJ0ZXN0LmNvcnJlbGF0ZWQucmVzcG9uc2UiLAogICAgICAicHJvcGVydHlJZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgInByb3BlcnR5RmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAicHJvamVjdGlvbklkIjogInRlc3QucHJvamVjdGlvbiIsCiAgICAgICJwcm9qZWN0aW9uRmluZ2VycHJpbnQiOiAic2hhMjU2OjZkNDc1NTk4OTlmOGJiYTdiNDA5YjU4MDM0NzU0NjY5OWM1MGQxODliYmE3ZGFkODczOTE2NDQwNmNkYjIxNWUiLAogICAgICAic291cmNlIjogewogICAgICAgICJwYXRoIjogIlVtcGlyZS9Qcm9wZXJ0eS9UZXN0cy9Db3JyZWxhdGVkLmxlYW4iLAogICAgICAgICJsaW5lIjogIjAiLAogICAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICAgInByb3ZlbmFuY2UiOiAiYXV0aG9yZWQiCiAgICAgIH0KICAgIH0KICBdCn0K",
+        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1NjozOTE2MDU0Y2IyOTMxNmRlMjIzYjM4NWI4ZmNjY2QwMWFhNmJkMDk0NGU1MDhmMTYxMzVmZjczYTM3OTNhNTY3IiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
         "producerId": "umpire.correlated.fixtures"
       },
       "version": {
@@ -3591,24 +3591,6 @@
       "contract": {
         "contractId": "correlated",
         "correlated": {
-          "clauses": [
-            {
-              "bound": "2",
-              "clauseId": "test.correlated.response",
-              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
-              "ending": "TRACE_ENDING_PARTIAL",
-              "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
-              },
-              "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
-              }
-            }
-          ],
           "evidenceObservationId": "evidence",
           "initialState": {
             "definitionId": "test.state",
@@ -3732,6 +3714,24 @@
                   }
                 }
               ]
+            }
+          ],
+          "rules": [
+            {
+              "bound": "2",
+              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+              "ending": "TRACE_ENDING_PARTIAL",
+              "response": {
+                "definitionId": "test.outcome",
+                "equalsText": "response",
+                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+              },
+              "ruleId": "test.correlated.response",
+              "trigger": {
+                "definitionId": "test.trigger",
+                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
+                "present": true
+              }
             }
           ],
           "scopeFields": [
@@ -3886,7 +3886,7 @@
         "programId": "correlated.program"
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjhiZjEyOTgzNzUzOWM3Yjg2ZTk0OTVhNzEwYzc3ODAxYWM0N2Q2ZTBiZDI2ZWU3MTdjOWNjNzk3MjlhOTQyZDUiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJjbGF1c2VJZCI6ICJ0ZXN0LmNvcnJlbGF0ZWQucmVzcG9uc2UiLAogICAgICAicHJvcGVydHlJZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgInByb3BlcnR5RmluZ2VycHJpbnQiOiAic2hhMjU2OjhiZjEyOTgzNzUzOWM3Yjg2ZTk0OTVhNzEwYzc3ODAxYWM0N2Q2ZTBiZDI2ZWU3MTdjOWNjNzk3MjlhOTQyZDUiLAogICAgICAicHJvamVjdGlvbklkIjogInRlc3QucHJvamVjdGlvbiIsCiAgICAgICJwcm9qZWN0aW9uRmluZ2VycHJpbnQiOiAic2hhMjU2OjZkNDc1NTk4OTlmOGJiYTdiNDA5YjU4MDM0NzU0NjY5OWM1MGQxODliYmE3ZGFkODczOTE2NDQwNmNkYjIxNWUiLAogICAgICAic291cmNlIjogewogICAgICAgICJwYXRoIjogIlVtcGlyZS9Qcm9wZXJ0eS9UZXN0cy9Db3JyZWxhdGVkLmxlYW4iLAogICAgICAgICJsaW5lIjogIjAiLAogICAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICAgInByb3ZlbmFuY2UiOiAiYXV0aG9yZWQiCiAgICAgIH0KICAgIH0KICBdCn0K",
+        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjhiZjEyOTgzNzUzOWM3Yjg2ZTk0OTVhNzEwYzc3ODAxYWM0N2Q2ZTBiZDI2ZWU3MTdjOWNjNzk3MjlhOTQyZDUiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1Njo4YmYxMjk4Mzc1MzljN2I4NmU5NDk1YTcxMGM3NzgwMWFjNDdkNmUwYmQyNmVlNzE3YzljYzc5NzI5YTk0MmQ1IiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
         "producerId": "umpire.correlated.fixtures"
       },
       "version": {
@@ -3896,41 +3896,41 @@
     "events": [
       {
         "identity": {
+          "evidenceSource": "test.source",
           "scope": [
             {
               "fieldId": "test.run",
               "value": "run-1"
             }
-          ],
-          "source": "test.source"
+          ]
         },
         "kind": "test.request",
         "operation": "a"
       },
       {
         "identity": {
+          "evidenceSource": "test.source",
           "ordinal": "1",
           "scope": [
             {
               "fieldId": "test.run",
               "value": "run-1"
             }
-          ],
-          "source": "test.source"
+          ]
         },
         "kind": "test.request",
         "operation": "a"
       },
       {
         "identity": {
+          "evidenceSource": "test.source",
           "ordinal": "2",
           "scope": [
             {
               "fieldId": "test.run",
               "value": "run-1"
             }
-          ],
-          "source": "test.source"
+          ]
         },
         "kind": "test.reply",
         "operation": "a"
@@ -3944,24 +3944,6 @@
       "contract": {
         "contractId": "correlated",
         "correlated": {
-          "clauses": [
-            {
-              "bound": "2",
-              "clauseId": "test.correlated.response",
-              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
-              "ending": "TRACE_ENDING_PARTIAL",
-              "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
-              },
-              "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
-              }
-            }
-          ],
           "evidenceObservationId": "evidence",
           "initialState": {
             "definitionId": "test.state",
@@ -4085,6 +4067,24 @@
                   }
                 }
               ]
+            }
+          ],
+          "rules": [
+            {
+              "bound": "2",
+              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+              "ending": "TRACE_ENDING_PARTIAL",
+              "response": {
+                "definitionId": "test.outcome",
+                "equalsText": "response",
+                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+              },
+              "ruleId": "test.correlated.response",
+              "trigger": {
+                "definitionId": "test.trigger",
+                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
+                "present": true
+              }
             }
           ],
           "scopeFields": [
@@ -4379,7 +4379,7 @@
         ]
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjhiZjEyOTgzNzUzOWM3Yjg2ZTk0OTVhNzEwYzc3ODAxYWM0N2Q2ZTBiZDI2ZWU3MTdjOWNjNzk3MjlhOTQyZDUiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJjbGF1c2VJZCI6ICJ0ZXN0LmNvcnJlbGF0ZWQucmVzcG9uc2UiLAogICAgICAicHJvcGVydHlJZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgInByb3BlcnR5RmluZ2VycHJpbnQiOiAic2hhMjU2OjhiZjEyOTgzNzUzOWM3Yjg2ZTk0OTVhNzEwYzc3ODAxYWM0N2Q2ZTBiZDI2ZWU3MTdjOWNjNzk3MjlhOTQyZDUiLAogICAgICAicHJvamVjdGlvbklkIjogInRlc3QucHJvamVjdGlvbiIsCiAgICAgICJwcm9qZWN0aW9uRmluZ2VycHJpbnQiOiAic2hhMjU2OjZkNDc1NTk4OTlmOGJiYTdiNDA5YjU4MDM0NzU0NjY5OWM1MGQxODliYmE3ZGFkODczOTE2NDQwNmNkYjIxNWUiLAogICAgICAic291cmNlIjogewogICAgICAgICJwYXRoIjogIlVtcGlyZS9Qcm9wZXJ0eS9UZXN0cy9Db3JyZWxhdGVkLmxlYW4iLAogICAgICAgICJsaW5lIjogIjAiLAogICAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICAgInByb3ZlbmFuY2UiOiAiYXV0aG9yZWQiCiAgICAgIH0KICAgIH0KICBdCn0K",
+        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjhiZjEyOTgzNzUzOWM3Yjg2ZTk0OTVhNzEwYzc3ODAxYWM0N2Q2ZTBiZDI2ZWU3MTdjOWNjNzk3MjlhOTQyZDUiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1Njo4YmYxMjk4Mzc1MzljN2I4NmU5NDk1YTcxMGM3NzgwMWFjNDdkNmUwYmQyNmVlNzE3YzljYzc5NzI5YTk0MmQ1IiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
         "producerId": "umpire.correlated.fixtures"
       },
       "version": {
@@ -4393,24 +4393,6 @@
       "contract": {
         "contractId": "correlated",
         "correlated": {
-          "clauses": [
-            {
-              "bound": "1",
-              "clauseId": "test.correlated.response",
-              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
-              "ending": "TRACE_ENDING_PARTIAL",
-              "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
-              },
-              "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
-              }
-            }
-          ],
           "evidenceObservationId": "evidence",
           "initialState": {
             "definitionId": "test.state",
@@ -4534,6 +4516,24 @@
                   }
                 }
               ]
+            }
+          ],
+          "rules": [
+            {
+              "bound": "1",
+              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+              "ending": "TRACE_ENDING_PARTIAL",
+              "response": {
+                "definitionId": "test.outcome",
+                "equalsText": "response",
+                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+              },
+              "ruleId": "test.correlated.response",
+              "trigger": {
+                "definitionId": "test.trigger",
+                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
+                "present": true
+              }
             }
           ],
           "scopeFields": [
@@ -4688,7 +4688,7 @@
         "programId": "correlated.program"
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJjbGF1c2VJZCI6ICJ0ZXN0LmNvcnJlbGF0ZWQucmVzcG9uc2UiLAogICAgICAicHJvcGVydHlJZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgInByb3BlcnR5RmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAicHJvamVjdGlvbklkIjogInRlc3QucHJvamVjdGlvbiIsCiAgICAgICJwcm9qZWN0aW9uRmluZ2VycHJpbnQiOiAic2hhMjU2OjZkNDc1NTk4OTlmOGJiYTdiNDA5YjU4MDM0NzU0NjY5OWM1MGQxODliYmE3ZGFkODczOTE2NDQwNmNkYjIxNWUiLAogICAgICAic291cmNlIjogewogICAgICAgICJwYXRoIjogIlVtcGlyZS9Qcm9wZXJ0eS9UZXN0cy9Db3JyZWxhdGVkLmxlYW4iLAogICAgICAgICJsaW5lIjogIjAiLAogICAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICAgInByb3ZlbmFuY2UiOiAiYXV0aG9yZWQiCiAgICAgIH0KICAgIH0KICBdCn0K",
+        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1NjozOTE2MDU0Y2IyOTMxNmRlMjIzYjM4NWI4ZmNjY2QwMWFhNmJkMDk0NGU1MDhmMTYxMzVmZjczYTM3OTNhNTY3IiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
         "producerId": "umpire.correlated.fixtures"
       },
       "version": {
@@ -4698,41 +4698,41 @@
     "events": [
       {
         "identity": {
+          "evidenceSource": "test.source",
           "scope": [
             {
               "fieldId": "test.run",
               "value": "run-1"
             }
-          ],
-          "source": "test.source"
+          ]
         },
         "kind": "test.request",
         "operation": "a"
       },
       {
         "identity": {
+          "evidenceSource": "test.source",
           "ordinal": "1",
           "scope": [
             {
               "fieldId": "test.run",
               "value": "run-1"
             }
-          ],
-          "source": "test.source"
+          ]
         },
         "kind": "test.tick",
         "operation": "b"
       },
       {
         "identity": {
+          "evidenceSource": "test.source",
           "ordinal": "2",
           "scope": [
             {
               "fieldId": "test.run",
               "value": "run-1"
             }
-          ],
-          "source": "test.source"
+          ]
         },
         "kind": "test.reply",
         "operation": "a"
@@ -4746,24 +4746,6 @@
       "contract": {
         "contractId": "correlated",
         "correlated": {
-          "clauses": [
-            {
-              "bound": "1",
-              "clauseId": "test.correlated.response",
-              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
-              "ending": "TRACE_ENDING_PARTIAL",
-              "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
-              },
-              "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
-              }
-            }
-          ],
           "evidenceObservationId": "evidence",
           "initialState": {
             "definitionId": "test.state",
@@ -4887,6 +4869,24 @@
                   }
                 }
               ]
+            }
+          ],
+          "rules": [
+            {
+              "bound": "1",
+              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+              "ending": "TRACE_ENDING_PARTIAL",
+              "response": {
+                "definitionId": "test.outcome",
+                "equalsText": "response",
+                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+              },
+              "ruleId": "test.correlated.response",
+              "trigger": {
+                "definitionId": "test.trigger",
+                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
+                "present": true
+              }
             }
           ],
           "scopeFields": [
@@ -5181,7 +5181,7 @@
         ]
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJjbGF1c2VJZCI6ICJ0ZXN0LmNvcnJlbGF0ZWQucmVzcG9uc2UiLAogICAgICAicHJvcGVydHlJZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgInByb3BlcnR5RmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAicHJvamVjdGlvbklkIjogInRlc3QucHJvamVjdGlvbiIsCiAgICAgICJwcm9qZWN0aW9uRmluZ2VycHJpbnQiOiAic2hhMjU2OjZkNDc1NTk4OTlmOGJiYTdiNDA5YjU4MDM0NzU0NjY5OWM1MGQxODliYmE3ZGFkODczOTE2NDQwNmNkYjIxNWUiLAogICAgICAic291cmNlIjogewogICAgICAgICJwYXRoIjogIlVtcGlyZS9Qcm9wZXJ0eS9UZXN0cy9Db3JyZWxhdGVkLmxlYW4iLAogICAgICAgICJsaW5lIjogIjAiLAogICAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICAgInByb3ZlbmFuY2UiOiAiYXV0aG9yZWQiCiAgICAgIH0KICAgIH0KICBdCn0K",
+        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1NjozOTE2MDU0Y2IyOTMxNmRlMjIzYjM4NWI4ZmNjY2QwMWFhNmJkMDk0NGU1MDhmMTYxMzVmZjczYTM3OTNhNTY3IiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
         "producerId": "umpire.correlated.fixtures"
       },
       "version": {
@@ -5195,24 +5195,6 @@
       "contract": {
         "contractId": "correlated",
         "correlated": {
-          "clauses": [
-            {
-              "bound": "1",
-              "clauseId": "test.correlated.response",
-              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
-              "ending": "TRACE_ENDING_PARTIAL",
-              "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
-              },
-              "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
-              }
-            }
-          ],
           "evidenceObservationId": "evidence",
           "initialState": {
             "definitionId": "test.state",
@@ -5336,6 +5318,24 @@
                   }
                 }
               ]
+            }
+          ],
+          "rules": [
+            {
+              "bound": "1",
+              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+              "ending": "TRACE_ENDING_PARTIAL",
+              "response": {
+                "definitionId": "test.outcome",
+                "equalsText": "response",
+                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+              },
+              "ruleId": "test.correlated.response",
+              "trigger": {
+                "definitionId": "test.trigger",
+                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
+                "present": true
+              }
             }
           ],
           "scopeFields": [
@@ -5490,7 +5490,7 @@
         "programId": "correlated.program"
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJjbGF1c2VJZCI6ICJ0ZXN0LmNvcnJlbGF0ZWQucmVzcG9uc2UiLAogICAgICAicHJvcGVydHlJZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgInByb3BlcnR5RmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAicHJvamVjdGlvbklkIjogInRlc3QucHJvamVjdGlvbiIsCiAgICAgICJwcm9qZWN0aW9uRmluZ2VycHJpbnQiOiAic2hhMjU2OjZkNDc1NTk4OTlmOGJiYTdiNDA5YjU4MDM0NzU0NjY5OWM1MGQxODliYmE3ZGFkODczOTE2NDQwNmNkYjIxNWUiLAogICAgICAic291cmNlIjogewogICAgICAgICJwYXRoIjogIlVtcGlyZS9Qcm9wZXJ0eS9UZXN0cy9Db3JyZWxhdGVkLmxlYW4iLAogICAgICAgICJsaW5lIjogIjAiLAogICAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICAgInByb3ZlbmFuY2UiOiAiYXV0aG9yZWQiCiAgICAgIH0KICAgIH0KICBdCn0K",
+        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1NjozOTE2MDU0Y2IyOTMxNmRlMjIzYjM4NWI4ZmNjY2QwMWFhNmJkMDk0NGU1MDhmMTYxMzVmZjczYTM3OTNhNTY3IiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
         "producerId": "umpire.correlated.fixtures"
       },
       "version": {
@@ -5500,27 +5500,27 @@
     "events": [
       {
         "identity": {
+          "evidenceSource": "test.source",
           "scope": [
             {
               "fieldId": "test.run",
               "value": "run-1"
             }
-          ],
-          "source": "test.source"
+          ]
         },
         "kind": "test.request",
         "operation": "a"
       },
       {
         "identity": {
+          "evidenceSource": "test.source",
           "ordinal": "1",
           "scope": [
             {
               "fieldId": "test.run",
               "value": "run-1"
             }
-          ],
-          "source": "test.source"
+          ]
         },
         "kind": "test.tick",
         "operation": "a"
@@ -5534,24 +5534,6 @@
       "contract": {
         "contractId": "correlated",
         "correlated": {
-          "clauses": [
-            {
-              "bound": "1",
-              "clauseId": "test.correlated.response",
-              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
-              "ending": "TRACE_ENDING_PARTIAL",
-              "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
-              },
-              "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
-              }
-            }
-          ],
           "evidenceObservationId": "evidence",
           "initialState": {
             "definitionId": "test.state",
@@ -5675,6 +5657,24 @@
                   }
                 }
               ]
+            }
+          ],
+          "rules": [
+            {
+              "bound": "1",
+              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+              "ending": "TRACE_ENDING_PARTIAL",
+              "response": {
+                "definitionId": "test.outcome",
+                "equalsText": "response",
+                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+              },
+              "ruleId": "test.correlated.response",
+              "trigger": {
+                "definitionId": "test.trigger",
+                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
+                "present": true
+              }
             }
           ],
           "scopeFields": [
@@ -5923,7 +5923,7 @@
         ]
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJjbGF1c2VJZCI6ICJ0ZXN0LmNvcnJlbGF0ZWQucmVzcG9uc2UiLAogICAgICAicHJvcGVydHlJZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgInByb3BlcnR5RmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAicHJvamVjdGlvbklkIjogInRlc3QucHJvamVjdGlvbiIsCiAgICAgICJwcm9qZWN0aW9uRmluZ2VycHJpbnQiOiAic2hhMjU2OjZkNDc1NTk4OTlmOGJiYTdiNDA5YjU4MDM0NzU0NjY5OWM1MGQxODliYmE3ZGFkODczOTE2NDQwNmNkYjIxNWUiLAogICAgICAic291cmNlIjogewogICAgICAgICJwYXRoIjogIlVtcGlyZS9Qcm9wZXJ0eS9UZXN0cy9Db3JyZWxhdGVkLmxlYW4iLAogICAgICAgICJsaW5lIjogIjAiLAogICAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICAgInByb3ZlbmFuY2UiOiAiYXV0aG9yZWQiCiAgICAgIH0KICAgIH0KICBdCn0K",
+        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1NjozOTE2MDU0Y2IyOTMxNmRlMjIzYjM4NWI4ZmNjY2QwMWFhNmJkMDk0NGU1MDhmMTYxMzVmZjczYTM3OTNhNTY3IiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
         "producerId": "umpire.correlated.fixtures"
       },
       "version": {
@@ -5937,24 +5937,6 @@
       "contract": {
         "contractId": "correlated",
         "correlated": {
-          "clauses": [
-            {
-              "bound": "3",
-              "clauseId": "test.correlated.response",
-              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
-              "ending": "TRACE_ENDING_FINAL",
-              "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
-              },
-              "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
-              }
-            }
-          ],
           "evidenceObservationId": "evidence",
           "initialState": {
             "definitionId": "test.state",
@@ -6078,6 +6060,24 @@
                   }
                 }
               ]
+            }
+          ],
+          "rules": [
+            {
+              "bound": "3",
+              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+              "ending": "TRACE_ENDING_FINAL",
+              "response": {
+                "definitionId": "test.outcome",
+                "equalsText": "response",
+                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+              },
+              "ruleId": "test.correlated.response",
+              "trigger": {
+                "definitionId": "test.trigger",
+                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
+                "present": true
+              }
             }
           ],
           "scopeFields": [
@@ -6232,7 +6232,7 @@
         "programId": "correlated.program"
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjI3N2JiMjRlMmRlZGNmZjhlYTMwNmNmMGYwZmE0YjQ3ZDA1MmI1YTkyZjhlODI5MTI3ZTYzNTczODg3NmFlOTEiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJjbGF1c2VJZCI6ICJ0ZXN0LmNvcnJlbGF0ZWQucmVzcG9uc2UiLAogICAgICAicHJvcGVydHlJZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgInByb3BlcnR5RmluZ2VycHJpbnQiOiAic2hhMjU2OjI3N2JiMjRlMmRlZGNmZjhlYTMwNmNmMGYwZmE0YjQ3ZDA1MmI1YTkyZjhlODI5MTI3ZTYzNTczODg3NmFlOTEiLAogICAgICAicHJvamVjdGlvbklkIjogInRlc3QucHJvamVjdGlvbiIsCiAgICAgICJwcm9qZWN0aW9uRmluZ2VycHJpbnQiOiAic2hhMjU2OjZkNDc1NTk4OTlmOGJiYTdiNDA5YjU4MDM0NzU0NjY5OWM1MGQxODliYmE3ZGFkODczOTE2NDQwNmNkYjIxNWUiLAogICAgICAic291cmNlIjogewogICAgICAgICJwYXRoIjogIlVtcGlyZS9Qcm9wZXJ0eS9UZXN0cy9Db3JyZWxhdGVkLmxlYW4iLAogICAgICAgICJsaW5lIjogIjAiLAogICAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICAgInByb3ZlbmFuY2UiOiAiYXV0aG9yZWQiCiAgICAgIH0KICAgIH0KICBdCn0K",
+        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjI3N2JiMjRlMmRlZGNmZjhlYTMwNmNmMGYwZmE0YjQ3ZDA1MmI1YTkyZjhlODI5MTI3ZTYzNTczODg3NmFlOTEiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1NjoyNzdiYjI0ZTJkZWRjZmY4ZWEzMDZjZjBmMGZhNGI0N2QwNTJiNWE5MmY4ZTgyOTEyN2U2MzU3Mzg4NzZhZTkxIiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
         "producerId": "umpire.correlated.fixtures"
       },
       "version": {
@@ -6242,13 +6242,13 @@
     "events": [
       {
         "identity": {
+          "evidenceSource": "test.source",
           "scope": [
             {
               "fieldId": "test.run",
               "value": "run-1"
             }
-          ],
-          "source": "test.source"
+          ]
         },
         "kind": "test.request",
         "operation": "a"
@@ -6262,24 +6262,6 @@
       "contract": {
         "contractId": "correlated",
         "correlated": {
-          "clauses": [
-            {
-              "bound": "3",
-              "clauseId": "test.correlated.response",
-              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
-              "ending": "TRACE_ENDING_FINAL",
-              "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
-              },
-              "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
-              }
-            }
-          ],
           "evidenceObservationId": "evidence",
           "initialState": {
             "definitionId": "test.state",
@@ -6403,6 +6385,24 @@
                   }
                 }
               ]
+            }
+          ],
+          "rules": [
+            {
+              "bound": "3",
+              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+              "ending": "TRACE_ENDING_FINAL",
+              "response": {
+                "definitionId": "test.outcome",
+                "equalsText": "response",
+                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+              },
+              "ruleId": "test.correlated.response",
+              "trigger": {
+                "definitionId": "test.trigger",
+                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
+                "present": true
+              }
             }
           ],
           "scopeFields": [
@@ -6605,7 +6605,7 @@
         ]
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjI3N2JiMjRlMmRlZGNmZjhlYTMwNmNmMGYwZmE0YjQ3ZDA1MmI1YTkyZjhlODI5MTI3ZTYzNTczODg3NmFlOTEiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJjbGF1c2VJZCI6ICJ0ZXN0LmNvcnJlbGF0ZWQucmVzcG9uc2UiLAogICAgICAicHJvcGVydHlJZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgInByb3BlcnR5RmluZ2VycHJpbnQiOiAic2hhMjU2OjI3N2JiMjRlMmRlZGNmZjhlYTMwNmNmMGYwZmE0YjQ3ZDA1MmI1YTkyZjhlODI5MTI3ZTYzNTczODg3NmFlOTEiLAogICAgICAicHJvamVjdGlvbklkIjogInRlc3QucHJvamVjdGlvbiIsCiAgICAgICJwcm9qZWN0aW9uRmluZ2VycHJpbnQiOiAic2hhMjU2OjZkNDc1NTk4OTlmOGJiYTdiNDA5YjU4MDM0NzU0NjY5OWM1MGQxODliYmE3ZGFkODczOTE2NDQwNmNkYjIxNWUiLAogICAgICAic291cmNlIjogewogICAgICAgICJwYXRoIjogIlVtcGlyZS9Qcm9wZXJ0eS9UZXN0cy9Db3JyZWxhdGVkLmxlYW4iLAogICAgICAgICJsaW5lIjogIjAiLAogICAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICAgInByb3ZlbmFuY2UiOiAiYXV0aG9yZWQiCiAgICAgIH0KICAgIH0KICBdCn0K",
+        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjI3N2JiMjRlMmRlZGNmZjhlYTMwNmNmMGYwZmE0YjQ3ZDA1MmI1YTkyZjhlODI5MTI3ZTYzNTczODg3NmFlOTEiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1NjoyNzdiYjI0ZTJkZWRjZmY4ZWEzMDZjZjBmMGZhNGI0N2QwNTJiNWE5MmY4ZTgyOTEyN2U2MzU3Mzg4NzZhZTkxIiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
         "producerId": "umpire.correlated.fixtures"
       },
       "version": {
@@ -6619,24 +6619,6 @@
       "contract": {
         "contractId": "correlated",
         "correlated": {
-          "clauses": [
-            {
-              "bound": "3",
-              "clauseId": "test.correlated.response",
-              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
-              "ending": "TRACE_ENDING_FINAL",
-              "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
-              },
-              "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
-              }
-            }
-          ],
           "evidenceObservationId": "evidence",
           "initialState": {
             "definitionId": "test.state",
@@ -6760,6 +6742,24 @@
                   }
                 }
               ]
+            }
+          ],
+          "rules": [
+            {
+              "bound": "3",
+              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+              "ending": "TRACE_ENDING_FINAL",
+              "response": {
+                "definitionId": "test.outcome",
+                "equalsText": "response",
+                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+              },
+              "ruleId": "test.correlated.response",
+              "trigger": {
+                "definitionId": "test.trigger",
+                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
+                "present": true
+              }
             }
           ],
           "scopeFields": [
@@ -6914,7 +6914,7 @@
         "programId": "correlated.program"
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjI3N2JiMjRlMmRlZGNmZjhlYTMwNmNmMGYwZmE0YjQ3ZDA1MmI1YTkyZjhlODI5MTI3ZTYzNTczODg3NmFlOTEiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJjbGF1c2VJZCI6ICJ0ZXN0LmNvcnJlbGF0ZWQucmVzcG9uc2UiLAogICAgICAicHJvcGVydHlJZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgInByb3BlcnR5RmluZ2VycHJpbnQiOiAic2hhMjU2OjI3N2JiMjRlMmRlZGNmZjhlYTMwNmNmMGYwZmE0YjQ3ZDA1MmI1YTkyZjhlODI5MTI3ZTYzNTczODg3NmFlOTEiLAogICAgICAicHJvamVjdGlvbklkIjogInRlc3QucHJvamVjdGlvbiIsCiAgICAgICJwcm9qZWN0aW9uRmluZ2VycHJpbnQiOiAic2hhMjU2OjZkNDc1NTk4OTlmOGJiYTdiNDA5YjU4MDM0NzU0NjY5OWM1MGQxODliYmE3ZGFkODczOTE2NDQwNmNkYjIxNWUiLAogICAgICAic291cmNlIjogewogICAgICAgICJwYXRoIjogIlVtcGlyZS9Qcm9wZXJ0eS9UZXN0cy9Db3JyZWxhdGVkLmxlYW4iLAogICAgICAgICJsaW5lIjogIjAiLAogICAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICAgInByb3ZlbmFuY2UiOiAiYXV0aG9yZWQiCiAgICAgIH0KICAgIH0KICBdCn0K",
+        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjI3N2JiMjRlMmRlZGNmZjhlYTMwNmNmMGYwZmE0YjQ3ZDA1MmI1YTkyZjhlODI5MTI3ZTYzNTczODg3NmFlOTEiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1NjoyNzdiYjI0ZTJkZWRjZmY4ZWEzMDZjZjBmMGZhNGI0N2QwNTJiNWE5MmY4ZTgyOTEyN2U2MzU3Mzg4NzZhZTkxIiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
         "producerId": "umpire.correlated.fixtures"
       },
       "version": {
@@ -6924,13 +6924,13 @@
     "events": [
       {
         "identity": {
+          "evidenceSource": "test.source",
           "scope": [
             {
               "fieldId": "test.run",
               "value": "run-1"
             }
-          ],
-          "source": "test.source"
+          ]
         },
         "kind": "test.request",
         "operation": "a"
@@ -6944,24 +6944,6 @@
       "contract": {
         "contractId": "correlated",
         "correlated": {
-          "clauses": [
-            {
-              "bound": "3",
-              "clauseId": "test.correlated.response",
-              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
-              "ending": "TRACE_ENDING_FINAL",
-              "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
-              },
-              "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
-              }
-            }
-          ],
           "evidenceObservationId": "evidence",
           "initialState": {
             "definitionId": "test.state",
@@ -7085,6 +7067,24 @@
                   }
                 }
               ]
+            }
+          ],
+          "rules": [
+            {
+              "bound": "3",
+              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+              "ending": "TRACE_ENDING_FINAL",
+              "response": {
+                "definitionId": "test.outcome",
+                "equalsText": "response",
+                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+              },
+              "ruleId": "test.correlated.response",
+              "trigger": {
+                "definitionId": "test.trigger",
+                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
+                "present": true
+              }
             }
           ],
           "scopeFields": [
@@ -7287,7 +7287,7 @@
         ]
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjI3N2JiMjRlMmRlZGNmZjhlYTMwNmNmMGYwZmE0YjQ3ZDA1MmI1YTkyZjhlODI5MTI3ZTYzNTczODg3NmFlOTEiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJjbGF1c2VJZCI6ICJ0ZXN0LmNvcnJlbGF0ZWQucmVzcG9uc2UiLAogICAgICAicHJvcGVydHlJZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgInByb3BlcnR5RmluZ2VycHJpbnQiOiAic2hhMjU2OjI3N2JiMjRlMmRlZGNmZjhlYTMwNmNmMGYwZmE0YjQ3ZDA1MmI1YTkyZjhlODI5MTI3ZTYzNTczODg3NmFlOTEiLAogICAgICAicHJvamVjdGlvbklkIjogInRlc3QucHJvamVjdGlvbiIsCiAgICAgICJwcm9qZWN0aW9uRmluZ2VycHJpbnQiOiAic2hhMjU2OjZkNDc1NTk4OTlmOGJiYTdiNDA5YjU4MDM0NzU0NjY5OWM1MGQxODliYmE3ZGFkODczOTE2NDQwNmNkYjIxNWUiLAogICAgICAic291cmNlIjogewogICAgICAgICJwYXRoIjogIlVtcGlyZS9Qcm9wZXJ0eS9UZXN0cy9Db3JyZWxhdGVkLmxlYW4iLAogICAgICAgICJsaW5lIjogIjAiLAogICAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICAgInByb3ZlbmFuY2UiOiAiYXV0aG9yZWQiCiAgICAgIH0KICAgIH0KICBdCn0K",
+        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjI3N2JiMjRlMmRlZGNmZjhlYTMwNmNmMGYwZmE0YjQ3ZDA1MmI1YTkyZjhlODI5MTI3ZTYzNTczODg3NmFlOTEiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1NjoyNzdiYjI0ZTJkZWRjZmY4ZWEzMDZjZjBmMGZhNGI0N2QwNTJiNWE5MmY4ZTgyOTEyN2U2MzU3Mzg4NzZhZTkxIiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
         "producerId": "umpire.correlated.fixtures"
       },
       "version": {
@@ -7301,24 +7301,6 @@
       "contract": {
         "contractId": "correlated",
         "correlated": {
-          "clauses": [
-            {
-              "bound": "1",
-              "clauseId": "test.correlated.response",
-              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
-              "ending": "TRACE_ENDING_FINAL",
-              "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
-              },
-              "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
-              }
-            }
-          ],
           "evidenceObservationId": "evidence",
           "initialState": {
             "definitionId": "test.state",
@@ -7442,6 +7424,24 @@
                   }
                 }
               ]
+            }
+          ],
+          "rules": [
+            {
+              "bound": "1",
+              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+              "ending": "TRACE_ENDING_FINAL",
+              "response": {
+                "definitionId": "test.outcome",
+                "equalsText": "response",
+                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+              },
+              "ruleId": "test.correlated.response",
+              "trigger": {
+                "definitionId": "test.trigger",
+                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
+                "present": true
+              }
             }
           ],
           "scopeFields": [
@@ -7596,7 +7596,7 @@
         "programId": "correlated.program"
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjYzOGIwOGRiZmE1MmNlZmU1NTU4ZWUyNGM3OTljMDYzNzA2NjdhMjcxNDVmY2IwOWZlYmJjOGUxMzFlMDFjNWQiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJjbGF1c2VJZCI6ICJ0ZXN0LmNvcnJlbGF0ZWQucmVzcG9uc2UiLAogICAgICAicHJvcGVydHlJZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgInByb3BlcnR5RmluZ2VycHJpbnQiOiAic2hhMjU2OjYzOGIwOGRiZmE1MmNlZmU1NTU4ZWUyNGM3OTljMDYzNzA2NjdhMjcxNDVmY2IwOWZlYmJjOGUxMzFlMDFjNWQiLAogICAgICAicHJvamVjdGlvbklkIjogInRlc3QucHJvamVjdGlvbiIsCiAgICAgICJwcm9qZWN0aW9uRmluZ2VycHJpbnQiOiAic2hhMjU2OjZkNDc1NTk4OTlmOGJiYTdiNDA5YjU4MDM0NzU0NjY5OWM1MGQxODliYmE3ZGFkODczOTE2NDQwNmNkYjIxNWUiLAogICAgICAic291cmNlIjogewogICAgICAgICJwYXRoIjogIlVtcGlyZS9Qcm9wZXJ0eS9UZXN0cy9Db3JyZWxhdGVkLmxlYW4iLAogICAgICAgICJsaW5lIjogIjAiLAogICAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICAgInByb3ZlbmFuY2UiOiAiYXV0aG9yZWQiCiAgICAgIH0KICAgIH0KICBdCn0K",
+        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjYzOGIwOGRiZmE1MmNlZmU1NTU4ZWUyNGM3OTljMDYzNzA2NjdhMjcxNDVmY2IwOWZlYmJjOGUxMzFlMDFjNWQiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1Njo2MzhiMDhkYmZhNTJjZWZlNTU1OGVlMjRjNzk5YzA2MzcwNjY3YTI3MTQ1ZmNiMDlmZWJiYzhlMTMxZTAxYzVkIiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
         "producerId": "umpire.correlated.fixtures"
       },
       "version": {
@@ -7606,26 +7606,26 @@
     "events": [
       {
         "identity": {
+          "evidenceSource": "test.source",
           "ordinal": "1",
           "scope": [
             {
               "fieldId": "test.run",
               "value": "run-1"
             }
-          ],
-          "source": "test.source"
+          ]
         },
         "kind": "test.reply",
         "operation": "a",
         "parents": [
           {
+            "evidenceSource": "test.source",
             "scope": [
               {
                 "fieldId": "test.run",
                 "value": "run-1"
               }
-            ],
-            "source": "test.source"
+            ]
           }
         ]
       }
@@ -7638,24 +7638,6 @@
       "contract": {
         "contractId": "correlated",
         "correlated": {
-          "clauses": [
-            {
-              "bound": "1",
-              "clauseId": "test.correlated.response",
-              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
-              "ending": "TRACE_ENDING_FINAL",
-              "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
-              },
-              "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
-              }
-            }
-          ],
           "evidenceObservationId": "evidence",
           "initialState": {
             "definitionId": "test.state",
@@ -7779,6 +7761,24 @@
                   }
                 }
               ]
+            }
+          ],
+          "rules": [
+            {
+              "bound": "1",
+              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+              "ending": "TRACE_ENDING_FINAL",
+              "response": {
+                "definitionId": "test.outcome",
+                "equalsText": "response",
+                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+              },
+              "ruleId": "test.correlated.response",
+              "trigger": {
+                "definitionId": "test.trigger",
+                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
+                "present": true
+              }
             }
           ],
           "scopeFields": [
@@ -7981,7 +7981,7 @@
         ]
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjYzOGIwOGRiZmE1MmNlZmU1NTU4ZWUyNGM3OTljMDYzNzA2NjdhMjcxNDVmY2IwOWZlYmJjOGUxMzFlMDFjNWQiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJjbGF1c2VJZCI6ICJ0ZXN0LmNvcnJlbGF0ZWQucmVzcG9uc2UiLAogICAgICAicHJvcGVydHlJZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgInByb3BlcnR5RmluZ2VycHJpbnQiOiAic2hhMjU2OjYzOGIwOGRiZmE1MmNlZmU1NTU4ZWUyNGM3OTljMDYzNzA2NjdhMjcxNDVmY2IwOWZlYmJjOGUxMzFlMDFjNWQiLAogICAgICAicHJvamVjdGlvbklkIjogInRlc3QucHJvamVjdGlvbiIsCiAgICAgICJwcm9qZWN0aW9uRmluZ2VycHJpbnQiOiAic2hhMjU2OjZkNDc1NTk4OTlmOGJiYTdiNDA5YjU4MDM0NzU0NjY5OWM1MGQxODliYmE3ZGFkODczOTE2NDQwNmNkYjIxNWUiLAogICAgICAic291cmNlIjogewogICAgICAgICJwYXRoIjogIlVtcGlyZS9Qcm9wZXJ0eS9UZXN0cy9Db3JyZWxhdGVkLmxlYW4iLAogICAgICAgICJsaW5lIjogIjAiLAogICAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICAgInByb3ZlbmFuY2UiOiAiYXV0aG9yZWQiCiAgICAgIH0KICAgIH0KICBdCn0K",
+        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjYzOGIwOGRiZmE1MmNlZmU1NTU4ZWUyNGM3OTljMDYzNzA2NjdhMjcxNDVmY2IwOWZlYmJjOGUxMzFlMDFjNWQiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1Njo2MzhiMDhkYmZhNTJjZWZlNTU1OGVlMjRjNzk5YzA2MzcwNjY3YTI3MTQ1ZmNiMDlmZWJiYzhlMTMxZTAxYzVkIiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
         "producerId": "umpire.correlated.fixtures"
       },
       "version": {
@@ -7995,24 +7995,6 @@
       "contract": {
         "contractId": "correlated",
         "correlated": {
-          "clauses": [
-            {
-              "bound": "1",
-              "clauseId": "test.correlated.response",
-              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
-              "ending": "TRACE_ENDING_PARTIAL",
-              "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
-              },
-              "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
-              }
-            }
-          ],
           "evidenceObservationId": "evidence",
           "initialState": {
             "definitionId": "test.state",
@@ -8136,6 +8118,24 @@
                   }
                 }
               ]
+            }
+          ],
+          "rules": [
+            {
+              "bound": "1",
+              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+              "ending": "TRACE_ENDING_PARTIAL",
+              "response": {
+                "definitionId": "test.outcome",
+                "equalsText": "response",
+                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+              },
+              "ruleId": "test.correlated.response",
+              "trigger": {
+                "definitionId": "test.trigger",
+                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
+                "present": true
+              }
             }
           ],
           "scopeFields": [
@@ -8290,7 +8290,7 @@
         "programId": "correlated.program"
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJjbGF1c2VJZCI6ICJ0ZXN0LmNvcnJlbGF0ZWQucmVzcG9uc2UiLAogICAgICAicHJvcGVydHlJZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgInByb3BlcnR5RmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAicHJvamVjdGlvbklkIjogInRlc3QucHJvamVjdGlvbiIsCiAgICAgICJwcm9qZWN0aW9uRmluZ2VycHJpbnQiOiAic2hhMjU2OjZkNDc1NTk4OTlmOGJiYTdiNDA5YjU4MDM0NzU0NjY5OWM1MGQxODliYmE3ZGFkODczOTE2NDQwNmNkYjIxNWUiLAogICAgICAic291cmNlIjogewogICAgICAgICJwYXRoIjogIlVtcGlyZS9Qcm9wZXJ0eS9UZXN0cy9Db3JyZWxhdGVkLmxlYW4iLAogICAgICAgICJsaW5lIjogIjAiLAogICAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICAgInByb3ZlbmFuY2UiOiAiYXV0aG9yZWQiCiAgICAgIH0KICAgIH0KICBdCn0K",
+        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1NjozOTE2MDU0Y2IyOTMxNmRlMjIzYjM4NWI4ZmNjY2QwMWFhNmJkMDk0NGU1MDhmMTYxMzVmZjczYTM3OTNhNTY3IiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
         "producerId": "umpire.correlated.fixtures"
       },
       "version": {
@@ -8300,64 +8300,64 @@
     "events": [
       {
         "identity": {
+          "evidenceSource": "test.source",
           "ordinal": "1",
           "scope": [
             {
               "fieldId": "test.run",
               "value": "run-1"
             }
-          ],
-          "source": "test.source"
+          ]
         },
         "kind": "test.reply",
         "operation": "a",
         "parents": [
           {
+            "evidenceSource": "test.source",
             "scope": [
               {
                 "fieldId": "test.run",
                 "value": "run-1"
               }
-            ],
-            "source": "test.source"
+            ]
           }
         ]
       },
       {
         "identity": {
+          "evidenceSource": "test.source",
           "scope": [
             {
               "fieldId": "test.run",
               "value": "run-1"
             }
-          ],
-          "source": "test.source"
+          ]
         },
         "kind": "test.request",
         "operation": "a"
       },
       {
         "identity": {
+          "evidenceSource": "test.source",
           "ordinal": "1",
           "scope": [
             {
               "fieldId": "test.run",
               "value": "run-1"
             }
-          ],
-          "source": "test.source"
+          ]
         },
         "kind": "test.reply",
         "operation": "a",
         "parents": [
           {
+            "evidenceSource": "test.source",
             "scope": [
               {
                 "fieldId": "test.run",
                 "value": "run-1"
               }
-            ],
-            "source": "test.source"
+            ]
           }
         ]
       }
@@ -8370,24 +8370,6 @@
       "contract": {
         "contractId": "correlated",
         "correlated": {
-          "clauses": [
-            {
-              "bound": "1",
-              "clauseId": "test.correlated.response",
-              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
-              "ending": "TRACE_ENDING_PARTIAL",
-              "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
-              },
-              "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
-              }
-            }
-          ],
           "evidenceObservationId": "evidence",
           "initialState": {
             "definitionId": "test.state",
@@ -8511,6 +8493,24 @@
                   }
                 }
               ]
+            }
+          ],
+          "rules": [
+            {
+              "bound": "1",
+              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+              "ending": "TRACE_ENDING_PARTIAL",
+              "response": {
+                "definitionId": "test.outcome",
+                "equalsText": "response",
+                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+              },
+              "ruleId": "test.correlated.response",
+              "trigger": {
+                "definitionId": "test.trigger",
+                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
+                "present": true
+              }
             }
           ],
           "scopeFields": [
@@ -8805,7 +8805,7 @@
         ]
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJjbGF1c2VJZCI6ICJ0ZXN0LmNvcnJlbGF0ZWQucmVzcG9uc2UiLAogICAgICAicHJvcGVydHlJZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgInByb3BlcnR5RmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAicHJvamVjdGlvbklkIjogInRlc3QucHJvamVjdGlvbiIsCiAgICAgICJwcm9qZWN0aW9uRmluZ2VycHJpbnQiOiAic2hhMjU2OjZkNDc1NTk4OTlmOGJiYTdiNDA5YjU4MDM0NzU0NjY5OWM1MGQxODliYmE3ZGFkODczOTE2NDQwNmNkYjIxNWUiLAogICAgICAic291cmNlIjogewogICAgICAgICJwYXRoIjogIlVtcGlyZS9Qcm9wZXJ0eS9UZXN0cy9Db3JyZWxhdGVkLmxlYW4iLAogICAgICAgICJsaW5lIjogIjAiLAogICAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICAgInByb3ZlbmFuY2UiOiAiYXV0aG9yZWQiCiAgICAgIH0KICAgIH0KICBdCn0K",
+        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1NjozOTE2MDU0Y2IyOTMxNmRlMjIzYjM4NWI4ZmNjY2QwMWFhNmJkMDk0NGU1MDhmMTYxMzVmZjczYTM3OTNhNTY3IiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
         "producerId": "umpire.correlated.fixtures"
       },
       "version": {
@@ -8819,24 +8819,6 @@
       "contract": {
         "contractId": "correlated",
         "correlated": {
-          "clauses": [
-            {
-              "bound": "1",
-              "clauseId": "test.correlated.response",
-              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
-              "ending": "TRACE_ENDING_PARTIAL",
-              "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
-              },
-              "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
-              }
-            }
-          ],
           "evidenceObservationId": "evidence",
           "initialState": {
             "definitionId": "test.state",
@@ -8960,6 +8942,24 @@
                   }
                 }
               ]
+            }
+          ],
+          "rules": [
+            {
+              "bound": "1",
+              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+              "ending": "TRACE_ENDING_PARTIAL",
+              "response": {
+                "definitionId": "test.outcome",
+                "equalsText": "response",
+                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+              },
+              "ruleId": "test.correlated.response",
+              "trigger": {
+                "definitionId": "test.trigger",
+                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
+                "present": true
+              }
             }
           ],
           "scopeFields": [
@@ -9114,7 +9114,7 @@
         "programId": "correlated.program"
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJjbGF1c2VJZCI6ICJ0ZXN0LmNvcnJlbGF0ZWQucmVzcG9uc2UiLAogICAgICAicHJvcGVydHlJZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgInByb3BlcnR5RmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAicHJvamVjdGlvbklkIjogInRlc3QucHJvamVjdGlvbiIsCiAgICAgICJwcm9qZWN0aW9uRmluZ2VycHJpbnQiOiAic2hhMjU2OjZkNDc1NTk4OTlmOGJiYTdiNDA5YjU4MDM0NzU0NjY5OWM1MGQxODliYmE3ZGFkODczOTE2NDQwNmNkYjIxNWUiLAogICAgICAic291cmNlIjogewogICAgICAgICJwYXRoIjogIlVtcGlyZS9Qcm9wZXJ0eS9UZXN0cy9Db3JyZWxhdGVkLmxlYW4iLAogICAgICAgICJsaW5lIjogIjAiLAogICAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICAgInByb3ZlbmFuY2UiOiAiYXV0aG9yZWQiCiAgICAgIH0KICAgIH0KICBdCn0K",
+        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1NjozOTE2MDU0Y2IyOTMxNmRlMjIzYjM4NWI4ZmNjY2QwMWFhNmJkMDk0NGU1MDhmMTYxMzVmZjczYTM3OTNhNTY3IiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
         "producerId": "umpire.correlated.fixtures"
       },
       "version": {
@@ -9124,41 +9124,41 @@
     "events": [
       {
         "identity": {
+          "evidenceSource": "test.source",
           "scope": [
             {
               "fieldId": "test.run",
               "value": "run-1"
             }
-          ],
-          "source": "test.source"
+          ]
         },
         "kind": "test.request",
         "operation": "a"
       },
       {
         "identity": {
+          "evidenceSource": "test.source",
           "ordinal": "1",
           "scope": [
             {
               "fieldId": "test.run",
               "value": "run-1"
             }
-          ],
-          "source": "test.source"
+          ]
         },
         "kind": "test.poll",
         "operation": "a"
       },
       {
         "identity": {
+          "evidenceSource": "test.source",
           "ordinal": "2",
           "scope": [
             {
               "fieldId": "test.run",
               "value": "run-1"
             }
-          ],
-          "source": "test.source"
+          ]
         },
         "kind": "test.reply",
         "operation": "a"
@@ -9172,24 +9172,6 @@
       "contract": {
         "contractId": "correlated",
         "correlated": {
-          "clauses": [
-            {
-              "bound": "1",
-              "clauseId": "test.correlated.response",
-              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
-              "ending": "TRACE_ENDING_PARTIAL",
-              "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
-              },
-              "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
-              }
-            }
-          ],
           "evidenceObservationId": "evidence",
           "initialState": {
             "definitionId": "test.state",
@@ -9313,6 +9295,24 @@
                   }
                 }
               ]
+            }
+          ],
+          "rules": [
+            {
+              "bound": "1",
+              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+              "ending": "TRACE_ENDING_PARTIAL",
+              "response": {
+                "definitionId": "test.outcome",
+                "equalsText": "response",
+                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+              },
+              "ruleId": "test.correlated.response",
+              "trigger": {
+                "definitionId": "test.trigger",
+                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
+                "present": true
+              }
             }
           ],
           "scopeFields": [
@@ -9607,7 +9607,7 @@
         ]
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJjbGF1c2VJZCI6ICJ0ZXN0LmNvcnJlbGF0ZWQucmVzcG9uc2UiLAogICAgICAicHJvcGVydHlJZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgInByb3BlcnR5RmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAicHJvamVjdGlvbklkIjogInRlc3QucHJvamVjdGlvbiIsCiAgICAgICJwcm9qZWN0aW9uRmluZ2VycHJpbnQiOiAic2hhMjU2OjZkNDc1NTk4OTlmOGJiYTdiNDA5YjU4MDM0NzU0NjY5OWM1MGQxODliYmE3ZGFkODczOTE2NDQwNmNkYjIxNWUiLAogICAgICAic291cmNlIjogewogICAgICAgICJwYXRoIjogIlVtcGlyZS9Qcm9wZXJ0eS9UZXN0cy9Db3JyZWxhdGVkLmxlYW4iLAogICAgICAgICJsaW5lIjogIjAiLAogICAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICAgInByb3ZlbmFuY2UiOiAiYXV0aG9yZWQiCiAgICAgIH0KICAgIH0KICBdCn0K",
+        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1NjozOTE2MDU0Y2IyOTMxNmRlMjIzYjM4NWI4ZmNjY2QwMWFhNmJkMDk0NGU1MDhmMTYxMzVmZjczYTM3OTNhNTY3IiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
         "producerId": "umpire.correlated.fixtures"
       },
       "version": {
@@ -9621,23 +9621,6 @@
       "contract": {
         "contractId": "correlated",
         "correlated": {
-          "clauses": [
-            {
-              "clauseId": "test.correlated.response",
-              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
-              "ending": "TRACE_ENDING_FINAL",
-              "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
-              },
-              "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
-              }
-            }
-          ],
           "evidenceObservationId": "evidence",
           "initialState": {
             "definitionId": "test.state",
@@ -9761,6 +9744,23 @@
                   }
                 }
               ]
+            }
+          ],
+          "rules": [
+            {
+              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+              "ending": "TRACE_ENDING_FINAL",
+              "response": {
+                "definitionId": "test.outcome",
+                "equalsText": "response",
+                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+              },
+              "ruleId": "test.correlated.response",
+              "trigger": {
+                "definitionId": "test.trigger",
+                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
+                "present": true
+              }
             }
           ],
           "scopeFields": [
@@ -9915,7 +9915,7 @@
         "programId": "correlated.program"
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjdkNDFhNGJkZDY0MjliYWI2ZjQxOTdhYjdlMmRmNjhhNjUwNjU2OTE5OTg0NzVmMWM3YmUzNzdlZDUzNWI5OGIiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJjbGF1c2VJZCI6ICJ0ZXN0LmNvcnJlbGF0ZWQucmVzcG9uc2UiLAogICAgICAicHJvcGVydHlJZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgInByb3BlcnR5RmluZ2VycHJpbnQiOiAic2hhMjU2OjdkNDFhNGJkZDY0MjliYWI2ZjQxOTdhYjdlMmRmNjhhNjUwNjU2OTE5OTg0NzVmMWM3YmUzNzdlZDUzNWI5OGIiLAogICAgICAicHJvamVjdGlvbklkIjogInRlc3QucHJvamVjdGlvbiIsCiAgICAgICJwcm9qZWN0aW9uRmluZ2VycHJpbnQiOiAic2hhMjU2OjZkNDc1NTk4OTlmOGJiYTdiNDA5YjU4MDM0NzU0NjY5OWM1MGQxODliYmE3ZGFkODczOTE2NDQwNmNkYjIxNWUiLAogICAgICAic291cmNlIjogewogICAgICAgICJwYXRoIjogIlVtcGlyZS9Qcm9wZXJ0eS9UZXN0cy9Db3JyZWxhdGVkLmxlYW4iLAogICAgICAgICJsaW5lIjogIjAiLAogICAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICAgInByb3ZlbmFuY2UiOiAiYXV0aG9yZWQiCiAgICAgIH0KICAgIH0KICBdCn0K",
+        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjdkNDFhNGJkZDY0MjliYWI2ZjQxOTdhYjdlMmRmNjhhNjUwNjU2OTE5OTg0NzVmMWM3YmUzNzdlZDUzNWI5OGIiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1Njo3ZDQxYTRiZGQ2NDI5YmFiNmY0MTk3YWI3ZTJkZjY4YTY1MDY1NjkxOTk4NDc1ZjFjN2JlMzc3ZWQ1MzViOThiIiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
         "producerId": "umpire.correlated.fixtures"
       },
       "version": {
@@ -9925,13 +9925,13 @@
     "events": [
       {
         "identity": {
+          "evidenceSource": "test.source",
           "scope": [
             {
               "fieldId": "test.run",
               "value": "run-1"
             }
-          ],
-          "source": "test.source"
+          ]
         },
         "kind": "test.request",
         "operation": "a"
@@ -9945,23 +9945,6 @@
       "contract": {
         "contractId": "correlated",
         "correlated": {
-          "clauses": [
-            {
-              "clauseId": "test.correlated.response",
-              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
-              "ending": "TRACE_ENDING_FINAL",
-              "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
-              },
-              "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
-              }
-            }
-          ],
           "evidenceObservationId": "evidence",
           "initialState": {
             "definitionId": "test.state",
@@ -10085,6 +10068,23 @@
                   }
                 }
               ]
+            }
+          ],
+          "rules": [
+            {
+              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+              "ending": "TRACE_ENDING_FINAL",
+              "response": {
+                "definitionId": "test.outcome",
+                "equalsText": "response",
+                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+              },
+              "ruleId": "test.correlated.response",
+              "trigger": {
+                "definitionId": "test.trigger",
+                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
+                "present": true
+              }
             }
           ],
           "scopeFields": [
@@ -10287,7 +10287,7 @@
         ]
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjdkNDFhNGJkZDY0MjliYWI2ZjQxOTdhYjdlMmRmNjhhNjUwNjU2OTE5OTg0NzVmMWM3YmUzNzdlZDUzNWI5OGIiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJjbGF1c2VJZCI6ICJ0ZXN0LmNvcnJlbGF0ZWQucmVzcG9uc2UiLAogICAgICAicHJvcGVydHlJZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgInByb3BlcnR5RmluZ2VycHJpbnQiOiAic2hhMjU2OjdkNDFhNGJkZDY0MjliYWI2ZjQxOTdhYjdlMmRmNjhhNjUwNjU2OTE5OTg0NzVmMWM3YmUzNzdlZDUzNWI5OGIiLAogICAgICAicHJvamVjdGlvbklkIjogInRlc3QucHJvamVjdGlvbiIsCiAgICAgICJwcm9qZWN0aW9uRmluZ2VycHJpbnQiOiAic2hhMjU2OjZkNDc1NTk4OTlmOGJiYTdiNDA5YjU4MDM0NzU0NjY5OWM1MGQxODliYmE3ZGFkODczOTE2NDQwNmNkYjIxNWUiLAogICAgICAic291cmNlIjogewogICAgICAgICJwYXRoIjogIlVtcGlyZS9Qcm9wZXJ0eS9UZXN0cy9Db3JyZWxhdGVkLmxlYW4iLAogICAgICAgICJsaW5lIjogIjAiLAogICAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICAgInByb3ZlbmFuY2UiOiAiYXV0aG9yZWQiCiAgICAgIH0KICAgIH0KICBdCn0K",
+        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjdkNDFhNGJkZDY0MjliYWI2ZjQxOTdhYjdlMmRmNjhhNjUwNjU2OTE5OTg0NzVmMWM3YmUzNzdlZDUzNWI5OGIiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1Njo3ZDQxYTRiZGQ2NDI5YmFiNmY0MTk3YWI3ZTJkZjY4YTY1MDY1NjkxOTk4NDc1ZjFjN2JlMzc3ZWQ1MzViOThiIiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
         "producerId": "umpire.correlated.fixtures"
       },
       "version": {
@@ -10301,24 +10301,6 @@
       "contract": {
         "contractId": "correlated",
         "correlated": {
-          "clauses": [
-            {
-              "bound": "1",
-              "clauseId": "test.correlated.response",
-              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
-              "ending": "TRACE_ENDING_PARTIAL",
-              "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
-              },
-              "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
-              }
-            }
-          ],
           "evidenceObservationId": "evidence",
           "initialState": {
             "definitionId": "test.state",
@@ -10442,6 +10424,24 @@
                   }
                 }
               ]
+            }
+          ],
+          "rules": [
+            {
+              "bound": "1",
+              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+              "ending": "TRACE_ENDING_PARTIAL",
+              "response": {
+                "definitionId": "test.outcome",
+                "equalsText": "response",
+                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+              },
+              "ruleId": "test.correlated.response",
+              "trigger": {
+                "definitionId": "test.trigger",
+                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
+                "present": true
+              }
             }
           ],
           "scopeFields": [
@@ -10596,7 +10596,7 @@
         "programId": "correlated.program"
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJjbGF1c2VJZCI6ICJ0ZXN0LmNvcnJlbGF0ZWQucmVzcG9uc2UiLAogICAgICAicHJvcGVydHlJZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgInByb3BlcnR5RmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAicHJvamVjdGlvbklkIjogInRlc3QucHJvamVjdGlvbiIsCiAgICAgICJwcm9qZWN0aW9uRmluZ2VycHJpbnQiOiAic2hhMjU2OjZkNDc1NTk4OTlmOGJiYTdiNDA5YjU4MDM0NzU0NjY5OWM1MGQxODliYmE3ZGFkODczOTE2NDQwNmNkYjIxNWUiLAogICAgICAic291cmNlIjogewogICAgICAgICJwYXRoIjogIlVtcGlyZS9Qcm9wZXJ0eS9UZXN0cy9Db3JyZWxhdGVkLmxlYW4iLAogICAgICAgICJsaW5lIjogIjAiLAogICAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICAgInByb3ZlbmFuY2UiOiAiYXV0aG9yZWQiCiAgICAgIH0KICAgIH0KICBdCn0K",
+        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1NjozOTE2MDU0Y2IyOTMxNmRlMjIzYjM4NWI4ZmNjY2QwMWFhNmJkMDk0NGU1MDhmMTYxMzVmZjczYTM3OTNhNTY3IiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
         "producerId": "umpire.correlated.fixtures"
       },
       "version": {
@@ -10612,24 +10612,6 @@
       "contract": {
         "contractId": "correlated",
         "correlated": {
-          "clauses": [
-            {
-              "bound": "1",
-              "clauseId": "test.correlated.response",
-              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
-              "ending": "TRACE_ENDING_PARTIAL",
-              "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
-              },
-              "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
-              }
-            }
-          ],
           "evidenceObservationId": "evidence",
           "initialState": {
             "definitionId": "test.state",
@@ -10753,6 +10735,24 @@
                   }
                 }
               ]
+            }
+          ],
+          "rules": [
+            {
+              "bound": "1",
+              "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+              "ending": "TRACE_ENDING_PARTIAL",
+              "response": {
+                "definitionId": "test.outcome",
+                "equalsText": "response",
+                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+              },
+              "ruleId": "test.correlated.response",
+              "trigger": {
+                "definitionId": "test.trigger",
+                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
+                "present": true
+              }
             }
           ],
           "scopeFields": [
@@ -10913,7 +10913,7 @@
         ]
       },
       "provenance": {
-        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJjbGF1c2VJZCI6ICJ0ZXN0LmNvcnJlbGF0ZWQucmVzcG9uc2UiLAogICAgICAicHJvcGVydHlJZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgInByb3BlcnR5RmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAicHJvamVjdGlvbklkIjogInRlc3QucHJvamVjdGlvbiIsCiAgICAgICJwcm9qZWN0aW9uRmluZ2VycHJpbnQiOiAic2hhMjU2OjZkNDc1NTk4OTlmOGJiYTdiNDA5YjU4MDM0NzU0NjY5OWM1MGQxODliYmE3ZGFkODczOTE2NDQwNmNkYjIxNWUiLAogICAgICAic291cmNlIjogewogICAgICAgICJwYXRoIjogIlVtcGlyZS9Qcm9wZXJ0eS9UZXN0cy9Db3JyZWxhdGVkLmxlYW4iLAogICAgICAgICJsaW5lIjogIjAiLAogICAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICAgInByb3ZlbmFuY2UiOiAiYXV0aG9yZWQiCiAgICAgIH0KICAgIH0KICBdCn0K",
+        "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZXN0LnByb3BlcnR5IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjM5MTYwNTRjYjI5MzE2ZGUyMjNiMzg1YjhmY2NjZDAxYWE2YmQwOTQ0ZTUwOGYxNjEzNWZmNzNhMzc5M2E1NjciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgImxpbmUiOiAiMCIsCiAgICAgICJjb2x1bW4iOiAiMCIsCiAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVzdC5jb3JyZWxhdGVkLnJlc3BvbnNlIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVzdC5wcm9wZXJ0eSIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1NjozOTE2MDU0Y2IyOTMxNmRlMjIzYjM4NWI4ZmNjY2QwMWFhNmJkMDk0NGU1MDhmMTYxMzVmZjczYTM3OTNhNTY3IiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZXN0LnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo2ZDQ3NTU5ODk5ZjhiYmE3YjQwOWI1ODAzNDc1NDY2OTljNTBkMTg5YmJhN2RhZDg3MzkxNjQ0MDZjZGIyMTVlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJVbXBpcmUvUHJvcGVydHkvVGVzdHMvQ29ycmVsYXRlZC5sZWFuIiwKICAgICAgICAibGluZSI6ICIwIiwKICAgICAgICAiY29sdW1uIjogIjAiLAogICAgICAgICJwcm92ZW5hbmNlIjogImF1dGhvcmVkIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
         "producerId": "umpire.correlated.fixtures"
       },
       "version": {

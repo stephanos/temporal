@@ -22,7 +22,7 @@ than read back from any of them.
 namespace Umpire.Case.FieldLoweringTests
 
 open Umpire Operation Value
-open temporal.server.api.testpilot.v1
+open temporal.server.api.testpilot.v1 hiding ModelValue
 
 private abbrev CaseArtifact := temporal.server.api.testpilot.v1.Case
 private abbrev PortableValue := temporal.server.api.testpilot.v1.Value
@@ -235,7 +235,7 @@ private def modelEvent (report : Report) : Case.Projection.Event := {
 private def wireEvent (report : Report) : CorrelatedEvidence := {
   identity := some {
     scope := #[{ field_id := "test.run", value := "run-1" }]
-    source := "test.source", ordinal := Int64.ofInt report.ordinal }
+    evidence_source := "test.source", ordinal := Int64.ofInt report.ordinal }
   operation := report.operation
   kind := report.kind
   fields := (report.count.toList.map fun count =>
@@ -447,7 +447,7 @@ private def decodedKeyed (temporal : PropertyCorrelatedClause) :
 -- this capability needs.
 #guard ((do
   let capability ← capabilityOf (clause)
-  let some wire := capability.clauses[0]? | throw "missing clause"
+  let some wire := capability.rules[0]? | throw "missing clause"
   let some declared := wire.captures[0]? | throw "missing capture"
   let some limits := capability.limits | throw "missing limits"
   pure (declared.capture_id == "test.capture.count" && declared.field_id == "test.count" &&
@@ -460,7 +460,7 @@ private def decodedKeyed (temporal : PropertyCorrelatedClause) :
 #guard ((do
   let capability ← capabilityOf (clause (captures := []) (requirement := none))
   let some limits := capability.limits | throw "missing limits"
-  let some wire := capability.clauses[0]? | throw "missing clause"
+  let some wire := capability.rules[0]? | throw "missing clause"
   pure (limits.max_captures == 0 && limits.max_correlation_depth == 0 &&
     wire.captures.isEmpty && wire.correlation.isNone)) : Except String Bool).toOption == some true
 

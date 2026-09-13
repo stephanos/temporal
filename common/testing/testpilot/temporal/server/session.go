@@ -103,7 +103,7 @@ func (s *Session) InvokeRPC(ctx context.Context, c testpilot.Coordinate, role st
 
 func rpcFailure(ctx context.Context, err error) testpilot.EffectResult {
 	code := status.Code(err)
-	kind := testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS
+	kind := testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE
 	if errors.Is(ctx.Err(), context.DeadlineExceeded) || code == codes.DeadlineExceeded {
 		kind = testpilotspb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT
 		code = codes.DeadlineExceeded

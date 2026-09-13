@@ -16,7 +16,7 @@ open Umpire
 open Umpire.Operation
 open Umpire.Value
 open Temporal.Feature.Nexus.Success.TypedNexus
-open temporal.server.api.testpilot.v1
+open temporal.server.api.testpilot.v1 hiding ModelValue
 
 /-! ### Distinct operation kinds, and one generated reference -/
 
@@ -320,8 +320,8 @@ private def readSegments (steps : List Field.Step) : Option (List (String × Str
   | some capability =>
       capability.evidence_observation_id == correlatedObservationId &&
       capability.projection_id == projectionId.value &&
-      capability.clauses.size == 1 &&
-      capability.clauses[0]!.clause_id == linkClauseId.value
+      capability.rules.size == 1 &&
+      capability.rules[0]!.rule_id == linkClauseId.value
   | none => false
 
 #guard match typedNexusCase with

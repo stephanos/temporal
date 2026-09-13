@@ -69,7 +69,7 @@ func TestSessionInjectFaultReportsUnrealizedTransitions(t *testing.T) {
 	require.NoError(t, err)
 	result, err := handle.Wait(t.Context())
 	require.NoError(t, err)
-	require.Equal(t, testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS, result.Outcome.GetStatus())
+	require.Equal(t, testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE, result.Outcome.GetStatus())
 	require.Equal(t, "fault_not_realized", result.Outcome.GetProtocolCode())
 	require.NotEmpty(t, result.Outcome.GetDetail())
 	require.Len(t, diagnostics, 1)
@@ -211,7 +211,7 @@ func TestFaultSettleErrorRecordsNoFaultEvent(t *testing.T) {
 	}
 	require.Equal(t, map[string]testpilotspb.InstructionOutcomeStatus{
 		"stop":   testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED,
-		"resume": testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS,
+		"resume": testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE,
 	}, outcomes)
 	require.Equal(t, map[string][]testpilotspb.FaultKind{"stop": {testpilotspb.FAULT_KIND_WORKER_STOP}}, faults)
 }

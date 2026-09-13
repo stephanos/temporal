@@ -124,11 +124,11 @@ func TestCorrelatedPublicFacade(t *testing.T) {
 			require.NoError(t, err)
 			want := map[int]testpilotspb.VerdictStatus{0: testpilotspb.VERDICT_STATUS_INCONCLUSIVE, 2: testpilotspb.VERDICT_STATUS_SATISFIED, 3: testpilotspb.VERDICT_STATUS_VIOLATED}[fixture.Expected]
 			require.Equal(t, want, verdict.GetStatus())
-			disposition := testpilotspb.RUN_STATUS_COMPLETED
+			disposition := testpilotspb.RUN_DISPOSITION_COMPLETED
 			if want == testpilotspb.VERDICT_STATUS_VIOLATED {
-				disposition = testpilotspb.RUN_STATUS_STOPPED_BY_MONITOR
+				disposition = testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR
 			}
-			require.Equal(t, disposition, run.GetStatus())
+			require.Equal(t, disposition, run.GetDisposition())
 			require.Equal(t, testpilotspb.CLEANUP_STATUS_SUCCEEDED, run.GetCleanup().GetStatus())
 			require.True(t, proto.Equal(verdict, run.GetVerdict()))
 			for _, sequence := range verdict.GetSupportingEventSequences() {
@@ -148,7 +148,7 @@ func TestCorrelatedFacadeFailureAndPriorProof(t *testing.T) {
 			}
 			source, events := correlatedFacadeInputs(t, fixture)
 			if name == "lost" || name == "stopped" {
-				source.Contract.Correlated.Clauses[0].Ending = testpilotspb.TRACE_ENDING_FINAL
+				source.Contract.Correlated.Rules[0].Ending = testpilotspb.TRACE_ENDING_FINAL
 			}
 			prepared, err := testpilot.Prepare(source, correlatedFacadeProfile(t, source))
 			require.NoError(t, err)
@@ -170,17 +170,17 @@ func TestCorrelatedFacadeFailureAndPriorProof(t *testing.T) {
 			}
 			run, verdict, err := prepared.Run(ctx, driver)
 			require.NoError(t, err)
-			want, disposition := testpilotspb.VERDICT_STATUS_INCONCLUSIVE, testpilotspb.RUN_STATUS_COMPLETED
+			want, disposition := testpilotspb.VERDICT_STATUS_INCONCLUSIVE, testpilotspb.RUN_DISPOSITION_COMPLETED
 			if name == "lost" || name == "stopped" {
-				disposition = testpilotspb.RUN_STATUS_INCOMPLETE
+				disposition = testpilotspb.RUN_DISPOSITION_INCOMPLETE
 			}
 			if name == "cleanup-after-violation" {
-				want, disposition = testpilotspb.VERDICT_STATUS_VIOLATED, testpilotspb.RUN_STATUS_STOPPED_BY_MONITOR
+				want, disposition = testpilotspb.VERDICT_STATUS_VIOLATED, testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR
 				require.Equal(t, testpilotspb.CLEANUP_STATUS_FAILED, run.GetCleanup().GetStatus())
 				require.Equal(t, []int64{5}, verdict.GetSupportingEventSequences())
 			}
 			require.Equal(t, want, verdict.GetStatus())
-			require.Equal(t, disposition, run.GetStatus())
+			require.Equal(t, disposition, run.GetDisposition())
 			require.True(t, proto.Equal(verdict, run.GetVerdict()))
 		})
 	}
@@ -223,7 +223,7 @@ func TestCorrelatedFacadeRepeatedConcurrentIsolation(t *testing.T) {
 			require.Equal(t, result.want, result.verdict.GetStatus())
 			require.False(t, ids[result.run.GetRunId()])
 			ids[result.run.GetRunId()] = true
-			require.Equal(t, testpilotspb.RUN_STATUS_COMPLETED, result.run.GetStatus())
+			require.Equal(t, testpilotspb.RUN_DISPOSITION_COMPLETED, result.run.GetDisposition())
 			wantRule := testpilotspb.RULE_VERDICT_STATUS_SATISFIED
 			if result.want == testpilotspb.VERDICT_STATUS_INCONCLUSIVE {
 				wantRule = testpilotspb.RULE_VERDICT_STATUS_INCONCLUSIVE
@@ -240,7 +240,7 @@ func TestCorrelatedFacadeTenfoldLoad(t *testing.T) {
 		for _, count := range []int{2, 20} {
 			t.Run(fmt.Sprintf("%s/%d", kind, count), func(t *testing.T) {
 				source, events := correlatedFacadeInputs(t, correlatedFacadeFixtures(t)[0])
-				source.Contract.Correlated.Clauses[0].Bound = 100
+				source.Contract.Correlated.Rules[0].Bound = 100
 				if kind == "obligations" {
 					events[0].Kind = "test.request"
 				}
@@ -273,16 +273,16 @@ func TestCorrelatedFacadeTenfoldLoad(t *testing.T) {
 				driver := &correlatedFacadeDriver{identity: prepared.Identity(), events: events, failAt: -1}
 				run, verdict, err := prepared.Run(t.Context(), driver)
 				require.NoError(t, err)
-				want, disposition := testpilotspb.VERDICT_STATUS_INCONCLUSIVE, testpilotspb.RUN_STATUS_COMPLETED
+				want, disposition := testpilotspb.VERDICT_STATUS_INCONCLUSIVE, testpilotspb.RUN_DISPOSITION_COMPLETED
 				if count == 2 && (kind == "evidence" || kind == "work") {
 					want = testpilotspb.VERDICT_STATUS_SATISFIED
 				}
 				if count == 20 {
-					disposition = testpilotspb.RUN_STATUS_INCOMPLETE
+					disposition = testpilotspb.RUN_DISPOSITION_INCOMPLETE
 					require.NotEmpty(t, run.GetDiagnostics())
 				}
 				require.Equal(t, want, verdict.GetStatus())
-				require.Equal(t, disposition, run.GetStatus())
+				require.Equal(t, disposition, run.GetDisposition())
 				require.LessOrEqual(t, len(run.GetEvents()), 128)
 			})
 		}

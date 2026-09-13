@@ -38,7 +38,7 @@ private def program : temporal.server.api.testpilot.v1.Program := Program.make
 
 private def contract : Contract := Contract.contract "testpilot.synthetic.contract" #[
   Contract.rule "completion" .CONTRACT_RULE_KIND_SAFETY "open"
-    #[Contract.state "open" .CONTRACT_STATE_STATUS_NONTERMINAL,
+    #[Contract.state "open" .CONTRACT_STATE_STATUS_PENDING,
       Contract.state "done" .CONTRACT_STATE_STATUS_SATISFIED]
     #[Contract.transition "complete" "open" "done" #[.RUN_EVENT_KIND_RUN_CLOSED]
       (ContractExpr.literal (Value.boolean true))]

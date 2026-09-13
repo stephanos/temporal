@@ -30,7 +30,7 @@ type retainedCapture struct {
 	value   *testpilotspb.Value
 }
 type correlatedOperation struct {
-	state       *testpilotspb.CorrelatedValue
+	state       *testpilotspb.ModelValue
 	last        *testpilotspb.CorrelatedIdentity
 	obligations [][]correlatedObligation
 	captures    []retainedCapture
@@ -50,7 +50,7 @@ func newCorrelated(s *testpilotspb.CorrelatedContract) *correlatedMonitor {
 	if s == nil {
 		return nil
 	}
-	return &correlatedMonitor{operations: map[string]*correlatedOperation{}, ruleSupport: make([][]int64, len(s.Clauses))}
+	return &correlatedMonitor{operations: map[string]*correlatedOperation{}, ruleSupport: make([][]int64, len(s.Rules))}
 }
 func (r *correlatedMonitor) clone() *correlatedMonitor {
 	n := *r
@@ -85,7 +85,7 @@ func (r *correlatedMonitor) event(id *testpilotspb.CorrelatedIdentity) *admitted
 	return r.accepted[i]
 }
 func sourceBefore(a, b *testpilotspb.CorrelatedIdentity) bool {
-	return a.Source == b.Source && a.Ordinal < b.Ordinal
+	return a.EvidenceSource == b.EvidenceSource && a.Ordinal < b.Ordinal
 }
 func orderingEdge(a *testpilotspb.CorrelatedIdentity, b *admittedCorrelatedEvidence) bool {
 	return identityIndex(b.Parents, a) >= 0 || sourceBefore(a, b.Identity)
@@ -142,11 +142,11 @@ func (r *correlatedMonitor) ready(e *admittedCorrelatedEvidence) bool {
 		}
 	}
 	return e.Identity.Ordinal == 0 || slices.ContainsFunc(r.processed, func(id *testpilotspb.CorrelatedIdentity) bool {
-		return id.Source == e.Identity.Source && id.Ordinal+1 == e.Identity.Ordinal
+		return id.EvidenceSource == e.Identity.EvidenceSource && id.Ordinal+1 == e.Identity.Ordinal
 	})
 }
 func identitySize(id *testpilotspb.CorrelatedIdentity) int64 {
-	n := int64(utf8.RuneCountInString(id.Source) + 1)
+	n := int64(utf8.RuneCountInString(id.EvidenceSource) + 1)
 	for _, b := range id.Scope {
 		n += int64(utf8.RuneCountInString(b.FieldId) + utf8.RuneCountInString(b.Value))
 	}
@@ -207,7 +207,7 @@ func (r *correlatedMonitor) validate(s *testpilotspb.CorrelatedContract, e *admi
 		return invalid(ir.Malformed, "changed correlated bindings")
 	}
 	for _, id := range append(slices.Clone(e.Parents), e.Identity) {
-		if id == nil || !slices.EqualFunc(id.Scope, e.Identity.Scope, func(a, b *testpilotspb.CorrelatedBinding) bool { return proto.Equal(a, b) }) || !slices.Contains(s.Sources, id.Source) || id.Ordinal < 0 || id.Ordinal >= s.Limits.MaxEvents {
+		if id == nil || !slices.EqualFunc(id.Scope, e.Identity.Scope, func(a, b *testpilotspb.CorrelatedBinding) bool { return proto.Equal(a, b) }) || !slices.Contains(s.Sources, id.EvidenceSource) || id.Ordinal < 0 || id.Ordinal >= s.Limits.MaxEvents {
 			return invalid(ir.Malformed, "invalid correlated source identity")
 		}
 	}
@@ -291,20 +291,20 @@ func (r *correlatedMonitor) sequences(ids []*testpilotspb.CorrelatedIdentity) []
 	return out
 }
 func predicate(p *testpilotspb.CorrelatedPredicate, tr *testpilotspb.CorrelatedTransition) bool {
-	var values []*testpilotspb.CorrelatedValue
+	var values []*testpilotspb.ModelValue
 	switch p.Field {
 	case testpilotspb.CORRELATED_PREDICATE_FIELD_ACTION:
-		values = []*testpilotspb.CorrelatedValue{tr.Action}
+		values = []*testpilotspb.ModelValue{tr.Action}
 	case testpilotspb.CORRELATED_PREDICATE_FIELD_OUTCOME:
-		values = []*testpilotspb.CorrelatedValue{tr.Outcome}
+		values = []*testpilotspb.ModelValue{tr.Outcome}
 	case testpilotspb.CORRELATED_PREDICATE_FIELD_STATE:
-		values = []*testpilotspb.CorrelatedValue{tr.State}
+		values = []*testpilotspb.ModelValue{tr.State}
 	case testpilotspb.CORRELATED_PREDICATE_FIELD_FACT:
 		values = tr.Facts
 	default:
 		return false
 	}
-	return slices.ContainsFunc(values, func(v *testpilotspb.CorrelatedValue) bool {
+	return slices.ContainsFunc(values, func(v *testpilotspb.ModelValue) bool {
 		if v.DefinitionId != p.DefinitionId {
 			return false
 		}
@@ -393,7 +393,7 @@ func correlationHolds(c *testpilotspb.CorrelatedCorrelation, out *testpilotspb.C
 // retain keeps this step's occurrence of every declared capture. A step supplying no value at the
 // declared field records nothing; an operation already holding its declared lifetime rejects.
 func (r *correlatedMonitor) retain(s *testpilotspb.CorrelatedContract, e *admittedCorrelatedEvidence, op *correlatedOperation) error {
-	for _, c := range s.Clauses {
+	for _, c := range s.Rules {
 		for _, d := range c.Captures {
 			value := evidenceField(e, d.FieldId)
 			if value == nil {
@@ -435,7 +435,7 @@ func (r *correlatedMonitor) release(s *testpilotspb.CorrelatedContract, e *admit
 	operationCount := int64(len(r.operations))
 	op := r.operations[e.Operation]
 	if op == nil {
-		op = &correlatedOperation{state: s.InitialState, obligations: make([][]correlatedObligation, len(s.Clauses))}
+		op = &correlatedOperation{state: s.InitialState, obligations: make([][]correlatedObligation, len(s.Rules))}
 		r.operations[e.Operation] = op
 	}
 	if op.last != nil && !r.reaches(op.last, e.Identity) {
@@ -458,7 +458,7 @@ func (r *correlatedMonitor) release(s *testpilotspb.CorrelatedContract, e *admit
 		// A declared correlation decides which authorized steps are this operation's semantic steps
 		// at all. It reads this step's own evidence together with what the operation already
 		// retained, so an occurrence binds only after an earlier step admitted it.
-		for _, c := range s.Clauses {
+		for _, c := range s.Rules {
 			if c.Correlation == nil {
 				continue
 			}
@@ -481,7 +481,7 @@ func (r *correlatedMonitor) release(s *testpilotspb.CorrelatedContract, e *admit
 			}
 		}
 		cost := int64(16)
-		for _, factor := range []int64{int64(len(s.Clauses)), r.transitions + 1, 1 + maximumFacts} {
+		for _, factor := range []int64{int64(len(s.Rules)), r.transitions + 1, 1 + maximumFacts} {
 			if cost > s.Limits.MaxObligationWork/factor {
 				return invalid(ir.LimitExceeded, "obligation work exhausted")
 			}
@@ -495,7 +495,7 @@ func (r *correlatedMonitor) release(s *testpilotspb.CorrelatedContract, e *admit
 		if err := add(&r.obligationWork, cost, s.Limits.MaxObligationWork); err != nil {
 			return err
 		}
-		for i, c := range s.Clauses {
+		for i, c := range s.Rules {
 			triggered, responded := predicate(c.Trigger, out), predicate(c.Response, out)
 			if triggered {
 				if err := add(&r.obligations, 1, s.Limits.MaxObligations); err != nil {
@@ -581,10 +581,10 @@ func (r *correlatedMonitor) stage(ctx context.Context, s *testpilotspb.Correlate
 	}
 	ordered := slices.Clone(n.accepted)
 	slices.SortFunc(ordered, func(a, b *admittedCorrelatedEvidence) int {
-		if a.Identity.Source < b.Identity.Source {
+		if a.Identity.EvidenceSource < b.Identity.EvidenceSource {
 			return -1
 		}
-		if a.Identity.Source > b.Identity.Source {
+		if a.Identity.EvidenceSource > b.Identity.EvidenceSource {
 			return 1
 		}
 		if a.Identity.Ordinal < b.Identity.Ordinal {
@@ -636,7 +636,7 @@ func (r *correlatedMonitor) answer(s *testpilotspb.CorrelatedContract, index int
 		return testpilotspb.RULE_VERDICT_STATUS_INCONCLUSIVE
 	}
 	if pending {
-		if closed && s.Clauses[index].Ending == testpilotspb.TRACE_ENDING_FINAL {
+		if closed && s.Rules[index].Ending == testpilotspb.TRACE_ENDING_FINAL {
 			return testpilotspb.RULE_VERDICT_STATUS_VIOLATED
 		}
 		return testpilotspb.RULE_VERDICT_STATUS_INCONCLUSIVE

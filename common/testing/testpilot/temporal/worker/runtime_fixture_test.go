@@ -112,15 +112,15 @@ func preparedRuntimeCase(t *testing.T, responseKind testpilotspb.NexusResponseKi
 	contract := &testpilotspb.Contract{
 		ContractId: "contract",
 		Limits:     contractLimits,
-		Rules: []*testpilotspb.ContractRuleDefinition{{
+		Rules: []*testpilotspb.ContractRule{{
 			RuleId:         "complete",
 			Kind:           testpilotspb.CONTRACT_RULE_KIND_SAFETY,
 			InitialStateId: "open",
-			States: []*testpilotspb.ContractStateDefinition{
-				{StateId: "open", Status: testpilotspb.CONTRACT_STATE_STATUS_NONTERMINAL},
+			States: []*testpilotspb.ContractState{
+				{StateId: "open", Status: testpilotspb.CONTRACT_STATE_STATUS_PENDING},
 				{StateId: "closed", Status: testpilotspb.CONTRACT_STATE_STATUS_SATISFIED},
 			},
-			Transitions: []*testpilotspb.ContractTransitionDefinition{{
+			Transitions: []*testpilotspb.ContractTransition{{
 				TransitionId:  "close",
 				SourceStateId: "open",
 				TargetStateId: "closed",

@@ -32,7 +32,7 @@ func TestTestpilotWorkerOutageCase(t *testing.T) {
 	env := newTestpilotTestEnvironment(t)
 	run, verdict := runCaseWithBinding(t, env, "worker-outage", workerOutageBinding())
 
-	require.Equal(t, testpilotpb.RUN_STATUS_COMPLETED, run.GetStatus())
+	require.Equal(t, testpilotpb.RUN_DISPOSITION_COMPLETED, run.GetDisposition())
 	require.Equal(t, testpilotpb.CLEANUP_STATUS_SUCCEEDED, run.GetCleanup().GetStatus())
 	require.Equal(t, testpilotpb.VERDICT_STATUS_SATISFIED, verdict.GetStatus())
 	requireWorkerOutageEvidence(t, run, verdict)
@@ -70,7 +70,7 @@ func TestTestpilotWorkerOutageCaseLeavesAnotherQueueAlone(t *testing.T) {
 	seen := map[string]struct{}{}
 	for result := range results {
 		require.NoError(t, result.err)
-		require.Equal(t, testpilotpb.RUN_STATUS_COMPLETED, result.run.GetStatus(), result.name)
+		require.Equal(t, testpilotpb.RUN_DISPOSITION_COMPLETED, result.run.GetDisposition(), result.name)
 		require.Equal(t, testpilotpb.CLEANUP_STATUS_SUCCEEDED, result.run.GetCleanup().GetStatus(), result.name)
 		require.Equal(t, testpilotpb.VERDICT_STATUS_SATISFIED, result.verdict.GetStatus(), result.name)
 		if result.name == "outage" {

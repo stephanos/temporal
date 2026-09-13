@@ -17,7 +17,7 @@ open Umpire
 open Umpire.Operation
 open Umpire.Value
 open Temporal.Feature.Nexus.Success.TypedUnary
-open temporal.server.api.testpilot.v1
+open temporal.server.api.testpilot.v1 hiding ModelValue
 
 /-! ### The generated reference is admitted, and only against its own selection -/
 
@@ -409,7 +409,7 @@ private def producedRule : Option (List (String × ContractStateStatus) × List 
 -- The runtime rule separates the same three answers the model Property does: a recorded type that
 -- disagrees is a violation, and an event that never establishes the field leaves the rule pending.
 #guard producedRule == some (
-  [("pending", .CONTRACT_STATE_STATUS_NONTERMINAL),
+  [("pending", .CONTRACT_STATE_STATUS_PENDING),
    ("satisfied", .CONTRACT_STATE_STATUS_SATISFIED),
    ("violated", .CONTRACT_STATE_STATUS_VIOLATED)],
   [("match-recorded-workflow-type", "satisfied"),

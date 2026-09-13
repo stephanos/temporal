@@ -57,7 +57,7 @@ func TestNexusHistoryCorrelationLiveAndOffline(t *testing.T) {
 	nexusMutateHistoryEvent(t, deadline, enumspb.EVENT_TYPE_NEXUS_OPERATION_STARTED, func(event *historypb.HistoryEvent) {
 		event.GetNexusOperationStartedEventAttributes().ScheduledEventId = 999
 	})
-	deadline.Status = testpilotspb.RUN_STATUS_STOPPED_BY_MONITOR
+	deadline.Disposition = testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR
 	deadline.Events[len(deadline.Events)-1].ElapsedMilliseconds = 30000
 	live, offline = nexusEvaluateLiveAndOffline(t, contract, view, deadline)
 	require.Equal(t, testpilotspb.VERDICT_STATUS_VIOLATED, live.GetStatus())
@@ -82,20 +82,20 @@ func nexusCorrelationFixture(t testing.TB) (*PreparedContract, execution.Program
 	program, err := execution.Prepare(source, catalog, execution.Profile{Identity: "profile", CatalogIdentity: catalog.Identity(), Limits: programLimits})
 	require.NoError(t, err)
 	limits := &testpilotspb.ContractLimits{MaxRules: 4, MaxStates: 16, MaxTransitions: 16, MaxExpressionDepth: 12, MaxWorkPerEvent: 100000, MaxTotalWork: 1000000000, MaxCaptures: 4, MaxCaptureBytes: 8192}
-	rule := &testpilotspb.ContractRuleDefinition{
+	rule := &testpilotspb.ContractRule{
 		RuleId: "correlated-nexus-completion", Kind: testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS,
 		InitialStateId: "pending",
-		States: []*testpilotspb.ContractStateDefinition{
-			{StateId: "pending", Status: testpilotspb.CONTRACT_STATE_STATUS_NONTERMINAL},
-			{StateId: "scheduled-correlated", Status: testpilotspb.CONTRACT_STATE_STATUS_NONTERMINAL},
-			{StateId: "started-correlated", Status: testpilotspb.CONTRACT_STATE_STATUS_NONTERMINAL},
+		States: []*testpilotspb.ContractState{
+			{StateId: "pending", Status: testpilotspb.CONTRACT_STATE_STATUS_PENDING},
+			{StateId: "scheduled-correlated", Status: testpilotspb.CONTRACT_STATE_STATUS_PENDING},
+			{StateId: "started-correlated", Status: testpilotspb.CONTRACT_STATE_STATUS_PENDING},
 			{StateId: "satisfied", Status: testpilotspb.CONTRACT_STATE_STATUS_SATISFIED},
 			{StateId: "violated", Status: testpilotspb.CONTRACT_STATE_STATUS_VIOLATED},
 		},
-		Captures: []*testpilotspb.ContractCaptureDefinition{{CaptureId: "scheduled-event", Type: &testpilotspb.ContractCaptureType{Type: &testpilotspb.ContractCaptureType_Message{Message: &testpilotspb.NamedType{ProtobufType: "temporal.api.history.v1.HistoryEvent"}}}}},
+		Captures: []*testpilotspb.ContractCapture{{CaptureId: "scheduled-event", Type: &testpilotspb.ContractCaptureType{Type: &testpilotspb.ContractCaptureType_Message{Message: &testpilotspb.NamedType{ProtobufType: "temporal.api.history.v1.HistoryEvent"}}}}},
 		Deadline: &testpilotspb.ContractDeadline{ElapsedMilliseconds: 30000, ViolationStateId: "violated"},
 	}
-	rule.Transitions = []*testpilotspb.ContractTransitionDefinition{
+	rule.Transitions = []*testpilotspb.ContractTransition{
 		nexusTransition("capture-scheduled-event", "pending", "scheduled-correlated", all(
 			present(nexusObservation()), present(nexusPath(nexusObservation(), nexusField("event_id"))),
 			present(nexusPath(nexusObservation(), nexusOneof("attributes", "nexus_operation_scheduled_event_attributes"), nexusField("request_id"))),
@@ -115,13 +115,13 @@ func nexusCorrelationFixture(t testing.TB) (*PreparedContract, execution.Program
 		)),
 	}
 	rule.Transitions[0].CaptureAssignments = []*testpilotspb.ContractCaptureAssignment{{CaptureId: "scheduled-event", Observation: &testpilotspb.ObservationRef{ObservationId: "history-event"}}}
-	contract, err := Prepare(&testpilotspb.Contract{ContractId: "contract", Rules: []*testpilotspb.ContractRuleDefinition{rule}, Limits: limits}, catalog, program.View(), limits)
+	contract, err := Prepare(&testpilotspb.Contract{ContractId: "contract", Rules: []*testpilotspb.ContractRule{rule}, Limits: limits}, catalog, program.View(), limits)
 	require.NoError(t, err)
 	return contract, program.View()
 }
 
-func nexusTransition(id, source, target string, predicate *testpilotspb.ContractExpression) *testpilotspb.ContractTransitionDefinition {
-	return &testpilotspb.ContractTransitionDefinition{TransitionId: id, SourceStateId: source, TargetStateId: target, Predicate: predicate, EventFilter: &testpilotspb.RunEventFilter{Kinds: []testpilotspb.RunEventKind{testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED}}, SupportKind: testpilotspb.CONTRACT_SUPPORT_KIND_MATCHING_EVENT}
+func nexusTransition(id, source, target string, predicate *testpilotspb.ContractExpression) *testpilotspb.ContractTransition {
+	return &testpilotspb.ContractTransition{TransitionId: id, SourceStateId: source, TargetStateId: target, Predicate: predicate, EventFilter: &testpilotspb.RunEventFilter{Kinds: []testpilotspb.RunEventKind{testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED}}, SupportKind: testpilotspb.CONTRACT_SUPPORT_KIND_MATCHING_EVENT}
 }
 
 func nexusObservation() *testpilotspb.ContractExpression {
@@ -150,7 +150,7 @@ func nexusMessageType(name string) *testpilotspb.ValueType {
 
 func nexusCorrelationRun(t testing.TB) *testpilotspb.Run {
 	t.Helper()
-	return &testpilotspb.Run{RunId: "run", CaseId: "case", ProgramId: "program", Status: testpilotspb.RUN_STATUS_COMPLETED, Events: []*testpilotspb.RunEvent{
+	return &testpilotspb.Run{RunId: "run", CaseId: "case", ProgramId: "program", Disposition: testpilotspb.RUN_DISPOSITION_COMPLETED, Events: []*testpilotspb.RunEvent{
 		event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED),
 		nexusHistoryRunEvent(t, 2, &historypb.HistoryEvent{EventId: 1, EventType: enumspb.EVENT_TYPE_NEXUS_OPERATION_SCHEDULED, Attributes: &historypb.HistoryEvent_NexusOperationScheduledEventAttributes{NexusOperationScheduledEventAttributes: &historypb.NexusOperationScheduledEventAttributes{RequestId: "request"}}}),
 		nexusHistoryRunEvent(t, 3, &historypb.HistoryEvent{EventId: 2, EventType: enumspb.EVENT_TYPE_NEXUS_OPERATION_STARTED, Attributes: &historypb.HistoryEvent_NexusOperationStartedEventAttributes{NexusOperationStartedEventAttributes: &historypb.NexusOperationStartedEventAttributes{ScheduledEventId: 1, RequestId: "request"}}}),

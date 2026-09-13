@@ -28,7 +28,7 @@ private def admitted := completion.toOption
       output.contract.map (·.rules.isEmpty) == some true &&
       (match output.contract.bind (·.«correlated») with
         | some capability =>
-            capability.clauses.map (·.clause_id) ==
+            capability.rules.map (·.rule_id) ==
               (checked.property.clauses.map (·.id.value)).toArray
         | none => false)
   | _, _ => false
@@ -143,7 +143,7 @@ private def caseShape
   | .ok output =>
       some ((output.provenance.map (·.producer_data.toList)).getD [],
         ((output.contract.bind (·.«correlated»)).map fun capability =>
-          capability.clauses.toList.map (·.clause_id)).getD [])
+          capability.rules.toList.map (·.rule_id)).getD [])
   | .error _ => none
 
 private def differsFromCompletionCase
@@ -477,12 +477,12 @@ private def startClauses (values : Umpire.Command.ModelVocabulary) : Property :=
       match output.contract.bind (·.«correlated») with
       | some capability =>
           pure (output.contract.map (·.rules.isEmpty) == some true &&
-            capability.clauses.size == 2 &&
-            capability.clauses.all (fun clause =>
+            capability.rules.size == 2 &&
+            capability.rules.all (fun clause =>
               (clause.trigger.map (·.definition_id)) ==
                 some (checked.vocabulary.actionAt 0).definitionId.value) &&
             -- Canonical clause order, so the responses arrive by clause id.
-            (capability.clauses.map fun clause =>
+            (capability.rules.map fun clause =>
               (clause.response.map (·.field)).getD .CORRELATED_PREDICATE_FIELD_UNSPECIFIED) == #[
                 .CORRELATED_PREDICATE_FIELD_OUTCOME,
                 .CORRELATED_PREDICATE_FIELD_STATE])

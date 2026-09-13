@@ -50,9 +50,9 @@ structure Error where
 
 /-- One checked property already lowered to a generated rule, or rejected with its source. -/
 inductive ContractLowering where
-  | monitor (sourceDefinition : Provenance.DefinitionBinding) (rule : ContractRuleDefinition)
+  | monitor (sourceDefinition : Provenance.DefinitionBinding) (rule : ContractRule)
   | correlated (sourceDefinition : Provenance.DefinitionBinding) (capability : CorrelatedContract)
-      (clauses : List Provenance.CorrelatedRuleBinding)
+      (rules : List Provenance.CorrelatedRuleBinding)
   | unsupported
       (sourceDefinition : Provenance.DefinitionBinding)
       (source : SourceLocation)
@@ -75,7 +75,7 @@ structure Input where
   none keeps its exact existing meaning. -/
   coverage : Coverage.Request := {}
 
-private def lowerProperty : ContractLowering → Except Error (Option ContractRuleDefinition)
+private def lowerProperty : ContractLowering → Except Error (Option ContractRule)
   | .monitor sourceDefinition rule =>
       if sourceDefinition.kind != .property then
         .error {
@@ -100,7 +100,7 @@ def compile (input : Input) : Except Error temporal.server.api.testpilot.v1.Case
   let lowered ← input.properties.mapM lowerProperty
   let rules := lowered.filterMap id
   let correlatedProperties := input.properties.filterMap fun property => match property with
-    | .correlated binding capability clauses => some (binding, capability, clauses)
+    | .correlated binding capability bindings => some (binding, capability, bindings)
     | _ => none
   if correlatedProperties.length > 1 then
     throw {

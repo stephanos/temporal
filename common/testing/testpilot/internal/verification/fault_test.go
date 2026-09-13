@@ -53,7 +53,7 @@ func TestEvaluatorMatchesRecordedFaultFields(t *testing.T) {
 			p, err := Prepare(c, cat, view, limits)
 			require.NoError(t, err)
 
-			run := &testpilotspb.Run{RunId: "run", CaseId: "case", ProgramId: "program", Status: testpilotspb.RUN_STATUS_COMPLETED, Events: []*testpilotspb.RunEvent{
+			run := &testpilotspb.Run{RunId: "run", CaseId: "case", ProgramId: "program", Disposition: testpilotspb.RUN_DISPOSITION_COMPLETED, Events: []*testpilotspb.RunEvent{
 				event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED),
 				faultEvent(2, 10, tc.role, tc.kind),
 				event(3, 20, testpilotspb.RUN_EVENT_KIND_RUN_CLOSED),

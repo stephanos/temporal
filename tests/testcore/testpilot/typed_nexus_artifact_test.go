@@ -30,8 +30,8 @@ func TestTypedNexusCaseAdmitsItsCorrelatedCapability(t *testing.T) {
 	require.NotNil(t, opcode)
 	require.Equal(t, typedNexusEvidenceID, opcode.GetEvidenceObservationId())
 	require.Equal(t, typedNexusProjectionID, opcode.GetProjectionId())
-	require.Len(t, opcode.GetClauses(), 1)
-	require.Equal(t, typedNexusClauseID, opcode.GetClauses()[0].GetClauseId())
+	require.Len(t, opcode.GetRules(), 1)
+	require.Equal(t, typedNexusClauseID, opcode.GetRules()[0].GetRuleId())
 
 	prepared, err := testpilot.Prepare(source, TypedNexusProfile(catalog, source, TypedNexusEnvironment{
 		Namespace: typedNexusArtifactNamespace, TaskQueue: typedNexusArtifactTaskQueue,

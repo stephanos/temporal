@@ -33,7 +33,7 @@ namespace Umpire.Case.Producer
 
 open Umpire
 open Umpire.Case.Compiler
-open temporal.server.api.testpilot.v1
+open temporal.server.api.testpilot.v1 hiding ModelValue
 
 /-! ### The checked authoring bundle
 

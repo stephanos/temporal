@@ -14,9 +14,9 @@ private def getSystemInfoProperty :=
   binding "temporal.case.get-system-info.property.server-version"
     "temporal-case-get-system-info-property/v1" .property
 
-private def getSystemInfoRule : ContractRuleDefinition :=
+private def getSystemInfoRule : ContractRule :=
   Contract.rule "server-version-present" .CONTRACT_RULE_KIND_SAFETY "pending"
-    #[Contract.state "pending" .CONTRACT_STATE_STATUS_NONTERMINAL,
+    #[Contract.state "pending" .CONTRACT_STATE_STATUS_PENDING,
       Contract.state "satisfied" .CONTRACT_STATE_STATUS_SATISFIED]
     #[Contract.transition "observe-server-version" "pending" "satisfied"
       #[.RUN_EVENT_KIND_INSTRUCTION_COMPLETED]

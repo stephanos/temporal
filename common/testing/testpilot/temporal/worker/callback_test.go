@@ -141,7 +141,7 @@ func TestCompletionTransportClassifiesFailures(t *testing.T) {
 				defer cancel()
 			}
 			result := effect.Invoke(ctx, callbackValue(), 4096)
-			want := testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS
+			want := testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE
 			if mode == "timeout" {
 				want = testpilotspb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT
 			}

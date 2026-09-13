@@ -87,18 +87,18 @@ func nestedPath(names ...string) *testpilotspb.FieldPath {
 func liftProjection() *testpilotspb.CorrelatedEvidenceProjection {
 	return &testpilotspb.CorrelatedEvidenceProjection{ObservationId: "evidence", Rules: []*testpilotspb.CorrelatedEvidenceRule{
 		{
-			Guard: nestedPath("scheduled", "operation"), GuardEqualsText: "first", Source: "source", Kind: "scheduled.first",
+			Guard: nestedPath("scheduled", "operation"), GuardEqualsText: "first", EvidenceSource: "source", Kind: "scheduled.first",
 			Operation: nestedPath("scheduled", "operation"),
 			Scope:     []*testpilotspb.CorrelatedEvidenceBinding{{FieldId: "run", Value: &testpilotspb.CorrelatedEvidenceBinding_Literal{Literal: "one"}}},
 			Fields:    []*testpilotspb.CorrelatedEvidenceBinding{{FieldId: "identity", Value: &testpilotspb.CorrelatedEvidenceBinding_Path{Path: nestedPath("scheduled", "operation")}}},
 		},
 		{
-			Guard: nestedPath("scheduled"), Source: "source", Kind: "scheduled.other",
+			Guard: nestedPath("scheduled"), EvidenceSource: "source", Kind: "scheduled.other",
 			Operation: nestedPath("scheduled", "operation"),
 			Scope:     []*testpilotspb.CorrelatedEvidenceBinding{{FieldId: "run", Value: &testpilotspb.CorrelatedEvidenceBinding_Literal{Literal: "one"}}},
 		},
 		{
-			Guard: nestedPath("completed"), Source: "source", Kind: "completed",
+			Guard: nestedPath("completed"), EvidenceSource: "source", Kind: "completed",
 			Operation: nestedPath("completed", "referenced"),
 			Scope:     []*testpilotspb.CorrelatedEvidenceBinding{{FieldId: "run", Value: &testpilotspb.CorrelatedEvidenceBinding_Literal{Literal: "one"}}},
 		},
@@ -162,7 +162,7 @@ func TestEvidenceLiftSelectsOneRuleAndCountsItsOwnOrdinals(t *testing.T) {
 	require.Len(t, first, 1)
 	require.Equal(t, "scheduled.first", first[0].GetKind())
 	require.Equal(t, "first", first[0].GetOperation())
-	require.Equal(t, "source", first[0].GetIdentity().GetSource())
+	require.Equal(t, "source", first[0].GetIdentity().GetEvidenceSource())
 	require.EqualValues(t, 0, first[0].GetIdentity().GetOrdinal())
 	require.Equal(t, []*testpilotspb.CorrelatedBinding{{FieldId: "run", Value: "one"}}, first[0].GetIdentity().GetScope())
 	require.Equal(t, []*testpilotspb.CorrelatedEvidenceField{{FieldId: "identity", Value: &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: "first"}}}}, first[0].GetFields())
@@ -194,7 +194,7 @@ func TestEvidenceLiftRejectsUndeclarableRules(t *testing.T) {
 		},
 		"no rules":       func(p *testpilotspb.CorrelatedEvidenceProjection) { p.Rules = nil },
 		"missing kind":   func(p *testpilotspb.CorrelatedEvidenceProjection) { p.Rules[0].Kind = "" },
-		"missing source": func(p *testpilotspb.CorrelatedEvidenceProjection) { p.Rules[0].Source = "" },
+		"missing source": func(p *testpilotspb.CorrelatedEvidenceProjection) { p.Rules[0].EvidenceSource = "" },
 		"message operation": func(p *testpilotspb.CorrelatedEvidenceProjection) {
 			p.Rules[0].Operation = nestedPath("scheduled")
 		},

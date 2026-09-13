@@ -138,14 +138,14 @@ private def transition := Contract.transition "take" "start" "done"
 
 private def contract : Contract := Contract.contract "contract" #[
   Contract.rule "safety" .CONTRACT_RULE_KIND_SAFETY "start"
-    #[Contract.state "start" .CONTRACT_STATE_STATUS_NONTERMINAL,
+    #[Contract.state "start" .CONTRACT_STATE_STATUS_PENDING,
       Contract.state "done" .CONTRACT_STATE_STATUS_SATISFIED]
     #[transition]
     (captures := #[Contract.capture "captured" (Contract.scalarCapture .SCALAR_KIND_TEXT),
       Contract.capture "enum" (Contract.enumCapture "example.Enum"),
       Contract.capture "message" (Contract.messageCapture "example.Message")]),
   Contract.rule "liveness" .CONTRACT_RULE_KIND_BOUNDED_LIVENESS "waiting"
-    #[Contract.state "waiting" .CONTRACT_STATE_STATUS_NONTERMINAL,
+    #[Contract.state "waiting" .CONTRACT_STATE_STATUS_PENDING,
       Contract.state "late" .CONTRACT_STATE_STATUS_VIOLATED]
     #[] (deadline := some (Contract.deadline 1000 "late"))
 ] (Contract.limits 2 4 2 16 64 1024 3 4096)
@@ -156,16 +156,16 @@ private def correlatedPredicate (field : CorrelatedPredicateField) (definitionId
     CorrelatedPredicate :=
   { field, definition_id := definitionId, constraint := some (.equals_text value) }
 
-private def correlatedValue (definitionId value : String) : CorrelatedValue :=
+private def modelValue (definitionId value : String) : ModelValue :=
   { definition_id := definitionId, value }
 
 private def correlatedCapability : CorrelatedContract :=
   Contract.correlated "projection" "sha256:projection" "evidence" "operation"
-    #["run"] #["source"] (correlatedValue "state" "open")
-    #[{ prior_state := some (correlatedValue "state" "open"),
-        action := some (correlatedValue "action" "request"),
-        state := some (correlatedValue "state" "open"),
-        outcome := some (correlatedValue "outcome" "accepted") }]
+    #["run"] #["source"] (modelValue "state" "open")
+    #[{ prior_state := some (modelValue "state" "open"),
+        action := some (modelValue "action" "request"),
+        state := some (modelValue "state" "open"),
+        outcome := some (modelValue "outcome" "accepted") }]
     #[] #[
       Contract.correlatedRule "response" 1 .TRACE_ENDING_PARTIAL
         (correlatedPredicate .CORRELATED_PREDICATE_FIELD_ACTION "action" "request")
@@ -188,7 +188,7 @@ private def run : temporal.server.api.testpilot.v1.Run := Run.make "run" "case" 
     (outcome := some (Run.outcome .INSTRUCTION_OUTCOME_STATUS_SUCCEEDED
       (value := some (Value.text "result"))))
     (observations := #[Run.observation "observed" (Value.text "result")])
-] .RUN_STATUS_COMPLETED (Run.cleanup .CLEANUP_STATUS_SUCCEEDED) verdict
+] .RUN_DISPOSITION_COMPLETED (Run.cleanup .CLEANUP_STATUS_SUCCEEDED) verdict
   #[Run.diagnostic "diagnostic" .RUN_DIAGNOSTIC_KIND_EXECUTION "code" "detail" (some 1)]
   (some 1)
 
@@ -212,10 +212,10 @@ private def run : temporal.server.api.testpilot.v1.Run := Run.make "run" "case" 
 #guard contract.correlated.isNone
 #guard correlatedContract.correlated.any (fun capability =>
   capability.version == 1 && capability.projection_id == "projection" &&
-    capability.evidence_observation_id == "evidence" && capability.clauses.size == 1)
-#guard correlatedCapability.clauses[0]!.clock == .CORRELATED_CLOCK_OPERATION_TRANSITIONS
-#guard correlatedCapability.clauses[0]!.ending == .TRACE_ENDING_PARTIAL
-#guard correlatedCapability.clauses[0]!.captures.isEmpty
-#guard correlatedCapability.clauses[0]!.correlation.isNone
+    capability.evidence_observation_id == "evidence" && capability.rules.size == 1)
+#guard correlatedCapability.rules[0]!.clock == .CORRELATED_CLOCK_OPERATION_TRANSITIONS
+#guard correlatedCapability.rules[0]!.ending == .TRACE_ENDING_PARTIAL
+#guard correlatedCapability.rules[0]!.captures.isEmpty
+#guard correlatedCapability.rules[0]!.correlation.isNone
 
 end Testpilot.Tests.Authoring

@@ -48,11 +48,11 @@ message RunEvent {
   FaultInjected fault_injected = 10;
 }
 // (-- api-linter: core::0216::synonyms=disabled --)
-enum RunStatus {
-  RUN_STATUS_UNSPECIFIED = 0;
-  RUN_STATUS_COMPLETED = 1;
-  RUN_STATUS_STOPPED_BY_MONITOR = 2;
-  RUN_STATUS_INCOMPLETE = 3;
+enum RunDisposition {
+  RUN_DISPOSITION_UNSPECIFIED = 0;
+  RUN_DISPOSITION_COMPLETED = 1;
+  RUN_DISPOSITION_STOPPED_BY_MONITOR = 2;
+  RUN_DISPOSITION_INCOMPLETE = 3;
 }
 // (-- api-linter: core::0216::synonyms=disabled --)
 enum CleanupStatus {
@@ -114,7 +114,7 @@ message Run {
   string case_id = 2;
   string program_id = 3;
   repeated RunEvent events = 4;
-  RunStatus status = 5;
+  RunDisposition disposition = 5;
   CleanupOutcome cleanup = 6;
   Verdict verdict = 7;
   repeated RunDiagnostic diagnostics = 8;
@@ -130,7 +130,7 @@ message Run {
 message CorrelatedBinding { string field_id = 1; string value = 2; }
 message CorrelatedIdentity {
   repeated CorrelatedBinding scope = 1;
-  string source = 2;
+  string evidence_source = 2;
   int64 ordinal = 3;
 }
 message CorrelatedEvidenceField { string field_id = 1; Value value = 2; }

@@ -11,8 +11,8 @@ private def accepts (change : CorrelatedContract → CorrelatedContract) : Bool 
 
 #guard !accepts (fun wire => { wire with version := 2 })
 #guard !accepts (fun wire => { wire with version := 0 })
-#guard !accepts (fun wire => { wire with clauses := wire.clauses.map fun clause => { clause with bound := -1 } })
-#guard !accepts (fun wire => { wire with clauses := wire.clauses.map fun clause => {
+#guard !accepts (fun wire => { wire with rules := wire.rules.map fun clause => { clause with bound := -1 } })
+#guard !accepts (fun wire => { wire with rules := wire.rules.map fun clause => {
   clause with clock := .CORRELATED_CLOCK_UNSPECIFIED } })
 #guard !accepts (fun wire => { wire with limits := wire.limits.map fun limits => { limits with max_events := 0 } })
 #guard !accepts (fun wire => { wire with projection_rules := wire.projection_rules.map fun rule => {
@@ -25,7 +25,7 @@ private def admitted (change : CorrelatedEvidence → CorrelatedEvidence) : Bool
     let _ ← initial.observe 2 (change (evidence 0 "both"))
     pure () : Except String Unit).isOk
 
-#guard !admitted (fun event => { event with identity := event.identity.map fun identity => { identity with source := "unknown" } })
+#guard !admitted (fun event => { event with identity := event.identity.map fun identity => { identity with evidence_source := "unknown" } })
 #guard !admitted (fun event => { event with identity := event.identity.map fun identity => { identity with scope := #[] } })
 #guard !admitted (fun event => { event with fields := #[{ field_id := "unknown" }] })
 #guard !admitted (fun event => { event with parents := event.identity.toArray })

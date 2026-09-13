@@ -27,7 +27,7 @@ func TestTestpilotTypedUnaryCase(t *testing.T) {
 	// The single-shot happy path: runCase loads the fixture, derives the Profile, provisions,
 	// prepares and runs once.
 	run, verdict := runCaseWithBinding(t, env, "typed-unary", binding)
-	require.Equal(t, testpilotpb.RUN_STATUS_COMPLETED, run.GetStatus())
+	require.Equal(t, testpilotpb.RUN_DISPOSITION_COMPLETED, run.GetDisposition())
 	require.Equal(t, testpilotpb.VERDICT_STATUS_SATISFIED, verdict.GetStatus())
 	requireSubmittedWorkflowTypeEvidence(t, run, verdict.GetSupportingEventSequences(), binding.TaskQueue)
 
@@ -41,7 +41,7 @@ func TestTestpilotTypedUnaryCase(t *testing.T) {
 	for range 2 {
 		run, verdict, err := live.prepared.Run(env.Context(), live.driver)
 		require.NoError(t, err)
-		require.Equal(t, testpilotpb.RUN_STATUS_COMPLETED, run.GetStatus())
+		require.Equal(t, testpilotpb.RUN_DISPOSITION_COMPLETED, run.GetDisposition())
 		require.Equal(t, testpilotpb.CLEANUP_STATUS_SUCCEEDED, run.GetCleanup().GetStatus())
 		require.Equal(t, testpilotpb.VERDICT_STATUS_SATISFIED, verdict.GetStatus())
 		require.True(t, proto.Equal(verdict, run.GetVerdict()))

@@ -202,7 +202,7 @@ func TestSchedulerReservationsRetainEveryHandle(t *testing.T) {
 }
 
 func TestSchedulerTimeoutAndProtocolBranches(t *testing.T) {
-	for _, status := range []testpilotspb.InstructionOutcomeStatus{testpilotspb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT, testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS} {
+	for _, status := range []testpilotspb.InstructionOutcomeStatus{testpilotspb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT, testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE} {
 		t.Run(status.String(), func(t *testing.T) {
 			c, catalog, policy := fixture(t)
 			c.Program.Entrypoints[0].Instructions[0].Limits.MaxAttempts = 3
@@ -325,7 +325,7 @@ func TestSchedulerRequestsSlotsFanoutAndClosure(t *testing.T) {
 	}
 	require.Equal(t, []int64{0, 1, 2}, indexes)
 	require.Equal(t, []string{"a", "b", "c"}, observations)
-	run, _, err := s.recorder.close(context.Background(), testpilotspb.RUN_STATUS_COMPLETED, &testpilotspb.CleanupOutcome{Status: testpilotspb.CLEANUP_STATUS_SUCCEEDED})
+	run, _, err := s.recorder.close(context.Background(), testpilotspb.RUN_DISPOSITION_COMPLETED, &testpilotspb.CleanupOutcome{Status: testpilotspb.CLEANUP_STATUS_SUCCEEDED})
 	require.NoError(t, err)
 	snapshot := proto.CloneOf(run)
 	_, err = s.recorder.publish(context.Background(), []*testpilotspb.RunEvent{{Kind: testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC, SourceId: "late"}}, nil)

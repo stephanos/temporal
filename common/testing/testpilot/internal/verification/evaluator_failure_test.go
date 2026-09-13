@@ -33,9 +33,9 @@ func TestEvaluatorFailureViolationOrderingAndReplay(t *testing.T) {
 			events := []*testpilotspb.RunEvent{event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED), event(2, 100, testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC), event(3, 200, testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC), event(4, 300, testpilotspb.RUN_EVENT_KIND_RUN_CLOSED)}
 			events[tc.violation] = observed(int64(tc.violation+1), int64(tc.violation)*100, 7)
 			events[tc.failure].ExecutionIncomplete = true
-			run := &testpilotspb.Run{RunId: "run", ProgramId: "program", Events: events, Status: testpilotspb.RUN_STATUS_INCOMPLETE}
+			run := &testpilotspb.Run{RunId: "run", ProgramId: "program", Events: events, Disposition: testpilotspb.RUN_DISPOSITION_INCOMPLETE}
 			if tc.stop > 0 {
-				run.Status = testpilotspb.RUN_STATUS_STOPPED_BY_MONITOR
+				run.Disposition = testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR
 			}
 			live, err := prepared.newEvaluator(context.Background(), view)
 			require.NoError(t, err)

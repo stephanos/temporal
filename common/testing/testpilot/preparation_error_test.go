@@ -100,7 +100,7 @@ func TestPreparationErrorCase(t *testing.T) {
 }
 
 func diagnosticCorrelatedContract() *testpilotspb.CorrelatedContract {
-	return &testpilotspb.CorrelatedContract{Version: 1, ProjectionId: "projection", ProjectionFingerprint: "fingerprint", ScopeFields: []string{"run"}, OperationField: "operation", Sources: []string{"source"}, InitialState: &testpilotspb.CorrelatedValue{DefinitionId: "state"}, EvidenceObservationId: "evidence", Limits: &testpilotspb.CorrelatedLimits{}}
+	return &testpilotspb.CorrelatedContract{Version: 1, ProjectionId: "projection", ProjectionFingerprint: "fingerprint", ScopeFields: []string{"run"}, OperationField: "operation", Sources: []string{"source"}, InitialState: &testpilotspb.ModelValue{DefinitionId: "state"}, EvidenceObservationId: "evidence", Limits: &testpilotspb.CorrelatedLimits{}}
 }
 
 func TestPreparationErrorCorrelatedLimits(t *testing.T) {

@@ -43,7 +43,7 @@ func TestValuesStageAtomicallyAndOwnSnapshots(t *testing.T) {
 	require.NoError(t, err)
 	require.Empty(t, values.slots)
 	raw.Response.ProtoReflect().Set(raw.Response.ProtoReflect().Descriptor().Fields().ByName("text"), protoreflect.ValueOfString("changed"))
-	raw.Outcome.Status = testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS
+	raw.Outcome.Status = testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE
 	require.NoError(t, values.commit(ctx, batch))
 	require.Equal(t, "first", values.slots["text"].GetText())
 	require.Equal(t, testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, batch.outcome.Status)
@@ -217,7 +217,7 @@ func TestOutcomeValidationAndIndependentAttemptSnapshots(t *testing.T) {
 		require.Nil(t, batch)
 	}
 	p.graphs[0].nodes[0].source.Limits.MaxAttempts = 2
-	raw := contract.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS, ProtocolCode: "first"}}
+	raw := contract.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE, ProtocolCode: "first"}}
 	first, _, err := values.stage(ctx, coord, raw, values.workLimit())
 	require.NoError(t, err)
 	require.NoError(t, values.commit(ctx, first))

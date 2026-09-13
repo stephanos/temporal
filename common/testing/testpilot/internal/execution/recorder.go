@@ -298,19 +298,19 @@ func (r *recorder) shouldAbort() bool {
 	return r.stopped || r.incomplete
 }
 
-func (r *recorder) terminalStatus(executionErr error) testpilotspb.RunStatus {
+func (r *recorder) terminalDisposition(executionErr error) testpilotspb.RunDisposition {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if r.stopped {
-		return testpilotspb.RUN_STATUS_STOPPED_BY_MONITOR
+		return testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR
 	}
 	if executionErr != nil || r.incomplete {
-		return testpilotspb.RUN_STATUS_INCOMPLETE
+		return testpilotspb.RUN_DISPOSITION_INCOMPLETE
 	}
-	return testpilotspb.RUN_STATUS_COMPLETED
+	return testpilotspb.RUN_DISPOSITION_COMPLETED
 }
 
-func (r *recorder) close(ctx context.Context, disposition testpilotspb.RunStatus, cleanup *testpilotspb.CleanupOutcome) (*testpilotspb.Run, *testpilotspb.Verdict, error) {
+func (r *recorder) close(ctx context.Context, disposition testpilotspb.RunDisposition, cleanup *testpilotspb.CleanupOutcome) (*testpilotspb.Run, *testpilotspb.Verdict, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if r.closed {
@@ -330,13 +330,13 @@ func (r *recorder) close(ctx context.Context, disposition testpilotspb.RunStatus
 	} else {
 		closeErr = ctx.Err()
 	}
-	if disposition < testpilotspb.RUN_STATUS_COMPLETED || disposition > testpilotspb.RUN_STATUS_INCOMPLETE {
+	if disposition < testpilotspb.RUN_DISPOSITION_COMPLETED || disposition > testpilotspb.RUN_DISPOSITION_INCOMPLETE {
 		closeErr = invalid(ir.Malformed, "recorder", "terminal disposition required")
 	}
 	if closeErr != nil {
 		closeErr = errors.Join(closeErr, r.failLocked(testpilotspb.RUN_DIAGNOSTIC_KIND_EXECUTION, "closure_failed", closeErr))
 	}
-	if disposition == testpilotspb.RUN_STATUS_INCOMPLETE {
+	if disposition == testpilotspb.RUN_DISPOSITION_INCOMPLETE {
 		r.incomplete = true
 		r.signalStop()
 	}
@@ -356,12 +356,12 @@ func (r *recorder) close(ctx context.Context, disposition testpilotspb.RunStatus
 		err := invalid(ir.LimitExceeded, "recorder", "no capacity for closure event")
 		closeErr = errors.Join(closeErr, err, r.failLocked(testpilotspb.RUN_DIAGNOSTIC_KIND_LIMIT, "closure_capacity", err))
 	}
-	r.run.Status = disposition
+	r.run.Disposition = disposition
 	if r.incomplete {
-		r.run.Status = testpilotspb.RUN_STATUS_INCOMPLETE
+		r.run.Disposition = testpilotspb.RUN_DISPOSITION_INCOMPLETE
 	}
-	if r.stopped || disposition == testpilotspb.RUN_STATUS_STOPPED_BY_MONITOR {
-		r.run.Status = testpilotspb.RUN_STATUS_STOPPED_BY_MONITOR
+	if r.stopped || disposition == testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR {
+		r.run.Disposition = testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR
 	}
 	verdict, err := r.monitor.Close(ctx, proto.CloneOf(r.run))
 	if err == nil && errors.Is(ctx.Err(), context.DeadlineExceeded) {
@@ -377,11 +377,11 @@ func (r *recorder) close(ctx context.Context, disposition testpilotspb.RunStatus
 	}
 	r.run.Verdict = proto.CloneOf(verdict)
 	if r.incomplete && r.run.Verdict.Status != testpilotspb.VERDICT_STATUS_VIOLATED {
-		r.run.Status = testpilotspb.RUN_STATUS_INCOMPLETE
+		r.run.Disposition = testpilotspb.RUN_DISPOSITION_INCOMPLETE
 		r.run.Verdict.Status = testpilotspb.VERDICT_STATUS_INCONCLUSIVE
 	}
 	if r.run.Verdict.Status == testpilotspb.VERDICT_STATUS_VIOLATED {
-		r.run.Status = testpilotspb.RUN_STATUS_STOPPED_BY_MONITOR
+		r.run.Disposition = testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR
 	}
 	return proto.CloneOf(r.run), proto.CloneOf(r.run.Verdict), closeErr
 }

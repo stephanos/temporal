@@ -3,74 +3,6 @@
   "contract": {
     "contractId": "temporal.case.typed-nexus.contract",
     "correlated": {
-      "clauses": [
-        {
-          "bound": "2",
-          "captures": [
-            {
-              "captureId": "temporal.nexus.success.typed-nexus.capture.scheduled-operation",
-              "fieldId": "temporal.nexus.success.typed-nexus.evidence.operation-identity",
-              "lifetime": "2"
-            }
-          ],
-          "clauseId": "temporal.nexus.success.typed-nexus.clause.bounded-completion",
-          "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
-          "correlation": {
-            "any": {
-              "operands": [
-                {
-                  "predicate": {
-                    "definitionId": "temporal.nexus.success.typed-nexus.action.schedule",
-                    "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                    "present": true
-                  }
-                },
-                {
-                  "comparison": {
-                    "left": {
-                      "capture": {
-                        "captureId": "temporal.nexus.success.typed-nexus.capture.scheduled-operation"
-                      }
-                    },
-                    "operator": "CORRELATED_COMPARISON_OPERATOR_EQUAL",
-                    "right": {
-                      "literal": {
-                        "text": "complete"
-                      }
-                    }
-                  }
-                },
-                {
-                  "comparison": {
-                    "left": {
-                      "capture": {
-                        "captureId": "temporal.nexus.success.typed-nexus.capture.scheduled-operation"
-                      }
-                    },
-                    "operator": "CORRELATED_COMPARISON_OPERATOR_EQUAL",
-                    "right": {
-                      "literal": {
-                        "text": "confirm"
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          },
-          "ending": "TRACE_ENDING_PARTIAL",
-          "response": {
-            "definitionId": "temporal.nexus.success.typed-nexus.outcome.completed",
-            "field": "CORRELATED_PREDICATE_FIELD_OUTCOME",
-            "present": true
-          },
-          "trigger": {
-            "definitionId": "temporal.nexus.success.typed-nexus.action.schedule",
-            "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-            "present": true
-          }
-        }
-      ],
       "evidenceObservationId": "correlated-evidence",
       "initialState": {
         "definitionId": "temporal.nexus.success.typed-nexus.state.pending",
@@ -170,6 +102,74 @@
               }
             }
           ]
+        }
+      ],
+      "rules": [
+        {
+          "bound": "2",
+          "captures": [
+            {
+              "captureId": "temporal.nexus.success.typed-nexus.capture.scheduled-operation",
+              "fieldId": "temporal.nexus.success.typed-nexus.evidence.operation-identity",
+              "lifetime": "2"
+            }
+          ],
+          "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+          "correlation": {
+            "any": {
+              "operands": [
+                {
+                  "predicate": {
+                    "definitionId": "temporal.nexus.success.typed-nexus.action.schedule",
+                    "field": "CORRELATED_PREDICATE_FIELD_ACTION",
+                    "present": true
+                  }
+                },
+                {
+                  "comparison": {
+                    "left": {
+                      "capture": {
+                        "captureId": "temporal.nexus.success.typed-nexus.capture.scheduled-operation"
+                      }
+                    },
+                    "operator": "CORRELATED_COMPARISON_OPERATOR_EQUAL",
+                    "right": {
+                      "literal": {
+                        "text": "complete"
+                      }
+                    }
+                  }
+                },
+                {
+                  "comparison": {
+                    "left": {
+                      "capture": {
+                        "captureId": "temporal.nexus.success.typed-nexus.capture.scheduled-operation"
+                      }
+                    },
+                    "operator": "CORRELATED_COMPARISON_OPERATOR_EQUAL",
+                    "right": {
+                      "literal": {
+                        "text": "confirm"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "ending": "TRACE_ENDING_PARTIAL",
+          "response": {
+            "definitionId": "temporal.nexus.success.typed-nexus.outcome.completed",
+            "field": "CORRELATED_PREDICATE_FIELD_OUTCOME",
+            "present": true
+          },
+          "ruleId": "temporal.nexus.success.typed-nexus.clause.bounded-completion",
+          "trigger": {
+            "definitionId": "temporal.nexus.success.typed-nexus.action.schedule",
+            "field": "CORRELATED_PREDICATE_FIELD_ACTION",
+            "present": true
+          }
         }
       ],
       "scopeFields": [
@@ -354,11 +354,11 @@
         "states": [
           {
             "stateId": "pending",
-            "status": "CONTRACT_STATE_STATUS_NONTERMINAL"
+            "status": "CONTRACT_STATE_STATUS_PENDING"
           },
           {
             "stateId": "scheduled",
-            "status": "CONTRACT_STATE_STATUS_NONTERMINAL"
+            "status": "CONTRACT_STATE_STATUS_PENDING"
           },
           {
             "stateId": "satisfied",
@@ -570,11 +570,11 @@
         "states": [
           {
             "stateId": "pending",
-            "status": "CONTRACT_STATE_STATUS_NONTERMINAL"
+            "status": "CONTRACT_STATE_STATUS_PENDING"
           },
           {
             "stateId": "scheduled",
-            "status": "CONTRACT_STATE_STATUS_NONTERMINAL"
+            "status": "CONTRACT_STATE_STATUS_PENDING"
           },
           {
             "stateId": "satisfied",
@@ -1380,6 +1380,7 @@
                           "observationId": "correlated-evidence",
                           "rules": [
                             {
+                              "evidenceSource": "temporal.nexus.success.typed-nexus.source.history",
                               "fields": [
                                 {
                                   "fieldId": "temporal.nexus.success.typed-nexus.evidence.operation-identity",
@@ -1425,10 +1426,10 @@
                                   "fieldId": "temporal.nexus.success.typed-nexus.scope.run",
                                   "literal": "typed-nexus"
                                 }
-                              ],
-                              "source": "temporal.nexus.success.typed-nexus.source.history"
+                              ]
                             },
                             {
+                              "evidenceSource": "temporal.nexus.success.typed-nexus.source.history",
                               "fields": [
                                 {
                                   "fieldId": "temporal.nexus.success.typed-nexus.evidence.operation-identity",
@@ -1474,10 +1475,10 @@
                                   "fieldId": "temporal.nexus.success.typed-nexus.scope.run",
                                   "literal": "typed-nexus"
                                 }
-                              ],
-                              "source": "temporal.nexus.success.typed-nexus.source.history"
+                              ]
                             },
                             {
+                              "evidenceSource": "temporal.nexus.success.typed-nexus.source.history",
                               "guard": {
                                 "segments": [
                                   {
@@ -1507,8 +1508,7 @@
                                   "fieldId": "temporal.nexus.success.typed-nexus.scope.run",
                                   "literal": "typed-nexus"
                                 }
-                              ],
-                              "source": "temporal.nexus.success.typed-nexus.source.history"
+                              ]
                             }
                           ]
                         }
@@ -2015,7 +2015,7 @@
     ]
   },
   "provenance": {
-    "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZW1wb3JhbC5uZXh1cy5zdWNjZXNzLnR5cGVkLW5leHVzLnRhcmdldCIsCiAgICAgICJiZWhhdmlvckZpbmdlcnByaW50IjogInNoYTI1NjpjOWEzMDg2MjU0MjAxNGIxYjI1NGUxMDE4NzE1NDlhYjU5OTZjOWZjNDQxYTAwYTBiOWRiYWIxMjAwMzk5NWNlIiwKICAgICAgImtpbmQiOiAiQ0FTRV9ERUZJTklUSU9OX0tJTkRfVEFSR0VUIgogICAgfSwKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZW1wb3JhbC5uZXh1cy5zdWNjZXNzLnR5cGVkLW5leHVzLnByb3BlcnR5LmNvcnJlbGF0ZWQtY29tcGxldGlvbiIsCiAgICAgICJiZWhhdmlvckZpbmdlcnByaW50IjogInNoYTI1NjoyYjYxMTgxMzVmYTNmYmQ3NTE0MDg1MDRhMmE4OTFjZWZiZTE5ZmVkY2ZhNzYwYWJhYmQ3OTFlYjEzYzc2MmYzIiwKICAgICAgImtpbmQiOiAiQ0FTRV9ERUZJTklUSU9OX0tJTkRfUFJPUEVSVFkiCiAgICB9LAogICAgewogICAgICAiZGVmaW5pdGlvbklkIjogInRlbXBvcmFsLm5leHVzLnN1Y2Nlc3MudHlwZWQtbmV4dXMucHJvcGVydHkuYm91bmRlZC1jb21wbGV0aW9uIiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjU4OTcxMjQ3MzcxOWRlNThmYTk5YWJiNzdlNTA0NGEzODNmYzUxYzFlNTg4MjgzZGQ4MDIzMGMzNzQwNTY1ODciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJUZW1wb3JhbC9GZWF0dXJlL05leHVzL1N1Y2Nlc3MvVHlwZWROZXh1cy5sZWFuIiwKICAgICAgImxpbmUiOiAiMSIsCiAgICAgICJjb2x1bW4iOiAiMSIsCiAgICAgICJwcm92ZW5hbmNlIjogImxlYW4tbW9kZWwiCiAgICB9CiAgXSwKICAia25vd25HYXBzIjogWwogICAgewogICAgICAia2luZCI6ICJDQVNFX0tOT1dOX0dBUF9LSU5EX0lOVEVSUFJFVEFUSU9OIiwKICAgICAgImNvZGUiOiAidGVtcG9yYWwubmV4dXMuc3VjY2Vzcy50eXBlZC1uZXh1cy5jb21wbGV0aW9uLWlkZW50aXR5LWlzLXVucmVjb3JkZWQiLAogICAgICAic3ViamVjdCI6ICJ0ZW1wb3JhbC5uZXh1cy5zdWNjZXNzLnR5cGVkLW5leHVzLnByb3BlcnR5LmJvdW5kZWQtY29tcGxldGlvbiIsCiAgICAgICJkZXRhaWwiOiAidGhlIGJvdW5kZWQtcmVzcG9uc2Ugd2luZG93IHJ1bnMgb25saW5lIGZyb20gbGlmdGVkIGhpc3RvcnkgZXZpZGVuY2U7IGEgY29tcGxldGVkIGV2ZW50IHJlY29yZHMgbm8gb3BlcmF0aW9uIGlkZW50aXR5LCBzbyB0aGUgb3BlcmF0aW9uIGtleSBpcyB0aGUgc2NoZWR1bGVkIGV2ZW50IGl0IHJlZmVyZW5jZXMgYW5kIHRoZSBwcm9qZWN0aW9uIHJlbGVhc2VzIG9uZSByZXByZXNlbnRhdGl2ZSBjb21wbGV0ZWQgc3RlcCIKICAgIH0sCiAgICB7CiAgICAgICJraW5kIjogIkNBU0VfS05PV05fR0FQX0tJTkRfSU5URVJQUkVUQVRJT04iLAogICAgICAiY29kZSI6ICJ0ZW1wb3JhbC5uZXh1cy5zdWNjZXNzLnR5cGVkLW5leHVzLmNyb3NzZWQtY29tcGxldGlvbi1pcy1pbmNvbmNsdXNpdmUiLAogICAgICAic3ViamVjdCI6ICJ0ZW1wb3JhbC5uZXh1cy5zdWNjZXNzLnR5cGVkLW5leHVzLnByb3BlcnR5LmNvcnJlbGF0ZWQtY29tcGxldGlvbiIsCiAgICAgICJkZXRhaWwiOiAiYSBjb21wbGV0ZWQgZXZlbnQgY2FycmllcyBubyBvcGVyYXRpb24gaWRlbnRpdHksIHNvIGEgY29tcGxldGlvbiByZWZlcmVuY2luZyBhbm90aGVyIHNjaGVkdWxlZCBldmVudCBsZWF2ZXMgdGhlIHJ1bGUgcGVuZGluZyByYXRoZXIgdGhhbiB2aW9sYXRlZDsgdGhlIG1vZGVsIFByb3BlcnR5IHN0aWxsIGRpc3Rpbmd1aXNoZXMgdGhlIHR3byIKICAgIH0KICBdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJjbGF1c2VJZCI6ICJ0ZW1wb3JhbC5uZXh1cy5zdWNjZXNzLnR5cGVkLW5leHVzLmNsYXVzZS5ib3VuZGVkLWNvbXBsZXRpb24iLAogICAgICAicHJvcGVydHlJZCI6ICJ0ZW1wb3JhbC5uZXh1cy5zdWNjZXNzLnR5cGVkLW5leHVzLnByb3BlcnR5LmJvdW5kZWQtY29tcGxldGlvbiIsCiAgICAgICJwcm9wZXJ0eUZpbmdlcnByaW50IjogInNoYTI1Njo1ODk3MTI0NzM3MTlkZTU4ZmE5OWFiYjc3ZTUwNDRhMzgzZmM1MWMxZTU4ODI4M2RkODAyMzBjMzc0MDU2NTg3IiwKICAgICAgInByb2plY3Rpb25JZCI6ICJ0ZW1wb3JhbC5uZXh1cy5zdWNjZXNzLnR5cGVkLW5leHVzLnByb2plY3Rpb24iLAogICAgICAicHJvamVjdGlvbkZpbmdlcnByaW50IjogInNoYTI1Njo0NTU5MDkyNzUzMWFhNjIzMTA5N2Q1MDU0MmY4OTA5YjgxZjdiYTY0MTAxNTY5MmViNjYyOTIzNWRhNGE4OGJlIiwKICAgICAgInNvdXJjZSI6IHsKICAgICAgICAicGF0aCI6ICJUZW1wb3JhbC9GZWF0dXJlL05leHVzL1N1Y2Nlc3MvVHlwZWROZXh1cy5sZWFuIiwKICAgICAgICAibGluZSI6ICIxIiwKICAgICAgICAiY29sdW1uIjogIjEiLAogICAgICAgICJwcm92ZW5hbmNlIjogImxlYW4tbW9kZWwiCiAgICAgIH0KICAgIH0KICBdCn0K",
+    "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZW1wb3JhbC5uZXh1cy5zdWNjZXNzLnR5cGVkLW5leHVzLnRhcmdldCIsCiAgICAgICJiZWhhdmlvckZpbmdlcnByaW50IjogInNoYTI1NjpjOWEzMDg2MjU0MjAxNGIxYjI1NGUxMDE4NzE1NDlhYjU5OTZjOWZjNDQxYTAwYTBiOWRiYWIxMjAwMzk5NWNlIiwKICAgICAgImtpbmQiOiAiQ0FTRV9ERUZJTklUSU9OX0tJTkRfVEFSR0VUIgogICAgfSwKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZW1wb3JhbC5uZXh1cy5zdWNjZXNzLnR5cGVkLW5leHVzLnByb3BlcnR5LmNvcnJlbGF0ZWQtY29tcGxldGlvbiIsCiAgICAgICJiZWhhdmlvckZpbmdlcnByaW50IjogInNoYTI1NjoyYjYxMTgxMzVmYTNmYmQ3NTE0MDg1MDRhMmE4OTFjZWZiZTE5ZmVkY2ZhNzYwYWJhYmQ3OTFlYjEzYzc2MmYzIiwKICAgICAgImtpbmQiOiAiQ0FTRV9ERUZJTklUSU9OX0tJTkRfUFJPUEVSVFkiCiAgICB9LAogICAgewogICAgICAiZGVmaW5pdGlvbklkIjogInRlbXBvcmFsLm5leHVzLnN1Y2Nlc3MudHlwZWQtbmV4dXMucHJvcGVydHkuYm91bmRlZC1jb21wbGV0aW9uIiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjU4OTcxMjQ3MzcxOWRlNThmYTk5YWJiNzdlNTA0NGEzODNmYzUxYzFlNTg4MjgzZGQ4MDIzMGMzNzQwNTY1ODciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJUZW1wb3JhbC9GZWF0dXJlL05leHVzL1N1Y2Nlc3MvVHlwZWROZXh1cy5sZWFuIiwKICAgICAgImxpbmUiOiAiMSIsCiAgICAgICJjb2x1bW4iOiAiMSIsCiAgICAgICJwcm92ZW5hbmNlIjogImxlYW4tbW9kZWwiCiAgICB9CiAgXSwKICAia25vd25HYXBzIjogWwogICAgewogICAgICAia2luZCI6ICJDQVNFX0tOT1dOX0dBUF9LSU5EX0lOVEVSUFJFVEFUSU9OIiwKICAgICAgImNvZGUiOiAidGVtcG9yYWwubmV4dXMuc3VjY2Vzcy50eXBlZC1uZXh1cy5jb21wbGV0aW9uLWlkZW50aXR5LWlzLXVucmVjb3JkZWQiLAogICAgICAic3ViamVjdCI6ICJ0ZW1wb3JhbC5uZXh1cy5zdWNjZXNzLnR5cGVkLW5leHVzLnByb3BlcnR5LmJvdW5kZWQtY29tcGxldGlvbiIsCiAgICAgICJkZXRhaWwiOiAidGhlIGJvdW5kZWQtcmVzcG9uc2Ugd2luZG93IHJ1bnMgb25saW5lIGZyb20gbGlmdGVkIGhpc3RvcnkgZXZpZGVuY2U7IGEgY29tcGxldGVkIGV2ZW50IHJlY29yZHMgbm8gb3BlcmF0aW9uIGlkZW50aXR5LCBzbyB0aGUgb3BlcmF0aW9uIGtleSBpcyB0aGUgc2NoZWR1bGVkIGV2ZW50IGl0IHJlZmVyZW5jZXMgYW5kIHRoZSBwcm9qZWN0aW9uIHJlbGVhc2VzIG9uZSByZXByZXNlbnRhdGl2ZSBjb21wbGV0ZWQgc3RlcCIKICAgIH0sCiAgICB7CiAgICAgICJraW5kIjogIkNBU0VfS05PV05fR0FQX0tJTkRfSU5URVJQUkVUQVRJT04iLAogICAgICAiY29kZSI6ICJ0ZW1wb3JhbC5uZXh1cy5zdWNjZXNzLnR5cGVkLW5leHVzLmNyb3NzZWQtY29tcGxldGlvbi1pcy1pbmNvbmNsdXNpdmUiLAogICAgICAic3ViamVjdCI6ICJ0ZW1wb3JhbC5uZXh1cy5zdWNjZXNzLnR5cGVkLW5leHVzLnByb3BlcnR5LmNvcnJlbGF0ZWQtY29tcGxldGlvbiIsCiAgICAgICJkZXRhaWwiOiAiYSBjb21wbGV0ZWQgZXZlbnQgY2FycmllcyBubyBvcGVyYXRpb24gaWRlbnRpdHksIHNvIGEgY29tcGxldGlvbiByZWZlcmVuY2luZyBhbm90aGVyIHNjaGVkdWxlZCBldmVudCBsZWF2ZXMgdGhlIHJ1bGUgcGVuZGluZyByYXRoZXIgdGhhbiB2aW9sYXRlZDsgdGhlIG1vZGVsIFByb3BlcnR5IHN0aWxsIGRpc3Rpbmd1aXNoZXMgdGhlIHR3byIKICAgIH0KICBdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVtcG9yYWwubmV4dXMuc3VjY2Vzcy50eXBlZC1uZXh1cy5jbGF1c2UuYm91bmRlZC1jb21wbGV0aW9uIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVtcG9yYWwubmV4dXMuc3VjY2Vzcy50eXBlZC1uZXh1cy5wcm9wZXJ0eS5ib3VuZGVkLWNvbXBsZXRpb24iLAogICAgICAicHJvcGVydHlGaW5nZXJwcmludCI6ICJzaGEyNTY6NTg5NzEyNDczNzE5ZGU1OGZhOTlhYmI3N2U1MDQ0YTM4M2ZjNTFjMWU1ODgyODNkZDgwMjMwYzM3NDA1NjU4NyIsCiAgICAgICJwcm9qZWN0aW9uSWQiOiAidGVtcG9yYWwubmV4dXMuc3VjY2Vzcy50eXBlZC1uZXh1cy5wcm9qZWN0aW9uIiwKICAgICAgInByb2plY3Rpb25GaW5nZXJwcmludCI6ICJzaGEyNTY6NDU1OTA5Mjc1MzFhYTYyMzEwOTdkNTA1NDJmODkwOWI4MWY3YmE2NDEwMTU2OTJlYjY2MjkyMzVkYTRhODhiZSIsCiAgICAgICJzb3VyY2UiOiB7CiAgICAgICAgInBhdGgiOiAiVGVtcG9yYWwvRmVhdHVyZS9OZXh1cy9TdWNjZXNzL1R5cGVkTmV4dXMubGVhbiIsCiAgICAgICAgImxpbmUiOiAiMSIsCiAgICAgICAgImNvbHVtbiI6ICIxIiwKICAgICAgICAicHJvdmVuYW5jZSI6ICJsZWFuLW1vZGVsIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
     "producerId": "temporal.nexus.success.typed-nexus",
     "producerVersion": "1"
   },

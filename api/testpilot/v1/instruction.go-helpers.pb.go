@@ -807,12 +807,12 @@ func FaultKindFromString(s string) (FaultKind, error) {
 
 var (
 	InstructionOutcomeStatus_shorthandValue = map[string]int32{
-		"Unspecified":        0,
-		"Succeeded":          1,
-		"ProtocolNonSuccess": 2,
-		"SdkFailure":         3,
-		"TimedOut":           4,
-		"Canceled":           5,
+		"Unspecified":     0,
+		"Succeeded":       1,
+		"ProtocolFailure": 2,
+		"SdkFailure":      3,
+		"TimedOut":        4,
+		"Canceled":        5,
 	}
 )
 

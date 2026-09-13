@@ -307,7 +307,7 @@ func projectFacadeRun(run *testpilotspb.Run) facadeStableRunProjection {
 		cleanupDiagnostics = append(cleanupDiagnostics, diagnosticsByID[diagnosticID])
 	}
 	return facadeStableRunProjection{
-		CaseID: run.GetCaseId(), ProgramID: run.GetProgramId(), Disposition: dispositionName(run.GetStatus()),
+		CaseID: run.GetCaseId(), ProgramID: run.GetProgramId(), Disposition: dispositionName(run.GetDisposition()),
 		CleanupStatus: cleanupStatusName(run.GetCleanup().GetStatus()), CleanupDiagnostics: cleanupDiagnostics,
 		Events: events, Diagnostics: diagnostics, VerdictStatus: verdictName(run.GetVerdict().GetStatus()), Rules: rules,
 		SupportingEventSequences: append([]int64{}, run.GetVerdict().GetSupportingEventSequences()...),
@@ -406,13 +406,13 @@ func eventKindName(kind testpilotspb.RunEventKind) string {
 	}
 }
 
-func dispositionName(value testpilotspb.RunStatus) string {
+func dispositionName(value testpilotspb.RunDisposition) string {
 	switch value {
-	case testpilotspb.RUN_STATUS_COMPLETED:
+	case testpilotspb.RUN_DISPOSITION_COMPLETED:
 		return "COMPLETED"
-	case testpilotspb.RUN_STATUS_STOPPED_BY_MONITOR:
+	case testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR:
 		return "STOPPED_BY_MONITOR"
-	case testpilotspb.RUN_STATUS_INCOMPLETE:
+	case testpilotspb.RUN_DISPOSITION_INCOMPLETE:
 		return "INCOMPLETE"
 	default:
 		return "UNSPECIFIED"
@@ -485,8 +485,8 @@ func outcomeStatusName(value testpilotspb.InstructionOutcomeStatus) string {
 	switch value {
 	case testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED:
 		return "SUCCEEDED"
-	case testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS:
-		return "PROTOCOL_NON_SUCCESS"
+	case testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE:
+		return "PROTOCOL_FAILURE"
 	case testpilotspb.INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE:
 		return "SDK_FAILURE"
 	case testpilotspb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT:

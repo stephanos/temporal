@@ -517,7 +517,7 @@ func RunEventKindFromString(s string) (RunEventKind, error) {
 }
 
 var (
-	RunStatus_shorthandValue = map[string]int32{
+	RunDisposition_shorthandValue = map[string]int32{
 		"Unspecified":      0,
 		"Completed":        1,
 		"StoppedByMonitor": 2,
@@ -525,15 +525,15 @@ var (
 	}
 )
 
-// RunStatusFromString parses a RunStatus value from  either the protojson
-// canonical SCREAMING_CASE enum or the traditional temporal PascalCase enum to RunStatus
-func RunStatusFromString(s string) (RunStatus, error) {
-	if v, ok := RunStatus_value[s]; ok {
-		return RunStatus(v), nil
-	} else if v, ok := RunStatus_shorthandValue[s]; ok {
-		return RunStatus(v), nil
+// RunDispositionFromString parses a RunDisposition value from  either the protojson
+// canonical SCREAMING_CASE enum or the traditional temporal PascalCase enum to RunDisposition
+func RunDispositionFromString(s string) (RunDisposition, error) {
+	if v, ok := RunDisposition_value[s]; ok {
+		return RunDisposition(v), nil
+	} else if v, ok := RunDisposition_shorthandValue[s]; ok {
+		return RunDisposition(v), nil
 	}
-	return RunStatus(0), fmt.Errorf("%s is not a valid RunStatus", s)
+	return RunDisposition(0), fmt.Errorf("%s is not a valid RunDisposition", s)
 }
 
 var (

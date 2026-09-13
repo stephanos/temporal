@@ -9,11 +9,11 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func correlatedValue(v *testpilotspb.CorrelatedValue) bool {
+func validModelValue(v *testpilotspb.ModelValue) bool {
 	return v != nil && validID(v.DefinitionId)
 }
 func sameResult(a, b *testpilotspb.CorrelatedTransition) bool {
-	return proto.Equal(a.Action, b.Action) && proto.Equal(a.State, b.State) && proto.Equal(a.Outcome, b.Outcome) && slices.EqualFunc(a.Facts, b.Facts, func(x, y *testpilotspb.CorrelatedValue) bool { return proto.Equal(x, y) })
+	return proto.Equal(a.Action, b.Action) && proto.Equal(a.State, b.State) && proto.Equal(a.Outcome, b.Outcome) && slices.EqualFunc(a.Facts, b.Facts, func(x, y *testpilotspb.ModelValue) bool { return proto.Equal(x, y) })
 }
 func uniqueIDs(ids []string) bool {
 	seen := map[string]bool{}
@@ -49,7 +49,7 @@ func (a *admission) bindCorrelated(seen map[string]bool) error {
 	if s.Version != 1 {
 		return invalid(ir.Unknown, "unsupported correlated capability version")
 	}
-	if !validID(s.ProjectionId) || s.ProjectionFingerprint == "" || !validID(s.OperationField) || !uniqueIDs(s.ScopeFields) || slices.Contains(s.ScopeFields, s.OperationField) || !uniqueIDs(s.Sources) || !correlatedValue(s.InitialState) {
+	if !validID(s.ProjectionId) || s.ProjectionFingerprint == "" || !validID(s.OperationField) || !uniqueIDs(s.ScopeFields) || slices.Contains(s.ScopeFields, s.OperationField) || !uniqueIDs(s.Sources) || !validModelValue(s.InitialState) {
 		return invalid(ir.Malformed, "invalid correlated projection binding")
 	}
 	typ, ok := a.prepared.observations[s.EvidenceObservationId]
@@ -72,8 +72,8 @@ func (a *admission) bindCorrelated(seen map[string]bool) error {
 			return invalid(ir.LimitExceeded, "correlated limits must be positive")
 		}
 	}
-	capturesDeclared := slices.ContainsFunc(s.Clauses, func(c *testpilotspb.CorrelatedRule) bool { return len(c.Captures) > 0 })
-	correlationDeclared := slices.ContainsFunc(s.Clauses, func(c *testpilotspb.CorrelatedRule) bool { return c.Correlation != nil })
+	capturesDeclared := slices.ContainsFunc(s.Rules, func(c *testpilotspb.CorrelatedRule) bool { return len(c.Captures) > 0 })
+	correlationDeclared := slices.ContainsFunc(s.Rules, func(c *testpilotspb.CorrelatedRule) bool { return c.Correlation != nil })
 	if l.MaxCaptures < 0 || l.MaxCorrelationDepth < 0 || capturesDeclared && l.MaxCaptures <= 0 || correlationDeclared && l.MaxCorrelationDepth <= 0 {
 		return invalid(ir.LimitExceeded, "correlated capture limits must be positive when declared")
 	}
@@ -101,7 +101,7 @@ func (a *admission) bindCorrelated(seen map[string]bool) error {
 	if err := add(&a.captureBytes, bytes, limits.MaxCaptureBytes); err != nil {
 		return err
 	}
-	if len(s.Transitions) == 0 || len(s.ProjectionRules) == 0 || len(s.Clauses) == 0 {
+	if len(s.Transitions) == 0 || len(s.ProjectionRules) == 0 || len(s.Rules) == 0 {
 		return invalid(ir.Malformed, "correlated transition table, projection and clauses required")
 	}
 	if err := add(&a.transitions, int64(len(s.Transitions)), limits.MaxTransitions); err != nil {
@@ -109,13 +109,13 @@ func (a *admission) bindCorrelated(seen map[string]bool) error {
 	}
 	states := map[[2]string]bool{{s.InitialState.DefinitionId, s.InitialState.Value}: true}
 	for _, tr := range s.Transitions {
-		if !correlatedValue(tr.PriorState) || !correlatedValue(tr.Action) || !correlatedValue(tr.State) || !correlatedValue(tr.Outcome) {
+		if !validModelValue(tr.PriorState) || !validModelValue(tr.Action) || !validModelValue(tr.State) || !validModelValue(tr.Outcome) {
 			return invalid(ir.Malformed, "invalid correlated transition value")
 		}
 		states[[2]string{tr.PriorState.DefinitionId, tr.PriorState.Value}] = true
 		states[[2]string{tr.State.DefinitionId, tr.State.Value}] = true
 		for _, fact := range tr.Facts {
-			if !correlatedValue(fact) {
+			if !validModelValue(fact) {
 				return invalid(ir.Malformed, "invalid correlated fact")
 			}
 		}
@@ -137,7 +137,7 @@ func (a *admission) bindCorrelated(seen map[string]bool) error {
 				return invalid(ir.Malformed, "irrelevant evidence has semantic outputs")
 			}
 		case testpilotspb.CORRELATED_EVIDENCE_MEANING_SUBMISSION:
-			if !correlatedValue(r.Submission) || len(r.Outputs) > 0 || !slices.ContainsFunc(s.Transitions, func(tr *testpilotspb.CorrelatedTransition) bool { return proto.Equal(tr.Action, r.Submission) }) {
+			if !validModelValue(r.Submission) || len(r.Outputs) > 0 || !slices.ContainsFunc(s.Transitions, func(tr *testpilotspb.CorrelatedTransition) bool { return proto.Equal(tr.Action, r.Submission) }) {
 				return invalid(ir.Malformed, "invalid submission")
 			}
 		case testpilotspb.CORRELATED_EVIDENCE_MEANING_CONFIRMED:
@@ -173,25 +173,25 @@ func (a *admission) bindCorrelated(seen map[string]bool) error {
 			}
 		}
 	}
-	if int64(len(seen)+len(s.Clauses)) > limits.MaxRules {
+	if int64(len(seen)+len(s.Rules)) > limits.MaxRules {
 		return invalid(ir.LimitExceeded, "combined rule count exceeds ceiling")
 	}
 	// Capture identities are one namespace across the capability: a retained occurrence is named by
 	// its capture id and ordinal alone, so two clauses declaring one id would alias the same stream.
 	declared := map[string]bool{}
-	for _, c := range s.Clauses {
-		if !validID(c.ClauseId) || seen[c.ClauseId] {
+	for _, c := range s.Rules {
+		if !validID(c.RuleId) || seen[c.RuleId] {
 			return invalid(ir.Malformed, "invalid clause provenance")
 		}
-		seen[c.ClauseId] = true
+		seen[c.RuleId] = true
 		if c.Clock != testpilotspb.CORRELATED_CLOCK_OPERATION_TRANSITIONS || c.Bound < 0 || c.Ending < testpilotspb.TRACE_ENDING_PARTIAL || c.Ending > testpilotspb.TRACE_ENDING_FINAL || !validPredicate(c.Trigger, true) || !validPredicate(c.Response, false) {
-			return invalid(ir.Unknown, fmt.Sprintf("unsupported correlated rule %s", c.ClauseId))
+			return invalid(ir.Unknown, fmt.Sprintf("unsupported correlated rule %s", c.RuleId))
 		}
 		captures := map[string]correlatedCapture{}
 		for _, d := range c.Captures {
 			kind, ok := retained[d.FieldId]
 			if !validID(d.CaptureId) || declared[d.CaptureId] || !validID(d.FieldId) || d.Lifetime <= 0 || !ok || ambiguous[d.FieldId] {
-				return invalid(ir.Malformed, fmt.Sprintf("invalid capture declaration in correlated rule %s", c.ClauseId))
+				return invalid(ir.Malformed, fmt.Sprintf("invalid capture declaration in correlated rule %s", c.RuleId))
 			}
 			declared[d.CaptureId] = true
 			captures[d.CaptureId] = correlatedCapture{lifetime: d.Lifetime, kind: kind}

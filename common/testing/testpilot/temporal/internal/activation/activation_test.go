@@ -100,15 +100,15 @@ func preparedRuntimeFixtureWithProfile(t *testing.T, responseKind testpilotspb.N
 	contract := &testpilotspb.Contract{
 		ContractId: "contract",
 		Limits:     contractLimits,
-		Rules: []*testpilotspb.ContractRuleDefinition{{
+		Rules: []*testpilotspb.ContractRule{{
 			RuleId:         "complete",
 			Kind:           testpilotspb.CONTRACT_RULE_KIND_SAFETY,
 			InitialStateId: "open",
-			States: []*testpilotspb.ContractStateDefinition{
-				{StateId: "open", Status: testpilotspb.CONTRACT_STATE_STATUS_NONTERMINAL},
+			States: []*testpilotspb.ContractState{
+				{StateId: "open", Status: testpilotspb.CONTRACT_STATE_STATUS_PENDING},
 				{StateId: "closed", Status: testpilotspb.CONTRACT_STATE_STATUS_SATISFIED},
 			},
-			Transitions: []*testpilotspb.ContractTransitionDefinition{{
+			Transitions: []*testpilotspb.ContractTransition{{
 				TransitionId:  "close",
 				SourceStateId: "open",
 				TargetStateId: "closed",
@@ -327,7 +327,7 @@ func TestRejectedOutcomesAreAtomic(t *testing.T) {
 		"missing value":  {Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED},
 		"wrong type":     {Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}},
 		"oversized":      success(strings.Repeat("x", 65537)),
-		"protocol":       {Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS},
+		"protocol":       {Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE},
 	} {
 		t.Run(name, func(t *testing.T) {
 			state := newState(t, plan)

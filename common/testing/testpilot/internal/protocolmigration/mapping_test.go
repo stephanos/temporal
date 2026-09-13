@@ -1,6 +1,7 @@
 package protocolmigration
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"os"
@@ -238,6 +239,72 @@ func TestMappingHelpers(t *testing.T) {
 			encoded, err := json.Marshal(mapped)
 			require.NoError(t, err)
 			require.JSONEq(t, tc.want, string(encoded))
+		})
+	}
+}
+
+func TestRenameMessageRewritesAnyTypeURL(t *testing.T) {
+	t.Parallel()
+
+	tree := []any{
+		&Object{Message: anyMessage, Fields: map[string]any{"@type": "type.googleapis.com/test.v1.Old", "field": "kept"}},
+		&Object{Message: anyMessage, Fields: map[string]any{"@type": "type.googleapis.com/test.v1.OldSibling"}},
+		&Object{Message: "test.v1.Old", Fields: map[string]any{"@type": "type.googleapis.com/test.v1.Old"}},
+	}
+	mapped, err := RenameMessage("test.v1.Old", "test.v1.New")("fixture.json", tree)
+	require.NoError(t, err)
+	encoded, err := json.Marshal(mapped)
+	require.NoError(t, err)
+	require.JSONEq(t, `[
+		{"@type": "type.googleapis.com/test.v1.New", "field": "kept"},
+		{"@type": "type.googleapis.com/test.v1.OldSibling"},
+		{"@type": "type.googleapis.com/test.v1.Old"}
+	]`, string(encoded))
+}
+
+func TestRenameCorrelatedRuleKey(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name            string
+		payload         string
+		want            string
+		wantErrorSubstr string
+	}{
+		{
+			name:    "renames the key of every rule in place",
+			payload: "{\n  \"correlatedRules\": [\n    {\n      \"old\": \"a\",\n      \"other\": \"b\"\n    }\n  ]\n}",
+			want:    "{\n  \"correlatedRules\": [\n    {\n      \"new\": \"a\",\n      \"other\": \"b\"\n    }\n  ]\n}",
+		},
+		{
+			name:    "leaves a payload without the key untouched",
+			payload: "\x00\xff\x80",
+			want:    "\x00\xff\x80",
+		},
+		{
+			name:            "rejects the key outside the rules",
+			payload:         `{"old": "a", "correlatedRules": [{"old": "b"}]}`,
+			wantErrorSubstr: `producerData spells "old" outside its correlatedRules entries`,
+		},
+		{
+			name:            "rejects a rule without the key",
+			payload:         `{"correlatedRules": [{"old": "a"}, {"other": "b"}]}`,
+			wantErrorSubstr: `producerData correlatedRules[1] does not carry "old" alone`,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			object := &Object{Fields: map[string]any{"producerData": base64.StdEncoding.EncodeToString([]byte(tc.payload))}}
+			mapped, err := renameCorrelatedRuleKey("old", "new")("fixture.json", object)
+			if tc.wantErrorSubstr != "" {
+				require.ErrorContains(t, err, tc.wantErrorSubstr)
+				return
+			}
+			require.NoError(t, err)
+			renamed, ok := mapped.(*Object)
+			require.True(t, ok)
+			require.Equal(t, base64.StdEncoding.EncodeToString([]byte(tc.want)), renamed.Fields["producerData"])
 		})
 	}
 }

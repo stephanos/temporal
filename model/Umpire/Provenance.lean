@@ -59,7 +59,7 @@ structure KnownGap where
 
 /-- Exact source binding for one compiled correlated rule. -/
 structure CorrelatedRuleBinding where
-  clauseId : String
+  ruleId : String
   propertyId : String
   propertyFingerprint : String
   projectionId : String
@@ -125,7 +125,7 @@ def producerData (metadata : Metadata) : ByteArray := (CanonicalJson.object ([
     gap.detail.toList.map (fun detail => ("detail", .string detail)))))
  ] ++ if metadata.correlatedRules.isEmpty then [] else [
   ("correlatedRules", .array (metadata.correlatedRules.map fun rule => .object [
-    ("clauseId", .string rule.clauseId),
+    ("ruleId", .string rule.ruleId),
     ("propertyId", .string rule.propertyId),
     ("propertyFingerprint", .string rule.propertyFingerprint),
     ("projectionId", .string rule.projectionId),

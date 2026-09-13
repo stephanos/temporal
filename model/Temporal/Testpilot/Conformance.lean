@@ -11,9 +11,9 @@ private def conformanceProperty (caseId : String) :=
 
 private def conformanceRule
     (terminal : ContractStateStatus)
-    (matchesEvent : Bool) : ContractRuleDefinition :=
+    (matchesEvent : Bool) : ContractRule :=
   Contract.rule "result" .CONTRACT_RULE_KIND_SAFETY "pending"
-    #[Contract.state "pending" .CONTRACT_STATE_STATUS_NONTERMINAL,
+    #[Contract.state "pending" .CONTRACT_STATE_STATUS_PENDING,
       Contract.state "terminal" terminal]
     #[Contract.transition "complete" "pending" "terminal"
       #[.RUN_EVENT_KIND_INSTRUCTION_COMPLETED]

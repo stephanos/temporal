@@ -358,7 +358,7 @@ func TestLeanAsyncNexusPreparedCaseReuseAndCorrelation(t *testing.T) {
 	identities := make(map[string]struct{}, 6)
 	for result := range results {
 		require.NoError(t, result.err)
-		require.Equal(t, testpilotspb.RUN_STATUS_COMPLETED, result.run.GetStatus())
+		require.Equal(t, testpilotspb.RUN_DISPOSITION_COMPLETED, result.run.GetDisposition())
 		require.Equal(t, testpilotspb.VERDICT_STATUS_SATISFIED, result.verdict.GetStatus())
 		require.NotContains(t, identities, result.run.GetRunId())
 		identities[result.run.GetRunId()] = struct{}{}
@@ -374,14 +374,14 @@ func TestLeanAsyncNexusPreparedCaseReuseAndCorrelation(t *testing.T) {
 		mode   artifactMode
 		status testpilotspb.InstructionOutcomeStatus
 	}{
-		{name: "protocol non-success", mode: artifactNonSuccess, status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS},
+		{name: "protocol non-success", mode: artifactNonSuccess, status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE},
 		{name: "timeout", mode: artifactTimeout, status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			driver := &artifactDriver{identity: prepared.Identity(), mode: test.mode}
 			actual, verdict, err := prepared.Run(t.Context(), driver)
 			require.NoError(t, err)
-			require.Equal(t, testpilotspb.RUN_STATUS_COMPLETED, actual.GetStatus())
+			require.Equal(t, testpilotspb.RUN_DISPOSITION_COMPLETED, actual.GetDisposition())
 			require.Equal(t, testpilotspb.VERDICT_STATUS_INCONCLUSIVE, verdict.GetStatus())
 			require.True(t, hasOutcome(actual, "start-workflow", test.status))
 		})
@@ -394,20 +394,20 @@ func TestLeanAsyncNexusPreparedCaseReuseAndCorrelation(t *testing.T) {
 	for _, test := range []struct {
 		name   string
 		mode   artifactMode
-		status testpilotspb.RunStatus
+		status testpilotspb.RunDisposition
 	}{
-		{name: "missing completion", mode: artifactMissingCompletion, status: testpilotspb.RUN_STATUS_COMPLETED},
-		{name: "foreign completion", mode: artifactForeignCompletion, status: testpilotspb.RUN_STATUS_INCOMPLETE},
-		{name: "duplicate and unrelated events", mode: artifactDuplicateOnly, status: testpilotspb.RUN_STATUS_INCOMPLETE},
+		{name: "missing completion", mode: artifactMissingCompletion, status: testpilotspb.RUN_DISPOSITION_COMPLETED},
+		{name: "foreign completion", mode: artifactForeignCompletion, status: testpilotspb.RUN_DISPOSITION_INCOMPLETE},
+		{name: "duplicate and unrelated events", mode: artifactDuplicateOnly, status: testpilotspb.RUN_DISPOSITION_INCOMPLETE},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			driver := &artifactDriver{identity: prepared.Identity(), mode: test.mode}
 			actual, verdict, err := prepared.Run(t.Context(), driver)
 			require.NoError(t, err)
-			require.Equal(t, test.status, actual.GetStatus())
+			require.Equal(t, test.status, actual.GetDisposition())
 			require.Equal(t, testpilotspb.VERDICT_STATUS_INCONCLUSIVE, verdict.GetStatus())
 			require.Less(t, len(verdict.GetSupportingEventSequences()), 2)
-			require.Equal(t, test.status == testpilotspb.RUN_STATUS_INCOMPLETE, actual.GetEvaluationFailure() != nil)
+			require.Equal(t, test.status == testpilotspb.RUN_DISPOSITION_INCOMPLETE, actual.GetEvaluationFailure() != nil)
 		})
 	}
 }
@@ -536,7 +536,7 @@ func (s *artifactSession) InvokeRPC(_ context.Context, coordinate testpilot.Coor
 		}
 		switch s.mode {
 		case artifactNonSuccess:
-			result.Outcome = &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS}
+			result.Outcome = &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE}
 		case artifactTimeout:
 			result.Outcome = &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT}
 		default:

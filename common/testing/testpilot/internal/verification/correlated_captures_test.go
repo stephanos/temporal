@@ -67,7 +67,7 @@ func correlatedCaptureFixture(t *testing.T, bound, lifetime int64, correlation *
 			// "tick" and "poll" declare no field, so a correlation reading one finds none.
 		}
 	}
-	clause := c.Correlated.Clauses[0]
+	clause := c.Correlated.Rules[0]
 	if lifetime > 0 {
 		clause.Captures = []*testpilotspb.CorrelatedCaptureDeclaration{{CaptureId: "seen", FieldId: capturedField, Lifetime: lifetime}}
 	}
@@ -251,7 +251,7 @@ func TestCorrelatedCapturePrepareRejectsUnsupportedDeclarations(t *testing.T) {
 		reason string
 	}{
 		"unretained-capture-field": {
-			mutate: func(s *testpilotspb.CorrelatedContract) { s.Clauses[0].Captures[0].FieldId = "absent" },
+			mutate: func(s *testpilotspb.CorrelatedContract) { s.Rules[0].Captures[0].FieldId = "absent" },
 			reason: "invalid capture declaration",
 		},
 		"redacted-capture-field": {
@@ -267,67 +267,67 @@ func TestCorrelatedCapturePrepareRejectsUnsupportedDeclarations(t *testing.T) {
 			reason: "invalid capture declaration",
 		},
 		"zero-lifetime": {
-			mutate: func(s *testpilotspb.CorrelatedContract) { s.Clauses[0].Captures[0].Lifetime = 0 },
+			mutate: func(s *testpilotspb.CorrelatedContract) { s.Rules[0].Captures[0].Lifetime = 0 },
 			reason: "invalid capture declaration",
 		},
 		"repeated-capture-id": {
 			mutate: func(s *testpilotspb.CorrelatedContract) {
-				s.Clauses[0].Captures = append(s.Clauses[0].Captures, proto.CloneOf(s.Clauses[0].Captures[0]))
+				s.Rules[0].Captures = append(s.Rules[0].Captures, proto.CloneOf(s.Rules[0].Captures[0]))
 			},
 			reason: "invalid capture declaration",
 		},
 		"ordinal-beyond-lifetime": {
-			mutate: func(s *testpilotspb.CorrelatedContract) { s.Clauses[0].Correlation = correlatedCorrelation(2) },
+			mutate: func(s *testpilotspb.CorrelatedContract) { s.Rules[0].Correlation = correlatedCorrelation(2) },
 			reason: "unbound capture reference",
 		},
 		"unknown-capture": {
 			mutate: func(s *testpilotspb.CorrelatedContract) {
-				s.Clauses[0].Correlation = correlatedComparison(testpilotspb.CORRELATED_COMPARISON_OPERATOR_EQUAL, correlatedFieldOperand(repliedField), correlatedCaptureOperand("other", 0))
+				s.Rules[0].Correlation = correlatedComparison(testpilotspb.CORRELATED_COMPARISON_OPERATOR_EQUAL, correlatedFieldOperand(repliedField), correlatedCaptureOperand("other", 0))
 			},
 			reason: "unbound capture reference",
 		},
 		"unretained-operand": {
 			mutate: func(s *testpilotspb.CorrelatedContract) {
-				s.Clauses[0].Correlation = correlatedComparison(testpilotspb.CORRELATED_COMPARISON_OPERATOR_EQUAL, correlatedFieldOperand("absent"), correlatedCaptureOperand("seen", 0))
+				s.Rules[0].Correlation = correlatedComparison(testpilotspb.CORRELATED_COMPARISON_OPERATOR_EQUAL, correlatedFieldOperand("absent"), correlatedCaptureOperand("seen", 0))
 			},
 			reason: "unretained correlation field operand",
 		},
 		"empty-group": {
-			mutate: func(s *testpilotspb.CorrelatedContract) { s.Clauses[0].Correlation = correlatedAny() },
+			mutate: func(s *testpilotspb.CorrelatedContract) { s.Rules[0].Correlation = correlatedAny() },
 			reason: "empty correlation group",
 		},
 		"unsupported-operator": {
 			mutate: func(s *testpilotspb.CorrelatedContract) {
-				s.Clauses[0].Correlation = correlatedComparison(testpilotspb.CORRELATED_COMPARISON_OPERATOR_UNSPECIFIED, correlatedLiteralOperand("1"), correlatedCaptureOperand("seen", 0))
+				s.Rules[0].Correlation = correlatedComparison(testpilotspb.CORRELATED_COMPARISON_OPERATOR_UNSPECIFIED, correlatedLiteralOperand("1"), correlatedCaptureOperand("seen", 0))
 			},
 			reason: "unsupported comparison operator",
 		},
 		"unsupported-literal": {
 			mutate: func(s *testpilotspb.CorrelatedContract) {
-				s.Clauses[0].Correlation = correlatedComparison(testpilotspb.CORRELATED_COMPARISON_OPERATOR_EQUAL, &testpilotspb.CorrelatedOperand{Operand: &testpilotspb.CorrelatedOperand_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_Natural{Natural: "01"}}}}, correlatedCaptureOperand("seen", 0))
+				s.Rules[0].Correlation = correlatedComparison(testpilotspb.CORRELATED_COMPARISON_OPERATOR_EQUAL, &testpilotspb.CorrelatedOperand{Operand: &testpilotspb.CorrelatedOperand_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_Natural{Natural: "01"}}}}, correlatedCaptureOperand("seen", 0))
 			},
 			reason: "unsupported correlation literal",
 		},
 		"repeated-capture-id-across-clauses": {
 			mutate: func(s *testpilotspb.CorrelatedContract) {
-				second := proto.CloneOf(s.Clauses[0])
-				second.ClauseId = "second"
-				s.Clauses = append(s.Clauses, second)
+				second := proto.CloneOf(s.Rules[0])
+				second.RuleId = "second"
+				s.Rules = append(s.Rules, second)
 			},
 			reason: "invalid capture declaration",
 		},
 		"capture-of-another-clause": {
 			mutate: func(s *testpilotspb.CorrelatedContract) {
-				second := proto.CloneOf(s.Clauses[0])
-				second.ClauseId = "second"
+				second := proto.CloneOf(s.Rules[0])
+				second.RuleId = "second"
 				second.Captures = nil
-				s.Clauses = append(s.Clauses, second)
+				s.Rules = append(s.Rules, second)
 			},
 			reason: "unbound capture reference",
 		},
 		"mismatched-operand-kinds": {
 			mutate: func(s *testpilotspb.CorrelatedContract) {
-				s.Clauses[0].Correlation = correlatedComparison(testpilotspb.CORRELATED_COMPARISON_OPERATOR_EQUAL, correlatedFieldOperand(repliedField), &testpilotspb.CorrelatedOperand{Operand: &testpilotspb.CorrelatedOperand_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_Natural{Natural: "1"}}}})
+				s.Rules[0].Correlation = correlatedComparison(testpilotspb.CORRELATED_COMPARISON_OPERATOR_EQUAL, correlatedFieldOperand(repliedField), &testpilotspb.CorrelatedOperand{Operand: &testpilotspb.CorrelatedOperand_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_Natural{Natural: "1"}}}})
 			},
 			reason: "incompatible correlation operand types",
 		},
@@ -379,7 +379,7 @@ func TestCorrelatedCapabilityWithoutCapturesIsUnchanged(t *testing.T) {
 	c, catalog, view, ceiling := correlatedFixture(t, 1)
 	require.Zero(t, c.Correlated.Limits.MaxCaptures)
 	require.Zero(t, c.Correlated.Limits.MaxCorrelationDepth)
-	require.True(t, slices.ContainsFunc(c.Correlated.Clauses, func(clause *testpilotspb.CorrelatedRule) bool {
+	require.True(t, slices.ContainsFunc(c.Correlated.Rules, func(clause *testpilotspb.CorrelatedRule) bool {
 		return len(clause.Captures) == 0 && clause.Correlation == nil
 	}))
 	p, err := Prepare(c, catalog, view, ceiling)
@@ -415,7 +415,7 @@ func TestCorrelatedCaptureLiveAndOfflineAgree(t *testing.T) {
 			for split := 0; split <= len(tc.steps); split++ {
 				monitor, err := prepared.New(context.Background(), view)
 				require.NoError(t, err)
-				run := &testpilotspb.Run{RunId: "one", CaseId: "correlated.case", ProgramId: "correlated.program", Status: testpilotspb.RUN_STATUS_COMPLETED, Events: []*testpilotspb.RunEvent{event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED)}}
+				run := &testpilotspb.Run{RunId: "one", CaseId: "correlated.case", ProgramId: "correlated.program", Disposition: testpilotspb.RUN_DISPOSITION_COMPLETED, Events: []*testpilotspb.RunEvent{event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED)}}
 				_, err = monitor.Observe(context.Background(), run.Events[0])
 				require.NoError(t, err)
 				for _, chunk := range [][]correlatedStep{tc.steps[:split], tc.steps[split:]} {

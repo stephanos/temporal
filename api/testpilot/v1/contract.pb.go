@@ -91,7 +91,7 @@ type ContractStateStatus int32
 
 const (
 	CONTRACT_STATE_STATUS_UNSPECIFIED ContractStateStatus = 0
-	CONTRACT_STATE_STATUS_NONTERMINAL ContractStateStatus = 1
+	CONTRACT_STATE_STATUS_PENDING     ContractStateStatus = 1
 	CONTRACT_STATE_STATUS_SATISFIED   ContractStateStatus = 2
 	CONTRACT_STATE_STATUS_VIOLATED    ContractStateStatus = 3
 )
@@ -100,13 +100,13 @@ const (
 var (
 	ContractStateStatus_name = map[int32]string{
 		0: "CONTRACT_STATE_STATUS_UNSPECIFIED",
-		1: "CONTRACT_STATE_STATUS_NONTERMINAL",
+		1: "CONTRACT_STATE_STATUS_PENDING",
 		2: "CONTRACT_STATE_STATUS_SATISFIED",
 		3: "CONTRACT_STATE_STATUS_VIOLATED",
 	}
 	ContractStateStatus_value = map[string]int32{
 		"CONTRACT_STATE_STATUS_UNSPECIFIED": 0,
-		"CONTRACT_STATE_STATUS_NONTERMINAL": 1,
+		"CONTRACT_STATE_STATUS_PENDING":     1,
 		"CONTRACT_STATE_STATUS_SATISFIED":   2,
 		"CONTRACT_STATE_STATUS_VIOLATED":    3,
 	}
@@ -122,8 +122,8 @@ func (x ContractStateStatus) String() string {
 	switch x {
 	case CONTRACT_STATE_STATUS_UNSPECIFIED:
 		return "Unspecified"
-	case CONTRACT_STATE_STATUS_NONTERMINAL:
-		return "Nonterminal"
+	case CONTRACT_STATE_STATUS_PENDING:
+		return "Pending"
 	case CONTRACT_STATE_STATUS_SATISFIED:
 		return "Satisfied"
 	case CONTRACT_STATE_STATUS_VIOLATED:
@@ -579,7 +579,7 @@ func (CorrelatedComparisonOperator) EnumDescriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP(), []int{8}
 }
 
-type ContractStateDefinition struct {
+type ContractState struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	StateId       string                 `protobuf:"bytes,1,opt,name=state_id,json=stateId,proto3" json:"state_id,omitempty"`
 	Status        ContractStateStatus    `protobuf:"varint,2,opt,name=status,proto3,enum=temporal.server.api.testpilot.v1.ContractStateStatus" json:"status,omitempty"`
@@ -587,20 +587,20 @@ type ContractStateDefinition struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ContractStateDefinition) Reset() {
-	*x = ContractStateDefinition{}
+func (x *ContractState) Reset() {
+	*x = ContractState{}
 	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ContractStateDefinition) String() string {
+func (x *ContractState) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ContractStateDefinition) ProtoMessage() {}
+func (*ContractState) ProtoMessage() {}
 
-func (x *ContractStateDefinition) ProtoReflect() protoreflect.Message {
+func (x *ContractState) ProtoReflect() protoreflect.Message {
 	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -612,19 +612,19 @@ func (x *ContractStateDefinition) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ContractStateDefinition.ProtoReflect.Descriptor instead.
-func (*ContractStateDefinition) Descriptor() ([]byte, []int) {
+// Deprecated: Use ContractState.ProtoReflect.Descriptor instead.
+func (*ContractState) Descriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *ContractStateDefinition) GetStateId() string {
+func (x *ContractState) GetStateId() string {
 	if x != nil {
 		return x.StateId
 	}
 	return ""
 }
 
-func (x *ContractStateDefinition) GetStatus() ContractStateStatus {
+func (x *ContractState) GetStatus() ContractStateStatus {
 	if x != nil {
 		return x.Status
 	}
@@ -729,7 +729,7 @@ func (*ContractCaptureType_Enumeration) isContractCaptureType_Type() {}
 
 func (*ContractCaptureType_Message) isContractCaptureType_Type() {}
 
-type ContractCaptureDefinition struct {
+type ContractCapture struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	CaptureId     string                 `protobuf:"bytes,1,opt,name=capture_id,json=captureId,proto3" json:"capture_id,omitempty"`
 	Type          *ContractCaptureType   `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`
@@ -737,20 +737,20 @@ type ContractCaptureDefinition struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ContractCaptureDefinition) Reset() {
-	*x = ContractCaptureDefinition{}
+func (x *ContractCapture) Reset() {
+	*x = ContractCapture{}
 	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ContractCaptureDefinition) String() string {
+func (x *ContractCapture) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ContractCaptureDefinition) ProtoMessage() {}
+func (*ContractCapture) ProtoMessage() {}
 
-func (x *ContractCaptureDefinition) ProtoReflect() protoreflect.Message {
+func (x *ContractCapture) ProtoReflect() protoreflect.Message {
 	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -762,19 +762,19 @@ func (x *ContractCaptureDefinition) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ContractCaptureDefinition.ProtoReflect.Descriptor instead.
-func (*ContractCaptureDefinition) Descriptor() ([]byte, []int) {
+// Deprecated: Use ContractCapture.ProtoReflect.Descriptor instead.
+func (*ContractCapture) Descriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *ContractCaptureDefinition) GetCaptureId() string {
+func (x *ContractCapture) GetCaptureId() string {
 	if x != nil {
 		return x.CaptureId
 	}
 	return ""
 }
 
-func (x *ContractCaptureDefinition) GetType() *ContractCaptureType {
+func (x *ContractCapture) GetType() *ContractCaptureType {
 	if x != nil {
 		return x.Type
 	}
@@ -833,8 +833,8 @@ func (x *ContractCaptureAssignment) GetObservation() *ObservationRef {
 	return nil
 }
 
-// ContractTransitionDefinition is evaluated in declaration order for its source state and event kind.
-type ContractTransitionDefinition struct {
+// ContractTransition is evaluated in declaration order for its source state and event kind.
+type ContractTransition struct {
 	state              protoimpl.MessageState       `protogen:"open.v1"`
 	TransitionId       string                       `protobuf:"bytes,1,opt,name=transition_id,json=transitionId,proto3" json:"transition_id,omitempty"`
 	SourceStateId      string                       `protobuf:"bytes,2,opt,name=source_state_id,json=sourceStateId,proto3" json:"source_state_id,omitempty"`
@@ -847,20 +847,20 @@ type ContractTransitionDefinition struct {
 	sizeCache          protoimpl.SizeCache
 }
 
-func (x *ContractTransitionDefinition) Reset() {
-	*x = ContractTransitionDefinition{}
+func (x *ContractTransition) Reset() {
+	*x = ContractTransition{}
 	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ContractTransitionDefinition) String() string {
+func (x *ContractTransition) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ContractTransitionDefinition) ProtoMessage() {}
+func (*ContractTransition) ProtoMessage() {}
 
-func (x *ContractTransitionDefinition) ProtoReflect() protoreflect.Message {
+func (x *ContractTransition) ProtoReflect() protoreflect.Message {
 	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -872,54 +872,54 @@ func (x *ContractTransitionDefinition) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ContractTransitionDefinition.ProtoReflect.Descriptor instead.
-func (*ContractTransitionDefinition) Descriptor() ([]byte, []int) {
+// Deprecated: Use ContractTransition.ProtoReflect.Descriptor instead.
+func (*ContractTransition) Descriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *ContractTransitionDefinition) GetTransitionId() string {
+func (x *ContractTransition) GetTransitionId() string {
 	if x != nil {
 		return x.TransitionId
 	}
 	return ""
 }
 
-func (x *ContractTransitionDefinition) GetSourceStateId() string {
+func (x *ContractTransition) GetSourceStateId() string {
 	if x != nil {
 		return x.SourceStateId
 	}
 	return ""
 }
 
-func (x *ContractTransitionDefinition) GetTargetStateId() string {
+func (x *ContractTransition) GetTargetStateId() string {
 	if x != nil {
 		return x.TargetStateId
 	}
 	return ""
 }
 
-func (x *ContractTransitionDefinition) GetEventFilter() *RunEventFilter {
+func (x *ContractTransition) GetEventFilter() *RunEventFilter {
 	if x != nil {
 		return x.EventFilter
 	}
 	return nil
 }
 
-func (x *ContractTransitionDefinition) GetPredicate() *ContractExpression {
+func (x *ContractTransition) GetPredicate() *ContractExpression {
 	if x != nil {
 		return x.Predicate
 	}
 	return nil
 }
 
-func (x *ContractTransitionDefinition) GetSupportKind() ContractSupportKind {
+func (x *ContractTransition) GetSupportKind() ContractSupportKind {
 	if x != nil {
 		return x.SupportKind
 	}
 	return CONTRACT_SUPPORT_KIND_UNSPECIFIED
 }
 
-func (x *ContractTransitionDefinition) GetCaptureAssignments() []*ContractCaptureAssignment {
+func (x *ContractTransition) GetCaptureAssignments() []*ContractCaptureAssignment {
 	if x != nil {
 		return x.CaptureAssignments
 	}
@@ -994,34 +994,34 @@ func (x *ContractDeadline) GetRuleEvents() int64 {
 	return 0
 }
 
-// ContractRuleDefinition is one finite deterministic safety or bounded-liveness monitor machine.
-type ContractRuleDefinition struct {
-	state          protoimpl.MessageState          `protogen:"open.v1"`
-	RuleId         string                          `protobuf:"bytes,1,opt,name=rule_id,json=ruleId,proto3" json:"rule_id,omitempty"`
-	Kind           ContractRuleKind                `protobuf:"varint,2,opt,name=kind,proto3,enum=temporal.server.api.testpilot.v1.ContractRuleKind" json:"kind,omitempty"`
-	InitialStateId string                          `protobuf:"bytes,3,opt,name=initial_state_id,json=initialStateId,proto3" json:"initial_state_id,omitempty"`
-	States         []*ContractStateDefinition      `protobuf:"bytes,4,rep,name=states,proto3" json:"states,omitempty"`
-	Transitions    []*ContractTransitionDefinition `protobuf:"bytes,5,rep,name=transitions,proto3" json:"transitions,omitempty"`
-	Deadline       *ContractDeadline               `protobuf:"bytes,6,opt,name=deadline,proto3" json:"deadline,omitempty"`
-	Captures       []*ContractCaptureDefinition    `protobuf:"bytes,7,rep,name=captures,proto3" json:"captures,omitempty"`
+// ContractRule is one finite deterministic safety or bounded-liveness monitor machine.
+type ContractRule struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	RuleId         string                 `protobuf:"bytes,1,opt,name=rule_id,json=ruleId,proto3" json:"rule_id,omitempty"`
+	Kind           ContractRuleKind       `protobuf:"varint,2,opt,name=kind,proto3,enum=temporal.server.api.testpilot.v1.ContractRuleKind" json:"kind,omitempty"`
+	InitialStateId string                 `protobuf:"bytes,3,opt,name=initial_state_id,json=initialStateId,proto3" json:"initial_state_id,omitempty"`
+	States         []*ContractState       `protobuf:"bytes,4,rep,name=states,proto3" json:"states,omitempty"`
+	Transitions    []*ContractTransition  `protobuf:"bytes,5,rep,name=transitions,proto3" json:"transitions,omitempty"`
+	Deadline       *ContractDeadline      `protobuf:"bytes,6,opt,name=deadline,proto3" json:"deadline,omitempty"`
+	Captures       []*ContractCapture     `protobuf:"bytes,7,rep,name=captures,proto3" json:"captures,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
 
-func (x *ContractRuleDefinition) Reset() {
-	*x = ContractRuleDefinition{}
+func (x *ContractRule) Reset() {
+	*x = ContractRule{}
 	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ContractRuleDefinition) String() string {
+func (x *ContractRule) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ContractRuleDefinition) ProtoMessage() {}
+func (*ContractRule) ProtoMessage() {}
 
-func (x *ContractRuleDefinition) ProtoReflect() protoreflect.Message {
+func (x *ContractRule) ProtoReflect() protoreflect.Message {
 	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1033,54 +1033,54 @@ func (x *ContractRuleDefinition) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ContractRuleDefinition.ProtoReflect.Descriptor instead.
-func (*ContractRuleDefinition) Descriptor() ([]byte, []int) {
+// Deprecated: Use ContractRule.ProtoReflect.Descriptor instead.
+func (*ContractRule) Descriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *ContractRuleDefinition) GetRuleId() string {
+func (x *ContractRule) GetRuleId() string {
 	if x != nil {
 		return x.RuleId
 	}
 	return ""
 }
 
-func (x *ContractRuleDefinition) GetKind() ContractRuleKind {
+func (x *ContractRule) GetKind() ContractRuleKind {
 	if x != nil {
 		return x.Kind
 	}
 	return CONTRACT_RULE_KIND_UNSPECIFIED
 }
 
-func (x *ContractRuleDefinition) GetInitialStateId() string {
+func (x *ContractRule) GetInitialStateId() string {
 	if x != nil {
 		return x.InitialStateId
 	}
 	return ""
 }
 
-func (x *ContractRuleDefinition) GetStates() []*ContractStateDefinition {
+func (x *ContractRule) GetStates() []*ContractState {
 	if x != nil {
 		return x.States
 	}
 	return nil
 }
 
-func (x *ContractRuleDefinition) GetTransitions() []*ContractTransitionDefinition {
+func (x *ContractRule) GetTransitions() []*ContractTransition {
 	if x != nil {
 		return x.Transitions
 	}
 	return nil
 }
 
-func (x *ContractRuleDefinition) GetDeadline() *ContractDeadline {
+func (x *ContractRule) GetDeadline() *ContractDeadline {
 	if x != nil {
 		return x.Deadline
 	}
 	return nil
 }
 
-func (x *ContractRuleDefinition) GetCaptures() []*ContractCaptureDefinition {
+func (x *ContractRule) GetCaptures() []*ContractCapture {
 	if x != nil {
 		return x.Captures
 	}
@@ -1189,11 +1189,11 @@ func (x *ContractLimits) GetMaxCaptureBytes() int64 {
 
 // Contract contains only closed deterministic monitor machines over declared Run Observations.
 type Contract struct {
-	state         protoimpl.MessageState    `protogen:"open.v1"`
-	ContractId    string                    `protobuf:"bytes,1,opt,name=contract_id,json=contractId,proto3" json:"contract_id,omitempty"`
-	Rules         []*ContractRuleDefinition `protobuf:"bytes,2,rep,name=rules,proto3" json:"rules,omitempty"`
-	Limits        *ContractLimits           `protobuf:"bytes,3,opt,name=limits,proto3" json:"limits,omitempty"`
-	Correlated    *CorrelatedContract       `protobuf:"bytes,4,opt,name=correlated,proto3" json:"correlated,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ContractId    string                 `protobuf:"bytes,1,opt,name=contract_id,json=contractId,proto3" json:"contract_id,omitempty"`
+	Rules         []*ContractRule        `protobuf:"bytes,2,rep,name=rules,proto3" json:"rules,omitempty"`
+	Limits        *ContractLimits        `protobuf:"bytes,3,opt,name=limits,proto3" json:"limits,omitempty"`
+	Correlated    *CorrelatedContract    `protobuf:"bytes,4,opt,name=correlated,proto3" json:"correlated,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1235,7 +1235,7 @@ func (x *Contract) GetContractId() string {
 	return ""
 }
 
-func (x *Contract) GetRules() []*ContractRuleDefinition {
+func (x *Contract) GetRules() []*ContractRule {
 	if x != nil {
 		return x.Rules
 	}
@@ -1266,10 +1266,10 @@ type CorrelatedContract struct {
 	ScopeFields           []string                    `protobuf:"bytes,5,rep,name=scope_fields,json=scopeFields,proto3" json:"scope_fields,omitempty"`
 	OperationField        string                      `protobuf:"bytes,6,opt,name=operation_field,json=operationField,proto3" json:"operation_field,omitempty"`
 	Sources               []string                    `protobuf:"bytes,7,rep,name=sources,proto3" json:"sources,omitempty"`
-	InitialState          *CorrelatedValue            `protobuf:"bytes,8,opt,name=initial_state,json=initialState,proto3" json:"initial_state,omitempty"`
+	InitialState          *ModelValue                 `protobuf:"bytes,8,opt,name=initial_state,json=initialState,proto3" json:"initial_state,omitempty"`
 	Transitions           []*CorrelatedTransition     `protobuf:"bytes,9,rep,name=transitions,proto3" json:"transitions,omitempty"`
 	ProjectionRules       []*CorrelatedProjectionRule `protobuf:"bytes,10,rep,name=projection_rules,json=projectionRules,proto3" json:"projection_rules,omitempty"`
-	Clauses               []*CorrelatedRule           `protobuf:"bytes,11,rep,name=clauses,proto3" json:"clauses,omitempty"`
+	Rules                 []*CorrelatedRule           `protobuf:"bytes,11,rep,name=rules,proto3" json:"rules,omitempty"`
 	Limits                *CorrelatedLimits           `protobuf:"bytes,12,opt,name=limits,proto3" json:"limits,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
@@ -1354,7 +1354,7 @@ func (x *CorrelatedContract) GetSources() []string {
 	return nil
 }
 
-func (x *CorrelatedContract) GetInitialState() *CorrelatedValue {
+func (x *CorrelatedContract) GetInitialState() *ModelValue {
 	if x != nil {
 		return x.InitialState
 	}
@@ -1375,9 +1375,9 @@ func (x *CorrelatedContract) GetProjectionRules() []*CorrelatedProjectionRule {
 	return nil
 }
 
-func (x *CorrelatedContract) GetClauses() []*CorrelatedRule {
+func (x *CorrelatedContract) GetRules() []*CorrelatedRule {
 	if x != nil {
-		return x.Clauses
+		return x.Rules
 	}
 	return nil
 }
@@ -1389,7 +1389,7 @@ func (x *CorrelatedContract) GetLimits() *CorrelatedLimits {
 	return nil
 }
 
-type CorrelatedValue struct {
+type ModelValue struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	DefinitionId  string                 `protobuf:"bytes,1,opt,name=definition_id,json=definitionId,proto3" json:"definition_id,omitempty"`
 	Value         string                 `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
@@ -1397,20 +1397,20 @@ type CorrelatedValue struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *CorrelatedValue) Reset() {
-	*x = CorrelatedValue{}
+func (x *ModelValue) Reset() {
+	*x = ModelValue{}
 	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *CorrelatedValue) String() string {
+func (x *ModelValue) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CorrelatedValue) ProtoMessage() {}
+func (*ModelValue) ProtoMessage() {}
 
-func (x *CorrelatedValue) ProtoReflect() protoreflect.Message {
+func (x *ModelValue) ProtoReflect() protoreflect.Message {
 	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1422,19 +1422,19 @@ func (x *CorrelatedValue) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use CorrelatedValue.ProtoReflect.Descriptor instead.
-func (*CorrelatedValue) Descriptor() ([]byte, []int) {
+// Deprecated: Use ModelValue.ProtoReflect.Descriptor instead.
+func (*ModelValue) Descriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP(), []int{10}
 }
 
-func (x *CorrelatedValue) GetDefinitionId() string {
+func (x *ModelValue) GetDefinitionId() string {
 	if x != nil {
 		return x.DefinitionId
 	}
 	return ""
 }
 
-func (x *CorrelatedValue) GetValue() string {
+func (x *ModelValue) GetValue() string {
 	if x != nil {
 		return x.Value
 	}
@@ -1443,11 +1443,11 @@ func (x *CorrelatedValue) GetValue() string {
 
 type CorrelatedTransition struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	PriorState    *CorrelatedValue       `protobuf:"bytes,1,opt,name=prior_state,json=priorState,proto3" json:"prior_state,omitempty"`
-	Action        *CorrelatedValue       `protobuf:"bytes,2,opt,name=action,proto3" json:"action,omitempty"`
-	State         *CorrelatedValue       `protobuf:"bytes,3,opt,name=state,proto3" json:"state,omitempty"`
-	Outcome       *CorrelatedValue       `protobuf:"bytes,4,opt,name=outcome,proto3" json:"outcome,omitempty"`
-	Facts         []*CorrelatedValue     `protobuf:"bytes,5,rep,name=facts,proto3" json:"facts,omitempty"`
+	PriorState    *ModelValue            `protobuf:"bytes,1,opt,name=prior_state,json=priorState,proto3" json:"prior_state,omitempty"`
+	Action        *ModelValue            `protobuf:"bytes,2,opt,name=action,proto3" json:"action,omitempty"`
+	State         *ModelValue            `protobuf:"bytes,3,opt,name=state,proto3" json:"state,omitempty"`
+	Outcome       *ModelValue            `protobuf:"bytes,4,opt,name=outcome,proto3" json:"outcome,omitempty"`
+	Facts         []*ModelValue          `protobuf:"bytes,5,rep,name=facts,proto3" json:"facts,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1482,35 +1482,35 @@ func (*CorrelatedTransition) Descriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP(), []int{11}
 }
 
-func (x *CorrelatedTransition) GetPriorState() *CorrelatedValue {
+func (x *CorrelatedTransition) GetPriorState() *ModelValue {
 	if x != nil {
 		return x.PriorState
 	}
 	return nil
 }
 
-func (x *CorrelatedTransition) GetAction() *CorrelatedValue {
+func (x *CorrelatedTransition) GetAction() *ModelValue {
 	if x != nil {
 		return x.Action
 	}
 	return nil
 }
 
-func (x *CorrelatedTransition) GetState() *CorrelatedValue {
+func (x *CorrelatedTransition) GetState() *ModelValue {
 	if x != nil {
 		return x.State
 	}
 	return nil
 }
 
-func (x *CorrelatedTransition) GetOutcome() *CorrelatedValue {
+func (x *CorrelatedTransition) GetOutcome() *ModelValue {
 	if x != nil {
 		return x.Outcome
 	}
 	return nil
 }
 
-func (x *CorrelatedTransition) GetFacts() []*CorrelatedValue {
+func (x *CorrelatedTransition) GetFacts() []*ModelValue {
 	if x != nil {
 		return x.Facts
 	}
@@ -1581,7 +1581,7 @@ type CorrelatedProjectionRule struct {
 	state      protoimpl.MessageState    `protogen:"open.v1"`
 	Kind       string                    `protobuf:"bytes,1,opt,name=kind,proto3" json:"kind,omitempty"`
 	Meaning    CorrelatedEvidenceMeaning `protobuf:"varint,2,opt,name=meaning,proto3,enum=temporal.server.api.testpilot.v1.CorrelatedEvidenceMeaning" json:"meaning,omitempty"`
-	Submission *CorrelatedValue          `protobuf:"bytes,3,opt,name=submission,proto3" json:"submission,omitempty"`
+	Submission *ModelValue               `protobuf:"bytes,3,opt,name=submission,proto3" json:"submission,omitempty"`
 	// Output rows omit prior_state; the complete transition table checks continuity at admission.
 	Outputs       []*CorrelatedTransition  `protobuf:"bytes,4,rep,name=outputs,proto3" json:"outputs,omitempty"`
 	Fields        []*CorrelatedFieldPolicy `protobuf:"bytes,5,rep,name=fields,proto3" json:"fields,omitempty"`
@@ -1633,7 +1633,7 @@ func (x *CorrelatedProjectionRule) GetMeaning() CorrelatedEvidenceMeaning {
 	return CORRELATED_EVIDENCE_MEANING_UNSPECIFIED
 }
 
-func (x *CorrelatedProjectionRule) GetSubmission() *CorrelatedValue {
+func (x *CorrelatedProjectionRule) GetSubmission() *ModelValue {
 	if x != nil {
 		return x.Submission
 	}
@@ -2074,7 +2074,7 @@ func (x *CorrelatedCorrelationGroup) GetOperands() []*CorrelatedCorrelation {
 
 // CorrelatedCorrelation decides whether a labeled transition is one of the operation's semantic steps.
 // It never supplies a trigger or a response: the bounded countdown stays exactly the one the
-// clause's trigger and response patterns describe. `all` and `any` are evaluated left to right and
+// rule's trigger and response patterns describe. `all` and `any` are evaluated left to right and
 // stop at the first decisive operand, so an operand an earlier one made irrelevant is never read.
 type CorrelatedCorrelation struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -2192,7 +2192,7 @@ func (*CorrelatedCorrelation_Any) isCorrelatedCorrelation_Condition() {}
 
 type CorrelatedRule struct {
 	state         protoimpl.MessageState          `protogen:"open.v1"`
-	ClauseId      string                          `protobuf:"bytes,1,opt,name=clause_id,json=clauseId,proto3" json:"clause_id,omitempty"`
+	RuleId        string                          `protobuf:"bytes,1,opt,name=rule_id,json=ruleId,proto3" json:"rule_id,omitempty"`
 	Clock         CorrelatedClock                 `protobuf:"varint,7,opt,name=clock,proto3,enum=temporal.server.api.testpilot.v1.CorrelatedClock" json:"clock,omitempty"`
 	Bound         int64                           `protobuf:"varint,8,opt,name=bound,proto3" json:"bound,omitempty"`
 	Ending        TraceEnding                     `protobuf:"varint,9,opt,name=ending,proto3,enum=temporal.server.api.testpilot.v1.TraceEnding" json:"ending,omitempty"`
@@ -2234,9 +2234,9 @@ func (*CorrelatedRule) Descriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP(), []int{21}
 }
 
-func (x *CorrelatedRule) GetClauseId() string {
+func (x *CorrelatedRule) GetRuleId() string {
 	if x != nil {
-		return x.ClauseId
+		return x.RuleId
 	}
 	return ""
 }
@@ -2420,24 +2420,24 @@ var File_temporal_server_api_testpilot_v1_contract_proto protoreflect.FileDescri
 
 const file_temporal_server_api_testpilot_v1_contract_proto_rawDesc = "" +
 	"\n" +
-	"/temporal/server/api/testpilot/v1/contract.proto\x12 temporal.server.api.testpilot.v1\x1a1temporal/server/api/testpilot/v1/expression.proto\x1a*temporal/server/api/testpilot/v1/run.proto\x1a,temporal/server/api/testpilot/v1/value.proto\"\x83\x01\n" +
-	"\x17ContractStateDefinition\x12\x19\n" +
+	"/temporal/server/api/testpilot/v1/contract.proto\x12 temporal.server.api.testpilot.v1\x1a1temporal/server/api/testpilot/v1/expression.proto\x1a*temporal/server/api/testpilot/v1/run.proto\x1a,temporal/server/api/testpilot/v1/value.proto\"y\n" +
+	"\rContractState\x12\x19\n" +
 	"\bstate_id\x18\x01 \x01(\tR\astateId\x12M\n" +
 	"\x06status\x18\x02 \x01(\x0e25.temporal.server.api.testpilot.v1.ContractStateStatusR\x06status\"\xff\x01\n" +
 	"\x13ContractCaptureType\x12F\n" +
 	"\x06scalar\x18\x01 \x01(\v2,.temporal.server.api.testpilot.v1.ScalarTypeH\x00R\x06scalar\x12O\n" +
 	"\venumeration\x18\x02 \x01(\v2+.temporal.server.api.testpilot.v1.NamedTypeH\x00R\venumeration\x12G\n" +
 	"\amessage\x18\x03 \x01(\v2+.temporal.server.api.testpilot.v1.NamedTypeH\x00R\amessageB\x06\n" +
-	"\x04type\"\x85\x01\n" +
-	"\x19ContractCaptureDefinition\x12\x1d\n" +
+	"\x04type\"{\n" +
+	"\x0fContractCapture\x12\x1d\n" +
 	"\n" +
 	"capture_id\x18\x01 \x01(\tR\tcaptureId\x12I\n" +
 	"\x04type\x18\x02 \x01(\v25.temporal.server.api.testpilot.v1.ContractCaptureTypeR\x04type\"\x8e\x01\n" +
 	"\x19ContractCaptureAssignment\x12\x1d\n" +
 	"\n" +
 	"capture_id\x18\x01 \x01(\tR\tcaptureId\x12R\n" +
-	"\vobservation\x18\x02 \x01(\v20.temporal.server.api.testpilot.v1.ObservationRefR\vobservation\"\x84\x04\n" +
-	"\x1cContractTransitionDefinition\x12#\n" +
+	"\vobservation\x18\x02 \x01(\v20.temporal.server.api.testpilot.v1.ObservationRefR\vobservation\"\xfa\x03\n" +
+	"\x12ContractTransition\x12#\n" +
 	"\rtransition_id\x18\x01 \x01(\tR\ftransitionId\x12&\n" +
 	"\x0fsource_state_id\x18\x02 \x01(\tR\rsourceStateId\x12&\n" +
 	"\x0ftarget_state_id\x18\x03 \x01(\tR\rtargetStateId\x12S\n" +
@@ -2449,15 +2449,15 @@ const file_temporal_server_api_testpilot_v1_contract_proto_rawDesc = "" +
 	"\x14elapsed_milliseconds\x18\x01 \x01(\x03R\x13elapsedMilliseconds\x12,\n" +
 	"\x12violation_state_id\x18\x02 \x01(\tR\x10violationStateId\x12\x1f\n" +
 	"\vrule_events\x18\x03 \x01(\x03R\n" +
-	"ruleEvents\"\x81\x04\n" +
-	"\x16ContractRuleDefinition\x12\x17\n" +
+	"ruleEvents\"\xd9\x03\n" +
+	"\fContractRule\x12\x17\n" +
 	"\arule_id\x18\x01 \x01(\tR\x06ruleId\x12F\n" +
 	"\x04kind\x18\x02 \x01(\x0e22.temporal.server.api.testpilot.v1.ContractRuleKindR\x04kind\x12(\n" +
-	"\x10initial_state_id\x18\x03 \x01(\tR\x0einitialStateId\x12Q\n" +
-	"\x06states\x18\x04 \x03(\v29.temporal.server.api.testpilot.v1.ContractStateDefinitionR\x06states\x12`\n" +
-	"\vtransitions\x18\x05 \x03(\v2>.temporal.server.api.testpilot.v1.ContractTransitionDefinitionR\vtransitions\x12N\n" +
-	"\bdeadline\x18\x06 \x01(\v22.temporal.server.api.testpilot.v1.ContractDeadlineR\bdeadline\x12W\n" +
-	"\bcaptures\x18\a \x03(\v2;.temporal.server.api.testpilot.v1.ContractCaptureDefinitionR\bcaptures\"\xc9\x02\n" +
+	"\x10initial_state_id\x18\x03 \x01(\tR\x0einitialStateId\x12G\n" +
+	"\x06states\x18\x04 \x03(\v2/.temporal.server.api.testpilot.v1.ContractStateR\x06states\x12V\n" +
+	"\vtransitions\x18\x05 \x03(\v24.temporal.server.api.testpilot.v1.ContractTransitionR\vtransitions\x12N\n" +
+	"\bdeadline\x18\x06 \x01(\v22.temporal.server.api.testpilot.v1.ContractDeadlineR\bdeadline\x12M\n" +
+	"\bcaptures\x18\a \x03(\v21.temporal.server.api.testpilot.v1.ContractCaptureR\bcaptures\"\xc9\x02\n" +
 	"\x0eContractLimits\x12\x1b\n" +
 	"\tmax_rules\x18\x01 \x01(\x03R\bmaxRules\x12\x1d\n" +
 	"\n" +
@@ -2467,15 +2467,15 @@ const file_temporal_server_api_testpilot_v1_contract_proto_rawDesc = "" +
 	"\x12max_work_per_event\x18\x05 \x01(\x03R\x0fmaxWorkPerEvent\x12$\n" +
 	"\x0emax_total_work\x18\x06 \x01(\x03R\fmaxTotalWork\x12!\n" +
 	"\fmax_captures\x18\a \x01(\x03R\vmaxCaptures\x12*\n" +
-	"\x11max_capture_bytes\x18\b \x01(\x03R\x0fmaxCaptureBytes\"\x9b\x02\n" +
+	"\x11max_capture_bytes\x18\b \x01(\x03R\x0fmaxCaptureBytes\"\x91\x02\n" +
 	"\bContract\x12\x1f\n" +
 	"\vcontract_id\x18\x01 \x01(\tR\n" +
-	"contractId\x12N\n" +
-	"\x05rules\x18\x02 \x03(\v28.temporal.server.api.testpilot.v1.ContractRuleDefinitionR\x05rules\x12H\n" +
+	"contractId\x12D\n" +
+	"\x05rules\x18\x02 \x03(\v2..temporal.server.api.testpilot.v1.ContractRuleR\x05rules\x12H\n" +
 	"\x06limits\x18\x03 \x01(\v20.temporal.server.api.testpilot.v1.ContractLimitsR\x06limits\x12T\n" +
 	"\n" +
 	"correlated\x18\x04 \x01(\v24.temporal.server.api.testpilot.v1.CorrelatedContractR\n" +
-	"correlated\"\xd9\x05\n" +
+	"correlated\"\xd0\x05\n" +
 	"\x12CorrelatedContract\x12\x18\n" +
 	"\aversion\x18\x01 \x01(\x05R\aversion\x12#\n" +
 	"\rprojection_id\x18\x02 \x01(\tR\fprojectionId\x125\n" +
@@ -2483,32 +2483,33 @@ const file_temporal_server_api_testpilot_v1_contract_proto_rawDesc = "" +
 	"\x17evidence_observation_id\x18\x04 \x01(\tR\x15evidenceObservationId\x12!\n" +
 	"\fscope_fields\x18\x05 \x03(\tR\vscopeFields\x12'\n" +
 	"\x0foperation_field\x18\x06 \x01(\tR\x0eoperationField\x12\x18\n" +
-	"\asources\x18\a \x03(\tR\asources\x12V\n" +
-	"\rinitial_state\x18\b \x01(\v21.temporal.server.api.testpilot.v1.CorrelatedValueR\finitialState\x12X\n" +
+	"\asources\x18\a \x03(\tR\asources\x12Q\n" +
+	"\rinitial_state\x18\b \x01(\v2,.temporal.server.api.testpilot.v1.ModelValueR\finitialState\x12X\n" +
 	"\vtransitions\x18\t \x03(\v26.temporal.server.api.testpilot.v1.CorrelatedTransitionR\vtransitions\x12e\n" +
 	"\x10projection_rules\x18\n" +
-	" \x03(\v2:.temporal.server.api.testpilot.v1.CorrelatedProjectionRuleR\x0fprojectionRules\x12J\n" +
-	"\aclauses\x18\v \x03(\v20.temporal.server.api.testpilot.v1.CorrelatedRuleR\aclauses\x12J\n" +
-	"\x06limits\x18\f \x01(\v22.temporal.server.api.testpilot.v1.CorrelatedLimitsR\x06limits\"L\n" +
-	"\x0fCorrelatedValue\x12#\n" +
+	" \x03(\v2:.temporal.server.api.testpilot.v1.CorrelatedProjectionRuleR\x0fprojectionRules\x12F\n" +
+	"\x05rules\x18\v \x03(\v20.temporal.server.api.testpilot.v1.CorrelatedRuleR\x05rules\x12J\n" +
+	"\x06limits\x18\f \x01(\v22.temporal.server.api.testpilot.v1.CorrelatedLimitsR\x06limits\"G\n" +
+	"\n" +
+	"ModelValue\x12#\n" +
 	"\rdefinition_id\x18\x01 \x01(\tR\fdefinitionId\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value\"\x94\x03\n" +
-	"\x14CorrelatedTransition\x12R\n" +
-	"\vprior_state\x18\x01 \x01(\v21.temporal.server.api.testpilot.v1.CorrelatedValueR\n" +
-	"priorState\x12I\n" +
-	"\x06action\x18\x02 \x01(\v21.temporal.server.api.testpilot.v1.CorrelatedValueR\x06action\x12G\n" +
-	"\x05state\x18\x03 \x01(\v21.temporal.server.api.testpilot.v1.CorrelatedValueR\x05state\x12K\n" +
-	"\aoutcome\x18\x04 \x01(\v21.temporal.server.api.testpilot.v1.CorrelatedValueR\aoutcome\x12G\n" +
-	"\x05facts\x18\x05 \x03(\v21.temporal.server.api.testpilot.v1.CorrelatedValueR\x05facts\"\xd4\x01\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value\"\xfb\x02\n" +
+	"\x14CorrelatedTransition\x12M\n" +
+	"\vprior_state\x18\x01 \x01(\v2,.temporal.server.api.testpilot.v1.ModelValueR\n" +
+	"priorState\x12D\n" +
+	"\x06action\x18\x02 \x01(\v2,.temporal.server.api.testpilot.v1.ModelValueR\x06action\x12B\n" +
+	"\x05state\x18\x03 \x01(\v2,.temporal.server.api.testpilot.v1.ModelValueR\x05state\x12F\n" +
+	"\aoutcome\x18\x04 \x01(\v2,.temporal.server.api.testpilot.v1.ModelValueR\aoutcome\x12B\n" +
+	"\x05facts\x18\x05 \x03(\v2,.temporal.server.api.testpilot.v1.ModelValueR\x05facts\"\xd4\x01\n" +
 	"\x15CorrelatedFieldPolicy\x12\x19\n" +
 	"\bfield_id\x18\x01 \x01(\tR\afieldId\x12@\n" +
 	"\x04type\x18\x02 \x01(\v2,.temporal.server.api.testpilot.v1.ScalarTypeR\x04type\x12^\n" +
-	"\vdisposition\x18\x03 \x01(\x0e2<.temporal.server.api.testpilot.v1.CorrelatedFieldDispositionR\vdisposition\"\xfb\x02\n" +
+	"\vdisposition\x18\x03 \x01(\x0e2<.temporal.server.api.testpilot.v1.CorrelatedFieldDispositionR\vdisposition\"\xf6\x02\n" +
 	"\x18CorrelatedProjectionRule\x12\x12\n" +
 	"\x04kind\x18\x01 \x01(\tR\x04kind\x12U\n" +
-	"\ameaning\x18\x02 \x01(\x0e2;.temporal.server.api.testpilot.v1.CorrelatedEvidenceMeaningR\ameaning\x12Q\n" +
+	"\ameaning\x18\x02 \x01(\x0e2;.temporal.server.api.testpilot.v1.CorrelatedEvidenceMeaningR\ameaning\x12L\n" +
 	"\n" +
-	"submission\x18\x03 \x01(\v21.temporal.server.api.testpilot.v1.CorrelatedValueR\n" +
+	"submission\x18\x03 \x01(\v2,.temporal.server.api.testpilot.v1.ModelValueR\n" +
 	"submission\x12P\n" +
 	"\aoutputs\x18\x04 \x03(\v26.temporal.server.api.testpilot.v1.CorrelatedTransitionR\aoutputs\x12O\n" +
 	"\x06fields\x18\x05 \x03(\v27.temporal.server.api.testpilot.v1.CorrelatedFieldPolicyR\x06fields\"\xd9\x01\n" +
@@ -2547,9 +2548,9 @@ const file_temporal_server_api_testpilot_v1_contract_proto_rawDesc = "" +
 	"comparison\x12P\n" +
 	"\x03all\x18\x03 \x01(\v2<.temporal.server.api.testpilot.v1.CorrelatedCorrelationGroupH\x00R\x03all\x12P\n" +
 	"\x03any\x18\x04 \x01(\v2<.temporal.server.api.testpilot.v1.CorrelatedCorrelationGroupH\x00R\x03anyB\v\n" +
-	"\tcondition\"\xae\x04\n" +
-	"\x0eCorrelatedRule\x12\x1b\n" +
-	"\tclause_id\x18\x01 \x01(\tR\bclauseId\x12G\n" +
+	"\tcondition\"\xaa\x04\n" +
+	"\x0eCorrelatedRule\x12\x17\n" +
+	"\arule_id\x18\x01 \x01(\tR\x06ruleId\x12G\n" +
 	"\x05clock\x18\a \x01(\x0e21.temporal.server.api.testpilot.v1.CorrelatedClockR\x05clock\x12\x14\n" +
 	"\x05bound\x18\b \x01(\x03R\x05bound\x12E\n" +
 	"\x06ending\x18\t \x01(\x0e2-.temporal.server.api.testpilot.v1.TraceEndingR\x06ending\x12O\n" +
@@ -2576,10 +2577,10 @@ const file_temporal_server_api_testpilot_v1_contract_proto_rawDesc = "" +
 	"\x10ContractRuleKind\x12\"\n" +
 	"\x1eCONTRACT_RULE_KIND_UNSPECIFIED\x10\x00\x12\x1d\n" +
 	"\x19CONTRACT_RULE_KIND_SAFETY\x10\x01\x12'\n" +
-	"#CONTRACT_RULE_KIND_BOUNDED_LIVENESS\x10\x02*\xac\x01\n" +
+	"#CONTRACT_RULE_KIND_BOUNDED_LIVENESS\x10\x02*\xa8\x01\n" +
 	"\x13ContractStateStatus\x12%\n" +
-	"!CONTRACT_STATE_STATUS_UNSPECIFIED\x10\x00\x12%\n" +
-	"!CONTRACT_STATE_STATUS_NONTERMINAL\x10\x01\x12#\n" +
+	"!CONTRACT_STATE_STATUS_UNSPECIFIED\x10\x00\x12!\n" +
+	"\x1dCONTRACT_STATE_STATUS_PENDING\x10\x01\x12#\n" +
 	"\x1fCONTRACT_STATE_STATUS_SATISFIED\x10\x02\x12\"\n" +
 	"\x1eCONTRACT_STATE_STATUS_VIOLATED\x10\x03*\x86\x01\n" +
 	"\x13ContractSupportKind\x12%\n" +
@@ -2638,17 +2639,17 @@ var file_temporal_server_api_testpilot_v1_contract_proto_goTypes = []any{
 	(TraceEnding)(0),                     // 6: temporal.server.api.testpilot.v1.TraceEnding
 	(CorrelatedPredicateField)(0),        // 7: temporal.server.api.testpilot.v1.CorrelatedPredicateField
 	(CorrelatedComparisonOperator)(0),    // 8: temporal.server.api.testpilot.v1.CorrelatedComparisonOperator
-	(*ContractStateDefinition)(nil),      // 9: temporal.server.api.testpilot.v1.ContractStateDefinition
+	(*ContractState)(nil),                // 9: temporal.server.api.testpilot.v1.ContractState
 	(*ContractCaptureType)(nil),          // 10: temporal.server.api.testpilot.v1.ContractCaptureType
-	(*ContractCaptureDefinition)(nil),    // 11: temporal.server.api.testpilot.v1.ContractCaptureDefinition
+	(*ContractCapture)(nil),              // 11: temporal.server.api.testpilot.v1.ContractCapture
 	(*ContractCaptureAssignment)(nil),    // 12: temporal.server.api.testpilot.v1.ContractCaptureAssignment
-	(*ContractTransitionDefinition)(nil), // 13: temporal.server.api.testpilot.v1.ContractTransitionDefinition
+	(*ContractTransition)(nil),           // 13: temporal.server.api.testpilot.v1.ContractTransition
 	(*ContractDeadline)(nil),             // 14: temporal.server.api.testpilot.v1.ContractDeadline
-	(*ContractRuleDefinition)(nil),       // 15: temporal.server.api.testpilot.v1.ContractRuleDefinition
+	(*ContractRule)(nil),                 // 15: temporal.server.api.testpilot.v1.ContractRule
 	(*ContractLimits)(nil),               // 16: temporal.server.api.testpilot.v1.ContractLimits
 	(*Contract)(nil),                     // 17: temporal.server.api.testpilot.v1.Contract
 	(*CorrelatedContract)(nil),           // 18: temporal.server.api.testpilot.v1.CorrelatedContract
-	(*CorrelatedValue)(nil),              // 19: temporal.server.api.testpilot.v1.CorrelatedValue
+	(*ModelValue)(nil),                   // 19: temporal.server.api.testpilot.v1.ModelValue
 	(*CorrelatedTransition)(nil),         // 20: temporal.server.api.testpilot.v1.CorrelatedTransition
 	(*CorrelatedFieldPolicy)(nil),        // 21: temporal.server.api.testpilot.v1.CorrelatedFieldPolicy
 	(*CorrelatedProjectionRule)(nil),     // 22: temporal.server.api.testpilot.v1.CorrelatedProjectionRule
@@ -2669,38 +2670,38 @@ var file_temporal_server_api_testpilot_v1_contract_proto_goTypes = []any{
 	(*Value)(nil),                        // 37: temporal.server.api.testpilot.v1.Value
 }
 var file_temporal_server_api_testpilot_v1_contract_proto_depIdxs = []int32{
-	1,  // 0: temporal.server.api.testpilot.v1.ContractStateDefinition.status:type_name -> temporal.server.api.testpilot.v1.ContractStateStatus
+	1,  // 0: temporal.server.api.testpilot.v1.ContractState.status:type_name -> temporal.server.api.testpilot.v1.ContractStateStatus
 	32, // 1: temporal.server.api.testpilot.v1.ContractCaptureType.scalar:type_name -> temporal.server.api.testpilot.v1.ScalarType
 	33, // 2: temporal.server.api.testpilot.v1.ContractCaptureType.enumeration:type_name -> temporal.server.api.testpilot.v1.NamedType
 	33, // 3: temporal.server.api.testpilot.v1.ContractCaptureType.message:type_name -> temporal.server.api.testpilot.v1.NamedType
-	10, // 4: temporal.server.api.testpilot.v1.ContractCaptureDefinition.type:type_name -> temporal.server.api.testpilot.v1.ContractCaptureType
+	10, // 4: temporal.server.api.testpilot.v1.ContractCapture.type:type_name -> temporal.server.api.testpilot.v1.ContractCaptureType
 	34, // 5: temporal.server.api.testpilot.v1.ContractCaptureAssignment.observation:type_name -> temporal.server.api.testpilot.v1.ObservationRef
-	35, // 6: temporal.server.api.testpilot.v1.ContractTransitionDefinition.event_filter:type_name -> temporal.server.api.testpilot.v1.RunEventFilter
-	36, // 7: temporal.server.api.testpilot.v1.ContractTransitionDefinition.predicate:type_name -> temporal.server.api.testpilot.v1.ContractExpression
-	2,  // 8: temporal.server.api.testpilot.v1.ContractTransitionDefinition.support_kind:type_name -> temporal.server.api.testpilot.v1.ContractSupportKind
-	12, // 9: temporal.server.api.testpilot.v1.ContractTransitionDefinition.capture_assignments:type_name -> temporal.server.api.testpilot.v1.ContractCaptureAssignment
-	0,  // 10: temporal.server.api.testpilot.v1.ContractRuleDefinition.kind:type_name -> temporal.server.api.testpilot.v1.ContractRuleKind
-	9,  // 11: temporal.server.api.testpilot.v1.ContractRuleDefinition.states:type_name -> temporal.server.api.testpilot.v1.ContractStateDefinition
-	13, // 12: temporal.server.api.testpilot.v1.ContractRuleDefinition.transitions:type_name -> temporal.server.api.testpilot.v1.ContractTransitionDefinition
-	14, // 13: temporal.server.api.testpilot.v1.ContractRuleDefinition.deadline:type_name -> temporal.server.api.testpilot.v1.ContractDeadline
-	11, // 14: temporal.server.api.testpilot.v1.ContractRuleDefinition.captures:type_name -> temporal.server.api.testpilot.v1.ContractCaptureDefinition
-	15, // 15: temporal.server.api.testpilot.v1.Contract.rules:type_name -> temporal.server.api.testpilot.v1.ContractRuleDefinition
+	35, // 6: temporal.server.api.testpilot.v1.ContractTransition.event_filter:type_name -> temporal.server.api.testpilot.v1.RunEventFilter
+	36, // 7: temporal.server.api.testpilot.v1.ContractTransition.predicate:type_name -> temporal.server.api.testpilot.v1.ContractExpression
+	2,  // 8: temporal.server.api.testpilot.v1.ContractTransition.support_kind:type_name -> temporal.server.api.testpilot.v1.ContractSupportKind
+	12, // 9: temporal.server.api.testpilot.v1.ContractTransition.capture_assignments:type_name -> temporal.server.api.testpilot.v1.ContractCaptureAssignment
+	0,  // 10: temporal.server.api.testpilot.v1.ContractRule.kind:type_name -> temporal.server.api.testpilot.v1.ContractRuleKind
+	9,  // 11: temporal.server.api.testpilot.v1.ContractRule.states:type_name -> temporal.server.api.testpilot.v1.ContractState
+	13, // 12: temporal.server.api.testpilot.v1.ContractRule.transitions:type_name -> temporal.server.api.testpilot.v1.ContractTransition
+	14, // 13: temporal.server.api.testpilot.v1.ContractRule.deadline:type_name -> temporal.server.api.testpilot.v1.ContractDeadline
+	11, // 14: temporal.server.api.testpilot.v1.ContractRule.captures:type_name -> temporal.server.api.testpilot.v1.ContractCapture
+	15, // 15: temporal.server.api.testpilot.v1.Contract.rules:type_name -> temporal.server.api.testpilot.v1.ContractRule
 	16, // 16: temporal.server.api.testpilot.v1.Contract.limits:type_name -> temporal.server.api.testpilot.v1.ContractLimits
 	18, // 17: temporal.server.api.testpilot.v1.Contract.correlated:type_name -> temporal.server.api.testpilot.v1.CorrelatedContract
-	19, // 18: temporal.server.api.testpilot.v1.CorrelatedContract.initial_state:type_name -> temporal.server.api.testpilot.v1.CorrelatedValue
+	19, // 18: temporal.server.api.testpilot.v1.CorrelatedContract.initial_state:type_name -> temporal.server.api.testpilot.v1.ModelValue
 	20, // 19: temporal.server.api.testpilot.v1.CorrelatedContract.transitions:type_name -> temporal.server.api.testpilot.v1.CorrelatedTransition
 	22, // 20: temporal.server.api.testpilot.v1.CorrelatedContract.projection_rules:type_name -> temporal.server.api.testpilot.v1.CorrelatedProjectionRule
-	30, // 21: temporal.server.api.testpilot.v1.CorrelatedContract.clauses:type_name -> temporal.server.api.testpilot.v1.CorrelatedRule
+	30, // 21: temporal.server.api.testpilot.v1.CorrelatedContract.rules:type_name -> temporal.server.api.testpilot.v1.CorrelatedRule
 	31, // 22: temporal.server.api.testpilot.v1.CorrelatedContract.limits:type_name -> temporal.server.api.testpilot.v1.CorrelatedLimits
-	19, // 23: temporal.server.api.testpilot.v1.CorrelatedTransition.prior_state:type_name -> temporal.server.api.testpilot.v1.CorrelatedValue
-	19, // 24: temporal.server.api.testpilot.v1.CorrelatedTransition.action:type_name -> temporal.server.api.testpilot.v1.CorrelatedValue
-	19, // 25: temporal.server.api.testpilot.v1.CorrelatedTransition.state:type_name -> temporal.server.api.testpilot.v1.CorrelatedValue
-	19, // 26: temporal.server.api.testpilot.v1.CorrelatedTransition.outcome:type_name -> temporal.server.api.testpilot.v1.CorrelatedValue
-	19, // 27: temporal.server.api.testpilot.v1.CorrelatedTransition.facts:type_name -> temporal.server.api.testpilot.v1.CorrelatedValue
+	19, // 23: temporal.server.api.testpilot.v1.CorrelatedTransition.prior_state:type_name -> temporal.server.api.testpilot.v1.ModelValue
+	19, // 24: temporal.server.api.testpilot.v1.CorrelatedTransition.action:type_name -> temporal.server.api.testpilot.v1.ModelValue
+	19, // 25: temporal.server.api.testpilot.v1.CorrelatedTransition.state:type_name -> temporal.server.api.testpilot.v1.ModelValue
+	19, // 26: temporal.server.api.testpilot.v1.CorrelatedTransition.outcome:type_name -> temporal.server.api.testpilot.v1.ModelValue
+	19, // 27: temporal.server.api.testpilot.v1.CorrelatedTransition.facts:type_name -> temporal.server.api.testpilot.v1.ModelValue
 	32, // 28: temporal.server.api.testpilot.v1.CorrelatedFieldPolicy.type:type_name -> temporal.server.api.testpilot.v1.ScalarType
 	4,  // 29: temporal.server.api.testpilot.v1.CorrelatedFieldPolicy.disposition:type_name -> temporal.server.api.testpilot.v1.CorrelatedFieldDisposition
 	3,  // 30: temporal.server.api.testpilot.v1.CorrelatedProjectionRule.meaning:type_name -> temporal.server.api.testpilot.v1.CorrelatedEvidenceMeaning
-	19, // 31: temporal.server.api.testpilot.v1.CorrelatedProjectionRule.submission:type_name -> temporal.server.api.testpilot.v1.CorrelatedValue
+	19, // 31: temporal.server.api.testpilot.v1.CorrelatedProjectionRule.submission:type_name -> temporal.server.api.testpilot.v1.ModelValue
 	20, // 32: temporal.server.api.testpilot.v1.CorrelatedProjectionRule.outputs:type_name -> temporal.server.api.testpilot.v1.CorrelatedTransition
 	21, // 33: temporal.server.api.testpilot.v1.CorrelatedProjectionRule.fields:type_name -> temporal.server.api.testpilot.v1.CorrelatedFieldPolicy
 	7,  // 34: temporal.server.api.testpilot.v1.CorrelatedPredicate.field:type_name -> temporal.server.api.testpilot.v1.CorrelatedPredicateField

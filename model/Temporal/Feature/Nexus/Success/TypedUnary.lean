@@ -36,7 +36,7 @@ open Umpire.Operation
 open Umpire.Value
 open Temporal.Testpilot.CaseSupport
 open Testpilot.Authoring
-open temporal.server.api.testpilot.v1
+open temporal.server.api.testpilot.v1 hiding ModelValue
 
 /-! ### Generated references -/
 
