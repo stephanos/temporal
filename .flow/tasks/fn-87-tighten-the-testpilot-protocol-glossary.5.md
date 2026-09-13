@@ -45,11 +45,79 @@ Replace `ProgramExpression` and `ContractExpression` (fourteen messages) with th
 
 
 ## Done summary
-TBD
+`ProgramExpression`, `ContractExpression` and their fourteen operator messages are replaced by one `Expression` over one `Reference`, matching the spec sketch. `equals` is now `CompareExpression` with `COMPARISON_OPERATOR_EQUAL`, and `NOT_EQUAL` is defined as its negation. The Program/Contract separation moved from types to binding: a reference outside its context rejects at preparation with category `unknown` at a located path, for example `program.entrypoints[controller].instructions[execute].guard.reference.observation_id`. Every `expected.json` and correlated `expected` entry is unchanged, the oracle passes with the declared steps, and the regression gate passed with 9 live identities.
 
-## Evidence
-- Commits:
+**Protocol**
+- `ComparisonOperator` numbering is `EQUAL=1, NOT_EQUAL=2`, then the orderings at 3–6.
+- `Reference` has all ten arms. The correlated ones (`evidence_field_id`, `correlated_capture`, `model_value`) are admitted in no context yet.
+- Moved ahead of .6 so its `correlated.proto` can import `expression.proto` without an import cycle:
+  - `ModelValue` moves to `value.proto`.
+  - `CorrelatedCaptureRef` becomes `CorrelatedCaptureReference`, now in `expression.proto`.
+- `ContractCaptureAssignment.observation` becomes `observation_id` (a string), and `ResponseRead.kind` becomes `cardinality`.
+- Decision: the api-linter rejects the field name `not` (`core::0140::reserved-words`). The field keeps the spec's name under a field-level suppression, and the Lean constructor is `Expr.negate`.
+
+**Go `ir`**
+- New types: `ir.Context` (`ProgramContext`, `ContractContext`), `admittedReferences`, `ir.Site{Context, Path}`, and `Condition.Path`.
+- The binders now take a `Site`. Paths are built from identities (entrypoint, instruction, rule, transition ids) plus operator segments: `all[i]`, `present`, `not`, `compare.left`, `path.operand`, `reference.<arm>`.
+- Two errors are located:
+  - the context rejection;
+  - an ordering operator on a message, list, map or bytes operand (`type_mismatch` at `.compare`).
+- Decision: all other expression errors keep their coarse paths. `preparation_error_test` pins `expression` for the presence-guard error.
+- Decision: `ir` defines only the two contexts that have callers. .6 adds the correlated and evidence-lift contexts together with the references they admit.
 - Tests:
+  - `TestExpressionContextsRejectReferencesOutsideThem`: every arm in both contexts; confirmed red with the check disabled.
+  - `TestComparisonOperatorsAdmitTheirOperandTypes`.
+  - NOT_EQUAL result and work equal to EQUAL's, in `evaluate_test`.
+  - `TestPrepareLocatesAReferenceOutsideTheProgramContext`: guard, request assignment, cleanup.
+  - `TestPrepareLocatesAReferenceOutsideTheContractContext`.
+
+**Work charges, measured on every checked-in Case before and after**
+- Unchanged: bind count, logical depth, IR node counts, runtime work limits, and Contract per-event work bounds.
+- Evaluation is the same IR.
+- Deviation, recorded as a decision: surface and admission work grow, because the spec's shape adds one message per outcome, Run and Run Event reference and one enum per equality.
+  - A success guard's binding work goes from 32 to 35.
+  - typed-nexus Program admission goes from 2572 to 2698 against a ceiling of 100,000.
+
+**Lean**
+- One `Testpilot.Authoring.Expr` namespace. `Expr.equal` is `compare EQUAL`.
+- Producers and tests were rewritten mechanically, and `lake build` is green.
+- `Testpilot/Tests/AuthoringFailures.lean` is deleted, because the type mismatches it pinned no longer exist. `Tests/Protocol.lean` now `#guard`s that a guard reading an Observation and a predicate reading a Slot are the same type.
+- `Tests/ProtoJSON.lean` renders a Case with an Observation reference in an instruction guard.
+
+**Conformance**
+- `static-preparation-rejection/expression-context/` is a second Case of that class, rendered by `conformance-static-preparation-rejection-expression-context`.
+- The manifest has `Variant`. `validateManifest` requires six classes, each with a root Case; it is tested.
+- `expected.json` gains an optional `preparationError{category,path}`, which `conformance_test.go` asserts. The existing `expected.json` bytes are unchanged, and the new fixture has no `"bounds"` key.
+
+**Equivalence oracle**
+- New declared steps: the comparison renumbering, and the expression rewrite into `reference` / `compare` / `not`. That step fails on two arms or on an extra key, and a mutation check made the oracle fail.
+- Also declared: `PathExpression.source` → `operand`, the capture assignment `observation_id`, `CorrelatedCaptureReference`, and `ResponseRead.cardinality`.
+- New `Added` list, tested both ways, declares the added fixture.
+
+**Retired vocabulary**
+- Retired: the two expression messages, both Lean `*Expr` namespaces, `EqualsExpression`, all 14 per-context operator messages, and the eight `*Ref` names.
+- `protocol_test` lists them as retired descriptor names.
+- Docs: `model/Umpire/ARCHITECTURE.md`, `internal/execution/README.md`, and the protocolmigration README.
+- The spec's Planning decisions gained "One Expression (decided in .5)".
+
+**Gates**
+- Baseline was green: the quick commands ran, and the regression receipt at cc686825 was honored.
+- After the change these pass: the oracle, the testpilot-protocol, testpilot-authoring, case-runtime-conformance and retired-vocabulary checks, and all Go tests in common/testing/testpilot, tests/testcore/testpilot and tools/umpire.
+- `make umpire-check-regression`:
+  - Runs 1 and 2 failed on one live identity each. Run 1 was `TestTestpilotWorkerOutageCaseLeavesAnotherQueueAlone` and run 2 was `TestTestpilotAsyncNexusCase`; in both, the async-nexus Run's Verdict was INCONCLUSIVE instead of SATISFIED. This is not in the known-flake list.
+  - I reproduced both at base 1bbb40a0a3 from a `git archive` copy with the same assertion: 1 failure each in 10 runs. So it is pre-existing.
+  - Run 3 exited 0 with 9 passing live identities.
+- `lint-code` shows 161 issues after `go clean -cache` and `lint-model` 163, both the baselines.
+
+**Follow-ups**
+- Reviewer P3s, not applied after SHIP:
+  - Locate the environment-reference-in-wrong-position error, whose detail still says "unknown expression variant".
+  - Make the path grammar uniform (`present`/`not` omit `.operand`, while `path.operand` keeps it).
+  - The manifest test indexes `productionManifest()` by position.
+- The async-nexus concurrent-Run INCONCLUSIVE flake should be investigated or added to the known-flake list.
+
+stage: impl-review - ran (claude backend, SHIP on first round, two P3)
+## Evidence
+- Commits: 13294110c9296b3c54294187c91d12f4d65c812c
+- Tests: go test -count=1 -tags test_dep ./common/testing/testpilot/internal/protocolmigration/, CC=/usr/bin/cc TMPDIR=$(cd "${TMPDIR:-/tmp}" && pwd -P) go test -count=1 -tags test_dep ./common/testing/testpilot/... ./tests/testcore/testpilot/... ./tools/umpire/..., make umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-check-case-runtime-conformance, make umpire-check-retired-vocabulary, CC=/usr/bin/cc TMPDIR=$(cd "${TMPDIR:-/tmp}" && pwd -P) make umpire-check-regression (run 1 and 2 failed on async-nexus inconclusive flake reproduced at base 1bbb40a0a3; run 3 exit 0, 9 passing live identities), go clean -cache && make lint-code GOLANGCI_LINT_FIX=false (161 issues, baseline 161), make lint-model (163 errors, baseline 163)
 - PRs:
-
-
