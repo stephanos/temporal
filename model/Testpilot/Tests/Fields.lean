@@ -17,7 +17,7 @@ open Shared.SemanticData
 namespace Testpilot.Tests.Fields
 
 private def number (value : Int) : Int64 := Int64.ofInt value
-private def value (definitionId text : String) : CorrelatedValue :=
+private def value (definitionId text : String) : ModelValue :=
   { definition_id := definitionId, value := text }
 
 private def state := value "state" "ready"
@@ -26,10 +26,10 @@ private def reply := value "action" "reply"
 private def quiet := value "outcome" "quiet"
 private def responded := value "outcome" "response"
 
-private def transition (action : CorrelatedValue) (outcome : CorrelatedValue) : CorrelatedTransition := {
+private def transition (action : ModelValue) (outcome : ModelValue) : CorrelatedTransition := {
   prior_state := some state, action := some action
   state := some state, outcome := some outcome }
-private def output (action : CorrelatedValue) (outcome : CorrelatedValue) : CorrelatedTransition :=
+private def output (action : ModelValue) (outcome : ModelValue) : CorrelatedTransition :=
   { transition action outcome with prior_state := none }
 
 /-- Each evidence kind declares its own field, exactly as the two distinct operand paths a model
@@ -38,7 +38,7 @@ private def policy (fieldId : String)
     (disposition := CorrelatedFieldDisposition.CORRELATED_FIELD_DISPOSITION_RETAIN) : CorrelatedFieldPolicy :=
   { field_id := fieldId, type := some { kind := .SCALAR_KIND_TEXT }, disposition }
 
-private def rule (kind : String) (action outcome : CorrelatedValue) (fields : Array CorrelatedFieldPolicy) :
+private def rule (kind : String) (action outcome : ModelValue) (fields : Array CorrelatedFieldPolicy) :
     CorrelatedProjectionRule := {
   kind, meaning := .CORRELATED_EVIDENCE_MEANING_CONFIRMED
   outputs := #[output action outcome], fields }
@@ -80,9 +80,9 @@ private def correlation (ordinal : Nat := 0) : CorrelatedCorrelation :=
 
 private def clause (bound : Nat) (captures : Array CorrelatedCaptureDeclaration := #[capture])
     (requirement : Option CorrelatedCorrelation := some (correlation))
-    (ending := TraceEnding.TRACE_ENDING_PARTIAL) (clauseId := "response") :
+    (ending := TraceEnding.TRACE_ENDING_PARTIAL) (ruleId := "response") :
     CorrelatedRule := {
-  clause_id := clauseId, clock := .CORRELATED_CLOCK_OPERATION_TRANSITIONS
+  rule_id := ruleId, clock := .CORRELATED_CLOCK_OPERATION_TRANSITIONS
   bound := number bound, ending
   trigger := some {
     field := .CORRELATED_PREDICATE_FIELD_ACTION, definition_id := "action"
@@ -99,19 +99,19 @@ private def budget (captures : Nat := 8) (depth : Nat := 4) : CorrelatedLimits :
   max_obligations := number 16, max_obligation_work := number 1000000000
   max_captures := number captures, max_correlation_depth := number depth }
 
-private def contract (clauses : Array CorrelatedRule) (limits : CorrelatedLimits := budget)
+private def contract (correlatedRules : Array CorrelatedRule) (limits : CorrelatedLimits := budget)
     (rules : Array CorrelatedProjectionRule := #[requestRule, replyRule, silentRule]) :
     CorrelatedContract := {
   version := 1, projection_id := "projection", projection_fingerprint := "fingerprint"
   evidence_observation_id := "evidence", scope_fields := #["run"], operation_field := "operation"
   sources := #["source"], initial_state := some state
   transitions := #[transition request quiet, transition reply responded]
-  projection_rules := rules, clauses, limits := some limits }
+  projection_rules := rules, rules := correlatedRules, limits := some limits }
 
 private def evidence (ordinal : Nat) (kind : String) (count : String) (operation := "a")
     (fieldId := if kind == "request" then "requested" else "replied") : CorrelatedEvidence := {
   identity := some {
-    scope := #[{ field_id := "run", value := "run-1" }], source := "source"
+    scope := #[{ field_id := "run", value := "run-1" }], evidence_source := "source"
     ordinal := number ordinal }
   operation, kind
   fields := #[{ field_id := fieldId, value := some { value := some (.text count) } }] }
@@ -240,15 +240,15 @@ private def valued (wire : temporal.server.api.testpilot.v1.Value) : CorrelatedE
 
 -- A retained occurrence is named by its capture id and ordinal alone, so capture identities are one
 -- namespace across the capability: two clauses declaring one id would alias the same stream.
-#guard decodeError (contract #[clause 1, clause 1 (clauseId := "second")]) ==
+#guard decodeError (contract #[clause 1, clause 1 (ruleId := "second")]) ==
   some "invalid capture identities"
 #guard decodes (contract #[clause 1,
   clause 1 (captures := #[capture (id := "other")])
-    (requirement := some (comparison (field "replied") (retained 0 "other"))) (clauseId := "second")])
+    (requirement := some (comparison (field "replied") (retained 0 "other"))) (ruleId := "second")])
 -- A correlation operand may only name a capture its own clause declared.
 #guard decodeError (contract #[clause 1 (captures := #[capture (id := "other")]),
   clause 1 (captures := #[]) (requirement := some (comparison (field "replied") (retained 0 "other")))
-    (clauseId := "second")]) == some "unbound capture reference"
+    (ruleId := "second")]) == some "unbound capture reference"
 
 -- Comparison operands must share one declared scalar kind: a value of a different kind is rejected
 -- rather than compared and found unequal.

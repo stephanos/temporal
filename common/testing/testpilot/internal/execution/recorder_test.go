@@ -45,7 +45,7 @@ func recorderFact(id string) *testpilotspb.RunEvent {
 }
 func closeRecorder(t *testing.T, r *recorder) *testpilotspb.Run {
 	t.Helper()
-	run, verdict, err := r.close(context.Background(), testpilotspb.RUN_STATUS_COMPLETED, &testpilotspb.CleanupOutcome{Status: testpilotspb.CLEANUP_STATUS_SUCCEEDED})
+	run, verdict, err := r.close(context.Background(), testpilotspb.RUN_DISPOSITION_COMPLETED, &testpilotspb.CleanupOutcome{Status: testpilotspb.CLEANUP_STATUS_SUCCEEDED})
 	require.NoError(t, err)
 	require.True(t, proto.Equal(run.Verdict, verdict))
 	return run
@@ -111,7 +111,7 @@ func TestRecorderConflictAndFailureLatchBeforeDeadline(t *testing.T) {
 			run := closeRecorder(t, r)
 			require.Len(t, run.Events, 3)
 			require.True(t, observed[2].ExecutionIncomplete)
-			require.Equal(t, testpilotspb.RUN_STATUS_INCOMPLETE, run.Status)
+			require.Equal(t, testpilotspb.RUN_DISPOSITION_INCOMPLETE, run.Disposition)
 			require.Len(t, run.Diagnostics, 1)
 		})
 	}
@@ -213,7 +213,7 @@ func TestRecorderAdmissionRetainsPartialHandlesBeforeUnlock(t *testing.T) {
 	close(release)
 	require.Error(t, <-done)
 	require.True(t, owned)
-	require.Equal(t, testpilotspb.RUN_STATUS_INCOMPLETE, closeRecorder(t, r).Status)
+	require.Equal(t, testpilotspb.RUN_DISPOSITION_INCOMPLETE, closeRecorder(t, r).Disposition)
 }
 
 type recorderHandle struct{}
@@ -251,7 +251,7 @@ func TestRecorderTerminalCloseAndPostCloseDiagnostics(t *testing.T) {
 			if mode == "cancelled" {
 				cancel()
 			}
-			run, verdict, err := r.close(ctx, testpilotspb.RUN_STATUS_STOPPED_BY_MONITOR, &testpilotspb.CleanupOutcome{Status: testpilotspb.CLEANUP_STATUS_FAILED})
+			run, verdict, err := r.close(ctx, testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR, &testpilotspb.CleanupOutcome{Status: testpilotspb.CLEANUP_STATUS_FAILED})
 			if mode == "success" {
 				require.NoError(t, err)
 			} else {
@@ -277,7 +277,7 @@ func TestRecorderTerminalCloseAndPostCloseDiagnostics(t *testing.T) {
 				t.Fatal("admitted after closure")
 				return nil, nil
 			}, func([]contract.EffectHandle) {}))
-			again, againVerdict, err := r.close(context.Background(), testpilotspb.RUN_STATUS_COMPLETED, nil)
+			again, againVerdict, err := r.close(context.Background(), testpilotspb.RUN_DISPOSITION_COMPLETED, nil)
 			require.Error(t, err)
 			require.Nil(t, again)
 			require.Nil(t, againVerdict)
@@ -295,22 +295,22 @@ func TestRecorderCapacityDoesNotRecursivelyRecordFailures(t *testing.T) {
 		_, err := r.publish(context.Background(), []*testpilotspb.RunEvent{recorderFact("overflow")}, nil)
 		require.Error(t, err)
 	}
-	run, _, err := r.close(context.Background(), testpilotspb.RUN_STATUS_COMPLETED, nil)
+	run, _, err := r.close(context.Background(), testpilotspb.RUN_DISPOSITION_COMPLETED, nil)
 	require.Error(t, err)
 	require.Len(t, run.Events, 1)
 	require.Len(t, run.Diagnostics, 1)
-	require.Equal(t, testpilotspb.RUN_STATUS_INCOMPLETE, run.Status)
+	require.Equal(t, testpilotspb.RUN_DISPOSITION_INCOMPLETE, run.Disposition)
 }
 
 func TestRecorderStopDispositionPrecedesCloseCallback(t *testing.T) {
 	r, _ := recorderFixture(t, &recorderMonitor{})
 	r.monitor = &recorderMonitor{observe: func(context.Context, *testpilotspb.RunEvent) (Decision, error) { return Stop, nil }, close: func(_ context.Context, run *testpilotspb.Run) (*testpilotspb.Verdict, error) {
-		require.Equal(t, testpilotspb.RUN_STATUS_STOPPED_BY_MONITOR, run.Status)
+		require.Equal(t, testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR, run.Disposition)
 		return &testpilotspb.Verdict{Status: testpilotspb.VERDICT_STATUS_VIOLATED}, nil
 	}}
 	_, err := r.publish(context.Background(), []*testpilotspb.RunEvent{recorderFact("stop")}, nil)
 	require.NoError(t, err)
-	require.Equal(t, testpilotspb.RUN_STATUS_STOPPED_BY_MONITOR, closeRecorder(t, r).Status)
+	require.Equal(t, testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR, closeRecorder(t, r).Disposition)
 }
 
 func TestRecorderClosedSinkCapacityAndDiagnosticBounds(t *testing.T) {
@@ -392,10 +392,10 @@ func TestRecorderFailureViolationOrdering(t *testing.T) {
 				return Continue, nil
 			}, close: func(_ context.Context, run *testpilotspb.Run) (*testpilotspb.Verdict, error) {
 				if violated {
-					require.Equal(t, testpilotspb.RUN_STATUS_STOPPED_BY_MONITOR, run.Status)
+					require.Equal(t, testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR, run.Disposition)
 					return &testpilotspb.Verdict{Status: testpilotspb.VERDICT_STATUS_VIOLATED, SupportingEventSequences: []int64{2}}, nil
 				}
-				require.Equal(t, testpilotspb.RUN_STATUS_INCOMPLETE, run.Status)
+				require.Equal(t, testpilotspb.RUN_DISPOSITION_INCOMPLETE, run.Disposition)
 				return &testpilotspb.Verdict{Status: testpilotspb.VERDICT_STATUS_INCONCLUSIVE}, nil
 			}})
 			fact := recorderFact("violation")

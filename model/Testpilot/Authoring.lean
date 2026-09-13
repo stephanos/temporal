@@ -265,11 +265,11 @@ def correlatedEvidenceLiteral (fieldId value : String) : CorrelatedEvidenceBindi
 /-- One evidence-lift rule. `guard` is what selects it: the rule fires only where that path
 resolves and, where `guardEqualsText` is given, only where it reads exactly that text. `kind` is
 therefore the literal the selected shape denotes rather than a value read from it. -/
-def correlatedEvidenceRule (guard : FieldPath) (source kind : String) (operation : FieldPath)
+def correlatedEvidenceRule (guard : FieldPath) (evidenceSource kind : String) (operation : FieldPath)
     (scope : Array CorrelatedEvidenceBinding := #[])
     (fields : Array CorrelatedEvidenceBinding := #[])
     (guardEqualsText : String := "") : CorrelatedEvidenceRule :=
-  { guard := some guard, scope, source,
+  { guard := some guard, scope, evidence_source := evidenceSource,
     operation := some operation, kind, fields, guard_equals_text := guardEqualsText }
 
 /-- Lift a projected value into the declared `CorrelatedEvidence` Observation a correlated capability
@@ -399,20 +399,20 @@ def enumCapture (protobufType : String) : ContractCaptureType :=
 def messageCapture (protobufType : String) : ContractCaptureType :=
   { type := some (.message { protobuf_type := protobufType }) }
 
-def capture (captureId : String) (type : ContractCaptureType) : ContractCaptureDefinition :=
+def capture (captureId : String) (type : ContractCaptureType) : ContractCapture :=
   { capture_id := captureId, type := some type }
 
 def captureAssignment (captureId observationId : String) : ContractCaptureAssignment :=
   { capture_id := captureId, observation := some (Ref.observation observationId) }
 
-def state (stateId : String) (status : ContractStateStatus) : ContractStateDefinition :=
+def state (stateId : String) (status : ContractStateStatus) : ContractState :=
   { state_id := stateId, status }
 
 /-- Define one transition, including its event filter, predicate, support, and capture updates. -/
 def transition (transitionId sourceStateId targetStateId : String)
     (eventKinds : Array RunEventKind) (predicate : ContractExpression)
     (support : ContractSupportKind := .CONTRACT_SUPPORT_KIND_NONE)
-    (assignments : Array ContractCaptureAssignment := #[]) : ContractTransitionDefinition :=
+    (assignments : Array ContractCaptureAssignment := #[]) : ContractTransition :=
   { transition_id := transitionId, source_state_id := sourceStateId,
     target_state_id := targetStateId, event_filter := some { kinds := eventKinds },
     predicate := some predicate, support_kind := support, capture_assignments := assignments }
@@ -431,9 +431,9 @@ def deadlineEvents (ruleEvents : Int64) (violationStateId : String) :
 
 /-- Assemble one deterministic rule while preserving state and transition order. -/
 def rule (ruleId : String) (kind : ContractRuleKind) (initialStateId : String)
-    (states : Array ContractStateDefinition) (transitions : Array ContractTransitionDefinition)
+    (states : Array ContractState) (transitions : Array ContractTransition)
     (deadline : Option ContractDeadline := none)
-    (captures : Array ContractCaptureDefinition := #[]) : ContractRuleDefinition :=
+    (captures : Array ContractCapture := #[]) : ContractRule :=
   { rule_id := ruleId, kind, initial_state_id := initialStateId, states, transitions,
     deadline, captures }
 
@@ -447,29 +447,29 @@ def limits (maxRules maxStates maxTransitions maxExpressionDepth maxWorkPerEvent
 
 /-- Assemble one correlated rule: the operation-local window one checked clause lowers to. The
 clock is the only one version one admits, so callers never choose it. -/
-def correlatedRule (clauseId : String) (bound : Int64) (ending : TraceEnding)
+def correlatedRule (ruleId : String) (bound : Int64) (ending : TraceEnding)
     (trigger response : CorrelatedPredicate)
     (captures : Array CorrelatedCaptureDeclaration := #[])
     (correlation : Option CorrelatedCorrelation := none) : CorrelatedRule :=
-  { clause_id := clauseId, clock := .CORRELATED_CLOCK_OPERATION_TRANSITIONS, bound, ending,
+  { rule_id := ruleId, clock := .CORRELATED_CLOCK_OPERATION_TRANSITIONS, bound, ending,
     trigger := some trigger, response := some response, captures, correlation }
 
 /-- Assemble the version-one correlated capability while preserving transition, projection-rule and
 rule order. Version one is the only admitted version, so callers never choose it. -/
 def correlated (projectionId projectionFingerprint evidenceObservationId operationField : String)
-    (scopeFields sources : Array String) (initialState : CorrelatedValue)
+    (scopeFields sources : Array String) (initialState : ModelValue)
     (transitions : Array CorrelatedTransition) (projectionRules : Array CorrelatedProjectionRule)
     (rules : Array CorrelatedRule) (limits : CorrelatedLimits) : CorrelatedContract :=
   { version := 1, projection_id := projectionId,
     projection_fingerprint := projectionFingerprint,
     evidence_observation_id := evidenceObservationId, scope_fields := scopeFields,
     operation_field := operationField, sources, initial_state := some initialState,
-    transitions, projection_rules := projectionRules, clauses := rules,
+    transitions, projection_rules := projectionRules, rules,
     limits := some limits }
 
 /-- Assemble a generated Contract while preserving rule order. A Contract may carry deterministic
 monitor rules, one correlated capability, or both. -/
-def contract (contractId : String) (rules : Array ContractRuleDefinition)
+def contract (contractId : String) (rules : Array ContractRule)
     (limits : ContractLimits) (capability : Option CorrelatedContract := none) : Contract :=
   { contract_id := contractId, rules, limits := some limits, correlated := capability }
 
@@ -511,10 +511,10 @@ def diagnostic (diagnosticId : String) (kind : RunDiagnosticKind) (code detail :
     support := supportingEventSequence.map (.supporting_event_sequence ·) }
 
 /-- Assemble a closed generated Run and embedded Verdict from already collected evidence. -/
-def make (runId caseId programId : String) (events : Array RunEvent) (status : RunStatus)
+def make (runId caseId programId : String) (events : Array RunEvent) (disposition : RunDisposition)
     (cleanup : CleanupOutcome) (verdict : Verdict) (diagnostics : Array RunDiagnostic := #[])
     (evaluationFailureSequence : Option Int64 := none) : temporal.server.api.testpilot.v1.Run :=
-  { run_id := runId, case_id := caseId, program_id := programId, events, status,
+  { run_id := runId, case_id := caseId, program_id := programId, events, disposition,
     cleanup := some cleanup, verdict := some verdict, diagnostics,
     evaluation_failure := evaluationFailureSequence.map (.evaluation_failure_sequence ·) }
 

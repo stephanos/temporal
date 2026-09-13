@@ -78,7 +78,7 @@ func validateOutcome(w *valueWork, entryContext testpilotspb.EntrypointKind, n *
 		if frozen.SdkFailureCode != "" || frozen.Status == testpilotspb.INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE {
 			return nil, invalid(ir.TypeMismatch, "outcome", "SDK outcome in controller")
 		}
-	} else if frozen.ProtocolCode != "" || frozen.Status == testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS {
+	} else if frozen.ProtocolCode != "" || frozen.Status == testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE {
 		return nil, invalid(ir.TypeMismatch, "outcome", "protocol outcome in worker")
 	}
 	valueType, hasValue := n.outcomes[testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE]
@@ -218,7 +218,7 @@ func (a *activationValues) liftEvidence(w *valueWork, lift *evidenceLift, value 
 				continue
 			}
 		}
-		evidence := &testpilotspb.CorrelatedEvidence{Kind: rule.kind, Identity: &testpilotspb.CorrelatedIdentity{Source: rule.source, Ordinal: ordinal}}
+		evidence := &testpilotspb.CorrelatedEvidence{Kind: rule.kind, Identity: &testpilotspb.CorrelatedIdentity{EvidenceSource: rule.source, Ordinal: ordinal}}
 		for _, binding := range rule.scope {
 			text := binding.literal
 			if binding.path != nil {

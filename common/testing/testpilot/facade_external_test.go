@@ -60,7 +60,7 @@ func TestExternalDriverCleanupFailurePreservesVerdict(t *testing.T) {
 	driver := &proofDriver{identity: prepared.Identity(), closeErr: errors.New("cleanup unavailable")}
 	run, verdict, err := prepared.Run(t.Context(), driver)
 	require.NoError(t, err)
-	require.Equal(t, testpilotspb.RUN_STATUS_COMPLETED, run.GetStatus())
+	require.Equal(t, testpilotspb.RUN_DISPOSITION_COMPLETED, run.GetDisposition())
 	require.Equal(t, testpilotspb.CLEANUP_STATUS_FAILED, run.GetCleanup().GetStatus())
 	require.Equal(t, testpilotspb.VERDICT_STATUS_SATISFIED, verdict.GetStatus())
 	require.Equal(t, 1, driver.closed)
@@ -76,7 +76,7 @@ func TestExternalDriverExecutesBoundedCase(t *testing.T) {
 	driver := &proofDriver{identity: prepared.Identity()}
 	run, verdict, err := prepared.Run(t.Context(), driver)
 	require.NoError(t, err)
-	require.Equal(t, testpilotspb.RUN_STATUS_COMPLETED, run.GetStatus())
+	require.Equal(t, testpilotspb.RUN_DISPOSITION_COMPLETED, run.GetDisposition())
 	require.Equal(t, testpilotspb.VERDICT_STATUS_SATISFIED, verdict.GetStatus())
 	require.Equal(t, 1, driver.validated)
 	require.Equal(t, 1, driver.opened)
@@ -157,15 +157,15 @@ func proofFixture(t testing.TB) (*testpilotspb.Case, testpilot.ProfileSpec) {
 		Contract: &testpilotspb.Contract{
 			ContractId: "contract",
 			Limits:     proto.CloneOf(contractLimits),
-			Rules: []*testpilotspb.ContractRuleDefinition{{
+			Rules: []*testpilotspb.ContractRule{{
 				RuleId:         "safety",
 				Kind:           testpilotspb.CONTRACT_RULE_KIND_SAFETY,
 				InitialStateId: "start",
-				States: []*testpilotspb.ContractStateDefinition{
-					{StateId: "start", Status: testpilotspb.CONTRACT_STATE_STATUS_NONTERMINAL},
+				States: []*testpilotspb.ContractState{
+					{StateId: "start", Status: testpilotspb.CONTRACT_STATE_STATUS_PENDING},
 					{StateId: "good", Status: testpilotspb.CONTRACT_STATE_STATUS_SATISFIED},
 				},
-				Transitions: []*testpilotspb.ContractTransitionDefinition{{
+				Transitions: []*testpilotspb.ContractTransition{{
 					TransitionId:  "complete",
 					SourceStateId: "start",
 					TargetStateId: "good",

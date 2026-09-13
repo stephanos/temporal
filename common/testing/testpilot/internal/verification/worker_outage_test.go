@@ -119,9 +119,9 @@ func workerOutageRun(t testing.TB, resumed bool) *testpilotspb.Run {
 	closure := next + 1
 	events = append(events, &testpilotspb.RunEvent{Sequence: closure, ElapsedMilliseconds: closure * 10, Kind: testpilotspb.RUN_EVENT_KIND_RUN_CLOSED})
 
-	status := testpilotspb.RUN_STATUS_COMPLETED
+	status := testpilotspb.RUN_DISPOSITION_COMPLETED
 	if !resumed {
-		status = testpilotspb.RUN_STATUS_STOPPED_BY_MONITOR
+		status = testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR
 	}
-	return &testpilotspb.Run{RunId: "run", CaseId: "temporal.case.worker-outage", ProgramId: "program", Status: status, Events: events}
+	return &testpilotspb.Run{RunId: "run", CaseId: "temporal.case.worker-outage", ProgramId: "program", Disposition: status, Events: events}
 }

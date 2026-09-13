@@ -74,8 +74,8 @@ func (p *PreparedContract) newEvaluator(ctx context.Context, view execution.Prog
 	}
 
 	if p.source.Correlated != nil {
-		for _, clause := range p.source.Correlated.Clauses {
-			e.result.Rules = append(e.result.Rules, &testpilotspb.RuleVerdict{RuleId: clause.ClauseId, Status: testpilotspb.RULE_VERDICT_STATUS_INCONCLUSIVE})
+		for _, clause := range p.source.Correlated.Rules {
+			e.result.Rules = append(e.result.Rules, &testpilotspb.RuleVerdict{RuleId: clause.RuleId, Status: testpilotspb.RULE_VERDICT_STATUS_INCONCLUSIVE})
 		}
 	}
 	return e, nil
@@ -249,7 +249,7 @@ func (e *Evaluator) changes(ctx context.Context, event *testpilotspb.RunEvent, o
 }
 func (e *Evaluator) nextChange(ctx context.Context, i int, event *testpilotspb.RunEvent, observations map[string]*testpilotspb.Value, incomplete bool, cost *eventEvaluation) (*ruleChange, error) {
 	m, state := e.prepared.rules[i], e.rules[i]
-	if m.source.States[state.state].Status != testpilotspb.CONTRACT_STATE_STATUS_NONTERMINAL {
+	if m.source.States[state.state].Status != testpilotspb.CONTRACT_STATE_STATUS_PENDING {
 		return nil, nil
 	}
 	if err := ctx.Err(); err != nil {
@@ -310,7 +310,7 @@ func deadlineReached(state *ruleState, deadline *testpilotspb.ContractDeadline, 
 	return event.ElapsedMilliseconds >= deadline.ElapsedMilliseconds
 }
 
-func (e *Evaluator) stageCaptures(state ruleState, tr *testpilotspb.ContractTransitionDefinition, event *testpilotspb.RunEvent, observations map[string]*testpilotspb.Value, cost *eventEvaluation) (map[string]capturedValue, error) {
+func (e *Evaluator) stageCaptures(state ruleState, tr *testpilotspb.ContractTransition, event *testpilotspb.RunEvent, observations map[string]*testpilotspb.Value, cost *eventEvaluation) (map[string]capturedValue, error) {
 	captures := map[string]capturedValue{}
 	for _, assignment := range tr.CaptureAssignments {
 		value := observations[assignment.Observation.ObservationId]
@@ -384,7 +384,7 @@ func (e *Evaluator) Close(ctx context.Context, run *testpilotspb.Run) (*testpilo
 	if err != nil {
 		e.incomplete = true
 	}
-	result := e.verdict(run.GetStatus())
+	result := e.verdict(run.GetDisposition())
 	e.closed = true
 	e.result = nil
 	e.rules = nil
@@ -394,7 +394,7 @@ func (e *Evaluator) checkClosure(ctx context.Context, run *testpilotspb.Run) err
 	if run == nil || run.RunId == "" || run.ProgramId != e.prepared.program.ProgramID() || len(run.Events) == 0 {
 		return invalid(ir.Malformed, "closed Run identity and events required")
 	}
-	if run.Status < testpilotspb.RUN_STATUS_COMPLETED || run.Status > testpilotspb.RUN_STATUS_INCOMPLETE {
+	if run.Disposition < testpilotspb.RUN_DISPOSITION_COMPLETED || run.Disposition > testpilotspb.RUN_DISPOSITION_INCOMPLETE {
 		return invalid(ir.Malformed, "closed Run disposition required")
 	}
 	if int64(len(run.Events)) > e.prepared.program.Limits().MaxRunEvents {
@@ -420,10 +420,10 @@ func (e *Evaluator) checkDisposition(run *testpilotspb.Run) error {
 	if e.failureSequence > 0 && (failure == nil || failureSequence != e.failureSequence) {
 		return invalid(ir.Malformed, "Monitor failure coordinate missing or inconsistent")
 	}
-	if run.Status == testpilotspb.RUN_STATUS_COMPLETED && (e.incomplete || failure != nil || e.violated) {
+	if run.Disposition == testpilotspb.RUN_DISPOSITION_COMPLETED && (e.incomplete || failure != nil || e.violated) {
 		return invalid(ir.Malformed, "completed disposition conflicts with incompleteness")
 	}
-	if run.Status == testpilotspb.RUN_STATUS_STOPPED_BY_MONITOR && !e.violated {
+	if run.Disposition == testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR && !e.violated {
 		return invalid(ir.Malformed, "monitor stop without proved violation")
 	}
 	return nil
@@ -443,13 +443,13 @@ func (e *Evaluator) recordTerminal(change ruleChange) {
 	default:
 	}
 }
-func (e *Evaluator) verdict(disposition testpilotspb.RunStatus) *testpilotspb.Verdict {
+func (e *Evaluator) verdict(disposition testpilotspb.RunDisposition) *testpilotspb.Verdict {
 	e.result.Status = testpilotspb.VERDICT_STATUS_INCONCLUSIVE
 	correlatedSatisfied := true
 	if e.correlated != nil {
-		correlatedSatisfied = e.recordCorrelated(true, e.incomplete || disposition != testpilotspb.RUN_STATUS_COMPLETED)
+		correlatedSatisfied = e.recordCorrelated(true, e.incomplete || disposition != testpilotspb.RUN_DISPOSITION_COMPLETED)
 	}
-	if correlatedSatisfied && !e.incomplete && disposition == testpilotspb.RUN_STATUS_COMPLETED && e.satisfied == len(e.prepared.rules) {
+	if correlatedSatisfied && !e.incomplete && disposition == testpilotspb.RUN_DISPOSITION_COMPLETED && e.satisfied == len(e.prepared.rules) {
 		e.result.Status = testpilotspb.VERDICT_STATUS_SATISFIED
 	}
 	if e.violated {
@@ -472,12 +472,12 @@ func (p *PreparedContract) evaluate(ctx context.Context, run *testpilotspb.Run) 
 		return nil, nil, err
 	}
 	if run == nil {
-		return e, e.verdict(testpilotspb.RUN_STATUS_INCOMPLETE), invalid(ir.Malformed, "Run required")
+		return e, e.verdict(testpilotspb.RUN_DISPOSITION_INCOMPLETE), invalid(ir.Malformed, "Run required")
 	}
 	failure := run.EvaluationFailure
 	failureSequence := run.GetEvaluationFailureSequence()
 	if failure != nil && (failureSequence <= 0 || failureSequence > int64(len(run.Events))) {
-		return e, e.verdict(testpilotspb.RUN_STATUS_INCOMPLETE), invalid(ir.Malformed, "invalid evaluation failure sequence")
+		return e, e.verdict(testpilotspb.RUN_DISPOSITION_INCOMPLETE), invalid(ir.Malformed, "invalid evaluation failure sequence")
 	}
 	for _, event := range run.Events {
 		if failure != nil && event.GetSequence() >= failureSequence {
@@ -517,7 +517,7 @@ func checkRunOrder(ctx context.Context, events []*testpilotspb.RunEvent) error {
 func (e *Evaluator) recordCorrelated(closed, incomplete bool) bool {
 	s := e.prepared.source.Correlated
 	all := true
-	for i := range s.Clauses {
+	for i := range s.Rules {
 		result := e.result.Rules[len(e.prepared.rules)+i]
 		if result.Status != testpilotspb.RULE_VERDICT_STATUS_VIOLATED {
 			result.Status = e.correlated.answer(s, i, closed, incomplete)

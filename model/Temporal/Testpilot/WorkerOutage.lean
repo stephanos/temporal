@@ -171,10 +171,10 @@ expiry outranks the satisfying event, so the real requirement is a resume within
 that bound with deliberate slack, not a measured maximum. -/
 def workerOutageDeadline : Int64 := 16
 
-private def outageOrderRule : ContractRuleDefinition :=
+private def outageOrderRule : ContractRule :=
   Contract.rule "worker-outage-order" .CONTRACT_RULE_KIND_BOUNDED_LIVENESS "awaiting-stop"
-    #[Contract.state "awaiting-stop" .CONTRACT_STATE_STATUS_NONTERMINAL,
-      Contract.state "stopped" .CONTRACT_STATE_STATUS_NONTERMINAL,
+    #[Contract.state "awaiting-stop" .CONTRACT_STATE_STATUS_PENDING,
+      Contract.state "stopped" .CONTRACT_STATE_STATUS_PENDING,
       Contract.state "resumed" .CONTRACT_STATE_STATUS_SATISFIED,
       Contract.state "expired" .CONTRACT_STATE_STATUS_VIOLATED]
     #[Contract.transition "observe-stop" "awaiting-stop" "stopped"
@@ -187,9 +187,9 @@ private def outageOrderRule : ContractRuleDefinition :=
         .CONTRACT_SUPPORT_KIND_MATCHING_EVENT]
     (deadline := some (Contract.deadlineEvents workerOutageDeadline "expired"))
 
-private def workflowCompletedRule : ContractRuleDefinition :=
+private def workflowCompletedRule : ContractRule :=
   Contract.rule "worker-outage-workflow-completed" .CONTRACT_RULE_KIND_SAFETY "pending"
-    #[Contract.state "pending" .CONTRACT_STATE_STATUS_NONTERMINAL,
+    #[Contract.state "pending" .CONTRACT_STATE_STATUS_PENDING,
       Contract.state "completed" .CONTRACT_STATE_STATUS_SATISFIED]
     #[Contract.transition "observe-workflow-completed" "pending" "completed"
         #[.RUN_EVENT_KIND_INSTRUCTION_COMPLETED]

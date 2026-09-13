@@ -105,7 +105,7 @@ func (completionEffect) Accepts(_ context.Context, instruction *testpilotspb.Ins
 func (e completionEffect) Invoke(ctx context.Context, input proto.Message, maxResponseBytes int64) testpilot.EffectResult {
 	data, err := proto.Marshal(input)
 	if err != nil {
-		return testpilot.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS, ProtocolCode: "invalid_argument"}}
+		return testpilot.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE, ProtocolCode: "invalid_argument"}}
 	}
 	return e.transport.complete(ctx, e.info, data, maxResponseBytes)
 }
@@ -140,7 +140,7 @@ func (t *completionTransport) complete(ctx context.Context, info completionInfo,
 	}
 	outcome := &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, ProtocolCode: "ok"}
 	if err != nil {
-		outcome.Status = testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS
+		outcome.Status = testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE
 		outcome.ProtocolCode = "transport_failure"
 		if protocolCode != 0 {
 			outcome.ProtocolCode = "http_" + strconv.Itoa(protocolCode)

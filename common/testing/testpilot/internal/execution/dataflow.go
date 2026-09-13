@@ -370,7 +370,7 @@ func (a *admission) bindEvidenceLift(g *graph, n *node, source *testpilotspb.Cor
 	return lift, nil
 }
 func (a *admission) bindEvidenceRule(g *graph, n *node, source *testpilotspb.CorrelatedEvidenceRule, typ ir.Type) (*evidenceRule, error) {
-	if !validID(source.GetSource()) || !validID(source.GetKind()) {
+	if !validID(source.GetEvidenceSource()) || !validID(source.GetKind()) {
 		return nil, invalid(ir.Malformed, nodePath(g, n), "evidence rule requires a source and a kind")
 	}
 	guard, err := a.prepared.catalog.BindPath(typ, source.GetGuard(), a.expressionLimits())
@@ -390,7 +390,7 @@ func (a *admission) bindEvidenceRule(g *graph, n *node, source *testpilotspb.Cor
 	if err != nil {
 		return nil, err
 	}
-	bound := &evidenceRule{guard: guard, guardEquals: source.GetGuardEqualsText(), source: source.GetSource(), kind: source.GetKind(), operation: operation}
+	bound := &evidenceRule{guard: guard, guardEquals: source.GetGuardEqualsText(), source: source.GetEvidenceSource(), kind: source.GetKind(), operation: operation}
 	// A scope binding is a Run coordinate and carries plain text on the wire; an evidence field is
 	// a typed scalar the portable decoder reads as text, natural or boolean.
 	scope, err := a.bindEvidenceBindings(g, n, typ, source.GetScope(), testpilotspb.SCALAR_KIND_TEXT)

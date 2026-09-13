@@ -24,11 +24,11 @@
         "states": [
           {
             "stateId": "awaiting-stop",
-            "status": "CONTRACT_STATE_STATUS_NONTERMINAL"
+            "status": "CONTRACT_STATE_STATUS_PENDING"
           },
           {
             "stateId": "stopped",
-            "status": "CONTRACT_STATE_STATUS_NONTERMINAL"
+            "status": "CONTRACT_STATE_STATUS_PENDING"
           },
           {
             "stateId": "resumed",
@@ -143,7 +143,7 @@
         "states": [
           {
             "stateId": "pending",
-            "status": "CONTRACT_STATE_STATUS_NONTERMINAL"
+            "status": "CONTRACT_STATE_STATUS_PENDING"
           },
           {
             "stateId": "completed",
