@@ -44,10 +44,67 @@ Make ordering and success-gating the default (R9, spec "Defaults and derived fie
 
 
 ## Done summary
-TBD
+Instructions now run in entrypoint order by default. `InstructionNode.dependencies` is replaced by `After after`, a message with presence: absent means the previous instruction of the entrypoint, present means exactly its list, and an empty list makes a second root. Without a guard, an instruction runs only when every instruction it runs after succeeded. `after` names any other set within the same entrypoint.
 
+**Go preparation** (`execution/prepare.go`, `dataflow.go`, `program.go`)
+- `resolveAfter` computes the dependencies.
+- `effectiveGuard` binds the default as the node's guard. For one dependency it is `all[present(status), status == SUCCEEDED]`, for several the `all` of those in `after` order. Success facts, outcome availability (`previous.guardSource == nil`), work charges and `InstructionPlan.Guard` are therefore what the explicit success guard gave, and the scheduler and worker interpreter are unchanged.
+- A literal `true` guard binds as no guard: it runs regardless and stays statically available.
+- Rejections, each with a located path `program.entrypoints[<e>].instructions[<i>].after.instructions[<k>]` (cleanup uses `program.cleanup.instructions[...]`):
+  - empty id: `malformed`
+  - another entrypoint, cleanup included: `unsupported`
+  - unknown instruction: `unknown`
+  - the instruction itself, or a repeated entry: `malformed`
+  - a cycle: `malformed`, at the `after` of the first unordered node (which always declares one)
+
+**Tests**
+- `dependencies_test.go`:
+  - `TestInstructionsRunAfterTheirPredecessorUnlessAfterSaysOtherwise` covers the default, a root, a join, a `true` guard, the topological order and the cleanup default.
+  - `TestTheDefaultGuardBindsDependencyOutcomes` shows handle consumption and an awaited value binding with no written guard.
+  - `TestTheDefaultGuardSkipsAfterAFailedDependency` runs the scheduler.
+  - `TestPrepareRejectsAfterWithLocatedPaths` covers every error case above with category and path.
+- The new tests were confirmed red with the default guard disabled.
+- Hand-built test Cases that relied on implicit roots or on unconditional dependents now write an empty `after` or a `true` guard, so they keep their intent. Changed files: the execution package tests, activation, worker fault/sdk/runtime fixture, and the correlated facade.
+- The activation `true`-guard work pin moved from -6 to -1, because the guard is no longer evaluated.
+
+**Lean**
+- `Program.node` takes `after` and `guard`, and `Program.after` builds the set. `CaseSupport.succeeded` is removed.
+- The Workflow, NexusOperation, WorkerOutage, TypedUnary and TypedNexus Producers drop predecessor dependencies and success guards.
+- The formerly unguarded await nodes carry `guard := boolean true`.
+- TypedNexus names `after` only for later operations: `[start-workflow]` for the second authority wait, an empty set for the second start, and the join sets for `history` and `finish-workflow`.
+- Correlated corpus reads get a `true` guard.
+- The Template test computes the effective dependencies.
+
+**Oracle and fixtures**
+- New R9 step `defaultInstructionOrder` with `TestDeclaredDefaultOrderStepDropsOnlyTheDefault`. It checks guards against the default via protojson/proto.Equal. It drops a predecessor dependency list, and writes `after` (possibly empty) otherwise. A success guard is dropped, a dependent with no guard gains `true`, and any other guard is kept.
+- Fixtures regenerated through `make umpire-gen-case-runtime-conformance`:
+  - async-nexus, typed-nexus, typed-unary, worker-outage: dependency lists and success guards removed, `after`/`true` added as above
+  - correlated.json: `true` guards on read.1 and read.2
+  - `expected.json` unchanged; the conformance Cases themselves are unchanged
+- The oracle was confirmed to fail without the step.
+- Retired token: `Get` + `Dependencies`.
+
+**Decisions** (recorded in the fn-87 Planning decisions, "decided in .11")
+- The api-linter prepositions suppression keeps the field name `after`.
+- A literal `true` guard is normalized to no guard.
+- The TypedNexus index-based `after` keeps the Case in canonical form.
+- Duplicate success-guard literal (review P3 #1): not applied. The oracle keeps its own spelling of the default so it stays independent of the implementation.
+
+**Outside the declared Touches** (forced by the field removal):
+- `model/Umpire/Variations/Lowering.lean` (`FaultRealization.after`) and its test
+- `model/Umpire/Case/Tests/CorrelatedFixtures.lean`
+- `model/Umpire/ARCHITECTURE.md` (listed in Files)
+- `tools/umpire/internal/retiredvocabulary/check.go`
+- `.flow` spec decision and review state
+
+**Gates**
+- Baseline was green: the oracle ran, and regression receipt b90e5aab was honored.
+- lint-code 161 was confirmed at base after `go clean -cache`; lint-model was 163.
+- After: oracle green; `go test ./common/testing/testpilot/...` green; lake build of UmpireTests/TemporalModelTests/TemporalExperimentalTests/Temporal/Umpire green; lint-model 163; lint-code 161 with the identical issue set, at both 3ffe5de0 and 8954093a.
+- `make umpire-check-regression` exited 0 with 9 passing live identities on both runs (pre-commit tree = 3ffe5de0, and 8954093a). No flake occurred, and the typed Nexus live test passed first time on both runs. Receipts 3ffe5de0 and 8954093a were written.
+
+stage: impl-review - ran (claude backend, SHIP on first round; P3 #2 helper move and #3 README rewrap applied in 8954093a)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 3ffe5de09c8b6af91efc13d21a236355bf438940, 8954093a3324ec89ec553c2e1628eff08cdf09ea
+- Tests: go test -count=1 -tags test_dep ./common/testing/testpilot/internal/protocolmigration/, go test -count=1 -tags test_dep ./common/testing/testpilot/..., make umpire-check-testpilot-protocol, make umpire-gen-case-runtime-conformance, make umpire-check-retired-vocabulary, CC=/usr/bin/cc TMPDIR=$(cd "${TMPDIR:-/tmp}" && pwd -P) make umpire-check-regression, go clean -cache && make lint-code GOLANGCI_LINT_FIX=false, make lint-model, lake build UmpireTests TemporalModelTests TemporalExperimentalTests Temporal Umpire
 - PRs:
-
