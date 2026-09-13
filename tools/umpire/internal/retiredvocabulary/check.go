@@ -602,6 +602,10 @@ func buildRetiredRules() ([]tokenRule, error) {
 		// The observed read path is one use of the Case coordinate walker, derived by
 		// `Umpire.Case.Projection.lower`.
 		"Umpire.Case." + "Observed",
+		// The per-caller admission-error arm and the Switch example's hand-built search view,
+		// both replaced by `Umpire.Search.admit` and its `AdmissionDiagnostic`.
+		"invalid" + "Planner",
+		"Switch." + "incrementalKernel",
 	}
 
 	rules := make([]tokenRule, 0, len(exactTokens)+5)
