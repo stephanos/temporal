@@ -84,21 +84,47 @@ func nestedPath(names ...string) *testpilotspb.FieldPath {
 	}
 	return path
 }
+
+// projected reads path out of the value an evidence lift is projecting.
+func projected(path *testpilotspb.FieldPath) *testpilotspb.Expression {
+	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Path{Path: &testpilotspb.PathExpression{
+		Operand: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_ProjectedValue{ProjectedValue: &testpilotspb.ProjectedValueReference{}}}}},
+		Path:    path,
+	}}}
+}
+
+// resolves is the guard that fires where path resolves on the projected value.
+func resolves(path *testpilotspb.FieldPath) *testpilotspb.Expression {
+	return present(projected(path))
+}
+
+// readsText is the guard that fires where path reads exactly text.
+func readsText(path *testpilotspb.FieldPath, text string) *testpilotspb.Expression {
+	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: &testpilotspb.AllExpression{Operands: []*testpilotspb.Expression{
+		resolves(path),
+		{Expression: &testpilotspb.Expression_Compare{Compare: &testpilotspb.CompareExpression{
+			Operator: testpilotspb.COMPARISON_OPERATOR_EQUAL,
+			Left:     projected(path),
+			Right:    &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: text}}}},
+		}}},
+	}}}}
+}
+
 func liftProjection() *testpilotspb.CorrelatedEvidenceProjection {
 	return &testpilotspb.CorrelatedEvidenceProjection{ObservationId: "evidence", Rules: []*testpilotspb.CorrelatedEvidenceRule{
 		{
-			Guard: nestedPath("scheduled", "operation"), GuardEqualsText: "first", EvidenceSource: "source", Kind: "scheduled.first",
+			Guard: readsText(nestedPath("scheduled", "operation"), "first"), EvidenceSource: "source", Kind: "scheduled.first",
 			Operation: nestedPath("scheduled", "operation"),
 			Scope:     []*testpilotspb.CorrelatedEvidenceBinding{{FieldId: "run", Value: &testpilotspb.CorrelatedEvidenceBinding_Literal{Literal: "one"}}},
 			Fields:    []*testpilotspb.CorrelatedEvidenceBinding{{FieldId: "identity", Value: &testpilotspb.CorrelatedEvidenceBinding_Path{Path: nestedPath("scheduled", "operation")}}},
 		},
 		{
-			Guard: nestedPath("scheduled"), EvidenceSource: "source", Kind: "scheduled.other",
+			Guard: resolves(nestedPath("scheduled")), EvidenceSource: "source", Kind: "scheduled.other",
 			Operation: nestedPath("scheduled", "operation"),
 			Scope:     []*testpilotspb.CorrelatedEvidenceBinding{{FieldId: "run", Value: &testpilotspb.CorrelatedEvidenceBinding_Literal{Literal: "one"}}},
 		},
 		{
-			Guard: nestedPath("completed"), EvidenceSource: "source", Kind: "completed",
+			Guard: resolves(nestedPath("completed")), EvidenceSource: "source", Kind: "completed",
 			Operation: nestedPath("completed", "referenced"),
 			Scope:     []*testpilotspb.CorrelatedEvidenceBinding{{FieldId: "run", Value: &testpilotspb.CorrelatedEvidenceBinding_Literal{Literal: "one"}}},
 		},
@@ -205,7 +231,7 @@ func TestEvidenceLiftRejectsUndeclarableRules(t *testing.T) {
 			p.Rules[0].Operation = nestedPath("scheduled", "absent")
 		},
 		"nontext guard equality": func(p *testpilotspb.CorrelatedEvidenceProjection) {
-			p.Rules[0].Guard = nestedPath("completed", "referenced")
+			p.Rules[0].Guard = readsText(nestedPath("completed", "referenced"), "first")
 		},
 		"empty literal": func(p *testpilotspb.CorrelatedEvidenceProjection) {
 			p.Rules[0].Scope[0].Value = &testpilotspb.CorrelatedEvidenceBinding_Literal{Literal: ""}
@@ -214,21 +240,46 @@ func TestEvidenceLiftRejectsUndeclarableRules(t *testing.T) {
 		"duplicate field": func(p *testpilotspb.CorrelatedEvidenceProjection) {
 			p.Rules[0].Fields = append(p.Rules[0].Fields, proto.CloneOf(p.Rules[0].Fields[0]))
 		},
-		"presence guard": func(p *testpilotspb.CorrelatedEvidenceProjection) {
-			p.Rules[0].Guard = nestedPath("scheduled")
-			p.Rules[0].Guard.Segments[0].Selector = &testpilotspb.FieldPathSegment_Presence{Presence: &testpilotspb.PresenceSelector{}}
-			p.Rules[0].GuardEqualsText = ""
+		"nonboolean guard": func(p *testpilotspb.CorrelatedEvidenceProjection) {
+			p.Rules[0].Guard = projected(nestedPath("scheduled", "operation"))
 		},
-		"empty guard": func(p *testpilotspb.CorrelatedEvidenceProjection) {
-			p.Rules[0].Guard = &testpilotspb.FieldPath{}
-			p.Rules[0].GuardEqualsText = ""
+		"unguarded absent read": func(p *testpilotspb.CorrelatedEvidenceProjection) {
+			p.Rules[0].Guard = readsText(nestedPath("scheduled", "operation"), "first").GetAll().GetOperands()[1]
 		},
+		"missing guard": func(p *testpilotspb.CorrelatedEvidenceProjection) { p.Rules[0].Guard = nil },
 	} {
 		t.Run(name, func(t *testing.T) {
 			artifact, catalog, policy := liftFixture(t)
 			mutate(artifact.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().ResponseReads[0].Targets[0].GetCorrelatedEvidence())
 			_, err := Prepare(artifact, catalog, policy)
 			require.Error(t, err)
+		})
+	}
+}
+
+// A lift guard reads only the projected value, so every other reference rejects at preparation at
+// the guard's located path.
+func TestEvidenceLiftGuardRejectsReferencesOutsideItsContext(t *testing.T) {
+	for name, value := range map[string]*testpilotspb.Reference{
+		"slot_id":            {Reference: &testpilotspb.Reference_SlotId{SlotId: "slot"}},
+		"run":                {Reference: &testpilotspb.Reference_Run{Run: &testpilotspb.RunReference{}}},
+		"observation_id":     {Reference: &testpilotspb.Reference_ObservationId{ObservationId: "other"}},
+		"evidence_field_id":  {Reference: &testpilotspb.Reference_EvidenceFieldId{EvidenceFieldId: "field"}},
+		"correlated_capture": {Reference: &testpilotspb.Reference_CorrelatedCapture{CorrelatedCapture: &testpilotspb.CorrelatedCaptureReference{CaptureId: "capture"}}},
+		"correlated_step":    {Reference: &testpilotspb.Reference_CorrelatedStep{CorrelatedStep: &testpilotspb.CorrelatedStepReference{Field: testpilotspb.CORRELATED_STEP_FIELD_ACTION, DefinitionId: "action"}}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			artifact, catalog, policy := liftFixture(t)
+			projection := artifact.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().ResponseReads[0].Targets[0].GetCorrelatedEvidence()
+			projection.Rules[1].Guard = present(&testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: value}})
+			_, err := Prepare(artifact, catalog, policy)
+			var diagnostic *ir.Error
+			require.ErrorAs(t, err, &diagnostic)
+			require.Equal(t, &ir.Error{
+				Category: ir.Unknown,
+				Path:     "program.entrypoints[controller].instructions[read].instruction.invoke_rpc.response_reads[0].targets[0].correlated_evidence.rules[1].guard.present.reference." + name,
+				Detail:   "reference is not admitted in this expression context",
+			}, diagnostic)
 		})
 	}
 }

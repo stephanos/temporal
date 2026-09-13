@@ -247,7 +247,7 @@ func (a *admission) bindProjections(g *graph, index int, n *node) error {
 	}
 	seen := map[string]bool{}
 	var events int64
-	for _, source := range n.source.Instruction.GetInvokeRpc().ResponseReads {
+	for read, source := range n.source.Instruction.GetInvokeRpc().ResponseReads {
 		if source == nil || len(source.Targets) == 0 {
 			return invalid(ir.Malformed, nodePath(g, n), "projection requires a path and sinks")
 		}
@@ -268,7 +268,7 @@ func (a *admission) bindProjections(g *graph, index int, n *node) error {
 		default:
 			return invalid(ir.Unknown, nodePath(g, n), "unknown projection cardinality")
 		}
-		lifts, emits, err := a.bindProjectionSinks(g, index, n, source, path, typ, seen)
+		lifts, emits, err := a.bindProjectionSinks(g, index, n, read, source, path, typ, seen)
 		if err != nil {
 			return err
 		}
@@ -282,7 +282,7 @@ func (a *admission) bindProjections(g *graph, index int, n *node) error {
 	}
 	return nil
 }
-func (a *admission) bindProjectionSinks(g *graph, index int, n *node, source *testpilotspb.ResponseRead, path *ir.Path, typ ir.Type, seen map[string]bool) ([]*evidenceLift, bool, error) {
+func (a *admission) bindProjectionSinks(g *graph, index int, n *node, read int, source *testpilotspb.ResponseRead, path *ir.Path, typ ir.Type, seen map[string]bool) ([]*evidenceLift, bool, error) {
 	emits := false
 	lifts := make([]*evidenceLift, len(source.Targets))
 	for i, sink := range source.Targets {
@@ -307,7 +307,8 @@ func (a *admission) bindProjectionSinks(g *graph, index int, n *node, source *te
 			target, exists = a.observations[destination.ObservationId]
 			emits = true
 		case *testpilotspb.ReadTarget_CorrelatedEvidence:
-			lift, err := a.bindEvidenceLift(g, n, destination.CorrelatedEvidence, typ)
+			location := expressionPath(g, n, fmt.Sprintf("instruction.invoke_rpc.response_reads[%d].targets[%d].correlated_evidence", read, i))
+			lift, err := a.bindEvidenceLift(g, n, location, destination.CorrelatedEvidence, typ)
 			if err != nil {
 				return nil, false, err
 			}
@@ -337,7 +338,7 @@ func (a *admission) bindProjectionSinks(g *graph, index int, n *node, source *te
 // The sink Observation must be the exact CorrelatedEvidence message the correlated capability decodes, and
 // every bound path must read a scalar the portable evidence domain admits, so a lift that cannot
 // produce decodable evidence rejects at Prepare rather than at the first recorded event.
-func (a *admission) bindEvidenceLift(g *graph, n *node, source *testpilotspb.CorrelatedEvidenceProjection, typ ir.Type) (*evidenceLift, error) {
+func (a *admission) bindEvidenceLift(g *graph, n *node, location string, source *testpilotspb.CorrelatedEvidenceProjection, typ ir.Type) (*evidenceLift, error) {
 	target, exists := a.observations[source.GetObservationId()]
 	if !exists || target.Cardinality() != ir.Singular || !ir.SameMessage(target.Message(), (&testpilotspb.CorrelatedEvidence{}).ProtoReflect().Descriptor()) {
 		return nil, invalid(ir.TypeMismatch, nodePath(g, n), "evidence lift requires an exact declared CorrelatedEvidence Observation")
@@ -357,8 +358,8 @@ func (a *admission) bindEvidenceLift(g *graph, n *node, source *testpilotspb.Cor
 	}
 	lift := &evidenceLift{observationID: source.GetObservationId(), element: typ}
 	owner := contract.Coordinate{EntrypointID: g.id, InstructionID: n.source.InstructionId}
-	for _, rule := range source.GetRules() {
-		bound, err := a.bindEvidenceRule(g, n, rule, typ)
+	for index, rule := range source.GetRules() {
+		bound, err := a.bindEvidenceRule(g, n, fmt.Sprintf("%s.rules[%d]", location, index), rule, typ)
 		if err != nil {
 			return nil, err
 		}
@@ -370,28 +371,25 @@ func (a *admission) bindEvidenceLift(g *graph, n *node, source *testpilotspb.Cor
 	}
 	return lift, nil
 }
-func (a *admission) bindEvidenceRule(g *graph, n *node, source *testpilotspb.CorrelatedEvidenceRule, typ ir.Type) (*evidenceRule, error) {
+func (a *admission) bindEvidenceRule(g *graph, n *node, location string, source *testpilotspb.CorrelatedEvidenceRule, typ ir.Type) (*evidenceRule, error) {
 	if !validID(source.GetEvidenceSource()) || !validID(source.GetKind()) {
 		return nil, invalid(ir.Malformed, nodePath(g, n), "evidence rule requires a source and a kind")
 	}
-	guard, err := a.prepared.catalog.BindPath(typ, source.GetGuard(), a.expressionLimits())
+	// The guard reads only the projected value, which every rule of the lift is offered whole.
+	boolean, err := a.prepared.catalog.BindType(scalarSchema(testpilotspb.SCALAR_KIND_BOOLEAN))
 	if err != nil {
 		return nil, err
 	}
-	// A presence read answers false where the field is absent, so it resolves either way and could
-	// never select a rule.
-	steps := guard.Steps()
-	if guard.Fanout() || len(steps) == 0 || steps[len(steps)-1].Selector == ir.Presence {
-		return nil, invalid(ir.Unsupported, nodePath(g, n), "evidence guard must select a value that can be absent")
-	}
-	if source.GetGuardEqualsText() != "" && (guard.Type().Cardinality() != ir.Singular || guard.Type().Scalar() != testpilotspb.SCALAR_KIND_TEXT) {
-		return nil, invalid(ir.TypeMismatch, nodePath(g, n), "evidence guard equality requires a text guard")
+	projected := map[ir.Reference]ir.Binding{{Kind: ir.ProjectedValueReference}: {Type: typ, Available: true}}
+	guard, err := a.prepared.catalog.BindExpression(ir.Site{Context: ir.EvidenceLiftContext, Path: location + ".guard"}, source.GetGuard(), &boolean, projected, a.expressionLimits())
+	if err != nil {
+		return nil, err
 	}
 	operation, err := a.bindEvidencePath(g, n, typ, source.GetOperation(), evidenceKeyKinds...)
 	if err != nil {
 		return nil, err
 	}
-	bound := &evidenceRule{guard: guard, guardEquals: source.GetGuardEqualsText(), source: source.GetEvidenceSource(), kind: source.GetKind(), operation: operation}
+	bound := &evidenceRule{guard: guard, source: source.GetEvidenceSource(), kind: source.GetKind(), operation: operation}
 	// A scope binding is a Run coordinate and carries plain text on the wire; an evidence field is
 	// a typed scalar the portable decoder reads as text, natural or boolean.
 	scope, err := a.bindEvidenceBindings(g, n, typ, source.GetScope(), testpilotspb.SCALAR_KIND_TEXT)

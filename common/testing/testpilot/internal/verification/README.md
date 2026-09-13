@@ -45,6 +45,14 @@ validation has separate bounded IR surface/type/fanout checks under Program resp
 The shared `internal/ir` interpreter only resolves values from its supplied typed environment;
 verification supplies declared Observations, captures, and the closed Run metadata fields.
 
+A correlated capability's trigger, response and correlation are `Expression`s in the correlated
+context, but the capability admits and evaluates them itself rather than binding them through the
+IR: a FACT step reference is an existential over the step's facts, which no single-valued reference
+expresses, and the capability's depth and work ceilings count conditions rather than expression
+nodes. Preparation checks their references with `ir.AdmitReferences`, which locates a rejection at
+the path binding would report, and checks their shapes against the rule: a trigger reads only the
+step's action, and a response only its outcome, state or facts.
+
 Verdict rule results and support references are maintained incrementally at the same atomic event
 commit, without recopying prior support history. `Close` polls cancellation while validating the
 Run and checks it once more at its successful-return boundary. It transfers the frozen Verdict

@@ -740,6 +740,15 @@ private def workflowInstructions (entry : OperationCase) : Array InstructionNode
     (bounds 10000) #[Ref.instruction workflowEntrypointId entry.startInstructionId]
     none (some textOutcome)]
 
+/-- The lift guard that fires where `path` resolves on the projected history event. -/
+private def resolves (path : FieldPath) : Expression :=
+  Expr.present (Expr.path Expr.projectedValue path)
+
+/-- The lift guard that fires where `path` reads exactly `expected`. The presence conjunct is what
+lets the comparison read a path that may be absent. -/
+private def readsText (path : FieldPath) (expected : String) : Expression :=
+  Expr.all #[resolves path, Expr.equal (Expr.path Expr.projectedValue path) (text expected)]
+
 /-- The Program-declared source of the correlated capability's evidence. Each rule reads only the
 history event it guards: a scheduled event by the operation identity it records, a completion by its
 own attributes member. The operation key is the scheduled event's own id on one side and the
@@ -748,16 +757,15 @@ private def evidenceTarget : ReadTarget :=
   Program.correlatedEvidenceTarget correlatedObservationId
     ((operationCases.map fun entry =>
         Program.correlatedEvidenceRule
-          (guard := historyAttribute scheduledAttributesField "operation")
+          (guard := readsText (historyAttribute scheduledAttributesField "operation") entry.operation)
           (evidenceSource := evidenceSourceId.value)
           (kind := entry.scheduledEvidenceKindId.value)
           (operation := field "event_id")
           (scope := #[Program.correlatedEvidenceLiteral runFieldId.value runScopeValue])
           (fields := #[Program.correlatedEvidenceBinding operationIdentityFieldId.value
-            (historyAttribute scheduledAttributesField "operation")])
-          (guardEqualsText := entry.operation)) ++
+            (historyAttribute scheduledAttributesField "operation")])) ++
       [Program.correlatedEvidenceRule
-        (guard := Path.make #[Path.oneofSelector attributesGroup completedAttributesField])
+        (guard := resolves (Path.make #[Path.oneofSelector attributesGroup completedAttributesField]))
         (evidenceSource := evidenceSourceId.value)
         (kind := completedEvidenceKindId.value)
         (operation := historyAttribute completedAttributesField "scheduled_event_id")

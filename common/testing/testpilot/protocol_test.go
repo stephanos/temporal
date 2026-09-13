@@ -32,8 +32,9 @@ var runOnlyMessages = []protoreflect.Name{"Run", "Verdict", "RunDiagnostic", "Ru
 
 func TestProtocolEncodesExpressionAndStateScopes(t *testing.T) {
 	t.Parallel()
-	// Program and Contract share one expression language; its references are one oneof, and which
-	// of them an expression may use is checked at preparation rather than encoded in the type.
+	// Program, Contract, correlated conditions and evidence-lift guards share one expression language;
+	// its references are one oneof, and which of them an expression may use is checked at preparation
+	// rather than encoded in the type.
 	expression := messageDescriptor(t, "Expression")
 	require.NotNil(t, expression.Oneofs().ByName("expression"))
 	require.Equal(t, []protoreflect.Name{"literal", "reference", "path", "present", "compare", "not", "all", "any"}, fieldNames(expression))
@@ -41,8 +42,15 @@ func TestProtocolEncodesExpressionAndStateScopes(t *testing.T) {
 	require.NotNil(t, reference.Oneofs().ByName("reference"))
 	require.Equal(t, []protoreflect.Name{
 		"slot_id", "outcome", "run", "environment_binding_id", "observation_id", "run_event", "capture_id",
-		"evidence_field_id", "correlated_capture", "model_value",
+		"evidence_field_id", "correlated_capture", "model_value", "correlated_step", "projected_value",
 	}, fieldNames(reference))
+	rule := messageDescriptor(t, "CorrelatedRule")
+	evidenceRule := messageDescriptor(t, "CorrelatedEvidenceRule")
+	for _, field := range []protoreflect.FieldDescriptor{
+		rule.Fields().ByName("trigger"), rule.Fields().ByName("response"), rule.Fields().ByName("correlation"), evidenceRule.Fields().ByName("guard"),
+	} {
+		require.Equal(t, expression.FullName(), field.Message().FullName(), field.FullName())
+	}
 	operator := testpilotspb.ComparisonOperator(0).Descriptor().Values()
 	require.EqualValues(t, 1, operator.ByName("COMPARISON_OPERATOR_EQUAL").Number())
 	require.EqualValues(t, 2, operator.ByName("COMPARISON_OPERATOR_NOT_EQUAL").Number())
@@ -82,6 +90,9 @@ func TestProtocolUsesCohesivePublicVocabulary(t *testing.T) {
 		"Program" + "AnyExpression", "Contract" + "AnyExpression", "Equals" + "Expression",
 		"Slot" + "Ref", "Run" + "Ref", "Observation" + "Ref", "Capture" + "Ref", "Environment" + "Ref",
 		"InstructionOutcome" + "Ref", "RunEventField" + "Ref", "CorrelatedCapture" + "Ref",
+		"Correlated" + "Predicate", "Correlated" + "PredicateField", "Correlated" + "Comparison",
+		"Correlated" + "ComparisonOperator", "Correlated" + "Operand", "Correlated" + "Correlation",
+		"Correlated" + "CorrelationGroup",
 		"Scoped" + "Binding", "Scoped" + "CaptureDeclaration", "ScopedCapture" + "Ref", "Scoped" + "Clause",
 		"Scoped" + "Clock", "Scoped" + "Comparison", "Scoped" + "ComparisonOperator", "Scoped" + "Contract",
 		"Scoped" + "Correlation", "Scoped" + "CorrelationGroup", "Scoped" + "Endpoint", "Scoped" + "Evidence",

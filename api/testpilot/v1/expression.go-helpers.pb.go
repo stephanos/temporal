@@ -488,6 +488,80 @@ func (this *CorrelatedCaptureReference) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
+// Marshal an object of type CorrelatedStepReference to the protobuf v3 wire format
+func (val *CorrelatedStepReference) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type CorrelatedStepReference from the protobuf v3 wire format
+func (val *CorrelatedStepReference) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *CorrelatedStepReference) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two CorrelatedStepReference values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *CorrelatedStepReference) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *CorrelatedStepReference
+	switch t := that.(type) {
+	case *CorrelatedStepReference:
+		that1 = t
+	case CorrelatedStepReference:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type ProjectedValueReference to the protobuf v3 wire format
+func (val *ProjectedValueReference) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type ProjectedValueReference from the protobuf v3 wire format
+func (val *ProjectedValueReference) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *ProjectedValueReference) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two ProjectedValueReference values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *ProjectedValueReference) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *ProjectedValueReference
+	switch t := that.(type) {
+	case *ProjectedValueReference:
+		that1 = t
+	case ProjectedValueReference:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
 var (
 	ComparisonOperator_shorthandValue = map[string]int32{
 		"Unspecified":        0,
@@ -531,4 +605,25 @@ func InstructionOutcomeFieldFromString(s string) (InstructionOutcomeField, error
 		return InstructionOutcomeField(v), nil
 	}
 	return InstructionOutcomeField(0), fmt.Errorf("%s is not a valid InstructionOutcomeField", s)
+}
+
+var (
+	CorrelatedStepField_shorthandValue = map[string]int32{
+		"Unspecified": 0,
+		"Action":      1,
+		"Outcome":     2,
+		"State":       3,
+		"Fact":        4,
+	}
+)
+
+// CorrelatedStepFieldFromString parses a CorrelatedStepField value from  either the protojson
+// canonical SCREAMING_CASE enum or the traditional temporal PascalCase enum to CorrelatedStepField
+func CorrelatedStepFieldFromString(s string) (CorrelatedStepField, error) {
+	if v, ok := CorrelatedStepField_value[s]; ok {
+		return CorrelatedStepField(v), nil
+	} else if v, ok := CorrelatedStepField_shorthandValue[s]; ok {
+		return CorrelatedStepField(v), nil
+	}
+	return CorrelatedStepField(0), fmt.Errorf("%s is not a valid CorrelatedStepField", s)
 }
