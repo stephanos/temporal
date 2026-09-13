@@ -62,6 +62,7 @@ func transition(id, from, to string, predicate *testpilotspb.Expression) *testpi
 func addCapture(rule *testpilotspb.ContractRule) {
 	rule.Captures = []*testpilotspb.ContractCapture{{CaptureId: "saved", Type: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Scalar{Scalar: &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_INT64}}}}}
 }
+
 // addFlag declares a boolean capture the save transition assigns from the flag Observation.
 func addFlag(rule *testpilotspb.ContractRule) {
 	rule.Captures = append(rule.Captures, &testpilotspb.ContractCapture{CaptureId: "flag", Type: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Scalar{Scalar: &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_BOOLEAN}}}})

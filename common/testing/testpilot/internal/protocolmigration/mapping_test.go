@@ -453,7 +453,8 @@ func TestDeclaredCorrelatedStepsRewriteConditionsAndGuards(t *testing.T) {
 		{
 			name: "guard with text",
 			tree: message("CorrelatedEvidenceRule", map[string]any{"guard": path(), "guard" + "EqualsText": "t", "kind": "k"}),
-			want: `{"kind": "k", "guard": {"all": {"operands": [{"present": {"operand": ` + projected + `}}, {"compare": {"operator": "COMPARISON_OPERATOR_EQUAL", "left": ` + projected + `, "right": {"literal": {"textValue": "t"}}}}]}}}`,
+			// The R15 presence step then drops the presence check beside the comparison.
+			want: `{"kind": "k", "guard": {"compare": {"operator": "COMPARISON_OPERATOR_EQUAL", "left": ` + projected + `, "right": {"literal": {"textValue": "t"}}}}}`,
 		},
 		{
 			name:            "rule without a guard",
@@ -669,7 +670,8 @@ func TestDeclaredDefaultOrderStepDropsOnlyTheDefault(t *testing.T) {
 			instructions: func(t *testing.T) []any {
 				return []any{node("a", map[string]any{"guard": guard(t, status("x"))}), node("b", map[string]any{"dependencies": []any{reference("controller", "a")}, "guard": guard(t, succeeded("x"))})}
 			},
-			want: `[{"instructionId": "a", "guard": ` + status("x") + `}, {"instructionId": "b", "guard": ` + strings.ReplaceAll(succeeded("x"), `{"number": 1}`, `{"name": "INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"}`) + `}]`,
+			// The guard this step keeps is then reduced to its comparison by the R15 presence step.
+			want: `[{"instructionId": "a", "guard": ` + status("x") + `}, {"instructionId": "b", "guard": {"compare": {"operator": "COMPARISON_OPERATOR_EQUAL", "left": ` + status("x") + `, "right": {"literal": {"enumValue": {"name": "INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"}}}}}}]`,
 		},
 		{
 			name: "dependency on another entrypoint", message: "Entrypoint" + "Definition",
@@ -1015,6 +1017,48 @@ func TestDeclaredEnumLiteralAndFieldPathSteps(t *testing.T) {
 				require.ErrorContains(t, err, tc.wantErrorSubstr)
 				return
 			}
+			require.NoError(t, err)
+			encoded, err := json.Marshal(mapped)
+			require.NoError(t, err)
+			require.JSONEq(t, tc.want, string(encoded))
+		})
+	}
+}
+
+// The presence step drops exactly a present(p) beside a comparison of p, on either side, collapses a
+// group it leaves with one operand, and keeps every other presence check.
+func TestDeclaredPresenceStepDropsOnlyAPresenceBesideAComparison(t *testing.T) {
+	t.Parallel()
+
+	const (
+		p        = `{"path": {"operand": {"reference": {"observationId": "o"}}, "path": "a.b"}}`
+		q        = `{"path": {"operand": {"reference": {"observationId": "o"}}, "path": "a.c"}}`
+		observed = `{"reference": {"observationId": "o"}}`
+		text     = `{"literal": {"textValue": "x"}}`
+	)
+	present := func(operand string) string { return `{"present": {"operand": ` + operand + `}}` }
+	compare := func(left, right string) string {
+		return `{"compare": {"operator": "COMPARISON_OPERATOR_EQUAL", "left": ` + left + `, "right": ` + right + `}}`
+	}
+	all := func(operands ...string) string {
+		return `{"all": {"operands": [` + strings.Join(operands, ", ") + `]}}`
+	}
+	for _, tc := range []struct {
+		name, tree, want string
+	}{
+		{name: "a presence beside a comparison collapses", tree: all(present(p), compare(p, text)), want: compare(p, text)},
+		{name: "the compared operand on the right", tree: all(present(observed), present(p), compare(q, p)), want: all(present(observed), compare(q, p))},
+		{name: "a presence beside a negated comparison", tree: all(present(observed), present(p), `{"not": {"operand": `+compare(p, text)+`}}`), want: all(present(observed), present(p), `{"not": {"operand": `+compare(p, text)+`}}`)},
+		{name: "a presence of another path", tree: all(present(q), compare(p, text)), want: all(present(q), compare(p, text))},
+		{name: "a presence of the comparison's operand's source", tree: all(present(observed), compare(p, text)), want: all(present(observed), compare(p, text))},
+		{name: "a presence in any", tree: `{"any": {"operands": [` + present(p) + `, ` + compare(p, text) + `]}}`, want: `{"any": {"operands": [` + present(p) + `, ` + compare(p, text) + `]}}`},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			tree, err := decodeJSON([]byte(tc.tree))
+			require.NoError(t, err)
+			mapped, err := Declared.apply(loadBaseline(t), "fixture.json", tree, nil)
 			require.NoError(t, err)
 			encoded, err := json.Marshal(mapped)
 			require.NoError(t, err)
