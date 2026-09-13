@@ -52,6 +52,20 @@ func present(value *testpilotspb.Expression) *testpilotspb.Expression {
 func succeeded(entry, node string) *testpilotspb.Expression {
 	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Compare{Compare: &testpilotspb.CompareExpression{Operator: testpilotspb.COMPARISON_OPERATOR_EQUAL, Left: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_Outcome{Outcome: &testpilotspb.InstructionOutcomeReference{Instruction: &testpilotspb.InstructionReference{EntrypointId: entry, InstructionId: node}, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS}}}}}, Right: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Number: 1}}}}}}}}
 }
+
+// runsAfter names the instructions of entrypointID a node runs after; with no ids it makes the node
+// a root wherever it is declared.
+func runsAfter(entrypointID string, instructionIDs ...string) *testpilotspb.After {
+	after := &testpilotspb.After{Instructions: []*testpilotspb.InstructionReference{}}
+	for _, id := range instructionIDs {
+		after.Instructions = append(after.Instructions, &testpilotspb.InstructionReference{EntrypointId: entrypointID, InstructionId: id})
+	}
+	return after
+}
+
+func alwaysRuns() *testpilotspb.Expression {
+	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}}}
+}
 func runIDExpression() *testpilotspb.Expression {
 	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_Run{Run: &testpilotspb.RunReference{}}}}}
 }
