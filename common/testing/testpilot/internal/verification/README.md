@@ -54,7 +54,8 @@ reference whose first segment names the arm (`fault_injected.kind`). One table i
 says which arm each event kind may carry and which kind requires its arm. A transition declares the
 arms its filtered kinds may carry, so a path into an arm none of them carries rejects at
 preparation, located at that segment. For each evaluated kind, only the arm the kind requires is
-available; a path into an arm the event may lack is absent and needs a presence guard.
+available; a path into an arm the event may lack is absent, so a comparison over it is false on an
+event without the arm, and any other use needs a presence guard.
 
 A correlated capability's trigger, response and correlation are `Expression`s in the correlated
 context, but the capability admits and evaluates them itself rather than binding them through the

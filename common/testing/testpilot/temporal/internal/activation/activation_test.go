@@ -292,10 +292,13 @@ func TestEvaluationLifecycle(t *testing.T) {
 	_, _, err = state.Evaluate(t.Context(), 1)
 	require.Error(t, err)
 
+	// finish's guard compares await's status, which is absent until await is admitted, so finish is
+	// skipped rather than enabled.
 	state = newState(t, plan)
-	_, enabled, err := state.Evaluate(t.Context(), 2)
-	require.Error(t, err)
+	input, enabled, err := state.Evaluate(t.Context(), 2)
+	require.NoError(t, err)
 	require.False(t, enabled)
+	require.Nil(t, input)
 	remaining = state.remaining
 	_, _, err = state.Evaluate(t.Context(), 2)
 	require.Error(t, err)
@@ -320,8 +323,11 @@ func TestRejectedOutcomesAreAtomic(t *testing.T) {
 			require.Error(t, state.Admit(t.Context(), 1, outcome))
 			require.Empty(t, state.values)
 			require.Error(t, state.Admit(t.Context(), 1, success("retry")))
-			_, _, err := state.Evaluate(t.Context(), 2)
-			require.Error(t, err)
+			// No status was recorded, so the dependent's success guard is false.
+			input, enabled, err := state.Evaluate(t.Context(), 2)
+			require.NoError(t, err)
+			require.False(t, enabled)
+			require.Nil(t, input)
 		})
 	}
 	state := newState(t, plan)
@@ -435,9 +441,12 @@ func TestIndependentActivations(t *testing.T) {
 	snapshot.Instruction.GetStartNexusOperation().Input = runtimeText("mutated")
 	exercise(t, "after snapshot mutation")
 	require.True(t, proto.Equal(before, plan.Activation()))
+	// A fresh activation sees no other activation's await outcome, so finish's success guard is false.
 	state := newState(t, plan)
-	_, _, err := state.Evaluate(t.Context(), 2)
-	require.Error(t, err)
+	input, enabled, err := state.Evaluate(t.Context(), 2)
+	require.NoError(t, err)
+	require.False(t, enabled)
+	require.Nil(t, input)
 }
 
 func findEntrypoint(program testpilot.PreparedProgram, id string) (testpilot.EntrypointPlan, bool) {

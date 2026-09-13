@@ -682,8 +682,9 @@ func effectiveGuard(g *graph, n *node) *testpilotspb.Expression {
 	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: &testpilotspb.AllExpression{Operands: operands}}}
 }
 
-// dependencySucceeded holds when the instruction recorded a SUCCEEDED outcome. The presence conjunct
-// makes a skipped dependency, which records no outcome, false rather than an absent comparison.
+// dependencySucceeded holds when the instruction recorded a SUCCEEDED outcome. A skipped dependency
+// records no outcome, which the comparison alone already makes false; the presence conjunct gives the
+// dependent the status's presence fact, which a comparison does not.
 func dependencySucceeded(entrypointID, instructionID string) *testpilotspb.Expression {
 	status := func() *testpilotspb.Expression {
 		return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_Outcome{Outcome: &testpilotspb.InstructionOutcomeReference{
