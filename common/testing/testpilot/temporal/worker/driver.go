@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"reflect"
 	"slices"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -490,17 +491,8 @@ func assignmentUsesBinding(assignments []*testpilotspb.RequestAssignment, fields
 		return false
 	}
 	for _, assignment := range assignments {
-		if assignment == nil || assignment.GetTarget() == nil || len(assignment.GetTarget().GetSegments()) != len(fields) {
-			continue
-		}
-		matches := true
-		for i, segment := range assignment.GetTarget().GetSegments() {
-			if segment.GetField() != fields[i] || segment.GetSelector() != nil {
-				matches = false
-				break
-			}
-		}
-		if matches && assignment.GetValue().GetReference().GetEnvironmentBindingId() == bindingID {
+		// A path of plain field names has exactly one spelling.
+		if assignment.GetTarget() == strings.Join(fields, ".") && assignment.GetValue().GetReference().GetEnvironmentBindingId() == bindingID {
 			return true
 		}
 	}

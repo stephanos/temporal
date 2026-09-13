@@ -358,43 +358,43 @@ func TestSDKAwaitUsesItsOwnTimeout(t *testing.T) {
 			operation := nexus.NewOperationReference[*testpilotspb.Value, *testpilotspb.Value]("operation")
 			environment.OnNexusOperation("service", operation, mock.Anything, mock.Anything).Return(&nexus.HandlerStartOperationResultAsync{OperationToken: "token"}, nil)
 			require.NoError(t, environment.RegisterNexusAsyncOperationCompletion("service", "operation", "token", &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "done"}}, nil, tc.completion))
-			environment.ExecuteWorkflow(func(ctx workflow.Context) (int32, error) {
+			environment.ExecuteWorkflow(func(ctx workflow.Context) (string, error) {
 				entry := definition.entries["workflow"].plan
 				state, err := activation.New(entry)
 				if err != nil {
-					return 0, err
+					return "", err
 				}
 				i := workflowInterpreter{session: &Session{definition: definition}, ctx: ctx, state: state, futures: make(map[string]workflow.NexusOperationFuture)}
 				instructions := entry.Instructions()
 				input, enabled, err := state.Evaluate(context.Background(), 0)
 				if err != nil || !enabled {
-					return 0, fmt.Errorf("start evaluation: enabled=%t: %w", enabled, err)
+					return "", fmt.Errorf("start evaluation: enabled=%t: %w", enabled, err)
 				}
 				if err := i.startNexus(0, instructions[0], input); err != nil {
-					return 0, err
+					return "", err
 				}
 				_, enabled, err = state.Evaluate(context.Background(), 1)
 				if err != nil || !enabled {
-					return 0, fmt.Errorf("await evaluation: enabled=%t: %w", enabled, err)
+					return "", fmt.Errorf("await evaluation: enabled=%t: %w", enabled, err)
 				}
 				before := workflow.Now(ctx)
 				if err := i.awaitNexus(1, instructions[1]); err != nil {
-					return 0, err
+					return "", err
 				}
 				expected := min(tc.start, tc.await, tc.completion)
 				if elapsed := workflow.Now(ctx).Sub(before); elapsed != expected {
-					return 0, fmt.Errorf("await elapsed %s, want %s", elapsed, expected)
+					return "", fmt.Errorf("await elapsed %s, want %s", elapsed, expected)
 				}
 				status, enabled, err := state.Evaluate(context.Background(), 2)
 				if err != nil || !enabled {
-					return 0, fmt.Errorf("status evaluation: enabled=%t: %w", enabled, err)
+					return "", fmt.Errorf("status evaluation: enabled=%t: %w", enabled, err)
 				}
-				return status.GetEnumValue().GetNumber(), nil
+				return status.GetEnumValue().GetName(), nil
 			})
 			require.NoError(t, environment.GetWorkflowError())
-			var status int32
+			var status string
 			require.NoError(t, environment.GetWorkflowResult(&status))
-			require.EqualValues(t, tc.status, status)
+			require.Equal(t, testpilotspb.InstructionOutcomeStatus_name[int32(tc.status)], status)
 		})
 	}
 }

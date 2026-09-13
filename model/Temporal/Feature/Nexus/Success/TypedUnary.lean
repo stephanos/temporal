@@ -433,7 +433,7 @@ def observationId := "history-event"
 /-- The concrete `workflow_type.name` coordinates the Program constructs. The coordinates the
 monitor rule reads back out of the started history event are derived from the Property itself,
 below. -/
-private def submittedTypeTarget : FieldPath := nested ["workflow_type", "name"]
+private def submittedTypeTarget : String := nested ["workflow_type", "name"]
 
 /-- The declared Observation each history event is projected into, and the one the derived rule
 reads. -/

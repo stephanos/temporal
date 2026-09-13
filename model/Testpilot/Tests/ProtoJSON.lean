@@ -32,7 +32,7 @@ private def predicateExpression := Expr.any #[
       value := ByteArray.mk #[8, 1, 16, 2]
     })),
   Expr.literal (Value.floatingPoint 1.5),
-  Expr.literal (Value.enumeration 1),
+  Expr.literal (Value.enumeration "EXAMPLE_VALUE"),
   Expr.literal (Value.boolean false)
 ]
 
@@ -140,6 +140,10 @@ private def tests : IO Unit := do
   let first ← render representativeCase
   let second ← render representativeCase
   assert (first == second) "equal Cases did not render deterministically"
+  assert (first.startsWith "{\"caseId\":\"binding-case\",\"version\":{\"major\":1},\"provenance\":")
+    "the Case's fields were not rendered in declaration order"
+  assert (first.contains "{\"instructionId\":\"finish\",\"instruction\":{\"finish\":")
+    "an instruction's identity did not precede what it does"
   assert (first.contains "\"version\":{\"major\":1}") "Case 1.0 was dropped"
   assert (first.contains "\"reference\":{\"environmentBindingId\":\"\"}")
     "present empty environment reference was dropped"
@@ -155,15 +159,15 @@ private def tests : IO Unit := do
     "monitor deadline was dropped"
   assert (first.contains "\"kind\":\"DEFINITION_KIND_PROPERTY\"") "a provenance definition was dropped"
   assert (first.contains "\"line\":2147483647") "a provenance source line was not rendered as a number"
-  assert (first.contains "{\"code\":\"test.gap.input\",\"detail\":\"needs input\",\"kind\":\"KNOWN_GAP_KIND_INPUT\"}")
+  assert (first.contains "{\"kind\":\"KNOWN_GAP_KIND_INPUT\",\"code\":\"test.gap.input\",\"detail\":\"needs input\"}")
     "an absent Known Gap subject was rendered"
   assert (first.contains "\"detail\":\"\"") "a present empty Known Gap detail was dropped"
   assert (first.contains "\"ruleId\":\"test.rule\"") "a correlated rule binding was dropped"
   assert (first.contains "\"floatingPointValue\":1.5") "floating value was dropped"
-  assert (first.contains "\"enumValue\":{\"number\":1}") "enum value was dropped"
+  assert (first.contains "\"enumValue\":{\"name\":\"EXAMPLE_VALUE\"}") "enum value was dropped"
   assert (first.contains "\"boolValue\":false") "present false oneof value was dropped"
-  assert (first.contains "\"@type\":\"type.googleapis.com/temporal.server.api.testpilot.v1.FormatVersion\"")
-    "resolved Any was dropped"
+  assert (first.contains "{\"@type\":\"type.googleapis.com/temporal.server.api.testpilot.v1.FormatVersion\",\"major\":1,\"minor\":2}")
+    "resolved Any did not render its type before its payload's fields"
   let literalFirst ← render literalCase
   let literalSecond ← render literalCase
   assert (literalFirst == literalSecond) "literal Case 1.0 encoding changed nondeterministically"

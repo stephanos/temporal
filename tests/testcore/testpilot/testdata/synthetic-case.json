@@ -1,52 +1,38 @@
 {
   "caseId": "testpilot.synthetic.case",
-  "contract": {
-    "contractId": "testpilot.synthetic.contract",
-    "rules": [
-      {
-        "initialStateId": "open",
-        "kind": "CONTRACT_RULE_KIND_SAFETY",
-        "ruleId": "completion",
-        "states": [
-          {
-            "stateId": "open",
-            "status": "CONTRACT_STATE_STATUS_PENDING"
-          },
-          {
-            "stateId": "done",
-            "status": "CONTRACT_STATE_STATUS_SATISFIED"
-          }
-        ],
-        "transitions": [
-          {
-            "eventFilter": {
-              "kinds": [
-                "RUN_EVENT_KIND_RUN_CLOSED"
-              ]
-            },
-            "predicate": {
-              "literal": {
-                "boolValue": true
-              }
-            },
-            "sourceStateId": "open",
-            "supportKind": "CONTRACT_SUPPORT_KIND_NONE",
-            "targetStateId": "done",
-            "transitionId": "complete"
-          }
-        ]
-      }
-    ]
+  "version": {
+    "major": 1
+  },
+  "provenance": {
+    "producerId": "standalone.lean.testpilot",
+    "producerVersion": "1"
   },
   "program": {
-    "cleanup": {
-      "entrypointId": "cleanup"
-    },
+    "programId": "testpilot.synthetic.program",
+    "roles": [
+      {
+        "roleId": "worker",
+        "kind": "ROLE_KIND_WORKER",
+        "namespaceBindingId": "namespace"
+      },
+      {
+        "roleId": "task.queue",
+        "kind": "ROLE_KIND_TASK_QUEUE",
+        "namespaceBindingId": "namespace",
+        "resourceBindingId": "task.queue"
+      }
+    ],
     "entrypoints": [
       {
         "entrypointId": "workflow",
+        "workflow": {
+          "workflowType": "SyntheticWorkflow",
+          "workerRoleId": "worker",
+          "taskQueueRoleId": "task.queue"
+        },
         "instructions": [
           {
+            "instructionId": "finish",
             "instruction": {
               "finish": {
                 "result": {
@@ -59,37 +45,51 @@
                   }
                 }
               }
-            },
-            "instructionId": "finish"
+            }
           }
-        ],
-        "workflow": {
-          "taskQueueRoleId": "task.queue",
-          "workerRoleId": "worker",
-          "workflowType": "SyntheticWorkflow"
-        }
+        ]
       }
     ],
-    "programId": "testpilot.synthetic.program",
-    "roles": [
+    "cleanup": {
+      "entrypointId": "cleanup"
+    }
+  },
+  "contract": {
+    "contractId": "testpilot.synthetic.contract",
+    "rules": [
       {
-        "kind": "ROLE_KIND_WORKER",
-        "namespaceBindingId": "namespace",
-        "roleId": "worker"
-      },
-      {
-        "kind": "ROLE_KIND_TASK_QUEUE",
-        "namespaceBindingId": "namespace",
-        "resourceBindingId": "task.queue",
-        "roleId": "task.queue"
+        "ruleId": "completion",
+        "kind": "CONTRACT_RULE_KIND_SAFETY",
+        "initialStateId": "open",
+        "states": [
+          {
+            "stateId": "open",
+            "status": "CONTRACT_STATE_STATUS_PENDING"
+          },
+          {
+            "stateId": "done",
+            "status": "CONTRACT_STATE_STATUS_SATISFIED"
+          }
+        ],
+        "transitions": [
+          {
+            "transitionId": "complete",
+            "sourceStateId": "open",
+            "targetStateId": "done",
+            "supportKind": "CONTRACT_SUPPORT_KIND_NONE",
+            "eventFilter": {
+              "kinds": [
+                "RUN_EVENT_KIND_RUN_CLOSED"
+              ]
+            },
+            "predicate": {
+              "literal": {
+                "boolValue": true
+              }
+            }
+          }
+        ]
       }
     ]
-  },
-  "provenance": {
-    "producerId": "standalone.lean.testpilot",
-    "producerVersion": "1"
-  },
-  "version": {
-    "major": 1
   }
 }

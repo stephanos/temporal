@@ -179,7 +179,8 @@ message CorrelatedEvidenceRule {
   // The scope field values of the evidence identity, each a text literal or a text path.
   repeated NamedExpression scope = 1;
   string evidence_source = 2;
-  FieldPath operation = 3;
+  // The field path of the operation key, in the grammar PathExpression.path documents.
+  string operation = 3;
   string kind = 4;
   // The evidence field values, each a text literal or a path to a text, integer or boolean.
   repeated NamedExpression fields = 5;

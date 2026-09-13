@@ -140,7 +140,7 @@ author writes; everything else is how the realization reads that kind back out o
 structure EvidenceSource where
   eventKind : String
   attributesField : String
-  operationKeyPath : FieldPath
+  operationKeyPath : String
   kindId : DefinitionId
   sourceId : DefinitionId
 

@@ -28,7 +28,7 @@ def rule
     (resolved : Umpire.Case.Producer.EvidenceRule) : CorrelatedEvidenceRule :=
   Program.correlatedEvidenceRule
     (guard := Expr.present (Expr.path Expr.projectedValue
-      (Path.make #[Path.oneofSelector "attributes" resolved.source.attributesField])))
+      (Path.make #[Path.oneofMember "attributes" resolved.source.attributesField])))
     (evidenceSource := resolved.source.sourceId.value)
     (kind := resolved.source.kindId.value)
     (operation := resolved.source.operationKeyPath)

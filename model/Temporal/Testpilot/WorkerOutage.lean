@@ -90,7 +90,7 @@ def resumeRealization : Umpire.FaultRealization :=
 only the closing event, so the success rule reads the one event that proves the queued task ran --
 and the read cannot resolve before the resumed worker executed it. -/
 private def closeEventFilter : Expression :=
-  Expr.literal (Value.enumeration 2)
+  Expr.literal (Value.enumeration "HISTORY_EVENT_FILTER_TYPE_CLOSE_EVENT")
 
 private def historyAssignments : Array RequestAssignment := #[
   Program.environmentAssignment (field "namespace") workerOutageNamespaceBinding,
@@ -141,19 +141,20 @@ private def faultRoleIs : Expression :=
   Expr.equal (faultField "role_id")
     (Expr.literal (Value.text workerOutageQueueRole))
 
-/-- The wire number one fault kind carries. The generated Lean enum is a bare inductive with no
-number accessor, so the constructor and its number are paired here once and read from here twice.
-The match names every declared kind: a vocabulary addition is a Lean error here rather than a
-predicate silently comparing against zero. -/
-private def faultKindNumber : FaultKind → Int32
-  | .FAULT_KIND_WORKER_STOP => 1
-  | .FAULT_KIND_WORKER_RESUME => 2
-  | .FAULT_KIND_UNSPECIFIED => 0
-  | .«Unknown.Value» number => number
+/-- The value name one fault kind carries. The generated Lean enum is a bare inductive with no name
+accessor, so the constructor and its name are paired here once and read from here twice; an unknown
+number is spelled in decimal, as the runtime spells a number its enum does not declare. The match
+names every declared kind: a vocabulary addition is a Lean error here rather than a predicate
+silently comparing against an unnamed kind. -/
+private def faultKindName : FaultKind → String
+  | .FAULT_KIND_WORKER_STOP => "FAULT_KIND_WORKER_STOP"
+  | .FAULT_KIND_WORKER_RESUME => "FAULT_KIND_WORKER_RESUME"
+  | .FAULT_KIND_UNSPECIFIED => "FAULT_KIND_UNSPECIFIED"
+  | .«Unknown.Value» number => toString number
 
 private def faultKindIs (kind : FaultKind) : Expression :=
   Expr.equal (faultField "kind")
-    (Expr.literal (Value.enumeration (faultKindNumber kind)))
+    (Expr.literal (Value.enumeration (faultKindName kind)))
 
 /-- The outage window, counted in evaluated Run Events rather than on the host's clock. The counter
 restarts when the stop transitions the rule, so what it bounds is the distance from the stop to the

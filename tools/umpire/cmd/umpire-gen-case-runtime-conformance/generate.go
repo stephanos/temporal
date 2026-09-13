@@ -13,6 +13,7 @@ import (
 	"slices"
 	"strings"
 
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/tools/common/artifactio"
 )
@@ -22,6 +23,9 @@ const (
 	functionalFixtureRoot = "tests/testcore/testpilot/testdata"
 	rendererExecutable    = "umpire-case"
 )
+
+// caseDescriptor is the message every Case fixture encodes.
+var caseDescriptor = (&testpilotspb.Case{}).ProtoReflect().Descriptor()
 
 type generationMode string
 
@@ -315,6 +319,9 @@ func validateGeneratedArtifacts(entries []manifestEntry, artifacts, candidate ma
 		if err := requirePersistedForm(fixtureRoot+"/correlated.json", encoded); err != nil {
 			return err
 		}
+		if err := requireCorrelatedDeclarationOrder(fixtureRoot+"/correlated.json", encoded); err != nil {
+			return err
+		}
 		if !bytes.Equal(encoded, expected) {
 			return errors.New("invalid staged correlated fixtures")
 		}
@@ -403,6 +410,9 @@ func validateFunctionalArtifacts(entries []functionalEntry, artifacts map[string
 			return fmt.Errorf("missing functional Case fixture %q", entry.Filename)
 		}
 		if err := requirePersistedForm(functionalCasePath(entry), encoded); err != nil {
+			return err
+		}
+		if err := requireDeclarationOrder(functionalCasePath(entry), encoded, caseDescriptor); err != nil {
 			return err
 		}
 		decoded, err := testpilot.DecodeCaseProtoJSON(encoded)
@@ -533,6 +543,9 @@ func validateArtifacts(entries []manifestEntry, artifacts map[string][]byte) err
 			return fmt.Errorf("missing Case fixture for %q", entry.name())
 		}
 		if err := requirePersistedForm(casePath(entry), encoded); err != nil {
+			return err
+		}
+		if err := requireDeclarationOrder(casePath(entry), encoded, caseDescriptor); err != nil {
 			return err
 		}
 		decoded, err := testpilot.DecodeCaseProtoJSON(encoded)

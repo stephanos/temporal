@@ -18,8 +18,7 @@ func TestProjectionStagesOrderedElementsAndRejectsLimitsAtomically(t *testing.T)
 	c.Program.Observations = []*testpilotspb.Observation{{ObservationId: "item", Type: scalar(testpilotspb.SCALAR_KIND_TEXT)}}
 	n := c.Program.Entrypoints[0].Instructions[0]
 	policy.Limits.MaxInstructionEmittedEvents = 2
-	path := field("items")
-	path.Segments[0].Selector = &testpilotspb.FieldPathSegment_Repeated{Repeated: &testpilotspb.RepeatedWildcard{}}
+	path := "items[*]"
 	n.Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: path, Cardinality: testpilotspb.READ_CARDINALITY_EMIT_EACH, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_ObservationId{ObservationId: "item"}}}}}
 	p, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)

@@ -37,7 +37,7 @@ def operationFieldId : DefinitionId := .of "temporal.case.workflow.scope.operati
 def completedEvidenceKindId : DefinitionId := .of "temporal.case.workflow.evidence.completed"
 
 /-- The single close event's own id: one Run runs one workflow, so this names the operation. -/
-private def eventKey : FieldPath := field "event_id"
+private def eventKey : String := field "event_id"
 
 def completedSource : Umpire.Case.Producer.EvidenceSource :=
   let kind := "workflowExecutionCompleted"

@@ -691,7 +691,7 @@ func dependencySucceeded(entrypointID, instructionID string) *testpilotspb.Expre
 			Field:       testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS,
 		}}}}}
 	}
-	succeeded := &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Number: int32(testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED)}}}}}
+	succeeded := &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Name: ir.EnumName(testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED)}}}}}
 	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: &testpilotspb.AllExpression{Operands: []*testpilotspb.Expression{
 		{Expression: &testpilotspb.Expression_Present{Present: &testpilotspb.PresentExpression{Operand: status()}}},
 		{Expression: &testpilotspb.Expression_Compare{Compare: &testpilotspb.CompareExpression{Operator: testpilotspb.COMPARISON_OPERATOR_EQUAL, Left: status(), Right: succeeded}}},

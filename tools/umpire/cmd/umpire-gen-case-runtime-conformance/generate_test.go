@@ -411,6 +411,30 @@ func TestRequirePersistedFormRejectsCompactButValidJSONNamingTheFile(t *testing.
 	require.ErrorContains(t, err, "not in persisted form")
 }
 
+// A fixture lists every message object's fields in declaration order, so a reordered object fails
+// naming the file and the object's JSON path.
+func TestRequireDeclarationOrderRejectsReorderedObjectsNamingFileAndPath(t *testing.T) {
+	const fixture = "tests/testcore/testpilot/testdata/typed-nexus-case.json"
+	for _, tt := range []struct {
+		name, encoded, wantErrorSubstr string
+	}{
+		{name: "declaration order", encoded: `{"caseId":"x","version":{"major":1},"program":{"entrypoints":[{"entrypointId":"e","instructions":[{"instructionId":"a","guard":{"literal":{"messageValue":{"@type":"type.googleapis.com/temporal.server.api.testpilot.v1.FormatVersion","major":1}}}}]}]}}`},
+		{name: "a top-level field", encoded: `{"version":{"major":1},"caseId":"x"}`, wantErrorSubstr: `$: field "caseId" follows "version"`},
+		{name: "a nested field", encoded: `{"caseId":"x","program":{"entrypoints":[{"entrypointId":"e","instructions":[{"guard":{},"instructionId":"a"}]}]}}`, wantErrorSubstr: `$.program.entrypoints[0].instructions[0]: field "instructionId" follows "guard"`},
+		{name: "an Any payload", encoded: `{"caseId":"x","program":{"entrypoints":[{"instructions":[{"guard":{"literal":{"messageValue":{"major":1,"@type":"type.googleapis.com/temporal.server.api.testpilot.v1.FormatVersion"}}}}]}]}}`, wantErrorSubstr: `$.program.entrypoints[0].instructions[0].guard.literal.messageValue: an Any lists "major" before @type`},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			err := requireDeclarationOrder(fixture, []byte(tt.encoded), caseDescriptor)
+			if tt.wantErrorSubstr == "" {
+				require.NoError(t, err)
+				return
+			}
+			require.ErrorContains(t, err, fixture)
+			require.ErrorContains(t, err, tt.wantErrorSubstr)
+		})
+	}
+}
+
 // A staged fixture that is valid JSON but stored compact fails validation by name, rather than
 // surfacing only as an unexplained `diff -ru` hunk.
 func TestValidateFunctionalArtifactsRejectsCompactStagedFixture(t *testing.T) {

@@ -372,10 +372,15 @@ func (*Value_ListValue) isValue_Value() {}
 
 func (*Value_MapValue) isValue_Value() {}
 
-// EnumValue is one enum value by number, which the enum its declared type names must define.
+// EnumValue is one enum value by name. A literal names a value the enum of its expected type
+// declares. A value read from a protobuf message whose number that enum does not declare is spelled
+// by the number in decimal, the ProtoJSON spelling, which no literal can name.
+// (-- api-linter: core::0123::resource-annotation=disabled
+//
+//	aip.dev/not-precedent: name is an enum value name, not a resource name. --)
 type EnumValue struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Number        int32                  `protobuf:"varint,1,opt,name=number,proto3" json:"number,omitempty"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -410,11 +415,11 @@ func (*EnumValue) Descriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *EnumValue) GetNumber() int32 {
+func (x *EnumValue) GetName() string {
 	if x != nil {
-		return x.Number
+		return x.Name
 	}
-	return 0
+	return ""
 }
 
 // ValueList is an ordered list: the value of a repeated type, or of a path that fans out over a
@@ -1098,341 +1103,6 @@ func (*OpaqueHandleType) Descriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{13}
 }
 
-// FieldPath addresses a value inside a protobuf message, one segment per field. An empty path
-// addresses the whole value.
-type FieldPath struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Segments      []*FieldPathSegment    `protobuf:"bytes,1,rep,name=segments,proto3" json:"segments,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *FieldPath) Reset() {
-	*x = FieldPath{}
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[14]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *FieldPath) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*FieldPath) ProtoMessage() {}
-
-func (x *FieldPath) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[14]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use FieldPath.ProtoReflect.Descriptor instead.
-func (*FieldPath) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{14}
-}
-
-func (x *FieldPath) GetSegments() []*FieldPathSegment {
-	if x != nil {
-		return x.Segments
-	}
-	return nil
-}
-
-// FieldPathSegment reads one field and optionally selects inside it.
-type FieldPathSegment struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// The protobuf field name, not its JSON name; with a oneof selector, the name of the oneof.
-	Field string `protobuf:"bytes,1,opt,name=field,proto3" json:"field,omitempty"`
-	// Types that are valid to be assigned to Selector:
-	//
-	//	*FieldPathSegment_Repeated
-	//	*FieldPathSegment_MapKey
-	//	*FieldPathSegment_Presence
-	//	*FieldPathSegment_Oneof
-	Selector      isFieldPathSegment_Selector `protobuf_oneof:"selector"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *FieldPathSegment) Reset() {
-	*x = FieldPathSegment{}
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[15]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *FieldPathSegment) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*FieldPathSegment) ProtoMessage() {}
-
-func (x *FieldPathSegment) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[15]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use FieldPathSegment.ProtoReflect.Descriptor instead.
-func (*FieldPathSegment) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{15}
-}
-
-func (x *FieldPathSegment) GetField() string {
-	if x != nil {
-		return x.Field
-	}
-	return ""
-}
-
-func (x *FieldPathSegment) GetSelector() isFieldPathSegment_Selector {
-	if x != nil {
-		return x.Selector
-	}
-	return nil
-}
-
-func (x *FieldPathSegment) GetRepeated() *RepeatedWildcard {
-	if x != nil {
-		if x, ok := x.Selector.(*FieldPathSegment_Repeated); ok {
-			return x.Repeated
-		}
-	}
-	return nil
-}
-
-func (x *FieldPathSegment) GetMapKey() *MapKeySelector {
-	if x != nil {
-		if x, ok := x.Selector.(*FieldPathSegment_MapKey); ok {
-			return x.MapKey
-		}
-	}
-	return nil
-}
-
-func (x *FieldPathSegment) GetPresence() *PresenceSelector {
-	if x != nil {
-		if x, ok := x.Selector.(*FieldPathSegment_Presence); ok {
-			return x.Presence
-		}
-	}
-	return nil
-}
-
-func (x *FieldPathSegment) GetOneof() *OneofSelector {
-	if x != nil {
-		if x, ok := x.Selector.(*FieldPathSegment_Oneof); ok {
-			return x.Oneof
-		}
-	}
-	return nil
-}
-
-type isFieldPathSegment_Selector interface {
-	isFieldPathSegment_Selector()
-}
-
-type FieldPathSegment_Repeated struct {
-	Repeated *RepeatedWildcard `protobuf:"bytes,2,opt,name=repeated,proto3,oneof"`
-}
-
-type FieldPathSegment_MapKey struct {
-	MapKey *MapKeySelector `protobuf:"bytes,3,opt,name=map_key,json=mapKey,proto3,oneof"`
-}
-
-type FieldPathSegment_Presence struct {
-	Presence *PresenceSelector `protobuf:"bytes,4,opt,name=presence,proto3,oneof"`
-}
-
-type FieldPathSegment_Oneof struct {
-	Oneof *OneofSelector `protobuf:"bytes,5,opt,name=oneof,proto3,oneof"`
-}
-
-func (*FieldPathSegment_Repeated) isFieldPathSegment_Selector() {}
-
-func (*FieldPathSegment_MapKey) isFieldPathSegment_Selector() {}
-
-func (*FieldPathSegment_Presence) isFieldPathSegment_Selector() {}
-
-func (*FieldPathSegment_Oneof) isFieldPathSegment_Selector() {}
-
-// RepeatedWildcard fans out over every element of a repeated field, so the path's value is a list.
-type RepeatedWildcard struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *RepeatedWildcard) Reset() {
-	*x = RepeatedWildcard{}
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[16]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *RepeatedWildcard) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RepeatedWildcard) ProtoMessage() {}
-
-func (x *RepeatedWildcard) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[16]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RepeatedWildcard.ProtoReflect.Descriptor instead.
-func (*RepeatedWildcard) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{16}
-}
-
-// MapKeySelector reads the entry of a map field with this key, absent when no entry has it.
-type MapKeySelector struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Key           *Value                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *MapKeySelector) Reset() {
-	*x = MapKeySelector{}
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[17]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *MapKeySelector) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*MapKeySelector) ProtoMessage() {}
-
-func (x *MapKeySelector) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[17]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use MapKeySelector.ProtoReflect.Descriptor instead.
-func (*MapKeySelector) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{17}
-}
-
-func (x *MapKeySelector) GetKey() *Value {
-	if x != nil {
-		return x.Key
-	}
-	return nil
-}
-
-// PresenceSelector reads whether a presence-tracking field is set, as a boolean. Only a path's last
-// segment may select presence.
-type PresenceSelector struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *PresenceSelector) Reset() {
-	*x = PresenceSelector{}
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[18]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *PresenceSelector) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*PresenceSelector) ProtoMessage() {}
-
-func (x *PresenceSelector) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[18]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use PresenceSelector.ProtoReflect.Descriptor instead.
-func (*PresenceSelector) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{18}
-}
-
-// OneofSelector reads the member selected_field of the oneof the segment names.
-type OneofSelector struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	SelectedField string                 `protobuf:"bytes,1,opt,name=selected_field,json=selectedField,proto3" json:"selected_field,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *OneofSelector) Reset() {
-	*x = OneofSelector{}
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[19]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *OneofSelector) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*OneofSelector) ProtoMessage() {}
-
-func (x *OneofSelector) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[19]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use OneofSelector.ProtoReflect.Descriptor instead.
-func (*OneofSelector) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{19}
-}
-
-func (x *OneofSelector) GetSelectedField() string {
-	if x != nil {
-		return x.SelectedField
-	}
-	return ""
-}
-
 var File_temporal_server_api_testpilot_v1_value_proto protoreflect.FileDescriptor
 
 const file_temporal_server_api_testpilot_v1_value_proto_rawDesc = "" +
@@ -1455,9 +1125,9 @@ const file_temporal_server_api_testpilot_v1_value_proto_rawDesc = "" +
 	"list_value\x18\t \x01(\v2+.temporal.server.api.testpilot.v1.ValueListH\x00R\tlistValue\x12I\n" +
 	"\tmap_value\x18\n" +
 	" \x01(\v2*.temporal.server.api.testpilot.v1.ValueMapH\x00R\bmapValueB\a\n" +
-	"\x05value\"#\n" +
-	"\tEnumValue\x12\x16\n" +
-	"\x06number\x18\x01 \x01(\x05R\x06number\"L\n" +
+	"\x05value\"\x1f\n" +
+	"\tEnumValue\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\"L\n" +
 	"\tValueList\x12?\n" +
 	"\x06values\x18\x01 \x03(\v2'.temporal.server.api.testpilot.v1.ValueR\x06values\"U\n" +
 	"\bValueMap\x12I\n" +
@@ -1491,23 +1161,7 @@ const file_temporal_server_api_testpilot_v1_value_proto_rawDesc = "" +
 	"\tNamedType\x12#\n" +
 	"\rprotobuf_type\x18\x01 \x01(\tR\fprotobufType\"\t\n" +
 	"\aAnyType\"\x12\n" +
-	"\x10OpaqueHandleType\"[\n" +
-	"\tFieldPath\x12N\n" +
-	"\bsegments\x18\x01 \x03(\v22.temporal.server.api.testpilot.v1.FieldPathSegmentR\bsegments\"\xee\x02\n" +
-	"\x10FieldPathSegment\x12\x14\n" +
-	"\x05field\x18\x01 \x01(\tR\x05field\x12P\n" +
-	"\brepeated\x18\x02 \x01(\v22.temporal.server.api.testpilot.v1.RepeatedWildcardH\x00R\brepeated\x12K\n" +
-	"\amap_key\x18\x03 \x01(\v20.temporal.server.api.testpilot.v1.MapKeySelectorH\x00R\x06mapKey\x12P\n" +
-	"\bpresence\x18\x04 \x01(\v22.temporal.server.api.testpilot.v1.PresenceSelectorH\x00R\bpresence\x12G\n" +
-	"\x05oneof\x18\x05 \x01(\v2/.temporal.server.api.testpilot.v1.OneofSelectorH\x00R\x05oneofB\n" +
-	"\n" +
-	"\bselector\"\x12\n" +
-	"\x10RepeatedWildcard\"K\n" +
-	"\x0eMapKeySelector\x129\n" +
-	"\x03key\x18\x01 \x01(\v2'.temporal.server.api.testpilot.v1.ValueR\x03key\"\x12\n" +
-	"\x10PresenceSelector\"6\n" +
-	"\rOneofSelector\x12%\n" +
-	"\x0eselected_field\x18\x01 \x01(\tR\rselectedField*\x92\x03\n" +
+	"\x10OpaqueHandleType*\x92\x03\n" +
 	"\n" +
 	"ScalarKind\x12\x1b\n" +
 	"\x17SCALAR_KIND_UNSPECIFIED\x10\x00\x12\x14\n" +
@@ -1541,7 +1195,7 @@ func file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP() []byte {
 }
 
 var file_temporal_server_api_testpilot_v1_value_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_temporal_server_api_testpilot_v1_value_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
+var file_temporal_server_api_testpilot_v1_value_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_temporal_server_api_testpilot_v1_value_proto_goTypes = []any{
 	(ScalarKind)(0),          // 0: temporal.server.api.testpilot.v1.ScalarKind
 	(*Value)(nil),            // 1: temporal.server.api.testpilot.v1.Value
@@ -1558,17 +1212,11 @@ var file_temporal_server_api_testpilot_v1_value_proto_goTypes = []any{
 	(*NamedType)(nil),        // 12: temporal.server.api.testpilot.v1.NamedType
 	(*AnyType)(nil),          // 13: temporal.server.api.testpilot.v1.AnyType
 	(*OpaqueHandleType)(nil), // 14: temporal.server.api.testpilot.v1.OpaqueHandleType
-	(*FieldPath)(nil),        // 15: temporal.server.api.testpilot.v1.FieldPath
-	(*FieldPathSegment)(nil), // 16: temporal.server.api.testpilot.v1.FieldPathSegment
-	(*RepeatedWildcard)(nil), // 17: temporal.server.api.testpilot.v1.RepeatedWildcard
-	(*MapKeySelector)(nil),   // 18: temporal.server.api.testpilot.v1.MapKeySelector
-	(*PresenceSelector)(nil), // 19: temporal.server.api.testpilot.v1.PresenceSelector
-	(*OneofSelector)(nil),    // 20: temporal.server.api.testpilot.v1.OneofSelector
-	(*anypb.Any)(nil),        // 21: google.protobuf.Any
+	(*anypb.Any)(nil),        // 15: google.protobuf.Any
 }
 var file_temporal_server_api_testpilot_v1_value_proto_depIdxs = []int32{
 	2,  // 0: temporal.server.api.testpilot.v1.Value.enum_value:type_name -> temporal.server.api.testpilot.v1.EnumValue
-	21, // 1: temporal.server.api.testpilot.v1.Value.message_value:type_name -> google.protobuf.Any
+	15, // 1: temporal.server.api.testpilot.v1.Value.message_value:type_name -> google.protobuf.Any
 	3,  // 2: temporal.server.api.testpilot.v1.Value.list_value:type_name -> temporal.server.api.testpilot.v1.ValueList
 	4,  // 3: temporal.server.api.testpilot.v1.Value.map_value:type_name -> temporal.server.api.testpilot.v1.ValueMap
 	1,  // 4: temporal.server.api.testpilot.v1.ValueList.values:type_name -> temporal.server.api.testpilot.v1.Value
@@ -1586,17 +1234,11 @@ var file_temporal_server_api_testpilot_v1_value_proto_depIdxs = []int32{
 	11, // 16: temporal.server.api.testpilot.v1.MapType.key:type_name -> temporal.server.api.testpilot.v1.ScalarType
 	8,  // 17: temporal.server.api.testpilot.v1.MapType.value:type_name -> temporal.server.api.testpilot.v1.SingularType
 	0,  // 18: temporal.server.api.testpilot.v1.ScalarType.kind:type_name -> temporal.server.api.testpilot.v1.ScalarKind
-	16, // 19: temporal.server.api.testpilot.v1.FieldPath.segments:type_name -> temporal.server.api.testpilot.v1.FieldPathSegment
-	17, // 20: temporal.server.api.testpilot.v1.FieldPathSegment.repeated:type_name -> temporal.server.api.testpilot.v1.RepeatedWildcard
-	18, // 21: temporal.server.api.testpilot.v1.FieldPathSegment.map_key:type_name -> temporal.server.api.testpilot.v1.MapKeySelector
-	19, // 22: temporal.server.api.testpilot.v1.FieldPathSegment.presence:type_name -> temporal.server.api.testpilot.v1.PresenceSelector
-	20, // 23: temporal.server.api.testpilot.v1.FieldPathSegment.oneof:type_name -> temporal.server.api.testpilot.v1.OneofSelector
-	1,  // 24: temporal.server.api.testpilot.v1.MapKeySelector.key:type_name -> temporal.server.api.testpilot.v1.Value
-	25, // [25:25] is the sub-list for method output_type
-	25, // [25:25] is the sub-list for method input_type
-	25, // [25:25] is the sub-list for extension type_name
-	25, // [25:25] is the sub-list for extension extendee
-	0,  // [0:25] is the sub-list for field type_name
+	19, // [19:19] is the sub-list for method output_type
+	19, // [19:19] is the sub-list for method input_type
+	19, // [19:19] is the sub-list for extension type_name
+	19, // [19:19] is the sub-list for extension extendee
+	0,  // [0:19] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_testpilot_v1_value_proto_init() }
@@ -1627,19 +1269,13 @@ func file_temporal_server_api_testpilot_v1_value_proto_init() {
 		(*SingularType_Message)(nil),
 		(*SingularType_Any)(nil),
 	}
-	file_temporal_server_api_testpilot_v1_value_proto_msgTypes[15].OneofWrappers = []any{
-		(*FieldPathSegment_Repeated)(nil),
-		(*FieldPathSegment_MapKey)(nil),
-		(*FieldPathSegment_Presence)(nil),
-		(*FieldPathSegment_Oneof)(nil),
-	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_temporal_server_api_testpilot_v1_value_proto_rawDesc), len(file_temporal_server_api_testpilot_v1_value_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   20,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

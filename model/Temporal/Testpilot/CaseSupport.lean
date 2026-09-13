@@ -22,13 +22,13 @@ def binding (id fingerprint : String) (kind : Umpire.Provenance.DefinitionKind) 
 
 def textType : ValueType := Types.singular (Types.scalar .SCALAR_KIND_TEXT)
 
-def field (name : String) : FieldPath := Path.make #[Path.field name]
+def field (name : String) : String := Path.make #[Path.field name]
 
 def boolean (value : Bool) : Expression :=
   Expr.literal (Value.boolean value)
 
 def project
-    (source : FieldPath)
+    (source : String)
     (observationId : String)
     (cardinality : ReadCardinality := .READ_CARDINALITY_ONE) : ResponseRead :=
   Program.responseRead source cardinality #[Program.observationTarget observationId]
@@ -39,14 +39,14 @@ def historyEventNode := "temporal.api.history.v1.HistoryEvent"
 def historyEventType : ValueType :=
   Types.singular (Types.messageType historyEventNode)
 
-def nested (names : List String) : FieldPath :=
+def nested (names : List String) : String :=
   Path.make (names.map Path.field).toArray
 
-def historyEvents : FieldPath :=
+def historyEvents : String :=
   Path.make #[Path.field "history", Path.repeated "events"]
 
-def historyAttribute (selected name : String) : FieldPath :=
-  Path.make #[Path.oneofSelector "attributes" selected, Path.field name]
+def historyAttribute (selected name : String) : String :=
+  Path.make #[Path.oneofMember "attributes" selected, Path.field name]
 
 /-- The gRPC transport path of a checked generated method, derived from its own admitted full name
 rather than copied beside it. -/
@@ -60,10 +60,10 @@ def signedInteger (value : Int) : Expression :=
 def observed (id : String) : Expression := Expr.observation id
 def captured (id : String) : Expression := Expr.capture id
 def runId : Expression := Expr.run
-def projected (value : Expression) (path : FieldPath) : Expression :=
+def projected (value : Expression) (path : String) : Expression :=
   Expr.path value path
 
-def assign (target : FieldPath) (value : Expression) : RequestAssignment :=
+def assign (target : String) (value : Expression) : RequestAssignment :=
   Program.requestAssignment target value
 
 def provenance (producerId producerVersion : String)

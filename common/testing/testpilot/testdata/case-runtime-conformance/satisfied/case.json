@@ -1,12 +1,71 @@
 {
   "caseId": "temporal.case.conformance.satisfied",
+  "version": {
+    "major": 1
+  },
+  "provenance": {
+    "producerId": "temporal.case.compiler",
+    "producerVersion": "1",
+    "definitions": [
+      {
+        "definitionId": "temporal.workflow-service",
+        "behaviorFingerprint": "temporal-workflow-service/v1",
+        "kind": "DEFINITION_KIND_TARGET"
+      },
+      {
+        "definitionId": "temporal.case.conformance.satisfied.property",
+        "behaviorFingerprint": "temporal.case.conformance.satisfied/property/v1",
+        "kind": "DEFINITION_KIND_PROPERTY"
+      }
+    ],
+    "sources": [
+      {
+        "path": "Temporal/Testpilot.lean",
+        "line": 1,
+        "column": 1,
+        "provenance": "checked-model"
+      }
+    ]
+  },
+  "program": {
+    "programId": "temporal.case.conformance.satisfied.program",
+    "roles": [
+      {
+        "roleId": "temporal.workflow-service",
+        "kind": "ROLE_KIND_ENDPOINT"
+      }
+    ],
+    "entrypoints": [
+      {
+        "entrypointId": "controller",
+        "controller": {},
+        "instructions": [
+          {
+            "instructionId": "execute",
+            "instruction": {
+              "invokeRpc": {
+                "endpointRoleId": "temporal.workflow-service",
+                "method": "/temporal.api.workflowservice.v1.WorkflowService/GetSystemInfo"
+              }
+            },
+            "limits": {
+              "timeoutMilliseconds": "5000"
+            }
+          }
+        ]
+      }
+    ],
+    "cleanup": {
+      "entrypointId": "cleanup"
+    }
+  },
   "contract": {
     "contractId": "temporal.case.conformance.satisfied.contract",
     "rules": [
       {
-        "initialStateId": "pending",
-        "kind": "CONTRACT_RULE_KIND_SAFETY",
         "ruleId": "result",
+        "kind": "CONTRACT_RULE_KIND_SAFETY",
+        "initialStateId": "pending",
         "states": [
           {
             "stateId": "pending",
@@ -19,6 +78,10 @@
         ],
         "transitions": [
           {
+            "transitionId": "complete",
+            "sourceStateId": "pending",
+            "targetStateId": "terminal",
+            "supportKind": "CONTRACT_SUPPORT_KIND_MATCHING_EVENT",
             "eventFilter": {
               "kinds": [
                 "RUN_EVENT_KIND_INSTRUCTION_COMPLETED"
@@ -28,73 +91,10 @@
               "literal": {
                 "boolValue": true
               }
-            },
-            "sourceStateId": "pending",
-            "supportKind": "CONTRACT_SUPPORT_KIND_MATCHING_EVENT",
-            "targetStateId": "terminal",
-            "transitionId": "complete"
-          }
-        ]
-      }
-    ]
-  },
-  "program": {
-    "cleanup": {
-      "entrypointId": "cleanup"
-    },
-    "entrypoints": [
-      {
-        "controller": {},
-        "entrypointId": "controller",
-        "instructions": [
-          {
-            "instruction": {
-              "invokeRpc": {
-                "endpointRoleId": "temporal.workflow-service",
-                "method": "/temporal.api.workflowservice.v1.WorkflowService/GetSystemInfo"
-              }
-            },
-            "instructionId": "execute",
-            "limits": {
-              "timeoutMilliseconds": "5000"
             }
           }
         ]
       }
-    ],
-    "programId": "temporal.case.conformance.satisfied.program",
-    "roles": [
-      {
-        "kind": "ROLE_KIND_ENDPOINT",
-        "roleId": "temporal.workflow-service"
-      }
     ]
-  },
-  "provenance": {
-    "definitions": [
-      {
-        "behaviorFingerprint": "temporal-workflow-service/v1",
-        "definitionId": "temporal.workflow-service",
-        "kind": "DEFINITION_KIND_TARGET"
-      },
-      {
-        "behaviorFingerprint": "temporal.case.conformance.satisfied/property/v1",
-        "definitionId": "temporal.case.conformance.satisfied.property",
-        "kind": "DEFINITION_KIND_PROPERTY"
-      }
-    ],
-    "producerId": "temporal.case.compiler",
-    "producerVersion": "1",
-    "sources": [
-      {
-        "column": 1,
-        "line": 1,
-        "path": "Temporal/Testpilot.lean",
-        "provenance": "checked-model"
-      }
-    ]
-  },
-  "version": {
-    "major": 1
   }
 }

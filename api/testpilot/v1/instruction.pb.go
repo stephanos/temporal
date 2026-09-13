@@ -680,9 +680,10 @@ func (x *InvokeRpc) GetResponseReads() []*ResponseRead {
 // RequestAssignment sets the request field at target to its value, evaluated at dispatch. Targets
 // may not overlap, fan out or select presence.
 type RequestAssignment struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Target        *FieldPath             `protobuf:"bytes,1,opt,name=target,proto3" json:"target,omitempty"`
-	Value         *Expression            `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// A field path in the grammar PathExpression.path documents.
+	Target        string      `protobuf:"bytes,1,opt,name=target,proto3" json:"target,omitempty"`
+	Value         *Expression `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -717,11 +718,11 @@ func (*RequestAssignment) Descriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *RequestAssignment) GetTarget() *FieldPath {
+func (x *RequestAssignment) GetTarget() string {
 	if x != nil {
 		return x.Target
 	}
-	return nil
+	return ""
 }
 
 func (x *RequestAssignment) GetValue() *Expression {
@@ -734,10 +735,11 @@ func (x *RequestAssignment) GetValue() *Expression {
 // ResponseRead reads the value at path in a successful RPC response into its targets. An absent value
 // is not read.
 type ResponseRead struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Path          *FieldPath             `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
-	Cardinality   ReadCardinality        `protobuf:"varint,2,opt,name=cardinality,proto3,enum=temporal.server.api.testpilot.v1.ReadCardinality" json:"cardinality,omitempty"`
-	Targets       []*ReadTarget          `protobuf:"bytes,3,rep,name=targets,proto3" json:"targets,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// A field path in the grammar PathExpression.path documents.
+	Path          string          `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
+	Cardinality   ReadCardinality `protobuf:"varint,2,opt,name=cardinality,proto3,enum=temporal.server.api.testpilot.v1.ReadCardinality" json:"cardinality,omitempty"`
+	Targets       []*ReadTarget   `protobuf:"bytes,3,rep,name=targets,proto3" json:"targets,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -772,11 +774,11 @@ func (*ResponseRead) Descriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *ResponseRead) GetPath() *FieldPath {
+func (x *ResponseRead) GetPath() string {
 	if x != nil {
 		return x.Path
 	}
-	return nil
+	return ""
 }
 
 func (x *ResponseRead) GetCardinality() ReadCardinality {
@@ -1375,7 +1377,7 @@ var File_temporal_server_api_testpilot_v1_instruction_proto protoreflect.FileDes
 
 const file_temporal_server_api_testpilot_v1_instruction_proto_rawDesc = "" +
 	"\n" +
-	"2temporal/server/api/testpilot/v1/instruction.proto\x12 temporal.server.api.testpilot.v1\x1a1temporal/server/api/testpilot/v1/correlated.proto\x1a1temporal/server/api/testpilot/v1/expression.proto\x1a,temporal/server/api/testpilot/v1/value.proto\"\xd9\x02\n" +
+	"2temporal/server/api/testpilot/v1/instruction.proto\x12 temporal.server.api.testpilot.v1\x1a1temporal/server/api/testpilot/v1/correlated.proto\x1a1temporal/server/api/testpilot/v1/expression.proto\"\xd9\x02\n" +
 	"\x0fInstructionNode\x12%\n" +
 	"\x0einstruction_id\x18\x01 \x01(\tR\rinstructionId\x12O\n" +
 	"\vinstruction\x18\x02 \x01(\v2-.temporal.server.api.testpilot.v1.InstructionR\vinstruction\x12=\n" +
@@ -1400,12 +1402,12 @@ const file_temporal_server_api_testpilot_v1_instruction_proto_rawDesc = "" +
 	"\x10endpoint_role_id\x18\x01 \x01(\tR\x0eendpointRoleId\x12\x16\n" +
 	"\x06method\x18\x02 \x01(\tR\x06method\x12d\n" +
 	"\x13request_assignments\x18\x03 \x03(\v23.temporal.server.api.testpilot.v1.RequestAssignmentR\x12requestAssignments\x12U\n" +
-	"\x0eresponse_reads\x18\x04 \x03(\v2..temporal.server.api.testpilot.v1.ResponseReadR\rresponseReads\"\x9c\x01\n" +
-	"\x11RequestAssignment\x12C\n" +
-	"\x06target\x18\x01 \x01(\v2+.temporal.server.api.testpilot.v1.FieldPathR\x06target\x12B\n" +
-	"\x05value\x18\x02 \x01(\v2,.temporal.server.api.testpilot.v1.ExpressionR\x05value\"\xec\x01\n" +
-	"\fResponseRead\x12?\n" +
-	"\x04path\x18\x01 \x01(\v2+.temporal.server.api.testpilot.v1.FieldPathR\x04path\x12S\n" +
+	"\x0eresponse_reads\x18\x04 \x03(\v2..temporal.server.api.testpilot.v1.ResponseReadR\rresponseReads\"o\n" +
+	"\x11RequestAssignment\x12\x16\n" +
+	"\x06target\x18\x01 \x01(\tR\x06target\x12B\n" +
+	"\x05value\x18\x02 \x01(\v2,.temporal.server.api.testpilot.v1.ExpressionR\x05value\"\xbf\x01\n" +
+	"\fResponseRead\x12\x12\n" +
+	"\x04path\x18\x01 \x01(\tR\x04path\x12S\n" +
 	"\vcardinality\x18\x02 \x01(\x0e21.temporal.server.api.testpilot.v1.ReadCardinalityR\vcardinality\x12F\n" +
 	"\atargets\x18\x03 \x03(\v2,.temporal.server.api.testpilot.v1.ReadTargetR\atargets\"\xcd\x01\n" +
 	"\n" +
@@ -1498,8 +1500,7 @@ var file_temporal_server_api_testpilot_v1_instruction_proto_goTypes = []any{
 	(*InstructionLimits)(nil),            // 18: temporal.server.api.testpilot.v1.InstructionLimits
 	(*Expression)(nil),                   // 19: temporal.server.api.testpilot.v1.Expression
 	(*InstructionReference)(nil),         // 20: temporal.server.api.testpilot.v1.InstructionReference
-	(*FieldPath)(nil),                    // 21: temporal.server.api.testpilot.v1.FieldPath
-	(*CorrelatedEvidenceProjection)(nil), // 22: temporal.server.api.testpilot.v1.CorrelatedEvidenceProjection
+	(*CorrelatedEvidenceProjection)(nil), // 21: temporal.server.api.testpilot.v1.CorrelatedEvidenceProjection
 }
 var file_temporal_server_api_testpilot_v1_instruction_proto_depIdxs = []int32{
 	6,  // 0: temporal.server.api.testpilot.v1.InstructionNode.instruction:type_name -> temporal.server.api.testpilot.v1.Instruction
@@ -1517,24 +1518,22 @@ var file_temporal_server_api_testpilot_v1_instruction_proto_depIdxs = []int32{
 	17, // 12: temporal.server.api.testpilot.v1.Instruction.inject_fault:type_name -> temporal.server.api.testpilot.v1.InjectFault
 	8,  // 13: temporal.server.api.testpilot.v1.InvokeRpc.request_assignments:type_name -> temporal.server.api.testpilot.v1.RequestAssignment
 	9,  // 14: temporal.server.api.testpilot.v1.InvokeRpc.response_reads:type_name -> temporal.server.api.testpilot.v1.ResponseRead
-	21, // 15: temporal.server.api.testpilot.v1.RequestAssignment.target:type_name -> temporal.server.api.testpilot.v1.FieldPath
-	19, // 16: temporal.server.api.testpilot.v1.RequestAssignment.value:type_name -> temporal.server.api.testpilot.v1.Expression
-	21, // 17: temporal.server.api.testpilot.v1.ResponseRead.path:type_name -> temporal.server.api.testpilot.v1.FieldPath
-	0,  // 18: temporal.server.api.testpilot.v1.ResponseRead.cardinality:type_name -> temporal.server.api.testpilot.v1.ReadCardinality
-	10, // 19: temporal.server.api.testpilot.v1.ResponseRead.targets:type_name -> temporal.server.api.testpilot.v1.ReadTarget
-	22, // 20: temporal.server.api.testpilot.v1.ReadTarget.correlated_evidence:type_name -> temporal.server.api.testpilot.v1.CorrelatedEvidenceProjection
-	20, // 21: temporal.server.api.testpilot.v1.AwaitInstruction.instruction:type_name -> temporal.server.api.testpilot.v1.InstructionReference
-	19, // 22: temporal.server.api.testpilot.v1.StartNexusOperation.input:type_name -> temporal.server.api.testpilot.v1.Expression
-	19, // 23: temporal.server.api.testpilot.v1.CompleteNexusOperation.result:type_name -> temporal.server.api.testpilot.v1.Expression
-	1,  // 24: temporal.server.api.testpilot.v1.RespondNexus.kind:type_name -> temporal.server.api.testpilot.v1.NexusResponseKind
-	19, // 25: temporal.server.api.testpilot.v1.RespondNexus.result:type_name -> temporal.server.api.testpilot.v1.Expression
-	19, // 26: temporal.server.api.testpilot.v1.Finish.result:type_name -> temporal.server.api.testpilot.v1.Expression
-	2,  // 27: temporal.server.api.testpilot.v1.InjectFault.kind:type_name -> temporal.server.api.testpilot.v1.FaultKind
-	28, // [28:28] is the sub-list for method output_type
-	28, // [28:28] is the sub-list for method input_type
-	28, // [28:28] is the sub-list for extension type_name
-	28, // [28:28] is the sub-list for extension extendee
-	0,  // [0:28] is the sub-list for field type_name
+	19, // 15: temporal.server.api.testpilot.v1.RequestAssignment.value:type_name -> temporal.server.api.testpilot.v1.Expression
+	0,  // 16: temporal.server.api.testpilot.v1.ResponseRead.cardinality:type_name -> temporal.server.api.testpilot.v1.ReadCardinality
+	10, // 17: temporal.server.api.testpilot.v1.ResponseRead.targets:type_name -> temporal.server.api.testpilot.v1.ReadTarget
+	21, // 18: temporal.server.api.testpilot.v1.ReadTarget.correlated_evidence:type_name -> temporal.server.api.testpilot.v1.CorrelatedEvidenceProjection
+	20, // 19: temporal.server.api.testpilot.v1.AwaitInstruction.instruction:type_name -> temporal.server.api.testpilot.v1.InstructionReference
+	19, // 20: temporal.server.api.testpilot.v1.StartNexusOperation.input:type_name -> temporal.server.api.testpilot.v1.Expression
+	19, // 21: temporal.server.api.testpilot.v1.CompleteNexusOperation.result:type_name -> temporal.server.api.testpilot.v1.Expression
+	1,  // 22: temporal.server.api.testpilot.v1.RespondNexus.kind:type_name -> temporal.server.api.testpilot.v1.NexusResponseKind
+	19, // 23: temporal.server.api.testpilot.v1.RespondNexus.result:type_name -> temporal.server.api.testpilot.v1.Expression
+	19, // 24: temporal.server.api.testpilot.v1.Finish.result:type_name -> temporal.server.api.testpilot.v1.Expression
+	2,  // 25: temporal.server.api.testpilot.v1.InjectFault.kind:type_name -> temporal.server.api.testpilot.v1.FaultKind
+	26, // [26:26] is the sub-list for method output_type
+	26, // [26:26] is the sub-list for method input_type
+	26, // [26:26] is the sub-list for extension type_name
+	26, // [26:26] is the sub-list for extension extendee
+	0,  // [0:26] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_testpilot_v1_instruction_proto_init() }
@@ -1544,7 +1543,6 @@ func file_temporal_server_api_testpilot_v1_instruction_proto_init() {
 	}
 	file_temporal_server_api_testpilot_v1_correlated_proto_init()
 	file_temporal_server_api_testpilot_v1_expression_proto_init()
-	file_temporal_server_api_testpilot_v1_value_proto_init()
 	file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[2].OneofWrappers = []any{
 		(*Instruction_InvokeRpc)(nil),
 		(*Instruction_AwaitSlot)(nil),

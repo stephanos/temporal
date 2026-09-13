@@ -2,6 +2,7 @@ package execution
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -69,24 +70,20 @@ func liftFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Profile) {
 		Entrypoints:  []*testpilotspb.Entrypoint{{EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}}, Instructions: []*testpilotspb.InstructionNode{node}}},
 		Cleanup:      &testpilotspb.Cleanup{EntrypointId: "cleanup"}}, Contract: &testpilotspb.Contract{ContractId: "contract"}}
 	node.Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{
-		Path: &testpilotspb.FieldPath{}, Cardinality: testpilotspb.READ_CARDINALITY_ONE,
-		Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_CorrelatedEvidence{CorrelatedEvidence: liftProjection()}}}}}
+		Cardinality: testpilotspb.READ_CARDINALITY_ONE,
+		Targets:     []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_CorrelatedEvidence{CorrelatedEvidence: liftProjection()}}}}}
 	return artifact, catalog, policy
 }
 
 func messageValueType(name string) *testpilotspb.ValueType {
 	return &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Message{Message: &testpilotspb.NamedType{ProtobufType: name}}}}}
 }
-func nestedPath(names ...string) *testpilotspb.FieldPath {
-	path := &testpilotspb.FieldPath{}
-	for _, name := range names {
-		path.Segments = append(path.Segments, &testpilotspb.FieldPathSegment{Field: name})
-	}
-	return path
+func nestedPath(names ...string) string {
+	return strings.Join(names, ".")
 }
 
 // projected reads path out of the value an evidence lift is projecting.
-func projected(path *testpilotspb.FieldPath) *testpilotspb.Expression {
+func projected(path string) *testpilotspb.Expression {
 	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Path{Path: &testpilotspb.PathExpression{
 		Operand: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_ProjectedValue{ProjectedValue: &testpilotspb.ProjectedValueReference{}}}}},
 		Path:    path,
@@ -94,12 +91,12 @@ func projected(path *testpilotspb.FieldPath) *testpilotspb.Expression {
 }
 
 // resolves is the guard that fires where path resolves on the projected value.
-func resolves(path *testpilotspb.FieldPath) *testpilotspb.Expression {
+func resolves(path string) *testpilotspb.Expression {
 	return present(projected(path))
 }
 
 // readsText is the guard that fires where path reads exactly text.
-func readsText(path *testpilotspb.FieldPath, text string) *testpilotspb.Expression {
+func readsText(path, text string) *testpilotspb.Expression {
 	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: &testpilotspb.AllExpression{Operands: []*testpilotspb.Expression{
 		resolves(path),
 		{Expression: &testpilotspb.Expression_Compare{Compare: &testpilotspb.CompareExpression{
@@ -116,7 +113,7 @@ func literalBinding(field, text string) *testpilotspb.NamedExpression {
 }
 
 // pathBinding supplies field with the value path reads from the projected value.
-func pathBinding(field string, path *testpilotspb.FieldPath) *testpilotspb.NamedExpression {
+func pathBinding(field, path string) *testpilotspb.NamedExpression {
 	return &testpilotspb.NamedExpression{FieldId: field, Value: projected(path)}
 }
 

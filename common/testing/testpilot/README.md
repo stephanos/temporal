@@ -38,6 +38,41 @@ lift a projected value into a declared `CorrelatedEvidence` Observation through 
 the only way a Program supplies the evidence a `Contract.correlated` capability reads. A capability that
 admits no evidence answers inconclusive: silence is not a satisfied property.
 
+## Field paths and enum literals
+
+A Case reads and writes protobuf fields through field paths: `PathExpression.path`, a request
+assignment's `target`, a response read's `path` and an evidence-lift rule's `operation`. Each is a
+string in one grammar, which preparation parses and types against the message it addresses:
+
+```text
+path     = "" | segment { "." segment }
+segment  = name [ selector ]
+selector = "<" name ">" | "[*]" | "[" key "]" | "?"
+key      = JSON string | [ "-" ] digit { digit } | "true" | "false"
+name     = ( letter | "_" ) { letter | digit | "_" }
+```
+
+- A `name` is a protobuf field name, not its JSON name. The empty path is the whole value.
+- `<member>` after a oneof's name reads that oneof's member `member`, absent unless it is the selected
+  one: `attributes<nexus_operation_completed_event_attributes>.scheduled_event_id`.
+- `[*]` fans out over every element of a repeated field, so the path's value is a list:
+  `history.events[*]`.
+- `[key]` reads the entry of a map field with that key, absent when no entry has it. The key's kind
+  must be the map's: a JSON string for text keys (`labels["key"]`), a canonical base-10 integer for
+  integer keys (`counts[-42]`), `true` or `false` for boolean keys.
+- A final `?` reads whether a presence-tracking field is set, as a boolean: `child.optional_text?`.
+
+A segment takes at most one selector. `Testpilot.Authoring.Path.make` is the one Lean printer and
+spells a text key escaping only the quote, the backslash and control characters. A path outside the
+grammar, an unknown field or member, or a key of the wrong kind rejects at preparation located at the
+path's field and quoting its text.
+
+An enum literal is `EnumValue { name }`. Preparation resolves the name against the enum its context
+expects (the other operand of a comparison, or the field a request assignment targets) and rejects an
+undeclared name, a name where the expected type is no enum, and an enum literal with no expected type,
+quoting the name. A value read from a protobuf message carries its name too; a number the enum does
+not declare is spelled in decimal, which no literal names.
+
 ## Preparation diagnostics
 
 `NewCatalog`, `Prepare`, and `ProfileSpec.BindingFingerprint` return errors discoverable as

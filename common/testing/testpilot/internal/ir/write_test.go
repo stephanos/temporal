@@ -16,16 +16,15 @@ import (
 func TestRequestWritesPreservePresenceAndOwnership(t *testing.T) {
 	c := fixtureCatalog(t)
 	typ := boundType(t, c, named("fixture.Payload", false))
-	lookup := fieldPath("labels")
-	lookup.Segments[0].Selector = &testpilotspb.FieldPathSegment_MapKey{MapKey: &testpilotspb.MapKeySelector{Key: text("zero")}}
+	lookup := `labels["zero"]`
 	var writes []Write
 	for _, tc := range []struct {
-		path  *testpilotspb.FieldPath
+		path  string
 		value *testpilotspb.Value
 	}{
 		{fieldPath("child", "optional_text"), text("")}, {fieldPath("success"), text("")}, {lookup, signed("0")},
 	} {
-		path, err := c.BindPath(typ, tc.path, DefaultLimits())
+		path, err := c.BindPath(typ, "path", tc.path, DefaultLimits())
 		require.NoError(t, err)
 		writes = append(writes, Write{Path: path, Value: tc.value})
 	}
@@ -55,14 +54,14 @@ func TestRequestWritesPreservePresenceAndOwnership(t *testing.T) {
 func TestRequestRejectsCrossedValuesAndConflictingWrites(t *testing.T) {
 	c := fixtureCatalog(t)
 	typ := boundType(t, c, named("fixture.Payload", false))
-	p, err := c.BindPath(typ, fieldPath("failure"), DefaultLimits())
+	p, err := c.BindPath(typ, "path", fieldPath("failure"), DefaultLimits())
 	require.NoError(t, err)
 	for _, v := range []*testpilotspb.Value{nil, text("0"), signed("9223372036854775808"), signed("01")} {
 		got, _, err := BuildRequest(context.Background(), typ.Message(), []Write{{Path: p, Value: v}}, DefaultLimits())
 		require.Error(t, err)
 		require.Nil(t, got)
 	}
-	q, err := c.BindPath(typ, fieldPath("success"), DefaultLimits())
+	q, err := c.BindPath(typ, "path", fieldPath("success"), DefaultLimits())
 	require.NoError(t, err)
 	for _, writes := range [][]Write{{{Path: p, Value: signed("0")}, {Path: p, Value: signed("1")}}, {{Path: p, Value: signed("0")}, {Path: q, Value: text("")}}} {
 		got, _, err := BuildRequest(context.Background(), typ.Message(), writes, DefaultLimits())
@@ -95,7 +94,7 @@ func TestRequestNumericWidthsAndCollections(t *testing.T) {
 		{&testpilotspb.Value{Value: &testpilotspb.Value_BytesValue{BytesValue: []byte{1, 2}}}, text("bytes"), []byte{1, 2}}, {boolean(true), signed("1"), true},
 	} {
 		t.Run(fmt.Sprint(kinds[i]), func(t *testing.T) {
-			path, err := c.BindPath(typ, fieldPath(fmt.Sprintf("field%d", i)), DefaultLimits())
+			path, err := c.BindPath(typ, "path", fieldPath(fmt.Sprintf("field%d", i)), DefaultLimits())
 			require.NoError(t, err)
 			request, _, err := BuildRequest(context.Background(), typ.Message(), []Write{{Path: path, Value: tc.value}}, DefaultLimits())
 			require.NoError(t, err)
@@ -114,20 +113,20 @@ func TestRequestNumericWidthsAndCollections(t *testing.T) {
 	}
 	payload := boundType(t, c, named("fixture.Payload", false))
 	for _, tc := range []struct {
-		path  *testpilotspb.FieldPath
+		path  string
 		value *testpilotspb.Value
 	}{
 		{fieldPath("items"), &testpilotspb.Value{Value: &testpilotspb.Value_ListValue{ListValue: &testpilotspb.ValueList{Values: []*testpilotspb.Value{{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/fixture.Payload", Value: []byte{10, 1, 'b'}}}}, {Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/fixture.Payload", Value: []byte{10, 1, 'a'}}}}}}}}},
 		{fieldPath("labels"), &testpilotspb.Value{Value: &testpilotspb.Value_MapValue{MapValue: &testpilotspb.ValueMap{Entries: []*testpilotspb.ValueMapEntry{{Key: text("z"), Value: signed("0")}, {Key: text("a"), Value: signed("1")}}}}}},
 		{fieldPath("payload"), &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/custom.Bytes", Value: []byte{1, 2, 3}}}}},
 	} {
-		path, err := c.BindPath(payload, tc.path, DefaultLimits())
+		path, err := c.BindPath(payload, "path", tc.path, DefaultLimits())
 		require.NoError(t, err)
 		request, _, err := BuildRequest(context.Background(), payload.Message(), []Write{{Path: path, Value: tc.value}}, DefaultLimits())
 		require.NoError(t, err)
 		projected, _, err := path.Read(context.Background(), request, DefaultLimits())
 		require.NoError(t, err)
-		if tc.path.Segments[0].Field == "labels" {
+		if tc.path == "labels" {
 			require.Equal(t, "a", projected.GetMapValue().Entries[0].Key.GetTextValue())
 			require.Equal(t, "z", projected.GetMapValue().Entries[1].Key.GetTextValue())
 		} else {

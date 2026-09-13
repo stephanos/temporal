@@ -56,6 +56,15 @@ and no two encodings of one definition, and only then substitutes the names and 
 `correlated.json`, the names its events carry). `expected.json` stays byte-identical: every
 conformance rule id is already its own local name.
 
+A step whose change depends on what a baseline value meant sets `Resolve`, which also receives the
+baseline snapshot. The R15 enum step names each baseline enum number by the snapshot enum its
+context expects (a request assignment's target field, or the instruction status or payload field it
+is compared with), requires the current enum to declare that name, and fails on a literal in any
+other context. It is declared before the R9 default-order step, which recognizes the success guard
+by its current `Expression`. The R15 path step then spells every baseline `FieldPath` in the path
+grammar with its own printer, independent of the runtime parser. Key order is not a ProtoJSON value
+difference, so no step declares it.
+
 Reuse the helpers where they fit: `RenameField`, `RenameEnumLiteral`, `RenameMessage`, `DropField` and
 `RewriteMessages`. A step that is not a rename validates what it assumes (a derived field equals
 its recomputed value, a dropped bound matches a declared loosened bound) instead of discarding

@@ -249,14 +249,6 @@ Each operation's rule is `Umpire.Case.Projection.lower` applied to the checked r
 field the runtime reads is derived from the same `PropertyFieldPath` the model compares. The
 expected paths here are written out rather than read back from the derivation. -/
 
-/-- One derived read path as its segments: each field name, with the oneof member a selector names
-or the empty string when the segment selects no oneof. -/
-private def segmentsOf (path : FieldPath) : List (String × String) :=
-  path.segments.toList.map fun segment =>
-    (segment.field, match segment.selector with
-      | some (.oneof selection) => selection.selected_field
-      | _ => "")
-
 /-- The derived rule shape of one operation. -/
 private def derivedShape (entry : OperationCase) : Option Umpire.Case.Projection.Shape := do
   let model ← checked.toOption
@@ -270,14 +262,13 @@ private def derivedShape (entry : OperationCase) : Option Umpire.Case.Projection
 -- the whole response payload contribute nothing to any read path.
 #guard operationCases.all fun entry => match derivedShape entry with
   | some (.capture false captured observed selector literal "scheduled" "completion") =>
-      captured.path == scheduledEventIdPath && segmentsOf captured.segments == [("event_id", "")] &&
+      captured.path == scheduledEventIdPath && captured.segments == "event_id" &&
         observed.path == completedScheduledEventIdPath &&
-        segmentsOf observed.segments ==
-          [(attributesGroup, "nexus_operation_completed_event_attributes"),
-            ("scheduled_event_id", "")] &&
+        observed.segments ==
+          attributesGroup ++ "<nexus_operation_completed_event_attributes>.scheduled_event_id" &&
         selector.path == scheduledOperationPath &&
-        segmentsOf selector.segments ==
-          [(attributesGroup, "nexus_operation_scheduled_event_attributes"), ("operation", "")] &&
+        selector.segments ==
+          attributesGroup ++ "<nexus_operation_scheduled_event_attributes>.operation" &&
         literal.scalar == .text entry.operation
   | _ => false
 

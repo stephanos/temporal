@@ -14,8 +14,8 @@ func textLiteral(text string) *testpilotspb.Expression {
 	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: text}}}}
 }
 
-func enumLiteral(number int32) *testpilotspb.Expression {
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Number: number}}}}}
+func enumLiteral(name string) *testpilotspb.Expression {
+	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Name: name}}}}}
 }
 
 func faultEvent(sequence, elapsed int64, role string, kind testpilotspb.FaultKind) *testpilotspb.RunEvent {
@@ -27,7 +27,7 @@ func faultEvent(sequence, elapsed int64, role string, kind testpilotspb.FaultKin
 // payloadField reads one field of a Run Event payload arm through a path from the payload reference.
 func payloadField(arm, field string) *testpilotspb.Expression {
 	payload := &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_RunEvent{RunEvent: &testpilotspb.RunEventReference{Selection: &testpilotspb.RunEventReference_Payload{Payload: &testpilotspb.RunEventPayloadReference{}}}}}}}
-	path := &testpilotspb.FieldPath{Segments: []*testpilotspb.FieldPathSegment{{Field: arm}, {Field: field}}}
+	path := arm + "." + field
 	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Path{Path: &testpilotspb.PathExpression{Operand: payload, Path: path}}}
 }
 
@@ -51,7 +51,7 @@ func TestEvaluatorMatchesRecordedFaultPayload(t *testing.T) {
 			r.Transitions[0].EventFilter.Kinds = []testpilotspb.RunEventKind{testpilotspb.RUN_EVENT_KIND_FAULT_INJECTED}
 			r.Transitions[0].Predicate = all(
 				equal(payloadField("fault_injected", "role_id"), textLiteral("queue")),
-				equal(payloadField("fault_injected", "kind"), enumLiteral(int32(testpilotspb.FAULT_KIND_WORKER_STOP))),
+				equal(payloadField("fault_injected", "kind"), enumLiteral("FAULT_KIND_WORKER_STOP")),
 			)
 			p, err := Prepare(c, cat, view, limits, nil)
 			require.NoError(t, err)
@@ -88,10 +88,10 @@ func TestEvaluatorMatchesRecordedFaultPayload(t *testing.T) {
 // guard, when some considered kind may lack the arm; and it needs no guard when every considered
 // kind requires the arm.
 func TestPrepareLocatesPayloadPathsTheFilterCannotCarry(t *testing.T) {
-	located := "contract.rules[rule].transitions[first].predicate.compare.left.path.path.segments[0].field"
+	located := "contract.rules[rule].transitions[first].predicate.compare.left.path.path"
 	completed := testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED
 	faulted := testpilotspb.RUN_EVENT_KIND_FAULT_INJECTED
-	faultKind := equal(payloadField("fault_injected", "kind"), enumLiteral(int32(testpilotspb.FAULT_KIND_WORKER_STOP)))
+	faultKind := equal(payloadField("fault_injected", "kind"), enumLiteral("FAULT_KIND_WORKER_STOP"))
 	for _, tc := range []struct {
 		name      string
 		kinds     []testpilotspb.RunEventKind

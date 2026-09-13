@@ -207,7 +207,7 @@ func TestSchedulerTimeoutAndProtocolBranches(t *testing.T) {
 			c.Program.Entrypoints[0].Instructions[0].Limits.Attempts = &testpilotspb.InstructionLimits_MaxAttempts{MaxAttempts: 3}
 			branch := rpcNode("branch")
 			branch.Guard = succeeded("controller", "call")
-			branch.Guard.GetCompare().Right.GetLiteral().GetEnumValue().Number = int32(status)
+			branch.Guard.GetCompare().Right.GetLiteral().GetEnumValue().Name = testpilotspb.InstructionOutcomeStatus_name[int32(status)]
 			c.Program.Entrypoints[0].Instructions = append(c.Program.Entrypoints[0].Instructions, branch)
 			p, err := Prepare(c, catalog, policy)
 			require.NoError(t, err)
@@ -287,7 +287,7 @@ func TestSchedulerRequestsSlotsFanoutAndClosure(t *testing.T) {
 	c.Program.Observations = []*testpilotspb.Observation{{ObservationId: "item", Type: scalar(testpilotspb.SCALAR_KIND_TEXT)}}
 	rpc := c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc()
 	rpc.RequestAssignments = []*testpilotspb.RequestAssignment{{Target: field("text"), Value: textLiteral("constructed")}}
-	rpc.ResponseReads = []*testpilotspb.ResponseRead{{Path: field("text"), Cardinality: testpilotspb.READ_CARDINALITY_ONE, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "text"}}}}, {Path: &testpilotspb.FieldPath{Segments: []*testpilotspb.FieldPathSegment{{Field: "items", Selector: &testpilotspb.FieldPathSegment_Repeated{Repeated: &testpilotspb.RepeatedWildcard{}}}}}, Cardinality: testpilotspb.READ_CARDINALITY_EMIT_EACH, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_ObservationId{ObservationId: "item"}}}}}
+	rpc.ResponseReads = []*testpilotspb.ResponseRead{{Path: field("text"), Cardinality: testpilotspb.READ_CARDINALITY_ONE, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "text"}}}}, {Path: "items[*]", Cardinality: testpilotspb.READ_CARDINALITY_EMIT_EACH, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_ObservationId{ObservationId: "item"}}}}}
 	wait := rpcNode("wait")
 	wait.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitSlot{AwaitSlot: &testpilotspb.AwaitSlot{SlotId: "text"}}}
 	wait.After = runsAfter("controller")

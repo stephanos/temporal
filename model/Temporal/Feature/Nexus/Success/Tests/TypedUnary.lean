@@ -340,14 +340,6 @@ The rule the runtime runs is `Umpire.Case.Projection.lower` applied to the check
 field it reads is derived from the same `PropertyFieldPath` the model compares. The expected path
 here is written out rather than read back from the derivation. -/
 
-/-- One derived read path as its segments: each field name, with the oneof member a selector names
-or the empty string when the segment selects no oneof. -/
-private def segmentsOf (path : FieldPath) : List (String × String) :=
-  path.segments.toList.map fun segment =>
-    (segment.field, match segment.selector with
-      | some (.oneof selection) => selection.selected_field
-      | _ => "")
-
 /-- The Property lowered through this Case's realization. -/
 private def lowered : Option (Option Umpire.Case.Projection.Shape × Umpire.Case.Coverage.Request) := do
   let model ← checked.toOption
@@ -359,9 +351,7 @@ private def lowered : Option (Option Umpire.Case.Projection.Shape × Umpire.Case
 #guard match lowered with
   | some (some (.safety false read literal), _) =>
       read.path == startedTypePath && literal.scalar == .text submittedWorkflowType &&
-        segmentsOf read.segments ==
-          [("attributes", "workflow_execution_started_event_attributes"), ("workflow_type", ""),
-            ("name", "")]
+        read.segments == "attributes<workflow_execution_started_event_attributes>.workflow_type.name"
   | _ => false
 
 private def readSegments (steps : List Field.Step) : Option (List (String × String)) :=
@@ -386,6 +376,17 @@ private def readSegments (steps : List Field.Step) : Option (List (String × Str
 #guard (readSegments historyPresencePath.steps).isNone
 #guard (readSegments attributesPresencePath.steps).isNone
 #guard (readSegments startedTypePresencePath.steps).isNone
+
+-- An enum literal a Case lowers carries the value's name, read from the request schema's own enum
+-- descriptor; a number that enum does not declare has no name and rejects.
+#guard (Umpire.Case.Coverage.enumValueName historySchema.request
+  "temporal.api.enums.v1.HistoryEventFilterType" 2).toOption == some "HISTORY_EVENT_FILTER_TYPE_CLOSE_EVENT"
+#guard (Umpire.Case.Coverage.enumValueName historySchema.request
+  "temporal.api.enums.v1.HistoryEventFilterType" 0).toOption == some "HISTORY_EVENT_FILTER_TYPE_UNSPECIFIED"
+#guard match Umpire.Case.Coverage.scalarValue historySchema.request
+    (.enumeration "temporal.api.enums.v1.HistoryEventFilterType" 7) with
+  | .error reason => reason == "enum temporal.api.enums.v1.HistoryEventFilterType declares no number 7"
+  | .ok _ => false
 
 /-! ### The Case, and the coverage admitted before any Driver I/O -/
 

@@ -36,8 +36,8 @@ func capabilitySlot(id string) *testpilotspb.Slot {
 func rpcNode(id string) *testpilotspb.InstructionNode {
 	return &testpilotspb.InstructionNode{InstructionId: id, Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRpc{EndpointRoleId: "endpoint", Method: "/example.Service/Call"}}}, Limits: &testpilotspb.InstructionLimits{Timeout: &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: 1000}, Attempts: &testpilotspb.InstructionLimits_MaxAttempts{MaxAttempts: 1}}}
 }
-func field(name string) *testpilotspb.FieldPath {
-	return &testpilotspb.FieldPath{Segments: []*testpilotspb.FieldPathSegment{{Field: name}}}
+func field(name string) string {
+	return name
 }
 func slot(id string) *testpilotspb.Expression {
 	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_SlotId{SlotId: id}}}}
@@ -46,7 +46,7 @@ func present(value *testpilotspb.Expression) *testpilotspb.Expression {
 	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Present{Present: &testpilotspb.PresentExpression{Operand: value}}}
 }
 func succeeded(entry, node string) *testpilotspb.Expression {
-	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Compare{Compare: &testpilotspb.CompareExpression{Operator: testpilotspb.COMPARISON_OPERATOR_EQUAL, Left: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_Outcome{Outcome: &testpilotspb.InstructionOutcomeReference{Instruction: &testpilotspb.InstructionReference{EntrypointId: entry, InstructionId: node}, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS}}}}}, Right: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Number: 1}}}}}}}}
+	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Compare{Compare: &testpilotspb.CompareExpression{Operator: testpilotspb.COMPARISON_OPERATOR_EQUAL, Left: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_Outcome{Outcome: &testpilotspb.InstructionOutcomeReference{Instruction: &testpilotspb.InstructionReference{EntrypointId: entry, InstructionId: node}, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS}}}}}, Right: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Name: "INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"}}}}}}}}
 }
 
 // runsAfter names the instructions of entrypointID a node runs after; with no ids it makes the node
@@ -764,11 +764,11 @@ func TestOutcomeStatusesAndCleanupLocalReferences(t *testing.T) {
 	second.Guard = succeeded("cleanup", "release")
 	c.Program.Cleanup.Instructions = []*testpilotspb.InstructionNode{first, second}
 	for status := int32(1); status <= 5; status++ {
-		second.Guard.GetCompare().Right.GetLiteral().GetEnumValue().Number = status
+		second.Guard.GetCompare().Right.GetLiteral().GetEnumValue().Name = testpilotspb.InstructionOutcomeStatus_name[status]
 		_, err := Prepare(c, catalog, p)
 		require.NoError(t, err)
 	}
-	second.Guard.GetCompare().Right.GetLiteral().GetEnumValue().Number = 99
+	second.Guard.GetCompare().Right.GetLiteral().GetEnumValue().Name = "INSTRUCTION_OUTCOME_STATUS_RUNNING"
 	_, err := Prepare(c, catalog, p)
 	require.Error(t, err)
 	second.Guard = succeeded("controller", "call")
@@ -875,10 +875,10 @@ func TestWholeRequestAssignments(t *testing.T) {
 	typ := &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Message{Message: &testpilotspb.NamedType{ProtobufType: "example.Payload"}}}}}
 	c.Program.Slots = []*testpilotspb.Slot{valueSlot("request", typ)}
 	producer := c.Program.Entrypoints[0].Instructions[0]
-	producer.Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: &testpilotspb.FieldPath{}, Cardinality: testpilotspb.READ_CARDINALITY_ONE, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "request"}}}}}
+	producer.Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Cardinality: testpilotspb.READ_CARDINALITY_ONE, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "request"}}}}}
 	consumer := rpcNode("copy")
 	consumer.Guard = succeeded("controller", "call")
-	consumer.Instruction.GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{{Target: &testpilotspb.FieldPath{}, Value: slot("request")}}
+	consumer.Instruction.GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{{Value: slot("request")}}
 	c.Program.Entrypoints[0].Instructions = append(c.Program.Entrypoints[0].Instructions, consumer)
 	_, err := Prepare(c, catalog, p)
 	require.NoError(t, err)

@@ -139,7 +139,8 @@ func writeScalar(value *testpilotspb.Value, field protoreflect.FieldDescriptor) 
 	case protoreflect.BytesKind:
 		return protoreflect.ValueOfBytes(append([]byte(nil), value.GetBytesValue()...)), nil
 	case protoreflect.EnumKind:
-		return protoreflect.ValueOfEnum(protoreflect.EnumNumber(value.GetEnumValue().Number)), nil
+		number, err := EnumNumber(field.Enum(), value.GetEnumValue())
+		return protoreflect.ValueOfEnum(number), err
 	case protoreflect.FloatKind:
 		return protoreflect.ValueOfFloat32(float32(value.GetFloatingPointValue())), nil
 	case protoreflect.DoubleKind:

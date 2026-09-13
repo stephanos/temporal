@@ -1,86 +1,38 @@
 {
   "caseId": "temporal.case.get-system-info",
-  "contract": {
-    "contractId": "temporal.case.get-system-info.contract",
-    "rules": [
+  "version": {
+    "major": 1
+  },
+  "provenance": {
+    "producerId": "temporal.case.compiler",
+    "producerVersion": "1",
+    "definitions": [
       {
-        "initialStateId": "pending",
-        "kind": "CONTRACT_RULE_KIND_SAFETY",
-        "ruleId": "server-version-present",
-        "states": [
-          {
-            "stateId": "pending",
-            "status": "CONTRACT_STATE_STATUS_PENDING"
-          },
-          {
-            "stateId": "satisfied",
-            "status": "CONTRACT_STATE_STATUS_SATISFIED"
-          }
-        ],
-        "transitions": [
-          {
-            "eventFilter": {
-              "kinds": [
-                "RUN_EVENT_KIND_INSTRUCTION_COMPLETED"
-              ]
-            },
-            "predicate": {
-              "present": {
-                "operand": {
-                  "reference": {
-                    "observationId": "server-version"
-                  }
-                }
-              }
-            },
-            "sourceStateId": "pending",
-            "supportKind": "CONTRACT_SUPPORT_KIND_MATCHING_EVENT",
-            "targetStateId": "satisfied",
-            "transitionId": "observe-server-version"
-          }
-        ]
+        "definitionId": "temporal.workflow-service",
+        "behaviorFingerprint": "temporal-workflow-service/v1",
+        "kind": "DEFINITION_KIND_TARGET"
+      },
+      {
+        "definitionId": "temporal.case.get-system-info.property.server-version",
+        "behaviorFingerprint": "temporal-case-get-system-info-property/v1",
+        "kind": "DEFINITION_KIND_PROPERTY"
+      }
+    ],
+    "sources": [
+      {
+        "path": "Temporal/Testpilot.lean",
+        "line": 1,
+        "column": 1,
+        "provenance": "checked-model"
       }
     ]
   },
   "program": {
-    "cleanup": {
-      "entrypointId": "cleanup"
-    },
-    "entrypoints": [
+    "programId": "temporal.case.get-system-info.program",
+    "roles": [
       {
-        "controller": {},
-        "entrypointId": "controller",
-        "instructions": [
-          {
-            "instruction": {
-              "invokeRpc": {
-                "endpointRoleId": "temporal.workflow-service",
-                "method": "/temporal.api.workflowservice.v1.WorkflowService/GetSystemInfo",
-                "responseReads": [
-                  {
-                    "cardinality": "READ_CARDINALITY_ONE",
-                    "path": {
-                      "segments": [
-                        {
-                          "field": "server_version"
-                        }
-                      ]
-                    },
-                    "targets": [
-                      {
-                        "observationId": "server-version"
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            "instructionId": "get-system-info",
-            "limits": {
-              "timeoutMilliseconds": "5000"
-            }
-          }
-        ]
+        "roleId": "temporal.workflow-service",
+        "kind": "ROLE_KIND_ENDPOINT"
       }
     ],
     "observations": [
@@ -95,39 +47,81 @@
         }
       }
     ],
-    "programId": "temporal.case.get-system-info.program",
-    "roles": [
+    "entrypoints": [
       {
-        "kind": "ROLE_KIND_ENDPOINT",
-        "roleId": "temporal.workflow-service"
-      }
-    ]
-  },
-  "provenance": {
-    "definitions": [
-      {
-        "behaviorFingerprint": "temporal-workflow-service/v1",
-        "definitionId": "temporal.workflow-service",
-        "kind": "DEFINITION_KIND_TARGET"
-      },
-      {
-        "behaviorFingerprint": "temporal-case-get-system-info-property/v1",
-        "definitionId": "temporal.case.get-system-info.property.server-version",
-        "kind": "DEFINITION_KIND_PROPERTY"
+        "entrypointId": "controller",
+        "controller": {},
+        "instructions": [
+          {
+            "instructionId": "get-system-info",
+            "instruction": {
+              "invokeRpc": {
+                "endpointRoleId": "temporal.workflow-service",
+                "method": "/temporal.api.workflowservice.v1.WorkflowService/GetSystemInfo",
+                "responseReads": [
+                  {
+                    "path": "server_version",
+                    "cardinality": "READ_CARDINALITY_ONE",
+                    "targets": [
+                      {
+                        "observationId": "server-version"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            "limits": {
+              "timeoutMilliseconds": "5000"
+            }
+          }
+        ]
       }
     ],
-    "producerId": "temporal.case.compiler",
-    "producerVersion": "1",
-    "sources": [
+    "cleanup": {
+      "entrypointId": "cleanup"
+    }
+  },
+  "contract": {
+    "contractId": "temporal.case.get-system-info.contract",
+    "rules": [
       {
-        "column": 1,
-        "line": 1,
-        "path": "Temporal/Testpilot.lean",
-        "provenance": "checked-model"
+        "ruleId": "server-version-present",
+        "kind": "CONTRACT_RULE_KIND_SAFETY",
+        "initialStateId": "pending",
+        "states": [
+          {
+            "stateId": "pending",
+            "status": "CONTRACT_STATE_STATUS_PENDING"
+          },
+          {
+            "stateId": "satisfied",
+            "status": "CONTRACT_STATE_STATUS_SATISFIED"
+          }
+        ],
+        "transitions": [
+          {
+            "transitionId": "observe-server-version",
+            "sourceStateId": "pending",
+            "targetStateId": "satisfied",
+            "supportKind": "CONTRACT_SUPPORT_KIND_MATCHING_EVENT",
+            "eventFilter": {
+              "kinds": [
+                "RUN_EVENT_KIND_INSTRUCTION_COMPLETED"
+              ]
+            },
+            "predicate": {
+              "present": {
+                "operand": {
+                  "reference": {
+                    "observationId": "server-version"
+                  }
+                }
+              }
+            }
+          }
+        ]
       }
     ]
-  },
-  "version": {
-    "major": 1
   }
 }

@@ -1,596 +1,192 @@
 {
   "caseId": "temporal.case.async-nexus",
-  "contract": {
-    "contractId": "temporal.case.async-nexus.contract",
-    "correlated": {
-      "evidenceObservationId": "correlated-evidence",
-      "initialState": {
-        "definitionId": "scheduled",
-        "value": "scheduled"
+  "version": {
+    "major": 1
+  },
+  "provenance": {
+    "producerId": "temporal.nexus.success.testpilot",
+    "producerVersion": "1",
+    "definitions": [
+      {
+        "definitionId": "temporal.nexus.success.target.lifecycle",
+        "behaviorFingerprint": "sha256:dc16cd63b197612ac92c1e71028161193acc0c9773f86955207eeaef7221e201",
+        "kind": "DEFINITION_KIND_TARGET"
       },
-      "operationField": "operation",
-      "projectionFingerprint": "sha256:bf076900ee7c5d21d63d93e82eefba541894a604adc0873de26a9573913e355e",
-      "projectionId": "projection",
-      "projectionRules": [
-        {
-          "kind": "evidence.completed",
-          "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
-          "outputs": [
-            {
-              "action": {
-                "definitionId": "awaitSuccess",
-                "value": "awaitSuccess"
-              },
-              "outcome": {
-                "definitionId": "lifecycle.completed",
-                "value": "completed"
-              },
-              "state": {
-                "definitionId": "succeeded",
-                "value": "succeeded"
-              }
-            }
-          ]
-        },
-        {
-          "kind": "evidence.started",
-          "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
-          "outputs": [
-            {
-              "action": {
-                "definitionId": "awaitStart",
-                "value": "awaitStart"
-              },
-              "outcome": {
-                "definitionId": "acknowledged",
-                "value": "acknowledged"
-              },
-              "state": {
-                "definitionId": "lifecycle.started",
-                "value": "started"
-              }
-            }
-          ]
+      {
+        "definitionId": "temporal.nexus.success.behavior.successfulCompletion",
+        "behaviorFingerprint": "sha256:63015f982215f82d0a524cab9148a93624755147a20ecd3aa3e80cfbbb8eadd5",
+        "kind": "DEFINITION_KIND_SCENARIO"
+      },
+      {
+        "definitionId": "temporal.nexus.success.query.completion",
+        "behaviorFingerprint": "sha256:0458585e4257b598c19a8648e23fbf691e7f2eacd0b7f50c7777c0d3d158fcc7",
+        "kind": "DEFINITION_KIND_QUERY"
+      },
+      {
+        "definitionId": "temporal.nexus.success.property.successfulResult",
+        "behaviorFingerprint": "sha256:913a468c272ef18ce76655f582bd4c3c427d1400b6dddde9925d8fc80fd777dc",
+        "kind": "DEFINITION_KIND_PROPERTY"
+      }
+    ],
+    "sources": [
+      {
+        "path": "Temporal/Feature/Nexus/Success/Model.lean",
+        "line": 1,
+        "column": 1,
+        "provenance": "lean-model"
+      },
+      {
+        "path": "Temporal/Feature/Nexus/Success/Model.lean",
+        "line": 1,
+        "column": 1,
+        "provenance": "lean-model"
+      },
+      {
+        "path": "Temporal/Feature/Nexus/Success/Model.lean",
+        "line": 1,
+        "column": 1,
+        "provenance": "lean-model"
+      },
+      {
+        "path": "Temporal/Feature/Nexus/Success/Model.lean",
+        "line": 1,
+        "column": 1,
+        "provenance": "lean-model"
+      }
+    ],
+    "knownGaps": [
+      {
+        "kind": "KNOWN_GAP_KIND_CAPABILITY",
+        "code": "temporal.nexus.success.known-gap.cancellation",
+        "subject": "temporal.nexus.success.property.cancellationResolves",
+        "detail": "Operation-correlated Nexus cancellation is unsupported by the success slice."
+      },
+      {
+        "kind": "KNOWN_GAP_KIND_CAPABILITY",
+        "code": "temporal.nexus.success.known-gap.operation-correlated-progress",
+        "subject": "temporal.nexus.success.property.cancellationResolves",
+        "detail": "Operation-correlated progress counting is unsupported by the success slice."
+      }
+    ],
+    "correlatedRules": [
+      {
+        "ruleId": "temporal.nexus.success.property.successfulResult.outcome-completed",
+        "propertyId": "temporal.nexus.success.property.successfulResult",
+        "propertyFingerprint": "sha256:913a468c272ef18ce76655f582bd4c3c427d1400b6dddde9925d8fc80fd777dc",
+        "projectionId": "temporal.nexus.success.projection",
+        "projectionFingerprint": "sha256:bf076900ee7c5d21d63d93e82eefba541894a604adc0873de26a9573913e355e",
+        "source": {
+          "path": "Temporal/Feature/Nexus/Success/Model.lean",
+          "line": 1,
+          "column": 1,
+          "provenance": "lean-model"
         }
-      ],
-      "rules": [
-        {
-          "bound": "1",
-          "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
-          "ending": "TRACE_ENDING_PARTIAL",
-          "response": {
-            "compare": {
-              "left": {
-                "reference": {
-                  "correlatedStep": {
-                    "definitionId": "lifecycle.completed",
-                    "field": "CORRELATED_STEP_FIELD_OUTCOME"
-                  }
-                }
-              },
-              "operator": "COMPARISON_OPERATOR_EQUAL",
-              "right": {
-                "literal": {
-                  "textValue": "completed"
-                }
-              }
-            }
-          },
-          "ruleId": "outcome-completed",
-          "trigger": {
-            "compare": {
-              "left": {
-                "reference": {
-                  "correlatedStep": {
-                    "definitionId": "awaitStart",
-                    "field": "CORRELATED_STEP_FIELD_ACTION"
-                  }
-                }
-              },
-              "operator": "COMPARISON_OPERATOR_EQUAL",
-              "right": {
-                "literal": {
-                  "textValue": "awaitStart"
-                }
-              }
-            }
-          }
-        },
-        {
-          "bound": "1",
-          "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
-          "ending": "TRACE_ENDING_PARTIAL",
-          "response": {
-            "compare": {
-              "left": {
-                "reference": {
-                  "correlatedStep": {
-                    "definitionId": "succeeded",
-                    "field": "CORRELATED_STEP_FIELD_STATE"
-                  }
-                }
-              },
-              "operator": "COMPARISON_OPERATOR_EQUAL",
-              "right": {
-                "literal": {
-                  "textValue": "succeeded"
-                }
-              }
-            }
-          },
-          "ruleId": "state-succeeded",
-          "trigger": {
-            "compare": {
-              "left": {
-                "reference": {
-                  "correlatedStep": {
-                    "definitionId": "awaitStart",
-                    "field": "CORRELATED_STEP_FIELD_ACTION"
-                  }
-                }
-              },
-              "operator": "COMPARISON_OPERATOR_EQUAL",
-              "right": {
-                "literal": {
-                  "textValue": "awaitStart"
-                }
-              }
-            }
-          }
+      },
+      {
+        "ruleId": "temporal.nexus.success.property.successfulResult.state-succeeded",
+        "propertyId": "temporal.nexus.success.property.successfulResult",
+        "propertyFingerprint": "sha256:913a468c272ef18ce76655f582bd4c3c427d1400b6dddde9925d8fc80fd777dc",
+        "projectionId": "temporal.nexus.success.projection",
+        "projectionFingerprint": "sha256:bf076900ee7c5d21d63d93e82eefba541894a604adc0873de26a9573913e355e",
+        "source": {
+          "path": "Temporal/Feature/Nexus/Success/Model.lean",
+          "line": 1,
+          "column": 1,
+          "provenance": "lean-model"
         }
-      ],
-      "scopeFields": [
-        "run"
-      ],
-      "sources": [
-        "history"
-      ],
-      "transitions": [
-        {
-          "action": {
-            "definitionId": "awaitStart",
-            "value": "awaitStart"
-          },
-          "outcome": {
-            "definitionId": "acknowledged",
-            "value": "acknowledged"
-          },
-          "priorState": {
-            "definitionId": "scheduled",
-            "value": "scheduled"
-          },
-          "state": {
-            "definitionId": "lifecycle.started",
-            "value": "started"
-          }
-        },
-        {
-          "action": {
-            "definitionId": "awaitSuccess",
-            "value": "awaitSuccess"
-          },
-          "outcome": {
-            "definitionId": "lifecycle.completed",
-            "value": "completed"
-          },
-          "priorState": {
-            "definitionId": "lifecycle.started",
-            "value": "started"
-          },
-          "state": {
-            "definitionId": "succeeded",
-            "value": "succeeded"
-          }
-        }
-      ]
-    }
+      }
+    ],
+    "localNames": [
+      {
+        "localName": "history",
+        "definitionId": "temporal.nexus.success.source.history"
+      },
+      {
+        "localName": "evidence.started",
+        "definitionId": "temporal.nexus.success.evidence.started"
+      },
+      {
+        "localName": "run",
+        "definitionId": "temporal.nexus.success.scope.run"
+      },
+      {
+        "localName": "evidence.completed",
+        "definitionId": "temporal.nexus.success.evidence.completed"
+      },
+      {
+        "localName": "projection",
+        "definitionId": "temporal.nexus.success.projection"
+      },
+      {
+        "localName": "operation",
+        "definitionId": "temporal.nexus.success.scope.operation"
+      },
+      {
+        "localName": "scheduled",
+        "definitionId": "temporal.nexus.success.state.lifecycle.scheduled"
+      },
+      {
+        "localName": "awaitStart",
+        "definitionId": "temporal.nexus.success.action.lifecycle.awaitStart"
+      },
+      {
+        "localName": "lifecycle.started",
+        "definitionId": "temporal.nexus.success.state.lifecycle.started"
+      },
+      {
+        "localName": "acknowledged",
+        "definitionId": "temporal.nexus.success.outcome.lifecycle.acknowledged"
+      },
+      {
+        "localName": "awaitSuccess",
+        "definitionId": "temporal.nexus.success.action.lifecycle.awaitSuccess"
+      },
+      {
+        "localName": "succeeded",
+        "definitionId": "temporal.nexus.success.state.lifecycle.succeeded"
+      },
+      {
+        "localName": "lifecycle.completed",
+        "definitionId": "temporal.nexus.success.outcome.lifecycle.completed"
+      },
+      {
+        "localName": "outcome-completed",
+        "definitionId": "temporal.nexus.success.property.successfulResult.outcome-completed"
+      },
+      {
+        "localName": "state-succeeded",
+        "definitionId": "temporal.nexus.success.property.successfulResult.state-succeeded"
+      }
+    ]
   },
   "program": {
-    "cleanup": {
-      "entrypointId": "cleanup"
-    },
-    "entrypoints": [
+    "programId": "temporal.case.async-nexus.program",
+    "roles": [
       {
-        "controller": {},
-        "entrypointId": "controller",
-        "instructions": [
-          {
-            "instruction": {
-              "invokeRpc": {
-                "endpointRoleId": "temporal.workflow-service",
-                "method": "/temporal.api.workflowservice.v1.WorkflowService/StartWorkflowExecution",
-                "requestAssignments": [
-                  {
-                    "target": {
-                      "segments": [
-                        {
-                          "field": "namespace"
-                        }
-                      ]
-                    },
-                    "value": {
-                      "reference": {
-                        "environmentBindingId": "temporal.worker.namespace"
-                      }
-                    }
-                  },
-                  {
-                    "target": {
-                      "segments": [
-                        {
-                          "field": "workflow_id"
-                        }
-                      ]
-                    },
-                    "value": {
-                      "reference": {
-                        "run": {}
-                      }
-                    }
-                  },
-                  {
-                    "target": {
-                      "segments": [
-                        {
-                          "field": "workflow_type"
-                        },
-                        {
-                          "field": "name"
-                        }
-                      ]
-                    },
-                    "value": {
-                      "literal": {
-                        "textValue": "umpire-async-nexus-workflow"
-                      }
-                    }
-                  },
-                  {
-                    "target": {
-                      "segments": [
-                        {
-                          "field": "task_queue"
-                        },
-                        {
-                          "field": "name"
-                        }
-                      ]
-                    },
-                    "value": {
-                      "reference": {
-                        "environmentBindingId": "temporal.task-queue.resource"
-                      }
-                    }
-                  },
-                  {
-                    "target": {
-                      "segments": [
-                        {
-                          "field": "request_id"
-                        }
-                      ]
-                    },
-                    "value": {
-                      "reference": {
-                        "run": {}
-                      }
-                    }
-                  }
-                ]
-              }
-            },
-            "instructionId": "start-workflow"
-          },
-          {
-            "instruction": {
-              "awaitSlot": {
-                "slotId": "completion-authority"
-              }
-            },
-            "instructionId": "await-completion-authority"
-          },
-          {
-            "instruction": {
-              "completeNexusOperation": {
-                "handleSlotId": "completion-authority",
-                "result": {
-                  "literal": {
-                    "textValue": "completed"
-                  }
-                }
-              }
-            },
-            "instructionId": "complete-nexus-operation"
-          },
-          {
-            "instruction": {
-              "invokeRpc": {
-                "endpointRoleId": "temporal.workflow-service",
-                "method": "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory",
-                "requestAssignments": [
-                  {
-                    "target": {
-                      "segments": [
-                        {
-                          "field": "namespace"
-                        }
-                      ]
-                    },
-                    "value": {
-                      "reference": {
-                        "environmentBindingId": "temporal.worker.namespace"
-                      }
-                    }
-                  },
-                  {
-                    "target": {
-                      "segments": [
-                        {
-                          "field": "execution"
-                        },
-                        {
-                          "field": "workflow_id"
-                        }
-                      ]
-                    },
-                    "value": {
-                      "reference": {
-                        "run": {}
-                      }
-                    }
-                  },
-                  {
-                    "target": {
-                      "segments": [
-                        {
-                          "field": "maximum_page_size"
-                        }
-                      ]
-                    },
-                    "value": {
-                      "literal": {
-                        "signedIntegerValue": "64"
-                      }
-                    }
-                  },
-                  {
-                    "target": {
-                      "segments": [
-                        {
-                          "field": "wait_new_event"
-                        }
-                      ]
-                    },
-                    "value": {
-                      "literal": {
-                        "boolValue": true
-                      }
-                    }
-                  }
-                ],
-                "responseReads": [
-                  {
-                    "cardinality": "READ_CARDINALITY_EMIT_EACH",
-                    "path": {
-                      "segments": [
-                        {
-                          "field": "history"
-                        },
-                        {
-                          "field": "events",
-                          "repeated": {}
-                        }
-                      ]
-                    },
-                    "targets": [
-                      {
-                        "observationId": "history-event"
-                      },
-                      {
-                        "correlatedEvidence": {
-                          "observationId": "correlated-evidence",
-                          "rules": [
-                            {
-                              "evidenceSource": "history",
-                              "guard": {
-                                "present": {
-                                  "operand": {
-                                    "path": {
-                                      "operand": {
-                                        "reference": {
-                                          "projectedValue": {}
-                                        }
-                                      },
-                                      "path": {
-                                        "segments": [
-                                          {
-                                            "field": "attributes",
-                                            "oneof": {
-                                              "selectedField": "nexus_operation_started_event_attributes"
-                                            }
-                                          }
-                                        ]
-                                      }
-                                    }
-                                  }
-                                }
-                              },
-                              "kind": "evidence.started",
-                              "operation": {
-                                "segments": [
-                                  {
-                                    "field": "attributes",
-                                    "oneof": {
-                                      "selectedField": "nexus_operation_started_event_attributes"
-                                    }
-                                  },
-                                  {
-                                    "field": "scheduled_event_id"
-                                  }
-                                ]
-                              },
-                              "scope": [
-                                {
-                                  "fieldId": "run",
-                                  "value": {
-                                    "literal": {
-                                      "textValue": "async-nexus"
-                                    }
-                                  }
-                                }
-                              ]
-                            },
-                            {
-                              "evidenceSource": "history",
-                              "guard": {
-                                "present": {
-                                  "operand": {
-                                    "path": {
-                                      "operand": {
-                                        "reference": {
-                                          "projectedValue": {}
-                                        }
-                                      },
-                                      "path": {
-                                        "segments": [
-                                          {
-                                            "field": "attributes",
-                                            "oneof": {
-                                              "selectedField": "nexus_operation_completed_event_attributes"
-                                            }
-                                          }
-                                        ]
-                                      }
-                                    }
-                                  }
-                                }
-                              },
-                              "kind": "evidence.completed",
-                              "operation": {
-                                "segments": [
-                                  {
-                                    "field": "attributes",
-                                    "oneof": {
-                                      "selectedField": "nexus_operation_completed_event_attributes"
-                                    }
-                                  },
-                                  {
-                                    "field": "scheduled_event_id"
-                                  }
-                                ]
-                              },
-                              "scope": [
-                                {
-                                  "fieldId": "run",
-                                  "value": {
-                                    "literal": {
-                                      "textValue": "async-nexus"
-                                    }
-                                  }
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            "instructionId": "history"
-          }
-        ]
+        "roleId": "temporal.workflow-service",
+        "kind": "ROLE_KIND_ENDPOINT"
       },
       {
-        "entrypointId": "workflow",
-        "instructions": [
-          {
-            "instruction": {
-              "startNexusOperation": {
-                "endpointRoleId": "temporal.nexus-endpoint",
-                "input": {
-                  "literal": {
-                    "textValue": "request"
-                  }
-                },
-                "operation": "complete",
-                "service": "umpire.case.service"
-              }
-            },
-            "instructionId": "start-nexus-operation"
-          },
-          {
-            "guard": {
-              "literal": {
-                "boolValue": true
-              }
-            },
-            "instruction": {
-              "awaitInstruction": {
-                "instruction": {
-                  "entrypointId": "workflow",
-                  "instructionId": "start-nexus-operation"
-                }
-              }
-            },
-            "instructionId": "await-nexus-operation"
-          },
-          {
-            "instruction": {
-              "finish": {
-                "result": {
-                  "reference": {
-                    "outcome": {
-                      "field": "INSTRUCTION_OUTCOME_FIELD_VALUE",
-                      "instruction": {
-                        "entrypointId": "workflow",
-                        "instructionId": "await-nexus-operation"
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "instructionId": "finish-workflow",
-            "limits": {
-              "timeoutMilliseconds": "5000"
-            }
-          }
-        ],
-        "workflow": {
-          "taskQueueRoleId": "temporal.task-queue",
-          "workerRoleId": "temporal.worker",
-          "workflowType": "umpire-async-nexus-workflow"
-        }
+        "roleId": "temporal.worker",
+        "kind": "ROLE_KIND_WORKER",
+        "namespaceBindingId": "temporal.worker.namespace"
       },
       {
-        "entrypointId": "handler",
-        "instructions": [
-          {
-            "instruction": {
-              "respondNexus": {
-                "handleSlotId": "completion-authority",
-                "kind": "NEXUS_RESPONSE_KIND_ASYNCHRONOUS",
-                "result": {
-                  "literal": {
-                    "textValue": "accepted"
-                  }
-                }
-              }
-            },
-            "instructionId": "respond-async",
-            "limits": {
-              "timeoutMilliseconds": "5000"
-            }
-          }
-        ],
-        "nexusHandler": {
-          "operation": "complete",
-          "service": "umpire.case.service",
-          "taskQueueRoleId": "temporal.task-queue",
-          "workerRoleId": "temporal.worker"
-        }
+        "roleId": "temporal.task-queue",
+        "kind": "ROLE_KIND_TASK_QUEUE",
+        "namespaceBindingId": "temporal.worker.namespace",
+        "resourceBindingId": "temporal.task-queue.resource"
+      },
+      {
+        "roleId": "temporal.nexus-endpoint",
+        "kind": "ROLE_KIND_ENDPOINT",
+        "resourceBindingId": "temporal.nexus-endpoint.resource"
+      }
+    ],
+    "slots": [
+      {
+        "slotId": "completion-authority",
+        "opaqueHandle": {}
       }
     ],
     "observations": [
@@ -615,193 +211,482 @@
         }
       }
     ],
-    "programId": "temporal.case.async-nexus.program",
-    "roles": [
+    "entrypoints": [
       {
-        "kind": "ROLE_KIND_ENDPOINT",
-        "roleId": "temporal.workflow-service"
+        "entrypointId": "controller",
+        "controller": {},
+        "instructions": [
+          {
+            "instructionId": "start-workflow",
+            "instruction": {
+              "invokeRpc": {
+                "endpointRoleId": "temporal.workflow-service",
+                "method": "/temporal.api.workflowservice.v1.WorkflowService/StartWorkflowExecution",
+                "requestAssignments": [
+                  {
+                    "target": "namespace",
+                    "value": {
+                      "reference": {
+                        "environmentBindingId": "temporal.worker.namespace"
+                      }
+                    }
+                  },
+                  {
+                    "target": "workflow_id",
+                    "value": {
+                      "reference": {
+                        "run": {}
+                      }
+                    }
+                  },
+                  {
+                    "target": "workflow_type.name",
+                    "value": {
+                      "literal": {
+                        "textValue": "umpire-async-nexus-workflow"
+                      }
+                    }
+                  },
+                  {
+                    "target": "task_queue.name",
+                    "value": {
+                      "reference": {
+                        "environmentBindingId": "temporal.task-queue.resource"
+                      }
+                    }
+                  },
+                  {
+                    "target": "request_id",
+                    "value": {
+                      "reference": {
+                        "run": {}
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "instructionId": "await-completion-authority",
+            "instruction": {
+              "awaitSlot": {
+                "slotId": "completion-authority"
+              }
+            }
+          },
+          {
+            "instructionId": "complete-nexus-operation",
+            "instruction": {
+              "completeNexusOperation": {
+                "handleSlotId": "completion-authority",
+                "result": {
+                  "literal": {
+                    "textValue": "completed"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "instructionId": "history",
+            "instruction": {
+              "invokeRpc": {
+                "endpointRoleId": "temporal.workflow-service",
+                "method": "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory",
+                "requestAssignments": [
+                  {
+                    "target": "namespace",
+                    "value": {
+                      "reference": {
+                        "environmentBindingId": "temporal.worker.namespace"
+                      }
+                    }
+                  },
+                  {
+                    "target": "execution.workflow_id",
+                    "value": {
+                      "reference": {
+                        "run": {}
+                      }
+                    }
+                  },
+                  {
+                    "target": "maximum_page_size",
+                    "value": {
+                      "literal": {
+                        "signedIntegerValue": "64"
+                      }
+                    }
+                  },
+                  {
+                    "target": "wait_new_event",
+                    "value": {
+                      "literal": {
+                        "boolValue": true
+                      }
+                    }
+                  }
+                ],
+                "responseReads": [
+                  {
+                    "path": "history.events[*]",
+                    "cardinality": "READ_CARDINALITY_EMIT_EACH",
+                    "targets": [
+                      {
+                        "observationId": "history-event"
+                      },
+                      {
+                        "correlatedEvidence": {
+                          "observationId": "correlated-evidence",
+                          "rules": [
+                            {
+                              "scope": [
+                                {
+                                  "fieldId": "run",
+                                  "value": {
+                                    "literal": {
+                                      "textValue": "async-nexus"
+                                    }
+                                  }
+                                }
+                              ],
+                              "evidenceSource": "history",
+                              "operation": "attributes<nexus_operation_started_event_attributes>.scheduled_event_id",
+                              "kind": "evidence.started",
+                              "guard": {
+                                "present": {
+                                  "operand": {
+                                    "path": {
+                                      "operand": {
+                                        "reference": {
+                                          "projectedValue": {}
+                                        }
+                                      },
+                                      "path": "attributes<nexus_operation_started_event_attributes>"
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            {
+                              "scope": [
+                                {
+                                  "fieldId": "run",
+                                  "value": {
+                                    "literal": {
+                                      "textValue": "async-nexus"
+                                    }
+                                  }
+                                }
+                              ],
+                              "evidenceSource": "history",
+                              "operation": "attributes<nexus_operation_completed_event_attributes>.scheduled_event_id",
+                              "kind": "evidence.completed",
+                              "guard": {
+                                "present": {
+                                  "operand": {
+                                    "path": {
+                                      "operand": {
+                                        "reference": {
+                                          "projectedValue": {}
+                                        }
+                                      },
+                                      "path": "attributes<nexus_operation_completed_event_attributes>"
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        ]
       },
       {
-        "kind": "ROLE_KIND_WORKER",
-        "namespaceBindingId": "temporal.worker.namespace",
-        "roleId": "temporal.worker"
+        "entrypointId": "workflow",
+        "workflow": {
+          "workflowType": "umpire-async-nexus-workflow",
+          "workerRoleId": "temporal.worker",
+          "taskQueueRoleId": "temporal.task-queue"
+        },
+        "instructions": [
+          {
+            "instructionId": "start-nexus-operation",
+            "instruction": {
+              "startNexusOperation": {
+                "endpointRoleId": "temporal.nexus-endpoint",
+                "service": "umpire.case.service",
+                "operation": "complete",
+                "input": {
+                  "literal": {
+                    "textValue": "request"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "instructionId": "await-nexus-operation",
+            "instruction": {
+              "awaitInstruction": {
+                "instruction": {
+                  "entrypointId": "workflow",
+                  "instructionId": "start-nexus-operation"
+                }
+              }
+            },
+            "guard": {
+              "literal": {
+                "boolValue": true
+              }
+            }
+          },
+          {
+            "instructionId": "finish-workflow",
+            "instruction": {
+              "finish": {
+                "result": {
+                  "reference": {
+                    "outcome": {
+                      "instruction": {
+                        "entrypointId": "workflow",
+                        "instructionId": "await-nexus-operation"
+                      },
+                      "field": "INSTRUCTION_OUTCOME_FIELD_VALUE"
+                    }
+                  }
+                }
+              }
+            },
+            "limits": {
+              "timeoutMilliseconds": "5000"
+            }
+          }
+        ]
       },
       {
-        "kind": "ROLE_KIND_TASK_QUEUE",
-        "namespaceBindingId": "temporal.worker.namespace",
-        "resourceBindingId": "temporal.task-queue.resource",
-        "roleId": "temporal.task-queue"
-      },
-      {
-        "kind": "ROLE_KIND_ENDPOINT",
-        "resourceBindingId": "temporal.nexus-endpoint.resource",
-        "roleId": "temporal.nexus-endpoint"
+        "entrypointId": "handler",
+        "nexusHandler": {
+          "service": "umpire.case.service",
+          "operation": "complete",
+          "workerRoleId": "temporal.worker",
+          "taskQueueRoleId": "temporal.task-queue"
+        },
+        "instructions": [
+          {
+            "instructionId": "respond-async",
+            "instruction": {
+              "respondNexus": {
+                "kind": "NEXUS_RESPONSE_KIND_ASYNCHRONOUS",
+                "result": {
+                  "literal": {
+                    "textValue": "accepted"
+                  }
+                },
+                "handleSlotId": "completion-authority"
+              }
+            },
+            "limits": {
+              "timeoutMilliseconds": "5000"
+            }
+          }
+        ]
       }
     ],
-    "slots": [
-      {
-        "opaqueHandle": {},
-        "slotId": "completion-authority"
-      }
-    ]
+    "cleanup": {
+      "entrypointId": "cleanup"
+    }
   },
-  "provenance": {
-    "correlatedRules": [
-      {
-        "projectionFingerprint": "sha256:bf076900ee7c5d21d63d93e82eefba541894a604adc0873de26a9573913e355e",
-        "projectionId": "temporal.nexus.success.projection",
-        "propertyFingerprint": "sha256:913a468c272ef18ce76655f582bd4c3c427d1400b6dddde9925d8fc80fd777dc",
-        "propertyId": "temporal.nexus.success.property.successfulResult",
-        "ruleId": "temporal.nexus.success.property.successfulResult.outcome-completed",
-        "source": {
-          "column": 1,
-          "line": 1,
-          "path": "Temporal/Feature/Nexus/Success/Model.lean",
-          "provenance": "lean-model"
+  "contract": {
+    "contractId": "temporal.case.async-nexus.contract",
+    "correlated": {
+      "projectionId": "projection",
+      "projectionFingerprint": "sha256:bf076900ee7c5d21d63d93e82eefba541894a604adc0873de26a9573913e355e",
+      "evidenceObservationId": "correlated-evidence",
+      "scopeFields": [
+        "run"
+      ],
+      "operationField": "operation",
+      "sources": [
+        "history"
+      ],
+      "initialState": {
+        "definitionId": "scheduled",
+        "value": "scheduled"
+      },
+      "transitions": [
+        {
+          "priorState": {
+            "definitionId": "scheduled",
+            "value": "scheduled"
+          },
+          "action": {
+            "definitionId": "awaitStart",
+            "value": "awaitStart"
+          },
+          "state": {
+            "definitionId": "lifecycle.started",
+            "value": "started"
+          },
+          "outcome": {
+            "definitionId": "acknowledged",
+            "value": "acknowledged"
+          }
+        },
+        {
+          "priorState": {
+            "definitionId": "lifecycle.started",
+            "value": "started"
+          },
+          "action": {
+            "definitionId": "awaitSuccess",
+            "value": "awaitSuccess"
+          },
+          "state": {
+            "definitionId": "succeeded",
+            "value": "succeeded"
+          },
+          "outcome": {
+            "definitionId": "lifecycle.completed",
+            "value": "completed"
+          }
         }
-      },
-      {
-        "projectionFingerprint": "sha256:bf076900ee7c5d21d63d93e82eefba541894a604adc0873de26a9573913e355e",
-        "projectionId": "temporal.nexus.success.projection",
-        "propertyFingerprint": "sha256:913a468c272ef18ce76655f582bd4c3c427d1400b6dddde9925d8fc80fd777dc",
-        "propertyId": "temporal.nexus.success.property.successfulResult",
-        "ruleId": "temporal.nexus.success.property.successfulResult.state-succeeded",
-        "source": {
-          "column": 1,
-          "line": 1,
-          "path": "Temporal/Feature/Nexus/Success/Model.lean",
-          "provenance": "lean-model"
+      ],
+      "projectionRules": [
+        {
+          "kind": "evidence.completed",
+          "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+          "outputs": [
+            {
+              "action": {
+                "definitionId": "awaitSuccess",
+                "value": "awaitSuccess"
+              },
+              "state": {
+                "definitionId": "succeeded",
+                "value": "succeeded"
+              },
+              "outcome": {
+                "definitionId": "lifecycle.completed",
+                "value": "completed"
+              }
+            }
+          ]
+        },
+        {
+          "kind": "evidence.started",
+          "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+          "outputs": [
+            {
+              "action": {
+                "definitionId": "awaitStart",
+                "value": "awaitStart"
+              },
+              "state": {
+                "definitionId": "lifecycle.started",
+                "value": "started"
+              },
+              "outcome": {
+                "definitionId": "acknowledged",
+                "value": "acknowledged"
+              }
+            }
+          ]
         }
-      }
-    ],
-    "definitions": [
-      {
-        "behaviorFingerprint": "sha256:dc16cd63b197612ac92c1e71028161193acc0c9773f86955207eeaef7221e201",
-        "definitionId": "temporal.nexus.success.target.lifecycle",
-        "kind": "DEFINITION_KIND_TARGET"
-      },
-      {
-        "behaviorFingerprint": "sha256:63015f982215f82d0a524cab9148a93624755147a20ecd3aa3e80cfbbb8eadd5",
-        "definitionId": "temporal.nexus.success.behavior.successfulCompletion",
-        "kind": "DEFINITION_KIND_SCENARIO"
-      },
-      {
-        "behaviorFingerprint": "sha256:0458585e4257b598c19a8648e23fbf691e7f2eacd0b7f50c7777c0d3d158fcc7",
-        "definitionId": "temporal.nexus.success.query.completion",
-        "kind": "DEFINITION_KIND_QUERY"
-      },
-      {
-        "behaviorFingerprint": "sha256:913a468c272ef18ce76655f582bd4c3c427d1400b6dddde9925d8fc80fd777dc",
-        "definitionId": "temporal.nexus.success.property.successfulResult",
-        "kind": "DEFINITION_KIND_PROPERTY"
-      }
-    ],
-    "knownGaps": [
-      {
-        "code": "temporal.nexus.success.known-gap.cancellation",
-        "detail": "Operation-correlated Nexus cancellation is unsupported by the success slice.",
-        "kind": "KNOWN_GAP_KIND_CAPABILITY",
-        "subject": "temporal.nexus.success.property.cancellationResolves"
-      },
-      {
-        "code": "temporal.nexus.success.known-gap.operation-correlated-progress",
-        "detail": "Operation-correlated progress counting is unsupported by the success slice.",
-        "kind": "KNOWN_GAP_KIND_CAPABILITY",
-        "subject": "temporal.nexus.success.property.cancellationResolves"
-      }
-    ],
-    "localNames": [
-      {
-        "definitionId": "temporal.nexus.success.source.history",
-        "localName": "history"
-      },
-      {
-        "definitionId": "temporal.nexus.success.evidence.started",
-        "localName": "evidence.started"
-      },
-      {
-        "definitionId": "temporal.nexus.success.scope.run",
-        "localName": "run"
-      },
-      {
-        "definitionId": "temporal.nexus.success.evidence.completed",
-        "localName": "evidence.completed"
-      },
-      {
-        "definitionId": "temporal.nexus.success.projection",
-        "localName": "projection"
-      },
-      {
-        "definitionId": "temporal.nexus.success.scope.operation",
-        "localName": "operation"
-      },
-      {
-        "definitionId": "temporal.nexus.success.state.lifecycle.scheduled",
-        "localName": "scheduled"
-      },
-      {
-        "definitionId": "temporal.nexus.success.action.lifecycle.awaitStart",
-        "localName": "awaitStart"
-      },
-      {
-        "definitionId": "temporal.nexus.success.state.lifecycle.started",
-        "localName": "lifecycle.started"
-      },
-      {
-        "definitionId": "temporal.nexus.success.outcome.lifecycle.acknowledged",
-        "localName": "acknowledged"
-      },
-      {
-        "definitionId": "temporal.nexus.success.action.lifecycle.awaitSuccess",
-        "localName": "awaitSuccess"
-      },
-      {
-        "definitionId": "temporal.nexus.success.state.lifecycle.succeeded",
-        "localName": "succeeded"
-      },
-      {
-        "definitionId": "temporal.nexus.success.outcome.lifecycle.completed",
-        "localName": "lifecycle.completed"
-      },
-      {
-        "definitionId": "temporal.nexus.success.property.successfulResult.outcome-completed",
-        "localName": "outcome-completed"
-      },
-      {
-        "definitionId": "temporal.nexus.success.property.successfulResult.state-succeeded",
-        "localName": "state-succeeded"
-      }
-    ],
-    "producerId": "temporal.nexus.success.testpilot",
-    "producerVersion": "1",
-    "sources": [
-      {
-        "column": 1,
-        "line": 1,
-        "path": "Temporal/Feature/Nexus/Success/Model.lean",
-        "provenance": "lean-model"
-      },
-      {
-        "column": 1,
-        "line": 1,
-        "path": "Temporal/Feature/Nexus/Success/Model.lean",
-        "provenance": "lean-model"
-      },
-      {
-        "column": 1,
-        "line": 1,
-        "path": "Temporal/Feature/Nexus/Success/Model.lean",
-        "provenance": "lean-model"
-      },
-      {
-        "column": 1,
-        "line": 1,
-        "path": "Temporal/Feature/Nexus/Success/Model.lean",
-        "provenance": "lean-model"
-      }
-    ]
-  },
-  "version": {
-    "major": 1
+      ],
+      "rules": [
+        {
+          "ruleId": "outcome-completed",
+          "trigger": {
+            "compare": {
+              "operator": "COMPARISON_OPERATOR_EQUAL",
+              "left": {
+                "reference": {
+                  "correlatedStep": {
+                    "field": "CORRELATED_STEP_FIELD_ACTION",
+                    "definitionId": "awaitStart"
+                  }
+                }
+              },
+              "right": {
+                "literal": {
+                  "textValue": "awaitStart"
+                }
+              }
+            }
+          },
+          "response": {
+            "compare": {
+              "operator": "COMPARISON_OPERATOR_EQUAL",
+              "left": {
+                "reference": {
+                  "correlatedStep": {
+                    "field": "CORRELATED_STEP_FIELD_OUTCOME",
+                    "definitionId": "lifecycle.completed"
+                  }
+                }
+              },
+              "right": {
+                "literal": {
+                  "textValue": "completed"
+                }
+              }
+            }
+          },
+          "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+          "bound": "1",
+          "ending": "TRACE_ENDING_PARTIAL"
+        },
+        {
+          "ruleId": "state-succeeded",
+          "trigger": {
+            "compare": {
+              "operator": "COMPARISON_OPERATOR_EQUAL",
+              "left": {
+                "reference": {
+                  "correlatedStep": {
+                    "field": "CORRELATED_STEP_FIELD_ACTION",
+                    "definitionId": "awaitStart"
+                  }
+                }
+              },
+              "right": {
+                "literal": {
+                  "textValue": "awaitStart"
+                }
+              }
+            }
+          },
+          "response": {
+            "compare": {
+              "operator": "COMPARISON_OPERATOR_EQUAL",
+              "left": {
+                "reference": {
+                  "correlatedStep": {
+                    "field": "CORRELATED_STEP_FIELD_STATE",
+                    "definitionId": "succeeded"
+                  }
+                }
+              },
+              "right": {
+                "literal": {
+                  "textValue": "succeeded"
+                }
+              }
+            }
+          },
+          "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
+          "bound": "1",
+          "ending": "TRACE_ENDING_PARTIAL"
+        }
+      ]
+    }
   }
 }
