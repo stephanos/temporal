@@ -35,8 +35,8 @@ consumers must not mutate their outcome, field, Slot or Observation pointers.
 
 The scheduler supplies admitted coordinates and owns activation authority. It stages values
 before entering the recorder's publication boundary, checks recorder capacity, and commits the complete
-batch there. Each staged fact retains its projection ordinal and protobuf element index, so source
-IDs distinguish separate projections without losing EmitEach order. The recorder supplies source,
+batch there. Each staged fact retains its response read ordinal and protobuf element index, so source
+IDs distinguish separate response reads without losing EmitEach order. The recorder supplies source,
 causal, sequence and elapsed coordinates and copies facts into its own immutable recording state;
 those recorder copies count against recorder work/capacity. Raw payloads and Slots are not evidence.
 

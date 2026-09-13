@@ -23,7 +23,7 @@ private def getSystemInfoRule : ContractRule :=
       (Expr.present (Expr.observation "server-version"))
       .CONTRACT_SUPPORT_KIND_MATCHING_EVENT]
 
-/-- An orthogonal unary Case with an empty request and typed response projection. -/
+/-- An orthogonal unary Case with an empty request and a typed response read. -/
 def getSystemInfoCase : Except Umpire.Case.Compiler.Error Case :=
   let definitions := [
     binding "temporal.workflow-service" "temporal-workflow-service/v1" .target,

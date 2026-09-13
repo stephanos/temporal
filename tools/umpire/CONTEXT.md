@@ -26,7 +26,19 @@ _Avoid_: Property (that is the model-side term), assertion, check
 
 **Correlated**:
 A Rule tracked separately per operation and correlated by an explicit key, so one operation's obligations never discharge another's.
-_Avoid_: Scoped, per-instance, keyed
+_Avoid_: Scoped, per-instance, keyed, clause (a Correlated Rule is not the Property clause it is lowered from)
+
+**Expression**:
+The one expression language of a Case: a literal, a Reference, a field path read, a presence test, a comparison, or the negation, conjunction or disjunction of Expressions. Instruction inputs and guards, Contract transition predicates, correlated rule conditions and evidence-lift guards are all Expressions, and where one appears decides which References it may use.
+_Avoid_: Program expression, Contract expression, correlated predicate, correlation operand
+
+**Reference**:
+The leaf of an Expression that names a value instead of spelling it: a Slot, an instruction outcome, the Run, an environment binding, an Observation, the evaluated Run Event, a capture, an evidence field, a correlated capture or step, or the value an evidence lift projects. Preparation rejects a Reference the Expression's context does not admit, located at its path.
+_Avoid_: Ref, variable, operand (that is whatever Expression a path, comparison or negation applies to)
+
+**Case-local name**:
+The short name a Case's Program and Contract use for a Definition ID: the shortest dotted suffix no other Definition ID in the Case shares, such as `operation-identity`. Provenance maps each local name that differs from its Definition ID back to it; a model value is likewise written as its declared spelling, and a parameterized value's encoding is recorded in provenance as a fingerprint.
+_Avoid_: Alias, short ID, Definition ID (that is the global name a local name stands for)
 
 ## Umpire authoring
 
@@ -62,12 +74,17 @@ _Avoid_: Calling the entire event an Observation, callback
 
 **Slot**:
 Immutable, single-assignment typed operational data passed between Program instructions and omitted
-from the Run unless separately projected.
-_Avoid_: Variable, evidence
+from the Run unless separately recorded as an Observation. A Slot is also the only place an opaque
+effect handle lives.
+_Avoid_: Variable, evidence, opaque capability (a handle a Slot holds is an opaque handle)
 
 **Observation**:
 A declared typed field on a Run Event that a Contract is allowed to inspect.
 _Avoid_: Raw payload, Slot, log entry
+
+**Response read**:
+A declared read of one field path out of a successful RPC response into Slots, Observations or correlated evidence, once or once per element. It is neither Umpire's Projection, which reads Run values into model Steps, nor the correlated projection a `Contract.correlated` capability admits steps through.
+_Avoid_: Response projection, projection, extraction
 
 **Outage plan**:
 The worker Driver's internal admission answer for the Faults one Program declares: the task queue each named role resolves to, and whether the Run needs worker groups no other Run shares. It is neither the Fault instruction the Program declares nor the Run Event recorded once a Fault is realized, and it never leaves the Driver.
