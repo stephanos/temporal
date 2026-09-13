@@ -184,6 +184,13 @@ private def comparison (negated : Bool) (left right : Expression) : Expression :
   let equal := Testpilot.Authoring.Expr.equal left right
   if negated then Testpilot.Authoring.Expr.negate equal else equal
 
+/-- The conjuncts that compare `left` with `right` only on an event that establishes `read`. An
+equality with an absent operand is false, so it needs no presence check; its negation is true there,
+so a negated comparison keeps `present read`. -/
+private def compared (negated : Bool) (read left right : Expression) : Array Expression :=
+  if negated then #[Testpilot.Authoring.Expr.present read, comparison negated left right]
+  else #[comparison negated left right]
+
 /-- Render a shape as the one Contract rule it denotes. The rule distinguishes the answers the model
 Property does: an event that establishes the observed field and disagrees is a violation, not an
 absence, and an event that never establishes it leaves the rule pending, so a Run that produced no
@@ -205,13 +212,13 @@ def Shape.render (shape : Shape) (ruleId suffix observation root : String) :
           Testpilot.Authoring.Contract.state "violated" .CONTRACT_STATE_STATUS_VIOLATED]
         #[Testpilot.Authoring.Contract.transition ("match-" ++ suffix) "pending" "satisfied"
             completed
-            (all #[present observed, present (projected observed read.segments),
-              comparison negated (projected observed read.segments) value])
+            (all (#[present observed] ++ compared negated (projected observed read.segments)
+              (projected observed read.segments) value))
             .CONTRACT_SUPPORT_KIND_MATCHING_EVENT,
           Testpilot.Authoring.Contract.transition ("reject-" ++ suffix) "pending" "violated"
             completed
-            (all #[present observed, present (projected observed read.segments),
-              comparison (!negated) (projected observed read.segments) value])
+            (all (#[present observed] ++ compared (!negated) (projected observed read.segments)
+              (projected observed read.segments) value))
             .CONTRACT_SUPPORT_KIND_MATCHING_EVENT]
   | .capture negated captured read selector literal state response =>
       let captureId := state ++ "-" ++ suffix
@@ -222,16 +229,14 @@ def Shape.render (shape : Shape) (ruleId suffix observation root : String) :
           Testpilot.Authoring.Contract.state "satisfied" .CONTRACT_STATE_STATUS_SATISFIED]
         #[Testpilot.Authoring.Contract.transition ("capture-" ++ captureId) "pending" state
             completed
-            (all #[present observed, present (projected observed selector.segments),
-              comparison false (projected observed selector.segments)
-                (Testpilot.Authoring.Expr.literal literal.wire)])
+            (all #[present observed, comparison false (projected observed selector.segments)
+              (Testpilot.Authoring.Expr.literal literal.wire)])
             .CONTRACT_SUPPORT_KIND_MATCHING_EVENT
             #[Testpilot.Authoring.Contract.captureAssignment captureId observation],
           Testpilot.Authoring.Contract.transition ("match-" ++ response ++ "-" ++ suffix) state
             "satisfied" completed
-            (all #[present retained, present (projected observed read.segments),
-              comparison negated (projected retained captured.segments)
-                (projected observed read.segments)])
+            (all (#[present retained] ++ compared negated (projected observed read.segments)
+              (projected retained captured.segments) (projected observed read.segments)))
             .CONTRACT_SUPPORT_KIND_MATCHING_EVENT]
         (captures := #[Testpilot.Authoring.Contract.capture captureId
           (Testpilot.Authoring.Types.messageType root)])

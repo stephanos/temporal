@@ -343,6 +343,79 @@ var Declared = Mapping{
 		Name: "a field path becomes its string in the path grammar", Requirement: "R15",
 		Apply: RewriteMessages(protocol+"FieldPath", spellFieldPath),
 	},
+	{
+		// Declared after the path step, so a presence operand and a comparison operand that spell the
+		// same path compare equal.
+		Name: "a presence check beside a comparison of the same operand is dropped, since a comparison with an absent operand is false", Requirement: "R15",
+		Apply: dropComparedPresence,
+	},
+}
+
+// dropComparedPresence removes from each all group every present(p) operand beside a compare operand
+// whose left or right is exactly p, and collapses a group left with one operand into that operand. A
+// presence check beside anything else, a negated comparison included, stays: the negation is true on
+// an absent operand, so its presence check still decides the result.
+func dropComparedPresence(_ string, tree any) (any, error) {
+	return rewriteTree(tree, func(value any) (any, error) {
+		object, ok := value.(*Object)
+		if !ok || len(object.Fields) != 1 {
+			return value, nil
+		}
+		group, ok := object.Fields["all"].(*Object)
+		if !ok {
+			return value, nil
+		}
+		operands, ok := group.Fields["operands"].([]any)
+		if !ok {
+			return nil, errors.New("an all group carries no operand list")
+		}
+		compared := map[string]bool{}
+		for _, operand := range operands {
+			comparison, isComparison := soleArm(operand, "compare")
+			if !isComparison {
+				continue
+			}
+			for _, side := range []string{"left", "right"} {
+				encoded, err := json.Marshal(comparison.Fields[side])
+				if err != nil {
+					return nil, err
+				}
+				compared[string(encoded)] = true
+			}
+		}
+		kept := make([]any, 0, len(operands))
+		for _, operand := range operands {
+			if presence, isPresence := soleArm(operand, "present"); isPresence {
+				encoded, err := json.Marshal(presence.Fields["operand"])
+				if err != nil {
+					return nil, err
+				}
+				if compared[string(encoded)] {
+					continue
+				}
+			}
+			kept = append(kept, operand)
+		}
+		switch len(kept) {
+		case len(operands):
+			return object, nil
+		case 1:
+			return kept[0], nil
+		default:
+			group.Fields["operands"] = kept
+			return object, nil
+		}
+	})
+}
+
+// soleArm reads the one arm an Expression object carries when that arm is name.
+func soleArm(value any, name string) (*Object, bool) {
+	object, ok := value.(*Object)
+	if !ok || len(object.Fields) != 1 {
+		return nil, false
+	}
+	arm, ok := object.Fields[name].(*Object)
+	return arm, ok
 }
 
 // defaultInstructionOrder rewrites one entrypoint's instructions against the default order: an

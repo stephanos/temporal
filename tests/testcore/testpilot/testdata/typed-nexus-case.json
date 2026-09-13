@@ -431,43 +431,23 @@
                                 }
                               ],
                               "guard": {
-                                "all": {
-                                  "operands": [
-                                    {
-                                      "present": {
-                                        "operand": {
-                                          "path": {
-                                            "operand": {
-                                              "reference": {
-                                                "projectedValue": {}
-                                              }
-                                            },
-                                            "path": "attributes<nexus_operation_scheduled_event_attributes>.operation"
-                                          }
+                                "compare": {
+                                  "operator": "COMPARISON_OPERATOR_EQUAL",
+                                  "left": {
+                                    "path": {
+                                      "operand": {
+                                        "reference": {
+                                          "projectedValue": {}
                                         }
-                                      }
-                                    },
-                                    {
-                                      "compare": {
-                                        "operator": "COMPARISON_OPERATOR_EQUAL",
-                                        "left": {
-                                          "path": {
-                                            "operand": {
-                                              "reference": {
-                                                "projectedValue": {}
-                                              }
-                                            },
-                                            "path": "attributes<nexus_operation_scheduled_event_attributes>.operation"
-                                          }
-                                        },
-                                        "right": {
-                                          "literal": {
-                                            "textValue": "complete"
-                                          }
-                                        }
-                                      }
+                                      },
+                                      "path": "attributes<nexus_operation_scheduled_event_attributes>.operation"
                                     }
-                                  ]
+                                  },
+                                  "right": {
+                                    "literal": {
+                                      "textValue": "complete"
+                                    }
+                                  }
                                 }
                               }
                             },
@@ -501,43 +481,23 @@
                                 }
                               ],
                               "guard": {
-                                "all": {
-                                  "operands": [
-                                    {
-                                      "present": {
-                                        "operand": {
-                                          "path": {
-                                            "operand": {
-                                              "reference": {
-                                                "projectedValue": {}
-                                              }
-                                            },
-                                            "path": "attributes<nexus_operation_scheduled_event_attributes>.operation"
-                                          }
+                                "compare": {
+                                  "operator": "COMPARISON_OPERATOR_EQUAL",
+                                  "left": {
+                                    "path": {
+                                      "operand": {
+                                        "reference": {
+                                          "projectedValue": {}
                                         }
-                                      }
-                                    },
-                                    {
-                                      "compare": {
-                                        "operator": "COMPARISON_OPERATOR_EQUAL",
-                                        "left": {
-                                          "path": {
-                                            "operand": {
-                                              "reference": {
-                                                "projectedValue": {}
-                                              }
-                                            },
-                                            "path": "attributes<nexus_operation_scheduled_event_attributes>.operation"
-                                          }
-                                        },
-                                        "right": {
-                                          "literal": {
-                                            "textValue": "confirm"
-                                          }
-                                        }
-                                      }
+                                      },
+                                      "path": "attributes<nexus_operation_scheduled_event_attributes>.operation"
                                     }
-                                  ]
+                                  },
+                                  "right": {
+                                    "literal": {
+                                      "textValue": "confirm"
+                                    }
+                                  }
                                 }
                               }
                             },
@@ -815,20 +775,6 @@
                     }
                   },
                   {
-                    "present": {
-                      "operand": {
-                        "path": {
-                          "operand": {
-                            "reference": {
-                              "observationId": "history-event"
-                            }
-                          },
-                          "path": "attributes<nexus_operation_scheduled_event_attributes>.operation"
-                        }
-                      }
-                    }
-                  },
-                  {
                     "compare": {
                       "operator": "COMPARISON_OPERATOR_EQUAL",
                       "left": {
@@ -870,20 +816,6 @@
                       "operand": {
                         "reference": {
                           "captureId": "scheduled-complete"
-                        }
-                      }
-                    }
-                  },
-                  {
-                    "present": {
-                      "operand": {
-                        "path": {
-                          "operand": {
-                            "reference": {
-                              "observationId": "history-event"
-                            }
-                          },
-                          "path": "attributes<nexus_operation_completed_event_attributes>.scheduled_event_id"
                         }
                       }
                     }
@@ -977,20 +909,6 @@
                     }
                   },
                   {
-                    "present": {
-                      "operand": {
-                        "path": {
-                          "operand": {
-                            "reference": {
-                              "observationId": "history-event"
-                            }
-                          },
-                          "path": "attributes<nexus_operation_scheduled_event_attributes>.operation"
-                        }
-                      }
-                    }
-                  },
-                  {
                     "compare": {
                       "operator": "COMPARISON_OPERATOR_EQUAL",
                       "left": {
@@ -1032,20 +950,6 @@
                       "operand": {
                         "reference": {
                           "captureId": "scheduled-confirm"
-                        }
-                      }
-                    }
-                  },
-                  {
-                    "present": {
-                      "operand": {
-                        "path": {
-                          "operand": {
-                            "reference": {
-                              "observationId": "history-event"
-                            }
-                          },
-                          "path": "attributes<nexus_operation_completed_event_attributes>.scheduled_event_id"
                         }
                       }
                     }
