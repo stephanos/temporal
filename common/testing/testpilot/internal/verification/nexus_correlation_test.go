@@ -75,7 +75,7 @@ func nexusCorrelationFixture(t testing.TB) (*PreparedContract, execution.Program
 		MaxInstructionEmittedEvents: 8, MaxInstructionResponseBytes: 4096,
 	}
 	source := &testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: 1}, CaseId: "case", Contract: &testpilotspb.Contract{ContractId: "contract"}, Program: &testpilotspb.Program{
-		ProgramId: "program",
+		ProgramId:    "program",
 		Observations: []*testpilotspb.Observation{{ObservationId: "history-event", Type: nexusMessageType("temporal.api.history.v1.HistoryEvent")}},
 		Entrypoints:  []*testpilotspb.Entrypoint{{EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}}}},
 		Cleanup:      &testpilotspb.Cleanup{EntrypointId: "cleanup"},
