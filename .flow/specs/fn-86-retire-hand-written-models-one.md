@@ -128,7 +128,8 @@ module reaches the owners transitively through `Umpire.Command`:
 - **R1:** A committed inventory lists every non-test module under `Temporal.Feature`,
   `Temporal.Testpilot` and `Umpire.Examples` that builds Umpire records or Testpilot Cases without
   the commands, with each Property, golden, fixture, live test and tool that reads it and a
-  destination: migrate, delete with coverage recorded in a named spec, or drop with a reason. Errors:
+  destination: migrate, delete with coverage recorded in a named spec, keep with the reason, or drop
+  with a reason. Errors:
   a module that builds records but is missing from the inventory fails `lint-model`'s existing
   inventory reconciliation over the import graph (a new inventory issue kind, not a new Go tool),
   naming the module.

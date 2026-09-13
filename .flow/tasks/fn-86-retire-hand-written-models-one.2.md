@@ -11,6 +11,9 @@ Add the field-relation clause to `property` (R2): `require:` compares an action'
 **Touches:** [model/Umpire/Command/**, model/Temporal/Case/**, model/Temporal/Feature/Workflow/**, model/Temporal/Feature/Nexus/Success/TypedUnary.lean, model/Temporal/Feature/Nexus/Success/Tests/TypedUnary.lean, model/Temporal/Tool/Testpilot.lean, model/TemporalModelTests.lean, tests/testcore/testpilot/**, tests/testpilot_typed_unary_case_test.go]
 
 ### Approach
+- Plan review round 1 (F1): the last step deletes `.1`'s
+  `tests/testcore/testpilot/testdata/baseline/typed-unary-contract.json`. It is a scaffold for this
+  comparison; leaving it in the tree would be a generated Contract no generator writes.
 - No new clause kind: `PropertyFieldPath` already has `.index`, `.select`, `.cardinality`, `.establish` steps and a `capture` key; the command elaborates the grammar in the spec's API Contracts to that structure and reuses `PropertyFieldComparison.check` for type mismatch and ordering rejections.
 - Rejections to pin: a path segment not in the schema; a type mismatch between compared fields; an observation without a schema; a repeated-field path with no correlation key.
 - Proof: regenerate the migrated Case, extract its Contract, and compare its field reads (paths, operators, literals) structurally with the task .1 baseline; identity and provenance differ, reads must not.
