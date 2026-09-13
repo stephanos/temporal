@@ -34,9 +34,11 @@ func TestPrepareCompilesDeterministicReservationCarrierTopology(t *testing.T) {
 	secondStart := proto.CloneOf(workflow.Instructions[0])
 	secondStart.InstructionId = "start_second"
 	secondStart.Guard = nil
+	secondStart.After = runsAfter("workflow")
 	workflow.Instructions = append(workflow.Instructions, secondStart)
 	secondController := proto.CloneOf(controller.Instructions[0])
 	secondController.InstructionId = "call_second"
+	secondController.After = runsAfter("controller")
 	secondController.ActivationReservations[0].Count = 1
 	secondController.ActivationReservations[1].Count = 2
 	controller.Instructions = append(controller.Instructions, secondController)

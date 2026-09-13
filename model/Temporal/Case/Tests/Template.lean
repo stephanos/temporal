@@ -55,10 +55,14 @@ private def controllerInstructions (realization : Umpire.Case.Producer.Realizati
   | some entrypoint => entrypoint.instructions
   | none => #[]
 
+/-- The instructions an instruction runs after: its `after` set, or the instruction before it. -/
 private def dependencies (realization : Umpire.Case.Producer.Realization) (instructionId : String) :
     List String :=
-  match (controllerInstructions realization).find? (·.instruction_id == instructionId) with
-  | some instruction => instruction.dependencies.toList.map (·.instruction_id)
+  let instructions := (controllerInstructions realization).toList
+  match instructions.findIdx? (·.instruction_id == instructionId) with
+  | some index => match instructions[index]?.bind (·.after) with
+    | some after => after.instructions.toList.map (·.instruction_id)
+    | none => if index == 0 then [] else (instructions[index - 1]?.map (·.instruction_id)).toList
   | none => []
 
 private def instructionIds (realization : Umpire.Case.Producer.Realization) : List String :=
