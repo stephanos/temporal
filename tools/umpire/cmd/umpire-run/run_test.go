@@ -49,8 +49,8 @@ func verdictSession(status testpilotspb.VerdictStatus, rules ...*testpilotspb.Ru
 		return &session{
 			run: func(context.Context) (*testpilotspb.Run, *testpilotspb.Verdict, error) {
 				return &testpilotspb.Run{
-						Status:  testpilotspb.RUN_STATUS_COMPLETED,
-						Cleanup: &testpilotspb.CleanupOutcome{Status: testpilotspb.CLEANUP_STATUS_SUCCEEDED},
+						Disposition: testpilotspb.RUN_DISPOSITION_COMPLETED,
+						Cleanup:     &testpilotspb.CleanupOutcome{Status: testpilotspb.CLEANUP_STATUS_SUCCEEDED},
 					},
 					&testpilotspb.Verdict{Status: status, Rules: rules}, nil
 			},

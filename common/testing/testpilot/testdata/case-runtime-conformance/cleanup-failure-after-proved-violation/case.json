@@ -20,7 +20,7 @@
         "states": [
           {
             "stateId": "pending",
-            "status": "CONTRACT_STATE_STATUS_NONTERMINAL"
+            "status": "CONTRACT_STATE_STATUS_PENDING"
           },
           {
             "stateId": "terminal",

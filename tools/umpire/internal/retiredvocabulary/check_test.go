@@ -53,3 +53,42 @@ func TestValidateRetiredTokenRejectsBareWords(t *testing.T) {
 		require.NoError(t, validateRetiredToken(token), "token %q", token)
 	}
 }
+
+func TestRetiredRulesHoldTheGlossaryRenamedProtocolNames(t *testing.T) {
+	t.Parallel()
+
+	matched := func(line string) []string {
+		var names []string
+		for _, rule := range retiredRules {
+			if rule.pattern.MatchString(line) {
+				names = append(names, rule.name)
+			}
+		}
+		return names
+	}
+	for _, tc := range []struct {
+		line string
+		want []string
+	}{
+		{line: "status : " + "Run" + "Status", want: []string{"Run" + "Status"}},
+		{line: "run" + "Status := completed", want: []string{"Run" + "Status"}},
+		{line: "{ clause" + "_id := id }", want: []string{"clause" + "_id"}},
+		{line: "rule.GetClause" + "Id()", want: []string{"GetClause" + "Id"}},
+		{line: "(value : Correlated" + "Value)", want: []string{"Correlated" + "Value"}},
+		{line: "[]*pb.ContractRule" + "Definition{}", want: []string{"ContractRule" + "Definition"}},
+		{line: "[]*pb.ContractState" + "Definition{}", want: []string{"ContractState" + "Definition"}},
+		{line: "[]*pb.ContractTransition" + "Definition{}", want: []string{"ContractTransition" + "Definition"}},
+		{line: "[]*pb.ContractCapture" + "Definition{}", want: []string{"ContractCapture" + "Definition"}},
+		{line: "pb.RUN_" + "STATUS_COMPLETED", want: []string{"RUN_" + "STATUS_*"}},
+		{line: `"status": "CONTRACT_STATE_STATUS_` + `NONTERMINAL"`, want: []string{"CONTRACT_STATE_STATUS_" + "NONTERMINAL"}},
+		{line: "pb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_" + "NON_SUCCESS", want: []string{"PROTOCOL_" + "NON_SUCCESS"}},
+		{line: `return "PROTOCOL_` + `NON_SUCCESS"`, want: []string{"PROTOCOL_" + "NON_SUCCESS"}},
+		// Umpire's Property clauses keep their identifier, and the renamed names are live.
+		{line: "result.clauseId == clause.id"},
+		{line: "pb.RUN_DISPOSITION_COMPLETED, pb.CONTRACT_STATE_STATUS_PENDING, pb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE"},
+		{line: "[]*pb.ContractRule{}, pb.ContractRuleKind, ModelValue, RunDisposition, rule_id"},
+		{line: "delivery.TriggerNonSuccess"},
+	} {
+		require.Equal(t, tc.want, matched(tc.line), "line %q", tc.line)
+	}
+}

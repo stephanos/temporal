@@ -24,7 +24,7 @@ func TestWorkerOutageCaseDeclaresAnEventCountDeadline(t *testing.T) {
 	catalog, err := temporal.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
 
-	var liveness *testpilotspb.ContractRuleDefinition
+	var liveness *testpilotspb.ContractRule
 	for _, rule := range source.GetContract().GetRules() {
 		if rule.GetKind() == testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS {
 			liveness = rule

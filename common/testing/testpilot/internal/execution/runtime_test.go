@@ -197,7 +197,7 @@ func TestRunStopDrainsQuarantinesAndCannotSuppressFreshCleanup(t *testing.T) {
 	run, verdict, err := Run(t.Context(), prepared, driver, &runtimeMonitor{stopSource: "scheduler.g0.n0.a1.completed"}, "run", c.CaseId)
 
 	require.NoError(t, err)
-	require.Equal(t, testpilotspb.RUN_STATUS_STOPPED_BY_MONITOR, run.GetStatus())
+	require.Equal(t, testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR, run.GetDisposition())
 	require.Equal(t, testpilotspb.VERDICT_STATUS_VIOLATED, verdict.GetStatus())
 	require.Equal(t, testpilotspb.CLEANUP_STATUS_SUCCEEDED, run.GetCleanup().GetStatus())
 	require.NotContains(t, session.invocations, "after")
@@ -279,7 +279,7 @@ func TestRunWaitsForLateMonitorAndThenReportsDeadlineViolation(t *testing.T) {
 	result := <-done
 	// The recorder's close failed, so Run surfaces it beside the record it still produced.
 	require.ErrorIs(t, result.err, context.DeadlineExceeded)
-	require.Equal(t, testpilotspb.RUN_STATUS_INCOMPLETE, result.run.GetStatus())
+	require.Equal(t, testpilotspb.RUN_DISPOSITION_INCOMPLETE, result.run.GetDisposition())
 	require.Equal(t, testpilotspb.VERDICT_STATUS_INCONCLUSIVE, result.verdict.GetStatus())
 	require.Contains(t, diagnosticCodes(result.run), "close_failed")
 }
@@ -303,7 +303,7 @@ func TestRunConformingMonitorCancellationIsInconclusive(t *testing.T) {
 	require.NoError(t, err)
 	run, verdict, err := Run(t.Context(), prepared, &runtimeDriver{session: &runtimeSession{}}, &canceledMonitor{}, "run", c.CaseId)
 	require.ErrorIs(t, err, context.DeadlineExceeded)
-	require.Equal(t, testpilotspb.RUN_STATUS_INCOMPLETE, run.GetStatus())
+	require.Equal(t, testpilotspb.RUN_DISPOSITION_INCOMPLETE, run.GetDisposition())
 	require.Equal(t, testpilotspb.VERDICT_STATUS_INCONCLUSIVE, verdict.GetStatus())
 	require.Contains(t, diagnosticCodes(run), "close_failed")
 }
@@ -317,19 +317,19 @@ func TestRunTerminalPrecedence(t *testing.T) {
 		cleanupErr       error
 		hostCloseErr     error
 		hostCloseTimeout bool
-		wantDisposition  testpilotspb.RunStatus
+		wantDisposition  testpilotspb.RunDisposition
 		wantCleanup      testpilotspb.CleanupStatus
 		wantVerdict      testpilotspb.VerdictStatus
 	}{
-		{name: "complete", wantDisposition: testpilotspb.RUN_STATUS_COMPLETED, wantCleanup: testpilotspb.CLEANUP_STATUS_SUCCEEDED, wantVerdict: testpilotspb.VERDICT_STATUS_SATISFIED},
-		{name: "early liveness closure", closeKind: testpilotspb.VERDICT_STATUS_INCONCLUSIVE, wantDisposition: testpilotspb.RUN_STATUS_COMPLETED, wantCleanup: testpilotspb.CLEANUP_STATUS_SUCCEEDED, wantVerdict: testpilotspb.VERDICT_STATUS_INCONCLUSIVE},
-		{name: "execution failure", ordinaryErr: errors.New("effect failed"), wantDisposition: testpilotspb.RUN_STATUS_INCOMPLETE, wantCleanup: testpilotspb.CLEANUP_STATUS_SUCCEEDED, wantVerdict: testpilotspb.VERDICT_STATUS_INCONCLUSIVE},
-		{name: "close error preserves success", hostCloseErr: errors.New("close failed"), wantDisposition: testpilotspb.RUN_STATUS_COMPLETED, wantCleanup: testpilotspb.CLEANUP_STATUS_FAILED, wantVerdict: testpilotspb.VERDICT_STATUS_SATISFIED},
-		{name: "close timeout preserves success", hostCloseTimeout: true, wantDisposition: testpilotspb.RUN_STATUS_COMPLETED, wantCleanup: testpilotspb.CLEANUP_STATUS_FAILED, wantVerdict: testpilotspb.VERDICT_STATUS_SATISFIED},
-		{name: "close error preserves violation", stop: true, hostCloseErr: errors.New("close failed"), wantDisposition: testpilotspb.RUN_STATUS_STOPPED_BY_MONITOR, wantCleanup: testpilotspb.CLEANUP_STATUS_FAILED, wantVerdict: testpilotspb.VERDICT_STATUS_VIOLATED},
-		{name: "close timeout preserves violation", stop: true, hostCloseTimeout: true, wantDisposition: testpilotspb.RUN_STATUS_STOPPED_BY_MONITOR, wantCleanup: testpilotspb.CLEANUP_STATUS_FAILED, wantVerdict: testpilotspb.VERDICT_STATUS_VIOLATED},
-		{name: "violation dominates cleanup and close", stop: true, cleanupErr: errors.New("cleanup failed"), hostCloseErr: errors.New("close failed"), wantDisposition: testpilotspb.RUN_STATUS_STOPPED_BY_MONITOR, wantCleanup: testpilotspb.CLEANUP_STATUS_FAILED, wantVerdict: testpilotspb.VERDICT_STATUS_VIOLATED},
-		{name: "cleanup and close do not replace success", cleanupErr: errors.New("cleanup failed"), hostCloseErr: errors.New("close failed"), wantDisposition: testpilotspb.RUN_STATUS_COMPLETED, wantCleanup: testpilotspb.CLEANUP_STATUS_FAILED, wantVerdict: testpilotspb.VERDICT_STATUS_SATISFIED},
+		{name: "complete", wantDisposition: testpilotspb.RUN_DISPOSITION_COMPLETED, wantCleanup: testpilotspb.CLEANUP_STATUS_SUCCEEDED, wantVerdict: testpilotspb.VERDICT_STATUS_SATISFIED},
+		{name: "early liveness closure", closeKind: testpilotspb.VERDICT_STATUS_INCONCLUSIVE, wantDisposition: testpilotspb.RUN_DISPOSITION_COMPLETED, wantCleanup: testpilotspb.CLEANUP_STATUS_SUCCEEDED, wantVerdict: testpilotspb.VERDICT_STATUS_INCONCLUSIVE},
+		{name: "execution failure", ordinaryErr: errors.New("effect failed"), wantDisposition: testpilotspb.RUN_DISPOSITION_INCOMPLETE, wantCleanup: testpilotspb.CLEANUP_STATUS_SUCCEEDED, wantVerdict: testpilotspb.VERDICT_STATUS_INCONCLUSIVE},
+		{name: "close error preserves success", hostCloseErr: errors.New("close failed"), wantDisposition: testpilotspb.RUN_DISPOSITION_COMPLETED, wantCleanup: testpilotspb.CLEANUP_STATUS_FAILED, wantVerdict: testpilotspb.VERDICT_STATUS_SATISFIED},
+		{name: "close timeout preserves success", hostCloseTimeout: true, wantDisposition: testpilotspb.RUN_DISPOSITION_COMPLETED, wantCleanup: testpilotspb.CLEANUP_STATUS_FAILED, wantVerdict: testpilotspb.VERDICT_STATUS_SATISFIED},
+		{name: "close error preserves violation", stop: true, hostCloseErr: errors.New("close failed"), wantDisposition: testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR, wantCleanup: testpilotspb.CLEANUP_STATUS_FAILED, wantVerdict: testpilotspb.VERDICT_STATUS_VIOLATED},
+		{name: "close timeout preserves violation", stop: true, hostCloseTimeout: true, wantDisposition: testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR, wantCleanup: testpilotspb.CLEANUP_STATUS_FAILED, wantVerdict: testpilotspb.VERDICT_STATUS_VIOLATED},
+		{name: "violation dominates cleanup and close", stop: true, cleanupErr: errors.New("cleanup failed"), hostCloseErr: errors.New("close failed"), wantDisposition: testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR, wantCleanup: testpilotspb.CLEANUP_STATUS_FAILED, wantVerdict: testpilotspb.VERDICT_STATUS_VIOLATED},
+		{name: "cleanup and close do not replace success", cleanupErr: errors.New("cleanup failed"), hostCloseErr: errors.New("close failed"), wantDisposition: testpilotspb.RUN_DISPOSITION_COMPLETED, wantCleanup: testpilotspb.CLEANUP_STATUS_FAILED, wantVerdict: testpilotspb.VERDICT_STATUS_SATISFIED},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			c, catalog, policy := fixture(t)
@@ -349,7 +349,7 @@ func TestRunTerminalPrecedence(t *testing.T) {
 			}
 			run, verdict, err := Run(t.Context(), prepared, &runtimeDriver{session: session}, monitor, "run", c.CaseId)
 			require.NoError(t, err)
-			require.Equal(t, test.wantDisposition, run.GetStatus())
+			require.Equal(t, test.wantDisposition, run.GetDisposition())
 			require.Equal(t, test.wantCleanup, run.GetCleanup().GetStatus())
 			require.Equal(t, test.wantVerdict, verdict.GetStatus())
 			require.True(t, proto.Equal(verdict, run.GetVerdict()))
@@ -385,7 +385,7 @@ func TestRunCleanupDeadlineDoesNotReplaceOrdinarySuccess(t *testing.T) {
 	run, verdict, err := Run(t.Context(), prepared, &runtimeDriver{session: session}, &runtimeMonitor{}, "run", c.CaseId)
 
 	require.NoError(t, err)
-	require.Equal(t, testpilotspb.RUN_STATUS_COMPLETED, run.GetStatus())
+	require.Equal(t, testpilotspb.RUN_DISPOSITION_COMPLETED, run.GetDisposition())
 	require.Equal(t, testpilotspb.CLEANUP_STATUS_FAILED, run.GetCleanup().GetStatus())
 	require.Equal(t, testpilotspb.VERDICT_STATUS_SATISFIED, verdict.GetStatus())
 	require.Contains(t, diagnosticCodes(run), "cleanup_failed")
@@ -409,7 +409,7 @@ func TestRunBoundsHostContextViolationAndQuarantineCapacityFailure(t *testing.T)
 	monitor := &runtimeMonitor{stopSource: "scheduler.g0.n0.a1.completed"}
 	run, verdict, err := Run(t.Context(), prepared, &runtimeDriver{session: session}, monitor, "run", c.CaseId)
 	require.NoError(t, err)
-	require.Equal(t, testpilotspb.RUN_STATUS_STOPPED_BY_MONITOR, run.GetStatus())
+	require.Equal(t, testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR, run.GetDisposition())
 	require.Equal(t, testpilotspb.VERDICT_STATUS_VIOLATED, verdict.GetStatus())
 	require.Subset(t, diagnosticCodes(run), []string{"effect_cancel_context_violated", "quarantine_failed"})
 }

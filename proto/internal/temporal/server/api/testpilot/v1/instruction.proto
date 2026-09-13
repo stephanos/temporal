@@ -30,7 +30,7 @@ message CorrelatedEvidenceBinding {
 message CorrelatedEvidenceRule {
   FieldPath guard = 1;
   repeated CorrelatedEvidenceBinding scope = 2;
-  string source = 3;
+  string evidence_source = 3;
   FieldPath operation = 4;
   string kind = 5;
   repeated CorrelatedEvidenceBinding fields = 6;
@@ -152,7 +152,7 @@ message InstructionDefinition {
 enum InstructionOutcomeStatus {
   INSTRUCTION_OUTCOME_STATUS_UNSPECIFIED = 0;
   INSTRUCTION_OUTCOME_STATUS_SUCCEEDED = 1;
-  INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS = 2;
+  INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE = 2;
   INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE = 3;
   INSTRUCTION_OUTCOME_STATUS_TIMED_OUT = 4;
   INSTRUCTION_OUTCOME_STATUS_CANCELED = 5;

@@ -85,7 +85,7 @@ Candidates the scans surfaced and the spec declined are listed in its Decision C
 [fn-87 — Tighten the Testpilot protocol: glossary names, one expression language, structure by concept](../.flow/specs/fn-87-tighten-the-testpilot-protocol-glossary.md),
 from the 2026-09-11 review of the Testpilot protocol (855 lines in seven files). The review found
 thirty issues: three expression languages for the same operators (fourteen duplicated Program and
-Contract messages plus a correlated predicate language), names that break SEM-19 (`RunStatus` for
+Contract messages plus a correlated predicate language), names that break SEM-19 (a status enum for
 Run disposition, correlated `clauses` of type `CorrelatedRule`, "projection" and "capability" each
 naming two concepts), per-kind Run Event fields for faults, duplicate encodings (opaque handles,
 `natural`, capture types, three binding shapes, a nested `version`), an enum no wire message

@@ -43,7 +43,7 @@ func TestPreparedOutcomeParity(t *testing.T) {
 			"wrong type": {Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}},
 			"malformed":  {Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: &testpilotspb.Value{}},
 			"oversized":  {Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: textValue(strings.Repeat("x", 5000))},
-			"protocol":   {Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS, ProtocolCode: "denied"},
+			"protocol":   {Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE, ProtocolCode: "denied"},
 			"sdk":        {Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE, SdkFailureCode: "failed"},
 			"unknown":    {Status: 999}, "missing": nil,
 		} {

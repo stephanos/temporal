@@ -606,6 +606,17 @@ func buildRetiredRules() ([]tokenRule, error) {
 		// both replaced by `Umpire.Search.admit` and its `AdmissionDiagnostic`.
 		"invalid" + "Planner",
 		"Switch." + "incrementalKernel",
+		// fn-87 protocol names the glossary renamed. `clauseId` is not held: Umpire's Property
+		// clauses keep that identifier, and the protocol JSON key is pinned by the migration
+		// equivalence test and the regenerated fixtures instead.
+		"Run" + "Status",
+		"clause" + "_id",
+		"GetClause" + "Id",
+		"Correlated" + "Value",
+		"ContractRule" + "Definition",
+		"ContractState" + "Definition",
+		"ContractTransition" + "Definition",
+		"ContractCapture" + "Definition",
 	}
 
 	rules := make([]tokenRule, 0, len(exactTokens)+5)
@@ -631,6 +642,13 @@ func buildRetiredRules() ([]tokenRule, error) {
 		name:    "SCOPED_*",
 		pattern: regexp.MustCompile(`(^|[^A-Za-z0-9_])SCOPED_[A-Z0-9_]+`),
 	})
+	// The fn-87 enum values, held the same way: the renamed enum's whole value family, and the two
+	// values renamed alone, whether spelled as the whole constant or as its suffix.
+	rules = append(rules,
+		tokenRule{name: "RUN_STATUS_*", pattern: regexp.MustCompile(`(^|[^A-Za-z0-9_])RUN_STATUS_[A-Z0-9_]+`)},
+		tokenRule{name: "CONTRACT_STATE_STATUS_NONTERMINAL", pattern: regexp.MustCompile(`(^|[^A-Za-z0-9_])CONTRACT_STATE_STATUS_NONTERMINAL([^A-Za-z0-9_]|$)`)},
+		tokenRule{name: "PROTOCOL_NON_SUCCESS", pattern: regexp.MustCompile(`(^|[^A-Za-z0-9_])[A-Z0-9_]*PROTOCOL_NON_SUCCESS([^A-Za-z0-9_]|$)`)},
+	)
 	// The generation-numbered module and identity roots. A leading hyphen is excluded because the
 	// only occurrences in that shape are immutable Flow spec slugs, which name closed records rather
 	// than anything in the tree; the kebab identity roots the model actually emitted are held by the

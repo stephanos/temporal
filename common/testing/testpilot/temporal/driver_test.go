@@ -166,7 +166,7 @@ func TestCarrierEffectDrainFinalizesCompletedResult(t *testing.T) {
 	terminal := &recordingTerminalCarrier{admissible: true}
 	effect := &carrierEffect{
 		EffectHandle: &terminalEffect{done: done, result: testpilot.EffectResult{
-			Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS},
+			Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE},
 		}},
 		carrier: terminal, cleanupTimeout: time.Second,
 	}

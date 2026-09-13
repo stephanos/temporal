@@ -218,12 +218,12 @@ func (FaultKind) EnumDescriptor() ([]byte, []int) {
 type InstructionOutcomeStatus int32
 
 const (
-	INSTRUCTION_OUTCOME_STATUS_UNSPECIFIED          InstructionOutcomeStatus = 0
-	INSTRUCTION_OUTCOME_STATUS_SUCCEEDED            InstructionOutcomeStatus = 1
-	INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS InstructionOutcomeStatus = 2
-	INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE          InstructionOutcomeStatus = 3
-	INSTRUCTION_OUTCOME_STATUS_TIMED_OUT            InstructionOutcomeStatus = 4
-	INSTRUCTION_OUTCOME_STATUS_CANCELED             InstructionOutcomeStatus = 5
+	INSTRUCTION_OUTCOME_STATUS_UNSPECIFIED      InstructionOutcomeStatus = 0
+	INSTRUCTION_OUTCOME_STATUS_SUCCEEDED        InstructionOutcomeStatus = 1
+	INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE InstructionOutcomeStatus = 2
+	INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE      InstructionOutcomeStatus = 3
+	INSTRUCTION_OUTCOME_STATUS_TIMED_OUT        InstructionOutcomeStatus = 4
+	INSTRUCTION_OUTCOME_STATUS_CANCELED         InstructionOutcomeStatus = 5
 )
 
 // Enum value maps for InstructionOutcomeStatus.
@@ -231,18 +231,18 @@ var (
 	InstructionOutcomeStatus_name = map[int32]string{
 		0: "INSTRUCTION_OUTCOME_STATUS_UNSPECIFIED",
 		1: "INSTRUCTION_OUTCOME_STATUS_SUCCEEDED",
-		2: "INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS",
+		2: "INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE",
 		3: "INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE",
 		4: "INSTRUCTION_OUTCOME_STATUS_TIMED_OUT",
 		5: "INSTRUCTION_OUTCOME_STATUS_CANCELED",
 	}
 	InstructionOutcomeStatus_value = map[string]int32{
-		"INSTRUCTION_OUTCOME_STATUS_UNSPECIFIED":          0,
-		"INSTRUCTION_OUTCOME_STATUS_SUCCEEDED":            1,
-		"INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS": 2,
-		"INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE":          3,
-		"INSTRUCTION_OUTCOME_STATUS_TIMED_OUT":            4,
-		"INSTRUCTION_OUTCOME_STATUS_CANCELED":             5,
+		"INSTRUCTION_OUTCOME_STATUS_UNSPECIFIED":      0,
+		"INSTRUCTION_OUTCOME_STATUS_SUCCEEDED":        1,
+		"INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE": 2,
+		"INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE":      3,
+		"INSTRUCTION_OUTCOME_STATUS_TIMED_OUT":        4,
+		"INSTRUCTION_OUTCOME_STATUS_CANCELED":         5,
 	}
 )
 
@@ -258,8 +258,8 @@ func (x InstructionOutcomeStatus) String() string {
 		return "Unspecified"
 	case INSTRUCTION_OUTCOME_STATUS_SUCCEEDED:
 		return "Succeeded"
-	case INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS:
-		return "ProtocolNonSuccess"
+	case INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE:
+		return "ProtocolFailure"
 	case INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE:
 		return "SdkFailure"
 	case INSTRUCTION_OUTCOME_STATUS_TIMED_OUT:
@@ -443,7 +443,7 @@ type CorrelatedEvidenceRule struct {
 	state           protoimpl.MessageState       `protogen:"open.v1"`
 	Guard           *FieldPath                   `protobuf:"bytes,1,opt,name=guard,proto3" json:"guard,omitempty"`
 	Scope           []*CorrelatedEvidenceBinding `protobuf:"bytes,2,rep,name=scope,proto3" json:"scope,omitempty"`
-	Source          string                       `protobuf:"bytes,3,opt,name=source,proto3" json:"source,omitempty"`
+	EvidenceSource  string                       `protobuf:"bytes,3,opt,name=evidence_source,json=evidenceSource,proto3" json:"evidence_source,omitempty"`
 	Operation       *FieldPath                   `protobuf:"bytes,4,opt,name=operation,proto3" json:"operation,omitempty"`
 	Kind            string                       `protobuf:"bytes,5,opt,name=kind,proto3" json:"kind,omitempty"`
 	Fields          []*CorrelatedEvidenceBinding `protobuf:"bytes,6,rep,name=fields,proto3" json:"fields,omitempty"`
@@ -496,9 +496,9 @@ func (x *CorrelatedEvidenceRule) GetScope() []*CorrelatedEvidenceBinding {
 	return nil
 }
 
-func (x *CorrelatedEvidenceRule) GetSource() string {
+func (x *CorrelatedEvidenceRule) GetEvidenceSource() string {
 	if x != nil {
-		return x.Source
+		return x.EvidenceSource
 	}
 	return ""
 }
@@ -1716,11 +1716,11 @@ const file_temporal_server_api_testpilot_v1_instruction_proto_rawDesc = "" +
 	"\bfield_id\x18\x01 \x01(\tR\afieldId\x12A\n" +
 	"\x04path\x18\x02 \x01(\v2+.temporal.server.api.testpilot.v1.FieldPathH\x00R\x04path\x12\x1a\n" +
 	"\aliteral\x18\x03 \x01(\tH\x00R\aliteralB\a\n" +
-	"\x05value\"\xa6\x03\n" +
+	"\x05value\"\xb7\x03\n" +
 	"\x16CorrelatedEvidenceRule\x12A\n" +
 	"\x05guard\x18\x01 \x01(\v2+.temporal.server.api.testpilot.v1.FieldPathR\x05guard\x12Q\n" +
-	"\x05scope\x18\x02 \x03(\v2;.temporal.server.api.testpilot.v1.CorrelatedEvidenceBindingR\x05scope\x12\x16\n" +
-	"\x06source\x18\x03 \x01(\tR\x06source\x12I\n" +
+	"\x05scope\x18\x02 \x03(\v2;.temporal.server.api.testpilot.v1.CorrelatedEvidenceBindingR\x05scope\x12'\n" +
+	"\x0fevidence_source\x18\x03 \x01(\tR\x0eevidenceSource\x12I\n" +
 	"\toperation\x18\x04 \x01(\v2+.temporal.server.api.testpilot.v1.FieldPathR\toperation\x12\x12\n" +
 	"\x04kind\x18\x05 \x01(\tR\x04kind\x12S\n" +
 	"\x06fields\x18\x06 \x03(\v2;.temporal.server.api.testpilot.v1.CorrelatedEvidenceBindingR\x06fields\x12*\n" +
@@ -1812,11 +1812,11 @@ const file_temporal_server_api_testpilot_v1_instruction_proto_rawDesc = "" +
 	"\tFaultKind\x12\x1a\n" +
 	"\x16FAULT_KIND_UNSPECIFIED\x10\x00\x12\x1a\n" +
 	"\x16FAULT_KIND_WORKER_STOP\x10\x01\x12\x1c\n" +
-	"\x18FAULT_KIND_WORKER_RESUME\x10\x02*\xa4\x02\n" +
+	"\x18FAULT_KIND_WORKER_RESUME\x10\x02*\xa0\x02\n" +
 	"\x18InstructionOutcomeStatus\x12*\n" +
 	"&INSTRUCTION_OUTCOME_STATUS_UNSPECIFIED\x10\x00\x12(\n" +
-	"$INSTRUCTION_OUTCOME_STATUS_SUCCEEDED\x10\x01\x123\n" +
-	"/INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS\x10\x02\x12*\n" +
+	"$INSTRUCTION_OUTCOME_STATUS_SUCCEEDED\x10\x01\x12/\n" +
+	"+INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE\x10\x02\x12*\n" +
 	"&INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE\x10\x03\x12(\n" +
 	"$INSTRUCTION_OUTCOME_STATUS_TIMED_OUT\x10\x04\x12'\n" +
 	"#INSTRUCTION_OUTCOME_STATUS_CANCELED\x10\x05B2Z0go.temporal.io/server/api/testpilot/v1;testpilotb\x06proto3"

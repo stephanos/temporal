@@ -22,7 +22,7 @@ private def source : SourceLocation := {
   provenance := "checked-model"
 }
 
-private def rule (id : String := "example.rule") : ContractRuleDefinition :=
+private def rule (id : String := "example.rule") : ContractRule :=
   Contract.rule id .CONTRACT_RULE_KIND_SAFETY "satisfied"
     #[Contract.state "satisfied" .CONTRACT_STATE_STATUS_SATISFIED] #[]
 

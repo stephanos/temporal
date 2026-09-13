@@ -46,10 +46,10 @@ private def activationKind : EntrypointDefinition → Option Nat
         | some capability =>
             capability.evidence_observation_id == Temporal.Case.Support.correlatedObservation &&
             capability.projection_id == Temporal.Case.Template.NexusOperation.projectionId.value &&
-            capability.clauses.size == 2 &&
+            capability.rules.size == 2 &&
             -- The Behavior places the required Action one semantic transition after the
             -- operation's opening one, so that is the window each clause carries.
-            capability.clauses.all (fun clause =>
+            capability.rules.all (fun clause =>
               clause.clock == .CORRELATED_CLOCK_OPERATION_TRANSITIONS && clause.bound == 1 &&
               clause.ending == .TRACE_ENDING_PARTIAL) &&
             capability.projection_rules.map (·.kind) == #[

@@ -186,7 +186,7 @@ absence, and an event that never establishes it leaves the rule pending, so a Ru
 such event still closes inconclusive. A capture rule has no violated state: the event it captured
 decides which later event it waits for, and one that never arrives leaves it pending. -/
 def Shape.render (shape : Shape) (ruleId suffix observation root : String) :
-    ContractRuleDefinition :=
+    ContractRule :=
   let observed := Testpilot.Authoring.ContractExpr.observation observation
   let projected := Testpilot.Authoring.ContractExpr.path
   let present := Testpilot.Authoring.ContractExpr.present
@@ -196,7 +196,7 @@ def Shape.render (shape : Shape) (ruleId suffix observation root : String) :
   | .safety negated read literal =>
       let value := Testpilot.Authoring.ContractExpr.literal literal.wire
       Testpilot.Authoring.Contract.rule ruleId .CONTRACT_RULE_KIND_SAFETY "pending"
-        #[Testpilot.Authoring.Contract.state "pending" .CONTRACT_STATE_STATUS_NONTERMINAL,
+        #[Testpilot.Authoring.Contract.state "pending" .CONTRACT_STATE_STATUS_PENDING,
           Testpilot.Authoring.Contract.state "satisfied" .CONTRACT_STATE_STATUS_SATISFIED,
           Testpilot.Authoring.Contract.state "violated" .CONTRACT_STATE_STATUS_VIOLATED]
         #[Testpilot.Authoring.Contract.transition ("match-" ++ suffix) "pending" "satisfied"
@@ -213,8 +213,8 @@ def Shape.render (shape : Shape) (ruleId suffix observation root : String) :
       let captureId := state ++ "-" ++ suffix
       let retained := Testpilot.Authoring.ContractExpr.capture captureId
       Testpilot.Authoring.Contract.rule ruleId .CONTRACT_RULE_KIND_SAFETY "pending"
-        #[Testpilot.Authoring.Contract.state "pending" .CONTRACT_STATE_STATUS_NONTERMINAL,
-          Testpilot.Authoring.Contract.state state .CONTRACT_STATE_STATUS_NONTERMINAL,
+        #[Testpilot.Authoring.Contract.state "pending" .CONTRACT_STATE_STATUS_PENDING,
+          Testpilot.Authoring.Contract.state state .CONTRACT_STATE_STATUS_PENDING,
           Testpilot.Authoring.Contract.state "satisfied" .CONTRACT_STATE_STATUS_SATISFIED]
         #[Testpilot.Authoring.Contract.transition ("capture-" ++ captureId) "pending" state
             completed
@@ -263,7 +263,7 @@ structure DerivedRule (property : CheckedFieldProperty) (realization : Realizati
 
 /-- The generated Contract rule this derivation denotes. -/
 def DerivedRule.rule {property : CheckedFieldProperty} {realization : Realization}
-    (derived : DerivedRule property realization) : ContractRuleDefinition :=
+    (derived : DerivedRule property realization) : ContractRule :=
   derived.shape.render (property.property.id.value ++ "." ++ realization.ruleSuffix)
     realization.ruleSuffix derived.observation derived.root
 

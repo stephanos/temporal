@@ -17,7 +17,7 @@ that declares neither captures nor a correlation needs no coverage and keeps its
 encoding.
 -/
 namespace Umpire.Case.Correlated
-open temporal.server.api.testpilot.v1
+open temporal.server.api.testpilot.v1 hiding ModelValue
 open Umpire.Case.Projection
 
 variable {Law : Law → Prop} {Setup : Type}
@@ -25,7 +25,7 @@ variable {target : CheckedModel Law Setup ModelValue ModelValue ModelValue Model
 
 private def number (value : Nat) : Except String Int64 :=
   if value ≤ 9223372036854775807 then .ok (Int64.ofInt value) else .error "protobuf signed overflow"
-private def atom (value : ModelValue) : CorrelatedValue :=
+private def atom (value : ModelValue) : temporal.server.api.testpilot.v1.ModelValue :=
   { definition_id := value.definitionId.value, value := value.value }
 private def output (action : ModelValue) (result : Step ModelValue ModelValue ModelValue) :
     CorrelatedTransition := {
@@ -303,7 +303,7 @@ def lower (plan : Projection.Checked target) (compiled : Property.Correlated.Com
 def Lowered.contractLowering {plan : Projection.Checked target} {compiled : Property.Correlated.Compiled target} (lowered : Lowered plan compiled) : Compiler.ContractLowering :=
   .correlated ⟨compiled.property.id.value, compiled.property.behaviorFingerprint.render, .property⟩
     lowered.wire (compiled.property.correlatedRules.map fun clause => {
-      clauseId := clause.declaration.id.value
+      ruleId := clause.declaration.id.value
       propertyId := compiled.property.id.value
       propertyFingerprint := compiled.property.behaviorFingerprint.render
       projectionId := plan.sourceDeclaration.id.value

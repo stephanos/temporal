@@ -95,8 +95,8 @@ private def positive (value : Int64) : Except String Nat := do
   if n == 0 then throw "nonpositive resource limit"
   pure n
 
-def atom (value : CorrelatedValue) : Atom := ⟨⟨value.definition_id⟩, value.value⟩
-private def checkedAtom (value : CorrelatedValue) : Except String Atom := do
+def atom (value : ModelValue) : Atom := ⟨⟨value.definition_id⟩, value.value⟩
+private def checkedAtom (value : ModelValue) : Except String Atom := do
   if !value.«Unknown.Fields».isEmpty || !validId value.definition_id then throw "invalid semantic value"
   pure (atom value)
 private def result (value : CorrelatedTransition) : Except String Result := do
@@ -226,7 +226,7 @@ def decode (wire : CorrelatedContract) : Except String Compiled := do
     eventSize := ← positive limits.max_event_bytes }
   if projectionLimits.buffered > projectionLimits.events || projectionLimits.keys > projectionLimits.events then
     throw "incompatible projection limits"
-  if wire.transitions.isEmpty || wire.projection_rules.isEmpty || wire.clauses.isEmpty then
+  if wire.transitions.isEmpty || wire.projection_rules.isEmpty || wire.rules.isEmpty then
     throw "empty correlated capability"
   let transitions ← wire.transitions.toList.mapM fun tr => do
     if !tr.«Unknown.Fields».isEmpty then throw "unknown transition field"
@@ -277,7 +277,7 @@ def decode (wire : CorrelatedContract) : Except String Compiled := do
           pure (.confirmed submission outputs)
       | _ => throw "unsupported projection meaning"
     pure (CorrelatedProjection.Rule.mk ⟨rule.kind⟩ rule.fields.size meaning)
-  if !uniqueIds (wire.clauses.toList.map (·.clause_id)) then throw "invalid clause identities"
+  if !uniqueIds (wire.rules.toList.map (·.rule_id)) then throw "invalid clause identities"
   -- Only a field this projection actually retains can supply a capture or a correlation operand;
   -- redacted and rejected fields carry no value to read.
   let retainedFields := (policies.flatMap fun rule =>
@@ -287,16 +287,16 @@ def decode (wire : CorrelatedContract) : Except String Compiled := do
   -- keeps its exact existing encoding and meaning.
   -- Capture identities are one namespace across the capability: a retained occurrence is named by
   -- its capture id and ordinal alone, so two clauses declaring one id would alias the same stream.
-  let declaredCaptures := wire.clauses.toList.flatMap (·.captures.toList.map (·.capture_id))
+  let declaredCaptures := wire.rules.toList.flatMap (·.captures.toList.map (·.capture_id))
   if !declaredCaptures.isEmpty && !uniqueIds declaredCaptures then
     throw "invalid capture identities"
   let capturesDeclared := !declaredCaptures.isEmpty
-  let correlationDeclared := wire.clauses.toList.any (·.correlation.isSome)
+  let correlationDeclared := wire.rules.toList.any (·.correlation.isSome)
   let captureLimit ← if capturesDeclared then positive limits.max_captures
     else natural limits.max_captures
   let depthLimit ← if correlationDeclared then positive limits.max_correlation_depth
     else natural limits.max_correlation_depth
-  let clauseData ← wire.clauses.toList.mapM fun clause => do
+  let clauseData ← wire.rules.toList.mapM fun clause => do
     if !clause.«Unknown.Fields».isEmpty then throw "unknown clause field"
     if clause.clock != .CORRELATED_CLOCK_OPERATION_TRANSITIONS then throw "unsupported semantic clock"
     let final ← match clause.ending with
@@ -315,8 +315,8 @@ def decode (wire : CorrelatedContract) : Except String Compiled := do
       pure (Capture.mk ⟨declaration.capture_id⟩ ⟨declaration.field_id⟩ kind
         (← positive declaration.lifetime))
     let correlation ← clause.correlation.mapM (correlationOf retainedFields captures depthLimit)
-    pure (Clause.mk clause.clause_id (← natural clause.bound) final trigger response,
-      clause.clause_id, Keyed.mk captures correlation)
+    pure (Clause.mk clause.rule_id (← natural clause.bound) final trigger response,
+      clause.rule_id, Keyed.mk captures correlation)
   pure {
     plan := { initial := ← checkedAtom (← required wire.initial_state), rules, transitions, limits := projectionLimits }
     clauses := clauseData.map (·.1)
@@ -468,7 +468,7 @@ private def wireIdentity (wire : CorrelatedIdentity) : Except String (Correlated
   let scope ← wire.scope.toList.mapM fun binding => do
     if !binding.«Unknown.Fields».isEmpty then throw "unknown binding field"
     pure (Name.mk binding.field_id, binding.value)
-  pure ⟨scope, ⟨wire.source⟩, ← natural wire.ordinal⟩
+  pure ⟨scope, ⟨wire.evidence_source⟩, ← natural wire.ordinal⟩
 
 /-- Decode one typed Observation and attach recorder-owned support, retaining first support on duplicates. -/
 def Monitor.observe {compiled : Compiled} (run : Monitor compiled) (sequence : Nat) (wire : CorrelatedEvidence) :

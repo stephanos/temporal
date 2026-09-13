@@ -111,7 +111,7 @@ func TestSchedulerRecordsOneFaultEventPerInstruction(t *testing.T) {
 			{RoleId: "queue", Kind: testpilotspb.FAULT_KIND_WORKER_RESUME},
 		}},
 		// A Driver that reported the outage as not realized has produced intent, not evidence.
-		{"reported unrealized", testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS, nil},
+		{"reported unrealized", testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE, nil},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			c, catalog, policy := faultFixture(t)
