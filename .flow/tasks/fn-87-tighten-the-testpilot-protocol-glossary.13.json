@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-13T00:25:40.304779Z",
+  "depends_on": [
+    "fn-87-tighten-the-testpilot-protocol-glossary.12"
+  ],
+  "id": "fn-87-tighten-the-testpilot-protocol-glossary.13",
+  "priority": null,
+  "spec": "fn-87-tighten-the-testpilot-protocol-glossary",
+  "spec_path": ".flow/tasks/fn-87-tighten-the-testpilot-protocol-glossary.13.md",
+  "status": "todo",
+  "title": "Structured Case provenance rows; glossary and ART-09 amendments drafted",
+  "updated_at": "2026-09-13T00:34:45.475581Z"
+}

@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-13T00:33:46.016727Z",
+  "depends_on": [
+    "fn-85-model-side-effects-as-typed-actions-and.5",
+    "fn-85-model-side-effects-as-typed-actions-and.6"
+  ],
+  "id": "fn-85-model-side-effects-as-typed-actions-and.7",
+  "priority": null,
+  "spec": "fn-85-model-side-effects-as-typed-actions-and",
+  "spec_path": ".flow/tasks/fn-85-model-side-effects-as-typed-actions-and.7.md",
+  "status": "todo",
+  "title": "The set command, abstraction claims, derived Case identity and the list-driven generator",
+  "updated_at": "2026-09-13T00:33:46.016727Z"
+}

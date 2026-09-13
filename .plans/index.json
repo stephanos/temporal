@@ -310,6 +310,16 @@
       "allowedMissingLinks": []
     },
     {
+      "path": ".plans/UMPIRE_CMP_FIZZBEE.md",
+      "lifecycle": "reference",
+      "authority": "descriptive",
+      "authorityParents": [
+        ".plans/UMPIRE4_SPEC.md"
+      ],
+      "supersededBy": null,
+      "allowedMissingLinks": []
+    },
+    {
       "path": ".plans/UMPIRE_TYPED_ACTIONS_SPEC.md",
       "lifecycle": "reference",
       "authority": "descriptive",
