@@ -239,7 +239,10 @@ var Declared = Mapping{
 	},
 	{
 		Name: "Contract" + "Deadline becomes Deadline, its one positive bound under the bound oneof", Requirement: "R5",
-		Apply: RewriteMessages(protocol+"Contract"+"Deadline", rewriteDeadlineBound),
+		Apply: sequence(
+			RewriteMessages(protocol+"Contract"+"Deadline", rewriteDeadlineBound),
+			RenameMessage(protocol+"Contract"+"Deadline", protocol+"Deadline"),
+		),
 	},
 	{
 		Name: "Contract" + "CaptureType becomes SingularType", Requirement: "R6",
