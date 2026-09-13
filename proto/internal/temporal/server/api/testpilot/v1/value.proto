@@ -35,8 +35,15 @@ message ValueMap { repeated ValueMapEntry entries = 1; }
 // ValueMapEntry is one key and value of a ValueMap.
 message ValueMapEntry { Value key = 1; Value value = 2; }
 
-// ModelValue is one model value: the Definition ID that declares it and its value text.
-message ModelValue { string definition_id = 1; string value = 2; }
+// ModelValue is one model value: the definition that declares it and the value's spelling.
+message ModelValue {
+  // The Case-local name of the declaring definition; CaseProvenance.local_names maps it to its
+  // Definition ID.
+  string definition_id = 1;
+  // The value's declared spelling. CaseProvenance.model_value_fingerprints records the canonical
+  // encoding a parameterized or disambiguated spelling stands for.
+  string value = 2;
+}
 
 // ValueType is the declared type of a Slot, an Observation or an instruction outcome field.
 message ValueType {

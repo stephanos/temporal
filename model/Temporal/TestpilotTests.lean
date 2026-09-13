@@ -44,8 +44,9 @@ private def activationKind : Entrypoint → Option Nat
       output.contract.map (·.rules.isEmpty) == some true &&
       (match output.contract.bind (·.«correlated») with
         | some capability =>
+            let name := Umpire.Case.LocalNames.nameIn (output.provenance.getD {})
             capability.evidence_observation_id == Temporal.Case.Support.correlatedObservation &&
-            capability.projection_id == Temporal.Case.Template.NexusOperation.projectionId.value &&
+            capability.projection_id == name Temporal.Case.Template.NexusOperation.projectionId.value &&
             capability.rules.size == 2 &&
             -- The Behavior places the required Action one semantic transition after the
             -- operation's opening one, so that is the window each clause carries.
@@ -53,8 +54,8 @@ private def activationKind : Entrypoint → Option Nat
               clause.clock == .CORRELATED_CLOCK_OPERATION_TRANSITIONS && clause.bound == 1 &&
               clause.ending == .TRACE_ENDING_PARTIAL) &&
             capability.projection_rules.map (·.kind) == #[
-              Temporal.Case.Template.NexusOperation.completedEvidenceKindId.value,
-              Temporal.Case.Template.NexusOperation.startedEvidenceKindId.value]
+              name Temporal.Case.Template.NexusOperation.completedEvidenceKindId.value,
+              name Temporal.Case.Template.NexusOperation.startedEvidenceKindId.value]
         | none => false)
   | .error _ => false
 

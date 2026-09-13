@@ -61,9 +61,13 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   *Restatement (drafted by fn-87; awaiting GOV-02 approval.)* The typed provenance rows inside a
   Case: Definition bindings with their Behavior Fingerprints and kinds, sources, Known Gaps, and
   correlated rule bindings that tie the Case back to the Model Definitions and Properties it came
-  from. Each kind of row is its own list, in the order the Producer lists them, so a fixture diff
-  shows each row. `Umpire.Provenance.make` lowers `Umpire.Provenance.DefinitionBinding`,
-  `Umpire.Provenance.KnownGap`, and `Umpire.Provenance.CorrelatedRuleBinding` values into those rows.
+  from, and the local name and model value fingerprint rows that map each Case-local name the
+  Program and Contract use to its Definition ID and each short model value spelling to the SHA-256
+  of the canonical encoding it stands for. Each kind of row is its own list, in the order the
+  Producer lists them, so a fixture diff shows each row. `Umpire.Provenance.make` lowers
+  `Umpire.Provenance.DefinitionBinding`, `Umpire.Provenance.KnownGap`,
+  `Umpire.Provenance.CorrelatedRuleBinding`, `Umpire.Provenance.LocalName`, and
+  `Umpire.Provenance.ModelValueFingerprint` values into those rows.
   The runtime reads none of it.
 - **Program.** A bounded acyclic graph of typed instructions in controller, workflow, activity, or
   Nexus-handler entrypoints.

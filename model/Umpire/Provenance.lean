@@ -7,7 +7,8 @@ Producer provenance carried inside a generated Testpilot Case.
 The protobuf schema owns the Case, Program, Contract, and provenance row structures. Umpire retains
 its producer-specific definitions, fingerprints, sources, Known Gaps, and Correlated Rule bindings
 here and lowers them into the typed `CaseProvenance` rows, keeping the order the Producer lists
-them. Testpilot never reads the rows.
+them. `Umpire.Case.Compiler` adds the Case-local name and model value fingerprint rows its
+localization derives. Testpilot never reads the rows.
 -/
 
 namespace Umpire.Provenance
@@ -65,6 +66,20 @@ structure CorrelatedRuleBinding where
   source : SourceLocation
   deriving BEq, Repr
 
+/-- One Case-local name the Program and Contract use, and the Definition ID it stands for. -/
+structure LocalName where
+  localName : String
+  definitionId : String
+  deriving BEq, DecidableEq, Repr
+
+/-- One model value the Case spells differently from its canonical encoding: the local name of its
+definition, its Case spelling, and the lowercase hexadecimal SHA-256 of the encoding. -/
+structure ModelValueFingerprint where
+  localName : String
+  spelling : String
+  fingerprint : String
+  deriving BEq, DecidableEq, Repr
+
 /-- Compiler and source provenance for one Case artifact. -/
 structure Metadata where
   producerId : String
@@ -73,6 +88,8 @@ structure Metadata where
   sources : List SourceLocation := []
   knownGaps : List KnownGap := []
   correlatedRules : List CorrelatedRuleBinding := []
+  localNames : List LocalName := []
+  modelValueFingerprints : List ModelValueFingerprint := []
   deriving BEq, Repr
 
 open temporal.server.api.testpilot.v1 (CaseProvenance)
@@ -130,6 +147,13 @@ def make (metadata : Metadata) : Except Umpire.SourceLocation CaseProvenance := 
     sources.toArray
     (metadata.knownGaps.map fun gap =>
       Testpilot.Authoring.knownGap (gapKind gap.kind) gap.code gap.subject gap.detail).toArray
-    correlatedRules.toArray)
+    correlatedRules.toArray
+    (metadata.localNames.map fun name =>
+      ({ local_name := name.localName, definition_id := name.definitionId } :
+        temporal.server.api.testpilot.v1.LocalName)).toArray
+    (metadata.modelValueFingerprints.map fun value =>
+      ({ local_name := value.localName, spelling := value.spelling,
+         fingerprint := value.fingerprint } :
+        temporal.server.api.testpilot.v1.ModelValueFingerprint)).toArray)
 
 end Umpire.Provenance

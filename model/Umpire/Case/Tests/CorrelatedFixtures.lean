@@ -22,13 +22,19 @@ def plan (target : TestTarget) := Case.Projection.check target {
     work := 1000000000, eventSize := 512 }
 } () state
 
+/-! The evidence a test Driver supplies names the scope field, source and kinds by the Case-local names
+the compiled Case gives `test.run`, `test.source` and each `test.<kind>`. -/
+
+/-- The Run scope under the Case-local name of `test.run`. -/
+def caseScope : List (Shared.SemanticData.Name × String) := [(⟨"run"⟩, "run-1")]
+
 def identity (ordinal : Nat) : CorrelatedIdentity := {
-  scope := #[{ field_id := "test.run", value := some { value := some (.text_value "run-1") } }]
-  evidence_source := "test.source", ordinal := Int64.ofInt ordinal }
+  scope := #[{ field_id := "run", value := some { value := some (.text_value "run-1") } }]
+  evidence_source := "source", ordinal := Int64.ofInt ordinal }
 
 def evidence (ordinal : Nat) (kind : String) (operation := "a") (parents : List Nat := []) : CorrelatedEvidence := {
   identity := some (identity ordinal)
-  operation, kind := "test." ++ kind
+  operation, kind
   parents := parents.toArray.map identity }
 
 structure Scenario where
@@ -118,7 +124,7 @@ def ceilings (scenario : Scenario) : Except String CorrelatedLimits := (·.2) <$
 
 def evaluate (scenario : Scenario) : Except String (List Nat) := do
   let compiled ← Testpilot.Correlated.decode (← ceilings scenario) (← capability scenario)
-  let initial ← compiled.start scope
+  let initial ← compiled.start caseScope
   let run ← scenario.events.zipIdx.foldlM (fun run (event, index) => run.observe (index + 2) event) initial
   pure (run.close.answers scenario.incomplete)
 

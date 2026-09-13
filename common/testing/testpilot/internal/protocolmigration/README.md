@@ -47,6 +47,15 @@ order the changes land. Each Step names itself and the requirement it implements
 the fixture's JSON tree, where every object carries the snapshot message it encoded; steps address
 messages by their baseline full names even after an earlier step renamed them.
 
+A step whose change the baseline alone cannot determine sets `Relate` instead of `Apply`: it reads
+what the regenerated fixture declares and validates that against the baseline before substituting
+it. The R14 step reads the regenerated provenance's local name and model value fingerprint rows,
+requires each row's Definition ID to occur in the baseline and each fingerprint to be the SHA-256 of
+a baseline encoding of its definition, requires the renaming to merge no two baseline Definition IDs
+and no two encodings of one definition, and only then substitutes the names and spellings (and, in
+`correlated.json`, the names its events carry). `expected.json` stays byte-identical: every
+conformance rule id is already its own local name.
+
 Reuse the helpers where they fit: `RenameField`, `RenameEnumLiteral`, `RenameMessage`, `DropField` and
 `RewriteMessages`. A step that is not a rename validates what it assumes (a derived field equals
 its recomputed value, a dropped bound matches a declared loosened bound) instead of discarding

@@ -359,15 +359,17 @@ func (x *FormatVersion) GetMinor() int32 {
 // changes no preparation, Run or Verdict, although it is part of the Case's canonical bytes. Each
 // kind of row is its own list, in the order the Producer lists them.
 type CaseProvenance struct {
-	state           protoimpl.MessageState   `protogen:"open.v1"`
-	ProducerId      string                   `protobuf:"bytes,1,opt,name=producer_id,json=producerId,proto3" json:"producer_id,omitempty"`
-	ProducerVersion string                   `protobuf:"bytes,2,opt,name=producer_version,json=producerVersion,proto3" json:"producer_version,omitempty"`
-	Definitions     []*DefinitionBinding     `protobuf:"bytes,3,rep,name=definitions,proto3" json:"definitions,omitempty"`
-	Sources         []*SourceLocation        `protobuf:"bytes,4,rep,name=sources,proto3" json:"sources,omitempty"`
-	KnownGaps       []*KnownGap              `protobuf:"bytes,5,rep,name=known_gaps,json=knownGaps,proto3" json:"known_gaps,omitempty"`
-	CorrelatedRules []*CorrelatedRuleBinding `protobuf:"bytes,6,rep,name=correlated_rules,json=correlatedRules,proto3" json:"correlated_rules,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	state                  protoimpl.MessageState   `protogen:"open.v1"`
+	ProducerId             string                   `protobuf:"bytes,1,opt,name=producer_id,json=producerId,proto3" json:"producer_id,omitempty"`
+	ProducerVersion        string                   `protobuf:"bytes,2,opt,name=producer_version,json=producerVersion,proto3" json:"producer_version,omitempty"`
+	Definitions            []*DefinitionBinding     `protobuf:"bytes,3,rep,name=definitions,proto3" json:"definitions,omitempty"`
+	Sources                []*SourceLocation        `protobuf:"bytes,4,rep,name=sources,proto3" json:"sources,omitempty"`
+	KnownGaps              []*KnownGap              `protobuf:"bytes,5,rep,name=known_gaps,json=knownGaps,proto3" json:"known_gaps,omitempty"`
+	CorrelatedRules        []*CorrelatedRuleBinding `protobuf:"bytes,6,rep,name=correlated_rules,json=correlatedRules,proto3" json:"correlated_rules,omitempty"`
+	LocalNames             []*LocalName             `protobuf:"bytes,7,rep,name=local_names,json=localNames,proto3" json:"local_names,omitempty"`
+	ModelValueFingerprints []*ModelValueFingerprint `protobuf:"bytes,8,rep,name=model_value_fingerprints,json=modelValueFingerprints,proto3" json:"model_value_fingerprints,omitempty"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
 }
 
 func (x *CaseProvenance) Reset() {
@@ -438,6 +440,20 @@ func (x *CaseProvenance) GetKnownGaps() []*KnownGap {
 func (x *CaseProvenance) GetCorrelatedRules() []*CorrelatedRuleBinding {
 	if x != nil {
 		return x.CorrelatedRules
+	}
+	return nil
+}
+
+func (x *CaseProvenance) GetLocalNames() []*LocalName {
+	if x != nil {
+		return x.LocalNames
+	}
+	return nil
+}
+
+func (x *CaseProvenance) GetModelValueFingerprints() []*ModelValueFingerprint {
+	if x != nil {
+		return x.ModelValueFingerprints
 	}
 	return nil
 }
@@ -779,6 +795,132 @@ func (x *CorrelatedRuleBinding) GetSource() *SourceLocation {
 	return nil
 }
 
+// LocalName maps one Case-local name to the Definition ID it stands for. The Program and Contract name
+// states, actions, outcomes, facts, evidence kinds, sources and fields, captures, projections and
+// rules by Case-local names; a name no row maps is its own Definition ID. No two rows share a local
+// name or a Definition ID.
+type LocalName struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// (-- api-linter: core::0122::name-suffix=disabled
+	//     aip.dev/not-precedent: a Case-local name is the glossary term, not a resource name. --)
+	LocalName     string `protobuf:"bytes,1,opt,name=local_name,json=localName,proto3" json:"local_name,omitempty"`
+	DefinitionId  string `protobuf:"bytes,2,opt,name=definition_id,json=definitionId,proto3" json:"definition_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LocalName) Reset() {
+	*x = LocalName{}
+	mi := &file_temporal_server_api_testpilot_v1_case_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LocalName) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LocalName) ProtoMessage() {}
+
+func (x *LocalName) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_case_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LocalName.ProtoReflect.Descriptor instead.
+func (*LocalName) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_case_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *LocalName) GetLocalName() string {
+	if x != nil {
+		return x.LocalName
+	}
+	return ""
+}
+
+func (x *LocalName) GetDefinitionId() string {
+	if x != nil {
+		return x.DefinitionId
+	}
+	return ""
+}
+
+// ModelValueFingerprint records one model value the Case spells differently from its canonical
+// encoding: a parameterized value, or a value whose spelling collides with another encoding of its
+// definition and so carries a fingerprint-derived disambiguator.
+type ModelValueFingerprint struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The Case-local name of the definition that declares the value.
+	// (-- api-linter: core::0122::name-suffix=disabled
+	//     aip.dev/not-precedent: a Case-local name is the glossary term, not a resource name. --)
+	LocalName string `protobuf:"bytes,1,opt,name=local_name,json=localName,proto3" json:"local_name,omitempty"`
+	// The value as the Case spells it.
+	Spelling string `protobuf:"bytes,2,opt,name=spelling,proto3" json:"spelling,omitempty"`
+	// The lowercase hexadecimal SHA-256 of the UTF-8 bytes of the value's canonical encoding.
+	Fingerprint   string `protobuf:"bytes,3,opt,name=fingerprint,proto3" json:"fingerprint,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ModelValueFingerprint) Reset() {
+	*x = ModelValueFingerprint{}
+	mi := &file_temporal_server_api_testpilot_v1_case_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ModelValueFingerprint) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ModelValueFingerprint) ProtoMessage() {}
+
+func (x *ModelValueFingerprint) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_case_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ModelValueFingerprint.ProtoReflect.Descriptor instead.
+func (*ModelValueFingerprint) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_case_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *ModelValueFingerprint) GetLocalName() string {
+	if x != nil {
+		return x.LocalName
+	}
+	return ""
+}
+
+func (x *ModelValueFingerprint) GetSpelling() string {
+	if x != nil {
+		return x.Spelling
+	}
+	return ""
+}
+
+func (x *ModelValueFingerprint) GetFingerprint() string {
+	if x != nil {
+		return x.Fingerprint
+	}
+	return ""
+}
+
 var File_temporal_server_api_testpilot_v1_case_proto protoreflect.FileDescriptor
 
 const file_temporal_server_api_testpilot_v1_case_proto_rawDesc = "" +
@@ -794,7 +936,7 @@ const file_temporal_server_api_testpilot_v1_case_proto_rawDesc = "" +
 	"\bcontract\x18\x05 \x01(\v2*.temporal.server.api.testpilot.v1.ContractR\bcontract\";\n" +
 	"\rFormatVersion\x12\x14\n" +
 	"\x05major\x18\x01 \x01(\x05R\x05major\x12\x14\n" +
-	"\x05minor\x18\x02 \x01(\x05R\x05minor\"\xae\x03\n" +
+	"\x05minor\x18\x02 \x01(\x05R\x05minor\"\xef\x04\n" +
 	"\x0eCaseProvenance\x12\x1f\n" +
 	"\vproducer_id\x18\x01 \x01(\tR\n" +
 	"producerId\x12)\n" +
@@ -803,7 +945,10 @@ const file_temporal_server_api_testpilot_v1_case_proto_rawDesc = "" +
 	"\asources\x18\x04 \x03(\v20.temporal.server.api.testpilot.v1.SourceLocationR\asources\x12I\n" +
 	"\n" +
 	"known_gaps\x18\x05 \x03(\v2*.temporal.server.api.testpilot.v1.KnownGapR\tknownGaps\x12b\n" +
-	"\x10correlated_rules\x18\x06 \x03(\v27.temporal.server.api.testpilot.v1.CorrelatedRuleBindingR\x0fcorrelatedRules\"\xb1\x01\n" +
+	"\x10correlated_rules\x18\x06 \x03(\v27.temporal.server.api.testpilot.v1.CorrelatedRuleBindingR\x0fcorrelatedRules\x12L\n" +
+	"\vlocal_names\x18\a \x03(\v2+.temporal.server.api.testpilot.v1.LocalNameR\n" +
+	"localNames\x12q\n" +
+	"\x18model_value_fingerprints\x18\b \x03(\v27.temporal.server.api.testpilot.v1.ModelValueFingerprintR\x16modelValueFingerprints\"\xb1\x01\n" +
 	"\x11DefinitionBinding\x12#\n" +
 	"\rdefinition_id\x18\x01 \x01(\tR\fdefinitionId\x121\n" +
 	"\x14behavior_fingerprint\x18\x02 \x01(\tR\x13behaviorFingerprint\x12D\n" +
@@ -829,7 +974,16 @@ const file_temporal_server_api_testpilot_v1_case_proto_rawDesc = "" +
 	"\x14property_fingerprint\x18\x03 \x01(\tR\x13propertyFingerprint\x12#\n" +
 	"\rprojection_id\x18\x04 \x01(\tR\fprojectionId\x125\n" +
 	"\x16projection_fingerprint\x18\x05 \x01(\tR\x15projectionFingerprint\x12H\n" +
-	"\x06source\x18\x06 \x01(\v20.temporal.server.api.testpilot.v1.SourceLocationR\x06source*\xfc\x03\n" +
+	"\x06source\x18\x06 \x01(\v20.temporal.server.api.testpilot.v1.SourceLocationR\x06source\"O\n" +
+	"\tLocalName\x12\x1d\n" +
+	"\n" +
+	"local_name\x18\x01 \x01(\tR\tlocalName\x12#\n" +
+	"\rdefinition_id\x18\x02 \x01(\tR\fdefinitionId\"t\n" +
+	"\x15ModelValueFingerprint\x12\x1d\n" +
+	"\n" +
+	"local_name\x18\x01 \x01(\tR\tlocalName\x12\x1a\n" +
+	"\bspelling\x18\x02 \x01(\tR\bspelling\x12 \n" +
+	"\vfingerprint\x18\x03 \x01(\tR\vfingerprint*\xfc\x03\n" +
 	"\x0eDefinitionKind\x12\x1f\n" +
 	"\x1bDEFINITION_KIND_UNSPECIFIED\x10\x00\x12\x19\n" +
 	"\x15DEFINITION_KIND_SETUP\x10\x01\x12\x19\n" +
@@ -869,7 +1023,7 @@ func file_temporal_server_api_testpilot_v1_case_proto_rawDescGZIP() []byte {
 }
 
 var file_temporal_server_api_testpilot_v1_case_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_temporal_server_api_testpilot_v1_case_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_temporal_server_api_testpilot_v1_case_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_temporal_server_api_testpilot_v1_case_proto_goTypes = []any{
 	(DefinitionKind)(0),           // 0: temporal.server.api.testpilot.v1.DefinitionKind
 	(KnownGapKind)(0),             // 1: temporal.server.api.testpilot.v1.KnownGapKind
@@ -880,26 +1034,30 @@ var file_temporal_server_api_testpilot_v1_case_proto_goTypes = []any{
 	(*SourceLocation)(nil),        // 6: temporal.server.api.testpilot.v1.SourceLocation
 	(*KnownGap)(nil),              // 7: temporal.server.api.testpilot.v1.KnownGap
 	(*CorrelatedRuleBinding)(nil), // 8: temporal.server.api.testpilot.v1.CorrelatedRuleBinding
-	(*Program)(nil),               // 9: temporal.server.api.testpilot.v1.Program
-	(*Contract)(nil),              // 10: temporal.server.api.testpilot.v1.Contract
+	(*LocalName)(nil),             // 9: temporal.server.api.testpilot.v1.LocalName
+	(*ModelValueFingerprint)(nil), // 10: temporal.server.api.testpilot.v1.ModelValueFingerprint
+	(*Program)(nil),               // 11: temporal.server.api.testpilot.v1.Program
+	(*Contract)(nil),              // 12: temporal.server.api.testpilot.v1.Contract
 }
 var file_temporal_server_api_testpilot_v1_case_proto_depIdxs = []int32{
 	3,  // 0: temporal.server.api.testpilot.v1.Case.version:type_name -> temporal.server.api.testpilot.v1.FormatVersion
 	4,  // 1: temporal.server.api.testpilot.v1.Case.provenance:type_name -> temporal.server.api.testpilot.v1.CaseProvenance
-	9,  // 2: temporal.server.api.testpilot.v1.Case.program:type_name -> temporal.server.api.testpilot.v1.Program
-	10, // 3: temporal.server.api.testpilot.v1.Case.contract:type_name -> temporal.server.api.testpilot.v1.Contract
+	11, // 2: temporal.server.api.testpilot.v1.Case.program:type_name -> temporal.server.api.testpilot.v1.Program
+	12, // 3: temporal.server.api.testpilot.v1.Case.contract:type_name -> temporal.server.api.testpilot.v1.Contract
 	5,  // 4: temporal.server.api.testpilot.v1.CaseProvenance.definitions:type_name -> temporal.server.api.testpilot.v1.DefinitionBinding
 	6,  // 5: temporal.server.api.testpilot.v1.CaseProvenance.sources:type_name -> temporal.server.api.testpilot.v1.SourceLocation
 	7,  // 6: temporal.server.api.testpilot.v1.CaseProvenance.known_gaps:type_name -> temporal.server.api.testpilot.v1.KnownGap
 	8,  // 7: temporal.server.api.testpilot.v1.CaseProvenance.correlated_rules:type_name -> temporal.server.api.testpilot.v1.CorrelatedRuleBinding
-	0,  // 8: temporal.server.api.testpilot.v1.DefinitionBinding.kind:type_name -> temporal.server.api.testpilot.v1.DefinitionKind
-	1,  // 9: temporal.server.api.testpilot.v1.KnownGap.kind:type_name -> temporal.server.api.testpilot.v1.KnownGapKind
-	6,  // 10: temporal.server.api.testpilot.v1.CorrelatedRuleBinding.source:type_name -> temporal.server.api.testpilot.v1.SourceLocation
-	11, // [11:11] is the sub-list for method output_type
-	11, // [11:11] is the sub-list for method input_type
-	11, // [11:11] is the sub-list for extension type_name
-	11, // [11:11] is the sub-list for extension extendee
-	0,  // [0:11] is the sub-list for field type_name
+	9,  // 8: temporal.server.api.testpilot.v1.CaseProvenance.local_names:type_name -> temporal.server.api.testpilot.v1.LocalName
+	10, // 9: temporal.server.api.testpilot.v1.CaseProvenance.model_value_fingerprints:type_name -> temporal.server.api.testpilot.v1.ModelValueFingerprint
+	0,  // 10: temporal.server.api.testpilot.v1.DefinitionBinding.kind:type_name -> temporal.server.api.testpilot.v1.DefinitionKind
+	1,  // 11: temporal.server.api.testpilot.v1.KnownGap.kind:type_name -> temporal.server.api.testpilot.v1.KnownGapKind
+	6,  // 12: temporal.server.api.testpilot.v1.CorrelatedRuleBinding.source:type_name -> temporal.server.api.testpilot.v1.SourceLocation
+	13, // [13:13] is the sub-list for method output_type
+	13, // [13:13] is the sub-list for method input_type
+	13, // [13:13] is the sub-list for extension type_name
+	13, // [13:13] is the sub-list for extension extendee
+	0,  // [0:13] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_testpilot_v1_case_proto_init() }
@@ -919,7 +1077,7 @@ func file_temporal_server_api_testpilot_v1_case_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_temporal_server_api_testpilot_v1_case_proto_rawDesc), len(file_temporal_server_api_testpilot_v1_case_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   7,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
