@@ -136,6 +136,9 @@ func (a *admission) analyzeEvent(m *machine, current configuration, kind testpil
 			return nil, err
 		}
 		scope := a.scopeFor(m, current.assigned, false)
+		if err := a.evaluatedPayloads(scope, kind); err != nil {
+			return nil, err
+		}
 		if _, err := a.bind(prior, tr.Predicate, predicatePath(m.source, tr), &a.boolean, scope); err != nil {
 			return nil, err
 		}

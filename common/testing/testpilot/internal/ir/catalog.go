@@ -17,6 +17,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/types/descriptorpb"
+	"google.golang.org/protobuf/types/known/anypb"
 )
 
 type ErrorCategory string
@@ -275,6 +276,74 @@ func intrinsicEnums() []protoreflect.EnumDescriptor {
 // Contract transition admission and capture iteration all bound themselves by it, so a new kind
 // is admitted in one place rather than four.
 const MaxRunEventKind = testpilotspb.RUN_EVENT_KIND_FAULT_INJECTED
+
+// RunEventPayload is the payload arm Run Events of one kind may carry.
+type RunEventPayload struct {
+	// Arm is the member of the RunEvent payload oneof, empty when the kind carries no payload.
+	Arm protoreflect.Name
+	// Required is true when every event of the kind carries the arm.
+	Required bool
+}
+
+// RunEventPayloadOf is the one kind-to-payload table. Recording rejects an event that disagrees
+// with it, and Contract preparation declares the arms a transition's kinds may carry from it.
+// Projection-emitted INSTRUCTION_COMPLETED events carry Observations and no outcome, so no outcome
+// arm is required.
+func RunEventPayloadOf(kind testpilotspb.RunEventKind) RunEventPayload {
+	switch kind {
+	case testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED, testpilotspb.RUN_EVENT_KIND_INSTRUCTION_TIMED_OUT, testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC:
+		return RunEventPayload{Arm: "outcome"}
+	case testpilotspb.RUN_EVENT_KIND_FAULT_INJECTED:
+		return RunEventPayload{Arm: "fault_injected", Required: true}
+	default:
+		return RunEventPayload{}
+	}
+}
+
+// CheckRunEventPayload rejects an event carrying a payload arm its kind cannot carry, or lacking
+// the arm its kind requires.
+func CheckRunEventPayload(event *testpilotspb.RunEvent) error {
+	message := event.ProtoReflect()
+	carried := message.WhichOneof(message.Descriptor().Oneofs().ByName("payload"))
+	expected := RunEventPayloadOf(event.GetKind())
+	kind := fmt.Sprint(int32(event.GetKind()))
+	if value := event.GetKind().Descriptor().Values().ByNumber(event.GetKind().Number()); value != nil {
+		kind = string(value.Name())
+	}
+	switch {
+	case carried != nil && carried.Name() != expected.Arm:
+		return invalid(Malformed, "run_event.payload", fmt.Sprintf("%s cannot carry the %s payload", kind, carried.Name()))
+	case carried == nil && expected.Required:
+		return invalid(Malformed, "run_event.payload", fmt.Sprintf("%s requires the %s payload", kind, expected.Arm))
+	default:
+		return nil
+	}
+}
+
+// RunEventPayloadType is the type of one payload arm, or false when arm is not a payload member.
+func (c *Catalog) RunEventPayloadType(arm protoreflect.Name) (Type, bool) {
+	field := (*testpilotspb.RunEvent)(nil).ProtoReflect().Descriptor().Oneofs().ByName("payload").Fields().ByName(arm)
+	if field == nil {
+		return Type{}, false
+	}
+	return c.fieldType(field), true
+}
+
+// RunEventPayloadValue reads the payload arm of event as an expression value, encoded like any
+// message a path reads. It is nil when the event carries another arm or none.
+func RunEventPayloadValue(event *testpilotspb.RunEvent, arm protoreflect.Name) *testpilotspb.Value {
+	message := event.ProtoReflect()
+	carried := message.WhichOneof(message.Descriptor().Oneofs().ByName("payload"))
+	if carried == nil || carried.Name() != arm {
+		return nil
+	}
+	payload := message.Get(carried).Message().Interface()
+	encoded, err := (proto.MarshalOptions{Deterministic: true}).Marshal(payload)
+	if err != nil {
+		return nil
+	}
+	return &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/" + string(carried.Message().FullName()), Value: encoded}}}
+}
 
 func inspectMap(field protoreflect.FieldDescriptor, value protoreflect.Value, depth int64, b *budget, path string) error {
 	if int64(value.Map().Len()) > b.limits.Fanout {

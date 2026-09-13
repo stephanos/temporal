@@ -85,9 +85,9 @@ func workerOutageRun(t testing.TB, resumed bool) *testpilotspb.Run {
 	fault := func(sequence int64, kind testpilotspb.FaultKind, instruction string) *testpilotspb.RunEvent {
 		return &testpilotspb.RunEvent{
 			Sequence: sequence, ElapsedMilliseconds: sequence * 10,
-			Kind:          testpilotspb.RUN_EVENT_KIND_FAULT_INJECTED,
-			Coordinates:   &testpilotspb.RunEventCoordinates{EntrypointId: "controller", InstructionId: instruction, ActivationId: "controller-1", Attempt: 1},
-			FaultInjected: &testpilotspb.FaultInjected{RoleId: "temporal.task-queue", Kind: kind},
+			Kind:        testpilotspb.RUN_EVENT_KIND_FAULT_INJECTED,
+			Coordinates: &testpilotspb.RunEventCoordinates{EntrypointId: "controller", InstructionId: instruction, ActivationId: "controller-1", Attempt: 1},
+			Payload:     &testpilotspb.RunEvent_FaultInjected{FaultInjected: &testpilotspb.FaultInjected{RoleId: "temporal.task-queue", Kind: kind}},
 		}
 	}
 	completed := &historypb.HistoryEvent{

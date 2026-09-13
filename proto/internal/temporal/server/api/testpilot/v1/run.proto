@@ -34,14 +34,19 @@ message RunEvent {
   string source_id = 5;
   // The source ids of the events that caused this one.
   repeated string causal_source_ids = 6;
-  // The instruction outcome, on instruction and diagnostic events.
-  InstructionOutcome outcome = 7;
-  repeated ObservationResult observations = 8;
+  repeated ObservationResult observations = 7;
   // Set before evaluation of the first event establishing execution incompleteness.
   // Incompleteness remains effective for every later event.
-  bool execution_incomplete = 9;
-  // Carried only by RUN_EVENT_KIND_FAULT_INJECTED events; it names the realized fault.
-  FaultInjected fault_injected = 10;
+  bool execution_incomplete = 8;
+  // The kind-specific data of the event. Instruction completed, instruction timed out and diagnostic
+  // events may carry an outcome; a fault injected event carries the fault it records; no other kind
+  // carries a payload. A Contract reads it through a path from a Run Event payload reference.
+  oneof payload {
+    // The instruction outcome.
+    InstructionOutcome outcome = 9;
+    // The realized fault.
+    FaultInjected fault_injected = 10;
+  }
 }
 
 // RunEventCoordinates locate a Run Event in the Program.
@@ -57,6 +62,19 @@ message RunEventCoordinates {
 
 // ObservationResult is the value of one declared Observation on a Run Event.
 message ObservationResult { string observation_id = 1; Value value = 2; }
+
+// InstructionOutcome is the generic result of one instruction attempt.
+message InstructionOutcome {
+  InstructionOutcomeStatus status = 1;
+  // The lowercase gRPC status code of an RPC, such as "ok".
+  string protocol_code = 2;
+  // The SDK failure: "canceled", "timed_out", or the application error type.
+  string sdk_failure_code = 3;
+  // Bounded error text.
+  string detail = 4;
+  // The result on success, when the outcome declares VALUE.
+  Value value = 5;
+}
 
 // FaultInjected is the recorded fact that a Driver realized one requested outage.
 message FaultInjected {

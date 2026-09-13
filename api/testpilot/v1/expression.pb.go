@@ -1130,10 +1130,14 @@ func (*RunReference) Descriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{10}
 }
 
-// RunEventReference reads one coordinate of the evaluated Run Event.
+// RunEventReference reads the evaluated Run Event: one of its coordinates, or its payload.
 type RunEventReference struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Field         RunEventField          `protobuf:"varint,1,opt,name=field,proto3,enum=temporal.server.api.testpilot.v1.RunEventField" json:"field,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Types that are valid to be assigned to Selection:
+	//
+	//	*RunEventReference_Field
+	//	*RunEventReference_Payload
+	Selection     isRunEventReference_Selection `protobuf_oneof:"selection"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1168,11 +1172,84 @@ func (*RunEventReference) Descriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{11}
 }
 
+func (x *RunEventReference) GetSelection() isRunEventReference_Selection {
+	if x != nil {
+		return x.Selection
+	}
+	return nil
+}
+
 func (x *RunEventReference) GetField() RunEventField {
 	if x != nil {
-		return x.Field
+		if x, ok := x.Selection.(*RunEventReference_Field); ok {
+			return x.Field
+		}
 	}
 	return RUN_EVENT_FIELD_UNSPECIFIED
+}
+
+func (x *RunEventReference) GetPayload() *RunEventPayloadReference {
+	if x != nil {
+		if x, ok := x.Selection.(*RunEventReference_Payload); ok {
+			return x.Payload
+		}
+	}
+	return nil
+}
+
+type isRunEventReference_Selection interface {
+	isRunEventReference_Selection()
+}
+
+type RunEventReference_Field struct {
+	Field RunEventField `protobuf:"varint,1,opt,name=field,proto3,enum=temporal.server.api.testpilot.v1.RunEventField,oneof"`
+}
+
+type RunEventReference_Payload struct {
+	Payload *RunEventPayloadReference `protobuf:"bytes,2,opt,name=payload,proto3,oneof"`
+}
+
+func (*RunEventReference_Field) isRunEventReference_Selection() {}
+
+func (*RunEventReference_Payload) isRunEventReference_Selection() {}
+
+// RunEventPayloadReference selects the payload of the evaluated Run Event. It is read only as the
+// operand of a path whose first segment names a payload arm, such as fault_injected.kind; that path
+// is absent on an event carrying another arm or none.
+type RunEventPayloadReference struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RunEventPayloadReference) Reset() {
+	*x = RunEventPayloadReference{}
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RunEventPayloadReference) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RunEventPayloadReference) ProtoMessage() {}
+
+func (x *RunEventPayloadReference) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RunEventPayloadReference.ProtoReflect.Descriptor instead.
+func (*RunEventPayloadReference) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{12}
 }
 
 // CorrelatedCaptureReference reads one retained occurrence of a capture by its zero-based ordinal.
@@ -1186,7 +1263,7 @@ type CorrelatedCaptureReference struct {
 
 func (x *CorrelatedCaptureReference) Reset() {
 	*x = CorrelatedCaptureReference{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[12]
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1198,7 +1275,7 @@ func (x *CorrelatedCaptureReference) String() string {
 func (*CorrelatedCaptureReference) ProtoMessage() {}
 
 func (x *CorrelatedCaptureReference) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[12]
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1211,7 +1288,7 @@ func (x *CorrelatedCaptureReference) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CorrelatedCaptureReference.ProtoReflect.Descriptor instead.
 func (*CorrelatedCaptureReference) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{12}
+	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *CorrelatedCaptureReference) GetCaptureId() string {
@@ -1241,7 +1318,7 @@ type CorrelatedStepReference struct {
 
 func (x *CorrelatedStepReference) Reset() {
 	*x = CorrelatedStepReference{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[13]
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1253,7 +1330,7 @@ func (x *CorrelatedStepReference) String() string {
 func (*CorrelatedStepReference) ProtoMessage() {}
 
 func (x *CorrelatedStepReference) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[13]
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1266,7 +1343,7 @@ func (x *CorrelatedStepReference) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CorrelatedStepReference.ProtoReflect.Descriptor instead.
 func (*CorrelatedStepReference) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{13}
+	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *CorrelatedStepReference) GetField() CorrelatedStepField {
@@ -1292,7 +1369,7 @@ type ProjectedValueReference struct {
 
 func (x *ProjectedValueReference) Reset() {
 	*x = ProjectedValueReference{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[14]
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1304,7 +1381,7 @@ func (x *ProjectedValueReference) String() string {
 func (*ProjectedValueReference) ProtoMessage() {}
 
 func (x *ProjectedValueReference) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[14]
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1317,7 +1394,7 @@ func (x *ProjectedValueReference) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProjectedValueReference.ProtoReflect.Descriptor instead.
 func (*ProjectedValueReference) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{14}
+	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{15}
 }
 
 var File_temporal_server_api_testpilot_v1_expression_proto protoreflect.FileDescriptor
@@ -1375,9 +1452,12 @@ const file_temporal_server_api_testpilot_v1_expression_proto_rawDesc = "" +
 	"\x1bInstructionOutcomeReference\x12X\n" +
 	"\vinstruction\x18\x01 \x01(\v26.temporal.server.api.testpilot.v1.InstructionReferenceR\vinstruction\x12O\n" +
 	"\x05field\x18\x02 \x01(\x0e29.temporal.server.api.testpilot.v1.InstructionOutcomeFieldR\x05field\"\x0e\n" +
-	"\fRunReference\"Z\n" +
-	"\x11RunEventReference\x12E\n" +
-	"\x05field\x18\x01 \x01(\x0e2/.temporal.server.api.testpilot.v1.RunEventFieldR\x05field\"U\n" +
+	"\fRunReference\"\xc1\x01\n" +
+	"\x11RunEventReference\x12G\n" +
+	"\x05field\x18\x01 \x01(\x0e2/.temporal.server.api.testpilot.v1.RunEventFieldH\x00R\x05field\x12V\n" +
+	"\apayload\x18\x02 \x01(\v2:.temporal.server.api.testpilot.v1.RunEventPayloadReferenceH\x00R\apayloadB\v\n" +
+	"\tselection\"\x1a\n" +
+	"\x18RunEventPayloadReference\"U\n" +
 	"\x1aCorrelatedCaptureReference\x12\x1d\n" +
 	"\n" +
 	"capture_id\x18\x01 \x01(\tR\tcaptureId\x12\x18\n" +
@@ -1421,7 +1501,7 @@ func file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP() []byte
 }
 
 var file_temporal_server_api_testpilot_v1_expression_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_temporal_server_api_testpilot_v1_expression_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
+var file_temporal_server_api_testpilot_v1_expression_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
 var file_temporal_server_api_testpilot_v1_expression_proto_goTypes = []any{
 	(ComparisonOperator)(0),             // 0: temporal.server.api.testpilot.v1.ComparisonOperator
 	(InstructionOutcomeField)(0),        // 1: temporal.server.api.testpilot.v1.InstructionOutcomeField
@@ -1438,16 +1518,17 @@ var file_temporal_server_api_testpilot_v1_expression_proto_goTypes = []any{
 	(*InstructionOutcomeReference)(nil), // 12: temporal.server.api.testpilot.v1.InstructionOutcomeReference
 	(*RunReference)(nil),                // 13: temporal.server.api.testpilot.v1.RunReference
 	(*RunEventReference)(nil),           // 14: temporal.server.api.testpilot.v1.RunEventReference
-	(*CorrelatedCaptureReference)(nil),  // 15: temporal.server.api.testpilot.v1.CorrelatedCaptureReference
-	(*CorrelatedStepReference)(nil),     // 16: temporal.server.api.testpilot.v1.CorrelatedStepReference
-	(*ProjectedValueReference)(nil),     // 17: temporal.server.api.testpilot.v1.ProjectedValueReference
-	(*Value)(nil),                       // 18: temporal.server.api.testpilot.v1.Value
-	(*FieldPath)(nil),                   // 19: temporal.server.api.testpilot.v1.FieldPath
-	(*ModelValue)(nil),                  // 20: temporal.server.api.testpilot.v1.ModelValue
-	(RunEventField)(0),                  // 21: temporal.server.api.testpilot.v1.RunEventField
+	(*RunEventPayloadReference)(nil),    // 15: temporal.server.api.testpilot.v1.RunEventPayloadReference
+	(*CorrelatedCaptureReference)(nil),  // 16: temporal.server.api.testpilot.v1.CorrelatedCaptureReference
+	(*CorrelatedStepReference)(nil),     // 17: temporal.server.api.testpilot.v1.CorrelatedStepReference
+	(*ProjectedValueReference)(nil),     // 18: temporal.server.api.testpilot.v1.ProjectedValueReference
+	(*Value)(nil),                       // 19: temporal.server.api.testpilot.v1.Value
+	(*FieldPath)(nil),                   // 20: temporal.server.api.testpilot.v1.FieldPath
+	(*ModelValue)(nil),                  // 21: temporal.server.api.testpilot.v1.ModelValue
+	(RunEventField)(0),                  // 22: temporal.server.api.testpilot.v1.RunEventField
 }
 var file_temporal_server_api_testpilot_v1_expression_proto_depIdxs = []int32{
-	18, // 0: temporal.server.api.testpilot.v1.Expression.literal:type_name -> temporal.server.api.testpilot.v1.Value
+	19, // 0: temporal.server.api.testpilot.v1.Expression.literal:type_name -> temporal.server.api.testpilot.v1.Value
 	10, // 1: temporal.server.api.testpilot.v1.Expression.reference:type_name -> temporal.server.api.testpilot.v1.Reference
 	4,  // 2: temporal.server.api.testpilot.v1.Expression.path:type_name -> temporal.server.api.testpilot.v1.PathExpression
 	5,  // 3: temporal.server.api.testpilot.v1.Expression.present:type_name -> temporal.server.api.testpilot.v1.PresentExpression
@@ -1456,7 +1537,7 @@ var file_temporal_server_api_testpilot_v1_expression_proto_depIdxs = []int32{
 	8,  // 6: temporal.server.api.testpilot.v1.Expression.all:type_name -> temporal.server.api.testpilot.v1.AllExpression
 	9,  // 7: temporal.server.api.testpilot.v1.Expression.any:type_name -> temporal.server.api.testpilot.v1.AnyExpression
 	3,  // 8: temporal.server.api.testpilot.v1.PathExpression.operand:type_name -> temporal.server.api.testpilot.v1.Expression
-	19, // 9: temporal.server.api.testpilot.v1.PathExpression.path:type_name -> temporal.server.api.testpilot.v1.FieldPath
+	20, // 9: temporal.server.api.testpilot.v1.PathExpression.path:type_name -> temporal.server.api.testpilot.v1.FieldPath
 	3,  // 10: temporal.server.api.testpilot.v1.PresentExpression.operand:type_name -> temporal.server.api.testpilot.v1.Expression
 	0,  // 11: temporal.server.api.testpilot.v1.CompareExpression.operator:type_name -> temporal.server.api.testpilot.v1.ComparisonOperator
 	3,  // 12: temporal.server.api.testpilot.v1.CompareExpression.left:type_name -> temporal.server.api.testpilot.v1.Expression
@@ -1467,19 +1548,20 @@ var file_temporal_server_api_testpilot_v1_expression_proto_depIdxs = []int32{
 	12, // 17: temporal.server.api.testpilot.v1.Reference.outcome:type_name -> temporal.server.api.testpilot.v1.InstructionOutcomeReference
 	13, // 18: temporal.server.api.testpilot.v1.Reference.run:type_name -> temporal.server.api.testpilot.v1.RunReference
 	14, // 19: temporal.server.api.testpilot.v1.Reference.run_event:type_name -> temporal.server.api.testpilot.v1.RunEventReference
-	15, // 20: temporal.server.api.testpilot.v1.Reference.correlated_capture:type_name -> temporal.server.api.testpilot.v1.CorrelatedCaptureReference
-	20, // 21: temporal.server.api.testpilot.v1.Reference.model_value:type_name -> temporal.server.api.testpilot.v1.ModelValue
-	16, // 22: temporal.server.api.testpilot.v1.Reference.correlated_step:type_name -> temporal.server.api.testpilot.v1.CorrelatedStepReference
-	17, // 23: temporal.server.api.testpilot.v1.Reference.projected_value:type_name -> temporal.server.api.testpilot.v1.ProjectedValueReference
+	16, // 20: temporal.server.api.testpilot.v1.Reference.correlated_capture:type_name -> temporal.server.api.testpilot.v1.CorrelatedCaptureReference
+	21, // 21: temporal.server.api.testpilot.v1.Reference.model_value:type_name -> temporal.server.api.testpilot.v1.ModelValue
+	17, // 22: temporal.server.api.testpilot.v1.Reference.correlated_step:type_name -> temporal.server.api.testpilot.v1.CorrelatedStepReference
+	18, // 23: temporal.server.api.testpilot.v1.Reference.projected_value:type_name -> temporal.server.api.testpilot.v1.ProjectedValueReference
 	11, // 24: temporal.server.api.testpilot.v1.InstructionOutcomeReference.instruction:type_name -> temporal.server.api.testpilot.v1.InstructionReference
 	1,  // 25: temporal.server.api.testpilot.v1.InstructionOutcomeReference.field:type_name -> temporal.server.api.testpilot.v1.InstructionOutcomeField
-	21, // 26: temporal.server.api.testpilot.v1.RunEventReference.field:type_name -> temporal.server.api.testpilot.v1.RunEventField
-	2,  // 27: temporal.server.api.testpilot.v1.CorrelatedStepReference.field:type_name -> temporal.server.api.testpilot.v1.CorrelatedStepField
-	28, // [28:28] is the sub-list for method output_type
-	28, // [28:28] is the sub-list for method input_type
-	28, // [28:28] is the sub-list for extension type_name
-	28, // [28:28] is the sub-list for extension extendee
-	0,  // [0:28] is the sub-list for field type_name
+	22, // 26: temporal.server.api.testpilot.v1.RunEventReference.field:type_name -> temporal.server.api.testpilot.v1.RunEventField
+	15, // 27: temporal.server.api.testpilot.v1.RunEventReference.payload:type_name -> temporal.server.api.testpilot.v1.RunEventPayloadReference
+	2,  // 28: temporal.server.api.testpilot.v1.CorrelatedStepReference.field:type_name -> temporal.server.api.testpilot.v1.CorrelatedStepField
+	29, // [29:29] is the sub-list for method output_type
+	29, // [29:29] is the sub-list for method input_type
+	29, // [29:29] is the sub-list for extension type_name
+	29, // [29:29] is the sub-list for extension extendee
+	0,  // [0:29] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_testpilot_v1_expression_proto_init() }
@@ -1513,13 +1595,17 @@ func file_temporal_server_api_testpilot_v1_expression_proto_init() {
 		(*Reference_CorrelatedStep)(nil),
 		(*Reference_ProjectedValue)(nil),
 	}
+	file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[11].OneofWrappers = []any{
+		(*RunEventReference_Field)(nil),
+		(*RunEventReference_Payload)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_temporal_server_api_testpilot_v1_expression_proto_rawDesc), len(file_temporal_server_api_testpilot_v1_expression_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   15,
+			NumMessages:   16,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

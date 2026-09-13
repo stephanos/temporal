@@ -4,8 +4,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
+	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -101,5 +103,50 @@ func TestCatalogRejectsConflictingIntrinsicEnums(t *testing.T) {
 			_, err := NewCatalog(source)
 			require.Error(t, err)
 		})
+	}
+}
+
+// The kind-to-payload table and the RunEvent payload oneof name the same arms, so a new payload
+// arm cannot be recorded or read until the table says which kinds carry it.
+func TestRunEventPayloadTableNamesEveryArm(t *testing.T) {
+	c := fixtureCatalog(t)
+	arms := map[protoreflect.Name]bool{}
+	for kind := testpilotspb.RUN_EVENT_KIND_UNSPECIFIED; kind <= MaxRunEventKind; kind++ {
+		if arm := RunEventPayloadOf(kind).Arm; arm != "" {
+			_, known := c.RunEventPayloadType(arm)
+			require.True(t, known, kind.String())
+			arms[arm] = true
+		}
+	}
+	members := (*testpilotspb.RunEvent)(nil).ProtoReflect().Descriptor().Oneofs().ByName("payload").Fields()
+	require.Len(t, arms, members.Len())
+}
+
+func TestCheckRunEventPayloadMatchesTheKind(t *testing.T) {
+	outcome := func(kind testpilotspb.RunEventKind) *testpilotspb.RunEvent {
+		return &testpilotspb.RunEvent{Kind: kind, Payload: &testpilotspb.RunEvent_Outcome{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}}}
+	}
+	fault := func(kind testpilotspb.RunEventKind) *testpilotspb.RunEvent {
+		return &testpilotspb.RunEvent{Kind: kind, Payload: &testpilotspb.RunEvent_FaultInjected{FaultInjected: &testpilotspb.FaultInjected{RoleId: "queue", Kind: testpilotspb.FAULT_KIND_WORKER_STOP}}}
+	}
+	for _, tc := range []struct {
+		event  *testpilotspb.RunEvent
+		detail string
+	}{
+		{event: outcome(testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED)},
+		{event: &testpilotspb.RunEvent{Kind: testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED}},
+		{event: outcome(testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC)},
+		{event: fault(testpilotspb.RUN_EVENT_KIND_FAULT_INJECTED)},
+		{event: &testpilotspb.RunEvent{Kind: testpilotspb.RUN_EVENT_KIND_FAULT_INJECTED}, detail: "RUN_EVENT_KIND_FAULT_INJECTED requires the fault_injected payload"},
+		{event: outcome(testpilotspb.RUN_EVENT_KIND_FAULT_INJECTED), detail: "RUN_EVENT_KIND_FAULT_INJECTED cannot carry the outcome payload"},
+		{event: fault(testpilotspb.RUN_EVENT_KIND_INSTRUCTION_TIMED_OUT), detail: "RUN_EVENT_KIND_INSTRUCTION_TIMED_OUT cannot carry the fault_injected payload"},
+		{event: outcome(testpilotspb.RUN_EVENT_KIND_RUN_OPENED), detail: "RUN_EVENT_KIND_RUN_OPENED cannot carry the outcome payload"},
+	} {
+		err := CheckRunEventPayload(tc.event)
+		if tc.detail == "" {
+			require.NoError(t, err, tc.event.String())
+			continue
+		}
+		require.Equal(t, &Error{Category: Malformed, Path: "run_event.payload", Detail: tc.detail}, err)
 	}
 }

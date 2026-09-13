@@ -41,7 +41,7 @@ func recorderFixture(t *testing.T, monitor Monitor) (*recorder, *time.Time) {
 	return r, &now
 }
 func recorderFact(id string) *testpilotspb.RunEvent {
-	return &testpilotspb.RunEvent{Kind: testpilotspb.RUN_EVENT_KIND_INSTRUCTION_TIMED_OUT, SourceId: id, Coordinates: &testpilotspb.RunEventCoordinates{EntrypointId: "entry", ActivationId: "activation", InstructionId: "instruction", Attempt: 1}, Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT}}
+	return &testpilotspb.RunEvent{Kind: testpilotspb.RUN_EVENT_KIND_INSTRUCTION_TIMED_OUT, SourceId: id, Coordinates: &testpilotspb.RunEventCoordinates{EntrypointId: "entry", ActivationId: "activation", InstructionId: "instruction", Attempt: 1}, Payload: &testpilotspb.RunEvent_Outcome{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT}}}
 }
 func closeRecorder(t *testing.T, r *recorder) *testpilotspb.Run {
 	t.Helper()
@@ -70,13 +70,13 @@ func TestRecorderCoordinatesDeduplicationAndSnapshots(t *testing.T) {
 	_, err = r.publish(context.Background(), []*testpilotspb.RunEvent{duplicate}, func() error { t.Fatal("duplicate committed twice"); return nil })
 	require.NoError(t, err)
 	require.Len(t, observed, 2)
-	fact.Outcome.Status = testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED
-	observed[1].Outcome.Status = testpilotspb.INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE
+	fact.GetOutcome().Status = testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED
+	observed[1].GetOutcome().Status = testpilotspb.INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE
 	*now = now.Add(-2 * time.Second)
 	run := closeRecorder(t, r)
 	require.Equal(t, []int64{1, 2, 3}, []int64{run.Events[0].Sequence, run.Events[1].Sequence, run.Events[2].Sequence})
 	require.Equal(t, []int64{0, 5, 5}, []int64{run.Events[0].ElapsedMilliseconds, run.Events[1].ElapsedMilliseconds, run.Events[2].ElapsedMilliseconds})
-	require.Equal(t, testpilotspb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT, run.Events[1].Outcome.Status)
+	require.Equal(t, testpilotspb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT, run.Events[1].GetOutcome().Status)
 	require.Equal(t, testpilotspb.RUN_EVENT_KIND_RUN_CLOSED, run.Events[2].Kind)
 	run.Verdict.Status = testpilotspb.VERDICT_STATUS_VIOLATED
 	require.NotEqual(t, run.Verdict.Status, r.run.Verdict.Status)
@@ -374,6 +374,34 @@ func TestRecorderBoundedMalformedBatchDoesNotCommit(t *testing.T) {
 			_, err := r.publish(context.Background(), batch, func() error { t.Fatal("malformed batch committed"); return nil })
 			require.Error(t, err)
 			require.Len(t, closeRecorder(t, r).Events, 2)
+		})
+	}
+}
+
+// Execution builds every Run Event, so an event whose payload its kind cannot carry is an invariant
+// failure: nothing is committed or observed, and the Run records an INVARIANT diagnostic.
+func TestRecorderRejectsPayloadKindMismatchAsInvariant(t *testing.T) {
+	for _, mode := range []string{"foreign arm", "missing required arm"} {
+		t.Run(mode, func(t *testing.T) {
+			var observed int
+			r, _ := recorderFixture(t, &recorderMonitor{observe: func(context.Context, *testpilotspb.RunEvent) (Decision, error) {
+				observed++
+				return Continue, nil
+			}})
+			fact := recorderFact("fact")
+			if mode == "foreign arm" {
+				fact.Payload = &testpilotspb.RunEvent_FaultInjected{FaultInjected: &testpilotspb.FaultInjected{RoleId: "queue", Kind: testpilotspb.FAULT_KIND_WORKER_STOP}}
+			} else {
+				fact.Kind = testpilotspb.RUN_EVENT_KIND_FAULT_INJECTED
+			}
+			_, err := r.publish(context.Background(), []*testpilotspb.RunEvent{fact}, func() error { t.Fatal("mismatched payload committed"); return nil })
+			require.Error(t, err)
+			require.Equal(t, 1, observed, "only the opening event is observed")
+			run := closeRecorder(t, r)
+			require.Len(t, run.Events, 2)
+			require.Len(t, run.Diagnostics, 1)
+			require.Equal(t, testpilotspb.RUN_DIAGNOSTIC_KIND_INVARIANT, run.Diagnostics[0].Kind)
+			require.Equal(t, "payload_kind_mismatch", run.Diagnostics[0].Code)
 		})
 	}
 }

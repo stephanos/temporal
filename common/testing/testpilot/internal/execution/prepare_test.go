@@ -67,7 +67,7 @@ func addWorker(source *testpilotspb.Case, policy *Profile) {
 func TestPrepareLocatesAReferenceOutsideTheProgramContext(t *testing.T) {
 	references := map[string]*testpilotspb.Reference{
 		"observation_id":     {Reference: &testpilotspb.Reference_ObservationId{ObservationId: "observation"}},
-		"run_event":          {Reference: &testpilotspb.Reference_RunEvent{RunEvent: &testpilotspb.RunEventReference{Field: testpilotspb.RUN_EVENT_FIELD_KIND}}},
+		"run_event":          {Reference: &testpilotspb.Reference_RunEvent{RunEvent: &testpilotspb.RunEventReference{Selection: &testpilotspb.RunEventReference_Field{Field: testpilotspb.RUN_EVENT_FIELD_KIND}}}},
 		"capture_id":         {Reference: &testpilotspb.Reference_CaptureId{CaptureId: "capture"}},
 		"evidence_field_id":  {Reference: &testpilotspb.Reference_EvidenceFieldId{EvidenceFieldId: "field"}},
 		"correlated_capture": {Reference: &testpilotspb.Reference_CorrelatedCapture{CorrelatedCapture: &testpilotspb.CorrelatedCaptureReference{CaptureId: "capture"}}},

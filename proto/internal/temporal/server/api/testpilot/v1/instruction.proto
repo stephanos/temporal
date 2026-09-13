@@ -159,19 +159,6 @@ message InstructionLimits {
   int64 max_response_bytes = 4;
 }
 
-// InstructionOutcome is the generic result of one instruction attempt.
-message InstructionOutcome {
-  InstructionOutcomeStatus status = 1;
-  // The lowercase gRPC status code of an RPC, such as "ok".
-  string protocol_code = 2;
-  // The SDK failure: "canceled", "timed_out", or the application error type.
-  string sdk_failure_code = 3;
-  // Bounded error text.
-  string detail = 4;
-  // The result on success, when the outcome declares VALUE.
-  Value value = 5;
-}
-
 // InstructionOutcomeStatus classifies one instruction attempt. A protocol failure is a non-OK RPC
 // status; an SDK failure is a worker SDK error.
 // Instruction outcome Status is normative Testpilot terminology.

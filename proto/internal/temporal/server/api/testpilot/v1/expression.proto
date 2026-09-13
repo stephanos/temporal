@@ -106,8 +106,18 @@ enum InstructionOutcomeField {
 // RunReference reads the Run id as text. Only InvokeRpc request assignments may use it.
 message RunReference {}
 
-// RunEventReference reads one coordinate of the evaluated Run Event.
-message RunEventReference { RunEventField field = 1; }
+// RunEventReference reads the evaluated Run Event: one of its coordinates, or its payload.
+message RunEventReference {
+  oneof selection {
+    RunEventField field = 1;
+    RunEventPayloadReference payload = 2;
+  }
+}
+
+// RunEventPayloadReference selects the payload of the evaluated Run Event. It is read only as the
+// operand of a path whose first segment names a payload arm, such as fault_injected.kind; that path
+// is absent on an event carrying another arm or none.
+message RunEventPayloadReference {}
 
 // CorrelatedCaptureReference reads one retained occurrence of a capture by its zero-based ordinal.
 message CorrelatedCaptureReference {

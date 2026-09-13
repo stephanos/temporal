@@ -84,8 +84,6 @@ var (
 		"Attempt":             7,
 		"SourceId":            8,
 		"RunId":               9,
-		"FaultRoleId":         10,
-		"FaultKind":           11,
 	}
 )
 

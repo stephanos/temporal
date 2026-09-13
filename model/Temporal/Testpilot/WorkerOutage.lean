@@ -145,8 +145,14 @@ private def program (stop resume : InstructionNode) : Program :=
 
 /-! ### The Contract -/
 
+/-- One field of the recorded fault, read through the Run Event payload. Both transitions filter on
+`RUN_EVENT_KIND_FAULT_INJECTED`, which always carries the fault, so the read needs no presence
+guard. -/
+private def faultField (name : String) : Expression :=
+  Expr.path Expr.runEventPayload (nested ["fault_injected", name])
+
 private def faultRoleIs : Expression :=
-  Expr.equal (Expr.runEvent .RUN_EVENT_FIELD_FAULT_ROLE_ID)
+  Expr.equal (faultField "role_id")
     (Expr.literal (Value.text workerOutageQueueRole))
 
 /-- The wire number one fault kind carries. The generated Lean enum is a bare inductive with no
@@ -160,7 +166,7 @@ private def faultKindNumber : FaultKind → Int32
   | .«Unknown.Value» number => number
 
 private def faultKindIs (kind : FaultKind) : Expression :=
-  Expr.equal (Expr.runEvent .RUN_EVENT_FIELD_FAULT_KIND)
+  Expr.equal (faultField "kind")
     (Expr.literal (Value.enumeration (faultKindNumber kind)))
 
 /-- The outage window, counted in evaluated Run Events rather than on the host's clock. The counter

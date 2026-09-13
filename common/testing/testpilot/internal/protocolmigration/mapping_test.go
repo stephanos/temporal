@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"maps"
 	"os"
 	"path/filepath"
 	"testing"
@@ -457,6 +458,43 @@ func TestDeclaredCorrelatedStepsRewriteConditionsAndGuards(t *testing.T) {
 			tree:            message("CorrelatedEvidenceRule", map[string]any{"kind": "k"}),
 			wantErrorSubstr: "evidence rule carries no guard path",
 		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			mapped, err := Declared.apply("fixture.json", tc.tree)
+			if tc.wantErrorSubstr != "" {
+				require.ErrorContains(t, err, tc.wantErrorSubstr)
+				return
+			}
+			require.NoError(t, err)
+			encoded, err := json.Marshal(mapped)
+			require.NoError(t, err)
+			require.JSONEq(t, tc.want, string(encoded))
+		})
+	}
+}
+
+// The fault step rewrites only the two fault coordinates, by name or number, into payload paths.
+func TestDeclaredFaultCoordinatesBecomePayloadPaths(t *testing.T) {
+	t.Parallel()
+
+	expression := func(field any, extra map[string]any) *Object {
+		fields := map[string]any{"field": field}
+		maps.Copy(fields, extra)
+		return &Object{Message: protocol + "Contract" + "Expression", Fields: map[string]any{"runEvent": &Object{Fields: fields}}}
+	}
+	const payload = `{"reference": {"runEvent": {"payload": {}}}}`
+	for _, tc := range []struct {
+		name            string
+		tree            *Object
+		want            string
+		wantErrorSubstr string
+	}{
+		{name: "role", tree: expression("RUN_EVENT_FIELD_"+"FAULT_ROLE_ID", nil), want: `{"path": {"operand": ` + payload + `, "path": {"segments": [{"field": "fault_injected"}, {"field": "role_id"}]}}}`},
+		{name: "kind by number", tree: expression(json.Number("11"), nil), want: `{"path": {"operand": ` + payload + `, "path": {"segments": [{"field": "fault_injected"}, {"field": "kind"}]}}}`},
+		{name: "common coordinate", tree: expression("RUN_EVENT_FIELD_KIND", nil), want: `{"reference": {"runEvent": {"field": "RUN_EVENT_FIELD_KIND"}}}`},
+		{name: "a second key", tree: expression("RUN_EVENT_FIELD_"+"FAULT_KIND", map[string]any{"extra": "x"}), wantErrorSubstr: "fault coordinate reference carries 2 keys, want 1"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()

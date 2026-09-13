@@ -762,7 +762,7 @@ func (s *scheduler) publishCompletion(ctx context.Context, completion schedulerC
 		if completion.cleanup {
 			publish = s.recorder.publishCleanup
 		}
-		return publish(ctx, []*testpilotspb.RunEvent{{Kind: testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC, SourceId: reservation.source, CausalSourceIds: []string{reservation.cause}, Coordinates: eventCoordinates(id.Origin), Outcome: completion.result.Outcome}}, nil)
+		return publish(ctx, []*testpilotspb.RunEvent{{Kind: testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC, SourceId: reservation.source, CausalSourceIds: []string{reservation.cause}, Coordinates: eventCoordinates(id.Origin), Payload: &testpilotspb.RunEvent_Outcome{Outcome: completion.result.Outcome}}}, nil)
 	}
 	task := *completion.node
 	a := task.activation.values
@@ -778,7 +778,7 @@ func (s *scheduler) publishCompletion(ctx context.Context, completion schedulerC
 	if batch.outcome.Status == testpilotspb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT {
 		kind = testpilotspb.RUN_EVENT_KIND_INSTRUCTION_TIMED_OUT
 	}
-	facts := []*testpilotspb.RunEvent{{Kind: kind, SourceId: source + ".completed", Coordinates: eventCoordinates(batch.coordinate), CausalSourceIds: []string{source + ".started"}, Outcome: batch.outcome}}
+	facts := []*testpilotspb.RunEvent{{Kind: kind, SourceId: source + ".completed", Coordinates: eventCoordinates(batch.coordinate), CausalSourceIds: []string{source + ".started"}, Payload: &testpilotspb.RunEvent_Outcome{Outcome: batch.outcome}}}
 	// A realized fault is recorded as its own fact, so a Contract can reference the outage rather
 	// than infer it from the instruction that requested it. A requested-but-unrealized fault
 	// never reaches here, which is what keeps intent distinguishable from evidence.
@@ -789,7 +789,7 @@ func (s *scheduler) publishCompletion(ctx context.Context, completion schedulerC
 			SourceId:        source + ".fault",
 			Coordinates:     eventCoordinates(batch.coordinate),
 			CausalSourceIds: []string{source + ".completed"},
-			FaultInjected:   &testpilotspb.FaultInjected{RoleId: fault.GetRoleId(), Kind: fault.GetKind()},
+			Payload:         &testpilotspb.RunEvent_FaultInjected{FaultInjected: &testpilotspb.FaultInjected{RoleId: fault.GetRoleId(), Kind: fault.GetKind()}},
 		})
 	}
 	for _, projection := range batch.facts {

@@ -164,7 +164,7 @@ func TestPrepareRejectsMalformedContracts(t *testing.T) {
 		},
 		"unknown observation": func(c *testpilotspb.Contract) { c.Rules[0].Transitions[0].Predicate = present(observation("missing")) },
 		"Run ID intrinsic forbidden": func(c *testpilotspb.Contract) {
-			c.Rules[0].Transitions[0].Predicate = present(&testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_RunEvent{RunEvent: &testpilotspb.RunEventReference{Field: testpilotspb.RUN_EVENT_FIELD_RUN_ID}}}}})
+			c.Rules[0].Transitions[0].Predicate = present(&testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_RunEvent{RunEvent: &testpilotspb.RunEventReference{Selection: &testpilotspb.RunEventReference_Field{Field: testpilotspb.RUN_EVENT_FIELD_RUN_ID}}}}}})
 		},
 		"nil predicate":        func(c *testpilotspb.Contract) { c.Rules[0].Transitions[0].Predicate = nil },
 		"nonboolean predicate": func(c *testpilotspb.Contract) { c.Rules[0].Transitions[0].Predicate = observation("text") },
