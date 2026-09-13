@@ -626,6 +626,9 @@ func buildRetiredRules() ([]tokenRule, error) {
 		"OpaqueCapability" + "Type",
 		"capability" + "_slot_id",
 		"Capability" + "SlotId",
+		// The Opcode facade on the generic package, now `InstructionOpcode`; hand-written Go no
+		// longer calls an Opcode a capability.
+		"Instruction" + "Capability",
 		"invoke" + "RPC",
 		"Role" + "Definition",
 		"Slot" + "Definition",

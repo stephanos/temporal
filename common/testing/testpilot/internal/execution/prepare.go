@@ -171,11 +171,11 @@ func (a *admission) bindPolicy(policy Profile) error {
 		}
 		snapshot.Roles[i] = bound
 	}
-	for _, capability := range snapshot.Opcodes {
-		if capability < contract.InvokeRPC || capability > contract.MaxOpcode || a.opcodes[capability] {
-			return invalid(ir.Malformed, "policy.capabilities", "invalid or duplicate capability")
+	for _, opcode := range snapshot.Opcodes {
+		if opcode < contract.InvokeRPC || opcode > contract.MaxOpcode || a.opcodes[opcode] {
+			return invalid(ir.Malformed, "policy.opcodes", "invalid or duplicate opcode")
 		}
-		a.opcodes[capability] = true
+		a.opcodes[opcode] = true
 	}
 	a.prepared.policy = snapshot
 	a.prepared.limits = snapshot.Limits

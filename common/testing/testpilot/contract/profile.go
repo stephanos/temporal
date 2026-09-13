@@ -15,8 +15,8 @@ const (
 	InjectFault
 )
 
-// MaxOpcode is the highest declared capability. A Profile authorizes each capability at most
-// once, so it is also the ceiling on an authorized capability list; Driver profile validation
+// MaxOpcode is the highest declared Opcode. A Profile authorizes each Opcode at most
+// once, so it is also the ceiling on an authorized Opcode list; Driver profile validation
 // reuses it rather than restating a literal a new instruction would silently invalidate.
 const MaxOpcode = InjectFault
 

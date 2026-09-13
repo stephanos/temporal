@@ -11,14 +11,14 @@ import (
 	"go.temporal.io/server/common/testing/testpilot"
 )
 
-// The worker Driver's own Profile validation is what admits the new capability; a Profile that
-// authorizes every capability including InjectFault must still build a Driver.
+// The worker Driver's own Profile validation is what admits the new Opcode; a Profile that
+// authorizes every Opcode including InjectFault must still build a Driver.
 func TestWorkerProfileAdmitsTheFaultCapability(t *testing.T) {
 	prepared := preparedSymbolicRuntimeFixture(t)
 	profile := symbolicRuntimeDriver(t, prepared.Limits()).options.profile
 	profile.Opcodes = make([]testpilot.Opcode, 0, testpilot.MaxOpcode)
-	for capability := testpilot.InvokeRPC; capability <= testpilot.MaxOpcode; capability++ {
-		profile.Opcodes = append(profile.Opcodes, capability)
+	for opcode := testpilot.InvokeRPC; opcode <= testpilot.MaxOpcode; opcode++ {
+		profile.Opcodes = append(profile.Opcodes, opcode)
 	}
 	require.True(t, validWorkerProfile(profile))
 	profile.Opcodes = append(profile.Opcodes, testpilot.InjectFault)

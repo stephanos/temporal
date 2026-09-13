@@ -486,9 +486,13 @@ type testpilotDependency struct {
 func listTestpilotDependencies(ctx context.Context, repositoryRoot string) ([]testpilotDependency, error) {
 	command := exec.CommandContext(ctx, "go", "list", "-tags", "test_dep", "-deps", "-test", "-json", "./common/testing/testpilot/temporal/...")
 	command.Dir = repositoryRoot
-	output, err := command.CombinedOutput()
+	// Only stdout carries the JSON stream: a cold module cache reports its downloads on stderr, which
+	// mixed into the same reader would make the decode fail on progress text.
+	var progress bytes.Buffer
+	command.Stderr = &progress
+	output, err := command.Output()
 	if err != nil {
-		return nil, fmt.Errorf("list shared Driver production/test dependency closure: %w: %s", err, strings.TrimSpace(string(output)))
+		return nil, fmt.Errorf("list shared Driver production/test dependency closure: %w: %s", err, strings.TrimSpace(progress.String()))
 	}
 
 	decoder := json.NewDecoder(bytes.NewReader(output))

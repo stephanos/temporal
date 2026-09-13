@@ -24,8 +24,8 @@ today.
   everything under `common/testing/testpilot/testdata/case-runtime-conformance/`.
 
 Never re-snapshot or re-copy. A second snapshot taken mid-migration would hide every change made
-before it. The repository `.gitignore` ignores `testdata/` directories outside its allowlist, so the
-tree was committed with `git add -f`; it is tracked, and being frozen it is never added again.
+before it. The repository `.gitignore` ignores `testdata/` directories outside its allowlist, and
+this one is on that allowlist, so the frozen tree is tracked like any other checked-in fixture.
 
 ## What the test checks
 

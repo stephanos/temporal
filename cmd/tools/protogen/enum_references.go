@@ -51,6 +51,17 @@ func resolvePackageEnumReferences(paths []string) error {
 	for index, path := range paths {
 		var references []*ast.Ident
 		ast.Inspect(files[index], func(node ast.Node) bool {
+			// A selector's Sel is qualified by another package, where the package-local trimming
+			// this rewrite reverses does not apply, so only its operand is visited.
+			if selector, ok := node.(*ast.SelectorExpr); ok {
+				ast.Inspect(selector.X, func(inner ast.Node) bool {
+					if ident, ok := inner.(*ast.Ident); ok && !declared[ident.Name] && trimmed[ident.Name] != "" {
+						references = append(references, ident)
+					}
+					return true
+				})
+				return false
+			}
 			if ident, ok := node.(*ast.Ident); ok && !declared[ident.Name] && trimmed[ident.Name] != "" {
 				references = append(references, ident)
 			}
@@ -108,10 +119,15 @@ func rewriteEnumReferences(fileSet *token.FileSet, path string, references []*as
 	if err != nil {
 		return fmt.Errorf("error reading generated file %s: %w", path, err)
 	}
-	// Rewrite from the end so earlier offsets stay valid.
-	slices.Reverse(references)
+	// Rewrite from the end so earlier offsets stay valid, ordered explicitly rather than relying on
+	// the order ast.Inspect reported.
+	offsets := make(map[*ast.Ident]int, len(references))
 	for _, ident := range references {
-		offset := fileSet.Position(ident.Pos()).Offset
+		offsets[ident] = fileSet.Position(ident.Pos()).Offset
+	}
+	slices.SortFunc(references, func(a, b *ast.Ident) int { return offsets[b] - offsets[a] })
+	for _, ident := range references {
+		offset := offsets[ident]
 		source = slices.Concat(source[:offset], []byte(trimmed[ident.Name]), source[offset+len(ident.Name):])
 	}
 	if err := os.WriteFile(path, source, 0644); err != nil {
