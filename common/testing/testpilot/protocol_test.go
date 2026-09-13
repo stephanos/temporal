@@ -58,6 +58,13 @@ func TestProtocolEncodesExpressionAndStateScopes(t *testing.T) {
 	slot := messageDescriptor(t, "Slot")
 	require.NotNil(t, slot.Oneofs().ByName("content"))
 	require.Nil(t, slot.Fields().ByName("kind"))
+	// A Slot is the one encoding of an opaque handle, and an unsigned integer has one Value arm.
+	require.Equal(t, []protoreflect.Name{"scalar", "enumeration", "message", "any"}, oneofNames(messageDescriptor(t, "SingularType").Oneofs().ByName("type")))
+	require.Equal(t, []protoreflect.Name{
+		"text_value", "bool_value", "bytes_value", "signed_integer_value", "unsigned_integer_value", "floating_point_value",
+		"enum_value", "message_value", "list_value", "map_value",
+	}, oneofNames(messageDescriptor(t, "Value").Oneofs().ByName("value")))
+	require.Nil(t, testpilotspb.ScalarKind(0).Descriptor().Values().ByName("SCALAR_KIND_"+"NATURAL"))
 	entrypoint := messageDescriptor(t, "Entrypoint")
 	require.NotNil(t, entrypoint.Oneofs().ByName("activation"))
 	require.Nil(t, entrypoint.Fields().ByName("context"))
@@ -111,7 +118,7 @@ func TestProtocolUsesCohesivePublicVocabulary(t *testing.T) {
 		"Correlated" + "CorrelationGroup",
 		"RUN_EVENT_FIELD_" + "FAULT_ROLE_ID", "RUN_EVENT_FIELD_" + "FAULT_KIND",
 		"Contract" + "Deadline", "Contract" + "CaptureType", "Correlated" + "Binding", "CorrelatedEvidence" + "Field",
-		"CorrelatedEvidence" + "Binding",
+		"CorrelatedEvidence" + "Binding", "Entrypoint" + "Kind",
 		"Scoped" + "Binding", "Scoped" + "CaptureDeclaration", "ScopedCapture" + "Ref", "Scoped" + "Clause",
 		"Scoped" + "Clock", "Scoped" + "Comparison", "Scoped" + "ComparisonOperator", "Scoped" + "Contract",
 		"Scoped" + "Correlation", "Scoped" + "CorrelationGroup", "Scoped" + "Endpoint", "Scoped" + "Evidence",

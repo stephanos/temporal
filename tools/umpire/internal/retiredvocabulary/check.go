@@ -681,6 +681,9 @@ func buildRetiredRules() ([]tokenRule, error) {
 		"Correlated" + "Binding",
 		"CorrelatedEvidence" + "Field",
 		"CorrelatedEvidence" + "Binding",
+		// fn-87 removes the natural Value arm, which the unsigned integer arm already spelled.
+		"Natural" + "Value",
+		"natural" + "_value",
 	}
 
 	rules := make([]tokenRule, 0, len(exactTokens)+5)
@@ -717,6 +720,10 @@ func buildRetiredRules() ([]tokenRule, error) {
 		tokenRule{name: "CORRELATED_COMPARISON_OPERATOR_*", pattern: regexp.MustCompile(`(^|[^A-Za-z0-9_])CORRELATED_COMPARISON_OPERATOR_[A-Z0-9_]+`)},
 		// Fault data moved into the Run Event payload, read through a path rather than a coordinate.
 		tokenRule{name: "RUN_EVENT_FIELD_FAULT_*", pattern: regexp.MustCompile(`(^|[^A-Za-z0-9_])RUN_EVENT_FIELD_FAULT_[A-Z0-9_]+`)},
+		// The natural kind folded into UINT64, and the wire entrypoint kind became the Go runtime's own
+		// classification, whose constants spell no prefix.
+		tokenRule{name: "SCALAR_KIND_NATURAL", pattern: regexp.MustCompile(`(^|[^A-Za-z0-9_])SCALAR_KIND_NATURAL([^A-Za-z0-9_]|$)`)},
+		tokenRule{name: "ENTRYPOINT_KIND_*", pattern: regexp.MustCompile(`(^|[^A-Za-z0-9_])ENTRYPOINT_KIND_[A-Z0-9_]+`)},
 	)
 	// The generation-numbered module and identity roots. A leading hyphen is excluded because the
 	// only occurrences in that shape are immutable Flow spec slugs, which name closed records rather

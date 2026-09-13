@@ -154,12 +154,6 @@ func (r *runtimeExpression) binary(e *Expression) (*testpilotspb.Value, error) {
 }
 func compareValues(a, b *testpilotspb.Value, typ Type) (int, bool, error) {
 	switch v := a.Value.(type) {
-	case *testpilotspb.Value_NaturalValue:
-		other := b.GetNaturalValue()
-		if len(v.NaturalValue) != len(other) {
-			return cmp.Compare(len(v.NaturalValue), len(other)), false, nil
-		}
-		return cmp.Compare(v.NaturalValue, other), false, nil
 	case *testpilotspb.Value_SignedIntegerValue:
 		x, err := strconv.ParseInt(v.SignedIntegerValue, 10, 64)
 		if err != nil {

@@ -471,24 +471,3 @@ func RoleKindFromString(s string) (RoleKind, error) {
 	}
 	return RoleKind(0), fmt.Errorf("%s is not a valid RoleKind", s)
 }
-
-var (
-	EntrypointKind_shorthandValue = map[string]int32{
-		"Unspecified":  0,
-		"Controller":   1,
-		"Workflow":     2,
-		"Activity":     3,
-		"NexusHandler": 4,
-	}
-)
-
-// EntrypointKindFromString parses a EntrypointKind value from  either the protojson
-// canonical SCREAMING_CASE enum or the traditional temporal PascalCase enum to EntrypointKind
-func EntrypointKindFromString(s string) (EntrypointKind, error) {
-	if v, ok := EntrypointKind_value[s]; ok {
-		return EntrypointKind(v), nil
-	} else if v, ok := EntrypointKind_shorthandValue[s]; ok {
-		return EntrypointKind(v), nil
-	}
-	return EntrypointKind(0), fmt.Errorf("%s is not a valid EntrypointKind", s)
-}

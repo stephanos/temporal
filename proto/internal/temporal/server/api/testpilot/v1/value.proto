@@ -3,23 +3,22 @@ package temporal.server.api.testpilot.v1;
 import "google/protobuf/any.proto";
 option go_package = "go.temporal.io/server/api/testpilot/v1;testpilot";
 
-// Value is a tagged interpreter value. Naturals use canonical unsigned base-10 text.
-// Signed and unsigned protobuf integers also use canonical base-10 text.
+// Value is a tagged interpreter value. Signed and unsigned protobuf integers use canonical base-10
+// text.
 message Value {
   oneof value {
     string text_value = 1;
-    string natural_value = 2;
-    bool bool_value = 3;
-    bytes bytes_value = 4;
-    string signed_integer_value = 5;
-    string unsigned_integer_value = 6;
-    double floating_point_value = 7;
-    EnumValue enum_value = 8;
+    bool bool_value = 2;
+    bytes bytes_value = 3;
+    string signed_integer_value = 4;
+    string unsigned_integer_value = 5;
+    double floating_point_value = 6;
+    EnumValue enum_value = 7;
     // (-- api-linter: core::0146::any=disabled
     //     aip.dev/not-precedent: Whole typed Any values are an explicit closed IR capability. --)
-    google.protobuf.Any message_value = 9;
-    ValueList list_value = 10;
-    ValueMap map_value = 11;
+    google.protobuf.Any message_value = 8;
+    ValueList list_value = 9;
+    ValueMap map_value = 10;
   }
 }
 
@@ -55,42 +54,43 @@ message SingularType {
     NamedType enumeration = 2;
     NamedType message = 3;
     AnyType any = 4;
-    OpaqueHandleType opaque_handle = 5;
   }
 }
 
 // RepeatedType is a list whose elements all have one singular type.
 message RepeatedType { SingularType element = 1; }
 
-// MapType is a map to values of one singular type from scalar keys, which may not be NATURAL, BYTES,
-// FLOAT or DOUBLE.
+// MapType is a map to values of one singular type from scalar keys, which may not be BYTES, FLOAT or
+// DOUBLE.
 message MapType { ScalarType key = 1; SingularType value = 2; }
 
 // ScalarType is a value of one scalar kind.
 message ScalarType { ScalarKind kind = 1; }
 
-// ScalarKind names a scalar kind. Every kind except NATURAL is a protobuf scalar field type, and a
-// value read from or written to a field must have that field's kind. NATURAL is an unsigned integer
-// in canonical base-10 text that no protobuf field has.
+// ScalarKind names a scalar kind: a protobuf scalar field type, and a value read from or written to
+// a field must have that field's kind. The integer kinds keep the protobuf wire encodings apart
+// although every integer Value is the same canonical base-10 text, because descriptor admission
+// types a field read by the field's declared kind and requires it to equal the declared type of the
+// Slot, Observation or outcome field it meets; one folded kind would no longer name the field it
+// must match.
 // (-- api-linter: core::0191::file-layout=disabled --)
 enum ScalarKind {
   SCALAR_KIND_UNSPECIFIED = 0;
   SCALAR_KIND_TEXT = 1;
-  SCALAR_KIND_NATURAL = 2;
-  SCALAR_KIND_BOOLEAN = 3;
-  SCALAR_KIND_BYTES = 4;
-  SCALAR_KIND_INT32 = 5;
-  SCALAR_KIND_INT64 = 6;
-  SCALAR_KIND_UINT32 = 7;
-  SCALAR_KIND_UINT64 = 8;
-  SCALAR_KIND_SINT32 = 9;
-  SCALAR_KIND_SINT64 = 10;
-  SCALAR_KIND_FIXED32 = 11;
-  SCALAR_KIND_FIXED64 = 12;
-  SCALAR_KIND_SFIXED32 = 13;
-  SCALAR_KIND_SFIXED64 = 14;
-  SCALAR_KIND_FLOAT = 15;
-  SCALAR_KIND_DOUBLE = 16;
+  SCALAR_KIND_BOOLEAN = 2;
+  SCALAR_KIND_BYTES = 3;
+  SCALAR_KIND_INT32 = 4;
+  SCALAR_KIND_INT64 = 5;
+  SCALAR_KIND_UINT32 = 6;
+  SCALAR_KIND_UINT64 = 7;
+  SCALAR_KIND_SINT32 = 8;
+  SCALAR_KIND_SINT64 = 9;
+  SCALAR_KIND_FIXED32 = 10;
+  SCALAR_KIND_FIXED64 = 11;
+  SCALAR_KIND_SFIXED32 = 12;
+  SCALAR_KIND_SFIXED64 = 13;
+  SCALAR_KIND_FLOAT = 14;
+  SCALAR_KIND_DOUBLE = 15;
 }
 
 // NamedType is a protobuf enum or message type in the Profile's descriptor Catalog.
@@ -103,8 +103,8 @@ message NamedType {
 // path reads into it.
 message AnyType {}
 
-// OpaqueHandleType is an effect handle a Driver issued. It cannot be a literal, an Observation or a
-// collection element, and no expression reads into it.
+// OpaqueHandleType is an effect handle a Driver issued. Only a Slot holds one, so it cannot be a
+// literal, an Observation, a capture or a collection element, and no expression reads into it.
 message OpaqueHandleType {}
 
 // FieldPath addresses a value inside a protobuf message, one segment per field. An empty path

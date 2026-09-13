@@ -54,7 +54,7 @@ func TestInstructionOpcodesCoverTheInstructionTable(t *testing.T) {
 			require.Equal(t, contract.Opcode(field.Number()), capability)
 			require.False(t, seen[capability])
 			seen[capability] = true
-			require.NotEqual(t, testpilotspb.ENTRYPOINT_KIND_UNSPECIFIED, opcodeContext(capability))
+			require.NotEqual(t, 0, opcodeContext(capability))
 		})
 	}
 }

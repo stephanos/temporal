@@ -137,8 +137,7 @@ func TestValueRuntimeCancellationAndMalformedInputs(t *testing.T) {
 		require.Error(t, err)
 		require.Nil(t, result)
 	}
-	opaque := boundType(t, c, &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_OpaqueHandle{OpaqueHandle: &testpilotspb.OpaqueHandleType{}}}}})
-	_, _, err = SnapshotValue(context.Background(), text("secret"), opaque, DefaultLimits())
+	_, _, err = SnapshotValue(context.Background(), text("secret"), c.OpaqueHandleType(), DefaultLimits())
 	require.Error(t, err)
 }
 
