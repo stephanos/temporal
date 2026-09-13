@@ -5,48 +5,48 @@
     "correlated": {
       "evidenceObservationId": "correlated-evidence",
       "initialState": {
-        "definitionId": "temporal.nexus.success.state.lifecycle.scheduled",
+        "definitionId": "scheduled",
         "value": "scheduled"
       },
-      "operationField": "temporal.nexus.success.scope.operation",
+      "operationField": "operation",
       "projectionFingerprint": "sha256:bf076900ee7c5d21d63d93e82eefba541894a604adc0873de26a9573913e355e",
-      "projectionId": "temporal.nexus.success.projection",
+      "projectionId": "projection",
       "projectionRules": [
         {
-          "kind": "temporal.nexus.success.evidence.completed",
+          "kind": "evidence.completed",
           "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
           "outputs": [
             {
               "action": {
-                "definitionId": "temporal.nexus.success.action.lifecycle.awaitSuccess",
+                "definitionId": "awaitSuccess",
                 "value": "awaitSuccess"
               },
               "outcome": {
-                "definitionId": "temporal.nexus.success.outcome.lifecycle.completed",
+                "definitionId": "lifecycle.completed",
                 "value": "completed"
               },
               "state": {
-                "definitionId": "temporal.nexus.success.state.lifecycle.succeeded",
+                "definitionId": "succeeded",
                 "value": "succeeded"
               }
             }
           ]
         },
         {
-          "kind": "temporal.nexus.success.evidence.started",
+          "kind": "evidence.started",
           "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
           "outputs": [
             {
               "action": {
-                "definitionId": "temporal.nexus.success.action.lifecycle.awaitStart",
+                "definitionId": "awaitStart",
                 "value": "awaitStart"
               },
               "outcome": {
-                "definitionId": "temporal.nexus.success.outcome.lifecycle.acknowledged",
+                "definitionId": "acknowledged",
                 "value": "acknowledged"
               },
               "state": {
-                "definitionId": "temporal.nexus.success.state.lifecycle.started",
+                "definitionId": "lifecycle.started",
                 "value": "started"
               }
             }
@@ -63,7 +63,7 @@
               "left": {
                 "reference": {
                   "correlatedStep": {
-                    "definitionId": "temporal.nexus.success.outcome.lifecycle.completed",
+                    "definitionId": "lifecycle.completed",
                     "field": "CORRELATED_STEP_FIELD_OUTCOME"
                   }
                 }
@@ -76,13 +76,13 @@
               }
             }
           },
-          "ruleId": "temporal.nexus.success.property.successfulResult.outcome-completed",
+          "ruleId": "outcome-completed",
           "trigger": {
             "compare": {
               "left": {
                 "reference": {
                   "correlatedStep": {
-                    "definitionId": "temporal.nexus.success.action.lifecycle.awaitStart",
+                    "definitionId": "awaitStart",
                     "field": "CORRELATED_STEP_FIELD_ACTION"
                   }
                 }
@@ -105,7 +105,7 @@
               "left": {
                 "reference": {
                   "correlatedStep": {
-                    "definitionId": "temporal.nexus.success.state.lifecycle.succeeded",
+                    "definitionId": "succeeded",
                     "field": "CORRELATED_STEP_FIELD_STATE"
                   }
                 }
@@ -118,13 +118,13 @@
               }
             }
           },
-          "ruleId": "temporal.nexus.success.property.successfulResult.state-succeeded",
+          "ruleId": "state-succeeded",
           "trigger": {
             "compare": {
               "left": {
                 "reference": {
                   "correlatedStep": {
-                    "definitionId": "temporal.nexus.success.action.lifecycle.awaitStart",
+                    "definitionId": "awaitStart",
                     "field": "CORRELATED_STEP_FIELD_ACTION"
                   }
                 }
@@ -140,45 +140,45 @@
         }
       ],
       "scopeFields": [
-        "temporal.nexus.success.scope.run"
+        "run"
       ],
       "sources": [
-        "temporal.nexus.success.source.history"
+        "history"
       ],
       "transitions": [
         {
           "action": {
-            "definitionId": "temporal.nexus.success.action.lifecycle.awaitStart",
+            "definitionId": "awaitStart",
             "value": "awaitStart"
           },
           "outcome": {
-            "definitionId": "temporal.nexus.success.outcome.lifecycle.acknowledged",
+            "definitionId": "acknowledged",
             "value": "acknowledged"
           },
           "priorState": {
-            "definitionId": "temporal.nexus.success.state.lifecycle.scheduled",
+            "definitionId": "scheduled",
             "value": "scheduled"
           },
           "state": {
-            "definitionId": "temporal.nexus.success.state.lifecycle.started",
+            "definitionId": "lifecycle.started",
             "value": "started"
           }
         },
         {
           "action": {
-            "definitionId": "temporal.nexus.success.action.lifecycle.awaitSuccess",
+            "definitionId": "awaitSuccess",
             "value": "awaitSuccess"
           },
           "outcome": {
-            "definitionId": "temporal.nexus.success.outcome.lifecycle.completed",
+            "definitionId": "lifecycle.completed",
             "value": "completed"
           },
           "priorState": {
-            "definitionId": "temporal.nexus.success.state.lifecycle.started",
+            "definitionId": "lifecycle.started",
             "value": "started"
           },
           "state": {
-            "definitionId": "temporal.nexus.success.state.lifecycle.succeeded",
+            "definitionId": "succeeded",
             "value": "succeeded"
           }
         }
@@ -391,7 +391,7 @@
                           "observationId": "correlated-evidence",
                           "rules": [
                             {
-                              "evidenceSource": "temporal.nexus.success.source.history",
+                              "evidenceSource": "history",
                               "guard": {
                                 "present": {
                                   "operand": {
@@ -415,7 +415,7 @@
                                   }
                                 }
                               },
-                              "kind": "temporal.nexus.success.evidence.started",
+                              "kind": "evidence.started",
                               "operation": {
                                 "segments": [
                                   {
@@ -431,7 +431,7 @@
                               },
                               "scope": [
                                 {
-                                  "fieldId": "temporal.nexus.success.scope.run",
+                                  "fieldId": "run",
                                   "value": {
                                     "literal": {
                                       "textValue": "async-nexus"
@@ -441,7 +441,7 @@
                               ]
                             },
                             {
-                              "evidenceSource": "temporal.nexus.success.source.history",
+                              "evidenceSource": "history",
                               "guard": {
                                 "present": {
                                   "operand": {
@@ -465,7 +465,7 @@
                                   }
                                 }
                               },
-                              "kind": "temporal.nexus.success.evidence.completed",
+                              "kind": "evidence.completed",
                               "operation": {
                                 "segments": [
                                   {
@@ -481,7 +481,7 @@
                               },
                               "scope": [
                                 {
-                                  "fieldId": "temporal.nexus.success.scope.run",
+                                  "fieldId": "run",
                                   "value": {
                                     "literal": {
                                       "textValue": "async-nexus"
@@ -708,6 +708,68 @@
         "detail": "Operation-correlated progress counting is unsupported by the success slice.",
         "kind": "KNOWN_GAP_KIND_CAPABILITY",
         "subject": "temporal.nexus.success.property.cancellationResolves"
+      }
+    ],
+    "localNames": [
+      {
+        "definitionId": "temporal.nexus.success.source.history",
+        "localName": "history"
+      },
+      {
+        "definitionId": "temporal.nexus.success.evidence.started",
+        "localName": "evidence.started"
+      },
+      {
+        "definitionId": "temporal.nexus.success.scope.run",
+        "localName": "run"
+      },
+      {
+        "definitionId": "temporal.nexus.success.evidence.completed",
+        "localName": "evidence.completed"
+      },
+      {
+        "definitionId": "temporal.nexus.success.projection",
+        "localName": "projection"
+      },
+      {
+        "definitionId": "temporal.nexus.success.scope.operation",
+        "localName": "operation"
+      },
+      {
+        "definitionId": "temporal.nexus.success.state.lifecycle.scheduled",
+        "localName": "scheduled"
+      },
+      {
+        "definitionId": "temporal.nexus.success.action.lifecycle.awaitStart",
+        "localName": "awaitStart"
+      },
+      {
+        "definitionId": "temporal.nexus.success.state.lifecycle.started",
+        "localName": "lifecycle.started"
+      },
+      {
+        "definitionId": "temporal.nexus.success.outcome.lifecycle.acknowledged",
+        "localName": "acknowledged"
+      },
+      {
+        "definitionId": "temporal.nexus.success.action.lifecycle.awaitSuccess",
+        "localName": "awaitSuccess"
+      },
+      {
+        "definitionId": "temporal.nexus.success.state.lifecycle.succeeded",
+        "localName": "succeeded"
+      },
+      {
+        "definitionId": "temporal.nexus.success.outcome.lifecycle.completed",
+        "localName": "lifecycle.completed"
+      },
+      {
+        "definitionId": "temporal.nexus.success.property.successfulResult.outcome-completed",
+        "localName": "outcome-completed"
+      },
+      {
+        "definitionId": "temporal.nexus.success.property.successfulResult.state-succeeded",
+        "localName": "state-succeeded"
       }
     ],
     "producerId": "temporal.nexus.success.testpilot",

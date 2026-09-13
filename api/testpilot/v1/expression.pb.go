@@ -1309,9 +1309,10 @@ func (x *CorrelatedCaptureReference) GetOrdinal() int64 {
 // being admitted, absent when that part carries none. A FACT reference reads the step's facts: it is
 // present when any fact has the definition, and it equals a literal when any such fact does.
 type CorrelatedStepReference struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Field         CorrelatedStepField    `protobuf:"varint,1,opt,name=field,proto3,enum=temporal.server.api.testpilot.v1.CorrelatedStepField" json:"field,omitempty"`
-	DefinitionId  string                 `protobuf:"bytes,2,opt,name=definition_id,json=definitionId,proto3" json:"definition_id,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Field CorrelatedStepField    `protobuf:"varint,1,opt,name=field,proto3,enum=temporal.server.api.testpilot.v1.CorrelatedStepField" json:"field,omitempty"`
+	// The Case-local name of the definition, as a ModelValue spells it.
+	DefinitionId  string `protobuf:"bytes,2,opt,name=definition_id,json=definitionId,proto3" json:"definition_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }

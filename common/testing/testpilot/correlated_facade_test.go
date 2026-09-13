@@ -260,7 +260,7 @@ func TestCorrelatedFacadeTenfoldLoad(t *testing.T) {
 				source, events := correlatedFacadeInputs(t, correlatedFacadeFixtures(t)[0])
 				source.Contract.Correlated.Rules[0].Bound = 100
 				if kind == "obligations" {
-					events[0].Kind = "test.request"
+					events[0].Kind = "request"
 				}
 				if kind == "buffer" {
 					events[0].Identity.Ordinal = 1

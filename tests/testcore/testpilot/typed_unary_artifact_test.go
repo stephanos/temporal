@@ -25,7 +25,10 @@ import (
 const (
 	typedUnaryArtifactNamespace = "typed-unary-namespace"
 	typedUnaryArtifactTaskQueue = "typed-unary-task-queue"
-	typedUnaryRuleID            = "temporal.nexus.success.typed-unary.property.submitted-workflow-type.recorded-workflow-type"
+	// The Case names its rule by its Case-local name; its provenance maps it to the rule's
+	// Definition ID.
+	typedUnaryRuleID           = "recorded-workflow-type"
+	typedUnaryRuleDefinitionID = "temporal.nexus.success.typed-unary.property.submitted-workflow-type.recorded-workflow-type"
 )
 
 // typedUnaryArtifactPrepared prepares the unchanged typed unary Case bytes against the Profile the
@@ -33,6 +36,7 @@ const (
 func typedUnaryArtifactPrepared(t testing.TB) (*testpilot.PreparedCase, *testpilotspb.Case) {
 	t.Helper()
 	source := loadLeanCase(t, "typed-unary")
+	require.Equal(t, typedUnaryRuleDefinitionID, localNameDefinition(t, source, typedUnaryRuleID))
 	catalog, err := temporal.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
 	prepared, err := testpilot.Prepare(source, TypedUnaryProfile(catalog, TypedUnaryEnvironment{

@@ -43,7 +43,7 @@ Focused public imports are available by responsibility:
 | `Umpire.Command` | The Model command surface: `model`, `property`, `scenario`, `limits`, `query`. |
 | `Umpire.Command.Authoring` | What a declared Model is before any command: construction and admission. |
 | `Umpire.Command.Registry` | What the commands record for each other, and one project's conventions. |
-| `Umpire.Provenance` | Producer-owned definition bindings, Known Gaps, and Correlated Rule bindings, lowered into typed Case provenance rows. |
+| `Umpire.Provenance` | Producer-owned definition bindings, Known Gaps, Correlated Rule bindings, and local name and model value fingerprint rows, lowered into typed Case provenance rows. |
 | `Umpire.Inventory` | Explicit opt-in catalogs consuming semantic-owner contracts for documentation. |
 
 Implementation modules remain behind these facades. Reusable Umpire modules cannot import the
@@ -247,7 +247,10 @@ Producer: `Umpire.Case.Correlated.lower` lowers a correlated Property to the por
 correspondence certificate beside the lowering. Umpire-backed Producers pass those values to
 `Umpire.Case.Compiler`, which admits both lowerings side by side and
 validates source-bound property rows, preserves typed unsupported-lowering errors, converts Known
-Gaps in order, attaches exact provenance rows, and performs final generated Case assembly. Its
+Gaps in order, renames the Program and Contract to Case-local names and model value spellings
+(`Umpire.Case.LocalNames`, rejecting a renaming that would merge two Definition IDs or two encodings
+of one definition), attaches exact provenance rows, including the rows that map each renamed name
+and value back, and performs final generated Case assembly. Its
 input contains generated protocol values and introduces no parallel wire representation. A
 Testpilot-only synthetic Producer can assemble a generated Case directly.
 
