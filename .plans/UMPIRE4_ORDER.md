@@ -151,12 +151,14 @@ second round, and every task landed serially in this checkout with its own revie
   spec. No `flowctl` receipt sits beside it: the flow-next plugin is not installed in the cloud
   session that ran the review, so the document is the verdict and the receipt is owed to the next
   session that has the CLI.
-- **The four deferred follow-ups landed with the review.** `ir` names path reads reads (`ReadPath`,
+- **The four deferred follow-ups landed with the review.** `ir` calls a path read a read (`ReadPath`,
   `readPath`, `readPayloadPath`, `readOperandPath`, `pathReadWork`, and a diagnostic that says "path
   read"); hand-written Go no longer calls an Opcode a capability (`InstructionOpcode`, `opcode`
   locals, opcode diagnostics, and the retired facade name held by the vocabulary gate); the frozen
   baseline tree is a `.gitignore` negation beside the other testpilot ones rather than a `git add -f`;
-  and `cmd/tools/protogen` sorts its rewrite offsets explicitly and skips a selector's `Sel`.
+  and `cmd/tools/protogen` sorts its rewrite offsets explicitly and skips a selector's `Sel`. fn-85
+  .1 then removes that tree and its negation together, since the oracle's subject is discharged; the
+  negation is what the tree needs for as long as it is tracked, not churn.
 - **Left open:**
   - regenerating the spec's local HTML lens (no spec in the repository has one; markdown is the
     record);
@@ -315,10 +317,13 @@ pre-installed toolchain (`/opt/temporal-toolchain`) on `PATH`:
 | every `umpire-check-regression` constituent, run individually | exit 0 — model build 595 Lean jobs, eight offline checks, **nine passing live identities** and no intermittent failure on the first run |
 | `make umpire-check-retired-vocabulary` | exit 0, and about twenty minutes: 353 compiled rules against every line of every scanned tree, the frozen baseline fixtures included. It is the slowest offline gate by an order of magnitude |
 | `make umpire-check-regression-views` | exit 0 only after the `go list` stderr fix below |
+| `make lint-model` | 163 in generated `Temporal/API/Proto.lean`, `Shared` and `Umpire.Lint` clean — the baseline exactly |
+| `make lint-code GOLANGCI_LINT_FIX=false` | **not measurable as cloned**: the gate passes `--new-from-rev=main`, the clone is shallow and carries only `umpire` and the working branch, and `git merge-base HEAD main` has no answer even after fetching `main`, so golangci-lint reports the whole tree (7,576 pre-existing diagnostics) instead of 161. Deepen the clone until `main` shares an ancestor to reproduce the number. What answers the gate's question meanwhile is the same config and build tags over the changed package trees with `--new-from-rev` at the pre-change commit: **0 issues** |
 
-Two environment notes for a cloud session: `mise` is a passthrough shim, so `/opt/temporal-toolchain/*/bin`
+Three environment notes for a cloud session: `mise` is a passthrough shim, so `/opt/temporal-toolchain/*/bin`
 must be on `PATH` before any `make` target that uses `lake` or `protoc`; and warm the Go module cache
-(`go mod download`) before the first gate, then discard the `go.sum` hashes that download adds.
+(`go mod download`) before the first gate, then discard the `go.sum` hashes that download adds; and
+`git fetch origin main` gives the branch a name but not a merge base, because the clone is shallow.
 
 `tools/umpire/regression/ci_workflow_test.go` decoded `go list -deps -test -json` from
 `CombinedOutput`, so a cold module cache's download progress landed in the JSON stream and

@@ -45,7 +45,9 @@ Unaddressed R-IDs: none.
 | `go test -count=1 -tags test_dep ./tools/umpire/... ./cmd/tools/protogen/...` | pass |
 | `make umpire-build-model` | 595 jobs, success |
 | `make umpire-check-lean-api umpire-check-goldens umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-check-case-runtime-conformance umpire-check-inventory umpire-check-retired-vocabulary` | pass |
-| `make umpire-check-live-tests` | see the order document's gate baselines for this session's run |
+| `make umpire-check-live-tests` | pass — nine passing live identities matching the empty expected set, with no intermittent failure on the first run |
+| `make lint-model` | 163 in generated `Temporal/API/Proto.lean`, `Shared` and `Umpire.Lint` clean — the baseline exactly |
+| `make lint-code GOLANGCI_LINT_FIX=false` | not measurable here: see below |
 
 ## Follow-ups the spec left open, closed here
 
@@ -76,10 +78,19 @@ Unaddressed R-IDs: none.
   seam out and the vocabulary gate records `CapabilityBridge` and `CapabilityEffect` as live. Renaming
   it touches the server, worker and composite Sessions, every test Session, the conformance corpus and
   Umpire's lowering, so it belongs in its own change rather than in a closeout.
-- **`make umpire-check-retired-vocabulary` takes about twelve minutes** on a four-core session: 353
-  compiled rules are matched against every line of every scanned tree, the frozen baseline fixtures
-  included (they are exempt from violations but still read and scanned). It is correct and it is the
-  slowest offline gate by an order of magnitude.
+- **`make umpire-check-retired-vocabulary` takes about twenty minutes** on a four-core session: 353
+  compiled rules are matched against every line of roughly 12 MB of scanned trees, the frozen baseline
+  fixtures included (they are exempt from violations but still read and scanned). It is correct, and it
+  is the slowest offline gate by an order of magnitude.
+
+- **`make lint-code`'s 161 is not measurable in a cloud session as cloned.** The gate passes
+  `--new-from-rev=main`, the clone is shallow and carries only `umpire` and the working branch, and
+  `git merge-base HEAD main` has no answer even after fetching `main`, so golangci-lint reports the
+  whole tree — 7,576 diagnostics, dominated by pre-existing staticcheck, forbidigo, revive and
+  testifylint findings — instead of the 161 the baseline records. What was measured instead is the
+  question the gate is asking: golangci-lint with the same config and build tags over the four changed
+  package trees, with `--new-from-rev` set to the pre-change commit, reports **0 issues**. Deepening the
+  clone until `main` shares an ancestor is what a session needs to reproduce the 161 itself.
 
 ## Defect found and fixed while re-running the gates
 
