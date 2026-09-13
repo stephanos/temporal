@@ -126,7 +126,7 @@ type ReservationCarrierPlan struct {
 
 type ReservationTopology struct {
 	EntrypointID string
-	Kind         testpilotspb.EntrypointKind
+	Kind         EntrypointKind
 	Count        int64
 }
 

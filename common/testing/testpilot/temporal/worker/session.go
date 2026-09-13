@@ -82,7 +82,7 @@ func (s *Session) Reserve(ctx context.Context, request testpilot.ReservationRequ
 		return nil, ErrInvalid
 	}
 	entry, exists := s.definition.entries[request.EntrypointID]
-	if !exists || entry.plan.Kind() != testpilotspb.ENTRYPOINT_KIND_WORKFLOW && entry.plan.Kind() != testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER {
+	if !exists || entry.plan.Kind() != testpilot.WorkflowEntrypoint && entry.plan.Kind() != testpilot.NexusHandlerEntrypoint {
 		return nil, ErrInvalid
 	}
 	if err := s.mu.lock(ctx); err != nil {

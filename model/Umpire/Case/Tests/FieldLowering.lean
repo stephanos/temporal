@@ -239,7 +239,7 @@ private def wireEvent (report : Report) : CorrelatedEvidence := {
   operation := report.operation
   kind := report.kind
   fields := (report.count.toList.map fun count =>
-    ({ field_id := "test.count", value := some { value := some (.natural_value (toString count)) } } :
+    ({ field_id := "test.count", value := some { value := some (.unsigned_integer_value (toString count)) } } :
       NamedValue)).toArray }
 
 private def transition (report : Report) : Property.Correlated.Transition :=

@@ -58,8 +58,8 @@ private def reference (arm : Reference.reference_Type) : Expression :=
 private def literal (text : String) : Expression :=
   { expression := some (.literal { value := some (.text_value text) }) }
 private def field (id : String) : Expression := reference (.evidence_field_id id)
-private def natural (text : String) : Expression :=
-  { expression := some (.literal { value := some (.natural_value text) }) }
+private def unsigned (text : String) : Expression :=
+  { expression := some (.literal { value := some (.unsigned_integer_value text) }) }
 private def retained (ordinal : Nat) (id := "seen") : Expression :=
   reference (.correlated_capture { capture_id := id, ordinal := number ordinal })
 
@@ -240,11 +240,14 @@ private def presentProjected : Expression :=
 private def valued (wire : temporal.server.api.testpilot.v1.Value) : CorrelatedEvidence :=
   { evidence 0 "request" "1" with
     fields := #[{ field_id := "requested", value := some wire }] }
-#guard rejection (contract #[clause 1]) [valued { value := some (.natural_value "01") }] ==
-  some "noncanonical natural"
+#guard rejection (contract #[clause 1]) [valued { value := some (.unsigned_integer_value "01") }] ==
+  some "noncanonical unsigned integer"
+#guard rejection (contract #[clause 1])
+  [valued { value := some (.unsigned_integer_value "18446744073709551616") }] ==
+  some "unsigned integer overflow"
 #guard rejection (contract #[clause 1]) [valued { value := some (.bytes_value ⟨#[1]⟩) }] ==
   some "unsupported evidence scalar"
-#guard rejection (contract #[clause 1]) [valued { value := some (.natural_value "1") }] ==
+#guard rejection (contract #[clause 1]) [valued { value := some (.unsigned_integer_value "1") }] ==
   some "invalid evidence"
 #guard rejection (contract #[clause 1])
   [{ evidence 0 "request" "1" with fields := #[] }] == some "invalid evidence"
@@ -264,19 +267,19 @@ private def valued (wire : temporal.server.api.testpilot.v1.Value) : CorrelatedE
 -- Comparison operands must share one declared scalar kind: a value of a different kind is rejected
 -- rather than compared and found unequal.
 #guard decodeError (contract #[clause 1 (requirement := some
-  (comparison (field "replied") (natural "1")))]) == some "incompatible correlation operand types"
-private def naturalReply : CorrelatedFieldPolicy :=
-  { policy "replied" with type := some { kind := .SCALAR_KIND_NATURAL } }
+  (comparison (field "replied") (unsigned "1")))]) == some "incompatible correlation operand types"
+private def unsignedReply : CorrelatedFieldPolicy :=
+  { policy "replied" with type := some { kind := .SCALAR_KIND_UINT64 } }
 #guard decodeError (contract #[clause 1 (requirement := some
   (comparison (field "replied") (retained 0)))]
-  (rules := #[requestRule, rule "reply" reply responded #[naturalReply], silentRule])) ==
+  (rules := #[requestRule, rule "reply" reply responded #[unsignedReply], silentRule])) ==
   some "incompatible correlation operand types"
 
 -- A field two rules declare at different kinds has no single type to check against.
 #guard decodeError (contract #[clause 1]
   (rules := #[requestRule,
     rule "reply" reply responded #[{ policy "requested" with
-      type := some { kind := .SCALAR_KIND_NATURAL } }], silentRule])) ==
+      type := some { kind := .SCALAR_KIND_UINT64 } }], silentRule])) ==
   some "ambiguous retained field type"
 
 -- A capability that declares neither captures nor a correlation keeps its exact prior meaning, and

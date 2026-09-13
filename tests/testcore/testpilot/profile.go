@@ -17,11 +17,11 @@ const (
 // gets no Nexus handler shape at all.
 func workflowServiceRole(nexusHandlers int64) testpilot.RolePolicy {
 	shapes := []testpilot.ReservationCarrierShape{
-		{Kind: testpilotspb.ENTRYPOINT_KIND_WORKFLOW, MaximumCount: 1},
+		{Kind: testpilot.WorkflowEntrypoint, MaximumCount: 1},
 	}
 	if nexusHandlers > 0 {
 		shapes = append(shapes, testpilot.ReservationCarrierShape{
-			Kind: testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER, MaximumCount: nexusHandlers,
+			Kind: testpilot.NexusHandlerEntrypoint, MaximumCount: nexusHandlers,
 		})
 	}
 	return testpilot.RolePolicy{

@@ -565,7 +565,7 @@ func (x *CorrelatedProjectionRule) GetFields() []*CorrelatedFieldPolicy {
 	return nil
 }
 
-// CorrelatedFieldPolicy declares one evidence field: its TEXT, NATURAL or BOOLEAN type, and how
+// CorrelatedFieldPolicy declares one evidence field: its TEXT, UINT64 or BOOLEAN type, and how
 // evidence must carry it.
 type CorrelatedFieldPolicy struct {
 	state         protoimpl.MessageState     `protogen:"open.v1"`

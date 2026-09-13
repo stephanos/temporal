@@ -168,7 +168,7 @@ func DeclaresFault(plans []testpilot.EntrypointPlan) bool {
 
 func hasWorkerEntrypoint(plans []testpilot.EntrypointPlan) bool {
 	for _, plan := range plans {
-		if plan.Kind() == testpilotspb.ENTRYPOINT_KIND_WORKFLOW || plan.Kind() == testpilotspb.ENTRYPOINT_KIND_ACTIVITY || plan.Kind() == testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER {
+		if plan.Kind() == testpilot.WorkflowEntrypoint || plan.Kind() == testpilot.ActivityEntrypoint || plan.Kind() == testpilot.NexusHandlerEntrypoint {
 			return true
 		}
 	}
@@ -301,14 +301,14 @@ func (h *Driver) boundEntry(plan testpilot.EntrypointPlan, roles map[string]test
 	entry := entryDefinition{plan: plan}
 	var workerRole, queueRole string
 	switch plan.Kind() {
-	case testpilotspb.ENTRYPOINT_KIND_WORKFLOW:
+	case testpilot.WorkflowEntrypoint:
 		binding := activation.GetWorkflow()
 		if binding == nil {
 			return entryDefinition{}, false, ErrInvalid
 		}
 		entry.workflowType = binding.GetWorkflowType()
 		workerRole, queueRole = binding.GetWorkerRoleId(), binding.GetTaskQueueRoleId()
-	case testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER:
+	case testpilot.NexusHandlerEntrypoint:
 		binding := activation.GetNexusHandler()
 		if binding == nil {
 			return entryDefinition{}, false, ErrInvalid

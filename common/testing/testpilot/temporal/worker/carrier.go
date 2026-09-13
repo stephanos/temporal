@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	"go.temporal.io/api/workflowservice/v1"
-	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/delivery"
 	"google.golang.org/protobuf/proto"
@@ -62,7 +61,7 @@ func (s *Session) validCarrierBinding(plan testpilot.ReservationCarrierPlan, bin
 	}
 	var workflowEntrypoint string
 	for _, reservation := range plan.Reservations {
-		if reservation.Kind != testpilotspb.ENTRYPOINT_KIND_WORKFLOW {
+		if reservation.Kind != testpilot.WorkflowEntrypoint {
 			continue
 		}
 		if workflowEntrypoint != "" || reservation.Count != 1 {
@@ -71,7 +70,7 @@ func (s *Session) validCarrierBinding(plan testpilot.ReservationCarrierPlan, bin
 		workflowEntrypoint = reservation.EntrypointID
 	}
 	entry, exists := s.definition.entries[workflowEntrypoint]
-	return exists && entry.plan.Kind() == testpilotspb.ENTRYPOINT_KIND_WORKFLOW && entry.namespace == binding.Namespace && entry.workflowType == binding.WorkflowType && entry.queue == binding.TaskQueue
+	return exists && entry.plan.Kind() == testpilot.WorkflowEntrypoint && entry.namespace == binding.Namespace && entry.workflowType == binding.WorkflowType && entry.queue == binding.TaskQueue
 }
 
 func (c *Carrier) Handles() []testpilot.EffectHandle {

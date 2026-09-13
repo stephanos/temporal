@@ -239,10 +239,10 @@ func (a *admission) bindCarrierPolicy(carrier contract.ReservationCarrierPolicy,
 	if len(carrier.Shapes) == 0 || len(carrier.Shapes) > 2 {
 		return invalid(ir.Malformed, "policy.reservation_carriers", "carrier shape is empty or oversized")
 	}
-	seen := map[testpilotspb.EntrypointKind]bool{}
+	seen := map[contract.EntrypointKind]bool{}
 	var total int64
 	for _, shape := range carrier.Shapes {
-		if shape.Kind != testpilotspb.ENTRYPOINT_KIND_WORKFLOW && shape.Kind != testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER {
+		if shape.Kind != contract.WorkflowEntrypoint && shape.Kind != contract.NexusHandlerEntrypoint {
 			return invalid(ir.Unsupported, "policy.reservation_carriers", "carrier shape has an unsupported activation context")
 		}
 		if seen[shape.Kind] {
@@ -307,18 +307,18 @@ func (a *admission) bindSchemas() error {
 		if _, exists := a.prepared.slots[slot.SlotId]; exists {
 			return invalid(ir.Malformed, "slots", "duplicate Slot")
 		}
-		var schema *testpilotspb.ValueType
+		var typ ir.Type
 		switch slot.Content.(type) {
 		case *testpilotspb.Slot_Value:
-			schema = slot.GetValue()
+			bound, err := a.prepared.catalog.BindType(slot.GetValue())
+			if err != nil {
+				return err
+			}
+			typ = bound
 		case *testpilotspb.Slot_OpaqueHandle:
-			schema = &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_OpaqueHandle{OpaqueHandle: &testpilotspb.OpaqueHandleType{}}}}}
+			typ = a.prepared.catalog.OpaqueHandleType()
 		default:
 			return invalid(ir.Malformed, "slots", "Slot content is required")
-		}
-		typ, err := a.prepared.catalog.BindType(schema)
-		if err != nil {
-			return err
 		}
 		a.prepared.slots[slot.SlotId] = typ
 	}
@@ -333,9 +333,6 @@ func (a *admission) bindSchemas() error {
 		typ, err := a.prepared.catalog.BindType(observation.Type)
 		if err != nil {
 			return err
-		}
-		if typ.Opaque() {
-			return invalid(ir.Unsupported, "observations", "capability Observation is forbidden")
 		}
 		a.observations[observation.ObservationId] = typ
 		a.prepared.view.observations = append(a.prepared.view.observations, Observation{ID: observation.ObservationId, Type: typ})
@@ -410,25 +407,21 @@ func (a *admission) bindActivation(g *graph) error {
 		return invalid(ir.Malformed, g.id, "activation binding is required")
 	}
 	var worker, queue, name, operation string
-	var expected testpilotspb.EntrypointKind
+	expected := contract.EntrypointKindOf(b)
 	switch binding := b.Activation.(type) {
 	case *testpilotspb.Entrypoint_Controller:
-		expected = testpilotspb.ENTRYPOINT_KIND_CONTROLLER
 		if binding.Controller == nil {
 			return invalid(ir.Malformed, g.id, "nil activation")
 		}
 	case *testpilotspb.Entrypoint_Workflow:
-		expected = testpilotspb.ENTRYPOINT_KIND_WORKFLOW
 		worker = binding.Workflow.GetWorkerRoleId()
 		queue = binding.Workflow.GetTaskQueueRoleId()
 		name = binding.Workflow.GetWorkflowType()
 	case *testpilotspb.Entrypoint_Activity:
-		expected = testpilotspb.ENTRYPOINT_KIND_ACTIVITY
 		worker = binding.Activity.GetWorkerRoleId()
 		queue = binding.Activity.GetTaskQueueRoleId()
 		name = binding.Activity.GetActivityType()
 	case *testpilotspb.Entrypoint_NexusHandler:
-		expected = testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER
 		worker = binding.NexusHandler.GetWorkerRoleId()
 		queue = binding.NexusHandler.GetTaskQueueRoleId()
 		name = binding.NexusHandler.GetService()
@@ -440,7 +433,7 @@ func (a *admission) bindActivation(g *graph) error {
 		return invalid(ir.Unsupported, g.id, "unknown activation")
 	}
 	g.context = expected
-	if expected != testpilotspb.ENTRYPOINT_KIND_CONTROLLER {
+	if expected != contract.ControllerEntrypoint {
 		if !validID(name) {
 			return invalid(ir.Malformed, g.id, "invalid activation name")
 		}
@@ -469,7 +462,7 @@ func (a *admission) bindGraphs() error {
 		}
 	}
 	cleanup := p.Cleanup
-	if err := a.addGraph(&graph{id: cleanup.EntrypointId, context: testpilotspb.ENTRYPOINT_KIND_CONTROLLER, cleanup: true}, cleanup.Instructions); err != nil {
+	if err := a.addGraph(&graph{id: cleanup.EntrypointId, context: contract.ControllerEntrypoint, cleanup: true}, cleanup.Instructions); err != nil {
 		return err
 	}
 	var nodes, edges int64
@@ -561,7 +554,7 @@ func (a *admission) bindReservations() error {
 	var controllers int64
 	limit := a.prepared.source.Limits.MaxActivations
 	for _, g := range a.prepared.graphs {
-		if !g.cleanup && g.context == testpilotspb.ENTRYPOINT_KIND_CONTROLLER {
+		if !g.cleanup && g.context == contract.ControllerEntrypoint {
 			controllers++
 		}
 		for _, n := range g.nodes {
@@ -597,11 +590,11 @@ func (a *admission) reservationCount(g *graph, n *node) (int64, error) {
 	var count int64
 	seen := map[string]bool{}
 	for _, reservation := range n.source.ActivationReservations {
-		if g.cleanup || g.context != testpilotspb.ENTRYPOINT_KIND_CONTROLLER {
+		if g.cleanup || g.context != contract.ControllerEntrypoint {
 			return 0, invalid(ir.Unsupported, g.id, "only ordinary controller nodes may reserve activations")
 		}
 		target := a.graphIndex[reservation.GetEntrypointId()]
-		if target == nil || target.cleanup || target.context != testpilotspb.ENTRYPOINT_KIND_WORKFLOW && target.context != testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER {
+		if target == nil || target.cleanup || target.context != contract.WorkflowEntrypoint && target.context != contract.NexusHandlerEntrypoint {
 			return 0, invalid(ir.TypeMismatch, g.id, "reservation requires a bound workflow or Nexus-handler entrypoint")
 		}
 		if seen[target.id] || reservation.GetCount() <= 0 {
