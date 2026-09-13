@@ -297,6 +297,8 @@ func TestExpressionContextsRejectReferencesOutsideThem(t *testing.T) {
 		"evidence_field_id":      {Reference: &testpilotspb.Reference_EvidenceFieldId{EvidenceFieldId: "f"}},
 		"correlated_capture":     {Reference: &testpilotspb.Reference_CorrelatedCapture{CorrelatedCapture: &testpilotspb.CorrelatedCaptureReference{CaptureId: "c"}}},
 		"model_value":            {Reference: &testpilotspb.Reference_ModelValue{ModelValue: &testpilotspb.ModelValue{DefinitionId: "d", Value: "v"}}},
+		"correlated_step":        {Reference: &testpilotspb.Reference_CorrelatedStep{CorrelatedStep: &testpilotspb.CorrelatedStepReference{Field: testpilotspb.CORRELATED_STEP_FIELD_ACTION, DefinitionId: "d"}}},
+		"projected_value":        {Reference: &testpilotspb.Reference_ProjectedValue{ProjectedValue: &testpilotspb.ProjectedValueReference{}}},
 	}
 	require.Len(t, references, (&testpilotspb.Reference{}).ProtoReflect().Descriptor().Fields().Len(), "every Reference arm is probed")
 	for _, context := range []struct {
@@ -305,6 +307,8 @@ func TestExpressionContextsRejectReferencesOutsideThem(t *testing.T) {
 	}{
 		{programSite, []protoreflect.Name{"slot_id", "outcome", "run", "environment_binding_id"}},
 		{contractSite, []protoreflect.Name{"observation_id", "run_event", "capture_id"}},
+		{Site{Context: CorrelatedContext, Path: "correlated"}, []protoreflect.Name{"evidence_field_id", "correlated_capture", "correlated_step"}},
+		{Site{Context: EvidenceLiftContext, Path: "lift"}, []protoreflect.Name{"projected_value"}},
 	} {
 		for name, value := range references {
 			t.Run(context.site.Path+"/"+string(name), func(t *testing.T) {
@@ -312,20 +316,46 @@ func TestExpressionContextsRejectReferencesOutsideThem(t *testing.T) {
 				_, err := c.BindExpression(context.site, expression, nil, nil, DefaultLimits())
 				var diagnostic *Error
 				require.ErrorAs(t, err, &diagnostic)
+				admitted := AdmitReferences(context.site, expression)
 				if slices.Contains(context.admitted, name) {
 					require.Equal(t, "expression", diagnostic.Path)
+					require.NoError(t, admitted)
 					return
 				}
-				require.Equal(t, &Error{
+				want := &Error{
 					Category: Unknown,
 					Path:     context.site.Path + ".all[1].present.reference." + string(name),
 					Detail:   "reference is not admitted in this expression context",
-				}, diagnostic)
+				}
+				require.Equal(t, want, diagnostic)
+				require.Equal(t, want, admitted)
 			})
 		}
 	}
 	_, err := c.BindExpression(Site{Path: "unset"}, literal(boolean(true)), nil, nil, DefaultLimits())
 	require.Equal(t, &Error{Category: Malformed, Path: "expression", Detail: "expression context is required"}, err)
+}
+
+// AdmitReferences locates a rejected reference at the path BindExpression reports, through every
+// operator that nests an operand.
+func TestAdmitReferencesLocatesLikeBinding(t *testing.T) {
+	c := fixtureCatalog(t)
+	path := &testpilotspb.Expression{Expression: &testpilotspb.Expression_Path{Path: &testpilotspb.PathExpression{Operand: slot("s"), Path: &testpilotspb.FieldPath{}}}}
+	for name, expression := range map[string]*testpilotspb.Expression{
+		".present.path.operand": present(path),
+		".not":                  negate(slot("s")),
+		".compare.left":         equal(slot("s"), literal(boolean(true))),
+		".compare.right":        equal(literal(boolean(true)), slot("s")),
+		".any[0].not.not":       anyOf(negate(negate(slot("s")))),
+		".all[0].present":       all(present(slot("s"))),
+	} {
+		t.Run(name, func(t *testing.T) {
+			want := &Error{Category: Unknown, Path: contractSite.Path + name + ".reference.slot_id", Detail: "reference is not admitted in this expression context"}
+			require.Equal(t, want, AdmitReferences(contractSite, expression))
+			_, err := c.BindExpression(contractSite, expression, nil, nil, DefaultLimits())
+			require.Equal(t, want, err)
+		})
+	}
 }
 
 // Equality admits any operand type, while an ordering operator on a type with no numeric order is

@@ -201,22 +201,22 @@ func (p projection) liftAt(index int) *evidenceLift {
 }
 
 // liftEvidence builds the declared CorrelatedEvidence value from one projected value. The first rule
-// whose guard resolves owns the value; a value no rule claims emits nothing, and a rule that fired
+// whose guard is true owns the value; a value no rule claims emits nothing, and a rule that fired
 // but cannot read one of its own declared coordinates fails rather than recording partial evidence.
 func (a *activationValues) liftEvidence(w *valueWork, lift *evidenceLift, value *testpilotspb.Value, ordinal int64) (*testpilotspb.Value, error) {
 	for _, rule := range lift.rules {
-		guard, err := a.readLift(w, lift, rule.guard, value)
+		guard, work, err := rule.guard.EvaluateExecution(w.ctx, func(reference ir.Reference) *testpilotspb.Value {
+			if reference.Kind == ir.ProjectedValueReference {
+				return value
+			}
+			return nil
+		}, w.limits.Work-w.work)
+		w.work += work
 		if err != nil {
 			return nil, err
 		}
-		if guard == nil {
+		if !guard.GetBoolValue() {
 			continue
-		}
-		if rule.guardEquals != "" {
-			text, ok := guard.Value.(*testpilotspb.Value_TextValue)
-			if !ok || text.TextValue != rule.guardEquals {
-				continue
-			}
 		}
 		evidence := &testpilotspb.CorrelatedEvidence{Kind: rule.kind, Identity: &testpilotspb.CorrelatedIdentity{EvidenceSource: rule.source, Ordinal: ordinal}}
 		for _, binding := range rule.scope {

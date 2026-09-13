@@ -119,20 +119,27 @@
             "any": {
               "operands": [
                 {
-                  "predicate": {
-                    "definitionId": "temporal.nexus.success.typed-nexus.action.schedule",
-                    "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                    "present": true
+                  "present": {
+                    "operand": {
+                      "reference": {
+                        "correlatedStep": {
+                          "definitionId": "temporal.nexus.success.typed-nexus.action.schedule",
+                          "field": "CORRELATED_STEP_FIELD_ACTION"
+                        }
+                      }
+                    }
                   }
                 },
                 {
-                  "comparison": {
+                  "compare": {
                     "left": {
-                      "capture": {
-                        "captureId": "temporal.nexus.success.typed-nexus.capture.scheduled-operation"
+                      "reference": {
+                        "correlatedCapture": {
+                          "captureId": "temporal.nexus.success.typed-nexus.capture.scheduled-operation"
+                        }
                       }
                     },
-                    "operator": "CORRELATED_COMPARISON_OPERATOR_EQUAL",
+                    "operator": "COMPARISON_OPERATOR_EQUAL",
                     "right": {
                       "literal": {
                         "textValue": "complete"
@@ -141,13 +148,15 @@
                   }
                 },
                 {
-                  "comparison": {
+                  "compare": {
                     "left": {
-                      "capture": {
-                        "captureId": "temporal.nexus.success.typed-nexus.capture.scheduled-operation"
+                      "reference": {
+                        "correlatedCapture": {
+                          "captureId": "temporal.nexus.success.typed-nexus.capture.scheduled-operation"
+                        }
                       }
                     },
-                    "operator": "CORRELATED_COMPARISON_OPERATOR_EQUAL",
+                    "operator": "COMPARISON_OPERATOR_EQUAL",
                     "right": {
                       "literal": {
                         "textValue": "confirm"
@@ -160,15 +169,29 @@
           },
           "ending": "TRACE_ENDING_PARTIAL",
           "response": {
-            "definitionId": "temporal.nexus.success.typed-nexus.outcome.completed",
-            "field": "CORRELATED_PREDICATE_FIELD_OUTCOME",
-            "present": true
+            "present": {
+              "operand": {
+                "reference": {
+                  "correlatedStep": {
+                    "definitionId": "temporal.nexus.success.typed-nexus.outcome.completed",
+                    "field": "CORRELATED_STEP_FIELD_OUTCOME"
+                  }
+                }
+              }
+            }
           },
           "ruleId": "temporal.nexus.success.typed-nexus.clause.bounded-completion",
           "trigger": {
-            "definitionId": "temporal.nexus.success.typed-nexus.action.schedule",
-            "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-            "present": true
+            "present": {
+              "operand": {
+                "reference": {
+                  "correlatedStep": {
+                    "definitionId": "temporal.nexus.success.typed-nexus.action.schedule",
+                    "field": "CORRELATED_STEP_FIELD_ACTION"
+                  }
+                }
+              }
+            }
           }
         }
       ],
@@ -1436,19 +1459,69 @@
                                 }
                               ],
                               "guard": {
-                                "segments": [
-                                  {
-                                    "field": "attributes",
-                                    "oneof": {
-                                      "selectedField": "nexus_operation_scheduled_event_attributes"
+                                "all": {
+                                  "operands": [
+                                    {
+                                      "present": {
+                                        "operand": {
+                                          "path": {
+                                            "operand": {
+                                              "reference": {
+                                                "projectedValue": {}
+                                              }
+                                            },
+                                            "path": {
+                                              "segments": [
+                                                {
+                                                  "field": "attributes",
+                                                  "oneof": {
+                                                    "selectedField": "nexus_operation_scheduled_event_attributes"
+                                                  }
+                                                },
+                                                {
+                                                  "field": "operation"
+                                                }
+                                              ]
+                                            }
+                                          }
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "compare": {
+                                        "left": {
+                                          "path": {
+                                            "operand": {
+                                              "reference": {
+                                                "projectedValue": {}
+                                              }
+                                            },
+                                            "path": {
+                                              "segments": [
+                                                {
+                                                  "field": "attributes",
+                                                  "oneof": {
+                                                    "selectedField": "nexus_operation_scheduled_event_attributes"
+                                                  }
+                                                },
+                                                {
+                                                  "field": "operation"
+                                                }
+                                              ]
+                                            }
+                                          }
+                                        },
+                                        "operator": "COMPARISON_OPERATOR_EQUAL",
+                                        "right": {
+                                          "literal": {
+                                            "textValue": "complete"
+                                          }
+                                        }
+                                      }
                                     }
-                                  },
-                                  {
-                                    "field": "operation"
-                                  }
-                                ]
+                                  ]
+                                }
                               },
-                              "guardEqualsText": "complete",
                               "kind": "temporal.nexus.success.typed-nexus.evidence.scheduled-complete",
                               "operation": {
                                 "segments": [
@@ -1485,19 +1558,69 @@
                                 }
                               ],
                               "guard": {
-                                "segments": [
-                                  {
-                                    "field": "attributes",
-                                    "oneof": {
-                                      "selectedField": "nexus_operation_scheduled_event_attributes"
+                                "all": {
+                                  "operands": [
+                                    {
+                                      "present": {
+                                        "operand": {
+                                          "path": {
+                                            "operand": {
+                                              "reference": {
+                                                "projectedValue": {}
+                                              }
+                                            },
+                                            "path": {
+                                              "segments": [
+                                                {
+                                                  "field": "attributes",
+                                                  "oneof": {
+                                                    "selectedField": "nexus_operation_scheduled_event_attributes"
+                                                  }
+                                                },
+                                                {
+                                                  "field": "operation"
+                                                }
+                                              ]
+                                            }
+                                          }
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "compare": {
+                                        "left": {
+                                          "path": {
+                                            "operand": {
+                                              "reference": {
+                                                "projectedValue": {}
+                                              }
+                                            },
+                                            "path": {
+                                              "segments": [
+                                                {
+                                                  "field": "attributes",
+                                                  "oneof": {
+                                                    "selectedField": "nexus_operation_scheduled_event_attributes"
+                                                  }
+                                                },
+                                                {
+                                                  "field": "operation"
+                                                }
+                                              ]
+                                            }
+                                          }
+                                        },
+                                        "operator": "COMPARISON_OPERATOR_EQUAL",
+                                        "right": {
+                                          "literal": {
+                                            "textValue": "confirm"
+                                          }
+                                        }
+                                      }
                                     }
-                                  },
-                                  {
-                                    "field": "operation"
-                                  }
-                                ]
+                                  ]
+                                }
                               },
-                              "guardEqualsText": "confirm",
                               "kind": "temporal.nexus.success.typed-nexus.evidence.scheduled-confirm",
                               "operation": {
                                 "segments": [
@@ -1516,14 +1639,27 @@
                             {
                               "evidenceSource": "temporal.nexus.success.typed-nexus.source.history",
                               "guard": {
-                                "segments": [
-                                  {
-                                    "field": "attributes",
-                                    "oneof": {
-                                      "selectedField": "nexus_operation_completed_event_attributes"
+                                "present": {
+                                  "operand": {
+                                    "path": {
+                                      "operand": {
+                                        "reference": {
+                                          "projectedValue": {}
+                                        }
+                                      },
+                                      "path": {
+                                        "segments": [
+                                          {
+                                            "field": "attributes",
+                                            "oneof": {
+                                              "selectedField": "nexus_operation_completed_event_attributes"
+                                            }
+                                          }
+                                        ]
+                                      }
                                     }
                                   }
-                                ]
+                                }
                               },
                               "kind": "temporal.nexus.success.typed-nexus.evidence.completed",
                               "operation": {

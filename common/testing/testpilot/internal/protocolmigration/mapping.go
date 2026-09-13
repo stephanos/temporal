@@ -213,6 +213,193 @@ var Declared = Mapping{
 		Name: "ResponseRead.kind becomes cardinality", Requirement: "R1",
 		Apply: RenameField(protocol+"Response"+"Projection", "kind", "cardinality"),
 	},
+	{
+		Name: "Correlated" + "Predicate becomes a present or EQUAL step condition over a correlated step reference", Requirement: "R3, R5",
+		Apply: RewriteMessages(protocol+"Correlated"+"Predicate", rewriteStepCondition),
+	},
+	{
+		Name: "Correlated" + "Operand becomes a literal, evidence field or correlated capture Expression", Requirement: "R3",
+		Apply: RewriteMessages(protocol+"Correlated"+"Operand", rewriteCorrelatedOperand),
+	},
+	{
+		Name: "Correlated" + "Comparison becomes CompareExpression and Correlated" + "Correlation becomes Expression", Requirement: "R3",
+		Apply: sequence(
+			RenameEnumLiteral(protocol+"Correlated"+"Comparison", "operator", "CORRELATED_"+"COMPARISON_OPERATOR_EQUAL", "COMPARISON_OPERATOR_EQUAL"),
+			RenameEnumLiteral(protocol+"Correlated"+"Comparison", "operator", "CORRELATED_"+"COMPARISON_OPERATOR_NOT_EQUAL", "COMPARISON_OPERATOR_NOT_EQUAL"),
+			RewriteMessages(protocol+"Correlated"+"Correlation", rewriteCorrelation),
+		),
+	},
+	{
+		Name: "CorrelatedEvidenceRule.guard becomes an Expression over the projected value and guard_" + "equals_text folds into EQUAL", Requirement: "R3, R6",
+		Apply: RewriteMessages(protocol+"CorrelatedEvidenceRule", rewriteEvidenceGuard),
+	},
+}
+
+// stepFields maps each baseline predicate field literal, by name or number, to its step field.
+var stepFields = map[string]string{
+	"CORRELATED_" + "PREDICATE_FIELD_ACTION": "CORRELATED_STEP_FIELD_ACTION", "1": "CORRELATED_STEP_FIELD_ACTION",
+	"CORRELATED_" + "PREDICATE_FIELD_OUTCOME": "CORRELATED_STEP_FIELD_OUTCOME", "2": "CORRELATED_STEP_FIELD_OUTCOME",
+	"CORRELATED_" + "PREDICATE_FIELD_STATE": "CORRELATED_STEP_FIELD_STATE", "3": "CORRELATED_STEP_FIELD_STATE",
+	"CORRELATED_" + "PREDICATE_FIELD_FACT": "CORRELATED_STEP_FIELD_FACT", "4": "CORRELATED_STEP_FIELD_FACT",
+}
+
+// rewriteStepCondition rewrites one baseline predicate into a step condition. The baseline admitted
+// only a true presence constraint or a text equality, so a false presence, both constraints or a key
+// outside the predicate's three fails rather than being dropped.
+func rewriteStepCondition(_ string, object *Object) (any, error) {
+	step := &Object{Fields: map[string]any{}}
+	if id, ok := object.Fields["definitionId"]; ok {
+		step.Fields["definitionId"] = id
+	}
+	if field, ok := object.Fields["field"]; ok {
+		name, known := stepFields[literalText(field)]
+		if !known {
+			return nil, fmt.Errorf("predicate field %v has no step field", field)
+		}
+		step.Fields["field"] = name
+	}
+	reference := &Object{Fields: map[string]any{"reference": &Object{Fields: map[string]any{"correlatedStep": step}}}}
+	present, hasPresent := object.Fields["present"]
+	text, hasText := object.Fields["equalsText"]
+	for key := range object.Fields {
+		if key != "definitionId" && key != "field" && key != "present" && key != "equalsText" {
+			return nil, fmt.Errorf("predicate carries %q", key)
+		}
+	}
+	switch {
+	case hasPresent && !hasText:
+		if present != true {
+			return nil, fmt.Errorf("predicate presence is %v, want true", present)
+		}
+		return &Object{Fields: map[string]any{"present": &Object{Fields: map[string]any{"operand": reference}}}}, nil
+	case hasText && !hasPresent:
+		literal, isText := text.(string)
+		if !isText {
+			return nil, errors.New("predicate equalsText is not a string")
+		}
+		return &Object{Fields: map[string]any{"compare": &Object{Fields: map[string]any{
+			"operator": "COMPARISON_OPERATOR_EQUAL",
+			"left":     reference,
+			"right":    textLiteral(literal),
+		}}}}, nil
+	default:
+		return nil, errors.New("predicate carries no single constraint")
+	}
+}
+
+// rewriteCorrelatedOperand rewrites one baseline operand into the Expression it reads.
+func rewriteCorrelatedOperand(_ string, object *Object) (any, error) {
+	if len(object.Fields) != 1 {
+		return nil, fmt.Errorf("operand carries %d arms, want 1", len(object.Fields))
+	}
+	for name, value := range object.Fields {
+		switch name {
+		case "literal":
+			return &Object{Fields: map[string]any{"literal": value}}, nil
+		case "fieldId":
+			return &Object{Fields: map[string]any{"reference": &Object{Fields: map[string]any{"evidenceFieldId": value}}}}, nil
+		case "capture":
+			return &Object{Fields: map[string]any{"reference": &Object{Fields: map[string]any{"correlatedCapture": value}}}}, nil
+		default:
+			return nil, fmt.Errorf("operand arm %q is not in the baseline vocabulary", name)
+		}
+	}
+	return nil, errors.New("unreachable")
+}
+
+// rewriteCorrelation rewrites one baseline correlation into Expression: a predicate is already the
+// step condition an earlier step built, a comparison is a compare, and a group keeps its operands.
+func rewriteCorrelation(_ string, object *Object) (any, error) {
+	if len(object.Fields) != 1 {
+		return nil, fmt.Errorf("correlation carries %d arms, want 1", len(object.Fields))
+	}
+	for name, value := range object.Fields {
+		switch name {
+		case "predicate":
+			return value, nil
+		case "comparison":
+			return &Object{Fields: map[string]any{"compare": value}}, nil
+		case "all", "any":
+			return object, nil
+		default:
+			return nil, fmt.Errorf("correlation arm %q is not in the baseline vocabulary", name)
+		}
+	}
+	return nil, errors.New("unreachable")
+}
+
+// rewriteEvidenceGuard turns a lift guard path into present(path(projected_value, guard)) and, when
+// the rule also required a text, conjoins an EQUAL comparison of the same path with that text.
+func rewriteEvidenceGuard(_ string, object *Object) (any, error) {
+	guard, ok := object.Fields["guard"].(*Object)
+	if !ok {
+		return nil, errors.New("evidence rule carries no guard path")
+	}
+	read, err := projectedPath(guard)
+	if err != nil {
+		return nil, err
+	}
+	resolves := &Object{Fields: map[string]any{"present": &Object{Fields: map[string]any{"operand": read}}}}
+	object.Fields["guard"] = resolves
+	equals, hasEquals := object.Fields["guard"+"EqualsText"]
+	if !hasEquals {
+		return object, nil
+	}
+	text, isText := equals.(string)
+	if !isText {
+		return nil, errors.New("evidence rule guard text is not a string")
+	}
+	compared, err := projectedPath(guard)
+	if err != nil {
+		return nil, err
+	}
+	delete(object.Fields, "guard"+"EqualsText")
+	object.Fields["guard"] = &Object{Fields: map[string]any{"all": &Object{Fields: map[string]any{"operands": []any{
+		resolves,
+		&Object{Fields: map[string]any{"compare": &Object{Fields: map[string]any{
+			"operator": "COMPARISON_OPERATOR_EQUAL",
+			"left":     compared,
+			"right":    textLiteral(text),
+		}}}},
+	}}}}}
+	return object, nil
+}
+
+// projectedPath reads an independent copy of path out of the projected value.
+func projectedPath(path *Object) (*Object, error) {
+	copied, err := cloneTree(path)
+	if err != nil {
+		return nil, err
+	}
+	return &Object{Fields: map[string]any{"path": &Object{Fields: map[string]any{
+		"operand": &Object{Fields: map[string]any{"reference": &Object{Fields: map[string]any{"projectedValue": &Object{Fields: map[string]any{}}}}}},
+		"path":    copied,
+	}}}}, nil
+}
+
+func textLiteral(text string) *Object {
+	return &Object{Fields: map[string]any{"literal": &Object{Fields: map[string]any{"textValue": text}}}}
+}
+
+// literalText spells an enum literal the way RenameEnumLiteral compares it.
+func literalText(value any) string {
+	switch literal := value.(type) {
+	case json.Number:
+		return string(literal)
+	case string:
+		return literal
+	default:
+		return ""
+	}
+}
+
+// cloneTree deep-copies a mapped JSON tree, so one baseline value can appear twice.
+func cloneTree(value any) (any, error) {
+	encoded, err := json.Marshal(value)
+	if err != nil {
+		return nil, err
+	}
+	return decodeJSON(encoded)
 }
 
 // renumberComparisons moves the ordering operators two numbers up, highest first so no literal is
