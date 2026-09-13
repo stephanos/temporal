@@ -35,6 +35,9 @@ The full payload and LF are buffered before final write. A failed sink may leave
 `cd model && mise exec -- lake -q build temporal-model-module-index umpire-lint-tests umpire-lint && mise exec -- lake exe umpire-lint-tests && cd .. && make umpire-check-model-module-index && make lint-model`
 
 Run the newly registered process suite explicitly and require terminal exit 0 with actual named warm/cold/stale/wrong-root/final-write cases executed. Run nonfixing aggregate Go lint with the established exact inherited-set comparison; new findings, missing exits and resource kills fail. Preserve all comments/unrelated work; no staging/commits/pushes, default-build/CI expansion, generated API drift gate, new dependency or cancellation work.
+
+### Sequencing note (2026-09-12)
+Start only after fn-86 R6 has deleted the hand-written Nexus models: `TemporalExperimentalTests` is a configured `focusedTests` root whose imports and `compatibilityFamilies` pin fn-86 deletes, and fn-85 adds `Umpire.Command`-adjacent modules and a `Temporal.Case` realization that belong in the facade list. Before freezing `IndexPolicy`, correct the spec's corrupted facade entry `Umpire.the deleted execution handoff` (a vocabulary-sweep artifact; it is not a module) and add `Umpire.Command` and `Temporal.Case` to the facade roots. Task .1 has no such dependency and may run now.
 ## Acceptance
 - [ ] Warm and cold/stale success paths emit exactly one parseable v1 JSON document plus LF and empty stderr.
 - [ ] Loader/index/serialization/wrong-root failures emit empty stdout and non-zero; a failing final writer returns non-zero and may leave only an explicitly documented truncated prefix.

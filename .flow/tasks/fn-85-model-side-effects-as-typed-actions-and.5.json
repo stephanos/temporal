@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-13T00:33:46.016672Z",
+  "depends_on": [
+    "fn-85-model-side-effects-as-typed-actions-and.4"
+  ],
+  "id": "fn-85-model-side-effects-as-typed-actions-and.5",
+  "priority": null,
+  "spec": "fn-85-model-side-effects-as-typed-actions-and",
+  "spec_path": ".flow/tasks/fn-85-model-side-effects-as-typed-actions-and.5.md",
+  "status": "todo",
+  "title": "Setup parameters bound by the Profile; switches and per-value live runs",
+  "updated_at": "2026-09-13T00:33:46.016672Z"
+}
