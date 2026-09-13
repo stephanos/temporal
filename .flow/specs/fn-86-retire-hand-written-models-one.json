@@ -1,14 +1,54 @@
 {
   "branch_name": "stephanos/umpire",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-09-11T05:25:41.654928Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-85-model-side-effects-as-typed-actions-and"
   ],
   "id": "fn-86-retire-hand-written-models-one",
+  "impl_review_rounds": {},
   "next_task": 1,
   "plan_review_rounds": 1,
-  "plan_review_status": "revise",
-  "plan_reviewed_at": "2026-09-13T12:30:00.000000Z",
+  "plan_review_status": "needs_work",
+  "plan_reviewed_at": "2026-09-13T21:49:04.974950Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "c9ad29f597a849c170c2ae601a363437c9d91b411419a6419f2dfe1f32a3cbf3",
+      "backend": "claude",
+      "counter_kind": "plan",
+      "failure_class": null,
+      "finalized": {
+        "digest": "not_applicable",
+        "receipt": "not_applicable",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e275dfea2ee854af2838be86a47b46a8cc842a56",
+      "head_sha_observed": false,
+      "kind": "plan",
+      "outcome": "verdict",
+      "output_bytes": 6652,
+      "output_sha256": "a107d32e3b66a8f826317e1d189e3aacccab7d9f4ac5d70362a5e17f031d0c33",
+      "reservation_id": "4c696c8c50bb4e09b1e70844fe0861c9",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-13T21:49:04.972299Z",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-86-retire-hand-written-models-one.md",
   "status": "open",
   "title": "Retire hand-written Models: one authoring path through the commands",
@@ -23,5 +63,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-11T15:32:05.449250Z"
+  "updated_at": "2026-09-13T21:49:04.974959Z"
 }
