@@ -14,8 +14,8 @@ import (
 func capabilitySession(t *testing.T, h *Driver, source *testpilotspb.Case, run string) (*Session, testpilot.Coordinate) {
 	t.Helper()
 	program := proto.CloneOf(source.Program)
-	program.Entrypoints = append(program.Entrypoints, &testpilotspb.EntrypointDefinition{EntrypointId: "worker", Activation: &testpilotspb.EntrypointDefinition_Workflow{Workflow: &testpilotspb.WorkflowActivation{}}})
-	program.Slots = append(program.Slots, &testpilotspb.SlotDefinition{SlotId: "capability", Content: &testpilotspb.SlotDefinition_OpaqueCapability{OpaqueCapability: &testpilotspb.OpaqueCapabilityType{}}})
+	program.Entrypoints = append(program.Entrypoints, &testpilotspb.Entrypoint{EntrypointId: "worker", Activation: &testpilotspb.Entrypoint_Workflow{Workflow: &testpilotspb.WorkflowActivation{}}})
+	program.Slots = append(program.Slots, &testpilotspb.Slot{SlotId: "capability", Content: &testpilotspb.Slot_OpaqueHandle{OpaqueHandle: &testpilotspb.OpaqueHandleType{}}})
 	s, err := h.open(t.Context(), run, program)
 	require.NoError(t, err)
 	return s, testpilot.Coordinate{RunID: run, EntrypointID: "worker", ActivationID: "activation", InstructionID: "publish", Attempt: 1}
@@ -37,7 +37,7 @@ func successfulCapabilityEffect() testpilot.CapabilityEffect {
 }
 
 func capabilityValue() *testpilotspb.Value {
-	return &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: "result"}}
+	return &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "result"}}
 }
 
 func TestOpaqueCapabilityOwnershipAndInvocation(t *testing.T) {
@@ -62,11 +62,11 @@ func TestOpaqueCapabilityOwnershipAndInvocation(t *testing.T) {
 	input := capabilityValue()
 	handle, err := s.InvokeCapability(t.Context(), coordinate("run", "check"), claim, input)
 	require.NoError(t, err)
-	input.Value = &testpilotspb.Value_Text{Text: "changed"}
+	input.Value = &testpilotspb.Value_TextValue{TextValue: "changed"}
 	result, err := handle.Wait(t.Context())
 	require.NoError(t, err)
 	require.Equal(t, testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, result.Outcome.Status)
-	require.Equal(t, "result", captured.(*testpilotspb.Value).GetText())
+	require.Equal(t, "result", captured.(*testpilotspb.Value).GetTextValue())
 
 	denied, err = s.InvokeCapability(t.Context(), coordinate("run", "check"), claim, capabilityValue())
 	require.Error(t, err)

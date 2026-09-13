@@ -21,11 +21,11 @@ func TestRuntimeOperatorsAndExactBudget(t *testing.T) {
 	}{
 		{"int64 precision", testpilotspb.SCALAR_KIND_INT64, signed("9007199254740992"), signed("9007199254740993"), false, true},
 		{"uint64", testpilotspb.SCALAR_KIND_UINT64, unsigned("18446744073709551614"), unsigned("18446744073709551615"), false, true},
-		{"natural", testpilotspb.SCALAR_KIND_NATURAL, &testpilotspb.Value{Value: &testpilotspb.Value_Natural{Natural: "99999999999999999999"}}, &testpilotspb.Value{Value: &testpilotspb.Value_Natural{Natural: "100000000000000000000"}}, false, true},
+		{"natural", testpilotspb.SCALAR_KIND_NATURAL, &testpilotspb.Value{Value: &testpilotspb.Value_NaturalValue{NaturalValue: "99999999999999999999"}}, &testpilotspb.Value{Value: &testpilotspb.Value_NaturalValue{NaturalValue: "100000000000000000000"}}, false, true},
 		{"negative", testpilotspb.SCALAR_KIND_INT32, signed("-2"), signed("-1"), false, true},
-		{"float32 precision", testpilotspb.SCALAR_KIND_FLOAT, &testpilotspb.Value{Value: &testpilotspb.Value_FloatingPoint{FloatingPoint: 0.1}}, &testpilotspb.Value{Value: &testpilotspb.Value_FloatingPoint{FloatingPoint: float64(float32(0.1))}}, true, false},
-		{"zero", testpilotspb.SCALAR_KIND_DOUBLE, &testpilotspb.Value{Value: &testpilotspb.Value_FloatingPoint{FloatingPoint: math.Copysign(0, -1)}}, &testpilotspb.Value{Value: &testpilotspb.Value_FloatingPoint{FloatingPoint: 0}}, true, false},
-		{"NaN", testpilotspb.SCALAR_KIND_DOUBLE, &testpilotspb.Value{Value: &testpilotspb.Value_FloatingPoint{FloatingPoint: math.NaN()}}, &testpilotspb.Value{Value: &testpilotspb.Value_FloatingPoint{FloatingPoint: math.NaN()}}, true, false},
+		{"float32 precision", testpilotspb.SCALAR_KIND_FLOAT, &testpilotspb.Value{Value: &testpilotspb.Value_FloatingPointValue{FloatingPointValue: 0.1}}, &testpilotspb.Value{Value: &testpilotspb.Value_FloatingPointValue{FloatingPointValue: float64(float32(0.1))}}, true, false},
+		{"zero", testpilotspb.SCALAR_KIND_DOUBLE, &testpilotspb.Value{Value: &testpilotspb.Value_FloatingPointValue{FloatingPointValue: math.Copysign(0, -1)}}, &testpilotspb.Value{Value: &testpilotspb.Value_FloatingPointValue{FloatingPointValue: 0}}, true, false},
+		{"NaN", testpilotspb.SCALAR_KIND_DOUBLE, &testpilotspb.Value{Value: &testpilotspb.Value_FloatingPointValue{FloatingPointValue: math.NaN()}}, &testpilotspb.Value{Value: &testpilotspb.Value_FloatingPointValue{FloatingPointValue: math.NaN()}}, true, false},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			typ := boundType(t, c, scalar(tc.kind))

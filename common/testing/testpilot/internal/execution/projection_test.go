@@ -15,12 +15,12 @@ import (
 func TestProjectionStagesOrderedElementsAndRejectsLimitsAtomically(t *testing.T) {
 	c, catalog, policy := fixture(t)
 	c.Program.Limits.MaxPathFanout = 2
-	c.Program.Observations = []*testpilotspb.ObservationDefinition{{ObservationId: "item", Type: scalar(testpilotspb.SCALAR_KIND_TEXT)}}
+	c.Program.Observations = []*testpilotspb.Observation{{ObservationId: "item", Type: scalar(testpilotspb.SCALAR_KIND_TEXT)}}
 	n := c.Program.Entrypoints[0].Instructions[0]
 	n.Limits.MaxEmittedEvents = 2
 	path := field("items")
 	path.Segments[0].Selector = &testpilotspb.FieldPathSegment_Repeated{Repeated: &testpilotspb.RepeatedWildcard{}}
-	n.Instruction.GetInvokeRpc().ResponseProjections = []*testpilotspb.ResponseProjection{{Source: path, Kind: testpilotspb.PROJECTION_KIND_EMIT_EACH, Targets: []*testpilotspb.ProjectionTarget{{Target: &testpilotspb.ProjectionTarget_ObservationId{ObservationId: "item"}}}}}
+	n.Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: path, Kind: testpilotspb.READ_CARDINALITY_EMIT_EACH, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_ObservationId{ObservationId: "item"}}}}}
 	p, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
 	store, err := newValueStore(p, "run")
@@ -38,8 +38,8 @@ func TestProjectionStagesOrderedElementsAndRejectsLimitsAtomically(t *testing.T)
 	require.Len(t, batch.facts, 2)
 	require.Equal(t, int64(0), batch.facts[0].index)
 	require.Equal(t, int64(1), batch.facts[1].index)
-	require.Equal(t, "b", batch.facts[0].observations[0].Value.GetText())
-	require.Equal(t, "a", batch.facts[1].observations[0].Value.GetText())
+	require.Equal(t, "b", batch.facts[0].observations[0].Value.GetTextValue())
+	require.Equal(t, "a", batch.facts[1].observations[0].Value.GetTextValue())
 	_, _, err = values.stage(context.Background(), coord, raw, work)
 	require.NoError(t, err)
 	for _, mutate := range []func(){func() { list.Append(protoreflect.ValueOfString("overflow")) }, func() { list.Truncate(2); p.graphs[0].nodes[0].source.Limits.MaxEmittedEvents = 1 }, func() {

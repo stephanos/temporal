@@ -49,7 +49,7 @@ func TestExpressionsBindClosedVocabularyAndExplicitPresence(t *testing.T) {
 	for name, expression := range map[string]*testpilotspb.ProgramExpression{
 		"literal":  literal(text("x")),
 		"slot":     all(present(slot("s")), equal(slot("s"), literal(text("x")))),
-		"outcome":  {Expression: &testpilotspb.ProgramExpression_Outcome{Outcome: &testpilotspb.InstructionOutcomeRef{Instruction: &testpilotspb.InstructionRef{EntrypointId: "main", InstructionId: "call"}, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_PROTOCOL_CODE}}},
+		"outcome":  {Expression: &testpilotspb.ProgramExpression_Outcome{Outcome: &testpilotspb.InstructionOutcomeRef{Instruction: &testpilotspb.InstructionReference{EntrypointId: "main", InstructionId: "call"}, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_PROTOCOL_CODE}}},
 		"path":     {Expression: &testpilotspb.ProgramExpression_Path{Path: &testpilotspb.ProgramPathExpression{Source: slot("message"), Path: fieldPath("text")}}},
 		"present":  present(slot("s")),
 		"equality": equal(literal(text("x")), literal(text("y"))),
@@ -107,7 +107,7 @@ func TestExpressionsRejectMalformedTypesAndResourceOverflow(t *testing.T) {
 	limits.Work = math.MaxInt64
 	_, err = c.BindExpression(literal(boolean(true)), &boolType, nil, limits)
 	require.Error(t, err)
-	opaqueSchema := &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_OpaqueCapability{OpaqueCapability: &testpilotspb.OpaqueCapabilityType{}}}}}
+	opaqueSchema := &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_OpaqueHandle{OpaqueHandle: &testpilotspb.OpaqueHandleType{}}}}}
 	scope := map[Reference]Binding{{Kind: SlotReference, ID: "capability"}: {Type: boundType(t, c, opaqueSchema), Available: true}}
 	_, err = c.BindExpression(present(slot("capability")), nil, scope, DefaultLimits())
 	require.Error(t, err)
@@ -115,7 +115,7 @@ func TestExpressionsRejectMalformedTypesAndResourceOverflow(t *testing.T) {
 
 func TestExpressionsRequireNumericSourceTypes(t *testing.T) {
 	c := fixtureCatalog(t)
-	for _, value := range []*testpilotspb.Value{signed("1"), unsigned("1"), {Value: &testpilotspb.Value_FloatingPoint{FloatingPoint: 1}}} {
+	for _, value := range []*testpilotspb.Value{signed("1"), unsigned("1"), {Value: &testpilotspb.Value_FloatingPointValue{FloatingPointValue: 1}}} {
 		_, err := c.BindExpression(literal(value), nil, nil, DefaultLimits())
 		require.Error(t, err)
 		expression := &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Compare{Compare: &testpilotspb.ProgramCompareExpression{Operator: testpilotspb.COMPARISON_OPERATOR_LESS_THAN, Left: literal(value), Right: literal(value)}}}

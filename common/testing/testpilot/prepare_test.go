@@ -104,7 +104,7 @@ func TestPrepareOwnsMutableInputs(t *testing.T) {
 func TestPrepareFingerprintsCanonicalEnvironmentSnapshot(t *testing.T) {
 	source, profile := facadeFixture(t)
 	source.Program.Environment = []*testpilotspb.EnvironmentDefinition{{BindingId: "alpha"}, {BindingId: "beta"}}
-	source.Program.Roles = []*testpilotspb.RoleDefinition{{RoleId: "worker", Kind: testpilotspb.ROLE_KIND_WORKER, NamespaceBindingId: "alpha"}, {RoleId: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE, NamespaceBindingId: "alpha", ResourceBindingId: "beta"}}
+	source.Program.Roles = []*testpilotspb.Role{{RoleId: "worker", Kind: testpilotspb.ROLE_KIND_WORKER, NamespaceBindingId: "alpha"}, {RoleId: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE, NamespaceBindingId: "alpha", ResourceBindingId: "beta"}}
 	profile.Roles = []RolePolicy{{ID: "worker", Kind: testpilotspb.ROLE_KIND_WORKER}, {ID: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE}}
 	profile.EnvironmentBindings = []EnvironmentBinding{{ID: "beta", Value: "v|2"}, {ID: "unused", Value: "x\x00y"}, {ID: "alpha", Value: "v:1"}}
 	snapshot := profile.Snapshot()
@@ -183,7 +183,7 @@ func TestPrepareRejectsMalformedEnvironmentSnapshots(t *testing.T) {
 func TestConcurrentPreparationsOwnEnvironmentSnapshots(t *testing.T) {
 	source, base := facadeFixture(t)
 	source.Program.Environment = []*testpilotspb.EnvironmentDefinition{{BindingId: "namespace"}}
-	source.Program.Roles = []*testpilotspb.RoleDefinition{{RoleId: "worker", Kind: testpilotspb.ROLE_KIND_WORKER, NamespaceBindingId: "namespace"}}
+	source.Program.Roles = []*testpilotspb.Role{{RoleId: "worker", Kind: testpilotspb.ROLE_KIND_WORKER, NamespaceBindingId: "namespace"}}
 	base.Roles = []RolePolicy{{ID: "worker", Kind: testpilotspb.ROLE_KIND_WORKER}}
 
 	for i := 0; i < 8; i++ {
@@ -337,7 +337,7 @@ func facadeFixture(t testing.TB) (*testpilotspb.Case, ProfileSpec) {
 	source := &testpilotspb.Case{
 		Version:  &testpilotspb.FormatVersion{Major: 1},
 		CaseId:   "case",
-		Program:  &testpilotspb.Program{ProgramId: "program", Entrypoints: []*testpilotspb.EntrypointDefinition{{EntrypointId: "controller", Activation: &testpilotspb.EntrypointDefinition_Controller{Controller: &testpilotspb.ControllerActivation{}}}}, Cleanup: &testpilotspb.CleanupDefinition{EntrypointId: "cleanup"}, Limits: programLimits},
+		Program:  &testpilotspb.Program{ProgramId: "program", Entrypoints: []*testpilotspb.Entrypoint{{EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}}}}, Cleanup: &testpilotspb.Cleanup{EntrypointId: "cleanup"}, Limits: programLimits},
 		Contract: &testpilotspb.Contract{ContractId: "contract", Limits: proto.CloneOf(contractLimits), Rules: []*testpilotspb.ContractRule{{RuleId: "safety", Kind: testpilotspb.CONTRACT_RULE_KIND_SAFETY, InitialStateId: "start", States: []*testpilotspb.ContractState{{StateId: "start", Status: testpilotspb.CONTRACT_STATE_STATUS_PENDING}, {StateId: "good", Status: testpilotspb.CONTRACT_STATE_STATUS_SATISFIED}}, Transitions: []*testpilotspb.ContractTransition{{TransitionId: "complete", SourceStateId: "start", TargetStateId: "good", EventFilter: &testpilotspb.RunEventFilter{Kinds: []testpilotspb.RunEventKind{testpilotspb.RUN_EVENT_KIND_RUN_CLOSED}}, Predicate: &testpilotspb.ContractExpression{Expression: &testpilotspb.ContractExpression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}}}, SupportKind: testpilotspb.CONTRACT_SUPPORT_KIND_MATCHING_EVENT}}}}},
 	}
 	return source, ProfileSpec{Identity: "proof", Catalog: catalog, ProgramLimits: proto.CloneOf(programLimits), ContractLimits: contractLimits}

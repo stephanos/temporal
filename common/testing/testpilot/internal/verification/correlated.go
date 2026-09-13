@@ -166,10 +166,10 @@ func evidenceSize(e *admittedCorrelatedEvidence) int64 {
 			n++
 		} else {
 			switch v := f.Value.Value.(type) {
-			case *testpilotspb.Value_Text:
-				n += int64(utf8.RuneCountInString(v.Text))
-			case *testpilotspb.Value_Natural:
-				n += int64(len(v.Natural))
+			case *testpilotspb.Value_TextValue:
+				n += int64(utf8.RuneCountInString(v.TextValue))
+			case *testpilotspb.Value_NaturalValue:
+				n += int64(len(v.NaturalValue))
 			case *testpilotspb.Value_BoolValue:
 				if v.BoolValue {
 					n += 4
@@ -242,13 +242,13 @@ func (r *correlatedMonitor) validate(s *testpilotspb.CorrelatedContract, e *admi
 		if f.Value != nil {
 			ok := false
 			switch v := f.Value.Value.(type) {
-			case *testpilotspb.Value_Text:
+			case *testpilotspb.Value_TextValue:
 				ok = p.GetType().GetKind() == testpilotspb.SCALAR_KIND_TEXT
 			case *testpilotspb.Value_BoolValue:
 				ok = p.GetType().GetKind() == testpilotspb.SCALAR_KIND_BOOLEAN
-			case *testpilotspb.Value_Natural:
-				ok = p.GetType().GetKind() == testpilotspb.SCALAR_KIND_NATURAL && (v.Natural == "0" || len(v.Natural) > 0 && v.Natural[0] >= '1' && v.Natural[0] <= '9')
-				for _, c := range v.Natural {
+			case *testpilotspb.Value_NaturalValue:
+				ok = p.GetType().GetKind() == testpilotspb.SCALAR_KIND_NATURAL && (v.NaturalValue == "0" || len(v.NaturalValue) > 0 && v.NaturalValue[0] >= '1' && v.NaturalValue[0] <= '9')
+				for _, c := range v.NaturalValue {
 					ok = ok && c >= '0' && c <= '9'
 				}
 			default:

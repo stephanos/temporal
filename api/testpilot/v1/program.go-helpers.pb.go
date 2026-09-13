@@ -7,35 +7,35 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-// Marshal an object of type RoleDefinition to the protobuf v3 wire format
-func (val *RoleDefinition) Marshal() ([]byte, error) {
+// Marshal an object of type Role to the protobuf v3 wire format
+func (val *Role) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
 }
 
-// Unmarshal an object of type RoleDefinition from the protobuf v3 wire format
-func (val *RoleDefinition) Unmarshal(buf []byte) error {
+// Unmarshal an object of type Role from the protobuf v3 wire format
+func (val *Role) Unmarshal(buf []byte) error {
 	return proto.Unmarshal(buf, val)
 }
 
 // Size returns the size of the object, in bytes, once serialized
-func (val *RoleDefinition) Size() int {
+func (val *Role) Size() int {
 	return proto.Size(val)
 }
 
-// Equal returns whether two RoleDefinition values are equivalent by recursively
+// Equal returns whether two Role values are equivalent by recursively
 // comparing the message's fields.
 // For more information see the documentation for
 // https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *RoleDefinition) Equal(that interface{}) bool {
+func (this *Role) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	var that1 *RoleDefinition
+	var that1 *Role
 	switch t := that.(type) {
-	case *RoleDefinition:
+	case *Role:
 		that1 = t
-	case RoleDefinition:
+	case Role:
 		that1 = &t
 	default:
 		return false
@@ -192,35 +192,35 @@ func (this *NexusHandlerActivation) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
-// Marshal an object of type EntrypointDefinition to the protobuf v3 wire format
-func (val *EntrypointDefinition) Marshal() ([]byte, error) {
+// Marshal an object of type Entrypoint to the protobuf v3 wire format
+func (val *Entrypoint) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
 }
 
-// Unmarshal an object of type EntrypointDefinition from the protobuf v3 wire format
-func (val *EntrypointDefinition) Unmarshal(buf []byte) error {
+// Unmarshal an object of type Entrypoint from the protobuf v3 wire format
+func (val *Entrypoint) Unmarshal(buf []byte) error {
 	return proto.Unmarshal(buf, val)
 }
 
 // Size returns the size of the object, in bytes, once serialized
-func (val *EntrypointDefinition) Size() int {
+func (val *Entrypoint) Size() int {
 	return proto.Size(val)
 }
 
-// Equal returns whether two EntrypointDefinition values are equivalent by recursively
+// Equal returns whether two Entrypoint values are equivalent by recursively
 // comparing the message's fields.
 // For more information see the documentation for
 // https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *EntrypointDefinition) Equal(that interface{}) bool {
+func (this *Entrypoint) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	var that1 *EntrypointDefinition
+	var that1 *Entrypoint
 	switch t := that.(type) {
-	case *EntrypointDefinition:
+	case *Entrypoint:
 		that1 = t
-	case EntrypointDefinition:
+	case Entrypoint:
 		that1 = &t
 	default:
 		return false
@@ -229,35 +229,35 @@ func (this *EntrypointDefinition) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
-// Marshal an object of type CleanupDefinition to the protobuf v3 wire format
-func (val *CleanupDefinition) Marshal() ([]byte, error) {
+// Marshal an object of type Cleanup to the protobuf v3 wire format
+func (val *Cleanup) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
 }
 
-// Unmarshal an object of type CleanupDefinition from the protobuf v3 wire format
-func (val *CleanupDefinition) Unmarshal(buf []byte) error {
+// Unmarshal an object of type Cleanup from the protobuf v3 wire format
+func (val *Cleanup) Unmarshal(buf []byte) error {
 	return proto.Unmarshal(buf, val)
 }
 
 // Size returns the size of the object, in bytes, once serialized
-func (val *CleanupDefinition) Size() int {
+func (val *Cleanup) Size() int {
 	return proto.Size(val)
 }
 
-// Equal returns whether two CleanupDefinition values are equivalent by recursively
+// Equal returns whether two Cleanup values are equivalent by recursively
 // comparing the message's fields.
 // For more information see the documentation for
 // https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *CleanupDefinition) Equal(that interface{}) bool {
+func (this *Cleanup) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	var that1 *CleanupDefinition
+	var that1 *Cleanup
 	switch t := that.(type) {
-	case *CleanupDefinition:
+	case *Cleanup:
 		that1 = t
-	case CleanupDefinition:
+	case Cleanup:
 		that1 = &t
 	default:
 		return false

@@ -14,9 +14,9 @@ remain explicit environment-owned inputs.
 After Testpilot has checked the complete Driver identity, it calls the composite no-I/O `Validate`
 hook before Monitor creation and `Open`. `Open` creates the server Session first, then opens an SDK worker
 Session only when the prepared Program contains workflow, activity, or Nexus-handler entrypoints. The server Session supplies the private
-capability bridge and generic capability factory. The SDK worker Session owns reservations, SDK
+handle bridge and generic capability factory. The SDK worker Session owns reservations, SDK
 routes, callback validation, and Nexus completion transport. The server Session owns RPC effects and
-generic opaque capability claims. Composite Close and quarantine preserve that split.
+generic opaque handle claims. Composite Close and quarantine preserve that split.
 `InjectFault` routes to the SDK worker Session, which `Open` also creates for a Program that declares
 a fault; the server Session refuses every fault the way it refuses worker reservations.
 

@@ -25,13 +25,13 @@ func named(name string, enum bool) *testpilotspb.ValueType {
 	return &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: s}}
 }
 func text(value string) *testpilotspb.Value {
-	return &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: value}}
+	return &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: value}}
 }
 func signed(value string) *testpilotspb.Value {
-	return &testpilotspb.Value{Value: &testpilotspb.Value_SignedInteger{SignedInteger: value}}
+	return &testpilotspb.Value{Value: &testpilotspb.Value_SignedIntegerValue{SignedIntegerValue: value}}
 }
 func unsigned(value string) *testpilotspb.Value {
-	return &testpilotspb.Value{Value: &testpilotspb.Value_UnsignedInteger{UnsignedInteger: value}}
+	return &testpilotspb.Value{Value: &testpilotspb.Value_UnsignedIntegerValue{UnsignedIntegerValue: value}}
 }
 func boolean(value bool) *testpilotspb.Value {
 	return &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: value}}
@@ -56,7 +56,7 @@ func TestLiteralsPreserveEveryScalarKindAndRange(t *testing.T) {
 		good, bad *testpilotspb.Value
 	}{
 		{testpilotspb.SCALAR_KIND_TEXT, text("hello"), boolean(true)},
-		{testpilotspb.SCALAR_KIND_NATURAL, &testpilotspb.Value{Value: &testpilotspb.Value_Natural{Natural: "18446744073709551616"}}, &testpilotspb.Value{Value: &testpilotspb.Value_Natural{Natural: "01"}}},
+		{testpilotspb.SCALAR_KIND_NATURAL, &testpilotspb.Value{Value: &testpilotspb.Value_NaturalValue{NaturalValue: "18446744073709551616"}}, &testpilotspb.Value{Value: &testpilotspb.Value_NaturalValue{NaturalValue: "01"}}},
 		{testpilotspb.SCALAR_KIND_BOOLEAN, boolean(false), text("false")},
 		{testpilotspb.SCALAR_KIND_BYTES, &testpilotspb.Value{Value: &testpilotspb.Value_BytesValue{BytesValue: []byte{1}}}, text("bytes")},
 		{testpilotspb.SCALAR_KIND_INT32, signed("-2147483648"), signed("2147483648")},
@@ -69,8 +69,8 @@ func TestLiteralsPreserveEveryScalarKindAndRange(t *testing.T) {
 		{testpilotspb.SCALAR_KIND_FIXED64, unsigned("0"), unsigned("+1")},
 		{testpilotspb.SCALAR_KIND_SFIXED32, signed("0"), signed("-0")},
 		{testpilotspb.SCALAR_KIND_SFIXED64, signed("0"), signed("01")},
-		{testpilotspb.SCALAR_KIND_FLOAT, &testpilotspb.Value{Value: &testpilotspb.Value_FloatingPoint{FloatingPoint: 1.25}}, &testpilotspb.Value{Value: &testpilotspb.Value_FloatingPoint{FloatingPoint: math.MaxFloat64}}},
-		{testpilotspb.SCALAR_KIND_DOUBLE, &testpilotspb.Value{Value: &testpilotspb.Value_FloatingPoint{FloatingPoint: math.MaxFloat64}}, signed("1")},
+		{testpilotspb.SCALAR_KIND_FLOAT, &testpilotspb.Value{Value: &testpilotspb.Value_FloatingPointValue{FloatingPointValue: 1.25}}, &testpilotspb.Value{Value: &testpilotspb.Value_FloatingPointValue{FloatingPointValue: math.MaxFloat64}}},
+		{testpilotspb.SCALAR_KIND_DOUBLE, &testpilotspb.Value{Value: &testpilotspb.Value_FloatingPointValue{FloatingPointValue: math.MaxFloat64}}, signed("1")},
 	}
 	for _, tt := range tests {
 		t.Run(tt.kind.String(), func(t *testing.T) {
@@ -157,7 +157,7 @@ func TestBinderRejectsCrossedCatalogsAndTypedNilUnions(t *testing.T) {
 		require.Error(t, err)
 	})
 	require.NotPanics(t, func() {
-		err := c.CheckLiteral(&testpilotspb.Value{Value: (*testpilotspb.Value_Text)(nil)}, boundType(t, c, scalar(testpilotspb.SCALAR_KIND_TEXT)), DefaultLimits())
+		err := c.CheckLiteral(&testpilotspb.Value{Value: (*testpilotspb.Value_TextValue)(nil)}, boundType(t, c, scalar(testpilotspb.SCALAR_KIND_TEXT)), DefaultLimits())
 		require.Error(t, err)
 	})
 	require.NotPanics(t, func() {

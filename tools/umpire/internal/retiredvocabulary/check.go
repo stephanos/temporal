@@ -617,6 +617,23 @@ func buildRetiredRules() ([]tokenRule, error) {
 		"ContractState" + "Definition",
 		"ContractTransition" + "Definition",
 		"ContractCapture" + "Definition",
+		// `InvokeRPC` is not held: hand-written Go keeps the initialism for the Opcode and the Driver
+		// method (staticcheck ST1003), so only the Lean spelling of the constructor is retired.
+		"Response" + "Projections",
+		"Response" + "Projection",
+		"Projection" + "Target",
+		"Projection" + "Kind",
+		"OpaqueCapability" + "Type",
+		"capability" + "_slot_id",
+		"Capability" + "SlotId",
+		"invoke" + "RPC",
+		"Role" + "Definition",
+		"Slot" + "Definition",
+		"Observation" + "Definition",
+		"Entrypoint" + "Definition",
+		"Cleanup" + "Definition",
+		"Instruction" + "Definition",
+		"Instruction" + "Ref",
 	}
 
 	rules := make([]tokenRule, 0, len(exactTokens)+5)
@@ -648,6 +665,7 @@ func buildRetiredRules() ([]tokenRule, error) {
 		tokenRule{name: "RUN_STATUS_*", pattern: regexp.MustCompile(`(^|[^A-Za-z0-9_])RUN_STATUS_[A-Z0-9_]+`)},
 		tokenRule{name: "CONTRACT_STATE_STATUS_NONTERMINAL", pattern: regexp.MustCompile(`(^|[^A-Za-z0-9_])CONTRACT_STATE_STATUS_NONTERMINAL([^A-Za-z0-9_]|$)`)},
 		tokenRule{name: "PROTOCOL_NON_SUCCESS", pattern: regexp.MustCompile(`(^|[^A-Za-z0-9_])[A-Z0-9_]*PROTOCOL_NON_SUCCESS([^A-Za-z0-9_]|$)`)},
+		tokenRule{name: "PROJECTION_KIND_*", pattern: regexp.MustCompile(`(^|[^A-Za-z0-9_])PROJECTION_KIND_[A-Z0-9_]+`)},
 	)
 	// The generation-numbered module and identity roots. A leading hyphen is excluded because the
 	// only occurrences in that shape are immutable Flow spec slugs, which name closed records rather

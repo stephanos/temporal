@@ -340,35 +340,35 @@ func (this *AnyType) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
-// Marshal an object of type OpaqueCapabilityType to the protobuf v3 wire format
-func (val *OpaqueCapabilityType) Marshal() ([]byte, error) {
+// Marshal an object of type OpaqueHandleType to the protobuf v3 wire format
+func (val *OpaqueHandleType) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
 }
 
-// Unmarshal an object of type OpaqueCapabilityType from the protobuf v3 wire format
-func (val *OpaqueCapabilityType) Unmarshal(buf []byte) error {
+// Unmarshal an object of type OpaqueHandleType from the protobuf v3 wire format
+func (val *OpaqueHandleType) Unmarshal(buf []byte) error {
 	return proto.Unmarshal(buf, val)
 }
 
 // Size returns the size of the object, in bytes, once serialized
-func (val *OpaqueCapabilityType) Size() int {
+func (val *OpaqueHandleType) Size() int {
 	return proto.Size(val)
 }
 
-// Equal returns whether two OpaqueCapabilityType values are equivalent by recursively
+// Equal returns whether two OpaqueHandleType values are equivalent by recursively
 // comparing the message's fields.
 // For more information see the documentation for
 // https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *OpaqueCapabilityType) Equal(that interface{}) bool {
+func (this *OpaqueHandleType) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	var that1 *OpaqueCapabilityType
+	var that1 *OpaqueHandleType
 	switch t := that.(type) {
-	case *OpaqueCapabilityType:
+	case *OpaqueHandleType:
 		that1 = t
-	case OpaqueCapabilityType:
+	case OpaqueHandleType:
 		that1 = &t
 	default:
 		return false
@@ -747,35 +747,35 @@ func (this *FieldPath) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
-// Marshal an object of type SlotDefinition to the protobuf v3 wire format
-func (val *SlotDefinition) Marshal() ([]byte, error) {
+// Marshal an object of type Slot to the protobuf v3 wire format
+func (val *Slot) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
 }
 
-// Unmarshal an object of type SlotDefinition from the protobuf v3 wire format
-func (val *SlotDefinition) Unmarshal(buf []byte) error {
+// Unmarshal an object of type Slot from the protobuf v3 wire format
+func (val *Slot) Unmarshal(buf []byte) error {
 	return proto.Unmarshal(buf, val)
 }
 
 // Size returns the size of the object, in bytes, once serialized
-func (val *SlotDefinition) Size() int {
+func (val *Slot) Size() int {
 	return proto.Size(val)
 }
 
-// Equal returns whether two SlotDefinition values are equivalent by recursively
+// Equal returns whether two Slot values are equivalent by recursively
 // comparing the message's fields.
 // For more information see the documentation for
 // https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *SlotDefinition) Equal(that interface{}) bool {
+func (this *Slot) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	var that1 *SlotDefinition
+	var that1 *Slot
 	switch t := that.(type) {
-	case *SlotDefinition:
+	case *Slot:
 		that1 = t
-	case SlotDefinition:
+	case Slot:
 		that1 = &t
 	default:
 		return false
@@ -784,35 +784,35 @@ func (this *SlotDefinition) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
-// Marshal an object of type ObservationDefinition to the protobuf v3 wire format
-func (val *ObservationDefinition) Marshal() ([]byte, error) {
+// Marshal an object of type Observation to the protobuf v3 wire format
+func (val *Observation) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
 }
 
-// Unmarshal an object of type ObservationDefinition from the protobuf v3 wire format
-func (val *ObservationDefinition) Unmarshal(buf []byte) error {
+// Unmarshal an object of type Observation from the protobuf v3 wire format
+func (val *Observation) Unmarshal(buf []byte) error {
 	return proto.Unmarshal(buf, val)
 }
 
 // Size returns the size of the object, in bytes, once serialized
-func (val *ObservationDefinition) Size() int {
+func (val *Observation) Size() int {
 	return proto.Size(val)
 }
 
-// Equal returns whether two ObservationDefinition values are equivalent by recursively
+// Equal returns whether two Observation values are equivalent by recursively
 // comparing the message's fields.
 // For more information see the documentation for
 // https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *ObservationDefinition) Equal(that interface{}) bool {
+func (this *Observation) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	var that1 *ObservationDefinition
+	var that1 *Observation
 	switch t := that.(type) {
-	case *ObservationDefinition:
+	case *Observation:
 		that1 = t
-	case ObservationDefinition:
+	case Observation:
 		that1 = &t
 	default:
 		return false
