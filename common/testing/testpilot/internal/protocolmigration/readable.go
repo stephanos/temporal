@@ -303,7 +303,8 @@ func spellSegment(element any) (string, error) {
 }
 
 // spellMapKey spells a map key Value: a text key as a JSON string escaping only the quote, the
-// backslash and control characters, and an integer or boolean key bare.
+// backslash and control characters, and an integer or boolean key bare: the spelling the ir printer
+// and Testpilot.Authoring.Path both write, so an escaping change touches all three.
 func spellMapKey(value any) (string, error) {
 	key, _ := value.(*Object)
 	if len(key.fields()) != 1 {

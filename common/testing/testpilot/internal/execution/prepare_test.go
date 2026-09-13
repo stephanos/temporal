@@ -36,9 +36,6 @@ func capabilitySlot(id string) *testpilotspb.Slot {
 func rpcNode(id string) *testpilotspb.InstructionNode {
 	return &testpilotspb.InstructionNode{InstructionId: id, Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRpc{EndpointRoleId: "endpoint", Method: "/example.Service/Call"}}}, Limits: &testpilotspb.InstructionLimits{Timeout: &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: 1000}, Attempts: &testpilotspb.InstructionLimits_MaxAttempts{MaxAttempts: 1}}}
 }
-func field(name string) string {
-	return name
-}
 func slot(id string) *testpilotspb.Expression {
 	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_SlotId{SlotId: id}}}}
 }
@@ -92,8 +89,8 @@ func TestPrepareLocatesAReferenceOutsideTheProgramContext(t *testing.T) {
 			},
 			"program.entrypoints[controller].instructions[call].instruction.invoke_rpc.request_assignments[1].value": func(c *testpilotspb.Case) {
 				c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{
-					{Target: field("items"), Value: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_ListValue{ListValue: &testpilotspb.ValueList{}}}}}},
-					{Target: field("text"), Value: expression},
+					{Target: "items", Value: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_ListValue{ListValue: &testpilotspb.ValueList{}}}}}},
+					{Target: "text", Value: expression},
 				}
 			},
 			"program.cleanup.instructions[undo].guard.present": func(c *testpilotspb.Case) {
@@ -222,7 +219,7 @@ func TestRunIDIntrinsicIsOnlyAvailableToProgramInputs(t *testing.T) {
 	c, catalog, policy := fixture(t)
 	node := c.Program.Entrypoints[0].Instructions[0]
 	node.Instruction.GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{{
-		Target: field("text"), Value: runIDExpression(),
+		Target: "text", Value: runIDExpression(),
 	}}
 	prepared, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
@@ -315,10 +312,10 @@ func TestPrepareSlotDataflowAndImmutableViews(t *testing.T) {
 	c.Program.Slots = []*testpilotspb.Slot{valueSlot("result", scalar(testpilotspb.SCALAR_KIND_TEXT))}
 	c.Program.Observations = []*testpilotspb.Observation{{ObservationId: "text", Type: scalar(testpilotspb.SCALAR_KIND_TEXT)}}
 	producer := c.Program.Entrypoints[0].Instructions[0]
-	producer.Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: field("text"), Cardinality: testpilotspb.READ_CARDINALITY_ONE, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "result"}}, {Target: &testpilotspb.ReadTarget_ObservationId{ObservationId: "text"}}}}}
+	producer.Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: "text", Cardinality: testpilotspb.READ_CARDINALITY_ONE, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "result"}}, {Target: &testpilotspb.ReadTarget_ObservationId{ObservationId: "text"}}}}}
 	consumer := rpcNode("consume")
 	consumer.Guard = succeeded("controller", "call")
-	consumer.Instruction.GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{{Target: field("text"), Value: slot("result")}}
+	consumer.Instruction.GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{{Target: "text", Value: slot("result")}}
 	c.Program.Entrypoints[0].Instructions = append(c.Program.Entrypoints[0].Instructions, consumer)
 	prepared, err := Prepare(c, catalog, p)
 	require.NoError(t, err)
@@ -419,7 +416,7 @@ func TestPrepareResolvesClosedEnvironmentGraph(t *testing.T) {
 	c.Program.Roles[0].ResourceBindingId = "queue"
 	policy.EnvironmentBindings = []contract.EnvironmentBinding{{ID: "namespace", Value: "namespace-a"}, {ID: "queue", Value: "queue-a"}, {ID: "unused", Value: "allowed"}}
 	policy.EnvironmentFingerprint = "fingerprint"
-	c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{{Target: field("text"), Value: environment("namespace")}}
+	c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{{Target: "text", Value: environment("namespace")}}
 
 	prepared, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
@@ -453,9 +450,9 @@ func TestPrepareResolvesClosedEnvironmentGraph(t *testing.T) {
 func TestPrepareDerivesTheEnvironmentBindingGraph(t *testing.T) {
 	c, catalog, policy := fixture(t)
 	addWorker(c, &policy)
-	c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{{Target: field("text"), Value: environment("request")}}
+	c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{{Target: "text", Value: environment("request")}}
 	cleanup := rpcNode("cleanup-call")
-	cleanup.Instruction.GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{{Target: field("text"), Value: environment("namespace")}}
+	cleanup.Instruction.GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{{Target: "text", Value: environment("namespace")}}
 	c.Program.Cleanup.Instructions = []*testpilotspb.InstructionNode{cleanup}
 	require.Equal(t, []string{"namespace", "queue", "request"}, EnvironmentBindingIDs(c.Program))
 
@@ -528,7 +525,7 @@ func TestPrepareEnvironmentVersionAndClosure(t *testing.T) {
 		},
 		"non-text destination": func(c *testpilotspb.Case, p *Profile) {
 			configureEnvironmentCase(c, p)
-			c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().RequestAssignments[0].Target = field("items")
+			c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().RequestAssignments[0].Target = "items"
 		},
 		"resolved byte overflow": func(c *testpilotspb.Case, p *Profile) {
 			configureEnvironmentCase(c, p)
@@ -598,7 +595,7 @@ func TestPrepareRejectsMalformedEnvironmentPolicy(t *testing.T) {
 
 func configureEnvironmentCase(c *testpilotspb.Case, policy *Profile) {
 	policy.EnvironmentBindings = []contract.EnvironmentBinding{{ID: "binding", Value: "value"}}
-	c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{{Target: field("text"), Value: environment("binding")}}
+	c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{{Target: "text", Value: environment("binding")}}
 }
 
 func TestConcurrentEnvironmentPreparationsResolveIndependently(t *testing.T) {
@@ -729,7 +726,7 @@ func TestOpaqueReadinessAndSDKPreparedPlans(t *testing.T) {
 			s.Program.Entrypoints = s.Program.Entrypoints[:2]
 		},
 		"capability projection": func(s *testpilotspb.Case) {
-			s.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: field("text"), Cardinality: testpilotspb.READ_CARDINALITY_ONE, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "capability"}}}}}
+			s.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: "text", Cardinality: testpilotspb.READ_CARDINALITY_ONE, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "capability"}}}}}
 		},
 		"SDK value without success": func(s *testpilotspb.Case) { s.Program.Entrypoints[1].Instructions[2].Guard = alwaysRuns() },
 		"worker RPC": func(s *testpilotspb.Case) {
@@ -779,12 +776,12 @@ func TestOutcomeStatusesAndCleanupLocalReferences(t *testing.T) {
 func TestSlotOwnersAndConcurrentPreparedViews(t *testing.T) {
 	c, catalog, p := fixture(t)
 	c.Program.Slots = []*testpilotspb.Slot{valueSlot("value", scalar(testpilotspb.SCALAR_KIND_TEXT))}
-	c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: field("text"), Cardinality: testpilotspb.READ_CARDINALITY_ONE, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "value"}}}}}
+	c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: "text", Cardinality: testpilotspb.READ_CARDINALITY_ONE, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "value"}}}}}
 	other := proto.CloneOf(c.Program.Entrypoints[0])
 	other.EntrypointId = "other"
 	other.Instructions[0].Instruction.GetInvokeRpc().ResponseReads = nil
 	other.Instructions[0].Guard = present(slot("value"))
-	other.Instructions[0].Instruction.GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{{Target: field("text"), Value: slot("value")}}
+	other.Instructions[0].Instruction.GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{{Target: "text", Value: slot("value")}}
 	c.Program.Entrypoints = append(c.Program.Entrypoints, other)
 	prepared, err := Prepare(c, catalog, p)
 	require.NoError(t, err)
@@ -858,7 +855,7 @@ func TestStructuralCountsAndProjectionFanout(t *testing.T) {
 	c.Program.Observations = []*testpilotspb.Observation{{ObservationId: "item", Type: scalar(testpilotspb.SCALAR_KIND_TEXT)}}
 	n := c.Program.Entrypoints[0].Instructions[0]
 	p.Limits.MaxInstructionEmittedEvents = 128
-	n.Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: field("items"), Cardinality: testpilotspb.READ_CARDINALITY_EMIT_EACH, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_ObservationId{ObservationId: "item"}}}}}
+	n.Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: "items", Cardinality: testpilotspb.READ_CARDINALITY_EMIT_EACH, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_ObservationId{ObservationId: "item"}}}}}
 	_, err := Prepare(c, catalog, p)
 	require.NoError(t, err)
 	p.Limits.MaxInstructionEmittedEvents = 127
@@ -882,7 +879,7 @@ func TestWholeRequestAssignments(t *testing.T) {
 	c.Program.Entrypoints[0].Instructions = append(c.Program.Entrypoints[0].Instructions, consumer)
 	_, err := Prepare(c, catalog, p)
 	require.NoError(t, err)
-	consumer.Instruction.GetInvokeRpc().RequestAssignments = append(consumer.Instruction.GetInvokeRpc().RequestAssignments, &testpilotspb.RequestAssignment{Target: field("text"), Value: textLiteral("conflict")})
+	consumer.Instruction.GetInvokeRpc().RequestAssignments = append(consumer.Instruction.GetInvokeRpc().RequestAssignments, &testpilotspb.RequestAssignment{Target: "text", Value: textLiteral("conflict")})
 	_, err = Prepare(c, catalog, p)
 	require.Error(t, err)
 }
