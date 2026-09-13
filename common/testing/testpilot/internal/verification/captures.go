@@ -1,6 +1,7 @@
 package verification
 
 import (
+	"fmt"
 	"maps"
 	"strconv"
 
@@ -66,7 +67,7 @@ func (a *admission) checkAssignments(m *machine, tr *testpilotspb.ContractTransi
 			return err
 		}
 		index, exists := m.captures[assignment.CaptureId]
-		observation, declared := a.scope[ir.Reference{Kind: ir.ObservationReference, ID: assignment.Observation.GetObservationId()}]
+		observation, declared := a.scope[ir.Reference{Kind: ir.ObservationReference, ID: assignment.ObservationId}]
 		if !exists || !declared || seen[assignment.CaptureId] {
 			return invalid(ir.Malformed, "unknown or repeated capture assignment/Observation")
 		}
@@ -135,7 +136,7 @@ func (a *admission) analyzeEvent(m *machine, current configuration, kind testpil
 			return nil, err
 		}
 		scope := a.scopeFor(m, current.assigned, false)
-		if _, err := a.bind(prior, tr.Predicate, &a.boolean, scope); err != nil {
+		if _, err := a.bind(prior, tr.Predicate, predicatePath(m.source, tr), &a.boolean, scope); err != nil {
 			return nil, err
 		}
 		if matching {
@@ -149,7 +150,7 @@ func (a *admission) analyzeEvent(m *machine, current configuration, kind testpil
 		if len(remaining) == 0 {
 			break
 		}
-		prior = append(prior, ir.Condition{Expression: tr.Predicate, Matches: false})
+		prior = append(prior, ir.Condition{Expression: tr.Predicate, Path: predicatePath(m.source, tr), Matches: false})
 	}
 	return successors, nil
 }
@@ -175,8 +176,8 @@ func (a *admission) assignCaptures(m *machine, current configuration, tr *testpi
 		return configuration{}, err
 	}
 	next := configuration{state: m.states[tr.TargetStateId], assigned: append([]byte(nil), current.assigned...)}
-	matching := append(append([]ir.Condition(nil), prior...), ir.Condition{Expression: tr.Predicate, Matches: true})
-	for _, assignment := range tr.CaptureAssignments {
+	matching := append(append([]ir.Condition(nil), prior...), ir.Condition{Expression: tr.Predicate, Path: predicatePath(m.source, tr), Matches: true})
+	for position, assignment := range tr.CaptureAssignments {
 		if err := a.charge(1); err != nil {
 			return configuration{}, err
 		}
@@ -184,8 +185,9 @@ func (a *admission) assignCaptures(m *machine, current configuration, tr *testpi
 		if next.assigned[index] != 0 {
 			return configuration{}, invalid(ir.Malformed, "capture may be assigned more than once on a reachable path")
 		}
-		value := &testpilotspb.ContractExpression{Expression: &testpilotspb.ContractExpression_Observation{Observation: assignment.Observation}}
-		if _, err := a.bind(matching, value, &m.captureTypes[index], scope); err != nil {
+		value := &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_ObservationId{ObservationId: assignment.ObservationId}}}}
+		path := fmt.Sprintf("contract.rules[%s].transitions[%s].capture_assignments[%d]", m.source.RuleId, tr.TransitionId, position)
+		if _, err := a.bind(matching, value, path, &m.captureTypes[index], scope); err != nil {
 			return configuration{}, err
 		}
 		next.assigned[index] = 1
@@ -279,7 +281,7 @@ func (a *admission) expressionWork(e *ir.Expression) (int64, error) {
 		}
 	}
 
-	if e.Operator() == ir.Equals || e.Operator() == ir.Compare {
+	if e.Operator() == ir.Compare {
 		for _, child := range e.Children() {
 			bytes := a.valueBytes(child.Type())
 			if child.Operator() == ir.Literal {

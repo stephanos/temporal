@@ -189,8 +189,8 @@
                       ]
                     },
                     "value": {
-                      "environment": {
-                        "bindingId": "temporal.worker.namespace"
+                      "reference": {
+                        "environmentBindingId": "temporal.worker.namespace"
                       }
                     }
                   },
@@ -203,7 +203,9 @@
                       ]
                     },
                     "value": {
-                      "run": {}
+                      "reference": {
+                        "run": {}
+                      }
                     }
                   },
                   {
@@ -235,8 +237,8 @@
                       ]
                     },
                     "value": {
-                      "environment": {
-                        "bindingId": "temporal.task-queue.resource"
+                      "reference": {
+                        "environmentBindingId": "temporal.task-queue.resource"
                       }
                     }
                   },
@@ -249,7 +251,9 @@
                       ]
                     },
                     "value": {
-                      "run": {}
+                      "reference": {
+                        "run": {}
+                      }
                     }
                   }
                 ]
@@ -290,27 +294,32 @@
                   {
                     "present": {
                       "operand": {
-                        "outcome": {
-                          "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                          "instruction": {
-                            "entrypointId": "controller",
-                            "instructionId": "start-workflow"
+                        "reference": {
+                          "outcome": {
+                            "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
+                            "instruction": {
+                              "entrypointId": "controller",
+                              "instructionId": "start-workflow"
+                            }
                           }
                         }
                       }
                     }
                   },
                   {
-                    "equals": {
+                    "compare": {
                       "left": {
-                        "outcome": {
-                          "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                          "instruction": {
-                            "entrypointId": "controller",
-                            "instructionId": "start-workflow"
+                        "reference": {
+                          "outcome": {
+                            "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
+                            "instruction": {
+                              "entrypointId": "controller",
+                              "instructionId": "start-workflow"
+                            }
                           }
                         }
                       },
+                      "operator": "COMPARISON_OPERATOR_EQUAL",
                       "right": {
                         "literal": {
                           "enumValue": {
@@ -363,27 +372,32 @@
                   {
                     "present": {
                       "operand": {
-                        "outcome": {
-                          "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                          "instruction": {
-                            "entrypointId": "controller",
-                            "instructionId": "await-completion-authority"
+                        "reference": {
+                          "outcome": {
+                            "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
+                            "instruction": {
+                              "entrypointId": "controller",
+                              "instructionId": "await-completion-authority"
+                            }
                           }
                         }
                       }
                     }
                   },
                   {
-                    "equals": {
+                    "compare": {
                       "left": {
-                        "outcome": {
-                          "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                          "instruction": {
-                            "entrypointId": "controller",
-                            "instructionId": "await-completion-authority"
+                        "reference": {
+                          "outcome": {
+                            "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
+                            "instruction": {
+                              "entrypointId": "controller",
+                              "instructionId": "await-completion-authority"
+                            }
                           }
                         }
                       },
+                      "operator": "COMPARISON_OPERATOR_EQUAL",
                       "right": {
                         "literal": {
                           "enumValue": {
@@ -441,27 +455,32 @@
                   {
                     "present": {
                       "operand": {
-                        "outcome": {
-                          "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                          "instruction": {
-                            "entrypointId": "controller",
-                            "instructionId": "complete-nexus-operation"
+                        "reference": {
+                          "outcome": {
+                            "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
+                            "instruction": {
+                              "entrypointId": "controller",
+                              "instructionId": "complete-nexus-operation"
+                            }
                           }
                         }
                       }
                     }
                   },
                   {
-                    "equals": {
+                    "compare": {
                       "left": {
-                        "outcome": {
-                          "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                          "instruction": {
-                            "entrypointId": "controller",
-                            "instructionId": "complete-nexus-operation"
+                        "reference": {
+                          "outcome": {
+                            "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
+                            "instruction": {
+                              "entrypointId": "controller",
+                              "instructionId": "complete-nexus-operation"
+                            }
                           }
                         }
                       },
+                      "operator": "COMPARISON_OPERATOR_EQUAL",
                       "right": {
                         "literal": {
                           "enumValue": {
@@ -488,8 +507,8 @@
                       ]
                     },
                     "value": {
-                      "environment": {
-                        "bindingId": "temporal.worker.namespace"
+                      "reference": {
+                        "environmentBindingId": "temporal.worker.namespace"
                       }
                     }
                   },
@@ -505,7 +524,9 @@
                       ]
                     },
                     "value": {
-                      "run": {}
+                      "reference": {
+                        "run": {}
+                      }
                     }
                   },
                   {
@@ -539,7 +560,7 @@
                 ],
                 "responseReads": [
                   {
-                    "kind": "READ_CARDINALITY_EMIT_EACH",
+                    "cardinality": "READ_CARDINALITY_EMIT_EACH",
                     "path": {
                       "segments": [
                         {
@@ -755,27 +776,32 @@
                   {
                     "present": {
                       "operand": {
-                        "outcome": {
-                          "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                          "instruction": {
-                            "entrypointId": "workflow",
-                            "instructionId": "await-nexus-operation"
+                        "reference": {
+                          "outcome": {
+                            "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
+                            "instruction": {
+                              "entrypointId": "workflow",
+                              "instructionId": "await-nexus-operation"
+                            }
                           }
                         }
                       }
                     }
                   },
                   {
-                    "equals": {
+                    "compare": {
                       "left": {
-                        "outcome": {
-                          "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                          "instruction": {
-                            "entrypointId": "workflow",
-                            "instructionId": "await-nexus-operation"
+                        "reference": {
+                          "outcome": {
+                            "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
+                            "instruction": {
+                              "entrypointId": "workflow",
+                              "instructionId": "await-nexus-operation"
+                            }
                           }
                         }
                       },
+                      "operator": "COMPARISON_OPERATOR_EQUAL",
                       "right": {
                         "literal": {
                           "enumValue": {
@@ -791,11 +817,13 @@
             "instruction": {
               "finish": {
                 "result": {
-                  "outcome": {
-                    "field": "INSTRUCTION_OUTCOME_FIELD_VALUE",
-                    "instruction": {
-                      "entrypointId": "workflow",
-                      "instructionId": "await-nexus-operation"
+                  "reference": {
+                    "outcome": {
+                      "field": "INSTRUCTION_OUTCOME_FIELD_VALUE",
+                      "instruction": {
+                        "entrypointId": "workflow",
+                        "instructionId": "await-nexus-operation"
+                      }
                     }
                   }
                 }

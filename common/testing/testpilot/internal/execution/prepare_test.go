@@ -43,17 +43,17 @@ func rpcNode(id string) *testpilotspb.InstructionNode {
 func field(name string) *testpilotspb.FieldPath {
 	return &testpilotspb.FieldPath{Segments: []*testpilotspb.FieldPathSegment{{Field: name}}}
 }
-func slot(id string) *testpilotspb.ProgramExpression {
-	return &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Slot{Slot: &testpilotspb.SlotRef{SlotId: id}}}
+func slot(id string) *testpilotspb.Expression {
+	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_SlotId{SlotId: id}}}}
 }
-func present(value *testpilotspb.ProgramExpression) *testpilotspb.ProgramExpression {
-	return &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Present{Present: &testpilotspb.ProgramPresentExpression{Operand: value}}}
+func present(value *testpilotspb.Expression) *testpilotspb.Expression {
+	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Present{Present: &testpilotspb.PresentExpression{Operand: value}}}
 }
-func succeeded(entry, node string) *testpilotspb.ProgramExpression {
-	return &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Equals{Equals: &testpilotspb.ProgramEqualsExpression{Left: &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Outcome{Outcome: &testpilotspb.InstructionOutcomeRef{Instruction: &testpilotspb.InstructionReference{EntrypointId: entry, InstructionId: node}, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS}}}, Right: &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Number: 1}}}}}}}}
+func succeeded(entry, node string) *testpilotspb.Expression {
+	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Compare{Compare: &testpilotspb.CompareExpression{Operator: testpilotspb.COMPARISON_OPERATOR_EQUAL, Left: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_Outcome{Outcome: &testpilotspb.InstructionOutcomeReference{Instruction: &testpilotspb.InstructionReference{EntrypointId: entry, InstructionId: node}, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS}}}}}, Right: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Number: 1}}}}}}}}
 }
-func runIDExpression() *testpilotspb.ProgramExpression {
-	return &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Run{Run: &testpilotspb.RunRef{}}}
+func runIDExpression() *testpilotspb.Expression {
+	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_Run{Run: &testpilotspb.RunReference{}}}}}
 }
 func addWorker(source *testpilotspb.Case, policy *Profile) {
 	source.Program.Environment = append(source.Program.Environment, &testpilotspb.EnvironmentDefinition{BindingId: "namespace"}, &testpilotspb.EnvironmentDefinition{BindingId: "queue"})
@@ -61,6 +61,48 @@ func addWorker(source *testpilotspb.Case, policy *Profile) {
 	source.Program.Roles = append(source.Program.Roles, &testpilotspb.Role{RoleId: "worker", Kind: testpilotspb.ROLE_KIND_WORKER, NamespaceBindingId: "namespace"}, &testpilotspb.Role{RoleId: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE, NamespaceBindingId: "namespace", ResourceBindingId: "queue"})
 	source.Program.Entrypoints = append(source.Program.Entrypoints, &testpilotspb.Entrypoint{EntrypointId: "workflow", Activation: &testpilotspb.Entrypoint_Workflow{Workflow: &testpilotspb.WorkflowActivation{WorkflowType: "flow", WorkerRoleId: "worker", TaskQueueRoleId: "queue"}}})
 }
+
+// An instruction input or guard shares the one expression language, so each Contract reference,
+// and each correlated reference, rejects at preparation at the expression's located path.
+func TestPrepareLocatesAReferenceOutsideTheProgramContext(t *testing.T) {
+	references := map[string]*testpilotspb.Reference{
+		"observation_id":     {Reference: &testpilotspb.Reference_ObservationId{ObservationId: "observation"}},
+		"run_event":          {Reference: &testpilotspb.Reference_RunEvent{RunEvent: &testpilotspb.RunEventReference{Field: testpilotspb.RUN_EVENT_FIELD_KIND}}},
+		"capture_id":         {Reference: &testpilotspb.Reference_CaptureId{CaptureId: "capture"}},
+		"evidence_field_id":  {Reference: &testpilotspb.Reference_EvidenceFieldId{EvidenceFieldId: "field"}},
+		"correlated_capture": {Reference: &testpilotspb.Reference_CorrelatedCapture{CorrelatedCapture: &testpilotspb.CorrelatedCaptureReference{CaptureId: "capture"}}},
+		"model_value":        {Reference: &testpilotspb.Reference_ModelValue{ModelValue: &testpilotspb.ModelValue{DefinitionId: "definition", Value: "value"}}},
+	}
+	for name, value := range references {
+		expression := &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: value}}
+		for site, mutate := range map[string]func(*testpilotspb.Case){
+			"program.entrypoints[controller].instructions[call].guard.present": func(c *testpilotspb.Case) {
+				c.Program.Entrypoints[0].Instructions[0].Guard = present(expression)
+			},
+			"program.entrypoints[controller].instructions[call].instruction.invoke_rpc.request_assignments[1].value": func(c *testpilotspb.Case) {
+				c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{
+					{Target: field("items"), Value: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_ListValue{ListValue: &testpilotspb.ValueList{}}}}}},
+					{Target: field("text"), Value: expression},
+				}
+			},
+			"program.cleanup.instructions[undo].guard.present": func(c *testpilotspb.Case) {
+				undo := rpcNode("undo")
+				undo.Guard = present(expression)
+				c.Program.Cleanup.Instructions = []*testpilotspb.InstructionNode{undo}
+			},
+		} {
+			t.Run(site+"/"+name, func(t *testing.T) {
+				c, catalog, p := fixture(t)
+				mutate(c)
+				_, err := Prepare(c, catalog, p)
+				var diagnostic *ir.Error
+				require.ErrorAs(t, err, &diagnostic)
+				require.Equal(t, &ir.Error{Category: ir.Unknown, Path: site + ".reference." + name, Detail: "reference is not admitted in this expression context"}, diagnostic)
+			})
+		}
+	}
+}
+
 func TestPrepareRejectsStructuralAndPolicyErrors(t *testing.T) {
 	for name, mutate := range map[string]func(*testpilotspb.Case, *Profile){
 		"version":          func(c *testpilotspb.Case, _ *Profile) { c.Version.Major = 2 },
@@ -207,7 +249,7 @@ func TestPrepareSlotDataflowAndImmutableViews(t *testing.T) {
 	c.Program.Slots = []*testpilotspb.Slot{valueSlot("result", scalar(testpilotspb.SCALAR_KIND_TEXT))}
 	c.Program.Observations = []*testpilotspb.Observation{{ObservationId: "text", Type: scalar(testpilotspb.SCALAR_KIND_TEXT)}}
 	producer := c.Program.Entrypoints[0].Instructions[0]
-	producer.Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: field("text"), Kind: testpilotspb.READ_CARDINALITY_ONE, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "result"}}, {Target: &testpilotspb.ReadTarget_ObservationId{ObservationId: "text"}}}}}
+	producer.Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: field("text"), Cardinality: testpilotspb.READ_CARDINALITY_ONE, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "result"}}, {Target: &testpilotspb.ReadTarget_ObservationId{ObservationId: "text"}}}}}
 	consumer := rpcNode("consume")
 	consumer.Dependencies = []*testpilotspb.InstructionReference{{EntrypointId: "controller", InstructionId: "call"}}
 	consumer.Guard = succeeded("controller", "call")
@@ -221,7 +263,7 @@ func TestPrepareSlotDataflowAndImmutableViews(t *testing.T) {
 		rpc := s.Program.Entrypoints[0].Instructions[1].Instruction.GetInvokeRpc()
 		rpc.RequestAssignments = append(rpc.RequestAssignments, proto.CloneOf(rpc.RequestAssignments[0]))
 	}, "crossed cardinality": func(s *testpilotspb.Case) {
-		s.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().ResponseReads[0].Kind = testpilotspb.READ_CARDINALITY_EMIT_EACH
+		s.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().ResponseReads[0].Cardinality = testpilotspb.READ_CARDINALITY_EMIT_EACH
 	}, "undeclared outcome": func(s *testpilotspb.Case) { s.Program.Entrypoints[0].Instructions[0].Outcome.Fields = nil }} {
 		t.Run(name, func(t *testing.T) {
 			source := proto.CloneOf(c)
@@ -317,12 +359,12 @@ func TestReservationTargetsAndExactCombinedBound(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, int64(2), prepared.View().MaximumActivations())
 }
-func textLiteral(value string) *testpilotspb.ProgramExpression {
-	return &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: value}}}}
+func textLiteral(value string) *testpilotspb.Expression {
+	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: value}}}}
 }
 
-func environment(id string) *testpilotspb.ProgramExpression {
-	return &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Environment{Environment: &testpilotspb.EnvironmentRef{BindingId: id}}}
+func environment(id string) *testpilotspb.Expression {
+	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_EnvironmentBindingId{EnvironmentBindingId: id}}}}
 }
 
 func TestPrepareResolvesClosedEnvironmentGraph(t *testing.T) {
@@ -358,7 +400,7 @@ func TestPrepareResolvesClosedEnvironmentGraph(t *testing.T) {
 	c.Program.Roles[2].ResourceBindingId = "changed"
 	policy.EnvironmentBindings[0].Value = "changed"
 	require.Equal(t, "namespace", prepared.Snapshot().Environment[0].BindingId)
-	require.Equal(t, "namespace", prepared.Snapshot().Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().RequestAssignments[0].Value.GetEnvironment().BindingId)
+	require.Equal(t, "namespace", prepared.Snapshot().Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().RequestAssignments[0].Value.GetReference().GetEnvironmentBindingId())
 	require.Equal(t, "namespace-a", prepared.graphs[0].nodes[0].assignments[0].value.Literal().GetTextValue())
 	require.Equal(t, "queue-a", prepared.roles["queue"].Resource)
 	require.Equal(t, "fingerprint", prepared.environmentFingerprint)
@@ -386,7 +428,7 @@ func TestPrepareEnvironmentVersionAndClosure(t *testing.T) {
 		},
 		"nested reference": func(c *testpilotspb.Case, p *Profile) {
 			configureEnvironmentCase(c, p)
-			c.Program.Entrypoints[0].Instructions[0].Guard = &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Equals{Equals: &testpilotspb.ProgramEqualsExpression{Left: environment("binding"), Right: textLiteral("value")}}}
+			c.Program.Entrypoints[0].Instructions[0].Guard = &testpilotspb.Expression{Expression: &testpilotspb.Expression_Compare{Compare: &testpilotspb.CompareExpression{Operator: testpilotspb.COMPARISON_OPERATOR_EQUAL, Left: environment("binding"), Right: textLiteral("value")}}}
 		},
 		"non-text destination": func(c *testpilotspb.Case, p *Profile) {
 			configureEnvironmentCase(c, p)
@@ -578,7 +620,7 @@ func capabilityFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Profile) 
 	finish := rpcNode("finish")
 	finish.Dependencies = []*testpilotspb.InstructionReference{{EntrypointId: "workflow", InstructionId: "await"}}
 	finish.Guard = succeeded("workflow", "await")
-	finish.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_Finish{Finish: &testpilotspb.Finish{Result: &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Outcome{Outcome: &testpilotspb.InstructionOutcomeRef{Instruction: &testpilotspb.InstructionReference{EntrypointId: "workflow", InstructionId: "await"}, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE}}}}}}
+	finish.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_Finish{Finish: &testpilotspb.Finish{Result: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_Outcome{Outcome: &testpilotspb.InstructionOutcomeReference{Instruction: &testpilotspb.InstructionReference{EntrypointId: "workflow", InstructionId: "await"}, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE}}}}}}}}
 	c.Program.Entrypoints[1].Instructions = []*testpilotspb.InstructionNode{start, await, finish}
 	c.Program.Entrypoints[0].Instructions[0].ActivationReservations = []*testpilotspb.ActivationReservationDefinition{{EntrypointId: "workflow", Count: 1}, {EntrypointId: "handler", Count: 1}}
 	return c, catalog, p
@@ -597,7 +639,7 @@ func TestOpaqueReadinessAndSDKPreparedPlans(t *testing.T) {
 			s.Program.Entrypoints[0].Instructions[0].ActivationReservations = s.Program.Entrypoints[0].Instructions[0].ActivationReservations[:1]
 		},
 		"capability projection": func(s *testpilotspb.Case) {
-			s.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: field("text"), Kind: testpilotspb.READ_CARDINALITY_ONE, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "capability"}}}}}
+			s.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: field("text"), Cardinality: testpilotspb.READ_CARDINALITY_ONE, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "capability"}}}}}
 		},
 		"SDK value without success": func(s *testpilotspb.Case) { s.Program.Entrypoints[1].Instructions[2].Guard = nil },
 		"worker RPC": func(s *testpilotspb.Case) {
@@ -633,11 +675,11 @@ func TestOutcomeStatusesAndCleanupLocalReferences(t *testing.T) {
 	second.Guard = succeeded("cleanup", "release")
 	c.Program.Cleanup.Instructions = []*testpilotspb.InstructionNode{first, second}
 	for status := int32(1); status <= 5; status++ {
-		second.Guard.GetEquals().Right.GetLiteral().GetEnumValue().Number = status
+		second.Guard.GetCompare().Right.GetLiteral().GetEnumValue().Number = status
 		_, err := Prepare(c, catalog, p)
 		require.NoError(t, err)
 	}
-	second.Guard.GetEquals().Right.GetLiteral().GetEnumValue().Number = 99
+	second.Guard.GetCompare().Right.GetLiteral().GetEnumValue().Number = 99
 	_, err := Prepare(c, catalog, p)
 	require.Error(t, err)
 	second.Guard = succeeded("controller", "call")
@@ -648,7 +690,7 @@ func TestOutcomeStatusesAndCleanupLocalReferences(t *testing.T) {
 func TestSlotOwnersAndConcurrentPreparedViews(t *testing.T) {
 	c, catalog, p := fixture(t)
 	c.Program.Slots = []*testpilotspb.Slot{valueSlot("value", scalar(testpilotspb.SCALAR_KIND_TEXT))}
-	c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: field("text"), Kind: testpilotspb.READ_CARDINALITY_ONE, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "value"}}}}}
+	c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: field("text"), Cardinality: testpilotspb.READ_CARDINALITY_ONE, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "value"}}}}}
 	other := proto.CloneOf(c.Program.Entrypoints[0])
 	other.EntrypointId = "other"
 	other.Instructions[0].Instruction.GetInvokeRpc().ResponseReads = nil
@@ -685,8 +727,8 @@ func TestSlotOwnersAndConcurrentPreparedViews(t *testing.T) {
 
 func TestPrepareBoundsSurfaceBeforeCloning(t *testing.T) {
 	c, catalog, p := fixture(t)
-	expression := &testpilotspb.ProgramExpression{}
-	expression.Expression = &testpilotspb.ProgramExpression_Negation{Negation: &testpilotspb.ProgramNotExpression{Operand: expression}}
+	expression := &testpilotspb.Expression{}
+	expression.Expression = &testpilotspb.Expression_Not{Not: &testpilotspb.NotExpression{Operand: expression}}
 	c.Program.Entrypoints[0].Instructions[0].Guard = expression
 	_, err := Prepare(c, catalog, p)
 	require.Error(t, err)
@@ -727,7 +769,7 @@ func TestStructuralCountsAndProjectionFanout(t *testing.T) {
 	c.Program.Observations = []*testpilotspb.Observation{{ObservationId: "item", Type: scalar(testpilotspb.SCALAR_KIND_TEXT)}}
 	n := c.Program.Entrypoints[0].Instructions[0]
 	n.Limits.MaxEmittedEvents = 128
-	n.Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: field("items"), Kind: testpilotspb.READ_CARDINALITY_EMIT_EACH, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_ObservationId{ObservationId: "item"}}}}}
+	n.Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: field("items"), Cardinality: testpilotspb.READ_CARDINALITY_EMIT_EACH, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_ObservationId{ObservationId: "item"}}}}}
 	_, err := Prepare(c, catalog, p)
 	require.NoError(t, err)
 	n.Limits.MaxEmittedEvents = 127
@@ -744,7 +786,7 @@ func TestWholeRequestAssignments(t *testing.T) {
 	typ := &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Message{Message: &testpilotspb.NamedType{ProtobufType: "example.Payload"}}}}}
 	c.Program.Slots = []*testpilotspb.Slot{valueSlot("request", typ)}
 	producer := c.Program.Entrypoints[0].Instructions[0]
-	producer.Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: &testpilotspb.FieldPath{}, Kind: testpilotspb.READ_CARDINALITY_ONE, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "request"}}}}}
+	producer.Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: &testpilotspb.FieldPath{}, Cardinality: testpilotspb.READ_CARDINALITY_ONE, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "request"}}}}}
 	consumer := rpcNode("copy")
 	consumer.Dependencies = []*testpilotspb.InstructionReference{{EntrypointId: "controller", InstructionId: "call"}}
 	consumer.Guard = succeeded("controller", "call")

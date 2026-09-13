@@ -4,105 +4,87 @@ import "temporal/server/api/testpilot/v1/event.proto";
 import "temporal/server/api/testpilot/v1/value.proto";
 option go_package = "go.temporal.io/server/api/testpilot/v1;testpilot";
 
-// ProgramExpression is the closed expression vocabulary for instruction inputs and guards.
-message ProgramExpression {
+// Expression is the one closed expression language of a Case: instruction inputs and guards, and
+// Contract transition predicates. Which references an expression may use is a property of where it
+// appears, and preparation rejects a reference outside its context.
+message Expression {
   oneof expression {
     Value literal = 1;
-    SlotRef slot = 2;
-    InstructionOutcomeRef outcome = 3;
-    RunRef run = 4;
-    ProgramPathExpression path = 5;
-    ProgramPresentExpression present = 6;
-    ProgramEqualsExpression equals = 7;
-    ProgramCompareExpression compare = 8;
-    ProgramNotExpression negation = 9;
-    ProgramAllExpression all = 10;
-    ProgramAnyExpression any = 11;
-    EnvironmentRef environment = 12;
+    Reference reference = 2;
+    PathExpression path = 3;
+    PresentExpression present = 4;
+    CompareExpression compare = 5;
+    // (-- api-linter: core::0140::reserved-words=disabled
+    //     aip.dev/not-precedent: The negation arm is named like all and any; it is internal and generated Lean accepts it. --)
+    NotExpression not = 6;
+    AllExpression all = 7;
+    AnyExpression any = 8;
   }
 }
 
-// ProgramPathExpression reads a FieldPath out of its source's value, absent when any segment is absent.
-message ProgramPathExpression { ProgramExpression source = 1; FieldPath path = 2; }
+// PathExpression reads a FieldPath out of its operand's value, absent when any segment is absent.
+message PathExpression { Expression operand = 1; FieldPath path = 2; }
 
-// ProgramPresentExpression is true when its operand is not absent.
-message ProgramPresentExpression { ProgramExpression operand = 1; }
+// PresentExpression is true when its operand is not absent.
+message PresentExpression { Expression operand = 1; }
 
-// ProgramEqualsExpression is true when its operands, of one type, are equal.
-message ProgramEqualsExpression { ProgramExpression left = 1; ProgramExpression right = 2; }
+// CompareExpression compares two operands of one type. EQUAL and NOT_EQUAL admit any type; the
+// ordering operators admit only numeric scalars.
+message CompareExpression { ComparisonOperator operator = 1; Expression left = 2; Expression right = 3; }
 
-// ProgramCompareExpression orders two operands of one numeric type.
-message ProgramCompareExpression { ComparisonOperator operator = 1; ProgramExpression left = 2; ProgramExpression right = 3; }
+// NotExpression negates a boolean operand.
+message NotExpression { Expression operand = 1; }
 
-// ProgramNotExpression negates a boolean operand.
-message ProgramNotExpression { ProgramExpression operand = 1; }
-
-// ProgramAllExpression is true when every operand is true. Operands are evaluated left to right until
+// AllExpression is true when every operand is true. Operands are evaluated left to right until
 // one is false; an empty list is true.
-message ProgramAllExpression { repeated ProgramExpression operands = 1; }
+message AllExpression { repeated Expression operands = 1; }
 
-// ProgramAnyExpression is true when some operand is true. Operands are evaluated left to right until
+// AnyExpression is true when some operand is true. Operands are evaluated left to right until
 // one is true; an empty list is false.
-message ProgramAnyExpression { repeated ProgramExpression operands = 1; }
+message AnyExpression { repeated Expression operands = 1; }
 
-// ContractExpression is the closed expression vocabulary for Run Event predicates.
-message ContractExpression {
-  oneof expression {
-    Value literal = 1;
-    ObservationRef observation = 2;
-    RunEventFieldRef run_event = 3;
-    ContractPathExpression path = 4;
-    ContractPresentExpression present = 5;
-    ContractEqualsExpression equals = 6;
-    ContractCompareExpression compare = 7;
-    ContractNotExpression negation = 8;
-    ContractAllExpression all = 9;
-    ContractAnyExpression any = 10;
-    CaptureRef capture = 11;
-  }
-}
-
-// ContractPathExpression reads a FieldPath out of its source's value, absent when any segment is absent.
-message ContractPathExpression { ContractExpression source = 1; FieldPath path = 2; }
-
-// ContractPresentExpression is true when its operand is not absent.
-message ContractPresentExpression { ContractExpression operand = 1; }
-
-// ContractEqualsExpression is true when its operands, of one type, are equal.
-message ContractEqualsExpression { ContractExpression left = 1; ContractExpression right = 2; }
-
-// ContractCompareExpression orders two operands of one numeric type.
-message ContractCompareExpression { ComparisonOperator operator = 1; ContractExpression left = 2; ContractExpression right = 3; }
-
-// ContractNotExpression negates a boolean operand.
-message ContractNotExpression { ContractExpression operand = 1; }
-
-// ContractAllExpression is true when every operand is true. Operands are evaluated left to right until
-// one is false; an empty list is true.
-message ContractAllExpression { repeated ContractExpression operands = 1; }
-
-// ContractAnyExpression is true when some operand is true. Operands are evaluated left to right until
-// one is true; an empty list is false.
-message ContractAnyExpression { repeated ContractExpression operands = 1; }
-
-// ComparisonOperator names the ordering a compare expression tests. Every comparison with NaN is false.
+// ComparisonOperator names what a compare expression tests. NOT_EQUAL is the negation of EQUAL, and
+// every ordering comparison with NaN is false.
 // (-- api-linter: core::0191::file-layout=disabled --)
 enum ComparisonOperator {
   COMPARISON_OPERATOR_UNSPECIFIED = 0;
-  COMPARISON_OPERATOR_LESS_THAN = 1;
-  COMPARISON_OPERATOR_LESS_THAN_OR_EQUAL = 2;
-  COMPARISON_OPERATOR_GREATER_THAN = 3;
-  COMPARISON_OPERATOR_GREATER_THAN_OR_EQUAL = 4;
+  COMPARISON_OPERATOR_EQUAL = 1;
+  COMPARISON_OPERATOR_NOT_EQUAL = 2;
+  COMPARISON_OPERATOR_LESS_THAN = 3;
+  COMPARISON_OPERATOR_LESS_THAN_OR_EQUAL = 4;
+  COMPARISON_OPERATOR_GREATER_THAN = 5;
+  COMPARISON_OPERATOR_GREATER_THAN_OR_EQUAL = 6;
 }
 
-// SlotRef reads the value assigned to a Slot, absent until the Slot is written.
-message SlotRef { string slot_id = 1; }
+// Reference reads one value an expression's context supplies. Instruction inputs and guards admit
+// Slots, instruction outcomes, the Run and environment bindings; Contract transition predicates admit
+// Observations, Run Event fields and captures. The correlated references are admitted in no context.
+message Reference {
+  oneof reference {
+    // The value assigned to a Slot, absent until the Slot is written.
+    string slot_id = 1;
+    InstructionOutcomeReference outcome = 2;
+    RunReference run = 3;
+    // A declared environment binding's value. It is admitted only as the whole value of an InvokeRpc
+    // request assignment to a text field.
+    string environment_binding_id = 4;
+    // An Observation of the evaluated Run Event, absent when the event does not carry it.
+    string observation_id = 5;
+    RunEventReference run_event = 6;
+    // A value the rule captured earlier, absent until it is assigned.
+    string capture_id = 7;
+    // One declared evidence field of the correlated step being admitted.
+    string evidence_field_id = 8;
+    CorrelatedCaptureReference correlated_capture = 9;
+    ModelValue model_value = 10;
+  }
+}
 
 // InstructionReference names one instruction by its entrypoint and instruction ids.
 message InstructionReference { string entrypoint_id = 1; string instruction_id = 2; }
 
-// InstructionOutcomeRef reads one declared field of an earlier instruction's outcome.
-message InstructionOutcomeRef { InstructionReference instruction = 1; InstructionOutcomeField field = 2; }
+// InstructionOutcomeReference reads one declared field of an earlier instruction's outcome.
+message InstructionOutcomeReference { InstructionReference instruction = 1; InstructionOutcomeField field = 2; }
 
 // InstructionOutcomeField names one field of an InstructionOutcome an expression may read.
 enum InstructionOutcomeField {
@@ -114,19 +96,14 @@ enum InstructionOutcomeField {
   INSTRUCTION_OUTCOME_FIELD_VALUE = 5;
 }
 
-// RunRef reads the Run id as text. Only InvokeRpc request assignments may use it.
-message RunRef {}
+// RunReference reads the Run id as text. Only InvokeRpc request assignments may use it.
+message RunReference {}
 
-// EnvironmentRef reads a declared environment binding's value. It is admitted only as the whole value
-// of an InvokeRpc request assignment to a text field.
-message EnvironmentRef { string binding_id = 1; }
+// RunEventReference reads one coordinate of the evaluated Run Event.
+message RunEventReference { RunEventField field = 1; }
 
-// ObservationRef reads an Observation of the evaluated Run Event, absent when the event does not
-// carry it.
-message ObservationRef { string observation_id = 1; }
-
-// RunEventFieldRef reads one coordinate of the evaluated Run Event.
-message RunEventFieldRef { RunEventField field = 1; }
-
-// CaptureRef reads a value the rule captured earlier, absent until it is assigned.
-message CaptureRef { string capture_id = 1; }
+// CorrelatedCaptureReference reads one retained occurrence of a capture by its zero-based ordinal.
+message CorrelatedCaptureReference {
+  string capture_id = 1;
+  int64 ordinal = 2;
+}

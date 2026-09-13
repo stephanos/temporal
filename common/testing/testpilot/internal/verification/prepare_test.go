@@ -34,35 +34,35 @@ func scalar(kind testpilotspb.ScalarKind) *testpilotspb.ValueType {
 func messageType(name string) *testpilotspb.ValueType {
 	return &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Message{Message: &testpilotspb.NamedType{ProtobufType: name}}}}}
 }
-func boolean(value bool) *testpilotspb.ContractExpression {
-	return &testpilotspb.ContractExpression{Expression: &testpilotspb.ContractExpression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: value}}}}
+func boolean(value bool) *testpilotspb.Expression {
+	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: value}}}}
 }
-func observation(id string) *testpilotspb.ContractExpression {
-	return &testpilotspb.ContractExpression{Expression: &testpilotspb.ContractExpression_Observation{Observation: &testpilotspb.ObservationRef{ObservationId: id}}}
+func observation(id string) *testpilotspb.Expression {
+	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_ObservationId{ObservationId: id}}}}
 }
-func capture(id string) *testpilotspb.ContractExpression {
-	return &testpilotspb.ContractExpression{Expression: &testpilotspb.ContractExpression_Capture{Capture: &testpilotspb.CaptureRef{CaptureId: id}}}
+func capture(id string) *testpilotspb.Expression {
+	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_CaptureId{CaptureId: id}}}}
 }
-func present(value *testpilotspb.ContractExpression) *testpilotspb.ContractExpression {
-	return &testpilotspb.ContractExpression{Expression: &testpilotspb.ContractExpression_Present{Present: &testpilotspb.ContractPresentExpression{Operand: value}}}
+func present(value *testpilotspb.Expression) *testpilotspb.Expression {
+	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Present{Present: &testpilotspb.PresentExpression{Operand: value}}}
 }
-func all(values ...*testpilotspb.ContractExpression) *testpilotspb.ContractExpression {
-	return &testpilotspb.ContractExpression{Expression: &testpilotspb.ContractExpression_All{All: &testpilotspb.ContractAllExpression{Operands: values}}}
+func all(values ...*testpilotspb.Expression) *testpilotspb.Expression {
+	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: &testpilotspb.AllExpression{Operands: values}}}
 }
-func not(value *testpilotspb.ContractExpression) *testpilotspb.ContractExpression {
-	return &testpilotspb.ContractExpression{Expression: &testpilotspb.ContractExpression_Negation{Negation: &testpilotspb.ContractNotExpression{Operand: value}}}
+func not(value *testpilotspb.Expression) *testpilotspb.Expression {
+	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Not{Not: &testpilotspb.NotExpression{Operand: value}}}
 }
-func equal(left, right *testpilotspb.ContractExpression) *testpilotspb.ContractExpression {
-	return &testpilotspb.ContractExpression{Expression: &testpilotspb.ContractExpression_Equals{Equals: &testpilotspb.ContractEqualsExpression{Left: left, Right: right}}}
+func equal(left, right *testpilotspb.Expression) *testpilotspb.Expression {
+	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Compare{Compare: &testpilotspb.CompareExpression{Operator: testpilotspb.COMPARISON_OPERATOR_EQUAL, Left: left, Right: right}}}
 }
-func transition(id, from, to string, predicate *testpilotspb.ContractExpression) *testpilotspb.ContractTransition {
+func transition(id, from, to string, predicate *testpilotspb.Expression) *testpilotspb.ContractTransition {
 	return &testpilotspb.ContractTransition{TransitionId: id, SourceStateId: from, TargetStateId: to, Predicate: predicate, EventFilter: &testpilotspb.RunEventFilter{Kinds: []testpilotspb.RunEventKind{testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED}}, SupportKind: testpilotspb.CONTRACT_SUPPORT_KIND_MATCHING_EVENT}
 }
 func addCapture(rule *testpilotspb.ContractRule) {
 	rule.Captures = []*testpilotspb.ContractCapture{{CaptureId: "saved", Type: &testpilotspb.ContractCaptureType{Type: &testpilotspb.ContractCaptureType_Scalar{Scalar: &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_INT64}}}}}
 }
 func assign(tr *testpilotspb.ContractTransition) {
-	tr.CaptureAssignments = []*testpilotspb.ContractCaptureAssignment{{CaptureId: "saved", Observation: &testpilotspb.ObservationRef{ObservationId: "id"}}}
+	tr.CaptureAssignments = []*testpilotspb.ContractCaptureAssignment{{CaptureId: "saved", ObservationId: "id"}}
 }
 
 func TestPrepareMachinesAndOrder(t *testing.T) {
@@ -164,7 +164,7 @@ func TestPrepareRejectsMalformedContracts(t *testing.T) {
 		},
 		"unknown observation": func(c *testpilotspb.Contract) { c.Rules[0].Transitions[0].Predicate = present(observation("missing")) },
 		"Run ID intrinsic forbidden": func(c *testpilotspb.Contract) {
-			c.Rules[0].Transitions[0].Predicate = present(&testpilotspb.ContractExpression{Expression: &testpilotspb.ContractExpression_RunEvent{RunEvent: &testpilotspb.RunEventFieldRef{Field: testpilotspb.RUN_EVENT_FIELD_RUN_ID}}})
+			c.Rules[0].Transitions[0].Predicate = present(&testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_RunEvent{RunEvent: &testpilotspb.RunEventReference{Field: testpilotspb.RUN_EVENT_FIELD_RUN_ID}}}}})
 		},
 		"nil predicate":        func(c *testpilotspb.Contract) { c.Rules[0].Transitions[0].Predicate = nil },
 		"nonboolean predicate": func(c *testpilotspb.Contract) { c.Rules[0].Transitions[0].Predicate = observation("text") },
@@ -189,6 +189,36 @@ func TestPrepareRejectsMalformedContracts(t *testing.T) {
 		})
 	}
 }
+
+// A Contract predicate shares the one expression language, so each Program reference, and each
+// correlated reference, rejects at preparation at the predicate's located path.
+func TestPrepareLocatesAReferenceOutsideTheContractContext(t *testing.T) {
+	for name, value := range map[string]*testpilotspb.Reference{
+		"slot_id": {Reference: &testpilotspb.Reference_SlotId{SlotId: "slot"}},
+		"outcome": {Reference: &testpilotspb.Reference_Outcome{Outcome: &testpilotspb.InstructionOutcomeReference{
+			Instruction: &testpilotspb.InstructionReference{EntrypointId: "controller", InstructionId: "call"}, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS,
+		}}},
+		"run":                    {Reference: &testpilotspb.Reference_Run{Run: &testpilotspb.RunReference{}}},
+		"environment_binding_id": {Reference: &testpilotspb.Reference_EnvironmentBindingId{EnvironmentBindingId: "namespace"}},
+		"evidence_field_id":      {Reference: &testpilotspb.Reference_EvidenceFieldId{EvidenceFieldId: "field"}},
+		"correlated_capture":     {Reference: &testpilotspb.Reference_CorrelatedCapture{CorrelatedCapture: &testpilotspb.CorrelatedCaptureReference{CaptureId: "capture"}}},
+		"model_value":            {Reference: &testpilotspb.Reference_ModelValue{ModelValue: &testpilotspb.ModelValue{DefinitionId: "definition", Value: "value"}}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			c, catalog, view, policy := fixture(t)
+			c.Rules[0].Transitions[0].Predicate = all(boolean(true), present(&testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: value}}))
+			_, err := Prepare(c, catalog, view, policy)
+			var diagnostic *ir.Error
+			require.ErrorAs(t, err, &diagnostic)
+			require.Equal(t, &ir.Error{
+				Category: ir.Unknown,
+				Path:     "contract.rules[rule].transitions[first].predicate.all[1].present.reference." + name,
+				Detail:   "reference is not admitted in this expression context",
+			}, diagnostic)
+		})
+	}
+}
+
 func TestPrepareAdmitsExactlyOneDeadlineBound(t *testing.T) {
 	for _, tc := range []struct {
 		name     string
@@ -256,14 +286,14 @@ func TestPrepareBoundsAndImmutableIndexes(t *testing.T) {
 func TestOrderedPresenceAndContradictions(t *testing.T) {
 	for _, test := range []struct {
 		name       string
-		predicates []*testpilotspb.ContractExpression
+		predicates []*testpilotspb.Expression
 		targets    []string
 		wantError  bool
 	}{
-		{"preceding false presence", []*testpilotspb.ContractExpression{not(present(observation("id"))), equal(observation("id"), observation("id"))}, []string{"bad", "good"}, false},
-		{"contradictory observation presence", []*testpilotspb.ContractExpression{all(present(observation("id")), not(present(observation("id"))))}, []string{"start"}, false},
-		{"contradictory capture presence", []*testpilotspb.ContractExpression{all(present(capture("saved")), not(present(capture("saved"))), present(observation("id")))}, []string{"start"}, false},
-		{"unknown match retains following", []*testpilotspb.ContractExpression{all(boolean(true), present(observation("text"))), present(observation("id"))}, []string{"good", "start"}, true},
+		{"preceding false presence", []*testpilotspb.Expression{not(present(observation("id"))), equal(observation("id"), observation("id"))}, []string{"bad", "good"}, false},
+		{"contradictory observation presence", []*testpilotspb.Expression{all(present(observation("id")), not(present(observation("id"))))}, []string{"start"}, false},
+		{"contradictory capture presence", []*testpilotspb.Expression{all(present(capture("saved")), not(present(capture("saved"))), present(observation("id")))}, []string{"start"}, false},
+		{"unknown match retains following", []*testpilotspb.Expression{all(boolean(true), present(observation("text"))), present(observation("id"))}, []string{"good", "start"}, true},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			c, catalog, view, policy := fixture(t)
@@ -308,7 +338,7 @@ func TestAdmissionExplorationCeiling(t *testing.T) {
 		id := string(rune('a' + i))
 		r.Captures = append(r.Captures, &testpilotspb.ContractCapture{CaptureId: id, Type: &testpilotspb.ContractCaptureType{Type: &testpilotspb.ContractCaptureType_Scalar{Scalar: &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_INT64}}}})
 		tr := transition(id, "start", "start", all(not(present(capture(id))), present(observation("id"))))
-		tr.CaptureAssignments = []*testpilotspb.ContractCaptureAssignment{{CaptureId: id, Observation: &testpilotspb.ObservationRef{ObservationId: "id"}}}
+		tr.CaptureAssignments = []*testpilotspb.ContractCaptureAssignment{{CaptureId: id, ObservationId: "id"}}
 		r.Transitions = append(r.Transitions, tr)
 	}
 	r.Transitions = r.Transitions[1:]
@@ -380,8 +410,8 @@ func TestAuthoredDepthAndSeparateAdmissionWork(t *testing.T) {
 
 func TestPreparedProjectionUsesProgramFanout(t *testing.T) {
 	c, catalog, view, policy := fixture(t)
-	source := &testpilotspb.ContractExpression{Expression: &testpilotspb.ContractExpression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/example.Empty"}}}}}
-	c.Rules[0].Transitions[0].Predicate = present(&testpilotspb.ContractExpression{Expression: &testpilotspb.ContractExpression_Path{Path: &testpilotspb.ContractPathExpression{Source: source, Path: &testpilotspb.FieldPath{Segments: []*testpilotspb.FieldPathSegment{{Field: "items", Selector: &testpilotspb.FieldPathSegment_Repeated{Repeated: &testpilotspb.RepeatedWildcard{}}}}}}}})
+	source := &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/example.Empty"}}}}}
+	c.Rules[0].Transitions[0].Predicate = present(&testpilotspb.Expression{Expression: &testpilotspb.Expression_Path{Path: &testpilotspb.PathExpression{Operand: source, Path: &testpilotspb.FieldPath{Segments: []*testpilotspb.FieldPathSegment{{Field: "items", Selector: &testpilotspb.FieldPathSegment_Repeated{Repeated: &testpilotspb.RepeatedWildcard{}}}}}}}})
 	prepared, err := Prepare(c, catalog, view, policy)
 	require.NoError(t, err)
 	path := prepared.rules[0].transitions[0].Children()[0].Path()

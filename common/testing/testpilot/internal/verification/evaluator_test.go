@@ -234,7 +234,7 @@ func TestEvaluatorMessageCaptureDescriptorBoundsAndOwnership(t *testing.T) {
 	rule := c.Rules[0]
 	rule.Captures = []*testpilotspb.ContractCapture{{CaptureId: "saved-message", Type: &testpilotspb.ContractCaptureType{Type: &testpilotspb.ContractCaptureType_Message{Message: &testpilotspb.NamedType{ProtobufType: "example.Empty"}}}}}
 	rule.Transitions[0] = transition("save", "start", "good", present(observation("message")))
-	rule.Transitions[0].CaptureAssignments = []*testpilotspb.ContractCaptureAssignment{{CaptureId: "saved-message", Observation: &testpilotspb.ObservationRef{ObservationId: "message"}}}
+	rule.Transitions[0].CaptureAssignments = []*testpilotspb.ContractCaptureAssignment{{CaptureId: "saved-message", ObservationId: "message"}}
 
 	tooSmall := proto.CloneOf(c)
 	tooSmall.Limits.MaxCaptureBytes--
@@ -440,7 +440,7 @@ func TestEvaluatorCaptureNamesAreRuleLocal(t *testing.T) {
 	second.RuleId = "other"
 	second.Captures[0].Type.GetScalar().Kind = testpilotspb.SCALAR_KIND_TEXT
 	second.Transitions[0].Predicate = present(observation("text"))
-	second.Transitions[0].CaptureAssignments[0].Observation.ObservationId = "text"
+	second.Transitions[0].CaptureAssignments[0].ObservationId = "text"
 	c.Rules = append(c.Rules, second)
 	p, err := Prepare(c, cat, view, limits)
 	require.NoError(t, err)

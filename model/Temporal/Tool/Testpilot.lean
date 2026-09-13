@@ -70,6 +70,8 @@ def main (arguments : List String) : IO Unit :=
   | ["conformance-inconclusive"] => renderTestpilot Temporal.Testpilot.conformanceInconclusiveCase
   | ["conformance-static-preparation-rejection"] =>
       renderTestpilot Temporal.Testpilot.conformanceStaticRejectionCase
+  | ["conformance-static-preparation-rejection-expression-context"] =>
+      renderTestpilot Temporal.Testpilot.conformanceExpressionContextRejectionCase
   | ["conformance-cleanup-failure-after-proved-violation"] =>
       renderTestpilot Temporal.Testpilot.conformanceCleanupFailureCase
   | ["conformance-cross-run-isolation"] =>

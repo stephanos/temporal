@@ -36,14 +36,14 @@ func TestRuntimeOperatorsAndExactBudget(t *testing.T) {
 				}
 				return tc.b
 			}
-			for _, eq := range []bool{false, true} {
-				source := equal(slot("a"), slot("b"))
-				want := tc.equal
-				if !eq {
-					source = &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Compare{Compare: &testpilotspb.ProgramCompareExpression{Left: slot("a"), Right: slot("b"), Operator: testpilotspb.COMPARISON_OPERATOR_LESS_THAN}}}
-					want = tc.less
-				}
-				e, err := c.BindExpression(source, nil, scope, DefaultLimits())
+			// NOT_EQUAL is the negation of EQUAL and costs exactly what EQUAL costs.
+			var equalityWork []int64
+			for operator, want := range map[testpilotspb.ComparisonOperator]bool{
+				testpilotspb.COMPARISON_OPERATOR_EQUAL:     tc.equal,
+				testpilotspb.COMPARISON_OPERATOR_NOT_EQUAL: !tc.equal,
+				testpilotspb.COMPARISON_OPERATOR_LESS_THAN: tc.less,
+			} {
+				e, err := c.BindExpression(programSite, compare(operator, slot("a"), slot("b")), nil, scope, DefaultLimits())
 				require.NoError(t, err)
 				value, work, err := e.Evaluate(context.Background(), resolver, 10000)
 				require.NoError(t, err)
@@ -53,13 +53,18 @@ func TestRuntimeOperatorsAndExactBudget(t *testing.T) {
 				require.Equal(t, work, exact)
 				_, _, err = e.Evaluate(context.Background(), resolver, work-1)
 				require.Error(t, err)
+				if operator != testpilotspb.COMPARISON_OPERATOR_LESS_THAN {
+					equalityWork = append(equalityWork, work)
+				}
 			}
+			require.Len(t, equalityWork, 2)
+			require.Equal(t, equalityWork[0], equalityWork[1])
 		})
 	}
 	typ := boundType(t, c, scalar(testpilotspb.SCALAR_KIND_TEXT))
 	scope := map[Reference]Binding{{Kind: SlotReference, ID: "missing"}: {Type: typ}}
-	for _, source := range []*testpilotspb.ProgramExpression{all(present(slot("missing")), equal(slot("missing"), literal(text("x")))), negate(anyOf(present(slot("missing")), literal(boolean(true))))} {
-		e, err := c.BindExpression(source, nil, scope, DefaultLimits())
+	for _, source := range []*testpilotspb.Expression{all(present(slot("missing")), equal(slot("missing"), literal(text("x")))), negate(anyOf(present(slot("missing")), literal(boolean(true))))} {
+		e, err := c.BindExpression(programSite, source, nil, scope, DefaultLimits())
 		require.NoError(t, err)
 		value, _, err := e.Evaluate(context.Background(), func(Reference) *testpilotspb.Value { return nil }, 100)
 		require.NoError(t, err)
@@ -88,9 +93,9 @@ func TestRuntimePathsAndPresence(t *testing.T) {
 		{"presence", absence, boolean(false)},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			expr := &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Path{Path: &testpilotspb.ProgramPathExpression{Source: slot("source"), Path: tc.path}}}
+			expr := &testpilotspb.Expression{Expression: &testpilotspb.Expression_Path{Path: &testpilotspb.PathExpression{Operand: slot("source"), Path: tc.path}}}
 			// The guard supplies the admission fact while the value itself exercises the path.
-			e, err := c.BindConditionedExpression([]Condition{{Expression: present(expr), Matches: true}}, expr, nil, map[Reference]Binding{{Kind: SlotReference, ID: "source"}: {Type: typ, Available: true}}, DefaultLimits())
+			e, err := c.BindConditionedExpression([]Condition{{Expression: present(expr), Matches: true}}, programSite, expr, nil, map[Reference]Binding{{Kind: SlotReference, ID: "source"}: {Type: typ, Available: true}}, DefaultLimits())
 			require.NoError(t, err)
 			value, work, err := e.Evaluate(context.Background(), func(Reference) *testpilotspb.Value { return source }, 10000)
 			require.NoError(t, err)
@@ -100,8 +105,8 @@ func TestRuntimePathsAndPresence(t *testing.T) {
 		})
 	}
 	empty := &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/fixture.Payload"}}}
-	expr := &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Path{Path: &testpilotspb.ProgramPathExpression{Source: slot("source"), Path: absence}}}
-	e, err := c.BindExpression(expr, nil, map[Reference]Binding{{Kind: SlotReference, ID: "source"}: {Type: typ, Available: true}}, DefaultLimits())
+	expr := &testpilotspb.Expression{Expression: &testpilotspb.Expression_Path{Path: &testpilotspb.PathExpression{Operand: slot("source"), Path: absence}}}
+	e, err := c.BindExpression(programSite, expr, nil, map[Reference]Binding{{Kind: SlotReference, ID: "source"}: {Type: typ, Available: true}}, DefaultLimits())
 	require.NoError(t, err)
 	value, _, err := e.Evaluate(context.Background(), func(Reference) *testpilotspb.Value { return empty }, 1000)
 	require.NoError(t, err)
@@ -127,15 +132,15 @@ func TestRuntimeWildcardDoesNotFilterAbsentFields(t *testing.T) {
 			require.NoError(t, c.CheckLiteral(source, typ, DefaultLimits()))
 			path := fieldPath("items", "optional_text")
 			path.Segments[0].Selector = &testpilotspb.FieldPathSegment_Repeated{Repeated: &testpilotspb.RepeatedWildcard{}}
-			project := &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Path{Path: &testpilotspb.ProgramPathExpression{Source: slot("source"), Path: path}}}
+			project := &testpilotspb.Expression{Expression: &testpilotspb.Expression_Path{Path: &testpilotspb.PathExpression{Operand: slot("source"), Path: path}}}
 			scope := map[Reference]Binding{{Kind: SlotReference, ID: "source"}: {Type: typ, Available: true}}
-			e, err := c.BindExpression(present(project), nil, scope, DefaultLimits())
+			e, err := c.BindExpression(programSite, present(project), nil, scope, DefaultLimits())
 			require.NoError(t, err)
 			value, _, err := e.Evaluate(context.Background(), func(Reference) *testpilotspb.Value { return source }, 1000)
 			require.NoError(t, err)
 			require.Equal(t, tc.present, value.GetBoolValue())
 			path.Segments[1].Selector = &testpilotspb.FieldPathSegment_Presence{Presence: &testpilotspb.PresenceSelector{}}
-			e, err = c.BindExpression(project, nil, scope, DefaultLimits())
+			e, err = c.BindExpression(programSite, project, nil, scope, DefaultLimits())
 			require.NoError(t, err)
 			value, _, err = e.Evaluate(context.Background(), func(Reference) *testpilotspb.Value { return source }, 1000)
 			require.NoError(t, err)

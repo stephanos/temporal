@@ -114,26 +114,26 @@ func nexusCorrelationFixture(t testing.TB) (*PreparedContract, execution.Program
 			equal(nexusPath(nexusCapture(), nexusField("event_id")), nexusPath(nexusObservation(), nexusOneof("attributes", "nexus_operation_completed_event_attributes"), nexusField("scheduled_event_id"))),
 		)),
 	}
-	rule.Transitions[0].CaptureAssignments = []*testpilotspb.ContractCaptureAssignment{{CaptureId: "scheduled-event", Observation: &testpilotspb.ObservationRef{ObservationId: "history-event"}}}
+	rule.Transitions[0].CaptureAssignments = []*testpilotspb.ContractCaptureAssignment{{CaptureId: "scheduled-event", ObservationId: "history-event"}}
 	contract, err := Prepare(&testpilotspb.Contract{ContractId: "contract", Rules: []*testpilotspb.ContractRule{rule}, Limits: limits}, catalog, program.View(), limits)
 	require.NoError(t, err)
 	return contract, program.View()
 }
 
-func nexusTransition(id, source, target string, predicate *testpilotspb.ContractExpression) *testpilotspb.ContractTransition {
+func nexusTransition(id, source, target string, predicate *testpilotspb.Expression) *testpilotspb.ContractTransition {
 	return &testpilotspb.ContractTransition{TransitionId: id, SourceStateId: source, TargetStateId: target, Predicate: predicate, EventFilter: &testpilotspb.RunEventFilter{Kinds: []testpilotspb.RunEventKind{testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED}}, SupportKind: testpilotspb.CONTRACT_SUPPORT_KIND_MATCHING_EVENT}
 }
 
-func nexusObservation() *testpilotspb.ContractExpression {
-	return &testpilotspb.ContractExpression{Expression: &testpilotspb.ContractExpression_Observation{Observation: &testpilotspb.ObservationRef{ObservationId: "history-event"}}}
+func nexusObservation() *testpilotspb.Expression {
+	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_ObservationId{ObservationId: "history-event"}}}}
 }
 
-func nexusCapture() *testpilotspb.ContractExpression {
-	return &testpilotspb.ContractExpression{Expression: &testpilotspb.ContractExpression_Capture{Capture: &testpilotspb.CaptureRef{CaptureId: "scheduled-event"}}}
+func nexusCapture() *testpilotspb.Expression {
+	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_CaptureId{CaptureId: "scheduled-event"}}}}
 }
 
-func nexusPath(source *testpilotspb.ContractExpression, segments ...*testpilotspb.FieldPathSegment) *testpilotspb.ContractExpression {
-	return &testpilotspb.ContractExpression{Expression: &testpilotspb.ContractExpression_Path{Path: &testpilotspb.ContractPathExpression{Source: source, Path: &testpilotspb.FieldPath{Segments: segments}}}}
+func nexusPath(source *testpilotspb.Expression, segments ...*testpilotspb.FieldPathSegment) *testpilotspb.Expression {
+	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Path{Path: &testpilotspb.PathExpression{Operand: source, Path: &testpilotspb.FieldPath{Segments: segments}}}}
 }
 
 func nexusField(field string) *testpilotspb.FieldPathSegment {

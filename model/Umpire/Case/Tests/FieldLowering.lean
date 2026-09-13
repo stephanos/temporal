@@ -307,11 +307,11 @@ private def program (assigned : Int := 7) : Program :=
         (Testpilot.Authoring.Program.invokeRpc "source" "/example.Call/Do"
           #[Testpilot.Authoring.Program.requestAssignment
               (Testpilot.Authoring.Path.make #[Testpilot.Authoring.Path.field "count"])
-              (Testpilot.Authoring.ProgramExpr.literal (requestValue assigned)),
+              (Testpilot.Authoring.Expr.literal (requestValue assigned)),
             Testpilot.Authoring.Program.requestAssignment
               (Testpilot.Authoring.Path.make
                 #[Testpilot.Authoring.Path.mapKey "tags" { value := some (.text_value "k") }])
-              (Testpilot.Authoring.ProgramExpr.literal { value := some (.text_value "v") })])
+              (Testpilot.Authoring.Expr.literal { value := some (.text_value "v") })])
         (Testpilot.Authoring.Program.instructionLimits 1000 1 1 4096)]]
     (Testpilot.Authoring.Program.cleanup "cleanup" #[])
     (Testpilot.Authoring.Program.limits 4 16 16 16 16 32 8 8 4096 4096 10000 1000)

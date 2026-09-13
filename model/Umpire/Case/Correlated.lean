@@ -118,7 +118,7 @@ private def operand (coverage : Projection.Coverage plan)
           if key.ordinal ≥ declaration.lifetime then
             throw ("capture ordinal beyond declared lifetime for " ++ key.name.value)
           let ordinal ← number key.ordinal
-          let reference : CorrelatedCaptureRef := { capture_id := key.name.value, ordinal }
+          let reference : CorrelatedCaptureReference := { capture_id := key.name.value, ordinal }
           pure ({ operand := some (.capture reference) }, .capture key.name key.ordinal,
             declaration.kind)
       | none => do

@@ -111,7 +111,21 @@ func TestRetiredRulesHoldTheGlossaryRenamedProtocolNames(t *testing.T) {
 		{line: "contract.InvokeRPC, session.InvokeRPC(ctx), pb.InvokeRpc{}, Program.invokeRpc"},
 		{line: "Umpire.Case.Projection.lower, CorrelatedEvidenceProjection, RoleDefinitionID, roleDefinitionId"},
 		{line: "pb.ResponseRead{}, pb.ReadTarget_SlotId, pb.READ_CARDINALITY_ONE, pb.OpaqueHandleType{}, handle_slot_id"},
-		{line: "[]*pb.Role{}, pb.Slot_OpaqueHandle, pb.Entrypoint_Workflow, pb.InstructionNode{}, pb.InstructionReference{}, InstructionOutcomeRef"},
+		{line: "[]*pb.Role{}, pb.Slot_OpaqueHandle, pb.Entrypoint_Workflow, pb.InstructionNode{}, pb.InstructionReference{}"},
+		{line: "*pb.Program" + "Expression", want: []string{"Program" + "Expression"}},
+		{line: "(predicate : Contract" + "Expression)", want: []string{"Contract" + "Expression"}},
+		{line: "Program" + "Expr.slot id", want: []string{"Program" + "Expr"}},
+		{line: "Testpilot.Authoring.Contract" + "Expr.capture id", want: []string{"Contract" + "Expr"}},
+		{line: "&pb.ProgramEquals" + "Expression{}", want: []string{"ProgramEquals" + "Expression"}},
+		{line: "pb.Contract" + "CompareExpression{}", want: []string{"Contract" + "CompareExpression"}},
+		{line: "&pb.Slot" + "Ref{SlotId: id}", want: []string{"Slot" + "Ref"}},
+		{line: "&pb.Observation" + "Ref{}", want: []string{"Observation" + "Ref"}},
+		{line: "pb.InstructionOutcome" + "Ref{}", want: []string{"InstructionOutcome" + "Ref"}},
+		{line: "pb.RunEventField" + "Ref{}", want: []string{"RunEventField" + "Ref"}},
+		{line: "let reference : CorrelatedCapture" + "Ref := {}", want: []string{"CorrelatedCapture" + "Ref"}},
+		// One Expression over one Reference replaces them; the Umpire and Go names that share a word stay.
+		{line: "pb.Expression{}, pb.Reference_SlotId, pb.InstructionOutcomeReference{}, pb.RunReference{}, pb.RunEventReference{}, pb.CorrelatedCaptureReference{}"},
+		{line: "Testpilot.Authoring.Expr.negate, pb.CompareExpression{}, pb.NotExpression{}, ir.ProgramContext, ir.ContractContext, ir.SlotReference"},
 	} {
 		require.Equal(t, tc.want, matched(tc.line), "line %q", tc.line)
 	}

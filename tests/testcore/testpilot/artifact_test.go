@@ -110,9 +110,9 @@ func TestSyntheticCaseGoAdmissionRejectsRawInvalidInputs(t *testing.T) {
 			candidate.Program.ProgramId = "invalid/program"
 		}},
 		{name: "unbound scope", want: "reference is not declared in this environment", mutate: func(candidate *testpilotspb.Case) {
-			candidate.Contract.Rules[0].Transitions[0].Predicate = &testpilotspb.ContractExpression{
-				Expression: &testpilotspb.ContractExpression_Observation{
-					Observation: &testpilotspb.ObservationRef{ObservationId: "missing"},
+			candidate.Contract.Rules[0].Transitions[0].Predicate = &testpilotspb.Expression{
+				Expression: &testpilotspb.Expression_Reference{
+					Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_ObservationId{ObservationId: "missing"}},
 				},
 			}
 		}},
@@ -229,11 +229,11 @@ func TestLeanAsyncNexusBindingsPrepareAcrossProfilesAndRejectBeforeDispatch(t *t
 	historyAssignments := source.GetProgram().GetEntrypoints()[0].GetInstructions()[3].
 		GetInstruction().GetInvokeRpc().GetRequestAssignments()
 	require.Equal(t, AsyncNexusWorkerNamespaceBindingID,
-		startAssignments[0].GetValue().GetEnvironment().GetBindingId())
+		startAssignments[0].GetValue().GetReference().GetEnvironmentBindingId())
 	require.Equal(t, AsyncNexusTaskQueueBindingID,
-		startAssignments[3].GetValue().GetEnvironment().GetBindingId())
+		startAssignments[3].GetValue().GetReference().GetEnvironmentBindingId())
 	require.Equal(t, AsyncNexusWorkerNamespaceBindingID,
-		historyAssignments[0].GetValue().GetEnvironment().GetBindingId())
+		historyAssignments[0].GetValue().GetReference().GetEnvironmentBindingId())
 
 	catalog, err := temporal.NewWorkflowServiceCatalog()
 	require.NoError(t, err)

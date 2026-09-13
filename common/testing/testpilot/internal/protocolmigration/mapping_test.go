@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 const (
@@ -125,12 +126,34 @@ func TestPairedFixturesRejectUnpairedFixtures(t *testing.T) {
 	t.Parallel()
 
 	const conformanceCase = conformanceFixtureRoot + "/satisfied/case.json"
+	added := []Addition{{Fixture: conformanceFixtureRoot + "/added/case.json", Requirement: "R3"}}
 	for _, tc := range []struct {
 		name            string
 		baseline        []string
 		regenerated     []string
+		added           []Addition
 		wantErrorSubstr string
 	}{
+		{
+			name:        "declared added fixture",
+			baseline:    []string{conformanceCase},
+			regenerated: []string{conformanceCase, conformanceFixtureRoot + "/added/case.json"},
+			added:       added,
+		},
+		{
+			name:            "declared added fixture not regenerated",
+			baseline:        []string{conformanceCase},
+			regenerated:     []string{conformanceCase},
+			added:           added,
+			wantErrorSubstr: "added fixture " + conformanceFixtureRoot + "/added/case.json (R3) is not regenerated",
+		},
+		{
+			name:            "declared added fixture with a baseline",
+			baseline:        []string{conformanceCase, conformanceFixtureRoot + "/added/case.json"},
+			regenerated:     []string{conformanceCase, conformanceFixtureRoot + "/added/case.json"},
+			added:           added,
+			wantErrorSubstr: "added fixture " + conformanceFixtureRoot + "/added/case.json (R3) has a baseline",
+		},
 		{
 			name:            "added regenerated fixture",
 			baseline:        []string{conformanceCase},
@@ -154,7 +177,12 @@ func TestPairedFixturesRejectUnpairedFixtures(t *testing.T) {
 			for _, fixture := range tc.regenerated {
 				writeFile(t, filepath.Join(repository, filepath.FromSlash(fixture)))
 			}
-			_, err := PairedFixtures(baselineFixtures, repository)
+			paired, err := PairedFixtures(baselineFixtures, repository, tc.added)
+			if tc.wantErrorSubstr == "" {
+				require.NoError(t, err)
+				require.Equal(t, []string{conformanceCase}, paired)
+				return
+			}
 			require.ErrorContains(t, err, tc.wantErrorSubstr)
 		})
 	}
@@ -322,4 +350,48 @@ func TestDeclaredValueArmRenamesOnlyValueObjects(t *testing.T) {
 	encoded, err := json.Marshal(mapped)
 	require.NoError(t, err)
 	require.JSONEq(t, `{"text": "kept", "signedInteger": "kept", "literal": {"textValue": "renamed"}}`, string(encoded))
+}
+
+// The expression step moves every baseline reference under one Reference and folds equals into an
+// EQUAL comparison, and it refuses a shape it would otherwise have to drop.
+func TestDeclaredExpressionStepRewritesReferencesAndEquality(t *testing.T) {
+	t.Parallel()
+
+	expression := func(message string, fields map[string]any) *Object {
+		return &Object{Message: protocol + protoreflect.FullName(message), Fields: fields}
+	}
+	identifier := func(key, value string) *Object { return &Object{Fields: map[string]any{key: value}} }
+	for _, tc := range []struct {
+		name, message   string
+		fields          map[string]any
+		want            string
+		wantErrorSubstr string
+	}{
+		{name: "slot", message: "Program" + "Expression", fields: map[string]any{"slot": identifier("slotId", "s")}, want: `{"reference": {"slotId": "s"}}`},
+		{name: "empty slot", message: "Program" + "Expression", fields: map[string]any{"slot": &Object{Fields: map[string]any{}}}, want: `{"reference": {"slotId": ""}}`},
+		{name: "environment", message: "Program" + "Expression", fields: map[string]any{"environment": identifier("bindingId", "namespace")}, want: `{"reference": {"environmentBindingId": "namespace"}}`},
+		{name: "run", message: "Program" + "Expression", fields: map[string]any{"run": &Object{Fields: map[string]any{}}}, want: `{"reference": {"run": {}}}`},
+		{name: "outcome", message: "Program" + "Expression", fields: map[string]any{"outcome": &Object{Fields: map[string]any{"field": "INSTRUCTION_OUTCOME_FIELD_STATUS"}}}, want: `{"reference": {"outcome": {"field": "INSTRUCTION_OUTCOME_FIELD_STATUS"}}}`},
+		{name: "observation", message: "Contract" + "Expression", fields: map[string]any{"observation": identifier("observationId", "o")}, want: `{"reference": {"observationId": "o"}}`},
+		{name: "capture", message: "Contract" + "Expression", fields: map[string]any{"capture": identifier("captureId", "c")}, want: `{"reference": {"captureId": "c"}}`},
+		{name: "run event", message: "Contract" + "Expression", fields: map[string]any{"runEvent": &Object{Fields: map[string]any{"field": "RUN_EVENT_FIELD_KIND"}}}, want: `{"reference": {"runEvent": {"field": "RUN_EVENT_FIELD_KIND"}}}`},
+		{name: "equals", message: "Contract" + "Expression", fields: map[string]any{"equals": &Object{Fields: map[string]any{"left": "l", "right": "r"}}}, want: `{"compare": {"operator": "COMPARISON_OPERATOR_EQUAL", "left": "l", "right": "r"}}`},
+		{name: "negation", message: "Program" + "Expression", fields: map[string]any{"negation": &Object{Fields: map[string]any{"operand": "o"}}}, want: `{"not": {"operand": "o"}}`},
+		{name: "reference with a second key", message: "Program" + "Expression", fields: map[string]any{"slot": &Object{Fields: map[string]any{"slotId": "s", "extra": "x"}}}, wantErrorSubstr: `slot carries "extra" beside "slotId"`},
+		{name: "two arms", message: "Contract" + "Expression", fields: map[string]any{"literal": "l", "capture": identifier("captureId", "c")}, wantErrorSubstr: "expression carries 2 arms, want 1"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			mapped, err := Declared.apply("fixture.json", expression(tc.message, tc.fields))
+			if tc.wantErrorSubstr != "" {
+				require.ErrorContains(t, err, tc.wantErrorSubstr)
+				return
+			}
+			require.NoError(t, err)
+			encoded, err := json.Marshal(mapped)
+			require.NoError(t, err)
+			require.JSONEq(t, tc.want, string(encoded))
+		})
+	}
 }

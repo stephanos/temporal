@@ -21,7 +21,7 @@ func dataFixture(t *testing.T) (*PreparedProgram, *activationValues, contract.Co
 	c, catalog, policy := fixture(t)
 	c.Program.Slots = []*testpilotspb.Slot{valueSlot("text", scalar(testpilotspb.SCALAR_KIND_TEXT))}
 	c.Program.Observations = []*testpilotspb.Observation{{ObservationId: "text", Type: scalar(testpilotspb.SCALAR_KIND_TEXT)}}
-	c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: field("text"), Kind: testpilotspb.READ_CARDINALITY_ONE, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "text"}}, {Target: &testpilotspb.ReadTarget_ObservationId{ObservationId: "text"}}}}}
+	c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: field("text"), Cardinality: testpilotspb.READ_CARDINALITY_ONE, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "text"}}, {Target: &testpilotspb.ReadTarget_ObservationId{ObservationId: "text"}}}}}
 	p, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
 	store, err := newValueStore(p, "run")
@@ -80,7 +80,7 @@ func TestValuesRejectWrongOwnershipAndUnprojectedPayload(t *testing.T) {
 func TestRequestReadsGuardedSlotsWithoutRebinding(t *testing.T) {
 	c, catalog, policy := fixture(t)
 	node := c.Program.Entrypoints[0].Instructions[0]
-	node.Instruction.GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{{Target: field("text"), Value: &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "request"}}}}}}
+	node.Instruction.GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{{Target: field("text"), Value: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "request"}}}}}}
 	p, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
 	store, err := newValueStore(p, "run")
@@ -115,7 +115,7 @@ func TestValuesSealRejectsFreshBatchAndReads(t *testing.T) {
 func TestValuesGuardedMissingSlotsAndActivationIsolation(t *testing.T) {
 	c, catalog, policy := fixture(t)
 	c.Program.Slots = []*testpilotspb.Slot{valueSlot("text", scalar(testpilotspb.SCALAR_KIND_TEXT))}
-	c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: field("text"), Kind: testpilotspb.READ_CARDINALITY_ONE, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "text"}}}}}
+	c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: field("text"), Cardinality: testpilotspb.READ_CARDINALITY_ONE, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "text"}}}}}
 	consumer := rpcNode("consumer")
 	consumer.Dependencies = []*testpilotspb.InstructionReference{{EntrypointId: "controller", InstructionId: "call"}}
 	consumer.Guard = present(slot("text"))
@@ -267,11 +267,11 @@ func TestWorkerOutcomeValuesRemainActivationLocal(t *testing.T) {
 
 func TestWideExpressionBudgetAndCeilingOverflow(t *testing.T) {
 	c, catalog, policy := fixture(t)
-	operands := make([]*testpilotspb.ProgramExpression, 128)
+	operands := make([]*testpilotspb.Expression, 128)
 	for i := range operands {
-		operands[i] = &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}}}
+		operands[i] = &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}}}
 	}
-	c.Program.Entrypoints[0].Instructions[0].Guard = &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_All{All: &testpilotspb.ProgramAllExpression{Operands: operands}}}
+	c.Program.Entrypoints[0].Instructions[0].Guard = &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: &testpilotspb.AllExpression{Operands: operands}}}
 	p, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
 	store, err := newValueStore(p, "run")

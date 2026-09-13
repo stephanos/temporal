@@ -217,7 +217,10 @@ reject during preparation.
 
 Programs are acyclic. Descriptor paths have a bounded grammar with explicit presence, oneof,
 repeated fanout, and literal map-key selection. There is no general JSONPath or arbitrary expression
-language.
+language. Instruction inputs, guards, and Contract predicates share one closed `Expression`: literals,
+references, paths, presence, comparison (equal, not equal and the numeric orderings), negation, all,
+and any. Where an expression appears decides which references it may read, and preparation rejects a
+reference outside its context at the reference's path.
 
 ### Contract semantics
 

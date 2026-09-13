@@ -499,7 +499,7 @@ func assignmentUsesBinding(assignments []*testpilotspb.RequestAssignment, fields
 				break
 			}
 		}
-		if matches && assignment.GetValue().GetEnvironment().GetBindingId() == bindingID {
+		if matches && assignment.GetValue().GetReference().GetEnvironmentBindingId() == bindingID {
 			return true
 		}
 	}
