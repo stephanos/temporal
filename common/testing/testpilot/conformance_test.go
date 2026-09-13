@@ -202,6 +202,8 @@ func facadeProfile(t testing.TB) testpilot.ProfileSpec {
 		Opcodes:        []testpilot.Opcode{testpilot.InvokeRPC},
 		ProgramLimits:  programLimits,
 		ContractLimits: contractLimits,
+		// temporal.DefaultInstructionLimits, spelled here for the same reason as the ceilings.
+		InstructionDefaults: testpilot.InstructionDefaults{TimeoutMilliseconds: 10000, MaxAttempts: 1},
 	}
 }
 

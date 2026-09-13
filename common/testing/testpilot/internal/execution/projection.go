@@ -95,9 +95,11 @@ func validateOutcome(w *valueWork, entryContext contract.EntrypointKind, n *node
 		}
 	}
 	result := &contract.OutcomeSnapshot{Outcome: frozen, Fields: make(map[testpilotspb.InstructionOutcomeField]*testpilotspb.Value, len(n.outcomes))}
-	for _, declaration := range n.source.Outcome.Fields {
-		field := declaration.Field
-		typ := n.outcomes[field]
+	for _, field := range outcomeFieldOrder {
+		typ, produced := n.outcomes[field]
+		if !produced {
+			continue
+		}
 		value, err := outcomeField(frozen, field)
 		if err != nil {
 			return nil, err
@@ -172,6 +174,16 @@ func finishBatch(w *valueWork, batch *valueBatch) (*valueBatch, int64, error) {
 		return nil, w.work, err
 	}
 	return batch, w.work, nil
+}
+
+// outcomeFieldOrder is the order an outcome snapshot copies the fields a node produces, so its work
+// charge is deterministic.
+var outcomeFieldOrder = []testpilotspb.InstructionOutcomeField{
+	testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS,
+	testpilotspb.INSTRUCTION_OUTCOME_FIELD_PROTOCOL_CODE,
+	testpilotspb.INSTRUCTION_OUTCOME_FIELD_SDK_FAILURE_CODE,
+	testpilotspb.INSTRUCTION_OUTCOME_FIELD_DETAIL,
+	testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE,
 }
 
 func outcomeField(outcome *testpilotspb.InstructionOutcome, field testpilotspb.InstructionOutcomeField) (*testpilotspb.Value, error) {

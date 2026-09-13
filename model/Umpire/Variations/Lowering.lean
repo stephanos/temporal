@@ -44,10 +44,10 @@ structure FaultRealization where
   instructionId : String
   /-- The `ROLE_KIND_TASK_QUEUE` role whose resource binding identifies the affected queue. -/
   roleId : String
-  limits : InstructionLimits
+  /-- The bounds that differ from the Profile's instruction defaults; none by default. -/
+  limits : InstructionLimits := {}
   after : Option After := none
   guard : Option Expression := none
-  outcome : Option InstructionOutcomeDefinition := none
 
 /-- Lower one fault intent to the instruction definition a Driver realizes it through. The outage
 comes from the declaration's capability; the placement comes entirely from the realization. A
@@ -66,6 +66,6 @@ def FaultIntentDeclaration.lower
         .error (failed "fault.incomplete-realization")
       else
         .ok (Program.node realization.instructionId (Program.injectFault realization.roleId kind)
-          realization.limits realization.after realization.guard realization.outcome)
+          realization.limits realization.after realization.guard)
 
 end Umpire

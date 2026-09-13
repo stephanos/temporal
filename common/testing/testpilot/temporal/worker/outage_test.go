@@ -19,7 +19,7 @@ func faultInstruction(id, roleID string, kind testpilotspb.FaultKind) *testpilot
 	return &testpilotspb.InstructionNode{
 		InstructionId: id,
 		Instruction:   &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InjectFault{InjectFault: &testpilotspb.InjectFault{RoleId: roleID, Kind: kind}}},
-		Outcome:       runtimeStatusSchema(), Limits: runtimeBounds(),
+		Limits:        runtimeBounds(),
 	}
 }
 
@@ -122,7 +122,6 @@ func TestPreparedDefinitionPlansOutages(t *testing.T) {
 		// A fault on a task-queue role no worker registers on has nothing to stop, so it is refused
 		// here rather than at dispatch, where a rejected instruction would abort the whole Run.
 		{name: "unregistered fault queue", wantErr: ErrInvalid, modifiers: []any{func(program *testpilotspb.Program) {
-			program.Environment = append(program.Environment, &testpilotspb.EnvironmentDefinition{BindingId: "other-queue"})
 			program.Roles = append(program.Roles, &testpilotspb.Role{RoleId: "idle-queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE, NamespaceBindingId: "namespace", ResourceBindingId: "other-queue"})
 			program.Entrypoints[0].Instructions = append(program.Entrypoints[0].Instructions, faultInstruction("stop", "idle-queue", testpilotspb.FAULT_KIND_WORKER_STOP))
 		}, func(profile *testpilot.ProfileSpec) {
@@ -314,7 +313,6 @@ func TestFaultRestoreResumesBeforeReleasing(t *testing.T) {
 // it asked for and leaves the others running.
 func TestFaultTransitionsTheNamedQueue(t *testing.T) {
 	program := preparedSymbolicRuntimeFixture(t, func(program *testpilotspb.Program) {
-		program.Environment = append(program.Environment, &testpilotspb.EnvironmentDefinition{BindingId: "other-queue"})
 		program.Roles = append(program.Roles, &testpilotspb.Role{RoleId: "other", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE, NamespaceBindingId: "namespace", ResourceBindingId: "other-queue"})
 		program.Entrypoints[2].GetNexusHandler().TaskQueueRoleId = "other"
 		program.Entrypoints[0].Instructions = append(program.Entrypoints[0].Instructions, faultInstruction("stop", "other", testpilotspb.FAULT_KIND_WORKER_STOP))

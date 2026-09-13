@@ -309,6 +309,10 @@ var Declared = Mapping{
 			RewriteMessages(protocol+"Cleanup"+"Definition", defaultInstructionOrder),
 		),
 	},
+	{
+		Name: "Program.environment, activation reservations and instruction outcomes are derived, and instruction limits equal to the Profile defaults are omitted", Requirement: "R10",
+		Apply: RewriteMessages(protocol+"Program", deriveProgramDeclarations),
+	},
 }
 
 // defaultInstructionOrder rewrites one entrypoint's instructions against the default order: an

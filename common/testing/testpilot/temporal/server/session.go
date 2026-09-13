@@ -59,7 +59,11 @@ func (s *Session) controllerNode(c testpilot.Coordinate) (*testpilotspb.Instruct
 		return nil, errUnauthorized
 	}
 	n := s.nodes[nodeKey{c.EntrypointID, c.InstructionID}]
-	if n == nil || c.Attempt > n.GetLimits().GetMaxAttempts() {
+	if n == nil {
+		return nil, errUnauthorized
+	}
+	// The Program was prepared under this Driver's Profile, so its defaults are the node's.
+	if _, maxAttempts := s.host.profile.InstructionDefaults.Resolve(n.GetLimits()); c.Attempt > maxAttempts {
 		return nil, errUnauthorized
 	}
 	return n, nil
@@ -145,7 +149,8 @@ func (s *Session) startLocked(ctx context.Context, c testpilot.Coordinate, bound
 	if s.host.effects >= limits.MaxAttempts || s.attempts >= limits.MaxAttempts {
 		return nil, errCapacity
 	}
-	timeout := min(bounds.GetTimeoutMilliseconds(), max(limits.MaxTotalDurationMilliseconds, limits.MaxCleanupDurationMilliseconds))
+	timeoutMilliseconds, _ := s.host.profile.InstructionDefaults.Resolve(bounds)
+	timeout := min(timeoutMilliseconds, max(limits.MaxTotalDurationMilliseconds, limits.MaxCleanupDurationMilliseconds))
 	if timeout <= 0 {
 		return nil, errInvalid
 	}

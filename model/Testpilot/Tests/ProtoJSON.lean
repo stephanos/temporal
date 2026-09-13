@@ -9,7 +9,8 @@ namespace Testpilot.Tests.ProtoJSON
 private def assert (condition : Bool) (failure : String) : IO Unit := do
   unless condition do throw (IO.userError failure)
 
-private def instructionLimits := Program.instructionLimits 1000 9223372036854775807
+private def instructionLimits :=
+  Program.instructionLimits (some 1000) (some 9223372036854775807)
 private def runPath := Path.make #[Path.field "run_id"]
 
 private def instructionExpression := Expr.all #[
@@ -67,8 +68,6 @@ private def bindingProgram : temporal.server.api.testpilot.v1.Program := Program
   #[] #[] #[Program.controller "controller" #[Program.node "finish"
     (Program.finish (Expr.environment "")) instructionLimits]]
   (Program.cleanup "cleanup" #[])
-  (environment := #[Program.environment "namespace", Program.environment "task.queue",
-    Program.environment "nexus.endpoint"])
 
 def representativeCase : Case := Testpilot.Authoring.case 1 "binding-case" bindingProgram contract
   (provenance "testpilot-tests" "1" (ByteArray.mk #[0, 255, 128]))
@@ -127,8 +126,8 @@ private def tests : IO Unit := do
   assert (first.contains "\"version\":{\"major\":1}") "Case 1.0 was dropped"
   assert (first.contains "\"reference\":{\"environmentBindingId\":\"\"}")
     "present empty environment reference was dropped"
-  assert (first.contains "\"environment\":[{\"bindingId\":\"namespace\"},{\"bindingId\":\"task.queue\"},{\"bindingId\":\"nexus.endpoint\"}]")
-    "environment definitions changed order"
+  assert (!first.contains "\"environment\":")
+    "a Program declared the environment bindings preparation derives"
   assert (first.contains "\"namespaceBindingId\":\"namespace\"") "namespace binding was dropped"
   assert (first.contains "\"resourceBindingId\":\"task.queue\"") "resource binding was dropped"
   assert (first.contains "\"reference\":{\"runEvent\":{\"field\":\"RUN_EVENT_FIELD_RUN_ID\"}}")

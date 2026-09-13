@@ -55,6 +55,13 @@ func scalarSchema(kind testpilotspb.ScalarKind) *testpilotspb.ValueType {
 	return &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Scalar{Scalar: &testpilotspb.ScalarType{Kind: kind}}}}}
 }
 func (a *admission) bindInstructions() error {
+	var err error
+	if a.outcomeTypes.status, err = a.prepared.catalog.BindType(&testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Enumeration{Enumeration: &testpilotspb.NamedType{ProtobufType: string(testpilotspb.InstructionOutcomeStatus(0).Descriptor().FullName())}}}}}); err != nil {
+		return err
+	}
+	if a.outcomeTypes.text, err = a.prepared.catalog.BindType(scalarSchema(testpilotspb.SCALAR_KIND_TEXT)); err != nil {
+		return err
+	}
 	for _, g := range a.prepared.graphs {
 		for i, n := range g.nodes {
 			if err := a.bindInstruction(g, i, n); err != nil {
@@ -121,17 +128,23 @@ func bindAwait(g *graph, n *node) error {
 	}
 	return nil
 }
+
+// bindNodeBounds resolves a node's limits: each one the Case writes, or the Profile's default where it
+// writes none, within the Profile's ceilings.
 func (a *admission) bindNodeBounds(g *graph, n *node) error {
-	bounds := n.source.Limits
+	bounds := n.source.GetLimits()
+	n.timeoutMilliseconds, n.maxAttempts = a.prepared.policy.InstructionDefaults.Resolve(bounds)
+	if bounds.GetTimeout() == nil && n.timeoutMilliseconds == 0 || bounds.GetAttempts() == nil && n.maxAttempts == 0 {
+		return invalid(ir.Malformed, nodePath(g, n), "instruction writes no limit the Profile has no default for")
+	}
 	limits := a.prepared.limits
 	duration := limits.MaxTotalDurationMilliseconds
 	if g.cleanup {
 		duration = limits.MaxCleanupDurationMilliseconds
 	}
-	if bounds == nil || bounds.TimeoutMilliseconds <= 0 || bounds.TimeoutMilliseconds > duration || bounds.MaxAttempts <= 0 || bounds.MaxAttempts > limits.MaxAttempts {
+	if n.timeoutMilliseconds <= 0 || n.timeoutMilliseconds > duration || n.maxAttempts <= 0 || n.maxAttempts > limits.MaxAttempts {
 		return invalid(ir.LimitExceeded, nodePath(g, n), "instruction bounds exceed Profile ceilings")
 	}
-
 	return nil
 }
 func (a *admission) bindRPC(g *graph, i int, n *node) error {
@@ -187,49 +200,22 @@ func (a *admission) bindFault(g *graph, n *node) error {
 	return nil
 }
 
+// bindOutcomes gives a node the outcome fields its instruction produces: every instruction a status and
+// a detail; a controller protocol effect its protocol code; a workflow or Nexus-handler instruction its
+// SDK failure code; and an awaited Nexus operation its text result as the value. A Case declares none
+// of them. An RPC response is read only through response reads, and a Finish or RespondNexus result
+// ends its activation, so neither is an outcome value.
 func (a *admission) bindOutcomes(g *graph, n *node) error {
-	if n.source.Outcome == nil {
-		return invalid(ir.Malformed, nodePath(g, n), "outcome schema is required")
+	n.outcomes[testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS] = a.outcomeTypes.status
+	switch {
+	case n.opcode == contract.InvokeRPC || n.opcode == contract.CompleteNexusOperation:
+		n.outcomes[testpilotspb.INSTRUCTION_OUTCOME_FIELD_PROTOCOL_CODE] = a.outcomeTypes.text
+	case g.context != contract.ControllerEntrypoint:
+		n.outcomes[testpilotspb.INSTRUCTION_OUTCOME_FIELD_SDK_FAILURE_CODE] = a.outcomeTypes.text
 	}
-	for _, field := range n.source.Outcome.Fields {
-		if field == nil {
-			return invalid(ir.Malformed, nodePath(g, n), "nil outcome field")
-		}
-		if _, exists := n.outcomes[field.Field]; exists {
-			return invalid(ir.Malformed, nodePath(g, n), "duplicate outcome field")
-		}
-		typ, err := a.prepared.catalog.BindType(field.Type)
-		if err != nil {
-			return err
-		}
-		var expected *testpilotspb.ValueType
-		switch field.Field {
-		case testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS:
-			expected = &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Enumeration{Enumeration: &testpilotspb.NamedType{ProtobufType: "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"}}}}}
-		case testpilotspb.INSTRUCTION_OUTCOME_FIELD_PROTOCOL_CODE:
-			if n.opcode != contract.InvokeRPC && n.opcode != contract.CompleteNexusOperation {
-				return invalid(ir.Unsupported, nodePath(g, n), "protocol code requires a controller protocol effect")
-			}
-			expected = scalarSchema(testpilotspb.SCALAR_KIND_TEXT)
-		case testpilotspb.INSTRUCTION_OUTCOME_FIELD_SDK_FAILURE_CODE:
-			if g.context == contract.ControllerEntrypoint {
-				return invalid(ir.Unsupported, nodePath(g, n), "SDK failure code requires an SDK instruction")
-			}
-			expected = scalarSchema(testpilotspb.SCALAR_KIND_TEXT)
-		case testpilotspb.INSTRUCTION_OUTCOME_FIELD_DETAIL:
-			expected = scalarSchema(testpilotspb.SCALAR_KIND_TEXT)
-		case testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE:
-			// RPC payloads are available only through declared response projections.
-			if g.context == contract.ControllerEntrypoint || typ.Opaque() || n.opcode == contract.StartNexusOperation {
-				return invalid(ir.Unsupported, nodePath(g, n), "VALUE requires an SDK result, not a controller outcome, opaque capability or StartNexusOperation handle")
-			}
-		default:
-			return invalid(ir.Unknown, nodePath(g, n), "unknown outcome field")
-		}
-		if expected != nil && !proto.Equal(expected, field.Type) {
-			return invalid(ir.TypeMismatch, nodePath(g, n), "outcome field has the wrong type")
-		}
-		n.outcomes[field.Field] = typ
+	n.outcomes[testpilotspb.INSTRUCTION_OUTCOME_FIELD_DETAIL] = a.outcomeTypes.text
+	if n.opcode == contract.Await {
+		n.outcomes[testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE] = a.outcomeTypes.text
 	}
 	return nil
 }

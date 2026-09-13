@@ -195,16 +195,6 @@
         "entrypointId": "controller",
         "instructions": [
           {
-            "activationReservations": [
-              {
-                "count": "1",
-                "entrypointId": "workflow"
-              },
-              {
-                "count": "1",
-                "entrypointId": "handler"
-              }
-            ],
             "instruction": {
               "invokeRpc": {
                 "endpointRoleId": "temporal.workflow-service",
@@ -289,25 +279,7 @@
                 ]
               }
             },
-            "instructionId": "start-workflow",
-            "limits": {
-              "maxAttempts": "1",
-              "timeoutMilliseconds": "10000"
-            },
-            "outcome": {
-              "fields": [
-                {
-                  "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                  "type": {
-                    "singular": {
-                      "enumeration": {
-                        "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                      }
-                    }
-                  }
-                }
-              ]
-            }
+            "instructionId": "start-workflow"
           },
           {
             "instruction": {
@@ -315,25 +287,7 @@
                 "slotId": "completion-authority"
               }
             },
-            "instructionId": "await-completion-authority",
-            "limits": {
-              "maxAttempts": "1",
-              "timeoutMilliseconds": "10000"
-            },
-            "outcome": {
-              "fields": [
-                {
-                  "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                  "type": {
-                    "singular": {
-                      "enumeration": {
-                        "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                      }
-                    }
-                  }
-                }
-              ]
-            }
+            "instructionId": "await-completion-authority"
           },
           {
             "instruction": {
@@ -346,25 +300,7 @@
                 }
               }
             },
-            "instructionId": "complete-nexus-operation",
-            "limits": {
-              "maxAttempts": "1",
-              "timeoutMilliseconds": "10000"
-            },
-            "outcome": {
-              "fields": [
-                {
-                  "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                  "type": {
-                    "singular": {
-                      "enumeration": {
-                        "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                      }
-                    }
-                  }
-                }
-              ]
-            }
+            "instructionId": "complete-nexus-operation"
           },
           {
             "instruction": {
@@ -562,25 +498,7 @@
                 ]
               }
             },
-            "instructionId": "history",
-            "limits": {
-              "maxAttempts": "1",
-              "timeoutMilliseconds": "10000"
-            },
-            "outcome": {
-              "fields": [
-                {
-                  "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                  "type": {
-                    "singular": {
-                      "enumeration": {
-                        "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                      }
-                    }
-                  }
-                }
-              ]
-            }
+            "instructionId": "history"
           }
         ]
       },
@@ -600,25 +518,7 @@
                 "service": "umpire.case.service"
               }
             },
-            "instructionId": "start-nexus-operation",
-            "limits": {
-              "maxAttempts": "1",
-              "timeoutMilliseconds": "10000"
-            },
-            "outcome": {
-              "fields": [
-                {
-                  "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                  "type": {
-                    "singular": {
-                      "enumeration": {
-                        "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                      }
-                    }
-                  }
-                }
-              ]
-            }
+            "instructionId": "start-nexus-operation"
           },
           {
             "guard": {
@@ -634,35 +534,7 @@
                 }
               }
             },
-            "instructionId": "await-nexus-operation",
-            "limits": {
-              "maxAttempts": "1",
-              "timeoutMilliseconds": "10000"
-            },
-            "outcome": {
-              "fields": [
-                {
-                  "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                  "type": {
-                    "singular": {
-                      "enumeration": {
-                        "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                      }
-                    }
-                  }
-                },
-                {
-                  "field": "INSTRUCTION_OUTCOME_FIELD_VALUE",
-                  "type": {
-                    "singular": {
-                      "scalar": {
-                        "kind": "SCALAR_KIND_TEXT"
-                      }
-                    }
-                  }
-                }
-              ]
-            }
+            "instructionId": "await-nexus-operation"
           },
           {
             "instruction": {
@@ -682,22 +554,7 @@
             },
             "instructionId": "finish-workflow",
             "limits": {
-              "maxAttempts": "1",
               "timeoutMilliseconds": "5000"
-            },
-            "outcome": {
-              "fields": [
-                {
-                  "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                  "type": {
-                    "singular": {
-                      "enumeration": {
-                        "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                      }
-                    }
-                  }
-                }
-              ]
             }
           }
         ],
@@ -724,22 +581,7 @@
             },
             "instructionId": "respond-async",
             "limits": {
-              "maxAttempts": "1",
               "timeoutMilliseconds": "5000"
-            },
-            "outcome": {
-              "fields": [
-                {
-                  "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                  "type": {
-                    "singular": {
-                      "enumeration": {
-                        "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                      }
-                    }
-                  }
-                }
-              ]
             }
           }
         ],
@@ -749,17 +591,6 @@
           "taskQueueRoleId": "temporal.task-queue",
           "workerRoleId": "temporal.worker"
         }
-      }
-    ],
-    "environment": [
-      {
-        "bindingId": "temporal.worker.namespace"
-      },
-      {
-        "bindingId": "temporal.task-queue.resource"
-      },
-      {
-        "bindingId": "temporal.nexus-endpoint.resource"
       }
     ],
     "observations": [

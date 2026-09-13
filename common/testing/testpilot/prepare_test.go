@@ -103,7 +103,6 @@ func TestPrepareOwnsMutableInputs(t *testing.T) {
 
 func TestPrepareFingerprintsCanonicalEnvironmentSnapshot(t *testing.T) {
 	source, profile := facadeFixture(t)
-	source.Program.Environment = []*testpilotspb.EnvironmentDefinition{{BindingId: "alpha"}, {BindingId: "beta"}}
 	source.Program.Roles = []*testpilotspb.Role{{RoleId: "worker", Kind: testpilotspb.ROLE_KIND_WORKER, NamespaceBindingId: "alpha"}, {RoleId: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE, NamespaceBindingId: "alpha", ResourceBindingId: "beta"}}
 	profile.Roles = []RolePolicy{{ID: "worker", Kind: testpilotspb.ROLE_KIND_WORKER}, {ID: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE}}
 	profile.EnvironmentBindings = []EnvironmentBinding{{ID: "beta", Value: "v|2"}, {ID: "unused", Value: "x\x00y"}, {ID: "alpha", Value: "v:1"}}
@@ -145,7 +144,7 @@ func TestPrepareFingerprintsCanonicalEnvironmentSnapshot(t *testing.T) {
 	require.NotEqual(t, leftFingerprint, rightFingerprint)
 
 	profile.EnvironmentBindings[1].Value = "changed"
-	require.Equal(t, "beta", prepared.Snapshot().Program.Environment[1].BindingId)
+	require.Equal(t, "beta", prepared.Snapshot().Program.Roles[1].ResourceBindingId)
 	changed, err := profile.BindingFingerprint()
 	require.NoError(t, err)
 	require.NotEqual(t, fingerprint, changed)
@@ -182,7 +181,6 @@ func TestPrepareRejectsMalformedEnvironmentSnapshots(t *testing.T) {
 
 func TestConcurrentPreparationsOwnEnvironmentSnapshots(t *testing.T) {
 	source, base := facadeFixture(t)
-	source.Program.Environment = []*testpilotspb.EnvironmentDefinition{{BindingId: "namespace"}}
 	source.Program.Roles = []*testpilotspb.Role{{RoleId: "worker", Kind: testpilotspb.ROLE_KIND_WORKER, NamespaceBindingId: "namespace"}}
 	base.Roles = []RolePolicy{{ID: "worker", Kind: testpilotspb.ROLE_KIND_WORKER}}
 
@@ -197,7 +195,7 @@ func TestConcurrentPreparationsOwnEnvironmentSnapshots(t *testing.T) {
 			fingerprint, err := profile.BindingFingerprint()
 			require.NoError(t, err)
 			profile.EnvironmentBindings[0].Value = "changed"
-			require.Equal(t, "namespace", prepared.Snapshot().Program.Environment[0].BindingId)
+			require.Equal(t, "namespace", prepared.Snapshot().Program.Roles[0].NamespaceBindingId)
 			require.NotEmpty(t, fingerprint)
 		})
 	}

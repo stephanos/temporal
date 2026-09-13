@@ -17,8 +17,8 @@ func carrierFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Profile) {
 	policy.Roles[0].ReservationCarriers = []contract.ReservationCarrierPolicy{{
 		Method: "/example.Service/Call",
 		Shapes: []contract.ReservationCarrierShape{
-			{Kind: contract.WorkflowEntrypoint, MaximumCount: 2},
-			{Kind: contract.NexusHandlerEntrypoint, MaximumCount: 4},
+			{Kind: contract.WorkflowEntrypoint, MaximumCount: 1},
+			{Kind: contract.NexusHandlerEntrypoint, MaximumCount: 2},
 		},
 	}}
 	return source, catalog, policy
@@ -26,22 +26,20 @@ func carrierFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Profile) {
 
 func TestPrepareCompilesDeterministicReservationCarrierTopology(t *testing.T) {
 	source, catalog, policy := carrierFixture(t)
-	controller := source.Program.Entrypoints[0]
-	controller.Instructions[0].ActivationReservations[0].Count = 2
-	controller.Instructions[0].ActivationReservations[1].Count = 4
 	workflow := source.Program.Entrypoints[1]
 	workflow.Instructions[0].Guard = &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: false}}}}
 	secondStart := proto.CloneOf(workflow.Instructions[0])
 	secondStart.InstructionId = "start_second"
 	secondStart.Guard = nil
 	secondStart.After = runsAfter("workflow")
+	secondStart.Instruction.GetStartNexusOperation().Operation = "operation_second"
 	workflow.Instructions = append(workflow.Instructions, secondStart)
-	secondController := proto.CloneOf(controller.Instructions[0])
-	secondController.InstructionId = "call_second"
-	secondController.After = runsAfter("controller")
-	secondController.ActivationReservations[0].Count = 1
-	secondController.ActivationReservations[1].Count = 2
-	controller.Instructions = append(controller.Instructions, secondController)
+	secondHandler := proto.CloneOf(source.Program.Entrypoints[2])
+	secondHandler.EntrypointId = "handler_second"
+	secondHandler.GetNexusHandler().Operation = "operation_second"
+	secondHandler.Instructions[0].Instruction.GetRespondNexus().Kind = testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS
+	secondHandler.Instructions[0].Instruction.GetRespondNexus().HandleSlotId = ""
+	source.Program.Entrypoints = append(source.Program.Entrypoints, secondHandler)
 
 	prepared, err := Prepare(source, catalog, policy)
 	require.NoError(t, err)
@@ -51,22 +49,18 @@ func TestPrepareCompilesDeterministicReservationCarrierTopology(t *testing.T) {
 		EndpointRoleID: "endpoint",
 		Method:         "/example.Service/Call",
 		Reservations: []contract.ReservationTopology{
-			{EntrypointID: "workflow", Kind: contract.WorkflowEntrypoint, Count: 2},
-			{EntrypointID: "handler", Kind: contract.NexusHandlerEntrypoint, Count: 4},
+			{EntrypointID: "workflow", Kind: contract.WorkflowEntrypoint, Count: 1},
+			{EntrypointID: "handler", Kind: contract.NexusHandlerEntrypoint, Count: 1},
+			{EntrypointID: "handler_second", Kind: contract.NexusHandlerEntrypoint, Count: 1},
 		},
 		Routes: []contract.ReservationRoute{
 			{WorkflowEntrypointID: "workflow", WorkflowOrdinal: 0, SourceInstructionID: "start", HandlerEntrypointID: "handler", HandlerOrdinal: 0},
-			{WorkflowEntrypointID: "workflow", WorkflowOrdinal: 1, SourceInstructionID: "start", HandlerEntrypointID: "handler", HandlerOrdinal: 1},
-			{WorkflowEntrypointID: "workflow", WorkflowOrdinal: 0, SourceInstructionID: "start_second", HandlerEntrypointID: "handler", HandlerOrdinal: 2},
-			{WorkflowEntrypointID: "workflow", WorkflowOrdinal: 1, SourceInstructionID: "start_second", HandlerEntrypointID: "handler", HandlerOrdinal: 3},
+			{WorkflowEntrypointID: "workflow", WorkflowOrdinal: 0, SourceInstructionID: "start_second", HandlerEntrypointID: "handler_second", HandlerOrdinal: 0},
 		},
 	}
 	plan, ok := prepared.ReservationCarrier("controller", "call")
 	require.True(t, ok)
 	require.Equal(t, want, plan)
-	second, ok := prepared.ReservationCarrier("controller", "call_second")
-	require.True(t, ok)
-	require.Len(t, second.Routes, 2)
 	other, ok := isolated.ReservationCarrier("controller", "call")
 	require.True(t, ok)
 	require.Equal(t, want, other)
@@ -83,7 +77,6 @@ func TestPrepareCompilesDeterministicReservationCarrierTopology(t *testing.T) {
 func TestPrepareExposesWorkflowOnlyCarrierReservations(t *testing.T) {
 	source, catalog, policy := fixture(t)
 	addWorker(source, &policy)
-	source.Program.Entrypoints[0].Instructions[0].ActivationReservations = []*testpilotspb.ActivationReservationDefinition{{EntrypointId: "workflow", Count: 1}}
 	prepared, err := Prepare(source, catalog, policy)
 	require.NoError(t, err)
 	plan, ok := prepared.ReservationCarrier("controller", "call")
@@ -147,14 +140,13 @@ func TestPrepareRejectsReservationCarrierPolicyErrors(t *testing.T) {
 			policy.Roles[1].ReservationCarriers = policy.Roles[0].ReservationCarriers
 			policy.Roles[0].ReservationCarriers = nil
 		},
-		"missing carrier authority": func(_ *testpilotspb.Case, policy *Profile) {
-			policy.Roles[0].ReservationCarriers = nil
-		},
 		"unsupported reservation shape": func(_ *testpilotspb.Case, policy *Profile) {
 			policy.Roles[0].ReservationCarriers[0].Shapes = policy.Roles[0].ReservationCarriers[0].Shapes[:1]
 		},
 		"reservation cardinality": func(source *testpilotspb.Case, _ *Profile) {
-			source.Program.Entrypoints[0].Instructions[0].ActivationReservations[0].Count = 3
+			workflow := proto.CloneOf(source.Program.Entrypoints[1])
+			workflow.EntrypointId = "workflow_second"
+			source.Program.Entrypoints = append(source.Program.Entrypoints, workflow)
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -167,29 +159,32 @@ func TestPrepareRejectsReservationCarrierPolicyErrors(t *testing.T) {
 }
 
 func TestPrepareRejectsInvalidReservationCarrierTopology(t *testing.T) {
-	for name, mutate := range map[string]func(*testpilotspb.Case){
-		"missing handler reservation": func(source *testpilotspb.Case) {
-			source.Program.Entrypoints[0].Instructions[0].ActivationReservations = source.Program.Entrypoints[0].Instructions[0].ActivationReservations[:1]
+	for name, mutate := range map[string]func(*testpilotspb.Case, *Profile){
+		"missing handler reservation": func(_ *testpilotspb.Case, policy *Profile) {
+			policy.Roles[0].ReservationCarriers[0].Shapes = policy.Roles[0].ReservationCarriers[0].Shapes[:1]
 		},
-		"ambiguous handler": func(source *testpilotspb.Case) {
+		"ambiguous handler": func(source *testpilotspb.Case, _ *Profile) {
 			handler := proto.CloneOf(source.Program.Entrypoints[2])
 			handler.EntrypointId = "handler_second"
 			source.Program.Entrypoints = append(source.Program.Entrypoints, handler)
-			source.Program.Entrypoints[0].Instructions[0].ActivationReservations = append(source.Program.Entrypoints[0].Instructions[0].ActivationReservations, &testpilotspb.ActivationReservationDefinition{EntrypointId: "handler_second", Count: 1})
 		},
-		"crossed handler": func(source *testpilotspb.Case) {
+		"crossed handler": func(source *testpilotspb.Case, _ *Profile) {
 			source.Program.Entrypoints[2].GetNexusHandler().Operation = "other"
 		},
-		"handler count mismatch": func(source *testpilotspb.Case) {
-			source.Program.Entrypoints[0].Instructions[0].ActivationReservations[1].Count = 2
+		"handler count mismatch": func(source *testpilotspb.Case, _ *Profile) {
+			workflow := source.Program.Entrypoints[1]
+			second := proto.CloneOf(workflow.Instructions[0])
+			second.InstructionId = "start_second"
+			second.After = runsAfter("workflow")
+			workflow.Instructions = append(workflow.Instructions, second)
 		},
-		"handler without workflow": func(source *testpilotspb.Case) {
-			source.Program.Entrypoints[0].Instructions[0].ActivationReservations = source.Program.Entrypoints[0].Instructions[0].ActivationReservations[1:]
+		"handler without workflow": func(_ *testpilotspb.Case, policy *Profile) {
+			policy.Roles[0].ReservationCarriers[0].Shapes = policy.Roles[0].ReservationCarriers[0].Shapes[1:]
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			source, catalog, policy := carrierFixture(t)
-			mutate(source)
+			mutate(source, &policy)
 			_, err := Prepare(source, catalog, policy)
 			require.Error(t, err)
 		})

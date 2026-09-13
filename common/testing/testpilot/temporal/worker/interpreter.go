@@ -68,8 +68,7 @@ func (i *workflowInterpreter) execute(index int, instruction testpilot.Instructi
 	case testpilot.Await:
 		return nil, false, i.awaitNexus(index, instruction)
 	case testpilot.Finish:
-		outcome := terminalOutcome(instruction, input)
-		if err := i.state.Admit(context.Background(), index, outcome); err != nil {
+		if err := i.state.Admit(context.Background(), index, terminalOutcome()); err != nil {
 			return nil, false, err
 		}
 		return proto.CloneOf(input), true, nil
@@ -91,7 +90,7 @@ func (i *workflowInterpreter) startNexus(index int, instruction testpilot.Instru
 		start.GetOperation(),
 		input,
 		workflow.NexusOperationOptions{
-			ScheduleToCloseTimeout: time.Duration(source.GetLimits().GetTimeoutMilliseconds()) * time.Millisecond,
+			ScheduleToCloseTimeout: time.Duration(instruction.TimeoutMilliseconds()) * time.Millisecond,
 			CancellationType:       workflow.NexusOperationCancellationTypeWaitRequested,
 		},
 	)
@@ -111,7 +110,7 @@ func (i *workflowInterpreter) awaitNexus(index int, instruction testpilot.Instru
 	ready := future.IsReady()
 	var err error
 	if !ready {
-		ready, err = workflow.AwaitWithTimeout(i.ctx, time.Duration(instruction.Source().GetLimits().GetTimeoutMilliseconds())*time.Millisecond, future.IsReady)
+		ready, err = workflow.AwaitWithTimeout(i.ctx, time.Duration(instruction.TimeoutMilliseconds())*time.Millisecond, future.IsReady)
 	}
 	if err == nil {
 		if ready {
@@ -127,15 +126,10 @@ func (i *workflowInterpreter) awaitNexus(index int, instruction testpilot.Instru
 	return i.state.Admit(context.Background(), index, outcome)
 }
 
-func terminalOutcome(instruction testpilot.InstructionPlan, input *testpilotspb.Value) *testpilotspb.InstructionOutcome {
-	outcome := &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}
-	for _, field := range instruction.Source().GetOutcome().GetFields() {
-		if field.GetField() == testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE {
-			outcome.Value = proto.CloneOf(input)
-			break
-		}
-	}
-	return outcome
+// terminalOutcome is the outcome of a Finish or RespondNexus that ended its activation. Its result is
+// the activation's result, not an outcome value.
+func terminalOutcome() *testpilotspb.InstructionOutcome {
+	return &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}
 }
 
 func outcomeForError(err error) *testpilotspb.InstructionOutcome {
@@ -206,7 +200,7 @@ func (s *Session) interpretNexus(ctx context.Context, delivered delivery.Activat
 			return 0, nil, "", ErrInvalid
 		}
 		response := instruction.Source().GetInstruction().GetRespondNexus()
-		if err := state.Admit(ctx, index, terminalOutcome(instruction, input)); err != nil {
+		if err := state.Admit(ctx, index, terminalOutcome()); err != nil {
 			return 0, nil, "", err
 		}
 		return s.respondNexus(ctx, delivered, response, input, options)

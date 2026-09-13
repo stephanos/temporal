@@ -78,7 +78,6 @@ func TestDeriveProfileNeverWidensBeyondTheCase(t *testing.T) {
 
 	// Every derived method, carrier and opcode is one the Case itself references.
 	methods, opcodes := map[string]bool{}, map[testpilot.Opcode]bool{}
-	reserving := map[string]bool{}
 	program := source.GetProgram()
 	plans := append(program.GetEntrypoints(), &testpilotspb.Entrypoint{
 		EntrypointId: program.GetCleanup().GetEntrypointId(), Instructions: program.GetCleanup().GetInstructions(),
@@ -88,9 +87,6 @@ func TestDeriveProfileNeverWidensBeyondTheCase(t *testing.T) {
 			opcodes[testpilot.InstructionCapability(instruction.GetInstruction())] = true
 			if rpc := instruction.GetInstruction().GetInvokeRpc(); rpc != nil {
 				methods[rpc.GetEndpointRoleId()+rpc.GetMethod()] = true
-				if len(instruction.GetActivationReservations()) > 0 {
-					reserving[rpc.GetEndpointRoleId()+rpc.GetMethod()] = true
-				}
 			}
 		}
 	}
@@ -102,12 +98,12 @@ func TestDeriveProfileNeverWidensBeyondTheCase(t *testing.T) {
 			require.True(t, methods[role.ID+method])
 		}
 		for _, carrier := range role.ReservationCarriers {
-			require.True(t, reserving[role.ID+carrier.Method])
+			require.True(t, methods[role.ID+carrier.Method])
 		}
 	}
 
-	// Carrier shapes are checked per reserving node, so a second node on the same carrier that
-	// reserves the same context must not raise the ceiling: it needs the same room, not twice it.
+	// A carrier's shapes are the entrypoints its reservations reach, so a second node on the same
+	// carrier must not raise the ceiling: it needs the same room, not twice it.
 	twoNodes := proto.CloneOf(source)
 	controller := twoNodes.Program.Entrypoints[0]
 	second := proto.CloneOf(controller.Instructions[0])
@@ -120,7 +116,6 @@ func TestDeriveProfileNeverWidensBeyondTheCase(t *testing.T) {
 	// A Case with no worker roles yields no worker policy, no carriers, and no bindings.
 	bare := proto.CloneOf(source)
 	bare.Program.Roles = nil
-	bare.Program.Environment = nil
 	bare.Program.Entrypoints = bare.Program.Entrypoints[:1]
 	bare.Program.Entrypoints[0].Instructions = nil
 	bare.Program.Cleanup.Instructions = nil
@@ -143,11 +138,8 @@ func TestDeriveProfileRejectsWhatItCannotRead(t *testing.T) {
 		"unset instruction": func(c *testpilotspb.Case) {
 			c.Program.Entrypoints[0].Instructions[0].Instruction = &testpilotspb.Instruction{}
 		},
-		"undeclared reserved entrypoint": func(c *testpilotspb.Case) {
-			c.Program.Entrypoints[0].Instructions[0].ActivationReservations[0].EntrypointId = "missing"
-		},
 		"unclaimed environment binding": func(c *testpilotspb.Case) {
-			c.Program.Environment = append(c.Program.Environment, &testpilotspb.EnvironmentDefinition{BindingId: "orphan"})
+			c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().RequestAssignments[0].Value = &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_EnvironmentBindingId{EnvironmentBindingId: "orphan"}}}}
 		},
 		"unset activation": func(c *testpilotspb.Case) { c.Program.Entrypoints[0].Activation = nil },
 	} {

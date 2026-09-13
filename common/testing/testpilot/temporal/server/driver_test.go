@@ -46,7 +46,7 @@ func fixture(t *testing.T, address string) (*Driver, *testpilotspb.Case, []proto
 	return host, source, []protoreflect.MethodDescriptor{healthpb.File_grpc_health_v1_health_proto.Services().ByName("Health").Methods().ByName("Check"), file.Services().Get(0).Methods().Get(0)}
 }
 func rpcNode(id, method string) *testpilotspb.InstructionNode {
-	return &testpilotspb.InstructionNode{InstructionId: id, Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRpc{EndpointRoleId: "endpoint", Method: method}}}, Outcome: &testpilotspb.InstructionOutcomeDefinition{Fields: []*testpilotspb.OutcomeFieldDefinition{{Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS, Type: &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Enumeration{Enumeration: &testpilotspb.NamedType{ProtobufType: "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"}}}}}}}}, Limits: &testpilotspb.InstructionLimits{TimeoutMilliseconds: 2000, MaxAttempts: 1}}
+	return &testpilotspb.InstructionNode{InstructionId: id, Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRpc{EndpointRoleId: "endpoint", Method: method}}}, Limits: &testpilotspb.InstructionLimits{Timeout: &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: 2000}, Attempts: &testpilotspb.InstructionLimits_MaxAttempts{MaxAttempts: 1}}}
 }
 func coordinate(run, node string) testpilot.Coordinate {
 	return testpilot.Coordinate{RunID: run, EntrypointID: "controller", ActivationID: "controller", InstructionID: node, Attempt: 1}
@@ -182,7 +182,7 @@ func TestProtocolFailureTimeoutCancellationAndResponseLimit(t *testing.T) {
 			})
 			h, source, methods := fixture(t, address)
 			if kind == "timeout" {
-				source.Program.Entrypoints[0].Instructions[0].Limits.TimeoutMilliseconds = 20
+				source.Program.Entrypoints[0].Instructions[0].Limits.Timeout = &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: 20}
 			}
 			s, err := h.open(t.Context(), "run", source.Program, h.profile.ProgramLimits)
 			require.NoError(t, err)

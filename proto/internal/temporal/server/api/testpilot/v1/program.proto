@@ -5,20 +5,16 @@ import "temporal/server/api/testpilot/v1/value.proto";
 option go_package = "go.temporal.io/server/api/testpilot/v1;testpilot";
 
 // Program is a bounded collection of context-local DAGs and one always-run cleanup graph.
+// It declares no environment bindings: the ones it uses are those its roles and expressions reference,
+// derived at preparation, and the Profile must supply each.
 message Program {
   string program_id = 1;
-  // The symbolic environment bindings the Program uses. The Profile supplies their values, and each
-  // must be used by a role or an environment reference.
-  repeated EnvironmentDefinition environment = 2;
-  repeated Role roles = 3;
-  repeated Slot slots = 4;
-  repeated Observation observations = 5;
-  repeated Entrypoint entrypoints = 6;
-  Cleanup cleanup = 7;
+  repeated Role roles = 2;
+  repeated Slot slots = 3;
+  repeated Observation observations = 4;
+  repeated Entrypoint entrypoints = 5;
+  Cleanup cleanup = 6;
 }
-
-// EnvironmentDefinition declares one symbolic environment binding the Profile must supply.
-message EnvironmentDefinition { string binding_id = 1; }
 
 // Role is a symbolic participant that instructions and activations address. Its bindings resolve to
 // the Profile's physical values.

@@ -7,6 +7,7 @@ import (
 	"maps"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -688,6 +689,87 @@ func TestDeclaredDefaultOrderStepDropsOnlyTheDefault(t *testing.T) {
 			}
 			require.NoError(t, err)
 			encoded, err := json.Marshal(mapped.(*Object).Fields["instructions"])
+			require.NoError(t, err)
+			require.JSONEq(t, tc.want, string(encoded))
+		})
+	}
+}
+
+func TestDeclaredDerivedDeclarationsStepDropsOnlyWhatPreparationDerives(t *testing.T) {
+	t.Parallel()
+
+	const (
+		status   = `{"field": "INSTRUCTION_OUTCOME_FIELD_STATUS", "type": {"singular": {"enumeration": {"protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"}}}}`
+		value    = `{"field": "INSTRUCTION_OUTCOME_FIELD_VALUE", "type": {"singular": {"scalar": {"kind": "SCALAR_KIND_TEXT"}}}}`
+		start    = `{"instructionId": "start", "instruction": {"invokeRpc": {"method": "/temporal.api.workflowservice.v1.WorkflowService/StartWorkflowExecution", "requestAssignments": [{"value": {"reference": {"environmentBindingId": "namespace"}}}]}}, "limits": {"timeoutMilliseconds": "10000", "maxAttempts": "1"}, "outcome": {"fields": [` + status + `]}, "RESERVATIONS": [{"entrypointId": "workflow", "count": "1"}]}`
+		history  = `{"instructionId": "history", "instruction": {"invokeRpc": {"method": "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory"}}, "limits": {"timeoutMilliseconds": "20000", "maxAttempts": "1"}, "outcome": {"fields": [` + status + `]}}`
+		await    = `{"instructionId": "await", "instruction": {"awaitInstruction": {}}, "outcome": {"fields": [` + status + `, ` + value + `]}}`
+		finish   = `{"instructionId": "finish", "instruction": {"finish": {"result": RESULT}}, "outcome": {"fields": [` + value + `]}}`
+		roles    = `[{"roleId": "worker", "namespaceBindingId": "namespace"}, {"roleId": "queue", "namespaceBindingId": "namespace", "resourceBindingId": "queue"}]`
+		readsOwn = `{"reference": {"outcome": {"instruction": {"entrypointId": "workflow", "instructionId": "finish"}, "field": "INSTRUCTION_OUTCOME_FIELD_VALUE"}}}`
+	)
+	program := func(environment, controller, result string) string {
+		workflow := strings.ReplaceAll(finish, "RESULT", result)
+		return `{"programId": "p", "environment": ` + environment + `, "roles": ` + roles + `, "entrypoints": [{"entrypointId": "controller", "controller": {}, "instructions": [` + controller + `]}, {"entrypointId": "workflow", "workflow": {}, "instructions": [` + await + `, ` + workflow + `]}], "cleanup": {"entrypointId": "cleanup"}}`
+	}
+	derivedEnvironment := `[{"bindingId": "namespace"}, {"bindingId": "queue"}]`
+	for _, tc := range []struct {
+		name            string
+		program         string
+		want            string
+		wantErrorSubstr string
+	}{
+		{
+			name:    "every derived declaration and default limit",
+			program: program(derivedEnvironment, start+`, `+history, `{"literal": {"textValue": "done"}}`),
+			want:    `{"programId": "p", "roles": ` + roles + `, "entrypoints": [{"entrypointId": "controller", "controller": {}, "instructions": [{"instructionId": "start", "instruction": {"invokeRpc": {"method": "/temporal.api.workflowservice.v1.WorkflowService/StartWorkflowExecution", "requestAssignments": [{"value": {"reference": {"environmentBindingId": "namespace"}}}]}}}, {"instructionId": "history", "instruction": {"invokeRpc": {"method": "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory"}}, "limits": {"timeoutMilliseconds": "20000"}}]}, {"entrypointId": "workflow", "workflow": {}, "instructions": [{"instructionId": "await", "instruction": {"awaitInstruction": {}}}, {"instructionId": "finish", "instruction": {"finish": {"result": {"literal": {"textValue": "done"}}}}}]}], "cleanup": {"entrypointId": "cleanup"}}`,
+		},
+		{
+			name:            "environment out of derived order",
+			program:         program(`[{"bindingId": "queue"}, {"bindingId": "namespace"}]`, start, `{"literal": {"textValue": "done"}}`),
+			wantErrorSubstr: "environment [queue namespace] is not the derived binding graph [namespace queue]",
+		},
+		{
+			name:            "reservation of two activations",
+			program:         program(derivedEnvironment, strings.Replace(start, `"count": "1"`, `"count": "2"`, 1), `{"literal": {"textValue": "done"}}`),
+			wantErrorSubstr: "controller instruction 0: reservation 0 reserves 2 activations",
+		},
+		{
+			name:            "reservation on an instruction that carries none",
+			program:         program(derivedEnvironment, strings.Replace(start, "StartWorkflowExecution", "SignalWorkflowExecution", 1), `{"literal": {"textValue": "done"}}`),
+			wantErrorSubstr: "reservations [workflow] are not the derived reservations []",
+		},
+		{
+			name:            "RPC value",
+			program:         program(derivedEnvironment, strings.Replace(start, status+`]`, status+`, `+value+`]`, 1), `{"literal": {"textValue": "done"}}`),
+			wantErrorSubstr: "outcome field INSTRUCTION_OUTCOME_FIELD_VALUE is not derived for invokeRpc",
+		},
+		{
+			name:            "status of another type",
+			program:         program(derivedEnvironment, strings.Replace(start, "InstructionOutcomeStatus", "RunDisposition", 1), `{"literal": {"textValue": "done"}}`),
+			wantErrorSubstr: "outcome field INSTRUCTION_OUTCOME_FIELD_STATUS has type",
+		},
+		{
+			name:            "a read Finish value",
+			program:         program(derivedEnvironment, start, readsOwn),
+			wantErrorSubstr: "workflow instruction 1: the finish value an expression reads is not derived",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			tree, err := decodeJSON([]byte(strings.ReplaceAll(tc.program, "RESERVATIONS", "activation"+"Reservations")))
+			require.NoError(t, err)
+			root, ok := tree.(*Object)
+			require.True(t, ok)
+			root.Message = protocol + "Program"
+			mapped, err := Declared.apply(functionalFixture, root)
+			if tc.wantErrorSubstr != "" {
+				require.ErrorContains(t, err, tc.wantErrorSubstr)
+				return
+			}
+			require.NoError(t, err)
+			encoded, err := json.Marshal(mapped)
 			require.NoError(t, err)
 			require.JSONEq(t, tc.want, string(encoded))
 		})
