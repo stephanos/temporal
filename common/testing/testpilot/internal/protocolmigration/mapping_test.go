@@ -395,3 +395,81 @@ func TestDeclaredExpressionStepRewritesReferencesAndEquality(t *testing.T) {
 		})
 	}
 }
+
+// The correlated steps rewrite predicates, operands, correlations and lift guards into Expression,
+// and refuse a shape the baseline never admitted rather than dropping part of it.
+func TestDeclaredCorrelatedStepsRewriteConditionsAndGuards(t *testing.T) {
+	t.Parallel()
+
+	message := func(name string, fields map[string]any) *Object {
+		return &Object{Message: protocol + protoreflect.FullName(name), Fields: fields}
+	}
+	path := func() *Object { return &Object{Fields: map[string]any{"segments": []any{}}} }
+	const step = `{"reference": {"correlatedStep": {"definitionId": "d", "field": "CORRELATED_STEP_FIELD_FACT"}}}`
+	const projected = `{"path": {"operand": {"reference": {"projectedValue": {}}}, "path": {"segments": []}}}`
+	for _, tc := range []struct {
+		name            string
+		tree            *Object
+		want            string
+		wantErrorSubstr string
+	}{
+		{
+			name: "present predicate",
+			tree: message("Correlated"+"Predicate", map[string]any{"definitionId": "d", "field": "CORRELATED_" + "PREDICATE_FIELD_FACT", "present": true}),
+			want: `{"present": {"operand": ` + step + `}}`,
+		},
+		{
+			name: "text predicate",
+			tree: message("Correlated"+"Predicate", map[string]any{"definitionId": "d", "field": json.Number("4"), "equalsText": "t"}),
+			want: `{"compare": {"operator": "COMPARISON_OPERATOR_EQUAL", "left": ` + step + `, "right": {"literal": {"textValue": "t"}}}}`,
+		},
+		{
+			name:            "false presence",
+			tree:            message("Correlated"+"Predicate", map[string]any{"definitionId": "d", "present": false}),
+			wantErrorSubstr: "predicate presence is false, want true",
+		},
+		{
+			name:            "two constraints",
+			tree:            message("Correlated"+"Predicate", map[string]any{"present": true, "equalsText": "t"}),
+			wantErrorSubstr: "predicate carries no single constraint",
+		},
+		{
+			name: "correlation comparison of a field and a capture",
+			tree: message("Correlated"+"Correlation", map[string]any{"comparison": message("Correlated"+"Comparison", map[string]any{
+				"operator": "CORRELATED_" + "COMPARISON_OPERATOR_NOT_EQUAL",
+				"left":     message("Correlated"+"Operand", map[string]any{"fieldId": "f"}),
+				"right":    message("Correlated"+"Operand", map[string]any{"capture": &Object{Fields: map[string]any{"captureId": "c"}}}),
+			})}),
+			want: `{"compare": {"operator": "COMPARISON_OPERATOR_NOT_EQUAL", "left": {"reference": {"evidenceFieldId": "f"}}, "right": {"reference": {"correlatedCapture": {"captureId": "c"}}}}}`,
+		},
+		{
+			name:            "operand with two arms",
+			tree:            message("Correlated"+"Operand", map[string]any{"fieldId": "f", "literal": "l"}),
+			wantErrorSubstr: "operand carries 2 arms, want 1",
+		},
+		{
+			name: "guard with text",
+			tree: message("CorrelatedEvidenceRule", map[string]any{"guard": path(), "guard" + "EqualsText": "t", "kind": "k"}),
+			want: `{"kind": "k", "guard": {"all": {"operands": [{"present": {"operand": ` + projected + `}}, {"compare": {"operator": "COMPARISON_OPERATOR_EQUAL", "left": ` + projected + `, "right": {"literal": {"textValue": "t"}}}}]}}}`,
+		},
+		{
+			name:            "rule without a guard",
+			tree:            message("CorrelatedEvidenceRule", map[string]any{"kind": "k"}),
+			wantErrorSubstr: "evidence rule carries no guard path",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			mapped, err := Declared.apply("fixture.json", tc.tree)
+			if tc.wantErrorSubstr != "" {
+				require.ErrorContains(t, err, tc.wantErrorSubstr)
+				return
+			}
+			require.NoError(t, err)
+			encoded, err := json.Marshal(mapped)
+			require.NoError(t, err)
+			require.JSONEq(t, tc.want, string(encoded))
+		})
+	}
+}

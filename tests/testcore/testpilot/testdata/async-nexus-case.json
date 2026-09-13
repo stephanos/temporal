@@ -70,15 +70,41 @@
           "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
           "ending": "TRACE_ENDING_PARTIAL",
           "response": {
-            "definitionId": "temporal.nexus.success.outcome.lifecycle.completed",
-            "equalsText": "completed",
-            "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+            "compare": {
+              "left": {
+                "reference": {
+                  "correlatedStep": {
+                    "definitionId": "temporal.nexus.success.outcome.lifecycle.completed",
+                    "field": "CORRELATED_STEP_FIELD_OUTCOME"
+                  }
+                }
+              },
+              "operator": "COMPARISON_OPERATOR_EQUAL",
+              "right": {
+                "literal": {
+                  "textValue": "completed"
+                }
+              }
+            }
           },
           "ruleId": "temporal.nexus.success.property.successfulResult.outcome-completed",
           "trigger": {
-            "definitionId": "temporal.nexus.success.action.lifecycle.awaitStart",
-            "equalsText": "awaitStart",
-            "field": "CORRELATED_PREDICATE_FIELD_ACTION"
+            "compare": {
+              "left": {
+                "reference": {
+                  "correlatedStep": {
+                    "definitionId": "temporal.nexus.success.action.lifecycle.awaitStart",
+                    "field": "CORRELATED_STEP_FIELD_ACTION"
+                  }
+                }
+              },
+              "operator": "COMPARISON_OPERATOR_EQUAL",
+              "right": {
+                "literal": {
+                  "textValue": "awaitStart"
+                }
+              }
+            }
           }
         },
         {
@@ -86,15 +112,41 @@
           "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
           "ending": "TRACE_ENDING_PARTIAL",
           "response": {
-            "definitionId": "temporal.nexus.success.state.lifecycle.succeeded",
-            "equalsText": "succeeded",
-            "field": "CORRELATED_PREDICATE_FIELD_STATE"
+            "compare": {
+              "left": {
+                "reference": {
+                  "correlatedStep": {
+                    "definitionId": "temporal.nexus.success.state.lifecycle.succeeded",
+                    "field": "CORRELATED_STEP_FIELD_STATE"
+                  }
+                }
+              },
+              "operator": "COMPARISON_OPERATOR_EQUAL",
+              "right": {
+                "literal": {
+                  "textValue": "succeeded"
+                }
+              }
+            }
           },
           "ruleId": "temporal.nexus.success.property.successfulResult.state-succeeded",
           "trigger": {
-            "definitionId": "temporal.nexus.success.action.lifecycle.awaitStart",
-            "equalsText": "awaitStart",
-            "field": "CORRELATED_PREDICATE_FIELD_ACTION"
+            "compare": {
+              "left": {
+                "reference": {
+                  "correlatedStep": {
+                    "definitionId": "temporal.nexus.success.action.lifecycle.awaitStart",
+                    "field": "CORRELATED_STEP_FIELD_ACTION"
+                  }
+                }
+              },
+              "operator": "COMPARISON_OPERATOR_EQUAL",
+              "right": {
+                "literal": {
+                  "textValue": "awaitStart"
+                }
+              }
+            }
           }
         }
       ],
@@ -583,14 +635,27 @@
                             {
                               "evidenceSource": "temporal.nexus.success.source.history",
                               "guard": {
-                                "segments": [
-                                  {
-                                    "field": "attributes",
-                                    "oneof": {
-                                      "selectedField": "nexus_operation_started_event_attributes"
+                                "present": {
+                                  "operand": {
+                                    "path": {
+                                      "operand": {
+                                        "reference": {
+                                          "projectedValue": {}
+                                        }
+                                      },
+                                      "path": {
+                                        "segments": [
+                                          {
+                                            "field": "attributes",
+                                            "oneof": {
+                                              "selectedField": "nexus_operation_started_event_attributes"
+                                            }
+                                          }
+                                        ]
+                                      }
                                     }
                                   }
-                                ]
+                                }
                               },
                               "kind": "temporal.nexus.success.evidence.started",
                               "operation": {
@@ -616,14 +681,27 @@
                             {
                               "evidenceSource": "temporal.nexus.success.source.history",
                               "guard": {
-                                "segments": [
-                                  {
-                                    "field": "attributes",
-                                    "oneof": {
-                                      "selectedField": "nexus_operation_completed_event_attributes"
+                                "present": {
+                                  "operand": {
+                                    "path": {
+                                      "operand": {
+                                        "reference": {
+                                          "projectedValue": {}
+                                        }
+                                      },
+                                      "path": {
+                                        "segments": [
+                                          {
+                                            "field": "attributes",
+                                            "oneof": {
+                                              "selectedField": "nexus_operation_completed_event_attributes"
+                                            }
+                                          }
+                                        ]
+                                      }
                                     }
                                   }
-                                ]
+                                }
                               },
                               "kind": "temporal.nexus.success.evidence.completed",
                               "operation": {

@@ -47,17 +47,26 @@ private def fieldPolicy (field : EvidenceFieldDeclaration × FieldDisposition) :
       | .natural => .SCALAR_KIND_NATURAL
       | .boolean => .SCALAR_KIND_BOOLEAN }
     disposition }
-private def pattern (value : PropertyPattern) : Except String CorrelatedPredicate := do
+/-- The step condition a pattern lowers to: its correlated step reference tested for presence, or
+compared equal with the text it requires. -/
+private def stepCondition (field : CorrelatedStepField) (definitionId : DefinitionId)
+    (equalsText : Option String) : Expression :=
+  let step := Testpilot.Authoring.Expr.correlatedStep field definitionId.value
+  match equalsText with
+  | none => Testpilot.Authoring.Expr.present step
+  | some text => Testpilot.Authoring.Expr.equal step
+      (Testpilot.Authoring.Expr.literal (Testpilot.Authoring.Value.text text))
+
+private def pattern (value : PropertyPattern) : Except String Expression := do
   let field ← match value.field with
-    | .selectedAction => pure CorrelatedPredicateField.CORRELATED_PREDICATE_FIELD_ACTION
-    | .outcome => pure .CORRELATED_PREDICATE_FIELD_OUTCOME
-    | .resultingState => pure .CORRELATED_PREDICATE_FIELD_STATE
-    | .observation => pure .CORRELATED_PREDICATE_FIELD_FACT
+    | .selectedAction => pure CorrelatedStepField.CORRELATED_STEP_FIELD_ACTION
+    | .outcome => pure .CORRELATED_STEP_FIELD_OUTCOME
+    | .resultingState => pure .CORRELATED_STEP_FIELD_STATE
+    | .observation => pure .CORRELATED_STEP_FIELD_FACT
     | _ => throw "unsupported predicate projection"
-  let predicate : CorrelatedPredicate := { field, definition_id := value.reference.value }
   match value.constraint with
-  | .present => pure { predicate with constraint := some (.present true) }
-  | .equals text => pure { predicate with constraint := some (.equals_text text) }
+  | .present => pure (stepCondition field value.reference none)
+  | .equals text => pure (stepCondition field value.reference (some text))
   | _ => throw "unsupported predicate constraint"
 
 /-- The exact executable meaning the emitted capability must decode to. `keyed` is the keyed
@@ -105,11 +114,11 @@ private def literalOperand (value : Operation.Scalar) :
 /-- One correlation operand, with the declared scalar kind the portable decoder checks it against. -/
 private def operand (coverage : Projection.Coverage plan)
     (captures : List Testpilot.Correlated.Capture) (value : PropertyFieldOperand) :
-    Except String (CorrelatedOperand × Testpilot.Correlated.Operand × Nat) :=
+    Except String (Expression × Testpilot.Correlated.Operand × Nat) :=
   match value with
   | .literal scalar _ => do
       let (wire, decoded, kind) ← literalOperand scalar
-      pure ({ operand := some (.literal wire) }, .literal decoded, kind)
+      pure (Testpilot.Authoring.Expr.literal wire, .literal decoded, kind)
   | .field path _ =>
       match path.capture with
       | some key => do
@@ -118,21 +127,20 @@ private def operand (coverage : Projection.Coverage plan)
           if key.ordinal ≥ declaration.lifetime then
             throw ("capture ordinal beyond declared lifetime for " ++ key.name.value)
           let ordinal ← number key.ordinal
-          let reference : CorrelatedCaptureReference := { capture_id := key.name.value, ordinal }
-          pure ({ operand := some (.capture reference) }, .capture key.name key.ordinal,
-            declaration.kind)
+          pure (Testpilot.Authoring.Expr.correlatedCapture key.name.value ordinal,
+            .capture key.name key.ordinal, declaration.kind)
       | none => do
           let some entry := coverage.entryOf? path
             | throw ("correlation operand coordinates have no declared Observation for " ++
                 path.reference.value)
-          pure ({ operand := some (.field_id entry.field.value) }, .field entry.field,
+          pure (Testpilot.Authoring.Expr.evidenceField entry.field.value, .field entry.field,
             entry.scalarKind)
 
-private def predicateField : PropertyPredicateField → Except String CorrelatedPredicateField
-  | .selectedAction => .ok .CORRELATED_PREDICATE_FIELD_ACTION
-  | .outcome => .ok .CORRELATED_PREDICATE_FIELD_OUTCOME
-  | .resultingState => .ok .CORRELATED_PREDICATE_FIELD_STATE
-  | .expectationFact => .ok .CORRELATED_PREDICATE_FIELD_FACT
+private def predicateField : PropertyPredicateField → Except String CorrelatedStepField
+  | .selectedAction => .ok .CORRELATED_STEP_FIELD_ACTION
+  | .outcome => .ok .CORRELATED_STEP_FIELD_OUTCOME
+  | .resultingState => .ok .CORRELATED_STEP_FIELD_STATE
+  | .expectationFact => .ok .CORRELATED_STEP_FIELD_FACT
   | .priorState => .error "unsupported correlation predicate field"
 
 private def predicateCode : PropertyPredicateField → Nat
@@ -148,7 +156,7 @@ its own nesting requires. The depth ceiling emitted for the capability is the ex
 correlation needs, so an exhausted depth is never a silently truncated condition. -/
 private def correlation (coverage : Projection.Coverage plan)
     (captures : List Testpilot.Correlated.Capture) :
-    PropertyPredicate → Except String (CorrelatedCorrelation × Testpilot.Correlated.Correlation × Nat)
+    PropertyPredicate → Except String (Expression × Testpilot.Correlated.Correlation × Nat)
   | .atom value =>
       match value.constraint with
       | .fields comparison => do
@@ -159,39 +167,34 @@ private def correlation (coverage : Projection.Coverage plan)
           let (leftWire, left, leftKind) ← operand coverage captures comparison.left
           let (rightWire, right, rightKind) ← operand coverage captures comparison.right
           if leftKind != rightKind then throw "incompatible correlation operand types"
-          let wire : CorrelatedComparison := {
-            operator := if equal then .CORRELATED_COMPARISON_OPERATOR_EQUAL
-              else .CORRELATED_COMPARISON_OPERATOR_NOT_EQUAL
-            left := some leftWire, right := some rightWire }
-          pure ({ condition := some (.comparison wire) }, .comparison equal left right, 1)
+          let wire := Testpilot.Authoring.Expr.compare
+            (if equal then .COMPARISON_OPERATOR_EQUAL else .COMPARISON_OPERATOR_NOT_EQUAL)
+            leftWire rightWire
+          pure (wire, .comparison equal left right, 1)
       | .present => do
           let field ← predicateField value.field
-          let wire : CorrelatedPredicate :=
-            { field, definition_id := value.reference.value, constraint := some (.present true) }
-          pure ({ condition := some (.predicate wire) },
+          pure (stepCondition field value.reference none,
             .predicate ⟨predicateCode value.field, value.reference, none⟩, 1)
       | .equals (.text text) => do
           let field ← predicateField value.field
-          let wire : CorrelatedPredicate :=
-            { field, definition_id := value.reference.value, constraint := some (.equals_text text) }
-          pure ({ condition := some (.predicate wire) },
+          pure (stepCondition field value.reference (some text),
             .predicate ⟨predicateCode value.field, value.reference, some text⟩, 1)
       | _ => throw "unsupported correlation constraint"
   | .all items => do
       if items.isEmpty then throw "empty correlation group"
       let (wires, decoded, depth) ← correlations coverage captures items
-      pure ({ condition := some (.all { operands := wires }) }, .all decoded, depth + 1)
+      pure (Testpilot.Authoring.Expr.all wires, .all decoded, depth + 1)
   | .any items => do
       if items.isEmpty then throw "empty correlation group"
       let (wires, decoded, depth) ← correlations coverage captures items
-      pure ({ condition := some (.any { operands := wires }) }, .any decoded, depth + 1)
+      pure (Testpilot.Authoring.Expr.any wires, .any decoded, depth + 1)
   | .not _ => throw "unsupported correlation negation"
   termination_by expression => sizeOf expression
 
 private def correlations (coverage : Projection.Coverage plan)
     (captures : List Testpilot.Correlated.Capture) :
     List PropertyPredicate →
-      Except String (Array CorrelatedCorrelation × Testpilot.Correlated.Correlations × Nat)
+      Except String (Array Expression × Testpilot.Correlated.Correlations × Nat)
   | [] => pure (#[], .nil, 0)
   | head :: rest => do
       let (headWire, headDecoded, headDepth) ← correlation coverage captures head

@@ -463,6 +463,16 @@ private def fewerClauses (values : Umpire.Command.ModelVocabulary) : Property :=
   let fewer ← checkedPropertyOf (fewerClauses checked.vocabulary)
   pure (differsFromCompletionCase (produceWith (property? := some fewer)))) == some true
 
+/-- The correlated step reference a step condition tests, whether it tests presence or equality. -/
+private def conditionStep (condition : Option Expression) : Option CorrelatedStepReference :=
+  let operand := match condition.bind (·.expression) with
+    | some (.present value) => value.operand
+    | some (.compare value) => value.left
+    | _ => none
+  match operand.bind (·.expression) with
+  | some (.reference { reference := some (.correlated_step step), .. }) => some step
+  | _ => none
+
 /-- A Property about the start step lowers to clauses about the start step: the trigger each
 clause carries is the Action the `require` line named. -/
 private def startClauses (values : Umpire.Command.ModelVocabulary) : Property :=
@@ -479,13 +489,13 @@ private def startClauses (values : Umpire.Command.ModelVocabulary) : Property :=
           pure (output.contract.map (·.rules.isEmpty) == some true &&
             capability.rules.size == 2 &&
             capability.rules.all (fun clause =>
-              (clause.trigger.map (·.definition_id)) ==
+              ((conditionStep clause.trigger).map (·.definition_id)) ==
                 some (checked.vocabulary.actionAt 0).definitionId.value) &&
             -- Canonical clause order, so the responses arrive by clause id.
             (capability.rules.map fun clause =>
-              (clause.response.map (·.field)).getD .CORRELATED_PREDICATE_FIELD_UNSPECIFIED) == #[
-                .CORRELATED_PREDICATE_FIELD_OUTCOME,
-                .CORRELATED_PREDICATE_FIELD_STATE])
+              ((conditionStep clause.response).map (·.field)).getD .CORRELATED_STEP_FIELD_UNSPECIFIED) == #[
+                .CORRELATED_STEP_FIELD_OUTCOME,
+                .CORRELATED_STEP_FIELD_STATE])
       | none => pure false
   | .error _ => pure false) == some true
 

@@ -190,8 +190,8 @@ func TestPrepareRejectsMalformedContracts(t *testing.T) {
 	}
 }
 
-// A Contract predicate shares the one expression language, so each Program reference, and each
-// correlated reference, rejects at preparation at the predicate's located path.
+// A Contract predicate shares the one expression language, so each Program, correlated and
+// evidence-lift reference rejects at preparation at the predicate's located path.
 func TestPrepareLocatesAReferenceOutsideTheContractContext(t *testing.T) {
 	for name, value := range map[string]*testpilotspb.Reference{
 		"slot_id": {Reference: &testpilotspb.Reference_SlotId{SlotId: "slot"}},
@@ -203,6 +203,8 @@ func TestPrepareLocatesAReferenceOutsideTheContractContext(t *testing.T) {
 		"evidence_field_id":      {Reference: &testpilotspb.Reference_EvidenceFieldId{EvidenceFieldId: "field"}},
 		"correlated_capture":     {Reference: &testpilotspb.Reference_CorrelatedCapture{CorrelatedCapture: &testpilotspb.CorrelatedCaptureReference{CaptureId: "capture"}}},
 		"model_value":            {Reference: &testpilotspb.Reference_ModelValue{ModelValue: &testpilotspb.ModelValue{DefinitionId: "definition", Value: "value"}}},
+		"correlated_step":        {Reference: &testpilotspb.Reference_CorrelatedStep{CorrelatedStep: &testpilotspb.CorrelatedStepReference{Field: testpilotspb.CORRELATED_STEP_FIELD_ACTION, DefinitionId: "definition"}}},
+		"projected_value":        {Reference: &testpilotspb.Reference_ProjectedValue{ProjectedValue: &testpilotspb.ProjectedValueReference{}}},
 	} {
 		t.Run(name, func(t *testing.T) {
 			c, catalog, view, policy := fixture(t)
