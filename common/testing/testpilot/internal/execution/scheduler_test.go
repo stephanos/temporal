@@ -286,8 +286,8 @@ func TestSchedulerRequestsSlotsFanoutAndClosure(t *testing.T) {
 	c.Program.Slots = []*testpilotspb.Slot{valueSlot("text", scalar(testpilotspb.SCALAR_KIND_TEXT))}
 	c.Program.Observations = []*testpilotspb.Observation{{ObservationId: "item", Type: scalar(testpilotspb.SCALAR_KIND_TEXT)}}
 	rpc := c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc()
-	rpc.RequestAssignments = []*testpilotspb.RequestAssignment{{Target: field("text"), Value: textLiteral("constructed")}}
-	rpc.ResponseReads = []*testpilotspb.ResponseRead{{Path: field("text"), Cardinality: testpilotspb.READ_CARDINALITY_ONE, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "text"}}}}, {Path: "items[*]", Cardinality: testpilotspb.READ_CARDINALITY_EMIT_EACH, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_ObservationId{ObservationId: "item"}}}}}
+	rpc.RequestAssignments = []*testpilotspb.RequestAssignment{{Target: "text", Value: textLiteral("constructed")}}
+	rpc.ResponseReads = []*testpilotspb.ResponseRead{{Path: "text", Cardinality: testpilotspb.READ_CARDINALITY_ONE, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "text"}}}}, {Path: "items[*]", Cardinality: testpilotspb.READ_CARDINALITY_EMIT_EACH, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_ObservationId{ObservationId: "item"}}}}}
 	wait := rpcNode("wait")
 	wait.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitSlot{AwaitSlot: &testpilotspb.AwaitSlot{SlotId: "text"}}}
 	wait.After = runsAfter("controller")

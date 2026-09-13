@@ -99,21 +99,21 @@ func nexusCorrelationFixture(t testing.TB) (*PreparedContract, execution.Program
 	}
 	rule.Transitions = []*testpilotspb.ContractTransition{
 		nexusTransition("capture-scheduled-event", "pending", "scheduled-correlated", all(
-			present(nexusObservation()), present(nexusPath(nexusObservation(), nexusField("event_id"))),
-			present(nexusPath(nexusObservation(), nexusOneof("attributes", "nexus_operation_scheduled_event_attributes"), nexusField("request_id"))),
+			present(nexusObservation()), present(nexusPath(nexusObservation(), "event_id")),
+			present(nexusPath(nexusObservation(), nexusOneof("attributes", "nexus_operation_scheduled_event_attributes"), "request_id")),
 		)),
 		nexusTransition("match-started-reference", "scheduled-correlated", "started-correlated", all(
-			present(nexusCapture()), present(nexusPath(nexusCapture(), nexusField("event_id"))),
-			present(nexusPath(nexusObservation(), nexusOneof("attributes", "nexus_operation_started_event_attributes"), nexusField("scheduled_event_id"))),
-			equal(nexusPath(nexusCapture(), nexusField("event_id")), nexusPath(nexusObservation(), nexusOneof("attributes", "nexus_operation_started_event_attributes"), nexusField("scheduled_event_id"))),
+			present(nexusCapture()), present(nexusPath(nexusCapture(), "event_id")),
+			present(nexusPath(nexusObservation(), nexusOneof("attributes", "nexus_operation_started_event_attributes"), "scheduled_event_id")),
+			equal(nexusPath(nexusCapture(), "event_id"), nexusPath(nexusObservation(), nexusOneof("attributes", "nexus_operation_started_event_attributes"), "scheduled_event_id")),
 		)),
 		nexusTransition("match-completed-event", "started-correlated", "satisfied", all(
 			present(nexusCapture()),
-			present(nexusPath(nexusCapture(), nexusOneof("attributes", "nexus_operation_scheduled_event_attributes"), nexusField("request_id"))),
-			present(nexusPath(nexusObservation(), nexusOneof("attributes", "nexus_operation_completed_event_attributes"), nexusField("request_id"))),
-			present(nexusPath(nexusObservation(), nexusOneof("attributes", "nexus_operation_completed_event_attributes"), nexusField("scheduled_event_id"))),
-			equal(nexusPath(nexusCapture(), nexusOneof("attributes", "nexus_operation_scheduled_event_attributes"), nexusField("request_id")), nexusPath(nexusObservation(), nexusOneof("attributes", "nexus_operation_completed_event_attributes"), nexusField("request_id"))),
-			equal(nexusPath(nexusCapture(), nexusField("event_id")), nexusPath(nexusObservation(), nexusOneof("attributes", "nexus_operation_completed_event_attributes"), nexusField("scheduled_event_id"))),
+			present(nexusPath(nexusCapture(), nexusOneof("attributes", "nexus_operation_scheduled_event_attributes"), "request_id")),
+			present(nexusPath(nexusObservation(), nexusOneof("attributes", "nexus_operation_completed_event_attributes"), "request_id")),
+			present(nexusPath(nexusObservation(), nexusOneof("attributes", "nexus_operation_completed_event_attributes"), "scheduled_event_id")),
+			equal(nexusPath(nexusCapture(), nexusOneof("attributes", "nexus_operation_scheduled_event_attributes"), "request_id"), nexusPath(nexusObservation(), nexusOneof("attributes", "nexus_operation_completed_event_attributes"), "request_id")),
+			equal(nexusPath(nexusCapture(), "event_id"), nexusPath(nexusObservation(), nexusOneof("attributes", "nexus_operation_completed_event_attributes"), "scheduled_event_id")),
 		)),
 	}
 	rule.Transitions[0].CaptureAssignments = []*testpilotspb.ContractCaptureAssignment{{CaptureId: "scheduled-event", ObservationId: "history-event"}}
@@ -136,10 +136,6 @@ func nexusCapture() *testpilotspb.Expression {
 
 func nexusPath(source *testpilotspb.Expression, segments ...string) *testpilotspb.Expression {
 	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Path{Path: &testpilotspb.PathExpression{Operand: source, Path: strings.Join(segments, ".")}}}
-}
-
-func nexusField(field string) string {
-	return field
 }
 
 func nexusOneof(field, selected string) string {
