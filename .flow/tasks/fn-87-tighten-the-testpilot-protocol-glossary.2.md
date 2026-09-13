@@ -47,10 +47,33 @@ Apply the Contract-, Run- and correlated-side rows of the spec's Renames table (
 
 
 ## Done summary
-TBD
+Applied the Contract, Run and correlated rows of the fn-87 Renames table across all layers. `RunStatus` is now `RunDisposition`, with `RUN_DISPOSITION_*` values and `Run.disposition`. `CorrelatedContract.clauses` and `CorrelatedRule.clause_id` are now `rules` and `rule_id`. `CONTRACT_STATE_STATUS_NONTERMINAL` is now `..._PENDING`, `CorrelatedValue` is now `ModelValue`, and `PROTOCOL_NON_SUCCESS` is now `PROTOCOL_FAILURE`. The rule, state, transition and capture messages drop their `Definition` suffix. The evidence source name on `CorrelatedEvidenceRule` and `CorrelatedIdentity` is now `evidence_source`. The layers are the proto, `make proto`, generated Lean, `Testpilot.Authoring`, the Producers, the Go runtime and tests, and the fixtures, which were regenerated only through `make umpire-gen-case-runtime-conformance`. Field numbers are unchanged, and every `expected.json` is byte-identical.
 
+- Equivalence: `Declared` in `protocolmigration/mapping.go` has 13 R1 steps, one per rename. Six steps change today's fixtures: `clauses`, `clauseId`, the provenance `producerData` key, `NONTERMINAL`, and the two `source` keys. The `Run` and `InstructionOutcome` steps target messages no fixture carries. The five message renames use a new `RenameMessage` helper that rewrites `google.protobuf.Any` type URLs, and they are no-ops on today's fixtures. They are declarations, not evidence. The `producerData` step renames the key in place and fails closed unless the decoded payload differs only in that key. Tests: `TestRenameMessageRewritesAnyTypeURL` and `TestRenameCorrelatedRuleKey`.
+- Umpire provenance now keys correlated rules by `ruleId`, in `Provenance.CorrelatedRuleBinding.ruleId` and its JSON key. The `Compiler.ContractLowering.correlated` and `Coverage.check` parameters are now `rules`. `Coverage.Request.clauses` and the Property clause identifiers keep "clause" because they are Umpire's Property clauses.
+- How the Lean `ModelValue` name clash was resolved:
+  - `Umpire/Case/Correlated.lean` uses `open temporal.server.api.testpilot.v1 hiding ModelValue`, and `atom` returns the qualified `temporal.server.api.testpilot.v1.ModelValue`.
+  - `Umpire/Case/Producer.lean`, `Umpire/Case/Tests/FieldLowering.lean`, `Temporal/Feature/Nexus/Success/{TypedUnary,TypedNexus}.lean` and `.../Success/Tests/{TypedUnary,TypedNexus}.lean` use the same `hiding ModelValue` open.
+  - `Umpire/Case/CorrelatedProofs.lean` does not open the protocol namespace, so there is no clash there.
+  - `Testpilot/Correlated.lean`, `Testpilot/Authoring.lean` and `Testpilot/Tests/{Fields,Authoring}.lean` do not import Umpire, so they use the wire `ModelValue` unqualified.
+- Retired-vocabulary gate:
+  - It now holds `RunStatus`, `clause_id`, `GetClauseId`, `CorrelatedValue` and the four `Contract*Definition` names, including their lowerCamel forms.
+  - New SCREAMING_SNAKE rules cover `RUN_STATUS_*`, `CONTRACT_STATE_STATUS_NONTERMINAL` and `PROTOCOL_NON_SUCCESS`, the last as a whole constant or a suffix.
+  - `TestRetiredRulesHoldTheGlossaryRenamedProtocolNames` pins these rules and the negative cases.
+  - `clauseId`/`ClauseId` is deliberately not held: it is Umpire's live Property-clause identifier. The protocol JSON key is covered by the equivalence test and the regenerated fixtures instead.
+  - `protocol_test.go` no longer lists `RunDisposition` as retired and now lists the six retired message and enum names.
+- Decision: mapping steps split retired literals (`"Run" + "Status"`), following `protocol_test.go` and `check_test.go`, so the gate keeps scanning `mapping.go`. The protocolmigration README records this. This does not change scope.
+- Hand-written names that follow the new words: the Lean `Run.make (disposition)` and `correlatedEvidenceRule (evidenceSource)` parameters, the `validModelValue` Go helper, and the conformance label `PROTOCOL_FAILURE` (no `expected.json` spells it). Reviewer P1, fixed in 9cfd388d58: the recorder method keeps `terminalStatus`, because fn-82 retired `terminal`+`Disposition`.
+- Docs: `.plans/UMPIRE4_ORDER.md:88` no longer spells the retired enum name, and `common/testing/testpilot/README.md` now says "Run disposition".
+- Gates:
+  - Baseline was green; the regression gate reused an honored receipt from ba4306b8.
+  - After the change, the oracle, testpilot-protocol, testpilot-authoring, case-runtime-conformance and retired-vocabulary checks all pass.
+  - `make umpire-check-regression` passed on the first run (exit 0, 9 passing live identities, no flakes).
+  - `lint-code` shows 161 issues after `go clean -cache`, none in changed files. `lint-model` shows 163 errors. Both match the baselines.
+- The commits also carry flowctl's own review-round bookkeeping in `.flow/specs/fn-87-...json` and the memory entry `bug/build-errors/glossary-renames-can-reintroduce-names-2026-09-13`.
+
+stage: impl-review - ran (claude backend, NEEDS_WORK round 1 with one P1 fixed, then SHIP on round 2)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 66a54a73068fa39a35d65c59a92be6e311cbdc2d, 9cfd388d58ae5718bf8d5fa879d24389fd0b5705
+- Tests: go test -count=1 -tags test_dep ./common/testing/testpilot/internal/protocolmigration/, make umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-check-case-runtime-conformance, make umpire-check-retired-vocabulary, CC=/usr/bin/cc TMPDIR=$(cd "${TMPDIR:-/tmp}" && pwd -P) make umpire-check-regression, go clean -cache && make lint-code GOLANGCI_LINT_FIX=false, make lint-model
 - PRs:
-
