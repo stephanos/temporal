@@ -310,56 +310,6 @@
             }
           },
           {
-            "dependencies": [
-              {
-                "entrypointId": "controller",
-                "instructionId": "start-workflow"
-              }
-            ],
-            "guard": {
-              "all": {
-                "operands": [
-                  {
-                    "present": {
-                      "operand": {
-                        "reference": {
-                          "outcome": {
-                            "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                            "instruction": {
-                              "entrypointId": "controller",
-                              "instructionId": "start-workflow"
-                            }
-                          }
-                        }
-                      }
-                    }
-                  },
-                  {
-                    "compare": {
-                      "left": {
-                        "reference": {
-                          "outcome": {
-                            "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                            "instruction": {
-                              "entrypointId": "controller",
-                              "instructionId": "start-workflow"
-                            }
-                          }
-                        }
-                      },
-                      "operator": "COMPARISON_OPERATOR_EQUAL",
-                      "right": {
-                        "literal": {
-                          "enumValue": {
-                            "number": 1
-                          }
-                        }
-                      }
-                    }
-                  }
-                ]
-              }
-            },
             "instruction": {
               "awaitSlot": {
                 "slotId": "completion-authority"
@@ -386,56 +336,6 @@
             }
           },
           {
-            "dependencies": [
-              {
-                "entrypointId": "controller",
-                "instructionId": "await-completion-authority"
-              }
-            ],
-            "guard": {
-              "all": {
-                "operands": [
-                  {
-                    "present": {
-                      "operand": {
-                        "reference": {
-                          "outcome": {
-                            "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                            "instruction": {
-                              "entrypointId": "controller",
-                              "instructionId": "await-completion-authority"
-                            }
-                          }
-                        }
-                      }
-                    }
-                  },
-                  {
-                    "compare": {
-                      "left": {
-                        "reference": {
-                          "outcome": {
-                            "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                            "instruction": {
-                              "entrypointId": "controller",
-                              "instructionId": "await-completion-authority"
-                            }
-                          }
-                        }
-                      },
-                      "operator": "COMPARISON_OPERATOR_EQUAL",
-                      "right": {
-                        "literal": {
-                          "enumValue": {
-                            "number": 1
-                          }
-                        }
-                      }
-                    }
-                  }
-                ]
-              }
-            },
             "instruction": {
               "completeNexusOperation": {
                 "handleSlotId": "completion-authority",
@@ -467,56 +367,6 @@
             }
           },
           {
-            "dependencies": [
-              {
-                "entrypointId": "controller",
-                "instructionId": "complete-nexus-operation"
-              }
-            ],
-            "guard": {
-              "all": {
-                "operands": [
-                  {
-                    "present": {
-                      "operand": {
-                        "reference": {
-                          "outcome": {
-                            "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                            "instruction": {
-                              "entrypointId": "controller",
-                              "instructionId": "complete-nexus-operation"
-                            }
-                          }
-                        }
-                      }
-                    }
-                  },
-                  {
-                    "compare": {
-                      "left": {
-                        "reference": {
-                          "outcome": {
-                            "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                            "instruction": {
-                              "entrypointId": "controller",
-                              "instructionId": "complete-nexus-operation"
-                            }
-                          }
-                        }
-                      },
-                      "operator": "COMPARISON_OPERATOR_EQUAL",
-                      "right": {
-                        "literal": {
-                          "enumValue": {
-                            "number": 1
-                          }
-                        }
-                      }
-                    }
-                  }
-                ]
-              }
-            },
             "instruction": {
               "invokeRpc": {
                 "endpointRoleId": "temporal.workflow-service",
@@ -771,12 +621,11 @@
             }
           },
           {
-            "dependencies": [
-              {
-                "entrypointId": "workflow",
-                "instructionId": "start-nexus-operation"
+            "guard": {
+              "literal": {
+                "boolValue": true
               }
-            ],
+            },
             "instruction": {
               "awaitInstruction": {
                 "instruction": {
@@ -816,56 +665,6 @@
             }
           },
           {
-            "dependencies": [
-              {
-                "entrypointId": "workflow",
-                "instructionId": "await-nexus-operation"
-              }
-            ],
-            "guard": {
-              "all": {
-                "operands": [
-                  {
-                    "present": {
-                      "operand": {
-                        "reference": {
-                          "outcome": {
-                            "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                            "instruction": {
-                              "entrypointId": "workflow",
-                              "instructionId": "await-nexus-operation"
-                            }
-                          }
-                        }
-                      }
-                    }
-                  },
-                  {
-                    "compare": {
-                      "left": {
-                        "reference": {
-                          "outcome": {
-                            "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                            "instruction": {
-                              "entrypointId": "workflow",
-                              "instructionId": "await-nexus-operation"
-                            }
-                          }
-                        }
-                      },
-                      "operator": "COMPARISON_OPERATOR_EQUAL",
-                      "right": {
-                        "literal": {
-                          "enumValue": {
-                            "number": 1
-                          }
-                        }
-                      }
-                    }
-                  }
-                ]
-              }
-            },
             "instruction": {
               "finish": {
                 "result": {

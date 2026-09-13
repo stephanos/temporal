@@ -30,7 +30,7 @@ func faultFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Profile) {
 		faultNode("stop", "queue", testpilotspb.FAULT_KIND_WORKER_STOP),
 		faultNode("resume", "queue", testpilotspb.FAULT_KIND_WORKER_RESUME),
 	}
-	c.Program.Entrypoints[0].Instructions[1].Dependencies = []*testpilotspb.InstructionReference{{EntrypointId: "controller", InstructionId: "stop"}}
+	c.Program.Entrypoints[0].Instructions[1].Guard = alwaysRuns()
 	return c, catalog, policy
 }
 

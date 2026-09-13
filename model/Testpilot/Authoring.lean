@@ -318,12 +318,19 @@ def outcome (fields : Array OutcomeFieldDefinition) : InstructionOutcomeDefiniti
 def reservation (entrypointId : String) (count : Int64) : ActivationReservationDefinition :=
   { entrypoint_id := entrypointId, count }
 
-/-- Define one instruction node with its explicit dependencies, guard, outcome, and reservations. -/
+/-- Name the instructions of the same entrypoint an instruction runs after, where that set is not the
+instruction before it: several instructions, one earlier than its predecessor, or none for a second
+root. -/
+def after (instructions : Array InstructionReference) : After := { instructions }
+
+/-- Define one instruction node with its outcome and reservations. It runs after the instruction
+before it in its entrypoint unless `after` names another set, and only when every instruction it runs
+after succeeded unless `guard` states another condition. -/
 def node (instructionId : String) (instruction : Instruction) (limits : InstructionLimits)
-    (dependencies : Array InstructionReference := #[]) (guard : Option Expression := none)
+    (after : Option After := none) (guard : Option Expression := none)
     (outcome : Option InstructionOutcomeDefinition := none)
     (reservations : Array ActivationReservationDefinition := #[]) : InstructionNode :=
-  { instruction_id := instructionId, dependencies, guard, instruction := some instruction,
+  { instruction_id := instructionId, after, guard, instruction := some instruction,
     outcome, limits := some limits, activation_reservations := reservations }
 
 def controller (entrypointId : String) (instructions : Array InstructionNode) :

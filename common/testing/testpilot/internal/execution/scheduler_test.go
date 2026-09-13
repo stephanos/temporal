@@ -76,10 +76,12 @@ func TestSchedulerDependencyConcurrencyGuardsAndIsolation(t *testing.T) {
 	first := c.Program.Entrypoints[0].Instructions[0]
 	first.Limits.MaxAttempts = 3
 	second := rpcNode("second")
+	second.After = runsAfter("controller")
 	skipped := rpcNode("skipped")
+	skipped.After = runsAfter("controller")
 	skipped.Guard = &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: false}}}}
 	consumer := rpcNode("consumer")
-	consumer.Dependencies = []*testpilotspb.InstructionReference{{EntrypointId: "controller", InstructionId: "call"}, {EntrypointId: "controller", InstructionId: "skipped"}}
+	consumer.After = runsAfter("controller", "call", "skipped")
 	consumer.Guard = &testpilotspb.Expression{Expression: &testpilotspb.Expression_Not{Not: &testpilotspb.NotExpression{Operand: present(&testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_Outcome{Outcome: &testpilotspb.InstructionOutcomeReference{Instruction: &testpilotspb.InstructionReference{EntrypointId: "controller", InstructionId: "skipped"}, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS}}}}})}}}
 	c.Program.Entrypoints[0].Instructions = append(c.Program.Entrypoints[0].Instructions, second, skipped, consumer)
 	p, err := Prepare(c, catalog, policy)
@@ -207,7 +209,6 @@ func TestSchedulerTimeoutAndProtocolBranches(t *testing.T) {
 			c, catalog, policy := fixture(t)
 			c.Program.Entrypoints[0].Instructions[0].Limits.MaxAttempts = 3
 			branch := rpcNode("branch")
-			branch.Dependencies = []*testpilotspb.InstructionReference{{EntrypointId: "controller", InstructionId: "call"}}
 			branch.Guard = succeeded("controller", "call")
 			branch.Guard.GetCompare().Right.GetLiteral().GetEnumValue().Number = int32(status)
 			c.Program.Entrypoints[0].Instructions = append(c.Program.Entrypoints[0].Instructions, branch)
@@ -292,6 +293,7 @@ func TestSchedulerRequestsSlotsFanoutAndClosure(t *testing.T) {
 	rpc.ResponseReads = []*testpilotspb.ResponseRead{{Path: field("text"), Cardinality: testpilotspb.READ_CARDINALITY_ONE, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "text"}}}}, {Path: &testpilotspb.FieldPath{Segments: []*testpilotspb.FieldPathSegment{{Field: "items", Selector: &testpilotspb.FieldPathSegment_Repeated{Repeated: &testpilotspb.RepeatedWildcard{}}}}}, Cardinality: testpilotspb.READ_CARDINALITY_EMIT_EACH, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_ObservationId{ObservationId: "item"}}}}}
 	wait := rpcNode("wait")
 	wait.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitSlot{AwaitSlot: &testpilotspb.AwaitSlot{SlotId: "text"}}}
+	wait.After = runsAfter("controller")
 	c.Program.Entrypoints[0].Instructions = append(c.Program.Entrypoints[0].Instructions, wait)
 	p, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
@@ -394,7 +396,9 @@ func TestSchedulerMalformedAndLimitFailures(t *testing.T) {
 			c, catalog, policy := fixture(t)
 			if mode == "attempts" {
 				policy.Limits.MaxAttempts = 1
-				c.Program.Entrypoints[0].Instructions = append(c.Program.Entrypoints[0].Instructions, rpcNode("extra"))
+				extra := rpcNode("extra")
+				extra.After = runsAfter("controller")
+				c.Program.Entrypoints[0].Instructions = append(c.Program.Entrypoints[0].Instructions, extra)
 			}
 			if mode == "worker-error" {
 				addWorker(c, &policy)

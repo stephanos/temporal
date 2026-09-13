@@ -716,23 +716,29 @@ private def textOutcome : InstructionOutcomeDefinition :=
     Program.outcomeField .INSTRUCTION_OUTCOME_FIELD_STATUS statusType,
     Program.outcomeField .INSTRUCTION_OUTCOME_FIELD_VALUE textType]
 
-private def controllerInstructions (entry : OperationCase) : Array InstructionNode := #[
+/-- Each operation's completion waits on the started workflow, not on the operation declared before it,
+so the completions run concurrently. Only the first operation's authority wait follows the start
+directly, so only the later ones name it. -/
+private def controllerInstructions (index : Nat) (entry : OperationCase) : Array InstructionNode := #[
   Program.node entry.authorityInstructionId (Program.awaitSlot entry.slotId)
-    (Program.instructionLimits 10000 1) #[Ref.instruction controllerId "start-workflow"]
-    (some (succeeded controllerId "start-workflow")) (some statusOutcome),
+    (Program.instructionLimits 10000 1)
+    (after := if index == 0 then none
+      else some (Program.after #[Ref.instruction controllerId "start-workflow"]))
+    (outcome := some statusOutcome),
   Program.node entry.completeInstructionId
     (Program.completeNexusOperation entry.slotId (text "completed"))
-    (Program.instructionLimits 10000 1) #[Ref.instruction controllerId entry.authorityInstructionId]
-    (some (succeeded controllerId entry.authorityInstructionId)) (some statusOutcome)]
+    (Program.instructionLimits 10000 1) (outcome := some statusOutcome)]
 
-private def workflowInstructions (entry : OperationCase) : Array InstructionNode := #[
+/-- Each operation starts as its own root, so a later start names no instruction to run after; its
+await runs whether or not the start succeeded, so the operation's outcome is recorded. -/
+private def workflowInstructions (index : Nat) (entry : OperationCase) : Array InstructionNode := #[
   Program.node entry.startInstructionId
     (Program.startNexusOperation nexusEndpointRole nexusService entry.operation (text "request"))
-    (Program.instructionLimits 10000 1) #[] none (some statusOutcome),
+    (Program.instructionLimits 10000 1) (after := if index == 0 then none else some (Program.after #[]))
+    (outcome := some statusOutcome),
   Program.node entry.awaitInstructionId
     (Program.awaitInstruction (Ref.instruction workflowEntrypointId entry.startInstructionId))
-    (Program.instructionLimits 10000 1) #[Ref.instruction workflowEntrypointId entry.startInstructionId]
-    none (some textOutcome)]
+    (Program.instructionLimits 10000 1) (guard := some (boolean true)) (outcome := some textOutcome)]
 
 /-- The lift guard that fires where `path` resolves on the projected history event. -/
 private def resolves (path : FieldPath) : Expression :=
@@ -785,10 +791,10 @@ private def program (startPath historyPath : String) : Program :=
               assign (nested ["workflow_type", "name"]) (text workflowType),
               Program.environmentAssignment (nested ["task_queue", "name"]) taskQueueBindingId,
               assign (field "request_id") runId])
-            (Program.instructionLimits 10000 1) #[] none (some statusOutcome)
-            ((Program.reservation workflowEntrypointId 1) ::
-              operationCases.map fun entry => Program.reservation entry.handlerId 1).toArray] ++
-          (operationCases.flatMap fun entry => (controllerInstructions entry).toList).toArray ++
+            (Program.instructionLimits 10000 1) (outcome := some statusOutcome)
+            (reservations := ((Program.reservation workflowEntrypointId 1) ::
+              operationCases.map fun entry => Program.reservation entry.handlerId 1).toArray)] ++
+          (operationCases.mapIdx fun index entry => (controllerInstructions index entry).toList).flatten.toArray ++
           #[Program.node "history"
             (Program.invokeRpc workflowServiceRole historyPath #[
               Program.environmentAssignment (field "namespace") namespaceBindingId,
@@ -798,24 +804,21 @@ private def program (startPath historyPath : String) : Program :=
               #[Program.responseRead historyEvents .READ_CARDINALITY_EMIT_EACH
                   #[Program.observationTarget observationId, evidenceTarget]])
             historyLimits
-            (operationCases.map fun entry =>
-              Ref.instruction controllerId entry.completeInstructionId).toArray
-            (some (Expr.all (operationCases.map fun entry =>
-              succeeded controllerId entry.completeInstructionId).toArray))
-            (some statusOutcome)]),
+            (after := some (Program.after (operationCases.map fun entry =>
+              Ref.instruction controllerId entry.completeInstructionId).toArray))
+            (outcome := some statusOutcome)]),
       Program.workflow workflowEntrypointId workflowType workerRole taskQueueRole (
-        (operationCases.flatMap fun entry => (workflowInstructions entry).toList).toArray ++
+        (operationCases.mapIdx fun index entry => (workflowInstructions index entry).toList).flatten.toArray ++
           #[Program.node "finish-workflow" (Program.finish (text "completed"))
-            (Program.instructionLimits 5000 1) (operationCases.map fun entry =>
-              Ref.instruction workflowEntrypointId entry.awaitInstructionId).toArray
-            (some (Expr.all (operationCases.map fun entry =>
-              succeeded workflowEntrypointId entry.awaitInstructionId).toArray))
-            (some statusOutcome)])] ++
+            (Program.instructionLimits 5000 1)
+            (after := some (Program.after (operationCases.map fun entry =>
+              Ref.instruction workflowEntrypointId entry.awaitInstructionId).toArray))
+            (outcome := some statusOutcome)])] ++
       (operationCases.map fun entry =>
         Program.nexusHandler entry.handlerId nexusService entry.operation workerRole taskQueueRole
           #[Program.node ("respond-async-" ++ entry.operation)
             (Program.respondNexus .NEXUS_RESPONSE_KIND_ASYNCHRONOUS (text "accepted") entry.slotId)
-            (Program.instructionLimits 5000 1) #[] none (some statusOutcome)]).toArray)
+            (Program.instructionLimits 5000 1) (outcome := some statusOutcome)]).toArray)
     (Program.cleanup "cleanup" #[])
     (environment := #[Program.environment namespaceBindingId,
       Program.environment taskQueueBindingId, Program.environment nexusEndpointBindingId])

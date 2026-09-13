@@ -45,7 +45,7 @@ structure FaultRealization where
   /-- The `ROLE_KIND_TASK_QUEUE` role whose resource binding identifies the affected queue. -/
   roleId : String
   limits : InstructionLimits
-  dependencies : Array InstructionReference := #[]
+  after : Option After := none
   guard : Option Expression := none
   outcome : Option InstructionOutcomeDefinition := none
 
@@ -66,6 +66,6 @@ def FaultIntentDeclaration.lower
         .error (failed "fault.incomplete-realization")
       else
         .ok (Program.node realization.instructionId (Program.injectFault realization.roleId kind)
-          realization.limits realization.dependencies realization.guard realization.outcome)
+          realization.limits realization.after realization.guard realization.outcome)
 
 end Umpire

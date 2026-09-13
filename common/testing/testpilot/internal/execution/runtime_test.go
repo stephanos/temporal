@@ -174,9 +174,12 @@ func TestRunStopDrainsQuarantinesAndCannotSuppressFreshCleanup(t *testing.T) {
 	policy.Limits.MaxTotalDurationMilliseconds = 1000
 	policy.Limits.MaxCleanupDurationMilliseconds = 1000
 	late := rpcNode("late")
+	late.After = runsAfter("controller")
 	quarantine := rpcNode("quarantine")
+	quarantine.After = runsAfter("controller")
 	after := rpcNode("after")
-	after.Dependencies = []*testpilotspb.InstructionReference{{EntrypointId: "controller", InstructionId: "call"}}
+	after.After = runsAfter("controller", "call")
+	after.Guard = alwaysRuns()
 	c.Program.Entrypoints[0].Instructions = append(c.Program.Entrypoints[0].Instructions, late, quarantine, after)
 	cleanupNode := rpcNode("cleanup")
 	cleanupNode.Limits.TimeoutMilliseconds = 10
