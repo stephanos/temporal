@@ -33,6 +33,9 @@ func signed(value string) *testpilotspb.Value {
 func unsigned(value string) *testpilotspb.Value {
 	return &testpilotspb.Value{Value: &testpilotspb.Value_UnsignedIntegerValue{UnsignedIntegerValue: value}}
 }
+func enumLiteral(name string) *testpilotspb.Value {
+	return &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Name: name}}}
+}
 func boolean(value bool) *testpilotspb.Value {
 	return &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: value}}
 }
@@ -89,7 +92,7 @@ func TestNamedCollectionAndAnyLiterals(t *testing.T) {
 	anyType := &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Any{Any: &testpilotspb.AnyType{}}}}}
 	listType := &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Repeated{Repeated: &testpilotspb.RepeatedType{Element: scalar(testpilotspb.SCALAR_KIND_TEXT).GetSingular()}}}
 	mapType := &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Map{Map: &testpilotspb.MapType{Key: &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_TEXT}, Value: enum.GetSingular()}}}
-	enumValue := &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Number: 1}}}
+	enumValue := enumLiteral("READY")
 	for _, tt := range []struct {
 		name   string
 		schema *testpilotspb.ValueType
@@ -107,11 +110,46 @@ func TestNamedCollectionAndAnyLiterals(t *testing.T) {
 			require.Error(t, c.CheckLiteral(boolean(true), typ, DefaultLimits()))
 		})
 	}
-	require.Error(t, c.CheckLiteral(&testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Number: 22}}}, boundType(t, c, enum), DefaultLimits()))
+
 	unknown := &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/google.protobuf.Timestamp", Value: []byte{0x18, 1}}}}
 	require.Error(t, c.CheckLiteral(unknown, boundType(t, c, named("google.protobuf.Timestamp", false)), DefaultLimits()))
 	duplicate := &testpilotspb.Value{Value: &testpilotspb.Value_MapValue{MapValue: &testpilotspb.ValueMap{Entries: []*testpilotspb.ValueMapEntry{{Key: text("x"), Value: enumValue}, {Key: text("x"), Value: enumValue}}}}}
 	require.Error(t, c.CheckLiteral(duplicate, boundType(t, c, mapType), DefaultLimits()))
+}
+
+// An enum literal names a value its expected enum declares; an undeclared name, a name where the
+// expected type is no enum, and a literal with no expected type reject quoting the name.
+func TestEnumLiteralsNameADeclaredValue(t *testing.T) {
+	c := fixtureCatalog(t)
+	enum := boundType(t, c, named("fixture.State", true))
+	for _, tt := range []struct {
+		name     string
+		reject   func() error
+		category ErrorCategory
+		detail   string
+	}{
+		{"undeclared name", func() error { return c.CheckLiteral(enumLiteral("RUNNING"), enum, DefaultLimits()) }, Unknown, `enum fixture.State declares no value "RUNNING"`},
+		{"not an enum", func() error {
+			return c.CheckLiteral(enumLiteral("READY"), boundType(t, c, scalar(testpilotspb.SCALAR_KIND_TEXT)), DefaultLimits())
+		}, TypeMismatch, `enum literal "READY" where the expected type is not an enumeration`},
+		{"no expected type", func() error {
+			_, err := c.BindExpression(programSite, equal(literal(enumLiteral("READY")), literal(enumLiteral("READY"))), nil, nil, DefaultLimits())
+			return err
+		}, TypeMismatch, `enum literal "READY" requires a contextual source type`},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			var rejected *Error
+			require.ErrorAs(t, tt.reject(), &rejected)
+			require.Equal(t, tt.category, rejected.Category)
+			require.Equal(t, tt.detail, rejected.Detail)
+		})
+	}
+	require.NoError(t, c.CheckLiteral(enumLiteral("READY"), enum, DefaultLimits()))
+	require.True(t, proto.Equal(enumLiteral("READY"), EnumValue(enum.Enum(), 1)))
+	require.True(t, proto.Equal(enumLiteral("22"), EnumValue(enum.Enum(), 22)))
+	number, err := EnumNumber(enum.Enum(), enumLiteral("22").GetEnumValue())
+	require.NoError(t, err)
+	require.EqualValues(t, 22, number)
 }
 
 func TestTypeAndLiteralRejectMalformedAndBoundedInputs(t *testing.T) {
@@ -149,7 +187,7 @@ func TestBinderRejectsCrossedCatalogsAndTypedNilUnions(t *testing.T) {
 	foreign := boundType(t, other, scalar(testpilotspb.SCALAR_KIND_TEXT))
 	require.Error(t, c.CheckLiteral(text("x"), foreign, DefaultLimits()))
 	require.Error(t, c.CheckLiteral(text("x"), Type{}, DefaultLimits()))
-	_, err = c.BindPath(foreign, &testpilotspb.FieldPath{}, DefaultLimits())
+	_, err = c.BindPath(foreign, "path", "", DefaultLimits())
 	require.Error(t, err)
 	require.NotPanics(t, func() {
 		_, err := c.BindType(&testpilotspb.ValueType{Shape: (*testpilotspb.ValueType_Singular)(nil)})
@@ -157,10 +195,6 @@ func TestBinderRejectsCrossedCatalogsAndTypedNilUnions(t *testing.T) {
 	})
 	require.NotPanics(t, func() {
 		err := c.CheckLiteral(&testpilotspb.Value{Value: (*testpilotspb.Value_TextValue)(nil)}, boundType(t, c, scalar(testpilotspb.SCALAR_KIND_TEXT)), DefaultLimits())
-		require.Error(t, err)
-	})
-	require.NotPanics(t, func() {
-		_, err := c.BindPath(boundType(t, c, named("fixture.Payload", false)), &testpilotspb.FieldPath{Segments: []*testpilotspb.FieldPathSegment{{Field: "text", Selector: (*testpilotspb.FieldPathSegment_Presence)(nil)}}}, DefaultLimits())
 		require.Error(t, err)
 	})
 }
@@ -211,9 +245,9 @@ func TestIntrinsicOutcomeStatusWithoutHostSchema(t *testing.T) {
 	typ, err := catalog.BindType(schema)
 	require.NoError(t, err)
 	for number := int32(1); number <= 5; number++ {
-		require.NoError(t, catalog.CheckLiteral(&testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Number: number}}}, typ, DefaultLimits()))
+		require.NoError(t, catalog.CheckLiteral(enumLiteral(EnumName(testpilotspb.InstructionOutcomeStatus(number))), typ, DefaultLimits()))
 	}
-	require.Error(t, catalog.CheckLiteral(&testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Number: 99}}}, typ, DefaultLimits()))
+	require.Error(t, catalog.CheckLiteral(enumLiteral("99"), typ, DefaultLimits()))
 }
 
 func TestIntrinsicRunEventKind(t *testing.T) {

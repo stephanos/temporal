@@ -142,14 +142,17 @@ segments a rule reads are always the segments its coordinates derive. -/
 structure Read where
   private mk ::
   path : PropertyFieldPath
-  segments : FieldPath
+  segments : String
+
+/-- The schema side a modeled coordinate belongs to. -/
+private def sideSchema (path : PropertyFieldPath) : Operation.Schema :=
+  if path.side == .request then path.schema.request else path.schema.response
 
 private def Read.of (root : String) (path : PropertyFieldPath) : Except String Read := do
-  let schema := if path.side == .request then path.schema.request else path.schema.response
-  let segments ← readPath schema root path.steps
+  let segments ← readPath (sideSchema path) root path.steps
   pure ⟨path, Testpilot.Authoring.Path.make (segments.map fun segment => match segment with
     | .field name => Testpilot.Authoring.Path.field name
-    | .oneof group member => Testpilot.Authoring.Path.oneofSelector group member).toArray⟩
+    | .oneof group member => Testpilot.Authoring.Path.oneofMember group member).toArray⟩
 
 /-- One realized literal and the exact wire value it constructs. -/
 structure Literal where
@@ -157,8 +160,10 @@ structure Literal where
   scalar : Operation.Scalar
   wire : temporal.server.api.testpilot.v1.Value
 
-private def Literal.of (scalar : Operation.Scalar) : Except String Literal := do
-  pure ⟨scalar, ← Coverage.scalarValue scalar⟩
+/-- The literal `scalar` constructs, an enum value named by the schema of the coordinate `path` that
+supplied it. -/
+private def Literal.of (path : PropertyFieldPath) (scalar : Operation.Scalar) : Except String Literal := do
+  pure ⟨scalar, ← Coverage.scalarValue (sideSchema path) scalar⟩
 
 /-- The two rule shapes, before rendering. `negated` holds for a `notEqual` comparison. -/
 inductive Shape where
@@ -343,14 +348,14 @@ def lower (property : CheckedFieldProperty) (observation : Observation)
   let right ← within clause (Source.of realization comparison.right)
   let (shape, inputs) ← within clause (match realization.capture, left, right with
     | .none, .literal mapping, .observed path | .none, .observed path, .literal mapping => do
-        pure (Shape.safety negated (← Read.of root path) (← Literal.of mapping.value), [mapping])
+        pure (Shape.safety negated (← Read.of root path) (← Literal.of mapping.path mapping.value), [mapping])
     | .crossEvent selector state response, .captured captured, .observed observed
     | .crossEvent selector state response, .observed observed, .captured captured => do
         if selector.path.capture.isSome || !(selector.path.root == .outcome ||
             selector.path.root == .event) then
           throw "rule.unimplied"
         pure (Shape.capture negated (← Read.of root captured) (← Read.of root observed)
-          (← Read.of root selector.path) (← Literal.of selector.value) state response, [])
+          (← Read.of root selector.path) (← Literal.of selector.path selector.value) state response, [])
     | _, _, _ => throw "rule.unimplied")
   let coverage : Coverage.Request := { inputs }
   -- The derivation above only reads compared or selected coordinates and only realized literals, so

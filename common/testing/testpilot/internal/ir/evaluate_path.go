@@ -196,7 +196,7 @@ func (r *runtimeExpression) scalarValue(v protoreflect.Value, field protoreflect
 	case protoreflect.BytesKind:
 		return &testpilotspb.Value{Value: &testpilotspb.Value_BytesValue{BytesValue: v.Bytes()}}, nil
 	case protoreflect.EnumKind:
-		return &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Number: int32(v.Enum())}}}, nil
+		return EnumValue(field.Enum(), v.Enum()), nil
 	case protoreflect.FloatKind, protoreflect.DoubleKind:
 		return &testpilotspb.Value{Value: &testpilotspb.Value_FloatingPointValue{FloatingPointValue: v.Float()}}, nil
 	case protoreflect.Int32Kind, protoreflect.Int64Kind, protoreflect.Sint32Kind, protoreflect.Sint64Kind, protoreflect.Sfixed32Kind, protoreflect.Sfixed64Kind:

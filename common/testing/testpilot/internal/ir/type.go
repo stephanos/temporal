@@ -1,6 +1,7 @@
 package ir
 
 import (
+	"fmt"
 	"math"
 	"strconv"
 	"strings"
@@ -200,6 +201,9 @@ func (c *Catalog) checkLiteral(value *testpilotspb.Value, typ Type, b *budget, d
 	if typ.opaque {
 		return invalid(Unsupported, "literal", "capability literals are not representable")
 	}
+	if item, ok := value.Value.(*testpilotspb.Value_EnumValue); ok && (typ.enumeration == nil || typ.cardinality != Singular) {
+		return invalid(TypeMismatch, "literal", fmt.Sprintf("enum literal %q where the expected type is not an enumeration", item.EnumValue.GetName()))
+	}
 	if typ.cardinality == Repeated {
 		return c.checkList(value, typ, b, depth)
 	}
@@ -268,8 +272,8 @@ func checkEnum(value *testpilotspb.Value, typ Type) error {
 	if !ok || item.EnumValue == nil {
 		return literalMismatch()
 	}
-	if typ.enumeration.Values().ByNumber(protoreflect.EnumNumber(item.EnumValue.Number)) == nil {
-		return invalid(Unknown, "literal", "undefined enum number")
+	if typ.enumeration.Values().ByName(protoreflect.Name(item.EnumValue.GetName())) == nil {
+		return invalid(Unknown, "literal", fmt.Sprintf("enum %s declares no value %q", typ.enumeration.FullName(), item.EnumValue.GetName()))
 	}
 	return nil
 }
@@ -467,4 +471,33 @@ func scanPacked(data []byte, kind protoreflect.Kind, b *budget, depth int64) (in
 		data = data[consumed:]
 	}
 	return count, nil
+}
+
+// EnumName is the name EnumValue spells value by.
+func EnumName(value protoreflect.Enum) string {
+	return EnumValue(value.Descriptor(), value.Number()).GetEnumValue().GetName()
+}
+
+// EnumValue is the runtime value of number in enumeration: the value's name, or the number in
+// decimal when enumeration does not declare it, the spelling ProtoJSON gives an unknown enum number.
+// No literal names an undeclared number, since preparation admits only declared names.
+func EnumValue(enumeration protoreflect.EnumDescriptor, number protoreflect.EnumNumber) *testpilotspb.Value {
+	name := strconv.FormatInt(int64(number), 10)
+	if declared := enumeration.Values().ByNumber(number); declared != nil {
+		name = string(declared.Name())
+	}
+	return &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Name: name}}}
+}
+
+// EnumNumber is the number value names in enumeration: a declared name, or a decimal number an
+// EnumValue spelled because enumeration does not declare it.
+func EnumNumber(enumeration protoreflect.EnumDescriptor, value *testpilotspb.EnumValue) (protoreflect.EnumNumber, error) {
+	if declared := enumeration.Values().ByName(protoreflect.Name(value.GetName())); declared != nil {
+		return declared.Number(), nil
+	}
+	number, err := strconv.ParseInt(value.GetName(), 10, 32)
+	if err != nil {
+		return 0, invalid(Unknown, "request", fmt.Sprintf("enum %s declares no value %q", enumeration.FullName(), value.GetName()))
+	}
+	return protoreflect.EnumNumber(number), nil
 }

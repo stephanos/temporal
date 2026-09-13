@@ -4,33 +4,29 @@ import Testpilot.ProtoJSON
 open Umpire.Case.CorrelatedFixtures
 open Lean
 
-private def parse (text : String) : IO Lean.Json :=
-  match Lean.Json.parse text with
+private def canonical [Protobuf.Reflection.ReflectMessage α] (value : α) : IO String := do
+  match ← Testpilot.ProtoJSON.canonical value with
+  | .ok text => pure text
+  | .error error => throw (IO.userError (toString error))
+
+private def orThrow : Except String α → IO α
   | .ok value => pure value
   | .error error => throw (IO.userError error)
 
+/-- Each row is written by hand rather than as a `Lean.Json` object, which would sort its keys: the
+row names its scenario first, and its Cases and events keep the declaration order
+`Testpilot.ProtoJSON` wrote. -/
 def main : IO Unit := do
   let mut rows := #[]
   for scenario in scenarios do
-    let artifact ← match compiledCase scenario with
-      | .ok value => pure value
-      | .error error => throw (IO.userError error)
-    let encoded ← match ← Testpilot.ProtoJSON.canonical artifact with
-      | .ok value => pure value
-      | .error error => throw (IO.userError (toString error))
-    let runnable ← match runnableCase scenario with
-      | .ok value => pure value
-      | .error error => throw (IO.userError error)
-    let runnableJSON ← match ← Testpilot.ProtoJSON.canonical runnable with
-      | .ok value => pure value
-      | .error error => throw (IO.userError (toString error))
-    let events ← scenario.events.toArray.mapM fun event => do
-      match ← Protobuf.Json.toJsonString event (Protobuf.Json.PrintOptions.withGeneratedPool {}) with
-      | .ok value => parse value
-      | .error error => throw (IO.userError (toString error))
-    rows := rows.push (Lean.Json.mkObj [
-      ("name", toJson scenario.name), ("case", ← parse encoded),
-      ("runnableCase", ← parse runnableJSON),
-      ("events", .arr events), ("expected", toJson scenario.expected),
-      ("incomplete", toJson scenario.incomplete)])
-  IO.println (Lean.Json.compress (.arr rows))
+    let encoded ← canonical (← orThrow (compiledCase scenario))
+    let runnable ← canonical (← orThrow (runnableCase scenario))
+    let events ← scenario.events.toArray.mapM canonical
+    rows := rows.push ("{" ++ ",".intercalate [
+      "\"name\":" ++ (toJson scenario.name).compress,
+      "\"case\":" ++ encoded,
+      "\"runnableCase\":" ++ runnable,
+      "\"events\":[" ++ ",".intercalate events.toList ++ "]",
+      "\"expected\":" ++ (toJson scenario.expected).compress,
+      "\"incomplete\":" ++ (toJson scenario.incomplete).compress] ++ "}")
+  IO.println ("[" ++ ",".intercalate rows.toList ++ "]")

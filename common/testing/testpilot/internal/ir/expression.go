@@ -428,7 +428,11 @@ func (b *compiler) project(value protoreflect.Message, location string, facts ma
 	if err != nil {
 		return nil, err
 	}
-	return b.projectOperand(operand, messageField(value, "path").Interface().(*testpilotspb.FieldPath), facts, depth)
+	path, err := b.catalog.BindPath(operand.typ, location+".path", value.Get(value.Descriptor().Fields().ByName("path")).String(), b.budget.limits)
+	if err != nil {
+		return nil, err
+	}
+	return b.projectOperand(operand, path, facts, depth)
 }
 
 // payloadReference reports whether source is a reference to the evaluated Run Event's payload.
@@ -448,44 +452,45 @@ func (b *compiler) projectPayload(value protoreflect.Message, location string, f
 	if err := admitReference(b.context, operandLocation, "run_event"); err != nil {
 		return nil, err
 	}
-	pathValue := messageField(value, "path").Interface().(*testpilotspb.FieldPath)
-	segments := pathValue.GetSegments()
-	if len(segments) == 0 || segments[0] == nil || segments[0].Selector != nil {
-		return nil, invalid(Malformed, location+".path", "a Run Event payload path starts with the plain name of a payload arm")
+	pathLocation := location + ".path"
+	text := value.Get(value.Descriptor().Fields().ByName("path")).String()
+	segments, err := parsePath(text)
+	if err != nil {
+		return nil, pathError(Malformed, pathLocation, text, err.Error())
 	}
-	armLocation := location + ".path.segments[0].field"
-	reference := Reference{Kind: EventPayloadReference, ID: segments[0].GetField()}
+	if len(segments) == 0 || segments[0].selector != Field {
+		return nil, pathError(Malformed, pathLocation, text, "a Run Event payload path starts with the plain name of a payload arm")
+	}
+	arm := segments[0].field
+	reference := Reference{Kind: EventPayloadReference, ID: arm}
 	if _, known := b.catalog.RunEventPayloadType(protoreflect.Name(reference.ID)); !known {
-		return nil, invalid(Unknown, armLocation, "unknown Run Event payload arm")
+		return nil, pathError(Unknown, pathLocation, text, "unknown Run Event payload arm "+arm)
 	}
 	binding, declared := b.scope[reference]
 	if !declared {
-		return nil, invalid(Unknown, armLocation, "no Run Event kind this expression evaluates can carry the payload arm")
+		return nil, pathError(Unknown, pathLocation, text, "no Run Event kind this expression evaluates can carry the payload arm "+arm)
 	}
 	if !b.catalog.owns(binding.Type) {
 		return nil, invalid(TypeMismatch, "expression", "reference type belongs to another catalog")
 	}
 	operand := &Expression{operator: ReferenceValue, reference: reference, typ: binding.Type, key: referenceKey(reference)}
 	operand.absent = !binding.Available && !facts[operand.key]
-	return b.projectOperand(operand, &testpilotspb.FieldPath{Segments: segments[1:]}, facts, depth)
-}
-
-// projectOperand reads pathValue out of an already bound operand.
-func (b *compiler) projectOperand(operand *Expression, pathValue *testpilotspb.FieldPath, facts map[string]bool, depth int64) (*Expression, error) {
-	path, err := b.catalog.BindPath(operand.typ, pathValue, b.budget.limits)
+	pathBudget := budget{limits: b.budget.limits}
+	path, err := b.catalog.bindSegments(binding.Type, pathLocation, text, segments[1:], &pathBudget)
 	if err != nil {
 		return nil, err
 	}
+	return b.projectOperand(operand, path, facts, depth)
+}
+
+// projectOperand reads a bound path out of an already bound operand.
+func (b *compiler) projectOperand(operand *Expression, path *Path, facts map[string]bool, depth int64) (*Expression, error) {
 	if err := b.budget.charge(depth, int64(len(path.steps)), 0, "expression.path"); err != nil {
 		return nil, err
 	}
-	encoded, err := (proto.MarshalOptions{Deterministic: true}).Marshal(pathValue)
-	if err != nil {
-		return nil, invalid(Malformed, "expression.path", "path serialization failed")
-	}
 	result := &Expression{operator: Project, children: []*Expression{operand}, path: path, typ: path.typ}
 	if operand.key != "" {
-		result.key = operand.key + "/" + string(encoded)
+		result.key = operand.key + "/" + path.text
 	}
 	result.absent = (operand.absent || path.absent) && !facts[result.key]
 	if len(path.steps) > 0 && path.steps[len(path.steps)-1].Selector == Presence {
@@ -648,6 +653,8 @@ func (c *Catalog) literalType(value *testpilotspb.Value) (Type, error) {
 		url := literal.MessageValue.GetTypeUrl()
 		name := url[strings.LastIndexByte(url, '/')+1:]
 		return c.BindType(&testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Message{Message: &testpilotspb.NamedType{ProtobufType: name}}}}})
+	case *testpilotspb.Value_EnumValue:
+		return Type{}, invalid(TypeMismatch, "literal", fmt.Sprintf("enum literal %q requires a contextual source type", literal.EnumValue.GetName()))
 	default:
 		return Type{}, invalid(TypeMismatch, "literal", "numeric, enum, and collection literals require a contextual source type")
 	}

@@ -30,13 +30,12 @@ func TestRawProjectionPreservesWildcardAbsenceAndBudgets(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			source := dynamicpb.NewMessage(typ.Message())
 			require.NoError(t, proto.Unmarshal(tc.wire, source))
-			path := fieldPath("items", "optional_text")
-			path.Segments[0].Selector = &testpilotspb.FieldPathSegment_Repeated{Repeated: &testpilotspb.RepeatedWildcard{}}
 			for _, presence := range []bool{false, true} {
+				path := "items[*].optional_text"
 				if presence {
-					path.Segments[1].Selector = &testpilotspb.FieldPathSegment_Presence{Presence: &testpilotspb.PresenceSelector{}}
+					path += "?"
 				}
-				p, err := c.BindPath(typ, path, DefaultLimits())
+				p, err := c.BindPath(typ, "path", path, DefaultLimits())
 				require.NoError(t, err)
 				got, work, err := p.Read(context.Background(), source, DefaultLimits())
 				require.NoError(t, err)
@@ -68,14 +67,14 @@ func TestRawResponseWorkIsIndependentOfBindingCap(t *testing.T) {
 	typ := boundType(t, c, named("fixture.Payload", false))
 	source := dynamicpb.NewMessage(typ.Message())
 	source.Set(typ.Message().Fields().ByName("text"), protoreflect.ValueOfString(strings.Repeat("x", 1<<18)))
-	path, err := c.BindPath(typ, fieldPath("state"), DefaultLimits())
+	path, err := c.BindPath(typ, "path", fieldPath("state"), DefaultLimits())
 	require.NoError(t, err)
 	limits := DefaultLimits()
 	limits.Bytes = int64(proto.Size(source))
 	limits.Work = 1 << 24
 	value, work, err := path.Read(context.Background(), source, limits)
 	require.NoError(t, err)
-	require.Equal(t, int32(0), value.GetEnumValue().Number)
+	require.Equal(t, "UNKNOWN", value.GetEnumValue().GetName())
 	require.Greater(t, work, DefaultLimits().Work)
 	limits.Work = work
 	_, _, err = path.Read(context.Background(), source, limits)
@@ -93,11 +92,11 @@ func TestCompiledRequestProjectsUnrelatedResponse(t *testing.T) {
 	c := fixtureCatalog(t)
 	input := boundType(t, c, named("fixture.Payload", false))
 	output := boundType(t, c, named("google.protobuf.Timestamp", false))
-	write, err := c.BindPath(input, fieldPath("child", "text"), DefaultLimits())
+	write, err := c.BindPath(input, "path", fieldPath("child", "text"), DefaultLimits())
 	require.NoError(t, err)
 	request, _, err := BuildRequest(context.Background(), input.Message(), []Write{{Path: write, Value: text("request")}}, DefaultLimits())
 	require.NoError(t, err)
-	read, err := c.BindPath(output, fieldPath("seconds"), DefaultLimits())
+	read, err := c.BindPath(output, "path", fieldPath("seconds"), DefaultLimits())
 	require.NoError(t, err)
 	value, _, err := read.Read(context.Background(), &timestamppb.Timestamp{Seconds: 123}, DefaultLimits())
 	require.NoError(t, err)
@@ -122,7 +121,7 @@ func (c *cancelDuringWork) Err() error {
 func TestValueRuntimeCancellationAndMalformedInputs(t *testing.T) {
 	c := fixtureCatalog(t)
 	typ := boundType(t, c, named("fixture.Payload", false))
-	path, err := c.BindPath(typ, fieldPath("text"), DefaultLimits())
+	path, err := c.BindPath(typ, "path", fieldPath("text"), DefaultLimits())
 	require.NoError(t, err)
 	source := dynamicpb.NewMessage(typ.Message())
 	source.Set(typ.Message().Fields().ByName("text"), protoreflect.ValueOfString("text"))

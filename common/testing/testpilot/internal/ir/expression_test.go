@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -285,10 +286,7 @@ func runEventReference(event *testpilotspb.RunEventReference) *testpilotspb.Expr
 }
 
 func payloadPath(segments ...string) *testpilotspb.Expression {
-	path := &testpilotspb.FieldPath{}
-	for _, segment := range segments {
-		path.Segments = append(path.Segments, &testpilotspb.FieldPathSegment{Field: segment})
-	}
+	path := strings.Join(segments, ".")
 	payload := runEventReference(&testpilotspb.RunEventReference{Selection: &testpilotspb.RunEventReference_Payload{Payload: &testpilotspb.RunEventPayloadReference{}}})
 	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Path{Path: &testpilotspb.PathExpression{Operand: payload, Path: path}}}
 }
@@ -314,9 +312,9 @@ func TestRunEventPayloadPathsBindThroughTheArmTheyName(t *testing.T) {
 		{name: "declared arm", site: contractSite, expression: equal(payloadPath("fault_injected", "role_id"), queue), scope: declared},
 		{name: "guarded arm", site: contractSite, expression: &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: &testpilotspb.AllExpression{Operands: []*testpilotspb.Expression{present(payloadPath("fault_injected", "role_id")), equal(payloadPath("fault_injected", "role_id"), queue)}}}}, scope: unavailable},
 		{name: "unguarded arm", site: contractSite, expression: equal(payloadPath("fault_injected", "role_id"), queue), scope: unavailable, want: &Error{Category: Unavailable, Path: "expression", Detail: "reference or projection requires an explicit presence guard"}},
-		{name: "undeclared arm", site: contractSite, expression: equal(payloadPath("outcome", "detail"), queue), scope: declared, want: &Error{Category: Unknown, Path: located + ".segments[0].field", Detail: "no Run Event kind this expression evaluates can carry the payload arm"}},
-		{name: "unknown arm", site: contractSite, expression: equal(payloadPath("source_id"), queue), scope: declared, want: &Error{Category: Unknown, Path: located + ".segments[0].field", Detail: "unknown Run Event payload arm"}},
-		{name: "empty path", site: contractSite, expression: equal(payloadPath(), queue), scope: declared, want: &Error{Category: Malformed, Path: located, Detail: "a Run Event payload path starts with the plain name of a payload arm"}},
+		{name: "undeclared arm", site: contractSite, expression: equal(payloadPath("outcome", "detail"), queue), scope: declared, want: &Error{Category: Unknown, Path: located, Detail: `path "outcome.detail": no Run Event kind this expression evaluates can carry the payload arm outcome`}},
+		{name: "unknown arm", site: contractSite, expression: equal(payloadPath("source_id"), queue), scope: declared, want: &Error{Category: Unknown, Path: located, Detail: `path "source_id": unknown Run Event payload arm source_id`}},
+		{name: "empty path", site: contractSite, expression: equal(payloadPath(), queue), scope: declared, want: &Error{Category: Malformed, Path: located, Detail: `path "": a Run Event payload path starts with the plain name of a payload arm`}},
 		{name: "bare payload", site: contractSite, expression: equal(runEventReference(&testpilotspb.RunEventReference{Selection: &testpilotspb.RunEventReference_Payload{Payload: &testpilotspb.RunEventPayloadReference{}}}), queue), scope: declared, want: &Error{Category: Malformed, Path: "contract.predicate.compare.left.reference.run_event.payload", Detail: "a Run Event payload is read only through a path that names its arm"}},
 		{name: "outside the Contract context", site: programSite, expression: equal(payloadPath("fault_injected", "role_id"), queue), scope: declared, want: &Error{Category: Unknown, Path: "program.guard.compare.left.path.operand.reference.run_event", Detail: "reference is not admitted in this expression context"}},
 	} {
@@ -330,7 +328,7 @@ func TestRunEventPayloadPathsBindThroughTheArmTheyName(t *testing.T) {
 		})
 	}
 
-	bound, err := c.BindExpression(contractSite, equal(payloadPath("fault_injected", "kind"), literal(&testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Number: int32(testpilotspb.FAULT_KIND_WORKER_STOP)}}})), nil, declared, DefaultLimits())
+	bound, err := c.BindExpression(contractSite, equal(payloadPath("fault_injected", "kind"), literal(&testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Name: EnumName(testpilotspb.FAULT_KIND_WORKER_STOP)}}})), nil, declared, DefaultLimits())
 	require.NoError(t, err)
 	event := &testpilotspb.RunEvent{Kind: testpilotspb.RUN_EVENT_KIND_FAULT_INJECTED, Payload: &testpilotspb.RunEvent_FaultInjected{FaultInjected: &testpilotspb.FaultInjected{RoleId: "queue", Kind: testpilotspb.FAULT_KIND_WORKER_STOP}}}
 	matched, _, err := bound.Evaluate(t.Context(), func(reference Reference) *testpilotspb.Value {
@@ -401,7 +399,7 @@ func TestExpressionContextsRejectReferencesOutsideThem(t *testing.T) {
 // operator that nests an operand.
 func TestAdmitReferencesLocatesLikeBinding(t *testing.T) {
 	c := fixtureCatalog(t)
-	path := &testpilotspb.Expression{Expression: &testpilotspb.Expression_Path{Path: &testpilotspb.PathExpression{Operand: slot("s"), Path: &testpilotspb.FieldPath{}}}}
+	path := &testpilotspb.Expression{Expression: &testpilotspb.Expression_Path{Path: &testpilotspb.PathExpression{Operand: slot("s")}}}
 	for name, expression := range map[string]*testpilotspb.Expression{
 		".present.path.operand": present(path),
 		".not":                  negate(slot("s")),

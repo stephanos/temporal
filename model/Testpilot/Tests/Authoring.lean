@@ -9,7 +9,7 @@ namespace Testpilot.Tests.Authoring
 
 private def boolType := Types.singular (Types.scalar .SCALAR_KIND_BOOLEAN)
 private def textType := Types.singular (Types.scalar .SCALAR_KIND_TEXT)
-private def requestPath := Path.make #[Path.field "request", Path.oneofSelector "payload" "text"]
+private def requestPath := Path.make #[Path.field "request", Path.oneofMember "payload" "text"]
 private def responsePath := Path.make #[Path.field "response", Path.presence "result"]
 private def instructionReference := Ref.instruction "workflow" "start"
 
@@ -20,7 +20,7 @@ private def values : Array temporal.server.api.testpilot.v1.Value := #[
   Value.signedInteger (-9223372036854775808),
   Value.unsignedInteger 18446744073709551615,
   Value.floatingPoint 1.5,
-  Value.enumeration 1,
+  Value.enumeration "EXAMPLE_VALUE",
   Value.messageValue ({
     type_url := "type.googleapis.com/temporal.server.api.testpilot.v1.FormatVersion",
     value := ByteArray.mk #[8, 1]
@@ -38,13 +38,18 @@ private def types : Array ValueType := #[
   Types.map .SCALAR_KIND_TEXT (Types.scalar .SCALAR_KIND_BOOLEAN)
 ]
 
-private def paths : Array FieldPathSegment := #[
-  Path.field "plain",
-  Path.repeated "items",
-  Path.mapKey "labels" (Value.text "key"),
-  Path.presence "optional",
-  Path.oneofSelector "choice" "text"
-]
+-- `Path.make` spells every segment kind in the grammar the Go preparation parses, a text key with
+-- JSON escapes.
+#guard Path.make #[] == ""
+#guard Path.make #[Path.field "plain"] == "plain"
+#guard Path.make #[Path.field "history", Path.repeated "events"] == "history.events[*]"
+#guard Path.make #[Path.mapKey "labels" (.text "a\"b\\\n")] == "labels[\"a\\\"b\\\\\\n\"]"
+#guard Path.make #[Path.mapKey "counts" (.integer (-42))] == "counts[-42]"
+#guard Path.make #[Path.mapKey "flags" (.boolean true)] == "flags[true]"
+#guard Path.make #[Path.field "child", Path.presence "optional"] == "child.optional?"
+#guard Path.make #[Path.oneofMember "attributes" "nexus_operation_completed_event_attributes",
+    Path.field "scheduled_event_id"] ==
+  "attributes<nexus_operation_completed_event_attributes>.scheduled_event_id"
 
 private def programExpressions : Array Expression :=
   let literal := Expr.literal (Value.boolean true)
@@ -191,7 +196,6 @@ private def run : temporal.server.api.testpilot.v1.Run := Run.make "run" "case" 
 
 #guard values.size == 10
 #guard types.size == 6
-#guard paths.size == 5
 #guard programExpressions.size == 12
 #guard environmentAssignmentUsesBinding
 #guard contractExpressions.size == 12
