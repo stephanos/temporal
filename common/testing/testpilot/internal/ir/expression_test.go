@@ -125,8 +125,8 @@ func TestExpressionsRejectMalformedTypesAndResourceOverflow(t *testing.T) {
 	limits.Work = math.MaxInt64
 	_, err = c.BindExpression(programSite, literal(boolean(true)), &boolType, nil, limits)
 	require.Error(t, err)
-	scope := map[Reference]Binding{{Kind: SlotReference, ID: "capability"}: {Type: c.OpaqueHandleType(), Available: true}}
-	_, err = c.BindExpression(programSite, present(slot("capability")), nil, scope, DefaultLimits())
+	scope := map[Reference]Binding{{Kind: SlotReference, ID: "handle"}: {Type: c.OpaqueHandleType(), Available: true}}
+	_, err = c.BindExpression(programSite, present(slot("handle")), nil, scope, DefaultLimits())
 	require.Error(t, err)
 }
 

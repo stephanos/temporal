@@ -17,7 +17,7 @@ resource binding IDs never carry network addresses. Addresses, gRPC transport cr
 per-call credentials, and injected metadata remain Driver configuration. Channels are reused across
 sessions, and credential rotation for unchanged authorization does not require a new identity.
 
-Profile `MaxActivations` bounds concurrent sessions and capability creation per session.
+Profile `MaxActivations` bounds concurrent sessions and opaque handle creation per session.
 `MaxAttempts` bounds attempted effects per session and unfinished effects across the shared Driver,
 including quarantined effects. Every accepted effect retains shared capacity until its transport
 returns. Wait, Cancel, Drain, and serialized Driver operations honor their contexts, including
@@ -40,5 +40,5 @@ result. The diagnostic method accepts a bounded number of calls and retains no s
 `Reserve` rejects worker reservations; the composite Driver joins this Session with an independently
 owned worker Session and directs quarantine to the component that owns each effect.
 
-Focused tests use a real in-process gRPC service for unary transport and generic capability fixtures
-for ownership, cancellation, cleanup recovery, limits, and cross-Run isolation.
+Focused tests use a real in-process gRPC service for unary transport and generic opaque handle
+fixtures for ownership, cancellation, cleanup recovery, limits, and cross-Run isolation.

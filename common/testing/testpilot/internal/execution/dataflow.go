@@ -92,7 +92,7 @@ func (a *admission) bindInstruction(g *graph, i int, n *node) error {
 	case contract.CompleteNexusOperation:
 		typ, exists := a.prepared.slots[n.source.Instruction.GetCompleteNexusOperation().GetHandleSlotId()]
 		if !exists || !typ.Opaque() {
-			return invalid(ir.TypeMismatch, nodePath(g, n), "completion requires a capability Slot")
+			return invalid(ir.TypeMismatch, nodePath(g, n), "completion requires a handle Slot")
 		}
 	case contract.StartNexusOperation:
 		start := n.source.Instruction.GetStartNexusOperation()
@@ -163,7 +163,7 @@ func (a *admission) bindRPC(g *graph, i int, n *node) error {
 		return err
 	}
 	n.method = method
-	return a.bindProjections(g, i, n)
+	return a.bindResponseReads(g, i, n)
 }
 func (a *admission) bindNexusResponse(g *graph, i int, n *node) error {
 	response := n.source.Instruction.GetRespondNexus()
@@ -173,13 +173,13 @@ func (a *admission) bindNexusResponse(g *graph, i int, n *node) error {
 	if response.Kind == testpilotspb.NEXUS_RESPONSE_KIND_ASYNCHRONOUS {
 		typ, exists := a.prepared.slots[response.HandleSlotId]
 		if !exists || !typ.Opaque() {
-			return invalid(ir.TypeMismatch, nodePath(g, n), "async response requires a capability Slot")
+			return invalid(ir.TypeMismatch, nodePath(g, n), "async response requires a handle Slot")
 		}
 		if err := a.addWriter(response.HandleSlotId, slotWriter{graph: g, node: i}); err != nil {
 			return err
 		}
 	} else if response.HandleSlotId != "" {
-		return invalid(ir.Unsupported, nodePath(g, n), "only async responses publish capabilities")
+		return invalid(ir.Unsupported, nodePath(g, n), "only async responses publish handles")
 	}
 
 	return nil
@@ -228,7 +228,7 @@ func (a *admission) addWriter(id string, writer slotWriter) error {
 	a.writers[id] = writer
 	return nil
 }
-func (a *admission) bindProjections(g *graph, index int, n *node) error {
+func (a *admission) bindResponseReads(g *graph, index int, n *node) error {
 	output, err := messageType(a.prepared.catalog, n.method.Output())
 	if err != nil {
 		return err
@@ -237,7 +237,7 @@ func (a *admission) bindProjections(g *graph, index int, n *node) error {
 	var events int64
 	for read, source := range n.source.Instruction.GetInvokeRpc().ResponseReads {
 		if source == nil || len(source.Targets) == 0 {
-			return invalid(ir.Malformed, nodePath(g, n), "projection requires a path and sinks")
+			return invalid(ir.Malformed, nodePath(g, n), "response read requires a path and targets")
 		}
 		path, err := a.prepared.catalog.BindPath(output, expressionPath(g, n, fmt.Sprintf("instruction.invoke_rpc.response_reads[%d].path", read)), source.Path, a.expressionLimits())
 		if err != nil {
@@ -254,28 +254,28 @@ func (a *admission) bindProjections(g *graph, index int, n *node) error {
 			typ = typ.Element()
 			count = a.prepared.limits.MaxPathFanout
 		default:
-			return invalid(ir.Unknown, nodePath(g, n), "unknown projection cardinality")
+			return invalid(ir.Unknown, nodePath(g, n), "unknown response read cardinality")
 		}
-		lifts, emits, err := a.bindProjectionSinks(g, index, n, read, source, path, typ, seen)
+		lifts, emits, err := a.bindReadTargets(g, index, n, read, source, path, typ, seen)
 		if err != nil {
 			return err
 		}
 		if emits {
 			if count > a.prepared.limits.MaxInstructionEmittedEvents-events {
-				return invalid(ir.LimitExceeded, nodePath(g, n), "projection emission exceeds instruction bound")
+				return invalid(ir.LimitExceeded, nodePath(g, n), "response read emission exceeds instruction bound")
 			}
 			events += count
 		}
-		n.projections = append(n.projections, projection{path: path, cardinality: source.Cardinality, sinks: source.Targets, lifts: lifts})
+		n.responseReads = append(n.responseReads, responseRead{path: path, cardinality: source.Cardinality, sinks: source.Targets, lifts: lifts})
 	}
 	return nil
 }
-func (a *admission) bindProjectionSinks(g *graph, index int, n *node, read int, source *testpilotspb.ResponseRead, path *ir.Path, typ ir.Type, seen map[string]bool) ([]*evidenceLift, bool, error) {
+func (a *admission) bindReadTargets(g *graph, index int, n *node, read int, source *testpilotspb.ResponseRead, path *ir.Path, typ ir.Type, seen map[string]bool) ([]*evidenceLift, bool, error) {
 	emits := false
 	lifts := make([]*evidenceLift, len(source.Targets))
 	for i, sink := range source.Targets {
 		if sink == nil || isNil(sink.Target) {
-			return nil, false, invalid(ir.Malformed, nodePath(g, n), "missing projection sink")
+			return nil, false, invalid(ir.Malformed, nodePath(g, n), "missing response read target")
 		}
 		var target ir.Type
 		var exists bool
@@ -303,18 +303,18 @@ func (a *admission) bindProjectionSinks(g *graph, index int, n *node, read int, 
 			lifts[i], emits = lift, true
 			key = "observation:" + lift.observationID
 			if seen[key] {
-				return nil, false, invalid(ir.Malformed, nodePath(g, n), "conflicting projection sinks")
+				return nil, false, invalid(ir.Malformed, nodePath(g, n), "conflicting response read targets")
 			}
 			seen[key] = true
 			continue
 		default:
-			return nil, false, invalid(ir.Unsupported, nodePath(g, n), "unknown projection sink")
+			return nil, false, invalid(ir.Unsupported, nodePath(g, n), "unknown response read target")
 		}
 		if !exists || target.Opaque() || !typ.Equal(target) {
-			return nil, false, invalid(ir.TypeMismatch, nodePath(g, n), "projection type differs from declared sink")
+			return nil, false, invalid(ir.TypeMismatch, nodePath(g, n), "response read type differs from declared target")
 		}
 		if seen[key] {
-			return nil, false, invalid(ir.Malformed, nodePath(g, n), "conflicting projection sinks")
+			return nil, false, invalid(ir.Malformed, nodePath(g, n), "conflicting response read targets")
 		}
 		seen[key] = true
 	}
@@ -332,7 +332,7 @@ func (a *admission) bindEvidenceLift(g *graph, n *node, location string, source 
 		return nil, invalid(ir.TypeMismatch, nodePath(g, n), "evidence lift requires an exact declared CorrelatedEvidence Observation")
 	}
 	if typ.Cardinality() != ir.Singular || typ.Message() == nil || typ.Opaque() || typ.Any() {
-		return nil, invalid(ir.TypeMismatch, nodePath(g, n), "evidence lift requires a singular message projection")
+		return nil, invalid(ir.TypeMismatch, nodePath(g, n), "evidence lift requires a singular message read")
 	}
 	if len(source.GetRules()) == 0 {
 		return nil, invalid(ir.Malformed, nodePath(g, n), "evidence lift requires at least one rule")
@@ -480,7 +480,7 @@ func (a *admission) scope(g *graph, n *node) map[ir.Reference]ir.Binding {
 	return scope
 }
 
-// Successful dependencies establish nonoptional projections and successful AwaitSlot readiness.
+// Successful dependencies establish nonoptional response reads and successful AwaitSlot readiness.
 func (a *admission) successScope(g *graph, n *node, guard *ir.Expression, scope map[ir.Reference]ir.Binding) {
 	for id := range successFacts(guard) {
 		index, exists := g.index[id]

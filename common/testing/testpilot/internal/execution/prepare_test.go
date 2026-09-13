@@ -30,7 +30,7 @@ func valueSlot(id string, typ *testpilotspb.ValueType) *testpilotspb.Slot {
 	return &testpilotspb.Slot{SlotId: id, Content: &testpilotspb.Slot_Value{Value: typ}}
 }
 
-func capabilitySlot(id string) *testpilotspb.Slot {
+func handleSlot(id string) *testpilotspb.Slot {
 	return &testpilotspb.Slot{SlotId: id, Content: &testpilotspb.Slot_OpaqueHandle{OpaqueHandle: &testpilotspb.OpaqueHandleType{}}}
 }
 func rpcNode(id string) *testpilotspb.InstructionNode {
@@ -354,7 +354,7 @@ func TestPrepareSlotDataflowAndImmutableViews(t *testing.T) {
 // A carrier reserves one activation of every workflow and Nexus-handler entrypoint its shapes admit,
 // in declaration order; an activity, a controller or a cleanup call reserves nothing.
 func TestPrepareDerivesReservationsFromTheProfileCarriers(t *testing.T) {
-	c, catalog, p := capabilityFixture(t)
+	c, catalog, p := handleFixture(t)
 	c.Program.Entrypoints = append(c.Program.Entrypoints, &testpilotspb.Entrypoint{EntrypointId: "activity", Activation: &testpilotspb.Entrypoint_Activity{Activity: &testpilotspb.ActivityActivation{ActivityType: "activity", WorkerRoleId: "worker", TaskQueueRoleId: "queue"}}})
 	c.Program.Cleanup.Instructions = []*testpilotspb.InstructionNode{rpcNode("cleanup-call")}
 	prepared, err := Prepare(c, catalog, p)
@@ -657,7 +657,7 @@ func TestInstructionContextMatrix(t *testing.T) {
 		}{
 			{"rpc", rpcNode("call").Instruction, contract.ControllerEntrypoint},
 			{"await slot", &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitSlot{AwaitSlot: &testpilotspb.AwaitSlot{SlotId: "value"}}}, contract.ControllerEntrypoint},
-			{"complete", &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_CompleteNexusOperation{CompleteNexusOperation: &testpilotspb.CompleteNexusOperation{HandleSlotId: "capability", Result: textLiteral("done")}}}, contract.ControllerEntrypoint},
+			{"complete", &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_CompleteNexusOperation{CompleteNexusOperation: &testpilotspb.CompleteNexusOperation{HandleSlotId: "handle", Result: textLiteral("done")}}}, contract.ControllerEntrypoint},
 			{"start", &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_StartNexusOperation{StartNexusOperation: &testpilotspb.StartNexusOperation{EndpointRoleId: "endpoint", Service: "service", Operation: "operation", Input: textLiteral("input")}}}, contract.WorkflowEntrypoint},
 			{"await", &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitInstruction{AwaitInstruction: &testpilotspb.AwaitInstruction{Instruction: &testpilotspb.InstructionReference{EntrypointId: "workflow", InstructionId: "prior"}}}}, contract.WorkflowEntrypoint},
 			{"finish", &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_Finish{Finish: &testpilotspb.Finish{Result: textLiteral("done")}}}, contract.WorkflowEntrypoint},
@@ -687,20 +687,20 @@ func TestInstructionContextMatrix(t *testing.T) {
 	}
 }
 
-func capabilityFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Profile) {
+func handleFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Profile) {
 	t.Helper()
 	c, catalog, p := fixture(t)
 	addWorker(c, &p)
-	c.Program.Slots = []*testpilotspb.Slot{capabilitySlot("capability")}
+	c.Program.Slots = []*testpilotspb.Slot{handleSlot("handle")}
 	wait := rpcNode("ready")
-	wait.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitSlot{AwaitSlot: &testpilotspb.AwaitSlot{SlotId: "capability"}}}
+	wait.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitSlot{AwaitSlot: &testpilotspb.AwaitSlot{SlotId: "handle"}}}
 	wait.After = runsAfter("controller")
 	complete := rpcNode("complete")
 	complete.Guard = succeeded("controller", "ready")
-	complete.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_CompleteNexusOperation{CompleteNexusOperation: &testpilotspb.CompleteNexusOperation{HandleSlotId: "capability", Result: textLiteral("done")}}}
+	complete.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_CompleteNexusOperation{CompleteNexusOperation: &testpilotspb.CompleteNexusOperation{HandleSlotId: "handle", Result: textLiteral("done")}}}
 	c.Program.Entrypoints[0].Instructions = append(c.Program.Entrypoints[0].Instructions, wait, complete)
 	handler := rpcNode("respond")
-	handler.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_RespondNexus{RespondNexus: &testpilotspb.RespondNexus{Kind: testpilotspb.NEXUS_RESPONSE_KIND_ASYNCHRONOUS, HandleSlotId: "capability", Result: textLiteral("accepted")}}}
+	handler.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_RespondNexus{RespondNexus: &testpilotspb.RespondNexus{Kind: testpilotspb.NEXUS_RESPONSE_KIND_ASYNCHRONOUS, HandleSlotId: "handle", Result: textLiteral("accepted")}}}
 	c.Program.Entrypoints = append(c.Program.Entrypoints, &testpilotspb.Entrypoint{EntrypointId: "handler", Activation: &testpilotspb.Entrypoint_NexusHandler{NexusHandler: &testpilotspb.NexusHandlerActivation{Service: "service", Operation: "operation", WorkerRoleId: "worker", TaskQueueRoleId: "queue"}}, Instructions: []*testpilotspb.InstructionNode{handler}})
 	start := rpcNode("start")
 	start.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_StartNexusOperation{StartNexusOperation: &testpilotspb.StartNexusOperation{EndpointRoleId: "endpoint", Service: "service", Operation: "operation", Input: textLiteral("input")}}}
@@ -714,19 +714,19 @@ func capabilityFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Profile) 
 	return c, catalog, p
 }
 func TestOpaqueReadinessAndSDKPreparedPlans(t *testing.T) {
-	c, catalog, p := capabilityFixture(t)
+	c, catalog, p := handleFixture(t)
 	prepared, err := Prepare(c, catalog, p)
 	require.NoError(t, err)
 	for name, mutate := range map[string]func(*testpilotspb.Case){
-		"inspect capability": func(s *testpilotspb.Case) {
-			s.Program.Entrypoints[0].Instructions[2].Guard = present(slot("capability"))
+		"inspect handle": func(s *testpilotspb.Case) {
+			s.Program.Entrypoints[0].Instructions[2].Guard = present(slot("handle"))
 		},
 		"consume without readiness": func(s *testpilotspb.Case) { s.Program.Entrypoints[0].Instructions[2].Guard = alwaysRuns() },
-		"missing capability writer": func(s *testpilotspb.Case) {
+		"missing handle writer": func(s *testpilotspb.Case) {
 			s.Program.Entrypoints = s.Program.Entrypoints[:2]
 		},
-		"capability projection": func(s *testpilotspb.Case) {
-			s.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: "text", Cardinality: testpilotspb.READ_CARDINALITY_ONE, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "capability"}}}}}
+		"handle response read": func(s *testpilotspb.Case) {
+			s.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: "text", Cardinality: testpilotspb.READ_CARDINALITY_ONE, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "handle"}}}}}
 		},
 		"SDK value without success": func(s *testpilotspb.Case) { s.Program.Entrypoints[1].Instructions[2].Guard = alwaysRuns() },
 		"worker RPC": func(s *testpilotspb.Case) {
@@ -801,10 +801,10 @@ func TestSlotOwnersAndConcurrentPreparedViews(t *testing.T) {
 			t.Parallel()
 			for j := 0; j < 10; j++ {
 				plans := prepared.Entrypoints()
-				plans[0].Instructions()[0].Projections()[0].Sinks[0].Target = &testpilotspb.ReadTarget_SlotId{SlotId: "changed"}
+				plans[0].Instructions()[0].ResponseReads()[0].Sinks[0].Target = &testpilotspb.ReadTarget_SlotId{SlotId: "changed"}
 				plans[0].Order()[0] = 99
 				prepared.Snapshot().ProgramId = "changed"
-				require.Equal(t, "value", prepared.Entrypoints()[0].Instructions()[0].Projections()[0].Sinks[0].GetSlotId())
+				require.Equal(t, "value", prepared.Entrypoints()[0].Instructions()[0].ResponseReads()[0].Sinks[0].GetSlotId())
 				require.Equal(t, "program", prepared.View().ProgramID())
 			}
 		})
@@ -824,7 +824,7 @@ func TestPrepareBoundsSurfaceBeforeCloning(t *testing.T) {
 	require.Error(t, err)
 }
 
-func TestStructuralCountsAndProjectionFanout(t *testing.T) {
+func TestStructuralCountsAndPathFanout(t *testing.T) {
 	for name, mutate := range map[string]func(*testpilotspb.Case, *Profile){
 		"entrypoint count": func(c *testpilotspb.Case, p *Profile) { addWorker(c, p); p.Limits.MaxEntrypoints = 1 },
 		"node count": func(c *testpilotspb.Case, p *Profile) {
@@ -887,7 +887,7 @@ func TestWholeRequestAssignments(t *testing.T) {
 func TestAwaitRequiresNexusStart(t *testing.T) {
 	for _, target := range []string{"start", "await", "finish"} {
 		t.Run(target, func(t *testing.T) {
-			c, catalog, p := capabilityFixture(t)
+			c, catalog, p := handleFixture(t)
 			g := c.Program.Entrypoints[1]
 			n := rpcNode("second_await")
 			n.After = runsAfter("workflow", target)

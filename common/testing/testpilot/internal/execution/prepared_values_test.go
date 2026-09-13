@@ -16,7 +16,7 @@ import (
 // controller protocol effect a protocol code, a workflow or Nexus-handler instruction an SDK failure
 // code, and only an awaited Nexus operation a value, its text result.
 func TestPrepareDerivesOutcomeFieldsFromTheInstruction(t *testing.T) {
-	c, catalog, policy := capabilityFixture(t)
+	c, catalog, policy := handleFixture(t)
 	p, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
 	status := &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Enumeration{Enumeration: &testpilotspb.NamedType{ProtobufType: "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"}}}}}
@@ -44,7 +44,7 @@ func TestPrepareDerivesOutcomeFieldsFromTheInstruction(t *testing.T) {
 }
 
 func TestPreparedOutcomeParity(t *testing.T) {
-	c, catalog, policy := capabilityFixture(t)
+	c, catalog, policy := handleFixture(t)
 	p, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
 	ctx := context.Background()
@@ -101,7 +101,7 @@ func TestPreparedOutcomeParity(t *testing.T) {
 }
 
 func TestPreparedInputActivationIsolation(t *testing.T) {
-	c, catalog, policy := capabilityFixture(t)
+	c, catalog, policy := handleFixture(t)
 	p, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
 	entry := p.Entrypoints()[1]
@@ -142,7 +142,7 @@ func TestPreparedInputActivationIsolation(t *testing.T) {
 // A Finish or RespondNexus result ends its activation rather than becoming an outcome value, so its
 // outcome carries none; an awaited operation's value type is read through a copy.
 func TestPreparedTerminalResultsAndOutcomeTypes(t *testing.T) {
-	c, catalog, policy := capabilityFixture(t)
+	c, catalog, policy := handleFixture(t)
 	p, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
 	await := p.Entrypoints()[1].Instructions()[1]

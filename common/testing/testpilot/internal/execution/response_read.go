@@ -28,13 +28,13 @@ func (a *activationValues) stage(ctx context.Context, c contract.Coordinate, res
 	batch.outcome, batch.fields = snapshot.Outcome, snapshot.Fields
 	if n.opcode != contract.InvokeRPC {
 		if !isNil(result.Response) {
-			return nil, w.work, invalid(ir.Unsupported, "projection", "only RPCs return raw responses")
+			return nil, w.work, invalid(ir.Unsupported, "response_read", "only RPCs return raw responses")
 		}
 		return finishBatch(w, batch)
 	}
 	if isNil(result.Response) {
 		if batch.outcome.Status == testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED {
-			return nil, w.work, invalid(ir.Unavailable, "projection", "successful RPC has no response")
+			return nil, w.work, invalid(ir.Unavailable, "response_read", "successful RPC has no response")
 		}
 		return finishBatch(w, batch)
 	}
@@ -44,7 +44,7 @@ func (a *activationValues) stage(ctx context.Context, c contract.Coordinate, res
 		return nil, w.work, err
 	}
 	if batch.outcome.Status == testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED {
-		for i, p := range n.projections {
+		for i, p := range n.responseReads {
 			value, work, err := p.path.Read(ctx, response, w.remaining(a.store.program.limits.MaxInstructionResponseBytes))
 			w.work += work
 			if err != nil {
@@ -53,7 +53,7 @@ func (a *activationValues) stage(ctx context.Context, c contract.Coordinate, res
 			if value == nil {
 				continue
 			}
-			if err = a.stageProjection(w, n, batch, p, int64(i), value); err != nil {
+			if err = a.stageResponseRead(w, n, batch, p, int64(i), value); err != nil {
 				return nil, w.work, err
 			}
 		}
@@ -116,7 +116,7 @@ func validateOutcome(w *valueWork, entryContext contract.EntrypointKind, n *node
 func textValue(text string) *testpilotspb.Value {
 	return &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: text}}
 }
-func (a *activationValues) stageProjection(w *valueWork, n *node, batch *valueBatch, p projection, index int64, value *testpilotspb.Value) error {
+func (a *activationValues) stageResponseRead(w *valueWork, n *node, batch *valueBatch, p responseRead, index int64, value *testpilotspb.Value) error {
 	values := []*testpilotspb.Value{value}
 	typ := p.path.Type()
 	if p.cardinality == testpilotspb.READ_CARDINALITY_EMIT_EACH {
@@ -130,7 +130,7 @@ func (a *activationValues) stageProjection(w *valueWork, n *node, batch *valueBa
 		if err := w.charge(1); err != nil {
 			return err
 		}
-		fact := projectionFact{projection: index, index: int64(i)}
+		fact := readFact{read: index, index: int64(i)}
 		for j, sink := range p.sinks {
 			if lift := p.liftAt(j); lift != nil {
 				evidence, err := a.liftEvidence(w, lift, value, emitted[j])
@@ -150,18 +150,18 @@ func (a *activationValues) stageProjection(w *valueWork, n *node, batch *valueBa
 			switch target := sink.Target.(type) {
 			case *testpilotspb.ReadTarget_SlotId:
 				if _, exists := batch.writes[target.SlotId]; exists {
-					return invalid(ir.Malformed, "projection", "duplicate staged Slot")
+					return invalid(ir.Malformed, "response_read", "duplicate staged Slot")
 				}
 				batch.writes[target.SlotId] = copied
 			case *testpilotspb.ReadTarget_ObservationId:
 				fact.observations = append(fact.observations, &testpilotspb.ObservationResult{ObservationId: target.ObservationId, Value: copied})
 			default:
-				return invalid(ir.Unsupported, "projection", "unknown sink")
+				return invalid(ir.Unsupported, "response_read", "unknown sink")
 			}
 		}
 		if len(fact.observations) > 0 {
 			if int64(len(batch.facts)) >= a.store.program.limits.MaxInstructionEmittedEvents {
-				return invalid(ir.LimitExceeded, "projection", "emitted event ceiling exceeded")
+				return invalid(ir.LimitExceeded, "response_read", "emitted event ceiling exceeded")
 			}
 			batch.facts = append(batch.facts, fact)
 		}
@@ -205,7 +205,7 @@ func outcomeField(outcome *testpilotspb.InstructionOutcome, field testpilotspb.I
 	return value, nil
 }
 
-func (p projection) liftAt(index int) *evidenceLift {
+func (p responseRead) liftAt(index int) *evidenceLift {
 	if index >= len(p.lifts) {
 		return nil
 	}
@@ -254,7 +254,7 @@ func (a *activationValues) liftEvidence(w *valueWork, lift *evidenceLift, value 
 		}
 		encoded, err := proto.Marshal(evidence)
 		if err != nil {
-			return nil, invalid(ir.Malformed, "projection", "evidence lift produced an unencodable value")
+			return nil, invalid(ir.Malformed, "response_read", "evidence lift produced an unencodable value")
 		}
 		if err := w.charge(int64(len(encoded)) + 1); err != nil {
 			return nil, err
@@ -275,7 +275,7 @@ func (a *activationValues) readLiftScalar(w *valueWork, lift *evidenceLift, path
 		return nil, err
 	}
 	if read == nil {
-		return nil, invalid(ir.Unavailable, "projection", "evidence lift read an absent declared coordinate")
+		return nil, invalid(ir.Unavailable, "response_read", "evidence lift read an absent declared coordinate")
 	}
 	// The portable evidence domain is text, unsigned integer and boolean; every admitted integer kind
 	// narrows into an unsigned integer and a negative one has no evidence scalar to narrow to.
@@ -284,11 +284,11 @@ func (a *activationValues) readLiftScalar(w *valueWork, lift *evidenceLift, path
 		return read, nil
 	case *testpilotspb.Value_SignedIntegerValue:
 		if strings.HasPrefix(item.SignedIntegerValue, "-") {
-			return nil, invalid(ir.TypeMismatch, "projection", "evidence lift read a negative integer")
+			return nil, invalid(ir.TypeMismatch, "response_read", "evidence lift read a negative integer")
 		}
 		return &testpilotspb.Value{Value: &testpilotspb.Value_UnsignedIntegerValue{UnsignedIntegerValue: item.SignedIntegerValue}}, nil
 	default:
-		return nil, invalid(ir.TypeMismatch, "projection", "evidence lift read an unsupported scalar")
+		return nil, invalid(ir.TypeMismatch, "response_read", "evidence lift read an unsupported scalar")
 	}
 }
 func (a *activationValues) readLiftText(w *valueWork, lift *evidenceLift, path *ir.Path, value *testpilotspb.Value) (string, error) {
@@ -298,7 +298,7 @@ func (a *activationValues) readLiftText(w *valueWork, lift *evidenceLift, path *
 	}
 	item, ok := read.Value.(*testpilotspb.Value_TextValue)
 	if !ok {
-		return "", invalid(ir.TypeMismatch, "projection", "evidence lift expected text")
+		return "", invalid(ir.TypeMismatch, "response_read", "evidence lift expected text")
 	}
 	return item.TextValue, nil
 }
@@ -313,6 +313,6 @@ func (a *activationValues) readLiftKey(w *valueWork, lift *evidenceLift, path *i
 	case *testpilotspb.Value_UnsignedIntegerValue:
 		return item.UnsignedIntegerValue, nil
 	default:
-		return "", invalid(ir.TypeMismatch, "projection", "evidence lift expected an operation key")
+		return "", invalid(ir.TypeMismatch, "response_read", "evidence lift expected an operation key")
 	}
 }

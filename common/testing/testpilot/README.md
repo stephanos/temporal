@@ -73,6 +73,161 @@ undeclared name, a name where the expected type is no enum, and an enum literal 
 quoting the name. A value read from a protobuf message carries its name too; a number the enum does
 not declare is spelled in decimal, which no literal names.
 
+## Extending the protocol
+
+The protocol has no compatibility promise, so an extension changes it in place. The same places change
+in the same order for every kind of extension; the lists below say what each place needs for a new
+instruction, fault kind, Run Event payload and expression reference, and the worker-stop fault kind
+is traced through all of them as the worked example. fn-85 R10's typed worker instructions are the
+first planned use.
+
+### Every extension
+
+1. **Protocol.** Edit the file that owns the concept under
+   `proto/internal/temporal/server/api/testpilot/v1`. A new message or enum carries a leading comment,
+   field numbers stay dense from 1, and a new oneof arm is appended;
+   `TestProtocolMessagesCarryLeadingComments` enforces the first two. A new file must be reachable from
+   `case.proto` or `run.proto` and is listed in `TESTPILOT_PROTOCOL_PROTOS` (the Makefile),
+   `testpilotProtocolSchemas` (`model/lakefile.lean`), `protocolFiles` (`protocol_test.go`) and the file
+   list in `tools/umpire/cmd/umpire-gen-lean-api/case_schema_test.go`.
+   A Run-only message never enters the Case closure (`TestCaseImportClosureExcludesRunOnlyMessages`).
+2. **Generated code.** `make proto` regenerates `api/testpilot/v1` and runs the api-linter; a singular
+   enum field naming an enum from another file of the package compiles only through the rewrite in
+   `cmd/tools/protogen/enum_references.go`. `Testpilot/Protocol.lean` elaborates both closures with one
+   `protoc` call, and `make umpire-check-testpilot-protocol` checks it.
+3. **`Testpilot.Authoring`.** Add the constructor Producers write (`model/Testpilot/Authoring.lean`) and
+   guard it in `model/Testpilot/Tests/Authoring.lean`; `make umpire-check-testpilot-authoring` decodes
+   the Lean ProtoJSON strictly in Go.
+4. **Go interpreter or evaluator.** Instructions bind in `internal/execution` and run in its scheduler
+   or the worker interpreter; references and paths bind in `internal/ir`; Contracts evaluate in
+   `internal/verification`.
+5. **The table that classifies it.** `ir.RunEventPayloadOf` for payloads, `ir.admittedReferences` for
+   references, `execution.InstructionOpcode` for instructions.
+6. **Profile Opcode and Driver.** `contract.Opcode` and `contract.Session` in the Driver leaf, then the
+   Temporal Drivers under `temporal/`.
+7. **Conformance class or unit test.** The six Driver-independent classes under
+   `testdata/case-runtime-conformance` change only for a new Verdict shape or rejection; everything else
+   is pinned by a focused unit test beside the code, and live behavior by a `TestTestpilot*` test.
+8. **Retired-vocabulary gate.** A rename or removal adds the old spelling to `buildRetiredRules` in
+   `tools/umpire/internal/retiredvocabulary/check.go` with a line in
+   `TestRetiredRulesHoldTheGlossaryRenamedProtocolNames`, and a removed descriptor name to
+   `TestProtocolUsesCohesivePublicVocabulary`. A new name that matches a retired rule fails the gate.
+9. **Equivalence mapping** (only while fn-87's baseline exists). A change to a checked-in fixture
+   appends a step to `Declared` in `internal/protocolmigration/mapping.go`; a new fixture is listed in
+   `Added`.
+10. **Fixtures.** Regenerate through `make umpire-gen-case-runtime-conformance`, never by hand;
+    `make umpire-check-case-runtime-conformance` fails on a stale fixture.
+
+### A new instruction
+
+1. A message in `instruction.proto` and an arm appended to `Instruction.instruction`. The arm's field
+   number is its Opcode.
+2. `make proto`.
+3. A `Testpilot.Authoring.Program` constructor beside `Program.injectFault`.
+4. `execution.InstructionOpcode` and `opcodeContext` (which entrypoint kind may declare it), a binder in
+   `admission.bindInstruction` and `admission.bindNodeDataflow`, its outcome fields in
+   `admission.bindOutcomes`, dispatch in `scheduler.acceptEffect` and any event it records in
+   `scheduler.publishCompletion`. A workflow instruction also runs in `workflowInterpreter.execute`
+   (`temporal/worker/interpreter.go`).
+5. `InstructionOpcode` is the table: `TestInstructionOpcodesCoverTheInstructionTable` requires every
+   oneof arm to map to the Opcode of its field number.
+6. Append the Opcode to `contract.Opcode` and move `contract.MaxOpcode`; `temporal.DeriveProfile`
+   authorizes it through `testpilot.InstructionCapability`. A new Driver effect adds a
+   `contract.Session` method, implemented by the server, worker and composite Sessions and by every
+   test Session.
+7. Focused tests beside the binder and the Driver; a Driver conformance case per carried message is
+   what fn-85 R10 plans.
+8. to 10. As above.
+
+### A new fault kind
+
+1. A value of `FaultKind` in `instruction.proto`. `InjectFault.kind` and the recorded
+   `FaultInjected.kind` share the enum. The enum's comment admits only worker-lifecycle transitions on
+   one activation queue, so any other outage amends it.
+2. `make proto`.
+3. No new constructor: `Program.injectFault` takes any kind.
+4. Widen the kind range `admission.bindFault` admits. Dispatch and recording carry the kind unchanged,
+   and a Contract enum literal resolves by name against the `FaultKind` field it is compared with.
+5. No table change: `FAULT_INJECTED` already carries the `fault_injected` arm.
+6. No new Opcode: `contract.InjectFault` authorizes every kind. The Driver that realizes the outage
+   maps the kind to behavior.
+7. Unit tests of admission, the Driver transition and a Contract reading the kind.
+8. to 10. As above.
+
+### A new Run Event payload
+
+1. A message in `run.proto` (Run-only: add it to `runOnlyMessages` in `protocol_test.go`) and an arm
+   appended to `RunEvent.payload`; a new kind appended to `RunEventKind` in `event.proto`.
+2. `make proto`.
+3. `Run.event` already takes any `payload`. A Contract reads the arm as
+   `Expr.path Expr.runEventPayload "<arm>.<field>"`, so no reference is added.
+4. The component that records the event sets the arm (`scheduler.publishCompletion` for instruction
+   events). `ir.CheckRunEventPayload` records a mismatch as an `INVARIANT` diagnostic
+   `payload_kind_mismatch`. A new kind moves `ir.MaxRunEventKind`.
+5. `ir.RunEventPayloadOf`: the arm each kind may carry and whether it requires it. Contract preparation
+   admits a path into the arm only for filters whose kinds carry it.
+6. A Driver change only when a Driver supplies the payload's data.
+7. `TestRunEventPayloadTableNamesEveryArm`, `TestCheckRunEventPayloadMatchesTheKind`,
+   `TestRunEventPayloadPathsBindThroughTheArmTheyName`,
+   `TestRecorderRejectsPayloadKindMismatchAsInvariant` and
+   `TestPrepareLocatesPayloadPathsTheFilterCannotCarry` each gain the arm.
+8. to 10. As above.
+
+### A new expression reference
+
+1. An arm appended to `Reference.reference` in `expression.proto`, with its message when the reference
+   is structured.
+2. `make proto`.
+3. An `Expr` constructor beside `Expr.capture` and `Expr.runEventPayload`. A correlated reference is
+   also admitted by `Testpilot.Correlated.decode`.
+4. `ir.ReferenceKind` and `compiler.reference` in `internal/ir/expression.go`, and the resolver of the
+   context that admits it: execution for the Program context, verification for the Contract context,
+   and `verification/correlated_prepare.go` and `correlated.go` for the correlated context, which admits
+   and evaluates its own conditions.
+5. `ir.admittedReferences`, the context table. A reference outside its contexts rejects `unknown` at its
+   path.
+6. No Opcode or Driver change.
+7. `TestExpressionContextsRejectReferencesOutsideThem` covers every arm in every context; the
+   `static-preparation-rejection/expression-context` conformance variant pins the rejection's shape.
+8. to 10. As above.
+
+### Worked example: `FAULT_KIND_WORKER_STOP`
+
+1. **Protocol.** `FAULT_KIND_WORKER_STOP = 1` in `FaultKind` (`instruction.proto`), requested by
+   `InjectFault { role_id, kind }` and recorded as `FaultInjected { role_id, kind }` (`run.proto`).
+2. **Generated code.** `make proto` writes `testpilotspb.FAULT_KIND_WORKER_STOP`, and
+   `Testpilot.Protocol` generates the Lean constructor `FaultKind.FAULT_KIND_WORKER_STOP`. No file was
+   added.
+3. **`Testpilot.Authoring`.** `Program.injectFault "queue" .FAULT_KIND_WORKER_STOP`, guarded by
+   `injectFaultNamesRoleAndKind`. Producers reach it two ways: `Umpire.faultKindOf`
+   (`model/Umpire/Variations/Lowering.lean`) maps `Umpire.workerStopCapabilityId` to the kind, and
+   `faultKindName` (`model/Temporal/Testpilot/WorkerOutage.lean`) names it in an exhaustive match, so a
+   new kind is a Lean error there until it is named.
+4. **Go interpreter and evaluator.** `admission.bindFault` (`internal/execution/dataflow.go`) admits
+   kinds from `FAULT_KIND_WORKER_STOP` to `FAULT_KIND_WORKER_RESUME` on a task-queue role.
+   `scheduler.acceptEffect` calls `Session.InjectFault` with the kind, and `scheduler.publishCompletion`
+   records `RUN_EVENT_KIND_FAULT_INJECTED` with the `fault_injected` payload after a successful outcome.
+   The worker-outage Contract compares `path(run_event.payload, fault_injected.kind)` with
+   `EnumValue { name: "FAULT_KIND_WORKER_STOP" }`, which preparation resolves against that field's enum.
+5. **Table.** `ir.RunEventPayloadOf(RUN_EVENT_KIND_FAULT_INJECTED)` is the required `fault_injected`
+   arm; unchanged.
+6. **Opcode and Driver.** `contract.InjectFault` and `contract.Session.InjectFault`, unchanged. The
+   worker Driver realizes it: `worker.PlanOutages` resolves the role's queue, `OutagePlan.resolve`
+   (`temporal/worker/outage.go`) maps the kind to a stop and rejects any kind it does not name, and
+   `Outage.Begin` returns the `Settle` that stops the Run's dedicated SDK worker. The server `Session`
+   refuses every fault, and the composite `compositeSession` routes faults to the worker Session.
+7. **Tests.** `TestPrepareAdmitsFaultInjection` and `TestSchedulerRecordsOneFaultEventPerInstruction`
+   (`internal/execution/fault_test.go`), `TestEvaluatorMatchesRecordedFaultPayload`
+   (`internal/verification/fault_test.go`), `TestFaultTransitionsTheNamedQueue` and its siblings
+   (`temporal/worker/outage_test.go`), and live `TestTestpilotWorkerOutageCase`. No conformance class
+   covers faults.
+8. **Retired vocabulary.** Nothing to retire for an added kind.
+9. **Equivalence mapping.** An added enum value changes no baseline fixture, so no step; a Producer
+   that starts writing it into `worker-outage-case.json` needs one.
+10. **Fixtures.** `worker-outage-case.json` is rendered from `Temporal.Testpilot.WorkerOutage` (listed
+    as `worker-outage` in `model/Temporal/Tool/Testpilot.lean`) by
+    `make umpire-gen-case-runtime-conformance`.
+
 ## Preparation diagnostics
 
 `NewCatalog`, `Prepare`, and `ProfileSpec.BindingFingerprint` return errors discoverable as
