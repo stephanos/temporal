@@ -9,7 +9,7 @@ Stable, producer-neutral constructors for the generated Testpilot protocol.
 
 Every helper returns the generated protobuf value directly. This module performs structural
 assembly only: it preserves caller order and accepts the generated fixed-width numeric field types.
-Program and Contract share one `Expression` type, so a reference used outside its context is
+Every expression context shares one `Expression` type, so a reference used outside its context is
 representable here and rejected by Go preparation. Go `testpilot.Prepare` owns semantic,
 closure, version, and resource-limit admission. Callers should use named arguments for high-arity
 limit records where positional meaning would otherwise be unclear.
@@ -130,10 +130,13 @@ end Ref
 namespace Expr
 
 /-!
-Constructors for the one expression language of instruction inputs, guards, and Contract transition
-predicates. The type does not separate the contexts: instruction inputs and guards may read Slots,
-instruction outcomes, the Run, and environment bindings, while Contract predicates may read
-Observations, Run Event fields, and captures. Go preparation rejects a reference outside its context.
+Constructors for the one expression language of instruction inputs, guards, Contract transition
+predicates, correlated rule conditions, and evidence-lift guards. The type does not separate the
+contexts: instruction inputs and guards may read Slots, instruction outcomes, the Run, and
+environment bindings; Contract predicates may read Observations, Run Event fields, and captures;
+correlated conditions may read evidence fields, correlated captures, and correlated steps; and
+evidence-lift guards may read the projected value. Go preparation rejects a reference outside its
+context.
 -/
 
 def literal (value : temporal.server.api.testpilot.v1.Value) : Expression :=
@@ -164,6 +167,21 @@ def runEvent (field : RunEventField) : Expression :=
 
 def capture (captureId : String) : Expression :=
   reference { reference := some (.capture_id captureId) }
+
+/-- Read one declared evidence field of the correlated step being admitted. -/
+def evidenceField (fieldId : String) : Expression :=
+  reference { reference := some (.evidence_field_id fieldId) }
+
+/-- Read one retained occurrence of a correlated capture by its zero-based ordinal. -/
+def correlatedCapture (captureId : String) (ordinal : Int64) : Expression :=
+  reference { reference := some (.correlated_capture { capture_id := captureId, ordinal }) }
+
+/-- Read the model value of `definitionId` at one part of the correlated step being admitted. -/
+def correlatedStep (field : CorrelatedStepField) (definitionId : String) : Expression :=
+  reference { reference := some (.correlated_step { field, definition_id := definitionId }) }
+
+/-- Read the value an evidence lift is projecting. -/
+def projectedValue : Expression := reference { reference := some (.projected_value {}) }
 
 def path (operand : Expression) (path : FieldPath) : Expression :=
   { expression := some (.path { operand := some operand, path := some path }) }
@@ -233,15 +251,14 @@ def correlatedEvidenceBinding (fieldId : String) (path : FieldPath) : Correlated
 def correlatedEvidenceLiteral (fieldId value : String) : CorrelatedEvidenceBinding :=
   { field_id := fieldId, value := some (.literal value) }
 
-/-- One evidence-lift rule. `guard` is what selects it: the rule fires only where that path
-resolves and, where `guardEqualsText` is given, only where it reads exactly that text. `kind` is
-therefore the literal the selected shape denotes rather than a value read from it. -/
-def correlatedEvidenceRule (guard : FieldPath) (evidenceSource kind : String) (operation : FieldPath)
+/-- One evidence-lift rule. `guard` is what selects it: the rule fires only where that boolean
+expression over `Expr.projectedValue` is true. `kind` is therefore the literal the selected shape
+denotes rather than a value read from it. -/
+def correlatedEvidenceRule (guard : Expression) (evidenceSource kind : String) (operation : FieldPath)
     (scope : Array CorrelatedEvidenceBinding := #[])
-    (fields : Array CorrelatedEvidenceBinding := #[])
-    (guardEqualsText : String := "") : CorrelatedEvidenceRule :=
+    (fields : Array CorrelatedEvidenceBinding := #[]) : CorrelatedEvidenceRule :=
   { guard := some guard, scope, evidence_source := evidenceSource,
-    operation := some operation, kind, fields, guard_equals_text := guardEqualsText }
+    operation := some operation, kind, fields }
 
 /-- Lift a projected value into the declared `CorrelatedEvidence` Observation a correlated capability
 reads. Rules are tried in declaration order and a value no rule claims emits nothing. -/
@@ -417,11 +434,12 @@ def limits (maxRules maxStates maxTransitions maxExpressionDepth maxWorkPerEvent
     max_capture_bytes := maxCaptureBytes }
 
 /-- Assemble one correlated rule: the operation-local window one checked clause lowers to. The
-clock is the only one version one admits, so callers never choose it. -/
+clock is the only one version one admits, so callers never choose it. `trigger` and `response` are
+step conditions over `Expr.correlatedStep`. -/
 def correlatedRule (ruleId : String) (bound : Int64) (ending : TraceEnding)
-    (trigger response : CorrelatedPredicate)
+    (trigger response : Expression)
     (captures : Array CorrelatedCaptureDeclaration := #[])
-    (correlation : Option CorrelatedCorrelation := none) : CorrelatedRule :=
+    (correlation : Option Expression := none) : CorrelatedRule :=
   { rule_id := ruleId, clock := .CORRELATED_CLOCK_OPERATION_TRANSITIONS, bound, ending,
     trigger := some trigger, response := some response, captures, correlation }
 

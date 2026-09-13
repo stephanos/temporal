@@ -244,6 +244,14 @@ message Reference {
 }
 ```
 
+Deviation (.6): `Reference` also carries `CorrelatedStepReference correlated_step = 11` (a
+`CorrelatedStepField` of ACTION, OUTCOME, STATE or FACT and a `definition_id`), admitted only in the
+correlated context, because a correlated condition is an existential over the admitted step's action,
+outcome, state or facts that a literal `model_value` cannot express; and an empty
+`ProjectedValueReference projected_value = 12`, admitted only in the evidence-lift context, as the
+operand of a lift guard. `model_value` is admitted in no context: a step reference and a text literal
+carry the model values correlated conditions test.
+
 `ContractDeadline` after R5:
 
 ```proto
@@ -458,6 +466,20 @@ narrows or completes a requirement without changing its intent; tasks record the
   Event reference and one enum per equality, far below the admission ceilings. The expression-context
   rejection is a variant beneath `static-preparation-rejection`, and the equivalence oracle declares
   new fixtures in `Added`.
+- **Correlated conditions and lift guards (decided in .6, 2026-09-12).** A correlated trigger and
+  response are step conditions: `present(correlated_step)` or `compare(EQUAL, correlated_step, text)`;
+  a correlation is a step condition, an EQUAL or NOT_EQUAL comparison of literal, evidence-field or
+  correlated-capture operands, or `all`/`any` of those. The capability keeps its own admission and
+  evaluator over `Expression` rather than binding through `ir`, so `Shared.CorrelatedObligation`
+  receives identical inputs and the depth and work ceilings count conditions exactly as before;
+  `ir.AdmitReferences` performs the context check at the path binding would report. A trigger or
+  response reading another step part rejects `unknown` at `...correlated_step.field`. An evidence-lift
+  guard binds and evaluates through `ir` in the evidence-lift context with the projected value as its
+  only reference, so it may be any boolean expression: the former rejections of a presence-selector or
+  empty guard path no longer apply (such a path is now a valid boolean read), while a non-boolean guard
+  and an unguarded absent read reject. Guard evaluation charges a few more runtime work units per
+  rule (the expression nodes) than the bare path read did; no checked-in Case approaches the ceiling.
+  `model_value` stays in `Reference` but no context admits it (R6 may remove it).
 
 ## Requirement coverage
 

@@ -25,22 +25,63 @@ func uniqueIDs(ids []string) bool {
 	}
 	return len(ids) > 0
 }
-func validPredicate(p *testpilotspb.CorrelatedPredicate, trigger bool) bool {
-	if p == nil || !validID(p.DefinitionId) {
-		return false
-	}
-	if trigger && p.Field != testpilotspb.CORRELATED_PREDICATE_FIELD_ACTION || !trigger && (p.Field < testpilotspb.CORRELATED_PREDICATE_FIELD_OUTCOME || p.Field > testpilotspb.CORRELATED_PREDICATE_FIELD_FACT) {
-		return false
-	}
-	switch c := p.Constraint.(type) {
-	case *testpilotspb.CorrelatedPredicate_Present:
-		return c.Present
-	case *testpilotspb.CorrelatedPredicate_EqualsText:
-		return true
+
+// stepCondition is the shape a correlated trigger, response and correlation predicate take: a
+// correlated step reference tested for presence, or compared EQUAL with a text literal.
+type stepCondition struct {
+	field        testpilotspb.CorrelatedStepField
+	definitionID string
+	equals       bool
+	text         string
+	// path locates the step reference within its condition.
+	path string
+}
+
+// readStepCondition reads e as a step condition, reporting false for any other shape.
+func readStepCondition(e *testpilotspb.Expression) (stepCondition, bool) {
+	switch v := e.GetExpression().(type) {
+	case *testpilotspb.Expression_Present:
+		step := v.Present.GetOperand().GetReference().GetCorrelatedStep()
+		return stepCondition{field: step.GetField(), definitionID: step.GetDefinitionId(), path: ".present.reference.correlated_step"}, step != nil
+	case *testpilotspb.Expression_Compare:
+		step := v.Compare.GetLeft().GetReference().GetCorrelatedStep()
+		text, isText := v.Compare.GetRight().GetLiteral().GetValue().(*testpilotspb.Value_TextValue)
+		if step == nil || !isText || v.Compare.GetOperator() != testpilotspb.COMPARISON_OPERATOR_EQUAL {
+			return stepCondition{}, false
+		}
+		return stepCondition{field: step.GetField(), definitionID: step.GetDefinitionId(), equals: true, text: text.TextValue, path: ".compare.left.reference.correlated_step"}, true
 	default:
-		return false
+		return stepCondition{}, false
 	}
 }
+
+// admitRuleCondition admits a trigger or response located at path: a step condition, over a
+// reference its context admits, reading one of fields. A trigger reads only the step's action and a
+// response only its outcome, state or facts, and a condition reading another part rejects at its step
+// reference.
+func admitRuleCondition(e *testpilotspb.Expression, path, detail string, fields ...testpilotspb.CorrelatedStepField) (bool, error) {
+	if err := ir.AdmitReferences(ir.Site{Context: ir.CorrelatedContext, Path: path}, e); err != nil {
+		return false, err
+	}
+	condition, ok := readStepCondition(e)
+	if !ok || !validID(condition.definitionID) {
+		return false, nil
+	}
+	if !slices.Contains(fields, condition.field) {
+		located := path + condition.path + ".field"
+		if len(located) > 256 {
+			located = located[:256]
+		}
+		return false, &ir.Error{Category: ir.Unknown, Path: located, Detail: detail}
+	}
+	return true, nil
+}
+
+var (
+	triggerFields  = []testpilotspb.CorrelatedStepField{testpilotspb.CORRELATED_STEP_FIELD_ACTION}
+	responseFields = []testpilotspb.CorrelatedStepField{testpilotspb.CORRELATED_STEP_FIELD_OUTCOME, testpilotspb.CORRELATED_STEP_FIELD_STATE, testpilotspb.CORRELATED_STEP_FIELD_FACT}
+)
+
 func (a *admission) bindCorrelated(seen map[string]bool) error {
 	s := a.prepared.source.Correlated
 	if s == nil {
@@ -184,7 +225,16 @@ func (a *admission) bindCorrelated(seen map[string]bool) error {
 			return invalid(ir.Malformed, "invalid clause provenance")
 		}
 		seen[c.RuleId] = true
-		if c.Clock != testpilotspb.CORRELATED_CLOCK_OPERATION_TRANSITIONS || c.Bound < 0 || c.Ending < testpilotspb.TRACE_ENDING_PARTIAL || c.Ending > testpilotspb.TRACE_ENDING_FINAL || !validPredicate(c.Trigger, true) || !validPredicate(c.Response, false) {
+		path := fmt.Sprintf("contract.correlated.rules[%s]", c.RuleId)
+		trigger, err := admitRuleCondition(c.Trigger, path+".trigger", "a trigger reads only the step's action", triggerFields...)
+		if err != nil {
+			return err
+		}
+		response, err := admitRuleCondition(c.Response, path+".response", "a response reads only the step's outcome, state or facts", responseFields...)
+		if err != nil {
+			return err
+		}
+		if c.Clock != testpilotspb.CORRELATED_CLOCK_OPERATION_TRANSITIONS || c.Bound < 0 || c.Ending < testpilotspb.TRACE_ENDING_PARTIAL || c.Ending > testpilotspb.TRACE_ENDING_FINAL || !trigger || !response {
 			return invalid(ir.Unknown, fmt.Sprintf("unsupported correlated rule %s", c.RuleId))
 		}
 		captures := map[string]correlatedCapture{}
@@ -197,6 +247,9 @@ func (a *admission) bindCorrelated(seen map[string]bool) error {
 			captures[d.CaptureId] = correlatedCapture{lifetime: d.Lifetime, kind: kind}
 		}
 		if c.Correlation != nil {
+			if err := ir.AdmitReferences(ir.Site{Context: ir.CorrelatedContext, Path: path + ".correlation"}, c.Correlation); err != nil {
+				return err
+			}
 			if err := validCorrelation(c.Correlation, retained, ambiguous, captures, l.MaxCorrelationDepth); err != nil {
 				return err
 			}
@@ -246,26 +299,29 @@ func correlatedLiteralKind(v *testpilotspb.Value) testpilotspb.ScalarKind {
 }
 
 // validOperand reports the operand's declared scalar kind, so a comparison is checked against the
-// types the projection declares instead of comparing values of different kinds.
-func validOperand(o *testpilotspb.CorrelatedOperand, retained map[string]testpilotspb.ScalarKind, ambiguous map[string]bool, captures map[string]correlatedCapture) (testpilotspb.ScalarKind, error) {
-	switch v := o.GetOperand().(type) {
-	case *testpilotspb.CorrelatedOperand_Literal:
-		if !validCorrelatedLiteral(v.Literal) {
+// types the projection declares instead of comparing values of different kinds. An operand is a
+// literal, one declared evidence field of the step being admitted, or one retained earlier
+// occurrence of a declared capture.
+func validOperand(o *testpilotspb.Expression, retained map[string]testpilotspb.ScalarKind, ambiguous map[string]bool, captures map[string]correlatedCapture) (testpilotspb.ScalarKind, error) {
+	if literal, ok := o.GetExpression().(*testpilotspb.Expression_Literal); ok {
+		if !validCorrelatedLiteral(literal.Literal) {
 			return 0, invalid(ir.TypeMismatch, "unsupported correlation literal")
 		}
-		return correlatedLiteralKind(v.Literal), nil
-	case *testpilotspb.CorrelatedOperand_FieldId:
-		kind, ok := retained[v.FieldId]
-		if !validID(v.FieldId) || !ok {
+		return correlatedLiteralKind(literal.Literal), nil
+	}
+	switch v := o.GetReference().GetReference().(type) {
+	case *testpilotspb.Reference_EvidenceFieldId:
+		kind, ok := retained[v.EvidenceFieldId]
+		if !validID(v.EvidenceFieldId) || !ok {
 			return 0, invalid(ir.Malformed, "unretained correlation field operand")
 		}
-		if ambiguous[v.FieldId] {
+		if ambiguous[v.EvidenceFieldId] {
 			return 0, invalid(ir.TypeMismatch, "ambiguous retained field type")
 		}
 		return kind, nil
-	case *testpilotspb.CorrelatedOperand_Capture:
-		declaration, ok := captures[v.Capture.GetCaptureId()]
-		if !ok || v.Capture.GetOrdinal() < 0 || v.Capture.GetOrdinal() >= declaration.lifetime {
+	case *testpilotspb.Reference_CorrelatedCapture:
+		declaration, ok := captures[v.CorrelatedCapture.GetCaptureId()]
+		if !ok || v.CorrelatedCapture.GetOrdinal() < 0 || v.CorrelatedCapture.GetOrdinal() >= declaration.lifetime {
 			return 0, invalid(ir.Malformed, "unbound capture reference")
 		}
 		return declaration.kind, nil
@@ -275,26 +331,29 @@ func validOperand(o *testpilotspb.CorrelatedOperand, retained map[string]testpil
 }
 
 // validCorrelation checks the whole condition under the declared depth ceiling. An exhausted depth
-// is an explicit rejection, never a silently truncated condition.
-func validCorrelation(c *testpilotspb.CorrelatedCorrelation, retained map[string]testpilotspb.ScalarKind, ambiguous map[string]bool, captures map[string]correlatedCapture, depth int64) error {
+// is an explicit rejection, never a silently truncated condition. A step condition and a comparison
+// each count as one level, as does every all and any; the expression nodes inside a step condition
+// or a comparison do not.
+func validCorrelation(c *testpilotspb.Expression, retained map[string]testpilotspb.ScalarKind, ambiguous map[string]bool, captures map[string]correlatedCapture, depth int64) error {
 	if depth <= 0 {
 		return invalid(ir.LimitExceeded, "correlation depth exhausted")
 	}
-	switch v := c.GetCondition().(type) {
-	case *testpilotspb.CorrelatedCorrelation_Predicate:
-		if !validPredicate(v.Predicate, true) && !validPredicate(v.Predicate, false) {
+	if condition, ok := readStepCondition(c); ok {
+		if !validID(condition.definitionID) || condition.field < testpilotspb.CORRELATED_STEP_FIELD_ACTION || condition.field > testpilotspb.CORRELATED_STEP_FIELD_FACT {
 			return invalid(ir.Unknown, "unsupported correlation predicate")
 		}
 		return nil
-	case *testpilotspb.CorrelatedCorrelation_Comparison:
-		if v.Comparison.GetOperator() < testpilotspb.CORRELATED_COMPARISON_OPERATOR_EQUAL || v.Comparison.GetOperator() > testpilotspb.CORRELATED_COMPARISON_OPERATOR_NOT_EQUAL {
+	}
+	switch v := c.GetExpression().(type) {
+	case *testpilotspb.Expression_Compare:
+		if v.Compare.GetOperator() < testpilotspb.COMPARISON_OPERATOR_EQUAL || v.Compare.GetOperator() > testpilotspb.COMPARISON_OPERATOR_NOT_EQUAL {
 			return invalid(ir.Unknown, "unsupported comparison operator")
 		}
-		left, err := validOperand(v.Comparison.GetLeft(), retained, ambiguous, captures)
+		left, err := validOperand(v.Compare.GetLeft(), retained, ambiguous, captures)
 		if err != nil {
 			return err
 		}
-		right, err := validOperand(v.Comparison.GetRight(), retained, ambiguous, captures)
+		right, err := validOperand(v.Compare.GetRight(), retained, ambiguous, captures)
 		if err != nil {
 			return err
 		}
@@ -302,7 +361,7 @@ func validCorrelation(c *testpilotspb.CorrelatedCorrelation, retained map[string
 			return invalid(ir.TypeMismatch, "incompatible correlation operand types")
 		}
 		return nil
-	case *testpilotspb.CorrelatedCorrelation_All, *testpilotspb.CorrelatedCorrelation_Any:
+	case *testpilotspb.Expression_All, *testpilotspb.Expression_Any:
 		operands := c.GetAll().GetOperands()
 		if c.GetAny() != nil {
 			operands = c.GetAny().GetOperands()

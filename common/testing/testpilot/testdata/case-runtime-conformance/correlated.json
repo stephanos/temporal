@@ -135,15 +135,35 @@
               "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
               "ending": "TRACE_ENDING_PARTIAL",
               "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+                "compare": {
+                  "left": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.outcome",
+                        "field": "CORRELATED_STEP_FIELD_OUTCOME"
+                      }
+                    }
+                  },
+                  "operator": "COMPARISON_OPERATOR_EQUAL",
+                  "right": {
+                    "literal": {
+                      "textValue": "response"
+                    }
+                  }
+                }
               },
               "ruleId": "test.correlated.response",
               "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
+                "present": {
+                  "operand": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.trigger",
+                        "field": "CORRELATED_STEP_FIELD_ACTION"
+                      }
+                    }
+                  }
+                }
               }
             }
           ],
@@ -459,15 +479,35 @@
               "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
               "ending": "TRACE_ENDING_PARTIAL",
               "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+                "compare": {
+                  "left": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.outcome",
+                        "field": "CORRELATED_STEP_FIELD_OUTCOME"
+                      }
+                    }
+                  },
+                  "operator": "COMPARISON_OPERATOR_EQUAL",
+                  "right": {
+                    "literal": {
+                      "textValue": "response"
+                    }
+                  }
+                }
               },
               "ruleId": "test.correlated.response",
               "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
+                "present": {
+                  "operand": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.trigger",
+                        "field": "CORRELATED_STEP_FIELD_ACTION"
+                      }
+                    }
+                  }
+                }
               }
             }
           ],
@@ -815,15 +855,35 @@
               "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
               "ending": "TRACE_ENDING_PARTIAL",
               "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+                "compare": {
+                  "left": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.outcome",
+                        "field": "CORRELATED_STEP_FIELD_OUTCOME"
+                      }
+                    }
+                  },
+                  "operator": "COMPARISON_OPERATOR_EQUAL",
+                  "right": {
+                    "literal": {
+                      "textValue": "response"
+                    }
+                  }
+                }
               },
               "ruleId": "test.correlated.response",
               "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
+                "present": {
+                  "operand": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.trigger",
+                        "field": "CORRELATED_STEP_FIELD_ACTION"
+                      }
+                    }
+                  }
+                }
               }
             }
           ],
@@ -1139,15 +1199,35 @@
               "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
               "ending": "TRACE_ENDING_PARTIAL",
               "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+                "compare": {
+                  "left": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.outcome",
+                        "field": "CORRELATED_STEP_FIELD_OUTCOME"
+                      }
+                    }
+                  },
+                  "operator": "COMPARISON_OPERATOR_EQUAL",
+                  "right": {
+                    "literal": {
+                      "textValue": "response"
+                    }
+                  }
+                }
               },
               "ruleId": "test.correlated.response",
               "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
+                "present": {
+                  "operand": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.trigger",
+                        "field": "CORRELATED_STEP_FIELD_ACTION"
+                      }
+                    }
+                  }
+                }
               }
             }
           ],
@@ -1496,15 +1576,35 @@
               "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
               "ending": "TRACE_ENDING_PARTIAL",
               "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+                "compare": {
+                  "left": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.outcome",
+                        "field": "CORRELATED_STEP_FIELD_OUTCOME"
+                      }
+                    }
+                  },
+                  "operator": "COMPARISON_OPERATOR_EQUAL",
+                  "right": {
+                    "literal": {
+                      "textValue": "response"
+                    }
+                  }
+                }
               },
               "ruleId": "test.correlated.response",
               "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
+                "present": {
+                  "operand": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.trigger",
+                        "field": "CORRELATED_STEP_FIELD_ACTION"
+                      }
+                    }
+                  }
+                }
               }
             }
           ],
@@ -1821,15 +1921,35 @@
               "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
               "ending": "TRACE_ENDING_PARTIAL",
               "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+                "compare": {
+                  "left": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.outcome",
+                        "field": "CORRELATED_STEP_FIELD_OUTCOME"
+                      }
+                    }
+                  },
+                  "operator": "COMPARISON_OPERATOR_EQUAL",
+                  "right": {
+                    "literal": {
+                      "textValue": "response"
+                    }
+                  }
+                }
               },
               "ruleId": "test.correlated.response",
               "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
+                "present": {
+                  "operand": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.trigger",
+                        "field": "CORRELATED_STEP_FIELD_ACTION"
+                      }
+                    }
+                  }
+                }
               }
             }
           ],
@@ -2178,15 +2298,35 @@
               "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
               "ending": "TRACE_ENDING_PARTIAL",
               "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+                "compare": {
+                  "left": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.outcome",
+                        "field": "CORRELATED_STEP_FIELD_OUTCOME"
+                      }
+                    }
+                  },
+                  "operator": "COMPARISON_OPERATOR_EQUAL",
+                  "right": {
+                    "literal": {
+                      "textValue": "response"
+                    }
+                  }
+                }
               },
               "ruleId": "test.correlated.response",
               "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
+                "present": {
+                  "operand": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.trigger",
+                        "field": "CORRELATED_STEP_FIELD_ACTION"
+                      }
+                    }
+                  }
+                }
               }
             }
           ],
@@ -2517,15 +2657,35 @@
               "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
               "ending": "TRACE_ENDING_PARTIAL",
               "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+                "compare": {
+                  "left": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.outcome",
+                        "field": "CORRELATED_STEP_FIELD_OUTCOME"
+                      }
+                    }
+                  },
+                  "operator": "COMPARISON_OPERATOR_EQUAL",
+                  "right": {
+                    "literal": {
+                      "textValue": "response"
+                    }
+                  }
+                }
               },
               "ruleId": "test.correlated.response",
               "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
+                "present": {
+                  "operand": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.trigger",
+                        "field": "CORRELATED_STEP_FIELD_ACTION"
+                      }
+                    }
+                  }
+                }
               }
             }
           ],
@@ -2920,15 +3080,35 @@
               "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
               "ending": "TRACE_ENDING_PARTIAL",
               "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+                "compare": {
+                  "left": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.outcome",
+                        "field": "CORRELATED_STEP_FIELD_OUTCOME"
+                      }
+                    }
+                  },
+                  "operator": "COMPARISON_OPERATOR_EQUAL",
+                  "right": {
+                    "literal": {
+                      "textValue": "response"
+                    }
+                  }
+                }
               },
               "ruleId": "test.correlated.response",
               "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
+                "present": {
+                  "operand": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.trigger",
+                        "field": "CORRELATED_STEP_FIELD_ACTION"
+                      }
+                    }
+                  }
+                }
               }
             }
           ],
@@ -3273,15 +3453,35 @@
               "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
               "ending": "TRACE_ENDING_PARTIAL",
               "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+                "compare": {
+                  "left": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.outcome",
+                        "field": "CORRELATED_STEP_FIELD_OUTCOME"
+                      }
+                    }
+                  },
+                  "operator": "COMPARISON_OPERATOR_EQUAL",
+                  "right": {
+                    "literal": {
+                      "textValue": "response"
+                    }
+                  }
+                }
               },
               "ruleId": "test.correlated.response",
               "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
+                "present": {
+                  "operand": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.trigger",
+                        "field": "CORRELATED_STEP_FIELD_ACTION"
+                      }
+                    }
+                  }
+                }
               }
             }
           ],
@@ -3722,15 +3922,35 @@
               "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
               "ending": "TRACE_ENDING_PARTIAL",
               "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+                "compare": {
+                  "left": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.outcome",
+                        "field": "CORRELATED_STEP_FIELD_OUTCOME"
+                      }
+                    }
+                  },
+                  "operator": "COMPARISON_OPERATOR_EQUAL",
+                  "right": {
+                    "literal": {
+                      "textValue": "response"
+                    }
+                  }
+                }
               },
               "ruleId": "test.correlated.response",
               "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
+                "present": {
+                  "operand": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.trigger",
+                        "field": "CORRELATED_STEP_FIELD_ACTION"
+                      }
+                    }
+                  }
+                }
               }
             }
           ],
@@ -4075,15 +4295,35 @@
               "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
               "ending": "TRACE_ENDING_PARTIAL",
               "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+                "compare": {
+                  "left": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.outcome",
+                        "field": "CORRELATED_STEP_FIELD_OUTCOME"
+                      }
+                    }
+                  },
+                  "operator": "COMPARISON_OPERATOR_EQUAL",
+                  "right": {
+                    "literal": {
+                      "textValue": "response"
+                    }
+                  }
+                }
               },
               "ruleId": "test.correlated.response",
               "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
+                "present": {
+                  "operand": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.trigger",
+                        "field": "CORRELATED_STEP_FIELD_ACTION"
+                      }
+                    }
+                  }
+                }
               }
             }
           ],
@@ -4524,15 +4764,35 @@
               "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
               "ending": "TRACE_ENDING_PARTIAL",
               "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+                "compare": {
+                  "left": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.outcome",
+                        "field": "CORRELATED_STEP_FIELD_OUTCOME"
+                      }
+                    }
+                  },
+                  "operator": "COMPARISON_OPERATOR_EQUAL",
+                  "right": {
+                    "literal": {
+                      "textValue": "response"
+                    }
+                  }
+                }
               },
               "ruleId": "test.correlated.response",
               "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
+                "present": {
+                  "operand": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.trigger",
+                        "field": "CORRELATED_STEP_FIELD_ACTION"
+                      }
+                    }
+                  }
+                }
               }
             }
           ],
@@ -4877,15 +5137,35 @@
               "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
               "ending": "TRACE_ENDING_PARTIAL",
               "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+                "compare": {
+                  "left": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.outcome",
+                        "field": "CORRELATED_STEP_FIELD_OUTCOME"
+                      }
+                    }
+                  },
+                  "operator": "COMPARISON_OPERATOR_EQUAL",
+                  "right": {
+                    "literal": {
+                      "textValue": "response"
+                    }
+                  }
+                }
               },
               "ruleId": "test.correlated.response",
               "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
+                "present": {
+                  "operand": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.trigger",
+                        "field": "CORRELATED_STEP_FIELD_ACTION"
+                      }
+                    }
+                  }
+                }
               }
             }
           ],
@@ -5326,15 +5606,35 @@
               "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
               "ending": "TRACE_ENDING_PARTIAL",
               "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+                "compare": {
+                  "left": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.outcome",
+                        "field": "CORRELATED_STEP_FIELD_OUTCOME"
+                      }
+                    }
+                  },
+                  "operator": "COMPARISON_OPERATOR_EQUAL",
+                  "right": {
+                    "literal": {
+                      "textValue": "response"
+                    }
+                  }
+                }
               },
               "ruleId": "test.correlated.response",
               "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
+                "present": {
+                  "operand": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.trigger",
+                        "field": "CORRELATED_STEP_FIELD_ACTION"
+                      }
+                    }
+                  }
+                }
               }
             }
           ],
@@ -5665,15 +5965,35 @@
               "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
               "ending": "TRACE_ENDING_PARTIAL",
               "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+                "compare": {
+                  "left": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.outcome",
+                        "field": "CORRELATED_STEP_FIELD_OUTCOME"
+                      }
+                    }
+                  },
+                  "operator": "COMPARISON_OPERATOR_EQUAL",
+                  "right": {
+                    "literal": {
+                      "textValue": "response"
+                    }
+                  }
+                }
               },
               "ruleId": "test.correlated.response",
               "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
+                "present": {
+                  "operand": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.trigger",
+                        "field": "CORRELATED_STEP_FIELD_ACTION"
+                      }
+                    }
+                  }
+                }
               }
             }
           ],
@@ -6068,15 +6388,35 @@
               "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
               "ending": "TRACE_ENDING_FINAL",
               "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+                "compare": {
+                  "left": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.outcome",
+                        "field": "CORRELATED_STEP_FIELD_OUTCOME"
+                      }
+                    }
+                  },
+                  "operator": "COMPARISON_OPERATOR_EQUAL",
+                  "right": {
+                    "literal": {
+                      "textValue": "response"
+                    }
+                  }
+                }
               },
               "ruleId": "test.correlated.response",
               "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
+                "present": {
+                  "operand": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.trigger",
+                        "field": "CORRELATED_STEP_FIELD_ACTION"
+                      }
+                    }
+                  }
+                }
               }
             }
           ],
@@ -6393,15 +6733,35 @@
               "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
               "ending": "TRACE_ENDING_FINAL",
               "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+                "compare": {
+                  "left": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.outcome",
+                        "field": "CORRELATED_STEP_FIELD_OUTCOME"
+                      }
+                    }
+                  },
+                  "operator": "COMPARISON_OPERATOR_EQUAL",
+                  "right": {
+                    "literal": {
+                      "textValue": "response"
+                    }
+                  }
+                }
               },
               "ruleId": "test.correlated.response",
               "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
+                "present": {
+                  "operand": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.trigger",
+                        "field": "CORRELATED_STEP_FIELD_ACTION"
+                      }
+                    }
+                  }
+                }
               }
             }
           ],
@@ -6750,15 +7110,35 @@
               "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
               "ending": "TRACE_ENDING_FINAL",
               "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+                "compare": {
+                  "left": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.outcome",
+                        "field": "CORRELATED_STEP_FIELD_OUTCOME"
+                      }
+                    }
+                  },
+                  "operator": "COMPARISON_OPERATOR_EQUAL",
+                  "right": {
+                    "literal": {
+                      "textValue": "response"
+                    }
+                  }
+                }
               },
               "ruleId": "test.correlated.response",
               "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
+                "present": {
+                  "operand": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.trigger",
+                        "field": "CORRELATED_STEP_FIELD_ACTION"
+                      }
+                    }
+                  }
+                }
               }
             }
           ],
@@ -7075,15 +7455,35 @@
               "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
               "ending": "TRACE_ENDING_FINAL",
               "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+                "compare": {
+                  "left": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.outcome",
+                        "field": "CORRELATED_STEP_FIELD_OUTCOME"
+                      }
+                    }
+                  },
+                  "operator": "COMPARISON_OPERATOR_EQUAL",
+                  "right": {
+                    "literal": {
+                      "textValue": "response"
+                    }
+                  }
+                }
               },
               "ruleId": "test.correlated.response",
               "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
+                "present": {
+                  "operand": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.trigger",
+                        "field": "CORRELATED_STEP_FIELD_ACTION"
+                      }
+                    }
+                  }
+                }
               }
             }
           ],
@@ -7432,15 +7832,35 @@
               "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
               "ending": "TRACE_ENDING_FINAL",
               "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+                "compare": {
+                  "left": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.outcome",
+                        "field": "CORRELATED_STEP_FIELD_OUTCOME"
+                      }
+                    }
+                  },
+                  "operator": "COMPARISON_OPERATOR_EQUAL",
+                  "right": {
+                    "literal": {
+                      "textValue": "response"
+                    }
+                  }
+                }
               },
               "ruleId": "test.correlated.response",
               "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
+                "present": {
+                  "operand": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.trigger",
+                        "field": "CORRELATED_STEP_FIELD_ACTION"
+                      }
+                    }
+                  }
+                }
               }
             }
           ],
@@ -7769,15 +8189,35 @@
               "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
               "ending": "TRACE_ENDING_FINAL",
               "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+                "compare": {
+                  "left": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.outcome",
+                        "field": "CORRELATED_STEP_FIELD_OUTCOME"
+                      }
+                    }
+                  },
+                  "operator": "COMPARISON_OPERATOR_EQUAL",
+                  "right": {
+                    "literal": {
+                      "textValue": "response"
+                    }
+                  }
+                }
               },
               "ruleId": "test.correlated.response",
               "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
+                "present": {
+                  "operand": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.trigger",
+                        "field": "CORRELATED_STEP_FIELD_ACTION"
+                      }
+                    }
+                  }
+                }
               }
             }
           ],
@@ -8126,15 +8566,35 @@
               "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
               "ending": "TRACE_ENDING_PARTIAL",
               "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+                "compare": {
+                  "left": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.outcome",
+                        "field": "CORRELATED_STEP_FIELD_OUTCOME"
+                      }
+                    }
+                  },
+                  "operator": "COMPARISON_OPERATOR_EQUAL",
+                  "right": {
+                    "literal": {
+                      "textValue": "response"
+                    }
+                  }
+                }
               },
               "ruleId": "test.correlated.response",
               "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
+                "present": {
+                  "operand": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.trigger",
+                        "field": "CORRELATED_STEP_FIELD_ACTION"
+                      }
+                    }
+                  }
+                }
               }
             }
           ],
@@ -8501,15 +8961,35 @@
               "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
               "ending": "TRACE_ENDING_PARTIAL",
               "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+                "compare": {
+                  "left": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.outcome",
+                        "field": "CORRELATED_STEP_FIELD_OUTCOME"
+                      }
+                    }
+                  },
+                  "operator": "COMPARISON_OPERATOR_EQUAL",
+                  "right": {
+                    "literal": {
+                      "textValue": "response"
+                    }
+                  }
+                }
               },
               "ruleId": "test.correlated.response",
               "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
+                "present": {
+                  "operand": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.trigger",
+                        "field": "CORRELATED_STEP_FIELD_ACTION"
+                      }
+                    }
+                  }
+                }
               }
             }
           ],
@@ -8950,15 +9430,35 @@
               "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
               "ending": "TRACE_ENDING_PARTIAL",
               "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+                "compare": {
+                  "left": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.outcome",
+                        "field": "CORRELATED_STEP_FIELD_OUTCOME"
+                      }
+                    }
+                  },
+                  "operator": "COMPARISON_OPERATOR_EQUAL",
+                  "right": {
+                    "literal": {
+                      "textValue": "response"
+                    }
+                  }
+                }
               },
               "ruleId": "test.correlated.response",
               "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
+                "present": {
+                  "operand": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.trigger",
+                        "field": "CORRELATED_STEP_FIELD_ACTION"
+                      }
+                    }
+                  }
+                }
               }
             }
           ],
@@ -9303,15 +9803,35 @@
               "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
               "ending": "TRACE_ENDING_PARTIAL",
               "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+                "compare": {
+                  "left": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.outcome",
+                        "field": "CORRELATED_STEP_FIELD_OUTCOME"
+                      }
+                    }
+                  },
+                  "operator": "COMPARISON_OPERATOR_EQUAL",
+                  "right": {
+                    "literal": {
+                      "textValue": "response"
+                    }
+                  }
+                }
               },
               "ruleId": "test.correlated.response",
               "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
+                "present": {
+                  "operand": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.trigger",
+                        "field": "CORRELATED_STEP_FIELD_ACTION"
+                      }
+                    }
+                  }
+                }
               }
             }
           ],
@@ -9751,15 +10271,35 @@
               "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
               "ending": "TRACE_ENDING_FINAL",
               "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+                "compare": {
+                  "left": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.outcome",
+                        "field": "CORRELATED_STEP_FIELD_OUTCOME"
+                      }
+                    }
+                  },
+                  "operator": "COMPARISON_OPERATOR_EQUAL",
+                  "right": {
+                    "literal": {
+                      "textValue": "response"
+                    }
+                  }
+                }
               },
               "ruleId": "test.correlated.response",
               "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
+                "present": {
+                  "operand": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.trigger",
+                        "field": "CORRELATED_STEP_FIELD_ACTION"
+                      }
+                    }
+                  }
+                }
               }
             }
           ],
@@ -10075,15 +10615,35 @@
               "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
               "ending": "TRACE_ENDING_FINAL",
               "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+                "compare": {
+                  "left": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.outcome",
+                        "field": "CORRELATED_STEP_FIELD_OUTCOME"
+                      }
+                    }
+                  },
+                  "operator": "COMPARISON_OPERATOR_EQUAL",
+                  "right": {
+                    "literal": {
+                      "textValue": "response"
+                    }
+                  }
+                }
               },
               "ruleId": "test.correlated.response",
               "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
+                "present": {
+                  "operand": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.trigger",
+                        "field": "CORRELATED_STEP_FIELD_ACTION"
+                      }
+                    }
+                  }
+                }
               }
             }
           ],
@@ -10432,15 +10992,35 @@
               "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
               "ending": "TRACE_ENDING_PARTIAL",
               "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+                "compare": {
+                  "left": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.outcome",
+                        "field": "CORRELATED_STEP_FIELD_OUTCOME"
+                      }
+                    }
+                  },
+                  "operator": "COMPARISON_OPERATOR_EQUAL",
+                  "right": {
+                    "literal": {
+                      "textValue": "response"
+                    }
+                  }
+                }
               },
               "ruleId": "test.correlated.response",
               "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
+                "present": {
+                  "operand": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.trigger",
+                        "field": "CORRELATED_STEP_FIELD_ACTION"
+                      }
+                    }
+                  }
+                }
               }
             }
           ],
@@ -10743,15 +11323,35 @@
               "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
               "ending": "TRACE_ENDING_PARTIAL",
               "response": {
-                "definitionId": "test.outcome",
-                "equalsText": "response",
-                "field": "CORRELATED_PREDICATE_FIELD_OUTCOME"
+                "compare": {
+                  "left": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.outcome",
+                        "field": "CORRELATED_STEP_FIELD_OUTCOME"
+                      }
+                    }
+                  },
+                  "operator": "COMPARISON_OPERATOR_EQUAL",
+                  "right": {
+                    "literal": {
+                      "textValue": "response"
+                    }
+                  }
+                }
               },
               "ruleId": "test.correlated.response",
               "trigger": {
-                "definitionId": "test.trigger",
-                "field": "CORRELATED_PREDICATE_FIELD_ACTION",
-                "present": true
+                "present": {
+                  "operand": {
+                    "reference": {
+                      "correlatedStep": {
+                        "definitionId": "test.trigger",
+                        "field": "CORRELATED_STEP_FIELD_ACTION"
+                      }
+                    }
+                  }
+                }
               }
             }
           ],

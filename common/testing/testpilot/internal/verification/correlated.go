@@ -290,32 +290,26 @@ func (r *correlatedMonitor) sequences(ids []*testpilotspb.CorrelatedIdentity) []
 	}
 	return out
 }
-func predicate(p *testpilotspb.CorrelatedPredicate, tr *testpilotspb.CorrelatedTransition) bool {
+
+// predicate reports whether an admitted step condition holds on tr. A FACT condition holds when any
+// of the step's facts satisfies it.
+func predicate(e *testpilotspb.Expression, tr *testpilotspb.CorrelatedTransition) bool {
+	condition, _ := readStepCondition(e)
 	var values []*testpilotspb.ModelValue
-	switch p.Field {
-	case testpilotspb.CORRELATED_PREDICATE_FIELD_ACTION:
+	switch condition.field {
+	case testpilotspb.CORRELATED_STEP_FIELD_ACTION:
 		values = []*testpilotspb.ModelValue{tr.Action}
-	case testpilotspb.CORRELATED_PREDICATE_FIELD_OUTCOME:
+	case testpilotspb.CORRELATED_STEP_FIELD_OUTCOME:
 		values = []*testpilotspb.ModelValue{tr.Outcome}
-	case testpilotspb.CORRELATED_PREDICATE_FIELD_STATE:
+	case testpilotspb.CORRELATED_STEP_FIELD_STATE:
 		values = []*testpilotspb.ModelValue{tr.State}
-	case testpilotspb.CORRELATED_PREDICATE_FIELD_FACT:
+	case testpilotspb.CORRELATED_STEP_FIELD_FACT:
 		values = tr.Facts
 	default:
 		return false
 	}
 	return slices.ContainsFunc(values, func(v *testpilotspb.ModelValue) bool {
-		if v.DefinitionId != p.DefinitionId {
-			return false
-		}
-		switch c := p.Constraint.(type) {
-		case *testpilotspb.CorrelatedPredicate_Present:
-			return c.Present
-		case *testpilotspb.CorrelatedPredicate_EqualsText:
-			return v.Value == c.EqualsText
-		default:
-			return false
-		}
+		return v.DefinitionId == condition.definitionID && (!condition.equals || v.Value == condition.text)
 	})
 }
 func evidenceField(e *admittedCorrelatedEvidence, id string) *testpilotspb.Value {
@@ -329,18 +323,19 @@ func evidenceField(e *admittedCorrelatedEvidence, id string) *testpilotspb.Value
 // operandValue reads only declared evidence. An occurrence the operation never retained -- a future
 // ordinal, or one belonging to a different operation -- has no value here, so admission fails rather
 // than binding the nearest match.
-func operandValue(o *testpilotspb.CorrelatedOperand, e *admittedCorrelatedEvidence, op *correlatedOperation) (*testpilotspb.Value, error) {
-	switch v := o.GetOperand().(type) {
-	case *testpilotspb.CorrelatedOperand_Literal:
-		return v.Literal, nil
-	case *testpilotspb.CorrelatedOperand_FieldId:
-		if value := evidenceField(e, v.FieldId); value != nil {
+func operandValue(o *testpilotspb.Expression, e *admittedCorrelatedEvidence, op *correlatedOperation) (*testpilotspb.Value, error) {
+	if literal, ok := o.GetExpression().(*testpilotspb.Expression_Literal); ok {
+		return literal.Literal, nil
+	}
+	switch v := o.GetReference().GetReference().(type) {
+	case *testpilotspb.Reference_EvidenceFieldId:
+		if value := evidenceField(e, v.EvidenceFieldId); value != nil {
 			return value, nil
 		}
 		return nil, invalid(ir.Malformed, "missing correlation field operand")
-	case *testpilotspb.CorrelatedOperand_Capture:
+	case *testpilotspb.Reference_CorrelatedCapture:
 		for _, entry := range op.captures {
-			if entry.capture == v.Capture.GetCaptureId() && entry.ordinal == v.Capture.GetOrdinal() {
+			if entry.capture == v.CorrelatedCapture.GetCaptureId() && entry.ordinal == v.CorrelatedCapture.GetOrdinal() {
 				return entry.value, nil
 			}
 		}
@@ -352,21 +347,22 @@ func operandValue(o *testpilotspb.CorrelatedOperand, e *admittedCorrelatedEviden
 
 // correlationHolds evaluates groups left to right and stops at the first decisive operand, so an
 // operand an earlier one made irrelevant is never read and cannot fail admission.
-func correlationHolds(c *testpilotspb.CorrelatedCorrelation, out *testpilotspb.CorrelatedTransition, e *admittedCorrelatedEvidence, op *correlatedOperation) (bool, error) {
-	switch v := c.GetCondition().(type) {
-	case *testpilotspb.CorrelatedCorrelation_Predicate:
-		return predicate(v.Predicate, out), nil
-	case *testpilotspb.CorrelatedCorrelation_Comparison:
-		left, err := operandValue(v.Comparison.GetLeft(), e, op)
+func correlationHolds(c *testpilotspb.Expression, out *testpilotspb.CorrelatedTransition, e *admittedCorrelatedEvidence, op *correlatedOperation) (bool, error) {
+	if _, ok := readStepCondition(c); ok {
+		return predicate(c, out), nil
+	}
+	switch v := c.GetExpression().(type) {
+	case *testpilotspb.Expression_Compare:
+		left, err := operandValue(v.Compare.GetLeft(), e, op)
 		if err != nil {
 			return false, err
 		}
-		right, err := operandValue(v.Comparison.GetRight(), e, op)
+		right, err := operandValue(v.Compare.GetRight(), e, op)
 		if err != nil {
 			return false, err
 		}
-		return proto.Equal(left, right) == (v.Comparison.GetOperator() == testpilotspb.CORRELATED_COMPARISON_OPERATOR_EQUAL), nil
-	case *testpilotspb.CorrelatedCorrelation_All:
+		return proto.Equal(left, right) == (v.Compare.GetOperator() == testpilotspb.COMPARISON_OPERATOR_EQUAL), nil
+	case *testpilotspb.Expression_All:
 		for _, operand := range v.All.GetOperands() {
 			holds, err := correlationHolds(operand, out, e, op)
 			if err != nil || !holds {
@@ -374,7 +370,7 @@ func correlationHolds(c *testpilotspb.CorrelatedCorrelation, out *testpilotspb.C
 			}
 		}
 		return true, nil
-	case *testpilotspb.CorrelatedCorrelation_Any:
+	case *testpilotspb.Expression_Any:
 		for _, operand := range v.Any.GetOperands() {
 			holds, err := correlationHolds(operand, out, e, op)
 			if err != nil {

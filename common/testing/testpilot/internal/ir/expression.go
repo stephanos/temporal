@@ -20,6 +20,8 @@ const (
 	ObservationReference
 	EventReference
 	CaptureReference
+	// ProjectedValueReference is the value an evidence lift is projecting; it carries no identity.
+	ProjectedValueReference
 )
 
 type Reference struct {
@@ -41,12 +43,68 @@ const (
 	ProgramContext Context = iota + 1
 	// ContractContext is a Contract transition predicate.
 	ContractContext
+	// CorrelatedContext is a correlated rule's trigger, response or correlation. The correlated
+	// capability admits and evaluates these itself rather than through BindExpression.
+	CorrelatedContext
+	// EvidenceLiftContext is an evidence-lift rule's guard over the value being projected.
+	EvidenceLiftContext
 )
 
 // admittedReferences names the Reference arms each context admits.
 var admittedReferences = map[Context]map[protoreflect.Name]bool{
-	ProgramContext:  {"slot_id": true, "outcome": true, "run": true, "environment_binding_id": true},
-	ContractContext: {"observation_id": true, "run_event": true, "capture_id": true},
+	ProgramContext:      {"slot_id": true, "outcome": true, "run": true, "environment_binding_id": true},
+	ContractContext:     {"observation_id": true, "run_event": true, "capture_id": true},
+	CorrelatedContext:   {"evidence_field_id": true, "correlated_capture": true, "correlated_step": true},
+	EvidenceLiftContext: {"projected_value": true},
+}
+
+// admitReference rejects a Reference arm its context does not admit, located at path, the path of
+// the Reference within the Case.
+func admitReference(context Context, path string, arm protoreflect.Name) error {
+	if !admittedReferences[context][arm] {
+		return invalid(Unknown, path+"."+string(arm), "reference is not admitted in this expression context")
+	}
+	return nil
+}
+
+// AdmitReferences rejects the first reference in source, in evaluation order, that the site's
+// context does not admit, at the path BindExpression would report. It is the context check for
+// expressions a caller evaluates without binding them.
+func AdmitReferences(site Site, source *testpilotspb.Expression) error {
+	switch v := source.GetExpression().(type) {
+	case *testpilotspb.Expression_Reference:
+		message := v.Reference.ProtoReflect()
+		if arm := message.WhichOneof(message.Descriptor().Oneofs().ByName("reference")); arm != nil {
+			return admitReference(site.Context, site.Path+".reference", arm.Name())
+		}
+	case *testpilotspb.Expression_Path:
+		return AdmitReferences(Site{Context: site.Context, Path: site.Path + ".path.operand"}, v.Path.GetOperand())
+	case *testpilotspb.Expression_Present:
+		return AdmitReferences(Site{Context: site.Context, Path: site.Path + ".present"}, v.Present.GetOperand())
+	case *testpilotspb.Expression_Not:
+		return AdmitReferences(Site{Context: site.Context, Path: site.Path + ".not"}, v.Not.GetOperand())
+	case *testpilotspb.Expression_Compare:
+		if err := AdmitReferences(Site{Context: site.Context, Path: site.Path + ".compare.left"}, v.Compare.GetLeft()); err != nil {
+			return err
+		}
+		return AdmitReferences(Site{Context: site.Context, Path: site.Path + ".compare.right"}, v.Compare.GetRight())
+	case *testpilotspb.Expression_All:
+		return admitOperands(site, ".all", v.All.GetOperands())
+	case *testpilotspb.Expression_Any:
+		return admitOperands(site, ".any", v.Any.GetOperands())
+	default:
+		// A literal reads no reference.
+	}
+	return nil
+}
+
+func admitOperands(site Site, group string, operands []*testpilotspb.Expression) error {
+	for index, operand := range operands {
+		if err := AdmitReferences(Site{Context: site.Context, Path: fmt.Sprintf("%s%s[%d]", site.Path, group, index)}, operand); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // Site locates one authored expression: the context it is bound in and its path in the Case, which
@@ -235,7 +293,7 @@ func (b *compiler) bind(source proto.Message, path string, expected *Type, facts
 	c := b.catalog
 	if result.reference.Kind != 0 {
 		reference := result.reference
-		if reference.Kind != EventReference && reference.ID == "" {
+		if reference.Kind != EventReference && reference.Kind != ProjectedValueReference && reference.ID == "" {
 			return nil, invalid(Malformed, "expression", "reference identity is required")
 		}
 		binding, ok := b.scope[reference]
@@ -301,8 +359,8 @@ func (b *compiler) reference(message protoreflect.Message, path string) (Referen
 	if selected == nil {
 		return Reference{}, invalid(Malformed, "expression", "reference is required")
 	}
-	if !admittedReferences[b.context][selected.Name()] {
-		return Reference{}, invalid(Unknown, path+"."+string(selected.Name()), "reference is not admitted in this expression context")
+	if err := admitReference(b.context, path, selected.Name()); err != nil {
+		return Reference{}, err
 	}
 	value := message.Get(selected)
 	switch selected.Name() {
@@ -327,6 +385,8 @@ func (b *compiler) reference(message protoreflect.Message, path string) (Referen
 		}
 	case "run":
 		result = Reference{Kind: EventReference, Field: int32(testpilotspb.RUN_EVENT_FIELD_RUN_ID)}
+	case "projected_value":
+		result = Reference{Kind: ProjectedValueReference}
 	default:
 		// An environment binding is admitted only as a whole request assignment value, which
 		// Program admission resolves to a literal before binding.

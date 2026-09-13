@@ -663,6 +663,17 @@ func buildRetiredRules() ([]tokenRule, error) {
 		"InstructionOutcome" + "Ref",
 		"RunEventField" + "Ref",
 		"CorrelatedCapture" + "Ref",
+		// fn-87 folds the correlated condition vocabulary into the same Expression, and an evidence-lift
+		// guard's string equality into an EQUAL comparison.
+		"Correlated" + "Predicate",
+		"Correlated" + "PredicateField",
+		"Correlated" + "Comparison",
+		"Correlated" + "ComparisonOperator",
+		"Correlated" + "Operand",
+		"Correlated" + "Correlation",
+		"Correlated" + "CorrelationGroup",
+		"guard" + "_equals_text",
+		"Guard" + "EqualsText",
 	}
 
 	rules := make([]tokenRule, 0, len(exactTokens)+5)
@@ -695,6 +706,8 @@ func buildRetiredRules() ([]tokenRule, error) {
 		tokenRule{name: "CONTRACT_STATE_STATUS_NONTERMINAL", pattern: regexp.MustCompile(`(^|[^A-Za-z0-9_])CONTRACT_STATE_STATUS_NONTERMINAL([^A-Za-z0-9_]|$)`)},
 		tokenRule{name: "PROTOCOL_NON_SUCCESS", pattern: regexp.MustCompile(`(^|[^A-Za-z0-9_])[A-Z0-9_]*PROTOCOL_NON_SUCCESS([^A-Za-z0-9_]|$)`)},
 		tokenRule{name: "PROJECTION_KIND_*", pattern: regexp.MustCompile(`(^|[^A-Za-z0-9_])PROJECTION_KIND_[A-Z0-9_]+`)},
+		tokenRule{name: "CORRELATED_PREDICATE_FIELD_*", pattern: regexp.MustCompile(`(^|[^A-Za-z0-9_])CORRELATED_PREDICATE_FIELD_[A-Z0-9_]+`)},
+		tokenRule{name: "CORRELATED_COMPARISON_OPERATOR_*", pattern: regexp.MustCompile(`(^|[^A-Za-z0-9_])CORRELATED_COMPARISON_OPERATOR_[A-Z0-9_]+`)},
 	)
 	// The generation-numbered module and identity roots. A leading hyphen is excluded because the
 	// only occurrences in that shape are immutable Flow spec slugs, which name closed records rather

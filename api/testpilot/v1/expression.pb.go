@@ -180,9 +180,81 @@ func (InstructionOutcomeField) EnumDescriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{1}
 }
 
-// Expression is the one closed expression language of a Case: instruction inputs and guards, and
-// Contract transition predicates. Which references an expression may use is a property of where it
-// appears, and preparation rejects a reference outside its context.
+// CorrelatedStepField names the part of a correlated step a step reference reads.
+// (-- api-linter: core::0191::file-layout=disabled --)
+type CorrelatedStepField int32
+
+const (
+	CORRELATED_STEP_FIELD_UNSPECIFIED CorrelatedStepField = 0
+	CORRELATED_STEP_FIELD_ACTION      CorrelatedStepField = 1
+	CORRELATED_STEP_FIELD_OUTCOME     CorrelatedStepField = 2
+	CORRELATED_STEP_FIELD_STATE       CorrelatedStepField = 3
+	CORRELATED_STEP_FIELD_FACT        CorrelatedStepField = 4
+)
+
+// Enum value maps for CorrelatedStepField.
+var (
+	CorrelatedStepField_name = map[int32]string{
+		0: "CORRELATED_STEP_FIELD_UNSPECIFIED",
+		1: "CORRELATED_STEP_FIELD_ACTION",
+		2: "CORRELATED_STEP_FIELD_OUTCOME",
+		3: "CORRELATED_STEP_FIELD_STATE",
+		4: "CORRELATED_STEP_FIELD_FACT",
+	}
+	CorrelatedStepField_value = map[string]int32{
+		"CORRELATED_STEP_FIELD_UNSPECIFIED": 0,
+		"CORRELATED_STEP_FIELD_ACTION":      1,
+		"CORRELATED_STEP_FIELD_OUTCOME":     2,
+		"CORRELATED_STEP_FIELD_STATE":       3,
+		"CORRELATED_STEP_FIELD_FACT":        4,
+	}
+)
+
+func (x CorrelatedStepField) Enum() *CorrelatedStepField {
+	p := new(CorrelatedStepField)
+	*p = x
+	return p
+}
+
+func (x CorrelatedStepField) String() string {
+	switch x {
+	case CORRELATED_STEP_FIELD_UNSPECIFIED:
+		return "Unspecified"
+	case CORRELATED_STEP_FIELD_ACTION:
+		return "Action"
+	case CORRELATED_STEP_FIELD_OUTCOME:
+		return "Outcome"
+	case CORRELATED_STEP_FIELD_STATE:
+		return "State"
+	case CORRELATED_STEP_FIELD_FACT:
+		return "Fact"
+	default:
+		return strconv.Itoa(int(x))
+	}
+
+}
+
+func (CorrelatedStepField) Descriptor() protoreflect.EnumDescriptor {
+	return file_temporal_server_api_testpilot_v1_expression_proto_enumTypes[2].Descriptor()
+}
+
+func (CorrelatedStepField) Type() protoreflect.EnumType {
+	return &file_temporal_server_api_testpilot_v1_expression_proto_enumTypes[2]
+}
+
+func (x CorrelatedStepField) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use CorrelatedStepField.Descriptor instead.
+func (CorrelatedStepField) EnumDescriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{2}
+}
+
+// Expression is the one closed expression language of a Case: instruction inputs and guards,
+// Contract transition predicates, correlated rule conditions and evidence-lift guards. Which
+// references an expression may use is a property of where it appears, and preparation rejects a
+// reference outside its context.
 type Expression struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Types that are valid to be assigned to Expression:
@@ -662,7 +734,8 @@ func (x *AnyExpression) GetOperands() []*Expression {
 
 // Reference reads one value an expression's context supplies. Instruction inputs and guards admit
 // Slots, instruction outcomes, the Run and environment bindings; Contract transition predicates admit
-// Observations, Run Event fields and captures. The correlated references are admitted in no context.
+// Observations, Run Event fields and captures; correlated rule conditions admit evidence fields,
+// correlated captures and correlated steps; evidence-lift guards admit the projected value.
 type Reference struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Types that are valid to be assigned to Reference:
@@ -677,6 +750,8 @@ type Reference struct {
 	//	*Reference_EvidenceFieldId
 	//	*Reference_CorrelatedCapture
 	//	*Reference_ModelValue
+	//	*Reference_CorrelatedStep
+	//	*Reference_ProjectedValue
 	Reference     isReference_Reference `protobuf_oneof:"reference"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -809,6 +884,24 @@ func (x *Reference) GetModelValue() *ModelValue {
 	return nil
 }
 
+func (x *Reference) GetCorrelatedStep() *CorrelatedStepReference {
+	if x != nil {
+		if x, ok := x.Reference.(*Reference_CorrelatedStep); ok {
+			return x.CorrelatedStep
+		}
+	}
+	return nil
+}
+
+func (x *Reference) GetProjectedValue() *ProjectedValueReference {
+	if x != nil {
+		if x, ok := x.Reference.(*Reference_ProjectedValue); ok {
+			return x.ProjectedValue
+		}
+	}
+	return nil
+}
+
 type isReference_Reference interface {
 	isReference_Reference()
 }
@@ -856,7 +949,18 @@ type Reference_CorrelatedCapture struct {
 }
 
 type Reference_ModelValue struct {
+	// A literal model value. No context admits it yet: a correlated step reference and a text
+	// literal carry the model values correlated conditions test.
 	ModelValue *ModelValue `protobuf:"bytes,10,opt,name=model_value,json=modelValue,proto3,oneof"`
+}
+
+type Reference_CorrelatedStep struct {
+	CorrelatedStep *CorrelatedStepReference `protobuf:"bytes,11,opt,name=correlated_step,json=correlatedStep,proto3,oneof"`
+}
+
+type Reference_ProjectedValue struct {
+	// The value an evidence lift is projecting.
+	ProjectedValue *ProjectedValueReference `protobuf:"bytes,12,opt,name=projected_value,json=projectedValue,proto3,oneof"`
 }
 
 func (*Reference_SlotId) isReference_Reference() {}
@@ -878,6 +982,10 @@ func (*Reference_EvidenceFieldId) isReference_Reference() {}
 func (*Reference_CorrelatedCapture) isReference_Reference() {}
 
 func (*Reference_ModelValue) isReference_Reference() {}
+
+func (*Reference_CorrelatedStep) isReference_Reference() {}
+
+func (*Reference_ProjectedValue) isReference_Reference() {}
 
 // InstructionReference names one instruction by its entrypoint and instruction ids.
 type InstructionReference struct {
@@ -1120,6 +1228,98 @@ func (x *CorrelatedCaptureReference) GetOrdinal() int64 {
 	return 0
 }
 
+// CorrelatedStepReference reads the model value of definition_id at one part of the correlated step
+// being admitted, absent when that part carries none. A FACT reference reads the step's facts: it is
+// present when any fact has the definition, and it equals a literal when any such fact does.
+type CorrelatedStepReference struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Field         CorrelatedStepField    `protobuf:"varint,1,opt,name=field,proto3,enum=temporal.server.api.testpilot.v1.CorrelatedStepField" json:"field,omitempty"`
+	DefinitionId  string                 `protobuf:"bytes,2,opt,name=definition_id,json=definitionId,proto3" json:"definition_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CorrelatedStepReference) Reset() {
+	*x = CorrelatedStepReference{}
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CorrelatedStepReference) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CorrelatedStepReference) ProtoMessage() {}
+
+func (x *CorrelatedStepReference) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CorrelatedStepReference.ProtoReflect.Descriptor instead.
+func (*CorrelatedStepReference) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *CorrelatedStepReference) GetField() CorrelatedStepField {
+	if x != nil {
+		return x.Field
+	}
+	return CORRELATED_STEP_FIELD_UNSPECIFIED
+}
+
+func (x *CorrelatedStepReference) GetDefinitionId() string {
+	if x != nil {
+		return x.DefinitionId
+	}
+	return ""
+}
+
+// ProjectedValueReference reads the value an evidence lift is projecting.
+type ProjectedValueReference struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ProjectedValueReference) Reset() {
+	*x = ProjectedValueReference{}
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ProjectedValueReference) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProjectedValueReference) ProtoMessage() {}
+
+func (x *ProjectedValueReference) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ProjectedValueReference.ProtoReflect.Descriptor instead.
+func (*ProjectedValueReference) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{14}
+}
+
 var File_temporal_server_api_testpilot_v1_expression_proto protoreflect.FileDescriptor
 
 const file_temporal_server_api_testpilot_v1_expression_proto_rawDesc = "" +
@@ -1151,7 +1351,7 @@ const file_temporal_server_api_testpilot_v1_expression_proto_rawDesc = "" +
 	"\rAllExpression\x12H\n" +
 	"\boperands\x18\x01 \x03(\v2,.temporal.server.api.testpilot.v1.ExpressionR\boperands\"Y\n" +
 	"\rAnyExpression\x12H\n" +
-	"\boperands\x18\x01 \x03(\v2,.temporal.server.api.testpilot.v1.ExpressionR\boperands\"\x96\x05\n" +
+	"\boperands\x18\x01 \x03(\v2,.temporal.server.api.testpilot.v1.ExpressionR\boperands\"\xe2\x06\n" +
 	"\tReference\x12\x19\n" +
 	"\aslot_id\x18\x01 \x01(\tH\x00R\x06slotId\x12Y\n" +
 	"\aoutcome\x18\x02 \x01(\v2=.temporal.server.api.testpilot.v1.InstructionOutcomeReferenceH\x00R\aoutcome\x12B\n" +
@@ -1165,7 +1365,9 @@ const file_temporal_server_api_testpilot_v1_expression_proto_rawDesc = "" +
 	"\x12correlated_capture\x18\t \x01(\v2<.temporal.server.api.testpilot.v1.CorrelatedCaptureReferenceH\x00R\x11correlatedCapture\x12O\n" +
 	"\vmodel_value\x18\n" +
 	" \x01(\v2,.temporal.server.api.testpilot.v1.ModelValueH\x00R\n" +
-	"modelValueB\v\n" +
+	"modelValue\x12d\n" +
+	"\x0fcorrelated_step\x18\v \x01(\v29.temporal.server.api.testpilot.v1.CorrelatedStepReferenceH\x00R\x0ecorrelatedStep\x12d\n" +
+	"\x0fprojected_value\x18\f \x01(\v29.temporal.server.api.testpilot.v1.ProjectedValueReferenceH\x00R\x0eprojectedValueB\v\n" +
 	"\treference\"b\n" +
 	"\x14InstructionReference\x12#\n" +
 	"\rentrypoint_id\x18\x01 \x01(\tR\fentrypointId\x12%\n" +
@@ -1179,7 +1381,11 @@ const file_temporal_server_api_testpilot_v1_expression_proto_rawDesc = "" +
 	"\x1aCorrelatedCaptureReference\x12\x1d\n" +
 	"\n" +
 	"capture_id\x18\x01 \x01(\tR\tcaptureId\x12\x18\n" +
-	"\aordinal\x18\x02 \x01(\x03R\aordinal*\x9f\x02\n" +
+	"\aordinal\x18\x02 \x01(\x03R\aordinal\"\x8b\x01\n" +
+	"\x17CorrelatedStepReference\x12K\n" +
+	"\x05field\x18\x01 \x01(\x0e25.temporal.server.api.testpilot.v1.CorrelatedStepFieldR\x05field\x12#\n" +
+	"\rdefinition_id\x18\x02 \x01(\tR\fdefinitionId\"\x19\n" +
+	"\x17ProjectedValueReference*\x9f\x02\n" +
 	"\x12ComparisonOperator\x12#\n" +
 	"\x1fCOMPARISON_OPERATOR_UNSPECIFIED\x10\x00\x12\x1d\n" +
 	"\x19COMPARISON_OPERATOR_EQUAL\x10\x01\x12!\n" +
@@ -1194,7 +1400,13 @@ const file_temporal_server_api_testpilot_v1_expression_proto_rawDesc = "" +
 	"'INSTRUCTION_OUTCOME_FIELD_PROTOCOL_CODE\x10\x02\x12.\n" +
 	"*INSTRUCTION_OUTCOME_FIELD_SDK_FAILURE_CODE\x10\x03\x12$\n" +
 	" INSTRUCTION_OUTCOME_FIELD_DETAIL\x10\x04\x12#\n" +
-	"\x1fINSTRUCTION_OUTCOME_FIELD_VALUE\x10\x05B2Z0go.temporal.io/server/api/testpilot/v1;testpilotb\x06proto3"
+	"\x1fINSTRUCTION_OUTCOME_FIELD_VALUE\x10\x05*\xc2\x01\n" +
+	"\x13CorrelatedStepField\x12%\n" +
+	"!CORRELATED_STEP_FIELD_UNSPECIFIED\x10\x00\x12 \n" +
+	"\x1cCORRELATED_STEP_FIELD_ACTION\x10\x01\x12!\n" +
+	"\x1dCORRELATED_STEP_FIELD_OUTCOME\x10\x02\x12\x1f\n" +
+	"\x1bCORRELATED_STEP_FIELD_STATE\x10\x03\x12\x1e\n" +
+	"\x1aCORRELATED_STEP_FIELD_FACT\x10\x04B2Z0go.temporal.io/server/api/testpilot/v1;testpilotb\x06proto3"
 
 var (
 	file_temporal_server_api_testpilot_v1_expression_proto_rawDescOnce sync.Once
@@ -1208,60 +1420,66 @@ func file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP() []byte
 	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescData
 }
 
-var file_temporal_server_api_testpilot_v1_expression_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_temporal_server_api_testpilot_v1_expression_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_temporal_server_api_testpilot_v1_expression_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_temporal_server_api_testpilot_v1_expression_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_temporal_server_api_testpilot_v1_expression_proto_goTypes = []any{
 	(ComparisonOperator)(0),             // 0: temporal.server.api.testpilot.v1.ComparisonOperator
 	(InstructionOutcomeField)(0),        // 1: temporal.server.api.testpilot.v1.InstructionOutcomeField
-	(*Expression)(nil),                  // 2: temporal.server.api.testpilot.v1.Expression
-	(*PathExpression)(nil),              // 3: temporal.server.api.testpilot.v1.PathExpression
-	(*PresentExpression)(nil),           // 4: temporal.server.api.testpilot.v1.PresentExpression
-	(*CompareExpression)(nil),           // 5: temporal.server.api.testpilot.v1.CompareExpression
-	(*NotExpression)(nil),               // 6: temporal.server.api.testpilot.v1.NotExpression
-	(*AllExpression)(nil),               // 7: temporal.server.api.testpilot.v1.AllExpression
-	(*AnyExpression)(nil),               // 8: temporal.server.api.testpilot.v1.AnyExpression
-	(*Reference)(nil),                   // 9: temporal.server.api.testpilot.v1.Reference
-	(*InstructionReference)(nil),        // 10: temporal.server.api.testpilot.v1.InstructionReference
-	(*InstructionOutcomeReference)(nil), // 11: temporal.server.api.testpilot.v1.InstructionOutcomeReference
-	(*RunReference)(nil),                // 12: temporal.server.api.testpilot.v1.RunReference
-	(*RunEventReference)(nil),           // 13: temporal.server.api.testpilot.v1.RunEventReference
-	(*CorrelatedCaptureReference)(nil),  // 14: temporal.server.api.testpilot.v1.CorrelatedCaptureReference
-	(*Value)(nil),                       // 15: temporal.server.api.testpilot.v1.Value
-	(*FieldPath)(nil),                   // 16: temporal.server.api.testpilot.v1.FieldPath
-	(*ModelValue)(nil),                  // 17: temporal.server.api.testpilot.v1.ModelValue
-	(RunEventField)(0),                  // 18: temporal.server.api.testpilot.v1.RunEventField
+	(CorrelatedStepField)(0),            // 2: temporal.server.api.testpilot.v1.CorrelatedStepField
+	(*Expression)(nil),                  // 3: temporal.server.api.testpilot.v1.Expression
+	(*PathExpression)(nil),              // 4: temporal.server.api.testpilot.v1.PathExpression
+	(*PresentExpression)(nil),           // 5: temporal.server.api.testpilot.v1.PresentExpression
+	(*CompareExpression)(nil),           // 6: temporal.server.api.testpilot.v1.CompareExpression
+	(*NotExpression)(nil),               // 7: temporal.server.api.testpilot.v1.NotExpression
+	(*AllExpression)(nil),               // 8: temporal.server.api.testpilot.v1.AllExpression
+	(*AnyExpression)(nil),               // 9: temporal.server.api.testpilot.v1.AnyExpression
+	(*Reference)(nil),                   // 10: temporal.server.api.testpilot.v1.Reference
+	(*InstructionReference)(nil),        // 11: temporal.server.api.testpilot.v1.InstructionReference
+	(*InstructionOutcomeReference)(nil), // 12: temporal.server.api.testpilot.v1.InstructionOutcomeReference
+	(*RunReference)(nil),                // 13: temporal.server.api.testpilot.v1.RunReference
+	(*RunEventReference)(nil),           // 14: temporal.server.api.testpilot.v1.RunEventReference
+	(*CorrelatedCaptureReference)(nil),  // 15: temporal.server.api.testpilot.v1.CorrelatedCaptureReference
+	(*CorrelatedStepReference)(nil),     // 16: temporal.server.api.testpilot.v1.CorrelatedStepReference
+	(*ProjectedValueReference)(nil),     // 17: temporal.server.api.testpilot.v1.ProjectedValueReference
+	(*Value)(nil),                       // 18: temporal.server.api.testpilot.v1.Value
+	(*FieldPath)(nil),                   // 19: temporal.server.api.testpilot.v1.FieldPath
+	(*ModelValue)(nil),                  // 20: temporal.server.api.testpilot.v1.ModelValue
+	(RunEventField)(0),                  // 21: temporal.server.api.testpilot.v1.RunEventField
 }
 var file_temporal_server_api_testpilot_v1_expression_proto_depIdxs = []int32{
-	15, // 0: temporal.server.api.testpilot.v1.Expression.literal:type_name -> temporal.server.api.testpilot.v1.Value
-	9,  // 1: temporal.server.api.testpilot.v1.Expression.reference:type_name -> temporal.server.api.testpilot.v1.Reference
-	3,  // 2: temporal.server.api.testpilot.v1.Expression.path:type_name -> temporal.server.api.testpilot.v1.PathExpression
-	4,  // 3: temporal.server.api.testpilot.v1.Expression.present:type_name -> temporal.server.api.testpilot.v1.PresentExpression
-	5,  // 4: temporal.server.api.testpilot.v1.Expression.compare:type_name -> temporal.server.api.testpilot.v1.CompareExpression
-	6,  // 5: temporal.server.api.testpilot.v1.Expression.not:type_name -> temporal.server.api.testpilot.v1.NotExpression
-	7,  // 6: temporal.server.api.testpilot.v1.Expression.all:type_name -> temporal.server.api.testpilot.v1.AllExpression
-	8,  // 7: temporal.server.api.testpilot.v1.Expression.any:type_name -> temporal.server.api.testpilot.v1.AnyExpression
-	2,  // 8: temporal.server.api.testpilot.v1.PathExpression.operand:type_name -> temporal.server.api.testpilot.v1.Expression
-	16, // 9: temporal.server.api.testpilot.v1.PathExpression.path:type_name -> temporal.server.api.testpilot.v1.FieldPath
-	2,  // 10: temporal.server.api.testpilot.v1.PresentExpression.operand:type_name -> temporal.server.api.testpilot.v1.Expression
+	18, // 0: temporal.server.api.testpilot.v1.Expression.literal:type_name -> temporal.server.api.testpilot.v1.Value
+	10, // 1: temporal.server.api.testpilot.v1.Expression.reference:type_name -> temporal.server.api.testpilot.v1.Reference
+	4,  // 2: temporal.server.api.testpilot.v1.Expression.path:type_name -> temporal.server.api.testpilot.v1.PathExpression
+	5,  // 3: temporal.server.api.testpilot.v1.Expression.present:type_name -> temporal.server.api.testpilot.v1.PresentExpression
+	6,  // 4: temporal.server.api.testpilot.v1.Expression.compare:type_name -> temporal.server.api.testpilot.v1.CompareExpression
+	7,  // 5: temporal.server.api.testpilot.v1.Expression.not:type_name -> temporal.server.api.testpilot.v1.NotExpression
+	8,  // 6: temporal.server.api.testpilot.v1.Expression.all:type_name -> temporal.server.api.testpilot.v1.AllExpression
+	9,  // 7: temporal.server.api.testpilot.v1.Expression.any:type_name -> temporal.server.api.testpilot.v1.AnyExpression
+	3,  // 8: temporal.server.api.testpilot.v1.PathExpression.operand:type_name -> temporal.server.api.testpilot.v1.Expression
+	19, // 9: temporal.server.api.testpilot.v1.PathExpression.path:type_name -> temporal.server.api.testpilot.v1.FieldPath
+	3,  // 10: temporal.server.api.testpilot.v1.PresentExpression.operand:type_name -> temporal.server.api.testpilot.v1.Expression
 	0,  // 11: temporal.server.api.testpilot.v1.CompareExpression.operator:type_name -> temporal.server.api.testpilot.v1.ComparisonOperator
-	2,  // 12: temporal.server.api.testpilot.v1.CompareExpression.left:type_name -> temporal.server.api.testpilot.v1.Expression
-	2,  // 13: temporal.server.api.testpilot.v1.CompareExpression.right:type_name -> temporal.server.api.testpilot.v1.Expression
-	2,  // 14: temporal.server.api.testpilot.v1.NotExpression.operand:type_name -> temporal.server.api.testpilot.v1.Expression
-	2,  // 15: temporal.server.api.testpilot.v1.AllExpression.operands:type_name -> temporal.server.api.testpilot.v1.Expression
-	2,  // 16: temporal.server.api.testpilot.v1.AnyExpression.operands:type_name -> temporal.server.api.testpilot.v1.Expression
-	11, // 17: temporal.server.api.testpilot.v1.Reference.outcome:type_name -> temporal.server.api.testpilot.v1.InstructionOutcomeReference
-	12, // 18: temporal.server.api.testpilot.v1.Reference.run:type_name -> temporal.server.api.testpilot.v1.RunReference
-	13, // 19: temporal.server.api.testpilot.v1.Reference.run_event:type_name -> temporal.server.api.testpilot.v1.RunEventReference
-	14, // 20: temporal.server.api.testpilot.v1.Reference.correlated_capture:type_name -> temporal.server.api.testpilot.v1.CorrelatedCaptureReference
-	17, // 21: temporal.server.api.testpilot.v1.Reference.model_value:type_name -> temporal.server.api.testpilot.v1.ModelValue
-	10, // 22: temporal.server.api.testpilot.v1.InstructionOutcomeReference.instruction:type_name -> temporal.server.api.testpilot.v1.InstructionReference
-	1,  // 23: temporal.server.api.testpilot.v1.InstructionOutcomeReference.field:type_name -> temporal.server.api.testpilot.v1.InstructionOutcomeField
-	18, // 24: temporal.server.api.testpilot.v1.RunEventReference.field:type_name -> temporal.server.api.testpilot.v1.RunEventField
-	25, // [25:25] is the sub-list for method output_type
-	25, // [25:25] is the sub-list for method input_type
-	25, // [25:25] is the sub-list for extension type_name
-	25, // [25:25] is the sub-list for extension extendee
-	0,  // [0:25] is the sub-list for field type_name
+	3,  // 12: temporal.server.api.testpilot.v1.CompareExpression.left:type_name -> temporal.server.api.testpilot.v1.Expression
+	3,  // 13: temporal.server.api.testpilot.v1.CompareExpression.right:type_name -> temporal.server.api.testpilot.v1.Expression
+	3,  // 14: temporal.server.api.testpilot.v1.NotExpression.operand:type_name -> temporal.server.api.testpilot.v1.Expression
+	3,  // 15: temporal.server.api.testpilot.v1.AllExpression.operands:type_name -> temporal.server.api.testpilot.v1.Expression
+	3,  // 16: temporal.server.api.testpilot.v1.AnyExpression.operands:type_name -> temporal.server.api.testpilot.v1.Expression
+	12, // 17: temporal.server.api.testpilot.v1.Reference.outcome:type_name -> temporal.server.api.testpilot.v1.InstructionOutcomeReference
+	13, // 18: temporal.server.api.testpilot.v1.Reference.run:type_name -> temporal.server.api.testpilot.v1.RunReference
+	14, // 19: temporal.server.api.testpilot.v1.Reference.run_event:type_name -> temporal.server.api.testpilot.v1.RunEventReference
+	15, // 20: temporal.server.api.testpilot.v1.Reference.correlated_capture:type_name -> temporal.server.api.testpilot.v1.CorrelatedCaptureReference
+	20, // 21: temporal.server.api.testpilot.v1.Reference.model_value:type_name -> temporal.server.api.testpilot.v1.ModelValue
+	16, // 22: temporal.server.api.testpilot.v1.Reference.correlated_step:type_name -> temporal.server.api.testpilot.v1.CorrelatedStepReference
+	17, // 23: temporal.server.api.testpilot.v1.Reference.projected_value:type_name -> temporal.server.api.testpilot.v1.ProjectedValueReference
+	11, // 24: temporal.server.api.testpilot.v1.InstructionOutcomeReference.instruction:type_name -> temporal.server.api.testpilot.v1.InstructionReference
+	1,  // 25: temporal.server.api.testpilot.v1.InstructionOutcomeReference.field:type_name -> temporal.server.api.testpilot.v1.InstructionOutcomeField
+	21, // 26: temporal.server.api.testpilot.v1.RunEventReference.field:type_name -> temporal.server.api.testpilot.v1.RunEventField
+	2,  // 27: temporal.server.api.testpilot.v1.CorrelatedStepReference.field:type_name -> temporal.server.api.testpilot.v1.CorrelatedStepField
+	28, // [28:28] is the sub-list for method output_type
+	28, // [28:28] is the sub-list for method input_type
+	28, // [28:28] is the sub-list for extension type_name
+	28, // [28:28] is the sub-list for extension extendee
+	0,  // [0:28] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_testpilot_v1_expression_proto_init() }
@@ -1292,14 +1510,16 @@ func file_temporal_server_api_testpilot_v1_expression_proto_init() {
 		(*Reference_EvidenceFieldId)(nil),
 		(*Reference_CorrelatedCapture)(nil),
 		(*Reference_ModelValue)(nil),
+		(*Reference_CorrelatedStep)(nil),
+		(*Reference_ProjectedValue)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_temporal_server_api_testpilot_v1_expression_proto_rawDesc), len(file_temporal_server_api_testpilot_v1_expression_proto_rawDesc)),
-			NumEnums:      2,
-			NumMessages:   13,
+			NumEnums:      3,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

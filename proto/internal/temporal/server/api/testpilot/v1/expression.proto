@@ -4,9 +4,10 @@ import "temporal/server/api/testpilot/v1/event.proto";
 import "temporal/server/api/testpilot/v1/value.proto";
 option go_package = "go.temporal.io/server/api/testpilot/v1;testpilot";
 
-// Expression is the one closed expression language of a Case: instruction inputs and guards, and
-// Contract transition predicates. Which references an expression may use is a property of where it
-// appears, and preparation rejects a reference outside its context.
+// Expression is the one closed expression language of a Case: instruction inputs and guards,
+// Contract transition predicates, correlated rule conditions and evidence-lift guards. Which
+// references an expression may use is a property of where it appears, and preparation rejects a
+// reference outside its context.
 message Expression {
   oneof expression {
     Value literal = 1;
@@ -58,7 +59,8 @@ enum ComparisonOperator {
 
 // Reference reads one value an expression's context supplies. Instruction inputs and guards admit
 // Slots, instruction outcomes, the Run and environment bindings; Contract transition predicates admit
-// Observations, Run Event fields and captures. The correlated references are admitted in no context.
+// Observations, Run Event fields and captures; correlated rule conditions admit evidence fields,
+// correlated captures and correlated steps; evidence-lift guards admit the projected value.
 message Reference {
   oneof reference {
     // The value assigned to a Slot, absent until the Slot is written.
@@ -76,7 +78,12 @@ message Reference {
     // One declared evidence field of the correlated step being admitted.
     string evidence_field_id = 8;
     CorrelatedCaptureReference correlated_capture = 9;
+    // A literal model value. No context admits it yet: a correlated step reference and a text
+    // literal carry the model values correlated conditions test.
     ModelValue model_value = 10;
+    CorrelatedStepReference correlated_step = 11;
+    // The value an evidence lift is projecting.
+    ProjectedValueReference projected_value = 12;
   }
 }
 
@@ -107,3 +114,24 @@ message CorrelatedCaptureReference {
   string capture_id = 1;
   int64 ordinal = 2;
 }
+
+// CorrelatedStepReference reads the model value of definition_id at one part of the correlated step
+// being admitted, absent when that part carries none. A FACT reference reads the step's facts: it is
+// present when any fact has the definition, and it equals a literal when any such fact does.
+message CorrelatedStepReference {
+  CorrelatedStepField field = 1;
+  string definition_id = 2;
+}
+
+// CorrelatedStepField names the part of a correlated step a step reference reads.
+// (-- api-linter: core::0191::file-layout=disabled --)
+enum CorrelatedStepField {
+  CORRELATED_STEP_FIELD_UNSPECIFIED = 0;
+  CORRELATED_STEP_FIELD_ACTION = 1;
+  CORRELATED_STEP_FIELD_OUTCOME = 2;
+  CORRELATED_STEP_FIELD_STATE = 3;
+  CORRELATED_STEP_FIELD_FACT = 4;
+}
+
+// ProjectedValueReference reads the value an evidence lift is projecting.
+message ProjectedValueReference {}

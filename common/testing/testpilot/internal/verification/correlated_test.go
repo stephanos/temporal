@@ -58,8 +58,8 @@ func correlatedFixture(t *testing.T, bound int64) (*testpilotspb.Contract, *ir.C
 	value := func(id, v string) *testpilotspb.ModelValue {
 		return &testpilotspb.ModelValue{DefinitionId: id, Value: v}
 	}
-	trigger := &testpilotspb.CorrelatedPredicate{Field: testpilotspb.CORRELATED_PREDICATE_FIELD_ACTION, DefinitionId: "request", Constraint: &testpilotspb.CorrelatedPredicate_Present{Present: true}}
-	response := &testpilotspb.CorrelatedPredicate{Field: testpilotspb.CORRELATED_PREDICATE_FIELD_OUTCOME, DefinitionId: "outcome", Constraint: &testpilotspb.CorrelatedPredicate_EqualsText{EqualsText: "response"}}
+	trigger := stepPresent(testpilotspb.CORRELATED_STEP_FIELD_ACTION, "request")
+	response := stepEquals(testpilotspb.CORRELATED_STEP_FIELD_OUTCOME, "outcome", "response")
 	s := &testpilotspb.CorrelatedContract{Version: 1, ProjectionId: "projection", ProjectionFingerprint: "projection-v1", EvidenceObservationId: "evidence", ScopeFields: []string{"run"}, OperationField: "operation", Sources: []string{"source"}, InitialState: state, Limits: &testpilotspb.CorrelatedLimits{MaxEvents: 16, MaxBuffered: 8, MaxKeys: 8, MaxSupport: 256, MaxProjectionWork: 1000000000, MaxEventBytes: 512, MaxSemanticTransitions: 32, MaxObligations: 16, MaxObligationWork: 1000000000}, Rules: []*testpilotspb.CorrelatedRule{{RuleId: "response", Clock: testpilotspb.CORRELATED_CLOCK_OPERATION_TRANSITIONS, Bound: bound, Ending: testpilotspb.TRACE_ENDING_PARTIAL, Trigger: trigger, Response: response}}}
 	for _, kind := range []string{"request", "both", "tick", "reply"} {
 		action := kind
@@ -79,6 +79,21 @@ func correlatedFixture(t *testing.T, bound int64) (*testpilotspb.Contract, *ir.C
 	s.ProjectionRules = append(s.ProjectionRules, &testpilotspb.CorrelatedProjectionRule{Kind: "poll", Meaning: testpilotspb.CORRELATED_EVIDENCE_MEANING_IRRELEVANT})
 	return &testpilotspb.Contract{ContractId: "correlated", Limits: proto.CloneOf(ceiling), Correlated: s}, catalog, prepared.View(), ceiling
 }
+
+// stepPresent is the step condition matching a step that carries any value of definitionID at field.
+func stepPresent(field testpilotspb.CorrelatedStepField, definitionID string) *testpilotspb.Expression {
+	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Present{Present: &testpilotspb.PresentExpression{Operand: stepReference(field, definitionID)}}}
+}
+
+// stepEquals is the step condition matching a step that carries exactly text of definitionID at field.
+func stepEquals(field testpilotspb.CorrelatedStepField, definitionID, text string) *testpilotspb.Expression {
+	return correlationComparison(testpilotspb.COMPARISON_OPERATOR_EQUAL, stepReference(field, definitionID), correlatedLiteralOperand(text))
+}
+
+func stepReference(field testpilotspb.CorrelatedStepField, definitionID string) *testpilotspb.Expression {
+	return correlatedReference(&testpilotspb.Reference{Reference: &testpilotspb.Reference_CorrelatedStep{CorrelatedStep: &testpilotspb.CorrelatedStepReference{Field: field, DefinitionId: definitionID}}})
+}
+
 func correlatedEvidence(ordinal int64, kind, operation string, parents ...int64) *testpilotspb.CorrelatedEvidence {
 	id := func(n int64) *testpilotspb.CorrelatedIdentity {
 		return &testpilotspb.CorrelatedIdentity{Scope: []*testpilotspb.CorrelatedBinding{{FieldId: "run", Value: "one"}}, EvidenceSource: "source", Ordinal: n}
@@ -146,9 +161,15 @@ func TestCorrelatedPrepareRejectsUnsupportedCapability(t *testing.T) {
 		"endpoint":       func(c *testpilotspb.Contract) { c.Correlated.Rules[0].Ending = 99 },
 		"negative-bound": func(c *testpilotspb.Contract) { c.Correlated.Rules[0].Bound = -1 },
 		"unsupported-formula": func(c *testpilotspb.Contract) {
-			c.Correlated.Rules[0].Trigger.Field = testpilotspb.CORRELATED_PREDICATE_FIELD_FACT
+			c.Correlated.Rules[0].Trigger = correlatedAll(c.Correlated.Rules[0].Trigger)
 		},
-		"absent-constraint":   func(c *testpilotspb.Contract) { c.Correlated.Rules[0].Response.Constraint = nil },
+		"absent-constraint": func(c *testpilotspb.Contract) { c.Correlated.Rules[0].Response.Expression = nil },
+		"nontext-equality": func(c *testpilotspb.Contract) {
+			c.Correlated.Rules[0].Response.GetCompare().Right = correlatedLiteral(&testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}})
+		},
+		"not-equal-condition": func(c *testpilotspb.Contract) {
+			c.Correlated.Rules[0].Response.GetCompare().Operator = testpilotspb.COMPARISON_OPERATOR_NOT_EQUAL
+		},
 		"zero-limit":          func(c *testpilotspb.Contract) { c.Correlated.Limits.MaxSupport = 0 },
 		"negative-limit":      func(c *testpilotspb.Contract) { c.Correlated.Limits.MaxProjectionWork = -1 },
 		"overflow-product":    func(c *testpilotspb.Contract) { c.Correlated.Limits.MaxSupport = 9223372036854775807 },
@@ -172,6 +193,73 @@ func TestCorrelatedPrepareRejectsUnsupportedCapability(t *testing.T) {
 			mutate(c)
 			_, err := Prepare(c, catalog, view, ceiling)
 			require.Error(t, err)
+		})
+	}
+}
+
+// A correlated condition shares the one expression language, so every reference outside the
+// correlated context rejects at preparation at its located path, as does a trigger or response
+// reading a part of the step its rule does not test.
+func TestCorrelatedPrepareLocatesConditionsOutsideTheCorrelatedContext(t *testing.T) {
+	const rule = "contract.correlated.rules[response]"
+	for name, value := range map[string]*testpilotspb.Reference{
+		"slot_id": {Reference: &testpilotspb.Reference_SlotId{SlotId: "slot"}},
+		"outcome": {Reference: &testpilotspb.Reference_Outcome{Outcome: &testpilotspb.InstructionOutcomeReference{
+			Instruction: &testpilotspb.InstructionReference{EntrypointId: "controller", InstructionId: "call"}, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS,
+		}}},
+		"run":                    {Reference: &testpilotspb.Reference_Run{Run: &testpilotspb.RunReference{}}},
+		"environment_binding_id": {Reference: &testpilotspb.Reference_EnvironmentBindingId{EnvironmentBindingId: "namespace"}},
+		"observation_id":         {Reference: &testpilotspb.Reference_ObservationId{ObservationId: "evidence"}},
+		"run_event":              {Reference: &testpilotspb.Reference_RunEvent{RunEvent: &testpilotspb.RunEventReference{Field: testpilotspb.RUN_EVENT_FIELD_KIND}}},
+		"capture_id":             {Reference: &testpilotspb.Reference_CaptureId{CaptureId: "capture"}},
+		"model_value":            {Reference: &testpilotspb.Reference_ModelValue{ModelValue: &testpilotspb.ModelValue{DefinitionId: "request", Value: "request"}}},
+		"projected_value":        {Reference: &testpilotspb.Reference_ProjectedValue{ProjectedValue: &testpilotspb.ProjectedValueReference{}}},
+	} {
+		reference := correlatedReference(value)
+		for site, mutate := range map[string]func(*testpilotspb.CorrelatedRule){
+			rule + ".trigger.present": func(r *testpilotspb.CorrelatedRule) {
+				r.Trigger = &testpilotspb.Expression{Expression: &testpilotspb.Expression_Present{Present: &testpilotspb.PresentExpression{Operand: reference}}}
+			},
+			rule + ".response.compare.left": func(r *testpilotspb.CorrelatedRule) { r.Response.GetCompare().Left = reference },
+			rule + ".correlation.any[1].compare.right": func(r *testpilotspb.CorrelatedRule) {
+				r.Correlation = correlatedAny(correlatedTriggered(), correlationComparison(testpilotspb.COMPARISON_OPERATOR_EQUAL, correlatedLiteralOperand("1"), reference))
+			},
+		} {
+			t.Run(site+"/"+name, func(t *testing.T) {
+				c, catalog, view, ceiling := correlatedFixture(t, 1)
+				c.Correlated.Limits.MaxCorrelationDepth = 4
+				mutate(c.Correlated.Rules[0])
+				_, err := Prepare(c, catalog, view, ceiling)
+				var diagnostic *ir.Error
+				require.ErrorAs(t, err, &diagnostic)
+				require.Equal(t, &ir.Error{Category: ir.Unknown, Path: site + ".reference." + name, Detail: "reference is not admitted in this expression context"}, diagnostic)
+			})
+		}
+	}
+	for name, tc := range map[string]struct {
+		mutate func(*testpilotspb.CorrelatedRule)
+		want   *ir.Error
+	}{
+		"trigger reads the outcome": {
+			mutate: func(r *testpilotspb.CorrelatedRule) {
+				r.Trigger = stepPresent(testpilotspb.CORRELATED_STEP_FIELD_OUTCOME, "outcome")
+			},
+			want: &ir.Error{Category: ir.Unknown, Path: rule + ".trigger.present.reference.correlated_step.field", Detail: "a trigger reads only the step's action"},
+		},
+		"response reads the action": {
+			mutate: func(r *testpilotspb.CorrelatedRule) {
+				r.Response = stepEquals(testpilotspb.CORRELATED_STEP_FIELD_ACTION, "request", "request")
+			},
+			want: &ir.Error{Category: ir.Unknown, Path: rule + ".response.compare.left.reference.correlated_step.field", Detail: "a response reads only the step's outcome, state or facts"},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			c, catalog, view, ceiling := correlatedFixture(t, 1)
+			tc.mutate(c.Correlated.Rules[0])
+			_, err := Prepare(c, catalog, view, ceiling)
+			var diagnostic *ir.Error
+			require.ErrorAs(t, err, &diagnostic)
+			require.Equal(t, tc.want, diagnostic)
 		})
 	}
 }

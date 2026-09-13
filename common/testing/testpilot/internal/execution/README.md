@@ -151,12 +151,17 @@ validates the target result against its declared VALUE type. Finish and every Re
 retain their evaluated result expressions and may declare their typed VALUE.
 
 A response read target may be a `CorrelatedEvidence` lift rather than a Slot or an Observation. Its
-rules are tried in declaration order and the first whose guard resolves builds the evidence value
-from paths read out of the projected value; a value no rule claims emits nothing. Admission requires
-the sink to be the exact declared `CorrelatedEvidence` Observation, every bound path to read a scalar the
-portable evidence domain admits, and the lift to sit on one instruction of a controller entrypoint
-whose declared source no other instruction claims — a source ordinal is the position in that source's
-own dense stream, and only the emitting instruction can count it.
+rules are tried in declaration order and the first whose guard is true builds the evidence value
+from paths read out of the projected value; a value no rule claims emits nothing. A guard is a
+boolean `Expression` in the evidence-lift context, whose only admitted reference is the projected
+value: `present(path(projected_value, p))` fires where `p` resolves, and a text requirement conjoins
+`compare(EQUAL, path(projected_value, p), text)`. It binds and evaluates through the IR like any
+other expression, so an unguarded absent read, a non-boolean guard and a reference outside the
+context reject at preparation, the last at the reference's path. Admission requires the sink to be
+the exact declared `CorrelatedEvidence` Observation, every bound path to read a scalar the portable
+evidence domain admits, and the lift to sit on one instruction of a controller entrypoint whose
+declared source no other instruction claims — a source ordinal is the position in that source's own
+dense stream, and only the emitting instruction can count it.
 
 `EvaluateInput` evaluates the compiled guard first and skips the input on false. Its callback must
 read only that activation's previously validated, immutable field/Slot snapshots, returning nil for

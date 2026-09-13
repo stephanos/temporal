@@ -155,9 +155,8 @@ private def contract : Contract := Contract.contract "contract" #[
 
 private def eventsDeadline : ContractDeadline := Contract.deadlineEvents 3 "late"
 
-private def correlatedPredicate (field : CorrelatedPredicateField) (definitionId value : String) :
-    CorrelatedPredicate :=
-  { field, definition_id := definitionId, constraint := some (.equals_text value) }
+private def stepEquals (field : CorrelatedStepField) (definitionId value : String) : Expression :=
+  Expr.equal (Expr.correlatedStep field definitionId) (Expr.literal (Value.text value))
 
 private def modelValue (definitionId value : String) : ModelValue :=
   { definition_id := definitionId, value }
@@ -171,8 +170,8 @@ private def correlatedCapability : CorrelatedContract :=
         outcome := some (modelValue "outcome" "accepted") }]
     #[] #[
       Contract.correlatedRule "response" 1 .TRACE_ENDING_PARTIAL
-        (correlatedPredicate .CORRELATED_PREDICATE_FIELD_ACTION "action" "request")
-        (correlatedPredicate .CORRELATED_PREDICATE_FIELD_OUTCOME "outcome" "accepted")
+        (stepEquals .CORRELATED_STEP_FIELD_ACTION "action" "request")
+        (stepEquals .CORRELATED_STEP_FIELD_OUTCOME "outcome" "accepted")
     ]
     { max_events := 16, max_buffered := 8, max_keys := 8, max_support := 256,
       max_projection_work := 1000000, max_event_bytes := 512, max_semantic_transitions := 32,

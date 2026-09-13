@@ -82,16 +82,25 @@ enum CorrelatedFieldDisposition {
 
 // CorrelatedRule obliges every operation step that matches trigger to be answered by a step that
 // matches response, on the trigger step or within bound further steps of the same operation.
+//
+// A step condition is one correlated step reference tested for presence, or compared EQUAL with a
+// text literal: `present(correlated_step)` matches a step carrying any value of the definition, and
+// `compare(EQUAL, correlated_step, text)` one carrying exactly that value.
 message CorrelatedRule {
   string rule_id = 1;
-  // Tests the step's action.
-  CorrelatedPredicate trigger = 2;
-  // Tests the step's outcome, state or facts.
-  CorrelatedPredicate response = 3;
+  // A step condition on the step's action.
+  Expression trigger = 2;
+  // A step condition on the step's outcome, state or facts.
+  Expression response = 3;
   // Evidence fields retained for the correlation to compare.
   repeated CorrelatedCaptureDeclaration captures = 4;
-  // When set, only the transitions it accepts are the operation's steps.
-  CorrelatedCorrelation correlation = 5;
+  // When set, only the transitions it accepts are the operation's steps. It is a step condition, an
+  // EQUAL or NOT_EQUAL comparison of two operands that are each a literal, an evidence field or a
+  // correlated capture, or an all or any of those. `all` and `any` are evaluated left to right and
+  // stop at the first decisive operand, so an operand an earlier one made irrelevant is never read.
+  // It never supplies a trigger or a response: the bounded countdown stays exactly the one the
+  // rule's trigger and response describe.
+  Expression correlation = 5;
   // What bound counts.
   CorrelatedClock clock = 6;
   int64 bound = 7;
@@ -113,28 +122,6 @@ enum TraceEnding {
   TRACE_ENDING_FINAL = 2;
 }
 
-// CorrelatedPredicate tests one part of a transition for a model value of definition_id: any value,
-// or exactly equals_text.
-message CorrelatedPredicate {
-  CorrelatedPredicateField field = 1;
-  string definition_id = 2;
-  oneof constraint {
-    // Matches any value; must be true.
-    bool present = 3;
-    string equals_text = 4;
-  }
-}
-
-// CorrelatedPredicateField names the part of a transition a predicate tests; FACT matches any of its
-// facts.
-enum CorrelatedPredicateField {
-  CORRELATED_PREDICATE_FIELD_UNSPECIFIED = 0;
-  CORRELATED_PREDICATE_FIELD_ACTION = 1;
-  CORRELATED_PREDICATE_FIELD_OUTCOME = 2;
-  CORRELATED_PREDICATE_FIELD_STATE = 3;
-  CORRELATED_PREDICATE_FIELD_FACT = 4;
-}
-
 // CorrelatedCaptureDeclaration retains one declared evidence field of the operation's admitted steps.
 // Occurrences are numbered from zero in admission order and never rewritten, so a correlation
 // operand names an exact earlier occurrence rather than an implicit latest match. `lifetime` is how
@@ -143,46 +130,6 @@ message CorrelatedCaptureDeclaration {
   string capture_id = 1;
   string field_id = 2;
   int64 lifetime = 3;
-}
-
-// CorrelatedCorrelation decides whether a labeled transition is one of the operation's semantic steps.
-// It never supplies a trigger or a response: the bounded countdown stays exactly the one the
-// rule's trigger and response patterns describe. `all` and `any` are evaluated left to right and
-// stop at the first decisive operand, so an operand an earlier one made irrelevant is never read.
-message CorrelatedCorrelation {
-  oneof condition {
-    CorrelatedPredicate predicate = 1;
-    CorrelatedComparison comparison = 2;
-    CorrelatedCorrelationGroup all = 3;
-    CorrelatedCorrelationGroup any = 4;
-  }
-}
-
-// CorrelatedCorrelationGroup is the operand list of an all or any correlation.
-message CorrelatedCorrelationGroup { repeated CorrelatedCorrelation operands = 1; }
-
-// CorrelatedComparison compares two operands of one declared kind for equality.
-message CorrelatedComparison {
-  CorrelatedComparisonOperator operator = 1;
-  CorrelatedOperand left = 2;
-  CorrelatedOperand right = 3;
-}
-
-// CorrelatedComparisonOperator names the equality a correlated comparison tests.
-enum CorrelatedComparisonOperator {
-  CORRELATED_COMPARISON_OPERATOR_UNSPECIFIED = 0;
-  CORRELATED_COMPARISON_OPERATOR_EQUAL = 1;
-  CORRELATED_COMPARISON_OPERATOR_NOT_EQUAL = 2;
-}
-
-// CorrelatedOperand reads only declared evidence: an exact literal, one declared evidence field of the
-// step being admitted, or one retained earlier occurrence of a declared capture.
-message CorrelatedOperand {
-  oneof operand {
-    Value literal = 1;
-    string field_id = 2;
-    CorrelatedCaptureReference capture = 3;
-  }
 }
 
 // CorrelatedLimits bound the evidence and obligations of one correlated contract.
@@ -226,18 +173,17 @@ message CorrelatedEvidenceProjection {
 }
 
 // CorrelatedEvidenceRule lifts one recorded fact into a CorrelatedEvidence value. `guard` selects the rule:
-// it fires only where that path resolves and, when `guard_equals_text` is set, only where it reads
-// exactly that text. So one rule per recorded kind selects itself and `kind` is the literal the
-// selected shape denotes. Every path is read from the projected value; no Run field, wall clock or
-// Driver state is reachable from here.
+// it fires only where that boolean expression over the projected value is true, such as
+// `present(path(projected_value, p))`. So one rule per recorded kind selects itself and `kind` is the
+// literal the selected shape denotes. Every path is read from the projected value; no Run field, wall
+// clock or Driver state is reachable from here.
 message CorrelatedEvidenceRule {
   repeated CorrelatedEvidenceBinding scope = 1;
   string evidence_source = 2;
   FieldPath operation = 3;
   string kind = 4;
   repeated CorrelatedEvidenceBinding fields = 5;
-  FieldPath guard = 6;
-  string guard_equals_text = 7;
+  Expression guard = 6;
 }
 
 // CorrelatedEvidenceBinding names one CorrelatedEvidence slot and what supplies it: a path read from the

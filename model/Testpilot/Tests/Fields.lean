@@ -53,43 +53,41 @@ private def capture (lifetime : Nat := 2) (field := "requested") (id := "seen") 
     CorrelatedCaptureDeclaration :=
   { capture_id := id, field_id := field, lifetime := number lifetime }
 
-private def literal (text : String) : CorrelatedOperand :=
-  { operand := some (.literal { value := some (.text_value text) }) }
-private def field (id : String) : CorrelatedOperand := { operand := some (.field_id id) }
-private def natural (text : String) : CorrelatedOperand :=
-  { operand := some (.literal { value := some (.natural_value text) }) }
-private def retained (ordinal : Nat) (id := "seen") : CorrelatedOperand :=
-  { operand := some (.capture { capture_id := id, ordinal := number ordinal }) }
+private def reference (arm : Reference.reference_Type) : Expression :=
+  { expression := some (.reference { reference := some arm }) }
+private def literal (text : String) : Expression :=
+  { expression := some (.literal { value := some (.text_value text) }) }
+private def field (id : String) : Expression := reference (.evidence_field_id id)
+private def natural (text : String) : Expression :=
+  { expression := some (.literal { value := some (.natural_value text) }) }
+private def retained (ordinal : Nat) (id := "seen") : Expression :=
+  reference (.correlated_capture { capture_id := id, ordinal := number ordinal })
 
-private def comparison (left right : CorrelatedOperand)
-    (operator := CorrelatedComparisonOperator.CORRELATED_COMPARISON_OPERATOR_EQUAL) : CorrelatedCorrelation :=
-  { condition := some (.comparison { operator, left := some left, right := some right }) }
-private def triggered : CorrelatedCorrelation :=
-  { condition := some (.predicate {
-      field := .CORRELATED_PREDICATE_FIELD_ACTION, definition_id := "action"
-      constraint := some (.equals_text "request") }) }
-private def anyOf (operands : Array CorrelatedCorrelation) : CorrelatedCorrelation :=
-  { condition := some (.any { operands }) }
-private def allOf (operands : Array CorrelatedCorrelation) : CorrelatedCorrelation :=
-  { condition := some (.all { operands }) }
+private def comparison (left right : Expression)
+    (operator := ComparisonOperator.COMPARISON_OPERATOR_EQUAL) : Expression :=
+  { expression := some (.compare { operator, left := some left, right := some right }) }
+/-- The step condition matching a step that carries exactly `text` of `definitionId` at `field`. -/
+private def step (field : CorrelatedStepField) (definitionId text : String) : Expression :=
+  comparison (reference (.correlated_step { field, definition_id := definitionId })) (literal text)
+private def triggered : Expression := step .CORRELATED_STEP_FIELD_ACTION "action" "request"
+private def anyOf (operands : Array Expression) : Expression :=
+  { expression := some (.any { operands }) }
+private def allOf (operands : Array Expression) : Expression :=
+  { expression := some (.all { operands }) }
 
 /-- The request step creates the occurrence its own correlation would read, so the trigger disjunct
 decides it before the capture operand is reached. -/
-private def correlation (ordinal : Nat := 0) : CorrelatedCorrelation :=
+private def correlation (ordinal : Nat := 0) : Expression :=
   anyOf #[triggered, comparison (field "replied") (retained ordinal)]
 
 private def clause (bound : Nat) (captures : Array CorrelatedCaptureDeclaration := #[capture])
-    (requirement : Option CorrelatedCorrelation := some (correlation))
+    (requirement : Option Expression := some (correlation))
     (ending := TraceEnding.TRACE_ENDING_PARTIAL) (ruleId := "response") :
     CorrelatedRule := {
   rule_id := ruleId, clock := .CORRELATED_CLOCK_OPERATION_TRANSITIONS
   bound := number bound, ending
-  trigger := some {
-    field := .CORRELATED_PREDICATE_FIELD_ACTION, definition_id := "action"
-    constraint := some (.equals_text "request") }
-  response := some {
-    field := .CORRELATED_PREDICATE_FIELD_OUTCOME, definition_id := "outcome"
-    constraint := some (.equals_text "response") }
+  trigger := some triggered
+  response := some (step .CORRELATED_STEP_FIELD_OUTCOME "outcome" "response")
   captures, correlation := requirement }
 
 private def budget (captures : Nat := 8) (depth : Nat := 4) : CorrelatedLimits := {
@@ -195,6 +193,19 @@ private def decodes (wire : CorrelatedContract) : Bool := (Testpilot.Correlated.
   some "empty correlation group"
 #guard decodeError (contract #[clause 1] (limits := budget (depth := 1))) ==
   some "correlation depth exhausted"
+
+-- A correlated condition shares the one expression language, so a reference that belongs to another
+-- context rejects wherever it appears, and a trigger reads only the step's action.
+#guard decodeError (contract #[clause 1 (requirement := some
+  (comparison (field "replied") (reference (.slot_id "slot"))))]) ==
+  some "reference is not admitted in this expression context"
+private def presentProjected : Expression :=
+  { expression := some (.present { operand := some (reference (.projected_value default)) }) }
+#guard decodeError (contract #[{ clause 1 with trigger := some presentProjected }]) ==
+  some "reference is not admitted in this expression context"
+#guard decodeError (contract #[{ clause 1 with
+    trigger := some (step .CORRELATED_STEP_FIELD_OUTCOME "outcome" "response") }]) ==
+  some "unsupported clause"
 #guard decodeError (contract #[clause 1] (limits := budget (captures := 0))) ==
   some "nonpositive resource limit"
 #guard decodes (contract #[clause 1 (requirement := some

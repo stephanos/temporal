@@ -133,8 +133,7 @@ type evidenceBinding struct {
 
 // evidenceRule lifts one guarded shape of the projected value into a CorrelatedEvidence value.
 type evidenceRule struct {
-	guard        *ir.Path
-	guardEquals  string
+	guard        *ir.Expression
 	scope        []evidenceBinding
 	source, kind string
 	operation    *ir.Path

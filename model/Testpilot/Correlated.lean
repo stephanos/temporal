@@ -104,19 +104,59 @@ private def result (value : CorrelatedTransition) : Except String Result := do
   pure ⟨← checkedAtom (← required value.outcome), ← checkedAtom (← required value.state),
     ← value.facts.toList.mapM checkedAtom⟩
 
-private def predicate (value : CorrelatedPredicate) : Except String Predicate := do
-  if !value.«Unknown.Fields».isEmpty || !validId value.definition_id then throw "invalid predicate"
-  let field ← match value.field with
-    | .CORRELATED_PREDICATE_FIELD_ACTION => pure 1
-    | .CORRELATED_PREDICATE_FIELD_OUTCOME => pure 2
-    | .CORRELATED_PREDICATE_FIELD_STATE => pure 3
-    | .CORRELATED_PREDICATE_FIELD_FACT => pure 4
-    | _ => throw "unsupported predicate field"
-  let equalsText ← match value.constraint with
-    | some (.present true) => pure none
-    | some (.equals_text text) => pure (some text)
+/-- The Reference arms a correlated condition may read. Every other arm belongs to another expression
+context and rejects wherever it appears. -/
+private def correlatedArm : Reference.reference_Type → Bool
+  | .evidence_field_id _ | .correlated_capture _ | .correlated_step _ => true
+  | _ => false
+
+/-- The one reference an expression reads, after checking its arm against the correlated context;
+`none` when the expression is not a reference. -/
+private def correlatedReference (wire : Expression) : Except String (Option Reference.reference_Type) := do
+  if !wire.«Unknown.Fields».isEmpty then throw "unknown expression field"
+  match wire.expression with
+  | some (.reference reference) =>
+      if !reference.«Unknown.Fields».isEmpty then throw "unknown expression field"
+      match reference.reference with
+      | some arm =>
+          if !correlatedArm arm then throw "reference is not admitted in this expression context"
+          pure (some arm)
+      | none => pure none
+  | _ => pure none
+
+/-- Whether an expression is a correlated step reference; a step condition compares one. -/
+private def isStepReference (wire : Expression) : Bool :=
+  match wire.expression with
+  | some (.reference { reference := some (.correlated_step _), .. }) => true
+  | _ => false
+
+/-- Decode a step condition: a correlated step reference tested for presence, or compared EQUAL with
+a text literal. A FACT condition holds when any of the step's facts satisfies it. -/
+private def predicate (wire : Expression) : Except String Predicate := do
+  if !wire.«Unknown.Fields».isEmpty then throw "invalid predicate"
+  let (operand, equalsText) ← match wire.expression with
+    | some (.present value) => do
+        if !value.«Unknown.Fields».isEmpty then throw "invalid predicate"
+        pure (← required value.operand, none)
+    | some (.compare value) => do
+        if !value.«Unknown.Fields».isEmpty then throw "invalid predicate"
+        let .COMPARISON_OPERATOR_EQUAL := value.operator | throw "unsupported predicate constraint"
+        let right ← required value.right
+        let some (.literal literal) := right.expression | throw "unsupported predicate constraint"
+        let some (.text_value text) := literal.value | throw "unsupported predicate constraint"
+        if !right.«Unknown.Fields».isEmpty || !literal.«Unknown.Fields».isEmpty then
+          throw "invalid predicate"
+        pure (← required value.left, some text)
     | _ => throw "unsupported predicate constraint"
-  pure ⟨field, ⟨value.definition_id⟩, equalsText⟩
+  let some (.correlated_step step) ← correlatedReference operand | throw "unsupported predicate constraint"
+  if !step.«Unknown.Fields».isEmpty || !validId step.definition_id then throw "invalid predicate"
+  let field ← match step.field with
+    | .CORRELATED_STEP_FIELD_ACTION => pure 1
+    | .CORRELATED_STEP_FIELD_OUTCOME => pure 2
+    | .CORRELATED_STEP_FIELD_STATE => pure 3
+    | .CORRELATED_STEP_FIELD_FACT => pure 4
+    | _ => throw "unsupported predicate field"
+  pure ⟨field, ⟨step.definition_id⟩, equalsText⟩
 
 private def scalarKind : Scalar → Nat
   | .text _ => 1 | .natural _ => 2 | .boolean _ => 3
@@ -146,16 +186,16 @@ supply it: a literal decodes to an exact admitted scalar, a field must be one th
 retains, and a capture reference must name a capture this clause declared at an ordinal its lifetime
 keeps. -/
 private def operand (retained : List (Name × Nat)) (captures : List Capture)
-    (wire : CorrelatedOperand) : Except String (Operand × Nat) := do
+    (wire : Expression) : Except String (Operand × Nat) := do
   if !wire.«Unknown.Fields».isEmpty then throw "unknown operand field"
-  match wire.operand with
-  | some (.literal value) =>
-      let value ← wireScalar value
-      pure (.literal value, scalarKind value)
-  | some (.field_id id) =>
+  if let some (.literal value) := wire.expression then
+    let value ← wireScalar value
+    return (.literal value, scalarKind value)
+  match ← correlatedReference wire with
+  | some (.evidence_field_id id) =>
       if !validId id then throw "unretained correlation field operand"
       pure (.field ⟨id⟩, ← retainedKind retained ⟨id⟩)
-  | some (.capture reference) =>
+  | some (.correlated_capture reference) =>
       if !reference.«Unknown.Fields».isEmpty || !validId reference.capture_id then
         throw "invalid capture reference"
       let ordinal ← natural reference.ordinal
@@ -167,20 +207,22 @@ private def operand (retained : List (Name × Nat)) (captures : List Capture)
 
 mutual
 /-- Decode one correlation node under the declared depth ceiling. An exhausted depth is an explicit
-rejection, never a silently truncated condition. -/
+rejection, never a silently truncated condition. A step condition and a comparison each take one
+level, as does every `all` and `any`; the expression nodes inside a condition take none. -/
 private def correlationOf (retained : List (Name × Nat)) (captures : List Capture) (depth : Nat)
-    (wire : CorrelatedCorrelation) : Except String Correlation :=
+    (wire : Expression) : Except String Correlation :=
   match depth with
   | 0 => throw "correlation depth exhausted"
   | remaining + 1 => do
     if !wire.«Unknown.Fields».isEmpty then throw "unknown correlation field"
-    match wire.condition with
-    | some (.predicate value) => pure (.predicate (← predicate value))
-    | some (.comparison value) => do
+    match wire.expression with
+    | some (.present _) => pure (.predicate (← predicate wire))
+    | some (.compare value) => do
+        if isStepReference (value.left.getD {}) then return .predicate (← predicate wire)
         if !value.«Unknown.Fields».isEmpty then throw "unknown comparison field"
         let equal ← match value.operator with
-          | .CORRELATED_COMPARISON_OPERATOR_EQUAL => pure true
-          | .CORRELATED_COMPARISON_OPERATOR_NOT_EQUAL => pure false
+          | .COMPARISON_OPERATOR_EQUAL => pure true
+          | .COMPARISON_OPERATOR_NOT_EQUAL => pure false
           | _ => throw "unsupported comparison operator"
         let (left, leftKind) ← operand retained captures (← required value.left)
         let (right, rightKind) ← operand retained captures (← required value.right)
@@ -198,7 +240,7 @@ private def correlationOf (retained : List (Name × Nat)) (captures : List Captu
   termination_by (depth, 0)
 
 private def correlationsOf (retained : List (Name × Nat)) (captures : List Capture) (depth : Nat)
-    (wires : List CorrelatedCorrelation) : Except String Correlations :=
+    (wires : List Expression) : Except String Correlations :=
   match wires with
   | [] => pure .nil
   | head :: rest => do
