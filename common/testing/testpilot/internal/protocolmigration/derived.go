@@ -111,6 +111,8 @@ func dropEnvironment(program *Object) error {
 	var referenced []string
 	collectEnvironmentReferences(program.Fields["entrypoints"], &referenced)
 	collectEnvironmentReferences(program.Fields["cleanup"], &referenced)
+	// A mapped object's fields are an unordered map, so declaration order is not recoverable here;
+	// the extra references compare as a sorted set. Every checked-in reference is a role binding.
 	slices.Sort(referenced)
 	for _, id := range slices.Compact(referenced) {
 		if !slices.Contains(derived, id) {
