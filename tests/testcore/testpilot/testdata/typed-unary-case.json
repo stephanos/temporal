@@ -6,7 +6,7 @@
       {
         "initialStateId": "pending",
         "kind": "CONTRACT_RULE_KIND_SAFETY",
-        "ruleId": "temporal.nexus.success.typed-unary.property.submitted-workflow-type.recorded-workflow-type",
+        "ruleId": "recorded-workflow-type",
         "states": [
           {
             "stateId": "pending",
@@ -453,6 +453,12 @@
         "behaviorFingerprint": "sha256:350987a714cb0295fa3c34209751d11f1c9adb2442717834960f7827568520c5",
         "definitionId": "temporal.nexus.success.typed-unary.property.submitted-workflow-type",
         "kind": "DEFINITION_KIND_PROPERTY"
+      }
+    ],
+    "localNames": [
+      {
+        "definitionId": "temporal.nexus.success.typed-unary.property.submitted-workflow-type.recorded-workflow-type",
+        "localName": "recorded-workflow-type"
       }
     ],
     "producerId": "temporal.nexus.success.typed-unary",

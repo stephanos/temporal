@@ -266,6 +266,80 @@ func (this *CorrelatedRuleBinding) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
+// Marshal an object of type LocalName to the protobuf v3 wire format
+func (val *LocalName) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type LocalName from the protobuf v3 wire format
+func (val *LocalName) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *LocalName) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two LocalName values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *LocalName) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *LocalName
+	switch t := that.(type) {
+	case *LocalName:
+		that1 = t
+	case LocalName:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type ModelValueFingerprint to the protobuf v3 wire format
+func (val *ModelValueFingerprint) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type ModelValueFingerprint from the protobuf v3 wire format
+func (val *ModelValueFingerprint) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *ModelValueFingerprint) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two ModelValueFingerprint values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *ModelValueFingerprint) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *ModelValueFingerprint
+	switch t := that.(type) {
+	case *ModelValueFingerprint:
+		that1 = t
+	case ModelValueFingerprint:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
 var (
 	DefinitionKind_shorthandValue = map[string]int32{
 		"Unspecified": 0,

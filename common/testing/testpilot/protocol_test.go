@@ -83,6 +83,7 @@ func TestProtocolEncodesExpressionAndStateScopes(t *testing.T) {
 	// rather than bytes only their Producer can read.
 	require.Equal(t, []protoreflect.Name{
 		"producer_id", "producer_version", "definitions", "sources", "known_gaps", "correlated_rules",
+		"local_names", "model_value_fingerprints",
 	}, fieldNames(messageDescriptor(t, "CaseProvenance")))
 }
 

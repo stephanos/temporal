@@ -624,6 +624,31 @@ narrows or completes a requirement without changing its intent; tasks record the
   "independent Program and Contract ceilings", contradict R13 and R12 (the ART-09 and Profile drafts
   fold in the .10 follow-up). Retired: `ProducerData`/`producerData`, `GetProducerData`,
   `producer_data`, and the `CASE_DEFINITION_KIND_*` and `CASE_KNOWN_GAP_KIND_*` families.
+- **Case-local names and short values (decided in .14, 2026-09-13).** `Umpire.Case.Compiler.compile`
+  renames every Case through `Umpire.Case.LocalNames.localize` after coverage is admitted, so every
+  Umpire Producer localizes and `Lowered`'s checked decode equality stays over the Definition-ID wire.
+  The namespace is wider than R14's list: each Contract rule id; the correlated contract's projection
+  id, operation and scope fields, sources, evidence kinds, field policies, captures, rule ids, step
+  references and model value definitions; the Program's evidence lift rules (source, kind, scope and
+  field ids); and every model value that is a namespaced Definition ID (`schedule-complete`). Role,
+  binding, instruction, Observation and Case, Program and Contract ids stay. A `LocalName` row is
+  written only where the name differs from its Definition ID (a name with no row is its own Definition
+  ID), so the get-system-info, worker-outage and synthetic fixtures and every conformance
+  `case.json` and `expected.json` are unchanged. A structural key (`Canonical.isKey`) is spelled
+  by its definition's last segment; every member of a colliding group, a declared spelling included,
+  takes `-` plus the shortest unique SHA-256 prefix of at least eight characters; the text a step
+  condition compares is an encoding of its step's definition. `ModelValueFingerprint` rows record
+  each spelling a name alone does not give, the fingerprint being the lowercase SHA-256 hex of the
+  encoding's UTF-8 bytes; provenance's own Definition IDs (`definitions`, `correlated_rules`, Known
+  Gaps) stay unrenamed. The proto fields are `CaseProvenance.local_names` and
+  `model_value_fingerprints`, with `local_name` under an api-linter `core::0122::name-suffix`
+  suppression. A shared name or split Definition ID (checked on the derived table) and an ambiguous
+  spelling reject at compile. The oracle's R14 step is a `Relate` step that reads the regenerated
+  rows. Correlated corpus evidence and the Lean and Go test Drivers name kinds, sources and scope
+  fields by local names; projection work and event bytes count identifier bytes, so the corpus's
+  first-scenario boundaries move from 2960 and 36 to 1760 and 21. typed-nexus is 58,824 bytes: 257,090
+  below the spec's 315,914-byte baseline and 242,239 below the pre-task 301,063 (the 243,946 bytes of
+  encodings less 1.7 KB of new rows).
 
 ## Requirement coverage
 

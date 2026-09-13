@@ -317,21 +317,26 @@ private def readSegments (steps : List Field.Step) : Option (List (String × Str
 
 -- The Contract carries the correlated capability the lifted evidence feeds, bound to the declared
 -- CorrelatedEvidence Observation the history projection writes.
-#guard match typedNexusCase.toOption.bind (·.contract) |>.bind (·.«correlated») with
-  | some capability =>
-      capability.evidence_observation_id == correlatedObservationId &&
-      capability.projection_id == projectionId.value &&
-      capability.rules.size == 1 &&
-      capability.rules[0]!.rule_id == linkClauseId.value
-  | none => false
+#guard match typedNexusCase with
+  | .ok output =>
+      let name := Umpire.Case.LocalNames.nameIn (output.provenance.getD {})
+      match output.contract.bind (·.«correlated») with
+      | some capability =>
+          capability.evidence_observation_id == correlatedObservationId &&
+          capability.projection_id == name projectionId.value &&
+          capability.rules.size == 1 &&
+          capability.rules[0]!.rule_id == name linkClauseId.value
+      | none => false
+  | .error _ => false
 
 #guard match typedNexusCase with
   | .ok output =>
       output.case_id == "temporal.case.typed-nexus" &&
       (match output.contract.map (fun contract => contract.rules.toList) with
         | some [first, second] =>
-            first.rule_id == fieldPropertyId.value ++ "." ++ firstOperation &&
-            second.rule_id == fieldPropertyId.value ++ "." ++ secondOperation &&
+            let name := Umpire.Case.LocalNames.nameIn (output.provenance.getD {})
+            first.rule_id == name (fieldPropertyId.value ++ "." ++ firstOperation) &&
+            second.rule_id == name (fieldPropertyId.value ++ "." ++ secondOperation) &&
             first.kind == .CONTRACT_RULE_KIND_SAFETY && first.deadline.isNone &&
             second.kind == .CONTRACT_RULE_KIND_SAFETY && second.deadline.isNone &&
             first.captures.size == 1 && second.captures.size == 1

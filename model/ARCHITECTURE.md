@@ -143,8 +143,8 @@ Profile, and `testpilot.Prepare` checks the Case's behavior bounds and structure
 `Umpire.Case` retains only Umpire's producer-specific definitions, fingerprints, sources, and Known
 Gaps and lowers them into the Case's typed provenance rows. It does not own a parallel Program, Contract,
 Run, or field serializer. Producers validate their semantic inputs and use `Testpilot.Authoring`.
-Umpire-backed Producers use `Umpire.Case.Compiler` for source-bound rule validation, exact
-provenance rows, and final assembly from generated values. `Testpilot.ProtoJSON` delegates canonical
+Umpire-backed Producers use `Umpire.Case.Compiler` for source-bound rule validation, Case-local
+names and model value spellings, exact provenance rows, and final assembly from generated values. `Testpilot.ProtoJSON` delegates canonical
 encoding to `Protobuf.Json`.
 
 `Temporal.Testpilot` is the first Producer. Its `GetSystemInfo` Case proves that the IR is not tied

@@ -78,7 +78,7 @@ func (b *Baseline) checkCase(fixture string, baseline, regenerated []byte, mappi
 	if err != nil {
 		return err
 	}
-	mapped, err := mapping.apply(fixture, tree)
+	mapped, err := mapping.apply(fixture, tree, regenerated)
 	if err != nil {
 		return err
 	}
@@ -96,7 +96,7 @@ func checkExpected(fixture string, baseline, regenerated []byte, mapping Mapping
 	if err != nil {
 		return err
 	}
-	mapped, err := mapping.apply(fixture, tree)
+	mapped, err := mapping.apply(fixture, tree, regenerated)
 	if err != nil {
 		return err
 	}
@@ -131,7 +131,7 @@ func (b *Baseline) checkCorrelated(fixture string, baseline, regenerated []byte,
 		}
 		tree[index] = typed
 	}
-	mapped, err := mapping.apply(fixture, tree)
+	mapped, err := mapping.apply(fixture, tree, regenerated)
 	if err != nil {
 		return err
 	}

@@ -1,6 +1,7 @@
 import Testpilot.Authoring
 import Umpire.Provenance
 import Umpire.Case.Coverage
+import Umpire.Case.LocalNames
 import Umpire.KnownGap
 
 /-!
@@ -11,7 +12,8 @@ boundary. A checked field Property's monitor rule arrives as `.monitor`, derived
 `Umpire.Case.Projection.lower` together with the request coverage it implies, and a correlated
 Property arrives as `.correlated` from `Umpire.Case.Correlated.lower`; the compiler admits both side
 by side. The compiler validates source-bound property rows, admits the requested whole-Case field
-and clause coverage, preserves unsupported-lowering diagnostics, attaches exact Umpire provenance rows,
+and clause coverage, preserves unsupported-lowering diagnostics, renames the Program and Contract to
+Case-local names and spellings (`Umpire.Case.LocalNames`), attaches exact Umpire provenance rows,
 and returns the generated Case without introducing a parallel protocol representation.
 -/
 
@@ -94,6 +96,16 @@ private def lowerProperty : ContractLowering → Except Error (Option ContractRu
   | .unsupported sourceDefinition source construct =>
       .error { sourceDefinitionId := sourceDefinition.definitionId, source, construct }
 
+/-- A Case-local renaming that would merge two Definition IDs or two encodings, naming both. -/
+private def localNameError : LocalNames.Error → Error
+  | .sharedName localName first second =>
+      Error.mk first { path := "" } s!"local-name {localName} names {first} and {second}"
+  | .splitDefinition definitionId first second =>
+      Error.mk definitionId { path := "" } s!"local-name {definitionId} is named {first} and {second}"
+  | .ambiguousSpelling definitionId spelling first second =>
+      Error.mk definitionId { path := "" }
+        s!"model-value-spelling {spelling} of {definitionId} spells {first} and {second}"
+
 /-- Assemble generated values into a Case while preserving Umpire provenance and typed rejection. -/
 def compile (input : Input) : Except Error temporal.server.api.testpilot.v1.Case := do
   let lowered ← input.properties.mapM lowerProperty
@@ -112,6 +124,8 @@ def compile (input : Input) : Except Error temporal.server.api.testpilot.v1.Case
   -- before any Program or Contract could reach a Driver.
   (Coverage.check input.program correlatedRules input.coverage input.caseId).mapError fun failure =>
     Error.mk failure.subject { path := "" } failure.reason
+  let localized ← (LocalNames.localize input.program rules.toArray capability).mapError
+    localNameError
   let metadata : Provenance.Metadata := {
     producerId := input.producerId
     producerVersion := input.producerVersion
@@ -119,11 +133,13 @@ def compile (input : Input) : Except Error temporal.server.api.testpilot.v1.Case
     sources := input.sources
     knownGaps := input.knownGaps
     correlatedRules
+    localNames := localized.localNames
+    modelValueFingerprints := localized.modelValueFingerprints
   }
   let provenance ← (Provenance.make metadata).mapError fun source =>
     Error.mk input.caseId source "provenance.source-position"
-  pure (Testpilot.Authoring.case input.version.major input.caseId input.program
-    (Testpilot.Authoring.Contract.contract input.contractId rules.toArray capability)
+  pure (Testpilot.Authoring.case input.version.major input.caseId localized.program
+    (Testpilot.Authoring.Contract.contract input.contractId localized.rules localized.capability)
     provenance input.version.minor)
 
 end Umpire.Case.Compiler

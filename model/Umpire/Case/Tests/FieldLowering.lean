@@ -232,14 +232,16 @@ private def modelEvent (report : Report) : Case.Projection.Event := {
   runSequences := [report.ordinal + 1]
   fields := report.count.toList.map fun count => ⟨countField, some (.natural count)⟩ }
 
-private def wireEvent (report : Report) : CorrelatedEvidence := {
+/-- The declared Observation a test Driver supplies, naming the scope field, source, kind and field by
+the Case-local names `name` gives them. -/
+private def wireEvent (name : String → String) (report : Report) : CorrelatedEvidence := {
   identity := some {
-    scope := #[{ field_id := "test.run", value := some { value := some (.text_value "run-1") } }]
-    evidence_source := "test.source", ordinal := Int64.ofInt report.ordinal }
+    scope := #[{ field_id := name "test.run", value := some { value := some (.text_value "run-1") } }]
+    evidence_source := name "test.source", ordinal := Int64.ofInt report.ordinal }
   operation := report.operation
-  kind := report.kind
+  kind := name report.kind
   fields := (report.count.toList.map fun count =>
-    ({ field_id := "test.count", value := some { value := some (.unsigned_integer_value (toString count)) } } :
+    ({ field_id := name "test.count", value := some { value := some (.unsigned_integer_value (toString count)) } } :
       NamedValue)).toArray }
 
 private def transition (report : Report) : Property.Correlated.Transition :=
@@ -373,6 +375,11 @@ private def capabilityOf (temporal : PropertyCorrelatedClause) : Except String C
 private def limitsOf (temporal : PropertyCorrelatedClause) : Except String CorrelatedLimits :=
   (·.2) <$> loweredCase temporal
 
+/-- The Case-local names the lowered Case gives Definition IDs. -/
+private def namesOf (temporal : PropertyCorrelatedClause) : Except String (String → String) := do
+  let artifact ← compiledCase temporal
+  pure (LocalNames.nameIn (artifact.provenance.getD {}))
+
 /-- Decode the lowered capability under the ceilings its lowering declared. -/
 private def decodedOf (temporal : PropertyCorrelatedClause) :
     Except String Testpilot.Correlated.Compiled := do
@@ -382,9 +389,10 @@ private def decodedOf (temporal : PropertyCorrelatedClause) :
 private def portableAnswers (temporal : PropertyCorrelatedClause) (reports : List Report)
     (split : Nat := 0) : Option (List Nat) := do
   let compiled ← (decodedOf temporal).toOption
-  let initial ← (compiled.start [(⟨"test.run"⟩, "run-1")]).toOption
+  let name ← (namesOf temporal).toOption
+  let initial ← (compiled.start [(⟨name "test.run"⟩, "run-1")]).toOption
   let observe := fun (run : Testpilot.Correlated.Monitor compiled) (report : Report) =>
-    run.observe (report.ordinal + 2) (wireEvent report)
+    run.observe (report.ordinal + 2) (wireEvent name report)
   let run ← (((reports.take split).foldlM observe initial) >>= fun next =>
     (reports.drop split).foldlM observe next).toOption
   pure run.close.answers
@@ -435,27 +443,30 @@ private def agrees (scenario : Scenario) : Bool :=
 
 #guard (do
   let compiled ← (decodedOf (clause)).toOption
-  let initial ← (compiled.start [(⟨"test.run"⟩, "run-1")]).toOption
-  let admitted ← (initial.observe 2 (wireEvent (request 0 2))).toOption
-  pure (match admitted.observe 3 (wireEvent (reply 1)) with
+  let name ← (namesOf (clause)).toOption
+  let initial ← (compiled.start [(⟨name "test.run"⟩, "run-1")]).toOption
+  let admitted ← (initial.observe 2 (wireEvent name (request 0 2))).toOption
+  pure (match admitted.observe 3 (wireEvent name (reply 1)) with
     | .error reason => reason == "correlation rejected this operation's step"
     | .ok _ => false)) == some true
 
 /-! ### The emitted capability means exactly what the model declared -/
 
 /-- The keyed fragment written out here from the declarations above, not read back from the
-encoder. -/
-private def expectedKeyed : List (String × Testpilot.Correlated.Keyed) :=
-  [("test.correlated.fields", ⟨[⟨captureName, countField, 2, 4⟩],
-    some (.any (.cons (.predicate ⟨1, id "test.trigger", none⟩)
-      (.cons (.comparison true (.capture captureName 0) (.literal (.natural 1))) .nil)))⟩)]
+encoder, under the Case-local names `name` gives them. -/
+private def expectedKeyed (name : String → String) : List (String × Testpilot.Correlated.Keyed) :=
+  let localId := fun (definitionId : DefinitionId) => DefinitionId.of (name definitionId.value)
+  [(name "test.correlated.fields", ⟨[⟨localId captureName, localId countField, 2, 4⟩],
+    some (.any (.cons (.predicate ⟨1, localId (id "test.trigger"), none⟩)
+      (.cons (.comparison true (.capture (localId captureName) 0) (.literal (.natural 1))) .nil)))⟩)]
 
 private def decodedKeyed (temporal : PropertyCorrelatedClause) :
     Except String (List (String × Testpilot.Correlated.Keyed)) := do
   let compiled ← decodedOf temporal
   pure compiled.keyed
 
-#guard (decodedKeyed (clause)).toOption == some expectedKeyed
+#guard (do pure ((← decodedKeyed (clause)) == expectedKeyed (← namesOf (clause))) :
+  Except String Bool).toOption == some true
 
 -- The emitted wire clause names the declared evidence field, and both ceilings are the exact ones
 -- this capability needs.
@@ -464,7 +475,8 @@ private def decodedKeyed (temporal : PropertyCorrelatedClause) :
   let some wire := capability.rules[0]? | throw "missing clause"
   let some declared := wire.captures[0]? | throw "missing capture"
   let limits ← limitsOf (clause)
-  pure (declared.capture_id == "test.capture.count" && declared.field_id == "test.count" &&
+  let name ← namesOf (clause)
+  pure (declared.capture_id == name "test.capture.count" && declared.field_id == name "test.count" &&
     declared.lifetime == 4 && wire.correlation.isSome &&
     limits.max_captures == 32 && limits.max_correlation_depth == 2)) :
     Except String Bool).toOption == some true
@@ -764,7 +776,8 @@ private def monitorCase (assigned : Int := 7) : Except String CaseArtifact := do
 
 #guard match monitorCase with
   | .ok artifact => match artifact.contract.map (·.rules.toList) with
-    | some [rule] => rule.rule_id == "test.property.monitor.count" &&
+    | some [rule] => rule.rule_id == "count" &&
+        artifact.provenance.map (LocalNames.nameIn · "test.property.monitor.count") == some "count" &&
         rule.transitions.toList.map (·.transition_id) == ["match-count", "reject-count"]
     | _ => false
   | .error _ => false

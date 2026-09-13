@@ -141,9 +141,15 @@ def rpcSchema (s : RpcSchema) : Tree :=
     .atom digest.lane2.toNat, .atom digest.lane3.toNat,
     boolean s.clientStreaming, boolean s.serverStreaming]
 
+/-- The version prefix every structural key carries. -/
+def keyPrefix : String := "parameterized-v2-"
+
 /-- Exact versioned tree bytes rendered in the existing catalog's identifier alphabet. -/
 def key (data : Tree) : String :=
-  "parameterized-v2-" ++ String.intercalate "_" ((Encoding.encode data).map fun b => toString b.toNat)
+  keyPrefix ++ String.intercalate "_" ((Encoding.encode data).map fun b => toString b.toNat)
+
+/-- Whether a model value is a structural key rather than a declared spelling. -/
+def isKey (value : String) : Bool := value.startsWith keyPrefix
 
 private theorem sequence_inj : ∀ (a b : List Tree), sequence a = sequence b → a = b
   | [], [], _ => rfl

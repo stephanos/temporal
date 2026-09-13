@@ -29,7 +29,8 @@ private def admitted := completion.toOption
       (match output.contract.bind (·.«correlated») with
         | some capability =>
             capability.rules.map (·.rule_id) ==
-              (checked.property.clauses.map (·.id.value)).toArray
+              (checked.property.clauses.map fun clause =>
+                LocalNames.nameIn (output.provenance.getD {}) clause.id.value).toArray
         | none => false)
   | _, _ => false
 
@@ -503,7 +504,8 @@ private def startClauses (values : Umpire.Command.ModelVocabulary) : Property :=
             capability.rules.size == 2 &&
             capability.rules.all (fun clause =>
               ((conditionStep clause.trigger).map (·.definition_id)) ==
-                some (checked.vocabulary.actionAt 0).definitionId.value) &&
+                some (LocalNames.nameIn (output.provenance.getD {})
+                  (checked.vocabulary.actionAt 0).definitionId.value)) &&
             -- Canonical clause order, so the responses arrive by clause id.
             (capability.rules.map fun clause =>
               ((conditionStep clause.response).map (·.field)).getD .CORRELATED_STEP_FIELD_UNSPECIFIED) == #[

@@ -43,8 +43,9 @@ coverage. Lean is the first Producer, while the Case format and Go runtime remai
 Lean.
 
 Umpire-backed Producers lower checked semantics into generated values and pass them to
-`Umpire.Case.Compiler` for source-bound Property validation, the coverage the Case requests, exact
-provenance rows, and final generated Case assembly. The Testpilot-only synthetic Producer assembles its generated Case
+`Umpire.Case.Compiler` for source-bound Property validation, the coverage the Case requests,
+Case-local names and model value spellings (`Umpire.Case.LocalNames`), exact provenance rows, and
+final generated Case assembly. The Testpilot-only synthetic Producer assembles its generated Case
 directly.
 
 Exact Case 1.0 is the only admitted format. A Program's symbolic binding graph is the set of binding

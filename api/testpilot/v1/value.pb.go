@@ -561,11 +561,15 @@ func (x *ValueMapEntry) GetValue() *Value {
 	return nil
 }
 
-// ModelValue is one model value: the Definition ID that declares it and its value text.
+// ModelValue is one model value: the definition that declares it and the value's spelling.
 type ModelValue struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	DefinitionId  string                 `protobuf:"bytes,1,opt,name=definition_id,json=definitionId,proto3" json:"definition_id,omitempty"`
-	Value         string                 `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The Case-local name of the declaring definition; CaseProvenance.local_names maps it to its
+	// Definition ID.
+	DefinitionId string `protobuf:"bytes,1,opt,name=definition_id,json=definitionId,proto3" json:"definition_id,omitempty"`
+	// The value's declared spelling. CaseProvenance.model_value_fingerprints records the canonical
+	// encoding a parameterized or disambiguated spelling stands for.
+	Value         string `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }

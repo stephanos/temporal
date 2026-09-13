@@ -347,7 +347,7 @@ func TestDeclaredValueArmRenamesOnlyValueObjects(t *testing.T) {
 		"signedInteger": "kept",
 		"literal":       &Object{Message: protocol + "Value", Fields: map[string]any{"text": "renamed"}},
 	}}
-	mapped, err := Declared.apply("fixture.json", tree)
+	mapped, err := Declared.apply("fixture.json", tree, nil)
 	require.NoError(t, err)
 	encoded, err := json.Marshal(mapped)
 	require.NoError(t, err)
@@ -385,7 +385,7 @@ func TestDeclaredExpressionStepRewritesReferencesAndEquality(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			mapped, err := Declared.apply("fixture.json", expression(tc.message, tc.fields))
+			mapped, err := Declared.apply("fixture.json", expression(tc.message, tc.fields), nil)
 			if tc.wantErrorSubstr != "" {
 				require.ErrorContains(t, err, tc.wantErrorSubstr)
 				return
@@ -463,7 +463,7 @@ func TestDeclaredCorrelatedStepsRewriteConditionsAndGuards(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			mapped, err := Declared.apply("fixture.json", tc.tree)
+			mapped, err := Declared.apply("fixture.json", tc.tree, nil)
 			if tc.wantErrorSubstr != "" {
 				require.ErrorContains(t, err, tc.wantErrorSubstr)
 				return
@@ -500,7 +500,7 @@ func TestDeclaredFaultCoordinatesBecomePayloadPaths(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			mapped, err := Declared.apply("fixture.json", tc.tree)
+			mapped, err := Declared.apply("fixture.json", tc.tree, nil)
 			if tc.wantErrorSubstr != "" {
 				require.ErrorContains(t, err, tc.wantErrorSubstr)
 				return
@@ -554,7 +554,7 @@ func TestDeclaredDeadlineVersionNamedValueNaturalAndOpaqueSteps(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			mapped, err := Declared.apply("fixture.json", &Object{Message: protocol + protoreflect.FullName(tc.message), Fields: tc.fields})
+			mapped, err := Declared.apply("fixture.json", &Object{Message: protocol + protoreflect.FullName(tc.message), Fields: tc.fields}, nil)
 			if tc.wantErrorSubstr != "" {
 				require.ErrorContains(t, err, tc.wantErrorSubstr)
 				return
@@ -592,7 +592,7 @@ func TestDeclaredCeilingStepAdmitsOnlyBoundsWithinTheirProfile(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			mapped, err := Declared.apply(tc.fixture, &Object{Message: protocol + protoreflect.FullName(tc.message), Fields: tc.fields})
+			mapped, err := Declared.apply(tc.fixture, &Object{Message: protocol + protoreflect.FullName(tc.message), Fields: tc.fields}, nil)
 			if tc.wantErrorSubstr != "" {
 				require.ErrorContains(t, err, tc.wantErrorSubstr)
 				return
@@ -682,7 +682,7 @@ func TestDeclaredDefaultOrderStepDropsOnlyTheDefault(t *testing.T) {
 			t.Parallel()
 
 			entrypoint := &Object{Message: protocol + protoreflect.FullName(tc.message), Fields: map[string]any{"entrypointId": "controller", "instructions": tc.instructions(t)}}
-			mapped, err := Declared.apply("fixture.json", entrypoint)
+			mapped, err := Declared.apply("fixture.json", entrypoint, nil)
 			if tc.wantErrorSubstr != "" {
 				require.ErrorContains(t, err, tc.wantErrorSubstr)
 				return
@@ -763,7 +763,7 @@ func TestDeclaredDerivedDeclarationsStepDropsOnlyWhatPreparationDerives(t *testi
 			root, ok := tree.(*Object)
 			require.True(t, ok)
 			root.Message = protocol + "Program"
-			mapped, err := Declared.apply(functionalFixture, root)
+			mapped, err := Declared.apply(functionalFixture, root, nil)
 			if tc.wantErrorSubstr != "" {
 				require.ErrorContains(t, err, tc.wantErrorSubstr)
 				return
@@ -853,7 +853,7 @@ func TestDeclaredProvenanceStepLiftsOnlyTheBaselinePayload(t *testing.T) {
 				"producerId":   "u",
 				opaqueBytesKey: base64.StdEncoding.EncodeToString([]byte(tc.payload)),
 			}}
-			mapped, err := Declared.apply(tc.fixture, root)
+			mapped, err := Declared.apply(tc.fixture, root, nil)
 			if tc.wantErrorSubstr != "" {
 				require.ErrorContains(t, err, tc.wantErrorSubstr)
 				return
@@ -862,6 +862,53 @@ func TestDeclaredProvenanceStepLiftsOnlyTheBaselinePayload(t *testing.T) {
 			encoded, err := json.Marshal(mapped)
 			require.NoError(t, err)
 			require.JSONEq(t, tc.want, string(encoded))
+		})
+	}
+}
+
+func TestDeclaredLocalNameStepRelatesOnlyWhatTheBaselineNames(t *testing.T) {
+	t.Parallel()
+
+	const typedNexusFixture = "tests/testcore/testpilot/testdata/typed-nexus-case.json"
+	baseline := loadBaseline(t)
+	for _, tc := range []struct {
+		name            string
+		path            []any
+		value           any
+		wantErrorSubstr string
+	}{
+		{
+			name:            "a local name for a Definition ID the baseline does not name",
+			path:            []any{"provenance", "localNames", 0, "definitionId"},
+			value:           "temporal.unnamed.definition",
+			wantErrorSubstr: `maps Definition ID "temporal.unnamed.definition", which the baseline does not name`,
+		},
+		{
+			name:            "one local name for two Definition IDs",
+			path:            []any{"provenance", "localNames", 1, "localName"},
+			value:           "history",
+			wantErrorSubstr: `local name "history" stands for two Definition IDs`,
+		},
+		{
+			name:            "a fingerprint no baseline encoding has",
+			path:            []any{"provenance", "modelValueFingerprints", 0, "fingerprint"},
+			value:           strings.Repeat("0", 64),
+			wantErrorSubstr: "matches no baseline encoding of that definition",
+		},
+		{
+			name:            "one spelling for two encodings",
+			path:            []any{"provenance", "modelValueFingerprints", 1, "spelling"},
+			value:           "scheduled-730248b6",
+			wantErrorSubstr: `spelling "scheduled-730248b6" of "temporal.nexus.success.typed-nexus.state.scheduled" stands for two baseline encodings`,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			old, regenerated := readFixturePair(t, typedNexusFixture)
+			err := baseline.Check(typedNexusFixture, old, setJSON(t, regenerated, tc.value, tc.path...), Declared)
+			require.ErrorContains(t, err, typedNexusFixture)
+			require.ErrorContains(t, err, tc.wantErrorSubstr)
 		})
 	}
 }

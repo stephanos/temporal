@@ -8,7 +8,8 @@ option go_package = "go.temporal.io/server/api/testpilot/v1;testpilot";
 message CorrelatedContract {
   // The model Projection the contract was produced from; the runtime only checks it is an id.
   string projection_id = 1;
-  // The Projection's fingerprint; the runtime only checks it is set.
+  // The Projection's fingerprint, over its full canonical form (Definition IDs and canonical value
+  // encodings, not the Case-local names and spellings); the runtime only checks it is set.
   string projection_fingerprint = 2;
   // The Observation, of type CorrelatedEvidence, that supplies the evidence.
   string evidence_observation_id = 3;

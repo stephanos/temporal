@@ -20,7 +20,7 @@ private def accepts (change : CorrelatedContract → CorrelatedContract)
 private def admitted (change : CorrelatedEvidence → CorrelatedEvidence) : Bool :=
   (do
     let compiled ← Testpilot.Correlated.decode (← ceilings first) (← capability first)
-    let initial ← compiled.start scope
+    let initial ← compiled.start caseScope
     let _ ← initial.observe 2 (change (evidence 0 "both"))
     pure () : Except String Unit).isOk
 
@@ -41,16 +41,18 @@ private def boundary (projectionWork obligationWork support : Int64) (eventSize 
       max_projection_work := projectionWork, max_obligation_work := obligationWork, max_support := support,
       max_event_bytes := eventSize }
     let compiled ← Testpilot.Correlated.decode limits (← capability first)
-    let initial ← compiled.start scope
+    let initial ← compiled.start caseScope
     let _ ← initial.observe 2 (evidence 0 "both")
     pure () : Except String Unit).isOk
 
-#guard boundary 2960 49 5 36
-#guard !boundary 2960 49 5 35
-#guard boundary 2960 49 5
-#guard !boundary 2959 49 5
-#guard !boundary 2960 48 5
-#guard !boundary 2960 49 4
+-- Projection work and event bytes count identifier bytes, so the Case-local names this evidence
+-- carries set both boundaries.
+#guard boundary 1760 49 5 21
+#guard !boundary 1760 49 5 20
+#guard boundary 1760 49 5
+#guard !boundary 1759 49 5
+#guard !boundary 1760 48 5
+#guard !boundary 1760 49 4
 #guard (do
   let target ← targetResult.toOption
   let projection ← (plan target).toOption
