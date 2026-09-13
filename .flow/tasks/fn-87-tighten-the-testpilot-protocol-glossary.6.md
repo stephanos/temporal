@@ -45,9 +45,64 @@ Finish R3 on the correlated side: `CorrelatedPredicate`, `CorrelatedComparison`,
 
 
 ## Done summary
-TBD
+The five correlated condition messages and `guard_equals_text` are gone. A correlated rule's trigger, response and correlation, and an evidence-lift guard, are now each an `Expression`, and the correlated presence constraint is a `present` expression rather than a `bool present` (R5). No `expected`/`incomplete` value in `correlated.json`, no `expected.json` and no live Verdict moved. The oracle passes with the declared correlated steps, and the regression gate passed with 9 live identities.
 
-## Evidence
-- Commits:
+**Protocol**
+- `Reference` gains two arms, recorded as spec deviations in API Contracts:
+  - `CorrelatedStepReference correlated_step = 11` (a `CorrelatedStepField` of ACTION/OUTCOME/STATE/FACT plus `definition_id`).
+  - An empty `ProjectedValueReference projected_value = 12`.
+- Naming decision: `CorrelatedStepReference`/`CorrelatedStepField` instead of the recommended `StepField`, to stay parallel with `correlated_capture` and the other `Correlated*` names.
+- Deviation: `model_value` is admitted in no context. A step reference plus a text literal carries every model value a condition tests. Removing the arm is a follow-up for R6.
+- A step condition is `present(correlated_step)` or `compare(EQUAL, correlated_step, text)`. A correlation is a step condition, an EQUAL/NOT_EQUAL comparison of literal, evidence-field or correlated-capture operands, or `all`/`any` of those.
+
+**Go**
+- `ir` gains `CorrelatedContext` and `EvidenceLiftContext` in its context table, the `ProjectedValueReference` kind, and `ir.AdmitReferences`. That function walks an expression and rejects an out-of-context reference at the exact path `BindExpression` reports. A test pins the paths through every nesting operator.
+- Decision: the correlated capability keeps its own admission and evaluator over `Expression` (`verification/correlated_prepare.go`, `correlated.go`) rather than binding through `ir`.
+  - This keeps the `Shared.CorrelatedObligation` inputs bit-for-bit the same.
+  - Depth and work ceilings still count conditions exactly as before.
+  - `all`/`any` still stop at the first decisive operand.
+  - A trigger or response that reads the wrong step part rejects `unknown` at `...correlated_step.field`.
+- Lift guards bind and evaluate through `ir` (`BindExpression`/`EvaluateExecution`) with the projected value as their only reference. Consequences:
+  - Rejected now: a non-boolean guard, an unguarded absent read, and an out-of-context reference (located).
+  - Admitted now: the former "presence-selector or empty guard path" rejections are gone, because such a path is now a valid boolean read. Their tests were replaced by nonboolean/unguarded/missing-guard cases.
+  - Guard evaluation charges a few more runtime work units per rule than the bare path read did. No checked-in Case is near a ceiling.
 - Tests:
+  - `TestCorrelatedPrepareLocatesConditionsOutsideTheCorrelatedContext`: every foreign arm in trigger, response and correlation, plus the wrong-field trigger and response.
+  - `TestEvidenceLiftGuardRejectsReferencesOutsideItsContext`.
+  - `TestAdmitReferencesLocatesLikeBinding`.
+  - Both context tests were confirmed red with the checks loosened.
+
+**Lean**
+- `Testpilot.Correlated.decode` reads the new shape and rejects foreign reference arms. Theorem statements are unchanged: `admitMany_append`'s proof was untouched.
+- `Testpilot.Authoring` adds `Expr.evidenceField`, `correlatedCapture`, `correlatedStep` and `projectedValue`, and `correlatedEvidenceRule` takes an `Expression` guard.
+- `Umpire.Case.Correlated` lowers clauses to `Expression`.
+- The Temporal evidence lift and the typed Nexus Producer emit `present(path(projected_value, p))`, or `all[present, compare EQUAL]` where they need a text match.
+- `Tests/Fields.lean` gains context-rejection `#guard`s.
+
+**Fixtures, oracle and vocabulary**
+- `correlated.json`, `typed-nexus-case.json` and `async-nexus-case.json` were regenerated through their generators.
+- The oracle declares three things:
+  - predicate → step-condition rewrite;
+  - operand/comparison/correlation → Expression rewrite;
+  - lift guard → Expression rewrite.
+- Those steps are tested, including their refusal cases. A mutation check (wrong guard operator) made the oracle fail.
+- Retired names: the seven message and enum names, `guard_equals_text`/`GuardEqualsText`, and the `CORRELATED_PREDICATE_FIELD_*` / `CORRELATED_COMPARISON_OPERATOR_*` families. They are also in `protocol_test`. The token list lives in `tools/umpire/internal/retiredvocabulary/check.go`, which is outside Touches but is where the acceptance criteria require them.
+- Docs: `internal/execution/README.md` (the lift guard), `internal/verification/README.md` and `model/Umpire/ARCHITECTURE.md`. The spec's Planning decisions gained "Correlated conditions and lift guards (decided in .6)".
+
+**Gates**
+- Baseline was green via the receipts at 13294110.
+- Regression gate:
+  - Run 1 (before the lint fix): exit 0, 9 live identities.
+  - Runs 2 and 3 on HEAD: `TestTestpilotTypedNexusOperationsCase` failed with the known evidence-ordering flake (history interleaving; the test passed 5/5 when run alone).
+  - Run 4: exit 0, 9 live identities.
+- `lint-code` shows 161 issues after `go clean -cache`, which is the baseline. Two new findings were fixed before that run: gci formatting in `evidence_lift_test.go` and a missing switch default in `ir`. `lint-model` shows 163, the baseline.
+
+**Follow-ups (reviewer P3s, not applied after SHIP)**
+- `predicate` re-parses the step condition that `correlationHolds` already read. Parse once at preparation instead.
+- The located-path 256-byte truncation in `correlated_prepare.go` duplicates `ir`'s. Export a constructor from `ir` instead.
+
+stage: impl-review - ran (claude backend, SHIP on first round, two P3)
+## Evidence
+- Commits: a1c1ec7d7c09de340250bf02c288bcc616bced5e
+- Tests: go test -count=1 -tags test_dep ./common/testing/testpilot/internal/protocolmigration/, go test -count=1 -tags test_dep ./common/testing/testpilot/... ./tests/testcore/testpilot/... ./tools/umpire/internal/retiredvocabulary/, make umpire-check-retired-vocabulary, CC=/usr/bin/cc TMPDIR=$(cd "${TMPDIR:-/tmp}" && pwd -P) make umpire-check-regression (run 1 pre-lint-fix: exit 0, 9 live identities; on HEAD run 2 and 3: TestTestpilotTypedNexusOperationsCase evidence-ordering known flake; run 4: exit 0, 9 live identities), go clean -cache && make lint-code GOLANGCI_LINT_FIX=false (161 issues, baseline), make lint-model (163 errors, baseline)
 - PRs:
