@@ -668,7 +668,16 @@ func buildRetiredRules() ([]tokenRule, error) {
 	return rules, nil
 }
 
+// protocolMigrationBaseline is the frozen pre-migration copy of the Testpilot protocol snapshot
+// and fixtures the fn-87 equivalence test maps from. It must keep spelling every name the
+// migration retires, and it holds nothing else and is never regenerated, so the whole prefix is
+// allowed rather than one entry per retired token.
+const protocolMigrationBaseline = "common/testing/testpilot/internal/protocolmigration/testdata/baseline/"
+
 func allowedNegativeFixture(relativePath, token string) bool {
+	if strings.HasPrefix(relativePath, protocolMigrationBaseline) {
+		return true
+	}
 	allowed := map[string]map[string]bool{
 		"tools/umpire/cmd/umpire-gen-regression-views/render_test.go": {
 			"umpire-experiment/" + "v1": true,
