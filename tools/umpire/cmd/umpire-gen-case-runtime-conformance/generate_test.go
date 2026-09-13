@@ -16,7 +16,7 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
-func TestRunGenerationPublishesExactlySixCompleteClasses(t *testing.T) {
+func TestRunGenerationPublishesEveryCaseOfTheSixClasses(t *testing.T) {
 	configuration := generationConfig{RepositoryRoot: t.TempDir(), OutputRoot: t.TempDir()}
 	entries := productionManifest()
 	rendered := make(map[string][]byte, len(entries))
@@ -33,8 +33,8 @@ func TestRunGenerationPublishesExactlySixCompleteClasses(t *testing.T) {
 		Publish: func(set artifactio.Set, root string, artifacts map[string][]byte, validate func(string) error) error {
 			published = true
 			require.Equal(t, []string{"common/testing/testpilot/testdata/case-runtime-conformance"}, set.Roots)
-			require.Len(t, set.Paths, 12)
-			require.Len(t, artifacts, 12)
+			require.Len(t, set.Paths, 2*len(entries))
+			require.Len(t, artifacts, 2*len(entries))
 			return set.Publish(root, artifacts, validate)
 		},
 	}
@@ -42,12 +42,12 @@ func TestRunGenerationPublishesExactlySixCompleteClasses(t *testing.T) {
 	require.NoError(t, runGeneration(configuration, entries, dependencies))
 	require.True(t, published)
 	for _, entry := range entries {
-		caseBytes, err := os.ReadFile(filepath.Join(configuration.OutputRoot, filepath.FromSlash(casePath(entry.Class))))
+		caseBytes, err := os.ReadFile(filepath.Join(configuration.OutputRoot, filepath.FromSlash(casePath(entry))))
 		require.NoError(t, err)
 		stored, err := persistedForm(rendered[entry.RendererArg])
 		require.NoError(t, err)
 		require.Equal(t, stored, caseBytes)
-		expectedBytes, err := os.ReadFile(filepath.Join(configuration.OutputRoot, filepath.FromSlash(expectedPath(entry.Class))))
+		expectedBytes, err := os.ReadFile(filepath.Join(configuration.OutputRoot, filepath.FromSlash(expectedPath(entry))))
 		require.NoError(t, err)
 		canonical, err := marshalExpected(entry.Expected)
 		require.NoError(t, err)
@@ -285,6 +285,31 @@ func TestValidateFunctionalArtifactsRejectsStaleFile(t *testing.T) {
 
 	require.ErrorContains(t, validateFunctionalArtifacts(entries, artifacts),
 		fmt.Sprintf("has %d files, want %d", len(entries)+1, len(entries)))
+}
+
+// EVD-18 fixes six classes. A class may carry further Cases, each beneath its own variant, but never
+// a variant alone.
+func TestValidateManifestKeepsSixClassesWithTheirRootCases(t *testing.T) {
+	entries := productionManifest()
+	require.Len(t, entries, 7)
+	require.NoError(t, validateManifest(entries))
+	variant := func(class, name string) manifestEntry {
+		return manifestEntry{Class: class, Variant: name, RendererArg: "render", CaseID: "case", Expected: expectedResult{Class: class}}
+	}
+	for _, test := range []struct {
+		name    string
+		entries []manifestEntry
+		message string
+	}{
+		{"seventh class", append(slices.Clone(entries), variant("seventh", "")), "has 7 classes, want exactly 6"},
+		{"variant without its root Case", append(slices.Clone(entries[:5]), entries[6], variant("cleanup-failure-after-proved-violation", "second")), `class "cleanup-failure-after-proved-violation" has no Case at its root`},
+		{"duplicate variant", append(slices.Clone(entries), entries[4]), `duplicate Testpilot conformance Case "static-preparation-rejection/expression-context"`},
+		{"nested variant", append(slices.Clone(entries), variant("satisfied", "a/b")), `variant "a/b" is not one path segment`},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			require.ErrorContains(t, validateManifest(test.entries), test.message)
+		})
+	}
 }
 
 func TestRunGenerationRejectsIncompleteManifestAndRendererFailureBeforePublication(t *testing.T) {

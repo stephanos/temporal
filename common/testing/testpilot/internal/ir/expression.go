@@ -32,6 +32,30 @@ type Binding struct {
 	Available bool
 }
 
+// Context is where an expression appears in a Case. Program and Contract share one expression
+// language, so which references an expression may use is decided by its context at binding.
+type Context uint8
+
+const (
+	// ProgramContext is an instruction input or guard.
+	ProgramContext Context = iota + 1
+	// ContractContext is a Contract transition predicate.
+	ContractContext
+)
+
+// admittedReferences names the Reference arms each context admits.
+var admittedReferences = map[Context]map[protoreflect.Name]bool{
+	ProgramContext:  {"slot_id": true, "outcome": true, "run": true, "environment_binding_id": true},
+	ContractContext: {"observation_id": true, "run_event": true, "capture_id": true},
+}
+
+// Site locates one authored expression: the context it is bound in and its path in the Case, which
+// a rejected reference extends to name itself.
+type Site struct {
+	Context Context
+	Path    string
+}
+
 type Operator uint8
 
 const (
@@ -39,7 +63,6 @@ const (
 	ReferenceValue
 	Project
 	IsPresent
-	Equals
 	Compare
 	Not
 	All
@@ -71,25 +94,20 @@ func (e *Expression) MayBeAbsent() bool                           { return e.abs
 
 type compiler struct {
 	catalog *Catalog
+	context Context
 	scope   map[Reference]Binding
 	budget  budget
 }
 
-func (c *Catalog) BindExpression(source proto.Message, expected *Type, scope map[Reference]Binding, limits Limits) (*Expression, error) {
-	if err := limits.validate(); err != nil {
+func (c *Catalog) BindExpression(site Site, source *testpilotspb.Expression, expected *Type, scope map[Reference]Binding, limits Limits) (*Expression, error) {
+	if err := c.checkBinding(site, source, expected, limits); err != nil {
 		return nil, err
 	}
-	if !hasExpression(source) {
-		return nil, invalid(Malformed, "expression", "expression is required")
-	}
-	if expected != nil && !c.owns(*expected) {
-		return nil, invalid(TypeMismatch, "expression", "expected type belongs to another catalog")
-	}
-	binder := compiler{catalog: c, scope: scope, budget: budget{limits: limits}}
+	binder := compiler{catalog: c, context: site.Context, scope: scope, budget: budget{limits: limits}}
 	if err := inspectSurface(source.ProtoReflect(), &binder.budget, "expression"); err != nil {
 		return nil, err
 	}
-	result, err := binder.bind(source, expected, nil, false, 1)
+	result, err := binder.bind(source, site.Path, expected, nil, false, 1)
 	if err == nil {
 		result.bindingWork = binder.budget.work
 	}
@@ -98,36 +116,49 @@ func (c *Catalog) BindExpression(source proto.Message, expected *Type, scope map
 
 // BindGuardedExpression compiles an instruction input under the facts implied by its guard.
 // Both expressions share the same budget; the guard must be valid before its facts are used.
-func (c *Catalog) BindGuardedExpression(guard, source proto.Message, expected *Type, scope map[Reference]Binding, limits Limits) (boundGuard, boundValue *Expression, err error) {
+func (c *Catalog) BindGuardedExpression(guard Condition, site Site, source *testpilotspb.Expression, expected *Type, scope map[Reference]Binding, limits Limits) (boundGuard, boundValue *Expression, err error) {
 	var conditions []Condition
-	if !isNilMessage(guard) {
-		conditions = []Condition{{Expression: guard, Matches: true}}
+	if !isNilMessage(guard.Expression) {
+		conditions = []Condition{{Expression: guard.Expression, Path: guard.Path, Matches: true}}
 	}
-	return c.bindConditionedExpression(conditions, source, expected, scope, limits)
+	return c.bindConditionedExpression(conditions, site, source, expected, scope, limits)
 }
 
+// Condition is an expression bound in the same context as the value it constrains, and whether it
+// held; Path locates it in the Case.
 type Condition struct {
-	Expression proto.Message
+	Expression *testpilotspb.Expression
+	Path       string
 	Matches    bool
 }
 
 // BindConditionedExpression preserves each authored expression's depth while sharing guard facts and work.
-func (c *Catalog) BindConditionedExpression(conditions []Condition, source proto.Message, expected *Type, scope map[Reference]Binding, limits Limits) (*Expression, error) {
-	_, value, err := c.bindConditionedExpression(conditions, source, expected, scope, limits)
+func (c *Catalog) BindConditionedExpression(conditions []Condition, site Site, source *testpilotspb.Expression, expected *Type, scope map[Reference]Binding, limits Limits) (*Expression, error) {
+	_, value, err := c.bindConditionedExpression(conditions, site, source, expected, scope, limits)
 	return value, err
 }
 
-func (c *Catalog) bindConditionedExpression(conditions []Condition, source proto.Message, expected *Type, scope map[Reference]Binding, limits Limits) (boundGuard, boundValue *Expression, err error) {
+func (c *Catalog) checkBinding(site Site, source *testpilotspb.Expression, expected *Type, limits Limits) error {
 	if err := limits.validate(); err != nil {
-		return nil, nil, err
+		return err
+	}
+	if admittedReferences[site.Context] == nil {
+		return invalid(Malformed, "expression", "expression context is required")
 	}
 	if !hasExpression(source) {
-		return nil, nil, invalid(Malformed, "expression", "expression is required")
+		return invalid(Malformed, "expression", "expression is required")
 	}
 	if expected != nil && !c.owns(*expected) {
-		return nil, nil, invalid(TypeMismatch, "expression", "expected type belongs to another catalog")
+		return invalid(TypeMismatch, "expression", "expected type belongs to another catalog")
 	}
-	binder := compiler{catalog: c, scope: scope, budget: budget{limits: limits}}
+	return nil
+}
+
+func (c *Catalog) bindConditionedExpression(conditions []Condition, site Site, source *testpilotspb.Expression, expected *Type, scope map[Reference]Binding, limits Limits) (boundGuard, boundValue *Expression, err error) {
+	if err := c.checkBinding(site, source, expected, limits); err != nil {
+		return nil, nil, err
+	}
+	binder := compiler{catalog: c, context: site.Context, scope: scope, budget: budget{limits: limits}}
 	var compiledGuard *Expression
 	facts := map[string]bool{}
 	for _, condition := range conditions {
@@ -137,7 +168,7 @@ func (c *Catalog) bindConditionedExpression(conditions []Condition, source proto
 		}
 		boolean := c.scalarType(testpilotspb.SCALAR_KIND_BOOLEAN)
 		var err error
-		compiledGuard, err = binder.bind(guard, &boolean, facts, false, 1)
+		compiledGuard, err = binder.bind(guard, condition.Path, &boolean, facts, false, 1)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -153,7 +184,7 @@ func (c *Catalog) bindConditionedExpression(conditions []Condition, source proto
 	if err := inspectSurface(source.ProtoReflect(), &binder.budget, "expression"); err != nil {
 		return nil, nil, err
 	}
-	compiled, err := binder.bind(source, expected, facts, false, 1)
+	compiled, err := binder.bind(source, site.Path, expected, facts, false, 1)
 	if err == nil {
 		compiled.bindingWork = binder.budget.work
 	}
@@ -190,14 +221,14 @@ func messageField(message protoreflect.Message, name protoreflect.Name) protoref
 	return message.Get(message.Descriptor().Fields().ByName(name)).Message()
 }
 
-func (b *compiler) bind(source proto.Message, expected *Type, facts map[string]bool, allowAbsent bool, depth int64) (*Expression, error) {
+func (b *compiler) bind(source proto.Message, path string, expected *Type, facts map[string]bool, allowAbsent bool, depth int64) (*Expression, error) {
 	if !hasExpression(source) {
 		return nil, invalid(Malformed, "expression", "missing expression node")
 	}
 	if err := b.budget.charge(depth, 1, 0, "expression"); err != nil {
 		return nil, err
 	}
-	result, err := b.node(source, expected, facts, depth)
+	result, err := b.node(source, path, expected, facts, depth)
 	if err != nil {
 		return nil, err
 	}
@@ -231,55 +262,65 @@ func (b *compiler) bind(source proto.Message, expected *Type, facts map[string]b
 	return result, nil
 }
 
-func (b *compiler) node(source proto.Message, expected *Type, facts map[string]bool, depth int64) (*Expression, error) {
+// node binds one Expression located at path. Child paths name the child by its operator, with the
+// operand index of all and any, so a rejection stays short enough to locate within 256 bytes.
+func (b *compiler) node(source proto.Message, path string, expected *Type, facts map[string]bool, depth int64) (*Expression, error) {
 	kind, value := expressionVariant(source)
 	switch kind {
 	case "literal":
 		return b.literal(value.Message().Interface().(*testpilotspb.Value), expected, depth)
-	case "slot", "observation", "capture", "outcome", "run", "run_event":
-		reference, err := expressionReference(source)
+	case "reference":
+		reference, err := b.reference(value.Message(), path+".reference")
 		return &Expression{reference: reference}, err
 	case "path":
-		return b.project(value.Message(), facts, depth)
+		return b.project(value.Message(), path+".path", facts, depth)
 	case "present":
-		return b.unary(IsPresent, messageField(value.Message(), "operand").Interface(), facts, depth)
-	case "negation":
-		return b.unary(Not, messageField(value.Message(), "operand").Interface(), facts, depth)
-	case "equals":
-		return b.binary(messageField(value.Message(), "left").Interface(), messageField(value.Message(), "right").Interface(), 0, facts, depth)
+		return b.unary(IsPresent, messageField(value.Message(), "operand").Interface(), path+".present", facts, depth)
+	case "not":
+		return b.unary(Not, messageField(value.Message(), "operand").Interface(), path+".not", facts, depth)
 	case "compare":
 		comparison := testpilotspb.ComparisonOperator(value.Message().Get(value.Message().Descriptor().Fields().ByName("operator")).Enum())
-		if comparison < testpilotspb.COMPARISON_OPERATOR_LESS_THAN || comparison > testpilotspb.COMPARISON_OPERATOR_GREATER_THAN_OR_EQUAL {
+		if comparison < testpilotspb.COMPARISON_OPERATOR_EQUAL || comparison > testpilotspb.COMPARISON_OPERATOR_GREATER_THAN_OR_EQUAL {
 			return nil, invalid(Unknown, "expression", "unknown comparison operator")
 		}
-		return b.binary(messageField(value.Message(), "left").Interface(), messageField(value.Message(), "right").Interface(), comparison, facts, depth)
+		return b.binary(messageField(value.Message(), "left").Interface(), messageField(value.Message(), "right").Interface(), comparison, path+".compare", facts, depth)
 	case "all":
-		return b.logicalNode(All, expressionOperands(value.Message()), facts, depth)
+		return b.logicalNode(All, expressionOperands(value.Message()), path+".all", facts, depth)
 	case "any":
-		return b.logicalNode(Any, expressionOperands(value.Message()), facts, depth)
+		return b.logicalNode(Any, expressionOperands(value.Message()), path+".any", facts, depth)
 	default:
 		return nil, invalid(Unsupported, "expression", "unknown expression variant")
 	}
 }
 
-func expressionReference(source proto.Message) (Reference, error) {
+// reference resolves a Reference its context admits. A reference outside the context is a static
+// rejection located at the reference arm.
+func (b *compiler) reference(message protoreflect.Message, path string) (Reference, error) {
 	var result Reference
-	kind, value := expressionVariant(source)
-	message := value.Message()
-	switch kind {
-	case "slot":
-		result = Reference{Kind: SlotReference, ID: message.Get(message.Descriptor().Fields().ByName("slot_id")).String()}
-	case "observation":
-		result = Reference{Kind: ObservationReference, ID: message.Get(message.Descriptor().Fields().ByName("observation_id")).String()}
-	case "capture":
-		result = Reference{Kind: CaptureReference, ID: message.Get(message.Descriptor().Fields().ByName("capture_id")).String()}
+	selected := message.WhichOneof(message.Descriptor().Oneofs().ByName("reference"))
+	if selected == nil {
+		return Reference{}, invalid(Malformed, "expression", "reference is required")
+	}
+	if !admittedReferences[b.context][selected.Name()] {
+		return Reference{}, invalid(Unknown, path+"."+string(selected.Name()), "reference is not admitted in this expression context")
+	}
+	value := message.Get(selected)
+	switch selected.Name() {
+	case "slot_id":
+		result = Reference{Kind: SlotReference, ID: value.String()}
+	case "observation_id":
+		result = Reference{Kind: ObservationReference, ID: value.String()}
+	case "capture_id":
+		result = Reference{Kind: CaptureReference, ID: value.String()}
 	case "outcome":
+		message := value.Message()
 		instruction := messageField(message, "instruction")
 		result = Reference{Kind: OutcomeReference, Entrypoint: instruction.Get(instruction.Descriptor().Fields().ByName("entrypoint_id")).String(), ID: instruction.Get(instruction.Descriptor().Fields().ByName("instruction_id")).String(), Field: int32(message.Get(message.Descriptor().Fields().ByName("field")).Enum())}
 		if result.Entrypoint == "" || result.Field <= 0 || result.Field > int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE) {
 			return Reference{}, invalid(Malformed, "expression", "invalid outcome reference")
 		}
 	case "run_event":
+		message := value.Message()
 		result = Reference{Kind: EventReference, Field: int32(message.Get(message.Descriptor().Fields().ByName("field")).Enum())}
 		if result.Field <= 0 || result.Field > int32(testpilotspb.RUN_EVENT_FIELD_FAULT_KIND) {
 			return Reference{}, invalid(Malformed, "expression", "invalid Run Event reference")
@@ -287,7 +328,9 @@ func expressionReference(source proto.Message) (Reference, error) {
 	case "run":
 		result = Reference{Kind: EventReference, Field: int32(testpilotspb.RUN_EVENT_FIELD_RUN_ID)}
 	default:
-		return Reference{}, invalid(Unsupported, "expression", "not a reference")
+		// An environment binding is admitted only as a whole request assignment value, which
+		// Program admission resolves to a literal before binding.
+		return Reference{}, invalid(Unsupported, "expression", "unknown expression variant")
 	}
 	return result, nil
 }
@@ -310,8 +353,8 @@ func (b *compiler) literal(value *testpilotspb.Value, expected *Type, depth int6
 	return result, nil
 }
 
-func (b *compiler) project(value protoreflect.Message, facts map[string]bool, depth int64) (*Expression, error) {
-	operand, err := b.bind(messageField(value, "source").Interface(), nil, facts, true, depth+1)
+func (b *compiler) project(value protoreflect.Message, location string, facts map[string]bool, depth int64) (*Expression, error) {
+	operand, err := b.bind(messageField(value, "operand").Interface(), location+".operand", nil, facts, true, depth+1)
 	if err != nil {
 		return nil, err
 	}
@@ -338,55 +381,56 @@ func (b *compiler) project(value protoreflect.Message, facts map[string]bool, de
 	return result, nil
 }
 
-func (b *compiler) unary(operator Operator, source proto.Message, facts map[string]bool, depth int64) (*Expression, error) {
+func (b *compiler) unary(operator Operator, source proto.Message, path string, facts map[string]bool, depth int64) (*Expression, error) {
 	boolean := b.catalog.scalarType(testpilotspb.SCALAR_KIND_BOOLEAN)
 	var expected *Type
 	if operator == Not {
 		expected = &boolean
 	}
-	operand, err := b.bind(source, expected, facts, operator == IsPresent, depth+1)
+	operand, err := b.bind(source, path, expected, facts, operator == IsPresent, depth+1)
 	if err != nil {
 		return nil, err
 	}
 	return &Expression{operator: operator, children: []*Expression{operand}, typ: boolean}, nil
 }
 
-func (b *compiler) binary(left, right proto.Message, comparison testpilotspb.ComparisonOperator, facts map[string]bool, depth int64) (*Expression, error) {
-	operands, err := b.pair(left, right, facts, depth)
+// binary binds a comparison. Equality admits operands of any one type; an ordering operator admits
+// only ordered numeric scalars.
+func (b *compiler) binary(left, right proto.Message, comparison testpilotspb.ComparisonOperator, path string, facts map[string]bool, depth int64) (*Expression, error) {
+	operands, err := b.pair(left, path+".left", right, path+".right", facts, depth)
 	if err != nil {
 		return nil, err
 	}
-	operator := Equals
-	if comparison != 0 {
-		operator = Compare
-		if !ordered(operands[0].typ) {
-			return nil, invalid(TypeMismatch, "expression", "comparison requires ordered numeric scalars")
-		}
+	equality := comparison == testpilotspb.COMPARISON_OPERATOR_EQUAL || comparison == testpilotspb.COMPARISON_OPERATOR_NOT_EQUAL
+	if !equality && !ordered(operands[0].typ) {
+		return nil, invalid(TypeMismatch, path, "comparison requires ordered numeric scalars")
 	}
-	return &Expression{operator: operator, children: operands, comparison: comparison, typ: b.catalog.scalarType(testpilotspb.SCALAR_KIND_BOOLEAN)}, nil
+	return &Expression{operator: Compare, children: operands, comparison: comparison, typ: b.catalog.scalarType(testpilotspb.SCALAR_KIND_BOOLEAN)}, nil
 }
 
-func (b *compiler) logicalNode(operator Operator, operands []proto.Message, facts map[string]bool, depth int64) (*Expression, error) {
-	children, err := b.logical(operands, facts, operator == All, depth)
+func (b *compiler) logicalNode(operator Operator, operands []proto.Message, path string, facts map[string]bool, depth int64) (*Expression, error) {
+	children, err := b.logical(operands, path, facts, operator == All, depth)
 	if err != nil {
 		return nil, err
 	}
 	return &Expression{operator: operator, children: children, typ: b.catalog.scalarType(testpilotspb.SCALAR_KIND_BOOLEAN)}, nil
 }
 
-func (b *compiler) pair(left, right proto.Message, facts map[string]bool, depth int64) ([]*Expression, error) {
+func (b *compiler) pair(left proto.Message, leftPath string, right proto.Message, rightPath string, facts map[string]bool, depth int64) ([]*Expression, error) {
 	first, second := left, right
+	firstPath, secondPath := leftPath, rightPath
 	leftKind, _ := expressionVariant(left)
 	rightKind, _ := expressionVariant(right)
 	reversed := leftKind == "literal" && rightKind != "literal"
 	if reversed {
 		first, second = right, left
+		firstPath, secondPath = rightPath, leftPath
 	}
-	a, err := b.bind(first, nil, facts, false, depth+1)
+	a, err := b.bind(first, firstPath, nil, facts, false, depth+1)
 	if err != nil {
 		return nil, err
 	}
-	other, err := b.bind(second, &a.typ, facts, false, depth+1)
+	other, err := b.bind(second, secondPath, &a.typ, facts, false, depth+1)
 	if err != nil {
 		return nil, err
 	}
@@ -396,7 +440,7 @@ func (b *compiler) pair(left, right proto.Message, facts map[string]bool, depth 
 	return []*Expression{a, other}, nil
 }
 
-func (b *compiler) logical(operands []proto.Message, facts map[string]bool, continuing bool, depth int64) ([]*Expression, error) {
+func (b *compiler) logical(operands []proto.Message, path string, facts map[string]bool, continuing bool, depth int64) ([]*Expression, error) {
 	if err := b.budget.charge(depth, int64(len(facts)), 0, "expression.presence"); err != nil {
 		return nil, err
 	}
@@ -404,8 +448,8 @@ func (b *compiler) logical(operands []proto.Message, facts map[string]bool, cont
 	maps.Copy(known, facts)
 	result := make([]*Expression, 0, len(operands))
 	boolean := b.catalog.scalarType(testpilotspb.SCALAR_KIND_BOOLEAN)
-	for _, operand := range operands {
-		item, err := b.bind(operand, &boolean, known, false, depth+1)
+	for index, operand := range operands {
+		item, err := b.bind(operand, fmt.Sprintf("%s[%d]", path, index), &boolean, known, false, depth+1)
 		if err != nil {
 			return nil, err
 		}
@@ -437,7 +481,7 @@ func (b *compiler) presenceFacts(e *Expression, truth bool) (map[string]bool, er
 		return nil, err
 	}
 	switch e.operator {
-	case Literal, ReferenceValue, Project, Equals, Compare:
+	case Literal, ReferenceValue, Project, Compare:
 	case IsPresent:
 		if e.children[0].key != "" {
 			return map[string]bool{e.children[0].key: truth}, nil

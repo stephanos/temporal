@@ -1,7 +1,7 @@
 {
-  "caseId": "temporal.case.get-system-info",
+  "caseId": "temporal.case.conformance.static-rejection.expression-context",
   "contract": {
-    "contractId": "temporal.case.get-system-info.contract",
+    "contractId": "temporal.case.conformance.static-rejection.expression-context.contract",
     "limits": {
       "maxCaptureBytes": "8192",
       "maxCaptures": "4",
@@ -16,14 +16,14 @@
       {
         "initialStateId": "pending",
         "kind": "CONTRACT_RULE_KIND_SAFETY",
-        "ruleId": "server-version-present",
+        "ruleId": "result",
         "states": [
           {
             "stateId": "pending",
             "status": "CONTRACT_STATE_STATUS_PENDING"
           },
           {
-            "stateId": "satisfied",
+            "stateId": "terminal",
             "status": "CONTRACT_STATE_STATUS_SATISFIED"
           }
         ],
@@ -35,18 +35,14 @@
               ]
             },
             "predicate": {
-              "present": {
-                "operand": {
-                  "reference": {
-                    "observationId": "server-version"
-                  }
-                }
+              "literal": {
+                "boolValue": true
               }
             },
             "sourceStateId": "pending",
             "supportKind": "CONTRACT_SUPPORT_KIND_MATCHING_EVENT",
-            "targetStateId": "satisfied",
-            "transitionId": "observe-server-version"
+            "targetStateId": "terminal",
+            "transitionId": "complete"
           }
         ]
       }
@@ -62,30 +58,18 @@
         "entrypointId": "controller",
         "instructions": [
           {
+            "guard": {
+              "reference": {
+                "observationId": "server-version"
+              }
+            },
             "instruction": {
               "invokeRpc": {
                 "endpointRoleId": "temporal.workflow-service",
-                "method": "/temporal.api.workflowservice.v1.WorkflowService/GetSystemInfo",
-                "responseReads": [
-                  {
-                    "cardinality": "READ_CARDINALITY_ONE",
-                    "path": {
-                      "segments": [
-                        {
-                          "field": "server_version"
-                        }
-                      ]
-                    },
-                    "targets": [
-                      {
-                        "observationId": "server-version"
-                      }
-                    ]
-                  }
-                ]
+                "method": "/temporal.api.workflowservice.v1.WorkflowService/GetSystemInfo"
               }
             },
-            "instructionId": "get-system-info",
+            "instructionId": "execute",
             "limits": {
               "maxAttempts": "1",
               "maxEmittedEvents": "8",
@@ -124,19 +108,7 @@
       "maxRunEvents": "256",
       "maxTotalDurationMilliseconds": "30000"
     },
-    "observations": [
-      {
-        "observationId": "server-version",
-        "type": {
-          "singular": {
-            "scalar": {
-              "kind": "SCALAR_KIND_TEXT"
-            }
-          }
-        }
-      }
-    ],
-    "programId": "temporal.case.get-system-info.program",
+    "programId": "temporal.case.conformance.static-rejection.expression-context.program",
     "roles": [
       {
         "kind": "ROLE_KIND_ENDPOINT",
@@ -145,7 +117,7 @@
     ]
   },
   "provenance": {
-    "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZW1wb3JhbC53b3JrZmxvdy1zZXJ2aWNlIiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAidGVtcG9yYWwtd29ya2Zsb3ctc2VydmljZS92MSIsCiAgICAgICJraW5kIjogIkNBU0VfREVGSU5JVElPTl9LSU5EX1RBUkdFVCIKICAgIH0sCiAgICB7CiAgICAgICJkZWZpbml0aW9uSWQiOiAidGVtcG9yYWwuY2FzZS5nZXQtc3lzdGVtLWluZm8ucHJvcGVydHkuc2VydmVyLXZlcnNpb24iLAogICAgICAiYmVoYXZpb3JGaW5nZXJwcmludCI6ICJ0ZW1wb3JhbC1jYXNlLWdldC1zeXN0ZW0taW5mby1wcm9wZXJ0eS92MSIsCiAgICAgICJraW5kIjogIkNBU0VfREVGSU5JVElPTl9LSU5EX1BST1BFUlRZIgogICAgfQogIF0sCiAgInNvdXJjZXMiOiBbCiAgICB7CiAgICAgICJwYXRoIjogIlRlbXBvcmFsL1Rlc3RwaWxvdC5sZWFuIiwKICAgICAgImxpbmUiOiAiMSIsCiAgICAgICJjb2x1bW4iOiAiMSIsCiAgICAgICJwcm92ZW5hbmNlIjogImNoZWNrZWQtbW9kZWwiCiAgICB9CiAgXSwKICAia25vd25HYXBzIjogW10KfQo=",
+    "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZW1wb3JhbC53b3JrZmxvdy1zZXJ2aWNlIiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAidGVtcG9yYWwtd29ya2Zsb3ctc2VydmljZS92MSIsCiAgICAgICJraW5kIjogIkNBU0VfREVGSU5JVElPTl9LSU5EX1RBUkdFVCIKICAgIH0sCiAgICB7CiAgICAgICJkZWZpbml0aW9uSWQiOiAidGVtcG9yYWwuY2FzZS5jb25mb3JtYW5jZS5zdGF0aWMtcmVqZWN0aW9uLmV4cHJlc3Npb24tY29udGV4dC5wcm9wZXJ0eSIsCiAgICAgICJiZWhhdmlvckZpbmdlcnByaW50IjogInRlbXBvcmFsLmNhc2UuY29uZm9ybWFuY2Uuc3RhdGljLXJlamVjdGlvbi5leHByZXNzaW9uLWNvbnRleHQvcHJvcGVydHkvdjEiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJUZW1wb3JhbC9UZXN0cGlsb3QubGVhbiIsCiAgICAgICJsaW5lIjogIjEiLAogICAgICAiY29sdW1uIjogIjEiLAogICAgICAicHJvdmVuYW5jZSI6ICJjaGVja2VkLW1vZGVsIgogICAgfQogIF0sCiAgImtub3duR2FwcyI6IFtdCn0K",
     "producerId": "temporal.case.compiler",
     "producerVersion": "1"
   },

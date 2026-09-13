@@ -561,10 +561,25 @@ const (
 	conformanceFixtureRoot = "common/testing/testpilot/testdata/case-runtime-conformance"
 )
 
+// Addition is a fixture the migration adds rather than migrates: a new Case with no pre-migration
+// counterpart, which no baseline can pin. Its generator still validates it.
+type Addition struct {
+	Fixture string
+	// Requirement is the fn-87 R-ID the fixture is added for.
+	Requirement string
+}
+
+// Added lists the fixtures the migration adds, in the order the tasks land them.
+var Added = []Addition{
+	{Fixture: conformanceFixtureRoot + "/static-preparation-rejection/expression-context/case.json", Requirement: "R3"},
+	{Fixture: conformanceFixtureRoot + "/static-preparation-rejection/expression-context/expected.json", Requirement: "R3"},
+}
+
 // PairedFixtures lists the repository-relative fixture paths present in both the baseline copy and
 // the regenerated trees, and fails when either side holds a fixture the other lacks, so a deleted
-// or added fixture is never silently skipped.
-func PairedFixtures(baselineFixtureRoot, repositoryRoot string) ([]string, error) {
+// or added fixture is never silently skipped. A regenerated fixture declared in added needs no
+// baseline, and must exist and have none.
+func PairedFixtures(baselineFixtureRoot, repositoryRoot string, added []Addition) ([]string, error) {
 	baseline, err := regularFiles(baselineFixtureRoot, ".")
 	if err != nil {
 		return nil, err
@@ -587,13 +602,23 @@ func PairedFixtures(baselineFixtureRoot, repositoryRoot string) ([]string, error
 	slices.Sort(regenerated)
 
 	var unpaired []string
+	declared := map[string]bool{}
+	for _, addition := range added {
+		declared[addition.Fixture] = true
+		if _, found := slices.BinarySearch(regenerated, addition.Fixture); !found {
+			unpaired = append(unpaired, "added fixture "+addition.Fixture+" ("+addition.Requirement+") is not regenerated")
+		}
+		if _, found := slices.BinarySearch(baseline, addition.Fixture); found {
+			unpaired = append(unpaired, "added fixture "+addition.Fixture+" ("+addition.Requirement+") has a baseline")
+		}
+	}
 	for _, fixture := range baseline {
 		if _, found := slices.BinarySearch(regenerated, fixture); !found {
 			unpaired = append(unpaired, "baseline fixture "+fixture+" has no regenerated counterpart")
 		}
 	}
 	for _, fixture := range regenerated {
-		if _, found := slices.BinarySearch(baseline, fixture); !found {
+		if _, found := slices.BinarySearch(baseline, fixture); !found && !declared[fixture] {
 			unpaired = append(unpaired, "regenerated fixture "+fixture+" has no baseline")
 		}
 	}

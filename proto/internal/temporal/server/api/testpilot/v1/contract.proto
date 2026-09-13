@@ -74,7 +74,7 @@ message ContractTransition {
   // The Run Event kinds the transition considers; never empty.
   RunEventFilter event_filter = 6;
   // Must hold on the Run Event for the transition to be taken.
-  ContractExpression predicate = 7;
+  Expression predicate = 7;
 }
 
 // ContractSupportKind says whether a transition's matching Run Event joins the rule's and the
@@ -87,7 +87,7 @@ enum ContractSupportKind {
 
 // ContractCaptureAssignment copies an Observation of the matching Run Event into an unassigned capture
 // when its transition is taken.
-message ContractCaptureAssignment { string capture_id = 1; ObservationRef observation = 2; }
+message ContractCaptureAssignment { string capture_id = 1; string observation_id = 2; }
 
 // ContractDeadline bounds one liveness rule. Exactly one bound is positive.
 // elapsed_milliseconds expires the rule at the first Run Event whose elapsed coordinate

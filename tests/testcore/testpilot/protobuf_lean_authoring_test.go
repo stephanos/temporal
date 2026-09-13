@@ -16,12 +16,10 @@ func TestLeanAuthoringProtoJSONStrictDecode(t *testing.T) {
 	roleFields := (&testpilotspb.Role{}).ProtoReflect().Descriptor().Fields()
 	require.EqualValues(t, 3, roleFields.ByName("namespace_binding_id").Number())
 	require.EqualValues(t, 4, roleFields.ByName("resource_binding_id").Number())
-	programExpressionEnvironment := (&testpilotspb.ProgramExpression{}).ProtoReflect().Descriptor().
-		Fields().ByName("environment")
-	require.NotNil(t, programExpressionEnvironment)
-	require.EqualValues(t, 12, programExpressionEnvironment.Number())
-	require.Nil(t, (&testpilotspb.ContractExpression{}).ProtoReflect().Descriptor().
-		Fields().ByName("environment"))
+	referenceEnvironment := (&testpilotspb.Reference{}).ProtoReflect().Descriptor().
+		Fields().ByName("environment_binding_id")
+	require.NotNil(t, referenceEnvironment)
+	require.EqualValues(t, 4, referenceEnvironment.Number())
 
 	path := os.Getenv("TESTPILOT_LEAN_AUTHORING_CASE")
 	if path == "" {
@@ -48,17 +46,17 @@ func TestLeanAuthoringProtoJSONStrictDecode(t *testing.T) {
 	require.Equal(t, "namespace", program.GetRoles()[1].GetNamespaceBindingId())
 	require.Equal(t, "task.queue", program.GetRoles()[2].GetResourceBindingId())
 	environment := program.GetEntrypoints()[0].GetInstructions()[0].GetInstruction().
-		GetFinish().GetResult().GetEnvironment()
-	require.NotNil(t, environment)
-	require.Empty(t, environment.GetBindingId())
+		GetFinish().GetResult().GetReference().GetReference()
+	require.IsType(t, &testpilotspb.Reference_EnvironmentBindingId{}, environment)
+	require.Empty(t, environment.(*testpilotspb.Reference_EnvironmentBindingId).EnvironmentBindingId)
 
 	rule := decoded.GetContract().GetRules()[0]
 	require.Equal(t, int64(9223372036854775807), rule.GetDeadline().GetElapsedMilliseconds())
 	contractAny := rule.GetTransitions()[0].GetPredicate().GetAny()
 	require.NotNil(t, contractAny)
-	require.Equal(t, "run", contractAny.GetOperands()[1].GetEquals().GetRight().GetLiteral().GetTextValue())
+	require.Equal(t, "run", contractAny.GetOperands()[1].GetCompare().GetRight().GetLiteral().GetTextValue())
 	require.Equal(t,
 		"type.googleapis.com/temporal.server.api.testpilot.v1.FormatVersion",
-		contractAny.GetOperands()[2].GetEquals().GetRight().GetLiteral().GetMessageValue().GetTypeUrl(),
+		contractAny.GetOperands()[2].GetCompare().GetRight().GetLiteral().GetMessageValue().GetTypeUrl(),
 	)
 }

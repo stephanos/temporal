@@ -26,7 +26,7 @@ private def activationKind : Entrypoint → Option Nat
                 request.endpoint_role_id == Temporal.Testpilot.workflowServiceRole &&
                 request.method == Temporal.Testpilot.getSystemInfoMethod &&
                 request.request_assignments.isEmpty &&
-                request.response_reads.map (·.kind) == #[.READ_CARDINALITY_ONE] &&
+                request.response_reads.map (·.cardinality) == #[.READ_CARDINALITY_ONE] &&
                 rule.rule_id == "server-version-present"
             | _ => false
           | _ => false

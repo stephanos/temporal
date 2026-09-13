@@ -31,8 +31,8 @@ def bounds (timeout : Int64 := 5000) (emitted : Int64 := 8) : InstructionLimits 
 
 def field (name : String) : FieldPath := Path.make #[Path.field name]
 
-def boolean (value : Bool) : ProgramExpression :=
-  ProgramExpr.literal (Value.boolean value)
+def boolean (value : Bool) : Expression :=
+  Expr.literal (Value.boolean value)
 
 def project
     (source : FieldPath)
@@ -61,22 +61,22 @@ def methodPath (schema : Umpire.Operation.RpcSchema) : String :=
   let segments := schema.fullName.splitOn "."
   "/" ++ ".".intercalate segments.dropLast ++ "/" ++ (segments.getLast?.getD "")
 
-def text (value : String) : ProgramExpression := ProgramExpr.literal (Value.text value)
-def signedInteger (value : Int) : ProgramExpression :=
-  ProgramExpr.literal (Value.signedInteger value)
-def observed (id : String) : ContractExpression := ContractExpr.observation id
-def captured (id : String) : ContractExpression := ContractExpr.capture id
-def runId : ProgramExpression := ProgramExpr.run
-def projected (value : ContractExpression) (path : FieldPath) : ContractExpression :=
-  ContractExpr.path value path
+def text (value : String) : Expression := Expr.literal (Value.text value)
+def signedInteger (value : Int) : Expression :=
+  Expr.literal (Value.signedInteger value)
+def observed (id : String) : Expression := Expr.observation id
+def captured (id : String) : Expression := Expr.capture id
+def runId : Expression := Expr.run
+def projected (value : Expression) (path : FieldPath) : Expression :=
+  Expr.path value path
 
-def succeeded (entrypoint instruction : String) : ProgramExpression :=
-  let status := ProgramExpr.outcome (Ref.instruction entrypoint instruction)
+def succeeded (entrypoint instruction : String) : Expression :=
+  let status := Expr.outcome (Ref.instruction entrypoint instruction)
     .INSTRUCTION_OUTCOME_FIELD_STATUS
-  ProgramExpr.all #[ProgramExpr.present status,
-    ProgramExpr.equals status (ProgramExpr.literal (Value.enumeration 1))]
+  Expr.all #[Expr.present status,
+    Expr.equal status (Expr.literal (Value.enumeration 1))]
 
-def assign (target : FieldPath) (value : ProgramExpression) : RequestAssignment :=
+def assign (target : FieldPath) (value : Expression) : RequestAssignment :=
   Program.requestAssignment target value
 
 def programLimits : ProgramLimits :=
