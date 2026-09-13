@@ -280,6 +280,10 @@ machine <name>
     <action> (<pattern>) → <outcome>: <observation> [when <guard>] (, ...)* | unobservable
     after (<timer>) → <outcome>: <observation> [when <guard>] | unobservable
 
+property <name>
+  machine:  <machine>
+  holds:    <predicate>                        -- Step → Bool, or Step → Step → Bool (before, after)
+
 set <name>
   purpose:  functional | canary | exploratory
   bind:     (<party>: driven | observed)+
@@ -515,6 +519,15 @@ narrows a requirement without changing its intent, and the task that owns it rec
   as a step function with its fingerprint shown equal to the row form's and its elaboration time
   recorded against the Race baselines (6 to 12 ms per check); if it cannot reproduce the fingerprint,
   fall back to rows with that evidence.
+- **Property bodies are predicates, by the same rule (decided with the user 2026-09-12).** A
+  `property` names a machine and a Lean predicate: `Step → Bool` for a same-step claim, or
+  `Step → Step → Bool` for a transition claim over the step before and the step after. The command
+  enumerates the predicate over the machine's finite table into the existing `PropertyClause`
+  records, so Search, fingerprints and Contract lowering never see a function; the keyed
+  `require: state:/outcome:/fact:` form of fn-83 is not built. fn-85 .3 shows the success Model's
+  `successfulResult` written as a predicate has the same fingerprint as its keyed form. Guards need no
+  keyword (an `if` in a step function), and reachability stays the `find` Query, not a second
+  `exists` word (SEM-19). Source: `.plans/UMPIRE_CMP_FIZZBEE.md` sections 4.1 and 4.8.
 
 ## Requirement coverage
 

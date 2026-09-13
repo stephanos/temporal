@@ -46,9 +46,17 @@ Build the oracle every later task leans on (R8, Edge Cases "No Verdict change", 
 
 
 ## Done summary
-TBD
+Added the fn-87 equivalence oracle in `common/testing/testpilot/internal/protocolmigration`. It contains a frozen protoc 29.5 descriptor snapshot and byte copies of all 19 fixtures, both taken at d9c7577309. Every fixture decodes strictly through the snapshot, is mapped under `Declared` (empty today), and matches the regenerated fixture in the generated types, and every `expected.json` is byte-identical. The retired-vocabulary gate now allows retired tokens only under the baseline prefix.
 
+- Self-tests in `mapping_test.go` fail for a differing field, naming the fixture and field path (Case, `expected.json`, and correlated rows). They also fail for a failing step, naming the step, and for an added or deleted fixture. `TestMappingHelpers` covers the four helpers: `RenameField`, `RenameEnumLiteral`, `DropField` (requires a check) and `RewriteMessages`.
+- Decision: `Step.Apply` keeps the spec's `func(fixture string, tree any) (any, error)` signature. JSON objects in the tree are `*Object` values that carry the snapshot message name they encoded, so steps can target a message by its baseline name after earlier renames. This does not change the spec's scope.
+- Decision: the repository `.gitignore` ignores `testdata/`, and `.gitignore` is outside this task's Touches. The baseline tree was committed with `git add -f`, and the README records this. Follow-up (reviewer P2): add `.gitignore` negation entries for this tree.
+- Follow-up (reviewer P3): Any-payload annotation keeps the `google.protobuf.Any` name, and no test covers an external payload.
+- Gates: the regression gate failed twice on unrelated live-test flakes before passing on the third run with 9 live identities. The first failure was a namespace-delete DeadlineExceeded in TestTestpilotUmpireRunRunsACheckedInCaseAgainstAnyEndpoint. The second was evidence ordering in TestTestpilotTypedNexusOperationsCase plus the same namespace-delete failure. The baseline run was green before any edit. lint-code shows 161 issues and lint-model 163 errors, both matching the inherited baselines.
+- The commit range also contains 094108eac3 "wip", which another session committed with only `.flow`/`.plans` files.
+
+stage: impl-review - ran (claude backend, SHIP on first round)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 094108eac3aa7e90bf8d19c21dee73994ba0e846, ba4306b889a95a4224cb8088dd401cf9c366d9d8
+- Tests: go test -count=1 -tags test_dep ./common/testing/testpilot/internal/protocolmigration/, go test -count=1 -tags test_dep ./tools/umpire/internal/retiredvocabulary/, make umpire-check-retired-vocabulary, CC=/usr/bin/cc TMPDIR=$(cd "${TMPDIR:-/tmp}" && pwd -P) make umpire-check-regression, go clean -cache && make lint-code GOLANGCI_LINT_FIX=false (161 issues, baseline 161), make lint-model (163 errors, baseline 163)
 - PRs:
