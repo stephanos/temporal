@@ -10,6 +10,7 @@ import (
 	"go.temporal.io/server/common/testing/testpilot/internal/execution"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 // Evaluator owns one Run's state. Callbacks are synchronous and must not overlap.
@@ -270,6 +271,8 @@ func (e *Evaluator) nextChange(ctx context.Context, i int, event *testpilotspb.R
 			return state.captures[ref.ID].value
 		case ir.EventReference:
 			return eventValue(event, testpilotspb.RunEventField(ref.Field))
+		case ir.EventPayloadReference:
+			return ir.RunEventPayloadValue(event, protoreflect.Name(ref.ID))
 		default:
 			return nil
 		}
@@ -351,10 +354,6 @@ func eventValue(event *testpilotspb.RunEvent, field testpilotspb.RunEventField) 
 		text = event.Coordinates.GetInstructionId()
 	case testpilotspb.RUN_EVENT_FIELD_SOURCE_ID:
 		text = event.SourceId
-	case testpilotspb.RUN_EVENT_FIELD_FAULT_ROLE_ID:
-		text = event.GetFaultInjected().GetRoleId()
-	case testpilotspb.RUN_EVENT_FIELD_FAULT_KIND:
-		return &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Number: int32(event.GetFaultInjected().GetKind())}}}
 	default:
 		return nil
 	}

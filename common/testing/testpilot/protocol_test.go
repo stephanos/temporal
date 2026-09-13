@@ -28,7 +28,8 @@ var protocolFiles = []string{
 }
 
 // runOnlyMessages are declared for a Run and must stay outside the Case import closure.
-var runOnlyMessages = []protoreflect.Name{"Run", "Verdict", "RunDiagnostic", "RunEvent", "CleanupOutcome", "FaultInjected"}
+// The Run Event payload arms are among them: InstructionOutcome and FaultInjected.
+var runOnlyMessages = []protoreflect.Name{"Run", "Verdict", "RunDiagnostic", "RunEvent", "CleanupOutcome", "InstructionOutcome", "FaultInjected"}
 
 func TestProtocolEncodesExpressionAndStateScopes(t *testing.T) {
 	t.Parallel()
@@ -64,6 +65,21 @@ func TestProtocolEncodesExpressionAndStateScopes(t *testing.T) {
 	require.True(t, diagnostic.Fields().ByName("supporting_event_sequence").HasPresence())
 	run := messageDescriptor(t, "Run")
 	require.True(t, run.Fields().ByName("evaluation_failure_sequence").HasPresence())
+	// Kind-specific Run Event data is one payload oneof, read through a path from the payload
+	// reference, so the coordinate enum names only what every event has.
+	event := messageDescriptor(t, "RunEvent")
+	require.Equal(t, []protoreflect.Name{"outcome", "fault_injected"}, oneofNames(event.Oneofs().ByName("payload")))
+	eventReference := messageDescriptor(t, "RunEventReference")
+	require.Equal(t, []protoreflect.Name{"field", "payload"}, oneofNames(eventReference.Oneofs().ByName("selection")))
+	require.EqualValues(t, testpilotspb.RUN_EVENT_FIELD_RUN_ID, testpilotspb.RunEventField(0).Descriptor().Values().Len()-1)
+}
+
+func oneofNames(oneof protoreflect.OneofDescriptor) []protoreflect.Name {
+	names := make([]protoreflect.Name, 0, oneof.Fields().Len())
+	for index := range oneof.Fields().Len() {
+		names = append(names, oneof.Fields().Get(index).Name())
+	}
+	return names
 }
 
 func TestProtocolUsesCohesivePublicVocabulary(t *testing.T) {
@@ -93,6 +109,7 @@ func TestProtocolUsesCohesivePublicVocabulary(t *testing.T) {
 		"Correlated" + "Predicate", "Correlated" + "PredicateField", "Correlated" + "Comparison",
 		"Correlated" + "ComparisonOperator", "Correlated" + "Operand", "Correlated" + "Correlation",
 		"Correlated" + "CorrelationGroup",
+		"RUN_EVENT_FIELD_" + "FAULT_ROLE_ID", "RUN_EVENT_FIELD_" + "FAULT_KIND",
 		"Scoped" + "Binding", "Scoped" + "CaptureDeclaration", "ScopedCapture" + "Ref", "Scoped" + "Clause",
 		"Scoped" + "Clock", "Scoped" + "Comparison", "Scoped" + "ComparisonOperator", "Scoped" + "Contract",
 		"Scoped" + "Correlation", "Scoped" + "CorrelationGroup", "Scoped" + "Endpoint", "Scoped" + "Evidence",
@@ -120,7 +137,7 @@ func TestCaseImportClosureExcludesRunOnlyMessages(t *testing.T) {
 	}, protoregistry.GlobalFiles)
 	require.NoError(t, err)
 	require.Equal(t, []string{
-		"test/case.proto imports temporal/server/api/testpilot/v1/run.proto, which declares Run-only CleanupOutcome, FaultInjected, Run, RunDiagnostic, RunEvent, Verdict",
+		"test/case.proto imports temporal/server/api/testpilot/v1/run.proto, which declares Run-only CleanupOutcome, FaultInjected, InstructionOutcome, Run, RunDiagnostic, RunEvent, Verdict",
 	}, runOnlyImports(wrong))
 }
 

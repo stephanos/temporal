@@ -708,6 +708,8 @@ func buildRetiredRules() ([]tokenRule, error) {
 		tokenRule{name: "PROJECTION_KIND_*", pattern: regexp.MustCompile(`(^|[^A-Za-z0-9_])PROJECTION_KIND_[A-Z0-9_]+`)},
 		tokenRule{name: "CORRELATED_PREDICATE_FIELD_*", pattern: regexp.MustCompile(`(^|[^A-Za-z0-9_])CORRELATED_PREDICATE_FIELD_[A-Z0-9_]+`)},
 		tokenRule{name: "CORRELATED_COMPARISON_OPERATOR_*", pattern: regexp.MustCompile(`(^|[^A-Za-z0-9_])CORRELATED_COMPARISON_OPERATOR_[A-Z0-9_]+`)},
+		// Fault data moved into the Run Event payload, read through a path rather than a coordinate.
+		tokenRule{name: "RUN_EVENT_FIELD_FAULT_*", pattern: regexp.MustCompile(`(^|[^A-Za-z0-9_])RUN_EVENT_FIELD_FAULT_[A-Z0-9_]+`)},
 	)
 	// The generation-numbered module and identity roots. A leading hyphen is excluded because the
 	// only occurrences in that shape are immutable Flow spec slugs, which name closed records rather

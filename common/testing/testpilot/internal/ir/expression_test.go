@@ -255,28 +255,90 @@ func TestGuardedExpressionExactPathAndSharedBudget(t *testing.T) {
 	require.Error(t, err)
 }
 
-// The Run Event reference range is the one guard between a Contract expression and an event field
-// the recorder never populates, so the two fault fields must be inside it and nothing beyond.
-func TestRunEventReferencesAdmitFaultFields(t *testing.T) {
+// The Run Event reference range is the one guard between a Contract expression and a coordinate the
+// recorder never populates, so every common coordinate must be inside it and nothing beyond.
+func TestRunEventReferencesAdmitCoordinates(t *testing.T) {
 	c := fixtureCatalog(t)
 	textType := boundType(t, c, scalar(testpilotspb.SCALAR_KIND_TEXT))
-	for _, field := range []testpilotspb.RunEventField{testpilotspb.RUN_EVENT_FIELD_FAULT_ROLE_ID, testpilotspb.RUN_EVENT_FIELD_FAULT_KIND} {
-		t.Run(field.String(), func(t *testing.T) {
-			scope := map[Reference]Binding{{Kind: EventReference, Field: int32(field)}: {Type: textType, Available: true}}
-			reference := &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_RunEvent{RunEvent: &testpilotspb.RunEventReference{Field: field}}}}}
-			compiled, err := c.BindExpression(contractSite, reference, nil, scope, DefaultLimits())
-			require.NoError(t, err)
-			require.NotNil(t, compiled)
-		})
-	}
-	for _, field := range []testpilotspb.RunEventField{testpilotspb.RUN_EVENT_FIELD_UNSPECIFIED, testpilotspb.RUN_EVENT_FIELD_FAULT_KIND + 1} {
-		t.Run("rejected/"+field.String(), func(t *testing.T) {
-			scope := map[Reference]Binding{{Kind: EventReference, Field: int32(field)}: {Type: textType, Available: true}}
-			reference := &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_RunEvent{RunEvent: &testpilotspb.RunEventReference{Field: field}}}}}
-			_, err := c.BindExpression(contractSite, reference, nil, scope, DefaultLimits())
+	for _, tc := range []struct {
+		field testpilotspb.RunEventField
+		admit bool
+	}{
+		{testpilotspb.RUN_EVENT_FIELD_SEQUENCE, true},
+		{testpilotspb.RUN_EVENT_FIELD_RUN_ID, true},
+		{testpilotspb.RUN_EVENT_FIELD_UNSPECIFIED, false},
+		{testpilotspb.RUN_EVENT_FIELD_RUN_ID + 1, false},
+	} {
+		t.Run(fmt.Sprint(int32(tc.field)), func(t *testing.T) {
+			scope := map[Reference]Binding{{Kind: EventReference, Field: int32(tc.field)}: {Type: textType, Available: true}}
+			_, err := c.BindExpression(contractSite, runEventReference(&testpilotspb.RunEventReference{Selection: &testpilotspb.RunEventReference_Field{Field: tc.field}}), nil, scope, DefaultLimits())
+			if tc.admit {
+				require.NoError(t, err)
+				return
+			}
 			require.Error(t, err)
 		})
 	}
+}
+
+func runEventReference(event *testpilotspb.RunEventReference) *testpilotspb.Expression {
+	return reference(&testpilotspb.Reference{Reference: &testpilotspb.Reference_RunEvent{RunEvent: event}})
+}
+
+func payloadPath(segments ...string) *testpilotspb.Expression {
+	path := &testpilotspb.FieldPath{}
+	for _, segment := range segments {
+		path.Segments = append(path.Segments, &testpilotspb.FieldPathSegment{Field: segment})
+	}
+	payload := runEventReference(&testpilotspb.RunEventReference{Selection: &testpilotspb.RunEventReference_Payload{Payload: &testpilotspb.RunEventPayloadReference{}}})
+	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Path{Path: &testpilotspb.PathExpression{Operand: payload, Path: path}}}
+}
+
+// A path from the Run Event payload binds through the arm its first segment names: the arm must be
+// declared in scope, the rest of the path is typed by the arm's descriptor, and the payload itself is
+// never an operand on its own.
+func TestRunEventPayloadPathsBindThroughTheArmTheyName(t *testing.T) {
+	c := fixtureCatalog(t)
+	faultType, known := c.RunEventPayloadType("fault_injected")
+	require.True(t, known)
+	declared := map[Reference]Binding{{Kind: EventPayloadReference, ID: "fault_injected"}: {Type: faultType, Available: true}}
+	unavailable := map[Reference]Binding{{Kind: EventPayloadReference, ID: "fault_injected"}: {Type: faultType}}
+	queue := literal(text("queue"))
+	located := "contract.predicate.compare.left.path.path"
+	for _, tc := range []struct {
+		name       string
+		site       Site
+		expression *testpilotspb.Expression
+		scope      map[Reference]Binding
+		want       *Error
+	}{
+		{name: "declared arm", site: contractSite, expression: equal(payloadPath("fault_injected", "role_id"), queue), scope: declared},
+		{name: "guarded arm", site: contractSite, expression: &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: &testpilotspb.AllExpression{Operands: []*testpilotspb.Expression{present(payloadPath("fault_injected", "role_id")), equal(payloadPath("fault_injected", "role_id"), queue)}}}}, scope: unavailable},
+		{name: "unguarded arm", site: contractSite, expression: equal(payloadPath("fault_injected", "role_id"), queue), scope: unavailable, want: &Error{Category: Unavailable, Path: "expression", Detail: "reference or projection requires an explicit presence guard"}},
+		{name: "undeclared arm", site: contractSite, expression: equal(payloadPath("outcome", "detail"), queue), scope: declared, want: &Error{Category: Unknown, Path: located + ".segments[0].field", Detail: "no Run Event kind this expression evaluates can carry the payload arm"}},
+		{name: "unknown arm", site: contractSite, expression: equal(payloadPath("source_id"), queue), scope: declared, want: &Error{Category: Unknown, Path: located + ".segments[0].field", Detail: "unknown Run Event payload arm"}},
+		{name: "empty path", site: contractSite, expression: equal(payloadPath(), queue), scope: declared, want: &Error{Category: Malformed, Path: located, Detail: "a Run Event payload path starts with the plain name of a payload arm"}},
+		{name: "bare payload", site: contractSite, expression: equal(runEventReference(&testpilotspb.RunEventReference{Selection: &testpilotspb.RunEventReference_Payload{Payload: &testpilotspb.RunEventPayloadReference{}}}), queue), scope: declared, want: &Error{Category: Malformed, Path: "contract.predicate.compare.left.reference.run_event.payload", Detail: "a Run Event payload is read only through a path that names its arm"}},
+		{name: "outside the Contract context", site: programSite, expression: equal(payloadPath("fault_injected", "role_id"), queue), scope: declared, want: &Error{Category: Unknown, Path: "program.guard.compare.left.path.operand.reference.run_event", Detail: "reference is not admitted in this expression context"}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := c.BindExpression(tc.site, tc.expression, nil, tc.scope, DefaultLimits())
+			if tc.want == nil {
+				require.NoError(t, err)
+				return
+			}
+			require.Equal(t, tc.want, err)
+		})
+	}
+
+	bound, err := c.BindExpression(contractSite, equal(payloadPath("fault_injected", "kind"), literal(&testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Number: int32(testpilotspb.FAULT_KIND_WORKER_STOP)}}})), nil, declared, DefaultLimits())
+	require.NoError(t, err)
+	event := &testpilotspb.RunEvent{Kind: testpilotspb.RUN_EVENT_KIND_FAULT_INJECTED, Payload: &testpilotspb.RunEvent_FaultInjected{FaultInjected: &testpilotspb.FaultInjected{RoleId: "queue", Kind: testpilotspb.FAULT_KIND_WORKER_STOP}}}
+	matched, _, err := bound.Evaluate(t.Context(), func(reference Reference) *testpilotspb.Value {
+		return RunEventPayloadValue(event, protoreflect.Name(reference.ID))
+	}, DefaultLimits().Work)
+	require.NoError(t, err)
+	require.True(t, matched.GetBoolValue())
 }
 
 // Program and Contract share one expression language, so a reference outside its context is
@@ -292,7 +354,7 @@ func TestExpressionContextsRejectReferencesOutsideThem(t *testing.T) {
 		"run":                    {Reference: &testpilotspb.Reference_Run{Run: &testpilotspb.RunReference{}}},
 		"environment_binding_id": {Reference: &testpilotspb.Reference_EnvironmentBindingId{EnvironmentBindingId: "namespace"}},
 		"observation_id":         {Reference: &testpilotspb.Reference_ObservationId{ObservationId: "o"}},
-		"run_event":              {Reference: &testpilotspb.Reference_RunEvent{RunEvent: &testpilotspb.RunEventReference{Field: testpilotspb.RUN_EVENT_FIELD_KIND}}},
+		"run_event":              {Reference: &testpilotspb.Reference_RunEvent{RunEvent: &testpilotspb.RunEventReference{Selection: &testpilotspb.RunEventReference_Field{Field: testpilotspb.RUN_EVENT_FIELD_KIND}}}},
 		"capture_id":             {Reference: &testpilotspb.Reference_CaptureId{CaptureId: "c"}},
 		"evidence_field_id":      {Reference: &testpilotspb.Reference_EvidenceFieldId{EvidenceFieldId: "f"}},
 		"correlated_capture":     {Reference: &testpilotspb.Reference_CorrelatedCapture{CorrelatedCapture: &testpilotspb.CorrelatedCaptureReference{CaptureId: "c"}}},

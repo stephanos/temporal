@@ -52,9 +52,23 @@
                   {
                     "compare": {
                       "left": {
-                        "reference": {
-                          "runEvent": {
-                            "field": "RUN_EVENT_FIELD_FAULT_ROLE_ID"
+                        "path": {
+                          "operand": {
+                            "reference": {
+                              "runEvent": {
+                                "payload": {}
+                              }
+                            }
+                          },
+                          "path": {
+                            "segments": [
+                              {
+                                "field": "fault_injected"
+                              },
+                              {
+                                "field": "role_id"
+                              }
+                            ]
                           }
                         }
                       },
@@ -69,9 +83,23 @@
                   {
                     "compare": {
                       "left": {
-                        "reference": {
-                          "runEvent": {
-                            "field": "RUN_EVENT_FIELD_FAULT_KIND"
+                        "path": {
+                          "operand": {
+                            "reference": {
+                              "runEvent": {
+                                "payload": {}
+                              }
+                            }
+                          },
+                          "path": {
+                            "segments": [
+                              {
+                                "field": "fault_injected"
+                              },
+                              {
+                                "field": "kind"
+                              }
+                            ]
                           }
                         }
                       },
@@ -105,9 +133,23 @@
                   {
                     "compare": {
                       "left": {
-                        "reference": {
-                          "runEvent": {
-                            "field": "RUN_EVENT_FIELD_FAULT_ROLE_ID"
+                        "path": {
+                          "operand": {
+                            "reference": {
+                              "runEvent": {
+                                "payload": {}
+                              }
+                            }
+                          },
+                          "path": {
+                            "segments": [
+                              {
+                                "field": "fault_injected"
+                              },
+                              {
+                                "field": "role_id"
+                              }
+                            ]
                           }
                         }
                       },
@@ -122,9 +164,23 @@
                   {
                     "compare": {
                       "left": {
-                        "reference": {
-                          "runEvent": {
-                            "field": "RUN_EVENT_FIELD_FAULT_KIND"
+                        "path": {
+                          "operand": {
+                            "reference": {
+                              "runEvent": {
+                                "payload": {}
+                              }
+                            }
+                          },
+                          "path": {
+                            "segments": [
+                              {
+                                "field": "fault_injected"
+                              },
+                              {
+                                "field": "kind"
+                              }
+                            ]
                           }
                         }
                       },

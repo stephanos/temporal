@@ -206,16 +206,9 @@ func (a *admission) bindScope() error {
 	for _, observation := range a.prepared.program.Observations() {
 		a.scope[ir.Reference{Kind: ir.ObservationReference, ID: observation.ID}] = ir.Binding{Type: observation.Type}
 	}
-	// RUN_ID sits between SOURCE_ID and the fault fields and stays Program-only, so the two
-	// admitted ranges are declared rather than walked as one interval.
-	fields := make([]testpilotspb.RunEventField, 0, 10)
+	// RUN_ID follows SOURCE_ID and stays Program-only. Kind-specific data is not a field: a
+	// transition declares the payload arms its event kinds may carry.
 	for field := testpilotspb.RUN_EVENT_FIELD_SEQUENCE; field <= testpilotspb.RUN_EVENT_FIELD_SOURCE_ID; field++ {
-		fields = append(fields, field)
-	}
-	for field := testpilotspb.RUN_EVENT_FIELD_FAULT_ROLE_ID; field <= testpilotspb.RUN_EVENT_FIELD_FAULT_KIND; field++ {
-		fields = append(fields, field)
-	}
-	for _, field := range fields {
 		kind := testpilotspb.SCALAR_KIND_TEXT
 		if field == testpilotspb.RUN_EVENT_FIELD_SEQUENCE || field == testpilotspb.RUN_EVENT_FIELD_ELAPSED_MILLISECONDS || field == testpilotspb.RUN_EVENT_FIELD_ATTEMPT {
 			kind = testpilotspb.SCALAR_KIND_INT64
@@ -242,8 +235,54 @@ func predicatePath(rule *testpilotspb.ContractRule, transition *testpilotspb.Con
 
 // The Run Event fields whose declared type is an enumeration rather than a scalar.
 var eventFieldEnumerations = map[testpilotspb.RunEventField]protoreflect.FullName{
-	testpilotspb.RUN_EVENT_FIELD_KIND:       testpilotspb.RunEventKind(0).Descriptor().FullName(),
-	testpilotspb.RUN_EVENT_FIELD_FAULT_KIND: testpilotspb.FaultKind(0).Descriptor().FullName(),
+	testpilotspb.RUN_EVENT_FIELD_KIND: testpilotspb.RunEventKind(0).Descriptor().FullName(),
+}
+
+func payloadReference(arm protoreflect.Name) ir.Reference {
+	return ir.Reference{Kind: ir.EventPayloadReference, ID: string(arm)}
+}
+
+// declarePayloads declares in scope, for structural checking, each Run Event payload arm some
+// kind in kinds may carry, and removes every other arm. A path into an arm no kind of the
+// transition's filter can carry therefore rejects at preparation.
+func (a *admission) declarePayloads(scope map[ir.Reference]ir.Binding, kinds []testpilotspb.RunEventKind) error {
+	for kind := testpilotspb.RUN_EVENT_KIND_RUN_OPENED; kind <= ir.MaxRunEventKind; kind++ {
+		if arm := ir.RunEventPayloadOf(kind).Arm; arm != "" {
+			delete(scope, payloadReference(arm))
+		}
+	}
+	for _, kind := range kinds {
+		if err := a.declarePayload(scope, ir.RunEventPayloadOf(kind).Arm, true); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// evaluatedPayloads declares in scope every Run Event payload arm for one evaluated event kind.
+// Only the arm the kind requires is available, so a read of an arm the event may lack is absent
+// until a presence check guards it.
+func (a *admission) evaluatedPayloads(scope map[ir.Reference]ir.Binding, kind testpilotspb.RunEventKind) error {
+	carried := ir.RunEventPayloadOf(kind)
+	for other := testpilotspb.RUN_EVENT_KIND_RUN_OPENED; other <= ir.MaxRunEventKind; other++ {
+		arm := ir.RunEventPayloadOf(other).Arm
+		if err := a.declarePayload(scope, arm, carried.Required && carried.Arm == arm); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (a *admission) declarePayload(scope map[ir.Reference]ir.Binding, arm protoreflect.Name, available bool) error {
+	if arm == "" {
+		return nil
+	}
+	typ, known := a.catalog.RunEventPayloadType(arm)
+	if !known {
+		return invalid(ir.Malformed, "Run Event payload table names an undeclared arm")
+	}
+	scope[payloadReference(arm)] = ir.Binding{Type: typ, Available: available}
+	return nil
 }
 
 func (a *admission) bindStates(m *machine) error {
@@ -312,6 +351,9 @@ func (a *admission) bindTransitions(m *machine, scope map[ir.Reference]ir.Bindin
 				return invalid(ir.Unknown, "invalid or duplicate event kind")
 			}
 			m.outgoing[from][kind] = append(m.outgoing[from][kind], i)
+		}
+		if err := a.declarePayloads(scope, tr.EventFilter.Kinds); err != nil {
+			return err
 		}
 		bound, err := a.bind(nil, tr.Predicate, predicatePath(rule, tr), &a.boolean, scope)
 		if err != nil {

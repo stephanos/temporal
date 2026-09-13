@@ -528,15 +528,20 @@ type RunEvent struct {
 	// The producer's unique deterministic id for the event; an identical republish is deduplicated.
 	SourceId string `protobuf:"bytes,5,opt,name=source_id,json=sourceId,proto3" json:"source_id,omitempty"`
 	// The source ids of the events that caused this one.
-	CausalSourceIds []string `protobuf:"bytes,6,rep,name=causal_source_ids,json=causalSourceIds,proto3" json:"causal_source_ids,omitempty"`
-	// The instruction outcome, on instruction and diagnostic events.
-	Outcome      *InstructionOutcome  `protobuf:"bytes,7,opt,name=outcome,proto3" json:"outcome,omitempty"`
-	Observations []*ObservationResult `protobuf:"bytes,8,rep,name=observations,proto3" json:"observations,omitempty"`
+	CausalSourceIds []string             `protobuf:"bytes,6,rep,name=causal_source_ids,json=causalSourceIds,proto3" json:"causal_source_ids,omitempty"`
+	Observations    []*ObservationResult `protobuf:"bytes,7,rep,name=observations,proto3" json:"observations,omitempty"`
 	// Set before evaluation of the first event establishing execution incompleteness.
 	// Incompleteness remains effective for every later event.
-	ExecutionIncomplete bool `protobuf:"varint,9,opt,name=execution_incomplete,json=executionIncomplete,proto3" json:"execution_incomplete,omitempty"`
-	// Carried only by RUN_EVENT_KIND_FAULT_INJECTED events; it names the realized fault.
-	FaultInjected *FaultInjected `protobuf:"bytes,10,opt,name=fault_injected,json=faultInjected,proto3" json:"fault_injected,omitempty"`
+	ExecutionIncomplete bool `protobuf:"varint,8,opt,name=execution_incomplete,json=executionIncomplete,proto3" json:"execution_incomplete,omitempty"`
+	// The kind-specific data of the event. Instruction completed, instruction timed out and diagnostic
+	// events may carry an outcome; a fault injected event carries the fault it records; no other kind
+	// carries a payload. A Contract reads it through a path from a Run Event payload reference.
+	//
+	// Types that are valid to be assigned to Payload:
+	//
+	//	*RunEvent_Outcome
+	//	*RunEvent_FaultInjected
+	Payload       isRunEvent_Payload `protobuf_oneof:"payload"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -613,13 +618,6 @@ func (x *RunEvent) GetCausalSourceIds() []string {
 	return nil
 }
 
-func (x *RunEvent) GetOutcome() *InstructionOutcome {
-	if x != nil {
-		return x.Outcome
-	}
-	return nil
-}
-
 func (x *RunEvent) GetObservations() []*ObservationResult {
 	if x != nil {
 		return x.Observations
@@ -634,12 +632,48 @@ func (x *RunEvent) GetExecutionIncomplete() bool {
 	return false
 }
 
-func (x *RunEvent) GetFaultInjected() *FaultInjected {
+func (x *RunEvent) GetPayload() isRunEvent_Payload {
 	if x != nil {
-		return x.FaultInjected
+		return x.Payload
 	}
 	return nil
 }
+
+func (x *RunEvent) GetOutcome() *InstructionOutcome {
+	if x != nil {
+		if x, ok := x.Payload.(*RunEvent_Outcome); ok {
+			return x.Outcome
+		}
+	}
+	return nil
+}
+
+func (x *RunEvent) GetFaultInjected() *FaultInjected {
+	if x != nil {
+		if x, ok := x.Payload.(*RunEvent_FaultInjected); ok {
+			return x.FaultInjected
+		}
+	}
+	return nil
+}
+
+type isRunEvent_Payload interface {
+	isRunEvent_Payload()
+}
+
+type RunEvent_Outcome struct {
+	// The instruction outcome.
+	Outcome *InstructionOutcome `protobuf:"bytes,9,opt,name=outcome,proto3,oneof"`
+}
+
+type RunEvent_FaultInjected struct {
+	// The realized fault.
+	FaultInjected *FaultInjected `protobuf:"bytes,10,opt,name=fault_injected,json=faultInjected,proto3,oneof"`
+}
+
+func (*RunEvent_Outcome) isRunEvent_Payload() {}
+
+func (*RunEvent_FaultInjected) isRunEvent_Payload() {}
 
 // RunEventCoordinates locate a Run Event in the Program.
 type RunEventCoordinates struct {
@@ -773,6 +807,87 @@ func (x *ObservationResult) GetValue() *Value {
 	return nil
 }
 
+// InstructionOutcome is the generic result of one instruction attempt.
+type InstructionOutcome struct {
+	state  protoimpl.MessageState   `protogen:"open.v1"`
+	Status InstructionOutcomeStatus `protobuf:"varint,1,opt,name=status,proto3,enum=temporal.server.api.testpilot.v1.InstructionOutcomeStatus" json:"status,omitempty"`
+	// The lowercase gRPC status code of an RPC, such as "ok".
+	ProtocolCode string `protobuf:"bytes,2,opt,name=protocol_code,json=protocolCode,proto3" json:"protocol_code,omitempty"`
+	// The SDK failure: "canceled", "timed_out", or the application error type.
+	SdkFailureCode string `protobuf:"bytes,3,opt,name=sdk_failure_code,json=sdkFailureCode,proto3" json:"sdk_failure_code,omitempty"`
+	// Bounded error text.
+	Detail string `protobuf:"bytes,4,opt,name=detail,proto3" json:"detail,omitempty"`
+	// The result on success, when the outcome declares VALUE.
+	Value         *Value `protobuf:"bytes,5,opt,name=value,proto3" json:"value,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InstructionOutcome) Reset() {
+	*x = InstructionOutcome{}
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InstructionOutcome) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InstructionOutcome) ProtoMessage() {}
+
+func (x *InstructionOutcome) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InstructionOutcome.ProtoReflect.Descriptor instead.
+func (*InstructionOutcome) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *InstructionOutcome) GetStatus() InstructionOutcomeStatus {
+	if x != nil {
+		return x.Status
+	}
+	return INSTRUCTION_OUTCOME_STATUS_UNSPECIFIED
+}
+
+func (x *InstructionOutcome) GetProtocolCode() string {
+	if x != nil {
+		return x.ProtocolCode
+	}
+	return ""
+}
+
+func (x *InstructionOutcome) GetSdkFailureCode() string {
+	if x != nil {
+		return x.SdkFailureCode
+	}
+	return ""
+}
+
+func (x *InstructionOutcome) GetDetail() string {
+	if x != nil {
+		return x.Detail
+	}
+	return ""
+}
+
+func (x *InstructionOutcome) GetValue() *Value {
+	if x != nil {
+		return x.Value
+	}
+	return nil
+}
+
 // FaultInjected is the recorded fact that a Driver realized one requested outage.
 type FaultInjected struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -784,7 +899,7 @@ type FaultInjected struct {
 
 func (x *FaultInjected) Reset() {
 	*x = FaultInjected{}
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[4]
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -796,7 +911,7 @@ func (x *FaultInjected) String() string {
 func (*FaultInjected) ProtoMessage() {}
 
 func (x *FaultInjected) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[4]
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -809,7 +924,7 @@ func (x *FaultInjected) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FaultInjected.ProtoReflect.Descriptor instead.
 func (*FaultInjected) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{4}
+	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *FaultInjected) GetRoleId() string {
@@ -838,7 +953,7 @@ type CleanupOutcome struct {
 
 func (x *CleanupOutcome) Reset() {
 	*x = CleanupOutcome{}
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[5]
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -850,7 +965,7 @@ func (x *CleanupOutcome) String() string {
 func (*CleanupOutcome) ProtoMessage() {}
 
 func (x *CleanupOutcome) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[5]
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -863,7 +978,7 @@ func (x *CleanupOutcome) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CleanupOutcome.ProtoReflect.Descriptor instead.
 func (*CleanupOutcome) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{5}
+	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *CleanupOutcome) GetStatus() CleanupStatus {
@@ -899,7 +1014,7 @@ type RunDiagnostic struct {
 
 func (x *RunDiagnostic) Reset() {
 	*x = RunDiagnostic{}
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[6]
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -911,7 +1026,7 @@ func (x *RunDiagnostic) String() string {
 func (*RunDiagnostic) ProtoMessage() {}
 
 func (x *RunDiagnostic) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[6]
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -924,7 +1039,7 @@ func (x *RunDiagnostic) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RunDiagnostic.ProtoReflect.Descriptor instead.
 func (*RunDiagnostic) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{6}
+	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *RunDiagnostic) GetDiagnosticId() string {
@@ -995,7 +1110,7 @@ type Verdict struct {
 
 func (x *Verdict) Reset() {
 	*x = Verdict{}
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[7]
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1007,7 +1122,7 @@ func (x *Verdict) String() string {
 func (*Verdict) ProtoMessage() {}
 
 func (x *Verdict) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[7]
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1020,7 +1135,7 @@ func (x *Verdict) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Verdict.ProtoReflect.Descriptor instead.
 func (*Verdict) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{7}
+	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *Verdict) GetStatus() VerdictStatus {
@@ -1059,7 +1174,7 @@ type RuleVerdict struct {
 
 func (x *RuleVerdict) Reset() {
 	*x = RuleVerdict{}
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[8]
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1071,7 +1186,7 @@ func (x *RuleVerdict) String() string {
 func (*RuleVerdict) ProtoMessage() {}
 
 func (x *RuleVerdict) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[8]
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1084,7 +1199,7 @@ func (x *RuleVerdict) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RuleVerdict.ProtoReflect.Descriptor instead.
 func (*RuleVerdict) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{8}
+	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *RuleVerdict) GetRuleId() string {
@@ -1131,19 +1246,20 @@ const file_temporal_server_api_testpilot_v1_run_proto_rawDesc = "" +
 	"\averdict\x18\a \x01(\v2).temporal.server.api.testpilot.v1.VerdictR\averdict\x12Q\n" +
 	"\vdiagnostics\x18\b \x03(\v2/.temporal.server.api.testpilot.v1.RunDiagnosticR\vdiagnostics\x12@\n" +
 	"\x1bevaluation_failure_sequence\x18\t \x01(\x03H\x00R\x19evaluationFailureSequenceB\x14\n" +
-	"\x12evaluation_failure\"\xf3\x04\n" +
+	"\x12evaluation_failure\"\x82\x05\n" +
 	"\bRunEvent\x12\x1a\n" +
 	"\bsequence\x18\x01 \x01(\x03R\bsequence\x121\n" +
 	"\x14elapsed_milliseconds\x18\x02 \x01(\x03R\x13elapsedMilliseconds\x12B\n" +
 	"\x04kind\x18\x03 \x01(\x0e2..temporal.server.api.testpilot.v1.RunEventKindR\x04kind\x12W\n" +
 	"\vcoordinates\x18\x04 \x01(\v25.temporal.server.api.testpilot.v1.RunEventCoordinatesR\vcoordinates\x12\x1b\n" +
 	"\tsource_id\x18\x05 \x01(\tR\bsourceId\x12*\n" +
-	"\x11causal_source_ids\x18\x06 \x03(\tR\x0fcausalSourceIds\x12N\n" +
-	"\aoutcome\x18\a \x01(\v24.temporal.server.api.testpilot.v1.InstructionOutcomeR\aoutcome\x12W\n" +
-	"\fobservations\x18\b \x03(\v23.temporal.server.api.testpilot.v1.ObservationResultR\fobservations\x121\n" +
-	"\x14execution_incomplete\x18\t \x01(\bR\x13executionIncomplete\x12V\n" +
+	"\x11causal_source_ids\x18\x06 \x03(\tR\x0fcausalSourceIds\x12W\n" +
+	"\fobservations\x18\a \x03(\v23.temporal.server.api.testpilot.v1.ObservationResultR\fobservations\x121\n" +
+	"\x14execution_incomplete\x18\b \x01(\bR\x13executionIncomplete\x12P\n" +
+	"\aoutcome\x18\t \x01(\v24.temporal.server.api.testpilot.v1.InstructionOutcomeH\x00R\aoutcome\x12X\n" +
 	"\x0efault_injected\x18\n" +
-	" \x01(\v2/.temporal.server.api.testpilot.v1.FaultInjectedR\rfaultInjected\"\xc5\x01\n" +
+	" \x01(\v2/.temporal.server.api.testpilot.v1.FaultInjectedH\x00R\rfaultInjectedB\t\n" +
+	"\apayload\"\xc5\x01\n" +
 	"\x13RunEventCoordinates\x12#\n" +
 	"\rentrypoint_id\x18\x01 \x01(\tR\fentrypointId\x12#\n" +
 	"\ractivation_id\x18\x02 \x01(\tR\factivationId\x12%\n" +
@@ -1152,7 +1268,13 @@ const file_temporal_server_api_testpilot_v1_run_proto_rawDesc = "" +
 	"\remitted_index\x18\x05 \x01(\x03R\femittedIndex\"y\n" +
 	"\x11ObservationResult\x12%\n" +
 	"\x0eobservation_id\x18\x01 \x01(\tR\robservationId\x12=\n" +
-	"\x05value\x18\x02 \x01(\v2'.temporal.server.api.testpilot.v1.ValueR\x05value\"i\n" +
+	"\x05value\x18\x02 \x01(\v2'.temporal.server.api.testpilot.v1.ValueR\x05value\"\x8e\x02\n" +
+	"\x12InstructionOutcome\x12R\n" +
+	"\x06status\x18\x01 \x01(\x0e2:.temporal.server.api.testpilot.v1.InstructionOutcomeStatusR\x06status\x12#\n" +
+	"\rprotocol_code\x18\x02 \x01(\tR\fprotocolCode\x12(\n" +
+	"\x10sdk_failure_code\x18\x03 \x01(\tR\x0esdkFailureCode\x12\x16\n" +
+	"\x06detail\x18\x04 \x01(\tR\x06detail\x12=\n" +
+	"\x05value\x18\x05 \x01(\v2'.temporal.server.api.testpilot.v1.ValueR\x05value\"i\n" +
 	"\rFaultInjected\x12\x17\n" +
 	"\arole_id\x18\x01 \x01(\tR\x06roleId\x12?\n" +
 	"\x04kind\x18\x02 \x01(\x0e2+.temporal.server.api.testpilot.v1.FaultKindR\x04kind\"\x80\x01\n" +
@@ -1219,50 +1341,53 @@ func file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP() []byte {
 }
 
 var file_temporal_server_api_testpilot_v1_run_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
-var file_temporal_server_api_testpilot_v1_run_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_temporal_server_api_testpilot_v1_run_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_temporal_server_api_testpilot_v1_run_proto_goTypes = []any{
-	(RunDisposition)(0),         // 0: temporal.server.api.testpilot.v1.RunDisposition
-	(CleanupStatus)(0),          // 1: temporal.server.api.testpilot.v1.CleanupStatus
-	(RunDiagnosticKind)(0),      // 2: temporal.server.api.testpilot.v1.RunDiagnosticKind
-	(VerdictStatus)(0),          // 3: temporal.server.api.testpilot.v1.VerdictStatus
-	(RuleVerdictStatus)(0),      // 4: temporal.server.api.testpilot.v1.RuleVerdictStatus
-	(*Run)(nil),                 // 5: temporal.server.api.testpilot.v1.Run
-	(*RunEvent)(nil),            // 6: temporal.server.api.testpilot.v1.RunEvent
-	(*RunEventCoordinates)(nil), // 7: temporal.server.api.testpilot.v1.RunEventCoordinates
-	(*ObservationResult)(nil),   // 8: temporal.server.api.testpilot.v1.ObservationResult
-	(*FaultInjected)(nil),       // 9: temporal.server.api.testpilot.v1.FaultInjected
-	(*CleanupOutcome)(nil),      // 10: temporal.server.api.testpilot.v1.CleanupOutcome
-	(*RunDiagnostic)(nil),       // 11: temporal.server.api.testpilot.v1.RunDiagnostic
-	(*Verdict)(nil),             // 12: temporal.server.api.testpilot.v1.Verdict
-	(*RuleVerdict)(nil),         // 13: temporal.server.api.testpilot.v1.RuleVerdict
-	(RunEventKind)(0),           // 14: temporal.server.api.testpilot.v1.RunEventKind
-	(*InstructionOutcome)(nil),  // 15: temporal.server.api.testpilot.v1.InstructionOutcome
-	(*Value)(nil),               // 16: temporal.server.api.testpilot.v1.Value
-	(FaultKind)(0),              // 17: temporal.server.api.testpilot.v1.FaultKind
+	(RunDisposition)(0),           // 0: temporal.server.api.testpilot.v1.RunDisposition
+	(CleanupStatus)(0),            // 1: temporal.server.api.testpilot.v1.CleanupStatus
+	(RunDiagnosticKind)(0),        // 2: temporal.server.api.testpilot.v1.RunDiagnosticKind
+	(VerdictStatus)(0),            // 3: temporal.server.api.testpilot.v1.VerdictStatus
+	(RuleVerdictStatus)(0),        // 4: temporal.server.api.testpilot.v1.RuleVerdictStatus
+	(*Run)(nil),                   // 5: temporal.server.api.testpilot.v1.Run
+	(*RunEvent)(nil),              // 6: temporal.server.api.testpilot.v1.RunEvent
+	(*RunEventCoordinates)(nil),   // 7: temporal.server.api.testpilot.v1.RunEventCoordinates
+	(*ObservationResult)(nil),     // 8: temporal.server.api.testpilot.v1.ObservationResult
+	(*InstructionOutcome)(nil),    // 9: temporal.server.api.testpilot.v1.InstructionOutcome
+	(*FaultInjected)(nil),         // 10: temporal.server.api.testpilot.v1.FaultInjected
+	(*CleanupOutcome)(nil),        // 11: temporal.server.api.testpilot.v1.CleanupOutcome
+	(*RunDiagnostic)(nil),         // 12: temporal.server.api.testpilot.v1.RunDiagnostic
+	(*Verdict)(nil),               // 13: temporal.server.api.testpilot.v1.Verdict
+	(*RuleVerdict)(nil),           // 14: temporal.server.api.testpilot.v1.RuleVerdict
+	(RunEventKind)(0),             // 15: temporal.server.api.testpilot.v1.RunEventKind
+	(*Value)(nil),                 // 16: temporal.server.api.testpilot.v1.Value
+	(InstructionOutcomeStatus)(0), // 17: temporal.server.api.testpilot.v1.InstructionOutcomeStatus
+	(FaultKind)(0),                // 18: temporal.server.api.testpilot.v1.FaultKind
 }
 var file_temporal_server_api_testpilot_v1_run_proto_depIdxs = []int32{
 	6,  // 0: temporal.server.api.testpilot.v1.Run.events:type_name -> temporal.server.api.testpilot.v1.RunEvent
 	0,  // 1: temporal.server.api.testpilot.v1.Run.disposition:type_name -> temporal.server.api.testpilot.v1.RunDisposition
-	10, // 2: temporal.server.api.testpilot.v1.Run.cleanup:type_name -> temporal.server.api.testpilot.v1.CleanupOutcome
-	12, // 3: temporal.server.api.testpilot.v1.Run.verdict:type_name -> temporal.server.api.testpilot.v1.Verdict
-	11, // 4: temporal.server.api.testpilot.v1.Run.diagnostics:type_name -> temporal.server.api.testpilot.v1.RunDiagnostic
-	14, // 5: temporal.server.api.testpilot.v1.RunEvent.kind:type_name -> temporal.server.api.testpilot.v1.RunEventKind
+	11, // 2: temporal.server.api.testpilot.v1.Run.cleanup:type_name -> temporal.server.api.testpilot.v1.CleanupOutcome
+	13, // 3: temporal.server.api.testpilot.v1.Run.verdict:type_name -> temporal.server.api.testpilot.v1.Verdict
+	12, // 4: temporal.server.api.testpilot.v1.Run.diagnostics:type_name -> temporal.server.api.testpilot.v1.RunDiagnostic
+	15, // 5: temporal.server.api.testpilot.v1.RunEvent.kind:type_name -> temporal.server.api.testpilot.v1.RunEventKind
 	7,  // 6: temporal.server.api.testpilot.v1.RunEvent.coordinates:type_name -> temporal.server.api.testpilot.v1.RunEventCoordinates
-	15, // 7: temporal.server.api.testpilot.v1.RunEvent.outcome:type_name -> temporal.server.api.testpilot.v1.InstructionOutcome
-	8,  // 8: temporal.server.api.testpilot.v1.RunEvent.observations:type_name -> temporal.server.api.testpilot.v1.ObservationResult
-	9,  // 9: temporal.server.api.testpilot.v1.RunEvent.fault_injected:type_name -> temporal.server.api.testpilot.v1.FaultInjected
+	8,  // 7: temporal.server.api.testpilot.v1.RunEvent.observations:type_name -> temporal.server.api.testpilot.v1.ObservationResult
+	9,  // 8: temporal.server.api.testpilot.v1.RunEvent.outcome:type_name -> temporal.server.api.testpilot.v1.InstructionOutcome
+	10, // 9: temporal.server.api.testpilot.v1.RunEvent.fault_injected:type_name -> temporal.server.api.testpilot.v1.FaultInjected
 	16, // 10: temporal.server.api.testpilot.v1.ObservationResult.value:type_name -> temporal.server.api.testpilot.v1.Value
-	17, // 11: temporal.server.api.testpilot.v1.FaultInjected.kind:type_name -> temporal.server.api.testpilot.v1.FaultKind
-	1,  // 12: temporal.server.api.testpilot.v1.CleanupOutcome.status:type_name -> temporal.server.api.testpilot.v1.CleanupStatus
-	2,  // 13: temporal.server.api.testpilot.v1.RunDiagnostic.kind:type_name -> temporal.server.api.testpilot.v1.RunDiagnosticKind
-	3,  // 14: temporal.server.api.testpilot.v1.Verdict.status:type_name -> temporal.server.api.testpilot.v1.VerdictStatus
-	13, // 15: temporal.server.api.testpilot.v1.Verdict.rules:type_name -> temporal.server.api.testpilot.v1.RuleVerdict
-	4,  // 16: temporal.server.api.testpilot.v1.RuleVerdict.status:type_name -> temporal.server.api.testpilot.v1.RuleVerdictStatus
-	17, // [17:17] is the sub-list for method output_type
-	17, // [17:17] is the sub-list for method input_type
-	17, // [17:17] is the sub-list for extension type_name
-	17, // [17:17] is the sub-list for extension extendee
-	0,  // [0:17] is the sub-list for field type_name
+	17, // 11: temporal.server.api.testpilot.v1.InstructionOutcome.status:type_name -> temporal.server.api.testpilot.v1.InstructionOutcomeStatus
+	16, // 12: temporal.server.api.testpilot.v1.InstructionOutcome.value:type_name -> temporal.server.api.testpilot.v1.Value
+	18, // 13: temporal.server.api.testpilot.v1.FaultInjected.kind:type_name -> temporal.server.api.testpilot.v1.FaultKind
+	1,  // 14: temporal.server.api.testpilot.v1.CleanupOutcome.status:type_name -> temporal.server.api.testpilot.v1.CleanupStatus
+	2,  // 15: temporal.server.api.testpilot.v1.RunDiagnostic.kind:type_name -> temporal.server.api.testpilot.v1.RunDiagnosticKind
+	3,  // 16: temporal.server.api.testpilot.v1.Verdict.status:type_name -> temporal.server.api.testpilot.v1.VerdictStatus
+	14, // 17: temporal.server.api.testpilot.v1.Verdict.rules:type_name -> temporal.server.api.testpilot.v1.RuleVerdict
+	4,  // 18: temporal.server.api.testpilot.v1.RuleVerdict.status:type_name -> temporal.server.api.testpilot.v1.RuleVerdictStatus
+	19, // [19:19] is the sub-list for method output_type
+	19, // [19:19] is the sub-list for method input_type
+	19, // [19:19] is the sub-list for extension type_name
+	19, // [19:19] is the sub-list for extension extendee
+	0,  // [0:19] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_testpilot_v1_run_proto_init() }
@@ -1276,7 +1401,11 @@ func file_temporal_server_api_testpilot_v1_run_proto_init() {
 	file_temporal_server_api_testpilot_v1_run_proto_msgTypes[0].OneofWrappers = []any{
 		(*Run_EvaluationFailureSequence)(nil),
 	}
-	file_temporal_server_api_testpilot_v1_run_proto_msgTypes[6].OneofWrappers = []any{
+	file_temporal_server_api_testpilot_v1_run_proto_msgTypes[1].OneofWrappers = []any{
+		(*RunEvent_Outcome)(nil),
+		(*RunEvent_FaultInjected)(nil),
+	}
+	file_temporal_server_api_testpilot_v1_run_proto_msgTypes[7].OneofWrappers = []any{
 		(*RunDiagnostic_SupportingEventSequence)(nil),
 	}
 	type x struct{}
@@ -1285,7 +1414,7 @@ func file_temporal_server_api_testpilot_v1_run_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_temporal_server_api_testpilot_v1_run_proto_rawDesc), len(file_temporal_server_api_testpilot_v1_run_proto_rawDesc)),
 			NumEnums:      5,
-			NumMessages:   9,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
