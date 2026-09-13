@@ -1,6 +1,7 @@
 package execution
 
 import (
+	"fmt"
 	"maps"
 	"slices"
 
@@ -256,7 +257,7 @@ func (a *admission) bindProjections(g *graph, index int, n *node) error {
 		}
 		typ := path.Type()
 		count := int64(1)
-		switch source.Kind {
+		switch source.Cardinality {
 		case testpilotspb.READ_CARDINALITY_ONE:
 		case testpilotspb.READ_CARDINALITY_EMIT_EACH:
 			if typ.Cardinality() != ir.Repeated {
@@ -277,7 +278,7 @@ func (a *admission) bindProjections(g *graph, index int, n *node) error {
 			}
 			events += count
 		}
-		n.projections = append(n.projections, projection{path: path, cardinality: source.Kind, sinks: source.Targets, lifts: lifts})
+		n.projections = append(n.projections, projection{path: path, cardinality: source.Cardinality, sinks: source.Targets, lifts: lifts})
 	}
 	return nil
 }
@@ -295,7 +296,7 @@ func (a *admission) bindProjectionSinks(g *graph, index int, n *node, source *te
 		case *testpilotspb.ReadTarget_SlotId:
 			key = "slot:" + destination.SlotId
 			target, exists = a.prepared.slots[destination.SlotId]
-			if source.Kind == testpilotspb.READ_CARDINALITY_EMIT_EACH {
+			if source.Cardinality == testpilotspb.READ_CARDINALITY_EMIT_EACH {
 				return nil, false, invalid(ir.Unsupported, nodePath(g, n), "EmitEach cannot repeatedly assign an immutable Slot")
 			}
 			if err := a.addWriter(destination.SlotId, slotWriter{graph: g, node: index, optional: path.MayBeAbsent()}); err != nil {
@@ -515,7 +516,10 @@ func successFacts(expression *ir.Expression) map[string]bool {
 	}
 	children := expression.Children()
 	switch expression.Operator() {
-	case ir.Equals:
+	case ir.Compare:
+		if expression.Comparison() != testpilotspb.COMPARISON_OPERATOR_EQUAL {
+			break
+		}
 		for i := range 2 {
 			reference := children[i].Reference()
 			literal := children[1-i].Literal()
@@ -568,8 +572,9 @@ func (a *admission) bindNodeDataflow(g *graph, n *node, boolean ir.Type) error {
 	if err := a.charge(int64(proto.Size(n.source.Guard)) + 1); err != nil {
 		return err
 	}
+	guard := ir.Condition{Expression: n.source.Guard, Path: expressionPath(g, n, "guard")}
 	if n.source.Guard != nil {
-		n.guard, err = a.prepared.catalog.BindExpression(n.source.Guard, &boolean, scope, a.expressionLimits())
+		n.guard, err = a.prepared.catalog.BindExpression(ir.Site{Context: ir.ProgramContext, Path: guard.Path}, n.source.Guard, &boolean, scope, a.expressionLimits())
 		if err != nil {
 			return err
 		}
@@ -578,22 +583,23 @@ func (a *admission) bindNodeDataflow(g *graph, n *node, boolean ir.Type) error {
 		return err
 	}
 	a.successScope(g, n, n.guard, scope)
-	bindIn := func(expressionScope map[ir.Reference]ir.Binding, value *testpilotspb.ProgramExpression, expected *ir.Type) (*ir.Expression, error) {
+	bindIn := func(expressionScope map[ir.Reference]ir.Binding, value *testpilotspb.Expression, field string, expected *ir.Type) (*ir.Expression, error) {
 		if err := a.charge(int64(proto.Size(n.source.Guard)) + int64(proto.Size(value)) + 1); err != nil {
 			return nil, err
 		}
-		_, expression, err := a.prepared.catalog.BindGuardedExpression(n.source.Guard, value, expected, expressionScope, a.expressionLimits())
+		site := ir.Site{Context: ir.ProgramContext, Path: expressionPath(g, n, field)}
+		_, expression, err := a.prepared.catalog.BindGuardedExpression(guard, site, value, expected, expressionScope, a.expressionLimits())
 		return expression, err
 	}
-	bind := func(value *testpilotspb.ProgramExpression, expected *ir.Type) (*ir.Expression, error) {
-		return bindIn(scope, value, expected)
+	bind := func(value *testpilotspb.Expression, field string, expected *ir.Type) (*ir.Expression, error) {
+		return bindIn(scope, value, field, expected)
 	}
 	switch n.opcode {
 	case contract.InvokeRPC:
 		inputScope := maps.Clone(scope)
 		inputScope[ir.Reference{Kind: ir.EventReference, Field: int32(testpilotspb.RUN_EVENT_FIELD_RUN_ID)}] = ir.Binding{Type: a.runID, Available: true}
-		err = a.bindAssignments(g, n, func(value *testpilotspb.ProgramExpression, expected *ir.Type) (*ir.Expression, error) {
-			return bindIn(inputScope, value, expected)
+		err = a.bindAssignments(g, n, func(value *testpilotspb.Expression, field string, expected *ir.Type) (*ir.Expression, error) {
+			return bindIn(inputScope, value, field, expected)
 		})
 	case contract.AwaitSlot:
 		if _, exists := a.writers[n.source.Instruction.GetAwaitSlot().SlotId]; !exists {
@@ -604,13 +610,13 @@ func (a *admission) bindNodeDataflow(g *graph, n *node, boolean ir.Type) error {
 		if !scope[ir.Reference{Kind: ir.SlotReference, ID: instruction.HandleSlotId}].Available {
 			return invalid(ir.Unavailable, nodePath(g, n), "completion requires successful AwaitSlot dependency")
 		}
-		n.input, err = bind(instruction.Result, nil)
+		n.input, err = bind(instruction.Result, "instruction.complete_nexus_operation.result", nil)
 	case contract.StartNexusOperation:
-		n.input, err = bind(n.source.Instruction.GetStartNexusOperation().Input, nil)
+		n.input, err = bind(n.source.Instruction.GetStartNexusOperation().Input, "instruction.start_nexus_operation.input", nil)
 	case contract.Finish:
-		n.input, err = bind(n.source.Instruction.GetFinish().Result, nil)
+		n.input, err = bind(n.source.Instruction.GetFinish().Result, "instruction.finish.result", nil)
 	case contract.RespondNexus:
-		n.input, err = bind(n.source.Instruction.GetRespondNexus().Result, nil)
+		n.input, err = bind(n.source.Instruction.GetRespondNexus().Result, "instruction.respond_nexus.result", nil)
 	case contract.Await, contract.InjectFault:
 		// A fault names its target role statically; it binds no Program expression.
 	default:
@@ -621,12 +627,22 @@ func (a *admission) bindNodeDataflow(g *graph, n *node, boolean ir.Type) error {
 	}
 	return nil
 }
-func (a *admission) bindAssignments(g *graph, n *node, bind func(*testpilotspb.ProgramExpression, *ir.Type) (*ir.Expression, error)) error {
+
+// expressionPath locates one expression field of an instruction node. Entrypoints and instructions are
+// named by identity rather than by index, so a path stays stable when declarations are reordered.
+func expressionPath(g *graph, n *node, field string) string {
+	if g.cleanup {
+		return fmt.Sprintf("program.cleanup.instructions[%s].%s", n.source.InstructionId, field)
+	}
+	return fmt.Sprintf("program.entrypoints[%s].instructions[%s].%s", g.id, n.source.InstructionId, field)
+}
+
+func (a *admission) bindAssignments(g *graph, n *node, bind func(*testpilotspb.Expression, string, *ir.Type) (*ir.Expression, error)) error {
 	input, err := messageType(a.prepared.catalog, n.method.Input())
 	if err != nil {
 		return err
 	}
-	for _, source := range n.source.Instruction.GetInvokeRpc().RequestAssignments {
+	for index, source := range n.source.Instruction.GetInvokeRpc().RequestAssignments {
 		if source == nil {
 			return invalid(ir.Malformed, nodePath(g, n), "nil request assignment")
 		}
@@ -653,18 +669,18 @@ func (a *admission) bindAssignments(g *graph, n *node, bind func(*testpilotspb.P
 		typ := target.Type()
 		var environmentBindingID string
 		valueSource := source.Value
-		if reference, ok := source.Value.GetExpression().(*testpilotspb.ProgramExpression_Environment); ok {
-			if reference.Environment == nil || typ.Cardinality() != ir.Singular || typ.Scalar() != testpilotspb.SCALAR_KIND_TEXT {
+		if reference, ok := source.Value.GetReference().GetReference().(*testpilotspb.Reference_EnvironmentBindingId); ok {
+			if reference == nil || typ.Cardinality() != ir.Singular || typ.Scalar() != testpilotspb.SCALAR_KIND_TEXT {
 				return invalid(ir.TypeMismatch, nodePath(g, n), "environment reference requires a singular text destination")
 			}
-			environmentBindingID = reference.Environment.BindingId
+			environmentBindingID = reference.EnvironmentBindingId
 			resolved, err := a.resolveEnvironment(environmentBindingID)
 			if err != nil {
 				return err
 			}
-			valueSource = &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: resolved}}}}
+			valueSource = &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: resolved}}}}
 		}
-		value, err := bind(valueSource, &typ)
+		value, err := bind(valueSource, fmt.Sprintf("instruction.invoke_rpc.request_assignments[%d].value", index), &typ)
 		if err != nil {
 			return err
 		}

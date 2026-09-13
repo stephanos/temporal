@@ -189,10 +189,10 @@ func (a *admission) bindMachine(rule *testpilotspb.ContractRule) (*machine, erro
 	return m, nil
 }
 
-func (a *admission) bind(conditions []ir.Condition, value *testpilotspb.ContractExpression, expected *ir.Type, scope map[ir.Reference]ir.Binding) (*ir.Expression, error) {
+func (a *admission) bind(conditions []ir.Condition, value *testpilotspb.Expression, path string, expected *ir.Type, scope map[ir.Reference]ir.Binding) (*ir.Expression, error) {
 	limits := a.limits
 	limits.Work = min(limits.Work, ir.DefaultLimits().Work-a.work)
-	bound, err := a.catalog.BindConditionedExpression(conditions, value, expected, scope, limits)
+	bound, err := a.catalog.BindConditionedExpression(conditions, ir.Site{Context: ir.ContractContext, Path: path}, value, expected, scope, limits)
 	if err != nil {
 		return nil, err
 	}
@@ -233,6 +233,11 @@ func (a *admission) bindScope() error {
 		a.scope[ir.Reference{Kind: ir.EventReference, Field: int32(field)}] = ir.Binding{Type: typ, Available: true}
 	}
 	return nil
+}
+
+// predicatePath locates a transition predicate by rule and transition identity rather than by index.
+func predicatePath(rule *testpilotspb.ContractRule, transition *testpilotspb.ContractTransition) string {
+	return fmt.Sprintf("contract.rules[%s].transitions[%s].predicate", rule.RuleId, transition.TransitionId)
 }
 
 // The Run Event fields whose declared type is an enumeration rather than a scalar.
@@ -308,7 +313,7 @@ func (a *admission) bindTransitions(m *machine, scope map[ir.Reference]ir.Bindin
 			}
 			m.outgoing[from][kind] = append(m.outgoing[from][kind], i)
 		}
-		bound, err := a.bind(nil, tr.Predicate, &a.boolean, scope)
+		bound, err := a.bind(nil, tr.Predicate, predicatePath(rule, tr), &a.boolean, scope)
 		if err != nil {
 			return err
 		}

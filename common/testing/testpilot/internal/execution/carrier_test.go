@@ -30,7 +30,7 @@ func TestPrepareCompilesDeterministicReservationCarrierTopology(t *testing.T) {
 	controller.Instructions[0].ActivationReservations[0].Count = 2
 	controller.Instructions[0].ActivationReservations[1].Count = 4
 	workflow := source.Program.Entrypoints[1]
-	workflow.Instructions[0].Guard = &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: false}}}}
+	workflow.Instructions[0].Guard = &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: false}}}}
 	secondStart := proto.CloneOf(workflow.Instructions[0])
 	secondStart.InstructionId = "start_second"
 	secondStart.Guard = nil

@@ -36,6 +36,9 @@ message ValueMap { repeated ValueMapEntry entries = 1; }
 // ValueMapEntry is one key and value of a ValueMap.
 message ValueMapEntry { Value key = 1; Value value = 2; }
 
+// ModelValue is one model value: the Definition ID that declares it and its value text.
+message ModelValue { string definition_id = 1; string value = 2; }
+
 // ValueType is the declared type of a Slot, an Observation or an instruction outcome field.
 message ValueType {
   oneof shape {

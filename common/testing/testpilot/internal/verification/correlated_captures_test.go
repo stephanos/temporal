@@ -27,7 +27,7 @@ func correlatedFieldOperand(id string) *testpilotspb.CorrelatedOperand {
 	return &testpilotspb.CorrelatedOperand{Operand: &testpilotspb.CorrelatedOperand_FieldId{FieldId: id}}
 }
 func correlatedCaptureOperand(id string, ordinal int64) *testpilotspb.CorrelatedOperand {
-	return &testpilotspb.CorrelatedOperand{Operand: &testpilotspb.CorrelatedOperand_Capture{Capture: &testpilotspb.CorrelatedCaptureRef{CaptureId: id, Ordinal: ordinal}}}
+	return &testpilotspb.CorrelatedOperand{Operand: &testpilotspb.CorrelatedOperand_Capture{Capture: &testpilotspb.CorrelatedCaptureReference{CaptureId: id, Ordinal: ordinal}}}
 }
 func correlatedLiteralOperand(text string) *testpilotspb.CorrelatedOperand {
 	return &testpilotspb.CorrelatedOperand{Operand: &testpilotspb.CorrelatedOperand_Literal{Literal: correlatedText(text)}}

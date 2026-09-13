@@ -188,6 +188,143 @@ var Declared = Mapping{
 		Name: "Instruction" + "Ref becomes InstructionReference", Requirement: "R1",
 		Apply: RenameMessage(protocol+"Instruction"+"Ref", protocol+"InstructionReference"),
 	},
+	{
+		Name: "ComparisonOperator gains EQUAL and NOT_EQUAL before the ordering operators", Requirement: "R3",
+		Apply: sequence(renumberComparisons(protocol+"Program"+"CompareExpression"), renumberComparisons(protocol+"Contract"+"CompareExpression")),
+	},
+	{
+		Name: "Program" + "Expression and Contract" + "Expression become Expression over one Reference", Requirement: "R3",
+		Apply: sequence(
+			RewriteMessages(protocol+"Program"+"Expression", rewriteExpression),
+			RewriteMessages(protocol+"Contract"+"Expression", rewriteExpression),
+			RenameField(protocol+"Program"+"PathExpression", "source", "operand"),
+			RenameField(protocol+"Contract"+"PathExpression", "source", "operand"),
+		),
+	},
+	{
+		Name: "ContractCaptureAssignment.observation becomes observation_id", Requirement: "R3",
+		Apply: RewriteMessages(protocol+"ContractCaptureAssignment", captureAssignmentObservation),
+	},
+	{
+		Name: "CorrelatedCapture" + "Ref becomes CorrelatedCaptureReference", Requirement: "R3",
+		Apply: RenameMessage(protocol+"CorrelatedCapture"+"Ref", protocol+"CorrelatedCaptureReference"),
+	},
+	{
+		Name: "ResponseRead.kind becomes cardinality", Requirement: "R1",
+		Apply: RenameField(protocol+"Response"+"Projection", "kind", "cardinality"),
+	},
+}
+
+// renumberComparisons moves the ordering operators two numbers up, highest first so no literal is
+// renumbered twice. A literal spelled by name keeps its name.
+func renumberComparisons(message protoreflect.FullName) ApplyFunc {
+	return sequence(
+		RenameEnumLiteral(message, "operator", "4", "6"),
+		RenameEnumLiteral(message, "operator", "3", "5"),
+		RenameEnumLiteral(message, "operator", "2", "4"),
+		RenameEnumLiteral(message, "operator", "1", "3"),
+	)
+}
+
+// expressionReferences maps each baseline reference arm to its Reference arm, and names the one key
+// the baseline reference message may carry when its arm holds that key's value alone.
+var expressionReferences = map[string]struct{ arm, key string }{
+	"slot":        {arm: "slotId", key: "slotId"},
+	"observation": {arm: "observationId", key: "observationId"},
+	"capture":     {arm: "captureId", key: "captureId"},
+	"environment": {arm: "environmentBindingId", key: "bindingId"},
+	"outcome":     {arm: "outcome"},
+	"run":         {arm: "run"},
+	"runEvent":    {arm: "runEvent"},
+}
+
+// rewriteExpression rewrites one baseline Program or Contract expression into Expression. It
+// requires exactly one arm, and a reference whose value is one identifier must carry nothing else,
+// so no field is dropped silently.
+func rewriteExpression(_ string, object *Object) (any, error) {
+	if len(object.Fields) != 1 {
+		return nil, fmt.Errorf("expression carries %d arms, want 1", len(object.Fields))
+	}
+	for name, value := range object.Fields {
+		switch name {
+		case "literal", "path", "present", "compare", "all", "any":
+			return object, nil
+		case "negation":
+			object.Fields = map[string]any{"not": value}
+			return object, nil
+		case "equals":
+			operands, ok := value.(*Object)
+			if !ok {
+				return nil, errors.New("equals is not an object")
+			}
+			if _, clashes := operands.Fields["operator"]; clashes {
+				return nil, errors.New("equals carries an operator")
+			}
+			operands.Fields["operator"] = "COMPARISON_OPERATOR_EQUAL"
+			object.Fields = map[string]any{"compare": operands}
+			return object, nil
+		}
+		reference, known := expressionReferences[name]
+		if !known {
+			return nil, fmt.Errorf("expression arm %q is not in the baseline vocabulary", name)
+		}
+		referenced, ok := value.(*Object)
+		if !ok {
+			return nil, fmt.Errorf("%s is not an object", name)
+		}
+		if reference.key == "" {
+			object.Fields = map[string]any{"reference": &Object{Fields: map[string]any{reference.arm: referenced}}}
+			return object, nil
+		}
+		identifier, err := soleString(name, referenced, reference.key)
+		if err != nil {
+			return nil, err
+		}
+		object.Fields = map[string]any{"reference": &Object{Fields: map[string]any{reference.arm: identifier}}}
+		return object, nil
+	}
+	return nil, errors.New("unreachable")
+}
+
+// captureAssignmentObservation moves the observation reference of a capture assignment to its id.
+func captureAssignmentObservation(_ string, object *Object) (any, error) {
+	value, ok := object.Fields["observation"]
+	if !ok {
+		return object, nil
+	}
+	referenced, isObject := value.(*Object)
+	if !isObject {
+		return nil, errors.New("observation is not an object")
+	}
+	identifier, err := soleString("observation", referenced, "observationId")
+	if err != nil {
+		return nil, err
+	}
+	if identifier == "" {
+		return nil, errors.New("observation names no Observation")
+	}
+	delete(object.Fields, "observation")
+	object.Fields["observationId"] = identifier
+	return object, nil
+}
+
+// soleString reads the one string key a reference object may carry; an omitted key is the empty
+// identifier ProtoJSON leaves out.
+func soleString(name string, object *Object, key string) (string, error) {
+	for field := range object.Fields {
+		if field != key {
+			return "", fmt.Errorf("%s carries %q beside %q", name, field, key)
+		}
+	}
+	value, present := object.Fields[key]
+	if !present {
+		return "", nil
+	}
+	text, ok := value.(string)
+	if !ok {
+		return "", fmt.Errorf("%s.%s is not a string", name, key)
+	}
+	return text, nil
 }
 
 // valueArm renames one Value oneof arm. The arm names are ordinary words other messages may spell

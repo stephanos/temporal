@@ -600,7 +600,7 @@
                     "method": "/test.correlated.Source/Read",
                     "responseReads": [
                       {
-                        "kind": "READ_CARDINALITY_ONE",
+                        "cardinality": "READ_CARDINALITY_ONE",
                         "path": {},
                         "targets": [
                           {
@@ -1280,7 +1280,7 @@
                     "method": "/test.correlated.Source/Read",
                     "responseReads": [
                       {
-                        "kind": "READ_CARDINALITY_ONE",
+                        "cardinality": "READ_CARDINALITY_ONE",
                         "path": {},
                         "targets": [
                           {
@@ -1962,7 +1962,7 @@
                     "method": "/test.correlated.Source/Read",
                     "responseReads": [
                       {
-                        "kind": "READ_CARDINALITY_ONE",
+                        "cardinality": "READ_CARDINALITY_ONE",
                         "path": {},
                         "targets": [
                           {
@@ -2658,7 +2658,7 @@
                     "method": "/test.correlated.Source/Read",
                     "responseReads": [
                       {
-                        "kind": "READ_CARDINALITY_ONE",
+                        "cardinality": "READ_CARDINALITY_ONE",
                         "path": {},
                         "targets": [
                           {
@@ -2704,7 +2704,7 @@
                     "method": "/test.correlated.Source/Read",
                     "responseReads": [
                       {
-                        "kind": "READ_CARDINALITY_ONE",
+                        "cardinality": "READ_CARDINALITY_ONE",
                         "path": {},
                         "targets": [
                           {
@@ -3414,7 +3414,7 @@
                     "method": "/test.correlated.Source/Read",
                     "responseReads": [
                       {
-                        "kind": "READ_CARDINALITY_ONE",
+                        "cardinality": "READ_CARDINALITY_ONE",
                         "path": {},
                         "targets": [
                           {
@@ -3460,7 +3460,7 @@
                     "method": "/test.correlated.Source/Read",
                     "responseReads": [
                       {
-                        "kind": "READ_CARDINALITY_ONE",
+                        "cardinality": "READ_CARDINALITY_ONE",
                         "path": {},
                         "targets": [
                           {
@@ -3506,7 +3506,7 @@
                     "method": "/test.correlated.Source/Read",
                     "responseReads": [
                       {
-                        "kind": "READ_CARDINALITY_ONE",
+                        "cardinality": "READ_CARDINALITY_ONE",
                         "path": {},
                         "targets": [
                           {
@@ -4216,7 +4216,7 @@
                     "method": "/test.correlated.Source/Read",
                     "responseReads": [
                       {
-                        "kind": "READ_CARDINALITY_ONE",
+                        "cardinality": "READ_CARDINALITY_ONE",
                         "path": {},
                         "targets": [
                           {
@@ -4262,7 +4262,7 @@
                     "method": "/test.correlated.Source/Read",
                     "responseReads": [
                       {
-                        "kind": "READ_CARDINALITY_ONE",
+                        "cardinality": "READ_CARDINALITY_ONE",
                         "path": {},
                         "targets": [
                           {
@@ -4308,7 +4308,7 @@
                     "method": "/test.correlated.Source/Read",
                     "responseReads": [
                       {
-                        "kind": "READ_CARDINALITY_ONE",
+                        "cardinality": "READ_CARDINALITY_ONE",
                         "path": {},
                         "targets": [
                           {
@@ -5018,7 +5018,7 @@
                     "method": "/test.correlated.Source/Read",
                     "responseReads": [
                       {
-                        "kind": "READ_CARDINALITY_ONE",
+                        "cardinality": "READ_CARDINALITY_ONE",
                         "path": {},
                         "targets": [
                           {
@@ -5064,7 +5064,7 @@
                     "method": "/test.correlated.Source/Read",
                     "responseReads": [
                       {
-                        "kind": "READ_CARDINALITY_ONE",
+                        "cardinality": "READ_CARDINALITY_ONE",
                         "path": {},
                         "targets": [
                           {
@@ -5110,7 +5110,7 @@
                     "method": "/test.correlated.Source/Read",
                     "responseReads": [
                       {
-                        "kind": "READ_CARDINALITY_ONE",
+                        "cardinality": "READ_CARDINALITY_ONE",
                         "path": {},
                         "targets": [
                           {
@@ -5806,7 +5806,7 @@
                     "method": "/test.correlated.Source/Read",
                     "responseReads": [
                       {
-                        "kind": "READ_CARDINALITY_ONE",
+                        "cardinality": "READ_CARDINALITY_ONE",
                         "path": {},
                         "targets": [
                           {
@@ -5852,7 +5852,7 @@
                     "method": "/test.correlated.Source/Read",
                     "responseReads": [
                       {
-                        "kind": "READ_CARDINALITY_ONE",
+                        "cardinality": "READ_CARDINALITY_ONE",
                         "path": {},
                         "targets": [
                           {
@@ -6534,7 +6534,7 @@
                     "method": "/test.correlated.Source/Read",
                     "responseReads": [
                       {
-                        "kind": "READ_CARDINALITY_ONE",
+                        "cardinality": "READ_CARDINALITY_ONE",
                         "path": {},
                         "targets": [
                           {
@@ -7216,7 +7216,7 @@
                     "method": "/test.correlated.Source/Read",
                     "responseReads": [
                       {
-                        "kind": "READ_CARDINALITY_ONE",
+                        "cardinality": "READ_CARDINALITY_ONE",
                         "path": {},
                         "targets": [
                           {
@@ -7910,7 +7910,7 @@
                     "method": "/test.correlated.Source/Read",
                     "responseReads": [
                       {
-                        "kind": "READ_CARDINALITY_ONE",
+                        "cardinality": "READ_CARDINALITY_ONE",
                         "path": {},
                         "targets": [
                           {
@@ -8642,7 +8642,7 @@
                     "method": "/test.correlated.Source/Read",
                     "responseReads": [
                       {
-                        "kind": "READ_CARDINALITY_ONE",
+                        "cardinality": "READ_CARDINALITY_ONE",
                         "path": {},
                         "targets": [
                           {
@@ -8688,7 +8688,7 @@
                     "method": "/test.correlated.Source/Read",
                     "responseReads": [
                       {
-                        "kind": "READ_CARDINALITY_ONE",
+                        "cardinality": "READ_CARDINALITY_ONE",
                         "path": {},
                         "targets": [
                           {
@@ -8734,7 +8734,7 @@
                     "method": "/test.correlated.Source/Read",
                     "responseReads": [
                       {
-                        "kind": "READ_CARDINALITY_ONE",
+                        "cardinality": "READ_CARDINALITY_ONE",
                         "path": {},
                         "targets": [
                           {
@@ -9444,7 +9444,7 @@
                     "method": "/test.correlated.Source/Read",
                     "responseReads": [
                       {
-                        "kind": "READ_CARDINALITY_ONE",
+                        "cardinality": "READ_CARDINALITY_ONE",
                         "path": {},
                         "targets": [
                           {
@@ -9490,7 +9490,7 @@
                     "method": "/test.correlated.Source/Read",
                     "responseReads": [
                       {
-                        "kind": "READ_CARDINALITY_ONE",
+                        "cardinality": "READ_CARDINALITY_ONE",
                         "path": {},
                         "targets": [
                           {
@@ -9536,7 +9536,7 @@
                     "method": "/test.correlated.Source/Read",
                     "responseReads": [
                       {
-                        "kind": "READ_CARDINALITY_ONE",
+                        "cardinality": "READ_CARDINALITY_ONE",
                         "path": {},
                         "targets": [
                           {
@@ -10216,7 +10216,7 @@
                     "method": "/test.correlated.Source/Read",
                     "responseReads": [
                       {
-                        "kind": "READ_CARDINALITY_ONE",
+                        "cardinality": "READ_CARDINALITY_ONE",
                         "path": {},
                         "targets": [
                           {

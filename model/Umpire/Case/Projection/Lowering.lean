@@ -175,10 +175,9 @@ def Shape.reads : Shape → List PropertyFieldPath
 def Shape.literals : Shape → List Operation.Scalar
   | .safety _ _ literal | .capture _ _ _ _ literal _ _ => [literal.scalar]
 
-private def comparison (negated : Bool) (left right : ContractExpression) :
-    ContractExpression :=
-  let equal := Testpilot.Authoring.ContractExpr.equals left right
-  if negated then Testpilot.Authoring.ContractExpr.negation equal else equal
+private def comparison (negated : Bool) (left right : Expression) : Expression :=
+  let equal := Testpilot.Authoring.Expr.equal left right
+  if negated then Testpilot.Authoring.Expr.negate equal else equal
 
 /-- Render a shape as the one Contract rule it denotes. The rule distinguishes the answers the model
 Property does: an event that establishes the observed field and disagrees is a violation, not an
@@ -187,14 +186,14 @@ such event still closes inconclusive. A capture rule has no violated state: the 
 decides which later event it waits for, and one that never arrives leaves it pending. -/
 def Shape.render (shape : Shape) (ruleId suffix observation root : String) :
     ContractRule :=
-  let observed := Testpilot.Authoring.ContractExpr.observation observation
-  let projected := Testpilot.Authoring.ContractExpr.path
-  let present := Testpilot.Authoring.ContractExpr.present
-  let all := Testpilot.Authoring.ContractExpr.all
+  let observed := Testpilot.Authoring.Expr.observation observation
+  let projected := Testpilot.Authoring.Expr.path
+  let present := Testpilot.Authoring.Expr.present
+  let all := Testpilot.Authoring.Expr.all
   let completed := #[RunEventKind.RUN_EVENT_KIND_INSTRUCTION_COMPLETED]
   match shape with
   | .safety negated read literal =>
-      let value := Testpilot.Authoring.ContractExpr.literal literal.wire
+      let value := Testpilot.Authoring.Expr.literal literal.wire
       Testpilot.Authoring.Contract.rule ruleId .CONTRACT_RULE_KIND_SAFETY "pending"
         #[Testpilot.Authoring.Contract.state "pending" .CONTRACT_STATE_STATUS_PENDING,
           Testpilot.Authoring.Contract.state "satisfied" .CONTRACT_STATE_STATUS_SATISFIED,
@@ -211,7 +210,7 @@ def Shape.render (shape : Shape) (ruleId suffix observation root : String) :
             .CONTRACT_SUPPORT_KIND_MATCHING_EVENT]
   | .capture negated captured read selector literal state response =>
       let captureId := state ++ "-" ++ suffix
-      let retained := Testpilot.Authoring.ContractExpr.capture captureId
+      let retained := Testpilot.Authoring.Expr.capture captureId
       Testpilot.Authoring.Contract.rule ruleId .CONTRACT_RULE_KIND_SAFETY "pending"
         #[Testpilot.Authoring.Contract.state "pending" .CONTRACT_STATE_STATUS_PENDING,
           Testpilot.Authoring.Contract.state state .CONTRACT_STATE_STATUS_PENDING,
@@ -220,7 +219,7 @@ def Shape.render (shape : Shape) (ruleId suffix observation root : String) :
             completed
             (all #[present observed, present (projected observed selector.segments),
               comparison false (projected observed selector.segments)
-                (Testpilot.Authoring.ContractExpr.literal literal.wire)])
+                (Testpilot.Authoring.Expr.literal literal.wire)])
             .CONTRACT_SUPPORT_KIND_MATCHING_EVENT
             #[Testpilot.Authoring.Contract.captureAssignment captureId observation],
           Testpilot.Authoring.Contract.transition ("match-" ++ response ++ "-" ++ suffix) state

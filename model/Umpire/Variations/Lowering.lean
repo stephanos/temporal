@@ -46,7 +46,7 @@ structure FaultRealization where
   roleId : String
   limits : InstructionLimits
   dependencies : Array InstructionReference := #[]
-  guard : Option ProgramExpression := none
+  guard : Option Expression := none
   outcome : Option InstructionOutcomeDefinition := none
 
 /-- Lower one fault intent to the instruction definition a Driver realizes it through. The outage

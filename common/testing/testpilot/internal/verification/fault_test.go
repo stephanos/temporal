@@ -10,16 +10,16 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func runEventField(field testpilotspb.RunEventField) *testpilotspb.ContractExpression {
-	return &testpilotspb.ContractExpression{Expression: &testpilotspb.ContractExpression_RunEvent{RunEvent: &testpilotspb.RunEventFieldRef{Field: field}}}
+func runEventField(field testpilotspb.RunEventField) *testpilotspb.Expression {
+	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_RunEvent{RunEvent: &testpilotspb.RunEventReference{Field: field}}}}}
 }
 
-func textLiteral(text string) *testpilotspb.ContractExpression {
-	return &testpilotspb.ContractExpression{Expression: &testpilotspb.ContractExpression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: text}}}}
+func textLiteral(text string) *testpilotspb.Expression {
+	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: text}}}}
 }
 
-func enumLiteral(number int32) *testpilotspb.ContractExpression {
-	return &testpilotspb.ContractExpression{Expression: &testpilotspb.ContractExpression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Number: number}}}}}
+func enumLiteral(number int32) *testpilotspb.Expression {
+	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Number: number}}}}}
 }
 
 func faultEvent(sequence, elapsed int64, role string, kind testpilotspb.FaultKind) *testpilotspb.RunEvent {
@@ -85,7 +85,7 @@ func TestPrepareAdmitsFaultEventReferences(t *testing.T) {
 		name    string
 		field   testpilotspb.RunEventField
 		admit   bool
-		operand *testpilotspb.ContractExpression
+		operand *testpilotspb.Expression
 	}{
 		{"fault role id", testpilotspb.RUN_EVENT_FIELD_FAULT_ROLE_ID, true, textLiteral("queue")},
 		{"fault kind", testpilotspb.RUN_EVENT_FIELD_FAULT_KIND, true, enumLiteral(int32(testpilotspb.FAULT_KIND_WORKER_STOP))},

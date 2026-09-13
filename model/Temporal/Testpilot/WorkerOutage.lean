@@ -93,8 +93,8 @@ def resumeRealization : Umpire.FaultRealization :=
 /-- `HISTORY_EVENT_FILTER_TYPE_CLOSE_EVENT`. The read blocks until the workflow closes and returns
 only the closing event, so the success rule reads the one event that proves the queued task ran --
 and the read cannot resolve before the resumed worker executed it. -/
-private def closeEventFilter : ProgramExpression :=
-  ProgramExpr.literal (Value.enumeration 2)
+private def closeEventFilter : Expression :=
+  Expr.literal (Value.enumeration 2)
 
 private def historyAssignments : Array RequestAssignment := #[
   Program.environmentAssignment (field "namespace") workerOutageNamespaceBinding,
@@ -145,9 +145,9 @@ private def program (stop resume : InstructionNode) : Program :=
 
 /-! ### The Contract -/
 
-private def faultRoleIs : ContractExpression :=
-  ContractExpr.equals (ContractExpr.runEvent .RUN_EVENT_FIELD_FAULT_ROLE_ID)
-    (ContractExpr.literal (Value.text workerOutageQueueRole))
+private def faultRoleIs : Expression :=
+  Expr.equal (Expr.runEvent .RUN_EVENT_FIELD_FAULT_ROLE_ID)
+    (Expr.literal (Value.text workerOutageQueueRole))
 
 /-- The wire number one fault kind carries. The generated Lean enum is a bare inductive with no
 number accessor, so the constructor and its number are paired here once and read from here twice.
@@ -159,9 +159,9 @@ private def faultKindNumber : FaultKind → Int32
   | .FAULT_KIND_UNSPECIFIED => 0
   | .«Unknown.Value» number => number
 
-private def faultKindIs (kind : FaultKind) : ContractExpression :=
-  ContractExpr.equals (ContractExpr.runEvent .RUN_EVENT_FIELD_FAULT_KIND)
-    (ContractExpr.literal (Value.enumeration (faultKindNumber kind)))
+private def faultKindIs (kind : FaultKind) : Expression :=
+  Expr.equal (Expr.runEvent .RUN_EVENT_FIELD_FAULT_KIND)
+    (Expr.literal (Value.enumeration (faultKindNumber kind)))
 
 /-- The outage window, counted in evaluated Run Events rather than on the host's clock. The counter
 restarts when the stop transitions the rule, so what it bounds is the distance from the stop to the
@@ -179,11 +179,11 @@ private def outageOrderRule : ContractRule :=
       Contract.state "expired" .CONTRACT_STATE_STATUS_VIOLATED]
     #[Contract.transition "observe-stop" "awaiting-stop" "stopped"
         #[.RUN_EVENT_KIND_FAULT_INJECTED]
-        (ContractExpr.all #[faultRoleIs, faultKindIs .FAULT_KIND_WORKER_STOP])
+        (Expr.all #[faultRoleIs, faultKindIs .FAULT_KIND_WORKER_STOP])
         .CONTRACT_SUPPORT_KIND_MATCHING_EVENT,
       Contract.transition "observe-resume" "stopped" "resumed"
         #[.RUN_EVENT_KIND_FAULT_INJECTED]
-        (ContractExpr.all #[faultRoleIs, faultKindIs .FAULT_KIND_WORKER_RESUME])
+        (Expr.all #[faultRoleIs, faultKindIs .FAULT_KIND_WORKER_RESUME])
         .CONTRACT_SUPPORT_KIND_MATCHING_EVENT]
     (deadline := some (Contract.deadlineEvents workerOutageDeadline "expired"))
 
@@ -193,9 +193,9 @@ private def workflowCompletedRule : ContractRule :=
       Contract.state "completed" .CONTRACT_STATE_STATUS_SATISFIED]
     #[Contract.transition "observe-workflow-completed" "pending" "completed"
         #[.RUN_EVENT_KIND_INSTRUCTION_COMPLETED]
-        (ContractExpr.all #[
-          ContractExpr.present (observed workerOutageObservation),
-          ContractExpr.present (projected (observed workerOutageObservation)
+        (Expr.all #[
+          Expr.present (observed workerOutageObservation),
+          Expr.present (projected (observed workerOutageObservation)
             (historyAttribute completedAttributes completedTaskField))])
         .CONTRACT_SUPPORT_KIND_MATCHING_EVENT]
 

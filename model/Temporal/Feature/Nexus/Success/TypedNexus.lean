@@ -798,7 +798,7 @@ private def program (startPath historyPath : String) : Program :=
             historyLimits
             (operationCases.map fun entry =>
               Ref.instruction controllerId entry.completeInstructionId).toArray
-            (some (ProgramExpr.all (operationCases.map fun entry =>
+            (some (Expr.all (operationCases.map fun entry =>
               succeeded controllerId entry.completeInstructionId).toArray))
             (some statusOutcome)]),
       Program.workflow workflowEntrypointId workflowType workerRole taskQueueRole (
@@ -806,7 +806,7 @@ private def program (startPath historyPath : String) : Program :=
           #[Program.node "finish-workflow" (Program.finish (text "completed"))
             bounds (operationCases.map fun entry =>
               Ref.instruction workflowEntrypointId entry.awaitInstructionId).toArray
-            (some (ProgramExpr.all (operationCases.map fun entry =>
+            (some (Expr.all (operationCases.map fun entry =>
               succeeded workflowEntrypointId entry.awaitInstructionId).toArray))
             (some statusOutcome)])] ++
       (operationCases.map fun entry =>

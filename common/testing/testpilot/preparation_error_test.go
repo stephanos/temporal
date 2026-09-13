@@ -70,7 +70,7 @@ func TestPreparationErrorCase(t *testing.T) {
 		}, testpilot.PreparationTypeMismatch, "literal", "literal does not match its declared type", "rule safety: "},
 		{"unavailable observation", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) {
 			c.Program.Observations = []*testpilotspb.Observation{{ObservationId: "result", Type: &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Scalar{Scalar: &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_BOOLEAN}}}}}}}
-			c.Contract.Rules[0].Transitions[0].Predicate = &testpilotspb.ContractExpression{Expression: &testpilotspb.ContractExpression_Observation{Observation: &testpilotspb.ObservationRef{ObservationId: "result"}}}
+			c.Contract.Rules[0].Transitions[0].Predicate = &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_ObservationId{ObservationId: "result"}}}}
 		}, testpilot.PreparationUnavailable, "expression", "reference or projection requires an explicit presence guard", "rule safety: "},
 		{"unsupported version", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) { c.Version.Major++ }, testpilot.PreparationUnsupported, "version", "unsupported Case version", ""},
 		{"unsupported capability bounded path", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) {

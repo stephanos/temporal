@@ -30,7 +30,7 @@ tree was committed with `git add -f`; it is tracked, and being frozen it is neve
 ## What the test checks
 
 `TestBaselineFixturesMapToRegeneratedFixtures` pairs the baseline and regenerated fixture sets one
-to one (an added or deleted fixture fails) and, for each pair:
+to one (an added or deleted fixture fails, unless `Added` declares the addition) and, for each pair:
 
 - a Case (`case.json`, `*-case.json`) decodes strictly through the snapshot, is mapped, and
   compared with the regenerated Case after both decode strictly into the generated types;
@@ -51,6 +51,10 @@ Reuse the helpers where they fit: `RenameField`, `RenameEnumLiteral`, `RenameMes
 `RewriteMessages`. A step that is not a rename validates what it assumes (a derived field equals
 its recomputed value, a dropped bound matches a declared loosened bound) instead of discarding
 data; `DropField` requires that check.
+
+A task that adds a Case rather than migrating one, such as a new conformance rejection, lists each
+new file in `Added` with its requirement. No baseline can pin it, so its generator's validation is its
+check; a declared addition that is not regenerated, or that has a baseline, fails.
 
 A step spells the baseline names its change retires. Split those literals (`"Run" + "Status"`) as
 the other files the retired-vocabulary scan reads do, so the scan keeps holding the names everywhere

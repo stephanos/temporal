@@ -77,10 +77,10 @@ func TestSchedulerDependencyConcurrencyGuardsAndIsolation(t *testing.T) {
 	first.Limits.MaxAttempts = 3
 	second := rpcNode("second")
 	skipped := rpcNode("skipped")
-	skipped.Guard = &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: false}}}}
+	skipped.Guard = &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: false}}}}
 	consumer := rpcNode("consumer")
 	consumer.Dependencies = []*testpilotspb.InstructionReference{{EntrypointId: "controller", InstructionId: "call"}, {EntrypointId: "controller", InstructionId: "skipped"}}
-	consumer.Guard = &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Negation{Negation: &testpilotspb.ProgramNotExpression{Operand: present(&testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Outcome{Outcome: &testpilotspb.InstructionOutcomeRef{Instruction: &testpilotspb.InstructionReference{EntrypointId: "controller", InstructionId: "skipped"}, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS}}})}}}
+	consumer.Guard = &testpilotspb.Expression{Expression: &testpilotspb.Expression_Not{Not: &testpilotspb.NotExpression{Operand: present(&testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_Outcome{Outcome: &testpilotspb.InstructionOutcomeReference{Instruction: &testpilotspb.InstructionReference{EntrypointId: "controller", InstructionId: "skipped"}, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS}}}}})}}}
 	c.Program.Entrypoints[0].Instructions = append(c.Program.Entrypoints[0].Instructions, second, skipped, consumer)
 	p, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
@@ -209,7 +209,7 @@ func TestSchedulerTimeoutAndProtocolBranches(t *testing.T) {
 			branch := rpcNode("branch")
 			branch.Dependencies = []*testpilotspb.InstructionReference{{EntrypointId: "controller", InstructionId: "call"}}
 			branch.Guard = succeeded("controller", "call")
-			branch.Guard.GetEquals().Right.GetLiteral().GetEnumValue().Number = int32(status)
+			branch.Guard.GetCompare().Right.GetLiteral().GetEnumValue().Number = int32(status)
 			c.Program.Entrypoints[0].Instructions = append(c.Program.Entrypoints[0].Instructions, branch)
 			p, err := Prepare(c, catalog, policy)
 			require.NoError(t, err)
@@ -289,7 +289,7 @@ func TestSchedulerRequestsSlotsFanoutAndClosure(t *testing.T) {
 	c.Program.Observations = []*testpilotspb.Observation{{ObservationId: "item", Type: scalar(testpilotspb.SCALAR_KIND_TEXT)}}
 	rpc := c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc()
 	rpc.RequestAssignments = []*testpilotspb.RequestAssignment{{Target: field("text"), Value: textLiteral("constructed")}}
-	rpc.ResponseReads = []*testpilotspb.ResponseRead{{Path: field("text"), Kind: testpilotspb.READ_CARDINALITY_ONE, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "text"}}}}, {Path: &testpilotspb.FieldPath{Segments: []*testpilotspb.FieldPathSegment{{Field: "items", Selector: &testpilotspb.FieldPathSegment_Repeated{Repeated: &testpilotspb.RepeatedWildcard{}}}}}, Kind: testpilotspb.READ_CARDINALITY_EMIT_EACH, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_ObservationId{ObservationId: "item"}}}}}
+	rpc.ResponseReads = []*testpilotspb.ResponseRead{{Path: field("text"), Cardinality: testpilotspb.READ_CARDINALITY_ONE, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "text"}}}}, {Path: &testpilotspb.FieldPath{Segments: []*testpilotspb.FieldPathSegment{{Field: "items", Selector: &testpilotspb.FieldPathSegment_Repeated{Repeated: &testpilotspb.RepeatedWildcard{}}}}}, Cardinality: testpilotspb.READ_CARDINALITY_EMIT_EACH, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_ObservationId{ObservationId: "item"}}}}}
 	wait := rpcNode("wait")
 	wait.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitSlot{AwaitSlot: &testpilotspb.AwaitSlot{SlotId: "text"}}}
 	c.Program.Entrypoints[0].Instructions = append(c.Program.Entrypoints[0].Instructions, wait)

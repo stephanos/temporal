@@ -32,15 +32,20 @@ var runOnlyMessages = []protoreflect.Name{"Run", "Verdict", "RunDiagnostic", "Ru
 
 func TestProtocolEncodesExpressionAndStateScopes(t *testing.T) {
 	t.Parallel()
-	programExpression := messageDescriptor(t, "ProgramExpression")
-	require.NotNil(t, programExpression.Oneofs().ByName("expression"))
-	require.Nil(t, programExpression.Fields().ByName("observation"))
-	require.Nil(t, programExpression.Fields().ByName("capture"))
-	require.Nil(t, programExpression.Fields().ByName("run_event"))
-	contractExpression := messageDescriptor(t, "ContractExpression")
-	require.NotNil(t, contractExpression.Oneofs().ByName("expression"))
-	require.Nil(t, contractExpression.Fields().ByName("slot"))
-	require.Nil(t, contractExpression.Fields().ByName("outcome"))
+	// Program and Contract share one expression language; its references are one oneof, and which
+	// of them an expression may use is checked at preparation rather than encoded in the type.
+	expression := messageDescriptor(t, "Expression")
+	require.NotNil(t, expression.Oneofs().ByName("expression"))
+	require.Equal(t, []protoreflect.Name{"literal", "reference", "path", "present", "compare", "not", "all", "any"}, fieldNames(expression))
+	reference := messageDescriptor(t, "Reference")
+	require.NotNil(t, reference.Oneofs().ByName("reference"))
+	require.Equal(t, []protoreflect.Name{
+		"slot_id", "outcome", "run", "environment_binding_id", "observation_id", "run_event", "capture_id",
+		"evidence_field_id", "correlated_capture", "model_value",
+	}, fieldNames(reference))
+	operator := testpilotspb.ComparisonOperator(0).Descriptor().Values()
+	require.EqualValues(t, 1, operator.ByName("COMPARISON_OPERATOR_EQUAL").Number())
+	require.EqualValues(t, 2, operator.ByName("COMPARISON_OPERATOR_NOT_EQUAL").Number())
 	slot := messageDescriptor(t, "Slot")
 	require.NotNil(t, slot.Oneofs().ByName("content"))
 	require.Nil(t, slot.Fields().ByName("kind"))
@@ -70,7 +75,14 @@ func TestProtocolUsesCohesivePublicVocabulary(t *testing.T) {
 		"Role" + "Definition", "Slot" + "Definition", "Observation" + "Definition", "Entrypoint" + "Definition",
 		"Cleanup" + "Definition", "Instruction" + "Definition", "Instruction" + "Ref",
 		"ContractHorizon" + "Definition",
-		"Scoped" + "Binding", "Scoped" + "CaptureDeclaration", "Scoped" + "CaptureRef", "Scoped" + "Clause",
+		"Program" + "Expression", "Contract" + "Expression", "Program" + "PathExpression", "Contract" + "PathExpression",
+		"Program" + "PresentExpression", "Contract" + "PresentExpression", "ProgramEquals" + "Expression",
+		"ContractEquals" + "Expression", "Program" + "CompareExpression", "Contract" + "CompareExpression",
+		"Program" + "NotExpression", "Contract" + "NotExpression", "Program" + "AllExpression", "Contract" + "AllExpression",
+		"Program" + "AnyExpression", "Contract" + "AnyExpression", "Equals" + "Expression",
+		"Slot" + "Ref", "Run" + "Ref", "Observation" + "Ref", "Capture" + "Ref", "Environment" + "Ref",
+		"InstructionOutcome" + "Ref", "RunEventField" + "Ref", "CorrelatedCapture" + "Ref",
+		"Scoped" + "Binding", "Scoped" + "CaptureDeclaration", "ScopedCapture" + "Ref", "Scoped" + "Clause",
 		"Scoped" + "Clock", "Scoped" + "Comparison", "Scoped" + "ComparisonOperator", "Scoped" + "Contract",
 		"Scoped" + "Correlation", "Scoped" + "CorrelationGroup", "Scoped" + "Endpoint", "Scoped" + "Evidence",
 		"Scoped" + "EvidenceBinding", "Scoped" + "EvidenceField", "Scoped" + "EvidenceMeaning",
@@ -129,6 +141,14 @@ func runOnlyImports(root protoreflect.FileDescriptor) []string {
 	}
 	walk(root)
 	return problems
+}
+
+func fieldNames(message protoreflect.MessageDescriptor) []protoreflect.Name {
+	names := make([]protoreflect.Name, 0, message.Fields().Len())
+	for index := range message.Fields().Len() {
+		names = append(names, message.Fields().Get(index).Name())
+	}
+	return names
 }
 
 func messageDescriptor(t *testing.T, name protoreflect.Name) protoreflect.MessageDescriptor {

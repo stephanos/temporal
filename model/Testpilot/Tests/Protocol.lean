@@ -6,35 +6,27 @@ open temporal.server.api.testpilot.v1
 
 namespace Testpilot.Tests.Protocol
 
-private def programExpression : ProgramExpression :=
-  { expression := some (.literal { value := some (.bool_value true) }) }
+private def instructionGuard : Expression :=
+  { expression := some (.reference { reference := some (.slot_id "slot") }) }
 
-private def contractExpression : ContractExpression :=
-  { expression := some (.literal { value := some (.bool_value true) }) }
+private def observation : Expression :=
+  { expression := some (.reference { reference := some (.observation_id "observation") }) }
 
-#guard programExpression.expression.isSome
-#guard contractExpression.expression.isSome
+private def transitionPredicate : Expression :=
+  { expression := some (.not { operand := some observation }) }
 
-/--
-error: Type mismatch
-  contractExpression
-has type
-  ContractExpression
-but is expected to have type
-  ProgramExpression
--/
-#guard_msgs (error, substring := true) in
-example : ProgramExpression := contractExpression
+/-! Program and Contract expressions are one type, so either can stand where the other appears;
+Go preparation, not the type, checks each reference against its context. -/
 
-/--
-error: Type mismatch
-  programExpression
-has type
-  ProgramExpression
-but is expected to have type
-  ContractExpression
--/
-#guard_msgs (error, substring := true) in
-example : ContractExpression := programExpression
+private def guardReadingAnObservation : InstructionNode :=
+  { instruction_id := "node", guard := some transitionPredicate }
+
+private def predicateReadingASlot : ContractTransition :=
+  { transition_id := "transition", predicate := some instructionGuard }
+
+#guard instructionGuard.expression.isSome
+#guard transitionPredicate.expression.isSome
+#guard guardReadingAnObservation.guard.isSome
+#guard predicateReadingASlot.predicate.isSome
 
 end Testpilot.Tests.Protocol

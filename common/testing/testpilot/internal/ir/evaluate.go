@@ -106,7 +106,7 @@ func (r *runtimeExpression) eval(e *Expression) (*testpilotspb.Value, error) {
 			}
 		}
 		return boolValue(continuing), nil
-	case Equals, Compare:
+	case Compare:
 		return r.binary(e)
 	default:
 		return nil, invalid(Unsupported, "expression", "unknown prepared operator")
@@ -127,9 +127,10 @@ func (r *runtimeExpression) binary(e *Expression) (*testpilotspb.Value, error) {
 	if err := r.charge(int64(proto.Size(a)) + int64(proto.Size(b))); err != nil {
 		return nil, err
 	}
-	if e.operator == Equals {
+	// NOT_EQUAL is the negation of EQUAL, so the two share one equality.
+	if e.comparison == testpilotspb.COMPARISON_OPERATOR_EQUAL || e.comparison == testpilotspb.COMPARISON_OPERATOR_NOT_EQUAL {
 		same, err := r.equal(a, b, e.children[0].typ)
-		return boolValue(same), err
+		return boolValue(same == (e.comparison == testpilotspb.COMPARISON_OPERATOR_EQUAL)), err
 	}
 	ordering, unordered, err := compareValues(a, b, e.children[0].typ)
 	if err != nil {

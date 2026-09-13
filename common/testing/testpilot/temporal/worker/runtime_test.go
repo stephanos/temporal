@@ -295,8 +295,8 @@ func symbolicRuntimeDriver(t *testing.T, limits *testpilotspb.ProgramLimits) *Dr
 	return host
 }
 
-func symbolicEnvironment(id string) *testpilotspb.ProgramExpression {
-	return &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Environment{Environment: &testpilotspb.EnvironmentRef{BindingId: id}}}
+func symbolicEnvironment(id string) *testpilotspb.Expression {
+	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_EnvironmentBindingId{EnvironmentBindingId: id}}}}
 }
 
 func symbolicFieldPath(fields ...string) *testpilotspb.FieldPath {

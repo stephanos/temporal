@@ -28,7 +28,7 @@ private def program : temporal.server.api.testpilot.v1.Program := Program.make
   #[]
   #[Program.workflow "workflow" "SyntheticWorkflow" "worker" "task.queue"
     #[Program.node "finish"
-      (Program.finish (ProgramExpr.literal (Value.messageValue formatVersion))) instructionLimits
+      (Program.finish (Expr.literal (Value.messageValue formatVersion))) instructionLimits
       (outcome := some (Program.outcome #[Program.outcomeField
         .INSTRUCTION_OUTCOME_FIELD_VALUE (Types.singular (Types.messageType
           "temporal.server.api.testpilot.v1.FormatVersion"))]))]]
@@ -41,7 +41,7 @@ private def contract : Contract := Contract.contract "testpilot.synthetic.contra
     #[Contract.state "open" .CONTRACT_STATE_STATUS_PENDING,
       Contract.state "done" .CONTRACT_STATE_STATUS_SATISFIED]
     #[Contract.transition "complete" "open" "done" #[.RUN_EVENT_KIND_RUN_CLOSED]
-      (ContractExpr.literal (Value.boolean true))]
+      (Expr.literal (Value.boolean true))]
 ] (Contract.limits 1 2 1 8 32 64 1 1024)
 
 /-- A deterministic Case authored without an Umpire or Temporal dependency. -/

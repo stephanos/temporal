@@ -7,35 +7,35 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-// Marshal an object of type ProgramExpression to the protobuf v3 wire format
-func (val *ProgramExpression) Marshal() ([]byte, error) {
+// Marshal an object of type Expression to the protobuf v3 wire format
+func (val *Expression) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
 }
 
-// Unmarshal an object of type ProgramExpression from the protobuf v3 wire format
-func (val *ProgramExpression) Unmarshal(buf []byte) error {
+// Unmarshal an object of type Expression from the protobuf v3 wire format
+func (val *Expression) Unmarshal(buf []byte) error {
 	return proto.Unmarshal(buf, val)
 }
 
 // Size returns the size of the object, in bytes, once serialized
-func (val *ProgramExpression) Size() int {
+func (val *Expression) Size() int {
 	return proto.Size(val)
 }
 
-// Equal returns whether two ProgramExpression values are equivalent by recursively
+// Equal returns whether two Expression values are equivalent by recursively
 // comparing the message's fields.
 // For more information see the documentation for
 // https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *ProgramExpression) Equal(that interface{}) bool {
+func (this *Expression) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	var that1 *ProgramExpression
+	var that1 *Expression
 	switch t := that.(type) {
-	case *ProgramExpression:
+	case *Expression:
 		that1 = t
-	case ProgramExpression:
+	case Expression:
 		that1 = &t
 	default:
 		return false
@@ -44,35 +44,35 @@ func (this *ProgramExpression) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
-// Marshal an object of type ProgramPathExpression to the protobuf v3 wire format
-func (val *ProgramPathExpression) Marshal() ([]byte, error) {
+// Marshal an object of type PathExpression to the protobuf v3 wire format
+func (val *PathExpression) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
 }
 
-// Unmarshal an object of type ProgramPathExpression from the protobuf v3 wire format
-func (val *ProgramPathExpression) Unmarshal(buf []byte) error {
+// Unmarshal an object of type PathExpression from the protobuf v3 wire format
+func (val *PathExpression) Unmarshal(buf []byte) error {
 	return proto.Unmarshal(buf, val)
 }
 
 // Size returns the size of the object, in bytes, once serialized
-func (val *ProgramPathExpression) Size() int {
+func (val *PathExpression) Size() int {
 	return proto.Size(val)
 }
 
-// Equal returns whether two ProgramPathExpression values are equivalent by recursively
+// Equal returns whether two PathExpression values are equivalent by recursively
 // comparing the message's fields.
 // For more information see the documentation for
 // https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *ProgramPathExpression) Equal(that interface{}) bool {
+func (this *PathExpression) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	var that1 *ProgramPathExpression
+	var that1 *PathExpression
 	switch t := that.(type) {
-	case *ProgramPathExpression:
+	case *PathExpression:
 		that1 = t
-	case ProgramPathExpression:
+	case PathExpression:
 		that1 = &t
 	default:
 		return false
@@ -81,35 +81,35 @@ func (this *ProgramPathExpression) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
-// Marshal an object of type ProgramPresentExpression to the protobuf v3 wire format
-func (val *ProgramPresentExpression) Marshal() ([]byte, error) {
+// Marshal an object of type PresentExpression to the protobuf v3 wire format
+func (val *PresentExpression) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
 }
 
-// Unmarshal an object of type ProgramPresentExpression from the protobuf v3 wire format
-func (val *ProgramPresentExpression) Unmarshal(buf []byte) error {
+// Unmarshal an object of type PresentExpression from the protobuf v3 wire format
+func (val *PresentExpression) Unmarshal(buf []byte) error {
 	return proto.Unmarshal(buf, val)
 }
 
 // Size returns the size of the object, in bytes, once serialized
-func (val *ProgramPresentExpression) Size() int {
+func (val *PresentExpression) Size() int {
 	return proto.Size(val)
 }
 
-// Equal returns whether two ProgramPresentExpression values are equivalent by recursively
+// Equal returns whether two PresentExpression values are equivalent by recursively
 // comparing the message's fields.
 // For more information see the documentation for
 // https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *ProgramPresentExpression) Equal(that interface{}) bool {
+func (this *PresentExpression) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	var that1 *ProgramPresentExpression
+	var that1 *PresentExpression
 	switch t := that.(type) {
-	case *ProgramPresentExpression:
+	case *PresentExpression:
 		that1 = t
-	case ProgramPresentExpression:
+	case PresentExpression:
 		that1 = &t
 	default:
 		return false
@@ -118,35 +118,35 @@ func (this *ProgramPresentExpression) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
-// Marshal an object of type ProgramEqualsExpression to the protobuf v3 wire format
-func (val *ProgramEqualsExpression) Marshal() ([]byte, error) {
+// Marshal an object of type CompareExpression to the protobuf v3 wire format
+func (val *CompareExpression) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
 }
 
-// Unmarshal an object of type ProgramEqualsExpression from the protobuf v3 wire format
-func (val *ProgramEqualsExpression) Unmarshal(buf []byte) error {
+// Unmarshal an object of type CompareExpression from the protobuf v3 wire format
+func (val *CompareExpression) Unmarshal(buf []byte) error {
 	return proto.Unmarshal(buf, val)
 }
 
 // Size returns the size of the object, in bytes, once serialized
-func (val *ProgramEqualsExpression) Size() int {
+func (val *CompareExpression) Size() int {
 	return proto.Size(val)
 }
 
-// Equal returns whether two ProgramEqualsExpression values are equivalent by recursively
+// Equal returns whether two CompareExpression values are equivalent by recursively
 // comparing the message's fields.
 // For more information see the documentation for
 // https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *ProgramEqualsExpression) Equal(that interface{}) bool {
+func (this *CompareExpression) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	var that1 *ProgramEqualsExpression
+	var that1 *CompareExpression
 	switch t := that.(type) {
-	case *ProgramEqualsExpression:
+	case *CompareExpression:
 		that1 = t
-	case ProgramEqualsExpression:
+	case CompareExpression:
 		that1 = &t
 	default:
 		return false
@@ -155,35 +155,35 @@ func (this *ProgramEqualsExpression) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
-// Marshal an object of type ProgramCompareExpression to the protobuf v3 wire format
-func (val *ProgramCompareExpression) Marshal() ([]byte, error) {
+// Marshal an object of type NotExpression to the protobuf v3 wire format
+func (val *NotExpression) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
 }
 
-// Unmarshal an object of type ProgramCompareExpression from the protobuf v3 wire format
-func (val *ProgramCompareExpression) Unmarshal(buf []byte) error {
+// Unmarshal an object of type NotExpression from the protobuf v3 wire format
+func (val *NotExpression) Unmarshal(buf []byte) error {
 	return proto.Unmarshal(buf, val)
 }
 
 // Size returns the size of the object, in bytes, once serialized
-func (val *ProgramCompareExpression) Size() int {
+func (val *NotExpression) Size() int {
 	return proto.Size(val)
 }
 
-// Equal returns whether two ProgramCompareExpression values are equivalent by recursively
+// Equal returns whether two NotExpression values are equivalent by recursively
 // comparing the message's fields.
 // For more information see the documentation for
 // https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *ProgramCompareExpression) Equal(that interface{}) bool {
+func (this *NotExpression) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	var that1 *ProgramCompareExpression
+	var that1 *NotExpression
 	switch t := that.(type) {
-	case *ProgramCompareExpression:
+	case *NotExpression:
 		that1 = t
-	case ProgramCompareExpression:
+	case NotExpression:
 		that1 = &t
 	default:
 		return false
@@ -192,35 +192,35 @@ func (this *ProgramCompareExpression) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
-// Marshal an object of type ProgramNotExpression to the protobuf v3 wire format
-func (val *ProgramNotExpression) Marshal() ([]byte, error) {
+// Marshal an object of type AllExpression to the protobuf v3 wire format
+func (val *AllExpression) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
 }
 
-// Unmarshal an object of type ProgramNotExpression from the protobuf v3 wire format
-func (val *ProgramNotExpression) Unmarshal(buf []byte) error {
+// Unmarshal an object of type AllExpression from the protobuf v3 wire format
+func (val *AllExpression) Unmarshal(buf []byte) error {
 	return proto.Unmarshal(buf, val)
 }
 
 // Size returns the size of the object, in bytes, once serialized
-func (val *ProgramNotExpression) Size() int {
+func (val *AllExpression) Size() int {
 	return proto.Size(val)
 }
 
-// Equal returns whether two ProgramNotExpression values are equivalent by recursively
+// Equal returns whether two AllExpression values are equivalent by recursively
 // comparing the message's fields.
 // For more information see the documentation for
 // https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *ProgramNotExpression) Equal(that interface{}) bool {
+func (this *AllExpression) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	var that1 *ProgramNotExpression
+	var that1 *AllExpression
 	switch t := that.(type) {
-	case *ProgramNotExpression:
+	case *AllExpression:
 		that1 = t
-	case ProgramNotExpression:
+	case AllExpression:
 		that1 = &t
 	default:
 		return false
@@ -229,35 +229,35 @@ func (this *ProgramNotExpression) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
-// Marshal an object of type ProgramAllExpression to the protobuf v3 wire format
-func (val *ProgramAllExpression) Marshal() ([]byte, error) {
+// Marshal an object of type AnyExpression to the protobuf v3 wire format
+func (val *AnyExpression) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
 }
 
-// Unmarshal an object of type ProgramAllExpression from the protobuf v3 wire format
-func (val *ProgramAllExpression) Unmarshal(buf []byte) error {
+// Unmarshal an object of type AnyExpression from the protobuf v3 wire format
+func (val *AnyExpression) Unmarshal(buf []byte) error {
 	return proto.Unmarshal(buf, val)
 }
 
 // Size returns the size of the object, in bytes, once serialized
-func (val *ProgramAllExpression) Size() int {
+func (val *AnyExpression) Size() int {
 	return proto.Size(val)
 }
 
-// Equal returns whether two ProgramAllExpression values are equivalent by recursively
+// Equal returns whether two AnyExpression values are equivalent by recursively
 // comparing the message's fields.
 // For more information see the documentation for
 // https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *ProgramAllExpression) Equal(that interface{}) bool {
+func (this *AnyExpression) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	var that1 *ProgramAllExpression
+	var that1 *AnyExpression
 	switch t := that.(type) {
-	case *ProgramAllExpression:
+	case *AnyExpression:
 		that1 = t
-	case ProgramAllExpression:
+	case AnyExpression:
 		that1 = &t
 	default:
 		return false
@@ -266,368 +266,35 @@ func (this *ProgramAllExpression) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
-// Marshal an object of type ProgramAnyExpression to the protobuf v3 wire format
-func (val *ProgramAnyExpression) Marshal() ([]byte, error) {
+// Marshal an object of type Reference to the protobuf v3 wire format
+func (val *Reference) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
 }
 
-// Unmarshal an object of type ProgramAnyExpression from the protobuf v3 wire format
-func (val *ProgramAnyExpression) Unmarshal(buf []byte) error {
+// Unmarshal an object of type Reference from the protobuf v3 wire format
+func (val *Reference) Unmarshal(buf []byte) error {
 	return proto.Unmarshal(buf, val)
 }
 
 // Size returns the size of the object, in bytes, once serialized
-func (val *ProgramAnyExpression) Size() int {
+func (val *Reference) Size() int {
 	return proto.Size(val)
 }
 
-// Equal returns whether two ProgramAnyExpression values are equivalent by recursively
+// Equal returns whether two Reference values are equivalent by recursively
 // comparing the message's fields.
 // For more information see the documentation for
 // https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *ProgramAnyExpression) Equal(that interface{}) bool {
+func (this *Reference) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	var that1 *ProgramAnyExpression
+	var that1 *Reference
 	switch t := that.(type) {
-	case *ProgramAnyExpression:
+	case *Reference:
 		that1 = t
-	case ProgramAnyExpression:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type ContractExpression to the protobuf v3 wire format
-func (val *ContractExpression) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type ContractExpression from the protobuf v3 wire format
-func (val *ContractExpression) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *ContractExpression) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two ContractExpression values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *ContractExpression) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *ContractExpression
-	switch t := that.(type) {
-	case *ContractExpression:
-		that1 = t
-	case ContractExpression:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type ContractPathExpression to the protobuf v3 wire format
-func (val *ContractPathExpression) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type ContractPathExpression from the protobuf v3 wire format
-func (val *ContractPathExpression) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *ContractPathExpression) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two ContractPathExpression values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *ContractPathExpression) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *ContractPathExpression
-	switch t := that.(type) {
-	case *ContractPathExpression:
-		that1 = t
-	case ContractPathExpression:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type ContractPresentExpression to the protobuf v3 wire format
-func (val *ContractPresentExpression) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type ContractPresentExpression from the protobuf v3 wire format
-func (val *ContractPresentExpression) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *ContractPresentExpression) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two ContractPresentExpression values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *ContractPresentExpression) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *ContractPresentExpression
-	switch t := that.(type) {
-	case *ContractPresentExpression:
-		that1 = t
-	case ContractPresentExpression:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type ContractEqualsExpression to the protobuf v3 wire format
-func (val *ContractEqualsExpression) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type ContractEqualsExpression from the protobuf v3 wire format
-func (val *ContractEqualsExpression) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *ContractEqualsExpression) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two ContractEqualsExpression values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *ContractEqualsExpression) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *ContractEqualsExpression
-	switch t := that.(type) {
-	case *ContractEqualsExpression:
-		that1 = t
-	case ContractEqualsExpression:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type ContractCompareExpression to the protobuf v3 wire format
-func (val *ContractCompareExpression) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type ContractCompareExpression from the protobuf v3 wire format
-func (val *ContractCompareExpression) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *ContractCompareExpression) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two ContractCompareExpression values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *ContractCompareExpression) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *ContractCompareExpression
-	switch t := that.(type) {
-	case *ContractCompareExpression:
-		that1 = t
-	case ContractCompareExpression:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type ContractNotExpression to the protobuf v3 wire format
-func (val *ContractNotExpression) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type ContractNotExpression from the protobuf v3 wire format
-func (val *ContractNotExpression) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *ContractNotExpression) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two ContractNotExpression values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *ContractNotExpression) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *ContractNotExpression
-	switch t := that.(type) {
-	case *ContractNotExpression:
-		that1 = t
-	case ContractNotExpression:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type ContractAllExpression to the protobuf v3 wire format
-func (val *ContractAllExpression) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type ContractAllExpression from the protobuf v3 wire format
-func (val *ContractAllExpression) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *ContractAllExpression) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two ContractAllExpression values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *ContractAllExpression) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *ContractAllExpression
-	switch t := that.(type) {
-	case *ContractAllExpression:
-		that1 = t
-	case ContractAllExpression:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type ContractAnyExpression to the protobuf v3 wire format
-func (val *ContractAnyExpression) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type ContractAnyExpression from the protobuf v3 wire format
-func (val *ContractAnyExpression) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *ContractAnyExpression) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two ContractAnyExpression values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *ContractAnyExpression) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *ContractAnyExpression
-	switch t := that.(type) {
-	case *ContractAnyExpression:
-		that1 = t
-	case ContractAnyExpression:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type SlotRef to the protobuf v3 wire format
-func (val *SlotRef) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type SlotRef from the protobuf v3 wire format
-func (val *SlotRef) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *SlotRef) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two SlotRef values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *SlotRef) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *SlotRef
-	switch t := that.(type) {
-	case *SlotRef:
-		that1 = t
-	case SlotRef:
+	case Reference:
 		that1 = &t
 	default:
 		return false
@@ -673,35 +340,35 @@ func (this *InstructionReference) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
-// Marshal an object of type InstructionOutcomeRef to the protobuf v3 wire format
-func (val *InstructionOutcomeRef) Marshal() ([]byte, error) {
+// Marshal an object of type InstructionOutcomeReference to the protobuf v3 wire format
+func (val *InstructionOutcomeReference) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
 }
 
-// Unmarshal an object of type InstructionOutcomeRef from the protobuf v3 wire format
-func (val *InstructionOutcomeRef) Unmarshal(buf []byte) error {
+// Unmarshal an object of type InstructionOutcomeReference from the protobuf v3 wire format
+func (val *InstructionOutcomeReference) Unmarshal(buf []byte) error {
 	return proto.Unmarshal(buf, val)
 }
 
 // Size returns the size of the object, in bytes, once serialized
-func (val *InstructionOutcomeRef) Size() int {
+func (val *InstructionOutcomeReference) Size() int {
 	return proto.Size(val)
 }
 
-// Equal returns whether two InstructionOutcomeRef values are equivalent by recursively
+// Equal returns whether two InstructionOutcomeReference values are equivalent by recursively
 // comparing the message's fields.
 // For more information see the documentation for
 // https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *InstructionOutcomeRef) Equal(that interface{}) bool {
+func (this *InstructionOutcomeReference) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	var that1 *InstructionOutcomeRef
+	var that1 *InstructionOutcomeReference
 	switch t := that.(type) {
-	case *InstructionOutcomeRef:
+	case *InstructionOutcomeReference:
 		that1 = t
-	case InstructionOutcomeRef:
+	case InstructionOutcomeReference:
 		that1 = &t
 	default:
 		return false
@@ -710,35 +377,35 @@ func (this *InstructionOutcomeRef) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
-// Marshal an object of type RunRef to the protobuf v3 wire format
-func (val *RunRef) Marshal() ([]byte, error) {
+// Marshal an object of type RunReference to the protobuf v3 wire format
+func (val *RunReference) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
 }
 
-// Unmarshal an object of type RunRef from the protobuf v3 wire format
-func (val *RunRef) Unmarshal(buf []byte) error {
+// Unmarshal an object of type RunReference from the protobuf v3 wire format
+func (val *RunReference) Unmarshal(buf []byte) error {
 	return proto.Unmarshal(buf, val)
 }
 
 // Size returns the size of the object, in bytes, once serialized
-func (val *RunRef) Size() int {
+func (val *RunReference) Size() int {
 	return proto.Size(val)
 }
 
-// Equal returns whether two RunRef values are equivalent by recursively
+// Equal returns whether two RunReference values are equivalent by recursively
 // comparing the message's fields.
 // For more information see the documentation for
 // https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *RunRef) Equal(that interface{}) bool {
+func (this *RunReference) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	var that1 *RunRef
+	var that1 *RunReference
 	switch t := that.(type) {
-	case *RunRef:
+	case *RunReference:
 		that1 = t
-	case RunRef:
+	case RunReference:
 		that1 = &t
 	default:
 		return false
@@ -747,35 +414,35 @@ func (this *RunRef) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
-// Marshal an object of type EnvironmentRef to the protobuf v3 wire format
-func (val *EnvironmentRef) Marshal() ([]byte, error) {
+// Marshal an object of type RunEventReference to the protobuf v3 wire format
+func (val *RunEventReference) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
 }
 
-// Unmarshal an object of type EnvironmentRef from the protobuf v3 wire format
-func (val *EnvironmentRef) Unmarshal(buf []byte) error {
+// Unmarshal an object of type RunEventReference from the protobuf v3 wire format
+func (val *RunEventReference) Unmarshal(buf []byte) error {
 	return proto.Unmarshal(buf, val)
 }
 
 // Size returns the size of the object, in bytes, once serialized
-func (val *EnvironmentRef) Size() int {
+func (val *RunEventReference) Size() int {
 	return proto.Size(val)
 }
 
-// Equal returns whether two EnvironmentRef values are equivalent by recursively
+// Equal returns whether two RunEventReference values are equivalent by recursively
 // comparing the message's fields.
 // For more information see the documentation for
 // https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *EnvironmentRef) Equal(that interface{}) bool {
+func (this *RunEventReference) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	var that1 *EnvironmentRef
+	var that1 *RunEventReference
 	switch t := that.(type) {
-	case *EnvironmentRef:
+	case *RunEventReference:
 		that1 = t
-	case EnvironmentRef:
+	case RunEventReference:
 		that1 = &t
 	default:
 		return false
@@ -784,109 +451,35 @@ func (this *EnvironmentRef) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
-// Marshal an object of type ObservationRef to the protobuf v3 wire format
-func (val *ObservationRef) Marshal() ([]byte, error) {
+// Marshal an object of type CorrelatedCaptureReference to the protobuf v3 wire format
+func (val *CorrelatedCaptureReference) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
 }
 
-// Unmarshal an object of type ObservationRef from the protobuf v3 wire format
-func (val *ObservationRef) Unmarshal(buf []byte) error {
+// Unmarshal an object of type CorrelatedCaptureReference from the protobuf v3 wire format
+func (val *CorrelatedCaptureReference) Unmarshal(buf []byte) error {
 	return proto.Unmarshal(buf, val)
 }
 
 // Size returns the size of the object, in bytes, once serialized
-func (val *ObservationRef) Size() int {
+func (val *CorrelatedCaptureReference) Size() int {
 	return proto.Size(val)
 }
 
-// Equal returns whether two ObservationRef values are equivalent by recursively
+// Equal returns whether two CorrelatedCaptureReference values are equivalent by recursively
 // comparing the message's fields.
 // For more information see the documentation for
 // https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *ObservationRef) Equal(that interface{}) bool {
+func (this *CorrelatedCaptureReference) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	var that1 *ObservationRef
+	var that1 *CorrelatedCaptureReference
 	switch t := that.(type) {
-	case *ObservationRef:
+	case *CorrelatedCaptureReference:
 		that1 = t
-	case ObservationRef:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type RunEventFieldRef to the protobuf v3 wire format
-func (val *RunEventFieldRef) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type RunEventFieldRef from the protobuf v3 wire format
-func (val *RunEventFieldRef) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *RunEventFieldRef) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two RunEventFieldRef values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *RunEventFieldRef) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *RunEventFieldRef
-	switch t := that.(type) {
-	case *RunEventFieldRef:
-		that1 = t
-	case RunEventFieldRef:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type CaptureRef to the protobuf v3 wire format
-func (val *CaptureRef) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type CaptureRef from the protobuf v3 wire format
-func (val *CaptureRef) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *CaptureRef) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two CaptureRef values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *CaptureRef) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *CaptureRef
-	switch t := that.(type) {
-	case *CaptureRef:
-		that1 = t
-	case CaptureRef:
+	case CorrelatedCaptureReference:
 		that1 = &t
 	default:
 		return false
@@ -898,10 +491,12 @@ func (this *CaptureRef) Equal(that interface{}) bool {
 var (
 	ComparisonOperator_shorthandValue = map[string]int32{
 		"Unspecified":        0,
-		"LessThan":           1,
-		"LessThanOrEqual":    2,
-		"GreaterThan":        3,
-		"GreaterThanOrEqual": 4,
+		"Equal":              1,
+		"NotEqual":           2,
+		"LessThan":           3,
+		"LessThanOrEqual":    4,
+		"GreaterThan":        5,
+		"GreaterThanOrEqual": 6,
 	}
 )
 

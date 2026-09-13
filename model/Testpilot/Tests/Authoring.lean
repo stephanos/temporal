@@ -48,41 +48,44 @@ private def paths : Array FieldPathSegment := #[
   Path.oneofSelector "choice" "text"
 ]
 
-private def programExpressions : Array ProgramExpression :=
-  let literal := ProgramExpr.literal (Value.boolean true)
-  let slot := ProgramExpr.slot "slot"
-  let outcome := ProgramExpr.outcome instructionReference .INSTRUCTION_OUTCOME_FIELD_VALUE
-  #[literal, slot, outcome, ProgramExpr.run, ProgramExpr.environment "namespace",
-    ProgramExpr.path slot requestPath,
-    ProgramExpr.present outcome,
-    ProgramExpr.equals literal slot,
-    ProgramExpr.compare .COMPARISON_OPERATOR_LESS_THAN literal outcome,
-    ProgramExpr.negation literal,
-    ProgramExpr.all #[literal, slot],
-    ProgramExpr.any #[outcome, literal]]
+private def programExpressions : Array Expression :=
+  let literal := Expr.literal (Value.boolean true)
+  let slot := Expr.slot "slot"
+  let outcome := Expr.outcome instructionReference .INSTRUCTION_OUTCOME_FIELD_VALUE
+  #[literal, slot, outcome, Expr.run, Expr.environment "namespace",
+    Expr.path slot requestPath,
+    Expr.present outcome,
+    Expr.equal literal slot,
+    Expr.compare .COMPARISON_OPERATOR_LESS_THAN literal outcome,
+    Expr.negate literal,
+    Expr.all #[literal, slot],
+    Expr.any #[outcome, literal]]
 
-private def contractExpressions : Array ContractExpression :=
-  let literal := ContractExpr.literal (Value.boolean true)
-  let observation := ContractExpr.observation "observed"
-  let runEvent := ContractExpr.runEvent .RUN_EVENT_FIELD_SEQUENCE
-  let capture := ContractExpr.capture "captured"
+private def contractExpressions : Array Expression :=
+  let literal := Expr.literal (Value.boolean true)
+  let observation := Expr.observation "observed"
+  let runEvent := Expr.runEvent .RUN_EVENT_FIELD_SEQUENCE
+  let capture := Expr.capture "captured"
   #[literal, observation, runEvent, capture,
-    ContractExpr.path observation responsePath,
-    ContractExpr.present capture,
-    ContractExpr.equals literal observation,
-    ContractExpr.compare .COMPARISON_OPERATOR_GREATER_THAN runEvent literal,
-    ContractExpr.negation literal,
-    ContractExpr.all #[observation, capture],
-    ContractExpr.any #[runEvent, literal]]
+    Expr.path observation responsePath,
+    Expr.present capture,
+    Expr.equal literal observation,
+    Expr.compare .COMPARISON_OPERATOR_GREATER_THAN runEvent literal,
+    Expr.negate literal,
+    Expr.all #[observation, capture],
+    Expr.any #[runEvent, literal]]
 
 private def instructionLimits := Program.instructionLimits 1000 2 3 4096
-private def assignment := Program.requestAssignment requestPath (ProgramExpr.literal (Value.text "x"))
+private def assignment := Program.requestAssignment requestPath (Expr.literal (Value.text "x"))
 private def environmentAssignment := Program.environmentAssignment requestPath "namespace"
 private def environmentAssignmentUsesBinding : Bool :=
   match environmentAssignment.value with
   | some value =>
     match value.expression with
-    | some (.environment reference) => reference.binding_id == "namespace"
+    | some (.reference reference) =>
+      match reference.reference with
+      | some (.environment_binding_id bindingId) => bindingId == "namespace"
+      | _ => false
     | _ => false
   | _ => false
 private def projection := Program.responseRead responsePath .READ_CARDINALITY_ONE
@@ -91,12 +94,12 @@ private def projection := Program.responseRead responsePath .READ_CARDINALITY_ON
 private def instructions : Array Instruction := #[
   Program.invokeRpc "endpoint" "/example.Service/Call" #[assignment] #[projection],
   Program.awaitSlot "slot",
-  Program.completeNexusOperation "capability" (ProgramExpr.literal (Value.text "done")),
-  Program.startNexusOperation "endpoint" "service" "operation" (ProgramExpr.literal (Value.text "input")),
+  Program.completeNexusOperation "capability" (Expr.literal (Value.text "done")),
+  Program.startNexusOperation "endpoint" "service" "operation" (Expr.literal (Value.text "input")),
   Program.awaitInstruction instructionReference,
-  Program.finish (ProgramExpr.literal (Value.text "result")),
+  Program.finish (Expr.literal (Value.text "result")),
   Program.respondNexus .NEXUS_RESPONSE_KIND_ASYNCHRONOUS
-    (ProgramExpr.literal (Value.text "token")) "capability",
+    (Expr.literal (Value.text "token")) "capability",
   Program.injectFault "queue" .FAULT_KIND_WORKER_STOP
 ]
 

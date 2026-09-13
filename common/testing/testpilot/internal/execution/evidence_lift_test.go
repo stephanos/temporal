@@ -69,7 +69,7 @@ func liftFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Profile) {
 		Entrypoints:  []*testpilotspb.Entrypoint{{EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}}, Instructions: []*testpilotspb.InstructionNode{node}}},
 		Cleanup:      &testpilotspb.Cleanup{EntrypointId: "cleanup"}, Limits: limits}, Contract: &testpilotspb.Contract{ContractId: "contract"}}
 	node.Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{
-		Path: &testpilotspb.FieldPath{}, Kind: testpilotspb.READ_CARDINALITY_ONE,
+		Path: &testpilotspb.FieldPath{}, Cardinality: testpilotspb.READ_CARDINALITY_ONE,
 		Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_CorrelatedEvidence{CorrelatedEvidence: liftProjection()}}}}}
 	return artifact, catalog, policy
 }

@@ -17,7 +17,7 @@ message InstructionNode {
   // Instructions of the same entrypoint that must finish or be skipped before this one is ready.
   repeated InstructionReference dependencies = 5;
   // Evaluated once the instruction is ready; when false it is skipped and records no Run Event.
-  ProgramExpression guard = 6;
+  Expression guard = 6;
   InstructionLimits limits = 7;
 }
 
@@ -47,13 +47,13 @@ message InvokeRpc {
 
 // RequestAssignment sets the request field at target to its value, evaluated at dispatch. Targets
 // may not overlap, fan out or select presence.
-message RequestAssignment { FieldPath target = 1; ProgramExpression value = 2; }
+message RequestAssignment { FieldPath target = 1; Expression value = 2; }
 
 // ResponseRead reads the value at path in a successful RPC response into its targets. An absent value
 // is not read.
 message ResponseRead {
   FieldPath path = 1;
-  ReadCardinality kind = 2;
+  ReadCardinality cardinality = 2;
   repeated ReadTarget targets = 3;
 }
 
@@ -89,17 +89,17 @@ message StartNexusOperation {
   string endpoint_role_id = 1;
   string service = 2;
   string operation = 3;
-  ProgramExpression input = 4;
+  Expression input = 4;
 }
 
 // CompleteNexusOperation completes, from a controller, the asynchronous Nexus operation whose handle a
 // Slot holds.
-message CompleteNexusOperation { string handle_slot_id = 1; ProgramExpression result = 2; }
+message CompleteNexusOperation { string handle_slot_id = 1; Expression result = 2; }
 
 // RespondNexus answers the Nexus operation that activated a Nexus handler entrypoint.
 message RespondNexus {
   NexusResponseKind kind = 1;
-  ProgramExpression result = 2;
+  Expression result = 2;
   // For an asynchronous response, the opaque Slot that receives the operation's completion handle.
   string handle_slot_id = 3;
 }
@@ -114,7 +114,7 @@ enum NexusResponseKind {
 }
 
 // Finish completes the workflow of a workflow entrypoint with result.
-message Finish { ProgramExpression result = 1; }
+message Finish { Expression result = 1; }
 
 // InjectFault asks the Driver for one deliberate outage. role_id must name a
 // ROLE_KIND_TASK_QUEUE role; that role's resource binding identifies the affected queue.

@@ -81,7 +81,7 @@ private def rpc
     (dependencies : Array InstructionReference)
     (assignments : Array RequestAssignment)
     (projections : Array ResponseRead)
-    (guard : Option ProgramExpression := none)
+    (guard : Option Expression := none)
     (reservations : Array ActivationReservationDefinition := #[]) : InstructionNode :=
   Program.node id (Program.invokeRpc workflowServiceRole method assignments projections)
     (bounds 10000 128) dependencies guard (some statusOutcome) reservations
@@ -130,7 +130,7 @@ private def workflowEntrypoint
       (bounds 10000) #[Ref.instruction "workflow" "start-nexus-operation"]
       none (some textOutcome),
     Program.node "finish-workflow"
-      (Program.finish (ProgramExpr.outcome
+      (Program.finish (Expr.outcome
         (Ref.instruction "workflow" "await-nexus-operation")
         .INSTRUCTION_OUTCOME_FIELD_VALUE))
       bounds #[Ref.instruction "workflow" "await-nexus-operation"]

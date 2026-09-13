@@ -50,12 +50,15 @@
               "all": {
                 "operands": [
                   {
-                    "equals": {
+                    "compare": {
                       "left": {
-                        "runEvent": {
-                          "field": "RUN_EVENT_FIELD_FAULT_ROLE_ID"
+                        "reference": {
+                          "runEvent": {
+                            "field": "RUN_EVENT_FIELD_FAULT_ROLE_ID"
+                          }
                         }
                       },
+                      "operator": "COMPARISON_OPERATOR_EQUAL",
                       "right": {
                         "literal": {
                           "textValue": "temporal.task-queue"
@@ -64,12 +67,15 @@
                     }
                   },
                   {
-                    "equals": {
+                    "compare": {
                       "left": {
-                        "runEvent": {
-                          "field": "RUN_EVENT_FIELD_FAULT_KIND"
+                        "reference": {
+                          "runEvent": {
+                            "field": "RUN_EVENT_FIELD_FAULT_KIND"
+                          }
                         }
                       },
+                      "operator": "COMPARISON_OPERATOR_EQUAL",
                       "right": {
                         "literal": {
                           "enumValue": {
@@ -97,12 +103,15 @@
               "all": {
                 "operands": [
                   {
-                    "equals": {
+                    "compare": {
                       "left": {
-                        "runEvent": {
-                          "field": "RUN_EVENT_FIELD_FAULT_ROLE_ID"
+                        "reference": {
+                          "runEvent": {
+                            "field": "RUN_EVENT_FIELD_FAULT_ROLE_ID"
+                          }
                         }
                       },
+                      "operator": "COMPARISON_OPERATOR_EQUAL",
                       "right": {
                         "literal": {
                           "textValue": "temporal.task-queue"
@@ -111,12 +120,15 @@
                     }
                   },
                   {
-                    "equals": {
+                    "compare": {
                       "left": {
-                        "runEvent": {
-                          "field": "RUN_EVENT_FIELD_FAULT_KIND"
+                        "reference": {
+                          "runEvent": {
+                            "field": "RUN_EVENT_FIELD_FAULT_KIND"
+                          }
                         }
                       },
+                      "operator": "COMPARISON_OPERATOR_EQUAL",
                       "right": {
                         "literal": {
                           "enumValue": {
@@ -163,7 +175,7 @@
                   {
                     "present": {
                       "operand": {
-                        "observation": {
+                        "reference": {
                           "observationId": "history-event"
                         }
                       }
@@ -173,6 +185,11 @@
                     "present": {
                       "operand": {
                         "path": {
+                          "operand": {
+                            "reference": {
+                              "observationId": "history-event"
+                            }
+                          },
                           "path": {
                             "segments": [
                               {
@@ -185,11 +202,6 @@
                                 "field": "workflow_task_completed_event_id"
                               }
                             ]
-                          },
-                          "source": {
-                            "observation": {
-                              "observationId": "history-event"
-                            }
                           }
                         }
                       }
@@ -264,27 +276,32 @@
                   {
                     "present": {
                       "operand": {
-                        "outcome": {
-                          "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                          "instruction": {
-                            "entrypointId": "controller",
-                            "instructionId": "stop-worker"
+                        "reference": {
+                          "outcome": {
+                            "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
+                            "instruction": {
+                              "entrypointId": "controller",
+                              "instructionId": "stop-worker"
+                            }
                           }
                         }
                       }
                     }
                   },
                   {
-                    "equals": {
+                    "compare": {
                       "left": {
-                        "outcome": {
-                          "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                          "instruction": {
-                            "entrypointId": "controller",
-                            "instructionId": "stop-worker"
+                        "reference": {
+                          "outcome": {
+                            "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
+                            "instruction": {
+                              "entrypointId": "controller",
+                              "instructionId": "stop-worker"
+                            }
                           }
                         }
                       },
+                      "operator": "COMPARISON_OPERATOR_EQUAL",
                       "right": {
                         "literal": {
                           "enumValue": {
@@ -311,8 +328,8 @@
                       ]
                     },
                     "value": {
-                      "environment": {
-                        "bindingId": "temporal.worker-outage.namespace"
+                      "reference": {
+                        "environmentBindingId": "temporal.worker-outage.namespace"
                       }
                     }
                   },
@@ -325,7 +342,9 @@
                       ]
                     },
                     "value": {
-                      "run": {}
+                      "reference": {
+                        "run": {}
+                      }
                     }
                   },
                   {
@@ -357,8 +376,8 @@
                       ]
                     },
                     "value": {
-                      "environment": {
-                        "bindingId": "temporal.worker-outage.task-queue"
+                      "reference": {
+                        "environmentBindingId": "temporal.worker-outage.task-queue"
                       }
                     }
                   },
@@ -371,7 +390,9 @@
                       ]
                     },
                     "value": {
-                      "run": {}
+                      "reference": {
+                        "run": {}
+                      }
                     }
                   }
                 ]
@@ -412,27 +433,32 @@
                   {
                     "present": {
                       "operand": {
-                        "outcome": {
-                          "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                          "instruction": {
-                            "entrypointId": "controller",
-                            "instructionId": "start-workflow"
+                        "reference": {
+                          "outcome": {
+                            "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
+                            "instruction": {
+                              "entrypointId": "controller",
+                              "instructionId": "start-workflow"
+                            }
                           }
                         }
                       }
                     }
                   },
                   {
-                    "equals": {
+                    "compare": {
                       "left": {
-                        "outcome": {
-                          "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                          "instruction": {
-                            "entrypointId": "controller",
-                            "instructionId": "start-workflow"
+                        "reference": {
+                          "outcome": {
+                            "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
+                            "instruction": {
+                              "entrypointId": "controller",
+                              "instructionId": "start-workflow"
+                            }
                           }
                         }
                       },
+                      "operator": "COMPARISON_OPERATOR_EQUAL",
                       "right": {
                         "literal": {
                           "enumValue": {
@@ -486,27 +512,32 @@
                   {
                     "present": {
                       "operand": {
-                        "outcome": {
-                          "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                          "instruction": {
-                            "entrypointId": "controller",
-                            "instructionId": "resume-worker"
+                        "reference": {
+                          "outcome": {
+                            "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
+                            "instruction": {
+                              "entrypointId": "controller",
+                              "instructionId": "resume-worker"
+                            }
                           }
                         }
                       }
                     }
                   },
                   {
-                    "equals": {
+                    "compare": {
                       "left": {
-                        "outcome": {
-                          "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                          "instruction": {
-                            "entrypointId": "controller",
-                            "instructionId": "resume-worker"
+                        "reference": {
+                          "outcome": {
+                            "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
+                            "instruction": {
+                              "entrypointId": "controller",
+                              "instructionId": "resume-worker"
+                            }
                           }
                         }
                       },
+                      "operator": "COMPARISON_OPERATOR_EQUAL",
                       "right": {
                         "literal": {
                           "enumValue": {
@@ -533,8 +564,8 @@
                       ]
                     },
                     "value": {
-                      "environment": {
-                        "bindingId": "temporal.worker-outage.namespace"
+                      "reference": {
+                        "environmentBindingId": "temporal.worker-outage.namespace"
                       }
                     }
                   },
@@ -550,7 +581,9 @@
                       ]
                     },
                     "value": {
-                      "run": {}
+                      "reference": {
+                        "run": {}
+                      }
                     }
                   },
                   {
@@ -600,7 +633,7 @@
                 ],
                 "responseReads": [
                   {
-                    "kind": "READ_CARDINALITY_EMIT_EACH",
+                    "cardinality": "READ_CARDINALITY_EMIT_EACH",
                     "path": {
                       "segments": [
                         {

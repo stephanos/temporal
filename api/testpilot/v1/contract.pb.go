@@ -597,7 +597,7 @@ type ContractTransition struct {
 	// The Run Event kinds the transition considers; never empty.
 	EventFilter *RunEventFilter `protobuf:"bytes,6,opt,name=event_filter,json=eventFilter,proto3" json:"event_filter,omitempty"`
 	// Must hold on the Run Event for the transition to be taken.
-	Predicate     *ContractExpression `protobuf:"bytes,7,opt,name=predicate,proto3" json:"predicate,omitempty"`
+	Predicate     *Expression `protobuf:"bytes,7,opt,name=predicate,proto3" json:"predicate,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -674,7 +674,7 @@ func (x *ContractTransition) GetEventFilter() *RunEventFilter {
 	return nil
 }
 
-func (x *ContractTransition) GetPredicate() *ContractExpression {
+func (x *ContractTransition) GetPredicate() *Expression {
 	if x != nil {
 		return x.Predicate
 	}
@@ -686,7 +686,7 @@ func (x *ContractTransition) GetPredicate() *ContractExpression {
 type ContractCaptureAssignment struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	CaptureId     string                 `protobuf:"bytes,1,opt,name=capture_id,json=captureId,proto3" json:"capture_id,omitempty"`
-	Observation   *ObservationRef        `protobuf:"bytes,2,opt,name=observation,proto3" json:"observation,omitempty"`
+	ObservationId string                 `protobuf:"bytes,2,opt,name=observation_id,json=observationId,proto3" json:"observation_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -728,11 +728,11 @@ func (x *ContractCaptureAssignment) GetCaptureId() string {
 	return ""
 }
 
-func (x *ContractCaptureAssignment) GetObservation() *ObservationRef {
+func (x *ContractCaptureAssignment) GetObservationId() string {
 	if x != nil {
-		return x.Observation
+		return x.ObservationId
 	}
-	return nil
+	return ""
 }
 
 // ContractDeadline bounds one liveness rule. Exactly one bound is positive.
@@ -944,19 +944,19 @@ const file_temporal_server_api_testpilot_v1_contract_proto_rawDesc = "" +
 	"\x06scalar\x18\x01 \x01(\v2,.temporal.server.api.testpilot.v1.ScalarTypeH\x00R\x06scalar\x12O\n" +
 	"\venumeration\x18\x02 \x01(\v2+.temporal.server.api.testpilot.v1.NamedTypeH\x00R\venumeration\x12G\n" +
 	"\amessage\x18\x03 \x01(\v2+.temporal.server.api.testpilot.v1.NamedTypeH\x00R\amessageB\x06\n" +
-	"\x04type\"\xfa\x03\n" +
+	"\x04type\"\xf2\x03\n" +
 	"\x12ContractTransition\x12#\n" +
 	"\rtransition_id\x18\x01 \x01(\tR\ftransitionId\x12&\n" +
 	"\x0fsource_state_id\x18\x02 \x01(\tR\rsourceStateId\x12&\n" +
 	"\x0ftarget_state_id\x18\x03 \x01(\tR\rtargetStateId\x12X\n" +
 	"\fsupport_kind\x18\x04 \x01(\x0e25.temporal.server.api.testpilot.v1.ContractSupportKindR\vsupportKind\x12l\n" +
 	"\x13capture_assignments\x18\x05 \x03(\v2;.temporal.server.api.testpilot.v1.ContractCaptureAssignmentR\x12captureAssignments\x12S\n" +
-	"\fevent_filter\x18\x06 \x01(\v20.temporal.server.api.testpilot.v1.RunEventFilterR\veventFilter\x12R\n" +
-	"\tpredicate\x18\a \x01(\v24.temporal.server.api.testpilot.v1.ContractExpressionR\tpredicate\"\x8e\x01\n" +
+	"\fevent_filter\x18\x06 \x01(\v20.temporal.server.api.testpilot.v1.RunEventFilterR\veventFilter\x12J\n" +
+	"\tpredicate\x18\a \x01(\v2,.temporal.server.api.testpilot.v1.ExpressionR\tpredicate\"a\n" +
 	"\x19ContractCaptureAssignment\x12\x1d\n" +
 	"\n" +
-	"capture_id\x18\x01 \x01(\tR\tcaptureId\x12R\n" +
-	"\vobservation\x18\x02 \x01(\v20.temporal.server.api.testpilot.v1.ObservationRefR\vobservation\"\x94\x01\n" +
+	"capture_id\x18\x01 \x01(\tR\tcaptureId\x12%\n" +
+	"\x0eobservation_id\x18\x02 \x01(\tR\robservationId\"\x94\x01\n" +
 	"\x10ContractDeadline\x12,\n" +
 	"\x12violation_state_id\x18\x01 \x01(\tR\x10violationStateId\x12\x1f\n" +
 	"\vrule_events\x18\x02 \x01(\x03R\n" +
@@ -1017,8 +1017,7 @@ var file_temporal_server_api_testpilot_v1_contract_proto_goTypes = []any{
 	(*ScalarType)(nil),                // 13: temporal.server.api.testpilot.v1.ScalarType
 	(*NamedType)(nil),                 // 14: temporal.server.api.testpilot.v1.NamedType
 	(*RunEventFilter)(nil),            // 15: temporal.server.api.testpilot.v1.RunEventFilter
-	(*ContractExpression)(nil),        // 16: temporal.server.api.testpilot.v1.ContractExpression
-	(*ObservationRef)(nil),            // 17: temporal.server.api.testpilot.v1.ObservationRef
+	(*Expression)(nil),                // 16: temporal.server.api.testpilot.v1.Expression
 }
 var file_temporal_server_api_testpilot_v1_contract_proto_depIdxs = []int32{
 	4,  // 0: temporal.server.api.testpilot.v1.Contract.rules:type_name -> temporal.server.api.testpilot.v1.ContractRule
@@ -1037,13 +1036,12 @@ var file_temporal_server_api_testpilot_v1_contract_proto_depIdxs = []int32{
 	2,  // 13: temporal.server.api.testpilot.v1.ContractTransition.support_kind:type_name -> temporal.server.api.testpilot.v1.ContractSupportKind
 	9,  // 14: temporal.server.api.testpilot.v1.ContractTransition.capture_assignments:type_name -> temporal.server.api.testpilot.v1.ContractCaptureAssignment
 	15, // 15: temporal.server.api.testpilot.v1.ContractTransition.event_filter:type_name -> temporal.server.api.testpilot.v1.RunEventFilter
-	16, // 16: temporal.server.api.testpilot.v1.ContractTransition.predicate:type_name -> temporal.server.api.testpilot.v1.ContractExpression
-	17, // 17: temporal.server.api.testpilot.v1.ContractCaptureAssignment.observation:type_name -> temporal.server.api.testpilot.v1.ObservationRef
-	18, // [18:18] is the sub-list for method output_type
-	18, // [18:18] is the sub-list for method input_type
-	18, // [18:18] is the sub-list for extension type_name
-	18, // [18:18] is the sub-list for extension extendee
-	0,  // [0:18] is the sub-list for field type_name
+	16, // 16: temporal.server.api.testpilot.v1.ContractTransition.predicate:type_name -> temporal.server.api.testpilot.v1.Expression
+	17, // [17:17] is the sub-list for method output_type
+	17, // [17:17] is the sub-list for method input_type
+	17, // [17:17] is the sub-list for extension type_name
+	17, // [17:17] is the sub-list for extension extendee
+	0,  // [0:17] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_testpilot_v1_contract_proto_init() }

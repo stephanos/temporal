@@ -446,6 +446,18 @@ narrows or completes a requirement without changing its intent; tasks record the
   rewrites such references after generation, which changes no other generated file. `Testpilot.Protocol`
   loads the Case and Run closures with one `protoc` call, because a second `#load_proto_file`
   declares the shared files twice.
+- **One Expression (decided in .5, 2026-09-12).** `Expression.not` keeps the sketch's name under an
+  api-linter `core::0140::reserved-words` suppression; the Lean Authoring constructor is `Expr.negate`.
+  `ModelValue` moves to `value.proto` and `CorrelatedCaptureRef` becomes `CorrelatedCaptureReference`
+  in `expression.proto` now, so .6's `correlated.proto` can import `expression.proto` without a cycle.
+  A capture assignment names its Observation by `observation_id`. `ir` defines only the Program and
+  Contract contexts; .6 adds the correlated and evidence-lift contexts with the references they admit.
+  A context rejection is `unknown` at a located path; other expression errors keep their coarse paths.
+  Logical depth, IR node counts, runtime work limits and Contract per-event work bounds are unchanged
+  for every checked-in Case; surface and admission work grow by one message per outcome, Run and Run
+  Event reference and one enum per equality, far below the admission ceilings. The expression-context
+  rejection is a variant beneath `static-preparation-rejection`, and the equivalence oracle declares
+  new fixtures in `Added`.
 
 ## Requirement coverage
 

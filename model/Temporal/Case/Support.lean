@@ -43,8 +43,8 @@ def correlatedEvidenceType : ValueType :=
 /-- `HISTORY_EVENT_FILTER_TYPE_CLOSE_EVENT`, read from the generated enum rather than spelled as a
 number here. A read carrying it blocks until the workflow closes and returns only the closing
 event, so it is what orders a later read after the work completed. -/
-def closeEventFilter : ProgramExpression :=
-  ProgramExpr.literal (Value.enumeration
+def closeEventFilter : Expression :=
+  Expr.literal (Value.enumeration
     (Int32.ofInt Temporal.Api.Enums.V1.HistoryEventFilterType.historyEventFilterTypeCloseEvent.number))
 
 end Temporal.Case.Support

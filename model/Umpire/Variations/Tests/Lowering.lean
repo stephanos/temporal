@@ -23,7 +23,7 @@ private def realization : FaultRealization :=
 
 /-- Everything a lowered fault instruction carries, compared field for field: the generated protocol
 types derive no equality, so the comparison is written out rather than assumed. The guard is the one
-exception -- a `ProgramExpression` is a mutual inductive with no equality and no rendering, so it is
+exception -- an `Expression` is a mutual inductive with no equality and no rendering, so it is
 compared by presence, which is exact for the two realizations here because neither declares one. -/
 def sameFaultNode (left right : InstructionNode) : Bool :=
   let faultOf := fun (node : InstructionNode) =>
