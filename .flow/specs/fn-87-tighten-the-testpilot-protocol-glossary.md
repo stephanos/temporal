@@ -1,3 +1,5 @@
+> HTML render lens: open local `.flow/artifacts/fn-87-tighten-the-testpilot-protocol-glossary/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
+
 ## Goal & Context
 <!-- scope: business -->
 
@@ -64,7 +66,7 @@ Each finding names the requirement that addresses it.
 | 8 | `ContractStateStatus.NONTERMINAL` and `RuleVerdictStatus.PENDING` name one unfinished rule twice | naming (SEM-19) | R1 |
 | 9 | `CorrelatedValue { definition_id, value }` is `Umpire.ModelValue` under another name | naming (SEM-19) | R1 |
 | 10 | `InvokeRPC` generates `Instruction_InvokeRpc`, so one instruction has two spellings in Go | naming | R1 |
-| 11 | `RespondNexus` beside `StartNexusOperation` and `CompleteNexusOperation`; `NexusResponseKind` answers an operation, not "Nexus" | naming | R1 |
+| 11 | `RespondNexus` beside `StartNexusOperation` and `CompleteNexusOperation`; `NexusResponseKind` answers an operation, not "Nexus" | naming | superseded: fn-85 R10 removes both messages, so this spec does not rename them |
 | 12 | `Value` oneof fields mix `text`, `natural`, `signed_integer`, `floating_point` with `bool_value`, `bytes_value`, `enum_value`, `list_value` | naming | R1 |
 | 13 | `Definition` suffix on some declarations (`RoleDefinition`, `SlotDefinition`, `ContractRuleDefinition`) and not others (`Program`, `CorrelatedRule`, `CorrelatedTransition`); `InstructionDefinition` holds an `Instruction` | naming | R1 |
 | 14 | `source` means a path operand, a Run Event's origin, an evidence source name and an operand of an expression | naming | R1 |
@@ -145,8 +147,9 @@ instruction, attempt, source, run) and loses `FAULT_ROLE_ID` and `FAULT_KIND`.
 ### Defaults and derived fields
 
 - **Order by default.** An instruction depends on the previous instruction of its entrypoint and
-  runs only when every dependency succeeded. `after:` names a dependency on another entrypoint, and
-  an explicit guard is written only for any other condition.
+  runs only when every dependency succeeded. `after:` names any other dependency set within the
+  entrypoint (a second root, or an instruction that is not its predecessor), and an explicit guard is
+  written only for any other condition.
 - **Derived declarations.** The environment binding list is the set of bindings roles and
   expressions reference; activation reservations follow from the instructions that start
   activations; an instruction's outcome fields follow from its kind. None is written in a Case.
@@ -162,8 +165,8 @@ authoritative for all its bounds.
 ### Readable provenance and identity
 
 - **Structured provenance.** `CaseProvenance` holds typed rows: Definition IDs with fingerprints and
-  sources, Known Gaps, and abstraction claims (fn-85 R8). The runtime still reads none of it. The
-  glossary's "generic opaque provenance" is amended.
+  sources, and Known Gaps; fn-85 R8 adds its abstraction-claim row to this structure. The runtime
+  still reads none of it. The glossary's "generic opaque provenance" is amended.
 - **Case-local identifiers.** Program and Contract refer to states, actions, outcomes, facts, fields
   and rules by short Case-local names (`operation-identity`, not
   `temporal.nexus.success.typed-nexus.evidence.operation-identity`); provenance maps each local name
@@ -201,14 +204,16 @@ Names follow the glossary, and a word means one thing:
 | `ContractStateStatus.NONTERMINAL`, `RuleVerdictStatus.PENDING` | `PENDING` in both | one word for an unfinished rule |
 | `CorrelatedValue` | `ModelValue` | the same word as `Umpire.ModelValue` |
 | `InvokeRPC` | `InvokeRpc` | one spelling in generated Go |
-| `RespondNexus`, `NexusResponseKind` | `RespondNexusOperation`, `NexusOperationResponseKind` | matches the other Nexus operation instructions |
 | `Value` oneof fields | one convention, every arm suffixed `_value` | consistent, and avoids language keywords |
 | `*Definition` declarations | no suffix; the graph node is `InstructionNode` and its body stays `Instruction` | one convention; the Opcode is the `Instruction` oneof case |
 | `source` as a path operand | `operand`; the evidence source name becomes `evidence_source`; `RunEvent.source_id` keeps its meaning | one meaning per word |
 | `PROTOCOL_NON_SUCCESS` | `PROTOCOL_FAILURE` | parallel to `SDK_FAILURE` |
 
 Names the approved rules cite stay: `rule_events` and `elapsed_milliseconds` (EVD-21),
-`RUN_EVENT_KIND_FAULT_INJECTED` (EVD-20), and the facade sequence (MOD-12).
+`RUN_EVENT_KIND_FAULT_INJECTED` (EVD-20), and the facade sequence (MOD-12). `RespondNexus`,
+`NexusResponseKind` and `StartNexusOperation` are not renamed: fn-85 R10 replaces them and fn-86 R3
+removes them with the last Producer that emits them, retiring their names in the vocabulary gate
+then; this spec documents and renumbers them like every other message.
 
 ## API Contracts
 <!-- scope: technical -->
@@ -326,9 +331,9 @@ message Deadline {
   a fixture whose migrated form differs beyond the declared mapping fails the equivalence test naming
   the fixture and the field.
 - **R9:** Instructions run in entrypoint order by default and only when their dependencies
-  succeeded; `after:` names cross-entrypoint dependencies; explicit guards remain only for other
-  conditions. Errors: an `after:` naming an unknown instruction or forming a cycle rejects at
-  preparation.
+  succeeded; `after:` names any other dependency set within the same entrypoint, including none;
+  explicit guards remain only for other conditions. Errors: an `after:` naming an unknown instruction,
+  itself, an instruction on another entrypoint, or forming a cycle rejects at preparation.
 - **R10:** The environment binding list, activation reservations and instruction outcome fields are
   derived at preparation and no longer written in a Case; instruction limits equal to the Profile
   defaults are omitted. Errors: a Case that still writes a derived field rejects at preparation
@@ -340,8 +345,8 @@ message Deadline {
   only instruction timeouts and attempts, deadlines and correlated windows; an SEM-16 amendment is
   drafted under GOV-02. Errors: a Case bound outside the Profile's ceiling rejects at preparation as
   today.
-- **R13:** `CaseProvenance` is structured (Definition IDs with fingerprints and sources, Known Gaps,
-  abstraction claims) and readable in fixture diffs; the glossary's Case and Provenance entries are
+- **R13:** `CaseProvenance` is structured (Definition IDs with fingerprints and sources, Known Gaps;
+  fn-85 R8 adds abstraction claims) and readable in fixture diffs; the glossary's Case and Provenance entries are
   amended under GOV-02. Errors: no error surface; the runtime does not read provenance.
 - **R14:** Program and Contract use Case-local names, and provenance maps each to its Definition ID;
   a model value is its declared spelling, with a parameterized value's canonical encoding recorded
@@ -361,6 +366,99 @@ equivalence test proving every fixture unchanged in meaning. Only then start R3 
 equivalence test cannot be written against a descriptor snapshot, stop: the "no semantic change"
 guarantee needs another oracle before any structural change.
 
+Tasks fn-87-tighten-the-testpilot-protocol-glossary.1 (the equivalence harness over a frozen
+descriptor snapshot) through .4 (restructure with no new mapping step) are that proof point. If .1
+cannot decode the baseline through the snapshot, or .4 needs a mapping step, stop and re-evaluate
+before .5.
+
+## Quick commands
+
+```bash
+# Equivalence oracle (every task)
+go test -count=1 -tags test_dep ./common/testing/testpilot/internal/protocolmigration/
+# Lean protocol, authoring and fixtures
+make umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-check-case-runtime-conformance
+# Vocabulary gate
+make umpire-check-retired-vocabulary
+# Full gate (live tests need these)
+CC=/usr/bin/cc TMPDIR=$(cd "${TMPDIR:-/tmp}" && pwd -P) make umpire-check-regression
+go clean -cache && make lint-code GOLANGCI_LINT_FIX=false   # baseline 161
+make lint-model                                              # baseline 163
+```
+
+## Planning decisions
+
+Decided while breaking the spec into tasks (2026-09-12), from the repository and gap scans. Each
+narrows or completes a requirement without changing its intent; tasks record the final choice.
+
+- **Renames skip doomed names.** R1 does not rename declarations a later requirement deletes
+  (the `Program*`/`Contract*` expression messages, the `*Ref` messages `Reference` replaces, and the
+  reservation, environment and outcome declarations R10 derives); their names are retired when they
+  are deleted. `InstructionRef` becomes `InstructionReference`, `ContractDeadline` becomes `Deadline`.
+- **Go initialisms.** Hand-written Go keeps `InvokeRPC` for the Opcode and Driver method (staticcheck
+  ST1003), as it keeps `CaseID` beside generated `GetCaseId`; the proto message, generated Go and Lean
+  spell `InvokeRpc`, and the gate retires the Lean and JSON spelling `invokeRPC`.
+- **Two more `Reference` arms.** A correlated condition is an existential over the admitted step's
+  action, outcome, state or facts, which a literal `model_value` cannot express, and an evidence-lift
+  guard needs the projected value as its operand. `Reference` gains a correlated step reference and a
+  projected-value marker, each admitted in one context.
+- **Context rejection category.** A reference outside its context is a `PreparationError` of category
+  `unknown` with a located path, and the `static-preparation-rejection` class carries a second Case
+  (EVD-18 keeps six classes).
+- **Run Event payload arms.** The arms are the instruction outcome and the injected fault; diagnostic
+  events keep an outcome. A payload that does not match its kind is an `INVARIANT` Run diagnostic
+  raised when the event is recorded.
+- **Named values.** The evidence side uses one `{field_id, Value}` message and the lift side the same
+  shape over an `Expression`, replacing three unrelated shapes.
+- **Scalar kinds and naturals.** Wire-encoding scalar kinds are kept if admission needs a slot's kind to
+  equal the field's kind (it does today); `natural_value` is removed in favor of `unsigned_integer_value`
+  unless a Producer needs a larger value.
+- **Ceilings.** Every bound except instruction timeout and attempts, deadlines and correlated windows
+  moves to the Profile, durations included, unless moving one changes a Verdict, in which case it stays
+  as a behavior bound. A Temporal default ceiling set feeds derived and test Profiles; the Profile also
+  gains instruction defaults.
+- **`after` scope (R9 amended 2026-09-12).** R9 first said `after:` names cross-entrypoint
+  dependencies. The runtime has none: each entrypoint is an activation-local acyclic graph, preparation
+  rejects a dependency on another entrypoint's instruction ("missing, duplicate or cross-entrypoint
+  dependency"), no checked-in Case uses one, and entrypoints coordinate only through Temporal and the
+  instructions that wait on it (`AwaitInstruction`, awaited Slots). Supporting one would be a new
+  scheduling capability, which Boundaries exclude. What the Cases do need is a non-default dependency
+  set within one entrypoint (the typed Nexus Case has a second root and two diamonds), so R9 now says
+  that, and a cross-entrypoint entry rejects as unsupported.
+  Cross-entrypoint waiting stays with `AwaitInstruction`. Dependents that run regardless of success
+  carry an explicit `true` guard.
+- **Derived-field errors.** Removed fields fail strict ProtoJSON decode naming the field, which is where
+  a Case that still writes one is rejected.
+- **Additional rule drafts.** ART-13 (a declared binding graph) and ART-09 (opaque provenance bytes)
+  contradict R10 and R13, so restatements of both are drafted under GOV-02 beside the SEM-16 and
+  glossary drafts; approved text is not edited.
+- **Local names and values.** One Case-wide namespace of shortest unique dotted suffixes, rule ids
+  included; value spellings get a fingerprint-derived disambiguator only where two encodings of one
+  definition share a spelling.
+- **Absent operands.** Every comparison operator, `NOT_EQUAL` included, is false on an absent operand;
+  bare absent predicates and absent inputs still reject. The rule is run over unchanged fixtures before
+  Producers drop presence checks.
+
+## Requirement coverage
+
+| Req | Description | Task(s) | Gap justification |
+|-----|-------------|---------|-------------------|
+| R1 | Glossary renames and retired names | .2, .3 | — |
+| R2 | One file per concept, comments, dense numbers | .4 | — |
+| R3 | One Expression with context checks | .5, .6 | — |
+| R4 | Run Event payload oneof | .7 | — |
+| R5 | Presence as optional fields; Deadline bound oneof | .6, .8 | — |
+| R6 | Duplicate and dead shapes removed | .8, .9 | — |
+| R7 | Extension checklist | .17 | — |
+| R8 | Generators, equivalence test, gates | .1, .17 (every task keeps it green) | — |
+| R9 | Entrypoint order by default; `after` | .11 | — |
+| R10 | Derived declarations; default instruction limits | .12 | — |
+| R11 | Case closure excludes Run-only messages | .4, .7 | — |
+| R12 | Ceilings in the Profile; SEM-16 draft | .10 | — |
+| R13 | Structured provenance; glossary drafts | .13 | — |
+| R14 | Case-local names and short values | .14 | — |
+| R15 | Declaration order, string paths, named enums, absent operands | .15, .16 | — |
+
 ## Boundaries
 <!-- scope: business -->
 
@@ -379,7 +477,8 @@ guarantee needs another oracle before any structural change.
   every conformance class and live test.
 - **No versioning scheme.** `FormatVersion` stays `1.0`; no compatibility shim for old Cases.
 - **No edits to historical `.plans` documents** other than `UMPIRE4_ORDER.md` and the drafted
-  SEM-16 and glossary amendments in R12 and R13; approved rule text keeps the names it cites.
+  SEM-16 and glossary amendments in R12 and R13 (and the ART-09 and ART-13 restatements the Planning
+  decisions add); approved rule text keeps the names it cites.
 - **Depends on fn-84**, whose Driver contract and projection lowering tasks touch the same code.
 
 ## Decision Context
@@ -409,7 +508,11 @@ migrate those additions a second time.
   declaration order, string paths and named enums make a Case readable without changing what the
   runtime checks.
 
-Rejected: a `v2` package beside `v1` (no consumer needs both, and the generator and runtime would
+Rejected: cross-entrypoint `after:` dependencies (entrypoints run as independent activation graphs that
+coordinate through Temporal; see the amended R9 in Planning decisions); a `v2` package beside `v1` (no consumer needs both, and the generator and runtime would
 carry two protocols); splitting the correlated capability into its own package (it is part of one
 Contract); a generated prose summary beside each fixture instead of a readable fixture (it would be a
 second artifact to review and keep in step).
+
+
+

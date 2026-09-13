@@ -92,10 +92,12 @@ A field path through a repeated field selects the element that the path's observ
 the row's entity instance through its key. A path through an optional submessage is present only
 when every segment is set.
 
-Lint diagnostic for R7:
+Lint diagnostic for R7, in the import-graph checker's existing one-line form (the Makefile asserts
+this shape byte for byte for the planted violation). The rule is a direct-import rule, because every
+module reaches the owners transitively through `Umpire.Command`:
 
 ```text
-<module>: imports <Umpire owner> directly; feature Models are authored through Umpire.Command
+[model-import-graph/authoring-path-isolation] forbidden direct import: <module> -> <Umpire owner>
 ```
 
 ## Edge Cases & Constraints
@@ -113,7 +115,10 @@ Lint diagnostic for R7:
   a Property violation, not an admission rejection. The migrated form keeps that distinction with a
   realization or observation mutation, not by deleting the test.
 - **Implementation Link exception.** `Temporal.System.Nexus` keeps importing Feature modules under
-  MOD-10's existing exception; the new lint rule does not widen it.
+  MOD-10's existing exception; the new lint rule does not widen it. Today the link imports
+  `Temporal.Feature.Nexus.Lifecycle` and `Temporal.Feature.Nexus.Race.Terminal`, both on the
+  deletion list, so before either is deleted the link is re-anchored on fn-85's Nexus product
+  machine with its forward simulation still proved; the link's Lean tests are the pin.
 - **Tools.** The golden, inspect and inventory tools lose their hand-written inputs; each is pointed
   at a command-authored Model or its dependency is removed, and its gate still passes.
 
@@ -124,8 +129,9 @@ Lint diagnostic for R7:
   `Temporal.Testpilot` and `Umpire.Examples` that builds Umpire records or Testpilot Cases without
   the commands, with each Property, golden, fixture, live test and tool that reads it and a
   destination: migrate, delete with coverage recorded in a named spec, or drop with a reason. Errors:
-  a module that builds records but is missing from the inventory fails a Go check that compares the
-  inventory to the import graph.
+  a module that builds records but is missing from the inventory fails `lint-model`'s existing
+  inventory reconciliation over the import graph (a new inventory issue kind, not a new Go tool),
+  naming the module.
 - **R2:** A Property clause compares action input, action result and observation fields through
   their schemas, checked while the Model file compiles and lowered to Contract field reads identical
   in shape to today's hand-written field Properties. Errors: a path segment not in the schema, a type
@@ -135,7 +141,10 @@ Lint diagnostic for R7:
   field relations plus a realization; their Cases regenerate with the diff listed; their Go artifact
   tests and live tests pass; the crossed-pairing mutation still yields a Property violation, not an
   admission rejection; the hand-written modules, their Lean tests and their `register_case` lines
-  are deleted. Errors: no error surface beyond R2 and fn-85.
+  are deleted; the Testpilot instructions only the typed Nexus example still emitted
+  (`StartNexusOperation`, `RespondNexus`, `NexusResponseKind`, `CompleteNexusOperation`'s untyped
+  result) are removed from the protocol and their names added to the retired-vocabulary gate, as
+  fn-85 R10 defers to this spec. Errors: no error surface beyond R2 and fn-85.
 - **R4:** The worker-outage and get-system-info Cases are produced from command Models (a workflow
   Model with `workerStop` and `workerResume` fault actions, and an RPC Model) through workflow and
   RPC realizations; the hand-written Case modules are deleted; both live tests pass; fixture diffs are
@@ -165,6 +174,56 @@ R1's inventory and R2's field relations proven on the typed unary example (R3's 
 before any deletion. If the typed unary Property cannot be expressed as a field relation that lowers
 to the same Contract field reads, stop: the migrate-first decision for the typed examples needs
 revisiting before anything is removed.
+
+Tasks fn-86-retire-hand-written-models-one.1 (the inventory and the typed-unary Contract baseline)
+and .2 (field relations and the typed unary migration compared against that baseline) are that
+proof. If .2 cannot reproduce the baseline's field reads, stop before .3.
+
+## Quick commands
+
+```bash
+# Import rules, inventory reconciliation and the planted violation
+LEAN_NUM_THREADS=1 make lint-model
+# Goldens, regression views and fixtures after each deletion or migration
+make umpire-check-goldens umpire-check-regression-views umpire-check-case-runtime-conformance
+# Full gate
+CC=/usr/bin/cc TMPDIR=$(cd "${TMPDIR:-/tmp}" && pwd -P) make umpire-check-regression
+```
+
+## Planning decisions
+
+Decided while breaking the spec into tasks (2026-09-12), from the repository and gap scans.
+
+- **The Implementation Link is re-anchored before anything is deleted.** It imports `Lifecycle` and
+  `Race.Terminal` and its evidence tests import `Operations`; task .4 moves it onto fn-85's product
+  machine and re-pins its evidence on the Caller Model's Queries, then task .5 deletes.
+- **Field relations lower onto the existing field-Property structure.** `PropertyFieldPath` already
+  has index, select, cardinality, establish and capture steps; R2 adds a clause form, not a clause kind.
+- **The inventory check lives in `lint-model`'s reconciliation**, as a new inventory issue kind.
+- **The lint rule is a direct-import rule** in the checker's diagnostic form, scoped by the existing
+  production-module predicate, with `Temporal.Case` and the Implementation Link as named carve-outs.
+- **Tools that served only Operations are deleted** (`NexusDiscovery`, `Inspect`, the
+  `umpire-inspect/list/explain` targets) and recorded as a deliberate drop, unless the user asks to
+  re-point them at the Caller Model.
+- **The offline Observation evaluation is a recorded drop**, with the Umpire evidence tests named as
+  the remaining prover.
+- **The superseded Nexus instructions are removed with the typed Nexus example** (task .3), where
+  fn-85 R10 deferred them.
+- **The outage-order rule becomes Producer-derived** for fault-bearing paths (fn-83 .5's dropped
+  concern), in its own commit inside task .6.
+
+## Requirement coverage
+
+| Req | Description | Task(s) | Gap justification |
+|-----|-------------|---------|-------------------|
+| R1 | Committed inventory with readers and destinations; reconciliation check | .1 | — |
+| R2 | Field relations in `property` | .2 | — |
+| R3 | Typed examples migrated; superseded instructions removed | .2, .3 | — |
+| R4 | Worker-outage and get-system-info as command Models | .6 | — |
+| R5 | Switch re-authored with the commands | .7 | — |
+| R6 | Deletions with coverage recorded; Implementation Link re-anchored | .4, .5 | — |
+| R7 | The authoring-path-isolation lint rule | .8 | — |
+| R8 | Rule drafts, documents, full gate | .9 | — |
 
 ## Boundaries
 <!-- scope: business -->

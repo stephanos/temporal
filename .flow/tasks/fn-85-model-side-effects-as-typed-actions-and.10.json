@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-13T00:33:46.016832Z",
+  "depends_on": [
+    "fn-85-model-side-effects-as-typed-actions-and.9"
+  ],
+  "id": "fn-85-model-side-effects-as-typed-actions-and.10",
+  "priority": null,
+  "spec": "fn-85-model-side-effects-as-typed-actions-and",
+  "spec_path": ".flow/tasks/fn-85-model-side-effects-as-typed-actions-and.10.md",
+  "status": "todo",
+  "title": "The Nexus Model, part one: product and protocol machines, Queries 1 to 4, COVERAGE.md",
+  "updated_at": "2026-09-13T00:43:49.347435Z"
+}

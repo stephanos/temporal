@@ -60,7 +60,7 @@ cross. The spec carries exactly those five, one task each, in the order the scan
 No behavior changes; every task records an equivalence pin before it moves code and closes with
 `make umpire-check-regression`. The plan review is SHIP after one fix round.
 
-**Done 2026-09-12.** All five tasks landed serially with byte-identical pins: the worker `outage`
+**Done and closed in Flow 2026-09-12.** All five tasks landed serially with byte-identical pins: the worker `outage`
 module with one `OutagePlan` (live outage Verdicts and Run Events unchanged); the `contract` leaf
 package with facade aliases (conformance and facade tests unedited; MOD-14 restatement drafted,
 pending GOV-02); `Umpire.Search.admit` and `AdmittedQuery` (query ids, fingerprints and `PlanResult`
@@ -117,8 +117,9 @@ capabilities stay with their owners: typed worker instructions and per-Case obse
 with fn-85 R10, cancel with fn-79, correlated transitions over structured machine state with fn-85.
 
 **Next to run**: its dependency fn-84 finished on 2026-09-12. **fn-85 depends on it** (recorded in
-Flow), so fn-85's instructions and fn-86's migrated Cases are authored on the final shapes. Needs a
-plan review and a task breakdown.
+Flow), and fn-22 and fn-26 now depend on it too, so fn-85's instructions and fn-86's migrated Cases
+are authored on the final shapes. **In progress:** broken into 17 tasks on 2026-09-12; plan review and
+implementation are running.
 
 ### 4. Model side effects as typed actions and run query sets — fn-85
 
@@ -144,14 +145,20 @@ The early proof point rebuilds today's async-Nexus Case from the new abstraction
 its fixture with identities masked before any Testpilot protocol change. Worker instructions then
 carry the Temporal API messages the actions' schemas name (the Nexus schedule command's attributes
 with its three timeouts, a `StartOperationResponse` or `HandlerError` reply, a completion payload or
-failure) instead of a Testpilot field per server option, and a Case declares each observation once
+failure) instead of a Testpilot field per server option (the old `StartNexusOperation`,
+`RespondNexus` and `NexusResponseKind` stay until fn-86 .3 migrates the last Producer that emits
+them), and a Case declares each observation once
 for both its Program and its Contract, which gives the retry Query's attempt count its read source.
 Canary and exploratory sets are admitted with their
 coverage targets enumerated; running them stays in fn-70, fn-29 and fn-33. Whole-Program templates
 and the `case` command are removed.
 
-**Needs a plan review and a task breakdown**; the spec has no tasks yet. Flow records its
-dependencies on fn-84 and fn-87; the fn-83 tasks it builds on (.13, .14, .15) are done. It closes fn-83's six
+**R3 authoring form decided 2026-09-12:** machines are Lean step functions over a structure of
+finite fields, enumerated at elaboration into the same finite table, per
+[the FizzBee comparison](UMPIRE_CMP_FIZZBEE.md) section 4.1; the row grammar is not built.
+
+**Broken into 13 tasks on 2026-09-12; needs a plan review.** Flow records its dependencies on fn-84
+and fn-87, and fn-83 and fn-22 now depend on it; the fn-83 tasks it builds on (.13, .14, .15) are done. It closes fn-83's six
 blocked tasks as superseded.
 
 **Cancellation stays deferred.** The design's cancel Query and its Testpilot instructions overlap
@@ -188,8 +195,11 @@ exception, because it is the spec's only Feature-to-System Implementation Link (
 Testpilot conformance and synthetic Cases stay, since they test the runtime.
 
 **Depends on fn-85** (recorded in Flow). The early proof point expresses the typed unary Property as
-a field relation that lowers to the same Contract field reads before any deletion. Needs a plan
-review and a task breakdown.
+a field relation that lowers to the same Contract field reads before any deletion. **Broken into 9
+tasks on 2026-09-12; needs a plan review.** The order stays fn-87, fn-85, fn-86: fn-87 does not touch
+the Race, Lifecycle, Operations or Experimental models, so deleting them earlier buys nothing, and
+Lifecycle cannot go before fn-85 because the kept Implementation Link imports it until fn-86 .4
+re-anchors it.
 
 **Follow-up after fn-86, not yet a spec:** one Contract monitor declared per entity and instantiated
 per instance, replacing the per-instance rule copies Producers emit today (the typed Nexus Case
@@ -202,7 +212,7 @@ These remain open in Flow and are outside the first-canary critical path.
 
 | Spec                                                                                              | Dependencies | Next action                                                                                                                                                                                                                  |
 | ------------------------------------------------------------------------------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [fn-46 — Lean module impact index](../.flow/specs/fn-46-export-lean-model-module-impact-index.md) | fn-45 | Refreshed three-task plan is SHIP against current model owners. fn-83 .15 is done, so task .1 is free to start; refresh the module rows for `Umpire.Command` (fn-83 .10) and, once planned, fn-85's new modules. Deliver the shared loader, pure dependency/facade/test index, and opt-in export/check commands. |
+| [fn-46 — Lean module impact index](../.flow/specs/fn-46-export-lean-model-module-impact-index.md) | fn-45 | Refreshed three-task plan is SHIP against current model owners. fn-83 .15 is done, so task .1 is free to start; .2 and .3 start after fn-86 R6, because their root list pins `TemporalExperimentalTests`, which fn-86 deletes; refresh the module rows for `Umpire.Command` (fn-83 .10) and, once planned, fn-85's new modules. Deliver the shared loader, pure dependency/facade/test index, and opt-in export/check commands. |
 
 ## Gate baselines
 
@@ -236,8 +246,8 @@ block replanning or execution.
 | Spec                                                                                              | Dependencies                       | Next action                                                                                                                                                                                                                                   |
 | ------------------------------------------------------------------------------------------------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [fn-33 — Bounded exploration](../.flow/specs/fn-33-run-serial-bounded-semantic-exploration.md)    | fn-40, fn-64, fn-69, fn-84, and **fn-85** | Re-plan on fn-85: an exploratory set's coverage goal (rows, result classes, members of claimed input classes) is the candidate space, and a divergent class member is the counterexample Promotion keeps. Then review whole-Case candidates, serial coordination through Testpilot, lost iterations, semantic coverage, and bounded 10x behavior. |
-| [fn-22 — Replay and reduction](../.flow/specs/fn-22-deterministic-replay-semantic.md)             | fn-5, fn-64, and fn-69             | Resolve **MAJOR_RETHINK** before implementation: separate exact candidate identity from Contract-relative violation equivalence, prove the negative Case before reduction, and retain explicit offline semantic replay and checked promotion. |
-| [fn-26 — Qualification receipts](../.flow/specs/fn-26-local-qualification-receipts-and-staged.md) | fn-48, fn-64, and fn-69            | Review offline Testpilot Case/Profile/Run/Verdict admission, receipt multiplicity, and idempotent publication. Assessment must never create or replay a Run.                                                                                  |
+| [fn-22 — Replay and reduction](../.flow/specs/fn-22-deterministic-replay-semantic.md)             | fn-5, fn-64, fn-69, **fn-85** and **fn-87** | Resolve **MAJOR_RETHINK** before implementation: separate exact candidate identity from Contract-relative violation equivalence, prove the negative Case before reduction, and retain explicit offline semantic replay and checked promotion. |
+| [fn-26 — Qualification receipts](../.flow/specs/fn-26-local-qualification-receipts-and-staged.md) | fn-48, fn-64, fn-69 and **fn-87**  | Review offline Testpilot Case/Profile/Run/Verdict admission, receipt multiplicity, and idempotent publication. Assessment must never create or replay a Run.                                                                                  |
 | [fn-29 — Production canary](../.flow/specs/fn-29-bounded-production-canary-execution-and.md)      | **fn-26**; fn-48, fn-64, fn-69, fn-83 .7, and fn-85 | After fn-26 ships, review external policy and credentials, serial Testpilot Runs, leases, lost Runs, reconciliation without redispatch, and publication. It runs an fn-85 canary set and consumes fn-83's provisioning package. |
 
 All runtime work uses `testpilot.Prepare(case, profile)` → `PreparedCase.Run(ctx, driver)` and the

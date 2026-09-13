@@ -96,22 +96,38 @@ instance through the entity's key. An observation may belong to another entity t
 ### Machines
 
 A **machine** is the transition relation the glossary calls a Machine; the Model is the checked
-behavior built from a feature's entities, actions, observations and machines. A machine declares the
-entity it tracks (`for:`), the `phase` values that end an instance (`ends:`), the state it keeps per
-instance, its setup parameters, its timers, and its ordered rows. A row reads
-**guard** `+` **what happens** `→` **state changes**, **evidence**:
+behavior built from a feature's entities, actions, observations and machines. Its logic is ordinary
+Lean; the command carries only what Lean cannot infer. A machine declares the entity it tracks
+(`for:`), its per-instance state as a `structure` whose fields are all finite (`enum`, `Bool`, or a
+`count` bounded by Limits), the `phase` values that end an instance (`ends:`), its setup parameters,
+its timers, and one **step function** per action class group:
 
-- **guard**: state fields and setup parameters, with alternatives and omitted fields as wildcards;
-  `none` before an instance exists; `terminal` and `not terminal` for the `ends:` values;
-- **what happens**: an action with a class pattern, alternatives across actions, `after (<timer>)`,
-  or nothing, which is a `system` step the server takes on its own when the guard holds;
-- **state changes**: field updates; a lowercase name bound in a pattern stored into a field of the
-  same type; `reject` when the action changes no state; `result:` for an action with results;
-- **evidence**: one or more observations, each optionally guarded by `when` over the state before
-  the step, or `unobservable`, which becomes a Known Gap in every Case whose path uses the row.
+```lean
+def handlerReply (op : Operation) : Reply → List (Operation × Outcome)
+  | .async => if op.phase = .scheduled then [({ op with phase := .started }, .acknowledged)] else []
+  | .handlerError true =>
+      if op.phase = .scheduled then [({ op with phase := .backingOff, attempts := op.attempts + 1 }, .retried)] else []
+  | ...
+```
 
-The first matching row applies; a row no input can reach is rejected as shadowed. Rejections are
-rows, so an action carries no separate validation block.
+- a step returns every successor the server may take with the Model Outcome of each (SEM-07); an
+  empty list is a rejection (the action changes nothing); several elements are alternatives, which
+  is how a `system` step or a product machine says "either of these";
+- `match` arms are the rows: the first matching arm applies, Lean reports a redundant arm, and the
+  command reports a state from which an action has no successor with that concrete state as the
+  witness unless the state is listed under `ends:`;
+- a timer is a step function with no input, enabled while it returns a successor; a fault is an
+  ordinary action of a declared party;
+- **evidence** is declared in the command, keyed by action class and outcome, each optionally
+  guarded by `when` over the state before the step, or `unobservable`, which becomes a Known Gap in
+  every Case whose path uses that step.
+
+The command enumerates each step function over the derived finite domain at elaboration into the
+same finite table the `model` command produced, so the Behavior Fingerprint, Search, lowering and
+inspection see a table and never a function (AUT-05, PLN-02). A `Nat` field, a field of a
+non-finite type, or a step whose signature is not `State → Input → List (State × Outcome)` rejects in
+place. Rejections are steps that return the `rejected` outcome first, so an action carries no
+separate validation block.
 
 ### Timers and faults
 
@@ -172,8 +188,10 @@ fn-33). Single-value classes carry no claim.
 A Temporal-owned `Realization` value per feature, in `Temporal.Case` beside the templates it
 replaces, binds:
 
-- each action class to a Testpilot instruction or RPC, and each party to a Program entrypoint
-  (controller, workflow, handler);
+- each action class to a Testpilot instruction or RPC and to the Program entrypoint that performs
+  it (controller, workflow, handler); the binding is per action class, not per party, because one
+  party's actions may run from different entrypoints (a handler's completion is a controller
+  instruction today);
 - each result value to a classification of the concrete result;
 - the observation catalog, each observation's correlation key path, and each derived observation
   to its read; for Nexus, `pendingAttempts` is `DescribeWorkflowExecution`'s
@@ -204,6 +222,9 @@ those fields, the same message the action's `schema:` names:
 | workflow command | a `temporal.api.command.v1.Command` attributes message; for Nexus, `ScheduleNexusOperationCommandAttributes`, which has schedule-to-close, schedule-to-start and start-to-close timeouts | `StartNexusOperation` |
 | handler reply | `temporal.api.nexus.v1.StartOperationResponse` (sync success, async success, operation error) or `temporal.api.nexus.v1.HandlerError` (error type, failure, retry behavior) | `RespondNexus` and `NexusResponseKind` |
 | operation completion | a `temporal.api.common.v1.Payload` result or a `temporal.api.failure.v1.Failure` | `CompleteNexusOperation`'s untyped result |
+
+The replaced instructions are removed by fn-86 R3 together with the hand-written typed Nexus
+example, the last Producer that emits them; this spec's Cases never use them.
 
 The Driver maps each message to the SDK call that produces it: a workflow command to the workflow
 SDK call with its options, a reply to the handler's return value or error. The Profile admits
@@ -251,13 +272,13 @@ machine <name>
   refines:  <product machine>                  -- optional
   map:      (<field>: <value> → <value> | <field>, ... → hidden)*   -- with refines
   ends:     [<value>, ...]
-  state:    (<field>: <enum> | Bool | count | optional <slotPool> | set <slotPool>)+
+  state:    <structure>                        -- fields: <enum> | Bool | count <bound>
   setup:    (<parameter>: <enum> | Bool)*
   timers:   [<timer>, ...]
-  steps:
-    <guard> [+ <action> (<pattern>) (| <action> (<pattern>))* | + after (<timer>)]
-      → <updates> | reject [, result: <value>],
-        evidence: <observation> [when <guard>] (, <observation> [when <guard>])* | unobservable
+  steps:    [<step function>, ...]             -- each State → <action input> → List (State × Outcome)
+  evidence:
+    <action> (<pattern>) → <outcome>: <observation> [when <guard>] (, ...)* | unobservable
+    after (<timer>) → <outcome>: <observation> [when <guard>] | unobservable
 
 set <name>
   purpose:  functional | canary | exploratory
@@ -337,12 +358,16 @@ umpire-case --render <id> # canonical ProtoJSON on stdout
   schema that does not resolve to a protobuf message, a class member or example outside the schema,
   an example that matches no class, and an evidence name that is neither catalogued nor declared
   reject in place, pinned by `#guard_msgs`.
-- **R3:** A machine declares `for:`, `ends:`, state fields, setup parameters, timers and ordered rows
-  with the guard, action or timer, state-change and evidence forms under Machines; the first
-  matching row applies; a row without an action is a `system` step. Errors: shadowed row,
-  unreachable row, `terminal` in a machine without `ends:`, `after` of an undeclared timer, a bound
-  name stored into a field of another type, `result:` on an action without results, and a `system`
-  row or timer row without evidence or `unobservable` reject in place, pinned by `#guard_msgs`.
+- **R3:** A machine declares `for:`, `ends:`, a finite state `structure`, setup parameters, timers
+  and its step functions under Machines; the command enumerates each step function over the derived
+  finite domain into the finite table at elaboration, with a Behavior Fingerprint equal to the one an
+  equivalent row table produces; evidence is declared per action class and outcome with optional
+  `when` guards; a step with no input is a `system` step. Errors: a state or input field of a
+  non-finite type, a step with another signature, a state outside `ends:` from which some action has
+  no successor (reported with that state as the witness), `terminal` in a machine without `ends:`, a
+  timer no step names, an evidence line naming an outcome the step never returns, and a `system` or
+  timer step without evidence or `unobservable` reject in place, pinned by `#guard_msgs`; a redundant
+  `match` arm is Lean's own error.
 - **R4:** Timers fire only while a row guarded by their `after` matches; faults are actions of
   declared parties; interleavings across entity instances are paths; timer firings and fault actions
   count toward the step and action Limits. Errors: a declared timer no row uses rejects in place; an
@@ -365,10 +390,11 @@ umpire-case --render <id> # canonical ProtoJSON on stdout
   white-box Known Gap, a duplicate derived fixture, and an exploratory set without a coverage goal
   reject in place.
 - **R8:** Every Case that realizes a class with several concrete values carries an abstraction claim
-  naming the action, field, class and example in its Provenance; single-value classes carry none.
+  naming the action, field, class and example as a row of fn-87 R13's structured `CaseProvenance`;
+  single-value classes carry none.
   Errors: a missing example for a realized multi-value class rejects at Case production naming the
   class.
-- **R9:** A Temporal `Realization` in `Temporal.Case` binds action classes, parties, result values,
+- **R9:** A Temporal `Realization` in `Temporal.Case` binds action classes (each to its instruction or RPC and its entrypoint), result values,
   the observation catalog and derived observations, timers, setup parameters, switches and
   references; the Producer assembles Program and Contract from a Query's path and the realization;
   whole-Program templates and the `case` command no longer exist; `Umpire.*` passes `lint-model`
@@ -377,8 +403,10 @@ umpire-case --render <id> # canonical ProtoJSON on stdout
   reject at Case production naming it.
 - **R10:** Worker instructions carry the Temporal API messages under Typed worker instructions (a
   workflow command's attributes, a Nexus `StartOperationResponse` or `HandlerError` reply, a
-  completion payload or failure), and `StartNexusOperation`, `RespondNexus`, `NexusResponseKind` and
-  `CompleteNexusOperation`'s untyped result are removed; a Case declares each observation once and
+  completion payload or failure); no Case the realization produces uses `StartNexusOperation`,
+  `RespondNexus`, `NexusResponseKind` or `CompleteNexusOperation`'s untyped result, which stay in
+  the protocol only for the hand-written typed Nexus example until fn-86 R3 migrates it and removes
+  them (fn-87 left them unrenamed for that removal); a Case declares each observation once and
   Program waits and Contract rules refer to it by name; the Lean generated declarations and the Go
   Driver support both, with a Driver conformance case per carried message and per observation
   source; the Profile admits workflow commands per command type. Errors: an invalid duration, a
@@ -415,8 +443,9 @@ umpire-case --render <id> # canonical ProtoJSON on stdout
   `UMPIRE4_SPEC.md` gains concept entries for Entity, Party, Set, Realization, Refinement and
   Abstraction Claim, amends the Action, Observation and Machine entries, and drafts rules under
   GOV-02: an AUT-07a amendment naming the `entity`, `action`, `observation`, `machine` and `set`
-  commands and retiring `model` as a command, and a MOD-02 amendment allowing realization Evidence
-  mappings in `Temporal.Case`; `DESIGN.md` points at the spec and the Model; fn-83 tasks .4, .5, .6,
+  commands and retiring `model` as a command, an AUT-09 amendment admitting a `structure` of finite
+  fields and a step function enumerated into the finite table as author-provided domains and
+  behavior, and a MOD-02 amendment allowing realization Evidence mappings in `Temporal.Case`; `DESIGN.md` points at the spec and the Model; fn-83 tasks .4, .5, .6,
   .8, .16 and .17 are closed as superseded with the destination of each concern;
   `make umpire-check-regression` passes. Errors: a missing or duplicate drift marker fails the drift
   test naming the marker.
@@ -429,6 +458,81 @@ Contract must be equivalent to the checked-in async-Nexus fixture with identitie
 assembled Program needs a Nexus-specific branch in `Umpire.Case.Producer`, or cannot reproduce the
 template's dependency edges from the path order, stop: the party-to-entrypoint binding is wrong and
 R4 to R12 build on it.
+
+Task fn-85-model-side-effects-as-typed-actions-and.1 is that proof: it adds the records and the
+path-driven Producer with no command syntax, hand-builds Query 2 and compares against the fixture
+masked. If it fails, re-evaluate the per-action-class binding before fn-85 .2 and later.
+
+## Quick commands
+
+```bash
+# Model-file specimens and the command surface
+cd model && LEAN_NUM_THREADS=1 mise exec -- lake build TemporalModelTests UmpireTests
+# Fixtures, protocol and conformance
+make umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-check-case-runtime-conformance
+# Live tests (once per switch value from fn-85 .5 on)
+CC=/usr/bin/cc TMPDIR=$(cd "${TMPDIR:-/tmp}" && pwd -P) make umpire-check-live-tests
+# Full gate and the import rules
+CC=/usr/bin/cc TMPDIR=$(cd "${TMPDIR:-/tmp}" && pwd -P) make umpire-check-regression
+LEAN_NUM_THREADS=1 make lint-model      # baseline 163
+```
+
+## Planning decisions
+
+Decided while breaking the spec into tasks (2026-09-12), from the repository and gap scans; each
+narrows a requirement without changing its intent, and the task that owns it records the outcome.
+
+- **Records before syntax.** The early proof point builds Umpire records and the path-driven
+  Producer first; the `entity`, `action`, `observation`, `machine` and `set` commands elaborate into
+  those records afterwards, so the stop condition is measured on the assembly, not on a grammar.
+- **Per-action-class binding.** A realization binds each action class to its instruction or RPC and
+  to the entrypoint that performs it; a per-party binding is wrong because a handler's completion
+  runs as a controller instruction today.
+- **Structured machine state is this spec's protocol change.** Per-instance state fields are carried
+  in the correlated Contract as named fields (additive on fn-87's shapes), so `attempts` compares as a
+  number; the Producer does not flatten a machine's fields into one value.
+- **`count` is bounded.** A `count` field is `Fin (bound + 1)` with the bound from Limits, saturating
+  to `limitReached`; instance count is a Limit checked before enumeration.
+- **`system` rows carry a reserved action.** A row with no action gets a synthesized non-drivable
+  action so `Machine.steps` stays action-indexed; it counts toward the step Limit.
+- **`schema:` stores only the message name.** Members and examples are checked against the generated
+  schema at elaboration and the descriptor is discarded, so a Case's identity never embeds a schema.
+- **Refinement witnesses are synthesized.** `refines:`/`map:` discharge the forward simulation by
+  `decide` (or `native_decide` as `Property.checked` does), never by an authored proof.
+- **Switch values run at the suite level.** The live harness runs one fixture under one environment
+  per switch value, the way the upstream HSM and CHASM suites do; setup parameters are dynamic config
+  values the environment sets per Run and the Profile records.
+- **No wait-for-duration instruction by default.** Timeouts are observed through the timed-out
+  history event under a Contract elapsed deadline; the read observation polls one RPC with a bound.
+- **The old Nexus instructions stay until fn-86 R3.** The Cases this spec produces never use them.
+- **`model` is retired by the `machine` command** (AUT-07a amendment), and the command specimens are
+  respelled in the same task.
+- **Step functions, not a row grammar (decided with the user 2026-09-12).** A machine's logic is
+  an ordinary Lean function over a structure of finite fields, enumerated at elaboration into the
+  same finite table; the command keeps declarations, identity, `ends:`, timers, setup parameters and
+  evidence links. The row grammar of `.plans/UMPIRE_CMP_FIZZBEE.md` section 4.1's comparison is not
+  built, not even as sugar (AUT-07). The first commit of fn-85 .3 is the prototype: the success Model
+  as a step function with its fingerprint shown equal to the row form's and its elaboration time
+  recorded against the Race baselines (6 to 12 ms per check); if it cannot reproduce the fingerprint,
+  fall back to rows with that evidence.
+
+## Requirement coverage
+
+| Req | Description | Task(s) | Gap justification |
+|-----|-------------|---------|-------------------|
+| R1 | Entities with references and a key; several instances | .2, .4 | — |
+| R2 | Actions, classes, schema, results, examples; derived observations | .2 | — |
+| R3 | The machine command and its rows | .3 | — |
+| R4 | Timers, faults, interleavings, Limits accounting | .3, .4 | — |
+| R5 | Setup parameters, switches, per-value runs, divergence | .5 | — |
+| R6 | Refinement checked by the forward simulation | .6 | — |
+| R7 | Sets, bindings, derived Case identity, `umpire-case --list` | .7, .12 | — |
+| R8 | Abstraction claims in provenance | .7 | — |
+| R9 | Realization, path-driven Producer, templates and `case` removed | .1, .11 | — |
+| R10 | Typed worker instructions; one observation declaration per Case | .8, .9 | — |
+| R11 | The Nexus Model, seven Queries, `COVERAGE.md`, live tests | .10, .11 | — |
+| R12 | Canary and exploratory sets admitted with coverage targets | .12 | — |
+| R13 | `AUTHORING.md`, concept entries, rule drafts, fn-83 closure, gate | .13 | — |
 
 ## Boundaries
 <!-- scope: business -->
@@ -490,6 +594,11 @@ Rejected:
   glossary's Action, which SEM-19 forbids.
 - **`model` or `statemachine` for the transition block**: the glossary's word for a transition
   relation is Machine, and Model stays the checked behavior.
+- **A `steps:` row grammar with guards, alternatives, wildcards, bound names and `+1` updates**
+  (2026-09-12): it re-implements `match`, `if`, record update and `List` inside a macro with its own
+  diagnostics and learning curve; a Lean step function enumerated into the same table gives the same
+  fingerprint, Lean's redundancy check, hover and located errors for free, and is what AUT-01 asks
+  for (`.plans/UMPIRE_CMP_FIZZBEE.md` section 4.1).
 - **A top-level `link` declaration and a "mechanism machine"**: SEM-08 reserves Implementation Link
   for Feature-to-System connections, MOD-02 gives "implementation mechanisms" to `Temporal.System`,
   and a written step mapping duplicated what the state map determines.
@@ -513,5 +622,4 @@ Rejected:
 
 ## Parked unknowns
 
-- The wall-clock tolerance that keeps timer Queries 6 and 7 stable in CI; needs measured runs.
 - GOV-02 approval of the rules R13 drafts.
