@@ -526,6 +526,29 @@ narrows or completes a requirement without changing its intent; tasks record the
   classifier by a wrapper function). The wire-encoding scalar kinds are kept: admission types a field
   read by its declared kind and requires it to equal the declared Slot, Observation or outcome type, as
   the `ScalarKind` comment records.
+- **Resource ceilings (decided in .10, 2026-09-13).** `Program.limits`, `Contract.limits` and
+  `CorrelatedContract.limits` are removed and `InstructionLimits` keeps `timeout_milliseconds` and
+  `max_attempts`; `ProgramLimits` gains `max_instruction_emitted_events` and
+  `max_instruction_response_bytes`, and `ProfileSpec` gains `CorrelatedLimits`, required only to admit a
+  correlated contract. Every bound moved, durations included: no conformance class, fixture test or
+  live test changed its Verdict, disposition or cleanup status. Admission checks the remaining Case
+  bounds exactly as before: an instruction timeout within the Profile's total (ordinary) or cleanup
+  duration and its attempts within the Profile's attempts, which now also means an instruction may not
+  declare more attempts than the one Program-wide ceiling. Deadlines and correlated windows gain no
+  Profile ceiling, as none bounded them before. The two per-instruction ceilings must fit the
+  Program-wide run-event and response ceilings (a Profile check, replacing the per-Case one), and a
+  correlated contract reserves the capture ceiling in its capture budget only when it declares
+  captures. Runtime and both Drivers read ceilings from the prepared snapshot (`PreparedProgram.Limits`).
+  `temporal.DefaultCeilings` (the largest value each ceiling took across the checked-in Temporal Cases)
+  feeds `DeriveProfile`, `umpire-run` and the testcore Profiles; the generic facade conformance test may
+  not import the Temporal Driver (`TestTestpilotOwnsCaseProtocolAndRuntime`), so it spells the same set
+  and the Driver's `TestDefaultCeilingsAdmitTheConformanceCorpus` prepares that corpus under
+  `DefaultCeilings`. The synthetic Case and the correlated corpus keep their former bounds as their own
+  test Profiles. `Testpilot.Correlated.decode` takes the correlated ceilings as an input and
+  `Umpire.Case.Correlated.Lowered` carries the ceilings it decoded under, so the checked agreement is
+  unchanged. The oracle's R12 step admits a dropped bound only within its fixture's declared Profile
+  ceiling. SEM-16 is restated under GOV-02; ART-09's "independent limits" wording needs a GOV-02
+  follow-up (.13 drafts ART-09).
 
 ## Requirement coverage
 
