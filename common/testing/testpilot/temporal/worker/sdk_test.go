@@ -50,16 +50,16 @@ func TestSDKWorkflowInterpretsStartAwaitAndFinishWithArbitraryArguments(t *testi
 			environment.OnNexusOperation(
 				"service",
 				operation,
-				&testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: "request"}},
+				&testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "request"}},
 				mock.Anything,
-			).Return(&nexus.HandlerStartOperationResultSync[*testpilotspb.Value]{Value: &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: "done"}}}, nil)
+			).Return(&nexus.HandlerStartOperationResultSync[*testpilotspb.Value]{Value: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "done"}}}, nil)
 			environment.RegisterDynamicWorkflow(host.dynamicWorkflow, workflow.DynamicRegisterOptions{})
 			environment.ExecuteWorkflow("workflow-type", "untouched", 42, []byte("arguments"))
 			require.NoError(t, environment.GetWorkflowError())
 			var result testpilotspb.Value
 			require.NoError(t, environment.GetWorkflowResult(&result))
-			require.Equal(t, "done", result.GetText())
-			environment.AssertNexusOperationCalled(t, "service", "operation", &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: "request"}}, mock.Anything)
+			require.Equal(t, "done", result.GetTextValue())
+			environment.AssertNexusOperationCalled(t, "service", "operation", &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "request"}}, mock.Anything)
 			workflowReservation := reservationForEntrypoint(t, session, "workflow")
 			workflowResult, err := workflowReservation.Wait(t.Context())
 			require.NoError(t, err)
@@ -81,7 +81,7 @@ func TestSDKWorkflowReplayerCompletesAnUnfinishedAdmission(t *testing.T) {
 
 	routed, err := host.admitWorkflow(workflowDelivery(request, "replay-run"))
 	require.NoError(t, err)
-	header, _, err := session.preparedNexusDispatch(routed.activation, "start", nil, &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: "request"}})
+	header, _, err := session.preparedNexusDispatch(routed.activation, "start", nil, &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "request"}})
 	require.NoError(t, err)
 	history := workflowReplayHistory(t, binding, request.GetHeader(), header)
 	replayer, err := sdkworker.NewWorkflowReplayerWithOptions(sdkworker.WorkflowReplayerOptions{Interceptors: []interceptor.WorkerInterceptor{
@@ -126,7 +126,7 @@ func TestSDKNexusInboundRoutesRedeliveryThroughLedger(t *testing.T) {
 			session, _, request := runtimeTestSession(t, host, definition, prepared, "run", "workflow")
 			workflowRoute, err := host.admitWorkflow(workflowDelivery(request, "temporal-run"))
 			require.NoError(t, err)
-			header, value, err := session.preparedNexusDispatch(workflowRoute.activation, "start", nil, &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: "request"}})
+			header, value, err := session.preparedNexusDispatch(workflowRoute.activation, "start", nil, &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "request"}})
 			require.NoError(t, err)
 
 			operation := &genericNexusOperation{queue: "task-queue", service: "service", operation: "operation"}
@@ -141,12 +141,12 @@ func TestSDKNexusInboundRoutesRedeliveryThroughLedger(t *testing.T) {
 			input := interceptor.NexusStartOperationInput{Input: value, Options: nexus.StartOperationOptions{Header: header, RequestID: "request-id"}}
 			result, err := inbound.StartOperation(t.Context(), input)
 			require.NoError(t, err)
-			require.Equal(t, "accepted", result.(*nexus.HandlerStartOperationResultSync[*testpilotspb.Value]).Value.GetText())
+			require.Equal(t, "accepted", result.(*nexus.HandlerStartOperationResultSync[*testpilotspb.Value]).Value.GetTextValue())
 			_, err = reservationForEntrypoint(t, session, "handler").Wait(t.Context())
 			require.NoError(t, err)
 			replay, err := inbound.StartOperation(t.Context(), input)
 			require.NoError(t, err)
-			require.Equal(t, "accepted", replay.(*nexus.HandlerStartOperationResultSync[*testpilotspb.Value]).Value.GetText())
+			require.Equal(t, "accepted", replay.(*nexus.HandlerStartOperationResultSync[*testpilotspb.Value]).Value.GetTextValue())
 			require.Len(t, session.nexusAdmissions, 1)
 			_, err = inbound.StartOperation(t.Context(), interceptor.NexusStartOperationInput{Input: value, Options: nexus.StartOperationOptions{Header: header, RequestID: "crossed"}})
 			require.Error(t, err)
@@ -168,7 +168,7 @@ func TestSDKAdmittedWorkflowUsesCachedDispatchWhenStopRacesNextCommand(t *testin
 	environment.SetStartWorkflowOptions(client.StartWorkflowOptions{ID: binding.WorkflowID, TaskQueue: binding.TaskQueue})
 	environment.SetHeader(request.GetHeader())
 	operation := nexus.NewOperationReference[*testpilotspb.Value, *testpilotspb.Value]("operation")
-	environment.OnNexusOperation("service", operation, mock.Anything, mock.Anything).Return(&nexus.HandlerStartOperationResultSync[*testpilotspb.Value]{Value: &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: "done"}}}, nil)
+	environment.OnNexusOperation("service", operation, mock.Anything, mock.Anything).Return(&nexus.HandlerStartOperationResultSync[*testpilotspb.Value]{Value: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "done"}}}, nil)
 	environment.RegisterDynamicWorkflow(func(ctx workflow.Context, arguments converter.EncodedValues) (*testpilotspb.Value, error) {
 		close(entered)
 		<-proceed
@@ -184,13 +184,13 @@ func TestSDKAdmittedWorkflowUsesCachedDispatchWhenStopRacesNextCommand(t *testin
 	close(proceed)
 	<-done
 	require.Error(t, environment.GetWorkflowError())
-	environment.AssertNexusOperationCalled(t, "service", "operation", &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: "request"}}, mock.Anything)
+	environment.AssertNexusOperationCalled(t, "service", "operation", &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "request"}}, mock.Anything)
 
 	replayEnvironment := suite.NewTestWorkflowEnvironment()
 	replayEnvironment.SetWorkerOptions(sdkworker.Options{Interceptors: []interceptor.WorkerInterceptor{&sdkWorkerInterceptor{host: host, queue: "task-queue", registration: definition.registrations[0]}}})
 	replayEnvironment.SetStartWorkflowOptions(client.StartWorkflowOptions{ID: binding.WorkflowID, TaskQueue: binding.TaskQueue})
 	replayEnvironment.SetHeader(request.GetHeader())
-	replayEnvironment.OnNexusOperation("service", operation, mock.Anything, mock.Anything).Return(&nexus.HandlerStartOperationResultSync[*testpilotspb.Value]{Value: &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: "done"}}}, nil)
+	replayEnvironment.OnNexusOperation("service", operation, mock.Anything, mock.Anything).Return(&nexus.HandlerStartOperationResultSync[*testpilotspb.Value]{Value: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "done"}}}, nil)
 	replayEnvironment.RegisterDynamicWorkflow(host.dynamicWorkflow, workflow.DynamicRegisterOptions{})
 	replayEnvironment.ExecuteWorkflow("workflow-type", "untouched")
 	require.NoError(t, replayEnvironment.GetWorkflowError())
@@ -230,7 +230,7 @@ func TestSDKConcurrentRunsAdmitReorderedWorkflowDelivery(t *testing.T) {
 		environment.SetStartWorkflowOptions(client.StartWorkflowOptions{ID: binding.WorkflowID, TaskQueue: binding.TaskQueue})
 		environment.SetHeader(request)
 		operation := nexus.NewOperationReference[*testpilotspb.Value, *testpilotspb.Value]("operation")
-		environment.OnNexusOperation("service", operation, mock.Anything, mock.Anything).Return(&nexus.HandlerStartOperationResultSync[*testpilotspb.Value]{Value: &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: "done"}}}, nil)
+		environment.OnNexusOperation("service", operation, mock.Anything, mock.Anything).Return(&nexus.HandlerStartOperationResultSync[*testpilotspb.Value]{Value: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "done"}}}, nil)
 		environment.RegisterDynamicWorkflow(dynamic, workflow.DynamicRegisterOptions{})
 		return environment
 	}
@@ -290,11 +290,11 @@ func workflowReplayHistory(t *testing.T, binding WorkflowBinding, header *common
 	dataConverter := converter.GetDefaultDataConverter()
 	arguments, err := dataConverter.ToPayloads("untouched", 42, []byte("arguments"))
 	require.NoError(t, err)
-	nexusInput, err := dataConverter.ToPayload(&testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: "request"}})
+	nexusInput, err := dataConverter.ToPayload(&testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "request"}})
 	require.NoError(t, err)
-	nexusResult, err := dataConverter.ToPayload(&testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: "done"}})
+	nexusResult, err := dataConverter.ToPayload(&testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "done"}})
 	require.NoError(t, err)
-	workflowResult, err := dataConverter.ToPayloads(&testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: "done"}})
+	workflowResult, err := dataConverter.ToPayloads(&testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "done"}})
 	require.NoError(t, err)
 	return []*historypb.HistoryEvent{
 		{
@@ -373,7 +373,7 @@ func TestSDKAwaitUsesItsOwnTimeout(t *testing.T) {
 			environment := suite.NewTestWorkflowEnvironment()
 			operation := nexus.NewOperationReference[*testpilotspb.Value, *testpilotspb.Value]("operation")
 			environment.OnNexusOperation("service", operation, mock.Anything, mock.Anything).Return(&nexus.HandlerStartOperationResultAsync{OperationToken: "token"}, nil)
-			require.NoError(t, environment.RegisterNexusAsyncOperationCompletion("service", "operation", "token", &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: "done"}}, nil, tc.completion))
+			require.NoError(t, environment.RegisterNexusAsyncOperationCompletion("service", "operation", "token", &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "done"}}, nil, tc.completion))
 			environment.ExecuteWorkflow(func(ctx workflow.Context) (int32, error) {
 				entry := definition.entries["workflow"].plan
 				state, err := activation.New(entry)
@@ -424,13 +424,13 @@ func TestWorkflowFinishRejectsInvalidAdmission(t *testing.T) {
 			entry := prepared.Entrypoints()[1]
 			state, err := activation.New(entry)
 			require.NoError(t, err)
-			input := &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: "unvalidated"}}
+			input := &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "unvalidated"}}
 			if evaluated {
 				input = &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}
 				_, enabled, err := state.Evaluate(t.Context(), 1)
 				require.NoError(t, err)
 				require.True(t, enabled)
-				require.NoError(t, state.Admit(t.Context(), 1, &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: "result"}}}))
+				require.NoError(t, state.Admit(t.Context(), 1, &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "result"}}}))
 				_, enabled, err = state.Evaluate(t.Context(), 2)
 				require.NoError(t, err)
 				require.True(t, enabled)

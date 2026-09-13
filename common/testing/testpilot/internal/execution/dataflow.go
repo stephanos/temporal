@@ -82,7 +82,7 @@ func (a *admission) bindInstruction(g *graph, i int, n *node) error {
 			return invalid(ir.Unknown, nodePath(g, n), "AwaitSlot requires a declared Slot")
 		}
 	case contract.CompleteNexusOperation:
-		typ, exists := a.prepared.slots[n.source.Instruction.GetCompleteNexusOperation().GetCapabilitySlotId()]
+		typ, exists := a.prepared.slots[n.source.Instruction.GetCompleteNexusOperation().GetHandleSlotId()]
 		if !exists || !typ.Opaque() {
 			return invalid(ir.TypeMismatch, nodePath(g, n), "completion requires a capability Slot")
 		}
@@ -157,14 +157,14 @@ func (a *admission) bindNexusResponse(g *graph, i int, n *node) error {
 		return invalid(ir.Malformed, nodePath(g, n), "invalid Nexus response")
 	}
 	if response.Kind == testpilotspb.NEXUS_RESPONSE_KIND_ASYNCHRONOUS {
-		typ, exists := a.prepared.slots[response.CapabilitySlotId]
+		typ, exists := a.prepared.slots[response.HandleSlotId]
 		if !exists || !typ.Opaque() {
 			return invalid(ir.TypeMismatch, nodePath(g, n), "async response requires a capability Slot")
 		}
-		if err := a.addWriter(response.CapabilitySlotId, slotWriter{graph: g, node: i}); err != nil {
+		if err := a.addWriter(response.HandleSlotId, slotWriter{graph: g, node: i}); err != nil {
 			return err
 		}
-	} else if response.CapabilitySlotId != "" {
+	} else if response.HandleSlotId != "" {
 		return invalid(ir.Unsupported, nodePath(g, n), "only async responses publish capabilities")
 	}
 
@@ -246,19 +246,19 @@ func (a *admission) bindProjections(g *graph, index int, n *node) error {
 	}
 	seen := map[string]bool{}
 	var events int64
-	for _, source := range n.source.Instruction.GetInvokeRpc().ResponseProjections {
+	for _, source := range n.source.Instruction.GetInvokeRpc().ResponseReads {
 		if source == nil || len(source.Targets) == 0 {
 			return invalid(ir.Malformed, nodePath(g, n), "projection requires a path and sinks")
 		}
-		path, err := a.prepared.catalog.BindPath(output, source.Source, a.expressionLimits())
+		path, err := a.prepared.catalog.BindPath(output, source.Path, a.expressionLimits())
 		if err != nil {
 			return err
 		}
 		typ := path.Type()
 		count := int64(1)
 		switch source.Kind {
-		case testpilotspb.PROJECTION_KIND_ONE:
-		case testpilotspb.PROJECTION_KIND_EMIT_EACH:
+		case testpilotspb.READ_CARDINALITY_ONE:
+		case testpilotspb.READ_CARDINALITY_EMIT_EACH:
 			if typ.Cardinality() != ir.Repeated {
 				return invalid(ir.TypeMismatch, nodePath(g, n), "EmitEach requires repeated values")
 			}
@@ -281,7 +281,7 @@ func (a *admission) bindProjections(g *graph, index int, n *node) error {
 	}
 	return nil
 }
-func (a *admission) bindProjectionSinks(g *graph, index int, n *node, source *testpilotspb.ResponseProjection, path *ir.Path, typ ir.Type, seen map[string]bool) ([]*evidenceLift, bool, error) {
+func (a *admission) bindProjectionSinks(g *graph, index int, n *node, source *testpilotspb.ResponseRead, path *ir.Path, typ ir.Type, seen map[string]bool) ([]*evidenceLift, bool, error) {
 	emits := false
 	lifts := make([]*evidenceLift, len(source.Targets))
 	for i, sink := range source.Targets {
@@ -292,20 +292,20 @@ func (a *admission) bindProjectionSinks(g *graph, index int, n *node, source *te
 		var exists bool
 		var key string
 		switch destination := sink.Target.(type) {
-		case *testpilotspb.ProjectionTarget_SlotId:
+		case *testpilotspb.ReadTarget_SlotId:
 			key = "slot:" + destination.SlotId
 			target, exists = a.prepared.slots[destination.SlotId]
-			if source.Kind == testpilotspb.PROJECTION_KIND_EMIT_EACH {
+			if source.Kind == testpilotspb.READ_CARDINALITY_EMIT_EACH {
 				return nil, false, invalid(ir.Unsupported, nodePath(g, n), "EmitEach cannot repeatedly assign an immutable Slot")
 			}
 			if err := a.addWriter(destination.SlotId, slotWriter{graph: g, node: index, optional: path.MayBeAbsent()}); err != nil {
 				return nil, false, err
 			}
-		case *testpilotspb.ProjectionTarget_ObservationId:
+		case *testpilotspb.ReadTarget_ObservationId:
 			key = "observation:" + destination.ObservationId
 			target, exists = a.observations[destination.ObservationId]
 			emits = true
-		case *testpilotspb.ProjectionTarget_CorrelatedEvidence:
+		case *testpilotspb.ReadTarget_CorrelatedEvidence:
 			lift, err := a.bindEvidenceLift(g, n, destination.CorrelatedEvidence, typ)
 			if err != nil {
 				return nil, false, err
@@ -601,7 +601,7 @@ func (a *admission) bindNodeDataflow(g *graph, n *node, boolean ir.Type) error {
 		}
 	case contract.CompleteNexusOperation:
 		instruction := n.source.Instruction.GetCompleteNexusOperation()
-		if !scope[ir.Reference{Kind: ir.SlotReference, ID: instruction.CapabilitySlotId}].Available {
+		if !scope[ir.Reference{Kind: ir.SlotReference, ID: instruction.HandleSlotId}].Available {
 			return invalid(ir.Unavailable, nodePath(g, n), "completion requires successful AwaitSlot dependency")
 		}
 		n.input, err = bind(instruction.Result, nil)
@@ -662,7 +662,7 @@ func (a *admission) bindAssignments(g *graph, n *node, bind func(*testpilotspb.P
 			if err != nil {
 				return err
 			}
-			valueSource = &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: resolved}}}}
+			valueSource = &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: resolved}}}}
 		}
 		value, err := bind(valueSource, &typ)
 		if err != nil {

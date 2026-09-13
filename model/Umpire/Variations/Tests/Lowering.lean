@@ -25,26 +25,26 @@ private def realization : FaultRealization :=
 types derive no equality, so the comparison is written out rather than assumed. The guard is the one
 exception -- a `ProgramExpression` is a mutual inductive with no equality and no rendering, so it is
 compared by presence, which is exact for the two realizations here because neither declares one. -/
-def sameFaultNode (left right : InstructionDefinition) : Bool :=
-  let faultOf := fun (node : InstructionDefinition) =>
+def sameFaultNode (left right : InstructionNode) : Bool :=
+  let faultOf := fun (node : InstructionNode) =>
     node.instruction.bind fun instruction => match instruction.instruction with
       | some (.inject_fault fault) => some (fault.role_id, fault.kind)
       | _ => none
-  let bounds := fun (node : InstructionDefinition) =>
+  let bounds := fun (node : InstructionNode) =>
     node.limits.map fun value => (value.timeout_milliseconds, value.max_attempts,
       value.max_emitted_events, value.max_response_bytes)
-  let references := fun (node : InstructionDefinition) =>
+  let references := fun (node : InstructionNode) =>
     node.dependencies.map fun reference => (reference.entrypoint_id, reference.instruction_id)
-  let declared := fun (node : InstructionDefinition) =>
+  let declared := fun (node : InstructionNode) =>
     node.outcome.map fun outcome => outcome.fields.map fun declaration => declaration.field
-  let reservations := fun (node : InstructionDefinition) =>
+  let reservations := fun (node : InstructionNode) =>
     node.activation_reservations.map fun reservation => (reservation.entrypoint_id, reservation.count)
   left.instruction_id == right.instruction_id && faultOf left == faultOf right &&
     bounds left == bounds right && references left == references right &&
     declared left == declared right && reservations left == reservations right &&
     left.guard.isSome == right.guard.isSome
 
-private def lowered (capability : DefinitionId) : Option InstructionDefinition :=
+private def lowered (capability : DefinitionId) : Option InstructionNode :=
   ((intent capability).lower realization).toOption
 
 -- The declaration decides the outage; the realization decides only where it lands.

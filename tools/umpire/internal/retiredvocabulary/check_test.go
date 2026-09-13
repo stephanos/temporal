@@ -88,6 +88,30 @@ func TestRetiredRulesHoldTheGlossaryRenamedProtocolNames(t *testing.T) {
 		{line: "pb.RUN_DISPOSITION_COMPLETED, pb.CONTRACT_STATE_STATUS_PENDING, pb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE"},
 		{line: "[]*pb.ContractRule{}, pb.ContractRuleKind, ModelValue, RunDisposition, rule_id"},
 		{line: "delivery.TriggerNonSuccess"},
+		{line: "[]*pb.Response" + "Projection{}", want: []string{"Response" + "Projection"}},
+		{line: `"response` + `Projections": [`, want: []string{"Response" + "Projections"}},
+		{line: "Program.response" + "Projection path", want: []string{"Response" + "Projection"}},
+		{line: "(targets : Array Projection" + "Target)", want: []string{"Projection" + "Target"}},
+		{line: "(kind : Projection" + "Kind)", want: []string{"Projection" + "Kind"}},
+		{line: `"kind": "PROJECTION_` + `KIND_ONE"`, want: []string{"PROJECTION_" + "KIND_*"}},
+		{line: "&pb.OpaqueCapability" + "Type{}", want: []string{"OpaqueCapability" + "Type"}},
+		{line: "string capability" + "_slot_id = 1;", want: []string{"capability" + "_slot_id"}},
+		{line: `"capability` + `SlotId": "authority"`, want: []string{"Capability" + "SlotId"}},
+		{line: "rpc.Capability" + "SlotId", want: []string{"Capability" + "SlotId"}},
+		{line: "Program.invoke" + "RPC role method", want: []string{"invoke" + "RPC"}},
+		{line: "[]*pb.Role" + "Definition{}", want: []string{"Role" + "Definition"}},
+		{line: "[]*pb.Slot" + "Definition{}", want: []string{"Slot" + "Definition"}},
+		{line: "[]*pb.Observation" + "Definition{}", want: []string{"Observation" + "Definition"}},
+		{line: "*pb.Entrypoint" + "Definition", want: []string{"Entrypoint" + "Definition"}},
+		{line: "*pb.Cleanup" + "Definition", want: []string{"Cleanup" + "Definition"}},
+		{line: "[]*pb.Instruction" + "Definition{}", want: []string{"Instruction" + "Definition"}},
+		{line: "(dependencies : Array Instruction" + "Ref)", want: []string{"Instruction" + "Ref"}},
+		// The Opcode and Driver method keep the Go initialism; the model Projection, the Umpire role
+		// Definition ID and the renamed names are live.
+		{line: "contract.InvokeRPC, session.InvokeRPC(ctx), pb.InvokeRpc{}, Program.invokeRpc"},
+		{line: "Umpire.Case.Projection.lower, CorrelatedEvidenceProjection, RoleDefinitionID, roleDefinitionId"},
+		{line: "pb.ResponseRead{}, pb.ReadTarget_SlotId, pb.READ_CARDINALITY_ONE, pb.OpaqueHandleType{}, handle_slot_id"},
+		{line: "[]*pb.Role{}, pb.Slot_OpaqueHandle, pb.Entrypoint_Workflow, pb.InstructionNode{}, pb.InstructionReference{}, InstructionOutcomeRef"},
 	} {
 		require.Equal(t, tc.want, matched(tc.line), "line %q", tc.line)
 	}

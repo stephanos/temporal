@@ -124,8 +124,8 @@ private def scalarKind : Scalar → Nat
 private def wireScalar (wire : temporal.server.api.testpilot.v1.Value) : Except String Scalar := do
   if !wire.«Unknown.Fields».isEmpty then throw "unknown scalar field"
   match wire.value with
-  | some (.text text) => pure (.text text)
-  | some (.natural text) =>
+  | some (.text_value text) => pure (.text text)
+  | some (.natural_value text) =>
       match text.toNat? with
       | some value => if toString value == text then pure (.natural value) else throw "noncanonical natural"
       | none => throw "invalid natural"

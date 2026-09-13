@@ -62,15 +62,15 @@ func liftFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Profile) {
 
 	limits := &testpilotspb.ProgramLimits{MaxEntrypoints: 8, MaxNodes: 32, MaxEdges: 64, MaxActivations: 64, MaxAttempts: 32, MaxRunEvents: 256, MaxExpressionDepth: 16, MaxPathFanout: 128, MaxRequestBytes: 4096, MaxResponseBytes: 4096, MaxTotalDurationMilliseconds: 30000, MaxCleanupDurationMilliseconds: 5000}
 	policy := Profile{Identity: "host", CatalogIdentity: catalog.Identity(), Roles: []contract.RolePolicy{{ID: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT, Methods: []string{"/lift.Source/Read"}}}, Opcodes: []contract.Opcode{contract.InvokeRPC}, Limits: proto.CloneOf(limits)}
-	node := &testpilotspb.InstructionDefinition{InstructionId: "read", Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRPC{EndpointRoleId: "endpoint", Method: "/lift.Source/Read"}}}, Outcome: statusSchema(), Limits: &testpilotspb.InstructionLimits{TimeoutMilliseconds: 1000, MaxAttempts: 1, MaxEmittedEvents: 8, MaxResponseBytes: 4096}}
+	node := &testpilotspb.InstructionNode{InstructionId: "read", Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRpc{EndpointRoleId: "endpoint", Method: "/lift.Source/Read"}}}, Outcome: statusSchema(), Limits: &testpilotspb.InstructionLimits{TimeoutMilliseconds: 1000, MaxAttempts: 1, MaxEmittedEvents: 8, MaxResponseBytes: 4096}}
 	artifact := &testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: 1}, CaseId: "lift", Program: &testpilotspb.Program{
-		ProgramId: "program", Roles: []*testpilotspb.RoleDefinition{{RoleId: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT}},
-		Observations: []*testpilotspb.ObservationDefinition{{ObservationId: "evidence", Type: messageValueType("temporal.server.api.testpilot.v1.CorrelatedEvidence")}, {ObservationId: "other", Type: scalar(testpilotspb.SCALAR_KIND_TEXT)}},
-		Entrypoints:  []*testpilotspb.EntrypointDefinition{{EntrypointId: "controller", Activation: &testpilotspb.EntrypointDefinition_Controller{Controller: &testpilotspb.ControllerActivation{}}, Instructions: []*testpilotspb.InstructionDefinition{node}}},
-		Cleanup:      &testpilotspb.CleanupDefinition{EntrypointId: "cleanup"}, Limits: limits}, Contract: &testpilotspb.Contract{ContractId: "contract"}}
-	node.Instruction.GetInvokeRpc().ResponseProjections = []*testpilotspb.ResponseProjection{{
-		Source: &testpilotspb.FieldPath{}, Kind: testpilotspb.PROJECTION_KIND_ONE,
-		Targets: []*testpilotspb.ProjectionTarget{{Target: &testpilotspb.ProjectionTarget_CorrelatedEvidence{CorrelatedEvidence: liftProjection()}}}}}
+		ProgramId: "program", Roles: []*testpilotspb.Role{{RoleId: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT}},
+		Observations: []*testpilotspb.Observation{{ObservationId: "evidence", Type: messageValueType("temporal.server.api.testpilot.v1.CorrelatedEvidence")}, {ObservationId: "other", Type: scalar(testpilotspb.SCALAR_KIND_TEXT)}},
+		Entrypoints:  []*testpilotspb.Entrypoint{{EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}}, Instructions: []*testpilotspb.InstructionNode{node}}},
+		Cleanup:      &testpilotspb.Cleanup{EntrypointId: "cleanup"}, Limits: limits}, Contract: &testpilotspb.Contract{ContractId: "contract"}}
+	node.Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{
+		Path: &testpilotspb.FieldPath{}, Kind: testpilotspb.READ_CARDINALITY_ONE,
+		Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_CorrelatedEvidence{CorrelatedEvidence: liftProjection()}}}}}
 	return artifact, catalog, policy
 }
 
@@ -165,7 +165,7 @@ func TestEvidenceLiftSelectsOneRuleAndCountsItsOwnOrdinals(t *testing.T) {
 	require.Equal(t, "source", first[0].GetIdentity().GetEvidenceSource())
 	require.EqualValues(t, 0, first[0].GetIdentity().GetOrdinal())
 	require.Equal(t, []*testpilotspb.CorrelatedBinding{{FieldId: "run", Value: "one"}}, first[0].GetIdentity().GetScope())
-	require.Equal(t, []*testpilotspb.CorrelatedEvidenceField{{FieldId: "identity", Value: &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: "first"}}}}, first[0].GetFields())
+	require.Equal(t, []*testpilotspb.CorrelatedEvidenceField{{FieldId: "identity", Value: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "first"}}}}, first[0].GetFields())
 
 	// The guard equality is what separates the two scheduled rules, so a different identity falls
 	// through to the unguarded one.
@@ -226,7 +226,7 @@ func TestEvidenceLiftRejectsUndeclarableRules(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			artifact, catalog, policy := liftFixture(t)
-			mutate(artifact.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().ResponseProjections[0].Targets[0].GetCorrelatedEvidence())
+			mutate(artifact.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().ResponseReads[0].Targets[0].GetCorrelatedEvidence())
 			_, err := Prepare(artifact, catalog, policy)
 			require.Error(t, err)
 		})
@@ -237,7 +237,7 @@ func TestEvidenceLiftRejectsUndeclarableRules(t *testing.T) {
 // one of its own declared coordinates fails rather than recording evidence with a hole in it.
 func TestEvidenceLiftRejectsPartialEvidence(t *testing.T) {
 	artifact, catalog, policy := liftFixture(t)
-	projection := artifact.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().ResponseProjections[0].Targets[0].GetCorrelatedEvidence()
+	projection := artifact.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().ResponseReads[0].Targets[0].GetCorrelatedEvidence()
 	projection.Rules = projection.Rules[2:]
 	projection.Rules[0].Fields = []*testpilotspb.CorrelatedEvidenceBinding{{FieldId: "identity", Value: &testpilotspb.CorrelatedEvidenceBinding_Path{Path: nestedPath("scheduled", "operation")}}}
 	prepared, err := Prepare(artifact, catalog, policy)
@@ -274,7 +274,7 @@ func TestEvidenceLiftRejectsSharedSourcesAndWorkerEntrypoints(t *testing.T) {
 		instructions := artifact.Program.Entrypoints[0].Instructions
 		second := proto.CloneOf(instructions[0])
 		second.InstructionId = "read-again"
-		second.Dependencies = []*testpilotspb.InstructionRef{{EntrypointId: "controller", InstructionId: "read"}}
+		second.Dependencies = []*testpilotspb.InstructionReference{{EntrypointId: "controller", InstructionId: "read"}}
 		second.Guard = succeeded("controller", "read")
 		artifact.Program.Entrypoints[0].Instructions = append(instructions, second)
 		_, err := Prepare(artifact, catalog, policy)
@@ -282,10 +282,10 @@ func TestEvidenceLiftRejectsSharedSourcesAndWorkerEntrypoints(t *testing.T) {
 	})
 	t.Run("worker entrypoint", func(t *testing.T) {
 		artifact, catalog, policy := liftFixture(t)
-		artifact.Program.Entrypoints[0].Activation = &testpilotspb.EntrypointDefinition_Workflow{Workflow: &testpilotspb.WorkflowActivation{WorkflowType: "flow", WorkerRoleId: "worker", TaskQueueRoleId: "queue"}}
+		artifact.Program.Entrypoints[0].Activation = &testpilotspb.Entrypoint_Workflow{Workflow: &testpilotspb.WorkflowActivation{WorkflowType: "flow", WorkerRoleId: "worker", TaskQueueRoleId: "queue"}}
 		artifact.Program.Roles = append(artifact.Program.Roles,
-			&testpilotspb.RoleDefinition{RoleId: "worker", Kind: testpilotspb.ROLE_KIND_WORKER, NamespaceBindingId: "namespace"},
-			&testpilotspb.RoleDefinition{RoleId: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE, NamespaceBindingId: "namespace", ResourceBindingId: "queue"})
+			&testpilotspb.Role{RoleId: "worker", Kind: testpilotspb.ROLE_KIND_WORKER, NamespaceBindingId: "namespace"},
+			&testpilotspb.Role{RoleId: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE, NamespaceBindingId: "namespace", ResourceBindingId: "queue"})
 		artifact.Program.Environment = []*testpilotspb.EnvironmentDefinition{{BindingId: "namespace"}, {BindingId: "queue"}}
 		policy.Roles = append(policy.Roles, contract.RolePolicy{ID: "worker", Kind: testpilotspb.ROLE_KIND_WORKER}, contract.RolePolicy{ID: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE})
 		policy.EnvironmentBindings = append(policy.EnvironmentBindings, contract.EnvironmentBinding{ID: "namespace", Value: "namespace"}, contract.EnvironmentBinding{ID: "queue", Value: "queue"})

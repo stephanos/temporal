@@ -138,7 +138,7 @@ func TestStartResponseMustAgreeWithFirstWorkflowDelivery(t *testing.T) {
 func TestPrepareNexusPreservesHeaderAndFullValue(t *testing.T) {
 	f := newFixture(t, "run", "session")
 	workflow := admitWorkflow(t, f, "temporal-run")
-	value := &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: "unchanged"}}
+	value := &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "unchanged"}}
 	header := nexus.Header{"application": "kept"}
 	dispatch, err := f.ledger.PrepareNexus(context.Background(), workflow, "start-nexus", header, value)
 	require.NoError(t, err)
@@ -150,9 +150,9 @@ func TestPrepareNexusPreservesHeaderAndFullValue(t *testing.T) {
 	returnedHeader := dispatch.Header()
 	returnedHeader.Set("application", "changed")
 	returnedValue := dispatch.Value()
-	returnedValue.Value = &testpilotspb.Value_Text{Text: "changed"}
+	returnedValue.Value = &testpilotspb.Value_TextValue{TextValue: "changed"}
 	require.Equal(t, "kept", dispatch.Header().Get("application"))
-	require.Equal(t, "unchanged", dispatch.Value().GetText())
+	require.Equal(t, "unchanged", dispatch.Value().GetTextValue())
 
 	header.Set(reservedNexusHeader, "anything")
 	_, err = f.ledger.PrepareNexus(context.Background(), workflow, "start-nexus", header, value)

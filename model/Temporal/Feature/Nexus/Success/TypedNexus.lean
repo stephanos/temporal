@@ -684,7 +684,7 @@ def correlatedObservationId := "correlated-evidence"
 
 /-- The declared Observation each history event is projected into, and the one the derived rules
 read. -/
-def observation : ObservationDefinition := Program.observation observationId historyEventType
+def observation : Observation := Program.observation observationId historyEventType
 
 /-- The protobuf oneof members of `HistoryEvent.attributes` this Case lifts. -/
 def scheduledAttributesField := "nexus_operation_scheduled_event_attributes"
@@ -722,7 +722,7 @@ private def textOutcome : InstructionOutcomeDefinition :=
     Program.outcomeField .INSTRUCTION_OUTCOME_FIELD_STATUS statusType,
     Program.outcomeField .INSTRUCTION_OUTCOME_FIELD_VALUE textType]
 
-private def controllerInstructions (entry : OperationCase) : Array InstructionDefinition := #[
+private def controllerInstructions (entry : OperationCase) : Array InstructionNode := #[
   Program.node entry.authorityInstructionId (Program.awaitSlot entry.slotId)
     (bounds 10000) #[Ref.instruction controllerId "start-workflow"]
     (some (succeeded controllerId "start-workflow")) (some statusOutcome),
@@ -731,7 +731,7 @@ private def controllerInstructions (entry : OperationCase) : Array InstructionDe
     (bounds 10000) #[Ref.instruction controllerId entry.authorityInstructionId]
     (some (succeeded controllerId entry.authorityInstructionId)) (some statusOutcome)]
 
-private def workflowInstructions (entry : OperationCase) : Array InstructionDefinition := #[
+private def workflowInstructions (entry : OperationCase) : Array InstructionNode := #[
   Program.node entry.startInstructionId
     (Program.startNexusOperation nexusEndpointRole nexusService entry.operation (text "request"))
     (bounds 10000) #[] none (some statusOutcome),
@@ -744,7 +744,7 @@ private def workflowInstructions (entry : OperationCase) : Array InstructionDefi
 history event it guards: a scheduled event by the operation identity it records, a completion by its
 own attributes member. The operation key is the scheduled event's own id on one side and the
 scheduled event a completion references on the other, so both land under the same key. -/
-private def evidenceTarget : ProjectionTarget :=
+private def evidenceTarget : ReadTarget :=
   Program.correlatedEvidenceTarget correlatedObservationId
     ((operationCases.map fun entry =>
         Program.correlatedEvidenceRule
@@ -771,13 +771,13 @@ private def program (startPath historyPath : String) : Program :=
         (namespaceBindingId := namespaceBindingId) (resourceBindingId := taskQueueBindingId),
       Program.role nexusEndpointRole .ROLE_KIND_ENDPOINT
         (resourceBindingId := nexusEndpointBindingId)]
-    (operationCases.map (fun entry => Program.capabilitySlot entry.slotId)).toArray
+    (operationCases.map (fun entry => Program.handleSlot entry.slotId)).toArray
     #[observation,
       Program.observation correlatedObservationId (Types.singular
         (Types.messageType "temporal.server.api.testpilot.v1.CorrelatedEvidence"))]
     (#[Program.controller controllerId (
         #[Program.node "start-workflow"
-            (Program.invokeRPC workflowServiceRole startPath #[
+            (Program.invokeRpc workflowServiceRole startPath #[
               Program.environmentAssignment (field "namespace") namespaceBindingId,
               assign (field "workflow_id") runId,
               assign (nested ["workflow_type", "name"]) (text workflowType),
@@ -788,12 +788,12 @@ private def program (startPath historyPath : String) : Program :=
               operationCases.map fun entry => Program.reservation entry.handlerId 1).toArray] ++
           (operationCases.flatMap fun entry => (controllerInstructions entry).toList).toArray ++
           #[Program.node "history"
-            (Program.invokeRPC workflowServiceRole historyPath #[
+            (Program.invokeRpc workflowServiceRole historyPath #[
               Program.environmentAssignment (field "namespace") namespaceBindingId,
               assign (nested ["execution", "workflow_id"]) runId,
               assign (field "maximum_page_size") (signedInteger 64),
               assign (field "wait_new_event") (boolean true)]
-              #[Program.responseProjection historyEvents .PROJECTION_KIND_EMIT_EACH
+              #[Program.responseRead historyEvents .READ_CARDINALITY_EMIT_EACH
                   #[Program.observationTarget observationId, evidenceTarget]])
             historyLimits
             (operationCases.map fun entry =>

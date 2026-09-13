@@ -135,26 +135,26 @@ func writeScalar(value *testpilotspb.Value, field protoreflect.FieldDescriptor) 
 	case protoreflect.BoolKind:
 		return protoreflect.ValueOfBool(value.GetBoolValue()), nil
 	case protoreflect.StringKind:
-		return protoreflect.ValueOfString(value.GetText()), nil
+		return protoreflect.ValueOfString(value.GetTextValue()), nil
 	case protoreflect.BytesKind:
 		return protoreflect.ValueOfBytes(append([]byte(nil), value.GetBytesValue()...)), nil
 	case protoreflect.EnumKind:
 		return protoreflect.ValueOfEnum(protoreflect.EnumNumber(value.GetEnumValue().Number)), nil
 	case protoreflect.FloatKind:
-		return protoreflect.ValueOfFloat32(float32(value.GetFloatingPoint())), nil
+		return protoreflect.ValueOfFloat32(float32(value.GetFloatingPointValue())), nil
 	case protoreflect.DoubleKind:
-		return protoreflect.ValueOfFloat64(value.GetFloatingPoint()), nil
+		return protoreflect.ValueOfFloat64(value.GetFloatingPointValue()), nil
 	case protoreflect.Int32Kind, protoreflect.Sint32Kind, protoreflect.Sfixed32Kind:
-		n, err := strconv.ParseInt(value.GetSignedInteger(), 10, 32)
+		n, err := strconv.ParseInt(value.GetSignedIntegerValue(), 10, 32)
 		return protoreflect.ValueOfInt32(int32(n)), err
 	case protoreflect.Int64Kind, protoreflect.Sint64Kind, protoreflect.Sfixed64Kind:
-		n, err := strconv.ParseInt(value.GetSignedInteger(), 10, 64)
+		n, err := strconv.ParseInt(value.GetSignedIntegerValue(), 10, 64)
 		return protoreflect.ValueOfInt64(n), err
 	case protoreflect.Uint32Kind, protoreflect.Fixed32Kind:
-		n, err := strconv.ParseUint(value.GetUnsignedInteger(), 10, 32)
+		n, err := strconv.ParseUint(value.GetUnsignedIntegerValue(), 10, 32)
 		return protoreflect.ValueOfUint32(uint32(n)), err
 	case protoreflect.Uint64Kind, protoreflect.Fixed64Kind:
-		n, err := strconv.ParseUint(value.GetUnsignedInteger(), 10, 64)
+		n, err := strconv.ParseUint(value.GetUnsignedIntegerValue(), 10, 64)
 		return protoreflect.ValueOfUint64(n), err
 	case protoreflect.MessageKind, protoreflect.GroupKind:
 		if field.Message().FullName() == "google.protobuf.Any" {

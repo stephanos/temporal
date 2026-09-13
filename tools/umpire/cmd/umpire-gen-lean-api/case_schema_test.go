@@ -21,14 +21,14 @@ func TestCaseSchemaRoundTripsRefinedValues(t *testing.T) {
 		Provenance: &testpilotspb.CaseProvenance{ProducerId: "lean.temporal.nexus", ProducerVersion: "1", ProducerData: []byte("definitions")},
 		Program: &testpilotspb.Program{
 			ProgramId: "nexus.async-success.program",
-			Roles:     []*testpilotspb.RoleDefinition{{RoleId: "frontend", Kind: testpilotspb.ROLE_KIND_ENDPOINT}},
-			Slots: []*testpilotspb.SlotDefinition{
-				{SlotId: "workflow-id", Content: &testpilotspb.SlotDefinition_Value{Value: testpilotSingularScalarType(testpilotspb.SCALAR_KIND_TEXT)}},
-				{SlotId: "completion-authority", Content: &testpilotspb.SlotDefinition_OpaqueCapability{OpaqueCapability: &testpilotspb.OpaqueCapabilityType{}}},
+			Roles:     []*testpilotspb.Role{{RoleId: "frontend", Kind: testpilotspb.ROLE_KIND_ENDPOINT}},
+			Slots: []*testpilotspb.Slot{
+				{SlotId: "workflow-id", Content: &testpilotspb.Slot_Value{Value: testpilotSingularScalarType(testpilotspb.SCALAR_KIND_TEXT)}},
+				{SlotId: "completion-authority", Content: &testpilotspb.Slot_OpaqueHandle{OpaqueHandle: &testpilotspb.OpaqueHandleType{}}},
 			},
-			Entrypoints: []*testpilotspb.EntrypointDefinition{{
+			Entrypoints: []*testpilotspb.Entrypoint{{
 				EntrypointId: "controller",
-				Activation:   &testpilotspb.EntrypointDefinition_Controller{Controller: &testpilotspb.ControllerActivation{}},
+				Activation:   &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}},
 			}},
 		},
 		Contract: &testpilotspb.Contract{ContractId: "nexus.async-success.contract"},
@@ -85,7 +85,7 @@ func TestCaseSchemaProtoJSONRejectsCrossedClosedUnions(t *testing.T) {
 		input  string
 		target proto.Message
 	}{
-		{name: "value kind", input: `{"text":"value","boolValue":true}`, target: new(testpilotspb.Value)},
+		{name: "value kind", input: `{"textValue":"value","boolValue":true}`, target: new(testpilotspb.Value)},
 		{
 			name: "cardinality",
 			input: `{"singular":{"scalar":{"kind":"SCALAR_KIND_TEXT"}},` +
@@ -151,11 +151,11 @@ func testpilotSingularScalarType(kind testpilotspb.ScalarKind) *testpilotspb.Val
 
 func TestActivationReservationSchemaRoundTrip(t *testing.T) {
 	input := `{"instructionId":"start","activationReservations":[{"entrypointId":"workflow","count":"3"},{"entrypointId":"handler","count":"2"}]}`
-	var node testpilotspb.InstructionDefinition
+	var node testpilotspb.InstructionNode
 	require.NoError(t, protojson.Unmarshal([]byte(input), &node))
 	wire, err := proto.Marshal(&node)
 	require.NoError(t, err)
-	var decoded testpilotspb.InstructionDefinition
+	var decoded testpilotspb.InstructionNode
 	require.NoError(t, proto.Unmarshal(wire, &decoded))
 	output, err := protojson.Marshal(&decoded)
 	require.NoError(t, err)

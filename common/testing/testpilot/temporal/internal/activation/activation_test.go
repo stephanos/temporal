@@ -45,51 +45,51 @@ func preparedRuntimeFixtureWithProfile(t *testing.T, responseKind testpilotspb.N
 		ProgramLimits: proto.CloneOf(limits), ContractLimits: contractLimits,
 	}
 	status := runtimeStatusSchema()
-	controller := &testpilotspb.InstructionDefinition{
-		InstructionId: "call", Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRPC{EndpointRoleId: "endpoint", Method: method, RequestAssignments: []*testpilotspb.RequestAssignment{
+	controller := &testpilotspb.InstructionNode{
+		InstructionId: "call", Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRpc{EndpointRoleId: "endpoint", Method: method, RequestAssignments: []*testpilotspb.RequestAssignment{
 			{Target: runtimeField("namespace"), Value: runtimeEnvironment("namespace")},
 			{Target: runtimeField("task_queue", "name"), Value: runtimeEnvironment("task-queue")},
 		}}}},
 		Outcome: proto.CloneOf(status), Limits: runtimeBounds(), ActivationReservations: []*testpilotspb.ActivationReservationDefinition{{EntrypointId: "workflow", Count: 1}, {EntrypointId: "handler", Count: 1}},
 	}
-	start := &testpilotspb.InstructionDefinition{
+	start := &testpilotspb.InstructionNode{
 		InstructionId: "start", Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_StartNexusOperation{StartNexusOperation: &testpilotspb.StartNexusOperation{EndpointRoleId: "nexus-endpoint", Service: "service", Operation: "operation", Input: runtimeText("request")}}},
 		Outcome: proto.CloneOf(status), Limits: runtimeBounds(),
 	}
-	await := &testpilotspb.InstructionDefinition{
-		InstructionId: "await", Dependencies: []*testpilotspb.InstructionRef{{EntrypointId: "workflow", InstructionId: "start"}},
-		Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitInstruction{AwaitInstruction: &testpilotspb.AwaitInstruction{Instruction: &testpilotspb.InstructionRef{EntrypointId: "workflow", InstructionId: "start"}}}},
+	await := &testpilotspb.InstructionNode{
+		InstructionId: "await", Dependencies: []*testpilotspb.InstructionReference{{EntrypointId: "workflow", InstructionId: "start"}},
+		Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitInstruction{AwaitInstruction: &testpilotspb.AwaitInstruction{Instruction: &testpilotspb.InstructionReference{EntrypointId: "workflow", InstructionId: "start"}}}},
 		Outcome:     runtimeValueOutcomeSchema(), Limits: runtimeBounds(),
 	}
-	finish := &testpilotspb.InstructionDefinition{
-		InstructionId: "finish", Dependencies: []*testpilotspb.InstructionRef{{EntrypointId: "workflow", InstructionId: "await"}},
+	finish := &testpilotspb.InstructionNode{
+		InstructionId: "finish", Dependencies: []*testpilotspb.InstructionReference{{EntrypointId: "workflow", InstructionId: "await"}},
 		Guard:       runtimeSucceeded("workflow", "await"),
-		Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_Finish{Finish: &testpilotspb.Finish{Result: &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Outcome{Outcome: &testpilotspb.InstructionOutcomeRef{Instruction: &testpilotspb.InstructionRef{EntrypointId: "workflow", InstructionId: "await"}, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE}}}}}},
+		Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_Finish{Finish: &testpilotspb.Finish{Result: &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Outcome{Outcome: &testpilotspb.InstructionOutcomeRef{Instruction: &testpilotspb.InstructionReference{EntrypointId: "workflow", InstructionId: "await"}, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE}}}}}},
 		Outcome:     proto.CloneOf(status), Limits: runtimeBounds(),
 	}
-	respond := &testpilotspb.InstructionDefinition{
+	respond := &testpilotspb.InstructionNode{
 		InstructionId: "respond", Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_RespondNexus{RespondNexus: &testpilotspb.RespondNexus{Kind: responseKind, Result: runtimeText("accepted")}}},
 		Outcome: proto.CloneOf(status), Limits: runtimeBounds(),
 	}
 	program := &testpilotspb.Program{
 		ProgramId:   "program",
 		Environment: []*testpilotspb.EnvironmentDefinition{{BindingId: "namespace"}, {BindingId: "task-queue"}, {BindingId: "nexus-endpoint"}},
-		Roles: []*testpilotspb.RoleDefinition{
+		Roles: []*testpilotspb.Role{
 			{RoleId: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT},
 			{RoleId: "worker", Kind: testpilotspb.ROLE_KIND_WORKER, NamespaceBindingId: "namespace"},
 			{RoleId: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE, NamespaceBindingId: "namespace", ResourceBindingId: "task-queue"},
 			{RoleId: "nexus-endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT, ResourceBindingId: "nexus-endpoint"},
 		},
-		Entrypoints: []*testpilotspb.EntrypointDefinition{
-			{EntrypointId: "controller", Activation: &testpilotspb.EntrypointDefinition_Controller{Controller: &testpilotspb.ControllerActivation{}}, Instructions: []*testpilotspb.InstructionDefinition{controller}},
-			{EntrypointId: "workflow", Activation: &testpilotspb.EntrypointDefinition_Workflow{Workflow: &testpilotspb.WorkflowActivation{WorkflowType: "workflow-type", WorkerRoleId: "worker", TaskQueueRoleId: "queue"}}, Instructions: []*testpilotspb.InstructionDefinition{start, await, finish}},
-			{EntrypointId: "handler", Activation: &testpilotspb.EntrypointDefinition_NexusHandler{NexusHandler: &testpilotspb.NexusHandlerActivation{Service: "service", Operation: "operation", WorkerRoleId: "worker", TaskQueueRoleId: "queue"}}, Instructions: []*testpilotspb.InstructionDefinition{respond}},
+		Entrypoints: []*testpilotspb.Entrypoint{
+			{EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}}, Instructions: []*testpilotspb.InstructionNode{controller}},
+			{EntrypointId: "workflow", Activation: &testpilotspb.Entrypoint_Workflow{Workflow: &testpilotspb.WorkflowActivation{WorkflowType: "workflow-type", WorkerRoleId: "worker", TaskQueueRoleId: "queue"}}, Instructions: []*testpilotspb.InstructionNode{start, await, finish}},
+			{EntrypointId: "handler", Activation: &testpilotspb.Entrypoint_NexusHandler{NexusHandler: &testpilotspb.NexusHandlerActivation{Service: "service", Operation: "operation", WorkerRoleId: "worker", TaskQueueRoleId: "queue"}}, Instructions: []*testpilotspb.InstructionNode{respond}},
 		},
-		Cleanup: &testpilotspb.CleanupDefinition{EntrypointId: "cleanup"}, Limits: limits,
+		Cleanup: &testpilotspb.Cleanup{EntrypointId: "cleanup"}, Limits: limits,
 	}
 	if responseKind == testpilotspb.NEXUS_RESPONSE_KIND_ASYNCHRONOUS {
-		program.Slots = []*testpilotspb.SlotDefinition{{SlotId: "capability", Content: &testpilotspb.SlotDefinition_OpaqueCapability{OpaqueCapability: &testpilotspb.OpaqueCapabilityType{}}}}
-		respond.Instruction.GetRespondNexus().CapabilitySlotId = "capability"
+		program.Slots = []*testpilotspb.Slot{{SlotId: "capability", Content: &testpilotspb.Slot_OpaqueHandle{OpaqueHandle: &testpilotspb.OpaqueHandleType{}}}}
+		respond.Instruction.GetRespondNexus().HandleSlotId = "capability"
 	}
 	for _, apply := range modify {
 		apply(program)
@@ -168,7 +168,7 @@ func runtimeBounds() *testpilotspb.InstructionLimits {
 }
 
 func runtimeText(value string) *testpilotspb.ProgramExpression {
-	return &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: value}}}}
+	return &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: value}}}}
 }
 
 func runtimeEnvironment(id string) *testpilotspb.ProgramExpression {
@@ -185,7 +185,7 @@ func runtimeField(fields ...string) *testpilotspb.FieldPath {
 
 func runtimeSucceeded(entrypoint, instruction string) *testpilotspb.ProgramExpression {
 	return &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Equals{Equals: &testpilotspb.ProgramEqualsExpression{
-		Left:  &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Outcome{Outcome: &testpilotspb.InstructionOutcomeRef{Instruction: &testpilotspb.InstructionRef{EntrypointId: entrypoint, InstructionId: instruction}, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS}}},
+		Left:  &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Outcome{Outcome: &testpilotspb.InstructionOutcomeRef{Instruction: &testpilotspb.InstructionReference{EntrypointId: entrypoint, InstructionId: instruction}, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS}}},
 		Right: &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Number: int32(testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED)}}}}},
 	}}}
 }
@@ -244,7 +244,7 @@ func workflowPlan(t *testing.T, modify ...func(*testpilotspb.Program)) testpilot
 }
 
 func success(value string) *testpilotspb.InstructionOutcome {
-	return &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: value}}}
+	return &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: value}}}
 }
 
 func evaluateEnabled(t *testing.T, state *State, index int) *testpilotspb.Value {
@@ -282,7 +282,7 @@ func TestGuardAndOwnership(t *testing.T) {
 			require.Error(t, err)
 			require.Error(t, state.Admit(t.Context(), 1, success("replacement")))
 			if succeeded {
-				require.Equal(t, "result", state.values[testpilot.ValueReference{Kind: testpilot.OutcomeReference, Entrypoint: "workflow", ID: "await", Field: int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE)}].GetText(), "only successful outcomes have a result")
+				require.Equal(t, "result", state.values[testpilot.ValueReference{Kind: testpilot.OutcomeReference, Entrypoint: "workflow", ID: "await", Field: int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE)}].GetTextValue(), "only successful outcomes have a result")
 			}
 		})
 	}
@@ -380,7 +380,7 @@ func TestWorkAccounting(t *testing.T) {
 			if allowance == 19 {
 				require.NoError(t, err)
 				require.True(t, enabled)
-				require.Equal(t, "request", input.GetText())
+				require.Equal(t, "request", input.GetTextValue())
 				require.Zero(t, state.remaining)
 				_, _, err = state.Evaluate(t.Context(), 1)
 				require.Error(t, err)
@@ -436,10 +436,10 @@ func TestIndependentActivations(t *testing.T) {
 	exercise := func(t *testing.T, value string) {
 		t.Helper()
 		state := newState(t, plan)
-		require.Equal(t, "request", evaluateEnabled(t, state, 0).GetText())
+		require.Equal(t, "request", evaluateEnabled(t, state, 0).GetTextValue())
 		evaluateEnabled(t, state, 1)
 		require.NoError(t, state.Admit(t.Context(), 1, success(value)))
-		require.Equal(t, value, evaluateEnabled(t, state, 2).GetText())
+		require.Equal(t, value, evaluateEnabled(t, state, 2).GetTextValue())
 	}
 	exercise(t, "first")
 	exercise(t, "second")
@@ -496,7 +496,7 @@ func TestPresenceAndMissingRequiredInput(t *testing.T) {
 				state = newState(t, plan)
 				evaluateEnabled(t, state, 1)
 				require.NoError(t, state.Admit(t.Context(), 1, success("present")))
-				require.Equal(t, "present", evaluateEnabled(t, state, 2).GetText())
+				require.Equal(t, "present", evaluateEnabled(t, state, 2).GetTextValue())
 			}
 		})
 	}
@@ -522,7 +522,7 @@ func TestRepeatedReadsOwnTheirValues(t *testing.T) {
 	require.NoError(t, err)
 	snapshot.Fields[testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE].Value = success("mutated snapshot").Value.Value
 	first := evaluateEnabled(t, state, 2)
-	require.Equal(t, "result", first.GetText())
+	require.Equal(t, "result", first.GetTextValue())
 	first.Value = success("mutated input").Value.Value
-	require.Equal(t, "result", evaluateEnabled(t, state, 3).GetText())
+	require.Equal(t, "result", evaluateEnabled(t, state, 3).GetTextValue())
 }

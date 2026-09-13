@@ -94,11 +94,11 @@ than being narrowed into a value the runtime would compare differently. -/
 private def literalOperand (value : Operation.Scalar) :
     Except String (temporal.server.api.testpilot.v1.Value × Shared.SemanticData.Scalar × Nat) :=
   match value with
-  | .text text => .ok ({ value := some (.text text) }, .text text, 1)
+  | .text text => .ok ({ value := some (.text_value text) }, .text text, 1)
   | .boolean flag => .ok ({ value := some (.bool_value flag) }, .boolean flag, 3)
   | .integer _ number =>
       if number ≥ 0 then
-        .ok ({ value := some (.natural (toString number.toNat)) }, .natural number.toNat, 2)
+        .ok ({ value := some (.natural_value (toString number.toNat)) }, .natural number.toNat, 2)
       else .error "unsupported negative correlation literal"
   | _ => .error "unsupported correlation literal"
 

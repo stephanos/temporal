@@ -162,7 +162,7 @@ func (EntrypointKind) EnumDescriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{1}
 }
 
-type RoleDefinition struct {
+type Role struct {
 	state              protoimpl.MessageState `protogen:"open.v1"`
 	RoleId             string                 `protobuf:"bytes,1,opt,name=role_id,json=roleId,proto3" json:"role_id,omitempty"`
 	Kind               RoleKind               `protobuf:"varint,2,opt,name=kind,proto3,enum=temporal.server.api.testpilot.v1.RoleKind" json:"kind,omitempty"`
@@ -172,20 +172,20 @@ type RoleDefinition struct {
 	sizeCache          protoimpl.SizeCache
 }
 
-func (x *RoleDefinition) Reset() {
-	*x = RoleDefinition{}
+func (x *Role) Reset() {
+	*x = Role{}
 	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *RoleDefinition) String() string {
+func (x *Role) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*RoleDefinition) ProtoMessage() {}
+func (*Role) ProtoMessage() {}
 
-func (x *RoleDefinition) ProtoReflect() protoreflect.Message {
+func (x *Role) ProtoReflect() protoreflect.Message {
 	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -197,33 +197,33 @@ func (x *RoleDefinition) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use RoleDefinition.ProtoReflect.Descriptor instead.
-func (*RoleDefinition) Descriptor() ([]byte, []int) {
+// Deprecated: Use Role.ProtoReflect.Descriptor instead.
+func (*Role) Descriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *RoleDefinition) GetRoleId() string {
+func (x *Role) GetRoleId() string {
 	if x != nil {
 		return x.RoleId
 	}
 	return ""
 }
 
-func (x *RoleDefinition) GetKind() RoleKind {
+func (x *Role) GetKind() RoleKind {
 	if x != nil {
 		return x.Kind
 	}
 	return ROLE_KIND_UNSPECIFIED
 }
 
-func (x *RoleDefinition) GetNamespaceBindingId() string {
+func (x *Role) GetNamespaceBindingId() string {
 	if x != nil {
 		return x.NamespaceBindingId
 	}
 	return ""
 }
 
-func (x *RoleDefinition) GetResourceBindingId() string {
+func (x *Role) GetResourceBindingId() string {
 	if x != nil {
 		return x.ResourceBindingId
 	}
@@ -454,36 +454,36 @@ func (x *NexusHandlerActivation) GetTaskQueueRoleId() string {
 	return ""
 }
 
-// EntrypointDefinition contains one Driver-activated, context-local acyclic instruction graph.
-type EntrypointDefinition struct {
+// Entrypoint contains one Driver-activated, context-local acyclic instruction graph.
+type Entrypoint struct {
 	state        protoimpl.MessageState `protogen:"open.v1"`
 	EntrypointId string                 `protobuf:"bytes,1,opt,name=entrypoint_id,json=entrypointId,proto3" json:"entrypoint_id,omitempty"`
 	// Types that are valid to be assigned to Activation:
 	//
-	//	*EntrypointDefinition_Controller
-	//	*EntrypointDefinition_Workflow
-	//	*EntrypointDefinition_Activity
-	//	*EntrypointDefinition_NexusHandler
-	Activation    isEntrypointDefinition_Activation `protobuf_oneof:"activation"`
-	Instructions  []*InstructionDefinition          `protobuf:"bytes,6,rep,name=instructions,proto3" json:"instructions,omitempty"`
+	//	*Entrypoint_Controller
+	//	*Entrypoint_Workflow
+	//	*Entrypoint_Activity
+	//	*Entrypoint_NexusHandler
+	Activation    isEntrypoint_Activation `protobuf_oneof:"activation"`
+	Instructions  []*InstructionNode      `protobuf:"bytes,6,rep,name=instructions,proto3" json:"instructions,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *EntrypointDefinition) Reset() {
-	*x = EntrypointDefinition{}
+func (x *Entrypoint) Reset() {
+	*x = Entrypoint{}
 	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *EntrypointDefinition) String() string {
+func (x *Entrypoint) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*EntrypointDefinition) ProtoMessage() {}
+func (*Entrypoint) ProtoMessage() {}
 
-func (x *EntrypointDefinition) ProtoReflect() protoreflect.Message {
+func (x *Entrypoint) ProtoReflect() protoreflect.Message {
 	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -495,120 +495,120 @@ func (x *EntrypointDefinition) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use EntrypointDefinition.ProtoReflect.Descriptor instead.
-func (*EntrypointDefinition) Descriptor() ([]byte, []int) {
+// Deprecated: Use Entrypoint.ProtoReflect.Descriptor instead.
+func (*Entrypoint) Descriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *EntrypointDefinition) GetEntrypointId() string {
+func (x *Entrypoint) GetEntrypointId() string {
 	if x != nil {
 		return x.EntrypointId
 	}
 	return ""
 }
 
-func (x *EntrypointDefinition) GetActivation() isEntrypointDefinition_Activation {
+func (x *Entrypoint) GetActivation() isEntrypoint_Activation {
 	if x != nil {
 		return x.Activation
 	}
 	return nil
 }
 
-func (x *EntrypointDefinition) GetController() *ControllerActivation {
+func (x *Entrypoint) GetController() *ControllerActivation {
 	if x != nil {
-		if x, ok := x.Activation.(*EntrypointDefinition_Controller); ok {
+		if x, ok := x.Activation.(*Entrypoint_Controller); ok {
 			return x.Controller
 		}
 	}
 	return nil
 }
 
-func (x *EntrypointDefinition) GetWorkflow() *WorkflowActivation {
+func (x *Entrypoint) GetWorkflow() *WorkflowActivation {
 	if x != nil {
-		if x, ok := x.Activation.(*EntrypointDefinition_Workflow); ok {
+		if x, ok := x.Activation.(*Entrypoint_Workflow); ok {
 			return x.Workflow
 		}
 	}
 	return nil
 }
 
-func (x *EntrypointDefinition) GetActivity() *ActivityActivation {
+func (x *Entrypoint) GetActivity() *ActivityActivation {
 	if x != nil {
-		if x, ok := x.Activation.(*EntrypointDefinition_Activity); ok {
+		if x, ok := x.Activation.(*Entrypoint_Activity); ok {
 			return x.Activity
 		}
 	}
 	return nil
 }
 
-func (x *EntrypointDefinition) GetNexusHandler() *NexusHandlerActivation {
+func (x *Entrypoint) GetNexusHandler() *NexusHandlerActivation {
 	if x != nil {
-		if x, ok := x.Activation.(*EntrypointDefinition_NexusHandler); ok {
+		if x, ok := x.Activation.(*Entrypoint_NexusHandler); ok {
 			return x.NexusHandler
 		}
 	}
 	return nil
 }
 
-func (x *EntrypointDefinition) GetInstructions() []*InstructionDefinition {
+func (x *Entrypoint) GetInstructions() []*InstructionNode {
 	if x != nil {
 		return x.Instructions
 	}
 	return nil
 }
 
-type isEntrypointDefinition_Activation interface {
-	isEntrypointDefinition_Activation()
+type isEntrypoint_Activation interface {
+	isEntrypoint_Activation()
 }
 
-type EntrypointDefinition_Controller struct {
+type Entrypoint_Controller struct {
 	Controller *ControllerActivation `protobuf:"bytes,2,opt,name=controller,proto3,oneof"`
 }
 
-type EntrypointDefinition_Workflow struct {
+type Entrypoint_Workflow struct {
 	Workflow *WorkflowActivation `protobuf:"bytes,3,opt,name=workflow,proto3,oneof"`
 }
 
-type EntrypointDefinition_Activity struct {
+type Entrypoint_Activity struct {
 	Activity *ActivityActivation `protobuf:"bytes,4,opt,name=activity,proto3,oneof"`
 }
 
-type EntrypointDefinition_NexusHandler struct {
+type Entrypoint_NexusHandler struct {
 	NexusHandler *NexusHandlerActivation `protobuf:"bytes,5,opt,name=nexus_handler,json=nexusHandler,proto3,oneof"`
 }
 
-func (*EntrypointDefinition_Controller) isEntrypointDefinition_Activation() {}
+func (*Entrypoint_Controller) isEntrypoint_Activation() {}
 
-func (*EntrypointDefinition_Workflow) isEntrypointDefinition_Activation() {}
+func (*Entrypoint_Workflow) isEntrypoint_Activation() {}
 
-func (*EntrypointDefinition_Activity) isEntrypointDefinition_Activation() {}
+func (*Entrypoint_Activity) isEntrypoint_Activation() {}
 
-func (*EntrypointDefinition_NexusHandler) isEntrypointDefinition_Activation() {}
+func (*Entrypoint_NexusHandler) isEntrypoint_Activation() {}
 
-// CleanupDefinition is always attempted after ordinary execution with an independent bound.
-type CleanupDefinition struct {
+// Cleanup is always attempted after ordinary execution with an independent bound.
+type Cleanup struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// The identity is used by cleanup-local InstructionRefs and Run coordinates.
-	EntrypointId  string                   `protobuf:"bytes,1,opt,name=entrypoint_id,json=entrypointId,proto3" json:"entrypoint_id,omitempty"`
-	Instructions  []*InstructionDefinition `protobuf:"bytes,2,rep,name=instructions,proto3" json:"instructions,omitempty"`
+	// The identity is used by cleanup-local InstructionReferences and Run coordinates.
+	EntrypointId  string             `protobuf:"bytes,1,opt,name=entrypoint_id,json=entrypointId,proto3" json:"entrypoint_id,omitempty"`
+	Instructions  []*InstructionNode `protobuf:"bytes,2,rep,name=instructions,proto3" json:"instructions,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *CleanupDefinition) Reset() {
-	*x = CleanupDefinition{}
+func (x *Cleanup) Reset() {
+	*x = Cleanup{}
 	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *CleanupDefinition) String() string {
+func (x *Cleanup) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CleanupDefinition) ProtoMessage() {}
+func (*Cleanup) ProtoMessage() {}
 
-func (x *CleanupDefinition) ProtoReflect() protoreflect.Message {
+func (x *Cleanup) ProtoReflect() protoreflect.Message {
 	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -620,19 +620,19 @@ func (x *CleanupDefinition) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use CleanupDefinition.ProtoReflect.Descriptor instead.
-func (*CleanupDefinition) Descriptor() ([]byte, []int) {
+// Deprecated: Use Cleanup.ProtoReflect.Descriptor instead.
+func (*Cleanup) Descriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *CleanupDefinition) GetEntrypointId() string {
+func (x *Cleanup) GetEntrypointId() string {
 	if x != nil {
 		return x.EntrypointId
 	}
 	return ""
 }
 
-func (x *CleanupDefinition) GetInstructions() []*InstructionDefinition {
+func (x *Cleanup) GetInstructions() []*InstructionNode {
 	if x != nil {
 		return x.Instructions
 	}
@@ -775,11 +775,11 @@ func (x *ProgramLimits) GetMaxCleanupDurationMilliseconds() int64 {
 type Program struct {
 	state         protoimpl.MessageState   `protogen:"open.v1"`
 	ProgramId     string                   `protobuf:"bytes,1,opt,name=program_id,json=programId,proto3" json:"program_id,omitempty"`
-	Roles         []*RoleDefinition        `protobuf:"bytes,2,rep,name=roles,proto3" json:"roles,omitempty"`
-	Slots         []*SlotDefinition        `protobuf:"bytes,3,rep,name=slots,proto3" json:"slots,omitempty"`
-	Observations  []*ObservationDefinition `protobuf:"bytes,4,rep,name=observations,proto3" json:"observations,omitempty"`
-	Entrypoints   []*EntrypointDefinition  `protobuf:"bytes,5,rep,name=entrypoints,proto3" json:"entrypoints,omitempty"`
-	Cleanup       *CleanupDefinition       `protobuf:"bytes,6,opt,name=cleanup,proto3" json:"cleanup,omitempty"`
+	Roles         []*Role                  `protobuf:"bytes,2,rep,name=roles,proto3" json:"roles,omitempty"`
+	Slots         []*Slot                  `protobuf:"bytes,3,rep,name=slots,proto3" json:"slots,omitempty"`
+	Observations  []*Observation           `protobuf:"bytes,4,rep,name=observations,proto3" json:"observations,omitempty"`
+	Entrypoints   []*Entrypoint            `protobuf:"bytes,5,rep,name=entrypoints,proto3" json:"entrypoints,omitempty"`
+	Cleanup       *Cleanup                 `protobuf:"bytes,6,opt,name=cleanup,proto3" json:"cleanup,omitempty"`
 	Limits        *ProgramLimits           `protobuf:"bytes,7,opt,name=limits,proto3" json:"limits,omitempty"`
 	Environment   []*EnvironmentDefinition `protobuf:"bytes,8,rep,name=environment,proto3" json:"environment,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -823,35 +823,35 @@ func (x *Program) GetProgramId() string {
 	return ""
 }
 
-func (x *Program) GetRoles() []*RoleDefinition {
+func (x *Program) GetRoles() []*Role {
 	if x != nil {
 		return x.Roles
 	}
 	return nil
 }
 
-func (x *Program) GetSlots() []*SlotDefinition {
+func (x *Program) GetSlots() []*Slot {
 	if x != nil {
 		return x.Slots
 	}
 	return nil
 }
 
-func (x *Program) GetObservations() []*ObservationDefinition {
+func (x *Program) GetObservations() []*Observation {
 	if x != nil {
 		return x.Observations
 	}
 	return nil
 }
 
-func (x *Program) GetEntrypoints() []*EntrypointDefinition {
+func (x *Program) GetEntrypoints() []*Entrypoint {
 	if x != nil {
 		return x.Entrypoints
 	}
 	return nil
 }
 
-func (x *Program) GetCleanup() *CleanupDefinition {
+func (x *Program) GetCleanup() *Cleanup {
 	if x != nil {
 		return x.Cleanup
 	}
@@ -920,8 +920,8 @@ var File_temporal_server_api_testpilot_v1_program_proto protoreflect.FileDescrip
 
 const file_temporal_server_api_testpilot_v1_program_proto_rawDesc = "" +
 	"\n" +
-	".temporal/server/api/testpilot/v1/program.proto\x12 temporal.server.api.testpilot.v1\x1a2temporal/server/api/testpilot/v1/instruction.proto\x1a,temporal/server/api/testpilot/v1/value.proto\"\xcb\x01\n" +
-	"\x0eRoleDefinition\x12\x17\n" +
+	".temporal/server/api/testpilot/v1/program.proto\x12 temporal.server.api.testpilot.v1\x1a2temporal/server/api/testpilot/v1/instruction.proto\x1a,temporal/server/api/testpilot/v1/value.proto\"\xc1\x01\n" +
+	"\x04Role\x12\x17\n" +
 	"\arole_id\x18\x01 \x01(\tR\x06roleId\x12>\n" +
 	"\x04kind\x18\x02 \x01(\x0e2*.temporal.server.api.testpilot.v1.RoleKindR\x04kind\x120\n" +
 	"\x14namespace_binding_id\x18\x03 \x01(\tR\x12namespaceBindingId\x12.\n" +
@@ -939,21 +939,22 @@ const file_temporal_server_api_testpilot_v1_program_proto_rawDesc = "" +
 	"\aservice\x18\x01 \x01(\tR\aservice\x12\x1c\n" +
 	"\toperation\x18\x02 \x01(\tR\toperation\x12$\n" +
 	"\x0eworker_role_id\x18\x03 \x01(\tR\fworkerRoleId\x12+\n" +
-	"\x12task_queue_role_id\x18\x04 \x01(\tR\x0ftaskQueueRoleId\"\x89\x04\n" +
-	"\x14EntrypointDefinition\x12#\n" +
+	"\x12task_queue_role_id\x18\x04 \x01(\tR\x0ftaskQueueRoleId\"\xf9\x03\n" +
+	"\n" +
+	"Entrypoint\x12#\n" +
 	"\rentrypoint_id\x18\x01 \x01(\tR\fentrypointId\x12X\n" +
 	"\n" +
 	"controller\x18\x02 \x01(\v26.temporal.server.api.testpilot.v1.ControllerActivationH\x00R\n" +
 	"controller\x12R\n" +
 	"\bworkflow\x18\x03 \x01(\v24.temporal.server.api.testpilot.v1.WorkflowActivationH\x00R\bworkflow\x12R\n" +
 	"\bactivity\x18\x04 \x01(\v24.temporal.server.api.testpilot.v1.ActivityActivationH\x00R\bactivity\x12_\n" +
-	"\rnexus_handler\x18\x05 \x01(\v28.temporal.server.api.testpilot.v1.NexusHandlerActivationH\x00R\fnexusHandler\x12[\n" +
-	"\finstructions\x18\x06 \x03(\v27.temporal.server.api.testpilot.v1.InstructionDefinitionR\finstructionsB\f\n" +
+	"\rnexus_handler\x18\x05 \x01(\v28.temporal.server.api.testpilot.v1.NexusHandlerActivationH\x00R\fnexusHandler\x12U\n" +
+	"\finstructions\x18\x06 \x03(\v21.temporal.server.api.testpilot.v1.InstructionNodeR\finstructionsB\f\n" +
 	"\n" +
-	"activation\"\x95\x01\n" +
-	"\x11CleanupDefinition\x12#\n" +
-	"\rentrypoint_id\x18\x01 \x01(\tR\fentrypointId\x12[\n" +
-	"\finstructions\x18\x02 \x03(\v27.temporal.server.api.testpilot.v1.InstructionDefinitionR\finstructions\"\xaa\x04\n" +
+	"activation\"\x85\x01\n" +
+	"\aCleanup\x12#\n" +
+	"\rentrypoint_id\x18\x01 \x01(\tR\fentrypointId\x12U\n" +
+	"\finstructions\x18\x02 \x03(\v21.temporal.server.api.testpilot.v1.InstructionNodeR\finstructions\"\xaa\x04\n" +
 	"\rProgramLimits\x12'\n" +
 	"\x0fmax_entrypoints\x18\x01 \x01(\x03R\x0emaxEntrypoints\x12\x1b\n" +
 	"\tmax_nodes\x18\x02 \x01(\x03R\bmaxNodes\x12\x1b\n" +
@@ -967,15 +968,15 @@ const file_temporal_server_api_testpilot_v1_program_proto_rawDesc = "" +
 	"\x12max_response_bytes\x18\n" +
 	" \x01(\x03R\x10maxResponseBytes\x12E\n" +
 	"\x1fmax_total_duration_milliseconds\x18\v \x01(\x03R\x1cmaxTotalDurationMilliseconds\x12I\n" +
-	"!max_cleanup_duration_milliseconds\x18\f \x01(\x03R\x1emaxCleanupDurationMilliseconds\"\xe2\x04\n" +
+	"!max_cleanup_duration_milliseconds\x18\f \x01(\x03R\x1emaxCleanupDurationMilliseconds\"\xb0\x04\n" +
 	"\aProgram\x12\x1d\n" +
 	"\n" +
-	"program_id\x18\x01 \x01(\tR\tprogramId\x12F\n" +
-	"\x05roles\x18\x02 \x03(\v20.temporal.server.api.testpilot.v1.RoleDefinitionR\x05roles\x12F\n" +
-	"\x05slots\x18\x03 \x03(\v20.temporal.server.api.testpilot.v1.SlotDefinitionR\x05slots\x12[\n" +
-	"\fobservations\x18\x04 \x03(\v27.temporal.server.api.testpilot.v1.ObservationDefinitionR\fobservations\x12X\n" +
-	"\ventrypoints\x18\x05 \x03(\v26.temporal.server.api.testpilot.v1.EntrypointDefinitionR\ventrypoints\x12M\n" +
-	"\acleanup\x18\x06 \x01(\v23.temporal.server.api.testpilot.v1.CleanupDefinitionR\acleanup\x12G\n" +
+	"program_id\x18\x01 \x01(\tR\tprogramId\x12<\n" +
+	"\x05roles\x18\x02 \x03(\v2&.temporal.server.api.testpilot.v1.RoleR\x05roles\x12<\n" +
+	"\x05slots\x18\x03 \x03(\v2&.temporal.server.api.testpilot.v1.SlotR\x05slots\x12Q\n" +
+	"\fobservations\x18\x04 \x03(\v2-.temporal.server.api.testpilot.v1.ObservationR\fobservations\x12N\n" +
+	"\ventrypoints\x18\x05 \x03(\v2,.temporal.server.api.testpilot.v1.EntrypointR\ventrypoints\x12C\n" +
+	"\acleanup\x18\x06 \x01(\v2).temporal.server.api.testpilot.v1.CleanupR\acleanup\x12G\n" +
 	"\x06limits\x18\a \x01(\v2/.temporal.server.api.testpilot.v1.ProgramLimitsR\x06limits\x12Y\n" +
 	"\venvironment\x18\b \x03(\v27.temporal.server.api.testpilot.v1.EnvironmentDefinitionR\venvironment\"6\n" +
 	"\x15EnvironmentDefinition\x12\x1d\n" +
@@ -1011,33 +1012,33 @@ var file_temporal_server_api_testpilot_v1_program_proto_msgTypes = make([]protoi
 var file_temporal_server_api_testpilot_v1_program_proto_goTypes = []any{
 	(RoleKind)(0),                  // 0: temporal.server.api.testpilot.v1.RoleKind
 	(EntrypointKind)(0),            // 1: temporal.server.api.testpilot.v1.EntrypointKind
-	(*RoleDefinition)(nil),         // 2: temporal.server.api.testpilot.v1.RoleDefinition
+	(*Role)(nil),                   // 2: temporal.server.api.testpilot.v1.Role
 	(*ControllerActivation)(nil),   // 3: temporal.server.api.testpilot.v1.ControllerActivation
 	(*WorkflowActivation)(nil),     // 4: temporal.server.api.testpilot.v1.WorkflowActivation
 	(*ActivityActivation)(nil),     // 5: temporal.server.api.testpilot.v1.ActivityActivation
 	(*NexusHandlerActivation)(nil), // 6: temporal.server.api.testpilot.v1.NexusHandlerActivation
-	(*EntrypointDefinition)(nil),   // 7: temporal.server.api.testpilot.v1.EntrypointDefinition
-	(*CleanupDefinition)(nil),      // 8: temporal.server.api.testpilot.v1.CleanupDefinition
+	(*Entrypoint)(nil),             // 7: temporal.server.api.testpilot.v1.Entrypoint
+	(*Cleanup)(nil),                // 8: temporal.server.api.testpilot.v1.Cleanup
 	(*ProgramLimits)(nil),          // 9: temporal.server.api.testpilot.v1.ProgramLimits
 	(*Program)(nil),                // 10: temporal.server.api.testpilot.v1.Program
 	(*EnvironmentDefinition)(nil),  // 11: temporal.server.api.testpilot.v1.EnvironmentDefinition
-	(*InstructionDefinition)(nil),  // 12: temporal.server.api.testpilot.v1.InstructionDefinition
-	(*SlotDefinition)(nil),         // 13: temporal.server.api.testpilot.v1.SlotDefinition
-	(*ObservationDefinition)(nil),  // 14: temporal.server.api.testpilot.v1.ObservationDefinition
+	(*InstructionNode)(nil),        // 12: temporal.server.api.testpilot.v1.InstructionNode
+	(*Slot)(nil),                   // 13: temporal.server.api.testpilot.v1.Slot
+	(*Observation)(nil),            // 14: temporal.server.api.testpilot.v1.Observation
 }
 var file_temporal_server_api_testpilot_v1_program_proto_depIdxs = []int32{
-	0,  // 0: temporal.server.api.testpilot.v1.RoleDefinition.kind:type_name -> temporal.server.api.testpilot.v1.RoleKind
-	3,  // 1: temporal.server.api.testpilot.v1.EntrypointDefinition.controller:type_name -> temporal.server.api.testpilot.v1.ControllerActivation
-	4,  // 2: temporal.server.api.testpilot.v1.EntrypointDefinition.workflow:type_name -> temporal.server.api.testpilot.v1.WorkflowActivation
-	5,  // 3: temporal.server.api.testpilot.v1.EntrypointDefinition.activity:type_name -> temporal.server.api.testpilot.v1.ActivityActivation
-	6,  // 4: temporal.server.api.testpilot.v1.EntrypointDefinition.nexus_handler:type_name -> temporal.server.api.testpilot.v1.NexusHandlerActivation
-	12, // 5: temporal.server.api.testpilot.v1.EntrypointDefinition.instructions:type_name -> temporal.server.api.testpilot.v1.InstructionDefinition
-	12, // 6: temporal.server.api.testpilot.v1.CleanupDefinition.instructions:type_name -> temporal.server.api.testpilot.v1.InstructionDefinition
-	2,  // 7: temporal.server.api.testpilot.v1.Program.roles:type_name -> temporal.server.api.testpilot.v1.RoleDefinition
-	13, // 8: temporal.server.api.testpilot.v1.Program.slots:type_name -> temporal.server.api.testpilot.v1.SlotDefinition
-	14, // 9: temporal.server.api.testpilot.v1.Program.observations:type_name -> temporal.server.api.testpilot.v1.ObservationDefinition
-	7,  // 10: temporal.server.api.testpilot.v1.Program.entrypoints:type_name -> temporal.server.api.testpilot.v1.EntrypointDefinition
-	8,  // 11: temporal.server.api.testpilot.v1.Program.cleanup:type_name -> temporal.server.api.testpilot.v1.CleanupDefinition
+	0,  // 0: temporal.server.api.testpilot.v1.Role.kind:type_name -> temporal.server.api.testpilot.v1.RoleKind
+	3,  // 1: temporal.server.api.testpilot.v1.Entrypoint.controller:type_name -> temporal.server.api.testpilot.v1.ControllerActivation
+	4,  // 2: temporal.server.api.testpilot.v1.Entrypoint.workflow:type_name -> temporal.server.api.testpilot.v1.WorkflowActivation
+	5,  // 3: temporal.server.api.testpilot.v1.Entrypoint.activity:type_name -> temporal.server.api.testpilot.v1.ActivityActivation
+	6,  // 4: temporal.server.api.testpilot.v1.Entrypoint.nexus_handler:type_name -> temporal.server.api.testpilot.v1.NexusHandlerActivation
+	12, // 5: temporal.server.api.testpilot.v1.Entrypoint.instructions:type_name -> temporal.server.api.testpilot.v1.InstructionNode
+	12, // 6: temporal.server.api.testpilot.v1.Cleanup.instructions:type_name -> temporal.server.api.testpilot.v1.InstructionNode
+	2,  // 7: temporal.server.api.testpilot.v1.Program.roles:type_name -> temporal.server.api.testpilot.v1.Role
+	13, // 8: temporal.server.api.testpilot.v1.Program.slots:type_name -> temporal.server.api.testpilot.v1.Slot
+	14, // 9: temporal.server.api.testpilot.v1.Program.observations:type_name -> temporal.server.api.testpilot.v1.Observation
+	7,  // 10: temporal.server.api.testpilot.v1.Program.entrypoints:type_name -> temporal.server.api.testpilot.v1.Entrypoint
+	8,  // 11: temporal.server.api.testpilot.v1.Program.cleanup:type_name -> temporal.server.api.testpilot.v1.Cleanup
 	9,  // 12: temporal.server.api.testpilot.v1.Program.limits:type_name -> temporal.server.api.testpilot.v1.ProgramLimits
 	11, // 13: temporal.server.api.testpilot.v1.Program.environment:type_name -> temporal.server.api.testpilot.v1.EnvironmentDefinition
 	14, // [14:14] is the sub-list for method output_type
@@ -1055,10 +1056,10 @@ func file_temporal_server_api_testpilot_v1_program_proto_init() {
 	file_temporal_server_api_testpilot_v1_instruction_proto_init()
 	file_temporal_server_api_testpilot_v1_value_proto_init()
 	file_temporal_server_api_testpilot_v1_program_proto_msgTypes[5].OneofWrappers = []any{
-		(*EntrypointDefinition_Controller)(nil),
-		(*EntrypointDefinition_Workflow)(nil),
-		(*EntrypointDefinition_Activity)(nil),
-		(*EntrypointDefinition_NexusHandler)(nil),
+		(*Entrypoint_Controller)(nil),
+		(*Entrypoint_Workflow)(nil),
+		(*Entrypoint_Activity)(nil),
+		(*Entrypoint_NexusHandler)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

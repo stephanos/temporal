@@ -598,10 +598,10 @@
                   "invokeRpc": {
                     "endpointRoleId": "source",
                     "method": "/test.correlated.Source/Read",
-                    "responseProjections": [
+                    "responseReads": [
                       {
-                        "kind": "PROJECTION_KIND_ONE",
-                        "source": {},
+                        "kind": "READ_CARDINALITY_ONE",
+                        "path": {},
                         "targets": [
                           {
                             "observationId": "evidence"
@@ -1278,10 +1278,10 @@
                   "invokeRpc": {
                     "endpointRoleId": "source",
                     "method": "/test.correlated.Source/Read",
-                    "responseProjections": [
+                    "responseReads": [
                       {
-                        "kind": "PROJECTION_KIND_ONE",
-                        "source": {},
+                        "kind": "READ_CARDINALITY_ONE",
+                        "path": {},
                         "targets": [
                           {
                             "observationId": "evidence"
@@ -1960,10 +1960,10 @@
                   "invokeRpc": {
                     "endpointRoleId": "source",
                     "method": "/test.correlated.Source/Read",
-                    "responseProjections": [
+                    "responseReads": [
                       {
-                        "kind": "PROJECTION_KIND_ONE",
-                        "source": {},
+                        "kind": "READ_CARDINALITY_ONE",
+                        "path": {},
                         "targets": [
                           {
                             "observationId": "evidence"
@@ -2656,10 +2656,10 @@
                   "invokeRpc": {
                     "endpointRoleId": "source",
                     "method": "/test.correlated.Source/Read",
-                    "responseProjections": [
+                    "responseReads": [
                       {
-                        "kind": "PROJECTION_KIND_ONE",
-                        "source": {},
+                        "kind": "READ_CARDINALITY_ONE",
+                        "path": {},
                         "targets": [
                           {
                             "observationId": "evidence"
@@ -2702,10 +2702,10 @@
                   "invokeRpc": {
                     "endpointRoleId": "source",
                     "method": "/test.correlated.Source/Read",
-                    "responseProjections": [
+                    "responseReads": [
                       {
-                        "kind": "PROJECTION_KIND_ONE",
-                        "source": {},
+                        "kind": "READ_CARDINALITY_ONE",
+                        "path": {},
                         "targets": [
                           {
                             "observationId": "evidence"
@@ -3412,10 +3412,10 @@
                   "invokeRpc": {
                     "endpointRoleId": "source",
                     "method": "/test.correlated.Source/Read",
-                    "responseProjections": [
+                    "responseReads": [
                       {
-                        "kind": "PROJECTION_KIND_ONE",
-                        "source": {},
+                        "kind": "READ_CARDINALITY_ONE",
+                        "path": {},
                         "targets": [
                           {
                             "observationId": "evidence"
@@ -3458,10 +3458,10 @@
                   "invokeRpc": {
                     "endpointRoleId": "source",
                     "method": "/test.correlated.Source/Read",
-                    "responseProjections": [
+                    "responseReads": [
                       {
-                        "kind": "PROJECTION_KIND_ONE",
-                        "source": {},
+                        "kind": "READ_CARDINALITY_ONE",
+                        "path": {},
                         "targets": [
                           {
                             "observationId": "evidence"
@@ -3504,10 +3504,10 @@
                   "invokeRpc": {
                     "endpointRoleId": "source",
                     "method": "/test.correlated.Source/Read",
-                    "responseProjections": [
+                    "responseReads": [
                       {
-                        "kind": "PROJECTION_KIND_ONE",
-                        "source": {},
+                        "kind": "READ_CARDINALITY_ONE",
+                        "path": {},
                         "targets": [
                           {
                             "observationId": "evidence"
@@ -4214,10 +4214,10 @@
                   "invokeRpc": {
                     "endpointRoleId": "source",
                     "method": "/test.correlated.Source/Read",
-                    "responseProjections": [
+                    "responseReads": [
                       {
-                        "kind": "PROJECTION_KIND_ONE",
-                        "source": {},
+                        "kind": "READ_CARDINALITY_ONE",
+                        "path": {},
                         "targets": [
                           {
                             "observationId": "evidence"
@@ -4260,10 +4260,10 @@
                   "invokeRpc": {
                     "endpointRoleId": "source",
                     "method": "/test.correlated.Source/Read",
-                    "responseProjections": [
+                    "responseReads": [
                       {
-                        "kind": "PROJECTION_KIND_ONE",
-                        "source": {},
+                        "kind": "READ_CARDINALITY_ONE",
+                        "path": {},
                         "targets": [
                           {
                             "observationId": "evidence"
@@ -4306,10 +4306,10 @@
                   "invokeRpc": {
                     "endpointRoleId": "source",
                     "method": "/test.correlated.Source/Read",
-                    "responseProjections": [
+                    "responseReads": [
                       {
-                        "kind": "PROJECTION_KIND_ONE",
-                        "source": {},
+                        "kind": "READ_CARDINALITY_ONE",
+                        "path": {},
                         "targets": [
                           {
                             "observationId": "evidence"
@@ -5016,10 +5016,10 @@
                   "invokeRpc": {
                     "endpointRoleId": "source",
                     "method": "/test.correlated.Source/Read",
-                    "responseProjections": [
+                    "responseReads": [
                       {
-                        "kind": "PROJECTION_KIND_ONE",
-                        "source": {},
+                        "kind": "READ_CARDINALITY_ONE",
+                        "path": {},
                         "targets": [
                           {
                             "observationId": "evidence"
@@ -5062,10 +5062,10 @@
                   "invokeRpc": {
                     "endpointRoleId": "source",
                     "method": "/test.correlated.Source/Read",
-                    "responseProjections": [
+                    "responseReads": [
                       {
-                        "kind": "PROJECTION_KIND_ONE",
-                        "source": {},
+                        "kind": "READ_CARDINALITY_ONE",
+                        "path": {},
                         "targets": [
                           {
                             "observationId": "evidence"
@@ -5108,10 +5108,10 @@
                   "invokeRpc": {
                     "endpointRoleId": "source",
                     "method": "/test.correlated.Source/Read",
-                    "responseProjections": [
+                    "responseReads": [
                       {
-                        "kind": "PROJECTION_KIND_ONE",
-                        "source": {},
+                        "kind": "READ_CARDINALITY_ONE",
+                        "path": {},
                         "targets": [
                           {
                             "observationId": "evidence"
@@ -5804,10 +5804,10 @@
                   "invokeRpc": {
                     "endpointRoleId": "source",
                     "method": "/test.correlated.Source/Read",
-                    "responseProjections": [
+                    "responseReads": [
                       {
-                        "kind": "PROJECTION_KIND_ONE",
-                        "source": {},
+                        "kind": "READ_CARDINALITY_ONE",
+                        "path": {},
                         "targets": [
                           {
                             "observationId": "evidence"
@@ -5850,10 +5850,10 @@
                   "invokeRpc": {
                     "endpointRoleId": "source",
                     "method": "/test.correlated.Source/Read",
-                    "responseProjections": [
+                    "responseReads": [
                       {
-                        "kind": "PROJECTION_KIND_ONE",
-                        "source": {},
+                        "kind": "READ_CARDINALITY_ONE",
+                        "path": {},
                         "targets": [
                           {
                             "observationId": "evidence"
@@ -6532,10 +6532,10 @@
                   "invokeRpc": {
                     "endpointRoleId": "source",
                     "method": "/test.correlated.Source/Read",
-                    "responseProjections": [
+                    "responseReads": [
                       {
-                        "kind": "PROJECTION_KIND_ONE",
-                        "source": {},
+                        "kind": "READ_CARDINALITY_ONE",
+                        "path": {},
                         "targets": [
                           {
                             "observationId": "evidence"
@@ -7214,10 +7214,10 @@
                   "invokeRpc": {
                     "endpointRoleId": "source",
                     "method": "/test.correlated.Source/Read",
-                    "responseProjections": [
+                    "responseReads": [
                       {
-                        "kind": "PROJECTION_KIND_ONE",
-                        "source": {},
+                        "kind": "READ_CARDINALITY_ONE",
+                        "path": {},
                         "targets": [
                           {
                             "observationId": "evidence"
@@ -7908,10 +7908,10 @@
                   "invokeRpc": {
                     "endpointRoleId": "source",
                     "method": "/test.correlated.Source/Read",
-                    "responseProjections": [
+                    "responseReads": [
                       {
-                        "kind": "PROJECTION_KIND_ONE",
-                        "source": {},
+                        "kind": "READ_CARDINALITY_ONE",
+                        "path": {},
                         "targets": [
                           {
                             "observationId": "evidence"
@@ -8640,10 +8640,10 @@
                   "invokeRpc": {
                     "endpointRoleId": "source",
                     "method": "/test.correlated.Source/Read",
-                    "responseProjections": [
+                    "responseReads": [
                       {
-                        "kind": "PROJECTION_KIND_ONE",
-                        "source": {},
+                        "kind": "READ_CARDINALITY_ONE",
+                        "path": {},
                         "targets": [
                           {
                             "observationId": "evidence"
@@ -8686,10 +8686,10 @@
                   "invokeRpc": {
                     "endpointRoleId": "source",
                     "method": "/test.correlated.Source/Read",
-                    "responseProjections": [
+                    "responseReads": [
                       {
-                        "kind": "PROJECTION_KIND_ONE",
-                        "source": {},
+                        "kind": "READ_CARDINALITY_ONE",
+                        "path": {},
                         "targets": [
                           {
                             "observationId": "evidence"
@@ -8732,10 +8732,10 @@
                   "invokeRpc": {
                     "endpointRoleId": "source",
                     "method": "/test.correlated.Source/Read",
-                    "responseProjections": [
+                    "responseReads": [
                       {
-                        "kind": "PROJECTION_KIND_ONE",
-                        "source": {},
+                        "kind": "READ_CARDINALITY_ONE",
+                        "path": {},
                         "targets": [
                           {
                             "observationId": "evidence"
@@ -9442,10 +9442,10 @@
                   "invokeRpc": {
                     "endpointRoleId": "source",
                     "method": "/test.correlated.Source/Read",
-                    "responseProjections": [
+                    "responseReads": [
                       {
-                        "kind": "PROJECTION_KIND_ONE",
-                        "source": {},
+                        "kind": "READ_CARDINALITY_ONE",
+                        "path": {},
                         "targets": [
                           {
                             "observationId": "evidence"
@@ -9488,10 +9488,10 @@
                   "invokeRpc": {
                     "endpointRoleId": "source",
                     "method": "/test.correlated.Source/Read",
-                    "responseProjections": [
+                    "responseReads": [
                       {
-                        "kind": "PROJECTION_KIND_ONE",
-                        "source": {},
+                        "kind": "READ_CARDINALITY_ONE",
+                        "path": {},
                         "targets": [
                           {
                             "observationId": "evidence"
@@ -9534,10 +9534,10 @@
                   "invokeRpc": {
                     "endpointRoleId": "source",
                     "method": "/test.correlated.Source/Read",
-                    "responseProjections": [
+                    "responseReads": [
                       {
-                        "kind": "PROJECTION_KIND_ONE",
-                        "source": {},
+                        "kind": "READ_CARDINALITY_ONE",
+                        "path": {},
                         "targets": [
                           {
                             "observationId": "evidence"
@@ -10214,10 +10214,10 @@
                   "invokeRpc": {
                     "endpointRoleId": "source",
                     "method": "/test.correlated.Source/Read",
-                    "responseProjections": [
+                    "responseReads": [
                       {
-                        "kind": "PROJECTION_KIND_ONE",
-                        "source": {},
+                        "kind": "READ_CARDINALITY_ONE",
+                        "path": {},
                         "targets": [
                           {
                             "observationId": "evidence"

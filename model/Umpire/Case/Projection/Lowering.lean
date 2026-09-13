@@ -302,7 +302,7 @@ private def Source.of (realization : Realization) : PropertyFieldOperand → Exc
         | .resultingState => throw "rule.unimplied"
 
 /-- The single protobuf message a declared Observation carries. -/
-private def messageRoot (observation : ObservationDefinition) : Option String := do
+private def messageRoot (observation : Observation) : Option String := do
   let .singular singular ← (← observation.type).shape | none
   let .message named ← singular.type | none
   pure named.protobuf_type
@@ -312,7 +312,7 @@ private def within (clause : CheckedPropertySameStepClause) (result : Except Str
   result.mapError (Compiler.Error.mk clause.id.value clause.source)
 
 /-- Lower a checked field Property to the monitor rule and request coverage one Case needs. -/
-def lower (property : CheckedFieldProperty) (observation : ObservationDefinition)
+def lower (property : CheckedFieldProperty) (observation : Observation)
     (realization : Realization) : Except Compiler.Error (Lowered property realization) := do
   let checked := property.property
   let rejects := fun (definitionId : DefinitionId) (source : SourceLocation) (construct : String) =>

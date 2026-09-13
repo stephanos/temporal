@@ -71,7 +71,7 @@ private def program
       Program.observation correlatedObservation correlatedEvidenceType]
     #[Program.controller "controller" #[
         Program.node "start-workflow"
-          (Program.invokeRPC workflowServiceRole startWorkflowMethod #[
+          (Program.invokeRpc workflowServiceRole startWorkflowMethod #[
             Program.environmentAssignment (field "namespace") namespaceBinding,
             assign (field "workflow_id") runId,
             assign (nested ["workflow_type", "name"]) (text workflowType),
@@ -80,8 +80,8 @@ private def program
           (bounds 10000) #[] none (some statusOutcome)
           #[Program.reservation "workflow" 1],
         Program.node "history"
-          (Program.invokeRPC workflowServiceRole getHistoryMethod historyAssignments
-            #[Program.responseProjection historyEvents .PROJECTION_KIND_EMIT_EACH
+          (Program.invokeRpc workflowServiceRole getHistoryMethod historyAssignments
+            #[Program.responseRead historyEvents .READ_CARDINALITY_EMIT_EACH
               #[Program.observationTarget historyObservation,
                 Evidence.target runFieldId correlatedObservation identity resolved]])
           (Program.instructionLimits 20000 1 64 8192)
