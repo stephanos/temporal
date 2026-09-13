@@ -16,7 +16,8 @@ private def tests : IO Unit := do
   assert (first == second) "synthetic Case rendering was not deterministic"
   assert (first.contains "\"producerId\":\"standalone.lean.testpilot\"")
     "synthetic producer identity was dropped"
-  assert (first.contains "AP+A") "synthetic opaque producer bytes were dropped"
+  assert (!first.contains "\"definitions\"" && !first.contains "\"sources\"")
+    "the Umpire-free synthetic Producer gained provenance rows"
   assert (first.contains
     "\"@type\":\"type.googleapis.com/temporal.server.api.testpilot.v1.FormatVersion\"")
     "synthetic resolved Any was dropped"

@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"google.golang.org/protobuf/proto"
 )
 
 func TestLeanAuthoringProtoJSONStrictDecode(t *testing.T) {
@@ -32,7 +33,20 @@ func TestLeanAuthoringProtoJSONStrictDecode(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "binding-case", decoded.GetCaseId())
 	require.Equal(t, int32(0), decoded.GetVersion().GetMinor())
-	require.Equal(t, []byte{0, 255, 128}, decoded.GetProvenance().GetProducerData())
+	location := &testpilotspb.SourceLocation{Path: "Testpilot/Tests/ProtoJSON.lean", Line: 2147483647, Provenance: "authored"}
+	require.True(t, proto.Equal(&testpilotspb.CaseProvenance{
+		ProducerId: "testpilot-tests", ProducerVersion: "1",
+		Definitions: []*testpilotspb.DefinitionBinding{{DefinitionId: "test.property", BehaviorFingerprint: "test-property/v1", Kind: testpilotspb.DEFINITION_KIND_PROPERTY}},
+		Sources:     []*testpilotspb.SourceLocation{location},
+		KnownGaps: []*testpilotspb.KnownGap{
+			{Kind: testpilotspb.KNOWN_GAP_KIND_INPUT, Code: "test.gap.input", DetailPresence: &testpilotspb.KnownGap_Detail{Detail: "needs input"}},
+			{Kind: testpilotspb.KNOWN_GAP_KIND_CLAIM, Code: "test.gap.claim", SubjectPresence: &testpilotspb.KnownGap_Subject{Subject: "test.property"}, DetailPresence: &testpilotspb.KnownGap_Detail{}},
+		},
+		CorrelatedRules: []*testpilotspb.CorrelatedRuleBinding{{
+			RuleId: "test.rule", PropertyId: "test.property", PropertyFingerprint: "test-property/v1",
+			ProjectionId: "test.projection", ProjectionFingerprint: "test-projection/v1", Source: location,
+		}},
+	}, decoded.GetProvenance()), "%v", decoded.GetProvenance())
 	require.Equal(t, int64(9223372036854775807), decoded.GetProgram().GetEntrypoints()[0].GetInstructions()[0].GetLimits().GetMaxAttempts())
 
 	program := decoded.GetProgram()

@@ -497,10 +497,20 @@ def make (status : VerdictStatus) (rules : Array RuleVerdict)
 
 end Verdict
 
-/-- Attach producer identity and opaque producer-owned bytes to a generated Case. -/
-def provenance (producerId producerVersion : String) (producerData : ByteArray := ByteArray.empty) :
+/-- Record one Known Gap row; an absent subject or detail stays absent, and an empty one present. -/
+def knownGap (kind : KnownGapKind) (code : String) (subject detail : Option String := none) :
+    KnownGap :=
+  { kind, code, subject_presence := subject.map (.subject ·),
+    detail_presence := detail.map (.detail ·) }
+
+/-- Attach producer identity and the typed provenance rows Testpilot never reads to a generated Case,
+each list in the caller's order. -/
+def provenance (producerId producerVersion : String)
+    (definitions : Array DefinitionBinding := #[]) (sources : Array SourceLocation := #[])
+    (knownGaps : Array KnownGap := #[]) (correlatedRules : Array CorrelatedRuleBinding := #[]) :
     CaseProvenance :=
-  { producer_id := producerId, producer_version := producerVersion, producer_data := producerData }
+  { producer_id := producerId, producer_version := producerVersion, definitions, sources,
+    known_gaps := knownGaps, correlated_rules := correlatedRules }
 
 /-- Assemble one generated Case from its version, identity, Program, Contract, and provenance. -/
 def case (major : Int32) (caseId : String)

@@ -31,7 +31,8 @@ The checked-in Testpilot `.proto` closure is the sole Case schema. `Testpilot.Pr
 generated Lean declarations, `Testpilot.Authoring` constructs generated Cases through context-safe
 helpers, and `Testpilot.ProtoJSON` delegates the one canonical codec policy to `Protobuf.Json`.
 `Umpire.Provenance` retains only Umpire-owned definition bindings, fingerprints, sources, Known
-Gaps, and Correlated Rule bindings, and encodes them as opaque producer provenance.
+Gaps, and Correlated Rule bindings, and lowers them into the Case's typed provenance rows, which the
+runtime never reads.
 
 `Temporal.Feature.Nexus.Success.Producer` lowers the checked success model into the async Nexus
 example: its Contract carries no monitor Rule, only the Correlated capability the checked Property
@@ -43,7 +44,7 @@ Lean.
 
 Umpire-backed Producers lower checked semantics into generated values and pass them to
 `Umpire.Case.Compiler` for source-bound Property validation, the coverage the Case requests, exact
-opaque provenance, and final generated Case assembly. The Testpilot-only synthetic Producer assembles its generated Case
+provenance rows, and final generated Case assembly. The Testpilot-only synthetic Producer assembles its generated Case
 directly.
 
 Exact Case 1.0 is the only admitted format. A Program's symbolic binding graph is the set of binding
@@ -53,7 +54,7 @@ references; they do not embed the physical resource names. Producers also omit w
 derives: outcome fields, activation reservations, and instruction limits equal to the Profile's
 instruction defaults. These IDs are resource references, not transport
 addresses. Rebinding an unchanged Case does not change its canonical bytes, Contract, Behavior
-Fingerprints, or opaque producer provenance.
+Fingerprints, or producer provenance rows.
 
 Testpilot terms have precise boundaries:
 
@@ -256,7 +257,7 @@ that facade exposes are aliases of its `common/testing/testpilot/contract` leaf,
 shares, so no translated copy of the Driver contract exists.
 Testpilot's private execution package owns scheduling, recording, effect lifecycle, private Slot state,
 and bounded cleanup. Its private verification package owns Contract preparation, fresh Run-local
-Monitors, and offline evaluation. Umpire owns its semantic model and opaque provenance payload;
+Monitors, and offline evaluation. Umpire owns its semantic model and the provenance rows it writes;
 each Lean Producer owns its checked lowering, the shared compiler completes Umpire-backed Case
 assembly, and Go `testpilot.Prepare` owns Case admission.
 

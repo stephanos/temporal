@@ -443,9 +443,28 @@
     ]
   },
   "provenance": {
-    "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZW1wb3JhbC5uZXh1cy5zdWNjZXNzLnR5cGVkLXVuYXJ5LnRhcmdldCIsCiAgICAgICJiZWhhdmlvckZpbmdlcnByaW50IjogInNoYTI1Njo2OWYyNDI5MzE5YWRmNjIxNGJlZTYyY2RmMTM2MzkxMmY1ZjkwMDYwZGJjOTY4MjQyMWRjNWY2YzNjYzUyM2IwIiwKICAgICAgImtpbmQiOiAiQ0FTRV9ERUZJTklUSU9OX0tJTkRfVEFSR0VUIgogICAgfSwKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZW1wb3JhbC5uZXh1cy5zdWNjZXNzLnR5cGVkLXVuYXJ5LnByb3BlcnR5LnN1Ym1pdHRlZC13b3JrZmxvdy10eXBlIiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjM1MDk4N2E3MTRjYjAyOTVmYTNjMzQyMDk3NTFkMTFmMWM5YWRiMjQ0MjcxNzgzNDk2MGY3ODI3NTY4NTIwYzUiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJUZW1wb3JhbC9GZWF0dXJlL05leHVzL1N1Y2Nlc3MvVHlwZWRVbmFyeS5sZWFuIiwKICAgICAgImxpbmUiOiAiMSIsCiAgICAgICJjb2x1bW4iOiAiMSIsCiAgICAgICJwcm92ZW5hbmNlIjogImxlYW4tbW9kZWwiCiAgICB9CiAgXSwKICAia25vd25HYXBzIjogW10KfQo=",
+    "definitions": [
+      {
+        "behaviorFingerprint": "sha256:69f2429319adf6214bee62cdf1363912f5f90060dbc9682421dc5f6c3cc523b0",
+        "definitionId": "temporal.nexus.success.typed-unary.target",
+        "kind": "DEFINITION_KIND_TARGET"
+      },
+      {
+        "behaviorFingerprint": "sha256:350987a714cb0295fa3c34209751d11f1c9adb2442717834960f7827568520c5",
+        "definitionId": "temporal.nexus.success.typed-unary.property.submitted-workflow-type",
+        "kind": "DEFINITION_KIND_PROPERTY"
+      }
+    ],
     "producerId": "temporal.nexus.success.typed-unary",
-    "producerVersion": "1"
+    "producerVersion": "1",
+    "sources": [
+      {
+        "column": 1,
+        "line": 1,
+        "path": "Temporal/Feature/Nexus/Success/TypedUnary.lean",
+        "provenance": "lean-model"
+      }
+    ]
   },
   "version": {
     "major": 1

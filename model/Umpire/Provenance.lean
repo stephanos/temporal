@@ -1,15 +1,13 @@
 import Testpilot.Authoring
 import Umpire.Core
-import Umpire.Json
 
 /-!
-Producer-owned identity bytes carried inside a generated Testpilot Case.
+Producer provenance carried inside a generated Testpilot Case.
 
-The protobuf schema owns the Case, Program, and Contract structures. Umpire retains only its
-producer-specific definitions, fingerprints, sources, and Known Gaps, and encodes them into opaque
-Testpilot provenance. Testpilot never reads the payload, so the field names, enum spellings, list
-order, optional-field elision, indentation, and terminal newline below are the whole producer
-contract.
+The protobuf schema owns the Case, Program, Contract, and provenance row structures. Umpire retains
+its producer-specific definitions, fingerprints, sources, Known Gaps, and Correlated Rule bindings
+here and lowers them into the typed `CaseProvenance` rows, keeping the order the Producer lists
+them. Testpilot never reads the rows.
 -/
 
 namespace Umpire.Provenance
@@ -77,66 +75,61 @@ structure Metadata where
   correlatedRules : List CorrelatedRuleBinding := []
   deriving BEq, Repr
 
-open Umpire.CanonicalJson
+open temporal.server.api.testpilot.v1 (CaseProvenance)
 
-private def definitionKind : DefinitionKind → String
-  | .setup => "CASE_DEFINITION_KIND_SETUP"
-  | .state => "CASE_DEFINITION_KIND_STATE"
-  | .action => "CASE_DEFINITION_KIND_ACTION"
-  | .outcome => "CASE_DEFINITION_KIND_OUTCOME"
-  | .fact => "CASE_DEFINITION_KIND_FACT"
-  | .relation => "CASE_DEFINITION_KIND_RELATION"
-  | .capability => "CASE_DEFINITION_KIND_CAPABILITY"
-  | .property => "CASE_DEFINITION_KIND_PROPERTY"
-  | .query => "CASE_DEFINITION_KIND_QUERY"
-  | .scenario => "CASE_DEFINITION_KIND_SCENARIO"
-  | .target => "CASE_DEFINITION_KIND_TARGET"
-  | .compiler => "CASE_DEFINITION_KIND_COMPILER"
-  | .provider => "CASE_DEFINITION_KIND_PROVIDER"
-  | .law => "CASE_DEFINITION_KIND_LAW"
-  | .connector => "CASE_DEFINITION_KIND_CONNECTOR"
-  | .machine => "CASE_DEFINITION_KIND_MACHINE"
+private def definitionKind : DefinitionKind → temporal.server.api.testpilot.v1.DefinitionKind
+  | .setup => .DEFINITION_KIND_SETUP
+  | .state => .DEFINITION_KIND_STATE
+  | .action => .DEFINITION_KIND_ACTION
+  | .outcome => .DEFINITION_KIND_OUTCOME
+  | .fact => .DEFINITION_KIND_FACT
+  | .relation => .DEFINITION_KIND_RELATION
+  | .capability => .DEFINITION_KIND_CAPABILITY
+  | .property => .DEFINITION_KIND_PROPERTY
+  | .query => .DEFINITION_KIND_QUERY
+  | .scenario => .DEFINITION_KIND_SCENARIO
+  | .target => .DEFINITION_KIND_TARGET
+  | .compiler => .DEFINITION_KIND_COMPILER
+  | .provider => .DEFINITION_KIND_PROVIDER
+  | .law => .DEFINITION_KIND_LAW
+  | .connector => .DEFINITION_KIND_CONNECTOR
+  | .machine => .DEFINITION_KIND_MACHINE
 
-private def gapKind : KnownGapKind → String
-  | .capability => "CASE_KNOWN_GAP_KIND_CAPABILITY"
-  | .input => "CASE_KNOWN_GAP_KIND_INPUT"
-  | .interpretation => "CASE_KNOWN_GAP_KIND_INTERPRETATION"
-  | .claim => "CASE_KNOWN_GAP_KIND_CLAIM"
+private def gapKind : KnownGapKind → temporal.server.api.testpilot.v1.KnownGapKind
+  | .capability => .KNOWN_GAP_KIND_CAPABILITY
+  | .input => .KNOWN_GAP_KIND_INPUT
+  | .interpretation => .KNOWN_GAP_KIND_INTERPRETATION
+  | .claim => .KNOWN_GAP_KIND_CLAIM
 
-private def sourceLocation (source : Umpire.SourceLocation) : CanonicalJson := .object [
-  ("path", .string source.path),
-  ("line", .string (toString source.line)),
-  ("column", .string (toString source.column)),
-  ("provenance", .string source.provenance)
-]
+/-- A source position narrowed to the protocol's `int32` line and column, or the source itself when
+either does not fit, so no position wraps into a different one. -/
+private def sourceLocation (source : Umpire.SourceLocation) :
+    Except Umpire.SourceLocation temporal.server.api.testpilot.v1.SourceLocation :=
+  if source.line ≤ 2147483647 && source.column ≤ 2147483647 then
+    .ok { path := source.path, line := Int32.ofNat source.line,
+          column := Int32.ofNat source.column, provenance := source.provenance }
+  else
+    .error source
 
-/-- Encode the exact deterministic Umpire payload carried opaquely by Testpilot provenance. -/
-def producerData (metadata : Metadata) : ByteArray := (CanonicalJson.object ([
-  ("definitions", .array (metadata.definitions.map fun definition => .object [
-    ("definitionId", .string definition.definitionId),
-    ("behaviorFingerprint", .string definition.behaviorFingerprint),
-    ("kind", .string (definitionKind definition.kind))
-  ])),
-  ("sources", .array (metadata.sources.map sourceLocation)),
-  ("knownGaps", .array (metadata.knownGaps.map fun gap => .object ([
-    ("kind", .string (gapKind gap.kind)),
-    ("code", .string gap.code)
-  ] ++ gap.subject.toList.map (fun subject => ("subject", .string subject)) ++
-    gap.detail.toList.map (fun detail => ("detail", .string detail)))))
- ] ++ if metadata.correlatedRules.isEmpty then [] else [
-  ("correlatedRules", .array (metadata.correlatedRules.map fun rule => .object [
-    ("ruleId", .string rule.ruleId),
-    ("propertyId", .string rule.propertyId),
-    ("propertyFingerprint", .string rule.propertyFingerprint),
-    ("projectionId", .string rule.projectionId),
-    ("projectionFingerprint", .string rule.projectionFingerprint),
-    ("source", sourceLocation rule.source)
-  ]))
- ])).prettyBytes.toUTF8
-
-/-- Construct generated Testpilot provenance while leaving its payload entirely Umpire-owned. -/
-def make (metadata : Metadata) : temporal.server.api.testpilot.v1.CaseProvenance :=
-  Testpilot.Authoring.provenance metadata.producerId metadata.producerVersion
-    (producerData metadata)
+/-- Lower the metadata into the typed provenance rows a generated Case carries, each list in the
+order the Producer gave it. Testpilot never reads the rows. A source whose line or column does not
+fit the protocol is returned as the error. -/
+def make (metadata : Metadata) : Except Umpire.SourceLocation CaseProvenance := do
+  let sources ← metadata.sources.mapM sourceLocation
+  let correlatedRules ← metadata.correlatedRules.mapM fun rule => do
+    let source ← sourceLocation rule.source
+    pure ({ rule_id := rule.ruleId, property_id := rule.propertyId,
+            property_fingerprint := rule.propertyFingerprint, projection_id := rule.projectionId,
+            projection_fingerprint := rule.projectionFingerprint, source := some source } :
+      temporal.server.api.testpilot.v1.CorrelatedRuleBinding)
+  pure (Testpilot.Authoring.provenance metadata.producerId metadata.producerVersion
+    (metadata.definitions.map fun definition =>
+      { definition_id := definition.definitionId,
+        behavior_fingerprint := definition.behaviorFingerprint,
+        kind := definitionKind definition.kind }).toArray
+    sources.toArray
+    (metadata.knownGaps.map fun gap =>
+      Testpilot.Authoring.knownGap (gapKind gap.kind) gap.code gap.subject gap.detail).toArray
+    correlatedRules.toArray)
 
 end Umpire.Provenance

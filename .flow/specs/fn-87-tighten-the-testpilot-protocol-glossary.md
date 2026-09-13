@@ -601,6 +601,29 @@ narrows or completes a requirement without changing its intent; tasks record the
   existing Driver identity strings need not change, since every checked-in Case resolves to the limits it
   wrote. The oracle's R10 step re-spells each rule and checks each dropped value against it. ART-13 is
   restated under GOV-02.
+- **Provenance rows (decided in .13, 2026-09-13).** `CaseProvenance` keeps `producer_id` and
+  `producer_version` and replaces `producer_data` with one repeated field per row kind: `definitions`
+  (`DefinitionBinding { definition_id, behavior_fingerprint, DefinitionKind kind }`), `sources`
+  (`SourceLocation { path, int32 line, int32 column, provenance }`), `known_gaps`
+  (`KnownGap { KnownGapKind kind, code, subject, detail }`) and `correlated_rules`
+  (`CorrelatedRuleBinding`), so fn-85 R8's abstraction-claim row is one more field. A Known Gap keeps
+  subject and detail presence through single-arm oneofs (`subject_presence`, `detail_presence`), as
+  proto3 `optional` stays unavailable (.8), so a present empty detail differs from an absent one. Line
+  and column are `int32`, rendered as JSON numbers; `Umpire.Provenance.make` now returns
+  `Except Umpire.SourceLocation CaseProvenance` and rejects a position above the `int32` range, which
+  `Umpire.Case.Compiler.compile` reports as construct `provenance.source-position`. Row order is the
+  Producer's. `Testpilot.Authoring.provenance` takes the row arrays and `Testpilot.Authoring.knownGap`
+  encodes the presence oneofs. The Umpire-free synthetic Producer writes no rows: its three opaque
+  bytes existed only to exercise the bytes field, so the oracle's R13 step drops exactly those bytes in
+  exactly that fixture and lifts every other payload only when it decodes under the baseline shape with
+  no unknown key and re-encodes to its own bytes. The typed-row round trip moved to the Lean ProtoJSON
+  fixture (one row of each kind) and a Go-built Case. Two Temporal Producers that open both `Umpire`
+  and the protocol namespace hide the protocol's `SourceLocation` and `DefinitionKind`. Restatements of
+  the glossary Case, Provenance and Profile entries and of ART-09 are drafted under GOV-02: ART-09's
+  "generic opaque provenance", "provenance bytes" and "independent limits", and the Profile's
+  "independent Program and Contract ceilings", contradict R13 and R12 (the ART-09 and Profile drafts
+  fold in the .10 follow-up). Retired: `ProducerData`/`producerData`, `GetProducerData`,
+  `producer_data`, and the `CASE_DEFINITION_KIND_*` and `CASE_KNOWN_GAP_KIND_*` families.
 
 ## Requirement coverage
 
@@ -640,8 +663,8 @@ narrows or completes a requirement without changing its intent; tasks record the
   every conformance class and live test.
 - **No versioning scheme.** `FormatVersion` stays `1.0`; no compatibility shim for old Cases.
 - **No edits to historical `.plans` documents** other than `UMPIRE4_ORDER.md` and the drafted
-  SEM-16 and glossary amendments in R12 and R13 (and the ART-09 and ART-13 restatements the Planning
-  decisions add); approved rule text keeps the names it cites.
+  SEM-16 and glossary amendments in R12 and R13 (and the ART-09, ART-13 and Profile glossary
+  restatements the Planning decisions add); approved rule text keeps the names it cites.
 - **Depends on fn-84**, whose Driver contract and projection lowering tasks touch the same code.
 
 ## Decision Context
