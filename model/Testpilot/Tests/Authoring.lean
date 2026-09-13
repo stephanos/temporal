@@ -74,7 +74,7 @@ private def contractExpressions : Array Expression :=
     Expr.any #[runEvent, literal],
     Expr.path Expr.runEventPayload (Path.make #[Path.field "fault_injected", Path.field "kind"])]
 
-private def instructionLimits := Program.instructionLimits 1000 2
+private def instructionLimits := Program.instructionLimits (some 1000) (some 2)
 private def assignment := Program.requestAssignment requestPath (Expr.literal (Value.text "x"))
 private def environmentAssignment := Program.environmentAssignment requestPath "namespace"
 private def environmentAssignmentUsesBinding : Bool :=
@@ -112,9 +112,11 @@ private def node := Program.node "start" instructions[0]!
   instructionLimits
   (after := some (Program.after #[instructionReference]))
   (guard := some programExpressions[10]!)
-  (outcome := some (Program.outcome #[Program.outcomeField
-    .INSTRUCTION_OUTCOME_FIELD_VALUE textType]))
-  (reservations := #[Program.reservation "workflow" 1])
+
+/-- A node that writes only the bounds differing from the Profile's defaults. -/
+private def timeoutOnly := Program.node "timeout" instructions[5]!
+  (Program.instructionLimits (timeoutMilliseconds := some 5000))
+private def defaulted := Program.node "defaulted" instructions[5]!
 
 private def program : temporal.server.api.testpilot.v1.Program := Program.make "program"
   #[Program.role "endpoint" .ROLE_KIND_ENDPOINT (resourceBindingId := "nexus.endpoint"),
@@ -128,8 +130,6 @@ private def program : temporal.server.api.testpilot.v1.Program := Program.make "
     Program.activity "activity" "Activity" "worker" "queue" #[node],
     Program.nexusHandler "handler" "service" "operation" "worker" "queue" #[node]]
   (Program.cleanup "cleanup" #[node])
-  (environment := #[Program.environment "namespace", Program.environment "task.queue",
-    Program.environment "nexus.endpoint"])
 
 private def transition := Contract.transition "take" "start" "done"
   #[.RUN_EVENT_KIND_INSTRUCTION_COMPLETED]
@@ -197,7 +197,13 @@ private def run : temporal.server.api.testpilot.v1.Run := Run.make "run" "case" 
 #guard contractExpressions.size == 12
 #guard instructions.size == 8
 #guard program.entrypoints.size == 4
-#guard program.environment.size == 3
+#guard match node.limits.bind (·.timeout), node.limits.bind (·.attempts) with
+  | some (.timeout_milliseconds 1000), some (.max_attempts 2) => true
+  | _, _ => false
+#guard match timeoutOnly.limits.bind (·.timeout), timeoutOnly.limits.bind (·.attempts) with
+  | some (.timeout_milliseconds 5000), none => true
+  | _, _ => false
+#guard defaulted.limits.isNone
 #guard program.roles[1]!.namespace_binding_id == "namespace"
 #guard program.roles[2]!.resource_binding_id == "task.queue"
 #guard contract.rules.size == 2

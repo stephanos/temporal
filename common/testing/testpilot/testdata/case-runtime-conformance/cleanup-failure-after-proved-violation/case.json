@@ -51,22 +51,7 @@
           },
           "instructionId": "fail-cleanup",
           "limits": {
-            "maxAttempts": "1",
             "timeoutMilliseconds": "5000"
-          },
-          "outcome": {
-            "fields": [
-              {
-                "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                "type": {
-                  "singular": {
-                    "enumeration": {
-                      "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                    }
-                  }
-                }
-              }
-            ]
           }
         }
       ]
@@ -85,22 +70,7 @@
             },
             "instructionId": "execute",
             "limits": {
-              "maxAttempts": "1",
               "timeoutMilliseconds": "5000"
-            },
-            "outcome": {
-              "fields": [
-                {
-                  "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                  "type": {
-                    "singular": {
-                      "enumeration": {
-                        "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                      }
-                    }
-                  }
-                }
-              ]
             }
           }
         ]

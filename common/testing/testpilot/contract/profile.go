@@ -69,6 +69,27 @@ type ReservationCarrierShape struct {
 	MaximumCount int64
 }
 
+// InstructionDefaults are the limits an instruction takes where its Case writes none, each within the
+// Profile's ceilings. A zero default supplies nothing, so an instruction that omits that limit is
+// refused.
+type InstructionDefaults struct {
+	TimeoutMilliseconds int64
+	MaxAttempts         int64
+}
+
+// Resolve returns an instruction's limits: each one limits writes, or the default where it writes
+// none. A zero result is a limit neither supplies.
+func (d InstructionDefaults) Resolve(limits *testpilotspb.InstructionLimits) (timeoutMilliseconds, maxAttempts int64) {
+	timeoutMilliseconds, maxAttempts = d.TimeoutMilliseconds, d.MaxAttempts
+	if limits.GetTimeout() != nil {
+		timeoutMilliseconds = limits.GetTimeoutMilliseconds()
+	}
+	if limits.GetAttempts() != nil {
+		maxAttempts = limits.GetMaxAttempts()
+	}
+	return timeoutMilliseconds, maxAttempts
+}
+
 type EnvironmentBinding struct {
 	ID    string
 	Value string

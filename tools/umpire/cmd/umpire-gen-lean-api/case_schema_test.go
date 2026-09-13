@@ -151,16 +151,3 @@ func testpilotSingularScalarType(kind testpilotspb.ScalarKind) *testpilotspb.Val
 		Type: &testpilotspb.SingularType_Scalar{Scalar: &testpilotspb.ScalarType{Kind: kind}},
 	}}}
 }
-
-func TestActivationReservationSchemaRoundTrip(t *testing.T) {
-	input := `{"instructionId":"start","activationReservations":[{"entrypointId":"workflow","count":"3"},{"entrypointId":"handler","count":"2"}]}`
-	var node testpilotspb.InstructionNode
-	require.NoError(t, protojson.Unmarshal([]byte(input), &node))
-	wire, err := proto.Marshal(&node)
-	require.NoError(t, err)
-	var decoded testpilotspb.InstructionNode
-	require.NoError(t, proto.Unmarshal(wire, &decoded))
-	output, err := protojson.Marshal(&decoded)
-	require.NoError(t, err)
-	require.JSONEq(t, input, string(output))
-}

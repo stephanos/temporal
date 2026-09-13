@@ -780,20 +780,6 @@
         "entrypointId": "controller",
         "instructions": [
           {
-            "activationReservations": [
-              {
-                "count": "1",
-                "entrypointId": "workflow"
-              },
-              {
-                "count": "1",
-                "entrypointId": "handler-complete"
-              },
-              {
-                "count": "1",
-                "entrypointId": "handler-confirm"
-              }
-            ],
             "instruction": {
               "invokeRpc": {
                 "endpointRoleId": "temporal.workflow-service",
@@ -878,25 +864,7 @@
                 ]
               }
             },
-            "instructionId": "start-workflow",
-            "limits": {
-              "maxAttempts": "1",
-              "timeoutMilliseconds": "10000"
-            },
-            "outcome": {
-              "fields": [
-                {
-                  "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                  "type": {
-                    "singular": {
-                      "enumeration": {
-                        "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                      }
-                    }
-                  }
-                }
-              ]
-            }
+            "instructionId": "start-workflow"
           },
           {
             "instruction": {
@@ -904,25 +872,7 @@
                 "slotId": "completion-authority-complete"
               }
             },
-            "instructionId": "await-authority-complete",
-            "limits": {
-              "maxAttempts": "1",
-              "timeoutMilliseconds": "10000"
-            },
-            "outcome": {
-              "fields": [
-                {
-                  "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                  "type": {
-                    "singular": {
-                      "enumeration": {
-                        "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                      }
-                    }
-                  }
-                }
-              ]
-            }
+            "instructionId": "await-authority-complete"
           },
           {
             "instruction": {
@@ -935,25 +885,7 @@
                 }
               }
             },
-            "instructionId": "complete-nexus-complete",
-            "limits": {
-              "maxAttempts": "1",
-              "timeoutMilliseconds": "10000"
-            },
-            "outcome": {
-              "fields": [
-                {
-                  "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                  "type": {
-                    "singular": {
-                      "enumeration": {
-                        "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                      }
-                    }
-                  }
-                }
-              ]
-            }
+            "instructionId": "complete-nexus-complete"
           },
           {
             "after": {
@@ -969,25 +901,7 @@
                 "slotId": "completion-authority-confirm"
               }
             },
-            "instructionId": "await-authority-confirm",
-            "limits": {
-              "maxAttempts": "1",
-              "timeoutMilliseconds": "10000"
-            },
-            "outcome": {
-              "fields": [
-                {
-                  "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                  "type": {
-                    "singular": {
-                      "enumeration": {
-                        "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                      }
-                    }
-                  }
-                }
-              ]
-            }
+            "instructionId": "await-authority-confirm"
           },
           {
             "instruction": {
@@ -1000,25 +914,7 @@
                 }
               }
             },
-            "instructionId": "complete-nexus-confirm",
-            "limits": {
-              "maxAttempts": "1",
-              "timeoutMilliseconds": "10000"
-            },
-            "outcome": {
-              "fields": [
-                {
-                  "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                  "type": {
-                    "singular": {
-                      "enumeration": {
-                        "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                      }
-                    }
-                  }
-                }
-              ]
-            }
+            "instructionId": "complete-nexus-confirm"
           },
           {
             "after": {
@@ -1402,25 +1298,7 @@
                 ]
               }
             },
-            "instructionId": "history",
-            "limits": {
-              "maxAttempts": "1",
-              "timeoutMilliseconds": "10000"
-            },
-            "outcome": {
-              "fields": [
-                {
-                  "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                  "type": {
-                    "singular": {
-                      "enumeration": {
-                        "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                      }
-                    }
-                  }
-                }
-              ]
-            }
+            "instructionId": "history"
           }
         ]
       },
@@ -1440,25 +1318,7 @@
                 "service": "umpire.case.service"
               }
             },
-            "instructionId": "start-nexus-complete",
-            "limits": {
-              "maxAttempts": "1",
-              "timeoutMilliseconds": "10000"
-            },
-            "outcome": {
-              "fields": [
-                {
-                  "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                  "type": {
-                    "singular": {
-                      "enumeration": {
-                        "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                      }
-                    }
-                  }
-                }
-              ]
-            }
+            "instructionId": "start-nexus-complete"
           },
           {
             "guard": {
@@ -1474,35 +1334,7 @@
                 }
               }
             },
-            "instructionId": "await-nexus-complete",
-            "limits": {
-              "maxAttempts": "1",
-              "timeoutMilliseconds": "10000"
-            },
-            "outcome": {
-              "fields": [
-                {
-                  "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                  "type": {
-                    "singular": {
-                      "enumeration": {
-                        "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                      }
-                    }
-                  }
-                },
-                {
-                  "field": "INSTRUCTION_OUTCOME_FIELD_VALUE",
-                  "type": {
-                    "singular": {
-                      "scalar": {
-                        "kind": "SCALAR_KIND_TEXT"
-                      }
-                    }
-                  }
-                }
-              ]
-            }
+            "instructionId": "await-nexus-complete"
           },
           {
             "after": {},
@@ -1518,25 +1350,7 @@
                 "service": "umpire.case.service"
               }
             },
-            "instructionId": "start-nexus-confirm",
-            "limits": {
-              "maxAttempts": "1",
-              "timeoutMilliseconds": "10000"
-            },
-            "outcome": {
-              "fields": [
-                {
-                  "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                  "type": {
-                    "singular": {
-                      "enumeration": {
-                        "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                      }
-                    }
-                  }
-                }
-              ]
-            }
+            "instructionId": "start-nexus-confirm"
           },
           {
             "guard": {
@@ -1552,35 +1366,7 @@
                 }
               }
             },
-            "instructionId": "await-nexus-confirm",
-            "limits": {
-              "maxAttempts": "1",
-              "timeoutMilliseconds": "10000"
-            },
-            "outcome": {
-              "fields": [
-                {
-                  "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                  "type": {
-                    "singular": {
-                      "enumeration": {
-                        "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                      }
-                    }
-                  }
-                },
-                {
-                  "field": "INSTRUCTION_OUTCOME_FIELD_VALUE",
-                  "type": {
-                    "singular": {
-                      "scalar": {
-                        "kind": "SCALAR_KIND_TEXT"
-                      }
-                    }
-                  }
-                }
-              ]
-            }
+            "instructionId": "await-nexus-confirm"
           },
           {
             "after": {
@@ -1606,22 +1392,7 @@
             },
             "instructionId": "finish-workflow",
             "limits": {
-              "maxAttempts": "1",
               "timeoutMilliseconds": "5000"
-            },
-            "outcome": {
-              "fields": [
-                {
-                  "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                  "type": {
-                    "singular": {
-                      "enumeration": {
-                        "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                      }
-                    }
-                  }
-                }
-              ]
             }
           }
         ],
@@ -1648,22 +1419,7 @@
             },
             "instructionId": "respond-async-complete",
             "limits": {
-              "maxAttempts": "1",
               "timeoutMilliseconds": "5000"
-            },
-            "outcome": {
-              "fields": [
-                {
-                  "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                  "type": {
-                    "singular": {
-                      "enumeration": {
-                        "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                      }
-                    }
-                  }
-                }
-              ]
             }
           }
         ],
@@ -1691,22 +1447,7 @@
             },
             "instructionId": "respond-async-confirm",
             "limits": {
-              "maxAttempts": "1",
               "timeoutMilliseconds": "5000"
-            },
-            "outcome": {
-              "fields": [
-                {
-                  "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                  "type": {
-                    "singular": {
-                      "enumeration": {
-                        "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                      }
-                    }
-                  }
-                }
-              ]
             }
           }
         ],
@@ -1716,17 +1457,6 @@
           "taskQueueRoleId": "temporal.task-queue",
           "workerRoleId": "temporal.worker"
         }
-      }
-    ],
-    "environment": [
-      {
-        "bindingId": "temporal.typed-nexus.namespace"
-      },
-      {
-        "bindingId": "temporal.typed-nexus.task-queue"
-      },
-      {
-        "bindingId": "temporal.typed-nexus.nexus-endpoint"
       }
     ],
     "observations": [

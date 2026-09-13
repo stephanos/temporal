@@ -81,12 +81,10 @@ def resumeIntent : Umpire.FaultIntentDeclaration :=
     outageOccurrence outageAction Umpire.workerResumeCapabilityId
 
 def stopRealization : Umpire.FaultRealization :=
-  { instructionId := "stop-worker", roleId := workerOutageQueueRole, limits := Program.instructionLimits 10000 1
-    outcome := some statusOutcome }
+  { instructionId := "stop-worker", roleId := workerOutageQueueRole }
 
 def resumeRealization : Umpire.FaultRealization :=
-  { instructionId := "resume-worker", roleId := workerOutageQueueRole, limits := Program.instructionLimits 10000 1
-    outcome := some statusOutcome }
+  { instructionId := "resume-worker", roleId := workerOutageQueueRole }
 
 /-- `HISTORY_EVENT_FILTER_TYPE_CLOSE_EVENT`. The read blocks until the workflow closes and returns
 only the closing event, so the success rule reads the one event that proves the queued task ran --
@@ -120,22 +118,16 @@ private def program (stop resume : InstructionNode) : Program :=
             assign (field "workflow_id") runId,
             assign (nested ["workflow_type", "name"]) (text workerOutageWorkflowType),
             Program.environmentAssignment (nested ["task_queue", "name"]) workerOutageQueueBinding,
-            assign (field "request_id") runId])
-          (Program.instructionLimits 10000 1) (outcome := some statusOutcome)
-          (reservations := #[Program.reservation "workflow" 1]),
+            assign (field "request_id") runId]),
         resume,
         Program.node "history"
           (Program.invokeRpc workerOutageServiceRole getHistoryMethod historyAssignments
             #[project historyEvents workerOutageObservation .READ_CARDINALITY_EMIT_EACH])
-          (Program.instructionLimits 20000 1) (outcome := some statusOutcome)],
+          (Program.instructionLimits (timeoutMilliseconds := some 20000))],
       Program.workflow "workflow" workerOutageWorkflowType workerOutageWorkerRole
         workerOutageQueueRole #[
-        Program.node "finish-workflow" (Program.finish (text "completed"))
-          (Program.instructionLimits 10000 1) (outcome := some statusOutcome)]]
+        Program.node "finish-workflow" (Program.finish (text "completed"))]]
     (Program.cleanup "cleanup" #[])
-    (environment := #[
-      Program.environment workerOutageNamespaceBinding,
-      Program.environment workerOutageQueueBinding])
 
 /-! ### The Contract -/
 

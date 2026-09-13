@@ -44,36 +44,34 @@ func preparedRuntimeFixtureWithProfile(t *testing.T, responseKind testpilotspb.N
 		},
 		ProgramLimits: proto.CloneOf(limits), ContractLimits: contractLimits,
 	}
-	status := runtimeStatusSchema()
 	controller := &testpilotspb.InstructionNode{
 		InstructionId: "call", Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRpc{EndpointRoleId: "endpoint", Method: method, RequestAssignments: []*testpilotspb.RequestAssignment{
 			{Target: runtimeField("namespace"), Value: runtimeEnvironment("namespace")},
 			{Target: runtimeField("task_queue", "name"), Value: runtimeEnvironment("task-queue")},
 		}}}},
-		Outcome: proto.CloneOf(status), Limits: runtimeBounds(), ActivationReservations: []*testpilotspb.ActivationReservationDefinition{{EntrypointId: "workflow", Count: 1}, {EntrypointId: "handler", Count: 1}},
+		Limits: runtimeBounds(),
 	}
 	start := &testpilotspb.InstructionNode{
 		InstructionId: "start", Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_StartNexusOperation{StartNexusOperation: &testpilotspb.StartNexusOperation{EndpointRoleId: "nexus-endpoint", Service: "service", Operation: "operation", Input: runtimeText("request")}}},
-		Outcome: proto.CloneOf(status), Limits: runtimeBounds(),
+		Limits: runtimeBounds(),
 	}
 	await := &testpilotspb.InstructionNode{
 		InstructionId: "await", Guard: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}}},
 		Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitInstruction{AwaitInstruction: &testpilotspb.AwaitInstruction{Instruction: &testpilotspb.InstructionReference{EntrypointId: "workflow", InstructionId: "start"}}}},
-		Outcome:     runtimeValueOutcomeSchema(), Limits: runtimeBounds(),
+		Limits:      runtimeBounds(),
 	}
 	finish := &testpilotspb.InstructionNode{
 		InstructionId: "finish",
 		Guard:         runtimeSucceeded("workflow", "await"),
 		Instruction:   &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_Finish{Finish: &testpilotspb.Finish{Result: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_Outcome{Outcome: &testpilotspb.InstructionOutcomeReference{Instruction: &testpilotspb.InstructionReference{EntrypointId: "workflow", InstructionId: "await"}, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE}}}}}}}},
-		Outcome:       proto.CloneOf(status), Limits: runtimeBounds(),
+		Limits:        runtimeBounds(),
 	}
 	respond := &testpilotspb.InstructionNode{
 		InstructionId: "respond", Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_RespondNexus{RespondNexus: &testpilotspb.RespondNexus{Kind: responseKind, Result: runtimeText("accepted")}}},
-		Outcome: proto.CloneOf(status), Limits: runtimeBounds(),
+		Limits: runtimeBounds(),
 	}
 	program := &testpilotspb.Program{
-		ProgramId:   "program",
-		Environment: []*testpilotspb.EnvironmentDefinition{{BindingId: "namespace"}, {BindingId: "task-queue"}, {BindingId: "nexus-endpoint"}},
+		ProgramId: "program",
 		Roles: []*testpilotspb.Role{
 			{RoleId: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT},
 			{RoleId: "worker", Kind: testpilotspb.ROLE_KIND_WORKER, NamespaceBindingId: "namespace"},
@@ -163,7 +161,7 @@ func descriptorClosure(root protoreflect.FileDescriptor) *descriptorpb.FileDescr
 }
 
 func runtimeBounds() *testpilotspb.InstructionLimits {
-	return &testpilotspb.InstructionLimits{TimeoutMilliseconds: 1000, MaxAttempts: 1}
+	return &testpilotspb.InstructionLimits{Timeout: &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: 1000}, Attempts: &testpilotspb.InstructionLimits_MaxAttempts{MaxAttempts: 1}}
 }
 
 func runtimeText(value string) *testpilotspb.Expression {
@@ -187,14 +185,6 @@ func runtimeSucceeded(entrypoint, instruction string) *testpilotspb.Expression {
 		Left:  &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_Outcome{Outcome: &testpilotspb.InstructionOutcomeReference{Instruction: &testpilotspb.InstructionReference{EntrypointId: entrypoint, InstructionId: instruction}, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS}}}}},
 		Right: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Number: int32(testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED)}}}}},
 	}}}
-}
-
-func runtimeStatusSchema() *testpilotspb.InstructionOutcomeDefinition {
-	return &testpilotspb.InstructionOutcomeDefinition{Fields: []*testpilotspb.OutcomeFieldDefinition{{Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS, Type: runtimeStatusType()}}}
-}
-
-func runtimeValueOutcomeSchema() *testpilotspb.InstructionOutcomeDefinition {
-	return &testpilotspb.InstructionOutcomeDefinition{Fields: []*testpilotspb.OutcomeFieldDefinition{{Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS, Type: runtimeStatusType()}, {Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE, Type: runtimeTextType()}}}
 }
 
 func runtimeStatusType() *testpilotspb.ValueType {

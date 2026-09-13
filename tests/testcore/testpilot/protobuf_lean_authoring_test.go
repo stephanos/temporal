@@ -10,9 +10,9 @@ import (
 )
 
 func TestLeanAuthoringProtoJSONStrictDecode(t *testing.T) {
-	programEnvironment := (&testpilotspb.Program{}).ProtoReflect().Descriptor().Fields().ByName("environment")
-	require.NotNil(t, programEnvironment)
-	require.EqualValues(t, 2, programEnvironment.Number())
+	// A Program declares no environment bindings: preparation derives them from its roles and
+	// references.
+	require.Nil(t, (&testpilotspb.Program{}).ProtoReflect().Descriptor().Fields().ByName("environment"))
 	roleFields := (&testpilotspb.Role{}).ProtoReflect().Descriptor().Fields()
 	require.EqualValues(t, 3, roleFields.ByName("namespace_binding_id").Number())
 	require.EqualValues(t, 4, roleFields.ByName("resource_binding_id").Number())
@@ -36,12 +36,7 @@ func TestLeanAuthoringProtoJSONStrictDecode(t *testing.T) {
 	require.Equal(t, int64(9223372036854775807), decoded.GetProgram().GetEntrypoints()[0].GetInstructions()[0].GetLimits().GetMaxAttempts())
 
 	program := decoded.GetProgram()
-	require.Len(t, program.GetEnvironment(), 3)
-	require.Equal(t, []string{"namespace", "task.queue", "nexus.endpoint"}, []string{
-		program.GetEnvironment()[0].GetBindingId(),
-		program.GetEnvironment()[1].GetBindingId(),
-		program.GetEnvironment()[2].GetBindingId(),
-	})
+	require.Equal(t, []string{"nexus.endpoint", "namespace", "task.queue", ""}, testpilot.EnvironmentBindingIDs(program))
 	require.Equal(t, "nexus.endpoint", program.GetRoles()[0].GetResourceBindingId())
 	require.Equal(t, "namespace", program.GetRoles()[1].GetNamespaceBindingId())
 	require.Equal(t, "task.queue", program.GetRoles()[2].GetResourceBindingId())

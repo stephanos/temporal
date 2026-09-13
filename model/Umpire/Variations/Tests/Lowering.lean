@@ -16,7 +16,7 @@ private def intent (capability : DefinitionId) : FaultIntentDeclaration :=
   FaultIntentDeclaration.atOccurrence (.of "test.fault") source
     (.of "test.occurrence") (.of "test.action") capability
 
-private def limits : InstructionLimits := Program.instructionLimits 1000 1
+private def limits : InstructionLimits := Program.instructionLimits (some 1000)
 
 private def realization : FaultRealization :=
   { instructionId := "stop", roleId := "queue", limits }
@@ -31,17 +31,14 @@ def sameFaultNode (left right : InstructionNode) : Bool :=
       | some (.inject_fault fault) => some (fault.role_id, fault.kind)
       | _ => none
   let bounds := fun (node : InstructionNode) =>
-    node.limits.map fun value => (value.timeout_milliseconds, value.max_attempts)
+    node.limits.map fun value =>
+      (value.timeout.map fun | .timeout_milliseconds timeout => timeout,
+        value.attempts.map fun | .max_attempts attempts => attempts)
   let references := fun (node : InstructionNode) =>
     node.after.map fun after =>
       after.instructions.map fun reference => (reference.entrypoint_id, reference.instruction_id)
-  let declared := fun (node : InstructionNode) =>
-    node.outcome.map fun outcome => outcome.fields.map fun declaration => declaration.field
-  let reservations := fun (node : InstructionNode) =>
-    node.activation_reservations.map fun reservation => (reservation.entrypoint_id, reservation.count)
   left.instruction_id == right.instruction_id && faultOf left == faultOf right &&
     bounds left == bounds right && references left == references right &&
-    declared left == declared right && reservations left == reservations right &&
     left.guard.isSome == right.guard.isSome
 
 private def lowered (capability : DefinitionId) : Option InstructionNode :=

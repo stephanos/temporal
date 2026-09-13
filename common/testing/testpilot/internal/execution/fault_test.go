@@ -16,8 +16,7 @@ func faultNode(id, role string, kind testpilotspb.FaultKind) *testpilotspb.Instr
 	return &testpilotspb.InstructionNode{
 		InstructionId: id,
 		Instruction:   &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InjectFault{InjectFault: &testpilotspb.InjectFault{RoleId: role, Kind: kind}}},
-		Outcome:       statusSchema(),
-		Limits:        &testpilotspb.InstructionLimits{TimeoutMilliseconds: 1000, MaxAttempts: 1},
+		Limits:        &testpilotspb.InstructionLimits{Timeout: &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: 1000}, Attempts: &testpilotspb.InstructionLimits_MaxAttempts{MaxAttempts: 1}},
 	}
 }
 

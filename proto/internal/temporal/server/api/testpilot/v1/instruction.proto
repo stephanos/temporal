@@ -5,24 +5,22 @@ import "temporal/server/api/testpilot/v1/expression.proto";
 import "temporal/server/api/testpilot/v1/value.proto";
 option go_package = "go.temporal.io/server/api/testpilot/v1;testpilot";
 
-// InstructionNode is one node of an entrypoint's instruction graph: the instruction, what its outcome
-// and reservations declare, and when it runs.
+// InstructionNode is one node of an entrypoint's instruction graph: the instruction and when it runs.
+// What it does not declare, preparation derives: its outcome fields follow from its instruction, and
+// the worker activations it reserves from the Profile's reservation carriers.
 message InstructionNode {
   string instruction_id = 1;
   Instruction instruction = 2;
-  // The outcome fields later expressions may read, with their types.
-  InstructionOutcomeDefinition outcome = 3;
-  // Worker activations a controller instruction reserves before its effect runs.
-  repeated ActivationReservationDefinition activation_reservations = 4;
   // The instructions that must finish or be skipped before this one is ready. Absent, it is the
   // previous instruction of the same entrypoint, or none for the first.
   // (-- api-linter: core::0140::prepositions=disabled
   //     aip.dev/not-precedent: The field reads as the ordering it states; it is internal to Testpilot. --)
-  After after = 5;
+  After after = 3;
   // Evaluated once the instruction is ready; when false it is skipped and records no Run Event.
   // Absent, the instruction runs only when every instruction it runs after succeeded.
-  Expression guard = 6;
-  InstructionLimits limits = 7;
+  Expression guard = 4;
+  // Absent, both limits are the Profile's instruction defaults.
+  InstructionLimits limits = 5;
 }
 
 // After names the instructions of the same entrypoint an instruction runs after, possibly none. It is
@@ -140,29 +138,19 @@ enum FaultKind {
   FAULT_KIND_WORKER_RESUME = 2;
 }
 
-// InstructionOutcomeDefinition declares which outcome fields of an instruction later expressions may
-// read. Declaring VALUE requires a value on success.
-message InstructionOutcomeDefinition { repeated OutcomeFieldDefinition fields = 1; }
-
-// OutcomeFieldDefinition declares the exact type of one readable outcome field.
-message OutcomeFieldDefinition { InstructionOutcomeField field = 1; ValueType type = 2; }
-
-// ActivationReservationDefinition reserves activations of a workflow or Nexus handler entrypoint
-// before a controller instruction's effect runs.
-message ActivationReservationDefinition {
-  string entrypoint_id = 1;
-  // How many activations are reserved; each must complete successfully.
-  int64 count = 2;
-}
-
 // InstructionLimits are the bounds that carry an instruction's behavior. Its resource ceilings are
-// the Profile's ProgramLimits.
+// the Profile's ProgramLimits. A limit is written only where it differs from the Profile's instruction
+// default, which an absent limit takes.
 message InstructionLimits {
-  // Deadline of each dispatch, within the Profile's total duration; when it expires the outcome is
-  // TIMED_OUT.
-  int64 timeout_milliseconds = 1;
-  // The highest attempt number the instruction may reach, within the Profile's attempts.
-  int64 max_attempts = 2;
+  oneof timeout {
+    // Deadline of each dispatch, within the Profile's total duration; when it expires the outcome is
+    // TIMED_OUT.
+    int64 timeout_milliseconds = 1;
+  }
+  oneof attempts {
+    // The highest attempt number the instruction may reach, within the Profile's attempts.
+    int64 max_attempts = 2;
+  }
 }
 
 // InstructionOutcomeStatus classifies one instruction attempt. A protocol failure is a non-OK RPC

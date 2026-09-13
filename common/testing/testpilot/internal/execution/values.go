@@ -105,7 +105,7 @@ func (a *activationValues) instruction(c contract.Coordinate) (*node, error) {
 		return nil, invalid(ir.Unknown, "values", "unknown instruction")
 	}
 	n := a.graph.nodes[index]
-	if c.Attempt <= 0 || c.Attempt > n.source.Limits.MaxAttempts {
+	if c.Attempt <= 0 || c.Attempt > n.maxAttempts {
 		return nil, invalid(ir.LimitExceeded, "values", "invalid attempt")
 	}
 	return n, nil

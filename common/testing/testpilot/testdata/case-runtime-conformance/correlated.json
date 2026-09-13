@@ -595,25 +595,7 @@
                     ]
                   }
                 },
-                "instructionId": "read.0",
-                "limits": {
-                  "maxAttempts": "1",
-                  "timeoutMilliseconds": "1000"
-                },
-                "outcome": {
-                  "fields": [
-                    {
-                      "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                      "type": {
-                        "singular": {
-                          "enumeration": {
-                            "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                          }
-                        }
-                      }
-                    }
-                  ]
-                }
+                "instructionId": "read.0"
               }
             ]
           }
@@ -1243,25 +1225,7 @@
                     ]
                   }
                 },
-                "instructionId": "read.0",
-                "limits": {
-                  "maxAttempts": "1",
-                  "timeoutMilliseconds": "1000"
-                },
-                "outcome": {
-                  "fields": [
-                    {
-                      "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                      "type": {
-                        "singular": {
-                          "enumeration": {
-                            "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                          }
-                        }
-                      }
-                    }
-                  ]
-                }
+                "instructionId": "read.0"
               }
             ]
           }
@@ -1893,25 +1857,7 @@
                     ]
                   }
                 },
-                "instructionId": "read.0",
-                "limits": {
-                  "maxAttempts": "1",
-                  "timeoutMilliseconds": "1000"
-                },
-                "outcome": {
-                  "fields": [
-                    {
-                      "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                      "type": {
-                        "singular": {
-                          "enumeration": {
-                            "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                          }
-                        }
-                      }
-                    }
-                  ]
-                }
+                "instructionId": "read.0"
               }
             ]
           }
@@ -2559,25 +2505,7 @@
                     ]
                   }
                 },
-                "instructionId": "read.0",
-                "limits": {
-                  "maxAttempts": "1",
-                  "timeoutMilliseconds": "1000"
-                },
-                "outcome": {
-                  "fields": [
-                    {
-                      "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                      "type": {
-                        "singular": {
-                          "enumeration": {
-                            "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                          }
-                        }
-                      }
-                    }
-                  ]
-                }
+                "instructionId": "read.0"
               },
               {
                 "guard": {
@@ -2602,25 +2530,7 @@
                     ]
                   }
                 },
-                "instructionId": "read.1",
-                "limits": {
-                  "maxAttempts": "1",
-                  "timeoutMilliseconds": "1000"
-                },
-                "outcome": {
-                  "fields": [
-                    {
-                      "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                      "type": {
-                        "singular": {
-                          "enumeration": {
-                            "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                          }
-                        }
-                      }
-                    }
-                  ]
-                }
+                "instructionId": "read.1"
               }
             ]
           }
@@ -3284,25 +3194,7 @@
                     ]
                   }
                 },
-                "instructionId": "read.0",
-                "limits": {
-                  "maxAttempts": "1",
-                  "timeoutMilliseconds": "1000"
-                },
-                "outcome": {
-                  "fields": [
-                    {
-                      "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                      "type": {
-                        "singular": {
-                          "enumeration": {
-                            "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                          }
-                        }
-                      }
-                    }
-                  ]
-                }
+                "instructionId": "read.0"
               },
               {
                 "guard": {
@@ -3327,25 +3219,7 @@
                     ]
                   }
                 },
-                "instructionId": "read.1",
-                "limits": {
-                  "maxAttempts": "1",
-                  "timeoutMilliseconds": "1000"
-                },
-                "outcome": {
-                  "fields": [
-                    {
-                      "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                      "type": {
-                        "singular": {
-                          "enumeration": {
-                            "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                          }
-                        }
-                      }
-                    }
-                  ]
-                }
+                "instructionId": "read.1"
               },
               {
                 "guard": {
@@ -3370,25 +3244,7 @@
                     ]
                   }
                 },
-                "instructionId": "read.2",
-                "limits": {
-                  "maxAttempts": "1",
-                  "timeoutMilliseconds": "1000"
-                },
-                "outcome": {
-                  "fields": [
-                    {
-                      "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                      "type": {
-                        "singular": {
-                          "enumeration": {
-                            "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                          }
-                        }
-                      }
-                    }
-                  ]
-                }
+                "instructionId": "read.2"
               }
             ]
           }
@@ -4052,25 +3908,7 @@
                     ]
                   }
                 },
-                "instructionId": "read.0",
-                "limits": {
-                  "maxAttempts": "1",
-                  "timeoutMilliseconds": "1000"
-                },
-                "outcome": {
-                  "fields": [
-                    {
-                      "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                      "type": {
-                        "singular": {
-                          "enumeration": {
-                            "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                          }
-                        }
-                      }
-                    }
-                  ]
-                }
+                "instructionId": "read.0"
               },
               {
                 "guard": {
@@ -4095,25 +3933,7 @@
                     ]
                   }
                 },
-                "instructionId": "read.1",
-                "limits": {
-                  "maxAttempts": "1",
-                  "timeoutMilliseconds": "1000"
-                },
-                "outcome": {
-                  "fields": [
-                    {
-                      "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                      "type": {
-                        "singular": {
-                          "enumeration": {
-                            "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                          }
-                        }
-                      }
-                    }
-                  ]
-                }
+                "instructionId": "read.1"
               },
               {
                 "guard": {
@@ -4138,25 +3958,7 @@
                     ]
                   }
                 },
-                "instructionId": "read.2",
-                "limits": {
-                  "maxAttempts": "1",
-                  "timeoutMilliseconds": "1000"
-                },
-                "outcome": {
-                  "fields": [
-                    {
-                      "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                      "type": {
-                        "singular": {
-                          "enumeration": {
-                            "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                          }
-                        }
-                      }
-                    }
-                  ]
-                }
+                "instructionId": "read.2"
               }
             ]
           }
@@ -4820,25 +4622,7 @@
                     ]
                   }
                 },
-                "instructionId": "read.0",
-                "limits": {
-                  "maxAttempts": "1",
-                  "timeoutMilliseconds": "1000"
-                },
-                "outcome": {
-                  "fields": [
-                    {
-                      "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                      "type": {
-                        "singular": {
-                          "enumeration": {
-                            "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                          }
-                        }
-                      }
-                    }
-                  ]
-                }
+                "instructionId": "read.0"
               },
               {
                 "guard": {
@@ -4863,25 +4647,7 @@
                     ]
                   }
                 },
-                "instructionId": "read.1",
-                "limits": {
-                  "maxAttempts": "1",
-                  "timeoutMilliseconds": "1000"
-                },
-                "outcome": {
-                  "fields": [
-                    {
-                      "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                      "type": {
-                        "singular": {
-                          "enumeration": {
-                            "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                          }
-                        }
-                      }
-                    }
-                  ]
-                }
+                "instructionId": "read.1"
               },
               {
                 "guard": {
@@ -4906,25 +4672,7 @@
                     ]
                   }
                 },
-                "instructionId": "read.2",
-                "limits": {
-                  "maxAttempts": "1",
-                  "timeoutMilliseconds": "1000"
-                },
-                "outcome": {
-                  "fields": [
-                    {
-                      "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                      "type": {
-                        "singular": {
-                          "enumeration": {
-                            "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                          }
-                        }
-                      }
-                    }
-                  ]
-                }
+                "instructionId": "read.2"
               }
             ]
           }
@@ -5572,25 +5320,7 @@
                     ]
                   }
                 },
-                "instructionId": "read.0",
-                "limits": {
-                  "maxAttempts": "1",
-                  "timeoutMilliseconds": "1000"
-                },
-                "outcome": {
-                  "fields": [
-                    {
-                      "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                      "type": {
-                        "singular": {
-                          "enumeration": {
-                            "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                          }
-                        }
-                      }
-                    }
-                  ]
-                }
+                "instructionId": "read.0"
               },
               {
                 "guard": {
@@ -5615,25 +5345,7 @@
                     ]
                   }
                 },
-                "instructionId": "read.1",
-                "limits": {
-                  "maxAttempts": "1",
-                  "timeoutMilliseconds": "1000"
-                },
-                "outcome": {
-                  "fields": [
-                    {
-                      "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                      "type": {
-                        "singular": {
-                          "enumeration": {
-                            "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                          }
-                        }
-                      }
-                    }
-                  ]
-                }
+                "instructionId": "read.1"
               }
             ]
           }
@@ -6265,25 +5977,7 @@
                     ]
                   }
                 },
-                "instructionId": "read.0",
-                "limits": {
-                  "maxAttempts": "1",
-                  "timeoutMilliseconds": "1000"
-                },
-                "outcome": {
-                  "fields": [
-                    {
-                      "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                      "type": {
-                        "singular": {
-                          "enumeration": {
-                            "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                          }
-                        }
-                      }
-                    }
-                  ]
-                }
+                "instructionId": "read.0"
               }
             ]
           }
@@ -6915,25 +6609,7 @@
                     ]
                   }
                 },
-                "instructionId": "read.0",
-                "limits": {
-                  "maxAttempts": "1",
-                  "timeoutMilliseconds": "1000"
-                },
-                "outcome": {
-                  "fields": [
-                    {
-                      "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                      "type": {
-                        "singular": {
-                          "enumeration": {
-                            "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                          }
-                        }
-                      }
-                    }
-                  ]
-                }
+                "instructionId": "read.0"
               }
             ]
           }
@@ -7579,25 +7255,7 @@
                     ]
                   }
                 },
-                "instructionId": "read.0",
-                "limits": {
-                  "maxAttempts": "1",
-                  "timeoutMilliseconds": "1000"
-                },
-                "outcome": {
-                  "fields": [
-                    {
-                      "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                      "type": {
-                        "singular": {
-                          "enumeration": {
-                            "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                          }
-                        }
-                      }
-                    }
-                  ]
-                }
+                "instructionId": "read.0"
               }
             ]
           }
@@ -8287,25 +7945,7 @@
                     ]
                   }
                 },
-                "instructionId": "read.0",
-                "limits": {
-                  "maxAttempts": "1",
-                  "timeoutMilliseconds": "1000"
-                },
-                "outcome": {
-                  "fields": [
-                    {
-                      "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                      "type": {
-                        "singular": {
-                          "enumeration": {
-                            "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                          }
-                        }
-                      }
-                    }
-                  ]
-                }
+                "instructionId": "read.0"
               },
               {
                 "guard": {
@@ -8330,25 +7970,7 @@
                     ]
                   }
                 },
-                "instructionId": "read.1",
-                "limits": {
-                  "maxAttempts": "1",
-                  "timeoutMilliseconds": "1000"
-                },
-                "outcome": {
-                  "fields": [
-                    {
-                      "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                      "type": {
-                        "singular": {
-                          "enumeration": {
-                            "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                          }
-                        }
-                      }
-                    }
-                  ]
-                }
+                "instructionId": "read.1"
               },
               {
                 "guard": {
@@ -8373,25 +7995,7 @@
                     ]
                   }
                 },
-                "instructionId": "read.2",
-                "limits": {
-                  "maxAttempts": "1",
-                  "timeoutMilliseconds": "1000"
-                },
-                "outcome": {
-                  "fields": [
-                    {
-                      "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                      "type": {
-                        "singular": {
-                          "enumeration": {
-                            "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                          }
-                        }
-                      }
-                    }
-                  ]
-                }
+                "instructionId": "read.2"
               }
             ]
           }
@@ -9055,25 +8659,7 @@
                     ]
                   }
                 },
-                "instructionId": "read.0",
-                "limits": {
-                  "maxAttempts": "1",
-                  "timeoutMilliseconds": "1000"
-                },
-                "outcome": {
-                  "fields": [
-                    {
-                      "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                      "type": {
-                        "singular": {
-                          "enumeration": {
-                            "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                          }
-                        }
-                      }
-                    }
-                  ]
-                }
+                "instructionId": "read.0"
               },
               {
                 "guard": {
@@ -9098,25 +8684,7 @@
                     ]
                   }
                 },
-                "instructionId": "read.1",
-                "limits": {
-                  "maxAttempts": "1",
-                  "timeoutMilliseconds": "1000"
-                },
-                "outcome": {
-                  "fields": [
-                    {
-                      "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                      "type": {
-                        "singular": {
-                          "enumeration": {
-                            "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                          }
-                        }
-                      }
-                    }
-                  ]
-                }
+                "instructionId": "read.1"
               },
               {
                 "guard": {
@@ -9141,25 +8709,7 @@
                     ]
                   }
                 },
-                "instructionId": "read.2",
-                "limits": {
-                  "maxAttempts": "1",
-                  "timeoutMilliseconds": "1000"
-                },
-                "outcome": {
-                  "fields": [
-                    {
-                      "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                      "type": {
-                        "singular": {
-                          "enumeration": {
-                            "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                          }
-                        }
-                      }
-                    }
-                  ]
-                }
+                "instructionId": "read.2"
               }
             ]
           }
@@ -9789,25 +9339,7 @@
                     ]
                   }
                 },
-                "instructionId": "read.0",
-                "limits": {
-                  "maxAttempts": "1",
-                  "timeoutMilliseconds": "1000"
-                },
-                "outcome": {
-                  "fields": [
-                    {
-                      "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                      "type": {
-                        "singular": {
-                          "enumeration": {
-                            "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                          }
-                        }
-                      }
-                    }
-                  ]
-                }
+                "instructionId": "read.0"
               }
             ]
           }

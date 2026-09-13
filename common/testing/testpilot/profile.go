@@ -44,6 +44,12 @@ func InstructionCapability(instruction *testpilotspb.Instruction) Opcode {
 	return execution.InstructionOpcode(instruction)
 }
 
+// EnvironmentBindingIDs is the symbolic binding graph a Program references, the set Prepare resolves
+// against a Profile. Callers deriving a Profile from a Case read it rather than restating it.
+func EnvironmentBindingIDs(program *testpilotspb.Program) []string {
+	return execution.EnvironmentBindingIDs(program)
+}
+
 // CheckMethod reports whether this catalog admits one unary gRPC method by its full path.
 // Rejections expose *PreparationError through errors.As.
 func (c *Catalog) CheckMethod(name string) error {
@@ -57,13 +63,15 @@ func (c *Catalog) CheckMethod(name string) error {
 }
 
 // Profile supplies static authorization only. Snapshot must not perform target I/O.
-// Identity must change whenever authorization, reservation carrier policy, resource ceilings or
-// role bindings change; rotating credentials for the same authorized identity does not change it.
+// Identity must change whenever authorization, reservation carrier policy, resource ceilings,
+// instruction defaults or role bindings change; rotating credentials for the same authorized identity
+// does not change it.
 type Profile interface{ Snapshot() ProfileSpec }
 
 // ProfileSpec is one Profile snapshot. Its limits are the resource ceilings every admitted Case runs
 // under: a Case declares none of them, only the bounds that carry its behavior, which admission
-// checks against these ceilings. CorrelatedLimits is required only to admit a correlated contract.
+// checks against these ceilings. An instruction that writes no timeout or attempts takes
+// InstructionDefaults. CorrelatedLimits is required only to admit a correlated contract.
 type ProfileSpec struct {
 	Identity            string
 	Catalog             *Catalog
@@ -73,6 +81,7 @@ type ProfileSpec struct {
 	ProgramLimits       *testpilotspb.ProgramLimits
 	ContractLimits      *testpilotspb.ContractLimits
 	CorrelatedLimits    *testpilotspb.CorrelatedLimits
+	InstructionDefaults InstructionDefaults
 }
 
 func (p ProfileSpec) Snapshot() ProfileSpec {

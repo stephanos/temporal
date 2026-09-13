@@ -687,6 +687,14 @@ func buildRetiredRules() ([]tokenRule, error) {
 		// fn-87 replaces an instruction's dependency list with after, written only where it is not the
 		// previous instruction. The bare field word stays ordinary prose; the generated accessor retires.
 		"Get" + "Dependencies",
+		// fn-87 derives a Program's environment bindings and each instruction's activation reservations
+		// and outcome fields at preparation, so the declarations that wrote them retire.
+		"Environment" + "Definition",
+		"ActivationReservation" + "Definition",
+		"Activation" + "Reservations",
+		"activation" + "_reservations",
+		"InstructionOutcome" + "Definition",
+		"OutcomeField" + "Definition",
 	}
 
 	rules := make([]tokenRule, 0, len(exactTokens)+5)

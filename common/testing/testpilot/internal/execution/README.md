@@ -5,7 +5,12 @@ Instruction inputs and guards bind in the Program expression context, which admi
 outcome, Run and environment references; any other reference rejects with category `unknown` at
 its path, such as `program.entrypoints[controller].instructions[call].guard.reference.observation_id`.
 An environment reference is admitted only as a whole request assignment value, which admission
-resolves to a literal before binding.
+resolves to a literal before binding. A Program declares no bindings: `EnvironmentBindingIDs` derives
+its binding graph (each binding its roles name, role order, then each other binding an expression
+references), and admission resolves exactly that set, rejecting a binding the Profile does not supply
+with category `unknown` at `environment`. An instruction's limits are the ones it writes, or the
+Profile's `InstructionDefaults` where it writes none; an omitted limit the Profile has no default for
+rejects `malformed`.
 The value data plane builds requests from those compiled objects and stages immutable outcome,
 Slot and Observation values without Driver I/O, recording or Monitor calls. Raw RPC payloads are
 validated against the pinned response descriptor and discarded after declared response reads. Equivalent
@@ -119,14 +124,17 @@ Reservation admission validates exact counts, zero-based ordinals, unique IDs an
 before the triggering effect. Identity snapshots are captured once during acceptance. All nonnil
 returned handles remain in `outstanding`, including partial and malformed Driver returns. Reservation
 completion is an activation-level diagnostic fact at its controller origin, causally linked to the
-trigger's start; its source includes the declaration and ordinal. This does not claim a worker
+trigger's start; its source includes the reservation's position and ordinal. This does not claim a worker
 activation opened or closed: the Driver's separate Consume coordinate may use a different ActivationID.
 Workers retain their own replay-local DAG state and emit no per-SDK-instruction central stream.
 
 Reservation carrier authority is separate from ordinary endpoint method authorization. Each endpoint
 policy names unary carrier methods plus maximum counts for supported workflow and Nexus-handler target
-contexts. Admission checks each reservation-bearing RPC against that policy and compiles its authored
-reservation order once. Every potential StartNexusOperation source, including guarded sources, maps to
+contexts. A Case declares no reservations: an ordinary controller instruction invoking a carrier method
+on that endpoint reserves one activation of each workflow and Nexus-handler entrypoint whose kind the
+carrier's shapes admit, in entrypoint declaration order, and two instructions that could carry the
+same entrypoint reject `unsupported` naming both. Admission checks those reservations against the
+carrier's maximum counts and compiles their order once. Every potential StartNexusOperation source, including guarded sources, maps to
 one explicitly reserved handler by service and operation. Route order follows the prepared workflow
 node order, then workflow ordinal; handler ordinals count within the declared handler reservation.
 Missing, ambiguous, crossed or count-mismatched routes reject before Driver I/O.
@@ -148,12 +156,15 @@ without a consumer, while uncooperative Driver waits require quarantine and cann
 `waits` must only be joined when Driver cooperation is established; it is not an unbounded drain gate.
 
 Worker adapters use the root `EntrypointPlan.RuntimeWorkLimit` and `InstructionPlan` methods
-`OutcomeType`, `EvaluateInput` and `ValidateOutcome`. `OutcomeType` returns a cloned declared schema;
-`ValidateOutcome` returns an activation-owned `contract.OutcomeSnapshot` with independently copied
-outcome and declared fields. Mutating those results cannot mutate the plan or a subsequent validation result.
-StartNexusOperation cannot declare VALUE because its SDK future is an opaque runtime handle; Await
-validates the target result against its declared VALUE type. Finish and every RespondNexus variant
-retain their evaluated result expressions and may declare their typed VALUE.
+`OutcomeType`, `EvaluateInput`, `ValidateOutcome`, `TimeoutMilliseconds`, `MaxAttempts` and
+`Reservations`. An instruction's outcome fields are derived from it: every instruction has a status and
+a detail, `InvokeRpc` and `CompleteNexusOperation` a protocol code, a workflow or Nexus-handler
+instruction an SDK failure code, and `AwaitInstruction` its operation's text result as VALUE.
+`OutcomeType` returns a cloned derived schema; `ValidateOutcome` returns an activation-owned
+`contract.OutcomeSnapshot` with independently copied outcome and derived fields. Mutating those results
+cannot mutate the plan or a subsequent validation result. An RPC response is read only through
+response reads, StartNexusOperation's SDK future is an opaque runtime handle, and a Finish or
+RespondNexus result ends its activation, so none of them has a VALUE.
 
 A response read target may be a `CorrelatedEvidence` lift rather than a Slot or an Observation. Its
 rules are tried in declaration order and the first whose guard is true builds the evidence value
@@ -188,6 +199,6 @@ interpretation gets fresh state; SDK traversal, futures, cancellation and delive
 in the worker. This composition does not change the public methods or their work units.
 
 Validation charges traversal and ordering before serialization/copies. Runtime protobuf fields use field-number order and map keys use typed order;
-declared outcome fields use declaration order, making failure precedence and tight-budget exhaustion
+derived outcome fields use field-number order, making failure precedence and tight-budget exhaustion
 repeatable. Static binding retains its existing finite work accounting. The same validator serves
 controller staging; only raw RPC response validation and reads add controller work afterward.

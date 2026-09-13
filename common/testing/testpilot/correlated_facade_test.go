@@ -82,6 +82,7 @@ func correlatedFacadeProfile(t testing.TB) testpilot.ProfileSpec {
 			MaxEvents: 16, MaxBuffered: 8, MaxKeys: 8, MaxSupport: 256, MaxProjectionWork: 1000000000,
 			MaxEventBytes: 512, MaxSemanticTransitions: 32, MaxObligations: 16, MaxObligationWork: 1000000000,
 		},
+		InstructionDefaults: testpilot.InstructionDefaults{TimeoutMilliseconds: 1000, MaxAttempts: 1},
 	}
 }
 

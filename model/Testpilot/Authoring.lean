@@ -213,10 +213,9 @@ namespace Program
 
 /-! Constructors for bounded generated Program declarations. Array order is preserved. -/
 
-/-- Declare one symbolic text resource required by the Program. -/
-def environment (bindingId : String) : EnvironmentDefinition := { binding_id := bindingId }
-
-/-- Declare one logical role and its optional symbolic namespace and resource references. -/
+/-- Declare one logical role and its optional symbolic namespace and resource references. The bindings
+a Program uses are the ones its roles and expressions reference, derived at preparation, so a Program
+declares none. -/
 def role (roleId : String) (kind : RoleKind) (namespaceBindingId : String := "")
     (resourceBindingId : String := "") : Role :=
   { role_id := roleId, kind, namespace_binding_id := namespaceBindingId,
@@ -271,10 +270,13 @@ def responseRead (path : FieldPath) (cardinality : ReadCardinality)
     (targets : Array ReadTarget) : ResponseRead :=
   { path := some path, cardinality, targets }
 
-/-- Attach the two bounds that carry one instruction's behavior: its dispatch timeout and its
-highest attempt. Its resource ceilings are the Profile's, so a Case declares none of them. -/
-def instructionLimits (timeoutMilliseconds maxAttempts : Int64) : InstructionLimits :=
-  { timeout_milliseconds := timeoutMilliseconds, max_attempts := maxAttempts }
+/-- Write the bounds that carry one instruction's behavior where they differ from the Profile's
+instruction defaults: its dispatch timeout and its highest attempt. A bound left `none` takes the
+Profile's default. Its resource ceilings are the Profile's, so a Case declares none of them. -/
+def instructionLimits (timeoutMilliseconds : Option Int64 := none)
+    (maxAttempts : Option Int64 := none) : InstructionLimits :=
+  { timeout := timeoutMilliseconds.map (.timeout_milliseconds ·),
+    attempts := maxAttempts.map (.max_attempts ·) }
 
 def invokeRpc (endpointRoleId methodName : String) (assignments : Array RequestAssignment := #[])
     (reads : Array ResponseRead := #[]) : Instruction :=
@@ -310,28 +312,22 @@ stops or resumes; the role's own resource binding identifies the queue. -/
 def injectFault (roleId : String) (kind : FaultKind) : Instruction :=
   { instruction := some (.inject_fault { role_id := roleId, kind }) }
 
-def outcomeField (field : InstructionOutcomeField) (type : ValueType) : OutcomeFieldDefinition :=
-  { field, type := some type }
-
-def outcome (fields : Array OutcomeFieldDefinition) : InstructionOutcomeDefinition := { fields }
-
-def reservation (entrypointId : String) (count : Int64) : ActivationReservationDefinition :=
-  { entrypoint_id := entrypointId, count }
-
 /-- Name the instructions of the same entrypoint an instruction runs after, where that set is not the
 instruction before it: several instructions, one earlier than its predecessor, or none for a second
 root. -/
 def after (instructions : Array InstructionReference) : After := { instructions }
 
-/-- Define one instruction node with its outcome and reservations. It runs after the instruction
-before it in its entrypoint unless `after` names another set, and only when every instruction it runs
-after succeeded unless `guard` states another condition. -/
-def node (instructionId : String) (instruction : Instruction) (limits : InstructionLimits)
-    (after : Option After := none) (guard : Option Expression := none)
-    (outcome : Option InstructionOutcomeDefinition := none)
-    (reservations : Array ActivationReservationDefinition := #[]) : InstructionNode :=
+/-- Define one instruction node. It runs after the instruction before it in its entrypoint unless
+`after` names another set, and only when every instruction it runs after succeeded unless `guard`
+states another condition. `limits` writes only the bounds that differ from the Profile's instruction
+defaults, and a node whose limits write nothing carries none. Its outcome fields follow from its
+instruction and the activations it reserves from the Profile's reservation carriers, so a node
+declares neither. -/
+def node (instructionId : String) (instruction : Instruction)
+    (limits : InstructionLimits := {}) (after : Option After := none)
+    (guard : Option Expression := none) : InstructionNode :=
   { instruction_id := instructionId, after, guard, instruction := some instruction,
-    outcome, limits := some limits, activation_reservations := reservations }
+    limits := if limits.timeout.isNone && limits.attempts.isNone then none else some limits }
 
 def controller (entrypointId : String) (instructions : Array InstructionNode) :
     Entrypoint :=
@@ -359,14 +355,14 @@ def cleanup (entrypointId : String) (instructions : Array InstructionNode) : Cle
   { entrypoint_id := entrypointId, instructions }
 
 /-- Assemble a generated Program while preserving every supplied declaration order. A Program
-declares no resource ceilings: the Profile it is admitted under supplies them. -/
+declares no resource ceilings and no environment bindings: the Profile it is admitted under supplies
+the ceilings and the values of the bindings its roles and expressions reference. -/
 def make (programId : String) (roles : Array Role) (slots : Array Slot)
     (observations : Array Observation) (entrypoints : Array Entrypoint)
-    (cleanup : Cleanup)
-    (environment : Array EnvironmentDefinition := #[]) :
+    (cleanup : Cleanup) :
     temporal.server.api.testpilot.v1.Program :=
   { program_id := programId, roles, slots, observations, entrypoints,
-    cleanup := some cleanup, environment }
+    cleanup := some cleanup }
 
 end Program
 

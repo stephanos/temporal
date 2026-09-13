@@ -295,25 +295,23 @@ func (InstructionOutcomeStatus) EnumDescriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{3}
 }
 
-// InstructionNode is one node of an entrypoint's instruction graph: the instruction, what its outcome
-// and reservations declare, and when it runs.
+// InstructionNode is one node of an entrypoint's instruction graph: the instruction and when it runs.
+// What it does not declare, preparation derives: its outcome fields follow from its instruction, and
+// the worker activations it reserves from the Profile's reservation carriers.
 type InstructionNode struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	InstructionId string                 `protobuf:"bytes,1,opt,name=instruction_id,json=instructionId,proto3" json:"instruction_id,omitempty"`
 	Instruction   *Instruction           `protobuf:"bytes,2,opt,name=instruction,proto3" json:"instruction,omitempty"`
-	// The outcome fields later expressions may read, with their types.
-	Outcome *InstructionOutcomeDefinition `protobuf:"bytes,3,opt,name=outcome,proto3" json:"outcome,omitempty"`
-	// Worker activations a controller instruction reserves before its effect runs.
-	ActivationReservations []*ActivationReservationDefinition `protobuf:"bytes,4,rep,name=activation_reservations,json=activationReservations,proto3" json:"activation_reservations,omitempty"`
 	// The instructions that must finish or be skipped before this one is ready. Absent, it is the
 	// previous instruction of the same entrypoint, or none for the first.
 	// (-- api-linter: core::0140::prepositions=disabled
 	//     aip.dev/not-precedent: The field reads as the ordering it states; it is internal to Testpilot. --)
-	After *After `protobuf:"bytes,5,opt,name=after,proto3" json:"after,omitempty"`
+	After *After `protobuf:"bytes,3,opt,name=after,proto3" json:"after,omitempty"`
 	// Evaluated once the instruction is ready; when false it is skipped and records no Run Event.
 	// Absent, the instruction runs only when every instruction it runs after succeeded.
-	Guard         *Expression        `protobuf:"bytes,6,opt,name=guard,proto3" json:"guard,omitempty"`
-	Limits        *InstructionLimits `protobuf:"bytes,7,opt,name=limits,proto3" json:"limits,omitempty"`
+	Guard *Expression `protobuf:"bytes,4,opt,name=guard,proto3" json:"guard,omitempty"`
+	// Absent, both limits are the Profile's instruction defaults.
+	Limits        *InstructionLimits `protobuf:"bytes,5,opt,name=limits,proto3" json:"limits,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -358,20 +356,6 @@ func (x *InstructionNode) GetInstructionId() string {
 func (x *InstructionNode) GetInstruction() *Instruction {
 	if x != nil {
 		return x.Instruction
-	}
-	return nil
-}
-
-func (x *InstructionNode) GetOutcome() *InstructionOutcomeDefinition {
-	if x != nil {
-		return x.Outcome
-	}
-	return nil
-}
-
-func (x *InstructionNode) GetActivationReservations() []*ActivationReservationDefinition {
-	if x != nil {
-		return x.ActivationReservations
 	}
 	return nil
 }
@@ -1285,176 +1269,26 @@ func (x *InjectFault) GetKind() FaultKind {
 	return FAULT_KIND_UNSPECIFIED
 }
 
-// InstructionOutcomeDefinition declares which outcome fields of an instruction later expressions may
-// read. Declaring VALUE requires a value on success.
-type InstructionOutcomeDefinition struct {
-	state         protoimpl.MessageState    `protogen:"open.v1"`
-	Fields        []*OutcomeFieldDefinition `protobuf:"bytes,1,rep,name=fields,proto3" json:"fields,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *InstructionOutcomeDefinition) Reset() {
-	*x = InstructionOutcomeDefinition{}
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[14]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *InstructionOutcomeDefinition) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*InstructionOutcomeDefinition) ProtoMessage() {}
-
-func (x *InstructionOutcomeDefinition) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[14]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use InstructionOutcomeDefinition.ProtoReflect.Descriptor instead.
-func (*InstructionOutcomeDefinition) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{14}
-}
-
-func (x *InstructionOutcomeDefinition) GetFields() []*OutcomeFieldDefinition {
-	if x != nil {
-		return x.Fields
-	}
-	return nil
-}
-
-// OutcomeFieldDefinition declares the exact type of one readable outcome field.
-type OutcomeFieldDefinition struct {
-	state         protoimpl.MessageState  `protogen:"open.v1"`
-	Field         InstructionOutcomeField `protobuf:"varint,1,opt,name=field,proto3,enum=temporal.server.api.testpilot.v1.InstructionOutcomeField" json:"field,omitempty"`
-	Type          *ValueType              `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *OutcomeFieldDefinition) Reset() {
-	*x = OutcomeFieldDefinition{}
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[15]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *OutcomeFieldDefinition) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*OutcomeFieldDefinition) ProtoMessage() {}
-
-func (x *OutcomeFieldDefinition) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[15]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use OutcomeFieldDefinition.ProtoReflect.Descriptor instead.
-func (*OutcomeFieldDefinition) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{15}
-}
-
-func (x *OutcomeFieldDefinition) GetField() InstructionOutcomeField {
-	if x != nil {
-		return x.Field
-	}
-	return INSTRUCTION_OUTCOME_FIELD_UNSPECIFIED
-}
-
-func (x *OutcomeFieldDefinition) GetType() *ValueType {
-	if x != nil {
-		return x.Type
-	}
-	return nil
-}
-
-// ActivationReservationDefinition reserves activations of a workflow or Nexus handler entrypoint
-// before a controller instruction's effect runs.
-type ActivationReservationDefinition struct {
-	state        protoimpl.MessageState `protogen:"open.v1"`
-	EntrypointId string                 `protobuf:"bytes,1,opt,name=entrypoint_id,json=entrypointId,proto3" json:"entrypoint_id,omitempty"`
-	// How many activations are reserved; each must complete successfully.
-	Count         int64 `protobuf:"varint,2,opt,name=count,proto3" json:"count,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ActivationReservationDefinition) Reset() {
-	*x = ActivationReservationDefinition{}
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[16]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ActivationReservationDefinition) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ActivationReservationDefinition) ProtoMessage() {}
-
-func (x *ActivationReservationDefinition) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[16]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ActivationReservationDefinition.ProtoReflect.Descriptor instead.
-func (*ActivationReservationDefinition) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{16}
-}
-
-func (x *ActivationReservationDefinition) GetEntrypointId() string {
-	if x != nil {
-		return x.EntrypointId
-	}
-	return ""
-}
-
-func (x *ActivationReservationDefinition) GetCount() int64 {
-	if x != nil {
-		return x.Count
-	}
-	return 0
-}
-
 // InstructionLimits are the bounds that carry an instruction's behavior. Its resource ceilings are
-// the Profile's ProgramLimits.
+// the Profile's ProgramLimits. A limit is written only where it differs from the Profile's instruction
+// default, which an absent limit takes.
 type InstructionLimits struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Deadline of each dispatch, within the Profile's total duration; when it expires the outcome is
-	// TIMED_OUT.
-	TimeoutMilliseconds int64 `protobuf:"varint,1,opt,name=timeout_milliseconds,json=timeoutMilliseconds,proto3" json:"timeout_milliseconds,omitempty"`
-	// The highest attempt number the instruction may reach, within the Profile's attempts.
-	MaxAttempts   int64 `protobuf:"varint,2,opt,name=max_attempts,json=maxAttempts,proto3" json:"max_attempts,omitempty"`
+	// Types that are valid to be assigned to Timeout:
+	//
+	//	*InstructionLimits_TimeoutMilliseconds
+	Timeout isInstructionLimits_Timeout `protobuf_oneof:"timeout"`
+	// Types that are valid to be assigned to Attempts:
+	//
+	//	*InstructionLimits_MaxAttempts
+	Attempts      isInstructionLimits_Attempts `protobuf_oneof:"attempts"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *InstructionLimits) Reset() {
 	*x = InstructionLimits{}
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[17]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1466,7 +1300,7 @@ func (x *InstructionLimits) String() string {
 func (*InstructionLimits) ProtoMessage() {}
 
 func (x *InstructionLimits) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[17]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1479,36 +1313,75 @@ func (x *InstructionLimits) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InstructionLimits.ProtoReflect.Descriptor instead.
 func (*InstructionLimits) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{17}
+	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *InstructionLimits) GetTimeout() isInstructionLimits_Timeout {
+	if x != nil {
+		return x.Timeout
+	}
+	return nil
 }
 
 func (x *InstructionLimits) GetTimeoutMilliseconds() int64 {
 	if x != nil {
-		return x.TimeoutMilliseconds
+		if x, ok := x.Timeout.(*InstructionLimits_TimeoutMilliseconds); ok {
+			return x.TimeoutMilliseconds
+		}
 	}
 	return 0
 }
 
+func (x *InstructionLimits) GetAttempts() isInstructionLimits_Attempts {
+	if x != nil {
+		return x.Attempts
+	}
+	return nil
+}
+
 func (x *InstructionLimits) GetMaxAttempts() int64 {
 	if x != nil {
-		return x.MaxAttempts
+		if x, ok := x.Attempts.(*InstructionLimits_MaxAttempts); ok {
+			return x.MaxAttempts
+		}
 	}
 	return 0
 }
+
+type isInstructionLimits_Timeout interface {
+	isInstructionLimits_Timeout()
+}
+
+type InstructionLimits_TimeoutMilliseconds struct {
+	// Deadline of each dispatch, within the Profile's total duration; when it expires the outcome is
+	// TIMED_OUT.
+	TimeoutMilliseconds int64 `protobuf:"varint,1,opt,name=timeout_milliseconds,json=timeoutMilliseconds,proto3,oneof"`
+}
+
+func (*InstructionLimits_TimeoutMilliseconds) isInstructionLimits_Timeout() {}
+
+type isInstructionLimits_Attempts interface {
+	isInstructionLimits_Attempts()
+}
+
+type InstructionLimits_MaxAttempts struct {
+	// The highest attempt number the instruction may reach, within the Profile's attempts.
+	MaxAttempts int64 `protobuf:"varint,2,opt,name=max_attempts,json=maxAttempts,proto3,oneof"`
+}
+
+func (*InstructionLimits_MaxAttempts) isInstructionLimits_Attempts() {}
 
 var File_temporal_server_api_testpilot_v1_instruction_proto protoreflect.FileDescriptor
 
 const file_temporal_server_api_testpilot_v1_instruction_proto_rawDesc = "" +
 	"\n" +
-	"2temporal/server/api/testpilot/v1/instruction.proto\x12 temporal.server.api.testpilot.v1\x1a1temporal/server/api/testpilot/v1/correlated.proto\x1a1temporal/server/api/testpilot/v1/expression.proto\x1a,temporal/server/api/testpilot/v1/value.proto\"\xaf\x04\n" +
+	"2temporal/server/api/testpilot/v1/instruction.proto\x12 temporal.server.api.testpilot.v1\x1a1temporal/server/api/testpilot/v1/correlated.proto\x1a1temporal/server/api/testpilot/v1/expression.proto\x1a,temporal/server/api/testpilot/v1/value.proto\"\xd9\x02\n" +
 	"\x0fInstructionNode\x12%\n" +
 	"\x0einstruction_id\x18\x01 \x01(\tR\rinstructionId\x12O\n" +
-	"\vinstruction\x18\x02 \x01(\v2-.temporal.server.api.testpilot.v1.InstructionR\vinstruction\x12X\n" +
-	"\aoutcome\x18\x03 \x01(\v2>.temporal.server.api.testpilot.v1.InstructionOutcomeDefinitionR\aoutcome\x12z\n" +
-	"\x17activation_reservations\x18\x04 \x03(\v2A.temporal.server.api.testpilot.v1.ActivationReservationDefinitionR\x16activationReservations\x12=\n" +
-	"\x05after\x18\x05 \x01(\v2'.temporal.server.api.testpilot.v1.AfterR\x05after\x12B\n" +
-	"\x05guard\x18\x06 \x01(\v2,.temporal.server.api.testpilot.v1.ExpressionR\x05guard\x12K\n" +
-	"\x06limits\x18\a \x01(\v23.temporal.server.api.testpilot.v1.InstructionLimitsR\x06limits\"c\n" +
+	"\vinstruction\x18\x02 \x01(\v2-.temporal.server.api.testpilot.v1.InstructionR\vinstruction\x12=\n" +
+	"\x05after\x18\x03 \x01(\v2'.temporal.server.api.testpilot.v1.AfterR\x05after\x12B\n" +
+	"\x05guard\x18\x04 \x01(\v2,.temporal.server.api.testpilot.v1.ExpressionR\x05guard\x12K\n" +
+	"\x06limits\x18\x05 \x01(\v23.temporal.server.api.testpilot.v1.InstructionLimitsR\x06limits\"c\n" +
 	"\x05After\x12Z\n" +
 	"\finstructions\x18\x01 \x03(\v26.temporal.server.api.testpilot.v1.InstructionReferenceR\finstructions\"\xed\x05\n" +
 	"\vInstruction\x12L\n" +
@@ -1561,18 +1434,13 @@ const file_temporal_server_api_testpilot_v1_instruction_proto_rawDesc = "" +
 	"\x06result\x18\x01 \x01(\v2,.temporal.server.api.testpilot.v1.ExpressionR\x06result\"g\n" +
 	"\vInjectFault\x12\x17\n" +
 	"\arole_id\x18\x01 \x01(\tR\x06roleId\x12?\n" +
-	"\x04kind\x18\x02 \x01(\x0e2+.temporal.server.api.testpilot.v1.FaultKindR\x04kind\"p\n" +
-	"\x1cInstructionOutcomeDefinition\x12P\n" +
-	"\x06fields\x18\x01 \x03(\v28.temporal.server.api.testpilot.v1.OutcomeFieldDefinitionR\x06fields\"\xaa\x01\n" +
-	"\x16OutcomeFieldDefinition\x12O\n" +
-	"\x05field\x18\x01 \x01(\x0e29.temporal.server.api.testpilot.v1.InstructionOutcomeFieldR\x05field\x12?\n" +
-	"\x04type\x18\x02 \x01(\v2+.temporal.server.api.testpilot.v1.ValueTypeR\x04type\"\\\n" +
-	"\x1fActivationReservationDefinition\x12#\n" +
-	"\rentrypoint_id\x18\x01 \x01(\tR\fentrypointId\x12\x14\n" +
-	"\x05count\x18\x02 \x01(\x03R\x05count\"i\n" +
-	"\x11InstructionLimits\x121\n" +
-	"\x14timeout_milliseconds\x18\x01 \x01(\x03R\x13timeoutMilliseconds\x12!\n" +
-	"\fmax_attempts\x18\x02 \x01(\x03R\vmaxAttempts*m\n" +
+	"\x04kind\x18\x02 \x01(\x0e2+.temporal.server.api.testpilot.v1.FaultKindR\x04kind\"\x84\x01\n" +
+	"\x11InstructionLimits\x123\n" +
+	"\x14timeout_milliseconds\x18\x01 \x01(\x03H\x00R\x13timeoutMilliseconds\x12#\n" +
+	"\fmax_attempts\x18\x02 \x01(\x03H\x01R\vmaxAttemptsB\t\n" +
+	"\atimeoutB\n" +
+	"\n" +
+	"\battempts*m\n" +
 	"\x0fReadCardinality\x12 \n" +
 	"\x1cREAD_CARDINALITY_UNSPECIFIED\x10\x00\x12\x18\n" +
 	"\x14READ_CARDINALITY_ONE\x10\x01\x12\x1e\n" +
@@ -1607,76 +1475,66 @@ func file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP() []byt
 }
 
 var file_temporal_server_api_testpilot_v1_instruction_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
-var file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
+var file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_temporal_server_api_testpilot_v1_instruction_proto_goTypes = []any{
-	(ReadCardinality)(0),                    // 0: temporal.server.api.testpilot.v1.ReadCardinality
-	(NexusResponseKind)(0),                  // 1: temporal.server.api.testpilot.v1.NexusResponseKind
-	(FaultKind)(0),                          // 2: temporal.server.api.testpilot.v1.FaultKind
-	(InstructionOutcomeStatus)(0),           // 3: temporal.server.api.testpilot.v1.InstructionOutcomeStatus
-	(*InstructionNode)(nil),                 // 4: temporal.server.api.testpilot.v1.InstructionNode
-	(*After)(nil),                           // 5: temporal.server.api.testpilot.v1.After
-	(*Instruction)(nil),                     // 6: temporal.server.api.testpilot.v1.Instruction
-	(*InvokeRpc)(nil),                       // 7: temporal.server.api.testpilot.v1.InvokeRpc
-	(*RequestAssignment)(nil),               // 8: temporal.server.api.testpilot.v1.RequestAssignment
-	(*ResponseRead)(nil),                    // 9: temporal.server.api.testpilot.v1.ResponseRead
-	(*ReadTarget)(nil),                      // 10: temporal.server.api.testpilot.v1.ReadTarget
-	(*AwaitSlot)(nil),                       // 11: temporal.server.api.testpilot.v1.AwaitSlot
-	(*AwaitInstruction)(nil),                // 12: temporal.server.api.testpilot.v1.AwaitInstruction
-	(*StartNexusOperation)(nil),             // 13: temporal.server.api.testpilot.v1.StartNexusOperation
-	(*CompleteNexusOperation)(nil),          // 14: temporal.server.api.testpilot.v1.CompleteNexusOperation
-	(*RespondNexus)(nil),                    // 15: temporal.server.api.testpilot.v1.RespondNexus
-	(*Finish)(nil),                          // 16: temporal.server.api.testpilot.v1.Finish
-	(*InjectFault)(nil),                     // 17: temporal.server.api.testpilot.v1.InjectFault
-	(*InstructionOutcomeDefinition)(nil),    // 18: temporal.server.api.testpilot.v1.InstructionOutcomeDefinition
-	(*OutcomeFieldDefinition)(nil),          // 19: temporal.server.api.testpilot.v1.OutcomeFieldDefinition
-	(*ActivationReservationDefinition)(nil), // 20: temporal.server.api.testpilot.v1.ActivationReservationDefinition
-	(*InstructionLimits)(nil),               // 21: temporal.server.api.testpilot.v1.InstructionLimits
-	(*Expression)(nil),                      // 22: temporal.server.api.testpilot.v1.Expression
-	(*InstructionReference)(nil),            // 23: temporal.server.api.testpilot.v1.InstructionReference
-	(*FieldPath)(nil),                       // 24: temporal.server.api.testpilot.v1.FieldPath
-	(*CorrelatedEvidenceProjection)(nil),    // 25: temporal.server.api.testpilot.v1.CorrelatedEvidenceProjection
-	(InstructionOutcomeField)(0),            // 26: temporal.server.api.testpilot.v1.InstructionOutcomeField
-	(*ValueType)(nil),                       // 27: temporal.server.api.testpilot.v1.ValueType
+	(ReadCardinality)(0),                 // 0: temporal.server.api.testpilot.v1.ReadCardinality
+	(NexusResponseKind)(0),               // 1: temporal.server.api.testpilot.v1.NexusResponseKind
+	(FaultKind)(0),                       // 2: temporal.server.api.testpilot.v1.FaultKind
+	(InstructionOutcomeStatus)(0),        // 3: temporal.server.api.testpilot.v1.InstructionOutcomeStatus
+	(*InstructionNode)(nil),              // 4: temporal.server.api.testpilot.v1.InstructionNode
+	(*After)(nil),                        // 5: temporal.server.api.testpilot.v1.After
+	(*Instruction)(nil),                  // 6: temporal.server.api.testpilot.v1.Instruction
+	(*InvokeRpc)(nil),                    // 7: temporal.server.api.testpilot.v1.InvokeRpc
+	(*RequestAssignment)(nil),            // 8: temporal.server.api.testpilot.v1.RequestAssignment
+	(*ResponseRead)(nil),                 // 9: temporal.server.api.testpilot.v1.ResponseRead
+	(*ReadTarget)(nil),                   // 10: temporal.server.api.testpilot.v1.ReadTarget
+	(*AwaitSlot)(nil),                    // 11: temporal.server.api.testpilot.v1.AwaitSlot
+	(*AwaitInstruction)(nil),             // 12: temporal.server.api.testpilot.v1.AwaitInstruction
+	(*StartNexusOperation)(nil),          // 13: temporal.server.api.testpilot.v1.StartNexusOperation
+	(*CompleteNexusOperation)(nil),       // 14: temporal.server.api.testpilot.v1.CompleteNexusOperation
+	(*RespondNexus)(nil),                 // 15: temporal.server.api.testpilot.v1.RespondNexus
+	(*Finish)(nil),                       // 16: temporal.server.api.testpilot.v1.Finish
+	(*InjectFault)(nil),                  // 17: temporal.server.api.testpilot.v1.InjectFault
+	(*InstructionLimits)(nil),            // 18: temporal.server.api.testpilot.v1.InstructionLimits
+	(*Expression)(nil),                   // 19: temporal.server.api.testpilot.v1.Expression
+	(*InstructionReference)(nil),         // 20: temporal.server.api.testpilot.v1.InstructionReference
+	(*FieldPath)(nil),                    // 21: temporal.server.api.testpilot.v1.FieldPath
+	(*CorrelatedEvidenceProjection)(nil), // 22: temporal.server.api.testpilot.v1.CorrelatedEvidenceProjection
 }
 var file_temporal_server_api_testpilot_v1_instruction_proto_depIdxs = []int32{
 	6,  // 0: temporal.server.api.testpilot.v1.InstructionNode.instruction:type_name -> temporal.server.api.testpilot.v1.Instruction
-	18, // 1: temporal.server.api.testpilot.v1.InstructionNode.outcome:type_name -> temporal.server.api.testpilot.v1.InstructionOutcomeDefinition
-	20, // 2: temporal.server.api.testpilot.v1.InstructionNode.activation_reservations:type_name -> temporal.server.api.testpilot.v1.ActivationReservationDefinition
-	5,  // 3: temporal.server.api.testpilot.v1.InstructionNode.after:type_name -> temporal.server.api.testpilot.v1.After
-	22, // 4: temporal.server.api.testpilot.v1.InstructionNode.guard:type_name -> temporal.server.api.testpilot.v1.Expression
-	21, // 5: temporal.server.api.testpilot.v1.InstructionNode.limits:type_name -> temporal.server.api.testpilot.v1.InstructionLimits
-	23, // 6: temporal.server.api.testpilot.v1.After.instructions:type_name -> temporal.server.api.testpilot.v1.InstructionReference
-	7,  // 7: temporal.server.api.testpilot.v1.Instruction.invoke_rpc:type_name -> temporal.server.api.testpilot.v1.InvokeRpc
-	11, // 8: temporal.server.api.testpilot.v1.Instruction.await_slot:type_name -> temporal.server.api.testpilot.v1.AwaitSlot
-	14, // 9: temporal.server.api.testpilot.v1.Instruction.complete_nexus_operation:type_name -> temporal.server.api.testpilot.v1.CompleteNexusOperation
-	13, // 10: temporal.server.api.testpilot.v1.Instruction.start_nexus_operation:type_name -> temporal.server.api.testpilot.v1.StartNexusOperation
-	12, // 11: temporal.server.api.testpilot.v1.Instruction.await_instruction:type_name -> temporal.server.api.testpilot.v1.AwaitInstruction
-	16, // 12: temporal.server.api.testpilot.v1.Instruction.finish:type_name -> temporal.server.api.testpilot.v1.Finish
-	15, // 13: temporal.server.api.testpilot.v1.Instruction.respond_nexus:type_name -> temporal.server.api.testpilot.v1.RespondNexus
-	17, // 14: temporal.server.api.testpilot.v1.Instruction.inject_fault:type_name -> temporal.server.api.testpilot.v1.InjectFault
-	8,  // 15: temporal.server.api.testpilot.v1.InvokeRpc.request_assignments:type_name -> temporal.server.api.testpilot.v1.RequestAssignment
-	9,  // 16: temporal.server.api.testpilot.v1.InvokeRpc.response_reads:type_name -> temporal.server.api.testpilot.v1.ResponseRead
-	24, // 17: temporal.server.api.testpilot.v1.RequestAssignment.target:type_name -> temporal.server.api.testpilot.v1.FieldPath
-	22, // 18: temporal.server.api.testpilot.v1.RequestAssignment.value:type_name -> temporal.server.api.testpilot.v1.Expression
-	24, // 19: temporal.server.api.testpilot.v1.ResponseRead.path:type_name -> temporal.server.api.testpilot.v1.FieldPath
-	0,  // 20: temporal.server.api.testpilot.v1.ResponseRead.cardinality:type_name -> temporal.server.api.testpilot.v1.ReadCardinality
-	10, // 21: temporal.server.api.testpilot.v1.ResponseRead.targets:type_name -> temporal.server.api.testpilot.v1.ReadTarget
-	25, // 22: temporal.server.api.testpilot.v1.ReadTarget.correlated_evidence:type_name -> temporal.server.api.testpilot.v1.CorrelatedEvidenceProjection
-	23, // 23: temporal.server.api.testpilot.v1.AwaitInstruction.instruction:type_name -> temporal.server.api.testpilot.v1.InstructionReference
-	22, // 24: temporal.server.api.testpilot.v1.StartNexusOperation.input:type_name -> temporal.server.api.testpilot.v1.Expression
-	22, // 25: temporal.server.api.testpilot.v1.CompleteNexusOperation.result:type_name -> temporal.server.api.testpilot.v1.Expression
-	1,  // 26: temporal.server.api.testpilot.v1.RespondNexus.kind:type_name -> temporal.server.api.testpilot.v1.NexusResponseKind
-	22, // 27: temporal.server.api.testpilot.v1.RespondNexus.result:type_name -> temporal.server.api.testpilot.v1.Expression
-	22, // 28: temporal.server.api.testpilot.v1.Finish.result:type_name -> temporal.server.api.testpilot.v1.Expression
-	2,  // 29: temporal.server.api.testpilot.v1.InjectFault.kind:type_name -> temporal.server.api.testpilot.v1.FaultKind
-	19, // 30: temporal.server.api.testpilot.v1.InstructionOutcomeDefinition.fields:type_name -> temporal.server.api.testpilot.v1.OutcomeFieldDefinition
-	26, // 31: temporal.server.api.testpilot.v1.OutcomeFieldDefinition.field:type_name -> temporal.server.api.testpilot.v1.InstructionOutcomeField
-	27, // 32: temporal.server.api.testpilot.v1.OutcomeFieldDefinition.type:type_name -> temporal.server.api.testpilot.v1.ValueType
-	33, // [33:33] is the sub-list for method output_type
-	33, // [33:33] is the sub-list for method input_type
-	33, // [33:33] is the sub-list for extension type_name
-	33, // [33:33] is the sub-list for extension extendee
-	0,  // [0:33] is the sub-list for field type_name
+	5,  // 1: temporal.server.api.testpilot.v1.InstructionNode.after:type_name -> temporal.server.api.testpilot.v1.After
+	19, // 2: temporal.server.api.testpilot.v1.InstructionNode.guard:type_name -> temporal.server.api.testpilot.v1.Expression
+	18, // 3: temporal.server.api.testpilot.v1.InstructionNode.limits:type_name -> temporal.server.api.testpilot.v1.InstructionLimits
+	20, // 4: temporal.server.api.testpilot.v1.After.instructions:type_name -> temporal.server.api.testpilot.v1.InstructionReference
+	7,  // 5: temporal.server.api.testpilot.v1.Instruction.invoke_rpc:type_name -> temporal.server.api.testpilot.v1.InvokeRpc
+	11, // 6: temporal.server.api.testpilot.v1.Instruction.await_slot:type_name -> temporal.server.api.testpilot.v1.AwaitSlot
+	14, // 7: temporal.server.api.testpilot.v1.Instruction.complete_nexus_operation:type_name -> temporal.server.api.testpilot.v1.CompleteNexusOperation
+	13, // 8: temporal.server.api.testpilot.v1.Instruction.start_nexus_operation:type_name -> temporal.server.api.testpilot.v1.StartNexusOperation
+	12, // 9: temporal.server.api.testpilot.v1.Instruction.await_instruction:type_name -> temporal.server.api.testpilot.v1.AwaitInstruction
+	16, // 10: temporal.server.api.testpilot.v1.Instruction.finish:type_name -> temporal.server.api.testpilot.v1.Finish
+	15, // 11: temporal.server.api.testpilot.v1.Instruction.respond_nexus:type_name -> temporal.server.api.testpilot.v1.RespondNexus
+	17, // 12: temporal.server.api.testpilot.v1.Instruction.inject_fault:type_name -> temporal.server.api.testpilot.v1.InjectFault
+	8,  // 13: temporal.server.api.testpilot.v1.InvokeRpc.request_assignments:type_name -> temporal.server.api.testpilot.v1.RequestAssignment
+	9,  // 14: temporal.server.api.testpilot.v1.InvokeRpc.response_reads:type_name -> temporal.server.api.testpilot.v1.ResponseRead
+	21, // 15: temporal.server.api.testpilot.v1.RequestAssignment.target:type_name -> temporal.server.api.testpilot.v1.FieldPath
+	19, // 16: temporal.server.api.testpilot.v1.RequestAssignment.value:type_name -> temporal.server.api.testpilot.v1.Expression
+	21, // 17: temporal.server.api.testpilot.v1.ResponseRead.path:type_name -> temporal.server.api.testpilot.v1.FieldPath
+	0,  // 18: temporal.server.api.testpilot.v1.ResponseRead.cardinality:type_name -> temporal.server.api.testpilot.v1.ReadCardinality
+	10, // 19: temporal.server.api.testpilot.v1.ResponseRead.targets:type_name -> temporal.server.api.testpilot.v1.ReadTarget
+	22, // 20: temporal.server.api.testpilot.v1.ReadTarget.correlated_evidence:type_name -> temporal.server.api.testpilot.v1.CorrelatedEvidenceProjection
+	20, // 21: temporal.server.api.testpilot.v1.AwaitInstruction.instruction:type_name -> temporal.server.api.testpilot.v1.InstructionReference
+	19, // 22: temporal.server.api.testpilot.v1.StartNexusOperation.input:type_name -> temporal.server.api.testpilot.v1.Expression
+	19, // 23: temporal.server.api.testpilot.v1.CompleteNexusOperation.result:type_name -> temporal.server.api.testpilot.v1.Expression
+	1,  // 24: temporal.server.api.testpilot.v1.RespondNexus.kind:type_name -> temporal.server.api.testpilot.v1.NexusResponseKind
+	19, // 25: temporal.server.api.testpilot.v1.RespondNexus.result:type_name -> temporal.server.api.testpilot.v1.Expression
+	19, // 26: temporal.server.api.testpilot.v1.Finish.result:type_name -> temporal.server.api.testpilot.v1.Expression
+	2,  // 27: temporal.server.api.testpilot.v1.InjectFault.kind:type_name -> temporal.server.api.testpilot.v1.FaultKind
+	28, // [28:28] is the sub-list for method output_type
+	28, // [28:28] is the sub-list for method input_type
+	28, // [28:28] is the sub-list for extension type_name
+	28, // [28:28] is the sub-list for extension extendee
+	0,  // [0:28] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_testpilot_v1_instruction_proto_init() }
@@ -1702,13 +1560,17 @@ func file_temporal_server_api_testpilot_v1_instruction_proto_init() {
 		(*ReadTarget_ObservationId)(nil),
 		(*ReadTarget_CorrelatedEvidence)(nil),
 	}
+	file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[14].OneofWrappers = []any{
+		(*InstructionLimits_TimeoutMilliseconds)(nil),
+		(*InstructionLimits_MaxAttempts)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_temporal_server_api_testpilot_v1_instruction_proto_rawDesc), len(file_temporal_server_api_testpilot_v1_instruction_proto_rawDesc)),
 			NumEnums:      4,
-			NumMessages:   18,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

@@ -31,6 +31,7 @@ type (
 	ReservationCarrierPolicy = contract.ReservationCarrierPolicy
 	ReservationCarrierShape  = contract.ReservationCarrierShape
 	EnvironmentBinding       = contract.EnvironmentBinding
+	InstructionDefaults      = contract.InstructionDefaults
 	EntrypointKind           = contract.EntrypointKind
 )
 

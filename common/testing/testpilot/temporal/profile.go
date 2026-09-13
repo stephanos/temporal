@@ -14,6 +14,18 @@ type Environment struct {
 	NexusEndpoint string
 }
 
+// startWorkflowExecutionMethod is the one reservation carrier the Temporal Driver realizes: the start
+// request carries the reservations of the workflow it starts and of the Nexus handlers that workflow
+// reaches.
+const startWorkflowExecutionMethod = "/temporal.api.workflowservice.v1.WorkflowService/StartWorkflowExecution"
+
+// DefaultInstructionLimits returns the limits a Temporal Profile gives an instruction that writes
+// none: the most common timeout and attempts across the checked-in Temporal Cases when the defaults
+// were introduced. An instruction with any other value writes it.
+func DefaultInstructionLimits() testpilot.InstructionDefaults {
+	return testpilot.InstructionDefaults{TimeoutMilliseconds: 10000, MaxAttempts: 1}
+}
+
 // DefaultCeilings returns fresh copies of the Temporal Profile's resource ceilings: the Program,
 // Contract and correlated limits every Temporal Profile admits a Case under. A Case declares none of
 // them. Each ceiling is the largest value any checked-in Temporal Case declared when the bounds moved
@@ -36,10 +48,12 @@ func DefaultCeilings() (*testpilotspb.ProgramLimits, *testpilotspb.ContractLimit
 }
 
 // DeriveProfile returns the minimal authorization the Case implies: the roles it declares, the
-// methods it invokes, the reservation carriers its instructions actually use, the opcodes its
-// instructions require, and the environment values its declared bindings resolve to. Nothing is widened
-// beyond what the Case references, and anything the Case names that the catalog does not know is
-// an error rather than a silently authorized surface. Its resource ceilings are DefaultCeilings.
+// methods it invokes, a reservation carrier for each StartWorkflowExecution an ordinary controller
+// invokes when the Program has workflow or Nexus-handler entrypoints to reserve, the opcodes its
+// instructions require, and the environment values its referenced bindings resolve to. Nothing is
+// widened beyond what the Case references, and anything the Case names that the catalog does not know
+// is an error rather than a silently authorized surface. Its resource ceilings are DefaultCeilings and
+// its instruction defaults DefaultInstructionLimits.
 //
 // The Profile stays an authorization snapshot, so the derived value is returned for the caller to
 // review and tighten before Prepare rather than applied on its behalf.
@@ -74,6 +88,7 @@ func DeriveProfile(source *testpilotspb.Case, catalog *testpilot.Catalog, enviro
 		ProgramLimits:       programLimits,
 		ContractLimits:      contractLimits,
 		CorrelatedLimits:    correlatedLimits,
+		InstructionDefaults: DefaultInstructionLimits(),
 	}, nil
 }
 
@@ -104,6 +119,8 @@ type programUsage struct {
 	carrierOrder map[string][]string
 	shapes       map[carrierKey]map[testpilot.EntrypointKind]int64
 	opcodes      map[testpilot.Opcode]bool
+	// reservable counts the workflow and Nexus-handler entrypoints a carrier reserves one activation of.
+	reservable map[testpilot.EntrypointKind]int64
 }
 
 func (u *programUsage) capabilities() []testpilot.Opcode {
@@ -123,23 +140,33 @@ func deriveUsage(program *testpilotspb.Program, contexts map[string]testpilot.En
 		carrierOrder: map[string][]string{},
 		shapes:       map[carrierKey]map[testpilot.EntrypointKind]int64{},
 		opcodes:      map[testpilot.Opcode]bool{},
+		reservable:   map[testpilot.EntrypointKind]int64{},
+	}
+	for _, kind := range contexts {
+		if kind == testpilot.WorkflowEntrypoint || kind == testpilot.NexusHandlerEntrypoint {
+			usage.reservable[kind]++
+		}
 	}
 	for _, entrypoint := range program.GetEntrypoints() {
+		controller := contexts[entrypoint.GetEntrypointId()] == testpilot.ControllerEntrypoint
 		for _, instruction := range entrypoint.GetInstructions() {
-			if err := usage.add(instruction, contexts, catalog); err != nil {
+			if err := usage.add(instruction, controller, catalog); err != nil {
 				return nil, err
 			}
 		}
 	}
 	for _, instruction := range program.GetCleanup().GetInstructions() {
-		if err := usage.add(instruction, contexts, catalog); err != nil {
+		if err := usage.add(instruction, false, catalog); err != nil {
 			return nil, err
 		}
 	}
 	return usage, nil
 }
 
-func (u *programUsage) add(instruction *testpilotspb.InstructionNode, contexts map[string]testpilot.EntrypointKind, catalog *testpilot.Catalog) error {
+// add records one instruction. An ordinary controller's StartWorkflowExecution is a reservation
+// carrier, and preparation derives its reservations from the carrier's shapes: one activation of each
+// entrypoint of an admitted kind.
+func (u *programUsage) add(instruction *testpilotspb.InstructionNode, controller bool, catalog *testpilot.Catalog) error {
 	capability := testpilot.InstructionCapability(instruction.GetInstruction())
 	if capability == 0 {
 		return ErrInvalid
@@ -157,27 +184,11 @@ func (u *programUsage) add(instruction *testpilotspb.InstructionNode, contexts m
 		u.methodSeen[key] = true
 		u.methods[key.role] = append(u.methods[key.role], key.method)
 	}
-	if len(instruction.GetActivationReservations()) == 0 {
+	if !controller || key.method != startWorkflowExecutionMethod || len(u.reservable) == 0 || u.shapes[key] != nil {
 		return nil
 	}
-	if u.shapes[key] == nil {
-		u.shapes[key] = map[testpilot.EntrypointKind]int64{}
-		u.carrierOrder[key.role] = append(u.carrierOrder[key.role], key.method)
-	}
-	// Carrier shapes are checked per reserving node, so the ceiling one carrier needs is the
-	// largest single node's reservation of that context, never the sum across nodes: summing
-	// would authorize more than any one instruction can ask for.
-	node := map[testpilot.EntrypointKind]int64{}
-	for _, reservation := range instruction.GetActivationReservations() {
-		kind, declared := contexts[reservation.GetEntrypointId()]
-		if !declared || reservation.GetCount() <= 0 {
-			return ErrInvalid
-		}
-		node[kind] += reservation.GetCount()
-	}
-	for kind, count := range node {
-		u.shapes[key][kind] = max(u.shapes[key][kind], count)
-	}
+	u.shapes[key] = u.reservable
+	u.carrierOrder[key.role] = append(u.carrierOrder[key.role], key.method)
 	return nil
 }
 
@@ -215,8 +226,9 @@ func deriveRoles(program *testpilotspb.Program, usage *programUsage) ([]testpilo
 	return roles, nil
 }
 
-// deriveBindings resolves each declared environment binding through the role that references it.
-// A binding no role claims has no derivable value, so it rejects rather than resolving to empty.
+// deriveBindings resolves each binding the Program references through the role that references it,
+// in the order preparation derives them. A binding no role claims has no derivable value, so it rejects
+// rather than resolving to empty.
 func deriveBindings(program *testpilotspb.Program, environment Environment) ([]testpilot.EnvironmentBinding, error) {
 	values := map[string]string{}
 	for _, role := range program.GetRoles() {
@@ -235,13 +247,14 @@ func deriveBindings(program *testpilotspb.Program, environment Environment) ([]t
 		default:
 		}
 	}
-	bindings := make([]testpilot.EnvironmentBinding, 0, len(program.GetEnvironment()))
-	for _, declaration := range program.GetEnvironment() {
-		value, resolved := values[declaration.GetBindingId()]
+	ids := testpilot.EnvironmentBindingIDs(program)
+	bindings := make([]testpilot.EnvironmentBinding, 0, len(ids))
+	for _, id := range ids {
+		value, resolved := values[id]
 		if !resolved || value == "" {
 			return nil, ErrInvalid
 		}
-		bindings = append(bindings, testpilot.EnvironmentBinding{ID: declaration.GetBindingId(), Value: value})
+		bindings = append(bindings, testpilot.EnvironmentBinding{ID: id, Value: value})
 	}
 	return bindings, nil
 }

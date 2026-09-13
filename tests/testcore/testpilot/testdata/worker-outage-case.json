@@ -281,33 +281,9 @@
                 "roleId": "temporal.task-queue"
               }
             },
-            "instructionId": "stop-worker",
-            "limits": {
-              "maxAttempts": "1",
-              "timeoutMilliseconds": "10000"
-            },
-            "outcome": {
-              "fields": [
-                {
-                  "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                  "type": {
-                    "singular": {
-                      "enumeration": {
-                        "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                      }
-                    }
-                  }
-                }
-              ]
-            }
+            "instructionId": "stop-worker"
           },
           {
-            "activationReservations": [
-              {
-                "count": "1",
-                "entrypointId": "workflow"
-              }
-            ],
             "instruction": {
               "invokeRpc": {
                 "endpointRoleId": "temporal.workflow-service",
@@ -392,25 +368,7 @@
                 ]
               }
             },
-            "instructionId": "start-workflow",
-            "limits": {
-              "maxAttempts": "1",
-              "timeoutMilliseconds": "10000"
-            },
-            "outcome": {
-              "fields": [
-                {
-                  "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                  "type": {
-                    "singular": {
-                      "enumeration": {
-                        "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                      }
-                    }
-                  }
-                }
-              ]
-            }
+            "instructionId": "start-workflow"
           },
           {
             "instruction": {
@@ -419,25 +377,7 @@
                 "roleId": "temporal.task-queue"
               }
             },
-            "instructionId": "resume-worker",
-            "limits": {
-              "maxAttempts": "1",
-              "timeoutMilliseconds": "10000"
-            },
-            "outcome": {
-              "fields": [
-                {
-                  "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                  "type": {
-                    "singular": {
-                      "enumeration": {
-                        "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                      }
-                    }
-                  }
-                }
-              ]
-            }
+            "instructionId": "resume-worker"
           },
           {
             "instruction": {
@@ -546,22 +486,7 @@
             },
             "instructionId": "history",
             "limits": {
-              "maxAttempts": "1",
               "timeoutMilliseconds": "20000"
-            },
-            "outcome": {
-              "fields": [
-                {
-                  "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                  "type": {
-                    "singular": {
-                      "enumeration": {
-                        "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                      }
-                    }
-                  }
-                }
-              ]
             }
           }
         ]
@@ -579,25 +504,7 @@
                 }
               }
             },
-            "instructionId": "finish-workflow",
-            "limits": {
-              "maxAttempts": "1",
-              "timeoutMilliseconds": "10000"
-            },
-            "outcome": {
-              "fields": [
-                {
-                  "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                  "type": {
-                    "singular": {
-                      "enumeration": {
-                        "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
-                      }
-                    }
-                  }
-                }
-              ]
-            }
+            "instructionId": "finish-workflow"
           }
         ],
         "workflow": {
@@ -605,14 +512,6 @@
           "workerRoleId": "temporal.worker",
           "workflowType": "umpire-worker-outage-workflow"
         }
-      }
-    ],
-    "environment": [
-      {
-        "bindingId": "temporal.worker-outage.namespace"
-      },
-      {
-        "bindingId": "temporal.worker-outage.task-queue"
       }
     ],
     "observations": [

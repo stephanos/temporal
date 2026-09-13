@@ -15,19 +15,22 @@ import (
 )
 
 type admission struct {
-	prepared               *PreparedProgram
-	roles                  map[string]testpilotspb.RoleKind
-	allowed                map[string]contract.RolePolicy
-	methods                map[string]map[string]bool
-	carriers               map[string]map[string]contract.ReservationCarrierPolicy
-	opcodes                map[contract.Opcode]bool
-	bindingsRequired       bool
-	environment            map[string]string
-	environmentDefinitions map[string]bool
-	environmentUsed        map[string]bool
-	observations           map[string]ir.Type
-	runID                  ir.Type
-	writers                map[string]slotWriter
+	prepared         *PreparedProgram
+	roles            map[string]testpilotspb.RoleKind
+	allowed          map[string]contract.RolePolicy
+	methods          map[string]map[string]bool
+	carriers         map[string]map[string]contract.ReservationCarrierPolicy
+	opcodes          map[contract.Opcode]bool
+	bindingsRequired bool
+	// environment holds the Profile's binding values, and bindings those of the Program's derived
+	// binding graph.
+	environment  map[string]string
+	bindings     map[string]string
+	observations map[string]ir.Type
+	// outcomeTypes are the types of the outcome fields instructions produce.
+	outcomeTypes struct{ status, text ir.Type }
+	runID        ir.Type
+	writers      map[string]slotWriter
 	// Each declared evidence source, and the one instruction that may lift under it.
 	evidenceSources map[string]contract.Coordinate
 	graphIndex      map[string]*graph
@@ -82,15 +85,10 @@ func Prepare(source *testpilotspb.Case, catalog *ir.Catalog, policy Profile) (*P
 		return nil, err
 	}
 	prepared := &PreparedProgram{source: proto.CloneOf(source.Program), catalog: catalog, slots: map[string]ir.Type{}, carriers: map[carrierCoordinate]contract.ReservationCarrierPlan{}, roles: map[string]resolvedRole{}}
-	a := &admission{prepared: prepared, roles: map[string]testpilotspb.RoleKind{}, allowed: map[string]contract.RolePolicy{}, methods: map[string]map[string]bool{}, carriers: map[string]map[string]contract.ReservationCarrierPolicy{}, opcodes: map[contract.Opcode]bool{}, bindingsRequired: true, environment: map[string]string{}, environmentDefinitions: map[string]bool{}, environmentUsed: map[string]bool{}, observations: map[string]ir.Type{}, writers: map[string]slotWriter{}, evidenceSources: map[string]contract.Coordinate{}, graphIndex: map[string]*graph{}}
-	for _, check := range []func() error{func() error { return a.bindPolicy(policy) }, a.bindSchemas, a.bindGraphs, a.bindInstructions, a.bindDataflow, a.bindReservations, a.bindReservationCarriers} {
+	a := &admission{prepared: prepared, roles: map[string]testpilotspb.RoleKind{}, allowed: map[string]contract.RolePolicy{}, methods: map[string]map[string]bool{}, carriers: map[string]map[string]contract.ReservationCarrierPolicy{}, opcodes: map[contract.Opcode]bool{}, bindingsRequired: true, environment: map[string]string{}, bindings: map[string]string{}, observations: map[string]ir.Type{}, writers: map[string]slotWriter{}, evidenceSources: map[string]contract.Coordinate{}, graphIndex: map[string]*graph{}}
+	for _, check := range []func() error{func() error { return a.bindPolicy(policy) }, a.bindSchemas, a.bindGraphs, a.bindInstructions, a.bindDataflow, a.deriveReservations, a.bindReservations, a.bindReservationCarriers} {
 		if err := check(); err != nil {
 			return nil, err
-		}
-	}
-	for id := range a.environmentDefinitions {
-		if !a.environmentUsed[id] {
-			return nil, invalid(ir.Malformed, "environment", "environment definition is unused")
 		}
 	}
 	return prepared, nil
@@ -133,6 +131,9 @@ func (a *admission) bindPolicy(policy Profile) error {
 	}
 	if policy.Limits.MaxInstructionResponseBytes > policy.Limits.MaxResponseBytes {
 		return invalid(ir.LimitExceeded, "max_instruction_response_bytes", "instruction ceiling exceeds the Program ceiling")
+	}
+	if err := checkInstructionDefaults(policy.InstructionDefaults, policy.Limits); err != nil {
+		return err
 	}
 	if len(policy.Roles) > 10000 || len(policy.Opcodes) > int(contract.MaxOpcode) || len(policy.EnvironmentBindings) > 10000 {
 		return invalid(ir.LimitExceeded, "policy", "policy collection ceiling exceeded")
@@ -179,6 +180,18 @@ func (a *admission) bindPolicy(policy Profile) error {
 	a.prepared.policy = snapshot
 	a.prepared.limits = snapshot.Limits
 	a.prepared.environmentFingerprint = policy.EnvironmentFingerprint
+	return nil
+}
+
+// checkInstructionDefaults admits the Profile's instruction defaults: each is absent (zero) or a
+// positive value within the ceiling an instruction's own limit must fit.
+func checkInstructionDefaults(defaults contract.InstructionDefaults, limits *testpilotspb.ProgramLimits) error {
+	if defaults.TimeoutMilliseconds < 0 || defaults.MaxAttempts < 0 {
+		return invalid(ir.Malformed, "policy.instruction_defaults", "negative instruction default")
+	}
+	if defaults.TimeoutMilliseconds > max(limits.MaxTotalDurationMilliseconds, limits.MaxCleanupDurationMilliseconds) || defaults.MaxAttempts > limits.MaxAttempts {
+		return invalid(ir.LimitExceeded, "policy.instruction_defaults", "instruction default exceeds the Profile ceiling")
+	}
 	return nil
 }
 func (a *admission) bindRolePolicy(role contract.RolePolicy, limits *testpilotspb.ProgramLimits) (contract.RolePolicy, error) {
@@ -274,24 +287,8 @@ func (a *admission) bindSchemas() error {
 	if !validID(p.ProgramId) {
 		return invalid(ir.Malformed, "program", "invalid Program identity")
 	}
-	if len(p.Environment) > 10000 {
-		return invalid(ir.LimitExceeded, "environment", "environment definition collection ceiling exceeded")
-	}
-	var environmentBytes int64
-	for _, definition := range p.Environment {
-		if definition == nil || !validID(definition.BindingId) || a.environmentDefinitions[definition.BindingId] {
-			return invalid(ir.Malformed, "environment", "invalid or duplicate environment definition")
-		}
-		value, ok := a.environment[definition.BindingId]
-		if !ok {
-			return invalid(ir.Unknown, "environment", "environment binding is not supplied by the Profile")
-		}
-		bytes := int64(len(definition.BindingId) + len(value))
-		if bytes > a.prepared.limits.MaxRequestBytes-environmentBytes {
-			return invalid(ir.LimitExceeded, "environment", "resolved environment byte ceiling exceeded")
-		}
-		environmentBytes += bytes
-		a.environmentDefinitions[definition.BindingId] = true
+	if err := a.bindEnvironment(p); err != nil {
+		return err
 	}
 	for _, role := range p.Roles {
 		if !validID(role.GetRoleId()) || a.roles[role.GetRoleId()] != 0 || role.GetKind() == 0 || a.allowed[role.GetRoleId()].Kind != role.GetKind() {
@@ -344,6 +341,32 @@ func (a *admission) bindSchemas() error {
 	return nil
 }
 
+// bindEnvironment resolves the Program's derived binding graph against the Profile. Every binding a
+// role or expression references must be supplied, and the resolved values together must fit one
+// request.
+func (a *admission) bindEnvironment(p *testpilotspb.Program) error {
+	var environmentBytes int64
+	for _, id := range EnvironmentBindingIDs(p) {
+		if err := a.charge(1); err != nil {
+			return err
+		}
+		if !validID(id) {
+			return invalid(ir.Malformed, "environment", "invalid environment reference")
+		}
+		value, ok := a.environment[id]
+		if !ok {
+			return invalid(ir.Unknown, "environment", fmt.Sprintf("environment binding %q is not supplied by the Profile", id))
+		}
+		bytes := int64(len(id) + len(value))
+		if bytes > a.prepared.limits.MaxRequestBytes-environmentBytes {
+			return invalid(ir.LimitExceeded, "environment", "resolved environment byte ceiling exceeded")
+		}
+		environmentBytes += bytes
+		a.bindings[id] = value
+	}
+	return nil
+}
+
 func (a *admission) bindRole(role *testpilotspb.Role) (resolvedRole, error) {
 	result := resolvedRole{ID: role.RoleId, Kind: role.Kind, NamespaceBindingID: role.NamespaceBindingId, ResourceBindingID: role.ResourceBindingId}
 	switch role.Kind {
@@ -385,18 +408,68 @@ func (a *admission) bindRole(role *testpilotspb.Role) (resolvedRole, error) {
 	return result, nil
 }
 
+// EnvironmentBindingIDs is the Program's symbolic binding graph: each binding its roles reference, a
+// role's namespace before its resource in role order, then each binding an expression of its
+// instructions references, in declaration order, every binding once. A Program declares no bindings;
+// preparation resolves exactly this set against the Profile, and Profile derivation reads it.
+func EnvironmentBindingIDs(program *testpilotspb.Program) []string {
+	var ids []string
+	seen := map[string]bool{}
+	add := func(id string) {
+		if !seen[id] {
+			seen[id] = true
+			ids = append(ids, id)
+		}
+	}
+	for _, role := range program.GetRoles() {
+		// An empty role binding binds nothing; an empty reference is kept, so preparation rejects it.
+		for _, id := range []string{role.GetNamespaceBindingId(), role.GetResourceBindingId()} {
+			if id != "" {
+				add(id)
+			}
+		}
+	}
+	var visit func(protoreflect.Message)
+	visit = func(message protoreflect.Message) {
+		if reference, ok := message.Interface().(*testpilotspb.Reference); ok {
+			if id, isEnvironment := reference.GetReference().(*testpilotspb.Reference_EnvironmentBindingId); isEnvironment {
+				add(id.EnvironmentBindingId)
+			}
+		}
+		fields := message.Descriptor().Fields()
+		for i := range fields.Len() {
+			field := fields.Get(i)
+			if field.Message() == nil || field.IsMap() || !message.Has(field) {
+				continue
+			}
+			if field.IsList() {
+				list := message.Get(field).List()
+				for j := range list.Len() {
+					visit(list.Get(j).Message())
+				}
+				continue
+			}
+			visit(message.Get(field).Message())
+		}
+	}
+	for _, entrypoint := range program.GetEntrypoints() {
+		for _, instruction := range entrypoint.GetInstructions() {
+			visit(instruction.ProtoReflect())
+		}
+	}
+	for _, instruction := range program.GetCleanup().GetInstructions() {
+		visit(instruction.ProtoReflect())
+	}
+	return ids
+}
+
+// resolveEnvironment reads one reference's value from the derived binding graph, which holds every
+// binding the Program references.
 func (a *admission) resolveEnvironment(id string) (string, error) {
-	if !validID(id) {
-		return "", invalid(ir.Malformed, "environment", "invalid environment reference")
-	}
-	if !a.environmentDefinitions[id] {
-		return "", invalid(ir.Unknown, "environment", "environment reference is not declared")
-	}
-	value, ok := a.environment[id]
+	value, ok := a.bindings[id]
 	if !ok {
-		return "", invalid(ir.Unknown, "environment", "environment binding is not supplied by the Profile")
+		return "", invalid(ir.Unknown, "environment", "environment reference is outside the derived binding graph")
 	}
-	a.environmentUsed[id] = true
 	return value, nil
 }
 func (a *admission) role(id string, kind testpilotspb.RoleKind) error {
@@ -646,7 +719,7 @@ func (a *admission) bindReservations() error {
 				return err
 			}
 			if count > 0 {
-				weights = append(weights, weighted{count: count, attempts: n.source.Limits.MaxAttempts})
+				weights = append(weights, weighted{count: count, attempts: n.maxAttempts})
 			}
 		}
 	}
@@ -671,25 +744,12 @@ func (a *admission) bindReservations() error {
 func (a *admission) reservationCount(g *graph, n *node) (int64, error) {
 	limit := a.prepared.limits.MaxActivations
 	var count int64
-	seen := map[string]bool{}
-	for _, reservation := range n.source.ActivationReservations {
-		if g.cleanup || g.context != contract.ControllerEntrypoint {
-			return 0, invalid(ir.Unsupported, g.id, "only ordinary controller nodes may reserve activations")
-		}
-		target := a.graphIndex[reservation.GetEntrypointId()]
-		if target == nil || target.cleanup || target.context != contract.WorkflowEntrypoint && target.context != contract.NexusHandlerEntrypoint {
-			return 0, invalid(ir.TypeMismatch, g.id, "reservation requires a bound workflow or Nexus-handler entrypoint")
-		}
-		if seen[target.id] || reservation.GetCount() <= 0 {
-			return 0, invalid(ir.Malformed, g.id, "reservation targets must be unique with positive counts")
-		}
-		seen[target.id] = true
+	for _, reservation := range n.reservations {
 		if reservation.Count > limit-count {
 			return 0, invalid(ir.LimitExceeded, g.id, "reservation sum exceeds activation ceiling")
 		}
 		count += reservation.Count
 	}
-
 	return count, nil
 }
 func messageType(catalog *ir.Catalog, descriptor protoreflect.MessageDescriptor) (ir.Type, error) {

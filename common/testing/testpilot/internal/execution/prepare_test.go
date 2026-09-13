@@ -2,7 +2,6 @@ package execution
 
 import (
 	"fmt"
-	"math"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -34,11 +33,8 @@ func valueSlot(id string, typ *testpilotspb.ValueType) *testpilotspb.Slot {
 func capabilitySlot(id string) *testpilotspb.Slot {
 	return &testpilotspb.Slot{SlotId: id, Content: &testpilotspb.Slot_OpaqueHandle{OpaqueHandle: &testpilotspb.OpaqueHandleType{}}}
 }
-func statusSchema() *testpilotspb.InstructionOutcomeDefinition {
-	return &testpilotspb.InstructionOutcomeDefinition{Fields: []*testpilotspb.OutcomeFieldDefinition{{Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS, Type: &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Enumeration{Enumeration: &testpilotspb.NamedType{ProtobufType: "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"}}}}}}}}
-}
 func rpcNode(id string) *testpilotspb.InstructionNode {
-	return &testpilotspb.InstructionNode{InstructionId: id, Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRpc{EndpointRoleId: "endpoint", Method: "/example.Service/Call"}}}, Outcome: statusSchema(), Limits: &testpilotspb.InstructionLimits{TimeoutMilliseconds: 1000, MaxAttempts: 1}}
+	return &testpilotspb.InstructionNode{InstructionId: id, Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRpc{EndpointRoleId: "endpoint", Method: "/example.Service/Call"}}}, Limits: &testpilotspb.InstructionLimits{Timeout: &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: 1000}, Attempts: &testpilotspb.InstructionLimits_MaxAttempts{MaxAttempts: 1}}}
 }
 func field(name string) *testpilotspb.FieldPath {
 	return &testpilotspb.FieldPath{Segments: []*testpilotspb.FieldPathSegment{{Field: name}}}
@@ -70,7 +66,6 @@ func runIDExpression() *testpilotspb.Expression {
 	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_Run{Run: &testpilotspb.RunReference{}}}}}
 }
 func addWorker(source *testpilotspb.Case, policy *Profile) {
-	source.Program.Environment = append(source.Program.Environment, &testpilotspb.EnvironmentDefinition{BindingId: "namespace"}, &testpilotspb.EnvironmentDefinition{BindingId: "queue"})
 	policy.EnvironmentBindings = append(policy.EnvironmentBindings, contract.EnvironmentBinding{ID: "namespace", Value: "namespace"}, contract.EnvironmentBinding{ID: "queue", Value: "queue"})
 	source.Program.Roles = append(source.Program.Roles, &testpilotspb.Role{RoleId: "worker", Kind: testpilotspb.ROLE_KIND_WORKER, NamespaceBindingId: "namespace"}, &testpilotspb.Role{RoleId: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE, NamespaceBindingId: "namespace", ResourceBindingId: "queue"})
 	source.Program.Entrypoints = append(source.Program.Entrypoints, &testpilotspb.Entrypoint{EntrypointId: "workflow", Activation: &testpilotspb.Entrypoint_Workflow{Workflow: &testpilotspb.WorkflowActivation{WorkflowType: "flow", WorkerRoleId: "worker", TaskQueueRoleId: "queue"}}})
@@ -141,19 +136,16 @@ func TestPrepareRejectsStructuralAndPolicyErrors(t *testing.T) {
 		"capability":       func(_ *testpilotspb.Case, p *Profile) { p.Opcodes = nil },
 		"catalog identity": func(_ *testpilotspb.Case, p *Profile) { p.CatalogIdentity = "other" },
 		"node timeout": func(c *testpilotspb.Case, _ *Profile) {
-			c.Program.Entrypoints[0].Instructions[0].Limits.TimeoutMilliseconds = 0
+			c.Program.Entrypoints[0].Instructions[0].Limits.Timeout = &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: 0}
 		},
 		"attempt bound": func(c *testpilotspb.Case, _ *Profile) {
-			c.Program.Entrypoints[0].Instructions[0].Limits.MaxAttempts = 33
+			c.Program.Entrypoints[0].Instructions[0].Limits.Attempts = &testpilotspb.InstructionLimits_MaxAttempts{MaxAttempts: 33}
 		},
 		"instruction response ceiling": func(_ *testpilotspb.Case, p *Profile) {
 			p.Limits.MaxInstructionResponseBytes = 4097
 		},
 		"instruction event ceiling": func(_ *testpilotspb.Case, p *Profile) {
 			p.Limits.MaxInstructionEmittedEvents = 257
-		},
-		"rpc raw outcome": func(c *testpilotspb.Case, _ *Profile) {
-			c.Program.Entrypoints[0].Instructions[0].Outcome.Fields = append(c.Program.Entrypoints[0].Instructions[0].Outcome.Fields, &testpilotspb.OutcomeFieldDefinition{Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE, Type: scalar(testpilotspb.SCALAR_KIND_TEXT)})
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -197,18 +189,18 @@ func TestPrepareRejectsCaseBoundsAboveProfileCeilings(t *testing.T) {
 		{"ordinary timeout", func(c *testpilotspb.Case) *testpilotspb.InstructionLimits {
 			return c.Program.Entrypoints[0].Instructions[0].Limits
 		}, func(limits *testpilotspb.InstructionLimits, ceiling *testpilotspb.ProgramLimits, over int64) {
-			limits.TimeoutMilliseconds = ceiling.MaxTotalDurationMilliseconds + over
+			limits.Timeout = &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: ceiling.MaxTotalDurationMilliseconds + over}
 		}, "controller.call"},
 		{"cleanup timeout", func(c *testpilotspb.Case) *testpilotspb.InstructionLimits {
 			c.Program.Cleanup.Instructions = []*testpilotspb.InstructionNode{rpcNode("cleanup-call")}
 			return c.Program.Cleanup.Instructions[0].Limits
 		}, func(limits *testpilotspb.InstructionLimits, ceiling *testpilotspb.ProgramLimits, over int64) {
-			limits.TimeoutMilliseconds = ceiling.MaxCleanupDurationMilliseconds + over
+			limits.Timeout = &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: ceiling.MaxCleanupDurationMilliseconds + over}
 		}, "cleanup.cleanup-call"},
 		{"attempts", func(c *testpilotspb.Case) *testpilotspb.InstructionLimits {
 			return c.Program.Entrypoints[0].Instructions[0].Limits
 		}, func(limits *testpilotspb.InstructionLimits, ceiling *testpilotspb.ProgramLimits, over int64) {
-			limits.MaxAttempts = ceiling.MaxAttempts + over
+			limits.Attempts = &testpilotspb.InstructionLimits_MaxAttempts{MaxAttempts: ceiling.MaxAttempts + over}
 		}, "controller.call"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -261,8 +253,7 @@ func TestRunIDIntrinsicIsOnlyAvailableToProgramInputs(t *testing.T) {
 		Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_Finish{Finish: &testpilotspb.Finish{
 			Result: runIDExpression(),
 		}}},
-		Outcome: statusSchema(),
-		Limits:  &testpilotspb.InstructionLimits{TimeoutMilliseconds: 1000, MaxAttempts: 1},
+		Limits: &testpilotspb.InstructionLimits{Timeout: &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: 1000}, Attempts: &testpilotspb.InstructionLimits_MaxAttempts{MaxAttempts: 1}},
 	}}
 	_, err = Prepare(c, catalog, policy)
 	require.Error(t, err)
@@ -280,23 +271,34 @@ func capCarrierShapes(p *Profile) {
 	}
 }
 
+// addWorkflows adds count further workflow entrypoints beside addWorker's, each of which the fixture's
+// carrier reserves one activation of.
+func addWorkflows(source *testpilotspb.Case, count int) {
+	for i := range count {
+		workflow := proto.CloneOf(source.Program.Entrypoints[1])
+		workflow.EntrypointId = fmt.Sprintf("workflow_%d", i)
+		source.Program.Entrypoints = append(source.Program.Entrypoints, workflow)
+	}
+}
+
 func TestReservationAdmissionBoundsLocalAndGlobalAttempts(t *testing.T) {
 	for _, test := range []struct {
-		name                                string
-		local, global, count, ceiling, want int64
-		good                                bool
+		name                                    string
+		local, global, workflows, ceiling, want int64
+		good                                    bool
 	}{
-		{"local cap", 2, 32, 3, 7, 7, true}, {"equal caps", 2, 2, 3, 7, 7, true}, {"local above global", 8, 2, 3, 64, 0, false}, {"ceiling", 2, 32, 3, 6, 0, false}, {"zero", 1, 32, 0, 64, 0, false}, {"negative", 1, 32, -1, 64, 0, false}, {"overflow", 2, 32, math.MaxInt64, 64, 0, false},
+		{"local cap", 2, 32, 3, 7, 7, true}, {"equal caps", 2, 2, 3, 7, 7, true}, {"local above global", 8, 2, 3, 64, 0, false}, {"ceiling", 2, 32, 3, 6, 0, false},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			c, catalog, p := fixture(t)
 			addWorker(c, &p)
+			addWorkflows(c, int(test.workflows-1))
 			node := c.Program.Entrypoints[0].Instructions[0]
-			node.Limits.MaxAttempts = test.local
+			node.Limits.Attempts = &testpilotspb.InstructionLimits_MaxAttempts{MaxAttempts: test.local}
 			p.Limits.MaxAttempts = test.global
+			p.Limits.MaxEntrypoints = test.workflows + 1
 			p.Limits.MaxActivations = test.ceiling
 			capCarrierShapes(&p)
-			node.ActivationReservations = []*testpilotspb.ActivationReservationDefinition{{EntrypointId: "workflow", Count: test.count}}
 			prepared, err := Prepare(c, catalog, p)
 			if test.good {
 				require.NoError(t, err)
@@ -327,7 +329,7 @@ func TestPrepareSlotDataflowAndImmutableViews(t *testing.T) {
 		rpc.RequestAssignments = append(rpc.RequestAssignments, proto.CloneOf(rpc.RequestAssignments[0]))
 	}, "crossed cardinality": func(s *testpilotspb.Case) {
 		s.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().ResponseReads[0].Cardinality = testpilotspb.READ_CARDINALITY_EMIT_EACH
-	}, "undeclared outcome": func(s *testpilotspb.Case) { s.Program.Entrypoints[0].Instructions[0].Outcome.Fields = nil }} {
+	}} {
 		t.Run(name, func(t *testing.T) {
 			source := proto.CloneOf(c)
 			mutate(source)
@@ -352,79 +354,54 @@ func TestPrepareSlotDataflowAndImmutableViews(t *testing.T) {
 	require.Equal(t, "text", view.Observations()[0].ID)
 }
 
-func TestReservationTargetsAndExactCombinedBound(t *testing.T) {
+// A carrier reserves one activation of every workflow and Nexus-handler entrypoint its shapes admit,
+// in declaration order; an activity, a controller or a cleanup call reserves nothing.
+func TestPrepareDerivesReservationsFromTheProfileCarriers(t *testing.T) {
+	c, catalog, p := capabilityFixture(t)
+	c.Program.Entrypoints = append(c.Program.Entrypoints, &testpilotspb.Entrypoint{EntrypointId: "activity", Activation: &testpilotspb.Entrypoint_Activity{Activity: &testpilotspb.ActivityActivation{ActivityType: "activity", WorkerRoleId: "worker", TaskQueueRoleId: "queue"}}})
+	c.Program.Cleanup.Instructions = []*testpilotspb.InstructionNode{rpcNode("cleanup-call")}
+	prepared, err := Prepare(c, catalog, p)
+	require.NoError(t, err)
+	want := []contract.ReservationTopology{{EntrypointID: "workflow", Kind: contract.WorkflowEntrypoint, Count: 1}, {EntrypointID: "handler", Kind: contract.NexusHandlerEntrypoint, Count: 1}}
+	require.Equal(t, want, prepared.Entrypoints()[0].Instructions()[0].Reservations())
+	require.Empty(t, prepared.Entrypoints()[0].Instructions()[1].Reservations())
+	cleanup, ok := prepared.Cleanup()
+	require.True(t, ok)
+	require.Empty(t, cleanup.Instructions()[0].Reservations())
+
+	// A carrier whose shapes admit only workflows leaves the handler to no one.
+	p.Roles[0].ReservationCarriers[0].Shapes = p.Roles[0].ReservationCarriers[0].Shapes[:1]
+	_, err = Prepare(c, catalog, p)
+	require.Error(t, err)
+}
+
+// Two instructions that could both carry one entrypoint's reservation reject, naming both.
+func TestPrepareRejectsAnAmbiguousReservationCarrier(t *testing.T) {
 	for name, mutate := range map[string]func(*testpilotspb.Case){
-		"missing target": func(c *testpilotspb.Case) {
-			c.Program.Entrypoints[0].Instructions[0].ActivationReservations[0].EntrypointId = "missing"
+		"same entrypoint": func(c *testpilotspb.Case) {
+			second := rpcNode("call_second")
+			c.Program.Entrypoints[0].Instructions = append(c.Program.Entrypoints[0].Instructions, second)
 		},
-		"controller target": func(c *testpilotspb.Case) {
-			c.Program.Entrypoints[0].Instructions[0].ActivationReservations[0].EntrypointId = "controller"
-		},
-		"wrong binding": func(c *testpilotspb.Case) {
-			c.Program.Entrypoints[1].Activation = &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}}
-		},
-		"activity target": func(c *testpilotspb.Case) {
-			g := c.Program.Entrypoints[1]
-			g.Activation = &testpilotspb.Entrypoint_Activity{Activity: &testpilotspb.ActivityActivation{ActivityType: "activity", WorkerRoleId: "worker", TaskQueueRoleId: "queue"}}
-		},
-		"duplicate target": func(c *testpilotspb.Case) {
-			n := c.Program.Entrypoints[0].Instructions[0]
-			n.ActivationReservations = append(n.ActivationReservations, proto.CloneOf(n.ActivationReservations[0]))
-		},
-		"worker reservation": func(c *testpilotspb.Case) {
-			n := c.Program.Entrypoints[0].Instructions[0]
-			worker := proto.CloneOf(n)
-			worker.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_Finish{Finish: &testpilotspb.Finish{Result: textLiteral("done")}}}
-			c.Program.Entrypoints[1].Instructions = []*testpilotspb.InstructionNode{worker}
-		},
-		"cleanup reservation": func(c *testpilotspb.Case) {
-			c.Program.Cleanup.Instructions = []*testpilotspb.InstructionNode{proto.CloneOf(c.Program.Entrypoints[0].Instructions[0])}
-		},
-		"sum overflow": func(c *testpilotspb.Case) {
-			other := proto.CloneOf(c.Program.Entrypoints[1])
+		"another controller": func(c *testpilotspb.Case) {
+			other := proto.CloneOf(c.Program.Entrypoints[0])
 			other.EntrypointId = "other"
+			other.Instructions[0].InstructionId = "call_second"
 			c.Program.Entrypoints = append(c.Program.Entrypoints, other)
-			n := c.Program.Entrypoints[0].Instructions[0]
-			n.ActivationReservations = []*testpilotspb.ActivationReservationDefinition{{EntrypointId: "workflow", Count: math.MaxInt64}, {EntrypointId: "other", Count: math.MaxInt64}}
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			c, catalog, p := fixture(t)
 			addWorker(c, &p)
-			c.Program.Entrypoints[0].Instructions[0].ActivationReservations = []*testpilotspb.ActivationReservationDefinition{{EntrypointId: "workflow", Count: 1}}
 			mutate(c)
 			_, err := Prepare(c, catalog, p)
-			require.Error(t, err)
+			var diagnostic *ir.Error
+			require.ErrorAs(t, err, &diagnostic)
+			require.Equal(t, ir.Unsupported, diagnostic.Category)
+			require.Equal(t, "instructions call and call_second both carry the reservation of entrypoint workflow", diagnostic.Detail)
 		})
 	}
-	c, catalog, p := fixture(t)
-	addWorker(c, &p)
-	first := c.Program.Entrypoints[0].Instructions[0]
-	first.Limits.MaxAttempts = 2
-	first.ActivationReservations = []*testpilotspb.ActivationReservationDefinition{{EntrypointId: "workflow", Count: 5}}
-	second := proto.CloneOf(c.Program.Entrypoints[0])
-	second.EntrypointId = "second"
-	second.Instructions[0].Limits.MaxAttempts = 4
-	second.Instructions[0].ActivationReservations[0].Count = 3
-	c.Program.Entrypoints = append(c.Program.Entrypoints, second)
-	p.Limits.MaxAttempts = 4
-	p.Limits.MaxActivations = 17
-	capCarrierShapes(&p)
-	p.Limits.MaxActivations = 18
-	prepared, err := Prepare(c, catalog, p)
-	require.NoError(t, err)
-	require.Equal(t, int64(18), prepared.View().MaximumActivations())
-	p.Limits.MaxActivations = 17
-	_, err = Prepare(c, catalog, p)
-	require.Error(t, err)
-	first.ActivationReservations = nil
-	second.Instructions[0].ActivationReservations = nil
-	p.Limits.MaxActivations = 2
-	capCarrierShapes(&p)
-	prepared, err = Prepare(c, catalog, p)
-	require.NoError(t, err)
-	require.Equal(t, int64(2), prepared.View().MaximumActivations())
 }
+
 func textLiteral(value string) *testpilotspb.Expression {
 	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: value}}}}
 }
@@ -435,7 +412,6 @@ func environment(id string) *testpilotspb.Expression {
 
 func TestPrepareResolvesClosedEnvironmentGraph(t *testing.T) {
 	c, catalog, policy := fixture(t)
-	c.Program.Environment = []*testpilotspb.EnvironmentDefinition{{BindingId: "namespace"}, {BindingId: "queue"}}
 	c.Program.Roles = append(c.Program.Roles,
 		&testpilotspb.Role{RoleId: "worker", Kind: testpilotspb.ROLE_KIND_WORKER, NamespaceBindingId: "namespace"},
 		&testpilotspb.Role{RoleId: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE, NamespaceBindingId: "namespace", ResourceBindingId: "queue"},
@@ -462,29 +438,83 @@ func TestPrepareResolvesClosedEnvironmentGraph(t *testing.T) {
 	textField := request.ProtoReflect().Descriptor().Fields().ByName("text")
 	require.Equal(t, "namespace-a", request.ProtoReflect().Get(textField).String())
 
-	c.Program.Environment[0].BindingId = "changed"
+	c.Program.Roles[1].NamespaceBindingId = "changed"
 	c.Program.Roles[2].ResourceBindingId = "changed"
 	policy.EnvironmentBindings[0].Value = "changed"
-	require.Equal(t, "namespace", prepared.Snapshot().Environment[0].BindingId)
+	require.Equal(t, "namespace", prepared.Snapshot().Roles[1].NamespaceBindingId)
 	require.Equal(t, "namespace", prepared.Snapshot().Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().RequestAssignments[0].Value.GetReference().GetEnvironmentBindingId())
 	require.Equal(t, "namespace-a", prepared.graphs[0].nodes[0].assignments[0].value.Literal().GetTextValue())
 	require.Equal(t, "queue-a", prepared.roles["queue"].Resource)
 	require.Equal(t, "fingerprint", prepared.environmentFingerprint)
 }
 
+// A Program's binding graph is every binding its roles and expressions reference, each once, roles
+// first; preparation resolves exactly that set, and a referenced binding the Profile lacks rejects.
+func TestPrepareDerivesTheEnvironmentBindingGraph(t *testing.T) {
+	c, catalog, policy := fixture(t)
+	addWorker(c, &policy)
+	c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{{Target: field("text"), Value: environment("request")}}
+	cleanup := rpcNode("cleanup-call")
+	cleanup.Instruction.GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{{Target: field("text"), Value: environment("namespace")}}
+	c.Program.Cleanup.Instructions = []*testpilotspb.InstructionNode{cleanup}
+	require.Equal(t, []string{"namespace", "queue", "request"}, EnvironmentBindingIDs(c.Program))
+
+	_, err := Prepare(c, catalog, policy)
+	var diagnostic *ir.Error
+	require.ErrorAs(t, err, &diagnostic)
+	require.Equal(t, ir.Error{Category: ir.Unknown, Path: "environment", Detail: `environment binding "request" is not supplied by the Profile`}, *diagnostic)
+	policy.EnvironmentBindings = append(policy.EnvironmentBindings, contract.EnvironmentBinding{ID: "request", Value: "request-value"})
+	prepared, err := Prepare(c, catalog, policy)
+	require.NoError(t, err)
+	require.Equal(t, "request-value", prepared.graphs[0].nodes[0].assignments[0].value.Literal().GetTextValue())
+}
+
+// An instruction limit the Case omits takes the Profile's default, one it writes overrides it, and an
+// omitted limit the Profile has no default for rejects.
+func TestInstructionLimitsTakeTheProfileDefaults(t *testing.T) {
+	c, catalog, p := fixture(t)
+	c.Program.Entrypoints[0].Instructions[0].Limits = nil
+	_, err := Prepare(c, catalog, p)
+	var diagnostic *ir.Error
+	require.ErrorAs(t, err, &diagnostic)
+	require.Equal(t, ir.Error{Category: ir.Malformed, Path: "controller.call", Detail: "instruction writes no limit the Profile has no default for"}, *diagnostic)
+
+	p.InstructionDefaults = contract.InstructionDefaults{TimeoutMilliseconds: 2000, MaxAttempts: 3}
+	prepared, err := Prepare(c, catalog, p)
+	require.NoError(t, err)
+	plan := prepared.Entrypoints()[0].Instructions()[0]
+	require.Equal(t, []int64{2000, 3}, []int64{plan.TimeoutMilliseconds(), plan.MaxAttempts()})
+
+	c.Program.Entrypoints[0].Instructions[0].Limits = &testpilotspb.InstructionLimits{Attempts: &testpilotspb.InstructionLimits_MaxAttempts{MaxAttempts: 1}}
+	prepared, err = Prepare(c, catalog, p)
+	require.NoError(t, err)
+	plan = prepared.Entrypoints()[0].Instructions()[0]
+	require.Equal(t, []int64{2000, 1}, []int64{plan.TimeoutMilliseconds(), plan.MaxAttempts()})
+
+	for _, test := range []struct {
+		name     string
+		defaults contract.InstructionDefaults
+		want     ir.Error
+	}{
+		{"negative", contract.InstructionDefaults{TimeoutMilliseconds: -1}, ir.Error{Category: ir.Malformed, Path: "policy.instruction_defaults", Detail: "negative instruction default"}},
+		{"timeout above the ceiling", contract.InstructionDefaults{TimeoutMilliseconds: p.Limits.MaxTotalDurationMilliseconds + 1}, ir.Error{Category: ir.LimitExceeded, Path: "policy.instruction_defaults", Detail: "instruction default exceeds the Profile ceiling"}},
+		{"attempts above the ceiling", contract.InstructionDefaults{MaxAttempts: p.Limits.MaxAttempts + 1}, ir.Error{Category: ir.LimitExceeded, Path: "policy.instruction_defaults", Detail: "instruction default exceeds the Profile ceiling"}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			policy := p
+			policy.InstructionDefaults = test.defaults
+			_, err := Prepare(c, catalog, policy)
+			var diagnostic *ir.Error
+			require.ErrorAs(t, err, &diagnostic)
+			require.Equal(t, test.want, *diagnostic)
+		})
+	}
+}
+
 func TestPrepareEnvironmentVersionAndClosure(t *testing.T) {
 	for name, mutate := range map[string]func(*testpilotspb.Case, *Profile){
 		"unsupported 1.1": func(c *testpilotspb.Case, _ *Profile) { c.Version.Minor = 1 },
-		"duplicate definition": func(c *testpilotspb.Case, p *Profile) {
-			configureEnvironmentCase(c, p)
-			c.Program.Environment = append(c.Program.Environment, &testpilotspb.EnvironmentDefinition{BindingId: "binding"})
-		},
-		"unused definition": func(c *testpilotspb.Case, p *Profile) {
-			configureEnvironmentCase(c, p)
-			c.Program.Environment = append(c.Program.Environment, &testpilotspb.EnvironmentDefinition{BindingId: "unused"})
-			p.EnvironmentBindings = append(p.EnvironmentBindings, contract.EnvironmentBinding{ID: "unused", Value: "value"})
-		},
-		"undeclared reference": func(c *testpilotspb.Case, p *Profile) {
+		"reference the Profile lacks": func(c *testpilotspb.Case, p *Profile) {
 			configureEnvironmentCase(c, p)
 			c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().RequestAssignments[0].Value = environment("missing")
 		},
@@ -567,7 +597,6 @@ func TestPrepareRejectsMalformedEnvironmentPolicy(t *testing.T) {
 }
 
 func configureEnvironmentCase(c *testpilotspb.Case, policy *Profile) {
-	c.Program.Environment = []*testpilotspb.EnvironmentDefinition{{BindingId: "binding"}}
 	policy.EnvironmentBindings = []contract.EnvironmentBinding{{ID: "binding", Value: "value"}}
 	c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{{Target: field("text"), Value: environment("binding")}}
 }
@@ -602,7 +631,7 @@ func TestConcurrentEnvironmentRequestsUsePreparedSnapshot(t *testing.T) {
 	configureEnvironmentCase(c, &policy)
 	prepared, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
-	c.Program.Environment[0].BindingId = "changed"
+	c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().RequestAssignments[0].Value = environment("changed")
 	policy.EnvironmentBindings[0].Value = "changed"
 
 	for i := 0; i < 8; i++ {
@@ -681,12 +710,10 @@ func capabilityFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Profile) 
 	await := rpcNode("await")
 	await.Guard = alwaysRuns()
 	await.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitInstruction{AwaitInstruction: &testpilotspb.AwaitInstruction{Instruction: &testpilotspb.InstructionReference{EntrypointId: "workflow", InstructionId: "start"}}}}
-	await.Outcome.Fields = append(await.Outcome.Fields, &testpilotspb.OutcomeFieldDefinition{Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE, Type: scalar(testpilotspb.SCALAR_KIND_TEXT)})
 	finish := rpcNode("finish")
 	finish.Guard = succeeded("workflow", "await")
 	finish.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_Finish{Finish: &testpilotspb.Finish{Result: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_Outcome{Outcome: &testpilotspb.InstructionOutcomeReference{Instruction: &testpilotspb.InstructionReference{EntrypointId: "workflow", InstructionId: "await"}, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE}}}}}}}}
 	c.Program.Entrypoints[1].Instructions = []*testpilotspb.InstructionNode{start, await, finish}
-	c.Program.Entrypoints[0].Instructions[0].ActivationReservations = []*testpilotspb.ActivationReservationDefinition{{EntrypointId: "workflow", Count: 1}, {EntrypointId: "handler", Count: 1}}
 	return c, catalog, p
 }
 func TestOpaqueReadinessAndSDKPreparedPlans(t *testing.T) {
@@ -700,7 +727,6 @@ func TestOpaqueReadinessAndSDKPreparedPlans(t *testing.T) {
 		"consume without readiness": func(s *testpilotspb.Case) { s.Program.Entrypoints[0].Instructions[2].Guard = alwaysRuns() },
 		"missing capability writer": func(s *testpilotspb.Case) {
 			s.Program.Entrypoints = s.Program.Entrypoints[:2]
-			s.Program.Entrypoints[0].Instructions[0].ActivationReservations = s.Program.Entrypoints[0].Instructions[0].ActivationReservations[:1]
 		},
 		"capability projection": func(s *testpilotspb.Case) {
 			s.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: field("text"), Cardinality: testpilotspb.READ_CARDINALITY_ONE, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "capability"}}}}}

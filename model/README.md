@@ -46,9 +46,12 @@ Umpire-backed Producers lower checked semantics into generated values and pass t
 opaque provenance, and final generated Case assembly. The Testpilot-only synthetic Producer assembles its generated Case
 directly.
 
-Exact Case 1.0 is the only admitted format. Resource-bearing Programs declare a complete closed graph
-of symbolic text resources, while resource-free Programs may have an empty environment. Producers declare stable namespace, task-queue, and named Nexus endpoint binding IDs;
-they do not embed the physical resource names. These IDs are resource references, not transport
+Exact Case 1.0 is the only admitted format. A Program's symbolic binding graph is the set of binding
+IDs its roles and expressions reference, derived at preparation; a resource-free Program references
+none. Producers name stable namespace, task-queue, and named Nexus endpoint binding IDs on roles and
+references; they do not embed the physical resource names. Producers also omit what preparation
+derives: outcome fields, activation reservations, and instruction limits equal to the Profile's
+instruction defaults. These IDs are resource references, not transport
 addresses. Rebinding an unchanged Case does not change its canonical bytes, Contract, Behavior
 Fingerprints, or opaque producer provenance.
 

@@ -400,6 +400,14 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   physical namespace, task-queue, and named Nexus endpoint values. Symbolic endpoint IDs are not
   transport addresses. Credentials, gRPC targets, callback authorities, SDK clients, and lifecycle
   configuration remain Driver inputs.
+  *Restatement (drafted by fn-87; awaiting GOV-02 approval.)* Exact Case 1.0 is the only admitted
+  and generated format. A Program's symbolic binding graph MUST be the closed set of binding IDs its
+  roles and expressions reference, derived at preparation rather than declared; a resource-free
+  Program references none. Preparation MUST reject a referenced binding the Profile does not supply.
+  The Case owns only symbolic IDs and references; the Profile owns their physical namespace,
+  task-queue, and named Nexus endpoint values. Symbolic endpoint IDs are not transport addresses.
+  Credentials, gRPC targets, callback authorities, SDK clients, and lifecycle configuration remain
+  Driver inputs.
 - **ART-14 — Binding identity.** Preparation and Driver identity MUST include the same deterministic
   fingerprint of the complete immutable Profile binding snapshot. Reordering equal bindings MUST
   preserve the fingerprint; changing any binding, including one unused by the Case, MUST change it.

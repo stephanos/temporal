@@ -22,6 +22,7 @@ type Profile struct {
 	EnvironmentBindings    []contract.EnvironmentBinding
 	EnvironmentFingerprint string
 	Limits                 *testpilotspb.ProgramLimits
+	InstructionDefaults    contract.InstructionDefaults
 }
 
 type Observation struct {
@@ -113,11 +114,18 @@ type node struct {
 	// the node whenever it is ready.
 	guardSource *testpilotspb.Expression
 	guard       *ir.Expression
-	outcomes    map[testpilotspb.InstructionOutcomeField]ir.Type
-	method      protoreflect.MethodDescriptor
-	assignments []assignment
-	projections []projection
-	input       *ir.Expression
+	// outcomes are the outcome fields the instruction produces, with their types.
+	outcomes map[testpilotspb.InstructionOutcomeField]ir.Type
+	// timeoutMilliseconds and maxAttempts are the node's limits, a Profile default where the Case
+	// writes none.
+	timeoutMilliseconds, maxAttempts int64
+	// reservations are the worker activations the node reserves as a reservation carrier, in
+	// entrypoint declaration order.
+	reservations []contract.ReservationTopology
+	method       protoreflect.MethodDescriptor
+	assignments  []assignment
+	projections  []projection
+	input        *ir.Expression
 }
 type assignment struct {
 	target               *ir.Path
@@ -215,7 +223,12 @@ func (p EntrypointPlan) Instructions() []InstructionPlan {
 func (p InstructionPlan) Source() *testpilotspb.InstructionNode {
 	return proto.CloneOf(p.node.source)
 }
-func (p InstructionPlan) Opcode() contract.Opcode               { return p.node.opcode }
+func (p InstructionPlan) Opcode() contract.Opcode    { return p.node.opcode }
+func (p InstructionPlan) TimeoutMilliseconds() int64 { return p.node.timeoutMilliseconds }
+func (p InstructionPlan) MaxAttempts() int64         { return p.node.maxAttempts }
+func (p InstructionPlan) Reservations() []contract.ReservationTopology {
+	return slices.Clone(p.node.reservations)
+}
 func (p InstructionPlan) Dependencies() []int                   { return slices.Clone(p.node.dependencies) }
 func (p InstructionPlan) Guard() *ir.Expression                 { return p.node.guard }
 func (p InstructionPlan) Input() *ir.Expression                 { return p.node.input }

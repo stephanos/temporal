@@ -507,7 +507,7 @@ func (s *scheduler) dispatch(ctx context.Context, task scheduledNode, cleanup bo
 	if err != nil || decision == Stop && !cleanup {
 		return 0, false, decision, err
 	}
-	operationCtx, cancel := context.WithTimeout(ctx, time.Duration(n.source.Limits.TimeoutMilliseconds)*time.Millisecond)
+	operationCtx, cancel := context.WithTimeout(ctx, time.Duration(n.timeoutMilliseconds)*time.Millisecond)
 	effect, reservations, bridge, err := s.admitDispatch(operationCtx, task, request, input, cleanup)
 	if err != nil {
 		cancel()
@@ -645,8 +645,8 @@ func (s *scheduler) reserve(ctx context.Context, task scheduledNode) ([]contract
 	var reservations []scheduledReservation
 	n := task.activation.values.graph.nodes[task.index]
 	c := s.coordinate(task)
-	for declarationIndex, declaration := range n.source.ActivationReservations {
-		request := contract.ReservationRequest{Origin: c, EntrypointID: declaration.EntrypointId, Count: declaration.Count}
+	for declarationIndex, declaration := range n.reservations {
+		request := contract.ReservationRequest{Origin: c, EntrypointID: declaration.EntrypointID, Count: declaration.Count}
 		acquired, err := s.session.Reserve(ctx, request)
 		for _, h := range acquired {
 			if !isNil(h) {

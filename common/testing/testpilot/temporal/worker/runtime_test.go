@@ -24,7 +24,6 @@ func TestDriverSymbolicModeDerivesResourcesAndRejectsBindingIdentityMismatchBefo
 	prepared := preparedSymbolicRuntimeFixture(t)
 	host := symbolicRuntimeDriver(t, prepared.Limits())
 	rejected := preparedSymbolicRuntimeFixture(t, func(program *testpilotspb.Program) {
-		program.Environment = append(program.Environment, &testpilotspb.EnvironmentDefinition{BindingId: "other-namespace"})
 		for _, role := range program.Roles {
 			if role.GetRoleId() == "queue" {
 				role.NamespaceBindingId = "other-namespace"
@@ -58,7 +57,6 @@ func TestDriverSymbolicModeComparesRequestBindingIDsRatherThanResolvedText(t *te
 	}{
 		"StartWorkflow namespace": {
 			program: func(program *testpilotspb.Program) {
-				program.Environment = append(program.Environment, &testpilotspb.EnvironmentDefinition{BindingId: "other-namespace"})
 				program.Entrypoints[0].Instructions[0].GetInstruction().GetInvokeRpc().RequestAssignments[0].Value = symbolicEnvironment("other-namespace")
 			},
 			profile: func(profile *testpilot.ProfileSpec) {
@@ -67,7 +65,6 @@ func TestDriverSymbolicModeComparesRequestBindingIDsRatherThanResolvedText(t *te
 		},
 		"StartWorkflow task queue": {
 			program: func(program *testpilotspb.Program) {
-				program.Environment = append(program.Environment, &testpilotspb.EnvironmentDefinition{BindingId: "other-queue"})
 				program.Entrypoints[0].Instructions[0].GetInstruction().GetInvokeRpc().RequestAssignments[1].Value = symbolicEnvironment("other-queue")
 			},
 			profile: func(profile *testpilot.ProfileSpec) {
@@ -76,9 +73,7 @@ func TestDriverSymbolicModeComparesRequestBindingIDsRatherThanResolvedText(t *te
 		},
 		"GetHistory namespace": {
 			program: func(program *testpilotspb.Program) {
-				program.Environment = append(program.Environment, &testpilotspb.EnvironmentDefinition{BindingId: "other-namespace"})
 				call := program.Entrypoints[0].Instructions[0]
-				call.ActivationReservations = nil
 				invoke := call.GetInstruction().GetInvokeRpc()
 				invoke.Method = getHistoryMethod
 				invoke.RequestAssignments = []*testpilotspb.RequestAssignment{{Target: symbolicFieldPath("namespace"), Value: symbolicEnvironment("other-namespace")}}
@@ -121,7 +116,6 @@ func TestDriverValidatesControllerOnlyTemporalResourceBindings(t *testing.T) {
 		},
 		"GetHistory crossed namespace": {
 			program: func(program *testpilotspb.Program) {
-				program.Environment = append(program.Environment, &testpilotspb.EnvironmentDefinition{BindingId: "other-namespace"})
 				invoke := program.Entrypoints[0].Instructions[0].GetInstruction().GetInvokeRpc()
 				invoke.Method = getHistoryMethod
 				invoke.RequestAssignments = []*testpilotspb.RequestAssignment{{Target: symbolicFieldPath("namespace"), Value: symbolicEnvironment("other-namespace")}}
@@ -134,7 +128,6 @@ func TestDriverValidatesControllerOnlyTemporalResourceBindings(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			modifiers := []any{func(program *testpilotspb.Program) {
-				program.Entrypoints[0].Instructions[0].ActivationReservations = nil
 				program.Entrypoints = program.Entrypoints[:1]
 				configure.program(program)
 			}}
@@ -166,8 +159,7 @@ func TestDriverRejectsInvalidCleanupResourceBindingBeforeOpen(t *testing.T) {
 					Target: symbolicFieldPath("namespace"), Value: runtimeText("namespace"),
 				}},
 			}}},
-			Outcome: runtimeStatusSchema(),
-			Limits:  runtimeBounds(),
+			Limits: runtimeBounds(),
 		}}
 	}, authorizeGetHistory)
 	host := symbolicRuntimeDriver(t, prepared.Limits())
@@ -206,7 +198,6 @@ func TestDriverSymbolicModeRejectsUnsupportedEndpointResources(t *testing.T) {
 					role.ResourceBindingId = ""
 				}
 			}
-			program.Environment = program.Environment[:2]
 		},
 		"RPC transport resource": func(program *testpilotspb.Program) {
 			for _, role := range program.Roles {

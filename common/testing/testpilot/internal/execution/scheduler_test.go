@@ -3,7 +3,6 @@ package execution
 import (
 	"context"
 	"errors"
-	"fmt"
 	"testing"
 	"time"
 
@@ -74,7 +73,7 @@ func TestSchedulerProjectsActualValues(t *testing.T) {
 func TestSchedulerDependencyConcurrencyGuardsAndIsolation(t *testing.T) {
 	c, catalog, policy := fixture(t)
 	first := c.Program.Entrypoints[0].Instructions[0]
-	first.Limits.MaxAttempts = 3
+	first.Limits.Attempts = &testpilotspb.InstructionLimits_MaxAttempts{MaxAttempts: 3}
 	second := rpcNode("second")
 	second.After = runsAfter("controller")
 	skipped := rpcNode("skipped")
@@ -129,44 +128,42 @@ func (h *schedulerReservation) Consume(context.Context) (contract.Coordinate, er
 	return h.activation, nil
 }
 func TestSchedulerReservationsRetainEveryHandle(t *testing.T) {
-	for _, mode := range []string{"exact", "partial", "error", "nil", "duplicate-id", "duplicate-ordinal", "crossed", "effect-error"} {
+	for _, mode := range []string{"exact", "partial", "error", "nil", "duplicate-id", "ordinal-range", "crossed", "effect-error"} {
 		t.Run(mode, func(t *testing.T) {
 			c, catalog, policy := fixture(t)
 			addWorker(c, &policy)
-			c.Program.Entrypoints[0].Instructions[0].ActivationReservations = []*testpilotspb.ActivationReservationDefinition{{EntrypointId: "workflow", Count: 2}}
+			// The carrier reserves one activation of each workflow; the host misbehaves on the second.
+			second := proto.CloneOf(c.Program.Entrypoints[1])
+			second.EntrypointId = "workflow_second"
+			c.Program.Entrypoints = append(c.Program.Entrypoints, second)
 			p, err := Prepare(c, catalog, policy)
 			require.NoError(t, err)
 			accepted := []contract.EffectHandle{}
 			calls := 0
 			host := &schedulerHost{}
 			host.reserve = func(_ context.Context, r contract.ReservationRequest) ([]contract.ReservationHandle, error) {
-				result := []contract.ReservationHandle{}
-				for i := int64(0); i < 2; i++ {
-					h := &schedulerReservation{identity: contract.ReservationIdentity{Origin: r.Origin, EntrypointID: r.EntrypointID, Ordinal: i, ID: fmt.Sprintf("reservation.%d", i)}, activation: contract.Coordinate{RunID: r.Origin.RunID, EntrypointID: r.EntrypointID, ActivationID: fmt.Sprintf("actual-worker.%d", i)}, schedulerEffect: schedulerEffect{wait: func(context.Context) (contract.EffectResult, error) {
-						return contract.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}}, nil
-					}}}
-					if i == 1 {
-						switch mode {
-						case "partial":
-							return result, nil
-						case "error":
-							return result, errors.New("reserve failed")
-						case "nil":
-							result = append(result, (*schedulerReservation)(nil))
-							return result, nil
-						case "duplicate-id":
-							h.identity.ID = "reservation.0"
-						case "duplicate-ordinal":
-							h.identity.Ordinal = 0
-						case "crossed":
-							h.identity.Origin.RunID = "other"
-						default:
-						}
+				h := &schedulerReservation{identity: contract.ReservationIdentity{Origin: r.Origin, EntrypointID: r.EntrypointID, Ordinal: 0, ID: "reservation." + r.EntrypointID}, activation: contract.Coordinate{RunID: r.Origin.RunID, EntrypointID: r.EntrypointID, ActivationID: "actual-" + r.EntrypointID}, schedulerEffect: schedulerEffect{wait: func(context.Context) (contract.EffectResult, error) {
+					return contract.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}}, nil
+				}}}
+				if r.EntrypointID == "workflow_second" {
+					switch mode {
+					case "partial":
+						return nil, nil
+					case "error":
+						return nil, errors.New("reserve failed")
+					case "nil":
+						return []contract.ReservationHandle{(*schedulerReservation)(nil)}, nil
+					case "duplicate-id":
+						h.identity.ID = "reservation.workflow"
+					case "ordinal-range":
+						h.identity.Ordinal = 1
+					case "crossed":
+						h.identity.Origin.RunID = "other"
+					default:
 					}
-					result = append(result, h)
-					accepted = append(accepted, h)
 				}
-				return result, nil
+				accepted = append(accepted, h)
+				return []contract.ReservationHandle{h}, nil
 			}
 			host.invoke = func(context.Context, contract.Coordinate, proto.Message) (contract.EffectHandle, error) {
 				calls++
@@ -207,7 +204,7 @@ func TestSchedulerTimeoutAndProtocolBranches(t *testing.T) {
 	for _, status := range []testpilotspb.InstructionOutcomeStatus{testpilotspb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT, testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE} {
 		t.Run(status.String(), func(t *testing.T) {
 			c, catalog, policy := fixture(t)
-			c.Program.Entrypoints[0].Instructions[0].Limits.MaxAttempts = 3
+			c.Program.Entrypoints[0].Instructions[0].Limits.Attempts = &testpilotspb.InstructionLimits_MaxAttempts{MaxAttempts: 3}
 			branch := rpcNode("branch")
 			branch.Guard = succeeded("controller", "call")
 			branch.Guard.GetCompare().Right.GetLiteral().GetEnumValue().Number = int32(status)
@@ -402,7 +399,6 @@ func TestSchedulerMalformedAndLimitFailures(t *testing.T) {
 			}
 			if mode == "worker-error" {
 				addWorker(c, &policy)
-				c.Program.Entrypoints[0].Instructions[0].ActivationReservations = []*testpilotspb.ActivationReservationDefinition{{EntrypointId: "workflow", Count: 1}}
 			}
 			p, err := Prepare(c, catalog, policy)
 			require.NoError(t, err)
@@ -513,7 +509,6 @@ func TestSchedulerOpaqueReadinessAndCompletion(t *testing.T) {
 func TestSchedulerStopPreventsTriggerAndReservations(t *testing.T) {
 	c, catalog, policy := fixture(t)
 	addWorker(c, &policy)
-	c.Program.Entrypoints[0].Instructions[0].ActivationReservations = []*testpilotspb.ActivationReservationDefinition{{EntrypointId: "workflow", Count: 1}}
 	p, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
 	h := &schedulerHost{invoke: func(context.Context, contract.Coordinate, proto.Message) (contract.EffectHandle, error) {

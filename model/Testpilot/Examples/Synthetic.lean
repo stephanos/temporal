@@ -12,8 +12,6 @@ namespace Testpilot.Examples.Synthetic
 open temporal.server.api.testpilot.v1
 open Testpilot.Authoring
 
-private def instructionLimits := Program.instructionLimits 1000 1
-
 private def formatVersion : google.protobuf.Any := {
   type_url := "type.googleapis.com/temporal.server.api.testpilot.v1.FormatVersion"
   value := ByteArray.mk #[8, 1, 16, 2]
@@ -28,12 +26,8 @@ private def program : temporal.server.api.testpilot.v1.Program := Program.make
   #[]
   #[Program.workflow "workflow" "SyntheticWorkflow" "worker" "task.queue"
     #[Program.node "finish"
-      (Program.finish (Expr.literal (Value.messageValue formatVersion))) instructionLimits
-      (outcome := some (Program.outcome #[Program.outcomeField
-        .INSTRUCTION_OUTCOME_FIELD_VALUE (Types.singular (Types.messageType
-          "temporal.server.api.testpilot.v1.FormatVersion"))]))]]
+      (Program.finish (Expr.literal (Value.messageValue formatVersion)))]]
   (Program.cleanup "cleanup" #[])
-  (environment := #[Program.environment "namespace", Program.environment "task.queue"])
 
 private def contract : Contract := Contract.contract "testpilot.synthetic.contract" #[
   Contract.rule "completion" .CONTRACT_RULE_KIND_SAFETY "open"
