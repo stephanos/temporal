@@ -96,7 +96,7 @@ func TestTypedUnaryCaseMissingRecordedTypeStaysInconclusive(t *testing.T) {
 			test.driver.recordedType = TypedUnaryWorkflowType
 			run, verdict, err := prepared.Run(t.Context(), test.driver)
 			require.NoError(t, err)
-			require.Equal(t, testpilotspb.RUN_STATUS_COMPLETED, run.GetStatus())
+			require.Equal(t, testpilotspb.RUN_DISPOSITION_COMPLETED, run.GetDisposition())
 			require.Equal(t, testpilotspb.VERDICT_STATUS_INCONCLUSIVE, verdict.GetStatus())
 			require.Len(t, verdict.GetRules(), 1)
 			require.Empty(t, verdict.GetRules()[0].GetTerminalStateId())
@@ -124,27 +124,27 @@ func TestTypedUnaryCaseBoundedHistoryLoad(t *testing.T) {
 		name     string
 		filler   int
 		bytes    int
-		run      testpilotspb.RunStatus
+		run      testpilotspb.RunDisposition
 		verdict  testpilotspb.VerdictStatus
 		terminal string
 	}{
 		{
 			name: "inside both budgets", filler: 4, bytes: 64,
-			run: testpilotspb.RUN_STATUS_COMPLETED, verdict: testpilotspb.VERDICT_STATUS_SATISFIED,
+			run: testpilotspb.RUN_DISPOSITION_COMPLETED, verdict: testpilotspb.VERDICT_STATUS_SATISFIED,
 			terminal: "satisfied",
 		},
 		{
 			name: "at the collection budget", filler: int(collectionBudget) - 1, bytes: 0,
-			run: testpilotspb.RUN_STATUS_COMPLETED, verdict: testpilotspb.VERDICT_STATUS_SATISFIED,
+			run: testpilotspb.RUN_DISPOSITION_COMPLETED, verdict: testpilotspb.VERDICT_STATUS_SATISFIED,
 			terminal: "satisfied",
 		},
 		{
 			name: "one past the collection budget", filler: int(collectionBudget), bytes: 0,
-			run: testpilotspb.RUN_STATUS_INCOMPLETE, verdict: testpilotspb.VERDICT_STATUS_INCONCLUSIVE,
+			run: testpilotspb.RUN_DISPOSITION_INCOMPLETE, verdict: testpilotspb.VERDICT_STATUS_INCONCLUSIVE,
 		},
 		{
 			name: "past the payload budget", filler: 4, bytes: int(payloadBudget) * 2,
-			run: testpilotspb.RUN_STATUS_INCOMPLETE, verdict: testpilotspb.VERDICT_STATUS_INCONCLUSIVE,
+			run: testpilotspb.RUN_DISPOSITION_INCOMPLETE, verdict: testpilotspb.VERDICT_STATUS_INCONCLUSIVE,
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
@@ -162,7 +162,7 @@ func TestTypedUnaryCaseBoundedHistoryLoad(t *testing.T) {
 			}
 			run, verdict, err := prepared.Run(t.Context(), driver)
 			require.NoError(t, err)
-			require.Equal(t, test.run, run.GetStatus())
+			require.Equal(t, test.run, run.GetDisposition())
 			require.Equal(t, test.verdict, verdict.GetStatus())
 			require.Len(t, verdict.GetRules(), 1)
 			require.Equal(t, test.terminal, verdict.GetRules()[0].GetTerminalStateId())

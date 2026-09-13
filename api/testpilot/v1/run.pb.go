@@ -134,46 +134,46 @@ func (RunEventKind) EnumDescriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{0}
 }
 
-type RunStatus int32
+type RunDisposition int32
 
 const (
-	RUN_STATUS_UNSPECIFIED        RunStatus = 0
-	RUN_STATUS_COMPLETED          RunStatus = 1
-	RUN_STATUS_STOPPED_BY_MONITOR RunStatus = 2
-	RUN_STATUS_INCOMPLETE         RunStatus = 3
+	RUN_DISPOSITION_UNSPECIFIED        RunDisposition = 0
+	RUN_DISPOSITION_COMPLETED          RunDisposition = 1
+	RUN_DISPOSITION_STOPPED_BY_MONITOR RunDisposition = 2
+	RUN_DISPOSITION_INCOMPLETE         RunDisposition = 3
 )
 
-// Enum value maps for RunStatus.
+// Enum value maps for RunDisposition.
 var (
-	RunStatus_name = map[int32]string{
-		0: "RUN_STATUS_UNSPECIFIED",
-		1: "RUN_STATUS_COMPLETED",
-		2: "RUN_STATUS_STOPPED_BY_MONITOR",
-		3: "RUN_STATUS_INCOMPLETE",
+	RunDisposition_name = map[int32]string{
+		0: "RUN_DISPOSITION_UNSPECIFIED",
+		1: "RUN_DISPOSITION_COMPLETED",
+		2: "RUN_DISPOSITION_STOPPED_BY_MONITOR",
+		3: "RUN_DISPOSITION_INCOMPLETE",
 	}
-	RunStatus_value = map[string]int32{
-		"RUN_STATUS_UNSPECIFIED":        0,
-		"RUN_STATUS_COMPLETED":          1,
-		"RUN_STATUS_STOPPED_BY_MONITOR": 2,
-		"RUN_STATUS_INCOMPLETE":         3,
+	RunDisposition_value = map[string]int32{
+		"RUN_DISPOSITION_UNSPECIFIED":        0,
+		"RUN_DISPOSITION_COMPLETED":          1,
+		"RUN_DISPOSITION_STOPPED_BY_MONITOR": 2,
+		"RUN_DISPOSITION_INCOMPLETE":         3,
 	}
 )
 
-func (x RunStatus) Enum() *RunStatus {
-	p := new(RunStatus)
+func (x RunDisposition) Enum() *RunDisposition {
+	p := new(RunDisposition)
 	*p = x
 	return p
 }
 
-func (x RunStatus) String() string {
+func (x RunDisposition) String() string {
 	switch x {
-	case RUN_STATUS_UNSPECIFIED:
+	case RUN_DISPOSITION_UNSPECIFIED:
 		return "Unspecified"
-	case RUN_STATUS_COMPLETED:
+	case RUN_DISPOSITION_COMPLETED:
 		return "Completed"
-	case RUN_STATUS_STOPPED_BY_MONITOR:
+	case RUN_DISPOSITION_STOPPED_BY_MONITOR:
 		return "StoppedByMonitor"
-	case RUN_STATUS_INCOMPLETE:
+	case RUN_DISPOSITION_INCOMPLETE:
 		return "Incomplete"
 	default:
 		return strconv.Itoa(int(x))
@@ -181,20 +181,20 @@ func (x RunStatus) String() string {
 
 }
 
-func (RunStatus) Descriptor() protoreflect.EnumDescriptor {
+func (RunDisposition) Descriptor() protoreflect.EnumDescriptor {
 	return file_temporal_server_api_testpilot_v1_run_proto_enumTypes[1].Descriptor()
 }
 
-func (RunStatus) Type() protoreflect.EnumType {
+func (RunDisposition) Type() protoreflect.EnumType {
 	return &file_temporal_server_api_testpilot_v1_run_proto_enumTypes[1]
 }
 
-func (x RunStatus) Number() protoreflect.EnumNumber {
+func (x RunDisposition) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
 
-// Deprecated: Use RunStatus.Descriptor instead.
-func (RunStatus) EnumDescriptor() ([]byte, []int) {
+// Deprecated: Use RunDisposition.Descriptor instead.
+func (RunDisposition) EnumDescriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{1}
 }
 
@@ -1059,7 +1059,7 @@ type Run struct {
 	CaseId      string                 `protobuf:"bytes,2,opt,name=case_id,json=caseId,proto3" json:"case_id,omitempty"`
 	ProgramId   string                 `protobuf:"bytes,3,opt,name=program_id,json=programId,proto3" json:"program_id,omitempty"`
 	Events      []*RunEvent            `protobuf:"bytes,4,rep,name=events,proto3" json:"events,omitempty"`
-	Status      RunStatus              `protobuf:"varint,5,opt,name=status,proto3,enum=temporal.server.api.testpilot.v1.RunStatus" json:"status,omitempty"`
+	Disposition RunDisposition         `protobuf:"varint,5,opt,name=disposition,proto3,enum=temporal.server.api.testpilot.v1.RunDisposition" json:"disposition,omitempty"`
 	Cleanup     *CleanupOutcome        `protobuf:"bytes,6,opt,name=cleanup,proto3" json:"cleanup,omitempty"`
 	Verdict     *Verdict               `protobuf:"bytes,7,opt,name=verdict,proto3" json:"verdict,omitempty"`
 	Diagnostics []*RunDiagnostic       `protobuf:"bytes,8,rep,name=diagnostics,proto3" json:"diagnostics,omitempty"`
@@ -1132,11 +1132,11 @@ func (x *Run) GetEvents() []*RunEvent {
 	return nil
 }
 
-func (x *Run) GetStatus() RunStatus {
+func (x *Run) GetDisposition() RunDisposition {
 	if x != nil {
-		return x.Status
+		return x.Disposition
 	}
-	return RUN_STATUS_UNSPECIFIED
+	return RUN_DISPOSITION_UNSPECIFIED
 }
 
 func (x *Run) GetCleanup() *CleanupOutcome {
@@ -1241,12 +1241,12 @@ func (x *CorrelatedBinding) GetValue() string {
 }
 
 type CorrelatedIdentity struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Scope         []*CorrelatedBinding   `protobuf:"bytes,1,rep,name=scope,proto3" json:"scope,omitempty"`
-	Source        string                 `protobuf:"bytes,2,opt,name=source,proto3" json:"source,omitempty"`
-	Ordinal       int64                  `protobuf:"varint,3,opt,name=ordinal,proto3" json:"ordinal,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Scope          []*CorrelatedBinding   `protobuf:"bytes,1,rep,name=scope,proto3" json:"scope,omitempty"`
+	EvidenceSource string                 `protobuf:"bytes,2,opt,name=evidence_source,json=evidenceSource,proto3" json:"evidence_source,omitempty"`
+	Ordinal        int64                  `protobuf:"varint,3,opt,name=ordinal,proto3" json:"ordinal,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *CorrelatedIdentity) Reset() {
@@ -1286,9 +1286,9 @@ func (x *CorrelatedIdentity) GetScope() []*CorrelatedBinding {
 	return nil
 }
 
-func (x *CorrelatedIdentity) GetSource() string {
+func (x *CorrelatedIdentity) GetEvidenceSource() string {
 	if x != nil {
-		return x.Source
+		return x.EvidenceSource
 	}
 	return ""
 }
@@ -1474,14 +1474,14 @@ const file_temporal_server_api_testpilot_v1_run_proto_rawDesc = "" +
 	"\aVerdict\x12G\n" +
 	"\x06status\x18\x01 \x01(\x0e2/.temporal.server.api.testpilot.v1.VerdictStatusR\x06status\x12C\n" +
 	"\x05rules\x18\x02 \x03(\v2-.temporal.server.api.testpilot.v1.RuleVerdictR\x05rules\x12<\n" +
-	"\x1asupporting_event_sequences\x18\x03 \x03(\x03R\x18supportingEventSequences\"\x99\x04\n" +
+	"\x1asupporting_event_sequences\x18\x03 \x03(\x03R\x18supportingEventSequences\"\xa8\x04\n" +
 	"\x03Run\x12\x15\n" +
 	"\x06run_id\x18\x01 \x01(\tR\x05runId\x12\x17\n" +
 	"\acase_id\x18\x02 \x01(\tR\x06caseId\x12\x1d\n" +
 	"\n" +
 	"program_id\x18\x03 \x01(\tR\tprogramId\x12B\n" +
-	"\x06events\x18\x04 \x03(\v2*.temporal.server.api.testpilot.v1.RunEventR\x06events\x12C\n" +
-	"\x06status\x18\x05 \x01(\x0e2+.temporal.server.api.testpilot.v1.RunStatusR\x06status\x12J\n" +
+	"\x06events\x18\x04 \x03(\v2*.temporal.server.api.testpilot.v1.RunEventR\x06events\x12R\n" +
+	"\vdisposition\x18\x05 \x01(\x0e20.temporal.server.api.testpilot.v1.RunDispositionR\vdisposition\x12J\n" +
 	"\acleanup\x18\x06 \x01(\v20.temporal.server.api.testpilot.v1.CleanupOutcomeR\acleanup\x12C\n" +
 	"\averdict\x18\a \x01(\v2).temporal.server.api.testpilot.v1.VerdictR\averdict\x12Q\n" +
 	"\vdiagnostics\x18\b \x03(\v2/.temporal.server.api.testpilot.v1.RunDiagnosticR\vdiagnostics\x12@\n" +
@@ -1489,10 +1489,10 @@ const file_temporal_server_api_testpilot_v1_run_proto_rawDesc = "" +
 	"\x12evaluation_failure\"D\n" +
 	"\x11CorrelatedBinding\x12\x19\n" +
 	"\bfield_id\x18\x01 \x01(\tR\afieldId\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value\"\x91\x01\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value\"\xa2\x01\n" +
 	"\x12CorrelatedIdentity\x12I\n" +
-	"\x05scope\x18\x01 \x03(\v23.temporal.server.api.testpilot.v1.CorrelatedBindingR\x05scope\x12\x16\n" +
-	"\x06source\x18\x02 \x01(\tR\x06source\x12\x18\n" +
+	"\x05scope\x18\x01 \x03(\v23.temporal.server.api.testpilot.v1.CorrelatedBindingR\x05scope\x12'\n" +
+	"\x0fevidence_source\x18\x02 \x01(\tR\x0eevidenceSource\x12\x18\n" +
 	"\aordinal\x18\x03 \x01(\x03R\aordinal\"s\n" +
 	"\x17CorrelatedEvidenceField\x12\x19\n" +
 	"\bfield_id\x18\x01 \x01(\tR\afieldId\x12=\n" +
@@ -1516,12 +1516,12 @@ const file_temporal_server_api_testpilot_v1_run_proto_rawDesc = "" +
 	"\x19RUN_EVENT_KIND_RUN_CLOSED\x10\t\x12\x1d\n" +
 	"\x19RUN_EVENT_KIND_DIAGNOSTIC\x10\n" +
 	"\x12!\n" +
-	"\x1dRUN_EVENT_KIND_FAULT_INJECTED\x10\v*\x7f\n" +
-	"\tRunStatus\x12\x1a\n" +
-	"\x16RUN_STATUS_UNSPECIFIED\x10\x00\x12\x18\n" +
-	"\x14RUN_STATUS_COMPLETED\x10\x01\x12!\n" +
-	"\x1dRUN_STATUS_STOPPED_BY_MONITOR\x10\x02\x12\x19\n" +
-	"\x15RUN_STATUS_INCOMPLETE\x10\x03*\x86\x01\n" +
+	"\x1dRUN_EVENT_KIND_FAULT_INJECTED\x10\v*\x98\x01\n" +
+	"\x0eRunDisposition\x12\x1f\n" +
+	"\x1bRUN_DISPOSITION_UNSPECIFIED\x10\x00\x12\x1d\n" +
+	"\x19RUN_DISPOSITION_COMPLETED\x10\x01\x12&\n" +
+	"\"RUN_DISPOSITION_STOPPED_BY_MONITOR\x10\x02\x12\x1e\n" +
+	"\x1aRUN_DISPOSITION_INCOMPLETE\x10\x03*\x86\x01\n" +
 	"\rCleanupStatus\x12\x1e\n" +
 	"\x1aCLEANUP_STATUS_UNSPECIFIED\x10\x00\x12\x1c\n" +
 	"\x18CLEANUP_STATUS_SUCCEEDED\x10\x01\x12\x19\n" +
@@ -1564,7 +1564,7 @@ var file_temporal_server_api_testpilot_v1_run_proto_enumTypes = make([]protoimpl
 var file_temporal_server_api_testpilot_v1_run_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_temporal_server_api_testpilot_v1_run_proto_goTypes = []any{
 	(RunEventKind)(0),               // 0: temporal.server.api.testpilot.v1.RunEventKind
-	(RunStatus)(0),                  // 1: temporal.server.api.testpilot.v1.RunStatus
+	(RunDisposition)(0),             // 1: temporal.server.api.testpilot.v1.RunDisposition
 	(CleanupStatus)(0),              // 2: temporal.server.api.testpilot.v1.CleanupStatus
 	(RunDiagnosticKind)(0),          // 3: temporal.server.api.testpilot.v1.RunDiagnosticKind
 	(RuleVerdictStatus)(0),          // 4: temporal.server.api.testpilot.v1.RuleVerdictStatus
@@ -1600,7 +1600,7 @@ var file_temporal_server_api_testpilot_v1_run_proto_depIdxs = []int32{
 	5,  // 10: temporal.server.api.testpilot.v1.Verdict.status:type_name -> temporal.server.api.testpilot.v1.VerdictStatus
 	12, // 11: temporal.server.api.testpilot.v1.Verdict.rules:type_name -> temporal.server.api.testpilot.v1.RuleVerdict
 	9,  // 12: temporal.server.api.testpilot.v1.Run.events:type_name -> temporal.server.api.testpilot.v1.RunEvent
-	1,  // 13: temporal.server.api.testpilot.v1.Run.status:type_name -> temporal.server.api.testpilot.v1.RunStatus
+	1,  // 13: temporal.server.api.testpilot.v1.Run.disposition:type_name -> temporal.server.api.testpilot.v1.RunDisposition
 	10, // 14: temporal.server.api.testpilot.v1.Run.cleanup:type_name -> temporal.server.api.testpilot.v1.CleanupOutcome
 	13, // 15: temporal.server.api.testpilot.v1.Run.verdict:type_name -> temporal.server.api.testpilot.v1.Verdict
 	11, // 16: temporal.server.api.testpilot.v1.Run.diagnostics:type_name -> temporal.server.api.testpilot.v1.RunDiagnostic

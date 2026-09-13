@@ -47,7 +47,7 @@ private def literalProgram : temporal.server.api.testpilot.v1.Program := Program
 
 private def contract : Contract := Contract.contract "contract" #[
   Contract.rule "rule" .CONTRACT_RULE_KIND_BOUNDED_LIVENESS "open"
-    #[Contract.state "open" .CONTRACT_STATE_STATUS_NONTERMINAL,
+    #[Contract.state "open" .CONTRACT_STATE_STATUS_PENDING,
       Contract.state "done" .CONTRACT_STATE_STATUS_SATISFIED,
       Contract.state "late" .CONTRACT_STATE_STATUS_VIOLATED]
     #[Contract.transition "complete" "open" "done" #[.RUN_EVENT_KIND_RUN_CLOSED]

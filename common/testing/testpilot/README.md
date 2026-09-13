@@ -64,7 +64,7 @@ See [the public error contract](preparation_error.go) and [Temporal Driver owner
 `tools/umpire/cmd/umpire-run` is the black-box consumer of these bytes. Given a fixture path, a gRPC
 address, an HTTP address, and the namespace, task queue and optional Nexus endpoint the Case binds
 to, it derives the Profile the Case implies through `temporal.DeriveProfile`, prepares the unchanged
-bytes, opens a composite Driver with its own SDK worker, runs once, and prints the Run status, the
+bytes, opens a composite Driver with its own SDK worker, runs once, and prints the Run disposition, the
 cleanup status, the Verdict status, and one line per rule Verdict.
 
 Its exit codes separate the answer from the infrastructure: `0` satisfied, `1` violated, `2`

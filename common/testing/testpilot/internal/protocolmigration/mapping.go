@@ -1,10 +1,14 @@
 package protocolmigration
 
 import (
+	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 	"strconv"
+	"strings"
 
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -44,8 +48,128 @@ type Mapping []Step
 
 // Declared is the mapping from the baseline snapshot to the current protocol. Every structural
 // task appends the steps its change declares; a difference no step declares fails the
-// equivalence test.
-var Declared = Mapping{}
+// equivalence test. Steps split the names the migration retires, so the retired-vocabulary scan
+// that reads this file keeps holding those names everywhere else.
+var Declared = Mapping{
+	{
+		Name: "Run" + "Status becomes RunDisposition", Requirement: "R1",
+		Apply: sequence(
+			RenameField(protocol+"Run", "status", "disposition"),
+			RenameEnumLiteral(protocol+"Run", "disposition", "RUN_"+"STATUS_UNSPECIFIED", "RUN_DISPOSITION_UNSPECIFIED"),
+			RenameEnumLiteral(protocol+"Run", "disposition", "RUN_"+"STATUS_COMPLETED", "RUN_DISPOSITION_COMPLETED"),
+			RenameEnumLiteral(protocol+"Run", "disposition", "RUN_"+"STATUS_STOPPED_BY_MONITOR", "RUN_DISPOSITION_STOPPED_BY_MONITOR"),
+			RenameEnumLiteral(protocol+"Run", "disposition", "RUN_"+"STATUS_INCOMPLETE", "RUN_DISPOSITION_INCOMPLETE"),
+		),
+	},
+	{
+		Name: "CorrelatedContract.clauses becomes rules", Requirement: "R1",
+		Apply: RenameField(protocol+"CorrelatedContract", "clauses", "rules"),
+	},
+	{
+		Name: "CorrelatedRule.clause" + "_id becomes rule_id", Requirement: "R1",
+		Apply: RenameField(protocol+"CorrelatedRule", "clauseId", "ruleId"),
+	},
+	{
+		Name: "the provenance correlated rule key clauseId becomes ruleId", Requirement: "R1",
+		Apply: RewriteMessages(protocol+"CaseProvenance", renameCorrelatedRuleKey("clauseId", "ruleId")),
+	},
+	{
+		Name: "CONTRACT_STATE_STATUS_" + "NONTERMINAL becomes CONTRACT_STATE_STATUS_PENDING", Requirement: "R1",
+		Apply: RenameEnumLiteral(protocol+"ContractState"+"Definition", "status", "CONTRACT_STATE_STATUS_"+"NONTERMINAL", "CONTRACT_STATE_STATUS_PENDING"),
+	},
+	{
+		Name: "Correlated" + "Value becomes ModelValue", Requirement: "R1",
+		Apply: RenameMessage(protocol+"Correlated"+"Value", protocol+"ModelValue"),
+	},
+	{
+		Name: "INSTRUCTION_OUTCOME_STATUS_PROTOCOL_" + "NON_SUCCESS becomes INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE", Requirement: "R1",
+		Apply: RenameEnumLiteral(protocol+"InstructionOutcome", "status", "INSTRUCTION_OUTCOME_STATUS_PROTOCOL_"+"NON_SUCCESS", "INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE"),
+	},
+	{
+		Name: "ContractRule" + "Definition becomes ContractRule", Requirement: "R1",
+		Apply: RenameMessage(protocol+"ContractRule"+"Definition", protocol+"ContractRule"),
+	},
+	{
+		Name: "ContractState" + "Definition becomes ContractState", Requirement: "R1",
+		Apply: RenameMessage(protocol+"ContractState"+"Definition", protocol+"ContractState"),
+	},
+	{
+		Name: "ContractTransition" + "Definition becomes ContractTransition", Requirement: "R1",
+		Apply: RenameMessage(protocol+"ContractTransition"+"Definition", protocol+"ContractTransition"),
+	},
+	{
+		Name: "ContractCapture" + "Definition becomes ContractCapture", Requirement: "R1",
+		Apply: RenameMessage(protocol+"ContractCapture"+"Definition", protocol+"ContractCapture"),
+	},
+	{
+		Name: "CorrelatedEvidenceRule.source becomes evidence_source", Requirement: "R1",
+		Apply: RenameField(protocol+"CorrelatedEvidenceRule", "source", "evidenceSource"),
+	},
+	{
+		Name: "CorrelatedIdentity.source becomes evidence_source", Requirement: "R1",
+		Apply: RenameField(protocol+"CorrelatedIdentity", "source", "evidenceSource"),
+	},
+}
+
+const protocol = protoreflect.FullName("temporal.server.api.testpilot.v1.")
+
+func sequence(applies ...ApplyFunc) ApplyFunc {
+	return func(fixture string, tree any) (any, error) {
+		for _, apply := range applies {
+			mapped, err := apply(fixture, tree)
+			if err != nil {
+				return nil, err
+			}
+			tree = mapped
+		}
+		return tree, nil
+	}
+}
+
+// renameCorrelatedRuleKey renames one key of every correlatedRules entry in the opaque Umpire
+// payload a CaseProvenance carries. The comparison pins the payload's bytes, so the key is renamed
+// in place, and the result must decode to the original payload with only that key moved.
+func renameCorrelatedRuleKey(from, to string) func(fixture string, object *Object) (any, error) {
+	return func(_ string, object *Object) (any, error) {
+		encoded, ok := object.Fields["producerData"].(string)
+		if !ok {
+			return object, nil
+		}
+		payload, err := base64.StdEncoding.DecodeString(encoded)
+		if err != nil {
+			return nil, fmt.Errorf("producerData: %w", err)
+		}
+		key, renamedKey := []byte(`"`+from+`":`), []byte(`"`+to+`":`)
+		// Producers other than Umpire write payloads that need not be JSON.
+		if !bytes.Contains(payload, key) {
+			return object, nil
+		}
+		var want map[string]any
+		if err := json.Unmarshal(payload, &want); err != nil {
+			return nil, fmt.Errorf("producerData: %w", err)
+		}
+		rules, _ := want["correlatedRules"].([]any)
+		for index, entry := range rules {
+			rule, isObject := entry.(map[string]any)
+			value, found := rule[from]
+			if _, clashes := rule[to]; !isObject || !found || clashes {
+				return nil, fmt.Errorf("producerData correlatedRules[%d] does not carry %q alone", index, from)
+			}
+			delete(rule, from)
+			rule[to] = value
+		}
+		renamed := bytes.ReplaceAll(payload, key, renamedKey)
+		var got map[string]any
+		if err := json.Unmarshal(renamed, &got); err != nil {
+			return nil, fmt.Errorf("producerData after renaming %q: %w", from, err)
+		}
+		if !reflect.DeepEqual(want, got) {
+			return nil, fmt.Errorf("producerData spells %q outside its correlatedRules entries", from)
+		}
+		object.Fields["producerData"] = base64.StdEncoding.EncodeToString(renamed)
+		return object, nil
+	}
+}
 
 func (m Mapping) apply(fixture string, tree any) (any, error) {
 	for _, step := range m {
@@ -84,6 +208,22 @@ func RenameField(message protoreflect.FullName, from, to string) ApplyFunc {
 		}
 		delete(object.Fields, from)
 		object.Fields[to] = value
+		return object, nil
+	})
+}
+
+// RenameMessage renames message from to to where a fixture spells a message name: the type URL of
+// a google.protobuf.Any payload. Objects keep the baseline Message they were annotated with.
+func RenameMessage(from, to protoreflect.FullName) ApplyFunc {
+	return RewriteMessages(anyMessage, func(_ string, object *Object) (any, error) {
+		url, ok := object.Fields["@type"].(string)
+		if !ok {
+			return object, nil
+		}
+		separator := strings.LastIndex(url, "/")
+		if protoreflect.FullName(url[separator+1:]) == from {
+			object.Fields["@type"] = url[:separator+1] + string(to)
+		}
 		return object, nil
 	})
 }

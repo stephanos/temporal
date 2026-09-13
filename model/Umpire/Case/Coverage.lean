@@ -131,7 +131,7 @@ private def checkInput (program : Program) (mapping : InputMapping) : Except Str
 /-- Admit the requested coverage against the Case being assembled. Every requested input field must
 be constructed exactly once by the named instruction, and every requested clause must appear exactly
 once among the lowered correlated rule bindings. -/
-def check (program : Program) (clauses : List Provenance.CorrelatedRuleBinding) (request : Request)
+def check (program : Program) (rules : List Provenance.CorrelatedRuleBinding) (request : Request)
     (caseId : String) : Except Error Unit := do
   if (request.inputs.map (·.path)).eraseDups.length != request.inputs.length then
     throw ⟨caseId, "duplicate input field coverage"⟩
@@ -142,7 +142,7 @@ def check (program : Program) (clauses : List Provenance.CorrelatedRuleBinding) 
     | .error reason => throw ⟨mapping.path.reference.value, reason⟩
     | .ok () => pure ()
   for clause in request.clauses do
-    if (clauses.filter (·.clauseId == clause.value)).length != 1 then
+    if (rules.filter (·.ruleId == clause.value)).length != 1 then
       throw ⟨clause.value, "requested clause was not lowered exactly once"⟩
 
 end Umpire.Case.Coverage

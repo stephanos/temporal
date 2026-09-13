@@ -59,7 +59,7 @@ func (a *admission) scopeFor(m *machine, assigned []byte, allAvailable bool) map
 	}
 	return scope
 }
-func (a *admission) checkAssignments(m *machine, tr *testpilotspb.ContractTransitionDefinition) error {
+func (a *admission) checkAssignments(m *machine, tr *testpilotspb.ContractTransition) error {
 	seen := map[string]bool{}
 	for _, assignment := range tr.CaptureAssignments {
 		if err := a.charge(1); err != nil {
@@ -99,7 +99,7 @@ func (a *admission) analyzeCaptures(m *machine) error {
 				return err
 			}
 			for _, successor := range successors {
-				if m.source.States[successor.state].Status != testpilotspb.CONTRACT_STATE_STATUS_NONTERMINAL {
+				if m.source.States[successor.state].Status != testpilotspb.CONTRACT_STATE_STATUS_PENDING {
 					continue
 				}
 				if err := a.charge(int64(len(successor.assigned)) + 1); err != nil {
@@ -170,7 +170,7 @@ func (a *admission) refinePaths(e *ir.Expression, paths []map[ir.Reference]bool)
 	}
 	return matching, remaining, nil
 }
-func (a *admission) assignCaptures(m *machine, current configuration, tr *testpilotspb.ContractTransitionDefinition, prior []ir.Condition, scope map[ir.Reference]ir.Binding) (configuration, error) {
+func (a *admission) assignCaptures(m *machine, current configuration, tr *testpilotspb.ContractTransition, prior []ir.Condition, scope map[ir.Reference]ir.Binding) (configuration, error) {
 	if err := a.charge(int64(len(current.assigned)) + int64(len(prior)) + 1); err != nil {
 		return configuration{}, err
 	}

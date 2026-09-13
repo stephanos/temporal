@@ -198,7 +198,7 @@ func (e *faultEffect) Drain(ctx context.Context) error {
 
 func unrealizedFault(cause error) *testpilotspb.InstructionOutcome {
 	return &testpilotspb.InstructionOutcome{
-		Status:       testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS,
+		Status:       testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE,
 		ProtocolCode: "fault_not_realized",
 		Detail:       cause.Error(),
 	}

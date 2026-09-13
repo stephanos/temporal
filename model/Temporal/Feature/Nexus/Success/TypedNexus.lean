@@ -64,7 +64,7 @@ open Umpire.Operation
 open Umpire.Value
 open Temporal.Testpilot.CaseSupport
 open Testpilot.Authoring
-open temporal.server.api.testpilot.v1
+open temporal.server.api.testpilot.v1 hiding ModelValue
 
 /-! ### The one generated reference: history observation -/
 
@@ -749,7 +749,7 @@ private def evidenceTarget : ProjectionTarget :=
     ((operationCases.map fun entry =>
         Program.correlatedEvidenceRule
           (guard := historyAttribute scheduledAttributesField "operation")
-          (source := evidenceSourceId.value)
+          (evidenceSource := evidenceSourceId.value)
           (kind := entry.scheduledEvidenceKindId.value)
           (operation := field "event_id")
           (scope := #[Program.correlatedEvidenceLiteral runFieldId.value runScopeValue])
@@ -758,7 +758,7 @@ private def evidenceTarget : ProjectionTarget :=
           (guardEqualsText := entry.operation)) ++
       [Program.correlatedEvidenceRule
         (guard := Path.make #[Path.oneofSelector attributesGroup completedAttributesField])
-        (source := evidenceSourceId.value)
+        (evidenceSource := evidenceSourceId.value)
         (kind := completedEvidenceKindId.value)
         (operation := historyAttribute completedAttributesField "scheduled_event_id")
         (scope := #[Program.correlatedEvidenceLiteral runFieldId.value runScopeValue])]).toArray
