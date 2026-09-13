@@ -270,8 +270,8 @@ func (a *admission) declarePayloads(scope map[ir.Reference]ir.Binding, kinds []t
 }
 
 // evaluatedPayloads declares in scope every Run Event payload arm for one evaluated event kind.
-// Only the arm the kind requires is available, so a read of an arm the event may lack is absent
-// until a presence check guards it.
+// Only the arm the kind requires is available, so a read of an arm the event may lack is absent: a
+// comparison over it is false there, and any other use needs a presence check to guard it.
 func (a *admission) evaluatedPayloads(scope map[ir.Reference]ir.Binding, kind testpilotspb.RunEventKind) error {
 	carried := ir.RunEventPayloadOf(kind)
 	for other := testpilotspb.RUN_EVENT_KIND_RUN_OPENED; other <= ir.MaxRunEventKind; other++ {

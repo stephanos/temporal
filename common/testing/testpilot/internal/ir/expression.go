@@ -513,7 +513,8 @@ func (b *compiler) unary(operator Operator, source proto.Message, path string, f
 }
 
 // binary binds a comparison. Equality admits operands of any one type; an ordering operator admits
-// only ordered numeric scalars.
+// only ordered numeric scalars. An operand may be absent without a presence guard, because a
+// comparison with an absent operand is false.
 func (b *compiler) binary(left, right proto.Message, comparison testpilotspb.ComparisonOperator, path string, facts map[string]bool, depth int64) (*Expression, error) {
 	operands, err := b.pair(left, path+".left", right, path+".right", facts, depth)
 	if err != nil {
@@ -544,11 +545,11 @@ func (b *compiler) pair(left proto.Message, leftPath string, right proto.Message
 		first, second = right, left
 		firstPath, secondPath = rightPath, leftPath
 	}
-	a, err := b.bind(first, firstPath, nil, facts, false, depth+1)
+	a, err := b.bind(first, firstPath, nil, facts, true, depth+1)
 	if err != nil {
 		return nil, err
 	}
-	other, err := b.bind(second, secondPath, &a.typ, facts, false, depth+1)
+	other, err := b.bind(second, secondPath, &a.typ, facts, true, depth+1)
 	if err != nil {
 		return nil, err
 	}

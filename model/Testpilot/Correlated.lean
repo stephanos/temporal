@@ -417,47 +417,43 @@ def Compiled.validateEvent (compiled : Compiled) (scope : List (Name × String))
     compiled.policies scope event).mapError (fun _ => "invalid evidence")
 
 /-- Resolve one operand against this step's declared evidence and the operation's retained
-occurrences. An occurrence the operation never retained -- a future ordinal, or one belonging to a
-different operation -- has no value here, so admission fails rather than binding the nearest match. -/
+occurrences; `none` is an absent operand. An occurrence the operation never retained -- a future
+ordinal, or one belonging to a different operation -- has no value here, so a comparison reading it is
+false rather than binding the nearest match. -/
 private def operandValue (fields : List Field) (retained : List Retained) (operation : String) :
-    Operand → Except String Scalar
-  | .literal value => .ok value
-  | .field id =>
-      match (fields.find? (·.id == id)).bind (·.value) with
-      | some value => .ok value
-      | none => .error "missing correlation field operand"
+    Operand → Option Scalar
+  | .literal value => some value
+  | .field id => (fields.find? (·.id == id)).bind (·.value)
   | .capture id ordinal =>
-      match retained.find? fun entry =>
-        entry.operation == operation && entry.capture == id && entry.ordinal == ordinal with
-      | some entry => .ok entry.value
-      | none => .error "missing retained capture occurrence"
+      (retained.find? fun entry =>
+        entry.operation == operation && entry.capture == id && entry.ordinal == ordinal).map (·.value)
 
 mutual
-/-- Whether this labeled transition satisfies the clause's declared correlation. -/
+/-- Whether this labeled transition satisfies the clause's declared correlation. A comparison with an
+absent operand is false under either operator. -/
 private def correlationHolds (fields : List Field) (retained : List Retained) (operation : String)
-    (action : Atom) (result : Result) : Correlation → Except String Bool
-  | .predicate value => .ok (value.holds action result)
-  | .comparison equal left right => do
-      let left ← operandValue fields retained operation left
-      let right ← operandValue fields retained operation right
-      pure (if equal then left == right else left != right)
+    (action : Atom) (result : Result) : Correlation → Bool
+  | .predicate value => value.holds action result
+  | .comparison equal left right =>
+      match operandValue fields retained operation left, operandValue fields retained operation right with
+      | some left, some right => if equal then left == right else left != right
+      | _, _ => false
   | .all operands => correlationAll fields retained operation action result operands
   | .any operands => correlationAny fields retained operation action result operands
 
 private def correlationAll (fields : List Field) (retained : List Retained) (operation : String)
-    (action : Atom) (result : Result) : Correlations → Except String Bool
-  | .nil => .ok true
-  | .cons head tail => do
-      if ← correlationHolds fields retained operation action result head then
+    (action : Atom) (result : Result) : Correlations → Bool
+  | .nil => true
+  | .cons head tail =>
+      correlationHolds fields retained operation action result head &&
         correlationAll fields retained operation action result tail
-      else pure false
 
 private def correlationAny (fields : List Field) (retained : List Retained) (operation : String)
-    (action : Atom) (result : Result) : Correlations → Except String Bool
-  | .nil => .ok false
-  | .cons head tail => do
-      if ← correlationHolds fields retained operation action result head then pure true
-      else correlationAny fields retained operation action result tail
+    (action : Atom) (result : Result) : Correlations → Bool
+  | .nil => false
+  | .cons head tail =>
+      correlationHolds fields retained operation action result head ||
+        correlationAny fields retained operation action result tail
 end
 
 /-- Retain this step's occurrence of every declared capture. A step that supplies no value at the
@@ -492,8 +488,8 @@ def Monitor.admit {compiled : Compiled} (run : Monitor compiled) (event : Event)
   for step in projection.steps.drop run.projection.steps.length do
     for declaration in compiled.keyed do
       if let some correlation := declaration.2.correlation then
-        if !(← correlationHolds event.fields retained step.operation step.action step.result
-            correlation) then
+        if !correlationHolds event.fields retained step.operation step.action step.result
+            correlation then
           throw "correlation rejected this operation's step"
     monitor ← monitor.consume limits step.operation
       ⟨(step.priorState, step.action, step.result), step.member⟩
