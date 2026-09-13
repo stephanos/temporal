@@ -12,7 +12,7 @@
   "id": "fn-87-tighten-the-testpilot-protocol-glossary",
   "impl_review_rounds": {
     "fn-87-tighten-the-testpilot-protocol-glossary.1": 0,
-    "fn-87-tighten-the-testpilot-protocol-glossary.2": 1
+    "fn-87-tighten-the-testpilot-protocol-glossary.2": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -299,10 +299,40 @@
       "task": "fn-87-tighten-the-testpilot-protocol-glossary.2",
       "timestamp": "2026-09-13T02:06:34.194047Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "3924043acf33ac4d75cd85b6cf58a5a94df9115f27e618aeadbe813e156fb6e9",
+      "backend": "claude",
+      "base_sha": "20dd79dfc02f766217b1b16b0bcdca67d15a0a7b",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "9cfd388d58ae5718bf8d5fa879d24389fd0b5705",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 1994,
+      "output_sha256": "7004feeee7794eac129e46fee6bcef6879fa9fad3aeac74f7a5927c31bf65425",
+      "reservation_id": "a1f065753b4b4609b4eed05df54310d0",
+      "round_consumed": true,
+      "scope": "impl:fn-87-tighten-the-testpilot-protocol-glossary.2",
+      "superseded_by": null,
+      "task": "fn-87-tighten-the-testpilot-protocol-glossary.2",
+      "timestamp": "2026-09-13T02:09:53.832180Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-87-tighten-the-testpilot-protocol-glossary.1": 1,
+    "impl:fn-87-tighten-the-testpilot-protocol-glossary.2": 1,
     "plan": 1,
     "plan#completion": 0
   },
@@ -327,5 +357,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-13T02:06:34.198543Z"
+  "updated_at": "2026-09-13T02:09:53.838694Z"
 }
