@@ -9,9 +9,8 @@ import (
 	"strings"
 	"testing"
 
-	commonpb "go.temporal.io/api/common/v1"
-
 	"github.com/stretchr/testify/require"
+	commonpb "go.temporal.io/api/common/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/tools/common/artifactio"
