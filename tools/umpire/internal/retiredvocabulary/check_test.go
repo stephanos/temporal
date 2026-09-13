@@ -15,6 +15,24 @@ func TestRetiredRulesAreConfigured(t *testing.T) {
 	require.NotEmpty(t, retiredRules)
 }
 
+func TestAllowedNegativeFixtureHoldsRetiredTokensOnlyUnderTheMigrationBaseline(t *testing.T) {
+	t.Parallel()
+
+	token := "Transition" + "Kernel"
+	require.True(t, allowedNegativeFixture(
+		"common/testing/testpilot/internal/protocolmigration/testdata/baseline/fixtures/tests/testcore/testpilot/testdata/typed-nexus-case.json",
+		token,
+	))
+	for _, path := range []string{
+		"common/testing/testpilot/internal/protocolmigration/mapping.go",
+		"common/testing/testpilot/internal/protocolmigration/README.md",
+		"common/testing/testpilot/internal/protocolmigration/testdata/baseline-copy/case.json",
+		"tests/testcore/testpilot/testdata/typed-nexus-case.json",
+	} {
+		require.False(t, allowedNegativeFixture(path, token), "path %q", path)
+	}
+}
+
 func TestValidateRetiredTokenRejectsBareWords(t *testing.T) {
 	t.Parallel()
 
