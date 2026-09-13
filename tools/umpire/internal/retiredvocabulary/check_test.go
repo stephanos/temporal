@@ -127,6 +127,14 @@ func TestRetiredRulesHoldTheGlossaryRenamedProtocolNames(t *testing.T) {
 		// One Expression over one Reference replaces them; the Umpire and Go names that share a word stay.
 		{line: "pb.Expression{}, pb.Reference_SlotId, pb.InstructionOutcomeReference{}, pb.RunReference{}, pb.RunEventReference{}, pb.CorrelatedCaptureReference{}"},
 		{line: "Testpilot.Authoring.Expr.negate, pb.CompareExpression{}, pb.NotExpression{}, ir.ProgramContext, ir.ContractContext, ir.SlotReference"},
+		{line: "&pb.Contract" + "Deadline{RuleEvents: 3}", want: []string{"Contract" + "Deadline"}},
+		{line: "Type: &pb.Contract" + "CaptureType{}", want: []string{"Contract" + "CaptureType"}},
+		{line: "[]*pb.Correlated" + "Binding{}", want: []string{"Correlated" + "Binding"}},
+		{line: "(fields : Array CorrelatedEvidence" + "Field)", want: []string{"CorrelatedEvidence" + "Field"}},
+		{line: "Program.correlatedEvidence" + "Binding fieldId path", want: []string{"CorrelatedEvidence" + "Binding"}},
+		// The bound oneof, the singular type and the named values replace them; the correlated names
+		// that share a prefix stay.
+		{line: "pb.Deadline_RuleEvents{}, pb.SingularType_Message{}, pb.NamedValue{}, pb.NamedExpression{}, CorrelatedEvidenceRule, CorrelatedEvidenceProjection, CorrelatedRuleBinding"},
 	} {
 		require.Equal(t, tc.want, matched(tc.line), "line %q", tc.line)
 	}

@@ -341,7 +341,7 @@ func TestRenameCorrelatedRuleKey(t *testing.T) {
 func TestDeclaredValueArmRenamesOnlyValueObjects(t *testing.T) {
 	t.Parallel()
 
-	tree := &Object{Message: protocol + "CorrelatedEvidenceBinding", Fields: map[string]any{
+	tree := &Object{Message: protocol + "ObservationResult", Fields: map[string]any{
 		"text":          "kept",
 		"signedInteger": "kept",
 		"literal":       &Object{Message: protocol + "Value", Fields: map[string]any{"text": "renamed"}},
@@ -500,6 +500,50 @@ func TestDeclaredFaultCoordinatesBecomePayloadPaths(t *testing.T) {
 			t.Parallel()
 
 			mapped, err := Declared.apply("fixture.json", tc.tree)
+			if tc.wantErrorSubstr != "" {
+				require.ErrorContains(t, err, tc.wantErrorSubstr)
+				return
+			}
+			require.NoError(t, err)
+			encoded, err := json.Marshal(mapped)
+			require.NoError(t, err)
+			require.JSONEq(t, tc.want, string(encoded))
+		})
+	}
+}
+
+// The deadline, version and named-value steps rewrite the shapes the baseline admitted and refuse
+// any other, so no bound, version or supply is dropped silently.
+func TestDeclaredDeadlineVersionAndNamedValueSteps(t *testing.T) {
+	t.Parallel()
+
+	fieldPath := func() *Object {
+		return &Object{Fields: map[string]any{"segments": []any{&Object{Fields: map[string]any{"field": "id"}}}}}
+	}
+	for _, tc := range []struct {
+		name, message   string
+		fields          map[string]any
+		want            string
+		wantErrorSubstr string
+	}{
+		{name: "event deadline", message: "Contract" + "Deadline", fields: map[string]any{"violationStateId": "late", "ruleEvents": "16"}, want: `{"violationStateId": "late", "ruleEvents": "16"}`},
+		{name: "zero bound dropped", message: "Contract" + "Deadline", fields: map[string]any{"elapsedMilliseconds": "0", "ruleEvents": "3"}, want: `{"ruleEvents": "3"}`},
+		{name: "two bounds", message: "Contract" + "Deadline", fields: map[string]any{"elapsedMilliseconds": "5", "ruleEvents": "3"}, wantErrorSubstr: "deadline carries 2 positive bounds, want 1"},
+		{name: "no bound", message: "Contract" + "Deadline", fields: map[string]any{"violationStateId": "late"}, wantErrorSubstr: "deadline carries 0 positive bounds, want 1"},
+		{name: "negative bound", message: "Contract" + "Deadline", fields: map[string]any{"ruleEvents": "-1"}, wantErrorSubstr: "deadline ruleEvents is negative"},
+		{name: "version one", message: "CorrelatedContract", fields: map[string]any{"projectionId": "p", "version": json.Number("1")}, want: `{"projectionId": "p"}`},
+		{name: "version two", message: "CorrelatedContract", fields: map[string]any{"version": json.Number("2")}, wantErrorSubstr: "version is 2, want 1"},
+		{name: "scope value", message: "Correlated" + "Binding", fields: map[string]any{"fieldId": "run", "value": "one"}, want: `{"fieldId": "run", "value": {"textValue": "one"}}`},
+		{name: "absent scope value", message: "Correlated" + "Binding", fields: map[string]any{"fieldId": "run"}, wantErrorSubstr: "want a non-empty string"},
+		{name: "literal binding", message: "CorrelatedEvidence" + "Binding", fields: map[string]any{"fieldId": "run", "literal": "one"}, want: `{"fieldId": "run", "value": {"literal": {"textValue": "one"}}}`},
+		{name: "path binding", message: "CorrelatedEvidence" + "Binding", fields: map[string]any{"fieldId": "id", "path": fieldPath()}, want: `{"fieldId": "id", "value": {"path": {"operand": {"reference": {"projectedValue": {}}}, "path": {"segments": [{"field": "id"}]}}}}`},
+		{name: "two supplies", message: "CorrelatedEvidence" + "Binding", fields: map[string]any{"fieldId": "id", "literal": "one", "path": fieldPath()}, wantErrorSubstr: "evidence binding carries no single supply"},
+		{name: "no supply", message: "CorrelatedEvidence" + "Binding", fields: map[string]any{"fieldId": "id"}, wantErrorSubstr: "evidence binding carries no single supply"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			mapped, err := Declared.apply("fixture.json", &Object{Message: protocol + protoreflect.FullName(tc.message), Fields: tc.fields})
 			if tc.wantErrorSubstr != "" {
 				require.ErrorContains(t, err, tc.wantErrorSubstr)
 				return

@@ -497,6 +497,21 @@ narrows or completes a requirement without changing its intent; tasks record the
   not match its kind is an `INVARIANT` diagnostic `payload_kind_mismatch`, checked before staging. The
   worker-outage per-event work bound grows by one message projection per fault read and stays under its
   declared ceiling.
+- **Presence, deadlines, captures and named values (decided in .8, 2026-09-13).** R5's proto3
+  `optional` is not adopted: the Lean elaborator accepts it, but `make proto` fails because the pinned
+  `protoc-gen-go-helpers` v1.63.5 does not support proto3 optional fields, so the two single-arm oneofs
+  (`Run.evaluation_failure`, `RunDiagnostic.support`) stay until that plugin does. `Deadline` holds
+  `violation_state_id` and `oneof bound { rule_events, elapsed_milliseconds }`; a liveness deadline with
+  no bound rejects `malformed` at `contract.rules[<rule>].deadline`, a non-positive bound at
+  `...deadline.<bound>`, and no fixture's JSON changes. `ContractCapture.type` is a `SingularType`;
+  `any`, `opaque_handle` or no type rejects `malformed` at `contract.rules[<rule>].captures[<capture>].type`,
+  and the Authoring capture constructors give way to `Types.*`. One named-value shape per side: evidence
+  carries `NamedValue { field_id, Value value }` (a scope value is a non-empty `text_value`), and a lift
+  carries `NamedExpression { field_id, Expression value }` admitted only as a text literal or
+  `path(projected_value, p)`, a foreign reference rejecting at its path (Authoring `Program.evidenceLiteral`
+  and `Program.evidencePath`). `CorrelatedContract.version` is removed, and a Case that writes it fails
+  strict decoding naming the field. Evidence sizes under `max_event_bytes` count text, so no bound moved;
+  the encoded evidence a lift charges as runtime work grows by two bytes per scope value.
 
 ## Requirement coverage
 

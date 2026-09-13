@@ -22,17 +22,12 @@ func (a *admission) bindCaptures(m *machine) error {
 		if _, ok := m.captures[capture.CaptureId]; ok {
 			return invalid(ir.Malformed, "duplicate capture identity")
 		}
-		var typ *testpilotspb.ValueType
-		switch value := capture.Type.GetType().(type) {
-		case *testpilotspb.ContractCaptureType_Scalar:
-			typ = scalarType(value.Scalar.GetKind())
-		case *testpilotspb.ContractCaptureType_Enumeration:
-			typ = &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Enumeration{Enumeration: value.Enumeration}}}}
-		case *testpilotspb.ContractCaptureType_Message:
-			typ = &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Message{Message: value.Message}}}}
+		switch capture.GetType().GetType().(type) {
+		case *testpilotspb.SingularType_Scalar, *testpilotspb.SingularType_Enumeration, *testpilotspb.SingularType_Message:
 		default:
-			return invalid(ir.Malformed, "capture scalar, enum, or message type required")
+			return invalidAt(ir.Malformed, fmt.Sprintf("contract.rules[%s].captures[%s].type", m.source.RuleId, capture.CaptureId), "capture requires a scalar, enum or message type")
 		}
+		typ := &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: proto.CloneOf(capture.Type)}}
 		bound, err := a.catalog.BindType(typ)
 		if err != nil {
 			return err

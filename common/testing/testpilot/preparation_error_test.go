@@ -79,11 +79,8 @@ func TestPreparationErrorCase(t *testing.T) {
 		}, testpilot.PreparationUnsupported, strings.Repeat("e", 256), "unsupported instruction context or Driver capability", ""},
 		{"contract missing rules", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) { c.Contract.Rules = nil }, testpilot.PreparationMalformed, "contract", "Contract identity and rules are required", ""},
 		{"contract limit", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) { c.Contract.Limits.MaxRules++ }, testpilot.PreparationLimitExceeded, "contract", "limit outside positive Driver ceiling: max_rules", ""},
-		{"correlated version", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) {
-			c.Contract.Correlated = &testpilotspb.CorrelatedContract{Version: 2}
-		}, testpilot.PreparationUnknown, "contract", "unsupported correlated capability version", ""},
 		{"correlated binding", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) {
-			c.Contract.Correlated = &testpilotspb.CorrelatedContract{Version: 1}
+			c.Contract.Correlated = &testpilotspb.CorrelatedContract{}
 		}, testpilot.PreparationMalformed, "contract", "invalid correlated projection binding", ""},
 		{"correlated evidence", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) {
 			c.Contract.Correlated = diagnosticCorrelatedContract()
@@ -100,7 +97,7 @@ func TestPreparationErrorCase(t *testing.T) {
 }
 
 func diagnosticCorrelatedContract() *testpilotspb.CorrelatedContract {
-	return &testpilotspb.CorrelatedContract{Version: 1, ProjectionId: "projection", ProjectionFingerprint: "fingerprint", ScopeFields: []string{"run"}, OperationField: "operation", Sources: []string{"source"}, InitialState: &testpilotspb.ModelValue{DefinitionId: "state"}, EvidenceObservationId: "evidence", Limits: &testpilotspb.CorrelatedLimits{}}
+	return &testpilotspb.CorrelatedContract{ProjectionId: "projection", ProjectionFingerprint: "fingerprint", ScopeFields: []string{"run"}, OperationField: "operation", Sources: []string{"source"}, InitialState: &testpilotspb.ModelValue{DefinitionId: "state"}, EvidenceObservationId: "evidence", Limits: &testpilotspb.CorrelatedLimits{}}
 }
 
 func TestPreparationErrorCorrelatedLimits(t *testing.T) {

@@ -251,7 +251,6 @@ end
 
 /-- Decode exact v1 executable meaning, rejecting unsupported clocks, endpoints and numeric values. -/
 def decode (wire : CorrelatedContract) : Except String Compiled := do
-  if wire.version != 1 then throw "unsupported correlated capability version"
   if !wire.«Unknown.Fields».isEmpty then throw "unknown capability field"
   if !validId wire.projection_id || wire.projection_fingerprint.isEmpty ||
       !validId wire.evidence_observation_id || !validId wire.operation_field ||
@@ -509,7 +508,10 @@ private def wireIdentity (wire : CorrelatedIdentity) : Except String (Correlated
   if !wire.«Unknown.Fields».isEmpty then throw "unknown identity field"
   let scope ← wire.scope.toList.mapM fun binding => do
     if !binding.«Unknown.Fields».isEmpty then throw "unknown binding field"
-    pure (Name.mk binding.field_id, binding.value)
+    let some value := binding.value | throw "scope value must be text"
+    if !value.«Unknown.Fields».isEmpty then throw "unknown scope value field"
+    let some (.text_value text) := value.value | throw "scope value must be text"
+    pure (Name.mk binding.field_id, text)
   pure ⟨scope, ⟨wire.evidence_source⟩, ← natural wire.ordinal⟩
 
 /-- Decode one typed Observation and attach recorder-owned support, retaining first support on duplicates. -/

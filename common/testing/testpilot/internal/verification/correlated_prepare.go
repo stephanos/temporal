@@ -87,9 +87,6 @@ func (a *admission) bindCorrelated(seen map[string]bool) error {
 	if s == nil {
 		return nil
 	}
-	if s.Version != 1 {
-		return invalid(ir.Unknown, "unsupported correlated capability version")
-	}
 	if !validID(s.ProjectionId) || s.ProjectionFingerprint == "" || !validID(s.OperationField) || !uniqueIDs(s.ScopeFields) || slices.Contains(s.ScopeFields, s.OperationField) || !uniqueIDs(s.Sources) || !validModelValue(s.InitialState) {
 		return invalid(ir.Malformed, "invalid correlated projection binding")
 	}
