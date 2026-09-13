@@ -104,8 +104,6 @@ type localNames struct {
 	values    []*testpilotspb.ModelValueFingerprint
 	names     map[string]string
 	spellings map[[2]string]string
-	nameOnly  func(string) string
-	valueOf   func(definitionID, encoding string) string
 }
 
 func newLocalNames(baseline *Object, provenance *testpilotspb.CaseProvenance) (*localNames, error) {
@@ -131,22 +129,27 @@ func newLocalNames(baseline *Object, provenance *testpilotspb.CaseProvenance) (*
 		}
 		renaming.spellings[key] = row.GetSpelling()
 	}
-	renaming.nameOnly = func(id string) string {
-		if local, renamed := renaming.names[id]; renamed {
-			return local
-		}
-		return id
-	}
-	renaming.valueOf = func(definitionID, encoding string) string {
-		if spelling, recorded := renaming.spellings[[2]string{renaming.nameOnly(definitionID), fingerprint(encoding)}]; recorded {
-			return spelling
-		}
-		return renaming.nameOnly(encoding)
-	}
 	if len(renaming.rows) == 0 && len(renaming.values) == 0 {
 		return renaming, nil
 	}
 	return renaming, renaming.validate(baseline)
+}
+
+// nameOnly is the local name the rows give a Definition ID, or the ID itself when no row maps it.
+func (r *localNames) nameOnly(id string) string {
+	if local, renamed := r.names[id]; renamed {
+		return local
+	}
+	return id
+}
+
+// valueOf is the spelling the rows give an encoding of a definition: a recorded fingerprint's
+// spelling, else the local name of an encoding that is a Definition ID, else the encoding itself.
+func (r *localNames) valueOf(definitionID, encoding string) string {
+	if spelling, recorded := r.spellings[[2]string{r.nameOnly(definitionID), fingerprint(encoding)}]; recorded {
+		return spelling
+	}
+	return r.nameOnly(encoding)
 }
 
 func fingerprint(encoding string) string {
@@ -245,7 +248,8 @@ func (r *localNames) localizeCase(root *Object) error {
 // fields, sources, evidence kinds, field policies, captures, rule ids, step references and model
 // values; and the Program's evidence lift rules. A value is visited with its definition's Definition
 // ID before that ID is renamed, and a step condition's text is visited as a value of its step's
-// definition.
+// definition. The positions mirror Umpire.Case.LocalNames' traversal in Lean; a new Definition ID
+// position is added to both.
 func (r *localNames) visitCase(root *Object, name func(string) string, value func(definitionID, encoding string) string) {
 	program := child(root, "program")
 	for _, entrypoint := range append(childObjects(program, "entrypoints"), child(program, "cleanup")) {

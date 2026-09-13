@@ -16,6 +16,7 @@
     "fn-87-tighten-the-testpilot-protocol-glossary.11": 0,
     "fn-87-tighten-the-testpilot-protocol-glossary.12": 0,
     "fn-87-tighten-the-testpilot-protocol-glossary.13": 0,
+    "fn-87-tighten-the-testpilot-protocol-glossary.14": 0,
     "fn-87-tighten-the-testpilot-protocol-glossary.2": 0,
     "fn-87-tighten-the-testpilot-protocol-glossary.3": 0,
     "fn-87-tighten-the-testpilot-protocol-glossary.4": 0,
@@ -896,6 +897,50 @@
       "task": "fn-87-tighten-the-testpilot-protocol-glossary.13",
       "timestamp": "2026-09-13T13:13:55.520710Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "37797f48fdde62defd8128e4553a42f8de41a606a1ffc8f06c8d3f35c2454147",
+      "backend": "claude",
+      "base_sha": "206d0d7ebeb44808a1c34dc03c9d16bc62d13fb1",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-3ab6d0622778d82400f244abd9d1478a",
+            "classification": "introduced",
+            "findingId": "finding-3ab6d0622778d82400f244abd9d1478a",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "9340c83e3ba70b4bb5ae1c787003ecd2d8883549",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 4290,
+      "output_sha256": "a09d228758fd4959a17fcaed33a8f000525c505780f1c8472b87464219d1b1bd",
+      "reservation_id": "77b1f481f6c94d0981cf907822b90107",
+      "round_consumed": true,
+      "scope": "impl:fn-87-tighten-the-testpilot-protocol-glossary.14",
+      "superseded_by": null,
+      "task": "fn-87-tighten-the-testpilot-protocol-glossary.14",
+      "timestamp": "2026-09-13T14:30:49.420963Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -904,6 +949,7 @@
     "impl:fn-87-tighten-the-testpilot-protocol-glossary.11": 1,
     "impl:fn-87-tighten-the-testpilot-protocol-glossary.12": 1,
     "impl:fn-87-tighten-the-testpilot-protocol-glossary.13": 1,
+    "impl:fn-87-tighten-the-testpilot-protocol-glossary.14": 1,
     "impl:fn-87-tighten-the-testpilot-protocol-glossary.2": 1,
     "impl:fn-87-tighten-the-testpilot-protocol-glossary.3": 1,
     "impl:fn-87-tighten-the-testpilot-protocol-glossary.4": 1,
@@ -923,6 +969,7 @@
     "impl:fn-87-tighten-the-testpilot-protocol-glossary.11": 0,
     "impl:fn-87-tighten-the-testpilot-protocol-glossary.12": 0,
     "impl:fn-87-tighten-the-testpilot-protocol-glossary.13": 0,
+    "impl:fn-87-tighten-the-testpilot-protocol-glossary.14": 0,
     "impl:fn-87-tighten-the-testpilot-protocol-glossary.2": 0,
     "impl:fn-87-tighten-the-testpilot-protocol-glossary.3": 0,
     "impl:fn-87-tighten-the-testpilot-protocol-glossary.4": 0,
@@ -947,5 +994,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-13T14:15:24.086034Z"
+  "updated_at": "2026-09-13T14:30:49.426223Z"
 }
