@@ -67,9 +67,9 @@ func workerOutageFixtureContract(t testing.TB) (*PreparedContract, execution.Pro
 	}
 	source := &testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: 1}, CaseId: "case", Contract: &testpilotspb.Contract{ContractId: "contract"}, Program: &testpilotspb.Program{
 		ProgramId: "program", Limits: limits,
-		Observations: []*testpilotspb.ObservationDefinition{{ObservationId: "history-event", Type: nexusMessageType("temporal.api.history.v1.HistoryEvent")}},
-		Entrypoints:  []*testpilotspb.EntrypointDefinition{{EntrypointId: "controller", Activation: &testpilotspb.EntrypointDefinition_Controller{Controller: &testpilotspb.ControllerActivation{}}}},
-		Cleanup:      &testpilotspb.CleanupDefinition{EntrypointId: "cleanup"},
+		Observations: []*testpilotspb.Observation{{ObservationId: "history-event", Type: nexusMessageType("temporal.api.history.v1.HistoryEvent")}},
+		Entrypoints:  []*testpilotspb.Entrypoint{{EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}}}},
+		Cleanup:      &testpilotspb.Cleanup{EntrypointId: "cleanup"},
 	}}
 	program, err := execution.Prepare(source, catalog, execution.Profile{Identity: "profile", CatalogIdentity: catalog.Identity(), Limits: limits})
 	require.NoError(t, err)

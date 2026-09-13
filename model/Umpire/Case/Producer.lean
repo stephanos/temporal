@@ -133,7 +133,7 @@ inductive HookPlacement where
 /-- A named point of a realization's Program a fault line may be placed against. -/
 structure Hook where
   name : String
-  instruction : InstructionRef
+  instruction : InstructionReference
 
 /-- What a realization knows about one admitted evidence kind. `eventKind` is the spelling an
 author writes; everything else is how the realization reads that kind back out of a response. -/

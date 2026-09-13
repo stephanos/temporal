@@ -207,10 +207,10 @@ func (a *admission) bindCorrelated(seen map[string]bool) error {
 
 func validCorrelatedLiteral(v *testpilotspb.Value) bool {
 	switch literal := v.GetValue().(type) {
-	case *testpilotspb.Value_Text, *testpilotspb.Value_BoolValue:
+	case *testpilotspb.Value_TextValue, *testpilotspb.Value_BoolValue:
 		return true
-	case *testpilotspb.Value_Natural:
-		text := literal.Natural
+	case *testpilotspb.Value_NaturalValue:
+		text := literal.NaturalValue
 		if text != "0" && (len(text) == 0 || text[0] < '1' || text[0] > '9') {
 			return false
 		}
@@ -234,9 +234,9 @@ type correlatedCapture struct {
 
 func correlatedLiteralKind(v *testpilotspb.Value) testpilotspb.ScalarKind {
 	switch v.GetValue().(type) {
-	case *testpilotspb.Value_Text:
+	case *testpilotspb.Value_TextValue:
 		return testpilotspb.SCALAR_KIND_TEXT
-	case *testpilotspb.Value_Natural:
+	case *testpilotspb.Value_NaturalValue:
 		return testpilotspb.SCALAR_KIND_NATURAL
 	case *testpilotspb.Value_BoolValue:
 		return testpilotspb.SCALAR_KIND_BOOLEAN

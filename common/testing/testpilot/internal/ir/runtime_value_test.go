@@ -12,7 +12,7 @@ import (
 
 func TestRuntimeSnapshotDeterministicFailureOrder(t *testing.T) {
 	for _, source := range []proto.Message{
-		&testpilotspb.InstructionOutcome{Status: 999, Detail: "detail", Value: &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: "value"}}},
+		&testpilotspb.InstructionOutcome{Status: 999, Detail: "detail", Value: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "value"}}},
 		&structpb.Struct{Fields: map[string]*structpb.Value{"z": {Kind: &structpb.Value_NullValue{NullValue: 999}}, "a": {Kind: &structpb.Value_StringValue{StringValue: "value"}}}},
 	} {
 		for _, limit := range []int64{1, 5, 20, 40, 100, 1000} {

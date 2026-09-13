@@ -55,12 +55,12 @@ structure Request where
 preserved, and bytes are the concrete bytes; a floating-point value has no exact construction here
 and rejects with its own diagnostic rather than being approximated. -/
 def scalarValue : Operation.Scalar → Except String temporal.server.api.testpilot.v1.Value
-  | .text text => .ok { value := some (.text text) }
+  | .text text => .ok { value := some (.text_value text) }
   | .boolean flag => .ok { value := some (.bool_value flag) }
   | .bytes bytes => .ok { value := some (.bytes_value ⟨bytes.toArray⟩) }
   | .integer kind number =>
-      if kind.signed then .ok { value := some (.signed_integer (toString number)) }
-      else if number ≥ 0 then .ok { value := some (.unsigned_integer (toString number)) }
+      if kind.signed then .ok { value := some (.signed_integer_value (toString number)) }
+      else if number ≥ 0 then .ok { value := some (.unsigned_integer_value (toString number)) }
       else .error "unsigned request field cannot construct a negative value"
   | .enumeration _ number =>
       if number ≥ -2147483648 && number ≤ 2147483647 then
@@ -76,11 +76,11 @@ abbrev Segment := String × Option temporal.server.api.testpilot.v1.Value
 construct is never equal to a covered field's value. -/
 private def sameValue (left right : temporal.server.api.testpilot.v1.Value) : Bool :=
   match left.value, right.value with
-  | some (.text first), some (.text second) => first == second
+  | some (.text_value first), some (.text_value second) => first == second
   | some (.bool_value first), some (.bool_value second) => first == second
   | some (.bytes_value first), some (.bytes_value second) => first.toList == second.toList
-  | some (.signed_integer first), some (.signed_integer second) => first == second
-  | some (.unsigned_integer first), some (.unsigned_integer second) => first == second
+  | some (.signed_integer_value first), some (.signed_integer_value second) => first == second
+  | some (.unsigned_integer_value first), some (.unsigned_integer_value second) => first == second
   | some (.enum_value first), some (.enum_value second) => first.number == second.number
   | _, _ => false
 

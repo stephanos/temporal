@@ -13,7 +13,7 @@ func TestLeanAuthoringProtoJSONStrictDecode(t *testing.T) {
 	programEnvironment := (&testpilotspb.Program{}).ProtoReflect().Descriptor().Fields().ByName("environment")
 	require.NotNil(t, programEnvironment)
 	require.EqualValues(t, 8, programEnvironment.Number())
-	roleFields := (&testpilotspb.RoleDefinition{}).ProtoReflect().Descriptor().Fields()
+	roleFields := (&testpilotspb.Role{}).ProtoReflect().Descriptor().Fields()
 	require.EqualValues(t, 3, roleFields.ByName("namespace_binding_id").Number())
 	require.EqualValues(t, 4, roleFields.ByName("resource_binding_id").Number())
 	programExpressionEnvironment := (&testpilotspb.ProgramExpression{}).ProtoReflect().Descriptor().
@@ -56,7 +56,7 @@ func TestLeanAuthoringProtoJSONStrictDecode(t *testing.T) {
 	require.Equal(t, int64(9223372036854775807), rule.GetDeadline().GetElapsedMilliseconds())
 	contractAny := rule.GetTransitions()[0].GetPredicate().GetAny()
 	require.NotNil(t, contractAny)
-	require.Equal(t, "run", contractAny.GetOperands()[1].GetEquals().GetRight().GetLiteral().GetText())
+	require.Equal(t, "run", contractAny.GetOperands()[1].GetEquals().GetRight().GetLiteral().GetTextValue())
 	require.Equal(t,
 		"type.googleapis.com/temporal.server.api.testpilot.v1.FormatVersion",
 		contractAny.GetOperands()[2].GetEquals().GetRight().GetLiteral().GetMessageValue().GetTypeUrl(),

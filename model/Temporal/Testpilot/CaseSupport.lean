@@ -37,8 +37,8 @@ def boolean (value : Bool) : ProgramExpression :=
 def project
     (source : FieldPath)
     (observationId : String)
-    (cardinality : ProjectionKind := .PROJECTION_KIND_ONE) : ResponseProjection :=
-  Program.responseProjection source cardinality #[Program.observationTarget observationId]
+    (cardinality : ReadCardinality := .READ_CARDINALITY_ONE) : ResponseRead :=
+  Program.responseRead source cardinality #[Program.observationTarget observationId]
 
 /-- The history event message a history read projects into one Observation per event. -/
 def historyEventNode := "temporal.api.history.v1.HistoryEvent"

@@ -59,7 +59,7 @@ func (p PreparedProgram) ReservationCarrier(entrypointID, instructionID string) 
 
 func (p EntrypointPlan) ID() string                        { return p.plan.ID() }
 func (p EntrypointPlan) Kind() testpilotspb.EntrypointKind { return p.plan.Kind() }
-func (p EntrypointPlan) Activation() *testpilotspb.EntrypointDefinition {
+func (p EntrypointPlan) Activation() *testpilotspb.Entrypoint {
 	return p.plan.Activation()
 }
 func (p EntrypointPlan) Order() []int { return p.plan.Order() }
@@ -73,9 +73,9 @@ func (p EntrypointPlan) Instructions() []InstructionPlan {
 }
 func (p EntrypointPlan) RuntimeWorkLimit() int64 { return p.plan.RuntimeWorkLimit() }
 
-func (p InstructionPlan) Source() *testpilotspb.InstructionDefinition { return p.plan.Source() }
-func (p InstructionPlan) Opcode() Opcode                              { return p.plan.Opcode() }
-func (p InstructionPlan) Dependencies() []int                         { return p.plan.Dependencies() }
+func (p InstructionPlan) Source() *testpilotspb.InstructionNode { return p.plan.Source() }
+func (p InstructionPlan) Opcode() Opcode                        { return p.plan.Opcode() }
+func (p InstructionPlan) Dependencies() []int                   { return p.plan.Dependencies() }
 func (p InstructionPlan) Guard() *Expression {
 	if expression := p.plan.Guard(); expression != nil {
 		return &Expression{expression: expression}

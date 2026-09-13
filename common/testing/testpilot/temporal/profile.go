@@ -60,13 +60,13 @@ func entrypointKinds(program *testpilotspb.Program) (map[string]testpilotspb.Ent
 	for _, entrypoint := range program.GetEntrypoints() {
 		var kind testpilotspb.EntrypointKind
 		switch entrypoint.GetActivation().(type) {
-		case *testpilotspb.EntrypointDefinition_Controller:
+		case *testpilotspb.Entrypoint_Controller:
 			kind = testpilotspb.ENTRYPOINT_KIND_CONTROLLER
-		case *testpilotspb.EntrypointDefinition_Workflow:
+		case *testpilotspb.Entrypoint_Workflow:
 			kind = testpilotspb.ENTRYPOINT_KIND_WORKFLOW
-		case *testpilotspb.EntrypointDefinition_Activity:
+		case *testpilotspb.Entrypoint_Activity:
 			kind = testpilotspb.ENTRYPOINT_KIND_ACTIVITY
-		case *testpilotspb.EntrypointDefinition_NexusHandler:
+		case *testpilotspb.Entrypoint_NexusHandler:
 			kind = testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER
 		default:
 			return nil, ErrInvalid
@@ -126,7 +126,7 @@ func deriveUsage(program *testpilotspb.Program, contexts map[string]testpilotspb
 	return usage, nil
 }
 
-func (u *programUsage) add(instruction *testpilotspb.InstructionDefinition, contexts map[string]testpilotspb.EntrypointKind, catalog *testpilot.Catalog) error {
+func (u *programUsage) add(instruction *testpilotspb.InstructionNode, contexts map[string]testpilotspb.EntrypointKind, catalog *testpilot.Catalog) error {
 	capability := testpilot.InstructionCapability(instruction.GetInstruction())
 	if capability == 0 {
 		return ErrInvalid

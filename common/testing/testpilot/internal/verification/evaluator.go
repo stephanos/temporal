@@ -359,9 +359,9 @@ func eventValue(event *testpilotspb.RunEvent, field testpilotspb.RunEventField) 
 		return nil
 	}
 	if field == testpilotspb.RUN_EVENT_FIELD_SEQUENCE || field == testpilotspb.RUN_EVENT_FIELD_ELAPSED_MILLISECONDS || field == testpilotspb.RUN_EVENT_FIELD_ATTEMPT {
-		return &testpilotspb.Value{Value: &testpilotspb.Value_SignedInteger{SignedInteger: strconv.FormatInt(number, 10)}}
+		return &testpilotspb.Value{Value: &testpilotspb.Value_SignedIntegerValue{SignedIntegerValue: strconv.FormatInt(number, 10)}}
 	}
-	return &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: text}}
+	return &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: text}}
 }
 
 // Close transfers the frozen result once, including on failure; subsequent callbacks are rejected.

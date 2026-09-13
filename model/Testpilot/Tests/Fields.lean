@@ -54,10 +54,10 @@ private def capture (lifetime : Nat := 2) (field := "requested") (id := "seen") 
   { capture_id := id, field_id := field, lifetime := number lifetime }
 
 private def literal (text : String) : CorrelatedOperand :=
-  { operand := some (.literal { value := some (.text text) }) }
+  { operand := some (.literal { value := some (.text_value text) }) }
 private def field (id : String) : CorrelatedOperand := { operand := some (.field_id id) }
 private def natural (text : String) : CorrelatedOperand :=
-  { operand := some (.literal { value := some (.natural text) }) }
+  { operand := some (.literal { value := some (.natural_value text) }) }
 private def retained (ordinal : Nat) (id := "seen") : CorrelatedOperand :=
   { operand := some (.capture { capture_id := id, ordinal := number ordinal }) }
 
@@ -114,7 +114,7 @@ private def evidence (ordinal : Nat) (kind : String) (count : String) (operation
     scope := #[{ field_id := "run", value := "run-1" }], evidence_source := "source"
     ordinal := number ordinal }
   operation, kind
-  fields := #[{ field_id := fieldId, value := some { value := some (.text count) } }] }
+  fields := #[{ field_id := fieldId, value := some { value := some (.text_value count) } }] }
 
 private def scope : List (Name × String) := [(⟨"run"⟩, "run-1")]
 
@@ -229,11 +229,11 @@ private def decodes (wire : CorrelatedContract) : Bool := (Testpilot.Correlated.
 private def valued (wire : temporal.server.api.testpilot.v1.Value) : CorrelatedEvidence :=
   { evidence 0 "request" "1" with
     fields := #[{ field_id := "requested", value := some wire }] }
-#guard rejection (contract #[clause 1]) [valued { value := some (.natural "01") }] ==
+#guard rejection (contract #[clause 1]) [valued { value := some (.natural_value "01") }] ==
   some "noncanonical natural"
 #guard rejection (contract #[clause 1]) [valued { value := some (.bytes_value ⟨#[1]⟩) }] ==
   some "unsupported evidence scalar"
-#guard rejection (contract #[clause 1]) [valued { value := some (.natural "1") }] ==
+#guard rejection (contract #[clause 1]) [valued { value := some (.natural_value "1") }] ==
   some "invalid evidence"
 #guard rejection (contract #[clause 1])
   [{ evidence 0 "request" "1" with fields := #[] }] == some "invalid evidence"

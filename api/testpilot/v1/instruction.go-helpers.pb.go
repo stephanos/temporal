@@ -155,35 +155,35 @@ func (this *CorrelatedEvidenceProjection) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
-// Marshal an object of type ProjectionTarget to the protobuf v3 wire format
-func (val *ProjectionTarget) Marshal() ([]byte, error) {
+// Marshal an object of type ReadTarget to the protobuf v3 wire format
+func (val *ReadTarget) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
 }
 
-// Unmarshal an object of type ProjectionTarget from the protobuf v3 wire format
-func (val *ProjectionTarget) Unmarshal(buf []byte) error {
+// Unmarshal an object of type ReadTarget from the protobuf v3 wire format
+func (val *ReadTarget) Unmarshal(buf []byte) error {
 	return proto.Unmarshal(buf, val)
 }
 
 // Size returns the size of the object, in bytes, once serialized
-func (val *ProjectionTarget) Size() int {
+func (val *ReadTarget) Size() int {
 	return proto.Size(val)
 }
 
-// Equal returns whether two ProjectionTarget values are equivalent by recursively
+// Equal returns whether two ReadTarget values are equivalent by recursively
 // comparing the message's fields.
 // For more information see the documentation for
 // https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *ProjectionTarget) Equal(that interface{}) bool {
+func (this *ReadTarget) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	var that1 *ProjectionTarget
+	var that1 *ReadTarget
 	switch t := that.(type) {
-	case *ProjectionTarget:
+	case *ReadTarget:
 		that1 = t
-	case ProjectionTarget:
+	case ReadTarget:
 		that1 = &t
 	default:
 		return false
@@ -192,35 +192,35 @@ func (this *ProjectionTarget) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
-// Marshal an object of type ResponseProjection to the protobuf v3 wire format
-func (val *ResponseProjection) Marshal() ([]byte, error) {
+// Marshal an object of type ResponseRead to the protobuf v3 wire format
+func (val *ResponseRead) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
 }
 
-// Unmarshal an object of type ResponseProjection from the protobuf v3 wire format
-func (val *ResponseProjection) Unmarshal(buf []byte) error {
+// Unmarshal an object of type ResponseRead from the protobuf v3 wire format
+func (val *ResponseRead) Unmarshal(buf []byte) error {
 	return proto.Unmarshal(buf, val)
 }
 
 // Size returns the size of the object, in bytes, once serialized
-func (val *ResponseProjection) Size() int {
+func (val *ResponseRead) Size() int {
 	return proto.Size(val)
 }
 
-// Equal returns whether two ResponseProjection values are equivalent by recursively
+// Equal returns whether two ResponseRead values are equivalent by recursively
 // comparing the message's fields.
 // For more information see the documentation for
 // https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *ResponseProjection) Equal(that interface{}) bool {
+func (this *ResponseRead) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	var that1 *ResponseProjection
+	var that1 *ResponseRead
 	switch t := that.(type) {
-	case *ResponseProjection:
+	case *ResponseRead:
 		that1 = t
-	case ResponseProjection:
+	case ResponseRead:
 		that1 = &t
 	default:
 		return false
@@ -266,35 +266,35 @@ func (this *InstructionLimits) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
-// Marshal an object of type InvokeRPC to the protobuf v3 wire format
-func (val *InvokeRPC) Marshal() ([]byte, error) {
+// Marshal an object of type InvokeRpc to the protobuf v3 wire format
+func (val *InvokeRpc) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
 }
 
-// Unmarshal an object of type InvokeRPC from the protobuf v3 wire format
-func (val *InvokeRPC) Unmarshal(buf []byte) error {
+// Unmarshal an object of type InvokeRpc from the protobuf v3 wire format
+func (val *InvokeRpc) Unmarshal(buf []byte) error {
 	return proto.Unmarshal(buf, val)
 }
 
 // Size returns the size of the object, in bytes, once serialized
-func (val *InvokeRPC) Size() int {
+func (val *InvokeRpc) Size() int {
 	return proto.Size(val)
 }
 
-// Equal returns whether two InvokeRPC values are equivalent by recursively
+// Equal returns whether two InvokeRpc values are equivalent by recursively
 // comparing the message's fields.
 // For more information see the documentation for
 // https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *InvokeRPC) Equal(that interface{}) bool {
+func (this *InvokeRpc) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	var that1 *InvokeRPC
+	var that1 *InvokeRpc
 	switch t := that.(type) {
-	case *InvokeRPC:
+	case *InvokeRpc:
 		that1 = t
-	case InvokeRPC:
+	case InvokeRpc:
 		that1 = &t
 	default:
 		return false
@@ -673,35 +673,35 @@ func (this *ActivationReservationDefinition) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
-// Marshal an object of type InstructionDefinition to the protobuf v3 wire format
-func (val *InstructionDefinition) Marshal() ([]byte, error) {
+// Marshal an object of type InstructionNode to the protobuf v3 wire format
+func (val *InstructionNode) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
 }
 
-// Unmarshal an object of type InstructionDefinition from the protobuf v3 wire format
-func (val *InstructionDefinition) Unmarshal(buf []byte) error {
+// Unmarshal an object of type InstructionNode from the protobuf v3 wire format
+func (val *InstructionNode) Unmarshal(buf []byte) error {
 	return proto.Unmarshal(buf, val)
 }
 
 // Size returns the size of the object, in bytes, once serialized
-func (val *InstructionDefinition) Size() int {
+func (val *InstructionNode) Size() int {
 	return proto.Size(val)
 }
 
-// Equal returns whether two InstructionDefinition values are equivalent by recursively
+// Equal returns whether two InstructionNode values are equivalent by recursively
 // comparing the message's fields.
 // For more information see the documentation for
 // https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *InstructionDefinition) Equal(that interface{}) bool {
+func (this *InstructionNode) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	var that1 *InstructionDefinition
+	var that1 *InstructionNode
 	switch t := that.(type) {
-	case *InstructionDefinition:
+	case *InstructionNode:
 		that1 = t
-	case InstructionDefinition:
+	case InstructionNode:
 		that1 = &t
 	default:
 		return false
@@ -748,22 +748,22 @@ func (this *InstructionOutcome) Equal(that interface{}) bool {
 }
 
 var (
-	ProjectionKind_shorthandValue = map[string]int32{
+	ReadCardinality_shorthandValue = map[string]int32{
 		"Unspecified": 0,
 		"One":         1,
 		"EmitEach":    2,
 	}
 )
 
-// ProjectionKindFromString parses a ProjectionKind value from  either the protojson
-// canonical SCREAMING_CASE enum or the traditional temporal PascalCase enum to ProjectionKind
-func ProjectionKindFromString(s string) (ProjectionKind, error) {
-	if v, ok := ProjectionKind_value[s]; ok {
-		return ProjectionKind(v), nil
-	} else if v, ok := ProjectionKind_shorthandValue[s]; ok {
-		return ProjectionKind(v), nil
+// ReadCardinalityFromString parses a ReadCardinality value from  either the protojson
+// canonical SCREAMING_CASE enum or the traditional temporal PascalCase enum to ReadCardinality
+func ReadCardinalityFromString(s string) (ReadCardinality, error) {
+	if v, ok := ReadCardinality_value[s]; ok {
+		return ReadCardinality(v), nil
+	} else if v, ok := ReadCardinality_shorthandValue[s]; ok {
+		return ReadCardinality(v), nil
 	}
-	return ProjectionKind(0), fmt.Errorf("%s is not a valid ProjectionKind", s)
+	return ReadCardinality(0), fmt.Errorf("%s is not a valid ReadCardinality", s)
 }
 
 var (

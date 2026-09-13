@@ -15,8 +15,8 @@ import (
 
 const faultQueue = "task-queue"
 
-func faultInstruction(id, roleID string, kind testpilotspb.FaultKind) *testpilotspb.InstructionDefinition {
-	return &testpilotspb.InstructionDefinition{
+func faultInstruction(id, roleID string, kind testpilotspb.FaultKind) *testpilotspb.InstructionNode {
+	return &testpilotspb.InstructionNode{
 		InstructionId: id,
 		Instruction:   &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InjectFault{InjectFault: &testpilotspb.InjectFault{RoleId: roleID, Kind: kind}}},
 		Outcome:       runtimeStatusSchema(), Limits: runtimeBounds(),
@@ -117,13 +117,13 @@ func TestPreparedDefinitionPlansOutages(t *testing.T) {
 		// A Program whose only worker use is a fault brings no worker to stop.
 		{name: "no worker entrypoint", wantErr: ErrInvalid, modifiers: []any{func(program *testpilotspb.Program) {
 			program.Entrypoints = program.Entrypoints[:1]
-			program.Entrypoints[0].Instructions = []*testpilotspb.InstructionDefinition{faultInstruction("stop", "queue", testpilotspb.FAULT_KIND_WORKER_STOP)}
+			program.Entrypoints[0].Instructions = []*testpilotspb.InstructionNode{faultInstruction("stop", "queue", testpilotspb.FAULT_KIND_WORKER_STOP)}
 		}, authorizeFaults}},
 		// A fault on a task-queue role no worker registers on has nothing to stop, so it is refused
 		// here rather than at dispatch, where a rejected instruction would abort the whole Run.
 		{name: "unregistered fault queue", wantErr: ErrInvalid, modifiers: []any{func(program *testpilotspb.Program) {
 			program.Environment = append(program.Environment, &testpilotspb.EnvironmentDefinition{BindingId: "other-queue"})
-			program.Roles = append(program.Roles, &testpilotspb.RoleDefinition{RoleId: "idle-queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE, NamespaceBindingId: "namespace", ResourceBindingId: "other-queue"})
+			program.Roles = append(program.Roles, &testpilotspb.Role{RoleId: "idle-queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE, NamespaceBindingId: "namespace", ResourceBindingId: "other-queue"})
 			program.Entrypoints[0].Instructions = append(program.Entrypoints[0].Instructions, faultInstruction("stop", "idle-queue", testpilotspb.FAULT_KIND_WORKER_STOP))
 		}, func(profile *testpilot.ProfileSpec) {
 			authorizeFaults(profile)
@@ -315,7 +315,7 @@ func TestFaultRestoreResumesBeforeReleasing(t *testing.T) {
 func TestFaultTransitionsTheNamedQueue(t *testing.T) {
 	program := preparedSymbolicRuntimeFixture(t, func(program *testpilotspb.Program) {
 		program.Environment = append(program.Environment, &testpilotspb.EnvironmentDefinition{BindingId: "other-queue"})
-		program.Roles = append(program.Roles, &testpilotspb.RoleDefinition{RoleId: "other", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE, NamespaceBindingId: "namespace", ResourceBindingId: "other-queue"})
+		program.Roles = append(program.Roles, &testpilotspb.Role{RoleId: "other", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE, NamespaceBindingId: "namespace", ResourceBindingId: "other-queue"})
 		program.Entrypoints[2].GetNexusHandler().TaskQueueRoleId = "other"
 		program.Entrypoints[0].Instructions = append(program.Entrypoints[0].Instructions, faultInstruction("stop", "other", testpilotspb.FAULT_KIND_WORKER_STOP))
 	}, func(profile *testpilot.ProfileSpec) {

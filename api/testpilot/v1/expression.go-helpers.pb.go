@@ -7,35 +7,35 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-// Marshal an object of type InstructionRef to the protobuf v3 wire format
-func (val *InstructionRef) Marshal() ([]byte, error) {
+// Marshal an object of type InstructionReference to the protobuf v3 wire format
+func (val *InstructionReference) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
 }
 
-// Unmarshal an object of type InstructionRef from the protobuf v3 wire format
-func (val *InstructionRef) Unmarshal(buf []byte) error {
+// Unmarshal an object of type InstructionReference from the protobuf v3 wire format
+func (val *InstructionReference) Unmarshal(buf []byte) error {
 	return proto.Unmarshal(buf, val)
 }
 
 // Size returns the size of the object, in bytes, once serialized
-func (val *InstructionRef) Size() int {
+func (val *InstructionReference) Size() int {
 	return proto.Size(val)
 }
 
-// Equal returns whether two InstructionRef values are equivalent by recursively
+// Equal returns whether two InstructionReference values are equivalent by recursively
 // comparing the message's fields.
 // For more information see the documentation for
 // https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *InstructionRef) Equal(that interface{}) bool {
+func (this *InstructionReference) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	var that1 *InstructionRef
+	var that1 *InstructionReference
 	switch t := that.(type) {
-	case *InstructionRef:
+	case *InstructionReference:
 		that1 = t
-	case InstructionRef:
+	case InstructionReference:
 		that1 = &t
 	default:
 		return false

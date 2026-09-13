@@ -437,7 +437,7 @@ private def submittedTypeTarget : FieldPath := nested ["workflow_type", "name"]
 
 /-- The declared Observation each history event is projected into, and the one the derived rule
 reads. -/
-def observation : ObservationDefinition := Program.observation observationId historyEventType
+def observation : Observation := Program.observation observationId historyEventType
 
 private def program (startPath historyPath : String) : Program :=
   Program.make "temporal.case.typed-unary.program"
@@ -449,7 +449,7 @@ private def program (startPath historyPath : String) : Program :=
     #[observation]
     #[Program.controller controllerId #[
       Program.node startInstructionId
-        (Program.invokeRPC workflowServiceRole startPath #[
+        (Program.invokeRpc workflowServiceRole startPath #[
           Program.environmentAssignment (field "namespace") namespaceBindingId,
           assign (field "workflow_id") runId,
           assign submittedTypeTarget (text submittedWorkflowType),
@@ -458,11 +458,11 @@ private def program (startPath historyPath : String) : Program :=
         (bounds 10000) #[] none (some statusOutcome)
         #[Program.reservation workflowEntrypointId 1],
       Program.node historyInstructionId
-        (Program.invokeRPC workflowServiceRole historyPath #[
+        (Program.invokeRpc workflowServiceRole historyPath #[
           Program.environmentAssignment (field "namespace") namespaceBindingId,
           assign (nested ["execution", "workflow_id"]) runId,
           assign (field "maximum_page_size") (signedInteger 64)]
-          #[project historyEvents observationId .PROJECTION_KIND_EMIT_EACH])
+          #[project historyEvents observationId .READ_CARDINALITY_EMIT_EACH])
         (bounds 10000 128) #[Ref.instruction controllerId startInstructionId]
         (some (succeeded controllerId startInstructionId)) (some statusOutcome)],
       Program.workflow workflowEntrypointId submittedWorkflowType workerRole taskQueueRole #[

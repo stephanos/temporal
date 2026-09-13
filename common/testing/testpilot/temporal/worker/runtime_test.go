@@ -157,9 +157,9 @@ func TestDriverValidatesControllerOnlyTemporalResourceBindings(t *testing.T) {
 
 func TestDriverRejectsInvalidCleanupResourceBindingBeforeOpen(t *testing.T) {
 	prepared := preparedSymbolicRuntimeFixture(t, func(program *testpilotspb.Program) {
-		program.Cleanup.Instructions = []*testpilotspb.InstructionDefinition{{
+		program.Cleanup.Instructions = []*testpilotspb.InstructionNode{{
 			InstructionId: "cleanup-history",
-			Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRPC{
+			Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRpc{
 				EndpointRoleId: "endpoint",
 				Method:         getHistoryMethod,
 				RequestAssignments: []*testpilotspb.RequestAssignment{{
@@ -463,18 +463,18 @@ func TestActivationValuesOwnValidatedOutcome(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, enabled)
 	require.Nil(t, input)
-	original := &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: "result"}}
+	original := &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "result"}}
 	require.NoError(t, state.Admit(t.Context(), 1, &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: original}))
-	original.Value = &testpilotspb.Value_Text{Text: "mutated"}
+	original.Value = &testpilotspb.Value_TextValue{TextValue: "mutated"}
 	result, enabled, err := state.Evaluate(t.Context(), 2)
 	require.NoError(t, err)
 	require.True(t, enabled)
-	require.Equal(t, "result", result.GetText())
+	require.Equal(t, "result", result.GetTextValue())
 	i := workflowInterpreter{state: state}
 	result, finished, err := i.execute(2, prepared.Entrypoints()[1].Instructions()[2], result)
 	require.NoError(t, err)
 	require.True(t, finished)
-	require.Equal(t, "result", result.GetText())
+	require.Equal(t, "result", result.GetTextValue())
 }
 
 func TestReservationBindingRejectsCrossedIdentity(t *testing.T) {

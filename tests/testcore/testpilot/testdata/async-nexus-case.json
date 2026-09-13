@@ -219,7 +219,7 @@
                     },
                     "value": {
                       "literal": {
-                        "text": "umpire-async-nexus-workflow"
+                        "textValue": "umpire-async-nexus-workflow"
                       }
                     }
                   },
@@ -398,10 +398,10 @@
             },
             "instruction": {
               "completeNexusOperation": {
-                "capabilitySlotId": "completion-authority",
+                "handleSlotId": "completion-authority",
                 "result": {
                   "literal": {
-                    "text": "completed"
+                    "textValue": "completed"
                   }
                 }
               }
@@ -518,7 +518,7 @@
                     },
                     "value": {
                       "literal": {
-                        "signedInteger": "64"
+                        "signedIntegerValue": "64"
                       }
                     }
                   },
@@ -537,10 +537,10 @@
                     }
                   }
                 ],
-                "responseProjections": [
+                "responseReads": [
                   {
-                    "kind": "PROJECTION_KIND_EMIT_EACH",
-                    "source": {
+                    "kind": "READ_CARDINALITY_EMIT_EACH",
+                    "path": {
                       "segments": [
                         {
                           "field": "history"
@@ -666,7 +666,7 @@
                 "endpointRoleId": "temporal.nexus-endpoint",
                 "input": {
                   "literal": {
-                    "text": "request"
+                    "textValue": "request"
                   }
                 },
                 "operation": "complete",
@@ -836,11 +836,11 @@
           {
             "instruction": {
               "respondNexus": {
-                "capabilitySlotId": "completion-authority",
+                "handleSlotId": "completion-authority",
                 "kind": "NEXUS_RESPONSE_KIND_ASYNCHRONOUS",
                 "result": {
                   "literal": {
-                    "text": "accepted"
+                    "textValue": "accepted"
                   }
                 }
               }
@@ -948,7 +948,7 @@
     ],
     "slots": [
       {
-        "opaqueCapability": {},
+        "opaqueHandle": {},
         "slotId": "completion-authority"
       }
     ]

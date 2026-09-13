@@ -3,12 +3,12 @@
 `New(Options)` freezes the public Profile and configured transport endpoints, creates lazy shared
 gRPC channels, and performs no target calls. Supply its `Snapshot` through `testpilot.Prepare`. The
 root facade passes an admitted `PreparedProgram` to `Open`; this package copies its controller node
-bounds and coordinates without rebinding descriptors, expressions, assignments, or projections.
+bounds and coordinates without rebinding descriptors, expressions, assignments, or response reads.
 
 Runtime dispatch accepts a prepared unary descriptor and an already constructed message with that
 exact input descriptor. Unknown, streaming, and unauthorized methods fail public preparation.
 Authorized raw protobuf responses and protocol status are returned without filtering. Request
-construction, response projection, Run recording, and Verdict evaluation remain internal execution
+construction, response reads, Run recording, and Verdict evaluation remain internal execution
 responsibilities.
 
 The configured Profile identity changes when authorization or ceilings change. Prepared and Driver
@@ -21,16 +21,16 @@ Profile `MaxActivations` bounds concurrent sessions and capability creation per 
 `MaxAttempts` bounds attempted effects per session and unfinished effects across the shared Driver,
 including quarantined effects. Every accepted effect retains shared capacity until its transport
 returns. Wait, Cancel, Drain, and serialized Driver operations honor their contexts, including
-cancellation while waiting for the Driver lock. Close cancels effects, destroys capability bridge
+cancellation while waiting for the Driver lock. Close cancels effects, destroys handle bridge
 authority, and rejects future operations without waiting for transports. A closed session with
 unfinished effects retains its Run identity until those effects return.
 
-Opaque capabilities carry generic Driver-provided effects. Publish requires the exact originating
+Opaque handles carry generic Driver-provided effects. Publish requires the exact originating
 coordinate and a declared opaque Slot, rejects conflicting or cross-Run publication, and permits an
 exact duplicate before consumption. Await is context-cooperative. Consume returns a private claim
 while the bridge retains authority. Invocation accepts only the current claim, clones the typed
 input, applies the prepared controller instruction bounds, and consumes authority when the effect is
-accepted. A rejected invocation releases its claim so cleanup can consume the capability again.
+accepted. A rejected invocation releases its claim so cleanup can consume the handle again.
 Replaced claims cannot invoke an effect, and cancellation after successful acceptance cannot restore
 used authority. Closing the Session clears effect closures and Slot bindings.
 

@@ -153,28 +153,28 @@ func (r *runtimeExpression) binary(e *Expression) (*testpilotspb.Value, error) {
 }
 func compareValues(a, b *testpilotspb.Value, typ Type) (int, bool, error) {
 	switch v := a.Value.(type) {
-	case *testpilotspb.Value_Natural:
-		other := b.GetNatural()
-		if len(v.Natural) != len(other) {
-			return cmp.Compare(len(v.Natural), len(other)), false, nil
+	case *testpilotspb.Value_NaturalValue:
+		other := b.GetNaturalValue()
+		if len(v.NaturalValue) != len(other) {
+			return cmp.Compare(len(v.NaturalValue), len(other)), false, nil
 		}
-		return cmp.Compare(v.Natural, other), false, nil
-	case *testpilotspb.Value_SignedInteger:
-		x, err := strconv.ParseInt(v.SignedInteger, 10, 64)
+		return cmp.Compare(v.NaturalValue, other), false, nil
+	case *testpilotspb.Value_SignedIntegerValue:
+		x, err := strconv.ParseInt(v.SignedIntegerValue, 10, 64)
 		if err != nil {
 			return 0, false, err
 		}
-		y, err := strconv.ParseInt(b.GetSignedInteger(), 10, 64)
+		y, err := strconv.ParseInt(b.GetSignedIntegerValue(), 10, 64)
 		return cmp.Compare(x, y), false, err
-	case *testpilotspb.Value_UnsignedInteger:
-		x, err := strconv.ParseUint(v.UnsignedInteger, 10, 64)
+	case *testpilotspb.Value_UnsignedIntegerValue:
+		x, err := strconv.ParseUint(v.UnsignedIntegerValue, 10, 64)
 		if err != nil {
 			return 0, false, err
 		}
-		y, err := strconv.ParseUint(b.GetUnsignedInteger(), 10, 64)
+		y, err := strconv.ParseUint(b.GetUnsignedIntegerValue(), 10, 64)
 		return cmp.Compare(x, y), false, err
-	case *testpilotspb.Value_FloatingPoint:
-		x, y := v.FloatingPoint, b.GetFloatingPoint()
+	case *testpilotspb.Value_FloatingPointValue:
+		x, y := v.FloatingPointValue, b.GetFloatingPointValue()
 		if typ.scalar == testpilotspb.SCALAR_KIND_FLOAT {
 			x, y = float64(float32(x)), float64(float32(y))
 		}
@@ -220,7 +220,7 @@ func (r *runtimeExpression) equal(a, b *testpilotspb.Value, typ Type) (bool, err
 		return proto.Equal(x.Interface(), y.Interface()), nil
 	}
 	if typ.scalar == testpilotspb.SCALAR_KIND_FLOAT {
-		x, y := float32(a.GetFloatingPoint()), float32(b.GetFloatingPoint())
+		x, y := float32(a.GetFloatingPointValue()), float32(b.GetFloatingPointValue())
 		return x == y || math.IsNaN(float64(x)) && math.IsNaN(float64(y)), nil
 	}
 	return proto.Equal(a, b), nil

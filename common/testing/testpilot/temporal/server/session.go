@@ -25,7 +25,7 @@ type Session struct {
 	runID                         string
 	entries                       map[string]struct{}
 	controllers                   map[string]struct{}
-	nodes                         map[nodeKey]*testpilotspb.InstructionDefinition
+	nodes                         map[nodeKey]*testpilotspb.InstructionNode
 	effects                       map[*effect]struct{}
 	capabilities                  map[*opaqueCapability]struct{}
 	slots                         map[string]*capabilitySlot
@@ -51,7 +51,7 @@ func (s *Session) InjectFault(ctx context.Context, _ testpilot.Coordinate, _ str
 	return nil, errUnauthorized
 }
 
-func (s *Session) controllerNode(c testpilot.Coordinate) (*testpilotspb.InstructionDefinition, error) {
+func (s *Session) controllerNode(c testpilot.Coordinate) (*testpilotspb.InstructionNode, error) {
 	if c.RunID != s.runID || c.ActivationID == "" || len(c.ActivationID) > 256 || c.Attempt <= 0 {
 		return nil, errUnauthorized
 	}

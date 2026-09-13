@@ -12,8 +12,8 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func faultNode(id, role string, kind testpilotspb.FaultKind) *testpilotspb.InstructionDefinition {
-	return &testpilotspb.InstructionDefinition{
+func faultNode(id, role string, kind testpilotspb.FaultKind) *testpilotspb.InstructionNode {
+	return &testpilotspb.InstructionNode{
 		InstructionId: id,
 		Instruction:   &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InjectFault{InjectFault: &testpilotspb.InjectFault{RoleId: role, Kind: kind}}},
 		Outcome:       statusSchema(),
@@ -26,11 +26,11 @@ func faultFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Profile) {
 	c, catalog, policy := fixture(t)
 	policy.Opcodes = append(policy.Opcodes, contract.InjectFault)
 	addWorker(c, &policy)
-	c.Program.Entrypoints[0].Instructions = []*testpilotspb.InstructionDefinition{
+	c.Program.Entrypoints[0].Instructions = []*testpilotspb.InstructionNode{
 		faultNode("stop", "queue", testpilotspb.FAULT_KIND_WORKER_STOP),
 		faultNode("resume", "queue", testpilotspb.FAULT_KIND_WORKER_RESUME),
 	}
-	c.Program.Entrypoints[0].Instructions[1].Dependencies = []*testpilotspb.InstructionRef{{EntrypointId: "controller", InstructionId: "stop"}}
+	c.Program.Entrypoints[0].Instructions[1].Dependencies = []*testpilotspb.InstructionReference{{EntrypointId: "controller", InstructionId: "stop"}}
 	return c, catalog, policy
 }
 
@@ -80,7 +80,7 @@ func TestPrepareAdmitsFaultInjection(t *testing.T) {
 		}, ir.Malformed},
 		{"outside the controller context", func(c *testpilotspb.Case, _ *Profile) {
 			workflow := c.Program.Entrypoints[len(c.Program.Entrypoints)-1]
-			workflow.Instructions = []*testpilotspb.InstructionDefinition{faultNode("stop", "queue", testpilotspb.FAULT_KIND_WORKER_STOP)}
+			workflow.Instructions = []*testpilotspb.InstructionNode{faultNode("stop", "queue", testpilotspb.FAULT_KIND_WORKER_STOP)}
 		}, ir.Unsupported},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

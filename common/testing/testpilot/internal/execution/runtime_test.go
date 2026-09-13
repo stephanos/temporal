@@ -176,11 +176,11 @@ func TestRunStopDrainsQuarantinesAndCannotSuppressFreshCleanup(t *testing.T) {
 	late := rpcNode("late")
 	quarantine := rpcNode("quarantine")
 	after := rpcNode("after")
-	after.Dependencies = []*testpilotspb.InstructionRef{{EntrypointId: "controller", InstructionId: "call"}}
+	after.Dependencies = []*testpilotspb.InstructionReference{{EntrypointId: "controller", InstructionId: "call"}}
 	c.Program.Entrypoints[0].Instructions = append(c.Program.Entrypoints[0].Instructions, late, quarantine, after)
 	cleanupNode := rpcNode("cleanup")
 	cleanupNode.Limits.TimeoutMilliseconds = 10
-	c.Program.Cleanup.Instructions = []*testpilotspb.InstructionDefinition{cleanupNode}
+	c.Program.Cleanup.Instructions = []*testpilotspb.InstructionNode{cleanupNode}
 	prepared, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
 	complete := newRuntimeEffect(effectResponse(prepared, "complete"), true)
@@ -334,7 +334,7 @@ func TestRunTerminalPrecedence(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			c, catalog, policy := fixture(t)
 			c.Program.Limits.MaxCleanupDurationMilliseconds = 100
-			c.Program.Cleanup.Instructions = []*testpilotspb.InstructionDefinition{rpcNode("cleanup")}
+			c.Program.Cleanup.Instructions = []*testpilotspb.InstructionNode{rpcNode("cleanup")}
 			c.Program.Cleanup.Instructions[0].Limits.TimeoutMilliseconds = 100
 			prepared, err := Prepare(c, catalog, policy)
 			require.NoError(t, err)
@@ -374,7 +374,7 @@ func TestRunCleanupDeadlineDoesNotReplaceOrdinarySuccess(t *testing.T) {
 	c.Program.Limits.MaxCleanupDurationMilliseconds = 10
 	cleanupNode := rpcNode("cleanup")
 	cleanupNode.Limits.TimeoutMilliseconds = 10
-	c.Program.Cleanup.Instructions = []*testpilotspb.InstructionDefinition{cleanupNode}
+	c.Program.Cleanup.Instructions = []*testpilotspb.InstructionNode{cleanupNode}
 	prepared, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
 	session := &runtimeSession{effects: map[string]*runtimeEffect{

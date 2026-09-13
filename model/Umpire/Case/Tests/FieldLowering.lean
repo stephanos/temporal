@@ -239,7 +239,7 @@ private def wireEvent (report : Report) : CorrelatedEvidence := {
   operation := report.operation
   kind := report.kind
   fields := (report.count.toList.map fun count =>
-    ({ field_id := "test.count", value := some { value := some (.natural (toString count)) } } :
+    ({ field_id := "test.count", value := some { value := some (.natural_value (toString count)) } } :
       CorrelatedEvidenceField)).toArray }
 
 private def transition (report : Report) : Property.Correlated.Transition :=
@@ -296,7 +296,7 @@ private def adapterAnswers (temporal : PropertyCorrelatedClause) (reports : List
 /-! ### The lowered Case -/
 
 private def requestValue (count : Int) : PortableValue :=
-  { value := some (.signed_integer (toString count)) }
+  { value := some (.signed_integer_value (toString count)) }
 
 private def program (assigned : Int := 7) : Program :=
   Testpilot.Authoring.Program.make "fields.program" #[] #[]
@@ -304,14 +304,14 @@ private def program (assigned : Int := 7) : Program :=
       (Testpilot.Authoring.Types.messageType "temporal.server.api.testpilot.v1.CorrelatedEvidence"))]
     #[Testpilot.Authoring.Program.controller "controller"
       #[Testpilot.Authoring.Program.node "start"
-        (Testpilot.Authoring.Program.invokeRPC "source" "/example.Call/Do"
+        (Testpilot.Authoring.Program.invokeRpc "source" "/example.Call/Do"
           #[Testpilot.Authoring.Program.requestAssignment
               (Testpilot.Authoring.Path.make #[Testpilot.Authoring.Path.field "count"])
               (Testpilot.Authoring.ProgramExpr.literal (requestValue assigned)),
             Testpilot.Authoring.Program.requestAssignment
               (Testpilot.Authoring.Path.make
-                #[Testpilot.Authoring.Path.mapKey "tags" { value := some (.text "k") }])
-              (Testpilot.Authoring.ProgramExpr.literal { value := some (.text "v") })])
+                #[Testpilot.Authoring.Path.mapKey "tags" { value := some (.text_value "k") }])
+              (Testpilot.Authoring.ProgramExpr.literal { value := some (.text_value "v") })])
         (Testpilot.Authoring.Program.instructionLimits 1000 1 1 4096)]]
     (Testpilot.Authoring.Program.cleanup "cleanup" #[])
     (Testpilot.Authoring.Program.limits 4 16 16 16 16 32 8 8 4096 4096 10000 1000)
@@ -628,7 +628,7 @@ private def fieldProperty (target : TestTarget) (expectation : PropertyPredicate
           guard := alwaysTrue
           clauses := [⟨id "test.property.monitor.clause", source, expectation⟩] }] }] }
 
-private def monitorObservation : ObservationDefinition :=
+private def monitorObservation : Observation :=
   Testpilot.Authoring.Program.observation "event"
     (Testpilot.Authoring.Types.singular (Testpilot.Authoring.Types.messageType "M"))
 

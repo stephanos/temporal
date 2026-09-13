@@ -80,7 +80,7 @@ func TestDeriveProfileNeverWidensBeyondTheCase(t *testing.T) {
 	methods, opcodes := map[string]bool{}, map[testpilot.Opcode]bool{}
 	reserving := map[string]bool{}
 	program := source.GetProgram()
-	plans := append(program.GetEntrypoints(), &testpilotspb.EntrypointDefinition{
+	plans := append(program.GetEntrypoints(), &testpilotspb.Entrypoint{
 		EntrypointId: program.GetCleanup().GetEntrypointId(), Instructions: program.GetCleanup().GetInstructions(),
 	})
 	for _, entrypoint := range plans {

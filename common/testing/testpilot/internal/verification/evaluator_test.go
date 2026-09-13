@@ -181,7 +181,7 @@ func TestEvaluatorEventCountDeadline(t *testing.T) {
 
 func observed(sequence, elapsed, id int64) *testpilotspb.RunEvent {
 	e := event(sequence, elapsed, testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED)
-	e.Observations = []*testpilotspb.ObservationResult{{ObservationId: "id", Value: &testpilotspb.Value{Value: &testpilotspb.Value_SignedInteger{SignedInteger: fmt.Sprint(id)}}}}
+	e.Observations = []*testpilotspb.ObservationResult{{ObservationId: "id", Value: &testpilotspb.Value{Value: &testpilotspb.Value_SignedIntegerValue{SignedIntegerValue: fmt.Sprint(id)}}}}
 	return e
 }
 func TestEvaluatorCaptureCorrelationAndStop(t *testing.T) {
@@ -214,10 +214,10 @@ func TestEvaluatorCaptureCorrelationAndStop(t *testing.T) {
 			}
 			require.Equal(t, []transitionTrace{{2, "rule", "save", "start", "saved"}, {4, "rule", "match", "saved", "bad"}}, e.trace)
 			require.Equal(t, int64(2), e.rules[0].captures["saved"].sequence)
-			require.Equal(t, fmt.Sprint(id), e.rules[0].captures["saved"].value.GetSignedInteger())
-			run.Events[1].Observations[0].Value.GetValue().(*testpilotspb.Value_SignedInteger).SignedInteger = "999"
-			require.Equal(t, fmt.Sprint(id), e.rules[0].captures["saved"].value.GetSignedInteger())
-			run.Events[1].Observations[0].Value.GetValue().(*testpilotspb.Value_SignedInteger).SignedInteger = fmt.Sprint(id)
+			require.Equal(t, fmt.Sprint(id), e.rules[0].captures["saved"].value.GetSignedIntegerValue())
+			run.Events[1].Observations[0].Value.GetValue().(*testpilotspb.Value_SignedIntegerValue).SignedIntegerValue = "999"
+			require.Equal(t, fmt.Sprint(id), e.rules[0].captures["saved"].value.GetSignedIntegerValue())
+			run.Events[1].Observations[0].Value.GetValue().(*testpilotspb.Value_SignedIntegerValue).SignedIntegerValue = fmt.Sprint(id)
 			live, err := e.Close(context.Background(), run)
 			require.NoError(t, err)
 			require.Equal(t, []int64{2, 4}, live.SupportingEventSequences)
@@ -351,13 +351,13 @@ func TestEvaluatorRuntimeBoundsAndMalformedEvents(t *testing.T) {
 		{"elapsed", func(e *testpilotspb.RunEvent) { e.ElapsedMilliseconds = -1 }},
 		{"unknown observation", func(e *testpilotspb.RunEvent) { e.Observations[0].ObservationId = "private-slot" }},
 		{"wrong type", func(e *testpilotspb.RunEvent) {
-			e.Observations[0].Value = &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: "not an int"}}
+			e.Observations[0].Value = &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "not an int"}}
 		}},
 		{"duplicate observation", func(e *testpilotspb.RunEvent) {
 			e.Observations = append(e.Observations, proto.CloneOf(e.Observations[0]))
 		}},
 		{"bytes", func(e *testpilotspb.RunEvent) {
-			e.Observations[0] = &testpilotspb.ObservationResult{ObservationId: "text", Value: &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: string(make([]byte, 4097))}}}
+			e.Observations[0] = &testpilotspb.ObservationResult{ObservationId: "text", Value: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: string(make([]byte, 4097))}}}
 		}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -449,11 +449,11 @@ func TestEvaluatorCaptureNamesAreRuleLocal(t *testing.T) {
 	_, err = e.Observe(context.Background(), event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED))
 	require.NoError(t, err)
 	values := observed(2, 1000, 7)
-	values.Observations = append(values.Observations, &testpilotspb.ObservationResult{ObservationId: "text", Value: &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: "distinct"}}})
+	values.Observations = append(values.Observations, &testpilotspb.ObservationResult{ObservationId: "text", Value: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "distinct"}}})
 	_, err = e.Observe(context.Background(), values)
 	require.NoError(t, err)
-	require.Equal(t, "7", e.rules[0].captures["saved"].value.GetSignedInteger())
-	require.Equal(t, "distinct", e.rules[1].captures["saved"].value.GetText())
+	require.Equal(t, "7", e.rules[0].captures["saved"].value.GetSignedIntegerValue())
+	require.Equal(t, "distinct", e.rules[1].captures["saved"].value.GetTextValue())
 }
 func TestEvaluatorEventCountBound(t *testing.T) {
 	c, cat, view, limits := fixture(t)

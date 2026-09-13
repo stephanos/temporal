@@ -143,7 +143,7 @@ func (c *Catalog) bindSingular(singular *testpilotspb.SingularType, result *Type
 		}
 	case *testpilotspb.SingularType_Any:
 		result.any = true
-	case *testpilotspb.SingularType_OpaqueCapability:
+	case *testpilotspb.SingularType_OpaqueHandle:
 		result.opaque = true
 	default:
 		return invalid(Malformed, "type", "missing singular type variant")
@@ -297,8 +297,8 @@ func (c *Catalog) checkMessage(value *testpilotspb.Value, typ Type, b *budget, d
 func checkScalar(value *testpilotspb.Value, kind testpilotspb.ScalarKind) error {
 	switch kind {
 	case testpilotspb.SCALAR_KIND_TEXT:
-		item, ok := value.Value.(*testpilotspb.Value_Text)
-		if !ok || !utf8.ValidString(item.Text) {
+		item, ok := value.Value.(*testpilotspb.Value_TextValue)
+		if !ok || !utf8.ValidString(item.TextValue) {
 			return literalMismatch()
 		}
 	case testpilotspb.SCALAR_KIND_BYTES:
@@ -310,18 +310,18 @@ func checkScalar(value *testpilotspb.Value, kind testpilotspb.ScalarKind) error 
 			return literalMismatch()
 		}
 	case testpilotspb.SCALAR_KIND_NATURAL:
-		item, ok := value.Value.(*testpilotspb.Value_Natural)
-		if !ok || !canonicalUnsigned(item.Natural) {
+		item, ok := value.Value.(*testpilotspb.Value_NaturalValue)
+		if !ok || !canonicalUnsigned(item.NaturalValue) {
 			return literalMismatch()
 		}
 	case testpilotspb.SCALAR_KIND_INT32, testpilotspb.SCALAR_KIND_INT64, testpilotspb.SCALAR_KIND_SINT32, testpilotspb.SCALAR_KIND_SINT64, testpilotspb.SCALAR_KIND_SFIXED32, testpilotspb.SCALAR_KIND_SFIXED64, testpilotspb.SCALAR_KIND_UINT32, testpilotspb.SCALAR_KIND_UINT64, testpilotspb.SCALAR_KIND_FIXED32, testpilotspb.SCALAR_KIND_FIXED64:
 		return checkInteger(value, kind)
 	case testpilotspb.SCALAR_KIND_FLOAT, testpilotspb.SCALAR_KIND_DOUBLE:
-		item, ok := value.Value.(*testpilotspb.Value_FloatingPoint)
+		item, ok := value.Value.(*testpilotspb.Value_FloatingPointValue)
 		if !ok {
 			return literalMismatch()
 		}
-		if kind == testpilotspb.SCALAR_KIND_FLOAT && !math.IsInf(item.FloatingPoint, 0) && math.Abs(item.FloatingPoint) > math.MaxFloat32 {
+		if kind == testpilotspb.SCALAR_KIND_FLOAT && !math.IsInf(item.FloatingPointValue, 0) && math.Abs(item.FloatingPointValue) > math.MaxFloat32 {
 			return literalMismatch()
 		}
 	default:
@@ -333,7 +333,7 @@ func checkScalar(value *testpilotspb.Value, kind testpilotspb.ScalarKind) error 
 func checkInteger(value *testpilotspb.Value, kind testpilotspb.ScalarKind) error {
 	switch kind {
 	case testpilotspb.SCALAR_KIND_INT32, testpilotspb.SCALAR_KIND_INT64, testpilotspb.SCALAR_KIND_SINT32, testpilotspb.SCALAR_KIND_SINT64, testpilotspb.SCALAR_KIND_SFIXED32, testpilotspb.SCALAR_KIND_SFIXED64:
-		item, ok := value.Value.(*testpilotspb.Value_SignedInteger)
+		item, ok := value.Value.(*testpilotspb.Value_SignedIntegerValue)
 		if !ok {
 			return literalMismatch()
 		}
@@ -341,12 +341,12 @@ func checkInteger(value *testpilotspb.Value, kind testpilotspb.ScalarKind) error
 		if kind == testpilotspb.SCALAR_KIND_INT32 || kind == testpilotspb.SCALAR_KIND_SINT32 || kind == testpilotspb.SCALAR_KIND_SFIXED32 {
 			bits = 32
 		}
-		parsed, err := strconv.ParseInt(item.SignedInteger, 10, bits)
-		if err != nil || strconv.FormatInt(parsed, 10) != item.SignedInteger {
+		parsed, err := strconv.ParseInt(item.SignedIntegerValue, 10, bits)
+		if err != nil || strconv.FormatInt(parsed, 10) != item.SignedIntegerValue {
 			return literalMismatch()
 		}
 	case testpilotspb.SCALAR_KIND_UINT32, testpilotspb.SCALAR_KIND_UINT64, testpilotspb.SCALAR_KIND_FIXED32, testpilotspb.SCALAR_KIND_FIXED64:
-		item, ok := value.Value.(*testpilotspb.Value_UnsignedInteger)
+		item, ok := value.Value.(*testpilotspb.Value_UnsignedIntegerValue)
 		if !ok {
 			return literalMismatch()
 		}
@@ -354,8 +354,8 @@ func checkInteger(value *testpilotspb.Value, kind testpilotspb.ScalarKind) error
 		if kind == testpilotspb.SCALAR_KIND_UINT32 || kind == testpilotspb.SCALAR_KIND_FIXED32 {
 			bits = 32
 		}
-		parsed, err := strconv.ParseUint(item.UnsignedInteger, 10, bits)
-		if err != nil || strconv.FormatUint(parsed, 10) != item.UnsignedInteger {
+		parsed, err := strconv.ParseUint(item.UnsignedIntegerValue, 10, bits)
+		if err != nil || strconv.FormatUint(parsed, 10) != item.UnsignedIntegerValue {
 			return literalMismatch()
 		}
 	default:

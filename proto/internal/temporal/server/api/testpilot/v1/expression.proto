@@ -20,9 +20,9 @@ enum ComparisonOperator {
   COMPARISON_OPERATOR_GREATER_THAN_OR_EQUAL = 4;
 }
 
-message InstructionRef { string entrypoint_id = 1; string instruction_id = 2; }
+message InstructionReference { string entrypoint_id = 1; string instruction_id = 2; }
 message SlotRef { string slot_id = 1; }
-message InstructionOutcomeRef { InstructionRef instruction = 1; InstructionOutcomeField field = 2; }
+message InstructionOutcomeRef { InstructionReference instruction = 1; InstructionOutcomeField field = 2; }
 message OutcomeFieldDefinition { InstructionOutcomeField field = 1; ValueType type = 2; }
 message InstructionOutcomeDefinition { repeated OutcomeFieldDefinition fields = 1; }
 message ObservationRef { string observation_id = 1; }

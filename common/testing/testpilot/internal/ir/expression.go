@@ -481,9 +481,9 @@ func (c *Catalog) literalType(value *testpilotspb.Value) (Type, error) {
 		return Type{}, invalid(Malformed, "literal", "missing literal")
 	}
 	switch literal := value.Value.(type) {
-	case *testpilotspb.Value_Text:
+	case *testpilotspb.Value_TextValue:
 		return c.scalarType(testpilotspb.SCALAR_KIND_TEXT), nil
-	case *testpilotspb.Value_Natural:
+	case *testpilotspb.Value_NaturalValue:
 		return c.scalarType(testpilotspb.SCALAR_KIND_NATURAL), nil
 	case *testpilotspb.Value_BoolValue:
 		return c.scalarType(testpilotspb.SCALAR_KIND_BOOLEAN), nil

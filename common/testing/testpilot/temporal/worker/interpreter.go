@@ -225,8 +225,8 @@ func (s *Session) respondNexus(ctx context.Context, delivered delivery.Activatio
 		return s.respondNexusAsync(ctx, delivered, response, input, options)
 	case testpilotspb.NEXUS_RESPONSE_KIND_ERROR:
 		detail := "Nexus handler returned an error"
-		if input != nil && input.GetText() != "" {
-			detail = input.GetText()
+		if input != nil && input.GetTextValue() != "" {
+			detail = input.GetTextValue()
 		}
 		return response.GetKind(), nil, "", &nexus.HandlerError{Type: nexus.HandlerErrorTypeInternal, Message: boundedText(detail), RetryBehavior: nexus.HandlerErrorRetryBehaviorNonRetryable}
 	default:
@@ -253,7 +253,7 @@ func (s *Session) respondNexusAsync(ctx context.Context, delivered delivery.Acti
 		s.lateDiagnostic(ctx, "completion_publication_late")
 		return 0, nil, "", err
 	}
-	if err := s.options.Bridge.Publish(ctx, delivered.Coordinate(), response.GetCapabilitySlotId(), capability); err != nil {
+	if err := s.options.Bridge.Publish(ctx, delivered.Coordinate(), response.GetHandleSlotId(), capability); err != nil {
 		if errors.Is(s.publicationAllowed(ctx), ErrClosed) {
 			s.lateDiagnostic(ctx, "completion_publication_late")
 		}

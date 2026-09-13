@@ -20,8 +20,8 @@ private def conformanceRule
       (ContractExpr.literal (Value.boolean matchesEvent))
       .CONTRACT_SUPPORT_KIND_MATCHING_EVENT]
 
-private def conformanceNode (instructionId : String) : InstructionDefinition :=
-  Program.node instructionId (Program.invokeRPC workflowServiceRole getSystemInfoMethod)
+private def conformanceNode (instructionId : String) : InstructionNode :=
+  Program.node instructionId (Program.invokeRpc workflowServiceRole getSystemInfoMethod)
     bounds (outcome := some statusOutcome)
 
 private def conformanceProgram (caseId : String) (cleanupFailure : Bool) : Program :=

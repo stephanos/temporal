@@ -108,9 +108,9 @@ func TestPreparedInputActivationIsolation(t *testing.T) {
 			value, enabled, work, err := plan.EvaluateInput(context.Background(), lookup, entry.RuntimeWorkLimit())
 			require.NoError(t, err)
 			require.True(t, enabled)
-			require.Equal(t, text, value.GetText())
-			value.Value = &testpilotspb.Value_Text{Text: "changed"}
-			require.Equal(t, text, fields[int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE)].GetText())
+			require.Equal(t, text, value.GetTextValue())
+			value.Value = &testpilotspb.Value_TextValue{TextValue: "changed"}
+			require.Equal(t, text, fields[int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE)].GetTextValue())
 			_, _, _, err = plan.EvaluateInput(context.Background(), lookup, work)
 			require.NoError(t, err)
 			_, _, _, err = plan.EvaluateInput(context.Background(), lookup, work-1)
@@ -152,13 +152,13 @@ func TestPreparedTerminalResultsAndDeclaredTypes(t *testing.T) {
 		}, entry.RuntimeWorkLimit())
 		require.NoError(t, err)
 		require.True(t, enabled)
-		require.Equal(t, pair.want, value.GetText())
+		require.Equal(t, pair.want, value.GetTextValue())
 		raw := &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: value}
 		snapshot, _, err := n.ValidateOutcome(context.Background(), raw, entry.RuntimeWorkLimit())
 		require.NoError(t, err)
-		raw.Value.Value = &testpilotspb.Value_Text{Text: "changed"}
-		require.Equal(t, pair.want, snapshot.Outcome.Value.GetText())
-		snapshot.Outcome.Value.Value = &testpilotspb.Value_Text{Text: "changed again"}
-		require.Equal(t, pair.want, snapshot.Fields[testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE].GetText())
+		raw.Value.Value = &testpilotspb.Value_TextValue{TextValue: "changed"}
+		require.Equal(t, pair.want, snapshot.Outcome.Value.GetTextValue())
+		snapshot.Outcome.Value.Value = &testpilotspb.Value_TextValue{TextValue: "changed again"}
+		require.Equal(t, pair.want, snapshot.Fields[testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE].GetTextValue())
 	}
 }

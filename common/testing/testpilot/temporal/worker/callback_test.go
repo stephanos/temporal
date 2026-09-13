@@ -20,7 +20,7 @@ import (
 )
 
 func callbackValue() *testpilotspb.Value {
-	return &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: "result"}}
+	return &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "result"}}
 }
 
 func callbackLimits() *testpilotspb.ProgramLimits {
@@ -69,7 +69,7 @@ func TestCompletionEffectAcceptsOnlyCompletionInstructionsAndValues(t *testing.T
 	effect, err := transport.newEffect(completionInfo{URL: "http://localhost", OperationToken: "token"})
 	require.NoError(t, err)
 	completion := &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_CompleteNexusOperation{CompleteNexusOperation: &testpilotspb.CompleteNexusOperation{}}}
-	other := &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRPC{}}}
+	other := &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRpc{}}}
 	require.True(t, effect.Accepts(t.Context(), completion, callbackValue()))
 	require.False(t, effect.Accepts(t.Context(), other, callbackValue()))
 	require.False(t, effect.Accepts(t.Context(), completion, &testpilotspb.InstructionOutcome{}))

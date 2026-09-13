@@ -132,12 +132,12 @@ func TestValueRuntimeCancellationAndMalformedInputs(t *testing.T) {
 		require.Nil(t, result)
 	}
 	textType := boundType(t, c, scalar(testpilotspb.SCALAR_KIND_TEXT))
-	for _, value := range []*testpilotspb.Value{nil, {}, {Value: (*testpilotspb.Value_Text)(nil)}, {Value: &testpilotspb.Value_Text{Text: string([]byte{0xff})}}} {
+	for _, value := range []*testpilotspb.Value{nil, {}, {Value: (*testpilotspb.Value_TextValue)(nil)}, {Value: &testpilotspb.Value_TextValue{TextValue: string([]byte{0xff})}}} {
 		result, _, err := SnapshotValue(context.Background(), value, textType, DefaultLimits())
 		require.Error(t, err)
 		require.Nil(t, result)
 	}
-	opaque := boundType(t, c, &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_OpaqueCapability{OpaqueCapability: &testpilotspb.OpaqueCapabilityType{}}}}})
+	opaque := boundType(t, c, &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_OpaqueHandle{OpaqueHandle: &testpilotspb.OpaqueHandleType{}}}}})
 	_, _, err = SnapshotValue(context.Background(), text("secret"), opaque, DefaultLimits())
 	require.Error(t, err)
 }

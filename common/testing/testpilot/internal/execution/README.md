@@ -1,16 +1,16 @@
 # Private Program execution
 
-Admission freezes descriptors, expressions, assignment/projection paths and the Program DAGs.
+Admission freezes descriptors, expressions, assignment and response-read paths and the Program DAGs.
 The value data plane builds requests from those compiled objects and stages immutable outcome,
 Slot and Observation values without Driver I/O, recording or Monitor calls. Raw RPC payloads are
-validated against the pinned response descriptor and discarded after declared projections. Equivalent
+validated against the pinned response descriptor and discarded after declared response reads. Equivalent
 generated descriptors are accepted through a bounded structural check; reusing a protobuf full name
 with different fields, nested messages or enum definitions is rejected. Exact descriptor identity
 skips this compatibility walk, and cyclic type graphs terminate through a per-call visited set.
-Opaque capabilities belong to the Driver bridge and never enter this store.
+Opaque handles belong to the Driver bridge and never enter this store.
 
 The Driver-facing vocabulary this package schedules against (`Session`, effect and reservation
-handles, `Coordinate`, the capability bridge, Profile role policy and `Opcode`) is declared in the
+handles, `Coordinate`, the handle bridge, Profile role policy and `Opcode`) is declared in the
 `common/testing/testpilot/contract` leaf and used here directly. This package keeps `Driver`,
 `Profile` and the prepared plans, whose methods expose IR, and the public facade re-exports the leaf
 by alias, so the handles a Session returns reach execution and come back to it unwrapped.
@@ -37,12 +37,12 @@ An operation already staging may finish, but cannot publish after sealing. A fai
 must never publish its staged facts. Recorder admission and Stop decisions remain the recorder's authority.
 
 Runtime work is independent of IR binding work. The data plane derives a finite ceiling from the
-admitted graph's compiled expression nodes, assignments, outcomes and projection sinks, maximum
+admitted graph's compiled expression nodes, assignments, outcomes and response-read targets, maximum
 payload bytes, path fanout and
 expression depth, with checked arithmetic, and caches it during admission. Callers use `workLimit()` or a tighter positive
 budget. One budget aggregates evaluation, validation, traversal, serialization and ownership copies
 across the complete request or stage; exact wire byte ceilings are checked separately from that
-accumulated work. No static rebinding occurs during request construction or response projection.
+accumulated work. No static rebinding occurs during request construction or response reads.
 
 Execution expressions use `Expression.EvaluateExecution`, which shares the evaluator implementation
 and semantics with `Evaluate` while charging intermediate decoding, encoding and ownership copies.
@@ -145,7 +145,7 @@ StartNexusOperation cannot declare VALUE because its SDK future is an opaque run
 validates the target result against its declared VALUE type. Finish and every RespondNexus variant
 retain their evaluated result expressions and may declare their typed VALUE.
 
-A response projection sink may be a `CorrelatedEvidence` lift rather than a Slot or an Observation. Its
+A response read target may be a `CorrelatedEvidence` lift rather than a Slot or an Observation. Its
 rules are tried in declaration order and the first whose guard resolves builds the evidence value
 from paths read out of the projected value; a value no rule claims emits nothing. Admission requires
 the sink to be the exact declared `CorrelatedEvidence` Observation, every bound path to read a scalar the
@@ -172,4 +172,4 @@ in the worker. This composition does not change the public methods or their work
 Validation charges traversal and ordering before serialization/copies. Runtime protobuf fields use field-number order and map keys use typed order;
 declared outcome fields use declaration order, making failure precedence and tight-budget exhaustion
 repeatable. Static binding retains its existing finite work accounting. The same validator serves
-controller staging; only raw RPC response validation/projection adds controller work afterward.
+controller staging; only raw RPC response validation and reads add controller work afterward.

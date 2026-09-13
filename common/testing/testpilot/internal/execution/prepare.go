@@ -309,10 +309,10 @@ func (a *admission) bindSchemas() error {
 		}
 		var schema *testpilotspb.ValueType
 		switch slot.Content.(type) {
-		case *testpilotspb.SlotDefinition_Value:
+		case *testpilotspb.Slot_Value:
 			schema = slot.GetValue()
-		case *testpilotspb.SlotDefinition_OpaqueCapability:
-			schema = &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_OpaqueCapability{OpaqueCapability: &testpilotspb.OpaqueCapabilityType{}}}}}
+		case *testpilotspb.Slot_OpaqueHandle:
+			schema = &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_OpaqueHandle{OpaqueHandle: &testpilotspb.OpaqueHandleType{}}}}}
 		default:
 			return invalid(ir.Malformed, "slots", "Slot content is required")
 		}
@@ -343,7 +343,7 @@ func (a *admission) bindSchemas() error {
 	return nil
 }
 
-func (a *admission) bindRole(role *testpilotspb.RoleDefinition) (resolvedRole, error) {
+func (a *admission) bindRole(role *testpilotspb.Role) (resolvedRole, error) {
 	result := resolvedRole{ID: role.RoleId, Kind: role.Kind, NamespaceBindingID: role.NamespaceBindingId, ResourceBindingID: role.ResourceBindingId}
 	switch role.Kind {
 	case testpilotspb.ROLE_KIND_ENDPOINT:
@@ -412,22 +412,22 @@ func (a *admission) bindActivation(g *graph) error {
 	var worker, queue, name, operation string
 	var expected testpilotspb.EntrypointKind
 	switch binding := b.Activation.(type) {
-	case *testpilotspb.EntrypointDefinition_Controller:
+	case *testpilotspb.Entrypoint_Controller:
 		expected = testpilotspb.ENTRYPOINT_KIND_CONTROLLER
 		if binding.Controller == nil {
 			return invalid(ir.Malformed, g.id, "nil activation")
 		}
-	case *testpilotspb.EntrypointDefinition_Workflow:
+	case *testpilotspb.Entrypoint_Workflow:
 		expected = testpilotspb.ENTRYPOINT_KIND_WORKFLOW
 		worker = binding.Workflow.GetWorkerRoleId()
 		queue = binding.Workflow.GetTaskQueueRoleId()
 		name = binding.Workflow.GetWorkflowType()
-	case *testpilotspb.EntrypointDefinition_Activity:
+	case *testpilotspb.Entrypoint_Activity:
 		expected = testpilotspb.ENTRYPOINT_KIND_ACTIVITY
 		worker = binding.Activity.GetWorkerRoleId()
 		queue = binding.Activity.GetTaskQueueRoleId()
 		name = binding.Activity.GetActivityType()
-	case *testpilotspb.EntrypointDefinition_NexusHandler:
+	case *testpilotspb.Entrypoint_NexusHandler:
 		expected = testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER
 		worker = binding.NexusHandler.GetWorkerRoleId()
 		queue = binding.NexusHandler.GetTaskQueueRoleId()
@@ -484,7 +484,7 @@ func (a *admission) bindGraphs() error {
 	}
 	return nil
 }
-func (a *admission) addGraph(g *graph, sources []*testpilotspb.InstructionDefinition) error {
+func (a *admission) addGraph(g *graph, sources []*testpilotspb.InstructionNode) error {
 	if !validID(g.id) || a.graphIndex[g.id] != nil {
 		return invalid(ir.Malformed, "entrypoints", "invalid or duplicate entrypoint identity")
 	}

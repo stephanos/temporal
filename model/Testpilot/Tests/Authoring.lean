@@ -11,7 +11,7 @@ private def boolType := Types.singular (Types.scalar .SCALAR_KIND_BOOLEAN)
 private def textType := Types.singular (Types.scalar .SCALAR_KIND_TEXT)
 private def requestPath := Path.make #[Path.field "request", Path.oneofSelector "payload" "text"]
 private def responsePath := Path.make #[Path.field "response", Path.presence "result"]
-private def instructionRef := Ref.instruction "workflow" "start"
+private def instructionReference := Ref.instruction "workflow" "start"
 
 private def values : Array temporal.server.api.testpilot.v1.Value := #[
   Value.text "text",
@@ -35,7 +35,7 @@ private def types : Array ValueType := #[
   Types.singular (Types.enumeration "example.Enum"),
   Types.singular (Types.messageType "example.Message"),
   Types.singular Types.any,
-  Types.singular Types.opaqueCapability,
+  Types.singular Types.opaqueHandle,
   Types.repeated (Types.scalar .SCALAR_KIND_TEXT),
   Types.map .SCALAR_KIND_TEXT (Types.scalar .SCALAR_KIND_BOOLEAN)
 ]
@@ -51,7 +51,7 @@ private def paths : Array FieldPathSegment := #[
 private def programExpressions : Array ProgramExpression :=
   let literal := ProgramExpr.literal (Value.boolean true)
   let slot := ProgramExpr.slot "slot"
-  let outcome := ProgramExpr.outcome instructionRef .INSTRUCTION_OUTCOME_FIELD_VALUE
+  let outcome := ProgramExpr.outcome instructionReference .INSTRUCTION_OUTCOME_FIELD_VALUE
   #[literal, slot, outcome, ProgramExpr.run, ProgramExpr.environment "namespace",
     ProgramExpr.path slot requestPath,
     ProgramExpr.present outcome,
@@ -85,15 +85,15 @@ private def environmentAssignmentUsesBinding : Bool :=
     | some (.environment reference) => reference.binding_id == "namespace"
     | _ => false
   | _ => false
-private def projection := Program.responseProjection responsePath .PROJECTION_KIND_ONE
+private def projection := Program.responseRead responsePath .READ_CARDINALITY_ONE
   #[Program.slotTarget "slot", Program.observationTarget "observed"]
 
 private def instructions : Array Instruction := #[
-  Program.invokeRPC "endpoint" "/example.Service/Call" #[assignment] #[projection],
+  Program.invokeRpc "endpoint" "/example.Service/Call" #[assignment] #[projection],
   Program.awaitSlot "slot",
   Program.completeNexusOperation "capability" (ProgramExpr.literal (Value.text "done")),
   Program.startNexusOperation "endpoint" "service" "operation" (ProgramExpr.literal (Value.text "input")),
-  Program.awaitInstruction instructionRef,
+  Program.awaitInstruction instructionReference,
   Program.finish (ProgramExpr.literal (Value.text "result")),
   Program.respondNexus .NEXUS_RESPONSE_KIND_ASYNCHRONOUS
     (ProgramExpr.literal (Value.text "token")) "capability",
@@ -108,7 +108,7 @@ private def injectFaultNamesRoleAndKind : Bool :=
 
 private def node := Program.node "start" instructions[0]!
   instructionLimits
-  (dependencies := #[instructionRef])
+  (dependencies := #[instructionReference])
   (guard := some programExpressions[10]!)
   (outcome := some (Program.outcome #[Program.outcomeField
     .INSTRUCTION_OUTCOME_FIELD_VALUE textType]))
@@ -119,7 +119,7 @@ private def program : temporal.server.api.testpilot.v1.Program := Program.make "
     Program.role "worker" .ROLE_KIND_WORKER (namespaceBindingId := "namespace"),
     Program.role "queue" .ROLE_KIND_TASK_QUEUE
       (namespaceBindingId := "namespace") (resourceBindingId := "task.queue")]
-  #[Program.valueSlot "slot" textType, Program.capabilitySlot "capability"]
+  #[Program.valueSlot "slot" textType, Program.handleSlot "capability"]
   #[Program.observation "observed" textType]
   #[Program.controller "controller" #[node],
     Program.workflow "workflow" "Workflow" "worker" "queue" #[node],

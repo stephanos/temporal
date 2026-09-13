@@ -458,7 +458,7 @@ func (h *Driver) validateRPCBindings(instruction testpilot.InstructionPlan, role
 	return nil
 }
 
-func reservedWorkflowQueueRole(instruction *testpilotspb.InstructionDefinition, program *testpilotspb.Program) (string, bool) {
+func reservedWorkflowQueueRole(instruction *testpilotspb.InstructionNode, program *testpilotspb.Program) (string, bool) {
 	entrypointID := ""
 	for _, reservation := range instruction.GetActivationReservations() {
 		if reservation.GetCount() != 1 {

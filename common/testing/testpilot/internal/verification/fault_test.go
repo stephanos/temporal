@@ -15,7 +15,7 @@ func runEventField(field testpilotspb.RunEventField) *testpilotspb.ContractExpre
 }
 
 func textLiteral(text string) *testpilotspb.ContractExpression {
-	return &testpilotspb.ContractExpression{Expression: &testpilotspb.ContractExpression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: text}}}}
+	return &testpilotspb.ContractExpression{Expression: &testpilotspb.ContractExpression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: text}}}}
 }
 
 func enumLiteral(number int32) *testpilotspb.ContractExpression {

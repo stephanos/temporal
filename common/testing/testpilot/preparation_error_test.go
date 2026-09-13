@@ -66,16 +66,16 @@ func TestPreparationErrorCase(t *testing.T) {
 		{"program limit", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) { c.Program.Limits.MaxNodes++ }, testpilot.PreparationLimitExceeded, "max_nodes", "limit is outside the positive Driver ceiling", ""},
 		{"unknown declaration", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) { c.Contract.Rules[0].InitialStateId = "missing" }, testpilot.PreparationUnknown, "contract", "initial state is not declared", "rule safety: "},
 		{"type mismatch", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) {
-			c.Contract.Rules[0].Transitions[0].Predicate.GetLiteral().Value = &testpilotspb.Value_Text{Text: "text"}
+			c.Contract.Rules[0].Transitions[0].Predicate.GetLiteral().Value = &testpilotspb.Value_TextValue{TextValue: "text"}
 		}, testpilot.PreparationTypeMismatch, "literal", "literal does not match its declared type", "rule safety: "},
 		{"unavailable observation", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) {
-			c.Program.Observations = []*testpilotspb.ObservationDefinition{{ObservationId: "result", Type: &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Scalar{Scalar: &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_BOOLEAN}}}}}}}
+			c.Program.Observations = []*testpilotspb.Observation{{ObservationId: "result", Type: &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Scalar{Scalar: &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_BOOLEAN}}}}}}}
 			c.Contract.Rules[0].Transitions[0].Predicate = &testpilotspb.ContractExpression{Expression: &testpilotspb.ContractExpression_Observation{Observation: &testpilotspb.ObservationRef{ObservationId: "result"}}}
 		}, testpilot.PreparationUnavailable, "expression", "reference or projection requires an explicit presence guard", "rule safety: "},
 		{"unsupported version", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) { c.Version.Major++ }, testpilot.PreparationUnsupported, "version", "unsupported Case version", ""},
 		{"unsupported capability bounded path", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) {
 			c.Program.Entrypoints[0].EntrypointId = strings.Repeat("e", 256)
-			c.Program.Entrypoints[0].Instructions = []*testpilotspb.InstructionDefinition{{InstructionId: strings.Repeat("i", 256), Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRPC{}}}}}
+			c.Program.Entrypoints[0].Instructions = []*testpilotspb.InstructionNode{{InstructionId: strings.Repeat("i", 256), Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRpc{}}}}}
 		}, testpilot.PreparationUnsupported, strings.Repeat("e", 256), "unsupported instruction context or Driver capability", ""},
 		{"contract missing rules", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) { c.Contract.Rules = nil }, testpilot.PreparationMalformed, "contract", "Contract identity and rules are required", ""},
 		{"contract limit", func(c *testpilotspb.Case, _ *testpilot.ProfileSpec) { c.Contract.Limits.MaxRules++ }, testpilot.PreparationLimitExceeded, "contract", "limit outside positive Driver ceiling: max_rules", ""},
@@ -122,7 +122,7 @@ func TestPreparationErrorCorrelatedLimits(t *testing.T) {
 	catalog, err := testpilot.NewCatalog(files)
 	require.NoError(t, err)
 	profile.Catalog = catalog
-	source.Program.Observations = []*testpilotspb.ObservationDefinition{{ObservationId: "evidence", Type: &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Message{Message: &testpilotspb.NamedType{ProtobufType: "temporal.server.api.testpilot.v1.CorrelatedEvidence"}}}}}}}
+	source.Program.Observations = []*testpilotspb.Observation{{ObservationId: "evidence", Type: &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Message{Message: &testpilotspb.NamedType{ProtobufType: "temporal.server.api.testpilot.v1.CorrelatedEvidence"}}}}}}}
 	source.Contract.Correlated = diagnosticCorrelatedContract()
 	prepared, err := testpilot.Prepare(source, profile)
 	require.Nil(t, prepared)

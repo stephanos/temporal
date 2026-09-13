@@ -7,7 +7,7 @@ namespace Temporal.TestpilotTests
 
 open temporal.server.api.testpilot.v1
 
-private def activationKind : EntrypointDefinition → Option Nat
+private def activationKind : Entrypoint → Option Nat
   | { activation := some (.controller _), .. } => some 0
   | { activation := some (.workflow _), .. } => some 1
   | { activation := some (.nexus_handler _), .. } => some 2
@@ -26,7 +26,7 @@ private def activationKind : EntrypointDefinition → Option Nat
                 request.endpoint_role_id == Temporal.Testpilot.workflowServiceRole &&
                 request.method == Temporal.Testpilot.getSystemInfoMethod &&
                 request.request_assignments.isEmpty &&
-                request.response_projections.map (·.kind) == #[.PROJECTION_KIND_ONE] &&
+                request.response_reads.map (·.kind) == #[.READ_CARDINALITY_ONE] &&
                 rule.rule_id == "server-version-present"
             | _ => false
           | _ => false

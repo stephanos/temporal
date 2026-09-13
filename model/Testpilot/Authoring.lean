@@ -23,11 +23,11 @@ namespace Value
 /-! Constructors for generated scalar, collection, enum, and message values. -/
 
 def text (value : String) : temporal.server.api.testpilot.v1.Value :=
-  { value := some (.text value) }
+  { value := some (.text_value value) }
 
 /-- Encode a natural as the protocol's canonical decimal string representation. -/
 def natural (value : Nat) : temporal.server.api.testpilot.v1.Value :=
-  { value := some (.natural value.repr) }
+  { value := some (.natural_value value.repr) }
 
 def boolean (value : Bool) : temporal.server.api.testpilot.v1.Value :=
   { value := some (.bool_value value) }
@@ -37,14 +37,14 @@ def bytes (value : ByteArray) : temporal.server.api.testpilot.v1.Value :=
 
 /-- Encode a signed integer as the protocol's canonical decimal string representation. -/
 def signedInteger (value : Int) : temporal.server.api.testpilot.v1.Value :=
-  { value := some (.signed_integer value.repr) }
+  { value := some (.signed_integer_value value.repr) }
 
 /-- Encode an unsigned integer as the protocol's canonical decimal string representation. -/
 def unsignedInteger (value : Nat) : temporal.server.api.testpilot.v1.Value :=
-  { value := some (.unsigned_integer value.repr) }
+  { value := some (.unsigned_integer_value value.repr) }
 
 def floatingPoint (value : Float) : temporal.server.api.testpilot.v1.Value :=
-  { value := some (.floating_point value) }
+  { value := some (.floating_point_value value) }
 
 def enumeration (number : Int32) : temporal.server.api.testpilot.v1.Value :=
   { value := some (.enum_value { number }) }
@@ -80,7 +80,7 @@ def messageType (protobufType : String) : SingularType :=
 
 def any : SingularType := { type := some (.any {}) }
 
-def opaqueCapability : SingularType := { type := some (.opaque_capability {}) }
+def opaqueHandle : SingularType := { type := some (.opaque_handle {}) }
 
 def singular (type : SingularType) : ValueType :=
   { shape := some (.singular type) }
@@ -121,12 +121,12 @@ namespace Ref
 
 /-! Constructors for generated instruction, Slot, Observation, and capture references. -/
 
-def instruction (entrypointId instructionId : String) : InstructionRef :=
+def instruction (entrypointId instructionId : String) : InstructionReference :=
   { entrypoint_id := entrypointId, instruction_id := instructionId }
 
 def slot (slotId : String) : SlotRef := { slot_id := slotId }
 
-def outcome (instruction : InstructionRef) (field : InstructionOutcomeField) :
+def outcome (instruction : InstructionReference) (field : InstructionOutcomeField) :
     InstructionOutcomeRef :=
   { instruction := some instruction, field }
 
@@ -147,7 +147,8 @@ def literal (value : temporal.server.api.testpilot.v1.Value) : ProgramExpression
 def slot (slotId : String) : ProgramExpression :=
   { expression := some (.slot (Ref.slot slotId)) }
 
-def outcome (instruction : InstructionRef) (field : InstructionOutcomeField) : ProgramExpression :=
+def outcome (instruction : InstructionReference) (field : InstructionOutcomeField) :
+    ProgramExpression :=
   { expression := some (.outcome (Ref.outcome instruction field)) }
 
 /-- Refer to one symbolic text resource supplied by the execution environment. -/
@@ -229,17 +230,17 @@ def environment (bindingId : String) : EnvironmentDefinition := { binding_id := 
 
 /-- Declare one logical role and its optional symbolic namespace and resource references. -/
 def role (roleId : String) (kind : RoleKind) (namespaceBindingId : String := "")
-    (resourceBindingId : String := "") : RoleDefinition :=
+    (resourceBindingId : String := "") : Role :=
   { role_id := roleId, kind, namespace_binding_id := namespaceBindingId,
     resource_binding_id := resourceBindingId }
 
-def valueSlot (slotId : String) (type : ValueType) : SlotDefinition :=
+def valueSlot (slotId : String) (type : ValueType) : Slot :=
   { slot_id := slotId, content := some (.value type) }
 
-def capabilitySlot (slotId : String) : SlotDefinition :=
-  { slot_id := slotId, content := some (.opaque_capability {}) }
+def handleSlot (slotId : String) : Slot :=
+  { slot_id := slotId, content := some (.opaque_handle {}) }
 
-def observation (observationId : String) (type : ValueType) : ObservationDefinition :=
+def observation (observationId : String) (type : ValueType) : Observation :=
   { observation_id := observationId, type := some type }
 
 def requestAssignment (target : FieldPath) (value : ProgramExpression) : RequestAssignment :=
@@ -249,10 +250,10 @@ def requestAssignment (target : FieldPath) (value : ProgramExpression) : Request
 def environmentAssignment (target : FieldPath) (bindingId : String) : RequestAssignment :=
   requestAssignment target (ProgramExpr.environment bindingId)
 
-def slotTarget (slotId : String) : ProjectionTarget :=
+def slotTarget (slotId : String) : ReadTarget :=
   { target := some (.slot_id slotId) }
 
-def observationTarget (observationId : String) : ProjectionTarget :=
+def observationTarget (observationId : String) : ReadTarget :=
   { target := some (.observation_id observationId) }
 
 def correlatedEvidenceBinding (fieldId : String) (path : FieldPath) : CorrelatedEvidenceBinding :=
@@ -275,12 +276,12 @@ def correlatedEvidenceRule (guard : FieldPath) (evidenceSource kind : String) (o
 /-- Lift a projected value into the declared `CorrelatedEvidence` Observation a correlated capability
 reads. Rules are tried in declaration order and a value no rule claims emits nothing. -/
 def correlatedEvidenceTarget (observationId : String) (rules : Array CorrelatedEvidenceRule) :
-    ProjectionTarget :=
+    ReadTarget :=
   { target := some (.correlated_evidence { observation_id := observationId, rules }) }
 
-def responseProjection (source : FieldPath) (kind : ProjectionKind)
-    (targets : Array ProjectionTarget) : ResponseProjection :=
-  { source := some source, kind, targets }
+def responseRead (path : FieldPath) (kind : ReadCardinality)
+    (targets : Array ReadTarget) : ResponseRead :=
+  { path := some path, kind, targets }
 
 /-- Attach the four fixed-width resource bounds enforced for one instruction. -/
 def instructionLimits (timeoutMilliseconds maxAttempts maxEmittedEvents maxResponseBytes : Int64) :
@@ -288,17 +289,17 @@ def instructionLimits (timeoutMilliseconds maxAttempts maxEmittedEvents maxRespo
   { timeout_milliseconds := timeoutMilliseconds, max_attempts := maxAttempts,
     max_emitted_events := maxEmittedEvents, max_response_bytes := maxResponseBytes }
 
-def invokeRPC (endpointRoleId methodName : String) (assignments : Array RequestAssignment := #[])
-    (projections : Array ResponseProjection := #[]) : Instruction :=
+def invokeRpc (endpointRoleId methodName : String) (assignments : Array RequestAssignment := #[])
+    (reads : Array ResponseRead := #[]) : Instruction :=
   { instruction := some (.invoke_rpc
-      (InvokeRPC.mk endpointRoleId methodName assignments projections default)) }
+      (InvokeRpc.mk endpointRoleId methodName assignments reads default)) }
 
 def awaitSlot (slotId : String) : Instruction :=
   { instruction := some (.await_slot { slot_id := slotId }) }
 
-def completeNexusOperation (capabilitySlotId : String) (result : ProgramExpression) : Instruction :=
+def completeNexusOperation (handleSlotId : String) (result : ProgramExpression) : Instruction :=
   { instruction := some (.complete_nexus_operation {
-      capability_slot_id := capabilitySlotId, result := some result }) }
+      handle_slot_id := handleSlotId, result := some result }) }
 
 def startNexusOperation (endpointRoleId serviceName operationName : String)
     (input : ProgramExpression) :
@@ -306,16 +307,16 @@ def startNexusOperation (endpointRoleId serviceName operationName : String)
   { instruction := some (.start_nexus_operation
       (StartNexusOperation.mk endpointRoleId serviceName operationName (some input) default)) }
 
-def awaitInstruction (instruction : InstructionRef) : Instruction :=
+def awaitInstruction (instruction : InstructionReference) : Instruction :=
   { instruction := some (.await_instruction { instruction := some instruction }) }
 
 def finish (result : ProgramExpression) : Instruction :=
   { instruction := some (.finish { result := some result }) }
 
 def respondNexus (kind : NexusResponseKind) (result : ProgramExpression)
-    (capabilitySlotId : String := "") : Instruction :=
+    (handleSlotId : String := "") : Instruction :=
   { instruction := some (.respond_nexus {
-      kind, result := some result, capability_slot_id := capabilitySlotId }) }
+      kind, result := some result, handle_slot_id := handleSlotId }) }
 
 /-- Request one deliberate outage. `roleId` names the task-queue role whose worker the Driver
 stops or resumes; the role's own resource binding identifies the queue. -/
@@ -332,35 +333,35 @@ def reservation (entrypointId : String) (count : Int64) : ActivationReservationD
 
 /-- Define one instruction node with its explicit dependencies, guard, outcome, and reservations. -/
 def node (instructionId : String) (instruction : Instruction) (limits : InstructionLimits)
-    (dependencies : Array InstructionRef := #[]) (guard : Option ProgramExpression := none)
+    (dependencies : Array InstructionReference := #[]) (guard : Option ProgramExpression := none)
     (outcome : Option InstructionOutcomeDefinition := none)
-    (reservations : Array ActivationReservationDefinition := #[]) : InstructionDefinition :=
+    (reservations : Array ActivationReservationDefinition := #[]) : InstructionNode :=
   { instruction_id := instructionId, dependencies, guard, instruction := some instruction,
     outcome, limits := some limits, activation_reservations := reservations }
 
-def controller (entrypointId : String) (instructions : Array InstructionDefinition) :
-    EntrypointDefinition :=
+def controller (entrypointId : String) (instructions : Array InstructionNode) :
+    Entrypoint :=
   { entrypoint_id := entrypointId, instructions, activation := some (.controller {}) }
 
 def workflow (entrypointId workflowType workerRoleId taskQueueRoleId : String)
-    (instructions : Array InstructionDefinition) : EntrypointDefinition :=
+    (instructions : Array InstructionNode) : Entrypoint :=
   { entrypoint_id := entrypointId, instructions, activation := some (.workflow {
       workflow_type := workflowType, worker_role_id := workerRoleId,
       task_queue_role_id := taskQueueRoleId }) }
 
 def activity (entrypointId activityType workerRoleId taskQueueRoleId : String)
-    (instructions : Array InstructionDefinition) : EntrypointDefinition :=
+    (instructions : Array InstructionNode) : Entrypoint :=
   { entrypoint_id := entrypointId, instructions, activation := some (.activity {
       activity_type := activityType, worker_role_id := workerRoleId,
       task_queue_role_id := taskQueueRoleId }) }
 
 def nexusHandler (entrypointId serviceName operationName workerRoleId taskQueueRoleId : String)
-    (instructions : Array InstructionDefinition) : EntrypointDefinition :=
+    (instructions : Array InstructionNode) : Entrypoint :=
   { entrypoint_id := entrypointId, instructions,
     activation := some (.nexus_handler
       (NexusHandlerActivation.mk serviceName operationName workerRoleId taskQueueRoleId default)) }
 
-def cleanup (entrypointId : String) (instructions : Array InstructionDefinition) : CleanupDefinition :=
+def cleanup (entrypointId : String) (instructions : Array InstructionNode) : Cleanup :=
   { entrypoint_id := entrypointId, instructions }
 
 /-- Construct Program-wide bounds; callers should name arguments where the positions are unclear. -/
@@ -376,9 +377,9 @@ def limits (maxEntrypoints maxNodes maxEdges maxActivations maxAttempts maxRunEv
     max_cleanup_duration_milliseconds := maxCleanupDurationMilliseconds }
 
 /-- Assemble a generated Program while preserving every supplied declaration order. -/
-def make (programId : String) (roles : Array RoleDefinition) (slots : Array SlotDefinition)
-    (observations : Array ObservationDefinition) (entrypoints : Array EntrypointDefinition)
-    (cleanup : CleanupDefinition) (limits : ProgramLimits)
+def make (programId : String) (roles : Array Role) (slots : Array Slot)
+    (observations : Array Observation) (entrypoints : Array Entrypoint)
+    (cleanup : Cleanup) (limits : ProgramLimits)
     (environment : Array EnvironmentDefinition := #[]) :
     temporal.server.api.testpilot.v1.Program :=
   { program_id := programId, roles, slots, observations, entrypoints,

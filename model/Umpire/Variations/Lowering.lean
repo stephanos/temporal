@@ -45,7 +45,7 @@ structure FaultRealization where
   /-- The `ROLE_KIND_TASK_QUEUE` role whose resource binding identifies the affected queue. -/
   roleId : String
   limits : InstructionLimits
-  dependencies : Array InstructionRef := #[]
+  dependencies : Array InstructionReference := #[]
   guard : Option ProgramExpression := none
   outcome : Option InstructionOutcomeDefinition := none
 
@@ -56,7 +56,7 @@ role, rejects rather than producing an instruction no Driver could dispatch. -/
 def FaultIntentDeclaration.lower
     (declaration : FaultIntentDeclaration)
     (realization : FaultRealization) :
-    Except Umpire.Case.Compiler.Error InstructionDefinition :=
+    Except Umpire.Case.Compiler.Error InstructionNode :=
   let failed := fun construct =>
     Umpire.Case.Compiler.Error.mk declaration.id.value declaration.source construct
   match faultKindOf declaration.capability with

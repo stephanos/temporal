@@ -133,17 +133,17 @@ func (r *runtimeExpression) selectField(message protoreflect.Message, step PathS
 func mapKey(v *testpilotspb.Value, field protoreflect.FieldDescriptor) (protoreflect.MapKey, error) {
 	switch field.Kind() {
 	case protoreflect.StringKind:
-		return protoreflect.ValueOfString(v.GetText()).MapKey(), nil
+		return protoreflect.ValueOfString(v.GetTextValue()).MapKey(), nil
 	case protoreflect.BoolKind:
 		return protoreflect.ValueOfBool(v.GetBoolValue()).MapKey(), nil
 	case protoreflect.Int32Kind, protoreflect.Int64Kind, protoreflect.Sint32Kind, protoreflect.Sint64Kind, protoreflect.Sfixed32Kind, protoreflect.Sfixed64Kind:
-		n, err := strconv.ParseInt(v.GetSignedInteger(), 10, 64)
+		n, err := strconv.ParseInt(v.GetSignedIntegerValue(), 10, 64)
 		if field.Kind() == protoreflect.Int32Kind || field.Kind() == protoreflect.Sint32Kind || field.Kind() == protoreflect.Sfixed32Kind {
 			return protoreflect.ValueOfInt32(int32(n)).MapKey(), err
 		}
 		return protoreflect.ValueOfInt64(n).MapKey(), err
 	default:
-		n, err := strconv.ParseUint(v.GetUnsignedInteger(), 10, 64)
+		n, err := strconv.ParseUint(v.GetUnsignedIntegerValue(), 10, 64)
 		if field.Kind() == protoreflect.Uint32Kind || field.Kind() == protoreflect.Fixed32Kind {
 			return protoreflect.ValueOfUint32(uint32(n)).MapKey(), err
 		}
@@ -192,17 +192,17 @@ func (r *runtimeExpression) scalarValue(v protoreflect.Value, field protoreflect
 	case protoreflect.BoolKind:
 		return boolValue(v.Bool()), nil
 	case protoreflect.StringKind:
-		return &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: v.String()}}, nil
+		return &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: v.String()}}, nil
 	case protoreflect.BytesKind:
 		return &testpilotspb.Value{Value: &testpilotspb.Value_BytesValue{BytesValue: v.Bytes()}}, nil
 	case protoreflect.EnumKind:
 		return &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Number: int32(v.Enum())}}}, nil
 	case protoreflect.FloatKind, protoreflect.DoubleKind:
-		return &testpilotspb.Value{Value: &testpilotspb.Value_FloatingPoint{FloatingPoint: v.Float()}}, nil
+		return &testpilotspb.Value{Value: &testpilotspb.Value_FloatingPointValue{FloatingPointValue: v.Float()}}, nil
 	case protoreflect.Int32Kind, protoreflect.Int64Kind, protoreflect.Sint32Kind, protoreflect.Sint64Kind, protoreflect.Sfixed32Kind, protoreflect.Sfixed64Kind:
-		return &testpilotspb.Value{Value: &testpilotspb.Value_SignedInteger{SignedInteger: strconv.FormatInt(v.Int(), 10)}}, nil
+		return &testpilotspb.Value{Value: &testpilotspb.Value_SignedIntegerValue{SignedIntegerValue: strconv.FormatInt(v.Int(), 10)}}, nil
 	case protoreflect.Uint32Kind, protoreflect.Uint64Kind, protoreflect.Fixed32Kind, protoreflect.Fixed64Kind:
-		return &testpilotspb.Value{Value: &testpilotspb.Value_UnsignedInteger{UnsignedInteger: strconv.FormatUint(v.Uint(), 10)}}, nil
+		return &testpilotspb.Value{Value: &testpilotspb.Value_UnsignedIntegerValue{UnsignedIntegerValue: strconv.FormatUint(v.Uint(), 10)}}, nil
 	case protoreflect.MessageKind, protoreflect.GroupKind:
 		if field.Message().FullName() == "google.protobuf.Any" {
 			m := v.Message()

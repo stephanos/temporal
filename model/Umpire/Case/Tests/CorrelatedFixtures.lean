@@ -93,9 +93,9 @@ def runnableCase (scenario : Scenario) : Except String temporal.server.api.testp
   let some program := artifact.program | throw "missing program"
   let nodes := scenario.events.toArray.mapIdx fun index _ =>
     Testpilot.Authoring.Program.node ("read." ++ toString index)
-      (Testpilot.Authoring.Program.invokeRPC "source" "/test.correlated.Source/Read" #[]
-        #[Testpilot.Authoring.Program.responseProjection (Testpilot.Authoring.Path.make #[])
-          .PROJECTION_KIND_ONE #[Testpilot.Authoring.Program.observationTarget "evidence"]])
+      (Testpilot.Authoring.Program.invokeRpc "source" "/test.correlated.Source/Read" #[]
+        #[Testpilot.Authoring.Program.responseRead (Testpilot.Authoring.Path.make #[])
+          .READ_CARDINALITY_ONE #[Testpilot.Authoring.Program.observationTarget "evidence"]])
       (Testpilot.Authoring.Program.instructionLimits 1000 1 1 4096)
       (dependencies := if index == 0 then #[] else
         #[Testpilot.Authoring.Ref.instruction "controller" ("read." ++ toString (index - 1))])

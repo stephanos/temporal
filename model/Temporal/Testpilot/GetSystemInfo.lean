@@ -34,7 +34,7 @@ def getSystemInfoCase : Except Umpire.Case.Compiler.Error Case :=
     #[]
     #[Program.observation "server-version" textType]
     #[Program.controller "controller" #[Program.node "get-system-info"
-      (Program.invokeRPC workflowServiceRole getSystemInfoMethod #[]
+      (Program.invokeRpc workflowServiceRole getSystemInfoMethod #[]
         #[project (field "server_version") "server-version"])
       bounds (outcome := some statusOutcome)]]
     (Program.cleanup "cleanup" #[])

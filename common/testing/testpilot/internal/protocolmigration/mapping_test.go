@@ -308,3 +308,18 @@ func TestRenameCorrelatedRuleKey(t *testing.T) {
 		})
 	}
 }
+
+func TestDeclaredValueArmRenamesOnlyValueObjects(t *testing.T) {
+	t.Parallel()
+
+	tree := &Object{Message: protocol + "CorrelatedEvidenceBinding", Fields: map[string]any{
+		"text":          "kept",
+		"signedInteger": "kept",
+		"literal":       &Object{Message: protocol + "Value", Fields: map[string]any{"text": "renamed"}},
+	}}
+	mapped, err := Declared.apply("fixture.json", tree)
+	require.NoError(t, err)
+	encoded, err := json.Marshal(mapped)
+	require.NoError(t, err)
+	require.JSONEq(t, `{"text": "kept", "signedInteger": "kept", "literal": {"textValue": "renamed"}}`, string(encoded))
+}

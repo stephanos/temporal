@@ -86,7 +86,7 @@ func TestExternalDriverExecutesBoundedCase(t *testing.T) {
 func TestExternalDriverReceivesCopiedPreparedRoles(t *testing.T) {
 	source, profile := proofFixture(t)
 	source.Program.Environment = []*testpilotspb.EnvironmentDefinition{{BindingId: "namespace"}, {BindingId: "queue"}}
-	source.Program.Roles = []*testpilotspb.RoleDefinition{
+	source.Program.Roles = []*testpilotspb.Role{
 		{RoleId: "worker", Kind: testpilotspb.ROLE_KIND_WORKER, NamespaceBindingId: "namespace"},
 		{RoleId: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE, NamespaceBindingId: "namespace", ResourceBindingId: "queue"},
 	}
@@ -147,11 +147,11 @@ func proofFixture(t testing.TB) (*testpilotspb.Case, testpilot.ProfileSpec) {
 		CaseId:  "case",
 		Program: &testpilotspb.Program{
 			ProgramId: "program",
-			Entrypoints: []*testpilotspb.EntrypointDefinition{{
+			Entrypoints: []*testpilotspb.Entrypoint{{
 				EntrypointId: "controller",
-				Activation:   &testpilotspb.EntrypointDefinition_Controller{Controller: &testpilotspb.ControllerActivation{}},
+				Activation:   &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}},
 			}},
-			Cleanup: &testpilotspb.CleanupDefinition{EntrypointId: "cleanup"},
+			Cleanup: &testpilotspb.Cleanup{EntrypointId: "cleanup"},
 			Limits:  programLimits,
 		},
 		Contract: &testpilotspb.Contract{

@@ -273,7 +273,7 @@ func (RunEventField) EnumDescriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{2}
 }
 
-type InstructionRef struct {
+type InstructionReference struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	EntrypointId  string                 `protobuf:"bytes,1,opt,name=entrypoint_id,json=entrypointId,proto3" json:"entrypoint_id,omitempty"`
 	InstructionId string                 `protobuf:"bytes,2,opt,name=instruction_id,json=instructionId,proto3" json:"instruction_id,omitempty"`
@@ -281,20 +281,20 @@ type InstructionRef struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *InstructionRef) Reset() {
-	*x = InstructionRef{}
+func (x *InstructionReference) Reset() {
+	*x = InstructionReference{}
 	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *InstructionRef) String() string {
+func (x *InstructionReference) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*InstructionRef) ProtoMessage() {}
+func (*InstructionReference) ProtoMessage() {}
 
-func (x *InstructionRef) ProtoReflect() protoreflect.Message {
+func (x *InstructionReference) ProtoReflect() protoreflect.Message {
 	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -306,19 +306,19 @@ func (x *InstructionRef) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use InstructionRef.ProtoReflect.Descriptor instead.
-func (*InstructionRef) Descriptor() ([]byte, []int) {
+// Deprecated: Use InstructionReference.ProtoReflect.Descriptor instead.
+func (*InstructionReference) Descriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *InstructionRef) GetEntrypointId() string {
+func (x *InstructionReference) GetEntrypointId() string {
 	if x != nil {
 		return x.EntrypointId
 	}
 	return ""
 }
 
-func (x *InstructionRef) GetInstructionId() string {
+func (x *InstructionReference) GetInstructionId() string {
 	if x != nil {
 		return x.InstructionId
 	}
@@ -371,7 +371,7 @@ func (x *SlotRef) GetSlotId() string {
 
 type InstructionOutcomeRef struct {
 	state         protoimpl.MessageState  `protogen:"open.v1"`
-	Instruction   *InstructionRef         `protobuf:"bytes,1,opt,name=instruction,proto3" json:"instruction,omitempty"`
+	Instruction   *InstructionReference   `protobuf:"bytes,1,opt,name=instruction,proto3" json:"instruction,omitempty"`
 	Field         InstructionOutcomeField `protobuf:"varint,2,opt,name=field,proto3,enum=temporal.server.api.testpilot.v1.InstructionOutcomeField" json:"field,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -407,7 +407,7 @@ func (*InstructionOutcomeRef) Descriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *InstructionOutcomeRef) GetInstruction() *InstructionRef {
+func (x *InstructionOutcomeRef) GetInstruction() *InstructionReference {
 	if x != nil {
 		return x.Instruction
 	}
@@ -1883,14 +1883,14 @@ var File_temporal_server_api_testpilot_v1_expression_proto protoreflect.FileDesc
 
 const file_temporal_server_api_testpilot_v1_expression_proto_rawDesc = "" +
 	"\n" +
-	"1temporal/server/api/testpilot/v1/expression.proto\x12 temporal.server.api.testpilot.v1\x1a,temporal/server/api/testpilot/v1/value.proto\"\\\n" +
-	"\x0eInstructionRef\x12#\n" +
+	"1temporal/server/api/testpilot/v1/expression.proto\x12 temporal.server.api.testpilot.v1\x1a,temporal/server/api/testpilot/v1/value.proto\"b\n" +
+	"\x14InstructionReference\x12#\n" +
 	"\rentrypoint_id\x18\x01 \x01(\tR\fentrypointId\x12%\n" +
 	"\x0einstruction_id\x18\x02 \x01(\tR\rinstructionId\"\"\n" +
 	"\aSlotRef\x12\x17\n" +
-	"\aslot_id\x18\x01 \x01(\tR\x06slotId\"\xbc\x01\n" +
-	"\x15InstructionOutcomeRef\x12R\n" +
-	"\vinstruction\x18\x01 \x01(\v20.temporal.server.api.testpilot.v1.InstructionRefR\vinstruction\x12O\n" +
+	"\aslot_id\x18\x01 \x01(\tR\x06slotId\"\xc2\x01\n" +
+	"\x15InstructionOutcomeRef\x12X\n" +
+	"\vinstruction\x18\x01 \x01(\v26.temporal.server.api.testpilot.v1.InstructionReferenceR\vinstruction\x12O\n" +
 	"\x05field\x18\x02 \x01(\x0e29.temporal.server.api.testpilot.v1.InstructionOutcomeFieldR\x05field\"\xaa\x01\n" +
 	"\x16OutcomeFieldDefinition\x12O\n" +
 	"\x05field\x18\x01 \x01(\x0e29.temporal.server.api.testpilot.v1.InstructionOutcomeFieldR\x05field\x12?\n" +
@@ -2022,7 +2022,7 @@ var file_temporal_server_api_testpilot_v1_expression_proto_goTypes = []any{
 	(InstructionOutcomeField)(0),         // 0: temporal.server.api.testpilot.v1.InstructionOutcomeField
 	(ComparisonOperator)(0),              // 1: temporal.server.api.testpilot.v1.ComparisonOperator
 	(RunEventField)(0),                   // 2: temporal.server.api.testpilot.v1.RunEventField
-	(*InstructionRef)(nil),               // 3: temporal.server.api.testpilot.v1.InstructionRef
+	(*InstructionReference)(nil),         // 3: temporal.server.api.testpilot.v1.InstructionReference
 	(*SlotRef)(nil),                      // 4: temporal.server.api.testpilot.v1.SlotRef
 	(*InstructionOutcomeRef)(nil),        // 5: temporal.server.api.testpilot.v1.InstructionOutcomeRef
 	(*OutcomeFieldDefinition)(nil),       // 6: temporal.server.api.testpilot.v1.OutcomeFieldDefinition
@@ -2053,7 +2053,7 @@ var file_temporal_server_api_testpilot_v1_expression_proto_goTypes = []any{
 	(*Value)(nil),                        // 31: temporal.server.api.testpilot.v1.Value
 }
 var file_temporal_server_api_testpilot_v1_expression_proto_depIdxs = []int32{
-	3,  // 0: temporal.server.api.testpilot.v1.InstructionOutcomeRef.instruction:type_name -> temporal.server.api.testpilot.v1.InstructionRef
+	3,  // 0: temporal.server.api.testpilot.v1.InstructionOutcomeRef.instruction:type_name -> temporal.server.api.testpilot.v1.InstructionReference
 	0,  // 1: temporal.server.api.testpilot.v1.InstructionOutcomeRef.field:type_name -> temporal.server.api.testpilot.v1.InstructionOutcomeField
 	0,  // 2: temporal.server.api.testpilot.v1.OutcomeFieldDefinition.field:type_name -> temporal.server.api.testpilot.v1.InstructionOutcomeField
 	29, // 3: temporal.server.api.testpilot.v1.OutcomeFieldDefinition.type:type_name -> temporal.server.api.testpilot.v1.ValueType
