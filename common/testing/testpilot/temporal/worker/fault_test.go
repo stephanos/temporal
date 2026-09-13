@@ -180,7 +180,7 @@ func (d *faultRunDriver) Open(ctx context.Context, runID string, program testpil
 func TestFaultSettleErrorRecordsNoFaultEvent(t *testing.T) {
 	prepared := preparedSymbolicRuntimeCase(t, func(program *testpilotspb.Program) {
 		resume := faultInstruction("resume", "queue", testpilotspb.FAULT_KIND_WORKER_RESUME)
-		resume.Dependencies = []*testpilotspb.InstructionReference{{EntrypointId: "controller", InstructionId: "stop"}}
+		resume.Guard = &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}}}
 		program.Entrypoints[0].Instructions = []*testpilotspb.InstructionNode{faultInstruction("stop", "queue", testpilotspb.FAULT_KIND_WORKER_STOP), resume}
 	}, authorizeFaults)
 	program := capturePreparedProgram(t, prepared)

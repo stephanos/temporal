@@ -365,7 +365,7 @@ func TestSDKAwaitUsesItsOwnTimeout(t *testing.T) {
 				program.Entrypoints[1].Instructions[0].Limits.TimeoutMilliseconds = tc.start.Milliseconds()
 				program.Entrypoints[1].Instructions[1].Limits.TimeoutMilliseconds = tc.await.Milliseconds()
 				finish := program.Entrypoints[1].Instructions[2]
-				finish.Guard = nil
+				finish.Guard = &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}}}
 				finish.Instruction.GetFinish().Result.GetReference().GetOutcome().Field = testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS
 			})
 			_, definition := runtimeTestDriver(t, prepared)

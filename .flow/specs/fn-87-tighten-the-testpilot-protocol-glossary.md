@@ -549,6 +549,25 @@ narrows or completes a requirement without changing its intent; tasks record the
   unchanged. The oracle's R12 step admits a dropped bound only within its fixture's declared Profile
   ceiling. SEM-16 is restated under GOV-02; ART-09's "independent limits" wording needs a GOV-02
   follow-up (.13 drafts ART-09).
+- **Default order and `after` (decided in .11, 2026-09-13).** `InstructionNode.after` is an `After`
+  message (`repeated InstructionReference instructions`), so an empty set (a second root) differs from an
+  absent one (the predecessor); the field keeps its name under an api-linter `core::0140::prepositions`
+  suppression. Preparation binds the default as the node's guard: for one dependency
+  `all[present(status), status == SUCCEEDED]`, for several the `all` of those in `after` order, the
+  shapes Producers wrote, so success facts, outcome availability, work charges and
+  `InstructionPlan.Guard` are what the explicit guard gave. A literal `true` guard binds as no guard: a
+  formerly unguarded dependent keeps its status statically available and charges no guard work (the
+  activation test's work pin moves by that evaluation). An `after` entry with an empty id rejects
+  `malformed`, one on another entrypoint (cleanup included) `unsupported`, an unknown instruction
+  `unknown`, the instruction itself or a repeated entry `malformed`, all at
+  `program.entrypoints[<entrypoint>].instructions[<instruction>].after.instructions[<index>]` (cleanup:
+  `program.cleanup.instructions[...]`); a cycle rejects `malformed` at the `after` of the first unordered
+  instruction, which always declares one. `Program.node` takes `after` and `guard`, `Program.after`
+  builds the set, and `CaseSupport.succeeded` is removed; the typed Nexus Program names `after` only for
+  its later operations, since a Case carries it only where it is not the predecessor.
+  `Umpire.FaultRealization.after` replaces its dependency list. The generated accessor
+  `GetDependencies` is retired. Hand-built Go test Cases that relied on implicit roots or unconditional
+  dependents now write an empty `after` or a `true` guard.
 
 ## Requirement coverage
 

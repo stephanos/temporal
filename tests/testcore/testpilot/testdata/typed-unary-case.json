@@ -331,56 +331,6 @@
             }
           },
           {
-            "dependencies": [
-              {
-                "entrypointId": "controller",
-                "instructionId": "start-workflow"
-              }
-            ],
-            "guard": {
-              "all": {
-                "operands": [
-                  {
-                    "present": {
-                      "operand": {
-                        "reference": {
-                          "outcome": {
-                            "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                            "instruction": {
-                              "entrypointId": "controller",
-                              "instructionId": "start-workflow"
-                            }
-                          }
-                        }
-                      }
-                    }
-                  },
-                  {
-                    "compare": {
-                      "left": {
-                        "reference": {
-                          "outcome": {
-                            "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
-                            "instruction": {
-                              "entrypointId": "controller",
-                              "instructionId": "start-workflow"
-                            }
-                          }
-                        }
-                      },
-                      "operator": "COMPARISON_OPERATOR_EQUAL",
-                      "right": {
-                        "literal": {
-                          "enumValue": {
-                            "number": 1
-                          }
-                        }
-                      }
-                    }
-                  }
-                ]
-              }
-            },
             "instruction": {
               "invokeRpc": {
                 "endpointRoleId": "temporal.workflow-service",

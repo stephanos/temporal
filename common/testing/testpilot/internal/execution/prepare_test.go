@@ -118,15 +118,6 @@ func TestPrepareRejectsStructuralAndPolicyErrors(t *testing.T) {
 			g := c.Program.Entrypoints[0]
 			g.Instructions = append(g.Instructions, proto.CloneOf(g.Instructions[0]))
 		},
-		"cycle": func(c *testpilotspb.Case, _ *Profile) {
-			c.Program.Entrypoints[0].Instructions[0].Dependencies = []*testpilotspb.InstructionReference{{EntrypointId: "controller", InstructionId: "call"}}
-		},
-		"cross entry": func(c *testpilotspb.Case, _ *Profile) {
-			c.Program.Entrypoints[0].Instructions[0].Dependencies = []*testpilotspb.InstructionReference{{EntrypointId: "cleanup", InstructionId: "call"}}
-		},
-		"missing dependency": func(c *testpilotspb.Case, _ *Profile) {
-			c.Program.Entrypoints[0].Instructions[0].Dependencies = []*testpilotspb.InstructionReference{{EntrypointId: "controller", InstructionId: "missing"}}
-		},
 		"binding": func(c *testpilotspb.Case, _ *Profile) { c.Program.Entrypoints[0].Activation = nil },
 		"role":    func(c *testpilotspb.Case, _ *Profile) { c.Program.Roles[0].Kind = testpilotspb.ROLE_KIND_WORKER },
 		"method": func(c *testpilotspb.Case, _ *Profile) {
@@ -310,13 +301,12 @@ func TestPrepareSlotDataflowAndImmutableViews(t *testing.T) {
 	producer := c.Program.Entrypoints[0].Instructions[0]
 	producer.Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: field("text"), Cardinality: testpilotspb.READ_CARDINALITY_ONE, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "result"}}, {Target: &testpilotspb.ReadTarget_ObservationId{ObservationId: "text"}}}}}
 	consumer := rpcNode("consume")
-	consumer.Dependencies = []*testpilotspb.InstructionReference{{EntrypointId: "controller", InstructionId: "call"}}
 	consumer.Guard = succeeded("controller", "call")
 	consumer.Instruction.GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{{Target: field("text"), Value: slot("result")}}
 	c.Program.Entrypoints[0].Instructions = append(c.Program.Entrypoints[0].Instructions, consumer)
 	prepared, err := Prepare(c, catalog, p)
 	require.NoError(t, err)
-	for name, mutate := range map[string]func(*testpilotspb.Case){"unguarded": func(s *testpilotspb.Case) { s.Program.Entrypoints[0].Instructions[1].Guard = nil }, "missing dependency": func(s *testpilotspb.Case) { s.Program.Entrypoints[0].Instructions[1].Dependencies = nil }, "second writer": func(s *testpilotspb.Case) {
+	for name, mutate := range map[string]func(*testpilotspb.Case){"runs regardless": func(s *testpilotspb.Case) { s.Program.Entrypoints[0].Instructions[1].Guard = alwaysRuns() }, "no dependency": func(s *testpilotspb.Case) { s.Program.Entrypoints[0].Instructions[1].After = runsAfter("controller") }, "second writer": func(s *testpilotspb.Case) {
 		s.Program.Entrypoints[0].Instructions[1].Instruction.GetInvokeRpc().ResponseReads = proto.CloneOf(producer.Instruction).GetInvokeRpc().ResponseReads
 	}, "assignment overlap": func(s *testpilotspb.Case) {
 		rpc := s.Program.Entrypoints[0].Instructions[1].Instruction.GetInvokeRpc()
@@ -664,8 +654,8 @@ func capabilityFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Profile) 
 	c.Program.Slots = []*testpilotspb.Slot{capabilitySlot("capability")}
 	wait := rpcNode("ready")
 	wait.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitSlot{AwaitSlot: &testpilotspb.AwaitSlot{SlotId: "capability"}}}
+	wait.After = runsAfter("controller")
 	complete := rpcNode("complete")
-	complete.Dependencies = []*testpilotspb.InstructionReference{{EntrypointId: "controller", InstructionId: "ready"}}
 	complete.Guard = succeeded("controller", "ready")
 	complete.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_CompleteNexusOperation{CompleteNexusOperation: &testpilotspb.CompleteNexusOperation{HandleSlotId: "capability", Result: textLiteral("done")}}}
 	c.Program.Entrypoints[0].Instructions = append(c.Program.Entrypoints[0].Instructions, wait, complete)
@@ -675,11 +665,10 @@ func capabilityFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Profile) 
 	start := rpcNode("start")
 	start.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_StartNexusOperation{StartNexusOperation: &testpilotspb.StartNexusOperation{EndpointRoleId: "endpoint", Service: "service", Operation: "operation", Input: textLiteral("input")}}}
 	await := rpcNode("await")
-	await.Dependencies = []*testpilotspb.InstructionReference{{EntrypointId: "workflow", InstructionId: "start"}}
+	await.Guard = alwaysRuns()
 	await.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitInstruction{AwaitInstruction: &testpilotspb.AwaitInstruction{Instruction: &testpilotspb.InstructionReference{EntrypointId: "workflow", InstructionId: "start"}}}}
 	await.Outcome.Fields = append(await.Outcome.Fields, &testpilotspb.OutcomeFieldDefinition{Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE, Type: scalar(testpilotspb.SCALAR_KIND_TEXT)})
 	finish := rpcNode("finish")
-	finish.Dependencies = []*testpilotspb.InstructionReference{{EntrypointId: "workflow", InstructionId: "await"}}
 	finish.Guard = succeeded("workflow", "await")
 	finish.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_Finish{Finish: &testpilotspb.Finish{Result: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_Outcome{Outcome: &testpilotspb.InstructionOutcomeReference{Instruction: &testpilotspb.InstructionReference{EntrypointId: "workflow", InstructionId: "await"}, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE}}}}}}}}
 	c.Program.Entrypoints[1].Instructions = []*testpilotspb.InstructionNode{start, await, finish}
@@ -694,7 +683,7 @@ func TestOpaqueReadinessAndSDKPreparedPlans(t *testing.T) {
 		"inspect capability": func(s *testpilotspb.Case) {
 			s.Program.Entrypoints[0].Instructions[2].Guard = present(slot("capability"))
 		},
-		"consume without readiness": func(s *testpilotspb.Case) { s.Program.Entrypoints[0].Instructions[2].Guard = nil },
+		"consume without readiness": func(s *testpilotspb.Case) { s.Program.Entrypoints[0].Instructions[2].Guard = alwaysRuns() },
 		"missing capability writer": func(s *testpilotspb.Case) {
 			s.Program.Entrypoints = s.Program.Entrypoints[:2]
 			s.Program.Entrypoints[0].Instructions[0].ActivationReservations = s.Program.Entrypoints[0].Instructions[0].ActivationReservations[:1]
@@ -702,7 +691,7 @@ func TestOpaqueReadinessAndSDKPreparedPlans(t *testing.T) {
 		"capability projection": func(s *testpilotspb.Case) {
 			s.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: field("text"), Cardinality: testpilotspb.READ_CARDINALITY_ONE, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "capability"}}}}}
 		},
-		"SDK value without success": func(s *testpilotspb.Case) { s.Program.Entrypoints[1].Instructions[2].Guard = nil },
+		"SDK value without success": func(s *testpilotspb.Case) { s.Program.Entrypoints[1].Instructions[2].Guard = alwaysRuns() },
 		"worker RPC": func(s *testpilotspb.Case) {
 			s.Program.Entrypoints[1].Instructions[0].Instruction = rpcNode("call").Instruction
 		},
@@ -732,7 +721,6 @@ func TestOutcomeStatusesAndCleanupLocalReferences(t *testing.T) {
 	c, catalog, p := fixture(t)
 	first := rpcNode("release")
 	second := rpcNode("confirm")
-	second.Dependencies = []*testpilotspb.InstructionReference{{EntrypointId: "cleanup", InstructionId: "release"}}
 	second.Guard = succeeded("cleanup", "release")
 	c.Program.Cleanup.Instructions = []*testpilotspb.InstructionNode{first, second}
 	for status := int32(1); status <= 5; status++ {
@@ -808,7 +796,7 @@ func TestStructuralCountsAndProjectionFanout(t *testing.T) {
 		},
 		"edge count": func(c *testpilotspb.Case, p *Profile) {
 			last := rpcNode("last")
-			last.Dependencies = []*testpilotspb.InstructionReference{{EntrypointId: "controller", InstructionId: "call"}, {EntrypointId: "controller", InstructionId: "other"}}
+			last.After = runsAfter("controller", "call", "other")
 			c.Program.Entrypoints[0].Instructions = append(c.Program.Entrypoints[0].Instructions, rpcNode("other"), last)
 			p.Limits.MaxEdges = 1
 		},
@@ -849,7 +837,6 @@ func TestWholeRequestAssignments(t *testing.T) {
 	producer := c.Program.Entrypoints[0].Instructions[0]
 	producer.Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: &testpilotspb.FieldPath{}, Cardinality: testpilotspb.READ_CARDINALITY_ONE, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_SlotId{SlotId: "request"}}}}}
 	consumer := rpcNode("copy")
-	consumer.Dependencies = []*testpilotspb.InstructionReference{{EntrypointId: "controller", InstructionId: "call"}}
 	consumer.Guard = succeeded("controller", "call")
 	consumer.Instruction.GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{{Target: &testpilotspb.FieldPath{}, Value: slot("request")}}
 	c.Program.Entrypoints[0].Instructions = append(c.Program.Entrypoints[0].Instructions, consumer)
@@ -866,8 +853,9 @@ func TestAwaitRequiresNexusStart(t *testing.T) {
 			c, catalog, p := capabilityFixture(t)
 			g := c.Program.Entrypoints[1]
 			n := rpcNode("second_await")
-			n.Dependencies = []*testpilotspb.InstructionReference{{EntrypointId: "workflow", InstructionId: target}}
-			n.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitInstruction{AwaitInstruction: &testpilotspb.AwaitInstruction{Instruction: proto.CloneOf(n.Dependencies[0])}}}
+			n.After = runsAfter("workflow", target)
+			n.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitInstruction{AwaitInstruction: &testpilotspb.AwaitInstruction{Instruction: proto.CloneOf(n.After.Instructions[0])}}}
+			g.Instructions[0].After = runsAfter("workflow")
 			g.Instructions = append([]*testpilotspb.InstructionNode{n}, g.Instructions...)
 			_, err := Prepare(c, catalog, p)
 			if target == "start" {

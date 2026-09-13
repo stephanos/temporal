@@ -67,12 +67,6 @@ def runId : Expression := Expr.run
 def projected (value : Expression) (path : FieldPath) : Expression :=
   Expr.path value path
 
-def succeeded (entrypoint instruction : String) : Expression :=
-  let status := Expr.outcome (Ref.instruction entrypoint instruction)
-    .INSTRUCTION_OUTCOME_FIELD_STATUS
-  Expr.all #[Expr.present status,
-    Expr.equal status (Expr.literal (Value.enumeration 1))]
-
 def assign (target : FieldPath) (value : Expression) : RequestAssignment :=
   Program.requestAssignment target value
 

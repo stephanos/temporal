@@ -69,15 +69,15 @@ func preparedRuntimeCase(t *testing.T, responseKind testpilotspb.NexusResponseKi
 		Outcome: proto.CloneOf(status), Limits: runtimeBounds(),
 	}
 	await := &testpilotspb.InstructionNode{
-		InstructionId: "await", Dependencies: []*testpilotspb.InstructionReference{{EntrypointId: "workflow", InstructionId: "start"}},
+		InstructionId: "await", Guard: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}}},
 		Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitInstruction{AwaitInstruction: &testpilotspb.AwaitInstruction{Instruction: &testpilotspb.InstructionReference{EntrypointId: "workflow", InstructionId: "start"}}}},
 		Outcome:     runtimeValueOutcomeSchema(), Limits: runtimeBounds(),
 	}
 	finish := &testpilotspb.InstructionNode{
-		InstructionId: "finish", Dependencies: []*testpilotspb.InstructionReference{{EntrypointId: "workflow", InstructionId: "await"}},
-		Guard:       runtimeSucceeded("workflow", "await"),
-		Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_Finish{Finish: &testpilotspb.Finish{Result: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_Outcome{Outcome: &testpilotspb.InstructionOutcomeReference{Instruction: &testpilotspb.InstructionReference{EntrypointId: "workflow", InstructionId: "await"}, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE}}}}}}}},
-		Outcome:     proto.CloneOf(status), Limits: runtimeBounds(),
+		InstructionId: "finish",
+		Guard:         runtimeSucceeded("workflow", "await"),
+		Instruction:   &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_Finish{Finish: &testpilotspb.Finish{Result: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_Outcome{Outcome: &testpilotspb.InstructionOutcomeReference{Instruction: &testpilotspb.InstructionReference{EntrypointId: "workflow", InstructionId: "await"}, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE}}}}}}}},
+		Outcome:       proto.CloneOf(status), Limits: runtimeBounds(),
 	}
 	respond := &testpilotspb.InstructionNode{
 		InstructionId: "respond", Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_RespondNexus{RespondNexus: &testpilotspb.RespondNexus{Kind: responseKind, Result: runtimeText("accepted")}}},

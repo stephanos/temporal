@@ -486,7 +486,7 @@ func (a *admission) scope(g *graph, n *node) map[ir.Reference]ir.Binding {
 	for index := range n.ancestors {
 		previous := g.nodes[index]
 		for field, typ := range previous.outcomes {
-			scope[ir.Reference{Kind: ir.OutcomeReference, Entrypoint: g.id, ID: previous.source.InstructionId, Field: int32(field)}] = ir.Binding{Type: typ, Available: previous.source.Guard == nil && field != testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE}
+			scope[ir.Reference{Kind: ir.OutcomeReference, Entrypoint: g.id, ID: previous.source.InstructionId, Field: int32(field)}] = ir.Binding{Type: typ, Available: previous.guardSource == nil && field != testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE}
 		}
 	}
 	return scope
@@ -581,12 +581,12 @@ func (a *admission) bindNodeDataflow(g *graph, n *node, boolean ir.Type) error {
 		return err
 	}
 	scope := a.scope(g, n)
-	if err := a.charge(int64(proto.Size(n.source.Guard)) + 1); err != nil {
+	if err := a.charge(int64(proto.Size(n.guardSource)) + 1); err != nil {
 		return err
 	}
-	guard := ir.Condition{Expression: n.source.Guard, Path: expressionPath(g, n, "guard")}
-	if n.source.Guard != nil {
-		n.guard, err = a.prepared.catalog.BindExpression(ir.Site{Context: ir.ProgramContext, Path: guard.Path}, n.source.Guard, &boolean, scope, a.expressionLimits())
+	guard := ir.Condition{Expression: n.guardSource, Path: expressionPath(g, n, "guard")}
+	if n.guardSource != nil {
+		n.guard, err = a.prepared.catalog.BindExpression(ir.Site{Context: ir.ProgramContext, Path: guard.Path}, n.guardSource, &boolean, scope, a.expressionLimits())
 		if err != nil {
 			return err
 		}
@@ -596,7 +596,7 @@ func (a *admission) bindNodeDataflow(g *graph, n *node, boolean ir.Type) error {
 	}
 	a.successScope(g, n, n.guard, scope)
 	bindIn := func(expressionScope map[ir.Reference]ir.Binding, value *testpilotspb.Expression, field string, expected *ir.Type) (*ir.Expression, error) {
-		if err := a.charge(int64(proto.Size(n.source.Guard)) + int64(proto.Size(value)) + 1); err != nil {
+		if err := a.charge(int64(proto.Size(n.guardSource)) + int64(proto.Size(value)) + 1); err != nil {
 			return nil, err
 		}
 		site := ir.Site{Context: ir.ProgramContext, Path: expressionPath(g, n, field)}

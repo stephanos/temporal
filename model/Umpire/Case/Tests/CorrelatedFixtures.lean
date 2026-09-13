@@ -102,8 +102,8 @@ def runnableCase (scenario : Scenario) : Except String temporal.server.api.testp
         #[Testpilot.Authoring.Program.responseRead (Testpilot.Authoring.Path.make #[])
           .READ_CARDINALITY_ONE #[Testpilot.Authoring.Program.observationTarget "evidence"]])
       (Testpilot.Authoring.Program.instructionLimits 1000 1)
-      (dependencies := if index == 0 then #[] else
-        #[Testpilot.Authoring.Ref.instruction "controller" ("read." ++ toString (index - 1))])
+      (guard := if index == 0 then none else
+        some (Testpilot.Authoring.Expr.literal (Testpilot.Authoring.Value.boolean true)))
       (outcome := some (Testpilot.Authoring.Program.outcome #[
         Testpilot.Authoring.Program.outcomeField .INSTRUCTION_OUTCOME_FIELD_STATUS
           (Testpilot.Authoring.Types.singular (Testpilot.Authoring.Types.enumeration

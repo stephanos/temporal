@@ -372,7 +372,6 @@ func TestEvidenceLiftRejectsSharedSourcesAndWorkerEntrypoints(t *testing.T) {
 		instructions := artifact.Program.Entrypoints[0].Instructions
 		second := proto.CloneOf(instructions[0])
 		second.InstructionId = "read-again"
-		second.Dependencies = []*testpilotspb.InstructionReference{{EntrypointId: "controller", InstructionId: "read"}}
 		second.Guard = succeeded("controller", "read")
 		artifact.Program.Entrypoints[0].Instructions = append(instructions, second)
 		_, err := Prepare(artifact, catalog, policy)

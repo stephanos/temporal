@@ -103,9 +103,14 @@ The recorder publishes the failure marker before the callback and does not reint
 Monitor result or mask Verdicts differently from offline replay.
 
 The private `scheduler` runs each ordinary controller entrypoint once, using the compiled ready
-order and one attempt per enabled node. Independent nodes admit in stable queue order and wait
-concurrently; authored dependencies release only after atomic outcome/Slot/fact publication.
-False guards release dependencies without creating an outcome. MaxAttempts is an admission ceiling,
+order and one attempt per enabled node. A node runs after the previous node of its entrypoint unless
+its `after` names another set of the same entrypoint (none makes it a root), and without a guard it is
+enabled only when every node it runs after succeeded; preparation binds that default as the node's
+guard, so its success facts make dependency outcomes available exactly as a written success guard
+does, and a literal `true` guard runs the node regardless. An `after` entry naming an unknown node,
+the node itself, a node twice, another entrypoint's node or a cycle rejects at its located path.
+Independent nodes admit in stable queue order and wait concurrently; dependencies release only after
+atomic outcome/Slot/fact publication. False guards release dependencies without creating an outcome. MaxAttempts is an admission ceiling,
 not a retry count. Value-Slot readiness uses store notifications; opaque readiness and consumption
 stay in the Driver bridge. Neither wait runs under the Monitor barrier. Recorder Stop/failure/closure
 wakes the scheduler even when every accepted effect is still waiting.

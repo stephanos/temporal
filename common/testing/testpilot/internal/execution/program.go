@@ -109,12 +109,15 @@ type node struct {
 	opcode                   contract.Opcode
 	dependencies, successors []int
 	ancestors                map[int]bool
-	guard                    *ir.Expression
-	outcomes                 map[testpilotspb.InstructionOutcomeField]ir.Type
-	method                   protoreflect.MethodDescriptor
-	assignments              []assignment
-	projections              []projection
-	input                    *ir.Expression
+	// guardSource is the guard the node runs under, the default success guard included; nil runs
+	// the node whenever it is ready.
+	guardSource *testpilotspb.Expression
+	guard       *ir.Expression
+	outcomes    map[testpilotspb.InstructionOutcomeField]ir.Type
+	method      protoreflect.MethodDescriptor
+	assignments []assignment
+	projections []projection
+	input       *ir.Expression
 }
 type assignment struct {
 	target               *ir.Path

@@ -78,13 +78,11 @@ private def textOutcome : InstructionOutcomeDefinition :=
 
 private def rpc
     (id method : String)
-    (dependencies : Array InstructionReference)
     (assignments : Array RequestAssignment)
     (projections : Array ResponseRead)
-    (guard : Option Expression := none)
     (reservations : Array ActivationReservationDefinition := #[]) : InstructionNode :=
   Program.node id (Program.invokeRpc workflowServiceRole method assignments projections)
-    (Program.instructionLimits 10000 1) dependencies guard (some statusOutcome) reservations
+    (Program.instructionLimits 10000 1) (outcome := some statusOutcome) (reservations := reservations)
 
 private def historyAssignments : Array RequestAssignment := #[
   Program.environmentAssignment (field "namespace") workerNamespaceBinding,
@@ -97,44 +95,42 @@ private def closeReadAssignments : Array RequestAssignment :=
   historyAssignments.push (assign (field "history_event_filter_type") closeEventFilter)
 
 private def startWorkflowNode (workflowType : String) : InstructionNode :=
-  rpc "start-workflow" startWorkflowMethod #[] #[
+  rpc "start-workflow" startWorkflowMethod #[
     Program.environmentAssignment (field "namespace") workerNamespaceBinding,
     assign (field "workflow_id") runId,
     assign (nested ["workflow_type", "name"]) (text workflowType),
     Program.environmentAssignment (nested ["task_queue", "name"]) taskQueueBinding,
     assign (field "request_id") runId
-  ] #[] none #[
+  ] #[] #[
     Program.reservation "workflow" 1,
     Program.reservation "handler" 1
   ]
 
+/-- The full history read, run once the instruction before it succeeded. -/
 private def historyNode
-    (dependency : String)
     (identity : Umpire.Case.Producer.Identity)
     (resolved : List Umpire.Case.Producer.EvidenceRule) : InstructionNode :=
-  rpc "history" getHistoryMethod #[Ref.instruction "controller" dependency]
-    historyAssignments #[
+  rpc "history" getHistoryMethod historyAssignments #[
     Program.responseRead historyEvents .READ_CARDINALITY_EMIT_EACH
       #[Program.observationTarget historyObservation,
         Evidence.target runFieldId correlatedObservation identity resolved]
-  ] (some (succeeded "controller" dependency))
+  ]
 
 private def workflowEntrypoint
     (workflowType service operation : String) : Entrypoint :=
   Program.workflow "workflow" workflowType workerRole taskQueueRole #[
     Program.node "start-nexus-operation"
       (Program.startNexusOperation nexusEndpointRole service operation (text "request"))
-      (Program.instructionLimits 10000 1) #[] none (some statusOutcome),
+      (Program.instructionLimits 10000 1) (outcome := some statusOutcome),
+    -- The await runs whether or not the start succeeded, so the operation's outcome is recorded.
     Program.node "await-nexus-operation"
       (Program.awaitInstruction (Ref.instruction "workflow" "start-nexus-operation"))
-      (Program.instructionLimits 10000 1) #[Ref.instruction "workflow" "start-nexus-operation"]
-      none (some textOutcome),
+      (Program.instructionLimits 10000 1) (guard := some (boolean true)) (outcome := some textOutcome),
     Program.node "finish-workflow"
       (Program.finish (Expr.outcome
         (Ref.instruction "workflow" "await-nexus-operation")
         .INSTRUCTION_OUTCOME_FIELD_VALUE))
-      (Program.instructionLimits 5000 1) #[Ref.instruction "workflow" "await-nexus-operation"]
-      (some (succeeded "workflow" "await-nexus-operation")) (some statusOutcome)]
+      (Program.instructionLimits 5000 1) (outcome := some statusOutcome)]
 
 private def asyncProgram
     (service operation : String)
@@ -157,19 +153,17 @@ private def asyncProgram
       Program.controller "controller" #[
         startWorkflowNode workflowType,
         Program.node "await-completion-authority" (Program.awaitSlot "completion-authority")
-          (Program.instructionLimits 10000 1) #[Ref.instruction "controller" "start-workflow"]
-          (some (succeeded "controller" "start-workflow")) (some statusOutcome),
+          (Program.instructionLimits 10000 1) (outcome := some statusOutcome),
         Program.node "complete-nexus-operation"
           (Program.completeNexusOperation "completion-authority" (text "completed"))
-          (Program.instructionLimits 10000 1) #[Ref.instruction "controller" "await-completion-authority"]
-          (some (succeeded "controller" "await-completion-authority")) (some statusOutcome),
-        historyNode "complete-nexus-operation" identity resolved],
+          (Program.instructionLimits 10000 1) (outcome := some statusOutcome),
+        historyNode identity resolved],
       workflowEntrypoint workflowType service operation,
       Program.nexusHandler "handler" service operation workerRole taskQueueRole #[
         Program.node "respond-async"
           (Program.respondNexus .NEXUS_RESPONSE_KIND_ASYNCHRONOUS
             (text "accepted") "completion-authority")
-          (Program.instructionLimits 5000 1) #[] none (some statusOutcome)]]
+          (Program.instructionLimits 5000 1) (outcome := some statusOutcome)]]
     (Program.cleanup "cleanup" #[])
     (environment := #[
       Program.environment workerNamespaceBinding,
@@ -198,14 +192,13 @@ private def syncProgram
         startWorkflowNode workflowType,
         -- Nothing else in the controller observes the workflow, so this close-event read is what
         -- orders the full read after the operation completed.
-        rpc "await-close" getHistoryMethod #[Ref.instruction "controller" "start-workflow"]
-          closeReadAssignments #[] (some (succeeded "controller" "start-workflow")),
-        historyNode "await-close" identity resolved],
+        rpc "await-close" getHistoryMethod closeReadAssignments #[],
+        historyNode identity resolved],
       workflowEntrypoint workflowType service operation,
       Program.nexusHandler "handler" service operation workerRole taskQueueRole #[
         Program.node "respond-sync"
           (Program.respondNexus .NEXUS_RESPONSE_KIND_SYNCHRONOUS (text "completed"))
-          (Program.instructionLimits 5000 1) #[] none (some statusOutcome)]]
+          (Program.instructionLimits 5000 1) (outcome := some statusOutcome)]]
     (Program.cleanup "cleanup" #[])
     (environment := #[
       Program.environment workerNamespaceBinding,

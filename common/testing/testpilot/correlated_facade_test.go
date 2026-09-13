@@ -275,7 +275,7 @@ func TestCorrelatedFacadeTenfoldLoad(t *testing.T) {
 					instruction := proto.CloneOf(node)
 					instruction.InstructionId = fmt.Sprintf("read.%d", i)
 					if i > 0 {
-						instruction.Dependencies = []*testpilotspb.InstructionReference{{EntrypointId: "controller", InstructionId: fmt.Sprintf("read.%d", i-1)}}
+						instruction.Guard = &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}}}
 					}
 					source.Program.Entrypoints[0].Instructions = append(source.Program.Entrypoints[0].Instructions, instruction)
 				}
