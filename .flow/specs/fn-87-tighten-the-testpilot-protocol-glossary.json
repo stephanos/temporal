@@ -19,6 +19,7 @@
     "fn-87-tighten-the-testpilot-protocol-glossary.14": 0,
     "fn-87-tighten-the-testpilot-protocol-glossary.15": 0,
     "fn-87-tighten-the-testpilot-protocol-glossary.16": 0,
+    "fn-87-tighten-the-testpilot-protocol-glossary.17": 0,
     "fn-87-tighten-the-testpilot-protocol-glossary.2": 0,
     "fn-87-tighten-the-testpilot-protocol-glossary.3": 0,
     "fn-87-tighten-the-testpilot-protocol-glossary.4": 0,
@@ -1039,6 +1040,74 @@
       "task": "fn-87-tighten-the-testpilot-protocol-glossary.16",
       "timestamp": "2026-09-13T17:07:53.130984Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "daabd0148a5bc3e225905ab018d6345d17acb2a92aec9f09a271ca4cae0f88b8",
+      "backend": "claude",
+      "base_sha": "feb4f6fde9c07f4712abaa1e84a71424b6b35d7a",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-3bb6d6529684bb82484a8311cb25d875",
+            "classification": "introduced",
+            "findingId": "finding-3bb6d6529684bb82484a8311cb25d875",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-1ecea1e5d80cea1bafcbb645f8301624",
+            "classification": "introduced",
+            "findingId": "finding-1ecea1e5d80cea1bafcbb645f8301624",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-df77f814afad1d0e3170a523ca11d9ae",
+            "classification": "pre_existing",
+            "findingId": "finding-df77f814afad1d0e3170a523ca11d9ae",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-07c6c6330ffcb21a03b920e2722a046e",
+            "classification": "pre_existing",
+            "findingId": "finding-07c6c6330ffcb21a03b920e2722a046e",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "0b932755766c4fc2e061bea5813d0b2b24c0f212",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 4835,
+      "output_sha256": "7241d821f42044a8fc7cd7f594cb251793dce39408d69f7f6466067f3bb7e4fa",
+      "reservation_id": "69a4f862201b42c88a19a9eca4357832",
+      "round_consumed": true,
+      "scope": "impl:fn-87-tighten-the-testpilot-protocol-glossary.17",
+      "superseded_by": null,
+      "task": "fn-87-tighten-the-testpilot-protocol-glossary.17",
+      "timestamp": "2026-09-13T17:46:09.317376Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -1050,6 +1119,7 @@
     "impl:fn-87-tighten-the-testpilot-protocol-glossary.14": 1,
     "impl:fn-87-tighten-the-testpilot-protocol-glossary.15": 1,
     "impl:fn-87-tighten-the-testpilot-protocol-glossary.16": 1,
+    "impl:fn-87-tighten-the-testpilot-protocol-glossary.17": 1,
     "impl:fn-87-tighten-the-testpilot-protocol-glossary.2": 1,
     "impl:fn-87-tighten-the-testpilot-protocol-glossary.3": 1,
     "impl:fn-87-tighten-the-testpilot-protocol-glossary.4": 1,
@@ -1072,6 +1142,7 @@
     "impl:fn-87-tighten-the-testpilot-protocol-glossary.14": 0,
     "impl:fn-87-tighten-the-testpilot-protocol-glossary.15": 0,
     "impl:fn-87-tighten-the-testpilot-protocol-glossary.16": 0,
+    "impl:fn-87-tighten-the-testpilot-protocol-glossary.17": 0,
     "impl:fn-87-tighten-the-testpilot-protocol-glossary.2": 0,
     "impl:fn-87-tighten-the-testpilot-protocol-glossary.3": 0,
     "impl:fn-87-tighten-the-testpilot-protocol-glossary.4": 0,
@@ -1096,5 +1167,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-13T17:07:53.134229Z"
+  "updated_at": "2026-09-13T17:46:09.324647Z"
 }

@@ -135,8 +135,8 @@ type assignment struct {
 type responseRead struct {
 	path        *ir.Path
 	cardinality testpilotspb.ReadCardinality
-	sinks       []*testpilotspb.ReadTarget
-	// One entry per sink, nil where the sink is not an evidence lift.
+	targets     []*testpilotspb.ReadTarget
+	// One entry per target, nil where the target is not an evidence lift.
 	lifts []*evidenceLift
 }
 
@@ -156,7 +156,7 @@ type evidenceRule struct {
 	fields       []evidenceBinding
 }
 
-// evidenceLift is the bound form of one declared CorrelatedEvidenceProjection sink.
+// evidenceLift is the bound form of one declared CorrelatedEvidenceProjection target.
 type evidenceLift struct {
 	observationID string
 	element       ir.Type
@@ -188,7 +188,7 @@ type AssignmentPlan struct {
 type ResponseReadPlan struct {
 	Source      *ir.Path
 	Cardinality testpilotspb.ReadCardinality
-	Sinks       []*testpilotspb.ReadTarget
+	Targets     []*testpilotspb.ReadTarget
 }
 
 func (p *PreparedProgram) Entrypoints() []EntrypointPlan {
@@ -243,11 +243,11 @@ func (p InstructionPlan) Assignments() []AssignmentPlan {
 func (p InstructionPlan) ResponseReads() []ResponseReadPlan {
 	result := make([]ResponseReadPlan, len(p.node.responseReads))
 	for i, read := range p.node.responseReads {
-		sinks := make([]*testpilotspb.ReadTarget, len(read.sinks))
-		for j, sink := range read.sinks {
-			sinks[j] = proto.CloneOf(sink)
+		targets := make([]*testpilotspb.ReadTarget, len(read.targets))
+		for j, target := range read.targets {
+			targets[j] = proto.CloneOf(target)
 		}
-		result[i] = ResponseReadPlan{Source: read.path, Cardinality: read.cardinality, Sinks: sinks}
+		result[i] = ResponseReadPlan{Source: read.path, Cardinality: read.cardinality, Targets: targets}
 	}
 	return result
 }

@@ -162,7 +162,7 @@ func runtimeWorkLimit(g *graph, limits *testpilotspb.ProgramLimits) int64 {
 			operations += expressionNodes(assignment.value)
 		}
 		for _, p := range n.responseReads {
-			operations += int64(len(p.sinks) + 1)
+			operations += int64(len(p.targets) + 1)
 		}
 	}
 	result := max(limits.MaxRequestBytes, limits.MaxResponseBytes)

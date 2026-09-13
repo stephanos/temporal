@@ -114,7 +114,7 @@ first planned use.
    `TestProtocolUsesCohesivePublicVocabulary`. A new name that matches a retired rule fails the gate.
 9. **Equivalence mapping** (only while fn-87's baseline exists). A change to a checked-in fixture
    appends a step to `Declared` in `internal/protocolmigration/mapping.go`; a new fixture is listed in
-   `Added`.
+   `Added` in `internal/protocolmigration/equivalence.go`.
 10. **Fixtures.** Regenerate through `make umpire-gen-case-runtime-conformance`, never by hand;
     `make umpire-check-case-runtime-conformance` fails on a stale fixture.
 

@@ -125,13 +125,13 @@ func (a *activationValues) stageResponseRead(w *valueWork, n *node, batch *value
 	}
 	// A source ordinal is the position of the evidence in this lift's own dense stream, so it counts
 	// the values already emitted from this projected list rather than reading anything out of them.
-	emitted := make([]int64, len(p.sinks))
+	emitted := make([]int64, len(p.targets))
 	for i, value := range values {
 		if err := w.charge(1); err != nil {
 			return err
 		}
 		fact := readFact{read: index, index: int64(i)}
-		for j, sink := range p.sinks {
+		for j, readTarget := range p.targets {
 			if lift := p.liftAt(j); lift != nil {
 				evidence, err := a.liftEvidence(w, lift, value, emitted[j])
 				if err != nil {
@@ -147,7 +147,7 @@ func (a *activationValues) stageResponseRead(w *valueWork, n *node, batch *value
 			if err != nil {
 				return err
 			}
-			switch target := sink.Target.(type) {
+			switch target := readTarget.Target.(type) {
 			case *testpilotspb.ReadTarget_SlotId:
 				if _, exists := batch.writes[target.SlotId]; exists {
 					return invalid(ir.Malformed, "response_read", "duplicate staged Slot")
@@ -156,7 +156,7 @@ func (a *activationValues) stageResponseRead(w *valueWork, n *node, batch *value
 			case *testpilotspb.ReadTarget_ObservationId:
 				fact.observations = append(fact.observations, &testpilotspb.ObservationResult{ObservationId: target.ObservationId, Value: copied})
 			default:
-				return invalid(ir.Unsupported, "response_read", "unknown sink")
+				return invalid(ir.Unsupported, "response_read", "unknown response read target")
 			}
 		}
 		if len(fact.observations) > 0 {

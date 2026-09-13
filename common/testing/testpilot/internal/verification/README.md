@@ -41,7 +41,7 @@ only events before that coordinate through the same `Observe` implementation. A 
 makes the final disposition incomplete without suppressing proofs already committed by Observe.
 No final disposition is retroactively applied to earlier events.
 
-Contract work counts indexed rule visits, expression operations/value bytes, projection traversal,
+Contract work counts indexed rule visits, expression operations/value bytes, path traversal,
 and capture copies/references. Static preparation bounds that work per event and for the admitted
 Run event ceiling; runtime checks both ceilings and capture count/bytes before commit. Every one of
 these ceilings is the prepared Profile's snapshot. Run input validation has separate bounded IR

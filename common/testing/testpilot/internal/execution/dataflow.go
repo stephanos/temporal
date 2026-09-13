@@ -266,21 +266,21 @@ func (a *admission) bindResponseReads(g *graph, index int, n *node) error {
 			}
 			events += count
 		}
-		n.responseReads = append(n.responseReads, responseRead{path: path, cardinality: source.Cardinality, sinks: source.Targets, lifts: lifts})
+		n.responseReads = append(n.responseReads, responseRead{path: path, cardinality: source.Cardinality, targets: source.Targets, lifts: lifts})
 	}
 	return nil
 }
 func (a *admission) bindReadTargets(g *graph, index int, n *node, read int, source *testpilotspb.ResponseRead, path *ir.Path, typ ir.Type, seen map[string]bool) ([]*evidenceLift, bool, error) {
 	emits := false
 	lifts := make([]*evidenceLift, len(source.Targets))
-	for i, sink := range source.Targets {
-		if sink == nil || isNil(sink.Target) {
+	for i, target := range source.Targets {
+		if target == nil || isNil(target.Target) {
 			return nil, false, invalid(ir.Malformed, nodePath(g, n), "missing response read target")
 		}
 		var target ir.Type
 		var exists bool
 		var key string
-		switch destination := sink.Target.(type) {
+		switch destination := target.Target.(type) {
 		case *testpilotspb.ReadTarget_SlotId:
 			key = "slot:" + destination.SlotId
 			target, exists = a.prepared.slots[destination.SlotId]
@@ -323,7 +323,7 @@ func (a *admission) bindReadTargets(g *graph, index int, n *node, read int, sour
 }
 
 // bindEvidenceLift type-checks one declared CorrelatedEvidence lift against the value being projected.
-// The sink Observation must be the exact CorrelatedEvidence message the correlated capability decodes, and
+// The target Observation must be the exact CorrelatedEvidence message the correlated capability decodes, and
 // every bound path must read a scalar the portable evidence domain admits, so a lift that cannot
 // produce decodable evidence rejects at Prepare rather than at the first recorded event.
 func (a *admission) bindEvidenceLift(g *graph, n *node, location string, source *testpilotspb.CorrelatedEvidenceProjection, typ ir.Type) (*evidenceLift, error) {
