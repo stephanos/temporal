@@ -23,117 +23,12 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// RunDisposition says how a Run ended: it completed, the Monitor stopped it, or execution became
+// incomplete.
 // Result and lifecycle enums use the public Testpilot Status vocabulary.
 // (-- api-linter: core::0191::file-layout=disabled
 //
 //	core::0216::synonyms=disabled --)
-type RunEventKind int32
-
-const (
-	RUN_EVENT_KIND_UNSPECIFIED           RunEventKind = 0
-	RUN_EVENT_KIND_RUN_OPENED            RunEventKind = 1
-	RUN_EVENT_KIND_ACTIVATION_OPENED     RunEventKind = 2
-	RUN_EVENT_KIND_INSTRUCTION_STARTED   RunEventKind = 3
-	RUN_EVENT_KIND_INSTRUCTION_COMPLETED RunEventKind = 4
-	RUN_EVENT_KIND_INSTRUCTION_TIMED_OUT RunEventKind = 5
-	RUN_EVENT_KIND_ACTIVATION_CLOSED     RunEventKind = 6
-	RUN_EVENT_KIND_CLEANUP_STARTED       RunEventKind = 7
-	RUN_EVENT_KIND_CLEANUP_COMPLETED     RunEventKind = 8
-	RUN_EVENT_KIND_RUN_CLOSED            RunEventKind = 9
-	RUN_EVENT_KIND_DIAGNOSTIC            RunEventKind = 10
-	RUN_EVENT_KIND_FAULT_INJECTED        RunEventKind = 11
-)
-
-// Enum value maps for RunEventKind.
-var (
-	RunEventKind_name = map[int32]string{
-		0:  "RUN_EVENT_KIND_UNSPECIFIED",
-		1:  "RUN_EVENT_KIND_RUN_OPENED",
-		2:  "RUN_EVENT_KIND_ACTIVATION_OPENED",
-		3:  "RUN_EVENT_KIND_INSTRUCTION_STARTED",
-		4:  "RUN_EVENT_KIND_INSTRUCTION_COMPLETED",
-		5:  "RUN_EVENT_KIND_INSTRUCTION_TIMED_OUT",
-		6:  "RUN_EVENT_KIND_ACTIVATION_CLOSED",
-		7:  "RUN_EVENT_KIND_CLEANUP_STARTED",
-		8:  "RUN_EVENT_KIND_CLEANUP_COMPLETED",
-		9:  "RUN_EVENT_KIND_RUN_CLOSED",
-		10: "RUN_EVENT_KIND_DIAGNOSTIC",
-		11: "RUN_EVENT_KIND_FAULT_INJECTED",
-	}
-	RunEventKind_value = map[string]int32{
-		"RUN_EVENT_KIND_UNSPECIFIED":           0,
-		"RUN_EVENT_KIND_RUN_OPENED":            1,
-		"RUN_EVENT_KIND_ACTIVATION_OPENED":     2,
-		"RUN_EVENT_KIND_INSTRUCTION_STARTED":   3,
-		"RUN_EVENT_KIND_INSTRUCTION_COMPLETED": 4,
-		"RUN_EVENT_KIND_INSTRUCTION_TIMED_OUT": 5,
-		"RUN_EVENT_KIND_ACTIVATION_CLOSED":     6,
-		"RUN_EVENT_KIND_CLEANUP_STARTED":       7,
-		"RUN_EVENT_KIND_CLEANUP_COMPLETED":     8,
-		"RUN_EVENT_KIND_RUN_CLOSED":            9,
-		"RUN_EVENT_KIND_DIAGNOSTIC":            10,
-		"RUN_EVENT_KIND_FAULT_INJECTED":        11,
-	}
-)
-
-func (x RunEventKind) Enum() *RunEventKind {
-	p := new(RunEventKind)
-	*p = x
-	return p
-}
-
-func (x RunEventKind) String() string {
-	switch x {
-	case RUN_EVENT_KIND_UNSPECIFIED:
-		return "Unspecified"
-	case RUN_EVENT_KIND_RUN_OPENED:
-		return "RunOpened"
-	case RUN_EVENT_KIND_ACTIVATION_OPENED:
-		return "ActivationOpened"
-	case RUN_EVENT_KIND_INSTRUCTION_STARTED:
-		return "InstructionStarted"
-	case RUN_EVENT_KIND_INSTRUCTION_COMPLETED:
-		return "InstructionCompleted"
-	case RUN_EVENT_KIND_INSTRUCTION_TIMED_OUT:
-		return "InstructionTimedOut"
-	case RUN_EVENT_KIND_ACTIVATION_CLOSED:
-		return "ActivationClosed"
-	case RUN_EVENT_KIND_CLEANUP_STARTED:
-
-		// Deprecated: Use RunEventKind.Descriptor instead.
-		return "CleanupStarted"
-	case RUN_EVENT_KIND_CLEANUP_COMPLETED:
-		return "CleanupCompleted"
-	case RUN_EVENT_KIND_RUN_CLOSED:
-		return "RunClosed"
-	case RUN_EVENT_KIND_DIAGNOSTIC:
-		return "Diagnostic"
-
-		// (-- api-linter: core::0216::synonyms=disabled --)
-	case RUN_EVENT_KIND_FAULT_INJECTED:
-		return "FaultInjected"
-	default:
-		return strconv.Itoa(int(x))
-	}
-
-}
-
-func (RunEventKind) Descriptor() protoreflect.EnumDescriptor {
-	return file_temporal_server_api_testpilot_v1_run_proto_enumTypes[0].Descriptor()
-}
-
-func (RunEventKind) Type() protoreflect.EnumType {
-	return &file_temporal_server_api_testpilot_v1_run_proto_enumTypes[0]
-}
-
-func (x RunEventKind) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-func (RunEventKind) EnumDescriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{0}
-}
-
 type RunDisposition int32
 
 const (
@@ -182,11 +77,11 @@ func (x RunDisposition) String() string {
 }
 
 func (RunDisposition) Descriptor() protoreflect.EnumDescriptor {
-	return file_temporal_server_api_testpilot_v1_run_proto_enumTypes[1].Descriptor()
+	return file_temporal_server_api_testpilot_v1_run_proto_enumTypes[0].Descriptor()
 }
 
 func (RunDisposition) Type() protoreflect.EnumType {
-	return &file_temporal_server_api_testpilot_v1_run_proto_enumTypes[1]
+	return &file_temporal_server_api_testpilot_v1_run_proto_enumTypes[0]
 }
 
 func (x RunDisposition) Number() protoreflect.EnumNumber {
@@ -195,9 +90,10 @@ func (x RunDisposition) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use RunDisposition.Descriptor instead.
 func (RunDisposition) EnumDescriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{1}
+	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{0}
 }
 
+// CleanupStatus is the result of the cleanup graph and the Driver session close.
 // (-- api-linter: core::0216::synonyms=disabled --)
 type CleanupStatus int32
 
@@ -247,11 +143,11 @@ func (x CleanupStatus) String() string {
 }
 
 func (CleanupStatus) Descriptor() protoreflect.EnumDescriptor {
-	return file_temporal_server_api_testpilot_v1_run_proto_enumTypes[2].Descriptor()
+	return file_temporal_server_api_testpilot_v1_run_proto_enumTypes[1].Descriptor()
 }
 
 func (CleanupStatus) Type() protoreflect.EnumType {
-	return &file_temporal_server_api_testpilot_v1_run_proto_enumTypes[2]
+	return &file_temporal_server_api_testpilot_v1_run_proto_enumTypes[1]
 }
 
 func (x CleanupStatus) Number() protoreflect.EnumNumber {
@@ -260,9 +156,10 @@ func (x CleanupStatus) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use CleanupStatus.Descriptor instead.
 func (CleanupStatus) EnumDescriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{2}
+	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{1}
 }
 
+// RunDiagnosticKind names the component or contract a diagnostic reports on.
 type RunDiagnosticKind int32
 
 const (
@@ -331,11 +228,11 @@ func (x RunDiagnosticKind) String() string {
 }
 
 func (RunDiagnosticKind) Descriptor() protoreflect.EnumDescriptor {
-	return file_temporal_server_api_testpilot_v1_run_proto_enumTypes[3].Descriptor()
+	return file_temporal_server_api_testpilot_v1_run_proto_enumTypes[2].Descriptor()
 }
 
 func (RunDiagnosticKind) Type() protoreflect.EnumType {
-	return &file_temporal_server_api_testpilot_v1_run_proto_enumTypes[3]
+	return &file_temporal_server_api_testpilot_v1_run_proto_enumTypes[2]
 }
 
 func (x RunDiagnosticKind) Number() protoreflect.EnumNumber {
@@ -344,9 +241,77 @@ func (x RunDiagnosticKind) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use RunDiagnosticKind.Descriptor instead.
 func (RunDiagnosticKind) EnumDescriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{2}
+}
+
+// VerdictStatus is violated when any rule is violated, satisfied only when every rule is satisfied on
+// a completed Run, and inconclusive otherwise.
+// (-- api-linter: core::0216::synonyms=disabled --)
+type VerdictStatus int32
+
+const (
+	VERDICT_STATUS_UNSPECIFIED  VerdictStatus = 0
+	VERDICT_STATUS_SATISFIED    VerdictStatus = 1
+	VERDICT_STATUS_VIOLATED     VerdictStatus = 2
+	VERDICT_STATUS_INCONCLUSIVE VerdictStatus = 3
+)
+
+// Enum value maps for VerdictStatus.
+var (
+	VerdictStatus_name = map[int32]string{
+		0: "VERDICT_STATUS_UNSPECIFIED",
+		1: "VERDICT_STATUS_SATISFIED",
+		2: "VERDICT_STATUS_VIOLATED",
+		3: "VERDICT_STATUS_INCONCLUSIVE",
+	}
+	VerdictStatus_value = map[string]int32{
+		"VERDICT_STATUS_UNSPECIFIED":  0,
+		"VERDICT_STATUS_SATISFIED":    1,
+		"VERDICT_STATUS_VIOLATED":     2,
+		"VERDICT_STATUS_INCONCLUSIVE": 3,
+	}
+)
+
+func (x VerdictStatus) Enum() *VerdictStatus {
+	p := new(VerdictStatus)
+	*p = x
+	return p
+}
+
+func (x VerdictStatus) String() string {
+	switch x {
+	case VERDICT_STATUS_UNSPECIFIED:
+		return "Unspecified"
+	case VERDICT_STATUS_SATISFIED:
+		return "Satisfied"
+	case VERDICT_STATUS_VIOLATED:
+		return "Violated"
+	case VERDICT_STATUS_INCONCLUSIVE:
+		return "Inconclusive"
+	default:
+		return strconv.Itoa(int(x))
+	}
+
+}
+
+func (VerdictStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_temporal_server_api_testpilot_v1_run_proto_enumTypes[3].Descriptor()
+}
+
+func (VerdictStatus) Type() protoreflect.EnumType {
+	return &file_temporal_server_api_testpilot_v1_run_proto_enumTypes[3]
+}
+
+func (x VerdictStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use VerdictStatus.Descriptor instead.
+func (VerdictStatus) EnumDescriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{3}
 }
 
+// RuleVerdictStatus is one rule's conclusion; a rule that reaches no terminal state is inconclusive.
 // (-- api-linter: core::0216::synonyms=disabled --)
 type RuleVerdictStatus int32
 
@@ -417,641 +382,6 @@ func (RuleVerdictStatus) EnumDescriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{4}
 }
 
-// (-- api-linter: core::0216::synonyms=disabled --)
-type VerdictStatus int32
-
-const (
-	VERDICT_STATUS_UNSPECIFIED  VerdictStatus = 0
-	VERDICT_STATUS_SATISFIED    VerdictStatus = 1
-	VERDICT_STATUS_VIOLATED     VerdictStatus = 2
-	VERDICT_STATUS_INCONCLUSIVE VerdictStatus = 3
-)
-
-// Enum value maps for VerdictStatus.
-var (
-	VerdictStatus_name = map[int32]string{
-		0: "VERDICT_STATUS_UNSPECIFIED",
-		1: "VERDICT_STATUS_SATISFIED",
-		2: "VERDICT_STATUS_VIOLATED",
-		3: "VERDICT_STATUS_INCONCLUSIVE",
-	}
-	VerdictStatus_value = map[string]int32{
-		"VERDICT_STATUS_UNSPECIFIED":  0,
-		"VERDICT_STATUS_SATISFIED":    1,
-		"VERDICT_STATUS_VIOLATED":     2,
-		"VERDICT_STATUS_INCONCLUSIVE": 3,
-	}
-)
-
-func (x VerdictStatus) Enum() *VerdictStatus {
-	p := new(VerdictStatus)
-	*p = x
-	return p
-}
-
-func (x VerdictStatus) String() string {
-	switch x {
-	case VERDICT_STATUS_UNSPECIFIED:
-		return "Unspecified"
-	case VERDICT_STATUS_SATISFIED:
-		return "Satisfied"
-	case VERDICT_STATUS_VIOLATED:
-		return "Violated"
-	case VERDICT_STATUS_INCONCLUSIVE:
-		return "Inconclusive"
-	default:
-		return strconv.Itoa(int(x))
-	}
-
-}
-
-func (VerdictStatus) Descriptor() protoreflect.EnumDescriptor {
-	return file_temporal_server_api_testpilot_v1_run_proto_enumTypes[5].Descriptor()
-}
-
-func (VerdictStatus) Type() protoreflect.EnumType {
-	return &file_temporal_server_api_testpilot_v1_run_proto_enumTypes[5]
-}
-
-func (x VerdictStatus) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use VerdictStatus.Descriptor instead.
-func (VerdictStatus) EnumDescriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{5}
-}
-
-type RunEventFilter struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Kinds         []RunEventKind         `protobuf:"varint,1,rep,packed,name=kinds,proto3,enum=temporal.server.api.testpilot.v1.RunEventKind" json:"kinds,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *RunEventFilter) Reset() {
-	*x = RunEventFilter{}
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[0]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *RunEventFilter) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RunEventFilter) ProtoMessage() {}
-
-func (x *RunEventFilter) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[0]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RunEventFilter.ProtoReflect.Descriptor instead.
-func (*RunEventFilter) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{0}
-}
-
-func (x *RunEventFilter) GetKinds() []RunEventKind {
-	if x != nil {
-		return x.Kinds
-	}
-	return nil
-}
-
-type RunEventCoordinates struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	EntrypointId  string                 `protobuf:"bytes,1,opt,name=entrypoint_id,json=entrypointId,proto3" json:"entrypoint_id,omitempty"`
-	ActivationId  string                 `protobuf:"bytes,2,opt,name=activation_id,json=activationId,proto3" json:"activation_id,omitempty"`
-	InstructionId string                 `protobuf:"bytes,3,opt,name=instruction_id,json=instructionId,proto3" json:"instruction_id,omitempty"`
-	Attempt       int64                  `protobuf:"varint,4,opt,name=attempt,proto3" json:"attempt,omitempty"`
-	EmittedIndex  int64                  `protobuf:"varint,5,opt,name=emitted_index,json=emittedIndex,proto3" json:"emitted_index,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *RunEventCoordinates) Reset() {
-	*x = RunEventCoordinates{}
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[1]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *RunEventCoordinates) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RunEventCoordinates) ProtoMessage() {}
-
-func (x *RunEventCoordinates) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[1]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RunEventCoordinates.ProtoReflect.Descriptor instead.
-func (*RunEventCoordinates) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{1}
-}
-
-func (x *RunEventCoordinates) GetEntrypointId() string {
-	if x != nil {
-		return x.EntrypointId
-	}
-	return ""
-}
-
-func (x *RunEventCoordinates) GetActivationId() string {
-	if x != nil {
-		return x.ActivationId
-	}
-	return ""
-}
-
-func (x *RunEventCoordinates) GetInstructionId() string {
-	if x != nil {
-		return x.InstructionId
-	}
-	return ""
-}
-
-func (x *RunEventCoordinates) GetAttempt() int64 {
-	if x != nil {
-		return x.Attempt
-	}
-	return 0
-}
-
-func (x *RunEventCoordinates) GetEmittedIndex() int64 {
-	if x != nil {
-		return x.EmittedIndex
-	}
-	return 0
-}
-
-type ObservationResult struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	ObservationId string                 `protobuf:"bytes,1,opt,name=observation_id,json=observationId,proto3" json:"observation_id,omitempty"`
-	Value         *Value                 `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ObservationResult) Reset() {
-	*x = ObservationResult{}
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[2]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ObservationResult) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ObservationResult) ProtoMessage() {}
-
-func (x *ObservationResult) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[2]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ObservationResult.ProtoReflect.Descriptor instead.
-func (*ObservationResult) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *ObservationResult) GetObservationId() string {
-	if x != nil {
-		return x.ObservationId
-	}
-	return ""
-}
-
-func (x *ObservationResult) GetValue() *Value {
-	if x != nil {
-		return x.Value
-	}
-	return nil
-}
-
-// RunEvent is an immutable fact at one Executor-recorded monotonic coordinate.
-type RunEvent struct {
-	state               protoimpl.MessageState `protogen:"open.v1"`
-	Sequence            int64                  `protobuf:"varint,1,opt,name=sequence,proto3" json:"sequence,omitempty"`
-	ElapsedMilliseconds int64                  `protobuf:"varint,2,opt,name=elapsed_milliseconds,json=elapsedMilliseconds,proto3" json:"elapsed_milliseconds,omitempty"`
-	Kind                RunEventKind           `protobuf:"varint,3,opt,name=kind,proto3,enum=temporal.server.api.testpilot.v1.RunEventKind" json:"kind,omitempty"`
-	Coordinates         *RunEventCoordinates   `protobuf:"bytes,4,opt,name=coordinates,proto3" json:"coordinates,omitempty"`
-	SourceId            string                 `protobuf:"bytes,5,opt,name=source_id,json=sourceId,proto3" json:"source_id,omitempty"`
-	CausalSourceIds     []string               `protobuf:"bytes,6,rep,name=causal_source_ids,json=causalSourceIds,proto3" json:"causal_source_ids,omitempty"`
-	Outcome             *InstructionOutcome    `protobuf:"bytes,7,opt,name=outcome,proto3" json:"outcome,omitempty"`
-	Observations        []*ObservationResult   `protobuf:"bytes,8,rep,name=observations,proto3" json:"observations,omitempty"`
-	// Set before evaluation of the first event establishing execution incompleteness.
-	// Incompleteness remains effective for every later event.
-	ExecutionIncomplete bool `protobuf:"varint,9,opt,name=execution_incomplete,json=executionIncomplete,proto3" json:"execution_incomplete,omitempty"`
-	// Carried only by RUN_EVENT_KIND_FAULT_INJECTED events; it names the realized fault.
-	FaultInjected *FaultInjected `protobuf:"bytes,10,opt,name=fault_injected,json=faultInjected,proto3" json:"fault_injected,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *RunEvent) Reset() {
-	*x = RunEvent{}
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[3]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *RunEvent) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RunEvent) ProtoMessage() {}
-
-func (x *RunEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[3]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RunEvent.ProtoReflect.Descriptor instead.
-func (*RunEvent) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{3}
-}
-
-func (x *RunEvent) GetSequence() int64 {
-	if x != nil {
-		return x.Sequence
-	}
-	return 0
-}
-
-func (x *RunEvent) GetElapsedMilliseconds() int64 {
-	if x != nil {
-		return x.ElapsedMilliseconds
-	}
-	return 0
-}
-
-func (x *RunEvent) GetKind() RunEventKind {
-	if x != nil {
-		return x.Kind
-	}
-	return RUN_EVENT_KIND_UNSPECIFIED
-}
-
-func (x *RunEvent) GetCoordinates() *RunEventCoordinates {
-	if x != nil {
-		return x.Coordinates
-	}
-	return nil
-}
-
-func (x *RunEvent) GetSourceId() string {
-	if x != nil {
-		return x.SourceId
-	}
-	return ""
-}
-
-func (x *RunEvent) GetCausalSourceIds() []string {
-	if x != nil {
-		return x.CausalSourceIds
-	}
-	return nil
-}
-
-func (x *RunEvent) GetOutcome() *InstructionOutcome {
-	if x != nil {
-		return x.Outcome
-	}
-	return nil
-}
-
-func (x *RunEvent) GetObservations() []*ObservationResult {
-	if x != nil {
-		return x.Observations
-	}
-	return nil
-}
-
-func (x *RunEvent) GetExecutionIncomplete() bool {
-	if x != nil {
-		return x.ExecutionIncomplete
-	}
-	return false
-}
-
-func (x *RunEvent) GetFaultInjected() *FaultInjected {
-	if x != nil {
-		return x.FaultInjected
-	}
-	return nil
-}
-
-type CleanupOutcome struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Status        CleanupStatus          `protobuf:"varint,1,opt,name=status,proto3,enum=temporal.server.api.testpilot.v1.CleanupStatus" json:"status,omitempty"`
-	DiagnosticIds []string               `protobuf:"bytes,2,rep,name=diagnostic_ids,json=diagnosticIds,proto3" json:"diagnostic_ids,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *CleanupOutcome) Reset() {
-	*x = CleanupOutcome{}
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[4]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *CleanupOutcome) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*CleanupOutcome) ProtoMessage() {}
-
-func (x *CleanupOutcome) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[4]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use CleanupOutcome.ProtoReflect.Descriptor instead.
-func (*CleanupOutcome) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{4}
-}
-
-func (x *CleanupOutcome) GetStatus() CleanupStatus {
-	if x != nil {
-		return x.Status
-	}
-	return CLEANUP_STATUS_UNSPECIFIED
-}
-
-func (x *CleanupOutcome) GetDiagnosticIds() []string {
-	if x != nil {
-		return x.DiagnosticIds
-	}
-	return nil
-}
-
-type RunDiagnostic struct {
-	state        protoimpl.MessageState `protogen:"open.v1"`
-	DiagnosticId string                 `protobuf:"bytes,1,opt,name=diagnostic_id,json=diagnosticId,proto3" json:"diagnostic_id,omitempty"`
-	Kind         RunDiagnosticKind      `protobuf:"varint,2,opt,name=kind,proto3,enum=temporal.server.api.testpilot.v1.RunDiagnosticKind" json:"kind,omitempty"`
-	Code         string                 `protobuf:"bytes,3,opt,name=code,proto3" json:"code,omitempty"`
-	Detail       string                 `protobuf:"bytes,4,opt,name=detail,proto3" json:"detail,omitempty"`
-	// Types that are valid to be assigned to Support:
-	//
-	//	*RunDiagnostic_SupportingEventSequence
-	Support       isRunDiagnostic_Support `protobuf_oneof:"support"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *RunDiagnostic) Reset() {
-	*x = RunDiagnostic{}
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[5]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *RunDiagnostic) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RunDiagnostic) ProtoMessage() {}
-
-func (x *RunDiagnostic) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[5]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RunDiagnostic.ProtoReflect.Descriptor instead.
-func (*RunDiagnostic) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{5}
-}
-
-func (x *RunDiagnostic) GetDiagnosticId() string {
-	if x != nil {
-		return x.DiagnosticId
-	}
-	return ""
-}
-
-func (x *RunDiagnostic) GetKind() RunDiagnosticKind {
-	if x != nil {
-		return x.Kind
-	}
-	return RUN_DIAGNOSTIC_KIND_UNSPECIFIED
-}
-
-func (x *RunDiagnostic) GetCode() string {
-	if x != nil {
-		return x.Code
-	}
-	return ""
-}
-
-func (x *RunDiagnostic) GetDetail() string {
-	if x != nil {
-		return x.Detail
-	}
-	return ""
-}
-
-func (x *RunDiagnostic) GetSupport() isRunDiagnostic_Support {
-	if x != nil {
-		return x.Support
-	}
-	return nil
-}
-
-func (x *RunDiagnostic) GetSupportingEventSequence() int64 {
-	if x != nil {
-		if x, ok := x.Support.(*RunDiagnostic_SupportingEventSequence); ok {
-			return x.SupportingEventSequence
-		}
-	}
-	return 0
-}
-
-type isRunDiagnostic_Support interface {
-	isRunDiagnostic_Support()
-}
-
-type RunDiagnostic_SupportingEventSequence struct {
-	SupportingEventSequence int64 `protobuf:"varint,5,opt,name=supporting_event_sequence,json=supportingEventSequence,proto3,oneof"`
-}
-
-func (*RunDiagnostic_SupportingEventSequence) isRunDiagnostic_Support() {}
-
-type RuleVerdict struct {
-	state                    protoimpl.MessageState `protogen:"open.v1"`
-	RuleId                   string                 `protobuf:"bytes,1,opt,name=rule_id,json=ruleId,proto3" json:"rule_id,omitempty"`
-	Status                   RuleVerdictStatus      `protobuf:"varint,2,opt,name=status,proto3,enum=temporal.server.api.testpilot.v1.RuleVerdictStatus" json:"status,omitempty"`
-	TerminalStateId          string                 `protobuf:"bytes,3,opt,name=terminal_state_id,json=terminalStateId,proto3" json:"terminal_state_id,omitempty"`
-	SupportingEventSequences []int64                `protobuf:"varint,4,rep,packed,name=supporting_event_sequences,json=supportingEventSequences,proto3" json:"supporting_event_sequences,omitempty"`
-	unknownFields            protoimpl.UnknownFields
-	sizeCache                protoimpl.SizeCache
-}
-
-func (x *RuleVerdict) Reset() {
-	*x = RuleVerdict{}
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[6]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *RuleVerdict) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RuleVerdict) ProtoMessage() {}
-
-func (x *RuleVerdict) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[6]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RuleVerdict.ProtoReflect.Descriptor instead.
-func (*RuleVerdict) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{6}
-}
-
-func (x *RuleVerdict) GetRuleId() string {
-	if x != nil {
-		return x.RuleId
-	}
-	return ""
-}
-
-func (x *RuleVerdict) GetStatus() RuleVerdictStatus {
-	if x != nil {
-		return x.Status
-	}
-	return RULE_VERDICT_STATUS_UNSPECIFIED
-}
-
-func (x *RuleVerdict) GetTerminalStateId() string {
-	if x != nil {
-		return x.TerminalStateId
-	}
-	return ""
-}
-
-func (x *RuleVerdict) GetSupportingEventSequences() []int64 {
-	if x != nil {
-		return x.SupportingEventSequences
-	}
-	return nil
-}
-
-type Verdict struct {
-	state                    protoimpl.MessageState `protogen:"open.v1"`
-	Status                   VerdictStatus          `protobuf:"varint,1,opt,name=status,proto3,enum=temporal.server.api.testpilot.v1.VerdictStatus" json:"status,omitempty"`
-	Rules                    []*RuleVerdict         `protobuf:"bytes,2,rep,name=rules,proto3" json:"rules,omitempty"`
-	SupportingEventSequences []int64                `protobuf:"varint,3,rep,packed,name=supporting_event_sequences,json=supportingEventSequences,proto3" json:"supporting_event_sequences,omitempty"`
-	unknownFields            protoimpl.UnknownFields
-	sizeCache                protoimpl.SizeCache
-}
-
-func (x *Verdict) Reset() {
-	*x = Verdict{}
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[7]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *Verdict) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Verdict) ProtoMessage() {}
-
-func (x *Verdict) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[7]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use Verdict.ProtoReflect.Descriptor instead.
-func (*Verdict) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{7}
-}
-
-func (x *Verdict) GetStatus() VerdictStatus {
-	if x != nil {
-		return x.Status
-	}
-	return VERDICT_STATUS_UNSPECIFIED
-}
-
-func (x *Verdict) GetRules() []*RuleVerdict {
-	if x != nil {
-		return x.Rules
-	}
-	return nil
-}
-
-func (x *Verdict) GetSupportingEventSequences() []int64 {
-	if x != nil {
-		return x.SupportingEventSequences
-	}
-	return nil
-}
-
 // Run is the authoritative append-only record of one attempted Program execution.
 type Run struct {
 	state       protoimpl.MessageState `protogen:"open.v1"`
@@ -1076,7 +406,7 @@ type Run struct {
 
 func (x *Run) Reset() {
 	*x = Run{}
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[8]
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1088,7 +418,7 @@ func (x *Run) String() string {
 func (*Run) ProtoMessage() {}
 
 func (x *Run) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[8]
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1101,7 +431,7 @@ func (x *Run) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Run.ProtoReflect.Descriptor instead.
 func (*Run) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{8}
+	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Run) GetRunId() string {
@@ -1186,31 +516,46 @@ type Run_EvaluationFailureSequence struct {
 
 func (*Run_EvaluationFailureSequence) isRun_EvaluationFailure() {}
 
-// CorrelatedEvidence is supplied only through the capability's declared typed Observation.
-// Source ordinals and parents carry semantic order; Run elapsed time never supplies a tick.
-type CorrelatedBinding struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	FieldId       string                 `protobuf:"bytes,1,opt,name=field_id,json=fieldId,proto3" json:"field_id,omitempty"`
-	Value         string                 `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+// RunEvent is an immutable fact at one Executor-recorded monotonic coordinate.
+type RunEvent struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Position in the Run, counting from 1.
+	Sequence int64 `protobuf:"varint,1,opt,name=sequence,proto3" json:"sequence,omitempty"`
+	// Host-clock milliseconds since the Run opened; never decreases.
+	ElapsedMilliseconds int64                `protobuf:"varint,2,opt,name=elapsed_milliseconds,json=elapsedMilliseconds,proto3" json:"elapsed_milliseconds,omitempty"`
+	Kind                RunEventKind         `protobuf:"varint,3,opt,name=kind,proto3,enum=temporal.server.api.testpilot.v1.RunEventKind" json:"kind,omitempty"`
+	Coordinates         *RunEventCoordinates `protobuf:"bytes,4,opt,name=coordinates,proto3" json:"coordinates,omitempty"`
+	// The producer's unique deterministic id for the event; an identical republish is deduplicated.
+	SourceId string `protobuf:"bytes,5,opt,name=source_id,json=sourceId,proto3" json:"source_id,omitempty"`
+	// The source ids of the events that caused this one.
+	CausalSourceIds []string `protobuf:"bytes,6,rep,name=causal_source_ids,json=causalSourceIds,proto3" json:"causal_source_ids,omitempty"`
+	// The instruction outcome, on instruction and diagnostic events.
+	Outcome      *InstructionOutcome  `protobuf:"bytes,7,opt,name=outcome,proto3" json:"outcome,omitempty"`
+	Observations []*ObservationResult `protobuf:"bytes,8,rep,name=observations,proto3" json:"observations,omitempty"`
+	// Set before evaluation of the first event establishing execution incompleteness.
+	// Incompleteness remains effective for every later event.
+	ExecutionIncomplete bool `protobuf:"varint,9,opt,name=execution_incomplete,json=executionIncomplete,proto3" json:"execution_incomplete,omitempty"`
+	// Carried only by RUN_EVENT_KIND_FAULT_INJECTED events; it names the realized fault.
+	FaultInjected *FaultInjected `protobuf:"bytes,10,opt,name=fault_injected,json=faultInjected,proto3" json:"fault_injected,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *CorrelatedBinding) Reset() {
-	*x = CorrelatedBinding{}
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[9]
+func (x *RunEvent) Reset() {
+	*x = RunEvent{}
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *CorrelatedBinding) String() string {
+func (x *RunEvent) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CorrelatedBinding) ProtoMessage() {}
+func (*RunEvent) ProtoMessage() {}
 
-func (x *CorrelatedBinding) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[9]
+func (x *RunEvent) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1221,108 +566,184 @@ func (x *CorrelatedBinding) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use CorrelatedBinding.ProtoReflect.Descriptor instead.
-func (*CorrelatedBinding) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{9}
+// Deprecated: Use RunEvent.ProtoReflect.Descriptor instead.
+func (*RunEvent) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *CorrelatedBinding) GetFieldId() string {
+func (x *RunEvent) GetSequence() int64 {
 	if x != nil {
-		return x.FieldId
-	}
-	return ""
-}
-
-func (x *CorrelatedBinding) GetValue() string {
-	if x != nil {
-		return x.Value
-	}
-	return ""
-}
-
-type CorrelatedIdentity struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	Scope          []*CorrelatedBinding   `protobuf:"bytes,1,rep,name=scope,proto3" json:"scope,omitempty"`
-	EvidenceSource string                 `protobuf:"bytes,2,opt,name=evidence_source,json=evidenceSource,proto3" json:"evidence_source,omitempty"`
-	Ordinal        int64                  `protobuf:"varint,3,opt,name=ordinal,proto3" json:"ordinal,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
-}
-
-func (x *CorrelatedIdentity) Reset() {
-	*x = CorrelatedIdentity{}
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[10]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *CorrelatedIdentity) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*CorrelatedIdentity) ProtoMessage() {}
-
-func (x *CorrelatedIdentity) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[10]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use CorrelatedIdentity.ProtoReflect.Descriptor instead.
-func (*CorrelatedIdentity) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{10}
-}
-
-func (x *CorrelatedIdentity) GetScope() []*CorrelatedBinding {
-	if x != nil {
-		return x.Scope
-	}
-	return nil
-}
-
-func (x *CorrelatedIdentity) GetEvidenceSource() string {
-	if x != nil {
-		return x.EvidenceSource
-	}
-	return ""
-}
-
-func (x *CorrelatedIdentity) GetOrdinal() int64 {
-	if x != nil {
-		return x.Ordinal
+		return x.Sequence
 	}
 	return 0
 }
 
-type CorrelatedEvidenceField struct {
+func (x *RunEvent) GetElapsedMilliseconds() int64 {
+	if x != nil {
+		return x.ElapsedMilliseconds
+	}
+	return 0
+}
+
+func (x *RunEvent) GetKind() RunEventKind {
+	if x != nil {
+		return x.Kind
+	}
+	return RUN_EVENT_KIND_UNSPECIFIED
+}
+
+func (x *RunEvent) GetCoordinates() *RunEventCoordinates {
+	if x != nil {
+		return x.Coordinates
+	}
+	return nil
+}
+
+func (x *RunEvent) GetSourceId() string {
+	if x != nil {
+		return x.SourceId
+	}
+	return ""
+}
+
+func (x *RunEvent) GetCausalSourceIds() []string {
+	if x != nil {
+		return x.CausalSourceIds
+	}
+	return nil
+}
+
+func (x *RunEvent) GetOutcome() *InstructionOutcome {
+	if x != nil {
+		return x.Outcome
+	}
+	return nil
+}
+
+func (x *RunEvent) GetObservations() []*ObservationResult {
+	if x != nil {
+		return x.Observations
+	}
+	return nil
+}
+
+func (x *RunEvent) GetExecutionIncomplete() bool {
+	if x != nil {
+		return x.ExecutionIncomplete
+	}
+	return false
+}
+
+func (x *RunEvent) GetFaultInjected() *FaultInjected {
+	if x != nil {
+		return x.FaultInjected
+	}
+	return nil
+}
+
+// RunEventCoordinates locate a Run Event in the Program.
+type RunEventCoordinates struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	FieldId       string                 `protobuf:"bytes,1,opt,name=field_id,json=fieldId,proto3" json:"field_id,omitempty"`
+	EntrypointId  string                 `protobuf:"bytes,1,opt,name=entrypoint_id,json=entrypointId,proto3" json:"entrypoint_id,omitempty"`
+	ActivationId  string                 `protobuf:"bytes,2,opt,name=activation_id,json=activationId,proto3" json:"activation_id,omitempty"`
+	InstructionId string                 `protobuf:"bytes,3,opt,name=instruction_id,json=instructionId,proto3" json:"instruction_id,omitempty"`
+	// The attempt number, counting from 1.
+	Attempt int64 `protobuf:"varint,4,opt,name=attempt,proto3" json:"attempt,omitempty"`
+	// The zero-based element of the response read that emitted the event; 0 for a single value.
+	EmittedIndex  int64 `protobuf:"varint,5,opt,name=emitted_index,json=emittedIndex,proto3" json:"emitted_index,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RunEventCoordinates) Reset() {
+	*x = RunEventCoordinates{}
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RunEventCoordinates) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RunEventCoordinates) ProtoMessage() {}
+
+func (x *RunEventCoordinates) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RunEventCoordinates.ProtoReflect.Descriptor instead.
+func (*RunEventCoordinates) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *RunEventCoordinates) GetEntrypointId() string {
+	if x != nil {
+		return x.EntrypointId
+	}
+	return ""
+}
+
+func (x *RunEventCoordinates) GetActivationId() string {
+	if x != nil {
+		return x.ActivationId
+	}
+	return ""
+}
+
+func (x *RunEventCoordinates) GetInstructionId() string {
+	if x != nil {
+		return x.InstructionId
+	}
+	return ""
+}
+
+func (x *RunEventCoordinates) GetAttempt() int64 {
+	if x != nil {
+		return x.Attempt
+	}
+	return 0
+}
+
+func (x *RunEventCoordinates) GetEmittedIndex() int64 {
+	if x != nil {
+		return x.EmittedIndex
+	}
+	return 0
+}
+
+// ObservationResult is the value of one declared Observation on a Run Event.
+type ObservationResult struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ObservationId string                 `protobuf:"bytes,1,opt,name=observation_id,json=observationId,proto3" json:"observation_id,omitempty"`
 	Value         *Value                 `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *CorrelatedEvidenceField) Reset() {
-	*x = CorrelatedEvidenceField{}
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[11]
+func (x *ObservationResult) Reset() {
+	*x = ObservationResult{}
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *CorrelatedEvidenceField) String() string {
+func (x *ObservationResult) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CorrelatedEvidenceField) ProtoMessage() {}
+func (*ObservationResult) ProtoMessage() {}
 
-func (x *CorrelatedEvidenceField) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[11]
+func (x *ObservationResult) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1333,51 +754,49 @@ func (x *CorrelatedEvidenceField) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use CorrelatedEvidenceField.ProtoReflect.Descriptor instead.
-func (*CorrelatedEvidenceField) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{11}
+// Deprecated: Use ObservationResult.ProtoReflect.Descriptor instead.
+func (*ObservationResult) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *CorrelatedEvidenceField) GetFieldId() string {
+func (x *ObservationResult) GetObservationId() string {
 	if x != nil {
-		return x.FieldId
+		return x.ObservationId
 	}
 	return ""
 }
 
-func (x *CorrelatedEvidenceField) GetValue() *Value {
+func (x *ObservationResult) GetValue() *Value {
 	if x != nil {
 		return x.Value
 	}
 	return nil
 }
 
-type CorrelatedEvidence struct {
-	state         protoimpl.MessageState     `protogen:"open.v1"`
-	Identity      *CorrelatedIdentity        `protobuf:"bytes,1,opt,name=identity,proto3" json:"identity,omitempty"`
-	Operation     string                     `protobuf:"bytes,2,opt,name=operation,proto3" json:"operation,omitempty"`
-	Kind          string                     `protobuf:"bytes,3,opt,name=kind,proto3" json:"kind,omitempty"`
-	Parents       []*CorrelatedIdentity      `protobuf:"bytes,4,rep,name=parents,proto3" json:"parents,omitempty"`
-	Fields        []*CorrelatedEvidenceField `protobuf:"bytes,6,rep,name=fields,proto3" json:"fields,omitempty"`
+// FaultInjected is the recorded fact that a Driver realized one requested outage.
+type FaultInjected struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	RoleId        string                 `protobuf:"bytes,1,opt,name=role_id,json=roleId,proto3" json:"role_id,omitempty"`
+	Kind          FaultKind              `protobuf:"varint,2,opt,name=kind,proto3,enum=temporal.server.api.testpilot.v1.FaultKind" json:"kind,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *CorrelatedEvidence) Reset() {
-	*x = CorrelatedEvidence{}
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[12]
+func (x *FaultInjected) Reset() {
+	*x = FaultInjected{}
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *CorrelatedEvidence) String() string {
+func (x *FaultInjected) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CorrelatedEvidence) ProtoMessage() {}
+func (*FaultInjected) ProtoMessage() {}
 
-func (x *CorrelatedEvidence) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[12]
+func (x *FaultInjected) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1388,42 +807,310 @@ func (x *CorrelatedEvidence) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use CorrelatedEvidence.ProtoReflect.Descriptor instead.
-func (*CorrelatedEvidence) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{12}
+// Deprecated: Use FaultInjected.ProtoReflect.Descriptor instead.
+func (*FaultInjected) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *CorrelatedEvidence) GetIdentity() *CorrelatedIdentity {
+func (x *FaultInjected) GetRoleId() string {
 	if x != nil {
-		return x.Identity
-	}
-	return nil
-}
-
-func (x *CorrelatedEvidence) GetOperation() string {
-	if x != nil {
-		return x.Operation
+		return x.RoleId
 	}
 	return ""
 }
 
-func (x *CorrelatedEvidence) GetKind() string {
+func (x *FaultInjected) GetKind() FaultKind {
 	if x != nil {
 		return x.Kind
 	}
-	return ""
+	return FAULT_KIND_UNSPECIFIED
 }
 
-func (x *CorrelatedEvidence) GetParents() []*CorrelatedIdentity {
+// CleanupOutcome is the status of cleanup and the diagnostics that explain a failure.
+type CleanupOutcome struct {
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	Status CleanupStatus          `protobuf:"varint,1,opt,name=status,proto3,enum=temporal.server.api.testpilot.v1.CleanupStatus" json:"status,omitempty"`
+	// The diagnostics of cleanup and Driver session close failures.
+	DiagnosticIds []string `protobuf:"bytes,2,rep,name=diagnostic_ids,json=diagnosticIds,proto3" json:"diagnostic_ids,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CleanupOutcome) Reset() {
+	*x = CleanupOutcome{}
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CleanupOutcome) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CleanupOutcome) ProtoMessage() {}
+
+func (x *CleanupOutcome) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[5]
 	if x != nil {
-		return x.Parents
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CleanupOutcome.ProtoReflect.Descriptor instead.
+func (*CleanupOutcome) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *CleanupOutcome) GetStatus() CleanupStatus {
+	if x != nil {
+		return x.Status
+	}
+	return CLEANUP_STATUS_UNSPECIFIED
+}
+
+func (x *CleanupOutcome) GetDiagnosticIds() []string {
+	if x != nil {
+		return x.DiagnosticIds
 	}
 	return nil
 }
 
-func (x *CorrelatedEvidence) GetFields() []*CorrelatedEvidenceField {
+// RunDiagnostic records a failure of execution, the Monitor, the Recorder or the Driver during a Run.
+type RunDiagnostic struct {
+	state        protoimpl.MessageState `protogen:"open.v1"`
+	DiagnosticId string                 `protobuf:"bytes,1,opt,name=diagnostic_id,json=diagnosticId,proto3" json:"diagnostic_id,omitempty"`
+	Kind         RunDiagnosticKind      `protobuf:"varint,2,opt,name=kind,proto3,enum=temporal.server.api.testpilot.v1.RunDiagnosticKind" json:"kind,omitempty"`
+	// A short machine-readable code.
+	Code string `protobuf:"bytes,3,opt,name=code,proto3" json:"code,omitempty"`
+	// Human-readable text.
+	Detail string `protobuf:"bytes,4,opt,name=detail,proto3" json:"detail,omitempty"`
+	// Types that are valid to be assigned to Support:
+	//
+	//	*RunDiagnostic_SupportingEventSequence
+	Support       isRunDiagnostic_Support `protobuf_oneof:"support"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RunDiagnostic) Reset() {
+	*x = RunDiagnostic{}
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RunDiagnostic) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RunDiagnostic) ProtoMessage() {}
+
+func (x *RunDiagnostic) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[6]
 	if x != nil {
-		return x.Fields
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RunDiagnostic.ProtoReflect.Descriptor instead.
+func (*RunDiagnostic) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *RunDiagnostic) GetDiagnosticId() string {
+	if x != nil {
+		return x.DiagnosticId
+	}
+	return ""
+}
+
+func (x *RunDiagnostic) GetKind() RunDiagnosticKind {
+	if x != nil {
+		return x.Kind
+	}
+	return RUN_DIAGNOSTIC_KIND_UNSPECIFIED
+}
+
+func (x *RunDiagnostic) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+func (x *RunDiagnostic) GetDetail() string {
+	if x != nil {
+		return x.Detail
+	}
+	return ""
+}
+
+func (x *RunDiagnostic) GetSupport() isRunDiagnostic_Support {
+	if x != nil {
+		return x.Support
+	}
+	return nil
+}
+
+func (x *RunDiagnostic) GetSupportingEventSequence() int64 {
+	if x != nil {
+		if x, ok := x.Support.(*RunDiagnostic_SupportingEventSequence); ok {
+			return x.SupportingEventSequence
+		}
+	}
+	return 0
+}
+
+type isRunDiagnostic_Support interface {
+	isRunDiagnostic_Support()
+}
+
+type RunDiagnostic_SupportingEventSequence struct {
+	// The last Run Event recorded before the failure, when there is one.
+	SupportingEventSequence int64 `protobuf:"varint,5,opt,name=supporting_event_sequence,json=supportingEventSequence,proto3,oneof"`
+}
+
+func (*RunDiagnostic_SupportingEventSequence) isRunDiagnostic_Support() {}
+
+// Verdict is the Contract's conclusion about a Run.
+type Verdict struct {
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	Status VerdictStatus          `protobuf:"varint,1,opt,name=status,proto3,enum=temporal.server.api.testpilot.v1.VerdictStatus" json:"status,omitempty"`
+	Rules  []*RuleVerdict         `protobuf:"bytes,2,rep,name=rules,proto3" json:"rules,omitempty"`
+	// Every Run Event that supported some rule's conclusion.
+	SupportingEventSequences []int64 `protobuf:"varint,3,rep,packed,name=supporting_event_sequences,json=supportingEventSequences,proto3" json:"supporting_event_sequences,omitempty"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
+}
+
+func (x *Verdict) Reset() {
+	*x = Verdict{}
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Verdict) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Verdict) ProtoMessage() {}
+
+func (x *Verdict) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Verdict.ProtoReflect.Descriptor instead.
+func (*Verdict) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *Verdict) GetStatus() VerdictStatus {
+	if x != nil {
+		return x.Status
+	}
+	return VERDICT_STATUS_UNSPECIFIED
+}
+
+func (x *Verdict) GetRules() []*RuleVerdict {
+	if x != nil {
+		return x.Rules
+	}
+	return nil
+}
+
+func (x *Verdict) GetSupportingEventSequences() []int64 {
+	if x != nil {
+		return x.SupportingEventSequences
+	}
+	return nil
+}
+
+// RuleVerdict is one rule's conclusion about a Run.
+type RuleVerdict struct {
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	RuleId string                 `protobuf:"bytes,1,opt,name=rule_id,json=ruleId,proto3" json:"rule_id,omitempty"`
+	Status RuleVerdictStatus      `protobuf:"varint,2,opt,name=status,proto3,enum=temporal.server.api.testpilot.v1.RuleVerdictStatus" json:"status,omitempty"`
+	// The terminal state the rule reached, when it reached one.
+	TerminalStateId string `protobuf:"bytes,3,opt,name=terminal_state_id,json=terminalStateId,proto3" json:"terminal_state_id,omitempty"`
+	// The Run Events that supported the conclusion.
+	SupportingEventSequences []int64 `protobuf:"varint,4,rep,packed,name=supporting_event_sequences,json=supportingEventSequences,proto3" json:"supporting_event_sequences,omitempty"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
+}
+
+func (x *RuleVerdict) Reset() {
+	*x = RuleVerdict{}
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RuleVerdict) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RuleVerdict) ProtoMessage() {}
+
+func (x *RuleVerdict) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RuleVerdict.ProtoReflect.Descriptor instead.
+func (*RuleVerdict) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *RuleVerdict) GetRuleId() string {
+	if x != nil {
+		return x.RuleId
+	}
+	return ""
+}
+
+func (x *RuleVerdict) GetStatus() RuleVerdictStatus {
+	if x != nil {
+		return x.Status
+	}
+	return RULE_VERDICT_STATUS_UNSPECIFIED
+}
+
+func (x *RuleVerdict) GetTerminalStateId() string {
+	if x != nil {
+		return x.TerminalStateId
+	}
+	return ""
+}
+
+func (x *RuleVerdict) GetSupportingEventSequences() []int64 {
+	if x != nil {
+		return x.SupportingEventSequences
 	}
 	return nil
 }
@@ -1432,49 +1119,7 @@ var File_temporal_server_api_testpilot_v1_run_proto protoreflect.FileDescriptor
 
 const file_temporal_server_api_testpilot_v1_run_proto_rawDesc = "" +
 	"\n" +
-	"*temporal/server/api/testpilot/v1/run.proto\x12 temporal.server.api.testpilot.v1\x1a2temporal/server/api/testpilot/v1/instruction.proto\x1a,temporal/server/api/testpilot/v1/value.proto\"V\n" +
-	"\x0eRunEventFilter\x12D\n" +
-	"\x05kinds\x18\x01 \x03(\x0e2..temporal.server.api.testpilot.v1.RunEventKindR\x05kinds\"\xc5\x01\n" +
-	"\x13RunEventCoordinates\x12#\n" +
-	"\rentrypoint_id\x18\x01 \x01(\tR\fentrypointId\x12#\n" +
-	"\ractivation_id\x18\x02 \x01(\tR\factivationId\x12%\n" +
-	"\x0einstruction_id\x18\x03 \x01(\tR\rinstructionId\x12\x18\n" +
-	"\aattempt\x18\x04 \x01(\x03R\aattempt\x12#\n" +
-	"\remitted_index\x18\x05 \x01(\x03R\femittedIndex\"y\n" +
-	"\x11ObservationResult\x12%\n" +
-	"\x0eobservation_id\x18\x01 \x01(\tR\robservationId\x12=\n" +
-	"\x05value\x18\x02 \x01(\v2'.temporal.server.api.testpilot.v1.ValueR\x05value\"\xf3\x04\n" +
-	"\bRunEvent\x12\x1a\n" +
-	"\bsequence\x18\x01 \x01(\x03R\bsequence\x121\n" +
-	"\x14elapsed_milliseconds\x18\x02 \x01(\x03R\x13elapsedMilliseconds\x12B\n" +
-	"\x04kind\x18\x03 \x01(\x0e2..temporal.server.api.testpilot.v1.RunEventKindR\x04kind\x12W\n" +
-	"\vcoordinates\x18\x04 \x01(\v25.temporal.server.api.testpilot.v1.RunEventCoordinatesR\vcoordinates\x12\x1b\n" +
-	"\tsource_id\x18\x05 \x01(\tR\bsourceId\x12*\n" +
-	"\x11causal_source_ids\x18\x06 \x03(\tR\x0fcausalSourceIds\x12N\n" +
-	"\aoutcome\x18\a \x01(\v24.temporal.server.api.testpilot.v1.InstructionOutcomeR\aoutcome\x12W\n" +
-	"\fobservations\x18\b \x03(\v23.temporal.server.api.testpilot.v1.ObservationResultR\fobservations\x121\n" +
-	"\x14execution_incomplete\x18\t \x01(\bR\x13executionIncomplete\x12V\n" +
-	"\x0efault_injected\x18\n" +
-	" \x01(\v2/.temporal.server.api.testpilot.v1.FaultInjectedR\rfaultInjected\"\x80\x01\n" +
-	"\x0eCleanupOutcome\x12G\n" +
-	"\x06status\x18\x01 \x01(\x0e2/.temporal.server.api.testpilot.v1.CleanupStatusR\x06status\x12%\n" +
-	"\x0ediagnostic_ids\x18\x02 \x03(\tR\rdiagnosticIds\"\xf2\x01\n" +
-	"\rRunDiagnostic\x12#\n" +
-	"\rdiagnostic_id\x18\x01 \x01(\tR\fdiagnosticId\x12G\n" +
-	"\x04kind\x18\x02 \x01(\x0e23.temporal.server.api.testpilot.v1.RunDiagnosticKindR\x04kind\x12\x12\n" +
-	"\x04code\x18\x03 \x01(\tR\x04code\x12\x16\n" +
-	"\x06detail\x18\x04 \x01(\tR\x06detail\x12<\n" +
-	"\x19supporting_event_sequence\x18\x05 \x01(\x03H\x00R\x17supportingEventSequenceB\t\n" +
-	"\asupport\"\xdd\x01\n" +
-	"\vRuleVerdict\x12\x17\n" +
-	"\arule_id\x18\x01 \x01(\tR\x06ruleId\x12K\n" +
-	"\x06status\x18\x02 \x01(\x0e23.temporal.server.api.testpilot.v1.RuleVerdictStatusR\x06status\x12*\n" +
-	"\x11terminal_state_id\x18\x03 \x01(\tR\x0fterminalStateId\x12<\n" +
-	"\x1asupporting_event_sequences\x18\x04 \x03(\x03R\x18supportingEventSequences\"\xd5\x01\n" +
-	"\aVerdict\x12G\n" +
-	"\x06status\x18\x01 \x01(\x0e2/.temporal.server.api.testpilot.v1.VerdictStatusR\x06status\x12C\n" +
-	"\x05rules\x18\x02 \x03(\v2-.temporal.server.api.testpilot.v1.RuleVerdictR\x05rules\x12<\n" +
-	"\x1asupporting_event_sequences\x18\x03 \x03(\x03R\x18supportingEventSequences\"\xa8\x04\n" +
+	"*temporal/server/api/testpilot/v1/run.proto\x12 temporal.server.api.testpilot.v1\x1a,temporal/server/api/testpilot/v1/event.proto\x1a2temporal/server/api/testpilot/v1/instruction.proto\x1a,temporal/server/api/testpilot/v1/value.proto\"\xa8\x04\n" +
 	"\x03Run\x12\x15\n" +
 	"\x06run_id\x18\x01 \x01(\tR\x05runId\x12\x17\n" +
 	"\acase_id\x18\x02 \x01(\tR\x06caseId\x12\x1d\n" +
@@ -1486,37 +1131,50 @@ const file_temporal_server_api_testpilot_v1_run_proto_rawDesc = "" +
 	"\averdict\x18\a \x01(\v2).temporal.server.api.testpilot.v1.VerdictR\averdict\x12Q\n" +
 	"\vdiagnostics\x18\b \x03(\v2/.temporal.server.api.testpilot.v1.RunDiagnosticR\vdiagnostics\x12@\n" +
 	"\x1bevaluation_failure_sequence\x18\t \x01(\x03H\x00R\x19evaluationFailureSequenceB\x14\n" +
-	"\x12evaluation_failure\"D\n" +
-	"\x11CorrelatedBinding\x12\x19\n" +
-	"\bfield_id\x18\x01 \x01(\tR\afieldId\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value\"\xa2\x01\n" +
-	"\x12CorrelatedIdentity\x12I\n" +
-	"\x05scope\x18\x01 \x03(\v23.temporal.server.api.testpilot.v1.CorrelatedBindingR\x05scope\x12'\n" +
-	"\x0fevidence_source\x18\x02 \x01(\tR\x0eevidenceSource\x12\x18\n" +
-	"\aordinal\x18\x03 \x01(\x03R\aordinal\"s\n" +
-	"\x17CorrelatedEvidenceField\x12\x19\n" +
-	"\bfield_id\x18\x01 \x01(\tR\afieldId\x12=\n" +
-	"\x05value\x18\x02 \x01(\v2'.temporal.server.api.testpilot.v1.ValueR\x05value\"\xbb\x02\n" +
-	"\x12CorrelatedEvidence\x12P\n" +
-	"\bidentity\x18\x01 \x01(\v24.temporal.server.api.testpilot.v1.CorrelatedIdentityR\bidentity\x12\x1c\n" +
-	"\toperation\x18\x02 \x01(\tR\toperation\x12\x12\n" +
-	"\x04kind\x18\x03 \x01(\tR\x04kind\x12N\n" +
-	"\aparents\x18\x04 \x03(\v24.temporal.server.api.testpilot.v1.CorrelatedIdentityR\aparents\x12Q\n" +
-	"\x06fields\x18\x06 \x03(\v29.temporal.server.api.testpilot.v1.CorrelatedEvidenceFieldR\x06fields*\xc0\x03\n" +
-	"\fRunEventKind\x12\x1e\n" +
-	"\x1aRUN_EVENT_KIND_UNSPECIFIED\x10\x00\x12\x1d\n" +
-	"\x19RUN_EVENT_KIND_RUN_OPENED\x10\x01\x12$\n" +
-	" RUN_EVENT_KIND_ACTIVATION_OPENED\x10\x02\x12&\n" +
-	"\"RUN_EVENT_KIND_INSTRUCTION_STARTED\x10\x03\x12(\n" +
-	"$RUN_EVENT_KIND_INSTRUCTION_COMPLETED\x10\x04\x12(\n" +
-	"$RUN_EVENT_KIND_INSTRUCTION_TIMED_OUT\x10\x05\x12$\n" +
-	" RUN_EVENT_KIND_ACTIVATION_CLOSED\x10\x06\x12\"\n" +
-	"\x1eRUN_EVENT_KIND_CLEANUP_STARTED\x10\a\x12$\n" +
-	" RUN_EVENT_KIND_CLEANUP_COMPLETED\x10\b\x12\x1d\n" +
-	"\x19RUN_EVENT_KIND_RUN_CLOSED\x10\t\x12\x1d\n" +
-	"\x19RUN_EVENT_KIND_DIAGNOSTIC\x10\n" +
-	"\x12!\n" +
-	"\x1dRUN_EVENT_KIND_FAULT_INJECTED\x10\v*\x98\x01\n" +
+	"\x12evaluation_failure\"\xf3\x04\n" +
+	"\bRunEvent\x12\x1a\n" +
+	"\bsequence\x18\x01 \x01(\x03R\bsequence\x121\n" +
+	"\x14elapsed_milliseconds\x18\x02 \x01(\x03R\x13elapsedMilliseconds\x12B\n" +
+	"\x04kind\x18\x03 \x01(\x0e2..temporal.server.api.testpilot.v1.RunEventKindR\x04kind\x12W\n" +
+	"\vcoordinates\x18\x04 \x01(\v25.temporal.server.api.testpilot.v1.RunEventCoordinatesR\vcoordinates\x12\x1b\n" +
+	"\tsource_id\x18\x05 \x01(\tR\bsourceId\x12*\n" +
+	"\x11causal_source_ids\x18\x06 \x03(\tR\x0fcausalSourceIds\x12N\n" +
+	"\aoutcome\x18\a \x01(\v24.temporal.server.api.testpilot.v1.InstructionOutcomeR\aoutcome\x12W\n" +
+	"\fobservations\x18\b \x03(\v23.temporal.server.api.testpilot.v1.ObservationResultR\fobservations\x121\n" +
+	"\x14execution_incomplete\x18\t \x01(\bR\x13executionIncomplete\x12V\n" +
+	"\x0efault_injected\x18\n" +
+	" \x01(\v2/.temporal.server.api.testpilot.v1.FaultInjectedR\rfaultInjected\"\xc5\x01\n" +
+	"\x13RunEventCoordinates\x12#\n" +
+	"\rentrypoint_id\x18\x01 \x01(\tR\fentrypointId\x12#\n" +
+	"\ractivation_id\x18\x02 \x01(\tR\factivationId\x12%\n" +
+	"\x0einstruction_id\x18\x03 \x01(\tR\rinstructionId\x12\x18\n" +
+	"\aattempt\x18\x04 \x01(\x03R\aattempt\x12#\n" +
+	"\remitted_index\x18\x05 \x01(\x03R\femittedIndex\"y\n" +
+	"\x11ObservationResult\x12%\n" +
+	"\x0eobservation_id\x18\x01 \x01(\tR\robservationId\x12=\n" +
+	"\x05value\x18\x02 \x01(\v2'.temporal.server.api.testpilot.v1.ValueR\x05value\"i\n" +
+	"\rFaultInjected\x12\x17\n" +
+	"\arole_id\x18\x01 \x01(\tR\x06roleId\x12?\n" +
+	"\x04kind\x18\x02 \x01(\x0e2+.temporal.server.api.testpilot.v1.FaultKindR\x04kind\"\x80\x01\n" +
+	"\x0eCleanupOutcome\x12G\n" +
+	"\x06status\x18\x01 \x01(\x0e2/.temporal.server.api.testpilot.v1.CleanupStatusR\x06status\x12%\n" +
+	"\x0ediagnostic_ids\x18\x02 \x03(\tR\rdiagnosticIds\"\xf2\x01\n" +
+	"\rRunDiagnostic\x12#\n" +
+	"\rdiagnostic_id\x18\x01 \x01(\tR\fdiagnosticId\x12G\n" +
+	"\x04kind\x18\x02 \x01(\x0e23.temporal.server.api.testpilot.v1.RunDiagnosticKindR\x04kind\x12\x12\n" +
+	"\x04code\x18\x03 \x01(\tR\x04code\x12\x16\n" +
+	"\x06detail\x18\x04 \x01(\tR\x06detail\x12<\n" +
+	"\x19supporting_event_sequence\x18\x05 \x01(\x03H\x00R\x17supportingEventSequenceB\t\n" +
+	"\asupport\"\xd5\x01\n" +
+	"\aVerdict\x12G\n" +
+	"\x06status\x18\x01 \x01(\x0e2/.temporal.server.api.testpilot.v1.VerdictStatusR\x06status\x12C\n" +
+	"\x05rules\x18\x02 \x03(\v2-.temporal.server.api.testpilot.v1.RuleVerdictR\x05rules\x12<\n" +
+	"\x1asupporting_event_sequences\x18\x03 \x03(\x03R\x18supportingEventSequences\"\xdd\x01\n" +
+	"\vRuleVerdict\x12\x17\n" +
+	"\arule_id\x18\x01 \x01(\tR\x06ruleId\x12K\n" +
+	"\x06status\x18\x02 \x01(\x0e23.temporal.server.api.testpilot.v1.RuleVerdictStatusR\x06status\x12*\n" +
+	"\x11terminal_state_id\x18\x03 \x01(\tR\x0fterminalStateId\x12<\n" +
+	"\x1asupporting_event_sequences\x18\x04 \x03(\x03R\x18supportingEventSequences*\x98\x01\n" +
 	"\x0eRunDisposition\x12\x1f\n" +
 	"\x1bRUN_DISPOSITION_UNSPECIFIED\x10\x00\x12\x1d\n" +
 	"\x19RUN_DISPOSITION_COMPLETED\x10\x01\x12&\n" +
@@ -1535,18 +1193,18 @@ const file_temporal_server_api_testpilot_v1_run_proto_rawDesc = "" +
 	"\x1dRUN_DIAGNOSTIC_KIND_INVARIANT\x10\x04\x12\x1d\n" +
 	"\x19RUN_DIAGNOSTIC_KIND_LIMIT\x10\x05\x12'\n" +
 	"#RUN_DIAGNOSTIC_KIND_DRIVER_CONTRACT\x10\x06\x12(\n" +
-	"$RUN_DIAGNOSTIC_KIND_POST_CLOSE_EVENT\x10\a*\xc4\x01\n" +
+	"$RUN_DIAGNOSTIC_KIND_POST_CLOSE_EVENT\x10\a*\x8b\x01\n" +
+	"\rVerdictStatus\x12\x1e\n" +
+	"\x1aVERDICT_STATUS_UNSPECIFIED\x10\x00\x12\x1c\n" +
+	"\x18VERDICT_STATUS_SATISFIED\x10\x01\x12\x1b\n" +
+	"\x17VERDICT_STATUS_VIOLATED\x10\x02\x12\x1f\n" +
+	"\x1bVERDICT_STATUS_INCONCLUSIVE\x10\x03*\xc4\x01\n" +
 	"\x11RuleVerdictStatus\x12#\n" +
 	"\x1fRULE_VERDICT_STATUS_UNSPECIFIED\x10\x00\x12\x1f\n" +
 	"\x1bRULE_VERDICT_STATUS_PENDING\x10\x01\x12!\n" +
 	"\x1dRULE_VERDICT_STATUS_SATISFIED\x10\x02\x12 \n" +
 	"\x1cRULE_VERDICT_STATUS_VIOLATED\x10\x03\x12$\n" +
-	" RULE_VERDICT_STATUS_INCONCLUSIVE\x10\x04*\x8b\x01\n" +
-	"\rVerdictStatus\x12\x1e\n" +
-	"\x1aVERDICT_STATUS_UNSPECIFIED\x10\x00\x12\x1c\n" +
-	"\x18VERDICT_STATUS_SATISFIED\x10\x01\x12\x1b\n" +
-	"\x17VERDICT_STATUS_VIOLATED\x10\x02\x12\x1f\n" +
-	"\x1bVERDICT_STATUS_INCONCLUSIVE\x10\x03B2Z0go.temporal.io/server/api/testpilot/v1;testpilotb\x06proto3"
+	" RULE_VERDICT_STATUS_INCONCLUSIVE\x10\x04B2Z0go.temporal.io/server/api/testpilot/v1;testpilotb\x06proto3"
 
 var (
 	file_temporal_server_api_testpilot_v1_run_proto_rawDescOnce sync.Once
@@ -1560,60 +1218,51 @@ func file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP() []byte {
 	return file_temporal_server_api_testpilot_v1_run_proto_rawDescData
 }
 
-var file_temporal_server_api_testpilot_v1_run_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
-var file_temporal_server_api_testpilot_v1_run_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_temporal_server_api_testpilot_v1_run_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
+var file_temporal_server_api_testpilot_v1_run_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_temporal_server_api_testpilot_v1_run_proto_goTypes = []any{
-	(RunEventKind)(0),               // 0: temporal.server.api.testpilot.v1.RunEventKind
-	(RunDisposition)(0),             // 1: temporal.server.api.testpilot.v1.RunDisposition
-	(CleanupStatus)(0),              // 2: temporal.server.api.testpilot.v1.CleanupStatus
-	(RunDiagnosticKind)(0),          // 3: temporal.server.api.testpilot.v1.RunDiagnosticKind
-	(RuleVerdictStatus)(0),          // 4: temporal.server.api.testpilot.v1.RuleVerdictStatus
-	(VerdictStatus)(0),              // 5: temporal.server.api.testpilot.v1.VerdictStatus
-	(*RunEventFilter)(nil),          // 6: temporal.server.api.testpilot.v1.RunEventFilter
-	(*RunEventCoordinates)(nil),     // 7: temporal.server.api.testpilot.v1.RunEventCoordinates
-	(*ObservationResult)(nil),       // 8: temporal.server.api.testpilot.v1.ObservationResult
-	(*RunEvent)(nil),                // 9: temporal.server.api.testpilot.v1.RunEvent
-	(*CleanupOutcome)(nil),          // 10: temporal.server.api.testpilot.v1.CleanupOutcome
-	(*RunDiagnostic)(nil),           // 11: temporal.server.api.testpilot.v1.RunDiagnostic
-	(*RuleVerdict)(nil),             // 12: temporal.server.api.testpilot.v1.RuleVerdict
-	(*Verdict)(nil),                 // 13: temporal.server.api.testpilot.v1.Verdict
-	(*Run)(nil),                     // 14: temporal.server.api.testpilot.v1.Run
-	(*CorrelatedBinding)(nil),       // 15: temporal.server.api.testpilot.v1.CorrelatedBinding
-	(*CorrelatedIdentity)(nil),      // 16: temporal.server.api.testpilot.v1.CorrelatedIdentity
-	(*CorrelatedEvidenceField)(nil), // 17: temporal.server.api.testpilot.v1.CorrelatedEvidenceField
-	(*CorrelatedEvidence)(nil),      // 18: temporal.server.api.testpilot.v1.CorrelatedEvidence
-	(*Value)(nil),                   // 19: temporal.server.api.testpilot.v1.Value
-	(*InstructionOutcome)(nil),      // 20: temporal.server.api.testpilot.v1.InstructionOutcome
-	(*FaultInjected)(nil),           // 21: temporal.server.api.testpilot.v1.FaultInjected
+	(RunDisposition)(0),         // 0: temporal.server.api.testpilot.v1.RunDisposition
+	(CleanupStatus)(0),          // 1: temporal.server.api.testpilot.v1.CleanupStatus
+	(RunDiagnosticKind)(0),      // 2: temporal.server.api.testpilot.v1.RunDiagnosticKind
+	(VerdictStatus)(0),          // 3: temporal.server.api.testpilot.v1.VerdictStatus
+	(RuleVerdictStatus)(0),      // 4: temporal.server.api.testpilot.v1.RuleVerdictStatus
+	(*Run)(nil),                 // 5: temporal.server.api.testpilot.v1.Run
+	(*RunEvent)(nil),            // 6: temporal.server.api.testpilot.v1.RunEvent
+	(*RunEventCoordinates)(nil), // 7: temporal.server.api.testpilot.v1.RunEventCoordinates
+	(*ObservationResult)(nil),   // 8: temporal.server.api.testpilot.v1.ObservationResult
+	(*FaultInjected)(nil),       // 9: temporal.server.api.testpilot.v1.FaultInjected
+	(*CleanupOutcome)(nil),      // 10: temporal.server.api.testpilot.v1.CleanupOutcome
+	(*RunDiagnostic)(nil),       // 11: temporal.server.api.testpilot.v1.RunDiagnostic
+	(*Verdict)(nil),             // 12: temporal.server.api.testpilot.v1.Verdict
+	(*RuleVerdict)(nil),         // 13: temporal.server.api.testpilot.v1.RuleVerdict
+	(RunEventKind)(0),           // 14: temporal.server.api.testpilot.v1.RunEventKind
+	(*InstructionOutcome)(nil),  // 15: temporal.server.api.testpilot.v1.InstructionOutcome
+	(*Value)(nil),               // 16: temporal.server.api.testpilot.v1.Value
+	(FaultKind)(0),              // 17: temporal.server.api.testpilot.v1.FaultKind
 }
 var file_temporal_server_api_testpilot_v1_run_proto_depIdxs = []int32{
-	0,  // 0: temporal.server.api.testpilot.v1.RunEventFilter.kinds:type_name -> temporal.server.api.testpilot.v1.RunEventKind
-	19, // 1: temporal.server.api.testpilot.v1.ObservationResult.value:type_name -> temporal.server.api.testpilot.v1.Value
-	0,  // 2: temporal.server.api.testpilot.v1.RunEvent.kind:type_name -> temporal.server.api.testpilot.v1.RunEventKind
-	7,  // 3: temporal.server.api.testpilot.v1.RunEvent.coordinates:type_name -> temporal.server.api.testpilot.v1.RunEventCoordinates
-	20, // 4: temporal.server.api.testpilot.v1.RunEvent.outcome:type_name -> temporal.server.api.testpilot.v1.InstructionOutcome
-	8,  // 5: temporal.server.api.testpilot.v1.RunEvent.observations:type_name -> temporal.server.api.testpilot.v1.ObservationResult
-	21, // 6: temporal.server.api.testpilot.v1.RunEvent.fault_injected:type_name -> temporal.server.api.testpilot.v1.FaultInjected
-	2,  // 7: temporal.server.api.testpilot.v1.CleanupOutcome.status:type_name -> temporal.server.api.testpilot.v1.CleanupStatus
-	3,  // 8: temporal.server.api.testpilot.v1.RunDiagnostic.kind:type_name -> temporal.server.api.testpilot.v1.RunDiagnosticKind
-	4,  // 9: temporal.server.api.testpilot.v1.RuleVerdict.status:type_name -> temporal.server.api.testpilot.v1.RuleVerdictStatus
-	5,  // 10: temporal.server.api.testpilot.v1.Verdict.status:type_name -> temporal.server.api.testpilot.v1.VerdictStatus
-	12, // 11: temporal.server.api.testpilot.v1.Verdict.rules:type_name -> temporal.server.api.testpilot.v1.RuleVerdict
-	9,  // 12: temporal.server.api.testpilot.v1.Run.events:type_name -> temporal.server.api.testpilot.v1.RunEvent
-	1,  // 13: temporal.server.api.testpilot.v1.Run.disposition:type_name -> temporal.server.api.testpilot.v1.RunDisposition
-	10, // 14: temporal.server.api.testpilot.v1.Run.cleanup:type_name -> temporal.server.api.testpilot.v1.CleanupOutcome
-	13, // 15: temporal.server.api.testpilot.v1.Run.verdict:type_name -> temporal.server.api.testpilot.v1.Verdict
-	11, // 16: temporal.server.api.testpilot.v1.Run.diagnostics:type_name -> temporal.server.api.testpilot.v1.RunDiagnostic
-	15, // 17: temporal.server.api.testpilot.v1.CorrelatedIdentity.scope:type_name -> temporal.server.api.testpilot.v1.CorrelatedBinding
-	19, // 18: temporal.server.api.testpilot.v1.CorrelatedEvidenceField.value:type_name -> temporal.server.api.testpilot.v1.Value
-	16, // 19: temporal.server.api.testpilot.v1.CorrelatedEvidence.identity:type_name -> temporal.server.api.testpilot.v1.CorrelatedIdentity
-	16, // 20: temporal.server.api.testpilot.v1.CorrelatedEvidence.parents:type_name -> temporal.server.api.testpilot.v1.CorrelatedIdentity
-	17, // 21: temporal.server.api.testpilot.v1.CorrelatedEvidence.fields:type_name -> temporal.server.api.testpilot.v1.CorrelatedEvidenceField
-	22, // [22:22] is the sub-list for method output_type
-	22, // [22:22] is the sub-list for method input_type
-	22, // [22:22] is the sub-list for extension type_name
-	22, // [22:22] is the sub-list for extension extendee
-	0,  // [0:22] is the sub-list for field type_name
+	6,  // 0: temporal.server.api.testpilot.v1.Run.events:type_name -> temporal.server.api.testpilot.v1.RunEvent
+	0,  // 1: temporal.server.api.testpilot.v1.Run.disposition:type_name -> temporal.server.api.testpilot.v1.RunDisposition
+	10, // 2: temporal.server.api.testpilot.v1.Run.cleanup:type_name -> temporal.server.api.testpilot.v1.CleanupOutcome
+	12, // 3: temporal.server.api.testpilot.v1.Run.verdict:type_name -> temporal.server.api.testpilot.v1.Verdict
+	11, // 4: temporal.server.api.testpilot.v1.Run.diagnostics:type_name -> temporal.server.api.testpilot.v1.RunDiagnostic
+	14, // 5: temporal.server.api.testpilot.v1.RunEvent.kind:type_name -> temporal.server.api.testpilot.v1.RunEventKind
+	7,  // 6: temporal.server.api.testpilot.v1.RunEvent.coordinates:type_name -> temporal.server.api.testpilot.v1.RunEventCoordinates
+	15, // 7: temporal.server.api.testpilot.v1.RunEvent.outcome:type_name -> temporal.server.api.testpilot.v1.InstructionOutcome
+	8,  // 8: temporal.server.api.testpilot.v1.RunEvent.observations:type_name -> temporal.server.api.testpilot.v1.ObservationResult
+	9,  // 9: temporal.server.api.testpilot.v1.RunEvent.fault_injected:type_name -> temporal.server.api.testpilot.v1.FaultInjected
+	16, // 10: temporal.server.api.testpilot.v1.ObservationResult.value:type_name -> temporal.server.api.testpilot.v1.Value
+	17, // 11: temporal.server.api.testpilot.v1.FaultInjected.kind:type_name -> temporal.server.api.testpilot.v1.FaultKind
+	1,  // 12: temporal.server.api.testpilot.v1.CleanupOutcome.status:type_name -> temporal.server.api.testpilot.v1.CleanupStatus
+	2,  // 13: temporal.server.api.testpilot.v1.RunDiagnostic.kind:type_name -> temporal.server.api.testpilot.v1.RunDiagnosticKind
+	3,  // 14: temporal.server.api.testpilot.v1.Verdict.status:type_name -> temporal.server.api.testpilot.v1.VerdictStatus
+	13, // 15: temporal.server.api.testpilot.v1.Verdict.rules:type_name -> temporal.server.api.testpilot.v1.RuleVerdict
+	4,  // 16: temporal.server.api.testpilot.v1.RuleVerdict.status:type_name -> temporal.server.api.testpilot.v1.RuleVerdictStatus
+	17, // [17:17] is the sub-list for method output_type
+	17, // [17:17] is the sub-list for method input_type
+	17, // [17:17] is the sub-list for extension type_name
+	17, // [17:17] is the sub-list for extension extendee
+	0,  // [0:17] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_testpilot_v1_run_proto_init() }
@@ -1621,21 +1270,22 @@ func file_temporal_server_api_testpilot_v1_run_proto_init() {
 	if File_temporal_server_api_testpilot_v1_run_proto != nil {
 		return
 	}
+	file_temporal_server_api_testpilot_v1_event_proto_init()
 	file_temporal_server_api_testpilot_v1_instruction_proto_init()
 	file_temporal_server_api_testpilot_v1_value_proto_init()
-	file_temporal_server_api_testpilot_v1_run_proto_msgTypes[5].OneofWrappers = []any{
-		(*RunDiagnostic_SupportingEventSequence)(nil),
-	}
-	file_temporal_server_api_testpilot_v1_run_proto_msgTypes[8].OneofWrappers = []any{
+	file_temporal_server_api_testpilot_v1_run_proto_msgTypes[0].OneofWrappers = []any{
 		(*Run_EvaluationFailureSequence)(nil),
+	}
+	file_temporal_server_api_testpilot_v1_run_proto_msgTypes[6].OneofWrappers = []any{
+		(*RunDiagnostic_SupportingEventSequence)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_temporal_server_api_testpilot_v1_run_proto_rawDesc), len(file_temporal_server_api_testpilot_v1_run_proto_rawDesc)),
-			NumEnums:      6,
-			NumMessages:   13,
+			NumEnums:      5,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

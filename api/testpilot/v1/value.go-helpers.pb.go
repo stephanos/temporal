@@ -7,35 +7,35 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-// Marshal an object of type FormatVersion to the protobuf v3 wire format
-func (val *FormatVersion) Marshal() ([]byte, error) {
+// Marshal an object of type Value to the protobuf v3 wire format
+func (val *Value) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
 }
 
-// Unmarshal an object of type FormatVersion from the protobuf v3 wire format
-func (val *FormatVersion) Unmarshal(buf []byte) error {
+// Unmarshal an object of type Value from the protobuf v3 wire format
+func (val *Value) Unmarshal(buf []byte) error {
 	return proto.Unmarshal(buf, val)
 }
 
 // Size returns the size of the object, in bytes, once serialized
-func (val *FormatVersion) Size() int {
+func (val *Value) Size() int {
 	return proto.Size(val)
 }
 
-// Equal returns whether two FormatVersion values are equivalent by recursively
+// Equal returns whether two Value values are equivalent by recursively
 // comparing the message's fields.
 // For more information see the documentation for
 // https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *FormatVersion) Equal(that interface{}) bool {
+func (this *Value) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	var that1 *FormatVersion
+	var that1 *Value
 	switch t := that.(type) {
-	case *FormatVersion:
+	case *Value:
 		that1 = t
-	case FormatVersion:
+	case Value:
 		that1 = &t
 	default:
 		return false
@@ -118,6 +118,43 @@ func (this *ValueList) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
+// Marshal an object of type ValueMap to the protobuf v3 wire format
+func (val *ValueMap) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type ValueMap from the protobuf v3 wire format
+func (val *ValueMap) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *ValueMap) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two ValueMap values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *ValueMap) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *ValueMap
+	switch t := that.(type) {
+	case *ValueMap:
+		that1 = t
+	case ValueMap:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
 // Marshal an object of type ValueMapEntry to the protobuf v3 wire format
 func (val *ValueMapEntry) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
@@ -155,35 +192,35 @@ func (this *ValueMapEntry) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
-// Marshal an object of type Value to the protobuf v3 wire format
-func (val *Value) Marshal() ([]byte, error) {
+// Marshal an object of type ValueType to the protobuf v3 wire format
+func (val *ValueType) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
 }
 
-// Unmarshal an object of type Value from the protobuf v3 wire format
-func (val *Value) Unmarshal(buf []byte) error {
+// Unmarshal an object of type ValueType from the protobuf v3 wire format
+func (val *ValueType) Unmarshal(buf []byte) error {
 	return proto.Unmarshal(buf, val)
 }
 
 // Size returns the size of the object, in bytes, once serialized
-func (val *Value) Size() int {
+func (val *ValueType) Size() int {
 	return proto.Size(val)
 }
 
-// Equal returns whether two Value values are equivalent by recursively
+// Equal returns whether two ValueType values are equivalent by recursively
 // comparing the message's fields.
 // For more information see the documentation for
 // https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *Value) Equal(that interface{}) bool {
+func (this *ValueType) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	var that1 *Value
+	var that1 *ValueType
 	switch t := that.(type) {
-	case *Value:
+	case *ValueType:
 		that1 = t
-	case Value:
+	case ValueType:
 		that1 = &t
 	default:
 		return false
@@ -192,35 +229,109 @@ func (this *Value) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
-// Marshal an object of type ValueMap to the protobuf v3 wire format
-func (val *ValueMap) Marshal() ([]byte, error) {
+// Marshal an object of type SingularType to the protobuf v3 wire format
+func (val *SingularType) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
 }
 
-// Unmarshal an object of type ValueMap from the protobuf v3 wire format
-func (val *ValueMap) Unmarshal(buf []byte) error {
+// Unmarshal an object of type SingularType from the protobuf v3 wire format
+func (val *SingularType) Unmarshal(buf []byte) error {
 	return proto.Unmarshal(buf, val)
 }
 
 // Size returns the size of the object, in bytes, once serialized
-func (val *ValueMap) Size() int {
+func (val *SingularType) Size() int {
 	return proto.Size(val)
 }
 
-// Equal returns whether two ValueMap values are equivalent by recursively
+// Equal returns whether two SingularType values are equivalent by recursively
 // comparing the message's fields.
 // For more information see the documentation for
 // https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *ValueMap) Equal(that interface{}) bool {
+func (this *SingularType) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	var that1 *ValueMap
+	var that1 *SingularType
 	switch t := that.(type) {
-	case *ValueMap:
+	case *SingularType:
 		that1 = t
-	case ValueMap:
+	case SingularType:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type RepeatedType to the protobuf v3 wire format
+func (val *RepeatedType) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type RepeatedType from the protobuf v3 wire format
+func (val *RepeatedType) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *RepeatedType) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two RepeatedType values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *RepeatedType) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *RepeatedType
+	switch t := that.(type) {
+	case *RepeatedType:
+		that1 = t
+	case RepeatedType:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type MapType to the protobuf v3 wire format
+func (val *MapType) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type MapType from the protobuf v3 wire format
+func (val *MapType) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *MapType) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two MapType values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *MapType) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *MapType
+	switch t := that.(type) {
+	case *MapType:
+		that1 = t
+	case MapType:
 		that1 = &t
 	default:
 		return false
@@ -377,35 +488,35 @@ func (this *OpaqueHandleType) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
-// Marshal an object of type SingularType to the protobuf v3 wire format
-func (val *SingularType) Marshal() ([]byte, error) {
+// Marshal an object of type FieldPath to the protobuf v3 wire format
+func (val *FieldPath) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
 }
 
-// Unmarshal an object of type SingularType from the protobuf v3 wire format
-func (val *SingularType) Unmarshal(buf []byte) error {
+// Unmarshal an object of type FieldPath from the protobuf v3 wire format
+func (val *FieldPath) Unmarshal(buf []byte) error {
 	return proto.Unmarshal(buf, val)
 }
 
 // Size returns the size of the object, in bytes, once serialized
-func (val *SingularType) Size() int {
+func (val *FieldPath) Size() int {
 	return proto.Size(val)
 }
 
-// Equal returns whether two SingularType values are equivalent by recursively
+// Equal returns whether two FieldPath values are equivalent by recursively
 // comparing the message's fields.
 // For more information see the documentation for
 // https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *SingularType) Equal(that interface{}) bool {
+func (this *FieldPath) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	var that1 *SingularType
+	var that1 *FieldPath
 	switch t := that.(type) {
-	case *SingularType:
+	case *FieldPath:
 		that1 = t
-	case SingularType:
+	case FieldPath:
 		that1 = &t
 	default:
 		return false
@@ -414,109 +525,35 @@ func (this *SingularType) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
-// Marshal an object of type RepeatedType to the protobuf v3 wire format
-func (val *RepeatedType) Marshal() ([]byte, error) {
+// Marshal an object of type FieldPathSegment to the protobuf v3 wire format
+func (val *FieldPathSegment) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
 }
 
-// Unmarshal an object of type RepeatedType from the protobuf v3 wire format
-func (val *RepeatedType) Unmarshal(buf []byte) error {
+// Unmarshal an object of type FieldPathSegment from the protobuf v3 wire format
+func (val *FieldPathSegment) Unmarshal(buf []byte) error {
 	return proto.Unmarshal(buf, val)
 }
 
 // Size returns the size of the object, in bytes, once serialized
-func (val *RepeatedType) Size() int {
+func (val *FieldPathSegment) Size() int {
 	return proto.Size(val)
 }
 
-// Equal returns whether two RepeatedType values are equivalent by recursively
+// Equal returns whether two FieldPathSegment values are equivalent by recursively
 // comparing the message's fields.
 // For more information see the documentation for
 // https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *RepeatedType) Equal(that interface{}) bool {
+func (this *FieldPathSegment) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	var that1 *RepeatedType
+	var that1 *FieldPathSegment
 	switch t := that.(type) {
-	case *RepeatedType:
+	case *FieldPathSegment:
 		that1 = t
-	case RepeatedType:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type MapType to the protobuf v3 wire format
-func (val *MapType) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type MapType from the protobuf v3 wire format
-func (val *MapType) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *MapType) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two MapType values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *MapType) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *MapType
-	switch t := that.(type) {
-	case *MapType:
-		that1 = t
-	case MapType:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type ValueType to the protobuf v3 wire format
-func (val *ValueType) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type ValueType from the protobuf v3 wire format
-func (val *ValueType) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *ValueType) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two ValueType values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *ValueType) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *ValueType
-	switch t := that.(type) {
-	case *ValueType:
-		that1 = t
-	case ValueType:
+	case FieldPathSegment:
 		that1 = &t
 	default:
 		return false
@@ -665,154 +702,6 @@ func (this *OneofSelector) Equal(that interface{}) bool {
 	case *OneofSelector:
 		that1 = t
 	case OneofSelector:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type FieldPathSegment to the protobuf v3 wire format
-func (val *FieldPathSegment) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type FieldPathSegment from the protobuf v3 wire format
-func (val *FieldPathSegment) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *FieldPathSegment) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two FieldPathSegment values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *FieldPathSegment) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *FieldPathSegment
-	switch t := that.(type) {
-	case *FieldPathSegment:
-		that1 = t
-	case FieldPathSegment:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type FieldPath to the protobuf v3 wire format
-func (val *FieldPath) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type FieldPath from the protobuf v3 wire format
-func (val *FieldPath) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *FieldPath) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two FieldPath values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *FieldPath) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *FieldPath
-	switch t := that.(type) {
-	case *FieldPath:
-		that1 = t
-	case FieldPath:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type Slot to the protobuf v3 wire format
-func (val *Slot) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type Slot from the protobuf v3 wire format
-func (val *Slot) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *Slot) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two Slot values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *Slot) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *Slot
-	switch t := that.(type) {
-	case *Slot:
-		that1 = t
-	case Slot:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type Observation to the protobuf v3 wire format
-func (val *Observation) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type Observation from the protobuf v3 wire format
-func (val *Observation) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *Observation) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two Observation values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *Observation) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *Observation
-	switch t := that.(type) {
-	case *Observation:
-		that1 = t
-	case Observation:
 		that1 = &t
 	default:
 		return false
