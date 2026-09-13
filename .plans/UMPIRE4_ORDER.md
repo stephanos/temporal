@@ -268,11 +268,29 @@ exception, because it is the spec's only Feature-to-System Implementation Link (
 Testpilot conformance and synthetic Cases stay, since they test the runtime.
 
 **Depends on fn-85** (recorded in Flow). The early proof point expresses the typed unary Property as
-a field relation that lowers to the same Contract field reads before any deletion. **Broken into 9
-tasks on 2026-09-12; needs a plan review.** The order stays fn-87, fn-85, fn-86: fn-87 does not touch
-the Race, Lifecycle, Operations or Experimental models, so deleting them earlier buys nothing, and
-Lifecycle cannot go before fn-85 because the kept Implementation Link imports it until fn-86 .4
-re-anchors it.
+a field relation that lowers to the same Contract field reads before any deletion. The order stays
+fn-87, fn-85, fn-86: fn-87 does not touch the Race, Lifecycle, Operations or Experimental models, so
+deleting them earlier buys nothing, and Lifecycle cannot go before fn-85 because the kept
+Implementation Link imports it until fn-86 .4 re-anchors it.
+
+**Broken into 9 tasks on 2026-09-12. Plan review round 1, 2026-09-13: REVISE**, recorded in
+[`.flow/artifacts/fn-86-retire-hand-written-models-one/plan-review.md`](../.flow/artifacts/fn-86-retire-hand-written-models-one/plan-review.md).
+No blocker: inventory first, `.4` before `.5`, and a direct-import lint rule are all right. Five
+findings, applied:
+
+- `.1`'s typed-unary Contract baseline is a scaffold and `.2` deletes it, rather than leaving a
+  generated Contract no generator writes.
+- `.5` left `umpire-inspect`, `umpire-list` and `umpire-explain` an open either/or inside a deletion
+  task. Decided: re-point the inspector's registry at the Caller Model's Queries, keep Switch, keep the
+  three targets. `umpire-case --list/--render` renders Cases, not Plans, so it replaces neither
+  `inspect` nor `explain`, and all three are documented.
+- `.7` checks the Definition IDs the command path produces before touching a Switch golden: the
+  goldens carry `switch.*` ids and three fingerprints, and the commands derive ids from `Origin`, so
+  the compatibility-family pin is part of the task.
+- R1 gained "keep with the reason" as a destination, which the two `Temporal.Testpilot` runtime-testing
+  modules and the kept Implementation Link need.
+- `.1` re-reads the tree as fn-85 left it and corrects the file lists of `.2`, `.3` and `.6` first;
+  every fn-86 task was written against the pre-fn-85 tree.
 
 **Follow-up after fn-86, not yet a spec:** one Contract monitor declared per entity and instantiated
 per instance, replacing the per-instance rule copies Producers emit today (the typed Nexus Case
