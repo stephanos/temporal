@@ -700,7 +700,7 @@ func (s *scheduler) acceptEffect(ctx context.Context, task scheduledNode, reques
 	case contract.AwaitSlot, contract.CompleteNexusOperation:
 		slot := n.source.Instruction.GetAwaitSlot().GetSlotId()
 		if n.opcode == contract.CompleteNexusOperation {
-			slot = n.source.Instruction.GetCompleteNexusOperation().CapabilitySlotId
+			slot = n.source.Instruction.GetCompleteNexusOperation().HandleSlotId
 		}
 		if s.values.program.slots[slot].Opaque() {
 			bridge, err = s.session.Bridge(ctx)

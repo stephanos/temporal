@@ -49,7 +49,7 @@ func correlatedFixture(t *testing.T, bound int64) (*testpilotspb.Contract, *ir.C
 	limits := view.Limits()
 	limits.MaxRunEvents = 32
 	typ := messageType("temporal.server.api.testpilot.v1.CorrelatedEvidence")
-	program := &testpilotspb.Program{ProgramId: "correlated.program", Limits: limits, Observations: []*testpilotspb.ObservationDefinition{{ObservationId: "evidence", Type: typ}}, Entrypoints: []*testpilotspb.EntrypointDefinition{{EntrypointId: "controller", Activation: &testpilotspb.EntrypointDefinition_Controller{Controller: &testpilotspb.ControllerActivation{}}}}, Cleanup: &testpilotspb.CleanupDefinition{EntrypointId: "cleanup"}}
+	program := &testpilotspb.Program{ProgramId: "correlated.program", Limits: limits, Observations: []*testpilotspb.Observation{{ObservationId: "evidence", Type: typ}}, Entrypoints: []*testpilotspb.Entrypoint{{EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}}}}, Cleanup: &testpilotspb.Cleanup{EntrypointId: "cleanup"}}
 	prepared, err := execution.Prepare(&testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: 1}, CaseId: "correlated.case", Program: program, Contract: &testpilotspb.Contract{ContractId: "correlated"}}, catalog, execution.Profile{Identity: "host", CatalogIdentity: catalog.Identity(), Limits: proto.CloneOf(limits)})
 	require.NoError(t, err)
 	ceiling.MaxCaptures = 32
@@ -495,7 +495,7 @@ func TestCorrelatedConfirmedSubmissionAndFieldPolicies(t *testing.T) {
 			require.NoError(t, err)
 			require.Zero(t, e.correlated.transitions)
 			confirmed := correlatedEvidence(1, "request", "a")
-			confirmed.Fields = []*testpilotspb.CorrelatedEvidenceField{{FieldId: "payload", Value: &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: "value"}}}}
+			confirmed.Fields = []*testpilotspb.CorrelatedEvidenceField{{FieldId: "payload", Value: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "value"}}}}
 			if valid {
 				confirmed.Parents = []*testpilotspb.CorrelatedIdentity{correlatedEvidence(0, "submit", "a").Identity}
 			}
@@ -525,7 +525,7 @@ func TestCorrelatedPhysicalObservationSizeRemainsBounded(t *testing.T) {
 	_, err = e.Observe(context.Background(), event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED))
 	require.NoError(t, err)
 	evidence := correlatedEvidence(0, "both", "a")
-	evidence.Fields = []*testpilotspb.CorrelatedEvidenceField{{FieldId: "payload", Value: &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: strings.Repeat("💡", 2000)}}}}
+	evidence.Fields = []*testpilotspb.CorrelatedEvidenceField{{FieldId: "payload", Value: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: strings.Repeat("💡", 2000)}}}}
 	require.Less(t, evidenceSize(&admittedCorrelatedEvidence{CorrelatedEvidence: evidence, supportingEventSequences: []int64{2}}), c.Correlated.Limits.MaxEventBytes)
 	_, err = e.Observe(context.Background(), correlatedEvent(t, 2, evidence))
 	require.Error(t, err)

@@ -57,7 +57,7 @@ Testpilot terms have precise boundaries:
 - Slots are immutable, single-assignment private execution state. They are not recorded
   automatically.
 - Observations are declared typed Run Event fields available to Contracts. Declared response
-  projections are ordinary data; Slot privacy does not imply general response secrecy.
+  reads are ordinary data; Slot privacy does not imply general response secrecy.
 - Contract expiry is checked before transitions on every event kind. Captures are bounded and
   isolated per rule and per Run.
 - Run disposition, cleanup status, and Verdict remain independent. A proved violation survives
@@ -266,7 +266,7 @@ Temporal authority remains split:
 - `common/testing/testpilot/temporal` composes server and SDK worker Drivers without interpreting scenario or Contract
   semantics.
 
-Internal execution constructs typed requests and applies declared response projections to private
+Internal execution constructs typed requests and applies declared response reads to private
 Slots and Run Observations.
 
 `Prepare` snapshots Profile-owned physical binding values and resolves private prepared request and

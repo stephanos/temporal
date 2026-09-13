@@ -112,12 +112,12 @@ func validateOutcome(w *valueWork, entryContext testpilotspb.EntrypointKind, n *
 	return result, nil
 }
 func textValue(text string) *testpilotspb.Value {
-	return &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: text}}
+	return &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: text}}
 }
 func (a *activationValues) stageProjection(w *valueWork, n *node, batch *valueBatch, p projection, index int64, value *testpilotspb.Value) error {
 	values := []*testpilotspb.Value{value}
 	typ := p.path.Type()
-	if p.cardinality == testpilotspb.PROJECTION_KIND_EMIT_EACH {
+	if p.cardinality == testpilotspb.READ_CARDINALITY_EMIT_EACH {
 		values = value.GetListValue().GetValues()
 		typ = typ.Element()
 	}
@@ -146,12 +146,12 @@ func (a *activationValues) stageProjection(w *valueWork, n *node, batch *valueBa
 				return err
 			}
 			switch target := sink.Target.(type) {
-			case *testpilotspb.ProjectionTarget_SlotId:
+			case *testpilotspb.ReadTarget_SlotId:
 				if _, exists := batch.writes[target.SlotId]; exists {
 					return invalid(ir.Malformed, "projection", "duplicate staged Slot")
 				}
 				batch.writes[target.SlotId] = copied
-			case *testpilotspb.ProjectionTarget_ObservationId:
+			case *testpilotspb.ReadTarget_ObservationId:
 				fact.observations = append(fact.observations, &testpilotspb.ObservationResult{ObservationId: target.ObservationId, Value: copied})
 			default:
 				return invalid(ir.Unsupported, "projection", "unknown sink")
@@ -213,8 +213,8 @@ func (a *activationValues) liftEvidence(w *valueWork, lift *evidenceLift, value 
 			continue
 		}
 		if rule.guardEquals != "" {
-			text, ok := guard.Value.(*testpilotspb.Value_Text)
-			if !ok || text.Text != rule.guardEquals {
+			text, ok := guard.Value.(*testpilotspb.Value_TextValue)
+			if !ok || text.TextValue != rule.guardEquals {
 				continue
 			}
 		}
@@ -268,15 +268,15 @@ func (a *activationValues) readLiftScalar(w *valueWork, lift *evidenceLift, path
 	// The portable evidence domain is text, natural and boolean; every admitted integer kind
 	// narrows into a natural and a negative one has no evidence scalar to narrow to.
 	switch item := read.Value.(type) {
-	case *testpilotspb.Value_Text, *testpilotspb.Value_BoolValue, *testpilotspb.Value_Natural:
+	case *testpilotspb.Value_TextValue, *testpilotspb.Value_BoolValue, *testpilotspb.Value_NaturalValue:
 		return read, nil
-	case *testpilotspb.Value_SignedInteger:
-		if strings.HasPrefix(item.SignedInteger, "-") {
+	case *testpilotspb.Value_SignedIntegerValue:
+		if strings.HasPrefix(item.SignedIntegerValue, "-") {
 			return nil, invalid(ir.TypeMismatch, "projection", "evidence lift read a negative integer")
 		}
-		return &testpilotspb.Value{Value: &testpilotspb.Value_Natural{Natural: item.SignedInteger}}, nil
-	case *testpilotspb.Value_UnsignedInteger:
-		return &testpilotspb.Value{Value: &testpilotspb.Value_Natural{Natural: item.UnsignedInteger}}, nil
+		return &testpilotspb.Value{Value: &testpilotspb.Value_NaturalValue{NaturalValue: item.SignedIntegerValue}}, nil
+	case *testpilotspb.Value_UnsignedIntegerValue:
+		return &testpilotspb.Value{Value: &testpilotspb.Value_NaturalValue{NaturalValue: item.UnsignedIntegerValue}}, nil
 	default:
 		return nil, invalid(ir.TypeMismatch, "projection", "evidence lift read an unsupported scalar")
 	}
@@ -286,11 +286,11 @@ func (a *activationValues) readLiftText(w *valueWork, lift *evidenceLift, path *
 	if err != nil {
 		return "", err
 	}
-	item, ok := read.Value.(*testpilotspb.Value_Text)
+	item, ok := read.Value.(*testpilotspb.Value_TextValue)
 	if !ok {
 		return "", invalid(ir.TypeMismatch, "projection", "evidence lift expected text")
 	}
-	return item.Text, nil
+	return item.TextValue, nil
 }
 func (a *activationValues) readLiftKey(w *valueWork, lift *evidenceLift, path *ir.Path, value *testpilotspb.Value) (string, error) {
 	read, err := a.readLiftScalar(w, lift, path, value)
@@ -298,10 +298,10 @@ func (a *activationValues) readLiftKey(w *valueWork, lift *evidenceLift, path *i
 		return "", err
 	}
 	switch item := read.Value.(type) {
-	case *testpilotspb.Value_Text:
-		return item.Text, nil
-	case *testpilotspb.Value_Natural:
-		return item.Natural, nil
+	case *testpilotspb.Value_TextValue:
+		return item.TextValue, nil
+	case *testpilotspb.Value_NaturalValue:
+		return item.NaturalValue, nil
 	default:
 		return "", invalid(ir.TypeMismatch, "projection", "evidence lift expected an operation key")
 	}

@@ -104,7 +104,7 @@ private def historyAssignments : Array RequestAssignment := #[
   assign (field "history_event_filter_type") closeEventFilter
 ]
 
-private def program (stop resume : InstructionDefinition) : Program :=
+private def program (stop resume : InstructionNode) : Program :=
   Program.make "temporal.case.worker-outage.program"
     #[Program.role workerOutageServiceRole .ROLE_KIND_ENDPOINT,
       Program.role workerOutageWorkerRole .ROLE_KIND_WORKER
@@ -117,7 +117,7 @@ private def program (stop resume : InstructionDefinition) : Program :=
     #[Program.controller "controller" #[
         stop,
         Program.node "start-workflow"
-          (Program.invokeRPC workerOutageServiceRole startWorkflowMethod #[
+          (Program.invokeRpc workerOutageServiceRole startWorkflowMethod #[
             Program.environmentAssignment (field "namespace") workerOutageNamespaceBinding,
             assign (field "workflow_id") runId,
             assign (nested ["workflow_type", "name"]) (text workerOutageWorkflowType),
@@ -128,8 +128,8 @@ private def program (stop resume : InstructionDefinition) : Program :=
           #[Program.reservation "workflow" 1],
         resume,
         Program.node "history"
-          (Program.invokeRPC workerOutageServiceRole getHistoryMethod historyAssignments
-            #[project historyEvents workerOutageObservation .PROJECTION_KIND_EMIT_EACH])
+          (Program.invokeRpc workerOutageServiceRole getHistoryMethod historyAssignments
+            #[project historyEvents workerOutageObservation .READ_CARDINALITY_EMIT_EACH])
           (Program.instructionLimits 20000 1 64 8192)
           #[Ref.instruction "controller" "resume-worker"]
           (some (succeeded "controller" "resume-worker")) (some statusOutcome)],

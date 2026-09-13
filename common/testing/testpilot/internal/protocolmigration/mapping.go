@@ -109,6 +109,94 @@ var Declared = Mapping{
 		Name: "CorrelatedIdentity.source becomes evidence_source", Requirement: "R1",
 		Apply: RenameField(protocol+"CorrelatedIdentity", "source", "evidenceSource"),
 	},
+	{
+		Name: "Response" + "Projection becomes ResponseRead", Requirement: "R1",
+		Apply: RenameMessage(protocol+"Response"+"Projection", protocol+"ResponseRead"),
+	},
+	{
+		Name: "InvokeRPC.response" + "_projections becomes response_reads", Requirement: "R1",
+		Apply: RenameField(protocol+"InvokeRPC", "response"+"Projections", "responseReads"),
+	},
+	{
+		Name: "Response" + "Projection.source becomes path", Requirement: "R1",
+		Apply: RenameField(protocol+"Response"+"Projection", "source", "path"),
+	},
+	{
+		Name: "Projection" + "Target becomes ReadTarget", Requirement: "R1",
+		Apply: RenameMessage(protocol+"Projection"+"Target", protocol+"ReadTarget"),
+	},
+	{
+		Name: "Projection" + "Kind becomes ReadCardinality", Requirement: "R1",
+		Apply: sequence(
+			RenameEnumLiteral(protocol+"Response"+"Projection", "kind", "PROJECTION_"+"KIND_UNSPECIFIED", "READ_CARDINALITY_UNSPECIFIED"),
+			RenameEnumLiteral(protocol+"Response"+"Projection", "kind", "PROJECTION_"+"KIND_ONE", "READ_CARDINALITY_ONE"),
+			RenameEnumLiteral(protocol+"Response"+"Projection", "kind", "PROJECTION_"+"KIND_EMIT_EACH", "READ_CARDINALITY_EMIT_EACH"),
+		),
+	},
+	{
+		Name: "OpaqueCapability" + "Type becomes OpaqueHandleType", Requirement: "R1",
+		Apply: RenameMessage(protocol+"OpaqueCapability"+"Type", protocol+"OpaqueHandleType"),
+	},
+	{
+		Name: "the opaque_capability fields become opaque_handle", Requirement: "R1",
+		Apply: sequence(
+			RenameField(protocol+"SingularType", "opaqueCapability", "opaqueHandle"),
+			RenameField(protocol+"Slot"+"Definition", "opaqueCapability", "opaqueHandle"),
+		),
+	},
+	{
+		Name: "capability" + "_slot_id becomes handle_slot_id", Requirement: "R1",
+		Apply: sequence(
+			RenameField(protocol+"CompleteNexusOperation", "capability"+"SlotId", "handleSlotId"),
+			RenameField(protocol+"RespondNexus", "capability"+"SlotId", "handleSlotId"),
+		),
+	},
+	{
+		Name: "InvokeRPC becomes InvokeRpc", Requirement: "R1",
+		Apply: RenameMessage(protocol+"InvokeRPC", protocol+"InvokeRpc"),
+	},
+	valueArm("text", "textValue"),
+	valueArm("natural", "naturalValue"),
+	valueArm("signedInteger", "signedIntegerValue"),
+	valueArm("unsignedInteger", "unsignedIntegerValue"),
+	valueArm("floatingPoint", "floatingPointValue"),
+	{
+		Name: "Role" + "Definition becomes Role", Requirement: "R1",
+		Apply: RenameMessage(protocol+"Role"+"Definition", protocol+"Role"),
+	},
+	{
+		Name: "Slot" + "Definition becomes Slot", Requirement: "R1",
+		Apply: RenameMessage(protocol+"Slot"+"Definition", protocol+"Slot"),
+	},
+	{
+		Name: "Observation" + "Definition becomes Observation", Requirement: "R1",
+		Apply: RenameMessage(protocol+"Observation"+"Definition", protocol+"Observation"),
+	},
+	{
+		Name: "Entrypoint" + "Definition becomes Entrypoint", Requirement: "R1",
+		Apply: RenameMessage(protocol+"Entrypoint"+"Definition", protocol+"Entrypoint"),
+	},
+	{
+		Name: "Cleanup" + "Definition becomes Cleanup", Requirement: "R1",
+		Apply: RenameMessage(protocol+"Cleanup"+"Definition", protocol+"Cleanup"),
+	},
+	{
+		Name: "Instruction" + "Definition becomes InstructionNode", Requirement: "R1",
+		Apply: RenameMessage(protocol+"Instruction"+"Definition", protocol+"InstructionNode"),
+	},
+	{
+		Name: "Instruction" + "Ref becomes InstructionReference", Requirement: "R1",
+		Apply: RenameMessage(protocol+"Instruction"+"Ref", protocol+"InstructionReference"),
+	},
+}
+
+// valueArm renames one Value oneof arm. The arm names are ordinary words other messages may spell
+// as field names, so the step is scoped to objects that encoded a baseline Value.
+func valueArm(from, to string) Step {
+	return Step{
+		Name: "Value." + from + " becomes " + to, Requirement: "R1",
+		Apply: RenameField(protocol+"Value", from, to),
+	}
 }
 
 const protocol = protoreflect.FullName("temporal.server.api.testpilot.v1.")

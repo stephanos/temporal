@@ -33,13 +33,13 @@ message ValueMapEntry { Value key = 1; Value value = 2; }
 // Signed and unsigned protobuf integers also use canonical base-10 text.
 message Value {
   oneof value {
-    string text = 1;
-    string natural = 2;
+    string text_value = 1;
+    string natural_value = 2;
     bool bool_value = 3;
     bytes bytes_value = 4;
-    string signed_integer = 5;
-    string unsigned_integer = 6;
-    double floating_point = 7;
+    string signed_integer_value = 5;
+    string unsigned_integer_value = 6;
+    double floating_point_value = 7;
     EnumValue enum_value = 8;
     // (-- api-linter: core::0146::any=disabled
     //     aip.dev/not-precedent: Whole typed Any values are an explicit closed IR capability. --)
@@ -52,14 +52,14 @@ message ValueMap { repeated ValueMapEntry entries = 1; }
 message ScalarType { ScalarKind kind = 1; }
 message NamedType { string protobuf_type = 1; }
 message AnyType {}
-message OpaqueCapabilityType {}
+message OpaqueHandleType {}
 message SingularType {
   oneof type {
     ScalarType scalar = 1;
     NamedType enumeration = 2;
     NamedType message = 3;
     AnyType any = 4;
-    OpaqueCapabilityType opaque_capability = 5;
+    OpaqueHandleType opaque_handle = 5;
   }
 }
 message RepeatedType { SingularType element = 1; }
@@ -87,11 +87,11 @@ message FieldPathSegment {
 }
 message FieldPath { repeated FieldPathSegment segments = 1; }
 
-message SlotDefinition {
+message Slot {
   string slot_id = 1;
   oneof content {
     ValueType value = 2;
-    OpaqueCapabilityType opaque_capability = 3;
+    OpaqueHandleType opaque_handle = 3;
   }
 }
-message ObservationDefinition { string observation_id = 1; ValueType type = 2; }
+message Observation { string observation_id = 1; ValueType type = 2; }

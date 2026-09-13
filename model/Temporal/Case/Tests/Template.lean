@@ -49,7 +49,7 @@ Nothing in the controller observes the workflow, so the read the Projection cons
 ordered behind a close-event read. -/
 
 private def controllerInstructions (realization : Umpire.Case.Producer.Realization) :
-    Array InstructionDefinition :=
+    Array InstructionNode :=
   match (realization.program identity []).entrypoints.find?
       (·.entrypoint_id == "controller") with
   | some entrypoint => entrypoint.instructions

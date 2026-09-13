@@ -94,13 +94,13 @@ type graph struct {
 	id          string
 	context     testpilotspb.EntrypointKind
 	cleanup     bool
-	activation  *testpilotspb.EntrypointDefinition
+	activation  *testpilotspb.Entrypoint
 	nodes       []*node
 	index       map[string]int
 	order       []int
 }
 type node struct {
-	source                   *testpilotspb.InstructionDefinition
+	source                   *testpilotspb.InstructionNode
 	opcode                   contract.Opcode
 	dependencies, successors []int
 	ancestors                map[int]bool
@@ -118,8 +118,8 @@ type assignment struct {
 }
 type projection struct {
 	path        *ir.Path
-	cardinality testpilotspb.ProjectionKind
-	sinks       []*testpilotspb.ProjectionTarget
+	cardinality testpilotspb.ReadCardinality
+	sinks       []*testpilotspb.ReadTarget
 	// One entry per sink, nil where the sink is not an evidence lift.
 	lifts []*evidenceLift
 }
@@ -172,8 +172,8 @@ type AssignmentPlan struct {
 }
 type ProjectionPlan struct {
 	Source      *ir.Path
-	Cardinality testpilotspb.ProjectionKind
-	Sinks       []*testpilotspb.ProjectionTarget
+	Cardinality testpilotspb.ReadCardinality
+	Sinks       []*testpilotspb.ReadTarget
 }
 
 func (p *PreparedProgram) Entrypoints() []EntrypointPlan {
@@ -194,7 +194,7 @@ func (p *PreparedProgram) Cleanup() (EntrypointPlan, bool) {
 }
 func (p EntrypointPlan) ID() string                        { return p.graph.id }
 func (p EntrypointPlan) Kind() testpilotspb.EntrypointKind { return p.graph.context }
-func (p EntrypointPlan) Activation() *testpilotspb.EntrypointDefinition {
+func (p EntrypointPlan) Activation() *testpilotspb.Entrypoint {
 	return proto.CloneOf(p.graph.activation)
 }
 func (p EntrypointPlan) Order() []int { return slices.Clone(p.graph.order) }
@@ -205,7 +205,7 @@ func (p EntrypointPlan) Instructions() []InstructionPlan {
 	}
 	return result
 }
-func (p InstructionPlan) Source() *testpilotspb.InstructionDefinition {
+func (p InstructionPlan) Source() *testpilotspb.InstructionNode {
 	return proto.CloneOf(p.node.source)
 }
 func (p InstructionPlan) Opcode() contract.Opcode               { return p.node.opcode }
@@ -223,7 +223,7 @@ func (p InstructionPlan) Assignments() []AssignmentPlan {
 func (p InstructionPlan) Projections() []ProjectionPlan {
 	result := make([]ProjectionPlan, len(p.node.projections))
 	for i, projection := range p.node.projections {
-		sinks := make([]*testpilotspb.ProjectionTarget, len(projection.sinks))
+		sinks := make([]*testpilotspb.ReadTarget, len(projection.sinks))
 		for j, sink := range projection.sinks {
 			sinks[j] = proto.CloneOf(sink)
 		}

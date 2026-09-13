@@ -21,7 +21,7 @@ const (
 )
 
 func correlatedText(text string) *testpilotspb.Value {
-	return &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: text}}
+	return &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: text}}
 }
 func correlatedFieldOperand(id string) *testpilotspb.CorrelatedOperand {
 	return &testpilotspb.CorrelatedOperand{Operand: &testpilotspb.CorrelatedOperand_FieldId{FieldId: id}}
@@ -304,7 +304,7 @@ func TestCorrelatedCapturePrepareRejectsUnsupportedDeclarations(t *testing.T) {
 		},
 		"unsupported-literal": {
 			mutate: func(s *testpilotspb.CorrelatedContract) {
-				s.Rules[0].Correlation = correlatedComparison(testpilotspb.CORRELATED_COMPARISON_OPERATOR_EQUAL, &testpilotspb.CorrelatedOperand{Operand: &testpilotspb.CorrelatedOperand_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_Natural{Natural: "01"}}}}, correlatedCaptureOperand("seen", 0))
+				s.Rules[0].Correlation = correlatedComparison(testpilotspb.CORRELATED_COMPARISON_OPERATOR_EQUAL, &testpilotspb.CorrelatedOperand{Operand: &testpilotspb.CorrelatedOperand_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_NaturalValue{NaturalValue: "01"}}}}, correlatedCaptureOperand("seen", 0))
 			},
 			reason: "unsupported correlation literal",
 		},
@@ -327,7 +327,7 @@ func TestCorrelatedCapturePrepareRejectsUnsupportedDeclarations(t *testing.T) {
 		},
 		"mismatched-operand-kinds": {
 			mutate: func(s *testpilotspb.CorrelatedContract) {
-				s.Rules[0].Correlation = correlatedComparison(testpilotspb.CORRELATED_COMPARISON_OPERATOR_EQUAL, correlatedFieldOperand(repliedField), &testpilotspb.CorrelatedOperand{Operand: &testpilotspb.CorrelatedOperand_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_Natural{Natural: "1"}}}})
+				s.Rules[0].Correlation = correlatedComparison(testpilotspb.CORRELATED_COMPARISON_OPERATOR_EQUAL, correlatedFieldOperand(repliedField), &testpilotspb.CorrelatedOperand{Operand: &testpilotspb.CorrelatedOperand_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_NaturalValue{NaturalValue: "1"}}}})
 			},
 			reason: "incompatible correlation operand types",
 		},

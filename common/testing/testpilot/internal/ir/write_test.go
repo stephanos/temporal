@@ -46,7 +46,7 @@ func TestRequestWritesPreservePresenceAndOwnership(t *testing.T) {
 	exact.Bytes--
 	_, _, err = BuildRequest(context.Background(), typ.Message(), writes, exact)
 	require.Error(t, err)
-	writes[0].Value.Value = &testpilotspb.Value_Text{Text: "changed"}
+	writes[0].Value.Value = &testpilotspb.Value_TextValue{TextValue: "changed"}
 	again, err := proto.MarshalOptions{Deterministic: true}.Marshal(request)
 	require.NoError(t, err)
 	require.Equal(t, wire, again)
@@ -90,8 +90,8 @@ func TestRequestNumericWidthsAndCollections(t *testing.T) {
 		{signed("-9223372036854775808"), signed("9223372036854775808"), int64(-9223372036854775808)}, {signed("-9223372036854775808"), signed("9223372036854775808"), int64(-9223372036854775808)}, {signed("-9223372036854775808"), signed("9223372036854775808"), int64(-9223372036854775808)},
 		{unsigned("4294967295"), unsigned("4294967296"), uint32(4294967295)}, {unsigned("4294967295"), unsigned("4294967296"), uint32(4294967295)},
 		{unsigned("18446744073709551615"), unsigned("18446744073709551616"), uint64(18446744073709551615)}, {unsigned("18446744073709551615"), unsigned("18446744073709551616"), uint64(18446744073709551615)},
-		{&testpilotspb.Value{Value: &testpilotspb.Value_FloatingPoint{FloatingPoint: 0.1}}, &testpilotspb.Value{Value: &testpilotspb.Value_FloatingPoint{FloatingPoint: math.MaxFloat64}}, float32(0.1)},
-		{&testpilotspb.Value{Value: &testpilotspb.Value_FloatingPoint{FloatingPoint: 0.1}}, text("0.1"), float64(0.1)},
+		{&testpilotspb.Value{Value: &testpilotspb.Value_FloatingPointValue{FloatingPointValue: 0.1}}, &testpilotspb.Value{Value: &testpilotspb.Value_FloatingPointValue{FloatingPointValue: math.MaxFloat64}}, float32(0.1)},
+		{&testpilotspb.Value{Value: &testpilotspb.Value_FloatingPointValue{FloatingPointValue: 0.1}}, text("0.1"), float64(0.1)},
 		{&testpilotspb.Value{Value: &testpilotspb.Value_BytesValue{BytesValue: []byte{1, 2}}}, text("bytes"), []byte{1, 2}}, {boolean(true), signed("1"), true},
 	} {
 		t.Run(fmt.Sprint(kinds[i]), func(t *testing.T) {
@@ -128,8 +128,8 @@ func TestRequestNumericWidthsAndCollections(t *testing.T) {
 		projected, _, err := path.Read(context.Background(), request, DefaultLimits())
 		require.NoError(t, err)
 		if tc.path.Segments[0].Field == "labels" {
-			require.Equal(t, "a", projected.GetMapValue().Entries[0].Key.GetText())
-			require.Equal(t, "z", projected.GetMapValue().Entries[1].Key.GetText())
+			require.Equal(t, "a", projected.GetMapValue().Entries[0].Key.GetTextValue())
+			require.Equal(t, "z", projected.GetMapValue().Entries[1].Key.GetTextValue())
 		} else {
 			require.True(t, proto.Equal(tc.value, projected))
 		}

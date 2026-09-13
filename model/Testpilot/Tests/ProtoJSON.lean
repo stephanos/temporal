@@ -128,7 +128,7 @@ private def tests : IO Unit := do
   assert (first.contains "\"elapsedMilliseconds\":\"9223372036854775807\"")
     "monitor deadline was dropped"
   assert (first.contains "AP+A") "opaque non-UTF-8 provenance bytes were not rendered"
-  assert (first.contains "\"floatingPoint\":1.5") "floating value was dropped"
+  assert (first.contains "\"floatingPointValue\":1.5") "floating value was dropped"
   assert (first.contains "\"enumValue\":{\"number\":1}") "enum value was dropped"
   assert (first.contains "\"boolValue\":false") "present false oneof value was dropped"
   assert (first.contains "\"@type\":\"type.googleapis.com/temporal.server.api.testpilot.v1.FormatVersion\"")

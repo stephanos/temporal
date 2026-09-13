@@ -58,7 +58,7 @@
                       },
                       "right": {
                         "literal": {
-                          "text": "temporal.task-queue"
+                          "textValue": "temporal.task-queue"
                         }
                       }
                     }
@@ -105,7 +105,7 @@
                       },
                       "right": {
                         "literal": {
-                          "text": "temporal.task-queue"
+                          "textValue": "temporal.task-queue"
                         }
                       }
                     }
@@ -341,7 +341,7 @@
                     },
                     "value": {
                       "literal": {
-                        "text": "umpire-worker-outage-workflow"
+                        "textValue": "umpire-worker-outage-workflow"
                       }
                     }
                   },
@@ -563,7 +563,7 @@
                     },
                     "value": {
                       "literal": {
-                        "signedInteger": "64"
+                        "signedIntegerValue": "64"
                       }
                     }
                   },
@@ -598,10 +598,10 @@
                     }
                   }
                 ],
-                "responseProjections": [
+                "responseReads": [
                   {
-                    "kind": "PROJECTION_KIND_EMIT_EACH",
-                    "source": {
+                    "kind": "READ_CARDINALITY_EMIT_EACH",
+                    "path": {
                       "segments": [
                         {
                           "field": "history"
@@ -653,7 +653,7 @@
               "finish": {
                 "result": {
                   "literal": {
-                    "text": "completed"
+                    "textValue": "completed"
                   }
                 }
               }

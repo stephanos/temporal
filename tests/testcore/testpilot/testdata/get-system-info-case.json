@@ -66,10 +66,10 @@
               "invokeRpc": {
                 "endpointRoleId": "temporal.workflow-service",
                 "method": "/temporal.api.workflowservice.v1.WorkflowService/GetSystemInfo",
-                "responseProjections": [
+                "responseReads": [
                   {
-                    "kind": "PROJECTION_KIND_ONE",
-                    "source": {
+                    "kind": "READ_CARDINALITY_ONE",
+                    "path": {
                       "segments": [
                         {
                           "field": "server_version"

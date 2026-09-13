@@ -135,7 +135,7 @@
                     "operator": "CORRELATED_COMPARISON_OPERATOR_EQUAL",
                     "right": {
                       "literal": {
-                        "text": "complete"
+                        "textValue": "complete"
                       }
                     }
                   }
@@ -150,7 +150,7 @@
                     "operator": "CORRELATED_COMPARISON_OPERATOR_EQUAL",
                     "right": {
                       "literal": {
-                        "text": "confirm"
+                        "textValue": "confirm"
                       }
                     }
                   }
@@ -444,7 +444,7 @@
                       },
                       "right": {
                         "literal": {
-                          "text": "complete"
+                          "textValue": "complete"
                         }
                       }
                     }
@@ -660,7 +660,7 @@
                       },
                       "right": {
                         "literal": {
-                          "text": "confirm"
+                          "textValue": "confirm"
                         }
                       }
                     }
@@ -839,7 +839,7 @@
                     },
                     "value": {
                       "literal": {
-                        "text": "umpire-typed-nexus-workflow"
+                        "textValue": "umpire-typed-nexus-workflow"
                       }
                     }
                   },
@@ -1018,10 +1018,10 @@
             },
             "instruction": {
               "completeNexusOperation": {
-                "capabilitySlotId": "completion-authority-complete",
+                "handleSlotId": "completion-authority-complete",
                 "result": {
                   "literal": {
-                    "text": "completed"
+                    "textValue": "completed"
                   }
                 }
               }
@@ -1169,10 +1169,10 @@
             },
             "instruction": {
               "completeNexusOperation": {
-                "capabilitySlotId": "completion-authority-confirm",
+                "handleSlotId": "completion-authority-confirm",
                 "result": {
                   "literal": {
-                    "text": "completed"
+                    "textValue": "completed"
                   }
                 }
               }
@@ -1338,7 +1338,7 @@
                     },
                     "value": {
                       "literal": {
-                        "signedInteger": "64"
+                        "signedIntegerValue": "64"
                       }
                     }
                   },
@@ -1357,10 +1357,10 @@
                     }
                   }
                 ],
-                "responseProjections": [
+                "responseReads": [
                   {
-                    "kind": "PROJECTION_KIND_EMIT_EACH",
-                    "source": {
+                    "kind": "READ_CARDINALITY_EMIT_EACH",
+                    "path": {
                       "segments": [
                         {
                           "field": "history"
@@ -1551,7 +1551,7 @@
                 "endpointRoleId": "temporal.nexus-endpoint",
                 "input": {
                   "literal": {
-                    "text": "request"
+                    "textValue": "request"
                   }
                 },
                 "operation": "complete",
@@ -1633,7 +1633,7 @@
                 "endpointRoleId": "temporal.nexus-endpoint",
                 "input": {
                   "literal": {
-                    "text": "request"
+                    "textValue": "request"
                   }
                 },
                 "operation": "confirm",
@@ -1808,7 +1808,7 @@
               "finish": {
                 "result": {
                   "literal": {
-                    "text": "completed"
+                    "textValue": "completed"
                   }
                 }
               }
@@ -1848,11 +1848,11 @@
           {
             "instruction": {
               "respondNexus": {
-                "capabilitySlotId": "completion-authority-complete",
+                "handleSlotId": "completion-authority-complete",
                 "kind": "NEXUS_RESPONSE_KIND_ASYNCHRONOUS",
                 "result": {
                   "literal": {
-                    "text": "accepted"
+                    "textValue": "accepted"
                   }
                 }
               }
@@ -1893,11 +1893,11 @@
           {
             "instruction": {
               "respondNexus": {
-                "capabilitySlotId": "completion-authority-confirm",
+                "handleSlotId": "completion-authority-confirm",
                 "kind": "NEXUS_RESPONSE_KIND_ASYNCHRONOUS",
                 "result": {
                   "literal": {
-                    "text": "accepted"
+                    "textValue": "accepted"
                   }
                 }
               }
@@ -2005,11 +2005,11 @@
     ],
     "slots": [
       {
-        "opaqueCapability": {},
+        "opaqueHandle": {},
         "slotId": "completion-authority-complete"
       },
       {
-        "opaqueCapability": {},
+        "opaqueHandle": {},
         "slotId": "completion-authority-confirm"
       }
     ]

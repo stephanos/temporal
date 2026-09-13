@@ -38,7 +38,7 @@ def target
     (scopeField : DefinitionId)
     (observationId : String)
     (identity : Umpire.Case.Producer.Identity)
-    (resolved : List Umpire.Case.Producer.EvidenceRule) : ProjectionTarget :=
+    (resolved : List Umpire.Case.Producer.EvidenceRule) : ReadTarget :=
   Program.correlatedEvidenceTarget observationId
     (resolved.map (rule scopeField identity)).toArray
 

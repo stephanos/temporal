@@ -78,12 +78,12 @@ private def textOutcome : InstructionOutcomeDefinition :=
 
 private def rpc
     (id method : String)
-    (dependencies : Array InstructionRef)
+    (dependencies : Array InstructionReference)
     (assignments : Array RequestAssignment)
-    (projections : Array ResponseProjection)
+    (projections : Array ResponseRead)
     (guard : Option ProgramExpression := none)
-    (reservations : Array ActivationReservationDefinition := #[]) : InstructionDefinition :=
-  Program.node id (Program.invokeRPC workflowServiceRole method assignments projections)
+    (reservations : Array ActivationReservationDefinition := #[]) : InstructionNode :=
+  Program.node id (Program.invokeRpc workflowServiceRole method assignments projections)
     (bounds 10000 128) dependencies guard (some statusOutcome) reservations
 
 private def historyAssignments : Array RequestAssignment := #[
@@ -96,7 +96,7 @@ private def historyAssignments : Array RequestAssignment := #[
 private def closeReadAssignments : Array RequestAssignment :=
   historyAssignments.push (assign (field "history_event_filter_type") closeEventFilter)
 
-private def startWorkflowNode (workflowType : String) : InstructionDefinition :=
+private def startWorkflowNode (workflowType : String) : InstructionNode :=
   rpc "start-workflow" startWorkflowMethod #[] #[
     Program.environmentAssignment (field "namespace") workerNamespaceBinding,
     assign (field "workflow_id") runId,
@@ -111,16 +111,16 @@ private def startWorkflowNode (workflowType : String) : InstructionDefinition :=
 private def historyNode
     (dependency : String)
     (identity : Umpire.Case.Producer.Identity)
-    (resolved : List Umpire.Case.Producer.EvidenceRule) : InstructionDefinition :=
+    (resolved : List Umpire.Case.Producer.EvidenceRule) : InstructionNode :=
   rpc "history" getHistoryMethod #[Ref.instruction "controller" dependency]
     historyAssignments #[
-    Program.responseProjection historyEvents .PROJECTION_KIND_EMIT_EACH
+    Program.responseRead historyEvents .READ_CARDINALITY_EMIT_EACH
       #[Program.observationTarget historyObservation,
         Evidence.target runFieldId correlatedObservation identity resolved]
   ] (some (succeeded "controller" dependency))
 
 private def workflowEntrypoint
-    (workflowType service operation : String) : EntrypointDefinition :=
+    (workflowType service operation : String) : Entrypoint :=
   Program.workflow "workflow" workflowType workerRole taskQueueRole #[
     Program.node "start-nexus-operation"
       (Program.startNexusOperation nexusEndpointRole service operation (text "request"))
@@ -150,7 +150,7 @@ private def asyncProgram
         (namespaceBindingId := workerNamespaceBinding) (resourceBindingId := taskQueueBinding),
       Program.role nexusEndpointRole .ROLE_KIND_ENDPOINT
         (resourceBindingId := nexusEndpointBinding)]
-    #[Program.capabilitySlot "completion-authority"]
+    #[Program.handleSlot "completion-authority"]
     #[Program.observation historyObservation historyEventType,
       Program.observation correlatedObservation correlatedEvidenceType]
     #[

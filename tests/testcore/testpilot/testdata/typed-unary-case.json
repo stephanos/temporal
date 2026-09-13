@@ -108,7 +108,7 @@
                       },
                       "right": {
                         "literal": {
-                          "text": "umpire-typed-unary-workflow"
+                          "textValue": "umpire-typed-unary-workflow"
                         }
                       }
                     }
@@ -199,7 +199,7 @@
                           },
                           "right": {
                             "literal": {
-                              "text": "umpire-typed-unary-workflow"
+                              "textValue": "umpire-typed-unary-workflow"
                             }
                           }
                         }
@@ -278,7 +278,7 @@
                     },
                     "value": {
                       "literal": {
-                        "text": "umpire-typed-unary-workflow"
+                        "textValue": "umpire-typed-unary-workflow"
                       }
                     }
                   },
@@ -426,15 +426,15 @@
                     },
                     "value": {
                       "literal": {
-                        "signedInteger": "64"
+                        "signedIntegerValue": "64"
                       }
                     }
                   }
                 ],
-                "responseProjections": [
+                "responseReads": [
                   {
-                    "kind": "PROJECTION_KIND_EMIT_EACH",
-                    "source": {
+                    "kind": "READ_CARDINALITY_EMIT_EACH",
+                    "path": {
                       "segments": [
                         {
                           "field": "history"
@@ -486,7 +486,7 @@
               "finish": {
                 "result": {
                   "literal": {
-                    "text": "started"
+                    "textValue": "started"
                   }
                 }
               }

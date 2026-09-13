@@ -19,10 +19,10 @@ func TestProtocolEncodesExpressionAndStateScopes(t *testing.T) {
 	require.NotNil(t, contractExpression.Oneofs().ByName("expression"))
 	require.Nil(t, contractExpression.Fields().ByName("slot"))
 	require.Nil(t, contractExpression.Fields().ByName("outcome"))
-	slot := messageDescriptor(t, "SlotDefinition")
+	slot := messageDescriptor(t, "Slot")
 	require.NotNil(t, slot.Oneofs().ByName("content"))
 	require.Nil(t, slot.Fields().ByName("kind"))
-	entrypoint := messageDescriptor(t, "EntrypointDefinition")
+	entrypoint := messageDescriptor(t, "Entrypoint")
 	require.NotNil(t, entrypoint.Oneofs().ByName("activation"))
 	require.Nil(t, entrypoint.Fields().ByName("context"))
 	diagnostic := messageDescriptor(t, "RunDiagnostic")
@@ -52,6 +52,9 @@ func TestProtocolUsesCohesivePublicVocabulary(t *testing.T) {
 		"RuleVerdictKind", "VerdictKind",
 		"Run" + "Status", "Correlated" + "Value", "ContractRule" + "Definition", "ContractState" + "Definition",
 		"ContractTransition" + "Definition", "ContractCapture" + "Definition",
+		"Response" + "Projection", "Projection" + "Target", "Projection" + "Kind", "OpaqueCapability" + "Type", "InvokeRPC",
+		"Role" + "Definition", "Slot" + "Definition", "Observation" + "Definition", "Entrypoint" + "Definition",
+		"Cleanup" + "Definition", "Instruction" + "Definition", "Instruction" + "Ref",
 		"ContractHorizon" + "Definition",
 		"Scoped" + "Binding", "Scoped" + "CaptureDeclaration", "Scoped" + "CaptureRef", "Scoped" + "Clause",
 		"Scoped" + "Clock", "Scoped" + "Comparison", "Scoped" + "ComparisonOperator", "Scoped" + "Contract",
