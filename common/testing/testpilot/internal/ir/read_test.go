@@ -146,8 +146,8 @@ func TestExecutionExpressionAccountsNestedCopies(t *testing.T) {
 	c := fixtureCatalog(t)
 	typ := boundType(t, c, named("fixture.Payload", false))
 	source := &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/fixture.Payload", Value: []byte{0x12, 5, 0x12, 3, 0x0a, 1, 'x'}}}}
-	path := &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Path{Path: &testpilotspb.ProgramPathExpression{Source: slot("input"), Path: fieldPath("child", "child", "text")}}}
-	e, err := c.BindConditionedExpression([]Condition{{Expression: present(path), Matches: true}}, path, nil, map[Reference]Binding{{Kind: SlotReference, ID: "input"}: {Type: typ, Available: true}}, DefaultLimits())
+	path := &testpilotspb.Expression{Expression: &testpilotspb.Expression_Path{Path: &testpilotspb.PathExpression{Operand: slot("input"), Path: fieldPath("child", "child", "text")}}}
+	e, err := c.BindConditionedExpression([]Condition{{Expression: present(path), Matches: true}}, programSite, path, nil, map[Reference]Binding{{Kind: SlotReference, ID: "input"}: {Type: typ, Available: true}}, DefaultLimits())
 	require.NoError(t, err)
 	resolve := func(Reference) *testpilotspb.Value { return source }
 	legacy, oldWork, err := e.Evaluate(context.Background(), resolve, 100000)

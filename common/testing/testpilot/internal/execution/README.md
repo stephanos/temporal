@@ -1,6 +1,11 @@
 # Private Program execution
 
 Admission freezes descriptors, expressions, assignment and response-read paths and the Program DAGs.
+Instruction inputs and guards bind in the Program expression context, which admits Slot, instruction
+outcome, Run and environment references; any other reference rejects with category `unknown` at
+its path, such as `program.entrypoints[controller].instructions[call].guard.reference.observation_id`.
+An environment reference is admitted only as a whole request assignment value, which admission
+resolves to a literal before binding.
 The value data plane builds requests from those compiled objects and stages immutable outcome,
 Slot and Observation values without Driver I/O, recording or Monitor calls. Raw RPC payloads are
 validated against the pinned response descriptor and discarded after declared response reads. Equivalent

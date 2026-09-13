@@ -37,7 +37,7 @@ func TestBaselineFixturesMapToRegeneratedFixtures(t *testing.T) {
 	t.Parallel()
 
 	baseline := loadBaseline(t)
-	fixtures, err := PairedFixtures(baselineFixtureRoot, repositoryRoot)
+	fixtures, err := PairedFixtures(baselineFixtureRoot, repositoryRoot, Added)
 	require.NoError(t, err)
 
 	for _, fixture := range fixtures {

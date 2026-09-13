@@ -578,6 +578,59 @@ func (x *ValueMapEntry) GetValue() *Value {
 	return nil
 }
 
+// ModelValue is one model value: the Definition ID that declares it and its value text.
+type ModelValue struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	DefinitionId  string                 `protobuf:"bytes,1,opt,name=definition_id,json=definitionId,proto3" json:"definition_id,omitempty"`
+	Value         string                 `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ModelValue) Reset() {
+	*x = ModelValue{}
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ModelValue) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ModelValue) ProtoMessage() {}
+
+func (x *ModelValue) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ModelValue.ProtoReflect.Descriptor instead.
+func (*ModelValue) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *ModelValue) GetDefinitionId() string {
+	if x != nil {
+		return x.DefinitionId
+	}
+	return ""
+}
+
+func (x *ModelValue) GetValue() string {
+	if x != nil {
+		return x.Value
+	}
+	return ""
+}
+
 // ValueType is the declared type of a Slot, an Observation or an instruction outcome field.
 type ValueType struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -593,7 +646,7 @@ type ValueType struct {
 
 func (x *ValueType) Reset() {
 	*x = ValueType{}
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[5]
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -605,7 +658,7 @@ func (x *ValueType) String() string {
 func (*ValueType) ProtoMessage() {}
 
 func (x *ValueType) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[5]
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -618,7 +671,7 @@ func (x *ValueType) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ValueType.ProtoReflect.Descriptor instead.
 func (*ValueType) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{5}
+	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *ValueType) GetShape() isValueType_Shape {
@@ -694,7 +747,7 @@ type SingularType struct {
 
 func (x *SingularType) Reset() {
 	*x = SingularType{}
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[6]
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -706,7 +759,7 @@ func (x *SingularType) String() string {
 func (*SingularType) ProtoMessage() {}
 
 func (x *SingularType) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[6]
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -719,7 +772,7 @@ func (x *SingularType) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SingularType.ProtoReflect.Descriptor instead.
 func (*SingularType) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{6}
+	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *SingularType) GetType() isSingularType_Type {
@@ -818,7 +871,7 @@ type RepeatedType struct {
 
 func (x *RepeatedType) Reset() {
 	*x = RepeatedType{}
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[7]
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -830,7 +883,7 @@ func (x *RepeatedType) String() string {
 func (*RepeatedType) ProtoMessage() {}
 
 func (x *RepeatedType) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[7]
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -843,7 +896,7 @@ func (x *RepeatedType) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RepeatedType.ProtoReflect.Descriptor instead.
 func (*RepeatedType) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{7}
+	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *RepeatedType) GetElement() *SingularType {
@@ -865,7 +918,7 @@ type MapType struct {
 
 func (x *MapType) Reset() {
 	*x = MapType{}
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[8]
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -877,7 +930,7 @@ func (x *MapType) String() string {
 func (*MapType) ProtoMessage() {}
 
 func (x *MapType) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[8]
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -890,7 +943,7 @@ func (x *MapType) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MapType.ProtoReflect.Descriptor instead.
 func (*MapType) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{8}
+	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *MapType) GetKey() *ScalarType {
@@ -917,7 +970,7 @@ type ScalarType struct {
 
 func (x *ScalarType) Reset() {
 	*x = ScalarType{}
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[9]
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -929,7 +982,7 @@ func (x *ScalarType) String() string {
 func (*ScalarType) ProtoMessage() {}
 
 func (x *ScalarType) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[9]
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -942,7 +995,7 @@ func (x *ScalarType) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ScalarType.ProtoReflect.Descriptor instead.
 func (*ScalarType) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{9}
+	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *ScalarType) GetKind() ScalarKind {
@@ -963,7 +1016,7 @@ type NamedType struct {
 
 func (x *NamedType) Reset() {
 	*x = NamedType{}
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[10]
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -975,7 +1028,7 @@ func (x *NamedType) String() string {
 func (*NamedType) ProtoMessage() {}
 
 func (x *NamedType) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[10]
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -988,7 +1041,7 @@ func (x *NamedType) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NamedType.ProtoReflect.Descriptor instead.
 func (*NamedType) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{10}
+	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *NamedType) GetProtobufType() string {
@@ -1008,7 +1061,7 @@ type AnyType struct {
 
 func (x *AnyType) Reset() {
 	*x = AnyType{}
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[11]
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1020,7 +1073,7 @@ func (x *AnyType) String() string {
 func (*AnyType) ProtoMessage() {}
 
 func (x *AnyType) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[11]
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1033,7 +1086,7 @@ func (x *AnyType) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AnyType.ProtoReflect.Descriptor instead.
 func (*AnyType) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{11}
+	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{12}
 }
 
 // OpaqueHandleType is an effect handle a Driver issued. It cannot be a literal, an Observation or a
@@ -1046,7 +1099,7 @@ type OpaqueHandleType struct {
 
 func (x *OpaqueHandleType) Reset() {
 	*x = OpaqueHandleType{}
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[12]
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1058,7 +1111,7 @@ func (x *OpaqueHandleType) String() string {
 func (*OpaqueHandleType) ProtoMessage() {}
 
 func (x *OpaqueHandleType) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[12]
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1071,7 +1124,7 @@ func (x *OpaqueHandleType) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OpaqueHandleType.ProtoReflect.Descriptor instead.
 func (*OpaqueHandleType) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{12}
+	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{13}
 }
 
 // FieldPath addresses a value inside a protobuf message, one segment per field. An empty path
@@ -1085,7 +1138,7 @@ type FieldPath struct {
 
 func (x *FieldPath) Reset() {
 	*x = FieldPath{}
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[13]
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1097,7 +1150,7 @@ func (x *FieldPath) String() string {
 func (*FieldPath) ProtoMessage() {}
 
 func (x *FieldPath) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[13]
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1110,7 +1163,7 @@ func (x *FieldPath) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FieldPath.ProtoReflect.Descriptor instead.
 func (*FieldPath) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{13}
+	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *FieldPath) GetSegments() []*FieldPathSegment {
@@ -1138,7 +1191,7 @@ type FieldPathSegment struct {
 
 func (x *FieldPathSegment) Reset() {
 	*x = FieldPathSegment{}
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[14]
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1150,7 +1203,7 @@ func (x *FieldPathSegment) String() string {
 func (*FieldPathSegment) ProtoMessage() {}
 
 func (x *FieldPathSegment) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[14]
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1163,7 +1216,7 @@ func (x *FieldPathSegment) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FieldPathSegment.ProtoReflect.Descriptor instead.
 func (*FieldPathSegment) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{14}
+	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *FieldPathSegment) GetField() string {
@@ -1253,7 +1306,7 @@ type RepeatedWildcard struct {
 
 func (x *RepeatedWildcard) Reset() {
 	*x = RepeatedWildcard{}
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[15]
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1265,7 +1318,7 @@ func (x *RepeatedWildcard) String() string {
 func (*RepeatedWildcard) ProtoMessage() {}
 
 func (x *RepeatedWildcard) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[15]
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1278,7 +1331,7 @@ func (x *RepeatedWildcard) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RepeatedWildcard.ProtoReflect.Descriptor instead.
 func (*RepeatedWildcard) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{15}
+	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{16}
 }
 
 // MapKeySelector reads the entry of a map field with this key, absent when no entry has it.
@@ -1291,7 +1344,7 @@ type MapKeySelector struct {
 
 func (x *MapKeySelector) Reset() {
 	*x = MapKeySelector{}
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[16]
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1303,7 +1356,7 @@ func (x *MapKeySelector) String() string {
 func (*MapKeySelector) ProtoMessage() {}
 
 func (x *MapKeySelector) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[16]
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1316,7 +1369,7 @@ func (x *MapKeySelector) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MapKeySelector.ProtoReflect.Descriptor instead.
 func (*MapKeySelector) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{16}
+	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *MapKeySelector) GetKey() *Value {
@@ -1336,7 +1389,7 @@ type PresenceSelector struct {
 
 func (x *PresenceSelector) Reset() {
 	*x = PresenceSelector{}
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[17]
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1348,7 +1401,7 @@ func (x *PresenceSelector) String() string {
 func (*PresenceSelector) ProtoMessage() {}
 
 func (x *PresenceSelector) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[17]
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1361,7 +1414,7 @@ func (x *PresenceSelector) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PresenceSelector.ProtoReflect.Descriptor instead.
 func (*PresenceSelector) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{17}
+	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{18}
 }
 
 // OneofSelector reads the member selected_field of the oneof the segment names.
@@ -1374,7 +1427,7 @@ type OneofSelector struct {
 
 func (x *OneofSelector) Reset() {
 	*x = OneofSelector{}
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[18]
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1386,7 +1439,7 @@ func (x *OneofSelector) String() string {
 func (*OneofSelector) ProtoMessage() {}
 
 func (x *OneofSelector) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[18]
+	mi := &file_temporal_server_api_testpilot_v1_value_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1399,7 +1452,7 @@ func (x *OneofSelector) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OneofSelector.ProtoReflect.Descriptor instead.
 func (*OneofSelector) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{18}
+	return file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *OneofSelector) GetSelectedField() string {
@@ -1441,7 +1494,11 @@ const file_temporal_server_api_testpilot_v1_value_proto_rawDesc = "" +
 	"\aentries\x18\x01 \x03(\v2/.temporal.server.api.testpilot.v1.ValueMapEntryR\aentries\"\x89\x01\n" +
 	"\rValueMapEntry\x129\n" +
 	"\x03key\x18\x01 \x01(\v2'.temporal.server.api.testpilot.v1.ValueR\x03key\x12=\n" +
-	"\x05value\x18\x02 \x01(\v2'.temporal.server.api.testpilot.v1.ValueR\x05value\"\xef\x01\n" +
+	"\x05value\x18\x02 \x01(\v2'.temporal.server.api.testpilot.v1.ValueR\x05value\"G\n" +
+	"\n" +
+	"ModelValue\x12#\n" +
+	"\rdefinition_id\x18\x01 \x01(\tR\fdefinitionId\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value\"\xef\x01\n" +
 	"\tValueType\x12L\n" +
 	"\bsingular\x18\x01 \x01(\v2..temporal.server.api.testpilot.v1.SingularTypeH\x00R\bsingular\x12L\n" +
 	"\brepeated\x18\x02 \x01(\v2..temporal.server.api.testpilot.v1.RepeatedTypeH\x00R\brepeated\x12=\n" +
@@ -1516,7 +1573,7 @@ func file_temporal_server_api_testpilot_v1_value_proto_rawDescGZIP() []byte {
 }
 
 var file_temporal_server_api_testpilot_v1_value_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_temporal_server_api_testpilot_v1_value_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
+var file_temporal_server_api_testpilot_v1_value_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
 var file_temporal_server_api_testpilot_v1_value_proto_goTypes = []any{
 	(ScalarKind)(0),          // 0: temporal.server.api.testpilot.v1.ScalarKind
 	(*Value)(nil),            // 1: temporal.server.api.testpilot.v1.Value
@@ -1524,48 +1581,49 @@ var file_temporal_server_api_testpilot_v1_value_proto_goTypes = []any{
 	(*ValueList)(nil),        // 3: temporal.server.api.testpilot.v1.ValueList
 	(*ValueMap)(nil),         // 4: temporal.server.api.testpilot.v1.ValueMap
 	(*ValueMapEntry)(nil),    // 5: temporal.server.api.testpilot.v1.ValueMapEntry
-	(*ValueType)(nil),        // 6: temporal.server.api.testpilot.v1.ValueType
-	(*SingularType)(nil),     // 7: temporal.server.api.testpilot.v1.SingularType
-	(*RepeatedType)(nil),     // 8: temporal.server.api.testpilot.v1.RepeatedType
-	(*MapType)(nil),          // 9: temporal.server.api.testpilot.v1.MapType
-	(*ScalarType)(nil),       // 10: temporal.server.api.testpilot.v1.ScalarType
-	(*NamedType)(nil),        // 11: temporal.server.api.testpilot.v1.NamedType
-	(*AnyType)(nil),          // 12: temporal.server.api.testpilot.v1.AnyType
-	(*OpaqueHandleType)(nil), // 13: temporal.server.api.testpilot.v1.OpaqueHandleType
-	(*FieldPath)(nil),        // 14: temporal.server.api.testpilot.v1.FieldPath
-	(*FieldPathSegment)(nil), // 15: temporal.server.api.testpilot.v1.FieldPathSegment
-	(*RepeatedWildcard)(nil), // 16: temporal.server.api.testpilot.v1.RepeatedWildcard
-	(*MapKeySelector)(nil),   // 17: temporal.server.api.testpilot.v1.MapKeySelector
-	(*PresenceSelector)(nil), // 18: temporal.server.api.testpilot.v1.PresenceSelector
-	(*OneofSelector)(nil),    // 19: temporal.server.api.testpilot.v1.OneofSelector
-	(*anypb.Any)(nil),        // 20: google.protobuf.Any
+	(*ModelValue)(nil),       // 6: temporal.server.api.testpilot.v1.ModelValue
+	(*ValueType)(nil),        // 7: temporal.server.api.testpilot.v1.ValueType
+	(*SingularType)(nil),     // 8: temporal.server.api.testpilot.v1.SingularType
+	(*RepeatedType)(nil),     // 9: temporal.server.api.testpilot.v1.RepeatedType
+	(*MapType)(nil),          // 10: temporal.server.api.testpilot.v1.MapType
+	(*ScalarType)(nil),       // 11: temporal.server.api.testpilot.v1.ScalarType
+	(*NamedType)(nil),        // 12: temporal.server.api.testpilot.v1.NamedType
+	(*AnyType)(nil),          // 13: temporal.server.api.testpilot.v1.AnyType
+	(*OpaqueHandleType)(nil), // 14: temporal.server.api.testpilot.v1.OpaqueHandleType
+	(*FieldPath)(nil),        // 15: temporal.server.api.testpilot.v1.FieldPath
+	(*FieldPathSegment)(nil), // 16: temporal.server.api.testpilot.v1.FieldPathSegment
+	(*RepeatedWildcard)(nil), // 17: temporal.server.api.testpilot.v1.RepeatedWildcard
+	(*MapKeySelector)(nil),   // 18: temporal.server.api.testpilot.v1.MapKeySelector
+	(*PresenceSelector)(nil), // 19: temporal.server.api.testpilot.v1.PresenceSelector
+	(*OneofSelector)(nil),    // 20: temporal.server.api.testpilot.v1.OneofSelector
+	(*anypb.Any)(nil),        // 21: google.protobuf.Any
 }
 var file_temporal_server_api_testpilot_v1_value_proto_depIdxs = []int32{
 	2,  // 0: temporal.server.api.testpilot.v1.Value.enum_value:type_name -> temporal.server.api.testpilot.v1.EnumValue
-	20, // 1: temporal.server.api.testpilot.v1.Value.message_value:type_name -> google.protobuf.Any
+	21, // 1: temporal.server.api.testpilot.v1.Value.message_value:type_name -> google.protobuf.Any
 	3,  // 2: temporal.server.api.testpilot.v1.Value.list_value:type_name -> temporal.server.api.testpilot.v1.ValueList
 	4,  // 3: temporal.server.api.testpilot.v1.Value.map_value:type_name -> temporal.server.api.testpilot.v1.ValueMap
 	1,  // 4: temporal.server.api.testpilot.v1.ValueList.values:type_name -> temporal.server.api.testpilot.v1.Value
 	5,  // 5: temporal.server.api.testpilot.v1.ValueMap.entries:type_name -> temporal.server.api.testpilot.v1.ValueMapEntry
 	1,  // 6: temporal.server.api.testpilot.v1.ValueMapEntry.key:type_name -> temporal.server.api.testpilot.v1.Value
 	1,  // 7: temporal.server.api.testpilot.v1.ValueMapEntry.value:type_name -> temporal.server.api.testpilot.v1.Value
-	7,  // 8: temporal.server.api.testpilot.v1.ValueType.singular:type_name -> temporal.server.api.testpilot.v1.SingularType
-	8,  // 9: temporal.server.api.testpilot.v1.ValueType.repeated:type_name -> temporal.server.api.testpilot.v1.RepeatedType
-	9,  // 10: temporal.server.api.testpilot.v1.ValueType.map:type_name -> temporal.server.api.testpilot.v1.MapType
-	10, // 11: temporal.server.api.testpilot.v1.SingularType.scalar:type_name -> temporal.server.api.testpilot.v1.ScalarType
-	11, // 12: temporal.server.api.testpilot.v1.SingularType.enumeration:type_name -> temporal.server.api.testpilot.v1.NamedType
-	11, // 13: temporal.server.api.testpilot.v1.SingularType.message:type_name -> temporal.server.api.testpilot.v1.NamedType
-	12, // 14: temporal.server.api.testpilot.v1.SingularType.any:type_name -> temporal.server.api.testpilot.v1.AnyType
-	13, // 15: temporal.server.api.testpilot.v1.SingularType.opaque_handle:type_name -> temporal.server.api.testpilot.v1.OpaqueHandleType
-	7,  // 16: temporal.server.api.testpilot.v1.RepeatedType.element:type_name -> temporal.server.api.testpilot.v1.SingularType
-	10, // 17: temporal.server.api.testpilot.v1.MapType.key:type_name -> temporal.server.api.testpilot.v1.ScalarType
-	7,  // 18: temporal.server.api.testpilot.v1.MapType.value:type_name -> temporal.server.api.testpilot.v1.SingularType
+	8,  // 8: temporal.server.api.testpilot.v1.ValueType.singular:type_name -> temporal.server.api.testpilot.v1.SingularType
+	9,  // 9: temporal.server.api.testpilot.v1.ValueType.repeated:type_name -> temporal.server.api.testpilot.v1.RepeatedType
+	10, // 10: temporal.server.api.testpilot.v1.ValueType.map:type_name -> temporal.server.api.testpilot.v1.MapType
+	11, // 11: temporal.server.api.testpilot.v1.SingularType.scalar:type_name -> temporal.server.api.testpilot.v1.ScalarType
+	12, // 12: temporal.server.api.testpilot.v1.SingularType.enumeration:type_name -> temporal.server.api.testpilot.v1.NamedType
+	12, // 13: temporal.server.api.testpilot.v1.SingularType.message:type_name -> temporal.server.api.testpilot.v1.NamedType
+	13, // 14: temporal.server.api.testpilot.v1.SingularType.any:type_name -> temporal.server.api.testpilot.v1.AnyType
+	14, // 15: temporal.server.api.testpilot.v1.SingularType.opaque_handle:type_name -> temporal.server.api.testpilot.v1.OpaqueHandleType
+	8,  // 16: temporal.server.api.testpilot.v1.RepeatedType.element:type_name -> temporal.server.api.testpilot.v1.SingularType
+	11, // 17: temporal.server.api.testpilot.v1.MapType.key:type_name -> temporal.server.api.testpilot.v1.ScalarType
+	8,  // 18: temporal.server.api.testpilot.v1.MapType.value:type_name -> temporal.server.api.testpilot.v1.SingularType
 	0,  // 19: temporal.server.api.testpilot.v1.ScalarType.kind:type_name -> temporal.server.api.testpilot.v1.ScalarKind
-	15, // 20: temporal.server.api.testpilot.v1.FieldPath.segments:type_name -> temporal.server.api.testpilot.v1.FieldPathSegment
-	16, // 21: temporal.server.api.testpilot.v1.FieldPathSegment.repeated:type_name -> temporal.server.api.testpilot.v1.RepeatedWildcard
-	17, // 22: temporal.server.api.testpilot.v1.FieldPathSegment.map_key:type_name -> temporal.server.api.testpilot.v1.MapKeySelector
-	18, // 23: temporal.server.api.testpilot.v1.FieldPathSegment.presence:type_name -> temporal.server.api.testpilot.v1.PresenceSelector
-	19, // 24: temporal.server.api.testpilot.v1.FieldPathSegment.oneof:type_name -> temporal.server.api.testpilot.v1.OneofSelector
+	16, // 20: temporal.server.api.testpilot.v1.FieldPath.segments:type_name -> temporal.server.api.testpilot.v1.FieldPathSegment
+	17, // 21: temporal.server.api.testpilot.v1.FieldPathSegment.repeated:type_name -> temporal.server.api.testpilot.v1.RepeatedWildcard
+	18, // 22: temporal.server.api.testpilot.v1.FieldPathSegment.map_key:type_name -> temporal.server.api.testpilot.v1.MapKeySelector
+	19, // 23: temporal.server.api.testpilot.v1.FieldPathSegment.presence:type_name -> temporal.server.api.testpilot.v1.PresenceSelector
+	20, // 24: temporal.server.api.testpilot.v1.FieldPathSegment.oneof:type_name -> temporal.server.api.testpilot.v1.OneofSelector
 	1,  // 25: temporal.server.api.testpilot.v1.MapKeySelector.key:type_name -> temporal.server.api.testpilot.v1.Value
 	26, // [26:26] is the sub-list for method output_type
 	26, // [26:26] is the sub-list for method input_type
@@ -1592,19 +1650,19 @@ func file_temporal_server_api_testpilot_v1_value_proto_init() {
 		(*Value_ListValue)(nil),
 		(*Value_MapValue)(nil),
 	}
-	file_temporal_server_api_testpilot_v1_value_proto_msgTypes[5].OneofWrappers = []any{
+	file_temporal_server_api_testpilot_v1_value_proto_msgTypes[6].OneofWrappers = []any{
 		(*ValueType_Singular)(nil),
 		(*ValueType_Repeated)(nil),
 		(*ValueType_Map)(nil),
 	}
-	file_temporal_server_api_testpilot_v1_value_proto_msgTypes[6].OneofWrappers = []any{
+	file_temporal_server_api_testpilot_v1_value_proto_msgTypes[7].OneofWrappers = []any{
 		(*SingularType_Scalar)(nil),
 		(*SingularType_Enumeration)(nil),
 		(*SingularType_Message)(nil),
 		(*SingularType_Any)(nil),
 		(*SingularType_OpaqueHandle)(nil),
 	}
-	file_temporal_server_api_testpilot_v1_value_proto_msgTypes[14].OneofWrappers = []any{
+	file_temporal_server_api_testpilot_v1_value_proto_msgTypes[15].OneofWrappers = []any{
 		(*FieldPathSegment_Repeated)(nil),
 		(*FieldPathSegment_MapKey)(nil),
 		(*FieldPathSegment_Presence)(nil),
@@ -1616,7 +1674,7 @@ func file_temporal_server_api_testpilot_v1_value_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_temporal_server_api_testpilot_v1_value_proto_rawDesc), len(file_temporal_server_api_testpilot_v1_value_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   19,
+			NumMessages:   20,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

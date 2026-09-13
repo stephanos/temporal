@@ -8,8 +8,9 @@ public section
 Stable, producer-neutral constructors for the generated Testpilot protocol.
 
 Every helper returns the generated protobuf value directly. This module performs structural
-assembly only: it preserves caller order, keeps Program and Contract expression contexts disjoint,
-and accepts the generated fixed-width numeric field types. Go `testpilot.Prepare` owns semantic,
+assembly only: it preserves caller order and accepts the generated fixed-width numeric field types.
+Program and Contract share one `Expression` type, so a reference used outside its context is
+representable here and rejected by Go preparation. Go `testpilot.Prepare` owns semantic,
 closure, version, and resource-limit admission. Callers should use named arguments for high-arity
 limit records where positional meaning would otherwise be unclear.
 -/
@@ -119,107 +120,76 @@ end Path
 
 namespace Ref
 
-/-! Constructors for generated instruction, Slot, Observation, and capture references. -/
+/-! Constructors for generated instruction references. -/
 
 def instruction (entrypointId instructionId : String) : InstructionReference :=
   { entrypoint_id := entrypointId, instruction_id := instructionId }
 
-def slot (slotId : String) : SlotRef := { slot_id := slotId }
-
-def outcome (instruction : InstructionReference) (field : InstructionOutcomeField) :
-    InstructionOutcomeRef :=
-  { instruction := some instruction, field }
-
-def observation (observationId : String) : ObservationRef :=
-  { observation_id := observationId }
-
-def capture (captureId : String) : CaptureRef := { capture_id := captureId }
-
 end Ref
 
-namespace ProgramExpr
+namespace Expr
 
-/-! Program-only expressions over Slots, instruction outcomes, environment, and the current Run. -/
+/-!
+Constructors for the one expression language of instruction inputs, guards, and Contract transition
+predicates. The type does not separate the contexts: instruction inputs and guards may read Slots,
+instruction outcomes, the Run, and environment bindings, while Contract predicates may read
+Observations, Run Event fields, and captures. Go preparation rejects a reference outside its context.
+-/
 
-def literal (value : temporal.server.api.testpilot.v1.Value) : ProgramExpression :=
+def literal (value : temporal.server.api.testpilot.v1.Value) : Expression :=
   { expression := some (.literal value) }
 
-def slot (slotId : String) : ProgramExpression :=
-  { expression := some (.slot (Ref.slot slotId)) }
+def reference (reference : Reference) : Expression :=
+  { expression := some (.reference reference) }
 
-def outcome (instruction : InstructionReference) (field : InstructionOutcomeField) :
-    ProgramExpression :=
-  { expression := some (.outcome (Ref.outcome instruction field)) }
+def slot (slotId : String) : Expression :=
+  reference { reference := some (.slot_id slotId) }
+
+def outcome (instruction : InstructionReference) (field : InstructionOutcomeField) : Expression :=
+  reference { reference := some (.outcome { instruction := some instruction, field }) }
 
 /-- Refer to one symbolic text resource supplied by the execution environment. -/
-def environment (bindingId : String) : ProgramExpression :=
-  { expression := some (.environment { binding_id := bindingId }) }
+def environment (bindingId : String) : Expression :=
+  reference { reference := some (.environment_binding_id bindingId) }
 
-/-- Refer to the current Run from a Program expression. -/
-def run : ProgramExpression := { expression := some (.run {}) }
+/-- Refer to the current Run from an instruction input. -/
+def run : Expression := reference { reference := some (.run {}) }
 
-def path (source : ProgramExpression) (path : FieldPath) : ProgramExpression :=
-  { expression := some (.path { source := some source, path := some path }) }
-
-def present (operand : ProgramExpression) : ProgramExpression :=
-  { expression := some (.present { operand := some operand }) }
-
-def equals (left right : ProgramExpression) : ProgramExpression :=
-  { expression := some (.equals { left := some left, right := some right }) }
-
-def compare (operator : ComparisonOperator) (left right : ProgramExpression) : ProgramExpression :=
-  { expression := some (.compare { operator, left := some left, right := some right }) }
-
-def negation (operand : ProgramExpression) : ProgramExpression :=
-  { expression := some (.negation { operand := some operand }) }
-
-def all (operands : Array ProgramExpression) : ProgramExpression :=
-  { expression := some (.all { operands }) }
-
-def any (operands : Array ProgramExpression) : ProgramExpression :=
-  { expression := some (.any { operands }) }
-
-end ProgramExpr
-
-namespace ContractExpr
-
-/-! Contract-only expressions over Observations, captures, and the current Run Event. -/
-
-def literal (value : temporal.server.api.testpilot.v1.Value) : ContractExpression :=
-  { expression := some (.literal value) }
-
-def observation (observationId : String) : ContractExpression :=
-  { expression := some (.observation (Ref.observation observationId)) }
+def observation (observationId : String) : Expression :=
+  reference { reference := some (.observation_id observationId) }
 
 /-- Read one declared field from the Run Event currently offered to a monitor. -/
-def runEvent (field : RunEventField) : ContractExpression :=
-  { expression := some (.run_event { field }) }
+def runEvent (field : RunEventField) : Expression :=
+  reference { reference := some (.run_event { field }) }
 
-def capture (captureId : String) : ContractExpression :=
-  { expression := some (.capture (Ref.capture captureId)) }
+def capture (captureId : String) : Expression :=
+  reference { reference := some (.capture_id captureId) }
 
-def path (source : ContractExpression) (path : FieldPath) : ContractExpression :=
-  { expression := some (.path { source := some source, path := some path }) }
+def path (operand : Expression) (path : FieldPath) : Expression :=
+  { expression := some (.path { operand := some operand, path := some path }) }
 
-def present (operand : ContractExpression) : ContractExpression :=
+def present (operand : Expression) : Expression :=
   { expression := some (.present { operand := some operand }) }
 
-def equals (left right : ContractExpression) : ContractExpression :=
-  { expression := some (.equals { left := some left, right := some right }) }
-
-def compare (operator : ComparisonOperator) (left right : ContractExpression) : ContractExpression :=
+def compare (operator : ComparisonOperator) (left right : Expression) : Expression :=
   { expression := some (.compare { operator, left := some left, right := some right }) }
 
-def negation (operand : ContractExpression) : ContractExpression :=
-  { expression := some (.negation { operand := some operand }) }
+/-- Compare two operands of one type for equality. -/
+def equal (left right : Expression) : Expression :=
+  compare .COMPARISON_OPERATOR_EQUAL left right
 
-def all (operands : Array ContractExpression) : ContractExpression :=
+/-- Negate a boolean operand. The protocol arm is `not`; a definition of that name here would
+shadow `_root_.not` inside `Testpilot.Authoring`. -/
+def negate (operand : Expression) : Expression :=
+  { expression := some (.not { operand := some operand }) }
+
+def all (operands : Array Expression) : Expression :=
   { expression := some (.all { operands }) }
 
-def any (operands : Array ContractExpression) : ContractExpression :=
+def any (operands : Array Expression) : Expression :=
   { expression := some (.any { operands }) }
 
-end ContractExpr
+end Expr
 
 namespace Program
 
@@ -243,12 +213,12 @@ def handleSlot (slotId : String) : Slot :=
 def observation (observationId : String) (type : ValueType) : Observation :=
   { observation_id := observationId, type := some type }
 
-def requestAssignment (target : FieldPath) (value : ProgramExpression) : RequestAssignment :=
+def requestAssignment (target : FieldPath) (value : Expression) : RequestAssignment :=
   { target := some target, value := some value }
 
 /-- Assign one symbolic environment resource directly to a singular text request field. -/
 def environmentAssignment (target : FieldPath) (bindingId : String) : RequestAssignment :=
-  requestAssignment target (ProgramExpr.environment bindingId)
+  requestAssignment target (Expr.environment bindingId)
 
 def slotTarget (slotId : String) : ReadTarget :=
   { target := some (.slot_id slotId) }
@@ -279,9 +249,9 @@ def correlatedEvidenceTarget (observationId : String) (rules : Array CorrelatedE
     ReadTarget :=
   { target := some (.correlated_evidence { observation_id := observationId, rules }) }
 
-def responseRead (path : FieldPath) (kind : ReadCardinality)
+def responseRead (path : FieldPath) (cardinality : ReadCardinality)
     (targets : Array ReadTarget) : ResponseRead :=
-  { path := some path, kind, targets }
+  { path := some path, cardinality, targets }
 
 /-- Attach the four fixed-width resource bounds enforced for one instruction. -/
 def instructionLimits (timeoutMilliseconds maxAttempts maxEmittedEvents maxResponseBytes : Int64) :
@@ -297,12 +267,12 @@ def invokeRpc (endpointRoleId methodName : String) (assignments : Array RequestA
 def awaitSlot (slotId : String) : Instruction :=
   { instruction := some (.await_slot { slot_id := slotId }) }
 
-def completeNexusOperation (handleSlotId : String) (result : ProgramExpression) : Instruction :=
+def completeNexusOperation (handleSlotId : String) (result : Expression) : Instruction :=
   { instruction := some (.complete_nexus_operation {
       handle_slot_id := handleSlotId, result := some result }) }
 
 def startNexusOperation (endpointRoleId serviceName operationName : String)
-    (input : ProgramExpression) :
+    (input : Expression) :
     Instruction :=
   { instruction := some (.start_nexus_operation
       (StartNexusOperation.mk endpointRoleId serviceName operationName (some input) default)) }
@@ -310,10 +280,10 @@ def startNexusOperation (endpointRoleId serviceName operationName : String)
 def awaitInstruction (instruction : InstructionReference) : Instruction :=
   { instruction := some (.await_instruction { instruction := some instruction }) }
 
-def finish (result : ProgramExpression) : Instruction :=
+def finish (result : Expression) : Instruction :=
   { instruction := some (.finish { result := some result }) }
 
-def respondNexus (kind : NexusResponseKind) (result : ProgramExpression)
+def respondNexus (kind : NexusResponseKind) (result : Expression)
     (handleSlotId : String := "") : Instruction :=
   { instruction := some (.respond_nexus {
       kind, result := some result, handle_slot_id := handleSlotId }) }
@@ -333,7 +303,7 @@ def reservation (entrypointId : String) (count : Int64) : ActivationReservationD
 
 /-- Define one instruction node with its explicit dependencies, guard, outcome, and reservations. -/
 def node (instructionId : String) (instruction : Instruction) (limits : InstructionLimits)
-    (dependencies : Array InstructionReference := #[]) (guard : Option ProgramExpression := none)
+    (dependencies : Array InstructionReference := #[]) (guard : Option Expression := none)
     (outcome : Option InstructionOutcomeDefinition := none)
     (reservations : Array ActivationReservationDefinition := #[]) : InstructionNode :=
   { instruction_id := instructionId, dependencies, guard, instruction := some instruction,
@@ -404,14 +374,14 @@ def capture (captureId : String) (type : ContractCaptureType) : ContractCapture 
   { capture_id := captureId, type := some type }
 
 def captureAssignment (captureId observationId : String) : ContractCaptureAssignment :=
-  { capture_id := captureId, observation := some (Ref.observation observationId) }
+  { capture_id := captureId, observation_id := observationId }
 
 def state (stateId : String) (status : ContractStateStatus) : ContractState :=
   { state_id := stateId, status }
 
 /-- Define one transition, including its event filter, predicate, support, and capture updates. -/
 def transition (transitionId sourceStateId targetStateId : String)
-    (eventKinds : Array RunEventKind) (predicate : ContractExpression)
+    (eventKinds : Array RunEventKind) (predicate : Expression)
     (support : ContractSupportKind := .CONTRACT_SUPPORT_KIND_NONE)
     (assignments : Array ContractCaptureAssignment := #[]) : ContractTransition :=
   { transition_id := transitionId, source_state_id := sourceStateId,

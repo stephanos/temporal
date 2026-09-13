@@ -308,7 +308,7 @@ type InstructionNode struct {
 	// Instructions of the same entrypoint that must finish or be skipped before this one is ready.
 	Dependencies []*InstructionReference `protobuf:"bytes,5,rep,name=dependencies,proto3" json:"dependencies,omitempty"`
 	// Evaluated once the instruction is ready; when false it is skipped and records no Run Event.
-	Guard         *ProgramExpression `protobuf:"bytes,6,opt,name=guard,proto3" json:"guard,omitempty"`
+	Guard         *Expression        `protobuf:"bytes,6,opt,name=guard,proto3" json:"guard,omitempty"`
 	Limits        *InstructionLimits `protobuf:"bytes,7,opt,name=limits,proto3" json:"limits,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -379,7 +379,7 @@ func (x *InstructionNode) GetDependencies() []*InstructionReference {
 	return nil
 }
 
-func (x *InstructionNode) GetGuard() *ProgramExpression {
+func (x *InstructionNode) GetGuard() *Expression {
 	if x != nil {
 		return x.Guard
 	}
@@ -648,7 +648,7 @@ func (x *InvokeRpc) GetResponseReads() []*ResponseRead {
 type RequestAssignment struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Target        *FieldPath             `protobuf:"bytes,1,opt,name=target,proto3" json:"target,omitempty"`
-	Value         *ProgramExpression     `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+	Value         *Expression            `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -690,7 +690,7 @@ func (x *RequestAssignment) GetTarget() *FieldPath {
 	return nil
 }
 
-func (x *RequestAssignment) GetValue() *ProgramExpression {
+func (x *RequestAssignment) GetValue() *Expression {
 	if x != nil {
 		return x.Value
 	}
@@ -702,7 +702,7 @@ func (x *RequestAssignment) GetValue() *ProgramExpression {
 type ResponseRead struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Path          *FieldPath             `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
-	Kind          ReadCardinality        `protobuf:"varint,2,opt,name=kind,proto3,enum=temporal.server.api.testpilot.v1.ReadCardinality" json:"kind,omitempty"`
+	Cardinality   ReadCardinality        `protobuf:"varint,2,opt,name=cardinality,proto3,enum=temporal.server.api.testpilot.v1.ReadCardinality" json:"cardinality,omitempty"`
 	Targets       []*ReadTarget          `protobuf:"bytes,3,rep,name=targets,proto3" json:"targets,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -745,9 +745,9 @@ func (x *ResponseRead) GetPath() *FieldPath {
 	return nil
 }
 
-func (x *ResponseRead) GetKind() ReadCardinality {
+func (x *ResponseRead) GetCardinality() ReadCardinality {
 	if x != nil {
-		return x.Kind
+		return x.Cardinality
 	}
 	return READ_CARDINALITY_UNSPECIFIED
 }
@@ -957,7 +957,7 @@ type StartNexusOperation struct {
 	EndpointRoleId string                 `protobuf:"bytes,1,opt,name=endpoint_role_id,json=endpointRoleId,proto3" json:"endpoint_role_id,omitempty"`
 	Service        string                 `protobuf:"bytes,2,opt,name=service,proto3" json:"service,omitempty"`
 	Operation      string                 `protobuf:"bytes,3,opt,name=operation,proto3" json:"operation,omitempty"`
-	Input          *ProgramExpression     `protobuf:"bytes,4,opt,name=input,proto3" json:"input,omitempty"`
+	Input          *Expression            `protobuf:"bytes,4,opt,name=input,proto3" json:"input,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -1013,7 +1013,7 @@ func (x *StartNexusOperation) GetOperation() string {
 	return ""
 }
 
-func (x *StartNexusOperation) GetInput() *ProgramExpression {
+func (x *StartNexusOperation) GetInput() *Expression {
 	if x != nil {
 		return x.Input
 	}
@@ -1025,7 +1025,7 @@ func (x *StartNexusOperation) GetInput() *ProgramExpression {
 type CompleteNexusOperation struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	HandleSlotId  string                 `protobuf:"bytes,1,opt,name=handle_slot_id,json=handleSlotId,proto3" json:"handle_slot_id,omitempty"`
-	Result        *ProgramExpression     `protobuf:"bytes,2,opt,name=result,proto3" json:"result,omitempty"`
+	Result        *Expression            `protobuf:"bytes,2,opt,name=result,proto3" json:"result,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1067,7 +1067,7 @@ func (x *CompleteNexusOperation) GetHandleSlotId() string {
 	return ""
 }
 
-func (x *CompleteNexusOperation) GetResult() *ProgramExpression {
+func (x *CompleteNexusOperation) GetResult() *Expression {
 	if x != nil {
 		return x.Result
 	}
@@ -1078,7 +1078,7 @@ func (x *CompleteNexusOperation) GetResult() *ProgramExpression {
 type RespondNexus struct {
 	state  protoimpl.MessageState `protogen:"open.v1"`
 	Kind   NexusResponseKind      `protobuf:"varint,1,opt,name=kind,proto3,enum=temporal.server.api.testpilot.v1.NexusResponseKind" json:"kind,omitempty"`
-	Result *ProgramExpression     `protobuf:"bytes,2,opt,name=result,proto3" json:"result,omitempty"`
+	Result *Expression            `protobuf:"bytes,2,opt,name=result,proto3" json:"result,omitempty"`
 	// For an asynchronous response, the opaque Slot that receives the operation's completion handle.
 	HandleSlotId  string `protobuf:"bytes,3,opt,name=handle_slot_id,json=handleSlotId,proto3" json:"handle_slot_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -1122,7 +1122,7 @@ func (x *RespondNexus) GetKind() NexusResponseKind {
 	return NEXUS_RESPONSE_KIND_UNSPECIFIED
 }
 
-func (x *RespondNexus) GetResult() *ProgramExpression {
+func (x *RespondNexus) GetResult() *Expression {
 	if x != nil {
 		return x.Result
 	}
@@ -1139,7 +1139,7 @@ func (x *RespondNexus) GetHandleSlotId() string {
 // Finish completes the workflow of a workflow entrypoint with result.
 type Finish struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Result        *ProgramExpression     `protobuf:"bytes,1,opt,name=result,proto3" json:"result,omitempty"`
+	Result        *Expression            `protobuf:"bytes,1,opt,name=result,proto3" json:"result,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1174,7 +1174,7 @@ func (*Finish) Descriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{11}
 }
 
-func (x *Finish) GetResult() *ProgramExpression {
+func (x *Finish) GetResult() *Expression {
 	if x != nil {
 		return x.Result
 	}
@@ -1547,14 +1547,14 @@ var File_temporal_server_api_testpilot_v1_instruction_proto protoreflect.FileDes
 
 const file_temporal_server_api_testpilot_v1_instruction_proto_rawDesc = "" +
 	"\n" +
-	"2temporal/server/api/testpilot/v1/instruction.proto\x12 temporal.server.api.testpilot.v1\x1a1temporal/server/api/testpilot/v1/correlated.proto\x1a1temporal/server/api/testpilot/v1/expression.proto\x1a,temporal/server/api/testpilot/v1/value.proto\"\xd3\x04\n" +
+	"2temporal/server/api/testpilot/v1/instruction.proto\x12 temporal.server.api.testpilot.v1\x1a1temporal/server/api/testpilot/v1/correlated.proto\x1a1temporal/server/api/testpilot/v1/expression.proto\x1a,temporal/server/api/testpilot/v1/value.proto\"\xcc\x04\n" +
 	"\x0fInstructionNode\x12%\n" +
 	"\x0einstruction_id\x18\x01 \x01(\tR\rinstructionId\x12O\n" +
 	"\vinstruction\x18\x02 \x01(\v2-.temporal.server.api.testpilot.v1.InstructionR\vinstruction\x12X\n" +
 	"\aoutcome\x18\x03 \x01(\v2>.temporal.server.api.testpilot.v1.InstructionOutcomeDefinitionR\aoutcome\x12z\n" +
 	"\x17activation_reservations\x18\x04 \x03(\v2A.temporal.server.api.testpilot.v1.ActivationReservationDefinitionR\x16activationReservations\x12Z\n" +
-	"\fdependencies\x18\x05 \x03(\v26.temporal.server.api.testpilot.v1.InstructionReferenceR\fdependencies\x12I\n" +
-	"\x05guard\x18\x06 \x01(\v23.temporal.server.api.testpilot.v1.ProgramExpressionR\x05guard\x12K\n" +
+	"\fdependencies\x18\x05 \x03(\v26.temporal.server.api.testpilot.v1.InstructionReferenceR\fdependencies\x12B\n" +
+	"\x05guard\x18\x06 \x01(\v2,.temporal.server.api.testpilot.v1.ExpressionR\x05guard\x12K\n" +
 	"\x06limits\x18\a \x01(\v23.temporal.server.api.testpilot.v1.InstructionLimitsR\x06limits\"\xed\x05\n" +
 	"\vInstruction\x12L\n" +
 	"\n" +
@@ -1572,13 +1572,13 @@ const file_temporal_server_api_testpilot_v1_instruction_proto_rawDesc = "" +
 	"\x10endpoint_role_id\x18\x01 \x01(\tR\x0eendpointRoleId\x12\x16\n" +
 	"\x06method\x18\x02 \x01(\tR\x06method\x12d\n" +
 	"\x13request_assignments\x18\x03 \x03(\v23.temporal.server.api.testpilot.v1.RequestAssignmentR\x12requestAssignments\x12U\n" +
-	"\x0eresponse_reads\x18\x04 \x03(\v2..temporal.server.api.testpilot.v1.ResponseReadR\rresponseReads\"\xa3\x01\n" +
+	"\x0eresponse_reads\x18\x04 \x03(\v2..temporal.server.api.testpilot.v1.ResponseReadR\rresponseReads\"\x9c\x01\n" +
 	"\x11RequestAssignment\x12C\n" +
-	"\x06target\x18\x01 \x01(\v2+.temporal.server.api.testpilot.v1.FieldPathR\x06target\x12I\n" +
-	"\x05value\x18\x02 \x01(\v23.temporal.server.api.testpilot.v1.ProgramExpressionR\x05value\"\xde\x01\n" +
+	"\x06target\x18\x01 \x01(\v2+.temporal.server.api.testpilot.v1.FieldPathR\x06target\x12B\n" +
+	"\x05value\x18\x02 \x01(\v2,.temporal.server.api.testpilot.v1.ExpressionR\x05value\"\xec\x01\n" +
 	"\fResponseRead\x12?\n" +
-	"\x04path\x18\x01 \x01(\v2+.temporal.server.api.testpilot.v1.FieldPathR\x04path\x12E\n" +
-	"\x04kind\x18\x02 \x01(\x0e21.temporal.server.api.testpilot.v1.ReadCardinalityR\x04kind\x12F\n" +
+	"\x04path\x18\x01 \x01(\v2+.temporal.server.api.testpilot.v1.FieldPathR\x04path\x12S\n" +
+	"\vcardinality\x18\x02 \x01(\x0e21.temporal.server.api.testpilot.v1.ReadCardinalityR\vcardinality\x12F\n" +
 	"\atargets\x18\x03 \x03(\v2,.temporal.server.api.testpilot.v1.ReadTargetR\atargets\"\xcd\x01\n" +
 	"\n" +
 	"ReadTarget\x12\x19\n" +
@@ -1589,21 +1589,21 @@ const file_temporal_server_api_testpilot_v1_instruction_proto_rawDesc = "" +
 	"\tAwaitSlot\x12\x17\n" +
 	"\aslot_id\x18\x01 \x01(\tR\x06slotId\"l\n" +
 	"\x10AwaitInstruction\x12X\n" +
-	"\vinstruction\x18\x01 \x01(\v26.temporal.server.api.testpilot.v1.InstructionReferenceR\vinstruction\"\xc2\x01\n" +
+	"\vinstruction\x18\x01 \x01(\v26.temporal.server.api.testpilot.v1.InstructionReferenceR\vinstruction\"\xbb\x01\n" +
 	"\x13StartNexusOperation\x12(\n" +
 	"\x10endpoint_role_id\x18\x01 \x01(\tR\x0eendpointRoleId\x12\x18\n" +
 	"\aservice\x18\x02 \x01(\tR\aservice\x12\x1c\n" +
-	"\toperation\x18\x03 \x01(\tR\toperation\x12I\n" +
-	"\x05input\x18\x04 \x01(\v23.temporal.server.api.testpilot.v1.ProgramExpressionR\x05input\"\x8b\x01\n" +
+	"\toperation\x18\x03 \x01(\tR\toperation\x12B\n" +
+	"\x05input\x18\x04 \x01(\v2,.temporal.server.api.testpilot.v1.ExpressionR\x05input\"\x84\x01\n" +
 	"\x16CompleteNexusOperation\x12$\n" +
-	"\x0ehandle_slot_id\x18\x01 \x01(\tR\fhandleSlotId\x12K\n" +
-	"\x06result\x18\x02 \x01(\v23.temporal.server.api.testpilot.v1.ProgramExpressionR\x06result\"\xca\x01\n" +
+	"\x0ehandle_slot_id\x18\x01 \x01(\tR\fhandleSlotId\x12D\n" +
+	"\x06result\x18\x02 \x01(\v2,.temporal.server.api.testpilot.v1.ExpressionR\x06result\"\xc3\x01\n" +
 	"\fRespondNexus\x12G\n" +
-	"\x04kind\x18\x01 \x01(\x0e23.temporal.server.api.testpilot.v1.NexusResponseKindR\x04kind\x12K\n" +
-	"\x06result\x18\x02 \x01(\v23.temporal.server.api.testpilot.v1.ProgramExpressionR\x06result\x12$\n" +
-	"\x0ehandle_slot_id\x18\x03 \x01(\tR\fhandleSlotId\"U\n" +
-	"\x06Finish\x12K\n" +
-	"\x06result\x18\x01 \x01(\v23.temporal.server.api.testpilot.v1.ProgramExpressionR\x06result\"g\n" +
+	"\x04kind\x18\x01 \x01(\x0e23.temporal.server.api.testpilot.v1.NexusResponseKindR\x04kind\x12D\n" +
+	"\x06result\x18\x02 \x01(\v2,.temporal.server.api.testpilot.v1.ExpressionR\x06result\x12$\n" +
+	"\x0ehandle_slot_id\x18\x03 \x01(\tR\fhandleSlotId\"N\n" +
+	"\x06Finish\x12D\n" +
+	"\x06result\x18\x01 \x01(\v2,.temporal.server.api.testpilot.v1.ExpressionR\x06result\"g\n" +
 	"\vInjectFault\x12\x17\n" +
 	"\arole_id\x18\x01 \x01(\tR\x06roleId\x12?\n" +
 	"\x04kind\x18\x02 \x01(\x0e2+.temporal.server.api.testpilot.v1.FaultKindR\x04kind\"p\n" +
@@ -1685,7 +1685,7 @@ var file_temporal_server_api_testpilot_v1_instruction_proto_goTypes = []any{
 	(*InstructionLimits)(nil),               // 20: temporal.server.api.testpilot.v1.InstructionLimits
 	(*InstructionOutcome)(nil),              // 21: temporal.server.api.testpilot.v1.InstructionOutcome
 	(*InstructionReference)(nil),            // 22: temporal.server.api.testpilot.v1.InstructionReference
-	(*ProgramExpression)(nil),               // 23: temporal.server.api.testpilot.v1.ProgramExpression
+	(*Expression)(nil),                      // 23: temporal.server.api.testpilot.v1.Expression
 	(*FieldPath)(nil),                       // 24: temporal.server.api.testpilot.v1.FieldPath
 	(*CorrelatedEvidenceProjection)(nil),    // 25: temporal.server.api.testpilot.v1.CorrelatedEvidenceProjection
 	(InstructionOutcomeField)(0),            // 26: temporal.server.api.testpilot.v1.InstructionOutcomeField
@@ -1697,7 +1697,7 @@ var file_temporal_server_api_testpilot_v1_instruction_proto_depIdxs = []int32{
 	17, // 1: temporal.server.api.testpilot.v1.InstructionNode.outcome:type_name -> temporal.server.api.testpilot.v1.InstructionOutcomeDefinition
 	19, // 2: temporal.server.api.testpilot.v1.InstructionNode.activation_reservations:type_name -> temporal.server.api.testpilot.v1.ActivationReservationDefinition
 	22, // 3: temporal.server.api.testpilot.v1.InstructionNode.dependencies:type_name -> temporal.server.api.testpilot.v1.InstructionReference
-	23, // 4: temporal.server.api.testpilot.v1.InstructionNode.guard:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
+	23, // 4: temporal.server.api.testpilot.v1.InstructionNode.guard:type_name -> temporal.server.api.testpilot.v1.Expression
 	20, // 5: temporal.server.api.testpilot.v1.InstructionNode.limits:type_name -> temporal.server.api.testpilot.v1.InstructionLimits
 	6,  // 6: temporal.server.api.testpilot.v1.Instruction.invoke_rpc:type_name -> temporal.server.api.testpilot.v1.InvokeRpc
 	10, // 7: temporal.server.api.testpilot.v1.Instruction.await_slot:type_name -> temporal.server.api.testpilot.v1.AwaitSlot
@@ -1710,17 +1710,17 @@ var file_temporal_server_api_testpilot_v1_instruction_proto_depIdxs = []int32{
 	7,  // 14: temporal.server.api.testpilot.v1.InvokeRpc.request_assignments:type_name -> temporal.server.api.testpilot.v1.RequestAssignment
 	8,  // 15: temporal.server.api.testpilot.v1.InvokeRpc.response_reads:type_name -> temporal.server.api.testpilot.v1.ResponseRead
 	24, // 16: temporal.server.api.testpilot.v1.RequestAssignment.target:type_name -> temporal.server.api.testpilot.v1.FieldPath
-	23, // 17: temporal.server.api.testpilot.v1.RequestAssignment.value:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
+	23, // 17: temporal.server.api.testpilot.v1.RequestAssignment.value:type_name -> temporal.server.api.testpilot.v1.Expression
 	24, // 18: temporal.server.api.testpilot.v1.ResponseRead.path:type_name -> temporal.server.api.testpilot.v1.FieldPath
-	0,  // 19: temporal.server.api.testpilot.v1.ResponseRead.kind:type_name -> temporal.server.api.testpilot.v1.ReadCardinality
+	0,  // 19: temporal.server.api.testpilot.v1.ResponseRead.cardinality:type_name -> temporal.server.api.testpilot.v1.ReadCardinality
 	9,  // 20: temporal.server.api.testpilot.v1.ResponseRead.targets:type_name -> temporal.server.api.testpilot.v1.ReadTarget
 	25, // 21: temporal.server.api.testpilot.v1.ReadTarget.correlated_evidence:type_name -> temporal.server.api.testpilot.v1.CorrelatedEvidenceProjection
 	22, // 22: temporal.server.api.testpilot.v1.AwaitInstruction.instruction:type_name -> temporal.server.api.testpilot.v1.InstructionReference
-	23, // 23: temporal.server.api.testpilot.v1.StartNexusOperation.input:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
-	23, // 24: temporal.server.api.testpilot.v1.CompleteNexusOperation.result:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
+	23, // 23: temporal.server.api.testpilot.v1.StartNexusOperation.input:type_name -> temporal.server.api.testpilot.v1.Expression
+	23, // 24: temporal.server.api.testpilot.v1.CompleteNexusOperation.result:type_name -> temporal.server.api.testpilot.v1.Expression
 	1,  // 25: temporal.server.api.testpilot.v1.RespondNexus.kind:type_name -> temporal.server.api.testpilot.v1.NexusResponseKind
-	23, // 26: temporal.server.api.testpilot.v1.RespondNexus.result:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
-	23, // 27: temporal.server.api.testpilot.v1.Finish.result:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
+	23, // 26: temporal.server.api.testpilot.v1.RespondNexus.result:type_name -> temporal.server.api.testpilot.v1.Expression
+	23, // 27: temporal.server.api.testpilot.v1.Finish.result:type_name -> temporal.server.api.testpilot.v1.Expression
 	2,  // 28: temporal.server.api.testpilot.v1.InjectFault.kind:type_name -> temporal.server.api.testpilot.v1.FaultKind
 	18, // 29: temporal.server.api.testpilot.v1.InstructionOutcomeDefinition.fields:type_name -> temporal.server.api.testpilot.v1.OutcomeFieldDefinition
 	26, // 30: temporal.server.api.testpilot.v1.OutcomeFieldDefinition.field:type_name -> temporal.server.api.testpilot.v1.InstructionOutcomeField

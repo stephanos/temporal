@@ -25,10 +25,16 @@ import (
 const facadeCorpusRoot = "testdata/case-runtime-conformance"
 
 type facadeExpectedResult struct {
-	Class       string                     `json:"class"`
-	Preparation string                     `json:"preparation"`
-	RunCount    int                        `json:"runCount"`
-	Projection  *facadeStableRunProjection `json:"projection,omitempty"`
+	Class            string                          `json:"class"`
+	Preparation      string                          `json:"preparation"`
+	RunCount         int                             `json:"runCount"`
+	Projection       *facadeStableRunProjection      `json:"projection,omitempty"`
+	PreparationError *facadeExpectedPreparationError `json:"preparationError,omitempty"`
+}
+
+type facadeExpectedPreparationError struct {
+	Category testpilot.PreparationErrorCategory `json:"category"`
+	Path     string                             `json:"path"`
 }
 
 type facadeStableRunProjection struct {
@@ -66,19 +72,26 @@ type facadeStableDiagnosticProjection struct {
 }
 
 func TestCaseRuntimePublicFacadeConformance(t *testing.T) {
-	classes := []string{
+	// Each Case sits in its class directory; a class's further Cases sit beneath it.
+	cases := []string{
 		"satisfied",
 		"violated",
 		"inconclusive",
 		"static-preparation-rejection",
+		"static-preparation-rejection/expression-context",
 		"cleanup-failure-after-proved-violation",
 		"cross-run-isolation",
 	}
+	classes := map[string]bool{}
+	for _, name := range cases {
+		classes[strings.Split(name, "/")[0]] = true
+	}
 	require.Len(t, classes, 6)
-	for _, class := range classes {
-		t.Run(class, func(t *testing.T) {
-			source := loadFacadeCase(t, class)
-			expected := loadFacadeExpected(t, class)
+	for _, name := range cases {
+		class := strings.Split(name, "/")[0]
+		t.Run(name, func(t *testing.T) {
+			source := loadFacadeCase(t, name)
+			expected := loadFacadeExpected(t, name)
 			require.Equal(t, expected.Class, class)
 			profile := facadeProfile(t, source)
 			driver := &facadeDriver{failCleanup: class == "cleanup-failure-after-proved-violation"}
@@ -87,6 +100,11 @@ func TestCaseRuntimePublicFacadeConformance(t *testing.T) {
 				require.Error(t, err)
 				require.Nil(t, prepared)
 				require.Empty(t, driver.openedRunIDs())
+				if expected.PreparationError != nil {
+					var diagnostic *testpilot.PreparationError
+					require.ErrorAs(t, err, &diagnostic)
+					require.Equal(t, *expected.PreparationError, facadeExpectedPreparationError{Category: diagnostic.Category, Path: diagnostic.Path})
+				}
 				return
 			}
 			require.Equal(t, "accepted", expected.Preparation)
@@ -135,18 +153,18 @@ func runFacadeCase(t *testing.T, prepared *testpilot.PreparedCase, driver testpi
 	return collected
 }
 
-func loadFacadeCase(t testing.TB, class string) *testpilotspb.Case {
+func loadFacadeCase(t testing.TB, name string) *testpilotspb.Case {
 	t.Helper()
-	encoded, err := os.ReadFile(filepath.Join(facadeCorpusRoot, class, "case.json"))
+	encoded, err := os.ReadFile(filepath.Join(facadeCorpusRoot, filepath.FromSlash(name), "case.json"))
 	require.NoError(t, err)
 	decoded, err := testpilot.DecodeCaseProtoJSON(encoded)
 	require.NoError(t, err)
 	return decoded
 }
 
-func loadFacadeExpected(t testing.TB, class string) facadeExpectedResult {
+func loadFacadeExpected(t testing.TB, name string) facadeExpectedResult {
 	t.Helper()
-	encoded, err := os.ReadFile(filepath.Join(facadeCorpusRoot, class, "expected.json"))
+	encoded, err := os.ReadFile(filepath.Join(facadeCorpusRoot, filepath.FromSlash(name), "expected.json"))
 	require.NoError(t, err)
 	decoder := json.NewDecoder(strings.NewReader(string(encoded)))
 	decoder.DisallowUnknownFields()

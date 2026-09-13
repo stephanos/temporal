@@ -20,7 +20,7 @@ private def getSystemInfoRule : ContractRule :=
       Contract.state "satisfied" .CONTRACT_STATE_STATUS_SATISFIED]
     #[Contract.transition "observe-server-version" "pending" "satisfied"
       #[.RUN_EVENT_KIND_INSTRUCTION_COMPLETED]
-      (ContractExpr.present (ContractExpr.observation "server-version"))
+      (Expr.present (Expr.observation "server-version"))
       .CONTRACT_SUPPORT_KIND_MATCHING_EVENT]
 
 /-- An orthogonal unary Case with an empty request and typed response projection. -/

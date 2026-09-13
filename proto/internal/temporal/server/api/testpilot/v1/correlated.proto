@@ -1,5 +1,6 @@
 syntax = "proto3";
 package temporal.server.api.testpilot.v1;
+import "temporal/server/api/testpilot/v1/expression.proto";
 import "temporal/server/api/testpilot/v1/value.proto";
 option go_package = "go.temporal.io/server/api/testpilot/v1;testpilot";
 
@@ -28,9 +29,6 @@ message CorrelatedContract {
   repeated CorrelatedRule rules = 11;
   CorrelatedLimits limits = 12;
 }
-
-// ModelValue is one model value: the Definition ID that declares it and its value text.
-message ModelValue { string definition_id = 1; string value = 2; }
 
 // CorrelatedTransition is one row of the transition table: from prior_state, action leads to state
 // with outcome and facts.
@@ -147,12 +145,6 @@ message CorrelatedCaptureDeclaration {
   int64 lifetime = 3;
 }
 
-// CorrelatedCaptureRef reads one retained occurrence of a capture by its zero-based ordinal.
-message CorrelatedCaptureRef {
-  string capture_id = 1;
-  int64 ordinal = 2;
-}
-
 // CorrelatedCorrelation decides whether a labeled transition is one of the operation's semantic steps.
 // It never supplies a trigger or a response: the bounded countdown stays exactly the one the
 // rule's trigger and response patterns describe. `all` and `any` are evaluated left to right and
@@ -189,7 +181,7 @@ message CorrelatedOperand {
   oneof operand {
     Value literal = 1;
     string field_id = 2;
-    CorrelatedCaptureRef capture = 3;
+    CorrelatedCaptureReference capture = 3;
   }
 }
 

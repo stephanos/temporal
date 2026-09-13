@@ -313,7 +313,7 @@ func deadlineReached(state *ruleState, deadline *testpilotspb.ContractDeadline, 
 func (e *Evaluator) stageCaptures(state ruleState, tr *testpilotspb.ContractTransition, event *testpilotspb.RunEvent, observations map[string]*testpilotspb.Value, cost *eventEvaluation) (map[string]capturedValue, error) {
 	captures := map[string]capturedValue{}
 	for _, assignment := range tr.CaptureAssignments {
-		value := observations[assignment.Observation.ObservationId]
+		value := observations[assignment.ObservationId]
 		if value == nil || state.captures[assignment.CaptureId].value != nil {
 			return nil, invalid(ir.Malformed, "missing or repeated capture assignment")
 		}

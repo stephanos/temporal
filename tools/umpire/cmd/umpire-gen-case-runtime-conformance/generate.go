@@ -75,13 +75,30 @@ type expectedResult struct {
 	Preparation string               `json:"preparation"`
 	RunCount    int                  `json:"runCount"`
 	Projection  *stableRunProjection `json:"projection,omitempty"`
+	// PreparationError pins the category and path of a rejection that names them.
+	PreparationError *expectedPreparationError `json:"preparationError,omitempty"`
 }
 
+type expectedPreparationError struct {
+	Category string `json:"category"`
+	Path     string `json:"path"`
+}
+
+// manifestEntry is one conformance Case. A class keeps its first Case at the class root; a further
+// Case of the same class names a Variant and is stored beneath it, so EVD-18's six classes stay six.
 type manifestEntry struct {
 	Class       string
+	Variant     string
 	RendererArg string
 	CaseID      string
 	Expected    expectedResult
+}
+
+func (entry manifestEntry) name() string {
+	if entry.Variant == "" {
+		return entry.Class
+	}
+	return entry.Class + "/" + entry.Variant
 }
 
 // functionalEntry is one checked-in functional fixture: how to render it, what Case ID it must
@@ -218,25 +235,25 @@ func runGeneration(configuration generationConfig, entries []manifestEntry, depe
 func renderConformanceArtifacts(entries []manifestEntry, modelRoot string, dependencies generationDependencies) (map[string][]byte, error) {
 	artifacts := make(map[string][]byte, len(entries)*2)
 	for _, entry := range entries {
-		encoded, err := renderStable(entry.Class, func() (rendererOutput, error) {
+		encoded, err := renderStable(entry.name(), func() (rendererOutput, error) {
 			return dependencies.Render(modelRoot, entry.RendererArg)
 		})
 		if err != nil {
 			return nil, err
 		}
-		if err := requireRenderedCase(entry.Class, entry.CaseID, encoded); err != nil {
+		if err := requireRenderedCase(entry.name(), entry.CaseID, encoded); err != nil {
 			return nil, err
 		}
 		expected, err := marshalExpected(entry.Expected)
 		if err != nil {
-			return nil, fmt.Errorf("encode %q expected result: %w", entry.Class, err)
+			return nil, fmt.Errorf("encode %q expected result: %w", entry.name(), err)
 		}
 		stored, err := persistedForm(encoded)
 		if err != nil {
-			return nil, fmt.Errorf("store %q Case fixture: %w", entry.Class, err)
+			return nil, fmt.Errorf("store %q Case fixture: %w", entry.name(), err)
 		}
-		artifacts[casePath(entry.Class)] = stored
-		artifacts[expectedPath(entry.Class)] = expected
+		artifacts[casePath(entry)] = stored
+		artifacts[expectedPath(entry)] = expected
 	}
 	return artifacts, nil
 }
@@ -476,20 +493,30 @@ func requireRendererArtifact(class string, output rendererOutput, renderErr erro
 }
 
 func validateManifest(entries []manifestEntry) error {
-	if len(entries) != 6 {
-		return fmt.Errorf("conformance manifest has %d classes, want exactly 6", len(entries))
-	}
-	classes := make(map[string]struct{}, len(entries))
+	classes := make(map[string]bool, len(entries))
+	names := make(map[string]struct{}, len(entries))
 	for _, entry := range entries {
 		if strings.TrimSpace(entry.Class) == "" || strings.TrimSpace(entry.RendererArg) == "" || strings.TrimSpace(entry.CaseID) == "" {
 			return errors.New("conformance manifest entries require class, renderer argument and Case ID")
 		}
-		if _, duplicate := classes[entry.Class]; duplicate {
-			return fmt.Errorf("duplicate Testpilot conformance class %q", entry.Class)
+		if strings.ContainsAny(entry.Variant, `/\`) || entry.Variant != strings.TrimSpace(entry.Variant) {
+			return fmt.Errorf("conformance variant %q is not one path segment", entry.Variant)
 		}
-		classes[entry.Class] = struct{}{}
+		if _, duplicate := names[entry.name()]; duplicate {
+			return fmt.Errorf("duplicate Testpilot conformance Case %q", entry.name())
+		}
+		names[entry.name()] = struct{}{}
+		classes[entry.Class] = classes[entry.Class] || entry.Variant == ""
 		if entry.Expected.Class != entry.Class {
 			return fmt.Errorf("expected result class %q does not match manifest class %q", entry.Expected.Class, entry.Class)
+		}
+	}
+	if len(classes) != 6 {
+		return fmt.Errorf("conformance manifest has %d classes, want exactly 6", len(classes))
+	}
+	for class, primary := range classes {
+		if !primary {
+			return fmt.Errorf("conformance class %q has no Case at its root", class)
 		}
 	}
 	return nil
@@ -501,24 +528,24 @@ func validateArtifacts(entries []manifestEntry, artifacts map[string][]byte) err
 		return fmt.Errorf("conformance fixture set has %d files, want %d", len(artifacts), len(paths))
 	}
 	for _, entry := range entries {
-		encoded, ok := artifacts[casePath(entry.Class)]
+		encoded, ok := artifacts[casePath(entry)]
 		if !ok {
-			return fmt.Errorf("missing Case fixture for %q", entry.Class)
+			return fmt.Errorf("missing Case fixture for %q", entry.name())
 		}
-		if err := requirePersistedForm(casePath(entry.Class), encoded); err != nil {
+		if err := requirePersistedForm(casePath(entry), encoded); err != nil {
 			return err
 		}
 		decoded, err := testpilot.DecodeCaseProtoJSON(encoded)
 		if err != nil || decoded.GetCaseId() != entry.CaseID {
-			return fmt.Errorf("invalid Case fixture for %q", entry.Class)
+			return fmt.Errorf("invalid Case fixture for %q", entry.name())
 		}
-		expected, ok := artifacts[expectedPath(entry.Class)]
+		expected, ok := artifacts[expectedPath(entry)]
 		if !ok {
-			return fmt.Errorf("missing expected result for %q", entry.Class)
+			return fmt.Errorf("missing expected result for %q", entry.name())
 		}
 		canonical, err := marshalExpected(entry.Expected)
 		if err != nil || !bytes.Equal(expected, canonical) {
-			return fmt.Errorf("non-canonical expected result for %q", entry.Class)
+			return fmt.Errorf("non-canonical expected result for %q", entry.name())
 		}
 	}
 	return nil
@@ -527,18 +554,18 @@ func validateArtifacts(entries []manifestEntry, artifacts map[string][]byte) err
 func managedPaths(entries []manifestEntry) []string {
 	paths := make([]string, 0, len(entries)*2)
 	for _, entry := range entries {
-		paths = append(paths, casePath(entry.Class), expectedPath(entry.Class))
+		paths = append(paths, casePath(entry), expectedPath(entry))
 	}
 	slices.Sort(paths)
 	return paths
 }
 
-func casePath(class string) string {
-	return filepath.ToSlash(filepath.Join(fixtureRoot, class, "case.json"))
+func casePath(entry manifestEntry) string {
+	return filepath.ToSlash(filepath.Join(fixtureRoot, entry.Class, entry.Variant, "case.json"))
 }
 
-func expectedPath(class string) string {
-	return filepath.ToSlash(filepath.Join(fixtureRoot, class, "expected.json"))
+func expectedPath(entry manifestEntry) string {
+	return filepath.ToSlash(filepath.Join(fixtureRoot, entry.Class, entry.Variant, "expected.json"))
 }
 
 func productionManifest() []manifestEntry {
@@ -550,6 +577,18 @@ func productionManifest() []manifestEntry {
 			Class: "static-preparation-rejection", RendererArg: "conformance-static-preparation-rejection",
 			CaseID:   "temporal.case.conformance.static-rejection",
 			Expected: expectedResult{Class: "static-preparation-rejection", Preparation: "rejected"},
+		},
+		{
+			Class: "static-preparation-rejection", Variant: "expression-context",
+			RendererArg: "conformance-static-preparation-rejection-expression-context",
+			CaseID:      "temporal.case.conformance.static-rejection.expression-context",
+			Expected: expectedResult{
+				Class: "static-preparation-rejection", Preparation: "rejected",
+				PreparationError: &expectedPreparationError{
+					Category: "unknown",
+					Path:     "program.entrypoints[controller].instructions[execute].guard.reference.observation_id",
+				},
+			},
 		},
 		acceptedEntry("cleanup-failure-after-proved-violation", "temporal.case.conformance.cleanup-failure", "VIOLATED", "VIOLATED", "STOPPED_BY_MONITOR", "FAILED", 1),
 		acceptedEntry("cross-run-isolation", "temporal.case.conformance.cross-run-isolation", "SATISFIED", "SATISFIED", "COMPLETED", "SUCCEEDED", 2),
