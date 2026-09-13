@@ -22,72 +22,11 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// CaseProvenance keeps producer-owned metadata opaque to Testpilot.
-type CaseProvenance struct {
-	state           protoimpl.MessageState `protogen:"open.v1"`
-	ProducerId      string                 `protobuf:"bytes,1,opt,name=producer_id,json=producerId,proto3" json:"producer_id,omitempty"`
-	ProducerVersion string                 `protobuf:"bytes,2,opt,name=producer_version,json=producerVersion,proto3" json:"producer_version,omitempty"`
-	ProducerData    []byte                 `protobuf:"bytes,3,opt,name=producer_data,json=producerData,proto3" json:"producer_data,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
-}
-
-func (x *CaseProvenance) Reset() {
-	*x = CaseProvenance{}
-	mi := &file_temporal_server_api_testpilot_v1_case_proto_msgTypes[0]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *CaseProvenance) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*CaseProvenance) ProtoMessage() {}
-
-func (x *CaseProvenance) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_case_proto_msgTypes[0]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use CaseProvenance.ProtoReflect.Descriptor instead.
-func (*CaseProvenance) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_case_proto_rawDescGZIP(), []int{0}
-}
-
-func (x *CaseProvenance) GetProducerId() string {
-	if x != nil {
-		return x.ProducerId
-	}
-	return ""
-}
-
-func (x *CaseProvenance) GetProducerVersion() string {
-	if x != nil {
-		return x.ProducerVersion
-	}
-	return ""
-}
-
-func (x *CaseProvenance) GetProducerData() []byte {
-	if x != nil {
-		return x.ProducerData
-	}
-	return nil
-}
-
 // Case is the versioned standalone pairing of exactly one bounded Program and one Contract.
 type Case struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Version       *FormatVersion         `protobuf:"bytes,1,opt,name=version,proto3" json:"version,omitempty"`
-	CaseId        string                 `protobuf:"bytes,2,opt,name=case_id,json=caseId,proto3" json:"case_id,omitempty"`
+	CaseId        string                 `protobuf:"bytes,1,opt,name=case_id,json=caseId,proto3" json:"case_id,omitempty"`
+	Version       *FormatVersion         `protobuf:"bytes,2,opt,name=version,proto3" json:"version,omitempty"`
 	Provenance    *CaseProvenance        `protobuf:"bytes,3,opt,name=provenance,proto3" json:"provenance,omitempty"`
 	Program       *Program               `protobuf:"bytes,4,opt,name=program,proto3" json:"program,omitempty"`
 	Contract      *Contract              `protobuf:"bytes,5,opt,name=contract,proto3" json:"contract,omitempty"`
@@ -97,7 +36,7 @@ type Case struct {
 
 func (x *Case) Reset() {
 	*x = Case{}
-	mi := &file_temporal_server_api_testpilot_v1_case_proto_msgTypes[1]
+	mi := &file_temporal_server_api_testpilot_v1_case_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -109,7 +48,7 @@ func (x *Case) String() string {
 func (*Case) ProtoMessage() {}
 
 func (x *Case) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_case_proto_msgTypes[1]
+	mi := &file_temporal_server_api_testpilot_v1_case_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -122,14 +61,7 @@ func (x *Case) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Case.ProtoReflect.Descriptor instead.
 func (*Case) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_case_proto_rawDescGZIP(), []int{1}
-}
-
-func (x *Case) GetVersion() *FormatVersion {
-	if x != nil {
-		return x.Version
-	}
-	return nil
+	return file_temporal_server_api_testpilot_v1_case_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Case) GetCaseId() string {
@@ -137,6 +69,13 @@ func (x *Case) GetCaseId() string {
 		return x.CaseId
 	}
 	return ""
+}
+
+func (x *Case) GetVersion() *FormatVersion {
+	if x != nil {
+		return x.Version
+	}
+	return nil
 }
 
 func (x *Case) GetProvenance() *CaseProvenance {
@@ -160,24 +99,142 @@ func (x *Case) GetContract() *Contract {
 	return nil
 }
 
+// FormatVersion is the Case wire format version; preparation admits exactly 1.0.
+type FormatVersion struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Major         int32                  `protobuf:"varint,1,opt,name=major,proto3" json:"major,omitempty"`
+	Minor         int32                  `protobuf:"varint,2,opt,name=minor,proto3" json:"minor,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FormatVersion) Reset() {
+	*x = FormatVersion{}
+	mi := &file_temporal_server_api_testpilot_v1_case_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FormatVersion) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FormatVersion) ProtoMessage() {}
+
+func (x *FormatVersion) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_case_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FormatVersion.ProtoReflect.Descriptor instead.
+func (*FormatVersion) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_case_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *FormatVersion) GetMajor() int32 {
+	if x != nil {
+		return x.Major
+	}
+	return 0
+}
+
+func (x *FormatVersion) GetMinor() int32 {
+	if x != nil {
+		return x.Minor
+	}
+	return 0
+}
+
+// CaseProvenance keeps producer-owned metadata opaque to Testpilot.
+type CaseProvenance struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	ProducerId      string                 `protobuf:"bytes,1,opt,name=producer_id,json=producerId,proto3" json:"producer_id,omitempty"`
+	ProducerVersion string                 `protobuf:"bytes,2,opt,name=producer_version,json=producerVersion,proto3" json:"producer_version,omitempty"`
+	// Producer-defined bytes Testpilot never reads.
+	ProducerData  []byte `protobuf:"bytes,3,opt,name=producer_data,json=producerData,proto3" json:"producer_data,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CaseProvenance) Reset() {
+	*x = CaseProvenance{}
+	mi := &file_temporal_server_api_testpilot_v1_case_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CaseProvenance) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CaseProvenance) ProtoMessage() {}
+
+func (x *CaseProvenance) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_case_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CaseProvenance.ProtoReflect.Descriptor instead.
+func (*CaseProvenance) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_case_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *CaseProvenance) GetProducerId() string {
+	if x != nil {
+		return x.ProducerId
+	}
+	return ""
+}
+
+func (x *CaseProvenance) GetProducerVersion() string {
+	if x != nil {
+		return x.ProducerVersion
+	}
+	return ""
+}
+
+func (x *CaseProvenance) GetProducerData() []byte {
+	if x != nil {
+		return x.ProducerData
+	}
+	return nil
+}
+
 var File_temporal_server_api_testpilot_v1_case_proto protoreflect.FileDescriptor
 
 const file_temporal_server_api_testpilot_v1_case_proto_rawDesc = "" +
 	"\n" +
-	"+temporal/server/api/testpilot/v1/case.proto\x12 temporal.server.api.testpilot.v1\x1a/temporal/server/api/testpilot/v1/contract.proto\x1a.temporal/server/api/testpilot/v1/program.proto\x1a,temporal/server/api/testpilot/v1/value.proto\"\x81\x01\n" +
-	"\x0eCaseProvenance\x12\x1f\n" +
-	"\vproducer_id\x18\x01 \x01(\tR\n" +
-	"producerId\x12)\n" +
-	"\x10producer_version\x18\x02 \x01(\tR\x0fproducerVersion\x12#\n" +
-	"\rproducer_data\x18\x03 \x01(\fR\fproducerData\"\xc9\x02\n" +
-	"\x04Case\x12I\n" +
-	"\aversion\x18\x01 \x01(\v2/.temporal.server.api.testpilot.v1.FormatVersionR\aversion\x12\x17\n" +
-	"\acase_id\x18\x02 \x01(\tR\x06caseId\x12P\n" +
+	"+temporal/server/api/testpilot/v1/case.proto\x12 temporal.server.api.testpilot.v1\x1a/temporal/server/api/testpilot/v1/contract.proto\x1a.temporal/server/api/testpilot/v1/program.proto\"\xc9\x02\n" +
+	"\x04Case\x12\x17\n" +
+	"\acase_id\x18\x01 \x01(\tR\x06caseId\x12I\n" +
+	"\aversion\x18\x02 \x01(\v2/.temporal.server.api.testpilot.v1.FormatVersionR\aversion\x12P\n" +
 	"\n" +
 	"provenance\x18\x03 \x01(\v20.temporal.server.api.testpilot.v1.CaseProvenanceR\n" +
 	"provenance\x12C\n" +
 	"\aprogram\x18\x04 \x01(\v2).temporal.server.api.testpilot.v1.ProgramR\aprogram\x12F\n" +
-	"\bcontract\x18\x05 \x01(\v2*.temporal.server.api.testpilot.v1.ContractR\bcontractB2Z0go.temporal.io/server/api/testpilot/v1;testpilotb\x06proto3"
+	"\bcontract\x18\x05 \x01(\v2*.temporal.server.api.testpilot.v1.ContractR\bcontract\";\n" +
+	"\rFormatVersion\x12\x14\n" +
+	"\x05major\x18\x01 \x01(\x05R\x05major\x12\x14\n" +
+	"\x05minor\x18\x02 \x01(\x05R\x05minor\"\x81\x01\n" +
+	"\x0eCaseProvenance\x12\x1f\n" +
+	"\vproducer_id\x18\x01 \x01(\tR\n" +
+	"producerId\x12)\n" +
+	"\x10producer_version\x18\x02 \x01(\tR\x0fproducerVersion\x12#\n" +
+	"\rproducer_data\x18\x03 \x01(\fR\fproducerDataB2Z0go.temporal.io/server/api/testpilot/v1;testpilotb\x06proto3"
 
 var (
 	file_temporal_server_api_testpilot_v1_case_proto_rawDescOnce sync.Once
@@ -191,17 +248,17 @@ func file_temporal_server_api_testpilot_v1_case_proto_rawDescGZIP() []byte {
 	return file_temporal_server_api_testpilot_v1_case_proto_rawDescData
 }
 
-var file_temporal_server_api_testpilot_v1_case_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_temporal_server_api_testpilot_v1_case_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_temporal_server_api_testpilot_v1_case_proto_goTypes = []any{
-	(*CaseProvenance)(nil), // 0: temporal.server.api.testpilot.v1.CaseProvenance
-	(*Case)(nil),           // 1: temporal.server.api.testpilot.v1.Case
-	(*FormatVersion)(nil),  // 2: temporal.server.api.testpilot.v1.FormatVersion
+	(*Case)(nil),           // 0: temporal.server.api.testpilot.v1.Case
+	(*FormatVersion)(nil),  // 1: temporal.server.api.testpilot.v1.FormatVersion
+	(*CaseProvenance)(nil), // 2: temporal.server.api.testpilot.v1.CaseProvenance
 	(*Program)(nil),        // 3: temporal.server.api.testpilot.v1.Program
 	(*Contract)(nil),       // 4: temporal.server.api.testpilot.v1.Contract
 }
 var file_temporal_server_api_testpilot_v1_case_proto_depIdxs = []int32{
-	2, // 0: temporal.server.api.testpilot.v1.Case.version:type_name -> temporal.server.api.testpilot.v1.FormatVersion
-	0, // 1: temporal.server.api.testpilot.v1.Case.provenance:type_name -> temporal.server.api.testpilot.v1.CaseProvenance
+	1, // 0: temporal.server.api.testpilot.v1.Case.version:type_name -> temporal.server.api.testpilot.v1.FormatVersion
+	2, // 1: temporal.server.api.testpilot.v1.Case.provenance:type_name -> temporal.server.api.testpilot.v1.CaseProvenance
 	3, // 2: temporal.server.api.testpilot.v1.Case.program:type_name -> temporal.server.api.testpilot.v1.Program
 	4, // 3: temporal.server.api.testpilot.v1.Case.contract:type_name -> temporal.server.api.testpilot.v1.Contract
 	4, // [4:4] is the sub-list for method output_type
@@ -218,14 +275,13 @@ func file_temporal_server_api_testpilot_v1_case_proto_init() {
 	}
 	file_temporal_server_api_testpilot_v1_contract_proto_init()
 	file_temporal_server_api_testpilot_v1_program_proto_init()
-	file_temporal_server_api_testpilot_v1_value_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_temporal_server_api_testpilot_v1_case_proto_rawDesc), len(file_temporal_server_api_testpilot_v1_case_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

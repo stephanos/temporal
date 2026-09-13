@@ -2,21 +2,24 @@ syntax = "proto3";
 package temporal.server.api.testpilot.v1;
 import "temporal/server/api/testpilot/v1/contract.proto";
 import "temporal/server/api/testpilot/v1/program.proto";
-import "temporal/server/api/testpilot/v1/value.proto";
 option go_package = "go.temporal.io/server/api/testpilot/v1;testpilot";
+
+// Case is the versioned standalone pairing of exactly one bounded Program and one Contract.
+message Case {
+  string case_id = 1;
+  FormatVersion version = 2;
+  CaseProvenance provenance = 3;
+  Program program = 4;
+  Contract contract = 5;
+}
+
+// FormatVersion is the Case wire format version; preparation admits exactly 1.0.
+message FormatVersion { int32 major = 1; int32 minor = 2; }
 
 // CaseProvenance keeps producer-owned metadata opaque to Testpilot.
 message CaseProvenance {
   string producer_id = 1;
   string producer_version = 2;
+  // Producer-defined bytes Testpilot never reads.
   bytes producer_data = 3;
-}
-
-// Case is the versioned standalone pairing of exactly one bounded Program and one Contract.
-message Case {
-  FormatVersion version = 1;
-  string case_id = 2;
-  CaseProvenance provenance = 3;
-  Program program = 4;
-  Contract contract = 5;
 }

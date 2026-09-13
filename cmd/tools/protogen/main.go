@@ -449,6 +449,10 @@ func generate(ctx context.Context, gen *generator) error {
 	if err := gen.runProtogen(ctx); err != nil {
 		return fmt.Errorf("error running protogen: %w", err)
 	}
+	info("Resolving cross-file enum references...")
+	if err := resolveCrossFileEnumReferences(gen.tempOut); err != nil {
+		return fmt.Errorf("error resolving cross-file enum references: %w", err)
+	}
 	info("Running goimports for proto files...")
 	if err := gen.runGoImports(ctx); err != nil {
 		return fmt.Errorf("error running goimports: %w", err)

@@ -23,7 +23,78 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// ComparisonOperator names the ordering a compare expression tests. Every comparison with NaN is false.
 // (-- api-linter: core::0191::file-layout=disabled --)
+type ComparisonOperator int32
+
+const (
+	COMPARISON_OPERATOR_UNSPECIFIED           ComparisonOperator = 0
+	COMPARISON_OPERATOR_LESS_THAN             ComparisonOperator = 1
+	COMPARISON_OPERATOR_LESS_THAN_OR_EQUAL    ComparisonOperator = 2
+	COMPARISON_OPERATOR_GREATER_THAN          ComparisonOperator = 3
+	COMPARISON_OPERATOR_GREATER_THAN_OR_EQUAL ComparisonOperator = 4
+)
+
+// Enum value maps for ComparisonOperator.
+var (
+	ComparisonOperator_name = map[int32]string{
+		0: "COMPARISON_OPERATOR_UNSPECIFIED",
+		1: "COMPARISON_OPERATOR_LESS_THAN",
+		2: "COMPARISON_OPERATOR_LESS_THAN_OR_EQUAL",
+		3: "COMPARISON_OPERATOR_GREATER_THAN",
+		4: "COMPARISON_OPERATOR_GREATER_THAN_OR_EQUAL",
+	}
+	ComparisonOperator_value = map[string]int32{
+		"COMPARISON_OPERATOR_UNSPECIFIED":           0,
+		"COMPARISON_OPERATOR_LESS_THAN":             1,
+		"COMPARISON_OPERATOR_LESS_THAN_OR_EQUAL":    2,
+		"COMPARISON_OPERATOR_GREATER_THAN":          3,
+		"COMPARISON_OPERATOR_GREATER_THAN_OR_EQUAL": 4,
+	}
+)
+
+func (x ComparisonOperator) Enum() *ComparisonOperator {
+	p := new(ComparisonOperator)
+	*p = x
+	return p
+}
+
+func (x ComparisonOperator) String() string {
+	switch x {
+	case COMPARISON_OPERATOR_UNSPECIFIED:
+		return "Unspecified"
+	case COMPARISON_OPERATOR_LESS_THAN:
+		return "LessThan"
+	case COMPARISON_OPERATOR_LESS_THAN_OR_EQUAL:
+		return "LessThanOrEqual"
+	case COMPARISON_OPERATOR_GREATER_THAN:
+		return "GreaterThan"
+	case COMPARISON_OPERATOR_GREATER_THAN_OR_EQUAL:
+		return "GreaterThanOrEqual"
+	default:
+		return strconv.Itoa(int(x))
+	}
+
+}
+
+func (ComparisonOperator) Descriptor() protoreflect.EnumDescriptor {
+	return file_temporal_server_api_testpilot_v1_expression_proto_enumTypes[0].Descriptor()
+}
+
+func (ComparisonOperator) Type() protoreflect.EnumType {
+	return &file_temporal_server_api_testpilot_v1_expression_proto_enumTypes[0]
+}
+
+func (x ComparisonOperator) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ComparisonOperator.Descriptor instead.
+func (ComparisonOperator) EnumDescriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{0}
+}
+
+// InstructionOutcomeField names one field of an InstructionOutcome an expression may read.
 type InstructionOutcomeField int32
 
 const (
@@ -82,11 +153,11 @@ func (x InstructionOutcomeField) String() string {
 }
 
 func (InstructionOutcomeField) Descriptor() protoreflect.EnumDescriptor {
-	return file_temporal_server_api_testpilot_v1_expression_proto_enumTypes[0].Descriptor()
+	return file_temporal_server_api_testpilot_v1_expression_proto_enumTypes[1].Descriptor()
 }
 
 func (InstructionOutcomeField) Type() protoreflect.EnumType {
-	return &file_temporal_server_api_testpilot_v1_expression_proto_enumTypes[0]
+	return &file_temporal_server_api_testpilot_v1_expression_proto_enumTypes[1]
 }
 
 func (x InstructionOutcomeField) Number() protoreflect.EnumNumber {
@@ -95,934 +166,7 @@ func (x InstructionOutcomeField) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use InstructionOutcomeField.Descriptor instead.
 func (InstructionOutcomeField) EnumDescriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{0}
-}
-
-type ComparisonOperator int32
-
-const (
-	COMPARISON_OPERATOR_UNSPECIFIED           ComparisonOperator = 0
-	COMPARISON_OPERATOR_LESS_THAN             ComparisonOperator = 1
-	COMPARISON_OPERATOR_LESS_THAN_OR_EQUAL    ComparisonOperator = 2
-	COMPARISON_OPERATOR_GREATER_THAN          ComparisonOperator = 3
-	COMPARISON_OPERATOR_GREATER_THAN_OR_EQUAL ComparisonOperator = 4
-)
-
-// Enum value maps for ComparisonOperator.
-var (
-	ComparisonOperator_name = map[int32]string{
-		0: "COMPARISON_OPERATOR_UNSPECIFIED",
-		1: "COMPARISON_OPERATOR_LESS_THAN",
-		2: "COMPARISON_OPERATOR_LESS_THAN_OR_EQUAL",
-		3: "COMPARISON_OPERATOR_GREATER_THAN",
-		4: "COMPARISON_OPERATOR_GREATER_THAN_OR_EQUAL",
-	}
-	ComparisonOperator_value = map[string]int32{
-		"COMPARISON_OPERATOR_UNSPECIFIED":           0,
-		"COMPARISON_OPERATOR_LESS_THAN":             1,
-		"COMPARISON_OPERATOR_LESS_THAN_OR_EQUAL":    2,
-		"COMPARISON_OPERATOR_GREATER_THAN":          3,
-		"COMPARISON_OPERATOR_GREATER_THAN_OR_EQUAL": 4,
-	}
-)
-
-func (x ComparisonOperator) Enum() *ComparisonOperator {
-	p := new(ComparisonOperator)
-	*p = x
-	return p
-}
-
-func (x ComparisonOperator) String() string {
-	switch x {
-	case COMPARISON_OPERATOR_UNSPECIFIED:
-		return "Unspecified"
-	case COMPARISON_OPERATOR_LESS_THAN:
-		return "LessThan"
-	case COMPARISON_OPERATOR_LESS_THAN_OR_EQUAL:
-		return "LessThanOrEqual"
-	case COMPARISON_OPERATOR_GREATER_THAN:
-		return "GreaterThan"
-	case COMPARISON_OPERATOR_GREATER_THAN_OR_EQUAL:
-		return "GreaterThanOrEqual"
-	default:
-		return strconv.Itoa(int(x))
-	}
-
-}
-
-func (ComparisonOperator) Descriptor() protoreflect.EnumDescriptor {
-	return file_temporal_server_api_testpilot_v1_expression_proto_enumTypes[1].Descriptor()
-}
-
-func (ComparisonOperator) Type() protoreflect.EnumType {
-	return &file_temporal_server_api_testpilot_v1_expression_proto_enumTypes[1]
-}
-
-func (x ComparisonOperator) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use ComparisonOperator.Descriptor instead.
-func (ComparisonOperator) EnumDescriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{1}
-}
-
-type RunEventField int32
-
-const (
-	RUN_EVENT_FIELD_UNSPECIFIED          RunEventField = 0
-	RUN_EVENT_FIELD_SEQUENCE             RunEventField = 1
-	RUN_EVENT_FIELD_ELAPSED_MILLISECONDS RunEventField = 2
-	RUN_EVENT_FIELD_KIND                 RunEventField = 3
-	RUN_EVENT_FIELD_ENTRYPOINT_ID        RunEventField = 4
-	RUN_EVENT_FIELD_ACTIVATION_ID        RunEventField = 5
-	RUN_EVENT_FIELD_INSTRUCTION_ID       RunEventField = 6
-	RUN_EVENT_FIELD_ATTEMPT              RunEventField = 7
-	RUN_EVENT_FIELD_SOURCE_ID            RunEventField = 8
-	RUN_EVENT_FIELD_RUN_ID               RunEventField = 9
-	RUN_EVENT_FIELD_FAULT_ROLE_ID        RunEventField = 10
-	RUN_EVENT_FIELD_FAULT_KIND           RunEventField = 11
-)
-
-// Enum value maps for RunEventField.
-var (
-	RunEventField_name = map[int32]string{
-		0:  "RUN_EVENT_FIELD_UNSPECIFIED",
-		1:  "RUN_EVENT_FIELD_SEQUENCE",
-		2:  "RUN_EVENT_FIELD_ELAPSED_MILLISECONDS",
-		3:  "RUN_EVENT_FIELD_KIND",
-		4:  "RUN_EVENT_FIELD_ENTRYPOINT_ID",
-		5:  "RUN_EVENT_FIELD_ACTIVATION_ID",
-		6:  "RUN_EVENT_FIELD_INSTRUCTION_ID",
-		7:  "RUN_EVENT_FIELD_ATTEMPT",
-		8:  "RUN_EVENT_FIELD_SOURCE_ID",
-		9:  "RUN_EVENT_FIELD_RUN_ID",
-		10: "RUN_EVENT_FIELD_FAULT_ROLE_ID",
-		11: "RUN_EVENT_FIELD_FAULT_KIND",
-	}
-	RunEventField_value = map[string]int32{
-		"RUN_EVENT_FIELD_UNSPECIFIED":          0,
-		"RUN_EVENT_FIELD_SEQUENCE":             1,
-		"RUN_EVENT_FIELD_ELAPSED_MILLISECONDS": 2,
-		"RUN_EVENT_FIELD_KIND":                 3,
-		"RUN_EVENT_FIELD_ENTRYPOINT_ID":        4,
-		"RUN_EVENT_FIELD_ACTIVATION_ID":        5,
-		"RUN_EVENT_FIELD_INSTRUCTION_ID":       6,
-		"RUN_EVENT_FIELD_ATTEMPT":              7,
-		"RUN_EVENT_FIELD_SOURCE_ID":            8,
-		"RUN_EVENT_FIELD_RUN_ID":               9,
-		"RUN_EVENT_FIELD_FAULT_ROLE_ID":        10,
-		"RUN_EVENT_FIELD_FAULT_KIND":           11,
-	}
-)
-
-func (x RunEventField) Enum() *RunEventField {
-	p := new(RunEventField)
-	*p = x
-	return p
-}
-
-func (x RunEventField) String() string {
-	switch x {
-	case RUN_EVENT_FIELD_UNSPECIFIED:
-		return "Unspecified"
-	case RUN_EVENT_FIELD_SEQUENCE:
-		return "Sequence"
-	case RUN_EVENT_FIELD_ELAPSED_MILLISECONDS:
-		return "ElapsedMilliseconds"
-	case RUN_EVENT_FIELD_KIND:
-		return "Kind"
-	case RUN_EVENT_FIELD_ENTRYPOINT_ID:
-		return "EntrypointId"
-	case RUN_EVENT_FIELD_ACTIVATION_ID:
-		return "ActivationId"
-	case RUN_EVENT_FIELD_INSTRUCTION_ID:
-		return "InstructionId"
-	case RUN_EVENT_FIELD_ATTEMPT:
-		return "Attempt"
-	case RUN_EVENT_FIELD_SOURCE_ID:
-		return "SourceId"
-	case
-
-		// Deprecated: Use RunEventField.Descriptor instead.
-		RUN_EVENT_FIELD_RUN_ID:
-		return "RunId"
-	case RUN_EVENT_FIELD_FAULT_ROLE_ID:
-		return "FaultRoleId"
-	case RUN_EVENT_FIELD_FAULT_KIND:
-		return "FaultKind"
-	default:
-		return strconv.Itoa(int(x))
-	}
-
-}
-
-func (RunEventField) Descriptor() protoreflect.EnumDescriptor {
-	return file_temporal_server_api_testpilot_v1_expression_proto_enumTypes[2].Descriptor()
-}
-
-func (RunEventField) Type() protoreflect.EnumType {
-	return &file_temporal_server_api_testpilot_v1_expression_proto_enumTypes[2]
-}
-
-func (x RunEventField) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-func (RunEventField) EnumDescriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{2}
-}
-
-type InstructionReference struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	EntrypointId  string                 `protobuf:"bytes,1,opt,name=entrypoint_id,json=entrypointId,proto3" json:"entrypoint_id,omitempty"`
-	InstructionId string                 `protobuf:"bytes,2,opt,name=instruction_id,json=instructionId,proto3" json:"instruction_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *InstructionReference) Reset() {
-	*x = InstructionReference{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[0]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *InstructionReference) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*InstructionReference) ProtoMessage() {}
-
-func (x *InstructionReference) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[0]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use InstructionReference.ProtoReflect.Descriptor instead.
-func (*InstructionReference) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{0}
-}
-
-func (x *InstructionReference) GetEntrypointId() string {
-	if x != nil {
-		return x.EntrypointId
-	}
-	return ""
-}
-
-func (x *InstructionReference) GetInstructionId() string {
-	if x != nil {
-		return x.InstructionId
-	}
-	return ""
-}
-
-type SlotRef struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	SlotId        string                 `protobuf:"bytes,1,opt,name=slot_id,json=slotId,proto3" json:"slot_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *SlotRef) Reset() {
-	*x = SlotRef{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[1]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *SlotRef) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*SlotRef) ProtoMessage() {}
-
-func (x *SlotRef) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[1]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use SlotRef.ProtoReflect.Descriptor instead.
-func (*SlotRef) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{1}
-}
-
-func (x *SlotRef) GetSlotId() string {
-	if x != nil {
-		return x.SlotId
-	}
-	return ""
-}
-
-type InstructionOutcomeRef struct {
-	state         protoimpl.MessageState  `protogen:"open.v1"`
-	Instruction   *InstructionReference   `protobuf:"bytes,1,opt,name=instruction,proto3" json:"instruction,omitempty"`
-	Field         InstructionOutcomeField `protobuf:"varint,2,opt,name=field,proto3,enum=temporal.server.api.testpilot.v1.InstructionOutcomeField" json:"field,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *InstructionOutcomeRef) Reset() {
-	*x = InstructionOutcomeRef{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[2]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *InstructionOutcomeRef) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*InstructionOutcomeRef) ProtoMessage() {}
-
-func (x *InstructionOutcomeRef) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[2]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use InstructionOutcomeRef.ProtoReflect.Descriptor instead.
-func (*InstructionOutcomeRef) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *InstructionOutcomeRef) GetInstruction() *InstructionReference {
-	if x != nil {
-		return x.Instruction
-	}
-	return nil
-}
-
-func (x *InstructionOutcomeRef) GetField() InstructionOutcomeField {
-	if x != nil {
-		return x.Field
-	}
-	return INSTRUCTION_OUTCOME_FIELD_UNSPECIFIED
-}
-
-type OutcomeFieldDefinition struct {
-	state         protoimpl.MessageState  `protogen:"open.v1"`
-	Field         InstructionOutcomeField `protobuf:"varint,1,opt,name=field,proto3,enum=temporal.server.api.testpilot.v1.InstructionOutcomeField" json:"field,omitempty"`
-	Type          *ValueType              `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *OutcomeFieldDefinition) Reset() {
-	*x = OutcomeFieldDefinition{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[3]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *OutcomeFieldDefinition) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*OutcomeFieldDefinition) ProtoMessage() {}
-
-func (x *OutcomeFieldDefinition) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[3]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use OutcomeFieldDefinition.ProtoReflect.Descriptor instead.
-func (*OutcomeFieldDefinition) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{3}
-}
-
-func (x *OutcomeFieldDefinition) GetField() InstructionOutcomeField {
-	if x != nil {
-		return x.Field
-	}
-	return INSTRUCTION_OUTCOME_FIELD_UNSPECIFIED
-}
-
-func (x *OutcomeFieldDefinition) GetType() *ValueType {
-	if x != nil {
-		return x.Type
-	}
-	return nil
-}
-
-type InstructionOutcomeDefinition struct {
-	state         protoimpl.MessageState    `protogen:"open.v1"`
-	Fields        []*OutcomeFieldDefinition `protobuf:"bytes,1,rep,name=fields,proto3" json:"fields,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *InstructionOutcomeDefinition) Reset() {
-	*x = InstructionOutcomeDefinition{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[4]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *InstructionOutcomeDefinition) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*InstructionOutcomeDefinition) ProtoMessage() {}
-
-func (x *InstructionOutcomeDefinition) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[4]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use InstructionOutcomeDefinition.ProtoReflect.Descriptor instead.
-func (*InstructionOutcomeDefinition) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{4}
-}
-
-func (x *InstructionOutcomeDefinition) GetFields() []*OutcomeFieldDefinition {
-	if x != nil {
-		return x.Fields
-	}
-	return nil
-}
-
-type ObservationRef struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	ObservationId string                 `protobuf:"bytes,1,opt,name=observation_id,json=observationId,proto3" json:"observation_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ObservationRef) Reset() {
-	*x = ObservationRef{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[5]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ObservationRef) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ObservationRef) ProtoMessage() {}
-
-func (x *ObservationRef) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[5]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ObservationRef.ProtoReflect.Descriptor instead.
-func (*ObservationRef) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{5}
-}
-
-func (x *ObservationRef) GetObservationId() string {
-	if x != nil {
-		return x.ObservationId
-	}
-	return ""
-}
-
-type CaptureRef struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	CaptureId     string                 `protobuf:"bytes,1,opt,name=capture_id,json=captureId,proto3" json:"capture_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *CaptureRef) Reset() {
-	*x = CaptureRef{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[6]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *CaptureRef) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*CaptureRef) ProtoMessage() {}
-
-func (x *CaptureRef) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[6]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use CaptureRef.ProtoReflect.Descriptor instead.
-func (*CaptureRef) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{6}
-}
-
-func (x *CaptureRef) GetCaptureId() string {
-	if x != nil {
-		return x.CaptureId
-	}
-	return ""
-}
-
-type RunRef struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *RunRef) Reset() {
-	*x = RunRef{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[7]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *RunRef) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RunRef) ProtoMessage() {}
-
-func (x *RunRef) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[7]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RunRef.ProtoReflect.Descriptor instead.
-func (*RunRef) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{7}
-}
-
-type RunEventFieldRef struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Field         RunEventField          `protobuf:"varint,1,opt,name=field,proto3,enum=temporal.server.api.testpilot.v1.RunEventField" json:"field,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *RunEventFieldRef) Reset() {
-	*x = RunEventFieldRef{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[8]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *RunEventFieldRef) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RunEventFieldRef) ProtoMessage() {}
-
-func (x *RunEventFieldRef) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[8]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RunEventFieldRef.ProtoReflect.Descriptor instead.
-func (*RunEventFieldRef) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{8}
-}
-
-func (x *RunEventFieldRef) GetField() RunEventField {
-	if x != nil {
-		return x.Field
-	}
-	return RUN_EVENT_FIELD_UNSPECIFIED
-}
-
-type ProgramPathExpression struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Source        *ProgramExpression     `protobuf:"bytes,1,opt,name=source,proto3" json:"source,omitempty"`
-	Path          *FieldPath             `protobuf:"bytes,2,opt,name=path,proto3" json:"path,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ProgramPathExpression) Reset() {
-	*x = ProgramPathExpression{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[9]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ProgramPathExpression) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ProgramPathExpression) ProtoMessage() {}
-
-func (x *ProgramPathExpression) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[9]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ProgramPathExpression.ProtoReflect.Descriptor instead.
-func (*ProgramPathExpression) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{9}
-}
-
-func (x *ProgramPathExpression) GetSource() *ProgramExpression {
-	if x != nil {
-		return x.Source
-	}
-	return nil
-}
-
-func (x *ProgramPathExpression) GetPath() *FieldPath {
-	if x != nil {
-		return x.Path
-	}
-	return nil
-}
-
-type ProgramPresentExpression struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Operand       *ProgramExpression     `protobuf:"bytes,1,opt,name=operand,proto3" json:"operand,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ProgramPresentExpression) Reset() {
-	*x = ProgramPresentExpression{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[10]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ProgramPresentExpression) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ProgramPresentExpression) ProtoMessage() {}
-
-func (x *ProgramPresentExpression) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[10]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ProgramPresentExpression.ProtoReflect.Descriptor instead.
-func (*ProgramPresentExpression) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{10}
-}
-
-func (x *ProgramPresentExpression) GetOperand() *ProgramExpression {
-	if x != nil {
-		return x.Operand
-	}
-	return nil
-}
-
-type ProgramEqualsExpression struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Left          *ProgramExpression     `protobuf:"bytes,1,opt,name=left,proto3" json:"left,omitempty"`
-	Right         *ProgramExpression     `protobuf:"bytes,2,opt,name=right,proto3" json:"right,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ProgramEqualsExpression) Reset() {
-	*x = ProgramEqualsExpression{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[11]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ProgramEqualsExpression) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ProgramEqualsExpression) ProtoMessage() {}
-
-func (x *ProgramEqualsExpression) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[11]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ProgramEqualsExpression.ProtoReflect.Descriptor instead.
-func (*ProgramEqualsExpression) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{11}
-}
-
-func (x *ProgramEqualsExpression) GetLeft() *ProgramExpression {
-	if x != nil {
-		return x.Left
-	}
-	return nil
-}
-
-func (x *ProgramEqualsExpression) GetRight() *ProgramExpression {
-	if x != nil {
-		return x.Right
-	}
-	return nil
-}
-
-type ProgramCompareExpression struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Operator      ComparisonOperator     `protobuf:"varint,1,opt,name=operator,proto3,enum=temporal.server.api.testpilot.v1.ComparisonOperator" json:"operator,omitempty"`
-	Left          *ProgramExpression     `protobuf:"bytes,2,opt,name=left,proto3" json:"left,omitempty"`
-	Right         *ProgramExpression     `protobuf:"bytes,3,opt,name=right,proto3" json:"right,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ProgramCompareExpression) Reset() {
-	*x = ProgramCompareExpression{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[12]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ProgramCompareExpression) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ProgramCompareExpression) ProtoMessage() {}
-
-func (x *ProgramCompareExpression) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[12]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ProgramCompareExpression.ProtoReflect.Descriptor instead.
-func (*ProgramCompareExpression) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{12}
-}
-
-func (x *ProgramCompareExpression) GetOperator() ComparisonOperator {
-	if x != nil {
-		return x.Operator
-	}
-	return COMPARISON_OPERATOR_UNSPECIFIED
-}
-
-func (x *ProgramCompareExpression) GetLeft() *ProgramExpression {
-	if x != nil {
-		return x.Left
-	}
-	return nil
-}
-
-func (x *ProgramCompareExpression) GetRight() *ProgramExpression {
-	if x != nil {
-		return x.Right
-	}
-	return nil
-}
-
-type ProgramNotExpression struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Operand       *ProgramExpression     `protobuf:"bytes,1,opt,name=operand,proto3" json:"operand,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ProgramNotExpression) Reset() {
-	*x = ProgramNotExpression{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[13]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ProgramNotExpression) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ProgramNotExpression) ProtoMessage() {}
-
-func (x *ProgramNotExpression) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[13]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ProgramNotExpression.ProtoReflect.Descriptor instead.
-func (*ProgramNotExpression) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{13}
-}
-
-func (x *ProgramNotExpression) GetOperand() *ProgramExpression {
-	if x != nil {
-		return x.Operand
-	}
-	return nil
-}
-
-type ProgramAllExpression struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Operands      []*ProgramExpression   `protobuf:"bytes,1,rep,name=operands,proto3" json:"operands,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ProgramAllExpression) Reset() {
-	*x = ProgramAllExpression{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[14]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ProgramAllExpression) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ProgramAllExpression) ProtoMessage() {}
-
-func (x *ProgramAllExpression) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[14]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ProgramAllExpression.ProtoReflect.Descriptor instead.
-func (*ProgramAllExpression) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{14}
-}
-
-func (x *ProgramAllExpression) GetOperands() []*ProgramExpression {
-	if x != nil {
-		return x.Operands
-	}
-	return nil
-}
-
-type ProgramAnyExpression struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Operands      []*ProgramExpression   `protobuf:"bytes,1,rep,name=operands,proto3" json:"operands,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ProgramAnyExpression) Reset() {
-	*x = ProgramAnyExpression{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[15]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ProgramAnyExpression) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ProgramAnyExpression) ProtoMessage() {}
-
-func (x *ProgramAnyExpression) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[15]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ProgramAnyExpression.ProtoReflect.Descriptor instead.
-func (*ProgramAnyExpression) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{15}
-}
-
-func (x *ProgramAnyExpression) GetOperands() []*ProgramExpression {
-	if x != nil {
-		return x.Operands
-	}
-	return nil
 }
 
 // ProgramExpression is the closed expression vocabulary for instruction inputs and guards.
@@ -1049,7 +193,7 @@ type ProgramExpression struct {
 
 func (x *ProgramExpression) Reset() {
 	*x = ProgramExpression{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[16]
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1061,7 +205,7 @@ func (x *ProgramExpression) String() string {
 func (*ProgramExpression) ProtoMessage() {}
 
 func (x *ProgramExpression) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[16]
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1074,7 +218,7 @@ func (x *ProgramExpression) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProgramExpression.ProtoReflect.Descriptor instead.
 func (*ProgramExpression) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{16}
+	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *ProgramExpression) GetExpression() isProgramExpression_Expression {
@@ -1268,29 +412,30 @@ func (*ProgramExpression_Any) isProgramExpression_Expression() {}
 
 func (*ProgramExpression_Environment) isProgramExpression_Expression() {}
 
-type ContractPathExpression struct {
+// ProgramPathExpression reads a FieldPath out of its source's value, absent when any segment is absent.
+type ProgramPathExpression struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Source        *ContractExpression    `protobuf:"bytes,1,opt,name=source,proto3" json:"source,omitempty"`
+	Source        *ProgramExpression     `protobuf:"bytes,1,opt,name=source,proto3" json:"source,omitempty"`
 	Path          *FieldPath             `protobuf:"bytes,2,opt,name=path,proto3" json:"path,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ContractPathExpression) Reset() {
-	*x = ContractPathExpression{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[17]
+func (x *ProgramPathExpression) Reset() {
+	*x = ProgramPathExpression{}
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ContractPathExpression) String() string {
+func (x *ProgramPathExpression) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ContractPathExpression) ProtoMessage() {}
+func (*ProgramPathExpression) ProtoMessage() {}
 
-func (x *ContractPathExpression) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[17]
+func (x *ProgramPathExpression) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1301,47 +446,48 @@ func (x *ContractPathExpression) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ContractPathExpression.ProtoReflect.Descriptor instead.
-func (*ContractPathExpression) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{17}
+// Deprecated: Use ProgramPathExpression.ProtoReflect.Descriptor instead.
+func (*ProgramPathExpression) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *ContractPathExpression) GetSource() *ContractExpression {
+func (x *ProgramPathExpression) GetSource() *ProgramExpression {
 	if x != nil {
 		return x.Source
 	}
 	return nil
 }
 
-func (x *ContractPathExpression) GetPath() *FieldPath {
+func (x *ProgramPathExpression) GetPath() *FieldPath {
 	if x != nil {
 		return x.Path
 	}
 	return nil
 }
 
-type ContractPresentExpression struct {
+// ProgramPresentExpression is true when its operand is not absent.
+type ProgramPresentExpression struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Operand       *ContractExpression    `protobuf:"bytes,1,opt,name=operand,proto3" json:"operand,omitempty"`
+	Operand       *ProgramExpression     `protobuf:"bytes,1,opt,name=operand,proto3" json:"operand,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ContractPresentExpression) Reset() {
-	*x = ContractPresentExpression{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[18]
+func (x *ProgramPresentExpression) Reset() {
+	*x = ProgramPresentExpression{}
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ContractPresentExpression) String() string {
+func (x *ProgramPresentExpression) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ContractPresentExpression) ProtoMessage() {}
+func (*ProgramPresentExpression) ProtoMessage() {}
 
-func (x *ContractPresentExpression) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[18]
+func (x *ProgramPresentExpression) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1352,41 +498,42 @@ func (x *ContractPresentExpression) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ContractPresentExpression.ProtoReflect.Descriptor instead.
-func (*ContractPresentExpression) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{18}
+// Deprecated: Use ProgramPresentExpression.ProtoReflect.Descriptor instead.
+func (*ProgramPresentExpression) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *ContractPresentExpression) GetOperand() *ContractExpression {
+func (x *ProgramPresentExpression) GetOperand() *ProgramExpression {
 	if x != nil {
 		return x.Operand
 	}
 	return nil
 }
 
-type ContractEqualsExpression struct {
+// ProgramEqualsExpression is true when its operands, of one type, are equal.
+type ProgramEqualsExpression struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Left          *ContractExpression    `protobuf:"bytes,1,opt,name=left,proto3" json:"left,omitempty"`
-	Right         *ContractExpression    `protobuf:"bytes,2,opt,name=right,proto3" json:"right,omitempty"`
+	Left          *ProgramExpression     `protobuf:"bytes,1,opt,name=left,proto3" json:"left,omitempty"`
+	Right         *ProgramExpression     `protobuf:"bytes,2,opt,name=right,proto3" json:"right,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ContractEqualsExpression) Reset() {
-	*x = ContractEqualsExpression{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[19]
+func (x *ProgramEqualsExpression) Reset() {
+	*x = ProgramEqualsExpression{}
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ContractEqualsExpression) String() string {
+func (x *ProgramEqualsExpression) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ContractEqualsExpression) ProtoMessage() {}
+func (*ProgramEqualsExpression) ProtoMessage() {}
 
-func (x *ContractEqualsExpression) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[19]
+func (x *ProgramEqualsExpression) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1397,49 +544,50 @@ func (x *ContractEqualsExpression) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ContractEqualsExpression.ProtoReflect.Descriptor instead.
-func (*ContractEqualsExpression) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{19}
+// Deprecated: Use ProgramEqualsExpression.ProtoReflect.Descriptor instead.
+func (*ProgramEqualsExpression) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *ContractEqualsExpression) GetLeft() *ContractExpression {
+func (x *ProgramEqualsExpression) GetLeft() *ProgramExpression {
 	if x != nil {
 		return x.Left
 	}
 	return nil
 }
 
-func (x *ContractEqualsExpression) GetRight() *ContractExpression {
+func (x *ProgramEqualsExpression) GetRight() *ProgramExpression {
 	if x != nil {
 		return x.Right
 	}
 	return nil
 }
 
-type ContractCompareExpression struct {
+// ProgramCompareExpression orders two operands of one numeric type.
+type ProgramCompareExpression struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Operator      ComparisonOperator     `protobuf:"varint,1,opt,name=operator,proto3,enum=temporal.server.api.testpilot.v1.ComparisonOperator" json:"operator,omitempty"`
-	Left          *ContractExpression    `protobuf:"bytes,2,opt,name=left,proto3" json:"left,omitempty"`
-	Right         *ContractExpression    `protobuf:"bytes,3,opt,name=right,proto3" json:"right,omitempty"`
+	Left          *ProgramExpression     `protobuf:"bytes,2,opt,name=left,proto3" json:"left,omitempty"`
+	Right         *ProgramExpression     `protobuf:"bytes,3,opt,name=right,proto3" json:"right,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ContractCompareExpression) Reset() {
-	*x = ContractCompareExpression{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[20]
+func (x *ProgramCompareExpression) Reset() {
+	*x = ProgramCompareExpression{}
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ContractCompareExpression) String() string {
+func (x *ProgramCompareExpression) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ContractCompareExpression) ProtoMessage() {}
+func (*ProgramCompareExpression) ProtoMessage() {}
 
-func (x *ContractCompareExpression) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[20]
+func (x *ProgramCompareExpression) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1450,54 +598,55 @@ func (x *ContractCompareExpression) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ContractCompareExpression.ProtoReflect.Descriptor instead.
-func (*ContractCompareExpression) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{20}
+// Deprecated: Use ProgramCompareExpression.ProtoReflect.Descriptor instead.
+func (*ProgramCompareExpression) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *ContractCompareExpression) GetOperator() ComparisonOperator {
+func (x *ProgramCompareExpression) GetOperator() ComparisonOperator {
 	if x != nil {
 		return x.Operator
 	}
 	return COMPARISON_OPERATOR_UNSPECIFIED
 }
 
-func (x *ContractCompareExpression) GetLeft() *ContractExpression {
+func (x *ProgramCompareExpression) GetLeft() *ProgramExpression {
 	if x != nil {
 		return x.Left
 	}
 	return nil
 }
 
-func (x *ContractCompareExpression) GetRight() *ContractExpression {
+func (x *ProgramCompareExpression) GetRight() *ProgramExpression {
 	if x != nil {
 		return x.Right
 	}
 	return nil
 }
 
-type ContractNotExpression struct {
+// ProgramNotExpression negates a boolean operand.
+type ProgramNotExpression struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Operand       *ContractExpression    `protobuf:"bytes,1,opt,name=operand,proto3" json:"operand,omitempty"`
+	Operand       *ProgramExpression     `protobuf:"bytes,1,opt,name=operand,proto3" json:"operand,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ContractNotExpression) Reset() {
-	*x = ContractNotExpression{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[21]
+func (x *ProgramNotExpression) Reset() {
+	*x = ProgramNotExpression{}
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ContractNotExpression) String() string {
+func (x *ProgramNotExpression) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ContractNotExpression) ProtoMessage() {}
+func (*ProgramNotExpression) ProtoMessage() {}
 
-func (x *ContractNotExpression) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[21]
+func (x *ProgramNotExpression) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1508,40 +657,42 @@ func (x *ContractNotExpression) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ContractNotExpression.ProtoReflect.Descriptor instead.
-func (*ContractNotExpression) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{21}
+// Deprecated: Use ProgramNotExpression.ProtoReflect.Descriptor instead.
+func (*ProgramNotExpression) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *ContractNotExpression) GetOperand() *ContractExpression {
+func (x *ProgramNotExpression) GetOperand() *ProgramExpression {
 	if x != nil {
 		return x.Operand
 	}
 	return nil
 }
 
-type ContractAllExpression struct {
+// ProgramAllExpression is true when every operand is true. Operands are evaluated left to right until
+// one is false; an empty list is true.
+type ProgramAllExpression struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Operands      []*ContractExpression  `protobuf:"bytes,1,rep,name=operands,proto3" json:"operands,omitempty"`
+	Operands      []*ProgramExpression   `protobuf:"bytes,1,rep,name=operands,proto3" json:"operands,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ContractAllExpression) Reset() {
-	*x = ContractAllExpression{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[22]
+func (x *ProgramAllExpression) Reset() {
+	*x = ProgramAllExpression{}
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ContractAllExpression) String() string {
+func (x *ProgramAllExpression) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ContractAllExpression) ProtoMessage() {}
+func (*ProgramAllExpression) ProtoMessage() {}
 
-func (x *ContractAllExpression) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[22]
+func (x *ProgramAllExpression) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1552,40 +703,42 @@ func (x *ContractAllExpression) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ContractAllExpression.ProtoReflect.Descriptor instead.
-func (*ContractAllExpression) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{22}
+// Deprecated: Use ProgramAllExpression.ProtoReflect.Descriptor instead.
+func (*ProgramAllExpression) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *ContractAllExpression) GetOperands() []*ContractExpression {
+func (x *ProgramAllExpression) GetOperands() []*ProgramExpression {
 	if x != nil {
 		return x.Operands
 	}
 	return nil
 }
 
-type ContractAnyExpression struct {
+// ProgramAnyExpression is true when some operand is true. Operands are evaluated left to right until
+// one is true; an empty list is false.
+type ProgramAnyExpression struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Operands      []*ContractExpression  `protobuf:"bytes,1,rep,name=operands,proto3" json:"operands,omitempty"`
+	Operands      []*ProgramExpression   `protobuf:"bytes,1,rep,name=operands,proto3" json:"operands,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ContractAnyExpression) Reset() {
-	*x = ContractAnyExpression{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[23]
+func (x *ProgramAnyExpression) Reset() {
+	*x = ProgramAnyExpression{}
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ContractAnyExpression) String() string {
+func (x *ProgramAnyExpression) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ContractAnyExpression) ProtoMessage() {}
+func (*ProgramAnyExpression) ProtoMessage() {}
 
-func (x *ContractAnyExpression) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[23]
+func (x *ProgramAnyExpression) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1596,12 +749,12 @@ func (x *ContractAnyExpression) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ContractAnyExpression.ProtoReflect.Descriptor instead.
-func (*ContractAnyExpression) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{23}
+// Deprecated: Use ProgramAnyExpression.ProtoReflect.Descriptor instead.
+func (*ProgramAnyExpression) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *ContractAnyExpression) GetOperands() []*ContractExpression {
+func (x *ProgramAnyExpression) GetOperands() []*ProgramExpression {
 	if x != nil {
 		return x.Operands
 	}
@@ -1631,7 +784,7 @@ type ContractExpression struct {
 
 func (x *ContractExpression) Reset() {
 	*x = ContractExpression{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[24]
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1643,7 +796,7 @@ func (x *ContractExpression) String() string {
 func (*ContractExpression) ProtoMessage() {}
 
 func (x *ContractExpression) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[24]
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1656,7 +809,7 @@ func (x *ContractExpression) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ContractExpression.ProtoReflect.Descriptor instead.
 func (*ContractExpression) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{24}
+	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *ContractExpression) GetExpression() isContractExpression_Expression {
@@ -1835,6 +988,545 @@ func (*ContractExpression_Any) isContractExpression_Expression() {}
 
 func (*ContractExpression_Capture) isContractExpression_Expression() {}
 
+// ContractPathExpression reads a FieldPath out of its source's value, absent when any segment is absent.
+type ContractPathExpression struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Source        *ContractExpression    `protobuf:"bytes,1,opt,name=source,proto3" json:"source,omitempty"`
+	Path          *FieldPath             `protobuf:"bytes,2,opt,name=path,proto3" json:"path,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ContractPathExpression) Reset() {
+	*x = ContractPathExpression{}
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ContractPathExpression) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ContractPathExpression) ProtoMessage() {}
+
+func (x *ContractPathExpression) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ContractPathExpression.ProtoReflect.Descriptor instead.
+func (*ContractPathExpression) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *ContractPathExpression) GetSource() *ContractExpression {
+	if x != nil {
+		return x.Source
+	}
+	return nil
+}
+
+func (x *ContractPathExpression) GetPath() *FieldPath {
+	if x != nil {
+		return x.Path
+	}
+	return nil
+}
+
+// ContractPresentExpression is true when its operand is not absent.
+type ContractPresentExpression struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Operand       *ContractExpression    `protobuf:"bytes,1,opt,name=operand,proto3" json:"operand,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ContractPresentExpression) Reset() {
+	*x = ContractPresentExpression{}
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ContractPresentExpression) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ContractPresentExpression) ProtoMessage() {}
+
+func (x *ContractPresentExpression) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ContractPresentExpression.ProtoReflect.Descriptor instead.
+func (*ContractPresentExpression) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *ContractPresentExpression) GetOperand() *ContractExpression {
+	if x != nil {
+		return x.Operand
+	}
+	return nil
+}
+
+// ContractEqualsExpression is true when its operands, of one type, are equal.
+type ContractEqualsExpression struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Left          *ContractExpression    `protobuf:"bytes,1,opt,name=left,proto3" json:"left,omitempty"`
+	Right         *ContractExpression    `protobuf:"bytes,2,opt,name=right,proto3" json:"right,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ContractEqualsExpression) Reset() {
+	*x = ContractEqualsExpression{}
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ContractEqualsExpression) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ContractEqualsExpression) ProtoMessage() {}
+
+func (x *ContractEqualsExpression) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ContractEqualsExpression.ProtoReflect.Descriptor instead.
+func (*ContractEqualsExpression) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *ContractEqualsExpression) GetLeft() *ContractExpression {
+	if x != nil {
+		return x.Left
+	}
+	return nil
+}
+
+func (x *ContractEqualsExpression) GetRight() *ContractExpression {
+	if x != nil {
+		return x.Right
+	}
+	return nil
+}
+
+// ContractCompareExpression orders two operands of one numeric type.
+type ContractCompareExpression struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Operator      ComparisonOperator     `protobuf:"varint,1,opt,name=operator,proto3,enum=temporal.server.api.testpilot.v1.ComparisonOperator" json:"operator,omitempty"`
+	Left          *ContractExpression    `protobuf:"bytes,2,opt,name=left,proto3" json:"left,omitempty"`
+	Right         *ContractExpression    `protobuf:"bytes,3,opt,name=right,proto3" json:"right,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ContractCompareExpression) Reset() {
+	*x = ContractCompareExpression{}
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ContractCompareExpression) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ContractCompareExpression) ProtoMessage() {}
+
+func (x *ContractCompareExpression) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ContractCompareExpression.ProtoReflect.Descriptor instead.
+func (*ContractCompareExpression) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *ContractCompareExpression) GetOperator() ComparisonOperator {
+	if x != nil {
+		return x.Operator
+	}
+	return COMPARISON_OPERATOR_UNSPECIFIED
+}
+
+func (x *ContractCompareExpression) GetLeft() *ContractExpression {
+	if x != nil {
+		return x.Left
+	}
+	return nil
+}
+
+func (x *ContractCompareExpression) GetRight() *ContractExpression {
+	if x != nil {
+		return x.Right
+	}
+	return nil
+}
+
+// ContractNotExpression negates a boolean operand.
+type ContractNotExpression struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Operand       *ContractExpression    `protobuf:"bytes,1,opt,name=operand,proto3" json:"operand,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ContractNotExpression) Reset() {
+	*x = ContractNotExpression{}
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ContractNotExpression) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ContractNotExpression) ProtoMessage() {}
+
+func (x *ContractNotExpression) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ContractNotExpression.ProtoReflect.Descriptor instead.
+func (*ContractNotExpression) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *ContractNotExpression) GetOperand() *ContractExpression {
+	if x != nil {
+		return x.Operand
+	}
+	return nil
+}
+
+// ContractAllExpression is true when every operand is true. Operands are evaluated left to right until
+// one is false; an empty list is true.
+type ContractAllExpression struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Operands      []*ContractExpression  `protobuf:"bytes,1,rep,name=operands,proto3" json:"operands,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ContractAllExpression) Reset() {
+	*x = ContractAllExpression{}
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ContractAllExpression) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ContractAllExpression) ProtoMessage() {}
+
+func (x *ContractAllExpression) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ContractAllExpression.ProtoReflect.Descriptor instead.
+func (*ContractAllExpression) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *ContractAllExpression) GetOperands() []*ContractExpression {
+	if x != nil {
+		return x.Operands
+	}
+	return nil
+}
+
+// ContractAnyExpression is true when some operand is true. Operands are evaluated left to right until
+// one is true; an empty list is false.
+type ContractAnyExpression struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Operands      []*ContractExpression  `protobuf:"bytes,1,rep,name=operands,proto3" json:"operands,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ContractAnyExpression) Reset() {
+	*x = ContractAnyExpression{}
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ContractAnyExpression) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ContractAnyExpression) ProtoMessage() {}
+
+func (x *ContractAnyExpression) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ContractAnyExpression.ProtoReflect.Descriptor instead.
+func (*ContractAnyExpression) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *ContractAnyExpression) GetOperands() []*ContractExpression {
+	if x != nil {
+		return x.Operands
+	}
+	return nil
+}
+
+// SlotRef reads the value assigned to a Slot, absent until the Slot is written.
+type SlotRef struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SlotId        string                 `protobuf:"bytes,1,opt,name=slot_id,json=slotId,proto3" json:"slot_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SlotRef) Reset() {
+	*x = SlotRef{}
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SlotRef) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SlotRef) ProtoMessage() {}
+
+func (x *SlotRef) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SlotRef.ProtoReflect.Descriptor instead.
+func (*SlotRef) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *SlotRef) GetSlotId() string {
+	if x != nil {
+		return x.SlotId
+	}
+	return ""
+}
+
+// InstructionReference names one instruction by its entrypoint and instruction ids.
+type InstructionReference struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	EntrypointId  string                 `protobuf:"bytes,1,opt,name=entrypoint_id,json=entrypointId,proto3" json:"entrypoint_id,omitempty"`
+	InstructionId string                 `protobuf:"bytes,2,opt,name=instruction_id,json=instructionId,proto3" json:"instruction_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InstructionReference) Reset() {
+	*x = InstructionReference{}
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InstructionReference) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InstructionReference) ProtoMessage() {}
+
+func (x *InstructionReference) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InstructionReference.ProtoReflect.Descriptor instead.
+func (*InstructionReference) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *InstructionReference) GetEntrypointId() string {
+	if x != nil {
+		return x.EntrypointId
+	}
+	return ""
+}
+
+func (x *InstructionReference) GetInstructionId() string {
+	if x != nil {
+		return x.InstructionId
+	}
+	return ""
+}
+
+// InstructionOutcomeRef reads one declared field of an earlier instruction's outcome.
+type InstructionOutcomeRef struct {
+	state         protoimpl.MessageState  `protogen:"open.v1"`
+	Instruction   *InstructionReference   `protobuf:"bytes,1,opt,name=instruction,proto3" json:"instruction,omitempty"`
+	Field         InstructionOutcomeField `protobuf:"varint,2,opt,name=field,proto3,enum=temporal.server.api.testpilot.v1.InstructionOutcomeField" json:"field,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InstructionOutcomeRef) Reset() {
+	*x = InstructionOutcomeRef{}
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InstructionOutcomeRef) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InstructionOutcomeRef) ProtoMessage() {}
+
+func (x *InstructionOutcomeRef) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InstructionOutcomeRef.ProtoReflect.Descriptor instead.
+func (*InstructionOutcomeRef) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *InstructionOutcomeRef) GetInstruction() *InstructionReference {
+	if x != nil {
+		return x.Instruction
+	}
+	return nil
+}
+
+func (x *InstructionOutcomeRef) GetField() InstructionOutcomeField {
+	if x != nil {
+		return x.Field
+	}
+	return INSTRUCTION_OUTCOME_FIELD_UNSPECIFIED
+}
+
+// RunRef reads the Run id as text. Only InvokeRpc request assignments may use it.
+type RunRef struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RunRef) Reset() {
+	*x = RunRef{}
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RunRef) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RunRef) ProtoMessage() {}
+
+func (x *RunRef) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RunRef.ProtoReflect.Descriptor instead.
+func (*RunRef) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{19}
+}
+
+// EnvironmentRef reads a declared environment binding's value. It is admitted only as the whole value
+// of an InvokeRpc request assignment to a text field.
 type EnvironmentRef struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	BindingId     string                 `protobuf:"bytes,1,opt,name=binding_id,json=bindingId,proto3" json:"binding_id,omitempty"`
@@ -1844,7 +1536,7 @@ type EnvironmentRef struct {
 
 func (x *EnvironmentRef) Reset() {
 	*x = EnvironmentRef{}
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[25]
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1856,7 +1548,7 @@ func (x *EnvironmentRef) String() string {
 func (*EnvironmentRef) ProtoMessage() {}
 
 func (x *EnvironmentRef) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[25]
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1869,7 +1561,7 @@ func (x *EnvironmentRef) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnvironmentRef.ProtoReflect.Descriptor instead.
 func (*EnvironmentRef) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{25}
+	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *EnvironmentRef) GetBindingId() string {
@@ -1879,33 +1571,163 @@ func (x *EnvironmentRef) GetBindingId() string {
 	return ""
 }
 
+// ObservationRef reads an Observation of the evaluated Run Event, absent when the event does not
+// carry it.
+type ObservationRef struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ObservationId string                 `protobuf:"bytes,1,opt,name=observation_id,json=observationId,proto3" json:"observation_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ObservationRef) Reset() {
+	*x = ObservationRef{}
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ObservationRef) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ObservationRef) ProtoMessage() {}
+
+func (x *ObservationRef) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ObservationRef.ProtoReflect.Descriptor instead.
+func (*ObservationRef) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *ObservationRef) GetObservationId() string {
+	if x != nil {
+		return x.ObservationId
+	}
+	return ""
+}
+
+// RunEventFieldRef reads one coordinate of the evaluated Run Event.
+type RunEventFieldRef struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Field         RunEventField          `protobuf:"varint,1,opt,name=field,proto3,enum=temporal.server.api.testpilot.v1.RunEventField" json:"field,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RunEventFieldRef) Reset() {
+	*x = RunEventFieldRef{}
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RunEventFieldRef) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RunEventFieldRef) ProtoMessage() {}
+
+func (x *RunEventFieldRef) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RunEventFieldRef.ProtoReflect.Descriptor instead.
+func (*RunEventFieldRef) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *RunEventFieldRef) GetField() RunEventField {
+	if x != nil {
+		return x.Field
+	}
+	return RUN_EVENT_FIELD_UNSPECIFIED
+}
+
+// CaptureRef reads a value the rule captured earlier, absent until it is assigned.
+type CaptureRef struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	CaptureId     string                 `protobuf:"bytes,1,opt,name=capture_id,json=captureId,proto3" json:"capture_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CaptureRef) Reset() {
+	*x = CaptureRef{}
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CaptureRef) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CaptureRef) ProtoMessage() {}
+
+func (x *CaptureRef) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CaptureRef.ProtoReflect.Descriptor instead.
+func (*CaptureRef) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *CaptureRef) GetCaptureId() string {
+	if x != nil {
+		return x.CaptureId
+	}
+	return ""
+}
+
 var File_temporal_server_api_testpilot_v1_expression_proto protoreflect.FileDescriptor
 
 const file_temporal_server_api_testpilot_v1_expression_proto_rawDesc = "" +
 	"\n" +
-	"1temporal/server/api/testpilot/v1/expression.proto\x12 temporal.server.api.testpilot.v1\x1a,temporal/server/api/testpilot/v1/value.proto\"b\n" +
-	"\x14InstructionReference\x12#\n" +
-	"\rentrypoint_id\x18\x01 \x01(\tR\fentrypointId\x12%\n" +
-	"\x0einstruction_id\x18\x02 \x01(\tR\rinstructionId\"\"\n" +
-	"\aSlotRef\x12\x17\n" +
-	"\aslot_id\x18\x01 \x01(\tR\x06slotId\"\xc2\x01\n" +
-	"\x15InstructionOutcomeRef\x12X\n" +
-	"\vinstruction\x18\x01 \x01(\v26.temporal.server.api.testpilot.v1.InstructionReferenceR\vinstruction\x12O\n" +
-	"\x05field\x18\x02 \x01(\x0e29.temporal.server.api.testpilot.v1.InstructionOutcomeFieldR\x05field\"\xaa\x01\n" +
-	"\x16OutcomeFieldDefinition\x12O\n" +
-	"\x05field\x18\x01 \x01(\x0e29.temporal.server.api.testpilot.v1.InstructionOutcomeFieldR\x05field\x12?\n" +
-	"\x04type\x18\x02 \x01(\v2+.temporal.server.api.testpilot.v1.ValueTypeR\x04type\"p\n" +
-	"\x1cInstructionOutcomeDefinition\x12P\n" +
-	"\x06fields\x18\x01 \x03(\v28.temporal.server.api.testpilot.v1.OutcomeFieldDefinitionR\x06fields\"7\n" +
-	"\x0eObservationRef\x12%\n" +
-	"\x0eobservation_id\x18\x01 \x01(\tR\robservationId\"+\n" +
+	"1temporal/server/api/testpilot/v1/expression.proto\x12 temporal.server.api.testpilot.v1\x1a,temporal/server/api/testpilot/v1/event.proto\x1a,temporal/server/api/testpilot/v1/value.proto\"\xd2\a\n" +
+	"\x11ProgramExpression\x12C\n" +
+	"\aliteral\x18\x01 \x01(\v2'.temporal.server.api.testpilot.v1.ValueH\x00R\aliteral\x12?\n" +
+	"\x04slot\x18\x02 \x01(\v2).temporal.server.api.testpilot.v1.SlotRefH\x00R\x04slot\x12S\n" +
+	"\aoutcome\x18\x03 \x01(\v27.temporal.server.api.testpilot.v1.InstructionOutcomeRefH\x00R\aoutcome\x12<\n" +
+	"\x03run\x18\x04 \x01(\v2(.temporal.server.api.testpilot.v1.RunRefH\x00R\x03run\x12M\n" +
+	"\x04path\x18\x05 \x01(\v27.temporal.server.api.testpilot.v1.ProgramPathExpressionH\x00R\x04path\x12V\n" +
+	"\apresent\x18\x06 \x01(\v2:.temporal.server.api.testpilot.v1.ProgramPresentExpressionH\x00R\apresent\x12S\n" +
+	"\x06equals\x18\a \x01(\v29.temporal.server.api.testpilot.v1.ProgramEqualsExpressionH\x00R\x06equals\x12V\n" +
+	"\acompare\x18\b \x01(\v2:.temporal.server.api.testpilot.v1.ProgramCompareExpressionH\x00R\acompare\x12T\n" +
+	"\bnegation\x18\t \x01(\v26.temporal.server.api.testpilot.v1.ProgramNotExpressionH\x00R\bnegation\x12J\n" +
+	"\x03all\x18\n" +
+	" \x01(\v26.temporal.server.api.testpilot.v1.ProgramAllExpressionH\x00R\x03all\x12J\n" +
+	"\x03any\x18\v \x01(\v26.temporal.server.api.testpilot.v1.ProgramAnyExpressionH\x00R\x03any\x12T\n" +
+	"\venvironment\x18\f \x01(\v20.temporal.server.api.testpilot.v1.EnvironmentRefH\x00R\venvironmentB\f\n" +
 	"\n" +
-	"CaptureRef\x12\x1d\n" +
-	"\n" +
-	"capture_id\x18\x01 \x01(\tR\tcaptureId\"\b\n" +
-	"\x06RunRef\"Y\n" +
-	"\x10RunEventFieldRef\x12E\n" +
-	"\x05field\x18\x01 \x01(\x0e2/.temporal.server.api.testpilot.v1.RunEventFieldR\x05field\"\xa5\x01\n" +
+	"expression\"\xa5\x01\n" +
 	"\x15ProgramPathExpression\x12K\n" +
 	"\x06source\x18\x01 \x01(\v23.temporal.server.api.testpilot.v1.ProgramExpressionR\x06source\x12?\n" +
 	"\x04path\x18\x02 \x01(\v2+.temporal.server.api.testpilot.v1.FieldPathR\x04path\"i\n" +
@@ -1923,21 +1745,20 @@ const file_temporal_server_api_testpilot_v1_expression_proto_rawDesc = "" +
 	"\x14ProgramAllExpression\x12O\n" +
 	"\boperands\x18\x01 \x03(\v23.temporal.server.api.testpilot.v1.ProgramExpressionR\boperands\"g\n" +
 	"\x14ProgramAnyExpression\x12O\n" +
-	"\boperands\x18\x01 \x03(\v23.temporal.server.api.testpilot.v1.ProgramExpressionR\boperands\"\xd2\a\n" +
-	"\x11ProgramExpression\x12C\n" +
-	"\aliteral\x18\x01 \x01(\v2'.temporal.server.api.testpilot.v1.ValueH\x00R\aliteral\x12?\n" +
-	"\x04slot\x18\x02 \x01(\v2).temporal.server.api.testpilot.v1.SlotRefH\x00R\x04slot\x12S\n" +
-	"\aoutcome\x18\x03 \x01(\v27.temporal.server.api.testpilot.v1.InstructionOutcomeRefH\x00R\aoutcome\x12<\n" +
-	"\x03run\x18\x04 \x01(\v2(.temporal.server.api.testpilot.v1.RunRefH\x00R\x03run\x12M\n" +
-	"\x04path\x18\x05 \x01(\v27.temporal.server.api.testpilot.v1.ProgramPathExpressionH\x00R\x04path\x12V\n" +
-	"\apresent\x18\x06 \x01(\v2:.temporal.server.api.testpilot.v1.ProgramPresentExpressionH\x00R\apresent\x12S\n" +
-	"\x06equals\x18\a \x01(\v29.temporal.server.api.testpilot.v1.ProgramEqualsExpressionH\x00R\x06equals\x12V\n" +
-	"\acompare\x18\b \x01(\v2:.temporal.server.api.testpilot.v1.ProgramCompareExpressionH\x00R\acompare\x12T\n" +
-	"\bnegation\x18\t \x01(\v26.temporal.server.api.testpilot.v1.ProgramNotExpressionH\x00R\bnegation\x12J\n" +
-	"\x03all\x18\n" +
-	" \x01(\v26.temporal.server.api.testpilot.v1.ProgramAllExpressionH\x00R\x03all\x12J\n" +
-	"\x03any\x18\v \x01(\v26.temporal.server.api.testpilot.v1.ProgramAnyExpressionH\x00R\x03any\x12T\n" +
-	"\venvironment\x18\f \x01(\v20.temporal.server.api.testpilot.v1.EnvironmentRefH\x00R\venvironmentB\f\n" +
+	"\boperands\x18\x01 \x03(\v23.temporal.server.api.testpilot.v1.ProgramExpressionR\boperands\"\xa3\a\n" +
+	"\x12ContractExpression\x12C\n" +
+	"\aliteral\x18\x01 \x01(\v2'.temporal.server.api.testpilot.v1.ValueH\x00R\aliteral\x12T\n" +
+	"\vobservation\x18\x02 \x01(\v20.temporal.server.api.testpilot.v1.ObservationRefH\x00R\vobservation\x12Q\n" +
+	"\trun_event\x18\x03 \x01(\v22.temporal.server.api.testpilot.v1.RunEventFieldRefH\x00R\brunEvent\x12N\n" +
+	"\x04path\x18\x04 \x01(\v28.temporal.server.api.testpilot.v1.ContractPathExpressionH\x00R\x04path\x12W\n" +
+	"\apresent\x18\x05 \x01(\v2;.temporal.server.api.testpilot.v1.ContractPresentExpressionH\x00R\apresent\x12T\n" +
+	"\x06equals\x18\x06 \x01(\v2:.temporal.server.api.testpilot.v1.ContractEqualsExpressionH\x00R\x06equals\x12W\n" +
+	"\acompare\x18\a \x01(\v2;.temporal.server.api.testpilot.v1.ContractCompareExpressionH\x00R\acompare\x12U\n" +
+	"\bnegation\x18\b \x01(\v27.temporal.server.api.testpilot.v1.ContractNotExpressionH\x00R\bnegation\x12K\n" +
+	"\x03all\x18\t \x01(\v27.temporal.server.api.testpilot.v1.ContractAllExpressionH\x00R\x03all\x12K\n" +
+	"\x03any\x18\n" +
+	" \x01(\v27.temporal.server.api.testpilot.v1.ContractAnyExpressionH\x00R\x03any\x12H\n" +
+	"\acapture\x18\v \x01(\v2,.temporal.server.api.testpilot.v1.CaptureRefH\x00R\acaptureB\f\n" +
 	"\n" +
 	"expression\"\xa7\x01\n" +
 	"\x16ContractPathExpression\x12L\n" +
@@ -1957,52 +1778,40 @@ const file_temporal_server_api_testpilot_v1_expression_proto_rawDesc = "" +
 	"\x15ContractAllExpression\x12P\n" +
 	"\boperands\x18\x01 \x03(\v24.temporal.server.api.testpilot.v1.ContractExpressionR\boperands\"i\n" +
 	"\x15ContractAnyExpression\x12P\n" +
-	"\boperands\x18\x01 \x03(\v24.temporal.server.api.testpilot.v1.ContractExpressionR\boperands\"\xa3\a\n" +
-	"\x12ContractExpression\x12C\n" +
-	"\aliteral\x18\x01 \x01(\v2'.temporal.server.api.testpilot.v1.ValueH\x00R\aliteral\x12T\n" +
-	"\vobservation\x18\x02 \x01(\v20.temporal.server.api.testpilot.v1.ObservationRefH\x00R\vobservation\x12Q\n" +
-	"\trun_event\x18\x03 \x01(\v22.temporal.server.api.testpilot.v1.RunEventFieldRefH\x00R\brunEvent\x12N\n" +
-	"\x04path\x18\x04 \x01(\v28.temporal.server.api.testpilot.v1.ContractPathExpressionH\x00R\x04path\x12W\n" +
-	"\apresent\x18\x05 \x01(\v2;.temporal.server.api.testpilot.v1.ContractPresentExpressionH\x00R\apresent\x12T\n" +
-	"\x06equals\x18\x06 \x01(\v2:.temporal.server.api.testpilot.v1.ContractEqualsExpressionH\x00R\x06equals\x12W\n" +
-	"\acompare\x18\a \x01(\v2;.temporal.server.api.testpilot.v1.ContractCompareExpressionH\x00R\acompare\x12U\n" +
-	"\bnegation\x18\b \x01(\v27.temporal.server.api.testpilot.v1.ContractNotExpressionH\x00R\bnegation\x12K\n" +
-	"\x03all\x18\t \x01(\v27.temporal.server.api.testpilot.v1.ContractAllExpressionH\x00R\x03all\x12K\n" +
-	"\x03any\x18\n" +
-	" \x01(\v27.temporal.server.api.testpilot.v1.ContractAnyExpressionH\x00R\x03any\x12H\n" +
-	"\acapture\x18\v \x01(\v2,.temporal.server.api.testpilot.v1.CaptureRefH\x00R\acaptureB\f\n" +
-	"\n" +
-	"expression\"/\n" +
+	"\boperands\x18\x01 \x03(\v24.temporal.server.api.testpilot.v1.ContractExpressionR\boperands\"\"\n" +
+	"\aSlotRef\x12\x17\n" +
+	"\aslot_id\x18\x01 \x01(\tR\x06slotId\"b\n" +
+	"\x14InstructionReference\x12#\n" +
+	"\rentrypoint_id\x18\x01 \x01(\tR\fentrypointId\x12%\n" +
+	"\x0einstruction_id\x18\x02 \x01(\tR\rinstructionId\"\xc2\x01\n" +
+	"\x15InstructionOutcomeRef\x12X\n" +
+	"\vinstruction\x18\x01 \x01(\v26.temporal.server.api.testpilot.v1.InstructionReferenceR\vinstruction\x12O\n" +
+	"\x05field\x18\x02 \x01(\x0e29.temporal.server.api.testpilot.v1.InstructionOutcomeFieldR\x05field\"\b\n" +
+	"\x06RunRef\"/\n" +
 	"\x0eEnvironmentRef\x12\x1d\n" +
 	"\n" +
-	"binding_id\x18\x01 \x01(\tR\tbindingId*\x92\x02\n" +
+	"binding_id\x18\x01 \x01(\tR\tbindingId\"7\n" +
+	"\x0eObservationRef\x12%\n" +
+	"\x0eobservation_id\x18\x01 \x01(\tR\robservationId\"Y\n" +
+	"\x10RunEventFieldRef\x12E\n" +
+	"\x05field\x18\x01 \x01(\x0e2/.temporal.server.api.testpilot.v1.RunEventFieldR\x05field\"+\n" +
+	"\n" +
+	"CaptureRef\x12\x1d\n" +
+	"\n" +
+	"capture_id\x18\x01 \x01(\tR\tcaptureId*\xdd\x01\n" +
+	"\x12ComparisonOperator\x12#\n" +
+	"\x1fCOMPARISON_OPERATOR_UNSPECIFIED\x10\x00\x12!\n" +
+	"\x1dCOMPARISON_OPERATOR_LESS_THAN\x10\x01\x12*\n" +
+	"&COMPARISON_OPERATOR_LESS_THAN_OR_EQUAL\x10\x02\x12$\n" +
+	" COMPARISON_OPERATOR_GREATER_THAN\x10\x03\x12-\n" +
+	")COMPARISON_OPERATOR_GREATER_THAN_OR_EQUAL\x10\x04*\x92\x02\n" +
 	"\x17InstructionOutcomeField\x12)\n" +
 	"%INSTRUCTION_OUTCOME_FIELD_UNSPECIFIED\x10\x00\x12$\n" +
 	" INSTRUCTION_OUTCOME_FIELD_STATUS\x10\x01\x12+\n" +
 	"'INSTRUCTION_OUTCOME_FIELD_PROTOCOL_CODE\x10\x02\x12.\n" +
 	"*INSTRUCTION_OUTCOME_FIELD_SDK_FAILURE_CODE\x10\x03\x12$\n" +
 	" INSTRUCTION_OUTCOME_FIELD_DETAIL\x10\x04\x12#\n" +
-	"\x1fINSTRUCTION_OUTCOME_FIELD_VALUE\x10\x05*\xdd\x01\n" +
-	"\x12ComparisonOperator\x12#\n" +
-	"\x1fCOMPARISON_OPERATOR_UNSPECIFIED\x10\x00\x12!\n" +
-	"\x1dCOMPARISON_OPERATOR_LESS_THAN\x10\x01\x12*\n" +
-	"&COMPARISON_OPERATOR_LESS_THAN_OR_EQUAL\x10\x02\x12$\n" +
-	" COMPARISON_OPERATOR_GREATER_THAN\x10\x03\x12-\n" +
-	")COMPARISON_OPERATOR_GREATER_THAN_OR_EQUAL\x10\x04*\x97\x03\n" +
-	"\rRunEventField\x12\x1f\n" +
-	"\x1bRUN_EVENT_FIELD_UNSPECIFIED\x10\x00\x12\x1c\n" +
-	"\x18RUN_EVENT_FIELD_SEQUENCE\x10\x01\x12(\n" +
-	"$RUN_EVENT_FIELD_ELAPSED_MILLISECONDS\x10\x02\x12\x18\n" +
-	"\x14RUN_EVENT_FIELD_KIND\x10\x03\x12!\n" +
-	"\x1dRUN_EVENT_FIELD_ENTRYPOINT_ID\x10\x04\x12!\n" +
-	"\x1dRUN_EVENT_FIELD_ACTIVATION_ID\x10\x05\x12\"\n" +
-	"\x1eRUN_EVENT_FIELD_INSTRUCTION_ID\x10\x06\x12\x1b\n" +
-	"\x17RUN_EVENT_FIELD_ATTEMPT\x10\a\x12\x1d\n" +
-	"\x19RUN_EVENT_FIELD_SOURCE_ID\x10\b\x12\x1a\n" +
-	"\x16RUN_EVENT_FIELD_RUN_ID\x10\t\x12!\n" +
-	"\x1dRUN_EVENT_FIELD_FAULT_ROLE_ID\x10\n" +
-	"\x12\x1e\n" +
-	"\x1aRUN_EVENT_FIELD_FAULT_KIND\x10\vB2Z0go.temporal.io/server/api/testpilot/v1;testpilotb\x06proto3"
+	"\x1fINSTRUCTION_OUTCOME_FIELD_VALUE\x10\x05B2Z0go.temporal.io/server/api/testpilot/v1;testpilotb\x06proto3"
 
 var (
 	file_temporal_server_api_testpilot_v1_expression_proto_rawDescOnce sync.Once
@@ -2016,99 +1825,93 @@ func file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP() []byte
 	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescData
 }
 
-var file_temporal_server_api_testpilot_v1_expression_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_temporal_server_api_testpilot_v1_expression_proto_msgTypes = make([]protoimpl.MessageInfo, 26)
+var file_temporal_server_api_testpilot_v1_expression_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_temporal_server_api_testpilot_v1_expression_proto_msgTypes = make([]protoimpl.MessageInfo, 24)
 var file_temporal_server_api_testpilot_v1_expression_proto_goTypes = []any{
-	(InstructionOutcomeField)(0),         // 0: temporal.server.api.testpilot.v1.InstructionOutcomeField
-	(ComparisonOperator)(0),              // 1: temporal.server.api.testpilot.v1.ComparisonOperator
-	(RunEventField)(0),                   // 2: temporal.server.api.testpilot.v1.RunEventField
-	(*InstructionReference)(nil),         // 3: temporal.server.api.testpilot.v1.InstructionReference
-	(*SlotRef)(nil),                      // 4: temporal.server.api.testpilot.v1.SlotRef
-	(*InstructionOutcomeRef)(nil),        // 5: temporal.server.api.testpilot.v1.InstructionOutcomeRef
-	(*OutcomeFieldDefinition)(nil),       // 6: temporal.server.api.testpilot.v1.OutcomeFieldDefinition
-	(*InstructionOutcomeDefinition)(nil), // 7: temporal.server.api.testpilot.v1.InstructionOutcomeDefinition
-	(*ObservationRef)(nil),               // 8: temporal.server.api.testpilot.v1.ObservationRef
-	(*CaptureRef)(nil),                   // 9: temporal.server.api.testpilot.v1.CaptureRef
-	(*RunRef)(nil),                       // 10: temporal.server.api.testpilot.v1.RunRef
-	(*RunEventFieldRef)(nil),             // 11: temporal.server.api.testpilot.v1.RunEventFieldRef
-	(*ProgramPathExpression)(nil),        // 12: temporal.server.api.testpilot.v1.ProgramPathExpression
-	(*ProgramPresentExpression)(nil),     // 13: temporal.server.api.testpilot.v1.ProgramPresentExpression
-	(*ProgramEqualsExpression)(nil),      // 14: temporal.server.api.testpilot.v1.ProgramEqualsExpression
-	(*ProgramCompareExpression)(nil),     // 15: temporal.server.api.testpilot.v1.ProgramCompareExpression
-	(*ProgramNotExpression)(nil),         // 16: temporal.server.api.testpilot.v1.ProgramNotExpression
-	(*ProgramAllExpression)(nil),         // 17: temporal.server.api.testpilot.v1.ProgramAllExpression
-	(*ProgramAnyExpression)(nil),         // 18: temporal.server.api.testpilot.v1.ProgramAnyExpression
-	(*ProgramExpression)(nil),            // 19: temporal.server.api.testpilot.v1.ProgramExpression
-	(*ContractPathExpression)(nil),       // 20: temporal.server.api.testpilot.v1.ContractPathExpression
-	(*ContractPresentExpression)(nil),    // 21: temporal.server.api.testpilot.v1.ContractPresentExpression
-	(*ContractEqualsExpression)(nil),     // 22: temporal.server.api.testpilot.v1.ContractEqualsExpression
-	(*ContractCompareExpression)(nil),    // 23: temporal.server.api.testpilot.v1.ContractCompareExpression
-	(*ContractNotExpression)(nil),        // 24: temporal.server.api.testpilot.v1.ContractNotExpression
-	(*ContractAllExpression)(nil),        // 25: temporal.server.api.testpilot.v1.ContractAllExpression
-	(*ContractAnyExpression)(nil),        // 26: temporal.server.api.testpilot.v1.ContractAnyExpression
-	(*ContractExpression)(nil),           // 27: temporal.server.api.testpilot.v1.ContractExpression
-	(*EnvironmentRef)(nil),               // 28: temporal.server.api.testpilot.v1.EnvironmentRef
-	(*ValueType)(nil),                    // 29: temporal.server.api.testpilot.v1.ValueType
-	(*FieldPath)(nil),                    // 30: temporal.server.api.testpilot.v1.FieldPath
-	(*Value)(nil),                        // 31: temporal.server.api.testpilot.v1.Value
+	(ComparisonOperator)(0),           // 0: temporal.server.api.testpilot.v1.ComparisonOperator
+	(InstructionOutcomeField)(0),      // 1: temporal.server.api.testpilot.v1.InstructionOutcomeField
+	(*ProgramExpression)(nil),         // 2: temporal.server.api.testpilot.v1.ProgramExpression
+	(*ProgramPathExpression)(nil),     // 3: temporal.server.api.testpilot.v1.ProgramPathExpression
+	(*ProgramPresentExpression)(nil),  // 4: temporal.server.api.testpilot.v1.ProgramPresentExpression
+	(*ProgramEqualsExpression)(nil),   // 5: temporal.server.api.testpilot.v1.ProgramEqualsExpression
+	(*ProgramCompareExpression)(nil),  // 6: temporal.server.api.testpilot.v1.ProgramCompareExpression
+	(*ProgramNotExpression)(nil),      // 7: temporal.server.api.testpilot.v1.ProgramNotExpression
+	(*ProgramAllExpression)(nil),      // 8: temporal.server.api.testpilot.v1.ProgramAllExpression
+	(*ProgramAnyExpression)(nil),      // 9: temporal.server.api.testpilot.v1.ProgramAnyExpression
+	(*ContractExpression)(nil),        // 10: temporal.server.api.testpilot.v1.ContractExpression
+	(*ContractPathExpression)(nil),    // 11: temporal.server.api.testpilot.v1.ContractPathExpression
+	(*ContractPresentExpression)(nil), // 12: temporal.server.api.testpilot.v1.ContractPresentExpression
+	(*ContractEqualsExpression)(nil),  // 13: temporal.server.api.testpilot.v1.ContractEqualsExpression
+	(*ContractCompareExpression)(nil), // 14: temporal.server.api.testpilot.v1.ContractCompareExpression
+	(*ContractNotExpression)(nil),     // 15: temporal.server.api.testpilot.v1.ContractNotExpression
+	(*ContractAllExpression)(nil),     // 16: temporal.server.api.testpilot.v1.ContractAllExpression
+	(*ContractAnyExpression)(nil),     // 17: temporal.server.api.testpilot.v1.ContractAnyExpression
+	(*SlotRef)(nil),                   // 18: temporal.server.api.testpilot.v1.SlotRef
+	(*InstructionReference)(nil),      // 19: temporal.server.api.testpilot.v1.InstructionReference
+	(*InstructionOutcomeRef)(nil),     // 20: temporal.server.api.testpilot.v1.InstructionOutcomeRef
+	(*RunRef)(nil),                    // 21: temporal.server.api.testpilot.v1.RunRef
+	(*EnvironmentRef)(nil),            // 22: temporal.server.api.testpilot.v1.EnvironmentRef
+	(*ObservationRef)(nil),            // 23: temporal.server.api.testpilot.v1.ObservationRef
+	(*RunEventFieldRef)(nil),          // 24: temporal.server.api.testpilot.v1.RunEventFieldRef
+	(*CaptureRef)(nil),                // 25: temporal.server.api.testpilot.v1.CaptureRef
+	(*Value)(nil),                     // 26: temporal.server.api.testpilot.v1.Value
+	(*FieldPath)(nil),                 // 27: temporal.server.api.testpilot.v1.FieldPath
+	(RunEventField)(0),                // 28: temporal.server.api.testpilot.v1.RunEventField
 }
 var file_temporal_server_api_testpilot_v1_expression_proto_depIdxs = []int32{
-	3,  // 0: temporal.server.api.testpilot.v1.InstructionOutcomeRef.instruction:type_name -> temporal.server.api.testpilot.v1.InstructionReference
-	0,  // 1: temporal.server.api.testpilot.v1.InstructionOutcomeRef.field:type_name -> temporal.server.api.testpilot.v1.InstructionOutcomeField
-	0,  // 2: temporal.server.api.testpilot.v1.OutcomeFieldDefinition.field:type_name -> temporal.server.api.testpilot.v1.InstructionOutcomeField
-	29, // 3: temporal.server.api.testpilot.v1.OutcomeFieldDefinition.type:type_name -> temporal.server.api.testpilot.v1.ValueType
-	6,  // 4: temporal.server.api.testpilot.v1.InstructionOutcomeDefinition.fields:type_name -> temporal.server.api.testpilot.v1.OutcomeFieldDefinition
-	2,  // 5: temporal.server.api.testpilot.v1.RunEventFieldRef.field:type_name -> temporal.server.api.testpilot.v1.RunEventField
-	19, // 6: temporal.server.api.testpilot.v1.ProgramPathExpression.source:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
-	30, // 7: temporal.server.api.testpilot.v1.ProgramPathExpression.path:type_name -> temporal.server.api.testpilot.v1.FieldPath
-	19, // 8: temporal.server.api.testpilot.v1.ProgramPresentExpression.operand:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
-	19, // 9: temporal.server.api.testpilot.v1.ProgramEqualsExpression.left:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
-	19, // 10: temporal.server.api.testpilot.v1.ProgramEqualsExpression.right:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
-	1,  // 11: temporal.server.api.testpilot.v1.ProgramCompareExpression.operator:type_name -> temporal.server.api.testpilot.v1.ComparisonOperator
-	19, // 12: temporal.server.api.testpilot.v1.ProgramCompareExpression.left:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
-	19, // 13: temporal.server.api.testpilot.v1.ProgramCompareExpression.right:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
-	19, // 14: temporal.server.api.testpilot.v1.ProgramNotExpression.operand:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
-	19, // 15: temporal.server.api.testpilot.v1.ProgramAllExpression.operands:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
-	19, // 16: temporal.server.api.testpilot.v1.ProgramAnyExpression.operands:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
-	31, // 17: temporal.server.api.testpilot.v1.ProgramExpression.literal:type_name -> temporal.server.api.testpilot.v1.Value
-	4,  // 18: temporal.server.api.testpilot.v1.ProgramExpression.slot:type_name -> temporal.server.api.testpilot.v1.SlotRef
-	5,  // 19: temporal.server.api.testpilot.v1.ProgramExpression.outcome:type_name -> temporal.server.api.testpilot.v1.InstructionOutcomeRef
-	10, // 20: temporal.server.api.testpilot.v1.ProgramExpression.run:type_name -> temporal.server.api.testpilot.v1.RunRef
-	12, // 21: temporal.server.api.testpilot.v1.ProgramExpression.path:type_name -> temporal.server.api.testpilot.v1.ProgramPathExpression
-	13, // 22: temporal.server.api.testpilot.v1.ProgramExpression.present:type_name -> temporal.server.api.testpilot.v1.ProgramPresentExpression
-	14, // 23: temporal.server.api.testpilot.v1.ProgramExpression.equals:type_name -> temporal.server.api.testpilot.v1.ProgramEqualsExpression
-	15, // 24: temporal.server.api.testpilot.v1.ProgramExpression.compare:type_name -> temporal.server.api.testpilot.v1.ProgramCompareExpression
-	16, // 25: temporal.server.api.testpilot.v1.ProgramExpression.negation:type_name -> temporal.server.api.testpilot.v1.ProgramNotExpression
-	17, // 26: temporal.server.api.testpilot.v1.ProgramExpression.all:type_name -> temporal.server.api.testpilot.v1.ProgramAllExpression
-	18, // 27: temporal.server.api.testpilot.v1.ProgramExpression.any:type_name -> temporal.server.api.testpilot.v1.ProgramAnyExpression
-	28, // 28: temporal.server.api.testpilot.v1.ProgramExpression.environment:type_name -> temporal.server.api.testpilot.v1.EnvironmentRef
-	27, // 29: temporal.server.api.testpilot.v1.ContractPathExpression.source:type_name -> temporal.server.api.testpilot.v1.ContractExpression
-	30, // 30: temporal.server.api.testpilot.v1.ContractPathExpression.path:type_name -> temporal.server.api.testpilot.v1.FieldPath
-	27, // 31: temporal.server.api.testpilot.v1.ContractPresentExpression.operand:type_name -> temporal.server.api.testpilot.v1.ContractExpression
-	27, // 32: temporal.server.api.testpilot.v1.ContractEqualsExpression.left:type_name -> temporal.server.api.testpilot.v1.ContractExpression
-	27, // 33: temporal.server.api.testpilot.v1.ContractEqualsExpression.right:type_name -> temporal.server.api.testpilot.v1.ContractExpression
-	1,  // 34: temporal.server.api.testpilot.v1.ContractCompareExpression.operator:type_name -> temporal.server.api.testpilot.v1.ComparisonOperator
-	27, // 35: temporal.server.api.testpilot.v1.ContractCompareExpression.left:type_name -> temporal.server.api.testpilot.v1.ContractExpression
-	27, // 36: temporal.server.api.testpilot.v1.ContractCompareExpression.right:type_name -> temporal.server.api.testpilot.v1.ContractExpression
-	27, // 37: temporal.server.api.testpilot.v1.ContractNotExpression.operand:type_name -> temporal.server.api.testpilot.v1.ContractExpression
-	27, // 38: temporal.server.api.testpilot.v1.ContractAllExpression.operands:type_name -> temporal.server.api.testpilot.v1.ContractExpression
-	27, // 39: temporal.server.api.testpilot.v1.ContractAnyExpression.operands:type_name -> temporal.server.api.testpilot.v1.ContractExpression
-	31, // 40: temporal.server.api.testpilot.v1.ContractExpression.literal:type_name -> temporal.server.api.testpilot.v1.Value
-	8,  // 41: temporal.server.api.testpilot.v1.ContractExpression.observation:type_name -> temporal.server.api.testpilot.v1.ObservationRef
-	11, // 42: temporal.server.api.testpilot.v1.ContractExpression.run_event:type_name -> temporal.server.api.testpilot.v1.RunEventFieldRef
-	20, // 43: temporal.server.api.testpilot.v1.ContractExpression.path:type_name -> temporal.server.api.testpilot.v1.ContractPathExpression
-	21, // 44: temporal.server.api.testpilot.v1.ContractExpression.present:type_name -> temporal.server.api.testpilot.v1.ContractPresentExpression
-	22, // 45: temporal.server.api.testpilot.v1.ContractExpression.equals:type_name -> temporal.server.api.testpilot.v1.ContractEqualsExpression
-	23, // 46: temporal.server.api.testpilot.v1.ContractExpression.compare:type_name -> temporal.server.api.testpilot.v1.ContractCompareExpression
-	24, // 47: temporal.server.api.testpilot.v1.ContractExpression.negation:type_name -> temporal.server.api.testpilot.v1.ContractNotExpression
-	25, // 48: temporal.server.api.testpilot.v1.ContractExpression.all:type_name -> temporal.server.api.testpilot.v1.ContractAllExpression
-	26, // 49: temporal.server.api.testpilot.v1.ContractExpression.any:type_name -> temporal.server.api.testpilot.v1.ContractAnyExpression
-	9,  // 50: temporal.server.api.testpilot.v1.ContractExpression.capture:type_name -> temporal.server.api.testpilot.v1.CaptureRef
-	51, // [51:51] is the sub-list for method output_type
-	51, // [51:51] is the sub-list for method input_type
-	51, // [51:51] is the sub-list for extension type_name
-	51, // [51:51] is the sub-list for extension extendee
-	0,  // [0:51] is the sub-list for field type_name
+	26, // 0: temporal.server.api.testpilot.v1.ProgramExpression.literal:type_name -> temporal.server.api.testpilot.v1.Value
+	18, // 1: temporal.server.api.testpilot.v1.ProgramExpression.slot:type_name -> temporal.server.api.testpilot.v1.SlotRef
+	20, // 2: temporal.server.api.testpilot.v1.ProgramExpression.outcome:type_name -> temporal.server.api.testpilot.v1.InstructionOutcomeRef
+	21, // 3: temporal.server.api.testpilot.v1.ProgramExpression.run:type_name -> temporal.server.api.testpilot.v1.RunRef
+	3,  // 4: temporal.server.api.testpilot.v1.ProgramExpression.path:type_name -> temporal.server.api.testpilot.v1.ProgramPathExpression
+	4,  // 5: temporal.server.api.testpilot.v1.ProgramExpression.present:type_name -> temporal.server.api.testpilot.v1.ProgramPresentExpression
+	5,  // 6: temporal.server.api.testpilot.v1.ProgramExpression.equals:type_name -> temporal.server.api.testpilot.v1.ProgramEqualsExpression
+	6,  // 7: temporal.server.api.testpilot.v1.ProgramExpression.compare:type_name -> temporal.server.api.testpilot.v1.ProgramCompareExpression
+	7,  // 8: temporal.server.api.testpilot.v1.ProgramExpression.negation:type_name -> temporal.server.api.testpilot.v1.ProgramNotExpression
+	8,  // 9: temporal.server.api.testpilot.v1.ProgramExpression.all:type_name -> temporal.server.api.testpilot.v1.ProgramAllExpression
+	9,  // 10: temporal.server.api.testpilot.v1.ProgramExpression.any:type_name -> temporal.server.api.testpilot.v1.ProgramAnyExpression
+	22, // 11: temporal.server.api.testpilot.v1.ProgramExpression.environment:type_name -> temporal.server.api.testpilot.v1.EnvironmentRef
+	2,  // 12: temporal.server.api.testpilot.v1.ProgramPathExpression.source:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
+	27, // 13: temporal.server.api.testpilot.v1.ProgramPathExpression.path:type_name -> temporal.server.api.testpilot.v1.FieldPath
+	2,  // 14: temporal.server.api.testpilot.v1.ProgramPresentExpression.operand:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
+	2,  // 15: temporal.server.api.testpilot.v1.ProgramEqualsExpression.left:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
+	2,  // 16: temporal.server.api.testpilot.v1.ProgramEqualsExpression.right:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
+	0,  // 17: temporal.server.api.testpilot.v1.ProgramCompareExpression.operator:type_name -> temporal.server.api.testpilot.v1.ComparisonOperator
+	2,  // 18: temporal.server.api.testpilot.v1.ProgramCompareExpression.left:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
+	2,  // 19: temporal.server.api.testpilot.v1.ProgramCompareExpression.right:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
+	2,  // 20: temporal.server.api.testpilot.v1.ProgramNotExpression.operand:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
+	2,  // 21: temporal.server.api.testpilot.v1.ProgramAllExpression.operands:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
+	2,  // 22: temporal.server.api.testpilot.v1.ProgramAnyExpression.operands:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
+	26, // 23: temporal.server.api.testpilot.v1.ContractExpression.literal:type_name -> temporal.server.api.testpilot.v1.Value
+	23, // 24: temporal.server.api.testpilot.v1.ContractExpression.observation:type_name -> temporal.server.api.testpilot.v1.ObservationRef
+	24, // 25: temporal.server.api.testpilot.v1.ContractExpression.run_event:type_name -> temporal.server.api.testpilot.v1.RunEventFieldRef
+	11, // 26: temporal.server.api.testpilot.v1.ContractExpression.path:type_name -> temporal.server.api.testpilot.v1.ContractPathExpression
+	12, // 27: temporal.server.api.testpilot.v1.ContractExpression.present:type_name -> temporal.server.api.testpilot.v1.ContractPresentExpression
+	13, // 28: temporal.server.api.testpilot.v1.ContractExpression.equals:type_name -> temporal.server.api.testpilot.v1.ContractEqualsExpression
+	14, // 29: temporal.server.api.testpilot.v1.ContractExpression.compare:type_name -> temporal.server.api.testpilot.v1.ContractCompareExpression
+	15, // 30: temporal.server.api.testpilot.v1.ContractExpression.negation:type_name -> temporal.server.api.testpilot.v1.ContractNotExpression
+	16, // 31: temporal.server.api.testpilot.v1.ContractExpression.all:type_name -> temporal.server.api.testpilot.v1.ContractAllExpression
+	17, // 32: temporal.server.api.testpilot.v1.ContractExpression.any:type_name -> temporal.server.api.testpilot.v1.ContractAnyExpression
+	25, // 33: temporal.server.api.testpilot.v1.ContractExpression.capture:type_name -> temporal.server.api.testpilot.v1.CaptureRef
+	10, // 34: temporal.server.api.testpilot.v1.ContractPathExpression.source:type_name -> temporal.server.api.testpilot.v1.ContractExpression
+	27, // 35: temporal.server.api.testpilot.v1.ContractPathExpression.path:type_name -> temporal.server.api.testpilot.v1.FieldPath
+	10, // 36: temporal.server.api.testpilot.v1.ContractPresentExpression.operand:type_name -> temporal.server.api.testpilot.v1.ContractExpression
+	10, // 37: temporal.server.api.testpilot.v1.ContractEqualsExpression.left:type_name -> temporal.server.api.testpilot.v1.ContractExpression
+	10, // 38: temporal.server.api.testpilot.v1.ContractEqualsExpression.right:type_name -> temporal.server.api.testpilot.v1.ContractExpression
+	0,  // 39: temporal.server.api.testpilot.v1.ContractCompareExpression.operator:type_name -> temporal.server.api.testpilot.v1.ComparisonOperator
+	10, // 40: temporal.server.api.testpilot.v1.ContractCompareExpression.left:type_name -> temporal.server.api.testpilot.v1.ContractExpression
+	10, // 41: temporal.server.api.testpilot.v1.ContractCompareExpression.right:type_name -> temporal.server.api.testpilot.v1.ContractExpression
+	10, // 42: temporal.server.api.testpilot.v1.ContractNotExpression.operand:type_name -> temporal.server.api.testpilot.v1.ContractExpression
+	10, // 43: temporal.server.api.testpilot.v1.ContractAllExpression.operands:type_name -> temporal.server.api.testpilot.v1.ContractExpression
+	10, // 44: temporal.server.api.testpilot.v1.ContractAnyExpression.operands:type_name -> temporal.server.api.testpilot.v1.ContractExpression
+	19, // 45: temporal.server.api.testpilot.v1.InstructionOutcomeRef.instruction:type_name -> temporal.server.api.testpilot.v1.InstructionReference
+	1,  // 46: temporal.server.api.testpilot.v1.InstructionOutcomeRef.field:type_name -> temporal.server.api.testpilot.v1.InstructionOutcomeField
+	28, // 47: temporal.server.api.testpilot.v1.RunEventFieldRef.field:type_name -> temporal.server.api.testpilot.v1.RunEventField
+	48, // [48:48] is the sub-list for method output_type
+	48, // [48:48] is the sub-list for method input_type
+	48, // [48:48] is the sub-list for extension type_name
+	48, // [48:48] is the sub-list for extension extendee
+	0,  // [0:48] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_testpilot_v1_expression_proto_init() }
@@ -2116,8 +1919,9 @@ func file_temporal_server_api_testpilot_v1_expression_proto_init() {
 	if File_temporal_server_api_testpilot_v1_expression_proto != nil {
 		return
 	}
+	file_temporal_server_api_testpilot_v1_event_proto_init()
 	file_temporal_server_api_testpilot_v1_value_proto_init()
-	file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[16].OneofWrappers = []any{
+	file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[0].OneofWrappers = []any{
 		(*ProgramExpression_Literal)(nil),
 		(*ProgramExpression_Slot)(nil),
 		(*ProgramExpression_Outcome)(nil),
@@ -2131,7 +1935,7 @@ func file_temporal_server_api_testpilot_v1_expression_proto_init() {
 		(*ProgramExpression_Any)(nil),
 		(*ProgramExpression_Environment)(nil),
 	}
-	file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[24].OneofWrappers = []any{
+	file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[8].OneofWrappers = []any{
 		(*ContractExpression_Literal)(nil),
 		(*ContractExpression_Observation)(nil),
 		(*ContractExpression_RunEvent)(nil),
@@ -2149,8 +1953,8 @@ func file_temporal_server_api_testpilot_v1_expression_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_temporal_server_api_testpilot_v1_expression_proto_rawDesc), len(file_temporal_server_api_testpilot_v1_expression_proto_rawDesc)),
-			NumEnums:      3,
-			NumMessages:   26,
+			NumEnums:      2,
+			NumMessages:   24,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

@@ -7,35 +7,72 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-// Marshal an object of type RunEventFilter to the protobuf v3 wire format
-func (val *RunEventFilter) Marshal() ([]byte, error) {
+// Marshal an object of type Run to the protobuf v3 wire format
+func (val *Run) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
 }
 
-// Unmarshal an object of type RunEventFilter from the protobuf v3 wire format
-func (val *RunEventFilter) Unmarshal(buf []byte) error {
+// Unmarshal an object of type Run from the protobuf v3 wire format
+func (val *Run) Unmarshal(buf []byte) error {
 	return proto.Unmarshal(buf, val)
 }
 
 // Size returns the size of the object, in bytes, once serialized
-func (val *RunEventFilter) Size() int {
+func (val *Run) Size() int {
 	return proto.Size(val)
 }
 
-// Equal returns whether two RunEventFilter values are equivalent by recursively
+// Equal returns whether two Run values are equivalent by recursively
 // comparing the message's fields.
 // For more information see the documentation for
 // https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *RunEventFilter) Equal(that interface{}) bool {
+func (this *Run) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	var that1 *RunEventFilter
+	var that1 *Run
 	switch t := that.(type) {
-	case *RunEventFilter:
+	case *Run:
 		that1 = t
-	case RunEventFilter:
+	case Run:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type RunEvent to the protobuf v3 wire format
+func (val *RunEvent) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type RunEvent from the protobuf v3 wire format
+func (val *RunEvent) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *RunEvent) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two RunEvent values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *RunEvent) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *RunEvent
+	switch t := that.(type) {
+	case *RunEvent:
+		that1 = t
+	case RunEvent:
 		that1 = &t
 	default:
 		return false
@@ -118,35 +155,35 @@ func (this *ObservationResult) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
-// Marshal an object of type RunEvent to the protobuf v3 wire format
-func (val *RunEvent) Marshal() ([]byte, error) {
+// Marshal an object of type FaultInjected to the protobuf v3 wire format
+func (val *FaultInjected) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
 }
 
-// Unmarshal an object of type RunEvent from the protobuf v3 wire format
-func (val *RunEvent) Unmarshal(buf []byte) error {
+// Unmarshal an object of type FaultInjected from the protobuf v3 wire format
+func (val *FaultInjected) Unmarshal(buf []byte) error {
 	return proto.Unmarshal(buf, val)
 }
 
 // Size returns the size of the object, in bytes, once serialized
-func (val *RunEvent) Size() int {
+func (val *FaultInjected) Size() int {
 	return proto.Size(val)
 }
 
-// Equal returns whether two RunEvent values are equivalent by recursively
+// Equal returns whether two FaultInjected values are equivalent by recursively
 // comparing the message's fields.
 // For more information see the documentation for
 // https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *RunEvent) Equal(that interface{}) bool {
+func (this *FaultInjected) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	var that1 *RunEvent
+	var that1 *FaultInjected
 	switch t := that.(type) {
-	case *RunEvent:
+	case *FaultInjected:
 		that1 = t
-	case RunEvent:
+	case FaultInjected:
 		that1 = &t
 	default:
 		return false
@@ -229,43 +266,6 @@ func (this *RunDiagnostic) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
-// Marshal an object of type RuleVerdict to the protobuf v3 wire format
-func (val *RuleVerdict) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type RuleVerdict from the protobuf v3 wire format
-func (val *RuleVerdict) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *RuleVerdict) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two RuleVerdict values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *RuleVerdict) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *RuleVerdict
-	switch t := that.(type) {
-	case *RuleVerdict:
-		that1 = t
-	case RuleVerdict:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
 // Marshal an object of type Verdict to the protobuf v3 wire format
 func (val *Verdict) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
@@ -303,217 +303,41 @@ func (this *Verdict) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
-// Marshal an object of type Run to the protobuf v3 wire format
-func (val *Run) Marshal() ([]byte, error) {
+// Marshal an object of type RuleVerdict to the protobuf v3 wire format
+func (val *RuleVerdict) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
 }
 
-// Unmarshal an object of type Run from the protobuf v3 wire format
-func (val *Run) Unmarshal(buf []byte) error {
+// Unmarshal an object of type RuleVerdict from the protobuf v3 wire format
+func (val *RuleVerdict) Unmarshal(buf []byte) error {
 	return proto.Unmarshal(buf, val)
 }
 
 // Size returns the size of the object, in bytes, once serialized
-func (val *Run) Size() int {
+func (val *RuleVerdict) Size() int {
 	return proto.Size(val)
 }
 
-// Equal returns whether two Run values are equivalent by recursively
+// Equal returns whether two RuleVerdict values are equivalent by recursively
 // comparing the message's fields.
 // For more information see the documentation for
 // https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *Run) Equal(that interface{}) bool {
+func (this *RuleVerdict) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	var that1 *Run
+	var that1 *RuleVerdict
 	switch t := that.(type) {
-	case *Run:
+	case *RuleVerdict:
 		that1 = t
-	case Run:
+	case RuleVerdict:
 		that1 = &t
 	default:
 		return false
 	}
 
 	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type CorrelatedBinding to the protobuf v3 wire format
-func (val *CorrelatedBinding) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type CorrelatedBinding from the protobuf v3 wire format
-func (val *CorrelatedBinding) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *CorrelatedBinding) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two CorrelatedBinding values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *CorrelatedBinding) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *CorrelatedBinding
-	switch t := that.(type) {
-	case *CorrelatedBinding:
-		that1 = t
-	case CorrelatedBinding:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type CorrelatedIdentity to the protobuf v3 wire format
-func (val *CorrelatedIdentity) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type CorrelatedIdentity from the protobuf v3 wire format
-func (val *CorrelatedIdentity) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *CorrelatedIdentity) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two CorrelatedIdentity values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *CorrelatedIdentity) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *CorrelatedIdentity
-	switch t := that.(type) {
-	case *CorrelatedIdentity:
-		that1 = t
-	case CorrelatedIdentity:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type CorrelatedEvidenceField to the protobuf v3 wire format
-func (val *CorrelatedEvidenceField) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type CorrelatedEvidenceField from the protobuf v3 wire format
-func (val *CorrelatedEvidenceField) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *CorrelatedEvidenceField) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two CorrelatedEvidenceField values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *CorrelatedEvidenceField) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *CorrelatedEvidenceField
-	switch t := that.(type) {
-	case *CorrelatedEvidenceField:
-		that1 = t
-	case CorrelatedEvidenceField:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type CorrelatedEvidence to the protobuf v3 wire format
-func (val *CorrelatedEvidence) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type CorrelatedEvidence from the protobuf v3 wire format
-func (val *CorrelatedEvidence) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *CorrelatedEvidence) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two CorrelatedEvidence values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *CorrelatedEvidence) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *CorrelatedEvidence
-	switch t := that.(type) {
-	case *CorrelatedEvidence:
-		that1 = t
-	case CorrelatedEvidence:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-var (
-	RunEventKind_shorthandValue = map[string]int32{
-		"Unspecified":          0,
-		"RunOpened":            1,
-		"ActivationOpened":     2,
-		"InstructionStarted":   3,
-		"InstructionCompleted": 4,
-		"InstructionTimedOut":  5,
-		"ActivationClosed":     6,
-		"CleanupStarted":       7,
-		"CleanupCompleted":     8,
-		"RunClosed":            9,
-		"Diagnostic":           10,
-		"FaultInjected":        11,
-	}
-)
-
-// RunEventKindFromString parses a RunEventKind value from  either the protojson
-// canonical SCREAMING_CASE enum or the traditional temporal PascalCase enum to RunEventKind
-func RunEventKindFromString(s string) (RunEventKind, error) {
-	if v, ok := RunEventKind_value[s]; ok {
-		return RunEventKind(v), nil
-	} else if v, ok := RunEventKind_shorthandValue[s]; ok {
-		return RunEventKind(v), nil
-	}
-	return RunEventKind(0), fmt.Errorf("%s is not a valid RunEventKind", s)
 }
 
 var (
@@ -581,6 +405,26 @@ func RunDiagnosticKindFromString(s string) (RunDiagnosticKind, error) {
 }
 
 var (
+	VerdictStatus_shorthandValue = map[string]int32{
+		"Unspecified":  0,
+		"Satisfied":    1,
+		"Violated":     2,
+		"Inconclusive": 3,
+	}
+)
+
+// VerdictStatusFromString parses a VerdictStatus value from  either the protojson
+// canonical SCREAMING_CASE enum or the traditional temporal PascalCase enum to VerdictStatus
+func VerdictStatusFromString(s string) (VerdictStatus, error) {
+	if v, ok := VerdictStatus_value[s]; ok {
+		return VerdictStatus(v), nil
+	} else if v, ok := VerdictStatus_shorthandValue[s]; ok {
+		return VerdictStatus(v), nil
+	}
+	return VerdictStatus(0), fmt.Errorf("%s is not a valid VerdictStatus", s)
+}
+
+var (
 	RuleVerdictStatus_shorthandValue = map[string]int32{
 		"Unspecified":  0,
 		"Pending":      1,
@@ -599,24 +443,4 @@ func RuleVerdictStatusFromString(s string) (RuleVerdictStatus, error) {
 		return RuleVerdictStatus(v), nil
 	}
 	return RuleVerdictStatus(0), fmt.Errorf("%s is not a valid RuleVerdictStatus", s)
-}
-
-var (
-	VerdictStatus_shorthandValue = map[string]int32{
-		"Unspecified":  0,
-		"Satisfied":    1,
-		"Violated":     2,
-		"Inconclusive": 3,
-	}
-)
-
-// VerdictStatusFromString parses a VerdictStatus value from  either the protojson
-// canonical SCREAMING_CASE enum or the traditional temporal PascalCase enum to VerdictStatus
-func VerdictStatusFromString(s string) (VerdictStatus, error) {
-	if v, ok := VerdictStatus_value[s]; ok {
-		return VerdictStatus(v), nil
-	} else if v, ok := VerdictStatus_shorthandValue[s]; ok {
-		return VerdictStatus(v), nil
-	}
-	return VerdictStatus(0), fmt.Errorf("%s is not a valid VerdictStatus", s)
 }

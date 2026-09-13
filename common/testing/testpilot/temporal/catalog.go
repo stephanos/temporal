@@ -14,7 +14,7 @@ import (
 // protocol message rather than a Temporal API one, so the Driver's catalog has to know both.
 func NewWorkflowServiceCatalog() (*testpilot.Catalog, error) {
 	descriptors := WorkflowServiceDescriptorSet()
-	protocol := descriptorClosure(testpilotspb.File_temporal_server_api_testpilot_v1_run_proto)
+	protocol := descriptorClosure(testpilotspb.File_temporal_server_api_testpilot_v1_case_proto, testpilotspb.File_temporal_server_api_testpilot_v1_run_proto)
 	seen := make(map[string]struct{}, len(descriptors.File))
 	for _, file := range descriptors.File {
 		seen[file.GetName()] = struct{}{}
@@ -32,7 +32,7 @@ func WorkflowServiceDescriptorSet() *descriptorpb.FileDescriptorSet {
 	return descriptorClosure(workflowservice.File_temporal_api_workflowservice_v1_service_proto)
 }
 
-func descriptorClosure(root protoreflect.FileDescriptor) *descriptorpb.FileDescriptorSet {
+func descriptorClosure(roots ...protoreflect.FileDescriptor) *descriptorpb.FileDescriptorSet {
 	seen := make(map[string]struct{})
 	result := &descriptorpb.FileDescriptorSet{}
 	var add func(protoreflect.FileDescriptor)
@@ -47,6 +47,8 @@ func descriptorClosure(root protoreflect.FileDescriptor) *descriptorpb.FileDescr
 		}
 		result.File = append(result.File, protodesc.ToFileDescriptorProto(file))
 	}
-	add(root)
+	for _, root := range roots {
+		add(root)
+	}
 	return result
 }

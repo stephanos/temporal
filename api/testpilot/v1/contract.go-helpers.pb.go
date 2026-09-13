@@ -7,220 +7,35 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-// Marshal an object of type ContractState to the protobuf v3 wire format
-func (val *ContractState) Marshal() ([]byte, error) {
+// Marshal an object of type Contract to the protobuf v3 wire format
+func (val *Contract) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
 }
 
-// Unmarshal an object of type ContractState from the protobuf v3 wire format
-func (val *ContractState) Unmarshal(buf []byte) error {
+// Unmarshal an object of type Contract from the protobuf v3 wire format
+func (val *Contract) Unmarshal(buf []byte) error {
 	return proto.Unmarshal(buf, val)
 }
 
 // Size returns the size of the object, in bytes, once serialized
-func (val *ContractState) Size() int {
+func (val *Contract) Size() int {
 	return proto.Size(val)
 }
 
-// Equal returns whether two ContractState values are equivalent by recursively
+// Equal returns whether two Contract values are equivalent by recursively
 // comparing the message's fields.
 // For more information see the documentation for
 // https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *ContractState) Equal(that interface{}) bool {
+func (this *Contract) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	var that1 *ContractState
+	var that1 *Contract
 	switch t := that.(type) {
-	case *ContractState:
+	case *Contract:
 		that1 = t
-	case ContractState:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type ContractCaptureType to the protobuf v3 wire format
-func (val *ContractCaptureType) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type ContractCaptureType from the protobuf v3 wire format
-func (val *ContractCaptureType) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *ContractCaptureType) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two ContractCaptureType values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *ContractCaptureType) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *ContractCaptureType
-	switch t := that.(type) {
-	case *ContractCaptureType:
-		that1 = t
-	case ContractCaptureType:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type ContractCapture to the protobuf v3 wire format
-func (val *ContractCapture) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type ContractCapture from the protobuf v3 wire format
-func (val *ContractCapture) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *ContractCapture) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two ContractCapture values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *ContractCapture) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *ContractCapture
-	switch t := that.(type) {
-	case *ContractCapture:
-		that1 = t
-	case ContractCapture:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type ContractCaptureAssignment to the protobuf v3 wire format
-func (val *ContractCaptureAssignment) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type ContractCaptureAssignment from the protobuf v3 wire format
-func (val *ContractCaptureAssignment) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *ContractCaptureAssignment) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two ContractCaptureAssignment values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *ContractCaptureAssignment) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *ContractCaptureAssignment
-	switch t := that.(type) {
-	case *ContractCaptureAssignment:
-		that1 = t
-	case ContractCaptureAssignment:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type ContractTransition to the protobuf v3 wire format
-func (val *ContractTransition) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type ContractTransition from the protobuf v3 wire format
-func (val *ContractTransition) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *ContractTransition) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two ContractTransition values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *ContractTransition) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *ContractTransition
-	switch t := that.(type) {
-	case *ContractTransition:
-		that1 = t
-	case ContractTransition:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type ContractDeadline to the protobuf v3 wire format
-func (val *ContractDeadline) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type ContractDeadline from the protobuf v3 wire format
-func (val *ContractDeadline) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *ContractDeadline) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two ContractDeadline values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *ContractDeadline) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *ContractDeadline
-	switch t := that.(type) {
-	case *ContractDeadline:
-		that1 = t
-	case ContractDeadline:
+	case Contract:
 		that1 = &t
 	default:
 		return false
@@ -266,6 +81,228 @@ func (this *ContractRule) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
+// Marshal an object of type ContractState to the protobuf v3 wire format
+func (val *ContractState) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type ContractState from the protobuf v3 wire format
+func (val *ContractState) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *ContractState) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two ContractState values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *ContractState) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *ContractState
+	switch t := that.(type) {
+	case *ContractState:
+		that1 = t
+	case ContractState:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type ContractCapture to the protobuf v3 wire format
+func (val *ContractCapture) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type ContractCapture from the protobuf v3 wire format
+func (val *ContractCapture) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *ContractCapture) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two ContractCapture values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *ContractCapture) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *ContractCapture
+	switch t := that.(type) {
+	case *ContractCapture:
+		that1 = t
+	case ContractCapture:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type ContractCaptureType to the protobuf v3 wire format
+func (val *ContractCaptureType) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type ContractCaptureType from the protobuf v3 wire format
+func (val *ContractCaptureType) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *ContractCaptureType) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two ContractCaptureType values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *ContractCaptureType) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *ContractCaptureType
+	switch t := that.(type) {
+	case *ContractCaptureType:
+		that1 = t
+	case ContractCaptureType:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type ContractTransition to the protobuf v3 wire format
+func (val *ContractTransition) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type ContractTransition from the protobuf v3 wire format
+func (val *ContractTransition) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *ContractTransition) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two ContractTransition values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *ContractTransition) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *ContractTransition
+	switch t := that.(type) {
+	case *ContractTransition:
+		that1 = t
+	case ContractTransition:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type ContractCaptureAssignment to the protobuf v3 wire format
+func (val *ContractCaptureAssignment) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type ContractCaptureAssignment from the protobuf v3 wire format
+func (val *ContractCaptureAssignment) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *ContractCaptureAssignment) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two ContractCaptureAssignment values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *ContractCaptureAssignment) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *ContractCaptureAssignment
+	switch t := that.(type) {
+	case *ContractCaptureAssignment:
+		that1 = t
+	case ContractCaptureAssignment:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type ContractDeadline to the protobuf v3 wire format
+func (val *ContractDeadline) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type ContractDeadline from the protobuf v3 wire format
+func (val *ContractDeadline) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *ContractDeadline) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two ContractDeadline values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *ContractDeadline) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *ContractDeadline
+	switch t := that.(type) {
+	case *ContractDeadline:
+		that1 = t
+	case ContractDeadline:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
 // Marshal an object of type ContractLimits to the protobuf v3 wire format
 func (val *ContractLimits) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
@@ -295,561 +332,6 @@ func (this *ContractLimits) Equal(that interface{}) bool {
 	case *ContractLimits:
 		that1 = t
 	case ContractLimits:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type Contract to the protobuf v3 wire format
-func (val *Contract) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type Contract from the protobuf v3 wire format
-func (val *Contract) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *Contract) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two Contract values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *Contract) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *Contract
-	switch t := that.(type) {
-	case *Contract:
-		that1 = t
-	case Contract:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type CorrelatedContract to the protobuf v3 wire format
-func (val *CorrelatedContract) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type CorrelatedContract from the protobuf v3 wire format
-func (val *CorrelatedContract) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *CorrelatedContract) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two CorrelatedContract values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *CorrelatedContract) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *CorrelatedContract
-	switch t := that.(type) {
-	case *CorrelatedContract:
-		that1 = t
-	case CorrelatedContract:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type ModelValue to the protobuf v3 wire format
-func (val *ModelValue) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type ModelValue from the protobuf v3 wire format
-func (val *ModelValue) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *ModelValue) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two ModelValue values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *ModelValue) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *ModelValue
-	switch t := that.(type) {
-	case *ModelValue:
-		that1 = t
-	case ModelValue:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type CorrelatedTransition to the protobuf v3 wire format
-func (val *CorrelatedTransition) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type CorrelatedTransition from the protobuf v3 wire format
-func (val *CorrelatedTransition) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *CorrelatedTransition) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two CorrelatedTransition values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *CorrelatedTransition) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *CorrelatedTransition
-	switch t := that.(type) {
-	case *CorrelatedTransition:
-		that1 = t
-	case CorrelatedTransition:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type CorrelatedFieldPolicy to the protobuf v3 wire format
-func (val *CorrelatedFieldPolicy) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type CorrelatedFieldPolicy from the protobuf v3 wire format
-func (val *CorrelatedFieldPolicy) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *CorrelatedFieldPolicy) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two CorrelatedFieldPolicy values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *CorrelatedFieldPolicy) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *CorrelatedFieldPolicy
-	switch t := that.(type) {
-	case *CorrelatedFieldPolicy:
-		that1 = t
-	case CorrelatedFieldPolicy:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type CorrelatedProjectionRule to the protobuf v3 wire format
-func (val *CorrelatedProjectionRule) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type CorrelatedProjectionRule from the protobuf v3 wire format
-func (val *CorrelatedProjectionRule) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *CorrelatedProjectionRule) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two CorrelatedProjectionRule values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *CorrelatedProjectionRule) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *CorrelatedProjectionRule
-	switch t := that.(type) {
-	case *CorrelatedProjectionRule:
-		that1 = t
-	case CorrelatedProjectionRule:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type CorrelatedPredicate to the protobuf v3 wire format
-func (val *CorrelatedPredicate) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type CorrelatedPredicate from the protobuf v3 wire format
-func (val *CorrelatedPredicate) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *CorrelatedPredicate) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two CorrelatedPredicate values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *CorrelatedPredicate) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *CorrelatedPredicate
-	switch t := that.(type) {
-	case *CorrelatedPredicate:
-		that1 = t
-	case CorrelatedPredicate:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type CorrelatedCaptureDeclaration to the protobuf v3 wire format
-func (val *CorrelatedCaptureDeclaration) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type CorrelatedCaptureDeclaration from the protobuf v3 wire format
-func (val *CorrelatedCaptureDeclaration) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *CorrelatedCaptureDeclaration) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two CorrelatedCaptureDeclaration values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *CorrelatedCaptureDeclaration) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *CorrelatedCaptureDeclaration
-	switch t := that.(type) {
-	case *CorrelatedCaptureDeclaration:
-		that1 = t
-	case CorrelatedCaptureDeclaration:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type CorrelatedCaptureRef to the protobuf v3 wire format
-func (val *CorrelatedCaptureRef) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type CorrelatedCaptureRef from the protobuf v3 wire format
-func (val *CorrelatedCaptureRef) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *CorrelatedCaptureRef) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two CorrelatedCaptureRef values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *CorrelatedCaptureRef) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *CorrelatedCaptureRef
-	switch t := that.(type) {
-	case *CorrelatedCaptureRef:
-		that1 = t
-	case CorrelatedCaptureRef:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type CorrelatedOperand to the protobuf v3 wire format
-func (val *CorrelatedOperand) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type CorrelatedOperand from the protobuf v3 wire format
-func (val *CorrelatedOperand) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *CorrelatedOperand) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two CorrelatedOperand values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *CorrelatedOperand) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *CorrelatedOperand
-	switch t := that.(type) {
-	case *CorrelatedOperand:
-		that1 = t
-	case CorrelatedOperand:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type CorrelatedComparison to the protobuf v3 wire format
-func (val *CorrelatedComparison) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type CorrelatedComparison from the protobuf v3 wire format
-func (val *CorrelatedComparison) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *CorrelatedComparison) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two CorrelatedComparison values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *CorrelatedComparison) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *CorrelatedComparison
-	switch t := that.(type) {
-	case *CorrelatedComparison:
-		that1 = t
-	case CorrelatedComparison:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type CorrelatedCorrelationGroup to the protobuf v3 wire format
-func (val *CorrelatedCorrelationGroup) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type CorrelatedCorrelationGroup from the protobuf v3 wire format
-func (val *CorrelatedCorrelationGroup) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *CorrelatedCorrelationGroup) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two CorrelatedCorrelationGroup values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *CorrelatedCorrelationGroup) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *CorrelatedCorrelationGroup
-	switch t := that.(type) {
-	case *CorrelatedCorrelationGroup:
-		that1 = t
-	case CorrelatedCorrelationGroup:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type CorrelatedCorrelation to the protobuf v3 wire format
-func (val *CorrelatedCorrelation) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type CorrelatedCorrelation from the protobuf v3 wire format
-func (val *CorrelatedCorrelation) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *CorrelatedCorrelation) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two CorrelatedCorrelation values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *CorrelatedCorrelation) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *CorrelatedCorrelation
-	switch t := that.(type) {
-	case *CorrelatedCorrelation:
-		that1 = t
-	case CorrelatedCorrelation:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type CorrelatedRule to the protobuf v3 wire format
-func (val *CorrelatedRule) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type CorrelatedRule from the protobuf v3 wire format
-func (val *CorrelatedRule) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *CorrelatedRule) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two CorrelatedRule values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *CorrelatedRule) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *CorrelatedRule
-	switch t := that.(type) {
-	case *CorrelatedRule:
-		that1 = t
-	case CorrelatedRule:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type CorrelatedLimits to the protobuf v3 wire format
-func (val *CorrelatedLimits) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type CorrelatedLimits from the protobuf v3 wire format
-func (val *CorrelatedLimits) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *CorrelatedLimits) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two CorrelatedLimits values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *CorrelatedLimits) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *CorrelatedLimits
-	switch t := that.(type) {
-	case *CorrelatedLimits:
-		that1 = t
-	case CorrelatedLimits:
 		that1 = &t
 	default:
 		return false
@@ -914,121 +396,4 @@ func ContractSupportKindFromString(s string) (ContractSupportKind, error) {
 		return ContractSupportKind(v), nil
 	}
 	return ContractSupportKind(0), fmt.Errorf("%s is not a valid ContractSupportKind", s)
-}
-
-var (
-	CorrelatedEvidenceMeaning_shorthandValue = map[string]int32{
-		"Unspecified": 0,
-		"Irrelevant":  1,
-		"Submission":  2,
-		"Confirmed":   3,
-	}
-)
-
-// CorrelatedEvidenceMeaningFromString parses a CorrelatedEvidenceMeaning value from  either the protojson
-// canonical SCREAMING_CASE enum or the traditional temporal PascalCase enum to CorrelatedEvidenceMeaning
-func CorrelatedEvidenceMeaningFromString(s string) (CorrelatedEvidenceMeaning, error) {
-	if v, ok := CorrelatedEvidenceMeaning_value[s]; ok {
-		return CorrelatedEvidenceMeaning(v), nil
-	} else if v, ok := CorrelatedEvidenceMeaning_shorthandValue[s]; ok {
-		return CorrelatedEvidenceMeaning(v), nil
-	}
-	return CorrelatedEvidenceMeaning(0), fmt.Errorf("%s is not a valid CorrelatedEvidenceMeaning", s)
-}
-
-var (
-	CorrelatedFieldDisposition_shorthandValue = map[string]int32{
-		"Unspecified": 0,
-		"Retain":      1,
-		"Redact":      2,
-		"Reject":      3,
-	}
-)
-
-// CorrelatedFieldDispositionFromString parses a CorrelatedFieldDisposition value from  either the protojson
-// canonical SCREAMING_CASE enum or the traditional temporal PascalCase enum to CorrelatedFieldDisposition
-func CorrelatedFieldDispositionFromString(s string) (CorrelatedFieldDisposition, error) {
-	if v, ok := CorrelatedFieldDisposition_value[s]; ok {
-		return CorrelatedFieldDisposition(v), nil
-	} else if v, ok := CorrelatedFieldDisposition_shorthandValue[s]; ok {
-		return CorrelatedFieldDisposition(v), nil
-	}
-	return CorrelatedFieldDisposition(0), fmt.Errorf("%s is not a valid CorrelatedFieldDisposition", s)
-}
-
-var (
-	CorrelatedClock_shorthandValue = map[string]int32{
-		"Unspecified":          0,
-		"OperationTransitions": 1,
-	}
-)
-
-// CorrelatedClockFromString parses a CorrelatedClock value from  either the protojson
-// canonical SCREAMING_CASE enum or the traditional temporal PascalCase enum to CorrelatedClock
-func CorrelatedClockFromString(s string) (CorrelatedClock, error) {
-	if v, ok := CorrelatedClock_value[s]; ok {
-		return CorrelatedClock(v), nil
-	} else if v, ok := CorrelatedClock_shorthandValue[s]; ok {
-		return CorrelatedClock(v), nil
-	}
-	return CorrelatedClock(0), fmt.Errorf("%s is not a valid CorrelatedClock", s)
-}
-
-var (
-	TraceEnding_shorthandValue = map[string]int32{
-		"Unspecified": 0,
-		"Partial":     1,
-		"Final":       2,
-	}
-)
-
-// TraceEndingFromString parses a TraceEnding value from  either the protojson
-// canonical SCREAMING_CASE enum or the traditional temporal PascalCase enum to TraceEnding
-func TraceEndingFromString(s string) (TraceEnding, error) {
-	if v, ok := TraceEnding_value[s]; ok {
-		return TraceEnding(v), nil
-	} else if v, ok := TraceEnding_shorthandValue[s]; ok {
-		return TraceEnding(v), nil
-	}
-	return TraceEnding(0), fmt.Errorf("%s is not a valid TraceEnding", s)
-}
-
-var (
-	CorrelatedPredicateField_shorthandValue = map[string]int32{
-		"Unspecified": 0,
-		"Action":      1,
-		"Outcome":     2,
-		"State":       3,
-		"Fact":        4,
-	}
-)
-
-// CorrelatedPredicateFieldFromString parses a CorrelatedPredicateField value from  either the protojson
-// canonical SCREAMING_CASE enum or the traditional temporal PascalCase enum to CorrelatedPredicateField
-func CorrelatedPredicateFieldFromString(s string) (CorrelatedPredicateField, error) {
-	if v, ok := CorrelatedPredicateField_value[s]; ok {
-		return CorrelatedPredicateField(v), nil
-	} else if v, ok := CorrelatedPredicateField_shorthandValue[s]; ok {
-		return CorrelatedPredicateField(v), nil
-	}
-	return CorrelatedPredicateField(0), fmt.Errorf("%s is not a valid CorrelatedPredicateField", s)
-}
-
-var (
-	CorrelatedComparisonOperator_shorthandValue = map[string]int32{
-		"Unspecified": 0,
-		"Equal":       1,
-		"NotEqual":    2,
-	}
-)
-
-// CorrelatedComparisonOperatorFromString parses a CorrelatedComparisonOperator value from  either the protojson
-// canonical SCREAMING_CASE enum or the traditional temporal PascalCase enum to CorrelatedComparisonOperator
-func CorrelatedComparisonOperatorFromString(s string) (CorrelatedComparisonOperator, error) {
-	if v, ok := CorrelatedComparisonOperator_value[s]; ok {
-		return CorrelatedComparisonOperator(v), nil
-	} else if v, ok := CorrelatedComparisonOperator_shorthandValue[s]; ok {
-		return CorrelatedComparisonOperator(v), nil
-	}
-	return CorrelatedComparisonOperator(0), fmt.Errorf("%s is not a valid CorrelatedComparisonOperator", s)
 }

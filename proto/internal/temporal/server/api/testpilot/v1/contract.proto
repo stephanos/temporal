@@ -1,10 +1,33 @@
 syntax = "proto3";
 package temporal.server.api.testpilot.v1;
+import "temporal/server/api/testpilot/v1/correlated.proto";
+import "temporal/server/api/testpilot/v1/event.proto";
 import "temporal/server/api/testpilot/v1/expression.proto";
-import "temporal/server/api/testpilot/v1/run.proto";
 import "temporal/server/api/testpilot/v1/value.proto";
 option go_package = "go.temporal.io/server/api/testpilot/v1;testpilot";
 
+// Contract contains only closed deterministic monitor machines over declared Run Observations.
+message Contract {
+  string contract_id = 1;
+  repeated ContractRule rules = 2;
+  CorrelatedContract correlated = 3;
+  ContractLimits limits = 4;
+}
+
+// ContractRule is one finite deterministic safety or bounded-liveness monitor machine.
+message ContractRule {
+  string rule_id = 1;
+  ContractRuleKind kind = 2;
+  string initial_state_id = 3;
+  repeated ContractState states = 4;
+  // Rule-local values its transitions assign.
+  repeated ContractCapture captures = 5;
+  repeated ContractTransition transitions = 6;
+  // A bounded-liveness rule has one deadline; a safety rule has none.
+  ContractDeadline deadline = 7;
+}
+
+// ContractRuleKind names whether a rule is a safety rule or a bounded-liveness rule.
 // Contract lifecycle enums use the public Testpilot Status vocabulary.
 // (-- api-linter: core::0191::file-layout=disabled
 //     core::0216::synonyms=disabled --)
@@ -13,6 +36,12 @@ enum ContractRuleKind {
   CONTRACT_RULE_KIND_SAFETY = 1;
   CONTRACT_RULE_KIND_BOUNDED_LIVENESS = 2;
 }
+
+// ContractState is one state of a rule's machine; its status is the rule's status while in it.
+message ContractState { string state_id = 1; ContractStateStatus status = 2; }
+
+// ContractStateStatus says whether a state is pending or decides the rule. Only pending states have
+// outgoing transitions, and a rule starts in one.
 // (-- api-linter: core::0216::synonyms=disabled --)
 enum ContractStateStatus {
   CONTRACT_STATE_STATUS_UNSPECIFIED = 0;
@@ -20,7 +49,12 @@ enum ContractStateStatus {
   CONTRACT_STATE_STATUS_SATISFIED = 2;
   CONTRACT_STATE_STATUS_VIOLATED = 3;
 }
-message ContractState { string state_id = 1; ContractStateStatus status = 2; }
+
+// ContractCapture declares a rule-local value, assigned at most once from an Observation.
+message ContractCapture { string capture_id = 1; ContractCaptureType type = 2; }
+
+// ContractCaptureType is the type of a capture: a scalar, enum or message type equal to the type of
+// the Observation it captures.
 message ContractCaptureType {
   oneof type {
     ScalarType scalar = 1;
@@ -28,24 +62,33 @@ message ContractCaptureType {
     NamedType message = 3;
   }
 }
-message ContractCapture { string capture_id = 1; ContractCaptureType type = 2; }
-message ContractCaptureAssignment { string capture_id = 1; ObservationRef observation = 2; }
-enum ContractSupportKind {
-  CONTRACT_SUPPORT_KIND_UNSPECIFIED = 0;
-  CONTRACT_SUPPORT_KIND_NONE = 1;
-  CONTRACT_SUPPORT_KIND_MATCHING_EVENT = 2;
-}
 
 // ContractTransition is evaluated in declaration order for its source state and event kind.
 message ContractTransition {
   string transition_id = 1;
   string source_state_id = 2;
   string target_state_id = 3;
-  RunEventFilter event_filter = 4;
-  ContractExpression predicate = 5;
-  ContractSupportKind support_kind = 6;
-  repeated ContractCaptureAssignment capture_assignments = 7;
+  // Whether the matching Run Event supports the rule's conclusion.
+  ContractSupportKind support_kind = 4;
+  repeated ContractCaptureAssignment capture_assignments = 5;
+  // The Run Event kinds the transition considers; never empty.
+  RunEventFilter event_filter = 6;
+  // Must hold on the Run Event for the transition to be taken.
+  ContractExpression predicate = 7;
 }
+
+// ContractSupportKind says whether a transition's matching Run Event joins the rule's and the
+// Verdict's supporting event sequences.
+enum ContractSupportKind {
+  CONTRACT_SUPPORT_KIND_UNSPECIFIED = 0;
+  CONTRACT_SUPPORT_KIND_NONE = 1;
+  CONTRACT_SUPPORT_KIND_MATCHING_EVENT = 2;
+}
+
+// ContractCaptureAssignment copies an Observation of the matching Run Event into an unassigned capture
+// when its transition is taken.
+message ContractCaptureAssignment { string capture_id = 1; ObservationRef observation = 2; }
+
 // ContractDeadline bounds one liveness rule. Exactly one bound is positive.
 // elapsed_milliseconds expires the rule at the first Run Event whose elapsed coordinate
 // reaches it; that coordinate is derived from the recording host's clock, so a bound
@@ -55,182 +98,27 @@ message ContractTransition {
 // once the rule reaches a terminal state. It also freezes, with every other rule effect, once
 // execution becomes incomplete, so no expiry is ever concluded from a truncated Run.
 message ContractDeadline {
-  int64 elapsed_milliseconds = 1;
-  string violation_state_id = 2;
-  int64 rule_events = 3;
+  string violation_state_id = 1;
+  int64 rule_events = 2;
+  int64 elapsed_milliseconds = 3;
 }
 
-// ContractRule is one finite deterministic safety or bounded-liveness monitor machine.
-message ContractRule {
-  string rule_id = 1;
-  ContractRuleKind kind = 2;
-  string initial_state_id = 3;
-  repeated ContractState states = 4;
-  repeated ContractTransition transitions = 5;
-  ContractDeadline deadline = 6;
-  repeated ContractCapture captures = 7;
-}
+// ContractLimits bound one Contract, its correlated contract included.
 message ContractLimits {
+  // Rules, correlated rules included.
   int64 max_rules = 1;
+  // States across every rule, plus the correlated contract's distinct model states.
   int64 max_states = 2;
+  // Transitions across every rule, plus the rows of the correlated transition table.
   int64 max_transitions = 3;
+  // Nesting depth of any predicate.
   int64 max_expression_depth = 4;
+  // Evaluation work for one Run Event.
   int64 max_work_per_event = 5;
+  // Evaluation work across the Run.
   int64 max_total_work = 6;
+  // Captured values, correlated obligations and capture occurrences included.
   int64 max_captures = 7;
+  // Size of every captured value together, correlated retention included.
   int64 max_capture_bytes = 8;
-}
-
-// Contract contains only closed deterministic monitor machines over declared Run Observations.
-message Contract {
-  string contract_id = 1;
-  repeated ContractRule rules = 2;
-  ContractLimits limits = 3;
-  CorrelatedContract correlated = 4;
-}
-
-// CorrelatedContract v1 projects causally ordered evidence before ticking operation-local windows.
-message CorrelatedContract {
-  int32 version = 1;
-  string projection_id = 2;
-  string projection_fingerprint = 3;
-  string evidence_observation_id = 4;
-  repeated string scope_fields = 5;
-  string operation_field = 6;
-  repeated string sources = 7;
-  ModelValue initial_state = 8;
-  repeated CorrelatedTransition transitions = 9;
-  repeated CorrelatedProjectionRule projection_rules = 10;
-  repeated CorrelatedRule rules = 11;
-  CorrelatedLimits limits = 12;
-}
-message ModelValue { string definition_id = 1; string value = 2; }
-message CorrelatedTransition {
-  ModelValue prior_state = 1;
-  ModelValue action = 2;
-  ModelValue state = 3;
-  ModelValue outcome = 4;
-  repeated ModelValue facts = 5;
-}
-enum CorrelatedEvidenceMeaning {
-  CORRELATED_EVIDENCE_MEANING_UNSPECIFIED = 0;
-  CORRELATED_EVIDENCE_MEANING_IRRELEVANT = 1;
-  CORRELATED_EVIDENCE_MEANING_SUBMISSION = 2;
-  CORRELATED_EVIDENCE_MEANING_CONFIRMED = 3;
-}
-enum CorrelatedFieldDisposition {
-  CORRELATED_FIELD_DISPOSITION_UNSPECIFIED = 0;
-  CORRELATED_FIELD_DISPOSITION_RETAIN = 1;
-  CORRELATED_FIELD_DISPOSITION_REDACT = 2;
-  CORRELATED_FIELD_DISPOSITION_REJECT = 3;
-}
-message CorrelatedFieldPolicy {
-  string field_id = 1;
-  ScalarType type = 2;
-  CorrelatedFieldDisposition disposition = 3;
-}
-message CorrelatedProjectionRule {
-  string kind = 1;
-  CorrelatedEvidenceMeaning meaning = 2;
-  ModelValue submission = 3;
-  // Output rows omit prior_state; the complete transition table checks continuity at admission.
-  repeated CorrelatedTransition outputs = 4;
-  repeated CorrelatedFieldPolicy fields = 5;
-}
-enum CorrelatedClock {
-  CORRELATED_CLOCK_UNSPECIFIED = 0;
-  CORRELATED_CLOCK_OPERATION_TRANSITIONS = 1;
-}
-enum TraceEnding {
-  TRACE_ENDING_UNSPECIFIED = 0;
-  TRACE_ENDING_PARTIAL = 1;
-  TRACE_ENDING_FINAL = 2;
-}
-enum CorrelatedPredicateField {
-  CORRELATED_PREDICATE_FIELD_UNSPECIFIED = 0;
-  CORRELATED_PREDICATE_FIELD_ACTION = 1;
-  CORRELATED_PREDICATE_FIELD_OUTCOME = 2;
-  CORRELATED_PREDICATE_FIELD_STATE = 3;
-  CORRELATED_PREDICATE_FIELD_FACT = 4;
-}
-message CorrelatedPredicate {
-  CorrelatedPredicateField field = 1;
-  string definition_id = 2;
-  oneof constraint {
-    bool present = 3;
-    string equals_text = 4;
-  }
-}
-
-// CorrelatedCaptureDeclaration retains one declared evidence field of the operation's admitted steps.
-// Occurrences are numbered from zero in admission order and never rewritten, so a correlation
-// operand names an exact earlier occurrence rather than an implicit latest match. `lifetime` is how
-// many occurrences one operation retains.
-message CorrelatedCaptureDeclaration {
-  string capture_id = 1;
-  string field_id = 2;
-  int64 lifetime = 3;
-}
-message CorrelatedCaptureRef {
-  string capture_id = 1;
-  int64 ordinal = 2;
-}
-
-// CorrelatedOperand reads only declared evidence: an exact literal, one declared evidence field of the
-// step being admitted, or one retained earlier occurrence of a declared capture.
-message CorrelatedOperand {
-  oneof operand {
-    Value literal = 1;
-    string field_id = 2;
-    CorrelatedCaptureRef capture = 3;
-  }
-}
-enum CorrelatedComparisonOperator {
-  CORRELATED_COMPARISON_OPERATOR_UNSPECIFIED = 0;
-  CORRELATED_COMPARISON_OPERATOR_EQUAL = 1;
-  CORRELATED_COMPARISON_OPERATOR_NOT_EQUAL = 2;
-}
-message CorrelatedComparison {
-  CorrelatedComparisonOperator operator = 1;
-  CorrelatedOperand left = 2;
-  CorrelatedOperand right = 3;
-}
-message CorrelatedCorrelationGroup { repeated CorrelatedCorrelation operands = 1; }
-
-// CorrelatedCorrelation decides whether a labeled transition is one of the operation's semantic steps.
-// It never supplies a trigger or a response: the bounded countdown stays exactly the one the
-// rule's trigger and response patterns describe. `all` and `any` are evaluated left to right and
-// stop at the first decisive operand, so an operand an earlier one made irrelevant is never read.
-message CorrelatedCorrelation {
-  oneof condition {
-    CorrelatedPredicate predicate = 1;
-    CorrelatedComparison comparison = 2;
-    CorrelatedCorrelationGroup all = 3;
-    CorrelatedCorrelationGroup any = 4;
-  }
-}
-message CorrelatedRule {
-  string rule_id = 1;
-  CorrelatedClock clock = 7;
-  int64 bound = 8;
-  TraceEnding ending = 9;
-  CorrelatedPredicate trigger = 10;
-  CorrelatedPredicate response = 11;
-  repeated CorrelatedCaptureDeclaration captures = 12;
-  CorrelatedCorrelation correlation = 13;
-}
-message CorrelatedLimits {
-  int64 max_events = 1;
-  int64 max_buffered = 2;
-  int64 max_keys = 3;
-  int64 max_support = 4;
-  int64 max_projection_work = 5;
-  int64 max_event_bytes = 6;
-  int64 max_semantic_transitions = 7;
-  int64 max_obligations = 8;
-  int64 max_obligation_work = 9;
-  // A capability declaring captures or a correlation must set both ceilings; one that declares
-  // neither leaves both unset and keeps its exact existing encoding.
-  int64 max_captures = 10;
-  int64 max_correlation_depth = 11;
 }

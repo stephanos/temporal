@@ -438,6 +438,14 @@ narrows or completes a requirement without changing its intent; tasks record the
 - **Absent operands.** Every comparison operator, `NOT_EQUAL` included, is false on an absent operand;
   bare absent predicates and absent inputs still reject. The rule is run over unchanged fixtures before
   Producers drop presence checks.
+- **Cross-file enum accessors (decided in .4, 2026-09-12).** `protogen` trims an enum value's type
+  prefix only inside the file that declares the enum, so a message whose singular enum field names an
+  enum from another file of the package generated Go that did not compile. That is why `FaultInjected`
+  sat beside `FaultKind`. `RunEvent.kind` must reach `RunEventKind` in `event.proto` while R11 keeps
+  `RunEvent` out of the Case closure, so no file layout satisfies both. `cmd/tools/protogen` now
+  rewrites such references after generation, which changes no other generated file. `Testpilot.Protocol`
+  loads the Case and Run closures with one `protoc` call, because a second `#load_proto_file`
+  declares the shared files twice.
 
 ## Requirement coverage
 
