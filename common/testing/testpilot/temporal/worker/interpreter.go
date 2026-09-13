@@ -163,7 +163,7 @@ func (s *Session) executeNexus(ctx context.Context, delivered delivery.Activatio
 		s.mu.unlock()
 		return nil, errors.Join(ErrClosed, s.failure)
 	}
-	if len(s.nexusResults) >= boundedInt(s.definition.snapshot.GetLimits().GetMaxActivations()) {
+	if len(s.nexusResults) >= boundedInt(s.definition.limits.GetMaxActivations()) {
 		s.mu.unlock()
 		return nil, ErrCapacity
 	}

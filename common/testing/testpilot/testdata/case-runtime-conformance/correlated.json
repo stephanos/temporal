@@ -10,17 +10,6 @@
             "definitionId": "test.state",
             "value": "ready"
           },
-          "limits": {
-            "maxBuffered": "8",
-            "maxEventBytes": "512",
-            "maxEvents": "16",
-            "maxKeys": "8",
-            "maxObligationWork": "1000000000",
-            "maxObligations": "16",
-            "maxProjectionWork": "1000000000",
-            "maxSemanticTransitions": "32",
-            "maxSupport": "256"
-          },
           "operationField": "test.operation",
           "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
           "projectionId": "test.projection",
@@ -267,16 +256,6 @@
               }
             }
           ]
-        },
-        "limits": {
-          "maxCaptureBytes": "65536",
-          "maxCaptures": "32",
-          "maxExpressionDepth": "16",
-          "maxRules": "16",
-          "maxStates": "32",
-          "maxTotalWork": "1000000000",
-          "maxTransitions": "64",
-          "maxWorkPerEvent": "100000"
         }
       },
       "program": {
@@ -289,20 +268,6 @@
             "entrypointId": "controller"
           }
         ],
-        "limits": {
-          "maxActivations": "16",
-          "maxAttempts": "16",
-          "maxCleanupDurationMilliseconds": "1000",
-          "maxEdges": "16",
-          "maxEntrypoints": "4",
-          "maxExpressionDepth": "8",
-          "maxNodes": "16",
-          "maxPathFanout": "8",
-          "maxRequestBytes": "4096",
-          "maxResponseBytes": "4096",
-          "maxRunEvents": "32",
-          "maxTotalDurationMilliseconds": "10000"
-        },
         "observations": [
           {
             "observationId": "evidence",
@@ -355,17 +320,6 @@
             "definitionId": "test.state",
             "value": "ready"
           },
-          "limits": {
-            "maxBuffered": "8",
-            "maxEventBytes": "512",
-            "maxEvents": "16",
-            "maxKeys": "8",
-            "maxObligationWork": "1000000000",
-            "maxObligations": "16",
-            "maxProjectionWork": "1000000000",
-            "maxSemanticTransitions": "32",
-            "maxSupport": "256"
-          },
           "operationField": "test.operation",
           "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
           "projectionId": "test.projection",
@@ -612,16 +566,6 @@
               }
             }
           ]
-        },
-        "limits": {
-          "maxCaptureBytes": "65536",
-          "maxCaptures": "32",
-          "maxExpressionDepth": "16",
-          "maxRules": "16",
-          "maxStates": "32",
-          "maxTotalWork": "1000000000",
-          "maxTransitions": "64",
-          "maxWorkPerEvent": "100000"
         }
       },
       "program": {
@@ -654,8 +598,6 @@
                 "instructionId": "read.0",
                 "limits": {
                   "maxAttempts": "1",
-                  "maxEmittedEvents": "1",
-                  "maxResponseBytes": "4096",
                   "timeoutMilliseconds": "1000"
                 },
                 "outcome": {
@@ -676,20 +618,6 @@
             ]
           }
         ],
-        "limits": {
-          "maxActivations": "256",
-          "maxAttempts": "256",
-          "maxCleanupDurationMilliseconds": "1000",
-          "maxEdges": "256",
-          "maxEntrypoints": "4",
-          "maxExpressionDepth": "8",
-          "maxNodes": "256",
-          "maxPathFanout": "256",
-          "maxRequestBytes": "4096",
-          "maxResponseBytes": "4096",
-          "maxRunEvents": "2048",
-          "maxTotalDurationMilliseconds": "10000"
-        },
         "observations": [
           {
             "observationId": "evidence",
@@ -730,17 +658,6 @@
             "definitionId": "test.state",
             "value": "ready"
           },
-          "limits": {
-            "maxBuffered": "8",
-            "maxEventBytes": "512",
-            "maxEvents": "16",
-            "maxKeys": "8",
-            "maxObligationWork": "1000000000",
-            "maxObligations": "16",
-            "maxProjectionWork": "1000000000",
-            "maxSemanticTransitions": "32",
-            "maxSupport": "256"
-          },
           "operationField": "test.operation",
           "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
           "projectionId": "test.projection",
@@ -987,16 +904,6 @@
               }
             }
           ]
-        },
-        "limits": {
-          "maxCaptureBytes": "65536",
-          "maxCaptures": "32",
-          "maxExpressionDepth": "16",
-          "maxRules": "16",
-          "maxStates": "32",
-          "maxTotalWork": "1000000000",
-          "maxTransitions": "64",
-          "maxWorkPerEvent": "100000"
         }
       },
       "program": {
@@ -1009,20 +916,6 @@
             "entrypointId": "controller"
           }
         ],
-        "limits": {
-          "maxActivations": "16",
-          "maxAttempts": "16",
-          "maxCleanupDurationMilliseconds": "1000",
-          "maxEdges": "16",
-          "maxEntrypoints": "4",
-          "maxExpressionDepth": "8",
-          "maxNodes": "16",
-          "maxPathFanout": "8",
-          "maxRequestBytes": "4096",
-          "maxResponseBytes": "4096",
-          "maxRunEvents": "32",
-          "maxTotalDurationMilliseconds": "10000"
-        },
         "observations": [
           {
             "observationId": "evidence",
@@ -1075,17 +968,6 @@
             "definitionId": "test.state",
             "value": "ready"
           },
-          "limits": {
-            "maxBuffered": "8",
-            "maxEventBytes": "512",
-            "maxEvents": "16",
-            "maxKeys": "8",
-            "maxObligationWork": "1000000000",
-            "maxObligations": "16",
-            "maxProjectionWork": "1000000000",
-            "maxSemanticTransitions": "32",
-            "maxSupport": "256"
-          },
           "operationField": "test.operation",
           "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
           "projectionId": "test.projection",
@@ -1332,16 +1214,6 @@
               }
             }
           ]
-        },
-        "limits": {
-          "maxCaptureBytes": "65536",
-          "maxCaptures": "32",
-          "maxExpressionDepth": "16",
-          "maxRules": "16",
-          "maxStates": "32",
-          "maxTotalWork": "1000000000",
-          "maxTransitions": "64",
-          "maxWorkPerEvent": "100000"
         }
       },
       "program": {
@@ -1374,8 +1246,6 @@
                 "instructionId": "read.0",
                 "limits": {
                   "maxAttempts": "1",
-                  "maxEmittedEvents": "1",
-                  "maxResponseBytes": "4096",
                   "timeoutMilliseconds": "1000"
                 },
                 "outcome": {
@@ -1396,20 +1266,6 @@
             ]
           }
         ],
-        "limits": {
-          "maxActivations": "256",
-          "maxAttempts": "256",
-          "maxCleanupDurationMilliseconds": "1000",
-          "maxEdges": "256",
-          "maxEntrypoints": "4",
-          "maxExpressionDepth": "8",
-          "maxNodes": "256",
-          "maxPathFanout": "256",
-          "maxRequestBytes": "4096",
-          "maxResponseBytes": "4096",
-          "maxRunEvents": "2048",
-          "maxTotalDurationMilliseconds": "10000"
-        },
         "observations": [
           {
             "observationId": "evidence",
@@ -1449,17 +1305,6 @@
           "initialState": {
             "definitionId": "test.state",
             "value": "ready"
-          },
-          "limits": {
-            "maxBuffered": "8",
-            "maxEventBytes": "512",
-            "maxEvents": "16",
-            "maxKeys": "8",
-            "maxObligationWork": "1000000000",
-            "maxObligations": "16",
-            "maxProjectionWork": "1000000000",
-            "maxSemanticTransitions": "32",
-            "maxSupport": "256"
           },
           "operationField": "test.operation",
           "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
@@ -1708,16 +1553,6 @@
               }
             }
           ]
-        },
-        "limits": {
-          "maxCaptureBytes": "65536",
-          "maxCaptures": "32",
-          "maxExpressionDepth": "16",
-          "maxRules": "16",
-          "maxStates": "32",
-          "maxTotalWork": "1000000000",
-          "maxTransitions": "64",
-          "maxWorkPerEvent": "100000"
         }
       },
       "program": {
@@ -1730,20 +1565,6 @@
             "entrypointId": "controller"
           }
         ],
-        "limits": {
-          "maxActivations": "16",
-          "maxAttempts": "16",
-          "maxCleanupDurationMilliseconds": "1000",
-          "maxEdges": "16",
-          "maxEntrypoints": "4",
-          "maxExpressionDepth": "8",
-          "maxNodes": "16",
-          "maxPathFanout": "8",
-          "maxRequestBytes": "4096",
-          "maxResponseBytes": "4096",
-          "maxRunEvents": "32",
-          "maxTotalDurationMilliseconds": "10000"
-        },
         "observations": [
           {
             "observationId": "evidence",
@@ -1796,17 +1617,6 @@
             "definitionId": "test.state",
             "value": "ready"
           },
-          "limits": {
-            "maxBuffered": "8",
-            "maxEventBytes": "512",
-            "maxEvents": "16",
-            "maxKeys": "8",
-            "maxObligationWork": "1000000000",
-            "maxObligations": "16",
-            "maxProjectionWork": "1000000000",
-            "maxSemanticTransitions": "32",
-            "maxSupport": "256"
-          },
           "operationField": "test.operation",
           "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
           "projectionId": "test.projection",
@@ -2054,16 +1864,6 @@
               }
             }
           ]
-        },
-        "limits": {
-          "maxCaptureBytes": "65536",
-          "maxCaptures": "32",
-          "maxExpressionDepth": "16",
-          "maxRules": "16",
-          "maxStates": "32",
-          "maxTotalWork": "1000000000",
-          "maxTransitions": "64",
-          "maxWorkPerEvent": "100000"
         }
       },
       "program": {
@@ -2096,8 +1896,6 @@
                 "instructionId": "read.0",
                 "limits": {
                   "maxAttempts": "1",
-                  "maxEmittedEvents": "1",
-                  "maxResponseBytes": "4096",
                   "timeoutMilliseconds": "1000"
                 },
                 "outcome": {
@@ -2118,20 +1916,6 @@
             ]
           }
         ],
-        "limits": {
-          "maxActivations": "256",
-          "maxAttempts": "256",
-          "maxCleanupDurationMilliseconds": "1000",
-          "maxEdges": "256",
-          "maxEntrypoints": "4",
-          "maxExpressionDepth": "8",
-          "maxNodes": "256",
-          "maxPathFanout": "256",
-          "maxRequestBytes": "4096",
-          "maxResponseBytes": "4096",
-          "maxRunEvents": "2048",
-          "maxTotalDurationMilliseconds": "10000"
-        },
         "observations": [
           {
             "observationId": "evidence",
@@ -2171,17 +1955,6 @@
           "initialState": {
             "definitionId": "test.state",
             "value": "ready"
-          },
-          "limits": {
-            "maxBuffered": "8",
-            "maxEventBytes": "512",
-            "maxEvents": "16",
-            "maxKeys": "8",
-            "maxObligationWork": "1000000000",
-            "maxObligations": "16",
-            "maxProjectionWork": "1000000000",
-            "maxSemanticTransitions": "32",
-            "maxSupport": "256"
           },
           "operationField": "test.operation",
           "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
@@ -2430,16 +2203,6 @@
               }
             }
           ]
-        },
-        "limits": {
-          "maxCaptureBytes": "65536",
-          "maxCaptures": "32",
-          "maxExpressionDepth": "16",
-          "maxRules": "16",
-          "maxStates": "32",
-          "maxTotalWork": "1000000000",
-          "maxTransitions": "64",
-          "maxWorkPerEvent": "100000"
         }
       },
       "program": {
@@ -2452,20 +2215,6 @@
             "entrypointId": "controller"
           }
         ],
-        "limits": {
-          "maxActivations": "16",
-          "maxAttempts": "16",
-          "maxCleanupDurationMilliseconds": "1000",
-          "maxEdges": "16",
-          "maxEntrypoints": "4",
-          "maxExpressionDepth": "8",
-          "maxNodes": "16",
-          "maxPathFanout": "8",
-          "maxRequestBytes": "4096",
-          "maxResponseBytes": "4096",
-          "maxRunEvents": "32",
-          "maxTotalDurationMilliseconds": "10000"
-        },
         "observations": [
           {
             "observationId": "evidence",
@@ -2534,17 +2283,6 @@
             "definitionId": "test.state",
             "value": "ready"
           },
-          "limits": {
-            "maxBuffered": "8",
-            "maxEventBytes": "512",
-            "maxEvents": "16",
-            "maxKeys": "8",
-            "maxObligationWork": "1000000000",
-            "maxObligations": "16",
-            "maxProjectionWork": "1000000000",
-            "maxSemanticTransitions": "32",
-            "maxSupport": "256"
-          },
           "operationField": "test.operation",
           "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
           "projectionId": "test.projection",
@@ -2792,16 +2530,6 @@
               }
             }
           ]
-        },
-        "limits": {
-          "maxCaptureBytes": "65536",
-          "maxCaptures": "32",
-          "maxExpressionDepth": "16",
-          "maxRules": "16",
-          "maxStates": "32",
-          "maxTotalWork": "1000000000",
-          "maxTransitions": "64",
-          "maxWorkPerEvent": "100000"
         }
       },
       "program": {
@@ -2834,8 +2562,6 @@
                 "instructionId": "read.0",
                 "limits": {
                   "maxAttempts": "1",
-                  "maxEmittedEvents": "1",
-                  "maxResponseBytes": "4096",
                   "timeoutMilliseconds": "1000"
                 },
                 "outcome": {
@@ -2880,8 +2606,6 @@
                 "instructionId": "read.1",
                 "limits": {
                   "maxAttempts": "1",
-                  "maxEmittedEvents": "1",
-                  "maxResponseBytes": "4096",
                   "timeoutMilliseconds": "1000"
                 },
                 "outcome": {
@@ -2902,20 +2626,6 @@
             ]
           }
         ],
-        "limits": {
-          "maxActivations": "256",
-          "maxAttempts": "256",
-          "maxCleanupDurationMilliseconds": "1000",
-          "maxEdges": "256",
-          "maxEntrypoints": "4",
-          "maxExpressionDepth": "8",
-          "maxNodes": "256",
-          "maxPathFanout": "256",
-          "maxRequestBytes": "4096",
-          "maxResponseBytes": "4096",
-          "maxRunEvents": "2048",
-          "maxTotalDurationMilliseconds": "10000"
-        },
         "observations": [
           {
             "observationId": "evidence",
@@ -2955,17 +2665,6 @@
           "initialState": {
             "definitionId": "test.state",
             "value": "ready"
-          },
-          "limits": {
-            "maxBuffered": "8",
-            "maxEventBytes": "512",
-            "maxEvents": "16",
-            "maxKeys": "8",
-            "maxObligationWork": "1000000000",
-            "maxObligations": "16",
-            "maxProjectionWork": "1000000000",
-            "maxSemanticTransitions": "32",
-            "maxSupport": "256"
           },
           "operationField": "test.operation",
           "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
@@ -3214,16 +2913,6 @@
               }
             }
           ]
-        },
-        "limits": {
-          "maxCaptureBytes": "65536",
-          "maxCaptures": "32",
-          "maxExpressionDepth": "16",
-          "maxRules": "16",
-          "maxStates": "32",
-          "maxTotalWork": "1000000000",
-          "maxTransitions": "64",
-          "maxWorkPerEvent": "100000"
         }
       },
       "program": {
@@ -3236,20 +2925,6 @@
             "entrypointId": "controller"
           }
         ],
-        "limits": {
-          "maxActivations": "16",
-          "maxAttempts": "16",
-          "maxCleanupDurationMilliseconds": "1000",
-          "maxEdges": "16",
-          "maxEntrypoints": "4",
-          "maxExpressionDepth": "8",
-          "maxNodes": "16",
-          "maxPathFanout": "8",
-          "maxRequestBytes": "4096",
-          "maxResponseBytes": "4096",
-          "maxRunEvents": "32",
-          "maxTotalDurationMilliseconds": "10000"
-        },
         "observations": [
           {
             "observationId": "evidence",
@@ -3334,17 +3009,6 @@
             "definitionId": "test.state",
             "value": "ready"
           },
-          "limits": {
-            "maxBuffered": "8",
-            "maxEventBytes": "512",
-            "maxEvents": "16",
-            "maxKeys": "8",
-            "maxObligationWork": "1000000000",
-            "maxObligations": "16",
-            "maxProjectionWork": "1000000000",
-            "maxSemanticTransitions": "32",
-            "maxSupport": "256"
-          },
           "operationField": "test.operation",
           "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
           "projectionId": "test.projection",
@@ -3592,16 +3256,6 @@
               }
             }
           ]
-        },
-        "limits": {
-          "maxCaptureBytes": "65536",
-          "maxCaptures": "32",
-          "maxExpressionDepth": "16",
-          "maxRules": "16",
-          "maxStates": "32",
-          "maxTotalWork": "1000000000",
-          "maxTransitions": "64",
-          "maxWorkPerEvent": "100000"
         }
       },
       "program": {
@@ -3634,8 +3288,6 @@
                 "instructionId": "read.0",
                 "limits": {
                   "maxAttempts": "1",
-                  "maxEmittedEvents": "1",
-                  "maxResponseBytes": "4096",
                   "timeoutMilliseconds": "1000"
                 },
                 "outcome": {
@@ -3680,8 +3332,6 @@
                 "instructionId": "read.1",
                 "limits": {
                   "maxAttempts": "1",
-                  "maxEmittedEvents": "1",
-                  "maxResponseBytes": "4096",
                   "timeoutMilliseconds": "1000"
                 },
                 "outcome": {
@@ -3726,8 +3376,6 @@
                 "instructionId": "read.2",
                 "limits": {
                   "maxAttempts": "1",
-                  "maxEmittedEvents": "1",
-                  "maxResponseBytes": "4096",
                   "timeoutMilliseconds": "1000"
                 },
                 "outcome": {
@@ -3748,20 +3396,6 @@
             ]
           }
         ],
-        "limits": {
-          "maxActivations": "256",
-          "maxAttempts": "256",
-          "maxCleanupDurationMilliseconds": "1000",
-          "maxEdges": "256",
-          "maxEntrypoints": "4",
-          "maxExpressionDepth": "8",
-          "maxNodes": "256",
-          "maxPathFanout": "256",
-          "maxRequestBytes": "4096",
-          "maxResponseBytes": "4096",
-          "maxRunEvents": "2048",
-          "maxTotalDurationMilliseconds": "10000"
-        },
         "observations": [
           {
             "observationId": "evidence",
@@ -3801,17 +3435,6 @@
           "initialState": {
             "definitionId": "test.state",
             "value": "ready"
-          },
-          "limits": {
-            "maxBuffered": "8",
-            "maxEventBytes": "512",
-            "maxEvents": "16",
-            "maxKeys": "8",
-            "maxObligationWork": "1000000000",
-            "maxObligations": "16",
-            "maxProjectionWork": "1000000000",
-            "maxSemanticTransitions": "32",
-            "maxSupport": "256"
           },
           "operationField": "test.operation",
           "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
@@ -4060,16 +3683,6 @@
               }
             }
           ]
-        },
-        "limits": {
-          "maxCaptureBytes": "65536",
-          "maxCaptures": "32",
-          "maxExpressionDepth": "16",
-          "maxRules": "16",
-          "maxStates": "32",
-          "maxTotalWork": "1000000000",
-          "maxTransitions": "64",
-          "maxWorkPerEvent": "100000"
         }
       },
       "program": {
@@ -4082,20 +3695,6 @@
             "entrypointId": "controller"
           }
         ],
-        "limits": {
-          "maxActivations": "16",
-          "maxAttempts": "16",
-          "maxCleanupDurationMilliseconds": "1000",
-          "maxEdges": "16",
-          "maxEntrypoints": "4",
-          "maxExpressionDepth": "8",
-          "maxNodes": "16",
-          "maxPathFanout": "8",
-          "maxRequestBytes": "4096",
-          "maxResponseBytes": "4096",
-          "maxRunEvents": "32",
-          "maxTotalDurationMilliseconds": "10000"
-        },
         "observations": [
           {
             "observationId": "evidence",
@@ -4180,17 +3779,6 @@
             "definitionId": "test.state",
             "value": "ready"
           },
-          "limits": {
-            "maxBuffered": "8",
-            "maxEventBytes": "512",
-            "maxEvents": "16",
-            "maxKeys": "8",
-            "maxObligationWork": "1000000000",
-            "maxObligations": "16",
-            "maxProjectionWork": "1000000000",
-            "maxSemanticTransitions": "32",
-            "maxSupport": "256"
-          },
           "operationField": "test.operation",
           "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
           "projectionId": "test.projection",
@@ -4438,16 +4026,6 @@
               }
             }
           ]
-        },
-        "limits": {
-          "maxCaptureBytes": "65536",
-          "maxCaptures": "32",
-          "maxExpressionDepth": "16",
-          "maxRules": "16",
-          "maxStates": "32",
-          "maxTotalWork": "1000000000",
-          "maxTransitions": "64",
-          "maxWorkPerEvent": "100000"
         }
       },
       "program": {
@@ -4480,8 +4058,6 @@
                 "instructionId": "read.0",
                 "limits": {
                   "maxAttempts": "1",
-                  "maxEmittedEvents": "1",
-                  "maxResponseBytes": "4096",
                   "timeoutMilliseconds": "1000"
                 },
                 "outcome": {
@@ -4526,8 +4102,6 @@
                 "instructionId": "read.1",
                 "limits": {
                   "maxAttempts": "1",
-                  "maxEmittedEvents": "1",
-                  "maxResponseBytes": "4096",
                   "timeoutMilliseconds": "1000"
                 },
                 "outcome": {
@@ -4572,8 +4146,6 @@
                 "instructionId": "read.2",
                 "limits": {
                   "maxAttempts": "1",
-                  "maxEmittedEvents": "1",
-                  "maxResponseBytes": "4096",
                   "timeoutMilliseconds": "1000"
                 },
                 "outcome": {
@@ -4594,20 +4166,6 @@
             ]
           }
         ],
-        "limits": {
-          "maxActivations": "256",
-          "maxAttempts": "256",
-          "maxCleanupDurationMilliseconds": "1000",
-          "maxEdges": "256",
-          "maxEntrypoints": "4",
-          "maxExpressionDepth": "8",
-          "maxNodes": "256",
-          "maxPathFanout": "256",
-          "maxRequestBytes": "4096",
-          "maxResponseBytes": "4096",
-          "maxRunEvents": "2048",
-          "maxTotalDurationMilliseconds": "10000"
-        },
         "observations": [
           {
             "observationId": "evidence",
@@ -4647,17 +4205,6 @@
           "initialState": {
             "definitionId": "test.state",
             "value": "ready"
-          },
-          "limits": {
-            "maxBuffered": "8",
-            "maxEventBytes": "512",
-            "maxEvents": "16",
-            "maxKeys": "8",
-            "maxObligationWork": "1000000000",
-            "maxObligations": "16",
-            "maxProjectionWork": "1000000000",
-            "maxSemanticTransitions": "32",
-            "maxSupport": "256"
           },
           "operationField": "test.operation",
           "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
@@ -4906,16 +4453,6 @@
               }
             }
           ]
-        },
-        "limits": {
-          "maxCaptureBytes": "65536",
-          "maxCaptures": "32",
-          "maxExpressionDepth": "16",
-          "maxRules": "16",
-          "maxStates": "32",
-          "maxTotalWork": "1000000000",
-          "maxTransitions": "64",
-          "maxWorkPerEvent": "100000"
         }
       },
       "program": {
@@ -4928,20 +4465,6 @@
             "entrypointId": "controller"
           }
         ],
-        "limits": {
-          "maxActivations": "16",
-          "maxAttempts": "16",
-          "maxCleanupDurationMilliseconds": "1000",
-          "maxEdges": "16",
-          "maxEntrypoints": "4",
-          "maxExpressionDepth": "8",
-          "maxNodes": "16",
-          "maxPathFanout": "8",
-          "maxRequestBytes": "4096",
-          "maxResponseBytes": "4096",
-          "maxRunEvents": "32",
-          "maxTotalDurationMilliseconds": "10000"
-        },
         "observations": [
           {
             "observationId": "evidence",
@@ -5026,17 +4549,6 @@
             "definitionId": "test.state",
             "value": "ready"
           },
-          "limits": {
-            "maxBuffered": "8",
-            "maxEventBytes": "512",
-            "maxEvents": "16",
-            "maxKeys": "8",
-            "maxObligationWork": "1000000000",
-            "maxObligations": "16",
-            "maxProjectionWork": "1000000000",
-            "maxSemanticTransitions": "32",
-            "maxSupport": "256"
-          },
           "operationField": "test.operation",
           "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
           "projectionId": "test.projection",
@@ -5284,16 +4796,6 @@
               }
             }
           ]
-        },
-        "limits": {
-          "maxCaptureBytes": "65536",
-          "maxCaptures": "32",
-          "maxExpressionDepth": "16",
-          "maxRules": "16",
-          "maxStates": "32",
-          "maxTotalWork": "1000000000",
-          "maxTransitions": "64",
-          "maxWorkPerEvent": "100000"
         }
       },
       "program": {
@@ -5326,8 +4828,6 @@
                 "instructionId": "read.0",
                 "limits": {
                   "maxAttempts": "1",
-                  "maxEmittedEvents": "1",
-                  "maxResponseBytes": "4096",
                   "timeoutMilliseconds": "1000"
                 },
                 "outcome": {
@@ -5372,8 +4872,6 @@
                 "instructionId": "read.1",
                 "limits": {
                   "maxAttempts": "1",
-                  "maxEmittedEvents": "1",
-                  "maxResponseBytes": "4096",
                   "timeoutMilliseconds": "1000"
                 },
                 "outcome": {
@@ -5418,8 +4916,6 @@
                 "instructionId": "read.2",
                 "limits": {
                   "maxAttempts": "1",
-                  "maxEmittedEvents": "1",
-                  "maxResponseBytes": "4096",
                   "timeoutMilliseconds": "1000"
                 },
                 "outcome": {
@@ -5440,20 +4936,6 @@
             ]
           }
         ],
-        "limits": {
-          "maxActivations": "256",
-          "maxAttempts": "256",
-          "maxCleanupDurationMilliseconds": "1000",
-          "maxEdges": "256",
-          "maxEntrypoints": "4",
-          "maxExpressionDepth": "8",
-          "maxNodes": "256",
-          "maxPathFanout": "256",
-          "maxRequestBytes": "4096",
-          "maxResponseBytes": "4096",
-          "maxRunEvents": "2048",
-          "maxTotalDurationMilliseconds": "10000"
-        },
         "observations": [
           {
             "observationId": "evidence",
@@ -5493,17 +4975,6 @@
           "initialState": {
             "definitionId": "test.state",
             "value": "ready"
-          },
-          "limits": {
-            "maxBuffered": "8",
-            "maxEventBytes": "512",
-            "maxEvents": "16",
-            "maxKeys": "8",
-            "maxObligationWork": "1000000000",
-            "maxObligations": "16",
-            "maxProjectionWork": "1000000000",
-            "maxSemanticTransitions": "32",
-            "maxSupport": "256"
           },
           "operationField": "test.operation",
           "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
@@ -5752,16 +5223,6 @@
               }
             }
           ]
-        },
-        "limits": {
-          "maxCaptureBytes": "65536",
-          "maxCaptures": "32",
-          "maxExpressionDepth": "16",
-          "maxRules": "16",
-          "maxStates": "32",
-          "maxTotalWork": "1000000000",
-          "maxTransitions": "64",
-          "maxWorkPerEvent": "100000"
         }
       },
       "program": {
@@ -5774,20 +5235,6 @@
             "entrypointId": "controller"
           }
         ],
-        "limits": {
-          "maxActivations": "16",
-          "maxAttempts": "16",
-          "maxCleanupDurationMilliseconds": "1000",
-          "maxEdges": "16",
-          "maxEntrypoints": "4",
-          "maxExpressionDepth": "8",
-          "maxNodes": "16",
-          "maxPathFanout": "8",
-          "maxRequestBytes": "4096",
-          "maxResponseBytes": "4096",
-          "maxRunEvents": "32",
-          "maxTotalDurationMilliseconds": "10000"
-        },
         "observations": [
           {
             "observationId": "evidence",
@@ -5856,17 +5303,6 @@
             "definitionId": "test.state",
             "value": "ready"
           },
-          "limits": {
-            "maxBuffered": "8",
-            "maxEventBytes": "512",
-            "maxEvents": "16",
-            "maxKeys": "8",
-            "maxObligationWork": "1000000000",
-            "maxObligations": "16",
-            "maxProjectionWork": "1000000000",
-            "maxSemanticTransitions": "32",
-            "maxSupport": "256"
-          },
           "operationField": "test.operation",
           "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
           "projectionId": "test.projection",
@@ -6114,16 +5550,6 @@
               }
             }
           ]
-        },
-        "limits": {
-          "maxCaptureBytes": "65536",
-          "maxCaptures": "32",
-          "maxExpressionDepth": "16",
-          "maxRules": "16",
-          "maxStates": "32",
-          "maxTotalWork": "1000000000",
-          "maxTransitions": "64",
-          "maxWorkPerEvent": "100000"
         }
       },
       "program": {
@@ -6156,8 +5582,6 @@
                 "instructionId": "read.0",
                 "limits": {
                   "maxAttempts": "1",
-                  "maxEmittedEvents": "1",
-                  "maxResponseBytes": "4096",
                   "timeoutMilliseconds": "1000"
                 },
                 "outcome": {
@@ -6202,8 +5626,6 @@
                 "instructionId": "read.1",
                 "limits": {
                   "maxAttempts": "1",
-                  "maxEmittedEvents": "1",
-                  "maxResponseBytes": "4096",
                   "timeoutMilliseconds": "1000"
                 },
                 "outcome": {
@@ -6224,20 +5646,6 @@
             ]
           }
         ],
-        "limits": {
-          "maxActivations": "256",
-          "maxAttempts": "256",
-          "maxCleanupDurationMilliseconds": "1000",
-          "maxEdges": "256",
-          "maxEntrypoints": "4",
-          "maxExpressionDepth": "8",
-          "maxNodes": "256",
-          "maxPathFanout": "256",
-          "maxRequestBytes": "4096",
-          "maxResponseBytes": "4096",
-          "maxRunEvents": "2048",
-          "maxTotalDurationMilliseconds": "10000"
-        },
         "observations": [
           {
             "observationId": "evidence",
@@ -6277,17 +5685,6 @@
           "initialState": {
             "definitionId": "test.state",
             "value": "ready"
-          },
-          "limits": {
-            "maxBuffered": "8",
-            "maxEventBytes": "512",
-            "maxEvents": "16",
-            "maxKeys": "8",
-            "maxObligationWork": "1000000000",
-            "maxObligations": "16",
-            "maxProjectionWork": "1000000000",
-            "maxSemanticTransitions": "32",
-            "maxSupport": "256"
           },
           "operationField": "test.operation",
           "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
@@ -6536,16 +5933,6 @@
               }
             }
           ]
-        },
-        "limits": {
-          "maxCaptureBytes": "65536",
-          "maxCaptures": "32",
-          "maxExpressionDepth": "16",
-          "maxRules": "16",
-          "maxStates": "32",
-          "maxTotalWork": "1000000000",
-          "maxTransitions": "64",
-          "maxWorkPerEvent": "100000"
         }
       },
       "program": {
@@ -6558,20 +5945,6 @@
             "entrypointId": "controller"
           }
         ],
-        "limits": {
-          "maxActivations": "16",
-          "maxAttempts": "16",
-          "maxCleanupDurationMilliseconds": "1000",
-          "maxEdges": "16",
-          "maxEntrypoints": "4",
-          "maxExpressionDepth": "8",
-          "maxNodes": "16",
-          "maxPathFanout": "8",
-          "maxRequestBytes": "4096",
-          "maxResponseBytes": "4096",
-          "maxRunEvents": "32",
-          "maxTotalDurationMilliseconds": "10000"
-        },
         "observations": [
           {
             "observationId": "evidence",
@@ -6624,17 +5997,6 @@
             "definitionId": "test.state",
             "value": "ready"
           },
-          "limits": {
-            "maxBuffered": "8",
-            "maxEventBytes": "512",
-            "maxEvents": "16",
-            "maxKeys": "8",
-            "maxObligationWork": "1000000000",
-            "maxObligations": "16",
-            "maxProjectionWork": "1000000000",
-            "maxSemanticTransitions": "32",
-            "maxSupport": "256"
-          },
           "operationField": "test.operation",
           "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
           "projectionId": "test.projection",
@@ -6882,16 +6244,6 @@
               }
             }
           ]
-        },
-        "limits": {
-          "maxCaptureBytes": "65536",
-          "maxCaptures": "32",
-          "maxExpressionDepth": "16",
-          "maxRules": "16",
-          "maxStates": "32",
-          "maxTotalWork": "1000000000",
-          "maxTransitions": "64",
-          "maxWorkPerEvent": "100000"
         }
       },
       "program": {
@@ -6924,8 +6276,6 @@
                 "instructionId": "read.0",
                 "limits": {
                   "maxAttempts": "1",
-                  "maxEmittedEvents": "1",
-                  "maxResponseBytes": "4096",
                   "timeoutMilliseconds": "1000"
                 },
                 "outcome": {
@@ -6946,20 +6296,6 @@
             ]
           }
         ],
-        "limits": {
-          "maxActivations": "256",
-          "maxAttempts": "256",
-          "maxCleanupDurationMilliseconds": "1000",
-          "maxEdges": "256",
-          "maxEntrypoints": "4",
-          "maxExpressionDepth": "8",
-          "maxNodes": "256",
-          "maxPathFanout": "256",
-          "maxRequestBytes": "4096",
-          "maxResponseBytes": "4096",
-          "maxRunEvents": "2048",
-          "maxTotalDurationMilliseconds": "10000"
-        },
         "observations": [
           {
             "observationId": "evidence",
@@ -7000,17 +6336,6 @@
             "definitionId": "test.state",
             "value": "ready"
           },
-          "limits": {
-            "maxBuffered": "8",
-            "maxEventBytes": "512",
-            "maxEvents": "16",
-            "maxKeys": "8",
-            "maxObligationWork": "1000000000",
-            "maxObligations": "16",
-            "maxProjectionWork": "1000000000",
-            "maxSemanticTransitions": "32",
-            "maxSupport": "256"
-          },
           "operationField": "test.operation",
           "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
           "projectionId": "test.projection",
@@ -7258,16 +6583,6 @@
               }
             }
           ]
-        },
-        "limits": {
-          "maxCaptureBytes": "65536",
-          "maxCaptures": "32",
-          "maxExpressionDepth": "16",
-          "maxRules": "16",
-          "maxStates": "32",
-          "maxTotalWork": "1000000000",
-          "maxTransitions": "64",
-          "maxWorkPerEvent": "100000"
         }
       },
       "program": {
@@ -7280,20 +6595,6 @@
             "entrypointId": "controller"
           }
         ],
-        "limits": {
-          "maxActivations": "16",
-          "maxAttempts": "16",
-          "maxCleanupDurationMilliseconds": "1000",
-          "maxEdges": "16",
-          "maxEntrypoints": "4",
-          "maxExpressionDepth": "8",
-          "maxNodes": "16",
-          "maxPathFanout": "8",
-          "maxRequestBytes": "4096",
-          "maxResponseBytes": "4096",
-          "maxRunEvents": "32",
-          "maxTotalDurationMilliseconds": "10000"
-        },
         "observations": [
           {
             "observationId": "evidence",
@@ -7346,17 +6647,6 @@
             "definitionId": "test.state",
             "value": "ready"
           },
-          "limits": {
-            "maxBuffered": "8",
-            "maxEventBytes": "512",
-            "maxEvents": "16",
-            "maxKeys": "8",
-            "maxObligationWork": "1000000000",
-            "maxObligations": "16",
-            "maxProjectionWork": "1000000000",
-            "maxSemanticTransitions": "32",
-            "maxSupport": "256"
-          },
           "operationField": "test.operation",
           "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
           "projectionId": "test.projection",
@@ -7604,16 +6894,6 @@
               }
             }
           ]
-        },
-        "limits": {
-          "maxCaptureBytes": "65536",
-          "maxCaptures": "32",
-          "maxExpressionDepth": "16",
-          "maxRules": "16",
-          "maxStates": "32",
-          "maxTotalWork": "1000000000",
-          "maxTransitions": "64",
-          "maxWorkPerEvent": "100000"
         }
       },
       "program": {
@@ -7646,8 +6926,6 @@
                 "instructionId": "read.0",
                 "limits": {
                   "maxAttempts": "1",
-                  "maxEmittedEvents": "1",
-                  "maxResponseBytes": "4096",
                   "timeoutMilliseconds": "1000"
                 },
                 "outcome": {
@@ -7668,20 +6946,6 @@
             ]
           }
         ],
-        "limits": {
-          "maxActivations": "256",
-          "maxAttempts": "256",
-          "maxCleanupDurationMilliseconds": "1000",
-          "maxEdges": "256",
-          "maxEntrypoints": "4",
-          "maxExpressionDepth": "8",
-          "maxNodes": "256",
-          "maxPathFanout": "256",
-          "maxRequestBytes": "4096",
-          "maxResponseBytes": "4096",
-          "maxRunEvents": "2048",
-          "maxTotalDurationMilliseconds": "10000"
-        },
         "observations": [
           {
             "observationId": "evidence",
@@ -7721,17 +6985,6 @@
           "initialState": {
             "definitionId": "test.state",
             "value": "ready"
-          },
-          "limits": {
-            "maxBuffered": "8",
-            "maxEventBytes": "512",
-            "maxEvents": "16",
-            "maxKeys": "8",
-            "maxObligationWork": "1000000000",
-            "maxObligations": "16",
-            "maxProjectionWork": "1000000000",
-            "maxSemanticTransitions": "32",
-            "maxSupport": "256"
           },
           "operationField": "test.operation",
           "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
@@ -7980,16 +7233,6 @@
               }
             }
           ]
-        },
-        "limits": {
-          "maxCaptureBytes": "65536",
-          "maxCaptures": "32",
-          "maxExpressionDepth": "16",
-          "maxRules": "16",
-          "maxStates": "32",
-          "maxTotalWork": "1000000000",
-          "maxTransitions": "64",
-          "maxWorkPerEvent": "100000"
         }
       },
       "program": {
@@ -8002,20 +7245,6 @@
             "entrypointId": "controller"
           }
         ],
-        "limits": {
-          "maxActivations": "16",
-          "maxAttempts": "16",
-          "maxCleanupDurationMilliseconds": "1000",
-          "maxEdges": "16",
-          "maxEntrypoints": "4",
-          "maxExpressionDepth": "8",
-          "maxNodes": "16",
-          "maxPathFanout": "8",
-          "maxRequestBytes": "4096",
-          "maxResponseBytes": "4096",
-          "maxRunEvents": "32",
-          "maxTotalDurationMilliseconds": "10000"
-        },
         "observations": [
           {
             "observationId": "evidence",
@@ -8082,17 +7311,6 @@
             "definitionId": "test.state",
             "value": "ready"
           },
-          "limits": {
-            "maxBuffered": "8",
-            "maxEventBytes": "512",
-            "maxEvents": "16",
-            "maxKeys": "8",
-            "maxObligationWork": "1000000000",
-            "maxObligations": "16",
-            "maxProjectionWork": "1000000000",
-            "maxSemanticTransitions": "32",
-            "maxSupport": "256"
-          },
           "operationField": "test.operation",
           "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
           "projectionId": "test.projection",
@@ -8340,16 +7558,6 @@
               }
             }
           ]
-        },
-        "limits": {
-          "maxCaptureBytes": "65536",
-          "maxCaptures": "32",
-          "maxExpressionDepth": "16",
-          "maxRules": "16",
-          "maxStates": "32",
-          "maxTotalWork": "1000000000",
-          "maxTransitions": "64",
-          "maxWorkPerEvent": "100000"
         }
       },
       "program": {
@@ -8382,8 +7590,6 @@
                 "instructionId": "read.0",
                 "limits": {
                   "maxAttempts": "1",
-                  "maxEmittedEvents": "1",
-                  "maxResponseBytes": "4096",
                   "timeoutMilliseconds": "1000"
                 },
                 "outcome": {
@@ -8404,20 +7610,6 @@
             ]
           }
         ],
-        "limits": {
-          "maxActivations": "256",
-          "maxAttempts": "256",
-          "maxCleanupDurationMilliseconds": "1000",
-          "maxEdges": "256",
-          "maxEntrypoints": "4",
-          "maxExpressionDepth": "8",
-          "maxNodes": "256",
-          "maxPathFanout": "256",
-          "maxRequestBytes": "4096",
-          "maxResponseBytes": "4096",
-          "maxRunEvents": "2048",
-          "maxTotalDurationMilliseconds": "10000"
-        },
         "observations": [
           {
             "observationId": "evidence",
@@ -8457,17 +7649,6 @@
           "initialState": {
             "definitionId": "test.state",
             "value": "ready"
-          },
-          "limits": {
-            "maxBuffered": "8",
-            "maxEventBytes": "512",
-            "maxEvents": "16",
-            "maxKeys": "8",
-            "maxObligationWork": "1000000000",
-            "maxObligations": "16",
-            "maxProjectionWork": "1000000000",
-            "maxSemanticTransitions": "32",
-            "maxSupport": "256"
           },
           "operationField": "test.operation",
           "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
@@ -8716,16 +7897,6 @@
               }
             }
           ]
-        },
-        "limits": {
-          "maxCaptureBytes": "65536",
-          "maxCaptures": "32",
-          "maxExpressionDepth": "16",
-          "maxRules": "16",
-          "maxStates": "32",
-          "maxTotalWork": "1000000000",
-          "maxTransitions": "64",
-          "maxWorkPerEvent": "100000"
         }
       },
       "program": {
@@ -8738,20 +7909,6 @@
             "entrypointId": "controller"
           }
         ],
-        "limits": {
-          "maxActivations": "16",
-          "maxAttempts": "16",
-          "maxCleanupDurationMilliseconds": "1000",
-          "maxEdges": "16",
-          "maxEntrypoints": "4",
-          "maxExpressionDepth": "8",
-          "maxNodes": "16",
-          "maxPathFanout": "8",
-          "maxRequestBytes": "4096",
-          "maxResponseBytes": "4096",
-          "maxRunEvents": "32",
-          "maxTotalDurationMilliseconds": "10000"
-        },
         "observations": [
           {
             "observationId": "evidence",
@@ -8862,17 +8019,6 @@
             "definitionId": "test.state",
             "value": "ready"
           },
-          "limits": {
-            "maxBuffered": "8",
-            "maxEventBytes": "512",
-            "maxEvents": "16",
-            "maxKeys": "8",
-            "maxObligationWork": "1000000000",
-            "maxObligations": "16",
-            "maxProjectionWork": "1000000000",
-            "maxSemanticTransitions": "32",
-            "maxSupport": "256"
-          },
           "operationField": "test.operation",
           "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
           "projectionId": "test.projection",
@@ -9120,16 +8266,6 @@
               }
             }
           ]
-        },
-        "limits": {
-          "maxCaptureBytes": "65536",
-          "maxCaptures": "32",
-          "maxExpressionDepth": "16",
-          "maxRules": "16",
-          "maxStates": "32",
-          "maxTotalWork": "1000000000",
-          "maxTransitions": "64",
-          "maxWorkPerEvent": "100000"
         }
       },
       "program": {
@@ -9162,8 +8298,6 @@
                 "instructionId": "read.0",
                 "limits": {
                   "maxAttempts": "1",
-                  "maxEmittedEvents": "1",
-                  "maxResponseBytes": "4096",
                   "timeoutMilliseconds": "1000"
                 },
                 "outcome": {
@@ -9208,8 +8342,6 @@
                 "instructionId": "read.1",
                 "limits": {
                   "maxAttempts": "1",
-                  "maxEmittedEvents": "1",
-                  "maxResponseBytes": "4096",
                   "timeoutMilliseconds": "1000"
                 },
                 "outcome": {
@@ -9254,8 +8386,6 @@
                 "instructionId": "read.2",
                 "limits": {
                   "maxAttempts": "1",
-                  "maxEmittedEvents": "1",
-                  "maxResponseBytes": "4096",
                   "timeoutMilliseconds": "1000"
                 },
                 "outcome": {
@@ -9276,20 +8406,6 @@
             ]
           }
         ],
-        "limits": {
-          "maxActivations": "256",
-          "maxAttempts": "256",
-          "maxCleanupDurationMilliseconds": "1000",
-          "maxEdges": "256",
-          "maxEntrypoints": "4",
-          "maxExpressionDepth": "8",
-          "maxNodes": "256",
-          "maxPathFanout": "256",
-          "maxRequestBytes": "4096",
-          "maxResponseBytes": "4096",
-          "maxRunEvents": "2048",
-          "maxTotalDurationMilliseconds": "10000"
-        },
         "observations": [
           {
             "observationId": "evidence",
@@ -9329,17 +8445,6 @@
           "initialState": {
             "definitionId": "test.state",
             "value": "ready"
-          },
-          "limits": {
-            "maxBuffered": "8",
-            "maxEventBytes": "512",
-            "maxEvents": "16",
-            "maxKeys": "8",
-            "maxObligationWork": "1000000000",
-            "maxObligations": "16",
-            "maxProjectionWork": "1000000000",
-            "maxSemanticTransitions": "32",
-            "maxSupport": "256"
           },
           "operationField": "test.operation",
           "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
@@ -9588,16 +8693,6 @@
               }
             }
           ]
-        },
-        "limits": {
-          "maxCaptureBytes": "65536",
-          "maxCaptures": "32",
-          "maxExpressionDepth": "16",
-          "maxRules": "16",
-          "maxStates": "32",
-          "maxTotalWork": "1000000000",
-          "maxTransitions": "64",
-          "maxWorkPerEvent": "100000"
         }
       },
       "program": {
@@ -9610,20 +8705,6 @@
             "entrypointId": "controller"
           }
         ],
-        "limits": {
-          "maxActivations": "16",
-          "maxAttempts": "16",
-          "maxCleanupDurationMilliseconds": "1000",
-          "maxEdges": "16",
-          "maxEntrypoints": "4",
-          "maxExpressionDepth": "8",
-          "maxNodes": "16",
-          "maxPathFanout": "8",
-          "maxRequestBytes": "4096",
-          "maxResponseBytes": "4096",
-          "maxRunEvents": "32",
-          "maxTotalDurationMilliseconds": "10000"
-        },
         "observations": [
           {
             "observationId": "evidence",
@@ -9708,17 +8789,6 @@
             "definitionId": "test.state",
             "value": "ready"
           },
-          "limits": {
-            "maxBuffered": "8",
-            "maxEventBytes": "512",
-            "maxEvents": "16",
-            "maxKeys": "8",
-            "maxObligationWork": "1000000000",
-            "maxObligations": "16",
-            "maxProjectionWork": "1000000000",
-            "maxSemanticTransitions": "32",
-            "maxSupport": "256"
-          },
           "operationField": "test.operation",
           "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
           "projectionId": "test.projection",
@@ -9966,16 +9036,6 @@
               }
             }
           ]
-        },
-        "limits": {
-          "maxCaptureBytes": "65536",
-          "maxCaptures": "32",
-          "maxExpressionDepth": "16",
-          "maxRules": "16",
-          "maxStates": "32",
-          "maxTotalWork": "1000000000",
-          "maxTransitions": "64",
-          "maxWorkPerEvent": "100000"
         }
       },
       "program": {
@@ -10008,8 +9068,6 @@
                 "instructionId": "read.0",
                 "limits": {
                   "maxAttempts": "1",
-                  "maxEmittedEvents": "1",
-                  "maxResponseBytes": "4096",
                   "timeoutMilliseconds": "1000"
                 },
                 "outcome": {
@@ -10054,8 +9112,6 @@
                 "instructionId": "read.1",
                 "limits": {
                   "maxAttempts": "1",
-                  "maxEmittedEvents": "1",
-                  "maxResponseBytes": "4096",
                   "timeoutMilliseconds": "1000"
                 },
                 "outcome": {
@@ -10100,8 +9156,6 @@
                 "instructionId": "read.2",
                 "limits": {
                   "maxAttempts": "1",
-                  "maxEmittedEvents": "1",
-                  "maxResponseBytes": "4096",
                   "timeoutMilliseconds": "1000"
                 },
                 "outcome": {
@@ -10122,20 +9176,6 @@
             ]
           }
         ],
-        "limits": {
-          "maxActivations": "256",
-          "maxAttempts": "256",
-          "maxCleanupDurationMilliseconds": "1000",
-          "maxEdges": "256",
-          "maxEntrypoints": "4",
-          "maxExpressionDepth": "8",
-          "maxNodes": "256",
-          "maxPathFanout": "256",
-          "maxRequestBytes": "4096",
-          "maxResponseBytes": "4096",
-          "maxRunEvents": "2048",
-          "maxTotalDurationMilliseconds": "10000"
-        },
         "observations": [
           {
             "observationId": "evidence",
@@ -10175,17 +9215,6 @@
           "initialState": {
             "definitionId": "test.state",
             "value": "ready"
-          },
-          "limits": {
-            "maxBuffered": "8",
-            "maxEventBytes": "512",
-            "maxEvents": "16",
-            "maxKeys": "8",
-            "maxObligationWork": "1000000000",
-            "maxObligations": "16",
-            "maxProjectionWork": "1000000000",
-            "maxSemanticTransitions": "32",
-            "maxSupport": "256"
           },
           "operationField": "test.operation",
           "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
@@ -10433,16 +9462,6 @@
               }
             }
           ]
-        },
-        "limits": {
-          "maxCaptureBytes": "65536",
-          "maxCaptures": "32",
-          "maxExpressionDepth": "16",
-          "maxRules": "16",
-          "maxStates": "32",
-          "maxTotalWork": "1000000000",
-          "maxTransitions": "64",
-          "maxWorkPerEvent": "100000"
         }
       },
       "program": {
@@ -10455,20 +9474,6 @@
             "entrypointId": "controller"
           }
         ],
-        "limits": {
-          "maxActivations": "16",
-          "maxAttempts": "16",
-          "maxCleanupDurationMilliseconds": "1000",
-          "maxEdges": "16",
-          "maxEntrypoints": "4",
-          "maxExpressionDepth": "8",
-          "maxNodes": "16",
-          "maxPathFanout": "8",
-          "maxRequestBytes": "4096",
-          "maxResponseBytes": "4096",
-          "maxRunEvents": "32",
-          "maxTotalDurationMilliseconds": "10000"
-        },
         "observations": [
           {
             "observationId": "evidence",
@@ -10521,17 +9526,6 @@
             "definitionId": "test.state",
             "value": "ready"
           },
-          "limits": {
-            "maxBuffered": "8",
-            "maxEventBytes": "512",
-            "maxEvents": "16",
-            "maxKeys": "8",
-            "maxObligationWork": "1000000000",
-            "maxObligations": "16",
-            "maxProjectionWork": "1000000000",
-            "maxSemanticTransitions": "32",
-            "maxSupport": "256"
-          },
           "operationField": "test.operation",
           "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
           "projectionId": "test.projection",
@@ -10778,16 +9772,6 @@
               }
             }
           ]
-        },
-        "limits": {
-          "maxCaptureBytes": "65536",
-          "maxCaptures": "32",
-          "maxExpressionDepth": "16",
-          "maxRules": "16",
-          "maxStates": "32",
-          "maxTotalWork": "1000000000",
-          "maxTransitions": "64",
-          "maxWorkPerEvent": "100000"
         }
       },
       "program": {
@@ -10820,8 +9804,6 @@
                 "instructionId": "read.0",
                 "limits": {
                   "maxAttempts": "1",
-                  "maxEmittedEvents": "1",
-                  "maxResponseBytes": "4096",
                   "timeoutMilliseconds": "1000"
                 },
                 "outcome": {
@@ -10842,20 +9824,6 @@
             ]
           }
         ],
-        "limits": {
-          "maxActivations": "256",
-          "maxAttempts": "256",
-          "maxCleanupDurationMilliseconds": "1000",
-          "maxEdges": "256",
-          "maxEntrypoints": "4",
-          "maxExpressionDepth": "8",
-          "maxNodes": "256",
-          "maxPathFanout": "256",
-          "maxRequestBytes": "4096",
-          "maxResponseBytes": "4096",
-          "maxRunEvents": "2048",
-          "maxTotalDurationMilliseconds": "10000"
-        },
         "observations": [
           {
             "observationId": "evidence",
@@ -10896,17 +9864,6 @@
             "definitionId": "test.state",
             "value": "ready"
           },
-          "limits": {
-            "maxBuffered": "8",
-            "maxEventBytes": "512",
-            "maxEvents": "16",
-            "maxKeys": "8",
-            "maxObligationWork": "1000000000",
-            "maxObligations": "16",
-            "maxProjectionWork": "1000000000",
-            "maxSemanticTransitions": "32",
-            "maxSupport": "256"
-          },
           "operationField": "test.operation",
           "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
           "projectionId": "test.projection",
@@ -11154,16 +10111,6 @@
               }
             }
           ]
-        },
-        "limits": {
-          "maxCaptureBytes": "65536",
-          "maxCaptures": "32",
-          "maxExpressionDepth": "16",
-          "maxRules": "16",
-          "maxStates": "32",
-          "maxTotalWork": "1000000000",
-          "maxTransitions": "64",
-          "maxWorkPerEvent": "100000"
         }
       },
       "program": {
@@ -11176,20 +10123,6 @@
             "entrypointId": "controller"
           }
         ],
-        "limits": {
-          "maxActivations": "16",
-          "maxAttempts": "16",
-          "maxCleanupDurationMilliseconds": "1000",
-          "maxEdges": "16",
-          "maxEntrypoints": "4",
-          "maxExpressionDepth": "8",
-          "maxNodes": "16",
-          "maxPathFanout": "8",
-          "maxRequestBytes": "4096",
-          "maxResponseBytes": "4096",
-          "maxRunEvents": "32",
-          "maxTotalDurationMilliseconds": "10000"
-        },
         "observations": [
           {
             "observationId": "evidence",
@@ -11226,17 +10159,6 @@
             "definitionId": "test.state",
             "value": "ready"
           },
-          "limits": {
-            "maxBuffered": "8",
-            "maxEventBytes": "512",
-            "maxEvents": "16",
-            "maxKeys": "8",
-            "maxObligationWork": "1000000000",
-            "maxObligations": "16",
-            "maxProjectionWork": "1000000000",
-            "maxSemanticTransitions": "32",
-            "maxSupport": "256"
-          },
           "operationField": "test.operation",
           "projectionFingerprint": "sha256:6d47559899f8bba7b409b580347546699c50d189bba7dad8739164406cdb215e",
           "projectionId": "test.projection",
@@ -11484,16 +10406,6 @@
               }
             }
           ]
-        },
-        "limits": {
-          "maxCaptureBytes": "65536",
-          "maxCaptures": "32",
-          "maxExpressionDepth": "16",
-          "maxRules": "16",
-          "maxStates": "32",
-          "maxTotalWork": "1000000000",
-          "maxTransitions": "64",
-          "maxWorkPerEvent": "100000"
         }
       },
       "program": {
@@ -11506,20 +10418,6 @@
             "entrypointId": "controller"
           }
         ],
-        "limits": {
-          "maxActivations": "256",
-          "maxAttempts": "256",
-          "maxCleanupDurationMilliseconds": "1000",
-          "maxEdges": "256",
-          "maxEntrypoints": "4",
-          "maxExpressionDepth": "8",
-          "maxNodes": "256",
-          "maxPathFanout": "256",
-          "maxRequestBytes": "4096",
-          "maxResponseBytes": "4096",
-          "maxRunEvents": "2048",
-          "maxTotalDurationMilliseconds": "10000"
-        },
         "observations": [
           {
             "observationId": "evidence",

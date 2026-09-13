@@ -17,8 +17,8 @@ type AsyncNexusEnvironment struct {
 	NexusEndpoint string
 }
 
-func AsyncNexusProfile(catalog *testpilot.Catalog, source *testpilotspb.Case, environment AsyncNexusEnvironment) testpilot.ProfileSpec {
-	return caseProfile("async-nexus-profile", catalog, source,
+func AsyncNexusProfile(catalog *testpilot.Catalog, environment AsyncNexusEnvironment) testpilot.ProfileSpec {
+	return caseProfile("async-nexus-profile", catalog,
 		[]testpilot.RolePolicy{
 			workflowServiceRole(1),
 			{ID: "temporal.worker", Kind: testpilotspb.ROLE_KIND_WORKER},

@@ -18,9 +18,9 @@ func fixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Profile) {
 	t.Helper()
 	catalog, err := ir.NewCatalog(&descriptorpb.FileDescriptorSet{File: []*descriptorpb.FileDescriptorProto{{Name: proto.String("admission.proto"), Package: proto.String("example"), Syntax: proto.String("proto3"), MessageType: []*descriptorpb.DescriptorProto{{Name: proto.String("Payload"), Field: []*descriptorpb.FieldDescriptorProto{{Name: proto.String("text"), Number: proto.Int32(1), Type: descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(), Label: descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum()}, {Name: proto.String("items"), Number: proto.Int32(2), Type: descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(), Label: descriptorpb.FieldDescriptorProto_LABEL_REPEATED.Enum()}}}}, Service: []*descriptorpb.ServiceDescriptorProto{{Name: proto.String("Service"), Method: []*descriptorpb.MethodDescriptorProto{{Name: proto.String("Call"), InputType: proto.String(".example.Payload"), OutputType: proto.String(".example.Payload")}, {Name: proto.String("Stream"), InputType: proto.String(".example.Payload"), OutputType: proto.String(".example.Payload"), ServerStreaming: proto.Bool(true)}}}}}}})
 	require.NoError(t, err)
-	limits := &testpilotspb.ProgramLimits{MaxEntrypoints: 8, MaxNodes: 32, MaxEdges: 64, MaxActivations: 64, MaxAttempts: 32, MaxRunEvents: 256, MaxExpressionDepth: 16, MaxPathFanout: 128, MaxRequestBytes: 4096, MaxResponseBytes: 4096, MaxTotalDurationMilliseconds: 30000, MaxCleanupDurationMilliseconds: 5000}
+	limits := &testpilotspb.ProgramLimits{MaxEntrypoints: 8, MaxNodes: 32, MaxEdges: 64, MaxActivations: 64, MaxAttempts: 32, MaxRunEvents: 256, MaxExpressionDepth: 16, MaxPathFanout: 128, MaxRequestBytes: 4096, MaxResponseBytes: 4096, MaxTotalDurationMilliseconds: 30000, MaxCleanupDurationMilliseconds: 5000, MaxInstructionEmittedEvents: 8, MaxInstructionResponseBytes: 4096}
 	policy := Profile{Identity: "host", CatalogIdentity: catalog.Identity(), Roles: []contract.RolePolicy{{ID: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT, Methods: []string{"/example.Service/Call"}, ReservationCarriers: []contract.ReservationCarrierPolicy{{Method: "/example.Service/Call", Shapes: []contract.ReservationCarrierShape{{Kind: contract.WorkflowEntrypoint, MaximumCount: 32}, {Kind: contract.NexusHandlerEntrypoint, MaximumCount: 32}}}}}, {ID: "worker", Kind: testpilotspb.ROLE_KIND_WORKER}, {ID: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE}}, Opcodes: []contract.Opcode{contract.InvokeRPC, contract.AwaitSlot, contract.CompleteNexusOperation, contract.StartNexusOperation, contract.Await, contract.Finish, contract.RespondNexus}, Limits: proto.CloneOf(limits)}
-	source := &testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: 1}, CaseId: "case", Program: &testpilotspb.Program{ProgramId: "program", Roles: []*testpilotspb.Role{{RoleId: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT}}, Entrypoints: []*testpilotspb.Entrypoint{{EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}}, Instructions: []*testpilotspb.InstructionNode{rpcNode("call")}}}, Cleanup: &testpilotspb.Cleanup{EntrypointId: "cleanup"}, Limits: limits}, Contract: &testpilotspb.Contract{ContractId: "contract"}}
+	source := &testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: 1}, CaseId: "case", Program: &testpilotspb.Program{ProgramId: "program", Roles: []*testpilotspb.Role{{RoleId: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT}}, Entrypoints: []*testpilotspb.Entrypoint{{EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}}, Instructions: []*testpilotspb.InstructionNode{rpcNode("call")}}}, Cleanup: &testpilotspb.Cleanup{EntrypointId: "cleanup"}}, Contract: &testpilotspb.Contract{ContractId: "contract"}}
 	return source, catalog, policy
 }
 func scalar(kind testpilotspb.ScalarKind) *testpilotspb.ValueType {
@@ -38,7 +38,7 @@ func statusSchema() *testpilotspb.InstructionOutcomeDefinition {
 	return &testpilotspb.InstructionOutcomeDefinition{Fields: []*testpilotspb.OutcomeFieldDefinition{{Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS, Type: &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Enumeration{Enumeration: &testpilotspb.NamedType{ProtobufType: "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"}}}}}}}}
 }
 func rpcNode(id string) *testpilotspb.InstructionNode {
-	return &testpilotspb.InstructionNode{InstructionId: id, Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRpc{EndpointRoleId: "endpoint", Method: "/example.Service/Call"}}}, Outcome: statusSchema(), Limits: &testpilotspb.InstructionLimits{TimeoutMilliseconds: 1000, MaxAttempts: 1, MaxEmittedEvents: 8, MaxResponseBytes: 4096}}
+	return &testpilotspb.InstructionNode{InstructionId: id, Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRpc{EndpointRoleId: "endpoint", Method: "/example.Service/Call"}}}, Outcome: statusSchema(), Limits: &testpilotspb.InstructionLimits{TimeoutMilliseconds: 1000, MaxAttempts: 1}}
 }
 func field(name string) *testpilotspb.FieldPath {
 	return &testpilotspb.FieldPath{Segments: []*testpilotspb.FieldPathSegment{{Field: name}}}
@@ -141,11 +141,11 @@ func TestPrepareRejectsStructuralAndPolicyErrors(t *testing.T) {
 		"attempt bound": func(c *testpilotspb.Case, _ *Profile) {
 			c.Program.Entrypoints[0].Instructions[0].Limits.MaxAttempts = 33
 		},
-		"response bound": func(c *testpilotspb.Case, _ *Profile) {
-			c.Program.Entrypoints[0].Instructions[0].Limits.MaxResponseBytes = 4097
+		"instruction response ceiling": func(_ *testpilotspb.Case, p *Profile) {
+			p.Limits.MaxInstructionResponseBytes = 4097
 		},
-		"event bound": func(c *testpilotspb.Case, _ *Profile) {
-			c.Program.Entrypoints[0].Instructions[0].Limits.MaxEmittedEvents = 257
+		"instruction event ceiling": func(_ *testpilotspb.Case, p *Profile) {
+			p.Limits.MaxInstructionEmittedEvents = 257
 		},
 		"rpc raw outcome": func(c *testpilotspb.Case, _ *Profile) {
 			c.Program.Entrypoints[0].Instructions[0].Outcome.Fields = append(c.Program.Entrypoints[0].Instructions[0].Outcome.Fields, &testpilotspb.OutcomeFieldDefinition{Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE, Type: scalar(testpilotspb.SCALAR_KIND_TEXT)})
@@ -159,15 +159,18 @@ func TestPrepareRejectsStructuralAndPolicyErrors(t *testing.T) {
 		})
 	}
 	c, catalog, p := fixture(t)
-	fields := c.Program.Limits.ProtoReflect().Descriptor().Fields()
+	fields := p.Limits.ProtoReflect().Descriptor().Fields()
 	for i := 0; i < fields.Len(); i++ {
 		f := fields.Get(i)
 		t.Run(string(f.Name()), func(t *testing.T) {
-			for _, v := range []int64{0, p.Limits.ProtoReflect().Get(f).Int() + 1} {
-				source := proto.CloneOf(c)
-				source.Program.Limits.ProtoReflect().Set(f, protoreflect.ValueOfInt64(v))
-				_, err := Prepare(source, catalog, p)
-				require.Error(t, err)
+			for _, v := range []int64{0, hardLimits().ProtoReflect().Get(f).Int() + 1} {
+				policy := p
+				policy.Limits = proto.CloneOf(p.Limits)
+				policy.Limits.ProtoReflect().Set(f, protoreflect.ValueOfInt64(v))
+				_, err := Prepare(c, catalog, policy)
+				var diagnostic *ir.Error
+				require.ErrorAs(t, err, &diagnostic)
+				require.Equal(t, ir.Error{Category: ir.LimitExceeded, Path: string(f.Name()), Detail: "limit is outside the positive Driver ceiling"}, *diagnostic)
 			}
 		})
 	}
@@ -175,6 +178,47 @@ func TestPrepareRejectsStructuralAndPolicyErrors(t *testing.T) {
 	require.Error(t, err)
 	_, err = Prepare(c, nil, p)
 	require.Error(t, err)
+}
+
+// A Case keeps only the bounds that carry its behavior; each still rejects at preparation when it
+// exceeds the Profile ceiling it is admitted under, and is admitted at that ceiling.
+func TestPrepareRejectsCaseBoundsAboveProfileCeilings(t *testing.T) {
+	for _, tc := range []struct {
+		name  string
+		bound func(*testpilotspb.Case) *testpilotspb.InstructionLimits
+		set   func(limits *testpilotspb.InstructionLimits, ceiling *testpilotspb.ProgramLimits, over int64)
+		path  string
+	}{
+		{"ordinary timeout", func(c *testpilotspb.Case) *testpilotspb.InstructionLimits {
+			return c.Program.Entrypoints[0].Instructions[0].Limits
+		}, func(limits *testpilotspb.InstructionLimits, ceiling *testpilotspb.ProgramLimits, over int64) {
+			limits.TimeoutMilliseconds = ceiling.MaxTotalDurationMilliseconds + over
+		}, "controller.call"},
+		{"cleanup timeout", func(c *testpilotspb.Case) *testpilotspb.InstructionLimits {
+			c.Program.Cleanup.Instructions = []*testpilotspb.InstructionNode{rpcNode("cleanup-call")}
+			return c.Program.Cleanup.Instructions[0].Limits
+		}, func(limits *testpilotspb.InstructionLimits, ceiling *testpilotspb.ProgramLimits, over int64) {
+			limits.TimeoutMilliseconds = ceiling.MaxCleanupDurationMilliseconds + over
+		}, "cleanup.cleanup-call"},
+		{"attempts", func(c *testpilotspb.Case) *testpilotspb.InstructionLimits {
+			return c.Program.Entrypoints[0].Instructions[0].Limits
+		}, func(limits *testpilotspb.InstructionLimits, ceiling *testpilotspb.ProgramLimits, over int64) {
+			limits.MaxAttempts = ceiling.MaxAttempts + over
+		}, "controller.call"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			c, catalog, p := fixture(t)
+			bound := tc.bound(c)
+			tc.set(bound, p.Limits, 0)
+			_, err := Prepare(c, catalog, p)
+			require.NoError(t, err)
+			tc.set(bound, p.Limits, 1)
+			_, err = Prepare(c, catalog, p)
+			var diagnostic *ir.Error
+			require.ErrorAs(t, err, &diagnostic)
+			require.Equal(t, ir.Error{Category: ir.LimitExceeded, Path: tc.path, Detail: "instruction bounds exceed Profile ceilings"}, *diagnostic)
+		})
+	}
 }
 
 func TestRunIDIntrinsicIsOnlyAvailableToProgramInputs(t *testing.T) {
@@ -213,10 +257,22 @@ func TestRunIDIntrinsicIsOnlyAvailableToProgramInputs(t *testing.T) {
 			Result: runIDExpression(),
 		}}},
 		Outcome: statusSchema(),
-		Limits:  &testpilotspb.InstructionLimits{TimeoutMilliseconds: 1000, MaxAttempts: 1, MaxEmittedEvents: 1, MaxResponseBytes: 4096},
+		Limits:  &testpilotspb.InstructionLimits{TimeoutMilliseconds: 1000, MaxAttempts: 1},
 	}}
 	_, err = Prepare(c, catalog, policy)
 	require.Error(t, err)
+}
+
+// capCarrierShapes splits the Profile's activation ceiling evenly across each carrier's shapes, since a
+// carrier's shapes together may not exceed that ceiling.
+func capCarrierShapes(p *Profile) {
+	for _, role := range p.Roles {
+		for _, carrier := range role.ReservationCarriers {
+			for i := range carrier.Shapes {
+				carrier.Shapes[i].MaximumCount = max(1, p.Limits.MaxActivations/int64(len(carrier.Shapes)))
+			}
+		}
+	}
 }
 
 func TestReservationAdmissionBoundsLocalAndGlobalAttempts(t *testing.T) {
@@ -225,15 +281,16 @@ func TestReservationAdmissionBoundsLocalAndGlobalAttempts(t *testing.T) {
 		local, global, count, ceiling, want int64
 		good                                bool
 	}{
-		{"local cap", 2, 32, 3, 7, 7, true}, {"global cap", 8, 2, 3, 7, 7, true}, {"ceiling", 2, 32, 3, 6, 0, false}, {"zero", 1, 32, 0, 64, 0, false}, {"negative", 1, 32, -1, 64, 0, false}, {"overflow", 2, 32, math.MaxInt64, 64, 0, false},
+		{"local cap", 2, 32, 3, 7, 7, true}, {"equal caps", 2, 2, 3, 7, 7, true}, {"local above global", 8, 2, 3, 64, 0, false}, {"ceiling", 2, 32, 3, 6, 0, false}, {"zero", 1, 32, 0, 64, 0, false}, {"negative", 1, 32, -1, 64, 0, false}, {"overflow", 2, 32, math.MaxInt64, 64, 0, false},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			c, catalog, p := fixture(t)
 			addWorker(c, &p)
 			node := c.Program.Entrypoints[0].Instructions[0]
 			node.Limits.MaxAttempts = test.local
-			c.Program.Limits.MaxAttempts = test.global
-			c.Program.Limits.MaxActivations = test.ceiling
+			p.Limits.MaxAttempts = test.global
+			p.Limits.MaxActivations = test.ceiling
+			capCarrierShapes(&p)
 			node.ActivationReservations = []*testpilotspb.ActivationReservationDefinition{{EntrypointId: "workflow", Count: test.count}}
 			prepared, err := Prepare(c, catalog, p)
 			if test.good {
@@ -343,20 +400,23 @@ func TestReservationTargetsAndExactCombinedBound(t *testing.T) {
 	first.ActivationReservations = []*testpilotspb.ActivationReservationDefinition{{EntrypointId: "workflow", Count: 5}}
 	second := proto.CloneOf(c.Program.Entrypoints[0])
 	second.EntrypointId = "second"
-	second.Instructions[0].Limits.MaxAttempts = 5
+	second.Instructions[0].Limits.MaxAttempts = 4
 	second.Instructions[0].ActivationReservations[0].Count = 3
 	c.Program.Entrypoints = append(c.Program.Entrypoints, second)
-	c.Program.Limits.MaxAttempts = 4
-	c.Program.Limits.MaxActivations = 18
+	p.Limits.MaxAttempts = 4
+	p.Limits.MaxActivations = 17
+	capCarrierShapes(&p)
+	p.Limits.MaxActivations = 18
 	prepared, err := Prepare(c, catalog, p)
 	require.NoError(t, err)
 	require.Equal(t, int64(18), prepared.View().MaximumActivations())
-	c.Program.Limits.MaxActivations = 17
+	p.Limits.MaxActivations = 17
 	_, err = Prepare(c, catalog, p)
 	require.Error(t, err)
 	first.ActivationReservations = nil
 	second.Instructions[0].ActivationReservations = nil
-	c.Program.Limits.MaxActivations = 2
+	p.Limits.MaxActivations = 2
+	capCarrierShapes(&p)
 	prepared, err = Prepare(c, catalog, p)
 	require.NoError(t, err)
 	require.Equal(t, int64(2), prepared.View().MaximumActivations())
@@ -438,7 +498,7 @@ func TestPrepareEnvironmentVersionAndClosure(t *testing.T) {
 		},
 		"resolved byte overflow": func(c *testpilotspb.Case, p *Profile) {
 			configureEnvironmentCase(c, p)
-			c.Program.Limits.MaxRequestBytes = 8
+			p.Limits.MaxRequestBytes = 8
 		},
 		"incompatible endpoint namespace": func(c *testpilotspb.Case, p *Profile) {
 			configureEnvironmentCase(c, p)
@@ -497,7 +557,6 @@ func TestPrepareRejectsMalformedEnvironmentPolicy(t *testing.T) {
 
 	c, catalog, policy = fixture(t)
 	policy.Limits.MaxRequestBytes = 8
-	c.Program.Limits.MaxRequestBytes = 8
 	policy.EnvironmentBindings = []contract.EnvironmentBinding{{ID: "id", Value: "1234567"}}
 	_, err = Prepare(c, catalog, policy)
 	require.Error(t, err)
@@ -742,22 +801,22 @@ func TestPrepareBoundsSurfaceBeforeCloning(t *testing.T) {
 
 func TestStructuralCountsAndProjectionFanout(t *testing.T) {
 	for name, mutate := range map[string]func(*testpilotspb.Case, *Profile){
-		"entrypoint count": func(c *testpilotspb.Case, p *Profile) { addWorker(c, p); c.Program.Limits.MaxEntrypoints = 1 },
-		"node count": func(c *testpilotspb.Case, _ *Profile) {
+		"entrypoint count": func(c *testpilotspb.Case, p *Profile) { addWorker(c, p); p.Limits.MaxEntrypoints = 1 },
+		"node count": func(c *testpilotspb.Case, p *Profile) {
 			c.Program.Entrypoints[0].Instructions = append(c.Program.Entrypoints[0].Instructions, rpcNode("other"))
-			c.Program.Limits.MaxNodes = 1
+			p.Limits.MaxNodes = 1
 		},
-		"edge count": func(c *testpilotspb.Case, _ *Profile) {
+		"edge count": func(c *testpilotspb.Case, p *Profile) {
 			last := rpcNode("last")
 			last.Dependencies = []*testpilotspb.InstructionReference{{EntrypointId: "controller", InstructionId: "call"}, {EntrypointId: "controller", InstructionId: "other"}}
 			c.Program.Entrypoints[0].Instructions = append(c.Program.Entrypoints[0].Instructions, rpcNode("other"), last)
-			c.Program.Limits.MaxEdges = 1
+			p.Limits.MaxEdges = 1
 		},
-		"controller activation count": func(c *testpilotspb.Case, _ *Profile) {
+		"controller activation count": func(c *testpilotspb.Case, p *Profile) {
 			other := proto.CloneOf(c.Program.Entrypoints[0])
 			other.EntrypointId = "other"
 			c.Program.Entrypoints = append(c.Program.Entrypoints, other)
-			c.Program.Limits.MaxActivations = 1
+			p.Limits.MaxActivations = 1
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -770,14 +829,14 @@ func TestStructuralCountsAndProjectionFanout(t *testing.T) {
 	c, catalog, p := fixture(t)
 	c.Program.Observations = []*testpilotspb.Observation{{ObservationId: "item", Type: scalar(testpilotspb.SCALAR_KIND_TEXT)}}
 	n := c.Program.Entrypoints[0].Instructions[0]
-	n.Limits.MaxEmittedEvents = 128
+	p.Limits.MaxInstructionEmittedEvents = 128
 	n.Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: field("items"), Cardinality: testpilotspb.READ_CARDINALITY_EMIT_EACH, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_ObservationId{ObservationId: "item"}}}}}
 	_, err := Prepare(c, catalog, p)
 	require.NoError(t, err)
-	n.Limits.MaxEmittedEvents = 127
+	p.Limits.MaxInstructionEmittedEvents = 127
 	_, err = Prepare(c, catalog, p)
 	require.Error(t, err)
-	n.Limits.MaxEmittedEvents = 256
+	p.Limits.MaxInstructionEmittedEvents = 256
 	n.Instruction.GetInvokeRpc().ResponseReads = append(n.Instruction.GetInvokeRpc().ResponseReads, proto.CloneOf(n.Instruction.GetInvokeRpc().ResponseReads[0]))
 	_, err = Prepare(c, catalog, p)
 	require.Error(t, err)

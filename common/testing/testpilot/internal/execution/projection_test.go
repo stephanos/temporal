@@ -14,10 +14,10 @@ import (
 
 func TestProjectionStagesOrderedElementsAndRejectsLimitsAtomically(t *testing.T) {
 	c, catalog, policy := fixture(t)
-	c.Program.Limits.MaxPathFanout = 2
+	policy.Limits.MaxPathFanout = 2
 	c.Program.Observations = []*testpilotspb.Observation{{ObservationId: "item", Type: scalar(testpilotspb.SCALAR_KIND_TEXT)}}
 	n := c.Program.Entrypoints[0].Instructions[0]
-	n.Limits.MaxEmittedEvents = 2
+	policy.Limits.MaxInstructionEmittedEvents = 2
 	path := field("items")
 	path.Segments[0].Selector = &testpilotspb.FieldPathSegment_Repeated{Repeated: &testpilotspb.RepeatedWildcard{}}
 	n.Instruction.GetInvokeRpc().ResponseReads = []*testpilotspb.ResponseRead{{Path: path, Cardinality: testpilotspb.READ_CARDINALITY_EMIT_EACH, Targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_ObservationId{ObservationId: "item"}}}}}
@@ -42,8 +42,8 @@ func TestProjectionStagesOrderedElementsAndRejectsLimitsAtomically(t *testing.T)
 	require.Equal(t, "a", batch.facts[1].observations[0].Value.GetTextValue())
 	_, _, err = values.stage(context.Background(), coord, raw, work)
 	require.NoError(t, err)
-	for _, mutate := range []func(){func() { list.Append(protoreflect.ValueOfString("overflow")) }, func() { list.Truncate(2); p.graphs[0].nodes[0].source.Limits.MaxEmittedEvents = 1 }, func() {
-		p.graphs[0].nodes[0].source.Limits.MaxEmittedEvents = 2
+	for _, mutate := range []func(){func() { list.Append(protoreflect.ValueOfString("overflow")) }, func() { list.Truncate(2); p.limits.MaxInstructionEmittedEvents = 1 }, func() {
+		p.limits.MaxInstructionEmittedEvents = 2
 		list.Set(0, protoreflect.ValueOfString(strings.Repeat("x", 4096)))
 	}} {
 		mutate()

@@ -11,7 +11,6 @@ message Contract {
   string contract_id = 1;
   repeated ContractRule rules = 2;
   CorrelatedContract correlated = 3;
-  ContractLimits limits = 4;
 }
 
 // ContractRule is one finite deterministic safety or bounded-liveness monitor machine.
@@ -99,7 +98,8 @@ message Deadline {
   }
 }
 
-// ContractLimits bound one Contract, its correlated contract included.
+// ContractLimits are a Profile's resource ceilings on every Contract it admits, its correlated
+// contract included. A Case declares none of them.
 message ContractLimits {
   // Rules, correlated rules included.
   int64 max_rules = 1;

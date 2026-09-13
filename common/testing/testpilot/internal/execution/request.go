@@ -37,7 +37,7 @@ func (a *activationValues) request(ctx context.Context, c contract.Coordinate, l
 		}
 		writes = append(writes, ir.Write{Path: assignment.target, Value: value})
 	}
-	request, work, err := ir.BuildRequest(ctx, n.method.Input(), writes, w.remaining(a.store.program.source.Limits.MaxRequestBytes))
+	request, work, err := ir.BuildRequest(ctx, n.method.Input(), writes, w.remaining(a.store.program.limits.MaxRequestBytes))
 	w.work += work
 	return request, err == nil, w.work, err
 }

@@ -6,19 +6,20 @@ open Umpire.Property.CorrelatedTests
 open temporal.server.api.testpilot.v1
 
 private def first := scenarios[0]
-private def accepts (change : CorrelatedContract → CorrelatedContract) : Bool :=
-  ((capability first).bind (fun wire => Testpilot.Correlated.decode (change wire))).isOk
+private def accepts (change : CorrelatedContract → CorrelatedContract)
+    (limit : CorrelatedLimits → CorrelatedLimits := id) : Bool :=
+  (do Testpilot.Correlated.decode (limit (← ceilings first)) (change (← capability first))).isOk
 
 #guard !accepts (fun wire => { wire with rules := wire.rules.map fun clause => { clause with bound := -1 } })
 #guard !accepts (fun wire => { wire with rules := wire.rules.map fun clause => {
   clause with clock := .CORRELATED_CLOCK_UNSPECIFIED } })
-#guard !accepts (fun wire => { wire with limits := wire.limits.map fun limits => { limits with max_events := 0 } })
+#guard !accepts id (fun limits => { limits with max_events := 0 })
 #guard !accepts (fun wire => { wire with projection_rules := wire.projection_rules.map fun rule => {
   rule with outputs := rule.outputs.map fun output => { output with prior_state := wire.initial_state } } })
 
 private def admitted (change : CorrelatedEvidence → CorrelatedEvidence) : Bool :=
   (do
-    let compiled ← Testpilot.Correlated.decode (← capability first)
+    let compiled ← Testpilot.Correlated.decode (← ceilings first) (← capability first)
     let initial ← compiled.start scope
     let _ ← initial.observe 2 (change (evidence 0 "both"))
     pure () : Except String Unit).isOk
@@ -35,11 +36,11 @@ private def admitted (change : CorrelatedEvidence → CorrelatedEvidence) : Bool
 
 private def boundary (projectionWork obligationWork support : Int64) (eventSize : Int64 := 512) : Bool :=
   (do
-    let wire ← capability first
-    let wire := { wire with limits := wire.limits.map fun limits => { limits with
+    let limits ← ceilings first
+    let limits := { limits with
       max_projection_work := projectionWork, max_obligation_work := obligationWork, max_support := support,
-      max_event_bytes := eventSize } }
-    let compiled ← Testpilot.Correlated.decode wire
+      max_event_bytes := eventSize }
+    let compiled ← Testpilot.Correlated.decode limits (← capability first)
     let initial ← compiled.start scope
     let _ ← initial.observe 2 (evidence 0 "both")
     pure () : Except String Unit).isOk

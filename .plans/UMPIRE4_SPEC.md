@@ -133,6 +133,13 @@ a declared Nexus history Observation reaches a correlated completion within a bo
 - **SEM-16 — Case authority.** One admitted Case MUST be authoritative for its exact bounded Program
   and Contract. Runtime code MUST NOT add scenario behavior, verification clauses, implicit retry,
   or undeclared evidence.
+  *Restatement (drafted by fn-87; awaiting GOV-02 approval.)* One admitted Case MUST be
+  authoritative for its exact Program, its exact Contract, and the bounds that carry their
+  behavior: instruction timeouts and attempts, Contract deadlines, and correlated windows. Resource
+  ceilings (node, edge, byte, work, capture, depth, duration and count ceilings) MUST belong to the
+  Profile, and admission MUST check every Case's behavior bounds and structure against the
+  Profile's ceilings before Driver I/O. Runtime code MUST NOT add scenario behavior, verification
+  clauses, implicit retry, or undeclared evidence.
 - **SEM-17 — Evaluator authority.** The prepared Contract MUST supply the Monitor used during
   execution and MUST use the same transition semantics for offline evaluation. Expiry is evaluated
   before transitions at every event, bounded captures are rule-local and Run-local, and a proven

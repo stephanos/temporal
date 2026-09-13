@@ -70,7 +70,6 @@ structure Input where
   program : Program
   contractId : String
   properties : List ContractLowering
-  contractLimits : ContractLimits
   /-- The modeled input fields and requested clauses this Case must cover. A Case that requests
   none keeps its exact existing meaning. -/
   coverage : Coverage.Request := {}
@@ -122,8 +121,7 @@ def compile (input : Input) : Except Error temporal.server.api.testpilot.v1.Case
     correlatedRules
   }
   pure (Testpilot.Authoring.case input.version.major input.caseId input.program
-    (Testpilot.Authoring.Contract.contract input.contractId rules.toArray input.contractLimits
-      capability)
+    (Testpilot.Authoring.Contract.contract input.contractId rules.toArray capability)
     (Provenance.make metadata) input.version.minor)
 
 end Umpire.Case.Compiler

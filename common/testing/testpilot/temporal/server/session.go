@@ -89,7 +89,7 @@ func (s *Session) InvokeRPC(ctx context.Context, c testpilot.Coordinate, role st
 	handle, err := s.start(ctx, c, n.Limits, func(ctx context.Context) testpilot.EffectResult {
 		response := dynamicpb.NewMessage(method.Output())
 		ctx = metadata.NewOutgoingContext(ctx, endpoint.metadata.Copy())
-		err := endpoint.connection.Invoke(ctx, path, request, response, grpc.MaxCallRecvMsgSize(int(min(n.Limits.MaxResponseBytes, s.host.profile.ProgramLimits.MaxResponseBytes))))
+		err := endpoint.connection.Invoke(ctx, path, request, response, grpc.MaxCallRecvMsgSize(int(s.host.profile.ProgramLimits.MaxInstructionResponseBytes)))
 		if err != nil {
 			return rpcFailure(ctx, err)
 		}

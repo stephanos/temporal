@@ -708,14 +708,8 @@ def OperationCase.authorityInstructionId (entry : OperationCase) : String :=
 def OperationCase.completeInstructionId (entry : OperationCase) : String :=
   "complete-nexus-" ++ entry.operation
 
-/-- Two operations make this Case larger than the shared single-operation Program ceilings in two
-places: the history that records both is bigger than one response budget, and two Nexus handler
-entrypoints take longer to stop than one. Every other bound is the shared ceiling. -/
-def typedNexusProgramLimits : ProgramLimits :=
-  { programLimits with max_response_bytes := 8192, max_cleanup_duration_milliseconds := 20000 }
-
-/-- The history read carries both operations' events, so it declares that larger response budget. -/
-private def historyLimits : InstructionLimits := Program.instructionLimits 10000 1 128 8192
+/-- The history read carries both operations' events; the Profile bounds its response size. -/
+private def historyLimits : InstructionLimits := Program.instructionLimits 10000 1
 
 private def textOutcome : InstructionOutcomeDefinition :=
   Program.outcome #[
@@ -724,20 +718,20 @@ private def textOutcome : InstructionOutcomeDefinition :=
 
 private def controllerInstructions (entry : OperationCase) : Array InstructionNode := #[
   Program.node entry.authorityInstructionId (Program.awaitSlot entry.slotId)
-    (bounds 10000) #[Ref.instruction controllerId "start-workflow"]
+    (Program.instructionLimits 10000 1) #[Ref.instruction controllerId "start-workflow"]
     (some (succeeded controllerId "start-workflow")) (some statusOutcome),
   Program.node entry.completeInstructionId
     (Program.completeNexusOperation entry.slotId (text "completed"))
-    (bounds 10000) #[Ref.instruction controllerId entry.authorityInstructionId]
+    (Program.instructionLimits 10000 1) #[Ref.instruction controllerId entry.authorityInstructionId]
     (some (succeeded controllerId entry.authorityInstructionId)) (some statusOutcome)]
 
 private def workflowInstructions (entry : OperationCase) : Array InstructionNode := #[
   Program.node entry.startInstructionId
     (Program.startNexusOperation nexusEndpointRole nexusService entry.operation (text "request"))
-    (bounds 10000) #[] none (some statusOutcome),
+    (Program.instructionLimits 10000 1) #[] none (some statusOutcome),
   Program.node entry.awaitInstructionId
     (Program.awaitInstruction (Ref.instruction workflowEntrypointId entry.startInstructionId))
-    (bounds 10000) #[Ref.instruction workflowEntrypointId entry.startInstructionId]
+    (Program.instructionLimits 10000 1) #[Ref.instruction workflowEntrypointId entry.startInstructionId]
     none (some textOutcome)]
 
 /-- The lift guard that fires where `path` resolves on the projected history event. -/
@@ -791,7 +785,7 @@ private def program (startPath historyPath : String) : Program :=
               assign (nested ["workflow_type", "name"]) (text workflowType),
               Program.environmentAssignment (nested ["task_queue", "name"]) taskQueueBindingId,
               assign (field "request_id") runId])
-            (bounds 10000) #[] none (some statusOutcome)
+            (Program.instructionLimits 10000 1) #[] none (some statusOutcome)
             ((Program.reservation workflowEntrypointId 1) ::
               operationCases.map fun entry => Program.reservation entry.handlerId 1).toArray] ++
           (operationCases.flatMap fun entry => (controllerInstructions entry).toList).toArray ++
@@ -812,7 +806,7 @@ private def program (startPath historyPath : String) : Program :=
       Program.workflow workflowEntrypointId workflowType workerRole taskQueueRole (
         (operationCases.flatMap fun entry => (workflowInstructions entry).toList).toArray ++
           #[Program.node "finish-workflow" (Program.finish (text "completed"))
-            bounds (operationCases.map fun entry =>
+            (Program.instructionLimits 5000 1) (operationCases.map fun entry =>
               Ref.instruction workflowEntrypointId entry.awaitInstructionId).toArray
             (some (Expr.all (operationCases.map fun entry =>
               succeeded workflowEntrypointId entry.awaitInstructionId).toArray))
@@ -821,9 +815,8 @@ private def program (startPath historyPath : String) : Program :=
         Program.nexusHandler entry.handlerId nexusService entry.operation workerRole taskQueueRole
           #[Program.node ("respond-async-" ++ entry.operation)
             (Program.respondNexus .NEXUS_RESPONSE_KIND_ASYNCHRONOUS (text "accepted") entry.slotId)
-            bounds #[] none (some statusOutcome)]).toArray)
+            (Program.instructionLimits 5000 1) #[] none (some statusOutcome)]).toArray)
     (Program.cleanup "cleanup" #[])
-    typedNexusProgramLimits
     (environment := #[Program.environment namespaceBindingId,
       Program.environment taskQueueBindingId, Program.environment nexusEndpointBindingId])
 
@@ -841,13 +834,6 @@ event. -/
 def OperationCase.realization (entry : OperationCase) : Umpire.Case.Projection.Realization := {
   ruleSuffix := entry.operation
   capture := .crossEvent ⟨scheduledOperationPath, .text entry.operation⟩ "scheduled" "completion" }
-
-/-- This Case retains one history event per operation, so it declares its own capture-byte ceiling
-rather than the shared single-capture one; every other bound is the shared Contract ceiling. -/
-def typedNexusContractLimits : ContractLimits :=
-  { contractLimits with
-    max_capture_bytes := 65536, max_captures := 64, max_transitions := 64
-    max_work_per_event := 4000000 }
 
 /-- The bounded-response window now runs online: the history read lifts each recorded Nexus event
 into the declared `CorrelatedEvidence` Observation the correlated capability decodes, so the clause is
@@ -913,7 +899,6 @@ def typedNexusCase : Except Umpire.Case.Compiler.Error
     program := program (methodPath start.schema) (methodPath history.schema)
     contractId := "temporal.case.typed-nexus.contract"
     properties := rules.filterMap (·.1) ++ [lowered.contractLowering]
-    contractLimits := typedNexusContractLimits
     coverage := { inputs := rules.flatMap (·.2.inputs) }
   }
 

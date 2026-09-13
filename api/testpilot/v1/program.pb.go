@@ -107,7 +107,6 @@ type Program struct {
 	Observations  []*Observation           `protobuf:"bytes,5,rep,name=observations,proto3" json:"observations,omitempty"`
 	Entrypoints   []*Entrypoint            `protobuf:"bytes,6,rep,name=entrypoints,proto3" json:"entrypoints,omitempty"`
 	Cleanup       *Cleanup                 `protobuf:"bytes,7,opt,name=cleanup,proto3" json:"cleanup,omitempty"`
-	Limits        *ProgramLimits           `protobuf:"bytes,8,opt,name=limits,proto3" json:"limits,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -187,13 +186,6 @@ func (x *Program) GetEntrypoints() []*Entrypoint {
 func (x *Program) GetCleanup() *Cleanup {
 	if x != nil {
 		return x.Cleanup
-	}
-	return nil
-}
-
-func (x *Program) GetLimits() *ProgramLimits {
-	if x != nil {
-		return x.Limits
 	}
 	return nil
 }
@@ -877,7 +869,8 @@ func (x *Cleanup) GetInstructions() []*InstructionNode {
 	return nil
 }
 
-// ProgramLimits bound one Program. Every limit is positive and within the Profile's ceiling.
+// ProgramLimits are a Profile's resource ceilings on every Program it admits. A Case declares none of
+// them; every limit is positive and within the Driver's hard ceiling.
 type ProgramLimits struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Entrypoints, not counting cleanup.
@@ -890,7 +883,7 @@ type ProgramLimits struct {
 	MaxActivations int64 `protobuf:"varint,4,opt,name=max_activations,json=maxActivations,proto3" json:"max_activations,omitempty"`
 	// Instruction attempts dispatched across the Run, and the ceiling of each instruction's attempts.
 	MaxAttempts int64 `protobuf:"varint,5,opt,name=max_attempts,json=maxAttempts,proto3" json:"max_attempts,omitempty"`
-	// Run Events recorded, RUN_CLOSED included, and the ceiling of each instruction's emitted events.
+	// Run Events recorded, RUN_CLOSED included, and the ceiling of max_instruction_emitted_events.
 	MaxRunEvents int64 `protobuf:"varint,6,opt,name=max_run_events,json=maxRunEvents,proto3" json:"max_run_events,omitempty"`
 	// Nesting depth of any expression or path.
 	MaxExpressionDepth int64 `protobuf:"varint,7,opt,name=max_expression_depth,json=maxExpressionDepth,proto3" json:"max_expression_depth,omitempty"`
@@ -898,14 +891,18 @@ type ProgramLimits struct {
 	MaxPathFanout int64 `protobuf:"varint,8,opt,name=max_path_fanout,json=maxPathFanout,proto3" json:"max_path_fanout,omitempty"`
 	// Encoded size of one request, and of the environment binding values together.
 	MaxRequestBytes int64 `protobuf:"varint,9,opt,name=max_request_bytes,json=maxRequestBytes,proto3" json:"max_request_bytes,omitempty"`
-	// The ceiling of each instruction's response bytes, and the size of one Observation value.
+	// The size of one Observation value, and the ceiling of max_instruction_response_bytes.
 	MaxResponseBytes int64 `protobuf:"varint,10,opt,name=max_response_bytes,json=maxResponseBytes,proto3" json:"max_response_bytes,omitempty"`
 	// Wall-clock bound on opening the Driver session and ordinary execution.
 	MaxTotalDurationMilliseconds int64 `protobuf:"varint,11,opt,name=max_total_duration_milliseconds,json=maxTotalDurationMilliseconds,proto3" json:"max_total_duration_milliseconds,omitempty"`
 	// Wall-clock bound on each of settling, cleanup and closing the Driver session.
 	MaxCleanupDurationMilliseconds int64 `protobuf:"varint,12,opt,name=max_cleanup_duration_milliseconds,json=maxCleanupDurationMilliseconds,proto3" json:"max_cleanup_duration_milliseconds,omitempty"`
-	unknownFields                  protoimpl.UnknownFields
-	sizeCache                      protoimpl.SizeCache
+	// Run Events one instruction's response reads may emit per completion.
+	MaxInstructionEmittedEvents int64 `protobuf:"varint,13,opt,name=max_instruction_emitted_events,json=maxInstructionEmittedEvents,proto3" json:"max_instruction_emitted_events,omitempty"`
+	// Size bound on one instruction's RPC response.
+	MaxInstructionResponseBytes int64 `protobuf:"varint,14,opt,name=max_instruction_response_bytes,json=maxInstructionResponseBytes,proto3" json:"max_instruction_response_bytes,omitempty"`
+	unknownFields               protoimpl.UnknownFields
+	sizeCache                   protoimpl.SizeCache
 }
 
 func (x *ProgramLimits) Reset() {
@@ -1022,11 +1019,25 @@ func (x *ProgramLimits) GetMaxCleanupDurationMilliseconds() int64 {
 	return 0
 }
 
+func (x *ProgramLimits) GetMaxInstructionEmittedEvents() int64 {
+	if x != nil {
+		return x.MaxInstructionEmittedEvents
+	}
+	return 0
+}
+
+func (x *ProgramLimits) GetMaxInstructionResponseBytes() int64 {
+	if x != nil {
+		return x.MaxInstructionResponseBytes
+	}
+	return 0
+}
+
 var File_temporal_server_api_testpilot_v1_program_proto protoreflect.FileDescriptor
 
 const file_temporal_server_api_testpilot_v1_program_proto_rawDesc = "" +
 	"\n" +
-	".temporal/server/api/testpilot/v1/program.proto\x12 temporal.server.api.testpilot.v1\x1a2temporal/server/api/testpilot/v1/instruction.proto\x1a,temporal/server/api/testpilot/v1/value.proto\"\xb0\x04\n" +
+	".temporal/server/api/testpilot/v1/program.proto\x12 temporal.server.api.testpilot.v1\x1a2temporal/server/api/testpilot/v1/instruction.proto\x1a,temporal/server/api/testpilot/v1/value.proto\"\xe7\x03\n" +
 	"\aProgram\x12\x1d\n" +
 	"\n" +
 	"program_id\x18\x01 \x01(\tR\tprogramId\x12Y\n" +
@@ -1035,8 +1046,7 @@ const file_temporal_server_api_testpilot_v1_program_proto_rawDesc = "" +
 	"\x05slots\x18\x04 \x03(\v2&.temporal.server.api.testpilot.v1.SlotR\x05slots\x12Q\n" +
 	"\fobservations\x18\x05 \x03(\v2-.temporal.server.api.testpilot.v1.ObservationR\fobservations\x12N\n" +
 	"\ventrypoints\x18\x06 \x03(\v2,.temporal.server.api.testpilot.v1.EntrypointR\ventrypoints\x12C\n" +
-	"\acleanup\x18\a \x01(\v2).temporal.server.api.testpilot.v1.CleanupR\acleanup\x12G\n" +
-	"\x06limits\x18\b \x01(\v2/.temporal.server.api.testpilot.v1.ProgramLimitsR\x06limits\"6\n" +
+	"\acleanup\x18\a \x01(\v2).temporal.server.api.testpilot.v1.CleanupR\acleanup\"6\n" +
 	"\x15EnvironmentDefinition\x12\x1d\n" +
 	"\n" +
 	"binding_id\x18\x01 \x01(\tR\tbindingId\"\xc1\x01\n" +
@@ -1081,7 +1091,7 @@ const file_temporal_server_api_testpilot_v1_program_proto_rawDesc = "" +
 	"\x12task_queue_role_id\x18\x04 \x01(\tR\x0ftaskQueueRoleId\"\x85\x01\n" +
 	"\aCleanup\x12#\n" +
 	"\rentrypoint_id\x18\x01 \x01(\tR\fentrypointId\x12U\n" +
-	"\finstructions\x18\x02 \x03(\v21.temporal.server.api.testpilot.v1.InstructionNodeR\finstructions\"\xaa\x04\n" +
+	"\finstructions\x18\x02 \x03(\v21.temporal.server.api.testpilot.v1.InstructionNodeR\finstructions\"\xb4\x05\n" +
 	"\rProgramLimits\x12'\n" +
 	"\x0fmax_entrypoints\x18\x01 \x01(\x03R\x0emaxEntrypoints\x12\x1b\n" +
 	"\tmax_nodes\x18\x02 \x01(\x03R\bmaxNodes\x12\x1b\n" +
@@ -1095,7 +1105,9 @@ const file_temporal_server_api_testpilot_v1_program_proto_rawDesc = "" +
 	"\x12max_response_bytes\x18\n" +
 	" \x01(\x03R\x10maxResponseBytes\x12E\n" +
 	"\x1fmax_total_duration_milliseconds\x18\v \x01(\x03R\x1cmaxTotalDurationMilliseconds\x12I\n" +
-	"!max_cleanup_duration_milliseconds\x18\f \x01(\x03R\x1emaxCleanupDurationMilliseconds*\x88\x01\n" +
+	"!max_cleanup_duration_milliseconds\x18\f \x01(\x03R\x1emaxCleanupDurationMilliseconds\x12C\n" +
+	"\x1emax_instruction_emitted_events\x18\r \x01(\x03R\x1bmaxInstructionEmittedEvents\x12C\n" +
+	"\x1emax_instruction_response_bytes\x18\x0e \x01(\x03R\x1bmaxInstructionResponseBytes*\x88\x01\n" +
 	"\bRoleKind\x12\x19\n" +
 	"\x15ROLE_KIND_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12ROLE_KIND_ENDPOINT\x10\x01\x12\x14\n" +
@@ -1142,22 +1154,21 @@ var file_temporal_server_api_testpilot_v1_program_proto_depIdxs = []int32{
 	5,  // 3: temporal.server.api.testpilot.v1.Program.observations:type_name -> temporal.server.api.testpilot.v1.Observation
 	6,  // 4: temporal.server.api.testpilot.v1.Program.entrypoints:type_name -> temporal.server.api.testpilot.v1.Entrypoint
 	11, // 5: temporal.server.api.testpilot.v1.Program.cleanup:type_name -> temporal.server.api.testpilot.v1.Cleanup
-	12, // 6: temporal.server.api.testpilot.v1.Program.limits:type_name -> temporal.server.api.testpilot.v1.ProgramLimits
-	0,  // 7: temporal.server.api.testpilot.v1.Role.kind:type_name -> temporal.server.api.testpilot.v1.RoleKind
-	13, // 8: temporal.server.api.testpilot.v1.Slot.value:type_name -> temporal.server.api.testpilot.v1.ValueType
-	14, // 9: temporal.server.api.testpilot.v1.Slot.opaque_handle:type_name -> temporal.server.api.testpilot.v1.OpaqueHandleType
-	13, // 10: temporal.server.api.testpilot.v1.Observation.type:type_name -> temporal.server.api.testpilot.v1.ValueType
-	7,  // 11: temporal.server.api.testpilot.v1.Entrypoint.controller:type_name -> temporal.server.api.testpilot.v1.ControllerActivation
-	8,  // 12: temporal.server.api.testpilot.v1.Entrypoint.workflow:type_name -> temporal.server.api.testpilot.v1.WorkflowActivation
-	9,  // 13: temporal.server.api.testpilot.v1.Entrypoint.activity:type_name -> temporal.server.api.testpilot.v1.ActivityActivation
-	10, // 14: temporal.server.api.testpilot.v1.Entrypoint.nexus_handler:type_name -> temporal.server.api.testpilot.v1.NexusHandlerActivation
-	15, // 15: temporal.server.api.testpilot.v1.Entrypoint.instructions:type_name -> temporal.server.api.testpilot.v1.InstructionNode
-	15, // 16: temporal.server.api.testpilot.v1.Cleanup.instructions:type_name -> temporal.server.api.testpilot.v1.InstructionNode
-	17, // [17:17] is the sub-list for method output_type
-	17, // [17:17] is the sub-list for method input_type
-	17, // [17:17] is the sub-list for extension type_name
-	17, // [17:17] is the sub-list for extension extendee
-	0,  // [0:17] is the sub-list for field type_name
+	0,  // 6: temporal.server.api.testpilot.v1.Role.kind:type_name -> temporal.server.api.testpilot.v1.RoleKind
+	13, // 7: temporal.server.api.testpilot.v1.Slot.value:type_name -> temporal.server.api.testpilot.v1.ValueType
+	14, // 8: temporal.server.api.testpilot.v1.Slot.opaque_handle:type_name -> temporal.server.api.testpilot.v1.OpaqueHandleType
+	13, // 9: temporal.server.api.testpilot.v1.Observation.type:type_name -> temporal.server.api.testpilot.v1.ValueType
+	7,  // 10: temporal.server.api.testpilot.v1.Entrypoint.controller:type_name -> temporal.server.api.testpilot.v1.ControllerActivation
+	8,  // 11: temporal.server.api.testpilot.v1.Entrypoint.workflow:type_name -> temporal.server.api.testpilot.v1.WorkflowActivation
+	9,  // 12: temporal.server.api.testpilot.v1.Entrypoint.activity:type_name -> temporal.server.api.testpilot.v1.ActivityActivation
+	10, // 13: temporal.server.api.testpilot.v1.Entrypoint.nexus_handler:type_name -> temporal.server.api.testpilot.v1.NexusHandlerActivation
+	15, // 14: temporal.server.api.testpilot.v1.Entrypoint.instructions:type_name -> temporal.server.api.testpilot.v1.InstructionNode
+	15, // 15: temporal.server.api.testpilot.v1.Cleanup.instructions:type_name -> temporal.server.api.testpilot.v1.InstructionNode
+	16, // [16:16] is the sub-list for method output_type
+	16, // [16:16] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_testpilot_v1_program_proto_init() }

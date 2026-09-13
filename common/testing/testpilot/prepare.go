@@ -39,7 +39,7 @@ func Prepare(source *testpilotspb.Case, profile Profile) (*PreparedCase, error) 
 	if err != nil {
 		return nil, preparationError(err, "program")
 	}
-	contract, err := verification.Prepare(source.Contract, spec.Catalog.catalog, program.View(), spec.ContractLimits)
+	contract, err := verification.Prepare(source.Contract, spec.Catalog.catalog, program.View(), spec.ContractLimits, spec.CorrelatedLimits)
 	if err != nil {
 		return nil, preparationError(err, "contract")
 	}

@@ -53,7 +53,7 @@ func TestEvaluatorMatchesRecordedFaultPayload(t *testing.T) {
 				equal(payloadField("fault_injected", "role_id"), textLiteral("queue")),
 				equal(payloadField("fault_injected", "kind"), enumLiteral(int32(testpilotspb.FAULT_KIND_WORKER_STOP))),
 			)
-			p, err := Prepare(c, cat, view, limits)
+			p, err := Prepare(c, cat, view, limits, nil)
 			require.NoError(t, err)
 
 			run := &testpilotspb.Run{RunId: "run", CaseId: "case", ProgramId: "program", Disposition: testpilotspb.RUN_DISPOSITION_COMPLETED, Events: []*testpilotspb.RunEvent{
@@ -110,7 +110,7 @@ func TestPrepareLocatesPayloadPathsTheFilterCannotCarry(t *testing.T) {
 			c, cat, view, limits := fixture(t)
 			c.Rules[0].Transitions[0].EventFilter.Kinds = tc.kinds
 			c.Rules[0].Transitions[0].Predicate = tc.predicate
-			_, err := Prepare(c, cat, view, limits)
+			_, err := Prepare(c, cat, view, limits, nil)
 			if tc.category == "" {
 				require.NoError(t, err)
 				return
@@ -132,7 +132,7 @@ func TestEvaluatorReadsAnUncarriedPayloadAsAbsent(t *testing.T) {
 	r := c.Rules[0]
 	r.Transitions[0].EventFilter.Kinds = []testpilotspb.RunEventKind{testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED}
 	r.Transitions[0].Predicate = present(payloadField("outcome", "detail"))
-	p, err := Prepare(c, cat, view, limits)
+	p, err := Prepare(c, cat, view, limits, nil)
 	require.NoError(t, err)
 	carrying := event(3, 20, testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED)
 	carrying.Payload = &testpilotspb.RunEvent_Outcome{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}}

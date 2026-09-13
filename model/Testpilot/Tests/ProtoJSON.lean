@@ -9,8 +9,7 @@ namespace Testpilot.Tests.ProtoJSON
 private def assert (condition : Bool) (failure : String) : IO Unit := do
   unless condition do throw (IO.userError failure)
 
-private def limits := Program.limits 1 4 3 2 9223372036854775807 16 8 4 4096 8192 10000 1000
-private def instructionLimits := Program.instructionLimits 1000 1 2 4096
+private def instructionLimits := Program.instructionLimits 1000 9223372036854775807
 private def runPath := Path.make #[Path.field "run_id"]
 
 private def instructionExpression := Expr.all #[
@@ -43,7 +42,6 @@ private def literalProgram : temporal.server.api.testpilot.v1.Program := Program
   #[Program.controller "controller" #[Program.node "finish"
     (Program.finish instructionExpression) instructionLimits (guard := some instructionExpression)]]
   (Program.cleanup "cleanup" #[])
-  limits
 
 private def contract : Contract := Contract.contract "contract" #[
   Contract.rule "rule" .CONTRACT_RULE_KIND_BOUNDED_LIVENESS "open"
@@ -56,7 +54,7 @@ private def contract : Contract := Contract.contract "contract" #[
     (deadline := some (Contract.deadline (.elapsed_milliseconds 9223372036854775807) "late"))
     (captures := #[Contract.capture "captured" (Types.messageType
       "temporal.server.api.testpilot.v1.FormatVersion")])
-] (Contract.limits 1 3 1 16 32 64 1 1024)
+]
 
 def literalCase : Case := Testpilot.Authoring.case 1 "case" literalProgram contract
   (provenance "testpilot-tests" "1" (ByteArray.mk #[0, 255, 128]))
@@ -68,7 +66,7 @@ private def bindingProgram : temporal.server.api.testpilot.v1.Program := Program
       (namespaceBindingId := "namespace") (resourceBindingId := "task.queue")]
   #[] #[] #[Program.controller "controller" #[Program.node "finish"
     (Program.finish (Expr.environment "")) instructionLimits]]
-  (Program.cleanup "cleanup" #[]) limits
+  (Program.cleanup "cleanup" #[])
   (environment := #[Program.environment "namespace", Program.environment "task.queue",
     Program.environment "nexus.endpoint"])
 
@@ -82,7 +80,7 @@ private def unknownAnyCase : Case :=
   })
   let unknownProgram := Program.make "program" #[] #[] #[]
     #[Program.controller "controller" #[Program.node "finish" (Program.finish expression)
-      instructionLimits]] (Program.cleanup "cleanup" #[]) limits
+      instructionLimits]] (Program.cleanup "cleanup" #[])
   Testpilot.Authoring.case 1 "unknown-any" unknownProgram contract (provenance "test" "1")
 
 private def malformedAnyCase : Case :=
@@ -92,7 +90,7 @@ private def malformedAnyCase : Case :=
   })
   let malformedProgram := Program.make "program" #[] #[] #[]
     #[Program.controller "controller" #[Program.node "finish" (Program.finish expression)
-      instructionLimits]] (Program.cleanup "cleanup" #[]) limits
+      instructionLimits]] (Program.cleanup "cleanup" #[])
   Testpilot.Authoring.case 1 "malformed-any" malformedProgram contract (provenance "test" "1")
 
 /-- An instruction guard that reads an Observation, which only a Contract predicate may read. The
@@ -103,7 +101,7 @@ private def contextMismatchCase : Case :=
     #[Program.controller "controller" #[Program.node "finish"
       (Program.finish (Expr.literal (Value.boolean true))) instructionLimits
       (guard := some (Expr.observation "result"))]]
-    (Program.cleanup "cleanup" #[]) limits
+    (Program.cleanup "cleanup" #[])
   Testpilot.Authoring.case 1 "context-mismatch" mismatchProgram contract (provenance "test" "1")
 
 private def nestedExpression : Nat → Expression
@@ -114,7 +112,7 @@ private def recursionFailureCase : Case :=
   let deepProgram := Program.make "program" #[] #[] #[]
     #[Program.controller "controller" #[Program.node "finish"
       (Program.finish (nestedExpression 101)) instructionLimits]]
-    (Program.cleanup "cleanup" #[]) limits
+    (Program.cleanup "cleanup" #[])
   Testpilot.Authoring.case 1 "recursion-failure" deepProgram contract (provenance "test" "1")
 
 private def render (value : Case) : IO String := do

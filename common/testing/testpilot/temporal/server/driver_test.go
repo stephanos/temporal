@@ -33,20 +33,20 @@ func fixture(t *testing.T, address string) (*Driver, *testpilotspb.Case, []proto
 	require.NoError(t, err)
 	catalog, err := testpilot.NewCatalog(&descriptorpb.FileDescriptorSet{File: []*descriptorpb.FileDescriptorProto{protodesc.ToFileDescriptorProto(file), protodesc.ToFileDescriptorProto(wrapperspb.File_google_protobuf_wrappers_proto), protodesc.ToFileDescriptorProto(healthpb.File_grpc_health_v1_health_proto)}})
 	require.NoError(t, err)
-	limits := &testpilotspb.ProgramLimits{MaxEntrypoints: 8, MaxNodes: 32, MaxEdges: 64, MaxActivations: 64, MaxAttempts: 32, MaxRunEvents: 256, MaxExpressionDepth: 16, MaxPathFanout: 128, MaxRequestBytes: 4096, MaxResponseBytes: 4096, MaxTotalDurationMilliseconds: 30000, MaxCleanupDurationMilliseconds: 5000}
+	limits := &testpilotspb.ProgramLimits{MaxEntrypoints: 8, MaxNodes: 32, MaxEdges: 64, MaxActivations: 64, MaxAttempts: 32, MaxRunEvents: 256, MaxExpressionDepth: 16, MaxPathFanout: 128, MaxRequestBytes: 4096, MaxResponseBytes: 4096, MaxTotalDurationMilliseconds: 30000, MaxCleanupDurationMilliseconds: 5000, MaxInstructionEmittedEvents: 4, MaxInstructionResponseBytes: 4096}
 	contractLimits := &testpilotspb.ContractLimits{MaxRules: 8, MaxStates: 16, MaxTransitions: 16, MaxExpressionDepth: 16, MaxWorkPerEvent: 100000, MaxTotalWork: 1000000000, MaxCaptures: 8, MaxCaptureBytes: 65536}
 	profile := testpilot.ProfileSpec{Identity: "test-host", Catalog: catalog, ProgramLimits: limits, ContractLimits: contractLimits, Opcodes: []testpilot.Opcode{testpilot.InvokeRPC, testpilot.AwaitSlot}, Roles: []testpilot.RolePolicy{{ID: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT, Methods: []string{"/grpc.health.v1.Health/Check", "/example.Echo/Length"}}}}
 	host, err := New(Options{Profile: profile, Endpoints: map[string]Endpoint{"endpoint": {Target: address, Credentials: insecure.NewCredentials(), Metadata: metadata.Pairs("authorization", "host-secret")}}})
 	require.NoError(t, err)
 	t.Cleanup(func() { require.NoError(t, host.Close(context.Background())) })
 	nodes := []*testpilotspb.InstructionNode{rpcNode("check", "/grpc.health.v1.Health/Check"), rpcNode("length", "/example.Echo/Length")}
-	source := &testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: 1}, CaseId: "case", Program: &testpilotspb.Program{ProgramId: "program", Roles: []*testpilotspb.Role{{RoleId: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT}}, Limits: proto.CloneOf(limits), Entrypoints: []*testpilotspb.Entrypoint{{EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}}, Instructions: nodes}}, Cleanup: &testpilotspb.Cleanup{EntrypointId: "cleanup"}}, Contract: &testpilotspb.Contract{ContractId: "contract", Limits: contractLimits, Rules: []*testpilotspb.ContractRule{{RuleId: "safety", Kind: testpilotspb.CONTRACT_RULE_KIND_SAFETY, InitialStateId: "start", States: []*testpilotspb.ContractState{{StateId: "start", Status: testpilotspb.CONTRACT_STATE_STATUS_PENDING}, {StateId: "good", Status: testpilotspb.CONTRACT_STATE_STATUS_SATISFIED}}, Transitions: []*testpilotspb.ContractTransition{{TransitionId: "complete", SourceStateId: "start", TargetStateId: "good", Predicate: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}}}, EventFilter: &testpilotspb.RunEventFilter{Kinds: []testpilotspb.RunEventKind{testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED}}, SupportKind: testpilotspb.CONTRACT_SUPPORT_KIND_MATCHING_EVENT}}}}}}
+	source := &testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: 1}, CaseId: "case", Program: &testpilotspb.Program{ProgramId: "program", Roles: []*testpilotspb.Role{{RoleId: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT}}, Entrypoints: []*testpilotspb.Entrypoint{{EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}}, Instructions: nodes}}, Cleanup: &testpilotspb.Cleanup{EntrypointId: "cleanup"}}, Contract: &testpilotspb.Contract{ContractId: "contract", Rules: []*testpilotspb.ContractRule{{RuleId: "safety", Kind: testpilotspb.CONTRACT_RULE_KIND_SAFETY, InitialStateId: "start", States: []*testpilotspb.ContractState{{StateId: "start", Status: testpilotspb.CONTRACT_STATE_STATUS_PENDING}, {StateId: "good", Status: testpilotspb.CONTRACT_STATE_STATUS_SATISFIED}}, Transitions: []*testpilotspb.ContractTransition{{TransitionId: "complete", SourceStateId: "start", TargetStateId: "good", Predicate: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}}}, EventFilter: &testpilotspb.RunEventFilter{Kinds: []testpilotspb.RunEventKind{testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED}}, SupportKind: testpilotspb.CONTRACT_SUPPORT_KIND_MATCHING_EVENT}}}}}}
 	_, err = testpilot.Prepare(source, host)
 	require.NoError(t, err)
 	return host, source, []protoreflect.MethodDescriptor{healthpb.File_grpc_health_v1_health_proto.Services().ByName("Health").Methods().ByName("Check"), file.Services().Get(0).Methods().Get(0)}
 }
 func rpcNode(id, method string) *testpilotspb.InstructionNode {
-	return &testpilotspb.InstructionNode{InstructionId: id, Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRpc{EndpointRoleId: "endpoint", Method: method}}}, Outcome: &testpilotspb.InstructionOutcomeDefinition{Fields: []*testpilotspb.OutcomeFieldDefinition{{Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS, Type: &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Enumeration{Enumeration: &testpilotspb.NamedType{ProtobufType: "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"}}}}}}}}, Limits: &testpilotspb.InstructionLimits{TimeoutMilliseconds: 2000, MaxAttempts: 1, MaxEmittedEvents: 4, MaxResponseBytes: 4096}}
+	return &testpilotspb.InstructionNode{InstructionId: id, Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRpc{EndpointRoleId: "endpoint", Method: method}}}, Outcome: &testpilotspb.InstructionOutcomeDefinition{Fields: []*testpilotspb.OutcomeFieldDefinition{{Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS, Type: &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Enumeration{Enumeration: &testpilotspb.NamedType{ProtobufType: "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"}}}}}}}}, Limits: &testpilotspb.InstructionLimits{TimeoutMilliseconds: 2000, MaxAttempts: 1}}
 }
 func coordinate(run, node string) testpilot.Coordinate {
 	return testpilot.Coordinate{RunID: run, EntrypointID: "controller", ActivationID: "controller", InstructionID: node, Attempt: 1}
@@ -86,7 +86,7 @@ func TestUnaryTransportAndResponseOwnership(t *testing.T) {
 		return handler(ctx, req)
 	})
 	h, source, methods := fixture(t, address)
-	s, err := h.open(t.Context(), "run", source.Program)
+	s, err := h.open(t.Context(), "run", source.Program, h.profile.ProgramLimits)
 	require.NoError(t, err)
 	expected := []proto.Message{&healthpb.HealthCheckResponse{Status: healthpb.HealthCheckResponse_SERVING}, wrapperspb.Int64(5)}
 	for i, node := range []string{"check", "length"} {
@@ -114,7 +114,7 @@ func TestUnaryTransportAndResponseOwnership(t *testing.T) {
 	snapshot := h.Snapshot()
 	snapshot.Roles[0].Methods[0] = "changed"
 	snapshot.ProgramLimits.MaxAttempts = 1
-	require.True(t, proto.Equal(source.Program.Limits, h.Snapshot().ProgramLimits))
+	require.EqualValues(t, 32, h.Snapshot().ProgramLimits.MaxAttempts)
 	require.NoError(t, s.Close(t.Context()))
 }
 func TestPreparationAndRuntimeRejection(t *testing.T) {
@@ -129,7 +129,7 @@ func TestPreparationAndRuntimeRejection(t *testing.T) {
 	profile.Roles[0].Methods = profile.Roles[0].Methods[1:]
 	_, err := testpilot.Prepare(source, profile)
 	require.Error(t, err)
-	s, err := h.open(t.Context(), "run", source.Program)
+	s, err := h.open(t.Context(), "run", source.Program, h.profile.ProgramLimits)
 	require.NoError(t, err)
 	for _, test := range []struct {
 		name       string
@@ -184,7 +184,7 @@ func TestProtocolFailureTimeoutCancellationAndResponseLimit(t *testing.T) {
 			if kind == "timeout" {
 				source.Program.Entrypoints[0].Instructions[0].Limits.TimeoutMilliseconds = 20
 			}
-			s, err := h.open(t.Context(), "run", source.Program)
+			s, err := h.open(t.Context(), "run", source.Program, h.profile.ProgramLimits)
 			require.NoError(t, err)
 			handle, err := s.InvokeRPC(t.Context(), coordinate("run", "check"), "endpoint", methods[0], request(methods[0], ""))
 			require.NoError(t, err)
@@ -216,7 +216,7 @@ func TestParallelSessionsAndQuarantineCapacity(t *testing.T) {
 			t.Run(fmt.Sprintf("run%d", i), func(t *testing.T) {
 				t.Parallel()
 				run := fmt.Sprintf("run%d", i)
-				s, err := h.open(t.Context(), run, source.Program)
+				s, err := h.open(t.Context(), run, source.Program, h.profile.ProgramLimits)
 				require.NoError(t, err)
 				handle, err := s.InvokeRPC(t.Context(), coordinate(run, "length"), "endpoint", methods[1], request(methods[1], run))
 				require.NoError(t, err)
@@ -228,7 +228,7 @@ func TestParallelSessionsAndQuarantineCapacity(t *testing.T) {
 		}
 	})
 	h.profile.ProgramLimits.MaxAttempts = 1
-	s, err := h.open(t.Context(), "stuck", source.Program)
+	s, err := h.open(t.Context(), "stuck", source.Program, h.profile.ProgramLimits)
 	require.NoError(t, err)
 	released := make(chan struct{})
 	e, err := s.start(t.Context(), coordinate("stuck", "check"), source.Program.Entrypoints[0].Instructions[0].Limits, func(context.Context) testpilot.EffectResult {
@@ -241,7 +241,7 @@ func TestParallelSessionsAndQuarantineCapacity(t *testing.T) {
 	require.ErrorIs(t, e.Drain(ctx), context.DeadlineExceeded)
 	require.NoError(t, s.Quarantine(t.Context(), e))
 	require.NoError(t, s.Close(t.Context()))
-	other, err := h.open(t.Context(), "other", source.Program)
+	other, err := h.open(t.Context(), "other", source.Program, h.profile.ProgramLimits)
 	require.NoError(t, err)
 	denied, err := other.InvokeRPC(t.Context(), coordinate("other", "check"), "endpoint", methods[0], request(methods[0], ""))
 	require.ErrorIs(t, err, errCapacity)
@@ -266,9 +266,9 @@ var _ testpilot.Session = (*Session)(nil)
 func TestSessionAndEffectIdentityCollisions(t *testing.T) {
 	address := startGRPC(t, nil)
 	h, source, methods := fixture(t, address)
-	s, err := h.open(t.Context(), "run", source.Program)
+	s, err := h.open(t.Context(), "run", source.Program, h.profile.ProgramLimits)
 	require.NoError(t, err)
-	_, err = h.open(t.Context(), "run", source.Program)
+	_, err = h.open(t.Context(), "run", source.Program, h.profile.ProgramLimits)
 	require.Error(t, err)
 	handle, err := s.InvokeRPC(t.Context(), coordinate("run", "check"), "endpoint", methods[0], request(methods[0], ""))
 	require.NoError(t, err)
@@ -287,6 +287,6 @@ func TestSessionAndEffectIdentityCollisions(t *testing.T) {
 	require.ErrorIs(t, err, errClosed)
 	require.Nil(t, denied)
 	require.NoError(t, h.Close(t.Context()))
-	_, err = h.open(t.Context(), "later", source.Program)
+	_, err = h.open(t.Context(), "later", source.Program, h.profile.ProgramLimits)
 	require.ErrorIs(t, err, errClosed)
 }

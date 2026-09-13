@@ -33,7 +33,7 @@ func TestTypedNexusCaseAdmitsItsCorrelatedCapability(t *testing.T) {
 	require.Len(t, opcode.GetRules(), 1)
 	require.Equal(t, typedNexusClauseID, opcode.GetRules()[0].GetRuleId())
 
-	prepared, err := testpilot.Prepare(source, TypedNexusProfile(catalog, source, TypedNexusEnvironment{
+	prepared, err := testpilot.Prepare(source, TypedNexusProfile(catalog, TypedNexusEnvironment{
 		Namespace: typedNexusArtifactNamespace, TaskQueue: typedNexusArtifactTaskQueue,
 		NexusEndpoint: typedNexusArtifactEndpoint,
 	}))

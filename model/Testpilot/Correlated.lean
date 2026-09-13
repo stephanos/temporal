@@ -252,14 +252,15 @@ private def correlationsOf (retained : List (Name × Nat)) (captures : List Capt
   termination_by (depth, wires.length + 1)
 end
 
-/-- Decode exact v1 executable meaning, rejecting unsupported clocks, endpoints and numeric values. -/
-def decode (wire : CorrelatedContract) : Except String Compiled := do
+/-- Decode exact v1 executable meaning under `limits`, the Profile's correlated ceilings the capability
+is admitted under (a Case declares none), rejecting unsupported clocks, endpoints and numeric
+values. -/
+def decode (limits : CorrelatedLimits) (wire : CorrelatedContract) : Except String Compiled := do
   if !wire.«Unknown.Fields».isEmpty then throw "unknown capability field"
   if !validId wire.projection_id || wire.projection_fingerprint.isEmpty ||
       !validId wire.evidence_observation_id || !validId wire.operation_field ||
       !uniqueIds wire.scope_fields.toList || !uniqueIds wire.sources.toList ||
       wire.scope_fields.contains wire.operation_field then throw "invalid projection binding"
-  let limits ← required wire.limits
   if !limits.«Unknown.Fields».isEmpty then throw "unknown limits field"
   let projectionLimits : CorrelatedProjection.Limits := {
     events := ← positive limits.max_events
@@ -327,8 +328,8 @@ def decode (wire : CorrelatedContract) : Except String Compiled := do
   let retainedFields := (policies.flatMap fun rule =>
     rule.2.filterMap fun field =>
       if field.2.2 == 1 then some (field.1, field.2.1) else none).eraseDups
-  -- A capability that declares neither captures nor a correlation leaves both ceilings unset and
-  -- keeps its exact existing encoding and meaning.
+  -- A capability that declares neither captures nor a correlation needs neither capture ceiling, so
+  -- a Profile may leave both unset without changing its meaning.
   -- Capture identities are one namespace across the capability: a retained occurrence is named by
   -- its capture id and ordinal alone, so two clauses declaring one id would alias the same stream.
   let declaredCaptures := wire.rules.toList.flatMap (·.captures.toList.map (·.capture_id))

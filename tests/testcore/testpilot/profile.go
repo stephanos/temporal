@@ -3,7 +3,7 @@ package testpilot
 import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
-	"google.golang.org/protobuf/proto"
+	"go.temporal.io/server/common/testing/testpilot/temporal"
 )
 
 const (
@@ -42,23 +42,24 @@ func nexusCapabilities() []testpilot.Opcode {
 	}
 }
 
-// caseProfile assembles one ProfileSpec from the parts a Case chose, carrying the Case's own
-// declared Program and Contract limits rather than a shared ceiling.
+// caseProfile assembles one ProfileSpec from the parts a Case chose, under the Temporal default
+// resource ceilings every Temporal Profile shares.
 func caseProfile(
 	identity string,
 	catalog *testpilot.Catalog,
-	source *testpilotspb.Case,
 	roles []testpilot.RolePolicy,
 	opcodes []testpilot.Opcode,
 	bindings []testpilot.EnvironmentBinding,
 ) testpilot.ProfileSpec {
+	programLimits, contractLimits, correlatedLimits := temporal.DefaultCeilings()
 	return testpilot.ProfileSpec{
 		Identity:            identity,
 		Catalog:             catalog,
 		Roles:               roles,
 		Opcodes:             opcodes,
 		EnvironmentBindings: bindings,
-		ProgramLimits:       proto.CloneOf(source.GetProgram().GetLimits()),
-		ContractLimits:      proto.CloneOf(source.GetContract().GetLimits()),
+		ProgramLimits:       programLimits,
+		ContractLimits:      contractLimits,
+		CorrelatedLimits:    correlatedLimits,
 	}
 }

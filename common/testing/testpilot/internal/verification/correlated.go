@@ -36,6 +36,8 @@ type correlatedOperation struct {
 	captures    []retainedCapture
 }
 type correlatedMonitor struct {
+	// limits is the Profile's correlated ceiling snapshot, shared read-only by every clone.
+	limits                                                                        *testpilotspb.CorrelatedLimits
 	scope                                                                         []*testpilotspb.NamedValue
 	accepted                                                                      []*admittedCorrelatedEvidence
 	processed                                                                     []*testpilotspb.CorrelatedIdentity
@@ -46,11 +48,11 @@ type correlatedMonitor struct {
 	capturedValues                                                                int64
 }
 
-func newCorrelated(s *testpilotspb.CorrelatedContract) *correlatedMonitor {
+func newCorrelated(s *testpilotspb.CorrelatedContract, limits *testpilotspb.CorrelatedLimits) *correlatedMonitor {
 	if s == nil {
 		return nil
 	}
-	return &correlatedMonitor{operations: map[string]*correlatedOperation{}, ruleSupport: make([][]int64, len(s.Rules))}
+	return &correlatedMonitor{limits: limits, operations: map[string]*correlatedOperation{}, ruleSupport: make([][]int64, len(s.Rules))}
 }
 func (r *correlatedMonitor) clone() *correlatedMonitor {
 	n := *r
@@ -192,7 +194,7 @@ func projectionRule(s *testpilotspb.CorrelatedContract, kind string) *testpilots
 	return nil
 }
 func (r *correlatedMonitor) validate(s *testpilotspb.CorrelatedContract, e *admittedCorrelatedEvidence, sequence int64) error {
-	if e.Identity == nil || e.Operation == "" || evidenceSize(e) > s.Limits.MaxEventBytes {
+	if e.Identity == nil || e.Operation == "" || evidenceSize(e) > r.limits.MaxEventBytes {
 		return invalid(ir.Malformed, "invalid correlated evidence size or identity")
 	}
 	if len(e.Identity.Scope) != len(s.ScopeFields) {
@@ -207,7 +209,7 @@ func (r *correlatedMonitor) validate(s *testpilotspb.CorrelatedContract, e *admi
 		return invalid(ir.Malformed, "changed correlated bindings")
 	}
 	for _, id := range append(slices.Clone(e.Parents), e.Identity) {
-		if id == nil || !slices.EqualFunc(id.Scope, e.Identity.Scope, func(a, b *testpilotspb.NamedValue) bool { return proto.Equal(a, b) }) || !slices.Contains(s.Sources, id.EvidenceSource) || id.Ordinal < 0 || id.Ordinal >= s.Limits.MaxEvents {
+		if id == nil || !slices.EqualFunc(id.Scope, e.Identity.Scope, func(a, b *testpilotspb.NamedValue) bool { return proto.Equal(a, b) }) || !slices.Contains(s.Sources, id.EvidenceSource) || id.Ordinal < 0 || id.Ordinal >= r.limits.MaxEvents {
 			return invalid(ir.Malformed, "invalid correlated source identity")
 		}
 	}
@@ -401,7 +403,7 @@ func (r *correlatedMonitor) retain(s *testpilotspb.CorrelatedContract, e *admitt
 			if ordinal >= d.Lifetime {
 				return invalid(ir.LimitExceeded, "capture lifetime exhausted")
 			}
-			if err := add(&r.capturedValues, 1, s.Limits.MaxCaptures); err != nil {
+			if err := add(&r.capturedValues, 1, r.limits.MaxCaptures); err != nil {
 				return err
 			}
 			op.captures = append(op.captures, retainedCapture{capture: d.CaptureId, ordinal: ordinal, value: value})
@@ -463,7 +465,7 @@ func (r *correlatedMonitor) release(s *testpilotspb.CorrelatedContract, e *admit
 				return invalid(ir.Malformed, "correlation rejected this operation's step")
 			}
 		}
-		if r.transitions >= s.Limits.MaxSemanticTransitions {
+		if r.transitions >= r.limits.MaxSemanticTransitions {
 			return invalid(ir.LimitExceeded, "semantic transition ceiling exceeded")
 		}
 		maximumFacts, candidates := int64(0), int64(0)
@@ -475,23 +477,23 @@ func (r *correlatedMonitor) release(s *testpilotspb.CorrelatedContract, e *admit
 		}
 		cost := int64(16)
 		for _, factor := range []int64{int64(len(s.Rules)), r.transitions + 1, 1 + maximumFacts} {
-			if cost > s.Limits.MaxObligationWork/factor {
+			if cost > r.limits.MaxObligationWork/factor {
 				return invalid(ir.LimitExceeded, "obligation work exhausted")
 			}
 			cost *= factor
 		}
 		for _, extra := range []int64{r.obligations, operationCount, candidates} {
-			if err := add(&cost, extra, s.Limits.MaxObligationWork); err != nil {
+			if err := add(&cost, extra, r.limits.MaxObligationWork); err != nil {
 				return err
 			}
 		}
-		if err := add(&r.obligationWork, cost, s.Limits.MaxObligationWork); err != nil {
+		if err := add(&r.obligationWork, cost, r.limits.MaxObligationWork); err != nil {
 			return err
 		}
 		for i, c := range s.Rules {
 			triggered, responded := predicate(c.Trigger, out), predicate(c.Response, out)
 			if triggered {
-				if err := add(&r.obligations, 1, s.Limits.MaxObligations); err != nil {
+				if err := add(&r.obligations, 1, r.limits.MaxObligations); err != nil {
 					return err
 				}
 				op.obligations[i] = append(op.obligations[i], correlatedObligation{remaining: c.Bound, status: testpilotspb.RULE_VERDICT_STATUS_PENDING})
@@ -541,7 +543,7 @@ func (r *correlatedMonitor) stage(ctx context.Context, s *testpilotspb.Correlate
 	if n.scope == nil {
 		n.scope = proto.CloneOf(e.Identity).Scope
 	}
-	l := s.Limits
+	l := r.limits
 	if int64(len(n.accepted)) > l.MaxEvents {
 		return nil, 0, invalid(ir.LimitExceeded, "correlated events exhausted")
 	}

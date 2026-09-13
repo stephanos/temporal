@@ -38,7 +38,7 @@ func TestCancellationDuringDriverSerialization(t *testing.T) {
 			call := func(ctx context.Context) error {
 				switch operation {
 				case "open":
-					_, err := h.open(ctx, "new", source.Program)
+					_, err := h.open(ctx, "new", source.Program, h.profile.ProgramLimits)
 					return err
 				case "mint":
 					_, err := s.NewCapability(ctx, origin, successfulCapabilityEffect())
@@ -110,7 +110,7 @@ func TestRejectedCapabilityInvocationRestoresClaimForCleanup(t *testing.T) {
 			if failure == "canceled" {
 				cancel()
 			} else {
-				other, err := h.open(t.Context(), "other", source.Program)
+				other, err := h.open(t.Context(), "other", source.Program, h.profile.ProgramLimits)
 				require.NoError(t, err)
 				h.profile.ProgramLimits.MaxAttempts = 1
 				blocker, err = other.start(t.Context(), coordinate("other", "check"), source.Program.Entrypoints[0].Instructions[0].Limits, func(context.Context) testpilot.EffectResult { <-release; return testpilot.EffectResult{} })

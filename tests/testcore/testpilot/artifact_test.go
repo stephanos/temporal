@@ -44,8 +44,8 @@ func TestSyntheticCaseStrictDecodeAndNoIOAdmission(t *testing.T) {
 		},
 		EnvironmentBindings: []testpilot.EnvironmentBinding{{ID: "namespace", Value: "namespace"}, {ID: "task.queue", Value: "task-queue"}},
 		Opcodes:             []testpilot.Opcode{testpilot.Finish},
-		ProgramLimits:       proto.CloneOf(source.GetProgram().GetLimits()),
-		ContractLimits:      proto.CloneOf(source.GetContract().GetLimits()),
+		ProgramLimits:       syntheticProgramCeilings(),
+		ContractLimits:      syntheticContractCeilings(),
 	}
 	prepared, err := testpilot.Prepare(source, profile)
 	require.NoError(t, err)
@@ -88,8 +88,8 @@ func TestSyntheticCaseGoAdmissionRejectsRawInvalidInputs(t *testing.T) {
 		},
 		EnvironmentBindings: []testpilot.EnvironmentBinding{{ID: "namespace", Value: "namespace"}, {ID: "task.queue", Value: "task-queue"}},
 		Opcodes:             []testpilot.Opcode{testpilot.Finish},
-		ProgramLimits:       proto.CloneOf(source.GetProgram().GetLimits()),
-		ContractLimits:      proto.CloneOf(source.GetContract().GetLimits()),
+		ProgramLimits:       syntheticProgramCeilings(),
+		ContractLimits:      syntheticContractCeilings(),
 	}
 
 	for _, test := range []struct {
@@ -103,8 +103,8 @@ func TestSyntheticCaseGoAdmissionRejectsRawInvalidInputs(t *testing.T) {
 		{name: "unknown descriptor", want: "unknown message", mutate: func(candidate *testpilotspb.Case) {
 			syntheticResult(candidate).GetMessageValue().TypeUrl = "type.googleapis.com/example.Missing"
 		}},
-		{name: "invalid bounds", want: "limit is outside the positive Driver ceiling", mutate: func(candidate *testpilotspb.Case) {
-			candidate.Program.Limits.MaxNodes = 0
+		{name: "invalid bounds", want: "instruction bounds exceed Profile ceilings", mutate: func(candidate *testpilotspb.Case) {
+			candidate.Program.Entrypoints[0].Instructions[0].Limits.TimeoutMilliseconds = 0
 		}},
 		{name: "invalid identity", want: "invalid Program identity", mutate: func(candidate *testpilotspb.Case) {
 			candidate.Program.ProgramId = "invalid/program"
@@ -123,6 +123,25 @@ func TestSyntheticCaseGoAdmissionRejectsRawInvalidInputs(t *testing.T) {
 			_, err := testpilot.Prepare(candidate, profile)
 			require.ErrorContains(t, err, test.want)
 		})
+	}
+}
+
+// syntheticProgramCeilings and syntheticContractCeilings are the resource ceilings the synthetic Case
+// declared before ceilings moved to the Profile; they are far below the Temporal defaults, so the
+// no-I/O admission they back stays as tight as it was.
+func syntheticProgramCeilings() *testpilotspb.ProgramLimits {
+	return &testpilotspb.ProgramLimits{
+		MaxEntrypoints: 1, MaxNodes: 1, MaxEdges: 1, MaxActivations: 1, MaxAttempts: 1, MaxRunEvents: 8,
+		MaxExpressionDepth: 8, MaxPathFanout: 4, MaxRequestBytes: 1024, MaxResponseBytes: 1024,
+		MaxTotalDurationMilliseconds: 1000, MaxCleanupDurationMilliseconds: 1000,
+		MaxInstructionEmittedEvents: 1, MaxInstructionResponseBytes: 1024,
+	}
+}
+
+func syntheticContractCeilings() *testpilotspb.ContractLimits {
+	return &testpilotspb.ContractLimits{
+		MaxRules: 1, MaxStates: 2, MaxTransitions: 1, MaxExpressionDepth: 8,
+		MaxWorkPerEvent: 32, MaxTotalWork: 64, MaxCaptures: 1, MaxCaptureBytes: 1024,
 	}
 }
 
@@ -146,6 +165,7 @@ func TestLeanCasesCarryTwoContractShapesAndPrepareWithoutDriverIO(t *testing.T) 
 
 	catalog, err := temporal.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
+	programLimits, contractLimits, _ := temporal.DefaultCeilings()
 	profile := &countingProfile{spec: testpilot.ProfileSpec{
 		Identity: "get-system-info-profile",
 		Catalog:  catalog,
@@ -155,8 +175,8 @@ func TestLeanCasesCarryTwoContractShapesAndPrepareWithoutDriverIO(t *testing.T) 
 			Methods: []string{"/temporal.api.workflowservice.v1.WorkflowService/GetSystemInfo"},
 		}},
 		Opcodes:        []testpilot.Opcode{testpilot.InvokeRPC},
-		ProgramLimits:  proto.CloneOf(getSystemInfo.GetProgram().GetLimits()),
-		ContractLimits: proto.CloneOf(getSystemInfo.GetContract().GetLimits()),
+		ProgramLimits:  programLimits,
+		ContractLimits: contractLimits,
 	}}
 	prepared, err := testpilot.Prepare(getSystemInfo, profile)
 	require.NoError(t, err)
@@ -179,8 +199,8 @@ func TestLeanCasesCarryTwoContractShapesAndPrepareWithoutDriverIO(t *testing.T) 
 	}
 }
 
-func asyncNexusProfile(catalog *testpilot.Catalog, source *testpilotspb.Case) testpilot.ProfileSpec {
-	return AsyncNexusProfile(catalog, source, AsyncNexusEnvironment{
+func asyncNexusProfile(catalog *testpilot.Catalog) testpilot.ProfileSpec {
+	return AsyncNexusProfile(catalog, AsyncNexusEnvironment{
 		Namespace: asyncNexusArtifactNamespace, TaskQueue: asyncNexusArtifactTaskQueue,
 		NexusEndpoint: "nexus-endpoint",
 	})
@@ -238,10 +258,10 @@ func TestLeanAsyncNexusBindingsPrepareAcrossProfilesAndRejectBeforeDispatch(t *t
 	catalog, err := temporal.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
 
-	firstProfile := AsyncNexusProfile(catalog, source, AsyncNexusEnvironment{
+	firstProfile := AsyncNexusProfile(catalog, AsyncNexusEnvironment{
 		Namespace: "namespace-a", TaskQueue: "task-queue-a", NexusEndpoint: "nexus-endpoint-a",
 	})
-	secondProfile := AsyncNexusProfile(catalog, source, AsyncNexusEnvironment{
+	secondProfile := AsyncNexusProfile(catalog, AsyncNexusEnvironment{
 		Namespace: "namespace-b", TaskQueue: "task-queue-b", NexusEndpoint: "nexus-endpoint-b",
 	})
 	first, err := testpilot.Prepare(source, firstProfile)
@@ -301,7 +321,7 @@ func TestLeanAsyncNexusCasePreparesWithCheckedSuccessProvenance(t *testing.T) {
 	source := loadLeanCase(t, "async-nexus")
 	catalog, err := temporal.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
-	_, err = testpilot.Prepare(source, asyncNexusProfile(catalog, source))
+	_, err = testpilot.Prepare(source, asyncNexusProfile(catalog))
 	require.NoError(t, err)
 	require.Equal(t, "temporal.nexus.success.testpilot", source.GetProvenance().GetProducerId())
 	require.Equal(t, "1", source.GetProvenance().GetProducerVersion())
@@ -336,7 +356,7 @@ func TestLeanAsyncNexusPreparedCaseReuseAndCorrelation(t *testing.T) {
 	source := loadLeanCase(t, "async-nexus")
 	catalog, err := temporal.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
-	profile := asyncNexusProfile(catalog, source)
+	profile := asyncNexusProfile(catalog)
 	prepared, err := testpilot.Prepare(source, profile)
 	require.NoError(t, err)
 

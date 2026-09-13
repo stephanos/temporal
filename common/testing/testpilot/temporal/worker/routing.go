@@ -175,7 +175,7 @@ func (s *Session) workflowAdmissionLocked(key workflowAdmissionKey, temporalRunI
 	if s.closed || s.failure != nil {
 		return delivery.Activation{}, nil, false, errors.Join(delivery.ErrRouteStale, s.failure)
 	}
-	if len(s.workflowAdmissions) >= boundedInt(s.definition.snapshot.GetLimits().GetMaxActivations()) {
+	if len(s.workflowAdmissions) >= boundedInt(s.definition.limits.GetMaxActivations()) {
 		return delivery.Activation{}, nil, false, ErrCapacity
 	}
 	return delivery.Activation{}, nil, false, nil
@@ -206,7 +206,7 @@ func (s *Session) prepareNexusDispatchesLocked(activation delivery.Activation) e
 		prepared[key] = header
 		routeKeys[routeKey] = struct{}{}
 	}
-	if len(s.nexusDispatch) > boundedInt(s.definition.snapshot.GetLimits().GetMaxActivations())-len(prepared) {
+	if len(s.nexusDispatch) > boundedInt(s.definition.limits.GetMaxActivations())-len(prepared) {
 		return ErrCapacity
 	}
 	if err := s.host.addNexusRoutes(context.Background(), s, routeKeys); err != nil {
@@ -295,7 +295,7 @@ func (s *Session) admitNexus(ctx context.Context, input delivery.NexusDelivery, 
 	if s.failure != nil {
 		return delivery.Activation{}, false, errors.Join(delivery.ErrRouteStale, s.failure)
 	}
-	if len(s.nexusAdmissions) >= boundedInt(s.definition.snapshot.GetLimits().GetMaxActivations()) {
+	if len(s.nexusAdmissions) >= boundedInt(s.definition.limits.GetMaxActivations()) {
 		return delivery.Activation{}, false, ErrCapacity
 	}
 	activation, err := s.ledger.AdmitNexus(ctx, input)

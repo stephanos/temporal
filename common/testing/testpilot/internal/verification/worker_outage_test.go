@@ -64,16 +64,18 @@ func workerOutageFixtureContract(t testing.TB) (*PreparedContract, execution.Pro
 		MaxEntrypoints: 8, MaxNodes: 32, MaxEdges: 64, MaxActivations: 64, MaxAttempts: 32,
 		MaxRunEvents: 512, MaxExpressionDepth: 16, MaxPathFanout: 128, MaxRequestBytes: 4096,
 		MaxResponseBytes: 8192, MaxTotalDurationMilliseconds: 30000, MaxCleanupDurationMilliseconds: 5000,
+		MaxInstructionEmittedEvents: 64, MaxInstructionResponseBytes: 8192,
 	}
 	source := &testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: 1}, CaseId: "case", Contract: &testpilotspb.Contract{ContractId: "contract"}, Program: &testpilotspb.Program{
-		ProgramId: "program", Limits: limits,
+		ProgramId: "program",
 		Observations: []*testpilotspb.Observation{{ObservationId: "history-event", Type: nexusMessageType("temporal.api.history.v1.HistoryEvent")}},
 		Entrypoints:  []*testpilotspb.Entrypoint{{EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}}}},
 		Cleanup:      &testpilotspb.Cleanup{EntrypointId: "cleanup"},
 	}}
 	program, err := execution.Prepare(source, catalog, execution.Profile{Identity: "profile", CatalogIdentity: catalog.Identity(), Limits: limits})
 	require.NoError(t, err)
-	prepared, err := Prepare(artifact.GetContract(), catalog, program.View(), artifact.GetContract().GetLimits())
+	ceiling := &testpilotspb.ContractLimits{MaxRules: 4, MaxStates: 16, MaxTransitions: 16, MaxExpressionDepth: 12, MaxWorkPerEvent: 100000, MaxTotalWork: 1000000000, MaxCaptures: 4, MaxCaptureBytes: 8192}
+	prepared, err := Prepare(artifact.GetContract(), catalog, program.View(), ceiling, nil)
 	require.NoError(t, err)
 	return prepared, program.View()
 }

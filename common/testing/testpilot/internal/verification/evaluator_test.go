@@ -37,7 +37,7 @@ func TestEvaluatorDeadlinesAndReplay(t *testing.T) {
 			c, cat, view, limits := fixture(t)
 			c.Rules[0].Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
 			c.Rules[0].Deadline = &testpilotspb.Deadline{ViolationStateId: "bad", Bound: &testpilotspb.Deadline_ElapsedMilliseconds{ElapsedMilliseconds: 5000}}
-			p, err := Prepare(c, cat, view, limits)
+			p, err := Prepare(c, cat, view, limits, nil)
 			require.NoError(t, err)
 			run := &testpilotspb.Run{RunId: "run", CaseId: "case", ProgramId: "program", Disposition: testpilotspb.RUN_DISPOSITION_COMPLETED, Events: []*testpilotspb.RunEvent{event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED), event(2, tc.witness, tc.kind)}}
 			run.Events[1].ExecutionIncomplete = tc.incomplete
@@ -137,7 +137,7 @@ func TestEvaluatorEventCountDeadline(t *testing.T) {
 				transition("advance", "start", "middle", present(observation("id"))),
 				transition("finish", "middle", "good", present(observation("id"))),
 			}
-			p, err := Prepare(c, cat, view, limits)
+			p, err := Prepare(c, cat, view, limits, nil)
 			require.NoError(t, err)
 
 			events := append([]*testpilotspb.RunEvent{event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED)}, tc.events...)
@@ -191,10 +191,10 @@ func TestEvaluatorCaptureCorrelationAndStop(t *testing.T) {
 	r.States = append(r.States, &testpilotspb.ContractState{StateId: "saved", Status: testpilotspb.CONTRACT_STATE_STATUS_PENDING})
 	r.Transitions = []*testpilotspb.ContractTransition{transition("save", "start", "saved", present(observation("id"))), transition("match", "saved", "bad", all(present(observation("id")), equal(observation("id"), capture("saved")))), transition("shadowed", "saved", "good", all(present(observation("id")), equal(observation("id"), capture("saved"))))}
 	assign(r.Transitions[0])
-	p, err := Prepare(c, cat, view, limits)
+	p, err := Prepare(c, cat, view, limits, nil)
 	require.NoError(t, err)
-	c.Limits.MaxWorkPerEvent = p.workPerEvent
-	p, err = Prepare(c, cat, view, limits)
+	limits.MaxWorkPerEvent = p.workPerEvent
+	p, err = Prepare(c, cat, view, limits, nil)
 	require.NoError(t, err)
 	for _, id := range []int64{7, 19} {
 		t.Run(fmt.Sprint(id), func(t *testing.T) {
@@ -230,22 +230,22 @@ func TestEvaluatorCaptureCorrelationAndStop(t *testing.T) {
 
 func TestEvaluatorMessageCaptureDescriptorBoundsAndOwnership(t *testing.T) {
 	c, catalog, view, ceiling := fixture(t, 64)
-	c.Limits.MaxCaptureBytes = 72
+	ceiling.MaxCaptureBytes = 72
 	rule := c.Rules[0]
 	rule.Captures = []*testpilotspb.ContractCapture{{CaptureId: "saved-message", Type: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Message{Message: &testpilotspb.NamedType{ProtobufType: "example.Empty"}}}}}
 	rule.Transitions[0] = transition("save", "start", "good", present(observation("message")))
 	rule.Transitions[0].CaptureAssignments = []*testpilotspb.ContractCaptureAssignment{{CaptureId: "saved-message", ObservationId: "message"}}
 
-	tooSmall := proto.CloneOf(c)
-	tooSmall.Limits.MaxCaptureBytes--
-	_, err := Prepare(tooSmall, catalog, view, ceiling)
+	tooSmall := proto.CloneOf(ceiling)
+	tooSmall.MaxCaptureBytes--
+	_, err := Prepare(c, catalog, view, tooSmall, nil)
 	require.Error(t, err)
 	wrongDescriptor := proto.CloneOf(c)
 	wrongDescriptor.Rules[0].Captures[0].Type.GetMessage().ProtobufType = "example.Missing"
-	_, err = Prepare(wrongDescriptor, catalog, view, ceiling)
+	_, err = Prepare(wrongDescriptor, catalog, view, ceiling, nil)
 	require.Error(t, err)
 
-	prepared, err := Prepare(c, catalog, view, ceiling)
+	prepared, err := Prepare(c, catalog, view, ceiling, nil)
 	require.NoError(t, err)
 	monitor, err := prepared.New(t.Context(), view)
 	require.NoError(t, err)
@@ -269,7 +269,7 @@ func TestEvaluatorMessageCaptureDescriptorBoundsAndOwnership(t *testing.T) {
 			value.GetMessageValue().TypeUrl = "type.googleapis.com/example.Missing"
 		}},
 		{name: "retained byte ceiling", mutate: func(evaluator *Evaluator, value *testpilotspb.Value) {
-			evaluator.captureBytes = c.Limits.MaxCaptureBytes - int64(proto.Size(value)) - 7
+			evaluator.captureBytes = ceiling.MaxCaptureBytes - int64(proto.Size(value)) - 7
 		}},
 	} {
 		t.Run(test.name, func(t *testing.T) {
@@ -298,7 +298,7 @@ func TestEvaluatorFailurePrefixAndAtomicity(t *testing.T) {
 			r.Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
 			r.Deadline = &testpilotspb.Deadline{ViolationStateId: "bad", Bound: &testpilotspb.Deadline_ElapsedMilliseconds{ElapsedMilliseconds: 5000}}
 			r.Transitions[0].TargetStateId = "bad"
-			p, err := Prepare(c, cat, view, limits)
+			p, err := Prepare(c, cat, view, limits, nil)
 			require.NoError(t, err)
 			monitor, err := p.New(context.Background(), view)
 			require.NoError(t, err)
@@ -362,7 +362,7 @@ func TestEvaluatorRuntimeBoundsAndMalformedEvents(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			c, cat, view, limits := fixture(t)
-			p, err := Prepare(c, cat, view, limits)
+			p, err := Prepare(c, cat, view, limits, nil)
 			require.NoError(t, err)
 			m, err := p.New(context.Background(), view)
 			require.NoError(t, err)
@@ -397,7 +397,7 @@ func TestEvaluatorEventCommitIsAtomicAcrossRules(t *testing.T) {
 	other := proto.CloneOf(c.Rules[0])
 	other.RuleId = "other"
 	c.Rules = append(c.Rules, other)
-	p, err := Prepare(c, cat, view, limits)
+	p, err := Prepare(c, cat, view, limits, nil)
 	require.NoError(t, err)
 	e, err := p.newEvaluator(context.Background(), view)
 	require.NoError(t, err)
@@ -420,7 +420,7 @@ func TestEvaluatorIncompleteCannotAcceptLateWitness(t *testing.T) {
 	r := c.Rules[0]
 	r.Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
 	r.Deadline = &testpilotspb.Deadline{ViolationStateId: "bad", Bound: &testpilotspb.Deadline_ElapsedMilliseconds{ElapsedMilliseconds: 5000}}
-	p, err := Prepare(c, cat, view, limits)
+	p, err := Prepare(c, cat, view, limits, nil)
 	require.NoError(t, err)
 	incomplete := event(2, 4000, testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC)
 	incomplete.ExecutionIncomplete = true
@@ -442,7 +442,7 @@ func TestEvaluatorCaptureNamesAreRuleLocal(t *testing.T) {
 	second.Transitions[0].Predicate = present(observation("text"))
 	second.Transitions[0].CaptureAssignments[0].ObservationId = "text"
 	c.Rules = append(c.Rules, second)
-	p, err := Prepare(c, cat, view, limits)
+	p, err := Prepare(c, cat, view, limits, nil)
 	require.NoError(t, err)
 	e, err := p.newEvaluator(context.Background(), view)
 	require.NoError(t, err)
@@ -458,7 +458,7 @@ func TestEvaluatorCaptureNamesAreRuleLocal(t *testing.T) {
 func TestEvaluatorEventCountBound(t *testing.T) {
 	c, cat, view, limits := fixture(t)
 	c.Rules[0].Transitions[0].Predicate = boolean(false)
-	p, err := Prepare(c, cat, view, limits)
+	p, err := Prepare(c, cat, view, limits, nil)
 	require.NoError(t, err)
 	e, err := p.newEvaluator(context.Background(), view)
 	require.NoError(t, err)
@@ -476,7 +476,7 @@ func TestEvaluatorEventCountBound(t *testing.T) {
 func TestEvaluatorCancellationAfterCommitPreservesProof(t *testing.T) {
 	c, cat, view, limits := fixture(t)
 	c.Rules[0].Transitions[0].TargetStateId = "bad"
-	p, err := Prepare(c, cat, view, limits)
+	p, err := Prepare(c, cat, view, limits, nil)
 	require.NoError(t, err)
 	e, err := p.newEvaluator(context.Background(), view)
 	require.NoError(t, err)
@@ -508,7 +508,7 @@ func TestEvaluatorCloseCancellationAndTerminalState(t *testing.T) {
 				if violated {
 					c.Rules[0].Transitions[0].TargetStateId = "bad"
 				}
-				p, err := Prepare(c, cat, view, limits)
+				p, err := Prepare(c, cat, view, limits, nil)
 				require.NoError(t, err)
 				e, err := p.newEvaluator(context.Background(), view)
 				require.NoError(t, err)

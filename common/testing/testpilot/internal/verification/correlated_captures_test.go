@@ -57,9 +57,9 @@ func keyedCorrelation(ordinal int64) *testpilotspb.Expression {
 	return correlatedAny(correlatedTriggered(), correlationComparison(testpilotspb.COMPARISON_OPERATOR_EQUAL, correlatedFieldOperand(repliedField), correlatedCaptureOperand("seen", ordinal)))
 }
 
-func correlatedCaptureFixture(t *testing.T, bound, lifetime int64, correlation *testpilotspb.Expression) (*testpilotspb.Contract, *ir.Catalog, execution.ProgramView, *testpilotspb.ContractLimits) {
+func correlatedCaptureFixture(t *testing.T, bound, lifetime int64, correlation *testpilotspb.Expression) (*testpilotspb.Contract, *ir.Catalog, execution.ProgramView, *testpilotspb.ContractLimits, *testpilotspb.CorrelatedLimits) {
 	t.Helper()
-	c, catalog, view, ceiling := correlatedFixture(t, bound)
+	c, catalog, view, ceiling, correlated := correlatedFixture(t, bound)
 	policy := func(id string) []*testpilotspb.CorrelatedFieldPolicy {
 		return []*testpilotspb.CorrelatedFieldPolicy{{FieldId: id, Type: &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_TEXT}, Disposition: testpilotspb.CORRELATED_FIELD_DISPOSITION_RETAIN}}
 	}
@@ -78,9 +78,9 @@ func correlatedCaptureFixture(t *testing.T, bound, lifetime int64, correlation *
 		clause.Captures = []*testpilotspb.CorrelatedCaptureDeclaration{{CaptureId: "seen", FieldId: capturedField, Lifetime: lifetime}}
 	}
 	clause.Correlation = correlation
-	c.Correlated.Limits.MaxCaptures = 8
-	c.Correlated.Limits.MaxCorrelationDepth = 4
-	return c, catalog, view, ceiling
+	correlated.MaxCaptures = 8
+	correlated.MaxCorrelationDepth = 4
+	return c, catalog, view, ceiling, correlated
 }
 
 func correlatedFieldEvidence(ordinal int64, kind, operation, value string) *testpilotspb.CorrelatedEvidence {
@@ -101,9 +101,9 @@ type correlatedStep struct {
 }
 
 // observeCorrelated replays the steps live and reports the clause verdict, or the first rejection.
-func observeCorrelated(t *testing.T, c *testpilotspb.Contract, catalog *ir.Catalog, view execution.ProgramView, ceiling *testpilotspb.ContractLimits, steps []correlatedStep) (testpilotspb.RuleVerdictStatus, error) {
+func observeCorrelated(t *testing.T, c *testpilotspb.Contract, catalog *ir.Catalog, view execution.ProgramView, ceiling *testpilotspb.ContractLimits, correlated *testpilotspb.CorrelatedLimits, steps []correlatedStep) (testpilotspb.RuleVerdictStatus, error) {
 	t.Helper()
-	p, err := Prepare(c, catalog, view, ceiling)
+	p, err := Prepare(c, catalog, view, ceiling, correlated)
 	if err != nil {
 		return testpilotspb.RULE_VERDICT_STATUS_UNSPECIFIED, err
 	}
@@ -207,8 +207,8 @@ func TestCorrelatedCapturesCorrelateOperationSteps(t *testing.T) {
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			c, catalog, view, ceiling := correlatedCaptureFixture(t, tc.bound, tc.lifetime, tc.correlation)
-			status, err := observeCorrelated(t, c, catalog, view, ceiling, tc.steps)
+			c, catalog, view, ceiling, correlated := correlatedCaptureFixture(t, tc.bound, tc.lifetime, tc.correlation)
+			status, err := observeCorrelated(t, c, catalog, view, ceiling, correlated, tc.steps)
 			if tc.reject != "" {
 				require.ErrorContains(t, err, tc.reject)
 				return
@@ -220,8 +220,8 @@ func TestCorrelatedCapturesCorrelateOperationSteps(t *testing.T) {
 }
 
 func TestCorrelatedCaptureAdmissionIsAtomic(t *testing.T) {
-	c, catalog, view, ceiling := correlatedCaptureFixture(t, 1, 2, keyedCorrelation(0))
-	p, err := Prepare(c, catalog, view, ceiling)
+	c, catalog, view, ceiling, correlated := correlatedCaptureFixture(t, 1, 2, keyedCorrelation(0))
+	p, err := Prepare(c, catalog, view, ceiling, correlated)
 	require.NoError(t, err)
 	e, err := p.newEvaluator(context.Background(), view)
 	require.NoError(t, err)
@@ -245,15 +245,16 @@ func TestCorrelatedCaptureAdmissionIsAtomic(t *testing.T) {
 }
 
 func TestCorrelatedCaptureCeilingRejects(t *testing.T) {
-	c, catalog, view, ceiling := correlatedCaptureFixture(t, 2, 4, keyedCorrelation(0))
-	c.Correlated.Limits.MaxCaptures = 1
-	_, err := observeCorrelated(t, c, catalog, view, ceiling, []correlatedStep{{"request", "a", "1"}, {"request", "a", "2"}})
+	c, catalog, view, ceiling, correlated := correlatedCaptureFixture(t, 2, 4, keyedCorrelation(0))
+	correlated.MaxCaptures = 1
+	_, err := observeCorrelated(t, c, catalog, view, ceiling, correlated, []correlatedStep{{"request", "a", "1"}, {"request", "a", "2"}})
 	require.ErrorContains(t, err, "ceiling")
 }
 
 func TestCorrelatedCapturePrepareRejectsUnsupportedDeclarations(t *testing.T) {
 	for name, tc := range map[string]struct {
 		mutate func(*testpilotspb.CorrelatedContract)
+		limit  func(*testpilotspb.CorrelatedLimits)
 		reason string
 	}{
 		"unretained-capture-field": {
@@ -364,37 +365,42 @@ func TestCorrelatedCapturePrepareRejectsUnsupportedDeclarations(t *testing.T) {
 			reason: "invalid capture declaration",
 		},
 		"depth-exhausted": {
-			mutate: func(s *testpilotspb.CorrelatedContract) { s.Limits.MaxCorrelationDepth = 1 },
+			limit:  func(l *testpilotspb.CorrelatedLimits) { l.MaxCorrelationDepth = 1 },
 			reason: "correlation depth exhausted",
 		},
 		"missing-capture-ceiling": {
-			mutate: func(s *testpilotspb.CorrelatedContract) { s.Limits.MaxCaptures = 0 },
+			limit:  func(l *testpilotspb.CorrelatedLimits) { l.MaxCaptures = 0 },
 			reason: "correlated capture limits must be positive",
 		},
 		"missing-depth-ceiling": {
-			mutate: func(s *testpilotspb.CorrelatedContract) { s.Limits.MaxCorrelationDepth = 0 },
+			limit:  func(l *testpilotspb.CorrelatedLimits) { l.MaxCorrelationDepth = 0 },
 			reason: "correlated capture limits must be positive",
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			c, catalog, view, ceiling := correlatedCaptureFixture(t, 1, 2, keyedCorrelation(0))
-			tc.mutate(c.Correlated)
-			_, err := Prepare(c, catalog, view, ceiling)
+			c, catalog, view, ceiling, correlated := correlatedCaptureFixture(t, 1, 2, keyedCorrelation(0))
+			if tc.mutate != nil {
+				tc.mutate(c.Correlated)
+			}
+			if tc.limit != nil {
+				tc.limit(correlated)
+			}
+			_, err := Prepare(c, catalog, view, ceiling, correlated)
 			require.ErrorContains(t, err, tc.reason)
 		})
 	}
 }
 
-// A capability that declares neither captures nor a correlation keeps its exact prior meaning and
-// leaves both new ceilings unset.
+// A capability that declares neither captures nor a correlation keeps its exact prior meaning, and is
+// admitted under a Profile that leaves both capture ceilings unset.
 func TestCorrelatedCapabilityWithoutCapturesIsUnchanged(t *testing.T) {
-	c, catalog, view, ceiling := correlatedFixture(t, 1)
-	require.Zero(t, c.Correlated.Limits.MaxCaptures)
-	require.Zero(t, c.Correlated.Limits.MaxCorrelationDepth)
+	c, catalog, view, ceiling, correlated := correlatedFixture(t, 1)
+	require.Zero(t, correlated.MaxCaptures)
+	require.Zero(t, correlated.MaxCorrelationDepth)
 	require.True(t, slices.ContainsFunc(c.Correlated.Rules, func(clause *testpilotspb.CorrelatedRule) bool {
 		return len(clause.Captures) == 0 && clause.Correlation == nil
 	}))
-	p, err := Prepare(c, catalog, view, ceiling)
+	p, err := Prepare(c, catalog, view, ceiling, correlated)
 	require.NoError(t, err)
 	e, err := p.newEvaluator(context.Background(), view)
 	require.NoError(t, err)
@@ -421,8 +427,8 @@ func TestCorrelatedCaptureLiveAndOfflineAgree(t *testing.T) {
 		{"interleaved-operations", []correlatedStep{{"request", "a", "1"}, {"request", "b", "2"}, {"reply", "b", "2"}}, testpilotspb.RULE_VERDICT_STATUS_INCONCLUSIVE},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			c, catalog, view, ceiling := correlatedCaptureFixture(t, 2, 2, keyedCorrelation(0))
-			prepared, err := Prepare(c, catalog, view, ceiling)
+			c, catalog, view, ceiling, correlated := correlatedCaptureFixture(t, 2, 2, keyedCorrelation(0))
+			prepared, err := Prepare(c, catalog, view, ceiling, correlated)
 			require.NoError(t, err)
 			for split := 0; split <= len(tc.steps); split++ {
 				monitor, err := prepared.New(context.Background(), view)

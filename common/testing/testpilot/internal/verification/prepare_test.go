@@ -17,15 +17,16 @@ func fixture(t *testing.T, responseBytes ...int64) (*testpilotspb.Contract, *ir.
 	t.Helper()
 	catalog, err := ir.NewCatalog(&descriptorpb.FileDescriptorSet{File: []*descriptorpb.FileDescriptorProto{{Name: proto.String("contract.proto"), Package: proto.String("example"), Syntax: proto.String("proto3"), MessageType: []*descriptorpb.DescriptorProto{{Name: proto.String("Empty"), Field: []*descriptorpb.FieldDescriptorProto{{Name: proto.String("items"), Number: proto.Int32(1), Label: descriptorpb.FieldDescriptorProto_LABEL_REPEATED.Enum(), Type: descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum()}}}}}}})
 	require.NoError(t, err)
-	limits := &testpilotspb.ProgramLimits{MaxEntrypoints: 8, MaxNodes: 32, MaxEdges: 64, MaxActivations: 64, MaxAttempts: 32, MaxRunEvents: 256, MaxExpressionDepth: 16, MaxPathFanout: 128, MaxRequestBytes: 4096, MaxResponseBytes: 4096, MaxTotalDurationMilliseconds: 30000, MaxCleanupDurationMilliseconds: 5000}
+	limits := &testpilotspb.ProgramLimits{MaxEntrypoints: 8, MaxNodes: 32, MaxEdges: 64, MaxActivations: 64, MaxAttempts: 32, MaxRunEvents: 256, MaxExpressionDepth: 16, MaxPathFanout: 128, MaxRequestBytes: 4096, MaxResponseBytes: 4096, MaxTotalDurationMilliseconds: 30000, MaxCleanupDurationMilliseconds: 5000, MaxInstructionEmittedEvents: 8, MaxInstructionResponseBytes: 4096}
 	if len(responseBytes) > 0 {
 		limits.MaxResponseBytes = responseBytes[0]
+		limits.MaxInstructionResponseBytes = min(limits.MaxInstructionResponseBytes, responseBytes[0])
 	}
-	source := &testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: 1}, CaseId: "case", Contract: &testpilotspb.Contract{ContractId: "contract"}, Program: &testpilotspb.Program{ProgramId: "program", Limits: limits, Observations: []*testpilotspb.Observation{{ObservationId: "id", Type: scalar(testpilotspb.SCALAR_KIND_INT64)}, {ObservationId: "text", Type: scalar(testpilotspb.SCALAR_KIND_TEXT)}, {ObservationId: "message", Type: messageType("example.Empty")}}, Entrypoints: []*testpilotspb.Entrypoint{{EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}}}}, Cleanup: &testpilotspb.Cleanup{EntrypointId: "cleanup"}}}
+	source := &testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: 1}, CaseId: "case", Contract: &testpilotspb.Contract{ContractId: "contract"}, Program: &testpilotspb.Program{ProgramId: "program", Observations: []*testpilotspb.Observation{{ObservationId: "id", Type: scalar(testpilotspb.SCALAR_KIND_INT64)}, {ObservationId: "text", Type: scalar(testpilotspb.SCALAR_KIND_TEXT)}, {ObservationId: "message", Type: messageType("example.Empty")}}, Entrypoints: []*testpilotspb.Entrypoint{{EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}}}}, Cleanup: &testpilotspb.Cleanup{EntrypointId: "cleanup"}}}
 	prepared, err := execution.Prepare(source, catalog, execution.Profile{Identity: "host", CatalogIdentity: catalog.Identity(), Limits: proto.CloneOf(limits)})
 	require.NoError(t, err)
 	ceiling := &testpilotspb.ContractLimits{MaxRules: 16, MaxStates: 32, MaxTransitions: 64, MaxExpressionDepth: 16, MaxWorkPerEvent: 100000, MaxTotalWork: 1000000000, MaxCaptures: 8, MaxCaptureBytes: 65536}
-	contract := &testpilotspb.Contract{ContractId: "contract", Limits: proto.CloneOf(ceiling), Rules: []*testpilotspb.ContractRule{{RuleId: "rule", Kind: testpilotspb.CONTRACT_RULE_KIND_SAFETY, InitialStateId: "start", States: []*testpilotspb.ContractState{{StateId: "start", Status: testpilotspb.CONTRACT_STATE_STATUS_PENDING}, {StateId: "good", Status: testpilotspb.CONTRACT_STATE_STATUS_SATISFIED}, {StateId: "bad", Status: testpilotspb.CONTRACT_STATE_STATUS_VIOLATED}}, Transitions: []*testpilotspb.ContractTransition{transition("first", "start", "good", boolean(true))}}}}
+	contract := &testpilotspb.Contract{ContractId: "contract", Rules: []*testpilotspb.ContractRule{{RuleId: "rule", Kind: testpilotspb.CONTRACT_RULE_KIND_SAFETY, InitialStateId: "start", States: []*testpilotspb.ContractState{{StateId: "start", Status: testpilotspb.CONTRACT_STATE_STATUS_PENDING}, {StateId: "good", Status: testpilotspb.CONTRACT_STATE_STATUS_SATISFIED}, {StateId: "bad", Status: testpilotspb.CONTRACT_STATE_STATUS_VIOLATED}}, Transitions: []*testpilotspb.ContractTransition{transition("first", "start", "good", boolean(true))}}}}
 	return contract, catalog, prepared.View(), ceiling
 }
 func scalar(kind testpilotspb.ScalarKind) *testpilotspb.ValueType {
@@ -75,7 +76,7 @@ func TestPrepareMachinesAndOrder(t *testing.T) {
 				r.Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
 				r.Deadline = &testpilotspb.Deadline{ViolationStateId: "bad", Bound: &testpilotspb.Deadline_ElapsedMilliseconds{ElapsedMilliseconds: 1000}}
 			}
-			prepared, err := Prepare(c, catalog, view, policy)
+			prepared, err := Prepare(c, catalog, view, policy, nil)
 			require.NoError(t, err)
 			require.Equal(t, []int{0, 1}, prepared.rules[0].outgoing[0][testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED])
 		})
@@ -123,7 +124,7 @@ func TestPrepareCapturePaths(t *testing.T) {
 			r.Transitions = []*testpilotspb.ContractTransition{transition("save", "start", "middle", present(observation("id"))), transition("compare", "middle", "good", all(present(observation("id")), equal(observation("id"), capture("saved"))))}
 			assign(r.Transitions[0])
 			test.mutate(r)
-			_, err := Prepare(c, catalog, view, policy)
+			_, err := Prepare(c, catalog, view, policy, nil)
 			if test.wantError {
 				require.Error(t, err)
 			} else {
@@ -184,7 +185,7 @@ func TestPrepareRejectsMalformedContracts(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			c, catalog, view, policy := fixture(t)
 			mutate(c)
-			_, err := Prepare(c, catalog, view, policy)
+			_, err := Prepare(c, catalog, view, policy, nil)
 			require.Error(t, err)
 		})
 	}
@@ -209,7 +210,7 @@ func TestPrepareLocatesAReferenceOutsideTheContractContext(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			c, catalog, view, policy := fixture(t)
 			c.Rules[0].Transitions[0].Predicate = all(boolean(true), present(&testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: value}}))
-			_, err := Prepare(c, catalog, view, policy)
+			_, err := Prepare(c, catalog, view, policy, nil)
 			var diagnostic *ir.Error
 			require.ErrorAs(t, err, &diagnostic)
 			require.Equal(t, &ir.Error{
@@ -231,7 +232,7 @@ func TestPrepareLocatesCaptureTypesOutsideScalarEnumOrMessage(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			c, catalog, view, policy := fixture(t)
 			c.Rules[0].Captures = []*testpilotspb.ContractCapture{{CaptureId: "saved", Type: typ}}
-			_, err := Prepare(c, catalog, view, policy)
+			_, err := Prepare(c, catalog, view, policy, nil)
 			var admissionErr *ir.Error
 			require.ErrorAs(t, err, &admissionErr)
 			require.Equal(t, &ir.Error{Category: ir.Malformed, Path: "contract.rules[rule].captures[saved].type", Detail: "capture requires a scalar, enum or message type"}, admissionErr)
@@ -274,7 +275,7 @@ func TestPrepareLocatesDeadlineBounds(t *testing.T) {
 			c, catalog, view, policy := fixture(t)
 			c.Rules[0].Kind = tc.kind
 			c.Rules[0].Deadline = tc.deadline
-			_, err := Prepare(c, catalog, view, policy)
+			_, err := Prepare(c, catalog, view, policy, nil)
 			if tc.want == nil {
 				require.NoError(t, err)
 				return
@@ -288,7 +289,7 @@ func TestPrepareLocatesDeadlineBounds(t *testing.T) {
 
 func TestPrepareBoundsAndImmutableIndexes(t *testing.T) {
 	c, catalog, view, policy := fixture(t)
-	prepared, err := Prepare(c, catalog, view, policy)
+	prepared, err := Prepare(c, catalog, view, policy, nil)
 	require.NoError(t, err)
 	snapshot := prepared.Snapshot()
 	c.Rules[0].Transitions[0].TransitionId = "mutated"
@@ -298,21 +299,24 @@ func TestPrepareBoundsAndImmutableIndexes(t *testing.T) {
 	observations[0].ID = "mutated"
 	require.Equal(t, snapshot, prepared.Snapshot())
 	require.Equal(t, "id", prepared.ProgramView().Observations()[0].ID)
-	for name, mutate := range map[string]func(*testpilotspb.Contract){
-		"state count":   func(c *testpilotspb.Contract) { c.Limits.MaxStates = 2 },
-		"capture bytes": func(c *testpilotspb.Contract) { addCapture(c.Rules[0]); c.Limits.MaxCaptureBytes = 1 },
-		"depth": func(c *testpilotspb.Contract) {
-			c.Limits.MaxExpressionDepth = 1
+	for name, mutate := range map[string]func(*testpilotspb.Contract, *testpilotspb.ContractLimits){
+		"state count": func(_ *testpilotspb.Contract, l *testpilotspb.ContractLimits) { l.MaxStates = 2 },
+		"capture bytes": func(c *testpilotspb.Contract, l *testpilotspb.ContractLimits) {
+			addCapture(c.Rules[0])
+			l.MaxCaptureBytes = 1
+		},
+		"depth": func(c *testpilotspb.Contract, l *testpilotspb.ContractLimits) {
+			l.MaxExpressionDepth = 1
 			c.Rules[0].Transitions[0].Predicate = not(not(boolean(true)))
 		},
-		"event work": func(c *testpilotspb.Contract) { c.Limits.MaxWorkPerEvent = 1 },
-		"total work": func(c *testpilotspb.Contract) { c.Limits.MaxTotalWork = 1 },
-		"overflow":   func(c *testpilotspb.Contract) { c.Limits.MaxTotalWork = 1<<63 - 1 },
+		"event work": func(_ *testpilotspb.Contract, l *testpilotspb.ContractLimits) { l.MaxWorkPerEvent = 1 },
+		"total work": func(_ *testpilotspb.Contract, l *testpilotspb.ContractLimits) { l.MaxTotalWork = 1 },
+		"overflow":   func(_ *testpilotspb.Contract, l *testpilotspb.ContractLimits) { l.MaxTotalWork = 1<<63 - 1 },
 	} {
 		t.Run(name, func(t *testing.T) {
 			c, catalog, view, policy := fixture(t)
-			mutate(c)
-			_, err := Prepare(c, catalog, view, policy)
+			mutate(c, policy)
+			_, err := Prepare(c, catalog, view, policy, nil)
 			require.Error(t, err)
 		})
 	}
@@ -344,7 +348,7 @@ func TestOrderedPresenceAndContradictions(t *testing.T) {
 				}
 				r.Transitions = append(r.Transitions, tr)
 			}
-			_, err := Prepare(c, catalog, view, policy)
+			_, err := Prepare(c, catalog, view, policy, nil)
 			if test.wantError {
 				require.Error(t, err)
 			} else {
@@ -361,11 +365,11 @@ func TestCaptureAlternativesAndUnreachableAssignment(t *testing.T) {
 	r.Transitions = []*testpilotspb.ContractTransition{transition("left", "start", "good", all(present(observation("id")), present(observation("text")))), transition("right", "start", "good", present(observation("id")))}
 	assign(r.Transitions[0])
 	assign(r.Transitions[1])
-	_, err := Prepare(c, catalog, view, policy)
+	_, err := Prepare(c, catalog, view, policy, nil)
 	require.NoError(t, err)
 	r.Transitions = append([]*testpilotspb.ContractTransition{transition("always", "start", "good", boolean(true))}, transition("unreachable", "start", "start", present(observation("id"))))
 	assign(r.Transitions[1])
-	_, err = Prepare(c, catalog, view, policy)
+	_, err = Prepare(c, catalog, view, policy, nil)
 	require.NoError(t, err)
 }
 func TestAdmissionExplorationCeiling(t *testing.T) {
@@ -383,7 +387,7 @@ func TestAdmissionExplorationCeiling(t *testing.T) {
 	for _, tr := range r.Transitions {
 		tr.Predicate = all(tr.Predicate, equal(observation("id"), observation("id")))
 	}
-	_, err := Prepare(c, catalog, view, policy)
+	_, err := Prepare(c, catalog, view, policy, nil)
 	require.Error(t, err)
 	var admissionErr *ir.Error
 	require.ErrorAs(t, err, &admissionErr)
@@ -399,12 +403,12 @@ func TestCaptureCostsUseValueTypes(t *testing.T) {
 			r.States = append(r.States, &testpilotspb.ContractState{StateId: "middle", Status: testpilotspb.CONTRACT_STATE_STATUS_PENDING})
 			r.Transitions = []*testpilotspb.ContractTransition{transition("save", "start", "middle", present(observation("id"))), transition("compare", "middle", "good", all(present(observation("id")), equal(observation("id"), capture("saved"))))}
 			assign(r.Transitions[0])
-			c.Limits.MaxWorkPerEvent = 128
-			c.Limits.MaxCaptureBytes = 40
+			policy.MaxWorkPerEvent = 128
+			policy.MaxCaptureBytes = 40
 			if small {
-				c.Limits.MaxWorkPerEvent = 16
+				policy.MaxWorkPerEvent = 16
 			}
-			_, err := Prepare(c, catalog, view, policy)
+			_, err := Prepare(c, catalog, view, policy, nil)
 			if small {
 				require.Error(t, err)
 			} else {
@@ -414,15 +418,14 @@ func TestCaptureCostsUseValueTypes(t *testing.T) {
 	}
 	c, catalog, view, policy := fixture(t, 16<<20)
 	c.Rules[0].Transitions[0].Predicate = all(present(observation("text")), equal(observation("text"), observation("text")))
-	_, err := Prepare(c, catalog, view, policy)
+	_, err := Prepare(c, catalog, view, policy, nil)
 	require.Error(t, err)
 }
 func TestAuthoredDepthAndSeparateAdmissionWork(t *testing.T) {
 	for _, depth := range []int64{2, 64} {
 		t.Run(fmt.Sprint(depth), func(t *testing.T) {
 			c, catalog, view, policy := fixture(t)
-			c.Limits.MaxExpressionDepth = depth
-			policy.MaxExpressionDepth = 64
+			policy.MaxExpressionDepth = depth
 			r := c.Rules[0]
 			addCapture(r)
 			predicate := present(observation("id"))
@@ -431,16 +434,16 @@ func TestAuthoredDepthAndSeparateAdmissionWork(t *testing.T) {
 			}
 			r.Transitions[0].Predicate = predicate
 			assign(r.Transitions[0])
-			_, err := Prepare(c, catalog, view, policy)
+			_, err := Prepare(c, catalog, view, policy, nil)
 			require.NoError(t, err)
 			r.Transitions[0].Predicate = not(predicate)
-			_, err = Prepare(c, catalog, view, policy)
+			_, err = Prepare(c, catalog, view, policy, nil)
 			require.Error(t, err)
 		})
 	}
 	c, catalog, view, policy := fixture(t)
-	c.Limits.MaxWorkPerEvent = 4
-	prepared, err := Prepare(c, catalog, view, policy)
+	policy.MaxWorkPerEvent = 4
+	prepared, err := Prepare(c, catalog, view, policy, nil)
 	require.NoError(t, err)
 	require.EqualValues(t, 4, prepared.workPerEvent)
 }
@@ -449,7 +452,7 @@ func TestPreparedProjectionUsesProgramFanout(t *testing.T) {
 	c, catalog, view, policy := fixture(t)
 	source := &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/example.Empty"}}}}}
 	c.Rules[0].Transitions[0].Predicate = present(&testpilotspb.Expression{Expression: &testpilotspb.Expression_Path{Path: &testpilotspb.PathExpression{Operand: source, Path: &testpilotspb.FieldPath{Segments: []*testpilotspb.FieldPathSegment{{Field: "items", Selector: &testpilotspb.FieldPathSegment_Repeated{Repeated: &testpilotspb.RepeatedWildcard{}}}}}}}})
-	prepared, err := Prepare(c, catalog, view, policy)
+	prepared, err := Prepare(c, catalog, view, policy, nil)
 	require.NoError(t, err)
 	path := prepared.rules[0].transitions[0].Children()[0].Path()
 	for _, count := range []int64{127, 128, 129} {
@@ -463,14 +466,13 @@ func TestPreparedProjectionUsesProgramFanout(t *testing.T) {
 }
 
 // TestPrepareRejectsAPlainContractBeyondItsOwnPerEventCeiling keeps the Driver's raised per-event
-// ceiling visible: it admits a correlated capability's reservation, and a Contract that declares a
-// modest per-event value is still held to exactly that value.
+// ceiling visible: it admits a correlated capability's reservation, and a Contract under a Profile
+// that declares a modest per-event value is still held to exactly that value.
 func TestPrepareRejectsAPlainContractBeyondItsOwnPerEventCeiling(t *testing.T) {
 	source, catalog, program, ceiling := fixture(t)
-	_, err := Prepare(source, catalog, program, ceiling)
+	_, err := Prepare(source, catalog, program, ceiling, nil)
 	require.NoError(t, err)
-	source.Limits.MaxWorkPerEvent = 1
 	ceiling.MaxWorkPerEvent = 1
-	_, err = Prepare(source, catalog, program, ceiling)
+	_, err = Prepare(source, catalog, program, ceiling, nil)
 	require.Error(t, err)
 }

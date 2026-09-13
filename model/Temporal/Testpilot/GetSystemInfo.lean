@@ -36,9 +36,8 @@ def getSystemInfoCase : Except Umpire.Case.Compiler.Error Case :=
     #[Program.controller "controller" #[Program.node "get-system-info"
       (Program.invokeRpc workflowServiceRole getSystemInfoMethod #[]
         #[project (field "server_version") "server-version"])
-      bounds (outcome := some statusOutcome)]]
+      (Program.instructionLimits 5000 1) (outcome := some statusOutcome)]]
     (Program.cleanup "cleanup" #[])
-    programLimits
   Umpire.Case.Compiler.compile {
     version := { major := 1 }
     caseId := "temporal.case.get-system-info"
@@ -50,7 +49,6 @@ def getSystemInfoCase : Except Umpire.Case.Compiler.Error Case :=
     program
     contractId := "temporal.case.get-system-info.contract"
     properties := [.monitor getSystemInfoProperty getSystemInfoRule]
-    contractLimits
   }
 
 end Temporal.Testpilot

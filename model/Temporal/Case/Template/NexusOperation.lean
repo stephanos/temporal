@@ -84,7 +84,7 @@ private def rpc
     (guard : Option Expression := none)
     (reservations : Array ActivationReservationDefinition := #[]) : InstructionNode :=
   Program.node id (Program.invokeRpc workflowServiceRole method assignments projections)
-    (bounds 10000 128) dependencies guard (some statusOutcome) reservations
+    (Program.instructionLimits 10000 1) dependencies guard (some statusOutcome) reservations
 
 private def historyAssignments : Array RequestAssignment := #[
   Program.environmentAssignment (field "namespace") workerNamespaceBinding,
@@ -124,16 +124,16 @@ private def workflowEntrypoint
   Program.workflow "workflow" workflowType workerRole taskQueueRole #[
     Program.node "start-nexus-operation"
       (Program.startNexusOperation nexusEndpointRole service operation (text "request"))
-      (bounds 10000) #[] none (some statusOutcome),
+      (Program.instructionLimits 10000 1) #[] none (some statusOutcome),
     Program.node "await-nexus-operation"
       (Program.awaitInstruction (Ref.instruction "workflow" "start-nexus-operation"))
-      (bounds 10000) #[Ref.instruction "workflow" "start-nexus-operation"]
+      (Program.instructionLimits 10000 1) #[Ref.instruction "workflow" "start-nexus-operation"]
       none (some textOutcome),
     Program.node "finish-workflow"
       (Program.finish (Expr.outcome
         (Ref.instruction "workflow" "await-nexus-operation")
         .INSTRUCTION_OUTCOME_FIELD_VALUE))
-      bounds #[Ref.instruction "workflow" "await-nexus-operation"]
+      (Program.instructionLimits 5000 1) #[Ref.instruction "workflow" "await-nexus-operation"]
       (some (succeeded "workflow" "await-nexus-operation")) (some statusOutcome)]
 
 private def asyncProgram
@@ -157,11 +157,11 @@ private def asyncProgram
       Program.controller "controller" #[
         startWorkflowNode workflowType,
         Program.node "await-completion-authority" (Program.awaitSlot "completion-authority")
-          (bounds 10000) #[Ref.instruction "controller" "start-workflow"]
+          (Program.instructionLimits 10000 1) #[Ref.instruction "controller" "start-workflow"]
           (some (succeeded "controller" "start-workflow")) (some statusOutcome),
         Program.node "complete-nexus-operation"
           (Program.completeNexusOperation "completion-authority" (text "completed"))
-          (bounds 10000) #[Ref.instruction "controller" "await-completion-authority"]
+          (Program.instructionLimits 10000 1) #[Ref.instruction "controller" "await-completion-authority"]
           (some (succeeded "controller" "await-completion-authority")) (some statusOutcome),
         historyNode "complete-nexus-operation" identity resolved],
       workflowEntrypoint workflowType service operation,
@@ -169,9 +169,8 @@ private def asyncProgram
         Program.node "respond-async"
           (Program.respondNexus .NEXUS_RESPONSE_KIND_ASYNCHRONOUS
             (text "accepted") "completion-authority")
-          bounds #[] none (some statusOutcome)]]
+          (Program.instructionLimits 5000 1) #[] none (some statusOutcome)]]
     (Program.cleanup "cleanup" #[])
-    programLimits
     (environment := #[
       Program.environment workerNamespaceBinding,
       Program.environment taskQueueBinding,
@@ -206,9 +205,8 @@ private def syncProgram
       Program.nexusHandler "handler" service operation workerRole taskQueueRole #[
         Program.node "respond-sync"
           (Program.respondNexus .NEXUS_RESPONSE_KIND_SYNCHRONOUS (text "completed"))
-          bounds #[] none (some statusOutcome)]]
+          (Program.instructionLimits 5000 1) #[] none (some statusOutcome)]]
     (Program.cleanup "cleanup" #[])
-    programLimits
     (environment := #[
       Program.environment workerNamespaceBinding,
       Program.environment taskQueueBinding,
@@ -243,7 +241,6 @@ def nexusOperation (service operation : String) (responds : Response) :
       { name := "start", instruction := Ref.instruction "controller" "start-workflow" },
       { name := "completion", instruction := Ref.instruction "controller" completionHook }]
     sources := [NexusOperation.startedSource, NexusOperation.completedSource]
-    contractLimits := { contractLimits with max_captures := 64, max_capture_bytes := 65536 }
     projectionLimits := {
       events := 32, buffered := 16, keys := 8, support := 128
       work := 1000000000, eventSize := 512 }

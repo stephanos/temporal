@@ -2,16 +2,6 @@
   "caseId": "temporal.case.worker-outage",
   "contract": {
     "contractId": "temporal.case.worker-outage.contract",
-    "limits": {
-      "maxCaptureBytes": "8192",
-      "maxCaptures": "4",
-      "maxExpressionDepth": "12",
-      "maxRules": "4",
-      "maxStates": "16",
-      "maxTotalWork": "1000000000",
-      "maxTransitions": "16",
-      "maxWorkPerEvent": "100000"
-    },
     "rules": [
       {
         "deadline": {
@@ -294,8 +284,6 @@
             "instructionId": "stop-worker",
             "limits": {
               "maxAttempts": "1",
-              "maxEmittedEvents": "8",
-              "maxResponseBytes": "4096",
               "timeoutMilliseconds": "10000"
             },
             "outcome": {
@@ -457,8 +445,6 @@
             "instructionId": "start-workflow",
             "limits": {
               "maxAttempts": "1",
-              "maxEmittedEvents": "8",
-              "maxResponseBytes": "4096",
               "timeoutMilliseconds": "10000"
             },
             "outcome": {
@@ -536,8 +522,6 @@
             "instructionId": "resume-worker",
             "limits": {
               "maxAttempts": "1",
-              "maxEmittedEvents": "8",
-              "maxResponseBytes": "4096",
               "timeoutMilliseconds": "10000"
             },
             "outcome": {
@@ -713,8 +697,6 @@
             "instructionId": "history",
             "limits": {
               "maxAttempts": "1",
-              "maxEmittedEvents": "64",
-              "maxResponseBytes": "8192",
               "timeoutMilliseconds": "20000"
             },
             "outcome": {
@@ -750,8 +732,6 @@
             "instructionId": "finish-workflow",
             "limits": {
               "maxAttempts": "1",
-              "maxEmittedEvents": "8",
-              "maxResponseBytes": "4096",
               "timeoutMilliseconds": "10000"
             },
             "outcome": {
@@ -785,20 +765,6 @@
         "bindingId": "temporal.worker-outage.task-queue"
       }
     ],
-    "limits": {
-      "maxActivations": "8",
-      "maxAttempts": "16",
-      "maxCleanupDurationMilliseconds": "5000",
-      "maxEdges": "24",
-      "maxEntrypoints": "4",
-      "maxExpressionDepth": "12",
-      "maxNodes": "16",
-      "maxPathFanout": "32",
-      "maxRequestBytes": "32768",
-      "maxResponseBytes": "8192",
-      "maxRunEvents": "512",
-      "maxTotalDurationMilliseconds": "30000"
-    },
     "observations": [
       {
         "observationId": "history-event",

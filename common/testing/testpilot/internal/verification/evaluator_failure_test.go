@@ -28,7 +28,7 @@ func TestEvaluatorFailureViolationOrderingAndReplay(t *testing.T) {
 			rule.Transitions[0].TargetStateId = "bad"
 			rule.Transitions[0].Predicate = present(observation("id"))
 			assign(rule.Transitions[0])
-			prepared, err := Prepare(c, cat, view, limits)
+			prepared, err := Prepare(c, cat, view, limits, nil)
 			require.NoError(t, err)
 			events := []*testpilotspb.RunEvent{event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED), event(2, 100, testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC), event(3, 200, testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC), event(4, 300, testpilotspb.RUN_EVENT_KIND_RUN_CLOSED)}
 			events[tc.violation] = observed(int64(tc.violation+1), int64(tc.violation)*100, 7)

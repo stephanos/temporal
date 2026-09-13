@@ -221,7 +221,6 @@ type Contract struct {
 	ContractId    string                 `protobuf:"bytes,1,opt,name=contract_id,json=contractId,proto3" json:"contract_id,omitempty"`
 	Rules         []*ContractRule        `protobuf:"bytes,2,rep,name=rules,proto3" json:"rules,omitempty"`
 	Correlated    *CorrelatedContract    `protobuf:"bytes,3,opt,name=correlated,proto3" json:"correlated,omitempty"`
-	Limits        *ContractLimits        `protobuf:"bytes,4,opt,name=limits,proto3" json:"limits,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -273,13 +272,6 @@ func (x *Contract) GetRules() []*ContractRule {
 func (x *Contract) GetCorrelated() *CorrelatedContract {
 	if x != nil {
 		return x.Correlated
-	}
-	return nil
-}
-
-func (x *Contract) GetLimits() *ContractLimits {
-	if x != nil {
-		return x.Limits
 	}
 	return nil
 }
@@ -734,7 +726,8 @@ func (*Deadline_RuleEvents) isDeadline_Bound() {}
 
 func (*Deadline_ElapsedMilliseconds) isDeadline_Bound() {}
 
-// ContractLimits bound one Contract, its correlated contract included.
+// ContractLimits are a Profile's resource ceilings on every Contract it admits, its correlated
+// contract included. A Case declares none of them.
 type ContractLimits struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Rules, correlated rules included.
@@ -847,15 +840,14 @@ var File_temporal_server_api_testpilot_v1_contract_proto protoreflect.FileDescri
 
 const file_temporal_server_api_testpilot_v1_contract_proto_rawDesc = "" +
 	"\n" +
-	"/temporal/server/api/testpilot/v1/contract.proto\x12 temporal.server.api.testpilot.v1\x1a1temporal/server/api/testpilot/v1/correlated.proto\x1a,temporal/server/api/testpilot/v1/event.proto\x1a1temporal/server/api/testpilot/v1/expression.proto\x1a,temporal/server/api/testpilot/v1/value.proto\"\x91\x02\n" +
+	"/temporal/server/api/testpilot/v1/contract.proto\x12 temporal.server.api.testpilot.v1\x1a1temporal/server/api/testpilot/v1/correlated.proto\x1a,temporal/server/api/testpilot/v1/event.proto\x1a1temporal/server/api/testpilot/v1/expression.proto\x1a,temporal/server/api/testpilot/v1/value.proto\"\xc7\x01\n" +
 	"\bContract\x12\x1f\n" +
 	"\vcontract_id\x18\x01 \x01(\tR\n" +
 	"contractId\x12D\n" +
 	"\x05rules\x18\x02 \x03(\v2..temporal.server.api.testpilot.v1.ContractRuleR\x05rules\x12T\n" +
 	"\n" +
 	"correlated\x18\x03 \x01(\v24.temporal.server.api.testpilot.v1.CorrelatedContractR\n" +
-	"correlated\x12H\n" +
-	"\x06limits\x18\x04 \x01(\v20.temporal.server.api.testpilot.v1.ContractLimitsR\x06limits\"\xd1\x03\n" +
+	"correlated\"\xd1\x03\n" +
 	"\fContractRule\x12\x17\n" +
 	"\arule_id\x18\x01 \x01(\tR\x06ruleId\x12F\n" +
 	"\x04kind\x18\x02 \x01(\x0e22.temporal.server.api.testpilot.v1.ContractRuleKindR\x04kind\x12(\n" +
@@ -947,23 +939,22 @@ var file_temporal_server_api_testpilot_v1_contract_proto_goTypes = []any{
 var file_temporal_server_api_testpilot_v1_contract_proto_depIdxs = []int32{
 	4,  // 0: temporal.server.api.testpilot.v1.Contract.rules:type_name -> temporal.server.api.testpilot.v1.ContractRule
 	11, // 1: temporal.server.api.testpilot.v1.Contract.correlated:type_name -> temporal.server.api.testpilot.v1.CorrelatedContract
-	10, // 2: temporal.server.api.testpilot.v1.Contract.limits:type_name -> temporal.server.api.testpilot.v1.ContractLimits
-	0,  // 3: temporal.server.api.testpilot.v1.ContractRule.kind:type_name -> temporal.server.api.testpilot.v1.ContractRuleKind
-	5,  // 4: temporal.server.api.testpilot.v1.ContractRule.states:type_name -> temporal.server.api.testpilot.v1.ContractState
-	6,  // 5: temporal.server.api.testpilot.v1.ContractRule.captures:type_name -> temporal.server.api.testpilot.v1.ContractCapture
-	7,  // 6: temporal.server.api.testpilot.v1.ContractRule.transitions:type_name -> temporal.server.api.testpilot.v1.ContractTransition
-	9,  // 7: temporal.server.api.testpilot.v1.ContractRule.deadline:type_name -> temporal.server.api.testpilot.v1.Deadline
-	1,  // 8: temporal.server.api.testpilot.v1.ContractState.status:type_name -> temporal.server.api.testpilot.v1.ContractStateStatus
-	12, // 9: temporal.server.api.testpilot.v1.ContractCapture.type:type_name -> temporal.server.api.testpilot.v1.SingularType
-	2,  // 10: temporal.server.api.testpilot.v1.ContractTransition.support_kind:type_name -> temporal.server.api.testpilot.v1.ContractSupportKind
-	8,  // 11: temporal.server.api.testpilot.v1.ContractTransition.capture_assignments:type_name -> temporal.server.api.testpilot.v1.ContractCaptureAssignment
-	13, // 12: temporal.server.api.testpilot.v1.ContractTransition.event_filter:type_name -> temporal.server.api.testpilot.v1.RunEventFilter
-	14, // 13: temporal.server.api.testpilot.v1.ContractTransition.predicate:type_name -> temporal.server.api.testpilot.v1.Expression
-	14, // [14:14] is the sub-list for method output_type
-	14, // [14:14] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	0,  // 2: temporal.server.api.testpilot.v1.ContractRule.kind:type_name -> temporal.server.api.testpilot.v1.ContractRuleKind
+	5,  // 3: temporal.server.api.testpilot.v1.ContractRule.states:type_name -> temporal.server.api.testpilot.v1.ContractState
+	6,  // 4: temporal.server.api.testpilot.v1.ContractRule.captures:type_name -> temporal.server.api.testpilot.v1.ContractCapture
+	7,  // 5: temporal.server.api.testpilot.v1.ContractRule.transitions:type_name -> temporal.server.api.testpilot.v1.ContractTransition
+	9,  // 6: temporal.server.api.testpilot.v1.ContractRule.deadline:type_name -> temporal.server.api.testpilot.v1.Deadline
+	1,  // 7: temporal.server.api.testpilot.v1.ContractState.status:type_name -> temporal.server.api.testpilot.v1.ContractStateStatus
+	12, // 8: temporal.server.api.testpilot.v1.ContractCapture.type:type_name -> temporal.server.api.testpilot.v1.SingularType
+	2,  // 9: temporal.server.api.testpilot.v1.ContractTransition.support_kind:type_name -> temporal.server.api.testpilot.v1.ContractSupportKind
+	8,  // 10: temporal.server.api.testpilot.v1.ContractTransition.capture_assignments:type_name -> temporal.server.api.testpilot.v1.ContractCaptureAssignment
+	13, // 11: temporal.server.api.testpilot.v1.ContractTransition.event_filter:type_name -> temporal.server.api.testpilot.v1.RunEventFilter
+	14, // 12: temporal.server.api.testpilot.v1.ContractTransition.predicate:type_name -> temporal.server.api.testpilot.v1.Expression
+	13, // [13:13] is the sub-list for method output_type
+	13, // [13:13] is the sub-list for method input_type
+	13, // [13:13] is the sub-list for extension type_name
+	13, // [13:13] is the sub-list for extension extendee
+	0,  // [0:13] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_testpilot_v1_contract_proto_init() }

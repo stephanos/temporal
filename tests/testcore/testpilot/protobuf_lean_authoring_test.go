@@ -33,7 +33,7 @@ func TestLeanAuthoringProtoJSONStrictDecode(t *testing.T) {
 	require.Equal(t, "binding-case", decoded.GetCaseId())
 	require.Equal(t, int32(0), decoded.GetVersion().GetMinor())
 	require.Equal(t, []byte{0, 255, 128}, decoded.GetProvenance().GetProducerData())
-	require.Equal(t, int64(9223372036854775807), decoded.GetProgram().GetLimits().GetMaxAttempts())
+	require.Equal(t, int64(9223372036854775807), decoded.GetProgram().GetEntrypoints()[0].GetInstructions()[0].GetLimits().GetMaxAttempts())
 
 	program := decoded.GetProgram()
 	require.Len(t, program.GetEnvironment(), 3)

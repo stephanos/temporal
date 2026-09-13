@@ -27,7 +27,7 @@ func preparedRuntimeFixtureWithProfile(t *testing.T, responseKind testpilotspb.N
 	file := workflowservice.File_temporal_api_workflowservice_v1_service_proto
 	catalog, err := testpilot.NewCatalog(descriptorClosure(file))
 	require.NoError(t, err)
-	limits := &testpilotspb.ProgramLimits{MaxEntrypoints: 8, MaxNodes: 32, MaxEdges: 64, MaxActivations: 16, MaxAttempts: 16, MaxRunEvents: 16, MaxExpressionDepth: 16, MaxPathFanout: 32, MaxRequestBytes: 64 << 10, MaxResponseBytes: 64 << 10, MaxTotalDurationMilliseconds: 30000, MaxCleanupDurationMilliseconds: 5000}
+	limits := &testpilotspb.ProgramLimits{MaxEntrypoints: 8, MaxNodes: 32, MaxEdges: 64, MaxActivations: 16, MaxAttempts: 16, MaxRunEvents: 16, MaxExpressionDepth: 16, MaxPathFanout: 32, MaxRequestBytes: 64 << 10, MaxResponseBytes: 64 << 10, MaxTotalDurationMilliseconds: 30000, MaxCleanupDurationMilliseconds: 5000, MaxInstructionEmittedEvents: 4, MaxInstructionResponseBytes: 64 << 10}
 	method := "/temporal.api.workflowservice.v1.WorkflowService/StartWorkflowExecution"
 	contractLimits := &testpilotspb.ContractLimits{MaxRules: 8, MaxStates: 16, MaxTransitions: 16, MaxExpressionDepth: 16, MaxWorkPerEvent: 100000, MaxTotalWork: 1000000000, MaxCaptures: 8, MaxCaptureBytes: 65536}
 	profile := testpilot.ProfileSpec{
@@ -85,7 +85,7 @@ func preparedRuntimeFixtureWithProfile(t *testing.T, responseKind testpilotspb.N
 			{EntrypointId: "workflow", Activation: &testpilotspb.Entrypoint_Workflow{Workflow: &testpilotspb.WorkflowActivation{WorkflowType: "workflow-type", WorkerRoleId: "worker", TaskQueueRoleId: "queue"}}, Instructions: []*testpilotspb.InstructionNode{start, await, finish}},
 			{EntrypointId: "handler", Activation: &testpilotspb.Entrypoint_NexusHandler{NexusHandler: &testpilotspb.NexusHandlerActivation{Service: "service", Operation: "operation", WorkerRoleId: "worker", TaskQueueRoleId: "queue"}}, Instructions: []*testpilotspb.InstructionNode{respond}},
 		},
-		Cleanup: &testpilotspb.Cleanup{EntrypointId: "cleanup"}, Limits: limits,
+		Cleanup: &testpilotspb.Cleanup{EntrypointId: "cleanup"},
 	}
 	if responseKind == testpilotspb.NEXUS_RESPONSE_KIND_ASYNCHRONOUS {
 		program.Slots = []*testpilotspb.Slot{{SlotId: "capability", Content: &testpilotspb.Slot_OpaqueHandle{OpaqueHandle: &testpilotspb.OpaqueHandleType{}}}}
@@ -99,7 +99,6 @@ func preparedRuntimeFixtureWithProfile(t *testing.T, responseKind testpilotspb.N
 	}
 	contract := &testpilotspb.Contract{
 		ContractId: "contract",
-		Limits:     contractLimits,
 		Rules: []*testpilotspb.ContractRule{{
 			RuleId:         "complete",
 			Kind:           testpilotspb.CONTRACT_RULE_KIND_SAFETY,
@@ -164,7 +163,7 @@ func descriptorClosure(root protoreflect.FileDescriptor) *descriptorpb.FileDescr
 }
 
 func runtimeBounds() *testpilotspb.InstructionLimits {
-	return &testpilotspb.InstructionLimits{TimeoutMilliseconds: 1000, MaxAttempts: 1, MaxEmittedEvents: 4, MaxResponseBytes: 64 << 10}
+	return &testpilotspb.InstructionLimits{TimeoutMilliseconds: 1000, MaxAttempts: 1}
 }
 
 func runtimeText(value string) *testpilotspb.Expression {

@@ -25,7 +25,6 @@ message CorrelatedContract {
   // What evidence of each kind does to its operation.
   repeated CorrelatedProjectionRule projection_rules = 9;
   repeated CorrelatedRule rules = 10;
-  CorrelatedLimits limits = 11;
 }
 
 // CorrelatedTransition is one row of the transition table: from prior_state, action leads to state
@@ -130,7 +129,8 @@ message CorrelatedCaptureDeclaration {
   int64 lifetime = 3;
 }
 
-// CorrelatedLimits bound the evidence and obligations of one correlated contract.
+// CorrelatedLimits are a Profile's resource ceilings on the evidence and obligations of every
+// correlated contract it admits. A Case declares none of them.
 message CorrelatedLimits {
   // Distinct evidence accepted; every ordinal is below it.
   int64 max_events = 1;
@@ -150,8 +150,7 @@ message CorrelatedLimits {
   int64 max_obligations = 8;
   // Work checking obligations.
   int64 max_obligation_work = 9;
-  // A capability declaring captures or a correlation must set both ceilings; one that declares
-  // neither leaves both unset and keeps its exact existing encoding.
+  // Captured values. A correlated contract that declares no capture reserves none of them.
   int64 max_captures = 10;
   // Nesting depth of the correlation condition, its root counting as 1.
   int64 max_correlation_depth = 11;

@@ -16,7 +16,7 @@ func capabilitySession(t *testing.T, h *Driver, source *testpilotspb.Case, run s
 	program := proto.CloneOf(source.Program)
 	program.Entrypoints = append(program.Entrypoints, &testpilotspb.Entrypoint{EntrypointId: "worker", Activation: &testpilotspb.Entrypoint_Workflow{Workflow: &testpilotspb.WorkflowActivation{}}})
 	program.Slots = append(program.Slots, &testpilotspb.Slot{SlotId: "capability", Content: &testpilotspb.Slot_OpaqueHandle{OpaqueHandle: &testpilotspb.OpaqueHandleType{}}})
-	s, err := h.open(t.Context(), run, program)
+	s, err := h.open(t.Context(), run, program, h.profile.ProgramLimits)
 	require.NoError(t, err)
 	return s, testpilot.Coordinate{RunID: run, EntrypointID: "worker", ActivationID: "activation", InstructionID: "publish", Attempt: 1}
 }

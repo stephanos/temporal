@@ -74,7 +74,7 @@ private def contractExpressions : Array Expression :=
     Expr.any #[runEvent, literal],
     Expr.path Expr.runEventPayload (Path.make #[Path.field "fault_injected", Path.field "kind"])]
 
-private def instructionLimits := Program.instructionLimits 1000 2 3 4096
+private def instructionLimits := Program.instructionLimits 1000 2
 private def assignment := Program.requestAssignment requestPath (Expr.literal (Value.text "x"))
 private def environmentAssignment := Program.environmentAssignment requestPath "namespace"
 private def environmentAssignmentUsesBinding : Bool :=
@@ -128,7 +128,6 @@ private def program : temporal.server.api.testpilot.v1.Program := Program.make "
     Program.activity "activity" "Activity" "worker" "queue" #[node],
     Program.nexusHandler "handler" "service" "operation" "worker" "queue" #[node]]
   (Program.cleanup "cleanup" #[node])
-  (Program.limits 4 16 16 8 4 64 16 8 4096 4096 10000 1000)
   (environment := #[Program.environment "namespace", Program.environment "task.queue",
     Program.environment "nexus.endpoint"])
 
@@ -150,7 +149,7 @@ private def contract : Contract := Contract.contract "contract" #[
     #[Contract.state "waiting" .CONTRACT_STATE_STATUS_PENDING,
       Contract.state "late" .CONTRACT_STATE_STATUS_VIOLATED]
     #[] (deadline := some (Contract.deadline (.elapsed_milliseconds 1000) "late"))
-] (Contract.limits 2 4 2 16 64 1024 3 4096)
+]
 
 private def eventsDeadline : Deadline := Contract.deadline (.rule_events 3) "late"
 
@@ -172,12 +171,9 @@ private def correlatedCapability : CorrelatedContract :=
         (stepEquals .CORRELATED_STEP_FIELD_ACTION "action" "request")
         (stepEquals .CORRELATED_STEP_FIELD_OUTCOME "outcome" "accepted")
     ]
-    { max_events := 16, max_buffered := 8, max_keys := 8, max_support := 256,
-      max_projection_work := 1000000, max_event_bytes := 512, max_semantic_transitions := 32,
-      max_obligations := 16, max_obligation_work := 1000000 }
 
 private def correlatedContract : Contract :=
-  Contract.contract "correlated" #[] (Contract.limits 0 0 0 16 64 1024 0 0) (some correlatedCapability)
+  Contract.contract "correlated" #[] (some correlatedCapability)
 
 private def verdict := Verdict.make .VERDICT_STATUS_SATISFIED #[
   Verdict.rule "safety" .RULE_VERDICT_STATUS_SATISFIED "done" #[1]

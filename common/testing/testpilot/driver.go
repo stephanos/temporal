@@ -34,6 +34,15 @@ func (p PreparedProgram) Snapshot() *testpilotspb.Program {
 	return p.program.Snapshot()
 }
 
+// Limits returns the Profile's Program ceilings the Program was admitted under. Drivers read
+// resource ceilings here: the Program declares none.
+func (p PreparedProgram) Limits() *testpilotspb.ProgramLimits {
+	if p.program == nil {
+		return nil
+	}
+	return p.program.Limits()
+}
+
 func (p PreparedProgram) Roles() []PreparedRole { return p.program.Roles() }
 
 func (p PreparedProgram) Entrypoints() []EntrypointPlan {

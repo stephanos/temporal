@@ -286,7 +286,7 @@ func TestWideExpressionBudgetAndCeilingOverflow(t *testing.T) {
 	require.NoError(t, err)
 	_, _, _, err = values.request(context.Background(), coord, work-1)
 	require.Error(t, err)
-	limits := proto.CloneOf(p.source.Limits)
+	limits := proto.CloneOf(p.limits)
 	limits.MaxRequestBytes = math.MaxInt64
 	require.Equal(t, int64(math.MaxInt64), runtimeWorkLimit(p.graphs[0], limits))
 }

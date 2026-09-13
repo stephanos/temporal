@@ -92,7 +92,7 @@ A deliberate outage a Program asks a Driver to realize, declared as an instructi
 _Avoid_: Chaos, failure injection, error
 
 **Profile**:
-The authorization snapshot naming the roles, methods, Opcodes and resource bindings one Case is permitted to use, frozen before a Driver is built.
+The authorization snapshot naming the roles, methods, Opcodes, resource bindings and resource ceilings one Case is permitted to use, frozen before a Driver is built. A Case declares only the bounds that carry its behavior; the Profile's ceilings bound everything else.
 _Avoid_: Config, environment, policy file
 
 **Opcode**:

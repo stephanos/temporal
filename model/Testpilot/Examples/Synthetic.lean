@@ -12,7 +12,7 @@ namespace Testpilot.Examples.Synthetic
 open temporal.server.api.testpilot.v1
 open Testpilot.Authoring
 
-private def instructionLimits := Program.instructionLimits 1000 1 1 1024
+private def instructionLimits := Program.instructionLimits 1000 1
 
 private def formatVersion : google.protobuf.Any := {
   type_url := "type.googleapis.com/temporal.server.api.testpilot.v1.FormatVersion"
@@ -33,7 +33,6 @@ private def program : temporal.server.api.testpilot.v1.Program := Program.make
         .INSTRUCTION_OUTCOME_FIELD_VALUE (Types.singular (Types.messageType
           "temporal.server.api.testpilot.v1.FormatVersion"))]))]]
   (Program.cleanup "cleanup" #[])
-  (Program.limits 1 1 1 1 1 8 8 4 1024 1024 1000 1000)
   (environment := #[Program.environment "namespace", Program.environment "task.queue"])
 
 private def contract : Contract := Contract.contract "testpilot.synthetic.contract" #[
@@ -42,7 +41,7 @@ private def contract : Contract := Contract.contract "testpilot.synthetic.contra
       Contract.state "done" .CONTRACT_STATE_STATUS_SATISFIED]
     #[Contract.transition "complete" "open" "done" #[.RUN_EVENT_KIND_RUN_CLOSED]
       (Expr.literal (Value.boolean true))]
-] (Contract.limits 1 2 1 8 32 64 1 1024)
+]
 
 /-- A deterministic Case authored without an Umpire or Temporal dependency. -/
 def case : Case := Testpilot.Authoring.case 1 "testpilot.synthetic.case" program contract

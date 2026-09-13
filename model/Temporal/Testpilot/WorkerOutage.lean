@@ -81,11 +81,11 @@ def resumeIntent : Umpire.FaultIntentDeclaration :=
     outageOccurrence outageAction Umpire.workerResumeCapabilityId
 
 def stopRealization : Umpire.FaultRealization :=
-  { instructionId := "stop-worker", roleId := workerOutageQueueRole, limits := bounds 10000
+  { instructionId := "stop-worker", roleId := workerOutageQueueRole, limits := Program.instructionLimits 10000 1
     outcome := some statusOutcome }
 
 def resumeRealization : Umpire.FaultRealization :=
-  { instructionId := "resume-worker", roleId := workerOutageQueueRole, limits := bounds 10000
+  { instructionId := "resume-worker", roleId := workerOutageQueueRole, limits := Program.instructionLimits 10000 1
     dependencies := #[Ref.instruction "controller" "start-workflow"]
     guard := some (succeeded "controller" "start-workflow")
     outcome := some statusOutcome }
@@ -123,22 +123,21 @@ private def program (stop resume : InstructionNode) : Program :=
             assign (nested ["workflow_type", "name"]) (text workerOutageWorkflowType),
             Program.environmentAssignment (nested ["task_queue", "name"]) workerOutageQueueBinding,
             assign (field "request_id") runId])
-          (bounds 10000) #[Ref.instruction "controller" "stop-worker"]
+          (Program.instructionLimits 10000 1) #[Ref.instruction "controller" "stop-worker"]
           (some (succeeded "controller" "stop-worker")) (some statusOutcome)
           #[Program.reservation "workflow" 1],
         resume,
         Program.node "history"
           (Program.invokeRpc workerOutageServiceRole getHistoryMethod historyAssignments
             #[project historyEvents workerOutageObservation .READ_CARDINALITY_EMIT_EACH])
-          (Program.instructionLimits 20000 1 64 8192)
+          (Program.instructionLimits 20000 1)
           #[Ref.instruction "controller" "resume-worker"]
           (some (succeeded "controller" "resume-worker")) (some statusOutcome)],
       Program.workflow "workflow" workerOutageWorkflowType workerOutageWorkerRole
         workerOutageQueueRole #[
         Program.node "finish-workflow" (Program.finish (text "completed"))
-          (bounds 10000) #[] none (some statusOutcome)]]
+          (Program.instructionLimits 10000 1) #[] none (some statusOutcome)]]
     (Program.cleanup "cleanup" #[])
-    { programLimits with max_run_events := 512, max_response_bytes := 8192 }
     (environment := #[
       Program.environment workerOutageNamespaceBinding,
       Program.environment workerOutageQueueBinding])
@@ -227,7 +226,6 @@ def workerOutageCase : Except Umpire.Case.Compiler.Error Case := do
     contractId := "temporal.case.worker-outage.contract"
     properties := [.monitor outageProperty outageOrderRule,
       .monitor outageProperty workflowCompletedRule]
-    contractLimits
   }
 
 end Temporal.Testpilot

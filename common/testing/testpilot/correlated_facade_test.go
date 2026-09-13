@@ -48,7 +48,11 @@ func correlatedFacadeInputs(t testing.TB, fixture correlatedFacadeFixture) (*tes
 	return source, events
 }
 
-func correlatedFacadeProfile(t testing.TB, source *testpilotspb.Case) testpilot.ProfileSpec {
+// correlatedFacadeProfile authorizes the evidence source the correlated Cases read, under the resource
+// ceilings the correlated corpus Cases declared before ceilings moved to the Profile: its runnable
+// Cases read one evidence value per instruction, so they need more nodes and Run Events than any
+// Temporal Case.
+func correlatedFacadeProfile(t testing.TB) testpilot.ProfileSpec {
 	t.Helper()
 	descriptors := facadeDescriptorClosure(testpilotspb.File_temporal_server_api_testpilot_v1_case_proto)
 	descriptors.File = append(descriptors.File, &descriptorpb.FileDescriptorProto{
@@ -62,9 +66,22 @@ func correlatedFacadeProfile(t testing.TB, source *testpilotspb.Case) testpilot.
 	require.NoError(t, err)
 	return testpilot.ProfileSpec{
 		Identity: "correlated-facade", Catalog: catalog,
-		Roles:         []testpilot.RolePolicy{{ID: "source", Kind: testpilotspb.ROLE_KIND_ENDPOINT, Methods: []string{"/test.correlated.Source/Read"}}},
-		Opcodes:       []testpilot.Opcode{testpilot.InvokeRPC},
-		ProgramLimits: proto.CloneOf(source.GetProgram().GetLimits()), ContractLimits: proto.CloneOf(source.GetContract().GetLimits()),
+		Roles:   []testpilot.RolePolicy{{ID: "source", Kind: testpilotspb.ROLE_KIND_ENDPOINT, Methods: []string{"/test.correlated.Source/Read"}}},
+		Opcodes: []testpilot.Opcode{testpilot.InvokeRPC},
+		ProgramLimits: &testpilotspb.ProgramLimits{
+			MaxEntrypoints: 4, MaxNodes: 256, MaxEdges: 256, MaxActivations: 256, MaxAttempts: 256, MaxRunEvents: 2048,
+			MaxExpressionDepth: 8, MaxPathFanout: 256, MaxRequestBytes: 4096, MaxResponseBytes: 4096,
+			MaxTotalDurationMilliseconds: 10000, MaxCleanupDurationMilliseconds: 1000,
+			MaxInstructionEmittedEvents: 1, MaxInstructionResponseBytes: 4096,
+		},
+		ContractLimits: &testpilotspb.ContractLimits{
+			MaxRules: 16, MaxStates: 32, MaxTransitions: 64, MaxExpressionDepth: 16,
+			MaxWorkPerEvent: 100000, MaxTotalWork: 1000000000, MaxCaptures: 32, MaxCaptureBytes: 65536,
+		},
+		CorrelatedLimits: &testpilotspb.CorrelatedLimits{
+			MaxEvents: 16, MaxBuffered: 8, MaxKeys: 8, MaxSupport: 256, MaxProjectionWork: 1000000000,
+			MaxEventBytes: 512, MaxSemanticTransitions: 32, MaxObligations: 16, MaxObligationWork: 1000000000,
+		},
 	}
 }
 
@@ -117,7 +134,7 @@ func TestCorrelatedPublicFacade(t *testing.T) {
 		}
 		t.Run(fixture.Name, func(t *testing.T) {
 			source, events := correlatedFacadeInputs(t, fixture)
-			prepared, err := testpilot.Prepare(source, correlatedFacadeProfile(t, source))
+			prepared, err := testpilot.Prepare(source, correlatedFacadeProfile(t))
 			require.NoError(t, err)
 			driver := &correlatedFacadeDriver{identity: prepared.Identity(), events: events, failAt: -1}
 			run, verdict, err := prepared.Run(t.Context(), driver)
@@ -150,7 +167,7 @@ func TestCorrelatedFacadeFailureAndPriorProof(t *testing.T) {
 			if name == "lost" || name == "stopped" {
 				source.Contract.Correlated.Rules[0].Ending = testpilotspb.TRACE_ENDING_FINAL
 			}
-			prepared, err := testpilot.Prepare(source, correlatedFacadeProfile(t, source))
+			prepared, err := testpilot.Prepare(source, correlatedFacadeProfile(t))
 			require.NoError(t, err)
 			driver := &correlatedFacadeDriver{identity: prepared.Identity(), events: events, failAt: -1}
 			ctx, cancel := context.WithCancel(t.Context())
@@ -188,7 +205,7 @@ func TestCorrelatedFacadeFailureAndPriorProof(t *testing.T) {
 
 func TestCorrelatedFacadeRepeatedConcurrentIsolation(t *testing.T) {
 	source, events := correlatedFacadeInputs(t, correlatedFacadeFixtures(t)[6])
-	prepared, err := testpilot.Prepare(source, correlatedFacadeProfile(t, source))
+	prepared, err := testpilot.Prepare(source, correlatedFacadeProfile(t))
 	require.NoError(t, err)
 	other := make([]*testpilotspb.CorrelatedEvidence, len(events))
 	for i, event := range events {
@@ -262,13 +279,14 @@ func TestCorrelatedFacadeTenfoldLoad(t *testing.T) {
 					}
 					source.Program.Entrypoints[0].Instructions = append(source.Program.Entrypoints[0].Instructions, instruction)
 				}
+				profile := correlatedFacadeProfile(t)
 				if kind == "obligations" || kind == "work" {
-					source.Contract.Correlated.Limits.MaxEvents = 32
+					profile.CorrelatedLimits.MaxEvents = 32
 				}
 				if kind == "work" {
-					source.Contract.Correlated.Limits.MaxObligationWork = 200
+					profile.CorrelatedLimits.MaxObligationWork = 200
 				}
-				prepared, err := testpilot.Prepare(source, correlatedFacadeProfile(t, source))
+				prepared, err := testpilot.Prepare(source, profile)
 				require.NoError(t, err)
 				driver := &correlatedFacadeDriver{identity: prepared.Identity(), events: events, failAt: -1}
 				run, verdict, err := prepared.Run(t.Context(), driver)
@@ -293,12 +311,13 @@ func TestCorrelatedFacadeCaptureAdmission(t *testing.T) {
 	for _, bytes := range []bool{false, true} {
 		t.Run(fmt.Sprint(bytes), func(t *testing.T) {
 			source, _ := correlatedFacadeInputs(t, correlatedFacadeFixtures(t)[0])
+			profile := correlatedFacadeProfile(t)
 			if bytes {
-				source.Contract.Limits.MaxCaptureBytes = 1
+				profile.ContractLimits.MaxCaptureBytes = 1
 			} else {
-				source.Contract.Limits.MaxCaptures = 1
+				profile.ContractLimits.MaxCaptures = 1
 			}
-			prepared, err := testpilot.Prepare(source, correlatedFacadeProfile(t, source))
+			prepared, err := testpilot.Prepare(source, profile)
 			require.Error(t, err)
 			require.Nil(t, prepared)
 		})

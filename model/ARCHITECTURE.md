@@ -129,13 +129,16 @@ Case
 │   ├── typed private Slots and declared Observations
 │   ├── controller / workflow / activity / Nexus-handler DAGs
 │   ├── cleanup graph
-│   └── independent structural and runtime limits
+│   └── instruction timeouts and attempts
 └── Contract
     ├── deterministic safety and bounded-liveness rules
     ├── bounded captures
     ├── expiry-before-transition deadlines
-    └── independent work and storage limits
+    └── correlated windows
 ```
+
+A Case carries no resource ceilings. Structural, runtime, work and storage ceilings belong to the
+Profile, and `testpilot.Prepare` checks the Case's behavior bounds and structure against them.
 
 `Umpire.Case` retains only Umpire's producer-specific definitions, fingerprints, sources, and Known
 Gaps and encodes them into opaque provenance bytes. It does not own a parallel Program, Contract,

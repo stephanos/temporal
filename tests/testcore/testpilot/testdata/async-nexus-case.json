@@ -8,17 +8,6 @@
         "definitionId": "temporal.nexus.success.state.lifecycle.scheduled",
         "value": "scheduled"
       },
-      "limits": {
-        "maxBuffered": "16",
-        "maxEventBytes": "512",
-        "maxEvents": "32",
-        "maxKeys": "8",
-        "maxObligationWork": "100000000",
-        "maxObligations": "16",
-        "maxProjectionWork": "1000000000",
-        "maxSemanticTransitions": "16",
-        "maxSupport": "128"
-      },
       "operationField": "temporal.nexus.success.scope.operation",
       "projectionFingerprint": "sha256:bf076900ee7c5d21d63d93e82eefba541894a604adc0873de26a9573913e355e",
       "projectionId": "temporal.nexus.success.projection",
@@ -194,16 +183,6 @@
           }
         }
       ]
-    },
-    "limits": {
-      "maxCaptureBytes": "65536",
-      "maxCaptures": "64",
-      "maxExpressionDepth": "12",
-      "maxRules": "4",
-      "maxStates": "16",
-      "maxTotalWork": "1000000000",
-      "maxTransitions": "16",
-      "maxWorkPerEvent": "100000"
     }
   },
   "program": {
@@ -313,8 +292,6 @@
             "instructionId": "start-workflow",
             "limits": {
               "maxAttempts": "1",
-              "maxEmittedEvents": "128",
-              "maxResponseBytes": "4096",
               "timeoutMilliseconds": "10000"
             },
             "outcome": {
@@ -391,8 +368,6 @@
             "instructionId": "await-completion-authority",
             "limits": {
               "maxAttempts": "1",
-              "maxEmittedEvents": "8",
-              "maxResponseBytes": "4096",
               "timeoutMilliseconds": "10000"
             },
             "outcome": {
@@ -474,8 +449,6 @@
             "instructionId": "complete-nexus-operation",
             "limits": {
               "maxAttempts": "1",
-              "maxEmittedEvents": "8",
-              "maxResponseBytes": "4096",
               "timeoutMilliseconds": "10000"
             },
             "outcome": {
@@ -742,8 +715,6 @@
             "instructionId": "history",
             "limits": {
               "maxAttempts": "1",
-              "maxEmittedEvents": "128",
-              "maxResponseBytes": "4096",
               "timeoutMilliseconds": "10000"
             },
             "outcome": {
@@ -782,8 +753,6 @@
             "instructionId": "start-nexus-operation",
             "limits": {
               "maxAttempts": "1",
-              "maxEmittedEvents": "8",
-              "maxResponseBytes": "4096",
               "timeoutMilliseconds": "10000"
             },
             "outcome": {
@@ -819,8 +788,6 @@
             "instructionId": "await-nexus-operation",
             "limits": {
               "maxAttempts": "1",
-              "maxEmittedEvents": "8",
-              "maxResponseBytes": "4096",
               "timeoutMilliseconds": "10000"
             },
             "outcome": {
@@ -917,8 +884,6 @@
             "instructionId": "finish-workflow",
             "limits": {
               "maxAttempts": "1",
-              "maxEmittedEvents": "8",
-              "maxResponseBytes": "4096",
               "timeoutMilliseconds": "5000"
             },
             "outcome": {
@@ -961,8 +926,6 @@
             "instructionId": "respond-async",
             "limits": {
               "maxAttempts": "1",
-              "maxEmittedEvents": "8",
-              "maxResponseBytes": "4096",
               "timeoutMilliseconds": "5000"
             },
             "outcome": {
@@ -1000,20 +963,6 @@
         "bindingId": "temporal.nexus-endpoint.resource"
       }
     ],
-    "limits": {
-      "maxActivations": "8",
-      "maxAttempts": "16",
-      "maxCleanupDurationMilliseconds": "5000",
-      "maxEdges": "24",
-      "maxEntrypoints": "4",
-      "maxExpressionDepth": "12",
-      "maxNodes": "16",
-      "maxPathFanout": "32",
-      "maxRequestBytes": "32768",
-      "maxResponseBytes": "4096",
-      "maxRunEvents": "256",
-      "maxTotalDurationMilliseconds": "30000"
-    },
     "observations": [
       {
         "observationId": "history-event",

@@ -565,3 +565,41 @@ func TestDeclaredDeadlineVersionNamedValueNaturalAndOpaqueSteps(t *testing.T) {
 		})
 	}
 }
+
+func TestDeclaredCeilingStepAdmitsOnlyBoundsWithinTheirProfile(t *testing.T) {
+	t.Parallel()
+
+	limits := func(message string, fields map[string]any) *Object {
+		return &Object{Message: protocol + protoreflect.FullName(message), Fields: fields}
+	}
+	for _, tc := range []struct {
+		name, fixture, message string
+		fields                 map[string]any
+		want                   string
+		wantErrorSubstr        string
+	}{
+		{name: "program at the Temporal ceiling", fixture: functionalFixture, message: "Program", fields: map[string]any{"programId": "p", "limits": limits("ProgramLimits", map[string]any{"maxNodes": "16", "maxRunEvents": "256"})}, want: `{"programId": "p"}`},
+		{name: "program above the Temporal ceiling", fixture: functionalFixture, message: "Program", fields: map[string]any{"limits": limits("ProgramLimits", map[string]any{"maxNodes": "17"})}, wantErrorSubstr: "ProgramLimits.maxNodes is 17, outside the temporal Profile ceiling 16"},
+		{name: "contract within the synthetic ceiling", fixture: functionalFixtureRoot + "/synthetic-case.json", message: "Contract", fields: map[string]any{"contractId": "c", "limits": limits("ContractLimits", map[string]any{"maxStates": "2"})}, want: `{"contractId": "c"}`},
+		{name: "contract above the synthetic ceiling", fixture: functionalFixtureRoot + "/synthetic-case.json", message: "Contract", fields: map[string]any{"limits": limits("ContractLimits", map[string]any{"maxStates": "16"})}, wantErrorSubstr: "outside the synthetic Profile ceiling 2"},
+		{name: "correlated within the corpus ceiling", fixture: correlatedFixture, message: "CorrelatedContract", fields: map[string]any{"projectionId": "p", "limits": limits("CorrelatedLimits", map[string]any{"maxEvents": "16"})}, want: `{"projectionId": "p"}`},
+		{name: "correlated capture ceiling the corpus Profile lacks", fixture: correlatedFixture, message: "CorrelatedContract", fields: map[string]any{"limits": limits("CorrelatedLimits", map[string]any{"maxCaptures": "1"})}, wantErrorSubstr: "CorrelatedLimits.maxCaptures has no ceiling in the correlated Profile"},
+		{name: "instruction bounds within the Temporal ceiling", fixture: functionalFixture, message: "InstructionLimits", fields: map[string]any{"timeoutMilliseconds": "5000", "maxAttempts": "1", "maxEmittedEvents": "128", "maxResponseBytes": "4096"}, want: `{"timeoutMilliseconds": "5000", "maxAttempts": "1"}`},
+		{name: "instruction response above the Temporal ceiling", fixture: functionalFixture, message: "InstructionLimits", fields: map[string]any{"maxResponseBytes": "8193"}, wantErrorSubstr: "InstructionLimits.maxResponseBytes is 8193"},
+		{name: "fixture without a Profile", fixture: "fixture.json", message: "Program", fields: map[string]any{"limits": limits("ProgramLimits", map[string]any{"maxNodes": "1"})}, wantErrorSubstr: "fixture fixture.json declares no Profile its bounds move to"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			mapped, err := Declared.apply(tc.fixture, &Object{Message: protocol + protoreflect.FullName(tc.message), Fields: tc.fields})
+			if tc.wantErrorSubstr != "" {
+				require.ErrorContains(t, err, tc.wantErrorSubstr)
+				return
+			}
+			require.NoError(t, err)
+			encoded, err := json.Marshal(mapped)
+			require.NoError(t, err)
+			require.JSONEq(t, tc.want, string(encoded))
+		})
+	}
+}

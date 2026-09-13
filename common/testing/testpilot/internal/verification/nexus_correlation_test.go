@@ -72,9 +72,10 @@ func nexusCorrelationFixture(t testing.TB) (*PreparedContract, execution.Program
 		MaxEntrypoints: 8, MaxNodes: 32, MaxEdges: 64, MaxActivations: 64, MaxAttempts: 32,
 		MaxRunEvents: 256, MaxExpressionDepth: 16, MaxPathFanout: 128, MaxRequestBytes: 4096,
 		MaxResponseBytes: 4096, MaxTotalDurationMilliseconds: 30000, MaxCleanupDurationMilliseconds: 5000,
+		MaxInstructionEmittedEvents: 8, MaxInstructionResponseBytes: 4096,
 	}
 	source := &testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: 1}, CaseId: "case", Contract: &testpilotspb.Contract{ContractId: "contract"}, Program: &testpilotspb.Program{
-		ProgramId: "program", Limits: programLimits,
+		ProgramId: "program",
 		Observations: []*testpilotspb.Observation{{ObservationId: "history-event", Type: nexusMessageType("temporal.api.history.v1.HistoryEvent")}},
 		Entrypoints:  []*testpilotspb.Entrypoint{{EntrypointId: "controller", Activation: &testpilotspb.Entrypoint_Controller{Controller: &testpilotspb.ControllerActivation{}}}},
 		Cleanup:      &testpilotspb.Cleanup{EntrypointId: "cleanup"},
@@ -115,7 +116,7 @@ func nexusCorrelationFixture(t testing.TB) (*PreparedContract, execution.Program
 		)),
 	}
 	rule.Transitions[0].CaptureAssignments = []*testpilotspb.ContractCaptureAssignment{{CaptureId: "scheduled-event", ObservationId: "history-event"}}
-	contract, err := Prepare(&testpilotspb.Contract{ContractId: "contract", Rules: []*testpilotspb.ContractRule{rule}, Limits: limits}, catalog, program.View(), limits)
+	contract, err := Prepare(&testpilotspb.Contract{ContractId: "contract", Rules: []*testpilotspb.ContractRule{rule}}, catalog, program.View(), limits, nil)
 	require.NoError(t, err)
 	return contract, program.View()
 }

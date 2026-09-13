@@ -77,21 +77,20 @@ private def program
             assign (nested ["workflow_type", "name"]) (text workflowType),
             Program.environmentAssignment (nested ["task_queue", "name"]) taskQueueBinding,
             assign (field "request_id") runId])
-          (bounds 10000) #[] none (some statusOutcome)
+          (Program.instructionLimits 10000 1) #[] none (some statusOutcome)
           #[Program.reservation "workflow" 1],
         Program.node "history"
           (Program.invokeRpc workflowServiceRole getHistoryMethod historyAssignments
             #[Program.responseRead historyEvents .READ_CARDINALITY_EMIT_EACH
               #[Program.observationTarget historyObservation,
                 Evidence.target runFieldId correlatedObservation identity resolved]])
-          (Program.instructionLimits 20000 1 64 8192)
+          (Program.instructionLimits 20000 1)
           #[Ref.instruction "controller" "start-workflow"]
           (some (succeeded "controller" "start-workflow")) (some statusOutcome)],
       Program.workflow "workflow" workflowType workerRole taskQueueRole #[
         Program.node "finish-workflow" (Program.finish (text "completed"))
-          (bounds 10000) #[] none (some statusOutcome)]]
+          (Program.instructionLimits 10000 1) #[] none (some statusOutcome)]]
     (Program.cleanup "cleanup" #[])
-    { programLimits with max_run_events := 512, max_response_bytes := 8192 }
     (environment := #[
       Program.environment namespaceBinding,
       Program.environment taskQueueBinding])
@@ -115,7 +114,6 @@ def workflow (workflowType : String) : Umpire.Case.Producer.Realization := {
     { name := "start", instruction := Ref.instruction "controller" "start-workflow" },
     { name := "completion", instruction := Ref.instruction "controller" "history" }]
   sources := [Workflow.completedSource]
-  contractLimits := { contractLimits with max_captures := 64, max_capture_bytes := 65536 }
   projectionLimits := {
     events := 32, buffered := 16, keys := 8, support := 128
     work := 1000000000, eventSize := 512 }

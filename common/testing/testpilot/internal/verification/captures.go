@@ -11,7 +11,7 @@ import (
 )
 
 func (a *admission) bindCaptures(m *machine) error {
-	limits := a.prepared.source.Limits
+	limits := a.prepared.limits
 	if err := add(&a.captures, int64(len(m.source.Captures)), limits.MaxCaptures); err != nil {
 		return err
 	}
@@ -235,7 +235,7 @@ func (a *admission) refine(e *ir.Expression, desired bool, facts map[ir.Referenc
 }
 
 func (a *admission) boundWork() error {
-	limits := a.prepared.source.Limits
+	limits := a.prepared.limits
 	for _, m := range a.prepared.rules {
 		maximum := int64(1)
 		for _, outgoing := range m.outgoing {
@@ -265,7 +265,7 @@ func (a *admission) expressionWork(e *ir.Expression) (int64, error) {
 	}
 	work := int64(1)
 	if e.Operator() == ir.Literal {
-		if err := add(&work, int64(proto.Size(e.Literal())), a.prepared.source.Limits.MaxWorkPerEvent); err != nil {
+		if err := add(&work, int64(proto.Size(e.Literal())), a.prepared.limits.MaxWorkPerEvent); err != nil {
 			return 0, err
 		}
 	}
@@ -274,7 +274,7 @@ func (a *admission) expressionWork(e *ir.Expression) (int64, error) {
 		if err != nil {
 			return 0, err
 		}
-		if err := add(&work, cost, a.prepared.source.Limits.MaxWorkPerEvent); err != nil {
+		if err := add(&work, cost, a.prepared.limits.MaxWorkPerEvent); err != nil {
 			return 0, err
 		}
 	}
@@ -285,7 +285,7 @@ func (a *admission) expressionWork(e *ir.Expression) (int64, error) {
 			if child.Operator() == ir.Literal {
 				bytes = int64(proto.Size(child.Literal()))
 			}
-			if err := add(&work, bytes, a.prepared.source.Limits.MaxWorkPerEvent); err != nil {
+			if err := add(&work, bytes, a.prepared.limits.MaxWorkPerEvent); err != nil {
 				return 0, err
 			}
 		}
@@ -295,7 +295,7 @@ func (a *admission) expressionWork(e *ir.Expression) (int64, error) {
 		if err != nil {
 			return 0, err
 		}
-		if err := add(&work, cost, a.prepared.source.Limits.MaxWorkPerEvent); err != nil {
+		if err := add(&work, cost, a.prepared.limits.MaxWorkPerEvent); err != nil {
 			return 0, err
 		}
 	}
@@ -335,7 +335,7 @@ func (a *admission) refineLogical(e *ir.Expression, desired bool, facts map[ir.R
 }
 
 func (a *admission) transitionWork(m *machine, indexes []int) (int64, error) {
-	limits := a.prepared.source.Limits
+	limits := a.prepared.limits
 	work := int64(1)
 	for _, index := range indexes {
 		cost, err := a.expressionWork(m.transitions[index])
@@ -366,10 +366,10 @@ func (a *admission) projectionWork(e *ir.Expression) (int64, error) {
 	if e.Path().Fanout() {
 		work *= a.prepared.program.Limits().MaxPathFanout
 	}
-	if err := add(&work, a.valueBytes(e.Children()[0].Type()), a.prepared.source.Limits.MaxWorkPerEvent); err != nil {
+	if err := add(&work, a.valueBytes(e.Children()[0].Type()), a.prepared.limits.MaxWorkPerEvent); err != nil {
 		return 0, err
 	}
-	if err := add(&work, a.valueBytes(e.Type()), a.prepared.source.Limits.MaxWorkPerEvent); err != nil {
+	if err := add(&work, a.valueBytes(e.Type()), a.prepared.limits.MaxWorkPerEvent); err != nil {
 		return 0, err
 	}
 	return work, nil

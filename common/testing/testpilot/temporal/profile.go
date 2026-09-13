@@ -3,7 +3,6 @@ package temporal
 import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
-	"google.golang.org/protobuf/proto"
 )
 
 // Environment names the physical resources one Case's symbolic bindings resolve to, plus the
@@ -15,11 +14,32 @@ type Environment struct {
 	NexusEndpoint string
 }
 
+// DefaultCeilings returns fresh copies of the Temporal Profile's resource ceilings: the Program,
+// Contract and correlated limits every Temporal Profile admits a Case under. A Case declares none of
+// them. Each ceiling is the largest value any checked-in Temporal Case declared when the bounds moved
+// out of the Case, so no such Case is refused.
+func DefaultCeilings() (*testpilotspb.ProgramLimits, *testpilotspb.ContractLimits, *testpilotspb.CorrelatedLimits) {
+	return &testpilotspb.ProgramLimits{
+		MaxEntrypoints: 4, MaxNodes: 16, MaxEdges: 24, MaxActivations: 8, MaxAttempts: 16,
+		MaxRunEvents: 512, MaxExpressionDepth: 12, MaxPathFanout: 32,
+		MaxRequestBytes: 32768, MaxResponseBytes: 8192,
+		MaxTotalDurationMilliseconds: 30000, MaxCleanupDurationMilliseconds: 20000,
+		MaxInstructionEmittedEvents: 128, MaxInstructionResponseBytes: 8192,
+	}, &testpilotspb.ContractLimits{
+		MaxRules: 4, MaxStates: 16, MaxTransitions: 64, MaxExpressionDepth: 12,
+		MaxWorkPerEvent: 4000000, MaxTotalWork: 1000000000, MaxCaptures: 64, MaxCaptureBytes: 65536,
+	}, &testpilotspb.CorrelatedLimits{
+		MaxEvents: 64, MaxBuffered: 32, MaxKeys: 8, MaxSupport: 256, MaxProjectionWork: 1000000000,
+		MaxEventBytes: 512, MaxSemanticTransitions: 32, MaxObligations: 16, MaxObligationWork: 100000000,
+		MaxCaptures: 16, MaxCorrelationDepth: 2,
+	}
+}
+
 // DeriveProfile returns the minimal authorization the Case implies: the roles it declares, the
 // methods it invokes, the reservation carriers its instructions actually use, the opcodes its
 // instructions require, and the environment values its declared bindings resolve to. Nothing is widened
 // beyond what the Case references, and anything the Case names that the catalog does not know is
-// an error rather than a silently authorized surface.
+// an error rather than a silently authorized surface. Its resource ceilings are DefaultCeilings.
 //
 // The Profile stays an authorization snapshot, so the derived value is returned for the caller to
 // review and tighten before Prepare rather than applied on its behalf.
@@ -44,14 +64,16 @@ func DeriveProfile(source *testpilotspb.Case, catalog *testpilot.Catalog, enviro
 	if err != nil {
 		return testpilot.ProfileSpec{}, err
 	}
+	programLimits, contractLimits, correlatedLimits := DefaultCeilings()
 	return testpilot.ProfileSpec{
 		Identity:            environment.Identity,
 		Catalog:             catalog,
 		Roles:               roles,
 		Opcodes:             usage.capabilities(),
 		EnvironmentBindings: bindings,
-		ProgramLimits:       proto.CloneOf(program.GetLimits()),
-		ContractLimits:      proto.CloneOf(source.GetContract().GetLimits()),
+		ProgramLimits:       programLimits,
+		ContractLimits:      contractLimits,
+		CorrelatedLimits:    correlatedLimits,
 	}, nil
 }
 

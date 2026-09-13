@@ -13,12 +13,15 @@ import (
 )
 
 type PreparedContract struct {
-	source       *testpilotspb.Contract
-	catalog      *ir.Catalog
-	observations map[string]ir.Type
-	program      execution.ProgramView
-	rules        []*machine
-	workPerEvent int64
+	source *testpilotspb.Contract
+	// limits and correlatedLimits are the Profile's ceiling snapshots; a Contract declares none.
+	limits           *testpilotspb.ContractLimits
+	correlatedLimits *testpilotspb.CorrelatedLimits
+	catalog          *ir.Catalog
+	observations     map[string]ir.Type
+	program          execution.ProgramView
+	rules            []*machine
+	workPerEvent     int64
 }
 type machine struct {
 	source       *testpilotspb.ContractRule
@@ -69,9 +72,9 @@ func validID(id string) bool {
 // charges the correlated stage's conservative reservation into the same per-event bucket, and that
 // reservation is cubic in the accepted evidence count, so the expression-evaluation ceiling it used
 // to carry made every multi-operation correlated Case reject at its own first evidence event. The
-// capability still bounds itself through the max_projection_work and max_obligation_work it
-// declares, which admission bounds by the Contract's total, and every Case still declares its own
-// smaller per-event value.
+// capability is still bounded by the Profile's max_projection_work and max_obligation_work, which
+// admission bounds by the Profile's Contract total, and every Profile still declares its own smaller
+// per-event value.
 //
 // CONSIDER(umpire): charge the reservation's per-event increment instead of recomputing the cube of
 // the whole accepted set on every event, then restore a per-event ceiling that means expression
@@ -105,8 +108,10 @@ func add(total *int64, value, ceiling int64) error {
 }
 func (a *admission) charge(value int64) error { return add(&a.work, value, ir.DefaultLimits().Work) }
 
-// Prepare admits static machines; each evaluator will own fresh state and capture values.
-func Prepare(source *testpilotspb.Contract, catalog *ir.Catalog, program execution.ProgramView, ceiling *testpilotspb.ContractLimits) (*PreparedContract, error) {
+// Prepare admits static machines under the Profile's Contract and correlated ceilings; each
+// evaluator will own fresh state and capture values. A Contract without a correlated contract needs
+// no correlated ceiling.
+func Prepare(source *testpilotspb.Contract, catalog *ir.Catalog, program execution.ProgramView, ceiling *testpilotspb.ContractLimits, correlatedCeiling *testpilotspb.CorrelatedLimits) (*PreparedContract, error) {
 	if catalog == nil || program.ProgramID() == "" || program.CatalogIdentity() != catalog.Identity() {
 		return nil, invalid(ir.Malformed, "prepared Program and matching catalog are required")
 	}
@@ -119,18 +124,15 @@ func Prepare(source *testpilotspb.Contract, catalog *ir.Catalog, program executi
 	if err := checkLimits(ceiling, hardLimits()); err != nil {
 		return nil, err
 	}
-	if err := checkLimits(source.Limits, ceiling); err != nil {
-		return nil, err
-	}
-	if int64(len(source.Rules)) > source.Limits.MaxRules {
+	if int64(len(source.Rules)) > ceiling.MaxRules {
 		return nil, invalid(ir.LimitExceeded, "rule count exceeds ceiling")
 	}
-	p := &PreparedContract{source: proto.CloneOf(source), program: program, catalog: catalog, observations: map[string]ir.Type{}}
+	p := &PreparedContract{source: proto.CloneOf(source), limits: proto.CloneOf(ceiling), correlatedLimits: proto.CloneOf(correlatedCeiling), program: program, catalog: catalog, observations: map[string]ir.Type{}}
 	for _, observation := range program.Observations() {
 		p.observations[observation.ID] = observation.Type
 	}
 	a := &admission{prepared: p, catalog: catalog, scope: map[ir.Reference]ir.Binding{}, limits: ir.DefaultLimits()}
-	a.limits.Depth = source.Limits.MaxExpressionDepth
+	a.limits.Depth = p.limits.MaxExpressionDepth
 	a.limits.Fanout = program.Limits().MaxPathFanout
 	var err error
 	a.boolean, err = catalog.BindType(scalarType(testpilotspb.SCALAR_KIND_BOOLEAN))
@@ -164,7 +166,7 @@ func scalarType(kind testpilotspb.ScalarKind) *testpilotspb.ValueType {
 	return &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Scalar{Scalar: &testpilotspb.ScalarType{Kind: kind}}}}}
 }
 func (a *admission) bindMachine(rule *testpilotspb.ContractRule) (*machine, error) {
-	limits := a.prepared.source.Limits
+	limits := a.prepared.limits
 	if err := add(&a.states, int64(len(rule.States)), limits.MaxStates); err != nil {
 		return nil, err
 	}

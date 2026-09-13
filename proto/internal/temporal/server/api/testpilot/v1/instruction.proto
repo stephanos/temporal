@@ -147,16 +147,14 @@ message ActivationReservationDefinition {
   int64 count = 2;
 }
 
-// InstructionLimits bound one instruction within the Program's limits.
+// InstructionLimits are the bounds that carry an instruction's behavior. Its resource ceilings are
+// the Profile's ProgramLimits.
 message InstructionLimits {
-  // Deadline of each dispatch; when it expires the outcome is TIMED_OUT.
+  // Deadline of each dispatch, within the Profile's total duration; when it expires the outcome is
+  // TIMED_OUT.
   int64 timeout_milliseconds = 1;
-  // The highest attempt number the instruction may reach.
+  // The highest attempt number the instruction may reach, within the Profile's attempts.
   int64 max_attempts = 2;
-  // Run Events the instruction's response reads may emit per completion.
-  int64 max_emitted_events = 3;
-  // Size bound on the RPC response.
-  int64 max_response_bytes = 4;
 }
 
 // InstructionOutcomeStatus classifies one instruction attempt. A protocol failure is a non-OK RPC

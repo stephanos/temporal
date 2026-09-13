@@ -312,9 +312,8 @@ private def program (assigned : Int := 7) : Program :=
               (Testpilot.Authoring.Path.make
                 #[Testpilot.Authoring.Path.mapKey "tags" { value := some (.text_value "k") }])
               (Testpilot.Authoring.Expr.literal { value := some (.text_value "v") })])
-        (Testpilot.Authoring.Program.instructionLimits 1000 1 1 4096)]]
+        (Testpilot.Authoring.Program.instructionLimits 1000 1)]]
     (Testpilot.Authoring.Program.cleanup "cleanup" #[])
-    (Testpilot.Authoring.Program.limits 4 16 16 16 16 32 8 8 4096 4096 10000 1000)
 
 private def inputCoverage (assigned : Int := 7) : Coverage.InputMapping :=
   { path := requestPath, value := .integer .int32 assigned
@@ -328,12 +327,13 @@ private def tagInputCoverage : Coverage.InputMapping :=
 private def caseCoverage (assigned : Int := 7) : Coverage.Request :=
   { inputs := [inputCoverage assigned, tagInputCoverage], clauses := [id "test.correlated.fields"] }
 
-/-- Lower one requested Case, from the checked coverage through to the assembled artifact. -/
-private def compiledCase (temporal : PropertyCorrelatedClause)
+/-- Lower one requested Case, from the checked coverage through to the assembled artifact, beside
+the correlated ceilings its capability is decoded under, which the Case does not carry. -/
+private def loweredCase (temporal : PropertyCorrelatedClause)
     (mappings : List Case.Projection.FieldMapping := [mapping])
     (requested : Coverage.Request := caseCoverage) (assigned : Int := 7)
     (fields : List (EvidenceFieldDeclaration × FieldDisposition) := retainedCount) :
-    Except String CaseArtifact := do
+    Except String (CaseArtifact × CorrelatedLimits) := do
   let target ← targetResult.mapError fun _ => "target"
   let projected ← (plan target fields).mapError fun _ => "projection"
   let coverage ← (Case.Projection.Coverage.check projected valueLimits mappings).mapError
@@ -342,7 +342,7 @@ private def compiledCase (temporal : PropertyCorrelatedClause)
   let compiled ← (Property.Correlated.compile target checked [id "test.run"] (id "test.operation")
     runLimits).mapError fun _ => "correlated compile"
   let lowered ← (Correlated.lower projected compiled "evidence" coverage).mapError (·.construct)
-  (Compiler.compile {
+  let artifact ← (Compiler.compile {
     version := { major := 1 }
     caseId := "fields.case"
     producerId := "umpire.case.fields"
@@ -352,9 +352,16 @@ private def compiledCase (temporal : PropertyCorrelatedClause)
     program := program assigned
     contractId := "fields"
     properties := [lowered.contractLowering]
-    contractLimits := Testpilot.Authoring.Contract.limits 16 32 64 16 100000 1000000000 32 65536
     coverage := requested
   }).mapError (·.construct)
+  pure (artifact, lowered.limits)
+
+private def compiledCase (temporal : PropertyCorrelatedClause)
+    (mappings : List Case.Projection.FieldMapping := [mapping])
+    (requested : Coverage.Request := caseCoverage) (assigned : Int := 7)
+    (fields : List (EvidenceFieldDeclaration × FieldDisposition) := retainedCount) :
+    Except String CaseArtifact :=
+  (·.1) <$> loweredCase temporal mappings requested assigned fields
 
 private def capabilityOf (temporal : PropertyCorrelatedClause) : Except String CorrelatedContract := do
   let artifact ← compiledCase temporal
@@ -362,11 +369,19 @@ private def capabilityOf (temporal : PropertyCorrelatedClause) : Except String C
   let some capability := contract.«correlated» | throw "missing capability"
   pure capability
 
+/-- The lowered capability's correlated ceilings. -/
+private def limitsOf (temporal : PropertyCorrelatedClause) : Except String CorrelatedLimits :=
+  (·.2) <$> loweredCase temporal
+
+/-- Decode the lowered capability under the ceilings its lowering declared. -/
+private def decodedOf (temporal : PropertyCorrelatedClause) :
+    Except String Testpilot.Correlated.Compiled := do
+  Testpilot.Correlated.decode (← limitsOf temporal) (← capabilityOf temporal)
+
 /-- The portable interpreter over the lowered Case, replayed at one chunk boundary. -/
 private def portableAnswers (temporal : PropertyCorrelatedClause) (reports : List Report)
     (split : Nat := 0) : Option (List Nat) := do
-  let capability ← (capabilityOf temporal).toOption
-  let compiled ← (Testpilot.Correlated.decode capability).toOption
+  let compiled ← (decodedOf temporal).toOption
   let initial ← (compiled.start [(⟨"test.run"⟩, "run-1")]).toOption
   let observe := fun (run : Testpilot.Correlated.Monitor compiled) (report : Report) =>
     run.observe (report.ordinal + 2) (wireEvent report)
@@ -419,8 +434,7 @@ private def agrees (scenario : Scenario) : Bool :=
     | .ok _ => false)) == some true
 
 #guard (do
-  let capability ← (capabilityOf (clause)).toOption
-  let compiled ← (Testpilot.Correlated.decode capability).toOption
+  let compiled ← (decodedOf (clause)).toOption
   let initial ← (compiled.start [(⟨"test.run"⟩, "run-1")]).toOption
   let admitted ← (initial.observe 2 (wireEvent (request 0 2))).toOption
   pure (match admitted.observe 3 (wireEvent (reply 1)) with
@@ -438,7 +452,7 @@ private def expectedKeyed : List (String × Testpilot.Correlated.Keyed) :=
 
 private def decodedKeyed (temporal : PropertyCorrelatedClause) :
     Except String (List (String × Testpilot.Correlated.Keyed)) := do
-  let compiled ← Testpilot.Correlated.decode (← capabilityOf temporal)
+  let compiled ← decodedOf temporal
   pure compiled.keyed
 
 #guard (decodedKeyed (clause)).toOption == some expectedKeyed
@@ -449,7 +463,7 @@ private def decodedKeyed (temporal : PropertyCorrelatedClause) :
   let capability ← capabilityOf (clause)
   let some wire := capability.rules[0]? | throw "missing clause"
   let some declared := wire.captures[0]? | throw "missing capture"
-  let some limits := capability.limits | throw "missing limits"
+  let limits ← limitsOf (clause)
   pure (declared.capture_id == "test.capture.count" && declared.field_id == "test.count" &&
     declared.lifetime == 4 && wire.correlation.isSome &&
     limits.max_captures == 32 && limits.max_correlation_depth == 2)) :
@@ -459,7 +473,7 @@ private def decodedKeyed (temporal : PropertyCorrelatedClause) :
 -- encoding and meaning are exactly the ones it had before the keyed capability existed.
 #guard ((do
   let capability ← capabilityOf (clause (captures := []) (requirement := none))
-  let some limits := capability.limits | throw "missing limits"
+  let limits ← limitsOf (clause (captures := []) (requirement := none))
   let some wire := capability.rules[0]? | throw "missing clause"
   pure (limits.max_captures == 0 && limits.max_correlation_depth == 0 &&
     wire.captures.isEmpty && wire.correlation.isNone)) : Except String Bool).toOption == some true
@@ -745,7 +759,6 @@ private def monitorCase (assigned : Int := 7) : Except String CaseArtifact := do
     program := program assigned
     contractId := "fields.monitor"
     properties := result.contractLowering.toList
-    contractLimits := Testpilot.Authoring.Contract.limits 16 32 64 16 100000 1000000000 32 65536
     coverage := result.coverage
   }).mapError (·.construct)
 

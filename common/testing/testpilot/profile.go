@@ -61,6 +61,9 @@ func (c *Catalog) CheckMethod(name string) error {
 // role bindings change; rotating credentials for the same authorized identity does not change it.
 type Profile interface{ Snapshot() ProfileSpec }
 
+// ProfileSpec is one Profile snapshot. Its limits are the resource ceilings every admitted Case runs
+// under: a Case declares none of them, only the bounds that carry its behavior, which admission
+// checks against these ceilings. CorrelatedLimits is required only to admit a correlated contract.
 type ProfileSpec struct {
 	Identity            string
 	Catalog             *Catalog
@@ -69,12 +72,14 @@ type ProfileSpec struct {
 	EnvironmentBindings []EnvironmentBinding
 	ProgramLimits       *testpilotspb.ProgramLimits
 	ContractLimits      *testpilotspb.ContractLimits
+	CorrelatedLimits    *testpilotspb.CorrelatedLimits
 }
 
 func (p ProfileSpec) Snapshot() ProfileSpec {
 	snapshot := p
 	snapshot.ProgramLimits = proto.CloneOf(p.ProgramLimits)
 	snapshot.ContractLimits = proto.CloneOf(p.ContractLimits)
+	snapshot.CorrelatedLimits = proto.CloneOf(p.CorrelatedLimits)
 	snapshot.Opcodes = slices.Clone(p.Opcodes)
 	snapshot.EnvironmentBindings = slices.Clone(p.EnvironmentBindings)
 	snapshot.Roles = slices.Clone(p.Roles)

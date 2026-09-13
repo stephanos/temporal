@@ -171,8 +171,8 @@ func (m *runtimeMonitor) Close(context.Context, *testpilotspb.Run) (*testpilotsp
 
 func TestRunStopDrainsQuarantinesAndCannotSuppressFreshCleanup(t *testing.T) {
 	c, catalog, policy := fixture(t)
-	c.Program.Limits.MaxTotalDurationMilliseconds = 1000
-	c.Program.Limits.MaxCleanupDurationMilliseconds = 1000
+	policy.Limits.MaxTotalDurationMilliseconds = 1000
+	policy.Limits.MaxCleanupDurationMilliseconds = 1000
 	late := rpcNode("late")
 	quarantine := rpcNode("quarantine")
 	after := rpcNode("after")
@@ -251,7 +251,7 @@ func (m *deadlineMonitor) Close(ctx context.Context, _ *testpilotspb.Run) (*test
 func TestRunWaitsForLateMonitorAndThenReportsDeadlineViolation(t *testing.T) {
 	c, catalog, policy := fixture(t)
 	c.Program.Entrypoints[0].Instructions = nil
-	c.Program.Limits.MaxTotalDurationMilliseconds = 10
+	policy.Limits.MaxTotalDurationMilliseconds = 10
 	prepared, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
 	monitor := &deadlineMonitor{expired: make(chan struct{}), release: make(chan struct{})}
@@ -298,7 +298,7 @@ func (*canceledMonitor) Close(ctx context.Context, _ *testpilotspb.Run) (*testpi
 func TestRunConformingMonitorCancellationIsInconclusive(t *testing.T) {
 	c, catalog, policy := fixture(t)
 	c.Program.Entrypoints[0].Instructions = nil
-	c.Program.Limits.MaxTotalDurationMilliseconds = 10
+	policy.Limits.MaxTotalDurationMilliseconds = 10
 	prepared, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
 	run, verdict, err := Run(t.Context(), prepared, &runtimeDriver{session: &runtimeSession{}}, &canceledMonitor{}, "run", c.CaseId)
@@ -333,7 +333,7 @@ func TestRunTerminalPrecedence(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			c, catalog, policy := fixture(t)
-			c.Program.Limits.MaxCleanupDurationMilliseconds = 100
+			policy.Limits.MaxCleanupDurationMilliseconds = 100
 			c.Program.Cleanup.Instructions = []*testpilotspb.InstructionNode{rpcNode("cleanup")}
 			c.Program.Cleanup.Instructions[0].Limits.TimeoutMilliseconds = 100
 			prepared, err := Prepare(c, catalog, policy)
@@ -371,7 +371,7 @@ func TestRunTerminalPrecedence(t *testing.T) {
 
 func TestRunCleanupDeadlineDoesNotReplaceOrdinarySuccess(t *testing.T) {
 	c, catalog, policy := fixture(t)
-	c.Program.Limits.MaxCleanupDurationMilliseconds = 10
+	policy.Limits.MaxCleanupDurationMilliseconds = 10
 	cleanupNode := rpcNode("cleanup")
 	cleanupNode.Limits.TimeoutMilliseconds = 10
 	c.Program.Cleanup.Instructions = []*testpilotspb.InstructionNode{cleanupNode}
@@ -393,7 +393,7 @@ func TestRunCleanupDeadlineDoesNotReplaceOrdinarySuccess(t *testing.T) {
 
 func TestRunBoundsHostContextViolationAndQuarantineCapacityFailure(t *testing.T) {
 	c, catalog, policy := fixture(t)
-	c.Program.Limits.MaxCleanupDurationMilliseconds = 10
+	policy.Limits.MaxCleanupDurationMilliseconds = 10
 	prepared, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
 	effect := newRuntimeEffect(effectResponse(prepared, "complete"), true)
