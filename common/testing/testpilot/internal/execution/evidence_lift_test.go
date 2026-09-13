@@ -216,6 +216,50 @@ func TestEvidenceLiftSelectsOneRuleAndCountsItsOwnOrdinals(t *testing.T) {
 	require.Empty(t, stagedEvidence(t, values, prepared, func(protoreflect.Message) {}))
 }
 
+// TestEvidenceLiftGuardComparisonsWithAnAbsentPathAreFalse pins the absent-operand rule in the
+// evidence-lift context: under every operator, a guard comparing a path the record does not carry is
+// false, so the next rule claims the record, while the same guard over a carried path still decides.
+func TestEvidenceLiftGuardComparisonsWithAnAbsentPathAreFalse(t *testing.T) {
+	for _, tc := range []struct {
+		operator testpilotspb.ComparisonOperator
+		holds    bool
+	}{
+		{testpilotspb.COMPARISON_OPERATOR_EQUAL, true},
+		{testpilotspb.COMPARISON_OPERATOR_NOT_EQUAL, false},
+		{testpilotspb.COMPARISON_OPERATOR_LESS_THAN, false},
+		{testpilotspb.COMPARISON_OPERATOR_LESS_THAN_OR_EQUAL, true},
+		{testpilotspb.COMPARISON_OPERATOR_GREATER_THAN, false},
+		{testpilotspb.COMPARISON_OPERATOR_GREATER_THAN_OR_EQUAL, true},
+	} {
+		t.Run(tc.operator.String(), func(t *testing.T) {
+			artifact, catalog, policy := liftFixture(t)
+			lift := artifact.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().ResponseReads[0].Targets[0].GetCorrelatedEvidence()
+			lift.Rules[0].Guard = &testpilotspb.Expression{Expression: &testpilotspb.Expression_Compare{Compare: &testpilotspb.CompareExpression{
+				Operator: tc.operator,
+				Left:     projected(nestedPath("completed", "referenced")),
+				Right:    &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_SignedIntegerValue{SignedIntegerValue: "7"}}}},
+			}}}
+			prepared, err := Prepare(artifact, catalog, policy)
+			require.NoError(t, err)
+			store, err := newValueStore(prepared, "run")
+			require.NoError(t, err)
+			values, err := store.activate("controller", "activation")
+			require.NoError(t, err)
+
+			absent := stagedEvidence(t, values, prepared, setScheduled("first"))
+			require.Len(t, absent, 1)
+			require.Equal(t, "scheduled.other", absent[0].GetKind())
+
+			carried := stagedEvidence(t, values, prepared, func(m protoreflect.Message) {
+				setScheduled("first")(m)
+				setCompleted(7)(m)
+			})
+			require.Len(t, carried, 1)
+			require.Equal(t, map[bool]string{true: "scheduled.first", false: "scheduled.other"}[tc.holds], carried[0].GetKind())
+		})
+	}
+}
+
 // TestEvidenceLiftRejectsUndeclarableRules pins the admission errors: the sink must be the exact
 // declared CorrelatedEvidence Observation, a rule must exist, and every bound coordinate must read a
 // scalar the portable evidence domain admits.
