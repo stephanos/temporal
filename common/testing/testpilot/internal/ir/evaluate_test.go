@@ -130,13 +130,13 @@ func TestComparisonsWithAnAbsentOperandAreFalse(t *testing.T) {
 		})
 		t.Run(tc.site.Path+"/bare predicate", func(t *testing.T) {
 			_, err := c.BindExpression(tc.site, tc.reference("flag"), &boolType, scope, DefaultLimits())
-			require.Equal(t, &Error{Category: Unavailable, Path: "expression", Detail: "reference or projection requires an explicit presence guard"}, err)
+			require.Equal(t, &Error{Category: Unavailable, Path: "expression", Detail: "reference or path read requires an explicit presence guard"}, err)
 		})
 	}
 	t.Run("input", func(t *testing.T) {
 		scope := map[Reference]Binding{{Kind: SlotReference, ID: "absent"}: {Type: intType}}
 		_, _, err := c.BindGuardedExpression(Condition{Expression: compare(testpilotspb.COMPARISON_OPERATOR_EQUAL, slot("absent"), literal(signed("1")))}, programSite, slot("absent"), &intType, scope, DefaultLimits())
-		require.Equal(t, &Error{Category: Unavailable, Path: "expression", Detail: "reference or projection requires an explicit presence guard"}, err)
+		require.Equal(t, &Error{Category: Unavailable, Path: "expression", Detail: "reference or path read requires an explicit presence guard"}, err)
 	})
 }
 

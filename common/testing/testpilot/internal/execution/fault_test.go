@@ -33,7 +33,7 @@ func faultFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Profile) {
 	return c, catalog, policy
 }
 
-// The Opcode list, the instruction-to-capability switch and the Instruction oneof are three
+// The Opcode list, the instruction-to-Opcode switch and the Instruction oneof are three
 // hand-maintained lists. Pinning them to each other is what stops a new instruction from landing
 // in only one of them; the facade re-exports the contract leaf's Opcode by alias, so it adds no
 // fourth list to pin.
@@ -48,12 +48,12 @@ func TestInstructionOpcodesCoverTheInstructionTable(t *testing.T) {
 		t.Run(string(field.Name()), func(t *testing.T) {
 			instruction := &testpilotspb.Instruction{}
 			instruction.ProtoReflect().Mutable(field)
-			capability := InstructionOpcode(instruction)
+			opcode := InstructionOpcode(instruction)
 			// The oneof field number is the opcode: the two lists cannot be reordered apart.
-			require.Equal(t, contract.Opcode(field.Number()), capability)
-			require.False(t, seen[capability])
-			seen[capability] = true
-			require.NotZero(t, opcodeContext(capability))
+			require.Equal(t, contract.Opcode(field.Number()), opcode)
+			require.False(t, seen[opcode])
+			seen[opcode] = true
+			require.NotZero(t, opcodeContext(opcode))
 		})
 	}
 }
@@ -65,7 +65,7 @@ func TestPrepareAdmitsFaultInjection(t *testing.T) {
 		category ir.ErrorCategory
 	}{
 		{"admitted", func(*testpilotspb.Case, *Profile) {}, ""},
-		{"missing capability", func(_ *testpilotspb.Case, p *Profile) {
+		{"missing opcode", func(_ *testpilotspb.Case, p *Profile) {
 			p.Opcodes = p.Opcodes[:len(p.Opcodes)-1]
 		}, ir.Unsupported},
 		{"undeclared role", func(c *testpilotspb.Case, _ *Profile) {

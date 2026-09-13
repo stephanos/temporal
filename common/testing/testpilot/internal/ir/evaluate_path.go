@@ -20,7 +20,7 @@ func decodeMessage(value *testpilotspb.Value, descriptor protoreflect.MessageDes
 	}
 	return message.ProtoReflect(), nil
 }
-func (r *runtimeExpression) project(path *Path, source *testpilotspb.Value, typ Type) (*testpilotspb.Value, error) {
+func (r *runtimeExpression) readPath(path *Path, source *testpilotspb.Value, typ Type) (*testpilotspb.Value, error) {
 	if err := r.charge(int64(proto.Size(source))); err != nil {
 		return nil, err
 	}

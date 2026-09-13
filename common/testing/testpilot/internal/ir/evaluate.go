@@ -73,12 +73,12 @@ func (r *runtimeExpression) eval(e *Expression) (*testpilotspb.Value, error) {
 		return e.literal, nil
 	case ReferenceValue:
 		return r.resolve(e.reference), nil
-	case Project:
+	case ReadPath:
 		v, err := r.eval(e.children[0])
 		if err != nil {
 			return nil, err
 		}
-		return r.project(e.path, v, e.children[0].typ)
+		return r.readPath(e.path, v, e.children[0].typ)
 	case IsPresent:
 		v, err := r.eval(e.children[0])
 		return boolValue(v != nil), err
