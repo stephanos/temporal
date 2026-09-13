@@ -40,9 +40,58 @@ Finish R6 on the Program/value side: keep one opaque-handle encoding, remove `Va
 
 
 ## Done summary
-TBD
+A Slot is now the only opaque-handle encoding, the natural Value arm is gone in favour of `unsigned_integer_value` typed `UINT64`, and the wire `EntrypointKind` is replaced by a Go classification in the `contract` leaf. The wire-encoding scalar kinds are kept, with the reason in a `ScalarKind` comment. No fixture changed, and the oracle passes with three new declared steps.
 
+**Decisions** (recorded in the fn-87 Planning decisions as "decided in .9")
+- **Opaque handle.**
+  - `SingularType.opaque_handle` is removed.
+  - `ir` binds a handle Slot through `Catalog.OpaqueHandleType()`, a type with no schema. `owns`, `Equal` and `checkLiteral` accept it, so inspecting, reading or writing a literal into an opaque slot still rejects (existing path, expression and snapshot tests).
+  - The Observation opaque check and the capture-type `opaque handle` test row are gone, because neither case can be written any more.
+- **Natural removed.**
+  - No Producer needs a value above 2^64-1: every runtime natural comes from a protobuf integer field. A probe showed the checked Property already rejects an oversized integer literal, as `"property"`, before lowering.
+  - The evidence lift, correlated validation and literal typing use `unsigned_integer_value` / `UINT64`, checked canonical and within 64 bits. So do the Lean decoder (`unsigned integer overflow`) and the Umpire Producer (`protobuf unsigned overflow`). The Producer guard is defensive and no test reaches it.
+  - `Value` arms and `ScalarKind` are renumbered so their numbers stay dense.
+- **EntrypointKind.**
+  - `contract.EntrypointKind` has the constants `ControllerEntrypoint`, `WorkflowEntrypoint`, `ActivityEntrypoint`, `NexusHandlerEntrypoint` and `MaxEntrypointKind`.
+  - One classifier, `EntrypointKindOf`, is used by preparation and by the Temporal profile.
+  - The facade re-exports the type and constants by alias and the classifier through a wrapper function.
+- **Scalar kinds kept.** Admission types a field read by the field's declared kind and requires it to equal the declared type.
+
+**Tests**
+- `TestEntrypointKindOfClassifiesEachActivation`
+- `protocol_test`: descriptor assertions on the `SingularType` and `Value` arms, and that `SCALAR_KIND_NATURAL` is absent
+- Correlated `oversized-unsigned-literal` rejection
+- Lean `#guard`s for the unsigned integer overflow and non-canonical rejections
+- Oracle step cases for natural value and kind (by name and number), oversized and non-canonical values, and opaque singular type refusal. A mutation of the natural step made the oracle fail.
+- `retiredvocabulary`: positive and negative lines
+
+**Oracle and vocabulary**
+- New steps:
+  - `natural_value` → `unsigned_integer_value`, validated as canonical uint64
+  - `ScalarKind` NATURAL → UINT64, with later numbers shifted down
+  - refusal of an opaque `SingularType`
+- Retired tokens: `NaturalValue` / `naturalValue`, `natural_value`, `SCALAR_KIND_NATURAL`, the `ENTRYPOINT_KIND_*` prefix, and `EntrypointKind` in the protocol vocabulary test.
+
+**Outside declared Touches**
+- `tools/umpire/internal/retiredvocabulary/check.go` and `check_test.go`: the retired tokens.
+- `tools/umpire/cmd/umpire-gen-lean-api/case_schema_test.go`: its crossed-oneof input named the removed kind.
+- `.flow` spec: the decision note.
+
+**Gates**
+- Baseline was green: the oracle ran, and the regression receipt at 64480064 was honored.
+- `make umpire-check-regression`:
+  - Run 1: failed on the known flake (c). An async-nexus Run ended INCONCLUSIVE in `TestTestpilotAsyncNexusCase` and in the umpire-run test.
+  - Run 2, at b32e986756: exit 0 with 9 live identities. Receipt written.
+- `lint-code`: 161 after `go clean -cache`, none in changed files. `lint-model`: 163. Both are the baselines.
+- `make umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-check-case-runtime-conformance` and `umpire-check-retired-vocabulary` passed.
+
+**Review**
+- Claude impl-review returned SHIP.
+- Its P2 finding was valid: the enum swap had left `require.NotEqual(t, 0, …)` comparing an untyped int. It was fixed in b32e986756 with `require.NotZero`.
+- A suppressed confidence-25 note was not acted on: `rewriteScalarKind` shifts an out-of-range baseline number instead of rejecting it, and no frozen fixture carries one.
+
+stage: impl-review - ran (claude backend, SHIP on first round; P2 applied in follow-up commit b32e986756)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 2a469e1163c179d4df74f9b29b41e25152cf0897, b32e98675614f81d9fa66de4897fe5b81407aeb3
+- Tests: go test -count=1 -tags test_dep ./common/testing/testpilot/... ./tools/umpire/..., make umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-check-case-runtime-conformance, make umpire-check-retired-vocabulary, CC=/usr/bin/cc TMPDIR=$(cd "${TMPDIR:-/tmp}" && pwd -P) make umpire-check-regression (run 1 at 2a469e1163+b32e986756: FAIL, known flake (c) async-nexus INCONCLUSIVE in TestTestpilotAsyncNexusCase and TestTestpilotUmpireRunRunsACheckedInCaseAgainstAnyEndpoint; run 2 at b32e986756: exit 0, 9 live identities, receipt written), go clean -cache && make lint-code GOLANGCI_LINT_FIX=false (161 issues, baseline; none in changed files), make lint-model (163, baseline)
 - PRs:
