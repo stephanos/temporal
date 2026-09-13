@@ -13,7 +13,7 @@ import (
 
 func carrierFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Profile) {
 	t.Helper()
-	source, catalog, policy := capabilityFixture(t)
+	source, catalog, policy := handleFixture(t)
 	policy.Roles[0].ReservationCarriers = []contract.ReservationCarrierPolicy{{
 		Method: "/example.Service/Call",
 		Shapes: []contract.ReservationCarrierShape{

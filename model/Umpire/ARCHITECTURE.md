@@ -145,7 +145,7 @@ windows inconclusive; a known violation remains proved.
 `Shared.SemanticData`, `Shared.CorrelatedProjection`, and `Shared.CorrelatedObligation` own inert table data,
 causal admission, and bounded countdown execution. Umpire's checked facades retain their semantic
 proofs. `Umpire.Case.Correlated.lower` binds the generated wire decode to the checked projection and
-Property, carrying exact clause/source provenance. `Testpilot.Correlated` interprets the closed table
+Property, carrying exact rule/source provenance. `Testpilot.Correlated` interprets the closed table
 capability without importing Umpire callbacks. Go admission rejects unsupported/stale capabilities
 and incompatible resource ceilings before Driver execution; mutable evidence and windows belong to
 one Run. The correlated fixture corpus exercises both offline parity and real public-facade recording.
@@ -203,7 +203,7 @@ access, executable hook, or runtime registry.
 A Slot is immutable single-assignment data used by later instructions. Slot storage is private to
 one execution and is never exposed as a public scheduler API or recorded automatically.
 
-An Observation is a declared typed projection on a Run Event. Contracts may inspect Observations
+An Observation is a declared typed field on a Run Event. Contracts may inspect Observations
 and selected Run Event fields. They cannot inspect arbitrary Slots or raw request and response
 payloads. This opacity limits evidence authority; it does not classify every response field as
 secret.

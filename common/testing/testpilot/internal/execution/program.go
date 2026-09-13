@@ -121,18 +121,18 @@ type node struct {
 	timeoutMilliseconds, maxAttempts int64
 	// reservations are the worker activations the node reserves as a reservation carrier, in
 	// entrypoint declaration order.
-	reservations []contract.ReservationTopology
-	method       protoreflect.MethodDescriptor
-	assignments  []assignment
-	projections  []projection
-	input        *ir.Expression
+	reservations  []contract.ReservationTopology
+	method        protoreflect.MethodDescriptor
+	assignments   []assignment
+	responseReads []responseRead
+	input         *ir.Expression
 }
 type assignment struct {
 	target               *ir.Path
 	value                *ir.Expression
 	environmentBindingID string
 }
-type projection struct {
+type responseRead struct {
 	path        *ir.Path
 	cardinality testpilotspb.ReadCardinality
 	sinks       []*testpilotspb.ReadTarget
@@ -185,7 +185,7 @@ type AssignmentPlan struct {
 	Target *ir.Path
 	Value  *ir.Expression
 }
-type ProjectionPlan struct {
+type ResponseReadPlan struct {
 	Source      *ir.Path
 	Cardinality testpilotspb.ReadCardinality
 	Sinks       []*testpilotspb.ReadTarget
@@ -240,14 +240,14 @@ func (p InstructionPlan) Assignments() []AssignmentPlan {
 	}
 	return result
 }
-func (p InstructionPlan) Projections() []ProjectionPlan {
-	result := make([]ProjectionPlan, len(p.node.projections))
-	for i, projection := range p.node.projections {
-		sinks := make([]*testpilotspb.ReadTarget, len(projection.sinks))
-		for j, sink := range projection.sinks {
+func (p InstructionPlan) ResponseReads() []ResponseReadPlan {
+	result := make([]ResponseReadPlan, len(p.node.responseReads))
+	for i, read := range p.node.responseReads {
+		sinks := make([]*testpilotspb.ReadTarget, len(read.sinks))
+		for j, sink := range read.sinks {
 			sinks[j] = proto.CloneOf(sink)
 		}
-		result[i] = ProjectionPlan{Source: projection.path, Cardinality: projection.cardinality, Sinks: sinks}
+		result[i] = ResponseReadPlan{Source: read.path, Cardinality: read.cardinality, Sinks: sinks}
 	}
 	return result
 }

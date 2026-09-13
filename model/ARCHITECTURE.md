@@ -93,7 +93,7 @@ Operation-correlated bounded response authoring lowers through the existing Prop
 key, scope, bound, and ending remain explicit semantic choices.
 Checked projection, source Property, and portable Contract are connected by `Umpire.Case.Correlated`
 certificates. Shared table/projection/obligation modules contain no feature callback; generic
-Testpilot interprets the admitted versioned capability and maintains fresh state for each Run.
+Testpilot interprets the admitted correlated capability and maintains fresh state for each Run.
 
 The non-cancellation correlated corpus now includes RPC Programs that emit typed observations through
 the public Prepare/Run path. It qualifies correlation, inclusive deadlines, preserved violation
@@ -195,7 +195,7 @@ sequential and concurrent Runs.
 Temporal server and worker authority do not overlap. The server Driver supplies the authorized
 descriptor catalog, transports prepared unary method/request pairs, and returns raw typed responses
 and protocol status. Internal execution constructs requests and applies declared response
-projections to private Slots and Run Observations. The worker Driver uses Temporal SDK APIs for
+reads to private Slots and Run Observations. The worker Driver uses Temporal SDK APIs for
 workflow, activity, and Nexus-handler execution, owns reservation delivery, and cancels at
 activation scope. The composite Driver joins these capabilities without interpreting the Program or
 Contract. The composite and its `server` and `worker` packages live under

@@ -73,7 +73,7 @@ func TestInstructionsRunAfterTheirPredecessorUnlessAfterSaysOtherwise(t *testing
 // guard does, so a completion may consume the awaited handle and a finish may return the awaited
 // value without writing that guard.
 func TestTheDefaultGuardBindsDependencyOutcomes(t *testing.T) {
-	c, catalog, policy := capabilityFixture(t)
+	c, catalog, policy := handleFixture(t)
 	c.Program.Entrypoints[0].Instructions[2].Guard = nil
 	c.Program.Entrypoints[1].Instructions[2].Guard = nil
 	_, err := Prepare(c, catalog, policy)
