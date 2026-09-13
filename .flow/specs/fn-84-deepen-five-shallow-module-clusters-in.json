@@ -613,7 +613,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-84-deepen-five-shallow-module-clusters-in.md",
-  "status": "open",
+  "status": "done",
   "title": "Deepen five shallow module clusters in Umpire and Testpilot",
   "tracker": {
     "baseHashFlow": null,
@@ -626,5 +626,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-12T23:34:22.265640Z"
+  "updated_at": "2026-09-13T00:05:07.490551Z"
 }
