@@ -695,6 +695,10 @@ func buildRetiredRules() ([]tokenRule, error) {
 		"activation" + "_reservations",
 		"InstructionOutcome" + "Definition",
 		"OutcomeField" + "Definition",
+		// fn-87 replaces the opaque provenance bytes with typed rows the runtime still never reads.
+		"Producer" + "Data",
+		"Get" + "ProducerData",
+		"producer" + "_data",
 	}
 
 	rules := make([]tokenRule, 0, len(exactTokens)+5)
@@ -735,6 +739,9 @@ func buildRetiredRules() ([]tokenRule, error) {
 		// classification, whose constants spell no prefix.
 		tokenRule{name: "SCALAR_KIND_NATURAL", pattern: regexp.MustCompile(`(^|[^A-Za-z0-9_])SCALAR_KIND_NATURAL([^A-Za-z0-9_]|$)`)},
 		tokenRule{name: "ENTRYPOINT_KIND_*", pattern: regexp.MustCompile(`(^|[^A-Za-z0-9_])ENTRYPOINT_KIND_[A-Z0-9_]+`)},
+		// The provenance kinds the opaque payload spelled, now DEFINITION_KIND_ and KNOWN_GAP_KIND_ values.
+		tokenRule{name: "CASE_DEFINITION_KIND_*", pattern: regexp.MustCompile(`(^|[^A-Za-z0-9_])CASE_DEFINITION_KIND_[A-Z0-9_]+`)},
+		tokenRule{name: "CASE_KNOWN_GAP_KIND_*", pattern: regexp.MustCompile(`(^|[^A-Za-z0-9_])CASE_KNOWN_GAP_KIND_[A-Z0-9_]+`)},
 	)
 	// The generation-numbered module and identity roots. A leading hyphen is excluded because the
 	// only occurrences in that shape are immutable Flow spec slugs, which name closed records rather

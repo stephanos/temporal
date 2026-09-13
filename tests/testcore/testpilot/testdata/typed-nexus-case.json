@@ -1516,9 +1516,62 @@
     ]
   },
   "provenance": {
-    "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZW1wb3JhbC5uZXh1cy5zdWNjZXNzLnR5cGVkLW5leHVzLnRhcmdldCIsCiAgICAgICJiZWhhdmlvckZpbmdlcnByaW50IjogInNoYTI1NjpjOWEzMDg2MjU0MjAxNGIxYjI1NGUxMDE4NzE1NDlhYjU5OTZjOWZjNDQxYTAwYTBiOWRiYWIxMjAwMzk5NWNlIiwKICAgICAgImtpbmQiOiAiQ0FTRV9ERUZJTklUSU9OX0tJTkRfVEFSR0VUIgogICAgfSwKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZW1wb3JhbC5uZXh1cy5zdWNjZXNzLnR5cGVkLW5leHVzLnByb3BlcnR5LmNvcnJlbGF0ZWQtY29tcGxldGlvbiIsCiAgICAgICJiZWhhdmlvckZpbmdlcnByaW50IjogInNoYTI1NjoyYjYxMTgxMzVmYTNmYmQ3NTE0MDg1MDRhMmE4OTFjZWZiZTE5ZmVkY2ZhNzYwYWJhYmQ3OTFlYjEzYzc2MmYzIiwKICAgICAgImtpbmQiOiAiQ0FTRV9ERUZJTklUSU9OX0tJTkRfUFJPUEVSVFkiCiAgICB9LAogICAgewogICAgICAiZGVmaW5pdGlvbklkIjogInRlbXBvcmFsLm5leHVzLnN1Y2Nlc3MudHlwZWQtbmV4dXMucHJvcGVydHkuYm91bmRlZC1jb21wbGV0aW9uIiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjU4OTcxMjQ3MzcxOWRlNThmYTk5YWJiNzdlNTA0NGEzODNmYzUxYzFlNTg4MjgzZGQ4MDIzMGMzNzQwNTY1ODciLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJUZW1wb3JhbC9GZWF0dXJlL05leHVzL1N1Y2Nlc3MvVHlwZWROZXh1cy5sZWFuIiwKICAgICAgImxpbmUiOiAiMSIsCiAgICAgICJjb2x1bW4iOiAiMSIsCiAgICAgICJwcm92ZW5hbmNlIjogImxlYW4tbW9kZWwiCiAgICB9CiAgXSwKICAia25vd25HYXBzIjogWwogICAgewogICAgICAia2luZCI6ICJDQVNFX0tOT1dOX0dBUF9LSU5EX0lOVEVSUFJFVEFUSU9OIiwKICAgICAgImNvZGUiOiAidGVtcG9yYWwubmV4dXMuc3VjY2Vzcy50eXBlZC1uZXh1cy5jb21wbGV0aW9uLWlkZW50aXR5LWlzLXVucmVjb3JkZWQiLAogICAgICAic3ViamVjdCI6ICJ0ZW1wb3JhbC5uZXh1cy5zdWNjZXNzLnR5cGVkLW5leHVzLnByb3BlcnR5LmJvdW5kZWQtY29tcGxldGlvbiIsCiAgICAgICJkZXRhaWwiOiAidGhlIGJvdW5kZWQtcmVzcG9uc2Ugd2luZG93IHJ1bnMgb25saW5lIGZyb20gbGlmdGVkIGhpc3RvcnkgZXZpZGVuY2U7IGEgY29tcGxldGVkIGV2ZW50IHJlY29yZHMgbm8gb3BlcmF0aW9uIGlkZW50aXR5LCBzbyB0aGUgb3BlcmF0aW9uIGtleSBpcyB0aGUgc2NoZWR1bGVkIGV2ZW50IGl0IHJlZmVyZW5jZXMgYW5kIHRoZSBwcm9qZWN0aW9uIHJlbGVhc2VzIG9uZSByZXByZXNlbnRhdGl2ZSBjb21wbGV0ZWQgc3RlcCIKICAgIH0sCiAgICB7CiAgICAgICJraW5kIjogIkNBU0VfS05PV05fR0FQX0tJTkRfSU5URVJQUkVUQVRJT04iLAogICAgICAiY29kZSI6ICJ0ZW1wb3JhbC5uZXh1cy5zdWNjZXNzLnR5cGVkLW5leHVzLmNyb3NzZWQtY29tcGxldGlvbi1pcy1pbmNvbmNsdXNpdmUiLAogICAgICAic3ViamVjdCI6ICJ0ZW1wb3JhbC5uZXh1cy5zdWNjZXNzLnR5cGVkLW5leHVzLnByb3BlcnR5LmNvcnJlbGF0ZWQtY29tcGxldGlvbiIsCiAgICAgICJkZXRhaWwiOiAiYSBjb21wbGV0ZWQgZXZlbnQgY2FycmllcyBubyBvcGVyYXRpb24gaWRlbnRpdHksIHNvIGEgY29tcGxldGlvbiByZWZlcmVuY2luZyBhbm90aGVyIHNjaGVkdWxlZCBldmVudCBsZWF2ZXMgdGhlIHJ1bGUgcGVuZGluZyByYXRoZXIgdGhhbiB2aW9sYXRlZDsgdGhlIG1vZGVsIFByb3BlcnR5IHN0aWxsIGRpc3Rpbmd1aXNoZXMgdGhlIHR3byIKICAgIH0KICBdLAogICJjb3JyZWxhdGVkUnVsZXMiOiBbCiAgICB7CiAgICAgICJydWxlSWQiOiAidGVtcG9yYWwubmV4dXMuc3VjY2Vzcy50eXBlZC1uZXh1cy5jbGF1c2UuYm91bmRlZC1jb21wbGV0aW9uIiwKICAgICAgInByb3BlcnR5SWQiOiAidGVtcG9yYWwubmV4dXMuc3VjY2Vzcy50eXBlZC1uZXh1cy5wcm9wZXJ0eS5ib3VuZGVkLWNvbXBsZXRpb24iLAogICAgICAicHJvcGVydHlGaW5nZXJwcmludCI6ICJzaGEyNTY6NTg5NzEyNDczNzE5ZGU1OGZhOTlhYmI3N2U1MDQ0YTM4M2ZjNTFjMWU1ODgyODNkZDgwMjMwYzM3NDA1NjU4NyIsCiAgICAgICJwcm9qZWN0aW9uSWQiOiAidGVtcG9yYWwubmV4dXMuc3VjY2Vzcy50eXBlZC1uZXh1cy5wcm9qZWN0aW9uIiwKICAgICAgInByb2plY3Rpb25GaW5nZXJwcmludCI6ICJzaGEyNTY6NDU1OTA5Mjc1MzFhYTYyMzEwOTdkNTA1NDJmODkwOWI4MWY3YmE2NDEwMTU2OTJlYjY2MjkyMzVkYTRhODhiZSIsCiAgICAgICJzb3VyY2UiOiB7CiAgICAgICAgInBhdGgiOiAiVGVtcG9yYWwvRmVhdHVyZS9OZXh1cy9TdWNjZXNzL1R5cGVkTmV4dXMubGVhbiIsCiAgICAgICAgImxpbmUiOiAiMSIsCiAgICAgICAgImNvbHVtbiI6ICIxIiwKICAgICAgICAicHJvdmVuYW5jZSI6ICJsZWFuLW1vZGVsIgogICAgICB9CiAgICB9CiAgXQp9Cg==",
+    "correlatedRules": [
+      {
+        "projectionFingerprint": "sha256:45590927531aa6231097d50542f8909b81f7ba641015692eb6629235da4a88be",
+        "projectionId": "temporal.nexus.success.typed-nexus.projection",
+        "propertyFingerprint": "sha256:589712473719de58fa99abb77e5044a383fc51c1e588283dd80230c374056587",
+        "propertyId": "temporal.nexus.success.typed-nexus.property.bounded-completion",
+        "ruleId": "temporal.nexus.success.typed-nexus.clause.bounded-completion",
+        "source": {
+          "column": 1,
+          "line": 1,
+          "path": "Temporal/Feature/Nexus/Success/TypedNexus.lean",
+          "provenance": "lean-model"
+        }
+      }
+    ],
+    "definitions": [
+      {
+        "behaviorFingerprint": "sha256:c9a30862542014b1b254e101871549ab5996c9fc441a00a0b9dbab12003995ce",
+        "definitionId": "temporal.nexus.success.typed-nexus.target",
+        "kind": "DEFINITION_KIND_TARGET"
+      },
+      {
+        "behaviorFingerprint": "sha256:2b6118135fa3fbd751408504a2a891cefbe19fedcfa760ababd791eb13c762f3",
+        "definitionId": "temporal.nexus.success.typed-nexus.property.correlated-completion",
+        "kind": "DEFINITION_KIND_PROPERTY"
+      },
+      {
+        "behaviorFingerprint": "sha256:589712473719de58fa99abb77e5044a383fc51c1e588283dd80230c374056587",
+        "definitionId": "temporal.nexus.success.typed-nexus.property.bounded-completion",
+        "kind": "DEFINITION_KIND_PROPERTY"
+      }
+    ],
+    "knownGaps": [
+      {
+        "code": "temporal.nexus.success.typed-nexus.completion-identity-is-unrecorded",
+        "detail": "the bounded-response window runs online from lifted history evidence; a completed event records no operation identity, so the operation key is the scheduled event it references and the projection releases one representative completed step",
+        "kind": "KNOWN_GAP_KIND_INTERPRETATION",
+        "subject": "temporal.nexus.success.typed-nexus.property.bounded-completion"
+      },
+      {
+        "code": "temporal.nexus.success.typed-nexus.crossed-completion-is-inconclusive",
+        "detail": "a completed event carries no operation identity, so a completion referencing another scheduled event leaves the rule pending rather than violated; the model Property still distinguishes the two",
+        "kind": "KNOWN_GAP_KIND_INTERPRETATION",
+        "subject": "temporal.nexus.success.typed-nexus.property.correlated-completion"
+      }
+    ],
     "producerId": "temporal.nexus.success.typed-nexus",
-    "producerVersion": "1"
+    "producerVersion": "1",
+    "sources": [
+      {
+        "column": 1,
+        "line": 1,
+        "path": "Temporal/Feature/Nexus/Success/TypedNexus.lean",
+        "provenance": "lean-model"
+      }
+    ]
   },
   "version": {
     "major": 1

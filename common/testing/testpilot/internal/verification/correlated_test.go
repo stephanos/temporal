@@ -378,20 +378,12 @@ func TestCorrelatedCheckedLeanFixtures(t *testing.T) {
 		t.Run(fixture.Name, func(t *testing.T) {
 			var artifact testpilotspb.Case
 			require.NoError(t, protojson.Unmarshal(fixture.Case, &artifact))
-			var provenance struct {
-				CorrelatedRules []struct {
-					RuleID                string `json:"ruleId"`
-					PropertyID            string `json:"propertyId"`
-					ProjectionID          string `json:"projectionId"`
-					ProjectionFingerprint string `json:"projectionFingerprint"`
-				} `json:"correlatedRules"`
-			}
-			require.NoError(t, json.Unmarshal(artifact.GetProvenance().GetProducerData(), &provenance))
-			require.Len(t, provenance.CorrelatedRules, 1)
-			require.Equal(t, artifact.Contract.Correlated.Rules[0].RuleId, provenance.CorrelatedRules[0].RuleID)
-			require.Equal(t, "test.property", provenance.CorrelatedRules[0].PropertyID)
-			require.Equal(t, artifact.Contract.Correlated.ProjectionId, provenance.CorrelatedRules[0].ProjectionID)
-			require.Equal(t, artifact.Contract.Correlated.ProjectionFingerprint, provenance.CorrelatedRules[0].ProjectionFingerprint)
+			rules := artifact.GetProvenance().GetCorrelatedRules()
+			require.Len(t, rules, 1)
+			require.Equal(t, artifact.Contract.Correlated.Rules[0].RuleId, rules[0].GetRuleId())
+			require.Equal(t, "test.property", rules[0].GetPropertyId())
+			require.Equal(t, artifact.Contract.Correlated.ProjectionId, rules[0].GetProjectionId())
+			require.Equal(t, artifact.Contract.Correlated.ProjectionFingerprint, rules[0].GetProjectionFingerprint())
 			_, catalog, fixtureView, ceiling, correlated := correlatedFixture(t, 1)
 			program, err := execution.Prepare(&artifact, catalog, execution.Profile{Identity: "host", CatalogIdentity: catalog.Identity(), Limits: fixtureView.Limits()})
 			require.NoError(t, err)

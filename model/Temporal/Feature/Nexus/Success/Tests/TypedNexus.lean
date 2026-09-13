@@ -308,10 +308,11 @@ private def readSegments (steps : List Field.Step) : Option (List (String × Str
 -- Property it belongs to.
 #guard match typedNexusCase.toOption.bind (·.provenance) with
   | some provenance =>
-      (String.fromUTF8? provenance.producer_data).any fun payload =>
-        (payload.splitOn "bounded-completion-is-model-only").length == 1 &&
-        (payload.splitOn "completion-identity-is-unrecorded").length == 2 &&
-        (payload.splitOn linkPropertyId.value).length ≥ 2
+      let gaps := provenance.known_gaps.toList
+      !gaps.any (·.code.endsWith "bounded-completion-is-model-only") &&
+        match gaps.filter (·.code.endsWith "completion-identity-is-unrecorded") with
+        | [gap] => gap.subject_presence.map (fun | .subject subject => subject) == some linkPropertyId.value
+        | _ => false
   | none => false
 
 -- The Contract carries the correlated capability the lifted evidence feeds, bound to the declared

@@ -314,18 +314,18 @@ func TestRenameCorrelatedRuleKey(t *testing.T) {
 		{
 			name:            "rejects the key outside the rules",
 			payload:         `{"old": "a", "correlatedRules": [{"old": "b"}]}`,
-			wantErrorSubstr: `producerData spells "old" outside its correlatedRules entries`,
+			wantErrorSubstr: opaqueBytesKey + ` spells "old" outside its correlatedRules entries`,
 		},
 		{
 			name:            "rejects a rule without the key",
 			payload:         `{"correlatedRules": [{"old": "a"}, {"other": "b"}]}`,
-			wantErrorSubstr: `producerData correlatedRules[1] does not carry "old" alone`,
+			wantErrorSubstr: opaqueBytesKey + ` correlatedRules[1] does not carry "old" alone`,
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			object := &Object{Fields: map[string]any{"producerData": base64.StdEncoding.EncodeToString([]byte(tc.payload))}}
+			object := &Object{Fields: map[string]any{opaqueBytesKey: base64.StdEncoding.EncodeToString([]byte(tc.payload))}}
 			mapped, err := renameCorrelatedRuleKey("old", "new")("fixture.json", object)
 			if tc.wantErrorSubstr != "" {
 				require.ErrorContains(t, err, tc.wantErrorSubstr)
@@ -334,7 +334,7 @@ func TestRenameCorrelatedRuleKey(t *testing.T) {
 			require.NoError(t, err)
 			renamed, ok := mapped.(*Object)
 			require.True(t, ok)
-			require.Equal(t, base64.StdEncoding.EncodeToString([]byte(tc.want)), renamed.Fields["producerData"])
+			require.Equal(t, base64.StdEncoding.EncodeToString([]byte(tc.want)), renamed.Fields[opaqueBytesKey])
 		})
 	}
 }
@@ -764,6 +764,96 @@ func TestDeclaredDerivedDeclarationsStepDropsOnlyWhatPreparationDerives(t *testi
 			require.True(t, ok)
 			root.Message = protocol + "Program"
 			mapped, err := Declared.apply(functionalFixture, root)
+			if tc.wantErrorSubstr != "" {
+				require.ErrorContains(t, err, tc.wantErrorSubstr)
+				return
+			}
+			require.NoError(t, err)
+			encoded, err := json.Marshal(mapped)
+			require.NoError(t, err)
+			require.JSONEq(t, tc.want, string(encoded))
+		})
+	}
+}
+
+func TestDeclaredProvenanceStepLiftsOnlyTheBaselinePayload(t *testing.T) {
+	t.Parallel()
+
+	legacy := func(correlated string) string {
+		return "{\n" +
+			"  \"definitions\": [\n    {\n      \"definitionId\": \"p\",\n      \"behaviorFingerprint\": \"f\",\n      \"kind\": \"CASE_" + "DEFINITION_KIND_PROPERTY\"\n    }\n  ],\n" +
+			"  \"sources\": [\n    {\n      \"path\": \"A.lean\",\n      \"line\": \"LINE\",\n      \"column\": \"0\",\n      \"provenance\": \"authored\"\n    }\n  ],\n" +
+			"  \"knownGaps\": [\n    {\n      \"kind\": \"CASE_" + "KNOWN_GAP_KIND_CLAIM\",\n      \"code\": \"g\",\n      \"detail\": \"\"\n    }\n  ]" + correlated + "\n}\n"
+	}
+	rules := ",\n  \"correlatedRules\": [\n    {\n      \"ruleId\": \"r\",\n      \"propertyId\": \"p\",\n      \"propertyFingerprint\": \"f\",\n      \"projectionId\": \"j\",\n      \"projectionFingerprint\": \"h\",\n      \"source\": {\n        \"path\": \"B.lean\",\n        \"line\": \"2147483647\",\n        \"column\": \"3\",\n        \"provenance\": \"authored\"\n      }\n    }\n  ]"
+	rows := `"definitions": [{"definitionId": "p", "behaviorFingerprint": "f", "kind": "DEFINITION_KIND_PROPERTY"}],
+		"sources": [{"path": "A.lean", "line": 7, "column": 0, "provenance": "authored"}],
+		"knownGaps": [{"kind": "KNOWN_GAP_KIND_CLAIM", "code": "g", "detail": ""}]`
+	for _, tc := range []struct {
+		name            string
+		fixture         string
+		payload         string
+		want            string
+		wantErrorSubstr string
+	}{
+		{
+			name:    "every row kind with an absent subject and an empty detail",
+			fixture: functionalFixture,
+			payload: strings.Replace(legacy(rules), "LINE", "7", 1),
+			want: `{"producerId": "u", ` + rows + `, "correlatedRules": [{"ruleId": "r", "propertyId": "p", "propertyFingerprint": "f", "projectionId": "j", "projectionFingerprint": "h",
+				"source": {"path": "B.lean", "line": 2147483647, "column": 3, "provenance": "authored"}}]}`,
+		},
+		{
+			name:    "no correlated rules",
+			fixture: functionalFixture,
+			payload: strings.Replace(legacy(""), "LINE", "7", 1),
+			want:    `{"producerId": "u", ` + rows + `}`,
+		},
+		{
+			name:    "the synthetic Case's opaque bytes",
+			fixture: syntheticFixture,
+			payload: "\x00\xff\x80",
+			want:    `{"producerId": "u"}`,
+		},
+		{
+			name:            "opaque bytes in any other Case",
+			fixture:         functionalFixture,
+			payload:         "\x00\xff\x80",
+			wantErrorSubstr: "invalid character",
+		},
+		{
+			name:            "a key outside the baseline shape",
+			fixture:         functionalFixture,
+			payload:         strings.Replace(strings.Replace(legacy(""), "LINE", "7", 1), `"code": "g"`, `"code": "g", "extra": "x"`, 1),
+			wantErrorSubstr: `unknown field "extra"`,
+		},
+		{
+			name:            "a payload the baseline encoder did not write",
+			fixture:         functionalFixture,
+			payload:         `{"definitions": [], "sources": [], "knownGaps": []}`,
+			wantErrorSubstr: "not the exact encoding of the baseline Umpire provenance shape",
+		},
+		{
+			name:            "a kind outside the baseline vocabulary",
+			fixture:         functionalFixture,
+			payload:         strings.Replace(strings.Replace(legacy(""), "LINE", "7", 1), "KIND_PROPERTY", "KIND_TRAIT", 1),
+			wantErrorSubstr: "definitions[0]: kind \"CASE_" + "DEFINITION_KIND_TRAIT\" is not in the baseline vocabulary",
+		},
+		{
+			name:            "a line beyond int32",
+			fixture:         functionalFixture,
+			payload:         strings.Replace(legacy(""), "LINE", "2147483648", 1),
+			wantErrorSubstr: `sources[0]: source line "2147483648" is not a canonical int32`,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			root := &Object{Message: protocol + "CaseProvenance", Fields: map[string]any{
+				"producerId":   "u",
+				opaqueBytesKey: base64.StdEncoding.EncodeToString([]byte(tc.payload)),
+			}}
+			mapped, err := Declared.apply(tc.fixture, root)
 			if tc.wantErrorSubstr != "" {
 				require.ErrorContains(t, err, tc.wantErrorSubstr)
 				return
