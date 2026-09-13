@@ -36,7 +36,7 @@ func TestEvaluatorDeadlinesAndReplay(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			c, cat, view, limits := fixture(t)
 			c.Rules[0].Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
-			c.Rules[0].Deadline = &testpilotspb.ContractDeadline{ElapsedMilliseconds: 5000, ViolationStateId: "bad"}
+			c.Rules[0].Deadline = &testpilotspb.Deadline{ViolationStateId: "bad", Bound: &testpilotspb.Deadline_ElapsedMilliseconds{ElapsedMilliseconds: 5000}}
 			p, err := Prepare(c, cat, view, limits)
 			require.NoError(t, err)
 			run := &testpilotspb.Run{RunId: "run", CaseId: "case", ProgramId: "program", Disposition: testpilotspb.RUN_DISPOSITION_COMPLETED, Events: []*testpilotspb.RunEvent{event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED), event(2, tc.witness, tc.kind)}}
@@ -131,7 +131,7 @@ func TestEvaluatorEventCountDeadline(t *testing.T) {
 			c, cat, view, limits := fixture(t)
 			r := c.Rules[0]
 			r.Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
-			r.Deadline = &testpilotspb.ContractDeadline{RuleEvents: tc.ruleEvents, ViolationStateId: "bad"}
+			r.Deadline = &testpilotspb.Deadline{ViolationStateId: "bad", Bound: &testpilotspb.Deadline_RuleEvents{RuleEvents: tc.ruleEvents}}
 			r.States = append(r.States, &testpilotspb.ContractState{StateId: "middle", Status: testpilotspb.CONTRACT_STATE_STATUS_PENDING})
 			r.Transitions = []*testpilotspb.ContractTransition{
 				transition("advance", "start", "middle", present(observation("id"))),
@@ -232,7 +232,7 @@ func TestEvaluatorMessageCaptureDescriptorBoundsAndOwnership(t *testing.T) {
 	c, catalog, view, ceiling := fixture(t, 64)
 	c.Limits.MaxCaptureBytes = 72
 	rule := c.Rules[0]
-	rule.Captures = []*testpilotspb.ContractCapture{{CaptureId: "saved-message", Type: &testpilotspb.ContractCaptureType{Type: &testpilotspb.ContractCaptureType_Message{Message: &testpilotspb.NamedType{ProtobufType: "example.Empty"}}}}}
+	rule.Captures = []*testpilotspb.ContractCapture{{CaptureId: "saved-message", Type: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Message{Message: &testpilotspb.NamedType{ProtobufType: "example.Empty"}}}}}
 	rule.Transitions[0] = transition("save", "start", "good", present(observation("message")))
 	rule.Transitions[0].CaptureAssignments = []*testpilotspb.ContractCaptureAssignment{{CaptureId: "saved-message", ObservationId: "message"}}
 
@@ -296,7 +296,7 @@ func TestEvaluatorFailurePrefixAndAtomicity(t *testing.T) {
 			c, cat, view, limits := fixture(t)
 			r := c.Rules[0]
 			r.Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
-			r.Deadline = &testpilotspb.ContractDeadline{ElapsedMilliseconds: 5000, ViolationStateId: "bad"}
+			r.Deadline = &testpilotspb.Deadline{ViolationStateId: "bad", Bound: &testpilotspb.Deadline_ElapsedMilliseconds{ElapsedMilliseconds: 5000}}
 			r.Transitions[0].TargetStateId = "bad"
 			p, err := Prepare(c, cat, view, limits)
 			require.NoError(t, err)
@@ -419,7 +419,7 @@ func TestEvaluatorIncompleteCannotAcceptLateWitness(t *testing.T) {
 	c, cat, view, limits := fixture(t)
 	r := c.Rules[0]
 	r.Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
-	r.Deadline = &testpilotspb.ContractDeadline{ElapsedMilliseconds: 5000, ViolationStateId: "bad"}
+	r.Deadline = &testpilotspb.Deadline{ViolationStateId: "bad", Bound: &testpilotspb.Deadline_ElapsedMilliseconds{ElapsedMilliseconds: 5000}}
 	p, err := Prepare(c, cat, view, limits)
 	require.NoError(t, err)
 	incomplete := event(2, 4000, testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC)

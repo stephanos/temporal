@@ -145,16 +145,16 @@ private def contract : Contract := Contract.contract "contract" #[
     #[Contract.state "start" .CONTRACT_STATE_STATUS_PENDING,
       Contract.state "done" .CONTRACT_STATE_STATUS_SATISFIED]
     #[transition]
-    (captures := #[Contract.capture "captured" (Contract.scalarCapture .SCALAR_KIND_TEXT),
-      Contract.capture "enum" (Contract.enumCapture "example.Enum"),
-      Contract.capture "message" (Contract.messageCapture "example.Message")]),
+    (captures := #[Contract.capture "captured" (Types.scalar .SCALAR_KIND_TEXT),
+      Contract.capture "enum" (Types.enumeration "example.Enum"),
+      Contract.capture "message" (Types.messageType "example.Message")]),
   Contract.rule "liveness" .CONTRACT_RULE_KIND_BOUNDED_LIVENESS "waiting"
     #[Contract.state "waiting" .CONTRACT_STATE_STATUS_PENDING,
       Contract.state "late" .CONTRACT_STATE_STATUS_VIOLATED]
-    #[] (deadline := some (Contract.deadline 1000 "late"))
+    #[] (deadline := some (Contract.deadline (.elapsed_milliseconds 1000) "late"))
 ] (Contract.limits 2 4 2 16 64 1024 3 4096)
 
-private def eventsDeadline : ContractDeadline := Contract.deadlineEvents 3 "late"
+private def eventsDeadline : Deadline := Contract.deadline (.rule_events 3) "late"
 
 private def stepEquals (field : CorrelatedStepField) (definitionId value : String) : Expression :=
   Expr.equal (Expr.correlatedStep field definitionId) (Expr.literal (Value.text value))
@@ -209,12 +209,13 @@ private def run : temporal.server.api.testpilot.v1.Run := Run.make "run" "case" 
 #guard contract.rules.size == 2
 #guard run.events.size == 1
 #guard injectFaultNamesRoleAndKind
-#guard eventsDeadline.rule_events == 3
-#guard eventsDeadline.elapsed_milliseconds == 0
+#guard match eventsDeadline.bound with
+  | some (.rule_events 3) => true
+  | _ => false
 #guard eventsDeadline.violation_state_id == "late"
 #guard contract.correlated.isNone
 #guard correlatedContract.correlated.any (fun capability =>
-  capability.version == 1 && capability.projection_id == "projection" &&
+  capability.projection_id == "projection" &&
     capability.evidence_observation_id == "evidence" && capability.rules.size == 1)
 #guard correlatedCapability.rules[0]!.clock == .CORRELATED_CLOCK_OPERATION_TRANSITIONS
 #guard correlatedCapability.rules[0]!.ending == .TRACE_ENDING_PARTIAL

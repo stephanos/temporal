@@ -14,9 +14,11 @@ producing event sequences. Rules and Runs never share mutable state.
 Message captures retain one whole declared Observation when later predicates must correlate
 multiple fields from the same event. Separate scalar captures cannot preserve that pairing. The
 descriptor is bound exactly during preparation, and the same capture-count and byte ceilings bound
-the immutable runtime copy.
+the immutable runtime copy. A capture is typed by a `SingularType` that must be a scalar, enum or
+message; preparation rejects any other at the capture.
 
-A bounded-liveness rule declares exactly one deadline bound. `elapsed_milliseconds` expires before
+A bounded-liveness rule's `Deadline` sets one positive bound in its `bound` oneof; preparation rejects
+a deadline with no bound or a non-positive one at the rule's deadline. `elapsed_milliseconds` expires before
 transitions at the first recorded elapsed coordinate greater than or equal to its Run-relative
 deadline; it depends on the clock of the host that produced the Run. `rule_events` expires after
 exactly that many Run Events the rule evaluated since its last transition, which is a count of what

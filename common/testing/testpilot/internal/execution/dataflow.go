@@ -392,11 +392,11 @@ func (a *admission) bindEvidenceRule(g *graph, n *node, location string, source 
 	bound := &evidenceRule{guard: guard, source: source.GetEvidenceSource(), kind: source.GetKind(), operation: operation}
 	// A scope binding is a Run coordinate and carries plain text on the wire; an evidence field is
 	// a typed scalar the portable decoder reads as text, natural or boolean.
-	scope, err := a.bindEvidenceBindings(g, n, typ, source.GetScope(), testpilotspb.SCALAR_KIND_TEXT)
+	scope, err := a.bindEvidenceBindings(g, n, location+".scope", typ, source.GetScope(), testpilotspb.SCALAR_KIND_TEXT)
 	if err != nil {
 		return nil, err
 	}
-	fields, err := a.bindEvidenceBindings(g, n, typ, source.GetFields(), evidenceFieldKinds...)
+	fields, err := a.bindEvidenceBindings(g, n, location+".fields", typ, source.GetFields(), evidenceFieldKinds...)
 	if err != nil {
 		return nil, err
 	}
@@ -423,22 +423,33 @@ var evidenceIntegerKinds = []testpilotspb.ScalarKind{
 	testpilotspb.SCALAR_KIND_SFIXED64,
 }
 
-func (a *admission) bindEvidenceBindings(g *graph, n *node, typ ir.Type, sources []*testpilotspb.CorrelatedEvidenceBinding, kinds ...testpilotspb.ScalarKind) ([]evidenceBinding, error) {
+// bindEvidenceBindings binds the named expressions at location. Each is a text literal or a path
+// read directly from the projected value; the lift reads its paths itself, so no other expression is
+// admitted.
+func (a *admission) bindEvidenceBindings(g *graph, n *node, location string, typ ir.Type, sources []*testpilotspb.NamedExpression, kinds ...testpilotspb.ScalarKind) ([]evidenceBinding, error) {
 	bound := make([]evidenceBinding, 0, len(sources))
 	seen := map[string]bool{}
-	for _, source := range sources {
+	for index, source := range sources {
 		if source == nil || !validID(source.GetFieldId()) || seen[source.GetFieldId()] {
 			return nil, invalid(ir.Malformed, nodePath(g, n), "evidence binding requires one unique declared field")
 		}
 		seen[source.GetFieldId()] = true
-		switch supply := source.GetValue().(type) {
-		case *testpilotspb.CorrelatedEvidenceBinding_Literal:
-			if supply.Literal == "" {
+		site := ir.Site{Context: ir.EvidenceLiftContext, Path: fmt.Sprintf("%s[%d].value", location, index)}
+		if err := ir.AdmitReferences(site, source.GetValue()); err != nil {
+			return nil, err
+		}
+		switch supply := source.GetValue().GetExpression().(type) {
+		case *testpilotspb.Expression_Literal:
+			text := supply.Literal.GetTextValue()
+			if text == "" {
 				return nil, invalid(ir.Malformed, nodePath(g, n), "evidence literal binding requires a value")
 			}
-			bound = append(bound, evidenceBinding{fieldID: source.GetFieldId(), literal: supply.Literal})
-		case *testpilotspb.CorrelatedEvidenceBinding_Path:
-			path, err := a.bindEvidencePath(g, n, typ, supply.Path, kinds...)
+			bound = append(bound, evidenceBinding{fieldID: source.GetFieldId(), literal: text})
+		case *testpilotspb.Expression_Path:
+			if supply.Path.GetOperand().GetReference().GetProjectedValue() == nil {
+				return nil, invalid(ir.Malformed, nodePath(g, n), "evidence binding requires a path or a literal")
+			}
+			path, err := a.bindEvidencePath(g, n, typ, supply.Path.GetPath(), kinds...)
 			if err != nil {
 				return nil, err
 			}

@@ -59,7 +59,7 @@ func transition(id, from, to string, predicate *testpilotspb.Expression) *testpi
 	return &testpilotspb.ContractTransition{TransitionId: id, SourceStateId: from, TargetStateId: to, Predicate: predicate, EventFilter: &testpilotspb.RunEventFilter{Kinds: []testpilotspb.RunEventKind{testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED}}, SupportKind: testpilotspb.CONTRACT_SUPPORT_KIND_MATCHING_EVENT}
 }
 func addCapture(rule *testpilotspb.ContractRule) {
-	rule.Captures = []*testpilotspb.ContractCapture{{CaptureId: "saved", Type: &testpilotspb.ContractCaptureType{Type: &testpilotspb.ContractCaptureType_Scalar{Scalar: &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_INT64}}}}}
+	rule.Captures = []*testpilotspb.ContractCapture{{CaptureId: "saved", Type: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Scalar{Scalar: &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_INT64}}}}}
 }
 func assign(tr *testpilotspb.ContractTransition) {
 	tr.CaptureAssignments = []*testpilotspb.ContractCaptureAssignment{{CaptureId: "saved", ObservationId: "id"}}
@@ -73,7 +73,7 @@ func TestPrepareMachinesAndOrder(t *testing.T) {
 			r.Transitions = append(r.Transitions, transition("second", "start", "bad", boolean(true)))
 			if live {
 				r.Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
-				r.Deadline = &testpilotspb.ContractDeadline{ElapsedMilliseconds: 1000, ViolationStateId: "bad"}
+				r.Deadline = &testpilotspb.Deadline{ViolationStateId: "bad", Bound: &testpilotspb.Deadline_ElapsedMilliseconds{ElapsedMilliseconds: 1000}}
 			}
 			prepared, err := Prepare(c, catalog, view, policy)
 			require.NoError(t, err)
@@ -153,14 +153,14 @@ func TestPrepareRejectsMalformedContracts(t *testing.T) {
 		"missing deadline":     func(c *testpilotspb.Contract) { c.Rules[0].Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS },
 		"wrong expiry target": func(c *testpilotspb.Contract) {
 			c.Rules[0].Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
-			c.Rules[0].Deadline = &testpilotspb.ContractDeadline{ElapsedMilliseconds: 1, ViolationStateId: "good"}
+			c.Rules[0].Deadline = &testpilotspb.Deadline{ViolationStateId: "good", Bound: &testpilotspb.Deadline_ElapsedMilliseconds{ElapsedMilliseconds: 1}}
 		},
 		"negative deadline": func(c *testpilotspb.Contract) {
 			c.Rules[0].Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
-			c.Rules[0].Deadline = &testpilotspb.ContractDeadline{ElapsedMilliseconds: -1, ViolationStateId: "bad"}
+			c.Rules[0].Deadline = &testpilotspb.Deadline{ViolationStateId: "bad", Bound: &testpilotspb.Deadline_ElapsedMilliseconds{ElapsedMilliseconds: -1}}
 		},
 		"safety deadline": func(c *testpilotspb.Contract) {
-			c.Rules[0].Deadline = &testpilotspb.ContractDeadline{ElapsedMilliseconds: 1, ViolationStateId: "bad"}
+			c.Rules[0].Deadline = &testpilotspb.Deadline{ViolationStateId: "bad", Bound: &testpilotspb.Deadline_ElapsedMilliseconds{ElapsedMilliseconds: 1}}
 		},
 		"unknown observation": func(c *testpilotspb.Contract) { c.Rules[0].Transitions[0].Predicate = present(observation("missing")) },
 		"Run ID intrinsic forbidden": func(c *testpilotspb.Contract) {
@@ -221,32 +221,68 @@ func TestPrepareLocatesAReferenceOutsideTheContractContext(t *testing.T) {
 	}
 }
 
-func TestPrepareAdmitsExactlyOneDeadlineBound(t *testing.T) {
+// A capture holds a scalar, enum or message value; any other singular type rejects at preparation
+// located at the capture.
+func TestPrepareLocatesCaptureTypesOutsideScalarEnumOrMessage(t *testing.T) {
+	for name, typ := range map[string]*testpilotspb.SingularType{
+		"any":           {Type: &testpilotspb.SingularType_Any{Any: &testpilotspb.AnyType{}}},
+		"opaque handle": {Type: &testpilotspb.SingularType_OpaqueHandle{OpaqueHandle: &testpilotspb.OpaqueHandleType{}}},
+		"unset":         nil,
+	} {
+		t.Run(name, func(t *testing.T) {
+			c, catalog, view, policy := fixture(t)
+			c.Rules[0].Captures = []*testpilotspb.ContractCapture{{CaptureId: "saved", Type: typ}}
+			_, err := Prepare(c, catalog, view, policy)
+			var admissionErr *ir.Error
+			require.ErrorAs(t, err, &admissionErr)
+			require.Equal(t, &ir.Error{Category: ir.Malformed, Path: "contract.rules[rule].captures[saved].type", Detail: "capture requires a scalar, enum or message type"}, admissionErr)
+		})
+	}
+}
+
+// TestPrepareLocatesDeadlineBounds pins the deadline admission: a liveness deadline sets one positive
+// bound and names a violated state, and each rejection is located at the rule's deadline.
+func TestPrepareLocatesDeadlineBounds(t *testing.T) {
+	events := func(n int64) *testpilotspb.Deadline_RuleEvents {
+		return &testpilotspb.Deadline_RuleEvents{RuleEvents: n}
+	}
+	elapsed := func(n int64) *testpilotspb.Deadline_ElapsedMilliseconds {
+		return &testpilotspb.Deadline_ElapsedMilliseconds{ElapsedMilliseconds: n}
+	}
 	for _, tc := range []struct {
 		name     string
-		deadline *testpilotspb.ContractDeadline
-		admit    bool
+		kind     testpilotspb.ContractRuleKind
+		deadline *testpilotspb.Deadline
+		// want is nil when the deadline is admitted.
+		want *ir.Error
 	}{
-		{"elapsed only", &testpilotspb.ContractDeadline{ElapsedMilliseconds: 1000, ViolationStateId: "bad"}, true},
-		{"events only", &testpilotspb.ContractDeadline{RuleEvents: 3, ViolationStateId: "bad"}, true},
-		{"both positive", &testpilotspb.ContractDeadline{ElapsedMilliseconds: 1000, RuleEvents: 3, ViolationStateId: "bad"}, false},
-		{"both zero", &testpilotspb.ContractDeadline{ViolationStateId: "bad"}, false},
-		{"negative events", &testpilotspb.ContractDeadline{RuleEvents: -1, ViolationStateId: "bad"}, false},
-		{"negative elapsed with events", &testpilotspb.ContractDeadline{ElapsedMilliseconds: -1, RuleEvents: 3, ViolationStateId: "bad"}, false},
+		{"elapsed", testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS, &testpilotspb.Deadline{ViolationStateId: "bad", Bound: elapsed(1000)}, nil},
+		{"events", testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS, &testpilotspb.Deadline{ViolationStateId: "bad", Bound: events(3)}, nil},
+		{"no bound", testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS, &testpilotspb.Deadline{ViolationStateId: "bad"},
+			&ir.Error{Category: ir.Malformed, Path: "contract.rules[rule].deadline", Detail: "liveness deadline requires a bound"}},
+		{"no deadline", testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS, nil,
+			&ir.Error{Category: ir.Malformed, Path: "contract.rules[rule].deadline", Detail: "liveness deadline requires a bound"}},
+		{"zero events", testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS, &testpilotspb.Deadline{ViolationStateId: "bad", Bound: events(0)},
+			&ir.Error{Category: ir.Malformed, Path: "contract.rules[rule].deadline.rule_events", Detail: "liveness deadline bound must be positive"}},
+		{"negative elapsed", testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS, &testpilotspb.Deadline{ViolationStateId: "bad", Bound: elapsed(-1)},
+			&ir.Error{Category: ir.Malformed, Path: "contract.rules[rule].deadline.elapsed_milliseconds", Detail: "liveness deadline bound must be positive"}},
+		{"no violation state", testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS, &testpilotspb.Deadline{Bound: events(3)},
+			&ir.Error{Category: ir.Malformed, Path: "contract", Detail: "liveness requires a violated deadline target"}},
+		{"safety", testpilotspb.CONTRACT_RULE_KIND_SAFETY, &testpilotspb.Deadline{ViolationStateId: "bad", Bound: events(3)},
+			&ir.Error{Category: ir.Malformed, Path: "contract", Detail: "safety rule cannot declare a liveness deadline"}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			c, catalog, view, policy := fixture(t)
-			c.Rules[0].Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
+			c.Rules[0].Kind = tc.kind
 			c.Rules[0].Deadline = tc.deadline
 			_, err := Prepare(c, catalog, view, policy)
-			if tc.admit {
+			if tc.want == nil {
 				require.NoError(t, err)
 				return
 			}
 			var admissionErr *ir.Error
 			require.ErrorAs(t, err, &admissionErr)
-			require.Equal(t, ir.Malformed, admissionErr.Category)
-			require.Equal(t, "liveness requires exactly one positive deadline bound", admissionErr.Detail)
+			require.Equal(t, tc.want, admissionErr)
 		})
 	}
 }
@@ -338,7 +374,7 @@ func TestAdmissionExplorationCeiling(t *testing.T) {
 	r := c.Rules[0]
 	for i := 0; i < 8; i++ {
 		id := string(rune('a' + i))
-		r.Captures = append(r.Captures, &testpilotspb.ContractCapture{CaptureId: id, Type: &testpilotspb.ContractCaptureType{Type: &testpilotspb.ContractCaptureType_Scalar{Scalar: &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_INT64}}}})
+		r.Captures = append(r.Captures, &testpilotspb.ContractCapture{CaptureId: id, Type: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Scalar{Scalar: &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_INT64}}}})
 		tr := transition(id, "start", "start", all(not(present(capture(id))), present(observation("id"))))
 		tr.CaptureAssignments = []*testpilotspb.ContractCaptureAssignment{{CaptureId: id, ObservationId: "id"}}
 		r.Transitions = append(r.Transitions, tr)

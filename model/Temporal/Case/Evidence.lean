@@ -32,7 +32,7 @@ def rule
     (evidenceSource := resolved.source.sourceId.value)
     (kind := resolved.source.kindId.value)
     (operation := resolved.source.operationKeyPath)
-    (scope := #[Program.correlatedEvidenceLiteral scopeField.value identity.runScope])
+    (scope := #[Program.evidenceLiteral scopeField.value identity.runScope])
 
 /-- The history read's evidence target, in the order the `evidence` block declared. -/
 def target

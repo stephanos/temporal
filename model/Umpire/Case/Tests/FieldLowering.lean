@@ -234,13 +234,13 @@ private def modelEvent (report : Report) : Case.Projection.Event := {
 
 private def wireEvent (report : Report) : CorrelatedEvidence := {
   identity := some {
-    scope := #[{ field_id := "test.run", value := "run-1" }]
+    scope := #[{ field_id := "test.run", value := some { value := some (.text_value "run-1") } }]
     evidence_source := "test.source", ordinal := Int64.ofInt report.ordinal }
   operation := report.operation
   kind := report.kind
   fields := (report.count.toList.map fun count =>
     ({ field_id := "test.count", value := some { value := some (.natural_value (toString count)) } } :
-      CorrelatedEvidenceField)).toArray }
+      NamedValue)).toArray }
 
 private def transition (report : Report) : Property.Correlated.Transition :=
   let (action, outcome) := match report.kind with

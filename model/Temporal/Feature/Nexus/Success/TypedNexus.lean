@@ -761,15 +761,15 @@ private def evidenceTarget : ReadTarget :=
           (evidenceSource := evidenceSourceId.value)
           (kind := entry.scheduledEvidenceKindId.value)
           (operation := field "event_id")
-          (scope := #[Program.correlatedEvidenceLiteral runFieldId.value runScopeValue])
-          (fields := #[Program.correlatedEvidenceBinding operationIdentityFieldId.value
+          (scope := #[Program.evidenceLiteral runFieldId.value runScopeValue])
+          (fields := #[Program.evidencePath operationIdentityFieldId.value
             (historyAttribute scheduledAttributesField "operation")])) ++
       [Program.correlatedEvidenceRule
         (guard := resolves (Path.make #[Path.oneofSelector attributesGroup completedAttributesField]))
         (evidenceSource := evidenceSourceId.value)
         (kind := completedEvidenceKindId.value)
         (operation := historyAttribute completedAttributesField "scheduled_event_id")
-        (scope := #[Program.correlatedEvidenceLiteral runFieldId.value runScopeValue])]).toArray
+        (scope := #[Program.evidenceLiteral runFieldId.value runScopeValue])]).toArray
 
 private def program (startPath historyPath : String) : Program :=
   Program.make "temporal.case.typed-nexus.program"

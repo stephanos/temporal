@@ -36,7 +36,7 @@ type correlatedOperation struct {
 	captures    []retainedCapture
 }
 type correlatedMonitor struct {
-	scope                                                                         []*testpilotspb.CorrelatedBinding
+	scope                                                                         []*testpilotspb.NamedValue
 	accepted                                                                      []*admittedCorrelatedEvidence
 	processed                                                                     []*testpilotspb.CorrelatedIdentity
 	support                                                                       [][]*testpilotspb.CorrelatedIdentity
@@ -148,7 +148,7 @@ func (r *correlatedMonitor) ready(e *admittedCorrelatedEvidence) bool {
 func identitySize(id *testpilotspb.CorrelatedIdentity) int64 {
 	n := int64(utf8.RuneCountInString(id.EvidenceSource) + 1)
 	for _, b := range id.Scope {
-		n += int64(utf8.RuneCountInString(b.FieldId) + utf8.RuneCountInString(b.Value))
+		n += int64(utf8.RuneCountInString(b.FieldId) + utf8.RuneCountInString(b.GetValue().GetTextValue()))
 	}
 	return n
 }
@@ -199,15 +199,15 @@ func (r *correlatedMonitor) validate(s *testpilotspb.CorrelatedContract, e *admi
 		return invalid(ir.Malformed, "wrong correlated bindings")
 	}
 	for i, b := range e.Identity.Scope {
-		if b.FieldId != s.ScopeFields[i] || b.Value == "" {
+		if b.FieldId != s.ScopeFields[i] || b.GetValue().GetTextValue() == "" {
 			return invalid(ir.Malformed, "wrong correlated bindings")
 		}
 	}
-	if r.scope != nil && !slices.EqualFunc(r.scope, e.Identity.Scope, func(a, b *testpilotspb.CorrelatedBinding) bool { return proto.Equal(a, b) }) {
+	if r.scope != nil && !slices.EqualFunc(r.scope, e.Identity.Scope, func(a, b *testpilotspb.NamedValue) bool { return proto.Equal(a, b) }) {
 		return invalid(ir.Malformed, "changed correlated bindings")
 	}
 	for _, id := range append(slices.Clone(e.Parents), e.Identity) {
-		if id == nil || !slices.EqualFunc(id.Scope, e.Identity.Scope, func(a, b *testpilotspb.CorrelatedBinding) bool { return proto.Equal(a, b) }) || !slices.Contains(s.Sources, id.EvidenceSource) || id.Ordinal < 0 || id.Ordinal >= s.Limits.MaxEvents {
+		if id == nil || !slices.EqualFunc(id.Scope, e.Identity.Scope, func(a, b *testpilotspb.NamedValue) bool { return proto.Equal(a, b) }) || !slices.Contains(s.Sources, id.EvidenceSource) || id.Ordinal < 0 || id.Ordinal >= s.Limits.MaxEvents {
 			return invalid(ir.Malformed, "invalid correlated source identity")
 		}
 	}
@@ -313,7 +313,7 @@ func predicate(e *testpilotspb.Expression, tr *testpilotspb.CorrelatedTransition
 	})
 }
 func evidenceField(e *admittedCorrelatedEvidence, id string) *testpilotspb.Value {
-	i := slices.IndexFunc(e.Fields, func(f *testpilotspb.CorrelatedEvidenceField) bool { return f.FieldId == id })
+	i := slices.IndexFunc(e.Fields, func(f *testpilotspb.NamedValue) bool { return f.FieldId == id })
 	if i < 0 {
 		return nil
 	}

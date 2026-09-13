@@ -249,19 +249,20 @@ def slotTarget (slotId : String) : ReadTarget :=
 def observationTarget (observationId : String) : ReadTarget :=
   { target := some (.observation_id observationId) }
 
-def correlatedEvidenceBinding (fieldId : String) (path : FieldPath) : CorrelatedEvidenceBinding :=
-  { field_id := fieldId, value := some (.path path) }
+/-- Supply one evidence field with the value `path` reads from the projected value. -/
+def evidencePath (fieldId : String) (path : FieldPath) : NamedExpression :=
+  { field_id := fieldId, value := some (Expr.path Expr.projectedValue path) }
 
 /-- A Run coordinate the recorded fact does not itself carry is declared by the Case. -/
-def correlatedEvidenceLiteral (fieldId value : String) : CorrelatedEvidenceBinding :=
-  { field_id := fieldId, value := some (.literal value) }
+def evidenceLiteral (fieldId value : String) : NamedExpression :=
+  { field_id := fieldId, value := some (Expr.literal (Testpilot.Authoring.Value.text value)) }
 
 /-- One evidence-lift rule. `guard` is what selects it: the rule fires only where that boolean
 expression over `Expr.projectedValue` is true. `kind` is therefore the literal the selected shape
 denotes rather than a value read from it. -/
 def correlatedEvidenceRule (guard : Expression) (evidenceSource kind : String) (operation : FieldPath)
-    (scope : Array CorrelatedEvidenceBinding := #[])
-    (fields : Array CorrelatedEvidenceBinding := #[]) : CorrelatedEvidenceRule :=
+    (scope : Array NamedExpression := #[])
+    (fields : Array NamedExpression := #[]) : CorrelatedEvidenceRule :=
   { guard := some guard, scope, evidence_source := evidenceSource,
     operation := some operation, kind, fields }
 
@@ -383,16 +384,9 @@ namespace Contract
 
 /-! Constructors for generated Contract monitor machines and their bounds. -/
 
-def scalarCapture (kind : ScalarKind) : ContractCaptureType :=
-  { type := some (.scalar { kind }) }
-
-def enumCapture (protobufType : String) : ContractCaptureType :=
-  { type := some (.enumeration { protobuf_type := protobufType }) }
-
-def messageCapture (protobufType : String) : ContractCaptureType :=
-  { type := some (.message { protobuf_type := protobufType }) }
-
-def capture (captureId : String) (type : ContractCaptureType) : ContractCapture :=
+/-- Declare a capture of a `Types.scalar`, `Types.enumeration` or `Types.messageType` value;
+preparation rejects any other singular type. -/
+def capture (captureId : String) (type : SingularType) : ContractCapture :=
   { capture_id := captureId, type := some type }
 
 def captureAssignment (captureId observationId : String) : ContractCaptureAssignment :=
@@ -410,22 +404,16 @@ def transition (transitionId sourceStateId targetStateId : String)
     target_state_id := targetStateId, event_filter := some { kinds := eventKinds },
     predicate := some predicate, support_kind := support, capture_assignments := assignments }
 
-/-- Set the elapsed-time deadline and state entered when a bounded obligation expires. -/
-def deadline (elapsedMilliseconds : Int64) (violationStateId : String) :
-    ContractDeadline :=
-  { elapsed_milliseconds := elapsedMilliseconds, violation_state_id := violationStateId }
-
-/-- Set the evaluated-event deadline and state entered when a bounded obligation expires. The
-count is host-clock independent: it ticks once per Run Event the rule evaluates and resets when
-the rule transitions into a new state. -/
-def deadlineEvents (ruleEvents : Int64) (violationStateId : String) :
-    ContractDeadline :=
-  { rule_events := ruleEvents, violation_state_id := violationStateId }
+/-- Set the bound and state entered when a bounded obligation expires. `.elapsed_milliseconds` is
+host-clock dependent; `.rule_events` is not: it ticks once per Run Event the rule evaluates and
+resets when the rule transitions into a new state. -/
+def deadline (bound : Deadline.bound_Type) (violationStateId : String) : Deadline :=
+  { violation_state_id := violationStateId, bound := some bound }
 
 /-- Assemble one deterministic rule while preserving state and transition order. -/
 def rule (ruleId : String) (kind : ContractRuleKind) (initialStateId : String)
     (states : Array ContractState) (transitions : Array ContractTransition)
-    (deadline : Option ContractDeadline := none)
+    (deadline : Option Deadline := none)
     (captures : Array ContractCapture := #[]) : ContractRule :=
   { rule_id := ruleId, kind, initial_state_id := initialStateId, states, transitions,
     deadline, captures }
@@ -448,13 +436,12 @@ def correlatedRule (ruleId : String) (bound : Int64) (ending : TraceEnding)
   { rule_id := ruleId, clock := .CORRELATED_CLOCK_OPERATION_TRANSITIONS, bound, ending,
     trigger := some trigger, response := some response, captures, correlation }
 
-/-- Assemble the version-one correlated capability while preserving transition, projection-rule and
-rule order. Version one is the only admitted version, so callers never choose it. -/
+/-- Assemble the correlated capability while preserving transition, projection-rule and rule order. -/
 def correlated (projectionId projectionFingerprint evidenceObservationId operationField : String)
     (scopeFields sources : Array String) (initialState : ModelValue)
     (transitions : Array CorrelatedTransition) (projectionRules : Array CorrelatedProjectionRule)
     (rules : Array CorrelatedRule) (limits : CorrelatedLimits) : CorrelatedContract :=
-  { version := 1, projection_id := projectionId,
+  { projection_id := projectionId,
     projection_fingerprint := projectionFingerprint,
     evidence_observation_id := evidenceObservationId, scope_fields := scopeFields,
     operation_field := operationField, sources, initial_state := some initialState,

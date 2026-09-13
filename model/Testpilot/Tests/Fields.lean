@@ -100,7 +100,7 @@ private def budget (captures : Nat := 8) (depth : Nat := 4) : CorrelatedLimits :
 private def contract (correlatedRules : Array CorrelatedRule) (limits : CorrelatedLimits := budget)
     (rules : Array CorrelatedProjectionRule := #[requestRule, replyRule, silentRule]) :
     CorrelatedContract := {
-  version := 1, projection_id := "projection", projection_fingerprint := "fingerprint"
+  projection_id := "projection", projection_fingerprint := "fingerprint"
   evidence_observation_id := "evidence", scope_fields := #["run"], operation_field := "operation"
   sources := #["source"], initial_state := some state
   transitions := #[transition request quiet, transition reply responded]
@@ -109,7 +109,7 @@ private def contract (correlatedRules : Array CorrelatedRule) (limits : Correlat
 private def evidence (ordinal : Nat) (kind : String) (count : String) (operation := "a")
     (fieldId := if kind == "request" then "requested" else "replied") : CorrelatedEvidence := {
   identity := some {
-    scope := #[{ field_id := "run", value := "run-1" }], evidence_source := "source"
+    scope := #[{ field_id := "run", value := some { value := some (.text_value "run-1") } }], evidence_source := "source"
     ordinal := number ordinal }
   operation, kind
   fields := #[{ field_id := fieldId, value := some { value := some (.text_value count) } }] }

@@ -22,9 +22,11 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 )
 
-func TestCorrelatedCapabilityWireVersion(t *testing.T) {
+// The Case carries the only format version, so a correlated contract that still writes its own fails
+// strict decoding naming the field.
+func TestCorrelatedContractCarriesNoVersion(t *testing.T) {
 	var contract testpilotspb.Contract
-	require.NoError(t, protojson.Unmarshal([]byte(`{"contractId":"correlated","correlated":{"version":1}}`), &contract))
+	require.ErrorContains(t, protojson.Unmarshal([]byte(`{"contractId":"correlated","correlated":{"version":1}}`), &contract), `unknown field "version"`)
 }
 
 func correlatedFixture(t *testing.T, bound int64) (*testpilotspb.Contract, *ir.Catalog, execution.ProgramView, *testpilotspb.ContractLimits) {
@@ -60,7 +62,7 @@ func correlatedFixture(t *testing.T, bound int64) (*testpilotspb.Contract, *ir.C
 	}
 	trigger := stepPresent(testpilotspb.CORRELATED_STEP_FIELD_ACTION, "request")
 	response := stepEquals(testpilotspb.CORRELATED_STEP_FIELD_OUTCOME, "outcome", "response")
-	s := &testpilotspb.CorrelatedContract{Version: 1, ProjectionId: "projection", ProjectionFingerprint: "projection-v1", EvidenceObservationId: "evidence", ScopeFields: []string{"run"}, OperationField: "operation", Sources: []string{"source"}, InitialState: state, Limits: &testpilotspb.CorrelatedLimits{MaxEvents: 16, MaxBuffered: 8, MaxKeys: 8, MaxSupport: 256, MaxProjectionWork: 1000000000, MaxEventBytes: 512, MaxSemanticTransitions: 32, MaxObligations: 16, MaxObligationWork: 1000000000}, Rules: []*testpilotspb.CorrelatedRule{{RuleId: "response", Clock: testpilotspb.CORRELATED_CLOCK_OPERATION_TRANSITIONS, Bound: bound, Ending: testpilotspb.TRACE_ENDING_PARTIAL, Trigger: trigger, Response: response}}}
+	s := &testpilotspb.CorrelatedContract{ProjectionId: "projection", ProjectionFingerprint: "projection-v1", EvidenceObservationId: "evidence", ScopeFields: []string{"run"}, OperationField: "operation", Sources: []string{"source"}, InitialState: state, Limits: &testpilotspb.CorrelatedLimits{MaxEvents: 16, MaxBuffered: 8, MaxKeys: 8, MaxSupport: 256, MaxProjectionWork: 1000000000, MaxEventBytes: 512, MaxSemanticTransitions: 32, MaxObligations: 16, MaxObligationWork: 1000000000}, Rules: []*testpilotspb.CorrelatedRule{{RuleId: "response", Clock: testpilotspb.CORRELATED_CLOCK_OPERATION_TRANSITIONS, Bound: bound, Ending: testpilotspb.TRACE_ENDING_PARTIAL, Trigger: trigger, Response: response}}}
 	for _, kind := range []string{"request", "both", "tick", "reply"} {
 		action := kind
 		if kind == "both" {
@@ -96,7 +98,7 @@ func stepReference(field testpilotspb.CorrelatedStepField, definitionID string) 
 
 func correlatedEvidence(ordinal int64, kind, operation string, parents ...int64) *testpilotspb.CorrelatedEvidence {
 	id := func(n int64) *testpilotspb.CorrelatedIdentity {
-		return &testpilotspb.CorrelatedIdentity{Scope: []*testpilotspb.CorrelatedBinding{{FieldId: "run", Value: "one"}}, EvidenceSource: "source", Ordinal: n}
+		return &testpilotspb.CorrelatedIdentity{Scope: []*testpilotspb.NamedValue{{FieldId: "run", Value: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "one"}}}}, EvidenceSource: "source", Ordinal: n}
 	}
 	e := &testpilotspb.CorrelatedEvidence{Identity: id(ordinal), Operation: operation, Kind: kind}
 	for _, p := range parents {
@@ -152,7 +154,6 @@ func TestCorrelatedDeadlinesAndCausalAdmission(t *testing.T) {
 
 func TestCorrelatedPrepareRejectsUnsupportedCapability(t *testing.T) {
 	for name, mutate := range map[string]func(*testpilotspb.Contract){
-		"version":       func(c *testpilotspb.Contract) { c.Correlated.Version = 2 },
 		"unknown-field": func(c *testpilotspb.Contract) { c.Correlated.ProtoReflect().SetUnknown([]byte{0xf8, 0x07, 1}) },
 		"nested-unknown": func(c *testpilotspb.Contract) {
 			c.Correlated.InitialState.ProtoReflect().SetUnknown([]byte{0xf8, 0x07, 1})
@@ -266,12 +267,12 @@ func TestCorrelatedPrepareLocatesConditionsOutsideTheCorrelatedContext(t *testin
 
 func TestCorrelatedWireAdmissionIsAtomic(t *testing.T) {
 	for name, mutate := range map[string]func(*testpilotspb.CorrelatedEvidence){
-		"scope":   func(e *testpilotspb.CorrelatedEvidence) { e.Identity.Scope[0].Value = "another" },
+		"scope":   func(e *testpilotspb.CorrelatedEvidence) { e.Identity.Scope[0].Value = correlatedText("another") },
 		"source":  func(e *testpilotspb.CorrelatedEvidence) { e.Identity.EvidenceSource = "unknown" },
 		"ordinal": func(e *testpilotspb.CorrelatedEvidence) { e.Identity.Ordinal = -1 },
 		"kind":    func(e *testpilotspb.CorrelatedEvidence) { e.Kind = "unknown" },
 		"field": func(e *testpilotspb.CorrelatedEvidence) {
-			e.Fields = []*testpilotspb.CorrelatedEvidenceField{{FieldId: "unauthorized"}}
+			e.Fields = []*testpilotspb.NamedValue{{FieldId: "unauthorized"}}
 		},
 		"cycle": func(e *testpilotspb.CorrelatedEvidence) {
 			e.Parents = []*testpilotspb.CorrelatedIdentity{proto.CloneOf(e.Identity)}
@@ -298,6 +299,22 @@ func TestCorrelatedWireAdmissionIsAtomic(t *testing.T) {
 			require.EqualValues(t, 1, e.correlated.transitions)
 		})
 	}
+}
+
+// A scope value is text: the first evidence of a Run fixes the scope, so one spelling it as any other
+// value rejects before anything is compared with it.
+func TestCorrelatedEvidenceScopeValuesAreText(t *testing.T) {
+	c, catalog, view, ceiling := correlatedFixture(t, 1)
+	p, err := Prepare(c, catalog, view, ceiling)
+	require.NoError(t, err)
+	e, err := p.newEvaluator(context.Background(), view)
+	require.NoError(t, err)
+	_, err = e.Observe(context.Background(), event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED))
+	require.NoError(t, err)
+	evidence := correlatedEvidence(0, "request", "a")
+	evidence.Identity.Scope[0].Value = &testpilotspb.Value{Value: &testpilotspb.Value_NaturalValue{NaturalValue: "1"}}
+	_, err = e.Observe(context.Background(), correlatedEvent(t, 2, evidence))
+	require.ErrorContains(t, err, "wrong correlated bindings")
 }
 
 func TestCorrelatedCausalChunksDuplicatesAndIsolation(t *testing.T) {
@@ -583,7 +600,7 @@ func TestCorrelatedConfirmedSubmissionAndFieldPolicies(t *testing.T) {
 			require.NoError(t, err)
 			require.Zero(t, e.correlated.transitions)
 			confirmed := correlatedEvidence(1, "request", "a")
-			confirmed.Fields = []*testpilotspb.CorrelatedEvidenceField{{FieldId: "payload", Value: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "value"}}}}
+			confirmed.Fields = []*testpilotspb.NamedValue{{FieldId: "payload", Value: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "value"}}}}
 			if valid {
 				confirmed.Parents = []*testpilotspb.CorrelatedIdentity{correlatedEvidence(0, "submit", "a").Identity}
 			}
@@ -613,7 +630,7 @@ func TestCorrelatedPhysicalObservationSizeRemainsBounded(t *testing.T) {
 	_, err = e.Observe(context.Background(), event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED))
 	require.NoError(t, err)
 	evidence := correlatedEvidence(0, "both", "a")
-	evidence.Fields = []*testpilotspb.CorrelatedEvidenceField{{FieldId: "payload", Value: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: strings.Repeat("💡", 2000)}}}}
+	evidence.Fields = []*testpilotspb.NamedValue{{FieldId: "payload", Value: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: strings.Repeat("💡", 2000)}}}}
 	require.Less(t, evidenceSize(&admittedCorrelatedEvidence{CorrelatedEvidence: evidence, supportingEventSequences: []int64{2}}), c.Correlated.Limits.MaxEventBytes)
 	_, err = e.Observe(context.Background(), correlatedEvent(t, 2, evidence))
 	require.Error(t, err)

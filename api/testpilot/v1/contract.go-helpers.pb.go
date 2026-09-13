@@ -155,43 +155,6 @@ func (this *ContractCapture) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
-// Marshal an object of type ContractCaptureType to the protobuf v3 wire format
-func (val *ContractCaptureType) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type ContractCaptureType from the protobuf v3 wire format
-func (val *ContractCaptureType) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *ContractCaptureType) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two ContractCaptureType values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *ContractCaptureType) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *ContractCaptureType
-	switch t := that.(type) {
-	case *ContractCaptureType:
-		that1 = t
-	case ContractCaptureType:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
 // Marshal an object of type ContractTransition to the protobuf v3 wire format
 func (val *ContractTransition) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
@@ -266,35 +229,35 @@ func (this *ContractCaptureAssignment) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
-// Marshal an object of type ContractDeadline to the protobuf v3 wire format
-func (val *ContractDeadline) Marshal() ([]byte, error) {
+// Marshal an object of type Deadline to the protobuf v3 wire format
+func (val *Deadline) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
 }
 
-// Unmarshal an object of type ContractDeadline from the protobuf v3 wire format
-func (val *ContractDeadline) Unmarshal(buf []byte) error {
+// Unmarshal an object of type Deadline from the protobuf v3 wire format
+func (val *Deadline) Unmarshal(buf []byte) error {
 	return proto.Unmarshal(buf, val)
 }
 
 // Size returns the size of the object, in bytes, once serialized
-func (val *ContractDeadline) Size() int {
+func (val *Deadline) Size() int {
 	return proto.Size(val)
 }
 
-// Equal returns whether two ContractDeadline values are equivalent by recursively
+// Equal returns whether two Deadline values are equivalent by recursively
 // comparing the message's fields.
 // For more information see the documentation for
 // https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *ContractDeadline) Equal(that interface{}) bool {
+func (this *Deadline) Equal(that interface{}) bool {
 	if that == nil {
 		return this == nil
 	}
 
-	var that1 *ContractDeadline
+	var that1 *Deadline
 	switch t := that.(type) {
-	case *ContractDeadline:
+	case *Deadline:
 		that1 = t
-	case ContractDeadline:
+	case Deadline:
 		that1 = &t
 	default:
 		return false

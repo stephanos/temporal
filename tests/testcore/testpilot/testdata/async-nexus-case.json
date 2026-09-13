@@ -193,8 +193,7 @@
             "value": "succeeded"
           }
         }
-      ],
-      "version": 1
+      ]
     },
     "limits": {
       "maxCaptureBytes": "65536",
@@ -674,7 +673,11 @@
                               "scope": [
                                 {
                                   "fieldId": "temporal.nexus.success.scope.run",
-                                  "literal": "async-nexus"
+                                  "value": {
+                                    "literal": {
+                                      "textValue": "async-nexus"
+                                    }
+                                  }
                                 }
                               ]
                             },
@@ -720,7 +723,11 @@
                               "scope": [
                                 {
                                   "fieldId": "temporal.nexus.success.scope.run",
-                                  "literal": "async-nexus"
+                                  "value": {
+                                    "literal": {
+                                      "textValue": "async-nexus"
+                                    }
+                                  }
                                 }
                               ]
                             }

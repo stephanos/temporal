@@ -157,7 +157,10 @@ boolean `Expression` in the evidence-lift context, whose only admitted reference
 value: `present(path(projected_value, p))` fires where `p` resolves, and a text requirement conjoins
 `compare(EQUAL, path(projected_value, p), text)`. It binds and evaluates through the IR like any
 other expression, so an unguarded absent read, a non-boolean guard and a reference outside the
-context reject at preparation, the last at the reference's path. Admission requires the sink to be
+context reject at preparation, the last at the reference's path. Each scope field and evidence field
+is a `NamedExpression` whose value is a text literal or `path(projected_value, p)`; the lift reads
+those paths itself, so any other expression rejects, a foreign reference at its path. Admission
+requires the sink to be
 the exact declared `CorrelatedEvidence` Observation, every bound path to read a scalar the portable
 evidence domain admits, and the lift to sit on one instruction of a controller entrypoint whose
 declared source no other instruction claims — a source ordinal is the position in that source's own

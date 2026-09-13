@@ -87,9 +87,9 @@ func correlatedFieldEvidence(ordinal int64, kind, operation, value string) *test
 	e := correlatedEvidence(ordinal, kind, operation)
 	switch kind {
 	case "request", "both":
-		e.Fields = []*testpilotspb.CorrelatedEvidenceField{{FieldId: capturedField, Value: correlatedText(value)}}
+		e.Fields = []*testpilotspb.NamedValue{{FieldId: capturedField, Value: correlatedText(value)}}
 	case "reply":
-		e.Fields = []*testpilotspb.CorrelatedEvidenceField{{FieldId: repliedField, Value: correlatedText(value)}}
+		e.Fields = []*testpilotspb.NamedValue{{FieldId: repliedField, Value: correlatedText(value)}}
 	default:
 		// A kind whose rule declares no field supplies none.
 	}

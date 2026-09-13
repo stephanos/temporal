@@ -92,8 +92,8 @@ func nexusCorrelationFixture(t testing.TB) (*PreparedContract, execution.Program
 			{StateId: "satisfied", Status: testpilotspb.CONTRACT_STATE_STATUS_SATISFIED},
 			{StateId: "violated", Status: testpilotspb.CONTRACT_STATE_STATUS_VIOLATED},
 		},
-		Captures: []*testpilotspb.ContractCapture{{CaptureId: "scheduled-event", Type: &testpilotspb.ContractCaptureType{Type: &testpilotspb.ContractCaptureType_Message{Message: &testpilotspb.NamedType{ProtobufType: "temporal.api.history.v1.HistoryEvent"}}}}},
-		Deadline: &testpilotspb.ContractDeadline{ElapsedMilliseconds: 30000, ViolationStateId: "violated"},
+		Captures: []*testpilotspb.ContractCapture{{CaptureId: "scheduled-event", Type: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Message{Message: &testpilotspb.NamedType{ProtobufType: "temporal.api.history.v1.HistoryEvent"}}}}},
+		Deadline: &testpilotspb.Deadline{ViolationStateId: "violated", Bound: &testpilotspb.Deadline_ElapsedMilliseconds{ElapsedMilliseconds: 30000}},
 	}
 	rule.Transitions = []*testpilotspb.ContractTransition{
 		nexusTransition("capture-scheduled-event", "pending", "scheduled-correlated", all(

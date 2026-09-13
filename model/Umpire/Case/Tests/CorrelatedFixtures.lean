@@ -23,7 +23,7 @@ def plan (target : TestTarget) := Case.Projection.check target {
 } () state
 
 def identity (ordinal : Nat) : CorrelatedIdentity := {
-  scope := #[{ field_id := "test.run", value := "run-1" }]
+  scope := #[{ field_id := "test.run", value := some { value := some (.text_value "run-1") } }]
   evidence_source := "test.source", ordinal := Int64.ofInt ordinal }
 
 def evidence (ordinal : Nat) (kind : String) (operation := "a") (parents : List Nat := []) : CorrelatedEvidence := {
