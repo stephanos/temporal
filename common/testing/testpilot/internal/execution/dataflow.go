@@ -440,7 +440,11 @@ func (a *admission) bindEvidenceBindings(g *graph, n *node, location string, typ
 		}
 		switch supply := source.GetValue().GetExpression().(type) {
 		case *testpilotspb.Expression_Literal:
-			text := supply.Literal.GetTextValue()
+			literal, isText := supply.Literal.GetValue().(*testpilotspb.Value_TextValue)
+			if !isText {
+				return nil, invalid(ir.Malformed, nodePath(g, n), "evidence literal binding requires a text")
+			}
+			text := literal.TextValue
 			if text == "" {
 				return nil, invalid(ir.Malformed, nodePath(g, n), "evidence literal binding requires a value")
 			}
