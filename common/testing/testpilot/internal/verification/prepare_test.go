@@ -225,9 +225,8 @@ func TestPrepareLocatesAReferenceOutsideTheContractContext(t *testing.T) {
 // located at the capture.
 func TestPrepareLocatesCaptureTypesOutsideScalarEnumOrMessage(t *testing.T) {
 	for name, typ := range map[string]*testpilotspb.SingularType{
-		"any":           {Type: &testpilotspb.SingularType_Any{Any: &testpilotspb.AnyType{}}},
-		"opaque handle": {Type: &testpilotspb.SingularType_OpaqueHandle{OpaqueHandle: &testpilotspb.OpaqueHandleType{}}},
-		"unset":         nil,
+		"any":   {Type: &testpilotspb.SingularType_Any{Any: &testpilotspb.AnyType{}}},
+		"unset": nil,
 	} {
 		t.Run(name, func(t *testing.T) {
 			c, catalog, view, policy := fixture(t)

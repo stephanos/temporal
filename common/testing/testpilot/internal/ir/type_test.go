@@ -56,7 +56,6 @@ func TestLiteralsPreserveEveryScalarKindAndRange(t *testing.T) {
 		good, bad *testpilotspb.Value
 	}{
 		{testpilotspb.SCALAR_KIND_TEXT, text("hello"), boolean(true)},
-		{testpilotspb.SCALAR_KIND_NATURAL, &testpilotspb.Value{Value: &testpilotspb.Value_NaturalValue{NaturalValue: "18446744073709551616"}}, &testpilotspb.Value{Value: &testpilotspb.Value_NaturalValue{NaturalValue: "01"}}},
 		{testpilotspb.SCALAR_KIND_BOOLEAN, boolean(false), text("false")},
 		{testpilotspb.SCALAR_KIND_BYTES, &testpilotspb.Value{Value: &testpilotspb.Value_BytesValue{BytesValue: []byte{1}}}, text("bytes")},
 		{testpilotspb.SCALAR_KIND_INT32, signed("-2147483648"), signed("2147483648")},

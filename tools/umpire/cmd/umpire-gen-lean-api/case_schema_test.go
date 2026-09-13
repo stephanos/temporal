@@ -95,7 +95,7 @@ func TestCaseSchemaProtoJSONRejectsCrossedClosedUnions(t *testing.T) {
 		{name: "instruction", input: `{"invokeRpc":{},"awaitSlot":{}}`, target: new(testpilotspb.Instruction)},
 		{
 			name: "singular type",
-			input: `{"scalar":{"kind":"SCALAR_KIND_NATURAL"},` +
+			input: `{"scalar":{"kind":"SCALAR_KIND_UINT64"},` +
 				`"enumeration":{"protobufType":"temporal.api.enums.v1.EventType"}}`,
 			target: new(testpilotspb.SingularType),
 		},

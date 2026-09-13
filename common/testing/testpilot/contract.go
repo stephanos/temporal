@@ -1,6 +1,9 @@
 package testpilot
 
-import "go.temporal.io/server/common/testing/testpilot/contract"
+import (
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/testing/testpilot/contract"
+)
 
 // The Driver-facing vocabulary lives in the contract leaf, which private execution shares; these
 // aliases keep every Driver written against the facade compiling unchanged.
@@ -28,6 +31,7 @@ type (
 	ReservationCarrierPolicy = contract.ReservationCarrierPolicy
 	ReservationCarrierShape  = contract.ReservationCarrierShape
 	EnvironmentBinding       = contract.EnvironmentBinding
+	EntrypointKind           = contract.EntrypointKind
 )
 
 const (
@@ -46,3 +50,17 @@ const (
 	InjectFault            = contract.InjectFault
 	MaxOpcode              = contract.MaxOpcode
 )
+
+const (
+	ControllerEntrypoint   = contract.ControllerEntrypoint
+	WorkflowEntrypoint     = contract.WorkflowEntrypoint
+	ActivityEntrypoint     = contract.ActivityEntrypoint
+	NexusHandlerEntrypoint = contract.NexusHandlerEntrypoint
+	MaxEntrypointKind      = contract.MaxEntrypointKind
+)
+
+// EntrypointKindOf classifies an Entrypoint by its activation oneof, and returns zero when the
+// entrypoint has no known activation.
+func EntrypointKindOf(entrypoint *testpilotspb.Entrypoint) EntrypointKind {
+	return contract.EntrypointKindOf(entrypoint)
+}

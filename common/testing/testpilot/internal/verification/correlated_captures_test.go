@@ -310,7 +310,13 @@ func TestCorrelatedCapturePrepareRejectsUnsupportedDeclarations(t *testing.T) {
 		},
 		"unsupported-literal": {
 			mutate: func(s *testpilotspb.CorrelatedContract) {
-				s.Rules[0].Correlation = correlationComparison(testpilotspb.COMPARISON_OPERATOR_EQUAL, correlatedLiteral(&testpilotspb.Value{Value: &testpilotspb.Value_NaturalValue{NaturalValue: "01"}}), correlatedCaptureOperand("seen", 0))
+				s.Rules[0].Correlation = correlationComparison(testpilotspb.COMPARISON_OPERATOR_EQUAL, correlatedLiteral(&testpilotspb.Value{Value: &testpilotspb.Value_UnsignedIntegerValue{UnsignedIntegerValue: "01"}}), correlatedCaptureOperand("seen", 0))
+			},
+			reason: "unsupported correlation literal",
+		},
+		"oversized-unsigned-literal": {
+			mutate: func(s *testpilotspb.CorrelatedContract) {
+				s.Rules[0].Correlation = correlationComparison(testpilotspb.COMPARISON_OPERATOR_EQUAL, correlatedLiteral(&testpilotspb.Value{Value: &testpilotspb.Value_UnsignedIntegerValue{UnsignedIntegerValue: "18446744073709551616"}}), correlatedCaptureOperand("seen", 0))
 			},
 			reason: "unsupported correlation literal",
 		},
@@ -333,7 +339,7 @@ func TestCorrelatedCapturePrepareRejectsUnsupportedDeclarations(t *testing.T) {
 		},
 		"mismatched-operand-kinds": {
 			mutate: func(s *testpilotspb.CorrelatedContract) {
-				s.Rules[0].Correlation = correlationComparison(testpilotspb.COMPARISON_OPERATOR_EQUAL, correlatedFieldOperand(repliedField), correlatedLiteral(&testpilotspb.Value{Value: &testpilotspb.Value_NaturalValue{NaturalValue: "1"}}))
+				s.Rules[0].Correlation = correlationComparison(testpilotspb.COMPARISON_OPERATOR_EQUAL, correlatedFieldOperand(repliedField), correlatedLiteral(&testpilotspb.Value{Value: &testpilotspb.Value_UnsignedIntegerValue{UnsignedIntegerValue: "1"}}))
 			},
 			reason: "incompatible correlation operand types",
 		},
@@ -341,7 +347,7 @@ func TestCorrelatedCapturePrepareRejectsUnsupportedDeclarations(t *testing.T) {
 			mutate: func(s *testpilotspb.CorrelatedContract) {
 				for _, rule := range s.ProjectionRules {
 					if rule.Kind == "reply" {
-						rule.Fields[0].Type = &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_NATURAL}
+						rule.Fields[0].Type = &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_UINT64}
 					}
 				}
 			},
@@ -351,7 +357,7 @@ func TestCorrelatedCapturePrepareRejectsUnsupportedDeclarations(t *testing.T) {
 			mutate: func(s *testpilotspb.CorrelatedContract) {
 				for _, rule := range s.ProjectionRules {
 					if rule.Kind == "reply" {
-						rule.Fields = append(rule.Fields, &testpilotspb.CorrelatedFieldPolicy{FieldId: capturedField, Type: &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_NATURAL}, Disposition: testpilotspb.CORRELATED_FIELD_DISPOSITION_RETAIN})
+						rule.Fields = append(rule.Fields, &testpilotspb.CorrelatedFieldPolicy{FieldId: capturedField, Type: &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_UINT64}, Disposition: testpilotspb.CORRELATED_FIELD_DISPOSITION_RETAIN})
 					}
 				}
 			},

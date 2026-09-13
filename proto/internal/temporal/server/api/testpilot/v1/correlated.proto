@@ -61,7 +61,7 @@ enum CorrelatedEvidenceMeaning {
   CORRELATED_EVIDENCE_MEANING_CONFIRMED = 3;
 }
 
-// CorrelatedFieldPolicy declares one evidence field: its TEXT, NATURAL or BOOLEAN type, and how
+// CorrelatedFieldPolicy declares one evidence field: its TEXT, UINT64 or BOOLEAN type, and how
 // evidence must carry it.
 message CorrelatedFieldPolicy {
   string field_id = 1;

@@ -95,77 +95,6 @@ func (RoleKind) EnumDescriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{0}
 }
 
-// EntrypointKind classifies an Entrypoint by its activation. No message carries it; the runtime
-// derives it from the activation.
-type EntrypointKind int32
-
-const (
-	ENTRYPOINT_KIND_UNSPECIFIED   EntrypointKind = 0
-	ENTRYPOINT_KIND_CONTROLLER    EntrypointKind = 1
-	ENTRYPOINT_KIND_WORKFLOW      EntrypointKind = 2
-	ENTRYPOINT_KIND_ACTIVITY      EntrypointKind = 3
-	ENTRYPOINT_KIND_NEXUS_HANDLER EntrypointKind = 4
-)
-
-// Enum value maps for EntrypointKind.
-var (
-	EntrypointKind_name = map[int32]string{
-		0: "ENTRYPOINT_KIND_UNSPECIFIED",
-		1: "ENTRYPOINT_KIND_CONTROLLER",
-		2: "ENTRYPOINT_KIND_WORKFLOW",
-		3: "ENTRYPOINT_KIND_ACTIVITY",
-		4: "ENTRYPOINT_KIND_NEXUS_HANDLER",
-	}
-	EntrypointKind_value = map[string]int32{
-		"ENTRYPOINT_KIND_UNSPECIFIED":   0,
-		"ENTRYPOINT_KIND_CONTROLLER":    1,
-		"ENTRYPOINT_KIND_WORKFLOW":      2,
-		"ENTRYPOINT_KIND_ACTIVITY":      3,
-		"ENTRYPOINT_KIND_NEXUS_HANDLER": 4,
-	}
-)
-
-func (x EntrypointKind) Enum() *EntrypointKind {
-	p := new(EntrypointKind)
-	*p = x
-	return p
-}
-
-func (x EntrypointKind) String() string {
-	switch x {
-	case ENTRYPOINT_KIND_UNSPECIFIED:
-		return "Unspecified"
-	case ENTRYPOINT_KIND_CONTROLLER:
-		return "Controller"
-	case ENTRYPOINT_KIND_WORKFLOW:
-		return "Workflow"
-	case ENTRYPOINT_KIND_ACTIVITY:
-		return "Activity"
-	case ENTRYPOINT_KIND_NEXUS_HANDLER:
-		return "NexusHandler"
-	default:
-		return strconv.Itoa(int(x))
-	}
-
-}
-
-func (EntrypointKind) Descriptor() protoreflect.EnumDescriptor {
-	return file_temporal_server_api_testpilot_v1_program_proto_enumTypes[1].Descriptor()
-}
-
-func (EntrypointKind) Type() protoreflect.EnumType {
-	return &file_temporal_server_api_testpilot_v1_program_proto_enumTypes[1]
-}
-
-func (x EntrypointKind) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use EntrypointKind.Descriptor instead.
-func (EntrypointKind) EnumDescriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{1}
-}
-
 // Program is a bounded collection of context-local DAGs and one always-run cleanup graph.
 type Program struct {
 	state     protoimpl.MessageState `protogen:"open.v1"`
@@ -1172,13 +1101,7 @@ const file_temporal_server_api_testpilot_v1_program_proto_rawDesc = "" +
 	"\x12ROLE_KIND_ENDPOINT\x10\x01\x12\x14\n" +
 	"\x10ROLE_KIND_WORKER\x10\x02\x12\x18\n" +
 	"\x14ROLE_KIND_TASK_QUEUE\x10\x03\x12\x19\n" +
-	"\x15ROLE_KIND_PARTICIPANT\x10\x04*\xb0\x01\n" +
-	"\x0eEntrypointKind\x12\x1f\n" +
-	"\x1bENTRYPOINT_KIND_UNSPECIFIED\x10\x00\x12\x1e\n" +
-	"\x1aENTRYPOINT_KIND_CONTROLLER\x10\x01\x12\x1c\n" +
-	"\x18ENTRYPOINT_KIND_WORKFLOW\x10\x02\x12\x1c\n" +
-	"\x18ENTRYPOINT_KIND_ACTIVITY\x10\x03\x12!\n" +
-	"\x1dENTRYPOINT_KIND_NEXUS_HANDLER\x10\x04B2Z0go.temporal.io/server/api/testpilot/v1;testpilotb\x06proto3"
+	"\x15ROLE_KIND_PARTICIPANT\x10\x04B2Z0go.temporal.io/server/api/testpilot/v1;testpilotb\x06proto3"
 
 var (
 	file_temporal_server_api_testpilot_v1_program_proto_rawDescOnce sync.Once
@@ -1192,45 +1115,44 @@ func file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP() []byte {
 	return file_temporal_server_api_testpilot_v1_program_proto_rawDescData
 }
 
-var file_temporal_server_api_testpilot_v1_program_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_temporal_server_api_testpilot_v1_program_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_temporal_server_api_testpilot_v1_program_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_temporal_server_api_testpilot_v1_program_proto_goTypes = []any{
 	(RoleKind)(0),                  // 0: temporal.server.api.testpilot.v1.RoleKind
-	(EntrypointKind)(0),            // 1: temporal.server.api.testpilot.v1.EntrypointKind
-	(*Program)(nil),                // 2: temporal.server.api.testpilot.v1.Program
-	(*EnvironmentDefinition)(nil),  // 3: temporal.server.api.testpilot.v1.EnvironmentDefinition
-	(*Role)(nil),                   // 4: temporal.server.api.testpilot.v1.Role
-	(*Slot)(nil),                   // 5: temporal.server.api.testpilot.v1.Slot
-	(*Observation)(nil),            // 6: temporal.server.api.testpilot.v1.Observation
-	(*Entrypoint)(nil),             // 7: temporal.server.api.testpilot.v1.Entrypoint
-	(*ControllerActivation)(nil),   // 8: temporal.server.api.testpilot.v1.ControllerActivation
-	(*WorkflowActivation)(nil),     // 9: temporal.server.api.testpilot.v1.WorkflowActivation
-	(*ActivityActivation)(nil),     // 10: temporal.server.api.testpilot.v1.ActivityActivation
-	(*NexusHandlerActivation)(nil), // 11: temporal.server.api.testpilot.v1.NexusHandlerActivation
-	(*Cleanup)(nil),                // 12: temporal.server.api.testpilot.v1.Cleanup
-	(*ProgramLimits)(nil),          // 13: temporal.server.api.testpilot.v1.ProgramLimits
-	(*ValueType)(nil),              // 14: temporal.server.api.testpilot.v1.ValueType
-	(*OpaqueHandleType)(nil),       // 15: temporal.server.api.testpilot.v1.OpaqueHandleType
-	(*InstructionNode)(nil),        // 16: temporal.server.api.testpilot.v1.InstructionNode
+	(*Program)(nil),                // 1: temporal.server.api.testpilot.v1.Program
+	(*EnvironmentDefinition)(nil),  // 2: temporal.server.api.testpilot.v1.EnvironmentDefinition
+	(*Role)(nil),                   // 3: temporal.server.api.testpilot.v1.Role
+	(*Slot)(nil),                   // 4: temporal.server.api.testpilot.v1.Slot
+	(*Observation)(nil),            // 5: temporal.server.api.testpilot.v1.Observation
+	(*Entrypoint)(nil),             // 6: temporal.server.api.testpilot.v1.Entrypoint
+	(*ControllerActivation)(nil),   // 7: temporal.server.api.testpilot.v1.ControllerActivation
+	(*WorkflowActivation)(nil),     // 8: temporal.server.api.testpilot.v1.WorkflowActivation
+	(*ActivityActivation)(nil),     // 9: temporal.server.api.testpilot.v1.ActivityActivation
+	(*NexusHandlerActivation)(nil), // 10: temporal.server.api.testpilot.v1.NexusHandlerActivation
+	(*Cleanup)(nil),                // 11: temporal.server.api.testpilot.v1.Cleanup
+	(*ProgramLimits)(nil),          // 12: temporal.server.api.testpilot.v1.ProgramLimits
+	(*ValueType)(nil),              // 13: temporal.server.api.testpilot.v1.ValueType
+	(*OpaqueHandleType)(nil),       // 14: temporal.server.api.testpilot.v1.OpaqueHandleType
+	(*InstructionNode)(nil),        // 15: temporal.server.api.testpilot.v1.InstructionNode
 }
 var file_temporal_server_api_testpilot_v1_program_proto_depIdxs = []int32{
-	3,  // 0: temporal.server.api.testpilot.v1.Program.environment:type_name -> temporal.server.api.testpilot.v1.EnvironmentDefinition
-	4,  // 1: temporal.server.api.testpilot.v1.Program.roles:type_name -> temporal.server.api.testpilot.v1.Role
-	5,  // 2: temporal.server.api.testpilot.v1.Program.slots:type_name -> temporal.server.api.testpilot.v1.Slot
-	6,  // 3: temporal.server.api.testpilot.v1.Program.observations:type_name -> temporal.server.api.testpilot.v1.Observation
-	7,  // 4: temporal.server.api.testpilot.v1.Program.entrypoints:type_name -> temporal.server.api.testpilot.v1.Entrypoint
-	12, // 5: temporal.server.api.testpilot.v1.Program.cleanup:type_name -> temporal.server.api.testpilot.v1.Cleanup
-	13, // 6: temporal.server.api.testpilot.v1.Program.limits:type_name -> temporal.server.api.testpilot.v1.ProgramLimits
+	2,  // 0: temporal.server.api.testpilot.v1.Program.environment:type_name -> temporal.server.api.testpilot.v1.EnvironmentDefinition
+	3,  // 1: temporal.server.api.testpilot.v1.Program.roles:type_name -> temporal.server.api.testpilot.v1.Role
+	4,  // 2: temporal.server.api.testpilot.v1.Program.slots:type_name -> temporal.server.api.testpilot.v1.Slot
+	5,  // 3: temporal.server.api.testpilot.v1.Program.observations:type_name -> temporal.server.api.testpilot.v1.Observation
+	6,  // 4: temporal.server.api.testpilot.v1.Program.entrypoints:type_name -> temporal.server.api.testpilot.v1.Entrypoint
+	11, // 5: temporal.server.api.testpilot.v1.Program.cleanup:type_name -> temporal.server.api.testpilot.v1.Cleanup
+	12, // 6: temporal.server.api.testpilot.v1.Program.limits:type_name -> temporal.server.api.testpilot.v1.ProgramLimits
 	0,  // 7: temporal.server.api.testpilot.v1.Role.kind:type_name -> temporal.server.api.testpilot.v1.RoleKind
-	14, // 8: temporal.server.api.testpilot.v1.Slot.value:type_name -> temporal.server.api.testpilot.v1.ValueType
-	15, // 9: temporal.server.api.testpilot.v1.Slot.opaque_handle:type_name -> temporal.server.api.testpilot.v1.OpaqueHandleType
-	14, // 10: temporal.server.api.testpilot.v1.Observation.type:type_name -> temporal.server.api.testpilot.v1.ValueType
-	8,  // 11: temporal.server.api.testpilot.v1.Entrypoint.controller:type_name -> temporal.server.api.testpilot.v1.ControllerActivation
-	9,  // 12: temporal.server.api.testpilot.v1.Entrypoint.workflow:type_name -> temporal.server.api.testpilot.v1.WorkflowActivation
-	10, // 13: temporal.server.api.testpilot.v1.Entrypoint.activity:type_name -> temporal.server.api.testpilot.v1.ActivityActivation
-	11, // 14: temporal.server.api.testpilot.v1.Entrypoint.nexus_handler:type_name -> temporal.server.api.testpilot.v1.NexusHandlerActivation
-	16, // 15: temporal.server.api.testpilot.v1.Entrypoint.instructions:type_name -> temporal.server.api.testpilot.v1.InstructionNode
-	16, // 16: temporal.server.api.testpilot.v1.Cleanup.instructions:type_name -> temporal.server.api.testpilot.v1.InstructionNode
+	13, // 8: temporal.server.api.testpilot.v1.Slot.value:type_name -> temporal.server.api.testpilot.v1.ValueType
+	14, // 9: temporal.server.api.testpilot.v1.Slot.opaque_handle:type_name -> temporal.server.api.testpilot.v1.OpaqueHandleType
+	13, // 10: temporal.server.api.testpilot.v1.Observation.type:type_name -> temporal.server.api.testpilot.v1.ValueType
+	7,  // 11: temporal.server.api.testpilot.v1.Entrypoint.controller:type_name -> temporal.server.api.testpilot.v1.ControllerActivation
+	8,  // 12: temporal.server.api.testpilot.v1.Entrypoint.workflow:type_name -> temporal.server.api.testpilot.v1.WorkflowActivation
+	9,  // 13: temporal.server.api.testpilot.v1.Entrypoint.activity:type_name -> temporal.server.api.testpilot.v1.ActivityActivation
+	10, // 14: temporal.server.api.testpilot.v1.Entrypoint.nexus_handler:type_name -> temporal.server.api.testpilot.v1.NexusHandlerActivation
+	15, // 15: temporal.server.api.testpilot.v1.Entrypoint.instructions:type_name -> temporal.server.api.testpilot.v1.InstructionNode
+	15, // 16: temporal.server.api.testpilot.v1.Cleanup.instructions:type_name -> temporal.server.api.testpilot.v1.InstructionNode
 	17, // [17:17] is the sub-list for method output_type
 	17, // [17:17] is the sub-list for method input_type
 	17, // [17:17] is the sub-list for extension type_name
@@ -1260,7 +1182,7 @@ func file_temporal_server_api_testpilot_v1_program_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_temporal_server_api_testpilot_v1_program_proto_rawDesc), len(file_temporal_server_api_testpilot_v1_program_proto_rawDesc)),
-			NumEnums:      2,
+			NumEnums:      1,
 			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   0,

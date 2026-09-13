@@ -385,7 +385,7 @@ func (s *scheduler) openControllers(ctx context.Context) ([]scheduledNode, Decis
 	var decision Decision
 	var ready []scheduledNode
 	for ordinal, g := range s.values.program.graphs {
-		if g.cleanup || g.context != testpilotspb.ENTRYPOINT_KIND_CONTROLLER {
+		if g.cleanup || g.context != contract.ControllerEntrypoint {
 			continue
 		}
 		values, err := s.values.activate(g.id, fmt.Sprintf("controller.%d", ordinal))

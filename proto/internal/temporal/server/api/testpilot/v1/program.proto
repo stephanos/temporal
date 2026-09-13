@@ -69,16 +69,6 @@ message Entrypoint {
   repeated InstructionNode instructions = 6;
 }
 
-// EntrypointKind classifies an Entrypoint by its activation. No message carries it; the runtime
-// derives it from the activation.
-enum EntrypointKind {
-  ENTRYPOINT_KIND_UNSPECIFIED = 0;
-  ENTRYPOINT_KIND_CONTROLLER = 1;
-  ENTRYPOINT_KIND_WORKFLOW = 2;
-  ENTRYPOINT_KIND_ACTIVITY = 3;
-  ENTRYPOINT_KIND_NEXUS_HANDLER = 4;
-}
-
 // ControllerActivation activates the entrypoint exactly once, when the Run opens.
 message ControllerActivation {}
 

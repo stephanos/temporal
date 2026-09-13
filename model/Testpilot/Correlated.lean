@@ -165,10 +165,13 @@ private def wireScalar (wire : temporal.server.api.testpilot.v1.Value) : Except 
   if !wire.«Unknown.Fields».isEmpty then throw "unknown scalar field"
   match wire.value with
   | some (.text_value text) => pure (.text text)
-  | some (.natural_value text) =>
+  | some (.unsigned_integer_value text) =>
       match text.toNat? with
-      | some value => if toString value == text then pure (.natural value) else throw "noncanonical natural"
-      | none => throw "invalid natural"
+      | some value =>
+          if toString value != text then throw "noncanonical unsigned integer"
+          else if value > 18446744073709551615 then throw "unsigned integer overflow"
+          else pure (.natural value)
+      | none => throw "invalid unsigned integer"
   | some (.bool_value value) => pure (.boolean value)
   | _ => throw "unsupported evidence scalar"
 
@@ -279,7 +282,7 @@ def decode (wire : CorrelatedContract) : Except String Compiled := do
       if !type.«Unknown.Fields».isEmpty then throw "unknown field type"
       let kind ← match type.kind with
         | .SCALAR_KIND_TEXT => pure 1
-        | .SCALAR_KIND_NATURAL => pure 2
+        | .SCALAR_KIND_UINT64 => pure 2
         | .SCALAR_KIND_BOOLEAN => pure 3
         | _ => throw "unsupported field type"
       let disposition ← match field.disposition with

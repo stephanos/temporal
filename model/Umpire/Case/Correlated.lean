@@ -44,7 +44,7 @@ private def fieldPolicy (field : EvidenceFieldDeclaration × FieldDisposition) :
     field_id := field.1.id.value
     type := some { kind := match field.1.valueType with
       | .text => .SCALAR_KIND_TEXT
-      | .natural => .SCALAR_KIND_NATURAL
+      | .natural => .SCALAR_KIND_UINT64
       | .boolean => .SCALAR_KIND_BOOLEAN }
     disposition }
 /-- The step condition a pattern lowers to: its correlated step reference tested for presence, or
@@ -106,9 +106,10 @@ private def literalOperand (value : Operation.Scalar) :
   | .text text => .ok ({ value := some (.text_value text) }, .text text, 1)
   | .boolean flag => .ok ({ value := some (.bool_value flag) }, .boolean flag, 3)
   | .integer _ number =>
-      if number ≥ 0 then
-        .ok ({ value := some (.natural_value (toString number.toNat)) }, .natural number.toNat, 2)
-      else .error "unsupported negative correlation literal"
+      if number < 0 then .error "unsupported negative correlation literal"
+      else if number > 18446744073709551615 then .error "protobuf unsigned overflow"
+      else .ok ({ value := some (.unsigned_integer_value (toString number.toNat)) },
+        .natural number.toNat, 2)
   | _ => .error "unsupported correlation literal"
 
 /-- One correlation operand, with the declared scalar kind the portable decoder checks it against. -/

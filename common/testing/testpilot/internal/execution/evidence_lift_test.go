@@ -210,7 +210,7 @@ func TestEvidenceLiftSelectsOneRuleAndCountsItsOwnOrdinals(t *testing.T) {
 	require.Equal(t, "scheduled.other", other[0].GetKind())
 	require.Empty(t, other[0].GetFields())
 
-	// A completion names its operation by the record it references, narrowed to a natural key.
+	// A completion names its operation by the record it references, narrowed to an unsigned integer key.
 	completed := stagedEvidence(t, values, prepared, setCompleted(7))
 	require.Len(t, completed, 1)
 	require.Equal(t, "completed", completed[0].GetKind())

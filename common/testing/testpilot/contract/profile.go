@@ -20,6 +20,38 @@ const (
 // reuses it rather than restating a literal a new instruction would silently invalidate.
 const MaxOpcode = InjectFault
 
+// EntrypointKind classifies an Entrypoint by its activation. The protocol carries no kind: the
+// activation oneof is the one source, read by EntrypointKindOf.
+type EntrypointKind uint8
+
+const (
+	ControllerEntrypoint EntrypointKind = iota + 1
+	WorkflowEntrypoint
+	ActivityEntrypoint
+	NexusHandlerEntrypoint
+)
+
+// MaxEntrypointKind is the highest declared EntrypointKind, so a caller ranging over every kind
+// needs no literal a new activation would silently invalidate.
+const MaxEntrypointKind = NexusHandlerEntrypoint
+
+// EntrypointKindOf classifies an Entrypoint by its activation oneof, and returns zero when the
+// entrypoint has no known activation.
+func EntrypointKindOf(entrypoint *testpilotspb.Entrypoint) EntrypointKind {
+	switch entrypoint.GetActivation().(type) {
+	case *testpilotspb.Entrypoint_Controller:
+		return ControllerEntrypoint
+	case *testpilotspb.Entrypoint_Workflow:
+		return WorkflowEntrypoint
+	case *testpilotspb.Entrypoint_Activity:
+		return ActivityEntrypoint
+	case *testpilotspb.Entrypoint_NexusHandler:
+		return NexusHandlerEntrypoint
+	default:
+		return 0
+	}
+}
+
 type RolePolicy struct {
 	ID                  string
 	Kind                testpilotspb.RoleKind
@@ -33,7 +65,7 @@ type ReservationCarrierPolicy struct {
 }
 
 type ReservationCarrierShape struct {
-	Kind         testpilotspb.EntrypointKind
+	Kind         EntrypointKind
 	MaximumCount int64
 }
 
