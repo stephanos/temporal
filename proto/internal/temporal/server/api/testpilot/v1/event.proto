@@ -23,7 +23,8 @@ enum RunEventKind {
 // RunEventFilter selects the Run Events a Contract transition considers by kind.
 message RunEventFilter { repeated RunEventKind kinds = 1; }
 
-// RunEventField names one coordinate of a Run Event that a Contract expression may read.
+// RunEventField names one coordinate every Run Event has. Kind-specific data is read through the
+// event's payload instead.
 enum RunEventField {
   RUN_EVENT_FIELD_UNSPECIFIED = 0;
   RUN_EVENT_FIELD_SEQUENCE = 1;
@@ -35,6 +36,4 @@ enum RunEventField {
   RUN_EVENT_FIELD_ATTEMPT = 7;
   RUN_EVENT_FIELD_SOURCE_ID = 8;
   RUN_EVENT_FIELD_RUN_ID = 9;
-  RUN_EVENT_FIELD_FAULT_ROLE_ID = 10;
-  RUN_EVENT_FIELD_FAULT_KIND = 11;
 }

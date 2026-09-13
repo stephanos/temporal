@@ -480,6 +480,23 @@ narrows or completes a requirement without changing its intent; tasks record the
   and an unguarded absent read reject. Guard evaluation charges a few more runtime work units per
   rule (the expression nodes) than the bare path read did; no checked-in Case approaches the ceiling.
   `model_value` stays in `Reference` but no context admits it (R6 may remove it).
+- **Run Event payloads (decided in .7, 2026-09-13).** `RunEvent.payload` has two arms, `outcome` and
+  `fault_injected`; no diagnostic-reference arm, because nothing records one. `RunEventReference` is a
+  `selection` oneof of a `RunEventField` coordinate or an empty `RunEventPayloadReference`, and a
+  payload is read only as `path(run_event.payload, <arm>.<field>)`, whose first segment names the arm,
+  so a new payload adds no reference arm or enum value; reading a declared protocol message by path is
+  an event field read under EVD-13. `InstructionOutcome` moves to `run.proto` and joins `FaultInjected`
+  in the R11 forbidden list: no Case message names it (outcome typing names only
+  `InstructionOutcomeStatus` and `InstructionOutcomeField`). One table, `ir.RunEventPayloadOf`, gives
+  each kind's arm and whether the kind requires it (`FAULT_INJECTED` requires `fault_injected`;
+  `INSTRUCTION_COMPLETED`, `INSTRUCTION_TIMED_OUT` and `DIAGNOSTIC` may carry `outcome`). Preparation
+  rejects `unknown` at `...path.path.segments[0].field` when no kind of the transition's filter carries
+  the arm; for each evaluated kind only a required arm is available, so a read of an arm the event may
+  lack is absent and needs a presence guard (fail-closed until .16). A `FAULT_INJECTED`-only transition
+  reads the fault unguarded, so the worker-outage Contract gains no presence checks. A payload that does
+  not match its kind is an `INVARIANT` diagnostic `payload_kind_mismatch`, checked before staging. The
+  worker-outage per-event work bound grows by one message projection per fault read and stays under its
+  declared ceiling.
 
 ## Requirement coverage
 

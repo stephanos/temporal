@@ -233,6 +233,44 @@ var Declared = Mapping{
 		Name: "CorrelatedEvidenceRule.guard becomes an Expression over the projected value and guard_" + "equals_text folds into EQUAL", Requirement: "R3, R6",
 		Apply: RewriteMessages(protocol+"CorrelatedEvidenceRule", rewriteEvidenceGuard),
 	},
+	{
+		Name: "the Run Event fault coordinates become paths from the payload reference into fault_injected", Requirement: "R4",
+		Apply: RewriteMessages(protocol+"Contract"+"Expression", rewriteFaultCoordinate),
+	},
+}
+
+// faultCoordinates maps each baseline fault coordinate literal, by name or number, to the
+// FaultInjected field a payload path reads instead.
+var faultCoordinates = map[string]string{
+	"RUN_EVENT_FIELD_" + "FAULT_ROLE_ID": "role_id", "10": "role_id",
+	"RUN_EVENT_FIELD_" + "FAULT_KIND": "kind", "11": "kind",
+}
+
+// rewriteFaultCoordinate turns a Contract expression reading a fault coordinate of the Run Event
+// into a path from the payload reference through fault_injected. It runs after the expression step,
+// so the object is already a Reference; a reference to any other coordinate is left as it is.
+func rewriteFaultCoordinate(_ string, object *Object) (any, error) {
+	reference, isReference := object.Fields["reference"].(*Object)
+	if !isReference {
+		return object, nil
+	}
+	runEvent, isRunEvent := reference.Fields["runEvent"].(*Object)
+	if !isRunEvent {
+		return object, nil
+	}
+	field, fault := faultCoordinates[literalText(runEvent.Fields["field"])]
+	if !fault {
+		return object, nil
+	}
+	if len(runEvent.Fields) != 1 {
+		return nil, fmt.Errorf("fault coordinate reference carries %d keys, want 1", len(runEvent.Fields))
+	}
+	segment := func(name string) *Object { return &Object{Fields: map[string]any{"field": name}} }
+	object.Fields = map[string]any{"path": &Object{Fields: map[string]any{
+		"operand": &Object{Fields: map[string]any{"reference": &Object{Fields: map[string]any{"runEvent": &Object{Fields: map[string]any{"payload": &Object{Fields: map[string]any{}}}}}}}},
+		"path":    &Object{Fields: map[string]any{"segments": []any{segment("fault_injected"), segment(field)}}},
+	}}}
+	return object, nil
 }
 
 // stepFields maps each baseline predicate field literal, by name or number, to its step field.

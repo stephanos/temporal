@@ -24,8 +24,9 @@ that Session's decision.
 
 A Case may ask its Driver for a deliberate outage. `InjectFault` is a declared instruction like any
 other: the Profile must authorize it, the role it names must be a task-queue role, and the Run
-records one `FAULT_INJECTED` event per realized outage. Nothing about a requested fault is evidence
-until that event exists.
+records one `FAULT_INJECTED` event per realized outage, carrying the fault in its `fault_injected`
+payload, which a Contract reads through a path. Nothing about a requested fault is evidence until
+that event exists.
 
 A Case may also declare where its operation-correlated evidence comes from. A response read can
 lift a projected value into a declared `CorrelatedEvidence` Observation through guarded rules, which is

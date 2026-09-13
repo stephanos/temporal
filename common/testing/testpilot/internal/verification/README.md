@@ -45,6 +45,13 @@ validation has separate bounded IR surface/type/fanout checks under Program resp
 The shared `internal/ir` interpreter only resolves values from its supplied typed environment;
 verification supplies declared Observations, captures, and the closed Run metadata fields.
 
+Kind-specific Run Event data is the event's `payload` oneof, read through a path from the payload
+reference whose first segment names the arm (`fault_injected.kind`). One table in `internal/ir`
+says which arm each event kind may carry and which kind requires its arm. A transition declares the
+arms its filtered kinds may carry, so a path into an arm none of them carries rejects at
+preparation, located at that segment. For each evaluated kind, only the arm the kind requires is
+available; a path into an arm the event may lack is absent and needs a presence guard.
+
 A correlated capability's trigger, response and correlation are `Expression`s in the correlated
 context, but the capability admits and evaluates them itself rather than binding them through the
 IR: a FACT step reference is an existential over the step's facts, which no single-valued reference

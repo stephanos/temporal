@@ -22,6 +22,10 @@ const (
 	CaptureReference
 	// ProjectedValueReference is the value an evidence lift is projecting; it carries no identity.
 	ProjectedValueReference
+	// EventPayloadReference is one payload arm of the evaluated Run Event, named by ID. A caller
+	// declares the arms a context's event kinds may carry; an authored expression reaches one only
+	// through a path whose first segment names it.
+	EventPayloadReference
 )
 
 type Reference struct {
@@ -331,6 +335,9 @@ func (b *compiler) node(source proto.Message, path string, expected *Type, facts
 		reference, err := b.reference(value.Message(), path+".reference")
 		return &Expression{reference: reference}, err
 	case "path":
+		if payloadReference(messageField(value.Message(), "operand").Interface()) {
+			return b.projectPayload(value.Message(), path+".path", facts, depth)
+		}
 		return b.project(value.Message(), path+".path", facts, depth)
 	case "present":
 		return b.unary(IsPresent, messageField(value.Message(), "operand").Interface(), path+".present", facts, depth)
@@ -378,9 +385,12 @@ func (b *compiler) reference(message protoreflect.Message, path string) (Referen
 			return Reference{}, invalid(Malformed, "expression", "invalid outcome reference")
 		}
 	case "run_event":
-		message := value.Message()
-		result = Reference{Kind: EventReference, Field: int32(message.Get(message.Descriptor().Fields().ByName("field")).Enum())}
-		if result.Field <= 0 || result.Field > int32(testpilotspb.RUN_EVENT_FIELD_FAULT_KIND) {
+		event := value.Message().Interface().(*testpilotspb.RunEventReference)
+		if event.GetPayload() != nil {
+			return Reference{}, invalid(Malformed, path+".run_event.payload", "a Run Event payload is read only through a path that names its arm")
+		}
+		result = Reference{Kind: EventReference, Field: int32(event.GetField())}
+		if result.Field <= 0 || result.Field > int32(testpilotspb.RUN_EVENT_FIELD_RUN_ID) {
 			return Reference{}, invalid(Malformed, "expression", "invalid Run Event reference")
 		}
 	case "run":
@@ -418,7 +428,50 @@ func (b *compiler) project(value protoreflect.Message, location string, facts ma
 	if err != nil {
 		return nil, err
 	}
+	return b.projectOperand(operand, messageField(value, "path").Interface().(*testpilotspb.FieldPath), facts, depth)
+}
+
+// payloadReference reports whether source is a reference to the evaluated Run Event's payload.
+func payloadReference(source proto.Message) bool {
+	expression, ok := source.(*testpilotspb.Expression)
+	return ok && expression.GetReference().GetRunEvent().GetPayload() != nil
+}
+
+// projectPayload binds a path from the Run Event payload. Its first segment names the payload arm,
+// which must be declared in scope, and the rest of the path reads inside that arm, so the read is
+// typed by the arm's descriptor and absent unless the arm is known to be carried.
+func (b *compiler) projectPayload(value protoreflect.Message, location string, facts map[string]bool, depth int64) (*Expression, error) {
+	if err := b.budget.charge(depth+1, 1, 0, "expression"); err != nil {
+		return nil, err
+	}
+	operandLocation := location + ".operand.reference"
+	if err := admitReference(b.context, operandLocation, "run_event"); err != nil {
+		return nil, err
+	}
 	pathValue := messageField(value, "path").Interface().(*testpilotspb.FieldPath)
+	segments := pathValue.GetSegments()
+	if len(segments) == 0 || segments[0] == nil || segments[0].Selector != nil {
+		return nil, invalid(Malformed, location+".path", "a Run Event payload path starts with the plain name of a payload arm")
+	}
+	armLocation := location + ".path.segments[0].field"
+	reference := Reference{Kind: EventPayloadReference, ID: segments[0].GetField()}
+	if _, known := b.catalog.RunEventPayloadType(protoreflect.Name(reference.ID)); !known {
+		return nil, invalid(Unknown, armLocation, "unknown Run Event payload arm")
+	}
+	binding, declared := b.scope[reference]
+	if !declared {
+		return nil, invalid(Unknown, armLocation, "no Run Event kind this expression evaluates can carry the payload arm")
+	}
+	if !b.catalog.owns(binding.Type) {
+		return nil, invalid(TypeMismatch, "expression", "reference type belongs to another catalog")
+	}
+	operand := &Expression{operator: ReferenceValue, reference: reference, typ: binding.Type, key: referenceKey(reference)}
+	operand.absent = !binding.Available && !facts[operand.key]
+	return b.projectOperand(operand, &testpilotspb.FieldPath{Segments: segments[1:]}, facts, depth)
+}
+
+// projectOperand reads pathValue out of an already bound operand.
+func (b *compiler) projectOperand(operand *Expression, pathValue *testpilotspb.FieldPath, facts map[string]bool, depth int64) (*Expression, error) {
 	path, err := b.catalog.BindPath(operand.typ, pathValue, b.budget.limits)
 	if err != nil {
 		return nil, err
