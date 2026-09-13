@@ -272,6 +272,8 @@ func derivedOutcomeTypes(graph instructionGraph, kind string) map[string]string 
 		fields["INSTRUCTION_OUTCOME_FIELD_PROTOCOL_CODE"] = textType
 	case !graph.controller:
 		fields["INSTRUCTION_OUTCOME_FIELD_SDK_FAILURE_CODE"] = textType
+	default:
+		// Other controller instructions have neither code.
 	}
 	if kind == "awaitInstruction" {
 		fields["INSTRUCTION_OUTCOME_FIELD_VALUE"] = textType

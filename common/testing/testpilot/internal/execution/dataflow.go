@@ -212,6 +212,8 @@ func (a *admission) bindOutcomes(g *graph, n *node) error {
 		n.outcomes[testpilotspb.INSTRUCTION_OUTCOME_FIELD_PROTOCOL_CODE] = a.outcomeTypes.text
 	case g.context != contract.ControllerEntrypoint:
 		n.outcomes[testpilotspb.INSTRUCTION_OUTCOME_FIELD_SDK_FAILURE_CODE] = a.outcomeTypes.text
+	default:
+		// Other controller instructions (AwaitSlot, InjectFault) have neither code.
 	}
 	n.outcomes[testpilotspb.INSTRUCTION_OUTCOME_FIELD_DETAIL] = a.outcomeTypes.text
 	if n.opcode == contract.Await {
