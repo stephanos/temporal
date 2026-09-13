@@ -676,6 +676,25 @@ narrows or completes a requirement without changing its intent; tasks record the
   expects and is declared before the R9 step, which recognizes the success guard by its current
   `Expression`; the R15 path step spells baseline paths with its own printer. Retired:
   `FieldPathSegment`, `RepeatedWildcard`, `MapKeySelector`, `PresenceSelector`, `OneofSelector`.
+- **Absent operands (decided in .16, 2026-09-13).** Every `compare` operator is false when either
+  operand is absent, in the Program, Contract, correlated and evidence-lift contexts; `not(EQUAL)` is
+  therefore true there while `NOT_EQUAL` is false. `ir` binds a comparison operand as possibly absent
+  and returns false at evaluation; a bare absent boolean and an absent instruction input still reject
+  "requires an explicit presence guard". A true comparison supplies no presence fact, so a presence
+  conjunct that a later input reads through stays (the default success guard keeps
+  `present(status)`). The correlated evaluators (Go and `Testpilot.Correlated`, whose correlation is
+  now a `Bool`) compare a missing evidence field or retained occurrence as false, so a step that
+  failed as "missing correlation field operand" or "missing retained capture occurrence" now fails as
+  "correlation rejected this operation's step", and an `any` group can admit it through another
+  operand. Producers drop exactly `present(p)` beside a `compare` over `p`: field lowering keeps
+  `present(observation)` and the presence check beside a negated comparison (the reject transition of
+  an EQUAL Property and the match transition of a NOT_EQUAL one), because the negation is true on an
+  absent read and dropping it would turn "never established" into a violation; the typed Nexus lift
+  guard becomes the comparison. The oracle's last R15 step removes exactly that pattern and collapses
+  a singleton `all`. No Verdict moved: the regression gate passed over the unchanged fixtures and
+  again after regeneration. The activation unit tests that evaluated a dependent before its
+  dependency's outcome existed now observe a skipped instruction rather than an error; the worker
+  never evaluates out of order, so no Run changes.
 
 ## Requirement coverage
 
