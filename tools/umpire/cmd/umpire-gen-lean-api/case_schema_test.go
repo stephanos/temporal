@@ -127,6 +127,8 @@ func TestCaseSchemaExcludesConcreteDriverAuthorityFields(t *testing.T) {
 		"temporal/server/api/testpilot/v1/instruction.proto",
 		"temporal/server/api/testpilot/v1/program.proto",
 		"temporal/server/api/testpilot/v1/contract.proto",
+		"temporal/server/api/testpilot/v1/correlated.proto",
+		"temporal/server/api/testpilot/v1/event.proto",
 		"temporal/server/api/testpilot/v1/run.proto",
 		"temporal/server/api/testpilot/v1/case.proto",
 	} {

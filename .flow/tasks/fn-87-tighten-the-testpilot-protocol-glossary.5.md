@@ -17,6 +17,7 @@ Replace `ProgramExpression` and `ContractExpression` (fourteen messages) with th
 - Lean: one `Testpilot.Authoring.Expr` namespace replaces `ProgramExpr`/`ContractExpr`. `Testpilot/Tests/Protocol.lean:18-38` pins the old type mismatch; replace it with `#guard`s that a Program-context and a Contract-context expression are the same type, plus Lean-side context checks only if Authoring already validates contexts (if it does not, the Lean unit tests cover Authoring constructors and Go owns admission; the spec asks for "Lean and Go unit tests" of the rejection, so add a Lean test that renders a Case with a Contract reference in an instruction guard and a Go test that prepares it and asserts category and path).
 - Conformance: the spec requires one new rejection case. EVD-18 fixes six classes, so keep six classes and allow the `static-preparation-rejection` class to carry two Cases: extend `productionManifest`/`validateManifest` (`generate.go:478-560`) with a per-class Case list, add Lean renderer argument `conformance-static-preparation-rejection-expression-context`, and make `conformance_test.go:86-90` assert category and path for the new Case (not only `require.Error`). Allowlist the new fixture path for `"bounds"` in `check.go` like its siblings if it carries that key.
 - Mapping: a declared step rewrites `ProgramExpression`/`ContractExpression` trees into `Expression` (`slot|outcome|run|environment|observation|runEvent|capture` → `reference.{...}`; `equals{left,right}` → `compare{operator: COMPARISON_OPERATOR_EQUAL,...}`; `negation` → `not`). The surviving `*Ref` messages become `*Reference` (`RunRef` → `RunReference` marker, `InstructionOutcomeRef` → `InstructionOutcomeReference`, `RunEventFieldRef` → `RunEventReference`, `ObservationRef` in capture assignments → `observation_id` string or `ObservationReference`, record which). Retire tokens `ProgramExpression`, `ContractExpression`, `ProgramExpr`, `ContractExpr`, `EqualsExpression`, the `Program*`/`Contract*` operator message names, and the retired `*Ref` names (`SlotRef`, `RunRef`, `ObservationRef`, `CaptureRef`, `EnvironmentRef`, `InstructionOutcomeRef`, `RunEventFieldRef`).
+- Carried from .3's review: rename `ResponseRead.kind` → `cardinality` (its type is `ReadCardinality`), with a declared mapping step.
 - Docs: `model/Umpire/ARCHITECTURE.md:212-220` expression vocabulary sentence; `internal/execution/README.md` expression wording.
 
 ### Investigation targets
@@ -50,4 +51,5 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
 

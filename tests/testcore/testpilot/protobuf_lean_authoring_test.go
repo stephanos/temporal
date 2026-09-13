@@ -12,7 +12,7 @@ import (
 func TestLeanAuthoringProtoJSONStrictDecode(t *testing.T) {
 	programEnvironment := (&testpilotspb.Program{}).ProtoReflect().Descriptor().Fields().ByName("environment")
 	require.NotNil(t, programEnvironment)
-	require.EqualValues(t, 8, programEnvironment.Number())
+	require.EqualValues(t, 2, programEnvironment.Number())
 	roleFields := (&testpilotspb.Role{}).ProtoReflect().Descriptor().Fields()
 	require.EqualValues(t, 3, roleFields.ByName("namespace_binding_id").Number())
 	require.EqualValues(t, 4, roleFields.ByName("resource_binding_id").Number())
