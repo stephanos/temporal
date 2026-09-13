@@ -41,10 +41,54 @@ Replace the opaque `producer_data` bytes with typed provenance rows (R13, spec "
 
 
 ## Done summary
-TBD
+`CaseProvenance` now carries typed rows instead of opaque `producer_data` bytes: `definitions`, `sources`, `known_gaps` and `correlated_rules`, one repeated field per row kind so fn-85 R8's row is one more field. Fixtures show the rows readably, and no runtime component reads them.
 
+**Protocol** (`case.proto`)
+- New messages: `DefinitionBinding`, `SourceLocation` (`int32` line and column), `KnownGap` and `CorrelatedRuleBinding`.
+- New enums `DefinitionKind` (`DEFINITION_KIND_*`) and `KnownGapKind` (`KNOWN_GAP_KIND_*`). The enums sit after the messages, as api-linter's file layout requires.
+- `KnownGap` keeps subject and detail presence through single-arm oneofs (`subject_presence`, `detail_presence`), so a present empty detail differs from an absent one.
+- The retired `CaseDefinitionKind` and `CaseKnownGap*` names are not reused.
+
+**Lean**
+- `Umpire.Provenance.make` lowers `Metadata` into the rows in the Producer's order. It now returns `Except Umpire.SourceLocation CaseProvenance` and rejects a line or column above the `int32` range rather than wrapping it. `Umpire.Case.Compiler.compile` reports that as construct `provenance.source-position`.
+- `Umpire.Provenance.DefinitionBinding`, `KnownGap` and `CorrelatedRuleBinding` keep their names.
+- `Testpilot.Authoring.provenance` takes the row arrays, and `Testpilot.Authoring.knownGap` encodes the presence oneofs.
+- The Umpire-free synthetic Producer writes no rows.
+- `TypedNexus` and `TypedUnary` open both `Umpire` and the protocol namespace, so they now hide the protocol's `SourceLocation` and `DefinitionKind`.
+- Lean tests (`CompilerTests`, the Nexus success tests, the typed Nexus tests, ProtoJSON, Synthetic) read typed rows. `CompilerTests` pins the `int32` boundaries: 2147483647 is accepted, and 2147483648 is rejected for both line and column.
+
+**Go**
+- `artifact_test.go` round-trips a Go-built Case with typed rows, including a present empty detail.
+- `protobuf_lean_authoring_test.go` pins the Lean ProtoJSON fixture's rows, one of each kind.
+- `correlated_test.go` and `case_schema_test.go` read typed rows.
+- `protocol_test.go` pins the `CaseProvenance` field list.
+
+**Oracle**
+- New R13 step in `protocolmigration/provenance.go` lifts each baseline payload into rows. It accepts a payload only when it decodes under the baseline shape with no unknown key and re-encodes to exactly its own bytes. It renames the kind literals to the new enum prefixes, admitting only the frozen baseline vocabulary, and requires canonical `int32` positions.
+- It drops exactly the synthetic fixture's three opaque bytes.
+- `TestDeclaredProvenanceStepLiftsOnlyTheBaselinePayload` covers the lift and each rejection. The oracle goes red with the step disabled. `expected.json` Verdict pins are unchanged.
+
+**Retired tokens:** `ProducerData`/`producerData`, `GetProducerData`, `producer_data`, and the `CASE_DEFINITION_KIND_*` and `CASE_KNOWN_GAP_KIND_*` families (`tools/umpire/internal/retiredvocabulary/check.go`). The oracle spells them only through split literals.
+
+**Spec drafts** (`.plans/UMPIRE4_SPEC.md`, under GOV-02; approved text unchanged)
+- Restatements for the glossary Case and Provenance entries.
+- ART-09 restatement, the one added rule draft: its "generic opaque provenance" and "provenance bytes" contradict R13. It also folds in .10's "independent limits" follow-up.
+- Profile glossary restatement, for "independent Program and Contract ceilings".
+- The MOD-15 test passes. The fn-87 Planning decisions record "decided in .13", and Boundaries now name the Profile glossary draft.
+
+**Docs:** `model/README.md`, `model/ARCHITECTURE.md`, `model/Umpire/ARCHITECTURE.md`.
+
+**Outside the declared Touches:** `tools/umpire/internal/retiredvocabulary/check.go`, `model/Testpilot/Tests/Synthetic.lean`, and the `.flow` spec decision and review state.
+
+**Gates**
+- Baseline was green: a full regression at `5b08b380`, exit 0, 9 live identities.
+- After the change, at `d25f7256`:
+  - `make umpire-check-regression`: run 1 exited 2 on known flake (c), `TestTestpilotAsyncNexusCase` ending INCONCLUSIVE. Run 2 exited 0 with 9 passing live identities.
+  - `make lint-model`: 163, the baseline.
+  - `go clean -cache && make lint-code`: 161, the baseline, none in touched files.
+
+stage: impl-review - ran (claude backend, SHIP on the first round; the one FYI was applied in d25f7256, a comment explaining why the oracle freezes the baseline kind vocabulary)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 60e967356d3e6f1ae51b3b662e3c56b3341ec96f, d25f7256da776c31aa1ee04a345bac8dc79a0c76
+- Tests: baseline: green (CC=/usr/bin/cc TMPDIR=$(cd "${TMPDIR:-/tmp}" && pwd -P) make umpire-check-regression, exit 0, 9 passing live identities at 5b08b380), go test -count=1 -tags test_dep ./common/testing/testpilot/internal/protocolmigration/ (confirmed red with the R13 step disabled), go test -count=1 -tags test_dep ./common/testing/testpilot/... ./tests/testcore/testpilot/... ./tools/umpire/cmd/umpire-gen-lean-api/ ./tools/umpire/vocabulary/ ./tools/umpire/internal/retiredvocabulary/, make umpire-check-testpilot-authoring, make umpire-check-retired-vocabulary, lake build Testpilot TestpilotTests Temporal Umpire UmpireTests TemporalModelTests TemporalExperimentalTests umpire-correlated-fixtures, make umpire-check-regression run 1 at d25f7256: exit 2, known flake (c) TestTestpilotAsyncNexusCase verdict INCONCLUSIVE instead of SATISFIED, CC=/usr/bin/cc TMPDIR=$(cd "${TMPDIR:-/tmp}" && pwd -P) make umpire-check-regression run 2 at d25f7256: exit 0, 9 passing live identities (green receipt d25f7256), make lint-model: 163 errors (baseline 163), go clean -cache && make lint-code GOLANGCI_LINT_FIX=false: 161 issues (baseline 161), none in files this task touched
 - PRs:
-
