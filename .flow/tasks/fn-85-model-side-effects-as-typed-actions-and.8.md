@@ -11,6 +11,8 @@ Add the three typed worker instructions (R10, first half): a workflow command ca
 **Touches:** [proto/internal/temporal/server/api/testpilot/**, api/testpilot/**, model/Testpilot/**, model/Temporal/Case/**, common/testing/testpilot/**]
 
 ### Approach
+- The protocol-migration oracle is retired in `.1`, so no declared mapping step is needed here; the
+  conformance `expected.json` pins are the Verdict net.
 - Carried messages: import the public API protos into the Testpilot package (the Case's closure grows by those files only; fn-87's closure test must still exclude Run-only messages) or carry `google.protobuf.Any` with the type checked at preparation; pick the form that keeps `Testpilot.Protocol` elaboration within the current build time and record it.
 - Driver: a `ScheduleNexusOperationCommandAttributes` becomes `workflow.ExecuteNexusOperation` with options (the three timeouts); a `StartOperationResponse` sync/async arm becomes the handler's return, a `HandlerError` the returned error with its type and retry behavior; a completion `Payload` or `Failure` becomes the completion callback body.
 - SDK reach: a message field the Driver cannot set through the SDK rejects at preparation naming the field; keep the list per message in one table beside the interpreter so an API regeneration is reviewed against it.

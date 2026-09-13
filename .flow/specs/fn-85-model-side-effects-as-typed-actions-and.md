@@ -371,7 +371,12 @@ umpire-case --render <id> # canonical ProtoJSON on stdout
   no successor (reported with that state as the witness), `terminal` in a machine without `ends:`, a
   timer no step names, an evidence line naming an outcome the step never returns, and a `system` or
   timer step without evidence or `unobservable` reject in place, pinned by `#guard_msgs`; a redundant
-  `match` arm is Lean's own error.
+  `match` arm is Lean's own error. A `property` names a machine and a Lean predicate by the same rule,
+  `Step → Bool` or `Step → Step → Bool` over the step before and the step after, which the command
+  enumerates over the machine's finite table into the existing `PropertyClause` records with the
+  fingerprint the keyed form produced; the keyed `require:` form retires with `model`. Errors: a
+  predicate over another machine's `Step` type and a predicate that is not decidable reject in place,
+  pinned by `#guard_msgs`.
 - **R4:** Timers fire only while a row guarded by their `after` matches; faults are actions of
   declared parties; interleavings across entity instances are paths; timer firings and fault actions
   count toward the step and action Limits. Errors: a declared timer no row uses rejects in place; an
@@ -535,8 +540,8 @@ narrows a requirement without changing its intent, and the task that owns it rec
 |-----|-------------|---------|-------------------|
 | R1 | Entities with references and a key; several instances | .2, .4 | — |
 | R2 | Actions, classes, schema, results, examples; derived observations | .2 | — |
-| R3 | The machine command and its rows | .3 | — |
-| R4 | Timers, faults, interleavings, Limits accounting | .3, .4 | — |
+| R3 | The machine command, its step functions and predicate Properties | .3, .14, .15 | — |
+| R4 | Timers, faults, interleavings, Limits accounting | .14, .4 | — |
 | R5 | Setup parameters, switches, per-value runs, divergence | .5 | — |
 | R6 | Refinement checked by the forward simulation | .6 | — |
 | R7 | Sets, bindings, derived Case identity, `umpire-case --list` | .7, .12 | — |

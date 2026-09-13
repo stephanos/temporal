@@ -11,6 +11,8 @@ A Case declares each observation once with its source (a history event kind, a R
 **Touches:** [proto/internal/temporal/server/api/testpilot/**, api/testpilot/**, model/Testpilot/**, model/Umpire/Case/**, model/Temporal/Case/**, common/testing/testpilot/**]
 
 ### Approach
+- The protocol-migration oracle is retired in `.1`, so no declared mapping step is needed here; the
+  conformance `expected.json` pins are the Verdict net.
 - Extension checklist again: a new Run Event payload is not needed; the read source is a new observation source kind, so the checklist's "expression reference" and "conformance class" rows apply.
 - A read observation is an instruction the Program performs (poll `DescribeWorkflowExecution` until the projected field satisfies the wait or the bound expires) whose result feeds the declared observation; the Contract reads it by name. No wait-for-duration instruction; timeouts in Queries 6 and 7 are observed through history events (task .11).
 - Rejections: a reference to an undeclared observation; the same source and key path declared twice.

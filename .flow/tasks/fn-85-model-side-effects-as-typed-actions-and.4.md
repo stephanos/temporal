@@ -11,6 +11,8 @@ Let a Model hold several instances of each entity bounded by Limits, with Search
 **Touches:** [proto/internal/temporal/server/api/testpilot/**, api/testpilot/**, model/Testpilot/**, model/Umpire/Case/**, model/Umpire/Property.lean, model/Umpire/Property/**, model/Umpire/Search.lean, model/Umpire/Query.lean, common/testing/testpilot/**]
 
 ### Approach
+- The protocol-migration oracle is retired in `.1`, so no declared mapping step is needed here; the
+  conformance `expected.json` pins are the Verdict net.
 - Protocol: follow fn-87's extension checklist (`common/testing/testpilot/README.md`) for the new correlated shape; additive fields, no compatibility shim, fixtures regenerate through their generators, a Driver conformance case per changed message.
 - State: an instance's state is a record of named fields; the Contract's correlated transition carries `prior` and `next` field records and the projection rule matches on fields, so `attempts` compares as a number and `phase` as an enum without parsing one atom.
 - Instances: the fixed-width tuple from task .3 becomes the setup shape; `Query.FiniteDomain.canonicalRoleAssignments` enumerates instance assignments; a bound of zero rejects; exceeding a bound reports `limitReached`.
