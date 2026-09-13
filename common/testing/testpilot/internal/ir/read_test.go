@@ -15,7 +15,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func TestRawProjectionPreservesWildcardAbsenceAndBudgets(t *testing.T) {
+func TestRawPathReadPreservesWildcardAbsenceAndBudgets(t *testing.T) {
 	c := fixtureCatalog(t)
 	typ := boundType(t, c, named("fixture.Payload", false))
 	for _, tc := range []struct {

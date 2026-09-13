@@ -83,7 +83,7 @@ func DeriveProfile(source *testpilotspb.Case, catalog *testpilot.Catalog, enviro
 		Identity:            environment.Identity,
 		Catalog:             catalog,
 		Roles:               roles,
-		Opcodes:             usage.capabilities(),
+		Opcodes:             usage.authorizedOpcodes(),
 		EnvironmentBindings: bindings,
 		ProgramLimits:       programLimits,
 		ContractLimits:      contractLimits,
@@ -123,11 +123,11 @@ type programUsage struct {
 	reservable map[testpilot.EntrypointKind]int64
 }
 
-func (u *programUsage) capabilities() []testpilot.Opcode {
+func (u *programUsage) authorizedOpcodes() []testpilot.Opcode {
 	result := make([]testpilot.Opcode, 0, len(u.opcodes))
-	for capability := testpilot.InvokeRPC; capability <= testpilot.MaxOpcode; capability++ {
-		if u.opcodes[capability] {
-			result = append(result, capability)
+	for opcode := testpilot.InvokeRPC; opcode <= testpilot.MaxOpcode; opcode++ {
+		if u.opcodes[opcode] {
+			result = append(result, opcode)
 		}
 	}
 	return result
@@ -167,11 +167,11 @@ func deriveUsage(program *testpilotspb.Program, contexts map[string]testpilot.En
 // carrier, and preparation derives its reservations from the carrier's shapes: one activation of each
 // entrypoint of an admitted kind.
 func (u *programUsage) add(instruction *testpilotspb.InstructionNode, controller bool, catalog *testpilot.Catalog) error {
-	capability := testpilot.InstructionCapability(instruction.GetInstruction())
-	if capability == 0 {
+	opcode := testpilot.InstructionOpcode(instruction.GetInstruction())
+	if opcode == 0 {
 		return ErrInvalid
 	}
-	u.opcodes[capability] = true
+	u.opcodes[opcode] = true
 	rpc := instruction.GetInstruction().GetInvokeRpc()
 	if rpc == nil {
 		return nil

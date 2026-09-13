@@ -290,8 +290,8 @@ func (a *admission) expressionWork(e *ir.Expression) (int64, error) {
 			}
 		}
 	}
-	if e.Operator() == ir.Project {
-		cost, err := a.projectionWork(e)
+	if e.Operator() == ir.ReadPath {
+		cost, err := a.pathReadWork(e)
 		if err != nil {
 			return 0, err
 		}
@@ -361,7 +361,7 @@ func (a *admission) valueBytes(typ ir.Type) int64 {
 	return a.prepared.program.Limits().MaxResponseBytes
 }
 
-func (a *admission) projectionWork(e *ir.Expression) (int64, error) {
+func (a *admission) pathReadWork(e *ir.Expression) (int64, error) {
 	work := int64(len(e.Path().Steps()))
 	if e.Path().Fanout() {
 		work *= a.prepared.program.Limits().MaxPathFanout
