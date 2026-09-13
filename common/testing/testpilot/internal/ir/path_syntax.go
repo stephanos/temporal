@@ -193,7 +193,8 @@ func formatPath(segments []pathSegment) string {
 	return out.String()
 }
 
-// String spells the key as a path selector holds it.
+// String spells the key as a path selector holds it, as the oracle's spellMapKey and
+// Testpilot.Authoring.Path also do.
 func (k pathKey) String() string {
 	if k.kind != textKey {
 		return k.text

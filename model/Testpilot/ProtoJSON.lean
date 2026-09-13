@@ -47,7 +47,8 @@ private def printOptions : Protobuf.Json.PrintOptions :=
 
 private abbrev OrderM := ExceptT Error IO
 
-/-- Well-known types whose JSON is not an object of their fields. -/
+/-- Well-known types whose JSON is not an object of their fields; the fixture generator's key-order
+check exempts the same list. -/
 private def customJson (fullName : String) : Bool :=
   fullName ∈ ["google.protobuf.Timestamp", "google.protobuf.Duration", "google.protobuf.FieldMask",
     "google.protobuf.Struct", "google.protobuf.Value", "google.protobuf.ListValue",

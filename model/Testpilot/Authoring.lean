@@ -142,7 +142,7 @@ private def hexDigit (nibble : Nat) : Char :=
 /-- `text` as a JSON string escaping only the quote, the backslash and control characters, `\n` and
 `\r` by name. It walks the UTF-8 bytes and decodes each character itself rather than calling
 `String.toList`, which depends on `Classical.choice`, so a checked caller's axiom inventory stays as
-it was. -/
+it was. The Go path printer in `ir` and the protocol migration oracle spell keys the same way. -/
 private def jsonString (text : String) : String := Id.run do
   let bytes := text.toUTF8
   let byte (index : Nat) : Nat := (bytes.get! index).toNat
