@@ -801,10 +801,10 @@ func TestSlotOwnersAndConcurrentPreparedViews(t *testing.T) {
 			t.Parallel()
 			for j := 0; j < 10; j++ {
 				plans := prepared.Entrypoints()
-				plans[0].Instructions()[0].ResponseReads()[0].Sinks[0].Target = &testpilotspb.ReadTarget_SlotId{SlotId: "changed"}
+				plans[0].Instructions()[0].ResponseReads()[0].Targets[0].Target = &testpilotspb.ReadTarget_SlotId{SlotId: "changed"}
 				plans[0].Order()[0] = 99
 				prepared.Snapshot().ProgramId = "changed"
-				require.Equal(t, "value", prepared.Entrypoints()[0].Instructions()[0].ResponseReads()[0].Sinks[0].GetSlotId())
+				require.Equal(t, "value", prepared.Entrypoints()[0].Instructions()[0].ResponseReads()[0].Targets[0].GetSlotId())
 				require.Equal(t, "program", prepared.View().ProgramID())
 			}
 		})
