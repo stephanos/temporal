@@ -31,6 +31,7 @@ Re-author the Nexus caller-side operation as the product machine and the protoco
 - Nine live identities is the baseline; this task changes the count (four Queries times two switch values replace one); record the new number for the order document.
 
 - 2026-09-12: machines are step functions (see the spec's Planning decisions); rewrite DESIGN.md section 3 in that form, with the `steps:` rows of the specimen expressed as `match` arms and the evidence lines keyed by action class and outcome.
+- 2026-09-12: Properties are predicates by the same rule (task .3 delivers the command): write each Nexus Property as a `Step → Bool` or `Step → Step → Bool` function, not as keyed `require:` lines; COVERAGE.md names the predicate per upstream assertion.
 ## Acceptance
 - [ ] the Caller Model file compiles with `nexusProduct`, `nexusProtocol refines: nexusProduct`, the functional set with `repeat` and Queries 1 to 4; every Lean block later quoted by AUTHORING.md is marked
 - [ ] four fixtures regenerate through `umpire-case`; `async-nexus-case.json` is gone and Query 2's fixture carries the same Program and Contract modulo the diff listed in the receipt
