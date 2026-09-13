@@ -36,12 +36,14 @@ Replace the `model` command with `machine` (R3): the entity it tracks, `ends:`, 
 - AUT-09 today admits enum-like inductives; task .13 drafts the amendment admitting a structure of finite fields and an enumerated step function. Until approved the command is drafted under that rule the way AUT-07a's commands were.
 - Memory: work accounting in admission; bound instance count and `count` fields before enumeration, never enumerate eagerly beyond Limits.
 - No Mathlib: `Finite` is a small local class, not `Fintype`.
+- 2026-09-12: `property` follows the same rule as `machine` (see the spec's Planning decisions and API contracts): its body is a Lean predicate, `Step → Bool` or `Step → Step → Bool`, enumerated over the machine's table into the existing `PropertyClause` records; the keyed `require: state:/outcome:/fact:` form is retired with `model`. Task .10 writes the Nexus Properties in this form.
 ## Acceptance
 - [ ] prototype: the success Model as a step function enumerates to a `BehaviorTable` and fingerprint equal to the row form's, pinned by `#guard`; elaboration time recorded against the Race baselines
 - [ ] `machine` elaborates the DESIGN.md section 3 `nexusProduct` and `nexusProtocol` machines (without the cancel rows) written as step functions into checked `Umpire.Machine` records; `model` no longer elaborates
 - [ ] a non-finite state or input field, a step with another signature, a stuck non-terminal state (with its witness), `terminal` without `ends:`, a timer no step names, an evidence outcome the step never returns, and a system or timer step without evidence or `unobservable` each reject in place, pinned by `#guard_msgs`; a redundant `match` arm surfaces as Lean's error at the function
 - [ ] a Search over a machine with a timer fires it only while its step returns a successor; timer firings and fault actions count toward the Limits, pinned by a `#guard` on `limitReached`
 - [ ] the success Model regenerates the async-Nexus fixture byte-identical through `case`; `lake build TemporalModelTests UmpireTests` green; `make lint-model` green
+- [ ] `property` takes a `Step → Bool` or `Step → Step → Bool` predicate and enumerates it into `PropertyClause` records; `successfulResult` as a predicate has the fingerprint of its keyed form, pinned by `#guard`; a predicate over another machine's `Step` type and a non-decidable predicate reject in place, pinned by `#guard_msgs`
 ## Done summary
 TBD
 
