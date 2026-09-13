@@ -243,12 +243,6 @@ func TestEvidenceLiftRejectsUndeclarableRules(t *testing.T) {
 		"nontext guard equality": func(p *testpilotspb.CorrelatedEvidenceProjection) {
 			p.Rules[0].Guard = readsText(nestedPath("completed", "referenced"), "first")
 		},
-		"empty literal": func(p *testpilotspb.CorrelatedEvidenceProjection) {
-			p.Rules[0].Scope[0] = literalBinding("run", "")
-		},
-		"nontext literal": func(p *testpilotspb.CorrelatedEvidenceProjection) {
-			p.Rules[0].Scope[0].Value.GetLiteral().Value = &testpilotspb.Value_BoolValue{BoolValue: true}
-		},
 		"path over another operand": func(p *testpilotspb.CorrelatedEvidenceProjection) {
 			p.Rules[0].Fields[0].Value = &testpilotspb.Expression{Expression: &testpilotspb.Expression_Path{Path: &testpilotspb.PathExpression{Operand: projected(nestedPath("scheduled")), Path: nestedPath("operation")}}}
 		},
@@ -299,6 +293,24 @@ func TestEvidenceLiftGuardRejectsReferencesOutsideItsContext(t *testing.T) {
 				Path:     "program.entrypoints[controller].instructions[read].instruction.invoke_rpc.response_reads[0].targets[0].correlated_evidence.rules[1].guard.present.reference." + name,
 				Detail:   "reference is not admitted in this expression context",
 			}, diagnostic)
+		})
+	}
+}
+
+// A literal binding supplies a text: an empty text and any other value reject with their own detail.
+func TestEvidenceLiftLiteralBindingRequiresText(t *testing.T) {
+	for detail, value := range map[string]*testpilotspb.Value{
+		"evidence literal binding requires a value": {Value: &testpilotspb.Value_TextValue{}},
+		"evidence literal binding requires a text":  {Value: &testpilotspb.Value_BoolValue{BoolValue: true}},
+	} {
+		t.Run(detail, func(t *testing.T) {
+			artifact, catalog, policy := liftFixture(t)
+			projection := artifact.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().ResponseReads[0].Targets[0].GetCorrelatedEvidence()
+			projection.Rules[0].Scope[0].Value.GetLiteral().Value = value.Value
+			_, err := Prepare(artifact, catalog, policy)
+			var diagnostic *ir.Error
+			require.ErrorAs(t, err, &diagnostic)
+			require.Equal(t, detail, diagnostic.Detail)
 		})
 	}
 }
