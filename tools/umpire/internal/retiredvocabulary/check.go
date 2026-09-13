@@ -684,6 +684,9 @@ func buildRetiredRules() ([]tokenRule, error) {
 		// fn-87 removes the natural Value arm, which the unsigned integer arm already spelled.
 		"Natural" + "Value",
 		"natural" + "_value",
+		// fn-87 replaces an instruction's dependency list with after, written only where it is not the
+		// previous instruction. The bare field word stays ordinary prose; the generated accessor retires.
+		"Get" + "Dependencies",
 	}
 
 	rules := make([]tokenRule, 0, len(exactTokens)+5)

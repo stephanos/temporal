@@ -33,7 +33,8 @@ def sameFaultNode (left right : InstructionNode) : Bool :=
   let bounds := fun (node : InstructionNode) =>
     node.limits.map fun value => (value.timeout_milliseconds, value.max_attempts)
   let references := fun (node : InstructionNode) =>
-    node.dependencies.map fun reference => (reference.entrypoint_id, reference.instruction_id)
+    node.after.map fun after =>
+      after.instructions.map fun reference => (reference.entrypoint_id, reference.instruction_id)
   let declared := fun (node : InstructionNode) =>
     node.outcome.map fun outcome => outcome.fields.map fun declaration => declaration.field
   let reservations := fun (node : InstructionNode) =>

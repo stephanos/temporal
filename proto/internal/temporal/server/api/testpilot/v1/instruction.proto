@@ -14,12 +14,20 @@ message InstructionNode {
   InstructionOutcomeDefinition outcome = 3;
   // Worker activations a controller instruction reserves before its effect runs.
   repeated ActivationReservationDefinition activation_reservations = 4;
-  // Instructions of the same entrypoint that must finish or be skipped before this one is ready.
-  repeated InstructionReference dependencies = 5;
+  // The instructions that must finish or be skipped before this one is ready. Absent, it is the
+  // previous instruction of the same entrypoint, or none for the first.
+  // (-- api-linter: core::0140::prepositions=disabled
+  //     aip.dev/not-precedent: The field reads as the ordering it states; it is internal to Testpilot. --)
+  After after = 5;
   // Evaluated once the instruction is ready; when false it is skipped and records no Run Event.
+  // Absent, the instruction runs only when every instruction it runs after succeeded.
   Expression guard = 6;
   InstructionLimits limits = 7;
 }
+
+// After names the instructions of the same entrypoint an instruction runs after, possibly none. It is
+// written only where that set is not the previous instruction.
+message After { repeated InstructionReference instructions = 1; }
 
 // Instruction is the complete version-one instruction table.
 message Instruction {

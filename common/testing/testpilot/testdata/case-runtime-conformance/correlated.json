@@ -2580,12 +2580,11 @@
                 }
               },
               {
-                "dependencies": [
-                  {
-                    "entrypointId": "controller",
-                    "instructionId": "read.0"
+                "guard": {
+                  "literal": {
+                    "boolValue": true
                   }
-                ],
+                },
                 "instruction": {
                   "invokeRpc": {
                     "endpointRoleId": "source",
@@ -3306,12 +3305,11 @@
                 }
               },
               {
-                "dependencies": [
-                  {
-                    "entrypointId": "controller",
-                    "instructionId": "read.0"
+                "guard": {
+                  "literal": {
+                    "boolValue": true
                   }
-                ],
+                },
                 "instruction": {
                   "invokeRpc": {
                     "endpointRoleId": "source",
@@ -3350,12 +3348,11 @@
                 }
               },
               {
-                "dependencies": [
-                  {
-                    "entrypointId": "controller",
-                    "instructionId": "read.1"
+                "guard": {
+                  "literal": {
+                    "boolValue": true
                   }
-                ],
+                },
                 "instruction": {
                   "invokeRpc": {
                     "endpointRoleId": "source",
@@ -4076,12 +4073,11 @@
                 }
               },
               {
-                "dependencies": [
-                  {
-                    "entrypointId": "controller",
-                    "instructionId": "read.0"
+                "guard": {
+                  "literal": {
+                    "boolValue": true
                   }
-                ],
+                },
                 "instruction": {
                   "invokeRpc": {
                     "endpointRoleId": "source",
@@ -4120,12 +4116,11 @@
                 }
               },
               {
-                "dependencies": [
-                  {
-                    "entrypointId": "controller",
-                    "instructionId": "read.1"
+                "guard": {
+                  "literal": {
+                    "boolValue": true
                   }
-                ],
+                },
                 "instruction": {
                   "invokeRpc": {
                     "endpointRoleId": "source",
@@ -4846,12 +4841,11 @@
                 }
               },
               {
-                "dependencies": [
-                  {
-                    "entrypointId": "controller",
-                    "instructionId": "read.0"
+                "guard": {
+                  "literal": {
+                    "boolValue": true
                   }
-                ],
+                },
                 "instruction": {
                   "invokeRpc": {
                     "endpointRoleId": "source",
@@ -4890,12 +4884,11 @@
                 }
               },
               {
-                "dependencies": [
-                  {
-                    "entrypointId": "controller",
-                    "instructionId": "read.1"
+                "guard": {
+                  "literal": {
+                    "boolValue": true
                   }
-                ],
+                },
                 "instruction": {
                   "invokeRpc": {
                     "endpointRoleId": "source",
@@ -5600,12 +5593,11 @@
                 }
               },
               {
-                "dependencies": [
-                  {
-                    "entrypointId": "controller",
-                    "instructionId": "read.0"
+                "guard": {
+                  "literal": {
+                    "boolValue": true
                   }
-                ],
+                },
                 "instruction": {
                   "invokeRpc": {
                     "endpointRoleId": "source",
@@ -8316,12 +8308,11 @@
                 }
               },
               {
-                "dependencies": [
-                  {
-                    "entrypointId": "controller",
-                    "instructionId": "read.0"
+                "guard": {
+                  "literal": {
+                    "boolValue": true
                   }
-                ],
+                },
                 "instruction": {
                   "invokeRpc": {
                     "endpointRoleId": "source",
@@ -8360,12 +8351,11 @@
                 }
               },
               {
-                "dependencies": [
-                  {
-                    "entrypointId": "controller",
-                    "instructionId": "read.1"
+                "guard": {
+                  "literal": {
+                    "boolValue": true
                   }
-                ],
+                },
                 "instruction": {
                   "invokeRpc": {
                     "endpointRoleId": "source",
@@ -9086,12 +9076,11 @@
                 }
               },
               {
-                "dependencies": [
-                  {
-                    "entrypointId": "controller",
-                    "instructionId": "read.0"
+                "guard": {
+                  "literal": {
+                    "boolValue": true
                   }
-                ],
+                },
                 "instruction": {
                   "invokeRpc": {
                     "endpointRoleId": "source",
@@ -9130,12 +9119,11 @@
                 }
               },
               {
-                "dependencies": [
-                  {
-                    "entrypointId": "controller",
-                    "instructionId": "read.1"
+                "guard": {
+                  "literal": {
+                    "boolValue": true
                   }
-                ],
+                },
                 "instruction": {
                   "invokeRpc": {
                     "endpointRoleId": "source",

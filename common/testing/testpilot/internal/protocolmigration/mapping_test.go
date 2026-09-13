@@ -603,3 +603,93 @@ func TestDeclaredCeilingStepAdmitsOnlyBoundsWithinTheirProfile(t *testing.T) {
 		})
 	}
 }
+
+func TestDeclaredDefaultOrderStepDropsOnlyTheDefault(t *testing.T) {
+	t.Parallel()
+
+	reference := func(entrypoint, id string) *Object {
+		return &Object{Fields: map[string]any{"entrypointId": entrypoint, "instructionId": id}}
+	}
+	status := func(id string) string {
+		return `{"reference": {"outcome": {"instruction": {"entrypointId": "controller", "instructionId": "` + id + `"}, "field": "INSTRUCTION_OUTCOME_FIELD_STATUS"}}}`
+	}
+	succeeded := func(id string) string {
+		return `{"all": {"operands": [{"present": {"operand": ` + status(id) + `}}, {"compare": {"operator": "COMPARISON_OPERATOR_EQUAL", "left": ` + status(id) + `, "right": {"literal": {"enumValue": {"number": 1}}}}}]}}`
+	}
+	guard := func(t *testing.T, encoded string) any {
+		tree, err := decodeJSON([]byte(encoded))
+		require.NoError(t, err)
+		return tree
+	}
+	node := func(id string, fields map[string]any) *Object {
+		object := &Object{Fields: map[string]any{"instructionId": id}}
+		maps.Copy(object.Fields, fields)
+		return object
+	}
+	for _, tc := range []struct {
+		name            string
+		message         string
+		instructions    func(t *testing.T) []any
+		want            string
+		wantErrorSubstr string
+	}{
+		{
+			name: "predecessor with the success guard", message: "Entrypoint" + "Definition",
+			instructions: func(t *testing.T) []any {
+				return []any{node("a", nil), node("b", map[string]any{"dependencies": []any{reference("controller", "a")}, "guard": guard(t, succeeded("a"))})}
+			},
+			want: `[{"instructionId": "a"}, {"instructionId": "b"}]`,
+		},
+		{
+			name: "dependency without a guard runs regardless", message: "Cleanup" + "Definition",
+			instructions: func(*testing.T) []any {
+				return []any{node("a", nil), node("b", map[string]any{"dependencies": []any{reference("controller", "a")}})}
+			},
+			want: `[{"instructionId": "a"}, {"instructionId": "b", "guard": {"literal": {"boolValue": true}}}]`,
+		},
+		{
+			name: "second root", message: "Entrypoint" + "Definition",
+			instructions: func(*testing.T) []any { return []any{node("a", nil), node("b", nil)} },
+			want:         `[{"instructionId": "a"}, {"instructionId": "b", "after": {"instructions": []}}]`,
+		},
+		{
+			name: "several dependencies with their success guards", message: "Entrypoint" + "Definition",
+			instructions: func(t *testing.T) []any {
+				return []any{node("a", nil), node("b", map[string]any{"dependencies": []any{}}), node("c", map[string]any{
+					"dependencies": []any{reference("controller", "a"), reference("controller", "b")},
+					"guard":        guard(t, `{"all": {"operands": [`+succeeded("a")+`, `+succeeded("b")+`]}}`),
+				})}
+			},
+			want: `[{"instructionId": "a"}, {"instructionId": "b", "after": {"instructions": []}}, {"instructionId": "c", "after": {"instructions": [{"entrypointId": "controller", "instructionId": "a"}, {"entrypointId": "controller", "instructionId": "b"}]}}]`,
+		},
+		{
+			name: "another guard stays", message: "Entrypoint" + "Definition",
+			instructions: func(t *testing.T) []any {
+				return []any{node("a", map[string]any{"guard": guard(t, status("x"))}), node("b", map[string]any{"dependencies": []any{reference("controller", "a")}, "guard": guard(t, succeeded("x"))})}
+			},
+			want: `[{"instructionId": "a", "guard": ` + status("x") + `}, {"instructionId": "b", "guard": ` + succeeded("x") + `}]`,
+		},
+		{
+			name: "dependency on another entrypoint", message: "Entrypoint" + "Definition",
+			instructions: func(*testing.T) []any {
+				return []any{node("a", nil), node("b", map[string]any{"dependencies": []any{reference("workflow", "a")}})}
+			},
+			wantErrorSubstr: `instruction 1: dependency 0 names entrypoint workflow, not "controller"`,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			entrypoint := &Object{Message: protocol + protoreflect.FullName(tc.message), Fields: map[string]any{"entrypointId": "controller", "instructions": tc.instructions(t)}}
+			mapped, err := Declared.apply("fixture.json", entrypoint)
+			if tc.wantErrorSubstr != "" {
+				require.ErrorContains(t, err, tc.wantErrorSubstr)
+				return
+			}
+			require.NoError(t, err)
+			encoded, err := json.Marshal(mapped.(*Object).Fields["instructions"])
+			require.NoError(t, err)
+			require.JSONEq(t, tc.want, string(encoded))
+		})
+	}
+}

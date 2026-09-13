@@ -7,9 +7,13 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"slices"
 	"strconv"
 	"strings"
 
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
@@ -298,6 +302,129 @@ var Declared = Mapping{
 			DropField(protocol+"InstructionLimits", "maxResponseBytes", checkMovedBound("maxResponseBytes")),
 		),
 	},
+	{
+		Name: "Instruction" + "Definition.dependencies becomes after, written only where it is not the previous instruction, and the success guard becomes the default", Requirement: "R9",
+		Apply: sequence(
+			RewriteMessages(protocol+"Entrypoint"+"Definition", defaultInstructionOrder),
+			RewriteMessages(protocol+"Cleanup"+"Definition", defaultInstructionOrder),
+		),
+	},
+}
+
+// defaultInstructionOrder rewrites one entrypoint's instructions against the default order: an
+// instruction runs after the one before it, and only when every instruction it runs after succeeded.
+// A dependency list equal to that predecessor is dropped and any other list becomes after, an empty
+// one included, since an absent after now means the predecessor. A guard equal to the success of
+// every dependency is dropped; a node that had dependencies and no guard ran regardless of their
+// outcomes, so it gains a true guard; any other guard stays.
+func defaultInstructionOrder(_ string, object *Object) (any, error) {
+	entrypointID, _ := object.Fields["entrypointId"].(string)
+	instructions, _ := object.Fields["instructions"].([]any)
+	previous := ""
+	for index, element := range instructions {
+		node, ok := element.(*Object)
+		if !ok {
+			return nil, fmt.Errorf("instruction %d is not an object", index)
+		}
+		dependencies, err := dependencyIDs(entrypointID, node.Fields["dependencies"])
+		if err != nil {
+			return nil, fmt.Errorf("instruction %d: %w", index, err)
+		}
+		delete(node.Fields, "dependencies")
+		guard, guarded := node.Fields["guard"]
+		switch {
+		case guarded:
+			succeeded, err := isSuccessGuard(entrypointID, dependencies, guard)
+			if err != nil {
+				return nil, fmt.Errorf("instruction %d guard: %w", index, err)
+			}
+			if succeeded {
+				delete(node.Fields, "guard")
+			}
+		case len(dependencies) > 0:
+			node.Fields["guard"] = &Object{Fields: map[string]any{"literal": &Object{Fields: map[string]any{"boolValue": true}}}}
+		default:
+		}
+		if index == 0 && len(dependencies) != 0 || index > 0 && !slices.Equal(dependencies, []string{previous}) {
+			references := make([]any, len(dependencies))
+			for k, id := range dependencies {
+				references[k] = &Object{Fields: map[string]any{"entrypointId": entrypointID, "instructionId": id}}
+			}
+			node.Fields["after"] = &Object{Fields: map[string]any{"instructions": references}}
+		}
+		previous, _ = node.Fields["instructionId"].(string)
+	}
+	return object, nil
+}
+
+// dependencyIDs reads a baseline dependency list in order. Baseline preparation admitted only
+// references into the entrypoint that declares them.
+func dependencyIDs(entrypointID string, value any) ([]string, error) {
+	if value == nil {
+		return nil, nil
+	}
+	list, ok := value.([]any)
+	if !ok {
+		return nil, errors.New("dependencies is not a list")
+	}
+	ids := make([]string, len(list))
+	for k, element := range list {
+		reference, isObject := element.(*Object)
+		if !isObject {
+			return nil, fmt.Errorf("dependency %d is not an object", k)
+		}
+		for key := range reference.Fields {
+			if key != "entrypointId" && key != "instructionId" {
+				return nil, fmt.Errorf("dependency %d carries %q", k, key)
+			}
+		}
+		if reference.Fields["entrypointId"] != entrypointID {
+			return nil, fmt.Errorf("dependency %d names entrypoint %v, not %q", k, reference.Fields["entrypointId"], entrypointID)
+		}
+		ids[k], _ = reference.Fields["instructionId"].(string)
+	}
+	return ids, nil
+}
+
+// isSuccessGuard reports whether guard is the default the current protocol derives for dependencies:
+// for one dependency all[present(status), status == SUCCEEDED], and for several the all of those.
+func isSuccessGuard(entrypointID string, dependencies []string, guard any) (bool, error) {
+	if len(dependencies) == 0 {
+		return false, nil
+	}
+	encoded, err := json.Marshal(guard)
+	if err != nil {
+		return false, err
+	}
+	var decoded testpilotspb.Expression
+	if err := protojson.Unmarshal(encoded, &decoded); err != nil {
+		return false, err
+	}
+	succeeded := func(id string) *testpilotspb.Expression {
+		status := func() *testpilotspb.Expression {
+			return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_Outcome{Outcome: &testpilotspb.InstructionOutcomeReference{
+				Instruction: &testpilotspb.InstructionReference{EntrypointId: entrypointID, InstructionId: id},
+				Field:       testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS,
+			}}}}}
+		}
+		return &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: &testpilotspb.AllExpression{Operands: []*testpilotspb.Expression{
+			{Expression: &testpilotspb.Expression_Present{Present: &testpilotspb.PresentExpression{Operand: status()}}},
+			{Expression: &testpilotspb.Expression_Compare{Compare: &testpilotspb.CompareExpression{
+				Operator: testpilotspb.COMPARISON_OPERATOR_EQUAL,
+				Left:     status(),
+				Right:    &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Number: int32(testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED)}}}}},
+			}}},
+		}}}}
+	}
+	want := succeeded(dependencies[0])
+	if len(dependencies) > 1 {
+		operands := make([]*testpilotspb.Expression, len(dependencies))
+		for k, id := range dependencies {
+			operands[k] = succeeded(id)
+		}
+		want = &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: &testpilotspb.AllExpression{Operands: operands}}}
+	}
+	return proto.Equal(&decoded, want), nil
 }
 
 // rewriteNaturalValue moves a baseline natural into the unsigned integer arm, which spells it with

@@ -110,7 +110,7 @@ private def injectFaultNamesRoleAndKind : Bool :=
 
 private def node := Program.node "start" instructions[0]!
   instructionLimits
-  (dependencies := #[instructionReference])
+  (after := some (Program.after #[instructionReference]))
   (guard := some programExpressions[10]!)
   (outcome := some (Program.outcome #[Program.outcomeField
     .INSTRUCTION_OUTCOME_FIELD_VALUE textType]))

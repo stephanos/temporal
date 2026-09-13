@@ -211,8 +211,10 @@ secret.
 
 Version one supports a closed set of generic instructions: authorized unary RPC invocation, Slot
 await, Nexus completion, SDK Nexus start and await, workflow/activity finish, and Nexus response.
-Every node declares its context, dependencies, optional guard, typed outcome schema, optional
-response reads, activation reservations, and exact bounds. Unsupported context/opcode pairs
+Every node declares its context, typed outcome schema, optional response reads, activation
+reservations, and exact bounds. A node runs after the previous node of its entrypoint and only when
+that node succeeded; `after` names any other set of nodes in the same entrypoint, and a guard states
+any other condition. Unsupported context/opcode pairs
 reject during preparation.
 
 Programs are acyclic. Descriptor paths have a bounded grammar with explicit presence, oneof,

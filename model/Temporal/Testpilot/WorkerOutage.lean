@@ -86,8 +86,6 @@ def stopRealization : Umpire.FaultRealization :=
 
 def resumeRealization : Umpire.FaultRealization :=
   { instructionId := "resume-worker", roleId := workerOutageQueueRole, limits := Program.instructionLimits 10000 1
-    dependencies := #[Ref.instruction "controller" "start-workflow"]
-    guard := some (succeeded "controller" "start-workflow")
     outcome := some statusOutcome }
 
 /-- `HISTORY_EVENT_FILTER_TYPE_CLOSE_EVENT`. The read blocks until the workflow closes and returns
@@ -123,20 +121,17 @@ private def program (stop resume : InstructionNode) : Program :=
             assign (nested ["workflow_type", "name"]) (text workerOutageWorkflowType),
             Program.environmentAssignment (nested ["task_queue", "name"]) workerOutageQueueBinding,
             assign (field "request_id") runId])
-          (Program.instructionLimits 10000 1) #[Ref.instruction "controller" "stop-worker"]
-          (some (succeeded "controller" "stop-worker")) (some statusOutcome)
-          #[Program.reservation "workflow" 1],
+          (Program.instructionLimits 10000 1) (outcome := some statusOutcome)
+          (reservations := #[Program.reservation "workflow" 1]),
         resume,
         Program.node "history"
           (Program.invokeRpc workerOutageServiceRole getHistoryMethod historyAssignments
             #[project historyEvents workerOutageObservation .READ_CARDINALITY_EMIT_EACH])
-          (Program.instructionLimits 20000 1)
-          #[Ref.instruction "controller" "resume-worker"]
-          (some (succeeded "controller" "resume-worker")) (some statusOutcome)],
+          (Program.instructionLimits 20000 1) (outcome := some statusOutcome)],
       Program.workflow "workflow" workerOutageWorkflowType workerOutageWorkerRole
         workerOutageQueueRole #[
         Program.node "finish-workflow" (Program.finish (text "completed"))
-          (Program.instructionLimits 10000 1) #[] none (some statusOutcome)]]
+          (Program.instructionLimits 10000 1) (outcome := some statusOutcome)]]
     (Program.cleanup "cleanup" #[])
     (environment := #[
       Program.environment workerOutageNamespaceBinding,

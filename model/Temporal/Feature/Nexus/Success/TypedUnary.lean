@@ -455,19 +455,18 @@ private def program (startPath historyPath : String) : Program :=
           assign submittedTypeTarget (text submittedWorkflowType),
           Program.environmentAssignment (nested ["task_queue", "name"]) taskQueueBindingId,
           assign (field "request_id") runId])
-        (Program.instructionLimits 10000 1) #[] none (some statusOutcome)
-        #[Program.reservation workflowEntrypointId 1],
+        (Program.instructionLimits 10000 1) (outcome := some statusOutcome)
+        (reservations := #[Program.reservation workflowEntrypointId 1]),
       Program.node historyInstructionId
         (Program.invokeRpc workflowServiceRole historyPath #[
           Program.environmentAssignment (field "namespace") namespaceBindingId,
           assign (nested ["execution", "workflow_id"]) runId,
           assign (field "maximum_page_size") (signedInteger 64)]
           #[project historyEvents observationId .READ_CARDINALITY_EMIT_EACH])
-        (Program.instructionLimits 10000 1) #[Ref.instruction controllerId startInstructionId]
-        (some (succeeded controllerId startInstructionId)) (some statusOutcome)],
+        (Program.instructionLimits 10000 1) (outcome := some statusOutcome)],
       Program.workflow workflowEntrypointId submittedWorkflowType workerRole taskQueueRole #[
-        Program.node "finish-workflow" (Program.finish (text "started")) (Program.instructionLimits 5000 1) #[] none
-          (some statusOutcome)]]
+        Program.node "finish-workflow" (Program.finish (text "started")) (Program.instructionLimits 5000 1)
+          (outcome := some statusOutcome)]]
     (Program.cleanup "cleanup" #[])
     (environment := #[Program.environment namespaceBindingId,
       Program.environment taskQueueBindingId])

@@ -503,17 +503,16 @@ func (a *admission) addGraph(g *graph, sources []*testpilotspb.InstructionNode) 
 func (a *admission) orderGraph(g *graph) error {
 	indegree := make([]int, len(g.nodes))
 	for i, n := range g.nodes {
-		seen := map[int]bool{}
-		for _, dependency := range n.source.Dependencies {
-			j, exists := g.index[dependency.GetInstructionId()]
-			if !exists || dependency.GetEntrypointId() != g.id || seen[j] {
-				return invalid(ir.Malformed, g.id, "missing, duplicate or cross-entrypoint dependency")
-			}
-			seen[j] = true
+		dependencies, err := resolveAfter(g, i)
+		if err != nil {
+			return err
+		}
+		for _, j := range dependencies {
 			n.dependencies = append(n.dependencies, j)
 			g.nodes[j].successors = append(g.nodes[j].successors, i)
 			indegree[i]++
 		}
+		n.guardSource = effectiveGuard(g, n)
 	}
 	var ready []int
 	for i, degree := range indegree {
@@ -540,10 +539,90 @@ func (a *admission) orderGraph(g *graph) error {
 			}
 		}
 	}
-	if len(g.order) != len(g.nodes) {
-		return invalid(ir.Malformed, g.id, "dependency cycle")
+	// A node left unordered lies on or behind a cycle. The first one always declares after: a
+	// defaulted node waits only on its predecessor, which would be unordered and earlier.
+	for i, degree := range indegree {
+		if degree > 0 {
+			return invalid(ir.Malformed, expressionPath(g, g.nodes[i], "after"), "dependency cycle")
+		}
 	}
 	return nil
+}
+
+// resolveAfter returns the nodes node i runs after: its declared after set, or its entrypoint
+// predecessor when it declares none. An after set names instructions of its own entrypoint only;
+// entrypoints coordinate through the target, not through the scheduler.
+func resolveAfter(g *graph, i int) ([]int, error) {
+	n := g.nodes[i]
+	after := n.source.GetAfter()
+	if after == nil {
+		if i == 0 {
+			return nil, nil
+		}
+		return []int{i - 1}, nil
+	}
+	seen := map[int]bool{}
+	dependencies := make([]int, 0, len(after.GetInstructions()))
+	for k, reference := range after.GetInstructions() {
+		path := expressionPath(g, n, fmt.Sprintf("after.instructions[%d]", k))
+		if !validID(reference.GetEntrypointId()) || !validID(reference.GetInstructionId()) {
+			return nil, invalid(ir.Malformed, path, "invalid instruction reference")
+		}
+		if reference.GetEntrypointId() != g.id {
+			return nil, invalid(ir.Unsupported, path, "after names an instruction of another entrypoint")
+		}
+		j, exists := g.index[reference.GetInstructionId()]
+		switch {
+		case !exists:
+			return nil, invalid(ir.Unknown, path, "after names an unknown instruction")
+		case j == i:
+			return nil, invalid(ir.Malformed, path, "after names the instruction itself")
+		case seen[j]:
+			return nil, invalid(ir.Malformed, path, "after names an instruction twice")
+		}
+		seen[j] = true
+		dependencies = append(dependencies, j)
+	}
+	return dependencies, nil
+}
+
+// effectiveGuard is the guard a node runs under. Without an explicit guard it runs only when every
+// dependency succeeded; an explicit guard replaces that condition, and a literal true one runs
+// regardless, exactly like a node with no dependencies and no guard.
+func effectiveGuard(g *graph, n *node) *testpilotspb.Expression {
+	if guard := n.source.GetGuard(); guard != nil {
+		if literal, ok := guard.GetLiteral().GetValue().(*testpilotspb.Value_BoolValue); ok && literal.BoolValue {
+			return nil
+		}
+		return guard
+	}
+	switch len(n.dependencies) {
+	case 0:
+		return nil
+	case 1:
+		return dependencySucceeded(g.id, g.nodes[n.dependencies[0]].source.GetInstructionId())
+	}
+	operands := make([]*testpilotspb.Expression, len(n.dependencies))
+	for k, j := range n.dependencies {
+		operands[k] = dependencySucceeded(g.id, g.nodes[j].source.GetInstructionId())
+	}
+	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: &testpilotspb.AllExpression{Operands: operands}}}
+}
+
+// dependencySucceeded holds when the instruction recorded a SUCCEEDED outcome. The presence conjunct
+// makes a skipped dependency, which records no outcome, false rather than an absent comparison.
+func dependencySucceeded(entrypointID, instructionID string) *testpilotspb.Expression {
+	status := func() *testpilotspb.Expression {
+		return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_Outcome{Outcome: &testpilotspb.InstructionOutcomeReference{
+			Instruction: &testpilotspb.InstructionReference{EntrypointId: entrypointID, InstructionId: instructionID},
+			Field:       testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS,
+		}}}}}
+	}
+	succeeded := &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Number: int32(testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED)}}}}}
+	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_All{All: &testpilotspb.AllExpression{Operands: []*testpilotspb.Expression{
+		{Expression: &testpilotspb.Expression_Present{Present: &testpilotspb.PresentExpression{Operand: status()}}},
+		{Expression: &testpilotspb.Expression_Compare{Compare: &testpilotspb.CompareExpression{Operator: testpilotspb.COMPARISON_OPERATOR_EQUAL, Left: status(), Right: succeeded}}},
+	}}}}
 }
 func (a *admission) expressionLimits() ir.Limits {
 	limits := ir.DefaultLimits()
