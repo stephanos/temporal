@@ -425,9 +425,9 @@ private def actionNodes
 
 /-- Assemble one Program from the realization's plan and the path's actions.
 
-An action the realization binds must also be placed: a binding no entrypoint's `actions` item names
-would leave a side effect out of the Program, so the walk records what it placed and rejects the
-shortfall by name. An action with no binding is not an omission -- a party bound `observed` performs
+An action the realization binds must also be placed exactly once: a binding no entrypoint's `actions`
+item names would leave a side effect out of the Program, and one two items name would emit its nodes
+twice under the same ids, so the walk records what it placed and rejects either by name. An action with no binding is not an omission -- a party bound `observed` performs
 nothing, and a Model whose actions are waits rather than side effects realizes none of them -- so the
 Contract carries it and the Program does not. -/
 def assembleProgram
@@ -444,6 +444,9 @@ def assembleProgram
       match item with
       | .fixed node => nodes := nodes.push (node identity resolved)
       | .actions classes =>
+          for action in classes do
+            if placed.contains action then
+              throw (productionError source action.value "realization.action-placed-twice")
           nodes := nodes ++ (← actionNodes source identity realization.actions path classes)
           placed := placed ++ classes
     entrypoints := entrypoints.push (plan.activate identity nodes)
@@ -455,7 +458,10 @@ def assembleProgram
 
 /-- The Program one realization assembles for a path, for a caller that wants the Program alone:
 `umpire-inspect` and the template tests read the shape a realization produces without producing a
-Case. `produce` calls the same assembly, so what this returns is what a Case carries. -/
+Case. `produce` calls the same assembly, so what this returns is what a Case carries.
+
+The default empty path emits no action node, which is what a realization that binds none produces
+anyway; pass the path whenever the realization has bindings. -/
 def Realization.program
     (realization : Realization)
     (identity : Identity)

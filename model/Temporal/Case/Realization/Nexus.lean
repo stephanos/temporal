@@ -109,10 +109,21 @@ def asyncPlan (service operation : String) : Umpire.Case.Producer.ProgramPlan :=
     { activate := fun identity nodes =>
         NexusOperation.workflowEntrypointWith (NexusOperation.workflowTypeOf identity)
           service operation nodes
-      items :=
-        -- The schedule replaces the template's first fixed item; the await and finish stay
-        -- scaffolding, because no Model declares them.
-        .actions [scheduleAction] :: (NexusOperation.workflowItems service operation).tail },
+      items := [
+        -- The schedule is the Model's; the await and the finish are scaffolding, because no Model
+        -- declares them. They are written out rather than taken from the template's item list, so a
+        -- change to that list cannot silently drop one here.
+        .actions [scheduleAction],
+        .fixed fun _ _ =>
+          Program.node "await-nexus-operation"
+            (Program.awaitInstruction (Ref.instruction "workflow" "start-nexus-operation"))
+            (guard := some (boolean true)),
+        .fixed fun _ _ =>
+          Program.node "finish-workflow"
+            (Program.finish (Expr.outcome
+              (Ref.instruction "workflow" "await-nexus-operation")
+              .INSTRUCTION_OUTCOME_FIELD_VALUE))
+            (Program.instructionLimits (timeoutMilliseconds := some 5000))] },
     { activate := fun _ nodes =>
         Program.nexusHandler "handler" service operation
           Support.workerRole Support.taskQueueRole nodes
