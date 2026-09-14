@@ -18,8 +18,6 @@ testdata/
 !/tools/umpire/**/testdata/**
 !/common/testing/testpilot/testdata/
 !/common/testing/testpilot/testdata/**
-!/common/testing/testpilot/internal/protocolmigration/testdata/
-!/common/testing/testpilot/internal/protocolmigration/testdata/**
 !/tests/testcore/testpilot/testdata/
 !/tests/testcore/testpilot/testdata/**
 !/cmd/tools/genleanmodeldescriptors/testdata/
