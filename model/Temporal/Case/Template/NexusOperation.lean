@@ -87,7 +87,7 @@ private def historyAssignments : Array RequestAssignment := #[
 private def closeReadAssignments : Array RequestAssignment :=
   historyAssignments.push (assign (field "history_event_filter_type") closeEventFilter)
 
-private def startWorkflowNode (workflowType : String) : InstructionNode :=
+def startWorkflowNode (workflowType : String) : InstructionNode :=
   rpc "start-workflow" startWorkflowMethod #[
     Program.environmentAssignment (field "namespace") workerNamespaceBinding,
     assign (field "workflow_id") runId,
@@ -97,7 +97,7 @@ private def startWorkflowNode (workflowType : String) : InstructionNode :=
   ] #[]
 
 /-- The full history read, run once the instruction before it succeeded. -/
-private def historyNode
+def historyNode
     (identity : Umpire.Case.Producer.Identity)
     (resolved : List Umpire.Case.Producer.EvidenceRule) : InstructionNode :=
   rpc "history" getHistoryMethod historyAssignments #[
@@ -106,7 +106,7 @@ private def historyNode
         Evidence.target runFieldId correlatedObservation identity resolved]
   ]
 
-private def workflowEntrypointWith
+def workflowEntrypointWith
     (workflowType service operation : String)
     (nodes : Array InstructionNode) : Entrypoint :=
   let _ := service
@@ -114,7 +114,7 @@ private def workflowEntrypointWith
   Program.workflow "workflow" workflowType workerRole taskQueueRole nodes
 
 /-- The workflow entrypoint's items, shared by both response forms. -/
-private def workflowItems
+def workflowItems
     (service operation : String) : List Umpire.Case.Producer.EntrypointItem := [
   .fixed fun _ _ =>
     Program.node "start-nexus-operation"
@@ -131,8 +131,10 @@ private def workflowItems
         .INSTRUCTION_OUTCOME_FIELD_VALUE))
       (Program.instructionLimits (timeoutMilliseconds := some 5000))]
 
-/-- The roles, slot and observations both response forms declare. -/
-private def sharedRoles : Array Role := #[
+/-- The roles, slot and observations both response forms declare. These node and item builders are
+not private: `Temporal.Case.Realization.Nexus` binds the same nodes to action classes rather than
+writing them fixed, and fn-85 .11 moves them there when it deletes these plans. -/
+def sharedRoles : Array Role := #[
   Program.role workflowServiceRole .ROLE_KIND_ENDPOINT,
   Program.role workerRole .ROLE_KIND_WORKER
     (namespaceBindingId := workerNamespaceBinding),
@@ -141,12 +143,12 @@ private def sharedRoles : Array Role := #[
   Program.role nexusEndpointRole .ROLE_KIND_ENDPOINT
     (resourceBindingId := nexusEndpointBinding)]
 
-private def sharedObservations : Array Observation := #[
+def sharedObservations : Array Observation := #[
   Program.observation historyObservation historyEventType,
   Program.observation correlatedObservation correlatedEvidenceType]
 
 /-- The workflow type a Case's fixture name derives. -/
-private def workflowTypeOf (identity : Umpire.Case.Producer.Identity) : String :=
+def workflowTypeOf (identity : Umpire.Case.Producer.Identity) : String :=
   "umpire-" ++ identity.fixture ++ "-workflow"
 
 private def asyncPlan (service operation : String) : Umpire.Case.Producer.ProgramPlan := {
