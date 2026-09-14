@@ -167,9 +167,57 @@ structure FaultLine where
   placement : HookPlacement
   deriving BEq, DecidableEq, Repr
 
+/-! #### The Program as a plan
+
+A realization no longer writes a Program. It declares the scaffolding every Case of the feature
+carries and binds each action class to the instruction that performs it; the Producer walks a Query's
+path and puts those instructions in the order the path took them.
+
+That split is what keeps this module free of the feature: the Producer decides *where* an
+instruction goes from the path alone, and the realization decides *what* it is. An entrypoint whose
+sequence interleaves scaffolding and actions -- a controller that starts a workflow, waits, performs
+an action, then reads history -- says so by ordering its items, so the assembly reproduces that
+sequence without knowing what any of them mean. -/
+
+/-- One item in an entrypoint's instruction sequence: a node the realization always emits, or the
+place where the path's actions of the named classes land. -/
+inductive EntrypointItem where
+  /-- A node every Case carries, built from the identity and the evidence rules it must lift. -/
+  | fixed (node : Identity → List EvidenceRule → InstructionNode)
+  /-- The actions of these classes, in the order the path performs them. -/
+  | actions (classes : List DefinitionId)
+
+/-- One entrypoint of a realization's Program: how it activates, and its items in order.
+
+`activate` is the matching `Program` constructor with everything but its instructions applied, so an
+entrypoint's activation stays the authoring surface's business. It takes the identity because a
+workflow's type is derived from the Case's fixture name. -/
+structure EntrypointPlan where
+  activate : Identity → Array InstructionNode → Entrypoint
+  items : List EntrypointItem
+
+/-- Everything a realization's Program carries besides its actions: the roles it declares, the
+handle slots its instructions publish and consume, the observations its reads write into, its
+entrypoints in order, and its cleanup. -/
+structure ProgramPlan where
+  roles : Array Role
+  slots : Array Slot := #[]
+  observations : Array Observation
+  entrypoints : List EntrypointPlan
+  cleanup : Cleanup
+
+/-- What one action class is realized as. `node` builds the instruction the party performs; the
+Producer supplies the node's id, so a class performed twice on one path cannot collide. -/
+structure ActionBinding where
+  action : DefinitionId
+  instructionId : String
+  node : Identity → String → InstructionNode
+
 structure Realization where
-  /-- The Program, as a function of the identity it carries and the evidence rules it must lift. -/
-  program : Identity → List EvidenceRule → Program
+  /-- The scaffolding every Case of this feature carries, with the places its actions land. -/
+  plan : ProgramPlan
+  /-- What each action class is realized as. An action on a path with no binding rejects. -/
+  actions : List ActionBinding := []
   producerId : String
   producerVersion : String := "1"
   projectionId : DefinitionId
@@ -335,6 +383,87 @@ private def resolveEvidence
       throw (productionError source action.definitionId.value "evidence.action-unmapped")
   pure resolved
 
+/-! ### Program assembly
+
+The path decides the order. Each action the path performs becomes the instruction its class binds,
+appended where its entrypoint's `actions` item sits; every other node is the realization's and is
+emitted as written. An action the path performs that no class binds rejects, because a Case that
+silently dropped a side effect would still run.
+-/
+
+/-- The node one occurrence of an action class contributes. The first occurrence carries the
+binding's own instruction id and each later one appends its 1-based ordinal, so a path that performs
+a class twice produces two distinct nodes rather than a duplicate id preparation would reject. -/
+private def boundNode
+    (identity : Identity)
+    (binding : ActionBinding)
+    (ordinal : Nat) : InstructionNode :=
+  let instructionId :=
+    if ordinal == 0 then binding.instructionId
+    else binding.instructionId ++ "-" ++ toString (ordinal + 1)
+  binding.node identity instructionId
+
+/-- The nodes the path contributes to one `actions` item: every occurrence whose class the item
+names, in path order, each numbered by how many times its own class has been seen. -/
+private def actionNodes
+    (source : SourceLocation)
+    (identity : Identity)
+    (bindings : List ActionBinding)
+    (path : List DefinitionId)
+    (classes : List DefinitionId) : Except Error (Array InstructionNode) := do
+  let mut nodes : Array InstructionNode := #[]
+  let mut seen : List DefinitionId := []
+  for action in path do
+    let ordinal := seen.count action
+    seen := seen ++ [action]
+    unless classes.contains action do
+      continue
+    match bindings.find? fun binding => binding.action == action with
+    | some binding => nodes := nodes.push (boundNode identity binding ordinal)
+    | none => throw (productionError source action.value "realization.action-unbound")
+  pure nodes
+
+/-- Assemble one Program from the realization's plan and the path's actions.
+
+An action the realization binds must also be placed: a binding no entrypoint's `actions` item names
+would leave a side effect out of the Program, so the walk records what it placed and rejects the
+shortfall by name. An action with no binding is not an omission -- a party bound `observed` performs
+nothing, and a Model whose actions are waits rather than side effects realizes none of them -- so the
+Contract carries it and the Program does not. -/
+def assembleProgram
+    (source : SourceLocation)
+    (identity : Identity)
+    (resolved : List EvidenceRule)
+    (realization : Realization)
+    (path : List DefinitionId) : Except Error Program := do
+  let mut entrypoints : Array Entrypoint := #[]
+  let mut placed : List DefinitionId := []
+  for plan in realization.plan.entrypoints do
+    let mut nodes : Array InstructionNode := #[]
+    for item in plan.items do
+      match item with
+      | .fixed node => nodes := nodes.push (node identity resolved)
+      | .actions classes =>
+          nodes := nodes ++ (← actionNodes source identity realization.actions path classes)
+          placed := placed ++ classes
+    entrypoints := entrypoints.push (plan.activate identity nodes)
+  for binding in realization.actions do
+    if path.contains binding.action && !placed.contains binding.action then
+      throw (productionError source binding.action.value "realization.action-unplaced")
+  pure (Testpilot.Authoring.Program.make identity.programId realization.plan.roles
+    realization.plan.slots realization.plan.observations entrypoints realization.plan.cleanup)
+
+/-- The Program one realization assembles for a path, for a caller that wants the Program alone:
+`umpire-inspect` and the template tests read the shape a realization produces without producing a
+Case. `produce` calls the same assembly, so what this returns is what a Case carries. -/
+def Realization.program
+    (realization : Realization)
+    (identity : Identity)
+    (resolved : List EvidenceRule := [])
+    (path : List DefinitionId := [])
+    (source : SourceLocation := { path := "" }) : Except Error Program :=
+  assembleProgram source identity resolved realization path
+
 /-! ### Production -/
 
 /-- Lower one checked Model into a Case through a named realization. The checked values are
@@ -413,7 +542,8 @@ def produce {LawStatement : Law → Prop}
     sources := [input.target.source, input.scenario.source, input.querySource,
       input.property.source]
     knownGaps := input.knownGaps.toProvenanceGaps
-    program := realization.program identity (evidenceRules.map (·.1))
+    program := ← assembleProgram input.source identity (evidenceRules.map (·.1)) realization
+      occurrences
     contractId := identity.contractId
     properties := [lowered.contractLowering]
     -- Every clause the Model wrote must appear among the lowered ones, so a clause silently lost
