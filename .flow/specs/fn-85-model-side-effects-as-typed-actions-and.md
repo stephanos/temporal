@@ -472,6 +472,16 @@ Task fn-85-model-side-effects-as-typed-actions-and.1 is that proof: it adds the 
 path-driven Producer with no command syntax, hand-builds Query 2 and compares against the fixture
 masked. If it fails, re-evaluate the per-action-class binding before fn-85 .2 and later.
 
+**Amended while implementing .1 (2026-09-14): the comparison is the Program, not the Case.** A
+Contract is derived from the checked Property's clauses and the Scenario's action order, and a
+correlated clause embeds its trigger action's Model Value and that action's occurrence bound in the
+Contract itself, not only in provenance. Re-authoring two waits as three side effects therefore
+changes the Contract by construction -- which is the point of the re-authoring, not a defect, and
+which no identity mask covers. What the party-to-entrypoint design is answerable for is the Program,
+and that is what .1 pins: byte-identical to the template's for the same identity. The Contract's
+shape is settled once the Model is authored through the commands in .2 and .3. The stop condition is
+unchanged and did not fire.
+
 ## Quick commands
 
 ```bash
