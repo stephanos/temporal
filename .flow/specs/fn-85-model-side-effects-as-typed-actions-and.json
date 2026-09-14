@@ -11,7 +11,9 @@
     "fn-87-tighten-the-testpilot-protocol-glossary"
   ],
   "id": "fn-85-model-side-effects-as-typed-actions-and",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-85-model-side-effects-as-typed-actions-and.1": 0
+  },
   "next_task": 1,
   "plan_review_rounds": 1,
   "plan_review_status": "needs_work",
@@ -42,12 +44,54 @@
       "task": null,
       "timestamp": "2026-09-13T21:48:57.082176Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": null,
+      "backend": "claude",
+      "counter_kind": "impl",
+      "failure_class": null,
+      "finalized": {
+        "digest": "not_applicable",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "ea4ec9ca27cea46f33167770ee60c79769ab0aaf",
+      "head_sha_observed": false,
+      "kind": "impl",
+      "outcome": "verdict",
+      "output_bytes": 4043,
+      "output_sha256": "9c81c4cfa93c8c449e42ec1932de3b77eea6cef474edf7b23c93bb7556c90538",
+      "reservation_id": "7139fc3ac90a464cb192f000e71ce541",
+      "round_consumed": true,
+      "scope": "impl:fn-85-model-side-effects-as-typed-actions-and.1",
+      "superseded_by": null,
+      "task": "fn-85-model-side-effects-as-typed-actions-and.1",
+      "timestamp": "2026-09-14T03:00:07.993834Z",
+      "verdict": "SHIP"
     }
   ],
-  "review_hash_epoch": {},
-  "review_pending_rounds": {},
-  "review_reservations": {},
+  "review_hash_epoch": {
+    "impl:fn-85-model-side-effects-as-typed-actions-and.1": 1
+  },
+  "review_pending_rounds": {
+    "impl:fn-85-model-side-effects-as-typed-actions-and.1": 1
+  },
+  "review_reservations": {
+    "44976462eb654072910d8b2eb4fa3e82": {
+      "artifact_sha256": null,
+      "counter_scope": "impl:fn-85-model-side-effects-as-typed-actions-and.1",
+      "epoch": 0,
+      "exclusive": false,
+      "forced": false,
+      "review_type": "impl",
+      "superseded_by": "7139fc3ac90a464cb192f000e71ce541",
+      "superseded_epoch": 1
+    }
+  },
   "review_transport_failures": {
+    "impl:fn-85-model-side-effects-as-typed-actions-and.1": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-85-model-side-effects-as-typed-actions-and.md",
@@ -64,5 +108,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-13T21:48:57.085293Z"
+  "updated_at": "2026-09-14T03:00:07.996670Z"
 }
