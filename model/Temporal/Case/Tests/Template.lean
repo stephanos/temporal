@@ -50,10 +50,12 @@ ordered behind a close-event read. -/
 
 private def controllerInstructions (realization : Umpire.Case.Producer.Realization) :
     Array InstructionNode :=
-  match (realization.program identity []).entrypoints.find?
-      (·.entrypoint_id == "controller") with
-  | some entrypoint => entrypoint.instructions
-  | none => #[]
+  match realization.program identity with
+  | .error _ => #[]
+  | .ok program =>
+      match program.entrypoints.find? (·.entrypoint_id == "controller") with
+      | some entrypoint => entrypoint.instructions
+      | none => #[]
 
 /-- The instructions an instruction runs after: its `after` set, or the instruction before it. -/
 private def dependencies (realization : Umpire.Case.Producer.Realization) (instructionId : String) :
