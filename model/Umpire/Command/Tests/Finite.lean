@@ -184,8 +184,8 @@ it -- the Behavior Fingerprint, Search, Contract lowering, `umpire-inspect` -- i
 A machine's `count` is `Fin (bound + 1)`, so incrementing past the bound stays at the last member
 rather than wrapping. The last member is "at the limit", which is what a Property reads. -/
 
-#guard (members (α := Fin 3)).map (fun count => (Fin.saturatingSucc count).val) == [1, 2, 2]
-#guard (members (α := Fin 3)).map Fin.limitReached == [false, false, true]
+#guard (members (α := Fin 3)).map (fun count => (saturatingSucc count).val) == [1, 2, 2]
+#guard (members (α := Fin 3)).map limitReached == [false, false, true]
 
 /-! ### What `Finite` refuses
 

@@ -59,11 +59,11 @@ it past the bound reaches the last member and stays there. Saturating is what ma
 without losing the fact that the limit was reached: the last member *is* "at the limit", and a
 Property reads it as such. Wrapping would send a count that overran back to zero, which reads as a
 Model that never counted. -/
-def Fin.saturatingSucc {n : Nat} (count : Fin (n + 1)) : Fin (n + 1) :=
+def saturatingSucc {n : Nat} (count : Fin (n + 1)) : Fin (n + 1) :=
   if h : count.val + 1 < n + 1 then ⟨count.val + 1, h⟩ else ⟨n, Nat.lt_succ_self n⟩
 
 /-- Whether a `count` field has reached its bound, which is the claim a Property reads off it. -/
-def Fin.limitReached {n : Nat} (count : Fin (n + 1)) : Bool := count.val == n
+def limitReached {n : Nat} (count : Fin (n + 1)) : Bool := count.val == n
 
 /-! ### Enumerating a step function
 
@@ -90,10 +90,13 @@ def enumerate
       | [] => none
       | results => some { key := rowKey source action, source, action, results }
 
-/-- How many rows an enumeration may produce before it is refused. The product of the two domains
-bounds it from above, and this bounds that: a Model whose state structure and action classes multiply
-past it is rejected with both numbers, never enumerated part-way. -/
-def enumerationBound : Nat := 256
+/-- How many steps a Model may have before elaboration refuses it.
+
+One number for both checks that mean "this Model is too big to elaborate": the row count a written
+table declares, and the product space an enumeration would walk. `Umpire.Command.Syntax` reads it for
+the first; `enumerateBounded` reads it for the second. A Model past it is rejected with the numbers
+that exceeded it, never enumerated part-way. -/
+def elaborationBound : Nat := 256
 
 /-- The size of the space `enumerate` would walk, which is what a bound is checked against. It is
 the product of the domains, not the number of rows, because the walk evaluates the step function once
@@ -123,7 +126,7 @@ def enumerateBounded
     [Finite State] [Finite Action]
     (rowKey : State → Action → String)
     (steps : State → Action → List (Step State Outcome Fact))
-    (bound : Nat := enumerationBound) :
+    (bound : Nat := elaborationBound) :
     Except EnumerationRefusal (List (FiniteTransitionRow State Action Outcome Fact)) :=
   let size := enumerationSize State Action
   if size > bound then
