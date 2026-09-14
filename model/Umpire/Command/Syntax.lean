@@ -1,5 +1,6 @@
 import Lean.Elab.Command
 import Lean.Elab.ElabRules
+import Umpire.Command.Finite
 import Umpire.Command.Registry
 
 /-!
@@ -71,8 +72,11 @@ syntax "gap:" ident "code:" str "subject:" str "detail:" str : modelGap
 syntax "gap:" ident "code:" str "detail:" str : modelGap
 
 /-- The elaboration bound on declared transition rows. The tested scale is far smaller; this is a
-ceiling on how large a table the elaborator will build, not a modelling recommendation. -/
-private def transitionBound : Nat := 256
+ceiling on how large a table the elaborator will build, not a modelling recommendation.
+
+It is `Umpire.Command.elaborationBound`, the same number a step function's enumeration is bounded by:
+both say "this Model is too big to elaborate", so they are one decision with one owner. -/
+private def transitionBound : Nat := Umpire.Command.elaborationBound
 
 /-- The last component of a constructor name, which is the spelling an author writes. -/
 private def shortName : Name → Name
