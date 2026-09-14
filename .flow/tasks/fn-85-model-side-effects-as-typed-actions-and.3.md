@@ -43,9 +43,59 @@ Split out of the former single `.3` by plan review round 1 (finding F2): the enu
 - [ ] if either prototype pin fails, the task stops with the numbers reported and `.14`/`.15` are re-planned on the row grammar
 
 ## Done summary
-TBD
+The prototype holds, and the row-grammar fallback does not fire.
 
+**The claim.** The user's 2026-09-12 decision — a machine's logic is an ordinary Lean step function,
+enumerated at elaboration into the finite table the `model` command has always produced, rather than a
+row grammar — rests on the enumeration producing the same table, and therefore the same Behavior
+Fingerprint, as the rows an author would have written. The Nexus success slice's two rows, written as
+a step function over a state structure, enumerate to exactly those rows: same rows, same order, same
+keys. The two `FiniteTable`s built from them are equal, and the fingerprint is a pure function of the
+table, so it is equal too.
+
+**`Finite`** is the domain: an ordered, complete member list, with instances for `Bool` and
+`Fin (n + 1)` and a deriving handler for enum-like inductives and for structures whose fields are all
+finite — which is what a machine's per-instance state is. Both refusals are located and named rather
+than surfacing as an instance-search failure from inside the enumeration: a `String` field reports the
+field, a constructor taking an argument reports the constructor. Both are pinned with `#guard_msgs`.
+
+**`enumerate`** walks the declared domains, evaluating the step function once per (state, action)
+pair. An empty result contributes no row, because the finite table already calls an absent pair
+disabled — so a step that rejects an action needs no separate encoding. `enumerateBounded` refuses an
+oversized domain with both factors and the bound, never a truncated table.
+
+**A `count` field saturates rather than wraps.** The last member *is* "at the limit", which is what a
+Property reads off it; wrapping would send a count that overran back to zero, reading as a Model that
+never counted.
+
+**The measurement, honestly.** The task asked for elaboration time recorded against the Race baselines
+(6 to 12 ms per *check*). Those come from a different harness; what is measurable here is whole-file
+elaboration, which startup and imports dominate — 1104, 1313 and 1543 ms for the prototype against
+1607, 1131 and 1061 ms for a module that only imports `Finite`, so the prototype is inside the noise
+of its own import. The numbers are recorded as a reference point rather than a comparison, and the
+module says so. They do answer the question the measurement exists for: enumeration is not measurably
+slower than written rows, let alone an order of magnitude. A per-check comparison at the Race scale
+needs the `machine` command, which is `.14`.
+
+**Self-review found two things**, both fixed in 618c0eff3. The enumeration had introduced its own
+`256` beside `Syntax.lean`'s private `transitionBound` — one decision in two places, which is what
+fn-84 spent five tasks removing; there is now one `elaborationBound` and `Syntax.lean` reads it. And
+the count helpers sat in `Umpire.Command.Fin`, which reads as core `Fin` at a glance; they are plain
+`saturatingSucc` and `limitReached`.
+
+**Left to .14 and .15:** the `machine` command with its witness diagnostics, the Limits accounting,
+the migration of the 18 `model` declarations and their 33 specimens, and predicate Properties. This
+task is the enumerator and the decision it carries, which is why it was split out of the former
+single `.3`.
+
+**Review:** self-review, SHIP, recorded through `flowctl`. Implementer and reviewer are the same
+session, so a session with a second backend should re-review before the spec's completion review.
+
+**Gates.** `lake build UmpireTests TemporalModelTests` green (399 jobs); `make lint-model` at its
+baseline — import-graph linting passed, Batteries clean for `Shared` and for `Umpire.Lint`, and the
+163 diagnostics are all in generated `Temporal/API/Proto.lean`, so this task's declarations added
+none.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 69350b703, 618c0eff3
+- Tests: lake build UmpireTests TemporalModelTests, lake build Umpire.Command.Tests.Finite Umpire.Command.Syntax, make lint-model
 - PRs:
