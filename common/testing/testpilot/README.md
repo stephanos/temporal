@@ -112,11 +112,8 @@ first planned use.
    `tools/umpire/internal/retiredvocabulary/check.go` with a line in
    `TestRetiredRulesHoldTheGlossaryRenamedProtocolNames`, and a removed descriptor name to
    `TestProtocolUsesCohesivePublicVocabulary`. A new name that matches a retired rule fails the gate.
-9. **Equivalence mapping** (only while fn-87's baseline exists). A change to a checked-in fixture
-   appends a step to `Declared` in `internal/protocolmigration/mapping.go`; a new fixture is listed in
-   `Added` in `internal/protocolmigration/equivalence.go`.
-10. **Fixtures.** Regenerate through `make umpire-gen-case-runtime-conformance`, never by hand;
-    `make umpire-check-case-runtime-conformance` fails on a stale fixture.
+9. **Fixtures.** Regenerate through `make umpire-gen-case-runtime-conformance`, never by hand;
+   `make umpire-check-case-runtime-conformance` fails on a stale fixture.
 
 ### A new instruction
 
@@ -137,7 +134,7 @@ first planned use.
    test Session.
 7. Focused tests beside the binder and the Driver; a Driver conformance case per carried message is
    what fn-85 R10 plans.
-8. to 10. As above.
+8. and 9. As above.
 
 ### A new fault kind
 
@@ -152,7 +149,7 @@ first planned use.
 6. No new Opcode: `contract.InjectFault` authorizes every kind. The Driver that realizes the outage
    maps the kind to behavior.
 7. Unit tests of admission, the Driver transition and a Contract reading the kind.
-8. to 10. As above.
+8. and 9. As above.
 
 ### A new Run Event payload
 
@@ -171,7 +168,7 @@ first planned use.
    `TestRunEventPayloadPathsBindThroughTheArmTheyName`,
    `TestRecorderRejectsPayloadKindMismatchAsInvariant` and
    `TestPrepareLocatesPayloadPathsTheFilterCannotCarry` each gain the arm.
-8. to 10. As above.
+8. and 9. As above.
 
 ### A new expression reference
 
@@ -189,7 +186,7 @@ first planned use.
 6. No Opcode or Driver change.
 7. `TestExpressionContextsRejectReferencesOutsideThem` covers every arm in every context; the
    `static-preparation-rejection/expression-context` conformance variant pins the rejection's shape.
-8. to 10. As above.
+8. and 9. As above.
 
 ### Worked example: `FAULT_KIND_WORKER_STOP`
 
