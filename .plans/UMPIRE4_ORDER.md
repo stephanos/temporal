@@ -209,7 +209,26 @@ Canary and exploratory sets are admitted with their
 coverage targets enumerated; running them stays in fn-70, fn-29 and fn-33. Whole-Program templates
 and the `case` command are removed.
 
-**Next to run**, with fn-87's completion review SHIP. **R3 authoring form decided 2026-09-12:**
+**In delivery. Task .1 is done, 2026-09-14, and the early proof point holds.** The Program the
+Producer assembles from the path `[schedule, handlerReply, complete]` is byte-identical to the one the
+`nexusOperation` template writes by hand, so the party-to-entrypoint design carries what the template
+stated; the spec's stop condition did not fire. What landed: the protocol-migration oracle retired;
+`Umpire.Command.Records` for entities, actions, observations, timers, setup parameters, evidence lines
+and the machine declaration; a `ProgramPlan` and per-action-class bindings replacing
+`Realization.program`, with the Producer placing instructions from the path; and
+`Temporal.Case.Realization.asyncNexus` with the proof in `Temporal.Case.Tests.ProofPoint`. Its review
+is a self-review, so a session with a second backend should re-review before the completion review.
+
+**The proof point's acceptance was amended during delivery:** the comparison is the Program, not the
+Case. A correlated clause embeds its trigger action's Model Value and that action's occurrence bound in
+the Contract itself, not only in provenance, so re-authoring two waits as three side effects changes
+the Contract by construction -- which is the point of the re-authoring and which no identity mask
+covers. `.2` and `.3` settle the Contract's shape once the Model is authored through the commands.
+
+**`flowctl ready` reports fn-85 blocked by fn-87**, because fn-87's spec is still `open`: `spec close`
+needs runtime task state, which lives in a clone's `.git` and which a fresh cloud clone does not have.
+It is bookkeeping, not a dependency -- fn-87's `completion_review_status` is `ship` -- and
+`flowctl start` is unaffected. **R3 authoring form decided 2026-09-12:**
 machines are Lean step functions over a structure of finite fields, enumerated at elaboration into the
 same finite table, per [the FizzBee comparison](UMPIRE_CMP_FIZZBEE.md) section 4.1; the row grammar is
 not built.
