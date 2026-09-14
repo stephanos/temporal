@@ -140,6 +140,18 @@ private def unboundRealization : Umpire.Case.Producer.Realization :=
 /- A path whose action an `actions` item names but no binding covers rejects. -/
 #guard (unboundRealization.program identity (path := path)).toOption.isNone
 
+private def twicePlacedRealization : Umpire.Case.Producer.Realization :=
+  let realized := Temporal.Case.Realization.asyncNexus service operation
+  { realized with
+    plan := { realized.plan with
+      entrypoints := realized.plan.entrypoints ++ [
+        { activate := fun _ nodes => Testpilot.Authoring.Program.controller "second" nodes
+          items := [.actions [Temporal.Case.Realization.Nexus.completeAction]] }] } }
+
+/- A class two `actions` items name rejects: emitting its nodes twice would give them the same
+instruction ids, which is a realization mistake and not a larger Program. -/
+#guard (twicePlacedRealization.program identity (path := path)).toOption.isNone
+
 /- An action performed twice on one path gets two distinct instruction ids, so preparation never
 sees a duplicate. The retry Query of fn-85 .11 is the first Model that needs it. -/
 #guard instructionIds
