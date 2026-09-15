@@ -1,3 +1,4 @@
+import Temporal.Case.Conventions
 import Temporal.Case.Schema
 
 /-!
@@ -13,8 +14,10 @@ Two parts of that specimen are not here. The machines are fn-85 `.14`, because `
 command yet. The `requestCancel` and `cancelReply` actions the design marks `fn-79` are that task's
 deferred scope, and declaring them here would deliver it early.
 
-The module imports `Temporal.Case.Schema` rather than `Umpire.Command` alone: a `schema:` line
-resolves against the generated API, and importing Temporal's resolver is what turns that check on.
+The module imports what a Temporal Model file imports. `Temporal.Case.Conventions` is the Definition
+ID root and the scaffolding prefix every Temporal declaration shares, so the ids below are the ids a
+real Model carries; `Temporal.Case.Schema` is the resolver a `schema:` line asks, and importing it is
+what turns that check on.
 -/
 
 namespace Temporal.Feature.Nexus.Tests.Commands
@@ -43,7 +46,7 @@ entity operation
 
 /- Definition IDs come from the file's `Origin`, so two Models that name the same declaration in
 different files carry different ids. -/
-#guard operation.id.value.endsWith "entity.operation"
+#guard operation.id.value == "temporal.nexus.tests.commands.entity.operation"
 #guard operation.source.path.endsWith "Commands.lean"
 
 /-! ### The input domains
@@ -72,10 +75,12 @@ enum Delivery
   | accepted
   | notFound
 
-/- A class with arguments expands into its members, in the order its arguments are written. -/
+/- A class with arguments expands into its members, in the order its arguments are written. Written
+with the same spellings the classes below carry, so the two lists correspond element by element and
+neither can drift without the other failing. -/
 #guard members (α := Reply) ==
   [.syncSuccess, .async, .operationFailed, .operationCanceled,
-    .handlerError false, .handlerError true]
+    .handlerError (retryable := false), .handlerError (retryable := true)]
 
 /- A class's member is written the way an `examples:` line writes it -- by the field's name -- and
 that spelling is an ordinary pattern, so a step function may match on it. -/
@@ -335,5 +340,17 @@ action unappliedClass
     reply: Reply
   examples:
     handlerError → BadRequest
+
+/- A class is what it denotes, not how it was typed: the same class written with a redundant
+parenthesis, or with its bindings in another order, is the same class. -/
+action spellingVariants
+  party: handler
+  on: operation
+  input:
+    reply: Reply
+  examples:
+    handlerError (retryable := (false)) → BadRequest
+
+#guard spellingVariants.examples.map (·.pattern) == ["handlerError (retryable := false)"]
 
 end Temporal.Feature.Nexus.Tests.Commands

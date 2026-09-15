@@ -80,7 +80,14 @@ action replyWithTheirs
   input:
     reply: Commands.Reply
 
+/- The referring file sees the conventions the declaring file saw, because the id was recorded where
+the `enum` was written. Pinned as the value, not as a difference: two wrong ids also differ. -/
+#guard (replyWithTheirs.input.map (·.domain)) == (Commands.handlerReply.input.map (·.domain))
 #guard (replyWithOurs.input.map (·.domain)) != (replyWithTheirs.input.map (·.domain))
+#guard (replyWithOurs.input.map (·.domain.value)) ==
+  ["temporal.nexus.tests.secondModel.enum.Reply"]
+#guard (replyWithTheirs.input.map (·.domain.value)) ==
+  ["temporal.nexus.tests.commands.enum.Reply"]
 #guard (replyWithOurs.input.map fun field => field.classes.length) == [2]
 #guard (replyWithTheirs.input.map fun field => field.classes.length) == [6]
 

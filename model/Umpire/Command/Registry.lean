@@ -62,6 +62,20 @@ structure QueryEntry where
   scenario : Name
   deriving Inhabited, Repr, BEq
 
+/-- One declared domain: an `enum`'s Definition ID, recorded where it is declared.
+
+A domain's id hangs off the family of the namespace that declared it *and* off the conventions that
+file could see, so a later command reads it from here rather than recomputing it. Recomputing it at
+the reference would read the referring file's conventions, and two Models that share a domain would
+disagree about its id. -/
+structure DomainEntry where
+  declName : Name
+  /-- The author's spelling, which is what a rejection quotes. -/
+  name : String
+  /-- The Definition ID the declaration carries. -/
+  id : String
+  deriving Inhabited, Repr, BEq
+
 /-- One declared entity: the key recorded data names an instance by, and the references it declares.
 A later command resolves an entity reference against these rather than re-reading the declaration. -/
 structure EntityEntry where
@@ -135,6 +149,12 @@ initialize queryExtension : SimplePersistentEnvExtension QueryEntry (Array Query
     addImportedFn := collect
   }
 
+initialize domainExtension : SimplePersistentEnvExtension DomainEntry (Array DomainEntry) ←
+  registerSimplePersistentEnvExtension {
+    addEntryFn := Array.push
+    addImportedFn := collect
+  }
+
 initialize entityExtension : SimplePersistentEnvExtension EntityEntry (Array EntityEntry) ←
   registerSimplePersistentEnvExtension {
     addEntryFn := Array.push
@@ -176,6 +196,9 @@ def recordQuery (entry : QueryEntry) : CoreM Unit :=
 def recordEntity (entry : EntityEntry) : CoreM Unit :=
   modifyEnv fun env => entityExtension.addEntry env entry
 
+def recordDomain (entry : DomainEntry) : CoreM Unit :=
+  modifyEnv fun env => domainExtension.addEntry env entry
+
 def recordAction (entry : ActionEntry) : CoreM Unit :=
   modifyEnv fun env => actionExtension.addEntry env entry
 
@@ -186,6 +209,11 @@ def models (env : Environment) : Array ModelEntry := modelExtension.getState env
 def properties (env : Environment) : Array PropertyEntry := propertyExtension.getState env
 def scenarios (env : Environment) : Array ScenarioEntry := scenarioExtension.getState env
 def queries (env : Environment) : Array QueryEntry := queryExtension.getState env
+
+def domains (env : Environment) : Array DomainEntry := domainExtension.getState env
+
+def domain? (env : Environment) (declName : Name) : Option DomainEntry :=
+  (domains env).find? (·.declName == declName)
 
 def entities (env : Environment) : Array EntityEntry := entityExtension.getState env
 
