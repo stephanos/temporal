@@ -1,17 +1,20 @@
-import Umpire.Command
+import Temporal.Case.Schema
 
 /-!
 # The side-effect commands, on the Nexus design's own declarations
 
-`DESIGN.md` section 2 writes the entities, actions and observations of the Nexus caller-side
-operation. This module declares them with the `entity`, `action` and `observation` commands and pins
-what each rejects, so the commands are checked against the shapes they exist to express rather than
-against invented ones.
+`DESIGN.md` section 3 writes the caller side of one workflow-scheduled Nexus operation. Its
+entities, its input domains, its actions and its one derived observation are declared here with the
+`entity`, `enum`, `action` and `observation` commands, verbatim, and what each command rejects is
+pinned beside them -- so the commands are checked against the shapes they exist to express rather
+than against invented ones.
 
-Everything here is a declaration, not a Model: the machine that steps over these actions is fn-85
-`.14`, and the realization that binds them to RPCs and instructions is Temporal's. What this module
-shows is that a Model file can say what the design says, and that a mistake in saying it is reported
-on the line that made it.
+Two parts of that specimen are not here. The machines are fn-85 `.14`, because `machine` is not a
+command yet. The `requestCancel` and `cancelReply` actions the design marks `fn-79` are that task's
+deferred scope, and declaring them here would deliver it early.
+
+The module imports `Temporal.Case.Schema` rather than `Umpire.Command` alone: a `schema:` line
+resolves against the generated API, and importing Temporal's resolver is what turns that check on.
 -/
 
 namespace Temporal.Feature.Nexus.Tests.Commands
@@ -19,7 +22,7 @@ namespace Temporal.Feature.Nexus.Tests.Commands
 open Umpire
 open Umpire.Command
 
-/-! ### The design's declarations
+/-! ### Entities
 
 `DESIGN.md` section 2.1: an operation is scheduled by a caller workflow, and recorded data names one
 by its scheduled event. -/
@@ -43,51 +46,127 @@ different files carry different ids. -/
 #guard operation.id.value.endsWith "entity.operation"
 #guard operation.source.path.endsWith "Commands.lean"
 
-/-! ### Actions, and the classes their input fields range over
+/-! ### The input domains
 
-`DESIGN.md` section 2.2. A handler's reply is one action whose input field ranges over an enum; the
-`handlerError` constructor carries a `Bool`, so it is a class of two concrete values an author claims
-behave alike. -/
+Each constructor is a **class**: a set of concrete values claimed to behave alike. A constructor
+that carries finite fields is one class with several members, which is what mirrors a protobuf
+oneof. -/
+
+enum Timeout
+  | unset
+  | expires
 
 enum Reply
+  | syncSuccess
   | async
-  | sync
+  | operationFailed
+  | operationCanceled
   | handlerError (retryable : Bool)
 
-#guard members (α := Reply) == [.async, .sync, .handlerError false, .handlerError true]
+enum Resolution
+  | succeeded
+  | failed
+  | canceled
 
-action handlerReply
-  party: handler
-  on: operation
-  input:
-    reply: Reply
+enum Delivery
+  | accepted
+  | notFound
+
+/- A class with arguments expands into its members, in the order its arguments are written. -/
+#guard members (α := Reply) ==
+  [.syncSuccess, .async, .operationFailed, .operationCanceled,
+    .handlerError false, .handlerError true]
+
+/- A class's member is written the way an `examples:` line writes it -- by the field's name -- and
+that spelling is an ordinary pattern, so a step function may match on it. -/
+#guard (Reply.handlerError (retryable := true)) == Reply.handlerError true
+#guard (match Reply.handlerError (retryable := false) with
+  | .handlerError (retryable := false) => true
+  | _ => false)
+
+/-! ### Actions
+
+`DESIGN.md` section 2.2 and section 3. Parties are names the feature declares by using them:
+`caller`, `handler`, `network`, `worker`. A fault is an ordinary action of a declared party, and a
+timer is `system` behavior the machine owns, so neither is a separate kind. -/
 
 action schedule
   party: caller
   creates: operation
+  schema: temporal.api.command.v1.ScheduleNexusOperationCommandAttributes
+  input:
+    scheduleToClose: Timeout
+    scheduleToStart: Timeout
+    startToClose: Timeout
 
-/-- A fault is an ordinary action of a declared party, not a separate kind. -/
+action handlerReply
+  party: handler
+  on: operation
+  schema: temporal.api.nexus.v1.StartOperationResponse | temporal.api.nexus.v1.HandlerError
+  input:
+    reply: Reply
+  examples:
+    handlerError (retryable := false) → BadRequest
+    handlerError (retryable := true) → Internal
+
+/-- The Nexus HTTP completion carries no protobuf message, so it declares no schema and its classes
+are names the realization interprets. -/
+action complete
+  party: handler
+  on: operation
+  input:
+    resolution: Resolution
+  results: Delivery
+
 action transportFault
   party: network
   on: operation
 
-#guard handlerReply.party == "handler"
-#guard handlerReply.input.map (·.name) == ["reply"]
-
-/- An action acts on an instance that exists, or brings one into existence. -/
-#guard match schedule.subject with | .creates _ => true | _ => false
-#guard match handlerReply.subject with | .acts _ => true | _ => false
-
-/-- An action that names neither is behavior no entity records. -/
-action heartbeat
+/-- The handler's worker stops polling. An action that names no entity is behavior no entity
+records. -/
+action workerStop
   party: worker
 
-#guard match heartbeat.subject with | .free => true | _ => false
+/- An action acts on an instance that exists, or brings one into existence, or neither. -/
+#guard match schedule.subject with | .creates _ => true | _ => false
+#guard match handlerReply.subject with | .acts _ => true | _ => false
+#guard match workerStop.subject with | .free => true | _ => false
 
-/-! ### Observations
+#guard handlerReply.party == "handler"
+#guard schedule.input.map (·.name) == ["scheduleToClose", "scheduleToStart", "startToClose"]
 
-`DESIGN.md` section 2.4: a retryable attempt failure writes no history event, so the attempt count is
-read back through a call. -/
+/- An input field's classes are its domain's constructors, in declaration order: `handlerError` is
+one class, not two, though it has two members. -/
+#guard (handlerReply.input.map fun field => field.classes.map (·.value)) ==
+  [["syncSuccess", "async", "operationFailed", "operationCanceled", "handlerError"]]
+
+/- `schema:` stores the alternatives it names and nothing else. A Model that stored the descriptor
+would carry the generated closure into every Case identity derived from it. -/
+#guard handlerReply.schema ==
+  ["temporal.api.nexus.v1.StartOperationResponse", "temporal.api.nexus.v1.HandlerError"]
+#guard complete.schema == []
+
+/- Said as a size rather than as a shape: each stored entry is shorter than the descriptor of the
+message it names, so what the action carries is the name and not the message. -/
+#guard handlerReply.schema.all fun stored =>
+  stored.length < Temporal.Case.Schema.descriptorSize stored
+
+/- An example names the class it stands for as the Model spells it, and the field whose domain
+declares that class. -/
+#guard handlerReply.examples.map (·.pattern) ==
+  ["handlerError (retryable := false)", "handlerError (retryable := true)"]
+#guard handlerReply.examples.map (·.field) == ["reply", "reply"]
+#guard handlerReply.examples.map (·.member.value) == ["BadRequest", "Internal"]
+
+/- An action that returns something declares a result domain. -/
+#guard complete.results.isSome
+#guard schedule.results.isNone
+
+/-! ### The derived observation
+
+`DESIGN.md` section 2.4: a retryable attempt failure writes no history event, so the attempt count
+is read back through a call. Every other evidence name resolves against the realization's catalog,
+which is why only a derived observation is declared. -/
 
 observation pendingAttempts
   on: operation
@@ -95,6 +174,7 @@ observation pendingAttempts
 
 #guard pendingAttempts.read == "attempts"
 #guard pendingAttempts.name == "pendingAttempts"
+#guard pendingAttempts.entity == operation.id
 
 /-! ### What the commands reject
 
@@ -165,5 +245,39 @@ action unboundedInput
   party: caller
   input:
     label: String
+
+/- A constructor field is checked the same way, at the `enum` that declared it. -/
+/--
+error: cannot derive Finite for Temporal.Feature.Nexus.Tests.Commands.Unbounded: its constructor Temporal.Feature.Nexus.Tests.Commands.Unbounded.labelled's argument 'label', of type String, has no finite member list. A finite domain is an enum-like inductive, an inductive whose constructor arguments are themselves finite, Bool, a count as Fin (bound + 1), or a structure of those.
+-/
+#guard_msgs in
+enum Unbounded
+  | plain
+  | labelled (label : String)
+
+/- A `schema:` name resolves against the generated API, or the line that wrote it is the line that
+reports it. -/
+/--
+error: 'temporal.api.nexus.v1.NoSuchMessage' does not resolve to a protobuf message the generated API carries
+-/
+#guard_msgs in
+action unknownSchema
+  party: handler
+  on: operation
+  schema: temporal.api.nexus.v1.NoSuchMessage
+
+/- An example stands for a class this action declares; one that matches none is an example of
+nothing. -/
+/--
+error: 'notAClass' matches no class of this action: an example names a constructor of one of the action's own `input:` domains
+-/
+#guard_msgs in
+action strayExample
+  party: handler
+  on: operation
+  input:
+    reply: Reply
+  examples:
+    notAClass → BadRequest
 
 end Temporal.Feature.Nexus.Tests.Commands

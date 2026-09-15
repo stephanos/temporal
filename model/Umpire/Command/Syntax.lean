@@ -2,6 +2,7 @@ import Lean.Elab.Command
 import Lean.Elab.ElabRules
 import Umpire.Command.Finite
 import Umpire.Command.Records
+import Umpire.Command.Schema
 import Umpire.Command.Registry
 
 /-!
@@ -657,6 +658,11 @@ declare_syntax_cat entityKey
 syntax "refer:" withPosition((colGe ident ":" ident)+) : entityKey
 syntax "key:" ident : entityKey
 
+/-- One `examples:` line: the class as the Model spells it, and the concrete member a functional
+Case uses for it. -/
+declare_syntax_cat exampleLine
+syntax ident ("(" (ident " := " term),* ")")? " → " ident : exampleLine
+
 /-- One indented key of an `action` declaration. -/
 declare_syntax_cat actionKey
 syntax "party:" ident : actionKey
@@ -664,6 +670,8 @@ syntax "on:" ident : actionKey
 syntax "creates:" ident : actionKey
 syntax "input:" withPosition((colGe ident ":" ident)+) : actionKey
 syntax "results:" ident : actionKey
+syntax "schema:" ident ("|" ident)* : actionKey
+syntax "examples:" withPosition((colGe exampleLine)+) : actionKey
 
 /-- One indented key of an `observation` declaration. -/
 declare_syntax_cat observationKey
@@ -691,6 +699,14 @@ private def reservedPartyMessage : String :=
   "'system' is the implementation under test; it performs no declared action, so an action's \
 `party:` names one of the feature's own parties"
 
+private def unmatchedExampleMessage (spelling : String) : String :=
+  s!"'{spelling}' matches no class of this action: an example names a constructor of one of the \
+action's own `input:` domains"
+
+private def duplicateExampleMessage (spelling : String) : String :=
+  s!"'{spelling}' already has an example; a class has one concrete member, or the Case it produces \
+would not be one Case"
+
 private def bothSubjectsMessage : String :=
   "an action declares `on:` or `creates:`, not both: it either acts on an instance that exists or \
 brings one into existence"
@@ -711,14 +727,19 @@ private def resolveEntity (entityRef : Ident) : CommandElabM Registry.EntityEntr
 /-- Resolve the enum an `input:` or `results:` line names, requiring it to be finite. A domain that
 is not finite cannot be enumerated into a Model's table, and saying so here names the line rather
 than failing an instance search inside the machine command. -/
-private def resolveDomain (domainRef : Ident) : CommandElabM Name := do
+private def resolveDomain (domainRef : Ident) : CommandElabM (Name × List String) := do
   let declName ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo domainRef)
   liftTermElabM do
     let domainType ← mkConstWithLevelParams declName
     let finiteType ← Meta.mkAppM ``Umpire.Command.Finite #[domainType]
     unless (← Meta.synthInstance? finiteType).isSome do
       throwErrorAt domainRef (undeclaredDomainMessage domainRef.getId)
-  pure declName
+  -- AUT-09: the constructors in declaration order are the classes, whether or not they carry
+  -- fields. A constructor with fields is one class with several members, not several classes.
+  let classes ← match (← getEnv).find? declName with
+    | some (.inductInfo info) => pure (info.ctors.map (·.getString!))
+    | _ => pure []
+  pure (declName, classes)
 
 elab doc?:(docComment)? entityKeyword name:ident keys:entityKey* : command => do
   let mut refers : Array (String × String × Name) := #[]
@@ -764,13 +785,34 @@ elab doc?:(docComment)? entityKeyword name:ident keys:entityKey* : command => do
     key := keySpelling
     refers := refers.map fun (field, _, declName) => (field, declName) })
 
+/-- How one `examples:` line reads back: the class as the Model spells it, the constructor it names,
+and the concrete member. -/
+private structure ExampleLine where
+  spelling : String
+  constructor : String
+  member : String
+  ref : Syntax
+
+/-- Render one example's class the way the Model wrote it, so a receipt can quote the line rather
+than a reconstruction of it. -/
+private def exampleSpelling (constructor : Ident) (bindings : Array (Ident × Term)) : String :=
+  if bindings.isEmpty then constructor.getId.toString
+  else
+    let written := bindings.toList.map fun (field, value) =>
+      let rendered := (value.raw.reprint.getD "").trim
+      s!"{field.getId} := {rendered}"
+    let joined := ", ".intercalate written
+    s!"{constructor.getId} ({joined})"
+
 elab doc?:(docComment)? actionKeyword name:ident keys:actionKey+ : command => do
   let mut party : Option Ident := none
   let mut subject : Option (String × Name × Bool) := none
-  let mut subjectRef : Option Ident := none
-  let mut inputFields : Array (String × Name) := #[]
+  let mut inputFields : Array (String × Name × List String) := #[]
   let mut seenInput := false
   let mut results : Option Name := none
+  let mut schema : Array String := #[]
+  let mut examples : Array ExampleLine := #[]
+  let mut seenExamples := false
   for entry in keys do
     match entry with
     | `(actionKey| party: $partyRef:ident) => do
@@ -781,23 +823,52 @@ elab doc?:(docComment)? actionKeyword name:ident keys:actionKey+ : command => do
         if subject.isSome then throwErrorAt entry bothSubjectsMessage
         let declared ← resolveEntity entityRef
         subject := some (declared.name, declared.declName, false)
-        subjectRef := some entityRef
     | `(actionKey| creates: $entityRef:ident) => do
         if subject.isSome then throwErrorAt entry bothSubjectsMessage
         let declared ← resolveEntity entityRef
         subject := some (declared.name, declared.declName, true)
-        subjectRef := some entityRef
     | `(actionKey| input: $[$fields:ident : $domains:ident]*) => do
         if seenInput then throwErrorAt entry (duplicateKeyMessage "action" "input:")
         seenInput := true
         for field in fields, domain in domains do
-          inputFields := inputFields.push (field.getId.toString, ← resolveDomain domain)
+          let (declName, classes) ← resolveDomain domain
+          inputFields := inputFields.push (field.getId.toString, declName, classes)
     | `(actionKey| results: $domainRef:ident) => do
         if results.isSome then throwErrorAt entry (duplicateKeyMessage "action" "results:")
-        results := some (← resolveDomain domainRef)
+        results := some (← resolveDomain domainRef).1
+    | `(actionKey| schema: $first:ident $[| $alternatives:ident]*) => do
+        if !schema.isEmpty then throwErrorAt entry (duplicateKeyMessage "action" "schema:")
+        schema := #[first.getId.toString] ++ alternatives.map (·.getId.toString)
+        match ← (Umpire.Command.checkSchema schema.toList : IO _) with
+        | .ok () => pure ()
+        | .error reason => throwErrorAt entry reason
+    | `(actionKey| examples: $[$lines:exampleLine]*) => do
+        if seenExamples then throwErrorAt entry (duplicateKeyMessage "action" "examples:")
+        seenExamples := true
+        for line in lines do
+          match line with
+          | `(exampleLine| $constructor:ident $[($[$fields:ident := $values:term],*)]? → $member:ident) =>
+              let bindings := match fields, values with
+                | some fields, some values => fields.zip values
+                | _, _ => #[]
+              examples := examples.push {
+                spelling := exampleSpelling constructor bindings
+                constructor := constructor.getId.toString
+                member := member.getId.toString
+                ref := line }
+          | _ => throwErrorAt line "unsupported example line"
     | _ => throwErrorAt entry "unsupported action key"
   let some partyRef := party
     | throwErrorAt name (missingKeyMessage "action" "party:")
+  -- Examples are resolved after every key has been read, so an `examples:` block above the
+  -- `input:` block it names reads the same as one below it.
+  let mut resolved : Array (String × ExampleLine) := #[]
+  for line in examples do
+    let some (field, _, _) := inputFields.find? fun (_, _, classes) => classes.contains line.constructor
+      | throwErrorAt line.ref (unmatchedExampleMessage line.spelling)
+    if resolved.any fun (_, seen) => seen.spelling == line.spelling then
+      throwErrorAt line.ref (duplicateExampleMessage line.spelling)
+    resolved := resolved.push (field, line)
   let origin ← originTerm
   let nameKey := Lean.quote name.getId.toString
   let subjectTerm : Term ← match subject with
@@ -806,28 +877,41 @@ elab doc?:(docComment)? actionKeyword name:ident keys:actionKey+ : command => do
         let entityId ← `(term| ($origin).family.id "entity" $(Lean.quote entityName))
         if creates then `(term| Umpire.Command.ActionSubject.creates $entityId)
         else `(term| Umpire.Command.ActionSubject.acts $entityId)
-  let inputTerms : Array Term ← inputFields.mapM fun (field, domain) =>
+  let inputTerms : Array Term ← inputFields.mapM fun (field, domain, classes) => do
+    let classTerms : Array Term ← classes.toArray.mapM fun spelling =>
+      `(term| Umpire.ModelValue.named
+          (($origin).family.id "enum" $(Lean.quote domain.getString!)) $(Lean.quote spelling))
     `(term| ({ name := $(Lean.quote field)
                domain := ($origin).family.id "enum" $(Lean.quote domain.getString!)
-               classes := [] } : Umpire.Command.InputField))
+               classes := [$classTerms,*] } : Umpire.Command.InputField))
+  let exampleTerms : Array Term ← resolved.mapM fun (field, line) =>
+    `(term| ({ action := ($origin).family.id "action" $nameKey
+               field := $(Lean.quote field)
+               pattern := $(Lean.quote line.spelling)
+               member := Umpire.ModelValue.named
+                 (($origin).family.id "action" $nameKey) $(Lean.quote line.member)
+             } : Umpire.Command.Example))
   let resultsTerm : Term ← match results with
     | none => `(term| none)
     | some domain => `(term| some (($origin).family.id "enum" $(Lean.quote domain.getString!)))
+  let schemaTerms : Array Term := schema.map Lean.quote
   elabCommand (← `(command|
     $[$doc?:docComment]? def $name : Umpire.Command.Action := {
       id := ($origin).family.id "action" $nameKey
       name := $nameKey
       party := $(Lean.quote partyRef.getId.toString)
       subject := $subjectTerm
+      schema := [$schemaTerms,*]
       input := [$inputTerms,*]
       results := $resultsTerm
+      examples := [$exampleTerms,*]
       source := ($origin).source }))
   liftCoreM (Registry.recordAction {
     declName := (← getCurrNamespace) ++ name.getId
     name := name.getId.toString
     party := partyRef.getId.toString
     subject := subject.map fun (_, declName, creates) => (declName, creates)
-    inputFields
+    inputFields := inputFields.map fun (field, domain, _) => (field, domain)
     results })
 
 elab doc?:(docComment)? observationKeyword name:ident keys:observationKey+ : command => do

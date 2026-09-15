@@ -11,6 +11,7 @@ import Temporal.Feature.Nexus.Success.Tests
 import Temporal.Feature.Nexus.Success.Tests.TypedNexus
 import Temporal.Feature.Nexus.Success.Tests.TypedUnary
 import Temporal.Feature.Nexus.Race.AuthoringTests
+import Temporal.Feature.Nexus.Tests.Commands
 import Temporal.SharedTests
 import Temporal.System
 import Temporal.System.Callback.ConfigurationTests
