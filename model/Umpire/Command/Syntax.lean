@@ -742,6 +742,10 @@ private def domainTooLargeMessage (domain : Name) (size bound : Nat) : String :=
   s!"'{domain}' has more than {bound} members ({size} and still counting); a class is written out \
 one per member, and the elaboration bound is {bound}"
 
+private def duplicateReferenceMessage (field : String) : String :=
+  s!"the entity refers by '{field}' twice; a row names a reference by its field, and two would not \
+say which one it means"
+
 private def duplicateEntityKeyMessage (key : String) (owner : String) : String :=
   s!"key name '{key}' is already the key of entity '{owner}'; recorded data would not say which \
 instance it names"
@@ -913,8 +917,11 @@ elab doc?:(docComment)? entityKeyword name:ident keys:entityKey* : command => do
         if seenRefer then throwErrorAt entry (duplicateKeyMessage "entity" "refer:")
         seenRefer := true
         for field in fields, target in targets do
+          let spelling := field.getId.toString
+          if refers.any fun (seen, _, _) => seen == spelling then
+            throwErrorAt field (duplicateReferenceMessage spelling)
           let declared ← resolveEntity target
-          refers := refers.push (field.getId.toString, declared.id, declared.declName)
+          refers := refers.push (spelling, declared.id, declared.declName)
     | `(entityKey| key: $keyRef:ident) => do
         if key.isSome then throwErrorAt entry (duplicateKeyMessage "entity" "key:")
         key := some keyRef
