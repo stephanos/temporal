@@ -1348,7 +1348,79 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
     def $stepName ($stateBinder : $stateType) :
         $actionType → List (Umpire.Step $stateType $(mkIdent outcomeType) $(mkIdent factType))
       $dispatchArms:matchAlt*))
-  pure ()
+  -- The Action domain's own members, read back now that it exists.
+  let actionDecl := (← getCurrNamespace) ++ actionType.getId
+  let actionMembers ← domainMembers name actionDecl
+  -- A row's key is its state's key and its action's key, and each of those is the member's position
+  -- in the enumeration rather than a second rendering of it. Indexing `members` is what keeps the
+  -- keys and the walk in step: they are the same list, read the same way.
+  let keyArray : List ClassValue → Array Term := fun values =>
+    (values.map fun value => Lean.quote value.key).toArray
+  let stateKeysName := mkIdentFrom name (name.getId ++ `stateKeys)
+  let actionKeysName := mkIdentFrom name (name.getId ++ `actionKeys)
+  let rowKeyName := mkIdentFrom name (name.getId ++ `rowKey)
+  elabCommand (← `(command|
+    def $stateKeysName : Array String := #[$(keyArray stateMembers),*]))
+  elabCommand (← `(command|
+    def $actionKeysName : Array String := #[$(keyArray actionMembers),*]))
+  elabCommand (← `(command|
+    def $rowKeyName (state : $stateType) (taken : $actionType) : String :=
+      let stateAt := (Umpire.Command.members (α := $stateType)).idxOf? state
+      let actionAt := (Umpire.Command.members (α := $actionType)).idxOf? taken
+      match stateAt, actionAt with
+      | some stateAt, some actionAt =>
+          ($stateKeysName)[stateAt]! ++ "-" ++ ($actionKeysName)[actionAt]!
+      | _, _ => ""))
+  -- `ends:` names the values of one state field. Which field is not a key the author writes: the
+  -- values name it, and naming values of two fields is the mistake the message reports.
+  let memberFields : ClassValue → Array (String × ClassValue) := fun value =>
+    match value with
+    | .applied _ fields => fields
+    | .atom _ => #[]
+  let mut endField : Option String := none
+  for endRef in endRefs do
+    let spelling := endRef.getId.getString!
+    -- Every member is looked at, not the first: a field carries the value in the member that holds
+    -- it, and the member a machine ends in is rarely the one it starts in.
+    let carriers := stateMembers.flatMap fun member =>
+      (memberFields member).toList.filterMap fun (field, value) =>
+        match value with
+        | .atom declared => if declared.getString! == spelling then some field else none
+        | .applied constructor _ =>
+            if constructor.getString! == spelling then some field else none
+    let some field := carriers.head?
+      | throwErrorAt endRef (noEndsFieldMessage spelling)
+    match endField with
+    | none => endField := some field
+    | some seen =>
+        unless seen == field do throwErrorAt endRef (endsAcrossFieldsMessage seen field)
+  let endSpellings := endRefs.map fun endRef => endRef.getId.getString!
+  let isTerminal : ClassValue → Bool := fun value =>
+    match endField with
+    | none => false
+    | some field =>
+        (memberFields value).any fun (carried, held) =>
+          carried == field && endSpellings.any fun spelling =>
+            match held with
+            | .atom declared => declared.getString! == spelling
+            | .applied constructor _ => constructor.getString! == spelling
+  let terminalTerms ← (stateMembers.filter isTerminal).toArray.mapM ClassValue.term
+  let transitionsName := mkIdentFrom name (name.getId ++ `transitions)
+  elabCommand (← `(command|
+    def $transitionsName :
+        List (Umpire.FiniteTransitionRow $stateType $actionType
+          $(mkIdent outcomeType) $(mkIdent factType)) :=
+      Umpire.Command.enumerate $rowKeyName $stepName))
+  let terminalName := mkIdentFrom name (name.getId ++ `ends)
+  elabCommand (← `(command|
+    def $terminalName : List $stateType := [$terminalTerms,*]))
+  liftCoreM (Registry.recordMachine {
+    declName := (← getCurrNamespace) ++ name.getId
+    name := name.getId.toString
+    id := ← definitionIdHere "machine" name.getId.toString
+    entity := declaredEntity.declName
+    stateType := stateDecl
+    steps := steps.map fun resolved => (resolved.action.declName, resolved.function.getId) })
 
 elab doc?:(docComment)? observationKeyword name:ident keys:observationKey+ : command => do
   let mut entity : Option Registry.EntityEntry := none
