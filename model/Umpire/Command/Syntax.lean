@@ -787,6 +787,17 @@ private partial def ClassValue.render : ClassValue → String
       let written := fields.toList.map fun (field, value) => s!"{field} := {value.render}"
       s!"{constructor.getString!} ({", ".intercalate written})"
 
+/-- A class as a Definition ID fragment: the same tree, joined by `-` rather than punctuated, so a
+state or action carries a key a reader recognises and an id admits. A structure's `mk` contributes
+nothing, because a reader reads its fields and not its constructor. -/
+private partial def ClassValue.key : ClassValue → String
+  | .atom spelling => spelling.getString!
+  | .applied constructor fields =>
+      let written := fields.toList.map fun (_, value) => value.key
+      let joined := "-".intercalate written
+      if constructor.getString! == "mk" then joined
+      else constructor.getString! ++ "-" ++ joined
+
 /-- Whether a written class names a declared one.
 
 The fields are matched by name rather than by position, so an author who writes a constructor's
@@ -1128,6 +1139,95 @@ elab doc?:(docComment)? actionKeyword name:ident keys:actionKey+ : command => do
     subject := subject.map fun (_, declName, creates) => (declName, creates)
     inputFields := inputFields.map fun (field, domain, _, _) => (field, domain)
     results := results.map Prod.fst })
+
+
+/-! ### The machine command
+
+A machine is the transition relation the glossary calls a Machine. It names the entity it tracks, the
+structure it keeps per instance, the `phase` values that end an instance, and one step function per
+action it steps on.
+
+`DESIGN.md` writes a machine's logic as rows. The user's 2026-09-12 decision replaced rows with
+ordinary Lean step functions, enumerated at elaboration into the same finite table the rows produced,
+which task `.3` proved produces the same rows and therefore the same Behavior Fingerprint. What the
+command does is name the pieces a reader cannot infer from Lean -- which function steps on which
+action, which entity the machine tracks, which states end an instance -- and transcribe the functions
+into the table. It defines no behavior of its own. -/
+
+/-- One indented key of a `machine` declaration. -/
+declare_syntax_cat machineKey
+syntax "for:" ident : machineKey
+syntax "state:" ident : machineKey
+syntax "ends:" "[" ident,+ "]" : machineKey
+syntax "steps:" withPosition((colGe ident ":" ident)+) : machineKey
+
+@[run_parser_attribute_hooks] private def machineKeyword := declarationKeyword "machine"
+
+private def undeclaredMachineEntityMessage (spelling : Name) : String :=
+  s!"'{spelling}' is not an entity declared by an `entity` command; a machine tracks one entity's \
+instances, so `for:` names one"
+
+private def undeclaredStepActionMessage (spelling : Name) : String :=
+  s!"'{spelling}' is not an action declared by an `action` command; a `steps:` line names the action \
+its function steps on"
+
+private def duplicateStepMessage (spelling : String) : String :=
+  s!"the machine steps on '{spelling}' twice; one action has one step function, and two would not \
+say which one applies"
+
+private def notAStateStructureMessage (spelling : Name) : String :=
+  s!"'{spelling}' is not a finite state structure; a machine's `state:` names a `structure` whose \
+fields are all finite, so its members can be enumerated"
+
+private def unknownEndMessage (spelling : String) (field : String) (admitted : String) : String :=
+  s!"'{spelling}' is not a value of the state's '{field}' field; `ends:` names the values of one \
+state field that end an instance, and that field admits {admitted}"
+
+private def endsAcrossFieldsMessage (earlier later : String) : String :=
+  s!"`ends:` names values of two different state fields, '{earlier}' and '{later}'; an instance ends \
+on the values of one field"
+
+private def stepSignatureMessage (declName : Name) : String :=
+  s!"'{declName}' is not a step function; a `steps:` line names one of the shape \
+`State -> <the action's input domains, curried> -> List (Step State Outcome Fact)`"
+
+private def noEndsFieldMessage (spelling : String) : String :=
+  s!"'{spelling}' is not a value of any field of the machine's state structure"
+
+
+/-- What one `steps:` line resolved to: the action it steps on, that action's input domains, and the
+function the author wrote. -/
+private structure ResolvedStep where
+  action : Registry.ActionEntry
+  /-- Each input field's domain type, in declaration order: the function's arguments after the
+  state, curried in that order. -/
+  domains : Array Name
+  function : Ident
+
+/-- The Outcome and Fact domains a step function returns, read off its own type.
+
+They are not keys the author writes. A step function's result type is
+`List (Step State Outcome Fact)`, so the machine's outcome and fact domains are already written down
+in the function the author wrote; asking for them again would be asking twice and admitting the
+answers to disagree. -/
+private def stepResultDomains (stepRef : Ident) (declName : Name) (arity : Nat) :
+    CommandElabM (Name × Name) := do
+  let some info := (← getEnv).find? declName
+    | throwErrorAt stepRef s!"'{declName}' is not a declaration"
+  liftTermElabM do
+    Meta.forallBoundedTelescope info.type (some (arity + 1)) fun _ result => do
+      let result ← Meta.whnf result
+      let some listArg := result.getAppArgs[0]?
+        | throwErrorAt stepRef (stepSignatureMessage declName)
+      let step ← Meta.whnf listArg
+      let arguments := step.getAppArgs
+      unless step.getAppFn.constName? == some ``Umpire.Step && arguments.size == 3 do
+        throwErrorAt stepRef (stepSignatureMessage declName)
+      let some outcome := arguments[1]!.getAppFn.constName?
+        | throwErrorAt stepRef (stepSignatureMessage declName)
+      let some fact := arguments[2]!.getAppFn.constName?
+        | throwErrorAt stepRef (stepSignatureMessage declName)
+      pure (outcome, fact)
 
 elab doc?:(docComment)? observationKeyword name:ident keys:observationKey+ : command => do
   let mut entity : Option Registry.EntityEntry := none
