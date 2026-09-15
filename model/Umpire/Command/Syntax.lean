@@ -1,6 +1,7 @@
 import Lean.Elab.Command
 import Lean.Elab.ElabRules
 import Umpire.Command.Finite
+import Umpire.Command.Records
 import Umpire.Command.Registry
 
 /-!
@@ -620,5 +621,245 @@ elab "query" name:ident
           (knownGaps := $knownGaps) (form := QueryFormKind.verifyClaim)))
     recordQueryDeclaration name scenarioRef (selectsWitness := false)
     elabQueryAdmission name propertyRef scenarioRef limitsRef modelRef verifyKeyword name
+
+/-! ### The side-effect commands
+
+`entity`, `action` and `observation` declare what a feature acts on, what its parties do, and what
+confirms a step. They follow the same reading rule as every other command -- a column-0 word is the
+declaration kind followed by the author's name, an indented `word:` is a framework key -- and each
+elaborates into the plain record `Umpire.Command.Records` owns, with Definition IDs derived from the
+file's `Origin`.
+
+The keys are parsed as a syntax category rather than a fixed signature, because most of them are
+optional and an optional group in a command signature does not bind. That also puts every key on its
+own line for a rejection to point at. -/
+
+/-- The leading word of a declaration command, spelled so that it stays an ordinary identifier.
+
+`entity`, `action` and `observation` are the vocabulary a Model is written in, and they are also
+field names inside the records the commands build -- `EntityReference.entity`, `Observation.entity`,
+`FiniteTransitionRow.action`. Reserving them as tokens, the way `model` and `property` are reserved,
+would make every one of those fields unwritable. `&"entity"` alone does not work either: a
+non-reserved symbol is indexed under its own token, and a command that begins with a bare identifier
+is dispatched under `ident`, so the parser would only be reachable behind a doc comment.
+
+`includeIdent` indexes the parser under both, which is what makes a column-0 `entity` a command
+without taking the word away from the rest of the tree. -/
+private def declarationKeyword (word : String) : Lean.Parser.Parser :=
+  Lean.Parser.nonReservedSymbolNoAntiquot word (includeIdent := true)
+
+@[run_parser_attribute_hooks] private def entityKeyword := declarationKeyword "entity"
+@[run_parser_attribute_hooks] private def actionKeyword := declarationKeyword "action"
+@[run_parser_attribute_hooks] private def observationKeyword := declarationKeyword "observation"
+
+/-- One indented key of an `entity` declaration. -/
+declare_syntax_cat entityKey
+syntax "refer:" withPosition((colGe ident ":" ident)+) : entityKey
+syntax "key:" ident : entityKey
+
+/-- One indented key of an `action` declaration. -/
+declare_syntax_cat actionKey
+syntax "party:" ident : actionKey
+syntax "on:" ident : actionKey
+syntax "creates:" ident : actionKey
+syntax "input:" withPosition((colGe ident ":" ident)+) : actionKey
+syntax "results:" ident : actionKey
+
+/-- One indented key of an `observation` declaration. -/
+declare_syntax_cat observationKey
+syntax "on:" ident : observationKey
+syntax "read:" ident : observationKey
+
+private def duplicateKeyMessage (kind key : String) : String :=
+  s!"the {kind} declares '{key}' twice; each key is declared once"
+
+private def missingKeyMessage (kind key : String) : String :=
+  s!"the {kind} declares no '{key}'; it is required"
+
+private def undeclaredEntityMessage (spelling : Name) : String :=
+  s!"'{spelling}' is not an entity declared by an `entity` command"
+
+private def undeclaredDomainMessage (spelling : Name) : String :=
+  s!"'{spelling}' is not a finite domain; an input field ranges over an `enum` declaration, whose \
+constructors are its classes"
+
+private def duplicateEntityKeyMessage (key : String) (owner : String) : String :=
+  s!"key name '{key}' is already the key of entity '{owner}'; recorded data would not say which \
+instance it names"
+
+private def reservedPartyMessage : String :=
+  "'system' is the implementation under test; it performs no declared action, so an action's \
+`party:` names one of the feature's own parties"
+
+private def bothSubjectsMessage : String :=
+  "an action declares `on:` or `creates:`, not both: it either acts on an instance that exists or \
+brings one into existence"
+
+/-- Resolve an entity reference against what an `entity` command recorded, reporting an unknown one
+in place and giving the editor the declaration to hover. -/
+private def resolveEntity (entityRef : Ident) : CommandElabM Registry.EntityEntry := do
+  -- A name that resolves to nothing at all and a name that resolves to something other than an
+  -- entity are the same mistake to the author, so the resolution failure is caught and reported as
+  -- the one message, spelled as the line spells it.
+  let declName? ← try
+      some <$> liftTermElabM (realizeGlobalConstNoOverloadWithInfo entityRef)
+    catch _ => pure none
+  match declName?.bind (Registry.entity? (← getEnv)) with
+  | some declared => pure declared
+  | none => throwErrorAt entityRef (undeclaredEntityMessage entityRef.getId)
+
+/-- Resolve the enum an `input:` or `results:` line names, requiring it to be finite. A domain that
+is not finite cannot be enumerated into a Model's table, and saying so here names the line rather
+than failing an instance search inside the machine command. -/
+private def resolveDomain (domainRef : Ident) : CommandElabM Name := do
+  let declName ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo domainRef)
+  liftTermElabM do
+    let domainType ← mkConstWithLevelParams declName
+    let finiteType ← Meta.mkAppM ``Umpire.Command.Finite #[domainType]
+    unless (← Meta.synthInstance? finiteType).isSome do
+      throwErrorAt domainRef (undeclaredDomainMessage domainRef.getId)
+  pure declName
+
+elab doc?:(docComment)? entityKeyword name:ident keys:entityKey* : command => do
+  let mut refers : Array (String × String × Name) := #[]
+  let mut key : Option Ident := none
+  let mut seenRefer := false
+  for entry in keys do
+    match entry with
+    | `(entityKey| refer: $[$fields:ident : $targets:ident]*) => do
+        if seenRefer then throwErrorAt entry (duplicateKeyMessage "entity" "refer:")
+        seenRefer := true
+        for field in fields, target in targets do
+          let declared ← resolveEntity target
+          refers := refers.push (field.getId.toString, declared.name, declared.declName)
+    | `(entityKey| key: $keyRef:ident) => do
+        if key.isSome then throwErrorAt entry (duplicateKeyMessage "entity" "key:")
+        key := some keyRef
+    | _ => throwErrorAt entry "unsupported entity key"
+  -- An entity that declares no `key:` is named by itself: the common case is one instance whose
+  -- recorded identifier is the entity's own, and saying so twice reads as though it could differ.
+  let keyRef := key.getD name
+  let keySpelling := keyRef.getId.toString
+  -- One key name per Model: recorded data finds an instance through it, so two entities sharing one
+  -- would leave a row unable to say which instance it is about.
+  for declared in Registry.entities (← getEnv) do
+    if declared.key == keySpelling then
+      throwErrorAt keyRef (duplicateEntityKeyMessage keySpelling declared.name)
+  let origin ← originTerm
+  let nameKey := Lean.quote name.getId.toString
+  let referTerms : Array Term ← refers.mapM fun (field, target, _) =>
+    `(term| ({ field := $(Lean.quote field)
+               entity := ($origin).family.id "entity" $(Lean.quote target)
+             } : Umpire.Command.EntityReference))
+  elabCommand (← `(command|
+    $[$doc?:docComment]? def $name : Umpire.Command.Entity := {
+      id := ($origin).family.id "entity" $nameKey
+      name := $nameKey
+      refers := [$referTerms,*]
+      key := $(Lean.quote keySpelling)
+      source := ($origin).source }))
+  liftCoreM (Registry.recordEntity {
+    declName := (← getCurrNamespace) ++ name.getId
+    name := name.getId.toString
+    key := keySpelling
+    refers := refers.map fun (field, _, declName) => (field, declName) })
+
+elab doc?:(docComment)? actionKeyword name:ident keys:actionKey+ : command => do
+  let mut party : Option Ident := none
+  let mut subject : Option (String × Name × Bool) := none
+  let mut subjectRef : Option Ident := none
+  let mut inputFields : Array (String × Name) := #[]
+  let mut seenInput := false
+  let mut results : Option Name := none
+  for entry in keys do
+    match entry with
+    | `(actionKey| party: $partyRef:ident) => do
+        if party.isSome then throwErrorAt entry (duplicateKeyMessage "action" "party:")
+        if partyRef.getId.toString == "system" then throwErrorAt partyRef reservedPartyMessage
+        party := some partyRef
+    | `(actionKey| on: $entityRef:ident) => do
+        if subject.isSome then throwErrorAt entry bothSubjectsMessage
+        let declared ← resolveEntity entityRef
+        subject := some (declared.name, declared.declName, false)
+        subjectRef := some entityRef
+    | `(actionKey| creates: $entityRef:ident) => do
+        if subject.isSome then throwErrorAt entry bothSubjectsMessage
+        let declared ← resolveEntity entityRef
+        subject := some (declared.name, declared.declName, true)
+        subjectRef := some entityRef
+    | `(actionKey| input: $[$fields:ident : $domains:ident]*) => do
+        if seenInput then throwErrorAt entry (duplicateKeyMessage "action" "input:")
+        seenInput := true
+        for field in fields, domain in domains do
+          inputFields := inputFields.push (field.getId.toString, ← resolveDomain domain)
+    | `(actionKey| results: $domainRef:ident) => do
+        if results.isSome then throwErrorAt entry (duplicateKeyMessage "action" "results:")
+        results := some (← resolveDomain domainRef)
+    | _ => throwErrorAt entry "unsupported action key"
+  let some partyRef := party
+    | throwErrorAt name (missingKeyMessage "action" "party:")
+  let origin ← originTerm
+  let nameKey := Lean.quote name.getId.toString
+  let subjectTerm : Term ← match subject with
+    | none => `(term| Umpire.Command.ActionSubject.free)
+    | some (entityName, _, creates) =>
+        let entityId ← `(term| ($origin).family.id "entity" $(Lean.quote entityName))
+        if creates then `(term| Umpire.Command.ActionSubject.creates $entityId)
+        else `(term| Umpire.Command.ActionSubject.acts $entityId)
+  let inputTerms : Array Term ← inputFields.mapM fun (field, domain) =>
+    `(term| ({ name := $(Lean.quote field)
+               domain := ($origin).family.id "enum" $(Lean.quote domain.getString!)
+               classes := [] } : Umpire.Command.InputField))
+  let resultsTerm : Term ← match results with
+    | none => `(term| none)
+    | some domain => `(term| some (($origin).family.id "enum" $(Lean.quote domain.getString!)))
+  elabCommand (← `(command|
+    $[$doc?:docComment]? def $name : Umpire.Command.Action := {
+      id := ($origin).family.id "action" $nameKey
+      name := $nameKey
+      party := $(Lean.quote partyRef.getId.toString)
+      subject := $subjectTerm
+      input := [$inputTerms,*]
+      results := $resultsTerm
+      source := ($origin).source }))
+  liftCoreM (Registry.recordAction {
+    declName := (← getCurrNamespace) ++ name.getId
+    name := name.getId.toString
+    party := partyRef.getId.toString
+    subject := subject.map fun (_, declName, creates) => (declName, creates)
+    inputFields
+    results })
+
+elab doc?:(docComment)? observationKeyword name:ident keys:observationKey+ : command => do
+  let mut entity : Option Registry.EntityEntry := none
+  let mut read : Option Ident := none
+  for entry in keys do
+    match entry with
+    | `(observationKey| on: $entityRef:ident) => do
+        if entity.isSome then throwErrorAt entry (duplicateKeyMessage "observation" "on:")
+        entity := some (← resolveEntity entityRef)
+    | `(observationKey| read: $readRef:ident) => do
+        if read.isSome then throwErrorAt entry (duplicateKeyMessage "observation" "read:")
+        read := some readRef
+    | _ => throwErrorAt entry "unsupported observation key"
+  let some declaredEntity := entity
+    | throwErrorAt name (missingKeyMessage "observation" "on:")
+  let some readRef := read
+    | throwErrorAt name (missingKeyMessage "observation" "read:")
+  let origin ← originTerm
+  let nameKey := Lean.quote name.getId.toString
+  let entityName := Lean.quote declaredEntity.name
+  elabCommand (← `(command|
+    $[$doc?:docComment]? def $name : Umpire.Command.Observation := {
+      id := ($origin).family.id "observation" $nameKey
+      name := $nameKey
+      entity := ($origin).family.id "entity" $entityName
+      read := $(Lean.quote readRef.getId.toString)
+      source := ($origin).source }))
+  liftCoreM (Registry.recordObservation {
+    declName := (← getCurrNamespace) ++ name.getId
+    name := name.getId.toString
+    entity := declaredEntity.declName
+    read := readRef.getId.toString })
 
 end Umpire.Command
