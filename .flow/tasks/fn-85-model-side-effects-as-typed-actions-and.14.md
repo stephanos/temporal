@@ -20,6 +20,32 @@ Split out of the former single `.3` by plan review round 1 (finding F2), which f
 - `refines:`/`map:` are parsed here as reserved keys and checked in task .6.
 - Respell `model:` keys as `machine:` in `property`, `scenario` and `query`; keep every fn-83 .14 diagnostic message that still applies. The `property` body stays in its keyed form here — task `.15` changes it to a predicate — so this task's specimen migration is a rename, not a rewrite of the Properties.
 
+### Authoring shape, decided 2026-09-15 at the start of delivery
+
+`DESIGN.md` section 2.3 and the section 3 machines are written in the **row grammar**, which the
+user's 2026-09-12 decision replaced with step functions (`UMPIRE_CMP_FIZZBEE.md` section 4.1, proved
+by task `.3`). The design record therefore does not settle how a step function meets a declared
+`action`, and this task cannot start without an answer. The answer taken:
+
+- **`state:` names a declared `structure`**, not a field block. The step functions take that
+  structure as their argument, so it has to exist before the `machine` command names them; a block
+  the command synthesized could not be referred to by a function written above it.
+- **One step function per declared action**, its action input curried after the state:
+  `transportFault : State → List (Step …)` for an action with no `input:`,
+  `handlerReply : State → Reply → List (Step …)` for one, and
+  `schedule : State → Timeout → Timeout → Timeout → List (Step …)` for three. This is the shape the
+  FizzBee comparison sketches and the one a Go `switch` reader writes without being taught anything.
+- **The command synthesizes the machine's Action domain**, one constructor per action carrying that
+  action's input fields, plus one per timer, and a total dispatching step function over it. That is
+  what `.3`'s `enumerate` walks, so this task still adds no enumeration logic; the synthesis is what
+  makes several per-action functions into the one `State → Action → List (Step …)` the enumerator and
+  `declareModel` already take.
+- **`ends:`, `setup:`, `timers:`, `evidence:` keep their `DESIGN.md` meaning**; only the rows become
+  functions. `refines:`/`map:` parse here and are checked in `.6`.
+
+`DESIGN.md` section 2.3 is amended with a dated note recording this, the way section 2.2 was amended
+in `.2`.
+
 ### Investigation targets
 **Required:**
 - `model/Umpire/Command/Syntax.lean:54-57,73-75,97,144-166,195-345,548-566` — the row grammar, `transitionBound`, `relationKey`, reachability, `elabModel`, the `evalExpr` bridge
