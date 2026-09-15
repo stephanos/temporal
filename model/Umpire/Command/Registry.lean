@@ -68,6 +68,9 @@ structure EntityEntry where
   declName : Name
   /-- The author's spelling, which is what a rejection quotes. -/
   name : String
+  /-- The Definition ID the declaration carries. A reference reads it from here rather than deriving
+  one from the referring file's own `Origin`, which would point at a name in the wrong family. -/
+  id : String
   key : String
   /-- Each `refer:` line as (field, the referenced entity's declaration name). -/
   refers : Array (String × Name)
@@ -185,6 +188,11 @@ def scenarios (env : Environment) : Array ScenarioEntry := scenarioExtension.get
 def queries (env : Environment) : Array QueryEntry := queryExtension.getState env
 
 def entities (env : Environment) : Array EntityEntry := entityExtension.getState env
+
+/-- The entities *this file* declared. A Model's rules about the names it uses -- one key per Model --
+are about the file, while `entities` is the whole import closure, so two feature Models may each
+declare their own `operation`. -/
+def localEntities (env : Environment) : List EntityEntry := entityExtension.getEntries env
 def actions (env : Environment) : Array ActionEntry := actionExtension.getState env
 def observations (env : Environment) : Array ObservationEntry := observationExtension.getState env
 

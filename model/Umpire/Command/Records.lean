@@ -10,9 +10,9 @@ perform, the observations that confirm a step, and the per-machine declarations 
 cannot carry (what it tracks, what ends it, its setup parameters, its timers, and what each outcome
 is observed through).
 
-These are plain data. Nothing here is checked, and nothing here names a Temporal concept: an RPC, a
-Testpilot instruction, a history event kind and a dynamic config key all belong to a realization in
-`Temporal.Case`, which binds these declarations to them. That split is what lets one Model be read
+These are plain data. Nothing here is checked, and nothing here names a platform concept: an RPC, a
+Testpilot instruction, a recorded event kind and a dynamic config key all belong to a realization the
+platform owns, which binds these declarations to them. That split is what lets one Model be read
 without reading the platform it runs on, and it is why `MachineDeclaration.evidence` names an observation rather
 than an event.
 
@@ -31,7 +31,7 @@ structure EntityReference where
   entity : DefinitionId
   deriving BEq, Repr
 
-/-- A kind of thing with identity: a Nexus operation, a workflow. It declares what it refers to and
+/-- A kind of thing with identity: an operation, a caller. It declares what it refers to and
 the `key` recorded data uses to name one instance, and it declares no state -- a machine tracks
 that. A Model holds several instances of each entity, bounded by Limits. -/
 structure Entity where
