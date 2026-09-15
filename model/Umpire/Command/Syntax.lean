@@ -752,7 +752,7 @@ private def reservedPartyMessage : String :=
 
 private def unmatchedExampleMessage (spelling : String) : String :=
   s!"'{spelling}' matches no class of this action: an example names one of the classes of one of \
-the action's own `input:` domains"
+the action's own `input:` domains, written with the constructor's own name and its fields by name"
 
 private def duplicateExampleMessage (spelling : String) : String :=
   s!"'{spelling}' already has an example; a class has one concrete member, or the Case it produces \
@@ -770,26 +770,34 @@ the rendered text instead would let two classes whose names run together across 
 class its author did not write. -/
 private inductive ClassValue where
   /-- A constructor that carries nothing, `Bool`'s `false` and `true`, or a count's numeral. -/
-  | atom (spelling : String)
+  | atom (spelling : Name)
   /-- A constructor with every field it carries assigned. -/
-  | applied (constructor : String) (fields : Array (String × ClassValue))
+  | applied (constructor : Name) (fields : Array (String × ClassValue))
   deriving Inhabited
 
 /-- A class as an author writes it, which is what `InputField.classes` carries and what an
 `examples:` line is quoted as. -/
 private partial def ClassValue.render : ClassValue → String
-  | .atom spelling => spelling
+  | .atom spelling => spelling.getString!
   | .applied constructor fields =>
       let written := fields.toList.map fun (field, value) => s!"{field} := {value.render}"
-      s!"{constructor} ({", ".intercalate written})"
+      s!"{constructor.getString!} ({", ".intercalate written})"
 
-/-- Whether two classes are the same class. The fields are matched by name rather than by position,
-so an author who writes a constructor's fields in another order writes the same class; everything
-else is structural, so nothing merges across a name boundary. -/
+/-- Whether a written class names a declared one.
+
+The fields are matched by name rather than by position, so an author who writes a constructor's
+fields in another order writes the same class. Everything else is structural, so nothing merges
+across a name boundary.
+
+A constructor a line qualifies is checked against the qualification, not stripped of it: a declared
+constructor's name is its whole one, and a written name has to be a suffix of it. Two domains may
+each declare `handlerError` -- `DESIGN.md` section 3 declares exactly that, on `Reply` and
+`CancelReply` -- so discarding the qualification would accept one domain's class on the other's
+field. -/
 private partial def ClassValue.matches : ClassValue → ClassValue → Bool
-  | .atom written, .atom declared => written == declared
+  | .atom written, .atom declared => written.isSuffixOf declared
   | .applied writtenName writtenFields, .applied declaredName declaredFields =>
-      writtenName == declaredName && writtenFields.size == declaredFields.size &&
+      writtenName.isSuffixOf declaredName && writtenFields.size == declaredFields.size &&
         declaredFields.all fun (field, declared) =>
           match writtenFields.find? fun (written, _) => written == field with
           | some (_, written) => written.matches declared
@@ -818,9 +826,8 @@ where
   constructorMembers (declName constructor : Name) (visiting : List Name) :
       CommandElabM (List ClassValue) := do
     let declaration ← liftTermElabM (getConstInfoCtor constructor)
-    let spelling := constructor.getString!
     if declaration.numFields == 0 then
-      return [.atom spelling]
+      return [.atom constructor]
     let fields ← liftTermElabM do
       Meta.forallTelescopeReducing declaration.type fun arguments _ => do
         let carried := arguments.extract (arguments.size - declaration.numFields) arguments.size
@@ -835,7 +842,7 @@ where
         values.map fun value => assigned.push (field, value)
       if assignments.length > elaborationBound then
         throwErrorAt domainRef (domainTooLargeMessage declName assignments.length elaborationBound)
-    pure (assignments.map fun assigned => .applied spelling assigned)
+    pure (assignments.map fun assigned => .applied constructor assigned)
   /-- The values one constructor field ranges over.
 
   Only three shapes are admitted, and the recursion is what makes that necessary: a hand-written
@@ -851,12 +858,13 @@ where
     match type.getAppFn with
     | .const name _ =>
         if name == ``Bool then
-          pure [.atom "false", .atom "true"]
+          pure [.atom ``Bool.false, .atom ``Bool.true]
         else if name == ``Fin then
           match (← liftTermElabM (Meta.whnf type)).getAppArgs[0]? with
           | some bound =>
               match (← liftTermElabM (Meta.evalNat bound).run) with
-              | some size => pure ((List.range size).map fun count => .atom (toString count))
+              | some size =>
+                  pure ((List.range size).map fun count => .atom (Name.mkSimple (toString count)))
               | none => unspellable
           | none => unspellable
         else if (Registry.domain? (← getEnv) name).isSome then
@@ -949,8 +957,8 @@ makes the comparison about the class rather than about the text. -/
 private partial def classValueOf (written : Term) : Option ClassValue :=
   match written with
   | `(($inner)) => classValueOf inner
-  | `($constructor:ident) => some (.atom constructor.getId.getString!)
-  | `($literal:num) => some (.atom (toString literal.getNat))
+  | `($constructor:ident) => some (.atom constructor.getId)
+  | `($literal:num) => some (.atom (Name.mkSimple (toString literal.getNat)))
   | _ =>
       match written.raw with
       | .node _ ``Lean.Parser.Term.app #[function, arguments] => do
@@ -961,7 +969,7 @@ private partial def classValueOf (written : Term) : Option ClassValue :=
             | `(Lean.Parser.Term.namedArgument| ($field:ident := $value)) =>
                 fields := fields.push (field.getId.getString!, ← classValueOf value)
             | _ => none
-          some (.applied name.getString! fields)
+          some (.applied name fields)
       | _ => none
 
 /-- How one `examples:` line reads back. -/
@@ -1032,12 +1040,12 @@ elab doc?:(docComment)? actionKeyword name:ident keys:actionKey+ : command => do
                 | some fields, some values => fields.zip values
                 | _, _ => #[]
               let class? : Option ClassValue :=
-                if bindings.isEmpty then some (.atom constructor.getId.getString!)
+                if bindings.isEmpty then some (.atom constructor.getId)
                 else do
                   let mut fields := #[]
                   for (field, value) in bindings do
                     fields := fields.push (field.getId.getString!, ← classValueOf value)
-                  some (.applied constructor.getId.getString! fields)
+                  some (.applied constructor.getId fields)
               examples := examples.push {
                 written := exampleWritten constructor bindings
                 class?
