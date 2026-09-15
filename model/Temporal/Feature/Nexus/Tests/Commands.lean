@@ -135,10 +135,23 @@ action workerStop
 #guard handlerReply.party == "handler"
 #guard schedule.input.map (·.name) == ["scheduleToClose", "scheduleToStart", "startToClose"]
 
-/- An input field's classes are its domain's constructors, in declaration order: `handlerError` is
-one class, not two, though it has two members. -/
+/- An input field's classes are its domain's members, spelled the way an `examples:` line spells
+them: a constructor that carries a field contributes one class per assignment of it, which is what
+gives `handlerError` an example on each side. -/
 #guard (handlerReply.input.map fun field => field.classes.map (·.value)) ==
-  [["syncSuccess", "async", "operationFailed", "operationCanceled", "handlerError"]]
+  [["syncSuccess", "async", "operationFailed", "operationCanceled",
+    "handlerError (retryable := false)", "handlerError (retryable := true)"]]
+
+/- The classes are in the order the enumeration walks them, so a class's position here and its
+position in `members` are the same number. -/
+#guard (handlerReply.input.map fun field => field.classes.length) == [6]
+#guard (members (α := Reply)).length == 6
+
+/- Each example names one of them, and carries the domain the class belongs to -- not the action. -/
+#guard handlerReply.examples.all fun example' =>
+  (handlerReply.input.any fun field =>
+    field.classes.any fun class' => class'.value == example'.pattern) &&
+  handlerReply.input.any fun field => field.domain == example'.member.definitionId
 
 /- `schema:` stores the alternatives it names and nothing else. A Model that stored the descriptor
 would carry the generated closure into every Case identity derived from it. -/
@@ -269,7 +282,7 @@ action unknownSchema
 /- An example stands for a class this action declares; one that matches none is an example of
 nothing. -/
 /--
-error: 'notAClass' matches no class of this action: an example names a constructor of one of the action's own `input:` domains
+error: 'notAClass' matches no class of this action: an example names one of the classes of one of the action's own `input:` domains
 -/
 #guard_msgs in
 action strayExample
@@ -294,5 +307,33 @@ action twoExamples
   examples:
     handlerError (retryable := false) → BadRequest
     handlerError (retryable := false) → Unauthenticated
+
+/- A binding of a field the constructor does not carry names a class the domain has no member for,
+which is the same rejection as a constructor that does not exist -- an example of nothing. -/
+/--
+error: 'handlerError (retryable := false, retried := true)' matches no class of this action: an example names one of the classes of one of the action's own `input:` domains
+-/
+#guard_msgs in
+action strayBinding
+  party: handler
+  on: operation
+  input:
+    reply: Reply
+  examples:
+    handlerError (retryable := false, retried := true) → BadRequest
+
+/- A class the constructor carries but the example leaves unapplied is a class too, and naming the
+constructor alone names none of them. -/
+/--
+error: 'handlerError' matches no class of this action: an example names one of the classes of one of the action's own `input:` domains
+-/
+#guard_msgs in
+action unappliedClass
+  party: handler
+  on: operation
+  input:
+    reply: Reply
+  examples:
+    handlerError → BadRequest
 
 end Temporal.Feature.Nexus.Tests.Commands
