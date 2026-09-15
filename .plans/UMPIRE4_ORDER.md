@@ -265,7 +265,7 @@ Three things were decided during delivery.
   covers, so R8's abstraction claim is triggered by the presence of an `examples:` line rather than by
   a member count. That amendment is recorded on `.7`.
 
-**Two review rounds, both NEEDS_WORK, both fixed.** Round one found that a declaration's rules were
+**Seven review rounds; six NEEDS_WORK, all fixed, round seven SHIP.** Round one found that a declaration's rules were
 being applied against the whole import closure rather than the file -- the second feature Model to
 declare `entity workflow` would have been rejected by the first -- and that a reference rebuilt the
 referenced declaration's Definition ID from the *referring* file's `Origin`, so an entity, enum or
@@ -276,10 +276,19 @@ written -- `Registry.EntityEntry.id` and the new `Registry.DomainEntry` -- and e
 that. `Temporal.Feature.Nexus.Tests.SecondModel` is the second Model file both defects needed to
 surface.
 
-Round two also found that walking a domain's members re-derives what `Umpire.Command.Finite`
-enumerates, so a hand-written instance could satisfy the gate for a type whose constructors do not
-enumerate and the walk would exhaust the stack with no location. A constructor field is now an
-`enum`, a `Bool` or a count, named at the line that carries it.
+Round three found the walk could still exhaust the stack: a failed `deriving` is logged rather than
+thrown, so a domain whose members do not enumerate was recorded anyway, and the bound is a width
+rather than a depth. A domain is recorded only once its `Finite` instance exists. Round four found
+that flattening a class to a string to compare it deleted the parentheses separating a constructor's
+name from its first field's, so an example of `a (bc := false)` was stored, silently, against
+`ab (c := false)`; a class is now a tree compared structurally. Round five found a written
+constructor's qualification read and discarded, which `DESIGN.md` section 3 reaches in the feature's
+own vocabulary -- `Reply` and `CancelReply` both declare `handlerError (retryable : Bool)`. Round six
+found `refer:` had no uniqueness rule on its field names, and three sites still asserting the
+superseded reading, `DESIGN.md` among them.
+
+Gates on the closing tree: `lake build` green, `make lint-model` at 163, `make
+umpire-check-regression` exit 0 with nine live identities.
 
 Its review is a self-review: no second backend is reachable in a cloud session, so `codex exec`,
 `cursor-agent` and `grok` are not installed and all fall back to the session model. `.1`, `.2` and
