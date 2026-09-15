@@ -35,8 +35,8 @@ that event exists.
 
 A Case may also declare where its operation-correlated evidence comes from. A response read can
 lift a projected value into a declared `CorrelatedEvidence` Observation through guarded rules, which is
-the only way a Program supplies the evidence a `Contract.correlated` capability reads. A capability that
-admits no evidence answers inconclusive: silence is not a satisfied property.
+the only way a Program supplies the evidence a `Contract.correlated` Correlated Contract reads. A
+Correlated Contract that admits no evidence answers inconclusive: silence is not a satisfied property.
 
 ## Field paths and enum literals
 
@@ -112,11 +112,8 @@ first planned use.
    `tools/umpire/internal/retiredvocabulary/check.go` with a line in
    `TestRetiredRulesHoldTheGlossaryRenamedProtocolNames`, and a removed descriptor name to
    `TestProtocolUsesCohesivePublicVocabulary`. A new name that matches a retired rule fails the gate.
-9. **Equivalence mapping** (only while fn-87's baseline exists). A change to a checked-in fixture
-   appends a step to `Declared` in `internal/protocolmigration/mapping.go`; a new fixture is listed in
-   `Added` in `internal/protocolmigration/equivalence.go`.
-10. **Fixtures.** Regenerate through `make umpire-gen-case-runtime-conformance`, never by hand;
-    `make umpire-check-case-runtime-conformance` fails on a stale fixture.
+9. **Fixtures.** Regenerate through `make umpire-gen-case-runtime-conformance`, never by hand;
+   `make umpire-check-case-runtime-conformance` fails on a stale fixture.
 
 ### A new instruction
 
@@ -132,12 +129,12 @@ first planned use.
 5. `InstructionOpcode` is the table: `TestInstructionOpcodesCoverTheInstructionTable` requires every
    oneof arm to map to the Opcode of its field number.
 6. Append the Opcode to `contract.Opcode` and move `contract.MaxOpcode`; `temporal.DeriveProfile`
-   authorizes it through `testpilot.InstructionCapability`. A new Driver effect adds a
+   authorizes it through `testpilot.InstructionOpcode`. A new Driver effect adds a
    `contract.Session` method, implemented by the server, worker and composite Sessions and by every
    test Session.
 7. Focused tests beside the binder and the Driver; a Driver conformance case per carried message is
    what fn-85 R10 plans.
-8. to 10. As above.
+8. and 9. As above.
 
 ### A new fault kind
 
@@ -152,7 +149,7 @@ first planned use.
 6. No new Opcode: `contract.InjectFault` authorizes every kind. The Driver that realizes the outage
    maps the kind to behavior.
 7. Unit tests of admission, the Driver transition and a Contract reading the kind.
-8. to 10. As above.
+8. and 9. As above.
 
 ### A new Run Event payload
 
@@ -171,7 +168,7 @@ first planned use.
    `TestRunEventPayloadPathsBindThroughTheArmTheyName`,
    `TestRecorderRejectsPayloadKindMismatchAsInvariant` and
    `TestPrepareLocatesPayloadPathsTheFilterCannotCarry` each gain the arm.
-8. to 10. As above.
+8. and 9. As above.
 
 ### A new expression reference
 
@@ -189,7 +186,7 @@ first planned use.
 6. No Opcode or Driver change.
 7. `TestExpressionContextsRejectReferencesOutsideThem` covers every arm in every context; the
    `static-preparation-rejection/expression-context` conformance variant pins the rejection's shape.
-8. to 10. As above.
+8. and 9. As above.
 
 ### Worked example: `FAULT_KIND_WORKER_STOP`
 

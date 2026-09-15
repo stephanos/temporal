@@ -1,6 +1,7 @@
 import Temporal.Feature.Nexus.Success.Model
 import Testpilot.ProtoJSON
 import Umpire.Command.Tests.Authoring
+import Umpire.Command.Tests.Finite
 
 /-! Executable checks for the compact Nexus success command surface and checked meaning. -/
 

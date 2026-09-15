@@ -11,6 +11,8 @@ Bind machine setup parameters through the Profile and let a functional set's `re
 **Touches:** [model/Temporal/Case/**, model/Umpire/Command/Records.lean, model/Umpire/Case/Producer.lean, common/testing/testpilot/profile.go, common/testing/testpilot/temporal/**, tests/testpilot_*_test.go, tests/testcore/testpilot/**]
 
 ### Approach
+- The async-Nexus live test is the temporary carrier for per-switch-value runs; `.10` replaces it with
+  Query 2's test, so its removal there is not a lost gate.
 - The upstream suites set `EnableChasm`, `EnableCHASMCallbacks` and `nexusoperation.enableChasmWorkflowOperations` at test-environment construction; a Case cannot set them, so the live harness constructs one environment per switch value and runs the same fixture bytes under each (two environments over one Case, the fn-73 pattern), and the Profile records which value it ran under.
 - Setup parameters that the environment can set per Run go through dynamic config overrides in the environment; one it cannot set yields a Known Gap in the Case at production (`Umpire.KnownGap` kind `input`).
 - Divergence: the live test fails with both switch values and both Verdicts in one message; the spec treats it as a finding.

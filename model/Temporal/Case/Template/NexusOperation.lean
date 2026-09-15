@@ -87,7 +87,7 @@ private def historyAssignments : Array RequestAssignment := #[
 private def closeReadAssignments : Array RequestAssignment :=
   historyAssignments.push (assign (field "history_event_filter_type") closeEventFilter)
 
-private def startWorkflowNode (workflowType : String) : InstructionNode :=
+def startWorkflowNode (workflowType : String) : InstructionNode :=
   rpc "start-workflow" startWorkflowMethod #[
     Program.environmentAssignment (field "namespace") workerNamespaceBinding,
     assign (field "workflow_id") runId,
@@ -97,7 +97,7 @@ private def startWorkflowNode (workflowType : String) : InstructionNode :=
   ] #[]
 
 /-- The full history read, run once the instruction before it succeeded. -/
-private def historyNode
+def historyNode
     (identity : Umpire.Case.Producer.Identity)
     (resolved : List Umpire.Case.Producer.EvidenceRule) : InstructionNode :=
   rpc "history" getHistoryMethod historyAssignments #[
@@ -106,83 +106,100 @@ private def historyNode
         Evidence.target runFieldId correlatedObservation identity resolved]
   ]
 
-private def workflowEntrypoint
-    (workflowType service operation : String) : Entrypoint :=
-  Program.workflow "workflow" workflowType workerRole taskQueueRole #[
+def workflowEntrypointWith
+    (workflowType service operation : String)
+    (nodes : Array InstructionNode) : Entrypoint :=
+  let _ := service
+  let _ := operation
+  Program.workflow "workflow" workflowType workerRole taskQueueRole nodes
+
+/-- The workflow entrypoint's items, shared by both response forms. -/
+def workflowItems
+    (service operation : String) : List Umpire.Case.Producer.EntrypointItem := [
+  .fixed fun _ _ =>
     Program.node "start-nexus-operation"
       (Program.startNexusOperation nexusEndpointRole service operation (text "request")),
-    -- The await runs whether or not the start succeeded, so the operation's outcome is recorded.
+  -- The await runs whether or not the start succeeded, so the operation's outcome is recorded.
+  .fixed fun _ _ =>
     Program.node "await-nexus-operation"
       (Program.awaitInstruction (Ref.instruction "workflow" "start-nexus-operation"))
       (guard := some (boolean true)),
+  .fixed fun _ _ =>
     Program.node "finish-workflow"
       (Program.finish (Expr.outcome
         (Ref.instruction "workflow" "await-nexus-operation")
         .INSTRUCTION_OUTCOME_FIELD_VALUE))
       (Program.instructionLimits (timeoutMilliseconds := some 5000))]
 
-private def asyncProgram
-    (service operation : String)
-    (identity : Umpire.Case.Producer.Identity)
-    (resolved : List Umpire.Case.Producer.EvidenceRule) : Program :=
-  let workflowType := "umpire-" ++ identity.fixture ++ "-workflow"
-  Program.make identity.programId
-    #[
-      Program.role workflowServiceRole .ROLE_KIND_ENDPOINT,
-      Program.role workerRole .ROLE_KIND_WORKER
-        (namespaceBindingId := workerNamespaceBinding),
-      Program.role taskQueueRole .ROLE_KIND_TASK_QUEUE
-        (namespaceBindingId := workerNamespaceBinding) (resourceBindingId := taskQueueBinding),
-      Program.role nexusEndpointRole .ROLE_KIND_ENDPOINT
-        (resourceBindingId := nexusEndpointBinding)]
-    #[Program.handleSlot "completion-authority"]
-    #[Program.observation historyObservation historyEventType,
-      Program.observation correlatedObservation correlatedEvidenceType]
-    #[
-      Program.controller "controller" #[
-        startWorkflowNode workflowType,
-        Program.node "await-completion-authority" (Program.awaitSlot "completion-authority"),
-        Program.node "complete-nexus-operation"
-          (Program.completeNexusOperation "completion-authority" (text "completed")),
-        historyNode identity resolved],
-      workflowEntrypoint workflowType service operation,
-      Program.nexusHandler "handler" service operation workerRole taskQueueRole #[
-        Program.node "respond-async"
-          (Program.respondNexus .NEXUS_RESPONSE_KIND_ASYNCHRONOUS
-            (text "accepted") "completion-authority")
-          (Program.instructionLimits (timeoutMilliseconds := some 5000))]]
-    (Program.cleanup "cleanup" #[])
+/-- The roles, slot and observations both response forms declare. These node and item builders are
+not private: `Temporal.Case.Realization.Nexus` binds the same nodes to action classes rather than
+writing them fixed, and fn-85 .11 moves them there when it deletes these plans. -/
+def sharedRoles : Array Role := #[
+  Program.role workflowServiceRole .ROLE_KIND_ENDPOINT,
+  Program.role workerRole .ROLE_KIND_WORKER
+    (namespaceBindingId := workerNamespaceBinding),
+  Program.role taskQueueRole .ROLE_KIND_TASK_QUEUE
+    (namespaceBindingId := workerNamespaceBinding) (resourceBindingId := taskQueueBinding),
+  Program.role nexusEndpointRole .ROLE_KIND_ENDPOINT
+    (resourceBindingId := nexusEndpointBinding)]
 
-private def syncProgram
-    (service operation : String)
-    (identity : Umpire.Case.Producer.Identity)
-    (resolved : List Umpire.Case.Producer.EvidenceRule) : Program :=
-  let workflowType := "umpire-" ++ identity.fixture ++ "-workflow"
-  Program.make identity.programId
-    #[
-      Program.role workflowServiceRole .ROLE_KIND_ENDPOINT,
-      Program.role workerRole .ROLE_KIND_WORKER
-        (namespaceBindingId := workerNamespaceBinding),
-      Program.role taskQueueRole .ROLE_KIND_TASK_QUEUE
-        (namespaceBindingId := workerNamespaceBinding) (resourceBindingId := taskQueueBinding),
-      Program.role nexusEndpointRole .ROLE_KIND_ENDPOINT
-        (resourceBindingId := nexusEndpointBinding)]
-    #[]
-    #[Program.observation historyObservation historyEventType,
-      Program.observation correlatedObservation correlatedEvidenceType]
-    #[
-      Program.controller "controller" #[
-        startWorkflowNode workflowType,
+def sharedObservations : Array Observation := #[
+  Program.observation historyObservation historyEventType,
+  Program.observation correlatedObservation correlatedEvidenceType]
+
+/-- The workflow type a Case's fixture name derives. -/
+def workflowTypeOf (identity : Umpire.Case.Producer.Identity) : String :=
+  "umpire-" ++ identity.fixture ++ "-workflow"
+
+private def asyncPlan (service operation : String) : Umpire.Case.Producer.ProgramPlan := {
+  roles := sharedRoles
+  slots := #[Program.handleSlot "completion-authority"]
+  observations := sharedObservations
+  entrypoints := [
+    { activate := fun _ nodes => Program.controller "controller" nodes
+      items := [
+        .fixed fun identity _ => startWorkflowNode (workflowTypeOf identity),
+        .fixed fun _ _ =>
+          Program.node "await-completion-authority" (Program.awaitSlot "completion-authority"),
+        .fixed fun _ _ =>
+          Program.node "complete-nexus-operation"
+            (Program.completeNexusOperation "completion-authority" (text "completed")),
+        .fixed fun identity resolved => historyNode identity resolved] },
+    { activate := fun identity nodes =>
+        workflowEntrypointWith (workflowTypeOf identity) service operation nodes
+      items := workflowItems service operation },
+    { activate := fun _ nodes =>
+        Program.nexusHandler "handler" service operation workerRole taskQueueRole nodes
+      items := [
+        .fixed fun _ _ =>
+          Program.node "respond-async"
+            (Program.respondNexus .NEXUS_RESPONSE_KIND_ASYNCHRONOUS
+              (text "accepted") "completion-authority")
+            (Program.instructionLimits (timeoutMilliseconds := some 5000))] }]
+  cleanup := Program.cleanup "cleanup" #[] }
+
+private def syncPlan (service operation : String) : Umpire.Case.Producer.ProgramPlan := {
+  roles := sharedRoles
+  observations := sharedObservations
+  entrypoints := [
+    { activate := fun _ nodes => Program.controller "controller" nodes
+      items := [
+        .fixed fun identity _ => startWorkflowNode (workflowTypeOf identity),
         -- Nothing else in the controller observes the workflow, so this close-event read is what
         -- orders the full read after the operation completed.
-        rpc "await-close" getHistoryMethod closeReadAssignments #[],
-        historyNode identity resolved],
-      workflowEntrypoint workflowType service operation,
-      Program.nexusHandler "handler" service operation workerRole taskQueueRole #[
-        Program.node "respond-sync"
-          (Program.respondNexus .NEXUS_RESPONSE_KIND_SYNCHRONOUS (text "completed"))
-          (Program.instructionLimits (timeoutMilliseconds := some 5000))]]
-    (Program.cleanup "cleanup" #[])
+        .fixed fun _ _ => rpc "await-close" getHistoryMethod closeReadAssignments #[],
+        .fixed fun identity resolved => historyNode identity resolved] },
+    { activate := fun identity nodes =>
+        workflowEntrypointWith (workflowTypeOf identity) service operation nodes
+      items := workflowItems service operation },
+    { activate := fun _ nodes =>
+        Program.nexusHandler "handler" service operation workerRole taskQueueRole nodes
+      items := [
+        .fixed fun _ _ =>
+          Program.node "respond-sync"
+            (Program.respondNexus .NEXUS_RESPONSE_KIND_SYNCHRONOUS (text "completed"))
+            (Program.instructionLimits (timeoutMilliseconds := some 5000))] }]
+  cleanup := Program.cleanup "cleanup" #[] }
 
 end NexusOperation
 
@@ -193,9 +210,9 @@ def nexusOperation (service operation : String) (responds : Response) :
   let completionHook := match responds with
     | .async => "complete-nexus-operation"
     | .sync => "await-close"
-  { program := match responds with
-      | .async => NexusOperation.asyncProgram service operation
-      | .sync => NexusOperation.syncProgram service operation
+  { plan := match responds with
+      | .async => NexusOperation.asyncPlan service operation
+      | .sync => NexusOperation.syncPlan service operation
     producerId := "temporal.nexus.success.testpilot"
     producerVersion := "1"
     projectionId := NexusOperation.projectionId

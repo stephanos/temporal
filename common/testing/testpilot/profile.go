@@ -37,10 +37,10 @@ func (c *Catalog) Identity() string {
 	return c.catalog.Identity()
 }
 
-// InstructionCapability is the capability one declared instruction requires, or zero when the
+// InstructionOpcode is the Opcode one declared instruction requires, or zero when the
 // instruction is unset or outside the version-one table. Callers deriving a Profile from a Case
 // read it rather than restating the mapping.
-func InstructionCapability(instruction *testpilotspb.Instruction) Opcode {
+func InstructionOpcode(instruction *testpilotspb.Instruction) Opcode {
 	return execution.InstructionOpcode(instruction)
 }
 
