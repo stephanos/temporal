@@ -42,18 +42,32 @@ structure Entity where
   source : SourceLocation
   deriving BEq, Repr
 
-/-- One input field of an action, typed by a finite enum whose constructors are its classes: each
-class is a set of concrete values claimed to behave alike, and `classes` lists them in declaration
-order so a class's position is stable across a Model's lifetime. -/
+/-- One input field of an action, typed by a finite enum whose **members** are its classes.
+
+A member, not a constructor: a constructor that carries finite fields contributes one class per
+assignment of them, so `handlerError (retryable : Bool)` is one constructor and the two classes
+`handlerError (retryable := false)` and `handlerError (retryable := true)`. That is the granularity
+an author claims behavior at, and it is the granularity an example is written at.
+
+Each class is a set of concrete values -- values of the realized payload, which the Model does not
+enumerate -- claimed to behave alike. `classes` lists them in enumeration order, which is
+constructors in declaration order and, within one, the first field varying slowest, so a class's
+position is stable across a Model's lifetime. -/
 structure InputField where
   name : String
   domain : DefinitionId
   classes : List ModelValue := []
   deriving BEq, Repr
 
-/-- The concrete member a functional Case uses for one class of one action's field. A class with a
-single member needs none; a class with several is an abstraction, and this is the value that makes it
-a runnable Case. `pattern` is the class as the Model spells it, so a receipt can name it. -/
+/-- The concrete value a functional Case uses for one class of one action's field.
+
+A class covers values the Model cannot count: `handlerError (retryable := false)` stands for
+BadRequest, Unauthenticated, NotFound and more, and nothing in the Model says how many. So an example
+is what marks a class as an abstraction -- a class an author wrote an example for is one they claim
+several values behave alike in, and the example is the one a functional Case runs.
+
+`pattern` is the class, canonical: the constructor's fields in declaration order, spelled as
+`classes` spells them, so an example and the class it stands for compare as equal strings. -/
 structure Example where
   action : DefinitionId
   field : String
