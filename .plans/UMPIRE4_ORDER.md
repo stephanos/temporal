@@ -225,6 +225,44 @@ the Contract itself, not only in provenance, so re-authoring two waits as three 
 the Contract by construction -- which is the point of the re-authoring and which no identity mask
 covers. `.2` and `.3` settle the Contract's shape once the Model is authored through the commands.
 
+**Task .3 is done, 2026-09-14, and the authoring form holds.** A step function over a structure of
+finite fields enumerates to exactly the rows an author would have written -- same rows, same order,
+same keys -- so the two forms fill the same table and fingerprint the same value, and the row grammar
+stays unbuilt. `Umpire.Command.Finite` carries the domain, its deriving handler refuses a non-finite
+field by naming it, and `enumerateBounded` refuses a domain past `elaborationBound` with both factors
+rather than truncating. Elaborating the prototype measured inside the noise of its own import.
+
+**Task .2 is done, 2026-09-15.** `entity`, `action` and `observation` elaborate into the task .1
+records, and `DESIGN.md` section 3's entities, input domains, actions and derived observation are the
+specimen they are checked against, machines and the fn-79 cancel actions excepted. `schema:` stores
+the message names and asks a platform whether they resolve; `Temporal.Case.Schema` answers from the
+descriptor closures of the RPCs those messages travel on, and a test says the stored entry is shorter
+than the descriptor of the message it names.
+
+Three things were decided during delivery.
+
+- **The three command words are not reserved tokens.** `entity`, `action` and `observation` are also
+  field names in the records the commands build (`EntityReference.entity`, `FiniteTransitionRow.action`),
+  so reserving them the way `model` and `property` are reserved would make those fields unwritable.
+  A plain `&"entity"` does not work either: Lean indexes a non-reserved symbol under its own token
+  while a command beginning with a bare identifier dispatches under `ident`, so the parser was only
+  reachable behind a doc comment. `nonReservedSymbolNoAntiquot word (includeIdent := true)` indexes it
+  under both, which is what makes a column-0 `entity` a command without taking the word away from the
+  tree.
+- **The schema check decides whether a name resolves, and not whether a class member is in it.** The
+  members the design's own examples name -- `BadRequest`, `Internal` -- are values of
+  `temporal.api.nexus.v1.HandlerError.error_type`, which the generated schema types as a `string`, so
+  the descriptor carries nothing to check them against. R2's "a class member or example outside the
+  schema" moved to `.8`, which gives an action's payload the typed fields a member can be checked
+  against, and is recorded on that task.
+- **Two R1 and R2 rejections have no syntax to fire on in `.2`.** An instance bound of zero was already
+  `.4`'s, where instance bounds are declared. An evidence name that is neither catalogued nor declared
+  moved to `.14`, which introduces `evidence:`; it is recorded there.
+
+Its review is a self-review: no second backend is reachable in a cloud session, so `codex exec`,
+`cursor-agent` and `grok` all fall back to the session model. `.1`, `.2` and `.3` each owe a
+cross-model re-review before the completion review.
+
 **`flowctl ready` reports fn-85 blocked by fn-87**, because fn-87's spec is still `open`: `spec close`
 needs runtime task state, which lives in a clone's `.git` and which a fresh cloud clone does not have.
 It is bookkeeping, not a dependency -- fn-87's `completion_review_status` is `ship` -- and
