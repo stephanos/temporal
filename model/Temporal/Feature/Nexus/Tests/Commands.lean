@@ -401,6 +401,25 @@ action nestedClass
   [(members (α := Timeout)).length, (members (α := Timeout)).length,
     (members (α := Timeout)).length]
 
+/- A class is matched as the tree it is, so two classes whose constructor and field names would run
+together in one string stay two classes: `ab (c := ...)` and `a (bc := ...)` each keep their own
+example rather than one being stored against the other. -/
+enum Collide
+  | ab (c : Bool)
+  | a (bc : Bool)
+
+action collidingNames
+  party: handler
+  on: operation
+  input:
+    x: Collide
+  examples:
+    a (bc := false) → Second
+    ab (c := false) → First
+
+#guard collidingNames.examples.map (·.pattern) == ["a (bc := false)", "ab (c := false)"]
+#guard collidingNames.examples.map (·.member.value) == ["Second", "First"]
+
 /- A finite domain that is not an `enum` is not an input domain: a class's Definition ID hangs off
 the `enum` that declared it, and a plain `inductive` records none. -/
 /--
