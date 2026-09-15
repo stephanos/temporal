@@ -762,18 +762,42 @@ private def bothSubjectsMessage : String :=
   "an action declares `on:` or `creates:`, not both: it either acts on an instance that exists or \
 brings one into existence"
 
-/-- Every member of a finite domain, spelled the way an `examples:` line spells it.
+/-- One class of an input domain, as the tree it is rather than as the text it renders to.
 
-A domain's **classes** are its members, not its constructors: `handlerError (retryable : Bool)` is
-one constructor and two classes, and the design writes one example for each. The order is AUT-09's --
-constructors in declaration order, and within a constructor the first field varying slowest -- which
-is the order `Umpire.Command.Finite` enumerates in, so a class's position here and its position in
-the enumeration are the same number.
+A class is a constructor with its fields assigned, and a field's value is itself a class. Comparing
+the rendered text instead would let two classes whose names run together across a parenthesis --
+`ab (c := false)` and `a (bc := false)` -- compare equal, and an example would be stored against a
+class its author did not write. -/
+private inductive ClassValue where
+  /-- A constructor that carries nothing, `Bool`'s `false` and `true`, or a count's numeral. -/
+  | atom (spelling : String)
+  /-- A constructor with every field it carries assigned. -/
+  | applied (constructor : String) (fields : Array (String × ClassValue))
+  deriving Inhabited
 
-A type this cannot spell is one `Finite` would also have refused, except `Fin`, which is spelled by
-its numeral. -/
+/-- A class as an author writes it, which is what `InputField.classes` carries and what an
+`examples:` line is quoted as. -/
+private partial def ClassValue.render : ClassValue → String
+  | .atom spelling => spelling
+  | .applied constructor fields =>
+      let written := fields.toList.map fun (field, value) => s!"{field} := {value.render}"
+      s!"{constructor} ({", ".intercalate written})"
+
+/-- Whether two classes are the same class. The fields are matched by name rather than by position,
+so an author who writes a constructor's fields in another order writes the same class; everything
+else is structural, so nothing merges across a name boundary. -/
+private partial def ClassValue.matches : ClassValue → ClassValue → Bool
+  | .atom written, .atom declared => written == declared
+  | .applied writtenName writtenFields, .applied declaredName declaredFields =>
+      writtenName == declaredName && writtenFields.size == declaredFields.size &&
+        declaredFields.all fun (field, declared) =>
+          match writtenFields.find? fun (written, _) => written == field with
+          | some (_, written) => written.matches declared
+          | none => false
+  | _, _ => false
+
 private partial def domainMembers (domainRef : Ident) (declName : Name)
-    (visiting : List Name := []) : CommandElabM (List String) := do
+    (visiting : List Name := []) : CommandElabM (List ClassValue) := do
   -- A domain that carries itself has no finite spelling, and walking into it would not terminate.
   -- The bound below is a width, so the depth needs its own answer.
   if visiting.contains declName then
@@ -789,30 +813,30 @@ private partial def domainMembers (domainRef : Ident) (declName : Name)
       pure members
   | _ => throwErrorAt domainRef (undeclaredDomainMessage domainRef.getId)
 where
-  /-- One constructor's members: itself when it takes no argument, and every assignment of its
-  arguments otherwise. -/
+  /-- One constructor's classes: itself when it carries nothing, and every assignment of its fields
+  otherwise. -/
   constructorMembers (declName constructor : Name) (visiting : List Name) :
-      CommandElabM (List String) := do
+      CommandElabM (List ClassValue) := do
     let declaration ← liftTermElabM (getConstInfoCtor constructor)
     let spelling := constructor.getString!
     if declaration.numFields == 0 then
-      return [spelling]
+      return [.atom spelling]
     let fields ← liftTermElabM do
       Meta.forallTelescopeReducing declaration.type fun arguments _ => do
         let carried := arguments.extract (arguments.size - declaration.numFields) arguments.size
         carried.mapM fun argument => do
           let field ← argument.fvarId!.getDecl
           pure (field.userName.getString!, field.type)
-    -- The first field varies slowest, so the members read in the order the constructor is written.
-    let mut assignments : List (List String) := [[]]
+    -- The first field varies slowest, so the classes read in the order the constructor is written.
+    let mut assignments : List (Array (String × ClassValue)) := [#[]]
     for (field, type) in fields do
       let values ← fieldValues declName field type visiting
       assignments := assignments.flatMap fun assigned =>
-        values.map fun value => assigned ++ [s!"{field} := {value}"]
+        values.map fun value => assigned.push (field, value)
       if assignments.length > elaborationBound then
         throwErrorAt domainRef (domainTooLargeMessage declName assignments.length elaborationBound)
-    pure (assignments.map fun assigned => s!"{spelling} ({", ".intercalate assigned})")
-  /-- The values one constructor argument ranges over.
+    pure (assignments.map fun assigned => .applied spelling assigned)
+  /-- The values one constructor field ranges over.
 
   Only three shapes are admitted, and the recursion is what makes that necessary: a hand-written
   `Finite` instance can satisfy the gate for a type whose constructors do not enumerate -- `Nat` with
@@ -820,18 +844,19 @@ where
   `enum` declaration, a `Bool`, or a count, and anything else is named here rather than found by
   running out of stack. -/
   fieldValues (declName : Name) (field : String) (type : Expr) (visiting : List Name) :
-      CommandElabM (List String) := do
-    let unspellable : CommandElabM (List String) := do
-      throwErrorAt domainRef (unspellableFieldMessage declName field (← liftTermElabM (Meta.ppExpr type)))
+      CommandElabM (List ClassValue) := do
+    let unspellable : CommandElabM (List ClassValue) := do
+      throwErrorAt domainRef
+        (unspellableFieldMessage declName field (← liftTermElabM (Meta.ppExpr type)))
     match type.getAppFn with
     | .const name _ =>
         if name == ``Bool then
-          pure ["false", "true"]
+          pure [.atom "false", .atom "true"]
         else if name == ``Fin then
           match (← liftTermElabM (Meta.whnf type)).getAppArgs[0]? with
           | some bound =>
               match (← liftTermElabM (Meta.evalNat bound).run) with
-              | some size => pure ((List.range size).map toString)
+              | some size => pure ((List.range size).map fun count => .atom (toString count))
               | none => unspellable
           | none => unspellable
         else if (Registry.domain? (← getEnv) name).isSome then
@@ -857,7 +882,8 @@ private def resolveEntity (entityRef : Ident) : CommandElabM Registry.EntityEntr
 /-- Resolve the enum an `input:` or `results:` line names, requiring it to be finite. A domain that
 is not finite cannot be enumerated into a Model's table, and saying so here names the line rather
 than failing an instance search inside the machine command. -/
-private def resolveDomain (domainRef : Ident) : CommandElabM (Name × String × List String) := do
+private def resolveDomain (domainRef : Ident) :
+    CommandElabM (Name × String × List ClassValue) := do
   let declName ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo domainRef)
   liftTermElabM do
     let domainType ← mkConstWithLevelParams declName
@@ -915,51 +941,37 @@ elab doc?:(docComment)? entityKeyword name:ident keys:entityKey* : command => do
     key := keySpelling
     refers := refers.map fun (field, _, declName) => (field, declName) })
 
-/-- How one `examples:` line reads back. The bindings are kept apart from the text so the class can
-be canonicalised against the constructor that declares it, rather than compared as it was typed. -/
+/-- A written value as the class tree it denotes, or `none` when it is not one.
+
+A value is a constructor, optionally with its fields assigned by name; parentheses around the whole
+of it are the author's and mean nothing. Reading it into the same shape the walk produces is what
+makes the comparison about the class rather than about the text. -/
+private partial def classValueOf (written : Term) : Option ClassValue :=
+  match written with
+  | `(($inner)) => classValueOf inner
+  | `($constructor:ident) => some (.atom constructor.getId.getString!)
+  | `($literal:num) => some (.atom (toString literal.getNat))
+  | _ =>
+      match written.raw with
+      | .node _ ``Lean.Parser.Term.app #[function, arguments] => do
+          let .ident _ _ name _ := function | none
+          let mut fields := #[]
+          for argument in arguments.getArgs do
+            match argument with
+            | `(Lean.Parser.Term.namedArgument| ($field:ident := $value)) =>
+                fields := fields.push (field.getId.getString!, ← classValueOf value)
+            | _ => none
+          some (.applied name.getString! fields)
+      | _ => none
+
+/-- How one `examples:` line reads back. -/
 private structure ExampleLine where
   /-- The line as the author wrote it, which is what a rejection quotes. -/
   written : String
-  constructor : String
-  /-- Each `field := value`, with the value's spacing and parentheses removed. -/
-  bindings : Array (String × String)
+  /-- The class it names, or `none` when the line is not a class at all. -/
+  class? : Option ClassValue
   member : String
   ref : Syntax
-
-/-- A written value, reduced to what it denotes. A class is a string, and two authors who write one
-class differently -- `(false)`, `false`, a different order of bindings -- write one class, so the
-spacing and the parentheses come out before anything is compared. -/
-private def normalizeValue (written : String) : String :=
-  written.foldl (init := "") fun kept character =>
-    if character.isWhitespace || character == '(' || character == ')' then kept
-    else kept.push character
-
-/-- Render one example the way `domainMembers` renders a class, or `none` when the constructor is not
-one of the domain's or the bindings are not exactly its fields.
-
-Canonicalising against the constructor is what makes the comparison about the class rather than about
-the text: the fields come out in declaration order however the line ordered them, a binding of a
-field the constructor does not carry has nowhere to go, and a field the line left unbound leaves the
-class unfinished. -/
-private def canonicalExample (declName : Name) (line : ExampleLine) : CommandElabM (Option String) := do
-  let constructor := declName ++ Name.mkSimple line.constructor
-  let some (.ctorInfo declaration) := (← getEnv).find? constructor
-    | return none
-  if declaration.numFields == 0 then
-    return if line.bindings.isEmpty then some line.constructor else none
-  let fields ← liftTermElabM do
-    Meta.forallTelescopeReducing declaration.type fun arguments _ => do
-      let carried := arguments.extract (arguments.size - declaration.numFields) arguments.size
-      carried.mapM fun argument => do pure (← argument.fvarId!.getDecl).userName.getString!
-  if line.bindings.size != fields.size then
-    return none
-  let mut written := #[]
-  for field in fields do
-    let some (_, value) := line.bindings.find? fun (bound, _) => bound == field
-      | return none
-    written := written.push s!"{field} := {value}"
-  let joined := ", ".intercalate written.toList
-  pure (some s!"{line.constructor} ({joined})")
 
 /-- The line as the author wrote it, for a rejection to quote. -/
 private def exampleWritten (constructor : Ident) (bindings : Array (Ident × Term)) : String :=
@@ -974,7 +986,7 @@ private def exampleWritten (constructor : Ident) (bindings : Array (Ident × Ter
 elab doc?:(docComment)? actionKeyword name:ident keys:actionKey+ : command => do
   let mut party : Option Ident := none
   let mut subject : Option (String × Name × Bool) := none
-  let mut inputFields : Array (String × Name × String × List String) := #[]
+  let mut inputFields : Array (String × Name × String × List ClassValue) := #[]
   let mut seenInput := false
   let mut results : Option (Name × String) := none
   let mut schema : Array String := #[]
@@ -1019,11 +1031,16 @@ elab doc?:(docComment)? actionKeyword name:ident keys:actionKey+ : command => do
               let bindings := match fields, values with
                 | some fields, some values => fields.zip values
                 | _, _ => #[]
+              let class? : Option ClassValue :=
+                if bindings.isEmpty then some (.atom constructor.getId.getString!)
+                else do
+                  let mut fields := #[]
+                  for (field, value) in bindings do
+                    fields := fields.push (field.getId.getString!, ← classValueOf value)
+                  some (.applied constructor.getId.getString! fields)
               examples := examples.push {
                 written := exampleWritten constructor bindings
-                constructor := constructor.getId.toString
-                bindings := bindings.map fun (field, value) =>
-                  (field.getId.toString, normalizeValue (value.raw.reprint.getD ""))
+                class?
                 member := member.getId.toString
                 ref := line }
           | _ => throwErrorAt line "unsupported example line"
@@ -1038,15 +1055,14 @@ elab doc?:(docComment)? actionKeyword name:ident keys:actionKey+ : command => do
     -- `handlerError (retryable := false)` and `handlerError (retryable := true)` are two classes,
     -- and a binding of a field the constructor does not carry is a class that does not exist.
     let mut matched : Option (String × String × String) := none
-    for (field, declName, domainId, classes) in inputFields do
+    for (field, _, domainId, classes) in inputFields do
       if matched.isNone then
-        if let some written ← canonicalExample declName line then
-          -- Both sides go through `normalizeValue`, because only one of them was built from what the
-          -- author typed: a nested class is rendered whole by the walk and rendered through the
-          -- normaliser here, and comparing them raw would leave a class no example can name.
-          if let some class? := classes.find? fun spelling =>
-              normalizeValue spelling == normalizeValue written then
-            matched := some (field, domainId, class?)
+        if let some class? := line.class? then
+          -- Matched as a tree, not as text: a class is what it denotes, so a different order of
+          -- bindings or a parenthesis the author added is the same class, and two classes whose
+          -- names would run together in one string stay two classes.
+          if let some declared := classes.find? (class?.matches ·) then
+            matched := some (field, domainId, declared.render)
     let some (field, domainId, spelling) := matched
       | throwErrorAt line.ref (unmatchedExampleMessage line.written)
     if resolved.any fun (_, _, seen, _) => seen == spelling then
@@ -1062,9 +1078,9 @@ elab doc?:(docComment)? actionKeyword name:ident keys:actionKey+ : command => do
         else `(term| Umpire.Command.ActionSubject.acts $entityId)
   let actionId ← definitionIdHere "action" name.getId.toString
   let inputTerms : Array Term ← inputFields.mapM fun (field, _, domainId, classes) => do
-    let classTerms : Array Term ← classes.toArray.mapM fun spelling =>
+    let classTerms : Array Term ← classes.toArray.mapM fun declared =>
       `(term| Umpire.ModelValue.named (Umpire.DefinitionId.of $(Lean.quote domainId))
-          $(Lean.quote spelling))
+          $(Lean.quote declared.render))
     `(term| ({ name := $(Lean.quote field)
                domain := Umpire.DefinitionId.of $(Lean.quote domainId)
                classes := [$classTerms,*] } : Umpire.Command.InputField))
