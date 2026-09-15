@@ -700,8 +700,8 @@ private def reservedPartyMessage : String :=
 `party:` names one of the feature's own parties"
 
 private def unmatchedExampleMessage (spelling : String) : String :=
-  s!"'{spelling}' matches no class of this action: an example names a constructor of one of the \
-action's own `input:` domains"
+  s!"'{spelling}' matches no class of this action: an example names one of the classes of one of \
+the action's own `input:` domains"
 
 private def duplicateExampleMessage (spelling : String) : String :=
   s!"'{spelling}' already has an example; a class has one concrete member, or the Case it produces \
@@ -711,6 +711,75 @@ private def bothSubjectsMessage : String :=
   "an action declares `on:` or `creates:`, not both: it either acts on an instance that exists or \
 brings one into existence"
 
+/-- The Definition ID a declaration made under `enclosing` carries.
+
+A reference computes the referenced declaration's id from the namespace that declared it, never from
+the referring file's own: the two agree only while both are in one file, and a Model that refers
+across files would otherwise point at a name in its own family that nothing declares. -/
+private def definitionIdIn (enclosing : Name) (kind key : String) : CommandElabM String := do
+  let conventions := Registry.conventions (← getEnv)
+  let family := semanticFamilyOf conventions.namespacePrefix enclosing
+  pure ((Origin.of conventions.root family "").family.id kind key).value
+
+/-- The id of a declaration this command is elaborating, which is the same computation under the
+current namespace. -/
+private def definitionIdHere (kind key : String) : CommandElabM String := do
+  definitionIdIn (← getCurrNamespace) kind key
+
+/-- Every member of a finite domain, spelled the way an `examples:` line spells it.
+
+A domain's **classes** are its members, not its constructors: `handlerError (retryable : Bool)` is
+one constructor and two classes, and the design writes one example for each. The order is AUT-09's --
+constructors in declaration order, and within a constructor the first field varying slowest -- which
+is the order `Umpire.Command.Finite` enumerates in, so a class's position here and its position in
+the enumeration are the same number.
+
+A type this cannot spell is one `Finite` would also have refused, except `Fin`, which is spelled by
+its numeral. -/
+private partial def domainMembers (domainRef : Ident) (declName : Name) : CommandElabM (List String) := do
+  match (← getEnv).find? declName with
+  | some (.inductInfo info) =>
+      let mut members := []
+      for constructor in info.ctors do
+        members := members ++ (← constructorMembers constructor)
+      pure members
+  | _ => throwErrorAt domainRef (undeclaredDomainMessage domainRef.getId)
+where
+  /-- One constructor's members: itself when it takes no argument, and every assignment of its
+  arguments otherwise. -/
+  constructorMembers (constructor : Name) : CommandElabM (List String) := do
+    let declaration ← liftTermElabM (getConstInfoCtor constructor)
+    let spelling := constructor.getString!
+    if declaration.numFields == 0 then
+      return [spelling]
+    let fields ← liftTermElabM do
+      Meta.forallTelescopeReducing declaration.type fun arguments _ => do
+        let carried := arguments.extract (arguments.size - declaration.numFields) arguments.size
+        carried.mapM fun argument => do
+          let declaration ← argument.fvarId!.getDecl
+          pure (declaration.userName.getString!, declaration.type)
+    -- The first field varies slowest, so the members read in the order the constructor is written.
+    let mut assignments : List (List String) := [[]]
+    for (field, type) in fields do
+      let values ← fieldValues domainRef type
+      assignments := assignments.flatMap fun assigned =>
+        values.map fun value => assigned ++ [s!"{field} := {value}"]
+    pure (assignments.map fun assigned => s!"{spelling} ({", ".intercalate assigned})")
+  /-- The values one constructor argument ranges over. -/
+  fieldValues (at? : Ident) (type : Expr) : CommandElabM (List String) := do
+    match type.getAppFn with
+    | .const name _ =>
+        if name == ``Fin then
+          match (← liftTermElabM (Meta.whnf type)).getAppArgs[0]? with
+          | some bound =>
+              match (← liftTermElabM (Meta.evalNat bound).run) with
+              | some size => pure ((List.range size).map toString)
+              | none => throwErrorAt at? (undeclaredDomainMessage domainRef.getId)
+          | none => throwErrorAt at? (undeclaredDomainMessage domainRef.getId)
+        else
+          domainMembers at? name
+    | _ => throwErrorAt at? (undeclaredDomainMessage domainRef.getId)
+
 /-- Resolve an entity reference against what an `entity` command recorded, reporting an unknown one
 in place and giving the editor the declaration to hover. -/
 private def resolveEntity (entityRef : Ident) : CommandElabM Registry.EntityEntry := do
@@ -719,7 +788,8 @@ private def resolveEntity (entityRef : Ident) : CommandElabM Registry.EntityEntr
   -- the one message, spelled as the line spells it.
   let declName? ← try
       some <$> liftTermElabM (realizeGlobalConstNoOverloadWithInfo entityRef)
-    catch _ => pure none
+    catch failure =>
+      if failure.isInterrupt || failure.isMaxRecDepth then throw failure else pure none
   match declName?.bind (Registry.entity? (← getEnv)) with
   | some declared => pure declared
   | none => throwErrorAt entityRef (undeclaredEntityMessage entityRef.getId)
@@ -727,19 +797,15 @@ private def resolveEntity (entityRef : Ident) : CommandElabM Registry.EntityEntr
 /-- Resolve the enum an `input:` or `results:` line names, requiring it to be finite. A domain that
 is not finite cannot be enumerated into a Model's table, and saying so here names the line rather
 than failing an instance search inside the machine command. -/
-private def resolveDomain (domainRef : Ident) : CommandElabM (Name × List String) := do
+private def resolveDomain (domainRef : Ident) : CommandElabM (Name × String × List String) := do
   let declName ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo domainRef)
   liftTermElabM do
     let domainType ← mkConstWithLevelParams declName
     let finiteType ← Meta.mkAppM ``Umpire.Command.Finite #[domainType]
     unless (← Meta.synthInstance? finiteType).isSome do
       throwErrorAt domainRef (undeclaredDomainMessage domainRef.getId)
-  -- AUT-09: the constructors in declaration order are the classes, whether or not they carry
-  -- fields. A constructor with fields is one class with several members, not several classes.
-  let classes ← match (← getEnv).find? declName with
-    | some (.inductInfo info) => pure (info.ctors.map (·.getString!))
-    | _ => pure []
-  pure (declName, classes)
+  let domainId ← definitionIdIn declName.getPrefix "enum" declName.getString!
+  pure (declName, domainId, ← domainMembers domainRef declName)
 
 elab doc?:(docComment)? entityKeyword name:ident keys:entityKey* : command => do
   let mut refers : Array (String × String × Name) := #[]
@@ -752,7 +818,7 @@ elab doc?:(docComment)? entityKeyword name:ident keys:entityKey* : command => do
         seenRefer := true
         for field in fields, target in targets do
           let declared ← resolveEntity target
-          refers := refers.push (field.getId.toString, declared.name, declared.declName)
+          refers := refers.push (field.getId.toString, declared.id, declared.declName)
     | `(entityKey| key: $keyRef:ident) => do
         if key.isSome then throwErrorAt entry (duplicateKeyMessage "entity" "key:")
         key := some keyRef
@@ -763,18 +829,19 @@ elab doc?:(docComment)? entityKeyword name:ident keys:entityKey* : command => do
   let keySpelling := keyRef.getId.toString
   -- One key name per Model: recorded data finds an instance through it, so two entities sharing one
   -- would leave a row unable to say which instance it is about.
-  for declared in Registry.entities (← getEnv) do
+  for declared in Registry.localEntities (← getEnv) do
     if declared.key == keySpelling then
       throwErrorAt keyRef (duplicateEntityKeyMessage keySpelling declared.name)
   let origin ← originTerm
   let nameKey := Lean.quote name.getId.toString
-  let referTerms : Array Term ← refers.mapM fun (field, target, _) =>
+  let entityId ← definitionIdHere "entity" name.getId.toString
+  let referTerms : Array Term ← refers.mapM fun (field, targetId, _) =>
     `(term| ({ field := $(Lean.quote field)
-               entity := ($origin).family.id "entity" $(Lean.quote target)
+               entity := Umpire.DefinitionId.of $(Lean.quote targetId)
              } : Umpire.Command.EntityReference))
   elabCommand (← `(command|
     $[$doc?:docComment]? def $name : Umpire.Command.Entity := {
-      id := ($origin).family.id "entity" $nameKey
+      id := Umpire.DefinitionId.of $(Lean.quote entityId)
       name := $nameKey
       refers := [$referTerms,*]
       key := $(Lean.quote keySpelling)
@@ -782,6 +849,7 @@ elab doc?:(docComment)? entityKeyword name:ident keys:entityKey* : command => do
   liftCoreM (Registry.recordEntity {
     declName := (← getCurrNamespace) ++ name.getId
     name := name.getId.toString
+    id := entityId
     key := keySpelling
     refers := refers.map fun (field, _, declName) => (field, declName) })
 
@@ -807,9 +875,9 @@ private def exampleSpelling (constructor : Ident) (bindings : Array (Ident × Te
 elab doc?:(docComment)? actionKeyword name:ident keys:actionKey+ : command => do
   let mut party : Option Ident := none
   let mut subject : Option (String × Name × Bool) := none
-  let mut inputFields : Array (String × Name × List String) := #[]
+  let mut inputFields : Array (String × Name × String × List String) := #[]
   let mut seenInput := false
-  let mut results : Option Name := none
+  let mut results : Option (Name × String) := none
   let mut schema : Array String := #[]
   let mut examples : Array ExampleLine := #[]
   let mut seenExamples := false
@@ -822,20 +890,21 @@ elab doc?:(docComment)? actionKeyword name:ident keys:actionKey+ : command => do
     | `(actionKey| on: $entityRef:ident) => do
         if subject.isSome then throwErrorAt entry bothSubjectsMessage
         let declared ← resolveEntity entityRef
-        subject := some (declared.name, declared.declName, false)
+        subject := some (declared.id, declared.declName, false)
     | `(actionKey| creates: $entityRef:ident) => do
         if subject.isSome then throwErrorAt entry bothSubjectsMessage
         let declared ← resolveEntity entityRef
-        subject := some (declared.name, declared.declName, true)
+        subject := some (declared.id, declared.declName, true)
     | `(actionKey| input: $[$fields:ident : $domains:ident]*) => do
         if seenInput then throwErrorAt entry (duplicateKeyMessage "action" "input:")
         seenInput := true
         for field in fields, domain in domains do
-          let (declName, classes) ← resolveDomain domain
-          inputFields := inputFields.push (field.getId.toString, declName, classes)
+          let (declName, domainId, classes) ← resolveDomain domain
+          inputFields := inputFields.push (field.getId.toString, declName, domainId, classes)
     | `(actionKey| results: $domainRef:ident) => do
         if results.isSome then throwErrorAt entry (duplicateKeyMessage "action" "results:")
-        results := some (← resolveDomain domainRef).1
+        let (declName, domainId, _) ← resolveDomain domainRef
+        results := some (declName, domainId)
     | `(actionKey| schema: $first:ident $[| $alternatives:ident]*) => do
         if !schema.isEmpty then throwErrorAt entry (duplicateKeyMessage "action" "schema:")
         schema := #[first.getId.toString] ++ alternatives.map (·.getId.toString)
@@ -862,42 +931,47 @@ elab doc?:(docComment)? actionKeyword name:ident keys:actionKey+ : command => do
     | throwErrorAt name (missingKeyMessage "action" "party:")
   -- Examples are resolved after every key has been read, so an `examples:` block above the
   -- `input:` block it names reads the same as one below it.
-  let mut resolved : Array (String × ExampleLine) := #[]
+  let mut resolved : Array (String × String × ExampleLine) := #[]
   for line in examples do
-    let some (field, _, _) := inputFields.find? fun (_, _, classes) => classes.contains line.constructor
+    -- The whole spelling is matched, not its head: a class is a member of the domain, so
+    -- `handlerError (retryable := false)` and `handlerError (retryable := true)` are two classes and
+    -- a binding of a field the constructor does not carry is a class that does not exist.
+    let some (field, _, domainId, _) :=
+        inputFields.find? fun (_, _, _, classes) => classes.contains line.spelling
       | throwErrorAt line.ref (unmatchedExampleMessage line.spelling)
-    if resolved.any fun (_, seen) => seen.spelling == line.spelling then
+    if resolved.any fun (_, _, seen) => seen.spelling == line.spelling then
       throwErrorAt line.ref (duplicateExampleMessage line.spelling)
-    resolved := resolved.push (field, line)
+    resolved := resolved.push (field, domainId, line)
   let origin ← originTerm
   let nameKey := Lean.quote name.getId.toString
   let subjectTerm : Term ← match subject with
     | none => `(term| Umpire.Command.ActionSubject.free)
-    | some (entityName, _, creates) =>
-        let entityId ← `(term| ($origin).family.id "entity" $(Lean.quote entityName))
+    | some (entityId, _, creates) =>
+        let entityId ← `(term| Umpire.DefinitionId.of $(Lean.quote entityId))
         if creates then `(term| Umpire.Command.ActionSubject.creates $entityId)
         else `(term| Umpire.Command.ActionSubject.acts $entityId)
-  let inputTerms : Array Term ← inputFields.mapM fun (field, domain, classes) => do
+  let actionId ← definitionIdHere "action" name.getId.toString
+  let inputTerms : Array Term ← inputFields.mapM fun (field, _, domainId, classes) => do
     let classTerms : Array Term ← classes.toArray.mapM fun spelling =>
-      `(term| Umpire.ModelValue.named
-          (($origin).family.id "enum" $(Lean.quote domain.getString!)) $(Lean.quote spelling))
+      `(term| Umpire.ModelValue.named (Umpire.DefinitionId.of $(Lean.quote domainId))
+          $(Lean.quote spelling))
     `(term| ({ name := $(Lean.quote field)
-               domain := ($origin).family.id "enum" $(Lean.quote domain.getString!)
+               domain := Umpire.DefinitionId.of $(Lean.quote domainId)
                classes := [$classTerms,*] } : Umpire.Command.InputField))
-  let exampleTerms : Array Term ← resolved.mapM fun (field, line) =>
-    `(term| ({ action := ($origin).family.id "action" $nameKey
+  let exampleTerms : Array Term ← resolved.mapM fun (field, domainId, line) =>
+    `(term| ({ action := Umpire.DefinitionId.of $(Lean.quote actionId)
                field := $(Lean.quote field)
                pattern := $(Lean.quote line.spelling)
-               member := Umpire.ModelValue.named
-                 (($origin).family.id "action" $nameKey) $(Lean.quote line.member)
+               member := Umpire.ModelValue.named (Umpire.DefinitionId.of $(Lean.quote domainId))
+                 $(Lean.quote line.member)
              } : Umpire.Command.Example))
   let resultsTerm : Term ← match results with
     | none => `(term| none)
-    | some domain => `(term| some (($origin).family.id "enum" $(Lean.quote domain.getString!)))
+    | some (_, domainId) => `(term| some (Umpire.DefinitionId.of $(Lean.quote domainId)))
   let schemaTerms : Array Term := schema.map Lean.quote
   elabCommand (← `(command|
     $[$doc?:docComment]? def $name : Umpire.Command.Action := {
-      id := ($origin).family.id "action" $nameKey
+      id := Umpire.DefinitionId.of $(Lean.quote actionId)
       name := $nameKey
       party := $(Lean.quote partyRef.getId.toString)
       subject := $subjectTerm
@@ -911,8 +985,8 @@ elab doc?:(docComment)? actionKeyword name:ident keys:actionKey+ : command => do
     name := name.getId.toString
     party := partyRef.getId.toString
     subject := subject.map fun (_, declName, creates) => (declName, creates)
-    inputFields := inputFields.map fun (field, domain, _) => (field, domain)
-    results })
+    inputFields := inputFields.map fun (field, domain, _, _) => (field, domain)
+    results := results.map Prod.fst })
 
 elab doc?:(docComment)? observationKeyword name:ident keys:observationKey+ : command => do
   let mut entity : Option Registry.EntityEntry := none
@@ -932,12 +1006,12 @@ elab doc?:(docComment)? observationKeyword name:ident keys:observationKey+ : com
     | throwErrorAt name (missingKeyMessage "observation" "read:")
   let origin ← originTerm
   let nameKey := Lean.quote name.getId.toString
-  let entityName := Lean.quote declaredEntity.name
+  let observationId ← definitionIdHere "observation" name.getId.toString
   elabCommand (← `(command|
     $[$doc?:docComment]? def $name : Umpire.Command.Observation := {
-      id := ($origin).family.id "observation" $nameKey
+      id := Umpire.DefinitionId.of $(Lean.quote observationId)
       name := $nameKey
-      entity := ($origin).family.id "entity" $entityName
+      entity := Umpire.DefinitionId.of $(Lean.quote declaredEntity.id)
       read := $(Lean.quote readRef.getId.toString)
       source := ($origin).source }))
   liftCoreM (Registry.recordObservation {

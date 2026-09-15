@@ -24,7 +24,7 @@ it is what the `machine` command will rely on.
 **Elaboration cost.** Three warm Lean 4.33.1 runs of this module measured 1104, 1313 and 1543 ms
 whole-file, against 1607, 1131 and 1061 ms for a module that only imports `Umpire.Command.Finite`:
 the enumeration is inside the noise of the import itself at this size. That is measured differently
-from the Race baselines (6 to 12 ms per *check*, `Temporal/Feature/Nexus/Race/COVERAGE.md`), which are
+from the race-model baselines a feature tree records (6 to 12 ms per *check*), which are
 a reference point rather than a comparison — but the decision the measurement has to support is
 whether enumeration is an order of magnitude slower than written rows, and it is not measurably
 slower at all.
