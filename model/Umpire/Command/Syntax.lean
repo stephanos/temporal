@@ -798,6 +798,17 @@ private partial def ClassValue.key : ClassValue → String
       if constructor.getString! == "mk" then joined
       else constructor.getString! ++ "-" ++ joined
 
+/-- A class as the Lean term that denotes it, which is also the pattern that matches it. The
+enumeration knows every class as a tree, so the generated code that names one -- a key function's
+match arm, a member list -- is written from the same tree rather than from a second rendering. -/
+private partial def ClassValue.term : ClassValue → CommandElabM Term
+  | .atom spelling => `($(mkIdent spelling))
+  | .applied constructor fields => do
+      -- Positional, not by name: the fields are in declaration order here, and a pattern written
+      -- positionally is one Lean accepts everywhere a term is accepted.
+      let arguments ← fields.mapM fun (_, value) => value.term
+      `($(mkIdent constructor) $arguments*)
+
 /-- Whether a written class names a declared one.
 
 The fields are matched by name rather than by position, so an author who writes a constructor's
@@ -1228,6 +1239,64 @@ private def stepResultDomains (stepRef : Ident) (declName : Name) (arity : Nat) 
       let some fact := arguments[2]!.getAppFn.constName?
         | throwErrorAt stepRef (stepSignatureMessage declName)
       pure (outcome, fact)
+
+
+elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => do
+  let mut entity : Option Registry.EntityEntry := none
+  let mut stateRef : Option Ident := none
+  let mut endRefs : Array Ident := #[]
+  let mut stepRefs : Array (Ident × Ident) := #[]
+  for entry in keys do
+    match entry with
+    | `(machineKey| for: $entityRef:ident) => do
+        if entity.isSome then throwErrorAt entry (duplicateKeyMessage "machine" "for:")
+        let declName? ← try
+            some <$> liftTermElabM (realizeGlobalConstNoOverloadWithInfo entityRef)
+          catch failure =>
+            if failure.isInterrupt || failure.isMaxRecDepth then throw failure else pure none
+        match declName?.bind (Registry.entity? (← getEnv)) with
+        | some declared => entity := some declared
+        | none => throwErrorAt entityRef (undeclaredMachineEntityMessage entityRef.getId)
+    | `(machineKey| state: $typeRef:ident) => do
+        if stateRef.isSome then throwErrorAt entry (duplicateKeyMessage "machine" "state:")
+        stateRef := some typeRef
+    | `(machineKey| ends: [$members,*]) => do
+        if !endRefs.isEmpty then throwErrorAt entry (duplicateKeyMessage "machine" "ends:")
+        endRefs := members.getElems
+    -- The antiquotation names avoid `actions`, because `actions:` is already a token and
+    -- `$actions:ident` would tokenize as `$` and that token rather than as an antiquotation.
+    | `(machineKey| steps: $[$stepped:ident : $written:ident]*) => do
+        if !stepRefs.isEmpty then throwErrorAt entry (duplicateKeyMessage "machine" "steps:")
+        for takenOn in stepped, function? in written do
+          stepRefs := stepRefs.push (takenOn, function?)
+    | _ => throwErrorAt entry "unsupported machine key"
+  let some declaredEntity := entity
+    | throwErrorAt name (missingKeyMessage "machine" "for:")
+  let some stateType := stateRef
+    | throwErrorAt name (missingKeyMessage "machine" "state:")
+  if stepRefs.isEmpty then throwErrorAt name (missingKeyMessage "machine" "steps:")
+  -- The state's members are the machine's states. A structure is an inductive of one constructor, so
+  -- the same walk that writes an action's classes writes them, and the same refusals apply.
+  let stateDecl ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo stateType)
+  unless isStructure (← getEnv) stateDecl do
+    throwErrorAt stateType (notAStateStructureMessage stateType.getId)
+  let stateMembers ← domainMembers stateType stateDecl
+  -- Every `steps:` line, resolved before anything is generated from any of them.
+  let mut steps : Array ResolvedStep := #[]
+  for (actionRef, functionRef) in stepRefs do
+    let declName? ← try
+        some <$> liftTermElabM (realizeGlobalConstNoOverloadWithInfo actionRef)
+      catch failure =>
+        if failure.isInterrupt || failure.isMaxRecDepth then throw failure else pure none
+    let some declared := declName?.bind (Registry.action? (← getEnv))
+      | throwErrorAt actionRef (undeclaredStepActionMessage actionRef.getId)
+    if steps.any fun seen => seen.action.declName == declared.declName then
+      throwErrorAt actionRef (duplicateStepMessage declared.name)
+    steps := steps.push {
+      action := declared
+      domains := declared.inputFields.map Prod.snd
+      function := functionRef }
+  pure ()
 
 elab doc?:(docComment)? observationKeyword name:ident keys:observationKey+ : command => do
   let mut entity : Option Registry.EntityEntry := none
