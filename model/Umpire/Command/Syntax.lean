@@ -1202,6 +1202,10 @@ private def stepSignatureMessage (declName : Name) : String :=
   s!"'{declName}' is not a step function; a `steps:` line names one of the shape \
 `State -> <the action's input domains, curried> -> List (Step State Outcome Fact)`"
 
+private def disagreeingDomainsMessage (outcome fact foundOutcome foundFact : Name) : String :=
+  s!"this machine's steps return outcomes in '{outcome}' and facts in '{fact}', and this one returns \
+'{foundOutcome}' and '{foundFact}'; one machine has one outcome domain and one fact domain"
+
 private def noEndsFieldMessage (spelling : String) : String :=
   s!"'{spelling}' is not a value of any field of the machine's state structure"
 
@@ -1221,25 +1225,30 @@ They are not keys the author writes. A step function's result type is
 `List (Step State Outcome Fact)`, so the machine's outcome and fact domains are already written down
 in the function the author wrote; asking for them again would be asking twice and admitting the
 answers to disagree. -/
-private def stepResultDomains (stepRef : Ident) (declName : Name) (arity : Nat) :
+private def stepResultDomains (stepRef : Ident) (declName stateDecl : Name) (arity : Nat) :
     CommandElabM (Name × Name) := do
   let some info := (← getEnv).find? declName
-    | throwErrorAt stepRef s!"'{declName}' is not a declaration"
+    | throwErrorAt stepRef (stepSignatureMessage declName)
   liftTermElabM do
     Meta.forallBoundedTelescope info.type (some (arity + 1)) fun _ result => do
-      let result ← Meta.whnf result
-      let some listArg := result.getAppArgs[0]?
-        | throwErrorAt stepRef (stepSignatureMessage declName)
-      let step ← Meta.whnf listArg
-      let arguments := step.getAppArgs
-      unless step.getAppFn.constName? == some ``Umpire.Step && arguments.size == 3 do
+      -- Unified against the shape rather than matched on the head constant: `Umpire.Step` is an
+      -- abbreviation, so a match on what it reduces to would name a type the author never wrote,
+      -- and would break the day the abbreviation moves.
+      let stateType ← mkConstWithLevelParams stateDecl
+      -- A Model's domains are all `Type`, so the holes are `Type` holes; a `Sort ?u` hole unifies
+      -- with the universe rather than with the domain and reports the mismatch in `Step`'s own
+      -- application, where an author cannot see what went wrong.
+      let anyType := Expr.sort (Level.succ Level.zero)
+      let outcome ← Meta.mkFreshExprMVar anyType
+      let fact ← Meta.mkFreshExprMVar anyType
+      let expected ← Meta.mkAppM ``List #[← Meta.mkAppM ``Umpire.Step #[stateType, outcome, fact]]
+      unless (← Meta.isDefEq result expected) do
         throwErrorAt stepRef (stepSignatureMessage declName)
-      let some outcome := arguments[1]!.getAppFn.constName?
+      let some outcomeName := (← instantiateMVars outcome).getAppFn.constName?
         | throwErrorAt stepRef (stepSignatureMessage declName)
-      let some fact := arguments[2]!.getAppFn.constName?
+      let some factName := (← instantiateMVars fact).getAppFn.constName?
         | throwErrorAt stepRef (stepSignatureMessage declName)
-      pure (outcome, fact)
-
+      pure (outcomeName, factName)
 
 elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => do
   let mut entity : Option Registry.EntityEntry := none
@@ -1296,6 +1305,49 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
       action := declared
       domains := declared.inputFields.map Prod.snd
       function := functionRef }
+  -- The machine's Action domain is synthesized, one constructor per action it steps on, carrying
+  -- that action's input fields. The author writes one function per action over that action's own
+  -- inputs; the enumerator walks one `State -> Action -> List (Step ...)`, and this is what makes
+  -- the first into the second without the author writing a sum type by hand.
+  let actionType := mkIdentFrom name (name.getId ++ `Action)
+  let constructors ← steps.mapM fun resolved => do
+    let constructorName := mkIdent (Name.mkSimple resolved.action.name)
+    let binders ← resolved.action.inputFields.mapM fun (field, domain) =>
+      `(Lean.Parser.Term.bracketedBinderF|
+        ($(mkIdent (Name.mkSimple field)) : $(mkIdent domain)))
+    `(Lean.Parser.Command.ctor| | $constructorName:ident $binders*)
+  elabCommand (← `(command|
+    inductive $actionType where
+      $constructors:ctor*
+      deriving BEq, DecidableEq, Repr, Umpire.Command.Finite))
+  -- The Outcome and Fact domains are the ones the author's own functions return. Every step function
+  -- of one machine returns into one pair, so the first is read and the rest are required to agree.
+  let mut domains : Option (Name × Name) := none
+  for resolved in steps do
+    let declName ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo resolved.function)
+    let found ← stepResultDomains resolved.function declName stateDecl resolved.domains.size
+    match domains with
+    | none => domains := some found
+    | some expected =>
+        unless found == expected do
+          throwErrorAt resolved.function (disagreeingDomainsMessage expected.1 expected.2 found.1 found.2)
+  let some (outcomeType, factType) := domains
+    | throwErrorAt name (missingKeyMessage "machine" "steps:")
+  -- One total step function over the synthesized domain, dispatching to the author's own. This is
+  -- the only thing the enumerator sees; nothing downstream knows there was more than one function.
+  let stateBinder := mkIdent `state
+  let dispatchArms ← steps.mapM fun resolved => do
+    let constructorName := mkIdent (Name.mkSimple resolved.action.name)
+    let binders := (List.range resolved.domains.size).toArray.map fun index =>
+      mkIdent (Name.mkSimple s!"carried{index}")
+    let arguments : Array Term := #[stateBinder] ++ binders
+    `(Lean.Parser.Term.matchAltExpr|
+      | .$constructorName:ident $binders* => $(resolved.function) $arguments*)
+  let stepName := mkIdentFrom name (name.getId ++ `step)
+  elabCommand (← `(command|
+    def $stepName ($stateBinder : $stateType) :
+        $actionType → List (Umpire.Step $stateType $(mkIdent outcomeType) $(mkIdent factType))
+      $dispatchArms:matchAlt*))
   pure ()
 
 elab doc?:(docComment)? observationKeyword name:ident keys:observationKey+ : command => do
