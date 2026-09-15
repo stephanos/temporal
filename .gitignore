@@ -73,3 +73,7 @@ testdata/
 
 # Locally built tool binaries
 /.build/
+
+# Temp helper the Lean dynamic-config catalog generator writes beside its own source and deletes
+# (os.CreateTemp, so the name carries a random suffix); a run that overlaps a commit must not add it.
+tools/umpire/cmd/*/zz_*_helper_*.go
