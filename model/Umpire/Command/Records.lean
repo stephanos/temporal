@@ -220,9 +220,10 @@ def Action.classesOf (action : Action) (field : String) : List ModelValue :=
   | some input => input.classes
   | none => []
 
-/-- The example one class of one field resolves to, if the action declares one. A class with several
-members and no example cannot be realized, which is a Case-production rejection rather than a
-declaration error: a Model is admissible whether or not every class is realized. -/
+/-- The example one class of one field resolves to, if the action declares one. A class the Model
+cannot realize on its own -- one standing for several realized values, which is what writing an
+example claims -- and no example cannot be produced, which is a Case-production rejection rather
+than a declaration error: a Model is admissible whether or not every class is realized. -/
 def Action.example? (action : Action) (field pattern : String) : Option Example :=
   action.examples.find? fun entry =>
     entry.action == action.id && entry.field == field && entry.pattern == pattern

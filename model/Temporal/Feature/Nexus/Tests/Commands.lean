@@ -51,9 +51,10 @@ different files carry different ids. -/
 
 /-! ### The input domains
 
-Each constructor is a **class**: a set of concrete values claimed to behave alike. A constructor
-that carries finite fields is one class with several members, which is what mirrors a protobuf
-oneof. -/
+A **class** is a set of realized values claimed to behave alike, and a class is one *member* of the
+domain: a constructor that carries finite fields contributes one class per assignment of them, so
+`handlerError (retryable : Bool)` is one constructor and two classes. That is the granularity an
+example is written at, and what mirrors a protobuf oneof. -/
 
 enum Timeout
   | unset
@@ -235,6 +236,17 @@ error: key name 'scheduledEvent' is already the key of entity 'operation'; recor
 #guard_msgs in
 entity shadowing
   key: scheduledEvent
+
+/- A reference is named by its field, so two references may not share one: the rule the key name
+carries within a Model, a reference field carries within an entity. -/
+/--
+error: the entity refers by 'caller' twice; a row names a reference by its field, and two would not say which one it means
+-/
+#guard_msgs in
+entity twiceReferred
+  refer:
+    caller: workflow
+    caller: operation
 
 /--
 error: the action declares 'party:' twice; each key is declared once
