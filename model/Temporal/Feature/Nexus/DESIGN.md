@@ -101,12 +101,14 @@ Unauthenticated, NotFound and more -- so writing an **example** for a class is w
 values behave alike; the example is the concrete value a functional test uses, and an exploratory run
 tries the others (section 2.6).
 
-> Amended during fn-85 `.2`, 2026-09-15. This paragraph read "each *constructor* is a class", which
-> its own two `examples:` lines below contradict: they write one example for
-> `handlerError (retryable := false)` and another for `(retryable := true)`, which are two classes
-> only under the members reading. The implementation follows the members reading. It also follows
-> that nothing in a Model counts the realized values a class covers, so R8's abstraction claim is
-> triggered by the presence of an example rather than by a member count -- recorded on task `.7`.
+> Amended during fn-85 `.2`, 2026-09-15. This paragraph read "each *constructor* is a class", and
+> then, one sentence later, called `handlerError (retryable := false)` a class -- a fully applied
+> constructor, which is a member. The `examples:` block below says the same thing again, writing one
+> example for `(retryable := false)` and another for `(retryable := true)`. The old text was
+> internally inconsistent rather than uniformly wrong, and the implementation follows the members
+> reading. It also follows that nothing in a Model counts the realized values a class covers, so
+> R8's abstraction claim is triggered by the presence of an example rather than by a member count --
+> recorded on task `.7`.
 
 **Schema.** When present, class members and examples are checked against the named protobuf message
 while the file compiles. An action whose payload has no protobuf message (the Nexus HTTP completion
