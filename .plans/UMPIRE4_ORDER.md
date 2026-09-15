@@ -258,10 +258,32 @@ Three things were decided during delivery.
 - **Two R1 and R2 rejections have no syntax to fire on in `.2`.** An instance bound of zero was already
   `.4`'s, where instance bounds are declared. An evidence name that is neither catalogued nor declared
   moved to `.14`, which introduces `evidence:`; it is recorded there.
+- **A class is a member of an input domain, not a constructor.** `handlerError (retryable : Bool)` is
+  one constructor and two classes, which is the granularity `DESIGN.md` section 2.2 writes an example
+  at and the only reading under which the design's own two example lines are both legal. It follows
+  that every class has exactly one member and nothing in a Model counts the realized values a class
+  covers, so R8's abstraction claim is triggered by the presence of an `examples:` line rather than by
+  a member count. That amendment is recorded on `.7`.
+
+**Two review rounds, both NEEDS_WORK, both fixed.** Round one found that a declaration's rules were
+being applied against the whole import closure rather than the file -- the second feature Model to
+declare `entity workflow` would have been rejected by the first -- and that a reference rebuilt the
+referenced declaration's Definition ID from the *referring* file's `Origin`, so an entity, enum or
+observation named across files pointed at a name in the wrong family. Round two found the second fix
+half done: an entity's id was stored, but an enum's was still rebuilt at the reference, reading the
+referring file's `model_conventions` visibility. A declaration now records its own id where it is
+written -- `Registry.EntityEntry.id` and the new `Registry.DomainEntry` -- and every reference emits
+that. `Temporal.Feature.Nexus.Tests.SecondModel` is the second Model file both defects needed to
+surface.
+
+Round two also found that walking a domain's members re-derives what `Umpire.Command.Finite`
+enumerates, so a hand-written instance could satisfy the gate for a type whose constructors do not
+enumerate and the walk would exhaust the stack with no location. A constructor field is now an
+`enum`, a `Bool` or a count, named at the line that carries it.
 
 Its review is a self-review: no second backend is reachable in a cloud session, so `codex exec`,
-`cursor-agent` and `grok` all fall back to the session model. `.1`, `.2` and `.3` each owe a
-cross-model re-review before the completion review.
+`cursor-agent` and `grok` are not installed and all fall back to the session model. `.1`, `.2` and
+`.3` each owe a cross-model re-review before the completion review.
 
 **`flowctl ready` reports fn-85 blocked by fn-87**, because fn-87's spec is still `open`: `spec close`
 needs runtime task state, which lives in a clone's `.git` and which a fresh cloud clone does not have.
