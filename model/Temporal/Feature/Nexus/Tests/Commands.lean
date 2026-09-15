@@ -194,6 +194,11 @@ observation pendingAttempts
 #guard pendingAttempts.name == "pendingAttempts"
 #guard pendingAttempts.entity == operation.id
 
+inductive Plain where
+  | a
+  | b
+  deriving BEq, DecidableEq, Repr, Umpire.Command.Finite
+
 /-! ### What the commands reject
 
 Each rejection points at the line that made it, because a Model file is read and corrected one line
@@ -341,16 +346,70 @@ action unappliedClass
   examples:
     handlerError → BadRequest
 
-/- A class is what it denotes, not how it was typed: the same class written with a redundant
-parenthesis, or with its bindings in another order, is the same class. -/
+/-! ### Shapes the design does not write
+
+The design's specimen is one feature's, and these are the shapes a command has to get right that it
+happens not to contain: a class written differently from the way it is stored, a class whose field is
+itself a class, and a domain that is finite without being an `enum`. -/
+
+/- A class is what it denotes, not how it was typed. A redundant parenthesis and a different order of
+bindings are the same class, and what is stored is the class as the domain spells it. -/
+enum Retry
+  | attempt (retryable : Bool) (final : Bool)
+
 action spellingVariants
   party: handler
   on: operation
   input:
     reply: Reply
+    retry: Retry
   examples:
     handlerError (retryable := (false)) → BadRequest
+    attempt (final := true, retryable := false) → Exhausted
 
-#guard spellingVariants.examples.map (·.pattern) == ["handlerError (retryable := false)"]
+#guard spellingVariants.examples.map (·.pattern) ==
+  ["handlerError (retryable := false)", "attempt (retryable := false, final := true)"]
+
+/- A class whose field is itself a class is spelled whole, and an example names it whole. -/
+enum Inner
+  | plain
+  | carried (flag : Bool)
+
+enum Outer
+  | wraps (inner : Inner)
+
+action nestedClass
+  party: handler
+  on: operation
+  input:
+    outer: Outer
+  examples:
+    wraps (inner := carried (flag := false)) → Nested
+
+#guard (nestedClass.input.map fun field => field.classes.map (·.value)) ==
+  [["wraps (inner := plain)", "wraps (inner := carried (flag := false))",
+    "wraps (inner := carried (flag := true))"]]
+#guard nestedClass.examples.map (·.pattern) == ["wraps (inner := carried (flag := false))"]
+
+/- Every domain's classes are its members: the walk that writes a class out and the enumeration that
+`Finite` derives are two derivations of one list, and this is what ties them together. -/
+#guard (spellingVariants.input.map fun field => field.classes.length) ==
+  [(members (α := Reply)).length, (members (α := Retry)).length]
+#guard (nestedClass.input.map fun field => field.classes.length) == [(members (α := Outer)).length]
+#guard (complete.input.map fun field => field.classes.length) == [(members (α := Resolution)).length]
+#guard (schedule.input.map fun field => field.classes.length) ==
+  [(members (α := Timeout)).length, (members (α := Timeout)).length,
+    (members (α := Timeout)).length]
+
+/- A finite domain that is not an `enum` is not an input domain: a class's Definition ID hangs off
+the `enum` that declared it, and a plain `inductive` records none. -/
+/--
+error: 'Plain' is not an `enum` declaration; an input field ranges over an `enum`, whose members are its classes and whose Definition ID they hang off
+-/
+#guard_msgs in
+action usesPlain
+  party: caller
+  input:
+    p: Plain
 
 end Temporal.Feature.Nexus.Tests.Commands
