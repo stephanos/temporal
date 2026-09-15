@@ -1,6 +1,7 @@
 import Batteries.Tactic.Lint
 import Lake.CLI.Main
 import ModelLint.ImportGraph
+import ModelLint.PackageModules
 import Tools.LeanImportGraph.Metadata
 import Tools.LeanSourceInventory
 
@@ -13,61 +14,48 @@ namespace ModelLint
 
 open ImportGraph
 
-private def buildOwnedSources (sources : Array SourceRecord) : IO Unit := do
-  -- The running executable already proves `ModelLint` current; Lake refreshes every other root.
-  let ordinaryModules := sources.filterMap fun source =>
-    if source.module == `ModelLint || source.module == `ModelLint.ImportGraphTests then none
-    else some s!"+{source.module}"
-  let args := #["build", "umpire-lint-tests"] ++ ordinaryModules
-  let child ← IO.Process.spawn {
-    cmd := (← IO.getEnv "LAKE").getD "lake"
-    args
-    stdin := .null
-  }
-  let exitCode ← child.wait
-  if exitCode != 0 then
-    throw <| IO.userError "Lake failed to make every owned model source current"
+/-- Replay what the child build wrote, to the channels it would have written to.
 
-private def captureStep (category : String) (action : IO α) : IO (Except String α) := do
-  try
-    pure <| .ok (← action)
-  catch error =>
-    pure <| .error s!"[model-import-graph/{category}] {error}"
-
-private def excludedSourceDirectories : Array String :=
-  #[".git", ".lake", ".flow", "build", "dist", "runtime", "target", "tmp"]
+`umpire-lint` is a person's terminal: Lake's progress belongs on the same streams whether or not the
+build succeeded. The exporter reads the same transcript and keeps only a failure's, which is why the
+loader returns it rather than printing it. -/
+private def replay (transcript : PackageModules.BuildTranscript) : IO Unit := do
+  unless transcript.stdout.isEmpty do IO.print transcript.stdout
+  unless transcript.stderr.isEmpty do IO.eprint transcript.stderr
 
 private unsafe def lintImportGraph : IO Bool := do
-  match ← captureStep "inventory"
-      (Tools.LeanSourceInventory.canonicalPackageSources excludedSourceDirectories) with
-  | .error error => IO.eprintln error; pure false
-  | .ok sources =>
-    let sourceIssues := validateSources defaultPolicy sources
-    if !sourceIssues.isEmpty then
-      for issue in sourceIssues do
+  match ← PackageModules.load defaultPolicy PackageModules.liveEffects with
+  | .error (.discovery message) =>
+      IO.eprintln s!"[model-import-graph/inventory] {message}"
+      pure false
+  | .error (.sources issues) =>
+      for issue in issues do
+        IO.eprintln (ImportGraph.InventoryIssue.render issue)
+      pure false
+  | .error (.build transcript) =>
+      replay transcript
+      IO.eprintln "[model-import-graph/build] Lake failed to make every owned model source current"
+      pure false
+  | .error (.metadata issues) =>
+      for issue in issues do
         IO.eprintln issue.render
       pure false
-    else
-      match ← captureStep "build" (buildOwnedSources sources) with
-      | .error error => IO.eprintln error; pure false
-      | .ok _ =>
-        match ← captureStep "metadata"
-            (Tools.LeanImportGraph.Metadata.load (sources.map (·.module))
-              defaultPolicy.isFirstParty) with
-        | .error error => IO.eprintln error; pure false
-        | .ok (modules, regions) =>
-          let inventoryIssues := reconcile defaultPolicy sources modules
-          for issue in inventoryIssues do
-            IO.eprintln issue.render
-          let violations := check defaultPolicy modules
-          for violation in violations do
-            IO.eprintln violation.render
-          let _loadedRegionCount := regions.size
-          if inventoryIssues.isEmpty && violations.isEmpty then
-            IO.println "-- Model import-graph linting passed."
-            pure true
-          else
-            pure false
+  | .ok loaded =>
+      replay loaded.transcript
+      let inventoryIssues := reconcile defaultPolicy loaded.sources loaded.modules
+      for issue in inventoryIssues do
+        IO.eprintln (ImportGraph.InventoryIssue.render issue)
+      let violations := check defaultPolicy loaded.modules
+      for violation in violations do
+        IO.eprintln violation.render
+      -- The records' names may point into the mapped module data, so the regions stay reachable
+      -- until every reader above has finished with them.
+      let _loadedRegionCount := loaded.regions.size
+      if inventoryIssues.isEmpty && violations.isEmpty then
+        IO.println "-- Model import-graph linting passed."
+        pure true
+      else
+        pure false
 
 end ModelLint
 
