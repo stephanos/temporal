@@ -292,7 +292,7 @@ action unknownSchema
 /- An example stands for a class this action declares; one that matches none is an example of
 nothing. -/
 /--
-error: 'notAClass' matches no class of this action: an example names one of the classes of one of the action's own `input:` domains
+error: 'notAClass' matches no class of this action: an example names one of the classes of one of the action's own `input:` domains, written with the constructor's own name and its fields by name
 -/
 #guard_msgs in
 action strayExample
@@ -321,7 +321,7 @@ action twoExamples
 /- A binding of a field the constructor does not carry names a class the domain has no member for,
 which is the same rejection as a constructor that does not exist -- an example of nothing. -/
 /--
-error: 'handlerError (retryable := false, retried := true)' matches no class of this action: an example names one of the classes of one of the action's own `input:` domains
+error: 'handlerError (retryable := false, retried := true)' matches no class of this action: an example names one of the classes of one of the action's own `input:` domains, written with the constructor's own name and its fields by name
 -/
 #guard_msgs in
 action strayBinding
@@ -335,7 +335,7 @@ action strayBinding
 /- A class the constructor carries but the example leaves unapplied is a class too, and naming the
 constructor alone names none of them. -/
 /--
-error: 'handlerError' matches no class of this action: an example names one of the classes of one of the action's own `input:` domains
+error: 'handlerError' matches no class of this action: an example names one of the classes of one of the action's own `input:` domains, written with the constructor's own name and its fields by name
 -/
 #guard_msgs in
 action unappliedClass
@@ -419,6 +419,51 @@ action collidingNames
 
 #guard collidingNames.examples.map (·.pattern) == ["a (bc := false)", "ab (c := false)"]
 #guard collidingNames.examples.map (·.member.value) == ["Second", "First"]
+
+/- Two domains may declare a constructor of the same name -- `DESIGN.md` section 3 declares
+`handlerError` on both `Reply` and `CancelReply` -- so a qualification an example writes is checked
+rather than discarded. A name that qualifies the field's own domain names its class; one that
+qualifies another domain names none. -/
+enum OtherReply
+  | handlerError (retryable : Bool)
+
+action qualifiedClass
+  party: handler
+  on: operation
+  input:
+    reply: Reply
+  examples:
+    Reply.handlerError (retryable := false) → BadRequest
+
+#guard qualifiedClass.examples.map (·.pattern) == ["handlerError (retryable := false)"]
+
+/--
+error: 'OtherReply.handlerError (retryable := false)' matches no class of this action: an example names one of the classes of one of the action's own `input:` domains, written with the constructor's own name and its fields by name
+-/
+#guard_msgs in
+action otherDomainsClass
+  party: handler
+  on: operation
+  input:
+    reply: Reply
+  examples:
+    OtherReply.handlerError (retryable := false) → BadRequest
+
+/- A class is written with its constructor's own name and its fields by name. A positional argument
+leaves the field unnamed, so it says which constructor but not which class. (Dot notation does not
+reach this rejection at all: an example line starts with a name, so `.handlerError` is refused by the
+parser before a class is looked for.) -/
+/--
+error: 'wraps (inner := carried false)' matches no class of this action: an example names one of the classes of one of the action's own `input:` domains, written with the constructor's own name and its fields by name
+-/
+#guard_msgs in
+action positionalField
+  party: handler
+  on: operation
+  input:
+    outer: Outer
+  examples:
+    wraps (inner := carried false) → Nested
 
 /- A finite domain that is not an `enum` is not an input domain: a class's Definition ID hangs off
 the `enum` that declared it, and a plain `inductive` records none. -/
