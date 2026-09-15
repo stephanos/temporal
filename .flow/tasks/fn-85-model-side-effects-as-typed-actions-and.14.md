@@ -37,7 +37,7 @@ Split out of the former single `.3` by plan review round 1 (finding F2), which f
 
 ## Acceptance
 - [ ] `machine` elaborates the DESIGN.md section 3 `nexusProduct` and `nexusProtocol` machines (without the cancel rows) written as step functions into checked `Umpire.Machine` records; `model` no longer elaborates
-- [ ] a non-finite state or input field, a step with another signature, a stuck non-terminal state (with its witness), `terminal` without `ends:`, a timer no step names, an evidence outcome the step never returns, and a system or timer step without evidence or `unobservable` each reject in place, pinned by `#guard_msgs`; a redundant `match` arm surfaces as Lean's error at the function
+- [ ] a non-finite state or input field, a step with another signature, a stuck non-terminal state (with its witness), `terminal` without `ends:`, a timer no step names, an evidence outcome the step never returns, an evidence name that is neither in the realization's catalog nor a declared `observation` (deferred here from task .2, which has no `evidence:` line to reject on), and a system or timer step without evidence or `unobservable` each reject in place, pinned by `#guard_msgs`; a redundant `match` arm surfaces as Lean's error at the function
 - [ ] a Search over a machine with a timer fires it only while its step returns a successor; timer firings and fault actions count toward the Limits, pinned by a `#guard` on `limitReached`
 - [ ] all 18 `model` declarations and 33 command specimens are respelled; `model` is retired in the vocabulary gate or the reason it cannot be is recorded
 - [ ] the success Model regenerates the async-Nexus fixture byte-identical through `case`; `lake build TemporalModelTests UmpireTests` green; `make lint-model` green

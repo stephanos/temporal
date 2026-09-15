@@ -37,6 +37,7 @@ Add the three typed worker instructions (R10, first half): a workflow command ca
 ## Acceptance
 - [ ] the three instructions exist with carried API messages; the Lean declarations and the Go Driver support them; a conformance case per carried message passes against the Temporal Driver
 - [ ] an invalid duration, an unsettable field, a reply the activation does not admit and a non-admitted command type each reject at preparation with an existing category, pinned by unit test and corpus case
+- [ ] a class member or `examples:` member outside the action's `schema:` message rejects in place, pinned by `#guard_msgs` (deferred here from task .2: the members the design's own examples name are values of `temporal.api.nexus.v1.HandlerError.error_type`, a protobuf `string`, so until an action's payload declares typed fields the descriptor carries nothing to check them against)
 - [ ] the Nexus realization binds `schedule`, every `handlerReply` class and both `complete` classes to the new instructions; the hand-built Query 2 Case from task .1 regenerates on them with the diff listed
 - [ ] the extension checklist was followed and any missing place is added to it; `make umpire-check-regression` exit 0
 

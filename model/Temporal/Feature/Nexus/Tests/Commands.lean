@@ -280,4 +280,19 @@ action strayExample
   examples:
     notAClass → BadRequest
 
+/- A class stands for one concrete member; two examples for the same class would not say which Case
+the Model produces. -/
+/--
+error: 'handlerError (retryable := false)' already has an example; a class has one concrete member, or the Case it produces would not be one Case
+-/
+#guard_msgs in
+action twoExamples
+  party: handler
+  on: operation
+  input:
+    reply: Reply
+  examples:
+    handlerError (retryable := false) → BadRequest
+    handlerError (retryable := false) → Unauthenticated
+
 end Temporal.Feature.Nexus.Tests.Commands
