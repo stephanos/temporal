@@ -105,6 +105,21 @@ structure ActionEntry where
   results : Option Name
   deriving Inhabited, Repr, BEq
 
+/-- One declared machine: the entity it tracks, the state structure it keeps, and the action each of
+its step functions steps on. A later command reads it rather than re-reading the declaration. -/
+structure MachineEntry where
+  declName : Name
+  name : String
+  /-- The Definition ID the declaration carries. -/
+  id : String
+  /-- The entity the machine tracks, as its declaration name. -/
+  entity : Name
+  /-- The structure whose members are the machine's states. -/
+  stateType : Name
+  /-- Each `steps:` line as (the action's declaration name, the step function). -/
+  steps : Array (Name × Name)
+  deriving Inhabited, Repr, BEq
+
 /-- One declared observation: the entity whose key finds its instance, and the field it reads. -/
 structure ObservationEntry where
   declName : Name
@@ -155,6 +170,12 @@ initialize domainExtension : SimplePersistentEnvExtension DomainEntry (Array Dom
     addImportedFn := collect
   }
 
+initialize machineExtension : SimplePersistentEnvExtension MachineEntry (Array MachineEntry) ←
+  registerSimplePersistentEnvExtension {
+    addEntryFn := Array.push
+    addImportedFn := collect
+  }
+
 initialize entityExtension : SimplePersistentEnvExtension EntityEntry (Array EntityEntry) ←
   registerSimplePersistentEnvExtension {
     addEntryFn := Array.push
@@ -199,6 +220,9 @@ def recordEntity (entry : EntityEntry) : CoreM Unit :=
 def recordDomain (entry : DomainEntry) : CoreM Unit :=
   modifyEnv fun env => domainExtension.addEntry env entry
 
+def recordMachine (entry : MachineEntry) : CoreM Unit :=
+  modifyEnv fun env => machineExtension.addEntry env entry
+
 def recordAction (entry : ActionEntry) : CoreM Unit :=
   modifyEnv fun env => actionExtension.addEntry env entry
 
@@ -214,6 +238,11 @@ def domains (env : Environment) : Array DomainEntry := domainExtension.getState 
 
 def domain? (env : Environment) (declName : Name) : Option DomainEntry :=
   (domains env).find? (·.declName == declName)
+
+def machines (env : Environment) : Array MachineEntry := machineExtension.getState env
+
+def machine? (env : Environment) (declName : Name) : Option MachineEntry :=
+  (machines env).find? (·.declName == declName)
 
 def entities (env : Environment) : Array EntityEntry := entityExtension.getState env
 
