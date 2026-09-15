@@ -192,7 +192,7 @@ private def definitionIdHere (kind key : String) : CommandElabM String := do
 `enum` is the four vocabulary declarations a Model file makes, without the `deriving` clause the
 `model` command requires and the author has no reason to think about. It resolves nothing and
 reorders nothing: the constructors in declaration order are the ordered domain, which is what AUT-09
-means by author-provided. A plain `inductive` is still admitted; `enum` is shorthand for exactly the
+means by author-provided. `enum` is shorthand for exactly the
 one it would have written. -/
 
 -- A member's own doc comment goes after its bar, not before it. Before the bar it would be
@@ -215,10 +215,22 @@ elab doc?:(docComment)? &"enum" name:ident
   -- The id is recorded here, where the declaring file's conventions and namespace are the ones in
   -- scope. A field that named this domain and rebuilt its id would read its own file's conventions,
   -- and two Models sharing a domain would disagree about what it is called.
-  liftCoreM (Registry.recordDomain {
-    declName := (← getCurrNamespace) ++ name.getId
-    name := name.getId.toString
-    id := ← definitionIdHere "enum" name.getId.toString })
+  --
+  -- It is recorded only once the `Finite` instance exists. A failed `deriving` is logged rather than
+  -- thrown, so without this a domain whose members do not enumerate would still be a domain a later
+  -- command walks, and the error it already reported would be followed by a worse one.
+  let declName := (← getCurrNamespace) ++ name.getId
+  let enumerates ← liftTermElabM do
+    match (← getEnv).find? declName with
+    | some _ =>
+        let domainType ← mkConstWithLevelParams declName
+        pure (← Meta.synthInstance? (← Meta.mkAppM ``Umpire.Command.Finite #[domainType])).isSome
+    | none => pure false
+  if enumerates then
+    liftCoreM (Registry.recordDomain {
+      declName
+      name := name.getId.toString
+      id := ← definitionIdHere "enum" name.getId.toString })
 
 private def memberIdents (constructors : List Name) : Array Term :=
   constructors.toArray.map fun constructor => mkIdent constructor
@@ -718,6 +730,14 @@ private def unspellableFieldMessage (domain : Name) (field : String) (type : Mes
   m!"the class '{domain}' carries a field '{field}' of type {type}, which is not a domain a class \
 can be written over: a constructor field is another `enum` declaration, a `Bool`, or a count"
 
+private def notAnEnumMessage (spelling : Name) : String :=
+  s!"'{spelling}' is not an `enum` declaration; an input field ranges over an `enum`, whose members \
+are its classes and whose Definition ID they hang off"
+
+private def recursiveDomainMessage (domain : Name) : String :=
+  s!"'{domain}' carries itself, so its members cannot be written out; a class is a finite spelling, \
+and a domain that contains itself has no finite one"
+
 private def domainTooLargeMessage (domain : Name) (size bound : Nat) : String :=
   s!"'{domain}' has more than {bound} members ({size} and still counting); a class is written out \
 one per member, and the elaboration bound is {bound}"
@@ -752,12 +772,18 @@ the enumeration are the same number.
 
 A type this cannot spell is one `Finite` would also have refused, except `Fin`, which is spelled by
 its numeral. -/
-private partial def domainMembers (domainRef : Ident) (declName : Name) : CommandElabM (List String) := do
+private partial def domainMembers (domainRef : Ident) (declName : Name)
+    (visiting : List Name := []) : CommandElabM (List String) := do
+  -- A domain that carries itself has no finite spelling, and walking into it would not terminate.
+  -- The bound below is a width, so the depth needs its own answer.
+  if visiting.contains declName then
+    throwErrorAt domainRef (recursiveDomainMessage declName)
+  let visiting := declName :: visiting
   match (← getEnv).find? declName with
   | some (.inductInfo info) =>
       let mut members := []
       for constructor in info.ctors do
-        members := members ++ (← constructorMembers declName constructor)
+        members := members ++ (← constructorMembers declName constructor visiting)
         if members.length > elaborationBound then
           throwErrorAt domainRef (domainTooLargeMessage declName members.length elaborationBound)
       pure members
@@ -765,7 +791,8 @@ private partial def domainMembers (domainRef : Ident) (declName : Name) : Comman
 where
   /-- One constructor's members: itself when it takes no argument, and every assignment of its
   arguments otherwise. -/
-  constructorMembers (declName constructor : Name) : CommandElabM (List String) := do
+  constructorMembers (declName constructor : Name) (visiting : List Name) :
+      CommandElabM (List String) := do
     let declaration ← liftTermElabM (getConstInfoCtor constructor)
     let spelling := constructor.getString!
     if declaration.numFields == 0 then
@@ -779,7 +806,7 @@ where
     -- The first field varies slowest, so the members read in the order the constructor is written.
     let mut assignments : List (List String) := [[]]
     for (field, type) in fields do
-      let values ← fieldValues declName field type
+      let values ← fieldValues declName field type visiting
       assignments := assignments.flatMap fun assigned =>
         values.map fun value => assigned ++ [s!"{field} := {value}"]
       if assignments.length > elaborationBound then
@@ -792,7 +819,8 @@ where
   a two-member instance is the smallest -- and walking into it would not terminate. A field is an
   `enum` declaration, a `Bool`, or a count, and anything else is named here rather than found by
   running out of stack. -/
-  fieldValues (declName : Name) (field : String) (type : Expr) : CommandElabM (List String) := do
+  fieldValues (declName : Name) (field : String) (type : Expr) (visiting : List Name) :
+      CommandElabM (List String) := do
     let unspellable : CommandElabM (List String) := do
       throwErrorAt domainRef (unspellableFieldMessage declName field (← liftTermElabM (Meta.ppExpr type)))
     match type.getAppFn with
@@ -807,7 +835,7 @@ where
               | none => unspellable
           | none => unspellable
         else if (Registry.domain? (← getEnv) name).isSome then
-          domainMembers domainRef name
+          domainMembers domainRef name visiting
         else
           unspellable
     | _ => unspellable
@@ -838,7 +866,7 @@ private def resolveDomain (domainRef : Ident) : CommandElabM (Name × String × 
       throwErrorAt domainRef (undeclaredDomainMessage domainRef.getId)
   -- The id comes from the `enum` that declared it, never from this file: see `Registry.DomainEntry`.
   let some declared := Registry.domain? (← getEnv) declName
-    | throwErrorAt domainRef (undeclaredDomainMessage domainRef.getId)
+    | throwErrorAt domainRef (notAnEnumMessage domainRef.getId)
   pure (declName, declared.id, ← domainMembers domainRef declName)
 
 elab doc?:(docComment)? entityKeyword name:ident keys:entityKey* : command => do
@@ -1012,9 +1040,13 @@ elab doc?:(docComment)? actionKeyword name:ident keys:actionKey+ : command => do
     let mut matched : Option (String × String × String) := none
     for (field, declName, domainId, classes) in inputFields do
       if matched.isNone then
-        if let some spelling ← canonicalExample declName line then
-          if classes.contains spelling then
-            matched := some (field, domainId, spelling)
+        if let some written ← canonicalExample declName line then
+          -- Both sides go through `normalizeValue`, because only one of them was built from what the
+          -- author typed: a nested class is rendered whole by the walk and rendered through the
+          -- normaliser here, and comparing them raw would leave a class no example can name.
+          if let some class? := classes.find? fun spelling =>
+              normalizeValue spelling == normalizeValue written then
+            matched := some (field, domainId, class?)
     let some (field, domainId, spelling) := matched
       | throwErrorAt line.ref (unmatchedExampleMessage line.written)
     if resolved.any fun (_, _, seen, _) => seen == spelling then
