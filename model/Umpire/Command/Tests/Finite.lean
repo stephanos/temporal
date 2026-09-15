@@ -187,13 +187,29 @@ rather than wrapping. The last member is "at the limit", which is what a Propert
 #guard (members (α := Fin 3)).map (fun count => (saturatingSucc count).val) == [1, 2, 2]
 #guard (members (α := Fin 3)).map limitReached == [false, false, true]
 
+/-! ### Classes: a constructor that carries finite fields
+
+An `enum` constructor with arguments is a **class** — a set of concrete values an author claims behave
+alike. It enumerates as the product of its arguments, so a class with one `Bool` has two members and a
+constructor with none is the single-member case. -/
+
+inductive Reply where
+  | async
+  | sync
+  | handlerError (retryable : Bool)
+  deriving BEq, DecidableEq, Repr, Finite
+
+/- The classes in declaration order, each expanded into its members. -/
+#guard members (α := Reply) ==
+  [.async, .sync, .handlerError false, .handlerError true]
+
 /-! ### What `Finite` refuses
 
 Both refusals name the declaration and the thing that made it infinite, at the `deriving` clause, so
-an author reads the field or constructor to change rather than an instance-search failure. -/
+an author reads the field or argument to change rather than an instance-search failure. -/
 
 /--
-error: cannot derive Finite for Umpire.Command.Tests.Enumeration.Labelled: its field 'label' has type String, which has no finite member list. A machine's state fields are an enum-like inductive, Bool, a count as Fin (bound + 1), or a structure of those.
+error: cannot derive Finite for Umpire.Command.Tests.Enumeration.Labelled: its field 'label', of type String, has no finite member list. A finite domain is an enum-like inductive, an inductive whose constructor arguments are themselves finite, Bool, a count as Fin (bound + 1), or a structure of those.
 -/
 #guard_msgs in
 structure Labelled where
@@ -201,7 +217,7 @@ structure Labelled where
   deriving Finite
 
 /--
-error: cannot derive Finite for Umpire.Command.Tests.Enumeration.Parameterized: its constructor Umpire.Command.Tests.Enumeration.Parameterized.carries takes an argument, so the type has no finite member list. An enum-like inductive, Bool, Fin (n + 1), or a structure of those does.
+error: cannot derive Finite for Umpire.Command.Tests.Enumeration.Parameterized: its constructor Umpire.Command.Tests.Enumeration.Parameterized.carries's argument 'value', of type Nat, has no finite member list. A finite domain is an enum-like inductive, an inductive whose constructor arguments are themselves finite, Bool, a count as Fin (bound + 1), or a structure of those.
 -/
 #guard_msgs in
 inductive Parameterized where

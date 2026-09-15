@@ -147,18 +147,61 @@ namespace Umpire.Command.Deriving
 
 open Lean Elab Command Term Meta
 
-/-- The members of an enum-like inductive: its constructors, in declaration order. A constructor that
-takes an argument is not a member, and is refused by name. -/
-private def enumMembers (declName : Name) (info : InductiveVal) : CommandElabM (Array Term) := do
-  let mut terms := #[]
-  for constructor in info.ctors do
-    let declaration ← liftTermElabM (getConstInfoCtor constructor)
-    if declaration.numFields != 0 then
-      throwError "cannot derive Finite for {declName}: its constructor \
-{constructor} takes an argument, so the type has no finite member list. An enum-like \
-inductive, Bool, Fin (n + 1), or a structure of those does."
-    terms := terms.push (mkIdent constructor)
-  pure terms
+/-- Refuse one type, naming the part that made it infinite. Both refusals read the same way, because
+an author changes a field or a constructor argument either way. -/
+private def refuse (declName : Name) (part : MessageData) : CommandElabM α :=
+  throwError "cannot derive Finite for {declName}: {part} has no finite member list. \
+A finite domain is an enum-like inductive, an inductive whose constructor arguments are themselves \
+finite, Bool, a count as Fin (bound + 1), or a structure of those."
+
+/-- Require a type to be `Finite` here, rather than letting the generated term fail instance search:
+the search reports the type it could not solve, and an author needs the field or argument that
+introduced it. -/
+private def requireFinite (declName : Name) (part : MessageData) (type : Expr) :
+    CommandElabM Unit := do
+  let finiteType ← liftTermElabM (mkAppM ``Umpire.Command.Finite #[type])
+  unless (← liftTermElabM (synthInstance? finiteType)).isSome do
+    refuse declName m!"{part}, of type {type},"
+
+/-- The members one constructor contributes: itself when it takes no argument, and the product of its
+arguments' members when it takes some.
+
+A constructor with arguments is what the spec calls a **class**: `handlerError (retryable : Bool)`
+is one class whose two members are the concrete values an author may claim behave alike. Its
+arguments must be finite for the class to enumerate, and each is checked by name. -/
+private def constructorMembers (declName : Name) (constructor : Name) : CommandElabM Term := do
+  let declaration ← liftTermElabM (getConstInfoCtor constructor)
+  let constructorId := mkIdent constructor
+  if declaration.numFields == 0 then
+    return ← `([$constructorId:ident])
+  let (names, types) ← liftTermElabM do
+    forallTelescopeReducing declaration.type fun arguments _ => do
+      let fields := arguments.extract (arguments.size - declaration.numFields) arguments.size
+      let mut names := #[]
+      let mut types := #[]
+      for field in fields do
+        let declaration ← field.fvarId!.getDecl
+        names := names.push declaration.userName
+        types := types.push declaration.type
+      pure (names, types)
+  for name in names, type in types do
+    requireFinite declName m!"its constructor {constructor}'s argument '{name}'" type
+  -- The first argument varies slowest, so a class's members read in the order its arguments are
+  -- written.
+  let values := names.map mkIdent
+  let mut term ← `([$constructorId:ident $values*])
+  for name in names.reverse do
+    let binder := mkIdent name
+    term ← `((Umpire.Command.members).flatMap fun $binder:ident => $term)
+  pure term
+
+/-- The members of an inductive: every constructor's members, in declaration order. -/
+private def inductiveMembers (declName : Name) (info : InductiveVal) : CommandElabM Term := do
+  let mut term ← `(([] : List $(mkIdent declName)))
+  for constructor in info.ctors.reverse do
+    let contributed ← constructorMembers declName constructor
+    term ← `($contributed ++ $term)
+  pure term
 
 /-- The members of a structure: the product of its fields' members, in field order. Every field must
 itself be `Finite`, which the generated term requires and the elaborator reports at the field. -/
@@ -166,14 +209,11 @@ private def structureMembers (declName : Name) : CommandElabM Term := do
   let fields := getStructureFieldsFlattened (← getEnv) declName (includeSubobjectFields := false)
   -- Check each field here rather than letting the generated term fail instance search: the search
   -- reports the type it could not solve, and an author needs the field that introduced it.
-  liftTermElabM do
-    let structureType ← mkConstWithLevelParams declName
-    for field in fields do
-      let projection ← mkProjection (← mkFreshExprMVar structureType) field
-      let fieldType ← inferType projection
-      let finiteType ← mkAppM ``Umpire.Command.Finite #[fieldType]
-      unless (← synthInstance? finiteType).isSome do
-        throwError "cannot derive Finite for {declName}: its field '{field}' has type {fieldType}, which has no finite member list. A machine's state fields are an enum-like inductive, Bool, a count as Fin (bound + 1), or a structure of those."
+  let structureType ← liftTermElabM (mkConstWithLevelParams declName)
+  for field in fields do
+    let fieldType ← liftTermElabM do
+      inferType (← mkProjection (← mkFreshExprMVar structureType) field)
+    requireFinite declName m!"its field '{field}'" fieldType
   let binders := fields.map mkIdent
   -- A quotation may not use one antiquotation array twice, so the field names and the values bound
   -- to them are two arrays of the same identifiers.
@@ -188,8 +228,9 @@ private def structureMembers (declName : Name) : CommandElabM Term := do
     term ← `((Umpire.Command.members).flatMap fun $binder:ident => $term)
   pure term
 
-/-- The `Finite` deriving handler. It accepts an enum-like inductive and a single-constructor
-structure of `Finite` fields, and refuses anything else by name. -/
+/-- The `Finite` deriving handler. It accepts an inductive whose constructor arguments are finite --
+an enum-like one being the case where there are none -- and a structure of finite fields, and refuses
+anything else by naming the field or argument that made it infinite. -/
 def mkFiniteInstanceHandler (declNames : Array Name) : CommandElabM Bool := do
   if declNames.size == 0 then
     return false
@@ -199,8 +240,7 @@ def mkFiniteInstanceHandler (declNames : Array Name) : CommandElabM Bool := do
       if isStructure (← getEnv) declName then
         structureMembers declName
       else
-        let terms ← enumMembers declName info
-        `([$terms,*])
+        inductiveMembers declName info
     let structureId := mkIdent declName
     elabCommand (← `(command|
       instance : Umpire.Command.Finite $structureId where

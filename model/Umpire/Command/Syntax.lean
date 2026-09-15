@@ -33,16 +33,19 @@ one it would have written. -/
 -- indistinguishable from the doc comment of whatever declaration follows the `enum`, and the
 -- repetition would swallow it.
 macro doc?:(docComment)? &"enum" name:ident
-    constructors:("|" (docComment)? ident)+ : command => do
+    constructors:("|" (docComment)? ident (bracketedBinder)*)+ : command => do
   let declared ← constructors.mapM fun constructor => do
     let parts := constructor.raw
     let constructorDoc : Option (TSyntax ``Lean.Parser.Command.docComment) :=
       if parts[1].isNone then none else some (TSyntax.mk parts[1][0])
     let constructorName : Ident := TSyntax.mk parts[2]
-    `(Lean.Parser.Command.ctor| $[$constructorDoc:docComment]? | $constructorName:ident)
+    let binders : Array (TSyntax ``Lean.Parser.Term.bracketedBinder) :=
+      parts[3].getArgs.map TSyntax.mk
+    `(Lean.Parser.Command.ctor|
+      $[$constructorDoc:docComment]? | $constructorName:ident $binders*)
   `(command| $[$doc?:docComment]? inductive $name where
       $declared:ctor*
-      deriving BEq, DecidableEq, Repr)
+      deriving BEq, DecidableEq, Repr, Umpire.Command.Finite)
 
 /-! ### The shapes a command's value can take
 
