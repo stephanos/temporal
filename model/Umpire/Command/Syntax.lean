@@ -23,32 +23,6 @@ namespace Umpire.Command
 open Umpire
 open Lean Elab Command
 
-/-! ### Declaring a domain
-
-`enum` is the four vocabulary declarations a Model file makes, without the `deriving` clause the
-`model` command requires and the author has no reason to think about. It resolves nothing and
-reorders nothing: the constructors in declaration order are the ordered domain, which is what AUT-09
-means by author-provided. A plain `inductive` is still admitted; `enum` is shorthand for exactly the
-one it would have written. -/
-
--- A member's own doc comment goes after its bar, not before it. Before the bar it would be
--- indistinguishable from the doc comment of whatever declaration follows the `enum`, and the
--- repetition would swallow it.
-macro doc?:(docComment)? &"enum" name:ident
-    constructors:("|" (docComment)? ident (bracketedBinder)*)+ : command => do
-  let declared ← constructors.mapM fun constructor => do
-    let parts := constructor.raw
-    let constructorDoc : Option (TSyntax ``Lean.Parser.Command.docComment) :=
-      if parts[1].isNone then none else some (TSyntax.mk parts[1][0])
-    let constructorName : Ident := TSyntax.mk parts[2]
-    let binders : Array (TSyntax ``Lean.Parser.Term.bracketedBinder) :=
-      parts[3].getArgs.map TSyntax.mk
-    `(Lean.Parser.Command.ctor|
-      $[$constructorDoc:docComment]? | $constructorName:ident $binders*)
-  `(command| $[$doc?:docComment]? inductive $name where
-      $declared:ctor*
-      deriving BEq, DecidableEq, Repr, Umpire.Command.Finite)
-
 /-! ### The shapes a command's value can take
 
 One rule governs a Model file: a column-0 word is a declaration kind followed by the author's name,
@@ -197,6 +171,54 @@ private def originTerm : CommandElabM Term := do
   let family := semanticFamilyOf conventions.namespacePrefix (← getCurrNamespace)
   let path := modulePath (← getMainModule)
   `(term| Origin.of $(Lean.quote conventions.root) $(Lean.quote family) $(Lean.quote path))
+
+/-- The Definition ID a declaration made under `enclosing` carries.
+
+A reference computes the referenced declaration's id from the namespace that declared it, never from
+the referring file's own: the two agree only while both are in one file, and a Model that refers
+across files would otherwise point at a name in its own family that nothing declares. -/
+private def definitionIdIn (enclosing : Name) (kind key : String) : CommandElabM String := do
+  let conventions := Registry.conventions (← getEnv)
+  let family := semanticFamilyOf conventions.namespacePrefix enclosing
+  pure ((Origin.of conventions.root family "").family.id kind key).value
+
+/-- The id of a declaration this command is elaborating, which is the same computation under the
+current namespace. -/
+private def definitionIdHere (kind key : String) : CommandElabM String := do
+  definitionIdIn (← getCurrNamespace) kind key
+
+/-! ### Declaring a domain
+
+`enum` is the four vocabulary declarations a Model file makes, without the `deriving` clause the
+`model` command requires and the author has no reason to think about. It resolves nothing and
+reorders nothing: the constructors in declaration order are the ordered domain, which is what AUT-09
+means by author-provided. A plain `inductive` is still admitted; `enum` is shorthand for exactly the
+one it would have written. -/
+
+-- A member's own doc comment goes after its bar, not before it. Before the bar it would be
+-- indistinguishable from the doc comment of whatever declaration follows the `enum`, and the
+-- repetition would swallow it.
+elab doc?:(docComment)? &"enum" name:ident
+    constructors:("|" (docComment)? ident (bracketedBinder)*)+ : command => do
+  let declared ← constructors.mapM fun constructor => do
+    let parts := constructor.raw
+    let constructorDoc : Option (TSyntax ``Lean.Parser.Command.docComment) :=
+      if parts[1].isNone then none else some (TSyntax.mk parts[1][0])
+    let constructorName : Ident := TSyntax.mk parts[2]
+    let binders : Array (TSyntax ``Lean.Parser.Term.bracketedBinder) :=
+      parts[3].getArgs.map TSyntax.mk
+    `(Lean.Parser.Command.ctor|
+      $[$constructorDoc:docComment]? | $constructorName:ident $binders*)
+  elabCommand (← `(command| $[$doc?:docComment]? inductive $name where
+      $declared:ctor*
+      deriving BEq, DecidableEq, Repr, Umpire.Command.Finite))
+  -- The id is recorded here, where the declaring file's conventions and namespace are the ones in
+  -- scope. A field that named this domain and rebuilt its id would read its own file's conventions,
+  -- and two Models sharing a domain would disagree about what it is called.
+  liftCoreM (Registry.recordDomain {
+    declName := (← getCurrNamespace) ++ name.getId
+    name := name.getId.toString
+    id := ← definitionIdHere "enum" name.getId.toString })
 
 private def memberIdents (constructors : List Name) : Array Term :=
   constructors.toArray.map fun constructor => mkIdent constructor
@@ -691,6 +713,15 @@ private def undeclaredDomainMessage (spelling : Name) : String :=
   s!"'{spelling}' is not a finite domain; an input field ranges over an `enum` declaration, whose \
 constructors are its classes"
 
+private def unspellableFieldMessage (domain : Name) (field : String) (type : MessageData) :
+    MessageData :=
+  m!"the class '{domain}' carries a field '{field}' of type {type}, which is not a domain a class \
+can be written over: a constructor field is another `enum` declaration, a `Bool`, or a count"
+
+private def domainTooLargeMessage (domain : Name) (size bound : Nat) : String :=
+  s!"'{domain}' has more than {bound} members ({size} and still counting); a class is written out \
+one per member, and the elaboration bound is {bound}"
+
 private def duplicateEntityKeyMessage (key : String) (owner : String) : String :=
   s!"key name '{key}' is already the key of entity '{owner}'; recorded data would not say which \
 instance it names"
@@ -711,21 +742,6 @@ private def bothSubjectsMessage : String :=
   "an action declares `on:` or `creates:`, not both: it either acts on an instance that exists or \
 brings one into existence"
 
-/-- The Definition ID a declaration made under `enclosing` carries.
-
-A reference computes the referenced declaration's id from the namespace that declared it, never from
-the referring file's own: the two agree only while both are in one file, and a Model that refers
-across files would otherwise point at a name in its own family that nothing declares. -/
-private def definitionIdIn (enclosing : Name) (kind key : String) : CommandElabM String := do
-  let conventions := Registry.conventions (← getEnv)
-  let family := semanticFamilyOf conventions.namespacePrefix enclosing
-  pure ((Origin.of conventions.root family "").family.id kind key).value
-
-/-- The id of a declaration this command is elaborating, which is the same computation under the
-current namespace. -/
-private def definitionIdHere (kind key : String) : CommandElabM String := do
-  definitionIdIn (← getCurrNamespace) kind key
-
 /-- Every member of a finite domain, spelled the way an `examples:` line spells it.
 
 A domain's **classes** are its members, not its constructors: `handlerError (retryable : Bool)` is
@@ -741,13 +757,15 @@ private partial def domainMembers (domainRef : Ident) (declName : Name) : Comman
   | some (.inductInfo info) =>
       let mut members := []
       for constructor in info.ctors do
-        members := members ++ (← constructorMembers constructor)
+        members := members ++ (← constructorMembers declName constructor)
+        if members.length > elaborationBound then
+          throwErrorAt domainRef (domainTooLargeMessage declName members.length elaborationBound)
       pure members
   | _ => throwErrorAt domainRef (undeclaredDomainMessage domainRef.getId)
 where
   /-- One constructor's members: itself when it takes no argument, and every assignment of its
   arguments otherwise. -/
-  constructorMembers (constructor : Name) : CommandElabM (List String) := do
+  constructorMembers (declName constructor : Name) : CommandElabM (List String) := do
     let declaration ← liftTermElabM (getConstInfoCtor constructor)
     let spelling := constructor.getString!
     if declaration.numFields == 0 then
@@ -756,29 +774,43 @@ where
       Meta.forallTelescopeReducing declaration.type fun arguments _ => do
         let carried := arguments.extract (arguments.size - declaration.numFields) arguments.size
         carried.mapM fun argument => do
-          let declaration ← argument.fvarId!.getDecl
-          pure (declaration.userName.getString!, declaration.type)
+          let field ← argument.fvarId!.getDecl
+          pure (field.userName.getString!, field.type)
     -- The first field varies slowest, so the members read in the order the constructor is written.
     let mut assignments : List (List String) := [[]]
     for (field, type) in fields do
-      let values ← fieldValues domainRef type
+      let values ← fieldValues declName field type
       assignments := assignments.flatMap fun assigned =>
         values.map fun value => assigned ++ [s!"{field} := {value}"]
+      if assignments.length > elaborationBound then
+        throwErrorAt domainRef (domainTooLargeMessage declName assignments.length elaborationBound)
     pure (assignments.map fun assigned => s!"{spelling} ({", ".intercalate assigned})")
-  /-- The values one constructor argument ranges over. -/
-  fieldValues (at? : Ident) (type : Expr) : CommandElabM (List String) := do
+  /-- The values one constructor argument ranges over.
+
+  Only three shapes are admitted, and the recursion is what makes that necessary: a hand-written
+  `Finite` instance can satisfy the gate for a type whose constructors do not enumerate -- `Nat` with
+  a two-member instance is the smallest -- and walking into it would not terminate. A field is an
+  `enum` declaration, a `Bool`, or a count, and anything else is named here rather than found by
+  running out of stack. -/
+  fieldValues (declName : Name) (field : String) (type : Expr) : CommandElabM (List String) := do
+    let unspellable : CommandElabM (List String) := do
+      throwErrorAt domainRef (unspellableFieldMessage declName field (← liftTermElabM (Meta.ppExpr type)))
     match type.getAppFn with
     | .const name _ =>
-        if name == ``Fin then
+        if name == ``Bool then
+          pure ["false", "true"]
+        else if name == ``Fin then
           match (← liftTermElabM (Meta.whnf type)).getAppArgs[0]? with
           | some bound =>
               match (← liftTermElabM (Meta.evalNat bound).run) with
               | some size => pure ((List.range size).map toString)
-              | none => throwErrorAt at? (undeclaredDomainMessage domainRef.getId)
-          | none => throwErrorAt at? (undeclaredDomainMessage domainRef.getId)
+              | none => unspellable
+          | none => unspellable
+        else if (Registry.domain? (← getEnv) name).isSome then
+          domainMembers domainRef name
         else
-          domainMembers at? name
-    | _ => throwErrorAt at? (undeclaredDomainMessage domainRef.getId)
+          unspellable
+    | _ => unspellable
 
 /-- Resolve an entity reference against what an `entity` command recorded, reporting an unknown one
 in place and giving the editor the declaration to hover. -/
@@ -804,8 +836,10 @@ private def resolveDomain (domainRef : Ident) : CommandElabM (Name × String × 
     let finiteType ← Meta.mkAppM ``Umpire.Command.Finite #[domainType]
     unless (← Meta.synthInstance? finiteType).isSome do
       throwErrorAt domainRef (undeclaredDomainMessage domainRef.getId)
-  let domainId ← definitionIdIn declName.getPrefix "enum" declName.getString!
-  pure (declName, domainId, ← domainMembers domainRef declName)
+  -- The id comes from the `enum` that declared it, never from this file: see `Registry.DomainEntry`.
+  let some declared := Registry.domain? (← getEnv) declName
+    | throwErrorAt domainRef (undeclaredDomainMessage domainRef.getId)
+  pure (declName, declared.id, ← domainMembers domainRef declName)
 
 elab doc?:(docComment)? entityKeyword name:ident keys:entityKey* : command => do
   let mut refers : Array (String × String × Name) := #[]
@@ -853,17 +887,54 @@ elab doc?:(docComment)? entityKeyword name:ident keys:entityKey* : command => do
     key := keySpelling
     refers := refers.map fun (field, _, declName) => (field, declName) })
 
-/-- How one `examples:` line reads back: the class as the Model spells it, the constructor it names,
-and the concrete member. -/
+/-- How one `examples:` line reads back. The bindings are kept apart from the text so the class can
+be canonicalised against the constructor that declares it, rather than compared as it was typed. -/
 private structure ExampleLine where
-  spelling : String
+  /-- The line as the author wrote it, which is what a rejection quotes. -/
+  written : String
   constructor : String
+  /-- Each `field := value`, with the value's spacing and parentheses removed. -/
+  bindings : Array (String × String)
   member : String
   ref : Syntax
 
-/-- Render one example's class the way the Model wrote it, so a receipt can quote the line rather
-than a reconstruction of it. -/
-private def exampleSpelling (constructor : Ident) (bindings : Array (Ident × Term)) : String :=
+/-- A written value, reduced to what it denotes. A class is a string, and two authors who write one
+class differently -- `(false)`, `false`, a different order of bindings -- write one class, so the
+spacing and the parentheses come out before anything is compared. -/
+private def normalizeValue (written : String) : String :=
+  written.foldl (init := "") fun kept character =>
+    if character.isWhitespace || character == '(' || character == ')' then kept
+    else kept.push character
+
+/-- Render one example the way `domainMembers` renders a class, or `none` when the constructor is not
+one of the domain's or the bindings are not exactly its fields.
+
+Canonicalising against the constructor is what makes the comparison about the class rather than about
+the text: the fields come out in declaration order however the line ordered them, a binding of a
+field the constructor does not carry has nowhere to go, and a field the line left unbound leaves the
+class unfinished. -/
+private def canonicalExample (declName : Name) (line : ExampleLine) : CommandElabM (Option String) := do
+  let constructor := declName ++ Name.mkSimple line.constructor
+  let some (.ctorInfo declaration) := (← getEnv).find? constructor
+    | return none
+  if declaration.numFields == 0 then
+    return if line.bindings.isEmpty then some line.constructor else none
+  let fields ← liftTermElabM do
+    Meta.forallTelescopeReducing declaration.type fun arguments _ => do
+      let carried := arguments.extract (arguments.size - declaration.numFields) arguments.size
+      carried.mapM fun argument => do pure (← argument.fvarId!.getDecl).userName.getString!
+  if line.bindings.size != fields.size then
+    return none
+  let mut written := #[]
+  for field in fields do
+    let some (_, value) := line.bindings.find? fun (bound, _) => bound == field
+      | return none
+    written := written.push s!"{field} := {value}"
+  let joined := ", ".intercalate written.toList
+  pure (some s!"{line.constructor} ({joined})")
+
+/-- The line as the author wrote it, for a rejection to quote. -/
+private def exampleWritten (constructor : Ident) (bindings : Array (Ident × Term)) : String :=
   if bindings.isEmpty then constructor.getId.toString
   else
     let written := bindings.toList.map fun (field, value) =>
@@ -921,8 +992,10 @@ elab doc?:(docComment)? actionKeyword name:ident keys:actionKey+ : command => do
                 | some fields, some values => fields.zip values
                 | _, _ => #[]
               examples := examples.push {
-                spelling := exampleSpelling constructor bindings
+                written := exampleWritten constructor bindings
                 constructor := constructor.getId.toString
+                bindings := bindings.map fun (field, value) =>
+                  (field.getId.toString, normalizeValue (value.raw.reprint.getD ""))
                 member := member.getId.toString
                 ref := line }
           | _ => throwErrorAt line "unsupported example line"
@@ -931,17 +1004,22 @@ elab doc?:(docComment)? actionKeyword name:ident keys:actionKey+ : command => do
     | throwErrorAt name (missingKeyMessage "action" "party:")
   -- Examples are resolved after every key has been read, so an `examples:` block above the
   -- `input:` block it names reads the same as one below it.
-  let mut resolved : Array (String × String × ExampleLine) := #[]
+  let mut resolved : Array (String × String × String × ExampleLine) := #[]
   for line in examples do
-    -- The whole spelling is matched, not its head: a class is a member of the domain, so
-    -- `handlerError (retryable := false)` and `handlerError (retryable := true)` are two classes and
-    -- a binding of a field the constructor does not carry is a class that does not exist.
-    let some (field, _, domainId, _) :=
-        inputFields.find? fun (_, _, _, classes) => classes.contains line.spelling
-      | throwErrorAt line.ref (unmatchedExampleMessage line.spelling)
-    if resolved.any fun (_, _, seen) => seen.spelling == line.spelling then
-      throwErrorAt line.ref (duplicateExampleMessage line.spelling)
-    resolved := resolved.push (field, domainId, line)
+    -- The whole class is matched, not its head: a class is a member of the domain, so
+    -- `handlerError (retryable := false)` and `handlerError (retryable := true)` are two classes,
+    -- and a binding of a field the constructor does not carry is a class that does not exist.
+    let mut matched : Option (String × String × String) := none
+    for (field, declName, domainId, classes) in inputFields do
+      if matched.isNone then
+        if let some spelling ← canonicalExample declName line then
+          if classes.contains spelling then
+            matched := some (field, domainId, spelling)
+    let some (field, domainId, spelling) := matched
+      | throwErrorAt line.ref (unmatchedExampleMessage line.written)
+    if resolved.any fun (_, _, seen, _) => seen == spelling then
+      throwErrorAt line.ref (duplicateExampleMessage spelling)
+    resolved := resolved.push (field, domainId, spelling, line)
   let origin ← originTerm
   let nameKey := Lean.quote name.getId.toString
   let subjectTerm : Term ← match subject with
@@ -958,10 +1036,10 @@ elab doc?:(docComment)? actionKeyword name:ident keys:actionKey+ : command => do
     `(term| ({ name := $(Lean.quote field)
                domain := Umpire.DefinitionId.of $(Lean.quote domainId)
                classes := [$classTerms,*] } : Umpire.Command.InputField))
-  let exampleTerms : Array Term ← resolved.mapM fun (field, domainId, line) =>
+  let exampleTerms : Array Term ← resolved.mapM fun (field, domainId, spelling, line) =>
     `(term| ({ action := Umpire.DefinitionId.of $(Lean.quote actionId)
                field := $(Lean.quote field)
-               pattern := $(Lean.quote line.spelling)
+               pattern := $(Lean.quote spelling)
                member := Umpire.ModelValue.named (Umpire.DefinitionId.of $(Lean.quote domainId))
                  $(Lean.quote line.member)
              } : Umpire.Command.Example))
