@@ -1,4 +1,5 @@
 import ModelLint.ImportGraph
+import ModelLint.PackageModulesTests
 import Tools.LeanImportGraphTests
 import Tools.LeanSourceInventoryTests
 import Tools.LeanImportGraph.Metadata
@@ -587,6 +588,7 @@ private unsafe def testExternalMetadataClosure : IO Unit := do
 private unsafe def runSyntheticSuite : IO UInt32 := do
   Tools.LeanImportGraphTests.run
   Tools.LeanSourceInventoryTests.run
+  ModelLint.PackageModulesTests.run
   testAllowedOrdinaryImports
   testTestpilotIsolation
   testOrdinaryNexusFacadeIsolation
