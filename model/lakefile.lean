@@ -88,7 +88,8 @@ lean_lib ModelLintSupport where
     `Tools.LeanSourceInventory,
     `Tools.LeanSourceInventoryTests,
     `ModelLint.ImportGraph,
-    `ModelLint.PackageModules
+    `ModelLint.PackageModules,
+    `ModelLint.PackageModulesTests
   ]
 
 @[default_target] lean_exe «umpire-inspect» where
