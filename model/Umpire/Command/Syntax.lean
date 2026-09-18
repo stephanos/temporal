@@ -1170,6 +1170,7 @@ declare_syntax_cat machineKey
 syntax "for:" ident : machineKey
 syntax "state:" ident : machineKey
 syntax "ends:" "[" ident,+ "]" : machineKey
+syntax "starts:" "[" ident,+ "]" : machineKey
 syntax "steps:" withPosition((colGe ident ":" ident)+) : machineKey
 
 @[run_parser_attribute_hooks] private def machineKeyword := declarationKeyword "machine"
@@ -1254,6 +1255,7 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
   let mut entity : Option Registry.EntityEntry := none
   let mut stateRef : Option Ident := none
   let mut endRefs : Array Ident := #[]
+  let mut startRefs : Array Ident := #[]
   let mut stepRefs : Array (Ident × Ident) := #[]
   for entry in keys do
     match entry with
@@ -1272,6 +1274,11 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
     | `(machineKey| ends: [$members,*]) => do
         if !endRefs.isEmpty then throwErrorAt entry (duplicateKeyMessage "machine" "ends:")
         endRefs := members.getElems
+    -- The antiquotation names avoid `actions`, because `actions:` is already a token and
+    -- `$actions:ident` would tokenize as `$` and that token rather than as an antiquotation.
+    | `(machineKey| starts: [$members,*]) => do
+        if !startRefs.isEmpty then throwErrorAt entry (duplicateKeyMessage "machine" "starts:")
+        startRefs := members.getElems
     -- The antiquotation names avoid `actions`, because `actions:` is already a token and
     -- `$actions:ident` would tokenize as `$` and that token rather than as an antiquotation.
     | `(machineKey| steps: $[$stepped:ident : $written:ident]*) => do
@@ -1411,9 +1418,54 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
         List (Umpire.FiniteTransitionRow $stateType $actionType
           $(mkIdent outcomeType) $(mkIdent factType)) :=
       Umpire.Command.enumerate $rowKeyName $stepName))
+  -- `starts:` names states the same way `ends:` does, against the same members.
+  let memberNamed : String → Option ClassValue := fun spelling =>
+    stateMembers.find? fun member =>
+      (memberFields member).any fun (_, held) =>
+        match held with
+        | .atom declared => declared.getString! == spelling
+        | .applied constructor _ => constructor.getString! == spelling
+  let mut startTerms : Array Term := #[]
+  for startRef in startRefs do
+    let spelling := startRef.getId.getString!
+    let some member := memberNamed spelling
+      | throwErrorAt startRef (noEndsFieldMessage spelling)
+    startTerms := startTerms.push (← member.term)
   let terminalName := mkIdentFrom name (name.getId ++ `ends)
   elabCommand (← `(command|
     def $terminalName : List $stateType := [$terminalTerms,*]))
+  -- The declared Model, on the enumerated rows. Everything downstream -- the Behavior Fingerprint,
+  -- Search, Contract lowering, `umpire-inspect` -- reads this and never sees a step function.
+  let setupType := mkIdentFrom name (name.getId ++ `Setup)
+  let setupName := mkIdentFrom name (name.getId ++ `Setup ++ `only)
+  -- The constructor is built rather than written: an identifier inside a quotation is hygienic, so a
+  -- literal `| only` would be declared under a macro scope and no name outside this command could
+  -- reach it.
+  elabCommand (← `(command|
+    inductive $setupType where
+      | $(mkIdent `only):ident
+      deriving BEq, DecidableEq, Repr))
+  let outcomeMembers ← domainMembers name outcomeType
+  let factMembers ← domainMembers name factType
+  let keyList : List ClassValue → Array Term := fun values =>
+    (values.map fun value => Lean.quote value.key).toArray
+  let names ← `(term|
+    { declaration := $(Lean.quote name.getId.toString)
+      roleName := $(Lean.quote declaredEntity.name)
+      setup := "only"
+      stateKeys := [$(keyList stateMembers),*]
+      actionKeys := [$(keyList actionMembers),*]
+      outcomeKeys := [$(keyList outcomeMembers),*]
+      factKeys := [$(keyList factMembers),*] })
+  let origin ← originTerm
+  elabCommand (← `(command|
+    def $name := Umpire.Command.declareModel $origin $names ($setupName)
+      (Umpire.Command.members (α := $stateType))
+      (Umpire.Command.members (α := $actionType))
+      (Umpire.Command.members (α := $(mkIdent outcomeType)))
+      (Umpire.Command.members (α := $(mkIdent factType)))
+      ([$startTerms,*]) ($terminalName) ($transitionsName)
+      (by exact ⟨rfl, rfl, rfl⟩)))
   liftCoreM (Registry.recordMachine {
     declName := (← getCurrNamespace) ++ name.getId
     name := name.getId.toString
