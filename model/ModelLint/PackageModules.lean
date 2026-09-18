@@ -127,6 +127,35 @@ def load (policy : ModelLint.ImportGraph.Policy) (effects : Effects) : IO (Excep
         else
           pure (.ok { sources, modules, regions, transcript })
 
+/-! ### What a consumer does with the transcript
+
+Two policies over one transcript, as data rather than as printing. A policy that printed could only be
+checked by capturing a stream; returned, it is a value a test compares, and the printing is one
+function neither policy has to be trusted about. -/
+
+/-- What a consumer would write, and to which stream. -/
+structure Emission where
+  stdout : String
+  stderr : String
+  deriving Repr, BEq
+
+/-- `umpire-lint`'s policy: a person's terminal, so Lake's output goes where Lake would have put it,
+successful or not. -/
+def replayed (transcript : BuildTranscript) : Emission :=
+  { stdout := transcript.stdout, stderr := transcript.stderr }
+
+/-- The exporter's policy: an artifact, so a successful build says nothing at all. A failed one still
+says everything, on the error stream, because a build that failed is not a quiet result -- it is the
+reason there is no result. -/
+def quieted (transcript : BuildTranscript) : Emission :=
+  if transcript.succeeded then { stdout := "", stderr := "" }
+  else { stdout := "", stderr := transcript.stdout ++ transcript.stderr }
+
+/-- Write one emission to the streams it names. -/
+def Emission.write (emission : Emission) : IO Unit := do
+  unless emission.stdout.isEmpty do IO.print emission.stdout
+  unless emission.stderr.isEmpty do IO.eprint emission.stderr
+
 /-! ### The effects as they really are
 
 One set of real effects, so the linter and the exporter differ in what they do with the result and
