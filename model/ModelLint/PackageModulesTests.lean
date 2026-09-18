@@ -73,7 +73,13 @@ private def testSourceIssuesStopTheBuild : IO Unit := do
   }
   match ← load ModelLint.ImportGraph.defaultPolicy effects with
   | .error (.sources issues) =>
-      unless issues.size > 0 do throw <| IO.userError "expected at least one source issue"
+      -- The duplication itself, not merely "something was wrong": `validateSources` also rejects a
+      -- module it cannot classify, so a bare count would pass on the wrong cause.
+      requireEqual "the duplicate identity is reported"
+        (issues.any fun issue =>
+          match issue with
+          | .duplicateSource module _ => module == classified
+          | _ => false) true
   | _ => throw <| IO.userError "expected a source failure"
   requireEqual "source failure runs no build" (← built.get) false
 
@@ -138,6 +144,16 @@ private def testEveryRootReachesTheReader : IO Unit := do
         (loaded.modules.map (·.name.toString)) #["ModelLint.Probe", "Tools.Probe"]
   | _ => throw <| IO.userError "expected a successful load"
 
+/-- Every diagnostic a user could see carries the phase it came from, spelled one way. -/
+private def testDiagnosticsNameTheirPhase : IO Unit := do
+  requireEqual "the build failure names its phase"
+    (buildFailureMessage.startsWith (diagnosticPrefix "build")) true
+  requireEqual "the discovery failure names its phase"
+    ((discoveryFailureMessage "no package root").startsWith (diagnosticPrefix "inventory")) true
+  requireEqual "a metadata issue names its phase and its module"
+    (MetadataIssue.render { module := classified, message := "missing" })
+    s!"{diagnosticPrefix "metadata"} ModelLint.Probe: missing"
+
 /-- The linter's policy writes whatever Lake wrote, to the stream Lake wrote it to. -/
 private def testReplayKeepsBothStreams : IO Unit := do
   requireEqual "replay keeps a successful build's stdout"
@@ -161,5 +177,6 @@ def ModelLint.PackageModulesTests.run : IO Unit := do
   testMetadataFailuresAccumulateAndSort
   testSuccessCarriesTheTranscript
   testEveryRootReachesTheReader
+  testDiagnosticsNameTheirPhase
   testReplayKeepsBothStreams
   testQuietSuppressesOnlySuccess
