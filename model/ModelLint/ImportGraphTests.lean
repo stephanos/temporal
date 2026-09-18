@@ -561,7 +561,8 @@ private def controlledViolations : Array Violation :=
   ]
 
 private unsafe def testExternalMetadataClosure : IO Unit := do
-  let (modules, regions) ← Tools.LeanImportGraph.Metadata.load #[`Lean.Elab.Command]
+  let (modules, regions, closureIssues) ← Tools.LeanImportGraph.Metadata.load #[`Lean.Elab.Command]
+  requireEqual "a readable closure reports no issues" closureIssues.size 0
   requireEqual "actual external wrapper loads transitive Term metadata"
     (modules.any (·.name == `Lean.Elab.Term)) true
   let root := moduleRecord `Umpire.Property #[`Lean.Elab.Command]
@@ -572,17 +573,21 @@ private unsafe def testExternalMetadataClosure : IO Unit := do
     (modules.map (·.name)).size
     ((modules.map (·.name)).foldl (init := ({} : Std.HashSet Lean.Name))
       fun names name => names.insert name).size
-  let (incomplete, incompleteRegions) ← Tools.LeanImportGraph.Metadata.load
+  let (incomplete, incompleteRegions, _) ← Tools.LeanImportGraph.Metadata.load
     #[`Lean.Elab.Command] (· == `Lean.Elab.Term)
   requireEqual "cached metadata cannot fill an uninventoried owned import"
     (incomplete.any (·.name == `Lean.Elab.Term)) false
   requireEqual "missing owned metadata still exposes the forbidden endpoint"
     ((check defaultPolicy (incomplete.push root)).map (·.destination)) #[`Lean.Elab.Term]
-  let missingFailed ← try
-    let _ ← Tools.LeanImportGraph.Metadata.load #[`ModelLint.MissingOwnedMetadata]
-    pure false
-  catch _ => pure true
-  requireEqual "missing source metadata fails loading" missingFailed true
+  -- Missing metadata is reported rather than thrown, and is reported against the module it is
+  -- about: an all-or-nothing caller reads the issues and discards the records, and a caller that
+  -- wants to say which module could not be examined can.
+  let (missingRecords, _, missingIssues) ←
+    Tools.LeanImportGraph.Metadata.load #[`ModelLint.MissingOwnedMetadata]
+  requireEqual "missing source metadata is reported" missingIssues.size 1
+  requireEqual "missing source metadata names its module"
+    (missingIssues.map (·.1)) #[`ModelLint.MissingOwnedMetadata]
+  requireEqual "a module that could not be read contributes no record" missingRecords.size 0
   let _loadedRegionCount := regions.size + incompleteRegions.size
 
 private unsafe def runSyntheticSuite : IO UInt32 := do
