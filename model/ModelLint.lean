@@ -14,14 +14,11 @@ namespace ModelLint
 
 open ImportGraph
 
-/-- Replay what the child build wrote, to the channels it would have written to.
-
-`umpire-lint` is a person's terminal: Lake's progress belongs on the same streams whether or not the
-build succeeded. The exporter reads the same transcript and keeps only a failure's, which is why the
-loader returns it rather than printing it. -/
-private def replay (transcript : PackageModules.BuildTranscript) : IO Unit := do
-  unless transcript.stdout.isEmpty do IO.print transcript.stdout
-  unless transcript.stderr.isEmpty do IO.eprint transcript.stderr
+/-- `umpire-lint` replays what the child build wrote. The policy and the writing both belong to
+`PackageModules`, so the exporter's quieter policy is a sibling of this one rather than a second
+implementation of it. -/
+private def replay (transcript : PackageModules.BuildTranscript) : IO Unit :=
+  (PackageModules.replayed transcript).write
 
 private unsafe def lintImportGraph : IO Bool := do
   match ← PackageModules.load defaultPolicy PackageModules.liveEffects with
