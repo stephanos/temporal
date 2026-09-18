@@ -118,17 +118,40 @@ private def testSuccessCarriesTheTranscript : IO Unit := do
       requireEqual "success reports the modules it read" loaded.modules.size 1
   | _ => throw <| IO.userError "expected a successful load"
 
-/-- The regions travel with the result. A `ModuleRecord`'s names may point into mapped module data,
-so a loader that released them on the way out would hand every consumer freed memory. -/
-private def testRegionsTravelWithTheResult : IO Unit := do
-  let effects : Effects := { stubEffects with
-    readModules := fun roots _ => pure (roots.map fun name => { name, imports := #[] }, #[], #[])
+/-- Every root the loader was given reaches the reader, and what the reader returned is what the
+result carries.
+
+This is deliberately not a region-count assertion. Region lifetime is not a property a stub can
+witness -- a `CompactedRegion` cannot be fabricated, so a stubbed load has none to count, and
+counting zero of them proves nothing. The lifetime guarantee here is structural instead: `regions` is
+a field of `Loaded`, so they are reachable for exactly as long as the result a consumer is reading
+is, and no ordering of the loader's own statements can release them early. -/
+private def testEveryRootReachesTheReader : IO Unit := do
+  let roots := #[source classified, source alsoClassified]
+  let effects : Effects := { stubEffects (sources := roots) with
+    readModules := fun given _ => pure (given.map fun name => { name, imports := #[] }, #[], #[])
   }
   match ← load ModelLint.ImportGraph.defaultPolicy effects with
   | .ok loaded =>
-      requireEqual "the result carries its regions" loaded.regions.size 0
-      requireEqual "every root was read" loaded.modules.size 1
+      requireEqual "every source was offered to the reader" loaded.modules.size 2
+      requireEqual "the modules are the sources"
+        (loaded.modules.map (·.name.toString)) #["ModelLint.Probe", "Tools.Probe"]
   | _ => throw <| IO.userError "expected a successful load"
+
+/-- The linter's policy writes whatever Lake wrote, to the stream Lake wrote it to. -/
+private def testReplayKeepsBothStreams : IO Unit := do
+  requireEqual "replay keeps a successful build's stdout"
+    (replayed succeeded) { stdout := succeeded.stdout, stderr := "" }
+  requireEqual "replay keeps a failed build's stderr"
+    (replayed failed) { stdout := failed.stdout, stderr := failed.stderr }
+
+/-- The exporter's policy says nothing when the build worked, and everything when it did not: a
+failed build is not a quiet result, it is the reason there is no result. -/
+private def testQuietSuppressesOnlySuccess : IO Unit := do
+  requireEqual "a successful build emits no chatter"
+    (quieted succeeded) { stdout := "", stderr := "" }
+  requireEqual "a failed build keeps its diagnostics, on the error stream"
+    (quieted failed) { stdout := "", stderr := failed.stdout ++ failed.stderr }
 
 /-- Every claim this module makes, in the order the pipeline makes them. -/
 def ModelLint.PackageModulesTests.run : IO Unit := do
@@ -137,4 +160,6 @@ def ModelLint.PackageModulesTests.run : IO Unit := do
   testBuildFailureStopsAndCarriesItsTranscript
   testMetadataFailuresAccumulateAndSort
   testSuccessCarriesTheTranscript
-  testRegionsTravelWithTheResult
+  testEveryRootReachesTheReader
+  testReplayKeepsBothStreams
+  testQuietSuppressesOnlySuccess
