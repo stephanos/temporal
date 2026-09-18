@@ -33,6 +33,15 @@ Let a Model hold several instances of each entity bounded by Limits, with Search
 - fn-87's boundary table assigns "correlated transitions over structured machine state" to this spec; this is that task.
 - Memory: check unbounded Lean numbers before protobuf narrowing (`count` crosses into a fixed-width field).
 
+### Deferred here from task .14, 2026-09-18
+
+`DESIGN.md` writes an instance's creation as a row from `none`, taken by the action that `creates:`
+the entity. That is a different shape from a step over an existing state -- its function takes no
+prior state, and its successors are the machine's *initial* states rather than transition rows -- so
+`machine` takes a `starts:` key naming those states directly, as the `model` command did. Deciding
+whether a creating action's step function produces the initial states, and whether that action
+belongs in the machine's enumerated Action domain at all, needs the instance model this task owns.
+
 ## Acceptance
 - [ ] the correlated Contract carries per-instance state fields; the Lean interpreter and the Go evaluator agree on `correlated.json` and on a new two-instance conformance case
 - [ ] a Model with two operation instances admits, searches interleavings, and a Query selecting one path per instance produces a Case; an instance bound of zero rejects in place; an exhausted bound reports `limitReached`
