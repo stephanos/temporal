@@ -23,7 +23,7 @@ private def replay (transcript : PackageModules.BuildTranscript) : IO Unit :=
 private unsafe def lintImportGraph : IO Bool := do
   match ← PackageModules.load defaultPolicy PackageModules.liveEffects with
   | .error (.discovery message) =>
-      IO.eprintln s!"[model-import-graph/inventory] {message}"
+      IO.eprintln (PackageModules.discoveryFailureMessage message)
       pure false
   | .error (.sources issues) =>
       for issue in issues do
@@ -31,7 +31,7 @@ private unsafe def lintImportGraph : IO Bool := do
       pure false
   | .error (.build transcript) =>
       replay transcript
-      IO.eprintln "[model-import-graph/build] Lake failed to make every owned model source current"
+      IO.eprintln PackageModules.buildFailureMessage
       pure false
   | .error (.metadata issues) =>
       for issue in issues do
