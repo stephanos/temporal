@@ -54,10 +54,23 @@ structure MetadataIssue where
   message : String
   deriving Repr, BEq
 
+/-- The prefix every loader diagnostic carries, by phase. The phases are named in one place because
+the shape of a diagnostic is what a reader recognises, and three literals in three match arms is
+three places for one of them to drift. -/
+def diagnosticPrefix (phase : String) : String := s!"[model-import-graph/{phase}]"
+
 /-- Rendered the way every other loader diagnostic is, so a reader cannot tell which phase they came
 from by their shape. -/
 def MetadataIssue.render (issue : MetadataIssue) : String :=
-  s!"[model-import-graph/metadata] {issue.module}: {issue.message}"
+  s!"{diagnosticPrefix "metadata"} {issue.module}: {issue.message}"
+
+/-- What `umpire-lint` says when Lake could not make the sources current. -/
+def buildFailureMessage : String :=
+  s!"{diagnosticPrefix "build"} Lake failed to make every owned model source current"
+
+/-- What it says when the sources could not be discovered at all. -/
+def discoveryFailureMessage (message : String) : String :=
+  s!"{diagnosticPrefix "inventory"} {message}"
 
 /-- Why a load stopped, named by the phase that stopped it.
 
@@ -116,16 +129,33 @@ def load (policy : ModelLint.ImportGraph.Policy) (effects : Effects) : IO (Excep
     if !sourceIssues.isEmpty then
       pure (.error (.sources sourceIssues))
     else
-      let transcript ← effects.build sources
-      if !transcript.succeeded then
-        pure (.error (.build transcript))
-      else
-        let (modules, regions, issues) ←
-          effects.readModules (sources.map (·.module)) policy.isFirstParty
-        if !issues.isEmpty then
-          pure (.error (.metadata (issues.qsort metadataIssueLess)))
+      -- Each phase is guarded, not just the first. An `IO` throw out of the build or the read --
+      -- a missing sysroot, a child transcript that will not decode -- would otherwise escape `load`
+      -- and the caller entirely, losing the phase it came from and skipping everything after it.
+      let built ← try
+          pure (Except.ok (← effects.build sources))
+        catch error =>
+          pure (Except.error (Failure.build
+            { stdout := "", stderr := toString error, exitCode := 1 }))
+      match built with
+      | .error failure => pure (.error failure)
+      | .ok transcript =>
+        if !transcript.succeeded then
+          pure (.error (.build transcript))
         else
-          pure (.ok { sources, modules, regions, transcript })
+          let read ← try
+              pure (Except.ok
+                (← effects.readModules (sources.map (·.module)) policy.isFirstParty))
+            catch error =>
+              pure (Except.error (Failure.metadata
+                #[{ module := .anonymous, message := toString error }]))
+          match read with
+          | .error failure => pure (.error failure)
+          | .ok (modules, regions, issues) =>
+            if !issues.isEmpty then
+              pure (.error (.metadata (issues.qsort metadataIssueLess)))
+            else
+              pure (.ok { sources, modules, regions, transcript })
 
 /-! ### What a consumer does with the transcript
 
@@ -182,39 +212,14 @@ def buildOwnedSources (sources : Array SourceRecord) : IO BuildTranscript := do
   }
   pure { stdout := child.stdout, stderr := child.stderr, exitCode := child.exitCode }
 
-/-- Read compiled metadata, accumulating the modules that could not be examined.
-
-A module whose metadata cannot be read is recorded and its imports are not queued: a descendant
-reached only through it was never examined, and claiming otherwise would let a stale compiled file
-stand in for an inventory that is actually incomplete. Modules reachable independently are still
-read, which is what makes two bad modules two issues rather than one. -/
+/-- Read compiled metadata through the one traversal, carrying its failures into this module's own
+issue shape. The walk itself lives in `Tools.LeanImportGraph.Metadata`, where its own regressions
+already exercise it -- a second copy here would be a second thing to keep in agreement by hand, which
+is what this extraction exists to stop. -/
 unsafe def readModules (roots : Array Name) (isOwned : Name → Bool) :
     IO (Array ModuleRecord × Array CompactedRegion × Array MetadataIssue) := do
-  initSearchPath (← findSysroot)
-  let mut records := #[]
-  let mut regions := #[]
-  let mut issues := #[]
-  let mut queue := roots
-  let mut visited : Std.HashSet Name := {}
-  let mut index := 0
-  while index < queue.size do
-    let name := queue[index]!
-    index := index + 1
-    if visited.contains name then continue
-    visited := visited.insert name
-    if isOwned name && !roots.contains name then continue
-    let read ← try
-        let olean ← findOLean name
-        pure (Except.ok (← readModuleData olean))
-      catch error => pure (Except.error (toString error))
-    match read with
-    | .error message => issues := issues.push { module := name, message }
-    | .ok (metadata, region) =>
-      regions := regions.push region
-      let imports := metadata.imports.map (·.module)
-      records := records.push { name, imports }
-      queue := queue ++ imports
-  pure (records, regions, issues)
+  let (records, regions, issues) ← Tools.LeanImportGraph.Metadata.load roots isOwned
+  pure (records, regions, issues.map fun (module, message) => { module, message })
 
 /-- The effects the linter and the exporter both run on. -/
 unsafe def liveEffects : Effects := {
