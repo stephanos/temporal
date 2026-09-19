@@ -212,6 +212,25 @@ Decided while breaking the spec into tasks (2026-09-12), from the repository and
   fn-85 R10 deferred them.
 - **The outage-order rule becomes Producer-derived** for fault-bearing paths (fn-83 .5's dropped
   concern), in its own commit inside task .6.
+- **Adjusted 2026-09-19 after fn-85 .1 to .7 landed (tasks .8 to .13 still open).** Four things
+  the fn-85 tree now says that this spec's text predates; each is recorded on the task it touches.
+  (1) fn-85 .15 made `property` take `machine:`, an optional `when:` and `holds:` with a Lean
+  predicate, and rejects `require:` at the key ("the keyed form is retired"); the field-relation
+  grammar under API Contracts (`when:` + `require: <path> = <path>`) therefore needs another key
+  or another form, a task .2 decision that keeps R2's semantics (three relation forms, four
+  rejections, lowering onto `PropertyFieldPath`). (2) fn-85 .7 added the Temporal `case <name>
+  realizes <set> as <template> evidence <lines>` block as the Case-producing command, with identity
+  `temporal.case.<set>.<query>` and fixture `<set>-<query>-case.json`; the migrated Cases of R3
+  and R4 are produced through it (or the shape fn-85 .11 leaves), so their fixture names move and
+  `register_case` goes with the last hand-written Case, as .6 says. (3) fn-85 .11 removes the
+  template-era `Hook`/`FaultLine` machinery; the design's `workerStop` is an action of the `worker`
+  party bound to `FAULT_KIND_WORKER_STOP`, so R4's outage-order rule derives from fault actions on
+  the path, not from `fault` lines. (4) A machine's `setup:` parameters are bound by the
+  realization and recorded by the Profile, switches are registered with `register_switch`, `ends:`
+  is required and steps out of end states are admitted, a Property's fingerprint reads through the
+  machine's state fields (fn-85 .4), and Definition IDs derive from `model_conventions`; R5's
+  Switch re-authoring meets all of these, so byte-identical goldens are unlikely and the listed
+  diff is the expected outcome.
 
 ## Requirement coverage
 
