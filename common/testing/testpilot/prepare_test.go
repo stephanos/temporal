@@ -101,6 +101,67 @@ func TestPrepareOwnsMutableInputs(t *testing.T) {
 	require.Equal(t, DriverIdentity{Profile: "proof", Catalog: profile.Catalog.Identity()}, prepared.Identity())
 }
 
+// The configuration a Profile records is part of its binding fingerprint: the same bindings under
+// two configurations are two identities, the configuration's order does not matter, an invalid
+// configuration is a preparation error, and a Profile with no configuration fingerprints as it did
+// before configuration was recorded.
+func TestPrepareFingerprintsConfiguration(t *testing.T) {
+	source, profile := facadeFixture(t)
+	source.Program.Roles = []*testpilotspb.Role{{RoleId: "worker", Kind: testpilotspb.ROLE_KIND_WORKER, NamespaceBindingId: "alpha"}}
+	profile.Roles = []RolePolicy{{ID: "worker", Kind: testpilotspb.ROLE_KIND_WORKER}}
+	profile.EnvironmentBindings = []EnvironmentBinding{{ID: "alpha", Value: "v:1"}}
+	plain, err := profile.BindingFingerprint()
+	require.NoError(t, err)
+
+	configured := profile.Snapshot()
+	configured.Configuration = []ConfigurationValue{{Key: "history.enablechasm", Value: "true"}, {Key: "a.b", Value: "1"}}
+	fingerprint, err := configured.BindingFingerprint()
+	require.NoError(t, err)
+	require.NotEqual(t, plain, fingerprint)
+	reordered := configured.Snapshot()
+	slices.Reverse(reordered.Configuration)
+	reorderedFingerprint, err := reordered.BindingFingerprint()
+	require.NoError(t, err)
+	require.Equal(t, fingerprint, reorderedFingerprint)
+
+	other := configured.Snapshot()
+	other.Configuration[0].Value = "false"
+	otherFingerprint, err := other.BindingFingerprint()
+	require.NoError(t, err)
+	require.NotEqual(t, fingerprint, otherFingerprint)
+
+	prepared, err := Prepare(source, configured)
+	require.NoError(t, err)
+	require.Equal(t, fingerprint, prepared.Identity().Bindings)
+	snapshot := configured.Snapshot()
+	snapshot.Configuration[0].Value = "mutated"
+	require.Equal(t, "true", configured.Configuration[0].Value)
+
+	// Configuration alone is an identity too: a Case that binds nothing still runs under one.
+	unbound := profile.Snapshot()
+	unbound.EnvironmentBindings = nil
+	unbound.Configuration = []ConfigurationValue{{Key: "history.enablechasm", Value: "true"}}
+	unboundFingerprint, err := unbound.BindingFingerprint()
+	require.NoError(t, err)
+	require.NotEmpty(t, unboundFingerprint)
+
+	for name, configuration := range map[string][]ConfigurationValue{
+		"empty key":   {{Key: "", Value: "true"}},
+		"empty value": {{Key: "history.enablechasm", Value: ""}},
+		"invalid key": {{Key: "history enablechasm", Value: "true"}},
+		"duplicate":   {{Key: "history.enablechasm", Value: "true"}, {Key: "history.enablechasm", Value: "false"}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			invalid := profile.Snapshot()
+			invalid.Configuration = configuration
+			_, err := invalid.BindingFingerprint()
+			require.Error(t, err)
+			var preparation *PreparationError
+			require.ErrorAs(t, err, &preparation)
+		})
+	}
+}
+
 func TestPrepareFingerprintsCanonicalEnvironmentSnapshot(t *testing.T) {
 	source, profile := facadeFixture(t)
 	source.Program.Roles = []*testpilotspb.Role{{RoleId: "worker", Kind: testpilotspb.ROLE_KIND_WORKER, NamespaceBindingId: "alpha"}, {RoleId: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE, NamespaceBindingId: "alpha", ResourceBindingId: "beta"}}

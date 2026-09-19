@@ -105,6 +105,9 @@ structure DeclaredNames where
   whose states carry no fields, which is what a one-field state and an atom both look like to
   everything that does not ask. -/
   stateFields : List (List (String × String)) := []
+  /-- The machine's setup parameters by name, in declaration order. A parameter is bound by the
+  Profile through the realization, so the Model carries its name and nothing varies over it. -/
+  setupParameters : List String := []
 
 inductive FiniteAdmissionError where
   | noncanonicalTable
@@ -185,6 +188,8 @@ structure DeclaredModel (Setup State Action Outcome Fact : Type)
   /-- Each state's fields as model values, parallel to `states`: the field's definition and the
   spelling this state holds it at. -/
   stateFieldValues : List (List (DefinitionId × String))
+  /-- Each setup parameter's name and definition, in declaration order. -/
+  setupParameters : List (String × DefinitionId)
   actionIds : List DefinitionId
   outcomeIds : List DefinitionId
   factIds : List DefinitionId
@@ -303,6 +308,8 @@ def declareModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     (field, origin.ownedId "state-field" ownerKey field)
   let stateFieldValues := names.stateFields.map fun fields =>
     fields.map fun (field, spelling) => (origin.ownedId "state-field" ownerKey field, spelling)
+  let setupParameters := names.setupParameters.map fun parameter =>
+    (parameter, origin.ownedId "setup" ownerKey parameter)
   let actionIds := names.actionKeys.map (origin.ownedId "action" ownerKey)
   let outcomeIds := names.outcomeKeys.map (origin.ownedId "outcome" ownerKey)
   let factIds := names.factKeys.map (origin.ownedId "fact" ownerKey)
@@ -362,7 +369,8 @@ def declareModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     origin, key := ownerKey, roleName := names.roleName, setupValue,
     states, actions, outcomes, facts, initial, terminal,
     targetId, kernelId, capabilityId, providerId, lawId, operationRoleId,
-    stateIds, stateFieldIds, stateFieldValues, actionIds, outcomeIds, factIds, relationIds,
+    stateIds, stateFieldIds, stateFieldValues, setupParameters, actionIds, outcomeIds, factIds,
+    relationIds,
     table, identity, lawStatement, law, lawProof,
     composition := Providers.empty |>.provide provider, modelSpec
   }
@@ -598,6 +606,7 @@ def producerInput [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
   «scenario» := checked.realizable.behavior
   «witness» := checked.realizable.witness
   program := checked.realizable.program
+  setupParameters := «model».setupParameters
   operationRole := «model».operationRoleId
   queryId := checked.query.id
   querySource := checked.query.source

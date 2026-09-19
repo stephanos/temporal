@@ -1,17 +1,48 @@
 package temporal
 
 import (
+	"cmp"
+	"slices"
+	"strings"
+
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 )
 
 // Environment names the physical resources one Case's symbolic bindings resolve to, plus the
 // identity the derived Profile carries. A Case that binds no Nexus endpoint leaves it empty.
+// DynamicConfig is the dynamic configuration the environment runs under -- a machine's setup
+// parameters bound through the realization's keys, and the value of the switch a functional set
+// repeats over -- keyed by the setting's key and valued by its text; the derived Profile records it.
 type Environment struct {
 	Identity      string
 	Namespace     string
 	TaskQueue     string
 	NexusEndpoint string
+	DynamicConfig map[string]string
+}
+
+// configurationOf records the environment's dynamic configuration in the canonical spelling the
+// catalog uses -- lower-case keys, sorted -- so two environments that spell one key differently
+// derive one Profile. An empty key or value is an error rather than a silently dropped setting.
+func configurationOf(environment Environment) ([]testpilot.ConfigurationValue, error) {
+	if len(environment.DynamicConfig) == 0 {
+		return nil, nil
+	}
+	values := make([]testpilot.ConfigurationValue, 0, len(environment.DynamicConfig))
+	for key, value := range environment.DynamicConfig {
+		if key == "" || value == "" {
+			return nil, ErrInvalid
+		}
+		values = append(values, testpilot.ConfigurationValue{Key: strings.ToLower(key), Value: value})
+	}
+	slices.SortFunc(values, func(a, b testpilot.ConfigurationValue) int { return cmp.Compare(a.Key, b.Key) })
+	for i := 1; i < len(values); i++ {
+		if values[i-1].Key == values[i].Key {
+			return nil, ErrInvalid
+		}
+	}
+	return values, nil
 }
 
 // startWorkflowExecutionMethod is the one reservation carrier the Temporal Driver realizes: the start
@@ -50,10 +81,11 @@ func DefaultCeilings() (*testpilotspb.ProgramLimits, *testpilotspb.ContractLimit
 // DeriveProfile returns the minimal authorization the Case implies: the roles it declares, the
 // methods it invokes, a reservation carrier for each StartWorkflowExecution an ordinary controller
 // invokes when the Program has workflow or Nexus-handler entrypoints to reserve, the opcodes its
-// instructions require, and the environment values its referenced bindings resolve to. Nothing is
-// widened beyond what the Case references, and anything the Case names that the catalog does not know
-// is an error rather than a silently authorized surface. Its resource ceilings are DefaultCeilings and
-// its instruction defaults DefaultInstructionLimits.
+// instructions require, the environment values its referenced bindings resolve to, and the dynamic
+// configuration the environment runs under. Nothing is widened beyond what the Case references, and
+// anything the Case names that the catalog does not know is an error rather than a silently
+// authorized surface. Its resource ceilings are DefaultCeilings and its instruction defaults
+// DefaultInstructionLimits.
 //
 // The Profile stays an authorization snapshot, so the derived value is returned for the caller to
 // review and tighten before Prepare rather than applied on its behalf.
@@ -78,6 +110,10 @@ func DeriveProfile(source *testpilotspb.Case, catalog *testpilot.Catalog, enviro
 	if err != nil {
 		return testpilot.ProfileSpec{}, err
 	}
+	configuration, err := configurationOf(environment)
+	if err != nil {
+		return testpilot.ProfileSpec{}, err
+	}
 	programLimits, contractLimits, correlatedLimits := DefaultCeilings()
 	return testpilot.ProfileSpec{
 		Identity:            environment.Identity,
@@ -85,6 +121,7 @@ func DeriveProfile(source *testpilotspb.Case, catalog *testpilot.Catalog, enviro
 		Roles:               roles,
 		Opcodes:             usage.authorizedOpcodes(),
 		EnvironmentBindings: bindings,
+		Configuration:       configuration,
 		ProgramLimits:       programLimits,
 		ContractLimits:      contractLimits,
 		CorrelatedLimits:    correlatedLimits,
