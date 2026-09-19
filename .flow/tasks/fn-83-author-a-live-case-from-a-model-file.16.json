@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-11T01:53:43.975750Z",
+  "depends_on": [
+    "fn-83-author-a-live-case-from-a-model-file.15"
+  ],
+  "id": "fn-83-author-a-live-case-from-a-model-file.16",
+  "priority": null,
+  "spec": "fn-83-author-a-live-case-from-a-model-file",
+  "spec_path": ".flow/tasks/fn-83-author-a-live-case-from-a-model-file.16.md",
+  "status": "todo",
+  "title": "Derive the fixture name from the case name",
+  "updated_at": "2026-09-11T01:53:43.975750Z"
+}

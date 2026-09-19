@@ -1,0 +1,645 @@
+{
+  "branch_name": "fn-81-delete-the-pre-testpilot-go-generations",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-09-09T19:56:08.029202Z",
+  "created_at": "2026-09-09T04:20:59.093320Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-81-delete-the-pre-testpilot-go-generations",
+  "impl_review_rounds": {
+    "fn-81-delete-the-pre-testpilot-go-generations.1": 0,
+    "fn-81-delete-the-pre-testpilot-go-generations.2": 0,
+    "fn-81-delete-the-pre-testpilot-go-generations.3": 0,
+    "fn-81-delete-the-pre-testpilot-go-generations.4": 0,
+    "fn-81-delete-the-pre-testpilot-go-generations.5": 0
+  },
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-09-09T04:40:39.607632Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "9562ce6735c2a9062320e5dd04efd88da486f3bd88ae60942504cd1f9f942b83",
+      "backend": "copilot",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "copilot",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-719c2d6e185c6db8caaadbe3bc5f0953",
+            "classification": "introduced",
+            "findingId": "finding-719c2d6e185c6db8caaadbe3bc5f0953",
+            "firstSeenThisRound": true,
+            "severity": "P0",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-ec1e018d7b5caed08ad7e0420d26dfb2",
+            "classification": "introduced",
+            "findingId": "finding-ec1e018d7b5caed08ad7e0420d26dfb2",
+            "firstSeenThisRound": true,
+            "severity": "P0",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-2acadc89a6c6974fa87b1149c7370387",
+            "classification": "introduced",
+            "findingId": "finding-2acadc89a6c6974fa87b1149c7370387",
+            "firstSeenThisRound": true,
+            "severity": "P0",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "97e469a3a69fc7ca2d7f60a843b8fe7e38d55b61",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.4",
+      "outcome": "verdict",
+      "output_bytes": 4323,
+      "output_sha256": "613c732aee6d0077505a45ab157b9c52b7f4259dcd6a21e3c933d25b072ccd44",
+      "reservation_id": "b436d60813be4322a339f7ca1f372d44",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-09T04:35:31.510564Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "633681c9c2844c5802b3b08c6d397fec616cdda3795092c9a89fcc6289269bbe",
+      "backend": "copilot",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "copilot",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-719c2d6e185c6db8caaadbe3bc5f0953",
+            "classification": "introduced",
+            "findingId": "finding-719c2d6e185c6db8caaadbe3bc5f0953",
+            "firstSeenThisRound": false,
+            "severity": "P0",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-ec1e018d7b5caed08ad7e0420d26dfb2",
+            "classification": "introduced",
+            "findingId": "finding-ec1e018d7b5caed08ad7e0420d26dfb2",
+            "firstSeenThisRound": false,
+            "severity": "P0",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-59f84bed9104a26b1ef9596c3cb79b7b",
+            "classification": "introduced",
+            "findingId": "finding-59f84bed9104a26b1ef9596c3cb79b7b",
+            "firstSeenThisRound": true,
+            "severity": "P0",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-2acadc89a6c6974fa87b1149c7370387",
+            "classification": "introduced",
+            "findingId": "finding-2acadc89a6c6974fa87b1149c7370387",
+            "firstSeenThisRound": false,
+            "severity": "P0",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "97e469a3a69fc7ca2d7f60a843b8fe7e38d55b61",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.4",
+      "outcome": "verdict",
+      "output_bytes": 2198,
+      "output_sha256": "559b8a795650c6474970bbd5979a08e301c11695496c42d5aab99d92efec07e8",
+      "reservation_id": "2d47d5c11aa0458bb67736d12d27e637",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-09T04:39:24.321702Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "13c35ea2bf4aa83a0995280e590ad92e623e9a3518db3ea5caae9549b7999b6a",
+      "backend": "copilot",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "copilot",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-719c2d6e185c6db8caaadbe3bc5f0953",
+            "classification": "introduced",
+            "findingId": "finding-719c2d6e185c6db8caaadbe3bc5f0953",
+            "firstSeenThisRound": false,
+            "severity": "P0",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-ec1e018d7b5caed08ad7e0420d26dfb2",
+            "classification": "introduced",
+            "findingId": "finding-ec1e018d7b5caed08ad7e0420d26dfb2",
+            "firstSeenThisRound": false,
+            "severity": "P0",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-59f84bed9104a26b1ef9596c3cb79b7b",
+            "classification": "introduced",
+            "findingId": "finding-59f84bed9104a26b1ef9596c3cb79b7b",
+            "firstSeenThisRound": false,
+            "severity": "P0",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-2acadc89a6c6974fa87b1149c7370387",
+            "classification": "introduced",
+            "findingId": "finding-2acadc89a6c6974fa87b1149c7370387",
+            "firstSeenThisRound": false,
+            "severity": "P0",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "97e469a3a69fc7ca2d7f60a843b8fe7e38d55b61",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.4",
+      "outcome": "verdict",
+      "output_bytes": 756,
+      "output_sha256": "09ec40eb49d76e1650005cf835793245fadf94179b516538219746bc5f0a522b",
+      "reservation_id": "76dea77d032d46bf81deea83a9a00e41",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-09T04:40:39.602669Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "ea93b3caaa4c6361ee9ccda03f50e04fad0d0a6b4e8ece45a5e6bdef64a36f1a",
+      "backend": "claude",
+      "base_sha": "5b9cc0dc9df7b03d231dc685c1fa99bffdf9c3b3",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-0aaa19da27c26a4d2571dff1fd74f9f6",
+            "classification": "introduced",
+            "findingId": "finding-0aaa19da27c26a4d2571dff1fd74f9f6",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-e69e8ac8fe8b572a57905f047b6bebf0",
+            "classification": "introduced",
+            "findingId": "finding-e69e8ac8fe8b572a57905f047b6bebf0",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "3da1a64f00c1466278c92f8b3a1302cef542789d",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 5599,
+      "output_sha256": "b3845f77b23ec93fc27ec39670291696beb6b6ec438fb58f54c830afa5d8dd9a",
+      "reservation_id": "05a699f5a15349a8a454e8dbfd778b2c",
+      "round_consumed": true,
+      "scope": "impl:fn-81-delete-the-pre-testpilot-go-generations.1",
+      "superseded_by": null,
+      "task": "fn-81-delete-the-pre-testpilot-go-generations.1",
+      "timestamp": "2026-09-09T16:55:46.465087Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "2532aaae4bf4ed417f4991b14106ec169236c6d8ad27826168402562990703d3",
+      "backend": "claude",
+      "base_sha": "5b9cc0dc9df7b03d231dc685c1fa99bffdf9c3b3",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "eb3da17ea2e3bf3bc9630b287107c35936dc6073",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 4838,
+      "output_sha256": "3a0354b8594baaeafde1fc22f25f1ad3fd3a612eaafbff4e05d1b122b88b0421",
+      "reservation_id": "bdb743a6660048b9856098697ea9e375",
+      "round_consumed": true,
+      "scope": "impl:fn-81-delete-the-pre-testpilot-go-generations.1",
+      "superseded_by": null,
+      "task": "fn-81-delete-the-pre-testpilot-go-generations.1",
+      "timestamp": "2026-09-09T17:05:26.108507Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "6fec6b8c5460c49083c60280afed6ece7323d05832a77a91595dd4047ec25dec",
+      "backend": "claude",
+      "base_sha": "5b9cc0dc9df7b03d231dc685c1fa99bffdf9c3b3",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "7da7dc2e56aad663bd74dc261e86064281f61f73",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 4013,
+      "output_sha256": "44a3aa6771790143d9b73bcc8fa7dee1b448f9fb115e974150611fb7d5590775",
+      "reservation_id": "438885092b084652a7d0db6cab9234b8",
+      "round_consumed": true,
+      "scope": "impl:fn-81-delete-the-pre-testpilot-go-generations.1",
+      "superseded_by": null,
+      "task": "fn-81-delete-the-pre-testpilot-go-generations.1",
+      "timestamp": "2026-09-09T17:09:44.539293Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "96c2f16dadedbf263d62fca43ea4ab9b00f9834ed65e383abd44d7604e99313f",
+      "backend": "claude",
+      "base_sha": "1b99680cc8c70bc3cacde6103b9ef0b0e96eea8d",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "daf005772fefc6194c0df87c4e518d8de4881446",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 4178,
+      "output_sha256": "1e3f70a1781ae39a6b9e226c2a4c54c00852fa4d6cfa15b21a56d056cafac379",
+      "reservation_id": "74789afccd13472b89337e29c41b2a02",
+      "round_consumed": true,
+      "scope": "impl:fn-81-delete-the-pre-testpilot-go-generations.2",
+      "superseded_by": null,
+      "task": "fn-81-delete-the-pre-testpilot-go-generations.2",
+      "timestamp": "2026-09-09T17:24:58.312314Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "0f4555d02921154590b9cbe9484d69dd67fc7475705c437a55cb2008a6ca2bb4",
+      "backend": "claude",
+      "base_sha": "426ddc8982f13b4a4310b7f747d42a52df27753b",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-7e5ba58f7f7dd1031e0d0fabce913241",
+            "classification": "introduced",
+            "findingId": "finding-7e5ba58f7f7dd1031e0d0fabce913241",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-3746384c28a9e10553d4d2a94e1a128f",
+            "classification": "introduced",
+            "findingId": "finding-3746384c28a9e10553d4d2a94e1a128f",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "edf4f86ec1fbc6929bcac49f2bf20d15ce8d19ef",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 5247,
+      "output_sha256": "014adcd73b546dca07ddf0410dc729739280cec827c82c97e6bf5828be48a627",
+      "reservation_id": "9236b37eed9643c684c61e92e52e7fa3",
+      "round_consumed": true,
+      "scope": "impl:fn-81-delete-the-pre-testpilot-go-generations.3",
+      "superseded_by": null,
+      "task": "fn-81-delete-the-pre-testpilot-go-generations.3",
+      "timestamp": "2026-09-09T17:33:40.506279Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "e296878172f77d7c152bc1da2eee45289e9afa7e9a61ad927a3f6bacc3dd703c",
+      "backend": "claude",
+      "base_sha": "6efe6c8098fddf5a771e73911c564b8def9799c1",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "a64f9b9d69f324a4a642caadefd9487d556d9b06",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 5253,
+      "output_sha256": "c791bfc7135443b7ce0f14fae92b065b2320920ebe0c1a4f23d2ddb93a3eecc6",
+      "reservation_id": "760fe18906114e70a9c33b13b0d828a5",
+      "round_consumed": true,
+      "scope": "impl:fn-81-delete-the-pre-testpilot-go-generations.4",
+      "superseded_by": null,
+      "task": "fn-81-delete-the-pre-testpilot-go-generations.4",
+      "timestamp": "2026-09-09T17:48:44.535130Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "1ec414fb0a803804618c4016ab0e34cfaf5c389b7500f4a60eada2ae19a89f8f",
+      "backend": "claude",
+      "base_sha": "6efe6c8098fddf5a771e73911c564b8def9799c1",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "24107bbab1118740d58bf6a4968b3e52dad6dae9",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 3930,
+      "output_sha256": "b5fd499c577dca373901bc4188b68335639eaa439e1cb1235954f30a7cfc4176",
+      "reservation_id": "2d819800cd8b40dcbdab395086bcb11c",
+      "round_consumed": true,
+      "scope": "impl:fn-81-delete-the-pre-testpilot-go-generations.4",
+      "superseded_by": null,
+      "task": "fn-81-delete-the-pre-testpilot-go-generations.4",
+      "timestamp": "2026-09-09T17:52:13.512263Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "3071a276c78a34b4c94ba07984e238246da08ddde2110c26a00d9d371c02c8cc",
+      "backend": "claude",
+      "base_sha": "23fdd03170fac46fc1cb0a6e6cb5cf4c63258ad3",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "4e60340045e2ca2d81ea8690d00b25eafe5916a4",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 4244,
+      "output_sha256": "f8f41349e96ceb96e6dd6d03695da948ee05f3b034325a04db53da0fd8578b42",
+      "reservation_id": "abf1358cedfb4d11b97075803990fd99",
+      "round_consumed": true,
+      "scope": "impl:fn-81-delete-the-pre-testpilot-go-generations.5",
+      "superseded_by": null,
+      "task": "fn-81-delete-the-pre-testpilot-go-generations.5",
+      "timestamp": "2026-09-09T19:39:01.918663Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "381ed10acab7631f5b59759e5e1cedaf5e4d3f16b5915062e930d4c28bfdc617",
+      "backend": "claude",
+      "base_sha": "23fdd03170fac46fc1cb0a6e6cb5cf4c63258ad3",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "00352315e87c8820c2d082de8f3fb2b2c1489ae0",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 4179,
+      "output_sha256": "151de402904603aeda9ce2eaf1c7e5a0a1fc1047830adb6970a4ebb2011c167a",
+      "reservation_id": "31ac7587246e40f0a0950e3d685a0811",
+      "round_consumed": true,
+      "scope": "impl:fn-81-delete-the-pre-testpilot-go-generations.5",
+      "superseded_by": null,
+      "task": "fn-81-delete-the-pre-testpilot-go-generations.5",
+      "timestamp": "2026-09-09T19:45:40.859494Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "70ee84f17121cc5ed696afc1602100258f5237ea3e662f73691a3700ca6fcc8e",
+      "backend": "claude",
+      "base_sha": "23fdd03170fac46fc1cb0a6e6cb5cf4c63258ad3",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "04ecff91a8d64f8ef4f69fc40a8e632591d0ceef",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 5034,
+      "output_sha256": "bedec246228646b8baa3ec11121ad82993f197aa5823627a0640938d2ec68ce4",
+      "reservation_id": "c28f34ab9b2743459caf240b24c3f2ff",
+      "round_consumed": true,
+      "scope": "impl:fn-81-delete-the-pre-testpilot-go-generations.5",
+      "superseded_by": null,
+      "task": "fn-81-delete-the-pre-testpilot-go-generations.5",
+      "timestamp": "2026-09-09T19:50:50.506019Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "e943c592b1c1b50854beeb8091efad6d741826c26643a6fc4a088d9af5154e7c",
+      "backend": "claude",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "c2f58e38ae8f8143e47da0dd18e285a1246d7ac3",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 10353,
+      "output_sha256": "d36177f9950faffc3d74fef49ab4646421b39d4762527ef8f4771360f8899906",
+      "reservation_id": "3c971e2285c84dfcae1a18d40982f80a",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-09T19:56:08.025937Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-81-delete-the-pre-testpilot-go-generations.1": 1,
+    "impl:fn-81-delete-the-pre-testpilot-go-generations.2": 1,
+    "impl:fn-81-delete-the-pre-testpilot-go-generations.3": 1,
+    "impl:fn-81-delete-the-pre-testpilot-go-generations.4": 1,
+    "impl:fn-81-delete-the-pre-testpilot-go-generations.5": 1,
+    "plan": 1,
+    "plan#completion": 1
+  },
+  "review_pending_rounds": {
+    "impl:fn-81-delete-the-pre-testpilot-go-generations.1": 1
+  },
+  "review_reservations": {
+    "04fd9ece7be04d83ab3507b5a5d62916": {
+      "artifact_sha256": "2532aaae4bf4ed417f4991b14106ec169236c6d8ad27826168402562990703d3",
+      "counter_scope": "impl:fn-81-delete-the-pre-testpilot-go-generations.1",
+      "epoch": 0,
+      "exclusive": false,
+      "forced": false,
+      "review_type": "impl",
+      "superseded_by": "438885092b084652a7d0db6cab9234b8",
+      "superseded_epoch": 1
+    }
+  },
+  "review_transport_failures": {
+    "completion": 0,
+    "impl:fn-81-delete-the-pre-testpilot-go-generations.1": 0,
+    "impl:fn-81-delete-the-pre-testpilot-go-generations.2": 0,
+    "impl:fn-81-delete-the-pre-testpilot-go-generations.3": 0,
+    "impl:fn-81-delete-the-pre-testpilot-go-generations.4": 0,
+    "impl:fn-81-delete-the-pre-testpilot-go-generations.5": 0,
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-81-delete-the-pre-testpilot-go-generations.md",
+  "status": "done",
+  "title": "Delete the pre-Testpilot Go generations",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-10T06:35:11.337491Z"
+}

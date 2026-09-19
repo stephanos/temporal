@@ -29,6 +29,7 @@ import (
 	"go.temporal.io/server/common/log"
 	"go.temporal.io/server/common/log/tag"
 	"go.temporal.io/server/common/namespace"
+	persistencetests "go.temporal.io/server/common/persistence/persistence-tests"
 	"go.temporal.io/server/common/rpc/grpcfaults"
 	"go.temporal.io/server/common/rpc/httpfaults"
 	"go.temporal.io/server/common/testing/taskpoller"
@@ -36,7 +37,6 @@ import (
 	"go.temporal.io/server/common/testing/testhooks"
 	"go.temporal.io/server/common/testing/testlogger"
 	"go.temporal.io/server/common/testing/testvars"
-	"go.temporal.io/server/temporal"
 )
 
 // shardSalt is used to distribute functional tests across shards.
@@ -59,7 +59,6 @@ type Env interface {
 	GetTestCluster() *TestCluster
 	CloseShard(namespaceID string, workflowID string)
 	OverrideDynamicConfig(setting dynamicconfig.GenericSetting, value any) (cleanup func())
-	// Deprecated: use the suite's Context() method instead.
 	Context() context.Context
 	InjectHook(hook testhooks.Hook) (cleanup func())
 }
@@ -183,12 +182,23 @@ func WithPersistenceFaultInjection(cfg *config.FaultInjection) TestOption {
 	}
 }
 
+// WithInMemorySQLitePersistence gives the test a dedicated cluster backed by process-local SQLite.
+func WithInMemorySQLitePersistence() TestOption {
+	return func(o *testOptions) {
+		o.dedicatedCluster = true
+		o.clusterOptions = append(o.clusterOptions, func(params *testClusterParams) {
+			params.Persistence = *persistencetests.GetSQLiteMemoryTestClusterOption()
+		})
+		o.dedicatedReason = "in-memory SQLite persistence required"
+	}
+}
+
 // WithArchival enables archival on the test's cluster. This implies a dedicated
 // cluster because archival is configured at the cluster level.
 func WithArchival() TestOption {
 	return func(o *testOptions) {
 		o.dedicatedCluster = true
-		o.clusterOptions = append(o.clusterOptions, withArchivalConfig())
+		o.clusterOptions = append(o.clusterOptions, WithArchivalEnabled())
 		o.dedicatedReason = "archival enabled"
 	}
 }
@@ -199,12 +209,10 @@ func WithArchival() TestOption {
 func WithCustomArchivers(historyFactory provider.CustomHistoryArchiverFactory, visibilityFactory provider.CustomVisibilityArchiverFactory) TestOption {
 	return func(o *testOptions) {
 		o.dedicatedCluster = true
-		o.clusterOptions = append(o.clusterOptions, func(params *testClusterParams) {
-			params.AdditionalServerOptions = append(params.AdditionalServerOptions,
-				temporal.WithCustomHistoryArchiverFactory(historyFactory),
-				temporal.WithCustomVisibilityArchiverFactory(visibilityFactory),
-			)
-		})
+		o.clusterOptions = append(o.clusterOptions,
+			WithCustomHistoryArchiverFactory(historyFactory),
+			WithCustomVisibilityArchiverFactory(visibilityFactory),
+		)
 		o.dedicatedReason = "custom archivers used"
 	}
 }
@@ -287,7 +295,7 @@ func NewEnv(t *testing.T, opts ...TestOption) *TestEnv {
 	}
 
 	// Obtain the test cluster from the router.
-	base := testClusterRouter.get(t, clusterRequest{
+	base := getTestClusterRouter().get(t, clusterRequest{
 		dedicated:         options.dedicatedCluster,
 		needWorkerService: options.needWorkerService,
 		dedicatedReason:   options.dedicatedReason,
@@ -386,7 +394,7 @@ func (e *TestEnv) InjectHook(hook testhooks.Hook) (cleanup func()) {
 	case testhooks.ScopeNamespace:
 		scope = e.nsID
 	case testhooks.ScopeGlobal:
-		if e.isShared && !testClusterRouter.hasSuiteScoped(e.t) {
+		if e.isShared && !getTestClusterRouter().hasSuiteScoped(e.t) {
 			e.t.Fatal("InjectHook: global hooks require a dedicated cluster; use testcore.WithDedicatedCluster()")
 		}
 		e.dedicatedGuard.record("global hook injected")

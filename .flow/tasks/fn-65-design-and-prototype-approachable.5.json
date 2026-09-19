@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-04T21:54:51.699809Z",
+  "depends_on": [
+    "fn-65-design-and-prototype-approachable.4"
+  ],
+  "id": "fn-65-design-and-prototype-approachable.5",
+  "priority": null,
+  "spec": "fn-65-design-and-prototype-approachable",
+  "spec_path": ".flow/tasks/fn-65-design-and-prototype-approachable.5.md",
+  "status": "todo",
+  "title": "Break the reviewed Nexus2 prototype into implementation tasks",
+  "updated_at": "2026-09-04T22:04:39.428596Z"
+}

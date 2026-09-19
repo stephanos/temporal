@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-05T15:54:18.622716Z",
+  "depends_on": [
+    "fn-65-design-and-prototype-approachable.7"
+  ],
+  "id": "fn-65-design-and-prototype-approachable.8",
+  "priority": null,
+  "spec": "fn-65-design-and-prototype-approachable",
+  "spec_path": ".flow/tasks/fn-65-design-and-prototype-approachable.8.md",
+  "status": "todo",
+  "title": "Build the Nexus2 baseline and hide finite planner transport",
+  "updated_at": "2026-09-05T18:04:06.389035Z"
+}

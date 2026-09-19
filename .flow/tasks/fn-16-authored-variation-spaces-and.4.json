@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-26T08:55:35.725820Z",
+  "depends_on": [
+    "fn-16-authored-variation-spaces-and.2",
+    "fn-16-authored-variation-spaces-and.3"
+  ],
+  "id": "fn-16-authored-variation-spaces-and.4",
+  "priority": null,
+  "spec": "fn-16-authored-variation-spaces-and",
+  "spec_path": ".flow/tasks/fn-16-authored-variation-spaces-and.4.md",
+  "status": "todo",
+  "title": "Implement point lowering and atomic batch compilation",
+  "updated_at": "2026-08-26T08:55:35.725820Z"
+}

@@ -1,9 +1,12 @@
 package chasm
 
 import (
+	"context"
 	"fmt"
 	"slices"
+	"strings"
 
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	"go.temporal.io/api/serviceerror"
@@ -52,18 +55,50 @@ func (t Transition[S, SM, E]) Possible(sm SM) bool {
 func (t Transition[S, SM, E]) Apply(sm SM, ctx MutableContext, event E) (retErr error) {
 	prevState := sm.StateMachineState()
 
-	// Defer to always emit the transition telemetry event.
+	// Defer to always emit the transition telemetry event. The event carries the
+	// component's identity (execution key, Go type, and path) so an out-of-band
+	// observer — e.g. the umpire test Monitor — can attribute the transition to a
+	// specific component instance from this one generic event type.
 	if telemetry.DebugMode() {
 		defer func() {
+			ek := ctx.ExecutionKey()
 			attrs := []attribute.KeyValue{
-				attribute.String("chasm.transition.source", fmt.Sprintf("%v", prevState)),
-				attribute.String("chasm.transition.destination", fmt.Sprintf("%v", t.Destination)),
+				telemetry.AttrChasmTransitionSource.String(fmt.Sprintf("%v", prevState)),
+				telemetry.AttrChasmTransitionDestination.String(fmt.Sprintf("%v", t.Destination)),
+				telemetry.AttrChasmTransitionEvent.String(fmt.Sprintf("%T", event)),
+				telemetry.AttrChasmComponentType.String(fmt.Sprintf("%T", sm)),
+				telemetry.AttrNamespaceID.String(ek.NamespaceID),
+				telemetry.AttrWorkflowID.String(ek.BusinessID),
+				telemetry.AttrRunID.String(ek.RunID),
+			}
+			if comp, ok := any(sm).(Component); ok {
+				if ref, err := ctx.structuredRef(comp); err == nil {
+					attrs = append(attrs, telemetry.AttrChasmComponentPath.String(strings.Join(ref.componentPath, "/")))
+				}
+			}
+			// A component may enrich its transition telemetry with its own attributes
+			// (e.g. an attempt count) — one generic event, optionally richer per component.
+			if enr, ok := any(sm).(interface {
+				TransitionTelemetryAttributes() []attribute.KeyValue
+			}); ok {
+				attrs = append(attrs, enr.TransitionTelemetryAttributes()...)
 			}
 			if retErr != nil {
 				attrs = append(attrs, attribute.String("chasm.transition.error", retErr.Error()))
 			}
+			// Prefer the ambient span (keeps the event correlated with the enclosing
+			// trace). CHASM transitions often run in background task processing with no
+			// recording ambient span, so fall back to a fresh span from the global
+			// tracer — a no-op unless a TracerProvider is configured (e.g. an observer
+			// wiring its own SpanProcessor).
 			span := trace.SpanFromContext(ctx.goContext())
-			span.AddEvent("chasm.transition", trace.WithAttributes(attrs...))
+			if !span.IsRecording() {
+				var created trace.Span
+				_, created = otel.Tracer("go.temporal.io/server/chasm").Start(context.Background(), telemetry.EventChasmTransition)
+				span = created
+				defer created.End()
+			}
+			span.AddEvent(telemetry.EventChasmTransition, trace.WithAttributes(attrs...))
 		}()
 	}
 

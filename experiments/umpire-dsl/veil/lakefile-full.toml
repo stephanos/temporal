@@ -1,0 +1,7 @@
+name = "umpireDslVeilFull"
+manifestFile = "lake-manifest-full.json"
+
+[[require]]
+name = "veil"
+git = "https://github.com/verse-lab/veil.git"
+rev = "be6a1ceebd103d05e1e0f0863e8bf73db1ea9ccd"

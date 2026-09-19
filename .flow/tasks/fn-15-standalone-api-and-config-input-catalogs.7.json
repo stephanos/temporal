@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-26T08:21:12.285954Z",
+  "depends_on": [
+    "fn-15-standalone-api-and-config-input-catalogs.6"
+  ],
+  "id": "fn-15-standalone-api-and-config-input-catalogs.7",
+  "priority": null,
+  "spec": "fn-15-standalone-api-and-config-input-catalogs",
+  "spec_path": ".flow/tasks/fn-15-standalone-api-and-config-input-catalogs.7.md",
+  "status": "todo",
+  "title": "Wire root Make commands and update input catalog documentation",
+  "updated_at": "2026-08-26T08:21:12.285954Z"
+}

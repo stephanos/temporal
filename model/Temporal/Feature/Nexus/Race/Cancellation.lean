@@ -1,0 +1,245 @@
+import Temporal.Feature.Nexus.Race.Lifecycle
+import Umpire.Search.Admission
+
+/-! Independently authored start, cancellation, and successful-completion checks. -/
+
+namespace Temporal.Feature.Nexus.Race.Cancellation
+
+open Umpire
+open Temporal.Feature.Nexus.Race.Lifecycle
+
+private def id (value : String) : DefinitionId := Temporal.Shared.definitionId value
+
+def source : SourceLocation :=
+  Temporal.Shared.sourceLocation "Temporal/Feature/Nexus/Race/Cancellation.lean"
+
+structure ModelVocabulary where
+  scheduledState : ModelValue
+  startedState : ModelValue
+  canceledState : ModelValue
+  succeededState : ModelValue
+  cancelAction : ModelValue
+  startAction : ModelValue
+  reportSuccessAction : ModelValue
+  startedOutcome : ModelValue
+  canceledOutcome : ModelValue
+  succeededOutcome : ModelValue
+  startedFact : ModelValue
+  canceledFact : ModelValue
+  succeededFact : ModelValue
+  scheduledSetup : List RoleBinding
+  startedSetup : List RoleBinding
+  deriving BEq, DecidableEq, Repr
+
+/-- Vocabulary lowering stays behind the generic finite identity owner. -/
+def modelVocabulary : Except FiniteTableError ModelVocabulary := do
+  let model ← (table.validate.map (·.withIdentity identity))
+  pure {
+    scheduledState := ← model.stateValue .scheduled
+    startedState := ← model.stateValue .started
+    canceledState := ← model.stateValue .canceled
+    succeededState := ← model.stateValue .succeeded
+    cancelAction := ← model.actionValue .cancel
+    startAction := ← model.actionValue .start
+    reportSuccessAction := ← model.actionValue .reportSuccess
+    startedOutcome := ← model.outcomeValue .started
+    canceledOutcome := ← model.outcomeValue .canceled
+    succeededOutcome := ← model.outcomeValue .succeeded
+    startedFact := ← model.factValue .started
+    canceledFact := ← model.factValue .canceled
+    succeededFact := ← model.factValue .succeeded
+    scheduledSetup := ← model.setupValue .scheduled
+    startedSetup := ← model.setupValue .started
+  }
+
+def operationRole : Scenario.Role := { id := operationRoleId, valueKind := .state }
+
+namespace Start
+
+def propertyId : DefinitionId := id "temporal.nexus.race.basic-lifecycle.property.start"
+def behaviorId : DefinitionId := id "temporal.nexus.race.basic-lifecycle.behavior.start"
+def queryId : DefinitionId := id "temporal.nexus.race.basic-lifecycle.query.start"
+def occurrenceId : DefinitionId := id "temporal.nexus.race.basic-lifecycle.occurrence.start"
+def setupConstraintId : DefinitionId := id "temporal.nexus.race.basic-lifecycle.setup.scheduled"
+
+def authoredProperty (model : ModelVocabulary) : Property := {
+  id := propertyId
+  source
+  requires := [lifecycleCapabilityId]
+  clauses := [
+    .transitionContract (id "temporal.nexus.race.basic-lifecycle.property.start.state")
+      (PropertyPattern.exact .selectedAction startActionId model.startAction.value)
+      (PropertyPattern.exact .resultingState operationStateId model.startedState.value),
+    .transitionContract (id "temporal.nexus.race.basic-lifecycle.property.start.outcome")
+      (PropertyPattern.exact .selectedAction startActionId model.startAction.value)
+      (PropertyPattern.exact .outcome transitionOutcomeId model.startedOutcome.value),
+    .inputOutput (id "temporal.nexus.race.basic-lifecycle.property.start.fact")
+      (PropertyPattern.exact .selectedAction startActionId model.startAction.value)
+      (PropertyPattern.exact .observation lifecycleFactId model.startedFact.value)
+  ]
+  documentation := "Starting a scheduled operation yields the started lifecycle result."
+}
+
+def authoredScenario (model : ModelVocabulary) : Scenario :=
+  Scenario.exactlyOneAction behaviorId source
+    { id := occurrenceId, action := startActionId }
+    (requires := [lifecycleCapabilityId])
+    (roles := [operationRole])
+    (setup := [SetupConstraint.roleEquals setupConstraintId operationRoleId model.scheduledState])
+
+def queryShape : Query.Shape := {
+  id := queryId
+  source
+  target := targetId
+  form := .find
+  limits := Limits.bounded 1 1 8
+  policy := { strategy := .shortest, seed := 17 }
+}
+
+def authoredQuery
+    (property : CheckedProperty) (behavior : CheckedScenario) : Query :=
+  queryShape.toQuery property behavior
+
+end Start
+
+namespace Cancel
+
+def propertyId : DefinitionId := id "temporal.nexus.race.basic-lifecycle.property.cancel"
+def behaviorId : DefinitionId := id "temporal.nexus.race.basic-lifecycle.behavior.cancel"
+def queryId : DefinitionId := id "temporal.nexus.race.basic-lifecycle.query.cancel"
+def occurrenceId : DefinitionId := id "temporal.nexus.race.basic-lifecycle.occurrence.cancel"
+def setupConstraintId : DefinitionId := id "temporal.nexus.race.basic-lifecycle.setup.started-cancel"
+
+def authoredProperty (model : ModelVocabulary) : Property := {
+  id := propertyId
+  source
+  requires := [lifecycleCapabilityId]
+  clauses := [
+    .transitionContract (id "temporal.nexus.race.basic-lifecycle.property.cancel.state")
+      (PropertyPattern.exact .selectedAction cancelActionId model.cancelAction.value)
+      (PropertyPattern.exact .resultingState operationStateId model.canceledState.value),
+    .transitionContract (id "temporal.nexus.race.basic-lifecycle.property.cancel.outcome")
+      (PropertyPattern.exact .selectedAction cancelActionId model.cancelAction.value)
+      (PropertyPattern.exact .outcome transitionOutcomeId model.canceledOutcome.value),
+    .inputOutput (id "temporal.nexus.race.basic-lifecycle.property.cancel.fact")
+      (PropertyPattern.exact .selectedAction cancelActionId model.cancelAction.value)
+      (PropertyPattern.exact .observation lifecycleFactId model.canceledFact.value)
+  ]
+  documentation := "Canceling a started operation yields the canceled lifecycle result."
+}
+
+def authoredScenario (model : ModelVocabulary) : Scenario :=
+  Scenario.exactlyOneAction behaviorId source
+    { id := occurrenceId, action := cancelActionId }
+    (requires := [lifecycleCapabilityId])
+    (roles := [operationRole])
+    (setup := [SetupConstraint.roleEquals setupConstraintId operationRoleId model.startedState])
+
+def queryShape : Query.Shape := {
+  id := queryId
+  source
+  target := targetId
+  form := .find
+  limits := Limits.bounded 1 1 8
+  policy := { strategy := .shortest, seed := 17 }
+}
+
+def authoredQuery
+    (property : CheckedProperty) (behavior : CheckedScenario) : Query :=
+  queryShape.toQuery property behavior
+
+end Cancel
+
+namespace Success
+
+def propertyId : DefinitionId := id "temporal.nexus.race.basic-lifecycle.property.success"
+def behaviorId : DefinitionId := id "temporal.nexus.race.basic-lifecycle.behavior.success"
+def queryId : DefinitionId := id "temporal.nexus.race.basic-lifecycle.query.success"
+def occurrenceId : DefinitionId := id "temporal.nexus.race.basic-lifecycle.occurrence.success"
+def setupConstraintId : DefinitionId := id "temporal.nexus.race.basic-lifecycle.setup.started-success"
+
+def authoredProperty (model : ModelVocabulary) : Property := {
+  id := propertyId
+  source
+  requires := [lifecycleCapabilityId]
+  clauses := [
+    .transitionContract (id "temporal.nexus.race.basic-lifecycle.property.success.state")
+      (PropertyPattern.exact .selectedAction reportSuccessActionId model.reportSuccessAction.value)
+      (PropertyPattern.exact .resultingState operationStateId model.succeededState.value),
+    .transitionContract (id "temporal.nexus.race.basic-lifecycle.property.success.outcome")
+      (PropertyPattern.exact .selectedAction reportSuccessActionId model.reportSuccessAction.value)
+      (PropertyPattern.exact .outcome transitionOutcomeId model.succeededOutcome.value),
+    .inputOutput (id "temporal.nexus.race.basic-lifecycle.property.success.fact")
+      (PropertyPattern.exact .selectedAction reportSuccessActionId model.reportSuccessAction.value)
+      (PropertyPattern.exact .observation lifecycleFactId model.succeededFact.value)
+  ]
+  documentation := "Reporting success yields the succeeded lifecycle result."
+}
+
+def authoredScenario (model : ModelVocabulary) : Scenario :=
+  Scenario.exactlyOneAction behaviorId source
+    { id := occurrenceId, action := reportSuccessActionId }
+    (requires := [lifecycleCapabilityId])
+    (roles := [operationRole])
+    (setup := [SetupConstraint.roleEquals setupConstraintId operationRoleId model.startedState])
+
+def queryShape : Query.Shape := {
+  id := queryId
+  source
+  target := targetId
+  form := .find
+  limits := Limits.bounded 1 1 8
+  policy := { strategy := .shortest, seed := 17 }
+}
+
+def authoredQuery
+    (property : CheckedProperty) (behavior : CheckedScenario) : Query :=
+  queryShape.toQuery property behavior
+
+end Success
+
+/-- The lifecycle Model's own table and vocabulary are admitted here; every journey after that is
+`Search.admit`'s, reported as the stage that rejected. -/
+inductive BaselineAdmissionError where
+  | invalidTarget (error : TableAdmissionError)
+  | invalidVocabulary (error : FiniteTableError)
+  | invalidOperation (diagnostic : AdmissionDiagnostic)
+
+structure CheckedOperation where
+  property : CheckedProperty
+  behavior : CheckedScenario
+  query : CheckedQuery LawStatement
+  run : PlanResult
+
+structure CheckedBaseline where
+  target : QueryModel LawStatement
+  model : ModelVocabulary
+  start : CheckedOperation
+  cancel : CheckedOperation
+  success : CheckedOperation
+
+private def checkOperation
+    (target : QueryModel LawStatement)
+    (authoredProperty : Property)
+    (authoredScenario : Scenario)
+    (queryShape : Query.Shape) :
+    Except BaselineAdmissionError CheckedOperation := do
+  let admitted ← Search.admit target authoredProperty (some authoredScenario) queryShape
+    |>.mapError BaselineAdmissionError.invalidOperation
+  let run ← admitted.search |>.mapError (BaselineAdmissionError.invalidOperation ∘ .knownGaps)
+  pure {
+    property := admitted.property, behavior := admitted.scenario, query := admitted.query, run }
+
+/-- All three journeys proceed only through successful Target and declaration admission branches. -/
+def checkBaseline : Except BaselineAdmissionError CheckedBaseline := do
+  let target ← targetResult.mapError BaselineAdmissionError.invalidTarget
+  let model ← modelVocabulary.mapError BaselineAdmissionError.invalidVocabulary
+  let start ← checkOperation target (Start.authoredProperty model)
+    (Start.authoredScenario model) Start.queryShape
+  let cancel ← checkOperation target (Cancel.authoredProperty model)
+    (Cancel.authoredScenario model) Cancel.queryShape
+  let success ← checkOperation target (Success.authoredProperty model)
+    (Success.authoredScenario model) Success.queryShape
+  pure { target, model, start, cancel, success }
+
+end Temporal.Feature.Nexus.Race.Cancellation

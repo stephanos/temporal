@@ -1,0 +1,48 @@
+{
+  "id": "switch.query.exact-action",
+  "version": 1,
+  "form": "find",
+  "properties": [
+    {
+      "id": "switch.property.flip-turns-on",
+      "behaviorFingerprint": "sha256:7cda79f775847515a57bb4ce4988d501f775b675c39a89f49e77b8cdf46f0b9e"
+    }
+  ],
+  "behavior": {
+    "id": "switch.behavior.exact-action",
+    "behaviorFingerprint": "sha256:6d8401f9c207c29194594a9338797214ae11d223509c88c33be19f380f3174e6"
+  },
+  "limits": {
+    "steps": {
+      "value": 1,
+      "unit": "steps"
+    },
+    "actions": {
+      "value": 1,
+      "unit": "actions"
+    },
+    "search": {
+      "value": 8,
+      "unit": "search"
+    }
+  },
+  "policy": {
+    "strategy": "shortest",
+    "seed": 17
+  },
+  "target": {
+    "id": "switch.target.two-state",
+    "behaviorFingerprint": "sha256:dd15faf7be2de6646dbf65eca30c27bdc2829e29b35158c575ec3245d28ebd3c",
+    "composition": [
+      "switch.capability.state",
+      "switch.provider.state"
+    ],
+    "kernel": {
+      "id": "switch.kernel.two-state"
+    }
+  },
+  "finiteCompleteness": {
+    "roleDomainFingerprint": "sha256:50b34071704bd037316acfc402ce0b7ebd03a01aec5479c3a2d576e5dfbb4196",
+    "actionDomainFingerprint": "sha256:e2e705648099d8cd0001b0d0b9b296714a639b92f61b023237150b41989c07c8"
+  }
+}

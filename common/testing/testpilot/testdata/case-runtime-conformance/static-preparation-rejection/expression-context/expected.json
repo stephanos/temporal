@@ -1,0 +1,9 @@
+{
+  "class": "static-preparation-rejection",
+  "preparation": "rejected",
+  "runCount": 0,
+  "preparationError": {
+    "category": "unknown",
+    "path": "program.entrypoints[controller].instructions[execute].guard.reference.observation_id"
+  }
+}

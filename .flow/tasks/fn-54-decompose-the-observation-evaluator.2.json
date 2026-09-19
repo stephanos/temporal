@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-03T19:26:26.822913Z",
+  "depends_on": [
+    "fn-54-decompose-the-observation-evaluator.1"
+  ],
+  "id": "fn-54-decompose-the-observation-evaluator.2",
+  "priority": null,
+  "spec": "fn-54-decompose-the-observation-evaluator",
+  "spec_path": ".flow/tasks/fn-54-decompose-the-observation-evaluator.2.md",
+  "status": "todo",
+  "title": "Extract the Observation structural analyzer and focused tests",
+  "updated_at": "2026-09-03T19:26:26.822913Z"
+}

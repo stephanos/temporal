@@ -1,0 +1,1656 @@
+{
+  "branch_name": "fn-80-close-the-model-to-case-seam-and-harden",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-09-10T02:43:13.097671Z",
+  "created_at": "2026-09-09T03:08:14.453422Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-80-close-the-model-to-case-seam-and-harden",
+  "impl_review_rounds": {
+    "fn-80-close-the-model-to-case-seam-and-harden.1": 0,
+    "fn-80-close-the-model-to-case-seam-and-harden.10": 0,
+    "fn-80-close-the-model-to-case-seam-and-harden.11": 0,
+    "fn-80-close-the-model-to-case-seam-and-harden.12": 0,
+    "fn-80-close-the-model-to-case-seam-and-harden.13": 0,
+    "fn-80-close-the-model-to-case-seam-and-harden.14": 0,
+    "fn-80-close-the-model-to-case-seam-and-harden.15": 0,
+    "fn-80-close-the-model-to-case-seam-and-harden.2": 0,
+    "fn-80-close-the-model-to-case-seam-and-harden.3": 0,
+    "fn-80-close-the-model-to-case-seam-and-harden.4": 0,
+    "fn-80-close-the-model-to-case-seam-and-harden.6": 0,
+    "fn-80-close-the-model-to-case-seam-and-harden.7": 0,
+    "fn-80-close-the-model-to-case-seam-and-harden.8": 0,
+    "fn-80-close-the-model-to-case-seam-and-harden.9": 0
+  },
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-09-09T03:29:54.162529Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "20df01ac1e90971cb7acf1cd3ff3dba94daf1f1db4a308885c37402dc20e4980",
+      "backend": "copilot",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "copilot",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-c0974fcad773521d3b224e832cb231f7",
+            "classification": "introduced",
+            "findingId": "finding-c0974fcad773521d3b224e832cb231f7",
+            "firstSeenThisRound": true,
+            "severity": "P0",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-fdd7d4b57f6a6c2bbbb0c4f3e42b20dd",
+            "classification": "introduced",
+            "findingId": "finding-fdd7d4b57f6a6c2bbbb0c4f3e42b20dd",
+            "firstSeenThisRound": true,
+            "severity": "P0",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-73f08d91136ec724c05127e7c9b301c2",
+            "classification": "introduced",
+            "findingId": "finding-73f08d91136ec724c05127e7c9b301c2",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "9172bf8775a074645243fbe48d76d70d079744dc",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.4",
+      "outcome": "verdict",
+      "output_bytes": 6312,
+      "output_sha256": "440c571cd79bcc0305e10407e234b7082c43178729e217b0e5524f894e557e3c",
+      "reservation_id": "8653be1bfb0c4c6b9ca933e5958bf273",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-09T03:27:08.614428Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "b2541b7ea6966e1e3cdc6f0fafd214b356017136c7aa03c0aca78d3e5696cc19",
+      "backend": "copilot",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "copilot",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-c0974fcad773521d3b224e832cb231f7",
+            "classification": "introduced",
+            "findingId": "finding-c0974fcad773521d3b224e832cb231f7",
+            "firstSeenThisRound": false,
+            "severity": "P0",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-fdd7d4b57f6a6c2bbbb0c4f3e42b20dd",
+            "classification": "introduced",
+            "findingId": "finding-fdd7d4b57f6a6c2bbbb0c4f3e42b20dd",
+            "firstSeenThisRound": false,
+            "severity": "P0",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-73f08d91136ec724c05127e7c9b301c2",
+            "classification": "introduced",
+            "findingId": "finding-73f08d91136ec724c05127e7c9b301c2",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "9172bf8775a074645243fbe48d76d70d079744dc",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.4",
+      "outcome": "verdict",
+      "output_bytes": 1091,
+      "output_sha256": "4b4e90fc86c5f744862915b0222feeba9ced24c6ea24ded9fb9fa28297ea702c",
+      "reservation_id": "777aa9c61211475393f3e585ffcc6d06",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-09T03:29:54.159731Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "c72879aa38b2f575b17ae5c717670e1cd79dad1b6eb518dac3ed24be65602b30",
+      "backend": "claude",
+      "base_sha": "c24ab1302aed6568fca26ba9c757a25cb7a61e98",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "0a6d6eeafa13e5f858b2ada6ac98738e0cf30b77",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 4474,
+      "output_sha256": "58d182ed9da1310c3d2be035cab13296c811d12aac4cdf95a7626a0a3912d3bd",
+      "reservation_id": "a258808e65cf4ef28d19ddeac7dc91d3",
+      "round_consumed": true,
+      "scope": "impl:fn-80-close-the-model-to-case-seam-and-harden.1",
+      "superseded_by": null,
+      "task": "fn-80-close-the-model-to-case-seam-and-harden.1",
+      "timestamp": "2026-09-09T14:35:32.831346Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "9d44b5c177818189db1082b20106e69b2881b51995599f465c5ba984d183e29b",
+      "backend": "claude",
+      "base_sha": "2f5ab246b804c590bbc542a1947343cfc635092e",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-91457f961519a7d0c459f9f00f19bddb",
+            "classification": "introduced",
+            "findingId": "finding-91457f961519a7d0c459f9f00f19bddb",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-d5e4b24ea3cecc72b485cc5467faac4f",
+            "classification": "introduced",
+            "findingId": "finding-d5e4b24ea3cecc72b485cc5467faac4f",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-324d17bf5b2aa0c47d8146f932e6936d",
+            "classification": "introduced",
+            "findingId": "finding-324d17bf5b2aa0c47d8146f932e6936d",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-f11d3bc09cf3657b289d6a02a4938ae2",
+            "classification": "introduced",
+            "findingId": "finding-f11d3bc09cf3657b289d6a02a4938ae2",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "22809dc9f0f545aabcdd1c871e0c1c706b2f2892",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 5675,
+      "output_sha256": "80ff87572f11e9831bbcd53ab1a2e5caada322ad73a72afffb9cddf49b304cd2",
+      "reservation_id": "49a9af57aa164c08b2ba18ad4a9504fe",
+      "round_consumed": true,
+      "scope": "impl:fn-80-close-the-model-to-case-seam-and-harden.2",
+      "superseded_by": null,
+      "task": "fn-80-close-the-model-to-case-seam-and-harden.2",
+      "timestamp": "2026-09-09T15:07:40.906854Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "1f3c1f968d937e88ce624eb84bf96b98f1de99f625328c38e350e6ea1ea35296",
+      "backend": "claude",
+      "base_sha": "2f5ab246b804c590bbc542a1947343cfc635092e",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "7b2a0d27730a6c4ef8e8eceef8a3963557e1b9db",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 4585,
+      "output_sha256": "8340ec5ab365508d79ec3f381fe01e80fa77ea741fc7ac9fb318de190092f39c",
+      "reservation_id": "6ce01ef47375442195fd410e3eff939e",
+      "round_consumed": true,
+      "scope": "impl:fn-80-close-the-model-to-case-seam-and-harden.2",
+      "superseded_by": null,
+      "task": "fn-80-close-the-model-to-case-seam-and-harden.2",
+      "timestamp": "2026-09-09T15:18:12.056176Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "31ac6674a1dfa9991ff64f175eb19103956397d54b7f267432e81fb5721ce308",
+      "backend": "claude",
+      "base_sha": "a8ff26201c16e5e0d5d768cf4d6de7672c6e549c",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-b9e96a51cc4807663b2752140f1af6af",
+            "classification": "introduced",
+            "findingId": "finding-b9e96a51cc4807663b2752140f1af6af",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-047a0614612ab07cabc23dd0c9dc8541",
+            "classification": "introduced",
+            "findingId": "finding-047a0614612ab07cabc23dd0c9dc8541",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-0a2339aa95e8575204dc47c2b2b61853",
+            "classification": "introduced",
+            "findingId": "finding-0a2339aa95e8575204dc47c2b2b61853",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-d1acfa5224001578b0c94fa1e2650874",
+            "classification": "introduced",
+            "findingId": "finding-d1acfa5224001578b0c94fa1e2650874",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "c73a45ee4124db707869253aaa3ffe01bc5db293",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 7168,
+      "output_sha256": "98aff3ac49f5e5552eca70f3d53adce9fc8465d0c0d50c7260050052043f1fad",
+      "reservation_id": "8292c9d50b5841719f9625a1dbf8bc45",
+      "round_consumed": true,
+      "scope": "impl:fn-80-close-the-model-to-case-seam-and-harden.3",
+      "superseded_by": null,
+      "task": "fn-80-close-the-model-to-case-seam-and-harden.3",
+      "timestamp": "2026-09-09T15:29:28.775430Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "e536f46e3e6f3efa59c2acd1fc9e86748371f36a6f7e5c025a620f26caefc0e8",
+      "backend": "claude",
+      "base_sha": "a8ff26201c16e5e0d5d768cf4d6de7672c6e549c",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-27b5cc1a39aa6e9c93960538050b6876",
+            "classification": "introduced",
+            "findingId": "finding-27b5cc1a39aa6e9c93960538050b6876",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-780838fd010d8bb184e71e8ac605d6ef",
+            "classification": "introduced",
+            "findingId": "finding-780838fd010d8bb184e71e8ac605d6ef",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-6e9bd1514760ca055347cc346f7754a6",
+            "classification": "introduced",
+            "findingId": "finding-6e9bd1514760ca055347cc346f7754a6",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-9f3802d00a755e3e8a480458cd680312",
+            "classification": "introduced",
+            "findingId": "finding-9f3802d00a755e3e8a480458cd680312",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "c2216be45b652af54746509cb57387ea4a9694c1",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 5792,
+      "output_sha256": "ab82a348a25706a01900ada03b60a50ddfde1fd010349a4a21f65f62b0990351",
+      "reservation_id": "5ae5968efd1c4924818eba79661b9789",
+      "round_consumed": true,
+      "scope": "impl:fn-80-close-the-model-to-case-seam-and-harden.3",
+      "superseded_by": null,
+      "task": "fn-80-close-the-model-to-case-seam-and-harden.3",
+      "timestamp": "2026-09-09T15:37:52.142092Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "eb283163bbb944f02d9aaa7f81be990786d17ab5749c1162bf3da7ac54b3f2b0",
+      "backend": "claude",
+      "base_sha": "a8ff26201c16e5e0d5d768cf4d6de7672c6e549c",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-a9a179b4d9b288d87f8287e9eed0cc92",
+            "classification": "introduced",
+            "findingId": "finding-a9a179b4d9b288d87f8287e9eed0cc92",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-a8c6b43ec452ace1d7d321229f71e9ef",
+            "classification": "introduced",
+            "findingId": "finding-a8c6b43ec452ace1d7d321229f71e9ef",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-067338231793e7ee5a3a83117644b3b0",
+            "classification": "introduced",
+            "findingId": "finding-067338231793e7ee5a3a83117644b3b0",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "ceafe47247f90b5a737a251a1b2730ca8ef14e59",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 5797,
+      "output_sha256": "d0700fd106c7eea78c12e644360e83e60f5a38bbe4ee89314702b49190ef7d6f",
+      "reservation_id": "cd5af38ff0db49e0bc107b1f258f0e05",
+      "round_consumed": true,
+      "scope": "impl:fn-80-close-the-model-to-case-seam-and-harden.3",
+      "superseded_by": null,
+      "task": "fn-80-close-the-model-to-case-seam-and-harden.3",
+      "timestamp": "2026-09-09T15:45:03.942376Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "b7606d9fb56ea27a3e4aac520e1c83630c915151935da8e2e4dc9a82c5ea74da",
+      "backend": "claude",
+      "base_sha": "a8ff26201c16e5e0d5d768cf4d6de7672c6e549c",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "9b0941b02a8ee233dec1e21129f635e404853ba1",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 4665,
+      "output_sha256": "ea5c36efcf7207d05097eff6d89df22822e735be662366a4fb7136d501f51ccb",
+      "reservation_id": "8687af45a2ab43338a027fc170e9b0f3",
+      "round_consumed": true,
+      "scope": "impl:fn-80-close-the-model-to-case-seam-and-harden.3",
+      "superseded_by": null,
+      "task": "fn-80-close-the-model-to-case-seam-and-harden.3",
+      "timestamp": "2026-09-09T15:54:27.917665Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "2cfc31746e39e379e8a1c39d731f6544513ab05e8b8d073df34ce0b2a13c6a1b",
+      "backend": "claude",
+      "base_sha": "a8ff26201c16e5e0d5d768cf4d6de7672c6e549c",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-645acbad5f07dff98cc2ce86c1daef5b",
+            "classification": "introduced",
+            "findingId": "finding-645acbad5f07dff98cc2ce86c1daef5b",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-1b85fea90f564f6ef03807a4578600d6",
+            "classification": "introduced",
+            "findingId": "finding-1b85fea90f564f6ef03807a4578600d6",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-0d6335086d7e231d6710ab28d05dce72",
+            "classification": "introduced",
+            "findingId": "finding-0d6335086d7e231d6710ab28d05dce72",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "619017da859f2ddfd836d32e734207bdde1a88d8",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 5540,
+      "output_sha256": "76fc84656fa7a1e8df928d531efdcfc4a64c6e7d6e9f456a3c67213075191474",
+      "reservation_id": "e0d882dc29a24d6ead13ffd54307f2ff",
+      "round_consumed": true,
+      "scope": "impl:fn-80-close-the-model-to-case-seam-and-harden.3",
+      "superseded_by": null,
+      "task": "fn-80-close-the-model-to-case-seam-and-harden.3",
+      "timestamp": "2026-09-09T16:01:31.300301Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "42bec74781d18affc8885da7b63240940490254ff926843fa5bc82c836b386e5",
+      "backend": "claude",
+      "base_sha": "cf37c891f0b76d094ee719c15e6106494b68b76d",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "03a4b7acaad893b9ccb19a139c0647e48d5a6815",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 5735,
+      "output_sha256": "9d8538b81ea447fafd38c850509fb24d471f694bd457e9ca5b0743d37ee78437",
+      "reservation_id": "6729d931fe13495fb48a614102b70571",
+      "round_consumed": true,
+      "scope": "impl:fn-80-close-the-model-to-case-seam-and-harden.7",
+      "superseded_by": null,
+      "task": "fn-80-close-the-model-to-case-seam-and-harden.7",
+      "timestamp": "2026-09-09T16:15:45.439964Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "0890dc2250cfd97664c27ee9d193233eb344f0103f9dff460f1d658a1b1d237f",
+      "backend": "claude",
+      "base_sha": "cf37c891f0b76d094ee719c15e6106494b68b76d",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "ca31554e902fec40e07ce8b7613d6251060ffbf7",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 4790,
+      "output_sha256": "df47e09e92bf4ba441407d6519c72d828cb44fe6d59ef295970c392454c026bc",
+      "reservation_id": "00ccccd50dd2418d84d23db6863ce29c",
+      "round_consumed": true,
+      "scope": "impl:fn-80-close-the-model-to-case-seam-and-harden.7",
+      "superseded_by": null,
+      "task": "fn-80-close-the-model-to-case-seam-and-harden.7",
+      "timestamp": "2026-09-09T16:21:35.748096Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "26e929ee2dfb91306c0ede3f8c99a5d80e2085670d9b77778f93094640680b4b",
+      "backend": "claude",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "f562f5565d955becb30aeb9476bc282a72062c16",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 11613,
+      "output_sha256": "189e4651c49ee31865ce7ca4ea1187e62dcdd16f3d2d5d8e35e176ac09fc81b2",
+      "reservation_id": "3405e40d33e44edbbba31a69bb46dc2f",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-09T16:39:25.886166Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "2f8006be3fc4e8a44766baef011794fc7cf0703cbfa90e2cd57220f3464dbdc4",
+      "backend": "claude",
+      "base_sha": "d86de65dba8321928f8c02e87bfdceb12079a180",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "331373dd2f57ea79c0d4ff8cd238b5bf7d4ec72f",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 4613,
+      "output_sha256": "73f2ac915d83b84fbcd134352a0b3be25378116699a57f7e8f4f630f3759cc34",
+      "reservation_id": "1c46b5d7d0834b9eb4f9b5b9026c1fc8",
+      "round_consumed": true,
+      "scope": "impl:fn-80-close-the-model-to-case-seam-and-harden.15",
+      "superseded_by": null,
+      "task": "fn-80-close-the-model-to-case-seam-and-harden.15",
+      "timestamp": "2026-09-09T20:41:40.519105Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "37e9e0d1963328ad3b393f2165233ee94a557ce8774d1c1c05e469aeb6f06c5e",
+      "backend": "claude",
+      "base_sha": "98f865e1f6fffc7608ab980a4d701d003eae0533",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "11600cf64d1a913209defecc8abff45b6b1aa6da",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 3932,
+      "output_sha256": "04afc641e52adf3bf09c2838b070e5713b565118a5f07d32ce5a2fa37fff2e28",
+      "reservation_id": "b9c05205a9de4a0db14232b8ad58d903",
+      "round_consumed": true,
+      "scope": "impl:fn-80-close-the-model-to-case-seam-and-harden.10",
+      "superseded_by": null,
+      "task": "fn-80-close-the-model-to-case-seam-and-harden.10",
+      "timestamp": "2026-09-09T20:56:01.854060Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "ac9287381a1b9efbd2fb5a25f4a342d0854838926a6eee9f4a126adc77a3032c",
+      "backend": "claude",
+      "base_sha": "105aa449ae9dd026d5e073314eb5d69b42cff270",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "b114db22b685a94d4d85a8b6ef3b26bfa4930ea6",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 5698,
+      "output_sha256": "84160cdd50e9ecbadc524a224d6b8989d07ad442b1217889dbe9cd101bbdbccb",
+      "reservation_id": "d93e3de0943549bca12c7e81bcdad401",
+      "round_consumed": true,
+      "scope": "impl:fn-80-close-the-model-to-case-seam-and-harden.11",
+      "superseded_by": null,
+      "task": "fn-80-close-the-model-to-case-seam-and-harden.11",
+      "timestamp": "2026-09-09T21:14:35.011350Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "98df2ba23bbfdd83584362614ca0c4389e4a3ea29b76374a0eee882db70558f2",
+      "backend": "claude",
+      "base_sha": "eee642db0d3940822b96fc53a90bbba9126f5d58",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-e175393773795e181a5d4c4a00cf443a",
+            "classification": "introduced",
+            "findingId": "finding-e175393773795e181a5d4c4a00cf443a",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-4d4e12b610445e62779d2673efd50f42",
+            "classification": "introduced",
+            "findingId": "finding-4d4e12b610445e62779d2673efd50f42",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-4eb95e6a1b874c5fcbb9e469dcd5df69",
+            "classification": "introduced",
+            "findingId": "finding-4eb95e6a1b874c5fcbb9e469dcd5df69",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "db18ebb5913d91ee4570369e1cd47c423cd43594",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 4166,
+      "output_sha256": "3c0e9701a361266bca76719c47db91e854ba52661ca6ae97c8577378548259c3",
+      "reservation_id": "9575f330ae33490bb09922cf7133c35b",
+      "round_consumed": true,
+      "scope": "impl:fn-80-close-the-model-to-case-seam-and-harden.12",
+      "superseded_by": null,
+      "task": "fn-80-close-the-model-to-case-seam-and-harden.12",
+      "timestamp": "2026-09-09T21:28:16.064040Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "871fc19db4b868a02b4f0a587873ecbb661e9c3eb15f1a746b689a690d4ff316",
+      "backend": "claude",
+      "base_sha": "eee642db0d3940822b96fc53a90bbba9126f5d58",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-f0854a4ffae378f26a78c0804f90cc2a",
+            "classification": "introduced",
+            "findingId": "finding-f0854a4ffae378f26a78c0804f90cc2a",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "b1158935a3a49834eccb6c443fedb8415c6c1f2d",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 3549,
+      "output_sha256": "939aa78f3c923125d4eedaa20415acdcce60167f069249b3dbd2f218fe25f66d",
+      "reservation_id": "74f7da0469ad44c887a4fcf9b5eb8a42",
+      "round_consumed": true,
+      "scope": "impl:fn-80-close-the-model-to-case-seam-and-harden.12",
+      "superseded_by": null,
+      "task": "fn-80-close-the-model-to-case-seam-and-harden.12",
+      "timestamp": "2026-09-09T21:35:55.624271Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "46f61bf182a54c748c02f1a8e558fca576fdf4630146f9b3d38fdcee77b8247e",
+      "backend": "claude",
+      "base_sha": "7b05f4f2aaf8d312b4c9aaf2c99008da21b1004e",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-8028ca3d7b25e1622bbcf8719c06aac2",
+            "classification": "introduced",
+            "findingId": "finding-8028ca3d7b25e1622bbcf8719c06aac2",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-7fc83da0fd237478ce1ac6fe42b80a17",
+            "classification": "introduced",
+            "findingId": "finding-7fc83da0fd237478ce1ac6fe42b80a17",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-ffa7cea573fa7c606c159f4b390d7a81",
+            "classification": "introduced",
+            "findingId": "finding-ffa7cea573fa7c606c159f4b390d7a81",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-cbe5c9edda38e231ad94cf6b0dbeaed7",
+            "classification": "introduced",
+            "findingId": "finding-cbe5c9edda38e231ad94cf6b0dbeaed7",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-381f4bc19f567bf75cc2b6b2debb8de5",
+            "classification": "introduced",
+            "findingId": "finding-381f4bc19f567bf75cc2b6b2debb8de5",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "a14a3b6b669bdf049e1c8d7858634056b1073348",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 6939,
+      "output_sha256": "d44511246d8ca60f10df68f9a323ceb9e3f92b70e3e4cd42a4aea7fd20ac396a",
+      "reservation_id": "ece2f2508a5d4aa48dbee95c2bef1ebc",
+      "round_consumed": true,
+      "scope": "impl:fn-80-close-the-model-to-case-seam-and-harden.13",
+      "superseded_by": null,
+      "task": "fn-80-close-the-model-to-case-seam-and-harden.13",
+      "timestamp": "2026-09-09T21:46:30.009776Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "ec29c2b45a58aa872ccdc1d1f32ea56d65a1690c3e69e4e6046ba05e2d880635",
+      "backend": "claude",
+      "base_sha": "7b05f4f2aaf8d312b4c9aaf2c99008da21b1004e",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-1aa015ab206503680ed4ab23cd2a3d0a",
+            "classification": "introduced",
+            "findingId": "finding-1aa015ab206503680ed4ab23cd2a3d0a",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-b0a8433b6c132646ae70889ceff7795e",
+            "classification": "introduced",
+            "findingId": "finding-b0a8433b6c132646ae70889ceff7795e",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-f3599f83778651fba80e988bcb714080",
+            "classification": "introduced",
+            "findingId": "finding-f3599f83778651fba80e988bcb714080",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-8c406b9565037ff4add81eadc90c5cfd",
+            "classification": "pre_existing",
+            "findingId": "finding-8c406b9565037ff4add81eadc90c5cfd",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "03c454028a1eb81796308ba8379ebe6e4ea4ab17",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 6303,
+      "output_sha256": "d2c78a35fabfbc829747d68932a1a010d2e58ed81d291a8dee94f2cefdb3509c",
+      "reservation_id": "d47534e9cb944f2186e5efa384dfdd08",
+      "round_consumed": true,
+      "scope": "impl:fn-80-close-the-model-to-case-seam-and-harden.13",
+      "superseded_by": null,
+      "task": "fn-80-close-the-model-to-case-seam-and-harden.13",
+      "timestamp": "2026-09-09T21:58:18.855983Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "2c26773a5dc0a1dd2951062822228ecf4ef2bd143fc8affe87fa328873d87898",
+      "backend": "claude",
+      "base_sha": "7b05f4f2aaf8d312b4c9aaf2c99008da21b1004e",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-fccd88b7ab9765c0de7f124c05f7a6d3",
+            "classification": "introduced",
+            "findingId": "finding-fccd88b7ab9765c0de7f124c05f7a6d3",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-33490506d2cef42feea51cb857f076e5",
+            "classification": "pre_existing",
+            "findingId": "finding-33490506d2cef42feea51cb857f076e5",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-228b94f1fd140d05211ab2eea716905c",
+            "classification": "introduced",
+            "findingId": "finding-228b94f1fd140d05211ab2eea716905c",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e78b4764eccd376623e9010098453ba596756552",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 4459,
+      "output_sha256": "ac52e95cbb86e0595beee823e2cd7787917ca90e5dcdd632c4e727e3298041f3",
+      "reservation_id": "a5c40b46502547928140bbe960bd3a59",
+      "round_consumed": true,
+      "scope": "impl:fn-80-close-the-model-to-case-seam-and-harden.13",
+      "superseded_by": null,
+      "task": "fn-80-close-the-model-to-case-seam-and-harden.13",
+      "timestamp": "2026-09-09T22:06:38.974976Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "c2252dcadff8f88ef110d237f50d4a2484be0d207ad318edafe5c1630b190d5d",
+      "backend": "claude",
+      "base_sha": "539798708ae086a2ff4569dea0b15c401206e41c",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-f43aedc9d4afc31c924b3a19b8c256d6",
+            "classification": "introduced",
+            "findingId": "finding-f43aedc9d4afc31c924b3a19b8c256d6",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-f866050fe474cb6d5d7e6917eba192e8",
+            "classification": "introduced",
+            "findingId": "finding-f866050fe474cb6d5d7e6917eba192e8",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e0bba4ed92f01a85f7f7dcd1dad5036aa7d28724",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 3381,
+      "output_sha256": "dccd100a1138017e441702cd267b713e2e6b8323689b174dea914b5ec58f1893",
+      "reservation_id": "0cc225af85404842a64ace6757216070",
+      "round_consumed": true,
+      "scope": "impl:fn-80-close-the-model-to-case-seam-and-harden.6",
+      "superseded_by": null,
+      "task": "fn-80-close-the-model-to-case-seam-and-harden.6",
+      "timestamp": "2026-09-09T22:18:11.901200Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "d094d19121e61f37a0ee1f30a172406d1c2fdd81a8ae4a7d0896f4acc864d618",
+      "backend": "claude",
+      "base_sha": "c24ab1302aed6568fca26ba9c757a25cb7a61e98",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "9de9ff2b704cc93c1d03c1ff17070a4c62bf10c6",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 11184,
+      "output_sha256": "096214c73d709f1ba9a1cf8bbc22f6ad9842cc0379ebe7eac86f106a940d5674",
+      "reservation_id": "caf690ead25d40c5bd79c661a2b700d3",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-09T22:24:42.138518Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "5d36f33e9fbae532ed83750e11bb73716af6f37831af0ece9899689a14591db7",
+      "backend": "claude",
+      "base_sha": "33df4e80dd748af8c50b06bf74c90c99f93b9e26",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "90d2cf3f60827afdbec357a9919cda022a0ec13f",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 6382,
+      "output_sha256": "4365942a38506bb6bb789b6be4328d9c2f6deaea72eb0ba77bbc65c66ca5b9ee",
+      "reservation_id": "df842a08893b4e02ae098af4bd7f7314",
+      "round_consumed": true,
+      "scope": "impl:fn-80-close-the-model-to-case-seam-and-harden.14",
+      "superseded_by": null,
+      "task": "fn-80-close-the-model-to-case-seam-and-harden.14",
+      "timestamp": "2026-09-09T23:38:27.850415Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "4a894ee62d47042800d271b39d4f944d635b54cb96d3cba9b6764790e1a5fba7",
+      "backend": "claude",
+      "base_sha": "33df4e80dd748af8c50b06bf74c90c99f93b9e26",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-2d51986b8fc760dd0eae7d8de8a53d5d",
+            "classification": "introduced",
+            "findingId": "finding-2d51986b8fc760dd0eae7d8de8a53d5d",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-2acc903e5ef920e94588b43b500878dc",
+            "classification": "introduced",
+            "findingId": "finding-2acc903e5ef920e94588b43b500878dc",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-dc2e71b5467281c7cb5ea586f2d71582",
+            "classification": "introduced",
+            "findingId": "finding-dc2e71b5467281c7cb5ea586f2d71582",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-3a55ac7e8a94e4e883997d47097e9e5f",
+            "classification": "introduced",
+            "findingId": "finding-3a55ac7e8a94e4e883997d47097e9e5f",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "0ca7bcaa9d9f1a3a9d94aea14769871269ddc65c",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 6407,
+      "output_sha256": "9648dea7d83525662c4eb001bc657fda6a452ae13ccc3e5788e53f282d4578be",
+      "reservation_id": "7ccd12097fb642399cfffd4c672280bb",
+      "round_consumed": true,
+      "scope": "impl:fn-80-close-the-model-to-case-seam-and-harden.14",
+      "superseded_by": null,
+      "task": "fn-80-close-the-model-to-case-seam-and-harden.14",
+      "timestamp": "2026-09-10T00:08:16.713462Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "cdd02752967d3a0a087f145cca1914bb79e0cd19f549b885eb733315c676b40a",
+      "backend": "claude",
+      "base_sha": "8a251dbf2172163deefb39abe67a2a47aaeee325",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-8bc23ae3c9892e29e6a891668e9dda39",
+            "classification": "introduced",
+            "findingId": "finding-8bc23ae3c9892e29e6a891668e9dda39",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-eca5a7cdf585961c387e47ba60e2296c",
+            "classification": "introduced",
+            "findingId": "finding-eca5a7cdf585961c387e47ba60e2296c",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-ffde50e8a39df10219c1c5c12c9b0bf7",
+            "classification": "introduced",
+            "findingId": "finding-ffde50e8a39df10219c1c5c12c9b0bf7",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-eb3409ff590e5ef9fdc4d8bdeceb983a",
+            "classification": "introduced",
+            "findingId": "finding-eb3409ff590e5ef9fdc4d8bdeceb983a",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "c43161b503c3baee028c9b6b8c404671228faa12",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 5547,
+      "output_sha256": "ab08da09f008ca85f0c0c5ac7277eb300b42edd1991b59c275ba797b65653bfc",
+      "reservation_id": "5c7fdd6514cb4100bd790085b3e45723",
+      "round_consumed": true,
+      "scope": "impl:fn-80-close-the-model-to-case-seam-and-harden.8",
+      "superseded_by": null,
+      "task": "fn-80-close-the-model-to-case-seam-and-harden.8",
+      "timestamp": "2026-09-10T00:54:13.432608Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "a16b899b084a6e073931bc2c8362b02e2060a8695a83a4ed4d3ad3f8eef94d49",
+      "backend": "claude",
+      "base_sha": "8a251dbf2172163deefb39abe67a2a47aaeee325",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-83b125911e9a3a04ae9ab7506a175d98",
+            "classification": "introduced",
+            "findingId": "finding-83b125911e9a3a04ae9ab7506a175d98",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-d680090e13c2ed3dd980b08f2bd526d0",
+            "classification": "introduced",
+            "findingId": "finding-d680090e13c2ed3dd980b08f2bd526d0",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-3393733ba98611091fdcaefa061c6297",
+            "classification": "introduced",
+            "findingId": "finding-3393733ba98611091fdcaefa061c6297",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-5db30f67e22fae20ab8e39972e7a8581",
+            "classification": "introduced",
+            "findingId": "finding-5db30f67e22fae20ab8e39972e7a8581",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "1197d567ac7e29b9423fa03524b92755f81bb269",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 6487,
+      "output_sha256": "efef998d1e8640f9faa270ff6c5f0124169839f6eb73cd7595108c7569b2dde1",
+      "reservation_id": "271a4af8bc844c968f0180c3ec7cc247",
+      "round_consumed": true,
+      "scope": "impl:fn-80-close-the-model-to-case-seam-and-harden.8",
+      "superseded_by": null,
+      "task": "fn-80-close-the-model-to-case-seam-and-harden.8",
+      "timestamp": "2026-09-10T01:08:08.996639Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "f3c14d730c23b9fac5d2d5a574ad32b112b415b4f3b877f88694c2abf9063a9a",
+      "backend": "claude",
+      "base_sha": "8a251dbf2172163deefb39abe67a2a47aaeee325",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-f2b2167690525ec665d7251b7ab1a1b2",
+            "classification": "introduced",
+            "findingId": "finding-f2b2167690525ec665d7251b7ab1a1b2",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-36dfc8bec6d76d9fed8218e276571a1d",
+            "classification": "introduced",
+            "findingId": "finding-36dfc8bec6d76d9fed8218e276571a1d",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "c26d67874216c7249505f06322d6d0745eccd0ae",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 3344,
+      "output_sha256": "96436b211adc850d7828dda03e3c9232077bf3fcf708331a8e001003a98fbca8",
+      "reservation_id": "3ac7b2da38f64c86a1043f865cb1dc28",
+      "round_consumed": true,
+      "scope": "impl:fn-80-close-the-model-to-case-seam-and-harden.8",
+      "superseded_by": null,
+      "task": "fn-80-close-the-model-to-case-seam-and-harden.8",
+      "timestamp": "2026-09-10T01:20:13.293650Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "eee85eeb3e4035ce39ad328f519a394dbb89ea8acddf4bcbbff13c980d80251a",
+      "backend": "claude",
+      "base_sha": "a584f8f7e5daaa6c38478359192c21c6e81cd173",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "4737e7534c480b2b8d3d737be930499938041adf",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 6813,
+      "output_sha256": "ceb7f82c98c985459d51e26cd83ff9178b9c68e9d60028f4577900d336edda5b",
+      "reservation_id": "4ba5b45d058b453f8df55623083adb7e",
+      "round_consumed": true,
+      "scope": "impl:fn-80-close-the-model-to-case-seam-and-harden.4",
+      "superseded_by": null,
+      "task": "fn-80-close-the-model-to-case-seam-and-harden.4",
+      "timestamp": "2026-09-10T02:04:13.796440Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "ed162b9e4c5e666e72491551700bfec5f170683d0fc7a0399ffc9e53a6782444",
+      "backend": "claude",
+      "base_sha": "836dbd4310e7584132fec953235c3f3ef84a36ad",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-aed5d9f00f1934a7a2c0adf15be58c81",
+            "classification": "introduced",
+            "findingId": "finding-aed5d9f00f1934a7a2c0adf15be58c81",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-03b209e46218c7ce79f1d8f703d1f075",
+            "classification": "introduced",
+            "findingId": "finding-03b209e46218c7ce79f1d8f703d1f075",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-5b2ef70353e9c48fbb9fcd9346866cef",
+            "classification": "pre_existing",
+            "findingId": "finding-5b2ef70353e9c48fbb9fcd9346866cef",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "c49b2b56b5db9873d748bd08bd8858dc422cd0ae",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 5166,
+      "output_sha256": "ea4fb5cf03f7cd159a9efeda1364dd99582f908d8ba8f0f3253c04f243c33b5c",
+      "reservation_id": "702830da41f4410b960b02a209174fd9",
+      "round_consumed": true,
+      "scope": "impl:fn-80-close-the-model-to-case-seam-and-harden.9",
+      "superseded_by": null,
+      "task": "fn-80-close-the-model-to-case-seam-and-harden.9",
+      "timestamp": "2026-09-10T02:28:03.628825Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "c453eeca4efff71918b1377e667f37f98957999ed1169482384eb8507c9a1adb",
+      "backend": "claude",
+      "base_sha": "836dbd4310e7584132fec953235c3f3ef84a36ad",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-140b815f88a2fd817423f90832c1b6ed",
+            "classification": "pre_existing",
+            "findingId": "finding-140b815f88a2fd817423f90832c1b6ed",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-61744b4630b286b0fb51eec5c2baf176",
+            "classification": "introduced",
+            "findingId": "finding-61744b4630b286b0fb51eec5c2baf176",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-234ce0e91d8a5b157693541bc961617e",
+            "classification": "introduced",
+            "findingId": "finding-234ce0e91d8a5b157693541bc961617e",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "9ac0b1789835eeaf97f6130481eed34b4e5bdc84",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 4399,
+      "output_sha256": "4ad6f56ad661364e9e7478fd778d76bedee8c978bfc23c7d9dca1a212f810bd4",
+      "reservation_id": "ee46d3495d6e4bd1bd613b3035798d7c",
+      "round_consumed": true,
+      "scope": "impl:fn-80-close-the-model-to-case-seam-and-harden.9",
+      "superseded_by": null,
+      "task": "fn-80-close-the-model-to-case-seam-and-harden.9",
+      "timestamp": "2026-09-10T02:38:26.658031Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "8493be5a6158d9260e66856444392b2a524016d19645e014ac0f05affde440f2",
+      "backend": "claude",
+      "base_sha": "8a251dbf2172163deefb39abe67a2a47aaeee325",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "40b8fecf40650b971ee6c5e7677a1b64124b57ef",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 11414,
+      "output_sha256": "2ebf5f28e4929874c08572d717ef10590e526957c6bd3482fe944e5166ed4db5",
+      "reservation_id": "186c6f7498d549478e5836142d7f833f",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-10T02:43:13.095616Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-80-close-the-model-to-case-seam-and-harden.1": 1,
+    "impl:fn-80-close-the-model-to-case-seam-and-harden.10": 1,
+    "impl:fn-80-close-the-model-to-case-seam-and-harden.11": 1,
+    "impl:fn-80-close-the-model-to-case-seam-and-harden.12": 1,
+    "impl:fn-80-close-the-model-to-case-seam-and-harden.13": 1,
+    "impl:fn-80-close-the-model-to-case-seam-and-harden.14": 1,
+    "impl:fn-80-close-the-model-to-case-seam-and-harden.15": 1,
+    "impl:fn-80-close-the-model-to-case-seam-and-harden.2": 1,
+    "impl:fn-80-close-the-model-to-case-seam-and-harden.3": 1,
+    "impl:fn-80-close-the-model-to-case-seam-and-harden.4": 1,
+    "impl:fn-80-close-the-model-to-case-seam-and-harden.6": 1,
+    "impl:fn-80-close-the-model-to-case-seam-and-harden.7": 1,
+    "impl:fn-80-close-the-model-to-case-seam-and-harden.8": 1,
+    "impl:fn-80-close-the-model-to-case-seam-and-harden.9": 1,
+    "plan": 1,
+    "plan#completion": 1
+  },
+  "review_pending_rounds": {
+    "impl:fn-80-close-the-model-to-case-seam-and-harden.14": 1
+  },
+  "review_reservations": {
+    "5d04a45090c74039be45230288267479": {
+      "artifact_sha256": "4a894ee62d47042800d271b39d4f944d635b54cb96d3cba9b6764790e1a5fba7",
+      "counter_scope": "impl:fn-80-close-the-model-to-case-seam-and-harden.14",
+      "epoch": 0,
+      "exclusive": false,
+      "forced": false,
+      "review_type": "impl",
+      "superseded_by": "7ccd12097fb642399cfffd4c672280bb",
+      "superseded_epoch": 1
+    }
+  },
+  "review_transport_failures": {
+    "completion": 0,
+    "impl:fn-80-close-the-model-to-case-seam-and-harden.1": 0,
+    "impl:fn-80-close-the-model-to-case-seam-and-harden.10": 0,
+    "impl:fn-80-close-the-model-to-case-seam-and-harden.11": 0,
+    "impl:fn-80-close-the-model-to-case-seam-and-harden.12": 0,
+    "impl:fn-80-close-the-model-to-case-seam-and-harden.13": 0,
+    "impl:fn-80-close-the-model-to-case-seam-and-harden.14": 0,
+    "impl:fn-80-close-the-model-to-case-seam-and-harden.15": 0,
+    "impl:fn-80-close-the-model-to-case-seam-and-harden.2": 0,
+    "impl:fn-80-close-the-model-to-case-seam-and-harden.3": 0,
+    "impl:fn-80-close-the-model-to-case-seam-and-harden.4": 0,
+    "impl:fn-80-close-the-model-to-case-seam-and-harden.6": 0,
+    "impl:fn-80-close-the-model-to-case-seam-and-harden.7": 0,
+    "impl:fn-80-close-the-model-to-case-seam-and-harden.8": 0,
+    "impl:fn-80-close-the-model-to-case-seam-and-harden.9": 0,
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-80-close-the-model-to-case-seam-and-harden.md",
+  "status": "done",
+  "title": "Close the model-to-Case seam and harden runtime liveness",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-10T06:35:37.990599Z"
+}

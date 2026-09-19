@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package fixture.messaging.public.v1;
+
+import "compat/protobuf/v1/options.proto";
+import "shared/messaging/v1/types.proto";
+
+message Message {
+  message Nested {
+    enum State {
+      STATE_UNSPECIFIED = 0;
+      STATE_READY = 1 [deprecated = true];
+    }
+
+    State state = 1;
+  }
+
+  fixture.messaging.shared.v1.Shared shared = 1;
+  map<string, fixture.messaging.shared.v1.Shared> attributes = 2;
+  oneof choice {
+    string text = 3;
+    int64 number = 4;
+  }
+  optional string note = 5;
+  bytes payload = 6;
+  Nested nested = 7;
+  fixture.protobuf.compat.v1.LegacyOptions legacy = 8;
+}
+
+message Reply {
+  fixture.messaging.shared.v1.Shared shared = 1;
+}

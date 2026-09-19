@@ -33,11 +33,13 @@ func New{{$P.Name}}TypedSetting[T any](key string, def T, description string) {{
 	// If even deep copy won't even work, we should panic early. Do that by calling deep copy once here.
 	_ = deepCopyForMapstructure(def)
 
+	normalizedKey := MakeKey(key)
 	s := {{$P.Name}}TypedSetting[T]{
-		key:         MakeKey(key),
+		key:         normalizedKey,
 		def:         def,
 		convert:     ConvertStructure[T](def),
 		description: description,
+		metadata:    newSettingMetadata(normalizedKey, description, Precedence{{$P.Name}}, SettingCodecStructure, def),
 	}
 	register(s)
 	return s
@@ -45,12 +47,18 @@ func New{{$P.Name}}TypedSetting[T any](key string, def T, description string) {{
 
 // New{{$P.Name}}TypedSettingWithConverter creates a setting with a custom converter function.
 func New{{$P.Name}}TypedSettingWithConverter[T any](key string, convert func(any) (T, error), def T, description string) {{$P.Name}}TypedSetting[T] {
+	return new{{$P.Name}}TypedSettingWithConverter(key, convert, def, description, SettingCodecCustom)
+}
+
+func new{{$P.Name}}TypedSettingWithConverter[T any](key string, convert func(any) (T, error), def T, description string, codec SettingCodec) {{$P.Name}}TypedSetting[T] {
 	{{/* Do not warn on shared structure here, it's the converter's concern. */ -}}
+	normalizedKey := MakeKey(key)
 	s := {{$P.Name}}TypedSetting[T]{
-		key:         MakeKey(key),
+		key:         normalizedKey,
 		def:         def,
 		convert:     convert,
 		description: description,
+		metadata:    newSettingMetadata(normalizedKey, description, Precedence{{$P.Name}}, codec, def),
 	}
 	register(s)
 	return s
@@ -58,12 +66,18 @@ func New{{$P.Name}}TypedSettingWithConverter[T any](key string, convert func(any
 
 // New{{$P.Name}}TypedSettingWithConstrainedDefault creates a setting with a compound default value.
 func New{{$P.Name}}TypedSettingWithConstrainedDefault[T any](key string, convert func(any) (T, error), cdef []TypedConstrainedValue[T], description string) {{$P.Name}}TypedConstrainedDefaultSetting[T] {
+	return new{{$P.Name}}TypedSettingWithConstrainedDefault(key, convert, cdef, description, SettingCodecCustom)
+}
+
+func new{{$P.Name}}TypedSettingWithConstrainedDefault[T any](key string, convert func(any) (T, error), cdef []TypedConstrainedValue[T], description string, codec SettingCodec) {{$P.Name}}TypedConstrainedDefaultSetting[T] {
 	{{/* Do not warn on shared structure here, it's the converter's concern. */ -}}
+	normalizedKey := MakeKey(key)
 	s := {{$P.Name}}TypedConstrainedDefaultSetting[T]{
-		key:         MakeKey(key),
+		key:         normalizedKey,
 		cdef:        cdef,
 		convert:     convert,
 		description: description,
+		metadata:    newConstrainedSettingMetadata(normalizedKey, description, Precedence{{$P.Name}}, codec, cdef),
 	}
 	register(s)
 	return s
@@ -71,6 +85,7 @@ func New{{$P.Name}}TypedSettingWithConstrainedDefault[T any](key string, convert
 
 func (s {{$P.Name}}TypedSetting[T]) Key() Key               { return s.key }
 func (s {{$P.Name}}TypedSetting[T]) Precedence() Precedence { return Precedence{{$P.Name}} }
+func (s {{$P.Name}}TypedSetting[T]) registrationMetadata() *SettingMetadata { return s.metadata }
 func (s {{$P.Name}}TypedSetting[T]) Validate(v any) error {
 	_, err := s.convert(v)
 	return err
@@ -78,6 +93,9 @@ func (s {{$P.Name}}TypedSetting[T]) Validate(v any) error {
 
 func (s {{$P.Name}}TypedConstrainedDefaultSetting[T]) Key() Key               { return s.key }
 func (s {{$P.Name}}TypedConstrainedDefaultSetting[T]) Precedence() Precedence { return Precedence{{$P.Name}} }
+func (s {{$P.Name}}TypedConstrainedDefaultSetting[T]) registrationMetadata() *SettingMetadata {
+	return s.metadata
+}
 func (s {{$P.Name}}TypedConstrainedDefaultSetting[T]) Validate(v any) error {
 	_, err := s.convert(v)
 	return err
@@ -198,11 +216,11 @@ type {{$P.Name}}{{$T.Name}}Setting = {{$P.Name}}TypedSetting[{{$T.GoType}}]
 type {{$P.Name}}{{$T.Name}}ConstrainedDefaultSetting = {{$P.Name}}TypedConstrainedDefaultSetting[{{$T.GoType}}]
 
 func New{{$P.Name}}{{$T.Name}}Setting(key string, def {{$T.GoType}}, description string) {{$P.Name}}{{$T.Name}}Setting {
-	return New{{$P.Name}}TypedSettingWithConverter[{{$T.GoType}}](key, convert{{$T.Name}}, def, description)
+	return new{{$P.Name}}TypedSettingWithConverter[{{$T.GoType}}](key, convert{{$T.Name}}, def, description, SettingCodec{{$T.Codec}})
 }
 
 func New{{$P.Name}}{{$T.Name}}SettingWithConstrainedDefault(key string, cdef []TypedConstrainedValue[{{$T.GoType}}], description string) {{$P.Name}}{{$T.Name}}ConstrainedDefaultSetting {
-	return New{{$P.Name}}TypedSettingWithConstrainedDefault[{{$T.GoType}}](key, convert{{$T.Name}}, cdef, description)
+	return new{{$P.Name}}TypedSettingWithConstrainedDefault[{{$T.GoType}}](key, convert{{$T.Name}}, cdef, description, SettingCodec{{$T.Codec}})
 }
 
 {{if eq $P.Name "Global" -}}

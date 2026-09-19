@@ -1,0 +1,613 @@
+{
+  "branch_name": "fn-50-migrate-system-callerclosure-to",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-09-01T06:11:14.430403Z",
+  "created_at": "2026-08-30T16:08:41.780689Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-41-finitemachine-target-authoring"
+  ],
+  "id": "fn-50-migrate-system-callerclosure-to",
+  "impl_review_rounds": {
+    "fn-50-migrate-system-callerclosure-to.1": 0,
+    "fn-50-migrate-system-callerclosure-to.2": 0,
+    "fn-50-migrate-system-callerclosure-to.3": 0
+  },
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-08-30T16:27:04.107364Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "a0049403d6711f289db503cf5e901710b06d04f8771aa4d7d144d3e86b92cc82",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-e1ad47310e70d9b8cbc2d9b977bf251b",
+            "classification": "introduced",
+            "findingId": "finding-e1ad47310e70d9b8cbc2d9b977bf251b",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "8633f32e4acd9dbd549ff08b3f379f791b31fcf9",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 277058,
+      "output_sha256": "499bc976a9b05a07f455bbb5f4fa27d1f943cbdba6aec11e62774570a225588b",
+      "reservation_id": "492a5873141644189bd876bd4a6afbdd",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-30T16:24:39.837617Z",
+      "tool_calls": 22,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "c6dc7e557ada8e39b12f15d2054c078551d4f232d41624df83b4d33bea19f5ef",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-e1ad47310e70d9b8cbc2d9b977bf251b",
+            "classification": "introduced",
+            "findingId": "finding-e1ad47310e70d9b8cbc2d9b977bf251b",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "8633f32e4acd9dbd549ff08b3f379f791b31fcf9",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 307,
+      "output_sha256": "0fb237eee1b630d9179057db88264253534f7a27be97baaefd38f45625b79aed",
+      "reservation_id": "eec340a2c05a4000a5b2364ef958ae57",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-30T16:27:04.104626Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "e52eae28ff5dd554c649c148f2d88935ba8caba3af8f9bc96290660f10188be9",
+      "backend": "codex",
+      "base_sha": "ababcaf77704899d24f0910b5441d63befa32705",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "c1e931633d4f37fbefbbf8deaeb1686bdb961a8e",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 235364,
+      "output_sha256": "785ff040eefca3cf55820aa81a4ff0a68509a947e3f7051a2ac738ea210e3ebc",
+      "reservation_id": "dfdf77f982914eeba05f4b1f476a88f4",
+      "round_consumed": true,
+      "scope": "impl:fn-50-migrate-system-callerclosure-to.1",
+      "superseded_by": null,
+      "task": "fn-50-migrate-system-callerclosure-to.1",
+      "timestamp": "2026-09-01T04:19:25.468755Z",
+      "tool_calls": 11,
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "af97084ae6840416028928a91d0540f8c621fbaf9ae307b498709c2d8177dec2",
+      "backend": "codex",
+      "base_sha": "428fc87d99539959e9146d6559ae004c95c799d8",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-6318db479094d669b096b9316d43ba58",
+            "classification": "introduced",
+            "findingId": "finding-6318db479094d669b096b9316d43ba58",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "83200adc68c6781a3c26bc2dac30cf0dced7ad21",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 189525,
+      "output_sha256": "5f6f1a691150bb9dcdf4819980c74dd7874dbe4b8f3b08b833060e77d46ea778",
+      "reservation_id": "89ab62cbc65a4423b11621697041c4ba",
+      "round_consumed": true,
+      "scope": "impl:fn-50-migrate-system-callerclosure-to.2",
+      "superseded_by": null,
+      "task": "fn-50-migrate-system-callerclosure-to.2",
+      "timestamp": "2026-09-01T04:53:46.259534Z",
+      "tool_calls": 17,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "70968f03a0b315250025920a7bcc120e42c7c4a1f1e5600dca02680716a29f40",
+      "backend": "codex",
+      "base_sha": "428fc87d99539959e9146d6559ae004c95c799d8",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-6318db479094d669b096b9316d43ba58",
+            "classification": "introduced",
+            "findingId": "finding-6318db479094d669b096b9316d43ba58",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "b11138e6b8699e5db9933339747a51c13e785a77",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 870,
+      "output_sha256": "b638709547eefe4f89445cb959d769792660245c796b3b59e956648db9810a03",
+      "reservation_id": "8493c001768f40ac9bbd18a18707e548",
+      "round_consumed": true,
+      "scope": "impl:fn-50-migrate-system-callerclosure-to.2",
+      "superseded_by": null,
+      "task": "fn-50-migrate-system-callerclosure-to.2",
+      "timestamp": "2026-09-01T04:55:45.553076Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "2f8fa127e590b08aa26d783fac83f69c404a4693b42b4e252e06031489a521ff",
+      "backend": "codex",
+      "base_sha": "8459df4d5c2220a6426583a3388491a829c9b6c6",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-dcbccf659de931c0e91257095a05d747",
+            "classification": "introduced",
+            "findingId": "finding-dcbccf659de931c0e91257095a05d747",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "4e9db4fd528005c64c6a415bda4a9b085f76ab73",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 590761,
+      "output_sha256": "128a61bc6801a14f1f686973d5b6f181f6f0014f25ae8a9f09b14aaf75ff12ca",
+      "reservation_id": "e5c36d9faa6d4c4b95cf4da4890f8058",
+      "round_consumed": true,
+      "scope": "impl:fn-50-migrate-system-callerclosure-to.3",
+      "superseded_by": null,
+      "task": "fn-50-migrate-system-callerclosure-to.3",
+      "timestamp": "2026-09-01T05:20:47.397279Z",
+      "tool_calls": 12,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "aff10895b642795297f9d4a7b6985a3bacfbbcaa6a768d2d1f3b7a91bc96187c",
+      "backend": "codex",
+      "base_sha": "8459df4d5c2220a6426583a3388491a829c9b6c6",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-dcbccf659de931c0e91257095a05d747",
+            "classification": "introduced",
+            "findingId": "finding-dcbccf659de931c0e91257095a05d747",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "not_fixed"
+          },
+          {
+            "chainRoot": "finding-db9717ed11a5c164d0ef1d6e6ac76e0d",
+            "classification": "introduced",
+            "findingId": "finding-db9717ed11a5c164d0ef1d6e6ac76e0d",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "deeaf771d3519fd6f988acd1e178089bebee3ef4",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 1203,
+      "output_sha256": "cb1b4f9d312e8c7336dc5c8c424b5ad9aaffc4d72ae0535d279a2c04b3987454",
+      "reservation_id": "2d6a641b03f04bf582f66bdcb24e5967",
+      "round_consumed": true,
+      "scope": "impl:fn-50-migrate-system-callerclosure-to.3",
+      "superseded_by": null,
+      "task": "fn-50-migrate-system-callerclosure-to.3",
+      "timestamp": "2026-09-01T05:24:53.716410Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "2153aec9077474610e9370414a3fc621f95be12544b258185f13717f7678e894",
+      "backend": "codex",
+      "base_sha": "8459df4d5c2220a6426583a3388491a829c9b6c6",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-dcbccf659de931c0e91257095a05d747",
+            "classification": "introduced",
+            "findingId": "finding-dcbccf659de931c0e91257095a05d747",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-db9717ed11a5c164d0ef1d6e6ac76e0d",
+            "classification": "introduced",
+            "findingId": "finding-db9717ed11a5c164d0ef1d6e6ac76e0d",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "6ccc89745bfbdedb39e2e5828f61ed3cefb64c16",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 623,
+      "output_sha256": "a2bb93927de6b65baf191badecc330f43ff8e05d021275d187967d41795573a8",
+      "reservation_id": "451e61fb5b314b1abaee4b1b305cc594",
+      "round_consumed": true,
+      "scope": "impl:fn-50-migrate-system-callerclosure-to.3",
+      "superseded_by": null,
+      "task": "fn-50-migrate-system-callerclosure-to.3",
+      "timestamp": "2026-09-01T05:28:31.053682Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "16cad69ce50d3f0de5b0379d627bdc056559f5929afa18d9981ed5c18ba261ea",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-1aa0ecff0e16900d88d87360354c0580",
+            "classification": "introduced",
+            "findingId": "finding-1aa0ecff0e16900d88d87360354c0580",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "d33d6b9fefda21474ef98d12ca5760839407c598",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 355806,
+      "output_sha256": "90a2ffd6525b6e189a2f016808467d9f09d3e045dabf487989e2377901adccd1",
+      "reservation_id": "9b815a36fb3f45a2a5195bb54229abfd",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-01T05:41:24.731303Z",
+      "tool_calls": 11,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "bb324e9ea314479a61c1ff64f80c4d6b0969c9c3899294c9483851fe239c1704",
+      "backend": "codex",
+      "base_sha": "1e8ee72ffa52320d1ac13e893b11deb1514f1e13",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-1aa0ecff0e16900d88d87360354c0580",
+            "classification": "introduced",
+            "findingId": "finding-1aa0ecff0e16900d88d87360354c0580",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "not_fixed"
+          },
+          {
+            "chainRoot": "finding-2cbae385877066e799a1b9a8ad43bf98",
+            "classification": "introduced",
+            "findingId": "finding-2cbae385877066e799a1b9a8ad43bf98",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "30b5778b55689e6ffb9ec7cae97b6ce39fef7e2d",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 3278,
+      "output_sha256": "5969f63087f875264a876ab9e811a41ea5d0d76ffccf9b0f2104fc0e925bb972",
+      "reservation_id": "0894add4fe7b4489848fbf53e1d817d6",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-01T05:46:04.352741Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "564e5e60ca8acbcd18beae721200c908f029ba16984942896d348a95bc30717d",
+      "backend": "codex",
+      "base_sha": "1e8ee72ffa52320d1ac13e893b11deb1514f1e13",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-1aa0ecff0e16900d88d87360354c0580",
+            "classification": "introduced",
+            "findingId": "finding-1aa0ecff0e16900d88d87360354c0580",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-2cbae385877066e799a1b9a8ad43bf98",
+            "classification": "introduced",
+            "findingId": "finding-2cbae385877066e799a1b9a8ad43bf98",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "8875c207e58e10b25c563353752e64a3b8460961",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 3036,
+      "output_sha256": "3ac4dd1dd6a0630d829a19449bb12d8c1103ed696a1adf39e93029105923973b",
+      "reservation_id": "b9eb106f606a47aaaa78427719c1da75",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-01T05:48:28.453022Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "0da7c541e2839d4e07a9879da5af96e5660e33074fc134b9963ae999af097037",
+      "backend": "codex",
+      "base_sha": "1e8ee72ffa52320d1ac13e893b11deb1514f1e13",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-1aa0ecff0e16900d88d87360354c0580",
+            "classification": "introduced",
+            "findingId": "finding-1aa0ecff0e16900d88d87360354c0580",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-2cbae385877066e799a1b9a8ad43bf98",
+            "classification": "introduced",
+            "findingId": "finding-2cbae385877066e799a1b9a8ad43bf98",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "da9885948295068117fe02064e680b9af926b5ce",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 2956,
+      "output_sha256": "134c5b08f7f03a3de562bdeae8154a805da80ae206ecab458d3c1daaa87cd5b9",
+      "reservation_id": "b2dbcf79da104bba91f6594e207ade82",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-01T06:11:14.426021Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-50-migrate-system-callerclosure-to.1": 1,
+    "impl:fn-50-migrate-system-callerclosure-to.2": 1,
+    "impl:fn-50-migrate-system-callerclosure-to.3": 1,
+    "plan": 1,
+    "plan#completion": 2
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "completion": 0,
+    "impl:fn-50-migrate-system-callerclosure-to.1": 0,
+    "impl:fn-50-migrate-system-callerclosure-to.2": 0,
+    "impl:fn-50-migrate-system-callerclosure-to.3": 0,
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-50-migrate-system-callerclosure-to.md",
+  "status": "done",
+  "title": "Migrate System CallerClosure to FiniteMachine",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-03T16:31:01.649004Z"
+}

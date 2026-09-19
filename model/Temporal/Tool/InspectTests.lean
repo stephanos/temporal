@@ -1,0 +1,135 @@
+import Temporal.Tool.Inspect
+import Temporal.Tool.NexusDiscovery
+
+namespace Temporal.Tool.InspectTests
+
+open _root_.Umpire
+open Temporal.Tool.Inspect
+
+private def inventoryValue : Temporal.Tool.NexusDiscovery.NexusDiscoveryInventory :=
+  Temporal.Tool.NexusDiscovery.inventory.toOption.get (by native_decide)
+
+example : runCli ["list"] = {
+    status := 0
+    stdout := inventoryValue.canonicalListBytes
+    stderr := ""
+  } := by
+  native_decide
+
+example : runDiscoveryList (Temporal.Tool.NexusDiscovery.checkInventory []) = {
+    status := 1
+    stdout := ""
+    stderr :=
+      "{\"kind\":\"invalid-nexus-discovery\",\"subject\":\"temporal.nexus.discovery\"," ++
+        "\"context\":\"membership-drift\"}\n"
+  } := by
+  native_decide
+
+def explanationResults : List InspectorResult :=
+  inventoryValue.entries.map fun entry =>
+    runCli ["explain", entry.query.id.value]
+
+def expectedExplanationResults : List InspectorResult :=
+  inventoryValue.entries.map fun entry => {
+    status := 0
+    stdout := entry.canonicalExplanationBytes
+    stderr := ""
+  }
+
+example : explanationResults = expectedExplanationResults := by
+  native_decide
+
+def invalidExplanationSelectors : List String := [
+  "missing-query",
+  "Temporal.nexus.basic-lifecycle.query.async-start",
+  "temporal.nexus.basic-lifecycle.query.async",
+  "temporal.nexus.basic-lifecycle.query",
+  "async-start",
+  "temporal.nexus.basic-lifecycle.property.async-start",
+  ""
+]
+
+example : invalidExplanationSelectors.map (fun selector => runCli ["explain", selector]) =
+    invalidExplanationSelectors.map fun selector => {
+      status := 1
+      stdout := ""
+      stderr :=
+        "{\"kind\":\"unknown-nexus-query\",\"subject\":" ++
+          Lean.Json.compress (.str selector) ++
+          ",\"context\":\"nexus discovery inventory\"}\n"
+    } := by
+  native_decide
+
+example : [runCli ["explain"], runCli ["explain",
+    Temporal.Feature.Nexus.Operations.AsyncStart.query.id.value, "extra"]] =
+    List.replicate 2 {
+      status := 1
+      stdout := ""
+      stderr :=
+        "{\"kind\":\"invalid-arguments\",\"subject\":\"explain\"," ++
+          "\"context\":\"expected exactly one canonical query identity\"}\n"
+    } := by
+  native_decide
+
+example : runDiscoveryExplain (Temporal.Tool.NexusDiscovery.checkInventory [])
+    Temporal.Feature.Nexus.Operations.AsyncStart.query.id.value = {
+      status := 1
+      stdout := ""
+      stderr :=
+        "{\"kind\":\"invalid-nexus-discovery\",\"subject\":\"temporal.nexus.discovery\"," ++
+          "\"context\":\"membership-drift\"}\n"
+    } := by
+  native_decide
+
+def expectedSwitchStdout : String :=
+  canonicalPlanBytes _root_.Umpire.Examples.Switch.compiledArtifact
+
+def repeatedSwitchOutput : List String :=
+  (List.range 2).map fun _ => (runCli [_root_.Umpire.Examples.Switch.exactActionQueryId.value]).stdout
+
+example : runCli [_root_.Umpire.Examples.Switch.exactActionQueryId.value] = {
+    status := 0
+    stdout := expectedSwitchStdout
+    stderr := ""
+  } := by
+  native_decide
+
+example : repeatedSwitchOutput = List.replicate 2 expectedSwitchStdout := by
+  native_decide
+
+def operationScenarios : List (String × Option Plan) := [
+  (Temporal.Feature.Nexus.Operations.AsyncStart.query.id.value,
+    Temporal.Feature.Nexus.Operations.AsyncStart.run.toOption.bind PlanResult.artifact),
+  (Temporal.Feature.Nexus.Operations.Cancellation.query.id.value,
+    Temporal.Feature.Nexus.Operations.Cancellation.run.toOption.bind PlanResult.artifact),
+  (Temporal.Feature.Nexus.Operations.SuccessfulCompletion.query.id.value,
+    Temporal.Feature.Nexus.Operations.SuccessfulCompletion.run.toOption.bind PlanResult.artifact)
+]
+
+/-! Every ordinary Nexus Artifact producer is available through the authoritative inspector. -/
+example :
+    operationScenarios.map (fun (id, artifact) =>
+      (runCli [id]).status == 0 &&
+        (runCli [id]).stdout == (artifact.map canonicalPlanBytes |>.getD "")) =
+      [true, true, true] := by
+  native_decide
+
+example : runCli ["missing-scenario"] = {
+    status := 1
+    stdout := ""
+    stderr :=
+      "{\"kind\":\"unknown-scenario\",\"subject\":\"missing-scenario\"," ++
+        "\"context\":\"scenario registry\"}\n"
+  } := by
+  native_decide
+
+example : runCli [] = {
+    status := 1
+    stdout := ""
+    stderr :=
+      "{\"kind\":\"invalid-arguments\",\"subject\":\"inspect\"," ++
+        "\"context\":\"expected exactly one scenario identity\"}\n"
+  } := by
+  native_decide
+
+end Temporal.Tool.InspectTests

@@ -1,0 +1,98 @@
+import Umpire.Exploration
+import Temporal.Feature.Nexus.Experimental.VariationSpace
+
+/-! Bounded Exploration over the checked experimental Nexus variation Space. -/
+
+namespace Temporal.Feature.Nexus.Experimental.Exploration
+
+open Umpire
+open Temporal.Feature.Nexus.Lifecycle
+open Temporal.Feature.Nexus.Operations
+open Temporal.Feature.Nexus.Experimental.VariationSpace
+
+private theorem queryResult_target
+    (query : CheckedQuery LawStatement)
+    (resultEq : queryResult = .ok query) :
+    query.target = target := by
+  unfold queryResult at resultEq
+  generalize behaviorEq :
+      behaviorResult.mapError VariationSpacePreparationError.behavior = behaviorResult' at resultEq
+  cases behaviorResult' with
+  | error error =>
+      change Except.error error = Except.ok query at resultEq
+      contradiction
+  | ok behavior =>
+      change (materializeQuery <$> Except.mapError VariationSpacePreparationError.query
+        (Query.check queryContext _)) = Except.ok query at resultEq
+      generalize checkedEq :
+          (Query.check queryContext _).mapError VariationSpacePreparationError.query =
+            checkedResult at resultEq
+      cases checkedResult with
+      | error error =>
+          change Except.error error = Except.ok query at resultEq
+          contradiction
+      | ok checked =>
+          change Except.ok (materializeQuery checked) = Except.ok query at resultEq
+          injection resultEq with resultEq
+          subst query
+          rfl
+
+private structure PreparedExploration where
+  space : CheckedVariationSpace LawStatement
+  base : AdmittedQuery space.baseQuery.target
+
+private def prepare : Except VariationSpacePreparationError PreparedExploration :=
+  match queryEq : queryResult with
+  | .error error => .error error
+  | .ok query =>
+      match checkedEq : checkVariationSpace (.ofQuery query) declaration with
+      | .error error => .error (.space error)
+      | .ok checked =>
+          let queryTargetEq := queryResult_target query queryEq
+          let checkedTargetEq : checked.baseQuery.target = target :=
+            (congrArg (fun candidate => candidate.target) <|
+              checkVariationSpace_baseQuery checkedEq).trans queryTargetEq
+          match baseAdmission with
+          | .error error => .error error
+          | .ok admitted => .ok {
+              space := checked
+              base := (admitted.withQuery checked.baseQuery checkedTargetEq).retarget
+                checkedTargetEq.symm
+            }
+
+/-- Typed failure from preparing or selecting the checked Nexus exploration Space. -/
+inductive NexusExplorationError where
+  | preparation (error : VariationSpacePreparationError)
+  | exploration (error : ExplorationError)
+  deriving Repr
+
+private def request
+    (prepared : PreparedExploration)
+    (policy : ExplorationPolicy)
+    (limit : Nat)
+    (pinned : List Plan := []) : ExplorationRequest LawStatement := {
+  space := prepared.space
+  policy
+  limit := { value := limit, unit := .plans }
+  pinned
+}
+
+/-- Select the checked Nexus candidates through one retained Exploration policy. -/
+def run
+    (policy : ExplorationPolicy)
+    (limit : Nat)
+    (pinned : List Plan := []) : Except NexusExplorationError ExplorationResult := do
+  let prepared ← prepare.mapError NexusExplorationError.preparation
+  (explore (request prepared policy limit pinned) prepared.base).mapError
+    NexusExplorationError.exploration
+
+/-- Open a process-local one-candidate session over one fixed Nexus selection. -/
+def startSession
+    (policy : ExplorationPolicy)
+    (limit : Nat)
+    (pinned : List Plan := []) : Except NexusExplorationError CandidateCursor := do
+  let prepared ← prepare.mapError NexusExplorationError.preparation
+  (beginSession (request prepared policy limit pinned) prepared.base).mapError
+    NexusExplorationError.exploration
+
+end Temporal.Feature.Nexus.Experimental.Exploration

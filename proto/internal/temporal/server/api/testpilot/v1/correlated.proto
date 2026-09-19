@@ -1,0 +1,231 @@
+syntax = "proto3";
+package temporal.server.api.testpilot.v1;
+import "temporal/server/api/testpilot/v1/expression.proto";
+import "temporal/server/api/testpilot/v1/value.proto";
+option go_package = "go.temporal.io/server/api/testpilot/v1;testpilot";
+
+// CorrelatedContract v1 projects causally ordered evidence before ticking operation-local windows.
+message CorrelatedContract {
+  // The model Projection the contract was produced from; the runtime only checks it is an id.
+  string projection_id = 1;
+  // The Projection's fingerprint, over its full canonical form (Definition IDs and canonical value
+  // encodings, not the Case-local names and spellings); the runtime only checks it is set.
+  string projection_fingerprint = 2;
+  // The Observation, of type CorrelatedEvidence, that supplies the evidence.
+  string evidence_observation_id = 3;
+  // The field ids, in order, that every evidence identity's scope carries.
+  repeated string scope_fields = 4;
+  // The evidence field naming the operation; it is not a scope field.
+  string operation_field = 5;
+  // The evidence sources identities and parents may name.
+  repeated string sources = 6;
+  // The state every new operation starts in.
+  ModelValue initial_state = 7;
+  // The complete transition table operations follow.
+  repeated CorrelatedTransition transitions = 8;
+  // What evidence of each kind does to its operation.
+  repeated CorrelatedProjectionRule projection_rules = 9;
+  repeated CorrelatedRule rules = 10;
+  // The initial state's fields. A Model whose states are structured carries one entry per field;
+  // one whose states are atoms carries none, and every rule reads the atom as before.
+  repeated ModelValue initial_state_fields = 11;
+}
+
+// CorrelatedTransition is one row of the transition table: from prior_state, action leads to state
+// with outcome and facts.
+message CorrelatedTransition {
+  ModelValue prior_state = 1;
+  ModelValue action = 2;
+  ModelValue state = 3;
+  ModelValue outcome = 4;
+  repeated ModelValue facts = 5;
+  // The fields the machine keeps, before and after the step. Both are empty for a Model whose
+  // states are atoms; a structured Model carries every field at both ends, so a rule compares
+  // `attempts` as a number and `phase` as an enum without reading one spelling apart. An output row
+  // omits prior_fields with prior_state.
+  repeated ModelValue prior_fields = 6;
+  repeated ModelValue state_fields = 7;
+}
+
+// CorrelatedProjectionRule says what evidence of one kind means for its operation.
+message CorrelatedProjectionRule {
+  // The evidence kind the rule claims; unique among the rules.
+  string kind = 1;
+  CorrelatedEvidenceMeaning meaning = 2;
+  // The submitted action; confirmed evidence that names it must have the submission as a causal parent.
+  ModelValue submission = 3;
+  // Output rows omit prior_state; the complete transition table checks continuity at admission.
+  repeated CorrelatedTransition outputs = 4;
+  // The fields evidence of this kind carries, and how each is treated.
+  repeated CorrelatedFieldPolicy fields = 5;
+}
+
+// CorrelatedEvidenceMeaning says what evidence of a kind does: nothing, submit an action, or confirm
+// transitions of its operation.
+// (-- api-linter: core::0191::file-layout=disabled --)
+enum CorrelatedEvidenceMeaning {
+  CORRELATED_EVIDENCE_MEANING_UNSPECIFIED = 0;
+  CORRELATED_EVIDENCE_MEANING_IRRELEVANT = 1;
+  CORRELATED_EVIDENCE_MEANING_SUBMISSION = 2;
+  CORRELATED_EVIDENCE_MEANING_CONFIRMED = 3;
+}
+
+// CorrelatedFieldPolicy declares one evidence field: its TEXT, UINT64 or BOOLEAN type, and how
+// evidence must carry it.
+message CorrelatedFieldPolicy {
+  string field_id = 1;
+  ScalarType type = 2;
+  CorrelatedFieldDisposition disposition = 3;
+}
+
+// CorrelatedFieldDisposition says whether evidence carries a field with a value, carries it without
+// one, or must not carry it. Only retained fields can be captured or compared.
+enum CorrelatedFieldDisposition {
+  CORRELATED_FIELD_DISPOSITION_UNSPECIFIED = 0;
+  CORRELATED_FIELD_DISPOSITION_RETAIN = 1;
+  CORRELATED_FIELD_DISPOSITION_REDACT = 2;
+  CORRELATED_FIELD_DISPOSITION_REJECT = 3;
+}
+
+// CorrelatedRule obliges every operation step that matches trigger to be answered by a step that
+// matches response, on the trigger step or within bound further steps of the same operation.
+//
+// A step condition is one correlated step reference tested for presence, or compared EQUAL with a
+// text literal: `present(correlated_step)` matches a step carrying any value of the definition, and
+// `compare(EQUAL, correlated_step, text)` one carrying exactly that value.
+message CorrelatedRule {
+  string rule_id = 1;
+  // A step condition on the step's action.
+  Expression trigger = 2;
+  // A step condition on the step's outcome, state or facts.
+  Expression response = 3;
+  // Evidence fields retained for the correlation to compare.
+  repeated CorrelatedCaptureDeclaration captures = 4;
+  // When set, only the transitions it accepts are the operation's steps. It is a step condition, an
+  // EQUAL or NOT_EQUAL comparison of two operands that are each a literal, an evidence field or a
+  // correlated capture, or an all or any of those. `all` and `any` are evaluated left to right and
+  // stop at the first decisive operand, so an operand an earlier one made irrelevant is never read.
+  // It never supplies a trigger or a response: the bounded countdown stays exactly the one the
+  // rule's trigger and response describe.
+  Expression correlation = 5;
+  // What bound counts.
+  CorrelatedClock clock = 6;
+  int64 bound = 7;
+  // How an obligation still pending when the Run ends is decided.
+  TraceEnding ending = 8;
+}
+
+// CorrelatedClock names what a correlated rule's bound counts.
+enum CorrelatedClock {
+  CORRELATED_CLOCK_UNSPECIFIED = 0;
+  CORRELATED_CLOCK_OPERATION_TRANSITIONS = 1;
+}
+
+// TraceEnding decides an obligation still pending when the Run ends: a final trace violates it and a
+// partial trace leaves it inconclusive.
+enum TraceEnding {
+  TRACE_ENDING_UNSPECIFIED = 0;
+  TRACE_ENDING_PARTIAL = 1;
+  TRACE_ENDING_FINAL = 2;
+}
+
+// CorrelatedCaptureDeclaration retains one declared evidence field of the operation's admitted steps.
+// Occurrences are numbered from zero in admission order and never rewritten, so a correlation
+// operand names an exact earlier occurrence rather than an implicit latest match. `lifetime` is how
+// many occurrences one operation retains.
+message CorrelatedCaptureDeclaration {
+  string capture_id = 1;
+  string field_id = 2;
+  int64 lifetime = 3;
+}
+
+// CorrelatedLimits are a Profile's resource ceilings on the evidence and obligations of every
+// correlated contract it admits. A Case declares none of them.
+message CorrelatedLimits {
+  // Distinct evidence accepted; every ordinal is below it.
+  int64 max_events = 1;
+  // Evidence accepted but still waiting for its parents or its preceding ordinal.
+  int64 max_buffered = 2;
+  // Distinct operations.
+  int64 max_keys = 3;
+  // Supporting evidence identities retained.
+  int64 max_support = 4;
+  // Work projecting evidence into operation transitions.
+  int64 max_projection_work = 5;
+  // Size of one evidence value.
+  int64 max_event_bytes = 6;
+  // Operation transitions admitted.
+  int64 max_semantic_transitions = 7;
+  // Obligations triggered.
+  int64 max_obligations = 8;
+  // Work checking obligations.
+  int64 max_obligation_work = 9;
+  // Captured values. A correlated contract that declares no capture reserves none of them.
+  int64 max_captures = 10;
+  // Nesting depth of the correlation condition, its root counting as 1.
+  int64 max_correlation_depth = 11;
+}
+
+// CorrelatedEvidenceProjection is the Program-declared source of the CorrelatedEvidence a correlated capability
+// reads. Its rules are tried in declaration order and the first whose guard resolves supplies the
+// Observation; a projected value no rule claims emits nothing.
+//
+// A source ordinal is the position of the evidence in this source's own dense stream, so it is the
+// count of values this lift has already emitted from the same projected list rather than anything
+// read out of the value. The projector requires exactly that: independent sources have independent
+// zero-based ordinals, and only the emitter can count them.
+message CorrelatedEvidenceProjection {
+  string observation_id = 1;
+  repeated CorrelatedEvidenceRule rules = 2;
+}
+
+// CorrelatedEvidenceRule lifts one recorded fact into a CorrelatedEvidence value. `guard` selects the rule:
+// it fires only where that boolean expression over the projected value is true, such as
+// `present(path(projected_value, p))`. So one rule per recorded kind selects itself and `kind` is the
+// literal the selected shape denotes. Every path is read from the projected value; no Run field, wall
+// clock or Driver state is reachable from here.
+message CorrelatedEvidenceRule {
+  // The scope field values of the evidence identity, each a text literal or a text path.
+  repeated NamedExpression scope = 1;
+  string evidence_source = 2;
+  // The field path of the operation key, in the grammar PathExpression.path documents.
+  string operation = 3;
+  string kind = 4;
+  // The evidence field values, each a text literal or a path to a text, integer or boolean.
+  repeated NamedExpression fields = 5;
+  Expression guard = 6;
+}
+
+// NamedExpression supplies one CorrelatedEvidence field of a lift: a text literal the Case declares,
+// or a path read from the projected value, `path(projected_value, p)`. A Run coordinate that the
+// recorded fact does not itself carry is declared, never invented from Driver state.
+message NamedExpression {
+  string field_id = 1;
+  Expression value = 2;
+}
+
+// CorrelatedEvidence is supplied only through the capability's declared typed Observation.
+// Source ordinals and parents carry semantic order; Run elapsed time never supplies a tick.
+message CorrelatedEvidence {
+  CorrelatedIdentity identity = 1;
+  // The key that groups this evidence into one operation.
+  string operation = 2;
+  // Selects the projection rule.
+  string kind = 3;
+  // Identities of causal parents in the same operation, released before this evidence.
+  repeated CorrelatedIdentity parents = 4;
+  // Each field's text, natural or boolean value, unset when the field is redacted.
+  repeated NamedValue fields = 5;
+}
+
+// CorrelatedIdentity names one evidence value: its scope, its source, and its zero-based ordinal in
+// that source's dense stream.
+message CorrelatedIdentity {
+  // Each scope field's non-empty text value.
+  repeated NamedValue scope = 1;
+  string evidence_source = 2;
+  int64 ordinal = 3;
+}
+
+// NamedValue is the value of one evidence scope field or evidence field.
+message NamedValue { string field_id = 1; Value value = 2; }

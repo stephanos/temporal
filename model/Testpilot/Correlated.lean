@@ -1,0 +1,565 @@
+import Testpilot.Protocol
+import Shared.SemanticData
+import Shared.CorrelatedProjection
+import Shared.CorrelatedObligation
+
+/-!
+The version-one correlated Contract interpreter decodes closed protobuf data into a finite projection
+table and passive response windows. Its core is also used by checked model projection. No model,
+Target callback, Driver, or wall clock participates in this interpreter.
+-/
+namespace Testpilot.Correlated
+open temporal.server.api.testpilot.v1
+open Shared.SemanticData
+open Shared
+
+abbrev Result := Shared.SemanticData.Result StateValue Atom Atom
+abbrev Field := CorrelatedProjection.EvidenceField Name Scalar
+abbrev Event := CorrelatedProjection.Event Name Field
+abbrev Plan := CorrelatedProjection.Plan Name StateValue Atom Result
+
+abbrev Predicate := Shared.CorrelatedObligation.Predicate
+abbrev Predicate.mk := Shared.CorrelatedObligation.Predicate.mk
+abbrev Clause := Shared.CorrelatedObligation.Clause
+abbrev Clause.mk := Shared.CorrelatedObligation.Clause.mk
+
+/-- One correlation operand. Only declared evidence is readable: an exact literal, one declared
+evidence field of the step being admitted, or one retained earlier occurrence of a declared
+capture. No private Slot or raw payload is reachable from here. -/
+inductive Operand where
+  | literal (value : Scalar)
+  | field (id : Name)
+  | capture (id : Name) (ordinal : Nat)
+  deriving BEq, DecidableEq
+
+mutual
+/-- The closed correlation vocabulary. `all` and `any` are evaluated left to right and stop at the
+first decisive operand, so an operand an earlier one made irrelevant is never read and cannot fail
+admission. -/
+inductive Correlation where
+  | predicate (value : Predicate)
+  | comparison (equal : Bool) (left right : Operand)
+  | all (operands : Correlations)
+  | any (operands : Correlations)
+/-- The operands of one `all` or `any` group, in declaration order. -/
+inductive Correlations where
+  | nil
+  | cons (head : Correlation) (tail : Correlations)
+end
+deriving instance DecidableEq for Correlation, Correlations
+deriving instance BEq for Correlation, Correlations
+
+/-- One declared per-operation capture: which declared evidence field each occurrence retains and
+how many occurrences one operation keeps. Occurrences are numbered from zero in admission order. -/
+structure Capture where
+  id : Name
+  field : Name
+  /-- The declared scalar kind of the retained field, so a comparison reading this capture is
+  checked against the same type the projection declares. -/
+  kind : Nat
+  lifetime : Nat
+  deriving BEq, DecidableEq
+
+/-- The keyed declarations of one clause. A clause that declares neither keeps its exact existing
+meaning and admits every labeled transition its projection emits. -/
+structure Keyed where
+  captures : List Capture
+  correlation : Option Correlation
+  deriving BEq, DecidableEq
+
+structure Compiled where
+  plan : Plan
+  clauses : List Clause
+  /-- Keyed declarations by clause id; clause ids are unique, so this is a total lookup. -/
+  keyed : List (String × Keyed)
+  scopeFields : List Name
+  operationField : Name
+  sources : List Name
+  policies : List (Name × List (Name × Nat × Nat))
+  transitions : Nat
+  obligations : Nat
+  work : Nat
+  captures : Nat
+  deriving BEq, DecidableEq
+
+private def validId (value : String) : Bool :=
+  !value.isEmpty && value.length ≤ 256 && value.toList.all (fun c =>
+    c.toNat < 128 && (c.isAlphanum || c == '_' || c == '-' || c == '.'))
+private def uniqueIds (values : List String) : Bool :=
+  !values.isEmpty && values.all validId && values.eraseDups == values
+private def required (value : Option α) : Except String α := match value with | some value => .ok value | none => .error "missing field"
+private def natural (value : Int64) : Except String Nat :=
+  if value.toInt < 0 then .error "negative semantic number" else .ok value.toInt.toNat
+private def positive (value : Int64) : Except String Nat := do
+  let n ← natural value
+  if n == 0 then throw "nonpositive resource limit"
+  pure n
+
+def atom (value : ModelValue) : Atom := ⟨⟨value.definition_id⟩, value.value⟩
+private def checkedAtom (value : ModelValue) : Except String Atom := do
+  if !value.«Unknown.Fields».isEmpty || !validId value.definition_id then throw "invalid semantic value"
+  pure (atom value)
+/-- One state and the fields it holds, both checked the way any model value is. -/
+private def checkedState (value : ModelValue) (fields : Array ModelValue) :
+    Except String StateValue := do
+  pure ⟨← checkedAtom value, ← fields.toList.mapM checkedAtom⟩
+
+private def result (value : CorrelatedTransition) : Except String Result := do
+  if !value.«Unknown.Fields».isEmpty then throw "unknown transition field"
+  pure ⟨← checkedAtom (← required value.outcome),
+    ← checkedState (← required value.state) value.state_fields,
+    ← value.facts.toList.mapM checkedAtom⟩
+
+/-- The Reference arms a correlated condition may read. Every other arm belongs to another expression
+context and rejects wherever it appears. -/
+private def correlatedArm : Reference.reference_Type → Bool
+  | .evidence_field_id _ | .correlated_capture _ | .correlated_step _ => true
+  | _ => false
+
+/-- The one reference an expression reads, after checking its arm against the correlated context;
+`none` when the expression is not a reference. -/
+private def correlatedReference (wire : Expression) : Except String (Option Reference.reference_Type) := do
+  if !wire.«Unknown.Fields».isEmpty then throw "unknown expression field"
+  match wire.expression with
+  | some (.reference reference) =>
+      if !reference.«Unknown.Fields».isEmpty then throw "unknown expression field"
+      match reference.reference with
+      | some arm =>
+          if !correlatedArm arm then throw "reference is not admitted in this expression context"
+          pure (some arm)
+      | none => pure none
+  | _ => pure none
+
+/-- Whether an expression is a correlated step reference; a step condition compares one. -/
+private def isStepReference (wire : Expression) : Bool :=
+  match wire.expression with
+  | some (.reference { reference := some (.correlated_step _), .. }) => true
+  | _ => false
+
+/-- Decode a step condition: a correlated step reference tested for presence, or compared EQUAL with
+a text literal. A FACT condition holds when any of the step's facts satisfies it. -/
+private def predicate (wire : Expression) : Except String Predicate := do
+  if !wire.«Unknown.Fields».isEmpty then throw "invalid predicate"
+  let (operand, equalsText) ← match wire.expression with
+    | some (.present value) => do
+        if !value.«Unknown.Fields».isEmpty then throw "invalid predicate"
+        pure (← required value.operand, none)
+    | some (.compare value) => do
+        if !value.«Unknown.Fields».isEmpty then throw "invalid predicate"
+        let .COMPARISON_OPERATOR_EQUAL := value.operator | throw "unsupported predicate constraint"
+        let right ← required value.right
+        let some (.literal literal) := right.expression | throw "unsupported predicate constraint"
+        let some (.text_value text) := literal.value | throw "unsupported predicate constraint"
+        if !right.«Unknown.Fields».isEmpty || !literal.«Unknown.Fields».isEmpty then
+          throw "invalid predicate"
+        pure (← required value.left, some text)
+    | _ => throw "unsupported predicate constraint"
+  let some (.correlated_step step) ← correlatedReference operand | throw "unsupported predicate constraint"
+  if !step.«Unknown.Fields».isEmpty || !validId step.definition_id then throw "invalid predicate"
+  let field ← match step.field with
+    | .CORRELATED_STEP_FIELD_ACTION => pure 1
+    | .CORRELATED_STEP_FIELD_OUTCOME => pure 2
+    | .CORRELATED_STEP_FIELD_STATE => pure 3
+    | .CORRELATED_STEP_FIELD_FACT => pure 4
+    | _ => throw "unsupported predicate field"
+  pure ⟨field, ⟨step.definition_id⟩, equalsText⟩
+
+private def scalarKind : Scalar → Nat
+  | .text _ => 1 | .natural _ => 2 | .boolean _ => 3
+
+private def wireScalar (wire : temporal.server.api.testpilot.v1.Value) : Except String Scalar := do
+  if !wire.«Unknown.Fields».isEmpty then throw "unknown scalar field"
+  match wire.value with
+  | some (.text_value text) => pure (.text text)
+  | some (.unsigned_integer_value text) =>
+      match text.toNat? with
+      | some value =>
+          if toString value != text then throw "noncanonical unsigned integer"
+          else if value > 18446744073709551615 then throw "unsigned integer overflow"
+          else pure (.natural value)
+      | none => throw "invalid unsigned integer"
+  | some (.bool_value value) => pure (.boolean value)
+  | _ => throw "unsupported evidence scalar"
+
+/-- The one declared scalar kind of a retained evidence field. A field two projection rules declare
+at different kinds has no single type a comparison could be checked against, so reading it rejects
+rather than comparing values of different kinds. -/
+private def retainedKind (retained : List (Name × Nat)) (id : Name) : Except String Nat :=
+  match (retained.filter (·.1 == id)).map Prod.snd |>.eraseDups with
+  | [kind] => .ok kind
+  | [] => .error "unretained correlation field operand"
+  | _ => .error "ambiguous retained field type"
+
+/-- One correlation operand with its declared scalar kind, checked against the declarations that can
+supply it: a literal decodes to an exact admitted scalar, a field must be one this projection
+retains, and a capture reference must name a capture this clause declared at an ordinal its lifetime
+keeps. -/
+private def operand (retained : List (Name × Nat)) (captures : List Capture)
+    (wire : Expression) : Except String (Operand × Nat) := do
+  if !wire.«Unknown.Fields».isEmpty then throw "unknown operand field"
+  if let some (.literal value) := wire.expression then
+    let value ← wireScalar value
+    return (.literal value, scalarKind value)
+  match ← correlatedReference wire with
+  | some (.evidence_field_id id) =>
+      if !validId id then throw "unretained correlation field operand"
+      pure (.field ⟨id⟩, ← retainedKind retained ⟨id⟩)
+  | some (.correlated_capture reference) =>
+      if !reference.«Unknown.Fields».isEmpty || !validId reference.capture_id then
+        throw "invalid capture reference"
+      let ordinal ← natural reference.ordinal
+      let some declaration := captures.find? (·.id == ⟨reference.capture_id⟩)
+        | throw "unbound capture reference"
+      if ordinal ≥ declaration.lifetime then throw "capture ordinal beyond declared lifetime"
+      pure (.capture ⟨reference.capture_id⟩ ordinal, declaration.kind)
+  | _ => throw "unsupported correlation operand"
+
+mutual
+/-- Decode one correlation node under the declared depth ceiling. An exhausted depth is an explicit
+rejection, never a silently truncated condition. A step condition and a comparison each take one
+level, as does every `all` and `any`; the expression nodes inside a condition take none. -/
+private def correlationOf (retained : List (Name × Nat)) (captures : List Capture) (depth : Nat)
+    (wire : Expression) : Except String Correlation :=
+  match depth with
+  | 0 => throw "correlation depth exhausted"
+  | remaining + 1 => do
+    if !wire.«Unknown.Fields».isEmpty then throw "unknown correlation field"
+    match wire.expression with
+    | some (.present _) => pure (.predicate (← predicate wire))
+    | some (.compare value) => do
+        if isStepReference (value.left.getD {}) then return .predicate (← predicate wire)
+        if !value.«Unknown.Fields».isEmpty then throw "unknown comparison field"
+        let equal ← match value.operator with
+          | .COMPARISON_OPERATOR_EQUAL => pure true
+          | .COMPARISON_OPERATOR_NOT_EQUAL => pure false
+          | _ => throw "unsupported comparison operator"
+        let (left, leftKind) ← operand retained captures (← required value.left)
+        let (right, rightKind) ← operand retained captures (← required value.right)
+        if leftKind != rightKind then throw "incompatible correlation operand types"
+        pure (.comparison equal left right)
+    | some (.all group) => do
+        if !group.«Unknown.Fields».isEmpty || group.operands.isEmpty then
+          throw "empty correlation group"
+        pure (.all (← correlationsOf retained captures remaining group.operands.toList))
+    | some (.any group) => do
+        if !group.«Unknown.Fields».isEmpty || group.operands.isEmpty then
+          throw "empty correlation group"
+        pure (.any (← correlationsOf retained captures remaining group.operands.toList))
+    | _ => throw "unsupported correlation condition"
+  termination_by (depth, 0)
+
+private def correlationsOf (retained : List (Name × Nat)) (captures : List Capture) (depth : Nat)
+    (wires : List Expression) : Except String Correlations :=
+  match wires with
+  | [] => pure .nil
+  | head :: rest => do
+      pure (.cons (← correlationOf retained captures depth head)
+        (← correlationsOf retained captures depth rest))
+  termination_by (depth, wires.length + 1)
+end
+
+/-- Decode exact v1 executable meaning under `limits`, the Profile's correlated ceilings the capability
+is admitted under (a Case declares none), rejecting unsupported clocks, endpoints and numeric
+values. -/
+def decode (limits : CorrelatedLimits) (wire : CorrelatedContract) : Except String Compiled := do
+  if !wire.«Unknown.Fields».isEmpty then throw "unknown capability field"
+  if !validId wire.projection_id || wire.projection_fingerprint.isEmpty ||
+      !validId wire.evidence_observation_id || !validId wire.operation_field ||
+      !uniqueIds wire.scope_fields.toList || !uniqueIds wire.sources.toList ||
+      wire.scope_fields.contains wire.operation_field then throw "invalid projection binding"
+  if !limits.«Unknown.Fields».isEmpty then throw "unknown limits field"
+  let projectionLimits : CorrelatedProjection.Limits := {
+    events := ← positive limits.max_events
+    buffered := ← positive limits.max_buffered
+    keys := ← positive limits.max_keys
+    support := ← positive limits.max_support
+    work := ← positive limits.max_projection_work
+    eventSize := ← positive limits.max_event_bytes }
+  if projectionLimits.buffered > projectionLimits.events || projectionLimits.keys > projectionLimits.events then
+    throw "incompatible projection limits"
+  if wire.transitions.isEmpty || wire.projection_rules.isEmpty || wire.rules.isEmpty then
+    throw "empty correlated capability"
+  let transitions ← wire.transitions.toList.mapM fun tr => do
+    if !tr.«Unknown.Fields».isEmpty then throw "unknown transition field"
+    pure (← checkedState (← required tr.prior_state) tr.prior_fields,
+      ← checkedAtom (← required tr.action), ← result tr)
+  let policies ← wire.projection_rules.toList.mapM fun rule => do
+    let fields ← rule.fields.toList.mapM fun field => do
+      if !field.«Unknown.Fields».isEmpty || !validId field.field_id then throw "invalid field policy"
+      let type ← required field.type
+      if !type.«Unknown.Fields».isEmpty then throw "unknown field type"
+      let kind ← match type.kind with
+        | .SCALAR_KIND_TEXT => pure 1
+        | .SCALAR_KIND_UINT64 => pure 2
+        | .SCALAR_KIND_BOOLEAN => pure 3
+        | _ => throw "unsupported field type"
+      let disposition ← match field.disposition with
+        | .CORRELATED_FIELD_DISPOSITION_RETAIN => pure 1
+        | .CORRELATED_FIELD_DISPOSITION_REDACT => pure 2
+        | .CORRELATED_FIELD_DISPOSITION_REJECT => pure 3
+        | _ => throw "unsupported field policy"
+      pure (Name.mk field.field_id, kind, disposition)
+    if (fields.map (·.1)).eraseDups != fields.map (·.1) then throw "duplicate field policy"
+    pure (Name.mk rule.kind, fields)
+  if !uniqueIds (wire.projection_rules.toList.map (·.kind)) then throw "invalid evidence kinds"
+  let rules ← wire.projection_rules.toList.mapM fun rule => do
+    if !rule.«Unknown.Fields».isEmpty then throw "unknown projection rule field"
+    let meaning ← match rule.meaning with
+      | .CORRELATED_EVIDENCE_MEANING_IRRELEVANT => do
+          if rule.submission.isSome || !rule.outputs.isEmpty then throw "irrelevant evidence has outputs"
+          pure .irrelevant
+      | .CORRELATED_EVIDENCE_MEANING_SUBMISSION =>
+          let action ← checkedAtom (← required rule.submission)
+          if !rule.outputs.isEmpty || !transitions.any (·.2.1 == action) then throw "invalid submission"
+          pure (.submission action)
+      | .CORRELATED_EVIDENCE_MEANING_CONFIRMED => do
+          if rule.outputs.isEmpty then throw "confirmed evidence requires outputs"
+          let submission ← rule.submission.mapM checkedAtom
+          if let some action := submission then
+            if !wire.projection_rules.any (fun other =>
+                other.meaning == .CORRELATED_EVIDENCE_MEANING_SUBMISSION &&
+                other.submission.map atom == some action) then throw "missing submission mapping"
+          let outputs ← rule.outputs.toList.mapM fun output => do
+            if output.prior_state.isSome then throw "output supplied a prior state"
+            let action ← checkedAtom (← required output.action)
+            let result ← result output
+            if !transitions.any (fun row => row.2.1 == action && row.2.2 == result) then
+              throw "projection output absent from table"
+            pure (action, result)
+          pure (.confirmed submission outputs)
+      | _ => throw "unsupported projection meaning"
+    pure (CorrelatedProjection.Rule.mk ⟨rule.kind⟩ rule.fields.size meaning)
+  if !uniqueIds (wire.rules.toList.map (·.rule_id)) then throw "invalid clause identities"
+  -- Only a field this projection actually retains can supply a capture or a correlation operand;
+  -- redacted and rejected fields carry no value to read.
+  let retainedFields := (policies.flatMap fun rule =>
+    rule.2.filterMap fun field =>
+      if field.2.2 == 1 then some (field.1, field.2.1) else none).eraseDups
+  -- A capability that declares neither captures nor a correlation needs neither capture ceiling, so
+  -- a Profile may leave both unset without changing its meaning.
+  -- Capture identities are one namespace across the capability: a retained occurrence is named by
+  -- its capture id and ordinal alone, so two clauses declaring one id would alias the same stream.
+  let declaredCaptures := wire.rules.toList.flatMap (·.captures.toList.map (·.capture_id))
+  if !declaredCaptures.isEmpty && !uniqueIds declaredCaptures then
+    throw "invalid capture identities"
+  let capturesDeclared := !declaredCaptures.isEmpty
+  let correlationDeclared := wire.rules.toList.any (·.correlation.isSome)
+  let captureLimit ← if capturesDeclared then positive limits.max_captures
+    else natural limits.max_captures
+  let depthLimit ← if correlationDeclared then positive limits.max_correlation_depth
+    else natural limits.max_correlation_depth
+  let clauseData ← wire.rules.toList.mapM fun clause => do
+    if !clause.«Unknown.Fields».isEmpty then throw "unknown clause field"
+    if clause.clock != .CORRELATED_CLOCK_OPERATION_TRANSITIONS then throw "unsupported semantic clock"
+    let final ← match clause.ending with
+      | .TRACE_ENDING_PARTIAL => pure false
+      | .TRACE_ENDING_FINAL => pure true
+      | _ => throw "unsupported endpoint"
+    let trigger ← predicate (← required clause.trigger)
+    let response ← predicate (← required clause.response)
+    if trigger.field != 1 || response.field < 2 then throw "unsupported clause"
+    let captures ← clause.captures.toList.mapM fun declaration => do
+      if !declaration.«Unknown.Fields».isEmpty || !validId declaration.capture_id ||
+          !validId declaration.field_id then throw "invalid capture declaration"
+      let kind ← (retainedKind retainedFields ⟨declaration.field_id⟩).mapError fun reason =>
+        if reason == "unretained correlation field operand" then
+          "capture names an unretained evidence field" else reason
+      pure (Capture.mk ⟨declaration.capture_id⟩ ⟨declaration.field_id⟩ kind
+        (← positive declaration.lifetime))
+    let correlation ← clause.correlation.mapM (correlationOf retainedFields captures depthLimit)
+    pure (Clause.mk clause.rule_id (← natural clause.bound) final trigger response,
+      clause.rule_id, Keyed.mk captures correlation)
+  pure {
+    plan := {
+      initial := ← checkedState (← required wire.initial_state) wire.initial_state_fields
+      rules, transitions, limits := projectionLimits }
+    clauses := clauseData.map (·.1)
+    keyed := clauseData.map (·.2)
+    scopeFields := wire.scope_fields.toList.map Name.mk
+    operationField := ⟨wire.operation_field⟩
+    sources := wire.sources.toList.map Name.mk
+    policies
+    transitions := ← positive limits.max_semantic_transitions
+    obligations := ← positive limits.max_obligations
+    work := ← positive limits.max_obligation_work
+    captures := captureLimit }
+
+/-- One retained occurrence: the operation that retained it, the capture it belongs to, its ordinal
+and the exact admitted value. Entries are only appended, so an ordinal already recorded keeps the
+value it was admitted with rather than being replaced by a later match. -/
+structure Retained where
+  operation : String
+  capture : Name
+  ordinal : Nat
+  value : Scalar
+  deriving BEq, DecidableEq
+
+/-- Immutable state allocated independently for each decoded Contract execution. -/
+structure Monitor (compiled : Compiled) where
+  projection : CorrelatedProjection.Run compiled.plan Field
+  monitor : CorrelatedObligation.Monitor compiled.plan.transitions compiled.clauses
+  captures : List Retained := []
+  capturedValues : Nat := 0
+  closed : Bool := false
+
+/-- Bind a fresh execution scope without observing or dispatching any work. -/
+def Compiled.start (compiled : Compiled) (scope : List (Name × String)) : Except String (Monitor compiled) := do
+  if scope.map Prod.fst != compiled.scopeFields || scope.any (·.2.isEmpty) then throw "wrong scope"
+  pure { projection := { scope }, monitor := { initial := compiled.plan.initial } }
+
+private def identitySize (identity : CorrelatedProjection.Identity Name) : Nat :=
+  identity.source.value.length + 1 + identity.scope.foldl (fun size (key, value) =>
+    size + key.value.length + value.length) 0
+
+/-- The same declared semantic byte accounting used by source evidence projection. -/
+def eventSize (event : Event) : Nat :=
+  identitySize event.identity + event.operation.length + event.kind.value.length +
+    event.runSequences.foldl (fun size sequence => size + (toString sequence).length) 0 +
+    event.parents.foldl (fun size parent => size + identitySize parent) 0 +
+    event.fields.foldl (fun size field => size + field.id.value.length +
+      (field.value.map Scalar.size).getD 1) 0
+
+/-- Validate scope, field authority and evidence support before transactional projection. -/
+def Compiled.validateEvent (compiled : Compiled) (scope : List (Name × String)) (event : Event) :
+    Except String Unit :=
+  (CorrelatedProjection.validateEvidence scalarKind eventSize compiled.plan.limits compiled.sources
+    compiled.policies scope event).mapError (fun _ => "invalid evidence")
+
+/-- Resolve one operand against this step's declared evidence and the operation's retained
+occurrences; `none` is an absent operand. An occurrence the operation never retained -- a future
+ordinal, or one belonging to a different operation -- has no value here, so a comparison reading it is
+false rather than binding the nearest match. -/
+private def operandValue (fields : List Field) (retained : List Retained) (operation : String) :
+    Operand → Option Scalar
+  | .literal value => some value
+  | .field id => (fields.find? (·.id == id)).bind (·.value)
+  | .capture id ordinal =>
+      (retained.find? fun entry =>
+        entry.operation == operation && entry.capture == id && entry.ordinal == ordinal).map (·.value)
+
+mutual
+/-- Whether this labeled transition satisfies the clause's declared correlation. A comparison with an
+absent operand is false under either operator. -/
+private def correlationHolds (fields : List Field) (retained : List Retained) (operation : String)
+    (action : Atom) (result : Result) : Correlation → Bool
+  | .predicate value => value.holds action result
+  | .comparison equal left right =>
+      match operandValue fields retained operation left, operandValue fields retained operation right with
+      | some left, some right => if equal then left == right else left != right
+      | _, _ => false
+  | .all operands => correlationAll fields retained operation action result operands
+  | .any operands => correlationAny fields retained operation action result operands
+
+private def correlationAll (fields : List Field) (retained : List Retained) (operation : String)
+    (action : Atom) (result : Result) : Correlations → Bool
+  | .nil => true
+  | .cons head tail =>
+      correlationHolds fields retained operation action result head &&
+        correlationAll fields retained operation action result tail
+
+private def correlationAny (fields : List Field) (retained : List Retained) (operation : String)
+    (action : Atom) (result : Result) : Correlations → Bool
+  | .nil => false
+  | .cons head tail =>
+      correlationHolds fields retained operation action result head ||
+        correlationAny fields retained operation action result tail
+end
+
+/-- Retain this step's occurrence of every declared capture. A step that supplies no value at the
+declared field records nothing; an operation that already holds its declared lifetime rejects. -/
+private def retain (declarations : List Capture) (fields : List Field) (operation : String)
+    (state : List Retained × Nat) : Except String (List Retained × Nat) :=
+  declarations.foldlM (fun state declaration =>
+    match (fields.find? (·.id == declaration.field)).bind (·.value) with
+    | none => .ok state
+    | some value =>
+        let ordinal := (state.1.filter fun entry =>
+          entry.operation == operation && entry.capture == declaration.id).length
+        if ordinal ≥ declaration.lifetime then .error "capture lifetime exhausted"
+        else .ok (state.1 ++ [⟨operation, declaration.id, ordinal, value⟩], state.2 + 1)) state
+
+/-- Consume only validated evidence; the shared projector controls all semantic-step emissions.
+A declared correlation decides which emitted steps are the operation's semantic steps at all: it
+reads this step's own evidence together with what the operation already retained, so an occurrence
+binds only after an earlier step admitted it, and this step's occurrences are retained only once
+the whole append was admitted. -/
+def Monitor.admit {compiled : Compiled} (run : Monitor compiled) (event : Event) :
+    Except String (Monitor compiled) := do
+  if run.closed then throw "closed"
+  compiled.validateEvent run.projection.scope event
+  let projection ← (run.projection.admit Name.value (·.state) eventSize event).mapError
+    (fun _ => "projection rejected")
+  let limits : CorrelatedObligation.MonitorLimits :=
+    ⟨compiled.transitions, compiled.obligations, compiled.work⟩
+  let mut monitor := run.monitor
+  let mut retained := run.captures
+  let mut charged := 0
+  for step in projection.steps.drop run.projection.steps.length do
+    for declaration in compiled.keyed do
+      if let some correlation := declaration.2.correlation then
+        if !correlationHolds event.fields retained step.operation step.action step.result
+            correlation then
+          throw "correlation rejected this operation's step"
+    monitor ← monitor.consume limits step.operation
+      ⟨(step.priorState, step.action, step.result), step.member⟩
+    for declaration in compiled.keyed do
+      let next ← retain declaration.2.captures event.fields step.operation (retained, charged)
+      retained := next.1
+      charged := next.2
+  if run.capturedValues + charged > compiled.captures then throw "captures exhausted"
+  pure { run with
+    projection
+    monitor
+    captures := retained
+    capturedValues := run.capturedValues + charged }
+
+private def wireIdentity (wire : CorrelatedIdentity) : Except String (CorrelatedProjection.Identity Name) := do
+  if !wire.«Unknown.Fields».isEmpty then throw "unknown identity field"
+  let scope ← wire.scope.toList.mapM fun binding => do
+    if !binding.«Unknown.Fields».isEmpty then throw "unknown binding field"
+    let some value := binding.value | throw "scope value must be text"
+    if !value.«Unknown.Fields».isEmpty then throw "unknown scope value field"
+    let some (.text_value text) := value.value | throw "scope value must be text"
+    pure (Name.mk binding.field_id, text)
+  pure ⟨scope, ⟨wire.evidence_source⟩, ← natural wire.ordinal⟩
+
+/-- Decode one typed Observation and attach recorder-owned support, retaining first support on duplicates. -/
+def Monitor.observe {compiled : Compiled} (run : Monitor compiled) (sequence : Nat) (wire : CorrelatedEvidence) :
+    Except String (Monitor compiled) := do
+  if sequence == 0 || !wire.«Unknown.Fields».isEmpty then throw "invalid evidence envelope"
+  let identity ← wireIdentity (← required wire.identity)
+  let parents ← wire.parents.toList.mapM wireIdentity
+  let fields ← wire.fields.toList.mapM fun field => do
+    if !field.«Unknown.Fields».isEmpty then throw "unknown evidence field"
+    let value ← match field.value with | none => pure none | some value => some <$> wireScalar value
+    pure (CorrelatedProjection.EvidenceField.mk (Name.mk field.field_id) value)
+  let sequences := (run.projection.accepted.find? (·.identity == identity)).map (·.runSequences)
+    |>.getD [sequence]
+  run.admit ⟨identity, wire.operation, ⟨wire.kind⟩, parents, sequences, fields⟩
+
+/-- Chunk boundaries do not create semantic coordinates or close pending evidence. -/
+def Monitor.admitMany {compiled : Compiled} (run : Monitor compiled) (events : List Event) :
+    Except String (Monitor compiled) := events.foldlM Monitor.admit run
+
+/-- Exact incremental/offline identity, including the first rejected chunk. -/
+theorem Monitor.admitMany_append {compiled : Compiled} (run : Monitor compiled) (first second : List Event) :
+    run.admitMany (first ++ second) =
+      (run.admitMany first >>= fun next => next.admitMany second) := by
+  simp [admitMany, List.foldlM_append]
+
+/-- Inspect current answers; missing evidence forces unresolved but never repairs a violation.
+
+A capability that admitted no evidence at all observed nothing. The model kernel reads an empty
+obligation list as vacuous satisfaction because a model trace is total: no trigger occurred. A
+runtime evidence stream is not total -- an empty one is indistinguishable from a projector that
+never fired -- so this interpreter reports unresolved rather than manufacturing a satisfied answer
+from silence. -/
+def Monitor.answers {compiled : Compiled} (run : Monitor compiled) (incomplete : Bool := false) : List Nat :=
+  (run.monitor.answers run.closed
+      (incomplete || run.projection.accepted.isEmpty || !run.projection.pending.isEmpty)).map
+    fun answer => match answer with | .satisfied => 2 | .violated => 3 | .unresolved => 0
+
+/-- Close without inventing a semantic transition or a wall-clock deadline. -/
+def Monitor.close {compiled : Compiled} (run : Monitor compiled) : Monitor compiled := { run with closed := true }
+
+end Testpilot.Correlated

@@ -1,0 +1,83 @@
+import Umpire.Exploration
+import Umpire.Variations.Tests.Fixtures
+
+/-! Atomic bounded Exploration through the public pure engine. -/
+
+namespace Umpire.ExplorationTests
+
+open Umpire
+
+private theorem except_eq_ok_get
+    (result : Except ε α)
+    (isSome : result.toOption.isSome = true) :
+    result = .ok (result.toOption.get isSome) := by
+  cases result with
+  | error _ => cases isSome
+  | ok _ => rfl
+
+private theorem checkedSpaceResultEq :
+    VariationsTests.checkedResult = .ok VariationsTests.checked :=
+  except_eq_ok_get VariationsTests.checkedResult (by native_decide)
+
+private theorem checkedSpaceTargetEq :
+    VariationsTests.checked.baseQuery.target = Umpire.Examples.Switch.target := by
+  exact congrArg (fun query => query.target)
+    (checkVariationSpace_baseQuery checkedSpaceResultEq)
+
+def engineBase : AdmittedQuery VariationsTests.checked.baseQuery.target :=
+  (Umpire.Examples.Switch.exactActionAdmitted.withQuery VariationsTests.checked.baseQuery
+    checkedSpaceTargetEq).retarget checkedSpaceTargetEq.symm
+
+def engineRequest
+    (policy : ExplorationPolicy)
+    (value : Nat)
+    (pinned : List Plan := []) :
+    ExplorationRequest Umpire.Examples.Switch.LawStatement := {
+  space := VariationsTests.checked
+  policy
+  limit := { value, unit := .plans }
+  pinned
+}
+
+def engineRun
+    (policy : ExplorationPolicy)
+    (value : Nat)
+    (pinned : List Plan := []) :=
+  explore (engineRequest policy value pinned) engineBase
+
+/-!
+The public engine composes both retained policies while keeping their coordinate and completion
+outcomes distinct.
+-/
+example :
+    let limited := (engineRun .exhaustive 3).toOption
+    let complete := (engineRun .exhaustive 4).toOption
+    let guided := (engineRun (.uncoveredCoordinate (.fact 1 1)) 1).toOption
+    limited.any (fun result =>
+        result.pinned.isEmpty && result.exploratory.length == 3 &&
+          result.coordinateOutcome.isNone && result.completion == .limitReached) &&
+      complete.any (fun result =>
+        result.exploratory.length == 4 && result.completion == .exhausted) &&
+      guided.any (fun result =>
+        result.exploratory.length == 1 &&
+          result.coordinateOutcome == some .coordinateSelected &&
+          result.completion == .limitReached) = true := by
+  native_decide
+
+/-! The selected identity projection preserves the exact pinned-then-exploratory partition order. -/
+example : (engineRun .exhaustive 4).toOption.map (fun result =>
+    result.selectedIdentities ==
+      result.pinned.map (fun pinned => pinned.plan.artifactChecksum) ++
+        result.exploratory.map ExplorationCandidate.identity) = some true := by
+  native_decide
+
+/-! Input failure exposes no partial result and takes precedence over candidate compilation. -/
+example :
+    let rejected := engineRun .exhaustive 0
+    (rejected.toOption,
+      match rejected with
+      | .error error => some error.kind
+      | .ok _ => none) = (none, some .invalidLimitValue) := by
+  native_decide
+
+end Umpire.ExplorationTests

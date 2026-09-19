@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-04T21:54:51.699478Z",
+  "depends_on": [],
+  "id": "fn-65-design-and-prototype-approachable.1",
+  "priority": null,
+  "spec": "fn-65-design-and-prototype-approachable",
+  "spec_path": ".flow/tasks/fn-65-design-and-prototype-approachable.1.md",
+  "status": "todo",
+  "title": "Establish Nexus2 author scope and baseline/race examples",
+  "updated_at": "2026-09-04T21:54:51.699478Z"
+}

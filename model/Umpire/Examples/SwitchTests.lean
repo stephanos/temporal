@@ -1,0 +1,322 @@
+import Umpire.Examples.Switch
+import Umpire.Variations.Tests.Compilation
+import Umpire.Variations.Tests.Determinism
+import Umpire.Variations.Tests.Intent
+import Umpire.Variations.Tests.Metadata
+import Umpire.Variations.Tests.Validation
+import Umpire.Json
+
+namespace Umpire.Examples.SwitchTests
+
+open Umpire
+open Umpire.Examples.Switch
+
+private def expectedExactActionQueryJson : String :=
+  include_str "Fixtures/SwitchExactActionQuery.json"
+
+private def expectedCompiledArtifactJson : String :=
+  include_str "Fixtures/SwitchCompiledArtifact.json"
+
+private def propertyErrorOf : Except PropertyError CheckedProperty → Option PropertyError
+  | .ok _ => none
+  | .error error => some error
+
+private def propertyErrorJsonOf : Except PropertyError CheckedProperty → Option String
+  | .ok _ => none
+  | .error error => some (canonicalPropertyErrorJson error)
+
+private def behaviorErrorOf : Except ScenarioError CheckedScenario → Option ScenarioError
+  | .ok _ => none
+  | .error error => some error
+
+example : source = {
+    path := "Umpire/Examples/Switch.lean"
+    line := 1
+    column := 1
+    provenance := "lean-model"
+  } ∧
+    targetId.value = "switch.target.two-state" ∧
+    kernelId.value = "switch.kernel.two-state" ∧
+    flipPropertyId.value = "switch.property.flip-turns-on" ∧
+    exactActionBehaviorId.value = "switch.behavior.exact-action" ∧
+    exactActionQueryId.value = "switch.query.exact-action" ∧
+    flipLaw.body = "switch-flip-preserves-domain-law/v1" ∧
+    machine.metadata.id = kernelId := by
+  native_decide
+
+example : definitions = [
+    { id := targetId, kind := .target, source, version := 1,
+      behaviorVersion := "switch-two-state-target/v1", documentation := "" },
+    { id := kernelId, kind := .machine, source, version := 1,
+      behaviorVersion := "switch-two-state-kernel/v1", documentation := "" },
+    { id := switchCapabilityId, kind := .capability, source, version := 1,
+      behaviorVersion := "switch-state/v1", documentation := "" },
+    { id := switchProviderId, kind := .provider, source, version := 1,
+      behaviorVersion := "switch-state-provider/v1", documentation := "" },
+    { id := flipLawId, kind := .law, source, version := 1,
+      behaviorVersion := "switch-flip-preserves-domain-law/v1", documentation := "" },
+    { id := powerStateId, kind := .state, source, version := 1,
+      behaviorVersion := "switch-power-state/v1", documentation := "" },
+    { id := flipActionId, kind := .action, source, version := 1,
+      behaviorVersion := "switch-flip-action/v1", documentation := "" },
+    { id := appliedOutcomeId, kind := .outcome, source, version := 1,
+      behaviorVersion := "switch-applied-outcome/v1", documentation := "" },
+    { id := deferredOutcomeId, kind := .outcome, source, version := 1,
+      behaviorVersion := "switch-deferred-outcome/v1", documentation := "" },
+    { id := powerObservationId, kind := .fact, source, version := 1,
+      behaviorVersion := "switch-power-observation/v1", documentation := "" }
+  ] := by
+  native_decide
+
+example : (checkModel targetAuthoring).isOk = true := by
+  native_decide
+
+example :
+    PropertyPattern.exact .selectedAction flipActionId flipAction.value = {
+      field := .selectedAction
+      reference := flipActionId
+      constraint := .equals flipAction.value
+    } ∧
+    SetupConstraint.roleEquals
+      (DefinitionId.of "switch.setup.subject-is-off") switchRoleId offState = {
+        id := DefinitionId.of "switch.setup.subject-is-off"
+        relation := .equal
+        left := .role switchRoleId
+        right := .value offState
+      } ∧
+    Scenario.Trace.singleStep switchSetup offState flipAction appliedResult = {
+      setup := switchSetup
+      trace := {
+        initialState := offState
+        steps := [ModelTraceStep.result flipAction appliedResult]
+      }
+    } ∧
+    Scenario.exactlyOneAction exactActionBehaviorId source
+      { id := DefinitionId.of "switch.occurrence.flip", action := flipActionId }
+      (requires := [switchCapabilityId])
+      (roles := [switchRole])
+      (setup := [setupConstraint])
+      (documentation := "Select one flip while leaving its outcome to the switch model.") = {
+        exploratoryBehaviorDeclaration with
+        id := exactActionBehaviorId
+        actionsExactly := some [flipActionId]
+        documentation := "Select one flip while leaving its outcome to the switch model."
+      } := by
+  exact ⟨rfl, rfl, rfl, rfl⟩
+
+/-! A closed valid declaration needs no proof of its own: the default `native_decide` supplies it. -/
+example :
+    Property.checked (PropertyCheckContext.ofTarget target) (authoredProperty) =
+      propertyResult.toOption.get (by native_decide) ∧
+    Scenario.checked (.ofTarget target) exactActionBehaviorDeclaration =
+      exactActionBehaviorResult.toOption.get (by native_decide) := by
+  native_decide
+
+/-! An invalid declaration is rejected where it is written, by the same default proof. -/
+/--
+error: could not synthesize default value for parameter 'valid' using tactics
+-/
+#guard_msgs (error, substring := true) in
+def propertyWithoutValidityProof : CheckedProperty :=
+  Property.checked (PropertyCheckContext.ofTarget target)
+    { authoredProperty with id := DefinitionId.of "" }
+
+/--
+error: could not synthesize default value for parameter 'valid' using tactics
+-/
+#guard_msgs (error, substring := true) in
+def behaviorWithoutValidityProof : CheckedScenario :=
+  Scenario.checked (.ofTarget target) { exactActionBehaviorDeclaration with id := DefinitionId.of "" }
+
+example : [
+    propertyErrorOf (Property.check (PropertyCheckContext.ofTarget target) ({
+      authoredProperty with
+      id := DefinitionId.of ""
+      source := { source with path := "" }
+    })),
+    propertyErrorOf (Property.check (PropertyCheckContext.ofTarget target) ({
+      authoredProperty with
+      id := DefinitionId.of "property"
+      source := { source with path := "" }
+    })),
+    propertyErrorOf (Property.check (PropertyCheckContext.ofTarget target) ({
+      authoredProperty with
+      source := { source with path := "" }
+      requires := [
+        DefinitionId.of "switch.capability.z",
+        DefinitionId.of "switch.capability.a",
+        DefinitionId.of "switch.capability.z",
+        DefinitionId.of "switch.capability.a"
+      ]
+    }))
+  ] = [
+    some {
+      kind := .emptyDefinitionId
+      definitionId := DefinitionId.of "umpire.property.anonymous"
+      sourcePath := "<unknown>"
+      offendingValue := "<empty>"
+      relatedDefinitionIds := [DefinitionId.of ""]
+    },
+    some {
+      kind := .invalidDefinitionId
+      definitionId := DefinitionId.of "property"
+      sourcePath := "<unknown>"
+      offendingValue := "property"
+      relatedDefinitionIds := [DefinitionId.of "property"]
+    },
+    some {
+      kind := .duplicateDefinitionId
+      definitionId := flipPropertyId
+      sourcePath := "<unknown>"
+      offendingValue := "switch.capability.a"
+      relatedDefinitionIds := [DefinitionId.of "switch.capability.a"]
+    }
+  ] := by
+  native_decide
+
+example : [
+    propertyErrorJsonOf (Property.check (PropertyCheckContext.ofTarget target) ({
+      authoredProperty with
+      id := DefinitionId.of ""
+      source := { source with path := "" }
+    })),
+    propertyErrorJsonOf (Property.check (PropertyCheckContext.ofTarget target) ({
+      authoredProperty with
+      id := DefinitionId.of "property"
+      source := { source with path := "" }
+    }))
+  ] = [
+    some ("{\"kind\":\"empty-definition-id\",\"definitionId\":" ++
+      "\"umpire.property.anonymous\",\"sourcePath\":\"<unknown>\"," ++
+      "\"offendingValue\":\"<empty>\",\"relatedDefinitionIds\":[\"\"]}"),
+    some ("{\"kind\":\"invalid-definition-id\",\"definitionId\":\"property\"," ++
+      "\"sourcePath\":\"<unknown>\",\"offendingValue\":\"property\"," ++
+      "\"relatedDefinitionIds\":[\"property\"]}")
+  ] := by
+  native_decide
+
+example : [
+    behaviorErrorOf (Scenario.check (.ofTarget target) {
+      exploratoryBehaviorDeclaration with
+      id := DefinitionId.of ""
+      source := { source with path := "" }
+    }),
+    behaviorErrorOf (Scenario.check (.ofTarget target) {
+      exploratoryBehaviorDeclaration with
+      id := DefinitionId.of "behavior"
+      source := { source with path := "" }
+    }),
+    behaviorErrorOf (Scenario.check (.ofTarget target) {
+      exploratoryBehaviorDeclaration with
+      source := { source with path := "" }
+      requires := [
+        DefinitionId.of "switch.capability.z",
+        DefinitionId.of "switch.capability.a",
+        DefinitionId.of "switch.capability.z",
+        DefinitionId.of "switch.capability.a"
+      ]
+    })
+  ] = [
+    some {
+      kind := .emptyDefinitionId
+      definitionId := DefinitionId.of "umpire.behavior.anonymous"
+      sourcePath := "<unknown>"
+      offendingValue := "<empty>"
+      relatedDefinitionIds := [DefinitionId.of ""]
+    },
+    some {
+      kind := .invalidDefinitionId
+      definitionId := DefinitionId.of "behavior"
+      sourcePath := "<unknown>"
+      offendingValue := "behavior"
+      relatedDefinitionIds := [DefinitionId.of "behavior"]
+    },
+    some {
+      kind := .duplicateDefinitionId
+      definitionId := exploratoryBehaviorId
+      sourcePath := "<unknown>"
+      offendingValue := "switch.capability.a"
+      relatedDefinitionIds := [DefinitionId.of "switch.capability.a"]
+    }
+  ] := by
+  native_decide
+
+example : target.machine.initialStates switchSetup = [offState] ∧
+    target.machine.steps offState flipAction = [appliedResult, deferredResult] := by
+  native_decide
+
+theorem direct_kernel_keeps_independent_authority_and_two_results :
+    machine.authoritativeInitial = authoritativeInitial ∧
+    machine.authoritativeStep = authoritativeStep ∧
+    modelSpec.machine = .checked machine ∧
+    stepResults offState flipAction = [appliedResult, deferredResult] ∧
+    authoritativeStep offState flipAction appliedResult ∧
+    authoritativeStep offState flipAction deferredResult := by
+  exact ⟨rfl, rfl, rfl, by native_decide,
+    ⟨rfl, .inl ⟨rfl, .inl rfl⟩⟩,
+    ⟨rfl, .inl ⟨rfl, .inr rfl⟩⟩⟩
+
+theorem direct_kernel_golden_behavior_fingerprint :
+    target.behaviorFingerprint.render =
+      "sha256:dd15faf7be2de6646dbf65eca30c27bdc2829e29b35158c575ec3245d28ebd3c" := by
+  native_decide
+
+example : target.requiredCapabilities = [switchCapabilityId] ∧
+    flipProperty.requires = [switchCapabilityId] ∧
+    exploratoryBehavior.requires = [switchCapabilityId] ∧
+    exactActionQuery.modelProviders = [switchCapabilityId, switchProviderId] := by
+  native_decide
+
+example : exactActionQuery.completeness.map (fun evidence =>
+    (evidence.roleDomainFingerprint, evidence.actionDomainFingerprint)) =
+    (ModelCompleteness.ofTarget target).completeness.map (fun evidence =>
+      (evidence.roleDomainFingerprint, evidence.actionDomainFingerprint)) := by
+  native_decide
+
+example : (match target.planning with
+    | .unavailable => none
+    | .available capability => some capability.actions) =
+    exactActionQuery.completeness.map (fun evidence => evidence.actions) := by
+  native_decide
+
+example : Json.prettyBytes (canonicalQueryJson exactActionQuery) = expectedExactActionQueryJson := by
+  native_decide
+
+example : exactActionBehavior.admits appliedTrace &&
+    exactActionBehavior.admits deferredTrace := by
+  native_decide
+
+example : exactTraceBehavior.admits appliedTrace &&
+    !exactTraceBehavior.admits deferredTrace := by
+  native_decide
+
+example : [
+    exploratoryRun.toOption.map (fun run => run.result.outcome.name),
+    some exactActionRun.result.outcome.name,
+    exactTraceRun.toOption.map (fun run => run.result.outcome.name)
+  ] = [some "found", some "found", some "found"] := by
+  native_decide
+
+example : compiledArtifact.formatVersion = "umpire-experiment/v2" ∧
+    compiledArtifact.plan.formatVersion = "umpire-drive-plan/v2" ∧
+    compiledArtifact.plan.queryDefinitionId = exactActionQueryId ∧
+    compiledArtifact.plan.queryBehaviorFingerprint = exactActionQuery.behaviorFingerprint ∧
+    compiledArtifact.plan.behaviorDefinitionId = exactActionBehaviorId ∧
+    compiledArtifact.plan.behaviorFingerprint = exactActionBehavior.behaviorFingerprint ∧
+    compiledArtifact.plan.targetDefinitionId = targetId ∧
+    compiledArtifact.plan.targetBehaviorFingerprint = target.behaviorFingerprint ∧
+    compiledArtifact.plan.kernelDefinitionId = kernelId ∧
+    compiledArtifact.plan.kernelBehaviorFingerprint = target.behaviorFingerprint ∧
+    compiledArtifact.plan.requestedActions = [flipAction] ∧
+    compiledArtifact.plan.modelOutcomes = [appliedOutcome] ∧
+    compiledArtifact.plan.resultingStates = [onState] ∧
+    compiledArtifact.properties.map PortableProperty.definitionId = [flipPropertyId] ∧
+    compiledArtifact.properties.map PortableProperty.behaviorFingerprint = [flipProperty.behaviorFingerprint] ∧
+    compiledArtifact.provenance.sourceLocations = [source] ∧
+    compiledArtifact.plan.provenance = compiledArtifact.provenance := by
+  native_decide
+
+example : canonicalPlanBytes compiledArtifact = expectedCompiledArtifactJson := by
+  native_decide
+
+end Umpire.Examples.SwitchTests

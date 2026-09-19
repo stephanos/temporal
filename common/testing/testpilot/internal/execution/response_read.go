@@ -1,0 +1,318 @@
+package execution
+
+import (
+	"context"
+	"strings"
+
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/testing/testpilot/contract"
+	"go.temporal.io/server/common/testing/testpilot/internal/ir"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/anypb"
+)
+
+func (a *activationValues) stage(ctx context.Context, c contract.Coordinate, result contract.EffectResult, limit int64) (*valueBatch, int64, error) {
+	n, err := a.instruction(c)
+	if err != nil {
+		return nil, 0, err
+	}
+	w, err := a.newWork(ctx, limit)
+	if err != nil {
+		return nil, 0, err
+	}
+	batch := &valueBatch{owner: a, coordinate: c, writes: map[string]*testpilotspb.Value{}, fields: map[testpilotspb.InstructionOutcomeField]*testpilotspb.Value{}}
+	snapshot, err := validateOutcome(w, a.graph.context, n, result.Outcome)
+	if err != nil {
+		return nil, w.work, err
+	}
+	batch.outcome, batch.fields = snapshot.Outcome, snapshot.Fields
+	if n.opcode != contract.InvokeRPC {
+		if !isNil(result.Response) {
+			return nil, w.work, invalid(ir.Unsupported, "response_read", "only RPCs return raw responses")
+		}
+		return finishBatch(w, batch)
+	}
+	if isNil(result.Response) {
+		if batch.outcome.Status == testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED {
+			return nil, w.work, invalid(ir.Unavailable, "response_read", "successful RPC has no response")
+		}
+		return finishBatch(w, batch)
+	}
+	response, work, err := ir.SnapshotMessage(ctx, result.Response, n.method.Output(), w.remaining(a.store.program.limits.MaxInstructionResponseBytes))
+	w.work += work
+	if err != nil {
+		return nil, w.work, err
+	}
+	if batch.outcome.Status == testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED {
+		for i, p := range n.responseReads {
+			value, work, err := p.path.Read(ctx, response, w.remaining(a.store.program.limits.MaxInstructionResponseBytes))
+			w.work += work
+			if err != nil {
+				return nil, w.work, err
+			}
+			if value == nil {
+				continue
+			}
+			if err = a.stageResponseRead(w, n, batch, p, int64(i), value); err != nil {
+				return nil, w.work, err
+			}
+		}
+	}
+	return finishBatch(w, batch)
+}
+func validateOutcome(w *valueWork, entryContext contract.EntrypointKind, n *node, outcome *testpilotspb.InstructionOutcome) (*contract.OutcomeSnapshot, error) {
+	if outcome == nil || outcome.Status == testpilotspb.INSTRUCTION_OUTCOME_STATUS_UNSPECIFIED {
+		return nil, invalid(ir.Malformed, "outcome", "typed outcome status required")
+	}
+	snapshot, work, err := ir.SnapshotMessage(w.ctx, outcome, outcome.ProtoReflect().Descriptor(), w.remaining(w.limits.Bytes))
+	w.work += work
+	if err != nil {
+		return nil, err
+	}
+	if err = w.charge(int64(proto.Size(snapshot)) + 1); err != nil {
+		return nil, err
+	}
+	frozen := &testpilotspb.InstructionOutcome{}
+	proto.Merge(frozen, snapshot)
+	if entryContext == contract.ControllerEntrypoint {
+		if frozen.SdkFailureCode != "" || frozen.Status == testpilotspb.INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE {
+			return nil, invalid(ir.TypeMismatch, "outcome", "SDK outcome in controller")
+		}
+	} else if frozen.ProtocolCode != "" || frozen.Status == testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE {
+		return nil, invalid(ir.TypeMismatch, "outcome", "protocol outcome in worker")
+	}
+	valueType, hasValue := n.outcomes[testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE]
+	if frozen.Value != nil && !hasValue {
+		return nil, invalid(ir.Unsupported, "outcome", "undeclared payload")
+	}
+	if hasValue && frozen.Status == testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED && frozen.Value == nil {
+		return nil, invalid(ir.Unavailable, "outcome", "successful outcome lacks required value")
+	}
+	if frozen.Value != nil {
+		frozen.Value, err = w.copy(frozen.Value, valueType)
+		if err != nil {
+			return nil, err
+		}
+	}
+	result := &contract.OutcomeSnapshot{Outcome: frozen, Fields: make(map[testpilotspb.InstructionOutcomeField]*testpilotspb.Value, len(n.outcomes))}
+	for _, field := range outcomeFieldOrder {
+		typ, produced := n.outcomes[field]
+		if !produced {
+			continue
+		}
+		value, err := outcomeField(frozen, field)
+		if err != nil {
+			return nil, err
+		}
+		if value != nil {
+			result.Fields[field], err = w.copy(value, typ)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+	return result, nil
+}
+func textValue(text string) *testpilotspb.Value {
+	return &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: text}}
+}
+func (a *activationValues) stageResponseRead(w *valueWork, n *node, batch *valueBatch, p responseRead, index int64, value *testpilotspb.Value) error {
+	values := []*testpilotspb.Value{value}
+	typ := p.path.Type()
+	if p.cardinality == testpilotspb.READ_CARDINALITY_EMIT_EACH {
+		values = value.GetListValue().GetValues()
+		typ = typ.Element()
+	}
+	// A source ordinal is the position of the evidence in this lift's own dense stream, so it counts
+	// the values already emitted from this projected list rather than reading anything out of them.
+	emitted := make([]int64, len(p.targets))
+	for i, value := range values {
+		if err := w.charge(1); err != nil {
+			return err
+		}
+		fact := readFact{read: index, index: int64(i)}
+		for j, readTarget := range p.targets {
+			if lift := p.liftAt(j); lift != nil {
+				evidence, err := a.liftEvidence(w, lift, value, emitted[j])
+				if err != nil {
+					return err
+				}
+				if evidence != nil {
+					emitted[j]++
+					fact.observations = append(fact.observations, &testpilotspb.ObservationResult{ObservationId: lift.observationID, Value: evidence})
+				}
+				continue
+			}
+			copied, err := w.copy(value, typ)
+			if err != nil {
+				return err
+			}
+			switch target := readTarget.Target.(type) {
+			case *testpilotspb.ReadTarget_SlotId:
+				if _, exists := batch.writes[target.SlotId]; exists {
+					return invalid(ir.Malformed, "response_read", "duplicate staged Slot")
+				}
+				batch.writes[target.SlotId] = copied
+			case *testpilotspb.ReadTarget_ObservationId:
+				fact.observations = append(fact.observations, &testpilotspb.ObservationResult{ObservationId: target.ObservationId, Value: copied})
+			default:
+				return invalid(ir.Unsupported, "response_read", "unknown response read target")
+			}
+		}
+		if len(fact.observations) > 0 {
+			if int64(len(batch.facts)) >= a.store.program.limits.MaxInstructionEmittedEvents {
+				return invalid(ir.LimitExceeded, "response_read", "emitted event ceiling exceeded")
+			}
+			batch.facts = append(batch.facts, fact)
+		}
+	}
+	return nil
+}
+
+func finishBatch(w *valueWork, batch *valueBatch) (*valueBatch, int64, error) {
+	if err := w.charge(1); err != nil {
+		return nil, w.work, err
+	}
+	return batch, w.work, nil
+}
+
+// outcomeFieldOrder is the order an outcome snapshot copies the fields a node produces, so its work
+// charge is deterministic.
+var outcomeFieldOrder = []testpilotspb.InstructionOutcomeField{
+	testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS,
+	testpilotspb.INSTRUCTION_OUTCOME_FIELD_PROTOCOL_CODE,
+	testpilotspb.INSTRUCTION_OUTCOME_FIELD_SDK_FAILURE_CODE,
+	testpilotspb.INSTRUCTION_OUTCOME_FIELD_DETAIL,
+	testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE,
+}
+
+func outcomeField(outcome *testpilotspb.InstructionOutcome, field testpilotspb.InstructionOutcomeField) (*testpilotspb.Value, error) {
+	var value *testpilotspb.Value
+	switch field {
+	case testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS:
+		value = ir.EnumValue(outcome.Status.Descriptor(), outcome.Status.Number())
+	case testpilotspb.INSTRUCTION_OUTCOME_FIELD_PROTOCOL_CODE:
+		value = textValue(outcome.ProtocolCode)
+	case testpilotspb.INSTRUCTION_OUTCOME_FIELD_SDK_FAILURE_CODE:
+		value = textValue(outcome.SdkFailureCode)
+	case testpilotspb.INSTRUCTION_OUTCOME_FIELD_DETAIL:
+		value = textValue(outcome.Detail)
+	case testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE:
+		value = outcome.Value
+	default:
+		return nil, invalid(ir.Unknown, "outcome", "unknown field")
+	}
+	return value, nil
+}
+
+func (p responseRead) liftAt(index int) *evidenceLift {
+	if index >= len(p.lifts) {
+		return nil
+	}
+	return p.lifts[index]
+}
+
+// liftEvidence builds the declared CorrelatedEvidence value from one projected value. The first rule
+// whose guard is true owns the value; a value no rule claims emits nothing, and a rule that fired
+// but cannot read one of its own declared coordinates fails rather than recording partial evidence.
+func (a *activationValues) liftEvidence(w *valueWork, lift *evidenceLift, value *testpilotspb.Value, ordinal int64) (*testpilotspb.Value, error) {
+	for _, rule := range lift.rules {
+		guard, work, err := rule.guard.EvaluateExecution(w.ctx, func(reference ir.Reference) *testpilotspb.Value {
+			if reference.Kind == ir.ProjectedValueReference {
+				return value
+			}
+			return nil
+		}, w.limits.Work-w.work)
+		w.work += work
+		if err != nil {
+			return nil, err
+		}
+		if !guard.GetBoolValue() {
+			continue
+		}
+		evidence := &testpilotspb.CorrelatedEvidence{Kind: rule.kind, Identity: &testpilotspb.CorrelatedIdentity{EvidenceSource: rule.source, Ordinal: ordinal}}
+		for _, binding := range rule.scope {
+			text := binding.literal
+			if binding.path != nil {
+				if text, err = a.readLiftText(w, lift, binding.path, value); err != nil {
+					return nil, err
+				}
+			}
+			evidence.Identity.Scope = append(evidence.Identity.Scope, &testpilotspb.NamedValue{FieldId: binding.fieldID, Value: textValue(text)})
+		}
+		if evidence.Operation, err = a.readLiftKey(w, lift, rule.operation, value); err != nil {
+			return nil, err
+		}
+		for _, binding := range rule.fields {
+			scalar := textValue(binding.literal)
+			if binding.path != nil {
+				if scalar, err = a.readLiftScalar(w, lift, binding.path, value); err != nil {
+					return nil, err
+				}
+			}
+			evidence.Fields = append(evidence.Fields, &testpilotspb.NamedValue{FieldId: binding.fieldID, Value: scalar})
+		}
+		encoded, err := proto.Marshal(evidence)
+		if err != nil {
+			return nil, invalid(ir.Malformed, "response_read", "evidence lift produced an unencodable value")
+		}
+		if err := w.charge(int64(len(encoded)) + 1); err != nil {
+			return nil, err
+		}
+		return &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{
+			TypeUrl: "type.googleapis.com/" + string(evidence.ProtoReflect().Descriptor().FullName()), Value: encoded}}}, nil
+	}
+	return nil, nil
+}
+func (a *activationValues) readLift(w *valueWork, lift *evidenceLift, path *ir.Path, value *testpilotspb.Value) (*testpilotspb.Value, error) {
+	read, work, err := ir.ReadValue(w.ctx, value, lift.element, path, w.remaining(w.limits.Bytes))
+	w.work += work
+	return read, err
+}
+func (a *activationValues) readLiftScalar(w *valueWork, lift *evidenceLift, path *ir.Path, value *testpilotspb.Value) (*testpilotspb.Value, error) {
+	read, err := a.readLift(w, lift, path, value)
+	if err != nil {
+		return nil, err
+	}
+	if read == nil {
+		return nil, invalid(ir.Unavailable, "response_read", "evidence lift read an absent declared coordinate")
+	}
+	// The portable evidence domain is text, unsigned integer and boolean; every admitted integer kind
+	// narrows into an unsigned integer and a negative one has no evidence scalar to narrow to.
+	switch item := read.Value.(type) {
+	case *testpilotspb.Value_TextValue, *testpilotspb.Value_BoolValue, *testpilotspb.Value_UnsignedIntegerValue:
+		return read, nil
+	case *testpilotspb.Value_SignedIntegerValue:
+		if strings.HasPrefix(item.SignedIntegerValue, "-") {
+			return nil, invalid(ir.TypeMismatch, "response_read", "evidence lift read a negative integer")
+		}
+		return &testpilotspb.Value{Value: &testpilotspb.Value_UnsignedIntegerValue{UnsignedIntegerValue: item.SignedIntegerValue}}, nil
+	default:
+		return nil, invalid(ir.TypeMismatch, "response_read", "evidence lift read an unsupported scalar")
+	}
+}
+func (a *activationValues) readLiftText(w *valueWork, lift *evidenceLift, path *ir.Path, value *testpilotspb.Value) (string, error) {
+	read, err := a.readLiftScalar(w, lift, path, value)
+	if err != nil {
+		return "", err
+	}
+	item, ok := read.Value.(*testpilotspb.Value_TextValue)
+	if !ok {
+		return "", invalid(ir.TypeMismatch, "response_read", "evidence lift expected text")
+	}
+	return item.TextValue, nil
+}
+func (a *activationValues) readLiftKey(w *valueWork, lift *evidenceLift, path *ir.Path, value *testpilotspb.Value) (string, error) {
+	read, err := a.readLiftScalar(w, lift, path, value)
+	if err != nil {
+		return "", err
+	}
+	switch item := read.Value.(type) {
+	case *testpilotspb.Value_TextValue:
+		return item.TextValue, nil
+	case *testpilotspb.Value_UnsignedIntegerValue:
+		return item.UnsignedIntegerValue, nil
+	default:
+		return "", invalid(ir.TypeMismatch, "response_read", "evidence lift expected an operation key")
+	}
+}

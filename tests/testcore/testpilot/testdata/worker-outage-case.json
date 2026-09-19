@@ -1,0 +1,454 @@
+{
+  "caseId": "temporal.case.worker-outage",
+  "version": {
+    "major": 1
+  },
+  "provenance": {
+    "producerId": "temporal.case.compiler",
+    "producerVersion": "1",
+    "definitions": [
+      {
+        "definitionId": "temporal.workflow-service",
+        "behaviorFingerprint": "temporal-workflow-service/v1",
+        "kind": "DEFINITION_KIND_TARGET"
+      },
+      {
+        "definitionId": "temporal.case.worker-outage.property.outage-survived",
+        "behaviorFingerprint": "temporal-case-worker-outage-property/v1",
+        "kind": "DEFINITION_KIND_PROPERTY"
+      }
+    ],
+    "sources": [
+      {
+        "path": "Temporal/Testpilot.lean",
+        "line": 1,
+        "column": 1,
+        "provenance": "checked-model"
+      },
+      {
+        "path": "Temporal/Testpilot/WorkerOutage.lean",
+        "line": 1,
+        "column": 1,
+        "provenance": "worker-outage-fault"
+      }
+    ]
+  },
+  "program": {
+    "programId": "temporal.case.worker-outage.program",
+    "roles": [
+      {
+        "roleId": "temporal.workflow-service",
+        "kind": "ROLE_KIND_ENDPOINT"
+      },
+      {
+        "roleId": "temporal.worker",
+        "kind": "ROLE_KIND_WORKER",
+        "namespaceBindingId": "temporal.worker-outage.namespace"
+      },
+      {
+        "roleId": "temporal.task-queue",
+        "kind": "ROLE_KIND_TASK_QUEUE",
+        "namespaceBindingId": "temporal.worker-outage.namespace",
+        "resourceBindingId": "temporal.worker-outage.task-queue"
+      }
+    ],
+    "observations": [
+      {
+        "observationId": "history-event",
+        "type": {
+          "singular": {
+            "message": {
+              "protobufType": "temporal.api.history.v1.HistoryEvent"
+            }
+          }
+        }
+      }
+    ],
+    "entrypoints": [
+      {
+        "entrypointId": "controller",
+        "controller": {},
+        "instructions": [
+          {
+            "instructionId": "stop-worker",
+            "instruction": {
+              "injectFault": {
+                "roleId": "temporal.task-queue",
+                "kind": "FAULT_KIND_WORKER_STOP"
+              }
+            }
+          },
+          {
+            "instructionId": "start-workflow",
+            "instruction": {
+              "invokeRpc": {
+                "endpointRoleId": "temporal.workflow-service",
+                "method": "/temporal.api.workflowservice.v1.WorkflowService/StartWorkflowExecution",
+                "requestAssignments": [
+                  {
+                    "target": "namespace",
+                    "value": {
+                      "reference": {
+                        "environmentBindingId": "temporal.worker-outage.namespace"
+                      }
+                    }
+                  },
+                  {
+                    "target": "workflow_id",
+                    "value": {
+                      "reference": {
+                        "run": {}
+                      }
+                    }
+                  },
+                  {
+                    "target": "workflow_type.name",
+                    "value": {
+                      "literal": {
+                        "textValue": "umpire-worker-outage-workflow"
+                      }
+                    }
+                  },
+                  {
+                    "target": "task_queue.name",
+                    "value": {
+                      "reference": {
+                        "environmentBindingId": "temporal.worker-outage.task-queue"
+                      }
+                    }
+                  },
+                  {
+                    "target": "request_id",
+                    "value": {
+                      "reference": {
+                        "run": {}
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "instructionId": "resume-worker",
+            "instruction": {
+              "injectFault": {
+                "roleId": "temporal.task-queue",
+                "kind": "FAULT_KIND_WORKER_RESUME"
+              }
+            }
+          },
+          {
+            "instructionId": "history",
+            "instruction": {
+              "invokeRpc": {
+                "endpointRoleId": "temporal.workflow-service",
+                "method": "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory",
+                "requestAssignments": [
+                  {
+                    "target": "namespace",
+                    "value": {
+                      "reference": {
+                        "environmentBindingId": "temporal.worker-outage.namespace"
+                      }
+                    }
+                  },
+                  {
+                    "target": "execution.workflow_id",
+                    "value": {
+                      "reference": {
+                        "run": {}
+                      }
+                    }
+                  },
+                  {
+                    "target": "maximum_page_size",
+                    "value": {
+                      "literal": {
+                        "signedIntegerValue": "64"
+                      }
+                    }
+                  },
+                  {
+                    "target": "wait_new_event",
+                    "value": {
+                      "literal": {
+                        "boolValue": true
+                      }
+                    }
+                  },
+                  {
+                    "target": "history_event_filter_type",
+                    "value": {
+                      "literal": {
+                        "enumValue": {
+                          "name": "HISTORY_EVENT_FILTER_TYPE_CLOSE_EVENT"
+                        }
+                      }
+                    }
+                  }
+                ],
+                "responseReads": [
+                  {
+                    "path": "history.events[*]",
+                    "cardinality": "READ_CARDINALITY_EMIT_EACH",
+                    "targets": [
+                      {
+                        "observationId": "history-event"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            "limits": {
+              "timeoutMilliseconds": "20000"
+            }
+          }
+        ]
+      },
+      {
+        "entrypointId": "workflow",
+        "workflow": {
+          "workflowType": "umpire-worker-outage-workflow",
+          "workerRoleId": "temporal.worker",
+          "taskQueueRoleId": "temporal.task-queue"
+        },
+        "instructions": [
+          {
+            "instructionId": "finish-workflow",
+            "instruction": {
+              "finish": {
+                "result": {
+                  "literal": {
+                    "textValue": "completed"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "cleanup": {
+      "entrypointId": "cleanup"
+    }
+  },
+  "contract": {
+    "contractId": "temporal.case.worker-outage.contract",
+    "rules": [
+      {
+        "ruleId": "worker-outage-order",
+        "kind": "CONTRACT_RULE_KIND_BOUNDED_LIVENESS",
+        "initialStateId": "awaiting-stop",
+        "states": [
+          {
+            "stateId": "awaiting-stop",
+            "status": "CONTRACT_STATE_STATUS_PENDING"
+          },
+          {
+            "stateId": "stopped",
+            "status": "CONTRACT_STATE_STATUS_PENDING"
+          },
+          {
+            "stateId": "resumed",
+            "status": "CONTRACT_STATE_STATUS_SATISFIED"
+          },
+          {
+            "stateId": "expired",
+            "status": "CONTRACT_STATE_STATUS_VIOLATED"
+          }
+        ],
+        "transitions": [
+          {
+            "transitionId": "observe-stop",
+            "sourceStateId": "awaiting-stop",
+            "targetStateId": "stopped",
+            "supportKind": "CONTRACT_SUPPORT_KIND_MATCHING_EVENT",
+            "eventFilter": {
+              "kinds": [
+                "RUN_EVENT_KIND_FAULT_INJECTED"
+              ]
+            },
+            "predicate": {
+              "all": {
+                "operands": [
+                  {
+                    "compare": {
+                      "operator": "COMPARISON_OPERATOR_EQUAL",
+                      "left": {
+                        "path": {
+                          "operand": {
+                            "reference": {
+                              "runEvent": {
+                                "payload": {}
+                              }
+                            }
+                          },
+                          "path": "fault_injected.role_id"
+                        }
+                      },
+                      "right": {
+                        "literal": {
+                          "textValue": "temporal.task-queue"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "compare": {
+                      "operator": "COMPARISON_OPERATOR_EQUAL",
+                      "left": {
+                        "path": {
+                          "operand": {
+                            "reference": {
+                              "runEvent": {
+                                "payload": {}
+                              }
+                            }
+                          },
+                          "path": "fault_injected.kind"
+                        }
+                      },
+                      "right": {
+                        "literal": {
+                          "enumValue": {
+                            "name": "FAULT_KIND_WORKER_STOP"
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "transitionId": "observe-resume",
+            "sourceStateId": "stopped",
+            "targetStateId": "resumed",
+            "supportKind": "CONTRACT_SUPPORT_KIND_MATCHING_EVENT",
+            "eventFilter": {
+              "kinds": [
+                "RUN_EVENT_KIND_FAULT_INJECTED"
+              ]
+            },
+            "predicate": {
+              "all": {
+                "operands": [
+                  {
+                    "compare": {
+                      "operator": "COMPARISON_OPERATOR_EQUAL",
+                      "left": {
+                        "path": {
+                          "operand": {
+                            "reference": {
+                              "runEvent": {
+                                "payload": {}
+                              }
+                            }
+                          },
+                          "path": "fault_injected.role_id"
+                        }
+                      },
+                      "right": {
+                        "literal": {
+                          "textValue": "temporal.task-queue"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "compare": {
+                      "operator": "COMPARISON_OPERATOR_EQUAL",
+                      "left": {
+                        "path": {
+                          "operand": {
+                            "reference": {
+                              "runEvent": {
+                                "payload": {}
+                              }
+                            }
+                          },
+                          "path": "fault_injected.kind"
+                        }
+                      },
+                      "right": {
+                        "literal": {
+                          "enumValue": {
+                            "name": "FAULT_KIND_WORKER_RESUME"
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "deadline": {
+          "violationStateId": "expired",
+          "ruleEvents": "16"
+        }
+      },
+      {
+        "ruleId": "worker-outage-workflow-completed",
+        "kind": "CONTRACT_RULE_KIND_SAFETY",
+        "initialStateId": "pending",
+        "states": [
+          {
+            "stateId": "pending",
+            "status": "CONTRACT_STATE_STATUS_PENDING"
+          },
+          {
+            "stateId": "completed",
+            "status": "CONTRACT_STATE_STATUS_SATISFIED"
+          }
+        ],
+        "transitions": [
+          {
+            "transitionId": "observe-workflow-completed",
+            "sourceStateId": "pending",
+            "targetStateId": "completed",
+            "supportKind": "CONTRACT_SUPPORT_KIND_MATCHING_EVENT",
+            "eventFilter": {
+              "kinds": [
+                "RUN_EVENT_KIND_INSTRUCTION_COMPLETED"
+              ]
+            },
+            "predicate": {
+              "all": {
+                "operands": [
+                  {
+                    "present": {
+                      "operand": {
+                        "reference": {
+                          "observationId": "history-event"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "present": {
+                      "operand": {
+                        "path": {
+                          "operand": {
+                            "reference": {
+                              "observationId": "history-event"
+                            }
+                          },
+                          "path": "attributes<workflow_execution_completed_event_attributes>.workflow_task_completed_event_id"
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

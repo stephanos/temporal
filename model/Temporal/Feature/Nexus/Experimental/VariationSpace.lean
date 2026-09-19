@@ -1,0 +1,282 @@
+import Umpire.Variations.Compiler
+import Umpire.Variations.Metadata
+import Temporal.Feature.Nexus.Operations
+
+/-! Experimental authored variation over the focused two-action Nexus lifecycle. -/
+
+namespace Temporal.Feature.Nexus.Experimental.VariationSpace
+
+open Umpire
+open Temporal.Feature.Nexus.Lifecycle
+open Temporal.Feature.Nexus.Operations
+
+private def id (value : String) : DefinitionId := DefinitionId.of value
+
+def source : SourceLocation := {
+  path := "Temporal/Feature/Nexus/Experimental/VariationSpace.lean"
+  line := 1
+  column := 1
+  provenance := "lean-model"
+}
+
+def behaviorId : DefinitionId :=
+  id "temporal.nexus.basic-lifecycle.behavior.two-action-lifecycle"
+def queryId : DefinitionId :=
+  id "temporal.nexus.basic-lifecycle.query.two-action-lifecycle"
+def spaceId : DefinitionId :=
+  id "temporal.nexus.basic-lifecycle.space.fault-matrix"
+
+def startOccurrenceId : DefinitionId :=
+  id "temporal.nexus.basic-lifecycle.occurrence.two-action.start"
+def successOccurrenceId : DefinitionId :=
+  id "temporal.nexus.basic-lifecycle.occurrence.two-action.succeed"
+def setupConstraintId : DefinitionId :=
+  id "temporal.nexus.basic-lifecycle.setup.two-action.scheduled"
+
+def startFaultAxisId : DefinitionId :=
+  id "temporal.nexus.basic-lifecycle.axis.start-fault"
+def completionFaultAxisId : DefinitionId :=
+  id "temporal.nexus.basic-lifecycle.axis.completion-fault"
+def startBaselineChoiceId : DefinitionId :=
+  id "temporal.nexus.basic-lifecycle.choice.start-baseline"
+def startDelayChoiceId : DefinitionId :=
+  id "temporal.nexus.basic-lifecycle.choice.start-delay"
+def completionBaselineChoiceId : DefinitionId :=
+  id "temporal.nexus.basic-lifecycle.choice.completion-baseline"
+def completionHandlerFailureChoiceId : DefinitionId :=
+  id "temporal.nexus.basic-lifecycle.choice.completion-handler-failure"
+
+def startDelayFaultId : DefinitionId :=
+  id "temporal.nexus.basic-lifecycle.fault.start-delay"
+def completionHandlerFailureFaultId : DefinitionId :=
+  id "temporal.nexus.basic-lifecycle.fault.completion-handler-failure"
+
+def startBaselineCoverageGoalId : DefinitionId :=
+  id "temporal.nexus.basic-lifecycle.coverage.start-baseline"
+def startDelayCoverageGoalId : DefinitionId :=
+  id "temporal.nexus.basic-lifecycle.coverage.start-delay"
+def completionBaselineCoverageGoalId : DefinitionId :=
+  id "temporal.nexus.basic-lifecycle.coverage.completion-baseline"
+def completionHandlerFailureCoverageGoalId : DefinitionId :=
+  id "temporal.nexus.basic-lifecycle.coverage.completion-handler-failure"
+
+def setupConstraint : SetupConstraint := {
+  id := setupConstraintId
+  relation := .equal
+  left := .role operationRoleId
+  right := .value scheduledState
+}
+
+def authoredScenario : Scenario := {
+  id := behaviorId
+  source
+  requires := [lifecycleCapabilityId]
+  roles := [operationRole]
+  setup := [setupConstraint]
+  allowedActions := [startActionId, reportSuccessActionId]
+  requiredOccurrences := [
+    { id := startOccurrenceId, action := startActionId },
+    { id := successOccurrenceId, action := reportSuccessActionId }
+  ]
+  occurrenceBounds := [
+    Scenario.Count.exactly startActionId 1,
+    Scenario.Count.exactly reportSuccessActionId 1
+  ]
+  ordering := [{ before := startOccurrenceId, after := successOccurrenceId }]
+  actionsExactly := some [startActionId, reportSuccessActionId]
+  documentation := "Select the ordinary Nexus start and success transitions in lifecycle order."
+}
+
+def behaviorResult : Except ScenarioError CheckedScenario :=
+  Scenario.check (.ofTarget target) authoredScenario
+
+def queryLimits : Limits := Limits.bounded 2 2 32
+
+/-- Typed failure from any stage of preparing the checked experimental Space. -/
+inductive VariationSpacePreparationError where
+  | behavior (error : ScenarioError)
+  | query (error : QueryError)
+  | space (error : SpaceError)
+  | metadata (error : SpaceMetadataError)
+  | compilation (error : SpaceCompilationError)
+  | admission (diagnostic : AdmissionDiagnostic)
+  deriving Repr
+
+/-- The Lifecycle start Query admitted against the Model. Every Query the Space derives searches
+through its view, re-paired with `AdmittedQuery.withQuery`. -/
+def baseAdmission : Except VariationSpacePreparationError (AdmittedQuery target) :=
+  (Search.admit target AsyncStart.authoredProperty (some AsyncStart.authoredScenario) {
+    id := AsyncStart.authoredQuery.id
+    source := AsyncStart.authoredQuery.source
+    target := AsyncStart.authoredQuery.target
+    form := .find
+    limits := AsyncStart.authoredQuery.limits
+    policy := AsyncStart.authoredQuery.policy
+  }).mapError VariationSpacePreparationError.admission
+
+private def authoredQuery (behavior : CheckedScenario) : Query := {
+  id := queryId
+  source
+  target := target.id
+  form := .pick [AsyncStart.property, SuccessfulCompletion.property]
+  behavior
+  limits := queryLimits
+  policy
+}
+
+/-- Check and materialize the base Query without extracting a compiler-trusted success witness. -/
+def queryResult : Except VariationSpacePreparationError (CheckedQuery LawStatement) := do
+  let behavior ← behaviorResult.mapError VariationSpacePreparationError.behavior
+  let checked ← (Query.check queryContext (authoredQuery behavior)).mapError
+    VariationSpacePreparationError.query
+  pure (materializeQuery checked)
+
+def startBaselineChoice : ChoiceDeclaration :=
+  ChoiceDeclaration.baselineChoice startBaselineChoiceId source
+
+def startDelayChoice : ChoiceDeclaration :=
+  ChoiceDeclaration.selectedFault startDelayChoiceId source startDelayFaultId
+
+def completionBaselineChoice : ChoiceDeclaration :=
+  ChoiceDeclaration.baselineChoice completionBaselineChoiceId source
+
+def completionHandlerFailureChoice : ChoiceDeclaration :=
+  ChoiceDeclaration.selectedFault completionHandlerFailureChoiceId source
+    completionHandlerFailureFaultId
+
+def startFaultAxis : VariationAxisDeclaration :=
+  VariationAxisDeclaration.faultAxis startFaultAxisId source
+    [startBaselineChoice, startDelayChoice]
+
+def completionFaultAxis : VariationAxisDeclaration :=
+  VariationAxisDeclaration.faultAxis completionFaultAxisId source
+    [completionBaselineChoice, completionHandlerFailureChoice]
+
+def startDelayFault : FaultIntentDeclaration :=
+  FaultIntentDeclaration.atOccurrence startDelayFaultId source startOccurrenceId startActionId
+    lifecycleCapabilityId
+
+def completionHandlerFailureFault : FaultIntentDeclaration :=
+  FaultIntentDeclaration.atOccurrence completionHandlerFailureFaultId source successOccurrenceId
+    reportSuccessActionId lifecycleCapabilityId
+
+private def coverageGoal
+    (goalId axisId choiceId : DefinitionId) : CoverageGoalDeclaration :=
+  CoverageGoalDeclaration.seek goalId source (.axisChoice axisId choiceId) 2
+
+def startBaselineCoverageGoal : CoverageGoalDeclaration :=
+  coverageGoal startBaselineCoverageGoalId startFaultAxisId startBaselineChoiceId
+def startDelayCoverageGoal : CoverageGoalDeclaration :=
+  coverageGoal startDelayCoverageGoalId startFaultAxisId startDelayChoiceId
+def completionBaselineCoverageGoal : CoverageGoalDeclaration :=
+  coverageGoal completionBaselineCoverageGoalId completionFaultAxisId completionBaselineChoiceId
+def completionHandlerFailureCoverageGoal : CoverageGoalDeclaration :=
+  coverageGoal completionHandlerFailureCoverageGoalId completionFaultAxisId
+    completionHandlerFailureChoiceId
+
+def declaration : VariationSpace := {
+  id := spaceId
+  source
+  baseQuery := queryId
+  axes := [startFaultAxis, completionFaultAxis]
+  faults := [startDelayFault, completionHandlerFailureFault]
+  coverageGoals := [
+    startBaselineCoverageGoal,
+    startDelayCoverageGoal,
+    completionBaselineCoverageGoal,
+    completionHandlerFailureCoverageGoal
+  ]
+  documentation := "Two independent request-only Nexus lifecycle fault axes."
+}
+
+/-- Checked Space, canonical metadata, and atomic batch prepared as one fallible value. -/
+structure PreparedVariationSpace where
+  private mk ::
+  checked : CheckedVariationSpace LawStatement
+  metadata : CheckedSpaceMetadata
+  specs : List Plan
+
+private def prepareCheckedQuery
+    (spaceDeclaration : VariationSpace)
+    (query : CheckedQuery LawStatement)
+    (queryTargetEq : query.target = target) :
+    Except VariationSpacePreparationError PreparedVariationSpace := do
+  let context : SpaceCheckContext LawStatement := .ofQuery query
+  match checkedResultEq : checkVariationSpace context spaceDeclaration with
+  | .error error => throw (.space error)
+  | .ok checked =>
+      let metadata ← (projectCheckedSpaceMetadata checked).mapError
+        VariationSpacePreparationError.metadata
+      have checkedTargetEq : checked.baseQuery.target = target :=
+        (congrArg (fun candidate => candidate.target) <|
+          checkVariationSpace_baseQuery checkedResultEq).trans queryTargetEq
+      let admitted ← baseAdmission
+      let checkedBase : AdmittedQuery checked.baseQuery.target :=
+        (admitted.withQuery checked.baseQuery checkedTargetEq).retarget checkedTargetEq.symm
+      let specs ← (compileBatch checked checkedBase).mapError
+        VariationSpacePreparationError.compilation
+      pure { checked, metadata, specs }
+
+private def prepareDeclaration
+    (spaceDeclaration : VariationSpace) :
+    Except VariationSpacePreparationError PreparedVariationSpace :=
+  match behaviorResult with
+  | .error error => .error (.behavior error)
+  | .ok behavior =>
+      match Query.check queryContext (authoredQuery behavior) with
+      | .error error => .error (.query error)
+      | .ok checked =>
+          prepareCheckedQuery spaceDeclaration (materializeQuery checked) (by rfl)
+
+/-- Prepare the checked two-by-two Space without assuming that any checking stage succeeds. -/
+def preparedResult : Except VariationSpacePreparationError PreparedVariationSpace :=
+  prepareDeclaration declaration
+
+/-- Fallible canonical metadata projection of the prepared experimental Space. -/
+def metadataResult : Except VariationSpacePreparationError CheckedSpaceMetadata :=
+  preparedResult.map PreparedVariationSpace.metadata
+
+/-- Fallible atomic batch projection of the prepared experimental Space. -/
+def batchResult : Except VariationSpacePreparationError (List Plan) :=
+  preparedResult.map PreparedVariationSpace.specs
+
+def canonicalAssignments : List (List ModelValue) := [
+  [
+    ModelValue.named completionFaultAxisId completionBaselineChoiceId.value,
+    ModelValue.named startFaultAxisId startBaselineChoiceId.value
+  ],
+  [
+    ModelValue.named completionFaultAxisId completionBaselineChoiceId.value,
+    ModelValue.named startFaultAxisId startDelayChoiceId.value
+  ],
+  [
+    ModelValue.named completionFaultAxisId completionHandlerFailureChoiceId.value,
+    ModelValue.named startFaultAxisId startBaselineChoiceId.value
+  ],
+  [
+    ModelValue.named completionFaultAxisId completionHandlerFailureChoiceId.value,
+    ModelValue.named startFaultAxisId startDelayChoiceId.value
+  ]
+]
+
+/-- Semantically identical declaration with axes, choices, faults, and goals reordered. -/
+def reorderedDeclaration : VariationSpace := {
+  declaration with
+  axes := (declaration.axes.map fun axis => { axis with choices := axis.choices.reverse }).reverse
+  faults := declaration.faults.reverse
+  coverageGoals := declaration.coverageGoals.reverse
+}
+
+/-- Prepare the same authored Space after reversing every irrelevant declaration order. -/
+def reorderedPreparedResult : Except VariationSpacePreparationError PreparedVariationSpace :=
+  prepareDeclaration reorderedDeclaration
+
+/-- Metadata projection used to prove source-order invariance. -/
+def reorderedMetadataResult : Except VariationSpacePreparationError CheckedSpaceMetadata :=
+  reorderedPreparedResult.map PreparedVariationSpace.metadata
+
+/-- Batch projection used to prove source-order invariance. -/
+def reorderedBatchResult : Except VariationSpacePreparationError (List Plan) :=
+  reorderedPreparedResult.map PreparedVariationSpace.specs
+
+end Temporal.Feature.Nexus.Experimental.VariationSpace

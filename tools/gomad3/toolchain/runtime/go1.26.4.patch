@@ -1,0 +1,698 @@
+diff --git a/src/cmd/compile/internal/gc/main.go b/src/cmd/compile/internal/gc/main.go
+index afa1650..215d103 100644
+--- a/src/cmd/compile/internal/gc/main.go
++++ b/src/cmd/compile/internal/gc/main.go
+@@ -13,6 +13,8 @@ import (
+ 	"cmd/compile/internal/deadlocals"
+ 	"cmd/compile/internal/dwarfgen"
+ 	"cmd/compile/internal/escape"
++	"cmd/compile/internal/gomadguard"
++	"cmd/compile/internal/gomadintercept"
+ 	"cmd/compile/internal/inline"
+ 	"cmd/compile/internal/inline/interleaved"
+ 	"cmd/compile/internal/ir"
+@@ -223,6 +225,8 @@ func Main(archInit func(*ssagen.ArchInfo)) {
+ 		types.LocalPkg.Path = "main"
+ 		types.LocalPkg.Prefix = "main"
+ 	}
++	gomadintercept.Apply(typecheck.Target)
++	gomadguard.Apply(typecheck.Target)
+ 
+ 	dwarfgen.RecordPackageName()
+ 
+diff --git a/src/cmd/dist/buildtool.go b/src/cmd/dist/buildtool.go
+index 2da9a17..2d87993 100644
+--- a/src/cmd/dist/buildtool.go
++++ b/src/cmd/dist/buildtool.go
+@@ -44,6 +44,7 @@ var bootstrapDirs = []string{
+ 	"cmd/internal/dwarf",
+ 	"cmd/internal/edit",
+ 	"cmd/internal/gcprog",
++	"cmd/internal/gomadcap",
+ 	"cmd/internal/goobj",
+ 	"cmd/internal/hash",
+ 	"cmd/internal/macho",
+diff --git a/src/cmd/link/internal/ld/lib.go b/src/cmd/link/internal/ld/lib.go
+index 1427f9c..794125d 100644
+--- a/src/cmd/link/internal/ld/lib.go
++++ b/src/cmd/link/internal/ld/lib.go
+@@ -816,6 +816,13 @@ func (ctxt *Link) linksetup() {
+ 		sb.SetType(sym.SNOPTRDATA)
+ 		sb.AddUint8(1)
+ 	}
++	if ctxt.LinkMode == LinkExternal {
++		symIdx := ctxt.loader.LookupOrCreateSym("runtime.gomadExternal", 0)
++		sb := ctxt.loader.MakeSymbolUpdater(symIdx)
++		sb.SetType(sym.SNOPTRDATA)
++		sb.AddUint8(1)
++	}
++	gomadCapabilityManifest(ctxt)
+ 
+ 	// Recalculate pe parameters now that we have ctxt.LinkMode set.
+ 	if ctxt.HeadType == objabi.Hwindows {
+diff --git a/src/crypto/rand/rand.go b/src/crypto/rand/rand.go
+index 018fe01..f99542c 100644
+--- a/src/crypto/rand/rand.go
++++ b/src/crypto/rand/rand.go
+@@ -10,6 +10,7 @@ import (
+ 	"crypto/internal/boring"
+ 	"crypto/internal/fips140/drbg"
+ 	"crypto/internal/rand"
++	"internal/gomadio"
+ 	"io"
+ 	_ "unsafe"
+ 
+@@ -33,6 +34,12 @@ import (
+ // Deterministric Random Bit Generator (DRBG).
+ var Reader io.Reader = rand.Reader
+ 
++func init() {
++	if gomadio.Enabled() {
++		Reader = gomadio.RandomReader()
++	}
++}
++
+ // fatal is [runtime.fatal], pushed via linkname.
+ //
+ //go:linkname fatal
+diff --git a/src/runtime/panic.go b/src/runtime/panic.go
+index d467e93..0937fbd 100644
+--- a/src/runtime/panic.go
++++ b/src/runtime/panic.go
+@@ -875,6 +875,9 @@ func gopanic(e any) {
+ 	// the world, we call preprintpanics to invoke all necessary Error
+ 	// and String methods to prepare the panic strings before startpanic.
+ 	preprintpanics(&p)
++	if gomadEnabled {
++		runExitHooks(2)
++	}
+ 
+ 	fatalpanic(&p)   // should not return
+ 	*(*int)(nil) = 0 // not reached
+diff --git a/src/runtime/proc.go b/src/runtime/proc.go
+index 005c875..282f361 100644
+--- a/src/runtime/proc.go
++++ b/src/runtime/proc.go
+@@ -246,6 +246,10 @@ func main() {
+ 		cgocall(_cgo_notify_runtime_init_done, nil)
+ 	}
+ 
++	if gomadEnabled {
++		gomadStartUserCode(mp)
++	}
++
+ 	// Run the initializing tasks. Depending on build mode this
+ 	// list can arrive a few different ways, but it will always
+ 	// contain the init tasks computed by the linker for all the
+@@ -873,6 +877,7 @@ func schedinit() {
+ 	ticks.init() // run as early as possible
+ 	moduledataverify()
+ 	stackinit()
++	gomadInit()
+ 	randinit() // must run before mallocinit, alginit, mcommoninit
+ 	mallocinit()
+ 	cpuinit(godebug) // must run before alginit
+@@ -919,7 +924,10 @@ func schedinit() {
+ 	lock(&sched.lock)
+ 	sched.lastpoll.Store(nanotime())
+ 	var procs int32
+-	if n, err := strconv.ParseInt(gogetenv("GOMAXPROCS"), 10, 32); err == nil && n > 0 {
++	if gomadEnabled {
++		procs = 1
++		sched.customGOMAXPROCS = true
++	} else if n, err := strconv.ParseInt(gogetenv("GOMAXPROCS"), 10, 32); err == nil && n > 0 {
+ 		procs = int32(n)
+ 		sched.customGOMAXPROCS = true
+ 	} else {
+@@ -5352,6 +5360,10 @@ func newproc1(fn *funcval, callergp *g, callerpc uintptr, parked bool, waitreaso
+ 	gostartcallfn(&newg.sched, fn)
+ 	newg.parentGoid = callergp.goid
+ 	newg.gopc = callerpc
++	newg.gomadSimulationDomain = callergp.gomadSimulationDomain
++	if gomadChoiceEnabled {
++		gomadChoiceAssignGoroutineIdentity(newg, callergp, callerpc)
++	}
+ 	newg.ancestors = saveAncestors(callergp)
+ 	newg.startpc = fn.fn
+ 	newg.runningCleanups.Store(false)
+@@ -6393,7 +6405,7 @@ func checkdead() {
+ 		run0 = 1
+ 	}
+ 
+-	run := mcount() - sched.nmidle - sched.nmidlelocked - sched.nmsys
++	run := mcount() - sched.nmidle - sched.nmidlelocked - sched.nmsys - gomadSimulationTransportSyscalls.Load()
+ 	if run > run0 {
+ 		return
+ 	}
+@@ -6404,10 +6416,15 @@ func checkdead() {
+ 	}
+ 
+ 	grunning := 0
++	gomadRunnable := false
+ 	forEachG(func(gp *g) {
+ 		if isSystemGoroutine(gp, false) {
+ 			return
+ 		}
++		if gp.gomadSimulationTransport {
++			grunning++
++			return
++		}
+ 		s := readgstatus(gp)
+ 		switch s &^ _Gscan {
+ 		case _Gwaiting,
+@@ -6416,11 +6433,18 @@ func checkdead() {
+ 		case _Grunnable,
+ 			_Grunning,
+ 			_Gsyscall:
++			if gomadSimulationTimeEnabled {
++				gomadRunnable = true
++				return
++			}
+ 			print("runtime: checkdead: find g ", gp.goid, " in status ", s, "\n")
+ 			unlock(&sched.lock)
+ 			throw("checkdead: runnable g")
+ 		}
+ 	})
++	if gomadRunnable {
++		return
++	}
+ 	if grunning == 0 { // possible if main goroutine calls runtime·Goexit()
+ 		unlock(&sched.lock) // unlock so that GODEBUG=scheddetail=1 doesn't hang
+ 		fatal("no goroutines (main called runtime.Goexit) - deadlock!")
+@@ -6428,12 +6452,56 @@ func checkdead() {
+ 
+ 	// Maybe jump time forward for playground.
+ 	if faketime != 0 {
+-		if when := timeSleepUntil(); when < maxWhen {
+-			faketime = when
+-
++		if gomadSimulationTimeEnabled && gomadSimulationExternalRequests.Load() != 0 {
++			return
++		}
++		if gomadSimulationTimeEnabled && gomadSimulationTimeAwaitingExternal.Load() && gomadSimulationTimeArrivals.Load() == 0 {
++			return
++		}
++		when, timer := timeSleepUntil()
++		wakeTimer := false
++		if gomadSimulationTimeEnabled {
++			if gomadSimulationTimeQuiescing {
++				return
++			}
++			gomadSimulationTimeQuiescing = true
++			unlock(&sched.lock)
++			current, kind, ok := gomadSimulationTimeQuiesce(when)
++			lock(&sched.lock)
++			gomadSimulationTimeQuiescing = false
++			if !ok {
++				unlock(&sched.lock)
++				fatal("Gomad simulation time transport failed")
++			}
++			switch kind {
++			case gomadSimulationTimeResponseRetry, gomadSimulationTimeResponseExternal:
++				return
++			case gomadSimulationTimeResponseDeadlock:
++				if gomadSimulationTimeQuiescenceChanged(when, timer) {
++					return
++				}
++				unlock(&sched.lock)
++				fatal("all goroutines are asleep - deadlock!")
++			case gomadSimulationTimeResponseAdvance:
++				faketime = current
++				wakeTimer = timer && when <= current
++			}
++		} else {
++			if gomadEnabled && netpollAnyWaiters() {
++				return
++			}
++			wakeTimer = when < maxWhen || gomadEnabled && timer
++			if wakeTimer {
++				faketime = when
++			}
++		}
++		if wakeTimer {
+ 			// Start an M to steal the timer.
+ 			pp, _ := pidleget(faketime)
+ 			if pp == nil {
++				if gomadSimulationTimeEnabled {
++					return
++				}
+ 				// There should always be a free P since
+ 				// nothing is running.
+ 				unlock(&sched.lock)
+@@ -6441,6 +6509,10 @@ func checkdead() {
+ 			}
+ 			mp := mget()
+ 			if mp == nil {
++				if gomadSimulationTimeEnabled {
++					pidleput(pp, faketime)
++					return
++				}
+ 				// There should always be a free M since
+ 				// nothing is running.
+ 				unlock(&sched.lock)
+@@ -6468,6 +6540,34 @@ func checkdead() {
+ 	fatal("all goroutines are asleep - deadlock!")
+ }
+ 
++func gomadSimulationTimeQuiescenceChanged(deadline int64, timer bool) bool {
++	if gomadSimulationExternalRequests.Load() != 0 || gomadSimulationTimeAwaitingExternal.Load() || gomadSimulationTimeArrivals.Load() != 0 {
++		return true
++	}
++	if mcount()-sched.nmidle-sched.nmidlelocked-sched.nmsys-gomadSimulationTransportSyscalls.Load() != 0 {
++		return true
++	}
++	changed := false
++	forEachG(func(gp *g) {
++		if changed || isSystemGoroutine(gp, false) {
++			return
++		}
++		if gp.gomadSimulationTransport {
++			changed = true
++			return
++		}
++		switch readgstatus(gp) &^ _Gscan {
++		case _Grunnable, _Grunning, _Gsyscall:
++			changed = true
++		}
++	})
++	if changed {
++		return true
++	}
++	currentDeadline, currentTimer := timeSleepUntil()
++	return currentDeadline != deadline || currentTimer != timer
++}
++
+ // forcegcperiod is the maximum time in nanoseconds between garbage
+ // collections. If we go this long without a garbage collection, one
+ // is forced to run.
+@@ -6478,7 +6578,7 @@ var forcegcperiod int64 = 2 * 60 * 1e9
+ // haveSysmon indicates whether there is sysmon thread support.
+ //
+ // No threads on wasm yet, so no sysmon.
+-const haveSysmon = GOARCH != "wasm"
++var haveSysmon = GOARCH != "wasm"
+ 
+ // Always runs without a P, so write barriers are not allowed.
+ //
+@@ -6525,7 +6625,7 @@ func sysmon() {
+ 			lock(&sched.lock)
+ 			if sched.gcwaiting.Load() || sched.npidle.Load() == gomaxprocs {
+ 				syscallWake := false
+-				next := timeSleepUntil()
++				next, _ := timeSleepUntil()
+ 				if next > now {
+ 					sched.sysmonwait.Store(true)
+ 					unlock(&sched.lock)
+@@ -7468,7 +7568,7 @@ func runqempty(pp *p) bool {
+ // With the randomness here, as long as the tests pass
+ // consistently with -race, they shouldn't have latent scheduling
+ // assumptions.
+-const randomizeScheduler = raceenabled
++var randomizeScheduler = raceenabled
+ 
+ // runqput tries to put g on the local runnable queue.
+ // If next is false, runqput adds g to the tail of the runnable queue.
+@@ -7487,7 +7587,7 @@ func runqput(pp *p, gp *g, next bool) {
+ 		// risk starvation.
+ 		next = false
+ 	}
+-	if randomizeScheduler && next && randn(2) == 0 {
++	if randomizeScheduler && next && gomadChoiceRunnextSeeded(2) == 0 {
+ 		next = false
+ 	}
+ 
+@@ -7540,7 +7640,7 @@ func runqputslow(pp *p, gp *g, h, t uint32) bool {
+ 
+ 	if randomizeScheduler {
+ 		for i := uint32(1); i <= n; i++ {
+-			j := cheaprandn(i + 1)
++			j := gomadChoiceShuffleSeeded(i + 1)
+ 			batch[i], batch[j] = batch[j], batch[i]
+ 		}
+ 	}
+@@ -7581,7 +7681,7 @@ func runqputbatch(pp *p, q *gQueue) {
+ 			return (pp.runqtail + o) % uint32(len(pp.runq))
+ 		}
+ 		for i := uint32(1); i < n; i++ {
+-			j := cheaprandn(i + 1)
++			j := gomadChoiceShuffleSeeded(i + 1)
+ 			pp.runq[off(i)], pp.runq[off(j)] = pp.runq[off(j)], pp.runq[off(i)]
+ 		}
+ 	}
+@@ -7605,6 +7705,20 @@ func runqget(pp *p) (gp *g, inheritTime bool) {
+ 		return next.ptr(), true
+ 	}
+ 
++	if gomadEnabled && gomaxprocs == 1 {
++		h := atomic.LoadAcq(&pp.runqhead)
++		t := pp.runqtail
++		if t-h > 1 {
++			offset := gomadChoiceRunqSeeded(t - h)
++			offset = gomadChoiceRunqIndex(pp, h, t, offset)
++			index := (h + offset) % uint32(len(pp.runq))
++			gp := pp.runq[index].ptr()
++			pp.runq[index] = pp.runq[h%uint32(len(pp.runq))]
++			atomic.StoreRel(&pp.runqhead, h+1)
++			return gp, false
++		}
++	}
++
+ 	for {
+ 		h := atomic.LoadAcq(&pp.runqhead) // load-acquire, synchronize with other consumers
+ 		t := pp.runqtail
+diff --git a/src/runtime/rand.go b/src/runtime/rand.go
+index 1739e9f..68ab02a 100644
+--- a/src/runtime/rand.go
++++ b/src/runtime/rand.go
+@@ -42,7 +42,9 @@ func randinit() {
+ 	}
+ 
+ 	seed := &globalRand.seed
+-	if len(startupRand) >= 16 &&
++	if gomadEnabled {
++		byteorder.BEPutUint64(seed[:], gomadSeed)
++	} else if len(startupRand) >= 16 &&
+ 		// Check that at least the first two words of startupRand weren't
+ 		// cleared by any libc initialization.
+ 		!allZero(startupRand[:8]) && !allZero(startupRand[8:16]) {
+@@ -186,6 +188,12 @@ func maps_rand() uint64 {
+ 
+ // mrandinit initializes the random state of an m.
+ func mrandinit(mp *m) {
++	if gomadEnabled {
++		mp.chacha8.Init64([4]uint64{gomadSeed})
++		mp.cheaprand = gomadSeed
++		return
++	}
++
+ 	var seed [4]uint64
+ 	for i := range seed {
+ 		seed[i] = bootstrapRand()
+diff --git a/src/runtime/runtime2.go b/src/runtime/runtime2.go
+index be33932..16bc0b3 100644
+--- a/src/runtime/runtime2.go
++++ b/src/runtime/runtime2.go
+@@ -503,13 +503,17 @@ type g struct {
+ 	//    closure in the runtime is forbidden.
+ 	// 4. When a panic is recovered and control returns to the respective frame,
+ 	//    param may point to a savedOpenDeferState.
+-	param        unsafe.Pointer
+-	atomicstatus atomic.Uint32
+-	stackLock    uint32 // sigprof/scang lock; TODO: fold in to atomicstatus
+-	goid         uint64
+-	schedlink    guintptr
+-	waitsince    int64      // approx time when the g become blocked
+-	waitreason   waitReason // if status==Gwaiting
++	param                    unsafe.Pointer
++	atomicstatus             atomic.Uint32
++	stackLock                uint32 // sigprof/scang lock; TODO: fold in to atomicstatus
++	goid                     uint64
++	gomadIdentity            [32]byte
++	gomadChildOrdinal        uint64
++	gomadSimulationDomain    uint64
++	gomadSimulationTransport bool
++	schedlink                guintptr
++	waitsince                int64      // approx time when the g become blocked
++	waitreason               waitReason // if status==Gwaiting
+ 
+ 	preempt       bool // preemption signal, duplicates stackguard0 = stackpreempt
+ 	preemptStop   bool // transition to _Gpreempted on preemption; otherwise, just deschedule
+diff --git a/src/runtime/select.go b/src/runtime/select.go
+index 553f696..a4c8a1d 100644
+--- a/src/runtime/select.go
++++ b/src/runtime/select.go
+@@ -121,6 +121,7 @@ func block() {
+ // a value was received.
+ func selectgo(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs int, block bool) (int, bool) {
+ 	gp := getg()
++	choiceSite, choiceSiteFlags := gomadChoiceSite(sys.GetCallerPC())
+ 	if debugSelect {
+ 		print("select: cas0=", cas0, "\n")
+ 	}
+@@ -188,7 +189,8 @@ func selectgo(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs int, blo
+ 			cas.c.timer.maybeRunChan(cas.c)
+ 		}
+ 
+-		j := cheaprandn(uint32(norder + 1))
++		j := gomadChoiceSelectSeeded(uint32(norder + 1))
++		j = gomadChoiceSelectPollIndex(pollorder, norder, i, nsends, choiceSite, choiceSiteFlags, j)
+ 		pollorder[norder] = pollorder[j]
+ 		pollorder[j] = uint16(i)
+ 		norder++
+@@ -267,6 +269,8 @@ func selectgo(cas0 *scase, order0 *uint16, pc0 *uintptr, nsends, nrecvs int, blo
+ 	var caseSuccess bool
+ 	var caseReleaseTime int64 = -1
+ 	var recvOK bool
++	var selected uint32
++	var alternatives uint32
+ 	for _, casei := range pollorder {
+ 		casi = int(casei)
+ 		cas = &scases[casi]
+@@ -534,6 +538,15 @@ retc:
+ 	if caseReleaseTime > 0 {
+ 		blockevent(caseReleaseTime-t0, 1)
+ 	}
++	selected = uint32(casi)
++	alternatives = uint32(ncases)
++	if !block {
++		alternatives++
++		if casi < 0 {
++			selected = uint32(ncases)
++		}
++	}
++	gomadChoiceRecord(gomadChoiceKindSelectResult, gomadChoiceFlagObservation|choiceSiteFlags, choiceSite, alternatives, selected, uint32(norder))
+ 	return casi, recvOK
+ 
+ sclose:
+diff --git a/src/runtime/sizeof_test.go b/src/runtime/sizeof_test.go
+index 219bcb9..27dadf9 100644
+--- a/src/runtime/sizeof_test.go
++++ b/src/runtime/sizeof_test.go
+@@ -21,7 +21,7 @@ func TestSizeof(t *testing.T) {
+ 		_32bit uintptr // size on 32bit platforms
+ 		_64bit uintptr // size on 64bit platforms
+ 	}{
+-		{runtime.G{}, 288 + xreg, 448 + xreg}, // g, but exported for testing
++		{runtime.G{}, 340 + xreg, 504 + xreg}, // g, but exported for testing
+ 		{runtime.Sudog{}, 64, 104},            // sudog, but exported for testing
+ 	}
+ 
+diff --git a/src/runtime/time.go b/src/runtime/time.go
+index 81a4c6b..1612f32 100644
+--- a/src/runtime/time.go
++++ b/src/runtime/time.go
+@@ -26,6 +26,9 @@ func time_runtimeNow() (sec int64, nsec int32, mono int64) {
+ 		// Simplest is to omit the monotonic time within a bubble.
+ 		return sec, nsec, 0
+ 	}
++	if gomadEnabled {
++		return faketime / 1e9, int32(faketime % 1e9), faketime
++	}
+ 	return time_now()
+ }
+ 
+@@ -62,7 +65,8 @@ type timer struct {
+ 	isFake bool         // timer is using fake time; immutable; can be read without lock
+ 
+ 	blocked uint32 // number of goroutines blocked on timer's channel
+-	rand    uint32 // randomizes order of timers at same instant; only set when isFake
++	// Gomad timers also set rand even though they are not synctest timers.
++	rand uint32 // randomizes order of timers at same instant; only set when isFake
+ 
+ 	// Timer wakes up at when, and then at when+period, ... (period > 0 only)
+ 	// each time calling f(arg, seq, delay) in the timer goroutine, so f must be
+@@ -302,6 +306,10 @@ func (t *timer) updateHeap() (updated bool) {
+ 
+ 	if t.state&timerModified != 0 {
+ 		// Update ts.heap[0].when and move within heap.
++		if gomadEnabled && !t.isFake {
++			// Timer comparisons read rand while holding ts.mu.
++			t.rand = cheaprand()
++		}
+ 		t.state &^= timerModified
+ 		ts.heap[0].when = t.when
+ 		ts.siftDown(0)
+@@ -736,10 +744,11 @@ func (t *timer) maybeAdd() {
+ 	when := int64(0)
+ 	wake := false
+ 	if t.needsAdd() {
+-		if t.isFake {
++		if t.isFake || gomadEnabled {
+ 			// Re-randomize timer order.
+ 			// We could do this for all timers, but unbubbled timers are highly
+ 			// unlikely to have the same when.
++			// Gomad's unbubbled timers use virtual time, so equal deadlines are common.
+ 			t.rand = cheaprand()
+ 		}
+ 		t.state |= timerHeaped
+@@ -959,6 +968,10 @@ func (ts *timers) adjust(now int64, force bool) {
+ 			changed = true
+ 
+ 		case t.state&timerModified != 0:
++			if gomadEnabled && !t.isFake {
++				// Timer comparisons read rand while holding ts.mu.
++				t.rand = cheaprand()
++			}
+ 			tw.when = t.when
+ 			t.state &^= timerModified
+ 			changed = true
+@@ -1319,8 +1332,9 @@ func (ts *timers) updateMinWhenModified(when int64) {
+ // timeSleepUntil returns the time when the next timer should fire. Returns
+ // maxWhen if there are no timers.
+ // This is only called by sysmon and checkdead.
+-func timeSleepUntil() int64 {
++func timeSleepUntil() (int64, bool) {
+ 	next := int64(maxWhen)
++	found := false
+ 
+ 	// Prevent allp slice changes. This is like retake.
+ 	lock(&allpLock)
+@@ -1332,12 +1346,13 @@ func timeSleepUntil() int64 {
+ 		}
+ 
+ 		if w := pp.timers.wakeTime(); w != 0 {
++			found = true
+ 			next = min(next, w)
+ 		}
+ 	}
+ 	unlock(&allpLock)
+ 
+-	return next
++	return next, found
+ }
+ 
+ const timerHeapN = 4
+diff --git a/src/runtime/time_nofake.go b/src/runtime/time_nofake.go
+index 130ff12..ac39381 100644
+--- a/src/runtime/time_nofake.go
++++ b/src/runtime/time_nofake.go
+@@ -30,6 +30,9 @@ var faketime int64
+ //go:linkname nanotime
+ //go:nosplit
+ func nanotime() int64 {
++	if gomadEnabled {
++		return faketime
++	}
+ 	return nanotime1()
+ }
+ 
+diff --git a/src/syscall/env_unix.go b/src/syscall/env_unix.go
+index e1d7e21..47f7864 100644
+--- a/src/syscall/env_unix.go
++++ b/src/syscall/env_unix.go
+@@ -11,6 +11,7 @@ package syscall
+ import (
+ 	"runtime"
+ 	"sync"
++	_ "unsafe"
+ )
+ 
+ var (
+@@ -28,8 +29,14 @@ var (
+ 
+ func runtime_envs() []string // in package runtime
+ 
++//go:linkname gomadDeterministicEnabled runtime.gomadDeterministicEnabled
++func gomadDeterministicEnabled() bool
++
+ var copyenv = sync.OnceFunc(func() {
+ 	env = make(map[string]int)
++	if gomadDeterministicEnabled() {
++		envs = []string{"TZ=UTC"}
++	}
+ 	for i, s := range envs {
+ 		for j := 0; j < len(s); j++ {
+ 			if s[j] == '=' {
+diff --git a/src/syscall/rlimit.go b/src/syscall/rlimit.go
+index 3812303..708cd42 100644
+--- a/src/syscall/rlimit.go
++++ b/src/syscall/rlimit.go
+@@ -28,22 +28,8 @@ var origRlimitNofile atomic.Pointer[Rlimit]
+ // Code that really wants Go to leave the limit alone can set the hard limit,
+ // which Go of course has no choice but to respect.
+ func init() {
+-	var lim Rlimit
+-	if err := Getrlimit(RLIMIT_NOFILE, &lim); err == nil && lim.Max > 0 && lim.Cur < lim.Max-1 {
+-		origRlimitNofile.Store(&lim)
+-		nlim := lim
+-
+-		// We set Cur to Max - 1 so that we are more likely to
+-		// detect cases where another process uses prlimit
+-		// to change our resource limits. The theory is that
+-		// using prlimit to change to Cur == Max is more likely
+-		// than using prlimit to change to Cur == Max - 1.
+-		// The place we check for this is in exec_linux.go.
+-		nlim.Cur = nlim.Max - 1
+-
+-		adjustFileLimit(&nlim)
+-		setrlimit(RLIMIT_NOFILE, &nlim)
+-	}
++	// Gomad leaves the process limit unchanged because consulting or changing
++	// host resource limits would escape deterministic execution.
+ }
+ 
+ func Setrlimit(resource int, rlim *Rlimit) error {
+diff --git a/src/syscall/syscall_unix.go b/src/syscall/syscall_unix.go
+index d957b77..7860ae9 100644
+--- a/src/syscall/syscall_unix.go
++++ b/src/syscall/syscall_unix.go
+@@ -199,6 +199,9 @@ func Read(fd int, p []byte) (n int, err error) {
+ }
+ 
+ func Write(fd int, p []byte) (n int, err error) {
++	if fd != Stdout && fd != Stderr && fd != 4 {
++		gomadCapabilityGuard()
++	}
+ 	if race.Enabled {
+ 		race.ReleaseMerge(unsafe.Pointer(&ioSync))
+ 	}
+@@ -222,6 +225,9 @@ func Write(fd int, p []byte) (n int, err error) {
+ 	return
+ }
+ 
++//go:linkname gomadCapabilityGuard runtime.gomadCapabilityGuard
++func gomadCapabilityGuard()
++
+ func Pread(fd int, p []byte, offset int64) (n int, err error) {
+ 	n, err = pread(fd, p, offset)
+ 	if race.Enabled {
+diff --git a/src/testing/testing.go b/src/testing/testing.go
+index 34b45b4..a81f5dc 100644
+--- a/src/testing/testing.go
++++ b/src/testing/testing.go
+@@ -404,6 +404,7 @@ import (
+ 	"errors"
+ 	"flag"
+ 	"fmt"
++	"internal/gomadtrace"
+ 	"internal/race"
+ 	"io"
+ 	"math/rand"
+@@ -1992,6 +1993,9 @@ func tRunner(t *T, fn func(t *T)) {
+ 			for _, sub := range t.sub {
+ 				<-sub.signal
+ 			}
++			if t.parent == nil {
++				gomadtrace.TestingComplete()
++			}
+ 
+ 			// Run any cleanup callbacks, marking the test as running
+ 			// in case the cleanup hangs.
+@@ -2034,6 +2038,9 @@ func tRunner(t *T, fn func(t *T)) {
+ 	t.start = highPrecisionTimeNow()
+ 	t.resetRaces()
+ 	fn(t)
++	if t.parent != nil && t.parent.parent == nil {
++		gomadtrace.TestingComplete()
++	}
+ 
+ 	// code beyond here will not be executed when FailNow is invoked
+ 	t.mu.Lock()
+@@ -2340,6 +2347,7 @@ var (
+ func (m *M) Run() (code int) {
+ 	defer func() {
+ 		code = m.exitCode
++		gomadtrace.TestingComplete()
+ 	}()
+ 
+ 	// Count the number of calls to m.Run.

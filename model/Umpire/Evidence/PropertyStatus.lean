@@ -1,0 +1,450 @@
+import Umpire.Evidence.Evaluate
+import Umpire.Query.Check
+import Umpire.OutcomeClassification
+
+/-!
+Semantic Property verdicts over accepted Evidence and strict checked-Query aggregation. These
+offline verdicts do not perform Run Evaluation or Claim Assessment.
+-/
+
+namespace Umpire
+
+inductive Evidence.PropertyStatus where
+  | satisfied
+  | violated
+  | unknown
+  | conflict
+  | unsupported
+  deriving BEq, DecidableEq, Ord, Repr
+
+def Evidence.PropertyStatus.name : Evidence.PropertyStatus → String
+  | .satisfied => "satisfied"
+  | .violated => "violated"
+  | .unknown => "unknown"
+  | .conflict => "conflict"
+  | .unsupported => "unsupported"
+
+/-- Canonical documentation and exact constructor matchers for semantic Property outcomes. -/
+def Evidence.PropertyStatus.constructorClassifiers :
+    List (OutcomeConstructorClassifier Evidence.PropertyStatus) := [
+  .ofValue .satisfied {
+    name := "satisfied"
+    description := "The semantic Property is satisfied."
+  },
+  .ofValue .violated {
+    name := "violated"
+    description := "The semantic Property is violated."
+  },
+  .ofValue .unknown {
+    name := "unknown"
+    description := "The semantic Property cannot be decided from the available Evidence."
+  },
+  .ofValue .conflict {
+    name := "conflict"
+    description := "The semantic Property evaluation found conflicting Evidence."
+  },
+  .ofValue .unsupported {
+    name := "unsupported"
+    description := "The semantic Property evaluation does not support the supplied input."
+  }
+]
+
+/-- Every semantic Property outcome matches exactly one descriptor. -/
+theorem Evidence.PropertyStatus.constructorClassifiers_exactlyOne :
+    OutcomeConstructorClassifiers.ExactlyOne Evidence.PropertyStatus.constructorClassifiers := by
+  intro status
+  cases status <;> rfl
+
+inductive Evidence.PropertyStatusFailureKind where
+  | observationEvaluationFailure (kind : ObservationFailureKind)
+  | semanticTraceUnavailable
+  | queryPropertyMismatch
+  | invalidEvidenceBound
+  | missingCapability
+  | missingVocabulary
+  | ambiguousVocabulary
+  | digestMismatch
+  | missingLogicalTime
+  | propertyEvaluationFailure (kind : PropertyErrorKind)
+  | unsupportedPropertyClause
+  deriving BEq, DecidableEq, Ord, Repr
+
+structure Evidence.PropertyStatusDiagnostic where
+  kind : Evidence.PropertyStatusFailureKind
+  relatedDefinitionIds : List DefinitionId := []
+  observationEvaluation : Option ObservationDiagnostic := none
+  deriving BEq, DecidableEq, Repr
+
+structure SemanticClauseVerdict where
+  propertyId : DefinitionId
+  clauseId : DefinitionId
+  status : Evidence.PropertyStatus
+  coordinates : List ModelCoordinate
+  queryLimits : Limits
+  propertyLimit : Option Limit
+  evidenceBound : EvidenceBound
+  provenance : List DefinitionId
+  evidenceSupports : List EvidenceSupport
+  deriving BEq, DecidableEq, Repr
+
+structure SemanticPropertyVerdict where
+  queryId : DefinitionId
+  propertyId : DefinitionId
+  propertyDigest : String
+  traceId : Option String
+  status : Evidence.PropertyStatus
+  queryLimits : Limits
+  evidenceBound : Option EvidenceBound
+  provenance : List DefinitionId
+  clauses : List SemanticClauseVerdict
+  diagnostic : Option Evidence.PropertyStatusDiagnostic := none
+  deriving BEq, DecidableEq, Repr
+
+inductive QueryStatus where
+  | satisfied
+  | violated
+  | incomplete
+  deriving BEq, DecidableEq, Ord, Repr
+
+def QueryStatus.name : QueryStatus → String
+  | .satisfied => "satisfied"
+  | .violated => "violated"
+  | .incomplete => "incomplete"
+
+/-- Canonical documentation and exact constructor matchers for strict Query outcomes. -/
+def QueryStatus.constructorClassifiers :
+    List (OutcomeConstructorClassifier QueryStatus) := [
+  .ofValue .satisfied {
+    name := "satisfied"
+    description := "Every required semantic Property is satisfied."
+  },
+  .ofValue .violated {
+    name := "violated"
+    description := "At least one required semantic Property is violated."
+  },
+  .ofValue .incomplete {
+    name := "incomplete"
+    description := "The strict Query does not have one complete consistent verdict set."
+  }
+]
+
+/-- Every strict Query outcome matches exactly one descriptor. -/
+theorem QueryStatus.constructorClassifiers_exactlyOne :
+    OutcomeConstructorClassifiers.ExactlyOne QueryStatus.constructorClassifiers := by
+  intro status
+  cases status <;> rfl
+
+structure QueryStatusSummary where
+  queryId : DefinitionId
+  status : QueryStatus
+  queryLimits : Limits
+  requiredProperties : List DefinitionId
+  verdicts : List SemanticPropertyVerdict
+  missingProperties : List DefinitionId
+  duplicateProperties : List DefinitionId
+  unexpectedProperties : List DefinitionId
+  divergentProperties : List DefinitionId
+  wrongQueryResults : List DefinitionId
+  traceIds : List String
+  deriving BEq, DecidableEq, Repr
+
+private def idLe (left right : DefinitionId) : Bool :=
+  decide (left.value ≤ right.value)
+
+private def canonicalIds (ids : List DefinitionId) : List DefinitionId :=
+  ids.mergeSort idLe |>.eraseDups
+
+private def stringLe (left right : String) : Bool := decide (left ≤ right)
+
+private def canonicalStrings (values : List String) : List String :=
+  values.mergeSort stringLe |>.eraseDups
+
+private def statusOfObservationEvaluation : ObservationStatus → Evidence.PropertyStatus
+  | .accepted => .unknown
+  | .unknown => .unknown
+  | .conflict => .conflict
+  | .unsupported => .unsupported
+
+private def failureVerdict
+    (query : CheckedQuery LawStatement)
+    (property : CheckedProperty)
+    (status : Evidence.PropertyStatus)
+    (diagnostic : Evidence.PropertyStatusDiagnostic)
+    (traceId : Option String := none)
+    (evidenceBound : Option EvidenceBound := none) : SemanticPropertyVerdict := {
+  queryId := query.id
+  propertyId := property.id
+  propertyDigest := property.behaviorFingerprint.render
+  traceId
+  status
+  queryLimits := query.limits
+  evidenceBound
+  provenance := canonicalIds (query.id :: property.id :: property.requires)
+  clauses := []
+  diagnostic := some diagnostic
+}
+
+private def queryPropertyMismatchVerdict?
+    (query : CheckedQuery LawStatement)
+    (property : CheckedProperty) : Option SemanticPropertyVerdict :=
+  match query.form.properties.find? fun expected => expected.id == property.id with
+  | none =>
+      some <| failureVerdict query property .unsupported {
+        kind := .queryPropertyMismatch
+        relatedDefinitionIds := [query.id, property.id]
+      }
+  | some expected =>
+      if expected != property then
+        some <| failureVerdict query property .unsupported {
+          kind := .queryPropertyMismatch
+          relatedDefinitionIds := [query.id, property.id]
+        }
+      else
+        none
+
+/-- Preserve one unresolved verdict for an Observation non-success without evaluating a Property. -/
+def observationEvaluationFailureVerdict
+    (query : CheckedQuery LawStatement)
+    (property : CheckedProperty)
+    (diagnostic : ObservationDiagnostic)
+    (traceId : Option String := none)
+    (evidenceBound : Option EvidenceBound := none) : SemanticPropertyVerdict :=
+  match queryPropertyMismatchVerdict? query property with
+  | some verdict => verdict
+  | none =>
+      failureVerdict query property (statusOfObservationEvaluation diagnostic.status) {
+        kind := .observationEvaluationFailure diagnostic.kind
+        relatedDefinitionIds := diagnostic.relatedDefinitionIds
+        observationEvaluation := some diagnostic
+      } traceId evidenceBound
+
+private def propertyUsesLogicalTime (property : CheckedProperty) : Bool :=
+  property.clauses.any fun clause =>
+    match clause with
+    | .ordered _ _ _ unit => unit == .logicalTime
+    | .eventuallyWithin _ _ _ limit | .neverWithin _ _ _ limit =>
+        limit.unit == .logicalTime
+    | .branches _ => false
+    | .guardedEventuallyWithin guarded | .guardedNeverWithin guarded =>
+        guarded.limit.unit == .logicalTime
+    | _ => false
+
+private def validLogicalTimeSteps
+    (source : DefinitionId)
+    (previous : Option Nat) :
+    List (ModelTraceStep ModelValue ModelValue ModelValue ModelValue) → Bool
+  | [] => true
+  | step :: rest =>
+      match step.facts.filter fun observation => observation.definitionId == source with
+      | [observation] =>
+          match observation.value.toNat? with
+          | some current =>
+              (!(previous.any fun prior => current < prior)) &&
+                validLogicalTimeSteps source (some current) rest
+          | none => false
+      | _ => false
+
+def CheckedProperty.hasRequiredLogicalTime
+    (property : CheckedProperty)
+    (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue) : Bool :=
+  if !propertyUsesLogicalTime property then
+    true
+  else
+    match property.access.logicalTimeSource with
+    | none => false
+    | some source =>
+        !trace.steps.isEmpty && validLogicalTimeSteps source none trace.steps
+
+private def capabilityMismatch (property : CheckedProperty) : List DefinitionId :=
+  let admitted := property.access.capabilities.map PropertyCapability.id
+  canonicalIds ((property.requires.filter fun required => !admitted.contains required) ++
+    (admitted.filter fun capability => !property.requires.contains capability))
+
+private def vocabularyFailure
+    (property : CheckedProperty)
+    (trace : EvidenceBackedTrace) : Option Evidence.PropertyStatusDiagnostic :=
+  let rec check : List Meaning → Option Evidence.PropertyStatusDiagnostic
+    | [] => none
+    | required :: rest =>
+        let candidates := (trace.vocabulary.filter fun available =>
+          available.definitionId == required.definitionId && available.kind == required.kind)
+          |>.eraseDups
+        match candidates with
+        | [] => some {
+            kind := .missingVocabulary
+            relatedDefinitionIds := [required.definitionId]
+          }
+        | [available] =>
+            if available.behaviorVersion != required.behaviorVersion then
+              some {
+                kind := .digestMismatch
+                relatedDefinitionIds := [required.definitionId]
+              }
+            else
+              check rest
+        | _ => some {
+            kind := .ambiguousVocabulary
+            relatedDefinitionIds := [required.definitionId]
+          }
+  check property.access.meanings
+
+private def clausePatterns : CheckedPropertyClause → List PropertyPattern
+  | .stateInvariant _ state => [state]
+  | .transitionContract _ precondition postcondition => [precondition, postcondition]
+  | .identityRelation _ relation => [relation]
+  | .inputOutput _ input output => [input, output]
+  | .ordered _ before after _ => [before, after]
+  | .eventuallyWithin _ trigger response _ => [trigger, response]
+  | .neverWithin _ trigger forbidden _ => [trigger, forbidden]
+  | .branches _ => []
+  | .guardedEventuallyWithin guarded | .guardedNeverWithin guarded =>
+      [guarded.trigger, guarded.response]
+
+private def relevantEvidenceSupports
+    (trace : EvidenceBackedTrace)
+    (clause : CheckedPropertyClause) : List EvidenceSupport :=
+  let patterns := clausePatterns clause
+  trace.evidenceSupports.filter fun evidenceSupport =>
+    patterns.any fun pattern =>
+      match PropertyTraceField.valueAt? pattern.field trace.trace evidenceSupport.coordinate with
+      | none => false
+      | some value => value.definitionId == pattern.reference
+
+private def clauseVerdict
+    (query : CheckedQuery LawStatement)
+    (trace : EvidenceBackedTrace)
+    (clause : CheckedPropertyClause)
+    (result : PropertyClauseResult) : SemanticClauseVerdict :=
+  let evidenceSupports := relevantEvidenceSupports trace clause
+  {
+    propertyId := result.propertyId
+    clauseId := result.clauseId
+    status := if result.satisfied then .satisfied else .violated
+    coordinates := evidenceSupports.map EvidenceSupport.coordinate
+    queryLimits := query.limits
+    propertyLimit := result.evaluatedLimit
+    evidenceBound := trace.appliedBound
+    provenance := result.semanticProvenance
+    evidenceSupports
+  }
+
+private def resolvedVerdict
+    (query : CheckedQuery LawStatement)
+    (property : CheckedProperty)
+    (trace : EvidenceBackedTrace) : SemanticPropertyVerdict :=
+  match checkPropertyEvaluationInput property trace.trace with
+  | .error error =>
+      failureVerdict query property .unsupported {
+        kind := .propertyEvaluationFailure error.kind
+        relatedDefinitionIds :=
+          property.unsupportedObservationClauseIds ++ error.relatedDefinitionIds
+      } (some trace.traceId) (some trace.appliedBound)
+  | .ok input =>
+      let evaluation := evaluateProperty property input
+      let clauses := property.clauses.filterMap fun clause =>
+        (evaluation.clauses.find? fun result => result.clauseId == clause.id).map fun result =>
+          clauseVerdict query trace clause result
+      {
+        queryId := query.id
+        propertyId := property.id
+        propertyDigest := property.behaviorFingerprint.render
+        traceId := some trace.traceId
+        status := if evaluation.satisfied then .satisfied else .violated
+        queryLimits := query.limits
+        evidenceBound := some trace.appliedBound
+        provenance := canonicalIds
+          (query.id :: property.id :: trace.mappingId :: property.requires ++
+            clauses.flatMap SemanticClauseVerdict.provenance)
+        clauses
+      }
+
+/-- Validate every Property-owned prerequisite over one admitted trace before invoking the
+unchanged Property evaluator. -/
+def evaluateObservationProperty
+    (query : CheckedQuery LawStatement)
+    (property : CheckedProperty)
+    (trace : EvidenceBackedTrace) : SemanticPropertyVerdict :=
+  match queryPropertyMismatchVerdict? query property with
+  | some verdict => verdict
+  | none =>
+      match vocabularyFailure property trace with
+      | some diagnostic =>
+          failureVerdict query property .unsupported diagnostic
+            (some trace.traceId) (some trace.appliedBound)
+      | none =>
+          let missingCapabilities := capabilityMismatch property
+          if !missingCapabilities.isEmpty then
+            failureVerdict query property .unsupported {
+              kind := .missingCapability
+              relatedDefinitionIds := missingCapabilities
+            } (some trace.traceId) (some trace.appliedBound)
+          else if property.hasUnsupportedObservationClauses then
+            failureVerdict query property .unsupported {
+              kind := .unsupportedPropertyClause
+              relatedDefinitionIds := property.unsupportedObservationClauseIds
+            } (some trace.traceId) (some trace.appliedBound)
+          else if !property.hasRequiredLogicalTime trace.trace then
+            failureVerdict query property .unknown {
+              kind := .missingLogicalTime
+              relatedDefinitionIds := property.access.logicalTimeSource.toList
+            } (some trace.traceId) (some trace.appliedBound)
+          else
+            resolvedVerdict query property trace
+
+private def verdictLe (left right : SemanticPropertyVerdict) : Bool :=
+  decide (reprStr left ≤ reprStr right)
+
+/-- Aggregate independently produced Property verdicts without dropping unresolved or malformed
+entries. Success requires one resolved result per required property for one trace. -/
+def summarizeQueryVerdicts
+    (query : CheckedQuery LawStatement)
+    (verdicts : List SemanticPropertyVerdict) : QueryStatusSummary :=
+  let required := canonicalIds (query.form.properties.map CheckedProperty.id)
+  let ordered := verdicts.mergeSort verdictLe
+  let missing := required.filter fun propertyId =>
+    !(ordered.any fun verdict => verdict.propertyId == propertyId)
+  let duplicates := required.filter fun propertyId =>
+    (ordered.filter fun verdict => verdict.propertyId == propertyId).length > 1
+  let unexpected := canonicalIds ((ordered.filter fun verdict =>
+    !required.contains verdict.propertyId).map SemanticPropertyVerdict.propertyId)
+  let divergent := canonicalIds ((ordered.filter fun verdict =>
+    match query.form.properties.find? fun property => property.id == verdict.propertyId with
+    | none => false
+    | some property => property.behaviorFingerprint.render != verdict.propertyDigest)
+    |>.map SemanticPropertyVerdict.propertyId)
+  let wrongQuery := canonicalIds ((ordered.filter fun verdict =>
+    verdict.queryId != query.id || verdict.queryLimits != query.limits)
+    |>.map SemanticPropertyVerdict.propertyId)
+  let traceIds := canonicalStrings (ordered.filterMap SemanticPropertyVerdict.traceId)
+  let evidenceBounds := ordered.filterMap SemanticPropertyVerdict.evidenceBound
+  let sameEvidenceBound := match evidenceBounds with
+    | [] => false
+    | first :: rest => rest.all fun limit => limit == first
+  let structurallyComplete := !required.isEmpty && missing.isEmpty && duplicates.isEmpty &&
+    unexpected.isEmpty && divergent.isEmpty && wrongQuery.isEmpty && traceIds.length == 1 &&
+    ordered.all (fun verdict => verdict.traceId.isSome && verdict.evidenceBound.isSome) &&
+    sameEvidenceBound
+  let resolved := ordered.all fun verdict =>
+    verdict.status == .satisfied || verdict.status == .violated
+  let status :=
+    if !structurallyComplete || !resolved then
+      QueryStatus.incomplete
+    else if ordered.all fun verdict => verdict.status == .satisfied then
+      .satisfied
+    else
+      .violated
+  {
+    queryId := query.id
+    status
+    queryLimits := query.limits
+    requiredProperties := required
+    verdicts := ordered
+    missingProperties := missing
+    duplicateProperties := duplicates
+    unexpectedProperties := unexpected
+    divergentProperties := divergent
+    wrongQueryResults := wrongQuery
+    traceIds
+  }
+
+end Umpire

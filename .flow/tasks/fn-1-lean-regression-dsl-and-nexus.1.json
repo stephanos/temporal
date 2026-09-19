@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-24T15:40:44.554171Z",
+  "depends_on": [],
+  "id": "fn-1-lean-regression-dsl-and-nexus.1",
+  "priority": null,
+  "spec": "fn-1-lean-regression-dsl-and-nexus",
+  "spec_path": ".flow/tasks/fn-1-lean-regression-dsl-and-nexus.1.md",
+  "status": "todo",
+  "title": "Define Lean regression compiler contracts",
+  "updated_at": "2026-08-24T16:05:18.802347Z"
+}

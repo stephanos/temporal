@@ -206,6 +206,14 @@ func (h *Handler) Stop() {
 	h.dlqMetricsEmitter.Stop()
 }
 
+func (h *Handler) Identity() string {
+	return h.hostInfoProvider.HostInfo().Identity()
+}
+
+func (h *Handler) isStopped() bool {
+	return atomic.LoadInt32(&h.status) == common.DaemonStatusStopped
+}
+
 func (h *Handler) DeepHealthCheck(
 	ctx context.Context,
 	_ *historyservice.DeepHealthCheckRequest,
@@ -543,7 +551,9 @@ func (h *Handler) RespondActivityTaskCanceled(ctx context.Context, request *hist
 }
 
 // RespondWorkflowTaskCompleted - records completion of a workflow task
-func (h *Handler) RespondWorkflowTaskCompleted(ctx context.Context, request *historyservice.RespondWorkflowTaskCompletedRequest) (*historyservice.RespondWorkflowTaskCompletedResponse, error) {
+func (h *Handler) RespondWorkflowTaskCompleted(ctx context.Context, request *historyservice.RespondWorkflowTaskCompletedRequest) (_ *historyservice.RespondWorkflowTaskCompletedResponse, retError error) {
+	defer metrics.CapturePanic(h.logger, h.metricsHandler, &retError)
+
 	namespaceID := namespace.ID(request.GetNamespaceId())
 	if namespaceID == "" {
 		return nil, h.convertError(errNamespaceNotSet)
@@ -627,7 +637,9 @@ func (h *Handler) RespondWorkflowTaskFailed(ctx context.Context, request *histor
 }
 
 // StartWorkflowExecution - creates a new workflow execution
-func (h *Handler) StartWorkflowExecution(ctx context.Context, request *historyservice.StartWorkflowExecutionRequest) (*historyservice.StartWorkflowExecutionResponse, error) {
+func (h *Handler) StartWorkflowExecution(ctx context.Context, request *historyservice.StartWorkflowExecutionRequest) (_ *historyservice.StartWorkflowExecutionResponse, retError error) {
+	defer metrics.CapturePanic(h.logger, h.metricsHandler, &retError)
+
 	namespaceID := namespace.ID(request.GetNamespaceId())
 	if namespaceID == "" {
 		return nil, h.convertError(errNamespaceNotSet)

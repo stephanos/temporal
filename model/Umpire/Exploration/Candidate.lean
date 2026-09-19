@@ -1,0 +1,140 @@
+import Umpire.Exploration.Coverage
+import Umpire.Exploration.Language
+import Umpire.Variations.Compiler
+
+/-! Atomic compilation of one checked finite Space into canonical Exploration candidates. -/
+
+namespace Umpire
+
+/-- One canonical Plan and the pure model coverage already present in its selected trace. -/
+structure ExplorationCandidate where
+  private mk ::
+  identity : ArtifactChecksum
+  plan : Plan
+  canonicalBytes : String
+  coverage : CandidateCoverage
+  deriving BEq, DecidableEq, Repr
+
+/-- One identity-ordered finite candidate set compiled from exactly one checked Experiment Space. -/
+structure CandidateSet where
+  private mk ::
+  spaceDefinitionId : DefinitionId
+  spaceBehaviorFingerprint : BehaviorFingerprint
+  candidates : List ExplorationCandidate
+  deriving BEq, DecidableEq, Repr
+
+private def idLe (left right : DefinitionId) : Bool :=
+  decide (left.value ≤ right.value)
+
+private def canonicalIds (ids : List DefinitionId) : List DefinitionId :=
+  ids.mergeSort idLe |>.eraseDups
+
+private def candidateError
+    (request : CheckedExplorationRequest LawStatement)
+    (kind : ExplorationErrorKind)
+    (offendingValue : String)
+    (relatedDefinitionIds : List DefinitionId := []) : ExplorationError := {
+  kind
+  definitionId := request.space.id
+  sourcePath := if request.space.source.path == "" then "<unknown>" else request.space.source.path
+  offendingValue
+  relatedDefinitionIds := canonicalIds relatedDefinitionIds
+}
+
+private def compilationError (error : SpaceCompilationError) : ExplorationError := {
+  kind := .candidateCompilationFailed
+  definitionId := error.pointId
+  sourcePath := error.sourcePath
+  offendingValue := canonicalSpaceCompilationErrorJson error
+  relatedDefinitionIds := canonicalIds error.relatedDefinitionIds
+}
+
+private def candidateLe (left right : ExplorationCandidate) : Bool :=
+  decide (left.identity.render ≤ right.identity.render)
+
+private def candidateOfExperimentSpec
+    (request : CheckedExplorationRequest LawStatement)
+    (spec : Plan) : Except ExplorationError ExplorationCandidate := do
+  let coverage ← match CandidateCoverage.ofExperimentSpec? spec with
+    | some coverage => pure coverage
+    | none => throw (candidateError request .invalidCandidateArtifact
+        spec.artifactChecksum.render [spec.plan.queryDefinitionId])
+  pure {
+    identity := spec.expectedArtifactChecksum
+    plan := spec
+    canonicalBytes := canonicalPlanBytes spec
+    coverage
+  }
+
+private def firstDuplicateCandidate : List ExplorationCandidate → Option ExplorationCandidate
+  | first :: second :: rest =>
+      if first.identity == second.identity then
+        some second
+      else
+        firstDuplicateCandidate (second :: rest)
+  | _ => none
+
+namespace CandidateSet.Internal
+
+/-- Check the closed v1 cardinality bound before constructing any candidate universe value. -/
+def checkCandidateCount
+    (request : CheckedExplorationRequest LawStatement)
+    (count : Nat) : Except ExplorationError Unit := do
+  if count == 0 then
+    throw (candidateError request .emptySpace "0")
+  if count > SpaceLimits.v1.maximumPoints then
+    throw (candidateError request .spacePointLimitExceeded (toString count))
+
+private def checkedCandidates
+    (request : CheckedExplorationRequest LawStatement)
+    (specs : List Plan) : Except ExplorationError (List ExplorationCandidate) := do
+  checkCandidateCount request specs.length
+  let candidates ← specs.mapM (candidateOfExperimentSpec request)
+  let orderedCandidates := candidates.mergeSort candidateLe
+  match firstDuplicateCandidate orderedCandidates with
+  | some duplicate =>
+      throw (candidateError request .duplicateCandidateIdentity duplicate.identity.render
+        [duplicate.plan.plan.queryDefinitionId])
+  | none => pure ()
+  if orderedCandidates.length != request.space.pointCount then
+    throw (candidateError request .candidateCountMismatch
+      (toString request.space.pointCount ++ ":" ++ toString orderedCandidates.length))
+  pure orderedCandidates
+
+/-- Validate a compiler-sized Artifact list and project only its canonical identity order. -/
+def validateCompiledSpecs
+    (request : CheckedExplorationRequest LawStatement)
+    (specs : List Plan) : Except ExplorationError (List ArtifactChecksum) := do
+  let candidates ← checkedCandidates request specs
+  pure (candidates.map ExplorationCandidate.identity)
+
+private def fromCompiledSpecs
+    (request : CheckedExplorationRequest LawStatement)
+    (specs : List Plan) : Except ExplorationError CandidateSet := do
+  let orderedCandidates ← checkedCandidates request specs
+  pure {
+    spaceDefinitionId := request.space.id
+    spaceBehaviorFingerprint := request.space.behaviorFingerprint
+    candidates := orderedCandidates
+  }
+
+private def fromCompilationResult
+    (request : CheckedExplorationRequest LawStatement)
+    (result : Except SpaceCompilationError (List Plan)) :
+    Except ExplorationError CandidateSet :=
+  match result with
+  | .error error => .error (compilationError error)
+  | .ok specs => fromCompiledSpecs request specs
+
+end CandidateSet.Internal
+
+/-- Compile one checked Space through the caller's admitted base Query into its canonical finite
+universe. -/
+def buildCandidateSet
+    (request : CheckedExplorationRequest LawStatement)
+    (base : AdmittedQuery request.space.baseQuery.target) :
+    Except ExplorationError CandidateSet :=
+  CandidateSet.Internal.fromCompilationResult request
+    (compileBatch request.space base)
+
+end Umpire

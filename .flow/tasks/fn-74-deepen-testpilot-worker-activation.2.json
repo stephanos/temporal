@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-08T09:24:40.843767Z",
+  "depends_on": [
+    "fn-74-deepen-testpilot-worker-activation.1"
+  ],
+  "id": "fn-74-deepen-testpilot-worker-activation.2",
+  "priority": 2,
+  "spec": "fn-74-deepen-testpilot-worker-activation",
+  "spec_path": ".flow/tasks/fn-74-deepen-testpilot-worker-activation.2.md",
+  "status": "todo",
+  "title": "Integrate activation ownership into both SDK interpreters",
+  "updated_at": "2026-09-08T09:53:12.436708Z"
+}

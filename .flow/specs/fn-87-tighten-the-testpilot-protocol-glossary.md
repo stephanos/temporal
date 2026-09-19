@@ -1,0 +1,775 @@
+> HTML render lens: open local `.flow/artifacts/fn-87-tighten-the-testpilot-protocol-glossary/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
+
+## Goal & Context
+<!-- scope: business -->
+
+The Testpilot protocol (`proto/internal/temporal/server/api/testpilot/v1`, 855 lines in seven
+files) is the wire every Lean Producer writes and every Go runtime component reads: Case, Program,
+Contract and Run. It grew one capability at a time (instructions, captures, the correlated
+capability, faults, environment bindings), and it shows:
+
+- **Three expression languages.** `ProgramExpression` and `ContractExpression` are the same seven
+  operators spelled twice as fourteen messages, and the correlated capability adds a third
+  (`CorrelatedCorrelation`, `CorrelatedComparison`, `CorrelatedOperand`, `CorrelatedPredicate`).
+- **Names that break SEM-19** ("one word per concept, spelled the same in Lean, protobuf, Go, command
+  syntax and prose"): `RunStatus` for the glossary's Run disposition; `clauses` of type
+  `CorrelatedRule` with a `clause_id`; "projection" for both Umpire's model Projection and reading
+  fields out of an RPC response; "capability" for both `Umpire.Capability` and an opaque effect
+  handle; `NONTERMINAL` and `PENDING` for the same unfinished rule.
+- **Special cases instead of structure.** A Run Event carries the fault it records in a dedicated
+  optional field, and Contract expressions address it through two dedicated enum values; the next
+  event kind with a payload would add two more of each.
+- **Duplicates and dead shapes.** Two encodings of an opaque handle, `natural` beside
+  `unsigned_integer`, a capture type that repeats `SingularType`, three different binding messages,
+  a nested `version` inside a versioned Case, an enum no wire message references, and a string
+  equality guard bolted onto a path guard.
+- **A layout that scatters concepts.** The correlated capability lives in three files;
+  `FormatVersion` sits in `value.proto`; `FaultInjected` sits in `instruction.proto` "so the accessor
+  stays in the file that declares the enum".
+
+The wire has no compatibility promise: the `buf` breaking check ignores this package ("an internal
+test-only wire with no compatibility promise; its messages are renamed wholesale"), every Case in the
+repository is a generated fixture, and fn-85 is about to add Nexus instructions and fn-86 to migrate
+every hand-written Case. Cleaning the protocol now means those specs author against the final shapes
+instead of adding to the current ones.
+
+The generated fixtures are also hard to review. `typed-nexus-case.json` is 2,025 lines and 316 KB:
+21 parameterized model values of about 11,000 characters each make up 77% of its bytes; 34 distinct
+dotted Definition IDs appear 104 times; guards, outcome declarations, instruction limits and
+dependency lists take 660 lines, and every one of the 14 instruction guards across the six
+checked-in Cases is "every dependency succeeded"; fields appear in alphabetical order, so an
+instruction's id sits after its guard; field paths are nested objects; enum literals are numbers;
+and each Case carries 24 to 83 limit fields, none of which takes more than four distinct values
+across the six Cases.
+
+This spec makes the protocol consistent with the glossary, structured by concept, smaller, and
+readable as a reviewed artifact, and documents how it is extended. Breaking changes are allowed.
+Verdicts do not change: every migrated Case reaches the same Verdict on the same Run as the fixture
+it replaces.
+
+## Architecture & Data Models
+<!-- scope: technical -->
+
+### Review findings
+
+Each finding names the requirement that addresses it.
+
+| # | Finding | Kind | R |
+| --- | --- | --- | --- |
+| 1 | `ProgramExpression` and `ContractExpression` duplicate path, present, equals, compare, not, all and any as fourteen messages | over-engineering | R3 |
+| 2 | The correlated capability has its own predicate, comparison, operand and correlation messages for the same boolean and comparison operators | over-engineering | R3 |
+| 3 | `equals` is a separate operator while `ComparisonOperator` has only ordering comparisons; the correlated comparison has only equal and not-equal | inconsistency | R3 |
+| 4 | `RunStatus` names the glossary's Run disposition | naming (SEM-19) | R1 |
+| 5 | `CorrelatedContract.clauses` holds `CorrelatedRule` values keyed by `clause_id`; the glossary calls them Correlated Rules | naming (SEM-19) | R1 |
+| 6 | `ResponseProjection`, `ProjectionTarget` and `ProjectionKind` read RPC response fields into Slots; "Projection" is `Umpire.Case.Projection`, which the correlated projection correctly shares | naming (SEM-19) | R1 |
+| 7 | `OpaqueCapabilityType` and `capability_slot_id` name an effect handle; "Capability" is `Umpire.Capability`, and the runtime concepts already say "effect handles" | naming (SEM-19) | R1 |
+| 8 | `ContractStateStatus.NONTERMINAL` and `RuleVerdictStatus.PENDING` name one unfinished rule twice | naming (SEM-19) | R1 |
+| 9 | `CorrelatedValue { definition_id, value }` is `Umpire.ModelValue` under another name | naming (SEM-19) | R1 |
+| 10 | `InvokeRPC` generates `Instruction_InvokeRpc`, so one instruction has two spellings in Go | naming | R1 |
+| 11 | `RespondNexus` beside `StartNexusOperation` and `CompleteNexusOperation`; `NexusResponseKind` answers an operation, not "Nexus" | naming | superseded: fn-85 R10 removes both messages, so this spec does not rename them |
+| 12 | `Value` oneof fields mix `text`, `natural`, `signed_integer`, `floating_point` with `bool_value`, `bytes_value`, `enum_value`, `list_value` | naming | R1 |
+| 13 | `Definition` suffix on some declarations (`RoleDefinition`, `SlotDefinition`, `ContractRuleDefinition`) and not others (`Program`, `CorrelatedRule`, `CorrelatedTransition`); `InstructionDefinition` holds an `Instruction` | naming | R1 |
+| 14 | `source` means a path operand, a Run Event's origin, an evidence source name and an operand of an expression | naming | R1 |
+| 15 | `INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS` beside `SDK_FAILURE` | naming | R1 |
+| 16 | The correlated capability is spread over `instruction.proto` (evidence lift), `contract.proto` (contract) and `run.proto` (evidence); `FormatVersion`, `SlotDefinition` and `ObservationDefinition` live in `value.proto`; `FaultInjected` lives in `instruction.proto` | structure | R2 |
+| 17 | Field numbers skip (`CorrelatedRule` starts at 7; `CorrelatedEvidence` skips 5; `Program.environment` is 8 after `limits` 7) without `reserved`, suggesting removed fields that never existed | structure | R2 |
+| 18 | Most messages outside the correlated capability have no comment; `InvokeRPC`, `RequestAssignment`, `ActivationReservationDefinition`, `SlotDefinition` and every Limits field are undocumented | clarity | R2 |
+| 19 | `RunEvent.fault_injected` is a per-kind optional field and `RunEventField` adds `FAULT_ROLE_ID` and `FAULT_KIND`; each future event payload repeats that | extensibility | R4 |
+| 20 | Presence is expressed three ways: single-member oneofs (`RunDiagnostic.support`, `Run.evaluation_failure`), empty marker messages (`PresenceSelector`, `RunRef`), and a `bool present` whose `false` has no meaning (`CorrelatedPredicate`) | inconsistency | R5 |
+| 21 | `ContractDeadline` states "exactly one bound is positive" in a comment over two fields, with `violation_state_id` between them | clarity | R5 |
+| 22 | Two encodings of an opaque effect handle: `SlotDefinition.opaque_capability` (the one fixtures use) and `SingularType.opaque_capability` | duplicate | R6 |
+| 23 | `Value.natural` beside `Value.unsigned_integer`, with no fixture using either | duplicate | R6 |
+| 24 | `ContractCaptureType` repeats three arms of `SingularType` | duplicate | R6 |
+| 25 | `CorrelatedBinding`, `CorrelatedEvidenceBinding` and `CorrelatedEvidenceField` are three shapes for a named value, one of them string-typed | duplicate | R6 |
+| 26 | `CorrelatedContract.version` versions a message inside a Case that already carries `FormatVersion` | duplicate | R6 |
+| 27 | `EntrypointKind` is referenced by no wire message; the Go runtime uses it as its own classification of the activation oneof | dead shape | R6 |
+| 28 | `CorrelatedEvidenceRule.guard_equals_text` refines `guard` with a string equality instead of an expression | ad hoc | R3, R6 |
+| 29 | `ScalarKind` distinguishes protobuf wire encodings (`SINT32`, `FIXED64`, `SFIXED64`) that `Value` does not represent, since every integer is canonical base-10 text | possible over-engineering | R6 |
+| 30 | Adding an instruction, fault kind, Run Event payload or expression leaf touches the protocol, Lean generation, `Testpilot.Authoring`, the Go interpreter, Profile Opcodes and conformance classes, with no written checklist | extensibility | R7 |
+
+### Target structure
+
+One file per concept, each message documented, field numbers dense:
+
+| File | Contents |
+| --- | --- |
+| `case.proto` | `Case`, `FormatVersion`, `CaseProvenance` |
+| `value.proto` | `Value` and its list and map forms, `ValueType` and its arms, `FieldPath` |
+| `expression.proto` | `Expression` and its references (R3) |
+| `program.proto` | `Program`, roles, entrypoints and activations, Slots, Observations, environment bindings, cleanup, `ProgramLimits` |
+| `instruction.proto` | the instruction graph node, `Instruction` and every instruction message, outcomes, response reads, `InstructionLimits`, fault kinds |
+| `contract.proto` | `Contract`, rules, states, transitions, captures, `Deadline`, `ContractLimits` |
+| `correlated.proto` | the correlated contract, its rules, projection, evidence lift and evidence (`CorrelatedEvidence`) |
+| `event.proto` | Run Event kinds and filters, shared by Contract and Run |
+| `run.proto` | `Run`, Run Events and their payloads (R4), diagnostics, cleanup, `Verdict` |
+
+### One expression language
+
+`Expression` replaces `ProgramExpression`, `ContractExpression` and the correlated predicate,
+comparison, operand and correlation messages:
+
+```proto
+message Expression {
+  oneof expression {
+    Value literal = 1;
+    Reference reference = 2;          // slot, outcome, run, environment, observation, run event,
+                                      // capture, evidence field, correlated capture, model value
+    PathExpression path = 3;          // operand + FieldPath
+    PresentExpression present = 4;
+    CompareExpression compare = 5;    // EQUAL, NOT_EQUAL, LESS_THAN, ... in one ComparisonOperator
+    NotExpression not = 6;
+    AllExpression all = 7;
+    AnyExpression any = 8;
+  }
+}
+```
+
+Which references an expression may use is a property of where it appears, checked at preparation:
+
+| Context | References admitted |
+| --- | --- |
+| instruction input and guard | slot, instruction outcome, run, environment |
+| Contract transition predicate | observation, run event field, capture |
+| correlated rule condition, trigger and response | evidence field, correlated capture, model value |
+| evidence lift guard | path over the projected value |
+
+The type-level separation between contexts becomes an admission check with a located error. Every
+operator is defined once, so a new operator or reference is added in one place.
+
+### Run Event payloads
+
+`RunEvent` carries its kind-specific data in one `oneof payload` (instruction outcome, fault
+injected, diagnostic reference) instead of per-kind optional fields. Contract expressions reach
+payload fields through a `FieldPath` from a `run_event` reference, so `RunEventField` keeps only the
+coordinates every event has (sequence, elapsed milliseconds, kind, entrypoint, activation,
+instruction, attempt, source, run) and loses `FAULT_ROLE_ID` and `FAULT_KIND`.
+
+### Defaults and derived fields
+
+- **Order by default.** An instruction depends on the previous instruction of its entrypoint and
+  runs only when every dependency succeeded. `after:` names any other dependency set within the
+  entrypoint (a second root, or an instruction that is not its predecessor), and an explicit guard is
+  written only for any other condition.
+- **Derived declarations.** The environment binding list is the set of bindings roles and
+  expressions reference; activation reservations follow from the instructions that start
+  activations; an instruction's outcome fields follow from its kind. None is written in a Case.
+- **Omitted defaults.** Instruction limits equal to the Profile's defaults are omitted.
+
+### Resource ceilings in the Profile
+
+A Case declares only bounds that carry meaning: instruction timeout and attempts, Contract deadlines,
+and correlated windows. Node, edge, byte, work, capture and depth ceilings move to the Profile, which
+admission already checks every Case against. This amends SEM-16, which today makes the Case
+authoritative for all its bounds.
+
+### Readable provenance and identity
+
+- **Structured provenance.** `CaseProvenance` holds typed rows: Definition IDs with fingerprints and
+  sources, and Known Gaps; fn-85 R8 adds its abstraction-claim row to this structure. The runtime
+  still reads none of it. The glossary's "generic opaque provenance" is amended.
+- **Case-local identifiers.** Program and Contract refer to states, actions, outcomes, facts, fields
+  and rules by short Case-local names (`operation-identity`, not
+  `temporal.nexus.success.typed-nexus.evidence.operation-identity`); provenance maps each local name
+  to its Definition ID.
+- **Short model values.** A model value is its declared spelling. A parameterized value's canonical
+  encoding moves into provenance as a fingerprint, so a Case carries `completed`, not an
+  11,000-character key.
+
+### Presentation
+
+- **Declaration order.** `Testpilot.ProtoJSON` emits fields in declaration order, and each message
+  declares its identity first, then what it does, then when it runs.
+- **Readable paths and enums.** A field path is a string in a documented grammar
+  (`attributes<nexus_operation_completed_event_attributes>.scheduled_event_id`, `history.events[*]`),
+  parsed at preparation; enum literals carry the value name.
+- **Absent operands.** A comparison with an absent operand is false, so Producers stop emitting
+  presence checks beside every comparison on the same path. This is a semantic change and applies to
+  every expression context.
+
+### Case closure
+
+The Case's import closure excludes `Run`, `Verdict` and the Run-only messages: Run Event kinds and
+filters move to a file both `contract.proto` and `run.proto` import.
+
+### Renames
+
+Names follow the glossary, and a word means one thing:
+
+| Today | After | Reason |
+| --- | --- | --- |
+| `RunStatus` | `RunDisposition` | glossary Run disposition |
+| `CorrelatedContract.clauses`, `CorrelatedRule.clause_id` | `rules`, `rule_id` | glossary Correlated Rule |
+| `ResponseProjection`, `ProjectionTarget`, `ProjectionKind` | `ResponseRead`, `ReadTarget`, `ReadCardinality` | Projection is `Umpire.Case.Projection` |
+| `OpaqueCapabilityType`, `capability_slot_id` | `OpaqueHandleType`, `handle_slot_id` | Capability is `Umpire.Capability`; the runtime concepts say effect handle |
+| `ContractStateStatus.NONTERMINAL`, `RuleVerdictStatus.PENDING` | `PENDING` in both | one word for an unfinished rule |
+| `CorrelatedValue` | `ModelValue` | the same word as `Umpire.ModelValue` |
+| `InvokeRPC` | `InvokeRpc` | one spelling in generated Go |
+| `Value` oneof fields | one convention, every arm suffixed `_value` | consistent, and avoids language keywords |
+| `*Definition` declarations | no suffix; the graph node is `InstructionNode` and its body stays `Instruction` | one convention; the Opcode is the `Instruction` oneof case |
+| `source` as a path operand | `operand`; the evidence source name becomes `evidence_source`; `RunEvent.source_id` keeps its meaning | one meaning per word |
+| `PROTOCOL_NON_SUCCESS` | `PROTOCOL_FAILURE` | parallel to `SDK_FAILURE` |
+
+Names the approved rules cite stay: `rule_events` and `elapsed_milliseconds` (EVD-21),
+`RUN_EVENT_KIND_FAULT_INJECTED` (EVD-20), and the facade sequence (MOD-12). `RespondNexus`,
+`NexusResponseKind` and `StartNexusOperation` are not renamed: fn-85 R10 replaces them and fn-86 R3
+removes them with the last Producer that emits them, retiring their names in the vocabulary gate
+then; this spec documents and renumbers them like every other message.
+
+## API Contracts
+<!-- scope: technical -->
+
+The protocol package, Go package and `Case` root stay: `temporal.server.api.testpilot.v1`, rooted at
+`case.proto`, generated into `go.temporal.io/server/api/testpilot/v1` and `Testpilot.Protocol`.
+`FormatVersion` stays `{ major: 1 }`: the wire has no compatibility promise and no Case outside the
+repository exists.
+
+`Expression` is shown under Architecture. Message and field names in these sketches are the
+contract, except where a generated language reserves a name (`not` in Lean), in which case the task
+picks the nearest unreserved spelling and records it. The references `Expression` admits:
+
+```proto
+message Reference {
+  oneof reference {
+    string slot_id = 1;
+    InstructionOutcomeReference outcome = 2;
+    RunReference run = 3;
+    string environment_binding_id = 4;
+    string observation_id = 5;
+    RunEventReference run_event = 6;
+    string capture_id = 7;
+    string evidence_field_id = 8;
+    CorrelatedCaptureReference correlated_capture = 9;
+    ModelValue model_value = 10;
+  }
+}
+```
+
+Deviation (.6): `Reference` also carries `CorrelatedStepReference correlated_step = 11` (a
+`CorrelatedStepField` of ACTION, OUTCOME, STATE or FACT and a `definition_id`), admitted only in the
+correlated context, because a correlated condition is an existential over the admitted step's action,
+outcome, state or facts that a literal `model_value` cannot express; and an empty
+`ProjectedValueReference projected_value = 12`, admitted only in the evidence-lift context, as the
+operand of a lift guard. `model_value` is admitted in no context: a step reference and a text literal
+carry the model values correlated conditions test.
+
+`ContractDeadline` after R5:
+
+```proto
+message Deadline {
+  string violation_state_id = 1;
+  oneof bound {
+    int64 rule_events = 2;
+    int64 elapsed_milliseconds = 3;
+  }
+}
+```
+
+## Edge Cases & Constraints
+<!-- scope: technical -->
+
+- **No Verdict change.** Every migrated Case, conformance corpus entry and expected Verdict reaches
+  the same Verdict on the same Run; a Go test decodes each pre-migration fixture through a snapshot
+  of today's descriptors, maps it to the new protocol under an explicit mapping (renames, derived
+  fields, defaults, local identifiers, moved ceilings), and compares it with the regenerated
+  fixture. A difference the mapping does not declare fails.
+- **Absent operands.** Changing comparisons on absent operands to false is checked against every
+  conformance class and live test; any Verdict that moves is a finding to explain before the change
+  lands.
+- **Ceilings.** A Case whose former ceiling was tighter than the Profile's keeps that bound only if
+  it carried meaning (a timeout, attempts, a deadline, a window); otherwise the Profile's ceiling
+  applies and the receipt lists the loosened bound.
+- **Context checks replace types.** An expression reference outside its admitted context rejects at
+  preparation with the existing static-preparation error category and the offending path; the
+  conformance corpus gains one such rejection.
+- **Presence.** A `oneof` with one arm becomes a proto3 `optional` field; an empty marker message
+  stays where it selects a oneof arm (`RunReference`, the presence path selector).
+- **Fixtures** are regenerated only through their generators (ART-11, ART-12); every fixture's diff
+  is listed in the receipt.
+- **Scalar kinds.** Folding the wire-encoding scalar kinds happens only if descriptor admission does
+  not need them to match a field's declared type; otherwise the finding is recorded as kept, with
+  the reason.
+- **Concurrent protocol work.** fn-84 .2 moves the Driver contract into a leaf package and fn-84 .5
+  changes projection lowering; this spec starts after fn-84. fn-85's Nexus instruction additions
+  should land on the new shapes.
+- **Umpire and Temporal independence.** Renames in `Testpilot.Protocol` reach `Testpilot.Authoring`,
+  `Umpire.Case.Compiler`, `Umpire.Case.Producer` and `Temporal.Case`; `lint-model` stays green under
+  MOD-01, SCP-02 and the retired-vocabulary gate, which gains the retired compound names.
+
+## Acceptance Criteria
+<!-- scope: both -->
+
+- **R1:** Every rename in the Renames table is applied across the protocol, `Testpilot.Protocol`,
+  `Testpilot.Authoring`, the Lean Producers, the Go runtime and tests, and the fixtures; each retired
+  compound name is added to the retired-vocabulary gate. Errors: a retired compound name anywhere in
+  the scanned trees fails `make umpire-check-retired-vocabulary` naming the file.
+- **R2:** The protocol files follow the Target structure table; every message and every field whose
+  meaning is not its name carries a leading comment; field numbers are dense from 1 within each
+  message. Errors: a message without a leading comment fails a Go check over the descriptor set
+  naming the message.
+- **R3:** `Expression` and `Reference` replace `ProgramExpression`, `ContractExpression`,
+  `CorrelatedPredicate`, `CorrelatedComparison`, `CorrelatedOperand`, `CorrelatedCorrelation` and
+  `CorrelatedCorrelationGroup`; `ComparisonOperator` includes equal and not-equal; evidence lift
+  guards are expressions and `guard_equals_text` is gone; preparation checks each expression's
+  references against its context. Errors: a reference outside its context rejects at preparation
+  with the static-preparation category and the expression's path, pinned by a conformance
+  rejection case and Lean and Go unit tests.
+- **R4:** `RunEvent` carries kind-specific data in one payload oneof; `RunEventField` holds only the
+  common coordinates; Contract expressions read payload fields through a path. Errors: a Run Event
+  whose payload does not match its kind is a Driver invariant diagnostic, and a Contract path into a
+  payload its event kind cannot carry rejects at preparation.
+- **R5:** Single-arm presence oneofs are proto3 `optional` fields; the correlated `present`
+  constraint is a presence marker; `Deadline` holds `violation_state_id` and a `bound` oneof over
+  `rule_events` and `elapsed_milliseconds`. Errors: a deadline with no bound rejects at preparation,
+  replacing today's "exactly one positive" check.
+- **R6:** One opaque-handle encoding remains; `Value.natural` is removed unless a Producer needs a
+  value no other arm represents; the capture type is `SingularType` restricted at preparation;
+  one named-value message replaces the three binding shapes; `CorrelatedContract.version` and the
+  wire `EntrypointKind` are removed (the Go runtime keeps its own classification); the wire-encoding
+  scalar kinds are folded or recorded as kept with the reason. Errors: a capture of an admitted type
+  outside scalar, enum or message rejects at preparation.
+- **R7:** `common/testing/testpilot/README.md` gains an extension section listing, for a new
+  instruction, fault kind, Run Event payload and expression reference, every place that must change
+  (protocol, generated Lean, `Testpilot.Authoring`, Go interpreter or evaluator, Profile Opcode,
+  conformance class, retired-vocabulary gate), with the worker-stop fault kind traced through every
+  place as the worked example; fn-85 R10 is its first use. Errors: no error surface.
+- **R8:** Every fixture and conformance corpus entry regenerates through its generator; the
+  field-mapping equivalence test passes for every pre-migration fixture; `make
+  umpire-check-testpilot-protocol`, `make umpire-check-case-runtime-conformance`,
+  `make umpire-check-live-tests`, `make lint-model` and `make umpire-check-regression` pass. Errors:
+  a fixture whose migrated form differs beyond the declared mapping fails the equivalence test naming
+  the fixture and the field.
+- **R9:** Instructions run in entrypoint order by default and only when their dependencies
+  succeeded; `after:` names any other dependency set within the same entrypoint, including none;
+  explicit guards remain only for other conditions. Errors: an `after:` naming an unknown instruction,
+  itself, an instruction on another entrypoint, or forming a cycle rejects at preparation.
+- **R10:** The environment binding list, activation reservations and instruction outcome fields are
+  derived at preparation and no longer written in a Case; instruction limits equal to the Profile
+  defaults are omitted. Errors: a Case that still writes a derived field rejects at preparation
+  naming it.
+- **R11:** A Case's import closure excludes `Run`, `Verdict`, diagnostics and Run Event payloads,
+  checked by a Go test over the descriptor set. Errors: an import that pulls a Run-only message into
+  the Case closure fails that test naming the file.
+- **R12:** Node, edge, byte, work, capture and depth ceilings live in the Profile; a Case declares
+  only instruction timeouts and attempts, deadlines and correlated windows; an SEM-16 amendment is
+  drafted under GOV-02. Errors: a Case bound outside the Profile's ceiling rejects at preparation as
+  today.
+- **R13:** `CaseProvenance` is structured (Definition IDs with fingerprints and sources, Known Gaps;
+  fn-85 R8 adds abstraction claims) and readable in fixture diffs; the glossary's Case and Provenance entries are
+  amended under GOV-02. Errors: no error surface; the runtime does not read provenance.
+- **R14:** Program and Contract use Case-local names, and provenance maps each to its Definition ID;
+  a model value is its declared spelling, with a parameterized value's canonical encoding recorded
+  as a fingerprint in provenance; `typed-nexus-case.json` shrinks by at least its 244 KB of encoded
+  values. Errors: a Case-local name used twice for different Definition IDs rejects at production
+  naming both.
+- **R15:** `Testpilot.ProtoJSON` emits fields in declaration order with identity first; field paths
+  are strings in a documented grammar parsed at preparation; enum literals carry names; a comparison
+  with an absent operand is false and Producers emit no presence check beside a comparison on the
+  same path. Errors: a path string outside the grammar and an enum name the descriptor does not
+  declare reject at preparation with the offending text.
+
+## Early proof point
+
+Land R1 and R2 first, purely mechanical: renames, file moves, comments and renumbering, with the
+equivalence test proving every fixture unchanged in meaning. Only then start R3 to R6 and R9 to R15. If the
+equivalence test cannot be written against a descriptor snapshot, stop: the "no semantic change"
+guarantee needs another oracle before any structural change.
+
+Tasks fn-87-tighten-the-testpilot-protocol-glossary.1 (the equivalence harness over a frozen
+descriptor snapshot) through .4 (restructure with no new mapping step) are that proof point. If .1
+cannot decode the baseline through the snapshot, or .4 needs a mapping step, stop and re-evaluate
+before .5.
+
+## Quick commands
+
+```bash
+# Equivalence oracle (every task)
+go test -count=1 -tags test_dep ./common/testing/testpilot/internal/protocolmigration/
+# Lean protocol, authoring and fixtures
+make umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-check-case-runtime-conformance
+# Vocabulary gate
+make umpire-check-retired-vocabulary
+# Full gate (live tests need these)
+CC=/usr/bin/cc TMPDIR=$(cd "${TMPDIR:-/tmp}" && pwd -P) make umpire-check-regression
+go clean -cache && make lint-code GOLANGCI_LINT_FIX=false   # baseline 161
+make lint-model                                              # baseline 163
+```
+
+## Planning decisions
+
+Decided while breaking the spec into tasks (2026-09-12), from the repository and gap scans. Each
+narrows or completes a requirement without changing its intent; tasks record the final choice.
+
+- **Renames skip doomed names.** R1 does not rename declarations a later requirement deletes
+  (the `Program*`/`Contract*` expression messages, the `*Ref` messages `Reference` replaces, and the
+  reservation, environment and outcome declarations R10 derives); their names are retired when they
+  are deleted. `InstructionRef` becomes `InstructionReference`, `ContractDeadline` becomes `Deadline`.
+- **Go initialisms.** Hand-written Go keeps `InvokeRPC` for the Opcode and Driver method (staticcheck
+  ST1003), as it keeps `CaseID` beside generated `GetCaseId`; the proto message, generated Go and Lean
+  spell `InvokeRpc`, and the gate retires the Lean and JSON spelling `invokeRPC`.
+- **Two more `Reference` arms.** A correlated condition is an existential over the admitted step's
+  action, outcome, state or facts, which a literal `model_value` cannot express, and an evidence-lift
+  guard needs the projected value as its operand. `Reference` gains a correlated step reference and a
+  projected-value marker, each admitted in one context.
+- **Context rejection category.** A reference outside its context is a `PreparationError` of category
+  `unknown` with a located path, and the `static-preparation-rejection` class carries a second Case
+  (EVD-18 keeps six classes).
+- **Run Event payload arms.** The arms are the instruction outcome and the injected fault; diagnostic
+  events keep an outcome. A payload that does not match its kind is an `INVARIANT` Run diagnostic
+  raised when the event is recorded.
+- **Named values.** The evidence side uses one `{field_id, Value}` message and the lift side the same
+  shape over an `Expression`, replacing three unrelated shapes.
+- **Scalar kinds and naturals.** Wire-encoding scalar kinds are kept if admission needs a slot's kind to
+  equal the field's kind (it does today); `natural_value` is removed in favor of `unsigned_integer_value`
+  unless a Producer needs a larger value.
+- **Ceilings.** Every bound except instruction timeout and attempts, deadlines and correlated windows
+  moves to the Profile, durations included, unless moving one changes a Verdict, in which case it stays
+  as a behavior bound. A Temporal default ceiling set feeds derived and test Profiles; the Profile also
+  gains instruction defaults.
+- **`after` scope (R9 amended 2026-09-12).** R9 first said `after:` names cross-entrypoint
+  dependencies. The runtime has none: each entrypoint is an activation-local acyclic graph, preparation
+  rejects a dependency on another entrypoint's instruction ("missing, duplicate or cross-entrypoint
+  dependency"), no checked-in Case uses one, and entrypoints coordinate only through Temporal and the
+  instructions that wait on it (`AwaitInstruction`, awaited Slots). Supporting one would be a new
+  scheduling capability, which Boundaries exclude. What the Cases do need is a non-default dependency
+  set within one entrypoint (the typed Nexus Case has a second root and two diamonds), so R9 now says
+  that, and a cross-entrypoint entry rejects as unsupported.
+  Cross-entrypoint waiting stays with `AwaitInstruction`. Dependents that run regardless of success
+  carry an explicit `true` guard.
+- **Derived-field errors.** Removed fields fail strict ProtoJSON decode naming the field, which is where
+  a Case that still writes one is rejected.
+- **Additional rule drafts.** ART-13 (a declared binding graph) and ART-09 (opaque provenance bytes)
+  contradict R10 and R13, so restatements of both are drafted under GOV-02 beside the SEM-16 and
+  glossary drafts; approved text is not edited.
+- **Local names and values.** One Case-wide namespace of shortest unique dotted suffixes, rule ids
+  included; value spellings get a fingerprint-derived disambiguator only where two encodings of one
+  definition share a spelling.
+- **Absent operands.** Every comparison operator, `NOT_EQUAL` included, is false on an absent operand;
+  bare absent predicates and absent inputs still reject. The rule is run over unchanged fixtures before
+  Producers drop presence checks.
+- **Cross-file enum accessors (decided in .4, 2026-09-12).** `protogen` trims an enum value's type
+  prefix only inside the file that declares the enum, so a message whose singular enum field names an
+  enum from another file of the package generated Go that did not compile. That is why `FaultInjected`
+  sat beside `FaultKind`. `RunEvent.kind` must reach `RunEventKind` in `event.proto` while R11 keeps
+  `RunEvent` out of the Case closure, so no file layout satisfies both. `cmd/tools/protogen` now
+  rewrites such references after generation, which changes no other generated file. `Testpilot.Protocol`
+  loads the Case and Run closures with one `protoc` call, because a second `#load_proto_file`
+  declares the shared files twice.
+- **One Expression (decided in .5, 2026-09-12).** `Expression.not` keeps the sketch's name under an
+  api-linter `core::0140::reserved-words` suppression; the Lean Authoring constructor is `Expr.negate`.
+  `ModelValue` moves to `value.proto` and `CorrelatedCaptureRef` becomes `CorrelatedCaptureReference`
+  in `expression.proto` now, so .6's `correlated.proto` can import `expression.proto` without a cycle.
+  A capture assignment names its Observation by `observation_id`. `ir` defines only the Program and
+  Contract contexts; .6 adds the correlated and evidence-lift contexts with the references they admit.
+  A context rejection is `unknown` at a located path; other expression errors keep their coarse paths.
+  Logical depth, IR node counts, runtime work limits and Contract per-event work bounds are unchanged
+  for every checked-in Case; surface and admission work grow by one message per outcome, Run and Run
+  Event reference and one enum per equality, far below the admission ceilings. The expression-context
+  rejection is a variant beneath `static-preparation-rejection`, and the equivalence oracle declares
+  new fixtures in `Added`.
+- **Correlated conditions and lift guards (decided in .6, 2026-09-12).** A correlated trigger and
+  response are step conditions: `present(correlated_step)` or `compare(EQUAL, correlated_step, text)`;
+  a correlation is a step condition, an EQUAL or NOT_EQUAL comparison of literal, evidence-field or
+  correlated-capture operands, or `all`/`any` of those. The capability keeps its own admission and
+  evaluator over `Expression` rather than binding through `ir`, so `Shared.CorrelatedObligation`
+  receives identical inputs and the depth and work ceilings count conditions exactly as before;
+  `ir.AdmitReferences` performs the context check at the path binding would report. A trigger or
+  response reading another step part rejects `unknown` at `...correlated_step.field`. An evidence-lift
+  guard binds and evaluates through `ir` in the evidence-lift context with the projected value as its
+  only reference, so it may be any boolean expression: the former rejections of a presence-selector or
+  empty guard path no longer apply (such a path is now a valid boolean read), while a non-boolean guard
+  and an unguarded absent read reject. Guard evaluation charges a few more runtime work units per
+  rule (the expression nodes) than the bare path read did; no checked-in Case approaches the ceiling.
+  `model_value` stays in `Reference` but no context admits it (R6 may remove it).
+- **Run Event payloads (decided in .7, 2026-09-13).** `RunEvent.payload` has two arms, `outcome` and
+  `fault_injected`; no diagnostic-reference arm, because nothing records one. `RunEventReference` is a
+  `selection` oneof of a `RunEventField` coordinate or an empty `RunEventPayloadReference`, and a
+  payload is read only as `path(run_event.payload, <arm>.<field>)`, whose first segment names the arm,
+  so a new payload adds no reference arm or enum value; reading a declared protocol message by path is
+  an event field read under EVD-13. `InstructionOutcome` moves to `run.proto` and joins `FaultInjected`
+  in the R11 forbidden list: no Case message names it (outcome typing names only
+  `InstructionOutcomeStatus` and `InstructionOutcomeField`). One table, `ir.RunEventPayloadOf`, gives
+  each kind's arm and whether the kind requires it (`FAULT_INJECTED` requires `fault_injected`;
+  `INSTRUCTION_COMPLETED`, `INSTRUCTION_TIMED_OUT` and `DIAGNOSTIC` may carry `outcome`). Preparation
+  rejects `unknown` at `...path.path.segments[0].field` when no kind of the transition's filter carries
+  the arm; for each evaluated kind only a required arm is available, so a read of an arm the event may
+  lack is absent and needs a presence guard (fail-closed until .16). A `FAULT_INJECTED`-only transition
+  reads the fault unguarded, so the worker-outage Contract gains no presence checks. A payload that does
+  not match its kind is an `INVARIANT` diagnostic `payload_kind_mismatch`, checked before staging. The
+  worker-outage per-event work bound grows by one message projection per fault read and stays under its
+  declared ceiling.
+- **Presence, deadlines, captures and named values (decided in .8, 2026-09-13).** R5's proto3
+  `optional` is not adopted: the Lean elaborator accepts it, but `make proto` fails because the pinned
+  `protoc-gen-go-helpers` v1.63.5 does not support proto3 optional fields, so the two single-arm oneofs
+  (`Run.evaluation_failure`, `RunDiagnostic.support`) stay until that plugin does. `Deadline` holds
+  `violation_state_id` and `oneof bound { rule_events, elapsed_milliseconds }`; a liveness deadline with
+  no bound rejects `malformed` at `contract.rules[<rule>].deadline`, a non-positive bound at
+  `...deadline.<bound>`, and no fixture's JSON changes. `ContractCapture.type` is a `SingularType`;
+  `any`, `opaque_handle` or no type rejects `malformed` at `contract.rules[<rule>].captures[<capture>].type`,
+  and the Authoring capture constructors give way to `Types.*`. One named-value shape per side: evidence
+  carries `NamedValue { field_id, Value value }` (a scope value is a non-empty `text_value`), and a lift
+  carries `NamedExpression { field_id, Expression value }` admitted only as a text literal or
+  `path(projected_value, p)`, a foreign reference rejecting at its path (Authoring `Program.evidenceLiteral`
+  and `Program.evidencePath`). `CorrelatedContract.version` is removed, and a Case that writes it fails
+  strict decoding naming the field. Evidence sizes under `max_event_bytes` count text, so no bound moved;
+  the encoded evidence a lift charges as runtime work grows by two bytes per scope value.
+- **Opaque handles, naturals, entrypoint kinds and scalar kinds (decided in .9, 2026-09-13).** A Slot is
+  the one opaque-handle encoding: `SingularType.opaque_handle` is removed and `ir` binds a handle Slot
+  through `Catalog.OpaqueHandleType()` (a schema-less type), so a capture, Observation or collection
+  cannot name a handle and the capture-type `opaque_handle` rejection no longer exists. `natural_value`
+  and `SCALAR_KIND_NATURAL` are removed: no Producer needs a value above 2^64-1 (every runtime natural
+  is read from a protobuf integer field, and the checked Property rejects an out-of-range integer
+  literal before lowering), so correlated evidence, lift reads and literals use `unsigned_integer_value`
+  typed `UINT64`, checked canonical and within 64 bits by Go, `Testpilot.Correlated` and the Umpire
+  Producer. `Value` arms and `ScalarKind` are renumbered dense. The wire `EntrypointKind` becomes
+  `contract.EntrypointKind` (`ControllerEntrypoint` ... `NexusHandlerEntrypoint`, `MaxEntrypointKind`)
+  with one classifier `EntrypointKindOf`, re-exported by the facade (types and constants by alias, the
+  classifier by a wrapper function). The wire-encoding scalar kinds are kept: admission types a field
+  read by its declared kind and requires it to equal the declared Slot, Observation or outcome type, as
+  the `ScalarKind` comment records.
+- **Resource ceilings (decided in .10, 2026-09-13).** `Program.limits`, `Contract.limits` and
+  `CorrelatedContract.limits` are removed and `InstructionLimits` keeps `timeout_milliseconds` and
+  `max_attempts`; `ProgramLimits` gains `max_instruction_emitted_events` and
+  `max_instruction_response_bytes`, and `ProfileSpec` gains `CorrelatedLimits`, required only to admit a
+  correlated contract. Every bound moved, durations included: no conformance class, fixture test or
+  live test changed its Verdict, disposition or cleanup status. Admission checks the remaining Case
+  bounds exactly as before: an instruction timeout within the Profile's total (ordinary) or cleanup
+  duration and its attempts within the Profile's attempts, which now also means an instruction may not
+  declare more attempts than the one Program-wide ceiling. Deadlines and correlated windows gain no
+  Profile ceiling, as none bounded them before. The two per-instruction ceilings must fit the
+  Program-wide run-event and response ceilings (a Profile check, replacing the per-Case one), and a
+  correlated contract reserves the capture ceiling in its capture budget only when it declares
+  captures. Runtime and both Drivers read ceilings from the prepared snapshot (`PreparedProgram.Limits`).
+  `temporal.DefaultCeilings` (the largest value each ceiling took across the checked-in Temporal Cases)
+  feeds `DeriveProfile`, `umpire-run` and the testcore Profiles; the generic facade conformance test may
+  not import the Temporal Driver (`TestTestpilotOwnsCaseProtocolAndRuntime`), so it spells the same set
+  and the Driver's `TestDefaultCeilingsAdmitTheConformanceCorpus` prepares that corpus under
+  `DefaultCeilings`. The synthetic Case and the correlated corpus keep their former bounds as their own
+  test Profiles. `Testpilot.Correlated.decode` takes the correlated ceilings as an input and
+  `Umpire.Case.Correlated.Lowered` carries the ceilings it decoded under, so the checked agreement is
+  unchanged. The oracle's R12 step admits a dropped bound only within its fixture's declared Profile
+  ceiling. SEM-16 is restated under GOV-02; ART-09's "independent limits" wording needs a GOV-02
+  follow-up (.13 drafts ART-09).
+- **Default order and `after` (decided in .11, 2026-09-13).** `InstructionNode.after` is an `After`
+  message (`repeated InstructionReference instructions`), so an empty set (a second root) differs from an
+  absent one (the predecessor); the field keeps its name under an api-linter `core::0140::prepositions`
+  suppression. Preparation binds the default as the node's guard: for one dependency
+  `all[present(status), status == SUCCEEDED]`, for several the `all` of those in `after` order, the
+  shapes Producers wrote, so success facts, outcome availability, work charges and
+  `InstructionPlan.Guard` are what the explicit guard gave. A literal `true` guard binds as no guard: a
+  formerly unguarded dependent keeps its status statically available and charges no guard work (the
+  activation test's work pin moves by that evaluation). An `after` entry with an empty id rejects
+  `malformed`, one on another entrypoint (cleanup included) `unsupported`, an unknown instruction
+  `unknown`, the instruction itself or a repeated entry `malformed`, all at
+  `program.entrypoints[<entrypoint>].instructions[<instruction>].after.instructions[<index>]` (cleanup:
+  `program.cleanup.instructions[...]`); a cycle rejects `malformed` at the `after` of the first unordered
+  instruction, which always declares one. `Program.node` takes `after` and `guard`, `Program.after`
+  builds the set, and `CaseSupport.succeeded` is removed; the typed Nexus Program names `after` only for
+  its later operations, since a Case carries it only where it is not the predecessor.
+  `Umpire.FaultRealization.after` replaces its dependency list. The generated accessor
+  `GetDependencies` is retired. Hand-built Go test Cases that relied on implicit roots or unconditional
+  dependents now write an empty `after` or a `true` guard.
+- **Derived declarations and instruction defaults (decided in .12, 2026-09-13).** `Program.environment`,
+  `InstructionNode.activation_reservations` and `InstructionNode.outcome` are removed (fields renumbered
+  dense), and a Case that writes one fails strict decoding naming the field. The binding graph is
+  `EnvironmentBindingIDs`: each binding a role names (namespace, then resource, in role order), then each
+  other binding an expression references, each once; preparation resolves exactly that set, a binding the
+  Profile lacks rejecting `unknown` at `environment`, and `temporal.DeriveProfile` reads the same set. An
+  ordinary controller instruction invoking a Profile carrier method reserves one activation of each
+  workflow and Nexus-handler entrypoint whose kind the carrier's shapes admit, in declaration order; two
+  instructions that could carry one entrypoint reject `unsupported` naming both. A reservation therefore
+  always counts one: a multi-activation reservation, a partial one, and a handler-only carrier (which
+  topology rejects) are no longer expressible, and `DeriveProfile` makes every ordinary controller
+  `StartWorkflowExecution` a carrier whose shapes count the Program's workflow and handler entrypoints.
+  An instruction's outcome fields are the ones its instruction produces rather than the set each fixture
+  wrote (only the status): every instruction a status and a detail, `InvokeRpc` and
+  `CompleteNexusOperation` a protocol code, a worker instruction an SDK failure code, and
+  `AwaitInstruction` a text VALUE. No exact equality with every fixture exists, because the synthetic
+  Case's Finish declared a message VALUE that the async Finishes did not; a Finish or RespondNexus result
+  ends its activation, so neither derives VALUE, the worker no longer copies a terminal result into its
+  outcome, and the oracle drops such a declaration only where no expression reads it. The spec's "for
+  `InvokeRpc`, the method's response descriptor" is not used: an RPC response is read only through
+  response reads. An awaited Nexus result is typed text, which every version-one Nexus result is (fn-85
+  R10 redefines those instructions). `InstructionLimits` keeps presence through two single-arm oneofs
+  (proto3 `optional` stays unavailable, as .8 found); `ProfileSpec.InstructionDefaults` is a Go
+  `{TimeoutMilliseconds, MaxAttempts}` value whose zero field supplies no default, so an instruction that
+  omits that limit rejects `malformed`; `InstructionDefaults.Resolve` is the one resolution rule, shared by
+  preparation and the server Driver. `temporal.DefaultInstructionLimits` is 10000 ms and one attempt, the
+  synthetic and correlated test Profiles take 1000 ms and one attempt, and Producers write only a differing
+  limit (`Program.instructionLimits (timeoutMilliseconds := some 5000)`); `Program.node` drops its outcome
+  and reservation arguments and takes optional `limits`. Instruction defaults are part of the Profile
+  snapshot, and the Profile identity doc now names them; ART-14's binding fingerprint is unchanged and
+  existing Driver identity strings need not change, since every checked-in Case resolves to the limits it
+  wrote. The oracle's R10 step re-spells each rule and checks each dropped value against it. ART-13 is
+  restated under GOV-02.
+- **Provenance rows (decided in .13, 2026-09-13).** `CaseProvenance` keeps `producer_id` and
+  `producer_version` and replaces `producer_data` with one repeated field per row kind: `definitions`
+  (`DefinitionBinding { definition_id, behavior_fingerprint, DefinitionKind kind }`), `sources`
+  (`SourceLocation { path, int32 line, int32 column, provenance }`), `known_gaps`
+  (`KnownGap { KnownGapKind kind, code, subject, detail }`) and `correlated_rules`
+  (`CorrelatedRuleBinding`), so fn-85 R8's abstraction-claim row is one more field. A Known Gap keeps
+  subject and detail presence through single-arm oneofs (`subject_presence`, `detail_presence`), as
+  proto3 `optional` stays unavailable (.8), so a present empty detail differs from an absent one. Line
+  and column are `int32`, rendered as JSON numbers; `Umpire.Provenance.make` now returns
+  `Except Umpire.SourceLocation CaseProvenance` and rejects a position above the `int32` range, which
+  `Umpire.Case.Compiler.compile` reports as construct `provenance.source-position`. Row order is the
+  Producer's. `Testpilot.Authoring.provenance` takes the row arrays and `Testpilot.Authoring.knownGap`
+  encodes the presence oneofs. The Umpire-free synthetic Producer writes no rows: its three opaque
+  bytes existed only to exercise the bytes field, so the oracle's R13 step drops exactly those bytes in
+  exactly that fixture and lifts every other payload only when it decodes under the baseline shape with
+  no unknown key and re-encodes to its own bytes. The typed-row round trip moved to the Lean ProtoJSON
+  fixture (one row of each kind) and a Go-built Case. Two Temporal Producers that open both `Umpire`
+  and the protocol namespace hide the protocol's `SourceLocation` and `DefinitionKind`. Restatements of
+  the glossary Case, Provenance and Profile entries and of ART-09 are drafted under GOV-02: ART-09's
+  "generic opaque provenance", "provenance bytes" and "independent limits", and the Profile's
+  "independent Program and Contract ceilings", contradict R13 and R12 (the ART-09 and Profile drafts
+  fold in the .10 follow-up). Retired: `ProducerData`/`producerData`, `GetProducerData`,
+  `producer_data`, and the `CASE_DEFINITION_KIND_*` and `CASE_KNOWN_GAP_KIND_*` families.
+- **Case-local names and short values (decided in .14, 2026-09-13).** `Umpire.Case.Compiler.compile`
+  renames every Case through `Umpire.Case.LocalNames.localize` after coverage is admitted, so every
+  Umpire Producer localizes and `Lowered`'s checked decode equality stays over the Definition-ID wire.
+  The namespace is wider than R14's list: each Contract rule id; the correlated contract's projection
+  id, operation and scope fields, sources, evidence kinds, field policies, captures, rule ids, step
+  references and model value definitions; the Program's evidence lift rules (source, kind, scope and
+  field ids); and every model value that is a namespaced Definition ID (`schedule-complete`). Role,
+  binding, instruction, Observation and Case, Program and Contract ids stay. A `LocalName` row is
+  written only where the name differs from its Definition ID (a name with no row is its own Definition
+  ID), so the get-system-info, worker-outage and synthetic fixtures and every conformance
+  `case.json` and `expected.json` are unchanged. A structural key (`Canonical.isKey`) is spelled
+  by its definition's last segment; every member of a colliding group, a declared spelling included,
+  takes `-` plus the shortest unique SHA-256 prefix of at least eight characters; the text a step
+  condition compares is an encoding of its step's definition. `ModelValueFingerprint` rows record
+  each spelling a name alone does not give, the fingerprint being the lowercase SHA-256 hex of the
+  encoding's UTF-8 bytes; provenance's own Definition IDs (`definitions`, `correlated_rules`, Known
+  Gaps) stay unrenamed. The proto fields are `CaseProvenance.local_names` and
+  `model_value_fingerprints`, with `local_name` under an api-linter `core::0122::name-suffix`
+  suppression. A shared name or split Definition ID (checked on the derived table) and an ambiguous
+  spelling reject at compile. The oracle's R14 step is a `Relate` step that reads the regenerated
+  rows. Correlated corpus evidence and the Lean and Go test Drivers name kinds, sources and scope
+  fields by local names; projection work and event bytes count identifier bytes, so the corpus's
+  first-scenario boundaries move from 2960 and 36 to 1760 and 21. typed-nexus is 58,824 bytes: 257,090
+  below the spec's 315,914-byte baseline and 242,239 below the pre-task 301,063 (the 243,946 bytes of
+  encodings less 1.7 KB of new rows).
+- **Readable fixtures (decided in .15, 2026-09-13).** `Testpilot.ProtoJSON.canonical` (now over any
+  generated message) re-emits the library's key-sorted `Lean.Json` with every message object's keys in
+  declaration order; map fields keep the library's key order, an `Any` writes `@type` first, and
+  well-known types keep their JSON forms. The correlated corpus writes each row by hand (`name` first)
+  so its Cases and events keep that order, and the Go generator rejects a Case or corpus entry whose
+  keys differ, naming the file and JSON path. Every `FieldPath` field is a `string`, and the wire keeps
+  the field names `target` (a request assignment) and `operation` (an evidence-lift rule) rather than
+  renaming them `path`: each names what its path addresses, and a rule's `operation` beside its
+  `scope` and `fields` paths would read ambiguously as `path`. The grammar is documented on
+  `PathExpression.path` and in the Testpilot README; a segment takes at most one selector
+  (`<member>`, `[*]`, `[key]` or a final `?`); `ir` parses and prints it, and every path rejection
+  (grammar, unknown field or member, wrong key kind) is located at the path's field and quotes the
+  whole text, so a payload-arm rejection moves from `...path.path.segments[0].field` to
+  `...path.path`. A presence fact is keyed by the canonical spelling. The Lean printer is
+  `Testpilot.Authoring.Path.make` over `Path.Segment`; `Path.oneofSelector` becomes
+  `Path.oneofMember`, whose lower-camel form the retired `OneofSelector` would match. An enum literal is
+  `EnumValue { name }` (api-linter `core::0123::resource-annotation` suppressed); a runtime value read
+  from a message carries its name too, and a number its enum does not declare is spelled in decimal
+  (the ProtoJSON spelling), which no literal can name. Umpire lowering names an enum scalar from the
+  enum node's hex descriptor bytes (`Coverage.enumValueName`), because a value shape records only
+  numbers; that reader, and the path printer's JSON key escaping, walk bytes by hand so
+  `Umpire.Case.Projection.lower` keeps its `[propext, Quot.sound]` axiom inventory (the protobuf
+  decoder and `String.toList` depend on `Classical.choice`). The oracle gains a `Resolve` step kind that
+  receives the snapshot: the R15 enum step names each baseline number by the snapshot enum its context
+  expects and is declared before the R9 step, which recognizes the success guard by its current
+  `Expression`; the R15 path step spells baseline paths with its own printer. Retired:
+  `FieldPathSegment`, `RepeatedWildcard`, `MapKeySelector`, `PresenceSelector`, `OneofSelector`.
+- **Absent operands (decided in .16, 2026-09-13).** Every `compare` operator is false when either
+  operand is absent, in the Program, Contract, correlated and evidence-lift contexts; `not(EQUAL)` is
+  therefore true there while `NOT_EQUAL` is false. `ir` binds a comparison operand as possibly absent
+  and returns false at evaluation; a bare absent boolean and an absent instruction input still reject
+  "requires an explicit presence guard". A true comparison supplies no presence fact, so a presence
+  conjunct that a later input reads through stays (the default success guard keeps
+  `present(status)`). The correlated evaluators (Go and `Testpilot.Correlated`, whose correlation is
+  now a `Bool`) compare a missing evidence field or retained occurrence as false, so a step that
+  failed as "missing correlation field operand" or "missing retained capture occurrence" now fails as
+  "correlation rejected this operation's step", and an `any` group can admit it through another
+  operand. Producers drop exactly `present(p)` beside a `compare` over `p`: field lowering keeps
+  `present(observation)` and the presence check beside a negated comparison (the reject transition of
+  an EQUAL Property and the match transition of a NOT_EQUAL one), because the negation is true on an
+  absent read and dropping it would turn "never established" into a violation; the typed Nexus lift
+  guard becomes the comparison. The oracle's last R15 step removes exactly that pattern and collapses
+  a singleton `all`. No Verdict moved: the regression gate passed over the unchanged fixtures and
+  again after regeneration. The activation unit tests that evaluated a dependent before its
+  dependency's outcome existed now observe a skipped instruction rather than an error; the worker
+  never evaluates out of order, so no Run changes.
+
+## Requirement coverage
+
+| Req | Description | Task(s) | Gap justification |
+|-----|-------------|---------|-------------------|
+| R1 | Glossary renames and retired names | .2, .3 | — |
+| R2 | One file per concept, comments, dense numbers | .4 | — |
+| R3 | One Expression with context checks | .5, .6 | — |
+| R4 | Run Event payload oneof | .7 | — |
+| R5 | Presence as optional fields; Deadline bound oneof | .6, .8 | — |
+| R6 | Duplicate and dead shapes removed | .8, .9 | — |
+| R7 | Extension checklist | .17 | — |
+| R8 | Generators, equivalence test, gates | .1, .17 (every task keeps it green) | — |
+| R9 | Entrypoint order by default; `after` | .11 | — |
+| R10 | Derived declarations; default instruction limits | .12 | — |
+| R11 | Case closure excludes Run-only messages | .4, .7 | — |
+| R12 | Ceilings in the Profile; SEM-16 draft | .10 | — |
+| R13 | Structured provenance; glossary drafts | .13 | — |
+| R14 | Case-local names and short values | .14 | — |
+| R15 | Declaration order, string paths, named enums, absent operands | .15, .16 | — |
+
+## Boundaries
+<!-- scope: business -->
+
+- **No new capabilities.** These protocol gaps stay with their owners:
+
+  | Gap | Owner |
+  | --- | --- |
+  | worker instructions carrying Temporal API messages (Nexus timeouts, operation-failed reply, handler error type and retry behavior, completion outcome) and one observation declaration per Case | fn-85 R10, authored on the new shapes |
+  | Nexus cancel request and handler cancel reply | fn-79 |
+  | correlated transitions over structured machine state (a record of fields per entity instance, not one `state` value and a fact list) | fn-85, whose machines need it |
+  | a wait-for-duration instruction, if fn-85's timer realization needs one | fn-85 |
+  | signals, updates, queries, child workflows, continue-as-new, activity scheduling and an activity interpreter, HTTP invocation for external Nexus callers | the first Model that needs each |
+  | fault kinds beyond worker stop and resume | the first Model that needs each |
+
+- **No change to Verdict computation** beyond R15's absent-operand rule, which is checked against
+  every conformance class and live test.
+- **No versioning scheme.** `FormatVersion` stays `1.0`; no compatibility shim for old Cases.
+- **No edits to historical `.plans` documents** other than `UMPIRE4_ORDER.md` and the drafted
+  SEM-16 and glossary amendments in R12 and R13 (and the ART-09, ART-13 and Profile glossary
+  restatements the Planning decisions add); approved rule text keeps the names it cites.
+- **Depends on fn-84**, whose Driver contract and projection lowering tasks touch the same code.
+
+## Decision Context
+<!-- scope: both — conditionally substructured -->
+
+The protocol changes now because it has no compatibility promise and two specs are about to build on
+it: fn-85 adds instructions and fn-86 migrates every hand-written Case. Cleaning afterwards would
+migrate those additions a second time.
+
+- **One expression language with context checks** over three typed ones: every operator is defined
+  once and a new reference is added in one place; the cost is that context mismatches become
+  preparation errors instead of unrepresentable values, which the existing located static
+  preparation errors already handle.
+- **Payload oneof on Run Events** over per-kind fields: the fault fields were the first per-kind
+  addition and every later one would repeat them.
+- **Rename to glossary words** over documenting the differences: SEM-19 forbids a word naming two
+  concepts and a concept having two words.
+- **Mechanical changes first**, proven by a field-mapping equivalence test, so structural
+  simplifications are reviewed against an unchanged baseline.
+
+- **Defaults over repetition**: every instruction guard in the checked-in Cases is "every
+  dependency succeeded", and no limit field takes more than four values across the six Cases, so the
+  wire states the exception, not the rule.
+- **Resource ceilings in the Profile** (amending SEM-16): they bound the environment, not the
+  behavior, and admission already checks Cases against the Profile.
+- **Readable fixtures**: the user reviews fixtures as artifacts; local names, short values,
+  declaration order, string paths and named enums make a Case readable without changing what the
+  runtime checks.
+
+Rejected: cross-entrypoint `after:` dependencies (entrypoints run as independent activation graphs that
+coordinate through Temporal; see the amended R9 in Planning decisions); a `v2` package beside `v1` (no consumer needs both, and the generator and runtime would
+carry two protocols); splitting the correlated capability into its own package (it is part of one
+Contract); a generated prose summary beside each fixture instead of a readable fixture (it would be a
+second artifact to review and keep in step).
+
+
+

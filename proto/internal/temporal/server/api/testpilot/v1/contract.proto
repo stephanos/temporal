@@ -1,0 +1,120 @@
+syntax = "proto3";
+package temporal.server.api.testpilot.v1;
+import "temporal/server/api/testpilot/v1/correlated.proto";
+import "temporal/server/api/testpilot/v1/event.proto";
+import "temporal/server/api/testpilot/v1/expression.proto";
+import "temporal/server/api/testpilot/v1/value.proto";
+option go_package = "go.temporal.io/server/api/testpilot/v1;testpilot";
+
+// Contract contains only closed deterministic monitor machines over declared Run Observations.
+message Contract {
+  string contract_id = 1;
+  repeated ContractRule rules = 2;
+  CorrelatedContract correlated = 3;
+}
+
+// ContractRule is one finite deterministic safety or bounded-liveness monitor machine.
+message ContractRule {
+  string rule_id = 1;
+  ContractRuleKind kind = 2;
+  string initial_state_id = 3;
+  repeated ContractState states = 4;
+  // Rule-local values its transitions assign.
+  repeated ContractCapture captures = 5;
+  repeated ContractTransition transitions = 6;
+  // A bounded-liveness rule has one deadline; a safety rule has none.
+  Deadline deadline = 7;
+}
+
+// ContractRuleKind names whether a rule is a safety rule or a bounded-liveness rule.
+// Contract lifecycle enums use the public Testpilot Status vocabulary.
+// (-- api-linter: core::0191::file-layout=disabled
+//     core::0216::synonyms=disabled --)
+enum ContractRuleKind {
+  CONTRACT_RULE_KIND_UNSPECIFIED = 0;
+  CONTRACT_RULE_KIND_SAFETY = 1;
+  CONTRACT_RULE_KIND_BOUNDED_LIVENESS = 2;
+}
+
+// ContractState is one state of a rule's machine; its status is the rule's status while in it.
+message ContractState { string state_id = 1; ContractStateStatus status = 2; }
+
+// ContractStateStatus says whether a state is pending or decides the rule. Only pending states have
+// outgoing transitions, and a rule starts in one.
+// (-- api-linter: core::0216::synonyms=disabled --)
+enum ContractStateStatus {
+  CONTRACT_STATE_STATUS_UNSPECIFIED = 0;
+  CONTRACT_STATE_STATUS_PENDING = 1;
+  CONTRACT_STATE_STATUS_SATISFIED = 2;
+  CONTRACT_STATE_STATUS_VIOLATED = 3;
+}
+
+// ContractCapture declares a rule-local value, assigned at most once from an Observation.
+message ContractCapture {
+  string capture_id = 1;
+  // A scalar, enum or message type equal to the type of the Observation it captures.
+  SingularType type = 2;
+}
+
+// ContractTransition is evaluated in declaration order for its source state and event kind.
+message ContractTransition {
+  string transition_id = 1;
+  string source_state_id = 2;
+  string target_state_id = 3;
+  // Whether the matching Run Event supports the rule's conclusion.
+  ContractSupportKind support_kind = 4;
+  repeated ContractCaptureAssignment capture_assignments = 5;
+  // The Run Event kinds the transition considers; never empty.
+  RunEventFilter event_filter = 6;
+  // Must hold on the Run Event for the transition to be taken.
+  Expression predicate = 7;
+}
+
+// ContractSupportKind says whether a transition's matching Run Event joins the rule's and the
+// Verdict's supporting event sequences.
+enum ContractSupportKind {
+  CONTRACT_SUPPORT_KIND_UNSPECIFIED = 0;
+  CONTRACT_SUPPORT_KIND_NONE = 1;
+  CONTRACT_SUPPORT_KIND_MATCHING_EVENT = 2;
+}
+
+// ContractCaptureAssignment copies an Observation of the matching Run Event into an unassigned capture
+// when its transition is taken.
+message ContractCaptureAssignment { string capture_id = 1; string observation_id = 2; }
+
+// Deadline bounds one liveness rule by one positive bound, and moves it to violation_state_id when
+// the bound is reached.
+message Deadline {
+  string violation_state_id = 1;
+  oneof bound {
+    // Expires the rule after that many Run Events were evaluated by the rule since its last
+    // transition into a new state. The counter resets on each such transition and stops once the
+    // rule reaches a terminal state. It also freezes, with every other rule effect, once execution
+    // becomes incomplete, so no expiry is ever concluded from a truncated Run.
+    int64 rule_events = 2;
+    // Expires the rule at the first Run Event whose elapsed coordinate reaches it; that coordinate is
+    // derived from the recording host's clock, so a bound expressed in it is host-clock dependent.
+    int64 elapsed_milliseconds = 3;
+  }
+}
+
+// ContractLimits are a Profile's resource ceilings on every Contract it admits, its correlated
+// contract included. A Case declares none of them.
+message ContractLimits {
+  // Rules, correlated rules included.
+  int64 max_rules = 1;
+  // States across every rule, plus the correlated contract's distinct model states.
+  int64 max_states = 2;
+  // Transitions across every rule, plus the rows of the correlated transition table.
+  int64 max_transitions = 3;
+  // Nesting depth of any predicate.
+  int64 max_expression_depth = 4;
+  // Evaluation work for one Run Event.
+  int64 max_work_per_event = 5;
+  // Evaluation work across the Run.
+  int64 max_total_work = 6;
+  // Captured values, correlated obligations and capture occurrences included.
+  int64 max_captures = 7;
+  // Size of every captured value together, correlated retention included.
+  int64 max_capture_bytes = 8;
+}

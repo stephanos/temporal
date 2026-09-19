@@ -1,0 +1,154 @@
+{
+  "formatVersion": "umpire-experiment-run/v2",
+  "runIdentity": "switch.run.1",
+  "behaviorFingerprint": "sha256:41e30ef6849aec9841e5af3a478e7ca4062f5229142318572b8afd9f36ec7f07",
+  "experiment": {
+    "formatVersion": "umpire-experiment/v2",
+    "artifactChecksum": "sha256:38833797faa2b888e72082c679c81d0ae6a3bbe6683ae942715087c4b351a32a",
+    "behaviorFingerprint": "sha256:4081061e25d59938effa0d03799036aa08a8548949df4ab8c7283dda2c5bd8ad",
+    "provenanceChecksum": "sha256:9ac3c6316036d5631c81c30f45e408e80e8536359f36ef6bdd504c9f57470f41"
+  },
+  "runtimeConfiguration": {
+    "formatVersion": "umpire-runtime-configuration/v2",
+    "artifactChecksum": "sha256:e476606b3bfddbadc6203c5e236fcf297dddc9a3a62f439e52b8b1eba07621e4",
+    "behaviorFingerprint": "sha256:6b81f3a1bc1b67f699b5f2dd7bd030e08c4bcf52c656274d4b25abb374bb87df",
+    "provenanceChecksum": "sha256:09745642d54e6faf89fd0c5a1a848d62fab3d8e472cc653db4fd02a96ff9e34e"
+  },
+  "attempt": 1,
+  "operationalStatus": "succeeded",
+  "phaseOutcomes": [
+    {
+      "phase": "preparation",
+      "status": "succeeded",
+      "startedAtUnixMillis": 1000,
+      "finishedAtUnixMillis": 1100,
+      "code": null
+    },
+    {
+      "phase": "realization",
+      "status": "succeeded",
+      "startedAtUnixMillis": 1100,
+      "finishedAtUnixMillis": 1200,
+      "code": null
+    },
+    {
+      "phase": "observation",
+      "status": "succeeded",
+      "startedAtUnixMillis": 1200,
+      "finishedAtUnixMillis": 1300,
+      "code": null
+    },
+    {
+      "phase": "isolation",
+      "status": "succeeded",
+      "startedAtUnixMillis": 1300,
+      "finishedAtUnixMillis": 1400,
+      "code": null
+    },
+    {
+      "phase": "cleanup",
+      "status": "succeeded",
+      "startedAtUnixMillis": 1400,
+      "finishedAtUnixMillis": 1500,
+      "code": null
+    }
+  ],
+  "controlAttempts": [
+    {
+      "occurrenceDefinitionId": "switch.occurrence.flip",
+      "actionDefinitionId": "switch.action.flip",
+      "attempt": 1,
+      "receiptFactDefinitionId": "switch.evidence.control-receipt.1",
+      "status": "accepted",
+      "code": null
+    }
+  ],
+  "sourceClosures": [
+    {
+      "sourceDefinitionId": "umpire.evidence.source.cleanup",
+      "status": "closed",
+      "recordCount": 1,
+      "byteCount": 64
+    },
+    {
+      "sourceDefinitionId": "umpire.evidence.source.control-receipt",
+      "status": "closed",
+      "recordCount": 1,
+      "byteCount": 128
+    },
+    {
+      "sourceDefinitionId": "umpire.evidence.source.history",
+      "status": "closed",
+      "recordCount": 2,
+      "byteCount": 512
+    },
+    {
+      "sourceDefinitionId": "umpire.evidence.source.participant-output",
+      "status": "closed",
+      "recordCount": 2,
+      "byteCount": 256
+    }
+  ],
+  "cleanup": {
+    "status": "complete",
+    "openHandleCount": 0,
+    "code": null
+  },
+  "limits": [
+    {
+      "phase": "preparation",
+      "durationMilliseconds": 30000,
+      "maxAttempts": 1,
+      "maxRecords": 128,
+      "maxBytes": 1048576
+    },
+    {
+      "phase": "realization",
+      "durationMilliseconds": 30000,
+      "maxAttempts": 1,
+      "maxRecords": 128,
+      "maxBytes": 1048576
+    },
+    {
+      "phase": "observation",
+      "durationMilliseconds": 30000,
+      "maxAttempts": 1,
+      "maxRecords": 3584,
+      "maxBytes": 12582912
+    },
+    {
+      "phase": "isolation",
+      "durationMilliseconds": 15000,
+      "maxAttempts": 1,
+      "maxRecords": 128,
+      "maxBytes": 1048576
+    },
+    {
+      "phase": "cleanup",
+      "durationMilliseconds": 15000,
+      "maxAttempts": 1,
+      "maxRecords": 128,
+      "maxBytes": 1048576
+    }
+  ],
+  "knownGaps": [],
+  "provenance": {
+    "sourceDefinitionIds": [
+      "switch.run.1",
+      "umpire.evidence.source.cleanup",
+      "umpire.evidence.source.control-receipt",
+      "umpire.evidence.source.history",
+      "umpire.evidence.source.participant-output"
+    ],
+    "sourceLocations": [
+      {
+        "path": "Umpire/Artifact/Tests/Runtime.lean",
+        "line": 1,
+        "column": 1,
+        "provenance": "lean-model"
+      }
+    ]
+  },
+  "provenanceChecksum": "sha256:b879d5eba0c02a60c52e59a009c79f953310a6c49e3453ea863fddcbb07a75a9",
+  "artifactChecksum": "sha256:a7b8e197b8d310959ff41d3fbb64b0c4f69ff974ceec9da93862404705d58758"
+}

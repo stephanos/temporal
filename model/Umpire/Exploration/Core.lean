@@ -1,0 +1,74 @@
+import Umpire.Artifact
+import Umpire.Variations
+
+/-! Pure checked inputs shared by bounded Experiment Space exploration policies. -/
+
+namespace Umpire
+
+/-- The two retained deterministic policies over one checked finite Experiment Space. -/
+inductive ExplorationPolicy where
+  | exhaustive
+  | uncoveredCoordinate (coordinate : ModelCoordinate)
+  deriving BEq, DecidableEq, Ord, Repr
+
+/-- Stable serialized name of an Exploration policy. -/
+def ExplorationPolicy.name : ExplorationPolicy → String
+  | .exhaustive => "exhaustive"
+  | .uncoveredCoordinate _ => "uncovered-coordinate"
+
+/-- Unchecked inputs for one bounded selection over exactly one checked Experiment Space. -/
+structure ExplorationRequest (LawStatement : Law → Prop) where
+  space : CheckedVariationSpace LawStatement
+  policy : ExplorationPolicy
+  limit : Limit
+  pinned : List Plan := []
+
+/-- Stable categories for bounded Exploration request failures. -/
+inductive ExplorationErrorKind where
+  | emptySpace
+  | spacePointLimitExceeded
+  | invalidLimitValue
+  | invalidLimitUnit
+  | unknownCoordinate
+  | invalidPinnedArtifact
+  | duplicatePinnedIdentity
+  | incompatiblePinnedContract
+  | candidateCompilationFailed
+  | candidateCountMismatch
+  | invalidCandidateArtifact
+  | duplicateCandidateIdentity
+  deriving BEq, DecidableEq, Ord, Repr
+
+/-- Stable serialized name of an Exploration failure. -/
+def ExplorationErrorKind.name : ExplorationErrorKind → String
+  | .emptySpace => "empty-space"
+  | .spacePointLimitExceeded => "space-point-limit-exceeded"
+  | .invalidLimitValue => "invalid-limit-value"
+  | .invalidLimitUnit => "invalid-limit-unit"
+  | .unknownCoordinate => "unknown-coordinate"
+  | .invalidPinnedArtifact => "invalid-pinned-artifact"
+  | .duplicatePinnedIdentity => "duplicate-pinned-identity"
+  | .incompatiblePinnedContract => "incompatible-pinned-contract"
+  | .candidateCompilationFailed => "candidate-compilation-failed"
+  | .candidateCountMismatch => "candidate-count-mismatch"
+  | .invalidCandidateArtifact => "invalid-candidate-artifact"
+  | .duplicateCandidateIdentity => "duplicate-candidate-identity"
+
+/-- Canonical typed failure returned while checking, compiling, or selecting Exploration inputs. -/
+structure ExplorationError where
+  kind : ExplorationErrorKind
+  definitionId : DefinitionId
+  sourcePath : String
+  offendingValue : String
+  relatedDefinitionIds : List DefinitionId
+  deriving BEq, DecidableEq, Repr
+
+/-- Stable name of one Model Coordinate used in Exploration diagnostics. -/
+def ModelCoordinate.name : ModelCoordinate → String
+  | .initialState => "initial-state"
+  | .selectedAction step => "selected-action:" ++ toString step
+  | .outcome step => "model-outcome:" ++ toString step
+  | .state step => "resulting-state:" ++ toString step
+  | .fact step position => "observation:" ++ toString step ++ ":" ++ toString position
+
+end Umpire

@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-13T00:25:40.304559Z",
+  "depends_on": [
+    "fn-87-tighten-the-testpilot-protocol-glossary.4"
+  ],
+  "id": "fn-87-tighten-the-testpilot-protocol-glossary.5",
+  "priority": null,
+  "spec": "fn-87-tighten-the-testpilot-protocol-glossary",
+  "spec_path": ".flow/tasks/fn-87-tighten-the-testpilot-protocol-glossary.5.md",
+  "status": "todo",
+  "title": "One Expression language for Program and Contract with located context checks",
+  "updated_at": "2026-09-13T03:10:45.015468Z"
+}

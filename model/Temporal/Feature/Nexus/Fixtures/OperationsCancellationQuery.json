@@ -1,0 +1,48 @@
+{
+  "id": "temporal.nexus.basic-lifecycle.query.cancellation",
+  "version": 1,
+  "form": "find",
+  "properties": [
+    {
+      "id": "temporal.nexus.basic-lifecycle.property.cancellation",
+      "behaviorFingerprint": "sha256:270931e4c5a0d072d0ebd76e509024e237b2215b941c3497cc4055134d34ab48"
+    }
+  ],
+  "behavior": {
+    "id": "temporal.nexus.basic-lifecycle.behavior.cancellation",
+    "behaviorFingerprint": "sha256:54481a44690637f3837b5d2de4af258dc05d2f40d41fe766e7a61d9533087171"
+  },
+  "limits": {
+    "steps": {
+      "value": 1,
+      "unit": "steps"
+    },
+    "actions": {
+      "value": 1,
+      "unit": "actions"
+    },
+    "search": {
+      "value": 8,
+      "unit": "search"
+    }
+  },
+  "policy": {
+    "strategy": "shortest",
+    "seed": 17
+  },
+  "target": {
+    "id": "temporal.nexus.basic-lifecycle.target",
+    "behaviorFingerprint": "sha256:bf81a3382115f48aa4f04d2668b9c587a47b95f50dbad00abb10b2d2ad806dc6",
+    "composition": [
+      "temporal.nexus.basic-lifecycle.capability",
+      "temporal.nexus.basic-lifecycle.provider"
+    ],
+    "kernel": {
+      "id": "temporal.nexus.basic-lifecycle.kernel"
+    }
+  },
+  "finiteCompleteness": {
+    "roleDomainFingerprint": "sha256:9e8ee751d61cb5ae4d97dfe7c0c05d41fabf5789c20c56921e6647e755bc5296",
+    "actionDomainFingerprint": "sha256:789b0dabaac631d2c4e783e21de4295c689da4cce6fefd0603d026d0d07330f6"
+  }
+}

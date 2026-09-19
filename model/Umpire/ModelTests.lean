@@ -1,0 +1,10 @@
+import Umpire.Model.Tests.Canonicalization
+import Umpire.Model.Tests.Composition
+import Umpire.Model.Tests.Compatibility
+import Umpire.Model.Tests.Authoring
+import Umpire.Model.Tests.FiniteMachine
+import Umpire.Model.Tests.KernelSoundness
+import Umpire.Model.Tests.MutationCoverage
+import Umpire.Model.Tests.Validation
+import Umpire.Model.Tests.FiniteTable
+import Umpire.Model.Tests.Parameterized

@@ -1,0 +1,630 @@
+import ModelLint.ImportGraph
+import ModelLint.PackageModulesTests
+import Tools.LeanImportGraphTests
+import Tools.LeanSourceInventoryTests
+import Tools.LeanImportGraph.Metadata
+
+/-! Executable synthetic regressions for model import-graph policy and inventory checking. -/
+
+open ModelLint.ImportGraph
+
+private def moduleRecord (name : Lean.Name) (imports : Array Lean.Name := #[]) : ModuleRecord :=
+  { name, imports }
+
+private def sourceRecord
+    (module : Lean.Name) (path := s!"{module}.lean") : SourceRecord :=
+  { path, module }
+
+private def requireEqual [BEq α] [Repr α] (label : String) (actual expected : α) : IO Unit :=
+  unless actual == expected do
+    throw <| IO.userError s!"{label}: expected {repr expected}, got {repr actual}"
+
+private def requireViolation
+    (label : String)
+    (modules : Array ModuleRecord)
+    (rule : Rule)
+    (path : Array Lean.Name) : IO Unit := do
+  let violations := check defaultPolicy modules
+  requireEqual label violations.size 1
+  let some violation := violations[0]?
+    | throw <| IO.userError s!"{label}: missing violation"
+  requireEqual s!"{label} rule" violation.rule rule
+  requireEqual s!"{label} path" violation.path path
+
+private def requireIncludedViolation
+    (label : String)
+    (modules : Array ModuleRecord)
+    (rule : Rule)
+    (path : Array Lean.Name) : IO Unit := do
+  let some violation := (check defaultPolicy modules).find? fun violation =>
+      violation.rule == rule && violation.path == path
+    | throw <| IO.userError s!"{label}: missing {repr rule} violation with path {path}"
+  requireEqual s!"{label} source" violation.source path[0]!
+  requireEqual s!"{label} destination" violation.destination path.back!
+
+private structure ForbiddenCase where
+  label : String
+  source : Lean.Name
+  destination : Lean.Name
+  rule : Rule
+
+private def forbiddenCases : Array ForbiddenCase := #[
+  { label := "Shared to Umpire", source := `Shared.Root, destination := `Umpire.Core,
+    rule := .sharedIndependence },
+  { label := "Shared to Temporal", source := `Shared.Root, destination := `Temporal.Feature.Root,
+    rule := .sharedIndependence },
+  { label := "Umpire to Temporal", source := `Umpire.Root, destination := `Temporal.Feature.Root,
+    rule := .umpireIndependence },
+  { label := "Feature to System", source := `Temporal.Feature.Root,
+    destination := `Temporal.System.Root,
+    rule := .featureIsolation },
+  { label := "System to Feature", source := `Temporal.System.Root,
+    destination := `Temporal.Feature.Root,
+    rule := .systemIsolation }
+]
+
+private def testDirectAndTransitiveRejections : IO Unit := do
+  for testCase in forbiddenCases do
+    requireViolation s!"{testCase.label} direct"
+      #[moduleRecord testCase.source #[testCase.destination], moduleRecord testCase.destination]
+      testCase.rule #[testCase.source, testCase.destination]
+    requireViolation s!"{testCase.label} transitive"
+      #[
+        moduleRecord testCase.source #[`ModelLint.Bridge],
+        moduleRecord `ModelLint.Bridge #[testCase.destination],
+        moduleRecord testCase.destination
+      ]
+      testCase.rule #[testCase.source, `ModelLint.Bridge, testCase.destination]
+
+private def testAllowedOrdinaryImports : IO Unit := do
+  let modules := #[
+    moduleRecord `Shared.Root #[`Std.Data.HashMap],
+    moduleRecord `Umpire.Root #[`Shared.Root],
+    moduleRecord `Temporal.Feature.Root #[`Umpire.Root],
+    moduleRecord `Temporal.System.Root #[`Umpire.Root],
+    moduleRecord `Temporal.Root #[`Temporal.Feature.Root, `Temporal.System.Root]
+  ]
+  requireEqual "allowed ordinary imports" (check defaultPolicy modules) #[]
+
+private def testTestpilotIsolation : IO Unit := do
+  requireEqual "Testpilot protocol has a distinct class"
+    (defaultPolicy.classify? `Testpilot.Protocol)
+    (some .testpilot)
+  requireEqual "Testpilot tests take model-test precedence"
+    (defaultPolicy.classify? `Testpilot.Tests.Protocol)
+    (some .modelTests)
+  let allowed := #[
+    moduleRecord `Testpilot #[`Testpilot.Protocol],
+    moduleRecord `Testpilot.Protocol #[`Protobuf]
+  ]
+  requireEqual "Testpilot protocol imports" (check defaultPolicy allowed) #[]
+  for destination in #[`Umpire.Core, `Temporal.Feature.Root] do
+    requireViolation s!"Testpilot to {destination} direct"
+      #[moduleRecord `Testpilot.Protocol #[destination], moduleRecord destination]
+      .testpilotIndependence #[`Testpilot.Protocol, destination]
+    requireViolation s!"Testpilot to {destination} transitive"
+      #[
+        moduleRecord `Testpilot.Protocol #[`ModelLint.Bridge],
+        moduleRecord `ModelLint.Bridge #[destination],
+        moduleRecord destination
+      ]
+      .testpilotIndependence #[`Testpilot.Protocol, `ModelLint.Bridge, destination]
+  let sources := #[
+    sourceRecord `Testpilot.Protocol,
+    sourceRecord `TemporalExperimentalTests.UnclassifiedBridge,
+    sourceRecord `Umpire.Core
+  ]
+  let modules := #[
+    moduleRecord `Testpilot.Protocol #[`TemporalExperimentalTests.UnclassifiedBridge],
+    moduleRecord `TemporalExperimentalTests.UnclassifiedBridge #[`Umpire.Core],
+    moduleRecord `Umpire.Core
+  ]
+  requireEqual "unclassified Testpilot bridge"
+    (reconcile defaultPolicy sources modules)
+    #[.unclassifiedModule `TemporalExperimentalTests.UnclassifiedBridge]
+  requireViolation "unclassified Testpilot bridge preserves forbidden path" modules
+    .testpilotIndependence
+    #[`Testpilot.Protocol, `TemporalExperimentalTests.UnclassifiedBridge, `Umpire.Core]
+
+private def testOrdinaryNexusFacadeIsolation : IO Unit := do
+  requireViolation "ordinary Nexus facade to Experimental direct"
+    #[
+      moduleRecord `Temporal.Feature.Nexus #[
+        `Temporal.Feature.Nexus.Experimental.AutoClose
+      ],
+      moduleRecord `Temporal.Feature.Nexus.Experimental.AutoClose
+    ]
+    .nexusExperimentalIsolation
+    #[`Temporal.Feature.Nexus, `Temporal.Feature.Nexus.Experimental.AutoClose]
+  requireIncludedViolation "ordinary Nexus facade to Experimental transitive"
+    #[
+      moduleRecord `Temporal.Feature.Nexus #[`Temporal.Feature.Nexus.Operations],
+      moduleRecord `Temporal.Feature.Nexus.Operations #[
+        `Temporal.Feature.Nexus.Experimental.VariationSpace
+      ],
+      moduleRecord `Temporal.Feature.Nexus.Experimental.VariationSpace
+    ]
+    .nexusExperimentalIsolation
+    #[
+      `Temporal.Feature.Nexus,
+      `Temporal.Feature.Nexus.Operations,
+      `Temporal.Feature.Nexus.Experimental.VariationSpace
+    ]
+  let explicitExperimentalImports := #[
+    moduleRecord `Temporal.Feature.Nexus.Experimental.VariationSpace #[
+      `Temporal.Feature.Nexus.Experimental.AutoClose
+    ],
+    moduleRecord `Temporal.Feature.Nexus.Experimental.AutoClose
+  ]
+  requireEqual "explicit Experimental entry points remain usable"
+    (check defaultPolicy explicitExperimentalImports) #[]
+
+private def testTemporalSharedIsolation : IO Unit := do
+  requireEqual "Temporal.Shared has a distinct class"
+    (defaultPolicy.classify? `Temporal.Shared.Construction)
+    (some .temporalShared)
+  let allowed := #[
+    moduleRecord `Temporal.Shared.Construction #[
+      `Shared.Root,
+      `Temporal.Shared.Foundation,
+      `Umpire.Shared
+    ],
+    moduleRecord `Temporal.Shared.Foundation,
+    moduleRecord `Umpire.Shared #[`Umpire.Core],
+    moduleRecord `Umpire.Core,
+    moduleRecord `Shared.Root
+  ]
+  requireEqual "Temporal.Shared lower-layer imports" (check defaultPolicy allowed) #[]
+  for destination in #[
+    `Temporal.API.Proto,
+    `Temporal.Feature.Root,
+    `Temporal.System.Root,
+    `Temporal.Tool.Inspect,
+    `TemporalModelTests
+  ] do
+    requireViolation s!"Temporal.Shared to {destination} direct"
+      #[moduleRecord `Temporal.Shared.Construction #[destination], moduleRecord destination]
+      .temporalSharedIsolation #[`Temporal.Shared.Construction, destination]
+    requireIncludedViolation s!"Temporal.Shared to {destination} transitive"
+      #[
+        moduleRecord `Temporal.Shared.Construction #[`ModelLint.Bridge],
+        moduleRecord `ModelLint.Bridge #[destination],
+        moduleRecord destination
+      ]
+      .temporalSharedIsolation #[`Temporal.Shared.Construction, `ModelLint.Bridge, destination]
+  for destination in defaultPolicy.testSupportNamespaces do
+    requireViolation s!"Temporal.Shared to {destination} direct"
+      #[moduleRecord `Temporal.Shared.Construction #[destination], moduleRecord destination]
+      .temporalSharedIsolation #[`Temporal.Shared.Construction, destination]
+    requireIncludedViolation s!"Temporal.Shared to {destination} transitive"
+      #[
+        moduleRecord `Temporal.Shared.Construction #[`Umpire.PolicyTests],
+        moduleRecord `Umpire.PolicyTests #[destination],
+        moduleRecord destination
+      ]
+      .temporalSharedIsolation #[`Temporal.Shared.Construction, `Umpire.PolicyTests, destination]
+
+private def testTestSupportIsolation : IO Unit := do
+  for destination in defaultPolicy.testSupportNamespaces do
+    requireViolation s!"production to {destination} direct"
+      #[moduleRecord `Temporal.Feature.Root #[destination], moduleRecord destination]
+      .testSupportIsolation #[`Temporal.Feature.Root, destination]
+    requireViolation s!"production to {destination} transitive"
+      #[
+        moduleRecord `Temporal.Feature.Root #[`Temporal.Feature.PolicyTests],
+        moduleRecord `Temporal.Feature.PolicyTests #[destination],
+        moduleRecord destination
+      ]
+      .testSupportIsolation
+      #[`Temporal.Feature.Root, `Temporal.Feature.PolicyTests, destination]
+  requireViolation "Shared production to Shared test support"
+    #[moduleRecord `Shared.Root #[`Shared.Test], moduleRecord `Shared.Test]
+    .testSupportIsolation #[`Shared.Root, `Shared.Test]
+  for source in #[`Umpire.Shared, `Temporal.Tool.GenerateTests] do
+    requireViolation s!"{source} to Umpire test support"
+      #[moduleRecord source #[`Umpire.Shared.Test], moduleRecord `Umpire.Shared.Test]
+      .testSupportIsolation #[source, `Umpire.Shared.Test]
+  let allowed := #[
+    moduleRecord `Umpire.Model.Tests.Fixtures #[`Umpire.Shared.Test],
+    moduleRecord `Umpire.Model.Tests.Validation #[`Umpire.Model.Tests.Fixtures],
+    moduleRecord `Umpire.ModelTests #[`Umpire.Model.Tests.Validation],
+    moduleRecord `UmpireTests #[`Umpire.ModelTests],
+    moduleRecord `Umpire.Lint #[`UmpireTests],
+    moduleRecord `Temporal.Feature.Nexus.LifecycleTests #[`Umpire.Shared.Test],
+    moduleRecord `Temporal.Tool.GenerateTestsTests #[`Umpire.Shared.Test],
+    moduleRecord `Temporal.Tool.GenerateTestsIOTestsMain #[
+      `Temporal.Tool.GenerateTestsTests
+    ],
+    moduleRecord `Umpire.Shared.Test
+  ]
+  requireEqual "test consumers may reach test support" (check defaultPolicy allowed) #[]
+
+private def testTargetIsolation : IO Unit := do
+  let allowed := #[
+    moduleRecord `Umpire.Model.Tests.Validation #[`Umpire.Model],
+    moduleRecord `Umpire.Model #[`Umpire.Model.Types],
+    moduleRecord `Umpire.Model.Types #[`Umpire.Core],
+    moduleRecord `Umpire.Core
+  ]
+  requireEqual "Target-owned imports" (check defaultPolicy allowed) #[]
+  let destinations := #[
+    `Umpire.Query,
+    `Umpire.Search,
+    `Umpire.Artifact,
+    `Umpire.Runtime.Driver,
+    `Temporal.Feature.Nexus.Lifecycle
+  ]
+  for source in #[`Umpire.Model, `Umpire.Model.Tests.Validation] do
+    for destination in destinations do
+      requireViolation s!"{source} to {destination} direct"
+        #[moduleRecord source #[destination], moduleRecord destination]
+        .modelIsolation #[source, destination]
+      requireViolation s!"{source} to {destination} transitive"
+        #[
+          moduleRecord source #[`ModelLint.Bridge],
+          moduleRecord `ModelLint.Bridge #[destination],
+          moduleRecord destination
+        ]
+        .modelIsolation #[source, `ModelLint.Bridge, destination]
+
+private def testSemanticTargetIsolation : IO Unit := do
+  let roots := #[
+    `Umpire.Model.Check,
+    `Umpire.Property,
+    `Umpire.Property.Check,
+    `Umpire.Property.Evaluate,
+    `Umpire.Property.Correlated,
+    `Umpire.Property.Correlated.Kernel,
+    `Umpire.Property.Correlated.Reference,
+    `Umpire.Scenario,
+    `Umpire.Scenario.Check,
+    `Umpire.Query,
+    `Umpire.Query.Check,
+    `Umpire.Search,
+    `Umpire.Search.Types,
+    `Umpire.Search.Branches,
+    `Umpire.Artifact.Types,
+    `Umpire.Artifact.Codecs,
+    `Umpire.Artifact.Planning
+  ]
+  for root in roots do
+    for destination in #[`Umpire.Model.Elab, `Lean.Elab.Term] do
+      let direct := check defaultPolicy #[moduleRecord root #[destination]]
+      requireEqual s!"{root} rejects missing-record endpoint {destination}"
+        (direct.map (·.path)) #[#[root, destination]]
+      for bridge in #[`ModelLint.Bridge, `External.Wrapper] do
+        let modules := #[
+          moduleRecord root #[bridge],
+          moduleRecord bridge #[destination],
+          moduleRecord destination
+        ]
+        requireEqual s!"{root} rejects {bridge} to {destination}"
+          ((check defaultPolicy modules).map (·.path)) #[#[root, bridge, destination]]
+  let allowed := #[
+    moduleRecord `Umpire.Property.Evaluate #[`Umpire.Model.Check],
+    moduleRecord `Umpire.Model.Check #[`External.Pure],
+    moduleRecord `External.Pure #[`Lean.Data.Json],
+    moduleRecord `Lean.Data.Json,
+    moduleRecord `Umpire.Model #[`Umpire.Model.Types],
+    moduleRecord `Umpire.Model.Types #[`Umpire.Model.Elab],
+    moduleRecord `Umpire.Model.Elab #[`Lean.Elab.Term],
+    moduleRecord `Lean.Elab.Term,
+    moduleRecord `Umpire.Property #[`External.Pure],
+    moduleRecord `Umpire.Property.Elab #[`Umpire.Model, `Umpire.Property],
+    moduleRecord `Umpire.Property.Tests.Fixtures #[`Umpire.Property.Elab],
+    moduleRecord `Umpire.Scenario #[`External.Pure],
+    moduleRecord `Umpire.Scenario.Elab #[`Umpire.Model, `Umpire.Scenario],
+    moduleRecord `Umpire.Query.Elab #[`Umpire.Model, `Umpire.Query],
+    moduleRecord `Umpire.Query #[`External.Pure]
+  ]
+  requireEqual "pure imports and explicit authoring remain allowed"
+    (check defaultPolicy allowed) #[]
+  let cyclic := #[
+    moduleRecord `Umpire.Search #[`External.Zed, `External.Alpha],
+    moduleRecord `External.Zed #[`Lean.Elab.Term],
+    moduleRecord `External.Alpha #[`External.Zed, `Umpire.Search, `Lean.Elab.Term]
+  ]
+  let expected := #[#[`Umpire.Search, `External.Alpha, `Lean.Elab.Term]]
+  requireEqual "external cycles retain stable shortest path"
+    ((check defaultPolicy cyclic).map (·.path)) expected
+  requireEqual "metadata order does not select the path"
+    ((check defaultPolicy cyclic.reverse).map (·.path)) expected
+
+private def testInventoryIsolation : IO Unit := do
+  for source in #[
+    `Umpire,
+    `Umpire.NewHelper,
+    `Umpire.InventoryHelper,
+    `Umpire.Search,
+    `Umpire.Evidence.Evaluate.Types,
+    `Umpire.Evidence.PropertyStatus,
+    `Umpire.Artifact.RunRecord,
+    `Umpire.Artifact.Result,
+    `Umpire.ImplementationLink.Application
+  ] do
+    for destination in #[`Umpire.Inventory, `Umpire.Inventory.Types] do
+      let direct := check defaultPolicy #[moduleRecord source #[destination]]
+      requireEqual s!"{source} rejects inventory without endpoint metadata"
+        (direct.map (·.render))
+        #[s!"[model-import-graph/inventory-isolation] forbidden qualified import path: \
+          {source} -> {destination}"]
+      for bridge in #[
+        `Umpire.NewHelper.Bridge,
+        `Umpire.Artifact.Result,
+        `Umpire.ImplementationLink,
+        `ModelLint.Bridge,
+        `External.Wrapper,
+        `Umpire.Search.Tests.KnownGaps,
+        `Umpire.Shared.Test
+      ] do
+        if source == bridge then continue
+        let modules := #[
+          moduleRecord source #[bridge],
+          moduleRecord bridge #[destination],
+          moduleRecord destination
+        ]
+        requireEqual s!"{source} rejects inventory through {bridge}"
+          ((check defaultPolicy modules).any (·.path == #[source, bridge, destination])) true
+  let allowed := #[
+    moduleRecord `Umpire.Inventory #[
+      `Umpire.Inventory.Types, `Umpire.Inventory.KnownGaps,
+      `Umpire.Search, `Umpire.Artifact.RunRecord, `Umpire.Artifact.Result,
+      `Umpire.Evidence.PropertyStatus, `Umpire.ImplementationLink.Application
+    ],
+    moduleRecord `Umpire.Inventory.Types #[`Umpire.OutcomeClassification],
+    moduleRecord `Umpire.Inventory.KnownGaps #[`Umpire.KnownGap],
+    moduleRecord `Umpire.Search.Tests.KnownGaps #[`Umpire.Inventory.KnownGaps],
+    moduleRecord `Umpire.InventoryTests #[`Umpire.Inventory],
+    moduleRecord `Umpire.Inventory.Tests.PlanningRuntime #[`Umpire.Inventory],
+    moduleRecord `Umpire.Shared.Test #[`Umpire.Inventory],
+    moduleRecord `UmpireTests #[`Umpire.Search.Tests.KnownGaps],
+    moduleRecord `Umpire.Lint #[`UmpireTests],
+    moduleRecord `Temporal.Tool.Inventory #[`Umpire.Inventory],
+    moduleRecord `Umpire.Search #[`Umpire.OutcomeClassification],
+    moduleRecord `Umpire.Artifact.RunRecord #[`Umpire.OutcomeClassification],
+    moduleRecord `Umpire.Artifact.Result #[`Umpire.KnownGap],
+    moduleRecord `Umpire.Evidence.PropertyStatus #[`Umpire.OutcomeClassification],
+    moduleRecord `Umpire.ImplementationLink.Application #[`Umpire.OutcomeClassification],
+    moduleRecord `Umpire.KnownGap,
+    moduleRecord `Umpire.OutcomeClassification #[`Init.Data.List.Basic]
+  ]
+  requireEqual "inventory consumes owners and dedicated tests consume inventory"
+    (check defaultPolicy allowed) #[]
+
+private def testOutcomeClassificationIsolation : IO Unit := do
+  let source := `Umpire.OutcomeClassification
+  for destination in #[
+    `Umpire, `Umpire.Core, `Umpire.KnownGap, `Umpire.Search,
+    `Umpire.Artifact.RunRecord, `Umpire.Artifact.Result,
+    `Umpire.Evidence.Evaluate.Types, `Umpire.Evidence.PropertyStatus,
+    `Umpire.ImplementationLink.Application,
+    `Umpire.Inventory, `Umpire.Inventory.Types,
+    `Umpire.OutcomeClassification.Helper, `Shared.Root,
+    `Temporal.Feature.Root, `Temporal.Tool.Inventory, `ModelLint,
+    `Lean, `Std, `Batteries, `External.Wrapper, `InitExtra
+  ] do
+    requireEqual s!"neutral classification rejects {destination} without endpoint metadata"
+      ((check defaultPolicy #[moduleRecord source #[destination]]).map (·.render))
+      #[s!"[model-import-graph/outcome-classification-isolation] forbidden qualified import path: \
+        {source} -> {destination}"]
+    for bridge in #[`Init.Data.List.Basic, `External.Bridge, `Umpire.PolicyTests] do
+      let modules := #[
+        moduleRecord source #[bridge],
+        moduleRecord bridge #[destination],
+        moduleRecord destination
+      ]
+      requireEqual s!"neutral classification rejects {destination} through {bridge}"
+        ((check defaultPolicy modules).any (·.path == #[source, bridge, destination])) true
+  let allowed := #[
+    moduleRecord source #[`Init, `Init.Data.List.Basic],
+    moduleRecord `Init #[`Init.Prelude],
+    moduleRecord `Init.Data.List.Basic #[`Init.Prelude],
+    moduleRecord `Init.Prelude,
+    moduleRecord `Umpire.ImportTests #[source, `Umpire.Core],
+    moduleRecord `Umpire.Core
+  ]
+  requireEqual "neutral classification uses only Init foundation; import tests remain consumers"
+    (check defaultPolicy allowed) #[]
+
+private def testInventoryBoundaryPaths : IO Unit := do
+  for (source, destination) in #[
+    (`Umpire.NewFacade, `Umpire.Inventory.Types),
+    (`Umpire.OutcomeClassification, `Umpire.Core)
+  ] do
+    let modules := #[
+      moduleRecord source #[`External.Zed, `External.Long, `External.Alpha],
+      moduleRecord `External.Zed #[destination],
+      moduleRecord `External.Long #[`External.Zed],
+      moduleRecord `External.Alpha #[source, `External.Zed, destination],
+      moduleRecord destination
+    ]
+    let paths := fun records => (check defaultPolicy records).filterMap fun violation =>
+      if violation.source == source && violation.destination == destination then
+        some violation.path
+      else none
+    let expected := #[#[source, `External.Alpha, destination]]
+    requireEqual s!"{source} cycle-safe shortest path" (paths modules) expected
+    requireEqual s!"{source} metadata-order independent path" (paths modules.reverse) expected
+    let direct := modules.map fun record =>
+      if record.name == source then { record with imports := record.imports.push destination }
+      else record
+    requireEqual s!"{source} direct path wins" (paths direct) #[#[source, destination]]
+
+private def testExternalMetadataReconciliation : IO Unit := do
+  let sources := #[sourceRecord `Umpire.Property]
+  let modules := #[
+    moduleRecord `Umpire.Property #[`External.Wrapper],
+    moduleRecord `External.Wrapper #[`Umpire.Model.Missing]
+  ]
+  requireEqual "external metadata keeps unknown owned imports visible"
+    (reconcile defaultPolicy sources modules)
+    #[.unknownFirstPartyImport `External.Wrapper `Umpire.Model.Missing]
+  requireEqual "external metadata cannot supply a missing owned record"
+    (reconcile defaultPolicy (sources.push (sourceRecord `Umpire.Model.Missing)) modules)
+    #[
+      .uncoveredSource `Umpire.Model.Missing "Umpire.Model.Missing.lean",
+      .unknownFirstPartyImport `External.Wrapper `Umpire.Model.Missing
+    ]
+
+private def testExactImplementationLinkExceptions : IO Unit := do
+  let allowed := #[
+    moduleRecord `Temporal.System.Nexus.ImplementationLink #[
+      `Temporal.Feature.Nexus.Root,
+      `Temporal.System.Nexus.Core
+    ],
+    moduleRecord `TemporalModelTests.Nexus.ImplementationLink #[
+      `Temporal.Feature.Nexus.Root,
+      `Temporal.System.Nexus.ImplementationLink
+    ],
+    moduleRecord `Temporal.System.Nexus.Core,
+    moduleRecord `Temporal.Feature.Nexus.Root
+  ]
+  requireEqual "exact Implementation Link composition" (check defaultPolicy allowed) #[]
+  -- The composed test needs both a Feature and a System import, which the model-test class
+  -- already permits; a `Temporal.System.*` home would trip `systemIsolation` instead.
+  requireEqual "composed test is an ordinary model test"
+    (defaultPolicy.classify? `TemporalModelTests.Nexus.ImplementationLink)
+    (some .modelTests)
+  for nearMiss in #[
+    `Temporal.System.Nexus.ImplementationLink.Extra,
+    `Temporal.System.Nexus.ImplementationLinkSibling,
+    `Temporal.System.Nexus.ImplementationLinkTests,
+    `Temporal.System.Nexus.Other
+  ] do
+    requireViolation s!"Implementation Link System near miss {nearMiss}"
+      #[
+        moduleRecord nearMiss #[`Temporal.Feature.Nexus.Root],
+        moduleRecord `Temporal.Feature.Nexus.Root
+      ]
+      .systemIsolation
+      #[nearMiss, `Temporal.Feature.Nexus.Root]
+
+private def testModelInventoryPolicy : IO Unit := do
+  requireEqual "experimental test aggregate classified"
+    (reconcile defaultPolicy #[sourceRecord `TemporalExperimentalTests]
+      #[moduleRecord `TemporalExperimentalTests])
+    #[]
+  requireEqual "unclassified source"
+    (reconcile defaultPolicy #[sourceRecord `Unknown.Root] #[moduleRecord `Unknown.Root])
+    #[.unclassifiedModule `Unknown.Root]
+  requireEqual "unknown first-party import"
+    (reconcile defaultPolicy #[sourceRecord `Temporal.Root]
+      #[moduleRecord `Temporal.Root #[`Temporal.Future]])
+    #[.unknownFirstPartyImport `Temporal.Root `Temporal.Future]
+  requireEqual "unknown near-miss aggregate import"
+    (reconcile defaultPolicy #[sourceRecord `Temporal.Root]
+      #[moduleRecord `Temporal.Root #[`TemporalModelTests.Extra]])
+    #[.unknownFirstPartyImport `Temporal.Root `TemporalModelTests.Extra]
+
+private def testExternalLeaves : IO Unit := do
+  let sources := #[sourceRecord `Shared.Root]
+  let modules := #[moduleRecord `Shared.Root #[`Lean.Data.Name, `Std.Data.HashMap]]
+  requireEqual "external inventory leaves" (reconcile defaultPolicy sources modules) #[]
+  requireEqual "external graph leaves" (check defaultPolicy modules) #[]
+
+private def testStableShortestPath : IO Unit := do
+  let modules := #[
+    moduleRecord `Temporal.Feature.Root #[`ModelLint.BridgeB, `ModelLint.BridgeA],
+    moduleRecord `ModelLint.BridgeA #[`Temporal.System.Target],
+    moduleRecord `ModelLint.BridgeB #[`Temporal.System.Target],
+    moduleRecord `Temporal.System.Target
+  ]
+  requireViolation "equal shortest paths" modules .featureIsolation
+    #[`Temporal.Feature.Root, `ModelLint.BridgeA, `Temporal.System.Target]
+
+private def testMultipleFindings : IO Unit := do
+  let modules := #[
+    moduleRecord `Temporal.Feature.Root #[`Temporal.System.Zed, `Temporal.System.Alpha],
+    moduleRecord `Temporal.System.Alpha,
+    moduleRecord `Temporal.System.Zed
+  ]
+  let violations := check defaultPolicy modules
+  requireEqual "multiple findings count" violations.size 2
+  requireEqual "multiple findings order" (violations.map (·.destination))
+    #[`Temporal.System.Alpha, `Temporal.System.Zed]
+
+private def testCyclesTerminate : IO Unit := do
+  let modules := #[
+    moduleRecord `Temporal.Feature.Root #[`ModelLint.BridgeA],
+    moduleRecord `ModelLint.BridgeA #[`ModelLint.BridgeB],
+    moduleRecord `ModelLint.BridgeB #[`ModelLint.BridgeA, `Temporal.System.Target],
+    moduleRecord `Temporal.System.Target
+  ]
+  requireViolation "cycle-safe traversal" modules .featureIsolation
+    #[`Temporal.Feature.Root, `ModelLint.BridgeA, `ModelLint.BridgeB, `Temporal.System.Target]
+
+private def controlledViolations : Array Violation :=
+  check defaultPolicy #[
+    moduleRecord `Shared.Root #[`ModelLint.Bridge],
+    moduleRecord `ModelLint.Bridge #[`Umpire.Core],
+    moduleRecord `Umpire.Core
+  ]
+
+private unsafe def testExternalMetadataClosure : IO Unit := do
+  let (modules, regions, closureIssues) ← Tools.LeanImportGraph.Metadata.load #[`Lean.Elab.Command]
+  requireEqual "a readable closure reports no issues" closureIssues.size 0
+  requireEqual "actual external wrapper loads transitive Term metadata"
+    (modules.any (·.name == `Lean.Elab.Term)) true
+  let root := moduleRecord `Umpire.Property #[`Lean.Elab.Command]
+  let violations := check defaultPolicy (modules.push root)
+  requireEqual "actual external wrapper is rejected"
+    (violations.map (·.destination)) #[`Lean.Elab.Term]
+  requireEqual "actual external closure contains unique records"
+    (modules.map (·.name)).size
+    ((modules.map (·.name)).foldl (init := ({} : Std.HashSet Lean.Name))
+      fun names name => names.insert name).size
+  let (incomplete, incompleteRegions, _) ← Tools.LeanImportGraph.Metadata.load
+    #[`Lean.Elab.Command] (· == `Lean.Elab.Term)
+  requireEqual "cached metadata cannot fill an uninventoried owned import"
+    (incomplete.any (·.name == `Lean.Elab.Term)) false
+  requireEqual "missing owned metadata still exposes the forbidden endpoint"
+    ((check defaultPolicy (incomplete.push root)).map (·.destination)) #[`Lean.Elab.Term]
+  -- Missing metadata is reported rather than thrown, and is reported against the module it is
+  -- about: an all-or-nothing caller reads the issues and discards the records, and a caller that
+  -- wants to say which module could not be examined can.
+  let (missingRecords, _, missingIssues) ←
+    Tools.LeanImportGraph.Metadata.load #[`ModelLint.MissingOwnedMetadata]
+  requireEqual "missing source metadata is reported" missingIssues.size 1
+  requireEqual "missing source metadata names its module"
+    (missingIssues.map (·.1)) #[`ModelLint.MissingOwnedMetadata]
+  requireEqual "a module that could not be read contributes no record" missingRecords.size 0
+  let _loadedRegionCount := regions.size + incompleteRegions.size
+
+private unsafe def runSyntheticSuite : IO UInt32 := do
+  Tools.LeanImportGraphTests.run
+  Tools.LeanSourceInventoryTests.run
+  ModelLint.PackageModulesTests.run
+  testAllowedOrdinaryImports
+  testTestpilotIsolation
+  testOrdinaryNexusFacadeIsolation
+  testTemporalSharedIsolation
+  testTestSupportIsolation
+  testTargetIsolation
+  testSemanticTargetIsolation
+  testInventoryIsolation
+  testOutcomeClassificationIsolation
+  testInventoryBoundaryPaths
+  testExternalMetadataReconciliation
+  testExternalMetadataClosure
+  testDirectAndTransitiveRejections
+  testExactImplementationLinkExceptions
+  testModelInventoryPolicy
+  testExternalLeaves
+  testStableShortestPath
+  testMultipleFindings
+  testCyclesTerminate
+  IO.println "-- Model import-graph synthetic tests passed."
+  pure 0
+
+private def runControlledViolation : IO UInt32 := do
+  for violation in controlledViolations do
+    IO.eprintln violation.render
+  pure <| exitCode controlledViolations.isEmpty true
+
+unsafe def main (args : List String) : IO UInt32 :=
+  match args with
+  | [] => runSyntheticSuite
+  | ["--controlled-violation"] => runControlledViolation
+  | _ => do
+      IO.eprintln "usage: umpire-lint-tests [--controlled-violation]"
+      pure 2

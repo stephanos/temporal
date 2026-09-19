@@ -1,0 +1,220 @@
+{
+  "formatVersion": "umpire-experiment/v2",
+  "queryBehaviorFingerprint": "sha256:eaadd1ba1a104224b970d48f8bb7b21bb15b7c4b76a700aee99bf7f9181f3a83",
+  "plan": {
+    "formatVersion": "umpire-drive-plan/v2",
+    "queryDefinitionId": "temporal.nexus.basic-lifecycle.query.successful-completion",
+    "queryBehaviorFingerprint": "sha256:eaadd1ba1a104224b970d48f8bb7b21bb15b7c4b76a700aee99bf7f9181f3a83",
+    "behaviorDefinitionId": "temporal.nexus.basic-lifecycle.behavior.successful-completion",
+    "behaviorFingerprint": "sha256:f0d3559ebef58a279567a3685cf0a01d91c6db2c887da48ac2c2b0c3803ed86b",
+    "targetDefinitionId": "temporal.nexus.basic-lifecycle.target",
+    "targetBehaviorFingerprint": "sha256:bf81a3382115f48aa4f04d2668b9c587a47b95f50dbad00abb10b2d2ad806dc6",
+    "kernelDefinitionId": "temporal.nexus.basic-lifecycle.kernel",
+    "kernelBehaviorFingerprint": "sha256:bf81a3382115f48aa4f04d2668b9c587a47b95f50dbad00abb10b2d2ad806dc6",
+    "bindings": [
+      {
+        "roleDefinitionId": "temporal.nexus.basic-lifecycle.role.operation",
+        "value": {
+          "definitionId": "temporal.nexus.basic-lifecycle.state.operation",
+          "value": "started"
+        }
+      }
+    ],
+    "symbolicRoles": [],
+    "modelPreconditions": [
+      {
+        "definitionId": "temporal.nexus.basic-lifecycle.setup.started",
+        "relation": "equal",
+        "left": {
+          "kind": "role",
+          "definitionId": "temporal.nexus.basic-lifecycle.role.operation"
+        },
+        "right": {
+          "kind": "value",
+          "value": {
+            "definitionId": "temporal.nexus.basic-lifecycle.state.operation",
+            "value": "started"
+          }
+        }
+      }
+    ],
+    "initialState": {
+      "definitionId": "temporal.nexus.basic-lifecycle.state.operation",
+      "value": "started"
+    },
+    "requestedActions": [
+      {
+        "definitionId": "temporal.nexus.basic-lifecycle.action.succeed",
+        "value": "handler-reports-success"
+      }
+    ],
+    "modelOutcomes": [
+      {
+        "definitionId": "temporal.nexus.basic-lifecycle.outcome.transition",
+        "value": "succeeded"
+      }
+    ],
+    "resultingStates": [
+      {
+        "definitionId": "temporal.nexus.basic-lifecycle.state.operation",
+        "value": "succeeded"
+      }
+    ],
+    "linearExtension": [
+      {
+        "definitionId": "temporal.nexus.basic-lifecycle.occurrence.succeed",
+        "actionDefinitionId": "temporal.nexus.basic-lifecycle.action.succeed",
+        "position": 1,
+        "authoredDefinitionId": "temporal.nexus.basic-lifecycle.occurrence.succeed"
+      }
+    ],
+    "selectedChoices": [],
+    "selectedVariants": [],
+    "requestedFaults": [],
+    "capabilityRequirementDefinitionIds": [
+      "temporal.nexus.basic-lifecycle.capability"
+    ],
+    "expandedLimits": {
+      "steps": {
+        "value": 1,
+        "unit": "steps"
+      },
+      "actions": {
+        "value": 1,
+        "unit": "actions"
+      },
+      "search": {
+        "value": 8,
+        "unit": "search"
+      }
+    },
+    "checkpoints": [
+      {
+        "transition": 1,
+        "observations": [
+          {
+            "definitionId": "temporal.nexus.basic-lifecycle.observation.state",
+            "value": "succeeded"
+          }
+        ]
+      }
+    ],
+    "selectionReason": "satisfying-witness",
+    "explored": {
+      "setups": 2,
+      "traces": 5,
+      "transitions": 3,
+      "propertyEvaluations": 1
+    },
+    "knownGaps": [
+      {
+        "kind": "input",
+        "code": "umpire.known-gap.execution-evidence",
+        "subject": null,
+        "detail": null
+      },
+      {
+        "kind": "interpretation",
+        "code": "umpire.known-gap.artifact-migrations",
+        "subject": null,
+        "detail": null
+      },
+      {
+        "kind": "interpretation",
+        "code": "umpire.known-gap.artifact-reading",
+        "subject": null,
+        "detail": null
+      },
+      {
+        "kind": "interpretation",
+        "code": "umpire.known-gap.evidence-evaluation",
+        "subject": null,
+        "detail": null
+      },
+      {
+        "kind": "interpretation",
+        "code": "umpire.known-gap.runtime-scheduler-order",
+        "subject": null,
+        "detail": null
+      },
+      {
+        "kind": "interpretation",
+        "code": "umpire.known-gap.runtime-storage-order",
+        "subject": null,
+        "detail": null
+      },
+      {
+        "kind": "interpretation",
+        "code": "umpire.known-gap.runtime-transport-order",
+        "subject": null,
+        "detail": null
+      },
+      {
+        "kind": "claim",
+        "code": "umpire.known-gap.promotion",
+        "subject": null,
+        "detail": null
+      }
+    ],
+    "provenance": {
+      "sourceDefinitionIds": [
+        "temporal.nexus.basic-lifecycle.behavior.successful-completion",
+        "temporal.nexus.basic-lifecycle.kernel",
+        "temporal.nexus.basic-lifecycle.property.successful-completion",
+        "temporal.nexus.basic-lifecycle.query.successful-completion",
+        "temporal.nexus.basic-lifecycle.target"
+      ],
+      "sourceLocations": [
+        {
+          "path": "Temporal/Feature/Nexus/Lifecycle.lean",
+          "line": 1,
+          "column": 1,
+          "provenance": "lean-model"
+        },
+        {
+          "path": "Temporal/Feature/Nexus/Operations.lean",
+          "line": 1,
+          "column": 1,
+          "provenance": "lean-model"
+        }
+      ]
+    },
+    "artifactChecksum": "sha256:18d8447be07e75b72916c61cf30f1e462be556b5666959805c7e4b42714c1e3a"
+  },
+  "properties": [
+    {
+      "definitionId": "temporal.nexus.basic-lifecycle.property.successful-completion",
+      "behaviorFingerprint": "sha256:144637d8e69f94f04299e46da00bcc23cba81fb8e95570e2d18534d27cb5efef",
+      "requirementDefinitionIds": [
+        "temporal.nexus.basic-lifecycle.capability"
+      ]
+    }
+  ],
+  "observationRequirementDefinitionIds": [
+    "temporal.nexus.basic-lifecycle.observation.state"
+  ],
+  "provenance": {
+    "sourceDefinitionIds": [
+      "temporal.nexus.basic-lifecycle.behavior.successful-completion",
+      "temporal.nexus.basic-lifecycle.kernel",
+      "temporal.nexus.basic-lifecycle.property.successful-completion",
+      "temporal.nexus.basic-lifecycle.query.successful-completion",
+      "temporal.nexus.basic-lifecycle.target"
+    ],
+    "sourceLocations": [
+      {
+        "path": "Temporal/Feature/Nexus/Lifecycle.lean",
+        "line": 1,
+        "column": 1,
+        "provenance": "lean-model"
+      },
+      {
+        "path": "Temporal/Feature/Nexus/Operations.lean",
+        "line": 1,
+        "column": 1,
+        "provenance": "lean-model"
+      }
+    ]
+  },
+  "artifactChecksum": "sha256:2d439eb648cdaa9107bce3ac87139073defc7cf3eb39474e83d5194fb4ad4938"
+}

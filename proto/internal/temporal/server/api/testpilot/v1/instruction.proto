@@ -1,0 +1,173 @@
+syntax = "proto3";
+package temporal.server.api.testpilot.v1;
+import "temporal/server/api/testpilot/v1/correlated.proto";
+import "temporal/server/api/testpilot/v1/expression.proto";
+option go_package = "go.temporal.io/server/api/testpilot/v1;testpilot";
+
+// InstructionNode is one node of an entrypoint's instruction graph: the instruction and when it runs.
+// What it does not declare, preparation derives: its outcome fields follow from its instruction, and
+// the worker activations it reserves from the Profile's reservation carriers.
+message InstructionNode {
+  string instruction_id = 1;
+  Instruction instruction = 2;
+  // The instructions that must finish or be skipped before this one is ready. Absent, it is the
+  // previous instruction of the same entrypoint, or none for the first.
+  // (-- api-linter: core::0140::prepositions=disabled
+  //     aip.dev/not-precedent: The field reads as the ordering it states; it is internal to Testpilot. --)
+  After after = 3;
+  // Evaluated once the instruction is ready; when false it is skipped and records no Run Event.
+  // Absent, the instruction runs only when every instruction it runs after succeeded.
+  Expression guard = 4;
+  // Absent, both limits are the Profile's instruction defaults.
+  InstructionLimits limits = 5;
+}
+
+// After names the instructions of the same entrypoint an instruction runs after, possibly none. It is
+// written only where that set is not the previous instruction.
+message After { repeated InstructionReference instructions = 1; }
+
+// Instruction is the complete version-one instruction table.
+message Instruction {
+  oneof instruction {
+    InvokeRpc invoke_rpc = 1;
+    AwaitSlot await_slot = 2;
+    CompleteNexusOperation complete_nexus_operation = 3;
+    StartNexusOperation start_nexus_operation = 4;
+    AwaitInstruction await_instruction = 5;
+    Finish finish = 6;
+    RespondNexus respond_nexus = 7;
+    InjectFault inject_fault = 8;
+  }
+}
+
+// InvokeRpc calls one authorized unary gRPC method on an endpoint role. It builds the request from
+// assignments and reads declared values out of a successful response.
+message InvokeRpc {
+  string endpoint_role_id = 1;
+  // The full method name, "/package.Service/Method".
+  string method = 2;
+  repeated RequestAssignment request_assignments = 3;
+  repeated ResponseRead response_reads = 4;
+}
+
+// RequestAssignment sets the request field at target to its value, evaluated at dispatch. Targets
+// may not overlap, fan out or select presence.
+message RequestAssignment {
+  // A field path in the grammar PathExpression.path documents.
+  string target = 1;
+  Expression value = 2;
+}
+
+// ResponseRead reads the value at path in a successful RPC response into its targets. An absent value
+// is not read.
+message ResponseRead {
+  // A field path in the grammar PathExpression.path documents.
+  string path = 1;
+  ReadCardinality cardinality = 2;
+  repeated ReadTarget targets = 3;
+}
+
+// ReadCardinality says whether a response read supplies one value, or one value per element of a
+// repeated path. A read that emits each element cannot write a Slot.
+// (-- api-linter: core::0191::file-layout=disabled --)
+enum ReadCardinality {
+  READ_CARDINALITY_UNSPECIFIED = 0;
+  READ_CARDINALITY_ONE = 1;
+  READ_CARDINALITY_EMIT_EACH = 2;
+}
+
+// ReadTarget is where a response read delivers its value: a Slot, an Observation, or CorrelatedEvidence
+// lifted from the value.
+message ReadTarget {
+  oneof target {
+    string slot_id = 1;
+    string observation_id = 2;
+    CorrelatedEvidenceProjection correlated_evidence = 3;
+  }
+}
+
+// AwaitSlot waits, in a controller, until a Slot is written.
+message AwaitSlot { string slot_id = 1; }
+
+// AwaitInstruction waits, in a workflow, for the Nexus operation an earlier StartNexusOperation of the
+// same entrypoint started; its outcome value is the operation's result.
+message AwaitInstruction { InstructionReference instruction = 1; }
+
+// StartNexusOperation starts a Nexus operation from a workflow and succeeds once it has started. The
+// instruction timeout is the operation's schedule-to-close timeout.
+message StartNexusOperation {
+  string endpoint_role_id = 1;
+  string service = 2;
+  string operation = 3;
+  Expression input = 4;
+}
+
+// CompleteNexusOperation completes, from a controller, the asynchronous Nexus operation whose handle a
+// Slot holds.
+message CompleteNexusOperation { string handle_slot_id = 1; Expression result = 2; }
+
+// RespondNexus answers the Nexus operation that activated a Nexus handler entrypoint.
+message RespondNexus {
+  NexusResponseKind kind = 1;
+  Expression result = 2;
+  // For an asynchronous response, the opaque Slot that receives the operation's completion handle.
+  string handle_slot_id = 3;
+}
+
+// NexusResponseKind names how a Nexus handler answers: with result, asynchronously through a
+// completion handle, or with a non-retryable handler error whose message is result.
+enum NexusResponseKind {
+  NEXUS_RESPONSE_KIND_UNSPECIFIED = 0;
+  NEXUS_RESPONSE_KIND_SYNCHRONOUS = 1;
+  NEXUS_RESPONSE_KIND_ASYNCHRONOUS = 2;
+  NEXUS_RESPONSE_KIND_ERROR = 3;
+}
+
+// Finish completes the workflow of a workflow entrypoint with result.
+message Finish { Expression result = 1; }
+
+// InjectFault asks the Driver for one deliberate outage. role_id must name a
+// ROLE_KIND_TASK_QUEUE role; that role's resource binding identifies the affected queue.
+message InjectFault {
+  string role_id = 1;
+  FaultKind kind = 2;
+}
+
+// FaultKind names the version-one deliberate outages a Driver can realize. Every value is a
+// worker-lifecycle transition on one activation queue; nothing here reaches the server.
+// (-- api-linter: core::0216::synonyms=disabled --)
+enum FaultKind {
+  FAULT_KIND_UNSPECIFIED = 0;
+  FAULT_KIND_WORKER_STOP = 1;
+  FAULT_KIND_WORKER_RESUME = 2;
+}
+
+// InstructionLimits are the bounds that carry an instruction's behavior. Its resource ceilings are
+// the Profile's ProgramLimits. A limit is written only where it differs from the Profile's instruction
+// default, which an absent limit takes.
+message InstructionLimits {
+  oneof timeout {
+    // Deadline of each dispatch, within the Profile's total duration; when it expires the outcome is
+    // TIMED_OUT.
+    int64 timeout_milliseconds = 1;
+  }
+  oneof attempts {
+    // The highest attempt number the instruction may reach, within the Profile's attempts.
+    int64 max_attempts = 2;
+  }
+}
+
+// InstructionOutcomeStatus classifies one instruction attempt. A protocol failure is a non-OK RPC
+// status; an SDK failure is a worker SDK error.
+// Instruction outcome Status is normative Testpilot terminology.
+// (-- api-linter: core::0191::file-layout=disabled
+//     core::0216::synonyms=disabled --)
+// (-- api-linter: core::0216::synonyms=disabled --)
+enum InstructionOutcomeStatus {
+  INSTRUCTION_OUTCOME_STATUS_UNSPECIFIED = 0;
+  INSTRUCTION_OUTCOME_STATUS_SUCCEEDED = 1;
+  INSTRUCTION_OUTCOME_STATUS_PROTOCOL_FAILURE = 2;
+  INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE = 3;
+  INSTRUCTION_OUTCOME_STATUS_TIMED_OUT = 4;
+  INSTRUCTION_OUTCOME_STATUS_CANCELED = 5;
+}

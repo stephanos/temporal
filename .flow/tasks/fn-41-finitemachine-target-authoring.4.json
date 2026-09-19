@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-28T15:18:27.275233Z",
+  "depends_on": [
+    "fn-41-finitemachine-target-authoring.2",
+    "fn-41-finitemachine-target-authoring.3"
+  ],
+  "id": "fn-41-finitemachine-target-authoring.4",
+  "priority": null,
+  "spec": "fn-41-finitemachine-target-authoring",
+  "spec_path": ".flow/tasks/fn-41-finitemachine-target-authoring.4.md",
+  "status": "todo",
+  "title": "Pin expert and cross-layer compatibility",
+  "updated_at": "2026-08-28T15:18:27.275233Z"
+}

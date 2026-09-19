@@ -1,0 +1,546 @@
+package verification
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"testing"
+
+	"github.com/stretchr/testify/require"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/testing/testpilot/internal/execution"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/anypb"
+)
+
+func event(sequence, elapsed int64, kind testpilotspb.RunEventKind) *testpilotspb.RunEvent {
+	return &testpilotspb.RunEvent{Sequence: sequence, ElapsedMilliseconds: elapsed, Kind: kind, SourceId: fmt.Sprint(sequence)}
+}
+func TestEvaluatorDeadlinesAndReplay(t *testing.T) {
+	for _, tc := range []struct {
+		name       string
+		witness    int64
+		incomplete bool
+		kind       testpilotspb.RunEventKind
+		want       testpilotspb.VerdictStatus
+		stop       int64
+	}{
+		{"before", 4999, false, testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED, testpilotspb.VERDICT_STATUS_SATISFIED, 0},
+		{"at", 5000, false, testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED, testpilotspb.VERDICT_STATUS_VIOLATED, 2},
+		{"late", 6000, false, testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED, testpilotspb.VERDICT_STATUS_VIOLATED, 2},
+		{"timeout", 5000, false, testpilotspb.RUN_EVENT_KIND_INSTRUCTION_TIMED_OUT, testpilotspb.VERDICT_STATUS_VIOLATED, 2},
+		{"closure", 5000, false, testpilotspb.RUN_EVENT_KIND_RUN_CLOSED, testpilotspb.VERDICT_STATUS_VIOLATED, 2},
+		{"early", 4000, false, testpilotspb.RUN_EVENT_KIND_RUN_CLOSED, testpilotspb.VERDICT_STATUS_INCONCLUSIVE, 0},
+		{"incomplete", 6000, true, testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED, testpilotspb.VERDICT_STATUS_INCONCLUSIVE, 0},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			c, cat, view, limits := fixture(t)
+			c.Rules[0].Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
+			c.Rules[0].Deadline = &testpilotspb.Deadline{ViolationStateId: "bad", Bound: &testpilotspb.Deadline_ElapsedMilliseconds{ElapsedMilliseconds: 5000}}
+			p, err := Prepare(c, cat, view, limits, nil)
+			require.NoError(t, err)
+			run := &testpilotspb.Run{RunId: "run", CaseId: "case", ProgramId: "program", Disposition: testpilotspb.RUN_DISPOSITION_COMPLETED, Events: []*testpilotspb.RunEvent{event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED), event(2, tc.witness, tc.kind)}}
+			run.Events[1].ExecutionIncomplete = tc.incomplete
+			if tc.incomplete {
+				run.Disposition = testpilotspb.RUN_DISPOSITION_INCOMPLETE
+			}
+			if tc.stop > 0 {
+				run.Disposition = testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR
+			}
+			if tc.kind != testpilotspb.RUN_EVENT_KIND_RUN_CLOSED {
+				run.Events = append(run.Events, event(3, 7000, testpilotspb.RUN_EVENT_KIND_RUN_CLOSED))
+			}
+			monitor, err := execution.NewMonitor(context.Background(), p, view)
+			require.NoError(t, err)
+			var firstStop int64
+			for _, e := range run.Events {
+				d, err := monitor.Observe(context.Background(), e)
+				require.NoError(t, err)
+				if d == execution.Stop && firstStop == 0 {
+					firstStop = e.Sequence
+				}
+			}
+			require.Equal(t, tc.stop, firstStop)
+			live, err := monitor.Close(context.Background(), run)
+			require.NoError(t, err)
+			require.Equal(t, tc.want, live.Status)
+			offline, verdict, err := p.evaluate(context.Background(), run)
+			require.NoError(t, err)
+			liveBytes, err := proto.MarshalOptions{Deterministic: true}.Marshal(live)
+			require.NoError(t, err)
+			offlineBytes, err := proto.MarshalOptions{Deterministic: true}.Marshal(verdict)
+			require.NoError(t, err)
+			require.Equal(t, liveBytes, offlineBytes)
+			trace, err := json.Marshal(monitor.(*Evaluator).trace)
+			require.NoError(t, err)
+			replay, err := json.Marshal(offline.trace)
+			require.NoError(t, err)
+			require.Equal(t, trace, replay)
+		})
+	}
+}
+
+func diagnostic(sequence, elapsed int64) *testpilotspb.RunEvent {
+	return event(sequence, elapsed, testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC)
+}
+
+// TestEvaluatorEventCountDeadline pins the rule_events clock: it ticks once per event the rule
+// evaluates, restarts on a transition into a new state, outranks a transition that would have
+// satisfied the rule on the same event, and stops once the rule is terminal. Every case also
+// asserts that the online Observe path and the offline Evaluate path agree, because both reach
+// the counter through the same helper.
+func TestEvaluatorEventCountDeadline(t *testing.T) {
+	for _, tc := range []struct {
+		name       string
+		ruleEvents int64
+		events     []*testpilotspb.RunEvent
+		incomplete int64
+		want       testpilotspb.VerdictStatus
+		stop       int64
+		status     testpilotspb.RunDisposition
+		wantEvents int64
+	}{
+		{
+			name: "expires after exactly the declared count", ruleEvents: 3,
+			events: []*testpilotspb.RunEvent{diagnostic(2, 10), diagnostic(3, 20)},
+			want:   testpilotspb.VERDICT_STATUS_VIOLATED, stop: 3, status: testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR,
+		},
+		{
+			name: "transition restarts the count", ruleEvents: 3,
+			events: []*testpilotspb.RunEvent{observed(2, 10, 7), diagnostic(3, 20), diagnostic(4, 30)},
+			want:   testpilotspb.VERDICT_STATUS_VIOLATED, stop: 5, status: testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR,
+		},
+		{
+			name: "expiry outranks the satisfying event", ruleEvents: 2,
+			events: []*testpilotspb.RunEvent{observed(2, 10, 7)},
+			want:   testpilotspb.VERDICT_STATUS_VIOLATED, stop: 2, status: testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR,
+		},
+		{
+			name: "a terminal rule stops counting", ruleEvents: 3,
+			events: []*testpilotspb.RunEvent{observed(2, 10, 7), observed(3, 20, 7), diagnostic(4, 30), diagnostic(5, 40)},
+			want:   testpilotspb.VERDICT_STATUS_SATISFIED, status: testpilotspb.RUN_DISPOSITION_COMPLETED,
+		},
+		{
+			name: "incompleteness suppresses expiry", ruleEvents: 2,
+			events: []*testpilotspb.RunEvent{diagnostic(2, 10), diagnostic(3, 20)}, incomplete: 2,
+			want: testpilotspb.VERDICT_STATUS_INCONCLUSIVE, status: testpilotspb.RUN_DISPOSITION_INCOMPLETE,
+			wantEvents: 1,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			c, cat, view, limits := fixture(t)
+			r := c.Rules[0]
+			r.Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
+			r.Deadline = &testpilotspb.Deadline{ViolationStateId: "bad", Bound: &testpilotspb.Deadline_RuleEvents{RuleEvents: tc.ruleEvents}}
+			r.States = append(r.States, &testpilotspb.ContractState{StateId: "middle", Status: testpilotspb.CONTRACT_STATE_STATUS_PENDING})
+			r.Transitions = []*testpilotspb.ContractTransition{
+				transition("advance", "start", "middle", present(observation("id"))),
+				transition("finish", "middle", "good", present(observation("id"))),
+			}
+			p, err := Prepare(c, cat, view, limits, nil)
+			require.NoError(t, err)
+
+			events := append([]*testpilotspb.RunEvent{event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED)}, tc.events...)
+			closure := int64(len(events) + 1)
+			events = append(events, event(closure, 10*closure, testpilotspb.RUN_EVENT_KIND_RUN_CLOSED))
+			for _, e := range events {
+				e.ExecutionIncomplete = e.Sequence == tc.incomplete
+			}
+			run := &testpilotspb.Run{RunId: "run", CaseId: "case", ProgramId: "program", Disposition: tc.status, Events: events}
+
+			monitor, err := p.New(context.Background(), view)
+			require.NoError(t, err)
+			online := monitor.(*Evaluator)
+			var firstStop int64
+			for _, e := range run.Events {
+				d, err := online.Observe(context.Background(), e)
+				require.NoError(t, err)
+				if d == execution.Stop && firstStop == 0 {
+					firstStop = e.Sequence
+				}
+			}
+			require.Equal(t, tc.stop, firstStop)
+			// The counter is rule-local state the verdict cannot always expose: a terminal rule
+			// that kept ticking, or a frozen one that kept ticking, would still verdict the same.
+			require.Equal(t, tc.wantEvents, online.rules[0].events)
+			live, err := online.Close(context.Background(), run)
+			require.NoError(t, err)
+			require.Equal(t, tc.want, live.Status)
+
+			offline, verdict, err := p.evaluate(context.Background(), run)
+			require.NoError(t, err)
+			liveBytes, err := proto.MarshalOptions{Deterministic: true}.Marshal(live)
+			require.NoError(t, err)
+			offlineBytes, err := proto.MarshalOptions{Deterministic: true}.Marshal(verdict)
+			require.NoError(t, err)
+			require.Equal(t, liveBytes, offlineBytes)
+			require.Equal(t, online.trace, offline.trace)
+		})
+	}
+}
+
+func observed(sequence, elapsed, id int64) *testpilotspb.RunEvent {
+	e := event(sequence, elapsed, testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED)
+	e.Observations = []*testpilotspb.ObservationResult{{ObservationId: "id", Value: &testpilotspb.Value{Value: &testpilotspb.Value_SignedIntegerValue{SignedIntegerValue: fmt.Sprint(id)}}}}
+	return e
+}
+func TestEvaluatorCaptureCorrelationAndStop(t *testing.T) {
+	c, cat, view, limits := fixture(t, 16<<20)
+	r := c.Rules[0]
+	addCapture(r)
+	r.States = append(r.States, &testpilotspb.ContractState{StateId: "saved", Status: testpilotspb.CONTRACT_STATE_STATUS_PENDING})
+	r.Transitions = []*testpilotspb.ContractTransition{transition("save", "start", "saved", present(observation("id"))), transition("match", "saved", "bad", all(present(observation("id")), equal(observation("id"), capture("saved")))), transition("shadowed", "saved", "good", all(present(observation("id")), equal(observation("id"), capture("saved"))))}
+	assign(r.Transitions[0])
+	p, err := Prepare(c, cat, view, limits, nil)
+	require.NoError(t, err)
+	limits.MaxWorkPerEvent = p.workPerEvent
+	p, err = Prepare(c, cat, view, limits, nil)
+	require.NoError(t, err)
+	for _, id := range []int64{7, 19} {
+		t.Run(fmt.Sprint(id), func(t *testing.T) {
+			t.Parallel()
+			monitor, err := p.New(context.Background(), view)
+			require.NoError(t, err)
+			e := monitor.(*Evaluator)
+			run := &testpilotspb.Run{RunId: "run", ProgramId: "program", Disposition: testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR, Events: []*testpilotspb.RunEvent{event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED), observed(2, 1000, id), observed(3, 2000, id+1), observed(4, 3000, id), event(5, 4000, testpilotspb.RUN_EVENT_KIND_RUN_CLOSED)}}
+			for i, v := range run.Events {
+				d, err := e.Observe(context.Background(), v)
+				require.NoError(t, err)
+				if i < 3 {
+					require.Equal(t, execution.Continue, d)
+				} else {
+					require.Equal(t, execution.Stop, d)
+				}
+			}
+			require.Equal(t, []transitionTrace{{2, "rule", "save", "start", "saved"}, {4, "rule", "match", "saved", "bad"}}, e.trace)
+			require.Equal(t, int64(2), e.rules[0].captures["saved"].sequence)
+			require.Equal(t, fmt.Sprint(id), e.rules[0].captures["saved"].value.GetSignedIntegerValue())
+			run.Events[1].Observations[0].Value.GetValue().(*testpilotspb.Value_SignedIntegerValue).SignedIntegerValue = "999"
+			require.Equal(t, fmt.Sprint(id), e.rules[0].captures["saved"].value.GetSignedIntegerValue())
+			run.Events[1].Observations[0].Value.GetValue().(*testpilotspb.Value_SignedIntegerValue).SignedIntegerValue = fmt.Sprint(id)
+			live, err := e.Close(context.Background(), run)
+			require.NoError(t, err)
+			require.Equal(t, []int64{2, 4}, live.SupportingEventSequences)
+			offline, err := p.Evaluate(context.Background(), run)
+			require.NoError(t, err)
+			require.True(t, proto.Equal(live, offline))
+		})
+	}
+}
+
+func TestEvaluatorMessageCaptureDescriptorBoundsAndOwnership(t *testing.T) {
+	c, catalog, view, ceiling := fixture(t, 64)
+	ceiling.MaxCaptureBytes = 72
+	rule := c.Rules[0]
+	rule.Captures = []*testpilotspb.ContractCapture{{CaptureId: "saved-message", Type: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Message{Message: &testpilotspb.NamedType{ProtobufType: "example.Empty"}}}}}
+	rule.Transitions[0] = transition("save", "start", "good", present(observation("message")))
+	rule.Transitions[0].CaptureAssignments = []*testpilotspb.ContractCaptureAssignment{{CaptureId: "saved-message", ObservationId: "message"}}
+
+	tooSmall := proto.CloneOf(ceiling)
+	tooSmall.MaxCaptureBytes--
+	_, err := Prepare(c, catalog, view, tooSmall, nil)
+	require.Error(t, err)
+	wrongDescriptor := proto.CloneOf(c)
+	wrongDescriptor.Rules[0].Captures[0].Type.GetMessage().ProtobufType = "example.Missing"
+	_, err = Prepare(wrongDescriptor, catalog, view, ceiling, nil)
+	require.Error(t, err)
+
+	prepared, err := Prepare(c, catalog, view, ceiling, nil)
+	require.NoError(t, err)
+	monitor, err := prepared.New(t.Context(), view)
+	require.NoError(t, err)
+	evaluator := monitor.(*Evaluator)
+	_, err = evaluator.Observe(t.Context(), event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED))
+	require.NoError(t, err)
+	value := &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/example.Empty"}}}
+	observed := event(2, 1, testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED)
+	observed.Observations = []*testpilotspb.ObservationResult{{ObservationId: "message", Value: value}}
+	_, err = evaluator.Observe(t.Context(), observed)
+	require.NoError(t, err)
+	require.Equal(t, int64(proto.Size(value))+8, evaluator.captureBytes)
+	value.GetMessageValue().TypeUrl = "type.googleapis.com/example.Missing"
+	require.Equal(t, "type.googleapis.com/example.Empty", evaluator.rules[0].captures["saved-message"].value.GetMessageValue().GetTypeUrl())
+
+	for _, test := range []struct {
+		name   string
+		mutate func(*Evaluator, *testpilotspb.Value)
+	}{
+		{name: "descriptor", mutate: func(_ *Evaluator, value *testpilotspb.Value) {
+			value.GetMessageValue().TypeUrl = "type.googleapis.com/example.Missing"
+		}},
+		{name: "retained byte ceiling", mutate: func(evaluator *Evaluator, value *testpilotspb.Value) {
+			evaluator.captureBytes = ceiling.MaxCaptureBytes - int64(proto.Size(value)) - 7
+		}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			monitor, err := prepared.New(t.Context(), view)
+			require.NoError(t, err)
+			evaluator := monitor.(*Evaluator)
+			_, err = evaluator.Observe(t.Context(), event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED))
+			require.NoError(t, err)
+			candidate := &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/example.Empty"}}}
+			test.mutate(evaluator, candidate)
+			observed := event(2, 1, testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED)
+			observed.Observations = []*testpilotspb.ObservationResult{{ObservationId: "message", Value: candidate}}
+			_, err = evaluator.Observe(t.Context(), observed)
+			require.Error(t, err)
+			require.Empty(t, evaluator.rules[0].captures)
+			require.Empty(t, evaluator.trace)
+		})
+	}
+}
+
+func TestEvaluatorFailurePrefixAndAtomicity(t *testing.T) {
+	for _, priorViolation := range []bool{false, true} {
+		t.Run(fmt.Sprint(priorViolation), func(t *testing.T) {
+			c, cat, view, limits := fixture(t)
+			r := c.Rules[0]
+			r.Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
+			r.Deadline = &testpilotspb.Deadline{ViolationStateId: "bad", Bound: &testpilotspb.Deadline_ElapsedMilliseconds{ElapsedMilliseconds: 5000}}
+			r.Transitions[0].TargetStateId = "bad"
+			p, err := Prepare(c, cat, view, limits, nil)
+			require.NoError(t, err)
+			monitor, err := p.New(context.Background(), view)
+			require.NoError(t, err)
+			e := monitor.(*Evaluator)
+			run := &testpilotspb.Run{RunId: "run", ProgramId: "program", Disposition: testpilotspb.RUN_DISPOSITION_INCOMPLETE, Events: []*testpilotspb.RunEvent{event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED)}}
+			_, err = e.Observe(context.Background(), run.Events[0])
+			require.NoError(t, err)
+			if priorViolation {
+				v := observed(2, 1000, 7)
+				run.Events = append(run.Events, v)
+				d, err := e.Observe(context.Background(), v)
+				require.NoError(t, err)
+				require.Equal(t, execution.Stop, d)
+			}
+			sequence := int64(len(run.Events) + 1)
+			failed := event(sequence, 5000, testpilotspb.RUN_EVENT_KIND_INSTRUCTION_TIMED_OUT)
+			ctx, cancel := context.WithCancel(context.Background())
+			cancel()
+			_, err = e.Observe(ctx, failed)
+			require.ErrorIs(t, err, context.Canceled)
+			run.Events = append(run.Events, failed, event(sequence+1, 7000, testpilotspb.RUN_EVENT_KIND_RUN_CLOSED))
+			run.EvaluationFailure = &testpilotspb.Run_EvaluationFailureSequence{EvaluationFailureSequence: sequence}
+			live, err := e.Close(context.Background(), run)
+			require.NoError(t, err)
+			want := testpilotspb.VERDICT_STATUS_INCONCLUSIVE
+			if priorViolation {
+				want = testpilotspb.VERDICT_STATUS_VIOLATED
+			}
+			require.Equal(t, want, live.Status)
+			replay, offline, err := p.evaluate(context.Background(), run)
+			require.NoError(t, err)
+			require.True(t, proto.Equal(live, offline))
+			require.Equal(t, e.trace, replay.trace)
+			for _, bad := range []int64{0, sequence + 2} {
+				invalidRun := proto.CloneOf(run)
+				invalidRun.EvaluationFailure = &testpilotspb.Run_EvaluationFailureSequence{EvaluationFailureSequence: bad}
+				_, err := p.Evaluate(context.Background(), invalidRun)
+				require.Error(t, err)
+			}
+		})
+	}
+}
+
+func TestEvaluatorRuntimeBoundsAndMalformedEvents(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		mutate func(*testpilotspb.RunEvent)
+	}{
+		{"sequence", func(e *testpilotspb.RunEvent) { e.Sequence = 3 }},
+		{"elapsed", func(e *testpilotspb.RunEvent) { e.ElapsedMilliseconds = -1 }},
+		{"unknown observation", func(e *testpilotspb.RunEvent) { e.Observations[0].ObservationId = "private-slot" }},
+		{"wrong type", func(e *testpilotspb.RunEvent) {
+			e.Observations[0].Value = &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "not an int"}}
+		}},
+		{"duplicate observation", func(e *testpilotspb.RunEvent) {
+			e.Observations = append(e.Observations, proto.CloneOf(e.Observations[0]))
+		}},
+		{"bytes", func(e *testpilotspb.RunEvent) {
+			e.Observations[0] = &testpilotspb.ObservationResult{ObservationId: "text", Value: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: string(make([]byte, 4097))}}}
+		}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			c, cat, view, limits := fixture(t)
+			p, err := Prepare(c, cat, view, limits, nil)
+			require.NoError(t, err)
+			m, err := p.New(context.Background(), view)
+			require.NoError(t, err)
+			e := m.(*Evaluator)
+			_, err = e.Observe(context.Background(), event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED))
+			require.NoError(t, err)
+			bad := observed(2, 1000, 7)
+			tc.mutate(bad)
+			_, err = e.Observe(context.Background(), bad)
+			require.Error(t, err)
+			require.Empty(t, e.trace)
+			require.Equal(t, testpilotspb.VERDICT_STATUS_INCONCLUSIVE, e.verdict(testpilotspb.RUN_DISPOSITION_INCOMPLETE).Status)
+		})
+	}
+}
+
+type cancelOnCheck struct {
+	context.Context
+	cancel    context.CancelFunc
+	remaining int
+}
+
+func (c *cancelOnCheck) Err() error {
+	c.remaining--
+	if c.remaining <= 0 {
+		c.cancel()
+	}
+	return c.Context.Err()
+}
+func TestEvaluatorEventCommitIsAtomicAcrossRules(t *testing.T) {
+	c, cat, view, limits := fixture(t)
+	other := proto.CloneOf(c.Rules[0])
+	other.RuleId = "other"
+	c.Rules = append(c.Rules, other)
+	p, err := Prepare(c, cat, view, limits, nil)
+	require.NoError(t, err)
+	e, err := p.newEvaluator(context.Background(), view)
+	require.NoError(t, err)
+	_, err = e.Observe(context.Background(), event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED))
+	require.NoError(t, err)
+	base, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	ctx := &cancelOnCheck{Context: base, cancel: cancel, remaining: 5}
+	_, err = e.Observe(ctx, event(2, 1000, testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED))
+	require.ErrorIs(t, err, context.Canceled)
+	require.Empty(t, e.trace)
+	for _, state := range e.rules {
+		require.Equal(t, 0, state.state)
+		require.Empty(t, state.captures)
+		require.Empty(t, state.support)
+	}
+}
+func TestEvaluatorIncompleteCannotAcceptLateWitness(t *testing.T) {
+	c, cat, view, limits := fixture(t)
+	r := c.Rules[0]
+	r.Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
+	r.Deadline = &testpilotspb.Deadline{ViolationStateId: "bad", Bound: &testpilotspb.Deadline_ElapsedMilliseconds{ElapsedMilliseconds: 5000}}
+	p, err := Prepare(c, cat, view, limits, nil)
+	require.NoError(t, err)
+	incomplete := event(2, 4000, testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC)
+	incomplete.ExecutionIncomplete = true
+	run := &testpilotspb.Run{RunId: "run", ProgramId: "program", Disposition: testpilotspb.RUN_DISPOSITION_INCOMPLETE, Events: []*testpilotspb.RunEvent{event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED), incomplete, observed(3, 6000, 7), event(4, 7000, testpilotspb.RUN_EVENT_KIND_RUN_CLOSED)}}
+	e, verdict, err := p.evaluate(context.Background(), run)
+	require.NoError(t, err)
+	require.Equal(t, testpilotspb.RULE_VERDICT_STATUS_INCONCLUSIVE, verdict.Rules[0].Status)
+	require.Empty(t, e.trace)
+}
+func TestEvaluatorCaptureNamesAreRuleLocal(t *testing.T) {
+	c, cat, view, limits := fixture(t)
+	first := c.Rules[0]
+	addCapture(first)
+	first.Transitions[0].Predicate = present(observation("id"))
+	assign(first.Transitions[0])
+	second := proto.CloneOf(first)
+	second.RuleId = "other"
+	second.Captures[0].Type.GetScalar().Kind = testpilotspb.SCALAR_KIND_TEXT
+	second.Transitions[0].Predicate = present(observation("text"))
+	second.Transitions[0].CaptureAssignments[0].ObservationId = "text"
+	c.Rules = append(c.Rules, second)
+	p, err := Prepare(c, cat, view, limits, nil)
+	require.NoError(t, err)
+	e, err := p.newEvaluator(context.Background(), view)
+	require.NoError(t, err)
+	_, err = e.Observe(context.Background(), event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED))
+	require.NoError(t, err)
+	values := observed(2, 1000, 7)
+	values.Observations = append(values.Observations, &testpilotspb.ObservationResult{ObservationId: "text", Value: &testpilotspb.Value{Value: &testpilotspb.Value_TextValue{TextValue: "distinct"}}})
+	_, err = e.Observe(context.Background(), values)
+	require.NoError(t, err)
+	require.Equal(t, "7", e.rules[0].captures["saved"].value.GetSignedIntegerValue())
+	require.Equal(t, "distinct", e.rules[1].captures["saved"].value.GetTextValue())
+}
+func TestEvaluatorEventCountBound(t *testing.T) {
+	c, cat, view, limits := fixture(t)
+	c.Rules[0].Transitions[0].Predicate = boolean(false)
+	p, err := Prepare(c, cat, view, limits, nil)
+	require.NoError(t, err)
+	e, err := p.newEvaluator(context.Background(), view)
+	require.NoError(t, err)
+	_, err = e.Observe(context.Background(), event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED))
+	require.NoError(t, err)
+	for i := int64(2); i <= view.Limits().MaxRunEvents; i++ {
+		_, err = e.Observe(context.Background(), event(i, i, testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC))
+		require.NoError(t, err)
+	}
+	_, err = e.Observe(context.Background(), event(view.Limits().MaxRunEvents+1, 1000, testpilotspb.RUN_EVENT_KIND_RUN_CLOSED))
+	require.Error(t, err)
+	require.Empty(t, e.trace)
+}
+
+func TestEvaluatorCancellationAfterCommitPreservesProof(t *testing.T) {
+	c, cat, view, limits := fixture(t)
+	c.Rules[0].Transitions[0].TargetStateId = "bad"
+	p, err := Prepare(c, cat, view, limits, nil)
+	require.NoError(t, err)
+	e, err := p.newEvaluator(context.Background(), view)
+	require.NoError(t, err)
+	run := &testpilotspb.Run{RunId: "run", ProgramId: "program", Disposition: testpilotspb.RUN_DISPOSITION_INCOMPLETE, Events: []*testpilotspb.RunEvent{event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED), observed(2, 1000, 7), event(3, 2000, testpilotspb.RUN_EVENT_KIND_RUN_CLOSED)}}
+	_, err = e.Observe(context.Background(), run.Events[0])
+	require.NoError(t, err)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	decision, err := e.Observe(ctx, run.Events[1])
+	require.NoError(t, err)
+	require.Equal(t, execution.Stop, decision)
+	cancel()
+	_, err = e.Observe(context.Background(), run.Events[2])
+	require.NoError(t, err)
+	live, err := e.Close(ctx, run)
+	require.ErrorIs(t, err, context.Canceled)
+	require.Equal(t, testpilotspb.VERDICT_STATUS_VIOLATED, live.Status)
+	replay, offline, err := p.evaluate(context.Background(), run)
+	require.NoError(t, err)
+	require.True(t, proto.Equal(live, offline))
+	require.Equal(t, e.trace, replay.trace)
+}
+
+func TestEvaluatorCloseCancellationAndTerminalState(t *testing.T) {
+	for _, violated := range []bool{false, true} {
+		for _, check := range []int{1, 3, 130} {
+			t.Run(fmt.Sprintf("violated=%v/check=%d", violated, check), func(t *testing.T) {
+				c, cat, view, limits := fixture(t)
+				if violated {
+					c.Rules[0].Transitions[0].TargetStateId = "bad"
+				}
+				p, err := Prepare(c, cat, view, limits, nil)
+				require.NoError(t, err)
+				e, err := p.newEvaluator(context.Background(), view)
+				require.NoError(t, err)
+				run := &testpilotspb.Run{RunId: "run", ProgramId: "program", Disposition: testpilotspb.RUN_DISPOSITION_INCOMPLETE, Events: []*testpilotspb.RunEvent{event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED), observed(2, 1000, 7)}}
+				for i := int64(3); i < 128; i++ {
+					run.Events = append(run.Events, event(i, 2000, testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC))
+				}
+				run.Events = append(run.Events, event(128, 3000, testpilotspb.RUN_EVENT_KIND_RUN_CLOSED))
+				for _, v := range run.Events {
+					_, err = e.Observe(context.Background(), v)
+					require.NoError(t, err)
+				}
+				base, cancel := context.WithCancel(context.Background())
+				defer cancel()
+				ctx := &cancelOnCheck{Context: base, cancel: cancel, remaining: check}
+				verdict, err := e.Close(ctx, run)
+				require.ErrorIs(t, err, context.Canceled)
+				want := testpilotspb.VERDICT_STATUS_INCONCLUSIVE
+				if violated {
+					want = testpilotspb.VERDICT_STATUS_VIOLATED
+				}
+				require.Equal(t, want, verdict.Status)
+				require.Equal(t, []int64{2}, verdict.SupportingEventSequences)
+				replay, offline, err := p.evaluate(context.Background(), run)
+				require.NoError(t, err)
+				require.True(t, proto.Equal(verdict, offline))
+				require.Equal(t, e.trace, replay.trace)
+				_, err = e.Close(context.Background(), run)
+				require.Error(t, err)
+				_, err = e.Observe(context.Background(), event(129, 4000, testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC))
+				require.Error(t, err)
+			})
+		}
+	}
+}

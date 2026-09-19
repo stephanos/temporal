@@ -1,0 +1,133 @@
+syntax = "proto3";
+package temporal.server.api.testpilot.v1;
+import "temporal/server/api/testpilot/v1/instruction.proto";
+import "temporal/server/api/testpilot/v1/value.proto";
+option go_package = "go.temporal.io/server/api/testpilot/v1;testpilot";
+
+// Program is a bounded collection of context-local DAGs and one always-run cleanup graph.
+// It declares no environment bindings: the ones it uses are those its roles and expressions reference,
+// derived at preparation, and the Profile must supply each.
+message Program {
+  string program_id = 1;
+  repeated Role roles = 2;
+  repeated Slot slots = 3;
+  repeated Observation observations = 4;
+  repeated Entrypoint entrypoints = 5;
+  Cleanup cleanup = 6;
+}
+
+// Role is a symbolic participant that instructions and activations address. Its bindings resolve to
+// the Profile's physical values.
+message Role {
+  string role_id = 1;
+  RoleKind kind = 2;
+  // The environment binding holding the namespace of a worker or task-queue role.
+  string namespace_binding_id = 3;
+  // The environment binding holding the role's resource: a task-queue role's queue, or an endpoint
+  // role's Nexus endpoint.
+  string resource_binding_id = 4;
+}
+
+// RoleKind names what a Role stands for: an RPC or Nexus endpoint, a worker, a task queue, or a
+// participant that binds nothing.
+// (-- api-linter: core::0191::file-layout=disabled --)
+enum RoleKind {
+  ROLE_KIND_UNSPECIFIED = 0;
+  ROLE_KIND_ENDPOINT = 1;
+  ROLE_KIND_WORKER = 2;
+  ROLE_KIND_TASK_QUEUE = 3;
+  ROLE_KIND_PARTICIPANT = 4;
+}
+
+// Slot is private immutable single-assignment execution data with exactly one writer. It holds a
+// typed value or an opaque effect handle.
+message Slot {
+  string slot_id = 1;
+  oneof content {
+    ValueType value = 2;
+    OpaqueHandleType opaque_handle = 3;
+  }
+}
+
+// Observation is a declared typed value attached to a Run Event and available to the Contract.
+message Observation { string observation_id = 1; ValueType type = 2; }
+
+// Entrypoint contains one Driver-activated, context-local acyclic instruction graph.
+message Entrypoint {
+  string entrypoint_id = 1;
+  oneof activation {
+    ControllerActivation controller = 2;
+    WorkflowActivation workflow = 3;
+    ActivityActivation activity = 4;
+    NexusHandlerActivation nexus_handler = 5;
+  }
+  repeated InstructionNode instructions = 6;
+}
+
+// ControllerActivation activates the entrypoint exactly once, when the Run opens.
+message ControllerActivation {}
+
+// WorkflowActivation activates the entrypoint for each workflow of this type the worker role runs on
+// the task-queue role.
+message WorkflowActivation {
+  string workflow_type = 1;
+  string worker_role_id = 2;
+  string task_queue_role_id = 3;
+}
+
+// ActivityActivation activates the entrypoint for each activity of this type the worker role runs
+// on the task-queue role.
+message ActivityActivation {
+  string activity_type = 1;
+  string worker_role_id = 2;
+  string task_queue_role_id = 3;
+}
+
+// NexusHandlerActivation activates the entrypoint for each call of this Nexus operation the worker
+// role handles on the task-queue role.
+message NexusHandlerActivation {
+  string service = 1;
+  string operation = 2;
+  string worker_role_id = 3;
+  string task_queue_role_id = 4;
+}
+
+// Cleanup is always attempted after ordinary execution with an independent bound.
+message Cleanup {
+  // The identity is used by cleanup-local InstructionReferences and Run coordinates.
+  string entrypoint_id = 1;
+  repeated InstructionNode instructions = 2;
+}
+
+// ProgramLimits are a Profile's resource ceilings on every Program it admits. A Case declares none of
+// them; every limit is positive and within the Driver's hard ceiling.
+message ProgramLimits {
+  // Entrypoints, not counting cleanup.
+  int64 max_entrypoints = 1;
+  // Instruction nodes across every entrypoint and cleanup.
+  int64 max_nodes = 2;
+  // Dependency references across every instruction node.
+  int64 max_edges = 3;
+  // Controller activations plus reserved activations weighted by attempts.
+  int64 max_activations = 4;
+  // Instruction attempts dispatched across the Run, and the ceiling of each instruction's attempts.
+  int64 max_attempts = 5;
+  // Run Events recorded, RUN_CLOSED included, and the ceiling of max_instruction_emitted_events.
+  int64 max_run_events = 6;
+  // Nesting depth of any expression or path.
+  int64 max_expression_depth = 7;
+  // Elements a wildcard path or a literal collection may yield.
+  int64 max_path_fanout = 8;
+  // Encoded size of one request, and of the environment binding values together.
+  int64 max_request_bytes = 9;
+  // The size of one Observation value, and the ceiling of max_instruction_response_bytes.
+  int64 max_response_bytes = 10;
+  // Wall-clock bound on opening the Driver session and ordinary execution.
+  int64 max_total_duration_milliseconds = 11;
+  // Wall-clock bound on each of settling, cleanup and closing the Driver session.
+  int64 max_cleanup_duration_milliseconds = 12;
+  // Run Events one instruction's response reads may emit per completion.
+  int64 max_instruction_emitted_events = 13;
+  // Size bound on one instruction's RPC response.
+  int64 max_instruction_response_bytes = 14;
+}

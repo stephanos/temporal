@@ -1,0 +1,20 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-26T14:55:23.884200Z",
+  "depends_on": [
+    "fn-28-portable-evaluation-contract-and.2",
+    "fn-28-portable-evaluation-contract-and.3"
+  ],
+  "id": "fn-28-portable-evaluation-contract-and.4",
+  "impl": null,
+  "priority": null,
+  "review": null,
+  "spec": "fn-28-portable-evaluation-contract-and",
+  "spec_path": ".flow/tasks/fn-28-portable-evaluation-contract-and.4.md",
+  "status": "todo",
+  "sync": null,
+  "title": "Interpret portable Observation, link, and Property clauses in Go",
+  "updated_at": "2026-09-01T17:12:07.893445Z"
+}

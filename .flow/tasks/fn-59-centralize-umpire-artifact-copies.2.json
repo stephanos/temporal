@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-04T15:15:18.435013Z",
+  "depends_on": [
+    "fn-59-centralize-umpire-artifact-copies.1"
+  ],
+  "id": "fn-59-centralize-umpire-artifact-copies.2",
+  "priority": null,
+  "spec": "fn-59-centralize-umpire-artifact-copies",
+  "spec_path": ".flow/tasks/fn-59-centralize-umpire-artifact-copies.2.md",
+  "status": "todo",
+  "title": "Adopt shared copies at artifact and runtime boundaries",
+  "updated_at": "2026-09-04T15:20:46.483900Z"
+}

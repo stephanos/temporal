@@ -1,0 +1,39 @@
+syntax = "proto3";
+package temporal.server.api.testpilot.v1;
+option go_package = "go.temporal.io/server/api/testpilot/v1;testpilot";
+
+// RunEventKind names the lifecycle fact one Run Event records.
+// (-- api-linter: core::0191::file-layout=disabled
+//     core::0216::synonyms=disabled --)
+enum RunEventKind {
+  RUN_EVENT_KIND_UNSPECIFIED = 0;
+  RUN_EVENT_KIND_RUN_OPENED = 1;
+  RUN_EVENT_KIND_ACTIVATION_OPENED = 2;
+  RUN_EVENT_KIND_INSTRUCTION_STARTED = 3;
+  RUN_EVENT_KIND_INSTRUCTION_COMPLETED = 4;
+  RUN_EVENT_KIND_INSTRUCTION_TIMED_OUT = 5;
+  RUN_EVENT_KIND_ACTIVATION_CLOSED = 6;
+  RUN_EVENT_KIND_CLEANUP_STARTED = 7;
+  RUN_EVENT_KIND_CLEANUP_COMPLETED = 8;
+  RUN_EVENT_KIND_RUN_CLOSED = 9;
+  RUN_EVENT_KIND_DIAGNOSTIC = 10;
+  RUN_EVENT_KIND_FAULT_INJECTED = 11;
+}
+
+// RunEventFilter selects the Run Events a Contract transition considers by kind.
+message RunEventFilter { repeated RunEventKind kinds = 1; }
+
+// RunEventField names one coordinate every Run Event has. Kind-specific data is read through the
+// event's payload instead.
+enum RunEventField {
+  RUN_EVENT_FIELD_UNSPECIFIED = 0;
+  RUN_EVENT_FIELD_SEQUENCE = 1;
+  RUN_EVENT_FIELD_ELAPSED_MILLISECONDS = 2;
+  RUN_EVENT_FIELD_KIND = 3;
+  RUN_EVENT_FIELD_ENTRYPOINT_ID = 4;
+  RUN_EVENT_FIELD_ACTIVATION_ID = 5;
+  RUN_EVENT_FIELD_INSTRUCTION_ID = 6;
+  RUN_EVENT_FIELD_ATTEMPT = 7;
+  RUN_EVENT_FIELD_SOURCE_ID = 8;
+  RUN_EVENT_FIELD_RUN_ID = 9;
+}

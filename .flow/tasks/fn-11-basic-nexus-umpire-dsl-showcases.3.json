@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-25T22:17:06.579288Z",
+  "depends_on": [
+    "fn-11-basic-nexus-umpire-dsl-showcases.2"
+  ],
+  "id": "fn-11-basic-nexus-umpire-dsl-showcases.3",
+  "priority": null,
+  "spec": "fn-11-basic-nexus-umpire-dsl-showcases",
+  "spec_path": ".flow/tasks/fn-11-basic-nexus-umpire-dsl-showcases.3.md",
+  "status": "todo",
+  "title": "Publish the basic Nexus learning path",
+  "updated_at": "2026-08-25T22:23:28.604701Z"
+}

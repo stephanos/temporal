@@ -22,6 +22,7 @@ import (
 	"go.temporal.io/server/common/namespace"
 	commonnexus "go.temporal.io/server/common/nexus"
 	"go.temporal.io/server/common/nexus/nexusrpc"
+	"go.temporal.io/server/common/testing/testhooks"
 	queueserrors "go.temporal.io/server/service/history/queues/errors"
 	"go.uber.org/fx"
 )
@@ -34,6 +35,7 @@ type operationTaskHandlerOptions struct {
 
 	MetricsHandler metrics.Handler
 	Logger         log.Logger
+	TestHooks      testhooks.TestHooks
 }
 
 // operationInvocationTaskHandlerOptions is the fx parameter object for the invocation task executor.
@@ -42,6 +44,7 @@ type operationInvocationTaskHandlerOptions struct {
 
 	InvocationTaskHandlerOptions
 	CallbackTokenGenerator *commonnexus.CallbackTokenGenerator
+	TestHooks              testhooks.TestHooks
 }
 
 type operationInvocationTaskHandler struct {
@@ -49,12 +52,14 @@ type operationInvocationTaskHandler struct {
 
 	nexusTaskHandlerBase
 	callbackTokenGenerator *commonnexus.CallbackTokenGenerator
+	testHooks              testhooks.TestHooks
 }
 
 func newOperationInvocationTaskHandler(opts operationInvocationTaskHandlerOptions) *operationInvocationTaskHandler {
 	return &operationInvocationTaskHandler{
 		nexusTaskHandlerBase:   opts.toBase(),
 		callbackTokenGenerator: opts.CallbackTokenGenerator,
+		testHooks:              opts.TestHooks,
 	}
 }
 
@@ -77,6 +82,21 @@ func (h *operationInvocationTaskHandler) Execute(
 	ns, err := h.namespaceRegistry.GetNamespaceByID(namespace.ID(opRef.NamespaceID))
 	if err != nil {
 		return serviceerror.NewNotFoundf("failed to get namespace by ID: %v", err)
+	}
+
+	// Test hook: resolve this attempt as a schedule-to-close timeout instead of calling the
+	// handler, so tests can reach timed_out from scheduled deterministically. No-op in prod
+	// builds; the backing_off value is handled by the backoff task handler, not here.
+	if from, ok := testhooks.Get(h.testHooks, testhooks.NexusOperationForceTimeout, ns.ID()); ok && from == testhooks.NexusForceTimeoutFromScheduled {
+		result, rerr := newInvocationResult(nil, &operationTimeoutBelowMinError{timeoutType: enumspb.TIMEOUT_TYPE_SCHEDULE_TO_CLOSE})
+		if rerr != nil {
+			return fmt.Errorf("failed to construct forced-timeout result: %w", rerr)
+		}
+		_, _, err = chasm.UpdateComponent(ctx, opRef, (*Operation).saveInvocationResult, saveInvocationResultInput{
+			result:      result,
+			retryPolicy: h.config.RetryPolicy(),
+		})
+		return err
 	}
 
 	args, err := chasm.ReadComponent(ctx, opRef, (*Operation).loadStartArgs, nil)
@@ -160,29 +180,7 @@ func (h *operationInvocationTaskHandler) Execute(
 		Links: args.nexusLinks,
 	}
 
-	traceCtx := invocationTraceContext{
-		operationTag:      "StartOperation",
-		namespaceName:     ns.Name().String(),
-		targetNamespaceID: endpoint.GetEndpoint().GetSpec().GetTarget().GetWorker().GetNamespaceId(),
-		requestID:         args.requestID,
-		operation:         args.operation,
-		endpointName:      args.endpointName,
-		workflowID:        opRef.BusinessID,
-		runID:             opRef.RunID,
-		attemptStart:      args.currentTime.UTC(),
-		attempt:           task.GetAttempt(),
-	}
-
-	invocation, err := h.newInvocation(
-		callCtx,
-		ns,
-		endpoint,
-		traceCtx.endpointName,
-		args.service,
-		callTimeout,
-		timeoutType,
-		traceCtx,
-	)
+	invocation, err := h.newInvocation(callCtx, ns, endpoint, opRef, args, task, callTimeout, timeoutType)
 	if err != nil {
 		return fmt.Errorf("failed to construct invocation: %w", err)
 	}
@@ -194,7 +192,7 @@ func (h *operationInvocationTaskHandler) Execute(
 	}
 	failureSource := failureSourceFromContext(callCtx)
 
-	h.recordCallOutcome(endpoint, startCallOutcomeTag(callCtx, response, callErr), callErr, callDuration, failureSource, traceCtx)
+	h.recordStartCallOutcome(callCtx, ns, endpoint, args, response, callErr, callDuration, failureSource)
 
 	result, err := newInvocationResult(response, callErr)
 	if err != nil {
@@ -238,6 +236,49 @@ func (h *operationInvocationTaskHandler) resolveEndpoint(
 	return lookupEndpoint(ctx, h.endpointRegistry, ns.ID(), args.endpointID, args.endpointName)
 }
 
+func (h *operationInvocationTaskHandler) newInvocation(
+	ctx context.Context,
+	ns *namespace.Namespace,
+	endpoint *persistencespb.NexusEndpointEntry,
+	opRef chasm.ComponentRef,
+	args startArgs,
+	task *nexusoperationpb.InvocationTask,
+	callTimeout time.Duration,
+	timeoutType enumspb.TimeoutType,
+) (invocation, error) {
+	base := nexusTaskHandlerBase{
+		config:            h.config,
+		namespaceRegistry: h.namespaceRegistry,
+		metricsHandler:    h.metricsHandler,
+		logger:            h.logger,
+		clientProvider:    h.clientProvider,
+		endpointRegistry:  h.endpointRegistry,
+		httpTraceProvider: h.httpTraceProvider,
+		historyClient:     h.historyClient,
+		chasmRegistry:     h.chasmRegistry,
+	}
+	return base.newInvocation(
+		ctx,
+		ns,
+		endpoint,
+		args.endpointName,
+		args.service,
+		callTimeout,
+		timeoutType,
+		invocationTraceContext{
+			operationTag:  "StartOperation",
+			namespaceName: ns.Name().String(),
+			requestID:     args.requestID,
+			operation:     args.operation,
+			endpointName:  args.endpointName,
+			workflowID:    opRef.BusinessID,
+			runID:         opRef.RunID,
+			attemptStart:  args.currentTime.UTC(),
+			attempt:       task.GetAttempt(),
+		},
+	)
+}
+
 func (h *operationInvocationTaskHandler) validateStartResult(
 	ns *namespace.Namespace,
 	result *nexusrpc.ClientStartOperationResponse[*commonpb.Payload],
@@ -255,12 +296,46 @@ func (h *operationInvocationTaskHandler) validateStartResult(
 	return nil
 }
 
+func (h *operationInvocationTaskHandler) recordStartCallOutcome(
+	callCtx context.Context,
+	ns *namespace.Namespace,
+	endpoint *persistencespb.NexusEndpointEntry,
+	args startArgs,
+	response *nexusrpc.ClientStartOperationResponse[*commonpb.Payload],
+	callErr error,
+	callDuration time.Duration,
+	failureSource string,
+) {
+	methodTag := metrics.NexusMethodTag("StartOperation")
+	namespaceTag := metrics.NamespaceTag(ns.Name().String())
+	var destTag metrics.Tag
+	if endpoint != nil {
+		destTag = metrics.DestinationTag(endpoint.Endpoint.Spec.GetName())
+	} else {
+		destTag = metrics.DestinationTag(args.endpointName)
+	}
+	outcomeTag := metrics.OutcomeTag(startCallOutcomeTag(callCtx, response, callErr))
+	failureSourceTag := metrics.FailureSourceTag(failureSource)
+	OutboundRequestCounter.With(h.metricsHandler).Record(1, namespaceTag, destTag, methodTag, outcomeTag, failureSourceTag)
+	OutboundRequestLatency.With(h.metricsHandler).Record(callDuration, namespaceTag, destTag, methodTag, outcomeTag, failureSourceTag)
+
+	if callErr != nil {
+		_, isTimeoutBelowMin := errors.AsType[*operationTimeoutBelowMinError](callErr)
+		if failureSource == commonnexus.FailureSourceWorker || isTimeoutBelowMin {
+			h.logger.Debug("Nexus StartOperation request failed", tag.Error(callErr))
+		} else {
+			h.logger.Error("Nexus StartOperation request failed", tag.Error(callErr))
+		}
+	}
+}
+
 type operationBackoffTaskHandler struct {
 	chasm.PureTaskHandlerBase
 	config *Config
 
 	metricsHandler metrics.Handler
 	logger         log.Logger
+	testHooks      testhooks.TestHooks
 }
 
 func newOperationBackoffTaskHandler(opts operationTaskHandlerOptions) *operationBackoffTaskHandler {
@@ -268,6 +343,7 @@ func newOperationBackoffTaskHandler(opts operationTaskHandlerOptions) *operation
 		config:         opts.Config,
 		metricsHandler: opts.MetricsHandler,
 		logger:         opts.Logger,
+		testHooks:      opts.TestHooks,
 	}
 }
 
@@ -286,6 +362,20 @@ func (h *operationBackoffTaskHandler) Execute(
 	attrs chasm.TaskAttributes,
 	task *nexusoperationpb.InvocationBackoffTask,
 ) error {
+	// Test hook: time the operation out while it is still backing off, instead of
+	// rescheduling the retry — so tests can reach timed_out from backing_off (a state a
+	// handler response can never settle out of). Same key as the invocation-side hook,
+	// selected by the backing_off value. No-op in prod builds.
+	if from, ok := testhooks.Get(h.testHooks, testhooks.NexusOperationForceTimeout, namespace.ID(ctx.ExecutionKey().NamespaceID)); ok && from == testhooks.NexusForceTimeoutFromBackingOff {
+		return op.onTimedOut(ctx, &failurepb.Failure{
+			Message: "operation timed out",
+			FailureInfo: &failurepb.Failure_TimeoutFailureInfo{
+				TimeoutFailureInfo: &failurepb.TimeoutFailureInfo{
+					TimeoutType: enumspb.TIMEOUT_TYPE_SCHEDULE_TO_CLOSE,
+				},
+			},
+		}, false)
+	}
 	return transitionRescheduled.Apply(op, ctx, EventRescheduled{})
 }
 
