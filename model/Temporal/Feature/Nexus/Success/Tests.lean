@@ -287,11 +287,9 @@ theorem unsatisfiedSuccessPropertyHasNoWitness :
   native_decide
 
 property renamedResult
-  model: lifecycle
+  machine: lifecycle
   when: awaitSuccess
-  require:
-    state: succeeded
-    outcome: completed
+  holds: fun step => step.state.state == .succeeded && step.outcome == .completed
 
 /-- The success slice records no Fact, so the Models below that exercise the declared-Fact path
 return into this domain rather than into the slice's empty one. -/
@@ -318,12 +316,10 @@ machine renamedLifecycle
     awaitSuccess: renamedSuccessStep
 
 property renamedModelResult
-  model: renamedLifecycle
+  machine: renamedLifecycle
   when: awaitSuccess
-  require:
-    state: succeeded
-    outcome: completed
-    fact: succeeded
+  holds: fun step =>
+    step.state.state == .succeeded && step.outcome == .completed && step.facts.contains .succeeded
 
 scenario renamedCompletion
   model: renamedLifecycle
@@ -573,12 +569,10 @@ machine probeLifecycle
     awaitSuccess: renamedSuccessStep
 
 property probeStart
-  model: probeLifecycle
+  machine: probeLifecycle
   when: awaitStart
-  require:
-    state: started
-    outcome: acknowledged
-    fact: started
+  holds: fun step =>
+    step.state.state == .started && step.outcome == .acknowledged && step.facts.contains .started
 
 scenario probeRun
   model: probeLifecycle
@@ -617,8 +611,8 @@ rejects the declaration instead of silently checking a different one. -/
 private def misspelledProperty (values : Umpire.Command.ModelVocabulary) : Property :=
   Umpire.Command.authoredProperty lifecycle values {
     declaration := "successfulResult", roleName := "operation"
-    actionSpelling := "awaitSuccess"
-    requirements := [.stateClause "successState" "suceeded"] }
+    groups := [{ trigger := .action "awaitSuccess"
+                 requirements := [.stateClause "successState" "suceeded"] }] }
 
 private def misspelledRole (values : Umpire.Command.ModelVocabulary) : Scenario :=
   Umpire.Command.authoredScenario lifecycle values {
@@ -775,23 +769,23 @@ nothing to name. -/
 
 /- A step function that returned a Fact the slice's empty domain has no member for would not
 elaborate: `Umpire.Step Lifecycle Outcome Fact` over the success slice's `Fact` has nothing to put in
-`facts`, so there is no spelling for the mistake the `model` command's rows could make. The Property
-clause still has somewhere to be wrong, and that is what is pinned. -/
-
-/--
-error: this Model declares no facts, so 'succeeded' names nothing
--/
-#guard_msgs (error) in
-property factlessClause
-  model: lifecycle
-  when: awaitSuccess
-  require:
-    fact: succeeded
+`facts`, so there is no spelling for the mistake the `model` command's rows could make. Nor has a
+Property: its predicate is Lean over the same `Fact`, so a fact the domain lacks is an unknown
+constructor at the spelling, before the command sees it. -/
 
 /- The success Model's Property is two clauses, and its vocabulary declares no Fact. -/
 #guard (do
   let checked ← admitted
   pure (checked.property.clauses.length == 2 && checked.vocabulary.facts.isEmpty)) == some true
+
+/- The predicate enumerates to exactly the clauses the keyed `require:` block wrote, so the Property
+carries the fingerprint it had: the authoring form changed and the behavior did not. -/
+#guard (admitted.map fun checked => checked.property.behaviorFingerprint.render) ==
+  some "sha256:11e59f7f28ed7dda0fcca9bd7a9086360a1e7c52f21c0912657cd889ad6ec219"
+#guard (renamedQuery.toOption.map fun checked => checked.property.behaviorFingerprint.render) ==
+  some "sha256:46475870ff389d73513d46ed64d3a8daf897c03537e167b420a5c15c479e62f6"
+#guard (probeQuery.toOption.map fun checked => checked.property.behaviorFingerprint.render) ==
+  some "sha256:fa9112a1c724b242192e99877bde63f5a08c3df9d2426d5e21fa106682c57227"
 
 /-! ### `enum` declares a domain
 
@@ -970,45 +964,223 @@ run_cmd do
 
 /-! ### Every name resolves, and every mistake lands where it was written -/
 
+/- A misspelled member of a predicate is Lean's own error, at the spelling: the predicate is
+ordinary Lean over the machine's own domains, so there is no second vocabulary to resolve it in. -/
 /--
-error: unknown Model state 'suceeded'; declared: scheduled, started, succeeded
+error: Unknown constant `Temporal.Feature.Nexus.Success.State.suceeded`
+
+Note: Inferred this name from the expected resulting type of `.suceeded`:
+  State
 -/
 #guard_msgs (error) in
 property misspelledState
-  model: lifecycle
+  machine: lifecycle
   when: awaitSuccess
-  require:
-    state: suceeded
+  holds: fun step => step.state.state == .suceeded
 
 /--
-error: unknown Model outcome 'complete'; declared: acknowledged, completed
+error: Unknown constant `Temporal.Feature.Nexus.Success.Outcome.complete`
+
+Note: Inferred this name from the expected resulting type of `.complete`:
+  Outcome
 -/
 #guard_msgs (error) in
 property misspelledOutcome
-  model: lifecycle
+  machine: lifecycle
   when: awaitSuccess
-  require:
-    outcome: complete
+  holds: fun step => step.outcome == .complete
 
 /--
 error: unknown Model action 'awaitFinish'; declared: awaitStart, awaitSuccess
 -/
 #guard_msgs (error) in
 property misspelledWhen
-  model: lifecycle
+  machine: lifecycle
   when: awaitFinish
-  require:
-    state: succeeded
+  holds: fun step => step.state.state == .succeeded
 
 /--
 error: 'Temporal.Feature.Nexus.Success.successfulResult' is not a Model declared by a `machine` command
 -/
 #guard_msgs (error) in
 property notAModel
-  model: successfulResult
+  machine: successfulResult
+  when: awaitSuccess
+  holds: fun step => step.state.state == .succeeded
+
+/-! ### A predicate is enumerated over the machine's table
+
+The command reads the predicate off the table, so what the Property claims is what the machine does.
+A predicate that holds on no step the Action produces, one that fixes nothing, one that is not a
+conjunction of one state, one outcome and facts, one over another machine's steps, one that is not
+decidable, and one of the other claim's shape each reject at the predicate. -/
+
+/- `awaitSuccess` never reaches `scheduled`, so a claim that it does is about the wrong machine
+and is rejected where it is written rather than found unsatisfiable by a later Query. -/
+/--
+error: the predicate holds on no step of this machine at `awaitSuccess`; a Property claims something the machine does, so it fixes a state, an outcome or a fact some step reaches
+-/
+#guard_msgs (error) in
+property unreachableResult
+  machine: lifecycle
+  when: awaitSuccess
+  holds: fun step => step.state.state == .scheduled
+
+/--
+error: the predicate holds on every step of this machine at `awaitSuccess` and fixes no state, outcome or fact, so it claims nothing
+-/
+#guard_msgs (error) in
+property claimsNothing
+  machine: lifecycle
+  when: awaitSuccess
+  holds: fun _ => true
+
+/-- A state structure that is not the success Model's, over the same phases. -/
+structure OtherLifecycle where
+  state : State
+  deriving BEq, DecidableEq, Repr, Umpire.Command.Finite
+
+/--
+error: the predicate reads steps of 'Temporal.Feature.Nexus.Success.Tests.OtherLifecycle', which is not this machine's state; a `holds:` predicate is over `Step Temporal.Feature.Nexus.Success.Lifecycle _ _`
+-/
+#guard_msgs (error) in
+property otherMachine
+  machine: lifecycle
+  when: awaitSuccess
+  holds: fun (step : Umpire.Step OtherLifecycle Outcome Temporal.Feature.Nexus.Success.Fact) =>
+    step.state.state == .succeeded
+
+/--
+error: the predicate is not decidable: `holds:` is a `Bool`-valued function over the machine's steps, so a claim is written with `==`, `&&`, `||` and `!`, not as a proposition
+-/
+#guard_msgs (error) in
+property undecidable
+  machine: lifecycle
+  when: awaitSuccess
+  holds: fun (step : Umpire.Step Lifecycle Outcome Temporal.Feature.Nexus.Success.Fact) =>
+    ∃ n : Nat, n = step.facts.length
+
+/--
+error: a transition claim reads the step before, so it names no `when:` Action; a same-step claim under `when:` is `Step → Bool`
+-/
+#guard_msgs (error) in
+property twoStepsUnderWhen
+  machine: lifecycle
+  when: awaitSuccess
+  holds: fun (before after : Umpire.Step Lifecycle Outcome Temporal.Feature.Nexus.Success.Fact) =>
+    before.state.state != after.state.state
+
+/--
+error: a same-step claim names the Action it is about under `when:`; a claim over every step is a transition claim, `Step → Step → Bool`
+-/
+#guard_msgs (error) in
+property oneStepWithoutWhen
+  machine: lifecycle
+  holds: fun (step : Umpire.Step Lifecycle Outcome Temporal.Feature.Nexus.Success.Fact) =>
+    step.state.state == .succeeded
+
+/- The keyed form is rejected at its key, naming its replacement. -/
+/--
+error: the keyed `require:` form is retired; a `property` names a `machine:` and a `holds:` predicate over its steps, `Step → Bool` for a same-step claim under `when:` or `Step → Step → Bool` for a transition claim
+-/
+#guard_msgs (error) in
+property keyedForm
+  machine: lifecycle
   when: awaitSuccess
   require:
     state: succeeded
+
+/--
+error: `model:` is retired on `property`; the key is `machine:`
+-/
+#guard_msgs (error) in
+property modelKey
+  model: lifecycle
+  when: awaitSuccess
+  holds: fun step => step.state.state == .succeeded
+
+/-! ### A transition claim
+
+`Step → Step → Bool` reads the step before and the step after, and enumerates into one group per
+prior state it constrains: a `priorState` trigger and the values it fixes there. A prior state at
+which it accepts every step constrains nothing and contributes no clause. -/
+
+/- Once started, the success slice can only succeed: from `started`, every step ends in
+`succeeded` with the `completed` outcome. From `scheduled` the claim says nothing. -/
+property startedThenSucceeds
+  machine: lifecycle
+  holds: fun before after =>
+    before.state.state != .started || after.state.state == .succeeded
+
+#guard (match Umpire.Command.modelVocabulary lifecycle lifecycle.table with
+  | .ok values => (startedThenSucceeds values).clauses.map (·.id.value)
+  | .error _ => []) ==
+  ["temporal.nexus.success.property.startedThenSucceeds.from-started-state-succeeded"]
+
+/-! ### What the clause language cannot carry
+
+A machine whose `awaitStart` produces different steps from different states, so a predicate over
+them can be a disjunction across fields: those the command refuses with the step the clauses
+cannot tell apart. -/
+
+/-- From `started` the wait may find the operation done, recording that, or still running. -/
+private def forkedStartStep (current : Lifecycle) : List (Umpire.Step Lifecycle Outcome Fact) :=
+  match current.state with
+  | .scheduled => records .started .acknowledged .started
+  | .started =>
+      [{ outcome := .completed, state := { state := .started }, facts := [] }] ++
+        records .succeeded .completed .succeeded
+  | .succeeded => []
+
+machine forkedLifecycle
+  for: operation
+  state: Lifecycle
+  starts: [scheduled]
+  ends: [succeeded]
+  evidence:
+    started: nexusOperationStarted
+    succeeded: nexusOperationCompleted
+  steps:
+    awaitStart: forkedStartStep
+    awaitSuccess: renamedSuccessStep
+
+/--
+error: the predicate is not a conjunction of one state, one outcome and facts at `awaitStart`: the clauses it fixes cannot tell the step to started with outcome completed and facts [] apart from the steps it accepts; a Property is one such conjunction, so split it or restate it
+-/
+#guard_msgs (error) in
+property disjunction
+  machine: forkedLifecycle
+  when: awaitStart
+  holds: fun step => step.outcome == .acknowledged || step.facts.contains .succeeded
+
+/- A predicate that only reads a fact fixes only that fact: the states its accepted steps happen to
+share are not something it rejects when changed, so no state clause is read off the table. -/
+property recordsSuccess
+  machine: forkedLifecycle
+  when: awaitStart
+  holds: fun step => step.facts.contains .succeeded
+
+#guard (match Umpire.Command.modelVocabulary forkedLifecycle forkedLifecycle.table with
+  | .ok values => (recordsSuccess values).clauses.map (·.id.value)
+  | .error _ => []) ==
+  ["temporal.nexus.success.tests.property.recordsSuccess.fact-succeeded"]
+
+scenario forkedStart
+  model: forkedLifecycle
+  starts: scheduled
+  actions: [awaitStart]
+
+/- A Property no admitted trace satisfies says so, and says nothing about limits: the search
+completed, and raising a bound would not help. The claim is one the machine does make -- from
+`started`, `awaitStart` records `succeeded` -- and the Scenario never takes that step. -/
+/--
+error: no trace the Scenario admits satisfies the Property; the search explored 5 traces within the declared limits and no bound stopped it
+-/
+#guard_msgs (error) in
+query forkedCompletion
+  find: recordsSuccess
+  in: forkedStart
+  limits: shortTrace
 
 /--
 error: unknown Model start state 'started'; declared: scheduled
@@ -1028,34 +1200,6 @@ scenario unknownScenarioAction
   starts: scheduled
   actions: [awaitStart, awaitFinish]
 
-/- A Property no admitted trace satisfies says so, and says nothing about limits: the search
-completed, and raising a bound would not help. -/
-property unreachableResult
-  model: lifecycle
-  when: awaitSuccess
-  require:
-    state: scheduled
-
-/--
-error: no trace the Scenario admits satisfies the Property; the search explored 3 traces within the declared limits and no bound stopped it
--/
-#guard_msgs (error) in
-query unreachableCompletion
-  find: unreachableResult
-  in: successfulCompletion
-  limits: shortTrace
-
-/- A misspelled Fact is resolved against the Model's own Fact domain. -/
-/--
-error: unknown Model fact 'succeeeded'; declared: started, succeeded
--/
-#guard_msgs (error) in
-property misspelledFact
-  model: renamedLifecycle
-  when: awaitSuccess
-  require:
-    fact: succeeeded
-
 /- A bound that stops the search says a bound stopped it. -/
 limits tooFewSteps
   steps: 1
@@ -1073,8 +1217,8 @@ query boundedCompletion
 
 /-! ### The respelled surface rejects in place
 
-A missing key, a key that belongs to another declaration, a Query whose Property and Scenario name
-different Models, and a repeated requirement each land on what the author wrote. -/
+A missing key, a key that belongs to another declaration, and a Query whose Property and Scenario
+name different Models each land on what the author wrote. -/
 
 /- A missing key and a key on the wrong line are parse errors, located on the offending token:
 
@@ -1090,17 +1234,6 @@ different Models, and a repeated requirement each land on what the author wrote.
    They are not pinned with `#guard_msgs`, which cannot capture them: the command it wraps never
    parses, so the whole `#guard_msgs` block fails to parse with it. The two messages above were
    read off the elaborator. -/
-
-/--
-error: duplicate requirement 'state-succeeded': this Property already requires it
--/
-#guard_msgs (error) in
-property duplicateRequirement
-  model: lifecycle
-  when: awaitSuccess
-  require:
-    state: succeeded
-    state: succeeded
 
 /--
 error: the Property runs on Model 'Temporal.Feature.Nexus.Success.Tests.probeLifecycle' and the Scenario on 'Temporal.Feature.Nexus.Success.lifecycle'; a Query asks one question of one Model

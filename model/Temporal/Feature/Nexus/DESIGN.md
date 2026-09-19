@@ -502,6 +502,22 @@ set nexusCallerCanary
   queries: [syncCompletion, asyncCompletion]
 ```
 
+> Amended during fn-85 `.15`, 2026-09-19. The two Properties above are written with a keyed
+> `require:` block, which the user's 2026-09-12 decision replaced with an ordinary Lean predicate
+> by the same rule that replaced rows with step functions. A same-step claim is `Step → Bool` under
+> `when:`; a transition claim such as `terminalIsFinal` is `Step → Step → Bool` over the step before
+> and the step after, with no `when:`:
+>
+> ```lean
+> property terminalIsFinal
+>   machine: nexusProduct
+>   holds: fun before after => !(terminal before.state) || after.state.phase == before.state.phase
+> ```
+>
+> The command enumerates the predicate over the machine's table into the state, outcome and facts
+> it fixes, so what Search and the Case read is the clause language the keyed block wrote by hand,
+> with the same fingerprint. A bounded-progress claim (`within:`) is not in this slice.
+
 The realization, in sketch syntax (fn-85 makes it a Lean value in `Temporal.Case`). A worker
 instruction carries the Temporal API message the action's `schema:` names, so a class example fills
 that message and the Driver maps it to the SDK call that produces it. Each observation is declared

@@ -12,9 +12,9 @@ the same state, something that happened without a state change, or several claim
 Cancellation remains an unsupported design sketch in `Nexus.md`; the imported `Terminal` module
 is the historical already-started Target described in `Integration.md`, not this slice's.
 This slice authors no correlated Property of its own. It does not need one: the Producer in
-`Producer.lean` derives the operation-correlated clauses the Case carries from the `require` lines
-below and the Action order the Scenario fixes, so the same-step requirement written here is what the
-runtime capability reads.
+`Producer.lean` derives the operation-correlated clauses the Case carries from the values the
+`holds:` predicate below fixes and the Action order the Scenario fixes, so the same-step requirement
+written here is what the runtime capability reads.
 
 Read from top to bottom: vocabulary → allowed behavior → requirement → scenario → question.
 The five blocks are the intentionally small Nexus success authoring surface. Their elaborator
@@ -78,13 +78,13 @@ machine lifecycle
     awaitStart: awaitStartStep
     awaitSuccess: awaitSuccessStep
 
-/- `awaitSuccess` must expose the complete Target-owned success result. -/
+/- `awaitSuccess` must expose the complete Target-owned success result. The predicate is ordinary
+Lean over the step the Action produces; the command enumerates it over the machine's table into the
+state and outcome it fixes, which is what Search and the Case read. -/
 property successfulResult
-  model: lifecycle
+  machine: lifecycle
   when: awaitSuccess
-  require:
-    state: succeeded
-    outcome: completed
+  holds: fun step => step.state.state == .succeeded && step.outcome == .completed
 
 /- `actions:` is the exact sequence the operation selects, and its length. -/
 scenario successfulCompletion

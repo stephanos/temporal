@@ -365,18 +365,36 @@ abbrev ModelVocabulary := Umpire.Case.Producer.Vocabulary
 abbrev unknownValue := Umpire.Case.Producer.unknownValue
 
 
-/-- One `require` clause: its label and the member spelling it selects. -/
+/-- One requirement a Property's predicate fixes: its clause label and the member spelling it
+selects. The label is the clause's own key -- `state-succeeded`, `outcome-completed`,
+`fact-settled` -- so two Properties that fix the same value carry the same clause id under their
+own names. -/
 inductive PropertyRequirement where
   | stateClause (label spelling : String)
   | outcomeClause (label spelling : String)
   | factClause (label spelling : String)
+  deriving BEq, Repr, Inhabited
 
-/-- The declared role, the Action every clause is about, and the ordered `require` clauses. -/
+/-- What one group of requirements is about: the Action a same-step claim names, or the state a
+transition claim leaves. Each is the trigger pattern of every clause in the group. -/
+inductive PropertyTrigger where
+  | action (spelling : String)
+  | priorState (spelling : String)
+  deriving BEq, Repr, Inhabited
+
+/-- One trigger and the requirements the predicate fixes at it, in the order the clauses are
+emitted: state, outcome, then facts. -/
+structure PropertyGroup where
+  trigger : PropertyTrigger
+  requirements : List PropertyRequirement
+  deriving BEq, Repr, Inhabited
+
+/-- The declared role and the ordered groups a predicate enumerated to. A same-step claim is one
+group triggered by its Action; a transition claim is one group per prior state it constrains. -/
 structure PropertyNames where
   declaration : String
   roleName : String
-  actionSpelling : String
-  requirements : List PropertyRequirement
+  groups : List PropertyGroup
 
 /-- The setup state and the ordered occurrence labels with the Action each one selects. -/
 structure ScenarioNames where
@@ -407,9 +425,11 @@ def authoredProperty [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fac
   id := model.origin.family.id "property" names.declaration
   source := model.origin.source
   requires := [model.roleCapability names.roleName]
-  clauses :=
-    let selected := PropertyPattern.selectedAction (values.namedAction names.actionSpelling)
-    names.requirements.map fun requirement =>
+  clauses := names.groups.flatMap fun group =>
+    let selected := match group.trigger with
+      | .action spelling => PropertyPattern.selectedAction (values.namedAction spelling)
+      | .priorState spelling => PropertyPattern.priorState (values.namedState spelling)
+    group.requirements.map fun requirement =>
     match requirement with
     | .stateClause label spelling =>
         .transitionContract (model.origin.ownedId "property" names.declaration label) selected

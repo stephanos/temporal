@@ -663,6 +663,9 @@ def selectedAction (value : ModelValue) : PropertyPattern :=
 def resultingState (value : ModelValue) : PropertyPattern :=
   .exact .resultingState value.definitionId value.value
 
+def priorState (value : ModelValue) : PropertyPattern :=
+  .exact .priorState value.definitionId value.value
+
 def outcome (value : ModelValue) : PropertyPattern :=
   .exact .outcome value.definitionId value.value
 
