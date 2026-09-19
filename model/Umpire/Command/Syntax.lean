@@ -1696,6 +1696,13 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
     let some member := stateMembers.find? fun candidate =>
         heldValue candidate field == some spelling
       | throwErrorAt startRef (noEndsFieldMessage spelling)
+    -- The start-state list is canonical or the planner refuses the Model, and the refusal comes
+    -- from admission rather than from the line that wrote it. The Action catalog needs no such rule
+    -- because the command sorts it; a `starts:` line is the author's, and its order is the order
+    -- the states are emitted in.
+    if let some earlier := startKeys.back? then
+      unless earlier < member.key do
+        throwErrorAt startRef (unsortedInitialMessage member.key earlier)
     startTerms := startTerms.push (← member.term)
     startKeys := startKeys.push member.key
   -- An evidence line names a fact the steps return. One that names a fact no step returns confirms
@@ -1779,13 +1786,18 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
   -- The declared Model, on the enumerated rows. Everything downstream -- the Behavior Fingerprint,
   -- Search, Contract lowering, `umpire-inspect` -- reads this and never sees a step function.
   let setupType := mkIdentFrom name (name.getId ++ `Setup)
-  let setupName := mkIdentFrom name (name.getId ++ `Setup ++ `only)
+  -- The setup domain is the command's own: nothing else in a Model file mentions it, and varying a
+  -- machine's table over its `setup:` parameters is task `.5`'s, so a machine carries one setup.
+  -- Its constructor is named after the machine's first start state, which is the convention the
+  -- `model` command set and what keeps a migrated Model's canonical setup key where it was.
+  let setupConstructor := Name.mkSimple (startKeys[0]!)
+  let setupName := mkIdentFrom name (name.getId ++ `Setup ++ setupConstructor)
   -- The constructor is built rather than written: an identifier inside a quotation is hygienic, so a
-  -- literal `| only` would be declared under a macro scope and no name outside this command could
+  -- literal one would be declared under a macro scope and no name outside this command could
   -- reach it.
   elabGenerated (← `(command|
     inductive $setupType where
-      | $(mkIdent `only):ident
+      | $(mkIdent setupConstructor):ident
       deriving BEq, DecidableEq, Repr))
   let outcomeMembers ← domainMembers name outcomeType
   let factMembers ← domainMembers name factType
@@ -1794,7 +1806,7 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
   let names ← `(term|
     { declaration := $(Lean.quote name.getId.toString)
       roleName := $(Lean.quote declaredEntity.name)
-      setup := "only"
+      setup := $(Lean.quote setupConstructor.toString)
       stateKeys := [$(keyList stateMembers),*]
       actionKeys := [$(keyList actionMembers),*]
       outcomeKeys := [$(keyList outcomeMembers),*]
