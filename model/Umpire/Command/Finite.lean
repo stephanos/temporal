@@ -156,10 +156,12 @@ def reachableFrom [BEq State] [Finite State]
     (transitions : List (FiniteTransitionRow State Action Outcome Fact)) : List State :=
   let grow := fun (seen : List State) =>
     transitions.foldl (init := seen) fun seen row =>
-      -- An instance that has ended takes no further step, so the walk does not leave a terminal
-      -- state even where the table has a row from one. Walking through would report a state no
-      -- Search can reach, which reads as a missing step the author does not have to write.
-      if seen.contains row.source && !ends.contains row.source then
+      -- The walk follows the table, terminal rows included. Stopping at `ends` would assume a
+      -- Search that does not take a row out of a terminal state, and Search takes every row the
+      -- table carries: a state reachable only that way is genuinely reachable, and calling it
+      -- unreachable would hide a stuck state rather than a false one. `ends` stays a parameter
+      -- because `stuckState` reads it, not because the walk does.
+      if seen.contains row.source then
         row.results.foldl (init := seen) fun seen result =>
           if seen.contains result.state then seen else seen ++ [result.state]
       else seen
