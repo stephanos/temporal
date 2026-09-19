@@ -1195,6 +1195,10 @@ private def undeclaredStepActionMessage (spelling : Name) : String :=
   s!"'{spelling}' is not an action declared by an `action` command; a `steps:` line names the action \
 its function steps on"
 
+private def machineTooLargeMessage (states actions bound : Nat) : String :=
+  s!"enumerating {states} states over {actions} action classes is {states * actions} steps, and the \
+bound is {bound}; a machine this size is bounded by its Limits or by symmetry, not walked"
+
 private def stuckStateMessage (witness : String) : String :=
   s!"the machine reaches '{witness}', does not end there, and can take no step from it; either a \
 step is missing or '{witness}' belongs under `ends:`"
@@ -1476,6 +1480,13 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
             | .atom declared => declared.getString! == spelling
             | .applied constructor _ => constructor.getString! == spelling
   let terminalTerms ← (stateMembers.filter isTerminal).toArray.mapM ClassValue.term
+  -- The walk is bounded. A step function is evaluated once per (state, action) pair whether or not
+  -- the pair is enabled, so a machine whose state structure multiplies out past the bound is
+  -- refused with both factors rather than enumerated part-way into a table smaller than the Model.
+  let walked := stateMembers.length * actionMembers.length
+  if walked > enumerationBound then
+    throwErrorAt stateType
+      (machineTooLargeMessage stateMembers.length actionMembers.length enumerationBound)
   let transitionsName := mkIdentFrom name (name.getId ++ `transitions)
   elabCommand (← `(command|
     def $transitionsName :
