@@ -112,6 +112,16 @@ lint-model` at the baseline.
 Self-review: no second backend is installed in this cloud session, so this owes a cross-model
 re-review before the completion review, as the tasks before it do.
 
+### Re-review fix, 2026-09-19
+
+The cross-model re-review found the `set` command's party scan and the `case` block's claim list
+resolving declarations by bare name over the whole registry, so a same-named Query or action in an
+imported Model could stand in for the one the set lists. A machine now records the `action`
+constants it steps on (`MachineEntry.actionDecls`), the set resolves each listed Query to its
+constant once and reads the parties off those declarations, and the claim list is built from them.
+`Umpire.Command.AbstractionClaim` and `AbstractionClaim.ofRow` were a second spelling of the
+provenance row nothing used; both are deleted.
+
 ## Evidence
 - Commits: ace06c5
 - Tests: cd model && lake build; make umpire-gen-case-runtime-conformance; make umpire-check-case-runtime-conformance; make umpire-check-testpilot-protocol; make umpire-check-testpilot-authoring; make umpire-check-goldens; make umpire-check-inventory; make umpire-check-retired-vocabulary; go test -tags test_dep ./tools/umpire/... ./common/testing/testpilot/... ./tests/testcore/testpilot/...; GOLANGCI_LINT_BASE_REV=43cb178 make lint-code-fast; LEAN_NUM_THREADS=1 make lint-model
