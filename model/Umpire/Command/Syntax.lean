@@ -1576,11 +1576,22 @@ elab doc?:(docComment)? machineKeyword name:ident keys:machineKey+ : command => 
   let factMembers ← domainMembers name factType
   let keyList : List ClassValue → Array Term := fun values =>
     (values.map fun value => Lean.quote value.key).toArray
+  -- Each state's fields, in the structure's own field order: the field's name and the member this
+  -- state holds it at. A Contract compares `attempts` as a number and `phase` as an enum, and
+  -- reading them back out of the state key is the parsing the key exists to avoid.
+  let stateFieldList ← stateMembers.toArray.mapM fun member => do
+    let held := match member with
+      | .applied _ fields => fields
+      | .atom _ => #[]
+    let pairs ← held.mapM fun (field, value) =>
+      `(term| ($(Lean.quote field), $(Lean.quote value.key)))
+    `(term| [$pairs,*])
   let names ← `(term|
     { declaration := $(Lean.quote name.getId.toString)
       roleName := $(Lean.quote declaredEntity.name)
       setup := $(Lean.quote setupConstructor.toString)
       stateKeys := [$(keyList stateMembers),*]
+      stateFields := [$stateFieldList,*]
       actionKeys := [$(keyList actionMembers),*]
       outcomeKeys := [$(keyList outcomeMembers),*]
       factKeys := [$(keyList factMembers),*] })
