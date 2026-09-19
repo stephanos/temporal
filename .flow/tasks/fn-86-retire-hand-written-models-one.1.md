@@ -27,11 +27,27 @@ Confirm the spec's "What is hand-written today" table file by file (R1): a commi
 - Destinations per the spec table plus the planner's decisions: `Observation.lean`'s offline evaluation is a recorded drop with `Umpire/Evidence/Tests/Evaluation.lean` named as the remaining prover; `NexusDiscovery`/`Inspect` and the `umpire-inspect/list/explain` targets are deleted with Operations unless the user asks to re-point them at the Caller Model (record the open question in the row); Race docs fold into fn-79's text; `Nexus/COVERAGE.md` is deleted (its citations are deleted modules); the two design sketches are deleted with the typed examples.
 - Check: `ModelLint` already reconciles sources against loaded metadata (`reconcile`, `InventoryIssue.uncoveredSource`); add `handwrittenNotInventoried` raised for a production module under the three roots that imports `Umpire.Model`, `Umpire.Property`, `Umpire.Scenario`, `Umpire.Query`, `Umpire.Operation` or `Umpire.Case` directly and is not listed; a planted case in `ImportGraphTests` proves it fires.
 - Baseline: extract `contract` from `typed-unary-case.json` through the generator's persisted form so task .2 can diff Contract reads structurally.
+- Adjusted 2026-09-19 after fn-85 .7 landed (fn-85 .8 to .13 are still open, so re-read at start
+  as the F5 line says): `Success/` today holds `Model.lean` (the `lifecycle` machine, the
+  `nexusSuccessTests` set and its `case nexusSuccessSet`), `Tests.lean`, `RaceSyntaxTests.lean` (a
+  command-authored second lifecycle, not a Race module), `TypedUnary.lean`, `TypedNexus.lean`,
+  `Tests/{TypedUnary,TypedNexus}.lean`, `Nexus.md` and `Integration.md`. `register_case` has four
+  lines, all in `model/Temporal/Tool/Testpilot.lean:20-27`.
+  `Temporal/Feature/Nexus/Tests/{Commands,Machines,SecondModel}.lean` are fn-85's command specimens
+  (test modules, not hand-written). `Temporal.Case.Realization.Nexus` is a production module that
+  imports `Umpire.Case.Producer` and is outside R7's rule by design, so list it as "kept:
+  realization" rather than as hand-written. `Temporal.Case.Template.*` and
+  `Temporal.Case.Tests.{Template,ProofPoint}` are fn-85 .11's to delete and are inventory rows only
+  if .1 runs before .11 lands. `Umpire/Tests/MigrationCompatibility.lean:121` already reads
+  `compatibilityFamilies := ["switch"]`; the Temporal-side families are
+  `TemporalModelTests.lean:24-37`. The typed-unary fixture's Contract will have moved by fn-85 .8
+  and .9 (typed instructions, observation declarations) before this task runs; the baseline is
+  whatever the generator writes on the day, which is why it is a scaffold.
 
 ### Investigation targets
 **Required:**
 - `model/ModelLint/ImportGraph.lean:175-188,208-215,294-322` — `InventoryIssue`, `isProductionModule`, `reconcile`
-- `model/ModelLint.lean:43-53,124` — sources, metadata, `main`
+- `model/ModelLint.lean:28-53` — sources, metadata, the `reconcile` call (the file is 112 lines; there is no `:124`)
 - `tools/umpire/CLEANUP_INVENTORY.md:1-8` — the ledger precedent and its "consumer evidence, not absence of an import" standard
 - `model/Temporal/System/Nexus/ImplementationLink.lean:1-2,35-350,484,528` — the two Feature imports and what they pin
 - `model/Temporal/Tool/{Goldens,Inspect,NexusDiscovery}.lean` — the tools' inputs
@@ -40,8 +56,8 @@ Confirm the spec's "What is hand-written today" table file by file (R1): a commi
 - `model/TemporalModelTests.lean:24-37`, `model/TemporalExperimentalTests.lean:8-20`, `model/UmpireTests.lean:50-52` — the compatibility-family pins
 
 ### Key context
-- `model/README.md:36` names a `Success.Producer` that does not exist; record it as a doc drift for task .9.
-- fn-85 replaced `Success/Model.lean` with the Caller Model; confirm what remains under `Success/` before listing.
+- `model/README.md:37` names a `Success.Producer` that does not exist; fn-85 .13 now takes that drift (recorded there on 2026-09-19); confirm it is gone rather than re-recording it for task .9.
+- fn-85 .11 replaces `Success/Model.lean` with the Caller Model; confirm what remains under `Success/` before listing (the dated Approach note says what is there as of 2026-09-19).
 
 ## Acceptance
 - [ ] `model/HANDWRITTEN_INVENTORY.md` lists every module in the scout table with every reader and a destination (migrate to a named task, delete with the named spec that records its coverage, keep with the reason, or drop with a reason); the kept exception is listed with its two Feature imports
